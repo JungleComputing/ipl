@@ -220,6 +220,7 @@ public class StaticProperties {
 
     /**
      * Creates an empty property set with the specified defaults.
+     * @param sp the specified defaults.
      */
     public StaticProperties(StaticProperties sp) {
         defaults = sp;
@@ -346,7 +347,8 @@ public class StaticProperties {
      * supplied. We have a match if the current properties are a subset
      * of the specified properties.
      * @param sp the static properties to be matched with.
-     * @return true if we have a match, false otherwise.
+     * @return <code>true</code> if we have a match,
+     * <code>false</code> otherwise.
      */
     public boolean matchProperties(StaticProperties sp) {
         Iterator i = category_names.iterator();
@@ -391,7 +393,7 @@ public class StaticProperties {
      * If the key is already bound, an
      * {@link ibis.ipl.IbisRuntimeException IbisRuntimeException}
      * is thrown. If either the key or the value is <code>null</code>,
-     * a <code>NullPointer</code> is thrown.
+     * a <code>NullPointerException</code> is thrown.
      *
      * @param key the key to be bound.
      * @param value the value to bind to the key.
@@ -426,6 +428,7 @@ public class StaticProperties {
      * Returns the value associated with the specified key,
      * or <code>null</code>.
      * This is a synonym for {@link #find(String)} 
+     * @param key the specified key.
      * @return the value associated with the specified key.
      */
     public String getProperty(String key) {
@@ -435,6 +438,7 @@ public class StaticProperties {
     /**
      * Returns the value associated with the specified key,
      * or <code>null</code>.
+     * @param key the specified key.
      * @return the value associated with the specified key.
      */
     public String find(String key) {
@@ -447,6 +451,7 @@ public class StaticProperties {
 
     /**
      * Returns the value associated with the specified key, as a set.
+     * @param key the specified key.
      * @return the value associated with the specified key.
      */
     public Set findSet(String key) {
@@ -458,11 +463,12 @@ public class StaticProperties {
     }
 
     /**
-     * Returns true if the specified property category has the
+     * Returns <code>true<code> if the specified property category has the
      * specified property set.
      * @param cat the property category.
      * @param prop the property.
-     * @return true if the property is set, false otherwise.
+     * @return <code>true</code> if the property is set,
+     * <code>false</code> otherwise.
      */
     public boolean isProp(String cat, String prop) {
         Property p = getProp(cat.toLowerCase());
@@ -578,10 +584,10 @@ public class StaticProperties {
     }
 
     /**
-     * Returns true if <code>other</code> represents the same property
-     * set.
+     * Returns <code>true</code> if <code>other</code> represents the same
+     * property set.
      * @param other the object to compare with.
-     * @return true if equal.
+     * @return <code>true</code> if equal, <code>false</code> otherwise.
      */
     public boolean equals(Object other) {
         if (other == null) {

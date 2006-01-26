@@ -112,6 +112,7 @@ public interface ReceivePort {
      * properties of the port, by means of the
      * {@link ibis.ipl.ReceivePort#setProperty(String, Object)
      * setProperty} method.
+     * @return the dynamic properties of this port.
      */
     public Map properties();
 
@@ -119,6 +120,7 @@ public interface ReceivePort {
      * Sets a number of dynamic properties of
      * this port. The user can set some implementation-specific dynamic
      * properties of the port.
+     * @param properties the dynamic properties to set.
      */
     public void setProperties(Map properties); 
     
@@ -128,6 +130,8 @@ public interface ReceivePort {
      * properties of the port, by means of the
      * {@link ibis.ipl.ReceivePort#setProperty(String, Object)
      * setProperty} method.
+     * @param key the key for the requested property.
+     * @return the value associated with the property.
      */
     public Object getProperty(String key);
     
@@ -135,6 +139,8 @@ public interface ReceivePort {
      * Sets a dynamic property of
      * this port. The user can set some implementation-specific dynamic
      * properties of the port.
+     * @param key the key for the property.
+     * @param val the value associated with the property.
      */
     public void setProperty(String key, Object val);
 

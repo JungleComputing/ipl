@@ -186,11 +186,10 @@ public interface WriteMessage {
     public void writeObject(Object val) throws IOException;
 
     /**
-     * Writes an array of booleans to the message.
+     * Writes an array to the message.
      * No duplicate check is performed for this array!
      * This method is just a shortcut for doing:
      * <code>writeArray(val, 0, val.length);</code>
-     * (See {@link #writeArray(boolean[], int, int)}).
      *
      * @param val			the array to be written.
      *
@@ -199,56 +198,103 @@ public interface WriteMessage {
     public void writeArray(boolean[] val) throws IOException;
 
     /**
-     * Writes an array of bytes to the message.
-     * See {@link #writeArray(boolean[])} for a description.
+     * Writes an array to the message.
+     * No duplicate check is performed for this array!
+     * This method is just a shortcut for doing:
+     * <code>writeArray(val, 0, val.length);</code>
+     *
+     * @param val			the array to be written.
+     *
+     * @exception java.io.IOException	an error occurred 
      */
     public void writeArray(byte[] val) throws IOException;
 
     /**
-     * Writes an array of chars to the message.
-     * See {@link #writeArray(boolean[])} for a description.
+     * Writes an array to the message.
+     * No duplicate check is performed for this array!
+     * This method is just a shortcut for doing:
+     * <code>writeArray(val, 0, val.length);</code>
+     *
+     * @param val			the array to be written.
+     *
+     * @exception java.io.IOException	an error occurred 
      */
     public void writeArray(char[] val) throws IOException;
 
     /**
-     * Writes an array of shorts to the message.
-     * See {@link #writeArray(boolean[])} for a description.
+     * Writes an array to the message.
+     * No duplicate check is performed for this array!
+     * This method is just a shortcut for doing:
+     * <code>writeArray(val, 0, val.length);</code>
+     *
+     * @param val			the array to be written.
+     *
+     * @exception java.io.IOException	an error occurred 
      */
     public void writeArray(short[] val) throws IOException;
 
     /**
-     * Writes an array of ints to the message.
-     * See {@link #writeArray(boolean[])} for a description.
+     * Writes an array to the message.
+     * No duplicate check is performed for this array!
+     * This method is just a shortcut for doing:
+     * <code>writeArray(val, 0, val.length);</code>
+     *
+     * @param val			the array to be written.
+     *
+     * @exception java.io.IOException	an error occurred 
      */
     public void writeArray(int[] val) throws IOException;
 
     /**
-     * Writes an array of longs to the message.
-     * See {@link #writeArray(boolean[])} for a description.
+     * Writes an array to the message.
+     * No duplicate check is performed for this array!
+     * This method is just a shortcut for doing:
+     * <code>writeArray(val, 0, val.length);</code>
+     *
+     * @param val			the array to be written.
+     *
+     * @exception java.io.IOException	an error occurred 
      */
     public void writeArray(long[] val) throws IOException;
 
     /**
-     * Writes an array of floats to the message.
-     * See {@link #writeArray(boolean[])} for a description.
+     * Writes an array to the message.
+     * No duplicate check is performed for this array!
+     * This method is just a shortcut for doing:
+     * <code>writeArray(val, 0, val.length);</code>
+     *
+     * @param val			the array to be written.
+     *
+     * @exception java.io.IOException	an error occurred 
      */
     public void writeArray(float[] val) throws IOException;
 
     /**
-     * Writes an array of doubles to the message.
-     * See {@link #writeArray(boolean[])} for a description.
+     * Writes an array to the message.
+     * No duplicate check is performed for this array!
+     * This method is just a shortcut for doing:
+     * <code>writeArray(val, 0, val.length);</code>
+     *
+     * @param val			the array to be written.
+     *
+     * @exception java.io.IOException	an error occurred 
      */
     public void writeArray(double[] val) throws IOException;
 
     /**
-     * Writes an array of objects to the message.
-     * See {@link #writeArray(boolean[])} for a description.
+     * Writes an array to the message.
+     * No duplicate check is performed for this array!
+     * This method is just a shortcut for doing:
+     * <code>writeArray(val, 0, val.length);</code>
+     *
+     * @param val			the array to be written.
+     *
+     * @exception java.io.IOException	an error occurred 
      */
     public void writeArray(Object[] val) throws IOException;
 
     /**
-     * Writes a slice of an array of booleans. The slice starts
-     * at offset <code>off
+     * Writes a slice of an array. The slice starts at offset <code>off</code>.
      * No duplicate check is performed for this array!
      *
      * @param val			the array to be written
@@ -260,50 +306,98 @@ public interface WriteMessage {
     public void writeArray(boolean[] val, int off, int len) throws IOException;
 
     /**
-     * Write a slice of an array of bytes.
-     * See {@link #writeArray(boolean[], int, int)} for a description.
+     * Writes a slice of an array. The slice starts at offset <code>off</code>.
+     * No duplicate check is performed for this array!
+     *
+     * @param val			the array to be written
+     * @param off			offset in the array
+     * @param len			the number of elements to be written
+     *
+     * @exception java.io.IOException	an error occurred 
      */
     public void writeArray(byte[] val, int off, int len) throws IOException;
 
     /**
-     * Write a slice of an array of chars.
-     * See {@link #writeArray(boolean[], int, int)} for a description.
+     * Writes a slice of an array. The slice starts at offset <code>off</code>.
+     * No duplicate check is performed for this array!
+     *
+     * @param val			the array to be written
+     * @param off			offset in the array
+     * @param len			the number of elements to be written
+     *
+     * @exception java.io.IOException	an error occurred 
      */
     public void writeArray(char[] val, int off, int len) throws IOException;
 
     /**
-     * Write a slice of an array of shorts.
-     * See {@link #writeArray(boolean[], int, int)} for a description.
+     * Writes a slice of an array. The slice starts at offset <code>off</code>.
+     * No duplicate check is performed for this array!
+     *
+     * @param val			the array to be written
+     * @param off			offset in the array
+     * @param len			the number of elements to be written
+     *
+     * @exception java.io.IOException	an error occurred 
      */
     public void writeArray(short[] val, int off, int len) throws IOException;
 
     /**
-     * Write a slice of an array of ints.
-     * See {@link #writeArray(boolean[], int, int)} for a description.
+     * Writes a slice of an array. The slice starts at offset <code>off</code>.
+     * No duplicate check is performed for this array!
+     *
+     * @param val			the array to be written
+     * @param off			offset in the array
+     * @param len			the number of elements to be written
+     *
+     * @exception java.io.IOException	an error occurred 
      */
     public void writeArray(int[] val, int off, int len) throws IOException;
 
     /**
-     * Write a slice of an array of longs.
-     * See {@link #writeArray(boolean[], int, int)} for a description.
+     * Writes a slice of an array. The slice starts at offset <code>off</code>.
+     * No duplicate check is performed for this array!
+     *
+     * @param val			the array to be written
+     * @param off			offset in the array
+     * @param len			the number of elements to be written
+     *
+     * @exception java.io.IOException	an error occurred 
      */
     public void writeArray(long[] val, int off, int len) throws IOException;
 
     /**
-     * Write a slice of an array of floats.
-     * See {@link #writeArray(boolean[], int, int)} for a description.
+     * Writes a slice of an array. The slice starts at offset <code>off</code>.
+     * No duplicate check is performed for this array!
+     *
+     * @param val			the array to be written
+     * @param off			offset in the array
+     * @param len			the number of elements to be written
+     *
+     * @exception java.io.IOException	an error occurred 
      */
     public void writeArray(float[] val, int off, int len) throws IOException;
 
     /**
-     * Write a slice of an array of doubles.
-     * See {@link #writeArray(boolean[], int, int)} for a description.
+     * Writes a slice of an array. The slice starts at offset <code>off</code>.
+     * No duplicate check is performed for this array!
+     *
+     * @param val			the array to be written
+     * @param off			offset in the array
+     * @param len			the number of elements to be written
+     *
+     * @exception java.io.IOException	an error occurred 
      */
     public void writeArray(double[] val, int off, int len) throws IOException;
 
     /**
-     * Write a slice of an array of objects.
-     * See {@link #writeArray(boolean[], int, int)} for a description.
+     * Writes a slice of an array. The slice starts at offset <code>off</code>.
+     * No duplicate check is performed for this array!
+     *
+     * @param val			the array to be written
+     * @param off			offset in the array
+     * @param len			the number of elements to be written
+     *
+     * @exception java.io.IOException	an error occurred 
      */
     public void writeArray(Object[] val, int off, int len) throws IOException;
 }

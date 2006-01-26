@@ -11,7 +11,7 @@ public class IbisError extends Error {
     Throwable cause = null;
 
     /**
-     * Constructsn a <code>IbisError</code> with
+     * Constructs a <code>IbisError</code> with
      * <code>null</code> as its error detail message.
      */
     public IbisError() {

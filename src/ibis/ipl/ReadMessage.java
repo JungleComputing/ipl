@@ -180,54 +180,79 @@ public interface ReadMessage {
     public Object readObject() throws IOException, ClassNotFoundException;
 
     /**
-     * Receives an array in place. These methods are a shortcut for
-     * <code>readArray(destination, 0, destination.length);</code>
-     *
-     * @param destination where the received array is stored.
-
-     @exception IOException is thrown when an IO error occurs.
      */
     public void readArray(boolean[] destination) throws IOException;
 
     /**
-     * See {@link #readArray(boolean[])} for a description.
+     * Receives an array in place. This method is a shortcut for
+     * <code>readArray(destination, 0, destination.length);</code>
+     *
+     * @param destination where the received array is stored.
+     * @exception IOException is thrown when an IO error occurs.
      */
     public void readArray(byte[] destination) throws IOException;
 
     /**
-     * See {@link #readArray(boolean[])} for a description.
+     * Receives an array in place. This method is a shortcut for
+     * <code>readArray(destination, 0, destination.length);</code>
+     *
+     * @param destination where the received array is stored.
+     * @exception IOException is thrown when an IO error occurs.
      */
     public void readArray(char[] destination) throws IOException;
 
     /**
-     * See {@link #readArray(boolean[])} for a description.
+     * Receives an array in place. This method is a shortcut for
+     * <code>readArray(destination, 0, destination.length);</code>
+     *
+     * @param destination where the received array is stored.
+     * @exception IOException is thrown when an IO error occurs.
      */
     public void readArray(short[] destination) throws IOException;
 
     /**
-     * See {@link #readArray(boolean[])} for a description.
+     * Receives an array in place. This method is a shortcut for
+     * <code>readArray(destination, 0, destination.length);</code>
+     *
+     * @param destination where the received array is stored.
+     * @exception IOException is thrown when an IO error occurs.
      */
     public void readArray(int[] destination) throws IOException;
 
     /**
-     * See {@link #readArray(boolean[])} for a description.
+     * Receives an array in place. This method is a shortcut for
+     * <code>readArray(destination, 0, destination.length);</code>
+     *
+     * @param destination where the received array is stored.
+     * @exception IOException is thrown when an IO error occurs.
      */
     public void readArray(long[] destination) throws IOException;
 
     /**
-     * See {@link #readArray(boolean[])} for a description.
+     * Receives an array in place. This method is a shortcut for
+     * <code>readArray(destination, 0, destination.length);</code>
+     *
+     * @param destination where the received array is stored.
+     * @exception IOException is thrown when an IO error occurs.
      */
     public void readArray(float[] destination) throws IOException;
 
     /**
-     * See {@link #readArray(boolean[])} for a description.
+     * Receives an array in place. This method is a shortcut for
+     * <code>readArray(destination, 0, destination.length);</code>
+     *
+     * @param destination where the received array is stored.
+     * @exception IOException is thrown when an IO error occurs.
      */
 
     public void readArray(double[] destination) throws IOException;
 
     /**
-     * See {@link #readArray(boolean[])} for a description.
+     * Receives an array in place. This method is a shortcut for
+     * <code>readArray(destination, 0, destination.length);</code>
      *
+     * @param destination where the received array is stored.
+     * @exception IOException is thrown when an IO error occurs.
      * @exception ClassNotFoundException when an object arrives
      * of a class that cannot be loaded locally.
      */
@@ -246,49 +271,89 @@ public interface ReadMessage {
             throws IOException;
 
     /**
-     * See {@link #readArray(boolean[], int, int)} for a description.
+     * Reads a slice of an array in place. No cycle checks are done. 
+     *
+     * @param destination array in which the slice is stored
+     * @param offset      offset where the slice starts
+     * @param size        length of the slice (the number of elements)
+     * @exception IOException is thrown on an IO error.
      */
     public void readArray(byte[] destination, int offset, int size)
             throws IOException;
 
     /**
-     * See {@link #readArray(boolean[], int, int)} for a description.
+     * Reads a slice of an array in place. No cycle checks are done. 
+     *
+     * @param destination array in which the slice is stored
+     * @param offset      offset where the slice starts
+     * @param size        length of the slice (the number of elements)
+     * @exception IOException is thrown on an IO error.
      */
     public void readArray(char[] destination, int offset, int size)
             throws IOException;
 
     /**
-     * See {@link #readArray(boolean[], int, int)} for a description.
+     * Reads a slice of an array in place. No cycle checks are done. 
+     *
+     * @param destination array in which the slice is stored
+     * @param offset      offset where the slice starts
+     * @param size        length of the slice (the number of elements)
+     * @exception IOException is thrown on an IO error.
      */
     public void readArray(short[] destination, int offset, int size)
             throws IOException;
 
     /**
-     * See {@link #readArray(boolean[], int, int)} for a description.
+     * Reads a slice of an array in place. No cycle checks are done. 
+     *
+     * @param destination array in which the slice is stored
+     * @param offset      offset where the slice starts
+     * @param size        length of the slice (the number of elements)
+     * @exception IOException is thrown on an IO error.
      */
     public void readArray(int[] destination, int offset, int size)
             throws IOException;
 
     /**
-     * See {@link #readArray(boolean[], int, int)} for a description.
+     * Reads a slice of an array in place. No cycle checks are done. 
+     *
+     * @param destination array in which the slice is stored
+     * @param offset      offset where the slice starts
+     * @param size        length of the slice (the number of elements)
+     * @exception IOException is thrown on an IO error.
      */
     public void readArray(long[] destination, int offset, int size)
             throws IOException;
 
     /**
-     * See {@link #readArray(boolean[], int, int)} for a description.
+     * Reads a slice of an array in place. No cycle checks are done. 
+     *
+     * @param destination array in which the slice is stored
+     * @param offset      offset where the slice starts
+     * @param size        length of the slice (the number of elements)
+     * @exception IOException is thrown on an IO error.
      */
     public void readArray(float[] destination, int offset, int size)
             throws IOException;
 
     /**
-     * See {@link #readArray(boolean[], int, int)} for a description.
+     * Reads a slice of an array in place. No cycle checks are done. 
+     *
+     * @param destination array in which the slice is stored
+     * @param offset      offset where the slice starts
+     * @param size        length of the slice (the number of elements)
+     * @exception IOException is thrown on an IO error.
      */
     public void readArray(double[] destination, int offset, int size)
             throws IOException;
 
     /**
-     * See {@link #readArray(boolean[], int, int)} for a description.
+     * Reads a slice of an array in place. No cycle checks are done. 
+     *
+     * @param destination array in which the slice is stored
+     * @param offset      offset where the slice starts
+     * @param size        length of the slice (the number of elements)
+     * @exception IOException is thrown on an IO error.
      * @exception ClassNotFoundException when an object arrives
      * of a class that cannot be loaded locally.
      */

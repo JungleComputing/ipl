@@ -93,6 +93,10 @@ public abstract class Ibis {
         }
     }
 
+    /** Don't allow public creation. */
+    protected Ibis() {
+    }
+
     /** 
      * Loads a native library with ibis.
      * It might not be possible to load libraries the normal way,
@@ -275,6 +279,8 @@ public abstract class Ibis {
      *
      * @exception NoMatchingIbisException is thrown when no Ibis was
      *  found that matches the properties required.
+     * @exception IbisException is thrown when no Ibis could be
+     *  instantiated.
      */
     public static Ibis createIbis(StaticProperties reqprop, ResizeHandler r)
             throws IbisException {
@@ -710,6 +716,7 @@ public abstract class Ibis {
 
     /**
      * Returns all Ibis recources to the system.
+     * @exception IOException is thrown when an error occurs.
      */
     public abstract void end() throws IOException;
 
@@ -836,13 +843,12 @@ public abstract class Ibis {
     public abstract void poll() throws IOException;
 
     /**
-     * Returns the name of this Ibis instance.
+     * Returns the name of this Ibis instance. This is a shorthand for
+     * <code>identifier().name()</code> (See {@link IbisIdentifier#name()}).
      * @return the name of this Ibis instance.
-     * @deprecated If you need the name of an Ibis instance, you
-     *    can use {@link ibis.ipl.IbisIdentifier#toString()}.
      */
     public String name() {
-        return name;
+        return identifier().name;
     }
 
     /**
