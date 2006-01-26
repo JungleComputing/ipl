@@ -14,7 +14,7 @@ The communications methods for WAN mainly address two problems:
 
 These mechanisms are implemented in the src/ibis/connect hierarchy.
 In the current Ibis, they are enabled by default. 
-Althgough theoretically they may be used by any Ibis implementation,
+Although theoretically they may be used by any Ibis implementation,
 only TCPIbis and NetIbis are able to use them in the current implementation.
 
 We distinguish two categories of communication links: control and
@@ -67,13 +67,15 @@ AnyTCP                no       yes
    -- PortRange: this is plain TCP, but you can set a port range that was opened
       in your firewall. Use -Dibis.connect.port_range=XXX-YYY to set the range.
 
-   -- ParallelStreams: use multiple parallel TCP streams to improve the performace.
-      This is usefull for wide area links that have a long latency and a large bandwidth
-      You can use the flag -Dibis.connect.NumWays=X to set the number of parallel streams.
+   -- ParallelStreams: use multiple parallel TCP streams to improve the
+      performance.  This is useful for wide area links that have a long
+      latency and a large bandwidth. You can use the flag
+          -Dibis.connect.NumWays=X
+      to set the number of parallel streams.
       
-   -- NIOParallelStreams: same as ParallelStreams, but use the java.nio interface.
-      The advantage is that nio offers a select prminitve, so this implementation is
-      much more efficient than ParallelStreams
+   -- NIOParallelStreams: same as ParallelStreams, but uses the java.nio
+      interface. The advantage is that nio offers a select primitive, so this
+      implementation is much more efficient than ParallelStreams.
    
 * Example
   -------
@@ -88,7 +90,6 @@ with TCPSplice.
 Alternatively, configure your application to use NetIbis with one of the
 TCP variants: tcp, tcp_plain, or tcp_blk, for instance by using
 -Dibis.name=net.bytes.gen.tcp_blk.
-
 
 -- Step 3- start the Ibis name server on a machine visible from every 
 computing node, with the -controlhub flag, e.g.:
@@ -118,7 +119,7 @@ Java properties:
 -- ibis.connect.data_links=<method for data links>
    Chooses which method to use for control and data communications.
    Available methods are: PlainTCP, NIOTCP, TCPSplice, RoutedMessages, 
-   ParallelStreams, NIOParallelStreams, PortRange, AnyTCP
+   ParallelStreams, NIOParallelStreams, PortRange, AnyTCP.
    Optional. Default is: PlainTCP for both.
 
 -- ibis.connect.hub.host=<hostname where the hub is running>
