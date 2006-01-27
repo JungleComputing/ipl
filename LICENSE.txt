@@ -1,4 +1,4 @@
-Copyright (C) 2004, 2005 Vrije Universiteit, The Netherlands
+Copyright (C) 2004, 2005, 2006 Vrije Universiteit, The Netherlands
 All Rights Reserved.
 
 Redistribution and use of Ibis in source and binary forms,
