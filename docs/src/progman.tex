@@ -607,8 +607,8 @@ void connect (ReceivePortIdentifier r) throws IOException;
 \end{quote}
 
 \noindent
-This version blocks until an accept or deny is received, and throws
-an \texttt{IOException} when the connection could not be established.
+This version blocks until an accept or deny is received.
+An \texttt{IOException} is thrown when the connection could not be established.
 There also is a \texttt{connect()} version with a time-out.
 
 So, we need a \texttt{ibis.ipl.ReceivePortIdentifier} to set up the
@@ -629,7 +629,8 @@ Our RPC server would set up the following connection:
 \begin{quote}
 \begin{verbatim}
 try {
-    ReceivePortIdentifier client = registry.lookupReceivePort("client");
+    ReceivePortIdentifier client
+            = registry.lookupReceivePort("client");
     serverSender.connect(client);
 } catch(IOException e) {
     ...
@@ -643,7 +644,8 @@ Our RPC client would set up the following connection:
 \begin{quote}
 \begin{verbatim}
 try {
-    ReceivePortIdentifier server = registry.lookupReceivePort("server");
+    ReceivePortIdentifier server
+            = registry.lookupReceivePort("server");
     clientSender.connect(server);
 } catch(IOException e) {
     ...
@@ -939,6 +941,12 @@ because network buffers will fill up, causing the senders to block.
 Such a deadlock can be avoided by having a separate reader thread,
 or by installing an upcall handler for the incoming message.
 
+Another common source of deadlocks is if you have a port type that
+specifies the \texttt{ManyToOne} as well as the \texttt{OneToMany}
+communication property. Multiple hosts doing simultaneous multicasts
+is a well-known source of deadlocks, because most systems do not
+implement a functioning flow-control for these cases.
+
 \mysection{Compiling and Running an Ibis Application}
 
 Before running an Ibis application it must be compiled.  Using
@@ -1133,10 +1141,9 @@ yourself.
 
 Satin is a parallel programming environment for divide-and-conquer
 parallelization, and master-worker parallelization. Satin extends Java
-with two simple primitives for divide-and-conquer programming: spawn
-and sync. The Satin byte-code rewriter and runtime system cooperate to
+with two simple primitives for divide-and-conquer programming: \texttt{spawn}
+and \texttt{sync}. The Satin byte-code rewriter and runtime system cooperate to
 implement these primitives efficiently on top of the IPL.  
-
 
 \mysubsection{Satin jobs}
 
@@ -1157,8 +1164,9 @@ All methods that implement Searcher.search() will be Satin jobs, they
 are marked as spawnable.  In general such a marker interface may
 contain an arbitrary number of methods.  When a Satin program is
 compiled with the Satin compiler, methods marked as spawnable may be
-executed in parallel. A class that spawns work must extend the special
-class ibis.satin.SatinObject.  The result of a Satin job can only be
+executed in parallel. A class that has spawnable methods 
+must extend the special class ibis.satin.SatinObject.
+The result of a Satin job can only be
 used after the invocation of the sync method, which lives in
 ibis.satin.SatinObject. The sync method is guaranteed to only
 terminate after the earlier job invocations have terminated.  Satin
