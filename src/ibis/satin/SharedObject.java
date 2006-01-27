@@ -20,31 +20,48 @@ public class SharedObject implements java.io.Serializable {
     /** Counter for generating shared-object identifications. */
     private static int sharedObjectsCounter = 0;
 
-    protected SharedObject() {
-    	// does nothing
-    }
-
+    private boolean exported = false;
+    
     /**
      * Creates an identification for the current object and marks it as shared.
      */
-    public void exportObject() {
+    protected SharedObject() {
         Satin satin = Satin.getSatin();
 
-        if (satin != null) {
-            //create identifier
-            sharedObjectsCounter++;
-            objectId = "satin_shared_object" + sharedObjectsCounter + "@"
-                + Satin.getSatinIdent().name();
-
-            //add yourself to the sharedObjects hashtable
-            satin.addObject(this);
-
-            synchronized (satin) {
-                satin.broadcastSharedObject(this);
-            }
-        } else {
+        if (satin == null) {
             System.err.println("EEEKK, could not find satin");
             System.exit(1);
+        }
+
+        //create identifier
+        sharedObjectsCounter++;
+        objectId = "satin_shared_object" + sharedObjectsCounter + "@"
+            + Satin.getSatinIdent().name();
+
+        //add yourself to the sharedObjects hashtable
+        satin.addObject(this);
+    }
+
+    /**
+     * This method is optional, and can be used after creating a shared object.
+     * It immediately distributes a replica to all machines participating in the
+     * application. This way, machines won't have to ask for it later.
+     */
+    public void exportObject() {
+        if(exported) {
+            throw new RuntimeException("you cannot export an object more than once.");
+        }
+        
+        Satin satin = Satin.getSatin();
+
+        if (satin == null) {
+            System.err.println("EEEKK, could not find satin");
+            System.exit(1);
+        }
+
+        synchronized (satin) {
+            satin.broadcastSharedObject(this);
+            exported = true;
         }
     }
 }
