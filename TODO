@@ -51,8 +51,9 @@ general:
 - more efficient clone? Maybe generate code that clones without using 
   serialization. Could be done for objects passes as a param
   to a spawn, for instance. If code is not there, fall back to current impl.
-- add code to efficiently (de)serialize arrays of final objects 
++ add code to efficiently (de)serialize arrays of final objects 
   (Body[] in barnes!) --Rob
+- migrate leftover prints ro log4j
 
 nameserver+connection stuff:
 - enable control hub by default --Rob
