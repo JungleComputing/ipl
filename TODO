@@ -12,16 +12,18 @@
 
 general:
 - keep a changelog, publish it on the website
-- update documentation
++ update documentation (Done Ceriel)
+- add sections about fault-tolerance and shared objects to
+  programmers manual
 - copy the source of "util" and "connect" to the distro manually
 + make sure all source files have a cvs id. (Done Ceriel)
 - try it on windows 2000, windows XP, cygwin, MacOS.
 + check copyright notices of apps, 3rdparty, etc. (Done, Ceriel)
 
 nameserver:
-- lookup of ibisses that died/left/mustleave is sequential now. Could become
-  bottleneck.
-	
++/- lookup of ibisses that died/left/mustleave is sequential now. Could become
+    bottleneck. (Done Ceriel, but needs thorough testing).
+
 ipl:
 + make oneToMany+manyToOne illegal in port types. May cause deadlocks because
   of lack of flow-control in multicasts. Current users: tuplespace and

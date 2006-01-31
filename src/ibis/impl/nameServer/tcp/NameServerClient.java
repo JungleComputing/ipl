@@ -139,7 +139,18 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
 
             Thread p = new Thread("NameServer starter") {
                 public void run() {
-                    new RunProcess(cmd, new String[0]);
+                    RunProcess r = new RunProcess(cmd, new String[0]);
+                    int res = r.getExitStatus();
+                    byte[] err = r.getStderr();
+                    byte[] out = r.getStdout();
+                    if (out.length != 0) {
+                        System.out.write(out, 0, out.length);
+                        System.out.println("");
+                    }
+                    if (err.length != 0) {
+                        System.err.write(err, 0, err.length);
+                        System.err.println("");
+                    }
                 }
             };
 
@@ -187,6 +198,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
         }
 
         serverAddress = InetAddress.getByName(server);
+        // serverAddress.getHostName();
 
         if (myAddress.equals(serverAddress)) {
             // Try and start a nameserver ...
