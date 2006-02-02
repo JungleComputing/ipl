@@ -190,11 +190,13 @@ Portability Layer) package, which lives in
 We recommend that you simply import all \texttt{ibis.ipl} classes with
 one import line:
 
+{\small
 \begin{quote}
 \begin{verbatim}
 import ibis.ipl.*;
 \end{verbatim}
 \end{quote}
+}
 
 \noindent
 Of course it is also possible to import only the needed classes, but
@@ -207,6 +209,7 @@ must create an Ibis instance.
 To create an Ibis instance, the static \texttt{createIbis()} method of the
 \texttt{ibis.ipl.Ibis} class must be used.
 The specification of this method is:
+{\small
 \begin{quote}
 \begin{verbatim}
 static Ibis createIbis(StaticProperties props,
@@ -214,6 +217,7 @@ static Ibis createIbis(StaticProperties props,
         throws IbisException;
 \end{verbatim}
 \end{quote}
+}
 There may be several Ibis implementations available, and
 the system selects the best one for you, based on some
 user-specified requirements.
@@ -243,6 +247,7 @@ Now back to our example. In Secion \ref{StaticProperties} we will
 discuss the creation of a variable \texttt{props} describing the
 static properties required. For the moment we will just assume its
 existence, and create an Ibis instance as follows:
+{\small
 \begin{quote}
 \begin{verbatim}
 Ibis ibis = null;
@@ -254,6 +259,7 @@ try {
 }
 \end{verbatim}
 \end{quote}
+}
 Note that the properties can be so specific that no matching Ibis
 can be found, and therefore \texttt{createIbis()} may throw an exception
 indicating this.
@@ -262,6 +268,7 @@ indicating this.
 
 Below is a snippet from the RPC example, constructing the static
 properties as required:
+{\small
 \begin{quote}
 \begin{verbatim}
 StaticProperties props = new StaticProperties();
@@ -271,6 +278,7 @@ props.add("serialization", "object");
 props.add("worldmodel", "closed");
 \end{verbatim}
 \end{quote}
+}
 This states that the selected Ibis must support reliable one-to-one
 communication, must support upcalls at the receiver side without the
 receiver having to poll for messages, and must also support explicit
@@ -388,10 +396,6 @@ stable now. It can use multiple networks simultaneously.
 %\remark{TODO: describe in just a little more detail}
 \item[nio]
 This is an Ibis implementation on top of Java NIO.
-\item[mpi]
-This is the message passing Ibis implementation but on top of MPI instead
-of Panda. 
-%This is an experimental version.
 \end{description}
 
 \noindent
@@ -447,6 +451,7 @@ registry provides a method \texttt{elect()} which (globally) selects
 one of a number of invokers.  For our RPC example this could be done as
 follows:
 
+{\small
 \begin{quote}
 \begin{verbatim}
 IbisIdentifier me = ibis.identifier();
@@ -455,6 +460,7 @@ IbisIdentifier server = registry.elect("Server");
 boolean iAmServer = server.equals(me);
 \end{verbatim}
 \end{quote}
+}
 
 In our example, one instance of the program is the server and all
 other instances are clients.  Of course, the client and the server can also
@@ -477,6 +483,7 @@ of an Ibis implementation, specified by a \texttt{StaticProperties} object.
 A port type is identified by its name, together with these properties.
 The \texttt{Ibis} class contains a method to create a port type,
 specified as follows:
+{\small
 \begin{quote}
 \begin{verbatim}
 PortType createPortType(String name,
@@ -484,11 +491,13 @@ PortType createPortType(String name,
         throws IbisException, java.io.IOException;
 \end{verbatim}
 \end{quote}
+}
 
 \noindent
 For our RPC example program, we would create a port type with properties
 as discussed in Section \ref{Creating an Ibis Instance}:
 
+{\small
 \begin{quote}
 \begin{verbatim}
 StaticProperties portprops = new StaticProperties();
@@ -504,6 +513,7 @@ try {
 }
 \end{verbatim}
 \end{quote}
+}
 \noindent
 In general, the port properties should be a subset of the properties
 specified when creating the Ibis instance. If a property is specified
@@ -539,17 +549,20 @@ To do that, the server must first define a class that implements
 the \texttt{ibis.ipl.Upcall} interface. This interface contains one
 method:
 
+{\small
 \begin{quote}
 \begin{verbatim}
 void upcall(ReadMessage m) throws java.io.IOException;
 \end{verbatim}
 \end{quote}
+}
 
 We will go into the details of a \texttt{ReadMessage} in Section
 \ref{Communicating}. For now, we will assume that there is a
 class \texttt{RpcUpcall} that implements this interface, and
 that the application has a field \texttt{rpcUpcall} of this type.
 
+{\small
 \begin{quote}
 \begin{verbatim}
 try {
@@ -561,6 +574,7 @@ try {
 }
 \end{verbatim}
 \end{quote}
+}
 
 \noindent
 The client will have to create a send port
@@ -569,6 +583,7 @@ The client is allowed to block waiting for an answer, so it will
 want a receive port that enables explicit receipt.
 So, the client will create an anonymous server port, and a named
 receive port that enables explicit receipt (no upcall handler is supplied):
+{\small
 \begin{quote}
 \begin{verbatim}
 try {
@@ -580,6 +595,7 @@ try {
 }
 \end{verbatim}
 \end{quote}
+}
 
 \noindent
 When a receive port is created, it will not immediately accept connections.
@@ -600,11 +616,13 @@ A connection is initiated by the \texttt{connect()} method of
 \texttt{ibis.ipl.SendPort}.
 Here is its specification:
 
+{\small
 \begin{quote}
 \begin{verbatim}
 void connect (ReceivePortIdentifier r) throws IOException;
 \end{verbatim}
 \end{quote}
+}
 
 \noindent
 This version blocks until an accept or deny is received.
@@ -616,16 +634,19 @@ connection.
 This identifier can be obtained through the Ibis registry, by
 means of the \texttt{lookupReceivePort()} method, which has the following specification:
 
+{\small
 \begin{quote}
 \begin{verbatim}
 ReceivePortIdentifier lookupReceivePort(String name)
         throws IOException;
 \end{verbatim}
 \end{quote}
+}
 \noindent
 This method blocks until a receive port with the specified name is found.
 Our RPC server would set up the following connection:
 
+{\small
 \begin{quote}
 \begin{verbatim}
 try {
@@ -637,10 +658,12 @@ try {
 }
 \end{verbatim}
 \end{quote}
+}
 
 \noindent
 Our RPC client would set up the following connection:
 
+{\small
 \begin{quote}
 \begin{verbatim}
 try {
@@ -652,6 +675,7 @@ try {
 }
 \end{verbatim}
 \end{quote}
+}
 
 This completes the connection setup.
 
@@ -674,6 +698,7 @@ When a port type is configured for using connection upcalls,
 a receive port may be instantiated with a \texttt{ReceivePortConnectUpcall}
 object. This is an interface with two methods:
 
+{\small
 \begin{quote}
 \begin{verbatim}
 boolean gotConnection(ReceivePort me,
@@ -683,6 +708,7 @@ void lostConnection(ReceivePort me,
                     Exception reason);
 \end{verbatim}
 \end{quote}
+}
 \noindent 
 The \texttt{gotConnection()} method gets called when a send port attempts
 to connect to the receive port at hand.
@@ -694,6 +720,7 @@ to the receive port at hand gets lost for some reason.
 A send port can be instantiated with a
 \texttt{SendPortConnectUpcall} object. This is an interface with a single method:
 
+{\small
 \begin{quote}
 \begin{verbatim}
 void lostConnection(SendPort me,
@@ -701,6 +728,7 @@ void lostConnection(SendPort me,
                     Exception reason);
 \end{verbatim}
 \end{quote}
+}
 \noindent 
 This method is called when an existing connection from the send port at
 hand gets lost for some reason. Note that there is no \texttt{gotConnection()}
@@ -711,6 +739,7 @@ and send ports of this type maintain connection information, and support
 methods that allow the user to obtain this information.
 A receive port has the following methods:
 
+{\small
 \begin{quote}
 \begin{verbatim}
 SendPortIdentifier[] newConnections();
@@ -718,6 +747,7 @@ SendPortIdentifier[] lostConnections();
 SendPortIdentifier[] connectedTo();
 \end{verbatim}
 \end{quote}
+}
 
 \texttt{newConnections()} returns the send port identifiers of the connections
 that are new since the last call or the start of the program.
@@ -727,6 +757,7 @@ that were lost since the last call or the start of the program.
 to this receive port.
 A send port has the following methods:
 
+{\small
 \begin{quote}
 \begin{verbatim}
 ReceivePortIdentifier[] newConnections();
@@ -734,6 +765,7 @@ ReceivePortIdentifier[] lostConnections();
 ReceivePortIdentifier[] connectedTo();
 \end{verbatim}
 \end{quote}
+}
 \noindent
 which do exactly the same as their receive port counterparts.
 
@@ -747,11 +779,13 @@ type \texttt{ibis.ipl.WriteMessage} and is obtained by means of
 the \texttt{newMessage()} method of \texttt{SendPort}, which is specified
 as follows:
 
+{\small
 \begin{quote}
 \begin{verbatim}
 WriteMessage newMessage() throws IOException;
 \end{verbatim}
 \end{quote}
+}
 
 \noindent
 For a given send port, only one message can be alive at any time.
@@ -780,6 +814,7 @@ complete, the message can be sent out by invoking the
 \texttt{finish()} method.
 
 Our client in the RPC example could have the following:
+{\small
 \begin{quote}
 \begin{verbatim}
 int obtainLength(String s) throws IOException {
@@ -790,6 +825,7 @@ int obtainLength(String s) throws IOException {
 }
 \end{verbatim}
 \end{quote}
+}
 
 \noindent
 At the receiving side, a message can be received in two ways,
@@ -803,6 +839,7 @@ finished (by a \texttt{finish()} call), or the upcall returns.
 Now, let us present some more code of our RPC example, this time
 from the server:
 
+{\small
 \begin{quote}
 \begin{verbatim}
 public void upcall(ReadMessage m) throws IOException {
@@ -815,6 +852,7 @@ public void upcall(ReadMessage m) throws IOException {
 }
 \end{verbatim}
 \end{quote}
+}
 
 \noindent
 Note that the read message is finished before replying to the
@@ -823,6 +861,7 @@ request. To prevent deadlocks, upcalls are not allowed to block
 read another message) as long as a read message is active.
 
 Now, we can also finish the \texttt{obtainLength()} method of the client:
+{\small
 \begin{quote}
 \begin{verbatim}
     ...
@@ -833,6 +872,7 @@ Now, we can also finish the \texttt{obtainLength()} method of the client:
 }
 \end{verbatim}
 \end{quote}
+}
 
 \subsection{Finishing up}
 
@@ -844,24 +884,29 @@ So, send ports have to be closed first.
 
 Our RPC client will do the following:
 
+{\small
 \begin{quote}
 \begin{verbatim}
 clientSender.close();
 clientReceiver.close();
 \end{verbatim}
 \end{quote}
+}
 and the code of the server should be clear by now.
 
 Ibis itself must also be ended. Both our client and our server
 should invoke the \texttt{Ibis.end()} method:
+{\small
 \begin{quote}
 \begin{verbatim}
 ibis.end();
 \end{verbatim}
 \end{quote}
+}
 
 As of Java 1.3, it is also possible to add a so-called shutdown hook.
 This could be done right after the Ibis instance is created:
+{\small
 \begin{quote}
 \begin{verbatim}
 Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -874,6 +919,7 @@ Runtime.getRuntime().addShutdownHook(new Thread() {
 });
 \end{verbatim}
 \end{quote}
+}
 \noindent
 This shutdown hook gets invoked when the program terminates, and
 forcibly closes all ports.
@@ -955,6 +1001,7 @@ Before running an Ibis application it must be compiled.  Using
 here is a \texttt{build.xml} file
 for our example program:
 
+{\small
 \begin{quote}
 \begin{verbatim}
 <project
@@ -975,6 +1022,7 @@ for our example program:
 </project>
 \end{verbatim}
 \end{quote}
+}
 
 Now, invoking \emph{ant} compiles the application, leaving the class files
 in a directory called \texttt{build}.
@@ -1093,28 +1141,42 @@ running Ibis applications on a Globus-based grid. See the
 \mysubsection{Running the example}
 In order to run the example, we first have to compile it.
 Please go to the \emph{ibis-example} directory and type:
+
 \noindent
+{\small
 \begin{verbatim}
 $ ../ant
 \end{verbatim}
+}
 \noindent
 After a couple of seconds, the example should be compiled.
 You can run the example both with and without the \texttt{ibis-run} script.
 Because we run the example on a single machine, we do not need to start a seperate nameserver.
 To run the application, we first need to start two shells.
 Then, in both shells type:
+
+\noindent
+{\small
 \begin{verbatim}
 $ $IBIS_ROOT/bin/ibis-run \
     -nhosts 2 -ns localhost Example
 \end{verbatim}
+}
 \noindent
 Now, it should run and print:
+
+\noindent
+{\small
 \begin{verbatim}
 Test succeeded!
 \end{verbatim}
+}
 \noindent
 If you don't use the \texttt{ibis-run} script, you have to set several properties.
 In both shells, type:
+
+\noindent
+{\small
 \begin{verbatim}
 $ java \
     -cp $IBIS_ROOT/build/ibis.jar:$IBIS_ROOT/3rdparty/log4j-1.2.9.jar:build \
@@ -1122,6 +1184,7 @@ $ java \
     -Dibis.name_server.key=bla \
     Example
 \end{verbatim}
+}
 \noindent
 The \texttt{ibis.name\_server.key} value can be any random string.
 It identifies your run.
@@ -1151,6 +1214,7 @@ To use Satin, the programmer must label one or more methods in his
 class as Satin jobs. This is done by defining an interface that
 extends the Satin interface ibis.satin.Spawnable. For example:
 
+{\small
 \begin{quote}
 \begin{verbatim}
 interface Searcher extends ibis.satin.Spawnable {
@@ -1158,6 +1222,7 @@ interface Searcher extends ibis.satin.Spawnable {
 }
 \end{verbatim}
 \end{quote}
+}
 \noindent
 
 All methods that implement Searcher.search() will be Satin jobs, they
@@ -1178,8 +1243,7 @@ stored and moved from one processor to another. Note that this means that
 all fields of a Satin object must be either serializable or transient.
 
 \begin{figure}[t!]
-\small{
-\begin{quote}
+{\small
 \begin{verbatim}
 import ibis.satin.SatinObject;
 
@@ -1220,7 +1284,6 @@ class SearchImpl1 extends SatinObject implements Searcher {
    }
 }
 \end{verbatim}
-\end{quote}
 }
 \caption{Parallel search with Satin.}
 \label{satin-search-fig}
@@ -1243,8 +1306,7 @@ more JVMs, the array can be split into more chunks. In general, an
 arbitrary number of invocations to Satin job methods may be done.
 
 \begin{figure}[t!]
-\small{
-\begin{quote}
+{\small
 \begin{verbatim}
 import ibis.satin.SatinObject;
 
@@ -1268,7 +1330,6 @@ class SearchImpl2 extends SatinObject implements Searcher {
    // main method as in previous figure
 }
 \end{verbatim}
-\end{quote}
 }
 \caption{Divide-and-conquer parallel search with Satin.}
 \label{satin-par-search-fig}
@@ -1301,8 +1362,7 @@ used. Figures~\ref{satin-spec-search-fig1} and~\ref{satin-spec-search-fig2} chan
 examples to use exceptions.
 
 \begin{figure}[t!]
-\small{
-\begin{quote}
+{\small
 \begin{verbatim}
 import ibis.satin.SatinObject;
 import ibis.satin.Inlet;
@@ -1344,15 +1404,13 @@ class SearchImpl3 extends SatinObject implements Searcher3 {
 
    ...
 \end{verbatim}
-\end{quote}
 }
 \caption{Speculative parallel search with Satin.}
 \label{satin-spec-search-fig1}
 \end{figure}
 
 \begin{figure}[t!]
-\small{
-\begin{quote}
+{\small
 \begin{verbatim}
    ...
 
@@ -1390,7 +1448,6 @@ class SearchImpl3 extends SatinObject implements Searcher3 {
    }
 }
 \end{verbatim}
-\end{quote}
 }
 \caption{Speculative parallel search with Satin.}
 \label{satin-spec-search-fig2}
@@ -1523,58 +1580,127 @@ it does not need more jobs (as can be asked though the
 needMoreJobs() method).
 \end{description}
 
+\mysubsection{Satin Shared Objects}
 
-\mysubsection{The Satin Tuple Space}
+The divide-and-conquer model operates by subdividing the problem into
+subproblems (subtasks) and solving them recursively.
+The only way of sharing data between tasks is by passing parameters
+and returning results.
+Therefore, a task can share data with its subtasks and the
+other way round, but the subtasks cannot share data with each other.
+Therefore, we have extended the model, and in the process renamed it
+"divide-and-share".
 
-Satin also has the concept of a global tuple space. Here, global
-means that the tuple space is available on all machines. A tuple
-consists of a key (a string) and its associated data (a serializable
-object). Any satin job can insert elements into the tuple space, so
-that other satin jobs can than read them, regardless of the machine
-they run on.
-The \texttt{ibis.satin.SatinTupleSpace} class implements a global tuple
-space. The \texttt{SatinTupleSpace} has the following
-methods:
+In the divide-and-share model, tasks can share data using
+\textit{shared objects}.
+Updates performed on a shared object are visible to all tasks.
+Operations on shared objects are executed \textit{atomically}.
+Satin guarantees that shared object operations do not run concurrently with
+each other. Satin also guarantees that the shared object operations do not
+run concurrently with divide-and-conquer tasks. An operation performed
+by a task becomes visible to other tasks only when the system reaches a
+so-called \textit{safe point}: when a task is creating (spawning)
+subtasks, when a task is waiting for its subtasks to finish, or when a
+task completes. Tasks can also explicitly poll for shared object
+updates. This makes the model clean and easy to use, as the programmer
+does not need to use locks and semaphores to synchronize access to
+shared data.
 
+Shared objects are replicated on every
+processor taking part in the computation. Replication is implemented using
+an update protocol with function shipping: \textit{write methods},
+that is, methods that modify
+the state of the object, are forwarded to all processors
+which apply them on their local replicas. \textit{Read methods}, that
+is, methods that do not change the state of the objects, are
+executed locally. 
+
+A shared object type must be marked as such by extending the special class
+\texttt{ibis.satin.SharedObject}.
+This class exports a single method
+{\small
 \begin{quote}
 \begin{verbatim}
-static void add(String key, Serializable data);
-static Serializable get(String key);
-static Serializable peek(String key);
-static void remove(String key);
+    public void exportObject();
 \end{verbatim}
 \end{quote}
+}
+which may optionally be invoked to inform Satin that it might be useful to
+broadcast the object to all participants in the run. 
 
-The \texttt{add()} method adds a tuple to the tuple space, associating the
-specified key with the specified data.
-The \texttt{get()} method obtains the data associated with the specified key.
-It blocks until there is actually data associated with the key.
-The \texttt{peek()} method, in contrast, does not block, but returns
-\texttt{null} instead.
-The \texttt{remove()} method removes the tuple that has the specified key.
+Write methods must be marked as such, by specifying them in an interface
+that extends the marker interface \texttt{ibis.satin.WriteMethodsInterface}.
+Note that it is up to the user to specify which methods are write methods.
+Here is a small example:
 
-All members can add tuples, and no global ordering is imposed on the
-additions, unless the system property
-\texttt{satin.tuplespace.ordered} is defined and represents the
-boolean value \texttt{true}. In this case, a global ordering is imposed.
-
-The Satin tuple space supports \emph{active tuples}.
-The \texttt{ibis.satin.ActiveTuple} interface serves
-as a marker for active tuples. It contains a single method:
-
+{\small
 \begin{quote}
 \begin{verbatim}
-void handleTuple(String key);
+interface MinInterface extends ibis.satin.WriteMethodsInterface {
+    public void set(int val);
+}
+
+final class Min extends ibis.satin.SharedObject
+        implements MinInterface {
+    private int val = Integer.MAX_VALUE;
+    public void set(int newVal) {
+        if (newVal< val) val = newVal;
+    }
+    public int get() { return val; }
+}
+
 \end{verbatim}
 \end{quote}
+}
 
-When an active tuple is added (as data) to the tuple space,
-its \texttt{handleTuple()} method will be invoked on all members.
-This can be used, for instance, for modifications of data that
-is replicated on all members.
+Our shared object model provides a relaxed consistency model called
+\textit{guard consistency}.
+Under guard consistency, the user can define the application consistency
+requirements using \textit{guard functions}. Guard functions are
+associated with divide-and-conquer tasks. Conceptually, a guard
+function is executed before each divide-and-conquer task.
+A guard checks the state of the shared objects accessed by the task and
+returns \textit{true} if those objects are in a correct state,
+or \textit{false} otherwise.
+Satin allows replicas to become inconsistent as long as
+guards are satisfied: the updates are propagated to remote replicas on a
+best effort basis.
+Satin does not guarantee that the updates will not be lost or duplicated.
+Updates may be applied in different order on different replicas.
+When a guard is unsatisfied, Satin invalidates the local replica of a shared
+object and fetches a consistent replica from another processor.
 
-A limitation of the current tuple space implementation is that
-it is only supported for closed-world runs.
+For each spawnable method, the programmer may define a boolean guard
+method which specifies what the state of shared object parameters should
+be before actually executing the spawned method.
+Such a guard function must be defined in the same class as the spawnable
+method it guards.
+The name of the guard function is
+\texttt{guard\_}\textit{spawnable\_function}.
+It must have exactly the same parameter list as the spawnable method
+and return a boolean value.
+Therefore, it will have access to exactly the same shared
+objects and it can check their consistency.
+It will also have access to other parameters of the Satin task on which the
+consistency state of the objects may depend. 
+Satin takes care of invoking this method at the right moment.
+Here is a small example:
+
+{\small
+\begin{quote}
+\begin{verbatim}
+    /* A spawnable method. */
+    public Result compute(int iteration, Data data) {
+        ...
+    }
+
+    /* Guard: make sure that data represents the right iteration. */
+    public boolean guard_compute(int iteration, Data data) {
+        return data.iteration == iteration-1;
+    }
+\end{verbatim}
+\end{quote}
+}
 
 \mysubsection{Compiling and running a Satin program}
 
@@ -1582,6 +1708,7 @@ Before running a Satin application it must be compiled.
 Using \emph{ant}, this is quite easy. Here is a build.xml file for
 our example program:
 
+{\small
 \begin{quote}
 \begin{verbatim}
 <project
@@ -1604,6 +1731,7 @@ our example program:
 </project>
 \end{verbatim}
 \end{quote}
+}
 
 Again, we assume that the environment variable \texttt{IBIS\_ROOT} reflects
 the location of your Ibis installation.
@@ -1620,7 +1748,6 @@ runs.
 
 Running a Satin program is very much like running an Ibis application.
 See Section \ref{Compiling and Running an Ibis Application} for details.
-
 
 \mysection{Ibis RMI}
 
@@ -1685,6 +1812,7 @@ with Ibis \texttt{rmic} instead of the Sun \texttt{rmic}.
 Before running an Ibis RMI application it must be compiled.
 Using \emph{ant}, this is quite easy. Here is an example build.xml file:
 
+{\small
 \begin{quote}
 \begin{verbatim}
 <project
@@ -1705,6 +1833,7 @@ Using \emph{ant}, this is quite easy. Here is an example build.xml file:
 </project>
 \end{verbatim}
 \end{quote}
+}
 
 Again, we assume that the environment variable \texttt{IBIS\_ROOT} reflects
 the location of your Ibis installation.
@@ -1720,32 +1849,46 @@ If you want to test your own application, it is easiest to just copy
 the \texttt{build.xml} file from \texttt{\$IBIS\_ROOT/apps/rmi/tsp}, and adapt it for your
 application. 
 To compile the TSP example, please type
+
+\noindent
+{\small
 \begin{verbatim}
 $ ../../../ant clean build-sun
 \end{verbatim}
+}
 \noindent
 Now, this example application will be compiled with Sun RMI.
 Running the TSP example with Sun RMI can be done as follows. Run the command
+
+\noindent
+{\small
 \begin{verbatim}
 $ java \
     -cp $IBIS_ROOT/build/ibis.jar:$IBIS_ROOT/3rdparty/log4j-1.2.9.jar:build \
     -Dibis.pool.total_hosts=2 -Dibis.pool.server.host=localhost \
     Server table_15.1
 \end{verbatim}
+}
 \noindent
 in two seperate shells. The application should now run ``in parallel''
 on the local machine. Alternatively, you can use the \emph{ibis-run} script:
 
+\noindent
+{\small
 \begin{verbatim}
 $ $IBIS_ROOT/bin/ibis-run -nhosts 2 -hostno 0 Server table_15.1
 \end{verbatim}
+}
 
 \noindent
 in the first shell, and
 
+\noindent
+{\small
 \begin{verbatim}
 $ $IBIS_ROOT/bin/ibis-run -nhosts 2 -hostno 1 Server table_15.1
 \end{verbatim}
+}
 
 \noindent in the second.
 
@@ -1763,11 +1906,18 @@ with the \texttt{ibis-namesever} script (in the case of this example, this is do
 
 Now, we can run the same application with Ibis RMI as follows.
 Remember that you first have to recompile it with the Ibis rmic:
+
+\noindent
+{\small
 \begin{verbatim}
 $ ../../../ant clean build
 \end{verbatim}
+}
 \noindent
 Now we can run it by typing the following command in two seperate shells:
+
+\noindent
+{\small
 \begin{verbatim}
 $ java \
     -cp $IBIS_ROOT/build/ibis.jar:$IBIS_ROOT/3rdparty/log4j-1.2.9.jar:build \
@@ -1775,6 +1925,7 @@ $ java \
     -Dibis.name_server.host=localhost -Dibis.name_server.key=bla \
     Server table_15.1 
 \end{verbatim}
+}
 \noindent
 
 This should produce the same result as the Sun RMI test.
@@ -1906,6 +2057,7 @@ compiler as being a group interface. The Ibis compiler will then
 generate a stub object which contains the necessary communication
 code.
 
+{\small
 \begin{quote}
 \begin{verbatim}
 interface Example extends ibis.gmi.GroupInterface {
@@ -1914,6 +2066,7 @@ interface Example extends ibis.gmi.GroupInterface {
 }
 \end{verbatim}
 \end{quote}
+}
 \noindent
 
 In the example above, the 'Example' interface is turned into a group
@@ -1927,8 +2080,7 @@ functionality needed to be part of a group (this is similar to the
 UnicastRemoteObject used in RMI).
 
 \begin{figure}[t!]
-\small{
-\begin{quote}
+{\small
 \begin{verbatim}
 import ibis.gmi.GroupMember;
 
@@ -1949,7 +2101,6 @@ class Implementation extends GroupMember implements Example {
    } 
 }
 \end{verbatim}
-\end{quote}
 }
 \caption{Implementing a group object with GMI.}
 \label{gmi-1}
@@ -1965,8 +2116,7 @@ source code is shown in Figure~\ref{gmi-2}. This application is parallel; it is
 designed to be started simultaneously on multiple JVMs.
 
 \begin{figure}[t!]
-\small{
-\begin{quote}
+{\small
 \begin{verbatim}
 import ibis.gmi.*;
 
@@ -2008,7 +2158,6 @@ class BroadcastExample {
    }
 } 
 \end{verbatim}
-\end{quote}
 }
 \caption{An example GMI application that uses a group object.}
 \label{gmi-2}
@@ -2053,6 +2202,7 @@ directly invoking the get method on their implementation objects.
 Before running a GMI application it must be compiled.
 Using \emph{ant}, this is quite easy. Here is an example build.xml file:
 
+{\small
 \begin{quote}
 \begin{verbatim}
 <project
@@ -2073,6 +2223,7 @@ Using \emph{ant}, this is quite easy. Here is an example build.xml file:
 </project>
 \end{verbatim}
 \end{quote}
+}
 
 Again, we assume that the environment variable \texttt{IBIS\_ROOT} reflects
 the location of your Ibis installation.
