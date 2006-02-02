@@ -945,6 +945,10 @@ public final class Satinc {
         InstructionHandle retval;
 
         retval = il.insert(pos, ins_f.createNew("ibis.satin.impl.AbortException"));
+        il.insert(pos, new DUP());
+        il.insert(pos, ins_f.createInvoke("ibis.satin.impl.AbortException",
+                    "<init>", Type.VOID, Type.NO_ARGS,
+                    Constants.INVOKESPECIAL));
         il.insert(pos, new ATHROW());
 
         return retval;
