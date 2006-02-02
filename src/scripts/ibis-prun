@@ -153,6 +153,9 @@ do
 	-no-jit)
 		args="$args $1"
 		;;
+	-no-bootcp)
+		args="$args $1"
+		;;
 	-no-pool)
 		no_pool=1
 		;;

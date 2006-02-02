@@ -161,7 +161,7 @@ fi
 
 libpath="$ibislib:.:$LD_LIBRARY_PATH:"
 
-JAVACLASSPATH="$CLASSPATH:build:$IBIS_ROOT/classlibs:$IBIS_ROOT/build/ibis.jar:$LIBCLASSPATH:.:"
+JAVACLASSPATH="$CLASSPATH:build/:$IBIS_ROOT/classlibs/:$IBIS_ROOT/build/ibis.jar:$LIBCLASSPATH:.:"
 
 #
 # Some defaults ...
@@ -265,6 +265,9 @@ do
 		shift
 		Dns_port="-Dibis.name_server.port=$1"
 		;;
+	-no-bootcp)
+		needsbootclasspath=0
+		;;
 	-karmi)
 		needsbootclasspath=0
 		JAVACLASSPATH="$CLASSPATH:build:$KARMI/karmi.jar:$IBIS_ROOT/build:"
@@ -359,33 +362,49 @@ CYGWIN*)
     ;;
 esac
 
-Xbootclasspath=
-BOOTPATH=
 if [ $needsbootclasspath -eq 1 ]
 then
-    Xbootclasspath="-Xbootclasspath/p:"
-    BOOTPATH="$JAVACLASSPATH"
-fi
-
-if [ $hostnames -eq 1 ]
-then
-    $action "$JAVA_ROOT/bin/$JAVA_EXEC" \
-	$JIT_OPTS \
-	-Djava.library.path="$libpath" \
-	-Dibis.library.path="$ibislib" \
-	$Dpool_host_num $Dpool_total -Dibis.pool.host_names="$hosts" \
-	$Dns_key $Dns_port $Dns_server \
-	$Xbootclasspath"$BOOTPATH" \
-	-classpath "$JAVACLASSPATH" \
-	"$@"
+    if [ $hostnames -eq 1 ]
+    then
+	$action "$JAVA_ROOT/bin/$JAVA_EXEC" \
+	    $JIT_OPTS \
+	    -Djava.library.path="$libpath" \
+	    -Dibis.library.path="$ibislib" \
+	    $Dpool_host_num $Dpool_total -Dibis.pool.host_names="$hosts" \
+	    $Dns_key $Dns_port $Dns_server \
+	    -Xbootclasspath/p:"$JAVACLASSPATH" \
+	    -classpath "$JAVACLASSPATH" \
+	    "$@"
+    else
+	$action "$JAVA_ROOT/bin/$JAVA_EXEC" \
+	    $JIT_OPTS \
+	    -Djava.library.path="$libpath" \
+	    -Dibis.library.path="$ibislib" \
+	    $Dpool_host_num $Dpool_total \
+	    $Dns_key $Dns_port $Dns_server \
+	    -Xbootclasspath/p:"$JAVACLASSPATH" \
+	    -classpath "$JAVACLASSPATH" \
+	    "$@"
+    fi
 else
-    $action "$JAVA_ROOT/bin/$JAVA_EXEC" \
-	$JIT_OPTS \
-	-Djava.library.path="$libpath" \
-	-Dibis.library.path="$ibislib" \
-	$Dpool_host_num $Dpool_total \
-	$Dns_key $Dns_port $Dns_server \
-	$Xbootclasspath"$BOOTPATH" \
-	-classpath "$JAVACLASSPATH" \
-	"$@"
+    if [ $hostnames -eq 1 ]
+    then
+	$action "$JAVA_ROOT/bin/$JAVA_EXEC" \
+	    $JIT_OPTS \
+	    -Djava.library.path="$libpath" \
+	    -Dibis.library.path="$ibislib" \
+	    $Dpool_host_num $Dpool_total -Dibis.pool.host_names="$hosts" \
+	    $Dns_key $Dns_port $Dns_server \
+	    -classpath "$JAVACLASSPATH" \
+	    "$@"
+    else
+	$action "$JAVA_ROOT/bin/$JAVA_EXEC" \
+	    $JIT_OPTS \
+	    -Djava.library.path="$libpath" \
+	    -Dibis.library.path="$ibislib" \
+	    $Dpool_host_num $Dpool_total \
+	    $Dns_key $Dns_port $Dns_server \
+	    -classpath "$JAVACLASSPATH" \
+	    "$@"
+    fi
 fi

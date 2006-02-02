@@ -64,6 +64,10 @@ if "%1"=="-attach" (
     set attach=1
     goto nextarg
 )
+if "%1"=="-no-bootcp" (
+    set Xbootclasspath=
+    goto nextarg
+)
 if "%1"=="-nhosts" (
     set Dpool_total="-Dibis.pool.total_hosts=%2"
     set NHOSTS=%2
