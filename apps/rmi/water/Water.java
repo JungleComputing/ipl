@@ -40,8 +40,8 @@ public class Water {
             }
         }
         //start security manager
-        if (System.getSecurityManager() == null)
-            System.setSecurityManager(new RMISecurityManager());
+        // if (System.getSecurityManager() == null)
+        //     System.setSecurityManager(new RMISecurityManager());
     }
 
     private void createMaster() {

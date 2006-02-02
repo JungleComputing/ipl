@@ -136,8 +136,8 @@ public class Radix {
             }
         }
         //start security manager
-        if (System.getSecurityManager() == null)
-            System.setSecurityManager(new RMISecurityManager());
+        // if (System.getSecurityManager() == null)
+        //     System.setSecurityManager(new RMISecurityManager());
     }
 
     private Thread createMaster() {
