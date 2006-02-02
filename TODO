@@ -13,9 +13,10 @@
 general:
 - keep a changelog, publish it on the website
 + update documentation (Done Ceriel)
-- add sections about fault-tolerance and shared objects to
-  programmers manual
-- copy the source of "util" and "connect" to the distro manually
+- add section about fault-tolerance to programmers manual
+- replace tuplespace section with a shared objects section in programmers manual
++ copy the source of "util" and "connect" to the distro manually
+  (Done Ceriel, in build.xml).
 + make sure all source files have a cvs id. (Done Ceriel)
 - try it on windows 2000, windows XP, cygwin, MacOS.
 + check copyright notices of apps, 3rdparty, etc. (Done, Ceriel)
