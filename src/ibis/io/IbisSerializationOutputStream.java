@@ -1600,8 +1600,8 @@ public class IbisSerializationOutputStream
             ibisStream.writeShort((short) val);
         }
 
-        public void writeChar(char val) throws IOException {
-            ibisStream.writeChar(val);
+        public void writeChar(int val) throws IOException {
+            ibisStream.writeChar((char) val);
         }
 
         public void writeInt(int val) throws IOException {
