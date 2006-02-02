@@ -6,34 +6,22 @@
 	1.2 = 1.1 + MPJ + ...
 	1.3 = 1.2 + SO + ...
 - change "related work" to "links" (like the ProActive site)
+- add "ibis in the news" to links
 - change UDP in documentation picture to being incomplete (striped)
 
 *** Ibis 1.3 ***
 
 general:
 - keep a changelog, publish it on the website
-+ update documentation (Done Ceriel)
 - add section about fault-tolerance to programmers manual
 - replace tuplespace section with a shared objects section in programmers manual
-+ copy the source of "util" and "connect" to the distro manually
-  (Done Ceriel, in build.xml).
-+ make sure all source files have a cvs id. (Done Ceriel)
 - try it on windows 2000, windows XP, cygwin, MacOS.
-+ check copyright notices of apps, 3rdparty, etc. (Done, Ceriel)
+- add shortcut (-controlhub?) to ibis-run to use controlhub
 
 nameserver:
 +/- lookup of ibisses that died/left/mustleave is sequential now. Could become
     bottleneck. (Done Ceriel, but needs thorough testing).
 
-ipl:
-+ make oneToMany+manyToOne illegal in port types. May cause deadlocks because
-  of lack of flow-control in multicasts. Current users: tuplespace and
-  globalresulttable in Satin. For now make it deprecated with a warning.
-  (Done Ceriel) GlobalResultTable actually only uses ManyToOne, and
-  multicast for tuplespace is no longer default.
-
-connect:
-+ Rob: Update manual and readme files to reflect new structure. (Done Rob)
 
 *** Ibis 2.0+ ***
 
@@ -121,7 +109,7 @@ satin:
 - shared objects model: no stubs are used. -> write methods on the orignal object
   are not broadcast. Only if you get it as param from a spawn it is broadcast!
   This is very confusing --Rob
-
+- remove dependancy on IPUtils and hostname
 
 satin-so:
 - count all messages+sizes for the total messages/data sent statistics --Rob
@@ -138,6 +126,10 @@ satin-so:
     - overhead of method calls, serialization
 - remove export of shared object from interface. An application can mark any
   initialization functions as being write functions for the same nett result.
+  
+gmi:
+- remove dependancy on IPUtils and hostname
+  
 
 abstract implementation:
 - check _all_ properties in _every_ Ibis
