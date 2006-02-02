@@ -34,9 +34,11 @@ public final class TcpIbisIdentifier extends IbisIdentifier implements
 
     public String toString() {
         if (toStringCache == null) {
-            String a = (address == null ? "<null>" : address.getHostName() + ", "
-                    + address.getHostAddress());
+            String a = address == null ? "<null>" : address.getHostName();
             String n = (name == null ? "<null>" : name);
+            if (n.length() > 8) {
+                n = n.substring(0,8) + "...";
+            }
             toStringCache = "(TcpId: " + n + " on [" + a + "])";
         }
         return toStringCache;
