@@ -44,8 +44,9 @@ public class SharedObject implements java.io.Serializable {
 
     /**
      * This method is optional, and can be used after creating a shared object.
-     * It immediately distributes a replica to all machines participating in the
-     * application. This way, machines won't have to ask for it later.
+     * It allows Satin to immediately distribute a replica to all machines
+     * participating in the application.
+     * This way, machines won't have to ask for it later.
      */
     public void exportObject() {
         if(exported) {
