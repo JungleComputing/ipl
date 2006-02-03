@@ -60,7 +60,7 @@
 	      executable="${ibis}/bin/ibis-run"
 	      vmlauncher="false"
 	      spawn="true">
-	    <arg line="-ns localhost -ns-port 46789 -hostno 1 -nhosts 2 ${ibis-run-args}"/>
+	    <arg line="-ns localhost -no-bootcp -ns-port 46789 -hostno 1 -nhosts 2 ${ibis-run-args}"/>
 	    <arg value="${define-ibis-name}"/>
 	    <arg line="${java-args} ibis.util.Postpone 2 ${runjob}"/>
 	</exec>
@@ -69,7 +69,7 @@
 	      timeout="500000"
 	      failonerror="true"
 	      vmlauncher="false">
-	    <arg line="-ns localhost -ns-port 46789 -hostno 0 -nhosts 2 ${ibis-run-args}"/>
+	    <arg line="-ns localhost -no-bootcp -ns-port 46789 -hostno 0 -nhosts 2 ${ibis-run-args}"/>
 	    <arg value="${define-ibis-name}"/>
 	    <arg line="${java-args} ${runjob}"/>
 	</exec>
@@ -85,9 +85,9 @@
 	</condition>
 	<echo message="Running parallel test on ${prun-nprocs} nodes, ${ibis-name} Ibis"/>
 	<exec dir="${basedir}"
-	      executable="/usr/local/bin/prun"
+	    executable="/usr/local/VU/reserve.sge/bin/prun"
 	      vmlauncher="false">
-	      <arg line="-1 ${ibis}/bin/ibis-prun ${prun-nprocs} ${ibis-run-args}"/>
+	      <arg line="-1 ${ibis}/bin/ibis-prun ${prun-nprocs} -no-bootcp ${ibis-run-args}"/>
 	    <arg value="${define-ibis-name}"/>
 	    <arg line="${java-args} ${runjob}"/>
 	</exec>
@@ -100,7 +100,7 @@
 	      timeout="500000"
 	      failonerror="true"
 	      vmlauncher="false">
-	    <arg line="-ns localhost -ns-port 46789 -hostno 0 -nhosts 1 ${ibis-run-args}"/>
+	    <arg line="-ns localhost -no-bootcp -ns-port 46789 -hostno 0 -nhosts 1 ${ibis-run-args}"/>
 	    <arg value="${define-ibis-name}"/>
 	    <arg line="${java-args} ${runjob}"/>
 	</exec>
@@ -112,7 +112,7 @@
 	      timeout="500000"
 	      failonerror="true"
 	      vmlauncher="false">
-	      <arg line="${ibis-run-args} -- ${java-args} ${runjob}"/>
+	      <arg line="${ibis-run-args} -no-bootcp -- ${java-args} ${runjob}"/>
 	</exec>
     </target>
 
@@ -140,7 +140,8 @@
     </target>
 
     <target name="test-prun"
-	    description="Run a parallel test with prun if the property 'test-par-run' is set">
+	    description="Run a parallel test with prun if the property 'test-par-run' is set"
+	    depends="build">
 	<if>
 	    <isset property="test-par-run"/>
 	    <then>
