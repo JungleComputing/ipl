@@ -11,6 +11,8 @@ import java.io.IOException;
  */
 class Registry implements ibis.ipl.Registry {
 
+    ReceivePortNameServer nameServer;
+
     private ReceivePortNameServerClient nameServerClient;
 
     private ElectionClient electionClient;
@@ -21,7 +23,7 @@ class Registry implements ibis.ipl.Registry {
 
     Registry() throws IOException {
         if (Ibis.myIbis.myCpu == 0) {
-           Ibis.myIbis.createReceivePortNameServer();
+            nameServer = Ibis.myIbis.createReceivePortNameServer();
         }
         nameServerClient = Ibis.myIbis.createReceivePortNameServerClient();
     }
