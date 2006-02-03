@@ -252,7 +252,7 @@ public final class NetLockArray {
      *
      * @exception IllegalLockStateException if the requested lock has not
      * been initialized or gets discarded while the method is blocked on a
-     * {@link #wait}.
+     * <code>wait</code>.
      */
     public void lock(int id) {
 
@@ -295,9 +295,9 @@ public final class NetLockArray {
      *
      * @exception IllegalLockStateException if the requested lock has not been
      * initialized or gets discarded while the method is blocked on a
-     * {@link #wait}.
+     * wait.
      * @exception InterruptedIOException if the thread is
-     * {@link #interrupt}ed while waiting.
+     * interrupted while waiting.
      */
     public void ilock(int id) throws InterruptedIOException {
         mon.checkImOwner();
@@ -430,7 +430,7 @@ public final class NetLockArray {
      * @return the index into <code>ids</code> of the lock that is taken
      *
      * @exception InterruptedIOException when some lock that we wait on
-     * 		has been {@link #interrupt}ed.
+     * 		has been interrupted.
      * @exception IllegalLockStateException if the requested lock has
      * not been initialized or has been cleared.
      */

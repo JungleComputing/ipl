@@ -2,6 +2,8 @@
 
 package ibis.rmi.server;
 
+import java.io.IOException;
+
 /**
  * Ibis has no support for RMI socket factories.
  */
@@ -14,5 +16,5 @@ public interface RMIServerSocketFactory {
      * @exception IOException if an I/O error occurs
      */
     public java.net.ServerSocket createServerSocket(int port)
-            throws java.io.IOException;
+            throws IOException;
 }

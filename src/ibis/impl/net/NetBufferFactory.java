@@ -303,7 +303,7 @@ public class NetBufferFactory {
     /**
      * Call this synchronized
      *
-     * @exception throws a java.lang.IllegalArgumentException if the
+     * @exception java.lang.IllegalArgumentException if the
      * 	requested buffer length exceeds the factory block size
      */
     private NetBuffer createNewBuffer(byte[] data, int length,
@@ -338,7 +338,7 @@ public class NetBufferFactory {
      *
      * Call this synchronized.
      *
-     * @exception throws a java.lang.IllegalArgumentException if the
+     * @exception java.lang.IllegalArgumentException if the
      * 	factory has no default mtu
      */
     private NetBuffer createBuffer(NetAllocator allocator) {

@@ -112,7 +112,6 @@ public class LocalVariableGen implements InstructionTargeter, NamedAndTyped,
      * start_pc+length ending at first index beyond the end of the code are
      * valid.
      *
-     * @param il instruction list (byte code) which this variable belongs to
      * @param cp constant pool
      */
     public LocalVariable getLocalVariable(ConstantPoolGen cp) {

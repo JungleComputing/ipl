@@ -1,6 +1,9 @@
 /* $Id$ */
 
+
 package ibis.rmi.server;
+
+import java.io.IOException;
 
 /**
  * Ibis has no support for RMI socket factories.
@@ -15,5 +18,5 @@ public interface RMIClientSocketFactory {
      * @exception IOException if an I/O error occurs
      */
     public java.net.Socket createSocket(String host, int port)
-            throws java.io.IOException;
+            throws IOException;
 }

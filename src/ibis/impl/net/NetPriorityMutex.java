@@ -176,7 +176,7 @@ public final class NetPriorityMutex {
      * @param priority indicates whether the call is a
      * 		'high-priority' request (<code>true</code>) or a
      * 		'low-priority' request (<code>false</code>).
-     * @exception InterruptedIOException if the calling thread is
+     * @exception InterruptedException if the calling thread is
      * 		interrupted while the method is blocked waiting for the
      * 		mutex.
      */

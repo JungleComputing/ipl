@@ -154,7 +154,7 @@ public abstract class NetOutput extends NetIO {
      *
      * This is only valid for a Factory with MTU.
      *
-     * @throws an {@link IllegalArgumentException} if the factory has no
+     * @exception IllegalArgumentException if the factory has no
      * 		default MTU
      * @return the new {@link ibis.impl.net.NetSendBuffer}.
      */

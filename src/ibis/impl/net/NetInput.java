@@ -466,9 +466,9 @@ public abstract class NetInput extends NetIO implements NetInputUpcall {
     /**
      * Test for incoming data.
      *
-     * Note: if {@linkplain #poll} is called again immediately
-     * after a successful {@linkplain #poll} without extracting the message and
-     * {@linkplain #finish finishing} the input, the result is
+     * Note: if {@linkplain #poll(boolean)} is called again immediately
+     * after a successful {@linkplain #poll(boolean)} without extracting the message and
+     * {@linkplain #finish() finishing} the input, the result is
      * undefined and data might get lost. Use {@link
      * #getActiveSendPortNum} instead.
      *
@@ -527,9 +527,9 @@ public abstract class NetInput extends NetIO implements NetInputUpcall {
     /**
      * Unblockingly test for incoming data.
      *
-     * Note: if {@linkplain #poll} is called again immediately
-     * after a successful {@linkplain #poll} without extracting the message and
-     * {@linkplain #finish finishing} the input, the result is
+     * Note: if {@linkplain #poll()} is called again immediately
+     * after a successful {@linkplain #poll()} without extracting the message and
+     * {@linkplain #finish() finishing} the input, the result is
      * undefined and data might get lost. Use {@link
      * #getActiveSendPortNum} instead.
      *
@@ -560,7 +560,7 @@ public abstract class NetInput extends NetIO implements NetInputUpcall {
      * First, all data structures are initialized and all properties
      * between inputs (like upcall/downcall mode for {@link NetPoller
      * Pollers} and their subInputs) are negotiated from {@link
-     * #setupConnection}. After that, the receiver threads are started.
+     * NetIO#setupConnection}. After that, the receiver threads are started.
      */
     public void startReceive() throws IOException {
         startUpcallThread();
@@ -675,7 +675,7 @@ public abstract class NetInput extends NetIO implements NetInputUpcall {
      * @see	#switchToUpcallMode
      *
      * @param  interruptible switch interruptibility on/off
-     * @throws {@link IllegalArgumentException} if this {@linkplain
+     * @exception IllegalArgumentException if this {@linkplain
      * 		NetInput} does not actually support poll interrupts.
      */
     public void setInterruptible(boolean interruptible) throws IOException {
@@ -705,7 +705,7 @@ public abstract class NetInput extends NetIO implements NetInputUpcall {
      * @see	#switchToDowncallMode
      * @see	#switchToUpcallMode
      *
-     * @throws {@link IllegalArgumentException} if this {@linkplain
+     * @exception IllegalArgumentException if this {@linkplain
      * 		NetInput} does not actually support poll interrupts.
      */
     public void interruptPoll() throws IOException {
@@ -740,7 +740,7 @@ public abstract class NetInput extends NetIO implements NetInputUpcall {
      * @see	#switchToDowncallMode
      * @see	#switchToUpcallMode
      *
-     * @throws {@link IllegalArgumentException} if this {@linkplain
+     * @exception IllegalArgumentException if this {@linkplain
      * 		NetInput} does not actually support poll interrupts.
      */
     public void switchToDowncallMode() throws IOException {
@@ -780,7 +780,7 @@ public abstract class NetInput extends NetIO implements NetInputUpcall {
      * @param inputUpcall if this parameter is nonnull, message receipt will
      * 		be done using this upcall after switching off the
      * 		interruptibility has been handled.
-     * @throws {@link IllegalArgumentException} if this {@linkplain
+     * @exception IllegalArgumentException if this {@linkplain
      * 		NetInput} does not actually support poll interrupts.
      */
     public void switchToUpcallMode(NetInputUpcall inputUpcall)
@@ -796,7 +796,7 @@ public abstract class NetInput extends NetIO implements NetInputUpcall {
      * @param contentsLength indicates how many bytes of data must be received.
      * 0 indicates that any length is fine and that the buffer.length field
      * should be filled with the length actually read.
-     * @throws an {@link IllegalArgumentException} if the factory has no
+     * @exception IllegalArgumentException if the factory has no
      * 		default MTU
      * @return the new {@link ibis.impl.net.NetReceiveBuffer}.
      */

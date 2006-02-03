@@ -60,8 +60,8 @@ public final class NetServiceLink {
      * 'Receive substream id' opcode for the commands sent over the main
      * sub-stream.
      *
-     * This opcode is sent along with the answer to the {@link
-     * #_OP_request_substream_id 'Request substream id'} request.
+     * This opcode is sent along with the answer to the
+     * {@link #_OP_request_substream_id Request substream id} request.
      *
      * @see ServiceThread#receiveSubstreamId
      * @see ServiceThread#run

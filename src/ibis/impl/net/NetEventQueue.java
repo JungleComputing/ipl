@@ -39,7 +39,7 @@ public class NetEventQueue {
      * Extract the event at the head of the queue.
      *
      * This method is synchronized with {@link #put}. If the queue
-     * is empty, this method will {@link #wait wait} until an event is
+     * is empty, this method will wait until an event is
      * added to the queue.
      *
      * @return the first event in the queue.
