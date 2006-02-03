@@ -22,14 +22,14 @@ public final class NetConnection {
      * which created this connection, and from
      * which the {@link NetPortType} is 'inherited', or <code>null</code>.
      */
-    private NetSendPort sendPort = null;
+    NetSendPort sendPort = null;
 
     /**
      * Reference the or {@link ibis.impl.net.NetReceivePort} which created
      * this connection, and from which the {@link NetPortType} is 'inherited',
      * or <code>null</code>.
      */
-    private NetReceivePort receivePort = null;
+    NetReceivePort receivePort = null;
 
     /**
      * Store the connection identifier.
@@ -76,7 +76,7 @@ public final class NetConnection {
 
     private DataOutputStream disconnect_os;
 
-    private DataInputStream disconnect_is;
+    DataInputStream disconnect_is;
 
     private DisconnectThread disconnectThread;
 

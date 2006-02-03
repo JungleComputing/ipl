@@ -203,7 +203,7 @@ public final class NetReceivePort implements ReceivePort,
 
     /* ___ EVENT QUEUE _________________________________________________ */
 
-    private NetEventQueue eventQueue = null;
+    NetEventQueue eventQueue = null;
 
     private NetEventQueueListener eventQueueListener = null;
 
@@ -259,22 +259,22 @@ public final class NetReceivePort implements ReceivePort,
      */
     private Upcall upcall = null;
 
-    private ReceivePortConnectUpcall rpcu = null;
+    ReceivePortConnectUpcall rpcu = null;
 
     /**
      * The port identifier.
      */
-    private NetReceivePortIdentifier identifier = null;
+    NetReceivePortIdentifier identifier = null;
 
     /**
      * The TCP server socket.
      */
-    private ServerSocket serverSocket = null;
+    ServerSocket serverSocket = null;
 
     /**
      * The next send port integer number.
      */
-    private int nextSendPortNum = 0;
+    int nextSendPortNum = 0;
 
     /**
      * Performance statistic
@@ -297,7 +297,7 @@ public final class NetReceivePort implements ReceivePort,
      * Cache a single connection for fast lookup in the frequent case of one
      * connection
      */
-    private NetConnection singleConnection = null;
+    NetConnection singleConnection = null;
 
     /**
      * The port's topmost input.
@@ -358,24 +358,24 @@ public final class NetReceivePort implements ReceivePort,
     /**
      * Internal receive port id, for debugging.
      */
-    private int receivePortMessageId = -1;
+    int receivePortMessageId = -1;
 
     /**
      * Process rank, for debugging.
      */
-    private int receivePortMessageRank = 0;
+    int receivePortMessageRank = 0;
 
     /**
      * Tracing log message prefix, for debugging.
      *
      */
-    private String receivePortTracePrefix = null;
+    String receivePortTracePrefix = null;
 
-    private Vector connectedPeers = null;
+    Vector connectedPeers = null;
 
     private Vector disconnectedPeers = null;
 
-    private int maxLiveConnections = 0;
+    int maxLiveConnections = 0;
 
     private boolean closed = false;
 
@@ -394,7 +394,7 @@ public final class NetReceivePort implements ReceivePort,
     /**
      * The incoming connection acceptation lock.
      */
-    private NetMutex connectionLock = null;
+    NetMutex connectionLock = null;
 
     /**
      * The network input synchronization lock.

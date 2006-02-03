@@ -105,7 +105,7 @@ public final class NetServiceLink {
     /**
      * The incoming TCP {@link #socket} stream.
      */
-    private InputStream is = null;
+    InputStream is = null;
 
     /**
      * The main outgoing sub-stream.
@@ -113,7 +113,7 @@ public final class NetServiceLink {
      * This sub-stream is used by the {@link ibis.impl.net.NetServiceLink}
      * object to send commands to its peer object.
      */
-    private ObjectOutputStream main_oos = null;
+    ObjectOutputStream main_oos = null;
 
     /**
      * The main incoming sub-stream.
@@ -121,7 +121,7 @@ public final class NetServiceLink {
      * This sub-stream is used by the {@link ibis.impl.net.NetServiceLink}
      * object to receive commands from its peer object.
      */
-    private ObjectInputStream main_ois = null;
+    ObjectInputStream main_ois = null;
 
     /**
      * Store the {@linkplain OutputClient output client} info structures.
@@ -135,19 +135,19 @@ public final class NetServiceLink {
      *
      * This map is indexed by the name of the sub-streams.
      */
-    private HashMap inputMap = null;
+    HashMap inputMap = null;
 
     /**
      * Store references to the incoming sub-streams.
      *
      * This vector is indexed by the sub-stream ids.
      */
-    private Vector inputVector = null;
+    Vector inputVector = null;
 
     /**
      * Store the next incoming sub-stream id.
      */
-    private int nextId = 1;
+    int nextId = 1;
 
     /**
      * The thread responsible for listening to the {@link #is incoming
@@ -165,19 +165,19 @@ public final class NetServiceLink {
     /**
      * Control the synchronization on request completion.
      */
-    private NetMutex requestCompletion = new NetMutex(true);
+    NetMutex requestCompletion = new NetMutex(true);
 
     /**
      * Control the synchronization on request posting.
      */
-    private NetMutex requestReady = new NetMutex(false);
+    NetMutex requestReady = new NetMutex(false);
 
     /**
      * Store the optional request result.
      *
      * Access to this attribute should be properly synchronized.
      */
-    private Object requestResult = null;
+    Object requestResult = null;
 
     /**
      * The port's event queue.
@@ -186,7 +186,7 @@ public final class NetServiceLink {
      * event is the 'close' event which indicates that the link
      * (hence the connection) is closed.
      */
-    private NetEventQueue portEventQueue = null;
+    NetEventQueue portEventQueue = null;
 
     /**
      * The network connection id.
@@ -194,9 +194,9 @@ public final class NetServiceLink {
      * <BR><B>Note:</B>&nbsp;This attribute is set by the {@link
      * #init} method, not by the constructor.
      */
-    private Integer num = null;
+    Integer num = null;
 
-    private Conversion conversion = Conversion.defaultConversion;
+    Conversion conversion = Conversion.defaultConversion;
 
     static {
         if (false) {
@@ -747,7 +747,7 @@ public final class NetServiceLink {
          * @param name the name of the sub-stream.
          * @see #_OP_request_substream_id
          */
-        private void requestSubstreamId(String name) {
+        void requestSubstreamId(String name) {
 
             synchronized (inputMap) {
                 InputClient ic = (InputClient) inputMap.get(name);
@@ -784,7 +784,7 @@ public final class NetServiceLink {
          * @param id the sub-stream id.
          * @see #_OP_receive_substream_id
          */
-        private void receiveSubstreamId(Integer id) {
+        void receiveSubstreamId(Integer id) {
             try {
                 requestReady.lock();
             } catch (InterruptedIOException e) {

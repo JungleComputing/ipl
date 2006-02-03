@@ -106,7 +106,7 @@ public class IbisSerializationOutputStream
     protected Replacer replacer;
 
     /** The first free object handle. */
-    private int next_handle;
+    int next_handle;
 
     /** Hash table for keeping references to objects already written. */
     private HandleHash references = new HandleHash(2048);
@@ -130,7 +130,7 @@ public class IbisSerializationOutputStream
      * user-defined <code>writeObject</code> refers to
      * <code>defaultWriteObject</code> or to <code>putFields</code>.
      */
-    private Object current_object;
+    Object current_object;
 
     /**
      * There also is a notion of a "current" level.
@@ -142,13 +142,13 @@ public class IbisSerializationOutputStream
      * level is the level at which <code>current_object</code> is being
      * processed.
      */
-    private int current_level;
+    int current_level;
 
     /**
      * There also is the notion of a "current" <code>PutField</code>, needed for
      * the <code>writeFields</code> method.
      */
-    private Object current_putfield;
+    Object current_putfield;
 
     /**
      * The <code>current_object</code>, <code>current_level</code>,
@@ -379,7 +379,7 @@ public class IbisSerializationOutputStream
      * @param v		the handle to be written
      * @exception IOException	gets thrown when an IO error occurs.
      */
-    private void writeHandle(int v) throws IOException {
+    void writeHandle(int v) throws IOException {
         if (clearPending) {
             writeInt(CLEAR_HANDLE);
             if (DEBUG) {
@@ -591,7 +591,7 @@ public class IbisSerializationOutputStream
      * @param unshared	  set when no cycle detection check shoud be done
      * @exception IOException	gets thrown when an IO error occurs.
      */
-    private void writeArray(Object ref, Class arrayClass, boolean unshared)
+    void writeArray(Object ref, Class arrayClass, boolean unshared)
             throws IOException {
         String s = arrayClass.getName();
         switch (s.charAt(1)) {
@@ -691,7 +691,7 @@ public class IbisSerializationOutputStream
      * @param clazz		the clazz to be written.
      * @exception IOException	gets thrown when an IO error occurs.
      */
-    private void writeType(Class clazz) throws IOException {
+    void writeType(Class clazz) throws IOException {
         int type_number;
 
         if (clazz == lastClass) {
@@ -799,7 +799,7 @@ public class IbisSerializationOutputStream
      * @exception IOException		 when an IO error occurs
      * @exception IllegalAccessException when access to a field is denied.
      */
-    private void alternativeDefaultWriteObject(AlternativeTypeInfo t,
+    void alternativeDefaultWriteObject(AlternativeTypeInfo t,
             Object ref) throws IOException, IllegalAccessException {
         int temp = 0;
         int i;
@@ -981,7 +981,7 @@ public class IbisSerializationOutputStream
      * @param clazz	the superclass
      * @exception IOException	gets thrown on IO error
      */
-    private void writeSerializableObject(Object ref, Class clazz)
+    void writeSerializableObject(Object ref, Class clazz)
             throws IOException {
         AlternativeTypeInfo t
                 = AlternativeTypeInfo.getAlternativeTypeInfo(clazz);
@@ -1093,7 +1093,7 @@ public class IbisSerializationOutputStream
         doWriteObject(ref);
     }
 
-    private void doWriteObject(Object ref) throws IOException {
+    void doWriteObject(Object ref) throws IOException {
         /*
          * ref < 0:	type
          * ref = 0:	null ptr

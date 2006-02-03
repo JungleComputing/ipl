@@ -40,7 +40,7 @@ public class NetPoller extends NetInput implements NetBufferedInputSupport {
      *  - any interrupted polls must be caught and restarted in the
      *    new regime
      */
-    private ReceiveQueue singleton;
+    ReceiveQueue singleton;
 
     private boolean doingPoll;
 
@@ -542,11 +542,11 @@ public class NetPoller extends NetInput implements NetBufferedInputSupport {
      * Performance optimization: if there is only one subInput, the role
      * of the poller thread is taken by the application thread.
      */
-    private int nCurrent;
+    int nCurrent;
 
     protected final class ReceiveQueue implements NetInputUpcall {
 
-        private NetInput input = null;
+        NetInput input = null;
 
         private Integer activeNum = null;
 
@@ -734,7 +734,7 @@ public class NetPoller extends NetInput implements NetBufferedInputSupport {
     }
 
     // Call the method synchronized(this)
-    private void grabUpcallLock(ReceiveQueue q) throws InterruptedIOException {
+    void grabUpcallLock(ReceiveQueue q) throws InterruptedIOException {
         log.in();
         trace.in();
 
@@ -758,7 +758,7 @@ public class NetPoller extends NetInput implements NetBufferedInputSupport {
     }
 
     // Call the method synchronized(this)
-    private void releaseUpcallLock() {
+    void releaseUpcallLock() {
         log.in();
         trace.in();
 
@@ -775,7 +775,7 @@ public class NetPoller extends NetInput implements NetBufferedInputSupport {
         trace.out();
     }
 
-    private void wakeupBlockedReceiver() {
+    void wakeupBlockedReceiver() {
         log.in();
         wakeupBlockedReceiver(false);
         log.out();
@@ -1021,7 +1021,7 @@ public class NetPoller extends NetInput implements NetBufferedInputSupport {
      *
      * Call this synchronized(this)
      */
-    private void finishLocked(boolean implicit) throws IOException {
+    void finishLocked(boolean implicit) throws IOException {
         log.in();
         if (activeQueue != null) {
             activeQueue.finish(implicit);

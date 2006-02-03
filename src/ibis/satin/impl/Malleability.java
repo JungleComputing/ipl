@@ -11,11 +11,11 @@ import java.util.ArrayList;
 
 public abstract class Malleability extends FaultTolerance {
 
-    private static ArrayList joiners = new ArrayList();
+    static ArrayList joiners = new ArrayList();
 
     private static boolean joinThreadRunning = false;
 
-    private void handleJoins(IbisIdentifier[] joiners) {
+    void handleJoins(IbisIdentifier[] joiners) {
         String[] names = new String[joiners.length];
         for (int i = 0; i < names.length; i++) {
             names[i] = "satin port on " + joiners[i].name();

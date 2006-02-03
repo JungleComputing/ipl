@@ -92,7 +92,7 @@ public final class Driver extends NetDriver {
 
     static native void nCloseDevice(long deviceHandler) throws IOException;
 
-    private static native boolean nGmThread();
+    static native boolean nGmThread();
 
     private static native void nStatistics();
 

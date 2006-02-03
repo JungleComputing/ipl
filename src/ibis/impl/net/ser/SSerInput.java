@@ -19,7 +19,7 @@ import java.io.IOException;
  */
 public final class SSerInput extends NetSerializedInput {
 
-    private NetBufferedInputSupport bufferInput;
+    NetBufferedInputSupport bufferInput;
 
     public SSerInput(NetPortType pt, NetDriver driver, String context,
             NetInputUpcall inputUpcall) throws IOException {

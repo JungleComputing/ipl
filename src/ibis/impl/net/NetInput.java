@@ -18,18 +18,18 @@ public abstract class NetInput extends NetIO implements NetInputUpcall {
      * Active {@link ibis.impl.net.NetConnection connection} number or
      * <code>null</code> if no connection is active.
      */
-    private Integer activeNum = null;
+    Integer activeNum = null;
 
-    private PooledUpcallThread activeThread = null;
+    PooledUpcallThread activeThread = null;
 
     private final static int threadStackSize = 256;
 
-    private int threadStackPtr = 0;
+    int threadStackPtr = 0;
 
-    private PooledUpcallThread[] threadStack
+    PooledUpcallThread[] threadStack
         = new PooledUpcallThread[threadStackSize];
 
-    private NetMutex threadStackLock = new NetMutex(false);
+    NetMutex threadStackLock = new NetMutex(false);
 
     private int upcallThreadNum = 0;
 
@@ -37,7 +37,7 @@ public abstract class NetInput extends NetIO implements NetInputUpcall {
 
     private boolean receiveStarted = false;
 
-    private NetThreadStat utStat = null;
+    NetThreadStat utStat = null;
 
     final private Integer takenNum = new Integer(-1);
 
@@ -52,13 +52,13 @@ public abstract class NetInput extends NetIO implements NetInputUpcall {
      * The top level input must spawn a new thread if the thread continues
      * in application space <strong>after</strong> the finish.
      */
-    private boolean upcallSpawnMode = true;
+    boolean upcallSpawnMode = true;
 
-    private Object nonSpawnSyncer = new Object();
+    Object nonSpawnSyncer = new Object();
 
-    private int nonSpawnWaiters;
+    int nonSpawnWaiters;
 
-    private static final boolean VERBOSE_INPUT_EXCEPTION
+    static final boolean VERBOSE_INPUT_EXCEPTION
         = TypedProperties.booleanProperty(NetIbis.input_exc_v, false);
 
     /**
@@ -69,7 +69,7 @@ public abstract class NetInput extends NetIO implements NetInputUpcall {
 
     private int upcallInstallWaiters;
 
-    static private int threadCount = 0;
+    static int threadCount = 0;
 
     static private boolean globalThreadStat = false;
     static {
@@ -170,7 +170,7 @@ public abstract class NetInput extends NetIO implements NetInputUpcall {
         }
     }
 
-    private int finishedUpcallThreads;
+    int finishedUpcallThreads;
 
     private final class PooledUpcallThread extends Thread {
 
@@ -916,7 +916,7 @@ public abstract class NetInput extends NetIO implements NetInputUpcall {
         log.out();
     }
 
-    private final void implicitFinish() throws IOException {
+    final void implicitFinish() throws IOException {
         log.in();
 
         doFinish();

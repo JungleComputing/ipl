@@ -69,7 +69,7 @@ public class NetServiceInputStream extends InputStream {
      * for each incoming message. Else, notify some pending handler
      * thread.
      */
-    private NetServicePopupThread popUp = null;
+    NetServicePopupThread popUp = null;
 
     private boolean handlingPopup = false;
 
@@ -115,7 +115,7 @@ public class NetServiceInputStream extends InputStream {
         }
     }
 
-    private synchronized boolean popupsFinished() {
+    synchronized boolean popupsFinished() {
         if (avail > 0) {
             return false;
         }

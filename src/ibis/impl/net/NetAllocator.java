@@ -45,7 +45,7 @@ public final class NetAllocator {
      *
      * Judicially choose the mtu of net.gm as the default value...
      */
-    private static final int bigBlockThreshold = TypedProperties.intProperty(
+    static final int bigBlockThreshold = TypedProperties.intProperty(
             NetIbis.alloc_thres, 128 * 1024);
 
     /**

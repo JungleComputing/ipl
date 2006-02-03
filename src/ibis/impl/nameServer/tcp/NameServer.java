@@ -162,7 +162,7 @@ public class NameServer extends Thread implements Protocol {
 
     private boolean joined;
 
-    private boolean silent;
+    boolean silent;
 
     private ControlHub h = null;
 
@@ -273,7 +273,7 @@ public class NameServer extends Thread implements Protocol {
         }
     }
 
-    private void upcaller() {
+    void upcaller() {
         for (;;) {
             try {
                 Thread.sleep(JOINER_INTERVAL);

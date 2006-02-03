@@ -17,12 +17,12 @@ public final class NetLockArray {
         /**
          * Lock value. <code>v > 0</code>means lock is free.
          */
-        private int v;
+        int v;
 
         /**
          * Lock liveness mask.
          */
-        private boolean m;
+        boolean m;
 
         /**
          * Maintain an interrupt count. On an interrupt, this is set to the
@@ -31,13 +31,13 @@ public final class NetLockArray {
          * increased. If so, we suffered an interrupt, and must throw an
          * {@link ibis.impl.net.InterruptedIOException InterruptedIOException}.
          */
-        private int interrupts;
+        int interrupts;
 
-        private ConditionVariable cv;
+        ConditionVariable cv;
 
-        private WaitingOn front;
+        WaitingOn front;
 
-        private WaitingOn tail;
+        WaitingOn tail;
 
         Lock() {
             cv = mon.createCV(true);
@@ -46,7 +46,7 @@ public final class NetLockArray {
 
     private Lock[] lock;
 
-    private Monitor mon;
+    Monitor mon;
 
     private int interrupts;
 

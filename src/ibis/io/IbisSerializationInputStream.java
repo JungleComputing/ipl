@@ -34,7 +34,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
             = TypedProperties.booleanProperty(IOProps.s_stats_nonrewritten);
 
     // if STATS_NONREWRITTEN
-    private static java.util.Hashtable nonRewritten = new java.util.Hashtable();
+    static java.util.Hashtable nonRewritten = new java.util.Hashtable();
 
     // Only works as of Java 1.4, earlier versions of Java don't have Unsafe.
     private static Unsafe unsafe = null;
@@ -90,7 +90,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
      * <code>defaultReadObject</code> or to
      * <code>getFields</code>.
      */
-    private Object current_object;
+    Object current_object;
 
     /**
      * There also is a notion of a "current" level.
@@ -102,7 +102,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
      * level is the level at which <code>current_object</code> is being
      * processed.
      */
-    private int current_level;
+    int current_level;
 
     /**
      * The <code>current_object</code> and <code>current_level</code>
@@ -1227,7 +1227,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
      * @exception IllegalAccessException when access to a field is denied.
      * @exception ClassNotFoundException when readObject throws it.
      */
-    private void alternativeDefaultReadObject(AlternativeTypeInfo t, Object ref)
+    void alternativeDefaultReadObject(AlternativeTypeInfo t, Object ref)
             throws ClassNotFoundException, IllegalAccessException, IOException {
         int temp = 0;
         if (DEBUG) {
@@ -1628,7 +1628,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
         return doReadObject(false);
     }
 
-    private final Object doReadObject(boolean unshared) throws IOException,
+    final Object doReadObject(boolean unshared) throws IOException,
             ClassNotFoundException {
         /*
          * ref < 0:    type

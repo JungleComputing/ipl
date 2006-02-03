@@ -31,14 +31,14 @@ class ReceivePortNameServer extends Thread implements Protocol {
 
     private static final int MAXSOCKETS = 32;
 
-    private Logger logger
+    Logger logger
             = GetLogger.getLogger(ReceivePortNameServer.class.getName());
 
     private Hashtable ports;
 
-    private Hashtable requestedPorts;
+    Hashtable requestedPorts;
 
-    private int socketCount = 0;
+    int socketCount = 0;
 
     boolean finishSweeper = false;
 
@@ -164,7 +164,7 @@ class ReceivePortNameServer extends Thread implements Protocol {
             }
         }
 
-        private void writeResult() {
+        void writeResult() {
             try {
                 if (myOut == null) {
                     logger.info("Setting up connection to client");

@@ -7,7 +7,7 @@ import java.util.Iterator;
 import java.util.TreeMap;
 
 public abstract class NetStat {
-    private static String dummy = Runtime.getRuntime().toString();
+    static String dummy = Runtime.getRuntime().toString();
 
     protected String moduleName = null;
 
