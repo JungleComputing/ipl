@@ -991,7 +991,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
             Class cl = ref.getClass();
             try {
                 Field f = cl.getDeclaredField(fieldname);
-                int key = unsafe.fieldOffset(f);
+                long key = unsafe.objectFieldOffset(f);
                 unsafe.putDouble(ref, key, d);
                 return;
             } catch (Exception e) {
@@ -1011,7 +1011,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
             Class cl = ref.getClass();
             try {
                 Field f = cl.getDeclaredField(fieldname);
-                int key = unsafe.fieldOffset(f);
+                long key = unsafe.objectFieldOffset(f);
                 unsafe.putLong(ref, key, d);
                 return;
             } catch (Exception e) {
@@ -1032,7 +1032,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
             Class cl = ref.getClass();
             try {
                 Field f = cl.getDeclaredField(fieldname);
-                int key = unsafe.fieldOffset(f);
+                long key = unsafe.objectFieldOffset(f);
                 unsafe.putFloat(ref, key, d);
                 return;
             } catch (Exception e) {
@@ -1052,7 +1052,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
             Class cl = ref.getClass();
             try {
                 Field f = cl.getDeclaredField(fieldname);
-                int key = unsafe.fieldOffset(f);
+                long key = unsafe.objectFieldOffset(f);
                 unsafe.putInt(ref, key, d);
                 return;
             } catch (Exception e) {
@@ -1073,7 +1073,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
             Class cl = ref.getClass();
             try {
                 Field f = cl.getDeclaredField(fieldname);
-                int key = unsafe.fieldOffset(f);
+                long key = unsafe.objectFieldOffset(f);
                 unsafe.putShort(ref, key, d);
                 return;
             } catch (Exception e) {
@@ -1093,7 +1093,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
             Class cl = ref.getClass();
             try {
                 Field f = cl.getDeclaredField(fieldname);
-                int key = unsafe.fieldOffset(f);
+                long key = unsafe.objectFieldOffset(f);
                 unsafe.putChar(ref, key, d);
                 return;
             } catch (Exception e) {
@@ -1113,7 +1113,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
             Class cl = ref.getClass();
             try {
                 Field f = cl.getDeclaredField(fieldname);
-                int key = unsafe.fieldOffset(f);
+                long key = unsafe.objectFieldOffset(f);
                 unsafe.putByte(ref, key, d);
                 return;
             } catch (Exception e) {
@@ -1134,7 +1134,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
             Class cl = ref.getClass();
             try {
                 Field f = cl.getDeclaredField(fieldname);
-                int key = unsafe.fieldOffset(f);
+                long key = unsafe.objectFieldOffset(f);
                 unsafe.putBoolean(ref, key, d);
                 return;
             } catch (Exception e) {
@@ -1155,7 +1155,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
             Class cl = ref.getClass();
             try {
                 Field f = cl.getDeclaredField(fieldname);
-                int key = unsafe.fieldOffset(f);
+                long key = unsafe.objectFieldOffset(f);
                 unsafe.putObject(ref, key, d);
                 return;
             } catch (Exception e) {
@@ -1177,7 +1177,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
             Class cl = ref.getClass();
             try {
                 Field f = cl.getDeclaredField(fieldname);
-                int key = unsafe.fieldOffset(f);
+                long key = unsafe.objectFieldOffset(f);
                 unsafe.putObject(ref, key, d);
                 return;
             } catch (Exception e) {
@@ -1203,7 +1203,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
                 if (d != null && !f.getType().isInstance(d)) {
                     throw new ClassCastException("wrong field type");
                 }
-                int key = unsafe.fieldOffset(f);
+                long key = unsafe.objectFieldOffset(f);
                 unsafe.putObject(ref, key, d);
                 return;
             } catch (ClassCastException e) {
