@@ -25,7 +25,7 @@ public abstract class MuxerOutput extends NetBufferedOutput {
     }
 
     public void setupConnection(NetConnection cnx) throws IOException {
-        setupConnection(cnx, (NetIO) this);
+        setupConnection(cnx, this);
     }
 
     public abstract void setupConnection(NetConnection cnx, NetIO io)

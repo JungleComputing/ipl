@@ -6,7 +6,6 @@ import ibis.impl.net.NetBufferFactory;
 import ibis.impl.net.NetBufferedInput;
 import ibis.impl.net.NetConnection;
 import ibis.impl.net.NetDriver;
-import ibis.impl.net.NetIO;
 import ibis.impl.net.NetInputUpcall;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetReceiveBuffer;
@@ -106,7 +105,7 @@ public final class Demuxer extends NetBufferedInput {
 
         /* Set up the connection; it creates a MuxerQueue that is remembered
          * by our cnx */
-        demux.setupConnection(cnx, (NetIO) this);
+        demux.setupConnection(cnx, this);
         /* Drag up the MuxerQueue that demux has created for us. It is
          * remembered by our cnx. */
         myQueue = demux.locateQueue(cnx);

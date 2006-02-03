@@ -6,7 +6,6 @@ import ibis.impl.net.NetBufferFactory;
 import ibis.impl.net.NetBufferedOutput;
 import ibis.impl.net.NetConnection;
 import ibis.impl.net.NetDriver;
-import ibis.impl.net.NetIO;
 import ibis.impl.net.NetPortType;
 import ibis.impl.net.NetSendBuffer;
 import ibis.impl.net.NetSendBufferFactoryDefaultImpl;
@@ -96,7 +95,7 @@ public final class Muxer extends NetBufferedOutput {
 
         rpn = cnx.getNum();
 
-        muxer.setupConnection(cnx, (NetIO) this);
+        muxer.setupConnection(cnx, this);
 
         headerOffset = muxer.getHeaderLength();
         headerLength = headerOffset;

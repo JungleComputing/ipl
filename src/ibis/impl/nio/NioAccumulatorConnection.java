@@ -89,14 +89,13 @@ class NioAccumulatorConnection implements Config {
                     logger.debug("buffer has some bytes" + " remaining");
                 }
                 return false;
-            } else {
-                SendBuffer.recycle(pendingBuffers[bufferPosition]);
-
-                bufferPosition = (bufferPosition + 1) % MAX_SEND_BUFFERS;
-                if (logger.isDebugEnabled()) {
-                    logger.debug("completely send buffer,"
-                            + " trying next one too");
-                }
+            }
+            SendBuffer.recycle(pendingBuffers[bufferPosition]);
+            
+            bufferPosition = (bufferPosition + 1) % MAX_SEND_BUFFERS;
+            if (logger.isDebugEnabled()) {
+            	logger.debug("completely send buffer,"
+            			+ " trying next one too");
             }
         }
         if (logger.isDebugEnabled()) {

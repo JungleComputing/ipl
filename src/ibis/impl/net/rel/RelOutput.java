@@ -98,7 +98,7 @@ public final class RelOutput extends NetBufferedOutput implements RelConstants,
     /**
      * Retransmission control
      */
-    private long safetyInterval = Driver.sweepInterval; // Wait at least this before rexmit
+    private long safetyInterval = RelConstants.sweepInterval; // Wait at least this before rexmit
 
     private int nRexmit;
 

@@ -89,7 +89,7 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
 
     private ReceivePortConnectUpcall connectUpcall;
 
-    private boolean allowConnections = false;
+    // private boolean allowConnections = false;
 
     private AcceptThread acceptThread;
 
@@ -360,11 +360,11 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
                 }
             }
         }
-        allowConnections = true;
+//        allowConnections = true;
     }
 
     public synchronized void disableConnections() {
-        allowConnections = false;
+//         allowConnections = false;
     }
 
     public synchronized void enableUpcalls() {

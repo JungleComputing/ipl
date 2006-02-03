@@ -88,9 +88,6 @@ public final class TcpInput extends NetBufferedInput {
 
     private boolean interruptible = false;
 
-    private final static boolean READ_AHEAD = TypedProperties.booleanProperty(
-            Driver.tcpblk_rdah, true);
-
     static {
         if (false) {
             System.err.println("WARNING: Class net.tcp_blk.TcpInput (still)"
@@ -399,10 +396,11 @@ public final class TcpInput extends NetBufferedInput {
             String msg = e.getMessage();
             if (tcpSocket.isClosed() || msg.equalsIgnoreCase("socket closed")
                     || msg.equalsIgnoreCase("null fd object")) {
-                throw new ConnectionClosedException(e);
-            } else {
-                throw e;
+            	throw new ConnectionClosedException(e);
             }
+            
+            throw e;
+            
         }
         if (DEBUG) {
             System.err.println(this + ": receive buffer size " + offset);

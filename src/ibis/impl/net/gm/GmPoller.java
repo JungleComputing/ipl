@@ -30,7 +30,7 @@ import java.io.IOException;
  */
 public final class GmPoller extends NetPoller {
 
-    private Driver gmDriver;
+//    private Driver gmDriver;
 
     /*
      * These fields are protected by synchronized (this).
@@ -57,7 +57,7 @@ public final class GmPoller extends NetPoller {
     public GmPoller(NetPortType pt, NetDriver driver, String context,
             NetInputUpcall inputUpcall) throws IOException {
         super(pt, driver, context, false, inputUpcall);
-        gmDriver = (Driver) driver;
+//        gmDriver = (Driver) driver;
         lockIds = new int[1];
         lockIds[0] = 0; // main lock
         // System.err.println("************ Create a new GmPoller " + this + " upcallFunc " + upcallFunc);

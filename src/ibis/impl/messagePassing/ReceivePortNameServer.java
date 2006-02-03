@@ -21,7 +21,7 @@ final class ReceivePortNameServer implements ReceivePortNameServerProtocol {
     private native void bind_reply(int ret, int tag, int client);
 
     /* Called from native */
-    private void bind(String name, byte[] serialForm, int tag, int client)
+    void bind(String name, byte[] serialForm, int tag, int client)
             throws IOException {
         Ibis.myIbis.checkLockOwned();
         ReceivePortIdentifier ri = null;
@@ -65,7 +65,7 @@ final class ReceivePortNameServer implements ReceivePortNameServerProtocol {
             byte[] rcvePortId);
 
     /* Called from native */
-    private void lookup(String name, int tag, int seqno, int client) {
+    void lookup(String name, int tag, int seqno, int client) {
         Ibis.myIbis.checkLockOwned();
 
         ReceivePortIdentifier storedId;
@@ -95,7 +95,7 @@ final class ReceivePortNameServer implements ReceivePortNameServerProtocol {
     }
 
     /* Called from native */
-    private void unbind(String name) throws ClassNotFoundException {
+    void unbind(String name) throws ClassNotFoundException {
         Ibis.myIbis.checkLockOwned();
 
         if (ReceivePortNameServerProtocol.DEBUG) {

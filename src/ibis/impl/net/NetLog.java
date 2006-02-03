@@ -59,25 +59,6 @@ public final class NetLog {
     /* JDK >= 1.4 only */
 
     /**
-     * Generic caller frame retrieval.
-     */
-    private StackTraceElement getCaller() {
-        StackTraceElement[] steArray = new Throwable().getStackTrace();
-        int i = 1;
-
-        while (i < steArray.length) {
-            StackTraceElement ste = steArray[i];
-            if (!ste.getClassName().equals(this.getClass().getName())) {
-                return ste;
-            }
-
-            i++;
-        }
-
-        return null;
-    }
-
-    /**
      * Fixed caller frame retrieval.
      *
      * @param frame number of frames to skip.

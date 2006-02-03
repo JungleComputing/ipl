@@ -89,7 +89,7 @@ final class ReceivePortNameServerClient implements
     }
 
     /* Called from native */
-    private void bind_reply() {
+    void bind_reply() {
         Ibis.myIbis.checkLockOwned();
         if (ReceivePortNameServerProtocol.DEBUG) {
             System.err.println(Thread.currentThread()
@@ -233,7 +233,7 @@ final class ReceivePortNameServerClient implements
     native void ns_lookup(String name, int seqno);
 
     /* Called from native */
-    private void lookup_reply(byte[] rcvePortId, int seqno) {
+    void lookup_reply(byte[] rcvePortId, int seqno) {
         Ibis.myIbis.checkLockOwned();
         if (lookup.expected_seqno != seqno) {
             if (ReceivePortNameServerProtocol.DEBUG) {

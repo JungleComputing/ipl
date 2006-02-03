@@ -698,8 +698,7 @@ public final class NetIbis extends Ibis {
     public int closedPoolSize() {
         if (closedPoolSize == 0) {
             throw new Error("closedPoolSize only defined in closed world");
-        } else {
-            return closedPoolSize;
         }
+        return closedPoolSize;        
     }
 }

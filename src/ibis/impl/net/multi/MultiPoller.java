@@ -60,8 +60,6 @@ public class MultiPoller extends NetPoller {
 
         private Lane lane = null;
 
-        private boolean exit = false;
-
         private String name;
 
         public ServiceThread(String name, Lane lane) {
@@ -88,9 +86,6 @@ public class MultiPoller extends NetPoller {
 
         public void end() {
             log.in();
-            synchronized (lane) {
-                exit = true;
-            }
             log.out();
         }
     }

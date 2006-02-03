@@ -150,7 +150,7 @@ public final class TcpOutput extends NetOutput {
             first = false;
         }
         for (int i = 0; i < b.length; i++) {
-            tcpOs.writeByte((int) b.data[i]);
+            tcpOs.writeByte(b.data[i]);
         }
 
         if (!b.ownershipClaimed) {
@@ -176,7 +176,7 @@ public final class TcpOutput extends NetOutput {
             first = false;
         }
 
-        tcpOs.writeByte((int) b);
+        tcpOs.writeByte(b);
         log.out();
     }
 
@@ -187,7 +187,7 @@ public final class TcpOutput extends NetOutput {
             first = false;
         }
 
-        tcpOs.writeChar((int) b);
+        tcpOs.writeChar(b);
         log.out();
     }
 
@@ -198,7 +198,7 @@ public final class TcpOutput extends NetOutput {
             first = false;
         }
 
-        tcpOs.writeShort((int) b);
+        tcpOs.writeShort(b);
         log.out();
     }
 
@@ -209,7 +209,7 @@ public final class TcpOutput extends NetOutput {
             first = false;
         }
 
-        tcpOs.writeInt((int) b);
+        tcpOs.writeInt(b);
         log.out();
     }
 

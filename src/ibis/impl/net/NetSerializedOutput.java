@@ -143,10 +143,9 @@ public abstract class NetSerializedOutput extends NetOutput implements NetBuffer
     public long getCount()
     {
         if (subOutput != null) {
-            return subOutput.getCount();
-        } else {
-            return 0;
+        	return subOutput.getCount();
         }
+        return 0;
     }
 
     public void resetCount()

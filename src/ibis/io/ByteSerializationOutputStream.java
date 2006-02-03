@@ -51,7 +51,7 @@ public class ByteSerializationOutputStream extends SerializationBase
     }
 
     public void writeByte(byte value) throws IOException {
-        out.write((int) value);
+        out.write(value);
     }
 
     public void writeChar(char value) throws IOException {

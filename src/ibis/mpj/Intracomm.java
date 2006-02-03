@@ -45,9 +45,7 @@ public class Intracomm extends Comm {
                 return(cpComm);
 
             }
-            else {
-                return(null);
-            }
+            return(null);
         }
         catch (MPJException e) {
             System.err.println(e.getMessage());

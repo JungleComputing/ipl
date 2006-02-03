@@ -33,7 +33,7 @@ public class ConnectionTable {
             }
             else {
 
-                conTable.put((String)host, (Connection)con);
+                conTable.put(host, con);
                 written = true;
             }
         }
@@ -41,14 +41,11 @@ public class ConnectionTable {
     }
 
     protected Connection getConnection(String mpjHostName) throws MPJException {
-        if (conTable.containsKey((String)mpjHostName)) {
-            return (Connection)conTable.get((String)mpjHostName);
+        if (conTable.containsKey(mpjHostName)) {
+            return (Connection)conTable.get(mpjHostName);
         }
-        else {
-            throw new MPJException(mpjHostName + " not found in ConnectionTable.");
-        }
-
-    }
+        throw new MPJException(mpjHostName + " not found in ConnectionTable.");
+     }
 
 
 

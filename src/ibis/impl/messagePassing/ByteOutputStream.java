@@ -40,19 +40,19 @@ final class ByteOutputStream extends ibis.io.DataOutputStream {
     /**
      * This field is read from native code
      */
-    private boolean waitingInPoll = false;
+    boolean waitingInPoll = false;
 
     /**
      * This field is read from native code
      */
-    private boolean fragWaiting = false;
+    boolean fragWaiting = false;
 
     private int msgSeqno = 0;
 
     /**
      * This field is read and <strong>written</strong> from native code
      */
-    private long msgCount;
+    long msgCount;
 
     /**
      * This field is read and <strong>written</strong> from native code
@@ -61,7 +61,7 @@ final class ByteOutputStream extends ibis.io.DataOutputStream {
      * stream; it builds up the data vector for the current message and
      * keeps a GlobalRef to this.
      */
-    private int nativeByteOS;
+    int nativeByteOS;
 
     /**
      * The buffer allocator used by an IbisSerializationOutputStream on
@@ -160,7 +160,7 @@ final class ByteOutputStream extends ibis.io.DataOutputStream {
     }
 
     /* Called from native */
-    private void finished_upcall() {
+    void finished_upcall() {
         Ibis.myIbis.checkLockOwned();
         sendComplete.signal();
         if (fragWaiting) {

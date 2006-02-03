@@ -28,9 +28,8 @@ public class NetFile {
             if (i < 0) {
                 if (s.equals("")) {
                     return null;
-                } else {
-                    break;
                 }
+                break;               
             }
 
             c = (char) i;
@@ -52,9 +51,8 @@ public class NetFile {
         if (l > 0 && s.charAt(l - 1) == '\n') {
             if (l > 1) {
                 return s.substring(0, l - 2);
-            } else {
-                return "";
             }
+            return "";
         }
 
         return s;

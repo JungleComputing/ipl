@@ -187,29 +187,28 @@ public final class cluster implements MultiPlugin {
             os.flush();
             // System.err.println("Outgoing: return " + null);
             return null;
-        } else {
-            while (true) {
-                String s;
-                try {
-                    s = (String) is.readObject();
-                } catch (ClassNotFoundException e) {
-                    throw new Error("Cannot find class String", e);
-                }
-                if (s.equals("")) {
-                    // System.err.println("Incoming: return " + null);
-                    return null;
-                }
-
-                if (netTable.get(s) != null) {
-                    os.writeObject(Boolean.valueOf(true));
-                    os.flush();
-                    // System.err.println("Incoming: subcontext string = ["+s+"]");
-                    return s;
-                }
-                os.writeObject(Boolean.valueOf(false));
-                os.flush();
-            }
         }
+        while (true) {
+        	String s;
+        	try {
+        		s = (String) is.readObject();
+        	} catch (ClassNotFoundException e) {
+        		throw new Error("Cannot find class String", e);
+        	}
+        	if (s.equals("")) {
+        		// System.err.println("Incoming: return " + null);
+        		return null;
+        	}
+        	
+        	if (netTable.get(s) != null) {
+        		os.writeObject(Boolean.valueOf(true));
+        		os.flush();
+        		// System.err.println("Incoming: subcontext string = ["+s+"]");
+        		return s;
+        	}
+        	os.writeObject(Boolean.valueOf(false));
+        	os.flush();
+        }   
     }
 }
 

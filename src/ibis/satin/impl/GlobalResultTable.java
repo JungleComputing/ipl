@@ -24,7 +24,7 @@ public class GlobalResultTable implements Upcall, Config {
         ParameterRecord parameters;
 
         Key(InvocationRecord r) {
-            if (Satin.this_satin.branchingFactor > 0) {
+            if (SatinBase.this_satin.branchingFactor > 0) {
                 this.stamp = r.stamp;
                 this.parameters = null;
             } else {
@@ -35,7 +35,7 @@ public class GlobalResultTable implements Upcall, Config {
 
         public boolean equals(Object other) {
             Key otherKey = (Key) other;
-            if (Satin.this_satin.branchingFactor > 0) {
+            if (SatinBase.this_satin.branchingFactor > 0) {
                 return this.stamp == otherKey.stamp;
             }
 			if (other == null) {
@@ -45,14 +45,14 @@ public class GlobalResultTable implements Upcall, Config {
         }
 
         public int hashCode() {
-            if (Satin.this_satin.branchingFactor > 0) {
+            if (SatinBase.this_satin.branchingFactor > 0) {
                 return this.stamp;
             }
 			return this.parameters.hashCode();
         }
 
         public String toString() {
-            if (Satin.this_satin.branchingFactor > 0) {
+            if (SatinBase.this_satin.branchingFactor > 0) {
                 return Integer.toString(stamp);
             }
 			return parameters.toString();
@@ -78,7 +78,7 @@ public class GlobalResultTable implements Upcall, Config {
 
         Value(int type, InvocationRecord r) {
             this.type = type;
-            this.owner = Satin.this_satin.ident;
+            this.owner = SatinBase.this_satin.ident;
             if (type == TYPE_RESULT) {
                 result = r.getReturnRecord();
             }
@@ -97,7 +97,7 @@ public class GlobalResultTable implements Upcall, Config {
                 str += "(POINTER,owner:" + owner + ")";
                 break;
             default:
-                grtLogger.error("SATIN '" + Satin.this_satin.ident
+                grtLogger.error("SATIN '" + SatinBase.this_satin.ident
                         + "': illegal type in value");
             }
             return str;
@@ -171,7 +171,7 @@ public class GlobalResultTable implements Upcall, Config {
         }
 
         if (ASSERTS) {
-            Satin.assertLocked(satin);
+            SatinBase.assertLocked(satin);
         }
 
         Value value = (Value) entries.get(key);
@@ -224,7 +224,7 @@ public class GlobalResultTable implements Upcall, Config {
         }
 
         if (ASSERTS) {
-            Satin.assertLocked(satin);
+            SatinBase.assertLocked(satin);
         }
 
         Object oldValue = entries.get(key);
@@ -346,7 +346,7 @@ public class GlobalResultTable implements Upcall, Config {
     void updateAll(Map updates) {
 
         if (ASSERTS) {
-            Satin.assertLocked(satin);
+            SatinBase.assertLocked(satin);
         }
 
         if (GRT_TIMING) {
@@ -456,7 +456,7 @@ public class GlobalResultTable implements Upcall, Config {
     //returns ready to send contents of the table
     Map getContents() {
         if (ASSERTS) {
-            Satin.assertLocked(satin);
+            SatinBase.assertLocked(satin);
         }
 
         if (GLOBAL_RESULT_TABLE_REPLICATED) {
@@ -487,7 +487,7 @@ public class GlobalResultTable implements Upcall, Config {
 
     void addContents(Map contents) {
         if (ASSERTS) {
-            Satin.assertLocked(satin);
+            SatinBase.assertLocked(satin);
         }
 
         if (grtLogger.isDebugEnabled()) {
@@ -506,7 +506,7 @@ public class GlobalResultTable implements Upcall, Config {
 
     void addReplica(IbisIdentifier ident) {
         if (ASSERTS) {
-            Satin.assertLocked(satin);
+            SatinBase.assertLocked(satin);
         }
 
         try {
@@ -517,7 +517,7 @@ public class GlobalResultTable implements Upcall, Config {
             r = satin.lookup("satin global result table receive port on "
                     + ident.name());
             if (! SCALABLE) {
-                if (Satin.connect(send, r, Satin.connectTimeout)) {
+                if (Communication.connect(send, r, SatinBase.connectTimeout)) {
                     numReplicas++;
                     sends.put(ident, new Victim(ident, send, r));
                 } else {
@@ -537,7 +537,7 @@ public class GlobalResultTable implements Upcall, Config {
 
     void removeReplica(IbisIdentifier ident) {
         if (ASSERTS) {
-            Satin.assertLocked(satin);
+            SatinBase.assertLocked(satin);
         }
 
         Victim send = (Victim) sends.remove(ident);

@@ -1362,35 +1362,35 @@ public class DeepCopy {
         }
 
         public void writeArray(boolean[] a, int off, int len) throws IOException {
-            buf.putSlice((boolean[]) a, off, len);
+            buf.putSlice(a, off, len);
         }
 
         public void writeArray(byte[] a, int off, int len) throws IOException {
-            buf.putSlice((byte[]) a, off, len);
+            buf.putSlice(a, off, len);
         }
 
         public void writeArray(short[] a, int off, int len) throws IOException {
-            buf.putSlice((short[]) a, off, len);
+            buf.putSlice(a, off, len);
         }
 
         public void writeArray(char[] a, int off, int len) throws IOException {
-            buf.putSlice((char[]) a, off, len);
+            buf.putSlice(a, off, len);
         }
 
         public void writeArray(int[] a, int off, int len) throws IOException {
-            buf.putSlice((int[]) a, off, len);
+            buf.putSlice(a, off, len);
         }
 
         public void writeArray(long[] a, int off, int len) throws IOException {
-            buf.putSlice((long[]) a, off, len);
+            buf.putSlice(a, off, len);
         }
 
         public void writeArray(float[] a, int off, int len) throws IOException {
-            buf.putSlice((float[]) a, off, len);
+            buf.putSlice(a, off, len);
         }
 
         public void writeArray(double[] a, int off, int len) throws IOException {
-            buf.putSlice((double[]) a, off, len);
+            buf.putSlice(a, off, len);
         }
 
         public void flush() throws IOException {

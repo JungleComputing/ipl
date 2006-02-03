@@ -55,9 +55,8 @@ public abstract class NetStat {
             }
 
             return s;
-        } else {
-            return word;
         }
+        return word;
     }
 
     /**
@@ -77,9 +76,8 @@ public abstract class NetStat {
             }
 
             return s;
-        } else {
-            return word;
         }
+        return word;
     }
 
     /**

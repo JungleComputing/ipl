@@ -44,44 +44,42 @@ public class ColSplit {
         if (gatheredTable[rank].colour == MPJ.UNDEFINED) {
             return(null);
         }
-        else {
-            Arrays.sort(gatheredTable, new SplitComp());
-
-
-            Group oldGroup = this.comm.group();
-
-            int count =0;
-            int[] newRanks = new int[size];
-            for (int i = 0; i < size; i++) {
-
-                if (gatheredTable[i].colour == colour) {
-                    count++;
-
-                    newRanks[count-1] = gatheredTable[i].rank;
-
-                }
-            }
-
-            int[] newRanksSized = new int[count];
-            System.arraycopy(newRanks, 0, newRanksSized, 0, count);
-
-            Group newGroup = oldGroup.incl(newRanksSized);
-
-            Intracomm newComm = new Intracomm();
-
-            int[] newContextId = new int[1];
-            int[] redContextId = new int[1];
-            newContextId[0] = MPJ.getNewContextId();
-
-            this.comm.allreduce(newContextId, 0, redContextId, 0, 1, MPJ.INT, MPJ.MAX);
-
-            MPJ.setNewContextId(redContextId[0]);
-            newComm.contextId = redContextId[0];
-
-            newComm.group = newGroup;
-
-            return(newComm);
+        Arrays.sort(gatheredTable, new SplitComp());
+        
+        
+        Group oldGroup = this.comm.group();
+        
+        int count =0;
+        int[] newRanks = new int[size];
+        for (int i = 0; i < size; i++) {
+        	
+        	if (gatheredTable[i].colour == colour) {
+        		count++;
+        		
+        		newRanks[count-1] = gatheredTable[i].rank;
+        		
+        	}
         }
+        
+        int[] newRanksSized = new int[count];
+        System.arraycopy(newRanks, 0, newRanksSized, 0, count);
+        
+        Group newGroup = oldGroup.incl(newRanksSized);
+        
+        Intracomm newComm = new Intracomm();
+        
+        int[] newContextId = new int[1];
+        int[] redContextId = new int[1];
+        newContextId[0] = MPJ.getNewContextId();
+        
+        this.comm.allreduce(newContextId, 0, redContextId, 0, 1, MPJ.INT, MPJ.MAX);
+        
+        MPJ.setNewContextId(redContextId[0]);
+        newComm.contextId = redContextId[0];
+        
+        newComm.group = newGroup;
+        
+        return(newComm);
     }
 }
 

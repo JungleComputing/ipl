@@ -90,10 +90,9 @@ public final class NetMutex {
     public synchronized boolean trylock() {
         if (value <= 0) {
             return false;
-        } else {
-            value--;
-            return true;
         }
+        value--;
+        return true;
     }
 
     /**

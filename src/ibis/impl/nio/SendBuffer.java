@@ -80,12 +80,11 @@ final class SendBuffer implements Config {
             cacheSize--;
             cache[cacheSize].clear();
             return cache[cacheSize];
-        } else {
-            if (logger.isDebugEnabled()) {
-                logger.debug("SendBuffer: got new empty buffer");
-            }
-            return new SendBuffer();
         }
+        if (logger.isDebugEnabled()) {
+        	logger.debug("SendBuffer: got new empty buffer");
+        }
+        return new SendBuffer();
     }
 
     /**
@@ -296,7 +295,7 @@ final class SendBuffer implements Config {
                 + headerArray[FLOATS] + headerArray[SHORTS]
                 + headerArray[CHARS] + headerArray[BYTES];
 
-        paddingLength = (int) (8 - (totalLength % 8));
+        paddingLength = (8 - (totalLength % 8));
         byteBuffers[PADDING].position(0).limit(paddingLength);
 
         // put a byte in the header indicating the length of the paddding

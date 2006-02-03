@@ -268,9 +268,9 @@ public final class NetPropertyTree {
                     if (result != null) {
                         //System.err.println("get: context = "+context+", found = "+result);
                         return result;
-                    } else {
-                        propertyTree = null;
                     }
+                    propertyTree = null;
+                    
                 }
 
                 context = null;

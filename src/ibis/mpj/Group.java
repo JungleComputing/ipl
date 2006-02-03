@@ -37,10 +37,8 @@ public class Group {
         if (table != null) {
             return table.size();
         }
-        else {
-            return MPJ.UNDEFINED;
-        }
-    }
+        return MPJ.UNDEFINED;
+     }
 
 
 
@@ -225,28 +223,27 @@ public class Group {
         if ((group1 == null) || (group2 == null)) {
             return (null);
         }
-        else {
-            Group iGroup = new Group();
-
-
-            for (int i = 0; i < group2.size(); i++) {
-                boolean check = false;
-                String a = (String)group2.table.elementAt(i);
-                for (int j = 0; j < group1.size();  j++) {
-                    String b = (String)group1.table.elementAt(j);
-
-                    if (a.equals(b)) {
-                        check = true;
-                        break;
-                    }
-                }
-                if (check) {
-                    iGroup.addHost(a);
-                }
-            }
-            return(iGroup);
+ 
+        Group iGroup = new Group();
+        
+        
+        for (int i = 0; i < group2.size(); i++) {
+        	boolean check = false;
+        	String a = (String)group2.table.elementAt(i);
+        	for (int j = 0; j < group1.size();  j++) {
+        		String b = (String)group1.table.elementAt(j);
+        		
+        		if (a.equals(b)) {
+        			check = true;
+        			break;
+        		}
+        	}
+        	if (check) {
+        		iGroup.addHost(a);
+        	}
         }
-
+        return(iGroup);
+        
 
     }
 
@@ -306,19 +303,18 @@ public class Group {
         if (ranks == null) {
             return(null);			
         }
-        else {
-            Group iGroup = new Group();
-            for (int i = 0; i < ranks.length; i++) {
-                if ((ranks[i] >= 0) && (ranks[i] < this.size())) {
-                    String a = (String)this.table.elementAt(ranks[i]);
-                    iGroup.addHost(a);
-                }
-            }
-            return (iGroup);
+ 
+        Group iGroup = new Group();
+        for (int i = 0; i < ranks.length; i++) {
+        	if ((ranks[i] >= 0) && (ranks[i] < this.size())) {
+        		String a = (String)this.table.elementAt(ranks[i]);
+        		iGroup.addHost(a);
+        	}
         }
-
+        return (iGroup);
+        
     }
-
+    
 
 
     /**
@@ -329,28 +325,26 @@ public class Group {
      * @throws MPJException
      */
     public Group excl(int[] ranks) throws MPJException {
-        if (ranks == null) {
-            Group eGroup = new Group();
-            eGroup.table = (Vector)this.table.clone();
-            return(eGroup);			
-        }
-        else {
-            Group eGroup = new Group();
-            eGroup.table = (Vector)this.table.clone();
-            for (int i = 0; i < ranks.length; i++) {
-                if ((ranks[i] >= 0) && (ranks[i] < this.size())) {
-                    eGroup.table.removeElementAt(ranks[i]);
-                }
-            }
-
-            if (eGroup.table.isEmpty()) {
-                return (null);
-            }
-            else {
-                return(eGroup);
-            }
-        }
-
+    	if (ranks == null) {
+    		Group eGroup = new Group();
+    		eGroup.table = (Vector)this.table.clone();
+    		return(eGroup);			
+    	}
+    	Group eGroup = new Group();
+    	eGroup.table = (Vector)this.table.clone();
+    	for (int i = 0; i < ranks.length; i++) {
+    		if ((ranks[i] >= 0) && (ranks[i] < this.size())) {
+    			eGroup.table.removeElementAt(ranks[i]);
+    		}
+    	}
+    	
+    	if (eGroup.table.isEmpty()) {
+    		return (null);
+    	}
+    	
+    	return(eGroup);
+    	
+    	
     }
 
 
@@ -369,49 +363,46 @@ public class Group {
         if ((ranks == null) || (ranks.length == 0)) {
             return(null);
         }
-        else {
-            Group iGroup = new Group();
-
-            for (int i=0; i < ranks.length; i++) {
-
-
-                int j = ranks[i][0];
-
-                if(ranks[i][2] > 0) {
-
-                    while(j <= ranks[i][1]) {
-
-                        if ((j >= 0) && (j < this.size())) {
-                            iGroup.addHost((String)this.table.elementAt(j));
-
-                        }
-                        j += ranks[i][2]; 
-                    }
-                }
-                else {
-                    while(j >= ranks[i][1]) {
-
-                        if ((j >= 0) && (j < this.size())) {
-                            iGroup.addHost((String)this.table.elementAt(j));
-
-                        }
-                        j += ranks[i][2]; 
-                    }
-
-                }
-            }
-
-            if (iGroup.table.isEmpty()) {
-                return(null);
-            }
-            else {
-
-                return (iGroup);
-
-            }
-
+ 
+        Group iGroup = new Group();
+        
+        for (int i=0; i < ranks.length; i++) {
+        	
+        	
+        	int j = ranks[i][0];
+        	
+        	if(ranks[i][2] > 0) {
+        		
+        		while(j <= ranks[i][1]) {
+        			
+        			if ((j >= 0) && (j < this.size())) {
+        				iGroup.addHost((String)this.table.elementAt(j));
+        				
+        			}
+        			j += ranks[i][2]; 
+        		}
+        	}
+        	else {
+        		while(j >= ranks[i][1]) {
+        			
+        			if ((j >= 0) && (j < this.size())) {
+        				iGroup.addHost((String)this.table.elementAt(j));
+        				
+        			}
+        			j += ranks[i][2]; 
+        		}
+        		
+        	}
         }
+
+        if (iGroup.table.isEmpty()) {
+        	return(null);
+        }
+        
+        return (iGroup);
+        
     }
+    
 
 
 
@@ -430,35 +421,35 @@ public class Group {
             eGroup.table = (Vector)this.table.clone();
             return(eGroup);			
         }
-        else {
-            Group eGroup = new Group();
-            Vector exc = new Vector();
-
-            for (int i = 0; i < ranks.length; i++) {
-
-                int min, max, step;
-
-                if (ranks[i][2] < 0) {
-                    min = ranks[i][1];
-                    max = ranks[i][0]; 
-                    step = Math.abs(ranks[i][2]);	
-                }
-                else {
-                    min = ranks[i][0];
-                    max = ranks[i][1]; 
-                    step = ranks[i][2];	
-                }
-
-
-                int j = min;
-
-                while (j <= max) {
-                    exc.add(new Integer(j));
-
-                    j += step;
-                }
-
-            }
+ 
+        Group eGroup = new Group();
+        Vector exc = new Vector();
+        
+        for (int i = 0; i < ranks.length; i++) {
+        	
+        	int min, max, step;
+        	
+        	if (ranks[i][2] < 0) {
+        		min = ranks[i][1];
+        		max = ranks[i][0]; 
+        		step = Math.abs(ranks[i][2]);	
+        	}
+        	else {
+        		min = ranks[i][0];
+        		max = ranks[i][1]; 
+        		step = ranks[i][2];	
+        	}
+        	
+        	
+        	int j = min;
+        	
+        	while (j <= max) {
+        		exc.add(new Integer(j));
+        		
+        		j += step;
+        	}
+        	
+        	
 
 
             for (int k = 0; k < this.size(); k++) {
@@ -479,18 +470,15 @@ public class Group {
                 }
 
             }
-            if (eGroup.table.isEmpty()) {
-                return(null);
-            }
-            else {
-                return (eGroup);
-
-            }
-
         }
-
-
+        if (eGroup.table.isEmpty()) {
+        	return(null);
+        }
+      	return (eGroup);
+              
     }
+
+
 
     public void finalize() throws MPJException {}
 

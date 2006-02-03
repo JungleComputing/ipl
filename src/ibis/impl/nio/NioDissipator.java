@@ -221,9 +221,8 @@ public abstract class NioDissipator extends DataInputStream implements Config,
     int unUsedLength() {
         if (buffer.position() >= usedLimit) {
             return buffer.position() - usedLimit;
-        } else {
-            return buffer.position() + (BUFFER_LIMIT - usedLimit);
         }
+        return buffer.position() + (BUFFER_LIMIT - usedLimit);
     }
 
     /**
@@ -232,9 +231,8 @@ public abstract class NioDissipator extends DataInputStream implements Config,
     int usedLength() {
         if (usedLimit >= usedPosition) {
             return usedPosition - usedLimit;
-        } else {
-            return usedLimit + (BUFFER_LIMIT - usedPosition);
         }
+        return usedLimit + (BUFFER_LIMIT - usedPosition);
     }
 
     void receive() throws IOException {
@@ -282,7 +280,7 @@ public abstract class NioDissipator extends DataInputStream implements Config,
 
         bytes.clear();
         // extract padding length
-        paddingLength = (int) bytes.get(usedPosition + 1);
+        paddingLength = bytes.get(usedPosition + 1);
 
         // get byte order out of first byte in header
         if (bytes.get(usedPosition) == ((byte) 1)) {
@@ -452,12 +450,11 @@ public abstract class NioDissipator extends DataInputStream implements Config,
     boolean dataLeft() {
         try {
             if (sis == null) {
-                return (available() != 0);
-            } else {
-                return (sis.available() != 0);
+            	return (available() != 0);
             }
+            return (sis.available() != 0);
         } catch (IOException e) {
-            return false;
+        	return false;
         }
     }
 

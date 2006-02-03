@@ -298,9 +298,8 @@ public final class UdpInput extends NetBufferedInput {
             buffer = null;
             if (timeout == 0) {
                 throw e;
-            } else {
-                udpStat.endPoll();
             }
+            udpStat.endPoll();
             // System.err.print("%");
         } catch (IOException e) {
             // System.err.print("!");

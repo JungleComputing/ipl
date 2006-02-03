@@ -92,9 +92,7 @@ public class Comm {
             if (comm1.contextId == comm2.contextId) {
                 return(MPJ.IDENT);
             }
-            else {
-                return(MPJ.CONGRUENT);
-            }
+            return(MPJ.CONGRUENT);
         }
         else if (Group.compare(comm1.group(), comm2.group()) == MPJ.SIMILAR) {
             return(MPJ.SIMILAR);
@@ -124,9 +122,7 @@ public class Comm {
                 return(cpComm);
 
             }
-            else {
-                return(null);
-            }
+            return(null);
         }
         catch (MPJException e) {
             System.err.println(e.getMessage());
@@ -1279,7 +1275,7 @@ public class Comm {
                     ObjectOutputStream oout = new ObjectOutputStream(bout);
 
                     for (int i=0; i < incount * inExtent; i++) {
-                        oout.writeObject((Object)((Object[])inbuf)[i+inoffset]);
+                        oout.writeObject(((Object[])inbuf)[i+inoffset]);
                     }
                     oout.flush();
 

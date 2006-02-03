@@ -47,9 +47,8 @@ public final class Driver extends NetDriver {
         if (inputUpcall == null
                 && (pt.inputSingletonOnly() || pluginName == null)) {
             return new SingletonPoller(pt, this, context, inputUpcall);
-        } else {
-            return new MultiPoller(pt, this, context, inputUpcall);
         }
+        return new MultiPoller(pt, this, context, inputUpcall);
     }
 
     public NetOutput newOutput(NetPortType pt, String context)

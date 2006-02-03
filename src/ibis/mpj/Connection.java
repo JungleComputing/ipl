@@ -88,12 +88,8 @@ public class Connection {
     }
 
     protected boolean isConnectionEstablished() {
-        if ((sender.connectedTo().length == 0) || (receiver.connectedTo().length == 0)) {
-            return false;
-        }
-        else {
-            return true;
-        }
+    	return ((sender.connectedTo().length != 0) &&
+    			 (receiver.connectedTo().length != 0));
     }
 
     protected void putMPJObject(MPJObject obj, Object buf, int offset, int count) throws MPJException {

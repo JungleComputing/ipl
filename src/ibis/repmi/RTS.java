@@ -80,7 +80,7 @@ public final class RTS {
             receivePort.enableConnections();
 
             IbisIdentifier i
-                    = (IbisIdentifier) ibisRegistry.elect("RepMI Master");
+                    = ibisRegistry.elect("RepMI Master");
 
             if (localID.equals(i)) {
 

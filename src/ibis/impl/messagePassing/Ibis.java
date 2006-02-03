@@ -42,8 +42,6 @@ public class Ibis extends ibis.ipl.Ibis {
 
     private Registry registry;
 
-    private int poolSize;
-
     private Hashtable portTypeList = new Hashtable();
 
     private Vector ibisNameService = new Vector();
@@ -132,7 +130,7 @@ public class Ibis extends ibis.ipl.Ibis {
     private native void send_leave(int to, byte[] serialForm);
 
     /* Called from native */
-    private void join_upcall(byte[] serialForm) throws IOException {
+    void join_upcall(byte[] serialForm) throws IOException {
         checkLockOwned();
 
         IbisIdentifier id = IbisIdentifier.createIbisIdentifier(serialForm);
@@ -146,7 +144,7 @@ public class Ibis extends ibis.ipl.Ibis {
     }
 
     /* Called from native */
-    private void leave_upcall(byte[] serialForm) {
+    void leave_upcall(byte[] serialForm) {
         checkLockOwned();
         try {
             IbisIdentifier id = IbisIdentifier.createIbisIdentifier(serialForm);
@@ -191,10 +189,6 @@ public class Ibis extends ibis.ipl.Ibis {
         if (resizeHandler != null) {
             resizeHandler.mustLeave(ids);
         }
-    }
-
-    private static void dumpStack() {
-        new Throwable().printStackTrace();
     }
 
     protected void init() throws IbisException, IOException {
@@ -314,10 +308,6 @@ public class Ibis extends ibis.ipl.Ibis {
             throws IOException {
         rcve_poll.waitPolling(client, timeout, preempt);
     }
-
-    private native long currentTime();
-
-    private native double t2d(long t);
 
     final void lock() {
         monitor.lock();
@@ -594,18 +584,6 @@ public class Ibis extends ibis.ipl.Ibis {
 
     public static void resetStats() {
         myIbis.rcve_poll.reset_stats();
-    }
-
-    private native void ibmp_report(int out);
-
-    private void report() {
-        ConditionVariable.report(System.out);
-        ReceivePort.report(System.out);
-        if (rcve_poll != null) {
-            rcve_poll.report(System.out);
-        }
-        // IbisSerializationOutputStream.statistics();
-        ibmp_report(1);
     }
 
     private boolean ended = false;

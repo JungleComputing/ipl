@@ -145,30 +145,29 @@ final class BlockingChannelNioReceivePort extends NioReceivePort implements
                 if (nrOfConnections == 0) {
                     if (closing) {
                         throw new ConnectionClosedException();
+                    }
+                    if (deadline == -1) {
+                    	deadlinePassed = true;
+                    	continue;
+                    } else if (deadline == 0) {
+                    	try {
+                    		wait();
+                    	} catch (InterruptedException e) {
+                    		// IGNORE
+                    	}
+                    	continue;
                     } else {
-                        if (deadline == -1) {
-                            deadlinePassed = true;
-                            continue;
-                        } else if (deadline == 0) {
-                            try {
-                                wait();
-                            } catch (InterruptedException e) {
-                                // IGNORE
-                            }
-                            continue;
-                        } else {
-                            time = System.currentTimeMillis();
-                            if (time >= deadline) {
-                                deadlinePassed = true;
-                            } else {
-                                try {
-                                    wait();
-                                } catch (InterruptedException e) {
-                                    // IGNORE
-                                }
-                                continue;
-                            }
-                        }
+                    	time = System.currentTimeMillis();
+                    	if (time >= deadline) {
+                    		deadlinePassed = true;
+                    	} else {
+                    		try {
+                    			wait();
+                    		} catch (InterruptedException e) {
+                    			// IGNORE
+                    		}
+                    		continue;
+                    	}
                     }
                 }
 

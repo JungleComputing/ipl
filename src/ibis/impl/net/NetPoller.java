@@ -416,18 +416,17 @@ public class NetPoller extends NetInput implements NetBufferedInputSupport {
             if (false) {
                 throw new Error("interruptPoll was designed for singletons,"
                         + " but now used on nonsingleton");
-            } else {
-                synchronized (this) {
-                    interrupted = true;
-                    wakeupBlockedReceiver(true);
-                    while (waitingThreads > 0) {
-                        try {
-                            wait();
-                        } catch (InterruptedException e) {
-                            // Ignore
-                        }
-                    }
-                }
+            }
+            synchronized (this) {
+            	interrupted = true;
+            	wakeupBlockedReceiver(true);
+            	while (waitingThreads > 0) {
+            		try {
+            			wait();
+            		} catch (InterruptedException e) {
+            			// Ignore
+            		}
+            	}
             }
         }
     }
@@ -614,22 +613,21 @@ public class NetPoller extends NetInput implements NetBufferedInputSupport {
                     }
                     break;
 
-                } else {
-
-                    synchronized (this) {
-                        if (activeNum == spn) {
-                            waitingPollers++;
-                            try {
-                                wait();
-                            } catch (InterruptedException e) {
-                                // ignore
-                            }
-                            waitingPollers--;
-                        }
-                        if (activeNum == null) {
-                            break;
-                        }
-                    }
+                }
+                
+                synchronized (this) {
+                	if (activeNum == spn) {
+                		waitingPollers++;
+                		try {
+                			wait();
+                		} catch (InterruptedException e) {
+                			// ignore
+                		}
+                		waitingPollers--;
+                	}
+                	if (activeNum == null) {
+                		break;
+                	}
                 }
             }
 
@@ -686,12 +684,12 @@ public class NetPoller extends NetInput implements NetBufferedInputSupport {
             } else {
                 System.err.println(this
                         + "OHHHH HOOOOO switchToUpcallMode and upcall null");
-                if (true) {
+  //              if (true) {
                     throw new Error(this + ": switchToUpcallMode is only"
                             + " supported for blockingPoll or upcall receives");
-                } else {
-                    input.switchToUpcallMode(null);
-                }
+  //              } else {
+  //                  input.switchToUpcallMode(null);
+  //              }
             }
         }
 
@@ -1219,7 +1217,7 @@ public class NetPoller extends NetInput implements NetBufferedInputSupport {
 
     public String readString() throws IOException {
         log.in();
-        String v = (String) activeInput().readString();
+        String v = activeInput().readString();
         log.out();
         return v;
     }

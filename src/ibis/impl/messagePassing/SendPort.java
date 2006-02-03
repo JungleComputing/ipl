@@ -39,9 +39,8 @@ public class SendPort implements ibis.ipl.SendPort {
         }
     }
 
-    private final static boolean DEFAULT_SERIALIZE_SENDS = false;
-
     private final static boolean SERIALIZE_SENDS_PER_CPU;
+    
     static {
         SERIALIZE_SENDS_PER_CPU = TypedProperties.booleanProperty(
                 MPProps.s_ser_sends);

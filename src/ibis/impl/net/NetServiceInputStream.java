@@ -258,7 +258,7 @@ public class NetServiceInputStream extends InputStream {
         }
 
         if (avail > 0) {
-            result = 0xFF & (int) first.buf[offset++];
+            result = 0xFF & first.buf[offset++];
             avail--;
         }
 

@@ -526,12 +526,11 @@ public final class NetServiceLink {
         if (socket == null) {
             return "NetServiceLink@" + Integer.toHexString(hashCode())
                     + "-unconnected";
-        } else {
-            return "NetServiceLink@" + Integer.toHexString(hashCode())
-                    + "-my_addr=" + socket.getLocalAddress() + ":"
-                    + socket.getLocalPort() + "-rem_addr="
-                    + socket.getInetAddress() + ":" + socket.getPort();
         }
+        return "NetServiceLink@" + Integer.toHexString(hashCode())
+		        + "-my_addr=" + socket.getLocalAddress() + ":"
+		        + socket.getLocalPort() + "-rem_addr="
+		        + socket.getInetAddress() + ":" + socket.getPort();
     }
 
     public String partner() {

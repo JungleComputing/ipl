@@ -17,19 +17,6 @@ final public class Poll implements Runnable {
 
     final static int PREEMPTIVE = NON_PREEMPTIVE + 1;
 
-    private final static String preempt(int preempt) {
-        switch (preempt) {
-        case NON_POLLING:
-            return "NON_POLLING";
-        case NON_PREEMPTIVE:
-            return "NON_PREEMPTIVE";
-        case PREEMPTIVE:
-            return "PREEMPTIVE";
-        default:
-            return "ERROR-PREEMPTIVE";
-        }
-    }
-
     private static final boolean DEBUG = false;
 
     private static final boolean STATISTICS = false;
@@ -143,8 +130,6 @@ final public class Poll implements Runnable {
     }
 
     private native boolean msg_poll() throws IOException;
-
-    private native void abort();
 
     final boolean poll() throws IOException {
         boolean result;

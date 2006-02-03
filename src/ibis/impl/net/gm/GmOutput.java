@@ -49,7 +49,7 @@ public final class GmOutput extends NetBufferedOutput {
 
     private int rmuxId = -1;
 
-    private Driver gmDriver = null;
+    Driver gmDriver = null;
 
     private boolean mustFlush;
 
@@ -456,9 +456,8 @@ public final class GmOutput extends NetBufferedOutput {
             }
             sentBytes(chunk); // actually: will be sent by caller
             return chunk;
-        } else {
-            return 0;
         }
+        return 0;
     }
 
     private void postSendBufferChunk() throws java.io.IOException

@@ -142,12 +142,11 @@ public final class BytesOutput extends NetOutput implements Settings,
 
     public long getCount() {
         if (subOutput != null) {
-            return subOutput.getCount();
-        } else {
-            return 0;
+        	return subOutput.getCount();
         }
+        return 0;
     }
-
+    
     public void resetCount() {
         if (subOutput != null) {
             subOutput.resetCount();
@@ -190,10 +189,9 @@ public final class BytesOutput extends NetOutput implements Settings,
         if (buffer != null) {
             if (true) {
                 throw new Error(this + ": discard buffer " + buffer
-                        + " length " + buffer.length);
-            } else {
-                buffer.free();
+                		+ " length " + buffer.length);
             }
+            buffer.free();
         }
 
         buffer = createSendBuffer();

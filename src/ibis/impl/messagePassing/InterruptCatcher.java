@@ -92,7 +92,7 @@ class InterruptCatcher extends Thread {
 
     private native void waitForSignal();
 
-    private int signo;
+    int signo;
 
     InterruptCatcher() {
         this(SIGIO);

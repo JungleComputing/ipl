@@ -241,9 +241,9 @@ public final class Pass3aVerifier extends PassVerifier {
                         VerificationResult.VERIFIED_REJECTED, scce.getMessage());
             }
             return vr;
-        } else { //did not pass Pass 2.
-            return VerificationResult.VR_NOTYET;
         }
+        //did not pass Pass 2.
+        return VerificationResult.VR_NOTYET;
     }
 
     /**

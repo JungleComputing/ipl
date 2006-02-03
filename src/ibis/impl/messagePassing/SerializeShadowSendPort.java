@@ -21,8 +21,6 @@ final class SerializeShadowSendPort extends ShadowSendPort {
 
     private final static int CONNECTING = UNCONNECTED + 1;
 
-    private final static int DISCONNECTING = CONNECTING + 1;
-
     private final static int CONNECTED = CONNECTING + 1;
 
     private int connectState = UNCONNECTED;

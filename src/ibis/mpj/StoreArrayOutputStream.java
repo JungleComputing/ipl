@@ -57,35 +57,35 @@ final class StoreArrayOutputStream extends DataOutputStream {
     }
 
     public void writeArray(boolean[] a, int off, int len) throws IOException {
-        buf.writeArray((boolean[]) a, off, len);
+        buf.writeArray(a, off, len);
     }
 
     public void writeArray(byte[] a, int off, int len) throws IOException {
-        buf.writeArray((byte[]) a, off, len);
+        buf.writeArray(a, off, len);
     }
 
     public void writeArray(short[] a, int off, int len) throws IOException {
-        buf.writeArray((short[]) a, off, len);
+        buf.writeArray(a, off, len);
     }
 
     public void writeArray(char[] a, int off, int len) throws IOException {
-        buf.writeArray((char[]) a, off, len);
+        buf.writeArray(a, off, len);
     }
 
     public void writeArray(int[] a, int off, int len) throws IOException {
-        buf.writeArray((int[]) a, off, len);
+        buf.writeArray(a, off, len);
     }
 
     public void writeArray(long[] a, int off, int len) throws IOException {
-        buf.writeArray((long[]) a, off, len);
+        buf.writeArray(a, off, len);
     }
 
     public void writeArray(float[] a, int off, int len) throws IOException {
-        buf.writeArray((float[]) a, off, len);
+        buf.writeArray(a, off, len);
     }
 
     public void writeArray(double[] a, int off, int len) throws IOException {
-        buf.writeArray((double[]) a, off, len);
+        buf.writeArray(a, off, len);
     }
 
     public void flush() throws IOException {

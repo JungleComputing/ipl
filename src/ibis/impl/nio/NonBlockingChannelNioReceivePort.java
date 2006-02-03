@@ -185,37 +185,36 @@ final class NonBlockingChannelNioReceivePort extends NioReceivePort implements
                                     + "connections (as requested)");
                         }
                         throw new ConnectionClosedException();
-                    } else {
-                        if (deadline == -1) {
-                            deadlinePassed = true;
-                            continue;
-                        } else if (deadline == 0) {
-                            try {
-                                if (logger.isDebugEnabled()) {
-                                    logger.debug("wait()ing for a connection");
-                                }
-                                wait();
-                            } catch (InterruptedException e) {
-                                // IGNORE
-                            }
-                            continue;
-                        } else {
-                            time = System.currentTimeMillis();
-                            if (time >= deadline) {
-                                deadlinePassed = true;
-                            } else {
-                                try {
-                                    if (logger.isDebugEnabled()) {
-                                        logger
-                                                .debug("wait()ing for a connection");
-                                    }
-                                    wait();
-                                } catch (InterruptedException e) {
-                                }
-                                continue;
-                            }
-                        }
                     }
+                    if (deadline == -1) {
+                    	deadlinePassed = true;
+                    	continue;
+                    } else if (deadline == 0) {
+                    	try {
+                    		if (logger.isDebugEnabled()) {
+                    			logger.debug("wait()ing for a connection");
+                    		}
+                    		wait();
+                    	} catch (InterruptedException e) {
+                    		// IGNORE
+                    	}
+                    	continue;
+                    } else {
+                    	time = System.currentTimeMillis();
+                    	if (time >= deadline) {
+                    		deadlinePassed = true;
+                    	} else {
+                    		try {
+                    			if (logger.isDebugEnabled()) {
+                    				logger
+									.debug("wait()ing for a connection");
+                    			}
+                    			wait();
+                    		} catch (InterruptedException e) {
+                    		}
+                    		continue;
+                    	}
+                    }                    
                 }
 
                 if (firstTry && nrOfConnections == 1) {

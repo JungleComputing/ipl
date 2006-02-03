@@ -88,9 +88,8 @@ public final class NetReceivePortIdentifier implements ReceivePortIdentifier,
 
         if (other instanceof NetReceivePortIdentifier) {
             return equals((NetReceivePortIdentifier) other);
-        } else {
-            return false;
         }
+        return false;
     }
 
     /**

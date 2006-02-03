@@ -246,14 +246,14 @@ public class InstConstraintVisitor extends EmptyVisitor implements
     private void _visitStackAccessor(Instruction o) {
         int consume = o.consumeStack(cpg); // Stack values are always consumed first; then produced.
         if (consume > stack().slotsUsed()) {
-            constraintViolated((Instruction) o, "Cannot consume " + consume
+            constraintViolated(o, "Cannot consume " + consume
                     + " stack slots: only " + stack().slotsUsed()
                     + " slot(s) left on stack!\nStack:\n" + stack());
         }
 
-        int produce = o.produceStack(cpg) - ((Instruction) o).consumeStack(cpg); // Stack values are always consumed first; then produced.
+        int produce = o.produceStack(cpg) - o.consumeStack(cpg); // Stack values are always consumed first; then produced.
         if (produce + stack().slotsUsed() > stack().maxStack()) {
-            constraintViolated((Instruction) o, "Cannot produce " + produce
+            constraintViolated(o, "Cannot produce " + produce
                     + " stack slots: only "
                     + (stack().maxStack() - stack().slotsUsed())
                     + " free stack slot(s) left.\nStack:\n" + stack());
@@ -342,7 +342,7 @@ public class InstConstraintVisitor extends EmptyVisitor implements
             VerificationResult vr = v.doPass2();
             if (vr.getStatus() != VerificationResult.VERIFIED_OK) {
                 constraintViolated(
-                        (Instruction) o,
+                        o,
                         "Class '"
                                 + name
                                 + "' is referenced, but cannot be loaded and resolved: '"
@@ -475,20 +475,20 @@ public class InstConstraintVisitor extends EmptyVisitor implements
         if (o instanceof ARETURN) {
             if (stack().peek() == Type.NULL) {
                 return;
-            } else {
-                if (!(stack().peek() instanceof ReferenceType)) {
-                    constraintViolated(o,
-                            "Reference type expected on top of stack, but is: '"
-                                    + stack().peek() + "'.");
-                }
-                referenceTypeIsInitialized(o, (ReferenceType) (stack().peek()));
-                //ReferenceType objectref = (ReferenceType) (stack().peek());
-                // TODO: This can only be checked if using Staerk-et-al's "set of object types" instead of a
-                // "wider cast object type" created during verification.
-                //if (! (objectref.isAssignmentCompatibleWith(mg.getType())) ){
-                //	constraintViolated(o, "Type on stack top which should be returned is a '"+stack().peek()+"' which is not assignment compatible with the return type of this method, '"+mg.getType()+"'.");
-                //}
             }
+            if (!(stack().peek() instanceof ReferenceType)) {
+            	constraintViolated(o,
+            			"Reference type expected on top of stack, but is: '"
+            			+ stack().peek() + "'.");
+            }
+            referenceTypeIsInitialized(o, (ReferenceType) (stack().peek()));
+            //ReferenceType objectref = (ReferenceType) (stack().peek());
+            // TODO: This can only be checked if using Staerk-et-al's "set of object types" instead of a
+            // "wider cast object type" created during verification.
+            //if (! (objectref.isAssignmentCompatibleWith(mg.getType())) ){
+            //	constraintViolated(o, "Type on stack top which should be returned is a '"+stack().peek()+"' which is not assignment compatible with the return type of this method, '"+mg.getType()+"'.");
+            //}
+            
         } else {
             Type method_type = mg.getType();
             if (method_type == Type.BOOLEAN || method_type == Type.BYTE
@@ -554,7 +554,7 @@ public class InstConstraintVisitor extends EmptyVisitor implements
                                 + ((ArrayType) arrayref).getElementType() + ".");
             }
             if (!((ReferenceType) value)
-                    .isAssignmentCompatibleWith((ReferenceType) ((ArrayType) arrayref)
+                    .isAssignmentCompatibleWith(((ArrayType) arrayref)
                             .getElementType())) {
                 constraintViolated(
                         o,
@@ -1054,15 +1054,15 @@ public class InstConstraintVisitor extends EmptyVisitor implements
         }
         if (stack().peek(1).getSize() == 2) {
             return; // Form 2, okay.
-        } else { //stack().peek(1).getSize == 1.
-            if (stack().peek(2).getSize() != 1) {
-                constraintViolated(
-                        o,
-                        "If stack top's size is 1 and stack next-to-top's size is 1, stack next-to-next-to-top's size must also be 1, but is: '"
-                                + stack().peek(2)
-                                + "' of size '"
-                                + stack().peek(2).getSize() + "'.");
-            }
+        }
+        //stack().peek(1).getSize == 1.
+        if (stack().peek(2).getSize() != 1) {
+        	constraintViolated(
+        			o,
+					"If stack top's size is 1 and stack next-to-top's size is 1, stack next-to-next-to-top's size must also be 1, but is: '"
+					+ stack().peek(2)
+					+ "' of size '"
+					+ stack().peek(2).getSize() + "'.");
         }
     }
 
@@ -1072,16 +1072,16 @@ public class InstConstraintVisitor extends EmptyVisitor implements
     public void visitDUP2(DUP2 o) {
         if (stack().peek().getSize() == 2) {
             return; // Form 2, okay.
-        } else { //stack().peek().getSize() == 1.
-            if (stack().peek(1).getSize() != 1) {
-                constraintViolated(
-                        o,
-                        "If stack top's size is 1, then stack next-to-top's size must also be 1. But it is '"
-                                + stack().peek(1)
-                                + "' of size '"
-                                + stack().peek(1).getSize() + "'.");
-            }
         }
+        //stack().peek().getSize() == 1.
+        if (stack().peek(1).getSize() != 1) {
+        	constraintViolated(
+        			o,
+					"If stack top's size is 1, then stack next-to-top's size must also be 1. But it is '"
+					+ stack().peek(1)
+					+ "' of size '"
+					+ stack().peek(1).getSize() + "'.");
+        }        
     }
 
     /**
@@ -1127,26 +1127,25 @@ public class InstConstraintVisitor extends EmptyVisitor implements
         if (stack().peek(0).getSize() == 2) {
             if (stack().peek(1).getSize() == 2) {
                 return; // Form 4
-            } else {// stack top size is 2, next-to-top's size is 1
-                if (stack().peek(2).getSize() != 1) {
-                    constraintViolated(
-                            o,
-                            "If stack top's size is 2 and stack-next-to-top's size is 1, then stack next-to-next-to-top's size must also be 1. But it is '"
-                                    + stack().peek(2)
-                                    + "' of size '"
-                                    + stack().peek(2).getSize() + "'.");
-                } else {
-                    return; // Form 2
-                }
+            }
+            // stack top size is 2, next-to-top's size is 1
+            if (stack().peek(2).getSize() != 1) {
+            	constraintViolated(
+            			o,
+						"If stack top's size is 2 and stack-next-to-top's size is 1, then stack next-to-next-to-top's size must also be 1. But it is '"
+						+ stack().peek(2)
+						+ "' of size '"
+						+ stack().peek(2).getSize() + "'.");
+            } else {
+            	return; // Form 2
             }
         } else {// stack top is of size 1
             if (stack().peek(1).getSize() == 1) {
                 if (stack().peek(2).getSize() == 2) {
-                    return; // Form 3
-                } else {
-                    if (stack().peek(3).getSize() == 1) {
-                        return; // Form 1
-                    }
+                	return; // Form 3
+                }
+                if (stack().peek(3).getSize() == 1) {
+                	return; // Form 1
                 }
             }
         }
@@ -2008,7 +2007,7 @@ public class InstConstraintVisitor extends EmptyVisitor implements
             VerificationResult vr = v.doPass2();
             if (vr.getStatus() != VerificationResult.VERIFIED_OK) {
                 constraintViolated(
-                        (Instruction) o,
+                        o,
                         "Class '"
                                 + name
                                 + "' is referenced, but cannot be loaded and resolved: '"
@@ -2102,7 +2101,7 @@ public class InstConstraintVisitor extends EmptyVisitor implements
             VerificationResult vr = v.doPass2();
             if (vr.getStatus() != VerificationResult.VERIFIED_OK) {
                 constraintViolated(
-                        (Instruction) o,
+                        o,
                         "Class '"
                                 + name
                                 + "' is referenced, but cannot be loaded and resolved: '"
@@ -2199,7 +2198,7 @@ public class InstConstraintVisitor extends EmptyVisitor implements
             VerificationResult vr = v.doPass2();
             if (vr.getStatus() != VerificationResult.VERIFIED_OK) {
                 constraintViolated(
-                        (Instruction) o,
+                        o,
                         "Class '"
                                 + name
                                 + "' is referenced, but cannot be loaded and resolved: '"
@@ -2254,7 +2253,7 @@ public class InstConstraintVisitor extends EmptyVisitor implements
             VerificationResult vr = v.doPass2();
             if (vr.getStatus() != VerificationResult.VERIFIED_OK) {
                 constraintViolated(
-                        (Instruction) o,
+                        o,
                         "Class '"
                                 + name
                                 + "' is referenced, but cannot be loaded and resolved: '"

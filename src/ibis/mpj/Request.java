@@ -84,21 +84,14 @@ public class Request {
 
             return(this.ibisMPJComm.getStatus());
         }
-        else {
-
-            return(null);
-        }
+        return(null);
     }
 
     public void finalize() {
     }
 
     public boolean isVoid() throws MPJException {
-        if (this.ibisMPJCommThread != null) {
-            return(false);
-        }
-        else
-            return(true);
+    	return this.ibisMPJCommThread == null;
     }
 
     /**

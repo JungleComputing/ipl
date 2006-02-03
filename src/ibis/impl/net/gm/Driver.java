@@ -94,8 +94,6 @@ public final class Driver extends NetDriver {
 
     private static native boolean nGmThread();
 
-    private static native void nGmBlockingThread();
-
     private static native void nStatistics();
 
     // If (TIMINGS)
@@ -241,14 +239,14 @@ public final class Driver extends NetDriver {
     /**
      * Called from native code. Do not discard.
      */
-    private static void lock() {
+    static void lock() {
         gmAccessLock.lock();
     }
 
     /**
      * Called from native code. Do not discard.
      */
-    private static void unlock() {
+    static void unlock() {
         gmAccessLock.unlock();
     }
 
@@ -419,12 +417,9 @@ public final class Driver extends NetDriver {
 
                 /* request completed, release GM main lock */
                 gmLockArray.unlock(0);
-
-                return result;
-            } else {
-                return result;
             }
-        } catch (ibis.util.IllegalLockStateException e) {
+            return result;
+         } catch (ibis.util.IllegalLockStateException e) {
             if (DEBUG) {
                 System.err.println("catch IllegalLockStateException;"
                         + " Driver.interrupts " + interrupts

@@ -55,10 +55,6 @@ public final class NioInput extends NetInput {
      */
     private Integer spn = null;
 
-    private InetAddress addr = null;
-
-    private int port = 0;
-
     /**
      * if isPendingByte a byte has been read from the channel,
      * but has not been processed yet.
@@ -190,8 +186,6 @@ public final class NioInput extends NetInput {
 
         //	socketChannel.socket().setTcpNoDelay(true);
 
-        addr = socketChannel.socket().getInetAddress();
-        port = socketChannel.socket().getPort();
         this.spn = cnx.getNum();
 
         mtu = 0;

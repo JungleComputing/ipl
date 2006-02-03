@@ -74,7 +74,7 @@ public final class GmInput extends NetBufferedInput {
 
     private int pendingMessage;
 
-    private Driver gmDriver = null;
+    Driver gmDriver = null;
 
     native long nInitInput(long deviceHandle) throws IOException;
 

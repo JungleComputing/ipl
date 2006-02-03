@@ -70,10 +70,10 @@ final class Victim {
                     if (closed) {
                         return null;
                     }
-                    if (Satin.FAULT_TOLERANCE) {
-                        if (! Communication.connect(s, r, Satin.connectTimeout)) {
-                            if (Satin.commLogger.isDebugEnabled()) {
-                                Satin.commLogger.debug("SATIN '" + s.identifier().ibis()
+                    if (Config.FAULT_TOLERANCE) {
+                        if (! Communication.connect(s, r, SatinBase.connectTimeout)) {
+                            if (Config.commLogger.isDebugEnabled()) {
+                                Config.commLogger.debug("SATIN '" + s.identifier().ibis()
 
                                         + "': unable to connect to " + r.ibis()
                                         + ", might have crashed");

@@ -634,7 +634,7 @@ public final class NetReceivePort implements ReceivePort,
 
     private void initDebugStreams() {
         receivePortMessageId = receivePortCount++;
-        receivePortMessageRank = ((NetIbis) type.getIbis()).closedPoolRank();
+        receivePortMessageRank = type.getIbis().closedPoolRank();
         receivePortTracePrefix = "_r" + receivePortMessageRank + "-"
                 + receivePortMessageId + "_ ";
 
@@ -822,19 +822,19 @@ public final class NetReceivePort implements ReceivePort,
     public ReadMessage receive(long millis) throws IOException {
         if (millis == 0) {
             return receive();
-        } else {
-            long top = System.currentTimeMillis();
-            ReadMessage rm = null;
-
-            do {
-                rm = poll();
-            } while (rm == null && (System.currentTimeMillis() - top) < millis);
-
-            if (rm == null) {
-                throw new ReceiveTimedOutException("timeout expired in receive");
-            }
-            return rm;
         }
+        long top = System.currentTimeMillis();
+        ReadMessage rm = null;
+        
+        do {
+        	rm = poll();
+        } while (rm == null && (System.currentTimeMillis() - top) < millis);
+        
+        if (rm == null) {
+        	throw new ReceiveTimedOutException("timeout expired in receive");
+        }
+        return rm;
+
     }
 
     /**
@@ -1198,7 +1198,7 @@ public final class NetReceivePort implements ReceivePort,
         log.in();
         trace.disp(receivePortTracePrefix, "message receive <--");
 
-        NetConnection cnx = checkClose();
+        checkClose();
 
         activeSendPortNum = null;
         currentThread = null;

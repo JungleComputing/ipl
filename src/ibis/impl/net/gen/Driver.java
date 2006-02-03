@@ -38,11 +38,10 @@ public final class Driver extends NetDriver {
             NetInputUpcall inputUpcall) throws IOException {
         if (inputUpcall == null && pt.inputSingletonOnly()) {
             // System.err.println(this + ": PortType " + pt + ": SingletonPoller, inputUpcall " + inputUpcall);
-            return new SingletonPoller(pt, this, context, inputUpcall);
-        } else {
-            // System.err.println(this + ": PortType " + pt + ": no SingletonPoller, inputUpcall " + inputUpcall);
-            return new GenPoller(pt, this, context, inputUpcall);
+        	return new SingletonPoller(pt, this, context, inputUpcall);
         }
+        // System.err.println(this + ": PortType " + pt + ": no SingletonPoller, inputUpcall " + inputUpcall);
+        return new GenPoller(pt, this, context, inputUpcall);
     }
 
     public NetOutput newOutput(NetPortType pt, String context)

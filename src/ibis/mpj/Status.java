@@ -74,9 +74,7 @@ public class Status {
         if (datatype == null) {
             return(this.count);
         }
-        else {
-            return (this.count * datatype.extent());
-        }
+        return (this.count * datatype.extent());
     }
 
     protected void setCount(int count) {

@@ -163,7 +163,7 @@ public abstract class MuxerInput extends NetBufferedInput implements Runnable {
     private Hashtable cnxKeyHash = new Hashtable();
 
     public void setupConnection(NetConnection cnx) throws IOException {
-        setupConnection(cnx, (NetIO) this);
+        setupConnection(cnx, this);
     }
 
     public abstract void setupConnection(NetConnection cnx, NetIO io)

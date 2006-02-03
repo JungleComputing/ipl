@@ -323,7 +323,7 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
 			// create a receive port for this guy
 			try {
 				SOInvocationHandler soInvocationHandler = new SOInvocationHandler(
-						Satin.this_satin);
+						SatinBase.this_satin);
 				ReceivePort rec = soPortType.createReceivePort(
 						"satin so receive port on " + ident.name() + " for "
 								+ joiners[i].name(), soInvocationHandler);
@@ -350,7 +350,7 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
 					+ id.name() + " for " + ident.name(), LOOKUP_WAIT_TIME);
 			// and connect
 			if (r == null
-					|| !Satin.connect(soSendPort/* send */, r, connectTimeout)) {
+					|| !Communication.connect(soSendPort/* send */, r, connectTimeout)) {
 				System.err.println("SATN '" + ident.name()
 						+ "': unable to connect to so receive port ");
 			} else {
@@ -363,7 +363,7 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
 	/** Add a new connection to the soSendPort */
 	public void addSOConnection(IbisIdentifier id) {
 		if (ASSERTS) {
-			Satin.assertLocked(this);
+			SatinBase.assertLocked(this);
 		}
 
 		if (SCALABLE) {
@@ -375,7 +375,7 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
 		ReceivePortIdentifier r = lookup_wait("satin so receive port on "
 				+ id.name() + " for " + ident.name(), LOOKUP_WAIT_TIME);
 		// and connect
-		if (r == null || !Satin.connect(soSendPort/* send */, r, connectTimeout)) {
+		if (r == null || !Communication.connect(soSendPort/* send */, r, connectTimeout)) {
 			System.err.println("SATN '" + ident.name()
 					+ "': unable to connect to so receive port ");
 		} else {
@@ -386,13 +386,13 @@ public abstract class SharedObjects extends TupleSpace implements Protocol {
 	/** Remove a new connection to the soSendPort */
 	public void removeSOConnection(IbisIdentifier id) {
 		if (ASSERTS) {
-			Satin.assertLocked(this);
+			SatinBase.assertLocked(this);
 		}
 
 		ReceivePortIdentifier r = (ReceivePortIdentifier) ports.remove(id);
 		// and disconnect
 		if (r != null) {
-			Satin.disconnect(soSendPort, r);
+			Communication.disconnect(soSendPort, r);
 		}
 	}
 

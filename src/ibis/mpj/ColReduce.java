@@ -181,7 +181,7 @@ public class ColReduce {
                 Object[] obj = (Object[])sendbuf;
 
                 for (int j = 0; j < this.count; j++) {
-                    ((Object[])recvbuf)[j+this.recvOffset] = ((Object)obj[j+this.sendOffset]);
+                    ((Object[])recvbuf)[j+this.recvOffset] = obj[j+this.sendOffset];
 
                 }
             }

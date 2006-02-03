@@ -251,15 +251,15 @@ public final class SunSerializationOutputStream
     }
 
     public void writeShort(short r) throws IOException {
-        super.writeShort((int) r);
+        super.writeShort(r);
     }
 
     public void writeChar(char r) throws IOException {
-        super.writeChar((int) r);
+        super.writeChar(r);
     }
 
     public void writeByte(byte r) throws IOException {
-        super.writeByte((int) r);
+        super.writeByte(r);
     }
 
     /**

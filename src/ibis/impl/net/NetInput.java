@@ -256,9 +256,8 @@ public abstract class NetInput extends NetIO implements NetInputUpcall {
                         }
                         if (end) {
                             return;
-                        } else {
-                            throw new Error(e);
                         }
+                        throw new Error(e);
                     } catch (IOException e) {
                         System.err.println("PooledUpcallThread + doPoll"
                                 + " throws IOException. Should I quit??? " + e);
@@ -841,7 +840,7 @@ public abstract class NetInput extends NetIO implements NetInputUpcall {
 
         threadStackLock.lock();
         if (activeThread != null) {
-            ((PooledUpcallThread) activeThread).end();
+            activeThread.end();
             activeThread = null;
         }
 
@@ -872,10 +871,10 @@ public abstract class NetInput extends NetIO implements NetInputUpcall {
         if (activeThread != null) {
             trace.disp(this, ": active thread end --> ",
                     activeThread.getName());
-            ((PooledUpcallThread) activeThread).end();
+            activeThread.end();
             while (true) {
                 try {
-                    ((PooledUpcallThread) activeThread).join();
+                    activeThread.join();
                     activeThread = null;
                     break;
                 } catch (InterruptedException e) {

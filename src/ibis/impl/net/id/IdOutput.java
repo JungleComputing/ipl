@@ -95,9 +95,8 @@ public final class IdOutput extends NetOutput {
     public long getCount() {
         if (subOutput != null) {
             return subOutput.getCount();
-        } else {
-            return 0;
         }
+        return 0;
     }
 
     public void resetCount() {

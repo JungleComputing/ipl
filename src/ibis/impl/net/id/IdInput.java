@@ -160,7 +160,7 @@ public final class IdInput extends NetInput {
     }
 
     public String readString() throws IOException {
-        return (String) subInput.readString();
+        return subInput.readString();
     }
 
     public Object readObject() throws IOException, ClassNotFoundException {

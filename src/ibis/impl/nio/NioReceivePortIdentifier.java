@@ -80,9 +80,8 @@ public final class NioReceivePortIdentifier implements ReceivePortIdentifier,
         }
         if (other instanceof NioReceivePortIdentifier) {
             return equals((NioReceivePortIdentifier) other);
-        } else {
-            return false;
         }
+        return false;
     }
 
     public int hashCode() {

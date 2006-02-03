@@ -375,7 +375,7 @@ public class MPJ {
      * @throws MPJException
      */
     public static double wtime() throws MPJException {
-        return(((double)System.currentTimeMillis()) / 1000.0);
+        return(System.currentTimeMillis() / 1000.0);
     }
 
 

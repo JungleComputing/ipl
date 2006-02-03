@@ -364,7 +364,7 @@ public final class NetSendPort implements SendPort,
 
     private void initDebugStreams() {
         sendPortMessageId = sendPortCount++;
-        sendPortMessageRank = ((NetIbis) type.getIbis()).closedPoolRank();
+        sendPortMessageRank = type.getIbis().closedPoolRank();
         sendPortTracePrefix = "_s" + sendPortMessageRank + "-"
                 + sendPortMessageId + "_ ";
 
@@ -645,7 +645,7 @@ public final class NetSendPort implements SendPort,
         }
         writeMessage.fresh();
         if (trace.on()) {
-            int rank = ((NetIbis) type.getIbis()).closedPoolRank();
+            int rank = type.getIbis().closedPoolRank();
             final String messageId = rank + "-" + sendPortMessageId
                     + "-" + (messageCount++);
             trace.disp(sendPortTracePrefix, "message " + messageId
@@ -847,11 +847,10 @@ public final class NetSendPort implements SendPort,
     }
 
     long finish() throws IOException {
-        long l = 0;
         msgSeqno++;
         try {
-            l = output.finish();
-            // NOTE: l is currently ignored
+            output.finish();
+            // NOTE: return value is currently ignored
             stat.end();
             trace.disp(sendPortTracePrefix, "message send <--");
         } finally {

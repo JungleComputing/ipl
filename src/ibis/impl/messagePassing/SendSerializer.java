@@ -34,10 +34,6 @@ class SendSerializer {
         waiting = new int[Ibis.myIbis.nrCpus];
     }
 
-    private void lock(int i) {
-        locked[i] = true;
-    }
-
     private boolean unlock(int i) {
         if (i == Ibis.myIbis.myCpu) {
             // No flow control at home

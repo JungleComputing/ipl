@@ -111,9 +111,8 @@ public final class TcpInput extends NetInput {
                         || msg.equalsIgnoreCase("socket closed")
                         || msg.equalsIgnoreCase("null fd object")) {
                     throw new ConnectionClosedException(e);
-                } else {
-                    throw e;
                 }
+                throw e;
             }
             return spn;
         }
@@ -200,11 +199,10 @@ public final class TcpInput extends NetInput {
         } catch (SocketException e) {
             String msg = e.getMessage();
             if (tcpSocket.isClosed() || msg.equalsIgnoreCase("socket closed")
-                    || msg.equalsIgnoreCase("null fd object")) {
-                throw new ConnectionClosedException(e);
-            } else {
-                throw e;
+            		|| msg.equalsIgnoreCase("null fd object")) {
+            	throw new ConnectionClosedException(e);
             }
+            throw e;
         }
     }
 
@@ -220,9 +218,8 @@ public final class TcpInput extends NetInput {
             if (tcpSocket.isClosed() || msg.equalsIgnoreCase("socket closed")
                     || msg.equalsIgnoreCase("null fd object")) {
                 throw new ConnectionClosedException(e);
-            } else {
-                throw e;
             }
+            throw e;
         }
     }
 
@@ -238,9 +235,8 @@ public final class TcpInput extends NetInput {
             if (tcpSocket.isClosed() || msg.equalsIgnoreCase("socket closed")
                     || msg.equalsIgnoreCase("null fd object")) {
                 throw new ConnectionClosedException(e);
-            } else {
-                throw e;
             }
+            throw e;
         }
     }
 
@@ -256,9 +252,8 @@ public final class TcpInput extends NetInput {
             if (tcpSocket.isClosed() || msg.equalsIgnoreCase("socket closed")
                     || msg.equalsIgnoreCase("null fd object")) {
                 throw new ConnectionClosedException(e);
-            } else {
-                throw e;
             }
+            throw e;
         }
     }
 
@@ -274,9 +269,8 @@ public final class TcpInput extends NetInput {
             if (tcpSocket.isClosed() || msg.equalsIgnoreCase("socket closed")
                     || msg.equalsIgnoreCase("null fd object")) {
                 throw new ConnectionClosedException(e);
-            } else {
-                throw e;
             }
+            throw e;
         }
     }
 
@@ -292,9 +286,8 @@ public final class TcpInput extends NetInput {
             if (tcpSocket.isClosed() || msg.equalsIgnoreCase("socket closed")
                     || msg.equalsIgnoreCase("null fd object")) {
                 throw new ConnectionClosedException(e);
-            } else {
-                throw e;
             }
+            throw e;
         }
     }
 
@@ -310,9 +303,8 @@ public final class TcpInput extends NetInput {
             if (tcpSocket.isClosed() || msg.equalsIgnoreCase("socket closed")
                     || msg.equalsIgnoreCase("null fd object")) {
                 throw new ConnectionClosedException(e);
-            } else {
-                throw e;
             }
+            throw e;
         }
     }
 
@@ -328,9 +320,9 @@ public final class TcpInput extends NetInput {
             if (tcpSocket.isClosed() || msg.equalsIgnoreCase("socket closed")
                     || msg.equalsIgnoreCase("null fd object")) {
                 throw new ConnectionClosedException(e);
-            } else {
-                throw e;
             }
+            throw e;
+            
         }
     }
 
@@ -346,9 +338,8 @@ public final class TcpInput extends NetInput {
             if (tcpSocket.isClosed() || msg.equalsIgnoreCase("socket closed")
                     || msg.equalsIgnoreCase("null fd object")) {
                 throw new ConnectionClosedException(e);
-            } else {
-                throw e;
             }
+            throw e;
         }
     }
 

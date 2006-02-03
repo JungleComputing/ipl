@@ -38,12 +38,11 @@ public class StoreInputStream extends InputStream {
             System.arraycopy(buf.byte_store, byte_count, b, off, len);
             byte_count += len;
             return len;
-        } else {
-            System.arraycopy(buf.byte_store, byte_count, b, off, left);
-            byte_count += left;
-            return left;
         }
-    }
+        System.arraycopy(buf.byte_store, byte_count, b, off, left);
+        byte_count += left;
+        return left;
+     }
 
     public final int available() throws IOException {
         return 0;

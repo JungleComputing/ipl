@@ -91,11 +91,11 @@ public final class UdpMuxInput extends MuxerInput {
         try {
             /* We don't use the IP address of the sender port. Maybe it comes
              * in handy for debugging. */
-            InetAddress raddr = (InetAddress) is.readObject();
+            is.readObject();
         } catch (ClassNotFoundException e) {
             throw new Error("Cannot find class java.net.InetAddress", e);
         }
-        int rport = is.readInt();
+        is.readInt();
         int rmtu = is.readInt();
         is.close();
 

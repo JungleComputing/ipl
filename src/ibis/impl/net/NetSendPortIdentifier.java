@@ -47,12 +47,11 @@ public final class NetSendPortIdentifier implements SendPortIdentifier,
      */
     public boolean equals(NetSendPortIdentifier other) {
 
-        if (other == null) {
-            return false;
-        } else {
-            return (type().equals(other.type()) && ibis.equals(other.ibis)
-                    && name().equals(other.name()));
-        }
+    	if (other == null) {
+    		return false;
+    	}
+    	return (type().equals(other.type()) && ibis.equals(other.ibis)
+    			&& name().equals(other.name()));
     }
 
     /**
@@ -62,10 +61,9 @@ public final class NetSendPortIdentifier implements SendPortIdentifier,
      */
     public boolean equals(Object other) {
         if (other instanceof NetSendPortIdentifier) {
-            return equals((NetSendPortIdentifier) other);
-        } else {
-            return false;
+        	return equals((NetSendPortIdentifier) other);
         }
+        return false;
     }
 
     public int hashCode() {

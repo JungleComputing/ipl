@@ -72,7 +72,7 @@ public final class PipeInput extends NetBufferedInput {
         os.writeObject(info);
         os.flush();
         InputStream is = cnx.getServiceLink().getInputSubStream(this, "pipe");
-        int ack = is.read();
+        is.read(); // read ack
         os.close();
         is.close();
 

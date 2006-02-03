@@ -299,11 +299,10 @@ public final class BytesInput extends NetInput implements Settings,
                     log.disp("split required");
                     log.out();
                     return false;
-                } else {
-                    log.disp("split avoided, buffer allocation required");
-                    freeBuffer();
-                    pumpBuffer();
                 }
+                log.disp("split avoided, buffer allocation required");
+                freeBuffer();
+                pumpBuffer();
             }
         }
 
