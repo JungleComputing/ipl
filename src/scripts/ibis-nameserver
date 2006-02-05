@@ -193,7 +193,7 @@ do
 done
 
 if [ $has_enable -eq 1 ]; then
-    Ddefines="$Ddefines -Dibis.connect.enable -Dibis.connect.control_links=RoutedMessages -Dibis.connect.data_links=PlainTCP -Dibis.name_server.host=`hostname -f`"
+    Ddefines="$Ddefines -Dibis.connect.control_links=RoutedMessages -Dibis.connect.data_links=PlainTCP -Dibis.name_server.host=`hostname -f`"
 fi
 
 "$JAVA_ROOT"/bin/java -classpath "$JAVACLASSPATH" $Ddefines $javaargs ibis.impl.nameServer.tcp.NameServer $args

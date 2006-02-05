@@ -215,6 +215,13 @@ do
 	-attach)
 		attach=1
 		;;
+	-hubport|-hub-port)
+		shift
+		Dhub="$Dhub -Dibis.connect.hub.port=$1"
+		;;
+	-controlhub)
+		Dhub="$Dhub -Dibis.connect.control_links=RoutedMessages"
+		;;
 	-nhosts)
 		shift
 		Dpool_total="-Dibis.pool.total_hosts=$1"
@@ -386,7 +393,7 @@ then
 	    -Djava.library.path="$libpath" \
 	    -Dibis.library.path="$ibislib" \
 	    $Dpool_host_num $Dpool_total -Dibis.pool.host_names="$hosts" \
-	    $Dns_key $Dns_port $Dns_server \
+	    $Dns_key $Dns_port $Dns_server $Dhub \
 	    -Xbootclasspath/p:"$JAVACLASSPATH" \
 	    -classpath "$JAVACLASSPATH" \
 	    "$@"
@@ -396,7 +403,7 @@ then
 	    -Djava.library.path="$libpath" \
 	    -Dibis.library.path="$ibislib" \
 	    $Dpool_host_num $Dpool_total \
-	    $Dns_key $Dns_port $Dns_server \
+	    $Dns_key $Dns_port $Dns_server $Dhub \
 	    -Xbootclasspath/p:"$JAVACLASSPATH" \
 	    -classpath "$JAVACLASSPATH" \
 	    "$@"
@@ -409,7 +416,7 @@ else
 	    -Djava.library.path="$libpath" \
 	    -Dibis.library.path="$ibislib" \
 	    $Dpool_host_num $Dpool_total -Dibis.pool.host_names="$hosts" \
-	    $Dns_key $Dns_port $Dns_server \
+	    $Dns_key $Dns_port $Dns_server $Dhub \
 	    -classpath "$JAVACLASSPATH" \
 	    "$@"
     else
@@ -418,7 +425,7 @@ else
 	    -Djava.library.path="$libpath" \
 	    -Dibis.library.path="$ibislib" \
 	    $Dpool_host_num $Dpool_total \
-	    $Dns_key $Dns_port $Dns_server \
+	    $Dns_key $Dns_port $Dns_server $Dhub \
 	    -classpath "$JAVACLASSPATH" \
 	    "$@"
     fi

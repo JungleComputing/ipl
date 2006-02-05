@@ -165,6 +165,14 @@ do
 	-bootcp)
 		args="$args $1"
 		;;
+	-hubport|-hub-port)
+		args="$args $1"
+		shift
+		args="$args $1"
+		;;
+	-controlhub)
+		args="$args $1"
+		;;
 	-no-pool)
 		no_pool=1
 		;;
