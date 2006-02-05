@@ -46,6 +46,12 @@ terminates the ibis-prun parameters.
 The ibis-prun parameters are:
 -attach
     set jvm parameters so that jdb can attach to the running process
+-bootcp
+    set the bootclasspath to the classpath. This is the default if the standard
+    Java libraries have been rewritten
+-no-bootcp
+    don't set the bootclasspath. This is the default if the standard Java
+    libraries have not been rewritten
 -cd <dir>
     when using the javawrapper, make it change to directory <dir>
     before starting java
@@ -154,6 +160,9 @@ do
 		args="$args $1"
 		;;
 	-no-bootcp)
+		args="$args $1"
+		;;
+	-bootcp)
 		args="$args $1"
 		;;
 	-no-pool)

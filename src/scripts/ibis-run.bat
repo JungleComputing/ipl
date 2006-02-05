@@ -36,12 +36,12 @@ rem
 
 set attach=0
 set noJIT=0
+set bootcp=0
 set no_pool=0
 set ns_specified=0
 set JIT_OPTS=
 
 set JAVA_EXEC=java
-set Xbootclasspath="-Xbootclasspath/p:%JAVACLASSPATH%"
 
 set action=
 
@@ -65,7 +65,11 @@ if "%1"=="-attach" (
     goto nextarg
 )
 if "%1"=="-no-bootcp" (
-    set Xbootclasspath=
+    set bootcp=0
+    goto nextarg
+)
+if "%1"=="-bootcp" (
+    set bootcp=1
     goto nextarg
 )
 if "%1"=="-nhosts" (
@@ -152,6 +156,9 @@ goto arguments
 if "%noJIT%"=="1" (
     set JIT_OPTS=%JIT_OPTS% -Djava.compiler=NONE
 )
+if "%bootcp%"=="1" (
+    set Xbootclasspath="-Xbootclasspath/p:%JAVACLASSPATH%"
+)
 if "%ns_specified%"=="0" (
     echo ibis-run: warning: no nameserver host specified, assuming localhost
     set Dns_server="-Dibis.name_server.host=localhost"
@@ -203,6 +210,10 @@ goto end
     echo The ibis-run options are:
     echo -attach
     echo     set jvm parameters so that jdb can attach to the running process
+    echo -bootcp
+    echo     set the bootclasspath to the classpath
+    echo -no-bootcp
+    echo     don't set the bootclasspath. This is the default
     echo -nhosts ^<nhosts^>
     echo     specifies the total number of hosts involved in this run
     echo -hostno ^<hostno^>

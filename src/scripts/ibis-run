@@ -58,6 +58,12 @@ terminates the ibis-run parameters.
 The ibis-run options are:
 -attach
     set jvm parameters so that jdb can attach to the running process
+-bootcp
+    set the bootclasspath to the classpath. This is the default if the standard
+    Java libraries have been rewritten
+-no-bootcp
+    don't set the bootclasspath. This is the default if the standard Java
+    libraries have not been rewritten
 -nhosts <nhosts>
     specifies the total number of hosts involved in this run
 -hostno <hostno>
@@ -173,7 +179,13 @@ portno_specified=0
 ip_map=
 
 JAVA_EXEC=java
-needsbootclasspath=1
+
+if [ -d $IBIS_ROOT/classlibs ]
+then
+    needsbootclasspath=1
+else
+    needsbootclasspath=0
+fi
 
 #
 # nameserver defaults
@@ -268,14 +280,17 @@ do
 	-no-bootcp)
 		needsbootclasspath=0
 		;;
+	-bootcp)
+		needsbootclasspath=1
+		;;
 	-karmi)
 		needsbootclasspath=0
-		JAVACLASSPATH="$CLASSPATH:build:$KARMI/karmi.jar:$IBIS_ROOT/build:"
+		JAVACLASSPATH="$CLASSPATH:build:$KARMI/karmi.jar:$IBIS_ROOT/build/ibis.jar:$LIBCLASSPATH:.:"
 		;;
 	-karmi-gm)
 		needsbootclasspath=0
 		libpath="$libpath$KARMI/lib:"
-		JAVACLASSPATH="$CLASSPATH:build:$KARMI/karmi.jar:$IBIS_ROOT/build:"
+		JAVACLASSPATH="$CLASSPATH:build:$KARMI/karmi.jar:$IBIS_ROOT/build/ibis.jar:$LIBCLASSPATH:.:"
 		;;
 	-ip-map)
 		shift
