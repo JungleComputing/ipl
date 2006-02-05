@@ -25,6 +25,7 @@ import java.io.StreamCorruptedException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
@@ -105,7 +106,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
         /* do nothing */
     }
 
-    void runNameServer(int port) {
+    void runNameServer(int port, String server) {
         if (System.getProperty("os.name").matches(".*indows.*")) {
             // The code below does not work for windows2000, don't know why ...
             NameServer n = NameServer.createNameServer(true, false, false,
@@ -126,16 +127,34 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
                 javadir = javadir.substring(0, javadir.length()-4);
             }
 
-            final String[] cmd = new String[] {
-                    javadir + filesep + "bin" + filesep + "java",
-                    "-classpath",
-                    javapath + pathsep,
-                    "-Dibis.name_server.port="+port,
-                    "ibis.impl.nameServer.tcp.NameServer",
-                    "-single",
-                    "-no-retry",
-                    "-silent",
-                    "-no-poolserver"};
+            ArrayList command = new ArrayList();
+            command.add(javadir + filesep + "bin" + filesep + "java");
+            command.add("-classpath");
+            command.add(javapath + pathsep);
+            command.add("-Dibis.name_server.port="+port);
+            command.add("ibis.impl.nameServer.tcp.NameServer");
+            command.add("-single");
+            command.add("-no-retry");
+            command.add("-silent");
+            command.add("-no-poolserver");
+
+            String conn = System.getProperty("ibis.connect.control_links");
+            if (conn != null && conn.equals("RoutedMessages")) {
+                conn = System.getProperty("ibis.connect.hub.host");
+                if (conn == null || conn.equals(server)) {
+                    command.add("-controlhub");
+                } else {
+                    command.add("-hubhost");
+                    command.add(conn);
+                }
+                conn = System.getProperty("ibis.connect.hub.port");
+                if (conn != null) {
+                    command.add("-hubport");
+                    command.add(conn);
+                }
+            }
+
+            final String[] cmd = (String[]) command.toArray(new String[0]);
 
             Thread p = new Thread("NameServer starter") {
                 public void run() {
@@ -201,7 +220,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
 
         if (myAddress.equals(serverAddress)) {
             // Try and start a nameserver ...
-            runNameServer(port);
+            runNameServer(port, server);
         }
 
         logger.debug("Found nameServerInet " + serverAddress);
