@@ -62,7 +62,7 @@
 	      spawn="true">
 	    <arg line="-ns localhost -no-bootcp -ns-port 46789 -hostno 1 -nhosts 2 ${ibis-run-args}"/>
 	    <arg value="${define-ibis-name}"/>
-	    <arg line="${java-args} ibis.util.Postpone 2 ${runjob}"/>
+	    <arg line="${java-args} ibis.util.Postpone 2 -o ant-test.out ${runjob}"/>
 	</exec>
 	<exec dir="${basedir}"
 	      executable="${ibis}/bin/ibis-run"
