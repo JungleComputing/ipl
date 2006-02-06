@@ -14,9 +14,9 @@
     <property name="satin-main-class" value="${main-class}"/>
     <property name="satin-so-classes" value="DistanceTable Minimum"/>
 
-    <property name="test-par-java-args" value="-Dsatin.so=true"/>
+    <property name="test-par-java-args" value="-Dsatin.so"/>
     <property name="test-par-run" value="Tsp -satin-closed"/>
-    <property name="test-seq-java-args" value="-Dsatin.so=true"/>
+    <property name="test-seq-java-args" value="-Dsatin.so"/>
     <property name="test-seq-run" value="Tsp -satin-closed"/>
 
     <import file="${ibis}/build-files/apps/build-satin-app.xml"/>

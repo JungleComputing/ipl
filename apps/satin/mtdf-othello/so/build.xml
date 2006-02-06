@@ -14,10 +14,10 @@
     <property name="satin-main-class" value="${main-class}"/>
     <property name="satin-so-classes" value="TranspositionTable"/>
 
-    <property name="test-par-java-args" value="-Dsatin.so=true -Xmx256M"/>
+    <property name="test-par-java-args" value="-Dsatin.so -Xmx256M"/>
     <property name="test-par-run"
 	      value="Mtdf 2 -satin-closed"/>
-    <property name="test-seq-java-args" value="-Dsatin.so=true -Xmx256M"/>
+    <property name="test-seq-java-args" value="-Dsatin.so -Xmx256M"/>
     <property name="test-seq-run"
 	      value="Mtdf 2 -satin-closed"/>
 
