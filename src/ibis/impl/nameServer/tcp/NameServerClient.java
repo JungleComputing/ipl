@@ -110,7 +110,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
         if (System.getProperty("os.name").matches(".*indows.*")) {
             // The code below does not work for windows2000, don't know why ...
             NameServer n = NameServer.createNameServer(true, false, false,
-                    false, false);
+                    false, true);
             if (n != null) {
                 n.setDaemon(true);
                 n.start();
