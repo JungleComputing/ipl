@@ -13,14 +13,19 @@
 
 general:
 - keep a changelog, publish it on the website
-- add section about fault-tolerance to programmers manual
-- replace tuplespace section with a shared objects section in programmers manual
-- try it on windows 2000, windows XP, cygwin, MacOS.
-- add shortcut (-controlhub?) to ibis-run to use controlhub
++ add section about fault-tolerance to programmers manual
+  (No. Does not affect program. There is a section on it in notes (Ceriel)).
++ replace tuplespace section with a shared objects section in programmers manual
+  (Done Ceriel)
++ try it on windows 2000 (Done Ceriel).
++ try it on windows XP. (Done Ceriel)
++ try it on cygwin (Done Ceriel).
+- try it on MacOS.
++ add shortcut (-controlhub?) to ibis-run to use controlhub (Done Ceriel).
 
 nameserver:
-+/- lookup of ibisses that died/left/mustleave is sequential now. Could become
-    bottleneck. (Done Ceriel, but needs thorough testing).
++ lookup of ibisses that died/left/mustleave is sequential now. Could become
+  bottleneck. (Done Ceriel)
 
 
 *** Ibis 2.0+ ***
