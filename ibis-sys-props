@@ -428,17 +428,14 @@
 #
 #############################################################################
 
-# When set, enables the connection methods given by the data_links and
-# control_links properties.
-# ibis.connect.enable			false
-
 # The connection method for setting up data links.
-# Possible values are: PlainTCP, TCPSplice, RoutedMessages, ParallelStreams,
-# PortRange, AnyTCP
+# Possible values are: PlainTCP, NIOTCP, TCPSplice, RoutedMessages,
+#   ParallelStreams, NIOParallelStreams, PortRange, AnyTCP
+# See ibis/docs/notes/Crossing-firewalls.txt for an explanation.
 # ibis.connect.data_links		PlainTCP
 
 # The connection method for setting up control links.
-# Possible values are: PlainTCP, RoutedMessages, PortRange
+# Possible values are: PlainTCP, NIOTCP, RoutedMessages, PortRange
 # ibis.connect.control_links		PlainTCP
 
 ################
