@@ -25,7 +25,10 @@ public interface ResizeHandler {
     /**
      * Upcall generated when an Ibis instance joined the current run.
      * @param ident the ibis identifier of the Ibis instance that joined the
-     * current run.
+     * current run. Note: an Ibis instance will also receive a
+     * <code>joined</code> upcall for itself.
+     * All Ibis instances receive the <code>joined</code> upcalls in the
+     * same order.
      */
     public void joined(IbisIdentifier ident);
 
