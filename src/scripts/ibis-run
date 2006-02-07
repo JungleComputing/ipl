@@ -20,25 +20,37 @@ if [ -z "$IBIS_CONFIG_SEEN" ]; then
 . "$dir"/../configuration.sh
 fi
 
+case "`uname`" in
+CYGWIN*)
+    # convert to unix format before dealing with them.
+    IBIS_ROOT=`cygpath --unix "$IBIS_ROOT"`
+    KARMI=`cygpath --unix "$KARMI"`
+    CLASSPATH=`cygpath --unix --path "$CLASSPATH"`
+    LD_LIBRARY_PATH=`cygpath --unix --path "$LD_LIBRARY_PATH"`
+    ;;
+*)
+    ;;
+esac
+
 LIBCLASSPATH=""
 
 add_to_libclasspath () {
-	DIRLIBS=${1}/*.jar
-	for i in ${DIRLIBS}
-	do
-		 # if the directory is empty, then it will return the input string
-		 if [ "$i" != "${DIRLIBS}" ] ; then
-			if [ -z "$LIBCLASSPATH" ] ; then
-		LIBCLASSPATH=$i
-			else
-		LIBCLASSPATH="$i":$LIBCLASSPATH
-			fi
-		 fi
-	done
+    DIRLIBS=`cd "$1"; ls *.jar`
+    for i in ${DIRLIBS}
+    do
+	# if the directory is empty, then it will return the input string
+	if [ "$i" != "${DIRLIBS}" ] ; then
+	    if [ -z "$LIBCLASSPATH" ] ; then
+		LIBCLASSPATH="$1/$i"
+	    else
+		LIBCLASSPATH="$1/$i":$LIBCLASSPATH
+	    fi
+	fi
+    done
 }
 
 # Add the following dirs to the classpath 
-add_to_libclasspath ${IBIS_ROOT}/3rdparty
+add_to_libclasspath "${IBIS_ROOT}"/3rdparty
 
 Dns_pool=
 HOSTNO=0
@@ -148,18 +160,6 @@ fi
 # ibislib is the location where all ibis native libs must go.
 # It must be *one* dir.
 
-case "`uname`" in
-CYGWIN*)
-    # convert to unix format before dealing with them.
-    IBIS_ROOT=`cygpath --unix "$IBIS_ROOT"`
-    KARMI=`cygpath --unix "$KARMI"`
-    CLASSPATH=`cygpath --unix --path "$CLASSPATH"`
-    LD_LIBRARY_PATH=`cygpath --unix --path "$LD_LIBRARY_PATH"`
-    ;;
-*)
-    ;;
-esac
-
 if [ -z "$ibislib" ]
 then
     ibislib="$IBIS_ROOT/build/lib"
@@ -180,7 +180,7 @@ ip_map=
 
 JAVA_EXEC=java
 
-if [ -d $IBIS_ROOT/classlibs ]
+if [ -d "$IBIS_ROOT"/classlibs ]
 then
     needsbootclasspath=1
 else
