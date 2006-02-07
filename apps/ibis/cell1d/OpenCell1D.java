@@ -1026,7 +1026,7 @@ class OpenCell1D implements OpenConfig {
                     System.out.print( '.' );
                 }
 
-		if(false) {
+		if( collectStatistics ) {
                     System.out.println(
                         "STATS " + me
                         + " " + (generation-1)
