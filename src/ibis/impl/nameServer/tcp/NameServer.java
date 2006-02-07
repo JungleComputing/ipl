@@ -87,6 +87,8 @@ public class NameServer extends Thread implements Protocol {
     static class RunInfo {
         ArrayList unfinishedJoins; // a list of IbisInfos
 
+        ArrayList arrayPool;    // IbisInfos in fixed order.
+
         Hashtable pool;
 
         ArrayList leavers;
@@ -109,6 +111,7 @@ public class NameServer extends Thread implements Protocol {
 
         RunInfo(boolean silent) throws IOException {
             unfinishedJoins = new ArrayList();
+            arrayPool = new ArrayList();
             pool = new Hashtable();
             leavers = new ArrayList();
             toBeDeleted = new Vector();
@@ -669,6 +672,7 @@ public class NameServer extends Thread implements Protocol {
             synchronized(p) {
                 p.pool.put(info.name, info);
                 p.unfinishedJoins.add(info);
+                p.arrayPool.add(info);
             }
 
             // first send all existing nodes (including the new one) to the
@@ -676,16 +680,22 @@ public class NameServer extends Thread implements Protocol {
             if (needsUpcalls) {
                 out.writeInt(p.pool.size());
 
-                for (Enumeration e = p.pool.elements(); e.hasMoreElements();) {
-                    IbisInfo temp = (IbisInfo) e.nextElement();
-                    out.writeInt(temp.serializedId.length);
-                    out.write(temp.serializedId);
+                int i = 0;
+                while (i < p.arrayPool.size()) {
+                    IbisInfo temp = (IbisInfo) p.pool.get(((IbisInfo) p.arrayPool.get(i)).name);
+                    if (temp != null) {
+                        out.writeInt(temp.serializedId.length);
+                        out.write(temp.serializedId);
+                        i++;
+                    } else {
+                        p.arrayPool.remove(i);
+                    }
                 }
 
                 //send all nodes about to leave to the new one
                 out.writeInt(p.toBeDeleted.size());
 
-                for (int i = 0; i < p.toBeDeleted.size(); i++) {
+                for (i = 0; i < p.toBeDeleted.size(); i++) {
                     IbisInfo temp = (IbisInfo) p.toBeDeleted.get(i);
                     out.writeInt(temp.serializedId.length);
                     out.write(temp.serializedId);
