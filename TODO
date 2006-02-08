@@ -5,6 +5,7 @@
 	1.1 = 1.0 + ...
 	1.2 = 1.1 + MPJ + ...
 	1.3 = 1.2 + SO + ...
+  use History.txt?
 - change "related work" to "links" (like the ProActive site)
 - add "ibis in the news" to links
 - change UDP in documentation picture to being incomplete (striped)
@@ -12,7 +13,7 @@
 *** Ibis 1.3 ***
 
 general:
-- keep a changelog, publish it on the website
++ keep a changelog (Done Ceriel, added History.txt)
 + add section about fault-tolerance to programmers manual
   (No. Does not affect program. There is a section on it in notes (Ceriel)).
 + replace tuplespace section with a shared objects section in programmers manual
@@ -20,7 +21,9 @@ general:
 + try it on windows 2000 (Done Ceriel).
 + try it on windows XP. (Done Ceriel)
 + try it on cygwin (Done Ceriel).
-- try it on MacOS.
++ try it on MacOS. (Done Ceriel).
++ try it on Solaris. (Done Ceriel).
+- have other persons try it.
 + add shortcut (-controlhub?) to ibis-run to use controlhub (Done Ceriel).
 
 nameserver:

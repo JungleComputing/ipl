@@ -1,0 +1,40 @@
+Here is a list of Ibis releases.
+
+1.3
+   This release contains the following additions:
+   - shared objects for Satin. This is a replacement (and major improvement)
+     of the TupleSpace, which was a hack, really. The TupleSpace is still there,
+     but it is deprecated and will probably not be there anymore in the next
+     Ibis release.
+   - Improved/rewritten connection setup code.
+   - Fixed various scalability issues which came up when we tried to run some
+     applications on hundreds of nodes. The biggest bottleneck was the
+     nameserver, which we now made multithreaded. Another major bottleneck
+     was the connection setup in Satin, for which we now added code to set up
+     connections lazily.
+   
+1.2.1
+   This is a quick maintainance release for 1.2, fixing a couple of bugs.
+
+1.2
+   This release adds MPJ/Ibis, a pure Java implementation of he MPJ programming
+   interface that has been defined by the Java Grande forum to provide MPI-like
+   message passing for Java applications. With respect to 1.1, there are also
+   a couple of bug fixes.
+
+1.1
+   This is mostly a maintainance release for 1.0. It fixes several bugs,
+   and has some clarifications in the Javadoc.
+
+1.0
+   The first Ibis release. This release includes the IPL, and the following
+   implementations of it:
+   - TcpIbis, which is an implementation on top of TCP,
+   - NioIbis, which is an implementation on top of Java NIO.
+   - MessagePassing Ibis, which is an implementation on top of Panda (and
+     MPI, but that is not really tested).
+   - NetIbis, which can do TCP, UDP, GM, and probably others.
+   This release also contains Ibis RMI, which is a (incomplete)
+   re-implementation of Java RMI, Satin, which is an implementation of the
+   divide-and-conquer programming model, and GMI, which is an RMI enhanced
+   with group communication.
