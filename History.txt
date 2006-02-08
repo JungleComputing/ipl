@@ -1,6 +1,6 @@
 Here is a list of Ibis releases.
 
-1.3
+1.3 (...)
    This release contains the following additions:
    - shared objects for Satin. This is a replacement (and major improvement)
      of the TupleSpace, which was a hack, really. The TupleSpace is still there,
@@ -13,20 +13,20 @@ Here is a list of Ibis releases.
      was the connection setup in Satin, for which we now added code to set up
      connections lazily.
    
-1.2.1
+1.2.1 (Dec 2, 2005)
    This is a quick maintainance release for 1.2, fixing a couple of bugs.
 
-1.2
+1.2 (Sep 20, 2005)
    This release adds MPJ/Ibis, a pure Java implementation of he MPJ programming
    interface that has been defined by the Java Grande forum to provide MPI-like
    message passing for Java applications. With respect to 1.1, there are also
    a couple of bug fixes.
 
-1.1
+1.1 (Jun 13, 2005)
    This is mostly a maintainance release for 1.0. It fixes several bugs,
    and has some clarifications in the Javadoc.
 
-1.0
+1.0 (Nov 24, 2004)
    The first Ibis release. This release includes the IPL, and the following
    implementations of it:
    - TcpIbis, which is an implementation on top of TCP,
