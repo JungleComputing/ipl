@@ -54,7 +54,8 @@ add_to_libclasspath "${IBIS_ROOT}"/3rdparty
 
 Dns_pool=
 HOSTNO=0
-export HOSTS="$HOSTS"
+HOSTS="$HOSTS"
+export HOSTS
 NHOSTS=1
 run_name=$0
 action=
@@ -198,7 +199,8 @@ Dns_port="-Dibis.name_server.port=$IBIS_NAMESERVER_PORT"
 Dns_key="-Dibis.name_server.key=no_key_supplied"
 
 dir=$PWD
-export hosts="$HOSTS"
+hosts="$HOSTS"
+export hosts
 
 #
 # parse arguments
