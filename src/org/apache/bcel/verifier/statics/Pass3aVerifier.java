@@ -573,7 +573,7 @@ public final class Pass3aVerifier extends PassVerifier {
                 VerificationResult vr = v.doPass1();
                 if (vr.getStatus() != VerificationResult.VERIFIED_OK) {
                     constraintViolated((Instruction) o, "Class '"
-                            + o.getLoadClassType(cpg).getClassName()
+                            + t.getClassName()
                             + "' is referenced, but cannot be loaded: '" + vr
                             + "'.");
                 }
@@ -593,7 +593,9 @@ public final class Pass3aVerifier extends PassVerifier {
             indexValid(o, o.getIndex());
             Constant c = cpg.getConstant(o.getIndex());
             if (!((c instanceof ConstantInteger)
-                    || (c instanceof ConstantFloat) || (c instanceof ConstantString))) {
+                    || (c instanceof ConstantFloat)
+                    || (c instanceof ConstantClass) // Apparently allowed in Java 1.5. (Ceriel)
+                    || (c instanceof ConstantString))) {
                 constraintViolated(
                         o,
                         "Operand of LDC or LDC_W must be one of CONSTANT_Integer, CONSTANT_Float or CONSTANT_String, but is '"
@@ -1359,14 +1361,15 @@ public final class Pass3aVerifier extends PassVerifier {
             // INVOKEVIRTUAL is an InvokeInstruction, the argument and return types are resolved/verified,
             // too. So are the allowed method names.
             String classname = o.getClassName(cpg);
-            JavaClass jc = Repository.lookupClass(classname);
+            if (! (classname.startsWith("["))) {
+                JavaClass jc = Repository.lookupClass(classname);
 //            Method m = findMethod(o);
 
-            if (!(jc.isClass())) {
-                constraintViolated(o, "Referenced class '" + jc.getClassName()
-                        + "' is an interface, but not a class as expected.");
+                if (!(jc.isClass())) {
+                    constraintViolated(o, "Referenced class '" + jc.getClassName()
+                            + "' is an interface, but not a class as expected.");
+                }
             }
-
         }
 
         // WIDE stuff is BCEL-internal and cannot be checked here.

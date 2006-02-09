@@ -2317,6 +2317,9 @@ public class InstConstraintVisitor extends EmptyVisitor implements
         String objref_classname = ((ObjectType) objref).getClassName();
 
         String theClass = o.getClassName(cpg);
+        if (theClass.startsWith("[")) {
+            theClass = "java.lang.Object";
+        }
 
         if (!Repository.instanceOf(objref_classname, theClass)) {
             constraintViolated(o, "The 'objref' item '" + objref
@@ -2612,7 +2615,10 @@ public class InstConstraintVisitor extends EmptyVisitor implements
         // visitCPInstruction is called first.
 
         Constant c = cpg.getConstant(o.getIndex());
-        if (!((c instanceof ConstantInteger) || (c instanceof ConstantFloat) || (c instanceof ConstantString))) {
+        if (!((c instanceof ConstantInteger)
+                    || (c instanceof ConstantFloat)
+                    || (c instanceof ConstantClass)
+                    || (c instanceof ConstantString))) {
             constraintViolated(
                     o,
                     "Referenced constant should be a CONSTANT_Integer, a CONSTANT_Float or a CONSTANT_String, but is '"
@@ -2627,7 +2633,10 @@ public class InstConstraintVisitor extends EmptyVisitor implements
         // visitCPInstruction is called first.
 
         Constant c = cpg.getConstant(o.getIndex());
-        if (!((c instanceof ConstantInteger) || (c instanceof ConstantFloat) || (c instanceof ConstantString))) {
+        if (!((c instanceof ConstantInteger)
+                    || (c instanceof ConstantFloat)
+                    || (c instanceof ConstantClass)
+                    || (c instanceof ConstantString))) {
             constraintViolated(
                     o,
                     "Referenced constant should be a CONSTANT_Integer, a CONSTANT_Float or a CONSTANT_String, but is '"
@@ -2645,7 +2654,7 @@ public class InstConstraintVisitor extends EmptyVisitor implements
         if (!((c instanceof ConstantLong) || (c instanceof ConstantDouble))) {
             constraintViolated(
                     o,
-                    "Referenced constant should be a CONSTANT_Integer, a CONSTANT_Float or a CONSTANT_String, but is '"
+                    "Referenced constant should be a CONSTANT_Long or a CONSTANT_Double, but is '"
                             + c + "'.");
         }
     }
