@@ -2250,6 +2250,14 @@ public class IOGenerator {
             return;
         }
 
+        if (clazz.getClassName().equals("java.lang.Class")) {
+            return;
+        }
+
+        if (clazz.getClassName().equals("java.lang.String")) {
+            return;
+        }
+
         try {
             if (Repository.instanceOf(clazz, "java.lang.Enum")) {
                 return;
