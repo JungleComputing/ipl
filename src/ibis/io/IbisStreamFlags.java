@@ -33,21 +33,21 @@ public interface IbisStreamFlags {
 
     public static final int CONTROL_HANDLES = 2;
 
-    static final Class classBooleanArray = IbisTypeInfo.getClass("[Z");
+    static final Class classBooleanArray = AlternativeTypeInfo.getClass("[Z");
 
-    static final Class classByteArray = IbisTypeInfo.getClass("[B");
+    static final Class classByteArray = AlternativeTypeInfo.getClass("[B");
 
-    static final Class classShortArray = IbisTypeInfo.getClass("[S");
+    static final Class classShortArray = AlternativeTypeInfo.getClass("[S");
 
-    static final Class classCharArray = IbisTypeInfo.getClass("[C");
+    static final Class classCharArray = AlternativeTypeInfo.getClass("[C");
 
-    static final Class classIntArray = IbisTypeInfo.getClass("[I");
+    static final Class classIntArray = AlternativeTypeInfo.getClass("[I");
 
-    static final Class classLongArray = IbisTypeInfo.getClass("[J");
+    static final Class classLongArray = AlternativeTypeInfo.getClass("[J");
 
-    static final Class classFloatArray = IbisTypeInfo.getClass("[F");
+    static final Class classFloatArray = AlternativeTypeInfo.getClass("[F");
 
-    static final Class classDoubleArray = IbisTypeInfo.getClass("[D");
+    static final Class classDoubleArray = AlternativeTypeInfo.getClass("[D");
 
     static final int SIZEOF_BOOLEAN = 1;
 

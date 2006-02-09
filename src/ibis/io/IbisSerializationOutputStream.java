@@ -1121,17 +1121,20 @@ public class IbisSerializationOutputStream
         if (replacer != null) {
             ref = replacer.replace(ref);
         }
+
         int hashCode = HandleHash.getHashCode(ref);
         int handle = references.find(ref, hashCode);
 
         if (handle == 0) {
             Class clazz = ref.getClass();
+            AlternativeTypeInfo t
+                        = AlternativeTypeInfo.getAlternativeTypeInfo(clazz);
             if (DEBUG) {
                 dbPrint("start writeObject of class " + clazz.getName()
                         + " handle = " + next_handle);
             }
 
-            if (clazz.isArray()) {
+            if (t.isArray) {
                 writeArray(ref, clazz, false);
             } else {
                 handle = next_handle++;
@@ -1140,7 +1143,14 @@ public class IbisSerializationOutputStream
                     dbPrint("doWriteObject: references[" + handle + "] = " + ref);
                 }
                 writeType(clazz);
-                if (clazz == java.lang.String.class) {
+                if (t.isIbisSerializable) {
+                    ((Serializable) ref).generated_WriteObject(this);
+                } else if (t.isExternalizable) {
+                    push_current_object(ref, 0);
+                    ((java.io.Externalizable) ref).writeExternal(
+                            getJavaObjectOutputStream());
+                    pop_current_object();
+                } else if (clazz == java.lang.String.class) {
                     /* EEK this is not nice !! */
                     writeUTF((String) ref);
                 } else if (clazz == java.lang.Class.class) {
@@ -1153,14 +1163,7 @@ public class IbisSerializationOutputStream
                     } catch(Exception e) {
                         throw new IOException("Got exception writing enum" + e);
                     }
-                } else if (IbisSerializationInputStream.isIbisSerializable(clazz)) {
-                    ((Serializable) ref).generated_WriteObject(this);
-                } else if (ref instanceof java.io.Externalizable) {
-                    push_current_object(ref, 0);
-                    ((java.io.Externalizable) ref).writeExternal(
-                            getJavaObjectOutputStream());
-                    pop_current_object();
-                } else if (ref instanceof java.io.Serializable) {
+                } else if (t.isSerializable) {
                     writeSerializableObject(ref, clazz);
                 } else {
                     throw new NotSerializableException("Not Serializable : "
@@ -1253,8 +1256,10 @@ public class IbisSerializationOutputStream
 
             Object ref = current_object;
             Class clazz = ref.getClass();
+            AlternativeTypeInfo t
+                    = AlternativeTypeInfo.getAlternativeTypeInfo(clazz);
 
-            if (IbisSerializationInputStream.isIbisSerializable(clazz)) {
+            if (t.isIbisSerializable) {
                 /* Note that this will take the generated_DefaultWriteObject of the
                  dynamic type of ref. The current_level variable actually
                  indicates which instance of generated_DefaultWriteObject 
@@ -1267,9 +1272,6 @@ public class IbisSerializationOutputStream
                 ((Serializable) ref).generated_DefaultWriteObject(ibisStream,
                         current_level);
             } else if (ref instanceof java.io.Serializable) {
-                AlternativeTypeInfo t
-                        = AlternativeTypeInfo.getAlternativeTypeInfo(clazz);
-
                 /* 
                  * Find the type info corresponding to the current invocation.
                  * See the invokeWriteObject invocation in
@@ -1315,8 +1317,12 @@ public class IbisSerializationOutputStream
             if (clazz.isArray()) {
                 ibisStream.writeArray(ref, clazz, true);
             } else {
+                AlternativeTypeInfo t
+                        = AlternativeTypeInfo.getAlternativeTypeInfo(clazz);
                 ibisStream.writeType(clazz);
-                if (clazz == java.lang.String.class) {
+                if (t.isIbisSerializable) {
+                    ((Serializable) ref).generated_WriteObject(ibisStream);
+                } else if (clazz == java.lang.String.class) {
                     /* EEK this is not nice !! */
                     ibisStream.writeUTF((String) ref);
                 } else if (clazz == java.lang.Class.class) {
@@ -1326,8 +1332,6 @@ public class IbisSerializationOutputStream
                     push_current_object(ref, 0);
                     ((java.io.Externalizable) ref).writeExternal(this);
                     pop_current_object();
-                } else if (IbisSerializationInputStream.isIbisSerializable(clazz)) {
-                    ((Serializable) ref).generated_WriteObject(ibisStream);
                 } else if (ref instanceof java.io.Serializable) {
                     ibisStream.writeSerializableObject(ref, clazz);
                 } else {
