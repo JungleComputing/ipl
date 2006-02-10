@@ -238,6 +238,10 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
     public ibis.ipl.WriteMessage newMessage() throws IOException {
         TcpWriteMessage res = null;
 
+        if (out == null) {
+            throw new IOException("newMessage call on closed sendport");
+        }
+
         synchronized (this) {
             // if (receivers.size() == 0) {
             //     throw new IbisIOException("port is not connected");
