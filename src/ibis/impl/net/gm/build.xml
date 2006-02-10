@@ -28,47 +28,48 @@
     <import file="${ibis}/build-files/build-properties.xml"/>
     <import file="${ibis}/build-files/build-native.xml"/>
 
-    <if>
-	<os family="unix"/>
-	<then>
-	    <property name="gm.lib.dir"  location="${package.home.gm}/lib"/>
-	    <path id="net-gm-local.includes-ref">
-		<pathelement path="${package.home.gm}/include"/>
-	    </path>
-	</then>
-    <elseif>
-	<os family="windows"/>
-	<then>
-	    <property name="gm.lib.dir"  location="${package.home.gm}/examples"/>
-	    <path id="net-gm-local.includes-ref">
-		<pathelement path="${package.home.gm}"/>
-	    </path>
-	</then>
-    </elseif>
-    <else>
-	<echo message="No info on gm lib location on this OS"/>
-    </else>
-    </if>
+    <target name="arch-init" depends="property-init, native-init">
+	<if>
+	    <os family="unix"/>
+	    <then>
+		<property name="gm.lib.dir"  location="${package.home.gm}/lib"/>
+		<path id="net-gm-local.includes-ref">
+		    <pathelement path="${package.home.gm}/include"/>
+		</path>
+	    </then>
+	<elseif>
+	    <os family="windows"/>
+	    <then>
+		<property name="gm.lib.dir"  location="${package.home.gm}/examples"/>
+		<path id="net-gm-local.includes-ref">
+		    <pathelement path="${package.home.gm}"/>
+		</path>
+	    </then>
+	</elseif>
+	<else>
+	    <echo message="No info on gm lib location on this OS"/>
+	</else>
+	</if>
 
-    <property name="local.includes" refid="net-gm-local.includes-ref"/>
+	<property name="local.includes" refid="net-gm-local.includes-ref"/>
 
-    <!--
-      If both libgm.a and libgm.so exist, I found no way to persuade cpptasks
-      to select libgm.a and do a fully resolved link to libnet_ibis_gm.so.
-      So, we copy libgm.a to the local build/lib and hope nobody minds the
-      manyfold distribution of libs.
-    -->
-    <!--
-    <libset id="local.libset-ref"
-	    dir="${gm.lib.dir}"
-	    libs="gm"/>
-    -->
-    <libset id="local.libset-ref"
-	    dir="${ibis}/build/lib"
-	    libs="gm"/>
+	<!--
+	  If both libgm.a and libgm.so exist, I found no way to persuade cpptasks
+	  to select libgm.a and do a fully resolved link to libnet_ibis_gm.so.
+	  So, we copy libgm.a to the local build/lib and hope nobody minds the
+	  manyfold distribution of libs.
+	-->
+	<!--
+	<libset id="local.libset-ref"
+		dir="${gm.lib.dir}"
+		libs="gm"/>
+	-->
+	<libset id="local.libset-ref"
+		dir="${ibis}/build/lib"
+		libs="gm"/>
+    </target>
 
-
-    <target name="build" depends="native-init">
+    <target name="build" depends="arch-init">
 	<maplibrary
 		property="gm.path"
 		name="${gm.lib.dir}/libgm.a"
