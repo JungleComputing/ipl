@@ -92,7 +92,7 @@ public final class Driver extends NetDriver implements RelConstants {
         }
     }
 
-    class OutputElement {
+    static class OutputElement {
         RelOutput output;
 
         IbisIdentifier remote_in_id;
@@ -215,10 +215,10 @@ public final class Driver extends NetDriver implements RelConstants {
 
         private NetVector sweep = new NetVector();
 
-        private long sweepInterval = 30;
+        private long sweeperInterval = 30;
 
         Sweeper(long sweepInterval) {
-            this.sweepInterval = sweepInterval;
+            this.sweeperInterval = sweepInterval;
         }
 
         /**
@@ -237,7 +237,7 @@ public final class Driver extends NetDriver implements RelConstants {
             while (true) {
                 synchronized (this) {
                     try {
-                        wait(sweepInterval);
+                        wait(sweeperInterval);
                     } catch (InterruptedException e) {
                         // Ignore
                     }

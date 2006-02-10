@@ -325,7 +325,7 @@ public final class RelInput extends NetBufferedInput
         }
 
         while (scan != null && nextContiguous > scan.fragCount) {
-            scan = scan.next;
+            scan = scan.nextRelRcvBuf;
         }
 
         if (DEBUG_ACK) {
@@ -334,7 +334,7 @@ public final class RelInput extends NetBufferedInput
         }
         while (scan != null && nextContiguous == scan.fragCount) {
             nextContiguous++;
-            scan = scan.next;
+            scan = scan.nextRelRcvBuf;
         }
         if (DEBUG_ACK) {
             System.err.println("fillAck: ******************** update "
@@ -380,15 +380,15 @@ public final class RelInput extends NetBufferedInput
             int bit = x % Conversion.BITS_PER_INT;
             ackSendSet[off] |= (0x1 << bit);
             if (DEBUG_ACK) {
-                if (scan.next != null
-                        && scan.fragCount + 1 != scan.next.fragCount) {
+                if (scan.nextRelRcvBuf != null
+                        && scan.fragCount + 1 != scan.nextRelRcvBuf.fragCount) {
                     System.err.println("fillAck: guess I have to report"
                             + " missing from " + (scan.fragCount + 1)
-                            + " up to " + scan.next.fragCount);
+                            + " up to " + scan.nextRelRcvBuf.fragCount);
                 }
             }
             nextNonMissing = scan.fragCount + 1;
-            scan = scan.next;
+            scan = scan.nextRelRcvBuf;
         }
 
         if (DEBUG_ACK) {
@@ -519,17 +519,17 @@ public final class RelInput extends NetBufferedInput
         } else if (front == null) {
             front = packet;
             tail = packet;
-            packet.next = null;
+            packet.nextRelRcvBuf = null;
         } else if (fragCount > tail.fragCount) {
-            tail.next = packet;
+            tail.nextRelRcvBuf = packet;
             tail = packet;
-            packet.next = null;
+            packet.nextRelRcvBuf = null;
         } else {
             RelReceiveBuffer scan = front;
             RelReceiveBuffer prev = null;
             while (scan.fragCount < fragCount) {
                 prev = scan;
-                scan = scan.next;
+                scan = scan.nextRelRcvBuf;
             }
             if (scan.fragCount == fragCount) {
                 // Receive a duplicate.
@@ -538,9 +538,9 @@ public final class RelInput extends NetBufferedInput
                 if (prev == null) {
                     front = packet;
                 } else {
-                    prev.next = packet;
+                    prev.nextRelRcvBuf = packet;
                 }
-                packet.next = scan;
+                packet.nextRelRcvBuf = scan;
             }
         }
 
@@ -656,7 +656,7 @@ public final class RelInput extends NetBufferedInput
             }
 
             RelReceiveBuffer packet = front;
-            front = front.next;
+            front = front.nextRelRcvBuf;
 
             return packet;
         }

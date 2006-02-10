@@ -458,9 +458,9 @@ public final class RelOutput extends NetBufferedOutput implements RelConstants,
             }
             if (!scan.sent && !scan.acked) {
                 doSendBuffer(scan, now);
-                nextToSend = scan.next;
+                nextToSend = scan.nextRelSndBuf;
             }
-            scan = scan.next;
+            scan = scan.nextRelSndBuf;
         }
 
         /* If the send window is closed and we still have packets to
@@ -484,10 +484,10 @@ public final class RelOutput extends NetBufferedOutput implements RelConstants,
         if (front == null) {
             front = frag;
         } else {
-            tail.next = frag;
+            tail.nextRelSndBuf = frag;
         }
         tail = frag;
-        frag.next = null;
+        frag.nextRelSndBuf = null;
 
         if (nextToSend == null) {
             nextToSend = frag;
@@ -590,7 +590,7 @@ public final class RelOutput extends NetBufferedOutput implements RelConstants,
                         doSendBuffer(scan, now);
                     }
 
-                    scan = scan.next;
+                    scan = scan.nextRelSndBuf;
                 }
                 mask <<= 1;
                 toAck++;
@@ -600,7 +600,7 @@ public final class RelOutput extends NetBufferedOutput implements RelConstants,
 
         while (front != null && front.acked) {
             scan = front;
-            front = front.next;
+            front = front.nextRelSndBuf;
             windowStart++;
             scan.free();
         }
@@ -624,7 +624,7 @@ public final class RelOutput extends NetBufferedOutput implements RelConstants,
         for (scan = front;
                 scan != null && scan.fragCount < ackOffset;
                 scan = front) {
-            front = scan.next;
+            front = scan.nextRelSndBuf;
             windowStart++;
             if (DEBUG_ACK) {
                 System.err.println(".................. Now free packet "
@@ -655,7 +655,7 @@ public final class RelOutput extends NetBufferedOutput implements RelConstants,
                     && scan.sent
                     && scan.fragCount - windowStart < windowSize
                     && now - scan.lastSent > safetyInterval;
-                scan = scan.next) {
+                scan = scan.nextRelSndBuf) {
             n++;
         }
 
@@ -699,7 +699,7 @@ public final class RelOutput extends NetBufferedOutput implements RelConstants,
                     && scan.sent
                     && scan.fragCount - windowStart < windowSize
                     && now - scan.lastSent > safetyInterval;
-                scan = scan.next) {
+                scan = scan.nextRelSndBuf) {
             if (DEBUG_REXMIT) {
                 System.err.println("Rexmit packet " + scan.fragCount
                         + "; now - lastSent " + (now - scan.lastSent));

@@ -106,7 +106,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
         /* do nothing */
     }
 
-    void runNameServer(int port, String server) {
+    void runNameServer(int prt, String srvr) {
         if (System.getProperty("os.name").matches(".*indows.*")) {
             // The code below does not work for windows2000, don't know why ...
             NameServer n = NameServer.createNameServer(true, false, false,
@@ -131,7 +131,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
             command.add(javadir + filesep + "bin" + filesep + "java");
             command.add("-classpath");
             command.add(javapath + pathsep);
-            command.add("-Dibis.name_server.port="+port);
+            command.add("-Dibis.name_server.port="+prt);
             command.add("ibis.impl.nameServer.tcp.NameServer");
             command.add("-single");
             command.add("-no-retry");
@@ -141,7 +141,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
             String conn = System.getProperty("ibis.connect.control_links");
             if (conn != null && conn.equals("RoutedMessages")) {
                 conn = System.getProperty("ibis.connect.hub.host");
-                if (conn == null || conn.equals(server)) {
+                if (conn == null || conn.equals(srvr)) {
                     command.add("-controlhub");
                 } else {
                     command.add("-hubhost");
@@ -177,11 +177,11 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
         }
     }
 
-    protected void init(Ibis ibis, boolean needsUpcalls)
+    protected void init(Ibis ibis, boolean ndsUpcalls)
             throws IOException, IbisConfigurationException {
         this.ibisImpl = ibis;
         this.id = ibisImpl.identifier();
-        this.needsUpcalls = needsUpcalls;
+        this.needsUpcalls = ndsUpcalls;
 
         Properties p = System.getProperties();
 
@@ -249,7 +249,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
             out.writeInt(buf.length);
             out.write(buf);
             out.writeInt(localPort);
-            out.writeBoolean(needsUpcalls);
+            out.writeBoolean(ndsUpcalls);
             out.flush();
 
             in = new DataInputStream(new BufferedInputStream(s.getInputStream()));
@@ -281,7 +281,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
                 electionClient = new ElectionClient(myAddress, serverAddress,
                         temp, id.name());
 
-                if (needsUpcalls) {
+                if (ndsUpcalls) {
                     int poolSize = in.readInt();
 
                     if (logger.isDebugEnabled()) {

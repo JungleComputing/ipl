@@ -10,7 +10,7 @@ class RelSendBuffer extends NetSendBuffer {
     /**
      * Linked list
      */
-    RelSendBuffer next;
+    RelSendBuffer nextRelSndBuf;
 
     /**
      * Sequence number of this packet

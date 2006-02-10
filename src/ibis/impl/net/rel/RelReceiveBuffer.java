@@ -18,7 +18,7 @@ class RelReceiveBuffer extends NetReceiveBuffer {
     /**
      * Linked list
      */
-    RelReceiveBuffer next;
+    RelReceiveBuffer nextRelRcvBuf;
 
     /**
      * Sequence number of this packet

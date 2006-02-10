@@ -167,7 +167,7 @@ public class NameServer extends Thread implements Protocol {
 
     boolean silent;
 
-    private ControlHub h = null;
+    private ControlHub controlHub = null;
 
     static Logger logger = 
             ibis.util.GetLogger.getLogger(NameServer.class.getName());
@@ -192,9 +192,9 @@ public class NameServer extends Thread implements Protocol {
                 System.setProperty("ibis.connect.hub.port", hubPort);
             }
             try {
-                h = new ControlHub();
-                h.setDaemon(true);
-                h.start();
+                controlHub = new ControlHub();
+                controlHub.setDaemon(true);
+                controlHub.start();
                 Thread.sleep(2000); // Give it some time to start up
             } catch (Throwable e) {
                 throw new IOException("Could not start control hub" + e);
@@ -348,8 +348,8 @@ public class NameServer extends Thread implements Protocol {
             this.message = message;
         }
 
-        private String type(int message) {
-            switch(message) {
+        private String type(int msg) {
+            switch(msg) {
             case IBIS_DEAD:
                 return "dead";
             case IBIS_LEAVE:
@@ -1042,8 +1042,8 @@ public class NameServer extends Thread implements Protocol {
             throw new IbisRuntimeException("NameServer got an error", e);
         }
 
-        if (h != null) {
-            h.waitForCount(1);
+        if (controlHub != null) {
+            controlHub.waitForCount(1);
         }
 
         if (! silent && logger.isInfoEnabled()) {

@@ -66,7 +66,7 @@ class ReceivePortNameServer extends Thread implements Protocol {
 
         private String[] names;
 
-        private byte[][] ports;
+        private byte[][] reqPorts;
 
         private long timeout;
                
@@ -86,7 +86,7 @@ class ReceivePortNameServer extends Thread implements Protocol {
             this.myIn = in;
             this.myOut = out;
             this.names = names;
-            this.ports = ports;
+            this.reqPorts = ports;
             this.timeout = timeout;
             this.unknown = unknown;
             this.allowPartialResults = allowPartialResults;
@@ -98,7 +98,7 @@ class ReceivePortNameServer extends Thread implements Protocol {
          
             for (int j = 0; j < names.length; j++) {
                 if (names[j].equals(name)) {
-                    ports[j] = id;
+                    reqPorts[j] = id;
                     unknown--;
                     if (unknown == 0) {
                         notify();
@@ -177,24 +177,24 @@ class ReceivePortNameServer extends Thread implements Protocol {
                 }
                 if (unknown == 0 || allowPartialResults) {                 
                     myOut.writeByte(PORT_KNOWN);
-                    myOut.writeInt(ports.length);
-                    for (int i = 0; i < ports.length; i++) {
+                    myOut.writeInt(reqPorts.length);
+                    for (int i = 0; i < reqPorts.length; i++) {
                         
-                        if (ports[i] == null) { 
+                        if (reqPorts[i] == null) { 
                             myOut.writeInt(0);
                         } else {                         
-                            myOut.writeInt(ports[i].length);
+                            myOut.writeInt(reqPorts[i].length);
                         
-                            if (ports[i].length > 0) {                     
-                                myOut.write(ports[i]);
+                            if (reqPorts[i].length > 0) {                     
+                                myOut.write(reqPorts[i]);
                             }
                         }
                     }
                 } else { 
                     myOut.writeByte(PORT_UNKNOWN);
                     myOut.writeInt(unknown);
-                    for (int j = 0; j < ports.length; j++) {
-                        if (ports[j] == null) {
+                    for (int j = 0; j < reqPorts.length; j++) {
+                        if (reqPorts[j] == null) {
                             myOut.writeUTF(names[j]);
                         }
                     }

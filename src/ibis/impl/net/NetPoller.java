@@ -548,12 +548,12 @@ public class NetPoller extends NetInput implements NetBufferedInputSupport {
 
         NetInput input = null;
 
-        private Integer activeNum = null;
+        private Integer active = null;
 
         private int waitingPollers = 0;
 
         public Integer activeNum() {
-            return activeNum;
+            return active;
         }
 
         public NetInput getInput() {
@@ -593,9 +593,9 @@ public class NetPoller extends NetInput implements NetBufferedInputSupport {
                         wakeupBlockedReceiver();
                         nCurrent++;
                     }
-                    activeNum = spn;
+                    active = spn;
                     activeUpcallThread = me;
-                    log.disp("NetPoller queue thread poll returns ", activeNum);
+                    log.disp("NetPoller queue thread poll returns ", active);
                 }
 
                 if (upcallMode) {
@@ -616,7 +616,7 @@ public class NetPoller extends NetInput implements NetBufferedInputSupport {
                 }
                 
                 synchronized (this) {
-                	if (activeNum == spn) {
+                	if (active == spn) {
                 		waitingPollers++;
                 		try {
                 			wait();
@@ -625,7 +625,7 @@ public class NetPoller extends NetInput implements NetBufferedInputSupport {
                 		}
                 		waitingPollers--;
                 	}
-                	if (activeNum == null) {
+                	if (active == null) {
                 		break;
                 	}
                 }
@@ -638,26 +638,26 @@ public class NetPoller extends NetInput implements NetBufferedInputSupport {
         Integer poll(boolean block) throws IOException {
             log.in();
             if (decouplePoller && singleton == null) {
-                if (!NetReceivePort.useBlockingPoll && activeNum == null) {
-                    activeNum = input.poll(block);
+                if (!NetReceivePort.useBlockingPoll && active == null) {
+                    active = input.poll(block);
                 }
             } else {
-                activeNum = input.poll(block);
+                active = input.poll(block);
             }
 
-            return activeNum;
+            return active;
         }
 
         /* Call this synchronized (NetPoller.this) */
         Integer poll() throws IOException {
             log.in();
-            if (!NetReceivePort.useBlockingPoll && activeNum == null) {
-                activeNum = input.poll(false);
+            if (!NetReceivePort.useBlockingPoll && active == null) {
+                active = input.poll(false);
             }
 
             log.out();
 
-            return activeNum;
+            return active;
         }
 
         boolean pollIsInterruptible() throws IOException {
@@ -701,7 +701,7 @@ public class NetPoller extends NetInput implements NetBufferedInputSupport {
         public void finish(boolean implicit) throws IOException {
             log.in();
 
-            activeNum = null;
+            active = null;
             if (!implicit) {
                 input.finish();
             }

@@ -13,7 +13,7 @@ public final class NetLockArray {
 
     private static final boolean DEBUG = false; // true;
 
-    private class Lock {
+    private static class Lock {
         /**
          * Lock value. <code>v > 0</code>means lock is free.
          */
@@ -39,7 +39,7 @@ public final class NetLockArray {
 
         WaitingOn tail;
 
-        Lock() {
+        Lock(Monitor mon) {
             cv = mon.createCV(true);
         }
     }
@@ -66,7 +66,7 @@ public final class NetLockArray {
     public NetLockArray(Monitor mon) {
         this.mon = mon;
         lock = new Lock[1];
-        lock[0] = new Lock();
+        lock[0] = new Lock(mon);
     }
 
     /**
@@ -83,7 +83,7 @@ public final class NetLockArray {
             System.arraycopy(lock, 0, _lock, 0, lock.length);
 
             for (int i = lock.length; i < _lock.length; i++) {
-                _lock[i] = new Lock();
+                _lock[i] = new Lock(mon);
             }
 
             lock = _lock;

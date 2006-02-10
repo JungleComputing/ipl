@@ -46,7 +46,7 @@ public abstract class NetSerializedInput extends NetInput {
      */
     protected Thread activeUpcallThread = null;
 
-    private Integer activeNum = null;
+    private Integer active = null;
 
     private int waiters;
 
@@ -113,15 +113,15 @@ public abstract class NetSerializedInput extends NetInput {
 
     public void initReceive(Integer num) throws IOException {
         log.in();
-        if (activeNum != null) {
+        if (active != null) {
             throw new Error("Revise your calls to initReceive");
         }
-        activeNum = num;
+        active = num;
         mtu = subInput.getMaximumTransfertUnit();
         headerOffset = subInput.getHeadersLength();
 
         boolean makeNewStream;
-        iss = (SerializationInput) streamTable.get(activeNum);
+        iss = (SerializationInput) streamTable.get(active);
         if (requiresStreamReinit) {
             byte b = subInput.readByte();
             makeNewStream = (b != 0);
@@ -132,11 +132,11 @@ public abstract class NetSerializedInput extends NetInput {
         if (makeNewStream) {
             iss = newSerializationInputStream();
             requiresStreamReinit = iss.reInitOnNewConnection();
-            if (activeNum == null) {
+            if (active == null) {
                 throw new Error("invalid state: activeNum is null");
             }
 
-            streamTable.put(activeNum, iss);
+            streamTable.put(active, iss);
         }
 
         if (iss == null) {
@@ -154,7 +154,7 @@ public abstract class NetSerializedInput extends NetInput {
                 throw new Error("invalid connection num");
             }
 
-            while (activeNum != null) {
+            while (active != null) {
                 waiters++;
                 try {
                     wait();
@@ -171,8 +171,8 @@ public abstract class NetSerializedInput extends NetInput {
 
         upcallFunc.inputUpcall(this, spn);
         synchronized (this) {
-            if (activeNum == spn && activeUpcallThread == me) {
-                activeNum = null;
+            if (active == spn && activeUpcallThread == me) {
+                active = null;
                 activeUpcallThread = null;
                 iss = null;
                 if (waiters > 0) {
@@ -204,7 +204,7 @@ public abstract class NetSerializedInput extends NetInput {
         subInput.finish();
         synchronized (this) {
             iss = null;
-            activeNum = null;
+            active = null;
             activeUpcallThread = null;
             if (waiters > 0) {
                 notify();
