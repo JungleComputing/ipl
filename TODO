@@ -17,6 +17,9 @@ general:
   (Done Ceriel)
 - have other persons try it. (+Rob)
 + fix build mechanism, so that it uses "javac -g" the first time. (Done Ceriel)
+- tag all source files before building the final distribution
+- build the final distribution, test it some more
+- put it on the FTP site, and update the web site
 
 *** Ibis 2.0+ ***
 
@@ -73,8 +76,9 @@ ipl:
 - add SendPort.connect(IbisIdentifier ibis, String receivePortName)
 - remove Registry.lookupIbis()
 - remove (deprecated) createIbis(String name)
-- remove (deprecated) Ibis.name() 
++ remove (deprecated) Ibis.name() 
   (get a unique name for an Ibis by calling IbisIdentifier.name() )
+  No, Ibis.name() is a shorthand for Ibis.identifier().name() (Ceriel)
 - change Ibis.toString() to returning a "friendly"(user-printable), but not 
   necessarily unique, string.
   
