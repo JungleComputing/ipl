@@ -886,6 +886,34 @@
 	     dest="${distr}"
 	     failonerror="true">
 	</cvs>
+	<cvs
+	    command="checkout -P"
+	    cvsRoot="fs0.das2.cs.vu.nl:/usr/local/proj/ibis/Repository"
+	    cvsRsh="ssh"
+	    tag="${ibis-tag}"
+	    package="ibisConnect"
+	    dest="${distr}"
+	    failonerror="true">
+	</cvs>
+	<cvs
+	    command="checkout -P"
+	    cvsRoot="fs0.das2.cs.vu.nl:/usr/local/proj/ibis/Repository"
+	    cvsRsh="ssh"
+	    tag="${ibis-tag}"
+	    package="ibisUtil"
+	    dest="${distr}"
+	    failonerror="true">
+	</cvs>
+	<copydir
+	    src="${distr}/ibisUtil/src/ibis/util"
+	    dest="${distr}/ibis/src/ibis/util"
+	    includes="**/*.java">
+	</copydir>
+	<copydir
+	    src="${distr}/ibisConnect/src/ibis/connect"
+	    dest="${distr}/ibis/src/ibis/connect"
+	    includes="**/*.java">
+	</copydir>
 	<delete dir="${distr}/ibis/apps/extra"/>
 	<delete dir="${distr}/ibis/apps/io"/>
 	<delete dir="${distr}/ibis/apps/repmi"/>
@@ -894,6 +922,8 @@
 	<delete dir="${distr}/ibis/apps/ibis/benchmarks/ping"/>
 	<delete dir="${distr}/ibis/apps/ibis/benchmarks/throughput"/>
 	<delete dir="${distr}/ibis/apps/ibis/benchmarks/timer"/>
+	<delete file="${distr}/ibis/3rdparty/ibis-util.jar"/>
+	<delete file="${distr}/ibis/3rdparty/ibis-connect.jar"/>
 	<delete file="${distr}/ibis/apps/run-all"/>
 	<delete file="${distr}/ibis/apps/get-plot.perl"/>
 	<delete file="${distr}/ibis/apps/get-speedup.perl"/>
