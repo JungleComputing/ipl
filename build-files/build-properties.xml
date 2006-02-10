@@ -15,6 +15,8 @@
 
     <property name="build-properties.xml-imported" value="true"/>
 
+    <property file="${ibis}/build-properties"/>
+
     <taskdef resource="net/sf/antcontrib/antcontrib.properties"/>
 
     <property
@@ -47,8 +49,6 @@
 	    depends="property-init-once"
 	    -->
 	<property name="property.initialized" value="true"/>
-
-	<property file="${ibis}/build-properties"/>
 
 	<if>
 	    <isreference refid="extra-classpath"/>
