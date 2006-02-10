@@ -13,23 +13,10 @@
 *** Ibis 1.3 ***
 
 general:
-+ keep a changelog (Done Ceriel, added History.txt)
-+ add section about fault-tolerance to programmers manual
-  (No. Does not affect program. There is a section on it in notes (Ceriel)).
-+ replace tuplespace section with a shared objects section in programmers manual
++ fix bytecode verifier in BCEL so that it handles 1.5/1.6 bytecode better
   (Done Ceriel)
-+ try it on windows 2000 (Done Ceriel).
-+ try it on windows XP. (Done Ceriel)
-+ try it on cygwin (Done Ceriel).
-+ try it on MacOS. (Done Ceriel).
-+ try it on Solaris. (Done Ceriel).
 - have other persons try it. (+Rob)
-+ add shortcut (-controlhub?) to ibis-run to use controlhub (Done Ceriel).
-
-nameserver:
-+ lookup of ibisses that died/left/mustleave is sequential now. Could become
-  bottleneck. (Done Ceriel)
-
++ fix build mechanism, so that it uses "javac -g" the first time. (Done Ceriel)
 
 *** Ibis 2.0+ ***
 
@@ -53,6 +40,7 @@ general:
 + add code to efficiently (de)serialize arrays of final objects 
   (Body[] in barnes!) --Rob
 - migrate leftover prints ro log4j
+- improve performance of Ibis serialization for non-rewritten code.
 
 nameserver+connection stuff:
 - enable control hub by default --Rob
