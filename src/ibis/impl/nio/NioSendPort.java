@@ -310,9 +310,11 @@ public final class NioSendPort implements SendPort, Config, Protocol {
     }
 
     public void setProperties(Map properties) {
+    	// not implemented
     }
 
     public void setProperty(String key, Object val) {
+    	// not implemented
     }
 
     public String name() {

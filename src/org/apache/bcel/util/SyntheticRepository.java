@@ -180,6 +180,7 @@ public class SyntheticRepository implements Repository {
                 try {
                     is.close();
                 } catch (IOException e) {
+                	// ignored
                 }
             }
             return clazz;

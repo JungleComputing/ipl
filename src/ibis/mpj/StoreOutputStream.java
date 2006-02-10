@@ -21,9 +21,11 @@ final class StoreOutputStream extends OutputStream {
     }
 
     public void close() throws IOException {
+    	// nothing here
     }
 
     public void flush() throws IOException {
+    	// nothing here
     }
 
     public void write(byte[] b) throws IOException {

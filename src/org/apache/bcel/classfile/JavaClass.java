@@ -494,6 +494,7 @@ public class JavaClass extends AccessFlags implements Cloneable, Node {
             try {
                 JavaClass.sep = sep.charAt(0);
             } catch (StringIndexOutOfBoundsException e) {
+            	// ignored
             } // Never reached
     }
 
@@ -668,6 +669,7 @@ public class JavaClass extends AccessFlags implements Cloneable, Node {
         try {
             c = (JavaClass) clone();
         } catch (CloneNotSupportedException e) {
+        	// ignored
         }
 
         c.constant_pool = constant_pool.copy();

@@ -89,6 +89,7 @@ final class StoreArrayOutputStream extends DataOutputStream {
     }
 
     public void flush() throws IOException {
+    	// nothing here
     }
 
     public boolean finished() {

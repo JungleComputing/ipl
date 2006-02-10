@@ -96,6 +96,7 @@ public class InstConstraintVisitor extends EmptyVisitor implements
      * The constructor. Constructs a new instance of this class.
      */
     public InstConstraintVisitor() {
+    	// nothing here
     }
 
     /**

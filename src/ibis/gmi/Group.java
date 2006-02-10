@@ -361,6 +361,7 @@ public final class Group implements GroupProtocol {
 
     /** Disable construction. */
     protected Group() {
+    	// nothing here
     }
 
 

@@ -45,5 +45,6 @@ public final class GroupMessage {
 
     /** Disable construction from outside. */
     protected GroupMessage() {
+    	// nothing here
     }
 }

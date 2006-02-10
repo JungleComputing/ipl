@@ -211,6 +211,7 @@ final class NonBlockingChannelNioReceivePort extends NioReceivePort implements
                     			}
                     			wait();
                     		} catch (InterruptedException e) {
+                    			// ignored
                     		}
                     		continue;
                     	}

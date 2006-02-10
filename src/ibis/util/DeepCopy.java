@@ -1299,6 +1299,7 @@ public class DeepCopy {
         }
 
         public void resetBytesRead() {
+        	// not implemented
         }
 
         public int available() throws IOException {
@@ -1306,6 +1307,7 @@ public class DeepCopy {
         }
 
         public void close() throws IOException {
+        	// nothing here
         }
     }
 
@@ -1394,6 +1396,7 @@ public class DeepCopy {
         }
 
         public void flush() throws IOException {
+        	// nothing to flush
         }
 
         public boolean finished() {
@@ -1401,6 +1404,7 @@ public class DeepCopy {
         }
 
         public void finish() throws IOException {
+        	// nothing to finish
         }
 
         public void close() throws IOException {
@@ -1412,6 +1416,7 @@ public class DeepCopy {
         }
 
         public void resetBytesWritten() {
+        	// not implemented
         }
     }
 

@@ -67,7 +67,9 @@ public abstract class FieldOrMethod extends CPInstruction implements LoadClass {
    * Empty constructor needed for the Class.newInstance() statement in
    * Instruction.readInstruction(). Not to be used otherwise.
    */
-  FieldOrMethod() {}
+  FieldOrMethod() {
+  	// nothing here
+  }
 
   /**
    * @param index to constant pool

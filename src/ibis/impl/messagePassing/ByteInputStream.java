@@ -364,6 +364,7 @@ final class ByteInputStream extends ibis.io.DataInputStream implements
     }
 
     public synchronized void mark(int readlimit) {
+    	// not supported
     }
 
     public synchronized void reset() throws IOException {

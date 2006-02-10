@@ -381,9 +381,11 @@ abstract class NioReceivePort implements ReceivePort, Runnable, Config,
     }
 
     public void setProperties(Map properties) {
+    	// not implemented
     }
 
     public void setProperty(String key, Object val) {
+    	// not implemented
     }
 
     public ReceivePortIdentifier identifier() {

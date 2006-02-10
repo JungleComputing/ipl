@@ -19,7 +19,7 @@ public class Request {
     private Status status = null;
 
     public Request() {
-
+    	// nothing here
     }
 
 
@@ -77,7 +77,7 @@ public class Request {
                     this.ibisMPJCommThread.join();
                 }
                 catch(InterruptedException e) {
-
+                	// ignored
                 }
                 this.ibisMPJCommThread = null;
             }
@@ -88,6 +88,7 @@ public class Request {
     }
 
     public void finalize() {
+    	// nothing here
     }
 
     public boolean isVoid() throws MPJException {

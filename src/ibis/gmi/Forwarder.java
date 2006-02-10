@@ -37,8 +37,9 @@ public class Forwarder implements GroupProtocol {
 
     /** Disable construction from outside. */
     protected Forwarder() {
+    	// nothing here
     }
-
+    
     /**
      * Invoked when a "void" result is received.
      *

@@ -11,7 +11,7 @@ package ibis.mpj;
 public class Graphcomm extends Intracomm {
 
     Graphcomm() throws MPJException {
-
+    	// nothing here
     }
 
     public Object clone() {

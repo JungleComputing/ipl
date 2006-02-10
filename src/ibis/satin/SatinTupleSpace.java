@@ -22,6 +22,7 @@ public class SatinTupleSpace {
 
     /** Prevent construction. */
     private SatinTupleSpace() {
+    	// nothing here
     }
 
     /**

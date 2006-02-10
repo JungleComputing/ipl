@@ -279,6 +279,7 @@ public final class NioIbis extends Ibis implements Config {
                     try {
                         wait();
                     } catch (Exception e) {
+                    	// ignored
                     }
                 }
             }
@@ -320,6 +321,7 @@ public final class NioIbis extends Ibis implements Config {
      * does nothing.
      */
     public void poll() throws IOException {
+    	// nothing
     }
 
     /**

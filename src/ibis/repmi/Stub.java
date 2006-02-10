@@ -19,6 +19,7 @@ public class Stub implements java.io.Serializable, ibis.io.Serializable {
     protected transient Skeleton localSkeleton;
 
     public Stub() {
+    	// nothing here
     }
 
     protected void init(int objectID, Skeleton localSkeleton) {

@@ -5,7 +5,6 @@ package ibis.io;
 import ibis.util.TypedProperties;
 
 import java.io.EOFException;
-import java.io.Externalizable;
 import java.io.IOException;
 import java.io.InvalidObjectException;
 import java.io.NotActiveException;

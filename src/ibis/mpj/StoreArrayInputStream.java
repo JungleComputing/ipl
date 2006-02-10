@@ -164,6 +164,7 @@ public class StoreArrayInputStream extends ibis.io.DataInputStream {
     }
 
     public void resetBytesRead() {
+    	// not implemented
     }
 
     public int available() throws IOException {
@@ -171,5 +172,6 @@ public class StoreArrayInputStream extends ibis.io.DataInputStream {
     }
 
     public void close() throws IOException {
+    	// nothing here
     }
 }

@@ -25,6 +25,8 @@ public abstract class Op {
         return commute;
     }
 
-    void Finalize() throws MPJException { }
+    void Finalize() throws MPJException {
+    	// nothing here
+    }
 
 }

@@ -27,6 +27,7 @@ public abstract class ParameterVector {
 
     /** Disable construction from outside. */
     protected ParameterVector() {
+    	// nothing here
     }
 
     /**

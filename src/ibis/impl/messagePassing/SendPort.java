@@ -491,9 +491,11 @@ public class SendPort implements ibis.ipl.SendPort {
     }
     
     public void setProperties(Map properties) {
+    	// not implemented
     }
     
     public void setProperty(String key, Object val) {
+    	// not implemented
     }
 
     public String name() {

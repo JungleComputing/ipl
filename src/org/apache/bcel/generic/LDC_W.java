@@ -69,7 +69,9 @@ public class LDC_W extends LDC {
    * Empty constructor needed for the Class.newInstance() statement in
    * Instruction.readInstruction(). Not to be used otherwise.
    */
-  LDC_W() {}
+  LDC_W() {
+  	// nothing here
+  }
 
   public LDC_W(int index) {
     super(index);

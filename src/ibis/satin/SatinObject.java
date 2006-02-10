@@ -21,6 +21,7 @@ public class SatinObject implements java.io.Serializable {
      * Prevents constructor from being public.
      */
     protected SatinObject() {
+    	// nothing here
     }
 
     /**

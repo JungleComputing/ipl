@@ -45,7 +45,8 @@ public class StoreArrayInputStream extends ibis.io.DataInputStream {
      * 
      * 
      */
-    public StoreArrayInputStream() {               
+    public StoreArrayInputStream() {
+    	// nothing here
     }
        
     public void reset(ReadMessage m) throws IOException {                     
@@ -290,5 +291,6 @@ public class StoreArrayInputStream extends ibis.io.DataInputStream {
     }
 
     public void close() throws IOException {
+    	// nothing to do here
     }
 }

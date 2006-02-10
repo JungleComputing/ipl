@@ -11,6 +11,7 @@ public abstract class Personalizer {
 
     /** Prevent construction from outside. */
     protected Personalizer() {
+    	// nothing here
     }
 
     /**

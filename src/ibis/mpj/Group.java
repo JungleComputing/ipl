@@ -480,6 +480,8 @@ public class Group {
 
 
 
-    public void finalize() throws MPJException {}
+    public void finalize() throws MPJException {
+    	// nothing here
+    }
 
 }

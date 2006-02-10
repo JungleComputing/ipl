@@ -10,6 +10,7 @@ public abstract class BinomialInvocationCombiner {
 
     /** Disallow construction from outside. */
     protected BinomialInvocationCombiner() {
+    	// nothing here
     }
 
     /**

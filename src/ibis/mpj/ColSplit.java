@@ -89,7 +89,7 @@ class SplitItem implements Serializable {
     public int rank = 0;
 
     public SplitItem() {
-
+        // nothing here
     }
 
     public SplitItem(int colour, int key, int rank) {

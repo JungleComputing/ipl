@@ -767,9 +767,11 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
     }
     
     public void setProperties(Map properties) {
+    	// not implemented
     }
     
     public void setProperty(String key, Object val) {
+    	// not implemented
     }
 
     public String name() {

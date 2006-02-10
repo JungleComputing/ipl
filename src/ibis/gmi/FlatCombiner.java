@@ -15,6 +15,7 @@ public class FlatCombiner {
 
     /** Disable construction from outside. */
     protected FlatCombiner() {
+    	// nothing here
     }
 
     /**

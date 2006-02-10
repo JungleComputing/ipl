@@ -254,10 +254,14 @@ public class Datatype implements Serializable {
      * 
      * @throws MPJException
      */
-    public void commit() throws MPJException { }
+    public void commit() throws MPJException {
+    	// not implemented yet
+    }
 
 
-    public void finalize() throws MPJException { }
+    public void finalize() throws MPJException {
+    	// not implemented yet
+    }
 
 }
 

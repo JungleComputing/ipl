@@ -24,7 +24,7 @@ public abstract class NetSerializedInput extends NetInput {
     /**
      * The 'real' input.
      */
-    protected NetInput subInput = null;
+    public NetInput subInput = null;
 
     /**
      * The currently active {@linkplain SerializationInput serialization

@@ -15,7 +15,7 @@ public abstract class NetIO {
      * This logging object should be used to display code-level information
      * like function calls, args and variable values.
      */
-    protected NetLog log = null;
+    public NetLog log = null;
 
     /**
      * Optional (coarse grained) logging object.

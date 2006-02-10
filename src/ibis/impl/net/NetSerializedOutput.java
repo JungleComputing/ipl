@@ -20,7 +20,7 @@ public abstract class NetSerializedOutput extends NetOutput implements NetBuffer
     /**
      * The 'real' output.
      */
-    protected NetOutput subOutput = null;
+    public NetOutput subOutput = null;
 
     private SerializationOutput oss = null;
 
@@ -28,7 +28,7 @@ public abstract class NetSerializedOutput extends NetOutput implements NetBuffer
 
     private boolean needFlush = false;
 
-    protected NetBufferedOutputSupport subBuffered = null;
+    public NetBufferedOutputSupport subBuffered = null;
 
     /**
      * Some serialization protocols (like Sun ObjectStreams) require a full

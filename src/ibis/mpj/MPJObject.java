@@ -20,7 +20,7 @@ public class MPJObject implements Serializable {
 
 
     MPJObject() {
-
+    	// nothing here
     }
 
     MPJObject(int tag, int contextId, boolean buffered, int baseType, int count) {

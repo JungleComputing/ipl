@@ -16,7 +16,7 @@ public class Intercomm extends Comm {
      * @throws MPJException
      */
     public Intercomm() throws MPJException {
-
+    	// not implemented yet
     }
 
     /**

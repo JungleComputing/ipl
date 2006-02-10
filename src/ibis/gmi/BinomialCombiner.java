@@ -17,6 +17,7 @@ public class BinomialCombiner implements java.io.Serializable {
 
     /** Disallow construction from outside. */
     protected BinomialCombiner() {
+    	// nothing here
     }
 
     /**

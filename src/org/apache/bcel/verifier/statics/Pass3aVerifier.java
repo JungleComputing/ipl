@@ -148,14 +148,14 @@ import org.apache.bcel.verifier.exc.StaticCodeInstructionOperandConstraintExcept
 public final class Pass3aVerifier extends PassVerifier {
 
     /** The Verifier that created this. */
-    private Verifier myOwner;
+    Verifier myOwner;
 
     /** 
      * The method number to verify.
      * This is the index in the array returned
      * by JavaClass.getMethods().
      */
-    private int method_no;
+    int method_no;
 
     /** The one and only InstructionList object used by an instance of this class. It's here for performance reasons by do_verify() and its callees. */
     InstructionList instructionList;
@@ -681,8 +681,7 @@ public final class Pass3aVerifier extends PassVerifier {
 
             Field f = findField(o);
 
-            if (f == null) {
-            } else {
+            if (f != null) {
                 /* TODO: Check if assignment compatibility is sufficient.
                  What does Sun do? */
                 Type f_type = Type.getType(f.getSignature());

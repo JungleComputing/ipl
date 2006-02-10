@@ -95,6 +95,7 @@ public abstract class Ibis {
 
     /** Don't allow public creation. */
     protected Ibis() {
+    	// nothing here
     }
 
     /** 

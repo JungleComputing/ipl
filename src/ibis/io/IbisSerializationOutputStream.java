@@ -1578,6 +1578,7 @@ public class IbisSerializationOutputStream
         }
 
         protected void drain() throws IOException {
+        	// empty implementation
         }
 
         public void write(byte[] buf, int off, int len) throws IOException {

@@ -10,6 +10,7 @@ public abstract class FlatInvocationCombiner {
 
     /** Disable construction from outside. */
     protected FlatInvocationCombiner() {
+    	// nothing here
     }
 
     /**

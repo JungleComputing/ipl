@@ -355,6 +355,7 @@ final class StoreArrayOutputStream extends DataOutputStream {
     }
     
     public void flush() throws IOException {
+    	// nothing to flush
     }
     
     public boolean finished() {

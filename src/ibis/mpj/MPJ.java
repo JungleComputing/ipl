@@ -447,7 +447,7 @@ public class MPJ {
                     bsendCount.wait();
                 }
                 catch(InterruptedException e) {
-
+                	// ignored
                 }
             }
 
