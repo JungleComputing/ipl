@@ -1,13 +1,13 @@
 *** Website ***
 
-- add reference to Computer Systems and Computer Science to website
-- add a "functionality table" to website:
++ add reference to Computer Systems and Computer Science to website (Done, Niels)
++ add a "functionality table" to website:
 	1.1 = 1.0 + ...
 	1.2 = 1.1 + MPJ + ...
 	1.3 = 1.2 + SO + ...
-  Use History.txt?
+  Use History.txt (Done, Niels)
 - change "related work" to "links" (like the ProActive site)
-- add "ibis in the news" to links
++ add "ibis in the news" to links (Done, Niels)
 - change UDP in documentation picture to being incomplete (striped)
 
 *** Ibis 1.3 ***
