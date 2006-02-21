@@ -7,13 +7,10 @@ import ibis.ipl.ReadMessage;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.Upcall;
 import ibis.ipl.WriteMessage;
-import ibis.satin.ActiveTuple;
 import ibis.satin.SharedObject;
 import ibis.util.Timer;
 
 import java.io.IOException;
-import java.io.Serializable;
-import java.util.HashMap;
 import java.util.Map;
 
 final class MessageHandler implements Upcall, Protocol, Config {
@@ -236,8 +233,6 @@ final class MessageHandler implements Upcall, Protocol, Config {
 
                 if (!satin.getTable) {
                     table = satin.globalResultTable.getContents();
-                    //temporary
-                    // tupleSpace = satin.getContents();
                 }
             }
         }
@@ -265,15 +260,6 @@ final class MessageHandler implements Upcall, Protocol, Config {
                     if (table != null) {
                         m.writeByte(STEAL_REPLY_FAILED_TABLE);
                         m.writeObject(table);
-                        //temporary
-                        /* if (tupleSpace == null) {
-                         *     tupleLogger.fatal("SATIN '" + satin.ident 
-                         *             + "': EEK i have the table but not the "
-                         *             + "tuplespace!!");
-                         *     System.exit(1);
-                         * }
-                         * m.writeObject(tupleSpace);
-                         */
                     } else {
                         m.writeByte(STEAL_REPLY_FAILED);
                     }
@@ -281,15 +267,6 @@ final class MessageHandler implements Upcall, Protocol, Config {
                     if (table != null) {
                         m.writeByte(ASYNC_STEAL_REPLY_FAILED_TABLE);
                         m.writeObject(table);
-                        //temporary
-                        /* if (tupleSpace == null) {
-                         *     tupleLogger.fatal("SATIN '" + satin.ident 
-                         *             + "': EEK i have the table but not the "
-                         *             + "tuplespace!!");
-                         *     System.exit(1);
-                         * }
-                         * m.writeObject(tupleSpace);
-                         */
                     } else {
                         m.writeByte(ASYNC_STEAL_REPLY_FAILED);
                     }
@@ -373,15 +350,6 @@ final class MessageHandler implements Upcall, Protocol, Config {
                 if (table != null) {
                     m.writeByte(STEAL_REPLY_SUCCESS_TABLE);
                     m.writeObject(table);
-                    //temporary
-                    /* if (tupleSpace == null) {
-                     *     tupleLogger.fatal("SATIN '" + satin.ident 
-                     *             + "': EEK i have the table but not the "
-                     *             + "tuplespace!!");
-                     *     System.exit(1);
-                     * }
-                     * m.writeObject(tupleSpace);
-                     */
                 } else {
                     stealLogger.warn("SATIN '" + satin.ident
                         + "': EEK!! sending a job but not a table !?");
@@ -390,15 +358,6 @@ final class MessageHandler implements Upcall, Protocol, Config {
                 if (table != null) {
                     m.writeByte(ASYNC_STEAL_REPLY_SUCCESS_TABLE);
                     m.writeObject(table);
-                    //temporary
-                    /* if (tupleSpace == null) {
-                     *     tupleLogger.fatal("SATIN '" + satin.ident 
-                     *             + "': EEK i have the table but not the "
-                     *             + "tuplespace!!");
-                     *     System.exit(1);
-                     * }
-                     * m.writeObject(tupleSpace);
-                     */
                 } else {
                     stealLogger.warn("SATIN '" + satin.ident
                         + "': EEK!! sending a job but not a table !?");
@@ -407,10 +366,6 @@ final class MessageHandler implements Upcall, Protocol, Config {
                 stealLogger.error("UNHANDLED opcode " + opcode
                     + " in handleStealRequest");
                 // System.exit(1);
-            }
-
-            if (TupleSpace.use_seq) { // ordered communication
-                m.writeLong(satin.expected_seqno);
             }
 
             m.writeObject(result);
@@ -519,8 +474,6 @@ final class MessageHandler implements Upcall, Protocol, Config {
         case ASYNC_STEAL_REPLY_SUCCESS_TABLE:
             try {
                 table = (Map) m.readObject();
-                //temporary
-                //tupleSpace = (Map) m.readObject();
             } catch (IOException e) {
                 stealLogger.error("SATIN '" + satin.ident
                     + "': Got Exception while reading steal " + "reply from "
@@ -536,7 +489,6 @@ final class MessageHandler implements Upcall, Protocol, Config {
                     satin.globalResultTable.addContents(table);
                 }
             }
-            //satin.addContents(tupleSpace);
             if (ADD_REPLICA_TIMING) {
                 satin.addReplicaTimer.stop();
             }
@@ -555,9 +507,6 @@ final class MessageHandler implements Upcall, Protocol, Config {
             try {
                 if (STEAL_TIMING) {
                     satin.invocationRecordReadTimer.start();
-                }
-                if (TupleSpace.use_seq) { // ordered communication
-                    satin.stealReplySeqNr = m.readLong();
                 }
                 tmp = (InvocationRecord) m.readObject();
                 if (STEAL_TIMING) {
@@ -626,164 +575,6 @@ final class MessageHandler implements Upcall, Protocol, Config {
             break;
         }
 
-    }
-
-    private static class tuple_command {
-        byte command;
-
-        String key;
-
-        Serializable data;
-
-        SendPortIdentifier sender;
-
-        tuple_command(byte c, String k, Serializable s, SendPortIdentifier se) {
-            command = c;
-            key = k;
-            data = s;
-            sender = se;
-        }
-    }
-
-    private HashMap saved_tuple_commands = null;
-
-    private void add_to_queue(long seqno, String key, Serializable data,
-        SendPortIdentifier s, byte command) {
-        if (saved_tuple_commands == null) {
-            saved_tuple_commands = new HashMap();
-        }
-        saved_tuple_commands.put(new Long(seqno), new tuple_command(command,
-            key, data, s));
-    }
-
-    private void scan_queue() {
-
-        if (saved_tuple_commands == null) {
-            return;
-        }
-
-        Long i = new Long(satin.expected_seqno);
-        tuple_command t = (tuple_command) saved_tuple_commands.remove(i);
-        while (t != null) {
-            switch (t.command) {
-            case TUPLE_ADD:
-                if (t.data instanceof ActiveTuple) {
-                    synchronized (satin) {
-                        satin.addToActiveTupleList(t.key, t.data);
-                        satin.gotActiveTuples = true;
-                    }
-                } else {
-                    TupleSpace.remoteAdd(t.key, t.data);
-                }
-                break;
-            case TUPLE_DEL:
-                TupleSpace.remoteDel(t.key);
-                break;
-            }
-            satin.expected_seqno++;
-
-            if (t.sender.equals(satin.tuplePort.identifier())) {
-                synchronized (satin) {
-                    satin.tuple_message_sent = false;
-                    satin.notifyAll();
-                }
-            }
-
-            i = new Long(satin.expected_seqno);
-            t = (tuple_command) saved_tuple_commands.remove(i);
-        }
-    }
-
-    private void handleTupleAdd(ReadMessage m) {
-        long seqno = 0;
-
-        /*	if (TUPLE_TIMING) {
-         satin.handleTupleTimer.start();
-         }*/
-
-        try {
-            if (TupleSpace.use_seq) {
-                seqno = m.sequenceNumber();
-            }
-            String key = m.readString();
-            Serializable data = (Serializable) m.readObject();
-            SendPortIdentifier s = m.origin();
-
-            if (TupleSpace.use_seq && seqno > satin.expected_seqno) {
-                add_to_queue(seqno, key, data, s, TUPLE_ADD);
-            } else {
-                if (data instanceof ActiveTuple) {
-                    synchronized (satin) {
-                        satin.addToActiveTupleList(key, data);
-                        satin.gotActiveTuples = true;
-                    }
-                } else {
-                    TupleSpace.remoteAdd(key, data);
-                }
-                if (TupleSpace.use_seq) {
-                    satin.expected_seqno++;
-                    scan_queue();
-
-                    synchronized (satin) {
-                        if (s.equals(satin.tuplePort.identifier())) {
-                            satin.tuple_message_sent = false;
-                        }
-
-                        satin.notifyAll();
-                    }
-                }
-            }
-
-            m.finish(); // @@@ is this one needed ? --Rob
-
-        } catch (Exception e) {
-            tupleLogger.error("SATIN '" + satin.ident
-                + "': Got Exception while reading tuple update: " + e, e);
-        }
-
-        /*	if (TUPLE_TIMING) {
-         satin.handleTupleTimer.stop();
-         }*/
-    }
-
-    private void handleTupleDel(ReadMessage m) {
-        long seqno = 0;
-        boolean done = false;
-        try {
-            if (TupleSpace.use_seq) {
-                seqno = m.sequenceNumber();
-            }
-            String key = m.readString();
-            if (TupleSpace.use_seq && seqno > satin.expected_seqno) {
-                add_to_queue(seqno, key, null, m.origin(), TUPLE_DEL);
-            } else {
-                TupleSpace.remoteDel(key);
-                if (TupleSpace.use_seq) {
-                    satin.expected_seqno++;
-                    scan_queue();
-                }
-                done = true;
-                SendPortIdentifier s = m.origin();
-                if (s.equals(satin.tuplePort.identifier())) {
-                    synchronized (satin) {
-                        satin.tuple_message_sent = false;
-                        satin.notifyAll();
-                    }
-                }
-            }
-            m.finish(); // @@@ is this one needed ? --Rob
-        } catch (Exception e) {
-            tupleLogger.error("SATIN '" + satin.ident
-                + "': Got Exception while reading tuple remove: " + e, e);
-            // System.exit(1);
-        }
-        if (TupleSpace.use_seq) {
-            if (done) {
-                synchronized (satin) {
-                    satin.notifyAll();
-                }
-            }
-        }
     }
 
     private void handleResultRequest(ReadMessage m) {
@@ -1062,12 +853,6 @@ final class MessageHandler implements Upcall, Protocol, Config {
                 break;
             case ABORT_AND_STORE:
                 handleAbortAndStore(m);
-                break;
-            case TUPLE_ADD:
-                handleTupleAdd(m);
-                break;
-            case TUPLE_DEL:
-                handleTupleDel(m);
                 break;
             case RESULT_REQUEST:
                 handleResultRequest(m);

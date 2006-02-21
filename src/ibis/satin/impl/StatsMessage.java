@@ -23,10 +23,6 @@ class StatsMessage implements java.io.Serializable {
 
     long asyncStealSuccess;
 
-    long tupleMsgs;
-
-    long tupleBytes;
-
     long stolenJobs;
 
     long stealRequests;
@@ -53,10 +49,6 @@ class StatsMessage implements java.io.Serializable {
 
     long pollCount;
 
-    double tupleTime;
-
-    double handleTupleTime;
-
     double invocationRecordWriteTime;
 
     long invocationRecordWriteCount;
@@ -72,14 +64,6 @@ class StatsMessage implements java.io.Serializable {
     double returnRecordReadTime;
 
     long returnRecordReadCount;
-
-    double tupleWaitTime;
-
-    long tupleWaitCount;
-
-    double tupleSeqTime;
-
-    long tupleSeqCount;
 
     long returnRecordBytes;
 
@@ -161,8 +145,6 @@ class StatsMessage implements java.io.Serializable {
         stealSuccess += s.stealSuccess;
         asyncStealAttempts += s.asyncStealAttempts;
         asyncStealSuccess += s.asyncStealSuccess;
-        tupleMsgs += s.tupleMsgs;
-        tupleBytes += s.tupleBytes;
         stolenJobs += s.stolenJobs;
         stealRequests += s.stealRequests;
         interClusterMessages += s.interClusterMessages;
@@ -177,8 +159,6 @@ class StatsMessage implements java.io.Serializable {
         idleCount += s.idleCount;
         pollTime += s.pollTime;
         pollCount += s.pollCount;
-        tupleTime += s.tupleTime;
-        handleTupleTime += s.handleTupleTime;
         invocationRecordWriteTime += s.invocationRecordWriteTime;
         invocationRecordWriteCount += s.invocationRecordWriteCount;
         invocationRecordReadTime += s.invocationRecordReadTime;
@@ -187,10 +167,6 @@ class StatsMessage implements java.io.Serializable {
         returnRecordWriteCount += s.returnRecordWriteCount;
         returnRecordReadTime += s.returnRecordReadTime;
         returnRecordReadCount += s.returnRecordReadCount;
-        tupleWaitTime += s.tupleWaitTime;
-        tupleWaitCount += s.tupleWaitCount;
-        tupleSeqTime += s.tupleSeqTime;
-        tupleSeqCount += s.tupleSeqCount;
         returnRecordBytes += s.returnRecordBytes;
 
         //fault tolerance

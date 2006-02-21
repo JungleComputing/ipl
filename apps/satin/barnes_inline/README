@@ -57,10 +57,6 @@ algorithm; see satinbarnes.pdf for details.
 
 -ntc
     use the "necessary tree construction" version.
--tuple
-    use the 'tuple space' version.
--tuple2
-    use the 'active tuple' version.
 -seq
     use the 'naive' version.
 

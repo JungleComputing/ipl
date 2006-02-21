@@ -353,25 +353,6 @@ public abstract class WorkStealing extends Stats {
 
         // stolenFrom = myJob.owner;
 
-        // if we have ordered communication, we have to wait until
-        // our sequence number equals the one in the job
-        if (TupleSpace.use_seq) {
-            if (TUPLE_TIMING) {
-                tupleOrderingWaitTimer.start();
-            }
-            if (tupleLogger.isDebugEnabled()) {
-                tupleLogger.debug("SATIN '" + ident
-                            + "': steal reply seq nr = " + stealReplySeqNr
-                            + ", my seq nr = " + expected_seqno);
-            }
-            while (stealReplySeqNr > expected_seqno) {
-                handleDelayedMessages();
-            }
-            if (TUPLE_TIMING) {
-                tupleOrderingWaitTimer.stop();
-            }
-        }
-
         return myJob;
     }
 

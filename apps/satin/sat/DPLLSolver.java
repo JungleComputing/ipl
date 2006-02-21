@@ -21,7 +21,6 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
     private static final boolean traceNewCode = true;
     private static final boolean problemInTuple = true;
     private static final boolean printOptimizerStats = true;
-    private static int label = 0;
 
     static {
         System.setProperty( "satin.tuplespace.multicast", "true" );
@@ -120,11 +119,11 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
         if( traceSolver ){
             System.err.println( "s" + level + ": trying assignment var[" + var + "]=" + val );
         }
-
+/*            // @@@ we might get it from a shared object instead
         if( my_p == null ){
-            my_p = (SATProblem) ibis.satin.SatinTupleSpace.get( "problem" );
+            // my_p = (SATProblem) ibis.satin.SatinTupleSpace.get( "problem" );
         }
-
+*/
         int res;
         if( val ){
             res = ctx.propagatePosAssignment( my_p, var );
@@ -226,11 +225,12 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
                 System.err.println( "Top level: branching on variable " + nextvar );
             }
 
+/*
             if( problemInTuple ){
                 ibis.satin.SatinTupleSpace.add( "problem", p );
                 p = null;
             }
-
+*/
             DPLLContext negctx = (DPLLContext) ctx.clone();
             boolean firstvar = ctx.posDominant( nextvar );
             s.solve( 0, 0, p, negctx, nextvar, firstvar );

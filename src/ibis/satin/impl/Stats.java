@@ -18,8 +18,6 @@ public abstract class Stats extends SharedObjects {
 
         s.stealAttempts = stealAttempts;
         s.stealSuccess = stealSuccess;
-        s.tupleMsgs = tupleMsgs;
-        s.tupleBytes = tupleBytes;
         s.stolenJobs = stolenJobs;
         s.stealRequests = stealRequests;
         s.interClusterMessages = interClusterMessages;
@@ -34,10 +32,6 @@ public abstract class Stats extends SharedObjects {
         s.idleCount = idleTimer.nrTimes();
         s.pollTime = pollTimer.totalTimeVal();
         s.pollCount = pollTimer.nrTimes();
-        s.tupleTime = tupleTimer.totalTimeVal();
-        s.handleTupleTime = handleTupleTimer.totalTimeVal();
-        s.tupleWaitTime = tupleOrderingWaitTimer.totalTimeVal();
-        s.tupleWaitCount = tupleOrderingWaitTimer.nrTimes();
 
         s.invocationRecordWriteTime = invocationRecordWriteTimer.totalTimeVal();
         s.invocationRecordWriteCount = invocationRecordWriteTimer.nrTimes();
@@ -138,12 +132,6 @@ public abstract class Stats extends SharedObjects {
                     + nf.format(totalStats.abortMessages) + " abort msgs, "
                     + nf.format(totalStats.abortedJobs) + " aborted jobs");
             }
-        }
-
-        if (TUPLE_STATS) {
-            out.println("SATIN: TUPLE_SPACE: "
-                + nf.format(totalStats.tupleMsgs) + " bcasts, "
-                + nf.format(totalStats.tupleBytes) + " bytes");
         }
 
         if (POLL_FREQ != 0 && POLL_TIMING) {
@@ -255,19 +243,6 @@ public abstract class Stats extends SharedObjects {
                 + " time/abort  "
                 + Timer
                     .format(perStats(totalStats.abortTime, totalStats.aborts)));
-        }
-
-        if (TUPLE_TIMING) {
-            out.println("SATIN: TUPLE_SPACE_BCAST_TIME:   total "
-                + Timer.format(totalStats.tupleTime)
-                + " time/bcast  "
-                + Timer.format(perStats(totalStats.tupleTime,
-                    totalStats.tupleMsgs)));
-            out.println("SATIN: TUPLE_SPACE_WAIT_TIME:    total "
-                + Timer.format(totalStats.tupleWaitTime)
-                + " time/bcast  "
-                + Timer.format(perStats(totalStats.tupleWaitTime,
-                    totalStats.tupleWaitCount)));
         }
 
         if (POLL_FREQ != 0 && POLL_TIMING) {
@@ -395,14 +370,6 @@ public abstract class Stats extends SharedObjects {
         double serPerc = serTime / totalTimer.totalTimeVal() * 100.0;
         double abortTime = totalStats.abortTime / size;
         double abortPerc = abortTime / totalTimer.totalTimeVal() * 100.0;
-        double tupleTime = totalStats.tupleTime / size;
-        double tuplePerc = tupleTime / totalTimer.totalTimeVal() * 100.0;
-        double handleTupleTime = totalStats.handleTupleTime / size;
-        double handleTuplePerc = handleTupleTime / totalTimer.totalTimeVal()
-            * 100.0;
-        double tupleWaitTime = totalStats.tupleWaitTime / size;
-        double tupleWaitPerc = tupleWaitTime / totalTimer.totalTimeVal()
-            * 100.0;
         double pollTime = totalStats.pollTime / size;
         double pollPerc = pollTime / totalTimer.totalTimeVal() * 100.0;
 
@@ -462,9 +429,6 @@ public abstract class Stats extends SharedObjects {
         
         
         double totalOverhead = abortTime
-            + tupleTime
-            + handleTupleTime
-            + tupleWaitTime
             + pollTime
             + tableUpdateTime
             + tableLookupTime
@@ -497,20 +461,6 @@ public abstract class Stats extends SharedObjects {
             out.println("SATIN: ABORT_TIME:               avg. per machine "
                 + Timer.format(abortTime) + " (" + (abortPerc < 10 ? " " : "")
                 + pf.format(abortPerc) + " %)");
-        }
-
-        if (TUPLE_TIMING) {
-            out.println("SATIN: TUPLE_SPACE_BCAST_TIME:   avg. per machine "
-                + Timer.format(tupleTime) + " (" + (tuplePerc < 10 ? " " : "")
-                + pf.format(tuplePerc) + " %)");
-            out.println("SATIN: TUPLE_SPACE_HANDLE_TIME:  avg. per machine "
-                + Timer.format(handleTupleTime) + " ("
-                + (handleTuplePerc < 10 ? " " : "")
-                + pf.format(handleTuplePerc) + " %)");
-            out.println("SATIN: TUPLE_SPACE_WAIT_TIME:    avg. per machine "
-                + Timer.format(tupleWaitTime) + " ("
-                + (tupleWaitPerc < 10 ? " " : "") + pf.format(tupleWaitPerc)
-                + " %)");
         }
 
         if (POLL_FREQ != 0 && POLL_TIMING) {
@@ -602,11 +552,6 @@ public abstract class Stats extends SharedObjects {
                     + " aborted jobs = " + abortedJobs);
             }
         }
-        if (TUPLE_STATS) {
-            out.println("SATIN '" + ident
-                + "': TUPLE_STATS 1: tuple bcast msgs: " + tupleMsgs
-                + ", bytes = " + nf.format(tupleBytes));
-        }
         if (STEAL_STATS) {
             out.println("SATIN '" + ident + "': INTRA_STATS: messages = "
                 + intraClusterMessages + ", bytes = "
@@ -687,18 +632,6 @@ public abstract class Stats extends SharedObjects {
                         - idleTimer.totalTimeVal()));
             }
 
-            if (TUPLE_TIMING) {
-                out.println("SATIN '" + ident + "': TUPLE_STATS 2: bcasts = "
-                    + tupleTimer.nrTimes() + " total time = "
-                    + tupleTimer.totalTime() + " avg time = "
-                    + tupleTimer.averageTime());
-
-                out.println("SATIN '" + ident + "': TUPLE_STATS 3: waits = "
-                    + tupleOrderingWaitTimer.nrTimes() + " total time = "
-                    + tupleOrderingWaitTimer.totalTime() + " avg time = "
-                    + tupleOrderingWaitTimer.averageTime());
-
-            }
             algorithm.printStats(out);
         }
 

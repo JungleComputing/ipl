@@ -13,7 +13,6 @@
  */
 
 import java.io.File;
-import ibis.satin.SatinTupleSpace;
 
 public final class SATSolver extends ibis.satin.SatinObject implements SATInterface, java.io.Serializable {
     private static final boolean traceSolver = false;
@@ -22,15 +21,15 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
     private static final boolean traceNewCode = true;
     private static final boolean traceLearning = false;
     private static final boolean traceJumps = false;
-    private static final boolean problemInTuple = true;
-    private static int label = 0;
     static SATProblem p = null;
 
+    /*
     static {
         System.setProperty( "satin.tuplespace.ordered", "true" );
         System.setProperty( "satin.tuplespace.multicast", "true" );
     }
-
+*/
+    
     final static class ProblemAssigner implements ibis.satin.ActiveTuple {
         SATProblem p;
 
@@ -347,8 +346,8 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
             }
 
             // Put the problem in the Satin tuple space.
-            ProblemAssigner a = new ProblemAssigner(p);
-            ibis.satin.SatinTupleSpace.add( "problem",  a );
+//            ProblemAssigner a = new ProblemAssigner(p);
+//            ibis.satin.SatinTupleSpace.add( "problem",  a );
 
             SATContext negctx = (SATContext) ctx.clone();
             boolean firstvar = ctx.posDominant( nextvar );
@@ -404,7 +403,6 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
         ibis.satin.SatinObject.pause(); 
 
         System.err.println( Helpers.getPlatformVersion() );
-        System.err.println( "Problem stored in tuple space: " + problemInTuple );
         SATProblem p = SATProblem.parseDIMACSStream( f );
         p.setReviewer( new CubeClauseReviewer() );
         p.report( System.out );

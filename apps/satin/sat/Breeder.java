@@ -7,7 +7,6 @@
 
 import java.io.File;
 import java.util.Random;
-import ibis.satin.SatinTupleSpace;
 
 
 public final class Breeder extends ibis.satin.SatinObject implements BreederInterface {
@@ -21,10 +20,13 @@ public final class Breeder extends ibis.satin.SatinObject implements BreederInte
     Genes maxGenes = BreederSolver.getMaxGenes();
     Genes minGenes = BreederSolver.getMinGenes();
 
+/*
     static {
         System.setProperty( "satin.tuplespace.multicast", "true" );
     }
-
+*/
+    
+/* @@@ We might be able to use an active object here
     static final class CutoffUpdater implements ibis.satin.ActiveTuple {
         int limit;
 
@@ -38,7 +40,7 @@ public final class Breeder extends ibis.satin.SatinObject implements BreederInte
             }
         }
     }
-
+*/
     Breeder() { }
 
     /** Maximal number decisions allowed before we give up. Can
@@ -80,10 +82,11 @@ public final class Breeder extends ibis.satin.SatinObject implements BreederInte
         if( cutoff == 0 ){
             cutoff = Integer.MAX_VALUE;
         }
- 
+/*             // @@@ we might get it from a shared object instead
         if( pl == null ){
             pl = (SATProblem []) ibis.satin.SatinTupleSpace.get( "problem" );
         }
+        */
         try {
             for( int i=0; i<pl.length; i++ ){
                 int d = BreederSolver.run( pl[i], genes, cutoff-total );
@@ -96,7 +99,7 @@ public final class Breeder extends ibis.satin.SatinObject implements BreederInte
         int newCutoff = 3*total/2;
         if( cutoff>newCutoff ){
             // We may have a new cutoff value, broadcast it.
-            SatinTupleSpace.add( "cutoff", new CutoffUpdater( newCutoff ) );
+//            SatinTupleSpace.add( "cutoff", new CutoffUpdater( newCutoff ) );
         }
         return total;
     }
@@ -242,12 +245,13 @@ public final class Breeder extends ibis.satin.SatinObject implements BreederInte
             p.report( System.out );
             pl[i] = p;
         }
+/*             // @@@ we might get it from a shared object instead
 
         if( globalsInTuple ){
             ibis.satin.SatinTupleSpace.add( "problem", pl );
             pl = null;
         }
-
+*/
         Breeder b = new Breeder();
 
         long startTime = System.currentTimeMillis();

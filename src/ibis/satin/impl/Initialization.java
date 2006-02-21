@@ -311,9 +311,6 @@ public abstract class Initialization extends SatinBase {
         }
 
         String commprops = "OneToOne, OneToMany, ManyToOne, ExplicitReceipt, Reliable";
-        if (TupleSpace.use_seq) {
-            commprops += ", Numbered";
-        }
         if (FAULT_TOLERANCE) {
             commprops += ", ConnectionUpcalls";
         }
@@ -364,48 +361,6 @@ public abstract class Initialization extends SatinBase {
         }
 
         return ibis.createPortType("satin porttype", satinPortProperties);
-    }
-
-    PortType createTuplePortType(StaticProperties reqprops) throws IOException,
-            IbisException {
-        StaticProperties satinPortProperties = new StaticProperties(reqprops);
-
-        if (closed) {
-            satinPortProperties.add("worldmodel", "closed");
-        } else {
-            satinPortProperties.add("worldmodel", "open");
-        }
-
-        String commprops = "OneToOne, OneToMany, ManyToOne, ExplicitReceipt, Reliable";
-        if (TupleSpace.use_seq) {
-            commprops += ", Numbered";
-        }
-        if (FAULT_TOLERANCE) {
-            commprops += ", ConnectionUpcalls";
-        }
-        if (upcalls) {
-            if (upcallPolling) {
-                commprops += ", PollUpcalls";
-            } else {
-                commprops += ", AutoUpcalls";
-            }
-        }
-
-        satinPortProperties.add("communication", commprops);
-
-        if (ibisSerialization) {
-            satinPortProperties.add("Serialization", "ibis");
-            // if (master) {
-            //     System.err.println("SATIN: using Ibis serialization");
-            // }
-        } else if (sunSerialization) {
-            satinPortProperties.add("serialization", "sun");
-        } else {
-            satinPortProperties.add("serialization", "object");
-        }
-
-        return ibis.createPortType("satin tuple porttype", satinPortProperties);
-        /* Needs fixing! OneToMany+ManyToOne */
     }
 
     // The barrier port type is different from the satin port type.

@@ -167,16 +167,11 @@ public final class Satin extends APIMethods implements ResizeHandler,
 
             portType = createSatinPortType(requestedProperties);
             
-            if (SUPPORT_TUPLE_MULTICAST) {
-                tuplePortType = createTuplePortType(requestedProperties);
-            }
             if (FAULT_TOLERANCE) {
                 globalResultTablePortType
                     = createGlobalResultTablePortType(requestedProperties);
             }
             soPortType = createSOPortType(requestedProperties);
-            // do the same for tuple space @@@@
-            // but this needs a seperate receive port... --Rob
 
 	    MessageHandler messageHandler = new MessageHandler(this);
 
@@ -204,21 +199,6 @@ public final class Satin extends APIMethods implements ResizeHandler,
                 }
             }
 
-            if (SUPPORT_TUPLE_MULTICAST) {
-                tupleReceivePort = tuplePortType.createReceivePort(
-                        "satin tuple port on " + ident.name(),
-                        new MessageHandler(this));
-            } else {
-                tupleReceivePort = receivePort;
-            }
-
-            // Create a multicast port to bcast tuples.
-            // Connections are established in the join upcall.
-            if (SUPPORT_TUPLE_MULTICAST) {
-                tuplePort = tuplePortType.createSendPort("satin tuple port on "
-                        + ident.name());
-            }
-            
 	    if (SHARED_OBJECTS) {
 		/* SOInvocationHandler soInvocationHandler = */ new SOInvocationHandler(this);
 		/*soReceivePort 
@@ -277,11 +257,6 @@ public final class Satin extends APIMethods implements ResizeHandler,
             receivePort.enableUpcalls();
         }
         receivePort.enableConnections();
-
-        if (SUPPORT_TUPLE_MULTICAST) {
-            tupleReceivePort.enableConnections();
-            tupleReceivePort.enableUpcalls();
-        }
 
         if (FAULT_TOLERANCE) {
             globalResultTable = new GlobalResultTable(this);

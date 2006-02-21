@@ -18,8 +18,6 @@ class RandomNumber {
 
 	private int rnLastRand;
 
-	private int rnSeed;
-
 	RandomNumber() {
 		setSeed(123);
 	}

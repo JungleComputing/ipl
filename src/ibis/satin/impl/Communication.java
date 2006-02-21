@@ -197,9 +197,6 @@ public abstract class Communication extends SpawnSync {
         if (receivedResults) {
             handleResults();
         }
-        if (gotActiveTuples) {
-            handleActiveTuples();
-        }
 
         if (FAULT_TOLERANCE) {
             if (gotCrashes) {

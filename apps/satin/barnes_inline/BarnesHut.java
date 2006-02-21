@@ -18,18 +18,14 @@ final class BarnesHut {
 
 	static final int IMPL_NTC = 1; // -ntc option
 
-	static final int IMPL_TUPLE = 2; // -tuple option
-
-	static final int IMPL_TUPLE2 = 3; // -tuple2 option
-
 	static final int IMPL_SEQ = 4; // -seq option
 
 	static int impl = IMPL_NTC;
 
-	//number of bodies at which the ntc/tuple impl work sequentially
+	//number of bodies at which the ntc impl work sequentially
 	private static int spawn_min = 500; //use -min <threshold> to modify
 
-	//number of bodies above which the ntc/tuple impl work sequentially
+	//number of bodies above which the ntc impl work sequentially
 	private static int spawn_max = -1; //use -max <threshold> to modify
 
 	//true: Collect statistics about the various phases in each iteration
@@ -63,26 +59,10 @@ final class BarnesHut {
 	//Indicates if we are the root divide-and-conquer node
 	static boolean I_AM_ROOT = false;
 
-        static {
-            System.setProperty( "satin.tuplespace.multicast", "true" );
-        }
-
 	BarnesHut(int n, int m) {
 		I_AM_ROOT = true; //constructor is only called at the root node
 
-		if (impl != IMPL_TUPLE2) {
 			initialize(n, m);
-		} else {
-			/*
-			 * the tuple2 impl does the initialization at every node when the
-			 * first tuple is broadcast
-			 */
-		    /*Body[] ba = new Plummer().generate(n);
-		    
-		    Initializer1 init = new Initializer1(n, m, ba);*/
-		    Initializer init = new Initializer(n, m);
-		    ibis.satin.SatinTupleSpace.add("init", init);
-		}
 
 		/*
 		 * The RMI version contained magic code equivalent to this: (the
@@ -134,7 +114,6 @@ final class BarnesHut {
 
 		for (i = 0; i < bodyArray.length; i++) {
 			//the updated-bit only gets set at the root node
-			//with tuple2, this assertion failed at a non-root-node...
 			if (ASSERTS && !bodyArray[i].updated && I_AM_ROOT) {
 				System.err.println("EEK! Body " + i + " wasn't updated!");
 				System.exit(1);
@@ -155,11 +134,9 @@ final class BarnesHut {
 	}
 
 	void runSim() {
-		int i, iteration;
+		int iteration;
 		long start = 0, end, phaseStart = 0, phaseEnd;
 
-		String rootId = null; //tupleSpace key
-		BodyTreeNode dummyNode = new BodyTreeNode(); //used to spawn jobs
 		LinkedList result = null;
 		double[] accs_x = new double[bodyArray.length];
 		double[] accs_y = new double[bodyArray.length];
@@ -203,28 +180,16 @@ final class BarnesHut {
 				phaseStart = System.currentTimeMillis();
 			}
 
-			if (impl == IMPL_TUPLE) {
-				rootId = "root" + iteration;
-				ibis.satin.SatinTupleSpace.add(rootId, root);
-			}
-
 			ibis.satin.SatinObject.resume(); //turn ON divide-and-conquer stuff
 
 			switch (impl) {
 			case IMPL_NTC:
-			case IMPL_TUPLE:
-                                result = root.doBarnes(root, spawn_min, spawn_max, null, rootId);
-				break;
 			case IMPL_SEQ:
 				result = root.barnesSequential(root);
 				break;
 			}
 
 			ibis.satin.SatinObject.pause(); //killall divide-and-conquer stuff
-
-			if (impl == IMPL_TUPLE) {
-				ibis.satin.SatinTupleSpace.remove(rootId);
-			}
 
 			processLinkedListResult(result, accs_x, accs_y, accs_z);
 
@@ -250,99 +215,6 @@ final class BarnesHut {
 			System.err.println("Iteration " + iteration + " done, tree build = "
 					+ btcomTimeTmp + ", update = " + updateTimeTmp
 					+ ", force = " + forceCalcTimeTmp);
-		}
-
-		end = System.currentTimeMillis();
-		totalTime = end - start;
-	}
-
-	void tuple2RunSim() {
-		/*
-		 * all sequential parts are now replicated to increase the efficiency of
-		 * the broadcast. Now, only the new accs have to be broadcast each
-		 * iteration.
-		 */
-
-		int iteration, i;
-		LinkedList result;
-		BodyTreeNode dummyNode = new BodyTreeNode(); //used to spawn jobs
-		double[] accs_x = new double[bodyArray.length];
-		double[] accs_y = new double[bodyArray.length];
-		double[] accs_z = new double[bodyArray.length];
-
-		long start = 0, end, phaseStart = 0, phaseEnd;
-
-		TreeUpdater u;
-		String key;
-
-		start = System.currentTimeMillis();
-
-		for (iteration = 0; iteration < iterations; iteration++) {
-		    System.out.println("Starting iteration " + iteration);
-
-			//don't measure the first iteration
-			//the body update phase of the first iteration *is* measured ???
-			//if (iteration == 1) {
-			//}
-
-			/*
-			 * tree construction and CoM computation are done using an active
-			 * tuple
-			 */
-
-			if (phase_timing) {
-				phaseStart = System.currentTimeMillis();
-			}
-
-			if (iteration == 0) {
-				/*
-				 * broadcast an 'empty' tuple, since there is no previous
-				 * iteration whose updates have to be applied
-				 */
-				u = new TreeUpdater(null, null, null);
-			} else {
-				//put the result from the previous iteration in tuple space
-				u = new TreeUpdater(accs_x, accs_y, accs_z);
-			}
-			key = Integer.toString(iteration);
-			ibis.satin.SatinTupleSpace.add(key, u);
-
-			if (phase_timing) {
-				phaseEnd = System.currentTimeMillis();
-				btcomTime += phaseEnd - phaseStart;
-			}
-
-			//force calculation
-			if (phase_timing) {
-				phaseStart = System.currentTimeMillis();
-			}
-
-			ibis.satin.SatinObject.resume();
-                        result = root.doBarnes(root, spawn_min, spawn_max, null, null);
-			ibis.satin.SatinObject.pause();
-
-			processLinkedListResult(result, accs_x, accs_y, accs_z);
-
-			if (phase_timing) {
-				phaseEnd = System.currentTimeMillis();
-				forceCalcTimes[iteration] = phaseEnd - phaseStart;
-			}
-
-			//removing the tuple isn't necessary since it's an active tuple
-
-			//body updates will be done in the next iteration, or below
-		}
-
-		//do the final body update phase (this phase is otherwise done at
-		//the start of the next iteration)
-		if (phase_timing) {
-			phaseStart = System.currentTimeMillis();
-		}
-		//iteration must be decremented because of the for loop above
-		updateBodies(accs_x, accs_y, accs_z, iteration - 1);
-		if (phase_timing) {
-			phaseEnd = System.currentTimeMillis();
-			btcomTime += phaseEnd - phaseStart;
 		}
 
 		end = System.currentTimeMillis();
@@ -435,14 +307,6 @@ final class BarnesHut {
 			System.out.println("Using necessary tree impl");
 			runSim();
 			break;
-		case IMPL_TUPLE:
-			System.out.println("Using old satin tuple impl");
-			runSim();
-			break;
-		case IMPL_TUPLE2:
-			System.out.println("Using new satin tuple impl");
-			tuple2RunSim();
-			break;
 		case IMPL_SEQ:
 			System.out.println("Using hierarchical sequential impl");
 			runSim();
@@ -460,10 +324,6 @@ final class BarnesHut {
 			long total = 0;
 			System.out.println("tree building and CoM computation took: "
 					+ btcomTime / 1000.0 + " s");
-			if (impl != IMPL_TUPLE2) {
-				System.out.println("                  Updating bodies took: "
-						+ updateTime / 1000.0 + " s");
-			}
 			System.out.println("Force calculation took: ");
 			for (i = 0; i < iterations; i++) {
 				System.out.println("  iteration " + i + ": "
@@ -507,10 +367,6 @@ final class BarnesHut {
 				viz = false;
 			} else if (argv[i].equals("-ntc")) {
 				impl = IMPL_NTC;
-			} else if (argv[i].equals("-tuple")) {
-				impl = IMPL_TUPLE;
-			} else if (argv[i].equals("-tuple2")) {
-				impl = IMPL_TUPLE2;
 			} else if (argv[i].equals("-seq")) {
 				impl = IMPL_SEQ;
 

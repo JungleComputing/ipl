@@ -88,8 +88,9 @@ rmi:
   - registers url's, not names.
 
 satin:
-- remove tuple space alltogether now ? --Rob
++ remove tuple space alltogether now ? --Rob
   Ceriel: lijkt me voorbarig zolang we applicaties hebben die het gebruiken.
+  Done, only app that is not fully rewritten for shared objects is Kees v R's SAT --Rob
 - make scalable ibis / scalable satin (don't keep sockets open) --Rob
 
 - add semantic analysis to the compiler

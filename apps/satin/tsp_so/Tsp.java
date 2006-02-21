@@ -29,7 +29,7 @@ final class Tsp extends ibis.satin.SatinObject implements TspInterface,
     }
 
     /** Satin version of tsp.
-     * We have to return the minimum, even though we use a tuple space.
+     * We have to return the minimum, even though we use shared objects.
      * There is no consistency guarantee, so the root process might have missed
      * some updates when the calculation is ready.
      * The sequential version does not return the minimum, it uses the static variable

@@ -25,8 +25,6 @@ public interface Config {
 
     static final String s_stats_abort = PROPERTY_PREFIX + "stats.abort";
 
-    static final String s_stats_tuple = PROPERTY_PREFIX + "stats.tuple";
-
     static final String s_stats_ft = PROPERTY_PREFIX + "stats.ft";
 
     static final String s_stats_grt = PROPERTY_PREFIX + "stats.ft.grt";
@@ -42,8 +40,6 @@ public interface Config {
     static final String s_timing_idle = PROPERTY_PREFIX + "timing.idle";
 
     static final String s_timing_poll = PROPERTY_PREFIX + "timing.poll";
-
-    static final String s_timing_tuple = PROPERTY_PREFIX + "timing.tuple";
 
     static final String s_timing_grt = PROPERTY_PREFIX + "timing.ft.grt";
 
@@ -81,32 +77,19 @@ public interface Config {
 
     static final String s_in_latency = PROPERTY_PREFIX + "messagesInLatency";
 
-    static final String s_tuple_multi = PROPERTY_PREFIX
-            + "tuplespace.multicast";
-
-    static final String s_tuple_ordered = PROPERTY_PREFIX
-            + "tuplespace.ordered";
-
-    static final String s_tuple_ordened = PROPERTY_PREFIX
-            + "tuplespace.ordened";
-
-    static final String s_tuple_numbered = PROPERTY_PREFIX
-            + "tuplespace.numbered";
-
     static final String s_logging_spawn = PROPERTY_PREFIX + "logging.spawn";
 
     static final String[] sysprops = { s_scalable,
             s_stats, s_stats_spawn, s_stats_steal, s_stats_abort,
-            s_stats_tuple, s_stats_ft, s_stats_grt,
+            s_stats_ft, s_stats_grt,
             s_timing, s_timing_steal, s_timing_abort, s_timing_idle,
-            s_timing_poll, s_timing_tuple, s_timing_grt, s_timing_crash,
+            s_timing_poll, s_timing_grt, s_timing_crash,
             s_timing_check, s_timing_repl,
             s_poll_freq, s_poll_port,
             s_asserts, s_aborts,
             s_ft, s_ft_grt_repl, s_ft_grt_comb, s_ft_noAborts, s_ft_naive,
             s_ft_connectTimeout,
-            s_masterhost, s_in_latency, s_tuple_multi, s_tuple_ordered,
-            s_tuple_numbered, s_timing_so, s_so, s_logging_spawn};
+            s_masterhost, s_in_latency, s_timing_so, s_so, s_logging_spawn};
 
     /** Must be enabled or there are no statistics at all. */
     static final boolean STATS = TypedProperties.booleanProperty(s_stats, true);
@@ -129,10 +112,6 @@ public interface Config {
      */
     static final boolean FT_STATS = STATS
             && TypedProperties.booleanProperty(s_stats_ft, true);
-
-    /** Enable or disable statistics for the tuple space. */
-    static final boolean TUPLE_STATS = STATS
-            && TypedProperties.booleanProperty(s_stats_tuple, true);
 
     /** Enable or disable statistics for the global result table. */
     static final boolean GRT_STATS = STATS
@@ -161,10 +140,6 @@ public interface Config {
     /** Enable or disable poll timing. */
     static final boolean POLL_TIMING = TIMING
             && TypedProperties.booleanProperty(s_timing_poll, false);
-
-    /** Enable or disable tuple space timing. */
-    static final boolean TUPLE_TIMING = TIMING
-            && TypedProperties.booleanProperty(s_timing_tuple, true);
 
     //used for fault tolerance with global result table
     static final boolean GRT_TIMING = TIMING
@@ -247,19 +222,6 @@ public interface Config {
     static final boolean HANDLE_MESSAGES_IN_LATENCY
             = TypedProperties.booleanProperty(s_in_latency, false);
 
-    /**
-     * Enable or disable multicast to update the tuple space.
-     * Don't use with fault tolerance. Multicast ports don't work with crashes
-     * yet.
-     */
-    static final boolean SUPPORT_TUPLE_MULTICAST
-            = TypedProperties.booleanProperty(s_tuple_multi, false);
-
-    static final boolean TUPLE_ORDERED
-            = TypedProperties.booleanProperty(s_tuple_ordered, false)
-                || TypedProperties.booleanProperty(s_tuple_ordened, false)
-                || TypedProperties.booleanProperty(s_tuple_numbered, false);
-
     /** Logger for communication. */
     public static final Logger commLogger
             = ibis.util.GetLogger.getLogger("ibis.satin.comm");
@@ -292,10 +254,6 @@ public interface Config {
     /** Logger for the global result table. */
     public static final Logger grtLogger
             = ibis.util.GetLogger.getLogger("ibis.satin.grt");
-
-    /** Logger for the tuple space. */
-    public static final Logger tupleLogger
-            = ibis.util.GetLogger.getLogger("ibis.satin.tuple");
 
     /** Logger for fault tolerance. */
     public static final Logger ftLogger

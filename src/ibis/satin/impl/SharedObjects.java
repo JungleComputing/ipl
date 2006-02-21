@@ -17,7 +17,7 @@ import java.util.Hashtable;
 import java.util.Map;
 import java.util.Vector;
 
-public abstract class SharedObjects extends TupleSpace implements Protocol {
+public abstract class SharedObjects extends Communication implements Protocol {
 
 	/*
 	 * @todo: rethink the way objects are shipped, both at the beginning of the

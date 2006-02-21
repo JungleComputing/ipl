@@ -182,15 +182,6 @@ public abstract class Termination extends Initialization {
 
         // System.exit(1);
 
-        try {
-            if (SUPPORT_TUPLE_MULTICAST) {
-                tuplePort.close();
-            }
-        } catch (Throwable e) {
-            commLogger.error("SATIN '" + ident
-                    + "': tuplePort.close() throws exception", e);
-        }
-
         // If not closed, free ports. Otherwise, ports will be freed in leave
         // calls.
         while (true) {
@@ -227,9 +218,6 @@ public abstract class Termination extends Initialization {
 
         try {
             receivePort.close();
-            if (SUPPORT_TUPLE_MULTICAST) {
-                tupleReceivePort.close();
-            }
         } catch (Throwable e) {
             commLogger.error("SATIN '" + ident
                     + "': port.close() throws exception", e);

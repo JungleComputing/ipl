@@ -12,7 +12,6 @@ import ibis.util.Timer;
 import ibis.util.TypedProperties;
 import ibis.util.messagecombining.MessageCombiner;
 
-import java.util.ArrayList;
 import java.util.Random;
 import java.util.Vector;
 
@@ -25,7 +24,7 @@ public abstract class SatinBase implements Config {
     IbisIdentifier ident = null;        // this ibis
 
     /* Options. */
-    boolean closed = false; // used in TupleSpace
+    protected boolean closed = false;
 
     boolean stats = true; // used in messageHandler
 
@@ -78,8 +77,6 @@ public abstract class SatinBase implements Config {
     /* Am I the root (the one running main)? */
     boolean master = false;
 
-    boolean tuple_message_sent = false;
-
     protected String[] mainArgs;
 
     protected String name;
@@ -105,15 +102,9 @@ public abstract class SatinBase implements Config {
 
     protected PortType portType;
 
-    PortType tuplePortType;
-
     PortType globalResultTablePortType;
 
     protected ReceivePort receivePort;
-
-    ReceivePort tupleReceivePort;
-
-    SendPort tuplePort; /* used to bcast tuples */
 
     PortType soPortType;
 
@@ -139,10 +130,6 @@ public abstract class SatinBase implements Config {
     Random random = new Random(); // used in victimTable
 
     protected MessageHandler messageHandler;
-
-    protected ArrayList activeTupleKeyList = new ArrayList();
-
-    protected ArrayList activeTupleDataList = new ArrayList();
 
     protected volatile boolean receivedResults = false;
 
@@ -179,8 +166,6 @@ public abstract class SatinBase implements Config {
 
     volatile boolean gotBarrierReply = false; // used in messageHandler
 
-    volatile boolean gotActiveTuples = false; // used in messageHandler
-
     volatile boolean gotSOInvocations = false;
 
     protected boolean upcalls = true;
@@ -211,10 +196,6 @@ public abstract class SatinBase implements Config {
     long asyncStealAttempts;
 
     long asyncStealSuccess;
-
-    protected long tupleMsgs = 0;
-
-    protected long tupleBytes = 0;
 
     long killedOrphans = 0;
 
@@ -331,10 +312,6 @@ public abstract class SatinBase implements Config {
 
     Timer pollTimer = Timer.createTimer();
 
-    Timer tupleTimer = Timer.createTimer();
-
-    Timer handleTupleTimer = Timer.createTimer();
-
     Timer invocationRecordWriteTimer = Timer.createTimer();
 
     Timer returnRecordWriteTimer = Timer.createTimer();
@@ -342,8 +319,6 @@ public abstract class SatinBase implements Config {
     Timer invocationRecordReadTimer = Timer.createTimer();
 
     Timer returnRecordReadTimer = Timer.createTimer();
-
-    Timer tupleOrderingWaitTimer = Timer.createTimer();
 
     Timer lookupTimer = Timer.createTimer();
 
@@ -444,8 +419,6 @@ public abstract class SatinBase implements Config {
     abstract void handleExceptions();
 
     abstract void handleResults();
-
-    abstract void handleActiveTuples();
 
     abstract void handleSOInvocations();
     

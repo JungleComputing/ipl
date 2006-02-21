@@ -697,7 +697,6 @@ BodyTreeNodeInterface, java.io.Serializable {
                         }
                         res[i] = ch.doBarnes(n, low, high, newJobWalk, rootId);
                     } else {
-                        BodyTreeNode dummy;
                         spawned = true;
                         // System.out.println("doBarnes spawning, count = " + ch.bodyCount);
                         switch(BarnesHut.impl) {
@@ -705,20 +704,6 @@ BodyTreeNodeInterface, java.io.Serializable {
                             BodyTreeNode necessaryTree = ch == tree ? tree
                                 : new BodyTreeNode(tree, ch);
                             res[i] = ch.barnesNTC(necessaryTree, low);
-                            break;
-                        case BarnesHut.IMPL_TUPLE:
-                            newJobWalk = new byte[jobWalk.length + 1];
-                            System.arraycopy(jobWalk, 0, newJobWalk, 0, jobWalk.length);
-                            newJobWalk[jobWalk.length] = (byte) i;
-                            dummy = new BodyTreeNode();
-                            res[i] = dummy.barnesTuple(newJobWalk, rootId, low);
-                            break;
-                        case BarnesHut.IMPL_TUPLE2:
-                            newJobWalk = new byte[jobWalk.length + 1];
-                            System.arraycopy(jobWalk, 0, newJobWalk, 0, jobWalk.length);
-                            newJobWalk[jobWalk.length] = (byte) i;
-                            dummy = new BodyTreeNode();
-                            res[i] = dummy.barnesTuple2(newJobWalk, low);
                             break;
                         }
                     }
@@ -775,120 +760,6 @@ BodyTreeNodeInterface, java.io.Serializable {
                 lastValidChild = i;
             }
         }
-        if (spawned) {
-            sync();
-            return combineResults(res, lastValidChild);
-        }
-        //this was a sequential job, optimize!
-        return optimizeList(combineResults(res, lastValidChild));
-    }
-
-    /**
-     * This version also spawns itself until the threshold is reached. It uses
-     * the satin tuplespace. In this function, threshold isn't decremented each
-     * recursive call because jobWalk.length indicates the recursion depth.
-     * 
-     * @param jobWalk
-     *            an array describing the walk through the tree from the root to
-     *            the job (null means: job == root)
-     * @param threshold
-     *            the recursion depth at which work shouldn't be spawned anymore
-     */
-    public LinkedList barnesTuple(byte[] jobWalk, String rootId, int threshold) {
-        BodyTreeNode root, job;
-        int i;
-        LinkedList result, res[] = new LinkedList[8];
-        int lastValidChild = -1;
-        boolean spawned = false;
-
-        root = (BodyTreeNode) ibis.satin.SatinTupleSpace.get(rootId);
-
-        //find job
-        job = root;
-        for (i = 0; i < jobWalk.length; i++) {
-            job = job.children[jobWalk[i]];
-        }
-
-        if (job.children == null || job.bodyCount < threshold) {
-            return job.barnesSequential(root);
-        }
-
-        for (i = 0; i < 8; i++) {
-            BodyTreeNode ch = job.children[i];
-            if (ch != null) {
-                if (ch.children == null) {
-                    res[i] = ch.barnesSequential(root);
-                } else {
-                    //spawn new job
-                    byte[] newJobWalk = new byte[jobWalk.length + 1];
-                    System.arraycopy(jobWalk, 0, newJobWalk, 0, jobWalk.length);
-                    newJobWalk[jobWalk.length] = (byte) i;
-
-                    res[i] = barnesTuple(newJobWalk, rootId, threshold);
-                    spawned = true;
-                }
-                lastValidChild = i;
-            }
-        }
-
-        if (spawned) {
-            sync();
-            return combineResults(res, lastValidChild);
-        } else {
-            //this was a sequential job, optimize!
-            return optimizeList(combineResults(res, lastValidChild));
-            //return combineResults(res, lastValidChild);
-        }
-    }
-
-    /**
-     * This version also spawns itself until the threshold is reached. It uses
-     * the satin tuplespace. In this function, threshold isn't decremented each
-     * recursive call because jobWalk.length indicates the recursion depth.
-     * 
-     * @param jobWalk
-     *            an array describing the walk through the tree from the root to
-     *            the job (null means: job == root)
-     * @param threshold
-     *            the recursion depth at which work shouldn't be spawned anymore
-     */
-
-    public LinkedList barnesTuple2(byte[] jobWalk, int threshold) {
-        BodyTreeNode job;
-        int i;
-        LinkedList result, res[] = new LinkedList[8];
-        int lastValidChild = -1;
-        Integer integer;
-        boolean spawned = false;
-
-        //find job
-        job = BarnesHut.root;
-        for (i = 0; i < jobWalk.length; i++) {
-            job = job.children[jobWalk[i]];
-        }
-
-        if (job.children == null || job.bodyCount < threshold) {
-            return job.barnesSequential(BarnesHut.root);
-        }
-
-        for (i = 0; i < 8; i++) {
-            BodyTreeNode ch = job.children[i];
-            if (ch != null) {
-                if (ch.children == null) {
-                     res[i] = ch.barnesSequential(BarnesHut.root);
-                } else {
-                    //spawn new job
-                    byte[] newJobWalk = new byte[jobWalk.length + 1];
-                    System.arraycopy(jobWalk, 0, newJobWalk, 0, jobWalk.length);
-                    newJobWalk[jobWalk.length] = (byte) i;
-
-                    res[i] = barnesTuple2(newJobWalk, threshold);
-                    spawned = true;
-                }
-                lastValidChild = i;
-            }
-        }
-
         if (spawned) {
             sync();
             return combineResults(res, lastValidChild);
