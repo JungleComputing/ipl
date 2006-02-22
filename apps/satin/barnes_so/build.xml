@@ -14,9 +14,7 @@
     <property name="satin-main-class" value="${main-class}"/>
     <property name="satin-so-classes" value="Bodies"/>
 
-    <property name="test-par-java-args" value="-Dsatin.so"/>
     <property name="test-par-run" value="BarnesHut -v 100 5 -satin-closed"/>
-    <property name="test-seq-java-args" value="-Dsatin.so"/>
     <property name="test-seq-run" value="BarnesHut -v 100 5 -satin-closed"/>
 
     <fileset dir="." id="src.excludes-ref">

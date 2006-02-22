@@ -22,8 +22,11 @@ class LocusRoute extends SatinObject implements LocusRouteInterface {
     static int numOfRoutingChannels;
     static int widthOfRoutingChannels;
 
-    public LocusRoute() {};
+    static {
+        System.setProperty("satin.so", "true"); // So that we don't forget.
+    }
 
+    public LocusRoute() {}
 
     /*returns the first half of the list*/
     private LinkedList firstHalf(LinkedList list) {

@@ -44,6 +44,10 @@ final class BarnesHut extends SatinObject implements BarnesHutInterface {
 
     private static int maxLeafBodies;
 
+    static {
+        System.setProperty("satin.so", "true"); // So that we don't forget.
+    }
+
     BarnesHut() {}
 
     private static void processLinkedListResult(LinkedList result, double[] all_x,

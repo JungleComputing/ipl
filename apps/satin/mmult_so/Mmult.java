@@ -7,6 +7,10 @@
 final class Mmult extends ibis.satin.SatinObject implements MmultInterface,
         java.io.Serializable {
 
+    static {
+        System.setProperty("satin.so", "true"); // So that we don't forget.
+    }
+
     byte[] newPos(byte[] srcPos, int direction) {
         byte[] result;
         if(srcPos == null) {

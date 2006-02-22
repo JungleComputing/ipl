@@ -22,9 +22,11 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
     private static final boolean problemInTuple = true;
     private static final boolean printOptimizerStats = true;
 
+    /*
     static {
         System.setProperty( "satin.tuplespace.multicast", "true" );
     }
+    */
 
     /**
      * Solve the leaf part of a SAT problem.

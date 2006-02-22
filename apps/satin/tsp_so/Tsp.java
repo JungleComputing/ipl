@@ -18,6 +18,10 @@ final class Tsp extends ibis.satin.SatinObject implements TspInterface,
     
     static int numMinimumUpdates = 0;
 
+    static {
+        System.setProperty("satin.so", "true"); // So that we don't forget.
+    }
+
     static boolean present(int city, int hops, byte path[]) {
         for (int i = 0; i < hops; i++) {
             if (path[i] == city) {

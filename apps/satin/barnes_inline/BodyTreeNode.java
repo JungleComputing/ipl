@@ -58,9 +58,7 @@ BodyTreeNodeInterface, java.io.Serializable {
     static final double SOFT_SQ = 0.0000025 * 0.0000025; 
 
     /**
-     * creates a totally empty tree. Because the SatinTuple version of barnes
-     * can't be static, you need to create some BodyTreeNode object to call this
-     * method
+     * creates a totally empty tree.
      */
     public BodyTreeNode() {
     }
