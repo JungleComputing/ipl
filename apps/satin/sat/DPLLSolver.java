@@ -19,14 +19,11 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
     private static final boolean traceSolver = false;
     private static final boolean printSatSolutions = true;
     private static final boolean traceNewCode = true;
-    private static final boolean problemInTuple = true;
     private static final boolean printOptimizerStats = true;
 
-    /*
     static {
-        System.setProperty( "satin.tuplespace.multicast", "true" );
+        System.setProperty( "satin.so", "true" );
     }
-    */
 
     /**
      * Solve the leaf part of a SAT problem.
@@ -112,8 +109,6 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
         boolean val
     ) throws SATException
     {
-        SATProblem my_p = p;
-
         if( !localJob() ){
             // This job was migrated, reset the counter.
             localLevel = 0;
@@ -121,17 +116,13 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
         if( traceSolver ){
             System.err.println( "s" + level + ": trying assignment var[" + var + "]=" + val );
         }
-/*            // @@@ we might get it from a shared object instead
-        if( my_p == null ){
-            // my_p = (SATProblem) ibis.satin.SatinTupleSpace.get( "problem" );
-        }
-*/
+
         int res;
         if( val ){
-            res = ctx.propagatePosAssignment( my_p, var );
+            res = ctx.propagatePosAssignment( p, var );
         }
         else {
-            res = ctx.propagateNegAssignment( my_p, var );
+            res = ctx.propagateNegAssignment( p, var );
         }
         if( res == SATProblem.CONFLICTING ){
             // Propagation reveals a conflict.
@@ -147,7 +138,7 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
             if( traceSolver | printSatSolutions ){
                 System.err.println( "s" + level + ": propagation found a solution: " + s );
             }
-            if( !my_p.isSatisfied( ctx.assignment ) ){
+            if( !p.isSatisfied( ctx.assignment ) ){
                 System.err.println( "Error: " + level + ": solution does not satisfy problem." );
             }
             throw new SATResultException( s );
@@ -174,8 +165,8 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
         else {
             // We're nearly there, use the leaf solver.
             DPLLContext subctx = (DPLLContext) ctx.clone();
-            leafSolve( level+1, my_p, subctx, nextvar, firstvar );
-            leafSolve( level+1, my_p, ctx, nextvar, !firstvar );
+            leafSolve( level+1, p, subctx, nextvar, firstvar );
+            leafSolve( level+1, p, ctx, nextvar, !firstvar );
         }
     }
 
@@ -227,12 +218,8 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
                 System.err.println( "Top level: branching on variable " + nextvar );
             }
 
-/*
-            if( problemInTuple ){
-                ibis.satin.SatinTupleSpace.add( "problem", p );
-                p = null;
-            }
-*/
+            // p.exportObject();
+
             DPLLContext negctx = (DPLLContext) ctx.clone();
             boolean firstvar = ctx.posDominant( nextvar );
             s.solve( 0, 0, p, negctx, nextvar, firstvar );
@@ -276,7 +263,6 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
         ibis.satin.SatinObject.pause(); 
 
         System.err.println( Helpers.getPlatformVersion() );
-        System.err.println( "Problem stored in tuple space: " + problemInTuple );
         SATProblem p = SATProblem.parseDIMACSStream( f );
         p.setReviewer( new CubeClauseReviewer() );
         p.report( System.out );

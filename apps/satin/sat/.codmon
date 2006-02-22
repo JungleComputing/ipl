@@ -1,1 +1,1 @@
-// 4 -Dsatin.tuplespace.numbered=true SATSolver ../examples/benchmark-suite/qg5-10.cnf -satin-closed
+4 DPLLSolver ../examples/benchmark-suite/qg5-10.cnf

@@ -12,7 +12,7 @@ import java.io.*;
  * @version $Revision$
  */
 
-public final class SATProblem implements Cloneable, java.io.Serializable {
+public final class SATProblem extends ibis.satin.SharedObject implements Cloneable, java.io.Serializable, SATProblemInterface {
     /** Symbolic value for a conflicting problem. */
     public static final int CONFLICTING = -1;
 
@@ -213,7 +213,7 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
      * @param cl the clause to add
      * @return the label of the added clause, or -1 if the clause is redundant
      */
-    public int addClause( Clause cl )
+    private int addClause( Clause cl )
     {
         if( clauseCount>=clauses.length ){
             // Resize the clauses array. Even works for array of length 0.
@@ -237,7 +237,7 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
      * @param negsz the number of elements in <code>neg</code> to use
      * @return the label of the added clause, or -1 if the clause is redundant
      */
-    public int addClause( int pos[], int possz, int neg[], int negsz )
+    private int addClause( int pos[], int possz, int neg[], int negsz )
     {
         int apos[] = Helpers.cloneIntArray( pos, possz );
         int aneg[] = Helpers.cloneIntArray( neg, negsz );
@@ -466,7 +466,7 @@ public final class SATProblem implements Cloneable, java.io.Serializable {
      * @param val The value of the variable.
      * @return <code>true</code> iff the propagation deleted any clauses
      */
-    public boolean propagateAssignment( int var, boolean val )
+    private boolean propagateAssignment( int var, boolean val )
     {
         boolean changed = false;
 
