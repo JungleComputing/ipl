@@ -15,7 +15,6 @@ import ibis.ipl.StaticProperties;
 import ibis.ipl.WriteMessage;
 
 import ibis.util.GetLogger;
-import ibis.util.IPUtils;
 import ibis.util.Ticket;
 
 import java.io.IOException;
@@ -41,9 +40,6 @@ public final class Group implements GroupProtocol {
 
     /** The total number of nodes involved in this run. */
     private static int _size;
-    
-    /** The local hostname. */
-    private static String name;
     
     /** To get tickets from. */
     static Ticket ticketMaster = null;
@@ -104,6 +100,9 @@ public final class Group implements GroupProtocol {
     /** The stub counter, used to allocate stubs. */
     static int stubCounter;
 
+    /** Name of this host (actually, its Ibis name). */
+    static String name;
+
     /**
      * Container class for group information.
      */
@@ -114,6 +113,7 @@ public final class Group implements GroupProtocol {
 
         /** The name of the group interface for this group. */
         String typeName;
+
 
         /**
          * The stub class for this group, so that stubs can easily be
@@ -147,11 +147,8 @@ public final class Group implements GroupProtocol {
             stubclasses = new Hashtable();
  //           multicastSendports = new Hashtable();
 
-            name = IPUtils.getLocalHostAddress().getHostName();
-
             if (logger.isDebugEnabled()) {
-                logger.debug("?: <static> - " +
-                        name + "- Init Group RTS");
+                logger.debug("?: <static> - Init Group RTS");
             }
 
             StaticProperties reqprops = new StaticProperties();
@@ -170,6 +167,7 @@ public final class Group implements GroupProtocol {
             }
             
             localID = ibis.identifier().name();
+            name = ibis.identifier().toString();
             ibisRegistry = ibis.registry();
 
             // Create the three port types used in GMI  
