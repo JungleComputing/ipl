@@ -11,7 +11,6 @@ import ibis.ipl.Registry;
 import ibis.ipl.ResizeHandler;
 import ibis.ipl.SendPortConnectUpcall;
 import ibis.ipl.StaticProperties;
-import ibis.util.IPUtils;
 import ibis.util.messagecombining.MessageCombiner;
 
 import java.net.InetAddress;
@@ -70,16 +69,11 @@ public final class Satin extends APIMethods implements ResizeHandler,
         onStack = new IRStack(this);
         exceptionList = new IRVector(this);
 
-        String hostName = null;
-
-        InetAddress address = IPUtils.getLocalHostAddress();
-        hostName = address.getHostName();
-
         StaticProperties requestedProperties = new StaticProperties();
 
         // parse the satin commandline options, and the user properties that are
         // set.
-        mainArgs = parseArguments(args, requestedProperties, this, hostName);
+        mainArgs = parseArguments(args, requestedProperties, this);
 
         StaticProperties ibisProperties
                 = createIbisProperties(requestedProperties);
@@ -87,13 +81,13 @@ public final class Satin extends APIMethods implements ResizeHandler,
         int poolSize = 0; /* Only used with closed world. */
 
         if (commLogger.isDebugEnabled()) {
-            commLogger.debug("SATIN '" + hostName + "': init ibis");
+            commLogger.debug("SATIN '" + "- " + "': init ibis");
         }
 
         try {
             ibis = Ibis.createIbis(ibisProperties, this);
         } catch (IbisException e) {
-            commLogger.fatal("SATIN '" + hostName
+            commLogger.fatal("SATIN '" + "- "
                     + "': Could not start ibis: " + e, e);
             System.exit(1);     // Could not start ibis
         }
@@ -109,13 +103,14 @@ public final class Satin extends APIMethods implements ResizeHandler,
         victims = new VictimTable(this); //victimTable accesses ident..
 
         if (commLogger.isDebugEnabled()) {
-            commLogger.debug("SATIN '" + hostName + "': init ibis DONE, "
+            commLogger.debug("SATIN '" + "- " + "': init ibis DONE, "
                     + "my cluster is '" + ident.cluster() + "'");
         }
 
         try {
             Registry r = ibis.registry();
             String canonicalMasterHost = null;
+            String localHostName = null;
 
             if (MASTER_HOST != null) {
                 try {
@@ -126,10 +121,16 @@ public final class Satin extends APIMethods implements ResizeHandler,
                             + "name: " + MASTER_HOST);
                     commLogger.warn("continuing with default master election");
                 }
+                try {
+                    localHostName = InetAddress.getLocalHost().getCanonicalHostName();
+                } catch(Exception e) {
+                    commLogger.warn("Could not get local hostname");
+                    canonicalMasterHost = null;
+                }
             }
 
             if (canonicalMasterHost == null
-                    || canonicalMasterHost.equals(address.getCanonicalHostName())) {
+                    || canonicalMasterHost.equals(localHostName)) {
                 masterIdent = r.elect("satin master");
             } else {
                 masterIdent = r.getElectionResult("satin master");
@@ -138,13 +139,13 @@ public final class Satin extends APIMethods implements ResizeHandler,
             if (masterIdent.equals(ident)) {
                 /* I an the master. */
                 if (commLogger.isInfoEnabled()) {
-                    commLogger.info("SATIN '" + hostName
+                    commLogger.info("SATIN '" + ident
                             + "': init ibis: I am the master");
                 }
                 master = true;
             } else {
                 if (commLogger.isInfoEnabled()) {
-                    commLogger.info("SATIN '" + hostName
+                    commLogger.info("SATIN '" + ident
                             + "': init ibis I am slave");
                 }
             }
@@ -225,7 +226,7 @@ public final class Satin extends APIMethods implements ResizeHandler,
 	    }
 
 	} catch (Exception e) {
-	    commLogger.fatal("SATIN '" + hostName
+	    commLogger.fatal("SATIN '" + ident
                     + "': Could not start ibis: " + e, e);
             System.exit(1);     // Could not start ibis
         }
@@ -240,17 +241,17 @@ public final class Satin extends APIMethods implements ResizeHandler,
 
         if (commLogger.isInfoEnabled() && master) {
             if (closed) {
-                commLogger.info("SATIN '" + hostName
+                commLogger.info("SATIN '" + ident
                         + "': running with closed world, " + poolSize
                         + " host(s)");
             } else {
-                commLogger.info("SATIN '" + hostName
+                commLogger.info("SATIN '" + ident
                         + "': running with open world");
             }
         }
 
         if (commLogger.isDebugEnabled()) {
-            commLogger.debug("SATIN '" + hostName + "': algorithm created");
+            commLogger.debug("SATIN '" + ident + "': algorithm created");
         }
 
         if (upcalls) {
@@ -269,7 +270,7 @@ public final class Satin extends APIMethods implements ResizeHandler,
         ibis.enableResizeUpcalls();
 
         if (commLogger.isDebugEnabled()) {
-            commLogger.debug("SATIN '" + hostName + "': pre barrier");
+            commLogger.debug("SATIN '" + ident + "': pre barrier");
         }
 
         if (closed) {
@@ -282,7 +283,7 @@ public final class Satin extends APIMethods implements ResizeHandler,
                     }
                 }
                 if (commLogger.isDebugEnabled()) {
-                    commLogger.debug("SATIN '" + hostName
+                    commLogger.debug("SATIN '" + ident
                             + "': barrier, everybody has joined");
                 }
 
@@ -293,7 +294,7 @@ public final class Satin extends APIMethods implements ResizeHandler,
         }
 
         if (commLogger.isDebugEnabled()) {
-            commLogger.debug("SATIN '" + hostName + "': post barrier");
+            commLogger.debug("SATIN '" + ident + "': post barrier");
         }
 
         if (killTime > 0) {

@@ -100,7 +100,7 @@ public abstract class Initialization extends SatinBase {
      * Parse commandline parameters. Remove everything that starts with satin.
      */
     String[] parseArguments(String[] args, StaticProperties reqprops,
-            Satin satin, String hostName) {
+            Satin satin) {
         String alg = null;
         Vector tempArgs = new Vector();
         for (int i = 0; i < args.length; i++) {
@@ -218,7 +218,7 @@ public abstract class Initialization extends SatinBase {
 
         if (alg == null) {
             if (master) {
-                System.err.println("SATIN '" + hostName
+                System.err.println("SATIN '" + "- "
                     + "': satin_algorithm property not specified, "
                     + "using RS");
             }
@@ -232,7 +232,7 @@ public abstract class Initialization extends SatinBase {
         } else if (alg.equals("MW")) {
             algorithm = new MasterWorker(satin);
         } else {
-            System.err.println("SATIN '" + hostName + "': satin_algorithm '"
+            System.err.println("SATIN '" + "- " + "': satin_algorithm '"
                 + alg + "' unknown");
             algorithm = null;
             System.exit(1); // Wrong option
