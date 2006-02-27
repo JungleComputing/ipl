@@ -13,9 +13,6 @@ set NHOSTS=1
 
 if ""%1""=="""" goto usage
 
-set JAVACLASSPATH=%CLASSPATH%;build;%IBIS_ROOT%\classlibs;%IBIS_ROOT%\build;%IBIS_ROOT%\3rdparty\junit.jar;%IBIS_ROOT%\3rdparty\log4j-1.2.9.jar;%IBIS_ROOT%\3rdparty\colobus.jar;.;
-
-
 set LFC_INTR_FIRST=100
 set IBP_SEND_SYNC=100 
 set PAN_COMM_NO_IDLE_POLL=1
@@ -89,6 +86,11 @@ if "%1"=="-hosts" (
     shift
     goto nextarg
 )
+if "%1"=="-cp" (
+    set CLASSPATH="%2"
+    shift
+    goto nextarg
+)
 if "%1"=="-jdb" (
     set JAVA_EXEC=jdb
     goto nextarg
@@ -153,6 +155,8 @@ goto arguments
 
 :cont
 
+set JAVACLASSPATH=%CLASSPATH%;build;%IBIS_ROOT%\classlibs;%IBIS_ROOT%\build;%IBIS_ROOT%\3rdparty\junit.jar;%IBIS_ROOT%\3rdparty\log4j-1.2.9.jar;%IBIS_ROOT%\3rdparty\colobus.jar;.;
+
 if "%noJIT%"=="1" (
     set JIT_OPTS=%JIT_OPTS% -Djava.compiler=NONE
 )
@@ -214,6 +218,10 @@ goto end
     echo     set the bootclasspath to the classpath
     echo -no-bootcp
     echo     don't set the bootclasspath. This is the default
+    echo -cp ^<classpath^>
+    echo     sets the user classpath to the specified path. This overrides the
+    echo     CLASSPATH environment variable. Note that ibis-run adds some directories
+    echo     and jars that are needed to run an Ibis application
     echo -nhosts ^<nhosts^>
     echo     specifies the total number of hosts involved in this run
     echo -hostno ^<hostno^>

@@ -77,6 +77,10 @@ The ibis-run options are:
 -no-bootcp
     don't set the bootclasspath. This is the default if the standard Java
     libraries have not been rewritten
+-cp <classpath>
+    sets the user classpath to the specified path. This overrides the
+    CLASSPATH environment variable. Note that $run_name adds some directories
+    and jars that are needed to run an Ibis application
 -nhosts <nhosts>
     specifies the total number of hosts involved in this run
 -hostno <hostno>
@@ -168,7 +172,7 @@ fi
 
 libpath="$ibislib:.:$LD_LIBRARY_PATH:"
 
-JAVACLASSPATH="$CLASSPATH:build/:$IBIS_ROOT/classlibs/:$IBIS_ROOT/build/ibis.jar:$LIBCLASSPATH:.:"
+JAVACLASSPATH="build/:$IBIS_ROOT/classlibs/:$IBIS_ROOT/build/ibis.jar:$LIBCLASSPATH:.:"
 
 #
 # Some defaults ...
@@ -216,6 +220,10 @@ do
 		;;
 	-attach)
 		attach=1
+		;;
+	-cp)
+		shift
+		CLASSPATH="$1"
 		;;
 	-hubport|-hub-port)
 		shift
@@ -294,12 +302,12 @@ do
 		;;
 	-karmi)
 		needsbootclasspath=0
-		JAVACLASSPATH="$CLASSPATH:build:$KARMI/karmi.jar:$IBIS_ROOT/build/ibis.jar:$LIBCLASSPATH:.:"
+		JAVACLASSPATH="build:$KARMI/karmi.jar:$IBIS_ROOT/build/ibis.jar:$LIBCLASSPATH:.:"
 		;;
 	-karmi-gm)
 		needsbootclasspath=0
 		libpath="$libpath$KARMI/lib:"
-		JAVACLASSPATH="$CLASSPATH:build:$KARMI/karmi.jar:$IBIS_ROOT/build/ibis.jar:$LIBCLASSPATH:.:"
+		JAVACLASSPATH="build:$KARMI/karmi.jar:$IBIS_ROOT/build/ibis.jar:$LIBCLASSPATH:.:"
 		;;
 	-ip-map)
 		shift
@@ -377,6 +385,15 @@ then
 	Dns_server="-Dibis.name_server.host=localhost"
     fi
 fi
+
+case "X$CLASSPATH" in
+X)
+    ;;
+*)
+    JAVACLASSPATH="$CLASSPATH:$JAVACLASSPATH"
+    ;;
+esac
+
 
 case "`uname`" in
 CYGWIN*)

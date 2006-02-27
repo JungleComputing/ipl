@@ -52,6 +52,10 @@ The ibis-prun parameters are:
 -no-bootcp
     don't set the bootclasspath. This is the default if the standard Java
     libraries have not been rewritten
+-cp <classpath>
+    sets the user classpath to the specified path. This overrides the
+    CLASSPATH environment variable. Note that ibis-prun adds some directories
+    and jars that are needed to run an Ibis application
 -cd <dir>
     when using the javawrapper, make it change to directory <dir>
     before starting java
@@ -182,6 +186,11 @@ do
 	-ns)
 		shift
 		args="$args -ns $1"
+		;;
+	-cp)
+		shift
+		classpath="$1"
+		args="$args -cp $1"
 		;;
 	-pg)
 		shift
@@ -332,13 +341,13 @@ fi
 if [ $i_am_nameserver -eq 1 ]
 then
 	echo Start run-once name server on `hostname`
-	JAVACLASSPATH="$CLASSPATH:$LIBCLASSPATH:$IBIS_ROOT/build/ibis.jar:"
+	JAVACLASSPATH="$LIBCLASSPATH:$IBIS_ROOT/build/ibis.jar:"
 	$JAVA_ROOT/bin/java \
 		-classpath $JAVACLASSPATH \
 		ibis.impl.nameServer.tcp.NameServer -single
 elif [ $i_am_cluster_coord -eq 1 ]
 then
-	JAVACLASSPATH="$CLASSPATH:$LIBCLASSPATH:$IBIS_ROOT/build/ibis.jar:"
+	JAVACLASSPATH="$LIBCLASSPATH:$IBIS_ROOT/build/ibis.jar:"
 	export LFC_INTR_FIRST=100
 	$JAVA_ROOT/bin/java \
 		-classpath $JAVACLASSPATH \
