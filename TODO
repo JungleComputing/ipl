@@ -92,14 +92,14 @@ satin:
 - major satin cleanup: remove old features, fix ugly structure --Rob
 - remove all satin commandline options, use properties instead 
   (now most options are there twice) --Rob
-- port Ceriel's load-balancing optimization for Barnes to the 
-  shared objects version --Rob
++ port Ceriel's load-balancing optimization for Barnes to the 
+  shared objects version --Rob Was already done (Ceriel)
 - detection of what is an inlet: now, if the invocation is inside a try-catch
   it is assumed to be an inlet. Is this OK? (MAybe change to checked Exception)
 - shared objects model: no stubs are used. -> write methods on the orignal object
   are not broadcast. Only if you get it as param from a spawn it is broadcast!
   This is very confusing --Rob
-- remove dependancy on IPUtils and hostname
++ remove dependancy on IPUtils and hostname (mostly done, except for masterHome; Ceriel)
 
 satin-so:
 - count all messages+sizes for the total messages/data sent statistics --Rob
@@ -118,7 +118,7 @@ satin-so:
   initialization functions as being write functions for the same nett result.
   
 gmi:
-- remove dependancy on IPUtils and hostname
++ remove dependancy on IPUtils and hostname (Done Ceriel)
   
 
 abstract implementation:
