@@ -77,12 +77,12 @@ final class Tsp extends ibis.satin.SatinObject implements TspInterface,
             if (city != me && !present(city, hops, path)) {
                 dist = distance.dist[me][i];
 
-                /* For Satin, must copy path, or maybe just last city... */
                 if (hops < THRESHOLD) {
+                    /* For Satin, must copy path, or maybe just last city... */
                     byte[] newpath = (byte[]) path.clone();
                     newpath[hops] = (byte) city;
                     mins[spawned_counter] = spawn_tsp(hops + 1, newpath, length
-                            + dist, minimum, distance);
+                              + dist, minimum, distance);
                     spawned_counter++;
                 } else {
                     int min;
