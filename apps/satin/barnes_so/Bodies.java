@@ -35,15 +35,29 @@ final public class Bodies extends SharedObject implements BodiesInterface {
     public void updateBodiesLocally(double[] accs_x, double[] accs_y,
             double[] accs_z, int iteration) {
 
+	long start, end1, end2, end3;
+	double posUpdateTime, treeBuildTime, comTime;
+
+	start = System.currentTimeMillis();
+
         for (int i = 0; i < bodyArray.length; i++) {
             bodyArray[i].computeNewPosition(iteration != 0, BarnesHut.DT,
-                accs_x[i], accs_y[i], accs_z[i]);
-        }
-        bodyTreeRoot = null; /*to prevent OutOfMemoryError (maik)*/
-        bodyTreeRoot = new BodyTreeNode(bodyArray, maxLeafBodies, theta);
-        bodyTreeRoot.computeCentersOfMass();
-        this.iteration = iteration;
-    }
+                    accs_x[i], accs_y[i], accs_z[i]);
+        }  
+
+	end1 = System.currentTimeMillis();
+	posUpdateTime = (end1 - start) / 1000.0;
+	bodyTreeRoot = null; /*to prevent OutOfMemoryError (maik)*/
+	bodyTreeRoot = new BodyTreeNode(bodyArray, maxLeafBodies, theta);
+	end2 = System.currentTimeMillis();
+	treeBuildTime = (end2 - end1) / 1000.0;
+	bodyTreeRoot.computeCentersOfMass();
+	end3 = System.currentTimeMillis();
+	comTime = (end3 - end2) / 1000.0;
+	this.iteration = iteration;
+	/*	System.err.println("Update bodies breakdown for iteration " + iteration + ":posupdate: " + posUpdateTime 
+		+ " treebuild: " + treeBuildTime + " com: " + comTime);*/
+    }    
 
     public BodyTreeNode findTreeNode(byte[] treeNodeIdentifier) {
 

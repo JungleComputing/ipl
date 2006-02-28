@@ -300,6 +300,11 @@ final class BarnesHut extends SatinObject implements BarnesHutInterface {
                 phase_timing = false;
 	    } else if (argv[i].equals("-ntc_impl")) {
 		ntc_impl = true;
+	    } else if (argv[i].equals("-iter")) {
+		ITERATIONS = Integer.parseInt(argv[i++]);
+		if (ITERATIONS <= 0) 
+		    throw new IllegalArgumentException(
+						       "Illegal argument to -iter: nr of iterations must be >=0 !");		       
             } else if (!numBodiesSeen) {
                 try {
                     numBodies = Integer.parseInt(argv[i]); //nr of bodies to simulate
@@ -335,6 +340,7 @@ final class BarnesHut extends SatinObject implements BarnesHutInterface {
 	BodiesNoSO bodiesNoSO = null; //for necessary tree implementation
         long realStart, realEnd;
         long start = 0, end, phaseStart = 0, phaseEnd;
+	long time;
 	byte[] rootNodeIdentifier = new byte[0];
         double[] accs_x;
         double[] accs_y;
@@ -393,7 +399,9 @@ final class BarnesHut extends SatinObject implements BarnesHutInterface {
 
             if (phase_timing) {
                 phaseEnd = System.currentTimeMillis();
-                forceCalcTimes[iteration] = phaseEnd - phaseStart;
+		time = phaseEnd - phaseStart;
+                forceCalcTimes[iteration] = time;
+		System.err.println("iteration " + iteration + " took: " + (time/1000.0) + " s");
             }
 
 	    if (phase_timing) {
@@ -411,8 +419,10 @@ final class BarnesHut extends SatinObject implements BarnesHutInterface {
 	    }
 
             if (phase_timing) {
-                phaseEnd = System.currentTimeMillis();
-                btcomTime += phaseEnd - phaseStart;
+                phaseEnd = System.currentTimeMillis();	       
+		time = phaseEnd - phaseStart;
+                btcomTime += time;
+		System.err.println("updating bodies after iteration " + iteration + " took: " + (time/1000.0) + " s");
 	    }
 	    ibis.satin.SatinObject.resume();
 	    
