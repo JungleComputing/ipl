@@ -107,7 +107,7 @@ class CostArray extends SharedObject implements CostArrayInterface {
 
     public void placeWire_locally(Wire wire) {    
 	int min, max;
-	//place wire only if it hasn't been placed
+	//place wire only if it hasn't been placed (eliminate duplicate updates)
 	if (wirePlaced[wire.label]) {
 	    return;
 	}
@@ -144,7 +144,7 @@ class CostArray extends SharedObject implements CostArrayInterface {
     /*write method*/
     public void ripOutWire(Wire wire) {
 	int min, max;
-	//rip out wire only if it has been placed
+	//rip out wire only if it has been placed (eliminate duplicate updates)
 	if (!wirePlaced[wire.label]) {
 	    return;
 	}
