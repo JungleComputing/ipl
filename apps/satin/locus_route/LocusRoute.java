@@ -291,7 +291,6 @@ class LocusRoute extends SatinObject implements LocusRouteInterface {
 	    locusRoute.sync();
 	    System.out.println("num of wires: " + wires.size());	  
 	    
-	    globalCost = costArray.globalCost();
 	    /* recalculate the cost array locally because the shared object might not be consistent */
 	    costArray.clear();
 	    for (int j=0; j<wires.size(); j++) {
@@ -302,6 +301,8 @@ class LocusRoute extends SatinObject implements LocusRouteInterface {
 	    System.out.println("LocusRoute: Global cost in iteration " 
 			       + i + ": " + globalCost);
 	}
+
+        globalCost = costArray.globalCost();
 
 	System.out.println("LocusRoute: Final global cost: " + globalCost);
 	    
