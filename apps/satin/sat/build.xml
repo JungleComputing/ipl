@@ -19,13 +19,15 @@
 
     <import file="${ibis}/build-files/apps/build-satin-app.xml"/>
 
+    <!--
     <target name="test"
-	    depends="compile"
+	    depends="build"
 	    description="Run Junit test">
 	<antcall target="runseq">
 		<param name="runjob" value="junit.textui.TestRunner Tests"/>
 	</antcall>
     </target>
+    -->
 
     <target name="docs"
         description="Build JavaDoc documentation in `docs' directory">
