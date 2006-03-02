@@ -184,6 +184,8 @@ final class BarnesHut {
 
 			switch (impl) {
 			case IMPL_NTC:
+                                result = root.doBarnes(root, spawn_min, spawn_max, null);
+                                break;
 			case IMPL_SEQ:
 				result = root.barnesSequential(root);
 				break;
