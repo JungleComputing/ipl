@@ -660,7 +660,7 @@ BodyTreeNodeInterface, java.io.Serializable {
     }
 
     public LinkedList doBarnes(BodyTreeNode tree, int low, int high,
-            byte[] jobWalk, String rootId) {
+            byte[] jobWalk) {
 
         if (jobWalk == null) {
             jobWalk = new byte[0];
@@ -693,7 +693,7 @@ BodyTreeNodeInterface, java.io.Serializable {
                         if (BarnesHut.impl == BarnesHut.IMPL_NTC) {
                             n = ch == tree ? tree : new BodyTreeNode(tree, ch);
                         }
-                        res[i] = ch.doBarnes(n, low, high, newJobWalk, rootId);
+                        res[i] = ch.doBarnes(n, low, high, newJobWalk);
                     } else {
                         spawned = true;
                         // System.out.println("doBarnes spawning, count = " + ch.bodyCount);
