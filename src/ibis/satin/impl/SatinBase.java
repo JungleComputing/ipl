@@ -46,8 +46,7 @@ public abstract class SatinBase implements Config {
 
     protected String deleteCluster = null;
 
-    int branchingFactor = 0;
-    //if > 0, it is used for generating globally unique stamps
+    protected boolean grtUsesStamps = false;
 
     int soInvocationsDelay = 0;
     //if > 0, it is used for combining shared objects invocations
@@ -132,8 +131,6 @@ public abstract class SatinBase implements Config {
     protected MessageHandler messageHandler;
 
     protected volatile boolean receivedResults = false;
-
-    protected int stampCounter = 0;
 
     /**
      * Used to locate the invocation record corresponding to the result of a
@@ -228,7 +225,7 @@ public abstract class SatinBase implements Config {
     StatsMessage totalStats; // used in messageHandler
 
     /* Variables that contain data of the current job*/
-    protected int parentStamp = -1;
+    protected Stamp parentStamp = null;
 
     protected IbisIdentifier parentOwner = null;
 
@@ -272,12 +269,6 @@ public abstract class SatinBase implements Config {
 
     //used in ft, true if the master crashed and the whole work was restarted
     boolean restarted = false;
-
-    //used for generating globally unique stamps, number of jobs spawned by
-    // root
-    //no node can execute the root job twice, so this counter does not have to
-    // be set to 0 after root crash
-    int rootNumSpawned = 0;
 
     //list of finished children of the root node (which don't have an
     //invocation record)

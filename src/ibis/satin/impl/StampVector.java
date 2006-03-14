@@ -2,34 +2,25 @@
 
 package ibis.satin.impl;
 
-import ibis.ipl.IbisIdentifier;
-
 final class StampVector implements Config {
-    int[] stamps = new int[50];
-
-    IbisIdentifier[] owners = new IbisIdentifier[50];
+    Stamp[] stamps = new Stamp[50];
 
     int count = 0;
 
-    public void add(int stamp, IbisIdentifier owner) {
+    public void add(Stamp stamp) {
         if (count >= stamps.length) {
-            int[] nstamps = new int[stamps.length * 2];
+            Stamp[] nstamps = new Stamp[stamps.length * 2];
             System.arraycopy(stamps, 0, nstamps, 0, stamps.length);
             stamps = nstamps;
-
-            IbisIdentifier[] nowners = new IbisIdentifier[owners.length * 2];
-            System.arraycopy(owners, 0, nowners, 0, owners.length);
-            owners = nowners;
         }
 
         stamps[count] = stamp;
-        owners[count] = owner;
         count++;
     }
 
-    public boolean containsParentOf(int stamp, ibis.ipl.IbisIdentifier owner) {
+    public boolean containsParentOf(Stamp stamp) {
         for (int i = 0; i < count; i++) {
-            if (stamps[i] == stamp && owners[i].equals(owner)) {
+            if (stamps[i].stampEquals(stamp)) {
                 return true;
             }
         }
@@ -37,9 +28,9 @@ final class StampVector implements Config {
         return false;
     }
 
-    int getIndex(int stamp, IbisIdentifier owner) {
+    int getIndex(Stamp stamp) {
         for (int i = 0; i < count; i++) {
-            if (stamps[i] == stamp && owners[i].equals(owner)) {
+            if (stamps[i].stampEquals(stamp)) {
                 return i;
             }
         }
@@ -58,6 +49,5 @@ final class StampVector implements Config {
 
         count--;
         stamps[i] = stamps[count];
-        owners[i] = owners[count];
     }
 }

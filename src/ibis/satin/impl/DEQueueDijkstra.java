@@ -112,14 +112,14 @@ final class DEQueueDijkstra extends DEQueue implements Config {
     }
 
     /* hold the satin lock here! */
-    void killChildrenOf(int targetStamp, ibis.ipl.IbisIdentifier targetOwner) {
+    void killChildrenOf(Stamp targetStamp) {
         if (ASSERTS) {
             SatinBase.assertLocked(satin);
         }
 
         for (int i = tail; i < head; i++) {
             InvocationRecord curr = l[i];
-            if (Aborts.isDescendentOf(curr, targetStamp, targetOwner)) {
+            if (Aborts.isDescendentOf(curr, targetStamp)) {
                 if (abortLogger.isDebugEnabled()) {
                     abortLogger.debug("found local child: " + curr.stamp
                             + ", it depends on " + targetStamp);

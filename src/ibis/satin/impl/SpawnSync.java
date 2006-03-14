@@ -86,7 +86,7 @@ public abstract class SpawnSync extends Termination {
             }
 
             if (ABORTS && r.parent == null && parentOwner.equals(ident)
-                    && r.parentStamp != -1) {
+                    && r.parentStamp != null) {
                 spawnLogger.fatal("SATIN '" + ident
                         + ": parent is null for non-root, should not "
                         + "happen here! job = " + r, new Throwable());
@@ -214,7 +214,7 @@ public abstract class SpawnSync extends Termination {
 
     protected final void callSatinFunction(InvocationRecord r) {
         InvocationRecord oldParent = null;
-        int oldParentStamp = 0;
+        Stamp oldParentStamp = null;
         IbisIdentifier oldParentOwner = null;
 
         if (IDLE_TIMING && idleStarted) {
@@ -339,19 +339,7 @@ public abstract class SpawnSync extends Termination {
             spawns++;
         }
 
-        if (branchingFactor > 0) {
-            //globally unique stamps start from 1 (root job)
-
-            if (parentStamp > 0) {
-                r.stamp = branchingFactor * parentStamp + parent.numSpawned++;
-            } else {
-                //parent is the root
-                r.stamp = branchingFactor + rootNumSpawned++;
-            }
-        } else {
-            r.stamp = stampCounter++;
-        }
-
+        r.stamp = new Stamp(parentStamp);
         r.owner = ident;
 
         if (ENABLE_SPAWN_LOGGING && spawnLogger.isDebugEnabled()) {
@@ -370,7 +358,7 @@ public abstract class SpawnSync extends Termination {
              * i++) { r.parentStamps.add(parent.parentStamps.get(i));
              * r.parentOwners.add(parent.parentOwners.get(i)); } }
              * 
-             * r.parentStamps.add(new Integer(parentStamp));
+             * r.parentStamps.add(parentStamp);
              * r.parentOwners.add(parentOwner);
              */
         }

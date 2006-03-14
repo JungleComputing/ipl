@@ -11,7 +11,7 @@ public abstract class Inlets extends Aborts {
     // during this, prematurely send result messages.
     void handleInlet(InvocationRecord r) {
         InvocationRecord oldParent;
-        int oldParentStamp;
+        Stamp oldParentStamp;
         IbisIdentifier oldParentOwner;
 
         if (r.inletExecuted) {
@@ -98,7 +98,7 @@ public abstract class Inlets extends Aborts {
                 }
                 r.parent.aborted = true;
                 r.parent.eek = t; // rethrow exception
-                killChildrenOf(r.parent.stamp, r.parent.owner);
+                killChildrenOf(r.parent.stamp);
             }
 
             if (!r.parentOwner.equals(ident)) {
@@ -159,7 +159,7 @@ public abstract class Inlets extends Aborts {
             // the parent did not catch it, and must therefore die.
             r.parent.aborted = true;
             r.parent.eek = r.eek; // rethrow exception
-            killChildrenOf(r.parent.stamp, r.parent.owner);
+            killChildrenOf(r.parent.stamp);
         }
 
         if (!r.parentOwner.equals(ident)) {

@@ -72,16 +72,14 @@ public abstract class WorkStealing extends Stats {
             WriteMessage writeMessage = v.newMessage();
             if (r.eek == null) {
                 writeMessage.writeByte(Protocol.JOB_RESULT_NORMAL);
-                writeMessage.writeObject(r.owner);
                 writeMessage.writeObject(rr);		
             } else {
                 if (rr == null) {
                     r.alreadySentExceptionResult = true;
                 }
                 writeMessage.writeByte(Protocol.JOB_RESULT_EXCEPTION);
-                writeMessage.writeObject(r.owner);
                 writeMessage.writeObject(r.eek);
-		writeMessage.writeInt(r.stamp);
+		writeMessage.writeObject(r.stamp);
 		//writeMessage.writeInt(r.updateCounter.value);
 	    }
 
@@ -365,33 +363,22 @@ public abstract class WorkStealing extends Stats {
     }
 
     // hold the lock when calling this
-    protected InvocationRecord getStolenInvocationRecord(int stamp,
-            SendPortIdentifier sender, IbisIdentifier owner) {
+    protected InvocationRecord getStolenInvocationRecord(Stamp stamp) {
         if (ASSERTS) {
             assertLocked(this);
-            if (owner == null) {
-                stealLogger.fatal("SATIN '" + ident
-                        + "': owner is null in getStolenInvocationRecord");
-                System.exit(1);         // Failed assertion
-            }
-            if (!owner.equals(ident)) {
-                stealLogger.fatal("SATIN '" + ident
-                        + "': Removing wrong stamp!");
-                System.exit(1);         // Failed assertion
-            }
         }
-        return outstandingJobs.remove(stamp, owner);
+        return outstandingJobs.remove(stamp);
     }
 
-    synchronized void addJobResult(ReturnRecord rr, SendPortIdentifier sender,
-            IbisIdentifier i, Throwable eek, int stamp) {
+    synchronized void addJobResult(ReturnRecord rr, Throwable eek,
+            Stamp stamp) {
         receivedResults = true;
         InvocationRecord r = null;
 
         if (rr != null) {
-            r = getStolenInvocationRecord(rr.stamp, sender, i);
+            r = getStolenInvocationRecord(rr.stamp);
         } else {
-            r = getStolenInvocationRecord(stamp, sender, i);
+            r = getStolenInvocationRecord(stamp);
         }
 
         if (r != null) {

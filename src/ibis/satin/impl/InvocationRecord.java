@@ -22,11 +22,11 @@ public abstract class InvocationRecord implements java.io.Serializable, Config {
      * Used to locate this invocation record, when a remote
      * job result comes in.
      */
-    protected int stamp;
+    protected Stamp stamp;
 
     protected IbisIdentifier parentOwner;
 
-    protected int parentStamp;
+    protected Stamp parentStamp;
 
     protected transient InvocationRecord parent;
 
@@ -49,12 +49,6 @@ public abstract class InvocationRecord implements java.io.Serializable, Config {
      * List of children which need to be restarted, used for fault tolerance
      */
     public transient InvocationRecord toBeRestartedSibling;
-
-    /**
-     * Number of _all_ spawned children (not spawned and not finished like with
-     * spawnCounter) Used for generating globally unique stamps
-     */
-    public transient int numSpawned = 0;
 
     protected transient SpawnCounter spawnCounter;
 
@@ -135,7 +129,7 @@ public abstract class InvocationRecord implements java.io.Serializable, Config {
 
     final protected void clear() {
         owner = null;
-        stamp = -2;
+        stamp = null;
         spawnCounter = null;
 
         qprev = null;
@@ -147,7 +141,7 @@ public abstract class InvocationRecord implements java.io.Serializable, Config {
         if (ABORTS || FAULT_TOLERANCE) {
             eek = null;
             parentOwner = null;
-            parentStamp = -2;
+            parentStamp = null;
             parent = null;
             aborted = false;
             spawnId = -2;
@@ -161,7 +155,6 @@ public abstract class InvocationRecord implements java.io.Serializable, Config {
         }
 
         if (FAULT_TOLERANCE) {
-            numSpawned = 0;
             reDone = false;
             finishedChild = null;
             finishedSibling = null;
@@ -182,7 +175,7 @@ public abstract class InvocationRecord implements java.io.Serializable, Config {
         if (other == this) {
             return true;
         }
-        return stamp == other.stamp && owner.equals(other.owner);
+        return stamp.stampEquals(other.stamp) && owner.equals(other.owner);
     }
 
     /**
@@ -199,7 +192,7 @@ public abstract class InvocationRecord implements java.io.Serializable, Config {
         }
         if (o instanceof InvocationRecord) {
             InvocationRecord other = (InvocationRecord) o;
-            return stamp == other.stamp && owner.equals(other.owner);
+            return stamp.stampEquals(other.stamp) && owner.equals(other.owner);
         }
         if (Config.ASSERTS) {
             System.out.println("warning: weird equals in Invocationrecord");
@@ -213,7 +206,7 @@ public abstract class InvocationRecord implements java.io.Serializable, Config {
      * @return a hashcode.
      */
     final public int hashCode() {
-        return stamp;
+        return stamp.hashCode();
     }
 
     /**

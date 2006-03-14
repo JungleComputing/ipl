@@ -65,12 +65,12 @@ final class IRStack implements Config {
      * Observation: mostly, the jobs on the stack are children of eachother. In
      * the normal case, there is no need to run isDescendentOf all the time.
      */
-    void oldkillChildrenOf(int targetStamp, IbisIdentifier targetOwner) {
+    void oldkillChildrenOf(Stamp targetStamp) {
         InvocationRecord curr;
 
         for (int i = 0; i < count; i++) {
             curr = l[i];
-            if (Aborts.isDescendentOf(curr, targetStamp, targetOwner)) {
+            if (Aborts.isDescendentOf(curr, targetStamp)) {
                 curr.aborted = true;
                 s.abortedJobs++;
 
@@ -82,7 +82,7 @@ final class IRStack implements Config {
         }
     }
 
-    void killChildrenOf(int targetStamp, IbisIdentifier targetOwner) {
+    void killChildrenOf(Stamp targetStamp) {
         InvocationRecord curr;
 
         for (int i = 0; i < count; i++) {
@@ -92,7 +92,7 @@ final class IRStack implements Config {
             }
 
             if ((curr.parent != null && curr.parent.aborted)
-                    || Aborts.isDescendentOf(curr, targetStamp, targetOwner)) {
+                    || Aborts.isDescendentOf(curr, targetStamp)) {
                 // if(curr.parent != null && curr.parent.aborted) {
                 //     System.err.print("#");
                 // }
@@ -113,14 +113,14 @@ final class IRStack implements Config {
      * their finished children in the global result table
      */
 
-    void killAndStoreChildrenOf(int targetStamp, IbisIdentifier targetOwner) {
+    void killAndStoreChildrenOf(Stamp targetStamp) {
         InvocationRecord curr;
 
         for (int i = 0; i < count; i++) {
             curr = l[i];
 
             if ((curr.parent != null && curr.parent.aborted)
-                    || Aborts.isDescendentOf(curr, targetStamp, targetOwner)) {
+                    || Aborts.isDescendentOf(curr, targetStamp)) {
 
                 if (curr.aborted) {
                     continue;

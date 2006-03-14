@@ -193,8 +193,7 @@ public abstract class FaultTolerance extends Inlets {
 
             WriteMessage writeMessage = v.newMessage();
             writeMessage.writeByte(Protocol.ABORT_AND_STORE);
-            writeMessage.writeInt(r.parentStamp);
-            writeMessage.writeObject(r.parentOwner);
+            writeMessage.writeObject(r.parentStamp);
             long cnt = writeMessage.finish();
             if (STEAL_STATS) {
                 if (inDifferentCluster(r.stealer)) {
@@ -214,16 +213,16 @@ public abstract class FaultTolerance extends Inlets {
         }
     }
 
-    void killAndStoreChildrenOf(int targetStamp, IbisIdentifier targetOwner) {
+    void killAndStoreChildrenOf(Stamp targetStamp) {
         if (ASSERTS) {
             assertLocked(this);
         }
 
         // try work queue, outstanding jobs and jobs on the stack
         // but try stack first, many jobs in q are children of stack jobs
-        onStack.killAndStoreChildrenOf(targetStamp, targetOwner);
-        q.killChildrenOf(targetStamp, targetOwner);
-        outstandingJobs.killAndStoreChildrenOf(targetStamp, targetOwner);
+        onStack.killAndStoreChildrenOf(targetStamp);
+        q.killChildrenOf(targetStamp);
+        outstandingJobs.killAndStoreChildrenOf(targetStamp);
     }
 
     void killAndStoreSubtreeOf(IbisIdentifier targetOwner) {
@@ -423,11 +422,7 @@ public abstract class FaultTolerance extends Inlets {
 		        WriteMessage m = v.newMessage();
 		        m.writeByte(Protocol.RESULT_REQUEST);
 		        m.writeObject(key);
-		        m.writeInt(r.stamp); //stamp and owner are not
-		        // neccessary when using
-		        m.writeObject(r.owner);//globally unique stamps, but
-		        // let's not make things too
-		        // complicated..
+                        m.writeObject(r.stamp);
 		        m.finish();
 		    } catch (IOException e) {
 		        grtLogger.warn("SATIN '" + ident
@@ -474,33 +469,31 @@ public abstract class FaultTolerance extends Inlets {
     }
 
     // Used for fault tolerance
-    void addToAbortAndStoreList(int stamp, IbisIdentifier owner) {
+    void addToAbortAndStoreList(Stamp stamp) {
         if (ASSERTS) {
             assertLocked(this);
         }
         if (abortLogger.isDebugEnabled()) {
             abortLogger.debug("SATIN '" + ident + ": got abort message");
         }
-        abortAndStoreList.add(stamp, owner);
+        abortAndStoreList.add(stamp);
         gotAbortsAndStores = true;
     }
 
     // Used for fault tolerance
     synchronized void handleAbortsAndStores() {
-        int stamp;
-        IbisIdentifier owner;
+        Stamp stamp;
 
         while (true) {
             if (abortAndStoreList.count > 0) {
                 stamp = abortAndStoreList.stamps[0];
-                owner = abortAndStoreList.owners[0];
                 abortAndStoreList.removeIndex(0);
             } else {
                 gotAbortsAndStores = false;
                 return;
             }
 
-            killAndStoreChildrenOf(stamp, owner);
+            killAndStoreChildrenOf(stamp);
 
         }
     }

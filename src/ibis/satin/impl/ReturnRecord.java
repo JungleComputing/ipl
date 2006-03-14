@@ -10,7 +10,7 @@ package ibis.satin.impl;
  * parameters from being serialized and sent over the network twice.
  */
 public abstract class ReturnRecord implements java.io.Serializable {
-    protected int stamp;
+    protected Stamp  stamp;
 
     /**
      * The exception or error thrown by the spawned invocation. May (of course)

@@ -46,15 +46,14 @@ public abstract class Aborts extends WorkStealing {
                     abortLogger.debug("killing children of "
                             + exceptionThrower.parentStamp);
                 }
-                killChildrenOf(exceptionThrower.parentStamp,
-                        exceptionThrower.parentOwner);
+                killChildrenOf(exceptionThrower.parentStamp);
             }
 
             // now kill mine
             if (outstandingSpawns != null) {
-                int stamp;
+                Stamp stamp;
                 if (outstandingSpawns.parent == null) {
-                    stamp = -1;
+                    stamp = null;
                 } else {
                     stamp = outstandingSpawns.parent.stamp;
                 }
@@ -62,7 +61,7 @@ public abstract class Aborts extends WorkStealing {
                 if (abortLogger.isDebugEnabled()) {
                     abortLogger.debug("killing children of my own: " + stamp);
                 }
-                killChildrenOf(stamp, ident);
+                killChildrenOf(stamp);
             }
 
             if (abortLogger.isDebugEnabled()) {
@@ -73,7 +72,7 @@ public abstract class Aborts extends WorkStealing {
         }
     }
 
-    protected void killChildrenOf(int targetStamp, IbisIdentifier targetOwner) {
+    protected void killChildrenOf(Stamp targetStamp) {
         if (ABORT_TIMING) {
             abortTimer.start();
         }
@@ -92,9 +91,9 @@ public abstract class Aborts extends WorkStealing {
          */
         // try work queue, outstanding jobs and jobs on the stack
         // but try stack first, many jobs in q are children of stack jobs.
-        onStack.killChildrenOf(targetStamp, targetOwner);
-        q.killChildrenOf(targetStamp, targetOwner);
-        outstandingJobs.killChildrenOf(targetStamp, targetOwner);
+        onStack.killChildrenOf(targetStamp);
+        q.killChildrenOf(targetStamp);
+        outstandingJobs.killChildrenOf(targetStamp);
         /*
          *     if(abortedJobs == abortCount) {
          *         // no more jobs were removed.
@@ -118,17 +117,15 @@ public abstract class Aborts extends WorkStealing {
         outstandingJobs.killSubtreeOf(targetOwner);
     }
 
-    static boolean isDescendentOf(InvocationRecord child, int targetStamp,
-            IbisIdentifier targetOwner) {
-        if (child.parentStamp == targetStamp
-                && child.parentOwner.equals(targetOwner)) {
+    static boolean isDescendentOf(InvocationRecord child, Stamp targetStamp) {
+        if (child.parentStamp.stampEquals(targetStamp)) {
             return true;
         }
-        if (child.parent == null || child.parentStamp < 0) {
+        if (child.parent == null || child.parentStamp == null) {
             return false;
         }
 
-        return isDescendentOf(child.parent, targetStamp, targetOwner);
+        return isDescendentOf(child.parent, targetStamp);
     }
 
     static boolean isDescendentOf1(InvocationRecord child,
@@ -144,14 +141,13 @@ public abstract class Aborts extends WorkStealing {
     }
 
     /*
-     * static boolean isDescendentOf(InvocationRecord child, int targetStamp,
-     *         IbisIdentifier targetOwner) {
+     * static boolean isDescendentOf(InvocationRecord child, Stamp targetStamp) {
      *     for(int i = 0; i < child.parentStamps.size(); i++) {
-     *         int currStamp = ((Integer) child.parentStamps.get(i)).intValue();
+     *         Stamp currStamp = (Stamp) child.parentStamps.get(i);
      *         IbisIdentifier currOwner = (IbisIdentifier)
      *                 child.parentOwners.get(i);
      * 
-     *         if (currStamp == targetStamp && currOwner.equals(targetOwner)) {
+     *         if (currStamp.stampEquals(targetStamp)) {
      *             return true;
      *         }
      *     }
@@ -182,8 +178,7 @@ public abstract class Aborts extends WorkStealing {
 
             WriteMessage writeMessage = v.newMessage();
             writeMessage.writeByte(Protocol.ABORT);
-            writeMessage.writeInt(r.parentStamp);
-            writeMessage.writeObject(r.parentOwner);
+            writeMessage.writeObject(r.parentStamp);
             long cnt = writeMessage.finish();
             if (STEAL_STATS) {
                 if (inDifferentCluster(r.stealer)) {
@@ -204,25 +199,23 @@ public abstract class Aborts extends WorkStealing {
         }
     }
 
-    void addToAbortList(int stamp, IbisIdentifier owner) {
+    void addToAbortList(Stamp stamp) {
         if (ASSERTS) {
             assertLocked(this);
         }
         if (abortLogger.isDebugEnabled()) {
             abortLogger.debug("SATIN '" + ident + ": got abort message");
         }
-        abortList.add(stamp, owner);
+        abortList.add(stamp);
         gotAborts = true;
     }
 
     synchronized void handleAborts() {
-        int stamp;
-        IbisIdentifier owner;
+        Stamp stamp;
 
         while (true) {
             if (abortList.count > 0) {
                 stamp = abortList.stamps[0];
-                owner = abortList.owners[0];
                 abortList.removeIndex(0);
             } else {
                 gotAborts = false;
@@ -231,20 +224,19 @@ public abstract class Aborts extends WorkStealing {
 
             if (abortLogger.isDebugEnabled()) {
                 abortLogger.debug("SATIN '" + ident
-                        + ": handling abort message: stamp = " + stamp
-                        + ", owner = " + owner);
+                        + ": handling abort message: stamp = " + stamp);
             }
 
             if (ABORT_STATS) {
                 aborts++;
             }
 
-            killChildrenOf(stamp, owner);
+            killChildrenOf(stamp);
 
             if (abortLogger.isDebugEnabled()) {
                 abortLogger.debug("SATIN '" + ident
                         + ": handling abort message: stamp = " + stamp
-                        + ", owner = " + owner + " DONE");
+                        + " DONE");
             }
         }
     }

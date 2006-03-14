@@ -19,43 +19,42 @@ import java.util.Map;
 public class GlobalResultTable implements Upcall, Config {
 
     static class Key implements java.io.Serializable {
-        int stamp;
-
+        Stamp stamp;
         ParameterRecord parameters;
 
         Key(InvocationRecord r) {
-            if (SatinBase.this_satin.branchingFactor > 0) {
+            if (SatinBase.this_satin.grtUsesStamps) {
                 this.stamp = r.stamp;
                 this.parameters = null;
             } else {
-                this.stamp = -1;
+                this.stamp = null;
                 this.parameters = r.getParameterRecord();
             }
         }
 
         public boolean equals(Object other) {
             Key otherKey = (Key) other;
-            if (SatinBase.this_satin.branchingFactor > 0) {
-                return this.stamp == otherKey.stamp;
+            if (SatinBase.this_satin.grtUsesStamps) {
+                return this.stamp.stampEquals(otherKey.stamp);
             }
-			if (other == null) {
-			    return false;
-			}
-			return this.parameters.equals(otherKey.parameters);
+            if (other == null) {
+                return false;
+            }
+            return this.parameters.equals(otherKey.parameters);
         }
 
         public int hashCode() {
-            if (SatinBase.this_satin.branchingFactor > 0) {
-                return this.stamp;
+            if (SatinBase.this_satin.grtUsesStamps) {
+                return this.stamp.hashCode();
             }
-			return this.parameters.hashCode();
+            return this.parameters.hashCode();
         }
 
         public String toString() {
-            if (SatinBase.this_satin.branchingFactor > 0) {
-                return Integer.toString(stamp);
+            if (SatinBase.this_satin.grtUsesStamps) {
+                return stamp.toString();
             }
-			return parameters.toString();
+            return parameters.toString();
         }
     }
 
@@ -146,7 +145,7 @@ public class GlobalResultTable implements Upcall, Config {
         try {
             receive = satin.globalResultTablePortType.createReceivePort(
                     "satin global result table receive port on "
-                            + satin.ident.name(), this);
+                    + satin.ident.name(), this);
             // send = portType.createSendPort("satin global result table send "
             //                "port on " + satin.ident.name());
             receive.enableUpcalls();
@@ -160,8 +159,7 @@ public class GlobalResultTable implements Upcall, Config {
     }
 
     Value lookup(InvocationRecord r, boolean stats) {
-        Key key = new Key(r);
-        return lookup(key, stats);
+        return lookup(new Key(r), stats);
     }
 
     Value lookup(Key key, boolean stats) {
@@ -178,7 +176,7 @@ public class GlobalResultTable implements Upcall, Config {
 
         if (grtLogger.isDebugEnabled() && value != null) {
             grtLogger.debug("SATIN '" + satin.ident
-                        + "': lookup successful " + key);
+                    + "': lookup successful " + key);
         }
         if (GRT_STATS && stats) {
             if (value != null) {
@@ -191,481 +189,480 @@ public class GlobalResultTable implements Upcall, Config {
                 } else {
                     numLookupsSucceded++;
                 }
-            }
-            numLookups++;
-        }
-
-        if (GRT_TIMING) {
-            satin.lookupTimer.stop();
-        }
-
-        return value;
-    }
-
-    void storeResult(InvocationRecord r) {
-        Key key = new Key(r);
-        Value value = new Value(Value.TYPE_RESULT, r);
-        update(key, value);
-    }
-
-    void storeLock(InvocationRecord r) {
-        Key key = new Key(r);
-        Value value = new Value(Value.TYPE_LOCK, null);
-        update(key, value);
-    }
-
-    void update(Key key, Value value) {
-        Timer updateTimer = null;
-        Timer tableSerializationTimer = null;
-
-        if (GRT_TIMING) {
-            updateTimer = satin.createTimer();
-            updateTimer.start();
-        }
-
-        if (ASSERTS) {
-            SatinBase.assertLocked(satin);
-        }
-
-        Object oldValue = entries.get(key);
-        /* if (entries.size() < max) */entries.put(key, value);
-        if (GRT_STATS) {
-            if (entries.size() > maxNumEntries) {
-                maxNumEntries = entries.size();
-            }
-        }
-
-        if (numReplicas > 0 && oldValue == null) {
-            if (GRT_MESSAGE_COMBINING) {
-                if (GLOBAL_RESULT_TABLE_REPLICATED) {
-                    toSend.put(key, value);
-                } else {
-                    toSend.put(key, pointerValue);
                 }
-                satin.updatesToSend = true;
-            } else {
-                if (grtLogger.isInfoEnabled()) {
-                    grtLogger.info("SATIN '" + satin.ident
-                            + "': sending update: " + key + "," + value);
-                }
-
-                //send an update message
-                Iterator sendIter = sends.entrySet().iterator();
-                long size = 0;
-//                int i = 0;
-                while (sendIter.hasNext()) {
-                    Map.Entry entry = (Map.Entry) sendIter.next();
-                    Victim send = (Victim) entry.getValue();
-                    WriteMessage m = null;
-
-                    try {
-                        m = send.newMessage();
-                    } catch (IOException e) {
-                        continue;
-                        //always happens after a crash
-                    }
-
-                    if (GRT_TIMING) {
-                        tableSerializationTimer = satin.createTimer();
-                        tableSerializationTimer.start();
-                    }
-                    try {
-                        m.writeObject(key);
-
-                        if (GLOBAL_RESULT_TABLE_REPLICATED) {
-                            m.writeObject(value);
-                        } else {
-                            m.writeObject(pointerValue);
-                            //m.writeObject(satin.ident);
-                        }
-                    } catch (IOException e) {
-                        //always happens after a crash
-                    }
-
-                    if (GRT_TIMING) {
-                        tableSerializationTimer.stop();
-                        satin.tableSerializationTimer.add(
-                                tableSerializationTimer);
-                    }
-                    try {
-                        size = m.finish();
-
-                        if (grtLogger.isDebugEnabled()) {
-                            grtLogger.debug("SATIN '" + satin.ident
-                                    + "': " + size + " sent in "
-                                    + satin.tableSerializationTimer.lastTimeVal()
-                                    + " to " + entry.getKey());
-                        }
-
-                    } catch (IOException e) {
-                        //always happens after a crash
-                    }
-
-                }
-
-                numUpdateMessages++;
-
-                //send an update message
-                /*
-                 * try {
-                 *     WriteMessage m = send.newMessage();
-                 *     m.writeObject(key);
-                 *     m.writeObject(value);
-                 *     m.finish();
-                 * } catch (IOException e) {
-                 *     //always happens after the crash
-                 * }
-                 */
-                if (grtLogger.isInfoEnabled()) {
-                    grtLogger.info("SATIN '" + satin.ident
-                            + "': update sent: " + key + "," + value);
-                }
-            }
-
-        }
-        if (GRT_STATS) {
-            if (value.type == Value.TYPE_RESULT) {
-                numResultUpdates++;
-            }
-            if (value.type == Value.TYPE_LOCK) {
-                numLockUpdates++;
-            }
-        }
-        if (grtLogger.isDebugEnabled()) {
-            grtLogger.debug("SATIN '" + satin.ident
-                + "': update complete: " + key + "," + value);
-        }
-
-        if (GRT_TIMING) {
-            updateTimer.stop();
-            satin.updateTimer.add(updateTimer);
-        }
-
-    }
-
-    void updateAll(Map updates) {
-
-        if (ASSERTS) {
-            SatinBase.assertLocked(satin);
-        }
-
-        if (GRT_TIMING) {
-            satin.updateTimer.start();
-        }
-
-        entries.putAll(updates);
-        toSend.putAll(updates);
-
-        if (GRT_STATS) {
-            numResultUpdates += updates.size();
-        }
-
-        if (GRT_TIMING) {
-            satin.updateTimer.stop();
-        }
-
-        satin.updatesToSend = true;
-
-    }
-
-    void sendUpdates() {
-        Timer updateTimer = null;
-        Timer tableSerializationTimer = null;
-
-        if (ASSERTS && !GRT_MESSAGE_COMBINING) {
-            grtLogger.error("SATIN '" + satin.ident
-                    + "': EEK send updates with GRT_MESSAGE_COMBINING off!");
-            return;
-        }
-        /*
-         * if (ASSERTS) {
-         *     satin.assertLocked(satin);
-         * }
-         */
-
-        satin.updatesToSend = false;
-
-        if (toSend.size() == 0) {
-            return;
-        }
-
-        if (GRT_TIMING) {
-            updateTimer = satin.createTimer();
-            updateTimer.start();
-        }
-
-        Iterator sendIter = sends.entrySet().iterator();
-
-        while (sendIter.hasNext()) {
-            Map.Entry entry = (Map.Entry) sendIter.next();
-            Victim send = (Victim) entry.getValue();
-            WriteMessage m = null;
-
-            try {
-                m = send.newMessage();
-            } catch (IOException e) {
-                grtLogger.info("Got exception in newMessage()", e);
-                continue;
-                //always happens after a crash
+                numLookups++;
             }
 
             if (GRT_TIMING) {
-                tableSerializationTimer = satin.createTimer();
-                tableSerializationTimer.start();
+                satin.lookupTimer.stop();
             }
-            try {
 
-                m.writeObject(toSend);
+            return value;
+        }
 
-            } catch (IOException e) {
-                grtLogger.info("Got exception in writeObject()", e);
-                //always happens after a crash
-            }
+        void storeResult(InvocationRecord r) {
+            Value value = new Value(Value.TYPE_RESULT, r);
+            update(new Key(r), value);
+        }
+
+        void storeLock(InvocationRecord r) {
+            Key key = new Key(r);
+            Value value = new Value(Value.TYPE_LOCK, null);
+            update(key, value);
+        }
+
+        void update(Key key, Value value) {
+            Timer updateTimer = null;
+            Timer tableSerializationTimer = null;
 
             if (GRT_TIMING) {
-                tableSerializationTimer.stop();
-                satin.tableSerializationTimer.add(tableSerializationTimer);
+                updateTimer = satin.createTimer();
+                updateTimer.start();
             }
 
-            try {
-                long size = m.finish();
-
-                if (grtLogger.isDebugEnabled()) {
-                    grtLogger.debug("SATIN '" + satin.ident + "': "
-                            + size + " sent in "
-                            + satin.tableSerializationTimer.lastTimeVal()
-                            + " to " + entry.getKey());
-                }
-
-            } catch (IOException e) {
-                grtLogger.info("Got exception in finish()");
-                //always happens after a crash
+            if (ASSERTS) {
+                SatinBase.assertLocked(satin);
             }
 
-        }
-
-        numUpdateMessages++;
-
-        if (GRT_TIMING) {
-            updateTimer.stop();
-            satin.updateTimer.add(updateTimer);
-        }
-
-    }
-
-    //returns ready to send contents of the table
-    Map getContents() {
-        if (ASSERTS) {
-            SatinBase.assertLocked(satin);
-        }
-
-        if (GLOBAL_RESULT_TABLE_REPLICATED) {
-            return (Map) ((Hashtable) entries).clone();
-        }
-		//replace "real" results with pointer values
-		Map newEntries = new Hashtable();
-		Iterator iter = entries.entrySet().iterator();
-		while (iter.hasNext()) {
-		    Map.Entry element = (Map.Entry) iter.next();
-		    Value value = (Value) element.getValue();
-		    Key key = (Key) element.getKey();
-		    switch (value.type) {
-		    case Value.TYPE_RESULT:
-		    case Value.TYPE_LOCK:
-		        newEntries.put(key, pointerValue);
-		        break;
-		    case Value.TYPE_POINTER:
-		        newEntries.put(key, value);
-		        break;
-		    default:
-		        grtLogger.error("SATIN '" + satin.ident
-		                + "': EEK invalid value type in getContents()");
-		    }
-		}
-		return newEntries;
-    }
-
-    void addContents(Map contents) {
-        if (ASSERTS) {
-            SatinBase.assertLocked(satin);
-        }
-
-        if (grtLogger.isDebugEnabled()) {
-            grtLogger.debug("adding contents");
-        }
-
-        entries.putAll(contents);
-
-        if (GRT_STATS) {
-            if (entries.size() > maxNumEntries) {
-                maxNumEntries = entries.size();
-            }
-        }
-
-    }
-
-    void addReplica(IbisIdentifier ident) {
-        if (ASSERTS) {
-            SatinBase.assertLocked(satin);
-        }
-
-        try {
-            SendPort send = satin.globalResultTablePortType.createSendPort(
-                    "satin global result table send port on "
-                    + satin.ident.name() + System.currentTimeMillis());
-            ReceivePortIdentifier r = null;
-            r = satin.lookup("satin global result table receive port on "
-                    + ident.name());
-            if (! SCALABLE) {
-                if (Communication.connect(send, r, SatinBase.connectTimeout)) {
-                    numReplicas++;
-                    sends.put(ident, new Victim(ident, send, r));
-                } else {
-                    grtLogger.error("SATN '" + satin.ident
-                            + "': Transpositon table - unable to add new replica");
-                }
-            } else {
-                numReplicas++;
-                sends.put(ident, new Victim(ident, send, r));
-            }
-        } catch (IOException e) {
-            grtLogger.error("SATN '" + satin.ident
-                    + "': Transpositon table - unable to add new replica", e);
-        }
-
-    }
-
-    void removeReplica(IbisIdentifier ident) {
-        if (ASSERTS) {
-            SatinBase.assertLocked(satin);
-        }
-
-        Victim send = (Victim) sends.remove(ident);
-
-        if (send != null) {
-            try {
-                send.close();
-            } catch(IOException e) {
-                // ignored
-            }
-            numReplicas--;
-        }
-
-    }
-
-    void exit() {
-        try {
-            synchronized (satin) {
-                if (numReplicas > 0) {
-                    Iterator sendIter = sends.values().iterator();
-                    while (sendIter.hasNext()) {
-                        Victim send = (Victim) sendIter.next();
-                        send.close();
-                    }
-                }
-                // send.close();
-            }
-            receive.close();
-        } catch (IOException e) {
-            grtLogger.error("SATIN '" + satin.ident
-                    + "': Unable to free global result table ports", e);
-        }
-    }
-
-    public void upcall(ReadMessage m) {
-        Map map = null;
-        Key key = null;
-        Value value = null;
-        Timer handleUpdateTimer = null;
-        Timer tableDeserializationTimer = null;
-
-        if (GRT_TIMING) {
-            handleUpdateTimer = satin.createTimer();
-            handleUpdateTimer.start();
-        }
-
-        if (GRT_TIMING) {
-            tableDeserializationTimer = satin.createTimer();
-            tableDeserializationTimer.start();
-        }
-
-        try {
-
-            if (GRT_MESSAGE_COMBINING) {
-                map = (Map) m.readObject();
-            } else {
-                key = (Key) m.readObject();
-                value = (Value) m.readObject();
-                //IbisIdentifier ident = (IbisIdentifier) m.readObject();
-                //Value value = new Value(Value.TYPE_POINTER, null);
-                //value.owner = ident;
-            }
-
-        } catch (IOException e) {
-            grtLogger.error("SATIN '" + satin.ident
-                    + "': Global result table - error reading message", e);
-        } catch (ClassNotFoundException e1) {
-            grtLogger.error("SATIN '" + satin.ident
-                    + "': Global result table - error reading message", e1);
-        }
-
-        if (GRT_TIMING) {
-            tableDeserializationTimer.stop();
-            satin.tableDeserializationTimer.add(tableDeserializationTimer);
-        }
-
-        try {
-            m.finish();
-        } catch (IOException e) {
-            //ignore
-        }
-
-        synchronized (satin) {
-            if (GRT_MESSAGE_COMBINING) {
-                if (map != null) {
-                    entries.putAll(map);
-                }
-            } else {
-                if (key != null && value != null) {
-                    /* if (entries.size() < max) */entries.put(key, value);
-                }
-            }
+            Object oldValue = entries.get(key);
+            /* if (entries.size() < max) */entries.put(key, value);
             if (GRT_STATS) {
                 if (entries.size() > maxNumEntries) {
                     maxNumEntries = entries.size();
                 }
             }
-        }
 
-        if (grtLogger.isDebugEnabled()) {
-            if (GRT_MESSAGE_COMBINING) {
-                grtLogger.debug("SATIN '" + satin.ident
-                        + "': upcall finished: " + entries.size());
-            } else {
-                grtLogger.debug("SATIN '" + satin.ident
-                        + "': upcall finished:" + key + "," + value + ","
-                        + entries.size());
+            if (numReplicas > 0 && oldValue == null) {
+                if (GRT_MESSAGE_COMBINING) {
+                    if (GLOBAL_RESULT_TABLE_REPLICATED) {
+                        toSend.put(key, value);
+                    } else {
+                        toSend.put(key, pointerValue);
+                    }
+                    satin.updatesToSend = true;
+                } else {
+                    if (grtLogger.isInfoEnabled()) {
+                        grtLogger.info("SATIN '" + satin.ident
+                                + "': sending update: " + key + "," + value);
+                    }
+
+                    //send an update message
+                    Iterator sendIter = sends.entrySet().iterator();
+                    long size = 0;
+                    //                int i = 0;
+                    while (sendIter.hasNext()) {
+                        Map.Entry entry = (Map.Entry) sendIter.next();
+                        Victim send = (Victim) entry.getValue();
+                        WriteMessage m = null;
+
+                        try {
+                            m = send.newMessage();
+                        } catch (IOException e) {
+                            continue;
+                            //always happens after a crash
+                        }
+
+                        if (GRT_TIMING) {
+                            tableSerializationTimer = satin.createTimer();
+                            tableSerializationTimer.start();
+                        }
+                        try {
+                            m.writeObject(key);
+
+                            if (GLOBAL_RESULT_TABLE_REPLICATED) {
+                                m.writeObject(value);
+                            } else {
+                                m.writeObject(pointerValue);
+                                //m.writeObject(satin.ident);
+                            }
+                        } catch (IOException e) {
+                            //always happens after a crash
+                        }
+
+                        if (GRT_TIMING) {
+                            tableSerializationTimer.stop();
+                            satin.tableSerializationTimer.add(
+                                    tableSerializationTimer);
+                        }
+                        try {
+                            size = m.finish();
+
+                            if (grtLogger.isDebugEnabled()) {
+                                grtLogger.debug("SATIN '" + satin.ident
+                                        + "': " + size + " sent in "
+                                        + satin.tableSerializationTimer.lastTimeVal()
+                                        + " to " + entry.getKey());
+                            }
+
+                        } catch (IOException e) {
+                            //always happens after a crash
+                        }
+
+                    }
+
+                    numUpdateMessages++;
+
+                    //send an update message
+                    /*
+                     * try {
+                     *     WriteMessage m = send.newMessage();
+                     *     m.writeObject(key);
+                     *     m.writeObject(value);
+                     *     m.finish();
+                     * } catch (IOException e) {
+                     *     //always happens after the crash
+                     * }
+                     */
+                    if (grtLogger.isInfoEnabled()) {
+                        grtLogger.info("SATIN '" + satin.ident
+                                + "': update sent: " + key + "," + value);
+                    }
+                }
+
             }
+            if (GRT_STATS) {
+                if (value.type == Value.TYPE_RESULT) {
+                    numResultUpdates++;
+                }
+                if (value.type == Value.TYPE_LOCK) {
+                    numLockUpdates++;
+                }
+            }
+            if (grtLogger.isDebugEnabled()) {
+                grtLogger.debug("SATIN '" + satin.ident
+                        + "': update complete: " + key + "," + value);
+            }
+
+            if (GRT_TIMING) {
+                updateTimer.stop();
+                satin.updateTimer.add(updateTimer);
+            }
+
         }
 
-        if (GRT_TIMING) {
-            handleUpdateTimer.stop();
-            satin.handleUpdateTimer.add(handleUpdateTimer);
-        }
-    }
+        void updateAll(Map updates) {
 
-    public void print(java.io.PrintStream out) {
-        synchronized (satin) {
-            out.println("=GRT: " + satin.ident + "=");
-            int i = 0;
+            if (ASSERTS) {
+                SatinBase.assertLocked(satin);
+            }
+
+            if (GRT_TIMING) {
+                satin.updateTimer.start();
+            }
+
+            entries.putAll(updates);
+            toSend.putAll(updates);
+
+            if (GRT_STATS) {
+                numResultUpdates += updates.size();
+            }
+
+            if (GRT_TIMING) {
+                satin.updateTimer.stop();
+            }
+
+            satin.updatesToSend = true;
+
+        }
+
+        void sendUpdates() {
+            Timer updateTimer = null;
+            Timer tableSerializationTimer = null;
+
+            if (ASSERTS && !GRT_MESSAGE_COMBINING) {
+                grtLogger.error("SATIN '" + satin.ident
+                        + "': EEK send updates with GRT_MESSAGE_COMBINING off!");
+                return;
+            }
+            /*
+             * if (ASSERTS) {
+             *     satin.assertLocked(satin);
+             * }
+             */
+
+            satin.updatesToSend = false;
+
+            if (toSend.size() == 0) {
+                return;
+            }
+
+            if (GRT_TIMING) {
+                updateTimer = satin.createTimer();
+                updateTimer.start();
+            }
+
+            Iterator sendIter = sends.entrySet().iterator();
+
+            while (sendIter.hasNext()) {
+                Map.Entry entry = (Map.Entry) sendIter.next();
+                Victim send = (Victim) entry.getValue();
+                WriteMessage m = null;
+
+                try {
+                    m = send.newMessage();
+                } catch (IOException e) {
+                    grtLogger.info("Got exception in newMessage()", e);
+                    continue;
+                    //always happens after a crash
+                }
+
+                if (GRT_TIMING) {
+                    tableSerializationTimer = satin.createTimer();
+                    tableSerializationTimer.start();
+                }
+                try {
+
+                    m.writeObject(toSend);
+
+                } catch (IOException e) {
+                    grtLogger.info("Got exception in writeObject()", e);
+                    //always happens after a crash
+                }
+
+                if (GRT_TIMING) {
+                    tableSerializationTimer.stop();
+                    satin.tableSerializationTimer.add(tableSerializationTimer);
+                }
+
+                try {
+                    long size = m.finish();
+
+                    if (grtLogger.isDebugEnabled()) {
+                        grtLogger.debug("SATIN '" + satin.ident + "': "
+                                + size + " sent in "
+                                + satin.tableSerializationTimer.lastTimeVal()
+                                + " to " + entry.getKey());
+                    }
+
+                } catch (IOException e) {
+                    grtLogger.info("Got exception in finish()");
+                    //always happens after a crash
+                }
+
+            }
+
+            numUpdateMessages++;
+
+            if (GRT_TIMING) {
+                updateTimer.stop();
+                satin.updateTimer.add(updateTimer);
+            }
+
+        }
+
+        //returns ready to send contents of the table
+        Map getContents() {
+            if (ASSERTS) {
+                SatinBase.assertLocked(satin);
+            }
+
+            if (GLOBAL_RESULT_TABLE_REPLICATED) {
+                return (Map) ((Hashtable) entries).clone();
+            }
+            //replace "real" results with pointer values
+            Map newEntries = new Hashtable();
             Iterator iter = entries.entrySet().iterator();
             while (iter.hasNext()) {
-                Map.Entry entry = (Map.Entry) iter.next();
-                out.println("GRT[" + i + "]= " + entry.getKey() + ";"
-                        + entry.getValue());
-                i++;
+                Map.Entry element = (Map.Entry) iter.next();
+                Value value = (Value) element.getValue();
+                Key key = (Key) element.getKey();
+                switch (value.type) {
+                case Value.TYPE_RESULT:
+                case Value.TYPE_LOCK:
+                    newEntries.put(key, pointerValue);
+                    break;
+                case Value.TYPE_POINTER:
+                    newEntries.put(key, value);
+                    break;
+                default:
+                    grtLogger.error("SATIN '" + satin.ident
+                            + "': EEK invalid value type in getContents()");
+                }
             }
-            out.println("=end of GRT " + satin.ident + "=");
+            return newEntries;
+        }
+
+        void addContents(Map contents) {
+            if (ASSERTS) {
+                SatinBase.assertLocked(satin);
+            }
+
+            if (grtLogger.isDebugEnabled()) {
+                grtLogger.debug("adding contents");
+            }
+
+            entries.putAll(contents);
+
+            if (GRT_STATS) {
+                if (entries.size() > maxNumEntries) {
+                    maxNumEntries = entries.size();
+                }
+            }
+
+        }
+
+        void addReplica(IbisIdentifier ident) {
+            if (ASSERTS) {
+                SatinBase.assertLocked(satin);
+            }
+
+            try {
+                SendPort send = satin.globalResultTablePortType.createSendPort(
+                        "satin global result table send port on "
+                        + satin.ident.name() + System.currentTimeMillis());
+                ReceivePortIdentifier r = null;
+                r = satin.lookup("satin global result table receive port on "
+                        + ident.name());
+                if (! SCALABLE) {
+                    if (Communication.connect(send, r, SatinBase.connectTimeout)) {
+                        numReplicas++;
+                        sends.put(ident, new Victim(ident, send, r));
+                    } else {
+                        grtLogger.error("SATN '" + satin.ident
+                                + "': Transpositon table - unable to add new replica");
+                    }
+                } else {
+                    numReplicas++;
+                    sends.put(ident, new Victim(ident, send, r));
+                }
+            } catch (IOException e) {
+                grtLogger.error("SATN '" + satin.ident
+                        + "': Transpositon table - unable to add new replica", e);
+            }
+
+        }
+
+        void removeReplica(IbisIdentifier ident) {
+            if (ASSERTS) {
+                SatinBase.assertLocked(satin);
+            }
+
+            Victim send = (Victim) sends.remove(ident);
+
+            if (send != null) {
+                try {
+                    send.close();
+                } catch(IOException e) {
+                    // ignored
+                }
+                numReplicas--;
+            }
+
+        }
+
+        void exit() {
+            try {
+                synchronized (satin) {
+                    if (numReplicas > 0) {
+                        Iterator sendIter = sends.values().iterator();
+                        while (sendIter.hasNext()) {
+                            Victim send = (Victim) sendIter.next();
+                            send.close();
+                        }
+                    }
+                    // send.close();
+                }
+                receive.close();
+            } catch (IOException e) {
+                grtLogger.error("SATIN '" + satin.ident
+                        + "': Unable to free global result table ports", e);
+            }
+        }
+
+        public void upcall(ReadMessage m) {
+            Map map = null;
+            Key key = null;
+            Value value = null;
+            Timer handleUpdateTimer = null;
+            Timer tableDeserializationTimer = null;
+
+            if (GRT_TIMING) {
+                handleUpdateTimer = satin.createTimer();
+                handleUpdateTimer.start();
+            }
+
+            if (GRT_TIMING) {
+                tableDeserializationTimer = satin.createTimer();
+                tableDeserializationTimer.start();
+            }
+
+            try {
+
+                if (GRT_MESSAGE_COMBINING) {
+                    map = (Map) m.readObject();
+                } else {
+                    key = (Key) m.readObject();
+                    value = (Value) m.readObject();
+                    //IbisIdentifier ident = (IbisIdentifier) m.readObject();
+                    //Value value = new Value(Value.TYPE_POINTER, null);
+                    //value.owner = ident;
+                }
+
+            } catch (IOException e) {
+                grtLogger.error("SATIN '" + satin.ident
+                        + "': Global result table - error reading message", e);
+            } catch (ClassNotFoundException e1) {
+                grtLogger.error("SATIN '" + satin.ident
+                        + "': Global result table - error reading message", e1);
+            }
+
+            if (GRT_TIMING) {
+                tableDeserializationTimer.stop();
+                satin.tableDeserializationTimer.add(tableDeserializationTimer);
+            }
+
+            try {
+                m.finish();
+            } catch (IOException e) {
+                //ignore
+            }
+
+            synchronized (satin) {
+                if (GRT_MESSAGE_COMBINING) {
+                    if (map != null) {
+                        entries.putAll(map);
+                    }
+                } else {
+                    if (key != null && value != null) {
+                        /* if (entries.size() < max) */entries.put(key, value);
+                    }
+                }
+                if (GRT_STATS) {
+                    if (entries.size() > maxNumEntries) {
+                        maxNumEntries = entries.size();
+                    }
+                }
+            }
+
+            if (grtLogger.isDebugEnabled()) {
+                if (GRT_MESSAGE_COMBINING) {
+                    grtLogger.debug("SATIN '" + satin.ident
+                            + "': upcall finished: " + entries.size());
+                } else {
+                    grtLogger.debug("SATIN '" + satin.ident
+                            + "': upcall finished:" + key + "," + value + ","
+                            + entries.size());
+                }
+            }
+
+            if (GRT_TIMING) {
+                handleUpdateTimer.stop();
+                satin.handleUpdateTimer.add(handleUpdateTimer);
+            }
+        }
+
+        public void print(java.io.PrintStream out) {
+            synchronized (satin) {
+                out.println("=GRT: " + satin.ident + "=");
+                int i = 0;
+                Iterator iter = entries.entrySet().iterator();
+                while (iter.hasNext()) {
+                    Map.Entry entry = (Map.Entry) iter.next();
+                    out.println("GRT[" + i + "]= " + entry.getKey() + ";"
+                            + entry.getValue());
+                    i++;
+                }
+                out.println("=end of GRT " + satin.ident + "=");
+            }
         }
     }
-}

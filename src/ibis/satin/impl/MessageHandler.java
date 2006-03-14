@@ -21,13 +21,10 @@ final class MessageHandler implements Upcall, Protocol, Config {
     }
 
     void handleAbort(ReadMessage m) {
-        int stamp = -1;
-        IbisIdentifier owner = null;
         try {
-            stamp = m.readInt();
-            owner = (IbisIdentifier) m.readObject();
+            Stamp stamp = (Stamp) m.readObject();
             synchronized (satin) {
-                satin.addToAbortList(stamp, owner);
+                satin.addToAbortList(stamp);
             }
             // m.finish();
         } catch (IOException e) {
@@ -43,13 +40,10 @@ final class MessageHandler implements Upcall, Protocol, Config {
      * Used for fault tolerance
      */
     void handleAbortAndStore(ReadMessage m) {
-        int stamp = -1;
-        IbisIdentifier owner = null;
         try {
-            stamp = m.readInt();
-            owner = (IbisIdentifier) m.readObject();
+            Stamp stamp = (Stamp) m.readObject();
             synchronized (satin) {
-                satin.addToAbortAndStoreList(stamp, owner);
+                satin.addToAbortAndStoreList(stamp);
             }
             // m.finish();
         } catch (IOException e) {
@@ -63,9 +57,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
 
     void handleJobResult(ReadMessage m, int opcode) {
         ReturnRecord rr = null;
-        SendPortIdentifier sender = m.origin();
-        IbisIdentifier i = null;
-        int stamp = -666;
+        Stamp stamp = null;
         Throwable eek = null;
         Timer returnRecordReadTimer = null;
         boolean gotException = false;
@@ -80,14 +72,13 @@ final class MessageHandler implements Upcall, Protocol, Config {
             returnRecordReadTimer.start();
         }
         try {
-            i = (IbisIdentifier) m.readObject();
             if (opcode == JOB_RESULT_NORMAL) {
                 rr = (ReturnRecord) m.readObject();
                 stamp = rr.stamp;
                 eek = rr.eek;
             } else {
                 eek = (Throwable) m.readObject();
-                stamp = m.readInt();
+                stamp = (Stamp) m.readObject();
             }
             // m.finish();
         } catch (IOException e) {
@@ -124,7 +115,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
             }
         }
 
-        satin.addJobResult(rr, sender, i, eek, stamp);
+        satin.addJobResult(rr, eek, stamp);
     }
 
     /*
@@ -589,11 +580,7 @@ final class MessageHandler implements Upcall, Protocol, Config {
             }
 
             GlobalResultTable.Key key = (GlobalResultTable.Key) m.readObject();
-
-            int stamp = m.readInt();
-
-            //leave it out if you make globally unique stamps
-            IbisIdentifier owner = (IbisIdentifier) m.readObject();
+            Stamp stamp = (Stamp) m.readObject();
 
             IbisIdentifier ident = m.origin().ibis();
 
@@ -649,8 +636,6 @@ final class MessageHandler implements Upcall, Protocol, Config {
             value.result.stamp = stamp;
             WriteMessage w = v.newMessage();
             w.writeByte(Protocol.JOB_RESULT_NORMAL);
-            w.writeObject(owner);
-            //leave it out if you make globally unique stamps
             w.writeObject(value.result);
             w.finish();
         } catch (IOException e) {

@@ -2081,8 +2081,6 @@ public final class Satinc {
                 out.println("package " + packageName + ";");
             }
 
-            out.println("import ibis.satin.impl.*;");
-
             name = localRecordClassName(m);
 
             out.println("public final class " + name
@@ -2192,8 +2190,8 @@ public final class Satinc {
             out.println("    public void handleException(int spawnId, "
                     + "Throwable t, ibis.satin.impl.InvocationRecord parent) "
                     + "throws Throwable {");
-            out.println("        if (Config.inletLogger.isDebugEnabled()) {");
-            out.println("            Config.inletLogger.debug("
+            out.println("        if (ibis.satin.impl.Config.inletLogger.isDebugEnabled()) {");
+            out.println("            ibis.satin.impl.Config.inletLogger.debug("
                     + "\"handleE: spawnId = \" + spawnId + "
                     + "\", t = \" + t + \", parent = \" + parent + \", "
                     + "this = \" + this);");
@@ -2273,12 +2271,10 @@ public final class Satinc {
                 out.println("package " + pnam + ";");
             }
 
-            out.println("import ibis.satin.impl.*;\n");
-            out.println("import ibis.satin.*;\n");
-
             name = invocationRecordClassName(m, clname, pnam);
 
-            out.println("public final class " + name + " extends InvocationRecord {");
+            out.println("public final class " + name
+                    + " extends ibis.satin.impl.InvocationRecord {");
 
             // fields 
             out.println("    public " + clname + " self;");
@@ -2314,8 +2310,9 @@ public final class Satinc {
             for (int i = 0; i < params_types_as_names.length; i++) {
                 out.print(params_types_as_names[i] + " param" + i + ", ");
             }
-            out.println("SpawnCounter s, InvocationRecord next, int storeId, "
-                    + "int spawnId, LocalRecord parentLocals) {");
+            out.println("ibis.satin.impl.SpawnCounter s, "
+                    + "ibis.satin.impl.InvocationRecord next, int storeId, "
+                    + "int spawnId, ibis.satin.impl.LocalRecord parentLocals) {");
             out.println("        super(s, next, storeId, spawnId, "
                     + "parentLocals);");
             out.println("        this.self = self;");
@@ -2337,8 +2334,9 @@ public final class Satinc {
             for (int i = 0; i < params_types_as_names.length; i++) {
                 out.print(params_types_as_names[i] + " param" + i + ", ");
             }
-            out.println("SpawnCounter s, InvocationRecord next, int storeId, "
-                    + "int spawnId, LocalRecord parentLocals) {");
+            out.println("ibis.satin.impl.SpawnCounter s, "
+                    + "ibis.satin.impl.InvocationRecord next, int storeId, "
+                    + "int spawnId, ibis.satin.impl.LocalRecord parentLocals) {");
 
             if (invocationRecordCache) {
                 out.println("        if (invocationRecordCache == null) {");
@@ -2390,9 +2388,10 @@ public final class Satinc {
                 for (int i = 0; i < params_types_as_names.length; i++) {
                     out.print(params_types_as_names[i] + " param" + i + ", ");
                 }
-                out.println("SpawnCounter s, InvocationRecord next, "
+                out.println("ibis.satin.impl.SpawnCounter s, "
+                        + "ibis.satin.impl.InvocationRecord next, "
                         + "int storeId, int spawnId, "
-                        + "LocalRecord parentLocals) {");
+                        + "ibis.satin.impl.LocalRecord parentLocals) {");
                 out.print("            " + name + " res = getNew(self, ");
                 for (int i = 0; i < params_types_as_names.length; i++) {
                     out.print(" param" + i + ", ");
@@ -2413,9 +2412,10 @@ public final class Satinc {
                 for (int i = 0; i < params_types_as_names.length; i++) {
                     out.print(params_types_as_names[i] + " param" + i + ", ");
                 }
-                out.println("SpawnCounter s, InvocationRecord next, "
+                out.println("ibis.satin.impl.SpawnCounter s, "
+                        + "ibis.satin.impl.InvocationRecord next, "
                         + "int storeId, int spawnId, "
-                        + "LocalRecord parentLocals) {");
+                        + "ibis.satin.impl.LocalRecord parentLocals) {");
                 out.print("            " + name + " res = getNew(self, ");
                 for (int i = 0; i < params_types_as_names.length; i++) {
                     out.print(" param" + i + ", ");
@@ -2495,28 +2495,28 @@ public final class Satinc {
             out.println(");");
             out.println(
                       "            } catch (Throwable e) {\n"
-                    + "                if (Config.inletLogger.isDebugEnabled()) {\n"
-                    + "                    Config.inletLogger.debug("
+                    + "                if (ibis.satin.impl.Config.inletLogger.isDebugEnabled()) {\n"
+                    + "                    ibis.satin.impl.Config.inletLogger.debug("
                     +                        "\"caught exception in runlocal: "
                     +                        "\" + e, e);\n"
                     + "                }\n"
                     + "                if (! (e instanceof ibis.satin.impl.AbortException)) {\n"
                     + "                    eek = e;\n"
-                    + "                } else if (Config.abortLogger.isDebugEnabled()) {\n"
-                    + "                    Config.abortLogger.debug("
+                    + "                } else if (ibis.satin.impl.Config.abortLogger.isDebugEnabled()) {\n"
+                    + "                    ibis.satin.impl.Config.abortLogger.debug("
                     +                         "\"got AbortException \" + e, e);\n"
                     + "                }\n"
                     + "            }\n"
                     + "            if (eek != null && !inletExecuted) {\n"
-                    + "                if (Config.inletLogger.isDebugEnabled()) {\n"
-                    + "                    Config.inletLogger.debug("
+                    + "                if (ibis.satin.impl.Config.inletLogger.isDebugEnabled()) {\n"
+                    + "                    ibis.satin.impl.Config.inletLogger.debug("
                     +                         "\"runlocal: calling inlet for: "
                     +                         "\" + this);\n"
                     + "                }\n"
                     + "                if (parentLocals != null)\n"
                     + "                    parentLocals.handleException(spawnId, eek, this);\n"
-                    + "                if (Config.inletLogger.isDebugEnabled()) {\n"
-                    + "                    Config.inletLogger.debug(\"runlocal:"
+                    + "                if (ibis.satin.impl.Config.inletLogger.isDebugEnabled()) {\n"
+                    + "                    ibis.satin.impl.Config.inletLogger.debug(\"runlocal:"
                     +                          " calling inlet for: \" + this + \" DONE\");\n"
                     + "                }\n"
                     + "                if (parentLocals == null)\n"
@@ -2570,8 +2570,8 @@ public final class Satinc {
             out.println("            if (ibis.satin.impl.Config.ABORTS) {");
             out.println("                if (! (e instanceof ibis.satin.impl.AbortException)) {");
             out.println("                    eek = e;");
-            out.println("                } else if (Config.abortLogger.isDebugEnabled()) {");
-           out.println("                    Config.abortLogger.debug("
+            out.println("                } else if (ibis.satin.impl.Config.abortLogger.isDebugEnabled()) {");
+           out.println("                    ibis.satin.impl.Config.abortLogger.debug("
                     + "\"got AbortException \" + e, e);");
             out.println("                }");
             out.println("            } else {");
@@ -2751,9 +2751,8 @@ public final class Satinc {
             if (pnam != null && ! pnam.equals("")) {
                 out.println("package " + pnam + ";");
             }
-            out.println("import ibis.satin.*;\n");
-            out.println("import ibis.satin.impl.*;\n");
-            out.println("public final class " + name + " extends ReturnRecord {");
+            out.println("public final class " + name
+                    + " extends ibis.satin.impl.ReturnRecord {");
             if (!returnType.equals(Type.VOID)) {
                 out.println("    " + returnType + " result;\n");
             }
@@ -2762,9 +2761,9 @@ public final class Satinc {
             out.print("    public " + name + "(");
             if (!returnType.equals(Type.VOID)) {
                 out.println(returnType
-                        + " result, Throwable eek, int stamp) {");
+                        + " result, Throwable eek, ibis.satin.impl.Stamp stamp) {");
             } else {
-                out.println(" Throwable eek, int stamp) {");
+                out.println(" Throwable eek, ibis.satin.impl.Stamp stamp) {");
             }
 
             out.println("        super(eek);");
@@ -2774,7 +2773,7 @@ public final class Satinc {
             out.println("        this.stamp = stamp;");
             out.println("    }\n");
 
-            out.println("    public void assignTo(InvocationRecord rin) {");
+            out.println("    public void assignTo(ibis.satin.impl.InvocationRecord rin) {");
             out.println("        " + invocationRecordName(m, clname, pnam)
                     + " r = (" + invocationRecordName(m, clname, pnam)
                     + ") rin;");
@@ -2812,8 +2811,6 @@ public final class Satinc {
         if (packageName != null && ! packageName.equals("")) {
             out.println("package " + packageName + ";");
         }
-        out.println("import ibis.satin.*;\n");
-        out.println("import ibis.satin.impl.*;\n");
         name = parameterRecordClassName(m);
         out.println("public final class " + name
                 + " extends ibis.satin.impl.ParameterRecord {");
@@ -3030,9 +3027,6 @@ public final class Satinc {
 
         Type returnType = getReturnType(m);
 
-        out.println("import ibis.satin.*;\n");
-        out.println("import ibis.satin.impl.*;\n");
-     
         out.println("public final class " + name
                 + " extends ibis.satin.impl.ResultRecord {");
         if (! returnType.equals(Type.VOID)) {
@@ -3054,7 +3048,7 @@ public final class Satinc {
         out.println("    }\n");
 
         //assignTo method
-        out.println("    public void assignTo(InvocationRecord rin) {");
+        out.println("    public void assignTo(ibis.satin.impl.InvocationRecord rin) {");
         out.println("        " + invocationRecordName(m, className) + " r = ("
                 + invocationRecordName(m, className) + ") rin;");
         if (! returnType.equals(Type.VOID)) {
@@ -3152,13 +3146,10 @@ public final class Satinc {
             out.println("package " + pnam + ";");
         }
 
-        out.println("import ibis.satin.*;\n");
-        out.println("import ibis.satin.impl.*;\n");
-
         name = SOInvocationRecordClassName(m, clname, pnam);
 
         out.println("public final class " + name 
-                + " extends SOInvocationRecord {");
+                + " extends ibis.satin.impl.SOInvocationRecord {");
 
         //fields
         for (i = 0; i < params_types_as_names.length; i++ ) {
@@ -3186,7 +3177,7 @@ public final class Satinc {
         out.println("\t}\n");
 
         //invoke method
-        out.println("\tpublic void invoke(SharedObject object) {");
+        out.println("\tpublic void invoke(ibis.satin.SharedObject object) {");
         out.println("\t\t" + clname + " obj = (" + clname + ") object;");
         out.println("\t\ttry{");
         out.print("\t\t\tobj.so_local_" + m.getName() + "(");
@@ -3333,40 +3324,6 @@ public final class Satinc {
 	 	
     }
 
-   void rewriteSOConstructor(Method m, String clnam) {
-
-       MethodGen methodGen = new MethodGen(m, clnam, cpg);
-       InstructionList il = methodGen.getInstructionList();
-
-       InstructionHandle ret_ih = il.getEnd();
-
-       //add 'Satin.getSatin().broadcastSharedObject(this);' at the end
-       //of the constructor
-
-       il.insert(ret_ih, 
-		 ins_f.createInvoke("ibis.satin.impl.Satin",
-					 "getSatin",
-					 new ObjectType("ibis.satin.impl.Satin"),
-					 new Type[] {},
-					 Constants.INVOKESTATIC));
-       il.insert(ret_ih, new ALOAD(0));
-       il.insert(ret_ih,
-		 ins_f.createInvoke("ibis.satin.impl.Satin",
-					 "broadcastSharedObject",
-					 Type.VOID,
-					 new Type[] {new ObjectType("ibis.satin.SharedObject")},
-					 Constants.INVOKEVIRTUAL));
-
-       System.err.println("il length: " + il.getLength());
-
-       methodGen.setInstructionList(il);
-       methodGen.setMaxStack();
-       methodGen.setMaxLocals();
-       gen_c.removeMethod(m);
-       gen_c.addMethod(methodGen.getMethod());
-       
-   }
-
     void doSORewrite() throws IOException {
         BT_Analyzer a = new BT_Analyzer(c, writeMethodsInterface, verbose);
         a.start(false);
@@ -3404,11 +3361,6 @@ public final class Satinc {
 
 
             }
-            /*	    if(method.getName().equals("<init>")) {
-                System.err.println("rewriting constructor");
-                rewriteSOConstructor(method, c.getClassName());
-                }*/
-
         }
 
         JavaClass newSubjectClass = gen_c.getJavaClass();
@@ -3605,8 +3557,8 @@ public final class Satinc {
 
     public static void usage() {
         System.err.println("Usage : java Satinc [[-no]-verbose] [[-no]-keep] "
-                + "[-dir|-local] [[-no]-irc] [[-no]-sc-opt]"
-                + "[[-no]-inlet-opt] "
+                + "[-dir|-local] [[-no]-irc] [[-no]-sc-opt] "
+                + "[[-no]-inlet-opt] [[-no]-so] "
                 + "<classname>*");
         System.exit(1);
     }
@@ -3700,6 +3652,8 @@ public final class Satinc {
                 spawnCounterOpt = false;
             } else if (args[i].equals("-sc-opt")) {
                 spawnCounterOpt = true;
+	    } else if (args[i].equals("-so")) {
+		sharedObjects = true;
 	    } else if (args[i].equals("-no-so")) {
 		sharedObjects = false;
             } else {

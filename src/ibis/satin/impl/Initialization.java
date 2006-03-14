@@ -90,9 +90,9 @@ public abstract class Initialization extends SatinBase {
      * <td>leave after <em>sec</em> seconds; used for tests</td>
      * </tr>
      * <tr>
-     * <td>-satin-branching-factor <em>num</em></td>
-     * <td>the maximal branching factor of the application (the maximal number
-     * of subjobs spawned by any job); used for generating stamps</td>
+     * <td>-satin-grt-uses-stamps<em>sec</em></td>
+     * <td>use the stamps instead of parameter records  as keys for jobs in
+     * the global result table</td>
      * </tr>
      * <tr></table>
      */
@@ -155,6 +155,8 @@ public abstract class Initialization extends SatinBase {
             } else if (args[i].equals("-satin-alg")) {
                 i++;
                 alg = args[i];
+            } else if (args[i].equals("-satin-grt-uses-stamps")) {
+                grtUsesStamps = true;
             } else if (args[i].equals("-satin-delete")) {
                 i++;
                 try {
@@ -185,13 +187,6 @@ public abstract class Initialization extends SatinBase {
                 }
                 i++;
                 killCluster = args[i];
-            } else if (args[i].equals("-satin-branching-factor")) {
-                i++;
-                try {
-                    branchingFactor = Integer.parseInt(args[i]);
-                } catch (NumberFormatException e) {
-                    System.err.println("SATIN: invalid branching factor");
-                }
             } else if (args[i].equals("-satin-dump")) {
                 dump = true;
             } else if (args[i].equals("-satin-initial-node")) {

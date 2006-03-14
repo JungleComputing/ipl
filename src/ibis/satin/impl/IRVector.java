@@ -54,7 +54,7 @@ final class IRVector implements Config {
         return c;
     }
 
-    InvocationRecord remove(int stamp, ibis.ipl.IbisIdentifier owner) {
+    InvocationRecord remove(Stamp stamp) {
         InvocationRecord res = null;
 
         if (ASSERTS) {
@@ -73,7 +73,7 @@ final class IRVector implements Config {
                 System.err.println(
                         "l[i] is null, i: " + i + ",count: " + count);
             }
-            if (l[i].stamp == stamp && l[i].owner.equals(owner)) {
+            if (l[i].stamp.stampEquals(stamp)) {
                 res = l[i];
                 count--;
                 l[i] = l[count];
@@ -112,7 +112,7 @@ final class IRVector implements Config {
         return null;
     }
 
-    void killChildrenOf(int targetStamp, IbisIdentifier targetOwner) {
+    void killChildrenOf(Stamp targetStamp) {
         if (ASSERTS) {
             SatinBase.assertLocked(satin);
         }
@@ -124,7 +124,7 @@ final class IRVector implements Config {
             // }
 
             if ((curr.parent != null && curr.parent.aborted)
-                    || Aborts.isDescendentOf(curr, targetStamp, targetOwner)) {
+                    || Aborts.isDescendentOf(curr, targetStamp)) {
                 curr.aborted = true;
                 if (abortLogger.isDebugEnabled()) {
                     abortLogger.debug("found stolen child: " + curr.stamp
@@ -164,7 +164,7 @@ final class IRVector implements Config {
      * Used for fault tolerance send an ABORT_AND_STORE message to the stealer
      * of each descendent of the given job
      */
-    void killAndStoreChildrenOf(int targetStamp, IbisIdentifier targetOwner) {
+    void killAndStoreChildrenOf(Stamp targetStamp) {
 
         if (ASSERTS) {
             SatinBase.assertLocked(satin);
@@ -174,7 +174,7 @@ final class IRVector implements Config {
         for (int i = 0; i < count; i++) {
             curr = l[i];
             if ((curr.parent != null && curr.parent.aborted)
-                    || Aborts.isDescendentOf(curr, targetStamp, targetOwner)) {
+                    || Aborts.isDescendentOf(curr, targetStamp)) {
                 curr.aborted = true;
                 if (abortLogger.isDebugEnabled()) {
                     abortLogger.debug("found stolen child: " + curr.stamp

@@ -122,7 +122,7 @@ final class DEQueueNormal extends DEQueue implements Config {
         }
     }
 
-    void killChildrenOf(int targetStamp, ibis.ipl.IbisIdentifier targetOwner) {
+    void killChildrenOf(Stamp targetStamp) {
         if (ASSERTS) {
             SatinBase.assertLocked(satin);
         }
@@ -137,7 +137,7 @@ final class DEQueueNormal extends DEQueue implements Config {
              * }
              */
             if ((curr.parent != null && curr.parent.aborted)
-                    || Aborts.isDescendentOf(curr, targetStamp, targetOwner)) {
+                    || Aborts.isDescendentOf(curr, targetStamp)) {
 
                 if (abortLogger.isDebugEnabled()) {
                     abortLogger.debug("found local child: " + curr.stamp
