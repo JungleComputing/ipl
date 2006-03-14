@@ -30,7 +30,7 @@ general:
   serialization. Could be done for objects passes as a param
   to a spawn, for instance. If code is not there, fall back to current impl.
 + add code to efficiently (de)serialize arrays of final objects 
-  (Body[] in barnes!) --Rob
+  (Body[] in barnes!) --Rob Was already done (Ceriel)
 - migrate leftover prints ro log4j
 - improve performance of Ibis serialization for non-rewritten code.
 
@@ -82,6 +82,9 @@ satin:
   Done, only app that is not fully rewritten for shared objects is Kees v R's SAT --Rob
 - make scalable ibis / scalable satin (don't keep sockets open) --Rob
 
++ Satin frontend: use fully-qualified names for Satin classes, otherwise
+  may give conflicts with application classes. (Fixed Ceriel)
++ Satin: implement globally-unique stamps. (Done Ceriel)
 - add semantic analysis to the compiler
 - forgotten sync statements
 - make return / throw an implicit sync again?
