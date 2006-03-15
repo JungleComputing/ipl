@@ -631,7 +631,7 @@ strictfp class BodyTreeNode {
             }
         }
  
-        System.out.println("acc for body " + " = " + b.bAcc.x + ", " + b.bAcc.y + ", " + b.bAcc.z);
+        System.err.println("acc for body " + " = " + b.bAcc.x + ", " + b.bAcc.y + ", " + b.bAcc.z);
     }
 
     int ComputeLeafAccelerationsBarnes(BodyTreeNode root) {
