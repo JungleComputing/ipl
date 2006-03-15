@@ -522,143 +522,93 @@ strictfp class BodyTreeNode {
      */
 
     public void ComputeCenterOfMass() {
-
         int i;
         double recip;
 
         if (!btnCenterOfMassValid) {
-
-            //      btnGd.debugStr("entering, cofm not valid!");
-
             btnCenterOfMassValid = true;
 
             if (!btnCenterOfMassReceived) {
-
                 btnTotalMass = 0.0;
-
                 btnCenterOfMass_x = 0;
                 btnCenterOfMass_y = 0;
                 btnCenterOfMass_z = 0;
             }
 
             if (btnIsLeaf) {
-
-                Body b;
-
                 // Compute Center of mass of all bodies in this cell.
-
                 for (i = 0; i < btnBodyCount; i++) {
-
-                    b = btnGd.gdBodies[btnBodyIndex[i]];
-
+                    Body b = btnGd.gdBodies[btnBodyIndex[i]];
                     btnCenterOfMass_x += b.bPos.x * b.bMass;
                     btnCenterOfMass_y += b.bPos.y * b.bMass;
                     btnCenterOfMass_z += b.bPos.z * b.bMass;
-
                     btnTotalMass += b.bMass;
                 }
 
                 // the following may generate an exception!
-
                 recip = 1.0 / btnTotalMass;
 
                 btnCenterOfMass_x *= recip;
                 btnCenterOfMass_y *= recip;
                 btnCenterOfMass_z *= recip;
-
-                //	btnGd.debugStr("leaf COFM: " + btnCenterOfMass_x + ", " + btnCenterOfMass_y + ", " + btnCenterOfMass_z + " " + btnTotalMass + " " + btnBodyCount );
-
             } else {
-
-                BodyTreeNode b;
-
                 // Compute the center of mass of all children if it is an internal node
-
                 btnCenterOfMass_x = 0;
                 btnCenterOfMass_y = 0;
                 btnCenterOfMass_z = 0;
-
                 btnTotalMass = 0;
 
                 for (i = 0; i < 8; i++) {
-
-                    b = btnChildren[i];
-
+                    BodyTreeNode b = btnChildren[i];
                     if (b != null) {
-
                         b.ComputeCenterOfMass();
-
                         btnCenterOfMass_x += b.btnCenterOfMass_x
                             * b.btnTotalMass;
                         btnCenterOfMass_y += b.btnCenterOfMass_y
                             * b.btnTotalMass;
                         btnCenterOfMass_z += b.btnCenterOfMass_z
                             * b.btnTotalMass;
-
                         btnTotalMass += b.btnTotalMass;
                     }
                 }
 
                 recip = 1.0 / btnTotalMass;
-
                 btnCenterOfMass_x *= recip;
                 btnCenterOfMass_y *= recip;
                 btnCenterOfMass_z *= recip;
-
-                //	btnGd.debugStr("internal COFM: " + btnCenterOfMass_x + ", " + btnCenterOfMass_y + ", " + btnCenterOfMass_z + " " + btnTotalMass );
             }
         }
 
-        System.err.println("set com to: " + btnCenterOfMass_x + ", " + btnCenterOfMass_y + ", " + btnCenterOfMass_z);
+        System.err.println("set com to: " + btnCenterOfMass_x + ", "
+            + btnCenterOfMass_y + ", " + btnCenterOfMass_z);
     }
 
     void Barnes(Body b) {
-
-        double Diff_x, Diff_y, Diff_z;
-        Body b2;
-        double Dist, DistSq, Factor;
-        int i;
-
-        //Diff = new vec3();
-
         // Compute the acceleration this node acts on the body
+        double Diff_x = btnCenterOfMass_x - b.bPos.x;
+        double Diff_y = btnCenterOfMass_y - b.bPos.y;
+        double Diff_z = btnCenterOfMass_z - b.bPos.z;
 
-        Diff_x = btnCenterOfMass_x - b.bPos.x;
-        Diff_y = btnCenterOfMass_y - b.bPos.y;
-        Diff_z = btnCenterOfMass_z - b.bPos.z;
-
-        DistSq = Diff_x * Diff_x + Diff_y * Diff_y + Diff_z * Diff_z;
-        /*
-         btnGd.debugStr( b.bNumber + ": cofm: " + btnCenterOfMass_x +
-         "," + btnCenterOfMass_y + 
-         "," + btnCenterOfMass_z );
-         */
-        //    btnGd.debugStr( b.bNumber + ": barnesing, DistSq: " + DistSq + ", maxTheta: " + btnMaxTheta );
+        double DistSq = Diff_x * Diff_x + Diff_y * Diff_y + Diff_z * Diff_z;
         if (DistSq >= btnMaxTheta) {
-
             // The distance was large enough to use the treenode instead of iterating all bodies.  
-
             DistSq += btnGd.gdSoftSQ;
-            Dist = Math.sqrt(DistSq);
-            Factor = btnTotalMass / (DistSq * Dist);
+            double Dist = Math.sqrt(DistSq);
+            double Factor = btnTotalMass / (DistSq * Dist);
 
             b.bAcc.x += Diff_x * Factor;
             b.bAcc.y += Diff_y * Factor;
             b.bAcc.z += Diff_z * Factor;
 
             b.bWeight++;
-
         } else {
-
             // The distance was too small.  
-
             if (btnIsLeaf) {
-
                 // compute accelerations on the body due to all bodies in this node.
 
-                for (i = 0; i < btnBodyCount; i++) {
+                for (int i = 0; i < btnBodyCount; i++) {
 
-                    b2 = btnGd.gdBodies[btnBodyIndex[i]];
+                    Body b2 = btnGd.gdBodies[btnBodyIndex[i]];
 
                     Diff_x = b2.bPos.x - b.bPos.x;
                     Diff_y = b2.bPos.y - b.bPos.y;
@@ -666,8 +616,8 @@ strictfp class BodyTreeNode {
 
                     DistSq = Diff_x * Diff_x + Diff_y * Diff_y + Diff_z
                         * Diff_z + btnGd.gdSoftSQ;
-                    Dist = Math.sqrt(DistSq);
-                    Factor = b2.bMass / (DistSq * Dist);
+                    double Dist = Math.sqrt(DistSq);
+                    double Factor = b2.bMass / (DistSq * Dist);
 
                     b.bAcc.x += Diff_x * Factor;
                     b.bAcc.y += Diff_y * Factor;
@@ -675,15 +625,13 @@ strictfp class BodyTreeNode {
 
                     b.bWeight++;
                 }
-
             } else {
-
-                for (i = 0; i < 8; i++)
+                for (int i = 0; i < 8; i++)
                     if (btnChildren[i] != null) btnChildren[i].Barnes(b);
             }
-
         }
-
+ 
+        System.out.println("acc for body " + " = " + b.bAcc.x + ", " + b.bAcc.y + ", " + b.bAcc.z);
     }
 
     int ComputeLeafAccelerationsBarnes(BodyTreeNode root) {

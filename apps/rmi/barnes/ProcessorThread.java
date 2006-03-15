@@ -32,7 +32,7 @@ public class ProcessorThread extends Thread {
         g.debugStr("     " + i + ": [ " + g.gdBodies[i].bAcc.x + ", "
             + g.gdBodies[i].bAcc.y + ", " + g.gdBodies[i].bAcc.z + " ]");
         g.debugStr("     " + i + ": [ " + g.gdBodies[i].bMass + " ]");
-//        g.debugStr("     " + i + ": " + g.gdBodies[i].bNumber);
+        //        g.debugStr("     " + i + ": " + g.gdBodies[i].bNumber);
     }
 
     private void PrintBodies() {
@@ -274,7 +274,8 @@ public class ProcessorThread extends Thread {
         if (g.GD_PRINT_BODIES) PrintBodies();
 
         if (g.gdMyProc == 0) {
-            System.err.println("Barnes, " + g.gdTotNumBodies + " bodies took " + totalMillis + " ms");
+            System.err.println("Barnes, " + g.gdTotNumBodies + " bodies took "
+                + totalMillis + " ms");
         }
     }
 
