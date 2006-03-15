@@ -1,71 +1,70 @@
 /* $Id$ */
 
-strictfp
-class RandomNumber {
+strictfp class RandomNumber {
 
     private static final int rnMult = 1103515245;
-    private static final int rnAdd  = 12345;
+
+    private static final int rnAdd = 12345;
+
     private static final int rnMask = 0x7fffffff;
+
     private static final double rnTwoTo31 = 2147483648.0;
 
     private int rnA;
+
     private int rnB;
+
     private int rnRandX;
+
     private int rnLastRand;
 
     RandomNumber() {
-	setSeed( 123 );
+        setSeed(123);
     }
 
+    void setSeed(int Seed) {
 
-    void setSeed( int Seed ) {
-
-	rnA = 1;
-	rnB = 0;
-	rnRandX = (( rnA * Seed + rnB  ) & rnMask );
-	rnA = (( rnMult * rnA ) & rnMask );
-	rnB = (( rnMult * rnB + rnAdd ) & rnMask );
+        rnA = 1;
+        rnB = 0;
+        rnRandX = ((rnA * Seed + rnB) & rnMask);
+        rnA = ((rnMult * rnA) & rnMask);
+        rnB = ((rnMult * rnB + rnAdd) & rnMask);
     }
-
 
     double pRand() {
 
-	rnLastRand = rnRandX;
-	rnRandX = (( rnA * rnRandX + rnB ) & rnMask );   
+        rnLastRand = rnRandX;
+        rnRandX = ((rnA * rnRandX + rnB) & rnMask);
 
-	return (( double )( rnLastRand ) / rnTwoTo31 );
+        return ((double) (rnLastRand) / rnTwoTo31);
     }
 
+    double xRand(double Low, double High) {
 
-    double xRand( double Low, double High ) {
-
-	return ( Low + ( High - Low ) * pRand() );
+        return (Low + (High - Low) * pRand());
     }
 
+    void pickShell(vec3 point, double Radius) {
 
-    void pickShell( vec3 point, double Radius ) {
+        double rsq, rsc;
 
-	double rsq, rsc;
+        do {
 
-	do {
+            point.x = xRand(-1.0, 1.0);
+            point.y = xRand(-1.0, 1.0);
+            point.z = xRand(-1.0, 1.0);
 
-	    point.x = xRand( -1.0, 1.0 );
-	    point.y = xRand( -1.0, 1.0 );
-	    point.z = xRand( -1.0, 1.0 );
+            // System.out.println("x = " + point.x + ", y = " + point.y + ", z = " + point.z);
 
-	    // System.out.println("x = " + point.x + ", y = " + point.y + ", z = " + point.z);
+            rsq = point.x * point.x + point.y * point.y + point.z * point.z;
 
-	    rsq = point.x * point.x + point.y * point.y + point.z * point.z;
+        } while (rsq > 1.0);
 
-	} while ( rsq > 1.0 );
+        rsc = Radius / Math.sqrt(rsq);
 
-	rsc = Radius / Math.sqrt( rsq );
-
-	point.x *= rsc;
-	point.y *= rsc;
-	point.z *= rsc;
+        point.x *= rsc;
+        point.y *= rsc;
+        point.z *= rsc;
     }
-
-
 
 }

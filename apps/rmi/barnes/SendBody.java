@@ -1,6 +1,5 @@
 /* $Id$ */
 
-
 import java.io.Serializable;
 
 public final class SendBody implements Serializable, Cloneable {

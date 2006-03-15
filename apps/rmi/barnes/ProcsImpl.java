@@ -1,6 +1,5 @@
 /* $Id$ */
 
-
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 
@@ -20,7 +19,7 @@ class ProcsImpl extends UnicastRemoteObject implements Procs {
     }
 
     public synchronized Processor[] table(Processor me, int node)
-            throws RemoteException {
+        throws RemoteException {
 
         // Note: This function can only be used once !
         num_nodes++;
@@ -29,14 +28,13 @@ class ProcsImpl extends UnicastRemoteObject implements Procs {
 
         if (num_nodes == total_num) {
             notifyAll();
-        } else
-            while (num_nodes < total_num) {
-                try {
-                    wait();
-                } catch (Exception e) {
-                    throw new RemoteException(e.toString());
-                }
+        } else while (num_nodes < total_num) {
+            try {
+                wait();
+            } catch (Exception e) {
+                throw new RemoteException(e.toString());
             }
+        }
 
         return nodes;
     }
