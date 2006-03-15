@@ -117,13 +117,13 @@ strictfp public class GlobalData implements Cloneable, Serializable {
         gdBodies = new Body[gdMaxBodies];
 
         // Scale ?
-
+/*
         double scale = Math.pow(gdTotNumBodies / 16384.0, -0.25);
 
         gdDt *= scale;
         gdEndTime *= scale;
         gdTheta *= 1.0 / scale;
-
+*/
         debugStr("theta: " + gdTheta);
 
         gdDtHalf = gdDt / 2;
@@ -131,8 +131,8 @@ strictfp public class GlobalData implements Cloneable, Serializable {
         gdSoftSQ = gdSoft * gdSoft;
         gdIterations = 1; // (int) (((gdEndTime - GD_START_TIME) / gdDt) + 1.1);
 
-        debugStr("scale: " + scale + "theta: " + gdTheta + ", theta sq: "
-            + gdThetaSq);
+//        debugStr("scale: " + scale + "theta: " + gdTheta + ", theta sq: "
+//            + gdThetaSq);
 
         debugStr("Parameters: " + gdTotNumBodies + " bodies, " + gdDt + " dt, "
             + gdSoft + " eps, " + (2.0 / gdTheta) + " tol, " + gdNumProcs

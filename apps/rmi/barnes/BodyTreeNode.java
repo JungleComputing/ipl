@@ -127,7 +127,7 @@ strictfp class BodyTreeNode {
         btnChildrenCount = 0;
         btnDepth = depth;
         btnMaxTheta = btnGd.gdThetaSq * HalfSize * HalfSize;
-        System.err.println("BodyTreeNode init: maxTheta = " + btnMaxTheta + ", halfSize = " + HalfSize);
+        System.err.println("BodyTreeNode init: thetasq = " + btnGd.gdThetaSq + ", maxTheta = " + btnMaxTheta + ", halfSize = " + HalfSize);
 
         btnCenterOfMassValid = false;
         btnCenterOfMassReceived = false;
