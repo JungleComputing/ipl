@@ -77,7 +77,8 @@ BodyTreeNodeInterface, java.io.Serializable {
      */
     private void initCenterSizeMaxtheta(double max_x, double max_y,
             double max_z, double min_x, double min_y, double min_z, double theta) {
-/* old code from Maik
+        /*
+// old code from Maik
         double size;
 
         center_x = (max_x + min_x) / 2.0;
@@ -96,14 +97,14 @@ BodyTreeNodeInterface, java.io.Serializable {
 
         halfSize = size / 2.0;
         maxTheta = theta * theta * halfSize * halfSize;
-        */
-        
-        halfSize = (max_x - min_x) * 0.5;
+  */
 
+        halfSize = (max_x - min_x) * 0.5;
         center_x = min_x + halfSize;
         center_y = min_y + halfSize;
         center_z = min_z + halfSize;
         maxTheta = theta * theta * halfSize * halfSize;
+        System.out.println("theta = " + theta + ", halfSize = " + halfSize + ", maxx = " + max_x + ", minx = " + min_x + ", maxTheta = " + maxTheta);
     }
 
     //constructor to create an empty tree, used during tree contruction
@@ -129,7 +130,7 @@ BodyTreeNodeInterface, java.io.Serializable {
      */
     public BodyTreeNode(Body[] bodyArray, int maxLeafBodies, double theta) {
         int i;
-        double max_x = 0.0, max_y = 0.0, max_z = 0.0, min_x = 0.0, min_y = 0.0, min_z = 0.0;
+        double max_x = -1000000.0, max_y = -1000000.0, max_z = 0.0, min_x = 0.0, min_y = 0.0, min_z = 0.0;
 
         for (i = 0; i < bodyArray.length; i++) {
             max_x = Math.max(max_x, bodyArray[i].pos_x);
@@ -236,7 +237,6 @@ BodyTreeNodeInterface, java.io.Serializable {
         if (Math.abs(pos_x - center_x) > halfSize
                 || Math.abs(pos_y - center_y) > halfSize
                 || Math.abs(pos_z - center_z) > halfSize) {
-
             return true;
         } else {
             return false;
@@ -291,7 +291,7 @@ BodyTreeNodeInterface, java.io.Serializable {
             bodyCount++;
 
         } else { //leaf node
-
+/* @@@
             if (BarnesHut.ASSERTS && outOfRange(b.pos_x, b.pos_y, b.pos_z)) {
 
                 System.err.println("EEK! Adding out-of-range body! "
@@ -304,7 +304,7 @@ BodyTreeNodeInterface, java.io.Serializable {
                 throw new IndexOutOfBoundsException("Out-of-range body!");
                 //System.exit(1);
             }
-
+*/
             if (bodyCount < maxLeafBodies) { //we have room left
                 if (bodyCount == 0)
                     bodies = new Body[maxLeafBodies];
@@ -424,6 +424,8 @@ BodyTreeNodeInterface, java.io.Serializable {
             com_y /= totalMass;
             com_z /= totalMass;
         }
+        
+        System.out.println("set com to: " + com_x + ", " + com_y + ", " + com_z);
     }
 
     /**
@@ -445,6 +447,7 @@ BodyTreeNodeInterface, java.io.Serializable {
 
         distsq = diff_x * diff_x + diff_y * diff_y + diff_z * diff_z;
 
+        System.out.println("distsq = " + distsq + ", maxTheta = " + maxTheta);        
         /*
          * In the if-statement below we could only check if we are cut off
          * (children == null && bodies == null), but then the 'invalid cutoff'
@@ -644,6 +647,8 @@ BodyTreeNodeInterface, java.io.Serializable {
                 accs_x[i] = acc[0];
                 accs_y[i] = acc[1];
                 accs_z[i] = acc[2];
+
+                System.out.println("acc for body " + bodies[i].number + " = " + acc[0] + ", " + acc[1] + ", " + acc[2]);
             }
             result = new LinkedList();
             result.add(bodyNumbers);
@@ -652,7 +657,6 @@ BodyTreeNodeInterface, java.io.Serializable {
             result.add(accs_z);
 
         } else { //cell node -> call children[].barnes()
-
             LinkedList res[] = new LinkedList[8];
             int lastValidChild = -1;
 

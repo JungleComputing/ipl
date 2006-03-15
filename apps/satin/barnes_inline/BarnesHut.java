@@ -1,7 +1,5 @@
 /* $Id$ */
 
-//import javax.swing.*;
-
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -270,7 +268,7 @@ strictfp final class BarnesHut {
 		Body[] sorted = new Body[bodyArray.length];
 		System.arraycopy(bodyArray, 0, sorted, 0, bodyArray.length);
 
-		Arrays.sort(sorted); //sort the copied bodyArray (by bodyNumber)
+		Arrays.sort(sorted); // sort the copied bodyArray (by bodyNumber)
 
 		for (i = 0; i < bodyArray.length; i++) {
 			b = sorted[i];
