@@ -608,6 +608,8 @@ strictfp class BodyTreeNode {
                 //	btnGd.debugStr("internal COFM: " + btnCenterOfMass_x + ", " + btnCenterOfMass_y + ", " + btnCenterOfMass_z + " " + btnTotalMass );
             }
         }
+
+        System.err.println("set com to: " + btnCenterOfMass_x + ", " + btnCenterOfMass_y + ", " + btnCenterOfMass_z);
     }
 
     void Barnes(Body b) {
