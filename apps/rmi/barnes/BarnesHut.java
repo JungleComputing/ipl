@@ -147,8 +147,6 @@ strictfp public class BarnesHut {
         }
 
         System.out.println("All threads finished!");
-
-        ProcessorThread.Cleanup();
     }
 
     void runDistributed() {
@@ -198,40 +196,21 @@ strictfp public class BarnesHut {
             System.out.println("Finished!");
         }
 
-        p.Cleanup();
-
         System.exit(0);
     }
 
     public void run() {
-
         if (bhDistributed) {
-
             runDistributed();
-
         } else {
-
             bhGd.Initialize();
-
             runMultiThreaded();
-
         }
-
     }
 
     public static void main(String argv[]) {
-
-        BarnesHut bh;
-
-        //    try {
-        //        Thread.sleep(60000);
-        //    } catch(Exception e) {
-        //    }
-
-        bh = new BarnesHut();
-
+        BarnesHut bh = new BarnesHut();
         bh.setArgs(argv);
-
         bh.run();
     }
 }

@@ -90,21 +90,15 @@ strictfp public class GlobalData implements Cloneable, Serializable {
 
     // Options
 
-    public final boolean gdPrintTime = true;
+    public static final boolean GD_PRINT_TIME = true;
 
-    public final boolean gdPrintStats = true;
+    public static final boolean GD_PRINT_STATS = false;
 
-    public final boolean gdPrintBodies = false;
+    public static final boolean GD_PRINT_BODIES = true;
 
     public boolean gdComputeAccelerationsDirect = false;
 
-    //    private transient PrintWriter Out;
-    //    private transient FileOutputStream fOut;
-
     void Initialize() {
-
-        //	Out = null;
-        //	fOut = null;
 
         for (gdLogProcs = 0; ((gdNumProcs - 1) >> gdLogProcs) > 0; gdLogProcs++)
             ;
@@ -156,44 +150,13 @@ strictfp public class GlobalData implements Cloneable, Serializable {
         }
     }
 
-    void OpenOutputFile(String OutputFile) {
-        /*
-         try {
-         fOut[gdMyProc] = new FileOutputStream( OutputFile );
-         Out[gdMyProc] = new PrintWriter( fOut[gdMyProc] );
-         } catch (IOException e ) {
-         System.out.println( "Ronald is stout: " + e );  
-         }
-         */
-    }
-
-    void CloseOutputFile() {
-
-        /*    try {
-         Out[gdMyProc].close();
-         Out[gdMyProc] = null;
-         fOut[gdMyProc].close();
-         fOut[gdMyProc] = null;
-         } catch (IOException e ) {
-         System.out.println( "Ronald is stout: " + e );  
-         }
-         */
-    }
-
     void debugStr(String s) {
-        /*    
-         if (Out[gdMyProc]!=null) {
-         Out[gdMyProc].println( s );
-         Out[gdMyProc].flush(); 
-         }
-         */
+        System.err.println(gdMyProc + ": " + s);
         logger.debug(gdMyProc + ": " + s);
     }
 
     GlobalData() {
-
         gdRand = new RandomNumber();
         gdPlummer = new Plummer(gdRand);
     }
-
 }

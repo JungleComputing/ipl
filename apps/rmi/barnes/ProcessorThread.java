@@ -2,8 +2,6 @@
 
 import ibis.util.PoolInfo;
 
-//import DasUtils.*;
-
 public class ProcessorThread extends Thread {
 
     GlobalData g;
@@ -16,14 +14,7 @@ public class ProcessorThread extends Thread {
 
     Procs p;
 
-    //  public static native void fs_stats_reset();
-
-    public static void Cleanup() {
-
-    }
-
     private void GenerateBodiesPlummer() {
-
         int i;
 
         for (i = 0; i < g.gdTotNumBodies; i++) {
@@ -34,14 +25,13 @@ public class ProcessorThread extends Thread {
     }
 
     private void PrintBody(int i) {
-
         g.debugStr("Body " + i + ": [ " + g.gdBodies[i].bPos.x + ", "
             + g.gdBodies[i].bPos.y + ", " + g.gdBodies[i].bPos.z + " ]");
         g.debugStr("     " + i + ": [ " + g.gdBodies[i].bVel.x + ", "
             + g.gdBodies[i].bVel.y + ", " + g.gdBodies[i].bVel.z + " ]");
         g.debugStr("     " + i + ": [ " + g.gdBodies[i].bAcc.x + ", "
             + g.gdBodies[i].bAcc.y + ", " + g.gdBodies[i].bAcc.z + " ]");
-        g.debugStr("     " + i + ": " + g.gdBodies[i].bNumber);
+//        g.debugStr("     " + i + ": " + g.gdBodies[i].bNumber);
     }
 
     private void PrintBodies() {
@@ -101,7 +91,7 @@ public class ProcessorThread extends Thread {
         long tStart, tTree, tCOFM, tAccels, tNewPos, tUpdateCOFM, tEssentialTree, tLoadBalance, totalMillis, interactions, totEssentialTree, totTree, totAccels, totNewPos, totUpdateCOFM, totCOFM, totLoadBalance, tGC, totGC;
         int level;
 
-        if (g.gdPrintBodies) PrintBodies();
+        if (g.GD_PRINT_BODIES) PrintBodies();
 
         totalMillis = 0;
         totEssentialTree = 0;
@@ -191,7 +181,6 @@ public class ProcessorThread extends Thread {
 
                 if ((g.gdGCInterval > 0)
                     && ((g.gdIteration % g.gdGCInterval) == 0)) {
-                    //  	  g.Proc.cleanup();
                     tree = null;
                     System.gc();
                 }
@@ -219,9 +208,6 @@ public class ProcessorThread extends Thread {
 
                 g.debugStr("Total: " + (tGC - tStart) + " ms\n");
 
-                //	if (g.gdIteration == 2) {
-                //	    fs_stats_reset();
-                //	}
                 if (g.gdIteration > 2) {
                     totalMillis += (tGC - tStart);
                     totLoadBalance += (tLoadBalance - tStart);
@@ -233,9 +219,7 @@ public class ProcessorThread extends Thread {
                     totNewPos += (tNewPos - tAccels);
                     totGC += (tGC - tNewPos);
                 }
-
             }
-
         } catch (NullPointerException n) {
 
             System.out
@@ -286,14 +270,14 @@ public class ProcessorThread extends Thread {
             + " ms (" + ((totGC * 1.0) / (totalMillis * 1.0) * 100.0)
             + " percent)");
 
-        if (g.gdPrintBodies) PrintBodies();
+        if (g.GD_PRINT_BODIES) PrintBodies();
 
         if (g.gdMyProc == 0) {
-            d.printTime("Barnes, " + g.gdTotNumBodies + " bodies", totalMillis);
+            System.err.println("Barnes, " + g.gdTotNumBodies + " bodies took " + totalMillis + " ms");
         }
-        // System.exit( 0 );
     }
 
+    // used for multithread runs
     ProcessorThread(GlobalData g, int numProcs, int myProc, Procs p) {
 
         this.g = g;
@@ -302,14 +286,12 @@ public class ProcessorThread extends Thread {
         this.numProcs = numProcs;
 
         g.gdMyProc = myProc;
-        g.OpenOutputFile("Processor" + myProc + ".log");
         g.debugStr("Logfile for processor " + myProc + " of " + numProcs);
 
         try {
-
             g.Proc = new ProcessorImpl(g, numProcs, myProc, p);
-
         } catch (Exception e) {
+            System.err.println("Exception: " + e);
         }
     }
 
@@ -322,7 +304,6 @@ public class ProcessorThread extends Thread {
         this.numProcs = d.size();
 
         g.gdMyProc = myProc;
-        g.OpenOutputFile("Processor" + myProc + ".log");
         g.debugStr("Logfile for processor " + myProc + " of " + numProcs);
 
         //    g.debugStr("Creating Processor Implementation");
@@ -332,9 +313,7 @@ public class ProcessorThread extends Thread {
         }
 
         try {
-
             g.Proc = new ProcessorImpl(g, d, p);
-
         } catch (Exception e) {
             g.debugStr("exceptie gevangen!!!!!!!: " + e);
             e.printStackTrace();
@@ -373,7 +352,5 @@ public class ProcessorThread extends Thread {
             e.printStackTrace();
             System.exit(-1);
         }
-
     }
-
 }
