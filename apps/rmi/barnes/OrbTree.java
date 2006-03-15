@@ -48,7 +48,7 @@ public class OrbTree {
 	wei     = new int[ g.gdMaxBodies ];
 	weights = new int[ g.gdMaxBodies ];
 	index   = new int[ g.gdMaxBodies ];
-	count   = new int[ g.gdMedianRadix ];
+	count   = new int[ g.GD_MEDIAN_RADIX ];
     }
 
 
@@ -182,13 +182,13 @@ public class OrbTree {
 
 	//    g.debugStr("side: " + side );
 
-	gMinMax.max.x = gMinMax.min.x + (1.0 + g.gdDimSlack) * side;
-	gMinMax.max.y = gMinMax.min.y + (1.0 + g.gdDimSlack) * side;
-	gMinMax.max.z = gMinMax.min.z + (1.0 + g.gdDimSlack) * side;
+	gMinMax.max.x = gMinMax.min.x + (1.0 + g.GD_DIM_SLACK) * side;
+	gMinMax.max.y = gMinMax.min.y + (1.0 + g.GD_DIM_SLACK) * side;
+	gMinMax.max.z = gMinMax.min.z + (1.0 + g.GD_DIM_SLACK) * side;
 
-	gMinMax.min.x = gMinMax.min.x - g.gdDimSlack * side;
-	gMinMax.min.y = gMinMax.min.y - g.gdDimSlack * side;
-	gMinMax.min.z = gMinMax.min.z - g.gdDimSlack * side;
+	gMinMax.min.x = gMinMax.min.x - g.GD_DIM_SLACK * side;
+	gMinMax.min.y = gMinMax.min.y - g.GD_DIM_SLACK * side;
+	gMinMax.min.z = gMinMax.min.z - g.GD_DIM_SLACK * side;
 	/*
 	   g.debugStr( "orb min: " + gMinMax.min.x + ", " + gMinMax.min.y + ", " + gMinMax.min.z );
 	   g.debugStr( "orb max: " + gMinMax.max.x + ", " + gMinMax.max.y + ", " + gMinMax.max.z );
@@ -345,9 +345,9 @@ public class OrbTree {
 
     int ComputeDim( vec3 t ) {
 
-	return ((t.x+g.gdDoubleEpsilon) > t.y) ?
-	    (((t.x+g.gdDoubleEpsilon) > t.z) ? 0:2) :
-	    (((t.y+g.gdDoubleEpsilon) > t.z) ? 1:2); 
+	return ((t.x+g.GD_DOUBLE_EPSILON) > t.y) ?
+	    (((t.x+g.GD_DOUBLE_EPSILON) > t.z) ? 0:2) :
+	    (((t.y+g.GD_DOUBLE_EPSILON) > t.z) ? 1:2); 
     }
 
 
@@ -366,21 +366,21 @@ public class OrbTree {
 	//    for (i=0; i<100; i++) 
 	//    g.debugStr( "pos[" + i + "]: " + pos[i] );
 
-	for ( shift = g.gdMedianBits - g.gdMedianShift; shift>=0;  shift -= g.gdMedianShift ) {
+	for ( shift = g.GD_MEDIAN_BITS - g.GD_MEDIAN_SHIFT; shift>=0;  shift -= g.GD_MEDIAN_SHIFT ) {
 
 	    //      g.debugStr( "findMedian shift: " + shift + ", totSize: " + g.gdMedianRadix + ", actBodies: " + actBodies );
 
 	    // count total weight of each radix
 
-	    for (i=0; i<g.gdMedianRadix; i++) 
+	    for (i=0; i<g.GD_MEDIAN_RADIX; i++) 
 		count[i] = 0;
 
 	    for (i=actBodies-1; i>=0; i--)
-		count[ (pos[i]>>shift) & (g.gdMedianRadix-1) ] += wei[i];
+		count[ (pos[i]>>shift) & (g.GD_MEDIAN_RADIX-1) ] += wei[i];
 
 	    // compute prefix sums of the count array
 
-	    for (i=1; i<g.gdMedianRadix; i++) 
+	    for (i=1; i<g.GD_MEDIAN_RADIX; i++) 
 		count[i] += count[i-1];
 
 	    //for (i=0; i<g.gdMedianRadix; i++) 
@@ -394,9 +394,9 @@ public class OrbTree {
 
 	    for (i= (g.Proc.myProc - firstProc + 1) % procs; i!=g.Proc.myProc - firstProc; i = (i+1) % procs ) {
 
-		firstRad = i * (g.gdMedianRadix / procs) + Math.min( i, g.gdMedianRadix % procs );
+		firstRad = i * (g.GD_MEDIAN_RADIX / procs) + Math.min( i, g.GD_MEDIAN_RADIX % procs );
 
-		locRad = g.gdMedianRadix / procs + ((i < g.gdMedianRadix % procs ) ? 1 : 0);
+		locRad = g.GD_MEDIAN_RADIX / procs + ((i < g.GD_MEDIAN_RADIX % procs ) ? 1 : 0);
 
 		g.Proc.setExchangeIntArrayDest( firstProc + i, firstRad, locRad ); 
 
@@ -407,10 +407,10 @@ public class OrbTree {
 
 	    // Add all subsets to the local subset
 
-	    firstRad = (g.Proc.myProc - firstProc) * (g.gdMedianRadix / procs) + 
-		Math.min( g.Proc.myProc - firstProc, g.gdMedianRadix % procs );
+	    firstRad = (g.Proc.myProc - firstProc) * (g.GD_MEDIAN_RADIX / procs) + 
+		Math.min( g.Proc.myProc - firstProc, g.GD_MEDIAN_RADIX % procs );
 
-	    locRad = g.gdMedianRadix / procs + (((g.Proc.myProc - firstProc) < g.gdMedianRadix % procs ) ? 1 : 0);
+	    locRad = g.GD_MEDIAN_RADIX / procs + (((g.Proc.myProc - firstProc) < g.GD_MEDIAN_RADIX % procs ) ? 1 : 0);
 
 	    //      g.debugStr("firstRad: " + firstRad + ", locRad: " + locRad );
 
@@ -463,10 +463,10 @@ public class OrbTree {
 
 		    subset[ offset ] = subset [ offset ] >> g.gdMaxLogProcs;
 
-		    firstRad = j - firstProc * ( g.gdMedianRadix / procs ) +
-			Math.min( j - firstProc, g.gdMedianRadix % procs );
+		    firstRad = j - firstProc * ( g.GD_MEDIAN_RADIX / procs ) +
+			Math.min( j - firstProc, g.GD_MEDIAN_RADIX % procs );
 
-		    locRad = g.gdMedianRadix / procs + (( j - firstProc < g.gdMedianRadix % procs ) ? 1 : 0);
+		    locRad = g.GD_MEDIAN_RADIX / procs + (( j - firstProc < g.GD_MEDIAN_RADIX % procs ) ? 1 : 0);
 
 		    //	  g.debugStr("first: " + firstRad + ", size: " + locRad + ", offset: " + offset );
 
@@ -482,13 +482,13 @@ public class OrbTree {
 	    //        g.debugStr( "count2 [" + i + "]: " + count[i] );
 
 
-	    for (i=0; i< g.gdMedianRadix && count[i] + loWei  <= medWei; i++ );
+	    for (i=0; i< g.GD_MEDIAN_RADIX && count[i] + loWei  <= medWei; i++ );
 
 	    //      g.debugStr("i: " + i + " lowei: " + loWei + ", medWei: " + medWei );
 
 	    if ((i>0) && (count[i-1] + loWei == medWei)) {
 
-		for (j=g.gdMedianRadix-1; (j>=0) && (count[j] + loWei >= medWei ); j-- );
+		for (j=g.GD_MEDIAN_RADIX-1; (j>=0) && (count[j] + loWei >= medWei ); j-- );
 
 		partMed = (i==j+2) ? i : i - ((i-j)>>1);
 
@@ -502,7 +502,7 @@ public class OrbTree {
 
 		for (i=0, j=0; i<actBodies; i++) {
 
-		    if (((pos[i]>>shift) & (g.gdMedianRadix-1)) == partMed) {
+		    if (((pos[i]>>shift) & (g.GD_MEDIAN_RADIX-1)) == partMed) {
 			pos[j] = pos[i];
 			wei[j++] = wei[i];
 		    }
@@ -576,7 +576,7 @@ public class OrbTree {
 
 	    // Copy positions and weights to an array
 
-	    normFac = (double)((1<<g.gdMedianBits) - 1)/t.element( dim );
+	    normFac = (double)((1<<g.GD_MEDIAN_BITS) - 1)/t.element( dim );
 	    minPos = root.lower.element( dim );
 
 	    //      g.debugStr("normfac: " + normFac + ", minPos: " + minPos );
@@ -695,7 +695,7 @@ public class OrbTree {
 
 		//        g.debugStr("level: " + level + ", procs: " + procs + ", dim: " + dim );
 
-		normFac = (double)((1<<g.gdMedianBits) - 1)/t.element( dim );
+		normFac = (double)((1<<g.GD_MEDIAN_BITS) - 1)/t.element( dim );
 		minPos = root.lower.element( dim );
 		newMedian = (double) (weights[i]) / normFac + minPos ;
 
@@ -897,12 +897,12 @@ public class OrbTree {
 	       }
 	       */
 
-	    if (((lx - myOrb.lower.x) >= -g.gdDoubleEpsilon) &&
-		    ((ly - myOrb.lower.y) >= -g.gdDoubleEpsilon) &&
-		    ((lz - myOrb.lower.z) >= -g.gdDoubleEpsilon) &&
-		    ((ux - myOrb.upper.x) < g.gdDoubleEpsilon) &&
-		    ((uy - myOrb.upper.y) < g.gdDoubleEpsilon) &&
-		    ((uz - myOrb.upper.z) < g.gdDoubleEpsilon))
+	    if (((lx - myOrb.lower.x) >= -g.GD_DOUBLE_EPSILON) &&
+		    ((ly - myOrb.lower.y) >= -g.GD_DOUBLE_EPSILON) &&
+		    ((lz - myOrb.lower.z) >= -g.GD_DOUBLE_EPSILON) &&
+		    ((ux - myOrb.upper.x) < g.GD_DOUBLE_EPSILON) &&
+		    ((uy - myOrb.upper.y) < g.GD_DOUBLE_EPSILON) &&
+		    ((uz - myOrb.upper.z) < g.GD_DOUBLE_EPSILON))
 	    {
 		inside = true;
 		iCount++;

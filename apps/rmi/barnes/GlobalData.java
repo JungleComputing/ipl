@@ -1,8 +1,6 @@
 /* $Id$ */
 
 import java.io.Serializable;
-import java.io.PrintWriter;
-import java.io.FileOutputStream;
 
 import org.apache.log4j.Logger;
 
@@ -13,18 +11,18 @@ public class GlobalData implements Cloneable, Serializable {
 
     public Body gdBodies[];
 
-    public double gdDoubleEpsilon = 0.0000001;
-    public double gdStartTime  = 0.0;
+    public static final double GD_DOUBLE_EPSILON = 0.0000001;
+    public static final double GD_START_TIME  = 0.0;
     public double gdEndTime    = 10.0;
     public double gdDt         = 0.025;
     public double gdDtHalf     = gdDt/2;
     public double gdTheta      = 2.0;
     public double gdThetaSq    = gdTheta * gdTheta;
-    public double gdBodyRange  = 30.0;
+    public static final double GD_BODY_RANGE  = 30.0;
     public double gdSoft       = 0.0000025;
-    public double gdSoftSQ     = 0.00000000000625;
-    public double gdDimSlack   = 0.00001; 
-    public int gdIterations    = (int)(((gdEndTime - gdStartTime)/ gdDt ) + 1.1);
+    public double gdSoftSQ     = gdSoft * gdSoft;
+    public static final double GD_DIM_SLACK   = 0.00001; 
+    public int gdIterations    = (int)(((gdEndTime - GD_START_TIME)/ gdDt ) + 1.1);
     public int gdNumBodies     = 300;
     public int gdNumEssentialBodies;
     public int gdTotNumBodies  = 300;
@@ -33,11 +31,11 @@ public class GlobalData implements Cloneable, Serializable {
     public int gdMaxTempBodies;
     public int gdMaxTempCentersOfMass;
     public int gdMaxBodiesPerNode = 3;
-    public double gdExtraBodySpaceFactor = 2;
+    public static final double GD_EXTRA_BODY_SPACE_FACTOR = 2;
 
-    public int gdMedianBits    = 28;
-    public int gdMedianShift   = 7;
-    public int gdMedianRadix   = 128;
+    public static final int GD_MEDIAN_BITS    = 28;
+    public static final int GD_MEDIAN_SHIFT   = 7;
+    public static final int GD_MEDIAN_RADIX   = 128;
 
     public boolean gdSerialize   = false;
     public boolean gdTrimArrays  = false;
@@ -66,20 +64,20 @@ public class GlobalData implements Cloneable, Serializable {
 
     public boolean gdComputeAccelerationsDirect = false;
 
-    private transient PrintWriter Out;
-    private transient FileOutputStream fOut;
+//    private transient PrintWriter Out;
+//    private transient FileOutputStream fOut;
 
     void Initialize() {
 
-	Out = null;
-	fOut = null;
+//	Out = null;
+//	fOut = null;
 
 	for (gdLogProcs=0; ((gdNumProcs-1)>>gdLogProcs)>0; gdLogProcs++);
 
 	gdFirstLoc = (1<<gdLogProcs) - 1;
 
-	gdMaxBodies = (int)((double)gdTotNumBodies*gdExtraBodySpaceFactor);
-	gdMaxLocalBodies = (int)((double)(gdTotNumBodies/gdNumProcs)*gdExtraBodySpaceFactor); 
+	gdMaxBodies = (int)((double)gdTotNumBodies*GD_EXTRA_BODY_SPACE_FACTOR);
+	gdMaxLocalBodies = (int)((double)(gdTotNumBodies/gdNumProcs)*GD_EXTRA_BODY_SPACE_FACTOR); 
 
 	gdMaxTempBodies = Math.max( gdTotNumBodies/10, 500 );
 	gdMaxTempCentersOfMass = Math.max( gdTotNumBodies/10, 500 );
@@ -102,7 +100,7 @@ public class GlobalData implements Cloneable, Serializable {
 	gdDtHalf     = gdDt/2;
 	gdThetaSq    = gdTheta * gdTheta;
 	gdSoftSQ     = gdSoft * gdSoft;
-	gdIterations = (int)(((gdEndTime - gdStartTime)/ gdDt ) + 1.1);
+	gdIterations = (int)(((gdEndTime - GD_START_TIME)/ gdDt ) + 1.1);
 
 	debugStr( "scale: " + scale + "theta: " + gdTheta +
 		", theta sq: " + gdThetaSq );

@@ -4,13 +4,13 @@
 import ibis.util.PoolInfo;
 
 strictfp
-public class BarnesHutt {
+public class BarnesHut {
 
     private GlobalData bhGd;
     private boolean bhDistributed;
     Procs g;
 
-    BarnesHutt() {
+    BarnesHut() {
 
 	bhGd = new GlobalData();
 	bhDistributed = false;
@@ -220,21 +220,17 @@ public class BarnesHutt {
 
     public static void main( String argv[] ) {
 
-	BarnesHutt  bh;
+	BarnesHut  bh;
 
 	//    try {
 	//        Thread.sleep(60000);
 	//    } catch(Exception e) {
 	//    }
 
-	bh = new BarnesHutt();
+	bh = new BarnesHut();
 
 	bh.setArgs( argv );
 
 	bh.run();
     }
 }
-
-
-
-

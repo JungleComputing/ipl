@@ -7,7 +7,7 @@
 	Ibis RMI application build.
     </description>
 
-    <property name="main-class"  value="BarnesHutt"/>
+    <property name="main-class"  value="BarnesHut"/>
 
     <property environment="env"/>
 

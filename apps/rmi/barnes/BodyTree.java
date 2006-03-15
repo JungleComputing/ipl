@@ -89,8 +89,8 @@ public class BodyTree extends BodyTreeNode {
 
 	int i;
 	//    static vec3 dPos = null, dAcc, dVel, mVel;
-	vec3 dPos = null, dAcc, dVel, mVel;
-	Body b;
+/*
+        vec3 dPos = null, dAcc, dVel, mVel;
 
 	//    if (dPos == null)
 	{    
@@ -99,7 +99,8 @@ public class BodyTree extends BodyTreeNode {
 	    dVel = new vec3();
 	    mVel = new vec3();
 	}
-
+*/
+        Body b;
 
 	for ( i=0; i<btnGd.gdNumBodies; i++ ) {
 
@@ -173,9 +174,9 @@ public class BodyTree extends BodyTreeNode {
 
 	// compute the new center and adjust the root node accordingly
 
-	btnCenter_x = min.x + (side * (1.0 + btnGd.gdDimSlack ))/2; 
-	btnCenter_y = min.y + (side * (1.0 + btnGd.gdDimSlack ))/2; 
-	btnCenter_z = min.z + (side * (1.0 + btnGd.gdDimSlack ))/2;
+	btnCenter_x = min.x + (side * (1.0 + btnGd.GD_DIM_SLACK ))/2; 
+	btnCenter_y = min.y + (side * (1.0 + btnGd.GD_DIM_SLACK ))/2; 
+	btnCenter_z = min.z + (side * (1.0 + btnGd.GD_DIM_SLACK ))/2;
 
 	btnHalfSize = side; 
     }

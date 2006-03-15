@@ -99,8 +99,8 @@ public class ProcessorThread extends Thread {
     void MainLoop() {
 
         BodyTree tree;
-        long tStart, tTree, tCOFM, tAccels, tNewPos, tEnd, tUpdateCOFM, tEssentialTree, tLoadBalance, totalMillis, interactions, totEssentialTree, totTree, totAccels, totNewPos, totUpdateCOFM, totCOFM, totLoadBalance, tGC, totGC;
-        int level, sum;
+        long tStart, tTree, tCOFM, tAccels, tNewPos, tUpdateCOFM, tEssentialTree, tLoadBalance, totalMillis, interactions, totEssentialTree, totTree, totAccels, totNewPos, totUpdateCOFM, totCOFM, totLoadBalance, tGC, totGC;
+        int level;
 
         if (g.gdPrintBodies)
             PrintBodies();

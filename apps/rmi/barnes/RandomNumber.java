@@ -12,8 +12,6 @@ class RandomNumber {
     private int rnB;
     private int rnRandX;
     private int rnLastRand;
-    private int rnSeed;
-
 
     RandomNumber() {
 	setSeed( 123 );

@@ -10,7 +10,7 @@ class BodyTreeNode {
     // Debugging stuff;
 
     public static boolean  btnDebug;
-
+/*
     private static final String depthStr[] = {
 
 	"", 
@@ -36,7 +36,7 @@ class BodyTreeNode {
 	"....................",
 
     };
-
+*/
     // Variables
 
     protected GlobalData btnGd;
@@ -122,7 +122,7 @@ class BodyTreeNode {
 
 
     public BodyTreeNode( GlobalData g ) {
-	Initialize( g, 0, 0, 0, g.gdBodyRange, 0 );
+	Initialize( g, 0, 0, 0, g.GD_BODY_RANGE, 0 );
     }
 
 
@@ -343,9 +343,9 @@ class BodyTreeNode {
 	/* This was a direct comparison (with ==) but this turns out to
 	 * be not stable. (Ceriel)
 	 */
-	if (Math.abs(c.cofmCenter_x - btnCenter_x) < btnGd.gdDoubleEpsilon &&
-		Math.abs(c.cofmCenter_y - btnCenter_y) < btnGd.gdDoubleEpsilon &&
-		Math.abs(c.cofmCenter_z - btnCenter_z) < btnGd.gdDoubleEpsilon) {
+	if (Math.abs(c.cofmCenter_x - btnCenter_x) < btnGd.GD_DOUBLE_EPSILON &&
+		Math.abs(c.cofmCenter_y - btnCenter_y) < btnGd.GD_DOUBLE_EPSILON &&
+		Math.abs(c.cofmCenter_z - btnCenter_z) < btnGd.GD_DOUBLE_EPSILON) {
 	    /*
 	       if (c.cofmCenter_x == btnCenter_x &&
 	       c.cofmCenter_y == btnCenter_y &&
@@ -393,7 +393,7 @@ class BodyTreeNode {
 
 
 	// Tree integrity check and support routines
-
+/*
 	private boolean check( vec3 center, double size, vec3 pos ) {
 
 	    double maxx = center.x + size;
@@ -412,7 +412,7 @@ class BodyTreeNode {
 
 	    return true;
 	}
-
+*/
 	/*
 	   public int sanityCheck() {
 
@@ -521,7 +521,7 @@ class BodyTreeNode {
 
 	public void ComputeCenterOfMass() {
 
-	    int i, bi;
+	    int i;
 	    double recip;
 
 	    if (!btnCenterOfMassValid) {

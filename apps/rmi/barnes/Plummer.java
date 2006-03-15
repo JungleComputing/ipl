@@ -11,7 +11,7 @@ class Plummer {
 
     void Generate( Body bodies[], int numBodies ) {
 
-	int i, j, k, hNumBodies;
+	int i, hNumBodies;
 	double rsc, vsc, r, v, x, y, mass = 1.0/numBodies, offset = 4.0;
 	vec3 cmr = new vec3(), cmv = new vec3();
 
