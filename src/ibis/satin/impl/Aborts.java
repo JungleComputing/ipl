@@ -118,11 +118,11 @@ public abstract class Aborts extends WorkStealing {
     }
 
     static boolean isDescendentOf(InvocationRecord child, Stamp targetStamp) {
-        if (child.parentStamp.stampEquals(targetStamp)) {
-            return true;
-        }
         if (child.parent == null || child.parentStamp == null) {
             return false;
+        }
+        if (child.parentStamp.stampEquals(targetStamp)) {
+            return true;
         }
 
         return isDescendentOf(child.parent, targetStamp);
