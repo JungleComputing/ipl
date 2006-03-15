@@ -20,7 +20,7 @@ import java.util.*;
  * precisieproblemen)
  */
 
-final class BodyTreeNode extends ibis.satin.SatinObject implements
+strictfp final class BodyTreeNode extends ibis.satin.SatinObject implements
 BodyTreeNodeInterface, java.io.Serializable {
 
     BodyTreeNode children[];
@@ -77,7 +77,7 @@ BodyTreeNodeInterface, java.io.Serializable {
      */
     private void initCenterSizeMaxtheta(double max_x, double max_y,
             double max_z, double min_x, double min_y, double min_z, double theta) {
-
+/* old code from Maik
         double size;
 
         center_x = (max_x + min_x) / 2.0;
@@ -87,14 +87,22 @@ BodyTreeNodeInterface, java.io.Serializable {
         size = Math.max(max_x - min_x, max_y - min_y);
         size = Math.max(size, max_z - min_z);
 
-        /*
-         * make size a little bigger to compensate for very small floating point
-         * inaccuracy (value copied from splash2-barnes)
-         */
+        
+         // make size a little bigger to compensate for very small floating point
+         // inaccuracy (value copied from splash2-barnes)
+         
         // is not present in Suel
         //		size *= 1.00002;
 
         halfSize = size / 2.0;
+        maxTheta = theta * theta * halfSize * halfSize;
+        */
+        
+        halfSize = (max_x - min_x) * 0.5;
+
+        center_x = min_x + halfSize;
+        center_y = min_y + halfSize;
+        center_z = min_z + halfSize;
         maxTheta = theta * theta * halfSize * halfSize;
     }
 
@@ -473,8 +481,7 @@ BodyTreeNodeInterface, java.io.Serializable {
                 diff_y = bodies[i].pos_y - pos_y;
                 diff_z = bodies[i].pos_z - pos_z;
 
-                distsq = diff_x * diff_x + diff_y * diff_y;
-                distsq += diff_z * diff_z + SOFT_SQ;
+                distsq = diff_x * diff_x + diff_y * diff_y + diff_z * diff_z + SOFT_SQ;
 
                 dist = Math.sqrt(distsq);
                 factor = bodies[i].mass / (distsq * dist);

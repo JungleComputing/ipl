@@ -6,7 +6,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 
-final class BarnesHut {
+strictfp final class BarnesHut {
 
 	static boolean viz = false;
 
@@ -14,7 +14,7 @@ final class BarnesHut {
 
 	static boolean verbose = false; //use -v to turn on
 
-	static final boolean ASSERTS = false; //also used in other barnes classes
+	static final boolean ASSERTS = true; //also used in other barnes classes
 
 	static final int IMPL_NTC = 1; // -ntc option
 
@@ -38,17 +38,17 @@ final class BarnesHut {
 	private long[] forceCalcTimes;
 
 	//Parameters for the BarnesHut algorithm / simulation
-	private static final double THETA = 5.0; //cell subdivision tolerance
+	private static final double THETA = 5.0; // cell subdivision tolerance
 
-	private static final double DT = 0.025; // default integration time-step
-    //private static final double DT = 10.5; //integration time-step
+	static final double DT = 0.025; // default integration time-step
+        static final double DT_HALF = DT / 2.0; // default integration time-step
 
 	//we do 7 iterations (first one isn't measured)
 	static final double START_TIME = 0.0;
 
 	static final double END_TIME = 0.175;
 
-	static int iterations = -1;
+	static int iterations = 400;
 
 	static Body[] bodyArray;
 
@@ -79,7 +79,6 @@ final class BarnesHut {
 		/*		if (iterations == -1) {
 			iterations = (int) ((END_TIME + 0.1 * DT - START_TIME) / DT);
 			}*/
-		iterations = 7;
 
 		forceCalcTimes = new long[iterations];
 	}
@@ -125,7 +124,7 @@ final class BarnesHut {
 				System.exit(1);
 			}
 
-			bodyArray[i].computeNewPosition(iteration != 0, DT, accs_x[i],
+			bodyArray[i].computeNewPosition(iteration != 0, accs_x[i],
 					accs_y[i], accs_z[i]);
 
 			if (ASSERTS)
@@ -145,7 +144,9 @@ final class BarnesHut {
 		BodyCanvas bc = null;
 
 		// print the starting problem
-		// printBodies();
+		if(verbose) {
+                    printBodies();
+                }
 
 		if (viz) {
 			bc = BodyCanvas.visualize(bodyArray);
@@ -277,27 +278,13 @@ final class BarnesHut {
 					+ b.pos_y + ", " + b.pos_z + " ]");
 			System.out.println("0:      " + i + ": [ " + b.vel_x + ", "
 					+ b.vel_y + ", " + b.vel_z + " ]");
-			System.out.println("0:      " + i + ": [ " + b.acc_x + ", "
-					+ b.acc_y + ", " + b.acc_z + " ]");
-			System.out.println("0:      " + i + ": " + b.number);
+			System.out.println("0:      " + i + ": [ " + b.oldAcc_x + ", "
+					+ b.oldAcc_y + ", " + b.oldAcc_z + " ]");
+                        System.out.println("0:      " + i + ": [ " + b.mass + " ]");
+//			System.out.println("0:      " + i + ": " + b.number);
 		}
 	}
 
-	/*
-	 * private BodyCanvas visualize() {
-	 * JFrame.setDefaultLookAndFeelDecorated(true);
-	 * 
-	 * //Create and set up the window. JFrame frame = new JFrame("Bodies");
-	 * //frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-	 * frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-	 * 
-	 * BodyCanvas bc = new BodyCanvas(500, 500, bodies);
-	 * frame.getContentPane().add(bc);
-	 * 
-	 * //Display the window. frame.pack(); frame.setVisible(true);
-	 * 
-	 * return bc; }
-	 */
 	void run() {
 		int i;
 
@@ -343,7 +330,7 @@ final class BarnesHut {
 	}
 
 	public static void main(String argv[]) {
-		int nBodies = 0, mlb = 0;
+		int nBodies = 0, mlb = 3;
 		boolean nBodiesSeen = false;
 		boolean mlbSeen = false;
 		int i;
@@ -378,7 +365,6 @@ final class BarnesHut {
 					throw new IllegalArgumentException(
 							"Illegal argument to -it: number of iterations must be >= 0 !");
                                 }
-
 			} else if (argv[i].equals("-min")) {
 				spawn_min = Integer.parseInt(argv[++i]);
 				if (spawn_min < 0) {
@@ -420,8 +406,8 @@ final class BarnesHut {
 		}
 
 		if (nBodies < 1) {
-			System.err.println("Invalid body count, generating 100 bodies...");
-			nBodies = 100;
+			System.err.println("Invalid body count, generating 300 bodies...");
+			nBodies = 300;
 		}
 
                 if (spawn_max < 0) {
@@ -433,15 +419,11 @@ final class BarnesHut {
 				+ ", spawn-min-threshold = " + spawn_min
 				+ ", spawn-max-threshold = " + spawn_max
                             );
-		try {
-			new BarnesHut(nBodies, mlb).run();
-		} catch (StackOverflowError e) {
-			System.err.println("EEK!" + e + ":");
-			e.printStackTrace();
-		}
+
+                new BarnesHut(nBodies, mlb).run();
 
 		realEnd = System.currentTimeMillis();
-		ibis.satin.SatinObject.resume(); //allow satin to exit cleanly
+		ibis.satin.SatinObject.resume(); // allow satin to exit cleanly
 
 		System.out.println("Real run time = " + (realEnd - realStart) / 1000.0
 				+ " s");

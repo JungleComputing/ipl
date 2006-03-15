@@ -31,6 +31,7 @@ public class ProcessorThread extends Thread {
             + g.gdBodies[i].bVel.y + ", " + g.gdBodies[i].bVel.z + " ]");
         g.debugStr("     " + i + ": [ " + g.gdBodies[i].bAcc.x + ", "
             + g.gdBodies[i].bAcc.y + ", " + g.gdBodies[i].bAcc.z + " ]");
+        g.debugStr("     " + i + ": [ " + g.gdBodies[i].bMass + " ]");
 //        g.debugStr("     " + i + ": " + g.gdBodies[i].bNumber);
     }
 

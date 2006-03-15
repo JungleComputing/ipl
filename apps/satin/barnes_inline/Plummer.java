@@ -5,7 +5,7 @@
  * see ../../rmi/barnes/Plummer.java for the original version
  */
 
-class Plummer {
+strictfp class Plummer {
 	private RandomNumber rand;
 
 	Plummer() {
