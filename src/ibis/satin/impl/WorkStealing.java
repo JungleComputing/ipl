@@ -5,8 +5,6 @@
 package ibis.satin.impl;
 
 import ibis.ipl.IbisError;
-import ibis.ipl.IbisIdentifier;
-import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.WriteMessage;
 
 import java.io.IOException;
