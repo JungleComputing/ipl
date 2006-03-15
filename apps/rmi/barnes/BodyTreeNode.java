@@ -590,7 +590,7 @@ strictfp class BodyTreeNode {
         double Diff_z = btnCenterOfMass_z - b.bPos.z;
 
         double DistSq = Diff_x * Diff_x + Diff_y * Diff_y + Diff_z * Diff_z;
-        System.err.println("distsq = " + DistSq + ", maxTheta = " + btnMaxTheta);        
+        System.err.println("distsq = " + DistSq + ", maxTheta = " + btnMaxTheta);
 
         if (DistSq >= btnMaxTheta) {
             // The distance was large enough to use the treenode instead of iterating all bodies.  

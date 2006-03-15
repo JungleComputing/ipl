@@ -19,6 +19,8 @@ strictfp public class BodyTree extends BodyTreeNode {
 
         hs = (max.x - min.x) * 0.5;
 
+        System.err.println("halfSize = " + hs + ", maxx = " + max.x + " minx = " + min.x);
+        
         cx = min.x + hs;
         cy = min.y + hs;
         cz = min.z + hs;
