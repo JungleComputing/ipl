@@ -83,31 +83,9 @@ strictfp public class BodyTree extends BodyTreeNode {
     }
 
     void ComputeNewPositions() {
-
-        int i;
-        //    static vec3 dPos = null, dAcc, dVel, mVel;
-        /*
-         vec3 dPos = null, dAcc, dVel, mVel;
-
-         //    if (dPos == null)
-         {    
-         dPos = new vec3();
-         dAcc = new vec3();
-         dVel = new vec3();
-         mVel = new vec3();
-         }
-         */
-        Body b;
-
-        for (i = 0; i < btnGd.gdNumBodies; i++) {
-
-            b = btnGd.gdBodies[i];
-            /*
-             btnGd.debugStr("updating pos for body " + b.bNumber + ": (" +
-             b.bAcc.x + ", " + b.bAcc.y + ", " + b.bAcc.z + "). ");
-             */
+        for (int i = 0; i < btnGd.gdNumBodies; i++) {
+            Body b = btnGd.gdBodies[i];
             if (btnGd.gdIteration > 0) {
-
                 b.bVel.x += (b.bAcc.x - b.bOldAcc.x) * btnGd.gdDtHalf;
                 b.bVel.y += (b.bAcc.y - b.bOldAcc.y) * btnGd.gdDtHalf;
                 b.bVel.z += (b.bAcc.z - b.bOldAcc.z) * btnGd.gdDtHalf;
@@ -124,13 +102,6 @@ strictfp public class BodyTree extends BodyTreeNode {
             b.bOldAcc.x = b.bAcc.x;
             b.bOldAcc.y = b.bAcc.y;
             b.bOldAcc.z = b.bAcc.z;
-
-            /*
-             btnGd.debugStr("updating pos for body " + b.bNumber + ": (" +
-             b.bPos.x + ", " + b.bPos.y + ", " + b.bPos.z + "). ");
-             btnGd.debugStr("updating vel for body " + b.bNumber + ": (" +
-             b.bVel.x + ", " + b.bVel.y + ", " + b.bVel.z + "). ");
-             */
         }
     }
 

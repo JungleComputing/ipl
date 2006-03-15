@@ -21,7 +21,6 @@ strictfp public final class Body implements Serializable, Cloneable {
     public int bWeight;
 
     void Initialize() {
-
         bPos = new vec3();
         bVel = new vec3();
         bAcc = new vec3();
@@ -33,22 +32,6 @@ strictfp public final class Body implements Serializable, Cloneable {
     }
 
     Body() {
-
         Initialize();
     }
-
-    /*
-     Body( double r ) {
-
-     Initialize();
-
-     bPos.x = (Math.random()-0.5)*r*2;
-     bPos.y = (Math.random()-0.5)*r*2;
-     bPos.z = (Math.random()-0.5)*r*2;
-
-     bVel.x = (Math.random()-0.5)*r*2;
-     bVel.y = (Math.random()-0.5)*r*2;
-     bVel.z = (Math.random()-0.5)*r*2;
-     }
-     */
 }

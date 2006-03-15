@@ -129,7 +129,7 @@ strictfp public class GlobalData implements Cloneable, Serializable {
         gdDtHalf = gdDt / 2;
         gdThetaSq = gdTheta * gdTheta;
         gdSoftSQ = gdSoft * gdSoft;
-        gdIterations = (int) (((gdEndTime - GD_START_TIME) / gdDt) + 1.1);
+        gdIterations = 1; // (int) (((gdEndTime - GD_START_TIME) / gdDt) + 1.1);
 
         debugStr("scale: " + scale + "theta: " + gdTheta + ", theta sq: "
             + gdThetaSq);
@@ -142,11 +142,10 @@ strictfp public class GlobalData implements Cloneable, Serializable {
     }
 
     public GlobalData GenerateClone() {
-
         try {
             return (GlobalData) clone();
         } catch (Exception e) {
-            return this;
+            throw new Error("could not clone!", e);
         }
     }
 
