@@ -130,7 +130,8 @@ BodyTreeNodeInterface, java.io.Serializable {
      */
     public BodyTreeNode(Body[] bodyArray, int maxLeafBodies, double theta) {
         int i;
-        double max_x = -1000000.0, max_y = -1000000.0, max_z = 0.0, min_x = 0.0, min_y = 0.0, min_z = 0.0;
+        double max_x = -1000000.0, max_y = -1000000.0, max_z = -1000000.0, 
+        min_x = 1000000.0, min_y = 1000000.0 min_z = 1000000.0;
 
         for (i = 0; i < bodyArray.length; i++) {
             max_x = Math.max(max_x, bodyArray[i].pos_x);
