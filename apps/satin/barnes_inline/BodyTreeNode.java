@@ -59,6 +59,9 @@ BodyTreeNodeInterface, java.io.Serializable {
 
     static final double SOFT_SQ = SOFT * SOFT; 
 
+    // Extra margin of space used around the bodies.
+    private static final double DIM_SLACK = 0.00001;
+    
     /**
      * creates a totally empty tree.
      */
@@ -77,33 +80,23 @@ BodyTreeNodeInterface, java.io.Serializable {
      */
     private void initCenterSizeMaxtheta(double max_x, double max_y,
             double max_z, double min_x, double min_y, double min_z, double theta) {
-        /*
-// old code from Maik
+        
         double size;
-
-        center_x = (max_x + min_x) / 2.0;
-        center_y = (max_y + min_y) / 2.0;
-        center_z = (max_z + min_z) / 2.0;
 
         size = Math.max(max_x - min_x, max_y - min_y);
         size = Math.max(size, max_z - min_z);
 
         
          // make size a little bigger to compensate for very small floating point
-         // inaccuracy (value copied from splash2-barnes)
-         
-        // is not present in Suel
-        //		size *= 1.00002;
+	size *= 1 + 2.0*DIM_SLACK;
 
         halfSize = size / 2.0;
         maxTheta = theta * theta * halfSize * halfSize;
-  */
 
-        halfSize = (max_x - min_x) * 0.5;
         center_x = min_x + halfSize;
         center_y = min_y + halfSize;
         center_z = min_z + halfSize;
-        maxTheta = theta * theta * halfSize * halfSize;
+
         System.out.println("theta = " + theta + ", halfSize = " + halfSize + ", maxx = " + max_x + ", minx = " + min_x + ", maxTheta = " + maxTheta);
     }
 
