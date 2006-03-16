@@ -35,10 +35,33 @@ public final class Stamp implements java.io.Serializable {
      * @return <code>true</code> if equal, <code>false</code> if not.
      */
     public boolean stampEquals(Stamp other) {
+        if (other == null) {
+            return false;
+        }
         if (other.stamps.length != stamps.length) {
             return false;
         }
         for (int i = 0; i < stamps.length; i++) {
+            if (stamps[i] != other.stamps[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Determines if this stamp is a descendent of the specified stamp.
+     * @param other the stamp to compare to.
+     * @return <code>true</code> if this stamp is a descendent.
+     */
+    public boolean isDescendentOf(Stamp other) {
+        if (other == null) {
+            return true;
+        }
+        if (other.stamps.length > stamps.length) {
+            return false;
+        }
+        for (int i = 0; i < other.stamps.length; i++) {
             if (stamps[i] != other.stamps[i]) {
                 return false;
             }

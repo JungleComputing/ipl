@@ -117,15 +117,18 @@ public abstract class Aborts extends WorkStealing {
         outstandingJobs.killSubtreeOf(targetOwner);
     }
 
+    /**
+     * Determines if the specified invocation record is a descendent of
+     * the job indicated by the specied stamp.
+     */
     static boolean isDescendentOf(InvocationRecord child, Stamp targetStamp) {
-        if (child.parent == null || child.parentStamp == null) {
+        if (child.parentStamp == null) {
+            if (targetStamp == null) {
+                return true;
+            }
             return false;
         }
-        if (child.parentStamp.stampEquals(targetStamp)) {
-            return true;
-        }
-
-        return isDescendentOf(child.parent, targetStamp);
+        return child.parentStamp.isDescendentOf(targetStamp);
     }
 
     static boolean isDescendentOf1(InvocationRecord child,
