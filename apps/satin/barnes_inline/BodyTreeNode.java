@@ -20,8 +20,8 @@ import java.util.*;
  * precisieproblemen)
  */
 
-strictfp final class BodyTreeNode extends ibis.satin.SatinObject implements
-BodyTreeNodeInterface, java.io.Serializable {
+/*strictfp*/ final class BodyTreeNode extends ibis.satin.SatinObject implements
+        BodyTreeNodeInterface, java.io.Serializable {
 
     BodyTreeNode children[];
 
@@ -57,11 +57,11 @@ BodyTreeNodeInterface, java.io.Serializable {
     // this value is copied from Suel --Rob
     static final double SOFT = 0.0000025;
 
-    static final double SOFT_SQ = SOFT * SOFT; 
+    static final double SOFT_SQ = SOFT * SOFT;
 
     // Extra margin of space used around the bodies.
     private static final double DIM_SLACK = 0.00001;
-    
+
     /**
      * creates a totally empty tree.
      */
@@ -80,15 +80,14 @@ BodyTreeNodeInterface, java.io.Serializable {
      */
     private void initCenterSizeMaxtheta(double max_x, double max_y,
             double max_z, double min_x, double min_y, double min_z, double theta) {
-        
+
         double size;
 
         size = Math.max(max_x - min_x, max_y - min_y);
         size = Math.max(size, max_z - min_z);
 
-        
-         // make size a little bigger to compensate for very small floating point
-	size *= 1 + 2.0*DIM_SLACK;
+        // make size a little bigger to compensate for very small floating point
+        size *= 1 + 2.0 * DIM_SLACK;
 
         halfSize = size / 2.0;
         maxTheta = theta * theta * halfSize * halfSize;
@@ -97,7 +96,7 @@ BodyTreeNodeInterface, java.io.Serializable {
         center_y = min_y + halfSize;
         center_z = min_z + halfSize;
 
-        System.out.println("theta = " + theta + ", halfSize = " + halfSize + ", maxx = " + max_x + ", minx = " + min_x + ", maxTheta = " + maxTheta);
+        //        System.out.println("theta = " + theta + ", halfSize = " + halfSize + ", maxx = " + max_x + ", minx = " + min_x + ", maxTheta = " + maxTheta);
     }
 
     //constructor to create an empty tree, used during tree contruction
@@ -123,8 +122,7 @@ BodyTreeNodeInterface, java.io.Serializable {
      */
     public BodyTreeNode(Body[] bodyArray, int maxLeafBodies, double theta) {
         int i;
-        double max_x = -1000000.0, max_y = -1000000.0, max_z = -1000000.0, 
-        min_x = 1000000.0, min_y = 1000000.0, min_z = 1000000.0;
+        double max_x = -1000000.0, max_y = -1000000.0, max_z = -1000000.0, min_x = 1000000.0, min_y = 1000000.0, min_z = 1000000.0;
 
         for (i = 0; i < bodyArray.length; i++) {
             max_x = Math.max(max_x, bodyArray[i].pos_x);
@@ -211,7 +209,7 @@ BodyTreeNodeInterface, java.io.Serializable {
                             children[i] = job;
                         } else {
                             children[i] = new BodyTreeNode(
-                                    original.children[i], job);
+                                original.children[i], job);
                         }
                         bodyCount += children[i].bodyCount;
                     }
@@ -229,8 +227,8 @@ BodyTreeNodeInterface, java.io.Serializable {
      */
     public boolean outOfRange(double pos_x, double pos_y, double pos_z) {
         if (Math.abs(pos_x - center_x) > halfSize
-                || Math.abs(pos_y - center_y) > halfSize
-                || Math.abs(pos_z - center_z) > halfSize) {
+            || Math.abs(pos_y - center_y) > halfSize
+            || Math.abs(pos_z - center_z) > halfSize) {
             return true;
         } else {
             return false;
@@ -242,12 +240,9 @@ BodyTreeNodeInterface, java.io.Serializable {
         double xdiff = Math.abs(pos_x - center_x) - halfSize;
         double ydiff = Math.abs(pos_y - center_y) - halfSize;
         double zdiff = Math.abs(pos_z - center_z) - halfSize;
-        if (xdiff > 0.0)
-            out.println("x : " + xdiff);
-        if (ydiff > 0.0)
-            out.println("y : " + ydiff);
-        if (zdiff > 0.0)
-            out.println("z : " + zdiff);
+        if (xdiff > 0.0) out.println("x : " + xdiff);
+        if (ydiff > 0.0) out.println("y : " + ydiff);
+        if (zdiff > 0.0) out.println("z : " + zdiff);
     }
 
     private double[] computeChildCenter(int childIndex) {
@@ -285,23 +280,23 @@ BodyTreeNodeInterface, java.io.Serializable {
             bodyCount++;
 
         } else { //leaf node
-/* @@@
-            if (BarnesHut.ASSERTS && outOfRange(b.pos_x, b.pos_y, b.pos_z)) {
+            /* @@@
+             if (BarnesHut.ASSERTS && outOfRange(b.pos_x, b.pos_y, b.pos_z)) {
 
-                System.err.println("EEK! Adding out-of-range body! "
-                        + "Body position: " + b.pos_x + ", " + b.pos_y + ", "
-                        + b.pos_z + " id: " + b.number);
+             System.err.println("EEK! Adding out-of-range body! "
+             + "Body position: " + b.pos_x + ", " + b.pos_y + ", "
+             + b.pos_z + " id: " + b.number);
 
-                System.err.println("     Center: " + center_x + ", " + center_y
-                        + ", " + center_z + " halfSize: " + halfSize);
-                printOutOfRange(System.err, b.pos_x, b.pos_y, b.pos_z);
-                throw new IndexOutOfBoundsException("Out-of-range body!");
-                //System.exit(1);
-            }
-*/
+             System.err.println("     Center: " + center_x + ", " + center_y
+             + ", " + center_z + " halfSize: " + halfSize);
+             printOutOfRange(System.err, b.pos_x, b.pos_y, b.pos_z);
+             throw new IndexOutOfBoundsException("Out-of-range body!");
+             //System.exit(1);
+             }
+             */
+
             if (bodyCount < maxLeafBodies) { //we have room left
-                if (bodyCount == 0)
-                    bodies = new Body[maxLeafBodies];
+                if (bodyCount == 0) bodies = new Body[maxLeafBodies];
                 bodies[bodyCount] = b;
                 bodyCount++;
                 totalMass += b.mass;
@@ -326,12 +321,9 @@ BodyTreeNodeInterface, java.io.Serializable {
         int child = 0;
         double[] newCenter;
 
-        if (b.pos_x - center_x >= 0.0)
-            child |= 1;
-        if (b.pos_y - center_y >= 0.0)
-            child |= 2;
-        if (b.pos_z - center_z >= 0.0)
-            child |= 4;
+        if (b.pos_x - center_x >= 0.0) child |= 1;
+        if (b.pos_y - center_y >= 0.0) child |= 2;
+        if (b.pos_z - center_z >= 0.0) child |= 4;
 
         if (children[child] == null) {
             /*
@@ -341,7 +333,7 @@ BodyTreeNodeInterface, java.io.Serializable {
              */
             newCenter = computeChildCenter(child);
             children[child] = new BodyTreeNode(newCenter, halfSize / 2.0,
-                    maxTheta / 4.0);
+                maxTheta / 4.0);
             children[child].bodies = new Body[maxLeafBodies];
             children[child].bodies[0] = b;
             children[child].bodyCount = 1;
@@ -369,8 +361,7 @@ BodyTreeNodeInterface, java.io.Serializable {
         } else {
             //cell node, process all children
             for (int i = 0; i < 8; i++) {
-                if (children[i] != null)
-                    children[i].trim();
+                if (children[i] != null) children[i].trim();
             }
         }
     }
@@ -418,8 +409,8 @@ BodyTreeNodeInterface, java.io.Serializable {
             com_y /= totalMass;
             com_z /= totalMass;
         }
-        
-        System.out.println("set com to: " + com_x + ", " + com_y + ", " + com_z);
+
+        //        System.out.println("set com to: " + com_x + ", " + com_y + ", " + com_z);
     }
 
     /**
@@ -441,7 +432,7 @@ BodyTreeNodeInterface, java.io.Serializable {
 
         distsq = diff_x * diff_x + diff_y * diff_y + diff_z * diff_z;
 
-        System.out.println("distsq = " + distsq + ", maxTheta = " + maxTheta);        
+        //        System.out.println("distsq = " + distsq + ", maxTheta = " + maxTheta);        
         /*
          * In the if-statement below we could only check if we are cut off
          * (children == null && bodies == null), but then the 'invalid cutoff'
@@ -463,8 +454,7 @@ BodyTreeNodeInterface, java.io.Serializable {
 
             return totalAcc;
         }
-        /* else */
-        //totalAcc[[012]] = 0.0
+
         if (children == null) {
             // Leaf node, compute interactions with all my bodies
 
@@ -478,7 +468,8 @@ BodyTreeNodeInterface, java.io.Serializable {
                 diff_y = bodies[i].pos_y - pos_y;
                 diff_z = bodies[i].pos_z - pos_z;
 
-                distsq = diff_x * diff_x + diff_y * diff_y + diff_z * diff_z + SOFT_SQ;
+                distsq = diff_x * diff_x + diff_y * diff_y + diff_z * diff_z
+                    + SOFT_SQ;
 
                 dist = Math.sqrt(distsq);
                 factor = bodies[i].mass / (distsq * dist);
@@ -502,6 +493,82 @@ BodyTreeNodeInterface, java.io.Serializable {
     }
 
     /**
+     * Computes the acceleration which the bodies in 'this' give to a body at
+     * position 'pos' 'this' can be a tree which is the result of necessaryTree
+     * construction, some parts may be cut off. We exploit this by first
+     * checking if the tree below 'this' has been cut off. Then the distance
+     * calculation is already done during necessarryTree construction
+     */
+    public void barnesBodyRob (double pos_x, double pos_y, double pos_z,
+            double[]dest_x, double[] dest_y, double[] dest_z, int destPos) {
+        
+        double diff_x, diff_y, diff_z;
+//        double[] totalAcc = new double[3];
+        double dist, distsq, factor;
+        int i;
+
+        diff_x = com_x - pos_x;
+        diff_y = com_y - pos_y;
+        diff_z = com_z - pos_z;
+
+        distsq = diff_x * diff_x + diff_y * diff_y + diff_z * diff_z;
+
+        //        System.out.println("distsq = " + distsq + ", maxTheta = " + maxTheta);        
+        /*
+         * In the if-statement below we could only check if we are cut off
+         * (children == null && bodies == null), but then the 'invalid cutoff'
+         * ASSERT statement doesn't make sense anymore, and: The (square)
+         * distance computed here is *LARGER* than the distance computed by the
+         * necessaryTree construction (which uses the boundary of the job we're
+         * working on), so we can still test if the distance is large enough to
+         * use my CoM
+         */
+
+        if (distsq >= maxTheta) {
+            distsq += SOFT_SQ;
+            dist = Math.sqrt(distsq);
+            factor = totalMass / (distsq * dist);
+
+            dest_x[destPos] += diff_x * factor;
+            dest_y[destPos] += diff_y * factor;
+            dest_z[destPos] += diff_z * factor;
+            
+            return;
+        }
+
+        if (children == null) {
+            // Leaf node, compute interactions with all my bodies
+
+            if (BarnesHut.ASSERTS && (bodies == null || bodies.length == 0)) {
+                System.err.println("EEK! invalid cutoff in barnes(vec3)");
+                System.exit(1);
+            }
+
+            for (i = 0; i < bodies.length; i++) {
+                diff_x = bodies[i].pos_x - pos_x;
+                diff_y = bodies[i].pos_y - pos_y;
+                diff_z = bodies[i].pos_z - pos_z;
+
+                distsq = diff_x * diff_x + diff_y * diff_y + diff_z * diff_z
+                    + SOFT_SQ;
+
+                dist = Math.sqrt(distsq);
+                factor = bodies[i].mass / (distsq * dist);
+
+                dest_x[destPos] += diff_x * factor;
+                dest_y[destPos] += diff_y * factor;
+                dest_z[destPos] += diff_z * factor;
+            }
+        } else { // Cell node
+            for (i = 0; i < 8; i++) {
+                if (children[i] != null) {
+                    children[i].barnesBodyRob(pos_x, pos_y, pos_z, dest_x, dest_y, dest_z, destPos);
+                }
+            }
+        }
+    }
+
+    /**
      * debug version of barnesBody(pos_x, pos_y, pos_z)
      */
     public double[] barnesBodyDbg(double pos_x, double pos_y, double pos_z,
@@ -521,13 +588,13 @@ BodyTreeNodeInterface, java.io.Serializable {
             System.out.println();
             System.out.println("Barnes: new level:");
             System.out.println(" CoM pos = (" + com_x + ", " + com_y + ", "
-                    + com_z + ")");
+                + com_z + ")");
             System.out.println(" pos = (" + pos_x + ", " + pos_y + ", " + pos_z
-                    + ")");
+                + ")");
             System.out.println(" diff = (" + diff_x + ", " + diff_y + ", "
-                    + diff_z + ")");
+                + diff_z + ")");
             System.out.println(" distsq = " + distsq + " maxTheta = "
-                    + maxTheta);
+                + maxTheta);
         }
 
         if (distsq >= maxTheta) {
@@ -546,7 +613,7 @@ BodyTreeNodeInterface, java.io.Serializable {
             if (debug) {
                 System.out.println("  CoM interaction:");
                 System.out.println("  added (" + totalAcc[0] + ", "
-                        + totalAcc[1] + ", " + totalAcc[2] + ")");
+                    + totalAcc[1] + ", " + totalAcc[2] + ")");
             }
             return totalAcc;
         }
@@ -557,7 +624,7 @@ BodyTreeNodeInterface, java.io.Serializable {
             // Leaf node, compute interactions with all my bodies
             if (BarnesHut.ASSERTS && (bodies == null || bodies.length == 0)) {
                 System.err.println("EEK! invalid cutoff in "
-                        + "barnes(vec3)(debug version)");
+                    + "barnes(vec3)(debug version)");
                 System.exit(1);
             }
 
@@ -583,9 +650,9 @@ BodyTreeNodeInterface, java.io.Serializable {
 
                 if (debug) {
                     System.out.println("  distsq, dist, factor: " + distsq
-                            + ", " + dist + ", " + factor);
+                        + ", " + dist + ", " + factor);
                     System.out.println("  added (" + diff_x * factor + ", "
-                            + diff_y * factor + ", " + diff_z * factor + ")");
+                        + diff_y * factor + ", " + diff_z * factor + ")");
                 }
             }
         } else { // Cell node
@@ -593,7 +660,7 @@ BodyTreeNodeInterface, java.io.Serializable {
                 double[] childresult;
                 if (children[i] != null) {
                     childresult = children[i].barnesBodyDbg(pos_x, pos_y,
-                            pos_z, debug);
+                        pos_z, debug);
                     totalAcc[0] += childresult[0];
                     totalAcc[1] += childresult[1];
                     totalAcc[2] += childresult[2];
@@ -610,72 +677,60 @@ BodyTreeNodeInterface, java.io.Serializable {
      * leaf node.
      */
     public LinkedList barnesSequential(BodyTreeNode interactTree) {
-        LinkedList result;
-        int i;
-
-        if (children == null) { //leaf node
-
-            if (BarnesHut.ASSERTS && (bodies == null || bodies.length == 0)) {
-                System.err.println("barnes(interactTree): "
-                        + "found empty leafnode!");
-                return new LinkedList();
-            }
-            int[] bodyNumbers = new int[bodies.length];
-            double[] accs_x = new double[bodies.length];
-            double[] accs_y = new double[bodies.length];
-            double[] accs_z = new double[bodies.length];
-
-            double[] acc;
-
-            for (i = 0; i < bodies.length; i++) {
-                bodyNumbers[i] = bodies[i].number;
-
-                //??? debug code
-                //acc = interactTree.barnesBodyDbg
-                //    (bodies[i].pos_x, bodies[i].pos_y, bodies[i].pos_z,
-                //     bodies[i].number == 0);
-
-                acc = interactTree.barnesBody(bodies[i].pos_x, bodies[i].pos_y,
-                        bodies[i].pos_z);
-
-                accs_x[i] = acc[0];
-                accs_y[i] = acc[1];
-                accs_z[i] = acc[2];
-
-                System.out.println("acc for body " + bodies[i].number + " = " + acc[0] + ", " + acc[1] + ", " + acc[2]);
-            }
-            result = new LinkedList();
-            result.add(bodyNumbers);
-            result.add(accs_x);
-            result.add(accs_y);
-            result.add(accs_z);
-
-        } else { //cell node -> call children[].barnes()
+        if (children != null) { // cell node -> call children[].barnes()
             LinkedList res[] = new LinkedList[8];
             int lastValidChild = -1;
 
-            for (i = 0; i < 8; i++) {
+            for (int i = 0; i < 8; i++) {
                 if (children[i] != null) {
                     res[i] = children[i].barnesSequential(interactTree);
                     lastValidChild = i;
                 }
             }
 
-            result = combineResults(res, lastValidChild);
+            return combineResults(res, lastValidChild);
         }
+
+        //leaf node
+        LinkedList result;
+
+        if (BarnesHut.ASSERTS && (bodies == null || bodies.length == 0)) {
+            System.err.println("barnes(interactTree): "
+                + "found empty leafnode!");
+            return new LinkedList();
+        }
+
+        int[] bodyNumbers = new int[bodies.length];
+        double[] accs_x = new double[bodies.length];
+        double[] accs_y = new double[bodies.length];
+        double[] accs_z = new double[bodies.length];
+
+        for (int i = 0; i < bodies.length; i++) {
+            bodyNumbers[i] = bodies[i].number;
+            if(true) {
+                interactTree.barnesBodyRob(bodies[i].pos_x, bodies[i].pos_y,
+                    bodies[i].pos_z, accs_x, accs_y, accs_z, i);
+            } else {
+                double[] acc = interactTree.barnesBody(bodies[i].pos_x, bodies[i].pos_y,
+                    bodies[i].pos_z);
+                accs_x[i] = acc[0];
+                accs_y[i] = acc[1];
+                accs_z[i] = acc[2];
+            }
+        }
+        result = new LinkedList();
+        result.add(bodyNumbers);
+        result.add(accs_x);
+        result.add(accs_y);
+        result.add(accs_z);
+
         return result;
     }
 
-    public LinkedList doBarnes(BodyTreeNode tree, int low, int high,
-            byte[] jobWalk) {
+    public LinkedList doBarnes(BodyTreeNode tree, int low, int high) {
 
-        if (jobWalk == null) {
-            jobWalk = new byte[0];
-
-        }
         if (children == null) {
             // leaf node, let barnesSequential handle this
-
             // (using optimizeList isn't useful for leaf nodes)
             return barnesSequential(tree);
         }
@@ -691,26 +746,18 @@ BodyTreeNodeInterface, java.io.Serializable {
                 if (ch.bodyCount < low) {
                     res[i] = ch.barnesSequential(tree);
                 } else {
-                    byte[] newJobWalk;
                     if (ch.bodyCount > high) {
-                        newJobWalk = new byte[jobWalk.length + 1];
-                        System.arraycopy(jobWalk, 0, newJobWalk, 0, jobWalk.length);
-                        newJobWalk[jobWalk.length] = (byte) i;
                         BodyTreeNode n = tree;
                         if (BarnesHut.impl == BarnesHut.IMPL_NTC) {
                             n = ch == tree ? tree : new BodyTreeNode(tree, ch);
                         }
-                        res[i] = ch.doBarnes(n, low, high, newJobWalk);
+                        res[i] = ch.doBarnes(n, low, high);
                     } else {
                         spawned = true;
                         // System.out.println("doBarnes spawning, count = " + ch.bodyCount);
-                        switch(BarnesHut.impl) {
-                        case BarnesHut.IMPL_NTC:
-                            BodyTreeNode necessaryTree = ch == tree ? tree
-                                : new BodyTreeNode(tree, ch);
-                            res[i] = ch.barnesNTC(necessaryTree, low);
-                            break;
-                        }
+                        BodyTreeNode necessaryTree = ch == tree ? tree
+                            : new BodyTreeNode(tree, ch);
+                        res[i] = ch.barnesNTC(necessaryTree, low);
                     }
                 }
                 lastValidChild = i;
@@ -784,7 +831,7 @@ BodyTreeNodeInterface, java.io.Serializable {
 
         if (BarnesHut.ASSERTS && lastValidIndex < 0) {
             System.err.println("BodyTreeNode.combineResults: EEK! "
-                    + "lvi < 0! All children are null in caller!");
+                + "lvi < 0! All children are null in caller!");
             System.exit(1);
         }
 
@@ -822,8 +869,7 @@ BodyTreeNodeInterface, java.io.Serializable {
             totalElements += bodyNrs.length;
         }
 
-        if (totalElements == 0)
-            return new LinkedList(); //nothing to optimize
+        if (totalElements == 0) return new LinkedList(); //nothing to optimize
 
         allBodyNrs = new int[totalElements];
         allAccs_x = new double[totalElements];
@@ -880,8 +926,8 @@ BodyTreeNodeInterface, java.io.Serializable {
                         out.print(" ");
                     if (bodies[j] != null) {
                         out.println("body #" + bodies[j].number + " at "
-                                + bodies[j].pos_x + ", " + bodies[j].pos_y
-                                + ", " + bodies[j].pos_z);
+                            + bodies[j].pos_x + ", " + bodies[j].pos_y + ", "
+                            + bodies[j].pos_z);
                     } else {
                         out.println("body: null");
                     }

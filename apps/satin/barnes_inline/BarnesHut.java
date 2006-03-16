@@ -12,7 +12,7 @@ strictfp final class BarnesHut {
 
 	static boolean verbose = false; //use -v to turn on
 
-	static final boolean ASSERTS = true; //also used in other barnes classes
+	static final boolean ASSERTS = false; //also used in other barnes classes
 
 	static final int IMPL_NTC = 1; // -ntc option
 
@@ -36,7 +36,7 @@ strictfp final class BarnesHut {
 	private long[] forceCalcTimes;
 
 	//Parameters for the BarnesHut algorithm / simulation
-	private static final double THETA = 5.0; // cell subdivision tolerance
+	private static final double THETA = 2.0; // cell subdivision tolerance
 
 	static final double DT = 0.025; // default integration time-step
         static final double DT_HALF = DT / 2.0; // default integration time-step
@@ -183,7 +183,7 @@ strictfp final class BarnesHut {
 
 			switch (impl) {
 			case IMPL_NTC:
-                                result = root.doBarnes(root, spawn_min, spawn_max, null);
+                                result = root.doBarnes(root, spawn_min, spawn_max);
                                 break;
 			case IMPL_SEQ:
 				result = root.barnesSequential(root);
