@@ -676,28 +676,23 @@ import java.util.*;
      * interactTree.barnes(bodies[i].pos) for all the bodies when 'this' is a
      * leaf node.
      */
-    public LinkedList barnesSequential(BodyTreeNode interactTree) {
+    public void barnesSequential(BodyTreeNode interactTree, LinkedList results) {
         if (children != null) { // cell node -> call children[].barnes()
-            LinkedList res[] = new LinkedList[8];
-            int lastValidChild = -1;
-
             for (int i = 0; i < 8; i++) {
                 if (children[i] != null) {
-                    res[i] = children[i].barnesSequential(interactTree);
-                    lastValidChild = i;
+                    children[i].barnesSequential(interactTree, results);
                 }
             }
 
-            return combineResults(res, lastValidChild);
+            return;
         }
 
         //leaf node
-        LinkedList result;
 
         if (BarnesHut.ASSERTS && (bodies == null || bodies.length == 0)) {
             System.err.println("barnes(interactTree): "
                 + "found empty leafnode!");
-            return new LinkedList();
+            return;
         }
 
         int[] bodyNumbers = new int[bodies.length];
@@ -718,13 +713,11 @@ import java.util.*;
                 accs_z[i] = acc[2];
             }
         }
-        result = new LinkedList();
-        result.add(bodyNumbers);
-        result.add(accs_x);
-        result.add(accs_y);
-        result.add(accs_z);
 
-        return result;
+        results.add(bodyNumbers);
+        results.add(accs_x);
+        results.add(accs_y);
+        results.add(accs_z);
     }
 
     public LinkedList doBarnes(BodyTreeNode tree, int low, int high) {
@@ -732,7 +725,9 @@ import java.util.*;
         if (children == null) {
             // leaf node, let barnesSequential handle this
             // (using optimizeList isn't useful for leaf nodes)
-            return barnesSequential(tree);
+            LinkedList res = new LinkedList();
+            barnesSequential(tree, res);
+            return res;
         }
 
         //cell node -> call children[].barnes()
@@ -744,7 +739,8 @@ import java.util.*;
             BodyTreeNode ch = children[i];
             if (ch != null) {
                 if (ch.bodyCount < low) {
-                    res[i] = ch.barnesSequential(tree);
+                    res[i] = new LinkedList();  
+                    ch.barnesSequential(tree, res[i]);
                 } else {
                     if (ch.bodyCount > high) {
                         BodyTreeNode n = tree;
@@ -786,7 +782,9 @@ import java.util.*;
             // leaf node, let barnesSequential handle this
 
             // (using optimizeList isn't useful for leaf nodes)
-            return barnesSequential(interactTree);
+            LinkedList res = new LinkedList();
+            barnesSequential(interactTree, res);
+            return res;
         }
         //cell node -> call children[].barnes()
         LinkedList res[] = new LinkedList[8];
@@ -797,7 +795,8 @@ import java.util.*;
             BodyTreeNode ch = children[i];
             if (ch != null) {
                 if (ch.children == null) {
-                    res[i] = ch.barnesSequential(interactTree);
+                    res[i] = new LinkedList();
+                    ch.barnesSequential(interactTree, res[i]);
                 } else {
                     //necessaryTree creation
                     BodyTreeNode necessaryTree = ch == interactTree ? interactTree

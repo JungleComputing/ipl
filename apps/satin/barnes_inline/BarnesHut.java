@@ -186,7 +186,8 @@ strictfp final class BarnesHut {
                                 result = root.doBarnes(root, spawn_min, spawn_max);
                                 break;
 			case IMPL_SEQ:
-				result = root.barnesSequential(root);
+				result = new LinkedList();
+                                root.barnesSequential(root, result);
 				break;
 			}
 
