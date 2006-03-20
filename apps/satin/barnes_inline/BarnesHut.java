@@ -44,15 +44,15 @@ import java.io.StreamTokenizer;
     private long[] forceCalcTimes;
 
     //Parameters for the BarnesHut algorithm / simulation
-    private static final double THETA = 2.0; // cell subdivision tolerance
+    private static double THETA = 2.0; // cell subdivision tolerance
 
-    static final double DT = 0.025; // default integration time-step
-    static final double DT_HALF = DT / 2.0; // default integration time-step
+    static double DT = 0.025; // default integration time-step
+    static double DT_HALF = DT / 2.0; // default integration time-step
 
     //we do 7 iterations (first one isn't measured)
-    static final double START_TIME = 0.0;
+    static double START_TIME = 0.0;
 
-    static final double END_TIME = 0.175;
+    static double END_TIME = 0.175;
 
     static int iterations = -1;
 
@@ -451,13 +451,21 @@ import java.io.StreamTokenizer;
                 impl = IMPL_NTC;
             } else if (argv[i].equals("-seq")) {
                 impl = IMPL_SEQ;
-
             } else if (argv[i].equals("-it")) {
                 iterations = Integer.parseInt(argv[++i]);
                 if (iterations < 0) {
                     throw new IllegalArgumentException(
                             "Illegal argument to -it: number of iterations must be >= 0 !");
                 }
+            } else if (argv[i].equals("-theta")) {
+                THETA = Double.parseDouble(argv[++i]);
+            } else if (argv[i].equals("-starttime")) {
+                START_TIME = Double.parseDouble(argv[++i]);
+            } else if (argv[i].equals("-endtime")) {
+                END_TIME = Double.parseDouble(argv[++i]);
+            } else if (argv[i].equals("-dt")) {
+                DT = Double.parseDouble(argv[++i]);
+                DT_HALF = DT / 2.0;
             } else if (argv[i].equals("-input")) {
                 try {
                     rdr = new FileReader(argv[++i]);
