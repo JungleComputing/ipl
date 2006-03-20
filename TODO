@@ -13,6 +13,7 @@
 *** Ibis 2.0+ ***
 
 general:
+- ibisidentifier -> Comparable (for Ana)
 - ibisc : gmic + rmic + satinc + ... (does not replace javac)
 - load ibisses dynamically from jar files (like JavaGAT)
 - run central nameserver on fs0
