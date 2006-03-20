@@ -4,7 +4,9 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 
-strictfp final class BarnesHut {
+/* strictfp */ final class BarnesHut {
+
+        static boolean remoteViz = false;
 
 	static boolean viz = false;
 
@@ -141,6 +143,8 @@ strictfp final class BarnesHut {
 
 		BodyCanvas bc = null;
 
+                RemoteVisualization rv = null;
+
 		// print the starting problem
 		if(verbose) {
                     printBodies();
@@ -149,6 +153,16 @@ strictfp final class BarnesHut {
 		if (viz) {
 			bc = BodyCanvas.visualize(bodyArray);
 		}
+
+                if (remoteViz) {
+                    rv = new RemoteVisualization();
+                    
+                    try { 
+                        Thread.sleep(10000);
+                    } catch (Exception e) {
+                        // TODO: handle exception
+                    }
+                }
 
 		ibis.satin.SatinObject.pause(); //turn off satin during sequential
 		// parts
@@ -213,6 +227,10 @@ strictfp final class BarnesHut {
 			if (viz) {
 				bc.repaint();
 			}
+
+                        if (remoteViz) { 
+                                rv.showBodies(bodyArray);
+                            }
 
 			System.err.println("Iteration " + iteration + " done, tree build = "
 					+ btcomTimeTmp + ", update = " + updateTimeTmp
@@ -351,6 +369,8 @@ strictfp final class BarnesHut {
 				verbose = false;
 			} else if (argv[i].equals("-viz")) {
 				viz = true;
+			} else if (argv[i].equals("-remote-viz")) {
+                                remoteViz = true;
 			} else if (argv[i].equals("-no-viz")) {
 				viz = false;
 			} else if (argv[i].equals("-ntc")) {
