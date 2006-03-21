@@ -293,8 +293,8 @@ import java.util.List;
             }
 
             System.err.println("Iteration " + iteration
-                + " done, tree build = " + btTimeTmp + ", trim time = "
-                + trimTimeTmp + ", com = " + comTimeTmp + ", update = "
+                + " done, tree build = " + btTimeTmp + ", trim = "
+                + trimTimeTmp + ", CoM = " + comTimeTmp + ", update = "
                 + updateTimeTmp + ", force = " + forceCalcTimeTmp);
         }
 
