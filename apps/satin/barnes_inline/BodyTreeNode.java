@@ -55,9 +55,9 @@ import java.util.*;
     //	static final double SOFT = 0.05;
 
     // this value is copied from Suel --Rob
-    static final double SOFT = 0.0000025;
+    private static final double SOFT = 0.0000025;
 
-    static final double SOFT_SQ = SOFT * SOFT;
+    private static final double SOFT_SQ = SOFT * SOFT;
 
     // Extra margin of space used around the bodies.
     private static final double DIM_SLACK = 0.00001;
@@ -86,25 +86,29 @@ import java.util.*;
         size = Math.max(max_x - min_x, max_y - min_y);
         size = Math.max(size, max_z - min_z);
 
+        halfSize = size / 2.0;
+
+        // center is the real center (without added DIM_SLACK)
+        center_x = min_x + halfSize;
+        center_y = min_y + halfSize;
+        center_z = min_z + halfSize;
+
         // make size a little bigger to compensate for very small floating point
         size *= 1 + 2.0 * DIM_SLACK;
 
         halfSize = size / 2.0;
         maxTheta = theta * theta * halfSize * halfSize;
 
-        center_x = min_x + halfSize;
-        center_y = min_y + halfSize;
-        center_z = min_z + halfSize;
-
         //        System.out.println("theta = " + theta + ", halfSize = " + halfSize + ", maxx = " + max_x + ", minx = " + min_x + ", maxTheta = " + maxTheta);
     }
 
     //constructor to create an empty tree, used during tree contruction
-    private BodyTreeNode(double[] center, double halfSize, double maxTheta) {
+    private BodyTreeNode(double centerX, double centerY, double centerZ,
+        double halfSize, double maxTheta) {
         //children = null and bodies = null by default
-        this.center_x = center[0];
-        this.center_y = center[1];
-        this.center_z = center[2];
+        this.center_x = centerX;
+        this.center_y = centerY;
+        this.center_z = centerZ;
         this.halfSize = halfSize;
         this.maxTheta = maxTheta;
     }
@@ -139,7 +143,7 @@ import java.util.*;
             addBody(bodyArray[i], maxLeafBodies);
         }
 
-        trim();
+//        trim();
     }
 
     private static double calcSquare(double com, double center, double halfSize) {
@@ -207,7 +211,7 @@ import java.util.*;
     /**
      * determines if the point indicated by pos is in or outside this node
      */
-    public boolean outOfRange(double pos_x, double pos_y, double pos_z) {
+    private boolean outOfRange(double pos_x, double pos_y, double pos_z) {
         if (Math.abs(pos_x - center_x) > halfSize
             || Math.abs(pos_y - center_y) > halfSize
             || Math.abs(pos_z - center_z) > halfSize) {
@@ -217,20 +221,17 @@ import java.util.*;
         }
     }
 
-    /*
-     private void printOutOfRange(java.io.PrintStream out, double pos_x,
-     double pos_y, double pos_z) {
-     double xdiff = Math.abs(pos_x - center_x) - halfSize;
-     double ydiff = Math.abs(pos_y - center_y) - halfSize;
-     double zdiff = Math.abs(pos_z - center_z) - halfSize;
-     if (xdiff > 0.0) out.println("x : " + xdiff);
-     if (ydiff > 0.0) out.println("y : " + ydiff);
-     if (zdiff > 0.0) out.println("z : " + zdiff);
-     }
-     */
+    private void printOutOfRange(java.io.PrintStream out, double pos_x,
+        double pos_y, double pos_z) {
+        double xdiff = Math.abs(pos_x - center_x) - halfSize;
+        double ydiff = Math.abs(pos_y - center_y) - halfSize;
+        double zdiff = Math.abs(pos_z - center_z) - halfSize;
+        if (xdiff > 0.0) out.println("x : " + xdiff);
+        if (ydiff > 0.0) out.println("y : " + ydiff);
+        if (zdiff > 0.0) out.println("z : " + zdiff);
+    }
 
-    private double[] computeChildCenter(int childIndex) {
-        double[] newCenter = new double[3];
+    private double[] computeChildCenter(int childIndex, double[] newCenter) {
         double newHalfSize = halfSize / 2.0;
 
         if ((childIndex & 1) != 0) { //lower bit: x dimension
@@ -256,74 +257,87 @@ import java.util.*;
      * Adds 'b' to 'this' or its children
      */
     private void addBody(Body b, int maxLeafBodies) {
-        int i;
-
         if (children != null) { // cell node
-
             addBody2Cell(b, maxLeafBodies);
             bodyCount++;
-
-        } else { //leaf node
-            /* @@@
-             if (BarnesHut.ASSERTS && outOfRange(b.pos_x, b.pos_y, b.pos_z)) {
-
-             System.err.println("EEK! Adding out-of-range body! "
-             + "Body position: " + b.pos_x + ", " + b.pos_y + ", "
-             + b.pos_z + " id: " + b.number);
-
-             System.err.println("     Center: " + center_x + ", " + center_y
-             + ", " + center_z + " halfSize: " + halfSize);
-             printOutOfRange(System.err, b.pos_x, b.pos_y, b.pos_z);
-             throw new IndexOutOfBoundsException("Out-of-range body!");
-             //System.exit(1);
-             }
-             */
-
-            if (bodyCount < maxLeafBodies) { //we have room left
-                if (bodyCount == 0) bodies = new Body[maxLeafBodies];
-                bodies[bodyCount] = b;
-                bodyCount++;
-                totalMass += b.mass;
-            } else { //we'll have to convert ourselves to a cell
-                children = new BodyTreeNode[8];
-                addBody2Cell(b, maxLeafBodies);
-                for (i = 0; i < bodyCount; i++) {
-                    addBody2Cell(bodies[i], maxLeafBodies);
-                }
-                bodyCount++;
-                bodies = null;
-                // totalMass is overwritten in the CoM computation
-            }
+            return;
         }
+
+        // leaf node
+        if (BarnesHut.ASSERTS && outOfRange(b.pos_x, b.pos_y, b.pos_z)) {
+            System.err.println("EEK! Adding out-of-range body! "
+                + "Body position: " + b.pos_x + ", " + b.pos_y + ", " + b.pos_z
+                + " id: " + b.number);
+
+            System.err.println("     Center: " + center_x + ", " + center_y
+                + ", " + center_z + " halfSize: " + halfSize);
+            printOutOfRange(System.err, b.pos_x, b.pos_y, b.pos_z);
+            throw new IndexOutOfBoundsException("Out-of-range body!");
+        }
+
+        if (bodyCount < maxLeafBodies) { // we have room left
+            if (bodyCount == 0) bodies = new Body[maxLeafBodies];
+            bodies[bodyCount] = b;
+            bodyCount++;
+            totalMass += b.mass;
+            return;
+        }
+
+        // we'll have to convert ourselves to a cell
+        children = new BodyTreeNode[8];
+        addBody2Cell(b, maxLeafBodies);
+        for (int i = 0; i < bodyCount; i++) {
+            addBody2Cell(bodies[i], maxLeafBodies);
+        }
+        bodyCount++;
+        bodies = null;
+        // totalMass is overwritten in the CoM computation
     }
 
     /**
-     * This method is used if 'this' is a cell, to add a body to the appropiate
-     * child.
+     * This method is used if 'this' is a cell, to add a body to the appropiate child.
      */
     private void addBody2Cell(Body b, int maxLeafBodies) {
         int child = 0;
-        double[] newCenter;
 
         if (b.pos_x - center_x >= 0.0) child |= 1;
         if (b.pos_y - center_y >= 0.0) child |= 2;
         if (b.pos_z - center_z >= 0.0) child |= 4;
 
-        if (children[child] == null) {
-            /*
-             * We could compute 'newCenter' directly during the calculation of
-             * 'child', but with a large tree we would do it at every depth we
-             * pass while adding the node..
-             */
-            newCenter = computeChildCenter(child);
-            children[child] = new BodyTreeNode(newCenter, halfSize / 2.0,
-                maxTheta / 4.0);
-            children[child].bodies = new Body[maxLeafBodies];
-            children[child].bodies[0] = b;
-            children[child].bodyCount = 1;
-        } else {
+        if (children[child] != null) {
             children[child].addBody(b, maxLeafBodies);
+            return;
         }
+
+        /*
+         * We could compute 'newCenter' directly during the calculation of
+         * 'child', but with a large tree we would do it at every depth we
+         * pass while adding the node..
+         */
+        double newCenterX, newCenterY, newCenterZ;
+        double newHalfSize = halfSize / 2.0;
+
+        if ((child & 1) != 0) { //lower bit: x dimension
+            newCenterX = center_x + newHalfSize;
+        } else {
+            newCenterX = center_x - newHalfSize;
+        }
+        if ((child & 2) != 0) { //middle bit: y dimension
+            newCenterY = center_y + newHalfSize;
+        } else {
+            newCenterY = center_y - newHalfSize;
+        }
+        if ((child & 4) != 0) { //upper bit: z dimension
+            newCenterZ = center_z + newHalfSize;
+        } else {
+            newCenterZ = center_z - newHalfSize;
+        }
+
+        children[child] = new BodyTreeNode(newCenterX, newCenterY, newCenterZ,
+            halfSize / 2.0, maxTheta / 4.0);
+        children[child].bodies = new Body[maxLeafBodies];
+        children[child].bodies[0] = b;
+        children[child].bodyCount = 1;
     }
 
     /**
@@ -334,7 +348,7 @@ import java.util.*;
      * During force calculation, trimming has only been useful for the job since
      * the copy-constructor automatically trims original
      */
-    private void trim() {
+    public void trim() {
         if (children == null) {
             //leaf node
             if (bodies.length != bodyCount) {
@@ -351,19 +365,16 @@ import java.util.*;
     }
 
     public void computeCentersOfMass() {
-        int i;
-
         com_x = com_y = com_z = 0.0;
         totalMass = 0.0;
 
         if (children == null) { //leaf node
-
             if (BarnesHut.ASSERTS && (bodies == null || bodies.length == 0)) {
                 System.err.println("computeCoM: Found empty leaf node!");
                 return;
             }
 
-            for (i = 0; i < bodies.length; i++) {
+            for (int i = 0; i < bodies.length; i++) {
                 com_x += bodies[i].pos_x * bodies[i].mass;
                 com_y += bodies[i].pos_y * bodies[i].mass;
                 com_z += bodies[i].pos_z * bodies[i].mass;
@@ -373,26 +384,26 @@ import java.util.*;
             com_x /= totalMass;
             com_y /= totalMass;
             com_z /= totalMass;
-
-        } else { // cell node
-            // -> first process all children, then compute my center-of-mass
-
-            //??? maybe satinize this later, then the loop has to be split up
-            for (i = 0; i < 8; i++) {
-                if (children[i] != null) {
-                    children[i].computeCentersOfMass();
-
-                    com_x += children[i].com_x * children[i].totalMass;
-                    com_y += children[i].com_y * children[i].totalMass;
-                    com_z += children[i].com_z * children[i].totalMass;
-                    totalMass += children[i].totalMass;
-                }
-            }
-            //??? then here comes a sync() and a loop to compute my CoM;
-            com_x /= totalMass;
-            com_y /= totalMass;
-            com_z /= totalMass;
+            return;
         }
+
+        // cell node
+        // -> first process all children, then compute my center-of-mass
+        // maybe satinize this later, then the loop has to be split up
+        for (int i = 0; i < 8; i++) {
+            if (children[i] != null) {
+                children[i].computeCentersOfMass();
+
+                com_x += children[i].com_x * children[i].totalMass;
+                com_y += children[i].com_y * children[i].totalMass;
+                com_z += children[i].com_z * children[i].totalMass;
+                totalMass += children[i].totalMass;
+            }
+        }
+        // then here comes a sync() and a loop to compute my CoM;
+        com_x /= totalMass;
+        com_y /= totalMass;
+        com_z /= totalMass;
 
         //        System.out.println("set com to: " + com_x + ", " + com_y + ", " + com_z);
     }
@@ -462,17 +473,20 @@ import java.util.*;
                 totalAcc[1] += diff_y * factor;
                 totalAcc[2] += diff_z * factor;
             }
-        } else { // Cell node
-            for (i = 0; i < 8; i++) {
-                double[] childresult;
-                if (children[i] != null) {
-                    childresult = children[i].barnesBody(pos_x, pos_y, pos_z);
-                    totalAcc[0] += childresult[0];
-                    totalAcc[1] += childresult[1];
-                    totalAcc[2] += childresult[2];
-                }
+            return totalAcc;
+        }
+
+        // Cell node
+        for (i = 0; i < 8; i++) {
+            double[] childresult;
+            if (children[i] != null) {
+                childresult = children[i].barnesBody(pos_x, pos_y, pos_z);
+                totalAcc[0] += childresult[0];
+                totalAcc[1] += childresult[1];
+                totalAcc[2] += childresult[2];
             }
         }
+
         return totalAcc;
     }
 
@@ -537,12 +551,15 @@ import java.util.*;
                 dest_y[destPos] += diff_y * factor;
                 dest_z[destPos] += diff_z * factor;
             }
-        } else { // Cell node
-            for (int i = 0; i < 8; i++) {
-                if (children[i] != null) {
-                    children[i].barnesBodyRob(pos_x, pos_y, pos_z, dest_x,
-                        dest_y, dest_z, destPos);
-                }
+            
+            return;
+        }
+
+        // Cell node
+        for (int i = 0; i < 8; i++) {
+            if (children[i] != null) {
+                children[i].barnesBodyRob(pos_x, pos_y, pos_z, dest_x, dest_y,
+                    dest_z, destPos);
             }
         }
     }
@@ -655,6 +672,7 @@ import java.util.*;
      * interactTree.barnes(bodies[i].pos) for all the bodies when 'this' is a
      * leaf node.
      */
+    // @@@ one optimization that we can still do: don't use three arrays for x, y, z, but just one, and interleave the values. --Rob
     public void barnesSequential(BodyTreeNode interactTree, ArrayList results) {
         if (children != null) { // cell node -> call children[].barnes()
             for (int i = 0; i < 8; i++) {
@@ -700,7 +718,6 @@ import java.util.*;
     }
 
     public ArrayList doBarnes(BodyTreeNode tree, int low, int high) {
-
         if (children == null) {
             // leaf node, let barnesSequential handle this
             // (using optimizeList isn't useful for leaf nodes)
@@ -802,7 +819,8 @@ import java.util.*;
      * 
      * @return a reference to results[lastValidIndex], for convenience
      */
-    private static ArrayList combineResults(ArrayList[] results, int lastValidIndex) {
+    private static ArrayList combineResults(ArrayList[] results,
+        int lastValidIndex) {
 
         if (BarnesHut.ASSERTS && lastValidIndex < 0) {
             System.err.println("BodyTreeNode.combineResults: EEK! "
@@ -828,14 +846,14 @@ import java.util.*;
      */
     private static ArrayList optimizeList(ArrayList suboptimal) {
         int totalElements = 0;
-        for(int i=0; i<suboptimal.size(); i+=4) { // 4 elts in the list: x, y, z and body nr
+        for (int i = 0; i < suboptimal.size(); i += 4) { // 4 elts in the list: x, y, z and body nr
             totalElements += ((int[]) suboptimal.get(i)).length;
         }
-        
+
         if (totalElements == 0) {
             return new ArrayList(); //nothing to optimize
         }
-        
+
         int[] allBodyNrs = new int[totalElements];
         double[] allAccs_x = new double[totalElements];
         double[] allAccs_y = new double[totalElements];
@@ -845,11 +863,11 @@ import java.util.*;
         double[] accs_x = null, accs_y = null, accs_z = null;
         int position = 0;
 
-        for(int i=0; i<suboptimal.size(); i+=4) { // 4 elts in the list: x, y, z and body nr
+        for (int i = 0; i < suboptimal.size(); i += 4) { // 4 elts in the list: x, y, z and body nr
             bodyNrs = (int[]) suboptimal.get(i);
-            accs_x = (double[]) suboptimal.get(i+1);
-            accs_y = (double[]) suboptimal.get(i+2);
-            accs_z = (double[]) suboptimal.get(i+3);
+            accs_x = (double[]) suboptimal.get(i + 1);
+            accs_y = (double[]) suboptimal.get(i + 2);
+            accs_z = (double[]) suboptimal.get(i + 3);
 
             int len = bodyNrs.length;
             System.arraycopy(bodyNrs, 0, allBodyNrs, position, len);

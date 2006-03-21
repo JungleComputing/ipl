@@ -10,7 +10,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-/* strictfp */ final class BarnesHut {
+/* strictfp */final class BarnesHut {
 
     static boolean remoteViz = false;
 
@@ -34,19 +34,14 @@ import java.util.List;
     //number of bodies above which the ntc impl work sequentially
     private static int spawn_max = -1; //use -max <threshold> to modify
 
-    //true: Collect statistics about the various phases in each iteration
-    public static boolean phase_timing = true; //use -(no)timing to modify
-
-    private long totalTime = 0;
-
-    private long btcomTime = 0, updateTime = 0;
-
-    private long[] forceCalcTimes;
+    private long totalTime = 0, comTime = 0, btTime = 0, trimTime = 0,
+            updateTime = 0, totalForceCalcTime = 0;
 
     //Parameters for the BarnesHut algorithm / simulation
     private static double THETA = 2.0; // cell subdivision tolerance
 
     static double DT = 0.025; // default integration time-step
+
     static double DT_HALF = DT / 2.0; // default integration time-step
 
     //we do 7 iterations (first one isn't measured)
@@ -85,8 +80,6 @@ import java.util.List;
         if (iterations == -1) {
             iterations = (int) ((END_TIME + 0.1 * DT - START_TIME) / DT);
         }
-
-        forceCalcTimes = new long[iterations];
     }
 
     private double readDouble(StreamTokenizer tk, String err)
@@ -114,7 +107,8 @@ import java.util.List;
         tokenizer.eolIsSignificant(false);
         tokenizer.whitespaceChars('\t', ' ');
 
-        int nBodies = (int) readDouble(tokenizer, "number expected for number of bodies");
+        int nBodies = (int) readDouble(tokenizer,
+            "number expected for number of bodies");
 
         spawn_max = nBodies;
 
@@ -130,7 +124,8 @@ import java.util.List;
             Body body = new Body();
             bodyArray[i] = body;
             body.number = i;
-            body.mass = readDouble(tokenizer, "number expected for mass of body");
+            body.mass = readDouble(tokenizer,
+                "number expected for mass of body");
         }
 
         // Read positions
@@ -152,8 +147,6 @@ import java.util.List;
         if (iterations == -1) {
             iterations = (int) ((END_TIME + 0.1 * DT - START_TIME) / DT);
         }
-
-        forceCalcTimes = new long[iterations];
     }
 
     static void initialize(int nBodies, int mlb) {
@@ -164,24 +157,14 @@ import java.util.List;
         for (int i = 0; i < nBodies; i++) {
             if (ASSERTS && bodyArray[i].number != i) {
                 System.err.println("EEK! Plummer generated an "
-                        + "inconsistent body number");
+                    + "inconsistent body number");
                 System.exit(1);
             }
         }
     }
 
-    /*
-     * Builds the tree with bodies using bodyArray, maxLeafBodies and THETA, and
-     * does the center-of-mass computation for this new tree
-     */
-    static void buildTreeAndDoCoM() {
-        root = null; //prevent Out-Of-Memory because 2 trees are in mem
-        root = new BodyTreeNode(bodyArray, maxLeafBodies, THETA);
-        root.computeCentersOfMass();
-    }
-
     static void updateBodies(double[] accs_x, double[] accs_y, double[] accs_z,
-            int iteration) {
+        int iteration) {
         int i;
 
         for (i = 0; i < bodyArray.length; i++) {
@@ -192,22 +175,20 @@ import java.util.List;
             }
             if (ASSERTS && accs_x[i] > 1.0E4) { //This shouldn't happen
                 System.err.println("EEK! Acc_x too large for body #" + i
-                        + " in iteration: " + iteration);
+                    + " in iteration: " + iteration);
                 System.err.println("acc = " + accs_x[i]);
                 System.exit(1);
             }
 
             bodyArray[i].computeNewPosition(iteration != 0, accs_x[i],
-                    accs_y[i], accs_z[i]);
+                accs_y[i], accs_z[i]);
 
-            if (ASSERTS)
-                bodyArray[i].updated = false;
+            if (ASSERTS) bodyArray[i].updated = false;
         }
     }
 
     void runSim() {
-        int iteration;
-        long start = 0, end, phaseStart = 0, phaseEnd;
+        long start = 0, end, phaseStart = 0;
 
         ArrayList result = null;
         double[] accs_x = new double[bodyArray.length];
@@ -219,7 +200,7 @@ import java.util.List;
         RemoteVisualization rv = null;
 
         // print the starting problem
-        if(verbose) {
+        if (verbose) {
             printBodies();
         }
 
@@ -230,7 +211,7 @@ import java.util.List;
         if (remoteViz) {
             rv = new RemoteVisualization();
 
-            try { 
+            try {
                 Thread.sleep(10000);
             } catch (Exception e) {
                 // TODO: handle exception
@@ -242,29 +223,40 @@ import java.util.List;
 
         start = System.currentTimeMillis();
 
-        for (iteration = 0; iteration < iterations; iteration++) {
-            long btcomTimeTmp = 0, updateTimeTmp = 0;
-            long forceCalcTimeTmp = 0;
+        for (int iteration = 0; iteration < iterations; iteration++) {
+            long comTimeTmp = 0, btTimeTmp = 0, trimTimeTmp = 0, updateTimeTmp = 0, forceCalcTimeTmp = 0;
 
             // System.out.println("Starting iteration " + iteration);
 
-            if (phase_timing) {
-                phaseStart = System.currentTimeMillis();
-            }
+            phaseStart = System.currentTimeMillis();
 
-            buildTreeAndDoCoM();
+            /*
+             * Builds the tree with bodies using bodyArray, maxLeafBodies and THETA, and
+             * does the center-of-mass computation for this new tree
+             */
+            root = null; //prevent Out-Of-Memory because 2 trees are in mem
+            root = new BodyTreeNode(bodyArray, maxLeafBodies, THETA);
 
-            if (phase_timing) {
-                phaseEnd = System.currentTimeMillis();
-                btcomTime += phaseEnd - phaseStart;
-                btcomTimeTmp = phaseEnd - phaseStart;
-            }
+            btTimeTmp = System.currentTimeMillis() - phaseStart;
+            btTime += btTimeTmp;
+
+            phaseStart = System.currentTimeMillis();
+
+            root.trim();
+
+            trimTimeTmp = System.currentTimeMillis() - phaseStart;
+            trimTime += trimTimeTmp;
+
+            phaseStart = System.currentTimeMillis();
+
+            root.computeCentersOfMass();
+
+            comTimeTmp = System.currentTimeMillis() - phaseStart;
+            comTime += comTimeTmp;
 
             //force calculation
 
-            if (phase_timing) {
-                phaseStart = System.currentTimeMillis();
-            }
+            phaseStart = System.currentTimeMillis();
 
             ibis.satin.SatinObject.resume(); //turn ON divide-and-conquer stuff
 
@@ -282,40 +274,36 @@ import java.util.List;
 
             processLinkedListResult(result, accs_x, accs_y, accs_z);
 
-            if (phase_timing) {
-                phaseEnd = System.currentTimeMillis();
-                forceCalcTimes[iteration] = phaseEnd - phaseStart;
-                forceCalcTimeTmp = phaseEnd - phaseStart;
-                phaseStart = System.currentTimeMillis();
-            }
+            forceCalcTimeTmp = System.currentTimeMillis() - phaseStart;
+            totalForceCalcTime += forceCalcTimeTmp;
+
+            phaseStart = System.currentTimeMillis();
 
             updateBodies(accs_x, accs_y, accs_z, iteration);
 
-            if (phase_timing) {
-                phaseEnd = System.currentTimeMillis();
-                updateTime += phaseEnd - phaseStart;
-                updateTimeTmp = phaseEnd - phaseStart;
-            }
+            updateTimeTmp = System.currentTimeMillis() - phaseStart;
+            updateTime += updateTimeTmp;
 
             if (viz) {
                 bc.repaint();
             }
 
-            if (remoteViz) { 
+            if (remoteViz) {
                 rv.showBodies(bodyArray);
             }
 
-            System.err.println("Iteration " + iteration + " done, tree build = "
-                    + btcomTimeTmp + ", update = " + updateTimeTmp
-                    + ", force = " + forceCalcTimeTmp);
+            System.err.println("Iteration " + iteration
+                + " done, tree build = " + btTimeTmp + ", trim time = "
+                + trimTimeTmp + ", com = " + comTimeTmp + ", update = "
+                + updateTimeTmp + ", force = " + forceCalcTimeTmp);
         }
 
         end = System.currentTimeMillis();
         totalTime = end - start;
     }
 
-    void processLinkedListResult(List result, double[] all_x,
-            double[] all_y, double[] all_z) {
+    void processLinkedListResult(List result, double[] all_x, double[] all_y,
+        double[] all_z) {
         Iterator it = result.iterator();
         int[] bodyNumbers;
         double[] tmp_x, tmp_y, tmp_z;
@@ -347,8 +335,7 @@ import java.util.List;
                 all_x[bodyNumbers[i]] = tmp_x[i];
                 all_y[bodyNumbers[i]] = tmp_y[i];
                 all_z[bodyNumbers[i]] = tmp_z[i];
-                if (ASSERTS)
-                    bodyArray[bodyNumbers[i]].updated = true;
+                if (ASSERTS) bodyArray[bodyNumbers[i]].updated = true;
             }
         }
     }
@@ -365,21 +352,19 @@ import java.util.List;
         for (i = 0; i < bodyArray.length; i++) {
             b = sorted[i];
             System.out.println("0: Body " + i + ": [ " + b.pos_x + ", "
-                    + b.pos_y + ", " + b.pos_z + " ]");
+                + b.pos_y + ", " + b.pos_z + " ]");
             System.out.println("0:      " + i + ": [ " + b.vel_x + ", "
-                    + b.vel_y + ", " + b.vel_z + " ]");
+                + b.vel_y + ", " + b.vel_z + " ]");
             System.out.println("0:      " + i + ": [ " + b.oldAcc_x + ", "
-                    + b.oldAcc_y + ", " + b.oldAcc_z + " ]");
+                + b.oldAcc_y + ", " + b.oldAcc_z + " ]");
             System.out.println("0:      " + i + ": [ " + b.mass + " ]");
             // System.out.println("0:      " + i + ": " + b.number);
         }
     }
 
     void run() {
-        int i;
-
         System.out.println("Iterations: " + iterations + " (timings DO "
-                + "include the first iteration!)");
+            + "include the first iteration!)");
 
         switch (impl) {
         case IMPL_NTC:
@@ -396,22 +381,14 @@ import java.util.List;
             break; //blah
         }
 
+        System.out.println("tree building took      " + btTime / 1000.0 + " s");
+        System.out.println("trim took               " + trimTime / 1000.0 + " s");
+        System.out
+            .println("CoM computation took    " + comTime / 1000.0 + " s");
+        System.out.println("Force calculation took  " + totalForceCalcTime
+            / 1000.0 + " s");
         System.out.println("application barnes took "
-                + (double) (totalTime / 1000.0) + " s");
-
-        if (phase_timing) {
-            long total = 0;
-            System.out.println("tree building and CoM computation took: "
-                    + btcomTime / 1000.0 + " s");
-            System.out.println("Force calculation took: ");
-            for (i = 0; i < iterations; i++) {
-                System.out.println("  iteration " + i + ": "
-                        + forceCalcTimes[i] / 1000.0 + " s");
-                total += forceCalcTimes[i];
-            }
-            System.out
-                .println("               total: " + total / 1000.0 + " s");
-        }
+            + (double) (totalTime / 1000.0) + " s");
 
         if (verbose) {
             System.out.println();
@@ -425,10 +402,6 @@ import java.util.List;
         boolean mlbSeen = false;
         FileReader rdr = null;
         int i;
-
-        long realStart, realEnd;
-
-        realStart = System.currentTimeMillis();
 
         //parse arguments
         for (i = 0; i < argv.length; i++) {
@@ -455,7 +428,7 @@ import java.util.List;
                 iterations = Integer.parseInt(argv[++i]);
                 if (iterations < 0) {
                     throw new IllegalArgumentException(
-                            "Illegal argument to -it: number of iterations must be >= 0 !");
+                        "Illegal argument to -it: number of iterations must be >= 0 !");
                 }
             } else if (argv[i].equals("-theta")) {
                 THETA = Double.parseDouble(argv[++i]);
@@ -469,27 +442,22 @@ import java.util.List;
             } else if (argv[i].equals("-input")) {
                 try {
                     rdr = new FileReader(argv[++i]);
-                } catch(IOException e) {
+                } catch (IOException e) {
                     throw new IllegalArgumentException(
-                            "Could not open input file " + argv[i]);
+                        "Could not open input file " + argv[i]);
                 }
             } else if (argv[i].equals("-min")) {
                 spawn_min = Integer.parseInt(argv[++i]);
                 if (spawn_min < 0) {
                     throw new IllegalArgumentException(
-                            "Illegal argument to -min: Spawn min threshold must be >= 0 !");
+                        "Illegal argument to -min: Spawn min threshold must be >= 0 !");
                 }
             } else if (argv[i].equals("-max")) {
                 spawn_max = Integer.parseInt(argv[++i]);
                 if (spawn_max < 0) {
                     throw new IllegalArgumentException(
-                            "Illegal argument to -max: Spawn max threshold must be >= 0 !");
+                        "Illegal argument to -max: Spawn max threshold must be >= 0 !");
                 }
-            } else if (argv[i].equals("-timing")) {
-                phase_timing = true;
-            } else if (argv[i].equals("-no-timing")) {
-                phase_timing = false;
-
             } else if (!nBodiesSeen) {
                 try {
                     nBodies = Integer.parseInt(argv[i]); //nr of bodies to
@@ -523,29 +491,24 @@ import java.util.List;
         }
 
         System.out.println("BarnesHut: simulating " + nBodies + " bodies, "
-                + mlb + " bodies/leaf node, " + "theta = " + THETA
-                + ", spawn-min-threshold = " + spawn_min
-                + ", spawn-max-threshold = " + spawn_max
-                );
+            + mlb + " bodies/leaf node, " + "theta = " + THETA
+            + ", spawn-min-threshold = " + spawn_min
+            + ", spawn-max-threshold = " + spawn_max);
 
         if (rdr != null) {
             if (nBodiesSeen) {
-                System.out.println("Warning: nBodies as seen in argument list ignored!");
+                System.out
+                    .println("Warning: nBodies as seen in argument list ignored!");
             }
             try {
                 new BarnesHut(rdr, mlb).run();
-            } catch(IOException e) {
+            } catch (IOException e) {
                 throw new NumberFormatException(e.getMessage());
             }
         } else {
             new BarnesHut(nBodies, mlb).run();
         }
 
-
-        realEnd = System.currentTimeMillis();
         ibis.satin.SatinObject.resume(); // allow satin to exit cleanly
-
-        System.out.println("Real run time = " + (realEnd - realStart) / 1000.0
-                + " s");
     }
 }
