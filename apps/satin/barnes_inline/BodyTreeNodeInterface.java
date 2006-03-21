@@ -1,9 +1,9 @@
 /* $Id$ */
 
-import java.util.List;
+import java.util.ArrayList;
 
 interface BodyTreeNodeInterface extends ibis.satin.Spawnable {
     //public void computeCentersOfMass();
 
-    List barnesNTC(BodyTreeNode interactTree, int threshold);
+    ArrayList barnesNTC(BodyTreeNode interactTree, int threshold);
 }

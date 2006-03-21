@@ -1,15 +1,14 @@
 /* $Id$ */
 
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
-import java.io.FileReader;
-import java.io.BufferedReader;
 import java.io.StreamTokenizer;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 
 /* strictfp */ final class BarnesHut {
 
@@ -210,7 +209,7 @@ import java.io.StreamTokenizer;
         int iteration;
         long start = 0, end, phaseStart = 0, phaseEnd;
 
-        List result = null;
+        ArrayList result = null;
         double[] accs_x = new double[bodyArray.length];
         double[] accs_y = new double[bodyArray.length];
         double[] accs_z = new double[bodyArray.length];
@@ -274,7 +273,7 @@ import java.io.StreamTokenizer;
                 result = root.doBarnes(root, spawn_min, spawn_max);
                 break;
             case IMPL_SEQ:
-                result = new LinkedList();
+                result = new ArrayList();
                 root.barnesSequential(root, result);
                 break;
             }
