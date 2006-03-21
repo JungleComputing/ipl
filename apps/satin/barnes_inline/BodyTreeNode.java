@@ -235,6 +235,7 @@ import java.util.*;
         }
     }
 
+    /*
     private void printOutOfRange(java.io.PrintStream out, double pos_x,
             double pos_y, double pos_z) {
         double xdiff = Math.abs(pos_x - center_x) - halfSize;
@@ -244,7 +245,8 @@ import java.util.*;
         if (ydiff > 0.0) out.println("y : " + ydiff);
         if (zdiff > 0.0) out.println("z : " + zdiff);
     }
-
+*/
+    
     private double[] computeChildCenter(int childIndex) {
         double[] newCenter = new double[3];
         double newHalfSize = halfSize / 2.0;
