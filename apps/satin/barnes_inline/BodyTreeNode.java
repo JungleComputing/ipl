@@ -20,8 +20,8 @@ import java.util.*;
  * precisieproblemen)
  */
 
-/*strictfp*/ final class BodyTreeNode extends ibis.satin.SatinObject implements
-        BodyTreeNodeInterface, java.io.Serializable {
+/*strictfp*/final class BodyTreeNode extends ibis.satin.SatinObject implements
+        BodyTreeNodeInterface {
 
     BodyTreeNode children[];
 
@@ -79,7 +79,7 @@ import java.util.*;
      *            the theta value used in the simulation
      */
     private void initCenterSizeMaxtheta(double max_x, double max_y,
-            double max_z, double min_x, double min_y, double min_z, double theta) {
+        double max_z, double min_x, double min_y, double min_z, double theta) {
 
         double size;
 
@@ -142,15 +142,25 @@ import java.util.*;
         trim();
     }
 
+    private static double calcSquare(double com, double center, double halfSize) {
+        if (com > center + halfSize) {
+            double dist1D = com - (center + halfSize);
+            return dist1D * dist1D;
+        } else if (com < center - halfSize) {
+            double dist1D = (center - halfSize) - com;
+            return dist1D * dist1D;
+        }
+
+        // centerOfMass is in this dimension between the limits of job
+        return 0.0;
+    }
+
     /**
      * Necessary Tree Constructor: Creates a recursive copy of 'original',
      * containing exactly the parts that are needed to compute the interactions
      * with the bodies in 'job'
      */
     private BodyTreeNode(BodyTreeNode original, BodyTreeNode job) {
-        int i;
-        double distsq, dist1D;
-
         center_x = original.center_x;
         center_y = original.center_y;
         center_z = original.center_z;
@@ -161,65 +171,37 @@ import java.util.*;
         com_y = original.com_y;
         com_z = original.com_z;
         totalMass = original.totalMass;
-
-        //calculate if original can be cut off
-
-        //first find the minimum (square) distance between job and centerOfMass
-        if (com_x > job.center_x + job.halfSize) {
-            dist1D = com_x - (job.center_x + job.halfSize);
-            distsq = dist1D * dist1D;
-        } else if (com_x < job.center_x - job.halfSize) {
-            dist1D = (job.center_x - job.halfSize) - com_x;
-            distsq = dist1D * dist1D;
-        } else { //centerOfMass is in this dimension between the limits of job
-            distsq = 0.0;
-        }
-        if (com_y > job.center_y + job.halfSize) {
-            dist1D = com_y - (job.center_y + job.halfSize);
-            distsq += dist1D * dist1D;
-        } else if (com_y < job.center_y - job.halfSize) {
-            dist1D = (job.center_y - job.halfSize) - com_y;
-            distsq += dist1D * dist1D;
-        } //else add nothing
-
-        if (com_z > job.center_z + job.halfSize) {
-            dist1D = com_z - (job.center_z + job.halfSize);
-            distsq += dist1D * dist1D;
-        } else if (com_z < job.center_z - job.halfSize) {
-            dist1D = (job.center_z - job.halfSize) - com_z;
-            distsq += dist1D * dist1D;
-        } //else add nothing
-
         bodyCount = 0;
 
-        if (distsq < maxTheta) {
-            //no cutoff possible, copy the necessary parts of original
+        // calculate if original can be cut off
 
-            if (original.children == null) {
-                bodies = original.bodies;
-                bodyCount = original.bodyCount;
+        double distsq = calcSquare(com_x, job.center_x, job.halfSize);
+        distsq += calcSquare(com_y, job.center_y, job.halfSize);
+        distsq += calcSquare(com_z, job.center_z, job.halfSize);
 
-            } else {
-                /* cell node, recursively create/copy necessary parts */
-                children = new BodyTreeNode[8];
-                for (i = 0; i < 8; i++) {
-                    if (original.children[i] != null) {
-                        if (original.children[i] == job) {
-                            //don't copy job, as it is fully necessary ;-)
-                            children[i] = job;
-                        } else {
-                            children[i] = new BodyTreeNode(
-                                original.children[i], job);
-                        }
-                        bodyCount += children[i].bodyCount;
+        if (distsq >= maxTheta) return; // cutoff IS possible, don't copy the original 
+
+        // no cutoff possible, copy the necessary parts of original
+
+        if (original.children == null) {
+            bodies = original.bodies;
+            bodyCount = original.bodyCount;
+        } else {
+            // cell node, recursively create/copy necessary parts
+            children = new BodyTreeNode[8];
+            for (int i = 0; i < 8; i++) {
+                if (original.children[i] != null) {
+                    if (original.children[i] == job) {
+                        // don't copy job, as it is fully necessary ;-)
+                        children[i] = job;
+                    } else {
+                        children[i] = new BodyTreeNode(original.children[i],
+                            job);
                     }
+                    bodyCount += children[i].bodyCount;
                 }
             }
         }
-        /*
-         * else the cutoff IS possible, don't copy the children of / bodies in
-         * original
-         */
     }
 
     /**
@@ -236,17 +218,17 @@ import java.util.*;
     }
 
     /*
-    private void printOutOfRange(java.io.PrintStream out, double pos_x,
-            double pos_y, double pos_z) {
-        double xdiff = Math.abs(pos_x - center_x) - halfSize;
-        double ydiff = Math.abs(pos_y - center_y) - halfSize;
-        double zdiff = Math.abs(pos_z - center_z) - halfSize;
-        if (xdiff > 0.0) out.println("x : " + xdiff);
-        if (ydiff > 0.0) out.println("y : " + ydiff);
-        if (zdiff > 0.0) out.println("z : " + zdiff);
-    }
-*/
-    
+     private void printOutOfRange(java.io.PrintStream out, double pos_x,
+     double pos_y, double pos_z) {
+     double xdiff = Math.abs(pos_x - center_x) - halfSize;
+     double ydiff = Math.abs(pos_y - center_y) - halfSize;
+     double zdiff = Math.abs(pos_z - center_z) - halfSize;
+     if (xdiff > 0.0) out.println("x : " + xdiff);
+     if (ydiff > 0.0) out.println("y : " + ydiff);
+     if (zdiff > 0.0) out.println("z : " + zdiff);
+     }
+     */
+
     private double[] computeChildCenter(int childIndex) {
         double[] newCenter = new double[3];
         double newHalfSize = halfSize / 2.0;
@@ -501,11 +483,11 @@ import java.util.*;
      * checking if the tree below 'this' has been cut off. Then the distance
      * calculation is already done during necessarryTree construction
      */
-    public void barnesBodyRob (double pos_x, double pos_y, double pos_z,
-            double[]dest_x, double[] dest_y, double[] dest_z, int destPos) {
-        
+    public void barnesBodyRob(double pos_x, double pos_y, double pos_z,
+        double[] dest_x, double[] dest_y, double[] dest_z, int destPos) {
+
         double diff_x, diff_y, diff_z;
-//        double[] totalAcc = new double[3];
+        //        double[] totalAcc = new double[3];
         double dist, distsq, factor;
         int i;
 
@@ -534,7 +516,7 @@ import java.util.*;
             dest_x[destPos] += diff_x * factor;
             dest_y[destPos] += diff_y * factor;
             dest_z[destPos] += diff_z * factor;
-            
+
             return;
         }
 
@@ -564,7 +546,8 @@ import java.util.*;
         } else { // Cell node
             for (i = 0; i < 8; i++) {
                 if (children[i] != null) {
-                    children[i].barnesBodyRob(pos_x, pos_y, pos_z, dest_x, dest_y, dest_z, destPos);
+                    children[i].barnesBodyRob(pos_x, pos_y, pos_z, dest_x,
+                        dest_y, dest_z, destPos);
                 }
             }
         }
@@ -574,7 +557,7 @@ import java.util.*;
      * debug version of barnesBody(pos_x, pos_y, pos_z)
      */
     public double[] barnesBodyDbg(double pos_x, double pos_y, double pos_z,
-            boolean debug) {
+        boolean debug) {
         double diff_x, diff_y, diff_z;
         double[] totalAcc = new double[3];
         double dist, distsq, factor;
@@ -678,7 +661,7 @@ import java.util.*;
      * interactTree.barnes(bodies[i].pos) for all the bodies when 'this' is a
      * leaf node.
      */
-    public void barnesSequential(BodyTreeNode interactTree, LinkedList results) {
+    public void barnesSequential(BodyTreeNode interactTree, List results) {
         if (children != null) { // cell node -> call children[].barnes()
             for (int i = 0; i < 8; i++) {
                 if (children[i] != null) {
@@ -704,12 +687,12 @@ import java.util.*;
 
         for (int i = 0; i < bodies.length; i++) {
             bodyNumbers[i] = bodies[i].number;
-            if(true) {
+            if (true) {
                 interactTree.barnesBodyRob(bodies[i].pos_x, bodies[i].pos_y,
                     bodies[i].pos_z, accs_x, accs_y, accs_z, i);
             } else {
-                double[] acc = interactTree.barnesBody(bodies[i].pos_x, bodies[i].pos_y,
-                    bodies[i].pos_z);
+                double[] acc = interactTree.barnesBody(bodies[i].pos_x,
+                    bodies[i].pos_y, bodies[i].pos_z);
                 accs_x[i] = acc[0];
                 accs_y[i] = acc[1];
                 accs_z[i] = acc[2];
@@ -722,18 +705,18 @@ import java.util.*;
         results.add(accs_z);
     }
 
-    public LinkedList doBarnes(BodyTreeNode tree, int low, int high) {
+    public List doBarnes(BodyTreeNode tree, int low, int high) {
 
         if (children == null) {
             // leaf node, let barnesSequential handle this
             // (using optimizeList isn't useful for leaf nodes)
-            LinkedList res = new LinkedList();
+            List res = new ArrayList();
             barnesSequential(tree, res);
             return res;
         }
 
         //cell node -> call children[].barnes()
-        LinkedList res[] = new LinkedList[8];
+        List res[] = new List[8];
         int lastValidChild = -1;
         boolean spawned = false;
 
@@ -741,7 +724,7 @@ import java.util.*;
             BodyTreeNode ch = children[i];
             if (ch != null) {
                 if (ch.bodyCount < low) {
-                    res[i] = new LinkedList();  
+                    res[i] = new ArrayList();
                     ch.barnesSequential(tree, res[i]);
                 } else {
                     if (ch.bodyCount > high) {
@@ -777,19 +760,19 @@ import java.util.*;
      * @param threshold
      *            the recursion depth at which work shouldn't be spawned anymore
      */
-    public LinkedList barnesNTC(BodyTreeNode interactTree, int threshold) {
+    public List barnesNTC(BodyTreeNode interactTree, int threshold) {
         int i;
 
         if (children == null || bodyCount < threshold) {
             // leaf node, let barnesSequential handle this
 
             // (using optimizeList isn't useful for leaf nodes)
-            LinkedList res = new LinkedList();
+            List res = new ArrayList();
             barnesSequential(interactTree, res);
             return res;
         }
         //cell node -> call children[].barnes()
-        LinkedList res[] = new LinkedList[8];
+        List res[] = new List[8];
         int lastValidChild = -1;
         boolean spawned = false;
 
@@ -797,12 +780,12 @@ import java.util.*;
             BodyTreeNode ch = children[i];
             if (ch != null) {
                 if (ch.children == null) {
-                    res[i] = new LinkedList();
+                    res[i] = new ArrayList();
                     ch.barnesSequential(interactTree, res[i]);
                 } else {
                     //necessaryTree creation
-                    BodyTreeNode necessaryTree = ch == interactTree ? interactTree
-                        : new BodyTreeNode(interactTree, ch);
+                    BodyTreeNode necessaryTree = ch == interactTree
+                        ? interactTree : new BodyTreeNode(interactTree, ch);
                     res[i] = ch.barnesNTC(necessaryTree, threshold);
                     spawned = true;
 
@@ -827,8 +810,7 @@ import java.util.*;
      * 
      * @return a reference to results[lastValidIndex], for convenience
      */
-    private static LinkedList combineResults(LinkedList[] results,
-            int lastValidIndex) {
+    private static List combineResults(List[] results, int lastValidIndex) {
 
         if (BarnesHut.ASSERTS && lastValidIndex < 0) {
             System.err.println("BodyTreeNode.combineResults: EEK! "
@@ -852,8 +834,8 @@ import java.util.*;
      *         elements of these arrays in 'suboptimal' If all arrays in
      *         suboptimal are empty, an empty list is returned
      */
-    private static LinkedList optimizeList(LinkedList suboptimal) {
-        LinkedList optimal;
+    private static List optimizeList(List suboptimal) {
+        List optimal;
         Iterator it;
         int totalElements = 0, position;
 
@@ -870,7 +852,7 @@ import java.util.*;
             totalElements += bodyNrs.length;
         }
 
-        if (totalElements == 0) return new LinkedList(); //nothing to optimize
+        if (totalElements == 0) return new ArrayList(); //nothing to optimize
 
         allBodyNrs = new int[totalElements];
         allAccs_x = new double[totalElements];
@@ -893,7 +875,7 @@ import java.util.*;
             position += bodyNrs.length;
         }
 
-        optimal = new LinkedList();
+        optimal = new ArrayList();
         optimal.add(allBodyNrs);
         optimal.add(allAccs_x);
         optimal.add(allAccs_y);

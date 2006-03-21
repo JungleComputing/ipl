@@ -3,6 +3,7 @@
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -209,7 +210,7 @@ import java.io.StreamTokenizer;
         int iteration;
         long start = 0, end, phaseStart = 0, phaseEnd;
 
-        LinkedList result = null;
+        List result = null;
         double[] accs_x = new double[bodyArray.length];
         double[] accs_y = new double[bodyArray.length];
         double[] accs_z = new double[bodyArray.length];
@@ -314,7 +315,7 @@ import java.io.StreamTokenizer;
         totalTime = end - start;
     }
 
-    void processLinkedListResult(LinkedList result, double[] all_x,
+    void processLinkedListResult(List result, double[] all_x,
             double[] all_y, double[] all_z) {
         Iterator it = result.iterator();
         int[] bodyNumbers;
