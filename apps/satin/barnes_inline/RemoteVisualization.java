@@ -68,11 +68,11 @@ public class RemoteVisualization extends Thread {
         while (!haveClient) {
             try { 
                 client = server.accept();
-                client.setSendBufferSize(64*1024);
+                client.setSendBufferSize(128*1024);
                 client.setTcpNoDelay(true);
                 
                 out = new DataOutputStream(
-                        new BufferedOutputStream(client.getOutputStream()));
+                        new BufferedOutputStream(client.getOutputStream(), 128*1024));
                 
                 haveClient = true;
             } catch (Exception e) {                
@@ -123,7 +123,7 @@ public class RemoteVisualization extends Thread {
     }
     
     private void doSend() { 
-                        
+        long start = System.currentTimeMillis();
         try { 
           //  System.out.println("Sending");
             
@@ -144,6 +144,8 @@ public class RemoteVisualization extends Thread {
             System.out.println("Lost connection during send!");                
             close();
         }
+        long time = System.currentTimeMillis() - start;
+        System.err.println("send took " + time + " ms");
     }
         
     public void run() { 

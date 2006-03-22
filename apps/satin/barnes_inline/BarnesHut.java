@@ -35,7 +35,7 @@ import java.util.List;
     private static int spawn_max = -1; //use -max <threshold> to modify
 
     private long totalTime = 0, comTime = 0, btTime = 0, trimTime = 0,
-            updateTime = 0, totalForceCalcTime = 0;
+            updateTime = 0, forceCalcTime = 0, vizTime = 0;
 
     //Parameters for the BarnesHut algorithm / simulation
     private static double THETA = 2.0; // cell subdivision tolerance
@@ -224,7 +224,7 @@ import java.util.List;
         start = System.currentTimeMillis();
 
         for (int iteration = 0; iteration < iterations; iteration++) {
-            long comTimeTmp = 0, btTimeTmp = 0, trimTimeTmp = 0, updateTimeTmp = 0, forceCalcTimeTmp = 0;
+            long comTimeTmp = 0, btTimeTmp = 0, trimTimeTmp = 0, updateTimeTmp = 0, forceCalcTimeTmp = 0, vizTimeTmp = 0;
 
             // System.out.println("Starting iteration " + iteration);
 
@@ -275,7 +275,7 @@ import java.util.List;
             processLinkedListResult(result, accs_x, accs_y, accs_z);
 
             forceCalcTimeTmp = System.currentTimeMillis() - phaseStart;
-            totalForceCalcTime += forceCalcTimeTmp;
+            forceCalcTime += forceCalcTimeTmp;
 
             phaseStart = System.currentTimeMillis();
 
@@ -283,6 +283,8 @@ import java.util.List;
 
             updateTimeTmp = System.currentTimeMillis() - phaseStart;
             updateTime += updateTimeTmp;
+
+            phaseStart = System.currentTimeMillis();
 
             if (viz) {
                 bc.repaint();
@@ -292,10 +294,17 @@ import java.util.List;
                 rv.showBodies(bodyArray);
             }
 
+            vizTimeTmp = System.currentTimeMillis() - phaseStart;
+            vizTime += vizTimeTmp;
+
+            long total = btTimeTmp + trimTimeTmp + comTimeTmp + updateTimeTmp
+                + forceCalcTimeTmp + vizTimeTmp;
+
             System.err.println("Iteration " + iteration
                 + " done, tree build = " + btTimeTmp + ", trim = "
                 + trimTimeTmp + ", CoM = " + comTimeTmp + ", update = "
-                + updateTimeTmp + ", force = " + forceCalcTimeTmp);
+                + updateTimeTmp + ", force = " + forceCalcTimeTmp + ", viz = "
+                + vizTimeTmp + ", total = " + total);
         }
 
         end = System.currentTimeMillis();
@@ -382,11 +391,15 @@ import java.util.List;
         }
 
         System.out.println("tree building took      " + btTime / 1000.0 + " s");
-        System.out.println("trim took               " + trimTime / 1000.0 + " s");
-        System.out
-            .println("CoM computation took    " + comTime / 1000.0 + " s");
-        System.out.println("Force calculation took  " + totalForceCalcTime
-            / 1000.0 + " s");
+        System.out.println("trim took               " + trimTime / 1000.0
+            + " s");
+        System.out.println("CoM computation took    " + comTime / 1000.0 + " s");
+        System.out.println("update took             " + updateTime / 1000.0
+            + " s");
+        System.out.println("Force calculation took  " + forceCalcTime / 1000.0
+            + " s");
+        System.out.println("visualization took      " + vizTime / 1000.0
+            + " s");
         System.out.println("application barnes took "
             + (double) (totalTime / 1000.0) + " s");
 
