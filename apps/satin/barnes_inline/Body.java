@@ -37,20 +37,20 @@ strictfp public final class Body implements Cloneable, Comparable, Serializable 
     //copied from the rmi implementation
     //I used 'newAcc' instead of 'acc' to avoid confusion with this.acc
     public void computeNewPosition(boolean useOldAcc,
-            double newAcc_x, double newAcc_y, double newAcc_z) {
+            double newAcc_x, double newAcc_y, double newAcc_z, RunParameters params) {
         if (useOldAcc) { // always true, except for first iteration
-            vel_x += (newAcc_x - oldAcc_x) * BarnesHut.DT_HALF;
-            vel_y += (newAcc_y - oldAcc_y) * BarnesHut.DT_HALF;
-            vel_z += (newAcc_z - oldAcc_z) * BarnesHut.DT_HALF;
+            vel_x += (newAcc_x - oldAcc_x) * params.DT_HALF;
+            vel_y += (newAcc_y - oldAcc_y) * params.DT_HALF;
+            vel_z += (newAcc_z - oldAcc_z) * params.DT_HALF;
         }
 
-        pos_x += (newAcc_x * BarnesHut.DT_HALF + vel_x) * BarnesHut.DT;
-        pos_y += (newAcc_y * BarnesHut.DT_HALF + vel_y) * BarnesHut.DT;
-        pos_z += (newAcc_z * BarnesHut.DT_HALF + vel_z) * BarnesHut.DT;
+        pos_x += (newAcc_x * params.DT_HALF + vel_x) * params.DT;
+        pos_y += (newAcc_y * params.DT_HALF + vel_y) * params.DT;
+        pos_z += (newAcc_z * params.DT_HALF + vel_z) * params.DT;
 
-        vel_x += newAcc_x * BarnesHut.DT;
-        vel_y += newAcc_y * BarnesHut.DT;
-        vel_z += newAcc_z * BarnesHut.DT;
+        vel_x += newAcc_x * params.DT;
+        vel_y += newAcc_y * params.DT;
+        vel_z += newAcc_z * params.DT;
 
         //prepare for next call of BodyTreeNode.barnes()
         oldAcc_x = newAcc_x;

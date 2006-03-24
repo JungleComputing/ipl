@@ -55,12 +55,15 @@ import java.util.*;
     //	static final double SOFT = 0.05;
 
     // this value is copied from Suel --Rob
-    private static final double SOFT = 0.0000025;
+    static final double SOFT = 0.0000025;
 
-    private static final double SOFT_SQ = SOFT * SOFT;
+    static final double SOFT_SQ = SOFT * SOFT;
 
     // Extra margin of space used around the bodies.
     private static final double DIM_SLACK = 0.00001;
+
+    /** Runtime paremeters. */
+    RunParameters params;
 
     /**
      * creates a totally empty tree.
@@ -75,11 +78,9 @@ import java.util.*;
      *            the maximum point the tree should represent
      * @param min
      *            the minimum point the tree should represent
-     * @param theta
-     *            the theta value used in the simulation
      */
     private void initCenterSizeMaxtheta(double max_x, double max_y,
-        double max_z, double min_x, double min_y, double min_z, double theta) {
+        double max_z, double min_x, double min_y, double min_z) {
 
         double size;
 
@@ -97,20 +98,21 @@ import java.util.*;
         size *= 1 + 2.0 * DIM_SLACK;
 
         halfSize = size / 2.0;
-        maxTheta = theta * theta * halfSize * halfSize;
+        maxTheta = params.THETA * params.THETA * halfSize * halfSize;
 
-        //        System.out.println("theta = " + theta + ", halfSize = " + halfSize + ", maxx = " + max_x + ", minx = " + min_x + ", maxTheta = " + maxTheta);
+        //        System.out.println("theta = " + params.THETA + ", halfSize = " + halfSize + ", maxx = " + max_x + ", minx = " + min_x + ", maxTheta = " + maxTheta);
     }
 
     //constructor to create an empty tree, used during tree contruction
-    private BodyTreeNode(double centerX, double centerY, double centerZ,
-        double halfSize, double maxTheta) {
+    private BodyTreeNode(RunParameters params, double centerX, double centerY,
+            double centerZ, double halfSize, double maxTheta) {
         //children = null and bodies = null by default
         this.center_x = centerX;
         this.center_y = centerY;
         this.center_z = centerZ;
         this.halfSize = halfSize;
         this.maxTheta = maxTheta;
+        this.params = params;
     }
 
     /**
@@ -121,11 +123,12 @@ import java.util.*;
      *            the bodies to add
      * @param maxLeafBodies
      *            the maximum number of bodies to put in a leaf node
-     * @param theta
-     *            The theta value used in the computation
+     * @param params
+     *            The run parameters
      */
-    public BodyTreeNode(Body[] bodyArray, int maxLeafBodies, double theta) {
+    public BodyTreeNode(Body[] bodyArray, int maxLeafBodies, RunParameters params) {
         int i;
+        this.params = params;
         double max_x = -1000000.0, max_y = -1000000.0, max_z = -1000000.0, min_x = 1000000.0, min_y = 1000000.0, min_z = 1000000.0;
 
         for (i = 0; i < bodyArray.length; i++) {
@@ -137,7 +140,7 @@ import java.util.*;
             min_z = Math.min(min_z, bodyArray[i].pos_z);
         }
 
-        initCenterSizeMaxtheta(max_x, max_y, max_z, min_x, min_y, min_z, theta);
+        initCenterSizeMaxtheta(max_x, max_y, max_z, min_x, min_y, min_z);
 
         for (i = 0; i < bodyArray.length; i++) {
             addBody(bodyArray[i], maxLeafBodies);
@@ -175,6 +178,7 @@ import java.util.*;
         com_y = original.com_y;
         com_z = original.com_z;
         totalMass = original.totalMass;
+        params = original.params;
         bodyCount = 0;
 
         // calculate if original can be cut off
@@ -333,8 +337,8 @@ import java.util.*;
             newCenterZ = center_z - newHalfSize;
         }
 
-        children[child] = new BodyTreeNode(newCenterX, newCenterY, newCenterZ,
-            halfSize / 2.0, maxTheta / 4.0);
+        children[child] = new BodyTreeNode(params, newCenterX, newCenterY,
+                newCenterZ, halfSize / 2.0, maxTheta / 4.0);
         children[child].bodies = new Body[maxLeafBodies];
         children[child].bodies[0] = b;
         children[child].bodyCount = 1;
@@ -439,7 +443,7 @@ import java.util.*;
          */
 
         if (distsq >= maxTheta) {
-            distsq += SOFT_SQ;
+            distsq += params.SOFT_SQ;
             dist = Math.sqrt(distsq);
             factor = totalMass / (distsq * dist);
 
@@ -464,7 +468,7 @@ import java.util.*;
                 diff_z = bodies[i].pos_z - pos_z;
 
                 distsq = diff_x * diff_x + diff_y * diff_y + diff_z * diff_z
-                    + SOFT_SQ;
+                    + params.SOFT_SQ;
 
                 dist = Math.sqrt(distsq);
                 factor = bodies[i].mass / (distsq * dist);
@@ -517,7 +521,7 @@ import java.util.*;
          */
 
         if (distsq >= maxTheta) {
-            distsq += SOFT_SQ;
+            distsq += params.SOFT_SQ;
             double dist = Math.sqrt(distsq);
             double factor = totalMass / (distsq * dist);
 
@@ -542,7 +546,7 @@ import java.util.*;
                 diff_z = bodies[i].pos_z - pos_z;
 
                 distsq = diff_x * diff_x + diff_y * diff_y + diff_z * diff_z
-                    + SOFT_SQ;
+                    + params.SOFT_SQ;
 
                 double dist = Math.sqrt(distsq);
                 double factor = bodies[i].mass / (distsq * dist);
@@ -598,7 +602,7 @@ import java.util.*;
              * The distance was large enough to use my centerOfMass instead of
              * iterating my children
              */
-            distsq += SOFT_SQ;
+            distsq += params.SOFT_SQ;
             dist = Math.sqrt(distsq);
             factor = totalMass / (distsq * dist);
 
@@ -635,7 +639,7 @@ import java.util.*;
                 diff_z = bodies[i].pos_z - pos_z;
 
                 distsq = diff_x * diff_x + diff_y * diff_y;
-                distsq += diff_z * diff_z + SOFT_SQ;
+                distsq += diff_z * diff_z + params.SOFT_SQ;
 
                 dist = Math.sqrt(distsq);
                 factor = bodies[i].mass / (distsq * dist);

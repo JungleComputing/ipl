@@ -38,16 +38,15 @@ import java.util.List;
             updateTime = 0, forceCalcTime = 0, vizTime = 0;
 
     //Parameters for the BarnesHut algorithm / simulation
-    private static double THETA = 2.0; // cell subdivision tolerance
+    private static final double THETA = 2.0; // cell subdivision tolerance
 
-    static double DT = 0.025; // default integration time-step
-
-    static double DT_HALF = DT / 2.0; // default integration time-step
+    private static final double DT = 0.025; // default integration time-step
+    private static final double DT_HALF = DT / 2.0; // default integration time-step
 
     //we do 7 iterations (first one isn't measured)
-    static double START_TIME = 0.0;
+    private static double START_TIME = 0.0;
 
-    static double END_TIME = 0.175;
+    private static double END_TIME = 0.175;
 
     static int iterations = -1;
 
@@ -58,10 +57,15 @@ import java.util.List;
     static BodyTreeNode root; //is accessed by BodyTreeNode
 
     //Indicates if we are the root divide-and-conquer node
+    
     static boolean I_AM_ROOT = false;
 
-    BarnesHut(int n, int m) {
+    private RunParameters params;
+
+    BarnesHut(int n, int m, RunParameters params) {
         I_AM_ROOT = true; //constructor is only called at the root node
+
+        this.params = params;
 
         initialize(n, m);
 
@@ -78,7 +82,7 @@ import java.util.List;
          */
 
         if (iterations == -1) {
-            iterations = (int) ((END_TIME + 0.1 * DT - START_TIME) / DT);
+            iterations = (int) ((END_TIME + 0.1 * params.DT - START_TIME) / params.DT);
         }
     }
 
@@ -91,10 +95,11 @@ import java.util.List;
         return Double.parseDouble(tk.sval);
     }
 
-    BarnesHut(Reader r, int m) throws IOException {
+    BarnesHut(Reader r, int m, RunParameters params) throws IOException {
         BufferedReader br = new BufferedReader(r);
         StreamTokenizer tokenizer = new StreamTokenizer(br);
 
+        this.params = params;
         I_AM_ROOT = true; //constructor is only called at the root node
         maxLeafBodies = m;
 
@@ -115,8 +120,7 @@ import java.util.List;
         // Ignore number of dimensions.
         readDouble(tokenizer, "number expected for dimensions");
 
-        // Ignore start time.
-        readDouble(tokenizer, "number expected for start time");
+        START_TIME = readDouble(tokenizer, "number expected for start time");
 
         // Allocate bodies and read mass.
         bodyArray = new Body[nBodies];
@@ -145,7 +149,7 @@ import java.util.List;
         }
 
         if (iterations == -1) {
-            iterations = (int) ((END_TIME + 0.1 * DT - START_TIME) / DT);
+            iterations = (int) ((END_TIME + 0.1 * params.DT - START_TIME) / params.DT);
         }
     }
 
@@ -163,8 +167,8 @@ import java.util.List;
         }
     }
 
-    static void updateBodies(double[] accs_x, double[] accs_y, double[] accs_z,
-        int iteration) {
+    void updateBodies(double[] accs_x, double[] accs_y, double[] accs_z,
+            int iteration) {
         int i;
 
         for (i = 0; i < bodyArray.length; i++) {
@@ -181,7 +185,7 @@ import java.util.List;
             }
 
             bodyArray[i].computeNewPosition(iteration != 0, accs_x[i],
-                accs_y[i], accs_z[i]);
+                    accs_y[i], accs_z[i], params);
 
             if (ASSERTS) bodyArray[i].updated = false;
         }
@@ -198,6 +202,13 @@ import java.util.List;
         BodyCanvas bc = null;
 
         RemoteVisualization rv = null;
+
+        System.out.println("BarnesHut: simulating "
+                + bodyArray.length + " bodies, "
+                + maxLeafBodies + " bodies/leaf node, "
+                + "theta = " + params.THETA
+                + ", spawn-min-threshold = " + spawn_min
+                + ", spawn-max-threshold = " + spawn_max);
 
         // print the starting problem
         if (verbose) {
@@ -235,7 +246,7 @@ import java.util.List;
              * does the center-of-mass computation for this new tree
              */
             root = null; //prevent Out-Of-Memory because 2 trees are in mem
-            root = new BodyTreeNode(bodyArray, maxLeafBodies, THETA);
+            root = new BodyTreeNode(bodyArray, maxLeafBodies, params);
 
             btTimeTmp = System.currentTimeMillis() - phaseStart;
             btTime += btTimeTmp;
@@ -416,6 +427,13 @@ import java.util.List;
         FileReader rdr = null;
         int i;
 
+        RunParameters params = new RunParameters();
+        params.THETA = THETA;
+        params.DT = DT;
+        params.DT_HALF = DT_HALF;
+        params.SOFT = BodyTreeNode.SOFT;
+        params.SOFT_SQ = BodyTreeNode.SOFT_SQ;
+
         //parse arguments
         for (i = 0; i < argv.length; i++) {
             //options
@@ -444,14 +462,17 @@ import java.util.List;
                         "Illegal argument to -it: number of iterations must be >= 0 !");
                 }
             } else if (argv[i].equals("-theta")) {
-                THETA = Double.parseDouble(argv[++i]);
+                params.THETA = Double.parseDouble(argv[++i]);
             } else if (argv[i].equals("-starttime")) {
                 START_TIME = Double.parseDouble(argv[++i]);
             } else if (argv[i].equals("-endtime")) {
                 END_TIME = Double.parseDouble(argv[++i]);
             } else if (argv[i].equals("-dt")) {
-                DT = Double.parseDouble(argv[++i]);
-                DT_HALF = DT / 2.0;
+                params.DT = Double.parseDouble(argv[++i]);
+                params.DT_HALF = params.DT / 2.0;
+            } else if (argv[i].equals("-eps")) {
+                params.SOFT = Double.parseDouble(argv[++i]);
+                params.SOFT_SQ = params.SOFT * params.SOFT;
             } else if (argv[i].equals("-input")) {
                 try {
                     rdr = new FileReader(argv[++i]);
@@ -494,7 +515,7 @@ import java.util.List;
             }
         }
 
-        if (nBodies < 1) {
+        if (nBodies < 1 && rdr == null) {
             System.err.println("Invalid body count, generating 300 bodies...");
             nBodies = 300;
         }
@@ -503,23 +524,18 @@ import java.util.List;
             spawn_max = nBodies;
         }
 
-        System.out.println("BarnesHut: simulating " + nBodies + " bodies, "
-            + mlb + " bodies/leaf node, " + "theta = " + THETA
-            + ", spawn-min-threshold = " + spawn_min
-            + ", spawn-max-threshold = " + spawn_max);
-
         if (rdr != null) {
             if (nBodiesSeen) {
                 System.out
                     .println("Warning: nBodies as seen in argument list ignored!");
             }
             try {
-                new BarnesHut(rdr, mlb).run();
+                new BarnesHut(rdr, mlb, params).run();
             } catch (IOException e) {
                 throw new NumberFormatException(e.getMessage());
             }
         } else {
-            new BarnesHut(nBodies, mlb).run();
+            new BarnesHut(nBodies, mlb, params).run();
         }
 
         ibis.satin.SatinObject.resume(); // allow satin to exit cleanly
