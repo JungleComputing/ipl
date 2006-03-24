@@ -326,7 +326,7 @@ import java.util.List;
         double[] all_z) {
         Iterator it = result.iterator();
         int[] bodyNumbers;
-        double[] tmp_x, tmp_y, tmp_z;
+        double[] tmp;
         int i;
 
         /*
@@ -347,14 +347,12 @@ import java.util.List;
 
         while (it.hasNext()) {
             bodyNumbers = (int[]) it.next();
-            tmp_x = (double[]) it.next();
-            tmp_y = (double[]) it.next();
-            tmp_z = (double[]) it.next();
+            tmp = (double[]) it.next();
 
             for (i = 0; i < bodyNumbers.length; i++) {
-                all_x[bodyNumbers[i]] = tmp_x[i];
-                all_y[bodyNumbers[i]] = tmp_y[i];
-                all_z[bodyNumbers[i]] = tmp_z[i];
+                all_x[bodyNumbers[i]] = tmp[3*i];
+                all_y[bodyNumbers[i]] = tmp[3*i+1];
+                all_z[bodyNumbers[i]] = tmp[3*i+2];
                 if (ASSERTS) bodyArray[bodyNumbers[i]].updated = true;
             }
         }
