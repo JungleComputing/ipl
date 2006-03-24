@@ -1,11 +1,16 @@
+This directory contains a couple of data sets to try a visualizer on.
+Each dataset D? has a corresponding args? file containing the parameters
+to be used.
+
 D1 is a 2500-body dataset consisting of a Plummer and a single, high-mass
 body. Should be run with a timestep not larger than 0.03125 and theta at
-least 2, otherwise too many anomalities will occur. Run for thousands of
-iterations.
+least 2. Run for thousands of iterations.
 D2 is a 4096-body dataset, similar in concept to D1.
 D3 is a 4096-body dataset consisting of two Plummers colliding. Eventually
 results in a merge of the two systems. Should be run with a timestep not
-larger than 0.03125 and theta at least 2, otherwise too many anomalities
-will occur. Run for about 1500 iterations.
+larger than 0.03125 and theta at least 2. Run for about 1500 iterations.
 D4 is a 4096-body dataset consisting of a disk and a Plummer colliding.
-A bit disappointing.
+Visualization is a bit disappointing.
+D5 exercises the code on a highly irregular mass distribution. Over time the
+fractal structure initially present will be erased, eventually leaving a 
+relaxed, "monolithic" system.
