@@ -579,7 +579,6 @@ final class MessageHandler implements Upcall, Protocol, Config {
                 handleLookupTimer.start();
             }
 
-            GlobalResultTable.Key key = (GlobalResultTable.Key) m.readObject();
             Stamp stamp = (Stamp) m.readObject();
 
             IbisIdentifier ident = m.origin().ibis();
@@ -588,20 +587,20 @@ final class MessageHandler implements Upcall, Protocol, Config {
 
             // if (grtLogger.isInfoEnabled()) {
             //     grtLogger.info("SATIN '" + satin.ident
-            //             + "': got result request " + key + " from " + ident);
+            //             + "': got result request " + stamp + " from " + ident);
             // }
 
             synchronized (satin) {
-                value = satin.globalResultTable.lookup(key, false);
+                value = satin.globalResultTable.lookup(stamp, false);
                 if (value == null && ASSERTS) {
                     grtLogger.fatal("SATIN '" + satin.ident
-                        + "': EEK!!! no requested result in the table: " + key);
+                        + "': EEK!!! no requested result in the table: " + stamp);
                     System.exit(1); // Failed assertion
                 }
                 if (value.type == GlobalResultTable.Value.TYPE_POINTER
                     && ASSERTS) {
                     grtLogger.fatal("SATIN '" + satin.ident + "': EEK!!! "
-                        + ident + " requested a result: " + key
+                        + ident + " requested a result: " + stamp
                         + " which is stored on another node: " + value);
                     System.exit(1); // Failed assertion
                 }

@@ -155,8 +155,6 @@ public abstract class Initialization extends SatinBase {
             } else if (args[i].equals("-satin-alg")) {
                 i++;
                 alg = args[i];
-            } else if (args[i].equals("-satin-grt-uses-stamps")) {
-                grtUsesStamps = true;
             } else if (args[i].equals("-satin-delete")) {
                 i++;
                 try {

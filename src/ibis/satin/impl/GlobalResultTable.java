@@ -18,46 +18,6 @@ import java.util.Map;
 
 public class GlobalResultTable implements Upcall, Config {
 
-    static class Key implements java.io.Serializable {
-        Stamp stamp;
-        ParameterRecord parameters;
-
-        Key(InvocationRecord r) {
-            if (SatinBase.this_satin.grtUsesStamps) {
-                this.stamp = r.stamp;
-                this.parameters = null;
-            } else {
-                this.stamp = null;
-                this.parameters = r.getParameterRecord();
-            }
-        }
-
-        public boolean equals(Object other) {
-            Key otherKey = (Key) other;
-            if (SatinBase.this_satin.grtUsesStamps) {
-                return this.stamp.stampEquals(otherKey.stamp);
-            }
-            if (other == null) {
-                return false;
-            }
-            return this.parameters.equals(otherKey.parameters);
-        }
-
-        public int hashCode() {
-            if (SatinBase.this_satin.grtUsesStamps) {
-                return this.stamp.hashCode();
-            }
-            return this.parameters.hashCode();
-        }
-
-        public String toString() {
-            if (SatinBase.this_satin.grtUsesStamps) {
-                return stamp.toString();
-            }
-            return parameters.toString();
-        }
-    }
-
     static class Value implements java.io.Serializable {
         static final int TYPE_LOCK = 0;
 
@@ -159,10 +119,10 @@ public class GlobalResultTable implements Upcall, Config {
     }
 
     Value lookup(InvocationRecord r, boolean stats) {
-        return lookup(new Key(r), stats);
+        return lookup(r.stamp, stats);
     }
 
-    Value lookup(Key key, boolean stats) {
+    Value lookup(Stamp key, boolean stats) {
 
         if (GRT_TIMING) {
             satin.lookupTimer.start();
@@ -202,16 +162,15 @@ public class GlobalResultTable implements Upcall, Config {
 
         void storeResult(InvocationRecord r) {
             Value value = new Value(Value.TYPE_RESULT, r);
-            update(new Key(r), value);
+            update(r.stamp, value);
         }
 
         void storeLock(InvocationRecord r) {
-            Key key = new Key(r);
             Value value = new Value(Value.TYPE_LOCK, null);
-            update(key, value);
+            update(r.stamp, value);
         }
 
-        void update(Key key, Value value) {
+        void update(Stamp key, Value value) {
             Timer updateTimer = null;
             Timer tableSerializationTimer = null;
 
@@ -465,7 +424,7 @@ public class GlobalResultTable implements Upcall, Config {
             while (iter.hasNext()) {
                 Map.Entry element = (Map.Entry) iter.next();
                 Value value = (Value) element.getValue();
-                Key key = (Key) element.getKey();
+                Stamp key = (Stamp) element.getKey();
                 switch (value.type) {
                 case Value.TYPE_RESULT:
                 case Value.TYPE_LOCK:
@@ -571,7 +530,7 @@ public class GlobalResultTable implements Upcall, Config {
 
         public void upcall(ReadMessage m) {
             Map map = null;
-            Key key = null;
+            Stamp key = null;
             Value value = null;
             Timer handleUpdateTimer = null;
             Timer tableDeserializationTimer = null;
@@ -591,7 +550,7 @@ public class GlobalResultTable implements Upcall, Config {
                 if (GRT_MESSAGE_COMBINING) {
                     map = (Map) m.readObject();
                 } else {
-                    key = (Key) m.readObject();
+                    key = (Stamp) m.readObject();
                     value = (Value) m.readObject();
                     //IbisIdentifier ident = (IbisIdentifier) m.readObject();
                     //Value value = new Value(Value.TYPE_POINTER, null);

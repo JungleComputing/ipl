@@ -353,10 +353,9 @@ public abstract class FaultTolerance extends Inlets {
             // redoTimer.start();
         }
 
-        GlobalResultTable.Key key = new GlobalResultTable.Key(r);
         GlobalResultTable.Value value = null;
         synchronized (this) {
-            value = globalResultTable.lookup(key, true);
+            value = globalResultTable.lookup(r, true);
         }
 
         if (value == null) {
@@ -403,7 +402,7 @@ public abstract class FaultTolerance extends Inlets {
 
 		        if (grtLogger.isDebugEnabled()) {
 		            grtLogger.debug("SATIN '" + ident
-		                     + "': sending a result request of " + key
+		                     + "': sending a result request of " + r.stamp
 		                     + " to " + value.owner);
 		        }
 		        v = getVictimNoWait(value.owner);
@@ -424,7 +423,6 @@ public abstract class FaultTolerance extends Inlets {
 		    try {
 		        WriteMessage m = v.newMessage();
 		        m.writeByte(Protocol.RESULT_REQUEST);
-		        m.writeObject(key);
                         m.writeObject(r.stamp);
 		        m.finish();
 		    } catch (IOException e) {
@@ -447,7 +445,7 @@ public abstract class FaultTolerance extends Inlets {
 		        //i don't think that should happen
 		        grtLogger.fatal("SATIN '" + ident
 		                + "': found local unfinished job in the table!! "
-		                + key);
+		                + r.stamp);
 		        System.exit(1);     // Failed assertion
 		    }
 		}

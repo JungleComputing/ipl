@@ -46,8 +46,6 @@ public abstract class SatinBase implements Config {
 
     protected String deleteCluster = null;
 
-    protected boolean grtUsesStamps = false;
-
     int soInvocationsDelay = 0;
     //if > 0, it is used for combining shared objects invocations
 

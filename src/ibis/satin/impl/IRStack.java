@@ -250,7 +250,7 @@ final class IRStack implements Config {
             curr = l[i];
             child = curr.finishedChild;
             while (child != null) {
-                GlobalResultTable.Key key = new GlobalResultTable.Key(child);
+                Stamp key = child.stamp;
                 GlobalResultTable.Value value = new GlobalResultTable.Value(
                         GlobalResultTable.Value.TYPE_RESULT, child);
                 toPush.put(key, value);
