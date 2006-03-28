@@ -239,8 +239,11 @@ public abstract class FaultTolerance extends Inlets {
             r.finishedSibling = r.parent.finishedChild;
             r.parent.finishedChild = r;
         } else if (r.owner.equals(ident)) {
-            r.finishedSibling = rootFinishedChild;
-            rootFinishedChild = r;
+            // r.finishedSibling = rootFinishedChild;
+            // rootFinishedChild = r;
+            // Commented out for as long as rootFinishedChild is not used.
+            // TODO: put them in global result table when needed.
+            // When is that??? When the master leaves???
         } else {
             if (ASSERTS) {
                 ftLogger.fatal("SATIN '" + ident
