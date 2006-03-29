@@ -273,11 +273,11 @@ import java.util.List;
 
             switch (impl) {
             case IMPL_NTC:
-                result = root.doBarnes(root, spawn_min, spawn_max);
+                result = root.doBarnes(root, spawn_min, spawn_max, params);
                 break;
             case IMPL_SEQ:
                 result = new ArrayList();
-                root.barnesSequential(root, result);
+                root.barnesSequential(root, result, params);
                 break;
             }
 

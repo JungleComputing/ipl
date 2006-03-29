@@ -62,9 +62,6 @@ import java.util.*;
     // Extra margin of space used around the bodies.
     private static final double DIM_SLACK = 0.00001;
 
-    /** Runtime paremeters. */
-    RunParameters params;
-
     /**
      * creates a totally empty tree.
      */
@@ -80,7 +77,7 @@ import java.util.*;
      *            the minimum point the tree should represent
      */
     private void initCenterSizeMaxtheta(double max_x, double max_y,
-        double max_z, double min_x, double min_y, double min_z) {
+        double max_z, double min_x, double min_y, double min_z, RunParameters params) {
 
         double size;
 
@@ -107,7 +104,7 @@ import java.util.*;
     }
 
     //constructor to create an empty tree, used during tree contruction
-    private BodyTreeNode(RunParameters params, double centerX, double centerY,
+    private BodyTreeNode(double centerX, double centerY,
             double centerZ, double halfSize, double maxTheta) {
         //children = null and bodies = null by default
         this.center_x = centerX;
@@ -115,7 +112,6 @@ import java.util.*;
         this.center_z = centerZ;
         this.halfSize = halfSize;
         this.maxTheta = maxTheta;
-        this.params = params;
     }
 
     /**
@@ -130,11 +126,9 @@ import java.util.*;
      *            The run parameters
      */
     public BodyTreeNode(Body[] bodyArray, int maxLeafBodies, RunParameters params) {
-        int i;
-        this.params = params;
         double max_x = -1000000.0, max_y = -1000000.0, max_z = -1000000.0, min_x = 1000000.0, min_y = 1000000.0, min_z = 1000000.0;
 
-        for (i = 0; i < bodyArray.length; i++) {
+        for (int i = 0; i < bodyArray.length; i++) {
             max_x = Math.max(max_x, bodyArray[i].pos_x);
             max_y = Math.max(max_y, bodyArray[i].pos_y);
             max_z = Math.max(max_z, bodyArray[i].pos_z);
@@ -143,9 +137,9 @@ import java.util.*;
             min_z = Math.min(min_z, bodyArray[i].pos_z);
         }
 
-        initCenterSizeMaxtheta(max_x, max_y, max_z, min_x, min_y, min_z);
+        initCenterSizeMaxtheta(max_x, max_y, max_z, min_x, min_y, min_z, params);
 
-        for (i = 0; i < bodyArray.length; i++) {
+        for (int i = 0; i < bodyArray.length; i++) {
             addBody(bodyArray[i], maxLeafBodies);
         }
 
@@ -181,7 +175,6 @@ import java.util.*;
         com_y = original.com_y;
         com_z = original.com_z;
         totalMass = original.totalMass;
-        params = original.params;
         bodyCount = 0;
 
         // calculate if original can be cut off
@@ -340,7 +333,7 @@ import java.util.*;
             newCenterZ = center_z - newHalfSize;
         }
 
-        children[child] = new BodyTreeNode(params, newCenterX, newCenterY,
+        children[child] = new BodyTreeNode(newCenterX, newCenterY,
                 newCenterZ, halfSize / 2.0, maxTheta / 4.0);
         children[child].bodies = new Body[maxLeafBodies];
         children[child].bodies[0] = b;
@@ -422,7 +415,7 @@ import java.util.*;
      * checking if the tree below 'this' has been cut off. Then the distance
      * calculation is already done during necessarryTree construction
      */
-    public double[] barnesBody(double pos_x, double pos_y, double pos_z) {
+    public double[] barnesBody(double pos_x, double pos_y, double pos_z, RunParameters params) {
         double diff_x, diff_y, diff_z;
         double[] totalAcc = new double[3];
         double dist, distsq, factor;
@@ -487,7 +480,7 @@ import java.util.*;
         for (i = 0; i < 8; i++) {
             double[] childresult;
             if (children[i] != null) {
-                childresult = children[i].barnesBody(pos_x, pos_y, pos_z);
+                childresult = children[i].barnesBody(pos_x, pos_y, pos_z, params);
                 totalAcc[0] += childresult[0];
                 totalAcc[1] += childresult[1];
                 totalAcc[2] += childresult[2];
@@ -505,7 +498,7 @@ import java.util.*;
      * calculation is already done during necessarryTree construction
      */
     public void barnesBodyRob(double pos_x, double pos_y, double pos_z,
-        double[] accs, int destPos) {
+        double[] accs, int destPos, RunParameters params) {
 
         double diff_x = com_x - pos_x;
         double diff_y = com_y - pos_y;
@@ -574,7 +567,7 @@ import java.util.*;
         for (int i = 0; i < 8; i++) {
             if (children[i] != null) {
                 children[i].barnesBodyRob(pos_x, pos_y, pos_z, accs,
-                    destPos);
+                    destPos, params);
             }
         }
     }
@@ -583,7 +576,7 @@ import java.util.*;
      * debug version of barnesBody(pos_x, pos_y, pos_z)
      */
     public double[] barnesBodyDbg(double pos_x, double pos_y, double pos_z,
-        boolean debug) {
+        boolean debug, RunParameters params) {
         double diff_x, diff_y, diff_z;
         double[] totalAcc = new double[3];
         double dist, distsq, factor;
@@ -671,7 +664,7 @@ import java.util.*;
                 double[] childresult;
                 if (children[i] != null) {
                     childresult = children[i].barnesBodyDbg(pos_x, pos_y,
-                        pos_z, debug);
+                        pos_z, debug, params);
                     totalAcc[0] += childresult[0];
                     totalAcc[1] += childresult[1];
                     totalAcc[2] += childresult[2];
@@ -689,11 +682,11 @@ import java.util.*;
      */
     // @@@ one optimization that we can still do: don't use three arrays for x, y, z, but just one, and interleave the values. --Rob
     // Done --Ceriel
-    public void barnesSequential(BodyTreeNode interactTree, ArrayList results) {
+    public void barnesSequential(BodyTreeNode interactTree, ArrayList results, RunParameters params) {
         if (children != null) { // cell node -> call children[].barnes()
             for (int i = 0; i < 8; i++) {
                 if (children[i] != null) {
-                    children[i].barnesSequential(interactTree, results);
+                    children[i].barnesSequential(interactTree, results, params);
                 }
             }
 
@@ -715,10 +708,10 @@ import java.util.*;
             bodyNumbers[i] = bodies[i].number;
             if (true) {
                 interactTree.barnesBodyRob(bodies[i].pos_x, bodies[i].pos_y,
-                    bodies[i].pos_z, accs, 3*i);
+                    bodies[i].pos_z, accs, 3*i, params);
             } else {
                 double[] acc = interactTree.barnesBody(bodies[i].pos_x,
-                    bodies[i].pos_y, bodies[i].pos_z);
+                    bodies[i].pos_y, bodies[i].pos_z, params);
                 accs[3*i] = acc[0];
                 accs[3*i+1] = acc[1];
                 accs[3*i+2] = acc[2];
@@ -729,12 +722,12 @@ import java.util.*;
         results.add(accs);
     }
 
-    public ArrayList doBarnes(BodyTreeNode tree, int low, int high) {
+    public ArrayList doBarnes(BodyTreeNode tree, int low, int high, RunParameters params) {
         if (children == null) {
             // leaf node, let barnesSequential handle this
             // (using optimizeList isn't useful for leaf nodes)
             ArrayList res = new ArrayList();
-            barnesSequential(tree, res);
+            barnesSequential(tree, res, params);
             return res;
         }
 
@@ -748,20 +741,20 @@ import java.util.*;
             if (ch != null) {
                 if (ch.bodyCount < low) {
                     res[i] = new ArrayList();
-                    ch.barnesSequential(tree, res[i]);
+                    ch.barnesSequential(tree, res[i], params);
                 } else {
                     if (ch.bodyCount > high) {
                         BodyTreeNode n = tree;
                         if (BarnesHut.impl == BarnesHut.IMPL_NTC) {
                             n = ch == tree ? tree : new BodyTreeNode(tree, ch);
                         }
-                        res[i] = ch.doBarnes(n, low, high);
+                        res[i] = ch.doBarnes(n, low, high, params);
                     } else {
                         spawned = true;
                         // System.out.println("doBarnes spawning, count = " + ch.bodyCount);
                         BodyTreeNode necessaryTree = ch == tree ? tree
                             : new BodyTreeNode(tree, ch);
-                        res[i] = ch.barnesNTC(necessaryTree, low);
+                        res[i] = ch.barnesNTC(necessaryTree, low, params);
                     }
                 }
                 lastValidChild = i;
@@ -783,12 +776,12 @@ import java.util.*;
      * @param threshold
      *            the recursion depth at which work shouldn't be spawned anymore
      */
-    public ArrayList barnesNTC(BodyTreeNode interactTree, int threshold) {
+    public ArrayList barnesNTC(BodyTreeNode interactTree, int threshold, RunParameters params) {
         if (children == null || bodyCount < threshold) {
             // leaf node, let barnesSequential handle this
             // (using optimizeList isn't useful for leaf nodes)
             ArrayList res = new ArrayList();
-            barnesSequential(interactTree, res);
+            barnesSequential(interactTree, res, params);
             return res;
         }
 
@@ -802,12 +795,12 @@ import java.util.*;
             if (ch != null) {
                 if (ch.children == null) {
                     res[i] = new ArrayList();
-                    ch.barnesSequential(interactTree, res[i]);
+                    ch.barnesSequential(interactTree, res[i], params);
                 } else {
                     //necessaryTree creation
                     BodyTreeNode necessaryTree = ch == interactTree
                         ? interactTree : new BodyTreeNode(interactTree, ch);
-                    res[i] = ch.barnesNTC(necessaryTree, threshold);
+                    res[i] = ch.barnesNTC(necessaryTree, threshold, params);
                     spawned = true;
 
                     //alternative: copy whole tree
