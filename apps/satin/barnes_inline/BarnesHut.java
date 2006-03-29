@@ -221,12 +221,6 @@ import java.util.List;
 
         if (remoteViz) {
             rv = new RemoteVisualization();
-
-            try {
-                Thread.sleep(10000);
-            } catch (Exception e) {
-                // TODO: handle exception
-            }
         }
 
         ibis.satin.SatinObject.pause(); //turn off satin during sequential
@@ -302,7 +296,7 @@ import java.util.List;
             }
 
             if (remoteViz) {
-                rv.showBodies(bodyArray);
+                rv.showBodies(bodyArray, iteration);
             }
 
             vizTimeTmp = System.currentTimeMillis() - phaseStart;
