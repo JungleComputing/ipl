@@ -17,4 +17,7 @@ public final class RunParameters implements java.io.Serializable {
 
     /** Potential softening value squared. */
     double SOFT_SQ;
+
+    /** Maximum bumber of bodies per leaf. */
+    int MAX_BODIES_PER_LEAF;
 }

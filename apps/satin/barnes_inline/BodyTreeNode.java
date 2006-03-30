@@ -20,8 +20,7 @@ import java.util.*;
  * precisieproblemen)
  */
 
-/*strictfp*/final class BodyTreeNode extends ibis.satin.SatinObject implements
-        BodyTreeNodeInterface {
+/*strictfp*/final class BodyTreeNode implements java.io.Serializable {
 
     BodyTreeNode children[];
 
@@ -120,12 +119,10 @@ import java.util.*;
      * 
      * @param bodyArray
      *            the bodies to add
-     * @param maxLeafBodies
-     *            the maximum number of bodies to put in a leaf node
      * @param params
      *            The run parameters
      */
-    public BodyTreeNode(Body[] bodyArray, int maxLeafBodies, RunParameters params) {
+    public BodyTreeNode(Body[] bodyArray, RunParameters params) {
         double max_x = -1000000.0, max_y = -1000000.0, max_z = -1000000.0, min_x = 1000000.0, min_y = 1000000.0, min_z = 1000000.0;
 
         for (int i = 0; i < bodyArray.length; i++) {
@@ -140,10 +137,10 @@ import java.util.*;
         initCenterSizeMaxtheta(max_x, max_y, max_z, min_x, min_y, min_z, params);
 
         for (int i = 0; i < bodyArray.length; i++) {
-            addBody(bodyArray[i], maxLeafBodies);
+            addBody(bodyArray[i], params.MAX_BODIES_PER_LEAF);
         }
 
-//        trim();
+        trim();
     }
 
     private static double calcSquare(double com, double center, double halfSize) {
@@ -164,7 +161,7 @@ import java.util.*;
      * containing exactly the parts that are needed to compute the interactions
      * with the bodies in 'job'
      */
-    private BodyTreeNode(BodyTreeNode original, BodyTreeNode job) {
+    public BodyTreeNode(BodyTreeNode original, BodyTreeNode job) {
         center_x = original.center_x;
         center_y = original.center_y;
         center_z = original.center_z;
@@ -722,109 +719,13 @@ import java.util.*;
         results.add(accs);
     }
 
-    public ArrayList doBarnes(BodyTreeNode tree, int low, int high, RunParameters params) {
-        if (children == null) {
-            // leaf node, let barnesSequential handle this
-            // (using optimizeList isn't useful for leaf nodes)
-            ArrayList res = new ArrayList();
-            barnesSequential(tree, res, params);
-            return res;
-        }
-
-        //cell node -> call children[].barnes()
-        ArrayList res[] = new ArrayList[8];
-        int lastValidChild = -1;
-        boolean spawned = false;
-
-        for (int i = 0; i < 8; i++) {
-            BodyTreeNode ch = children[i];
-            if (ch != null) {
-                if (ch.bodyCount < low) {
-                    res[i] = new ArrayList();
-                    ch.barnesSequential(tree, res[i], params);
-                } else {
-                    if (ch.bodyCount > high) {
-                        BodyTreeNode n = tree;
-                        if (BarnesHut.impl == BarnesHut.IMPL_NTC) {
-                            n = ch == tree ? tree : new BodyTreeNode(tree, ch);
-                        }
-                        res[i] = ch.doBarnes(n, low, high, params);
-                    } else {
-                        spawned = true;
-                        // System.out.println("doBarnes spawning, count = " + ch.bodyCount);
-                        BodyTreeNode necessaryTree = ch == tree ? tree
-                            : new BodyTreeNode(tree, ch);
-                        res[i] = ch.barnesNTC(necessaryTree, low, params);
-                    }
-                }
-                lastValidChild = i;
-            }
-        }
-        if (spawned) {
-            sync();
-            return combineResults(res, lastValidChild);
-        }
-        //this was a sequential job, optimize!
-        return optimizeList(combineResults(res, lastValidChild));
-    }
-
-    /**
-     * Does the same as barnesSequential, but spawnes itself until a threshold
-     * is reached. Before a subjob is spawned, the necessary tree for that
-     * subjob is created to be passed to the subjob.
-     * 
-     * @param threshold
-     *            the recursion depth at which work shouldn't be spawned anymore
-     */
-    public ArrayList barnesNTC(BodyTreeNode interactTree, int threshold, RunParameters params) {
-        if (children == null || bodyCount < threshold) {
-            // leaf node, let barnesSequential handle this
-            // (using optimizeList isn't useful for leaf nodes)
-            ArrayList res = new ArrayList();
-            barnesSequential(interactTree, res, params);
-            return res;
-        }
-
-        //cell node -> call children[].barnes()
-        ArrayList res[] = new ArrayList[8];
-        int lastValidChild = -1;
-        boolean spawned = false;
-
-        for (int i = 0; i < 8; i++) {
-            BodyTreeNode ch = children[i];
-            if (ch != null) {
-                if (ch.children == null) {
-                    res[i] = new ArrayList();
-                    ch.barnesSequential(interactTree, res[i], params);
-                } else {
-                    //necessaryTree creation
-                    BodyTreeNode necessaryTree = ch == interactTree
-                        ? interactTree : new BodyTreeNode(interactTree, ch);
-                    res[i] = ch.barnesNTC(necessaryTree, threshold, params);
-                    spawned = true;
-
-                    //alternative: copy whole tree
-                    //res[i] = children[i].barnesNTC(interactTree,
-                    //		       threshold-1);
-                }
-                lastValidChild = i;
-            }
-        }
-        if (spawned) {
-            sync();
-            return combineResults(res, lastValidChild);
-        }
-        //this was a sequential job, optimize!
-        return optimizeList(combineResults(res, lastValidChild));
-    }
-
     /**
      * adds all items in results[x] (x < lastValidIndex) to
      * results[lastValidIndex]
      * 
      * @return a reference to results[lastValidIndex], for convenience
      */
-    private static ArrayList combineResults(ArrayList[] results,
+    static ArrayList combineResults(ArrayList[] results,
         int lastValidIndex) {
 
         if (BarnesHut.ASSERTS && lastValidIndex < 0) {
@@ -849,7 +750,7 @@ import java.util.*;
      *         elements of these arrays in 'suboptimal' If all arrays in
      *         suboptimal are empty, an empty list is returned
      */
-    private static ArrayList optimizeList(ArrayList suboptimal) {
+    static ArrayList optimizeList(ArrayList suboptimal) {
         int totalElements = 0;
         for (int i = 0; i < suboptimal.size(); i += 2) { // 2 elts in the list: accs and body nr
             totalElements += ((int[]) suboptimal.get(i)).length;

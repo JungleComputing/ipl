@@ -11,6 +11,7 @@
     <property name="satinc-flags" value="-keep"/>
     <property name="main-class" value="BarnesHut"/>
     <property name="satin-main-class" value="${main-class}"/>
+    <property name="satin-so-classes" value="BodiesSO"/>
 
     <property name="test-par-run"
 	      value="BarnesHut -ntc -v 100 5 -satin-closed"/>

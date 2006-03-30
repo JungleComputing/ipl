@@ -57,4 +57,9 @@ strictfp public final class Body implements Cloneable, Comparable, Serializable 
         oldAcc_y = newAcc_y;
         oldAcc_z = newAcc_z;
     }
+
+    public String toString() {
+        return "pos: (" + pos_x + ", " + pos_y + ", " + pos_z + "), vel: ("
+            + vel_x + ", " + vel_y + ", " + vel_z + ")";
+    }
 }
