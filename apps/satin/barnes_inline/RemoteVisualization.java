@@ -10,9 +10,12 @@ class BodyList {
 
     int iteration;
 
-    BodyList(float[] bodies, int iteration) {
+    long runTime;
+    
+    BodyList(float[] bodies, int iteration, long runTime) {
         this.bodies = bodies;
         this.iteration = iteration;
+        this.runTime = runTime;
     }
 
     float[] getBodies() {
@@ -21,6 +24,14 @@ class BodyList {
 
     int getIteration() {
         return iteration;
+    }
+
+    public long getRunTime() {
+        return runTime;
+    }
+
+    public void setRunTime(long runTime) {
+        this.runTime = runTime;
     }
 }
 
@@ -105,7 +116,7 @@ public class RemoteVisualization extends Thread {
         }
     }
 
-    public void showBodies(Body[] bodies, int iteration) {
+    public void showBodies(Body[] bodies, int iteration, long runtime) {
 
         // Check if the buffer is already full. If so, we skip this round!
         synchronized (this) {
@@ -127,7 +138,7 @@ public class RemoteVisualization extends Thread {
 
         // And store it...
         synchronized (this) {
-            list.addLast(new BodyList(tmp, iteration));
+            list.addLast(new BodyList(tmp, iteration, runtime));
             notifyAll();
         }
     }
@@ -154,6 +165,7 @@ public class RemoteVisualization extends Thread {
 
             out.writeInt(bodies.getBodies().length / 3);
             out.writeInt(bodies.getIteration());
+            out.writeLong(bodies.getRunTime());
 
             for (int i = 0; i < bodies.getBodies().length; i++) {
                 out.writeFloat(bodies.getBodies()[i]);

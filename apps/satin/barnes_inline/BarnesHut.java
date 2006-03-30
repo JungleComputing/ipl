@@ -368,7 +368,7 @@ import java.util.List;
             }
 
             if (remoteViz) {
-                rv.showBodies(bodyArray, iteration);
+                rv.showBodies(bodyArray, iteration, updateTimeTmp + forceCalcTimeTmp);
             }
 
             vizTimeTmp = System.currentTimeMillis() - phaseStart;
