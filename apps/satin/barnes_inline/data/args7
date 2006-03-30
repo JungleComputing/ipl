@@ -1,0 +1,1 @@
+BarnesHut -input data/D7 -dt 0.03125 -it 3000 -eps 0.025 -theta 5 -min 128 -ntc 12288 64
