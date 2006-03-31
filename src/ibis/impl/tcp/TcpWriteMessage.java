@@ -33,7 +33,7 @@ final class TcpWriteMessage implements WriteMessage {
 
     // If we keep connectionAdministration, forward exception to
     // upcalls/downcalls. Otherwise, rethrow the exception to the user.
-    private void forwardLosses(SplitterException e) throws IOException {
+    void forwardLosses(SplitterException e) throws IOException {
         // System.err.println("connection lost!");
 
         // Inform the port
@@ -69,7 +69,6 @@ final class TcpWriteMessage implements WriteMessage {
             throw new IbisError(
                     "Writing data to a message that was already finished");
         }
-        isFinished = true;
         try {
             out.reset();
         } catch (SplitterException e) {
@@ -80,6 +79,7 @@ final class TcpWriteMessage implements WriteMessage {
         } catch (SplitterException e) {
             forwardLosses(e);
         }
+        isFinished = true;
         sport.finishMessage();
         if (Config.STATS) {
             long after = sport.bufferedStream.bytesWritten();
@@ -96,7 +96,6 @@ final class TcpWriteMessage implements WriteMessage {
             throw new IbisError(
                     "Writing data to a message that was already finished");
         }
-        isFinished = true;
         try {
             out.reset();
         } catch (SplitterException e2) {
@@ -120,6 +119,7 @@ final class TcpWriteMessage implements WriteMessage {
         }
 
         before = sport.bufferedStream.bytesWritten();
+        isFinished = true;
         sport.finishMessage();
     }
 

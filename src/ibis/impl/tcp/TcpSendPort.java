@@ -5,6 +5,7 @@ package ibis.impl.tcp;
 import ibis.io.BufferedArrayOutputStream;
 import ibis.io.Conversion;
 import ibis.io.OutputStreamSplitter;
+import ibis.io.SplitterException;
 import ibis.io.SerializationBase;
 import ibis.io.SerializationOutput;
 import ibis.io.Replacer;
@@ -95,7 +96,8 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
                 (TcpIbisIdentifier) type.ibis.identifier());
 
         // if we keep administration, close connections when exception occurs.
-        splitter = new OutputStreamSplitter(connectionAdministration);
+        splitter = new OutputStreamSplitter(connectionAdministration,
+                connectionAdministration);
 
         bufferedStream = new BufferedArrayOutputStream(splitter);
 
@@ -270,6 +272,14 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
     }
 
     synchronized void finishMessage() {
+        SplitterException e = splitter.getExceptions();
+        if (e != null) {
+            try {
+                message.forwardLosses(e);
+            } catch (Exception e2) {
+                throw new IbisError("forwardLosses threw exception: " + e, e);
+            }
+        }
         aMessageIsAlive = false;
         notifyAll();
     }
