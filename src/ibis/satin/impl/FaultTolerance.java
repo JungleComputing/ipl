@@ -293,7 +293,7 @@ public abstract class FaultTolerance extends Inlets {
             if (dead.equals(currentVictim)) {
                 currentVictimCrashed = true;
 		currentVictim = null;
-            notifyAll();
+                notifyAll();
             }
             gotCrashes = true;
             Victim v = victims.remove(dead);

@@ -209,8 +209,13 @@ public final class Satin extends APIMethods implements ResizeHandler,
 
 		//Create a multicast port to bcast shared object invocations
 		//Connections are established in the join upcall
-		soSendPort = soPortType.createSendPort("satin so port on "
+                if (FAULT_TOLERANCE) {
+                    soSendPort = soPortType.createSendPort("satin so port on "
+                                       + ident.name(), true);
+                } else {
+                    soSendPort = soPortType.createSendPort("satin so port on "
 						       + ident.name());
+                }
 		
 		if (soInvocationsDelay > 0) {
 		    StaticProperties s = new StaticProperties();

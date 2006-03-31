@@ -305,7 +305,7 @@ public abstract class Initialization extends SatinBase {
 
         String commprops = "OneToOne, OneToMany, ManyToOne, ExplicitReceipt, Reliable";
         if (FAULT_TOLERANCE) {
-            commprops += ", ConnectionUpcalls";
+            commprops += ", ConnectionUpcalls, ConnectionDowncalls";
         }
         if (upcalls) {
             if (upcallPolling) {
@@ -331,7 +331,7 @@ public abstract class Initialization extends SatinBase {
 
         String commprops = "OneToOne, ManyToOne, ExplicitReceipt, Reliable";
         if (FAULT_TOLERANCE) {
-            commprops += ", ConnectionUpcalls";
+            commprops += ", ConnectionUpcalls, ConnectionDowncalls";
         }
         if (upcalls) {
             if (upcallPolling) {
@@ -387,7 +387,7 @@ public abstract class Initialization extends SatinBase {
 
         String commprops = "OneToOne, OneToMany, ExplicitReceipt, Reliable";
         if (FAULT_TOLERANCE) {
-            commprops += ", ConnectionUpcalls";
+            commprops += ", ConnectionUpcalls, ConnectionDowncalls";
         }
         if (upcalls) {
             if (upcallPolling) {
@@ -424,7 +424,7 @@ public abstract class Initialization extends SatinBase {
         }
 
         String commprops = "OneToOne, ManyToOne, ExplicitReceipt, Reliable";
-        commprops += ", ConnectionUpcalls";
+        commprops += ", ConnectionUpcalls, ConnectionDowncalls";
         if (upcalls) {
             if (upcallPolling) {
                 commprops += ", PollUpcalls";
