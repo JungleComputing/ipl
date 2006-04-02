@@ -494,12 +494,12 @@ import java.util.*;
      * checking if the tree below 'this' has been cut off. Then the distance
      * calculation is already done during necessarryTree construction
      */
-    public void barnesBodyRob(double pos_x, double pos_y, double pos_z,
-        double[] accs, int destPos, RunParameters params) {
+    private void barnesBodyRob(Body body, BodyUpdates results, int index,
+            RunParameters params) {
 
-        double diff_x = com_x - pos_x;
-        double diff_y = com_y - pos_y;
-        double diff_z = com_z - pos_z;
+        double diff_x = com_x - body.pos_x;
+        double diff_y = com_y - body.pos_y;
+        double diff_z = com_z - body.pos_z;
 
         double distsq = diff_x * diff_x + diff_y * diff_y + diff_z * diff_z;
 
@@ -518,9 +518,9 @@ import java.util.*;
             double dist = Math.sqrt(distsq);
             double factor = totalMass / (distsq * dist);
 
-            accs[destPos] += diff_x * factor;
-            accs[destPos+1] += diff_y * factor;
-            accs[destPos+2] += diff_z * factor;
+            results.acc_x[index] += diff_x * factor;
+            results.acc_y[index] += diff_y * factor;
+            results.acc_z[index] += diff_z * factor;
 
             return;
         }
@@ -538,9 +538,9 @@ import java.util.*;
             double dz = 0;
 
             for (int i = 0; i < bodies.length; i++) {
-                diff_x = bodies[i].pos_x - pos_x;
-                diff_y = bodies[i].pos_y - pos_y;
-                diff_z = bodies[i].pos_z - pos_z;
+                diff_x = bodies[i].pos_x - body.pos_x;
+                diff_y = bodies[i].pos_y - body.pos_y;
+                diff_z = bodies[i].pos_z - body.pos_z;
 
                 distsq = diff_x * diff_x + diff_y * diff_y + diff_z * diff_z
                     + params.SOFT_SQ;
@@ -553,18 +553,16 @@ import java.util.*;
                 dz += diff_z * factor;
             }
 
-            accs[destPos] += dx;
-            accs[destPos+1] += dy;
-            accs[destPos+2] += dz;
-            
+            results.acc_x[index] += dx;
+            results.acc_y[index] += dy;
+            results.acc_z[index] += dz;
             return;
         }
 
         // Cell node
         for (int i = 0; i < 8; i++) {
             if (children[i] != null) {
-                children[i].barnesBodyRob(pos_x, pos_y, pos_z, accs,
-                    destPos, params);
+                children[i].barnesBodyRob(body, results, index, params);
             }
         }
     }
@@ -677,9 +675,8 @@ import java.util.*;
      * interactTree.barnes(bodies[i].pos) for all the bodies when 'this' is a
      * leaf node.
      */
-    // @@@ one optimization that we can still do: don't use three arrays for x, y, z, but just one, and interleave the values. --Rob
-    // Done --Ceriel
-    public void barnesSequential(BodyTreeNode interactTree, ArrayList results, RunParameters params) {
+    public void barnesSequential(BodyTreeNode interactTree, BodyUpdates results,
+            RunParameters params) {
         if (children != null) { // cell node -> call children[].barnes()
             for (int i = 0; i < 8; i++) {
                 if (children[i] != null) {
@@ -698,91 +695,16 @@ import java.util.*;
             return;
         }
 
-        int[] bodyNumbers = new int[bodies.length];
-        double[] accs = new double[3*bodies.length];
-
         for (int i = 0; i < bodies.length; i++) {
-            bodyNumbers[i] = bodies[i].number;
             if (true) {
-                interactTree.barnesBodyRob(bodies[i].pos_x, bodies[i].pos_y,
-                    bodies[i].pos_z, accs, 3*i, params);
+                int index = results.updatePos(bodies[i].number);
+                interactTree.barnesBodyRob(bodies[i], results, index, params);
             } else {
                 double[] acc = interactTree.barnesBody(bodies[i].pos_x,
                     bodies[i].pos_y, bodies[i].pos_z, params);
-                accs[3*i] = acc[0];
-                accs[3*i+1] = acc[1];
-                accs[3*i+2] = acc[2];
+                results.addData(bodies[i].number, acc[0], acc[1], acc[2]);
             }
         }
-
-        results.add(bodyNumbers);
-        results.add(accs);
-    }
-
-    /**
-     * adds all items in results[x] (x < lastValidIndex) to
-     * results[lastValidIndex]
-     * 
-     * @return a reference to results[lastValidIndex], for convenience
-     */
-    static ArrayList combineResults(ArrayList[] results,
-        int lastValidIndex) {
-
-        if (BarnesHut.ASSERTS && lastValidIndex < 0) {
-            System.err.println("BodyTreeNode.combineResults: EEK! "
-                + "lvi < 0! All children are null in caller!");
-            System.exit(1);
-        }
-
-        for (int i = 0; i < lastValidIndex; i++) {
-            if (results[i] != null) {
-                results[lastValidIndex].addAll(results[i]);
-            }
-        }
-
-        return results[lastValidIndex];
-    }
-
-    /**
-     * @param suboptimal
-     *            A list with (a lot of) bodyNumber and acc arrays
-     * @return A list with only one bodyNumber and acc array, containing all the
-     *         elements of these arrays in 'suboptimal' If all arrays in
-     *         suboptimal are empty, an empty list is returned
-     */
-    static ArrayList optimizeList(ArrayList suboptimal) {
-        int totalElements = 0;
-        for (int i = 0; i < suboptimal.size(); i += 2) { // 2 elts in the list: accs and body nr
-            totalElements += ((int[]) suboptimal.get(i)).length;
-        }
-
-        if (totalElements == 0) {
-            return new ArrayList(); //nothing to optimize
-        }
-
-        int[] allBodyNrs = new int[totalElements];
-        double[] allAccs = new double[totalElements*3];
-
-        int[] bodyNrs = null;
-        double[] accs = null;
-        int position = 0;
-
-        for (int i = 0; i < suboptimal.size(); i += 2) {
-            bodyNrs = (int[]) suboptimal.get(i);
-            accs = (double[]) suboptimal.get(i + 1);
-
-            int len = bodyNrs.length;
-            System.arraycopy(bodyNrs, 0, allBodyNrs, position, len);
-            System.arraycopy(accs, 0, allAccs, 3*position, 3*len);
-
-            position += len;
-        }
-
-        ArrayList optimal = new ArrayList();
-        optimal.add(allBodyNrs);
-        optimal.add(allAccs);
-
-        return optimal;
     }
 
     public void print(java.io.PrintStream out, int level) {

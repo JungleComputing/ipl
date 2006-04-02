@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.StreamTokenizer;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -32,6 +31,8 @@ import java.util.List;
     static final int IMPL_SEQ = 3; // -seq option
 
     static int impl = IMPL_NTC;
+
+    private static final boolean SPAWN_ALL = true;
 
     //number of bodies at which the ntc impl work sequentially
     private static int spawn_min = 500; //use -min <threshold> to modify
@@ -166,7 +167,7 @@ import java.util.List;
     }
 
     public boolean guard_doBarnesSO(byte[] nodeId, int iteration,
-				       int threshold, BodiesSO bodies) {
+				       BodiesSO bodies) {
         // System.out.println("guard: iteration = " + iteration
         //         + ", bodies.iteration = " + bodies.iteration);
         return bodies.iteration+1 == iteration;
@@ -174,110 +175,143 @@ import java.util.List;
     
 
     /*spawnable*/
-    public ArrayList doBarnesSO(byte[] nodeId, int iteration,
-				    int threshold, BodiesSO bodies) {
-	int lastValidChild = -1;
-	ArrayList result, result1;
+    public BodyUpdates doBarnesSO(byte[] nodeId, int iteration,
+				    BodiesSO bodies) {
 	BodyTreeNode treeNode; 
-	boolean spawned = false;
 
         treeNode = bodies.findTreeNode(nodeId);
 
-	if (treeNode.children == null || treeNode.bodyCount < threshold) {
+	if (treeNode.children == null
+                || treeNode.bodyCount < bodies.params.THRESHOLD) {
 	    /*it is a leaf node, do sequential computation*/
-            ArrayList res = new ArrayList();
+            BodyUpdates res = new BodyUpdates(treeNode.bodyCount);
 	    treeNode.barnesSequential(bodies.bodyTreeRoot, res, bodies.params);
             return res;
 	} 
 
-	ArrayList res[] = new ArrayList[8];
+        int childcount = 0;
+        int resultsz = 0;
+	for (int i = 0; i < 8; i++) {
+	    if (treeNode.children[i] != null) {
+                if (SPAWN_ALL || treeNode.children[i].children != null) {
+                    childcount++;
+                } else {
+                    resultsz += treeNode.children[i].bodyCount;
+                }
+            }
+        }
+        BodyUpdates[] res = null;
+        if (childcount != 0) {
+            res = new BodyUpdates[childcount];
+        }
+        BodyUpdates result = new BodyUpdates(resultsz);
+        childcount = 0;
+
+        // First spawn.
 	for (int i = 0; i < 8; i++) {
 	    BodyTreeNode ch = treeNode.children[i];
 	    if (ch != null) {
-		if (ch.children == null) {
-                    res[i] = new ArrayList();
-		    ch.barnesSequential(bodies.bodyTreeRoot, res[i], bodies.params);
-		} else {
+		if (SPAWN_ALL || ch.children != null) {
 		    /*spawn child jobs*/
 		    byte[] newNodeId = new byte[nodeId.length + 1];
 		    System.arraycopy(nodeId, 0, newNodeId, 0, nodeId.length);
 		    newNodeId[nodeId.length] = (byte) i;
-		    res[i] = /*spawn*/ doBarnesSO(newNodeId, iteration,
-						     threshold, bodies);
-		    spawned = true;
+		    res[childcount] = /*spawn*/ doBarnesSO(newNodeId,
+                            iteration, bodies);
+                    childcount++;
 		}
-		lastValidChild = i;
 	    }
 	}
-	if (spawned) {
-	    /*if we spawned, we have to sync*/
+
+        // Then do local computations. 
+        if (! SPAWN_ALL) {
+            for (int i = 0; i < 8; i++) {
+                BodyTreeNode ch = treeNode.children[i];
+                if (ch != null) {
+                    if (ch.children == null) {
+                        ch.barnesSequential(bodies.bodyTreeRoot, result,
+                                bodies.params);
+                    }
+                }
+            }
+        }
+
+        // And then wait.
+	if (childcount > 0) {
+	    // If we spawned, we have to sync.
             sync();
-	    return BodyTreeNode.combineResults(res, lastValidChild);
+            return result.combineResults(res);
 	}
-        return BodyTreeNode.optimizeList(BodyTreeNode.combineResults(res, lastValidChild));
+        return result;
     }	
 
-    public ArrayList doBarnesNTC(BodyTreeNode me, BodyTreeNode tree,
-	    int threshold, RunParameters params) {
-        if (me.children == null || me.bodyCount < threshold) {
+    public BodyUpdates doBarnesNTC(BodyTreeNode me, BodyTreeNode tree,
+	    RunParameters params) {
+        if (me.children == null || me.bodyCount < params.THRESHOLD) {
             // leaf node, let barnesSequential handle this
             // (using optimizeList isn't useful for leaf nodes)
-            ArrayList res = new ArrayList();
+            BodyUpdates res = new BodyUpdates(me.bodyCount);
             me.barnesSequential(tree, res, params);
             return res;
         }
 
+        int childcount = 0;
+        int resultsz = 0;
+	for (int i = 0; i < 8; i++) {
+	    if (me.children[i] != null) {
+                if (me.children[i].children != null) {
+                    childcount++;
+                } else {
+                    resultsz += me.children[i].bodyCount;
+                }
+            }
+        }
+        BodyUpdates[] res = null;
+        if (childcount != 0) {
+            res = new BodyUpdates[childcount];
+        }
+        BodyUpdates result = new BodyUpdates(resultsz);
+        childcount = 0;
+
         //cell node -> call children[].barnes()
-        ArrayList res[] = new ArrayList[8];
-        int lastValidChild = -1;
-        boolean spawned = false;
 
         for (int i = 0; i < 8; i++) {
             BodyTreeNode ch = me.children[i];
             if (ch != null) {
                 if (ch.children == null) {
-                    res[i] = new ArrayList();
-                    ch.barnesSequential(tree, res[i], params);
+                    ch.barnesSequential(tree, result, params);
                 } else {
-                    spawned = true;
                     //necessaryTree creation
                     BodyTreeNode necessaryTree = ch == tree
                         ? tree : new BodyTreeNode(tree, ch);
-                    res[i] = barnesNTC(ch, necessaryTree, threshold, params);
+                    res[childcount] = barnesNTC(ch, necessaryTree, params);
                     //alternative: copy whole tree
-                    //res[i] = barnesNTC(ch, tree, threshold, params);
+                    //res[childcount] = barnesNTC(ch, tree, params);
+                    childcount++;
                 }
-                lastValidChild = i;
             }
         }
-        if (spawned) {
+        if (childcount > 0) {
             sync();
-            return BodyTreeNode.combineResults(res, lastValidChild);
+            return result.combineResults(res);
         }
-        //this was a sequential job, optimize!
-        return BodyTreeNode.optimizeList(BodyTreeNode.combineResults(res, lastValidChild));
+        return result;
     }
 
     /**
      * Does the same as barnesSequential, but spawnes itself until a threshold
      * is reached. Before a subjob is spawned, the necessary tree for that
      * subjob is created to be passed to the subjob.
-     * 
-     * @param threshold
-     *            the recursion depth at which work shouldn't be spawned anymore
      */
-    public ArrayList barnesNTC(BodyTreeNode me, BodyTreeNode interactTree,
-	    int threshold, RunParameters params) {
-        return doBarnesNTC(me, interactTree, threshold, params);
+    public BodyUpdates barnesNTC(BodyTreeNode me, BodyTreeNode interactTree,
+	    RunParameters params) {
+        return doBarnesNTC(me, interactTree, params);
     }
 
     void runSim() {
         long start = 0, end, phaseStart = 0;
 
-        ArrayList result = null;
-        double[] accs_x = new double[bodyArray.length];
-        double[] accs_y = new double[bodyArray.length];
-        double[] accs_z = new double[bodyArray.length];
+        BodyUpdates result = null;
 
         BodyCanvas bc = null;
 
@@ -330,14 +364,14 @@ import java.util.List;
             switch (impl) {
             case IMPL_NTC:
                 result = doBarnesNTC(bodies.getRoot(), bodies.getRoot(),
-                        spawn_min, params);
+                        params);
                 break;
             case IMPL_SO:
-                result = doBarnesSO(new byte[0], iteration, spawn_min, (BodiesSO) bodies);
+                result = doBarnesSO(new byte[0], iteration, (BodiesSO) bodies);
                 sync();
                 break;
             case IMPL_SEQ:
-                result = new ArrayList();
+                result = new BodyUpdates(bodies.getRoot().bodyCount);
                 bodies.getRoot().barnesSequential(bodies.getRoot(), result,
                         params);
                 break;
@@ -345,17 +379,17 @@ import java.util.List;
 
             ibis.satin.SatinObject.pause(); //killall divide-and-conquer stuff
 
-            processLinkedListResult(result, accs_x, accs_y, accs_z);
-
             forceCalcTimeTmp = System.currentTimeMillis() - phaseStart;
             forceCalcTime += forceCalcTimeTmp;
 
             phaseStart = System.currentTimeMillis();
 
+            result.prepareForUpdate();
+
             if (iteration < iterations-1) {
-                bodies.updateBodies(accs_x, accs_y, accs_z, iteration);
+                bodies.updateBodies(result, iteration);
             } else {
-                bodies.updateBodiesLocally(accs_x, accs_y, accs_z, iteration);
+                bodies.updateBodiesLocally(result, iteration);
             }
 
             updateTimeTmp = System.currentTimeMillis() - phaseStart;
@@ -385,42 +419,6 @@ import java.util.List;
 
         end = System.currentTimeMillis();
         totalTime = end - start;
-    }
-
-    void processLinkedListResult(List result, double[] all_x, double[] all_y,
-        double[] all_z) {
-        Iterator it = result.iterator();
-        int[] bodyNumbers;
-        double[] tmp;
-        int i;
-
-        /*
-         * I tried putting bodies computed by the same leaf job together in the
-         * array of bodies, by creating a new bodyArray every time (to find the
-         * current position of a body an extra int[] lookup table was used,
-         * which of course had to be updated every iteration)
-         * 
-         * I thought this would improve locality during the next tree building
-         * phase, and indeed, the tree building phase was shorter with a
-         * sequential run with ibm 1.4.1 with jitc (with 4000 bodies/10
-         * maxleafbodies: 0.377 s vs 0.476 s) (the CoM and update phases were
-         * also slightly shorter)
-         * 
-         * but the force calc phase was longer, in the end the total run time
-         * was longer ( 18.24 s vs 17.66 s )
-         */
-
-        while (it.hasNext()) {
-            bodyNumbers = (int[]) it.next();
-            tmp = (double[]) it.next();
-
-            for (i = 0; i < bodyNumbers.length; i++) {
-                all_x[bodyNumbers[i]] = tmp[3*i];
-                all_y[bodyNumbers[i]] = tmp[3*i+1];
-                all_z[bodyNumbers[i]] = tmp[3*i+2];
-                if (ASSERTS) bodyArray[bodyNumbers[i]].updated = true;
-            }
-        }
     }
 
     void printBodies(Body[] bodyArray) {
@@ -580,6 +578,7 @@ import java.util.List;
         }
 
         params.MAX_BODIES_PER_LEAF = mlb;
+        params.THRESHOLD = spawn_min;
 
         if (rdr != null) {
             if (nBodiesSeen) {

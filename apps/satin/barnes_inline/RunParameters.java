@@ -20,4 +20,7 @@ public final class RunParameters implements java.io.Serializable {
 
     /** Maximum bumber of bodies per leaf. */
     int MAX_BODIES_PER_LEAF;
+
+    /** Spawn threshold. */
+    int THRESHOLD;
 }

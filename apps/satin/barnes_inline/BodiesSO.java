@@ -20,24 +20,19 @@ final public class BodiesSO extends SharedObject implements BodiesInterface, Bod
     }
 
     /*write method*/
-    public void updateBodies(double[] accs_x, double[] accs_y, double[] accs_z,
-            int iteration) {
+    public void updateBodies(BodyUpdates b, int iteration) {
         // Oops: when a node joins while node 0 broadcasts the update,
         // and the node obtains an already updated object while it has
         // not received the update yet, when it receives the update, it will
         // update again, which is wrong.
         if (iteration == this.iteration+1) {
-            updateBodiesLocally(accs_x, accs_y, accs_z, iteration);
+            updateBodiesLocally(b, iteration);
         }
     }
 
-    public void updateBodiesLocally(double[] accs_x, double[] accs_y,
-            double[] accs_z, int iteration) {
+    public void updateBodiesLocally(BodyUpdates b, int iteration) {
 
-        for (int i = 0; i < bodyArray.length; i++) {
-            bodyArray[i].computeNewPosition(iteration != 0,
-                    accs_x[i], accs_y[i], accs_z[i], params);
-        }  
+        b.updateBodies(bodyArray, iteration, params);
 
 	bodyTreeRoot = null; /*to prevent OutOfMemoryError (maik)*/
 	bodyTreeRoot = new BodyTreeNode(bodyArray, params);
