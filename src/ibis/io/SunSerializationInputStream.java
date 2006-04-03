@@ -241,16 +241,7 @@ public final class SunSerializationInputStream
     }
 
     public void readArray(byte[] ref) throws IOException {
-        try {
-            double[] temp = (double[]) readObject();
-            if (temp.length != ref.length) {
-                throw new ArrayIndexOutOfBoundsException(
-                        "Received array has wrong len");
-            }
-            System.arraycopy(temp, 0, ref, 0, ref.length);
-        } catch (ClassNotFoundException f) {
-            throw new SerializationError("class 'byte[]' not found", f);
-        }
+        readArray(ref, 0, ref.length);
     }
 
     public void readArray(short[] ref) throws IOException {
