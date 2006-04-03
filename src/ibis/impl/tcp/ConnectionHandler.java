@@ -158,8 +158,8 @@ final class ConnectionHandler implements Runnable, TcpProtocol { //, Config {
                 TcpReceivePortIdentifier identifier;
                 byte[] receiverLength = new byte[Conversion.INT_SIZE];
                 byte[] receiverBytes;
-                // the identifier of the receiveport which whould disconnect
-                // is coming next
+                // identifier of the receiveport from which a sendport is
+                // disconnecting comes next.
                 in.readArray(receiverLength);
                 receiverBytes = new byte[Conversion.defaultConversion.byte2int(
                         receiverLength, 0)];
@@ -175,9 +175,14 @@ final class ConnectionHandler implements Runnable, TcpProtocol { //, Config {
                         close(null);
                         return;
                     }
-                    //someone else is closing down, just reset the stream
+                    /*
+                     * This is wrong. If the sendport is not disconnecting
+                     * from me, I don't need to close (or the sendport that
+                     * disconnects should create a new stream as well).
+                     * (Ceriel)
                     in.close();
                     createNewStream();
+                    */
                 } catch(ClassNotFoundException e) {
                     System.err.println("TcpIbis: internal error, "
                             + port.name + ": disconnect from: " + origin

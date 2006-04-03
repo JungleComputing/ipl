@@ -225,7 +225,9 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
             out.writeArray(receiverLength);
             out.writeArray(receiverBytes);
             out.flush();
-            out.close();
+            // Not close! Or, if we do close, we should also create a new
+            // stream! (Ceriel)
+            // out.close();
         } finally {
             splitter.remove(connection.out);
         }
