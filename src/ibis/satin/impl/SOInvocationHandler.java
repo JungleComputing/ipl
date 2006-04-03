@@ -46,7 +46,13 @@ final class SOInvocationHandler implements Upcall, Config, Protocol {
                 break;
             case SO_INVOCATION: // normal invocation, can be message combined
 //                System.err.print("Y");
+                if (SO_TIMING) {
+                    satin.soInvocationDeserializationTimer.start();
+                }
                 soir = (SOInvocationRecord) m.readObject();
+                if (SO_TIMING) {
+                    satin.soInvocationDeserializationTimer.stop();
+                }
 
                 // no need to finish here
                 satin.addSOInvocation(soir);

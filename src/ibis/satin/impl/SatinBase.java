@@ -343,6 +343,8 @@ public abstract class SatinBase implements Config {
 
     Timer soBroadcastTransferTimer = Timer.createTimer();
 
+    Timer soInvocationDeserializationTimer = Timer.createTimer();
+
     long returnRecordBytes = 0;
 
     long prevPoll = 0;

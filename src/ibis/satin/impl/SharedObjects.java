@@ -240,10 +240,10 @@ public abstract class SharedObjects extends Communication implements Protocol {
             // in the middle of a method invocation
             // Not anymore: transfers are also delayed until a safe point is
             // reached --Rob
+            soir.invoke(so);
             if (SO_TIMING) {
                 handleSOInvocationsTimer.stop();
             }
-            soir.invoke(so);
             // }
         }
     }

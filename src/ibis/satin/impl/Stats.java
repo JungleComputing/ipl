@@ -73,7 +73,10 @@ public abstract class Stats extends SharedObjects {
             s.soInvocationsBytes = soInvocationsBytes;
             s.soTransfers = soTransfers;
             s.soTransfersBytes = soTransfersBytes;
+            s.handleSOInvocations = handleSOInvocationsTimer.nrTimes();
+
             s.handleSOInvocationsTime = handleSOInvocationsTimer.totalTimeVal();
+            s.soInvocationDeserializationTime += soInvocationDeserializationTimer.totalTimeVal();
             s.broadcastSOInvocationsTime = broadcastSOInvocationsTimer
                 .totalTimeVal();
             s.soTransferTime = soTransferTimer.totalTimeVal();
@@ -204,33 +207,33 @@ public abstract class Stats extends SharedObjects {
         out.println("-------------------------------SATIN TOTAL TIMES"
             + "-------------------------------");
         if (STEAL_TIMING) {
-            out.println("SATIN: STEAL_TIME:               total "
+            out.println("SATIN: STEAL_TIME:                 total "
                 + Timer.format(totalStats.stealTime)
                 + " time/req    "
                 + Timer.format(perStats(totalStats.stealTime,
                     totalStats.stealAttempts)));
-            out.println("SATIN: HANDLE_STEAL_TIME:        total "
+            out.println("SATIN: HANDLE_STEAL_TIME:          total "
                 + Timer.format(totalStats.handleStealTime)
                 + " time/handle "
                 + Timer.format(perStats(totalStats.handleStealTime,
                     totalStats.stealAttempts)));
 
-            out.println("SATIN: INV SERIALIZATION_TIME:   total "
+            out.println("SATIN: INV SERIALIZATION_TIME:     total "
                 + Timer.format(totalStats.invocationRecordWriteTime)
                 + " time/write  "
                 + Timer.format(perStats(totalStats.invocationRecordWriteTime,
                     totalStats.stealSuccess)));
-            out.println("SATIN: INV DESERIALIZATION_TIME: total "
+            out.println("SATIN: INV DESERIALIZATION_TIME:   total "
                 + Timer.format(totalStats.invocationRecordReadTime)
                 + " time/read   "
                 + Timer.format(perStats(totalStats.invocationRecordReadTime,
                     totalStats.stealSuccess)));
-            out.println("SATIN: RET SERIALIZATION_TIME:   total "
+            out.println("SATIN: RET SERIALIZATION_TIME:     total "
                 + Timer.format(totalStats.returnRecordWriteTime)
                 + " time/write  "
                 + Timer.format(perStats(totalStats.returnRecordWriteTime,
                     totalStats.returnRecordWriteCount)));
-            out.println("SATIN: RET DESERIALIZATION_TIME: total "
+            out.println("SATIN: RET DESERIALIZATION_TIME:   total "
                 + Timer.format(totalStats.returnRecordReadTime)
                 + " time/read   "
                 + Timer.format(perStats(totalStats.returnRecordReadTime,
@@ -238,7 +241,7 @@ public abstract class Stats extends SharedObjects {
         }
 
         if (ABORT_TIMING) {
-            out.println("SATIN: ABORT_TIME:               total "
+            out.println("SATIN: ABORT_TIME:                 total "
                 + Timer.format(totalStats.abortTime)
                 + " time/abort  "
                 + Timer
@@ -246,7 +249,7 @@ public abstract class Stats extends SharedObjects {
         }
 
         if (POLL_FREQ != 0 && POLL_TIMING) {
-            out.println("SATIN: POLL_TIME:                total "
+            out.println("SATIN: POLL_TIME:                  total "
                 + Timer.format(totalStats.pollTime)
                 + " time/poll "
                 + Timer.format(perStats(totalStats.pollTime,
@@ -254,7 +257,7 @@ public abstract class Stats extends SharedObjects {
         }
 
         if (IDLE_TIMING) {
-            out.println("SATIN: IDLE_TIME:                total "
+            out.println("SATIN: IDLE_TIME:                  total "
                 + Timer.format(totalStats.idleTime)
                 + " time/idle "
                 + Timer.format(perStats(totalStats.idleTime,
@@ -263,33 +266,33 @@ public abstract class Stats extends SharedObjects {
 
         if (FAULT_TOLERANCE && GRT_TIMING) {
             out
-                .println("SATIN: GRT_UPDATE_TIME:          total "
+                .println("SATIN: GRT_UPDATE_TIME:            total "
                     + Timer.format(totalStats.tableUpdateTime)
                     + " time/update "
                     + Timer
                         .format(perStats(
                             totalStats.tableUpdateTime,
                             (totalStats.tableResultUpdates + totalStats.tableLockUpdates))));
-            out.println("SATIN: GRT_LOOKUP_TIME:          total "
+            out.println("SATIN: GRT_LOOKUP_TIME:            total "
                 + Timer.format(totalStats.tableLookupTime)
                 + " time/lookup "
                 + Timer.format(perStats(totalStats.tableLookupTime,
                     totalStats.tableLookups)));
-            out.println("SATIN: GRT_HANDLE_UPDATE_TIME:   total "
+            out.println("SATIN: GRT_HANDLE_UPDATE_TIME:     total "
                 + Timer.format(totalStats.tableHandleUpdateTime)
                 + " time/handle "
                 + Timer.format(perStats(totalStats.tableHandleUpdateTime,
                     totalStats.tableResultUpdates * (size - 1))));
-            out.println("SATIN: GRT_HANDLE_LOOKUP_TIME:   total "
+            out.println("SATIN: GRT_HANDLE_LOOKUP_TIME:     total "
                 + Timer.format(totalStats.tableHandleLookupTime)
                 + " time/handle "
                 + Timer.format(perStats(totalStats.tableHandleLookupTime,
                     totalStats.tableRemoteLookups)));
-            out.println("SATIN: GRT_SERIALIZATION_TIME:   total "
+            out.println("SATIN: GRT_SERIALIZATION_TIME:     total "
                 + Timer.format(totalStats.tableSerializationTime));
-            out.println("SATIN: GRT_DESERIALIZATION_TIME: total "
+            out.println("SATIN: GRT_DESERIALIZATION_TIME:   total "
                 + Timer.format(totalStats.tableDeserializationTime));
-            out.println("SATIN: GRT_CHECK_TIME:           total "
+            out.println("SATIN: GRT_CHECK_TIME:             total "
                 + Timer.format(totalStats.tableCheckTime)
                 + " time/check "
                 + Timer.format(perStats(totalStats.tableCheckTime,
@@ -298,52 +301,57 @@ public abstract class Stats extends SharedObjects {
         }
 
         if (FAULT_TOLERANCE && CRASH_TIMING) {
-            out.println("SATIN: CRASH_HANDLING_TIME:      total "
+            out.println("SATIN: CRASH_HANDLING_TIME:        total "
                 + Timer.format(totalStats.crashHandlingTime));
         }
 
         if (FAULT_TOLERANCE && ADD_REPLICA_TIMING) {
-            out.println("SATIN: ADD_REPLICA_TIME:         total "
+            out.println("SATIN: ADD_REPLICA_TIME:           total "
                 + Timer.format(totalStats.addReplicaTime));
         }
 
         if (SHARED_OBJECTS && SO_TIMING) {
-            out.println("SATIN: BROADCAST_SO_INVOCATIONS: total "
+            out.println("SATIN: BROADCAST_SO_INVOCATIONS:   total "
                 + Timer.format(totalStats.broadcastSOInvocationsTime)
                 + " time/inv    "
                 + Timer.format(perStats(totalStats.broadcastSOInvocationsTime,
                     totalStats.soInvocations)));
-            out.println("SATIN: HANDLE_SO_INVOCATIONS:    total "
+            out.println("SATIN: DESERIALIZE_SO_INVOCATIONS: total "
+                + Timer.format(totalStats.soInvocationDeserializationTime)
+                + " time/inv    "
+                + Timer.format(perStats(totalStats.soInvocationDeserializationTime,
+                    totalStats.handleSOInvocations)));
+            out.println("SATIN: HANDLE_SO_INVOCATIONS:      total "
                 + Timer.format(totalStats.handleSOInvocationsTime)
                 + " time/inv    "
                 + Timer.format(perStats(totalStats.handleSOInvocationsTime,
-                    totalStats.soInvocations * (size - 1))));
-            out.println("SATIN: SO_TRANSFERS:             total "
+                    totalStats.handleSOInvocations)));
+            out.println("SATIN: SO_TRANSFERS:               total "
                 + Timer.format(totalStats.soTransferTime)
                 + " time/transf "
                 + Timer.format(perStats(totalStats.soTransferTime,
                     totalStats.soTransfers)));
-            out.println("SATIN: SO_SERIALIZATION:         total "
+            out.println("SATIN: SO_SERIALIZATION:           total "
                 + Timer.format(totalStats.soSerializationTime)
                 + " time/transf "
                 + Timer.format(perStats(totalStats.soSerializationTime,
                     totalStats.soTransfers)));
-            out.println("SATIN: SO_DESERIALIZATION:       total "
+            out.println("SATIN: SO_DESERIALIZATION:         total "
                 + Timer.format(totalStats.soDeserializationTime)
                 + " time/transf "
                 + Timer.format(perStats(totalStats.soDeserializationTime,
                     totalStats.soTransfers)));
-            out.println("SATIN: SO_BCASTS:                total "
+            out.println("SATIN: SO_BCASTS:                  total "
                 + Timer.format(totalStats.soBcastTime)
                 + " time/bcast  "
                 + Timer.format(perStats(totalStats.soBcastTime,
                     totalStats.soBcasts)));
-            out.println("SATIN: SO_BCAST_SERIALIZATION:   total "
+            out.println("SATIN: SO_BCAST_SERIALIZATION:     total "
                 + Timer.format(totalStats.soBcastSerializationTime)
                 + " time/bcast  "
                 + Timer.format(perStats(totalStats.soBcastSerializationTime,
                     totalStats.soBcasts)));
-            out.println("SATIN: SO_BCAST_DESERIALIZATION: total "
+            out.println("SATIN: SO_BCAST_DESERIALIZATION:   total "
                 + Timer.format(totalStats.soBcastDeserializationTime)
                 + " time/bcast  "
                 + Timer.format(perStats(totalStats.soBcastDeserializationTime,
@@ -407,6 +415,10 @@ public abstract class Stats extends SharedObjects {
             / size;
         double handleSOInvocationsPerc = handleSOInvocationsTime
             / totalTimer.totalTimeVal() * 100;
+        double soInvocationDeserializationTime = totalStats.soInvocationDeserializationTime
+            / size;
+        double soInvocationDeserializationPerc = soInvocationDeserializationTime
+            / totalTimer.totalTimeVal() * 100;
         double soTransferTime = totalStats.soTransferTime / size;
         double soTransferPerc = soTransferTime / totalTimer.totalTimeVal()
             * 100;
@@ -436,6 +448,7 @@ public abstract class Stats extends SharedObjects {
             + tableHandleLookupTime
             + handleSOInvocationsTime
             + broadcastSOInvocationsTime
+            + soInvocationDeserializationTime
             + soTransferTime + soDeserializationTime
             + soBcastTime + soBcastDeserializationTime
             + (totalStats.stealTime + totalStats.handleStealTime
@@ -449,92 +462,95 @@ public abstract class Stats extends SharedObjects {
         double appPerc = appTime / totalTimer.totalTimeVal() * 100.0;
 
         if (STEAL_TIMING) {
-            out.println("SATIN: LOAD_BALANCING_TIME:      avg. per machine "
+            out.println("SATIN: LOAD_BALANCING_TIME:        agv. per machine "
                 + Timer.format(lbTime) + " (" + (lbPerc < 10 ? " " : "")
                 + pf.format(lbPerc) + " %)");
-            out.println("SATIN: (DE)SERIALIZATION_TIME:   avg. per machine "
+            out.println("SATIN: (DE)SERIALIZATION_TIME:     agv. per machine "
                 + Timer.format(serTime) + " (" + (serPerc < 10 ? " " : "")
                 + pf.format(serPerc) + " %)");
         }
 
         if (ABORT_TIMING) {
-            out.println("SATIN: ABORT_TIME:               avg. per machine "
+            out.println("SATIN: ABORT_TIME:                 agv. per machine "
                 + Timer.format(abortTime) + " (" + (abortPerc < 10 ? " " : "")
                 + pf.format(abortPerc) + " %)");
         }
 
         if (POLL_FREQ != 0 && POLL_TIMING) {
-            out.println("SATIN: POLL_TIME:                avg. per machine "
+            out.println("SATIN: POLL_TIME:                  agv. per machine "
                 + Timer.format(pollTime) + " (" + (pollPerc < 10 ? " " : "")
                 + pf.format(pollPerc) + " %)");
         }
 
         if (FAULT_TOLERANCE && GRT_TIMING) {
-            out.println("SATIN: GRT_UPDATE_TIME:          avg. per machine "
+            out.println("SATIN: GRT_UPDATE_TIME:            agv. per machine "
                 + Timer.format(tableUpdateTime) + " ("
                 + pf.format(tableUpdatePerc) + " %)");
-            out.println("SATIN: GRT_LOOKUP_TIME:          avg. per machine "
+            out.println("SATIN: GRT_LOOKUP_TIME:            agv. per machine "
                 + Timer.format(tableLookupTime) + " ("
                 + pf.format(tableLookupPerc) + " %)");
-            out.println("SATIN: GRT_HANDLE_UPDATE_TIME:   avg. per machine "
+            out.println("SATIN: GRT_HANDLE_UPDATE_TIME:     agv. per machine "
                 + Timer.format(tableHandleUpdateTime) + " ("
                 + pf.format(tableHandleUpdatePerc) + " %)");
-            out.println("SATIN: GRT_HANDLE_LOOKUP_TIME:   avg. per machine "
+            out.println("SATIN: GRT_HANDLE_LOOKUP_TIME:     agv. per machine "
                 + Timer.format(tableHandleLookupTime) + " ("
                 + pf.format(tableHandleLookupPerc) + " %)");
-            out.println("SATIN: GRT_SERIALIZATION_TIME:   avg. per machine "
+            out.println("SATIN: GRT_SERIALIZATION_TIME:     agv. per machine "
                 + Timer.format(tableSerializationTime) + " ("
                 + pf.format(tableSerializationPerc) + " %)");
-            out.println("SATIN: GRT_DESERIALIZATION_TIME: avg. per machine "
+            out.println("SATIN: GRT_DESERIALIZATION_TIME:   agv. per machine "
                 + Timer.format(tableDeserializationTime) + " ("
                 + pf.format(tableDeserializationPerc) + " %)");
 
         }
 
         if (FAULT_TOLERANCE && CRASH_TIMING) {
-            out.println("SATIN: CRASH_HANDLING_TIME:      avg. per machine "
+            out.println("SATIN: CRASH_HANDLING_TIME:        agv. per machine "
                 + Timer.format(crashHandlingTime) + " ("
                 + pf.format(crashHandlingPerc) + " %)");
         }
 
         if (FAULT_TOLERANCE && ADD_REPLICA_TIMING) {
-            out.println("SATIN: ADD_REPLICA_TIME:         avg. per machine "
+            out.println("SATIN: ADD_REPLICA_TIME:           agv. per machine "
                 + Timer.format(addReplicaTime) + " ("
                 + pf.format(addReplicaPerc) + " %)");
         }
 
         if (SHARED_OBJECTS && SO_TIMING) {
-            out.println("SATIN: BROADCAST_SO_INVOCATIONS: avg. per machine "
+            out.println("SATIN: BROADCAST_SO_INVOCATIONS:   agv. per machine "
                 + Timer.format(broadcastSOInvocationsTime) + " ( "
                 + pf.format(broadcastSOInvocationsPerc) + " %)");
-            out.println("SATIN: HANDLE_SO_INVOCATIONS:    avg. per machine "
+            out.println("SATIN: HANDLE_SO_INVOCATIONS:      agv. per machine "
                 + Timer.format(handleSOInvocationsTime) + " ( "
                 + pf.format(handleSOInvocationsPerc) + " %)");
-            out.println("SATIN: SO_TRANSFERS:             avg. per machine "
+            out.println("SATIN: DESERIALIZE_SO_INVOCATIONS: agv. per machine "
+                + Timer.format(soInvocationDeserializationTime) + " ( "
+                + pf.format(soInvocationDeserializationPerc) + " %)");
+            out.println("SATIN: SO_TRANSFERS:               agv. per machine "
                 + Timer.format(soTransferTime) + " ( "
                 + pf.format(soTransferPerc) + " %)");
-            out.println("SATIN: SO_SERIALIZATION:         avg. per machine "
+            out.println("SATIN: SO_SERIALIZATION:           agv. per machine "
                 + Timer.format(soSerializationTime) + " ( "
                 + pf.format(soSerializationPerc) + " %)");
-            out.println("SATIN: SO_DESERIALIZATION:       avg. per machine "
+            out.println("SATIN: SO_DESERIALIZATION:         agv. per machine "
                 + Timer.format(soDeserializationTime) + " ( "
                 + pf.format(soDeserializationPerc) + " %)");
-            out.println("SATIN: SO_BCASTS:                avg. per machine "
+            out.println("SATIN: SO_BCASTS:                  agv. per machine "
                 + Timer.format(soBcastTime) + " ( "
                 + pf.format(soBcastPerc) + " %)");
-            out.println("SATIN: SO_BCAST_SERIALIZATION:   avg. per machine "
+            out.println("SATIN: SO_BCAST_SERIALIZATION:     agv. per machine "
                 + Timer.format(soBcastSerializationTime) + " ( "
                 + pf.format(soBcastSerializationPerc) + " %)");
-            out.println("SATIN: SO_BCAST_DESERIALIZATION: avg. per machine "
+            out.println("SATIN: SO_BCAST_DESERIALIZATION:   agv. per machine "
                 + Timer.format(soBcastDeserializationTime) + " ( "
                 + pf.format(soBcastDeserializationPerc) + " %)");
         }
         
-        out.println("\nSATIN: TOTAL_PARALLEL_OVERHEAD:  avg. per machine "
+        out.println("\nSATIN: TOTAL_PARALLEL_OVERHEAD:    agv. per machine "
             + Timer.format(totalOverhead) + " (" + (totalPerc < 10 ? " " : "")
             + pf.format(totalPerc) + " %)");
 
-        out.println("SATIN: USEFUL_APP_TIME:          avg. per machine "
+        out.println("SATIN: USEFUL_APP_TIME:            agv. per machine "
             + Timer.format(appTime) + " (" + (appPerc < 10 ? " " : "")
             + pf.format(appPerc) + " %)");
 
