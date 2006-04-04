@@ -7,6 +7,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StreamTokenizer;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 
 import java.util.Arrays;
 import java.util.Iterator;
@@ -57,16 +59,16 @@ import java.util.List;
 
     //Indicates if we are the root divide-and-conquer node
     
-    static boolean I_AM_ROOT = false;
-
     private transient RunParameters params;
+
+    private static String dump_file = null;
+    private static int dump_iters = 100;
 
     static {
         System.setProperty("satin.so", "true"); // So that we don't forget.
     }
 
     BarnesHut(int n, RunParameters params) {
-        I_AM_ROOT = true; //constructor is only called at the root node
 
         this.params = params;
 
@@ -98,12 +100,36 @@ import java.util.List;
         return Double.parseDouble(tk.sval);
     }
 
+    private void dump(int iteration) {
+        try {
+            BufferedWriter w = new BufferedWriter(new FileWriter(dump_file));
+            w.write("" + bodyArray.length + "\n");
+            w.write("3\n");
+            w.write("" + (START_TIME + iteration * params.DT)  + "\n");
+            for (int i = 0; i < bodyArray.length; i++) {
+                w.write("" + bodyArray[i].mass + "\n");
+            }
+            for (int i = 0; i < bodyArray.length; i++) {
+                w.write("" + bodyArray[i].pos_x
+                        + " " + bodyArray[i].pos_y
+                        + " " + bodyArray[i].pos_z + "\n");
+            }
+            for (int i = 0; i < bodyArray.length; i++) {
+                w.write("" + bodyArray[i].vel_x
+                        + " " + bodyArray[i].vel_y
+                        + " " + bodyArray[i].vel_z + "\n");
+            }
+            w.close();
+        } catch(Exception e) {
+            throw new Error(e.toString(), e);
+        }
+    }
+
     BarnesHut(Reader r, RunParameters params) throws IOException {
         BufferedReader br = new BufferedReader(r);
         StreamTokenizer tokenizer = new StreamTokenizer(br);
 
         this.params = params;
-        I_AM_ROOT = true; //constructor is only called at the root node
 
         tokenizer.resetSyntax();
         tokenizer.wordChars('0', '9');
@@ -397,6 +423,11 @@ import java.util.List;
 
             phaseStart = System.currentTimeMillis();
 
+            if (dump_file != null
+                    && iteration != 0 && (iteration % dump_iters) == 0) {
+                dump(iteration);
+            }
+
             if (viz) {
                 bc.repaint();
             }
@@ -524,6 +555,12 @@ import java.util.List;
                     throw new IllegalArgumentException(
                         "Illegal argument to -it: number of iterations must be >= 0 !");
                 }
+            } else if (argv[i].equals("-dump-iter")) {
+                dump_iters = Integer.parseInt(argv[++i]);
+                if (dump_iters <= 0) {
+                    throw new IllegalArgumentException(
+                        "Illegal argument to -dump-iter: number of iterations must be > 0 !");
+                }
             } else if (argv[i].equals("-theta")) {
                 params.THETA = Double.parseDouble(argv[++i]);
             } else if (argv[i].equals("-starttime")) {
@@ -543,6 +580,8 @@ import java.util.List;
                     throw new IllegalArgumentException(
                         "Could not open input file " + argv[i]);
                 }
+            } else if (argv[i].equals("-dump")) {
+                dump_file = argv[++i];
             } else if (argv[i].equals("-min")) {
                 spawn_min = Integer.parseInt(argv[++i]);
                 if (spawn_min < 0) {
