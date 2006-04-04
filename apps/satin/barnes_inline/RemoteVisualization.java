@@ -157,19 +157,25 @@ public class RemoteVisualization extends Thread {
     }
 
     private void doSend() {
-        long start = System.currentTimeMillis();
+        long start = 0;
         try {
             //  System.out.println("Sending");
 
             BodyList bodies = getBodies();
 
+            start = System.currentTimeMillis();
+
             out.writeInt(bodies.getBodies().length / 3);
             out.writeInt(bodies.getIteration());
             out.writeLong(bodies.getRunTime());
 
-            for (int i = 0; i < bodies.getBodies().length; i++) {
-                out.writeFloat(bodies.getBodies()[i]);
+            float[] b = bodies.getBodies();
+            for (int i = 0; i < b.length; i++) {
+                out.writeFloat(b[i]);
             }
+
+            long time = System.currentTimeMillis() - start;
+            System.err.println("writes took " + time + " ms");
 
             out.flush();
 
