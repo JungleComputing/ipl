@@ -412,15 +412,14 @@ import java.util.*;
      * checking if the tree below 'this' has been cut off. Then the distance
      * calculation is already done during necessarryTree construction
      */
-    public double[] barnesBody(double pos_x, double pos_y, double pos_z, RunParameters params) {
+    public void barnesBody(Body body, double[] totalAcc, RunParameters params) {
         double diff_x, diff_y, diff_z;
-        double[] totalAcc = new double[3];
         double dist, distsq, factor;
         int i;
 
-        diff_x = com_x - pos_x;
-        diff_y = com_y - pos_y;
-        diff_z = com_z - pos_z;
+        diff_x = com_x - body.pos_x;
+        diff_y = com_y - body.pos_y;
+        diff_z = com_z - body.pos_z;
 
         distsq = diff_x * diff_x + diff_y * diff_y + diff_z * diff_z;
 
@@ -440,11 +439,11 @@ import java.util.*;
             dist = Math.sqrt(distsq);
             factor = totalMass / (distsq * dist);
 
-            totalAcc[0] = diff_x * factor;
-            totalAcc[1] = diff_y * factor;
-            totalAcc[2] = diff_z * factor;
+            totalAcc[0] += diff_x * factor;
+            totalAcc[1] += diff_y * factor;
+            totalAcc[2] += diff_z * factor;
 
-            return totalAcc;
+            return;
         }
 
         if (children == null) {
@@ -456,9 +455,9 @@ import java.util.*;
             }
 
             for (i = 0; i < bodies.length; i++) {
-                diff_x = bodies[i].pos_x - pos_x;
-                diff_y = bodies[i].pos_y - pos_y;
-                diff_z = bodies[i].pos_z - pos_z;
+                diff_x = bodies[i].pos_x - body.pos_x;
+                diff_y = bodies[i].pos_y - body.pos_y;
+                diff_z = bodies[i].pos_z - body.pos_z;
 
                 distsq = diff_x * diff_x + diff_y * diff_y + diff_z * diff_z
                     + params.SOFT_SQ;
@@ -470,21 +469,15 @@ import java.util.*;
                 totalAcc[1] += diff_y * factor;
                 totalAcc[2] += diff_z * factor;
             }
-            return totalAcc;
+            return;
         }
 
         // Cell node
         for (i = 0; i < 8; i++) {
-            double[] childresult;
             if (children[i] != null) {
-                childresult = children[i].barnesBody(pos_x, pos_y, pos_z, params);
-                totalAcc[0] += childresult[0];
-                totalAcc[1] += childresult[1];
-                totalAcc[2] += childresult[2];
+                children[i].barnesBody(body, totalAcc, params);
             }
         }
-
-        return totalAcc;
     }
 
     /**
@@ -518,9 +511,8 @@ import java.util.*;
             double dist = Math.sqrt(distsq);
             double factor = totalMass / (distsq * dist);
 
-            results.acc_x[index] += diff_x * factor;
-            results.acc_y[index] += diff_y * factor;
-            results.acc_z[index] += diff_z * factor;
+            results.addAccel(index, diff_x * factor, diff_y * factor,
+                    diff_z * factor);
 
             return;
         }
@@ -553,9 +545,7 @@ import java.util.*;
                 dz += diff_z * factor;
             }
 
-            results.acc_x[index] += dx;
-            results.acc_y[index] += dy;
-            results.acc_z[index] += dz;
+            results.addAccel(index, dx, dy, dz);
             return;
         }
 
@@ -568,18 +558,17 @@ import java.util.*;
     }
 
     /**
-     * debug version of barnesBody(pos_x, pos_y, pos_z)
+     * debug version of barnesBody.
      */
-    public double[] barnesBodyDbg(double pos_x, double pos_y, double pos_z,
+    public void barnesBodyDbg(Body body, double[] totalAcc,
         boolean debug, RunParameters params) {
         double diff_x, diff_y, diff_z;
-        double[] totalAcc = new double[3];
         double dist, distsq, factor;
         int i;
 
-        diff_x = com_x - pos_x;
-        diff_y = com_y - pos_y;
-        diff_z = com_z - pos_z;
+        diff_x = com_x - body.pos_x;
+        diff_y = com_y - body.pos_y;
+        diff_z = com_z - body.pos_z;
 
         distsq = diff_x * diff_x + diff_y * diff_y + diff_z * diff_z;
 
@@ -588,8 +577,8 @@ import java.util.*;
             System.out.println("Barnes: new level:");
             System.out.println(" CoM pos = (" + com_x + ", " + com_y + ", "
                 + com_z + ")");
-            System.out.println(" pos = (" + pos_x + ", " + pos_y + ", " + pos_z
-                + ")");
+            System.out.println(" pos = (" + body.pos_x + ", "
+                    + body.pos_y + ", " + body.pos_z + ")");
             System.out.println(" diff = (" + diff_x + ", " + diff_y + ", "
                 + diff_z + ")");
             System.out.println(" distsq = " + distsq + " maxTheta = "
@@ -605,16 +594,16 @@ import java.util.*;
             dist = Math.sqrt(distsq);
             factor = totalMass / (distsq * dist);
 
-            totalAcc[0] = diff_x * factor;
-            totalAcc[1] = diff_y * factor;
-            totalAcc[2] = diff_z * factor;
+            totalAcc[0] += diff_x * factor;
+            totalAcc[1] += diff_y * factor;
+            totalAcc[2] += diff_z * factor;
 
             if (debug) {
                 System.out.println("  CoM interaction:");
                 System.out.println("  added (" + totalAcc[0] + ", "
                     + totalAcc[1] + ", " + totalAcc[2] + ")");
             }
-            return totalAcc;
+            return;
         }
 
         // else
@@ -633,9 +622,9 @@ import java.util.*;
                         .println("  Interaction with " + bodies[i].number);
                 }
 
-                diff_x = bodies[i].pos_x - pos_x;
-                diff_y = bodies[i].pos_y - pos_y;
-                diff_z = bodies[i].pos_z - pos_z;
+                diff_x = bodies[i].pos_x - body.pos_x;
+                diff_y = bodies[i].pos_y - body.pos_y;
+                diff_z = bodies[i].pos_z - body.pos_z;
 
                 distsq = diff_x * diff_x + diff_y * diff_y;
                 distsq += diff_z * diff_z + params.SOFT_SQ;
@@ -658,15 +647,10 @@ import java.util.*;
             for (i = 0; i < 8; i++) {
                 double[] childresult;
                 if (children[i] != null) {
-                    childresult = children[i].barnesBodyDbg(pos_x, pos_y,
-                        pos_z, debug, params);
-                    totalAcc[0] += childresult[0];
-                    totalAcc[1] += childresult[1];
-                    totalAcc[2] += childresult[2];
+                    children[i].barnesBodyDbg(body, totalAcc, debug, params);
                 }
             }
         }
-        return totalAcc;
     }
 
     /**
@@ -695,13 +679,19 @@ import java.util.*;
             return;
         }
 
+        double[] acc = null;
+
         for (int i = 0; i < bodies.length; i++) {
             if (true) {
                 int index = results.updatePos(bodies[i].number);
                 interactTree.barnesBodyRob(bodies[i], results, index, params);
             } else {
-                double[] acc = interactTree.barnesBody(bodies[i].pos_x,
-                    bodies[i].pos_y, bodies[i].pos_z, params);
+                if (acc == null) {
+                    acc = new double[3];
+                } else {
+                    acc[0] = 0; acc[1] = 0; acc[2] = 0;
+                }
+                interactTree.barnesBody(bodies[i], acc, params);
                 results.addData(bodies[i].number, acc[0], acc[1], acc[2]);
             }
         }

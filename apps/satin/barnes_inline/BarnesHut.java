@@ -199,6 +199,12 @@ import java.util.List;
         return bodies.iteration+1 == iteration;
     }
     
+    public BodyUpdates getBodyUpdates(int n, RunParameters params) {
+        if (params.useDoubleUpdates) {
+            return new BodyUpdatesDouble(n);
+        }
+        return new BodyUpdatesFloat(n);
+    }
 
     /*spawnable*/
     public BodyUpdates doBarnesSO(byte[] nodeId, int iteration,
@@ -210,7 +216,7 @@ import java.util.List;
 	if (treeNode.children == null
                 || treeNode.bodyCount < bodies.params.THRESHOLD) {
 	    /*it is a leaf node, do sequential computation*/
-            BodyUpdates res = new BodyUpdates(treeNode.bodyCount);
+            BodyUpdates res = getBodyUpdates(treeNode.bodyCount, bodies.params);
 	    treeNode.barnesSequential(bodies.bodyTreeRoot, res, bodies.params);
             return res;
 	} 
@@ -230,7 +236,7 @@ import java.util.List;
         if (childcount != 0) {
             res = new BodyUpdates[childcount];
         }
-        BodyUpdates result = new BodyUpdates(resultsz);
+        BodyUpdates result = getBodyUpdates(resultsz, bodies.params);
         childcount = 0;
 
         // First spawn.
@@ -276,7 +282,7 @@ import java.util.List;
         if (me.children == null || me.bodyCount < params.THRESHOLD) {
             // leaf node, let barnesSequential handle this
             // (using optimizeList isn't useful for leaf nodes)
-            BodyUpdates res = new BodyUpdates(me.bodyCount);
+            BodyUpdates res = getBodyUpdates(me.bodyCount, params);
             me.barnesSequential(tree, res, params);
             return res;
         }
@@ -296,7 +302,7 @@ import java.util.List;
         if (childcount != 0) {
             res = new BodyUpdates[childcount];
         }
-        BodyUpdates result = new BodyUpdates(resultsz);
+        BodyUpdates result = getBodyUpdates(resultsz, params);
         childcount = 0;
 
         //cell node -> call children[].barnes()
@@ -397,7 +403,7 @@ import java.util.List;
                 sync();
                 break;
             case IMPL_SEQ:
-                result = new BodyUpdates(bodies.getRoot().bodyCount);
+                result = getBodyUpdates(bodies.getRoot().bodyCount, params);
                 bodies.getRoot().barnesSequential(bodies.getRoot(), result,
                         params);
                 break;
@@ -525,6 +531,7 @@ import java.util.List;
         params.DT_HALF = DT_HALF;
         params.SOFT = BodyTreeNode.SOFT;
         params.SOFT_SQ = BodyTreeNode.SOFT_SQ;
+        params.useDoubleUpdates = true;
 
         //parse arguments
         for (i = 0; i < argv.length; i++) {
@@ -541,6 +548,10 @@ import java.util.List;
                 viz = true;
             } else if (argv[i].equals("-remote-viz")) {
                 remoteViz = true;
+            } else if (argv[i].equals("-float")) {
+                params.useDoubleUpdates = false;
+            } else if (argv[i].equals("-double")) {
+                params.useDoubleUpdates = true;
             } else if (argv[i].equals("-no-viz")) {
                 viz = false;
             } else if (argv[i].equals("-ntc")) {

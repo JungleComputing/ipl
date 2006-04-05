@@ -23,4 +23,7 @@ public final class RunParameters implements java.io.Serializable {
 
     /** Spawn threshold. */
     int THRESHOLD;
+
+    /** Wether to use double or float for accelerations. */
+    boolean useDoubleUpdates;
 }
