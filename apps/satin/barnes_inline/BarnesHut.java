@@ -18,6 +18,8 @@ import java.util.List;
 
     static boolean remoteViz = false;
 
+    static String dumpViz = null;
+
     static boolean viz = false;
 
     static boolean debug = false; //use -(no)debug to modify
@@ -366,6 +368,13 @@ import java.util.List;
 
         if (remoteViz) {
             rv = new RemoteVisualization();
+        } else if (dumpViz != null) {
+            try {
+                rv = new RemoteVisualization(dumpViz);
+            } catch(IOException e) {
+                System.out.println("Warning: could not open " + dumpViz
+                        + ", got " + e);
+            }
         }
 
         // turn of Satin during sequential pars.
@@ -438,7 +447,7 @@ import java.util.List;
                 bc.repaint();
             }
 
-            if (remoteViz) {
+            if (rv != null) {
                 rv.showBodies(bodyArray, iteration, updateTimeTmp + forceCalcTimeTmp);
             }
 
@@ -548,6 +557,8 @@ import java.util.List;
                 viz = true;
             } else if (argv[i].equals("-remote-viz")) {
                 remoteViz = true;
+            } else if (argv[i].equals("-dump-viz")) {
+                dumpViz = argv[++i];
             } else if (argv[i].equals("-float")) {
                 params.useDoubleUpdates = false;
             } else if (argv[i].equals("-double")) {

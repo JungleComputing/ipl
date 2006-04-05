@@ -1,5 +1,7 @@
 import java.io.BufferedOutputStream;
 import java.io.DataOutputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.LinkedList;
@@ -53,6 +55,14 @@ public class RemoteVisualization extends Thread {
 
     public RemoteVisualization() {
         getProperties();
+        createServerSocket();
+        start();
+    }
+
+    public RemoteVisualization(String file) throws IOException {
+        haveClient = true;
+        out = new DataOutputStream(new BufferedOutputStream(
+                new FileOutputStream(file), 128 * 1024));
         start();
     }
 
@@ -84,13 +94,13 @@ public class RemoteVisualization extends Thread {
     private void close() {
         try {
             out.close();
-        } catch (Exception e) {
+        } catch (Throwable e) {
             // ignore            
         }
 
         try {
             client.close();
-        } catch (Exception e) {
+        } catch (Throwable e) {
             // ignore
         }
 
@@ -190,8 +200,6 @@ public class RemoteVisualization extends Thread {
     }
 
     public void run() {
-
-        createServerSocket();
 
         while (true) {
 
