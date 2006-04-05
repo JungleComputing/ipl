@@ -413,15 +413,12 @@ import java.util.*;
      * calculation is already done during necessarryTree construction
      */
     public void barnesBody(Body body, double[] totalAcc, RunParameters params) {
-        double diff_x, diff_y, diff_z;
-        double dist, distsq, factor;
-        int i;
 
-        diff_x = com_x - body.pos_x;
-        diff_y = com_y - body.pos_y;
-        diff_z = com_z - body.pos_z;
+        double diff_x = com_x - body.pos_x;
+        double diff_y = com_y - body.pos_y;
+        double diff_z = com_z - body.pos_z;
 
-        distsq = diff_x * diff_x + diff_y * diff_y + diff_z * diff_z;
+        double distsq = diff_x * diff_x + diff_y * diff_y + diff_z * diff_z;
 
         //        System.out.println("distsq = " + distsq + ", maxTheta = " + maxTheta);        
         /*
@@ -436,83 +433,11 @@ import java.util.*;
 
         if (distsq >= maxTheta) {
             distsq += params.SOFT_SQ;
-            dist = Math.sqrt(distsq);
-            factor = totalMass / (distsq * dist);
+            double factor = totalMass / (distsq * Math.sqrt(distsq));
 
             totalAcc[0] += diff_x * factor;
             totalAcc[1] += diff_y * factor;
             totalAcc[2] += diff_z * factor;
-
-            return;
-        }
-
-        if (children == null) {
-            // Leaf node, compute interactions with all my bodies
-
-            if (BarnesHut.ASSERTS && (bodies == null || bodies.length == 0)) {
-                System.err.println("EEK! invalid cutoff in barnes(vec3)");
-                System.exit(1);
-            }
-
-            for (i = 0; i < bodies.length; i++) {
-                diff_x = bodies[i].pos_x - body.pos_x;
-                diff_y = bodies[i].pos_y - body.pos_y;
-                diff_z = bodies[i].pos_z - body.pos_z;
-
-                distsq = diff_x * diff_x + diff_y * diff_y + diff_z * diff_z
-                    + params.SOFT_SQ;
-
-                dist = Math.sqrt(distsq);
-                factor = bodies[i].mass / (distsq * dist);
-
-                totalAcc[0] += diff_x * factor;
-                totalAcc[1] += diff_y * factor;
-                totalAcc[2] += diff_z * factor;
-            }
-            return;
-        }
-
-        // Cell node
-        for (i = 0; i < 8; i++) {
-            if (children[i] != null) {
-                children[i].barnesBody(body, totalAcc, params);
-            }
-        }
-    }
-
-    /**
-     * Computes the acceleration which the bodies in 'this' give to a body at
-     * position 'pos' 'this' can be a tree which is the result of necessaryTree
-     * construction, some parts may be cut off. We exploit this by first
-     * checking if the tree below 'this' has been cut off. Then the distance
-     * calculation is already done during necessarryTree construction
-     */
-    private void barnesBodyRob(Body body, BodyUpdates results, int index,
-            RunParameters params) {
-
-        double diff_x = com_x - body.pos_x;
-        double diff_y = com_y - body.pos_y;
-        double diff_z = com_z - body.pos_z;
-
-        double distsq = diff_x * diff_x + diff_y * diff_y + diff_z * diff_z;
-
-        /*
-         * In the if-statement below we could only check if we are cut off
-         * (children == null && bodies == null), but then the 'invalid cutoff'
-         * ASSERT statement doesn't make sense anymore, and: The (square)
-         * distance computed here is *LARGER* than the distance computed by the
-         * necessaryTree construction (which uses the boundary of the job we're
-         * working on), so we can still test if the distance is large enough to
-         * use my CoM
-         */
-
-        if (distsq >= maxTheta) {
-            distsq += params.SOFT_SQ;
-            double dist = Math.sqrt(distsq);
-            double factor = totalMass / (distsq * dist);
-
-            results.addAccel(index, diff_x * factor, diff_y * factor,
-                    diff_z * factor);
 
             return;
         }
@@ -537,22 +462,24 @@ import java.util.*;
                 distsq = diff_x * diff_x + diff_y * diff_y + diff_z * diff_z
                     + params.SOFT_SQ;
 
-                double dist = Math.sqrt(distsq);
-                double factor = bodies[i].mass / (distsq * dist);
+                double factor = bodies[i].mass / (distsq * Math.sqrt(distsq));
 
                 dx += diff_x * factor;
                 dy += diff_y * factor;
                 dz += diff_z * factor;
             }
 
-            results.addAccel(index, dx, dy, dz);
+            totalAcc[0] += dx;
+            totalAcc[1] += dy;
+            totalAcc[2] += dz;
+
             return;
         }
 
         // Cell node
         for (int i = 0; i < 8; i++) {
             if (children[i] != null) {
-                children[i].barnesBodyRob(body, results, index, params);
+                children[i].barnesBody(body, totalAcc, params);
             }
         }
     }
@@ -682,18 +609,13 @@ import java.util.*;
         double[] acc = null;
 
         for (int i = 0; i < bodies.length; i++) {
-            if (true) {
-                int index = results.updatePos(bodies[i].number);
-                interactTree.barnesBodyRob(bodies[i], results, index, params);
+            if (acc == null) {
+                acc = new double[3];
             } else {
-                if (acc == null) {
-                    acc = new double[3];
-                } else {
-                    acc[0] = 0; acc[1] = 0; acc[2] = 0;
-                }
-                interactTree.barnesBody(bodies[i], acc, params);
-                results.addData(bodies[i].number, acc[0], acc[1], acc[2]);
+                acc[0] = 0; acc[1] = 0; acc[2] = 0;
             }
+            interactTree.barnesBody(bodies[i], acc, params);
+            results.addAccels(bodies[i].number, acc[0], acc[1], acc[2]);
         }
     }
 

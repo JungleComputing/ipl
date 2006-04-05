@@ -36,30 +36,7 @@ public abstract class BodyUpdates implements java.io.Serializable {
      * @param y the acceleration in the Y direction.
      * @param z the acceleration in the Z direction.
      */
-    public abstract void addData(int bodyno, double x, double y, double z);
-
-    /**
-     * Adds the specified accelerations for the specified index.
-     * @param indx the index.
-     * @param x the acceleration in the X direction.
-     * @param y the acceleration in the Y direction.
-     * @param z the acceleration in the Z direction.
-     */
-    public abstract void addAccel(int indx, double x, double y, double z);
-
-    /**
-     * Allocates and returns an index for the specified body number.
-     * @param bodyno the body number
-     * @return the corresponding index in this BodyUpdates structure,
-     */
-    public final int updatePos(int bodyno) {
-        if (index >= bodyNumbers.length) {
-            System.out.println("Should not happen 2");
-            grow(2*index+1);
-        }
-        bodyNumbers[index] = bodyno;
-        return index++;
-    }
+    public abstract void addAccels(int bodyno, double x, double y, double z);
 
     /**
      * Computes the number of bodies for which this BodyUpdates structure

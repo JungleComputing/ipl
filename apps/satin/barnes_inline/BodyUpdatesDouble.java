@@ -43,7 +43,7 @@ public final class BodyUpdatesDouble extends BodyUpdates {
         }
     }
 
-    public final void addData(int bodyno, double x, double y, double z) {
+    public final void addAccels(int bodyno, double x, double y, double z) {
         if (index >= bodyNumbers.length) {
             System.out.println("Should not happen 1");
             grow(2*index+1);
@@ -53,12 +53,6 @@ public final class BodyUpdatesDouble extends BodyUpdates {
         acc_y[index] = y;
         acc_z[index] = z;
         index++;
-    }
-
-    public final void addAccel(int indx, double x, double y, double z) {
-        acc_x[indx] += x;
-        acc_y[indx] += y;
-        acc_z[indx] += z;
     }
 
     protected final void optimize(BodyUpdates bb) {
