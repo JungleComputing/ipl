@@ -325,7 +325,7 @@ public class NameServer extends Thread implements Protocol {
                         }
                     }
                     if (joinFailed) {
-                        poolPinger(key);
+                        poolPinger(key, false);
                     }
                 }
             }
@@ -481,7 +481,7 @@ public class NameServer extends Thread implements Protocol {
         }
     }
 
-    private void checkPool(RunInfo p, String victim, String key) {
+    private boolean checkPool(RunInfo p, String victim, String key) {
 
         Vector deadIbises = new Vector();
         IbisInfo toDie = null;
@@ -578,7 +578,9 @@ public class NameServer extends Thread implements Protocol {
                     logger.warn("pool " + key + " seems to be dead.");
                 }
                 killThreads(p);
+                return false;
             }
+            return true;
         }
     }
 
@@ -590,6 +592,24 @@ public class NameServer extends Thread implements Protocol {
         if (p != null) {
             checkPool(p, kill ? name : null, key);
         }
+    }
+
+    private void handleCheck() throws IOException {
+        String key = in.readUTF();
+        logger.info("Got check for pool " + key);
+        if (! poolPinger(key, true)) {
+            out.writeByte(0);
+        } else {
+            out.writeByte(1);
+        }
+        out.flush();
+    }
+
+    private void handleCheckAll() throws IOException {
+        logger.info("Got checkAll");
+        poolPinger(true);
+        out.writeByte(0);
+        out.flush();
     }
 
     private void handleIbisJoin() throws IOException {
@@ -618,6 +638,7 @@ public class NameServer extends Thread implements Protocol {
 
         IbisInfo info = new IbisInfo(name, serializedId, address, port,
                 needsUpcalls);
+
         RunInfo p = (RunInfo) pools.get(key);
 
         if (p == null) {
@@ -633,7 +654,7 @@ public class NameServer extends Thread implements Protocol {
                 out.flush();
                 return;
             }
-            poolPinger();
+            poolPinger(false);
             p = new RunInfo(silent);
 
             pools.put(key, p);
@@ -653,7 +674,7 @@ public class NameServer extends Thread implements Protocol {
             }
             out.flush();
         } else {
-            poolPinger(key);
+            poolPinger(key, false);
             // Handle delayed leave messages before adding new members
             // to a pool, otherwise new members get leave messages from nodes
             // that they have never seen.
@@ -710,39 +731,41 @@ public class NameServer extends Thread implements Protocol {
         }
     }
 
-    private void poolPinger(String key) {
+    private boolean poolPinger(String key, boolean force) {
 
         RunInfo p = (RunInfo) pools.get(key);
 
         if (p == null) {
-            return;
+            return false;
         }
 
-        long t = System.currentTimeMillis();
+        if (! force) {
+            long t = System.currentTimeMillis();
 
-        // If the pool has not reached its ping-limit yet, return.
-        if (t < p.pingLimit) {
-            if (! silent && logger.isDebugEnabled()) {
-                logger.debug("NameServer: ping timeout not reached yet for pool " + key);
+            // If the pool has not reached its ping-limit yet, return.
+            if (t < p.pingLimit) {
+                if (! silent && logger.isDebugEnabled()) {
+                    logger.debug("NameServer: ping timeout not reached yet for pool " + key);
+                }
+                return true;
             }
-            return;
         }
 
         if (! silent && logger.isDebugEnabled()) {
             logger.debug("NameServer: ping pool " + key);
         }
 
-        checkPool(p, null, key);
+        return checkPool(p, null, key);
     }
 
     /**
      * Checks all pools to see if they still are alive. If a pool is dead
      * (connect to all members fails), the pool is killed.
      */
-    private void poolPinger() {
+    private void poolPinger(boolean force) {
         for (Enumeration e = pools.keys(); e.hasMoreElements();) {
             String key = (String) e.nextElement();
-            poolPinger(key);
+            poolPinger(key, force);
         }
     }
 
@@ -1020,6 +1043,12 @@ public class NameServer extends Thread implements Protocol {
                         }
                         // ignore invalid leave req.
                     }
+                    break;
+                case (IBIS_CHECK):
+                    handleCheck();
+                    break;
+                case (IBIS_CHECKALL):
+                    handleCheckAll();
                     break;
                 default:
                     if (! silent) {

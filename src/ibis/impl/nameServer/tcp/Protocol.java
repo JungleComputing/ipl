@@ -12,6 +12,8 @@ interface Protocol {
     static final byte IBIS_PING = 5;
     static final byte IBIS_ISALIVE = 6;
     static final byte IBIS_DEAD = 7;
+    static final byte IBIS_CHECK = 8;
+    static final byte IBIS_CHECKALL = 9;
 
     static final byte PORT_NEW = 20;
     static final byte PORT_ACCEPTED = 21;
