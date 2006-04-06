@@ -24,8 +24,8 @@ public abstract class FaultTolerance extends Inlets {
         if (CRASH_TIMING) {
             crashTimer.start();
         }
-        if (commLogger.isDebugEnabled()) {
-            commLogger.debug("SATIN '" + ident + ": handling crashes");
+        if (ftLogger.isDebugEnabled()) {
+            ftLogger.debug("SATIN '" + ident + ": handling crashes");
         }
 
         gotCrashes = false;
@@ -47,8 +47,8 @@ public abstract class FaultTolerance extends Inlets {
         	}
 	    }
 
-            if (commLogger.isDebugEnabled()) {
-                commLogger.debug("SATIN '" + ident
+            if (ftLogger.isDebugEnabled()) {
+                ftLogger.debug("SATIN '" + ident
                         + ": handling crash of " + id);
             }
 
@@ -108,8 +108,8 @@ public abstract class FaultTolerance extends Inlets {
             crashTimer.stop();
         }
 
-        if (commLogger.isDebugEnabled()) {
-            commLogger.debug("SATIN '" + ident + ": numCrashes handled: "
+        if (ftLogger.isDebugEnabled()) {
+            ftLogger.debug("SATIN '" + ident + ": numCrashes handled: "
                     + numCrashesHandled);
         }
 

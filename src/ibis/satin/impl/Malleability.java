@@ -144,7 +144,13 @@ public abstract class Malleability extends FaultTolerance {
     }
 
     public void died(IbisIdentifier corpse) {
+        if (ftLogger.isDebugEnabled()) {
+            ftLogger.debug("SATIN '" + ident + "': " + corpse
+                    + " died");
+        }
+
         left(corpse);
+        gotCrashes = true;
     }
 
     public void left(IbisIdentifier leaver) {
