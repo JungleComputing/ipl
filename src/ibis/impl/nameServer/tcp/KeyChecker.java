@@ -26,6 +26,18 @@ public class KeyChecker implements Protocol {
     private static Logger logger
             = ibis.util.GetLogger.getLogger(KeyChecker.class.getName());
 
+    private String poolName;
+    private String serverHost;
+    private int port;
+    private int sleep;
+
+    public KeyChecker(String poolName, String serverHost, int port, int sleep) {
+        this.poolName = poolName;
+        this.serverHost = serverHost;
+        this.port = port;
+        this.sleep = sleep;
+    }
+
     public static void main(String args[]) throws IOException {
         String serverHost = null;
         String poolName = null;
@@ -83,6 +95,11 @@ public class KeyChecker implements Protocol {
 
     static void check(String poolName, String serverHost, int port, int sleep)
             throws IOException {
+        KeyChecker ck = new KeyChecker(poolName, serverHost, port, sleep);
+        ck.run();
+    }
+
+    public void run() {
         do {
             if (sleep != 0) {
                 try {
@@ -91,11 +108,15 @@ public class KeyChecker implements Protocol {
                     // ignored
                 }
             }
-            if (check(poolName, serverHost, port)) {
-                System.out.println("Pool " + poolName + " is alive");
-            } else if (poolName != null) {
-                System.out.println("Pool " + poolName + " is dead");
-                break;
+            try {
+                if (check(poolName, serverHost, port)) {
+                    System.out.println("Pool " + poolName + " is alive");
+                } else if (poolName != null) {
+                    System.out.println("Pool " + poolName + " is dead");
+                    break;
+                }
+            } catch(Exception e) {
+                // Ignored
             }
         } while (sleep != 0);
     }

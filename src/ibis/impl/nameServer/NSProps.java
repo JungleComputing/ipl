@@ -27,8 +27,11 @@ public class NSProps {
 
     public static final String s_joiner_interval = PROPERTY_PREFIX + "joinerInterval";
 
+    public static final String s_keychecker_interval = PROPERTY_PREFIX + "checkerInterval";
+
     private static final String[] sysprops = { s_impl, s_host, s_key, s_port,
-            s_single, s_pinger_timeout, s_connect_timeout, s_joiner_interval };
+            s_single, s_pinger_timeout, s_connect_timeout, s_joiner_interval,
+            s_keychecker_interval};
 
     static {
         TypedProperties.checkProperties(PROPERTY_PREFIX, sysprops, null);

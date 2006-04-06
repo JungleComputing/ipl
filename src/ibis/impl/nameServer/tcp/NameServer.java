@@ -45,6 +45,10 @@ public class NameServer extends Thread implements Protocol {
     static final int JOINER_INTERVAL
         = TypedProperties.intProperty(NSProps.s_joiner_interval, 5) * 1000;
 
+    // In seconds, as KeyChecker expects.
+    static final int CHECKER_INTERVAL
+        = TypedProperties.intProperty(NSProps.s_keychecker_interval, 0);
+
     static final int MAXTHREADS = 32;
 
     InetAddress myAddress;
@@ -216,6 +220,19 @@ public class NameServer extends Thread implements Protocol {
             }
         }
 
+        if (CHECKER_INTERVAL != 0) {
+            final KeyChecker ck
+                    = new KeyChecker(null, myAddress.getHostName(), port,
+                        CHECKER_INTERVAL);
+            Thread p = new Thread("KeyChecker Upcaller") {
+                public void run() {
+                    ck.run();
+                }
+            };
+            p.setDaemon(true);
+            p.start();
+        }
+
         if (! silent && logger.isInfoEnabled()) {
             logger.info("NameServer: singleRun = " + singleRun);
         }
@@ -325,7 +342,7 @@ public class NameServer extends Thread implements Protocol {
                         }
                     }
                     if (joinFailed) {
-                        poolPinger(key, false);
+                        poolPinger(key, true);
                     }
                 }
             }
