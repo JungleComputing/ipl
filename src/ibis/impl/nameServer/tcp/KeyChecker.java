@@ -26,14 +26,11 @@ public class KeyChecker implements Protocol {
     private static Logger logger
             = ibis.util.GetLogger.getLogger(KeyChecker.class.getName());
 
-    private KeyChecker() {
-        // prvent construction
-    }
-
     public static void main(String args[]) throws IOException {
         String serverHost = null;
         String poolName = null;
         String portString = null;
+        int sleep = 0;
 
         for (int i = 0; i < args.length; i++) {
             if (args[i].equals("-key")) {
@@ -42,14 +39,16 @@ public class KeyChecker implements Protocol {
                 serverHost = args[++i];
             } else if (args[i].equals("-port")) {
                 portString = args[++i];
+            } else if (args[i].equals("-sleep")) {
+                sleep = Integer.parseInt(args[++i]);
             }
         }
 
-        check(poolName, serverHost, portString);
+        check(poolName, serverHost, portString, sleep);
     }
 
     private static void check(String poolName, String serverHost,
-            String portString) throws IOException {
+            String portString, int sleep) throws IOException {
         Properties p = System.getProperties();
 
         if (serverHost == null) {
@@ -79,11 +78,26 @@ public class KeyChecker implements Protocol {
                         + portString + ", using default");
             }
         }
-        if (check(poolName, serverHost, port)) {
-            System.out.println("Pool " + poolName + " is alive");
-        } else if (poolName != null) {
-            System.out.println("Pool " + poolName + " is dead");
-        }
+        check(poolName, serverHost, port, sleep);
+    }
+
+    static void check(String poolName, String serverHost, int port, int sleep)
+            throws IOException {
+        do {
+            if (sleep != 0) {
+                try {
+                    Thread.sleep(sleep * 1000);
+                } catch(Exception e) {
+                    // ignored
+                }
+            }
+            if (check(poolName, serverHost, port)) {
+                System.out.println("Pool " + poolName + " is alive");
+            } else if (poolName != null) {
+                System.out.println("Pool " + poolName + " is dead");
+                break;
+            }
+        } while (sleep != 0);
     }
 
     public static boolean check(String poolName, String serverHost, int port)
