@@ -150,7 +150,9 @@ public abstract class Malleability extends FaultTolerance {
         }
 
         left(corpse);
-        gotCrashes = true;
+        if (FAULT_TOLERANCE) {
+            handleLostConnection(corpse);
+        }
     }
 
     public void left(IbisIdentifier leaver) {
