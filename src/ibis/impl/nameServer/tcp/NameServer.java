@@ -533,8 +533,8 @@ public class NameServer extends Thread implements Protocol {
 
             for (int j = 0; j < deadIbises.size(); j++) {
                 IbisInfo temp = (IbisInfo) deadIbises.get(j);
-                if (! silent && logger.isDebugEnabled()) {
-                    logger.debug("NameServer: ibis " + temp.name + " seems dead");
+                if (! silent && logger.isInfoEnabled()) {
+                    logger.info("NameServer: ibis " + temp.name + " seems dead");
                 }
 
                 p.remove(temp);
