@@ -17,6 +17,8 @@ import java.util.Vector;
 
 import org.apache.bcel.Constants;
 import org.apache.bcel.Repository;
+import org.apache.bcel.classfile.Attribute;
+import org.apache.bcel.classfile.ConstantUtf8;
 import org.apache.bcel.classfile.Field;
 import org.apache.bcel.classfile.JavaClass;
 import org.apache.bcel.classfile.Method;
@@ -358,6 +360,17 @@ public final class Satinc {
                 satinType, Type.NO_ARGS, Constants.INVOKESTATIC);
     }
 
+    void removeLocalTypeTables(MethodGen mg) {
+        ConstantPoolGen cpg = mg.getConstantPool();
+        Attribute[] a = mg.getCodeAttributes();
+        for (int i = 0; i < a.length; i++) {
+            String attribName = ((ConstantUtf8) cpg.getConstant(a[i].getNameIndex())).getBytes();
+            if (attribName.equals("LocalVariableTypeTable")) {
+                mg.removeCodeAttribute(a[i]);
+            }
+        }
+    }
+
     void generateMain(ClassGen clg, Method origMain) {
 
         InstructionList il = new InstructionList();
@@ -453,6 +466,8 @@ public final class Satinc {
 
         new_main.addLocalVariable("argv", new ArrayType(Type.STRING, 1), 0,
                 argv_handle, null);
+
+        removeLocalTypeTables(new_main);
 
         Method main = new_main.getMethod();
         gen_c.addMethod(main);
@@ -1671,6 +1686,7 @@ public final class Satinc {
 
         m.setMaxLocals();
         m.setMaxStack();
+        removeLocalTypeTables(m);
         m.stripAttributes(true);
 
         Method newm = m.getMethod();
@@ -1814,6 +1830,7 @@ public final class Satinc {
 
                 mg.setMaxLocals();
                 mg.setMaxStack();
+                removeLocalTypeTables(mg);
 
                 Method newm = mg.getMethod();
                 mtab.replace(m, newm);
@@ -1874,6 +1891,7 @@ public final class Satinc {
             if (rewritten) {
                 mg.setMaxLocals();
                 mg.setMaxStack();
+                removeLocalTypeTables(mg);
 
                 Method newm = mg.getMethod();
                 mtab.replace(m, newm);
@@ -2033,6 +2051,8 @@ public final class Satinc {
 
                 handler_g.setMaxLocals();
                 handler_g.setMaxStack();
+
+                removeLocalTypeTables(handler_g);
 
                 Method newHandler = handler_g.getMethod();
                 recgen.replaceMethod(exceptionHandler, newHandler);
@@ -3222,6 +3242,7 @@ public final class Satinc {
        oldAccessFlags = origMethodGen.getAccessFlags();
        origMethodGen.setAccessFlags(0x0001); //public
        gen_c.removeMethod(m);
+       removeLocalTypeTables(origMethodGen);
        gen_c.addMethod(origMethodGen.getMethod());
        
        //create the new method with the following body:
@@ -3319,6 +3340,7 @@ public final class Satinc {
 	newMethodGen.addExceptionHandler(from2, to2, from2, null);
 	newMethodGen.setMaxStack();
 	newMethodGen.setMaxLocals();
+        removeLocalTypeTables(newMethodGen);
 		    
 	gen_c.addMethod(newMethodGen.getMethod());
 	 	
@@ -3459,6 +3481,8 @@ public final class Satinc {
             m.setMaxLocals();
             m.setAccessFlags((m.getAccessFlags() & ~Constants.ACC_PUBLIC)
                     | Constants.ACC_PRIVATE);
+
+            removeLocalTypeTables(m);
 
             gen_c.removeMethod(main);
 
