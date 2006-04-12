@@ -118,9 +118,13 @@ public class LocalVariableGen implements InstructionTargeter, NamedAndTyped,
         int start_pc = start.getPosition();
         int length = end.getPosition() - start_pc;
 
-        // This is not correct. Gives one instruction too many in range.
+        // This is not correct. Gives one instruction too many in range.(Ceriel)
         //    if(length > 0)
         //      length += end.getInstruction().getLength();
+
+        if (length > 0 && end.getNext() == null) {
+            length += end.getInstruction().getLength();
+        }
 
         int name_index = cp.addUtf8(name);
         int signature_index = cp.addUtf8(type.getSignature());
