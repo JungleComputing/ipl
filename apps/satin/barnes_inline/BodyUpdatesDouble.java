@@ -6,6 +6,15 @@
  */
 public final class BodyUpdatesDouble extends BodyUpdates {
 
+    /** Cached array, to avoid re-allocation. */
+    private static double[] acc_x_static;
+
+    /** Cached array, to avoid re-allocation. */
+    private static double[] acc_y_static;
+
+    /** Cached array, to avoid re-allocation. */
+    private static double[] acc_z_static;
+
     /** Acceleration in X direction. */
     private double[] acc_x;
 
@@ -101,19 +110,24 @@ public final class BodyUpdatesDouble extends BodyUpdates {
 
     public final void prepareForUpdate() {
         int sz = computeSz();
-        double[] ax = new double[sz];
-        double[] ay = new double[sz];
-        double[] az = new double[sz];
+        if (acc_x_static == null) {
+            acc_x_static = new double[sz];
+            acc_y_static = new double[sz];
+            acc_z_static = new double[sz];
+        } else if (sz != acc_x_static.length) {
+            System.err.println("EEEK: something wrong with sizes!");
+            System.exit(1);
+        }
         for (int i = 0; i < index; i++) {
             int ix = bodyNumbers[i];
-            ax[ix] = acc_x[i];
-            ay[ix] = acc_y[i];
-            az[ix] = acc_z[i];
+            acc_x_static[ix] = acc_x[i];
+            acc_y_static[ix] = acc_y[i];
+            acc_z_static[ix] = acc_z[i];
         }
         bodyNumbers = null;
-        acc_x = ax;
-        acc_y = ay;
-        acc_z = az;
+        acc_x = acc_x_static;
+        acc_y = acc_y_static;
+        acc_z = acc_z_static;
         if (more != null) {
             for (int i = 0; i < more.length; i++) {
                 addUpdates((BodyUpdatesDouble) more[i]);
@@ -130,4 +144,48 @@ public final class BodyUpdatesDouble extends BodyUpdates {
                     params);
         }
     }
+
+    /*
+    private void readObject(java.io.ObjectInputStream in)
+            throws java.io.IOException, ClassNotFoundException {
+        boolean b = in.readBoolean();
+        if (b) {
+            in.defaultReadObject();
+        } else {
+            int sz = in.readInt();
+            if (acc_x_static == null) {
+                acc_x_static = new double[sz];
+                acc_y_static = new double[sz];
+                acc_z_static = new double[sz];
+            } else if (sz != acc_x_static.length) {
+                System.err.println("EEEK: something wrong with sizes!");
+                System.exit(1);
+            }
+            acc_x = acc_x_static;
+            acc_y = acc_y_static;
+            acc_z = acc_z_static;
+            for (int i = 0; i < sz; i++) {
+                acc_x[i] = in.readDouble();
+                acc_y[i] = in.readDouble();
+                acc_z[i] = in.readDouble();
+            }
+        }
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out)
+            throws java.io.IOException {
+        if (bodyNumbers == null) {
+            out.writeBoolean(false);
+            out.writeInt(acc_x.length);
+            for (int i = 0; i < acc_x.length; i++) {
+                out.writeDouble(acc_x[i]);
+                out.writeDouble(acc_y[i]);
+                out.writeDouble(acc_z[i]);
+            }
+        } else {
+            out.writeBoolean(true);
+            out.defaultWriteObject();
+        }
+    }
+    */
 }
