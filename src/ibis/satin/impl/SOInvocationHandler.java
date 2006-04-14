@@ -34,6 +34,9 @@ final class SOInvocationHandler implements Upcall, Config, Protocol {
                 if (SO_TIMING) {
                     satin.soBroadcastDeserializationTimer.start();
                 }
+                synchronized(satin) {
+                    satin.receivingObject = true;
+                }
                 obj = (SharedObject) m.readObject();
                 if (SO_TIMING) {
                     satin.soBroadcastDeserializationTimer.stop();
@@ -42,6 +45,8 @@ final class SOInvocationHandler implements Upcall, Config, Protocol {
                 // no need to finish the message
                 synchronized (satin) {
                     satin.sharedObjects.put(obj.objectId, obj);
+                    satin.receivingObject = false;
+                    satin.notifyAll();
                 }
                 break;
             case SO_INVOCATION: // normal invocation, can be message combined

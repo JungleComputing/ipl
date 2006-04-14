@@ -32,6 +32,8 @@ public abstract class SharedObjects extends Communication implements Protocol {
 
     boolean gotObject = false;
 
+    boolean receivingObject = false;
+
     SharedObject object = null;
 
     ArrayList toConnect = new ArrayList();
@@ -272,7 +274,19 @@ public abstract class SharedObjects extends Communication implements Protocol {
         }
         if (obj == null) {
             if (!initialNode) {
-                shipObject(objectId, source);
+                synchronized(this) {
+                    while (receivingObject) {
+                        try {
+                            wait();
+                        } catch(Exception e) {
+                            // ignored
+                        }
+                    }
+                    obj = (SharedObject) sharedObjects.get(objectId);
+                }
+                if (obj == null) {
+                    shipObject(objectId, source);
+                }
             } else {
                 // just wait, object has been broadcast
                 long startTime = System.currentTimeMillis();
