@@ -853,15 +853,6 @@ public class IOGenerator {
                             Constants.INVOKEVIRTUAL));
             write_il.append(new ASTORE(3));
 
-            write_il.append(persistent_field_access);
-            write_il.append(new ILOAD(2));
-            write_il.append(new AALOAD());
-            write_il.append(
-                    factory.createInvoke("java.lang.Object",
-                            "getClass", new ObjectType("java.lang.Class"),
-                            Type.NO_ARGS, Constants.INVOKEVIRTUAL));
-            write_il.append(new ASTORE(4));
-
             InstructionHandle begin_try = write_il.append(new PUSH(
                     constantpool, classname));
             write_il.append(factory.createInvoke("java.lang.Class", "forName",
@@ -871,7 +862,7 @@ public class IOGenerator {
             write_il.append(factory.createInvoke("java.lang.Class", "getField",
                     new ObjectType("java.lang.reflect.Field"),
                     new Type[] { Type.STRING }, Constants.INVOKEVIRTUAL));
-            write_il.append(new ASTORE(5));
+            write_il.append(new ASTORE(4));
 
             write_il.append(persistent_field_access);
             write_il.append(new ILOAD(2));
@@ -881,7 +872,7 @@ public class IOGenerator {
                     Constants.INVOKEVIRTUAL));
 
             case_handles[0] = write_il.append(new ALOAD(1));
-            write_il.append(new ALOAD(5));
+            write_il.append(new ALOAD(4));
             write_il.append(new ALOAD(0));
             write_il.append(factory.createInvoke("java.lang.reflect.Field",
                     "getBoolean", Type.BOOLEAN, new Type[] { Type.OBJECT },
@@ -893,7 +884,7 @@ public class IOGenerator {
             write_il.append(gotos[0]);
 
             case_handles[1] = write_il.append(new ALOAD(1));
-            write_il.append(new ALOAD(5));
+            write_il.append(new ALOAD(4));
             write_il.append(new ALOAD(0));
             write_il.append(factory.createInvoke("java.lang.reflect.Field",
                     "getChar", Type.CHAR, new Type[] { Type.OBJECT },
@@ -906,7 +897,7 @@ public class IOGenerator {
             write_il.append(gotos[1]);
 
             case_handles[2] = write_il.append(new ALOAD(1));
-            write_il.append(new ALOAD(5));
+            write_il.append(new ALOAD(4));
             write_il.append(new ALOAD(0));
             write_il.append(factory.createInvoke("java.lang.reflect.Field",
                     "getDouble", Type.DOUBLE, new Type[] { Type.OBJECT },
@@ -918,7 +909,7 @@ public class IOGenerator {
             write_il.append(gotos[2]);
 
             case_handles[3] = write_il.append(new ALOAD(1));
-            write_il.append(new ALOAD(5));
+            write_il.append(new ALOAD(4));
             write_il.append(new ALOAD(0));
             write_il.append(factory.createInvoke("java.lang.reflect.Field",
                     "getFloat", Type.FLOAT, new Type[] { Type.OBJECT },
@@ -930,7 +921,7 @@ public class IOGenerator {
             write_il.append(gotos[3]);
 
             case_handles[4] = write_il.append(new ALOAD(1));
-            write_il.append(new ALOAD(5));
+            write_il.append(new ALOAD(4));
             write_il.append(new ALOAD(0));
             write_il.append(factory.createInvoke("java.lang.reflect.Field",
                     "getInt", Type.INT, new Type[] { Type.OBJECT },
@@ -943,7 +934,7 @@ public class IOGenerator {
             write_il.append(gotos[4]);
 
             case_handles[5] = write_il.append(new ALOAD(1));
-            write_il.append(new ALOAD(5));
+            write_il.append(new ALOAD(4));
             write_il.append(new ALOAD(0));
             write_il.append(factory.createInvoke("java.lang.reflect.Field",
                     "getLong", Type.LONG, new Type[] { Type.OBJECT },
@@ -955,7 +946,7 @@ public class IOGenerator {
             write_il.append(gotos[5]);
 
             case_handles[6] = write_il.append(new ALOAD(1));
-            write_il.append(new ALOAD(5));
+            write_il.append(new ALOAD(4));
             write_il.append(new ALOAD(0));
             write_il.append(factory.createInvoke("java.lang.reflect.Field",
                     "getShort", Type.SHORT, new Type[] { Type.OBJECT },
@@ -968,7 +959,7 @@ public class IOGenerator {
             write_il.append(gotos[6]);
 
             case_handles[7] = write_il.append(new ALOAD(1));
-            write_il.append(new ALOAD(5));
+            write_il.append(new ALOAD(4));
             write_il.append(new ALOAD(0));
             write_il.append(factory.createInvoke("java.lang.reflect.Field",
                     "getBoolean", Type.BOOLEAN, new Type[] { Type.OBJECT },
@@ -980,7 +971,7 @@ public class IOGenerator {
             write_il.append(gotos[7]);
 
             InstructionHandle default_handle = write_il.append(new ALOAD(1));
-            write_il.append(new ALOAD(5));
+            write_il.append(new ALOAD(4));
             write_il.append(new ALOAD(0));
             write_il.append(factory.createInvoke("java.lang.reflect.Field",
                     "get", Type.OBJECT, new Type[] { Type.OBJECT },
@@ -1314,7 +1305,7 @@ public class IOGenerator {
             InstructionHandle h;
 
             if (from_constructor || !final_fields) {
-                h = read_il.append(new ALOAD(5));
+                h = read_il.append(new ALOAD(4));
                 read_il.append(new ALOAD(0));
                 read_il.append(new ALOAD(1));
                 if (tpname.equals("")) {
@@ -1336,7 +1327,7 @@ public class IOGenerator {
                 return h;
             }
 
-            h = read_il.append(new ILOAD(6));
+            h = read_il.append(new ILOAD(5));
             read_il.append(new PUSH(constantpool, Constants.ACC_FINAL));
             read_il.append(new IAND());
             IFEQ eq = new IFEQ(null);
@@ -1345,7 +1336,7 @@ public class IOGenerator {
             read_il.append(new ALOAD(0));
             read_il.append(new ALOAD(3));
             if (tpname.equals("")) {
-                read_il.append(new ALOAD(5));
+                read_il.append(new ALOAD(4));
                 read_il.append(factory.createInvoke("java.lang.reflect.Field",
                         "getType", new ObjectType("java.lang.Class"),
                         Type.NO_ARGS, Constants.INVOKEVIRTUAL));
@@ -1366,7 +1357,7 @@ public class IOGenerator {
             }
             GOTO gto2 = new GOTO(null);
             read_il.append(gto2);
-            eq.setTarget(read_il.append(new ALOAD(5)));
+            eq.setTarget(read_il.append(new ALOAD(4)));
             read_il.append(new ALOAD(0));
             read_il.append(new ALOAD(1));
             if (tpname.equals("")) {
@@ -1418,14 +1409,6 @@ public class IOGenerator {
                     Constants.INVOKEVIRTUAL));
             read_il.append(new ASTORE(3));
 
-            read_il.append(persistent_field_access);
-            read_il.append(new ILOAD(2));
-            read_il.append(new AALOAD());
-            read_il.append(factory.createInvoke("java.lang.Object", "getClass",
-                    new ObjectType("java.lang.Class"), Type.NO_ARGS,
-                    Constants.INVOKEVIRTUAL));
-            read_il.append(new ASTORE(4));
-
             InstructionHandle begin_try = read_il.append(new PUSH(constantpool,
                     classname));
             read_il.append(factory.createInvoke("java.lang.Class", "forName",
@@ -1435,14 +1418,14 @@ public class IOGenerator {
             read_il.append(factory.createInvoke("java.lang.Class", "getField",
                     new ObjectType("java.lang.reflect.Field"),
                     new Type[] { Type.STRING }, Constants.INVOKEVIRTUAL));
-            read_il.append(new ASTORE(5));
+            read_il.append(new ASTORE(4));
 
             if (!from_constructor && final_fields) {
-                read_il.append(new ALOAD(5));
+                read_il.append(new ALOAD(4));
                 read_il.append(factory.createInvoke("java.lang.reflect.Field",
                         "getModifiers", Type.INT, Type.NO_ARGS,
                         Constants.INVOKEVIRTUAL));
-                read_il.append(new ISTORE(6));
+                read_il.append(new ISTORE(5));
             }
 
             read_il.append(persistent_field_access);
