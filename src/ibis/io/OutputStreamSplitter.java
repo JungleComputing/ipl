@@ -2,6 +2,8 @@
 
 package ibis.io;
 
+import ibis.util.ThreadPool;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -13,13 +15,105 @@ import java.util.ArrayList;
  This way, even when one of the streams dies, the rest will receive the data.
  **/
 public final class OutputStreamSplitter extends OutputStream {
+
     private static final boolean DEBUG = false;
+
+    private static final int MAXTHREADS = 32;
 
     private boolean removeOnException = false;
     private boolean saveException = false;
     private SplitterException savedException = null;
 
     ArrayList out = new ArrayList();
+
+    private int numSenders = 0;
+
+    private class Sender implements Runnable {
+        int offset;
+        int len;
+        byte[] buf;
+        int index;
+
+        Sender(byte[] buf, int index, int offset, int len) {
+            this.buf = buf;
+            this.offset = offset;
+            this.len = len;
+            this.index = index;
+        }
+
+        public void run() {
+            doWrite(buf, offset, len, index);
+            finish();
+        }
+    }
+
+    private class Flusher implements Runnable {
+        int index;
+
+        Flusher(int index) {
+            this.index = index;
+        }
+
+        public void run() {
+            doFlush(index);
+            finish();
+        }
+    }
+
+    private class Closer implements Runnable {
+        int index;
+
+        Closer(int index) {
+            this.index = index;
+        }
+
+        public void run() {
+            doClose(index);
+            finish();
+        }
+    }
+
+    void doWrite(byte[] buf, int offset, int len, int index) {
+        try {
+            OutputStream o = (OutputStream) out.get(index);
+            o.write(buf, offset, len);
+        } catch(IOException e) {
+            addException(e, index);
+        }
+    }
+
+    void doFlush(int index) {
+        try {
+            OutputStream o = (OutputStream) out.get(index);
+            o.flush();
+        } catch(IOException e) {
+            addException(e, index);
+        }
+    }
+
+    void doClose(int index) {
+        try {
+            OutputStream o = (OutputStream) out.get(index);
+            o.close();
+        } catch(IOException e) {
+            addException(e, index);
+        }
+    }
+
+    private synchronized void finish() {
+        numSenders--;
+        notify();
+    }
+
+    private synchronized void addException(IOException e, int index) {
+        if (savedException == null) {
+            savedException = new SplitterException();
+        }
+        savedException.add(((OutputStream) out.get(index)), e);
+        if (removeOnException) {
+            out.set(index, null);
+        }
+    }
 
     public OutputStreamSplitter() {
         // empty constructor
@@ -83,39 +177,7 @@ public final class OutputStreamSplitter extends OutputStream {
     }
 
     public void write(byte[] b) throws IOException {
-        if (DEBUG) {
-            System.err.println("SPLIT: writing: " + b + ", b.lenth = "
-                    + b.length);
-        }
-
-        for (int i = 0; i < out.size(); i++) {
-            try {
-                ((OutputStream) out.get(i)).write(b);
-            } catch (IOException e2) {
-                if (DEBUG) {
-                    System.err.println("splitter got exception");
-                }
-                if (savedException == null) {
-                    savedException = new SplitterException();
-                }
-                savedException.add(((OutputStream) out.get(i)), e2);
-                if (removeOnException) {
-                    out.remove(i);
-                    i--;
-                }
-            }
-        }
-
-        if (savedException != null) {
-            if (! saveException) {
-                if (DEBUG) {
-                    System.err.println("splitter throwing exception");
-                }
-                SplitterException e = savedException;
-                savedException = null;
-                throw e;
-            }
-        }
+        write(b, 0, b.length);
     }
 
     public void write(byte[] b, int off, int len) throws IOException {
@@ -124,33 +186,13 @@ public final class OutputStreamSplitter extends OutputStream {
                     + ", len = " + len);
         }
 
-        for (int i = 0; i < out.size(); i++) {
-            try {
-                ((OutputStream) out.get(i)).write(b, off, len);
-            } catch (IOException e2) {
-                if (DEBUG) {
-                    System.err.println("splitter got exception");
-                }
-                if (savedException == null) {
-                    savedException = new SplitterException();
-                }
-                savedException.add(((OutputStream) out.get(i)), e2);
-                if (removeOnException) {
-                    out.remove(i);
-                    i--;
-                }
-            }
+        for (int i = 1; i < out.size(); i++) {
+            Sender s = new Sender(b, i, off, len);
+            runThread(s, "Splitter sender");
         }
-
-        if (savedException != null) {
-            if (! saveException) {
-                if (DEBUG) {
-                    System.err.println("splitter throwing exception");
-                }
-                SplitterException e = savedException;
-                savedException = null;
-                throw e;
-            }
+        if (out.size() > 0) {
+            doWrite(b, off, len, 0);
+            done();
         }
     }
 
@@ -159,33 +201,13 @@ public final class OutputStreamSplitter extends OutputStream {
             System.err.println("SPLIT: flush");
         }
 
-        for (int i = 0; i < out.size(); i++) {
-            try {
-                ((OutputStream) out.get(i)).flush();
-            } catch (IOException e2) {
-                if (DEBUG) {
-                    System.err.println("splitter got exception");
-                }
-                if (savedException == null) {
-                    savedException = new SplitterException();
-                }
-                savedException.add(((OutputStream) out.get(i)), e2);
-                if (removeOnException) {
-                    out.remove(i);
-                    i--;
-                }
-            }
+        for (int i = 1; i < out.size(); i++) {
+            Flusher f = new Flusher(i);
+            runThread(f, "Splitter flusher");
         }
-
-        if (savedException != null) {
-            if (! saveException) {
-                if (DEBUG) {
-                    System.err.println("splitter throwing exception");
-                }
-                SplitterException e = savedException;
-                savedException = null;
-                throw e;
-            }
+        if (out.size() > 0) {
+            doFlush(0);
+            done();
         }
     }
 
@@ -194,31 +216,13 @@ public final class OutputStreamSplitter extends OutputStream {
             System.err.println("SPLIT: close");
         }
 
-        for (int i = 0; i < out.size(); i++) {
-            try {
-                ((OutputStream) out.get(i)).close();
-            } catch (IOException e2) {
-                if (DEBUG) {
-                    System.err.println("splitter got exception");
-                }
-                if (savedException == null) {
-                    savedException = new SplitterException();
-                }
-                savedException.add(((OutputStream) out.get(i)), e2);
-                if (removeOnException) {
-                    out.remove(i);
-                    i--;
-                }
-            }
+        for (int i = 1; i < out.size(); i++) {
+            Closer f = new Closer(i);
+            runThread(f, "Splitter closer");
         }
-
-        if (savedException != null) {
-            if (DEBUG) {
-                System.err.println("splitter throwing exception");
-            }
-            SplitterException e = savedException;
-            savedException = null;
-            throw e;
+        if (out.size() > 0) {
+            doClose(0);
+            done();
         }
     }
 
@@ -226,5 +230,48 @@ public final class OutputStreamSplitter extends OutputStream {
         SplitterException e = savedException;
         savedException = null;
         return e;
+    }
+
+    private void runThread(Runnable r, String name) {
+        synchronized(this) {
+            while (numSenders >= MAXTHREADS) {
+                try {
+                    wait();
+                } catch(Exception e) {
+                    // Ignored
+                }
+            }
+            numSenders++;
+        }
+        ThreadPool.createNew(r, name);
+    }
+
+    private void done() throws IOException {
+        synchronized(this) {
+            while (numSenders != 0) {
+                try {
+                    wait();
+                } catch(Exception e) {
+                    // Ignored
+                }
+            }
+        }
+
+        if (savedException != null) {
+            if (removeOnException) {
+                for (int i = 0; i < out.size(); i++) {
+                    if (out.get(i) == null) {
+                        out.remove(i);
+                        i--;
+                    }
+                }
+            }
+
+            if (! saveException) {
+                SplitterException e = savedException;
+                savedException = null;
+                throw e;
+            }
+        }
     }
 }
