@@ -32,7 +32,7 @@ public abstract class SharedObjects extends Communication implements Protocol {
 
     boolean gotObject = false;
 
-    boolean receivingObject = false;
+    boolean receivingMcast = false;
 
     SharedObject object = null;
 
@@ -59,7 +59,6 @@ public abstract class SharedObjects extends Communication implements Protocol {
      * as the SO invocation messages.
      */
     public void broadcastSharedObject(SharedObject object) {
-        //	    if(true) return;
 
         WriteMessage w = null;
         long size = 0;
@@ -275,7 +274,7 @@ public abstract class SharedObjects extends Communication implements Protocol {
         if (obj == null) {
             if (!initialNode) {
                 synchronized(this) {
-                    while (receivingObject) {
+                    while (receivingMcast) {
                         try {
                             wait();
                         } catch(Exception e) {
@@ -324,7 +323,9 @@ public abstract class SharedObjects extends Communication implements Protocol {
     public void addSOInvocation(SOInvocationRecord soir) {
         synchronized (this) {
             soInvocationList.add(soir);
+            receivingMcast = false;
             gotSOInvocations = true;
+            notifyAll();
         }
     }
 
@@ -435,11 +436,21 @@ public abstract class SharedObjects extends Communication implements Protocol {
                     + "guard not satisfied, waiting for updates..");
         }
         startTime = System.currentTimeMillis();
-        while (System.currentTimeMillis() - startTime < WAIT_FOR_UPDATES_TIME
-                && !satisfied) {
+        synchronized(this) {
+            while (receivingMcast) {
+                try {
+                    wait();
+                } catch(Exception e) {
+                    // ignored
+                }
+            }
+        }
+        do {
             handleDelayedMessages();
             satisfied = r.guard();
-                }
+        } while (! satisfied
+          && System.currentTimeMillis() - startTime < WAIT_FOR_UPDATES_TIME);
+
         if (!satisfied) {
             // try to ship the object from the owner of the job
             if (soLogger.isInfoEnabled()) {

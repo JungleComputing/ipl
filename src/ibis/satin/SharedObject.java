@@ -35,7 +35,7 @@ public class SharedObject implements java.io.Serializable {
 
         //create identifier
         sharedObjectsCounter++;
-        objectId = "satin_shared_object" + sharedObjectsCounter + "@"
+        objectId = "SO" + sharedObjectsCounter + "@"
             + Satin.getSatinIdent().name();
 
         //add yourself to the sharedObjects hashtable
