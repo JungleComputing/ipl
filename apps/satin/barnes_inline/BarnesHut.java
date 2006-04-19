@@ -36,8 +36,6 @@ import java.util.List;
 
     static int impl = IMPL_NTC;
 
-    private static final boolean SPAWN_ALL = true;
-
     //number of bodies at which the ntc impl work sequentially
     private static int spawn_min = 500; //use -min <threshold> to modify
 
@@ -227,7 +225,7 @@ import java.util.List;
         int resultsz = 0;
 	for (int i = 0; i < 8; i++) {
 	    if (treeNode.children[i] != null) {
-                if (SPAWN_ALL || treeNode.children[i].children != null) {
+                if (treeNode.children[i].children != null) {
                     childcount++;
                 } else {
                     resultsz += treeNode.children[i].bodyCount;
@@ -241,11 +239,12 @@ import java.util.List;
         BodyUpdates result = getBodyUpdates(resultsz, bodies.params);
         childcount = 0;
 
-        // First spawn.
 	for (int i = 0; i < 8; i++) {
 	    BodyTreeNode ch = treeNode.children[i];
 	    if (ch != null) {
-		if (SPAWN_ALL || ch.children != null) {
+                if (ch.children == null) {
+                    ch.barnesSequential(bodies.bodyTreeRoot, result, bodies.params);
+                } else {
 		    /*spawn child jobs*/
 		    byte[] newNodeId = new byte[nodeId.length + 1];
 		    System.arraycopy(nodeId, 0, newNodeId, 0, nodeId.length);
@@ -256,19 +255,6 @@ import java.util.List;
 		}
 	    }
 	}
-
-        // Then do local computations. 
-        if (! SPAWN_ALL) {
-            for (int i = 0; i < 8; i++) {
-                BodyTreeNode ch = treeNode.children[i];
-                if (ch != null) {
-                    if (ch.children == null) {
-                        ch.barnesSequential(bodies.bodyTreeRoot, result,
-                                bodies.params);
-                    }
-                }
-            }
-        }
 
         // And then wait.
 	if (childcount > 0) {
