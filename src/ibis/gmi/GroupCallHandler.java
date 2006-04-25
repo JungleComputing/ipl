@@ -27,10 +27,10 @@ final class GroupCallHandler implements GroupProtocol, Upcall {
             GroupSkeleton s = Group.getSkeletonByGroupID(dest);
 
             if (Group.logger.isDebugEnabled()) {
-                Group.logger.debug(Group._rank + 
+                Group.logger.debug(Group.rank() + 
                         ": GroupCallHandler.handleInvocation() - "
                         + "It is a GROUP INVOCATION");
-                Group.logger.debug(Group._rank + ": skeleton = " + s);
+                Group.logger.debug(Group.rank() + ": skeleton = " + s);
             }
 
             s.handleMessage(inv, res, r);
@@ -63,7 +63,7 @@ final class GroupCallHandler implements GroupProtocol, Upcall {
             case GroupProtocol.REGISTRY:
 
                 if (Group.logger.isDebugEnabled()) {
-                    Group.logger.debug(Group._rank + 
+                    Group.logger.debug(Group.rank() + 
                             ": GroupCallHandler.upcall() - "
                             + "Got a REGISTRY");
                 }
@@ -74,7 +74,7 @@ final class GroupCallHandler implements GroupProtocol, Upcall {
             case GroupProtocol.INVOCATION:
 
                 if (Group.logger.isDebugEnabled()) {
-                    Group.logger.debug(Group._rank + 
+                    Group.logger.debug(Group.rank() + 
                             ": GroupCallHandler.upcall() - "
                             + "Got an INVOCATION");
                 }
@@ -85,7 +85,7 @@ final class GroupCallHandler implements GroupProtocol, Upcall {
             case GroupProtocol.REGISTRY_REPLY:
 
                 if (Group.logger.isDebugEnabled()) {
-                    Group.logger.debug(Group._rank
+                    Group.logger.debug(Group.rank()
                             + ": GroupCallHandler.upcall() - "
                             + "Got a REGISTRY_REPLY");
                 }
@@ -94,14 +94,14 @@ final class GroupCallHandler implements GroupProtocol, Upcall {
                 RegistryReply r = (RegistryReply) m.readObject();
 
                 if (Group.logger.isDebugEnabled()) {
-                    Group.logger.debug(Group._rank + 
+                    Group.logger.debug(Group.rank() + 
                             ": GroupCallHandler.upcall() - " +
                             "REGISTRY_REPLY forwarded to ticketMaster (" +
                             ticket + ")");
                 }
 
                 m.finish(); // ticketMaster may block.
-                Group.logger.debug(Group._rank
+                Group.logger.debug(Group.rank()
                         + ": REGISTRY_REPLY forwarded to ticketMaster ("
                         + ticket + ")");
                 Group.ticketMaster.put(ticket, r);
@@ -110,7 +110,7 @@ final class GroupCallHandler implements GroupProtocol, Upcall {
             case GroupProtocol.INVOCATION_FLATCOMBINE:
 
                 if (Group.logger.isDebugEnabled()) {
-                    Group.logger.debug(Group._rank + 
+                    Group.logger.debug(Group.rank() + 
                             ": GroupCallHandler.upcall() - "
                             + "Got a INVOCATION_FLATCOMBINE");
                 }
@@ -122,7 +122,7 @@ final class GroupCallHandler implements GroupProtocol, Upcall {
             case GroupProtocol.INVOCATION_BINCOMBINE:
 
                 if (Group.logger.isDebugEnabled()) {
-                    Group.logger.debug(Group._rank + 
+                    Group.logger.debug(Group.rank() + 
                             ": GroupCallHandler.upcall() - " +
                             "Got a INVOCATION_BINCOMBINE");
                 }
@@ -133,7 +133,7 @@ final class GroupCallHandler implements GroupProtocol, Upcall {
 
             case GroupProtocol.INVOCATION_REPLY:
                 if (Group.logger.isDebugEnabled()) {
-                    Group.logger.debug(Group._rank + 
+                    Group.logger.debug(Group.rank() + 
                             ": GroupCallHandler.upcall() - " +
                             "Got a INVOCATION_REPLY");
                 }
@@ -144,7 +144,7 @@ final class GroupCallHandler implements GroupProtocol, Upcall {
                 ticket = ticket & 0xFFFF;
                 
                 if (Group.logger.isDebugEnabled()) {
-                    Group.logger.debug(Group._rank + 
+                    Group.logger.debug(Group.rank() + 
                             ": GroupCallHandler.upcall() - " +
                             "INVOCATION_REPLY forwarded to stub (" + 
                             stub + ", " + ticket + ")");
@@ -156,7 +156,7 @@ final class GroupCallHandler implements GroupProtocol, Upcall {
 
             case GroupProtocol.COMBINE:
                 if (Group.logger.isDebugEnabled()) {
-                    Group.logger.debug(Group._rank + 
+                    Group.logger.debug(Group.rank() + 
                             ": GroupCallHandler.upcall() - "
                             + "Got a COMBINE");
                 }
@@ -168,7 +168,7 @@ final class GroupCallHandler implements GroupProtocol, Upcall {
             case GroupProtocol.COMBINE_RESULT:
 
                 if (Group.logger.isDebugEnabled()) {
-                    Group.logger.debug(Group._rank + 
+                    Group.logger.debug(Group.rank() + 
                             ": GroupCallHandler.upcall() - "
                             + "Got a COMBINE_RESULT");
                 }
@@ -180,7 +180,7 @@ final class GroupCallHandler implements GroupProtocol, Upcall {
             case GroupProtocol.CREATE_MULTICAST_PORT:
                 
                 if (Group.logger.isDebugEnabled()) {
-                    Group.logger.debug(Group._rank + 
+                    Group.logger.debug(Group.rank() + 
                             ": GroupCallHandler.upcall() - "
                             + "Got a CREATE_MULTICAST_PORT");
                 }
@@ -191,7 +191,7 @@ final class GroupCallHandler implements GroupProtocol, Upcall {
             case GroupProtocol.CREATE_MULTICAST_PORT_REPLY:
                 
                 if (Group.logger.isDebugEnabled()) {
-                    Group.logger.debug(Group._rank + 
+                    Group.logger.debug(Group.rank() + 
                             ": GroupCallHandler.upcall() - "
                             + "Got a CREATE_MULTICAST_PORT_REPLY");
                 }
@@ -200,12 +200,12 @@ final class GroupCallHandler implements GroupProtocol, Upcall {
                 break;                
                                 
             default:                    
-                Group.logger.warn(Group._rank + 
+                Group.logger.warn(Group.rank() + 
                         ": GroupCallHandler.upcall() - "
                         + "Got an illegal opcode !");
             }
         } catch (Exception e) {
-            Group.logger.warn(Group._rank + 
+            Group.logger.warn(Group.rank() + 
                     ": GroupCallHandler.upcall() - " +
                     ": Got an exception in GroupCallHandler !", e);                
         }

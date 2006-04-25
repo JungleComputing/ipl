@@ -2,6 +2,7 @@
 
 package ibis.impl.net.tcp_blk;
 
+import ibis.connect.virtual.VirtualSocket;
 import ibis.impl.net.NetBufferFactory;
 import ibis.impl.net.NetBufferedOutput;
 import ibis.impl.net.NetConnection;
@@ -21,7 +22,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.Socket;
 import java.util.Map;
 
 /**
@@ -37,7 +37,7 @@ public final class TcpOutput extends NetBufferedOutput {
     /**
      * The communication socket.
      */
-    private Socket tcpSocket = null;
+    private VirtualSocket tcpSocket = null;
 
     /**
      * The peer {@link ibis.impl.net.NetReceivePort NetReceivePort}
@@ -92,7 +92,7 @@ public final class TcpOutput extends NetBufferedOutput {
         headerLength = 4;
     }
 
-    private Socket makeBrokeredConnection(NetConnection cnx)
+    private VirtualSocket makeBrokeredConnection(NetConnection cnx)
             throws IOException {
         InputStream brokering_in = cnx.getServiceLink().getInputSubStream(this,
                 "tcp_blk_brokering");
@@ -101,7 +101,7 @@ public final class TcpOutput extends NetBufferedOutput {
 
         final Map p = cnx.properties();
 
-        Socket tcpSocket = NetIbis.socketFactory.createBrokeredSocket(
+        VirtualSocket tcpSocket = NetIbis.socketFactory.createBrokeredSocket(
                 brokering_in, brokering_out, false, p);
 
         brokering_in.close();

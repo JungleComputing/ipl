@@ -2,7 +2,7 @@
 
 package ibis.impl.net;
 
-import ibis.connect.IbisSocketFactory;
+import ibis.connect.virtual.VirtualSocketFactory;
 import ibis.impl.nameServer.NameServer;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisConfigurationException;
@@ -71,8 +71,8 @@ public final class NetIbis extends Ibis {
     /**
      * The Ibis socket factory
      */
-    public static IbisSocketFactory socketFactory
-        = IbisSocketFactory.getFactory();
+    public static VirtualSocketFactory socketFactory
+        = VirtualSocketFactory.getSocketFactory();
 
     /**
      * The driver loading mode.

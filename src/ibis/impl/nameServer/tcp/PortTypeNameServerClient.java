@@ -2,6 +2,8 @@
 
 package ibis.impl.nameServer.tcp;
 
+import ibis.connect.virtual.*;
+
 import ibis.ipl.StaticProperties;
 
 import java.io.BufferedInputStream;
@@ -10,40 +12,33 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.StreamCorruptedException;
-import java.net.InetAddress;
-import java.net.Socket;
 import java.util.Iterator;
 import java.util.Set;
 
+
 class PortTypeNameServerClient implements Protocol {
 
-    InetAddress server;
+    VirtualSocketAddress server;
 
     int port;
 
-    InetAddress localAddress;
-
     String ibisName;
 
-    PortTypeNameServerClient(InetAddress localAddress, InetAddress server,
-            int port, String name) {
+    PortTypeNameServerClient(VirtualSocketAddress server, String name) {
         this.server = server;
-        this.port = port;
-        this.localAddress = localAddress;
         ibisName = name;
     }
 
     public boolean newPortType(String name, StaticProperties p)
             throws IOException {
 
-        Socket s = null;
+        VirtualSocket s = null;
         DataOutputStream out = null;
         DataInputStream in = null;
         int result;
 
         try {
-            s = NameServerClient.nsConnect(server, port, localAddress, false,
-                    10);
+            s = NameServerClient.nsConnect(server, false, 10);
             out = new DataOutputStream(new BufferedOutputStream(s.getOutputStream(), 4096));
 
             out.writeByte(PORTTYPE_NEW);
@@ -83,12 +78,11 @@ class PortTypeNameServerClient implements Protocol {
     }
 
     public long getSeqno(String name) throws IOException {
-        Socket s = null;
+        VirtualSocket s = null;
         DataOutputStream out = null;
         DataInputStream in = null;
         try {
-            s = NameServerClient.nsConnect(server, port, localAddress,
-                    false, 10);
+            s = NameServerClient.nsConnect(server, false, 10);
 
             out = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
 

@@ -2,6 +2,7 @@
 
 package ibis.rmi.impl;
 
+import ibis.connect.util.NetworkUtils;
 import ibis.ipl.BindingException;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisException;
@@ -25,7 +26,6 @@ import ibis.rmi.server.RemoteRef;
 import ibis.rmi.server.RemoteStub;
 import ibis.rmi.server.SkeletonNotFoundException;
 import ibis.util.GetLogger;
-import ibis.util.IPUtils;
 import ibis.util.Timer;
 import ibis.util.TypedProperties;
 
@@ -260,7 +260,7 @@ public final class RTS {
 
             upcallHandler = new UpcallHandler();
 
-            hostname = IPUtils.getLocalHostAddress().getHostName();
+            hostname = NetworkUtils.getHostname();
             // InetAddress adres = InetAddress.getByName(h);
             // adres = InetAddress.getByName(adres.getHostAddress());
             // hostname = adres.getHostName();

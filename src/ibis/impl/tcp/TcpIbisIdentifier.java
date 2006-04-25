@@ -2,20 +2,20 @@
 
 package ibis.impl.tcp;
 
+import ibis.connect.direct.SocketAddressSet;
 import ibis.impl.util.IbisIdentifierTable;
-import ibis.ipl.IbisIdentifier;
 import ibis.ipl.IbisError;
+import ibis.ipl.IbisIdentifier;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.net.InetAddress;
 
 public final class TcpIbisIdentifier extends IbisIdentifier implements
         java.io.Serializable {
 
     private static final long serialVersionUID = 3L;
 
-    private InetAddress address;
+    private SocketAddressSet address;
 
     private static IbisIdentifierTable cache = new IbisIdentifierTable();
 
@@ -23,18 +23,18 @@ public final class TcpIbisIdentifier extends IbisIdentifier implements
 
     private transient String toStringCache = null;
 
-    public TcpIbisIdentifier(String name, InetAddress address) {
+    public TcpIbisIdentifier(String name, SocketAddressSet address) {
         super(name);
         this.address = address;
     }
 
-    public InetAddress address() {
+    public SocketAddressSet address() {
         return address;
     }
 
     public String toString() {
         if (toStringCache == null) {
-            String a = address == null ? "<null>" : address.getHostName();
+            String a = (address == null ? "<null>" : address.toString());
             String n = (name == null ? "<null>" : name);
             if (n.length() > 8) {
                 n = n.substring(0,8) + "...";
@@ -57,7 +57,7 @@ public final class TcpIbisIdentifier extends IbisIdentifier implements
         }
         out.writeInt(handle);
         if (handle < 0) { // First time, send it.
-            out.writeUTF(address.getHostAddress());
+            out.writeUTF(address.toString());
         }
     }
 
@@ -66,10 +66,10 @@ public final class TcpIbisIdentifier extends IbisIdentifier implements
         int handle = in.readInt();
         if (handle < 0) {
             String addr = in.readUTF();
-            address = (InetAddress) inetAddrMap.get(addr);
+            address = (SocketAddressSet) inetAddrMap.get(addr);
             if (address == null) {
                 try {
-                    address = InetAddress.getByName(addr);
+                    address = new SocketAddressSet(addr);
                 } catch(Exception e) {
                     throw new IbisError("EEK, could not create an inet address"
                             + "from a IP address. This shouldn't happen", e);

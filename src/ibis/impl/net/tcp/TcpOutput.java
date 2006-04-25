@@ -2,6 +2,7 @@
 
 package ibis.impl.net.tcp;
 
+import ibis.connect.virtual.VirtualSocket;
 import ibis.impl.net.NetConnection;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetIbis;
@@ -15,7 +16,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
-import java.net.Socket;
 import java.util.Map;
 
 /**
@@ -26,7 +26,7 @@ public final class TcpOutput extends NetOutput {
     /**
      * The communication socket.
      */
-    private Socket tcpSocket = null;
+    private VirtualSocket tcpSocket = null;
 
     /**
      * The peer {@link ibis.impl.net.NetReceivePort NetReceivePort}

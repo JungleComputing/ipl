@@ -2,13 +2,14 @@
 
 package ibis.impl.tcp;
 
+import ibis.connect.virtual.VirtualSocket;
 import ibis.io.BufferedArrayOutputStream;
 import ibis.io.Conversion;
 import ibis.io.OutputStreamSplitter;
+import ibis.io.Replacer;
 import ibis.io.SplitterException;
 import ibis.io.SerializationBase;
 import ibis.io.SerializationOutput;
-import ibis.io.Replacer;
 import ibis.ipl.AlreadyConnectedException;
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.IbisError;
@@ -21,7 +22,6 @@ import ibis.ipl.SendPortIdentifier;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -30,7 +30,7 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 
     private static class Conn {
         OutputStream out;
-        Socket s;
+        VirtualSocket s;
         TcpReceivePortIdentifier ident;
 
         public boolean equals(Object o) {

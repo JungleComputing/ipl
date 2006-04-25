@@ -8,6 +8,7 @@
 
 package ibis.impl.tcp;
 
+import ibis.connect.virtual.VirtualSocket;
 import ibis.io.BufferedArrayInputStream;
 import ibis.io.Conversion;
 import ibis.io.SerializationBase;
@@ -16,7 +17,6 @@ import ibis.ipl.IbisError;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.Socket;
 
 final class ConnectionHandler implements Runnable, TcpProtocol { //, Config {
     private static boolean DEBUG = false;
@@ -30,7 +30,7 @@ final class ConnectionHandler implements Runnable, TcpProtocol { //, Config {
     private SerializationInput in;
 
     private InputStream input;
-    private Socket s;
+    private VirtualSocket s;
     
     TcpReadMessage m;
 
@@ -39,7 +39,7 @@ final class ConnectionHandler implements Runnable, TcpProtocol { //, Config {
     TcpIbis ibis;
 
     ConnectionHandler(TcpIbis ibis, TcpSendPortIdentifier origin,
-            TcpReceivePort port, Socket s) throws IOException {
+            TcpReceivePort port, VirtualSocket s) throws IOException {
         this.port = port;
         this.origin = origin;
         this.s = s;

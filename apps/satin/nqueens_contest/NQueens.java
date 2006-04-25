@@ -325,7 +325,7 @@ final class NQueens extends SatinObject implements NQueensInterface,
                         spawnLevel, 1, bit * 2, bit, bit / 2, MASK, LASTMASK,
                         SIDEMASK, BOUND1, BOUND2, TOPBIT, ENDBIT);
                 } else {
-                    System.out.println("WARNING: skipped " + SELECTED_BOUND);
+                    System.err.println("WARNING: skipped " + SELECTED_BOUND);
                 }
             }
         }
@@ -350,23 +350,23 @@ final class NQueens extends SatinObject implements NQueensInterface,
 
         time = time / 1000.0;
 
-        System.out.println(" application result nqueens (" + size + ") = "
+        System.err.println(" application result nqueens (" + size + ") = "
             + nsol + "  time = " + time + " s. ");
 
         if (verbose) {
             for (int i = 0; i < (size - 2 + (size - 1) / 2 - 1); i++) {
-                System.out.println("result[ " + i + "] = " + results[i] + " ("
+                System.err.println("result[ " + i + "] = " + results[i] + " ("
                     + ((100 * results[i]) / solutions[size]) + "%)");
             }
 
-            System.out.println(" application result nqueens (" + size + ") = "
+            System.err.println(" application result nqueens (" + size + ") = "
                 + nsol);
 
             if (size < solutions.length) {
                 if (nsol == solutions[size]) {
-                    System.out.println(" application result is OK");
+                    System.err.println(" application result is OK");
                 } else {
-                    System.out
+                    System.err
                         .println(" application result is NOT COMPLETE OR WRONG!");
                 }
             }
@@ -376,7 +376,7 @@ final class NQueens extends SatinObject implements NQueensInterface,
     public static void main(String[] args) {
 
         if (args.length < 2) {
-            System.out
+            System.err
                 .println(" usage: nqueens repeat size spawnLevel [ list of bounds to compute ]");
             System.exit(1);
         }
@@ -395,7 +395,7 @@ final class NQueens extends SatinObject implements NQueensInterface,
                 bounds[i] = Integer.parseInt(args[i + 3]);
 
                 if (bounds[i] > (size / 2)) {
-                    System.out.println("Illegal bounds " + bounds[i]);
+                    System.err.println("Illegal bounds " + bounds[i]);
                     System.exit(1);
                 }
             }
@@ -407,13 +407,13 @@ final class NQueens extends SatinObject implements NQueensInterface,
             }
         }
 
-        System.out.print(" nqueens " + size + " started with spawn level "
+        System.err.print(" nqueens " + size + " started with spawn level "
             + spawnLevel);
 
         if (size < solutions.length) {
-            System.out.println(" (solution should be " + solutions[size] + ")");
+            System.err.println(" (solution should be " + solutions[size] + ")");
         } else {
-            System.out.println(" (solution is unknown)");
+            System.err.println(" (solution is unknown)");
         }
 
         NQueens nq = new NQueens();

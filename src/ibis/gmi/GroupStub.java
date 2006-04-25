@@ -98,7 +98,7 @@ public class GroupStub implements GroupInterface, GroupProtocol {
      */
     protected void init(int gid, int mranks[], int[] mskels, int stubID) {
         if (logger.isDebugEnabled()) {
-            logger.debug(Group._rank + ": init(" + stubID + ") started");
+            logger.debug(Group.rank() + ": init(" + stubID + ") started");
         }
 
         this.groupID = gid;
@@ -135,7 +135,7 @@ public class GroupStub implements GroupInterface, GroupProtocol {
         replyStack = new Ticket();
 
         if (logger.isDebugEnabled()) {
-            logger.debug(Group._rank + ": init(" + stubID
+            logger.debug(Group.rank() + ": init(" + stubID
                     + ") done, multicastHostsID = " + multicastHostsID);
         }
     }
@@ -323,7 +323,7 @@ public class GroupStub implements GroupInterface, GroupProtocol {
         switch (inv.inv.mode) {
         case InvocationScheme.I_SINGLE: {
             if (logger.isDebugEnabled()) {
-                logger.debug(Group._rank + ": do_invoke(...) - Single invoke");
+                logger.debug(Group.rank() + ": do_invoke(...) - Single invoke");
             }
             WriteMessage w = m.sendport.newMessage();
             do_message(w, m, personalizer, m.destinationSkeleton, m.info.out);
@@ -331,7 +331,7 @@ public class GroupStub implements GroupInterface, GroupProtocol {
             break;
         case InvocationScheme.I_GROUP: {
             if (logger.isDebugEnabled()) {
-                logger.debug(Group._rank + ": do_invoke(...) - Group invoke");
+                logger.debug(Group.rank() + ": do_invoke(...) - Group invoke");
             }
             WriteMessage w = m.sendport.newMessage();
             // System.out.println("Sendport = " + m.sendport);
@@ -340,7 +340,7 @@ public class GroupStub implements GroupInterface, GroupProtocol {
             break;
         case InvocationScheme.I_PERSONAL: {
             if (logger.isDebugEnabled()) {
-                logger.debug(Group._rank + ": do_invoke(...) - " + 
+                logger.debug(Group.rank() + ": do_invoke(...) - " + 
                         "Personalized invoke");
             }
 

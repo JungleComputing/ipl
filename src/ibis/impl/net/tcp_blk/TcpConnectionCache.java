@@ -2,10 +2,10 @@
 
 package ibis.impl.net.tcp_blk;
 
+import ibis.connect.virtual.VirtualSocket;
 import ibis.ipl.IbisIdentifier;
 import ibis.util.TypedProperties;
 
-import java.net.Socket;
 import java.util.Hashtable;
 import java.util.Vector;
 
@@ -35,7 +35,7 @@ class TcpConnectionCache {
      * 		link is also present in the cache, both are removed and the
      * 		socket should be closed.
      */
-    synchronized boolean cacheInput(IbisIdentifier ibis, Socket socket) {
+    synchronized boolean cacheInput(IbisIdentifier ibis, VirtualSocket socket) {
         if (DISABLED) {
             return false;
         }
@@ -75,7 +75,7 @@ class TcpConnectionCache {
      * 		is also present in the cache, both are removed and the socket
      * 		should be closed.
      */
-    synchronized boolean cacheOutput(IbisIdentifier ibis, Socket socket) {
+    synchronized boolean cacheOutput(IbisIdentifier ibis, VirtualSocket socket) {
         if (DISABLED) {
             return false;
         }
@@ -117,7 +117,7 @@ class TcpConnectionCache {
      * @return the socket with remote port <code>port</code> whose input link
      * 		was cached.
      */
-    synchronized Socket getCachedInput(IbisIdentifier ibis, int port) {
+    synchronized VirtualSocket getCachedInput(IbisIdentifier ibis, int port) {
         if (DISABLED) {
             return null;
         }
@@ -134,7 +134,7 @@ class TcpConnectionCache {
         }
 
         Integer key = new Integer(port);
-        Socket socket = (Socket) cache.remove(key);
+        VirtualSocket socket = (VirtualSocket) cache.remove(key);
 
         if (socket == null) {
             if (VERBOSE) {
@@ -157,7 +157,7 @@ class TcpConnectionCache {
      * @return a socket whose output link was cached, or <code>null</code> if
      * 		there are no matching links in the cache
      */
-    synchronized Socket getCachedOutput(IbisIdentifier ibis) {
+    synchronized VirtualSocket getCachedOutput(IbisIdentifier ibis) {
         if (DISABLED) {
             return null;
         }
@@ -174,7 +174,7 @@ class TcpConnectionCache {
                     + cache);
         }
 
-        return (Socket) cache.remove(cache.size() - 1);
+        return (VirtualSocket) cache.remove(cache.size() - 1);
     }
 
 }

@@ -2,13 +2,13 @@
 
 package ibis.rmi.registry.impl;
 
+import ibis.connect.util.NetworkUtils;
 import ibis.rmi.AlreadyBoundException;
 import ibis.rmi.NotBoundException;
 import ibis.rmi.Remote;
 import ibis.rmi.RemoteException;
 import ibis.rmi.impl.RTS;
 import ibis.rmi.registry.Registry;
-import ibis.util.IPUtils;
 
 import java.net.InetAddress;
 
@@ -21,14 +21,20 @@ public class RegistryImpl implements Registry {
 
     static Logger logger = ibis.util.GetLogger.getLogger(RegistryImpl.class.getName());
 
-    private String localhostName() {
+    private String localhostName() {        
         String hostname = null;
-        InetAddress addr = IPUtils.getLocalHostAddress();
-        hostname = addr.getCanonicalHostName();
-        if (logger.isDebugEnabled()) {
-            logger.debug("localhostName() returns " + hostname);
-        }
-
+        
+        try { 
+            hostname = NetworkUtils.getHostname();
+        
+            if (logger.isDebugEnabled()) {
+                logger.debug("localhostName() returns " + hostname);
+            }
+           
+        } catch (Exception e) {
+            logger.warn("localhostName() failed!");            
+        } 
+                
         return hostname;
     }
 

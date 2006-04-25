@@ -2,6 +2,8 @@
 
 package ibis.impl.tcp;
 
+import ibis.connect.virtual.VirtualSocket;
+import ibis.connect.virtual.VirtualSocketAddress;
 import ibis.ipl.IbisError;
 import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
@@ -14,7 +16,6 @@ import ibis.ipl.Upcall;
 import ibis.util.ThreadPool;
 
 import java.io.IOException;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -85,9 +86,11 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
         connections = new ConnectionHandler[2];
         connectionsIndex = 0;
 
-        int port = ibis.tcpPortHandler.register(this);
+        VirtualSocketAddress sa = ibis.tcpPortHandler.register(this);
+        
         ident = new TcpReceivePortIdentifier(name, type.name(),
-                (TcpIbisIdentifier) type.ibis.identifier(), port);
+                (TcpIbisIdentifier) type.ibis.identifier(), sa);
+        
         if (upcall == null && connUpcall == null
                 && !type.p.isProp("communication", "ManyToOne")
                 && !type.p.isProp("communication", "Poll")
@@ -547,7 +550,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
         }
     }
 
-    synchronized void connect(TcpSendPortIdentifier origin, Socket s) {
+    synchronized void connect(TcpSendPortIdentifier origin, VirtualSocket s) {
         try {
             ConnectionHandler con = new ConnectionHandler(ibis, origin, this, s);
 

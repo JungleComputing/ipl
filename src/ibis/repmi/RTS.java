@@ -2,6 +2,7 @@
 
 package ibis.repmi;
 
+import ibis.connect.util.NetworkUtils;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.PortType;
@@ -11,7 +12,6 @@ import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
 import ibis.util.GetLogger;
-import ibis.util.IPUtils;
 import ibis.util.PoolInfo;
 
 import java.io.IOException;
@@ -61,7 +61,7 @@ public final class RTS {
         try {
             skeletons = new Vector();
 
-            name = IPUtils.getLocalHostAddress().getHostName();
+            name = NetworkUtils.getHostname();
 
             logger.debug(name + ": init RepMI RTS");
 

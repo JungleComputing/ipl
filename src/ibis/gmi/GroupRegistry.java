@@ -2,7 +2,9 @@
 
 package ibis.gmi;
 
+import ibis.ipl.IbisIdentifier;
 import ibis.ipl.ReadMessage;
+import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
 
 import java.io.IOException;
@@ -285,28 +287,51 @@ final class GroupRegistry implements GroupProtocol {
      * @param type the group interface for this new group
      * @exception java.io.IOException on an IO error.
      */
-    private synchronized void newGroup(String groupName, int groupSize,
-            int rank, int ticket, String type) throws IOException {
+    private void newGroup(ReadMessage r) throws IOException {
 
+        int machineRank = r.readInt();
+        int ticket = r.readInt();
+        String groupName = r.readString();
+        String type = r.readString();
+        int groupSize = r.readInt();        
+        SendPort sender = Group.getUnicastSendPort(r.origin().ibis());        
+        r.finish();
+                        
         if (logger.isDebugEnabled()) {
-            logger.debug(Group._rank + ": GroupRegistry.newGroup("
-                    + groupName + ", " + groupSize + ", " + rank + ", " + 
+            logger.debug(Group.rank() + ": GroupRegistry.newGroup("
+                    + groupName + ", " + groupSize + ", " + sender + ", " + 
                     ticket + ", " + type);                    
         }
         
-        WriteMessage w = Group.unicast[rank].newMessage();
+        boolean exists;
+        
+        synchronized (groups) {           
+            exists = groups.contains(groupName);
+            
+            if (!exists) { 
+                groups.put(groupName, new GroupRegistryData(groupNumber++,
+                        groupSize, type));
+            }
+        }
+                
+        //WriteMessage w = Group.unicast[rank].newMessage();
+        WriteMessage w = sender.newMessage();        
         w.writeByte(REGISTRY_REPLY);
         w.writeInt(ticket);
 
-        if (groups.contains(groupName)) {
+        if (exists) { 
             w.writeObject(new RegistryReply(CREATE_FAILED));
         } else {
-            groups.put(groupName, new GroupRegistryData(groupNumber++,
-                    groupSize, type));
             w.writeObject(new RegistryReply(CREATE_OK));
         }
 
         w.finish();
+        
+        if (logger.isDebugEnabled()) { 
+            logger.debug(Group.rank() + ": CREATE_GROUP(" + groupName
+                    + ", " + type + ", " + groupSize + ") from " + machineRank
+                    + " HANDLED");
+        }
     }
 
     /**
@@ -320,115 +345,117 @@ final class GroupRegistry implements GroupProtocol {
      * @param ticket ticket number for the reply
      * @param interfaces the group interfaces that this requester implements
      * @exception java.io.IOException on an IO error.
+     * @throws ClassNotFoundException 
      */
-    private synchronized void joinGroup(String groupName, int memberSkel,
-            int machineRank, int requestedRank, int ticket, String[] interfaces, 
-            long timeout) throws IOException {
-
+    private void joinGroup(ReadMessage r) throws IOException, 
+        ClassNotFoundException { 
+            
+        int machineRank = r.readInt();
+        int requestedRank = r.readInt();
+        int ticket = r.readInt();
+        String groupName = r.readString();
+        String [] interfaces = (String[]) r.readObject();
+        int memberSkel = r.readInt();
+        long timeout = r.readLong();
+        
+        SendPort sender = Group.getUnicastSendPort(r.origin().ibis());
+                        
+        r.finish();
+                       
         // TODO Implement timeout.         
-        WriteMessage w;
-
         if (logger.isDebugEnabled()) {
-            logger.debug(Group._rank + ": GroupRegistry.joinGroup(" + 
+            logger.debug(Group.rank() + ": GroupRegistry.joinGroup(" + 
                     groupName +", " + memberSkel + ", " + machineRank + ", " + 
                     requestedRank + ", " + ticket + ", " + interfaces + ", " + 
                     timeout +")");                      
         }
+
+        GroupRegistryData e = null;
+        RegistryReply reply = null;
+        boolean last = false;
         
-        GroupRegistryData e = (GroupRegistryData) groups.get(groupName);
+        synchronized (groups) {
+            e = (GroupRegistryData) groups.get(groupName);
 
-        // Check if the group exists
-        if (e == null) {
+            if (e == null) {
+                
+                // Check if the group exists
+                if (logger.isDebugEnabled()) {
+                    logger.debug(Group.rank() + ": GroupRegistry.joinGroup " + 
+                            "- Group \"" + groupName + "\" not found!");                      
+                }
+                
+                reply = new RegistryReply(JOIN_UNKNOWN);
+                
+            } else if (e.full()) {
+                
+                // Check if the group is full                
+                if (logger.isDebugEnabled()) {
+                    logger.debug(Group.rank() + ": GroupRegistry.joinGroup " + 
+                            "- Group \"" + groupName + "\" full!");                      
+                }
+                
+                reply = new RegistryReply(JOIN_FULL);
+                
+            } else if (!e.legalRank(requestedRank)) {
+                
+                // Check if the requested rank is legal
+                if (logger.isDebugEnabled()) {
+                    logger.debug(Group.rank() + ": GroupRegistry.joinGroup " + 
+                            "- Group \"" + groupName + "\" - Rank " + requestedRank +
+                            " not legal!");                      
+                }
+                
+                reply = new RegistryReply(JOIN_ILLEGAL_RANK);
             
-            if (logger.isDebugEnabled()) {
-                logger.debug(Group._rank + ": GroupRegistry.joinGroup " + 
-                        "- Group \"" + groupName + "\" not found!");                      
+            } else if (!e.rankAvailable(requestedRank)) {
+
+                // Check if the requested rank is still available       
+                if (logger.isDebugEnabled()) {
+                    logger.debug(Group.rank() + ": GroupRegistry.joinGroup " + 
+                            "- Group \"" + groupName + "\" - Rank " + requestedRank +
+                            " not available!");                      
+                }
+                
+                reply = new RegistryReply(JOIN_RANK_TAKEN);
+                
+            } else if (!e.checkType(interfaces)) {
+                
+                // Check it the type of the group is correct                 
+                if (logger.isDebugEnabled()) {
+                    logger.debug(Group.rank() + ": GroupRegistry.joinGroup " + 
+                            " - Group \"" + groupName + "\" - Rank " + requestedRank +
+                            " not legal!");                      
+                }
+                
+                reply = new RegistryReply(JOIN_WRONG_TYPE);
+            } else { 
+
+                // All is well, so join the group    
+                e.join(memberSkel, machineRank, requestedRank, ticket);
+            
+                // Check if this was the last member        
+                last = e.full();
             }
-            
-            w = Group.unicast[machineRank].newMessage();
+        }             
+
+        if (reply != null) { 
+            // The lookup failed, so send the error back 
+        
+            WriteMessage w = sender.newMessage();
             w.writeByte(REGISTRY_REPLY);
             w.writeInt(ticket);
-            w.writeObject(new RegistryReply(JOIN_UNKNOWN));
+            w.writeObject(reply);
             w.finish();
             return;
-        }  
-
-        // Check if the group is full
-        if (e.full()) {
             
-            if (logger.isDebugEnabled()) {
-                logger.debug(Group._rank + ": GroupRegistry.joinGroup " + 
-                        "- Group \"" + groupName + "\" full!");                      
-            }
-            
-            w = Group.unicast[machineRank].newMessage();
-            w.writeByte(REGISTRY_REPLY);
-            w.writeInt(ticket);
-            w.writeObject(new RegistryReply(JOIN_FULL));
-            w.finish();
-            return;
         } 
         
-        // Check if the requested rank is legal
-        if (!e.legalRank(requestedRank)) {
-            
+        if (last) {    
+                
+            // The lookup was succesfull, but only the last one replies....                                    
             if (logger.isDebugEnabled()) {
-                logger.debug(Group._rank + ": GroupRegistry.joinGroup " + 
-                        "- Group \"" + groupName + "\" - Rank " + requestedRank +
-                        " not legal!");                      
-            }
-            
-            w = Group.unicast[machineRank].newMessage();
-            w.writeByte(REGISTRY_REPLY);
-            w.writeInt(ticket);
-            w.writeObject(new RegistryReply(JOIN_ILLEGAL_RANK));
-            w.finish();
-            return;
-        } 
-        
-        // Check if the requested rank is still available       
-        if (!e.rankAvailable(requestedRank)) {
-            
-            if (logger.isDebugEnabled()) {
-                logger.debug(Group._rank + ": GroupRegistry.joinGroup " + 
-                        "- Group \"" + groupName + "\" - Rank " + requestedRank +
-                        " not available!");                      
-            }
-            
-            w = Group.unicast[machineRank].newMessage();
-            w.writeByte(REGISTRY_REPLY);
-            w.writeInt(ticket);
-            w.writeObject(new RegistryReply(JOIN_RANK_TAKEN));
-            w.finish();
-            return;
-        } 
-        
-        // Check it the type of the group is correct 
-        if (!e.checkType(interfaces)) {             
-            
-            if (logger.isDebugEnabled()) {
-                logger.debug(Group._rank + ": GroupRegistry.joinGroup " + 
-                        " - Group \"" + groupName + "\" - Rank " + requestedRank +
-                        " not legal!");                      
-            }
-            
-            w = Group.unicast[machineRank].newMessage();
-            w.writeByte(REGISTRY_REPLY);
-            w.writeInt(ticket);
-            w.writeObject(new RegistryReply(JOIN_WRONG_TYPE));
-            w.finish();
-            return;
-        }
-                                                      
-        // All is well, so join the group    
-        e.join(memberSkel, machineRank, requestedRank, ticket);
-
-        // Check if this was the last member        
-        if (e.full()) {
-
-            // Last one, so send everyone the reply            
-            if (logger.isDebugEnabled()) {
-                logger.debug(Group._rank + ": GroupRegistry.joinGroup " + 
+                logger.debug(Group.rank() + ": GroupRegistry.joinGroup " + 
                         "- Group " + groupName + " full, sending replies!");                      
             }
             
@@ -437,7 +464,7 @@ final class GroupRegistry implements GroupProtocol {
             int [] tickets = e.getRankedTickets();
                                                           
             for (int i = 0; i < e.groupSize; i++) {
-                w = Group.unicast[machines[i]].newMessage();
+                WriteMessage w = Group.unicast[machines[i]].newMessage();
                 w.writeByte(REGISTRY_REPLY);
                 w.writeInt(tickets[i]);
                 w.writeObject(new RegistryReply(JOIN_OK, e.groupNumber, 
@@ -456,31 +483,56 @@ final class GroupRegistry implements GroupProtocol {
      * @param ticket ticket number for the reply
      * @exception java.io.IOException on an IO error.
      */
-    private synchronized void findGroup(String groupName, int rank, int ticket)
-            throws IOException {
+    private void findGroup(ReadMessage r) throws IOException {
         
+        int machineRank = r.readInt();
+        int ticket = r.readInt();
+        String groupName = r.readString();
+        
+        SendPort sender = Group.getUnicastSendPort(r.origin().ibis());
+        
+        r.finish();
+
         if (logger.isDebugEnabled()) {
-            logger.debug(Group._rank + ": GroupRegistry.findGroup("
-                    + groupName + ", " + rank + ", " + ticket + ")");                    
+            logger.debug(Group.rank() + ": GroupRegistry.findGroup("
+                    + groupName + ", " + machineRank + ", " + ticket + ")");                    
         }
         
-        GroupRegistryData e = (GroupRegistryData) groups.get(groupName);
+        RegistryReply reply = null;
+        
+        synchronized (groups) {        
+            GroupRegistryData e = (GroupRegistryData) groups.get(groupName);
+            
+            if (e == null) {
+                if (logger.isDebugEnabled()) {
+                    logger.debug(Group.rank() + ": GroupRegistry.findGroup " + 
+                            "- Group \"" + groupName + "\" not found!");                      
+                }
+                
+                reply = new RegistryReply(GROUP_UNKNOWN);
+            } else if (!e.full()) {
+                
+                if (logger.isDebugEnabled()) {
+                    logger.debug(Group.rank() + ": GroupRegistry.findGroup " + 
+                            "- Group \"" + groupName + "\" not ready!");                      
+                }
+                
+                reply = new RegistryReply(GROUP_NOT_READY);
+            } else {
+                if (logger.isDebugEnabled()) {
+                    logger.debug(Group.rank() + ": GroupRegistry.findGroup " + 
+                            "- Group \"" + groupName + "\" ok!");                      
+                }
+                                
+                reply = new RegistryReply(GROUP_OK, e.type, e.groupNumber,
+                        e.getRankedMachines(), e.getRankedSkeletons());
+            }             
+        }
 
-        WriteMessage w = Group.unicast[rank].newMessage();
+        WriteMessage w = sender.newMessage();
         w.writeByte(REGISTRY_REPLY);
         w.writeInt(ticket);
-
-        if (e == null) {
-            w.writeObject(new RegistryReply(GROUP_UNKNOWN));
-        } else if (!e.full()) {
-            w.writeObject(new RegistryReply(GROUP_NOT_READY));
-        } else {
-            int [] machines = e.getRankedMachines();
-            int [] skeletons = e.getRankedSkeletons();
-                        
-            w.writeObject(new RegistryReply(GROUP_OK, e.type, e.groupNumber,
-                    machines, skeletons));
-        }
+        w.writeObject(reply);
         w.finish();
     }
 
@@ -502,12 +554,15 @@ final class GroupRegistry implements GroupProtocol {
         int rank = r.readInt();
         int size = r.readInt();
         int mode = r.readInt();
+        
+        SendPort sender = Group.getUnicastSendPort(r.origin().ibis());
+                
         r.finish();
 
         String id = name + "?" + method + "?" + groupID;
         CombinedInvocationInfo inf;
 
-        synchronized (this) {
+        synchronized (combinedInvocations) {
             inf = (CombinedInvocationInfo) combinedInvocations.get(id);
             if (inf == null) {
                 inf = new CombinedInvocationInfo(groupID, method, name, mode,
@@ -517,7 +572,7 @@ final class GroupRegistry implements GroupProtocol {
 
             if (inf.mode != mode || inf.numInvokers != size
                     || inf.present == size) {
-                WriteMessage w = Group.unicast[cpu].newMessage();
+                WriteMessage w = sender.newMessage();
                 w.writeByte(REGISTRY_REPLY);
                 w.writeInt(ticket);
                 w.writeObject(new RegistryReply(COMBINED_FAILED,
@@ -530,7 +585,7 @@ final class GroupRegistry implements GroupProtocol {
 
         inf.addAndWaitUntilFull(rank, cpu);
 
-        WriteMessage w = Group.unicast[cpu].newMessage();
+        WriteMessage w = sender.newMessage();
         w.writeByte(REGISTRY_REPLY);
         w.writeInt(ticket);
         w.writeObject(new RegistryReply(COMBINED_OK, inf));
@@ -551,6 +606,9 @@ final class GroupRegistry implements GroupProtocol {
         String id = r.readString();
         int size = r.readInt();
         int cpu = r.readInt();
+        
+        SendPort sender = Group.getUnicastSendPort(r.origin().ibis());
+                
         r.finish();
 
         BarrierInfo inf;
@@ -563,7 +621,7 @@ final class GroupRegistry implements GroupProtocol {
             }
 
             if (inf.size != size) {
-                WriteMessage w = Group.unicast[cpu].newMessage();
+                WriteMessage w = sender.newMessage();
                 w.writeByte(REGISTRY_REPLY);
                 w.writeInt(ticket);
 
@@ -583,7 +641,7 @@ final class GroupRegistry implements GroupProtocol {
             }
         }
 
-        WriteMessage w = Group.unicast[cpu].newMessage();
+        WriteMessage w = sender.newMessage();
         w.writeByte(REGISTRY_REPLY);
         w.writeInt(ticket);
         w.writeObject(new RegistryReply(BARRIER_OK));
@@ -597,78 +655,19 @@ final class GroupRegistry implements GroupProtocol {
      */
     public void handleMessage(ReadMessage r) {
         try {
-
-            byte opcode;
-
-            int machineRank;
-            int requestedRank;
-            String name;
-            String type;
-            String[] interfaces;
-            int size;
-            int ticket;
-            int memberSkel;
-            long timeout = 0L;
-            
-            opcode = r.readByte();
+            byte opcode = r.readByte();
 
             switch (opcode) {
             case CREATE_GROUP:
-                machineRank = r.readInt();
-                ticket = r.readInt();
-                name = r.readString();
-                type = r.readString();
-                size = r.readInt();
-                r.finish();
-
-                if (logger.isDebugEnabled()) { 
-                    logger.debug(Group._rank + ": Got a CREATE_GROUP("
-                            + name + ", " + type + ", " + size + ") from "
-                            + machineRank + " ticket(" + ticket + ")");
-                } 
-                
-                newGroup(name, size, machineRank, ticket, type);
-
-                if (logger.isDebugEnabled()) { 
-                    logger.debug(Group._rank + ": CREATE_GROUP(" + name
-                            + ", " + type + ", " + size + ") from " + machineRank
-                            + " HANDLED");
-                }
+                newGroup(r);
                 break;
 
             case JOIN_GROUP:
-                machineRank = r.readInt();
-                requestedRank = r.readInt();
-                ticket = r.readInt();
-                name = r.readString();
-                interfaces = (String[]) r.readObject();
-                memberSkel = r.readInt();
-                timeout = r.readLong();
-                r.finish();
-                
-                if (logger.isDebugEnabled()) { 
-                    logger.debug(Group._rank + ": Got a JOIN_GROUP("
-                            + name + ", " + requestedRank + ", "  + timeout 
-                            + ") from " + machineRank);
-                }
-                
-                joinGroup(name, memberSkel, machineRank, requestedRank, ticket,
-                        interfaces, timeout);
-
+                joinGroup(r);
                 break;
 
-            case FIND_GROUP:
-                machineRank = r.readInt();
-                ticket = r.readInt();
-                name = r.readString();
-                r.finish();
-
-                if (logger.isDebugEnabled()) { 
-                    logger.debug(Group._rank + ": Got a FIND_GROUP(" + name 
-                            + ")");
-                }
-                
-                findGroup(name, machineRank, ticket);
+            case FIND_GROUP:                
+                findGroup(r);
                 break;
 
             case DEFINE_COMBINED:
@@ -682,7 +681,7 @@ final class GroupRegistry implements GroupProtocol {
 
         } catch (Exception e) {
             /* TODO: is this a good way to deal with an exception? */
-            logger.fatal(Group._rank + ": Error in GroupRegistry ", e);            
+            logger.fatal(Group.rank() + ": Error in GroupRegistry ", e);            
             System.exit(1);
         }
     }

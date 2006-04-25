@@ -38,7 +38,7 @@ class MulticastGroups {
             m.finish();
         
             if (logger.isDebugEnabled()) { 
-                logger.debug(Group._rank  
+                logger.debug(Group.rank()  
                         + ": MulticastGroups.handleCreateMulticastReceivePort - " 
                         + "Request for multicast receive port " + id);
             }            
@@ -47,17 +47,17 @@ class MulticastGroups {
             synchronized (receivePorts) {
                 if (receivePorts.containsKey(id)) { 
 //                  should never happen -- internal error ?
-                    Group.logger.fatal(Group._rank 
+                    Group.logger.fatal(Group.rank() 
                         + ": MulticastGroup.handleCreateMulticastReceivePort()"
                         + " - : Attempt to create duplicate group " + id);
                 }
             }
 
             // TODO: Use anonymous ports instead ?
-            String myID = id + "-" + Group._rank;
+            String myID = id + "-" + Group.rank();
             
             if (logger.isDebugEnabled()) { 
-                logger.debug(Group._rank  
+                logger.debug(Group.rank()  
                         + ": MulticastGroups.handleCreateMulticastReceivePort - " 
                         + "Creating multicast receive port " + myID);
             }            
@@ -79,13 +79,13 @@ class MulticastGroups {
             wm.finish();
 
             if (logger.isDebugEnabled()) { 
-                logger.debug(Group._rank  
+                logger.debug(Group.rank()  
                         + ": MulticastGroups.handleCreateMulticastReceivePort - " 
                         + "Multicast receive port " + myID + " done");
             }            
             
         } catch (Exception e) {
-            logger.fatal(Group._rank + 
+            logger.fatal(Group.rank() + 
                     ": MulticastGroup.handleCreateMulticastReceivePort()"
                     + " - : Got an exception ", e);           
         }
@@ -100,13 +100,13 @@ class MulticastGroups {
             // shouldn't have to finish the message here ....
             
             if (logger.isDebugEnabled()) { 
-                logger.debug(Group._rank  
+                logger.debug(Group.rank()  
                         + ": MulticastGroups.handleCreateMulticastReceivePortReply - " 
                         + "Received multicast reply [" + ticket + "] - " + id);
             }            
             
         } catch (Exception e) {
-            logger.fatal(Group._rank + 
+            logger.fatal(Group.rank() + 
                     ": MulticastGroup.handleCreateMulticastReceivePortReply()"
                     + " - : Got an exception ", e);           
         }        
@@ -115,10 +115,10 @@ class MulticastGroups {
     static SendPort getMulticastSendport(String ID, int[] hosts) {
                 
         // First translate ID so it is unique accros machines 
-        ID = Group._rank + "-" + ID;
+        ID = Group.rank() + "-" + ID;
         
         if (logger.isDebugEnabled()) { 
-            logger.debug(Group._rank + ": MulticastGroups.getMulticastSendport"
+            logger.debug(Group.rank() + ": MulticastGroups.getMulticastSendport"
                     + " - Looking for multicast sendport " + ID);
         }
          
@@ -133,7 +133,7 @@ class MulticastGroups {
             if (s != null) {
                 
                 if (logger.isDebugEnabled()) { 
-                    logger.debug(Group._rank  
+                    logger.debug(Group.rank()  
                             + ": MulticastGroups.getMulticastSendport - " 
                             + "Found existing multicast sendport " + ID);
                 }
@@ -143,7 +143,7 @@ class MulticastGroups {
         }
         
         if (logger.isDebugEnabled()) { 
-            logger.debug(Group._rank  
+            logger.debug(Group.rank()  
                     + ": MulticastGroups.getMulticastSendport - " 
                     + "Creating new multicast sendport " + ID);
         }
@@ -160,13 +160,13 @@ class MulticastGroups {
                 
                 WriteMessage wm = Group.unicast[hosts[i]].newMessage();
                 wm.writeByte(GroupProtocol.CREATE_MULTICAST_PORT);
-                wm.writeInt(Group._rank);
+                wm.writeInt(Group.rank());
                 wm.writeInt(tickets[i]);
                 wm.writeString(ID);
                 wm.finish();
                 
                 if (logger.isDebugEnabled()) { 
-                    logger.debug(Group._rank  
+                    logger.debug(Group.rank()  
                             + ": MulticastGroups.getMulticastSendport - " 
                             + "Send request [" + tickets[i] + "]" 
                             + " to " + hosts[i] );
@@ -179,7 +179,7 @@ class MulticastGroups {
             for (int i=0;i<tickets.length;i++) {
 
                 if (logger.isDebugEnabled()) { 
-                    logger.debug(Group._rank  
+                    logger.debug(Group.rank()  
                             + ": MulticastGroups.getMulticastSendport - " 
                             + "Waiting for reply [" + tickets[i] + "]"); 
                 }
@@ -187,7 +187,7 @@ class MulticastGroups {
                 Object tpm = Group.ticketMaster.get(tickets[i]);
                 
                 if (logger.isDebugEnabled()) { 
-                    logger.debug(Group._rank  
+                    logger.debug(Group.rank()  
                             + ": MulticastGroups.getMulticastSendport - " 
                             + "Got for reply [" + tickets[i] + "] " + tpm); 
                 }
@@ -210,7 +210,7 @@ class MulticastGroups {
             }
 
             if (logger.isDebugEnabled()) { 
-                logger.debug(Group._rank  
+                logger.debug(Group.rank()  
                         + ": MulticastGroups.getMulticastSendport - " 
                         + "New multicast sendport " + ID + " created");
             }
@@ -219,7 +219,7 @@ class MulticastGroups {
             return sp;
             
         } catch (Exception e) {
-            logger.fatal(Group._rank + 
+            logger.fatal(Group.rank() + 
                     ": MulticastGroup.getMulticastSendPort()"
                     + " - : Got an exception", e);           
         }     

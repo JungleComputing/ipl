@@ -97,7 +97,7 @@ public class GroupMethod {
         case InvocationScheme.I_SINGLE:
             
             if (Group.logger.isDebugEnabled()) { 
-                Group.logger.debug(Group._rank
+                Group.logger.debug(Group.rank()
                         + ": GroupMethod.configure(...) - "
                         + " Setting invocation mode to SINGLE");
                 
@@ -135,7 +135,7 @@ public class GroupMethod {
         case InvocationScheme.I_GROUP:
 
             if (Group.logger.isDebugEnabled()) { 
-                Group.logger.debug(Group._rank
+                Group.logger.debug(Group.rank()
                         + ": GroupMethod.configure(...) - "
                         + " Setting invocation mode to GROUP");
                 
@@ -204,7 +204,7 @@ public class GroupMethod {
         case InvocationScheme.I_PERSONAL:
 
             if (Group.logger.isDebugEnabled()) { 
-                Group.logger.debug(Group._rank
+                Group.logger.debug(Group.rank()
                         + ": GroupMethod.configure(...) - "
                         + " Setting invocation mode to PERSONAL");
                 
@@ -217,7 +217,7 @@ public class GroupMethod {
         case InvocationScheme.I_COMBINED_BINOMIAL: {
 
             if (Group.logger.isDebugEnabled()) { 
-                Group.logger.debug(Group._rank
+                Group.logger.debug(Group.rank()
                         + ": GroupMethod.configure(...) - "
                         + " Setting invocation mode to COMBINED");
                 
@@ -239,7 +239,7 @@ public class GroupMethod {
         case ReplyScheme.R_DISCARD:
 
             if (Group.logger.isDebugEnabled()) { 
-                Group.logger.debug(Group._rank
+                Group.logger.debug(Group.rank()
                         + ": GroupMethod.configure(...) - "
                         + " Setting reply mode to DISCARD");
                 
@@ -250,7 +250,7 @@ public class GroupMethod {
         case ReplyScheme.R_RETURN:
 
             if (Group.logger.isDebugEnabled()) { 
-                Group.logger.debug(Group._rank
+                Group.logger.debug(Group.rank()
                         + ": GroupMethod.configure(...) - "
                         + " Setting reply mode to RETURN");
                 
@@ -261,7 +261,7 @@ public class GroupMethod {
         case ReplyScheme.R_FORWARD:
 
             if (Group.logger.isDebugEnabled()) { 
-                Group.logger.debug(Group._rank
+                Group.logger.debug(Group.rank()
                         + ": GroupMethod.configure(...) - "
                         + " Setting reply mode to FORWARD");
                 
@@ -274,7 +274,7 @@ public class GroupMethod {
         case ReplyScheme.R_COMBINE_BINOMIAL:
 
             if (Group.logger.isDebugEnabled()) { 
-                Group.logger.debug(Group._rank
+                Group.logger.debug(Group.rank()
                         + ": GroupMethod.configure(...) - "
                         + " Setting reply mode to COMBINE_BINOMIAL");
                 
@@ -287,7 +287,7 @@ public class GroupMethod {
         case ReplyScheme.R_COMBINE_FLAT:
 
             if (Group.logger.isDebugEnabled()) { 
-                Group.logger.debug(Group._rank
+                Group.logger.debug(Group.rank()
                         + ": GroupMethod.configure(...) - "
                         + " Setting reply mode to COMBINE_FLAT");
                 
@@ -300,7 +300,7 @@ public class GroupMethod {
         case ReplyScheme.R_PERSONALIZED:
 
             if (Group.logger.isDebugEnabled()) { 
-                Group.logger.debug(Group._rank
+                Group.logger.debug(Group.rank()
                         + ": GroupMethod.configure(...) - "
                         + " Setting reply mode to PERSONALIZED");
                 

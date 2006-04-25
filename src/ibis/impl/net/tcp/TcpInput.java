@@ -2,6 +2,8 @@
 
 package ibis.impl.net.tcp;
 
+import ibis.connect.virtual.VirtualSocket;
+
 import ibis.impl.net.NetConnection;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetIbis;
@@ -17,13 +19,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.OutputStream;
-import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.util.Map;
 
 public final class TcpInput extends NetInput {
-    private Socket tcpSocket = null;
+    private VirtualSocket tcpSocket = null;
 
     private Integer spn = null;
 

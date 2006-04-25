@@ -2,7 +2,8 @@
 
 package ibis.impl.tcp;
 
-import ibis.connect.IbisSocketFactory;
+import ibis.connect.virtual.VirtualSocketFactory;
+import ibis.connect.direct.SocketAddressSet;
 import ibis.impl.nameServer.NameServer;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisException;
@@ -13,11 +14,9 @@ import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.Registry;
 import ibis.ipl.StaticProperties;
-import ibis.util.IPUtils;
 import ibis.util.TypedProperties;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
@@ -25,7 +24,7 @@ public final class TcpIbis extends Ibis implements Config {
 
     private TcpIbisIdentifier ident;
 
-    private InetAddress myAddress;
+    private SocketAddressSet myAddress;
 
     private NameServer nameServer;
 
@@ -47,13 +46,13 @@ public final class TcpIbis extends Ibis implements Config {
 
     private boolean ended = false;
 
-    private static final IbisSocketFactory socketFactory;
+    private static final VirtualSocketFactory socketFactory;
 
     private boolean i_joined = false;
 
     static {
         TypedProperties.checkProperties(PROPERTY_PREFIX, sysprops, null);
-        socketFactory = IbisSocketFactory.getFactory();
+        socketFactory = VirtualSocketFactory.getSocketFactory();
     }
 
     public TcpIbis() {
@@ -107,12 +106,14 @@ public final class TcpIbis extends Ibis implements Config {
         }
         // poolSize = 1;
 
-        myAddress = IPUtils.getLocalHostAddress();
+        myAddress = socketFactory.getLocalHost();
+        
         if (myAddress == null) {
-            System.err.println("ERROR: could not get my own IP address, "
+            System.err.println("ERROR: could not get my own network address, "
                     + "exiting.");
             System.exit(1);
         }
+        
         ident = new TcpIbisIdentifier(name, myAddress);
 
         if (DEBUG) {

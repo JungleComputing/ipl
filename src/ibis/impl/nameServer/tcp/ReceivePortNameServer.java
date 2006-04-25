@@ -2,25 +2,18 @@
 
 package ibis.impl.nameServer.tcp;
 
-import ibis.connect.IbisSocketFactory;
+import ibis.connect.virtual.*;
 
 import ibis.io.Conversion;
-
 import ibis.ipl.IbisRuntimeException;
-
-import ibis.util.ThreadPool;
 import ibis.util.GetLogger;
+import ibis.util.ThreadPool;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.IOException;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-
-import java.net.ServerSocket;
-import java.net.InetAddress;
-import java.net.Socket;
-
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Hashtable;
@@ -42,7 +35,7 @@ class ReceivePortNameServer extends Thread implements Protocol {
 
     boolean finishSweeper = false;
 
-    private ServerSocket serverSocket;
+    private VirtualServerSocket serverSocket;
 
     private boolean silent;
 
@@ -58,7 +51,7 @@ class ReceivePortNameServer extends Thread implements Protocol {
 
     private class PortLookupRequest implements Runnable {
 
-        private Socket s;
+        private VirtualSocket s;
 
         private DataInputStream myIn;
 
@@ -76,12 +69,9 @@ class ReceivePortNameServer extends Thread implements Protocol {
 
         private byte[] clientAddress;
 
-        private int clientPort;
-
-        PortLookupRequest(Socket s, DataInputStream in, DataOutputStream out,
+        PortLookupRequest(VirtualSocket s, DataInputStream in, DataOutputStream out,
                 String[] names, byte[][] ports, long timeout, int unknown, 
-                boolean allowPartialResults, byte[] clientAddress,
-                int clientPort) {
+                boolean allowPartialResults, byte[] clientAddress) {
             this.s = s;
             this.myIn = in;
             this.myOut = out;
@@ -91,7 +81,6 @@ class ReceivePortNameServer extends Thread implements Protocol {
             this.unknown = unknown;
             this.allowPartialResults = allowPartialResults;
             this.clientAddress = clientAddress;
-            this.clientPort = clientPort;
         }
         
         public synchronized void addPort(String name, byte [] id) { 
@@ -168,11 +157,10 @@ class ReceivePortNameServer extends Thread implements Protocol {
             try {
                 if (myOut == null) {
                     logger.info("Setting up connection to client");
-                    InetAddress client;
-                    client = (InetAddress) Conversion.byte2object(clientAddress);
+                    VirtualSocketAddress client;
+                    client = (VirtualSocketAddress) Conversion.byte2object(clientAddress);
                     s = NameServerClient.socketFactory.createClientSocket(
-                            client, clientPort, null, 
-                            NameServer.CONNECT_TIMEOUT);
+                            client, NameServer.CONNECT_TIMEOUT, null);
                     myOut = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
                 }
                 if (unknown == 0 || allowPartialResults) {                 
@@ -209,18 +197,18 @@ class ReceivePortNameServer extends Thread implements Protocol {
         }
     }
 
-    ReceivePortNameServer(boolean silent, IbisSocketFactory socketFactory)
+    ReceivePortNameServer(boolean silent, VirtualSocketFactory socketFactory)
             throws IOException {
         ports = new Hashtable();
         requestedPorts = new Hashtable();
         this.silent = silent;
-        serverSocket = socketFactory.createServerSocket(0, null, true, null);
+        serverSocket = socketFactory.createServerSocket(0, 0, true, null);
         setName("ReceivePort Name Server");
         start();
     }
 
-    int getPort() {
-        return serverSocket.getLocalPort();
+    VirtualSocketAddress getAddress() { 
+        return serverSocket.getLocalSocketAddress();  
     }
 
     private void handlePortNew(DataInputStream in, DataOutputStream out)
@@ -234,15 +222,25 @@ class ReceivePortNameServer extends Thread implements Protocol {
         int len = in.readInt();
         id = new byte[len];
         in.readFully(id, 0, len);
-
+        
         /* Check wheter the name is in use. */
         storedId = (Port) ports.get(name);
         if (storedId == null) {
             ports.put(name, new Port(ibisName, id));
             out.writeByte(PORT_ACCEPTED);
             addPort(name, id, ibisName);
+            
+            if (logger.isDebugEnabled()) { 
+                logger.debug("New port: " + name + " on ibis " + ibisName 
+                        + " added!");
+            }
         } else {
             out.writeByte(PORT_REFUSED);
+            
+            if (logger.isDebugEnabled()) { 
+                logger.debug("New port: " + name + " on ibis " + ibisName 
+                        + " refused!");
+            }
         }
     }
 
@@ -258,6 +256,10 @@ class ReceivePortNameServer extends Thread implements Protocol {
         id = new byte[len];
         in.readFully(id, 0, len);
 
+        if (logger.isDebugEnabled()) { 
+            logger.debug("Rebind port: " + name + " on ibis " + ibisName);
+        }        
+        
         /* Don't check whether the name is in use. */
         ports.put(name, new Port(ibisName, id));
         addPort(name, id, ibisName);
@@ -304,13 +306,12 @@ class ReceivePortNameServer extends Thread implements Protocol {
 
     //end gosia	
 
-    private void handlePortLookup(Socket s, DataInputStream in,
+    private void handlePortLookup(VirtualSocket s, DataInputStream in,
                 DataOutputStream out) throws IOException {
         int addressLen = in.readInt();
         byte[] address = new byte[addressLen];
         in.readFully(address, 0, addressLen);
-        int port = in.readInt();
-
+        
         boolean allowPartialResults = in.readBoolean();
         int count = in.readInt();
         String[] names = new String[count];
@@ -323,6 +324,17 @@ class ReceivePortNameServer extends Thread implements Protocol {
 
         long timeout = in.readLong();
 
+        if (logger.isDebugEnabled()) { 
+            
+            String ports = names[0];
+            
+            for (int i = 1; i < count; i++) {
+                ports += ", " + names[i]; 
+            }
+            
+            logger.debug("Port lookup: " + ports);
+        }
+        
         for (int i = 0; i < count; i++) {
             Port p;
             p = (Port) ports.get(names[i]);
@@ -335,7 +347,7 @@ class ReceivePortNameServer extends Thread implements Protocol {
         }
 
         PortLookupRequest p = new PortLookupRequest(s, in, out, names, prts,
-                timeout, unknown, allowPartialResults, address, port);
+                timeout, unknown, allowPartialResults, address);
 
         if (unknown == 0) {            
             // TODO: clean this up ?
@@ -406,7 +418,7 @@ class ReceivePortNameServer extends Thread implements Protocol {
 
     public void run() {
 
-        Socket s;
+        VirtualSocket s;
         int opcode;
 
         for (;;) {

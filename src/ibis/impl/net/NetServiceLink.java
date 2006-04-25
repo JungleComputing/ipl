@@ -2,6 +2,9 @@
 
 package ibis.impl.net;
 
+import ibis.connect.virtual.VirtualServerSocket;
+import ibis.connect.virtual.VirtualSocket;
+import ibis.connect.virtual.VirtualSocketAddress;
 import ibis.io.Conversion;
 import ibis.ipl.ConnectionTimedOutException;
 import ibis.util.ThreadPool;
@@ -14,9 +17,6 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
-import java.net.InetAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.util.HashMap;
@@ -95,7 +95,7 @@ public final class NetServiceLink {
     /**
      * The TCP socket supporting the service link.
      */
-    private Socket socket = null;
+    private VirtualSocket socket = null;
 
     /**
      * The outgoing TCP {@link #socket} stream.
@@ -215,7 +215,7 @@ public final class NetServiceLink {
      * @exception IOException if the 'accept' syscall over
      * the server socket fails.
      */
-    protected NetServiceLink(NetEventQueue portEventQueue, ServerSocket ss)
+    protected NetServiceLink(NetEventQueue portEventQueue, VirtualServerSocket ss)
             throws IOException {
         this.portEventQueue = portEventQueue;
         incoming = true;
@@ -231,9 +231,9 @@ public final class NetServiceLink {
             if (DEBUG) {
                 System.err.println("t = " + NetIbis.now() + ": " + this + "@"
                         + NetIbis.hostName() + "/" + Thread.currentThread()
-                        + ": " + socket.getLocalAddress() + "/"
+                        + ": " + socket.getLocalSocketAddress() + "/"
                         + socket.getLocalPort() + " accept succeeds from "
-                        + socket.getInetAddress() + "/" + socket.getPort());
+                        + socket.getLocalSocketAddress() + "/" + socket.getPort());
             }
         } catch (SocketException e) {
             throw new InterruptedIOException(e);
@@ -257,24 +257,28 @@ public final class NetServiceLink {
             throws IOException {
         this.portEventQueue = portEventQueue;
         incoming = false;
-        InetAddress raddr = (InetAddress) nfo.get("accept_address");
-        int rport = ((Integer) nfo.get("accept_port")).intValue();
-
+        
+        //InetAddress raddr = (InetAddress) nfo.get("accept_address");
+        //int rport = ((Integer) nfo.get("accept_port")).intValue();
+        VirtualSocketAddress raddr = (VirtualSocketAddress) nfo.get("accept_address");
+        
         if (DEBUG) {
             System.err.println("t = " + NetIbis.now() + " " + this + "@"
                     + NetIbis.hostName() + "/" + Thread.currentThread() + ": "
                     + " NetServiceLink outgoing socket - try to connect to "
-                    + raddr + "/" + rport);
+                    + raddr);
         }
-        socket = NetIbis.socketFactory.createClientSocket(raddr, rport, null);
+        
+        socket = NetIbis.socketFactory.createClientSocket(raddr, 0, null);
+
         // Else, I fear the read() would appear high up in the profile:
         socket.setSoTimeout(0);
         if (DEBUG) {
             System.err.println("t = " + NetIbis.now() + " " + this + "@"
                     + NetIbis.hostName() + "/" + Thread.currentThread() + ": "
-                    + socket.getLocalAddress() + "/" + socket.getLocalPort()
-                    + " NetServiceLink outgoing socket - connected to " + raddr
-                    + "/" + rport);
+                    + socket.getLocalSocketAddress() + "/" + socket.getLocalPort()
+                    + " NetServiceLink outgoing socket - connected to " 
+                    + raddr);
         }
     }
 
@@ -527,17 +531,18 @@ public final class NetServiceLink {
             return "NetServiceLink@" + Integer.toHexString(hashCode())
                     + "-unconnected";
         }
+        
         return "NetServiceLink@" + Integer.toHexString(hashCode())
-		        + "-my_addr=" + socket.getLocalAddress() + ":"
-		        + socket.getLocalPort() + "-rem_addr="
-		        + socket.getInetAddress() + ":" + socket.getPort();
+            + "-my_addr=" + socket.getLocalSocketAddress() + ":"
+            + socket.getLocalPort() + "-rem_addr="
+            + socket.getLocalSocketAddress() + ":" + socket.getPort();
     }
 
     public String partner() {
         if (socket == null) {
             return null;
         }
-        return socket.getInetAddress() + ":" + socket.getPort();
+        return socket.getLocalSocketAddress() + ":" + socket.getPort();
     }
 
     /* ___ INTERNAL CLASSES ____________________________________________ */

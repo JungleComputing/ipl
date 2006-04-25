@@ -2,17 +2,15 @@
 
 package ibis.impl.nameServer.tcp;
 
-import ibis.ipl.IbisRuntimeException;
+import ibis.connect.virtual.*;
 
-import ibis.connect.IbisSocketFactory;
+import ibis.ipl.IbisRuntimeException;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.IOException;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.net.ServerSocket;
-import java.net.Socket;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 
@@ -21,7 +19,7 @@ class ElectionServer extends Thread implements Protocol {
     private HashMap elections;
     private HashMap buffers;
 
-    private ServerSocket serverSocket;
+    private VirtualServerSocket serverSocket;
 
     private DataInputStream in;
 
@@ -29,21 +27,20 @@ class ElectionServer extends Thread implements Protocol {
 
     boolean silent;
 
-    ElectionServer(boolean silent, IbisSocketFactory socketFactory)
+    ElectionServer(boolean silent, VirtualSocketFactory socketFactory)
             throws IOException {
         elections = new HashMap();
         buffers = new HashMap();
 
         this.silent = silent;
 
-        serverSocket = socketFactory.createServerSocket(0, null,
-                true /* retry */, null);
+        serverSocket = socketFactory.createServerSocket(0, 0, true, null);
         setName("NameServer ElectionServer");
         start();
     }
 
-    int getPort() {
-        return serverSocket.getLocalPort();
+    VirtualSocketAddress getAddress() {
+        return serverSocket.getLocalSocketAddress();
     }
 
     private void handleElection() throws IOException {
@@ -98,7 +95,7 @@ class ElectionServer extends Thread implements Protocol {
     }
 
     public void run() {
-        Socket s;
+        VirtualSocket s;
         int opcode;
         boolean stop = false;
 

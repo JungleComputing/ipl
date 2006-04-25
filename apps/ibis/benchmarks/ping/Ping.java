@@ -541,9 +541,9 @@ public final class Ping {
             // Local initialization
 
             String id = "ibis:" + (new Random()).nextInt();
-            //String name = "ibis.impl.tcp.TcpIbis";
+            String name = "ibis.impl.tcp.TcpIbis";
             //String name = "ibis.impl.messagePassing.PandaIbis";
-            String name = "ibis.impl.net.NetIbis";
+            //String name = "ibis.impl.net.NetIbis";
 
             ibis = Ibis.createIbis(id, name, null);
 

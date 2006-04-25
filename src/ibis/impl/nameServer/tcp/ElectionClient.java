@@ -2,40 +2,32 @@
 
 package ibis.impl.nameServer.tcp;
 
-import ibis.ipl.IbisIdentifier;
+import ibis.connect.virtual.*;
 
 import ibis.io.Conversion;
+import ibis.ipl.IbisIdentifier;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.IOException;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.net.InetAddress;
-import java.net.Socket;
+import java.io.IOException;
 
 class ElectionClient implements Protocol {
 
-    InetAddress server;
-
-    int port;
-
-    InetAddress localAddress = null;
+    VirtualSocketAddress server;
 
     String ibisName;
 
-    ElectionClient(InetAddress localAddress, InetAddress server, int port,
-            String name) {
+    ElectionClient(VirtualSocketAddress server, String name) {
         this.server = server;
-        this.port = port;
-        this.localAddress = localAddress;
         ibisName = name;
     }
 
     IbisIdentifier elect(String election, IbisIdentifier candidate) throws IOException,
             ClassNotFoundException {
 
-        Socket s = null;
+        VirtualSocket s = null;
         DataOutputStream out = null;
         DataInputStream in = null;
         IbisIdentifier result = null;
@@ -44,8 +36,7 @@ class ElectionClient implements Protocol {
         // Note: at least one caller must have a candidate.
         while (result == null) {
             try {
-                s = NameServerClient.nsConnect(server, port, localAddress,
-                        false, 10);
+                s = NameServerClient.nsConnect(server, false, 10);
                 out = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
 
                 out.writeByte(ELECTION);

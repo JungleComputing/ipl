@@ -2,14 +2,14 @@
 
 package ibis.impl.nameServer.tcp;
 
-import ibis.connect.controlHub.ControlHub;
+import ibis.connect.virtual.*;
+
+import ibis.connect.controlhub.Hub;
 import ibis.impl.nameServer.NSProps;
-import ibis.ipl.IbisRuntimeException;
 import ibis.io.Conversion;
-import ibis.util.IPUtils;
 import ibis.util.PoolInfoServer;
-import ibis.util.TypedProperties;
 import ibis.util.ThreadPool;
+import ibis.util.TypedProperties;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -18,14 +18,11 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.InetAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Properties;
 import java.util.Vector;
-import java.util.ArrayList;
 
 import org.apache.log4j.Logger;
 
@@ -51,23 +48,22 @@ public class NameServer extends Thread implements Protocol {
 
     static final int MAXTHREADS = 32;
 
-    InetAddress myAddress;
+   // VirtualSocketAddress myAddress;
 
     static class IbisInfo {
         String name;
-        byte[] serializedId;
-        int ibisNameServerport;
-        InetAddress ibisNameServerAddress;
+        byte[] serializedId;  
+        
+        VirtualSocketAddress address;         
+        
         boolean needsUpcalls;
         boolean completelyJoined = false;
 
-        IbisInfo(String name, byte[] serializedId,
-                InetAddress ibisNameServerAddress, int ibisNameServerport,
+        IbisInfo(String name, byte[] serializedId, VirtualSocketAddress address, 
                 boolean needsUpcalls) {
             this.name = name;
             this.serializedId = serializedId;
-            this.ibisNameServerAddress = ibisNameServerAddress;
-            this.ibisNameServerport = ibisNameServerport;
+            this.address = address;
             this.needsUpcalls = needsUpcalls;
         }
 
@@ -83,8 +79,7 @@ public class NameServer extends Thread implements Protocol {
         }
 
         public String toString() {
-            return "ibisInfo(" + name + "at " + ibisNameServerAddress
-                    + ":" + ibisNameServerport + ")";
+            return "ibisInfo(" + name + "at " + address + ")";
         }
     }
 
@@ -159,7 +154,7 @@ public class NameServer extends Thread implements Protocol {
 
     private Hashtable pools;
 
-    private ServerSocket serverSocket;
+    private VirtualServerSocket serverSocket;
 
     private DataInputStream in;
 
@@ -171,40 +166,51 @@ public class NameServer extends Thread implements Protocol {
 
     boolean silent;
 
-    private ControlHub controlHub = null;
+    private Hub h = null;
 
     static Logger logger = 
             ibis.util.GetLogger.getLogger(NameServer.class.getName());
 
     private NameServer(boolean singleRun, boolean poolserver,
-            boolean controlhub, boolean silent) throws IOException {
+            boolean starthub, boolean silent) throws IOException {
 
         this.singleRun = singleRun;
         this.joined = false;
         this.silent = silent;
 
-        myAddress = IPUtils.getAlternateLocalHostAddress();
-        myAddress = InetAddress.getByName(myAddress.getHostName());
+       // myAddress = IPUtils.getAlternateLocalHostAddress();
+      //  myAddress = InetAddress.getByName(myAddress.getHostName());
 
         String hubPort = System.getProperty("ibis.connect.hub.port");
         String poolPort = System.getProperty("ibis.pool.server.port");
+        
         int port = TCP_IBIS_NAME_SERVER_PORT_NR;
 
-        if (controlhub) {
-            if (hubPort == null) {
-                hubPort = Integer.toString(port + 2);
-                System.setProperty("ibis.connect.hub.port", hubPort);
+        if (starthub) { 
+            
+            int p = 0; 
+            
+            if (hubPort != null) {
+                p = Integer.parseInt(hubPort);
+            } else { 
+                p = port + 2;
             }
+
             try {
-                controlHub = new ControlHub();
-                controlHub.setDaemon(true);
-                controlHub.start();
+                h = Hub.createHub(p);
                 Thread.sleep(2000); // Give it some time to start up
             } catch (Throwable e) {
                 throw new IOException("Could not start control hub" + e);
             }
+            
+            String host = h.getAddress().toString();            
+            System.setProperty("ibis.connect.virtual.hub.host", host);
+            
+            if (logger.isInfoEnabled()) {
+                logger.info("NameServer: created hub on " + host);
+            }
         }
-
+        
         if (poolserver) {
             if (poolPort == null) {
                 poolPort = Integer.toString(port + 1);
@@ -222,7 +228,7 @@ public class NameServer extends Thread implements Protocol {
 
         if (CHECKER_INTERVAL != 0) {
             final KeyChecker ck
-                    = new KeyChecker(null, myAddress.getHostName(), port,
+                    = new KeyChecker(null, serverSocket.getLocalSocketAddress(), 
                         CHECKER_INTERVAL);
             Thread p = new Thread("KeyChecker Upcaller") {
                 public void run() {
@@ -239,7 +245,7 @@ public class NameServer extends Thread implements Protocol {
 
         // Create a server socket.
         serverSocket = NameServerClient.socketFactory.createServerSocket(port,
-                null, 50, false, null);
+                50, false, null);
 
         pools = new Hashtable();
 
@@ -255,6 +261,9 @@ public class NameServer extends Thread implements Protocol {
         if (! silent && logger.isInfoEnabled()) {
             logger.info("NameServer: created server on " + serverSocket);
         }
+        
+        System.err.println("NameServer created on: " 
+                + serverSocket.getLocalSocketAddress());
     }
 
     private void sendLeavers(RunInfo inf) {
@@ -381,7 +390,7 @@ public class NameServer extends Thread implements Protocol {
         }
 
         public void run() {
-            Socket s = null;
+            VirtualSocket s = null;
             DataOutputStream out2 = null;
             boolean failed = true;
 
@@ -389,7 +398,7 @@ public class NameServer extends Thread implements Protocol {
             for (int h=0;h<3;h++) { 
                 try {
                     s = NameServerClient.socketFactory.createClientSocket(
-                            dest.ibisNameServerAddress, dest.ibisNameServerport, null, CONNECT_TIMEOUT);
+                            dest.address, CONNECT_TIMEOUT, null);
                     out2 = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
                     out2.writeByte(message);
                     out2.writeInt(info.length - offset);
@@ -434,6 +443,9 @@ public class NameServer extends Thread implements Protocol {
         }
 
         if (offset >= info.length) {
+            if (! silent && logger.isDebugEnabled()) {
+                logger.debug("NameServer: forwarding skipped");
+            }              
             return;
         }
 
@@ -474,13 +486,13 @@ public class NameServer extends Thread implements Protocol {
         }
 
         private void doPing() {
-            Socket s = null;
+            VirtualSocket s = null;
             DataOutputStream out2 = null;
             DataInputStream in2 = null;
 
             try {
                 s = NameServerClient.socketFactory.createClientSocket(
-                        dest.ibisNameServerAddress, dest.ibisNameServerport, null, CONNECT_TIMEOUT);
+                        dest.address, CONNECT_TIMEOUT, null);
                 out2 = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
                 out2.writeByte(IBIS_PING);
                 out2.flush();
@@ -628,33 +640,42 @@ public class NameServer extends Thread implements Protocol {
         out.writeByte(0);
         out.flush();
     }
+    
+    private void writeVirtualSocketAddress(DataOutputStream out, VirtualSocketAddress a) throws IOException {         
+        byte [] buf = Conversion.object2byte(a);
+        out.writeInt(buf.length);
+        out.write(buf);        
+    }
+    
+    private VirtualSocketAddress readVirtualSocketAddress(DataInputStream in) throws IOException {
+        int len = in.readInt();
+        byte[] buf = new byte[len];
+        in.readFully(buf, 0, len);
 
+        try {
+            return (VirtualSocketAddress) Conversion.byte2object(buf);
+        } catch(ClassNotFoundException e) {
+            throw new IOException("Could not read InetAddress");
+        }
+    }
+        
     private void handleIbisJoin() throws IOException {
         String key = in.readUTF();
         String name = in.readUTF();
         int len = in.readInt();
         byte[] serializedId = new byte[len];
         in.readFully(serializedId, 0, len);
-        len = in.readInt();
-        byte[] buf = new byte[len];
-        in.readFully(buf, 0, len);
-        InetAddress address = null;
-        try {
-            address = (InetAddress) Conversion.byte2object(buf);
-        } catch(ClassNotFoundException e) {
-            throw new IOException("Could not read InetAddress");
-        }
-        int port = in.readInt();
+    
+        VirtualSocketAddress address = readVirtualSocketAddress(in);
 
         boolean needsUpcalls = in.readBoolean();
 
         if (! silent && logger.isDebugEnabled()) {
             logger.debug("NameServer: join to pool " + key + " requested by "
-                    + name +", port " + port);
+                    + name +", address " + address);
         }
 
-        IbisInfo info = new IbisInfo(name, serializedId, address, port,
-                needsUpcalls);
+        IbisInfo info = new IbisInfo(name, serializedId, address, needsUpcalls);
 
         RunInfo p = (RunInfo) pools.get(key);
 
@@ -698,9 +719,9 @@ public class NameServer extends Thread implements Protocol {
             sendLeavers(p);
 
             out.writeByte(IBIS_ACCEPTED);
-            out.writeInt(p.portTypeNameServer.getPort());
-            out.writeInt(p.receivePortNameServer.getPort());
-            out.writeInt(p.electionServer.getPort());
+            writeVirtualSocketAddress(out, p.portTypeNameServer.getAddress());
+            writeVirtualSocketAddress(out, p.receivePortNameServer.getAddress());
+            writeVirtualSocketAddress(out, p.electionServer.getAddress());
 
             if (! silent && logger.isDebugEnabled()) {
                 logger.debug("NameServer: join to pool " + key + " of ibis "
@@ -786,18 +807,17 @@ public class NameServer extends Thread implements Protocol {
         }
     }
 
-
     private void killThreads(RunInfo p) {
-        Socket s = null;
-        Socket s2 = null;
-        Socket s3 = null;
+        VirtualSocket s = null;
+        VirtualSocket s2 = null;
+        VirtualSocket s3 = null;
         DataOutputStream out1 = null;
         DataOutputStream out2 = null;
         DataOutputStream out3 = null;
-
+        
         try {
-            s = NameServerClient.socketFactory.createClientSocket(myAddress,
-                    p.portTypeNameServer.getPort(), null, CONNECT_TIMEOUT);
+            s = NameServerClient.socketFactory.createClientSocket(
+                    p.portTypeNameServer.getAddress(), CONNECT_TIMEOUT, null);
             out1 = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
             out1.writeByte(PORTTYPE_EXIT);
         } catch (IOException e) {
@@ -806,10 +826,10 @@ public class NameServer extends Thread implements Protocol {
             closeConnection(null, out1, s);
             s = null;
         }
-
+        
         try {
-            s2 = NameServerClient.socketFactory.createClientSocket(myAddress,
-                    p.receivePortNameServer.getPort(), null, CONNECT_TIMEOUT);
+            s2 = NameServerClient.socketFactory.createClientSocket(
+                    p.receivePortNameServer.getAddress(), CONNECT_TIMEOUT, null);
             out2 = new DataOutputStream(new BufferedOutputStream(s2.getOutputStream()));
             out2.writeByte(PORT_EXIT);
         } catch (IOException e) {
@@ -817,10 +837,10 @@ public class NameServer extends Thread implements Protocol {
         } finally {
             closeConnection(null, out2, s2);
         }
-
+        
         try {
-            s3 = NameServerClient.socketFactory.createClientSocket(myAddress,
-                    p.electionServer.getPort(), null);
+            s3 = NameServerClient.socketFactory.createClientSocket(
+                    p.electionServer.getAddress(), CONNECT_TIMEOUT, null);
             out3 = new DataOutputStream(new BufferedOutputStream(s3.getOutputStream()));
             out3.writeByte(ELECTION_EXIT);
         } catch (IOException e) {
@@ -839,12 +859,12 @@ public class NameServer extends Thread implements Protocol {
      */
     private void electionKill(RunInfo p, String[] ids)
             throws IOException {
-        Socket s = null;
+        VirtualSocket s = null;
         DataOutputStream out2 = null;
 
         try {
-            s = NameServerClient.socketFactory.createClientSocket(myAddress,
-                    p.electionServer.getPort(), null, CONNECT_TIMEOUT);
+            s = NameServerClient.socketFactory.createClientSocket(
+                    p.electionServer.getAddress(), CONNECT_TIMEOUT, null);
             out2 = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
             out2.writeByte(ELECTION_KILL);
             out2.writeInt(ids.length);
@@ -865,13 +885,13 @@ public class NameServer extends Thread implements Protocol {
      */
     private void receiveportKill(RunInfo p, String[] ids)
             throws IOException {
-        Socket s = null;
+        VirtualSocket s = null;
         DataOutputStream out2 = null;
         DataInputStream in2 = null;
 
         try {
-            s = NameServerClient.socketFactory.createClientSocket(myAddress,
-                    p.receivePortNameServer.getPort(), null, CONNECT_TIMEOUT);
+            s = NameServerClient.socketFactory.createClientSocket(
+                    p.receivePortNameServer.getAddress(), CONNECT_TIMEOUT, null);
             out2 = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
             out2.writeByte(PORT_KILL);
             out2.writeInt(ids.length);
@@ -1011,7 +1031,7 @@ public class NameServer extends Thread implements Protocol {
 
     public void run() {
         int opcode;
-        Socket s;
+        VirtualSocket s;
         boolean stop = false;
 
         while (!stop) {
@@ -1085,29 +1105,30 @@ public class NameServer extends Thread implements Protocol {
         try {
             serverSocket.close();
         } catch (Exception e) {
-            throw new IbisRuntimeException("NameServer got an error", e);
+            throw new RuntimeException("NameServer got an error", e);
         }
 
-        if (controlHub != null) {
-            controlHub.waitForCount(1);
+/* TODO -- fix!!
+  
+        if (h != null) {
+            h.waitForCount(1);
         }
-
+*/
         if (! silent && logger.isInfoEnabled()) {
             logger.info("NameServer: exit");
         }
     }
     
-    public int port() {
-        return serverSocket.getLocalPort();
+    public VirtualSocketAddress getAddress() {
+        return serverSocket.getLocalSocketAddress();
     }
 
     public static synchronized NameServer createNameServer(boolean singleRun,
-            boolean retry, boolean poolserver, boolean controlhub,
-            boolean silent) {
+            boolean retry, boolean poolserver, boolean starthub, boolean silent) {
         NameServer ns = null;
         while (true) {
             try {
-                ns = new NameServer(singleRun, poolserver, controlhub, silent);
+                ns = new NameServer(singleRun, poolserver, starthub, silent);
                 break;
             } catch (Throwable e) {
                 if (retry) {
@@ -1144,7 +1165,7 @@ public class NameServer extends Thread implements Protocol {
      * @param s
      *            the socket to be closed
      */
-    static void closeConnection(InputStream in, OutputStream out, Socket s) {
+    static void closeConnection(InputStream in, OutputStream out, VirtualSocket s) {
         if (out != null) {
             try {
                 out.flush();
@@ -1178,9 +1199,9 @@ public class NameServer extends Thread implements Protocol {
     public static void main(String[] args) {
         boolean single = false;
         boolean silent = false;
-        boolean control_hub = false;
         boolean pool_server = true;
         boolean retry = true;
+        boolean starthub = true; 
         NameServer ns = null;
 
         for (int i = 0; i < args.length; i++) {
@@ -1193,10 +1214,8 @@ public class NameServer extends Thread implements Protocol {
                 retry = true;
             } else if (args[i].equals("-no-retry")) {
                 retry = false;
-            } else if (args[i].equals("-controlhub")) {
-                control_hub = true;
-            } else if (args[i].equals("-no-controlhub")) {
-                control_hub = false;
+            } else if (args[i].equals("-no-hub")) {
+                starthub = false;
             } else if (args[i].equals("-poolserver")) {
                 pool_server = true;
             } else if (args[i].equals("-no-poolserver")) {
@@ -1220,7 +1239,7 @@ public class NameServer extends Thread implements Protocol {
             single = (singleS != null && singleS.equals("true"));
         }
 
-        ns = createNameServer(single, retry, pool_server, control_hub, silent);
+        ns = createNameServer(single, retry, pool_server, starthub, silent);
 
         try {
             if (ns == null) {

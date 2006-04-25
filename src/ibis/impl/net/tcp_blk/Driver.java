@@ -2,6 +2,7 @@
 
 package ibis.impl.net.tcp_blk;
 
+import ibis.connect.virtual.VirtualSocket;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetIbis;
 import ibis.impl.net.NetInput;
@@ -12,7 +13,6 @@ import ibis.ipl.IbisIdentifier;
 import ibis.util.TypedProperties;
 
 import java.io.IOException;
-import java.net.Socket;
 
 /**
  * The NetIbis TCP driver with pipelined block transmission.
@@ -49,7 +49,7 @@ public final class Driver extends NetDriver {
 
     private int connectWaiters = 0;
 
-    boolean cacheInput(IbisIdentifier ibis, Socket socket) {
+    boolean cacheInput(IbisIdentifier ibis, VirtualSocket socket) {
         synchronized (connectionCache) {
             boolean ok = connectionCache.cacheInput(ibis, socket);
             if (connectWaiters > 0) {
@@ -59,14 +59,14 @@ public final class Driver extends NetDriver {
         }
     }
 
-    boolean cacheOutput(IbisIdentifier ibis, Socket socket) {
+    boolean cacheOutput(IbisIdentifier ibis, VirtualSocket socket) {
         return connectionCache.cacheOutput(ibis, socket);
     }
 
-    Socket getCachedInput(IbisIdentifier ibis, int port) {
+    VirtualSocket getCachedInput(IbisIdentifier ibis, int port) {
         synchronized (connectionCache) {
             while (true) {
-                Socket s = connectionCache.getCachedInput(ibis, port);
+                VirtualSocket s = connectionCache.getCachedInput(ibis, port);
                 if (s != null) {
                     return s;
                 }
@@ -82,7 +82,7 @@ public final class Driver extends NetDriver {
         }
     }
 
-    Socket getCachedOutput(IbisIdentifier ibis) {
+    VirtualSocket getCachedOutput(IbisIdentifier ibis) {
         return connectionCache.getCachedOutput(ibis);
     }
 

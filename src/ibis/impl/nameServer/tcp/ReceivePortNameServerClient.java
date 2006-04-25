@@ -2,6 +2,8 @@
 
 package ibis.impl.nameServer.tcp;
 
+import ibis.connect.virtual.*;
+
 import ibis.io.Conversion;
 import ibis.ipl.BindingException;
 import ibis.ipl.IbisIdentifier;
@@ -14,36 +16,27 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.StreamCorruptedException;
-import java.net.InetAddress;
-import java.net.Socket;
 
 import org.apache.log4j.Logger;
 
 class ReceivePortNameServerClient implements Protocol {
 
-    InetAddress server;
-
-    int port;
-
-    InetAddress localAddress;
+    VirtualSocketAddress server;
 
     byte[] localAddressMarshalled;
-
-    int localPort;
 
     String ibisName;
 
     private static Logger logger = ibis.util.GetLogger
             .getLogger(ReceivePortNameServerClient.class.getName());
 
-    ReceivePortNameServerClient(InetAddress localAddress, InetAddress server,
-            int port, String name, int localPort) throws IOException {
+    ReceivePortNameServerClient(VirtualSocketAddress server, String name, 
+            VirtualSocketAddress localAddress) 
+        throws IOException {
+        
         this.server = server;
-        this.port = port;
-        this.localAddress = localAddress;
-        localAddressMarshalled = Conversion.object2byte(localAddress);
         ibisName = name;
-        this.localPort = localPort;
+        localAddressMarshalled = Conversion.object2byte(localAddress);                
     }
 
     public ReceivePortIdentifier lookup(String name, long timeout)
@@ -74,24 +67,21 @@ class ReceivePortNameServerClient implements Protocol {
 
     ReceivePortIdentifier[] ids = null;
     boolean gotAnswer = false;
-    String notFoundList = null;
-
+    
     public ReceivePortIdentifier[] lookup(String[] names, long timeout, 
             boolean allowPartialResults) throws IOException {
         
         DataOutputStream out = null;
         DataInputStream in = null;
-        Socket s = null;
+        VirtualSocket s = null;
 
         try {
             
             if (logger.isDebugEnabled()) {
-                logger.debug("Port connecting to " + namesList(names));
+                logger.debug("ReceivePort lookup: " + namesList(names));
             }
-                       
-                   
-            s = NameServerClient.nsConnect(server, port, localAddress, false,
-                    10);
+                                          
+            s = NameServerClient.nsConnect(server, false, 10);
 
             out = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
 
@@ -101,8 +91,7 @@ class ReceivePortNameServerClient implements Protocol {
             // request a new Port.
             out.writeByte(PORT_LOOKUP);
             out.writeInt(localAddressMarshalled.length);
-            out.write(localAddressMarshalled);
-            out.writeInt(localPort);
+            out.write(localAddressMarshalled);            
             out.writeBoolean(allowPartialResults);       
             out.writeInt(names.length);
             for (int i = 0; i < names.length; i++) {
@@ -116,6 +105,11 @@ class ReceivePortNameServerClient implements Protocol {
 
             switch (result) {
             case PORT_WAIT:
+                
+                if (logger.isDebugEnabled()) { 
+                    logger.debug("ReceivePort lookup: wait while disconnected");
+                }
+                
                 NameServer.closeConnection(in, out, s);
                 in = null;
                 out = null;
@@ -155,19 +149,21 @@ class ReceivePortNameServerClient implements Protocol {
             for (int i = 0; i < cnt; i++) {
                 names[i] = in.readUTF();
             }
-            notFoundList = namesList(names);
+
             if (logger.isDebugEnabled()) {
-                logger.debug("Port request returns " + notFoundList + 
+                logger.debug("Port request returns " + namesList(names) + 
                         ": PORT_UNKNOWN");
             }
             break;
 
         case PORT_KNOWN:
             ids = new ReceivePortIdentifier[names.length];
+            
             if (logger.isDebugEnabled()) {
                 logger.debug("Port returns " + 
                         namesList(names) + ": PORT_KNOWN");
             }
+            
             for (int i = 0; i < names.length; i++) {
                 try {
                     int len = in.readInt();
@@ -203,7 +199,7 @@ class ReceivePortNameServerClient implements Protocol {
     }
 
     public void bind(String name, ReceivePortIdentifier prt) throws IOException {
-        Socket s = null;
+        VirtualSocket s = null;
         DataOutputStream out = null;
         DataInputStream in = null;
         int result;
@@ -213,8 +209,7 @@ class ReceivePortNameServerClient implements Protocol {
         }
 
         try {
-            s = NameServerClient.nsConnect(server, port, localAddress, false,
-                    10);
+            s = NameServerClient.nsConnect(server, false, 10);
 
             out = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
 
@@ -251,7 +246,7 @@ class ReceivePortNameServerClient implements Protocol {
 
     public void rebind(String name, ReceivePortIdentifier prt)
             throws IOException {
-        Socket s = null;
+        VirtualSocket s = null;
         DataOutputStream out = null;
         DataInputStream in = null;
         int result;
@@ -261,8 +256,7 @@ class ReceivePortNameServerClient implements Protocol {
         }
 
         try {
-            s = NameServerClient.nsConnect(server, port, localAddress, false,
-                    10);
+            s = NameServerClient.nsConnect(server, false, 10);
 
             out = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
 
@@ -296,13 +290,12 @@ class ReceivePortNameServerClient implements Protocol {
 
     public void unbind(String name) {
 
-        Socket s = null;
+        VirtualSocket s = null;
         DataOutputStream out = null;
         DataInputStream in = null;
 
         try {
-            s = NameServerClient.nsConnect(server, port, localAddress, false,
-                    5);
+            s = NameServerClient.nsConnect(server, false, 5);
 
             out = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
 
@@ -326,14 +319,13 @@ class ReceivePortNameServerClient implements Protocol {
     }
 
     public String[] list(String pattern) throws IOException {
-        Socket s = null;
+        VirtualSocket s = null;
         DataOutputStream out = null;
         DataInputStream in = null;
         String[] result;
 
         try {
-            s = NameServerClient.nsConnect(server, port, localAddress, false,
-                    10);
+            s = NameServerClient.nsConnect(server, false, 10);
 
             out = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
 

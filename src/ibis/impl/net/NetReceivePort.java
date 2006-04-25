@@ -2,6 +2,7 @@
 
 package ibis.impl.net;
 
+import ibis.connect.virtual.VirtualServerSocket;
 import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.PortType;
@@ -12,14 +13,11 @@ import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.ReceiveTimedOutException;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.Upcall;
-import ibis.util.IPUtils;
 import ibis.util.TypedProperties;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.net.InetAddress;
-import java.net.ServerSocket;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -269,7 +267,7 @@ public final class NetReceivePort implements ReceivePort,
     /**
      * The TCP server socket.
      */
-    ServerSocket serverSocket = null;
+    private VirtualServerSocket serverSocket = null;
 
     /**
      * The next send port integer number.
@@ -706,7 +704,7 @@ public final class NetReceivePort implements ReceivePort,
     private void initServerSocket() throws IOException {
         log.in();
         serverSocket = NetIbis.socketFactory.createServerSocket(0, 0,
-                IPUtils.getLocalHostAddress(), properties());
+                false, properties());
         log.out();
     }
 
@@ -714,11 +712,12 @@ public final class NetReceivePort implements ReceivePort,
         log.in();
         Hashtable info = new Hashtable();
 
-        InetAddress addr = serverSocket.getInetAddress();
-        int port = serverSocket.getLocalPort();
+        //InetAddress addr = serverSocket.getInetAddress();
+        //int port = serverSocket.getLocalPort();
 
-        info.put("accept_address", addr);
-        info.put("accept_port", new Integer(port));
+        info.put("accept_address", serverSocket.getLocalSocketAddress());
+        //info.put("accept_port", new Integer(port));
+        
         NetIbisIdentifier ibisId = (NetIbisIdentifier) ibis.identifier();
         identifier = new NetReceivePortIdentifier(name, type.name(), ibisId,
                 info);

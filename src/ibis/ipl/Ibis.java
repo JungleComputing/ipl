@@ -2,7 +2,7 @@
 
 package ibis.ipl;
 
-import ibis.util.IPUtils;
+import ibis.connect.util.NetworkUtils;
 import ibis.util.TypedProperties;
 
 import java.io.File;
@@ -288,7 +288,7 @@ public abstract class Ibis {
         String hostname;
 
         try {
-            hostname = IPUtils.getLocalHostAddress().getHostName();
+            hostname = NetworkUtils.getHostname();
         } catch (Exception e) {
             hostname = "unknown";
         }

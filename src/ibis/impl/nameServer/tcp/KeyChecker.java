@@ -2,38 +2,35 @@
 
 package ibis.impl.nameServer.tcp;
 
-import ibis.connect.IbisSocketFactory;
+import ibis.connect.virtual.VirtualSocket;
+import ibis.connect.virtual.VirtualSocketAddress;
+import ibis.connect.virtual.VirtualSocketFactory;
 import ibis.impl.nameServer.NSProps;
-import ibis.util.IPUtils;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.Socket;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
 
 public class KeyChecker implements Protocol {
 
-    private static IbisSocketFactory socketFactory 
-        = IbisSocketFactory.getFactory();
+    private static VirtualSocketFactory socketFactory 
+        = VirtualSocketFactory.getSocketFactory();
 
     private static Logger logger
             = ibis.util.GetLogger.getLogger(KeyChecker.class.getName());
 
     private String poolName;
-    private String serverHost;
-    private int port;
+    private VirtualSocketAddress address;
     private int sleep;
 
-    public KeyChecker(String poolName, String serverHost, int port, int sleep) {
+    public KeyChecker(String poolName, VirtualSocketAddress address, int sleep) {
         this.poolName = poolName;
-        this.serverHost = serverHost;
-        this.port = port;
+        this.address = address;
         this.sleep = sleep;
     }
 
@@ -89,13 +86,13 @@ public class KeyChecker implements Protocol {
                         + portString + ", using default");
             }
         }
-        check(poolName, serverHost, port, sleep);
+        // TODO
+        // FIX!! check(poolName, serverHost, port, sleep);
     }
 
-    static void check(String poolName, String serverHost, int port, int sleep)
+    static void check(String poolName, VirtualSocketAddress address, int sleep)
             throws IOException {
-        KeyChecker ck = new KeyChecker(poolName, serverHost, port, sleep);
-        ck.run();
+        new KeyChecker(poolName, address, sleep).run();
     }
 
     public void run() {
@@ -108,7 +105,7 @@ public class KeyChecker implements Protocol {
                 }
             }
             try {
-                if (check(poolName, serverHost, port)) {
+                if (check(poolName, address)) {
                     System.out.println("Pool " + poolName + " is alive");
                 } else if (poolName != null) {
                     System.out.println("Pool " + poolName + " is dead");
@@ -120,29 +117,21 @@ public class KeyChecker implements Protocol {
         } while (sleep != 0);
     }
 
-    public static boolean check(String poolName, String serverHost, int port)
+    public static boolean check(String poolName, VirtualSocketAddress address)
             throws IOException {
-        InetAddress myAddress = IPUtils.getAlternateLocalHostAddress();
-
-        if (serverHost.equals("localhost")) {
-            serverHost = myAddress.getHostName();
-        }
-
-        InetAddress serverAddress = InetAddress.getByName(serverHost);
-        // serverAddress.getHostName();
-
-        logger.debug("Found nameServerInet " + serverAddress);
-
-        Socket s = null;
+        
+        VirtualSocket s = null;
         DataOutputStream out = null;
         DataInputStream in = null;
 
         try {
-            s = socketFactory.createClientSocket(serverAddress, port, 
-                    myAddress, 0, -1, null);
+            s = socketFactory.createClientSocket(address, 0, null);
 
-            out = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
+            out = new DataOutputStream(
+                    new BufferedOutputStream(s.getOutputStream()));
+            
             logger.debug("KeyChecker: contacting nameserver");
+            
             if (poolName == null) {
                 out.writeByte(IBIS_CHECKALL);
             } else {
@@ -151,7 +140,8 @@ public class KeyChecker implements Protocol {
             }
             out.flush();
 
-            in = new DataInputStream(new BufferedInputStream(s.getInputStream()));
+            in = new DataInputStream(
+                    new BufferedInputStream(s.getInputStream()));
 
             int opcode = in.readByte();
 

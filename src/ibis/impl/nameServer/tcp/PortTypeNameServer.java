@@ -2,18 +2,16 @@
 
 package ibis.impl.nameServer.tcp;
 
+import ibis.connect.virtual.*;
+
 import ibis.ipl.IbisRuntimeException;
 import ibis.ipl.StaticProperties;
-
-import ibis.connect.IbisSocketFactory;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.util.HashMap;
 import java.util.Hashtable;
 
@@ -69,7 +67,7 @@ class PortTypeNameServer extends Thread implements Protocol {
 
     private Hashtable portTypes;
 
-    private ServerSocket serverSocket;
+    private VirtualServerSocket serverSocket;
 
     private DataInputStream in;
 
@@ -79,20 +77,20 @@ class PortTypeNameServer extends Thread implements Protocol {
 
     private boolean silent;
 
-    PortTypeNameServer(boolean silent, IbisSocketFactory socketFactory)
+    PortTypeNameServer(boolean silent, VirtualSocketFactory socketFactory)
             throws IOException {
         portTypes = new Hashtable();
 
         this.silent = silent;
 
-        serverSocket = socketFactory.createServerSocket(0, null, true, null);
+        serverSocket = socketFactory.createServerSocket(0, 0, true, null);
         setName("PortType Name Server");
         seq = new Sequencer();
         start();
     }
 
-    int getPort() {
-        return serverSocket.getLocalPort();
+    VirtualSocketAddress getAddress() {
+        return serverSocket.getLocalSocketAddress();
     }
 
     private void handlePortTypeNew() throws IOException {
@@ -133,7 +131,7 @@ class PortTypeNameServer extends Thread implements Protocol {
 
     public void run() {
 
-        Socket s;
+        VirtualSocket s;
         int opcode;
 
         while (true) {

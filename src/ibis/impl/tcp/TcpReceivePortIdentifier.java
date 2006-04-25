@@ -2,6 +2,7 @@
 
 package ibis.impl.tcp;
 
+import ibis.connect.virtual.VirtualSocketAddress;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.ReceivePortIdentifier;
 
@@ -15,16 +16,18 @@ public final class TcpReceivePortIdentifier implements ReceivePortIdentifier,
 
     TcpIbisIdentifier ibis;
 
-    int port;
-
+    // Removed -- simple ports don't work in a real system -- Jason 
+    // int port;
+    VirtualSocketAddress sa;
+    
     TcpReceivePortIdentifier(String name, String type, TcpIbisIdentifier ibis,
-            int port) {
+            VirtualSocketAddress sa) {
         this.name = name;
         this.type = type;
         this.ibis = ibis;
-        this.port = port;
+        this.sa = sa;
     }
-
+    
     public boolean equals(TcpReceivePortIdentifier other) {
         if (other == null) {
             return false;
@@ -32,8 +35,15 @@ public final class TcpReceivePortIdentifier implements ReceivePortIdentifier,
         if (other == this) {
             return true;
         }
+        /*
+        System.out.println("TcpReceivePortIdentifier.equals: ");
+        System.out.println("type: " + (type().equals(other.type())));
+        System.out.println("ibis: " + (ibis.equals(other.ibis)));
+        System.out.println("name: " + (name().equals(other.name())));
+        System.out.println("sa  : " + (sa.equals(other.sa)));
+        */
         return (type().equals(other.type()) && ibis.equals(other.ibis)
-                && name().equals(other.name()) && port == other.port);
+                && name().equals(other.name()) && sa.equals(other.sa));
     }
 
     public boolean equals(Object other) {
@@ -48,7 +58,7 @@ public final class TcpReceivePortIdentifier implements ReceivePortIdentifier,
 
     //gosia
     public int hashCode() {
-        return name().hashCode() + port;
+        return name().hashCode() + sa.hashCode();
     }
 
     //end gosia
@@ -70,6 +80,6 @@ public final class TcpReceivePortIdentifier implements ReceivePortIdentifier,
 
     public String toString() {
         return ("(TcpRecPortIdent: name = " + name + ", type = " + type
-                + ", ibis = " + ibis + "port = " + port + ")");
+                + ", ibis = " + ibis + "socket address = " + sa + ")");
     }
 }

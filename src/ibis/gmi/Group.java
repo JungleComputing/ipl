@@ -2,6 +2,7 @@
 
 package ibis.gmi;
 
+import ibis.connect.util.NetworkUtils;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.NoMatchingIbisException;
@@ -16,11 +17,13 @@ import ibis.ipl.WriteMessage;
 
 import ibis.util.GetLogger;
 import ibis.util.Ticket;
+import ibis.util.TypedProperties;
 
 import java.io.IOException;
 
 import java.util.ArrayList;
 
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.StringTokenizer;
 
@@ -34,13 +37,18 @@ public final class Group implements GroupProtocol {
 
     static Logger logger
             = GetLogger.getLogger(Group.class.getName());
-     
+    
+    private static final String [] GMI_PROPERTIES = { "gmi.openworld" }; 
+    
+    /** The worldmodel used by GMI. */
+    private static boolean openWorld; 
+        
     /** Ibis rank number in this run. */
-    static int _rank;
+    private static int _rank;
 
     /** The total number of nodes involved in this run. */
     private static int _size;
-    
+
     /** To get tickets from. */
     static Ticket ticketMaster = null;
     
@@ -69,7 +77,8 @@ public final class Group implements GroupProtocol {
       
     /** Unicast send ports, one for each destination node. */
     static SendPort[] unicast;
-    
+    static HashMap unicastSP;
+        
     /** Port on which unicast messages are received. */
     private static ReceivePort receivePort;
     
@@ -139,6 +148,12 @@ public final class Group implements GroupProtocol {
      */
     static {
         try {
+            
+            TypedProperties.checkProperties("gmi", GMI_PROPERTIES, null);
+            
+            openWorld = TypedProperties.booleanProperty("gmi.closedworld", 
+                    false);
+            
             ticketMaster = new Ticket();
             groups = new ArrayList();            
             skeletons = new ArrayList();
@@ -147,13 +162,15 @@ public final class Group implements GroupProtocol {
             stubclasses = new Hashtable();
  //           multicastSendports = new Hashtable();
 
+            name = NetworkUtils.getHostname();
+
             if (logger.isDebugEnabled()) {
                 logger.debug("?: <static> - Init Group RTS");
             }
 
             StaticProperties reqprops = new StaticProperties();
             reqprops.add("serialization", "object");
-            reqprops.add("worldmodel", "closed");
+            reqprops.add("worldmodel", openWorld ? "open" : "closed");
             reqprops.add("communication",
                     "OneToOne, ManyToOne, OneToMany, Reliable, "
                     + "AutoUpcalls, ExplicitReceipt");
@@ -175,7 +192,6 @@ public final class Group implements GroupProtocol {
             // System port type 
             StaticProperties props = new StaticProperties();
             props.add("serialization", "object");
-            props.add("worldmodel", "closed");
             props.add("communication", "ManyToOne, Reliable, ExplicitReceipt");
            
             portTypeSystem = ibis.createPortType("GMI System", props);
@@ -183,15 +199,13 @@ public final class Group implements GroupProtocol {
             // Unicast (many to one) port type            
             props = new StaticProperties();
             props.add("serialization", "object");
-            props.add("worldmodel", "closed");
             props.add("communication", "ManyToOne, Reliable, AutoUpcalls");
             
             portTypeManyToOne = ibis.createPortType("GMI ManyToOne", props);
             
-            // Multicast (on to many) port type            
+            // Multicast (one to many) port type            
             props = new StaticProperties();
             props.add("serialization", "object");
-            props.add("worldmodel", "closed");
             props.add("communication", "OneToMany, Reliable, AutoUpcalls");
                        
             MulticastGroups.init(ibis.createPortType("GMI OneToMany", props));
@@ -201,9 +215,14 @@ public final class Group implements GroupProtocol {
                     + localID, new GroupCallHandler());            
             receivePort.enableConnections();
             
-            _size = ibis.totalNrOfIbisesInPool();
-                            
             IbisIdentifier winner = ibisRegistry.elect("GMI MASTER ELECTION");
+                        
+            if (openWorld) {
+                _size = -1; 
+                logger.fatal("Open world GMI not supported yet...");
+            } else { 
+                _size = ibis.totalNrOfIbisesInPool();
+            }            
             
             if (winner.equals(ibis.identifier())) { 
                 // I am the master
@@ -289,6 +308,8 @@ public final class Group implements GroupProtocol {
 
             unicast = new SendPort[_size];
 
+            unicastSP = new HashMap(); // will be new implementation
+            
             for (int j = 0; j < _size; j++) {
                 unicast[j] = portTypeManyToOne.createSendPort("Unicast on " 
                         + name + " to " + pool[j].name());
@@ -306,8 +327,12 @@ public final class Group implements GroupProtocol {
                             "Connecting unicast sendport "
                             + unicast[j].identifier() + " done");
                 }
+                
+                // map the IbisID to a sendport leading to that Ibis  
+                unicastSP.put(pool[j].ibis(), unicast[j]);
             }
-
+            
+            // starting barrier...
             if (_size > 1) {
                 if (_rank == 0) {
                     for (int j = 1; j < _size; j++) {
@@ -361,7 +386,6 @@ public final class Group implements GroupProtocol {
     protected Group() {
     	// nothing here
     }
-
 
     /**
      * Gets a multicast send port using an identification to see if we
@@ -432,8 +456,7 @@ public final class Group implements GroupProtocol {
         return temp;
     }
 */
-    
-    
+
     /**
      * Gets a new (local) skeleton identification.
      *
@@ -1151,6 +1174,11 @@ public final class Group implements GroupProtocol {
             throw new NoSuchMethodException("Method " + desc + " not found");
         }
         return m;
+    }
+
+    public static SendPort getUnicastSendPort(IbisIdentifier identifier) {
+        // TODO: maybe add on demand connection setup here ?
+        return (SendPort) unicastSP.get(identifier);
     }
  
     

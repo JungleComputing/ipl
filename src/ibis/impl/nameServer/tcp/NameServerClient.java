@@ -2,7 +2,8 @@
 
 package ibis.impl.nameServer.tcp;
 
-import ibis.connect.IbisSocketFactory;
+import ibis.connect.virtual.*;
+
 import ibis.impl.nameServer.NSProps;
 import ibis.io.Conversion;
 import ibis.ipl.ConnectionRefusedException;
@@ -13,18 +14,14 @@ import ibis.ipl.IbisIdentifier;
 import ibis.ipl.IbisRuntimeException;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.StaticProperties;
-import ibis.util.IPUtils;
 import ibis.util.RunProcess;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.StreamCorruptedException;
-import java.net.InetAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Properties;
 
@@ -39,7 +36,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
 
     private ElectionClient electionClient;
 
-    private ServerSocket serverSocket;
+    private VirtualServerSocket serverSocket;
 
     private Ibis ibisImpl;
 
@@ -49,44 +46,39 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
 
     private volatile boolean stop = false;
 
-    private InetAddress serverAddress;
-
-    private String server;
-
-    private int port;
-
+    private VirtualSocketAddress serverAddress;
+    
     private String poolName;
 
-    private InetAddress myAddress;
-
-    private int localPort;
+    private VirtualSocketAddress myAddress;
 
     private boolean left = false;
 
-    static IbisSocketFactory socketFactory = IbisSocketFactory.getFactory();
+    static VirtualSocketFactory socketFactory = VirtualSocketFactory.getSocketFactory();
 
     private static Logger logger
             = ibis.util.GetLogger.getLogger(NameServerClient.class.getName());
 
-    static Socket nsConnect(InetAddress dest, int port, InetAddress me,
-            boolean verbose, int timeout) throws IOException {
-        Socket s = null;
+    static VirtualSocket nsConnect(VirtualSocketAddress dest, boolean verbose, 
+            int timeout) throws IOException {
+        
+        VirtualSocket s = null;
         int cnt = 0;
         while (s == null) {
             try {
                 cnt++;
-                s = socketFactory.createClientSocket(dest, port, me, 0, -1, null);
+                s = socketFactory.createClientSocket(dest, 1000, null);
             } catch (IOException e) {
                 if (cnt == 10 && verbose) {
                     // Rather arbitrary, 10 seconds, print warning
                     System.err.println("Nameserver client failed"
                             + " to connect to nameserver\n at " + dest
-                            + ":" + port + ", will keep trying");
+                            + ", will keep trying " + e);
                 } else if (cnt == timeout) {
                     if (verbose) {
                         System.err.println("Nameserver client failed"
                                 + " to connect to nameserver\n at "
-                                + dest + ":" + port);
+                                + dest);
                         System.err.println("Gave up after " + timeout
                                 + " seconds");
                     }
@@ -106,11 +98,32 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
         /* do nothing */
     }
 
+    private void writeVirtualSocketAddress(DataOutputStream out, 
+            VirtualSocketAddress a) throws IOException {         
+        byte [] buf = Conversion.object2byte(a);
+        out.writeInt(buf.length);
+        out.write(buf);        
+    }
+    
+    private VirtualSocketAddress readVirtualSocketAddress(DataInputStream in) throws IOException {
+
+        int len = in.readInt();
+        byte[] buf = new byte[len];
+        in.readFully(buf, 0, len);
+
+        try {
+            return (VirtualSocketAddress) Conversion.byte2object(buf);
+        } catch(ClassNotFoundException e) {
+            throw new IOException("Could not read InetAddress");
+        }
+    }
+    
     void runNameServer(int prt, String srvr) {
         if (System.getProperty("os.name").matches(".*indows.*")) {
             // The code below does not work for windows2000, don't know why ...
             NameServer n = NameServer.createNameServer(true, false, false,
                     false, true);
+
             if (n != null) {
                 n.setDaemon(true);
                 n.start();
@@ -138,10 +151,11 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
             command.add("-silent");
             command.add("-no-poolserver");
 
+            // TODO: this stuff is wrong!!            
             String conn = System.getProperty("ibis.connect.control_links");
             if (conn != null && conn.equals("RoutedMessages")) {
                 conn = System.getProperty("ibis.connect.hub.host");
-                if (conn == null || conn.equals(srvr)) {
+                if (conn == null || conn.equals(srvr)) {                    
                     command.add("-controlhub");
                 } else {
                     command.add("-hubhost");
@@ -185,24 +199,63 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
 
         Properties p = System.getProperties();
 
-        myAddress = IPUtils.getAlternateLocalHostAddress();
-
-        server = p.getProperty(NSProps.s_host);
+        String server = p.getProperty(NSProps.s_host);
+        
         if (server == null) {
             throw new IbisConfigurationException(
                     "property ibis.name_server.host is not specified");
         }
+        
+        serverSocket = socketFactory.createServerSocket(0, 50, true, null);
+        myAddress = serverSocket.getLocalSocketAddress();
 
-        if (server.equals("localhost")) {
-            server = myAddress.getHostName();
+        int port = NameServer.TCP_IBIS_NAME_SERVER_PORT_NR;
+        
+        boolean containsColon = (server.lastIndexOf(':') >= 0);
+        
+        if (!containsColon) { 
+            // no port number present, so check if it's provided seperately
+            String nameServerPortString = p.getProperty(NSProps.s_port);
+            
+            if (nameServerPortString != null) {
+                try {
+                    port = Integer.parseInt(nameServerPortString);
+                    logger.debug("Using nameserver port: " + port);
+                } catch (Exception e) {
+                    System.err.println("illegal nameserver port: "
+                            + nameServerPortString + ", using default");
+                }
+            }                        
+        } 
+                            
+        if (server.equals("localhost")) {            
+            // We want to start the server on this machine.
+            // TODO: Fix!!
+            runNameServer(port, "bla");            
+            serverAddress = new VirtualSocketAddress(myAddress.machine(), port);                    
+        } else {                     
+            if (containsColon) { 
+                // Assume "server" uses the IP/IP:PORT/IP:PORT format
+                serverAddress = new VirtualSocketAddress(server);            
+            } else {
+                // Assume "server" uses the IP/IP/IP format                 
+                serverAddress = new VirtualSocketAddress(server, port);
+            } 
         }
 
+        logger.debug("Found nameServerInet " + serverAddress);
+
+        // Next, get the nameserver key ....
         poolName = p.getProperty(NSProps.s_key);
         if (poolName == null) {
             throw new IbisConfigurationException(
                     "property ibis.name_server.key is not specified");
         }
+                        
+        // Then connect to the nameserver
+        VirtualSocket s = nsConnect(serverAddress, true, 60);
 
+        /*
         String nameServerPortString = p.getProperty(NSProps.s_port);
         port = NameServer.TCP_IBIS_NAME_SERVER_PORT_NR;
         if (nameServerPortString != null) {
@@ -230,12 +283,12 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
         localPort = serverSocket.getLocalPort();
 
         Socket s = nsConnect(serverAddress, port, myAddress, true, 60);
-
+        */
+ 
         DataOutputStream out = null;
         DataInputStream in = null;
 
         try {
-
             out = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
 
             logger.debug("NameServerClient: contacting nameserver");
@@ -248,8 +301,9 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
             buf = Conversion.object2byte(myAddress);
             out.writeInt(buf.length);
             out.write(buf);
-            out.writeInt(localPort);
+            out.writeBoolean(needsUpcalls);
             out.writeBoolean(ndsUpcalls);
+
             out.flush();
 
             in = new DataInputStream(new BufferedInputStream(s.getInputStream()));
@@ -268,18 +322,20 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
             case IBIS_ACCEPTED:
                 // read the ports for the other name servers and start the
                 // receiver thread...
-                int temp = in.readInt(); /* Port for the PortTypeNameServer */
-                portTypeNameServerClient
-                        = new PortTypeNameServerClient(myAddress, serverAddress,
-                                temp, id.name());
+                
+                /* Address for the PortTypeNameServer */
+                VirtualSocketAddress a = readVirtualSocketAddress(in);                
+                portTypeNameServerClient = new PortTypeNameServerClient(a, 
+                        id.name());
 
-                temp = in.readInt(); /* Port for the ReceivePortNameServer */
+                /* Address for the ReceivePortNameServer */
+                a = readVirtualSocketAddress(in);
                 receivePortNameServerClient = new ReceivePortNameServerClient(
-                        myAddress, serverAddress, temp, id.name(), localPort);
+                        a, id.name(), serverSocket.getLocalSocketAddress());
 
-                temp = in.readInt(); /* Port for the ElectionServer */
-                electionClient = new ElectionClient(myAddress, serverAddress,
-                        temp, id.name());
+                /* Address for the ElectionServer */
+                a = readVirtualSocketAddress(in);
+                electionClient = new ElectionClient(a, id.name());
 
                 if (ndsUpcalls) {
                     int poolSize = in.readInt();
@@ -334,12 +390,11 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
     }
 
     public void maybeDead(IbisIdentifier ibisId) throws IOException {
-        Socket s = null;
+        VirtualSocket s = null;
         DataOutputStream out = null;
 
         try {
-            s = socketFactory.createClientSocket(serverAddress, port, myAddress,
-                    0, -1, null);
+            s = socketFactory.createClientSocket(serverAddress, -1, null);
 
             out = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
 
@@ -358,12 +413,11 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
     }
 
     public void dead(IbisIdentifier corpse) throws IOException {
-        Socket s = null;
+        VirtualSocket s = null;
         DataOutputStream out = null;
 
         try {
-            s = socketFactory.createClientSocket(serverAddress, port, myAddress,
-                    0, -1, null);
+            s = socketFactory.createClientSocket(serverAddress, -1, null);
 
             out = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
 
@@ -379,12 +433,11 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
     }
 
     public void mustLeave(IbisIdentifier[] ibisses) throws IOException {
-        Socket s = null;
+        VirtualSocket s = null;
         DataOutputStream out = null;
 
         try {
-            s = socketFactory.createClientSocket(serverAddress, port, myAddress,
-                    0, -1, null);
+            s = socketFactory.createClientSocket(serverAddress, 0, null);
 
             out = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
 
@@ -412,15 +465,14 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
     }
 
     public void leave() {
-        Socket s = null;
+        VirtualSocket s = null;
         DataOutputStream out = null;
         DataInputStream in = null;
 
         logger.debug("NS client: leave");
 
         try {
-            s = socketFactory.createClientSocket(serverAddress, port, myAddress,
-                    0, 5000, null);
+            s = socketFactory.createClientSocket(serverAddress, 5000, null);
         } catch (IOException e) {
             if (logger.isDebugEnabled()) {
                 logger.debug("leave: connect got exception", e);
@@ -471,7 +523,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
 
         while (! stop) {
 
-            Socket s;
+            VirtualSocket s;
             IbisIdentifier ibisId;
 
             try {
@@ -524,6 +576,11 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
                     break;
 
                 case (IBIS_JOIN):
+                    
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("NameServerClient: receiving join ");
+                    }
+                                        
                     count = in.readInt();
                     for (int i = 0; i < count; i++) {
                         int sz = in.readInt();
@@ -534,6 +591,11 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
                             + ibisId);
                         ibisImpl.joined(ibisId);
                     }
+                    
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("NameServerClient: join done");
+                    }
+                    
                     break;
 
                 case (IBIS_LEAVE):
