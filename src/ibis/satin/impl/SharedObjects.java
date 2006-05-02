@@ -145,8 +145,28 @@ public abstract class SharedObjects extends Communication implements Protocol {
                 }
     }
 
-    /** Broadcast an so invocation */
+    class Bcaster extends Thread {
+	Satin s;
+	SOInvocationRecord r;
+
+	Bcaster(Satin s, SOInvocationRecord r) {
+	    this.s = s;
+	    this.r = r;
+	}
+
+	public void run() {
+	    s.doBroadcastSOInvocation(r);
+	}
+    }
+
+
     public void broadcastSOInvocation(SOInvocationRecord r) {
+///	new Bcaster((Satin) this, r).start();
+	    doBroadcastSOInvocation(r);
+    }
+
+    /** Broadcast an so invocation */
+    public void doBroadcastSOInvocation(SOInvocationRecord r) {
         long byteCount = 0;
         WriteMessage w = null;
 
