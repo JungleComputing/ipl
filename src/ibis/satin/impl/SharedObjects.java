@@ -8,6 +8,7 @@ import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.StaticProperties;
 import ibis.ipl.WriteMessage;
 import ibis.satin.SharedObject;
+import ibis.util.DeepCopy;
 import ibis.util.messagecombining.MessageSplitter;
 
 import java.io.IOException;
@@ -18,6 +19,19 @@ import java.util.Map;
 import java.util.Vector;
 
 public abstract class SharedObjects extends Communication implements Protocol {
+    class AsyncBcaster extends Thread {
+        Satin s;
+        SOInvocationRecord r;
+
+        AsyncBcaster(Satin s, SOInvocationRecord r) {
+            this.s = s;
+            this.r = r;
+        }
+
+        public void run() {
+            s.doBroadcastSOInvocation(r);
+        }
+    }
 
     /*
      * @todo: rethink the way objects are shipped, both at the beginning of the
@@ -52,6 +66,8 @@ public abstract class SharedObjects extends Communication implements Protocol {
 
     final static int LOOKUP_WAIT_TIME = 10000;
 
+    static final boolean ASYNC_SO_BCAST = true;
+    
     /**
      * This basicaly is optional, if nodes don't have the object, they will
      * retrieve it. However, one broadcast is more efficient (serialization is
@@ -145,24 +161,14 @@ public abstract class SharedObjects extends Communication implements Protocol {
                 }
     }
 
-    class Bcaster extends Thread {
-	Satin s;
-	SOInvocationRecord r;
-
-	Bcaster(Satin s, SOInvocationRecord r) {
-	    this.s = s;
-	    this.r = r;
-	}
-
-	public void run() {
-	    s.doBroadcastSOInvocation(r);
-	}
-    }
-
-
     public void broadcastSOInvocation(SOInvocationRecord r) {
-///	new Bcaster((Satin) this, r).start();
+        if(ASYNC_SO_BCAST) {
+            // We have to make a copy of the object first, the caller might modify it.
+            SOInvocationRecord copy = (SOInvocationRecord) DeepCopy.deepCopy(r);
+            new AsyncBcaster((Satin) this, copy).start();
+        } else {
 	    doBroadcastSOInvocation(r);
+        }
     }
 
     /** Broadcast an so invocation */
