@@ -66,7 +66,7 @@ public abstract class SharedObjects extends Communication implements Protocol {
 
     final static int LOOKUP_WAIT_TIME = 10000;
 
-    static final boolean ASYNC_SO_BCAST = true;
+    static final boolean ASYNC_SO_BCAST = false;
     
     /**
      * This basicaly is optional, if nodes don't have the object, they will
