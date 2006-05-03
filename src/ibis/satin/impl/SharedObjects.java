@@ -21,6 +21,7 @@ import java.util.Vector;
 public abstract class SharedObjects extends Communication implements Protocol {
     class AsyncBcaster extends Thread {
         Satin s;
+
         SOInvocationRecord r;
 
         AsyncBcaster(Satin s, SOInvocationRecord r) {
@@ -67,6 +68,7 @@ public abstract class SharedObjects extends Communication implements Protocol {
     final static int LOOKUP_WAIT_TIME = 10000;
 
     static final boolean ASYNC_SO_BCAST = false;
+
     
     /**
      * This basicaly is optional, if nodes don't have the object, they will
@@ -114,7 +116,7 @@ public abstract class SharedObjects extends Communication implements Protocol {
             }
         } catch (IOException e) {
             System.err.println("SATIN '" + ident.name()
-                    + "': unable to broadcast a shared object: " + e);
+                + "': unable to broadcast a shared object: " + e);
         }
 
         // stats
@@ -137,7 +139,7 @@ public abstract class SharedObjects extends Communication implements Protocol {
         long currTime = System.currentTimeMillis();
         long elapsed = currTime - soInvocationsDelayTimer;
         if (soInvocationsDelayTimer > 0
-                && (elapsed > soInvocationsDelay || soCurrTotalMessageSize > soMaxMessageSize)) {
+            && (elapsed > soInvocationsDelay || soCurrTotalMessageSize > soMaxMessageSize)) {
             try {
                 if (SO_TIMING) {
                     broadcastSOInvocationsTimer.start();
@@ -146,8 +148,7 @@ public abstract class SharedObjects extends Communication implements Protocol {
                 soMessageCombiner.sendAccumulatedMessages();
             } catch (IOException e) {
                 System.err.println("SATIN '" + ident.name()
-                        + "': unable to broadcast shared object invocations "
-                        + e);
+                    + "': unable to broadcast shared object invocations " + e);
             }
 
             soRealMessageCount++;
@@ -158,16 +159,46 @@ public abstract class SharedObjects extends Communication implements Protocol {
             if (SO_TIMING) {
                 broadcastSOInvocationsTimer.stop();
             }
-                }
+        }
     }
 
     public void broadcastSOInvocation(SOInvocationRecord r) {
-        if(ASYNC_SO_BCAST) {
-            // We have to make a copy of the object first, the caller might modify it.
-            SOInvocationRecord copy = (SOInvocationRecord) DeepCopy.deepCopy(r);
-            new AsyncBcaster((Satin) this, copy).start();
+        if (LABEL_ROUTING_MCAST) {
+            doBroadcastSOInvocationLRMC(r);
         } else {
-	    doBroadcastSOInvocation(r);
+            if (ASYNC_SO_BCAST) {
+                // We have to make a copy of the object first, the caller might modify it.
+                SOInvocationRecord copy = (SOInvocationRecord) DeepCopy
+                    .deepCopy(r);
+                new AsyncBcaster((Satin) this, copy).start();
+            } else {
+                doBroadcastSOInvocation(r);
+            }
+        }
+    }
+
+    /** Broadcast an so invocation */
+    public void doBroadcastSOInvocationLRMC(SOInvocationRecord r) {
+        if (SO_TIMING) {
+            broadcastSOInvocationsTimer.start();
+        }
+        try {
+            IbisIdentifier[] tmp = new IbisIdentifier[allIbises.size()];
+            for (int i=0; i<tmp.length; i++) {
+                tmp[i] = (IbisIdentifier) allIbises.get(i);
+            }
+            
+            omc.send(tmp, r);
+        } catch (Exception e) {
+            System.err.println("WARNING, SOI mcast failed: " + e + " msg: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        // stats
+        soInvocations++;
+
+        if (SO_TIMING) {
+            broadcastSOInvocationsTimer.stop();
         }
     }
 
@@ -211,7 +242,8 @@ public abstract class SharedObjects extends Communication implements Protocol {
                     soRealMessageCount++;
                 }
             } catch (IOException e) {
-                System.err.println("SATIN '" + ident.name()
+                System.err
+                    .println("SATIN '" + ident.name()
                         + "': unable to broadcast a shared object invocation: "
                         + e);
             }
@@ -299,11 +331,11 @@ public abstract class SharedObjects extends Communication implements Protocol {
         }
         if (obj == null) {
             if (!initialNode) {
-                synchronized(this) {
+                synchronized (this) {
                     while (receivingMcast) {
                         try {
                             wait();
-                        } catch(Exception e) {
+                        } catch (Exception e) {
                             // ignored
                         }
                     }
@@ -364,28 +396,29 @@ public abstract class SharedObjects extends Communication implements Protocol {
             // create a receive port for this guy
             try {
                 SOInvocationHandler soInvocationHandler = new SOInvocationHandler(
-                        SatinBase.this_satin);
+                    SatinBase.this_satin);
                 ReceivePort rec;
                 if (FAULT_TOLERANCE) {
                     rec = soPortType.createReceivePort(
-                            "satin so receive port on " + ident.name() + " for "
-                            + joiners[i].name(), soInvocationHandler, SatinBase.this_satin);
+                        "satin so receive port on " + ident.name() + " for "
+                            + joiners[i].name(), soInvocationHandler,
+                        SatinBase.this_satin);
                 } else {
                     rec = soPortType.createReceivePort(
-                            "satin so receive port on " + ident.name() + " for "
+                        "satin so receive port on " + ident.name() + " for "
                             + joiners[i].name(), soInvocationHandler);
                 }
                 if (soInvocationsDelay > 0) {
                     StaticProperties s = new StaticProperties();
                     s.add("serialization", "ibis");
                     soInvocationHandler.setMessageSplitter(new MessageSplitter(
-                                s, rec));
+                        s, rec));
                 }
                 rec.enableConnections();
                 rec.enableUpcalls();
             } catch (Exception e) {
                 System.err.println("SATIN '" + ident.name()
-                        + "': unable to create so receive port");
+                    + "': unable to create so receive port");
                 e.printStackTrace();
             }
         }
@@ -395,12 +428,13 @@ public abstract class SharedObjects extends Communication implements Protocol {
         for (int i = 0; i < toConnect.size(); i++) {
             IbisIdentifier id = (IbisIdentifier) toConnect.get(i);
             ReceivePortIdentifier r = lookup_wait("satin so receive port on "
-                    + id.name() + " for " + ident.name(), LOOKUP_WAIT_TIME);
+                + id.name() + " for " + ident.name(), LOOKUP_WAIT_TIME);
             // and connect
             if (r == null
-                    || !Communication.connect(soSendPort/* send */, r, connectTimeout)) {
+                || !Communication.connect(soSendPort/* send */, r,
+                    connectTimeout)) {
                 System.err.println("SATN '" + ident.name()
-                        + "': unable to connect to so receive port ");
+                    + "': unable to connect to so receive port ");
             } else {
                 ports.put(id, r);
             }
@@ -421,11 +455,12 @@ public abstract class SharedObjects extends Communication implements Protocol {
 
         // lookup his receive port
         ReceivePortIdentifier r = lookup_wait("satin so receive port on "
-                + id.name() + " for " + ident.name(), LOOKUP_WAIT_TIME);
+            + id.name() + " for " + ident.name(), LOOKUP_WAIT_TIME);
         // and connect
-        if (r == null || !Communication.connect(soSendPort/* send */, r, connectTimeout)) {
+        if (r == null
+            || !Communication.connect(soSendPort/* send */, r, connectTimeout)) {
             System.err.println("SATN '" + ident.name()
-                    + "': unable to connect to so receive port ");
+                + "': unable to connect to so receive port ");
         } else {
             ports.put(id, r);
         }
@@ -459,14 +494,14 @@ public abstract class SharedObjects extends Communication implements Protocol {
         }
         if (soLogger.isInfoEnabled()) {
             soLogger.info("SATIN '" + ident.name() + "': "
-                    + "guard not satisfied, waiting for updates..");
+                + "guard not satisfied, waiting for updates..");
         }
         startTime = System.currentTimeMillis();
-        synchronized(this) {
+        synchronized (this) {
             while (receivingMcast) {
                 try {
                     wait();
-                } catch(Exception e) {
+                } catch (Exception e) {
                     // ignored
                 }
             }
@@ -474,22 +509,19 @@ public abstract class SharedObjects extends Communication implements Protocol {
         do {
             handleDelayedMessages();
             satisfied = r.guard();
-        } while (! satisfied
-          && System.currentTimeMillis() - startTime < WAIT_FOR_UPDATES_TIME);
+        } while (!satisfied
+            && System.currentTimeMillis() - startTime < WAIT_FOR_UPDATES_TIME);
 
         if (!satisfied) {
             // try to ship the object from the owner of the job
             if (soLogger.isInfoEnabled()) {
-                soLogger
-                    .info("SATIN '"
-                            + ident.name()
-                            + "': "
-                            + "guard not satisfied, trying to ship shared objects ...");
+                soLogger.info("SATIN '" + ident.name() + "': "
+                    + "guard not satisfied, trying to ship shared objects ...");
             }
             Vector objRefs = r.getSOReferences();
             if (ASSERTS && objRefs == null) {
                 soLogger.fatal("SATIN '" + ident.name() + "': "
-                        + "oops, so references vector null!");
+                    + "oops, so references vector null!");
                 System.exit(1); // Failed assert
             }
             while (!objRefs.isEmpty()) {
@@ -499,11 +531,11 @@ public abstract class SharedObjects extends Communication implements Protocol {
             if (ASSERTS) {
                 if (soLogger.isInfoEnabled()) {
                     soLogger.info("SATIN '" + ident.name() + "': "
-                            + "objects shipped, checking again..");
+                        + "objects shipped, checking again..");
                 }
                 if (!r.guard()) {
                     soLogger.fatal("SATIN '" + ident.name() + "':"
-                            + " panic! inconsistent after shipping objects");
+                        + " panic! inconsistent after shipping objects");
                     System.exit(1); // Failed assert
                 }
             }
@@ -516,7 +548,10 @@ public abstract class SharedObjects extends Communication implements Protocol {
         // request the shared object from the source
         try {
             currentVictim = source;
-            Victim v = getVictimWait(source);
+            Victim v;
+            synchronized (this) {
+                v = getVictimWait(source);
+            }
             WriteMessage w = v.newMessage();
             w.writeByte(SO_REQUEST);
             w.writeString(objectId);
@@ -525,7 +560,7 @@ public abstract class SharedObjects extends Communication implements Protocol {
             // hm we've got a problem here
             // push the job somewhere else?
             soLogger.error("SATIN '" + ident.name() + "': could not "
-                    + "write shared-object request", e);
+                + "write shared-object request", e);
             throw new SOReferenceSourceCrashedException();
         }
 
@@ -560,7 +595,7 @@ public abstract class SharedObjects extends Communication implements Protocol {
         }
         object = null;
         soLogger.info("SATIN '" + ident.name()
-                + "': received shared object from " + source);
+            + "': received shared object from " + source);
         // handleDelayedMessages();
     }
 
@@ -581,8 +616,7 @@ public abstract class SharedObjects extends Communication implements Protocol {
 
         while (true) {
             synchronized (this) {
-                if (SORequestList.getCount() == 0)
-                    return;
+                if (SORequestList.getCount() == 0) return;
                 origin = SORequestList.getRequester(0);
                 objid = SORequestList.getobjID(0);
                 SORequestList.removeIndex(0);
@@ -597,8 +631,8 @@ public abstract class SharedObjects extends Communication implements Protocol {
 
             if (ASSERTS && so == null) {
                 soLogger.fatal("SATIN '" + ident.name()
-                        + "': EEEK, requested shared object: " + objid
-                        + " not found! Exiting..");
+                    + "': EEEK, requested shared object: " + objid
+                    + " not found! Exiting..");
                 System.exit(1); // Failed assertion
             }
 
@@ -629,8 +663,7 @@ public abstract class SharedObjects extends Communication implements Protocol {
                 }
             } catch (IOException e) {
                 soLogger.error("SATIN '" + ident.name()
-                        + "': got exception while sending" + " shared object",
-                        e);
+                    + "': got exception while sending" + " shared object", e);
             }
         }
     }

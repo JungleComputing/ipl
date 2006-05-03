@@ -41,6 +41,10 @@
 	    name="package.home.ibisConnect"
 	    location="${ibis}/3rdparty/ibis-connect.jar"/>
 
+	<property
+		name="package.home.lrmc"
+		location="${ibis}/3rdparty/lrmc.jar"/>
+
     <target name="property-init"
 	    unless="property.initialized">
 	    <!--
@@ -62,6 +66,7 @@
 		    <pathelement path="${package.home.colobus}"/>
 		    <pathelement path="${package.home.ibisUtil}"/>
 		    <pathelement path="${package.home.ibisConnect}"/>
+		    <pathelement path="${package.home.lrmc}"/>
 		    <path refid="extra-classpath"/>
 		</path>
 		<property name="class-path-3" refid="default.classpath"/>
@@ -78,6 +83,7 @@
 		    <pathelement path="${package.home.ibisUtil}"/>
 		    <pathelement path="${package.home.ibisConnect}"/>
 		    <pathelement path="${package.home.junit}"/>
+		    <pathelement path="${package.home.lrmc}"/>
 		</path>
 	    </else>
 	</if>
