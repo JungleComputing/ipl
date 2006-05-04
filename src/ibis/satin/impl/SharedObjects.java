@@ -71,12 +71,12 @@ public abstract class SharedObjects extends Communication implements Protocol {
 
     
     public void broadcastSharedObject(SharedObject object) {
-            if (LABEL_ROUTING_MCAST) {
+            if (false && LABEL_ROUTING_MCAST) {
                 doBroadcastSharedObjectLRMC(object);
             } else {
                 doBroadcastSharedObject(object);
             }
-        }
+    }
     
     /**
      * This basicaly is optional, if nodes don't have the object, they will
