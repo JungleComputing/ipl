@@ -70,13 +70,21 @@ public abstract class SharedObjects extends Communication implements Protocol {
     static final boolean ASYNC_SO_BCAST = false;
 
     
+    public void broadcastSharedObject(SharedObject object) {
+            if (LABEL_ROUTING_MCAST) {
+                doBroadcastSharedObjectLRMC(object);
+            } else {
+                doBroadcastSharedObject(object);
+            }
+        }
+    
     /**
      * This basicaly is optional, if nodes don't have the object, they will
      * retrieve it. However, one broadcast is more efficient (serialization is
      * done only once). We MUST use message combining here, we use the same receiveport
      * as the SO invocation messages.
      */
-    public void broadcastSharedObject(SharedObject object) {
+    public void doBroadcastSharedObject(SharedObject object) {
 
         WriteMessage w = null;
         long size = 0;
@@ -123,6 +131,27 @@ public abstract class SharedObjects extends Communication implements Protocol {
         soBcasts++;
         soBcastBytes += size;
 
+        if (SO_TIMING) {
+            soBroadcastTransferTimer.stop();
+        }
+    }
+
+    /** Broadcast an so invocation */
+    public void doBroadcastSharedObjectLRMC(SharedObject object) {
+        if (SO_TIMING) {
+            soBroadcastTransferTimer.start();
+        }
+        try {
+            IbisIdentifier[] tmp = new IbisIdentifier[allIbises.size()];
+            for (int i=0; i<tmp.length; i++) {
+                tmp[i] = (IbisIdentifier) allIbises.get(i);
+            }
+            
+            omc.send(tmp, object);
+        } catch (Exception e) {
+            System.err.println("WARNING, SO mcast failed: " + e + " msg: " + e.getMessage());
+            e.printStackTrace();
+        }
         if (SO_TIMING) {
             soBroadcastTransferTimer.stop();
         }
