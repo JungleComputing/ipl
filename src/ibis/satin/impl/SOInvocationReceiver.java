@@ -14,6 +14,7 @@ public class SOInvocationReceiver extends Thread {
     public void run() {
         while (true) {
             try {
+
                 Object o = s.omc.receive();
                 
                 if(o instanceof SOInvocationRecord) {
@@ -23,8 +24,6 @@ public class SOInvocationReceiver extends Thread {
                     SharedObject obj = (SharedObject) o;
                     synchronized (s) {
                         s.sharedObjects.put(obj.objectId, obj);
-                        s.receivingMcast = false;
-                        s.notifyAll();
                     }
                 } else {
                     System.err.println("AAA");
