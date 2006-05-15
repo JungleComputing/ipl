@@ -19,7 +19,7 @@ public class DataSerializationInputStream extends ByteSerializationInputStream
             = TypedProperties.booleanProperty(IOProps.s_no_array_buffers);
 
     /** If <code>false</code>, makes all timer calls disappear. */
-    private static final boolean TIME_DATA_SERIALIZATION = true;
+    private static final boolean TIME_DATA_SERIALIZATION = false;
 
     /** Boolean count is not used, use it for arrays. */
     static final int TYPE_ARRAY = TYPE_BOOLEAN;

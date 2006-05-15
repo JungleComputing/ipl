@@ -19,11 +19,14 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             = TypedProperties.booleanProperty(IOProps.s_no_array_buffers);
 
     /** If <code>false</code>, makes all timer calls disappear. */
-    private static final boolean TIME_DATA_SERIALIZATION = true;
+    private static final boolean TIME_DATA_SERIALIZATION = false;
 
     /** Boolean count is not used, use it for arrays. */
     static final int TYPE_ARRAY = TYPE_BOOLEAN;
 
+    private static final boolean haveAllocator
+        = TypedProperties.booleanProperty(IOProps.s_cache, false);
+    
     /** Allocator for the typed buffer arrays. */
     private static final DataAllocator allocator
         = TypedProperties.booleanProperty(IOProps.s_cache, false)
@@ -521,7 +524,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             resumeTimer();
         }
 
-        if (! NO_ARRAY_BUFFERS && !out.finished()) {
+        if (! NO_ARRAY_BUFFERS && haveAllocator && !out.finished()) {
             indices_short = allocator.getIndexArray();
             if (touched[TYPE_BYTE]) {
                 byte_buffer = allocator.getByteArray();

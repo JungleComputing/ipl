@@ -23,7 +23,7 @@ import sun.misc.Unsafe;
 public class IbisSerializationInputStream extends DataSerializationInputStream
         implements IbisStreamFlags {
     /** If <code>false</code>, makes all timer calls disappear. */
-    private static final boolean TIME_IBIS_SERIALIZATION = true;
+    private static final boolean TIME_IBIS_SERIALIZATION = false;
 
     /**
      * Record how many objects of any class are sent the expensive way:

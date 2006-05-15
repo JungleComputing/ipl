@@ -63,7 +63,7 @@ public final class BufferedArrayOutputStream extends DataOutputStream
                     + (index + incr >= BUF_SIZE) + " " + (index) + ")");
         }
 
-        if (index + incr > BUF_SIZE) {
+        if (index > 0 && index + incr > BUF_SIZE) {
             bytes += index;
 
             // System.err.print("fflushing [");
@@ -72,6 +72,9 @@ public final class BufferedArrayOutputStream extends DataOutputStream
             // }
             // System.err.println("] " + bytes);
 
+           // .println("BufferedArrayOutput writing " + index + " bytes. Trace:");
+           // new Exception().printStackTrace(System.err);
+            
             out.write(buffer, 0, index);
             index = 0;
         }
@@ -168,11 +171,17 @@ public final class BufferedArrayOutputStream extends DataOutputStream
 
             if (index > 0) {
                 bytes += index;
+                
+              //  System.err.println("BufferedArrayOutput writing " + index + " bytes");
+                                
                 out.write(buffer, 0, index);
                 index = 0;
             }
             if (len >= BUF_SIZE) {
                 bytes += len;
+                
+             //   System.err.println("BufferedArrayOutput writing " + (len-off) + " bytes");
+                                
                 out.write(ref, off, len);
             } else {
                 System.arraycopy(ref, off, buffer, 0, len);

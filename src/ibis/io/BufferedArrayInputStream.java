@@ -80,6 +80,9 @@ public final class BufferedArrayInputStream extends DataInputStream
 
             int n = in.read(buffer, index + buffered_bytes, BUF_SIZE
                     - (index + buffered_bytes));
+            
+          //  System.err.println("Read " + n + " bytes");
+                        
             if (n < 0) {
                 throw new java.io.EOFException("EOF encountered");
             }
@@ -168,6 +171,9 @@ public final class BufferedArrayInputStream extends DataInputStream
             index = 0;
             do {
                 int n = in.read(a, off + rd, len - rd);
+                
+            //    System.err.println("Read " + n + " bytes");
+                
                 if (n < 0) {
                     throw new java.io.EOFException("EOF encountered");
                 }
@@ -580,6 +586,9 @@ public final class BufferedArrayInputStream extends DataInputStream
             index = 0;
             do {
                 int n = in.read(a, off + rd, len - rd);
+                
+              //  System.err.println("Read " + n + " bytes");
+                
                 if (n < 0) {
                     len = rd;
                 }
