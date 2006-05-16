@@ -36,6 +36,8 @@ general:
 - improve performance of Ibis serialization for non-rewritten code.
 - automatically started nameserver hangs when application crashes or exits with code 1 
   (with ant test)
+- ant clean in apps gooit ant test output files niet weg
+- ant in applicaties doet niet eerst een clean
 
 nameserver+connection stuff:
 - enable control hub by default --Rob
