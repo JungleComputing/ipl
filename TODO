@@ -34,6 +34,8 @@ general:
   (Body[] in barnes!) --Rob Was already done (Ceriel)
 - migrate leftover prints ro log4j
 - improve performance of Ibis serialization for non-rewritten code.
+- automatically started nameserver hangs when application crashes or exits with code 1 
+  (with ant test)
 
 nameserver+connection stuff:
 - enable control hub by default --Rob
