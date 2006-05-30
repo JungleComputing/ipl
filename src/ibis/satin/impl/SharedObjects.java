@@ -576,9 +576,14 @@ public abstract class SharedObjects extends Communication implements Protocol {
         throws SOReferenceSourceCrashedException {
         // request the shared object from the source
         try {
-            currentVictim = source;
-            Victim v;
-            synchronized (this) {
+            Victim v = null;
+            synchronized(this) {
+                if (deadIbises.contains(source)) {
+                    soLogger.error("SATIN '" + ident.name() + "': could not "
+                            + "write shared-object request");
+                    throw new SOReferenceSourceCrashedException();
+                }
+                currentVictim = source;
                 v = getVictimWait(source);
             }
             WriteMessage w = v.newMessage();
@@ -642,6 +647,7 @@ public abstract class SharedObjects extends Communication implements Protocol {
         long size;
         IbisIdentifier origin;
         String objid;
+        Victim v = null;
 
         while (true) {
             synchronized (this) {
@@ -649,6 +655,10 @@ public abstract class SharedObjects extends Communication implements Protocol {
                 origin = SORequestList.getRequester(0);
                 objid = SORequestList.getobjID(0);
                 SORequestList.removeIndex(0);
+                if (deadIbises.contains(origin)) {
+                    continue;
+                }
+                v = getVictimWait(origin);
             }
 
             if (SO_TIMING) {
@@ -656,7 +666,6 @@ public abstract class SharedObjects extends Communication implements Protocol {
             }
 
             SharedObject so = getSOReference(objid);
-            Victim v = getVictimWait(origin);
 
             if (ASSERTS && so == null) {
                 soLogger.fatal("SATIN '" + ident.name()
