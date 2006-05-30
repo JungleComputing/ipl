@@ -29,8 +29,8 @@ public class SharedObject implements java.io.Serializable {
         Satin satin = Satin.getSatin();
 
         if (satin == null) {
-            System.err.println("EEEKK, could not find satin");
-            System.exit(1);
+            // Assuming sequential run, not rewritten code.
+            return;
         }
 
         //create identifier
@@ -49,15 +49,16 @@ public class SharedObject implements java.io.Serializable {
      * This way, machines won't have to ask for it later.
      */
     public void exportObject() {
-        if(exported) {
-            throw new RuntimeException("you cannot export an object more than once.");
-        }
         
         Satin satin = Satin.getSatin();
 
         if (satin == null) {
-            System.err.println("EEEKK, could not find satin");
-            System.exit(1);
+            // Assuming sequential run, not rewritten code.
+            return;
+        }
+
+        if(exported) {
+            throw new RuntimeException("you cannot export an object more than once.");
         }
 
         synchronized (satin) {
