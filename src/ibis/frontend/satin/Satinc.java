@@ -2586,7 +2586,12 @@ public final class Satinc {
                 }
             }
             out.println(");");
-            out.println("        } catch (Throwable e) {");
+            out.println("        } catch (Throwable e) {\n"
+                      + "            if (ibis.satin.impl.Config.inletLogger.isDebugEnabled()) {\n"
+                      + "                ibis.satin.impl.Config.inletLogger.debug("
+                      +                        "\"caught exception in runremote: "
+                      +                        "\" + e, e);\n"
+                      + "            }\n");
             out.println("            if (ibis.satin.impl.Config.ABORTS) {");
             out.println("                if (! (e instanceof ibis.satin.impl.AbortException)) {");
             out.println("                    eek = e;");
