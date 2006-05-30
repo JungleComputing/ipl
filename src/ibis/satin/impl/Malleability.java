@@ -58,8 +58,8 @@ public abstract class Malleability extends FaultTolerance {
                     notifyAll();
                 }
 
-                if (commLogger.isDebugEnabled()) {
-                    commLogger.debug("SATIN '" + ident + "': "
+                if (commLogger.isInfoEnabled()) {
+                    commLogger.info("SATIN '" + ident + "': "
                             + joiner + " JOINED");
                 }
             }
@@ -71,8 +71,8 @@ public abstract class Malleability extends FaultTolerance {
     }
 
     public void joined(IbisIdentifier joiner) {
-        if (commLogger.isDebugEnabled()) {
-            commLogger.debug("SATIN '" + ident + "': got join of " + joiner);
+        if (commLogger.isInfoEnabled()) {
+            commLogger.info("SATIN '" + ident + "': got join of " + joiner);
         }
 
         if (! joinThreadRunning) {
@@ -125,8 +125,8 @@ public abstract class Malleability extends FaultTolerance {
             return;
         }
 
-        if (commLogger.isDebugEnabled()) {
-            commLogger.debug("SATIN '" + ident + "': '" + joiner
+        if (commLogger.isInfoEnabled()) {
+            commLogger.info("SATIN '" + ident + "': '" + joiner
                     + "' from cluster '" + joiner.cluster()
                     + "' is trying to join");
         }
@@ -160,8 +160,8 @@ public abstract class Malleability extends FaultTolerance {
             return;
         }
 
-        if (commLogger.isDebugEnabled()) {
-            commLogger.debug("SATIN '" + ident + "': " + leaver
+        if (commLogger.isInfoEnabled()) {
+            commLogger.info("SATIN '" + ident + "': " + leaver
                     + " left");
         }
 
