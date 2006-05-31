@@ -99,14 +99,18 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
     }
 
     private void writeVirtualSocketAddress(DataOutputStream out, 
-            VirtualSocketAddress a) throws IOException {         
+            VirtualSocketAddress a) throws IOException {
+        /*
         byte [] buf = Conversion.object2byte(a);
         out.writeInt(buf.length);
-        out.write(buf);        
+        out.write(buf);
+        */
+        
+        out.writeUTF(a.toString());
     }
     
     private VirtualSocketAddress readVirtualSocketAddress(DataInputStream in) throws IOException {
-
+/*
         int len = in.readInt();
         byte[] buf = new byte[len];
         in.readFully(buf, 0, len);
@@ -116,6 +120,9 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
         } catch(ClassNotFoundException e) {
             throw new IOException("Could not read InetAddress");
         }
+        */
+        
+        return new VirtualSocketAddress(in.readUTF());
     }
     
     void runNameServer(int prt, String srvr) {
@@ -295,13 +302,13 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
             out.writeByte(IBIS_JOIN);
             out.writeUTF(poolName);
             out.writeUTF(id.name());
+            
             byte[] buf = Conversion.object2byte(id);
             out.writeInt(buf.length);
             out.write(buf);
-            buf = Conversion.object2byte(myAddress);
-            out.writeInt(buf.length);
-            out.write(buf);
-            out.writeBoolean(needsUpcalls);
+            
+            writeVirtualSocketAddress(out, myAddress);
+
             out.writeBoolean(ndsUpcalls);
 
             out.flush();
@@ -324,18 +331,17 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
                 // receiver thread...
                 
                 /* Address for the PortTypeNameServer */
-                VirtualSocketAddress a = readVirtualSocketAddress(in);                
-                portTypeNameServerClient = new PortTypeNameServerClient(a, 
-                        id.name());
+                portTypeNameServerClient = new PortTypeNameServerClient(
+                        readVirtualSocketAddress(in), id.name());
 
                 /* Address for the ReceivePortNameServer */
-                a = readVirtualSocketAddress(in);
                 receivePortNameServerClient = new ReceivePortNameServerClient(
-                        a, id.name(), serverSocket.getLocalSocketAddress());
+                        readVirtualSocketAddress(in), id.name(), 
+                        serverSocket.getLocalSocketAddress());
 
                 /* Address for the ElectionServer */
-                a = readVirtualSocketAddress(in);
-                electionClient = new ElectionClient(a, id.name());
+                electionClient = new ElectionClient(
+                        readVirtualSocketAddress(in), id.name());
 
                 if (ndsUpcalls) {
                     int poolSize = in.readInt();
@@ -394,17 +400,26 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
         DataOutputStream out = null;
 
         try {
+            
+            logger.debug("Sending maybeDead(" + ibisId + ") to nameserver");
+            
+            logger.debug("connecting to " + serverAddress);
+            
             s = socketFactory.createClientSocket(serverAddress, -1, null);
 
+            logger.debug("connection setup done");
+                        
             out = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
 
             out.writeByte(IBIS_ISALIVE);
             out.writeUTF(poolName);
             out.writeUTF(ibisId.name());
             out.flush();
+            
             logger.debug("NS client: isAlive sent");
 
-        } catch (ConnectionTimedOutException e) {
+        } catch (ConnectionTimedOutException e) {            
+            logger.warn("Could not contact nameserver!!");                       
             // Apparently, the nameserver left. Assume dead.
             return;
         } finally {

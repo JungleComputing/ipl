@@ -515,6 +515,10 @@ public class NameServer extends Thread implements Protocol {
         Vector deadIbises = new Vector();
         IbisInfo toDie = null;
 
+        if (! silent && logger.isInfoEnabled()) {
+            logger.info("NameServer: testing pool " + key + " for dead ibises");
+        }
+        
         synchronized(p) {
             for (Enumeration e = p.pool.elements(); e.hasMoreElements();) {
                 IbisInfo temp = (IbisInfo) e.nextElement();
@@ -614,9 +618,12 @@ public class NameServer extends Thread implements Protocol {
     }
 
     private void handleIbisIsalive(boolean kill) throws IOException {
+        
         String key = in.readUTF();
         String name = in.readUTF();
 
+        logger.debug("Got handleIbisIsalive(" + kill + ") " + key + "/" + name);
+        
         RunInfo p = (RunInfo) pools.get(key);
         if (p != null) {
             checkPool(p, kill ? name : null, key);
@@ -642,13 +649,14 @@ public class NameServer extends Thread implements Protocol {
     }
     
     private void writeVirtualSocketAddress(DataOutputStream out, VirtualSocketAddress a) throws IOException {         
-        byte [] buf = Conversion.object2byte(a);
-        out.writeInt(buf.length);
-        out.write(buf);        
+        //byte [] buf = Conversion.object2byte(a);
+        //out.writeInt(buf.length);
+        //out.write(buf);
+        out.writeUTF(a.toString());
     }
     
     private VirtualSocketAddress readVirtualSocketAddress(DataInputStream in) throws IOException {
-        int len = in.readInt();
+        /*int len = in.readInt();
         byte[] buf = new byte[len];
         in.readFully(buf, 0, len);
 
@@ -656,12 +664,15 @@ public class NameServer extends Thread implements Protocol {
             return (VirtualSocketAddress) Conversion.byte2object(buf);
         } catch(ClassNotFoundException e) {
             throw new IOException("Could not read InetAddress");
-        }
+        }*/
+        
+        return new VirtualSocketAddress(in.readUTF());
     }
         
     private void handleIbisJoin() throws IOException {
         String key = in.readUTF();
         String name = in.readUTF();
+        
         int len = in.readInt();
         byte[] serializedId = new byte[len];
         in.readFully(serializedId, 0, len);
@@ -1061,9 +1072,12 @@ public class NameServer extends Thread implements Protocol {
 
                 opcode = in.readByte();
 
+                logger.debug("NameServer got opcode: " + opcode);
+                
                 switch (opcode) {
                 case (IBIS_ISALIVE):
                 case (IBIS_DEAD):
+                    logger.debug("NameServer handling opcode IBIS_ISALIVE/IBIS_DEAD");
                     handleIbisIsalive(opcode == IBIS_DEAD);
                     break;
                 case (IBIS_JOIN):
