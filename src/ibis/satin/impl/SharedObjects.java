@@ -354,7 +354,7 @@ public abstract class SharedObjects extends Communication implements Protocol {
     public void setSOReference(String objectId, IbisIdentifier source)
         throws SOReferenceSourceCrashedException {
         SharedObject obj = null;
-
+        handleDelayedMessages();
         synchronized (this) {
             obj = (SharedObject) sharedObjects.get(objectId);
         }
@@ -368,6 +368,7 @@ public abstract class SharedObjects extends Communication implements Protocol {
                             // ignored
                         }
                     }
+                    handleDelayedMessages();
                     obj = (SharedObject) sharedObjects.get(objectId);
                 }
                 if (obj == null) {
