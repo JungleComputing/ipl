@@ -405,7 +405,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
             
             logger.debug("connecting to " + serverAddress);
             
-            s = socketFactory.createClientSocket(serverAddress, -1, null);
+            s = socketFactory.createClientSocket(serverAddress, 5000, null);
 
             logger.debug("connection setup done");
                         

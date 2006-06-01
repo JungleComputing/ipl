@@ -173,7 +173,8 @@ class ReceivePortNameServerClient implements Protocol {
                     } else { 
                         byte[] b = new byte[len];
                         in.readFully(b, 0, len);
-                        ids[i] = (ReceivePortIdentifier) Conversion.byte2object(b);
+                        ids[i] = 
+                            (ReceivePortIdentifier) Conversion.byte2object(b);
                     } 
                 } catch (ClassNotFoundException e) {
                     throw new IOException("Unmarshall fails " + e);
