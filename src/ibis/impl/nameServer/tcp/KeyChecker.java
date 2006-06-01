@@ -108,19 +108,14 @@ public class KeyChecker implements Protocol {
                 }
             }
             try {
-                if (check(poolName, serverHost, port)) {
-                    System.out.println("Pool " + poolName + " is alive");
-                } else if (poolName != null) {
-                    System.out.println("Pool " + poolName + " is dead");
-                    break;
-                }
+                check(poolName, serverHost, port);
             } catch(Exception e) {
                 // Ignored
             }
         } while (sleep != 0);
     }
 
-    public static boolean check(String poolName, String serverHost, int port)
+    public static void check(String poolName, String serverHost, int port)
             throws IOException {
         InetAddress myAddress = IPUtils.getAlternateLocalHostAddress();
 
@@ -159,7 +154,6 @@ public class KeyChecker implements Protocol {
                 logger.debug("KeyChecker: nameserver reply, opcode "
                         + opcode);
             }
-            return opcode == 1 ? true : false;
         } finally {
             NameServer.closeConnection(in, out, s);
         }

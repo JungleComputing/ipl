@@ -498,7 +498,7 @@ public class NameServer extends Thread implements Protocol {
         }
     }
 
-    private boolean checkPool(RunInfo p, String victim, String key) {
+    private boolean checkPool(RunInfo p, String victim, boolean kill, String key) {
 
         Vector deadIbises = new Vector();
         IbisInfo toDie = null;
@@ -506,7 +506,7 @@ public class NameServer extends Thread implements Protocol {
         synchronized(p) {
             for (Enumeration e = p.pool.elements(); e.hasMoreElements();) {
                 IbisInfo temp = (IbisInfo) e.nextElement();
-                if (victim == null || ! temp.name.equals(victim)) {
+                if (victim == null || (! kill &&  temp.name.equals(victim))) {
                     p.pingers++;
                     PingThread pt = new PingThread(p, temp, key, deadIbises);
                     while (p.pingers > MAXTHREADS) {
@@ -607,7 +607,7 @@ public class NameServer extends Thread implements Protocol {
 
         RunInfo p = (RunInfo) pools.get(key);
         if (p != null) {
-            checkPool(p, kill ? name : null, key);
+            checkPool(p, name, kill, key);
         }
     }
 
@@ -772,7 +772,7 @@ public class NameServer extends Thread implements Protocol {
             logger.debug("NameServer: ping pool " + key);
         }
 
-        return checkPool(p, null, key);
+        return checkPool(p, null, false, key);
     }
 
     /**
