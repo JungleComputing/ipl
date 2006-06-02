@@ -2,11 +2,11 @@
 
 package ibis.impl.nameServer.tcp;
 
-import ibis.connect.virtual.*;
-
 import ibis.connect.controlhub.Hub;
+import ibis.connect.virtual.VirtualServerSocket;
+import ibis.connect.virtual.VirtualSocket;
+import ibis.connect.virtual.VirtualSocketAddress;
 import ibis.impl.nameServer.NSProps;
-import ibis.io.Conversion;
 import ibis.util.PoolInfoServer;
 import ibis.util.ThreadPool;
 import ibis.util.TypedProperties;
@@ -510,21 +510,26 @@ public class NameServer extends Thread implements Protocol {
         }
     }
 
-    private boolean checkPool(RunInfo p, String victim, String key) {
+    private boolean checkPool(RunInfo p, String victim, boolean kill, String key) {
 
         Vector deadIbises = new Vector();
         IbisInfo toDie = null;
 
         if (! silent && logger.isInfoEnabled()) {
-            logger.info("NameServer: testing pool " + key + " for dead ibises");
+            logger.info("Testing pool " + key + " for dead ibises");
         }
         
         synchronized(p) {
             for (Enumeration e = p.pool.elements(); e.hasMoreElements();) {
                 IbisInfo temp = (IbisInfo) e.nextElement();
-                if (victim == null || ! temp.name.equals(victim)) {
+                if (victim == null || (! kill &&  temp.name.equals(victim))) {
                     p.pingers++;
+                    
+                    logger.info("Creating pinger for ibis " + key + " / " 
+                            + temp.name);
+                    
                     PingThread pt = new PingThread(p, temp, key, deadIbises);
+                    
                     while (p.pingers > MAXTHREADS) {
                         try {
                             p.wait();
@@ -533,7 +538,10 @@ public class NameServer extends Thread implements Protocol {
                         }
                     }
                     ThreadPool.createNew(pt, "Ping thread");
-                } else {
+                } else if (kill &&  temp.name.equals(victim)) {
+                    logger.info("Ibis " + key + " / " + temp.name 
+                            + " declared dead by user");
+                    
                     toDie = temp;
                     deadIbises.add(temp);
                 }
@@ -595,7 +603,9 @@ public class NameServer extends Thread implements Protocol {
 
                     while (p.forwarders != 0) {
                         try {
-                            p.wait();
+                            logger.warn("nameserver waitting for pool " + key + 
+                                    " pingers to return (" + p.forwarders + ")");
+                            p.wait(1000);
                         } catch(Exception ex) {
                             // ignored
                         }
@@ -626,7 +636,7 @@ public class NameServer extends Thread implements Protocol {
         
         RunInfo p = (RunInfo) pools.get(key);
         if (p != null) {
-            checkPool(p, kill ? name : null, key);
+            checkPool(p, name, kill, key);
         }
     }
 
@@ -804,7 +814,7 @@ public class NameServer extends Thread implements Protocol {
             logger.debug("NameServer: ping pool " + key);
         }
 
-        return checkPool(p, null, key);
+        return checkPool(p, null, false, key);
     }
 
     /**
