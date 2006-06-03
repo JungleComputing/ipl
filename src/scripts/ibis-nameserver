@@ -116,6 +116,8 @@ The nameserver parameters are:
     specifies the hostname with the controlhub that is to be used by the
     nameserver. All communication with the nameserver will go through this
     controlhub.
+-checker <interval>
+    check all pools every <interval> seconds. Default is no checks.
 -v
 -verbose
     make the nameserver verbose
@@ -136,6 +138,10 @@ do
     case "$1" in
     -\?|-h|-help|--help)
 	usage
+	;;
+    -checker)
+	shift
+	Ddefines="$Ddefines -Dibis.name_server.checkerInterval=$1"
 	;;
     -poolserver|-no-poolserver|-single|-no-controlhub)
 	args="$args $1"
