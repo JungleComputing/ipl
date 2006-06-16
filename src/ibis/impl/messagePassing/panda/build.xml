@@ -6,13 +6,6 @@
     <description>
 	Compile natives in this directory
 
-	Expect to inherit the following properties:
-	    native.dir		the directory of this build
-	    ibis		the root of the ibis source tree
-	    native-path		${native.dir} relative to ${ibis}
-	    build		the root of the ibis build tree
-	    default.classpath	a ref property with default classpath
-
 	The shared target definitions require you to define:
 	    local.includes	a property that contains include paths specific
 				to this module
@@ -24,41 +17,35 @@
     <property name="local.lib" value="ibis_local_mp_panda"/>
     <property name="closure.lib" value="ibis_mp_panda"/>
 
-    <property name="ibis" location="../../../.."/>
+    <property name="native.dir" location="."/>
+    <property name="ibis" location="../../../../.."/>
 
     <import file="${ibis}/build-files/build-properties.xml"/>
     <import file="${ibis}/build-files/build-native.xml"/>
 
-    <target name="arch-init" depends="property-init">
+    <target name="arch-mac" if="os-is-mac">
+	<property name="panda.arch" value="ppc_osX"/>
+    </target>
 
-	<if>
-	    <os family="unix"/>
-	    <then>
-		<property name="panda.arch" value="i386_linux"/>
-		<property name="das.lib.dir" location="${package.home.daslib}/lib/i386_Linux"/>
-		<property name="gm.lib.dir"  location="${package.home.gm}/lib"/>
-		<path id="local.includes-ref">
-		    <pathelement path="${package.home.gm}/include"/>
-		</path>
-	    </then>
-	<elseif>
-	    <os family="windows"/>
-	    <then>
-		<property name="panda.arch" value="i386_win32"/>
-		<property name="das.lib.dir" location="${package.home.daslib}/lib/i386_win32"/>
-		<property name="gm.lib.dir" location="${package.home.gm}/examples"/>
-		<path id="local.includes-ref">
-		    <pathelement path="${package.home.gm}"/>
-		</path>
-	    </then>
-	</elseif>
-	<elseif>
-	    <os family="mac"/>
-	    <then>
-		<property name="panda.arch" value="ppc_osX"/>
-	    </then>
-	</elseif>
-	</if>
+    <target name="arch-unix" if="os-is-unix">
+	<property name="panda.arch" value="i386_linux"/>
+	<property name="das.lib.dir" location="${package.home.daslib}/lib/i386_Linux"/>
+	<property name="gm.lib.dir"  location="${package.home.gm}/lib"/>
+	<path id="local.includes-ref">
+	    <pathelement path="${package.home.gm}/include"/>
+	</path>
+    </target>
+
+    <target name="arch-windows" if="os-is-windows">
+	<property name="panda.arch" value="i386_win32"/>
+	<property name="das.lib.dir" location="${package.home.daslib}/lib/i386_win32"/>
+	<property name="gm.lib.dir" location="${package.home.gm}/examples"/>
+	<path id="local.includes-ref">
+	    <pathelement path="${package.home.gm}"/>
+	</path>
+    </target>
+
+    <target name="arch-init" depends="property-init,arch-mac,arch-unix,arch-windows">
 
 	<path id="local.includes-ref">
 	    <pathelement path="${native.dir}/../include"/>
@@ -88,10 +75,6 @@
     </target>
 
     <target name="panda-init" depends="panda-init-opt,panda-init-debug">
-    </target>
-
-
-    <target name="panda-lib" depends="panda-init,property-init">
 	<!-- ,native-compile -->
 	<maplibrary property="library.path" name="${closure.lib}"/>
 
@@ -104,43 +87,39 @@
 	<copy file="${gm.path}" todir="${ibis}/build/lib"/>
 
 	<echo level="warning" message="The library is ${library.path}"/>
-	<outofdate>
-	    <sourcefiles>
-		<fileset dir=".">
-		    <include name="*.c"/>
-		</fileset>
-	    </sourcefiles>
-	    <targetfiles>
-		<pathelement path="${build}/lib/${library.path}"/>
-	    </targetfiles>
+    </target>
 
-	    <sequential>
-		<echo message="Panda lib is ${panda.lib.dir}"/>
-		<cc
-			outfile="${build}/lib/${closure.lib}"
-			outtype="shared"
-			runtime="dynamic"
-			warnings="severe"
-			incremental="true"
-			name="${c.compiler}"
-			debug="${c.debug.value}">
-		    <libset dir="${build}/lib"     libs="ibis_mp"/>
-		    <libset dir="${panda.lib.dir}" libs="panda"/>
-		    <libset dir="${lfc.lib.dir}"   libs="lfc"/>
-		    <libset dir="${gm.lib.dir}"    libs="gm"/>
-		    <libset dir="${das.lib.dir}"   libs="das"/>
-		    <includepath>
-			<pathelement path="${local.includes}"/>
-			<pathelement path="${default.includes}"/>
-		    </includepath>
-		    <defineset>
-			<define name="NDEBUG" if="c.optimize"/>
-		    </defineset>
-		    <compilerarg value="${c.optimize}" if="c.optimize"/>
-		    <fileset dir="." includes="*.c"/>
-		</cc>
-	    </sequential>
-	</outofdate>
+    <target name="chk-uptodate-panda">
+	<uptodate property="panda-is-uptodate" targetfile="${build}/lib/${library.path}">
+	    <srcfiles dir="." includes="*.c"/>
+	</uptodate>
+    </target>
+
+    <target name="panda-lib" depends="panda-init,property-init,chk-uptodate-panda" unless="panda-is-uptodate">
+	<echo message="Panda lib is ${panda.lib.dir}"/>
+	<cc
+		outfile="${build}/lib/${closure.lib}"
+		outtype="shared"
+		runtime="dynamic"
+		warnings="severe"
+		incremental="true"
+		name="${c.compiler}"
+		debug="${c.debug.value}">
+	    <libset dir="${build}/lib"     libs="ibis_mp"/>
+	    <libset dir="${panda.lib.dir}" libs="panda"/>
+	    <libset dir="${lfc.lib.dir}"   libs="lfc"/>
+	    <libset dir="${gm.lib.dir}"    libs="gm"/>
+	    <libset dir="${das.lib.dir}"   libs="das"/>
+	    <includepath>
+		<pathelement path="${local.includes}"/>
+		<pathelement path="${default.includes}"/>
+	    </includepath>
+	    <defineset>
+		<define name="NDEBUG" if="c.optimize"/>
+	    </defineset>
+	    <compilerarg value="${c.optimize}" if="c.optimize"/>
+	    <fileset dir="." includes="*.c"/>
+	</cc>
     </target>
 
     <target name="build"

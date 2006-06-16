@@ -6,13 +6,6 @@
     <description>
 	Compile natives in this directory
 
-	Expect to inherit the following properties:
-	    native.dir		the directory of this build
-	    ibis		the root of the ibis source tree
-	    native-path		${native.dir} relative to ${ibis}
-	    build		the root of the ibis build tree
-	    default.classpath	a ref property with default classpath
-
 	The shared target definitions require you to define:
 	    local.includes	a property that contains include paths specific
 				to this module
@@ -21,37 +14,34 @@
 	    local.lib		the truncated name of the lib you want to create
     </description>
 
+    <property name="native.dir" location="."/>
     <property name="cc.outtype" value="static"/>
 
-    <property name="ibis" location="../../.."/>
+    <property name="ibis" location="../../../.."/>
 
     <import file="${ibis}/build-files/build-properties.xml"/>
     <import file="${ibis}/build-files/build-native.xml"/>
 
-    <target name="arch-init" depends="property-init">
+    <target name="panda-arch-unix" if="os-is-unix">
+	<property name="panda.arch" value="i386_linux"/>
+    </target>
 
+    <target name="panda-arch-mac" if="os-is-mac">
+	<property name="panda.arch" value="ppc-osX"/>
+    </target>
+
+    <target name="panda-arch-windows" if="os-is-windows">
+	<property name="panda.arch" value="i386_win32"/>
+    </target>
+
+    <target name="panda-arch"
+	depends="panda-arch-unix, panda-arch-mac, panda-arch-windows"/>
+
+    <target name="arch-init" depends="property-init, panda-arch">
 	<property name="local.lib" value="ibis_mp"/>
-	<if>
-	    <os family="unix"/>
-	    <then>
-		<property name="panda.arch" value="i386_linux"/>
-	    </then>
-	<elseif>
-	    <os family="windows"/>
-	    <then>
-		<property name="panda.arch" value="i386_win32"/>
-	    </then>
-	</elseif>
-	<elseif>
-	    <os family="mac"/>
-	    <then>
-		<property name="panda.arch" value="ppc_osX"/>
-	    </then>
-	</elseif>
-	</if>
 
 	<path id="mp-local.includes-ref">
-	    <pathelement path="${native.dir}/include"/>
+	    <pathelement path="${ibis}/src/ibis/impl/messagePassing/include"/>
 	    <pathelement path="${package.home.panda}/include"/>
 	    <pathelement path="${package.home.panda}/include/${panda.arch}/lfc/no_threads"/>
 	    <pathelement path="${package.home.daslib}/include"/>
@@ -62,7 +52,7 @@
 
 
     <target name="build" depends="arch-init">
-	<antcall inheritRefs="true" target="native-compile"/>
+	<antcall inheritRefs="true" target="native"/>
     </target>
 
 </project>

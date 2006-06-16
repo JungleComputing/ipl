@@ -11,7 +11,7 @@
 	default.classpath	refid of ibis classpath
 
 	Optional prior definition of properties:
-	default.classpath	refid of application classpath
+	app.classpath		refid of application classpath
 
 	Targets:
 
@@ -33,9 +33,7 @@
     <target name="property-iogen-build"
 	    depends="property-init"
 	    unless="iogen-build">
-	    <!--
-	    -->
-	<echo message="iogen-build is undefined. Set it to the default value ${build}"/>
+	<echo message="iogen-build is undefined. It is set to ${build}"/>
 	<property name="iogen-build" location="${build}"/>
 	<mkdir dir="${iogen-build}"/>
     </target>
@@ -43,14 +41,25 @@
     <target name="property-iogen-files"
 	    depends="property-iogen-build"
 	    unless="iogen-files">
-	    <!--
-	    depends="property-init,property-iogen-build"
-	    -->
 	<property name="iogen-files" value="."/>
     </target>
 
+    <target name="has-app-classpath">
+	<condition property="has-app.classpath">
+	    <isreference refid="app.classpath"/>
+	</condition>
+    </target>
+
+    <target name="set-app-classpath"
+	    depends="has-app-classpath"
+	    unless="has-app.classpath">
+	<path id="app.classpath"/>
+	<echo message="Define a default empty app.classpath"/>
+    </target>
+
+
     <target name="iogen-init"
-	    depends="property-iogen-build,property-iogen-files"
+	    depends="property-iogen-files,set-app-classpath"
 	    unless="iogen.initialized">
 	<property name="iogen.initialized" value="true"/>
     </target>
@@ -58,21 +67,12 @@
     <target name="iogen-files" depends="iogen-init">
 	<mkdir dir="${iogen-build}"/>
 	<echo level="debug" message="All files to be rewritten: ${iogen-files}"/>
-	<if>
-	    <not>
-	    <isreference refid="app.classpath"/>
-	    </not>
-	    <then>
-		<path id="app.classpath"/>
-		<echo message="Define a default empty app.classpath"/>
-	    </then>
-	</if>
 
 	<java   classname="ibis.frontend.io.IOGenerator"
 		taskname="IOGenerator"
 		dir="${iogen-build}"
 		failonerror="true"
-		maxmemory="256m"
+		maxmemory="512m"
 		fork="true">
 		<arg line="-silent -dir ${iogen-files}"/>
 	    <classpath refid="default.classpath"/>
@@ -82,9 +82,6 @@
 
     <target name="iogen"
 	    depends="iogen-init">
-	    <!-- description commented out: internal target
-	    description="Preprocess serializable class files in the build tree"
-	    -->
 	<echo level="warning" message="IOGen all class files under ${iogen-build}"/>
 	<antcall target="iogen-files">
 	    <param name="iogen-build" value="${build}"/>

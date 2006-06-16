@@ -6,13 +6,6 @@
     <description>
 	Compile natives in this directory
 
-	Expect to inherit the following properties:
-	    native.dir		the directory of this build
-	    ibis		the root of the ibis source tree
-	    native-path		${native.dir} relative to ${ibis}
-	    build		the root of the ibis build tree
-	    default.classpath	a ref property with default classpath
-
 	The shared target definitions require you to define:
 	    local.includes	a property that contains include paths specific
 				to this module
@@ -21,35 +14,33 @@
 	    local.lib		the truncated name of the lib you want to create
     </description>
 
-    <property name="ibis" location="../../../.."/>
+    <property name="native.dir" location="."/>
+    <property name="ibis" location="../../../../.."/>
 
     <property name="local.lib" value="net_ibis_gm"/>
 
     <import file="${ibis}/build-files/build-properties.xml"/>
     <import file="${ibis}/build-files/build-native.xml"/>
 
-    <target name="arch-init" depends="property-init, native-init">
-	<if>
-	    <os family="unix"/>
-	    <then>
-		<property name="gm.lib.dir"  location="${package.home.gm}/lib"/>
-		<path id="net-gm-local.includes-ref">
-		    <pathelement path="${package.home.gm}/include"/>
-		</path>
-	    </then>
-	<elseif>
-	    <os family="windows"/>
-	    <then>
-		<property name="gm.lib.dir"  location="${package.home.gm}/examples"/>
-		<path id="net-gm-local.includes-ref">
-		    <pathelement path="${package.home.gm}"/>
-		</path>
-	    </then>
-	</elseif>
-	<else>
-	    <echo message="No info on gm lib location on this OS"/>
-	</else>
-	</if>
+    <target name="arch-init-unix" if="os-is-unix">
+	<property name="gm.lib.dir"  location="${package.home.gm}/lib"/>
+	<path id="net-gm-local.includes-ref">
+	    <pathelement path="${package.home.gm}/include"/>
+	</path>
+    </target>
+
+    <target name="arch-init-windows" if="os-is-windows">
+	<property name="gm.lib.dir"  location="${package.home.gm}/examples"/>
+	<path id="net-gm-local.includes-ref">
+	    <pathelement path="${package.home.gm}"/>
+	</path>
+    </target>
+
+    <target name="arch-init-mac" if="os-is-mac">
+	<echo message="No info on gm lib location on this OS"/>
+    </target>
+
+    <target name="arch-init" depends="property-init, native-init, arch-init-windows, arch-init-unix, arch-init-mac">
 
 	<property name="local.includes" refid="net-gm-local.includes-ref"/>
 
@@ -79,7 +70,7 @@
 	<echo level="warning" message="The GM library is ${gm.path}"/>
 	-->
 	<copy file="${gm.path}" todir="${ibis}/build/lib"/>
-	<antcall inheritRefs="true" target="native-compile"/>
+	<antcall inheritRefs="true" target="native"/>
 	<!--
 	<antcall inheritRefs="true" target="net-gm-lib"/>
 	-->

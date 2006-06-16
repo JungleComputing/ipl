@@ -64,24 +64,17 @@
 	</condition>
     </target>
 
-    <target name="java-version-test">
-	<if>
-	    <and>
-		<not>
-		    <contains string="${java.version}" substring="1.4"/>
-		</not>
-		<not>
-		    <contains string="${java.version}" substring="1.5"/>
-		</not>
-		<not>
-		    <contains string="${java.version}" substring="1.6"/>
-		</not>
-	    </and>
-	    <then>
-		<fail message="Java version ${java.version} is not supported. A 1.4 or 1.5 version is required for Ibis.">
-		</fail>
-	    </then>
-	</if>
+    <condition property="java-ok">
+	<or>
+	    <contains string="${java.version}" substring="1.4"/>
+	    <contains string="${java.version}" substring="1.5"/>
+	    <contains string="${java.version}" substring="1.6"/>
+	</or>
+    </condition>
+
+    <target name="java-version-test" unless="java-ok">
+	<fail message="Java version ${java.version} is not supported. A 1.4 or 1.5 version is required for Ibis.">
+	</fail>
     </target>
 
     <target name="java-home-test" unless="env.JAVA_HOME">
@@ -95,17 +88,10 @@
 
     <property environment="env"/>
 
-    <property name="ant.home" location="3rdparty/apache-ant-1.6.1"/>
-
     <property name="karmi" location="${ibis}/../karmi/karmi-transport-1.07g"/>
 
-    <target name="-config-build-properties">
-	<if>
-	    <isset property="called-from-configure"/>
-	    <then>
-	    </then>
-	    <else>
-		<echo>
+    <target name="-config-sleep" unless="called-from-configure">
+	<echo>
 ----------------------------------------------------------------
 Now, your Ibis build is being configured under ${ibis}.
 
@@ -126,9 +112,11 @@ that the fast local network module depends on, just waiting for
 30 seconds is usually OK.
 ----------------------------------------------------------------
 </echo>
-		<sleep seconds="30"/>
-	    </else>
-	</if>
+	<sleep seconds="30"/>
+    </target>
+
+    <target name="-config-build-1"
+	depends="-config-sleep">
 
 	<property name="config.home.ibis" location="${ibis}"/>
 
@@ -269,6 +257,10 @@ that the fast local network module depends on, just waiting for
 	    </not>
 	</condition>
 
+	<condition property="is-windows">
+	    <os family="windows"/>
+	</condition>
+
 	<property name="config.javac" location="${JAVA_HOME_ENV}/bin/javac"/>
 
 	<mkdir dir="${ibis}/bin"/>
@@ -282,12 +274,10 @@ JAVA_ROOT="${JAVA_HOME_ENV}"
 JAVAC="${config.javac}"
 JIT_OPTS="${JIT_OPTS}"
 IBIS_ROOT="${ibis}"
-MANTA_ROOT=/usr/local/VU/manta
 BCEL="${package.home.bcel}"
 KARMI="${karmi}"
 IBIS_CONFIG_SEEN=1
 </echo>
-
 
 	<copy
 		file="${ibis}/src/scripts/ns-env.in"
@@ -295,48 +285,43 @@ IBIS_CONFIG_SEEN=1
 	<replace file="${ibis}/bin/ns-env" token="@IBIS_NS_PORT@" value="9826"/>
 	<replace file="${ibis}/bin/ns-env" token="@IBIS_NS_HOST@" value="localhost"/>
 	<chmod file="${ibis}/bin/ns-env" perm="+x"/>
+    </target>
 
-	<if>
-	    <os family="windows"/>
-	    <then>
-		<echo
-		    file="${ibis}/configuration.bat">@rem Windows cmd variables to describe Ibis configuration
+    <target name="-config-build-windows" if="is-windows">
+	<echo
+	    file="${ibis}/configuration.bat">@rem Windows cmd variables to describe Ibis configuration
 @set JAVA_ROOT=${JAVA_HOME_ENV}
-@rem JAVA_ROOT=/usr/local/ibm-java/IBMJava2-141
-@rem JAVA_ROOT=/usr/local/sun-java/jdk1.4
-@rem JAVA_ROOT=/usr/local/sun-java/j2sdk1.5.0
 @set JAVAC=${config.javac}
 @set JIT_OPTS=${JIT_OPTS}
 @set IBIS_ROOT=${ibis}
-@set MANTA_ROOT=/usr/local/VU/manta
 @set BCEL=${package.home.bcel}
 @set KARMI=${karmi}
 @set IBIS_CONFIG_SEEN=1
 </echo>
 
-		<copy
-			file="${ibis}/src/scripts/ns-env.in"
-			tofile="${ibis}/bin/ns-env.bat">
-		</copy>
-		<replace file="${ibis}/bin/ns-env.bat" token="@IBIS_NS_PORT@" value="9826"/>
-		<replace file="${ibis}/bin/ns-env.bat" token="@IBIS_NS_HOST@" value="localhost"/>
-		<replaceregexp
-		    file="${ibis}/bin/ns-env.bat"
-			flags="g"
-			match="(.*)="
-			replace="set \1="/>
-		<replace
-		    file="${ibis}/bin/ns-env.bat"
-			token="#"
-			value="rem "/>
-		<replace
-		    file="${ibis}/bin/ns-env.bat"
-			token="export"
-			value="rem "/>
-	    </then>
-	</if>
+	<copy
+		file="${ibis}/src/scripts/ns-env.in"
+		tofile="${ibis}/bin/ns-env.bat">
+	</copy>
+	<replace file="${ibis}/bin/ns-env.bat" token="@IBIS_NS_PORT@" value="9826"/>
+	<replace file="${ibis}/bin/ns-env.bat" token="@IBIS_NS_HOST@" value="localhost"/>
+	<replaceregexp
+	    file="${ibis}/bin/ns-env.bat"
+		flags="g"
+		match="(.*)="
+		replace="set \1="/>
+	<replace
+	    file="${ibis}/bin/ns-env.bat"
+		token="#"
+		value="rem "/>
+	<replace
+	    file="${ibis}/bin/ns-env.bat"
+		token="export"
+		value="rem "/>
     </target>
 
+    <target name="-config-build-properties"
+	depends="-config-build-1,-config-build-windows"/>
 
     <target name="-config-lazy-build-properties"
 	    unless="build-properties-available">
@@ -350,12 +335,6 @@ IBIS_CONFIG_SEEN=1
 	</condition>
 	<antcall inheritRefs="true" target="-config-lazy-build-properties"/>
     </target>
-
-
-    <target name="property-init-once"
-	    depends="property-compiler-init">
-    </target>
-
 
     <target name="configure"
 	    depends="config-init"

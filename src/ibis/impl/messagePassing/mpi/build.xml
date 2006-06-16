@@ -6,13 +6,6 @@
     <description>
 	Compile natives in this directory
 
-	Expect to inherit the following properties:
-	    native.dir		the directory of this build
-	    ibis		the root of the ibis source tree
-	    native-path		${native.dir} relative to ${ibis}
-	    build		the root of the ibis build tree
-	    default.classpath	a ref property with default classpath
-
 	The shared target definitions require you to define:
 	    local.includes	a property that contains include paths specific
 				to this module
@@ -23,7 +16,8 @@
 
     <property name="closure.lib" value="ibis_mp_mpi"/>
 
-    <property name="ibis" location="../../../.."/>
+    <property name="native.dir" location="."/>
+    <property name="ibis" location="../../../../.."/>
 
     <import file="${ibis}/build-files/build-properties.xml">
     <import file="${ibis}/build-files/build-native.xml"/>
@@ -39,42 +33,35 @@
     <property name="mpi.lib.dir" location="${package.home.mpi}/lib"/>
     <property name="gm.lib.dir"  location="${package.home.gm}/lib"/>
 
-    <target name="mpi-lib">
+    <target name="mpi-init">
 	<maplibrary property="library.path" name="${closure.lib}"/>
-	<echo level="warning" message="The library is ${library.path}"/>
-	<outofdate>
-	    <sourcefiles>
-		<fileset dir=".">
-		    <include name="*.c"/>
-		</fileset>
-	    </sourcefiles>
-	    <targetfiles>
-		<pathelement path="${build}/lib/${library.path}"/>
-	    </targetfiles>
+	<uptodate property="mpi-is-uptodate" targetfile="${build}/lib/${library.path}">
+	    <srcfiles dir="." includes="*.c"/>
+	</uptodate>
 
-	    <sequential>
-		<cc
-			outfile="${build}/lib/${closure.lib}"
-			outtype="shared"
-			runtime="dynamic"
-			warnings="severe"
-			name="${c.compiler}"
-			debug="${c.debug.value}">
-		    <libset dir="${mpi.lib.dir}"   libs="mpich"/>
-		    <libset dir="${gm.lib.dir}"    libs="gm"/>
-		    <libset dir="${das.lib.dir}"   libs="das"/>
-		    <includepath>
-			<pathelement path="${local.includes}"/>
-			<pathelement path="${default.includes}"/>
-		    </includepath>
-		    <defineset>
-			<define name="NDEBUG" if="c.optimize"/>
-		    </defineset>
-		    <compilerarg value="${c.optimize}" if="c.optimize"/>
-		    <fileset dir="." includes="*.c"/>
-		</cc>
-	    </sequential>
-	</outofdate>
+    <target name="mpi-lib" depends="mpi-init" unless="mpi-is-uptodate">
+	<echo level="warning" message="The library is ${library.path}"/>
+
+	<cc
+		outfile="${build}/lib/${closure.lib}"
+		outtype="shared"
+		runtime="dynamic"
+		warnings="severe"
+		name="${c.compiler}"
+		debug="${c.debug.value}">
+	    <libset dir="${mpi.lib.dir}"   libs="mpich"/>
+	    <libset dir="${gm.lib.dir}"    libs="gm"/>
+	    <libset dir="${das.lib.dir}"   libs="das"/>
+	    <includepath>
+		<pathelement path="${local.includes}"/>
+		<pathelement path="${default.includes}"/>
+	    </includepath>
+	    <defineset>
+		<define name="NDEBUG" if="c.optimize"/>
+	    </defineset>
+	    <compilerarg value="${c.optimize}" if="c.optimize"/>
+	    <fileset dir="." includes="*.c"/>
+	</cc>
     </target>
 
     <target name="build"

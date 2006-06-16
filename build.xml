@@ -30,7 +30,6 @@
     <property name="ibis-minor" value="3"/>
 
     <property name="ibis-version" value="ibis-${ibis-major}.${ibis-minor}"/>
-    <property name="ibis-tag" value="ibis-${ibis-major}-${ibis-minor}"/>
 
     <!--
 	This must come first.
@@ -38,31 +37,19 @@
     -->
     <import file="${ibis}/build-files/build-config.xml"/>
 
-    <target name="init" depends="config-init-initial,property-init">
-	<tstamp/>
+    <available file="${build}/VERSION" property="version.present"/>
 
-	<!--
-	<property name="p-in" value="\\abc\\def"/>
-	<echo message="p-in = ${p-in}"/>
-	<propertyregex
-		property="p-out"
-		input="${p-in}"
-		regexp="\\\\"
-		replace="\\\\"
-		global="true"/>
-	<echo message="p-out = ${p-out}"/>
-	-->
-
-	<mkdir dir="${build}"/>
-	<if>
-	    <not>
-		<available file="${build}/VERSION"/>
-	    </not>
-	    <then>
-		<echo file="${build}/VERSION">${ibis-version}</echo>
-	    </then>
-	</if>
+    <target name="copy-version" unless="version.present">
+	<echo file="${build}/VERSION">${ibis-version}</echo>
     </target>
+
+    <target name="make-dirs">
+	<tstamp/>
+	<mkdir dir="${build}"/>
+	<mkdir dir="${ibis}/bin"/>
+    </target>
+
+    <target name="init" depends="config-init-initial,property-init,make-dirs,copy-version"/>
 
     <!--
 	Compile only
@@ -85,155 +72,18 @@
 	    (and on windows, but who cares ...)
 	    unless="config.os-is-windows">
     -->
-	<mkdir dir="${ibis}/bin"/>
-	<copy
-	    file="${ibis}/src/scripts/ibisc"
-	    tofile="${ibis}/bin/ibisc"/>
-
-	<copy
-	    file="${ibis}/src/scripts/ibis-run"
-	    tofile="${ibis}/bin/ibis-run"/>
-
-	<copy
-	    file="${ibis}/src/scripts/ibis-ant"
-	    tofile="${ibis}/bin/ibis-ant"/>
-
-	<copy
-	    file="${ibis}/src/scripts/io_gen"
-	    tofile="${ibis}/bin/io_gen"/>
-
-	<copy
-	    file="${ibis}/src/scripts/ibis-nameserver"
-	    tofile="${ibis}/bin/ibis-nameserver"/>
-
-	<copy
-	    file="${ibis}/src/scripts/ibis-controlhub"
-	    tofile="${ibis}/bin/ibis-controlhub"/>
-
-	<copy
-	    file="${ibis}/src/scripts/ant"
-	    tofile="${ibis}/bin/ant"/>
-
-	<copy
-	    file="${ibis}/src/scripts/jp"
-	    tofile="${ibis}/bin/jp"/>
-
-	<copy
-	    file="${ibis}/src/scripts/satinc"
-	    tofile="${ibis}/bin/satinc"/>
-
-	<copy
-	    file="${ibis}/src/scripts/ibis-run"
-	    tofile="${ibis}/bin/ibis-run"/>
-
-	<copy
-	    file="${ibis}/src/scripts/extract_jars"
-	    tofile="${ibis}/bin/extract_jars"/>
-
-	<copy
-	    file="${ibis}/src/scripts/tree_ioc"
-	    tofile="${ibis}/bin/tree_ioc"/>
-
-	<if>
-	    <available file="src/scripts/run_ibis"/>
-	    <then>
-		<copy
-		    file="${ibis}/src/scripts/run_ibis"
-		    tofile="${ibis}/bin/run_ibis"/>
-	    </then>
-	</if>
-
-	<if>
-	    <available file="src/scripts/ibis_nameserver"/>
-	    <then>
-		<copy
-		    file="${ibis}/src/scripts/ibis_nameserver"
-		    tofile="${ibis}/bin/ibis_nameserver"/>
-	    </then>
-	</if>
-
-	<if>
-	    <available file="src/scripts/ibis-prun"/>
-	    <then>
-		<copy
-		    file="${ibis}/src/scripts/ibis-prun"
-		    tofile="${ibis}/bin/ibis-prun"/>
-	    </then>
-	</if>
-
-	<if>
-	    <available file="src/scripts/run_ibis_wide_area"/>
-	    <then>
-		<copy
-		    file="${ibis}/src/scripts/run_ibis_wide_area"
-		    tofile="${ibis}/bin/run_ibis_wide_area"/>
-	    </then>
-	</if>
-
-	<if>
-	    <available file="src/scripts/run-das"/>
-	    <then>
-		<copy
-		    file="${ibis}/src/scripts/run-das"
-		    tofile="${ibis}/bin/run-das"/>
-	    </then>
-	</if>
-
-	<if>
-	    <available file="src/scripts/cluster_wrapper"/>
-	    <then>
-		<copy
-		    file="${ibis}/src/scripts/cluster_wrapper"
-		    tofile="${ibis}/bin/cluster_wrapper"/>
-	    </then>
-	</if>
-
-	<if>
-	    <available file="src/scripts/csim_run_ibis"/>
-	    <then>
-		<copy
-		    file="${ibis}/src/scripts/csim_run_ibis"
-		    tofile="${ibis}/bin/csim_run_ibis"/>
-	    </then>
-	</if>
-
-	<if>
-	    <available file="src/scripts/csim_run_ibis_tcp"/>
-	    <then>
-		<copy
-		    file="${ibis}/src/scripts/csim_run_ibis_tcp"
-		    tofile="${ibis}/bin/csim_run_ibis_tcp"/>
-	    </then>
-	</if>
-
-	<copy
-	    file="${ibis}/src/scripts/ip_map.perl"
-	    tofile="${ibis}/bin/ip_map.perl"/>
-
+	<copy todir="${ibis}/bin">
+	    <fileset dir="${ibis}/src/scripts" excludes="*.bat,*.in"/>
+	</copy>
 	<chmod file="${ibis}/bin/*" perm="+x"/>
-
     </target>
 
     <target name="build-windows-bin"
 	    if="config.os-is-windows">
-	<copy
-	    file="${ibis}/src/scripts/ibis-run.bat"
-	    tofile="${ibis}/bin/ibis-run.bat"/>
-
-	<copy
-	    file="${ibis}/src/scripts/ant.bat"
-	    tofile="${ibis}/bin/ant.bat"/>
-
-	<copy
-	    file="${ibis}/src/scripts/ibis-ant.bat"
-	    tofile="${ibis}/bin/ibis-ant.bat"/>
-
-	<copy
-	    file="${ibis}/src/scripts/ibis-nameserver.bat"
-	    tofile="${ibis}/bin/ibis-nameserver.bat"/>
-
+	<copy todir="${ibis}/bin">
+	    <fileset dir="${ibis}/src/scripts" includes="*.bat"/>
+	</copy>
 	<chmod file="${ibis}/bin/*" perm="+x"/>
-
     </target>
 
     <target name="build-bin"
@@ -241,31 +91,18 @@
     </target>
 
     <!--
-	Compile, run IOGenerator, compile native code for the whole of Ibis
+	Compile, run IOGenerator, build jars for the whole of Ibis
     -->
+
     <target name="build"
-	    depends="init"
-	    description="Build Ibis">
-	<antcall inheritAll="true" inheritRefs="true" target="build-bin"/>
-	<patternset id="build.sources.all">
-	    <include name="ibis/**/*.java"/>
-	    <exclude name="ibis/impl/net/nio/**/*.java"/>
-	    <exclude name="ibis/repmi/**/*.java"/>
-	</patternset>
-	<antcall inheritAll="true" inheritRefs="true" target="-compile">
-	    <reference refid="build.sources.all" torefid="build.sources"/>
-	</antcall>
-	<antcall inheritAll="true" inheritRefs="true" target="copyProperties"/>
-	<antcall inheritAll="true" inheritRefs="true" target="iogen"/>
-	<antcall inheritAll="true" inheritRefs="true" target="jars"/>
-    </target>
+	    depends="compile, build-bin, copyProperties, iogen, jars"
+	    description="Build Ibis"/>
 
     <import file="${ibis}/build-files/build-properties.xml"/>
 
     <property name="src"         location="${ibis}/src"/>
     <property name="build"       location="${ibis}/build"/>
     <property name="docs"        location="${ibis}/docs"/>
-
 
     <!--
 	We depend on bcel. I am not sure it should be inside Ibis,
@@ -279,268 +116,43 @@
 	</javac>
     </target>
 
-    <!--
-	The list of directories that contain native sources.
-    -->
-    <path id="native.src.misc">
-	<pathelement path="${ibis}/src/ibis/io"/>
-	<pathelement path="${ibis}/3rdparty/omni/OmniTimer"/>
-	<pathelement path="${ibis}/src/ibis/util/nativeCode"/>
-    </path>
-
-    <path id="native.src.util">
-	<pathelement path="${ibis}/src/ibis/util/nativeCode"/>
-    </path>
-
-    <path id="native.src.mp">
-	<pathelement path="${ibis}/src/ibis/impl/messagePassing"/>
-	<pathelement path="${ibis}/src/ibis/impl/messagePassing/panda"/>
-	<!--
-	<pathelement path="${ibis}/src/ibis/impl/messagePassing/mpi"/>
-	-->
-    </path>
-
-    <path id="native.src.net">
-	<pathelement path="${ibis}/src/ibis/impl/net/gm"/>
-    </path>
-
-    <property name="native.src.mp" refid="native.src.mp"/>
-    <property name="native.src.misc" refid="native.src.misc"/>
-    <property name="native.src.util" refid="native.src.util"/>
-    <property name="native.src.net" refid="native.src.net"/>
-
     <import file="${ibis}/build-files/build-iogen.xml"/>
-
-    <target name="depend">
-	<depend
-		srcDir="${src}"
-		destDir="${build}"
-		cache="${build}/depCache"
-		closure="yes"
-		dump="true"
-		/>
-    </target>
-
-    <!--
-	For a number of source modules, provide a separate target
-	so we may compile only this source module, which is quicker.
-    -->
-
-    <target name="util" depends="init">
-	<patternset id="build.sources.util">
-	    <include name="ibis/util/**/*.java"/>
-	</patternset>
-	<antcall inheritAll="true" inheritRefs="true" target="-compile">
-	    <reference refid="build.sources.util" torefid="build.sources"/>
-	</antcall>
-    </target>
-
-
-    <target name="io" depends="init">
-	<patternset id="build.sources.io">
-	    <include name="ibis/io/**/*.java"/>
-	</patternset>
-	<antcall inheritAll="true" inheritRefs="true" target="-compile">
-	    <reference refid="build.sources.io" torefid="build.sources"/>
-	</antcall>
-    </target>
-
-
-    <target name="frontend" depends="init,bcel">
-	<patternset id="build.sources.frontend">
-	    <include name="ibis/frontend/**/*.java"/>
-	</patternset>
-	<antcall inheritAll="true" inheritRefs="true" target="-compile">
-	    <reference refid="build.sources.frontend" torefid="build.sources"/>
-	</antcall>
-    </target>
-
-
-    <target name="connect" depends="init">
-	<patternset id="build.sources.connect">
-	    <include name="ibis/connect/**/*.java"/>
-	</patternset>
-	<antcall inheritAll="true" inheritRefs="true" target="-compile">
-	    <reference refid="build.sources.connect" torefid="build.sources"/>
-	</antcall>
-    </target>
-
-
-    <target name="satin" depends="init">
-	<patternset id="build.sources.satin">
-	    <include name="ibis/satin/**/*.java"/>
-	</patternset>
-	<antcall inheritAll="true" inheritRefs="true" target="-compile">
-	    <reference refid="build.sources.satin" torefid="build.sources"/>
-	</antcall>
-    </target>
-
-
-    <target name="gmi" depends="init">
-	<patternset id="build.sources.gmi">
-	    <include name="ibis/gmi/**/*.java"/>
-	</patternset>
-	<antcall inheritAll="true" inheritRefs="true" target="-compile">
-	    <reference refid="build.sources.gmi" torefid="build.sources"/>
-	</antcall>
-    </target>
-
-    <target name="rmi" depends="init">
-	<patternset id="build.sources.rmi">
-	    <include name="ibis/rmi/**/*.java"/>
-	</patternset>
-	<antcall inheritAll="true" inheritRefs="true" target="-compile">
-	    <reference refid="build.sources.rmi" torefid="build.sources"/>
-	</antcall>
-	<antcall inheritAll="true" inheritRefs="true" target="iogen"/>
-    </target>
-
-    <target name="ipl" depends="init">
-	<patternset id="build.sources.ipl">
-	    <include name="ibis/ipl/**/*.java"/>
-	</patternset>
-	<antcall inheritAll="true" inheritRefs="true" target="-compile">
-	    <reference refid="build.sources.ipl" torefid="build.sources"/>
-	</antcall>
-    </target>
-
-
-    <target name="ns" depends="init">
-	<patternset id="build.sources.ns">
-	    <include name="ibis/impl/nameServer/**/*.java"/>
-	</patternset>
-	<antcall inheritAll="true" inheritRefs="true" target="-compile">
-	    <reference refid="build.sources.ns" torefid="build.sources"/>
-	</antcall>
-
-	<!--
-	<java   classname="ibis.impl.nameServer.tcp.NameServer"
-		fork="true">
-	    <classpath refid="default.classpath"/>
-	    <arg line="-port 7654"/>
-	</java>
-	-->
-    </target>
-
-
-    <target name="mp" depends="init">
-	<patternset id="build.sources.mp">
-	    <include name="ibis/impl/messagePassing/**/*.java"/>
-	    <exclude name="ibis/impl/messagePassing/panda/**/*.java"/>
-	</patternset>
-	<antcall inheritAll="true" inheritRefs="true" target="-compile">
-	    <reference refid="build.sources.mp" torefid="build.sources"/>
-	</antcall>
-	<antcall inheritAll="true" inheritRefs="true" target="natives.mp"/>
-    </target>
-
-
-    <target name="tcp" depends="init">
-	<patternset id="build.sources.tcp">
-	    <include name="ibis/impl/tcp/**/*.java"/>
-	</patternset>
-	<antcall inheritAll="true" inheritRefs="true" target="-compile">
-	    <reference refid="build.sources.tcp" torefid="build.sources"/>
-	</antcall>
-    </target>
-
-
-    <target name="nio" depends="init">
-	<patternset id="build.sources.nio">
-	    <include name="ibis/impl/nio/**/*.java"/>
-	</patternset>
-	<antcall inheritAll="true" inheritRefs="true" target="-compile">
-	    <reference refid="build.sources.nio" torefid="build.sources"/>
-	</antcall>
-    </target>
-
-
-    <target name="net" depends="init">
-	<patternset id="build.sources.net">
-	    <include name="ibis/impl/net/**/*.java"/>
-	    <exclude name="ibis/impl/net/gm/aside*/*.java"/>
-	    <exclude name="ibis/impl/net/nio/**/*.java"/>
-	</patternset>
-	<antcall inheritAll="true" inheritRefs="true" target="-compile">
-	    <reference refid="build.sources.net" torefid="build.sources"/>
-	</antcall>
-	<antcall inheritAll="true" inheritRefs="true" target="natives.net"/>
-    </target>
-
     <import file="${ibis}/build-files/build-native.xml"/>
 
     <!--
-	Compile the native code in the directory indicated by native.dir
+	Compile the native code in all directories that have native code
     -->
-    <target name="-build-native">
-	<echo	level="debug"
-		message="Invoke ant in ${native.dir}"/>
-	<ant inheritRefs="false" inheritAll="false" dir="${native.dir}">
-	    <property name="native.dir" value="${native.dir}"/>
+
+    <target name="natives.misc" depends="property-init">
+	<ant inheritRefs="false" inheritAll="false" dir="${ibis}/src/ibis/io">
 	    <property name="build" value="${build}"/>
-	    <property name="ibis" value="${ibis}"/>
-	    <!--
-	    <property name="optimization" value="${optimization}"/>
-	    -->
-	    <property name="contrib.initialized" value="${contrib.initialized}"/>
+	</ant>
+	<ant inheritRefs="false" inheritAll="false" dir="${ibis}/3rdparty/omni/OmniTimer">
+	    <property name="build" value="${build}"/>
+	</ant>
+	<ant inheritRefs="false" inheritAll="false" dir="${ibis}/src/ibis/util/nativeCode">
+	    <property name="build" value="${build}"/>
 	</ant>
     </target>
 
-
-    <!--
-	Compile the native code in all directories indicated by native,src.*
-    -->
-
-    <target name="natives.util" depends="property-init">
-	<echo	level="debug"
-		message="Native directories = ${native.src.util}"/>
-	<foreach
-		list="${native.src.util}"
-		delimiter="${path.separator}"
-		param="native.dir"
-		target="-build-native"/>
+    <target name="natives.net" depends="property-init" if="gm.present">
+	<ant inheritRefs="false" inheritAll="false" dir="${ibis}/src/ibis/impl/net/gm">
+	    <property name="build" value="${build}"/>
+	</ant>
     </target>
 
-    <target name="natives.misc" depends="property-init">
-	<echo	level="debug"
-		message="Native directories = ${native.src.misc}"/>
-	<foreach
-		list="${native.src.misc}"
-		delimiter="${path.separator}"
-		param="native.dir"
-		target="-build-native"/>
-    </target>
-
-    <target name="natives.net" depends="property-init">
-	    <!-- depends="compile,javah"-->
-	<if>
-	    <available file="${package.home.gm}"/>
-	    <then>
-		<echo	level="debug"
-			message="Native directories = ${native.src.net}"/>
-		<foreach
-			list="${native.src.net}"
-			delimiter="${path.separator}"
-			param="native.dir"
-			target="-build-native"/>
-	    </then>
-	</if>
-    </target>
-
-    <target name="natives.mp" depends="property-init">
-	    <!-- depends="compile,javah"-->
-	<if>
-	    <available file="${package.home.panda}"/>
-	    <then>
-		<echo	level="debug"
-			message="Native directories = ${native.src.mp}"/>
-		<foreach
-			list= "${native.src.mp}"
-			delimiter="${path.separator}"
-			param="native.dir"
-			target="-build-native"/>
-	    </then>
-	</if>
+    <target name="natives.mp" depends="property-init" if="panda.present">
+	<ant inheritRefs="false" inheritAll="false" dir="${ibis}/src/ibis/impl/messagePassing">
+	    <property name="build" value="${build}"/>
+	</ant>
+	<ant inheritRefs="false" inheritAll="false" dir="${ibis}/src/ibis/impl/messagePassing/panda">
+	    <property name="build" value="${build}"/>
+	</ant>
+	<!--
+	<ant inheritRefs="false" inheritAll="false" dir="${ibis}/src/ibis/impl/messagePassing/mpi">
+	    <property name="build" value="${build}"/>
+	</ant>
+	-->
     </target>
 
     <target name="natives"
@@ -569,16 +181,12 @@
 
     <target name="-compile"
 	    depends="init,bcel">
-	    <!-- description commented out: internal target
-	    description="Compile Java source files without preprocessing"
-	    -->
 	<echo	message="java.debug.value = ${java.debug.value}"
 		level="verbose"/>
 	<javac  destdir="${build}"
 		debug="${java.debug.value}"
 		srcdir="${src}">
 	    <patternset refid="build.sources"/>
-
 	    <classpath refid="default.classpath"/>
 	</javac>
     </target>
@@ -603,117 +211,13 @@
 
     <target name="jars"
 	    depends="ibis.jar"
-	    description="Generate jar files for ibis"/>
+	    description="Generate jar files for ibis">
+    </target>
 
     <target name="ibis.jar">
 	<jar	destfile="${ibis}/build/ibis.jar"
 		basedir="${ibis}/build"
 		includes="**/*.class **/properties properties ibis-properties ibis-sys-props VERSION"/>
-    </target>
-
-    <target name="ibis-package-jars">
-	<foreach target="jar.package"
-		param="ibis.sub-package">
-	    <path>
-		<dirset dir="${ibis}/build">
-		    <include name="ibis/*"/>
-		    <exclude name="ibis/impl"/>
-		</dirset>
-	    </path>
-	</foreach>
-	<foreach target="jar.impl"
-		param="ibis.sub-package">
-	    <path>
-		<dirset dir="${ibis}/build/ibis/impl">
-		    <include name="*"/>
-		</dirset>
-	    </path>
-	</foreach>
-	<jar	destfile="${ibis}/build/bcel-extensions.jar"
-		basedir="${ibis}/build"
-		includes="org/**/*.class"/>
-    </target>
-
-    <!--
-	Compile, run IOGenerator, compile native code for TCP Ibis
-    -->
-    <target name="build-tcp" depends="init"
-	    description="Build TCP Ibis">
-	<patternset id="build.sources-tcp">
-	    <include name="**/*.java"/>
-	    <exclude name="ibis/impl/nio/**/*.java"/>
-	    <exclude name="ibis/impl/net/**/*.java"/>
-	    <exclude name="ibis/impl/messagePassing/**/*.java"/>
-	    <exclude name="ibis/repmi/**/*.java"/>
-	</patternset>
-	<antcall inheritAll="true" inheritRefs="true" target="-compile">
-	    <reference refid="build.sources-tcp" torefid="build.sources"/>
-	</antcall>
-	<antcall inheritAll="true" inheritRefs="true" target="copyProperties"/>
-	<antcall inheritAll="true" inheritRefs="true" target="iogen"/>
-    </target>
-
-    <!--
-	Compile, run IOGenerator, compile native code for NIO Ibis
-    -->
-    <target name="build-nio" depends="init"
-	    description="Build NIO Ibis">
-	<patternset id="build.sources-nio">
-	    <include name="**/*.java"/>
-	    <exclude name="ibis/impl/tcp/**/*.java"/>
-	    <exclude name="ibis/impl/net/**/*.java"/>
-	    <exclude name="ibis/impl/messagePassing/**/*.java"/>
-	    <exclude name="ibis/repmi/**/*.java"/>
-	</patternset>
-	<antcall inheritAll="true" inheritRefs="true" target="-compile">
-	    <reference refid="build.sources-nio" torefid="build.sources"/>
-	</antcall>
-	<antcall inheritAll="true" inheritRefs="true" target="copyProperties"/>
-	<antcall inheritAll="true" inheritRefs="true" target="iogen"/>
-    </target>
-
-    <!--
-	Compile, run IOGenerator, compile native code for Net Ibis
-    -->
-    <target name="build-net" depends="init"
-	    description="Build NetIbis">
-	<patternset id="build.sources-net">
-	    <include name="**/*.java"/>
-	    <exclude name="ibis/impl/nio/**/*.java"/>
-	    <exclude name="ibis/impl/tcp/**/*.java"/>
-	    <exclude name="ibis/impl/messagePassing/**/*.java"/>
-	    <exclude name="ibis/repmi/**/*.java"/>
-	</patternset>
-	<antcall inheritAll="true" inheritRefs="true" target="-compile">
-	    <reference refid="build.sources-net" torefid="build.sources"/>
-	</antcall>
-	<antcall inheritAll="true" inheritRefs="true" target="iogen"/>
-	<antcall inheritAll="true" inheritRefs="true" target="javah"/>
-	<antcall inheritAll="true" inheritRefs="true" target="natives.misc"/>
-	<antcall inheritAll="true" inheritRefs="true" target="natives.net"/>
-    </target>
-
-    <!--
-	Compile, run IOGenerator, compile native code for MP Ibis
-    -->
-    <target name="build-mp" depends="init"
-	    description="Build messagePassing Ibis">
-	<patternset id="build.sources-mp">
-	    <include name="**/*.java"/>
-	    <exclude name="ibis/impl/nio/**/*.java"/>
-	    <exclude name="ibis/impl/tcp/**/*.java"/>
-	    <exclude name="ibis/impl/net/**/*.java"/>
-	    <exclude name="ibis/impl/messagePassing/panda/**/*.java"/>
-	    <exclude name="ibis/repmi/**/*.java"/>
-	</patternset>
-	<antcall inheritAll="true" inheritRefs="true" target="-compile">
-	    <reference refid="build.sources-mp" torefid="build.sources"/>
-	</antcall>
-	<antcall inheritAll="true" inheritRefs="true" target="copyProperties"/>
-	<antcall inheritAll="true" inheritRefs="true" target="iogen"/>
-	<antcall inheritAll="true" inheritRefs="true" target="javah"/>
-	<antcall inheritAll="true" inheritRefs="true" target="natives.misc"/>
-	<antcall inheritAll="true" inheritRefs="true" target="natives.mp"/>
     </target>
 
     <!--
@@ -723,69 +227,27 @@
 
     <property name="rewritten-classlibs" location="${ibis}/classlibs"/>
 
-    <target name="-rewrite-unjar-one">
-	<echo level="warning" message="Now unjar ${jar.file}"/>
-	<unjar src="${jar.file}" dest="${rewritten-classlibs}"/>
-    </target>
-
-    <target name="-rewrite-iogen-one">
-	<echo level="debug"
-		message="Now try iogen over files in ${iogen.dir}"/>
-	<antcall inheritRefs="true" target="iogen-files">
-	    <param name="iogen-files" value="${iogen.dir}"/>
-	    <param name="iogen-build" value="${rewritten-classlibs}"/>
-	</antcall>
-    </target>
-
     <target name="rewrite"
 	    depends="init"
 	    description="Preprocess all serializable classes of standard Java">
-	<!--
-	    First, find and extract jars.
-	-->
-	<path id="java.jar.ref">
+	<!-- Create a directory for the rewritten classes -->
+
+	<mkdir dir="${rewritten-classlibs}"/>
+
+	<!-- Then, find and extract jars.  -->
+	<unjar dest="${rewritten-classlibs}">
+	    <patternset>
+		<include name="**/*.class"/>
+	    </patternset>
 	    <fileset dir="${JAVA_HOME}/jre/lib">
 		<include name="**/*.jar"/>
 	    </fileset>
-	</path>
-	<property name="java.jar.files" refid="java.jar.ref"/>
-	<mkdir dir="${rewritten-classlibs}"/>
-	<foreach
-		list="${java.jar.files}"
-		delimiter="${path.separator}"
-		target="-rewrite-unjar-one"
-		param="jar.file"/>
+	</unjar>
 
-	<!--
-	    Then, run IOGenerator on each subdirectory of classlibs.
-	    Note: we could run IOGenerator on "." in classlibs,
-	    rewriting everything in one go, but IOGenerator uses too
-	    much memory.
-	-->
-	<path id="java.classlibs.ref">
-	    <dirset dir="${rewritten-classlibs}">
-		<include name="*"/>
-	    </dirset>
-	</path>
-
-	<!--
-	    We now have a list of absolute pathnames. Convert them to
-	    relative.
-	-->
-	<pathconvert pathsep="${path.separator}" property="java.classlibs.files" refid="java.classlibs.ref">
-	    <map from="${rewritten-classlibs}${file.separator}" to=""/>
-	</pathconvert>
-
-	<!--
-	    And rewrite ...
-	-->
-	<echo level="debug"
-		message="Rewrite each of ${java.classlibs.files}"/>
-	<foreach
-		list="${java.classlibs.files}"
-		delimiter="${path.separator}"
-		target="-rewrite-iogen-one"
-		param="iogen.dir"/>
+	<!-- Then, rewrite.  -->
+	<antcall inheritRefs="true" target="iogen">
+	    <param name="iogen-build" value="${rewritten-classlibs}"/>
+	</antcall>
     </target>
 
     <target name="clean"
@@ -818,19 +280,15 @@
 	</delete>
     </target>
 
-    <property name="distr"        location="${ibis}/ibis-src-distr"/>
-
     <target name="distclean"
 	    depends="clean,rewritten-clean"
 	    description="Clean up, also configuration cache and rewritten classlibs">
 	<delete file="build-properties"/>
 	<delete file="build-properties.cache"/>
 	<delete file="build-properties.backup"/>
-	<delete file="${ibis}/${ibis-version}-src-distr.zip"/>
 	<ant dir="${ibis}/apps" inheritAll="false" target="clean"/>
 	<ant dir="${ibis}/ibis-example" inheritAll="false" target="clean"/>
 	<delete dir="bin"/>
-	<delete dir="${distr}"/>
 	<delete dir="ant-tasks/tasks"/>
 	<ant dir="${docs}" inheritAll="false" target="distclean"/>
 	<delete file="configuration.sh"/>
@@ -873,163 +331,6 @@
 
     <target name="ibis-apps-test" depends="build">
 	<ant dir="apps/ibis" inheritAll="false" target="test"/>
-    </target>
-
-    <target name="src-distr">
-	<delete dir="${distr}"/>
-	<mkdir dir="${distr}"/>
-	<cvs command="checkout -P"
-	     cvsRoot="fs0.das2.cs.vu.nl:/usr/local/proj/ibis/Repository"
-	     cvsRsh="ssh"
-	     tag="${ibis-tag}"
-	     package="ibis"
-	     dest="${distr}"
-	     failonerror="true">
-	</cvs>
-	<cvs
-	    command="checkout -P"
-	    cvsRoot="fs0.das2.cs.vu.nl:/usr/local/proj/ibis/Repository"
-	    cvsRsh="ssh"
-	    tag="${ibis-tag}"
-	    package="ibisConnect"
-	    dest="${distr}"
-	    failonerror="true">
-	</cvs>
-	<cvs
-	    command="checkout -P"
-	    cvsRoot="fs0.das2.cs.vu.nl:/usr/local/proj/ibis/Repository"
-	    cvsRsh="ssh"
-	    tag="${ibis-tag}"
-	    package="ibisUtil"
-	    dest="${distr}"
-	    failonerror="true">
-	</cvs>
-	<copydir
-	    src="${distr}/ibisUtil/src/ibis/util"
-	    dest="${distr}/ibis/src/ibis/util"
-	    includes="**/*.java">
-	</copydir>
-	<copydir
-	    src="${distr}/ibisConnect/src/ibis/connect"
-	    dest="${distr}/ibis/src/ibis/connect"
-	    includes="**/*.java">
-	</copydir>
-	<delete dir="${distr}/ibis/apps/extra"/>
-	<delete dir="${distr}/ibis/apps/io"/>
-	<delete dir="${distr}/ibis/apps/repmi"/>
-	<delete dir="${distr}/ibis/apps/ibis/traffic"/>
-	<delete dir="${distr}/ibis/apps/ibis/benchmarks/new"/>
-	<delete dir="${distr}/ibis/apps/ibis/benchmarks/ping"/>
-	<delete dir="${distr}/ibis/apps/ibis/benchmarks/throughput"/>
-	<delete dir="${distr}/ibis/apps/ibis/benchmarks/timer"/>
-	<delete file="${distr}/ibis/3rdparty/ibis-util.jar"/>
-	<delete file="${distr}/ibis/3rdparty/ibis-connect.jar"/>
-	<delete file="${distr}/ibis/apps/run-all"/>
-	<delete file="${distr}/ibis/apps/get-plot.perl"/>
-	<delete file="${distr}/ibis/apps/get-speedup.perl"/>
-	<delete file="${distr}/ibis/TODO"/>
-	<delete file="${distr}/ibis/DISCUSSION_TOPICS"/>
-	<delete file="${distr}/ibis/src/scripts/csim_run_ibis"/>
-	<delete file="${distr}/ibis/src/scripts/csim_run_ibis_tcp"/>
-	<delete file="${distr}/ibis/src/scripts/run_ibis"/>
-	<delete file="${distr}/ibis/src/scripts/run_ibis_wide_area"/>
-	<delete file="${distr}/ibis/src/scripts/run-das"/>
-	<delete file="${distr}/ibis/src/scripts/ibis-prun"/>
-	<delete file="${distr}/ibis/src/scripts/ibis_nameserver"/>
-	<delete file="${distr}/ibis/src/scripts/cluster_wrapper"/>
-	<ant dir="${distr}/ibis/docs" inheritAll="false" target="progman"/>
-	<ant dir="${distr}/ibis/docs" inheritAll="false" target="clean"/>
-	<move todir="${distr}/${ibis-version}">
-	    <fileset dir="${distr}/ibis">
-	    </fileset>
-	</move>
-	<!--
-	  Cannot use the zip task: it strips file permissions.
-	<zip destfile="${ibis-version}-src-distr.zip"
-	</zip>
-	-->
-	<exec executable="/usr/bin/zip"
-	      dir="${distr}">
-	    <arg line="-qr ${ibis}/${ibis-version}-src-distr.zip ${ibis-version}"/>
-	</exec>
-    </target>
-
-    <target name="test-distr">
-	<delete dir="${distr}"/>
-	<mkdir dir="${distr}"/>
-	<cvs
-	    command="checkout -P"
-	    cvsRoot="fs0.das2.cs.vu.nl:/usr/local/proj/ibis/Repository"
-	    cvsRsh="ssh"
-	    package="ibis"
-	    dest="${distr}"
-	    failonerror="true">
-	</cvs>
-	<cvs
-	    command="checkout -P"
-	    cvsRoot="fs0.das2.cs.vu.nl:/usr/local/proj/ibis/Repository"
-	    cvsRsh="ssh"
-	    package="ibisConnect"
-	    dest="${distr}"
-	    failonerror="true">
-	</cvs>
-	<cvs
-	    command="checkout -P"
-	    cvsRoot="fs0.das2.cs.vu.nl:/usr/local/proj/ibis/Repository"
-	    cvsRsh="ssh"
-	    package="ibisUtil"
-	    dest="${distr}"
-	    failonerror="true">
-	</cvs>
-	<copydir
-	    src="${distr}/ibisUtil/src/ibis/util"
-	    dest="${distr}/ibis/src/ibis/util"
-	    includes="**/*.java">
-	</copydir>
-	<copydir
-	    src="${distr}/ibisConnect/src/ibis/connect"
-	    dest="${distr}/ibis/src/ibis/connect"
-	    includes="**/*.java">
-	</copydir>
-	<delete dir="${distr}/ibis/apps/extra"/>
-	<delete dir="${distr}/ibis/apps/io"/>
-	<delete dir="${distr}/ibis/apps/repmi"/>
-	<delete dir="${distr}/ibis/apps/ibis/traffic"/>
-	<delete dir="${distr}/ibis/apps/ibis/benchmarks/new"/>
-	<delete dir="${distr}/ibis/apps/ibis/benchmarks/ping"/>
-	<delete dir="${distr}/ibis/apps/ibis/benchmarks/throughput"/>
-	<delete dir="${distr}/ibis/apps/ibis/benchmarks/timer"/>
-	<delete file="${distr}/ibis/3rdparty/ibis-util.jar"/>
-	<delete file="${distr}/ibis/3rdparty/ibis-connect.jar"/>
-	<delete file="${distr}/ibis/apps/run-all"/>
-	<delete file="${distr}/ibis/apps/run-all"/>
-	<delete file="${distr}/ibis/apps/get-plot.perl"/>
-	<delete file="${distr}/ibis/apps/get-speedup.perl"/>
-	<delete file="${distr}/ibis/TODO"/>
-	<delete file="${distr}/ibis/DISCUSSION_TOPICS"/>
-	<delete file="${distr}/ibis/src/scripts/csim_run_ibis"/>
-	<delete file="${distr}/ibis/src/scripts/csim_run_ibis_tcp"/>
-	<delete file="${distr}/ibis/src/scripts/run_ibis"/>
-	<delete file="${distr}/ibis/src/scripts/run_ibis_wide_area"/>
-	<delete file="${distr}/ibis/src/scripts/run-das"/>
-	<delete file="${distr}/ibis/src/scripts/ibis-prun"/>
-	<delete file="${distr}/ibis/src/scripts/ibis_nameserver"/>
-	<delete file="${distr}/ibis/src/scripts/cluster_wrapper"/>
-	<ant dir="${distr}/ibis/docs" inheritAll="false" target="progman"/>
-	<ant dir="${distr}/ibis/docs" inheritAll="false" target="clean"/>
-	<move todir="${distr}/${ibis-version}">
-	    <fileset dir="${distr}/ibis">
-	    </fileset>
-	</move>
-	<!--
-	  Cannot use the zip task: it strips file permissions.
-	<zip destfile="${ibis-version}-src-distr.zip"
-	</zip>
-	-->
-	<exec executable="/usr/bin/zip"
-	      dir="${distr}">
-	    <arg line="-qr ${ibis}/${ibis-version}-src-distr.zip ${ibis-version}"/>
-	</exec>
     </target>
 
 </project>

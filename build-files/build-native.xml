@@ -1,6 +1,6 @@
 <project
     name="native"
-    default="native-compile"
+    default="native"
     basedir=".">
 
     <description>
@@ -17,92 +17,15 @@
 	default.classpath      refid of sensible default classpath
     -->
 
-    <target name="property-javah-build"
-	    depends="property-init"
-	    unless="build">
+    <target name="property-javah-build" depends="property-init" unless="build">
 	<echo message="build is undefined. Set it to the default value"/>
 	<property name="build" location="build"/>
 	<mkdir dir="${build}"/>
     </target>
 
-    <target name="javah-init"
-	    depends="property-javah-build,property-init">
+    <target name="javah-init" depends="property-javah-build">
 	<mkdir dir="${build}/include"/>
 	<echo level="warning" message="default.classpath = ${default.classpath}"/>
-    </target>
-
-
-    <target name="-one-javah">
-	<!--
-	-->
-	<echo	level="debug"
-		message="Invoke javah for ${native.class} if it is out of date"/>
-
-	<echo message="${native.class}" file="${build}/include/name-tmp"/>
-
-	<replace
-		file="${build}/include/name-tmp"
-		token="."
-		value="_"/>
-	<property name="include.path" location="${build}/include/"/>
-	<loadfile
-		property="include-class-name"
-		srcFile="${build}/include/name-tmp"/>
-	<replace
-		file="${build}/include/name-tmp"
-		token="${include-class-name}"
-		value="${include.path}${file.separator}${include-class-name}.h"/>
-	<loadfile
-		property="include-file-name"
-		srcFile="${build}/include/name-tmp"/>
-
-	<echo message="${native.class}" file="${build}/include/name-tmp"/>
-	<replace
-		file="${build}/include/name-tmp"
-		token="."
-		value="${file.separator}"/>
-	<loadfile
-		property="class-name"
-		srcFile="${build}/include/name-tmp"/>
-	<replace
-		file="${build}/include/name-tmp"
-		token="${class-name}"
-		value="${build}${file.separator}${class-name}.class"/>
-	<loadfile
-		property="class-file-name"
-		srcFile="${build}/include/name-tmp"/>
-
-	<!-- <delete file="${build}/include/name-tmp"/> -->
-	<echo	level="debug"
-		message="I think class file name for ${native.class} is ${class-file-name}"/>
-	<echo	level="debug"
-		message="I think include file name for ${native.class} is ${include-file-name}"/>
-
-	<outofdate>
-	    <sourcefiles>
-		<pathelement path="${class-file-name}"/>
-	    </sourcefiles>
-	    <targetfiles>
-		<pathelement path="${include-file-name}"/>
-	    </targetfiles>
-
-	    <sequential>
-		<echo	level="debug"
-			message="Invoke javah for one class: ${native.class}"/>
-		<javah destdir="${build}/include" verbose="false">
-		    <class name="${native.class}"/>
-		    <classpath refid="default.classpath"/>
-		</javah>
-	    </sequential>
-	</outofdate>
-    </target>
-
-
-    <target name="find-natives"
-	    depends="javah-init">
-	    <!-- commented out, not toplevel
-	    description="Locate classes with native methods in the build tree"
-	    -->
 	<path id="all-classes">
 	    <fileset dir="${build}">
 		<include name="**/*.class"/>
@@ -111,83 +34,35 @@
 	<pathconvert pathsep=" " property="classes.all" refid="all-classes">
 	    <map from="${build}${file.separator}" to=""/>
 	</pathconvert>
-	<pathconvert
-		pathsep="${path.separator}"
-		property="class-files.all"
-		refid="all-classes"/>
-	<echo	level="debug"
-		message="Consider this path for outofdate: ${class-files.all}"/>
-	<!--
-	-->
-	<outofdate>
-	    <sourcefiles>
-		<pathelement path="${class-files.all}"/>
-	    </sourcefiles>
-	    <targetfiles>
-		<pathelement path="${build}/NativeMethodClasses"/>
-	    </targetfiles>
-
-	    <sequential>
-		<echo	level="debug"
-			message="List of all class files: ${classes.all}"/>
-		<echo	level="debug"
-			message="File separator is ${file.separator}"/>
-
-		<java   classname="ibis.frontend.io.CheckNativeMethods"
-			taskname="CheckNativeMethods"
-			dir="${build}"
-			output="${build}/NativeMethodClasses"
-			failonerror="true"
-			fork="true">
-		    <arg line="${classes.all}"/>
-		    <classpath refid="default.classpath"/>
-		</java>
-
-		<!--
-		    Do regexp on ${build}/NativeMethodClasses:
-			%s/.class//
-			%s/\${file.separator}/./g
-			%s/\${line.separator}/,/g
-			%s/\n/,/g
-			%s/  */ /g
-			%s/,$//g
-		-->
-		<replaceregexp
-			byline="true"
-			file="${build}/NativeMethodClasses"
-			match=".class"
-			replace=""/>
-		<replaceregexp
-			byline="true"
-			file="${build}/NativeMethodClasses"
-			flags="g"
-			match="\${file.separator}"
-			replace="."/>
-		<replaceregexp
-			file="${build}/NativeMethodClasses"
-			flags="g"
-			match="\${line.separator}"
-			replace=","/>
-		<replaceregexp
-			file="${build}/NativeMethodClasses"
-			flags="g"
-			match="  *"
-			replace=""/>
-		<replaceregexp
-			file="${build}/NativeMethodClasses"
-			flags="g"
-			match=",$"
-			replace=""/>
-	    </sequential>
-	</outofdate>
     </target>
 
+    <target name="-chk-uptodate-NativeMethodClasses">
+	<uptodate property="is-uptodate-N"
+	    targetfile="${build}/NativeMethodClasses">
+	    <srcfiles dir="${build}" includes="**/*.class"/>
+	</uptodate>
+    </target>
 
-    <target name="javah"
-	    depends="javah-init,find-natives">
-	    <!-- commented out; not toplevel
-	    description="Invoke javah over classes listed in ${build}/NativeMethodClasses"
-	    -->
+    <target name="-get-natives" depends="-chk-uptodate-NativeMethodClasses"
+	unless="is-uptodate-N">
+	<echo	level="debug"
+		message="List of all class files: ${classes.all}"/>
+
+	<java   classname="ibis.frontend.io.CheckNativeMethods"
+		taskname="CheckNativeMethods"
+		dir="${build}"
+		output="${build}/NativeMethodClasses"
+		failonerror="true"
+		fork="true">
+	    <arg line="${classes.all}"/>
+	    <classpath refid="default.classpath"/>
+	</java>
+    </target>
+
+    <target name="find-natives"
+	depends="javah-init, -get-natives"/>
+
+    <target name="find-classes-native">
 	<loadfile
 		property="classes.native"
 		srcFile="${build}/NativeMethodClasses">
@@ -199,20 +74,18 @@
 	    -->
 	</loadfile>
 	<echo level="verbose" message="classes.native = ${classes.native}"/>
-	<if>
-	    <isset property="classes.native"/>
-	<then>
-	    <foreach
-		    list="${classes.native}"
-		    delimiter=","
-		    target="-one-javah"
-		    param="native.class"
-		    inheritall="true"
-		    inheritrefs="true"
-		    />
-	</then>
-	</if>
     </target>
+
+    <target name="do-classes-native" depends="find-classes-native"
+	if="classes.native">
+	<javah class="${classes.native}"
+	    destdir="${build}/include">
+	    <classpath refid="default.classpath"/>
+	</javah>
+    </target>
+
+    <target name="javah"
+	depends="find-natives,do-classes-native"/>
 
 
     <!--
@@ -221,7 +94,6 @@
 	Requires prior definition of following properties:
 	    native.dir		the directory of this build
 	    ibis		the root of the ibis source tree
-	    native-path		${native.dir} relative to ${ibis}
 	    build		the root of the ibis build tree
 	    default.classpath	a ref property with default classpath
 
@@ -234,60 +106,61 @@
 
     -->
 
-    <taskdef resource="cpptasks.tasks"/>
-    <typedef resource="cpptasks.types"/>
 
-    <target name="property-compiler-init">
-
-	<if>
-	    <isset property="c.debug"/>
-	    <then>
-		<property name="c.debug.value" value="true"/>
-	    </then>
-	    <else>
-		<property name="c.debug.value" value="false"/>
-	    </else>
-	</if>
-
-	<if>
-	    <os family="unix"/>
-	    <then>
-		<property name="c.compiler" value="${c.compiler.unix}"/>
-		<if>
-		    <equals arg1="${c.optimization}" arg2="optimize"/>
-		    <then>
-			<property name="c.optimize" value="${c.optimize.unix}"/>
-		    </then>
-		</if>
-	    </then>
-	<elseif>
-	    <os family="windows"/>
-	    <then>
-		<property name="c.compiler" value="${c.compiler.windows}"/>
-		<if>
-		    <equals arg1="${c.optimization}" arg2="optimize"/>
-		    <then>
-			<property name="c.optimize" value="${c.optimize.windows}"/>
-		    </then>
-		</if>
-	    </then>
-	</elseif>
-	<elseif>
-	    <os family="mac"/>
-	    <then>
-		<property name="c.compiler" value="${c.compiler.mac}"/>
-		<if>
-		    <equals arg1="${c.optimization}" arg2="optimize"/>
-		    <then>
-			<property name="c.optimize" value="${c.optimize.mac}"/>
-		    </then>
-		</if>
-	    </then>
-	</elseif>
-	</if>
-
+    <target name="set-c-debug-false" unless="c.debug">
+	<property name="c.debug.value" value="false"/>
     </target>
 
+    <target name="set-c-debug-true" if="c.debug">
+	<property name="c.debug.value" value="true"/>
+    </target>
+
+    <target name="set-c-debug"
+	depends="set-c-debug-false,set-c-debug-true"/>
+
+    <target name="set-c-optimize-mac" if="c.optimization">
+	<property name="c.optimize" value="${c.optimize.mac}"/>
+    </target>
+
+    <target name="set-mac-compiler" if="os-is-mac"
+	depends="set-c-optimize-mac">
+	<property name="c.compiler" value="${c.compiler.mac}"/>
+    </target>
+
+    <target name="set-c-optimize-unix" if="c.optimization">
+	<property name="c.optimize" value="${c.optimize.unix}"/>
+    </target>
+
+    <target name="set-unix-compiler" if="os-is-unix"
+	depends="set-c-optimize-unix">
+	<property name="c.compiler" value="${c.compiler.unix}"/>
+    </target>
+
+    <target name="set-c-optimize-windows" if="c.optimization">
+	<property name="c.optimize" value="${c.optimize.windows}"/>
+    </target>
+
+    <target name="set-windows-compiler" if="os-is-windows"
+	depends="set-c-optimize-windows">
+	<property name="c.compiler" value="${c.compiler.windows}"/>
+    </target>
+
+    <target name="set-compiler"
+	depends="set-mac-compiler,set-unix-compiler,set-windows-compiler"/>
+
+    <target name="property-compiler-init"
+	depends="set-c-debug, set-compiler" unless="property-compiler-init-done">
+	<property name="property-compiler-init-done" value="true"/>
+	<path id="cpp">
+	    <pathelement path="${ibis}/3rdparty/cpptasks-1.0-cvs.jar"/>
+	</path>
+	<taskdef resource="cpptasks.tasks" classpathref="cpp" loaderref="org.apache.tools.ant.loader.AntClassLoader2"/>
+	<typedef resource="cpptasks.types" classpathref="cpp" loaderref="org.apache.tools.ant.loader.AntClassLoader2"/>
+	<!--
+	<taskdef resource="cpptasks.tasks" classpathref="cpp"/>
+	<typedef resource="cpptasks.types" classpathref="cpp"/>
+	-->
+    </target>
 
     <target name="property-native-outtype"
 	    depends="property-init"
@@ -303,7 +176,6 @@
 	<echo	level="debug"
 		message="build is undefined. Set it to the default value"/>
 	<property name="build" location="build"/>
-	<mkdir dir="${build}"/>
     </target>
 
     <target name="property-native-local.lib" unless="local.lib">
@@ -311,12 +183,12 @@
 	<property name="local.lib" value="ibis"/>
     </target>
 
-
     <target name="native-init"
 	    depends="property-native-build,
 		     property-native-local.lib,
 		     property-native-outtype,
-		     property-compiler-init">
+		     property-compiler-init" unless="native-initialized">
+	<property name="native-initialized" value="true"/>
 	<mkdir dir="${build}"/>
 	<mkdir dir="${build}/include"/>
 	<mkdir dir="${build}/lib"/>
@@ -343,11 +215,13 @@
 	    <map from="${ibis}${file.separator}" to=""/>
 	</pathconvert>
 
-	<propertyregex
-	       input="${native-path}"
-	       property="native-rel-path"
-	       regexp="src\${file.separator}"
-	       replace=""/>
+	<pathconvert pathsep=" " property="native-rel-path">
+	    <path>
+		<pathelement path="${native.dir}"/>
+	    </path>
+	    <map from="${ibis}${file.separator}src${file.separator}" to=""/>
+	</pathconvert>
+
 	<echo level="verbose" message="native-path ${native-path}"/>
 	<echo level="verbose" message="native-rel-path ${native-rel-path}"/>
 
@@ -383,116 +257,92 @@
 		name="maplibrary"
 		classname="MapLibraryName"
 		classpath="${ibis}/ant-tasks/tasks"/>
-    </target>
 
-
-    <!--
-	Invoke this target to compile the .c files in directory ${native.dir}
-    -->
-    <target name="native-compile"
-	    depends="native-init">
-
-	<echo message="Invoke cc in ${native.dir}${file.separator}"/>
-	<if>
+	<condition property="local.libsetref">
 	    <isreference refid="local.libset-ref"/>
-	    <then>
-		<property name="local.libset" refid="local.libset-ref"/>
-		<!--
-		<echo message="Specify extra libs ${local.libset}"/>
-		<echo message="Specify extra libs ref ${local.libset-ref}"/>
-		-->
-	    </then>
-	</if>
+	</condition>
 
 	<maplibrary property="library.path" name="${build}/lib/${local.lib}"/>
 
-	<outofdate>
-	    <sourcefiles>
-		<fileset dir="${native.dir}" includes="*.c"/>
-	    </sourcefiles>
-	    <targetfiles>
-		<pathelement path="${library.path}"/>
-	    </targetfiles>
-
-	    <sequential>
-
-		<cc	debug="${c.debug}"
-			objdir="${build}/${native-rel-path}"
-			outfile="${build}/lib/${local.lib}"
-			outtype="${cc.outtype}"
-			libtool="${use-libtool}"
-			name="${c.compiler}"			
-			warnings="severe">
-		    <fileset dir="${native.dir}" includes="*.c" unless="native.src"/>
-		    <fileset dir="${native.dir}" includes="${native.src}" if="native.src"/>
-		    <defineset>
-			<define name="NDEBUG" if="c.optimize"/>
-		    </defineset>
-		    <compilerarg value="${c.optimize}" if="c.optimize"/>
-		    <includepath>
-			<pathelement path="${local.includes}"/>
-			<pathelement path="${default.includes}"/>
-		    </includepath>
-		    <libset refid="local.libset-ref" if="local.libset"/>
-		    <!-- <compilerarg location="mid" value="-E"/> -->
-		    <!-- <compilerarg location="mid" value="-v"/> -->
-		</cc>
-
-		<if>
-		    <os family="mac"/>
-		    <then>
-			<if>
-			    <equals arg1="${cc.outtype}" arg2="shared"/>
-			    <then>
-				<propertyregex
-					input="${library.path}"
-					property="mac-lib"
-					regexp=".jnilib"
-					replace=".dylib"/>
-				<copy	file="${mac-lib}"
-					tofile="${library.path}"/>
-			    </then>
-			<elseif>
-			    <equals arg1="${cc.outtype}" arg2="plugin"/>
-			    <then>
-				<propertyregex
-					input="${library.path}"
-					property="mac-lib"
-					regexp=".jnilib"
-					replace=".bundle"/>
-				<copy	file="${mac-lib}"
-					tofile="${library.path}"/>
-			    </then>
-			</elseif>
-			</if>
-		    </then>
-		</if>
-
-	    </sequential>
-	</outofdate>
     </target>
 
+    <target name="do-local-libset-ref" if="local.libsetref">
+	<property name="local.libset" refid="local.libset-ref"/>
+	<!--
+	<echo message="Specify extra libs ${local.libset}"/>
+	<echo message="Specify extra libs ref ${local.libset-ref}"/>
+	-->
+    </target>
+
+    <target name="chk-uptodate">
+	<uptodate property="is-uptodate" targetfile="${library.path}">
+	    <srcfiles dir="${native.dir}" includes="*.c"/>
+	</uptodate>
+    </target>
+
+    <target name="do-cc" depends="chk-uptodate" unless="is-uptodate">
+	<echo message="Invoke cc in ${native.dir}${file.separator}"/>
+
+	<cc	debug="${c.debug}"
+		objdir="${build}/${native-rel-path}"
+		outfile="${build}/lib/${local.lib}"
+		outtype="${cc.outtype}"
+		libtool="${use-libtool}"
+		name="${c.compiler}"			
+		warnings="severe">
+	    <fileset dir="${native.dir}" includes="*.c" unless="native.src"/>
+	    <fileset dir="${native.dir}" includes="${native.src}" if="native.src"/>
+	    <defineset>
+		<define name="NDEBUG" if="c.optimize"/>
+	    </defineset>
+	    <compilerarg value="${c.optimize}" if="c.optimize"/>
+	    <includepath>
+		<pathelement path="${local.includes}"/>
+		<pathelement path="${default.includes}"/>
+	    </includepath>
+	    <libset refid="local.libset-ref" if="local.libset"/>
+	    <!-- <compilerarg location="mid" value="-E"/> -->
+	    <!-- <compilerarg location="mid" value="-v"/> -->
+	</cc>
+    </target>
+
+    <target name="set-outtypes" if="os-is-mac">
+	<condition property="is-shared-outtype">
+	    <equals arg1="${cc.outtype}" arg2="shared"/>
+	</condition>
+	<condition property="is-plugin-outtype">
+	    <equals arg1="${cc.outtype}" arg2="plugin"/>
+	</condition>
+    </target>
+
+    <target name="cpy-dylib" if="is-shared-outtype">
+	<pathconvert pathsep=" " property="mac-lib">
+	    <path>
+		<pathelement path="${library.path}"/>
+	    </path>
+	    <map from=".jnilib" to=".dylib"/>
+	</pathconvert>
+	<copy file="${mac-lib}" tofile="${library.path}"/>
+    </target>
+
+    <target name="cpy-bundle" if="is-plugin-outtype">
+	<pathconvert pathsep=" " property="mac-lib">
+	    <path>
+		<pathelement path="${library.path}"/>
+	    </path>
+	    <map from=".jnilib" to=".bundle"/>
+	</pathconvert>
+	<copy file="${mac-lib}" tofile="${library.path}"/>
+    </target>
+
+
+    <target name="do-compile" depends="do-cc, set-outtypes, cpy-dylib, cpy-bundle"/>
 
     <!--
 	Invoke this target to compile the .c files in the current
 	directory
     -->
     <target name="native"
-	    depends="native-init,native-compile"/>
-	    <!-- commented out; not toplevel
-	    description="Compile native files in the current directory"
-	    -->
-    <!--
-    <target name="native"
-	    depends="native-init"
-	    description="Compile native files in the current directory">
-	<ant inheritAll="false" dir="." antfile="build-native.xml" target="native-compile">
-	    <property name="native.dir" value="."/>
-	    <property name="build" value="${build}"/>
-	    <property name="ibis" value="${ibis}"/>
-	    <property name="optimization" value="${optimization}"/>
-	</ant>
-    </target>
-    -->
+	depends="native-init, do-local-libset-ref, do-compile"/>
 
 </project>

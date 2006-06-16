@@ -19,25 +19,27 @@
 
     <property name="builddir" location="${build}"/>
 
+    <target name="set-to-rmic-flags" if="rmic-flags">
+	<property name="rmic-flags.value" value="${rmic-flags}"/>
+    </target>
+
+    <target name="set-def-rmic-flags" unless="rmic-flags">
+	<property name="rmic-flags.value" value=""/>
+    </target>
+
+    <target name="set-rmic-flags"
+	depends="set-to-rmic-flags,set-def-rmic-flags"/>
+
     <target name="rmic-init"
 	    depends="property-rmic-build,property-init"/>
 
     <target name="rmic"
-	    depends="rmic-init">
+	    depends="rmic-init,set-rmic-flags">
 	    <!-- Commented out; not toplevel.
 	    description="Preprocess class files in the build tree for RMI"
 	    -->
 	<!-- <echo message="Do ONLY the class files in ibis/ipl"/> -->
 
-	<if>
-	    <isset property="rmic-flags"/>
-	    <then>
-		<property name="rmic-flags.value" value="${rmic-flags}"/>
-	    </then>
-	    <else>
-		<property name="rmic-flags.value" value=""/>
-	    </else>
-	</if>
 	<path id="all-classes">
 	    <fileset dir="${builddir}">
 		<include name="**/*.class"/>
@@ -282,8 +284,28 @@
 	<antcall inheritRefs="true" target="rmic-sun"/>
     </target>
 
+    <target name="init-karmi"
+	depends="init">
+	<condition property="has-karmi.jar">
+	    <available file="${karmi}/karmi.jar"/>
+	</condition>
+    </target>
+
+    <target name="set-extra-path-karmi" if="has-karmi.jar">
+	<path id="extra-classpath">
+	    <pathelement path="${karmi}/karmi.jar"/>
+	</path>
+    </target>
+
+    <target name="set-extra-path-nokarmi" unless="has-karmi.jar">
+	<path id="extra-classpath"/>
+    </target>
+
+    <target name="set-extra-path"
+	depends="set-extra-path-karmi,set-extra-path-nokarmi"/>
+
     <target name="build-karmi"
-	    depends="init"
+	    depends="init-karmi,set-extra-path"
 	    description="Compile RMI application for KaRMI">
 	<replace
 		dir="."
@@ -293,17 +315,6 @@
 		dir="."
 		token="uka.karmi.rmi.RMISecurityManager"
 		value="java.rmi.RMISecurityManager"/>
-	<if>
-	    <available file="${karmi}/karmi.jar"/>
-	    <then>
-		<path id="extra-classpath">
-		    <pathelement path="${karmi}/karmi.jar"/>
-		</path>
-	    </then>
-	    <else>
-		<path id="extra-classpath"/>
-	    </else>
-	</if>
 	<antcall inheritAll="false" inheritRefs="false" target="compile">
 	    <reference refid="extra-classpath"/>
 	</antcall>

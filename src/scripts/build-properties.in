@@ -21,9 +21,11 @@ package.home.lfc            = @LFC_HOME@
 package.home.panda          = @PANDA_HOME@
 package.home.mpi            = @MPI_HOME@
 
-# Choose a value for javac optimization: either "optimize" or "debug"
-java.optimization           = optimize
-# java.optimization           = debug
+# Optimize java code?
+# If not, comment the following line out.
+# The build system only checks whether this property is defined,
+# so giving it a value of "false" defeats your purpose.
+java.optimization           = true
 
 # Include debug symbols in the java code?
 # If you don't want debug symbols, comment the following line out.
@@ -43,9 +45,11 @@ c.optimize.unix             = -O3
 c.optimize.windows          = -O2
 c.optimize.mac              = -O3
 
-# Choose a value for native optimization: either "optimize" or "debug"
-c.optimization              = optimize
-# c.optimization              = debug
+# Optimize native code?
+# If you don't want that, comment the following line out.
+# The build system only checks whether this property is defined,
+# so giving it a value of "false" defeats your purpose.
+c.optimization              = true
 
 # Include debug symbols in the native code?
 # If you don't want debug symbols, comment the following line out.
