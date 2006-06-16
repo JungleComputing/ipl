@@ -101,15 +101,6 @@ do
 		shift
 		cpumask="$1"
                 ;;
-	-karmi)
-		Xbootclasspath=""
-		JAVACLASSPATH="$CLASSPATH:build:$KARMI/karmi.jar:$IBIS_ROOT/build:"
-		;;
-	-karmi-gm)
-		Xbootclasspath=""
-		Dlibpath="$Dlibpath$KARMI/lib:"
-		JAVACLASSPATH="$CLASSPATH:build:$KARMI/karmi.jar:$IBIS_ROOT/build:"
-		;;
 	-key)
 		shift
 		Dns_pool="-Dibis.name_server.key=$1"

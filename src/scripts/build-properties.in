@@ -13,7 +13,6 @@
 JAVA_HOME                   = @JAVA@
 package.home.ibis           = @IBIS@
 ibisBuild                   = ${ibis}/build
-karmi                       = @KARMI@
 
 package.home.gm             = @GM_HOME@
 package.home.daslib         = @DASLIB_HOME@

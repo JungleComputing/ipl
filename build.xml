@@ -70,7 +70,7 @@
     <!--
 	    Commented out so that unix scripts get installed on Cygwin
 	    (and on windows, but who cares ...)
-	    unless="config.os-is-windows">
+	    unless="os-is-windows">
     -->
 	<copy todir="${ibis}/bin">
 	    <fileset dir="${ibis}/src/scripts" excludes="*.bat,*.in"/>
@@ -79,7 +79,7 @@
     </target>
 
     <target name="build-windows-bin"
-	    if="config.os-is-windows">
+	    if="os-is-windows">
 	<copy todir="${ibis}/bin">
 	    <fileset dir="${ibis}/src/scripts" includes="*.bat"/>
 	</copy>
@@ -87,7 +87,7 @@
     </target>
 
     <target name="build-bin"
-	    depends="config-set-os, build-unix-bin, build-windows-bin">
+	    depends="build-unix-bin, build-windows-bin">
     </target>
 
     <!--

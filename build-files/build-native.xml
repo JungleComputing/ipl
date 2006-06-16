@@ -187,6 +187,7 @@
 	    depends="property-native-build,
 		     property-native-local.lib,
 		     property-native-outtype,
+		     proprietary-tasks,
 		     property-compiler-init" unless="native-initialized">
 	<property name="native-initialized" value="true"/>
 	<mkdir dir="${build}"/>
@@ -345,4 +346,13 @@
     <target name="native"
 	depends="native-init, do-local-libset-ref, do-compile"/>
 
+    <target name="proprietary-tasks" unless="native-initialized">
+	<mkdir dir="${ibis}/ant-tasks/tasks"/>
+	<javac
+		srcdir="${ibis}/ant-tasks"
+		destdir="${ibis}/ant-tasks/tasks">
+	    <include name="**/*.java"/>
+	    <classpath refid="default.classpath"/>
+	</javac>
+    </target>
 </project>

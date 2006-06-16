@@ -24,7 +24,6 @@ case "`uname`" in
 CYGWIN*)
     # convert to unix format before dealing with them.
     IBIS_ROOT=`cygpath --unix "$IBIS_ROOT"`
-    KARMI=`cygpath --unix "$KARMI"`
     CLASSPATH=`cygpath --unix --path "$CLASSPATH"`
     LD_LIBRARY_PATH=`cygpath --unix --path "$LD_LIBRARY_PATH"`
     ;;
@@ -299,15 +298,6 @@ do
 		;;
 	-bootcp)
 		needsbootclasspath=1
-		;;
-	-karmi)
-		needsbootclasspath=0
-		JAVACLASSPATH="build:$KARMI/karmi.jar:$IBIS_ROOT/build/ibis.jar:$LIBCLASSPATH:.:"
-		;;
-	-karmi-gm)
-		needsbootclasspath=0
-		libpath="$libpath$KARMI/lib:"
-		JAVACLASSPATH="build:$KARMI/karmi.jar:$IBIS_ROOT/build/ibis.jar:$LIBCLASSPATH:.:"
 		;;
 	-ip-map)
 		shift

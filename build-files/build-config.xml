@@ -9,36 +9,16 @@
     </description>
 
     <target name="config.previous"
-	    depends="config-set-os"
+	    depends="config-workstation"
 	    if="config.has-previous">
 	<echo message="Read previous configuration from build-properties.cache"/>
 	<property file="build-properties.cache"/>
     </target>
 
     <target name="config.workstation"
-	    depends="config-set-os"
+	    depends="config-workstation"
 	    if="config.is-workstation">
-	<property
-		name="default.home.panda"
-		location="/usr/local/VU/panda/panda4.0"/>
-	<property
-		name="default.home.daslib"
-		location="/usr/local/VU/daslib"/>
-	<property
-		name="default.home.lfc"
-		location="/usr/local/VU/lfc/lfc-gm"/>
-	<property
-		name="default.home.mpi"
-		location="/usr/local/mpich/mpich-gm"/>
-	<property
-		name="default.home.gm"
-		location="/usr/local/gm/current"/>
-    </target>
-
-    <target name="config.mac"
-	    depends="config-set-os"
-	    if="config.os-is-mac">
-	<echo message="Yep, this is a mac"/>
+	    <property file="${ibis}/build-files/build-properties.default"/>
     </target>
 
     <target name="config-workstation">
@@ -52,18 +32,6 @@
 	</condition>
     </target>
 
-    <target name="config-set-os" depends="config-workstation">
-	<condition property="config.os-is-unix"    value="true">
-	    <os family="unix"/>
-	</condition>
-	<condition property="config.os-is-windows" value="true">
-	    <os family="windows"/>
-	</condition>
-	<condition property="config.os-is-mac"     value="true">
-	    <os family="mac"/>
-	</condition>
-    </target>
-
     <condition property="java-ok">
 	<or>
 	    <contains string="${java.version}" substring="1.4"/>
@@ -72,7 +40,7 @@
 	</or>
     </condition>
 
-    <target name="java-version-test" unless="java-ok">
+    <target name="java-version-test" depends="java-home-test" unless="java-ok">
 	<fail message="Java version ${java.version} is not supported. A 1.4 or 1.5 version is required for Ibis.">
 	</fail>
     </target>
@@ -82,13 +50,11 @@
     </target>
 
     <target name="config-init"
-	    depends="java-home-test,java-version-test,config.workstation,config.mac,config.previous">
+	    depends="java-version-test,config.workstation,config.previous">
 	<property name="JAVA_HOME_ENV" value="${env.JAVA_HOME}"/>
     </target>
 
     <property environment="env"/>
-
-    <property name="karmi" location="${ibis}/../karmi/karmi-transport-1.07g"/>
 
     <target name="-config-sleep" unless="called-from-configure">
 	<echo>
@@ -113,83 +79,37 @@ that the fast local network module depends on, just waiting for
 ----------------------------------------------------------------
 </echo>
 	<sleep seconds="30"/>
+	<property name="install.home.gm" value="${default.home.gm}"/>
+	<property name="install.home.daslib" value="${default.home.daslib}"/>
+	<property name="install.home.lfc" value="${default.home.lfc}"/>
+	<property name="install.home.panda" value="${default.home.panda}"/>
+	<property name="install.home.mpi" value="${default.home.mpi}"/>
     </target>
 
-    <target name="-config-build-1"
-	depends="-config-sleep">
+    <target name="-config-build-1" depends="-config-sleep">
 
 	<property name="config.home.ibis" location="${ibis}"/>
-
-	<condition property="config.home.gm-s" value="${default.home.gm}">
-	    <equals arg1="${install.home.gm}" arg2=""/>
-	</condition>
-	<condition property="config.home.gm-s" value="${install.home.gm}">
-	    <not>
-		<equals arg1="${install.home.gm}" arg2=""/>
-	    </not>
-	</condition>
-	<property name="config.home.gm"
-		location="${config.home.gm-s}"/>
-
-	<condition property="config.home.daslib-s" value="${default.home.daslib}">
-	    <equals arg1="${install.home.daslib}" arg2=""/>
-	</condition>
-	<condition property="config.home.daslib-s" value="${install.home.daslib}">
-	    <not>
-		<equals arg1="${install.home.daslib}" arg2=""/>
-	    </not>
-	</condition>
-	<property name="config.home.daslib"
-		location="${config.home.daslib-s}"/>
-
-	<condition property="config.home.lfc-s" value="${default.home.lfc}">
-	    <equals arg1="${install.home.lfc}" arg2=""/>
-	</condition>
-	<condition property="config.home.lfc-s" value="${install.home.lfc}">
-	    <not>
-		<equals arg1="${install.home.lfc}" arg2=""/>
-	    </not>
-	</condition>
-	<property name="config.home.lfc"
-		location="${config.home.lfc-s}"/>
-
-	<condition property="config.home.panda-s" value="${default.home.panda}">
-	    <equals arg1="${install.home.panda}" arg2=""/>
-	</condition>
-	<condition property="config.home.panda-s" value="${install.home.panda}">
-	    <not>
-		<equals arg1="${install.home.panda}" arg2=""/>
-	    </not>
-	</condition>
-	<property name="config.home.panda"
-		location="${config.home.panda-s}"/>
-
-	<condition property="config.home.mpi-s" value="${default.home.mpi}">
-	    <equals arg1="${install.home.mpi}" arg2=""/>
-	</condition>
-	<condition property="config.home.mpi-s" value="${install.home.mpi}">
-	    <not>
-		<equals arg1="${install.home.mpi}" arg2=""/>
-	    </not>
-	</condition>
-	<property name="config.home.mpi"
-		location="${config.home.mpi-s}"/>
+	<property name="config.home.gm" location="${install.home.gm}"/>
+	<property name="config.home.daslib" location="${install.home.daslib}"/>
+	<property name="config.home.lfc" location="${install.home.lfc}"/>
+	<property name="config.home.panda" location="${install.home.panda}"/>
+	<property name="config.home.mpi" location="${install.home.mpi}"/>
 
 	<delete file="build-properties.cache"/>
 	<echo	file="build-properties.cache"
-		append="true">default.home.panda  = ${default.home.panda}
+		append="true">default.home.panda  = ${config.home.panda}
 </echo>
 	<echo	file="build-properties.cache"
-		append="true">default.home.daslib = ${default.home.daslib}
+		append="true">default.home.daslib = ${config.home.daslib}
 </echo>
 	<echo	file="build-properties.cache"
-		append="true">default.home.lfc    = ${default.home.lfc}
+		append="true">default.home.lfc    = ${config.home.lfc}
 </echo>
 	<echo	file="build-properties.cache"
-		append="true">default.home.mpi    = ${default.home.mpi}
+		append="true">default.home.mpi    = ${config.home.mpi}
 </echo>
 	<echo	file="build-properties.cache"
-		append="true">default.home.gm     = ${default.home.gm}
+		append="true">default.home.gm     = ${config.home.gm}
 </echo>
 	<replace
 		file="${ibis}/build-properties.cache"
@@ -236,10 +156,6 @@ that the fast local network module depends on, just waiting for
 		value="${config.home.mpi}"/>
 	<replace
 		file="${ibis}/build-properties"
-		token="@KARMI@"
-		value="${karmi}"/>
-	<replace
-		file="${ibis}/build-properties"
 		token="${file.separator}"
 		value="/"/>
 
@@ -275,7 +191,6 @@ JAVAC="${config.javac}"
 JIT_OPTS="${JIT_OPTS}"
 IBIS_ROOT="${ibis}"
 BCEL="${package.home.bcel}"
-KARMI="${karmi}"
 IBIS_CONFIG_SEEN=1
 </echo>
 
@@ -295,7 +210,6 @@ IBIS_CONFIG_SEEN=1
 @set JIT_OPTS=${JIT_OPTS}
 @set IBIS_ROOT=${ibis}
 @set BCEL=${package.home.bcel}
-@set KARMI=${karmi}
 @set IBIS_CONFIG_SEEN=1
 </echo>
 
@@ -342,31 +256,27 @@ IBIS_CONFIG_SEEN=1
 
 	<input
 		message="Please enter the install directory of gm: [${default.home.gm}] "
-		addproperty="install.home.gm"/>
+		addproperty="install.home.gm"
+		defaultvalue="${default.home.gm}"/>
 	<input
 		message="Please enter the install directory of daslib: [${default.home.daslib}] "
-		addproperty="install.home.daslib"/>
+		addproperty="install.home.daslib"
+		defaultvalue="${default.home.daslib}"/>
 	<input
 		message="Please enter the install directory of lfc: [${default.home.lfc}] "
-		addproperty="install.home.lfc"/>
+		addproperty="install.home.lfc"
+		defaultvalue="${default.home.lfc}"/>
 	<input
 		message="Please enter the install directory of panda: [${default.home.panda}] "
-		addproperty="install.home.panda"/>
+		addproperty="install.home.panda"
+		defaultvalue="${default.home.panda}"/>
 	<input
 		message="Please enter the install directory of mpi: [${default.home.mpi}] "
-		addproperty="install.home.mpi"/>
+		addproperty="install.home.mpi"
+		defaultvalue="${default.home.mpi}"/>
 
 	<property name="called-from-configure" value="true"/>
 	<antcall inheritRefs="true" target="-config-build-properties"/>
     </target>
 
-    <target name="proprietary-tasks">
-	<mkdir dir="${ibis}/ant-tasks/tasks"/>
-	<javac
-		srcdir="${ibis}/ant-tasks"
-		destdir="${ibis}/ant-tasks/tasks">
-	    <include name="**/*.java"/>
-	    <classpath refid="default.classpath"/>
-	</javac>
-    </target>
 </project>
