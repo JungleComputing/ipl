@@ -114,7 +114,7 @@ cpumask="1"
 dedicated_nameserver=0
 no_pool=0
 ncluster=0
-ibislib=$IBIS_ROOT/build/lib
+ibislib=$IBIS_ROOT/lib/natives
 
 dir=$PWD
 

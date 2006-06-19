@@ -84,13 +84,13 @@
 		outtype="static"/>
 	<!--  see comments in impl/net/gm/build.xml about libgm.so
 	-->
-	<copy file="${gm.path}" todir="${ibis}/build/lib"/>
+	<copy file="${gm.path}" todir="${ibis}/lib/natives"/>
 
 	<echo level="warning" message="The library is ${library.path}"/>
     </target>
 
     <target name="chk-uptodate-panda">
-	<uptodate property="panda-is-uptodate" targetfile="${build}/lib/${library.path}">
+	<uptodate property="panda-is-uptodate" targetfile="${ibis}/lib/natives/${library.path}">
 	    <srcfiles dir="." includes="*.c"/>
 	</uptodate>
     </target>
@@ -98,14 +98,15 @@
     <target name="panda-lib" depends="panda-init,property-init,chk-uptodate-panda" unless="panda-is-uptodate">
 	<echo message="Panda lib is ${panda.lib.dir}"/>
 	<cc
-		outfile="${build}/lib/${closure.lib}"
+		outfile="${ibis}/lib/natives/${closure.lib}"
 		outtype="shared"
 		runtime="dynamic"
 		warnings="severe"
 		incremental="true"
 		name="${c.compiler}"
 		debug="${c.debug.value}">
-	    <libset dir="${build}/lib"     libs="ibis_mp"/>
+		<libset dir="${ibis}/lib/natives"
+					   libs="ibis_mp"/>
 	    <libset dir="${panda.lib.dir}" libs="panda"/>
 	    <libset dir="${lfc.lib.dir}"   libs="lfc"/>
 	    <libset dir="${gm.lib.dir}"    libs="gm"/>

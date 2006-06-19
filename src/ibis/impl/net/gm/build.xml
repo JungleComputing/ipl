@@ -56,7 +56,7 @@
 		libs="gm"/>
 	-->
 	<libset id="local.libset-ref"
-		dir="${ibis}/build/lib"
+	    dir="${ibis}/lib/natives"
 		libs="gm"/>
     </target>
 
@@ -69,7 +69,7 @@
 	See comments above
 	<echo level="warning" message="The GM library is ${gm.path}"/>
 	-->
-	<copy file="${gm.path}" todir="${ibis}/build/lib"/>
+	<copy file="${gm.path}" todir="${ibis}/lib/natives"/>
 	<antcall inheritRefs="true" target="native"/>
 	<!--
 	<antcall inheritRefs="true" target="net-gm-lib"/>

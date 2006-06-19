@@ -18,7 +18,7 @@ dir=`cd "$dir" && pwd`
 
 . "$dir"/../configuration.sh
 
-JAVACLASSPATH="$CLASSPATH:$IBIS_ROOT/build:"
+JAVACLASSPATH="$CLASSPATH:$IBIS_ROOT/lib/ibis.jar:"
 
 usage() {
   echo "Usage: $0 [-port <port>]"

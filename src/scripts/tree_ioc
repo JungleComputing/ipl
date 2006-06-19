@@ -20,7 +20,7 @@ dir=`cd "$dir" && pwd`
 
 # rewrite all class files in the current tree.
 
-JAVACLASSPATH="$CLASSPATH:$IBIS_ROOT/build:build:$BCEL:.:"
+JAVACLASSPATH="$CLASSPATH:$IBIS_ROOT/lib/ibis.jar:build:$BCEL:.:"
 
 case X$# in
 X0)

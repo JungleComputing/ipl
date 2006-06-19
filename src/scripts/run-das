@@ -30,7 +30,7 @@ then
 	exit 1
 fi
 
-JAVACLASSPATH=$CLASSPATH:build:$IBIS_ROOT/classlibs:$IBIS_ROOT/build:.:
+JAVACLASSPATH=$CLASSPATH:build:$IBIS_ROOT/classlibs:$IBIS_ROOT/lib/ibis.jar:.:
 
 #needed for ibm 1.3 JITs and SMPs
 if [[ $JAVA_ROOT == *1.3* ]] ; then
@@ -55,13 +55,13 @@ if [ -z "$PAN_COMM_NO_IDLE_POLL" ] ; then
 fi
 
 #not needed any more, and not portable --Rob
-#Dlibpath="-Dsun.boot.library.path=$IBIS_ROOT/build/lib:$JAVA_ROOT/jre/bin:$JAVA_ROOT/jre/lib/i386"
+#Dlibpath="-Dsun.boot.library.path=$IBIS_ROOT/lib/natives:$JAVA_ROOT/jre/bin:$JAVA_ROOT/jre/lib/i386"
 
-Dlibpath="-Djava.library.path=$IBIS_ROOT/build/lib:.:$LD_LIBRARY_PATH:"
+Dlibpath="-Djava.library.path=$IBIS_ROOT/lib/natives:.:$LD_LIBRARY_PATH:"
 
 # This is the location where all ibis native libs must go.
 # It must be *one* dir.
-Dibislibs="-Dibis.library.path=$IBIS_ROOT/build/lib"
+Dibislibs="-Dibis.library.path=$IBIS_ROOT/lib/natives"
 
 #PROFILING=-Xhprof:cpu=samples,file=profile.$1,depth=3
 PROFILING=

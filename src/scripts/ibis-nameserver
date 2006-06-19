@@ -47,11 +47,11 @@ add_to_libclasspath "${IBIS_ROOT}"/3rdparty
 
 case "`uname`" in
 CYGWIN*)
-    JAVACLASSPATH="$CLASSPATH:$IBIS_ROOT/build/ibis.jar:$LIBCLASSPATH:"
+    JAVACLASSPATH="$CLASSPATH:$IBIS_ROOT/lib/ibis.jar:$LIBCLASSPATH:"
     JAVACLASSPATH=`cygpath --path --windows "$JAVACLASSPATH"`
     ;;
 *)
-    JAVACLASSPATH="$CLASSPATH:$IBIS_ROOT/build/ibis.jar:$LIBCLASSPATH:"
+    JAVACLASSPATH="$CLASSPATH:$IBIS_ROOT/lib/ibis.jar:$LIBCLASSPATH:"
     ;;
 esac
 

@@ -32,7 +32,7 @@
 
     <target name="set-locallibset" if="os-is-mac">
 	<libset id="local.libset-ref"
-		dir="${ibis}/build/lib"
+		dir="${ibis}/lib/natives"
 		libs="OTTimer"/>
     </target>
 

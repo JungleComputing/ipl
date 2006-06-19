@@ -8,12 +8,19 @@
     </description>
 
     <target name="default"
-	    depends="clean,build">
+	    depends="allclean,build">
+	<delete dir="${build}"/>
     </target>
 
     <target name="all"
 	    description="Build everything, including native code"
-	    depends="default,natives">
+	    depends="allclean,build,natives">
+	<delete dir="${build}"/>
+	<delete>
+	    <fileset dir="${lib}/natives">
+		<include name="**/*.o"/>
+	    </fileset>
+	</delete>
     </target>
 
     <target name="usage"
@@ -46,6 +53,7 @@
     <target name="make-dirs">
 	<tstamp/>
 	<mkdir dir="${build}"/>
+	<mkdir dir="${ibis}/lib"/>
 	<mkdir dir="${ibis}/bin"/>
     </target>
 
@@ -96,12 +104,14 @@
 
     <target name="build"
 	    depends="compile, build-bin, copyProperties, iogen, jars"
-	    description="Build Ibis"/>
+	    description="Build Ibis">
+    </target>
 
     <import file="${ibis}/build-files/build-properties.xml"/>
 
     <property name="src"         location="${ibis}/src"/>
     <property name="build"       location="${ibis}/build"/>
+    <property name="lib"       location="${ibis}/lib"/>
     <property name="docs"        location="${ibis}/docs"/>
 
     <!--
@@ -195,8 +205,8 @@
 	<basename property="package-basename" file="${ibis.sub-package}"/>
 	<echo level="verbose" message="package = ${ibis.sub-package}"/>
 	<echo level="verbose" message="basename = ${package-basename}"/>
-	<jar	destfile="${ibis}/build/ibis-${package-basename}.jar"
-		basedir="${ibis}/build"
+	<jar	destfile="${ibis}/lib/ibis-${package-basename}.jar"
+		basedir="${build}"
 		includes="ibis/${package-basename}/**/*.class"/>
     </target>
 
@@ -204,8 +214,8 @@
 	<basename property="package-basename" file="${ibis.sub-package}"/>
 	<echo level="verbose" message="package = ${ibis.sub-package}"/>
 	<echo level="verbose" message="basename = ${package-basename}"/>
-	<jar	destfile="${ibis}/build/ibis-${package-basename}.jar"
-		basedir="${ibis}/build"
+	<jar	destfile="${ibis}/lib/ibis-${package-basename}.jar"
+		basedir="${build}"
 		includes="ibis/impl/${package-basename}/**/*.class ibis/impl/${package-basename}/**/properties properties ibis-properties ibis-sys-props VERSION"/>
     </target>
 
@@ -215,8 +225,8 @@
     </target>
 
     <target name="ibis.jar">
-	<jar	destfile="${ibis}/build/ibis.jar"
-		basedir="${ibis}/build"
+	<jar	destfile="${ibis}/lib/ibis.jar"
+		basedir="${build}"
 		includes="**/*.class **/properties properties ibis-properties ibis-sys-props VERSION"/>
     </target>
 
@@ -252,17 +262,14 @@
 
     <target name="clean"
 	    description="Clean up the build">
-	<delete dir="${build}"/>
+	<delete dir="${ibis}/build"/>
     </target>
 
-    <target name="native-clean"
-	    description="Clean up all generated files for native code">
-	<delete dir="${build}/lib"/>
-	<delete>
-	    <fileset dir="${build}">
-		<include name="**/*.o"/>
-	    </fileset>
-	</delete>
+    <target name="allclean"
+	depends="clean"
+	description="Clean up build, bin, jars, native">
+	<delete dir="${ibis}/lib"/>
+	<delete dir="${ibis}/bin"/>
     </target>
 
     <target name="rewritten-clean"

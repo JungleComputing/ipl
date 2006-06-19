@@ -23,6 +23,7 @@
 	<path id="initial-cp">
 	    <pathelement path="${ibisBuild}"/>
 	    <pathelement path="${build}"/>
+	    <pathelement path="${ibis}/lib/ibis.jar"/>
 	    <pathelement path="${package.home.bcel}"/>
 	    <pathelement path="${ibis}/3rdparty/log4j-1.2.9.jar"/>
 	    <pathelement path="${ibis}/3rdparty/junit.jar"/>
@@ -33,14 +34,16 @@
 	</path>
     </target>
 
-    <target name="set-classpath-extra" if="has-extra-classpath">
+    <target name="set-classpath-extra" if="has-extra-classpath"
+	depends="set-initial-cp">
 	<path id="default.classpath">
 	    <path refid="initial-cp"/>
 	    <path refid="extra-classpath"/>
 	</path>
     </target>
 
-    <target name="set-classpath-no-extra" unless="has-extra-classpath">
+    <target name="set-classpath-no-extra" unless="has-extra-classpath"
+	depends="set-initial-cp">
 	<path id="default.classpath">
 	    <path refid="initial-cp"/>
 	</path>

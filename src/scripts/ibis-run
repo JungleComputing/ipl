@@ -166,12 +166,12 @@ fi
 
 if [ -z "$ibislib" ]
 then
-    ibislib="$IBIS_ROOT/build/lib"
+    ibislib="$IBIS_ROOT/lib/natives"
 fi
 
 libpath="$ibislib:.:$LD_LIBRARY_PATH:"
 
-JAVACLASSPATH="build/:$IBIS_ROOT/classlibs/:$IBIS_ROOT/build/ibis.jar:$LIBCLASSPATH:.:"
+JAVACLASSPATH="build/:$IBIS_ROOT/classlibs/:$IBIS_ROOT/lib/ibis.jar:$LIBCLASSPATH:.:"
 
 #
 # Some defaults ...

@@ -192,7 +192,8 @@
 	<property name="native-initialized" value="true"/>
 	<mkdir dir="${build}"/>
 	<mkdir dir="${build}/include"/>
-	<mkdir dir="${build}/lib"/>
+	<mkdir dir="${ibis}/lib"/>
+	<mkdir dir="${ibis}/lib/natives"/>
 
 	<path id="default.includes-ref">
 	    <pathelement path="${JAVA_HOME}/include"/>
@@ -263,7 +264,7 @@
 	    <isreference refid="local.libset-ref"/>
 	</condition>
 
-	<maplibrary property="library.path" name="${build}/lib/${local.lib}"/>
+	<maplibrary property="library.path" name="${ibis}/lib/natives/${local.lib}"/>
 
     </target>
 
@@ -286,7 +287,7 @@
 
 	<cc	debug="${c.debug}"
 		objdir="${build}/${native-rel-path}"
-		outfile="${build}/lib/${local.lib}"
+		outfile="${ibis}/lib/natives/${local.lib}"
 		outtype="${cc.outtype}"
 		libtool="${use-libtool}"
 		name="${c.compiler}"			
