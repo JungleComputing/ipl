@@ -54,28 +54,6 @@
  chose the flavour
  
  2A ----------------------------
- to use job identifiers instead of job paremeters add
- 
-	-satin-branching-factor <n>
-	
- to the appliation command line. n is the branching factor for the
- application. Here are branching factors for our applications:
-
- Adaptive Integration (adapint): 2
- Barnes Hut (barnes_inline): 8 
- Set Cover (cover): 2
- Fibonacci (fib, fib_threshold): 2
- Ida* (ida): 4
- Knapsack (knapsack): 2
- Matrix Multiplication (mmult): 8
- N over K (noverk): 2
- N Queens (nqueens): the same as problem size
- Prime Factorization (primfac): 2
- Raytracer (raytracer): 4
- SAT Solver (sat): 2 (DPLLSolver)
- Travelling Salesman Problem (tsp): the same as problem size
- 
- 2B ----------------------------
  to use replicated Global Result Table, pass the following flag to java:
 	
 	-Dsatin.ft.grt.replicated=true
@@ -85,7 +63,7 @@
 	-Dsatin.ft.grt.replicated=false
  (this is the default).
 	
- 2C ----------------------------
+ 2B ----------------------------
  to use the "with aborts" version, pass the following flag to java:
  
 	-Dsatin.ft.noAborts=false
@@ -96,17 +74,15 @@
 	-Dsatin.ft.noAborts=true
 	
  
- 2D -----------------------------
+ 2C -----------------------------
  to use the naive version, pass the following flag to java:
  
 	-Dsatin.ft.noTable=true -Dsatin.ft.noAborts=false
 
  
  STEP 3 -----------------------------------------------------------------
- run the application (see Running-Satin-Applications.txt) and try to kill
+ run the application (see the Ibis Programmers Manual) and try to kill
  some nodes, for example with prkill. You can also tell nodes to
  commit a suicide by specifying
  
 	-satin-kill <time>
-
- 
