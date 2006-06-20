@@ -12,11 +12,11 @@
     <property name="main-class" value="Fib"/>
     <property name="satin-main-class" value="${main-class}"/>
 
-    <property name="test-par-run" value="Fib -satin-closed"/>
-    <property name="test-seq-run" value="Fib -satin-closed"/>
+    <property name="ibis-run-args" value="-Dsatin.closed"/>
+	
+    <property name="test-par-run" value="Fib"/>
+    <property name="test-seq-run" value="Fib"/>
 
     <import file="${ibis}/build-files/apps/build-satin-app.xml"/>
 
 </project>
-
-

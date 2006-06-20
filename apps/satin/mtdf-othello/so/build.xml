@@ -14,12 +14,13 @@
     <property name="satin-main-class" value="${main-class}"/>
     <property name="satin-so-classes" value="TranspositionTable"/>
 
+    <property name="ibis-run-args" value="-Dsatin.closed"/>
     <property name="test-par-java-args" value="-Xmx256M"/>
     <property name="test-par-run"
-	      value="Mtdf 2 -satin-closed"/>
+	      value="Mtdf 2"/>
     <property name="test-seq-java-args" value="-Xmx256M"/>
     <property name="test-seq-run"
-	      value="Mtdf 2 -satin-closed"/>
+	      value="Mtdf 2"/>
 
     <import file="${ibis}/build-files/apps/build-satin-app.xml"/>
 

@@ -13,10 +13,11 @@
     <property name="satin-main-class" value="${main-class}"/>
     <property name="satin-so-classes" value="BodiesSO"/>
 
+    <property name="ibis-run-args" value="-Dsatin.closed"/>
     <property name="test-par-run"
-	      value="BarnesHut -ntc -v 100 5 -satin-closed"/>
+	      value="BarnesHut -ntc -v 10000 5"/>
     <property name="test-seq-run"
-	      value="BarnesHut -ntc -v 100 5 -satin-closed"/>
+	      value="BarnesHut -ntc -v 10000 5"/>
 
     <fileset dir="." id="src.excludes-ref">
 	<include name="BodyCanvas.java"/>

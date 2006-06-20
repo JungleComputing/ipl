@@ -13,13 +13,14 @@
 
     <property name="satinc-flags" value="-keep"/>
 
+    <property name="ibis-run-args" value="-Dsatin.closed"/>
     <import file="${ibis}/build-files/apps/build-satin-app.xml"/>
 
     <target name="run"
 	    depends="build"
 	    description="Run test">
 	<antcall target="run2">
-		<param name="runjob" value="Mtdf -satin-closed"/>
+		<param name="runjob" value="Mtdf"/>
 	</antcall>
     </target>
 </project>

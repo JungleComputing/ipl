@@ -37,6 +37,7 @@
 
     <target name="init">
 	<tstamp/>
+	<delete dir="${build}"/>
 	<mkdir dir="${build}"/>
 	<condition property="src.excludes-ref.exists">
 	    <isreference refid="src.excludes-ref"/>
@@ -119,6 +120,7 @@
 
     <target name="clean">
 	<delete dir="${build}"/>
+	<delete file="ant-test.out"/>
     </target>
 
 </project>

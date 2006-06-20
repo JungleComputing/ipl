@@ -66,7 +66,7 @@ final class Fib extends ibis.satin.SatinObject implements FibInterface {
         int n = 0;
 
         if (args.length == 0) {
-            n = 28;
+            n = 30;
         } else if (args.length > 1) {
             System.out.println("Usage: fib <n>");
             System.exit(1);

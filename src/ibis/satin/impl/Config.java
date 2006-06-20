@@ -15,147 +15,53 @@ public interface Config {
 
     static final String PROPERTY_PREFIX = "satin.";
 
-    static final String s_scalable = PROPERTY_PREFIX + "scalable";
+    static final String s_asserts = PROPERTY_PREFIX + "asserts";
+
+    static final String s_upcalls = PROPERTY_PREFIX + "upcalls";
+
+    static final String s_closed = PROPERTY_PREFIX + "closed";
 
     static final String s_stats = PROPERTY_PREFIX + "stats";
 
-    static final String s_stats_spawn = PROPERTY_PREFIX + "stats.spawn";
+    static final String s_detailed_stats = PROPERTY_PREFIX + "detailedStats";
 
-    static final String s_stats_steal = PROPERTY_PREFIX + "stats.steal";
-
-    static final String s_stats_abort = PROPERTY_PREFIX + "stats.abort";
-
-    static final String s_stats_ft = PROPERTY_PREFIX + "stats.ft";
-
-    static final String s_stats_grt = PROPERTY_PREFIX + "stats.ft.grt";
-
-    static final String s_stats_so = PROPERTY_PREFIX + "stats.so";
-
-    static final String s_timing = PROPERTY_PREFIX + "timing";
-
-    static final String s_timing_steal = PROPERTY_PREFIX + "timing.steal";
-
-    static final String s_timing_abort = PROPERTY_PREFIX + "timing.abort";
-
-    static final String s_timing_idle = PROPERTY_PREFIX + "timing.idle";
-
-    static final String s_timing_poll = PROPERTY_PREFIX + "timing.poll";
-
-    static final String s_timing_grt = PROPERTY_PREFIX + "timing.ft.grt";
-
-    static final String s_timing_crash = PROPERTY_PREFIX + "timing.ft.crash";
-
-    static final String s_timing_check = PROPERTY_PREFIX + "timing.ft.check";
-
-    static final String s_timing_repl = PROPERTY_PREFIX + "timing.ft.replica";
-
-    static final String s_timing_so = PROPERTY_PREFIX + "timing.so";
+    static final String s_upcallPolling = PROPERTY_PREFIX + "upcallPolling";
 
     static final String s_poll_freq = PROPERTY_PREFIX + "pollfreq";
 
     static final String s_poll_port = PROPERTY_PREFIX + "pollport";
 
-    static final String s_asserts = PROPERTY_PREFIX + "asserts";
+    static final String s_alg = PROPERTY_PREFIX + "alg";
 
-    static final String s_aborts = PROPERTY_PREFIX + "aborts";
-
-    static final String s_ft = PROPERTY_PREFIX + "ft";
-
-    static final String s_ft_grt_repl = PROPERTY_PREFIX + "ft.grt.replicated";
-
-    static final String s_ft_grt_comb = PROPERTY_PREFIX + "ft.grt.combine";
-
-    static final String s_ft_noAborts = PROPERTY_PREFIX + "ft.noAborts";
-
-    static final String s_ft_naive = PROPERTY_PREFIX + "ft.noTable";
-
-    static final String s_ft_connectTimeout = PROPERTY_PREFIX + "ft.connectTimeout";
-
-    static final String s_masterhost = PROPERTY_PREFIX + "masterHost";
-
-    static final String s_so = PROPERTY_PREFIX + "so";
+    static final String s_dump = PROPERTY_PREFIX + "dump";
 
     static final String s_in_latency = PROPERTY_PREFIX + "messagesInLatency";
 
-    static final String s_logging_spawn = PROPERTY_PREFIX + "logging.spawn";
+    static final String s_so_delay = PROPERTY_PREFIX + "so.delay";
 
-    static final String[] sysprops = { s_scalable,
-            s_stats, s_stats_spawn, s_stats_steal, s_stats_abort,
-            s_stats_ft, s_stats_grt,
-            s_timing, s_timing_steal, s_timing_abort, s_timing_idle,
-            s_timing_poll, s_timing_grt, s_timing_crash,
-            s_timing_check, s_timing_repl,
-            s_poll_freq, s_poll_port,
-            s_asserts, s_aborts,
-            s_ft, s_ft_grt_repl, s_ft_grt_comb, s_ft_noAborts, s_ft_naive,
-            s_ft_connectTimeout,
-            s_masterhost, s_in_latency, s_timing_so, s_so, s_logging_spawn};
+    static final String s_so_size = PROPERTY_PREFIX + "so.size";
 
-    /** Must be enabled or there are no statistics at all. */
-    static final boolean STATS = TypedProperties.booleanProperty(s_stats, true);
+    static final String s_so_lrmc = PROPERTY_PREFIX + "so.lrmc";
 
-    /** Enable or disable statistics for spawns. */
-    static final boolean SPAWN_STATS = STATS
-            && TypedProperties.booleanProperty(s_stats_spawn, true);
+    static final String s_ft_naive = PROPERTY_PREFIX + "ft.naive";
 
-    /** Enable or disable statistics for job stealing. */
-    static final boolean STEAL_STATS = STATS
-            && TypedProperties.booleanProperty(s_stats_steal, true);
+    static final String s_ft_connectTimeout = PROPERTY_PREFIX
+        + "ft.connectTimeout";
 
-    /** Enable or disable statistics for aborts. */
-    static final boolean ABORT_STATS = STATS
-            && TypedProperties.booleanProperty(s_stats_abort, true);
+    static final String s_masterhost = PROPERTY_PREFIX + "masterHost";
 
-    /**
-     * Enable or disable statistics for aborts/restarts done for
-     * fault-tolerance.
-     */
-    static final boolean FT_STATS = STATS
-            && TypedProperties.booleanProperty(s_stats_ft, true);
+    static final String s_delete_time = PROPERTY_PREFIX + "deleteTime";
 
-    /** Enable or disable statistics for the global result table. */
-    static final boolean GRT_STATS = STATS
-            && TypedProperties.booleanProperty(s_stats_grt, true);
+    static final String s_delete_cluster_time = PROPERTY_PREFIX
+        + "deleteClusterTime";
 
-    /** Enable of disable statistics for shared objects. */
-    static final boolean SO_STATS = STATS
-	&& TypedProperties.booleanProperty(s_stats_so, true);
+    static final String s_kill_time = PROPERTY_PREFIX + "killTime";
 
-    /** Must be enabled or there are no timings at all. */
-    static final boolean TIMING = TypedProperties.booleanProperty(s_timing,
-            true);
-
-    /** Enable or disable steal timings. */
-    static final boolean STEAL_TIMING = TIMING
-            && TypedProperties.booleanProperty(s_timing_steal, true);
-
-    /** Enable or disable abort timings. */
-    static final boolean ABORT_TIMING = TIMING
-            && TypedProperties.booleanProperty(s_timing_abort, true);
-
-    /** Enable or disable idle timing. */
-    static final boolean IDLE_TIMING = TIMING
-            && TypedProperties.booleanProperty(s_timing_idle, false);
-
-    /** Enable or disable poll timing. */
-    static final boolean POLL_TIMING = TIMING
-            && TypedProperties.booleanProperty(s_timing_poll, false);
-
-    //used for fault tolerance with global result table
-    static final boolean GRT_TIMING = TIMING
-            && TypedProperties.booleanProperty(s_timing_grt, true);
-
-    static final boolean CRASH_TIMING = TIMING
-            && TypedProperties.booleanProperty(s_timing_crash, true);
-
-    static final boolean TABLE_CHECK_TIMING = TIMING
-            && TypedProperties.booleanProperty(s_timing_check, true);
-
-    static final boolean ADD_REPLICA_TIMING = TIMING
-            && TypedProperties.booleanProperty(s_timing_repl, true);
-
-    static final boolean SO_TIMING = TIMING
-	&& TypedProperties.booleanProperty(s_timing_so, true);
+    static final String[] sysprops = { s_upcalls, s_upcallPolling, s_stats,
+        s_detailed_stats, s_closed, s_poll_freq, s_poll_port, s_asserts,
+        s_ft_naive, s_ft_connectTimeout, s_masterhost, s_in_latency,
+        s_delete_time, s_delete_cluster_time, s_kill_time, s_dump, s_so_delay,
+        s_so_size, s_alg, s_so_lrmc };
 
     /**
      * The poll frequency in nanoseconds. A frequency of 0 means do not poll. A
@@ -163,103 +69,116 @@ public interface Config {
      */
     static final long POLL_FREQ = TypedProperties.longProperty(s_poll_freq, 0L);
 
-    /** When polling, poll the satin receiveport. */
-    static final boolean POLL_RECEIVEPORT
-            = TypedProperties.booleanProperty(s_poll_port, true);
-
     /** Enable or disable asserts. */
-    static final boolean ASSERTS
-            = TypedProperties.booleanProperty(s_asserts, false);
+    static final boolean ASSERTS = TypedProperties.booleanProperty(s_asserts,
+        false);
 
-    /** Enable or disable aborts and inlets. */
-    static final boolean ABORTS
-            = TypedProperties.booleanProperty(s_aborts, true);
+    /** true if the node should dump its datastructures during shutdown. */
+    static final boolean DUMP = TypedProperties.booleanProperty(s_dump, false);
 
-    /** Enable fault tolerance. */
-    static final boolean FAULT_TOLERANCE
-            = TypedProperties.booleanProperty(s_ft, false);
+    /** Enable this if Satin should print statistics at the end. */
+    static final boolean STATS = TypedProperties.booleanProperty(s_stats, true);
 
-    /** Enable this if Satin should try to be as scalable as possible. */
-    static final boolean SCALABLE
-            = TypedProperties.booleanProperty(s_scalable, ! FAULT_TOLERANCE);
-    
+    /** Enable this if Satin should print statistics per machine at the end. */
+    static final boolean DETAILED_STATS = TypedProperties.booleanProperty(
+        s_detailed_stats, false);
+
+    /** Disable this if satin is not allowed to use upcalls. */
+    static final boolean UPCALLS = TypedProperties.booleanProperty(s_upcalls,
+        true);
+
+    /** Enable this if satin should poll to get upcalls. */
+    static final boolean UPCALL_POLLING = TypedProperties.booleanProperty(
+        s_upcallPolling, false);
+
+    /** Enable this if satin should run with a closed world: no nodes can join or leave. */
+    static final boolean CLOSED = TypedProperties.booleanProperty(s_closed,
+        false);
+
     /** Determines master hostname. */
-    static final String MASTER_HOST
-            = TypedProperties.stringProperty(s_masterhost);
+    static final String MASTER_HOST = TypedProperties
+        .stringProperty(s_masterhost);
+
+    /** Determines which load-balancing algorithm is used. */
+    static final String SUPPLIED_ALG = TypedProperties.stringProperty(s_alg);
 
     /**
-     * If true, the global result table is replicated if false, the table is
-     * distributed
+     * Fault tolerance with restarting crashed jobs, but without the global result table
      */
-    static final boolean GLOBAL_RESULT_TABLE_REPLICATED
-            = TypedProperties.booleanProperty(s_ft_grt_repl, false);
-
-    /** Use message combinining with global result table. */
-    static final boolean GRT_MESSAGE_COMBINING
-            = TypedProperties.booleanProperty(s_ft_grt_comb, true);
-
-    /** 
-     * If true, orphan jobs are not aborted. Pointers are stored immediately
-     * after crashes and results later. Jobs stolen by crashed processors
-     * are not put back into the work queue. The are marked as dead and 
-     * redone when their parent is on the top of the stack.
-     * Do not use with replicated table
-     */
-    static final boolean FT_WITHOUT_ABORTS
-            = TypedProperties.booleanProperty(s_ft_noAborts, false);
-
-    /**
-     * Fault tolerance with restarting crashed jobs, but without the table
-     */
-    static final boolean FT_NAIVE
-            = TypedProperties.booleanProperty(s_ft_naive, false);
-
-    /** Enable or disable shared objects. */
-    static final boolean SHARED_OBJECTS
-	= TypedProperties.booleanProperty(s_so, false);
+    static final boolean FT_NAIVE = TypedProperties.booleanProperty(s_ft_naive,
+        false);
 
     /** Enable or disable an optimization for handling delayed messages. */
-    static final boolean HANDLE_MESSAGES_IN_LATENCY
-            = TypedProperties.booleanProperty(s_in_latency, false);
+    static final boolean HANDLE_MESSAGES_IN_LATENCY = TypedProperties
+        .booleanProperty(s_in_latency, false);
+
+    /**
+     * Timeout for connecting to other nodes (in joined()) who might be
+     * crashed.
+     */
+    public static final long CONNECT_TIMEOUT = TypedProperties.intProperty(
+        s_ft_connectTimeout, 120) * 1000L;
+
+    /** Maximum time that messages may be buffered for message combining.
+     * If > 0, it is used for combining shared objects invocations.
+     * setting this to 0 disables message combining. */
+    static final int SO_MAX_INVOCATION_DELAY = TypedProperties.intProperty(
+        s_so_delay, 0);
+
+    /** 
+     * The maximum message size if message combining is used for SO Invocations.
+     */
+    static final int SO_MAX_MESSAGE_SIZE = TypedProperties.intProperty(
+        s_so_size, 64 * 1024);
+
+    /** Enable or label routing multicast for shared objects . */
+    static final boolean LABEL_ROUTING_MCAST = TypedProperties.booleanProperty(
+        s_so_lrmc, true);
+
+    /** Used in automatic ft tests */
+    static final int DELETE_TIME = TypedProperties
+        .intProperty(s_delete_time, 0);
+
+    /** Used in automatic ft tests */
+    static final int DELETE_CLUSTER_TIME = TypedProperties.intProperty(
+        s_delete_cluster_time, 0);
+
+    /** Used in automatic ft tests */
+    static final int KILL_TIME = TypedProperties.intProperty(s_kill_time, 0);
 
     /** Logger for communication. */
-    public static final Logger commLogger
-            = ibis.util.GetLogger.getLogger("ibis.satin.comm");
+    public static final Logger commLogger = ibis.util.GetLogger
+        .getLogger("ibis.satin.comm");
 
     /** Logger for job stealing. */
-    public static final Logger stealLogger
-            = ibis.util.GetLogger.getLogger("ibis.satin.steal");
+    public static final Logger stealLogger = ibis.util.GetLogger
+        .getLogger("ibis.satin.steal");
 
-    /** Manually enable/disable logging for spawns as the impact on performance can be big,
-     * even if we use logger.isDebugEnabled.  */
-    public static final boolean ENABLE_SPAWN_LOGGING
-            = TypedProperties.booleanProperty(s_logging_spawn, false);
-    
     /** Logger for spawns. */
-    public static final Logger spawnLogger
-            = ibis.util.GetLogger.getLogger("ibis.satin.spawn");
+    public static final Logger spawnLogger = ibis.util.GetLogger
+        .getLogger("ibis.satin.spawn");
 
     /** Logger for idle. */
-    public static final Logger idleLogger
-            = ibis.util.GetLogger.getLogger("ibis.satin.idle");
+    public static final Logger idleLogger = ibis.util.GetLogger
+        .getLogger("ibis.satin.idle");
 
     /** Logger for inlets. */
-    public static final Logger inletLogger
-            = ibis.util.GetLogger.getLogger("ibis.satin.inlet");
+    public static final Logger inletLogger = ibis.util.GetLogger
+        .getLogger("ibis.satin.inlet");
 
     /** Logger for aborts. */
-    public static final Logger abortLogger
-            = ibis.util.GetLogger.getLogger("ibis.satin.abort");
+    public static final Logger abortLogger = ibis.util.GetLogger
+        .getLogger("ibis.satin.abort");
 
     /** Logger for the global result table. */
-    public static final Logger grtLogger
-            = ibis.util.GetLogger.getLogger("ibis.satin.grt");
+    public static final Logger grtLogger = ibis.util.GetLogger
+        .getLogger("ibis.satin.grt");
 
     /** Logger for fault tolerance. */
-    public static final Logger ftLogger
-            = ibis.util.GetLogger.getLogger("ibis.satin.faultTolerance");
+    public static final Logger ftLogger = ibis.util.GetLogger
+        .getLogger("ibis.satin.faultTolerance");
 
     /** Logger for shared objects. */
-    public static final Logger soLogger
-            = ibis.util.GetLogger.getLogger("ibis.satin.so");
+    public static final Logger soLogger = ibis.util.GetLogger
+        .getLogger("ibis.satin.so");
 }

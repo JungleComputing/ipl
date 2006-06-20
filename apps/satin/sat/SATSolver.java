@@ -23,40 +23,6 @@ public final class SATSolver extends ibis.satin.SatinObject implements SATInterf
     private static final boolean traceJumps = false;
     static SATProblem p = null;
 
-    /*
-    static {
-        System.setProperty( "satin.tuplespace.ordered", "true" );
-        System.setProperty( "satin.tuplespace.multicast", "true" );
-    }
-*/
-    
-    final static class ProblemAssigner implements ibis.satin.ActiveTuple {
-        SATProblem p;
-
-        ProblemAssigner( SATProblem p ){
-            this.p = p;
-        }
-
-        public void handleTuple( String key ){
-            SATSolver.p = this.p;
-        }
-    }
-
-    final static class ProblemUpdater implements ibis.satin.ActiveTuple {
-        Clause cl;
-
-        ProblemUpdater( Clause c ){
-            cl = c;
-        }
-
-        public void handleTuple( String key ){
-            if( traceLearning ){
-                System.err.println( "Adding conflict clause " + cl + " @" + p.getClauseCount() );
-            }
-            p.addConflictClause( cl );
-        }
-    }
-
     SATSolver( SATProblem p ){
     }
 

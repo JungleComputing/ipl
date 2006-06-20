@@ -12,8 +12,9 @@
     <property name="main-class" value="TwoOutThree"/>
     <property name="satin-main-class" value="${main-class}"/>
 
-    <property name="test-par-run" value="TwoOutThree -satin-closed"/>
-    <property name="test-seq-run" value="TwoOutThree -satin-closed"/>
+    <property name="ibis-run-args" value="-Dsatin.closed"/>
+    <property name="test-par-run" value="TwoOutThree"/>
+    <property name="test-seq-run" value="TwoOutThree"/>
 
     <import file="${ibis}/build-files/apps/build-satin-app.xml"/>
 

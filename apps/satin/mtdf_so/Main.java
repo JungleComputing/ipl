@@ -7,10 +7,6 @@ class Main {
 
     String file;
 
-    static {
-        System.setProperty("satin.so", "true"); // So that we don't forget.
-    }
-
     Main(int depth, boolean verbose, String file) {
         this.depth = depth;
         this.verbose = verbose;
