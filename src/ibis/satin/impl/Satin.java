@@ -1,0 +1,575 @@
+/* $Id: Satin.java 3687 2006-04-26 09:39:58Z rob $ */
+
+package ibis.satin.impl;
+
+import ibis.ipl.IbisError;
+import ibis.ipl.IbisIdentifier;
+import ibis.ipl.StaticProperties;
+import ibis.satin.impl.aborts.AbortException;
+import ibis.satin.impl.aborts.Aborts;
+import ibis.satin.impl.communication.Communication;
+import ibis.satin.impl.communication.Protocol;
+import ibis.satin.impl.faultTolerance.FaultTolerance;
+import ibis.satin.impl.loadBalancing.ClusterAwareRandomWorkStealing;
+import ibis.satin.impl.loadBalancing.LoadBalancing;
+import ibis.satin.impl.loadBalancing.LoadBalancingAlgorithm;
+import ibis.satin.impl.loadBalancing.MasterWorker;
+import ibis.satin.impl.loadBalancing.RandomWorkStealing;
+import ibis.satin.impl.loadBalancing.VictimTable;
+import ibis.satin.impl.sharedObjects.SOInvocationRecord;
+import ibis.satin.impl.sharedObjects.SharedObjects;
+import ibis.satin.impl.spawnSync.DoubleEndedQueue;
+import ibis.satin.impl.spawnSync.IRStack;
+import ibis.satin.impl.spawnSync.IRVector;
+import ibis.satin.impl.spawnSync.InvocationRecord;
+import ibis.satin.impl.spawnSync.ReturnRecord;
+import ibis.satin.impl.spawnSync.SpawnCounter;
+import ibis.satin.impl.spawnSync.Stamp;
+import ibis.util.TypedProperties;
+
+import java.util.Vector;
+
+public final class Satin implements Config {
+
+    private static final int SUGGESTED_QUEUE_SIZE = 1000;
+
+    private static Satin thisSatin;
+
+    public final Communication comm;
+
+    public final LoadBalancing lb;
+
+    public final FaultTolerance ft;
+
+    public final SharedObjects so;
+
+    public final Aborts aborts;
+
+    public final IbisIdentifier ident; // this ibis
+
+    /** Am I the root (the one running main)? */
+    private boolean master;
+
+    /** The ibis identifier for the master (the one running main). */
+    public IbisIdentifier masterIdent;
+
+    /** Am I the cluster coordinator? */
+    public boolean clusterCoordinator;
+
+    /** My scheduling algorithm. */
+    public LoadBalancingAlgorithm algorithm;
+
+    /** Set to true if we need to exit for some reason. */
+    public volatile boolean exiting;
+
+    /** The work queue. Contains jobs that were spawned, but not yet executed. */
+    public final DoubleEndedQueue q;
+
+    /**
+     * This vector contains all jobs that were stolen from me. 
+     * Used to locate the invocation record corresponding to the result of a
+     * remote job.
+     */
+    public final IRVector outstandingJobs;
+
+    /** The jobs that are currently being executed, they are on the Java stack. */
+    public final IRStack onStack;
+
+    public Statistics totalStats;
+
+    public Statistics stats = new Statistics();
+
+    /** The invocation record that is the parent of the current job. */
+    public InvocationRecord parent;
+
+    public volatile boolean currentVictimCrashed;
+
+    /** All victims, myself NOT included. The elements are Victims. */
+    public final VictimTable victims;
+
+    /**
+     * Used for fault tolerance. All ibises that once took part in the
+     * computation, but then crashed. Assumption: ibis identifiers are uniqe in
+     * time; the same ibis cannot crash and join the computation again.
+     */
+    public final Vector deadIbises = new Vector();
+
+    static {
+        TypedProperties.checkProperties(PROPERTY_PREFIX, sysprops, null);
+    }
+
+    /**
+     * Creates a Satin instance and also an Ibis instance to run Satin on. This
+     * constructor gets called by the rewritten main() from the application, and
+     * the argument array from main is passed to this constructor. Which ibis is
+     * chosen depends, a.o., on these arguments.
+     */
+    public Satin() {
+        if (thisSatin != null) {
+            throw new IbisError(
+                "multiple satin instances are currently not supported");
+        }
+        thisSatin = this;
+
+        StaticProperties requestedProperties = new StaticProperties();
+
+        q = new DoubleEndedQueue(this);
+
+        outstandingJobs = new IRVector(this);
+        onStack = new IRStack(this);
+
+        ft = new FaultTolerance(this); // this must be first, it handles resize upcalls 
+        comm = new Communication(this, requestedProperties); // creates ibis
+        ident = comm.ibis.identifier();
+        victims = new VictimTable(this); // need ibis for this
+        if (STATS && master) {
+            totalStats = new Statistics();
+        }
+
+        lb = new LoadBalancing(this);
+        so = new SharedObjects(this, requestedProperties);
+        aborts = new Aborts(this, requestedProperties);
+        ft.init(requestedProperties); // this opens the world, other ibises might join from this point
+
+        createLoadBalancingAlgorithm();
+
+        if (DUMP) {
+            DumpThread dumpThread = new DumpThread(this);
+            Runtime.getRuntime().addShutdownHook(dumpThread);
+        }
+
+        // ok, we have finished the initialization, start some timers.
+        if (!master) {
+            stats.addReplicaTimer.start();
+        }
+
+        stats.totalTimer.start();
+    }
+
+    /**
+     * Called at the end of the rewritten "main", to do a synchronized exit.
+     */
+    public void exit() {
+
+        stats.totalTimer.stop();
+
+        if (STATS && DETAILED_STATS) {
+            stats.printDetailedStats(ident);
+        }
+
+        comm.disableUpcallsForExit();
+
+        if (master) {
+            synchronized (this) {
+                exiting = true;
+                notifyAll();
+            }
+            comm.bcastMessage(Protocol.EXIT);
+            comm.waitForExitReplies();
+
+            // OK, we have got the ack from everybody, now we know that there will be no 
+            // further communication between nodes. Broadcast this again.
+            comm.bcastMessage(Protocol.EXIT_STAGE2);
+        } else {
+            comm.sendExitAck();
+            comm.waitForExitStageTwo();
+        }
+
+        // OK, we have got the ack from everybody, 
+        // now we know that there will be no further communication between nodes.
+
+        algorithm.exit(); // give the algorithm time to clean up
+
+        int size;
+        synchronized (this) {
+            size = victims.size() + 1;
+        }
+
+        if (master && STATS) {
+            // add my own stats
+            stats.fillInStats();
+            totalStats.add(stats);
+
+            totalStats.printStats(size, stats.totalTimer.totalTimeVal());
+        }
+
+        comm.closeSendPorts();
+        comm.closeReceivePort();
+
+        if (!FT_NAIVE) {
+            ft.exit();
+        }
+
+        comm.end();
+
+        commLogger.debug("SATIN '" + ident + "': exited");
+
+        // Do a gc, and run the finalizers. Useful for printing statistics in
+        // Satin applications.
+        // The app should register a shutdownhook. --Rob
+        System.gc();
+        System.runFinalization();
+
+        System.exit(0); // Needed for IBM jit.
+    }
+
+    /**
+     * Spawns the method invocation as described by the specified invocation
+     * record. The invocation record is added to the job queue maintained by
+     * this Satin.
+     * 
+     * @param r the invocation record specifying the spawned invocation.
+     */
+    public void spawn(InvocationRecord r) {
+        stats.spawns++;
+
+        // If my parent is aborted, so am I.
+        if (parent != null && parent.aborted) return;
+
+        // Maybe this job is already in the global result table.
+        // If so, we don't have to do it again.
+        if (ft.checkForDuplicateWork(parent, r)) return;
+
+        r.spawn(ident, parent);
+        q.addToHead(r);
+        algorithm.jobAdded();
+    }
+
+    /**
+     * Waits for the jobs as specified by the spawncounter given, but meanwhile
+     * execute jobs from the end of the jobqueue (or rather, the head of the job
+     * queue, where new jobs are added).
+     * 
+     * @param s the spawncounter.
+     */
+    public void sync(SpawnCounter s) {
+        stats.syncs++;
+
+        if (s.getValue() == 0) { // A sync without spawns is a poll.
+            handleDelayedMessages();
+            return;
+        }
+
+        while (s.getValue() > 0) {
+            InvocationRecord r = q.getFromHead(); // Try the local queue
+            if (r != null) {
+                callSatinFunction(r);
+            } else {
+                noWorkInQueue();
+            }
+        }
+    }
+
+    private void noWorkInQueue() {
+        InvocationRecord r = algorithm.clientIteration();
+        if (r != null && so.executeGuard(r)) {
+            callSatinFunction(r);
+        } else {
+            handleDelayedMessages();
+        }
+    }
+
+    /**
+     * Implements the main client loop: steal jobs and execute them.
+     */
+    public void client() {
+        spawnLogger.debug("SATIN '" + ident + "': starting client!");
+
+        while (!exiting) {
+            // steal and run jobs
+            noWorkInQueue();
+
+            // Maybe the master crashed, and we were elected the new master.
+            if (master) return;
+        }
+    }
+
+    public void handleDelayedMessages() {
+        // poll (if needed)
+        comm.satinPoll();
+
+        // and handle messages generated by the poll
+        // (or delayed messages received in upcalls)
+        aborts.handleDelayedMessages();
+        lb.handleDelayedMessages();
+        ft.handleDelayedMessages();
+        so.handleDelayedMessages();
+    }
+
+    /**
+     * Aborts the spawns that are the result of the specified invocation record.
+     * The invocation record of the invocation actually throwing the exception
+     * is also specified, but it is valid only for clones with inlets.
+     * 
+     * @param outstandingSpawns
+     *            parent of spawns that need to be aborted.
+     * @param exceptionThrower
+     *            invocation throwing the exception.
+     */
+    public synchronized void abort(InvocationRecord outstandingSpawns,
+        InvocationRecord exceptionThrower) {
+        // We do not need to set outstanding Jobs in the parent frame to null,
+        // it is just used for assigning results.
+        // get the lock, so no-one can steal jobs now, and no-one can change my
+        // tables.
+        stats.abortsDone++;
+
+        if (exceptionThrower != null) { // can be null if root does an abort.
+            // kill all children of the parent of the thrower.
+            aborts.killChildrenOf(exceptionThrower.getParentStamp());
+        }
+
+        // now kill mine
+        if (outstandingSpawns != null) {
+            Stamp stamp;
+            if (outstandingSpawns.getParent() == null) {
+                stamp = null;
+            } else {
+                stamp = outstandingSpawns.getParent().getStamp();
+            }
+            aborts.killChildrenOf(stamp);
+        }
+    }
+
+    /**
+     * Pause Satin operation. This method can optionally be called before a
+     * large sequential part in a program. This will temporarily pause Satin's
+     * internal load distribution strategies to avoid communication overhead
+     * during sequential code.
+     */
+    public static void pause() {
+        if (thisSatin == null || !UPCALLS) {
+            return;
+        }
+        thisSatin.comm.receivePort.disableUpcalls();
+    }
+
+    /**
+     * Resume Satin operation. This method can optionally be called after a
+     * large sequential part in a program.
+     */
+    public static void resume() {
+        if (thisSatin == null || !UPCALLS) {
+            return;
+        }
+        thisSatin.comm.receivePort.enableUpcalls();
+    }
+
+    /**
+     * Returns whether it might be useful to spawn more methods. If there is
+     * enough work in the system to keep all processors busy, this method
+     * returns false.
+     */
+    public static boolean needMoreJobs() {
+        // This can happen in sequential programs.
+        if (thisSatin == null) {
+            return false;
+        }
+        synchronized (thisSatin) {
+            int size = thisSatin.victims.size();
+            if (size == 0 && CLOSED) {
+                // No need to spawn work on one machine.
+                return false;
+            }
+
+            if (thisSatin.q.size() / (size + 1) > SUGGESTED_QUEUE_SIZE) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Returns whether the current method was generated by the machine it is
+     * running on. Methods can be distributed to remote machines by the Satin
+     * runtime system, in which case this method returns false.
+     */
+    public static boolean localJob() {
+        if (thisSatin == null) {
+            return true; // sequential run
+        }
+
+        if (thisSatin.parent == null) {
+            return true; // root job
+        }
+
+        return thisSatin.parent.getOwner().equals(thisSatin.ident);
+    }
+
+    /**
+     * Returns true if this is the instance that is running main().
+     * 
+     * @return <code>true</code> if this is the instance running main().
+     */
+    public boolean isMaster() {
+        return master;
+    }
+
+    public void setMaster(boolean val) {
+        master = val;
+    }
+
+    // called from generated code
+    public void broadcastSOInvocation(SOInvocationRecord r) {
+        so.broadcastSOInvocation(r);
+    }
+
+    public static void assertLocked(Object o) {
+        if (!ASSERTS) return;
+
+        if (!trylock(o)) {
+            System.err.println("AssertLocked failed!: ");
+            new Exception().printStackTrace();
+            System.exit(1); // Failed assertion
+        }
+    }
+
+    public IbisIdentifier getMasterIdent() {
+        return masterIdent;
+    }
+
+    private void callSatinFunction(InvocationRecord r) {
+        if (ASSERTS) callSatinFunctionPreAsserts(r);
+
+        if (r.getParent() != null && r.getParent().aborted) {
+            r.decrSpawnCounter();
+            return;
+        }
+
+        InvocationRecord oldParent = parent;
+        onStack.push(r);
+        parent = r;
+
+        // We MUST make sure that steals don't overtake aborts.
+        // Therefore, we must poll for messages here.
+        handleDelayedMessages();
+
+        if (r.getOwner().equals(ident)) {
+            callSatinLocalFunction(r);
+        } else { // we are running a job that I stole from another machine
+            callSatinRemoteFunction(r);
+        }
+
+        // restore this, there may be more spawns afterwards...
+        parent = oldParent;
+        onStack.pop();
+    }
+
+    private void callSatinFunctionPreAsserts(InvocationRecord r) {
+        if (r == null) {
+            spawnLogger.fatal("SATIN '" + ident
+                + ": EEK, r = null in callSatinFunc", new Throwable());
+            System.exit(1); // Failed assertion
+        }
+
+        if (r.aborted) {
+            spawnLogger.fatal("SATIN '" + ident + ": spawning aborted job!",
+                new Throwable());
+            System.exit(1); // Failed assertion
+        }
+
+        if (r.getOwner() == null) {
+            spawnLogger.fatal("SATIN '" + ident
+                + ": EEK, r.owner = null in callSatinFunc, r = " + r,
+                new Throwable());
+            System.exit(1); // Failed assertion
+        }
+    }
+
+    private void callSatinLocalFunction(InvocationRecord r) {
+        stats.jobsExecuted++;
+        try {
+            r.runLocal();
+        } catch (Throwable t) {
+            // This can only happen if an inlet has thrown an
+            // exception, or if there was no try-catch block around
+            // the spawn (i.e. no inlet).
+            // The semantics of this: all work is aborted,
+            // and the exception is passed on to the spawner.
+            // The parent is aborted, it must handle the exception.
+            // Note: this can now also happen on an abort. Check for
+            // the AbortException!
+            if (!(t instanceof AbortException)) {
+                r.eek = t;
+                aborts.handleInlet(r);
+            } else if (abortLogger.isDebugEnabled()) {
+                abortLogger.debug("Caught abort exception " + t, t);
+            }
+        }
+
+        r.decrSpawnCounter();
+
+        if (!FT_NAIVE) r.jobFinished();
+    }
+
+    private void callSatinRemoteFunction(InvocationRecord r) {
+        stealLogger.info("SATIN '" + ident + "': RUNNING REMOTE CODE!");
+        ReturnRecord rr = null;
+        stats.jobsExecuted++;
+        rr = r.runRemote();
+        rr.setEek(r.eek);
+
+        if (r.eek != null) {
+            stealLogger.info("SATIN '" + ident
+                + "': RUNNING REMOTE CODE GAVE EXCEPTION: " + r.eek, r.eek);
+        } else {
+            stealLogger
+                .info("SATIN '" + ident + "': RUNNING REMOTE CODE DONE!");
+        }
+
+        // send wrapper back to the owner
+        if (!r.aborted) {
+            lb.sendResult(r, rr);
+        }
+
+        stealLogger
+            .info("SATIN '" + ident + "': REMOTE CODE SEND RESULT DONE!");
+    }
+
+    private void createLoadBalancingAlgorithm() {
+        String alg = SUPPLIED_ALG;
+
+        if (SUPPLIED_ALG == null) {
+            alg = "RS";
+        }
+
+        if (alg.equals("RS")) {
+            algorithm = new RandomWorkStealing(this);
+        } else if (alg.equals("CRS")) {
+            algorithm = new ClusterAwareRandomWorkStealing(this);
+        } else if (alg.equals("MW")) {
+            algorithm = new MasterWorker(this);
+        } else {
+            System.err.println("SATIN '" + "- " + "': satin_algorithm '" + alg
+                + "' unknown");
+            algorithm = null;
+            System.exit(1); // Wrong option
+        }
+
+        commLogger.info("SATIN '" + "- " + "': using algorithm '" + alg);
+    }
+
+    private static boolean trylock(Object o) {
+        try {
+            o.notifyAll();
+        } catch (IllegalMonitorStateException e) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @return Returns the current Satin instance.
+     */
+    public final static Satin getSatin() {
+        return thisSatin;
+    }
+
+    /** Returns the parent of the current job, used in generated code. */
+    public InvocationRecord getParent() {
+        return parent;
+    }
+
+}
