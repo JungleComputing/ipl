@@ -1026,9 +1026,6 @@ for our example program:
 
 Now, invoking \emph{ant} compiles the application, leaving the class files
 in a directory called \texttt{build}.
-Please note that you \emph{must} use the \emph{ant} that is
-distributed with ibis (in the Ibis root directory), because this
-version provides some tasks to compile Ibis applications.
 
 \mysubsection{The Ibis Nameserver}
 
@@ -1145,7 +1142,7 @@ Please go to the \emph{ibis-example} directory and type:
 \noindent
 {\small
 \begin{verbatim}
-$ ../ant
+$ ant
 \end{verbatim}
 }
 \noindent
@@ -1179,7 +1176,7 @@ In both shells, type:
 {\small
 \begin{verbatim}
 $ java \
-    -cp $IBIS_ROOT/build/ibis.jar:$IBIS_ROOT/3rdparty/log4j-1.2.9.jar:build \
+    -cp $IBIS_ROOT/lib/ibis.jar:$IBIS_ROOT/3rdparty/log4j-1.2.9.jar:build \
     -Dibis.pool.total_hosts=2 -Dibis.name_server.host=localhost \
     -Dibis.name_server.key=bla \
     Example
@@ -1853,7 +1850,7 @@ To compile the TSP example, please type
 \noindent
 {\small
 \begin{verbatim}
-$ ../../../ant clean build-sun
+$ ant clean build-sun
 \end{verbatim}
 }
 \noindent
@@ -1864,7 +1861,7 @@ Running the TSP example with Sun RMI can be done as follows. Run the command
 {\small
 \begin{verbatim}
 $ java \
-    -cp $IBIS_ROOT/build/ibis.jar:$IBIS_ROOT/3rdparty/log4j-1.2.9.jar:build \
+    -cp $IBIS_ROOT/lib/ibis.jar:$IBIS_ROOT/3rdparty/log4j-1.2.9.jar:build \
     -Dibis.pool.total_hosts=2 -Dibis.pool.server.host=localhost \
     Server table_15.1
 \end{verbatim}
@@ -1910,7 +1907,7 @@ Remember that you first have to recompile it with the Ibis rmic:
 \noindent
 {\small
 \begin{verbatim}
-$ ../../../ant clean build
+$ ant clean build
 \end{verbatim}
 }
 \noindent
@@ -1920,7 +1917,7 @@ Now we can run it by typing the following command in two seperate shells:
 {\small
 \begin{verbatim}
 $ java \
-    -cp $IBIS_ROOT/build/ibis.jar:$IBIS_ROOT/3rdparty/log4j-1.2.9.jar:build \
+    -cp $IBIS_ROOT/lib/ibis.jar:$IBIS_ROOT/3rdparty/log4j-1.2.9.jar:build \
     -Dibis.pool.total_hosts=2 -Dibis.pool.server.host=localhost \
     -Dibis.name_server.host=localhost -Dibis.name_server.key=bla \
     Server table_15.1 
