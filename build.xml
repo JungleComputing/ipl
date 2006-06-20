@@ -267,9 +267,13 @@
 
     <target name="allclean"
 	depends="clean"
-	description="Clean up build, bin, jars, native">
-	<delete dir="${ibis}/lib"/>
+	description="Clean up build, jars, native">
+	<!-- No, not bin: otherwise ns-env will disappear and never
+	     reappear. Note that ns-env should survive builds.
+	     Maybe put ns-env somewhere else???
 	<delete dir="${ibis}/bin"/>
+	-->
+	<delete dir="${ibis}/lib"/>
     </target>
 
     <target name="rewritten-clean"
