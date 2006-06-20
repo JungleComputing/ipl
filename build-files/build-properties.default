@@ -1,0 +1,5 @@
+default.home.panda  = /usr/local/VU/panda/panda4.0
+default.home.daslib = /usr/local/VU/daslib
+default.home.lfc    = /usr/local/VU/lfc/lfc-gm
+default.home.mpi    = /usr/local/mpich/mpich-gm
+default.home.gm     = /usr/local/gm/current
