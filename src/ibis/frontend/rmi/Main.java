@@ -254,6 +254,8 @@ class Main {
             }
         }
 
+        boolean first = true;
+
         for (i = 0; i < classes.size(); i++) {
 
             try {
@@ -276,7 +278,12 @@ class Main {
                 }
 
                 if (printOnly) {
-                    System.out.println(subject.getClassName());
+                    if (! first) {
+                        System.out.print(" ");
+                    } else {
+                        first = false;
+                    }
+                    System.out.print(subject.getClassName() + ".class");
                     continue;
                 }
 
@@ -300,6 +307,9 @@ class Main {
                 System.err.println("exception is: " + e);
                 e.printStackTrace();
                 System.exit(1);
+            }
+            if (printOnly) {
+                System.out.println("");
             }
         }
 

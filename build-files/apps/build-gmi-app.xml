@@ -37,24 +37,7 @@
 	<pathconvert pathsep=" " property="classes.all" refid="all-classes">
 	    <map from="${builddir}${file.separator}" to=""/>
 	</pathconvert>
-	<!--
-	    Do regexp from ${classes.all} -> gmi-classes
-		%s/.class//g
-		%s/\${file.separator}/./g
-	-->
 	<echo message="${classes.all}" file="${build}/GMI-Classes"/>
-	<replaceregexp
-		byline="true"
-		file="${build}/GMI-Classes"
-		flags="g"
-		match=".class"
-		replace=""/>
-	<replaceregexp
-		byline="true"
-		file="${build}/GMI-Classes"
-		flags="g"
-		match="\${file.separator}"
-		replace="."/>
 	<loadfile
 		property="gmi-classes"
 		srcFile="${build}/GMI-Classes">

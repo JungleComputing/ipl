@@ -50,24 +50,9 @@
 	    <map from="${builddir}${file.separator}" to=""/>
 	</pathconvert>
 
-	<!--
-	    Do regexp on ${classes.all} -> rmic-classes
-		%s/.class//g
-		%s/\${file.separator}/./g
-	-->
 	<echo message="${classes.all}" file="${build}/RMIC-Classes"/>
-	<replaceregexp
-		byline="true"
-		file="${build}/RMIC-Classes"
-		flags="g"
-		match=".class"
-		replace=""/>
-	<replaceregexp
-		byline="true"
-		file="${build}/RMIC-Classes"
-		flags="g"
-		match="\${file.separator}"
-		replace="."/>
+	<replace file="${build}/RMIC-Classes" token=".class" value=""/>
+	<replace file="${build}/RMIC-Classes" token="${file.separator}" value="."/>
 	<loadfile
 		property="rmic-classes"
 		srcFile="${build}/RMIC-Classes">
@@ -108,24 +93,9 @@
 	    <map from="${builddir}${file.separator}" to=""/>
 	</pathconvert>
 
-	<!--
-	    Do regexp on ${classes.all} -> rmic-classes
-		%s/.class//g
-		%s/\${file.separator}/./g
-	-->
 	<echo message="${classes.all}" file="${build}/-RMIC-Classes"/>
-	<replaceregexp
-		byline="true"
-		file="${build}/-RMIC-Classes"
-		flags="g"
-		match=".class"
-		replace=""/>
-	<replaceregexp
-		byline="true"
-		file="${build}/-RMIC-Classes"
-		flags="g"
-		match="\${file.separator}"
-		replace="."/>
+	<replace file="${build}/-RMIC-Classes" token=".class" value=""/>
+	<replace file="${build}/-RMIC-Classes" token="${file.separator}" value="."/>
 	<loadfile
 		property="rmic-classes"
 		srcFile="${build}/-RMIC-Classes">
@@ -144,26 +114,9 @@
 	    <arg line="-n -java ${rmic-classes}"/>
 	    <classpath refid="default.classpath"/>
 	</java>
-
-	<!--
-	    Do regexp on ${rmic-classes} -> remote-classes
-		%s/\${line.separator/.class /g
-		%s/ $//g
-	-->
-	<replaceregexp
-		file="${build}/-REMOTE-Classes"
-		flags="g"
-		match="\${line.separator}"
-		replace=".class "/>
-	<replaceregexp
-		file="${build}/-REMOTE-Classes"
-		flags="g"
-		match=" $"
-		replace=""/>
 	<loadfile
 		property="remote.classes"
 		srcFile="${build}/-REMOTE-Classes"/>
-
 	<echo   level="debug"
 		message="Now run sun.rmic over '${remote.classes}'"/>
 	<rmic   base="${builddir}"
@@ -190,24 +143,9 @@
 	    <map from="${builddir}${file.separator}" to=""/>
 	</pathconvert>
 
-	<!--
-	    Do regexp on ${classes.all} -> rmic-classes
-		%s/.class//g
-		%s/\${file.separator}/./g
-	-->
 	<echo message="${classes.all}" file="${build}/-RMIC-Classes"/>
-	<replaceregexp
-		byline="true"
-		file="${build}/-RMIC-Classes"
-		flags="g"
-		match=".class"
-		replace=""/>
-	<replaceregexp
-		byline="true"
-		file="${build}/-RMIC-Classes"
-		flags="g"
-		match="\${file.separator}"
-		replace="."/>
+	<replace file="${build}/RMIC-Classes" token=".class" value=""/>
+	<replace file="${build}/RMIC-Classes" token="${file.separator}" value="."/>
 	<loadfile
 		property="rmic-classes"
 		srcFile="${build}/-RMIC-Classes">

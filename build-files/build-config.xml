@@ -199,6 +199,7 @@ IBIS_CONFIG_SEEN=1
 		tofile="${ibis}/bin/ns-env"/>
 	<replace file="${ibis}/bin/ns-env" token="@IBIS_NS_PORT@" value="9826"/>
 	<replace file="${ibis}/bin/ns-env" token="@IBIS_NS_HOST@" value="localhost"/>
+	<replace file="${ibis}/bin/ns-env" token="@SET@" value=""/>
 	<chmod file="${ibis}/bin/ns-env" perm="+x"/>
     </target>
 
@@ -219,19 +220,9 @@ IBIS_CONFIG_SEEN=1
 	</copy>
 	<replace file="${ibis}/bin/ns-env.bat" token="@IBIS_NS_PORT@" value="9826"/>
 	<replace file="${ibis}/bin/ns-env.bat" token="@IBIS_NS_HOST@" value="localhost"/>
-	<replaceregexp
-	    file="${ibis}/bin/ns-env.bat"
-		flags="g"
-		match="(.*)="
-		replace="set \1="/>
-	<replace
-	    file="${ibis}/bin/ns-env.bat"
-		token="#"
-		value="rem "/>
-	<replace
-	    file="${ibis}/bin/ns-env.bat"
-		token="export"
-		value="rem "/>
+	<replace file="${ibis}/bin/ns-env.bat" token="@SET@" value="set "/>
+	<replace file="${ibis}/bin/ns-env.bat" token="#" value="rem "/>
+	<replace file="${ibis}/bin/ns-env.bat" token="export" value="rem "/>
     </target>
 
     <target name="-config-build-properties"

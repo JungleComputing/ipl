@@ -38,24 +38,9 @@
 	    <map from="${builddir}${file.separator}" to=""/>
 	</pathconvert>
 
-	<!--
-	    Do regexp from ${classes.all} -> repmi-classes
-		%s/.class//g
-		%s/\${file.separator}/./g
-	-->
 	<echo message="${classes.all}" file="${build}/REPMI-Classes"/>
-	<replaceregexp
-		byline="true"
-		file="${build}/REPMI-Classes"
-		flags="g"
-		match=".class"
-		replace=""/>
-	<replaceregexp
-		byline="true"
-		file="${build}/REPMI-Classes"
-		flags="g"
-		match="\${file.separator}"
-		replace="."/>
+	<replace file="${build}/REPMI-Classes" token=".class" value=""/>
+	<replace file="${build}/REPMI-Classes" token="${file.separator}" value="."/>
 	<loadfile
 		property="repmi-classes"
 		srcFile="${build}/REPMI-Classes">

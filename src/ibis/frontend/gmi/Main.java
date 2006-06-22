@@ -68,9 +68,14 @@ class Main {
             } else if (args[i].equals("-local")) {
                 local = true;
             } else {
-                JavaClass c = Repository.lookupClass(args[i]);
+                String name = args[i];
+                if (name.endsWith(".class")) {
+                    name = name.substring(0, name.length()-6).replace(File.separatorChar, '.');
+                }
+
+                JavaClass c = Repository.lookupClass(name);
                 if (c == null) {
-                    System.err.println("Class " + args[i] + " not found");
+                    System.err.println("Class " + name + " not found");
                     System.exit(1);
                 }
                 classes.addElement(c);
