@@ -1,0 +1,22 @@
+<project
+    name="ibis.apps.satin.masterWorkerTest"
+    default="build"
+    basedir=".">
+
+    <property environment="env"/>
+
+    <property name="ibis"        location="${env.IBIS_ROOT}"/>
+    <property name="build"       value="build"/>
+
+    <property name="satinc-flags" value=""/>
+    <property name="main-class" value="MW"/>
+    <property name="satin-main-class" value="${main-class}"/>
+
+    <property name="ibis-run-args" value="-Dsatin.closed"/>
+	
+    <property name="test-par-run" value="MW"/>
+    <property name="test-seq-run" value="MW"/>
+
+    <import file="${ibis}/build-files/apps/build-satin-app.xml"/>
+
+</project>
