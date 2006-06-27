@@ -73,7 +73,7 @@ final class SerializeWriteMessage extends WriteMessage {
     }
 
     public void writeString(String value) throws IOException {
-        obj_out.writeObject(value);
+        obj_out.writeString(value);
     }
 
     public void writeObject(Object value) throws IOException {

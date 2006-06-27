@@ -59,11 +59,7 @@ final public class IbisReadMessage extends ReadMessage {
     }
 
     public String readString() throws IOException {
-        try {
-            return (String) readObject();
-        } catch (ClassNotFoundException e) {
-            throw new Error("require String", e);
-        }
+        return obj_in.readString();
     }
 
     public void readArray(boolean[] destination) throws IOException {

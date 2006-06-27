@@ -91,7 +91,7 @@ final public class IbisWriteMessage extends WriteMessage {
 
     public void writeString(String value) throws IOException {
         needs_flush = true;
-        writeObject(value);
+        obj_out.writeString(value);
     }
 
     public void writeArray(boolean[] value, int offset, int size)
