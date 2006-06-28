@@ -8,7 +8,8 @@
     </description>
 
     <target name="default"
-	    depends="allclean,build">
+	    description="Build Ibis, only native code if explicitly configured"
+	    depends="allclean,build,natives-if-configured">
 	<delete dir="${build}"/>
     </target>
 
@@ -16,11 +17,6 @@
 	    description="Build everything, including native code"
 	    depends="allclean,build,natives">
 	<delete dir="${build}"/>
-	<delete>
-	    <fileset dir="${lib}/natives">
-		<include name="**/*.o"/>
-	    </fileset>
-	</delete>
     </target>
 
     <target name="usage"
@@ -40,15 +36,8 @@
 
     <!--
 	This must come first.
-	We cannot require ant-contrib before we have configured.
     -->
     <import file="${ibis}/build-files/build-config.xml"/>
-
-    <available file="${build}/VERSION" property="version.present"/>
-
-    <target name="copy-version" unless="version.present">
-	<echo file="${build}/VERSION">${ibis-version}</echo>
-    </target>
 
     <target name="make-dirs">
 	<tstamp/>
@@ -57,7 +46,7 @@
 	<mkdir dir="${ibis}/bin"/>
     </target>
 
-    <target name="init" depends="config-init-initial,property-init,make-dirs,copy-version"/>
+    <target name="init" depends="config-init-initial,property-init,make-dirs"/>
 
     <!--
 	Compile only
@@ -107,6 +96,7 @@
     <target name="build"
 	    depends="compile, build-bin, copyProperties, iogen, jars"
 	    description="Build Ibis">
+	<property file="${ibis}/build-properties"/>
     </target>
 
     <import file="${ibis}/build-files/build-properties.xml"/>
@@ -167,12 +157,22 @@
 	-->
     </target>
 
+    <target name="natives-if-configured" if="ibis.configured">
+	<antcall target="natives"/>
+    </target>
+
     <target name="natives"
 	    depends="javah,
 		     proprietary-tasks,
 		     natives.misc,
 	    	     natives.mp,
-		     natives.net"/>
+		     natives.net">
+	<delete>
+	    <fileset dir="${lib}/natives">
+		<include name="**/*.o"/>
+	    </fileset>
+	</delete>
+     </target>
 
     <target name="copyProperties"
 	    depends="init"
@@ -199,7 +199,7 @@
     <target name="ibis.jar">
 	<jar	destfile="${ibis}/lib/ibis.jar"
 		basedir="${build}"
-		includes="**/*.class **/properties properties ibis-properties ibis-sys-props VERSION"/>
+		includes="**/*.class **/properties properties ibis-properties ibis-sys-props"/>
     </target>
 
     <!--

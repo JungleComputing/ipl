@@ -38,4 +38,4 @@ c.optimization              = true
 c.debug                     = true
 
 # The configure process may append properties of its choice here,
-# e.g. to signify whether this is a DAS build.
+# e.g. to signify whether this installation is explicitly configured.

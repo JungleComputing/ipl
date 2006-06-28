@@ -41,7 +41,7 @@
     </condition>
 
     <target name="java-version-test" depends="java-home-test" unless="java-ok">
-	<fail message="Java version ${java.version} is not supported. A 1.4 or 1.5 version is required for Ibis.">
+	<fail message="Java version ${java.version} is not supported. A 1.4, 1.5 or 1.6 version is required for Ibis.">
 	</fail>
     </target>
 
@@ -56,29 +56,7 @@
 
     <property environment="env"/>
 
-    <target name="-config-sleep" unless="called-from-configure">
-	<echo>
-----------------------------------------------------------------
-Now, your Ibis build is being configured under ${ibis}.
-
-If you don't have any fast local networks for which a special
-Ibis module is required, you may skip the following message
-by just waiting for 30 seconds, after which the build will continue.
-
-If you wish to configure Ibis modules for fast local networks,
-you have to do some extra configuration. To do so,
-first interrupt this build, and then type:
-  ant configure
-to the command line, and answer questions.
-After you did this optional configuration, you must again type:
-  ant
-to the command line.
-If you don't know the answer, or don't have the native modules
-that the fast local network module depends on, just waiting for
-30 seconds is usually OK.
-----------------------------------------------------------------
-</echo>
-	<sleep seconds="30"/>
+    <target name="-config-defaults" unless="called-from-configure">
 	<property name="install.home.gm" value="${default.home.gm}"/>
 	<property name="install.home.daslib" value="${default.home.daslib}"/>
 	<property name="install.home.lfc" value="${default.home.lfc}"/>
@@ -86,8 +64,7 @@ that the fast local network module depends on, just waiting for
 	<property name="install.home.mpi" value="${default.home.mpi}"/>
     </target>
 
-    <target name="-config-build-1" depends="-config-sleep">
-
+    <target name="-config-build-1" depends="-config-defaults">
 	<property name="config.home.gm" location="${install.home.gm}"/>
 	<property name="config.home.daslib" location="${install.home.daslib}"/>
 	<property name="config.home.lfc" location="${install.home.lfc}"/>
@@ -218,8 +195,14 @@ IBIS_CONFIG_SEEN=1
 	<replace file="${ibis}/bin/ns-env.bat" token="export" value="rem "/>
     </target>
 
+    <target name="set-ibis-configured" if="called-from-configure">
+	<echo	file="build-properties"
+		append="true">ibis.configured     = true
+</echo>
+    </target>
+
     <target name="-config-build-properties"
-	depends="-config-build-1,-config-build-windows"/>
+	depends="-config-build-1,set-ibis-configured,-config-build-windows"/>
 
     <target name="-config-lazy-build-properties"
 	    unless="build-properties-available">
