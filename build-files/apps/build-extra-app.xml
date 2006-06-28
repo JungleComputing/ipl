@@ -4,7 +4,6 @@
     basedir=".">
 
     <import file="${ibis}/build-files/build-properties.xml"/>
-    <import file="${ibis}/build-files/build-native.xml"/>
     <import file="${ibis}/build-files/apps/build-run.xml"/>
 
     <target name="init" depends="property-init">
@@ -21,7 +20,7 @@
 	    depends="init"
 	    description="Compile">
 	<javac  destdir="${build}"
-		debug="${java.debug.value}"
+		debug="true"
 		srcdir=".">
 	    <classpath refid="default.classpath"/>
 	    <include name="*.java"/>

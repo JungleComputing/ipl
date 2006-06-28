@@ -13,124 +13,22 @@
 	Specify in this file:
     </description>
 
-    <property name="build-properties.xml-imported" value="true"/>
-
-    <property
-	    name="package.home.bcel"
-	    location="${ibis}/3rdparty/bcel-5.1.jar"/>
-
-    <target name="set-initial-cp">
-	<path id="initial-cp">
-	    <pathelement path="${ibisBuild}"/>
+    <target name="set-classpath" unless="classpath.initialized">
+	<path id="default.classpath">
+	    <pathelement path="${ibis}/build"/>
 	    <pathelement path="${build}"/>
 	    <pathelement path="${ibis}/lib/ibis.jar"/>
-	    <pathelement path="${package.home.bcel}"/>
-	    <pathelement path="${ibis}/3rdparty/log4j-1.2.9.jar"/>
-	    <pathelement path="${ibis}/3rdparty/junit.jar"/>
-	    <pathelement path="${ibis}/3rdparty/colobus.jar"/>
-	    <pathelement path="${ibis}/3rdparty/ibis-util.jar"/>
-	    <pathelement path="${ibis}/3rdparty/ibis-connect.jar"/>
-	    <pathelement path="${ibis}/3rdparty/lrmc.jar"/>
+	    <fileset dir="${ibis}/3rdparty">
+		<include name="*.jar"/>
+	    </fileset>
 	</path>
-    </target>
-
-    <target name="set-classpath-extra" if="has-extra-classpath"
-	depends="set-initial-cp">
-	<path id="default.classpath">
-	    <path refid="initial-cp"/>
-	    <path refid="extra-classpath"/>
-	</path>
-    </target>
-
-    <target name="set-classpath-no-extra" unless="has-extra-classpath"
-	depends="set-initial-cp">
-	<path id="default.classpath">
-	    <path refid="initial-cp"/>
-	</path>
-    </target>
-
-    <target name="set-classpath"
-	depends="set-classpath-no-extra,set-classpath-extra">
 	<echo	message="Now set default.classpath to ${default.classpath}"
 		level="verbose"/>
+	<property name="classpath.initialized" value="true"/>
     </target>
-
-    <target name="property-init-once" unless="property.initialized">
-	<!--
-	    First test whether this is a Mac. Some Macs are also Unix,
-	    so they say 'yes' to os family="unix". But for Ibis, we
-	    want to distinguish between macs and non-mac unixes.
-	-->
-	<condition property="os-is-mac">
-	    <os family="mac"/>
-	</condition>
-	<condition property="os-is-windows">
-	    <os family="windows"/>
-	</condition>
-	<condition property="os-is-unix">
-	    <and>
-		<os family="unix"/>
-		<not>
-		    <os family="mac"/>
-		</not>
-	    </and>
-	</condition>
-	<condition property="has-extra-classpath">
-	    <isreference refid="extra-classpath"/>
-	</condition>
-
-	<property file="${ibis}/build-properties"/>
-
-	<available file="${package.home.gm}" property="gm.present"/>
-	
-	<available file="${package.home.panda}" property="panda.present"/>
-    </target>
-
-    <target name="init-mac" if="os-is-mac">
-	<property name="os.family" value="mac"/>
-    </target>
-
-    <target name="init-windows" if="os-is-windows">
-	<property name="os.family" value="windows"/>
-    </target>
-
-    <target name="init-unix" if="os-is-unix">
-	<property name="os.family" value="unix"/>
-    </target>
-
-    <target name="init-os"
-	depends="init-mac,init-windows,init-unix"/>
-
-    <target name="set-debug-false" unless="java.debug">
-	<property name="java.debug.value" value="false"/>
-    </target>
-
-    <target name="set-debug-true" if="java.debug">
-	<property name="java.debug.value" value="true"/>
-    </target>
-
-    <target name="set-debug"
-	depends="set-debug-false,set-debug-true"/>
-
-    <target name="set-optimize-false" unless="java.optimization">
-	<property name="java.optimize.value" value="false"/>
-    </target>
-
-    <target name="set-optimize-true" if="java.optimization">
-	<property name="java.optimize.value" value="true"/>
-    </target>
-
-    <target name="set-optimize"
-	depends="set-optimize-false,set-optimize-true"/>
 
     <target name="property-init"
-	    unless="property.initialized"
-	    depends="property-init-once,init-os,
-		     set-debug,set-optimize,set-classpath">
-
-	<property name="property.initialized" value="true"/>
-
-
+	    depends="set-classpath">
     </target>
 
 </project>

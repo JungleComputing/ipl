@@ -19,13 +19,39 @@
 	javah.
     -->
 
+    <property environment="env"/>
+    <property name="JAVA_HOME" value="${env.JAVA_HOME}"/>
+
+    <target name="prop-native-init">
+	<condition property="os-is-mac">
+	    <os family="mac"/>
+	</condition>
+	<condition property="os-is-windows">
+	    <os family="windows"/>
+	</condition>
+	<condition property="os-is-unix">
+	    <and>
+		<os family="unix"/>
+		<not>
+		    <os family="mac"/>
+		</not>
+	    </and>
+	</condition>
+
+	<property file="${ibis}/build-properties"/>
+
+	<available file="${package.home.gm}" property="gm.present"/>
+	
+	<available file="${package.home.panda}" property="panda.present"/>
+    </target>
+
     <target name="property-javah-build" depends="property-init" unless="build">
 	<echo message="build is undefined. Set it to the default value"/>
 	<property name="build" location="build"/>
 	<mkdir dir="${build}"/>
     </target>
 
-    <target name="javah-init" depends="property-javah-build">
+    <target name="javah-init" depends="property-javah-build,prop-native-init">
 	<mkdir dir="${build}/include"/>
 	<echo level="warning" message="default.classpath = ${default.classpath}"/>
 	<path id="all-classes">
@@ -187,11 +213,13 @@
 
     <target name="native-init"
 	    depends="property-native-build,
+		     prop-native-init,
 		     property-native-local.lib,
 		     property-native-outtype,
 		     proprietary-tasks,
 		     property-compiler-init" unless="native-initialized">
 	<property name="native-initialized" value="true"/>
+
 	<mkdir dir="${build}"/>
 	<mkdir dir="${build}/include"/>
 	<mkdir dir="${ibis}/lib"/>

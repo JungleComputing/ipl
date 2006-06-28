@@ -63,39 +63,41 @@
 	Compile only
     -->
     <target name="compile"
-	    depends="init">
-	<patternset id="build.sources.all">
-	    <include name="ibis/**/*.java"/>
-	    <exclude name="ibis/impl/net/nio/**/*.java"/>
-	    <exclude name="ibis/repmi/**/*.java"/>
-	</patternset>
-	<antcall inheritAll="true" inheritRefs="true" target="-compile">
-	    <reference refid="build.sources.all" torefid="build.sources"/>
-	</antcall>
+	    depends="init,bcel">
+	<javac  destdir="${build}" debug="true" srcdir="${src}"
+	    includes="ibis/**/*.java"
+	    excludes="ibis/impl/net/nio/**/*.java,ibis/repmi/**/*.java">
+	    <classpath refid="default.classpath"/>
+	</javac>
     </target>
 
-    <target name="build-unix-bin">
+    <target name="check-windows" unless="bin-created">
+	<condition property="is-windows">
+	    <os family="windows"/>
+	</condition>
+    </target>
+
+    <target name="build-unix-bin" unless="bin-created">
     <!--
 	    Commented out so that unix scripts get installed on Cygwin
 	    (and on windows, but who cares ...)
-	    unless="os-is-windows">
+	    unless="is-windows">
     -->
 	<copy todir="${ibis}/bin">
 	    <fileset dir="${ibis}/src/scripts" excludes="*.bat,*.in"/>
 	</copy>
-	<chmod file="${ibis}/bin/*" perm="+x"/>
     </target>
 
-    <target name="build-windows-bin"
-	    if="os-is-windows">
+    <target name="build-windows-bin" unless="bin-created" if="is-windows">
 	<copy todir="${ibis}/bin">
 	    <fileset dir="${ibis}/src/scripts" includes="*.bat"/>
 	</copy>
-	<chmod file="${ibis}/bin/*" perm="+x"/>
     </target>
 
     <target name="build-bin"
-	    depends="build-unix-bin, build-windows-bin">
+	    depends="check-windows, build-unix-bin, build-windows-bin">
+	<chmod file="${ibis}/bin/*" perm="+x"/>
+	<property name="bin-created" value="true"/>
     </target>
 
     <!--
@@ -111,7 +113,7 @@
 
     <property name="src"         location="${ibis}/src"/>
     <property name="build"       location="${ibis}/build"/>
-    <property name="lib"       location="${ibis}/lib"/>
+    <property name="lib"         location="${ibis}/lib"/>
     <property name="docs"        location="${ibis}/docs"/>
 
     <!--
@@ -187,36 +189,6 @@
 		<include name="properties"/>
 	    </fileset>
 	</copy>
-    </target>
-
-    <target name="-compile"
-	    depends="init,bcel">
-	<echo	message="java.debug.value = ${java.debug.value}"
-		level="verbose"/>
-	<javac  destdir="${build}"
-		debug="${java.debug.value}"
-		srcdir="${src}">
-	    <patternset refid="build.sources"/>
-	    <classpath refid="default.classpath"/>
-	</javac>
-    </target>
-
-    <target name="jar.package">
-	<basename property="package-basename" file="${ibis.sub-package}"/>
-	<echo level="verbose" message="package = ${ibis.sub-package}"/>
-	<echo level="verbose" message="basename = ${package-basename}"/>
-	<jar	destfile="${ibis}/lib/ibis-${package-basename}.jar"
-		basedir="${build}"
-		includes="ibis/${package-basename}/**/*.class"/>
-    </target>
-
-    <target name="jar.impl">
-	<basename property="package-basename" file="${ibis.sub-package}"/>
-	<echo level="verbose" message="package = ${ibis.sub-package}"/>
-	<echo level="verbose" message="basename = ${package-basename}"/>
-	<jar	destfile="${ibis}/lib/ibis-${package-basename}.jar"
-		basedir="${build}"
-		includes="ibis/impl/${package-basename}/**/*.class ibis/impl/${package-basename}/**/properties properties ibis-properties ibis-sys-props VERSION"/>
     </target>
 
     <target name="jars"
@@ -297,7 +269,9 @@
 	<delete file="build-properties"/>
 	<delete file="build-properties.cache"/>
 	<delete file="build-properties.backup"/>
-	<ant dir="${ibis}/apps" inheritAll="false" target="clean"/>
+	<ant dir="${ibis}/apps" inheritAll="false" target="clean">
+	    <property name="ibis" value="${ibis}"/>
+	</ant>
 	<ant dir="${ibis}/ibis-example" inheritAll="false" target="clean"/>
 	<delete dir="bin"/>
 	<delete dir="ant-tasks/tasks"/>
@@ -325,23 +299,8 @@
     </target>
 
     <target name="test" depends="simple-test">
-	<ant dir="apps" inheritAll="false" target="test"/>
+	<ant dir="apps" inheritAll="false" target="test">
+	    <property name="ibis" value="${ibis}"/>
+	</ant>
     </target>
-
-    <target name="gmi-apps-test" depends="build">
-	<ant dir="apps/gmi" inheritAll="false" target="test"/>
-    </target>
-
-    <target name="rmi-apps-test" depends="build">
-	<ant dir="apps/rmi" inheritAll="false" target="test"/>
-    </target>
-
-    <target name="satin-apps-test" depends="build">
-	<ant dir="apps/satin" inheritAll="false" target="test"/>
-    </target>
-
-    <target name="ibis-apps-test" depends="build">
-	<ant dir="apps/ibis" inheritAll="false" target="test"/>
-    </target>
-
 </project>

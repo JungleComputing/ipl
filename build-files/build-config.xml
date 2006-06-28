@@ -88,12 +88,13 @@ that the fast local network module depends on, just waiting for
 
     <target name="-config-build-1" depends="-config-sleep">
 
-	<property name="config.home.ibis" location="${ibis}"/>
 	<property name="config.home.gm" location="${install.home.gm}"/>
 	<property name="config.home.daslib" location="${install.home.daslib}"/>
 	<property name="config.home.lfc" location="${install.home.lfc}"/>
 	<property name="config.home.panda" location="${install.home.panda}"/>
 	<property name="config.home.mpi" location="${install.home.mpi}"/>
+
+	<property name="package.home.bcel" location="${ibis}/3rdparty/bcel-5.1.jar"/>
 
 	<delete file="build-properties.cache"/>
 	<echo	file="build-properties.cache"
@@ -126,14 +127,6 @@ that the fast local network module depends on, just waiting for
 		overwrite="true">
 	</copy>
 
-	<replace
-		file="${ibis}/build-properties"
-		token="@JAVA@"
-		value="${JAVA_HOME_ENV}"/>
-	<replace
-		file="${ibis}/build-properties"
-		token="@IBIS@"
-		value="${config.home.ibis}"/>
 	<replace
 		file="${ibis}/build-properties"
 		token="@GM_HOME@"

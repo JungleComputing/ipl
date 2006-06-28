@@ -7,30 +7,11 @@
 # After this, the user must configure his build by editing
 # the generated $IBIS/build-properties.
 
-# JAVA_HOME                   = /usr/local/ibm-java/IBMJava2-141
-# JAVA_HOME                   = /usr/local/sun-java/jdk1.4
-# JAVA_HOME                   = /usr/local/sun-java/j2sdk1.5.0
-JAVA_HOME                   = @JAVA@
-package.home.ibis           = @IBIS@
-ibisBuild                   = ${ibis}/build
-
 package.home.gm             = @GM_HOME@
 package.home.daslib         = @DASLIB_HOME@
 package.home.lfc            = @LFC_HOME@
 package.home.panda          = @PANDA_HOME@
 package.home.mpi            = @MPI_HOME@
-
-# Optimize java code?
-# If not, comment the following line out.
-# The build system only checks whether this property is defined,
-# so giving it a value of "false" defeats your purpose.
-java.optimization           = true
-
-# Include debug symbols in the java code?
-# If you don't want debug symbols, comment the following line out.
-# The build system only checks whether this property is defined,
-# so giving it a value of "false" defeats your purpose.
-java.debug                  = true
 
 # Choose a value for the C compiler of your liking
 c.compiler.unix             = gcc
