@@ -5,7 +5,7 @@ final class MW extends ibis.satin.SatinObject implements MWInterface {
     public static void main(String[] args) {
         MW mw = new MW();
 
-        for(int j=0; j<1000; j++) {
+        for(int j=0; j<10; j++) {
         System.out.println("Running MW");
 
         long start = System.currentTimeMillis();

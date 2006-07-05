@@ -76,13 +76,7 @@ final class GlobalResultTable implements Upcall, Config {
 
         String commprops = "OneToOne, ManyToOne, ExplicitReceipt, Reliable";
         commprops += ", ConnectionUpcalls, ConnectionDowncalls";
-        if (UPCALLS) {
-            if (UPCALL_POLLING) {
-                commprops += ", PollUpcalls";
-            } else {
                 commprops += ", AutoUpcalls";
-            }
-        }
         satinPortProperties.add("communication", commprops);
 
         satinPortProperties.add("serialization", "object");

@@ -17,19 +17,11 @@ public interface Config {
 
     static final String s_asserts = PROPERTY_PREFIX + "asserts";
 
-    static final String s_upcalls = PROPERTY_PREFIX + "upcalls";
-
     static final String s_closed = PROPERTY_PREFIX + "closed";
 
     static final String s_stats = PROPERTY_PREFIX + "stats";
 
     static final String s_detailed_stats = PROPERTY_PREFIX + "detailedStats";
-
-    static final String s_upcallPolling = PROPERTY_PREFIX + "upcallPolling";
-
-    static final String s_poll_freq = PROPERTY_PREFIX + "pollfreq";
-
-    static final String s_poll_port = PROPERTY_PREFIX + "pollport";
 
     static final String s_alg = PROPERTY_PREFIX + "alg";
 
@@ -57,17 +49,11 @@ public interface Config {
 
     static final String s_kill_time = PROPERTY_PREFIX + "killTime";
 
-    static final String[] sysprops = { s_upcalls, s_upcallPolling, s_stats,
-        s_detailed_stats, s_closed, s_poll_freq, s_poll_port, s_asserts,
+    static final String[] sysprops = { s_stats,
+        s_detailed_stats, s_closed, s_asserts,
         s_ft_naive, s_ft_connectTimeout, s_masterhost, s_in_latency,
         s_delete_time, s_delete_cluster_time, s_kill_time, s_dump, s_so_delay,
         s_so_size, s_alg, s_so_lrmc };
-
-    /**
-     * The poll frequency in nanoseconds. A frequency of 0 means do not poll. A
-     * frequency smaller than 0 means poll every sync.
-     */
-    static final long POLL_FREQ = TypedProperties.longProperty(s_poll_freq, 0L);
 
     /** Enable or disable asserts. */
     static final boolean ASSERTS = TypedProperties.booleanProperty(s_asserts,
@@ -82,14 +68,6 @@ public interface Config {
     /** Enable this if Satin should print statistics per machine at the end. */
     static final boolean DETAILED_STATS = TypedProperties.booleanProperty(
         s_detailed_stats, false);
-
-    /** Disable this if satin is not allowed to use upcalls. */
-    static final boolean UPCALLS = TypedProperties.booleanProperty(s_upcalls,
-        true);
-
-    /** Enable this if satin should poll to get upcalls. */
-    static final boolean UPCALL_POLLING = TypedProperties.booleanProperty(
-        s_upcallPolling, false);
 
     /** Enable this if satin should run with a closed world: no nodes can join or leave. */
     static final boolean CLOSED = TypedProperties.booleanProperty(s_closed,

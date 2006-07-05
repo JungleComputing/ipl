@@ -130,7 +130,7 @@ public class LoadBalancing implements Config {
                     return;
                 }
 
-                if (UPCALLS && !HANDLE_MESSAGES_IN_LATENCY) { // a normal blocking steal 
+                if (!HANDLE_MESSAGES_IN_LATENCY) { // a normal blocking steal 
                     try {
                         s.wait();
                     } catch (InterruptedException e) {
@@ -139,7 +139,7 @@ public class LoadBalancing implements Config {
                 }
             }
 
-            if (!UPCALLS || HANDLE_MESSAGES_IN_LATENCY) {
+            if (HANDLE_MESSAGES_IN_LATENCY) {
                 s.handleDelayedMessages();
                 // Thread.yield();
             }

@@ -72,16 +72,10 @@ public final class Communication implements Config, Protocol {
 
             MessageHandler messageHandler = new MessageHandler(s);
 
-            if (UPCALLS) {
                 receivePort = portType.createReceivePort("satin port on "
                     + ident.name(), messageHandler, s.ft
                     .getReceivePortConnectHandler());
                 receivePort.enableUpcalls();
-            } else {
-                commLogger.info("SATIN: using blocking receive");
-                receivePort = portType.createReceivePort("satin port on "
-                    + ident.name(), s.ft.getReceivePortConnectHandler());
-            }
             receivePort.enableConnections();
 
         } catch (Exception e) {
@@ -166,13 +160,7 @@ public final class Communication implements Config, Protocol {
 
         String commprops = "OneToOne, OneToMany, ManyToOne, ExplicitReceipt, Reliable";
         commprops += ", ConnectionUpcalls, ConnectionDowncalls";
-        if (UPCALLS) {
-            if (UPCALL_POLLING) {
-                commprops += ", PollUpcalls";
-            } else {
-                commprops += ", AutoUpcalls";
-            }
-        }
+        commprops += ", AutoUpcalls";
 
         ibisProperties.add("communication", commprops);
         return ibisProperties;
@@ -190,13 +178,7 @@ public final class Communication implements Config, Protocol {
 
         String commprops = "OneToOne, ManyToOne, ExplicitReceipt, Reliable";
         commprops += ", ConnectionUpcalls, ConnectionDowncalls";
-        if (UPCALLS) {
-            if (UPCALL_POLLING) {
-                commprops += ", PollUpcalls";
-            } else {
-                commprops += ", AutoUpcalls";
-            }
-        }
+        commprops += ", AutoUpcalls";
         satinPortProperties.add("communication", commprops);
 
         satinPortProperties.add("serialization", "object");
@@ -379,7 +361,6 @@ public final class Communication implements Config, Protocol {
                 writeMessage.writeByte(Protocol.BARRIER_REQUEST);
                 writeMessage.finish();
 
-                if (!UPCALLS) {
                     while (!gotBarrierReply/* && !exiting */) {
                         s.handleDelayedMessages();
                     }
@@ -388,88 +369,12 @@ public final class Communication implements Config, Protocol {
                      * has arrived.
                      */
                     gotBarrierReply = false;
-                } else {
-                    synchronized (s) {
-                        while (!gotBarrierReply) {
-                            try {
-                                s.wait();
-                            } catch (InterruptedException e) {
-                                // Ignore.
-                            }
-                        }
-
-                        /*
-                         * Imediately reset gotBarrierReply, we know that a
-                         * reply has arrived.
-                         */
-                        gotBarrierReply = false;
-                    }
-                }
             }
         } catch (IOException e) {
             commLogger.warn("SATIN '" + ident + "': error in barrier", e);
         }
 
         commLogger.debug("SATIN '" + ident + "': barrier DONE");
-    }
-
-    final public boolean satinPoll() {
-        if (POLL_FREQ == 0) { // polling is disabled
-            if (ASSERTS && HANDLE_MESSAGES_IN_LATENCY) {
-                commLogger.fatal("Polling is disabled while messages are "
-                    + "handled in the latency.\n"
-                    + "This is a configuration error.");
-                System.exit(1); // Configuration error
-            }
-            return false;
-        }
-
-        if (UPCALLS && !UPCALL_POLLING) {
-            // we are using upcalls, but don't want to poll
-            if (ASSERTS && HANDLE_MESSAGES_IN_LATENCY) {
-                commLogger.fatal("Polling is disabled while messages are "
-                    + "handled in the latency.\n"
-                    + "This is a configuration error.");
-                System.exit(1); // Configuration error
-            }
-            return false;
-        }
-
-        if (POLL_FREQ > 0) {
-            long curr = s.stats.pollTimer.currentTimeNanos();
-            if (curr - prevPoll < POLL_FREQ) {
-                return false;
-            }
-            prevPoll = curr;
-        }
-
-        ReadMessage m = null;
-        if (!UPCALLS) {
-            try {
-                m = receivePort.poll();
-            } catch (IOException e) {
-                commLogger.warn("SATIN '" + s.ident
-                    + "': Got Exception while polling: " + e, e);
-            }
-
-            if (m != null) {
-                messageHandler.upcall(m);
-                try {
-                    // Finish the message, the upcall does not need to do this.
-                    m.finish();
-                } catch (Exception e) {
-                    commLogger.warn("error in finish: " + e, e);
-                }
-            }
-        } else {
-            try {
-                ibis.poll(); // does not return message, but triggers upcall.
-            } catch (Exception e) {
-                commLogger.warn("polling failed, continuing anyway: " + e, e);
-            }
-        }
-
-        return m != null;
     }
 
     public void waitForExitReplies() {
@@ -479,7 +384,6 @@ public final class Communication implements Config, Protocol {
         }
 
         // wait until everybody has send an ACK
-        if (UPCALLS) {
             synchronized (s) {
                 while (exitReplies != size) {
                     try {
@@ -490,11 +394,6 @@ public final class Communication implements Config, Protocol {
                     size = s.victims.size();
                 }
             }
-        } else {
-            while (exitReplies != size) {
-                s.handleDelayedMessages();
-            }
-        }
     }
 
     public void sendExitAck() {
@@ -531,7 +430,6 @@ public final class Communication implements Config, Protocol {
     }
 
     public void waitForExitStageTwo() {
-        if (UPCALLS) {
             synchronized (s) {
                 while (!exitStageTwo) {
                     try {
@@ -541,11 +439,6 @@ public final class Communication implements Config, Protocol {
                     }
                 }
             }
-        } else {
-            while (!exitStageTwo) {
-                s.handleDelayedMessages();
-            }
-        }
     }
 
     public void closeSendPorts() {

@@ -95,13 +95,7 @@ final class SOCommunication implements Config, Protocol {
 
         String commprops = "OneToOne, OneToMany, ExplicitReceipt, Reliable";
         commprops += ", ConnectionUpcalls, ConnectionDowncalls";
-        if (UPCALLS) {
-            if (UPCALL_POLLING) {
-                commprops += ", PollUpcalls";
-            } else {
-                commprops += ", AutoUpcalls";
-            }
-        }
+        commprops += ", AutoUpcalls";
         satinPortProperties.add("communication", commprops);
 
         satinPortProperties.add("serialization", "object");
