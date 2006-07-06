@@ -9,8 +9,7 @@
     <property name="build"       value="build"/>
 
     <property name="satinc-flags" value=""/>
-    <property name="main-class" value="AdapInt"/>
-    <property name="satin-main-class" value="${main-class}"/>
+    <property name="satin-classes" value="AdapInt"/>
 
     <property name="ibis-run-args" value="-Dsatin.closed"/>
     <property name="test-par-run" value="AdapInt"/>

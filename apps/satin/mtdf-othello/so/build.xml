@@ -9,10 +9,7 @@
     <property name="build"       value="build"/>
 
     <property name="satinc-flags" value="-keep"/>
-    <property name="satinsoc-flags" value="-keep"/>
-    <property name="main-class" value="Mtdf"/>
-    <property name="satin-main-class" value="${main-class}"/>
-    <property name="satin-so-classes" value="TranspositionTable"/>
+    <property name="satin-classes" value="Mtdf,TranspositionTable"/>
 
     <property name="ibis-run-args" value="-Dsatin.closed"/>
     <property name="test-par-java-args" value="-Xmx256M"/>

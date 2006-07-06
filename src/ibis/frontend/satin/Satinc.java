@@ -3,7 +3,7 @@
 package ibis.frontend.satin;
 
 import ibis.frontend.generic.BT_Analyzer;
-import ibis.frontend.generic.RunJavac;
+import ibis.frontend.ibis.IbiscComponent;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -13,7 +13,9 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.Vector;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.StringTokenizer;
 
 import org.apache.bcel.Constants;
 import org.apache.bcel.Repository;
@@ -86,9 +88,6 @@ import org.apache.bcel.generic.StackConsumer;
 import org.apache.bcel.generic.StoreInstruction;
 import org.apache.bcel.generic.TargetLostException;
 import org.apache.bcel.generic.Type;
-import org.apache.bcel.verifier.VerificationResult;
-import org.apache.bcel.verifier.Verifier;
-import org.apache.bcel.verifier.VerifierFactory;
 
 // A method that contains a spawn is rewritten like this:
 // maxlocals = spawnCounter
@@ -102,54 +101,47 @@ import org.apache.bcel.verifier.VerifierFactory;
 //     exception handler in non-clone is unreachable, delete.
 //     initialisations of locals. delete if not needed.
 
-public final class Satinc {
-    JavaClass satinObjectClass;
+public final class Satinc extends IbiscComponent {
+    private JavaClass satinObjectClass;
 
-    JavaClass writeMethodsInterface;
+    private JavaClass writeMethodsInterface;
 
-    ObjectType spawnCounterType;
+    private ObjectType spawnCounterType;
 
-    ObjectType irType;
+    private ObjectType irType;
 
-    ObjectType satinType;
+    private ObjectType satinType;
 
-    JavaClass c; // the class we are rewriting 
+    private boolean local = true;
 
-    ClassGen gen_c;
+    private boolean invocationRecordCache = true;
 
-    ConstantPoolGen cpg;
+    private boolean inletOpt = true;
 
-    InstructionFactory ins_f;
+    private boolean spawnCounterOpt = true;
 
-    Vector idTable = new Vector();
+    private JavaClass c; // the class we are rewriting 
 
-    boolean verbose;
+    private ClassGen gen_c;
 
-    boolean verify;
+    private ConstantPoolGen cpg;
 
-    boolean keep;
+    private InstructionFactory ins_f;
 
-    boolean local;
+    private ArrayList idTable = new ArrayList();
 
-    boolean invocationRecordCache;
+    private String className;
 
-    String className;
+    private String classNameNoPackage;
 
-    String classNameNoPackage;
+    private String packageName;
 
-    String packageName;
+    private boolean errors = false;
 
-    boolean inletOpt;
+    private MethodTable mtab;
 
-    boolean spawnCounterOpt;
-
-    boolean errors = false;
-
-    MethodTable mtab;
-
-    boolean failed_verification = false;
-
-    private static boolean toplevel = true;
+    // for ibisc
+    private HashSet satinSet = new HashSet();
 
     /**
      * Nested classes have '$'-signs in their bytecode names, but
@@ -251,56 +243,43 @@ public final class Satinc {
         }
     }
 
-    private static Vector javalist = new Vector();
+    public Satinc() {
+        satinObjectClass = Repository.lookupClass("ibis.satin.SatinObject");
+        spawnCounterType = new ObjectType(
+                "ibis.satin.impl.spawnSync.SpawnCounter");
+        irType = new ObjectType("ibis.satin.impl.spawnSync.InvocationRecord");
+        satinType = new ObjectType("ibis.satin.impl.Satin");
+        writeMethodsInterface = Repository.lookupClass(
+                "ibis.satin.WriteMethodsInterface");
+    }
 
-    public Satinc(boolean verbose, boolean local, boolean verify, boolean keep,
-        boolean invocationRecordCache, String className, boolean inletOpt,
+    public Satinc(boolean verbose, boolean local, boolean keep,
+        boolean invocationRecordCache, boolean inletOpt,
         boolean spawnCounterOpt) {
 
+        this();
+
         this.verbose = verbose;
-        this.verify = verify;
         this.keep = keep;
         this.local = local;
         this.invocationRecordCache = invocationRecordCache;
         this.inletOpt = inletOpt;
         this.spawnCounterOpt = spawnCounterOpt;
-
-        c = Repository.lookupClass(className);
-
-        if (c == null) {
-            System.out.println("class " + className + " not found");
-            System.exit(1);
-        }
-
-        this.className = c.getClassName();
-        packageName = c.getPackageName();
-
-        if (packageName != null && !packageName.equals("")) {
-            classNameNoPackage = this.className.substring(this.className
-                .lastIndexOf('.') + 1, this.className.length());
-        } else {
-            classNameNoPackage = this.className;
-        }
-
-        gen_c = new ClassGen(c);
-        cpg = gen_c.getConstantPool();
-        ins_f = new InstructionFactory(gen_c);
-
-        satinObjectClass = Repository.lookupClass("ibis.satin.SatinObject");
-        spawnCounterType = new ObjectType(
-            "ibis.satin.impl.spawnSync.SpawnCounter");
-        irType = new ObjectType("ibis.satin.impl.spawnSync.InvocationRecord");
-        satinType = new ObjectType("ibis.satin.impl.Satin");
-        writeMethodsInterface = Repository
-            .lookupClass("ibis.satin.WriteMethodsInterface");
     }
 
     public String getFileBase(String pkg, String name, String pre, String post) {
+        name = pre + name + post;
         if (!local && pkg != null && !pkg.equals("")) {
-            return pkg.replace('.', File.separatorChar) + File.separator + pre
-                + name + post;
+            return pkg.replace('.', File.separatorChar) + File.separator
+                + name;
         }
-        return pre + name + post;
+        if (fromIbisc) {
+            String dir = getDirectory(className);
+            if (dir != null) {
+                return dir + File.separator + name;
+            }
+        }
+        return name;
     }
 
     boolean isSatin() {
@@ -529,9 +508,8 @@ public final class Satinc {
             "_InvocationRecord");
     }
 
-    String invocationRecordClassName(Method m, String clnam, String pnam) {
-        return getFileBase(null, clnam + "_" + do_mangle(m), "Satin_",
-            "_InvocationRecord");
+    String invocationRecordClassName(Method m, String clnam) {
+        return invocationRecordName(m, clnam, null);
     }
 
     String localRecordName(Method m) {
@@ -549,8 +527,8 @@ public final class Satinc {
     }
 
     String localRecordClassName(Method m) {
-        return getFileBase(null, classNameNoPackage + "_" + do_mangle(m),
-            "Satin_", "_LocalRecord");
+        return "Satin_" + classNameNoPackage + "_" + do_mangle(m)
+            + "_LocalRecord";
     }
 
     String localRecordName(MethodGen m) {
@@ -575,9 +553,8 @@ public final class Satinc {
             "_ReturnRecord");
     }
 
-    String returnRecordClassName(Method m, String clnam, String pnam) {
-        return getFileBase(null, clnam + "_" + do_mangle(m), "Satin_",
-            "_ReturnRecord");
+    String returnRecordClassName(Method m, String clnam) {
+        return returnRecordName(m, clnam, null);
     }
 
     void insertAllDeleteLocalRecords(MethodGen m) {
@@ -1514,14 +1491,14 @@ public final class Satinc {
 
     InstructionHandle insertTypecheckCode(MethodGen m, InstructionList il,
         InstructionHandle pos, int spawnId, int exceptionPos) {
-        Vector catches = mtab.getCatchTypes(m, spawnId);
+        ArrayList catches = mtab.getCatchTypes(m, spawnId);
 
         InstructionHandle[] jumpTargets = new InstructionHandle[catches.size() + 1];
 
         BranchHandle[] jumps = new BranchHandle[catches.size()];
 
         for (int i = 0; i < catches.size(); i++) {
-            CodeExceptionGen e = (CodeExceptionGen) (catches.elementAt(i));
+            CodeExceptionGen e = (CodeExceptionGen) (catches.get(i));
             ObjectType type = e.getCatchType();
             InstructionHandle catchTarget = e.getHandlerPC();
 
@@ -1863,37 +1840,6 @@ public final class Satinc {
         }
     }
 
-    void removeFile(String name) {
-        if (verbose) {
-            System.out.println("removing " + name);
-        }
-
-        try {
-            File f = new File(name);
-            f.delete();
-        } catch (Exception e) {
-            System.err.println("Warning: could not remove " + name);
-        }
-    }
-
-    void compile(ArrayList args) {
-        int sz = args.size();
-        String[] compilerArgs = new String[sz + 1];
-        compilerArgs[0] = "-g";
-        for (int i = 0; i < sz; i++) {
-            compilerArgs[i + 1] = ((String) args.get(i)) + ".java";
-        }
-        if (!RunJavac.runJavac(compilerArgs, verbose)) {
-            System.exit(1);
-        }
-
-        for (int i = 0; i < sz; i++) {
-            if (!keep) { // remove generated files 
-                removeFile(compilerArgs[i + 1]);
-            }
-        }
-    }
-
     // Rewrite method invocations to spawned method invocations.
     // There is a chicken-and-egg problem here. The generated LocalRecord
     // depends on the rewritten bytecode, and vice versa. The solution is to
@@ -1910,7 +1856,7 @@ public final class Satinc {
                 }
 
                 writeLocalRecord(methods[i]);
-                toCompiler.add(localRecordFileBase(methods[i]));
+                toCompiler.add(localRecordFileBase(methods[i]) + ".java");
             }
 
             if (mtab.isSpawnable(methods[i], c)) {
@@ -1919,23 +1865,25 @@ public final class Satinc {
                 writeReturnRecord(methods[i], classNameNoPackage, packageName);
 
                 toCompiler.add(invocationRecordFileBase(methods[i],
-                    classNameNoPackage, packageName));
+                    classNameNoPackage, packageName) + ".java");
                 toCompiler.add(returnRecordFileBase(methods[i],
-                    classNameNoPackage, packageName));
+                    classNameNoPackage, packageName) + ".java");
             }
         }
         if (toCompiler.size() > 0) {
-            compile(toCompiler);
-            for (int i = 0; i < methods.length; i++) {
-                if (mtab.containsInlet(methods[i])) {
-                    Repository.lookupClass(localRecordName(methods[i]));
-                }
+            compile(toCompiler, className);
+            if (! fromIbisc) {
+                for (int i = 0; i < methods.length; i++) {
+                    if (mtab.containsInlet(methods[i])) {
+                        Repository.lookupClass(localRecordName(methods[i]));
+                    }
 
-                if (mtab.isSpawnable(methods[i], c)) {
-                    Repository.lookupClass(invocationRecordName(methods[i],
-                        classNameNoPackage, packageName));
-                    Repository.lookupClass(returnRecordName(methods[i],
-                        classNameNoPackage, packageName));
+                    if (mtab.isSpawnable(methods[i], c)) {
+                        Repository.lookupClass(invocationRecordName(methods[i],
+                            classNameNoPackage, packageName));
+                        Repository.lookupClass(returnRecordName(methods[i],
+                            classNameNoPackage, packageName));
+                    }
                 }
             }
         }
@@ -2025,24 +1973,24 @@ public final class Satinc {
                 Repository.removeClass(localRec);
                 Repository.addClass(newclass);
 
-                String clnam = newclass.getClassName();
-                String dst;
-                if (local) {
-                    dst = clnam.substring(clnam.lastIndexOf('.') + 1);
+                if (fromIbisc) {
+                    setModified(wrapper.getInfo(newclass));
                 } else {
-                    dst = clnam.replace('.', java.io.File.separatorChar);
-                }
-                dst = dst + ".class";
+                    String clnam = newclass.getClassName();
+                    String dst;
+                    if (local) {
+                        dst = clnam.substring(clnam.lastIndexOf('.') + 1);
+                    } else {
+                        dst = clnam.replace('.', java.io.File.separatorChar);
+                    }
+                    dst = dst + ".class";
 
-                try {
-                    newclass.dump(dst);
-                } catch (IOException e) {
-                    System.out.println("error writing " + dst);
-                    System.exit(1);
-                }
-
-                if (verify && !do_verify(newclass)) {
-                    failed_verification = true;
+                    try {
+                        newclass.dump(dst);
+                    } catch (IOException e) {
+                        System.out.println("error writing " + dst);
+                        System.exit(1);
+                    }
                 }
             }
         }
@@ -2254,7 +2202,7 @@ public final class Satinc {
                 out.println("package " + pnam + ";");
             }
 
-            name = invocationRecordClassName(m, clname, pnam);
+            name = invocationRecordClassName(m, clname);
 
             out.println("public final class " + name
                 + " extends ibis.satin.impl.spawnSync.InvocationRecord {");
@@ -2676,7 +2624,7 @@ public final class Satinc {
         DollarFilter b2 = new DollarFilter(b);
         PrintStream out = new PrintStream(b2);
 
-        name = returnRecordClassName(m, clname, pnam);
+        name = returnRecordClassName(m, clname);
 
         try {
             Type returnType = m.getReturnType();
@@ -2740,9 +2688,8 @@ public final class Satinc {
             "_SOInvocationRecord");
     }
 
-    String SOInvocationRecordClassName(Method m, String clnam, String pnam) {
-        return getFileBase(null, clnam + "_" + do_mangle(m), "Satin_",
-            "_SOInvocationRecord");
+    String SOInvocationRecordClassName(Method m, String clnam) {
+        return SOInvocationRecordName(m, clnam, null);
     }
 
     private void writeSOInvocationRecord(Method m, String clname, String pnam)
@@ -2784,7 +2731,7 @@ public final class Satinc {
             out.println("package " + pnam + ";");
         }
 
-        name = SOInvocationRecordClassName(m, clname, pnam);
+        name = SOInvocationRecordClassName(m, clname);
 
         out.println("public final class " + name
             + " extends ibis.satin.impl.sharedObjects.SOInvocationRecord {");
@@ -2995,16 +2942,20 @@ public final class Satinc {
         Repository.removeClass(c);
         Repository.addClass(newSubjectClass);
 
-        //dump the class
-        String dst;
-        if (local) {
-            dst = className.substring(className.lastIndexOf('.') + 1);
+        if (! fromIbisc) {
+            //dump the class
+            String dst;
+            if (local) {
+                dst = className.substring(className.lastIndexOf('.') + 1);
+            } else {
+                dst = className.replace('.', java.io.File.separatorChar);
+            }
+            dst = dst + ".class";
+            newSubjectClass.dump(dst);
         } else {
-            dst = className.replace('.', java.io.File.separatorChar);
+            setModified(wrapper.getInfo(newSubjectClass));
+            writeAll();
         }
-        dst = dst + ".class";
-
-        newSubjectClass.dump(dst);
 
         ArrayList toCompiler = new ArrayList();
         //generate so invocation records
@@ -3015,16 +2966,18 @@ public final class Satinc {
                 writeSOInvocationRecord(method, classNameNoPackage, packageName);
 
                 toCompiler.add(SOInvocationRecordFileBase(method,
-                    classNameNoPackage, packageName));
+                    classNameNoPackage, packageName) + ".java");
             }
         }
         if (toCompiler.size() > 0) {
-            compile(toCompiler);
-            for (int j = 0; j < methods.length; j++) {
-                Method method = methods[j];
-                if (a.isSpecial(method)) {
-                    Repository.lookupClass(SOInvocationRecordName(method,
-                        classNameNoPackage, packageName));
+            compile(toCompiler, className);
+            if (! fromIbisc) {
+                for (int j = 0; j < methods.length; j++) {
+                    Method method = methods[j];
+                    if (a.isSpecial(method)) {
+                        Repository.lookupClass(SOInvocationRecordName(method,
+                            classNameNoPackage, packageName));
+                    }
                 }
             }
         }
@@ -3032,7 +2985,35 @@ public final class Satinc {
 
     /* End of SO rewriter. */
 
-    public void start() {
+    private static JavaClass lookup(String className) {
+        JavaClass c = Repository.lookupClass(className);
+
+        if (c == null) {
+            System.out.println("class " + className + " not found");
+            System.exit(1);
+        }
+
+        return c;
+    }
+
+    public void start(JavaClass clazz) {
+
+        c = clazz;
+
+        this.className = c.getClassName();
+        packageName = c.getPackageName();
+
+        if (packageName != null && !packageName.equals("")) {
+            classNameNoPackage = this.className.substring(this.className
+                .lastIndexOf('.') + 1, this.className.length());
+        } else {
+            classNameNoPackage = this.className;
+        }
+
+        gen_c = new ClassGen(c);
+        cpg = gen_c.getConstantPool();
+        ins_f = new InstructionFactory(gen_c);
+
         if (isSatin()) {
             if (verbose) {
                 System.out.println(className + " is a satin class");
@@ -3129,56 +3110,29 @@ public final class Satinc {
 
         Repository.addClass(c);
 
-        // now overwrite the classfile 
-        String dst;
-        String clnam = className;
-        if (local) {
-            dst = clnam.substring(clnam.lastIndexOf('.') + 1);
+        if (fromIbisc) {
+            setModified(wrapper.getInfo(c));
         } else {
-            dst = clnam.replace('.', java.io.File.separatorChar);
-        }
-        dst = dst + ".class";
-        try {
-            c.dump(dst);
-        } catch (IOException e) {
-            System.out.println("Error writing " + dst);
-            System.exit(1);
+            // now overwrite the classfile 
+            String dst;
+            String clnam = className;
+            if (local) {
+                dst = clnam.substring(clnam.lastIndexOf('.') + 1);
+            } else {
+                dst = clnam.replace('.', java.io.File.separatorChar);
+            }
+            dst = dst + ".class";
+            try {
+                c.dump(dst);
+            } catch (IOException e) {
+                System.out.println("Error writing " + dst);
+                System.exit(1);
+            }
         }
 
         regenerateLocalRecord();
 
-        Method[] methods = c.getMethods();
-        // cleanup
-        for (int i = 0; i < methods.length; i++) {
-            if (!keep) { // remove generated files 
-                if (mtab.containsInlet(methods[i])) {
-                    removeFile(localRecordFileBase(methods[i]) + ".java");
-                }
-            }
-        }
-
-        // Do this before verification, otherwise classes may be missing.
-        if (toplevel) {
-            toplevel = false;
-
-            for (int i = 0; i < javalist.size(); i++) {
-                JavaClass cl = (JavaClass) (javalist.get(i));
-
-                new Satinc(verbose, local, verify, keep, invocationRecordCache,
-                    cl.getClassName(), inletOpt, spawnCounterOpt).start();
-            }
-        }
-
         if (errors) {
-            System.exit(1);
-        }
-
-        if (verify && !do_verify(c)) {
-            failed_verification = true;
-        }
-
-        if (failed_verification) {
-            System.out.println("Verification failed!");
             System.exit(1);
         }
     }
@@ -3190,56 +3144,72 @@ public final class Satinc {
         System.exit(1);
     }
 
-    private static boolean do_verify(JavaClass c) {
-        Verifier verf = VerifierFactory.getVerifier(c.getClassName());
-        boolean verification_failed = false;
+    private void addToSatinSet(String list) {
+        StringTokenizer st = new StringTokenizer(list, ", ");
+        while (st.hasMoreTokens()) {
+            satinSet.add(st.nextToken());
+        }
+    }
 
-        System.out.println("Verifying " + c.getClassName());
-
-        VerificationResult res = verf.doPass1();
-        if (res.getStatus() == VerificationResult.VERIFIED_REJECTED) {
-            System.out.println("Verification pass 1 failed.");
-            System.out.println(res.getMessage());
-            verification_failed = true;
-        } else {
-            res = verf.doPass2();
-            if (res.getStatus() == VerificationResult.VERIFIED_REJECTED) {
-                System.out.println("Verification pass 2 failed.");
-                System.out.println(res.getMessage());
-                verification_failed = true;
-            } else {
-                Method[] methods = c.getMethods();
-                for (int i = 0; i < methods.length; i++) {
-                    res = verf.doPass3a(i);
-                    if (res.getStatus() == VerificationResult.VERIFIED_REJECTED) {
-                        System.out.println("Verification pass 3a failed for "
-                            + "method " + methods[i].getName());
-                        System.out.println(res.getMessage());
-                        verification_failed = true;
-                    } else {
-                        res = verf.doPass3b(i);
-                        if (res.getStatus() == VerificationResult.VERIFIED_REJECTED) {
-                            System.out.println("Verification pass 3b failed "
-                                + "for method " + methods[i].getName());
-                            System.out.println(res.getMessage());
-                            verification_failed = true;
-                        }
-                    }
+    public ArrayList processArgs(ArrayList args) {
+        for (int i = 0; i < args.size(); i++) {
+            String arg = (String) args.get(i);
+            if (false) {
+                // nothing
+            } else if (arg.equals("-satin-no-irc")) {
+                invocationRecordCache = false;
+                args.remove(i--);
+            } else if (arg.equals("-satin-irc")) {
+                invocationRecordCache = true;
+                args.remove(i--);
+            } else if (arg.equals("-satin-no-inlet-opt")) {
+                inletOpt = false;
+                args.remove(i--);
+            } else if (arg.equals("-satin-inlet-opt")) {
+                inletOpt = true;
+                args.remove(i--);
+            } else if (arg.equals("-satin-no-sc-opt")) {
+                spawnCounterOpt = false;
+                args.remove(i--);
+            } else if (arg.equals("-satin-sc-opt")) {
+                spawnCounterOpt = true;
+                args.remove(i--);
+            } else if (arg.equals("-satin")) {
+                args.remove(i);
+                if (i >= args.size()) {
+                    throw new IllegalArgumentException("-satin needs classlist");
                 }
+                addToSatinSet((String) args.get(i));
+                args.remove(i);
             }
         }
-        return !verification_failed;
+        return args;
+    }
+
+    public String rewriterImpl() {
+        return "BCEL";
+    }
+
+    public void process(Iterator classes) {
+        if (satinSet.size() == 0) {
+            return;
+        }
+        while (classes.hasNext()) {
+            JavaClass clazz = (JavaClass) classes.next();
+            if (satinSet.contains(clazz.getClassName())) {
+                start(clazz);
+            }
+        }
     }
 
     public static void main(String[] args) {
         boolean verbose = false;
-        boolean verify = false;
         boolean keep = false;
         boolean local = true;
         boolean invocationRecordCache = true;
         boolean inletOpt = true;
         boolean spawnCounterOpt = true;
-        Vector list = new Vector();
+        ArrayList list = new ArrayList();
 
         for (int i = 0; i < args.length; i++) {
             if (!args[i].startsWith("-")) {
@@ -3250,10 +3220,6 @@ public final class Satinc {
                 verbose = true;
             } else if (args[i].equals("-no-verbose")) {
                 verbose = false;
-            } else if (args[i].equals("-verify")) {
-                verify = true;
-            } else if (args[i].equals("-no-verify")) {
-                verify = false;
             } else if (args[i].equals("-keep")) {
                 keep = true;
             } else if (args[i].equals("-no-keep")) {
@@ -3285,15 +3251,11 @@ public final class Satinc {
             usage();
         }
 
-        for (int i = 0; i < list.size(); i++) {
-            new Satinc(verbose, local, verify, keep, invocationRecordCache,
-                (String) list.get(i), inletOpt, spawnCounterOpt).start();
-        }
-    }
+        Satinc satinc = new Satinc(verbose, local, keep, invocationRecordCache,
+                inletOpt, spawnCounterOpt);
 
-    public static void do_satinc(JavaClass cl) {
-        if (!javalist.contains(cl)) {
-            javalist.add(cl);
+        for (int i = 0; i < list.size(); i++) {
+            satinc.start(lookup((String) list.get(i)));
         }
     }
 }

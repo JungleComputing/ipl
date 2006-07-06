@@ -9,19 +9,13 @@
     <property name="build"       value="build"/>
 
     <property name="satinc-flags" value="-keep"/>
-    <property name="main-class" value="BarnesHut"/>
-    <property name="satin-main-class" value="${main-class}"/>
-    <property name="satin-so-classes" value="BodiesSO"/>
+    <property name="satin-classes" value="BarnesHut,BodiesSO"/>
 
     <property name="ibis-run-args" value="-Dsatin.closed"/>
     <property name="test-par-run"
-	      value="BarnesHut -ntc -v 10000 5"/>
+	      value="BarnesHut -ntc 10000 5"/>
     <property name="test-seq-run"
-	      value="BarnesHut -ntc -v 10000 5"/>
-
-    <fileset dir="." id="src.excludes-ref">
-	<include name="BodyCanvas.java"/>
-    </fileset>
+	      value="BarnesHut -ntc 10000 5"/>
 
     <import file="${ibis}/build-files/apps/build-satin-app.xml"/>
 

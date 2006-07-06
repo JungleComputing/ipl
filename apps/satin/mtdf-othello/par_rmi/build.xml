@@ -8,8 +8,7 @@
     <property name="ibis"        location="${env.IBIS_ROOT}"/>
     <property name="build"       value="build"/>
 
-    <property name="main-class" value="Mtdf"/>
-    <property name="satin-main-class" value="${main-class}"/>
+    <property name="satin-classes" value="Mtdf"/>
 
     <import file="${ibis}/build-files/apps/build-satin-app.xml"/>
     <import file="${ibis}/build-files/apps/build-rmi-app.xml"/>
@@ -20,7 +19,6 @@
 	<antcall inheritAll="true" inheritRefs="true" target="compile"/>
 	<antcall inheritRefs="true" target="rmic-sun"/>
 	<antcall inheritRefs="true" target="do-satin"/>
-	<antcall inheritRefs="true" target="iogen"/>
     </target>
 
 </project>

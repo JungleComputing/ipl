@@ -8,14 +8,8 @@
     <property name="ibis"        location="${env.IBIS_ROOT}"/>
     <property name="build"       value="build"/>
 
-    <!--
-    <property name="satinc-flags" value=""/>
-    -->
-
     <property name="satinc-flags" value="-keep"/>
-
-    <property name="main-class" value="Compress"/>
-    <property name="satin-main-class" value="${main-class}"/>
+    <property name="satin-classes" value="Compress"/>
 
     <import file="${ibis}/build-files/apps/build-satin-app.xml"/>
 

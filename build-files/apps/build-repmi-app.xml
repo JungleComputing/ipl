@@ -4,7 +4,6 @@
     basedir=".">
 
     <import file="${ibis}/build-files/build-properties.xml"/>
-    <import file="${ibis}/build-files/build-iogen.xml"/>
     <import file="${ibis}/build-files/apps/build-run.xml"/>
 
     <description>
@@ -16,8 +15,6 @@
 	<property name="build" location="build"/>
     </target>
 
-    <property name="builddir" location="${build}"/>
-
     <target name="repmi-init"
 	    depends="property-repmi-build,property-init"/>
 
@@ -26,58 +23,24 @@
 	    <!-- Commented out; not toplevel target
 	    description="Preprocesses classes in the build tree for RepMI"
 	    -->
-	<!-- <echo message="Do ONLY the class files in ibis/ipl"/> -->
-	<path id="all-classes">
-	    <fileset dir="${builddir}">
-		<include name="**/*.class"/>
-		<include name="ibis/ipl/*.class"/>
-	    </fileset>
-	</path>
-	<pathconvert pathsep=" " property="classes.all" refid="all-classes">
-	    <map from="${builddir}${file.separator}" to=""/>
-	</pathconvert>
-
-	<echo message="${classes.all}" file="${build}/REPMI-Classes"/>
-	<replace file="${build}/REPMI-Classes" token=".class" value=""/>
-	<replace file="${build}/REPMI-Classes" token="${file.separator}" value="."/>
-	<loadfile
-		property="repmi-classes"
-		srcFile="${build}/REPMI-Classes">
-	</loadfile>
-
-	<echo	level="debug"
-		message="All classes to be rewritten: ${repmi-classes}"/>
-	<echo	level="debug"
-	    message="Run ibis repmi over all classes under ${builddir}${file.separator}"/>
-	<java   classname="ibis.frontend.repmi.Main"
-		taskname="ibis repmi"
-		dir="${builddir}"
+	<java   classname="ibis.frontend.ibis.Ibisc"
+		taskname="Ibisc"
+		dir="${build}"
 		failonerror="true"
 		fork="true">
-	    <arg line="-dir ${repmi-classes}"/>
+	    <arg line="-repmi ${repmi-classes}"/>
 	    <classpath refid="default.classpath"/>
 	</java>
-	<javac	destdir="${builddir}"
-	    srcdir="${builddir}">
-	    <include name="**/repmi_stub_*.java"/>
-	    <include name="**/repmi_skeleton_*.java"/>
-	    <classpath refid="default.classpath"/>
-	</javac>
     </target>
 
     <target name="init">
 	<tstamp/>
-	<mkdir dir="${builddir}"/>
-	<!--
-	<echo message="os.name = ${os.name} os.arch = ${os.arch}"/>
-	<echo message="user.name = ${user.name} user.dir = ${user.dir}"/>
-	<echo message="java.ext.dirs = ${java.ext.dirs}"/>
-	-->
+	<mkdir dir="${build}"/>
     </target>
 
     <target name="compile"
 	    depends="init,property-init">
-	    <javac  destdir="${builddir}"
+	    <javac  destdir="${build}"
 		debug="true"
 		srcdir=".">
 	    <classpath refid="default.classpath"/>
@@ -90,12 +53,11 @@
 	    description="Compile a RepMI application">
 	<antcall target="compile" inheritRefs="true"/>
 	<antcall target="repmi" inheritRefs="true"/>
-	<antcall target="iogen" inheritRefs="true"/>
     </target>
 
     <target name="clean"
 	    description="Clean up the build">
-	    <delete dir="${builddir}"/>
+	    <delete dir="${build}"/>
     </target>
 
 </project>

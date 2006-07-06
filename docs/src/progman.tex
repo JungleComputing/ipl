@@ -1720,7 +1720,7 @@ our example program:
     <property environment="env" />
     <property name="ibis"   value="${env.IBIS_ROOT}" />
 
-    <property name="satin-main-class" value="Search"/>
+    <property name="satin-classes" value="Search"/>
 
     <property name="build"  location="build"/>
 
@@ -1732,9 +1732,12 @@ our example program:
 
 Again, we assume that the environment variable \texttt{IBIS\_ROOT} reflects
 the location of your Ibis installation.
-Also note that the Satin bytecode rewriter needs to know the main class of your
-Satin application.
-Its name is specified in the \texttt{satin-main-class} property.
+Also note that the Satin bytecode rewriter needs to know the
+classes in your application that must be rewritten.
+Those classes are: the main class, any class that implements a shared object,
+and all classes that invoke spawns or syncs.
+The names of these classes are specified in the \texttt{satin-classes} property,
+as a comma-separated list.
 
 Invoking \emph{ant clean compile} compiles a sequential version
 of the application, 

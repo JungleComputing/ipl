@@ -4,7 +4,6 @@
     basedir=".">
 
     <import file="${ibis}/build-files/build-properties.xml"/>
-    <import file="${ibis}/build-files/build-iogen.xml"/>
     <import file="${ibis}/build-files/apps/build-run.xml"/>
 
     <description>
@@ -37,44 +36,14 @@
 	    <!-- Commented out; not toplevel.
 	    description="Preprocess class files in the build tree for RMI"
 	    -->
-	<!-- <echo message="Do ONLY the class files in ibis/ipl"/> -->
-
-	<path id="all-classes">
-	    <fileset dir="${builddir}">
-		<include name="**/*.class"/>
-		<include name="ibis/ipl/*.class"/>
-	    </fileset>
-	</path>
-	<pathconvert pathsep=" " property="classes.all" refid="all-classes">
-	    <map from="${builddir}${file.separator}" to=""/>
-	</pathconvert>
-
-	<echo message="${classes.all}" file="${build}/RMIC-Classes"/>
-	<replace file="${build}/RMIC-Classes" token=".class" value=""/>
-	<replace file="${build}/RMIC-Classes" token="${file.separator}" value="."/>
-	<loadfile
-		property="rmic-classes"
-		srcFile="${build}/RMIC-Classes">
-	</loadfile>
-
-	<echo	level="debug"
-		message="All classes to be rewritten: ${rmic-classes}"/>
-	<echo	level="debug"
-		message="Run ibis rmic over all classes under ${builddir}${file.separator}"/>
-	<java   classname="ibis.frontend.rmi.Main"
-		taskname="ibis rmic"
+	<java   classname="ibis.frontend.ibis.Ibisc"
+		taskname="Ibisc"
 		dir="${builddir}"
 		failonerror="true"
 		fork="true">
-		<arg line="${rmic-flags.value} -dir -java2ibis ${rmic-classes}"/>
+		<arg line="${rmic-flags.value} -rmi -rmi-java2ibis ."/>
 	    <classpath refid="default.classpath"/>
 	</java>
-	<javac	destdir="${builddir}"
-		srcdir="${builddir}">
-	    <include name="**/rmi_stub_*.java"/>
-	    <include name="**/rmi_skeleton_*.java"/>
-	    <classpath refid="default.classpath"/>
-	</javac>
     </target>
 
     <target name="rmic-sun"
@@ -103,8 +72,8 @@
 	<echo   level="debug"
 		message="All classes to be inspected: ${rmic-classes}"/>
 	<echo   level="debug"
-		message="Run frontend.rmi.Main -n -java over all classes under ${builddir}${file.separator}"/>
-	<java   classname="ibis.frontend.rmi.Main"
+		message="Run frontend.rmi.Rmic -n -java over all classes under ${build}${file.separator}"/>
+	<java   classname="ibis.frontend.rmi.Rmic"
 		taskname="rmic locator"
 		dir="${builddir}"
 		failonerror="true"
@@ -118,7 +87,7 @@
 		srcFile="${build}/-REMOTE-Classes"/>
 	<echo   level="debug"
 		message="Now run sun.rmic over '${remote.classes}'"/>
-	<rmic   base="${builddir}"
+	<rmic   base="${build}"
 		includes="${remote.classes}">
 	    <classpath refid="default.classpath"/>
 	</rmic>
@@ -127,7 +96,7 @@
 
     <target name="init" depends="property-init">
 	<tstamp/>
-	<mkdir dir="${builddir}"/>
+	<mkdir dir="${build}"/>
 	<!--
 	<echo message="os.name = ${os.name} os.arch = ${os.arch}"/>
 	<echo message="user.name = ${user.name} user.dir = ${user.dir}"/>
@@ -140,7 +109,7 @@
 	<property name="class-path" refid="default.classpath"/>
 	<echo   message="class path ${class-path}"/>
 
-	<javac  destdir="${builddir}"
+	<javac  destdir="${build}"
 		debug="true"
 		srcdir=".:${ibis}/apps/rmi/shared">
 	    <classpath refid="default.classpath"/>
@@ -153,7 +122,6 @@
 	    description="Compile RMI application for Ibis RMI">
 	<antcall inheritAll="true" inheritRefs="true" target="compile"/>
 	<antcall inheritRefs="true" target="rmic"/>
-	<antcall inheritRefs="true" target="iogen"/>
     </target>
 
     <target name="build-sun"

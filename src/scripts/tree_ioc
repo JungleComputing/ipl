@@ -20,16 +20,13 @@ dir=`cd "$dir" && pwd`
 
 # rewrite all class files in the current tree.
 
-JAVACLASSPATH="$CLASSPATH:$IBIS_ROOT/lib/ibis.jar:build:$BCEL:.:"
+JAVACLASSPATH="$CLASSPATH:$IBIS_ROOT/lib/ibis.jar:$BCEL:"
 
 case X$# in
 X0)
-    find . -name '*.class' -print |
-	sed 's/^..//' |
-	tr '\n' ' ' |
-	xargs "$JAVA_ROOT"/bin/java -classpath "$JAVACLASSPATH" ibis.frontend.io.IOGenerator -dir "$@"
-	;;
+    "$JAVA_ROOT"/bin/java -classpath "$JAVACLASSPATH" ibis.frontend.ibis.Ibisc .
+    ;;
 X*)
-    "$JAVA_ROOT"/bin/java -classpath "$JAVACLASSPATH" ibis.frontend.io.IOGenerator -dir "$@"
+    "$JAVA_ROOT"/bin/java -classpath "$JAVACLASSPATH" ibis.frontend.ibis.Ibisc "$@"
     ;;
 esac

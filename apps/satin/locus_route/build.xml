@@ -9,10 +9,7 @@
     <property name="build"       value="build"/>
 
     <property name="satinc-flags" value="-keep"/>
-    <property name="satinsoc-flags" value="-keep"/>
-    <property name="main-class" value="LocusRoute"/>
-    <property name="satin-main-class" value="${main-class}"/>
-    <property name="satin-so-classes" value="CostArray"/>
+    <property name="satin-classes" value="LocusRoute,CostArray"/>
 
     <property name="ibis-run-args" value="-Dsatin.closed"/>
     <property name="test-par-run"

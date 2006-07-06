@@ -4,7 +4,6 @@
     basedir=".">
 
     <import file="${ibis}/build-files/build-properties.xml"/>
-    <import file="${ibis}/build-files/build-iogen.xml"/>
     <import file="${ibis}/build-files/apps/build-run.xml"/>
 
     <description>
@@ -22,13 +21,13 @@
 
     <target name="satin"
 	    depends="satin-init">
-	<java	classname="ibis.frontend.satin.Satinc"
-		taskname="Satinc"
+	<java	classname="ibis.frontend.ibis.Ibisc"
+		taskname="Ibisc"
 		dir="${build}"
 		failonerror="true"
-		maxmemory="256M"
+		maxmemory="512M"
 		fork="true">
-		<arg line="-dir ${satinc-flags.value} ${satinc-files}"/>
+		<arg line="${satinc-flags.value} ${satin-main} ${satin-classes.value} ."/>
 		<classpath refid="default.classpath"/>
 	</java>
 
@@ -38,21 +37,10 @@
 	<tstamp/>
 	<delete dir="${build}"/>
 	<mkdir dir="${build}"/>
-	<condition property="src.excludes-ref.exists">
-	    <isreference refid="src.excludes-ref"/>
-	</condition>
-    </target>
-
-    <target name="do-excludes" if="src.excludes-ref.exists">
-	<property name="pwd" location="."/>
-	<pathconvert pathsep="${line.separator}" property="src.excludes" refid="src.excludes-ref">
-	    <map from="${pwd}${file.separator}" to=""/>
-	</pathconvert>
-	<echo message="${src.excludes}" file="${build}/excludes"/>
     </target>
 
     <target name="compile"
-	    depends="init,property-init,do-excludes"
+	    depends="init,property-init"
 	    description="Compile Satin application for sequential execution">
 	<javac  destdir="${build}"
 		debug="true"
@@ -60,41 +48,7 @@
 		excludes="${build}/*.java"
 		srcdir=".">
 	    <classpath refid="default.classpath"/>
-	    <excludesfile name="${build}/excludes" if="src.excludes"/>
 	</javac>
-    </target>
-
-    <target name="build-no-satin">
-	<antcall inheritAll="true" inheritRefs="true" target="compile"/>
-    </target>
-
-    <target name="set-fl-no-set" if="satinc-flags">
-	<property name="satinc-flags.value" value="${satinc-flags} -no-so"/>
-    </target>
-
-    <target name="set-fl-no-notset" unless="satinc-flags">
-	<property name="satinc-flags.value" value="-no-so"/>
-    </target>
-
-    <target name="set-satin-flags-no-so"
-	depends="set-fl-no-set,set-fl-no-notset"/>
-    
-    <target name="build-no-so"
-	    depends="set-satin-flags-no-so"
-	    description="Compile Satin application for parallel execution">
-	<property name="satinc-files" value="${satin-main-class}"/>
-
-	<antcall inheritAll="true" inheritRefs="true" target="compile"/>
-	<antcall inheritRefs="true" target="satin"/>
-    	<antcall inheritRefs="true" target="iogen"/>
-    </target>
-
-    <target name="set-satinc-files-so" if="satin-so-classes">
-	<property name="satinc-files" value="${satin-main-class} ${satin-so-classes}"/>
-    </target>
-
-    <target name="set-satinc-files" unless="satin-so-classes">
-	<property name="satinc-files" value="${satin-main-class}"/>
     </target>
 
     <target name="set-satinc-flags-set" if="satinc-flags">
@@ -105,8 +59,24 @@
 	<property name="satinc-flags.value" value=""/>
     </target>
 
+    <target name="set-satinc-main" if="satin-main-class">
+	<property name="satin-main" value="-satin &quot;${satin-main-class}&quot;"/>
+    </target>
+
+    <target name="set-satinc-main-notset" unless="satin-main-class">
+	<property name="satin-main" value=""/>
+    </target>
+
+    <target name="set-satinc-classes" if="satin-classes">
+	<property name="satin-classes.value" value="-satin &quot;${satin-classes}&quot;"/>
+    </target>
+
+    <target name="set-satinc-classes-notset" unless="satin-classes">
+	<property name="satin-classes.value" value=""/>
+    </target>
+
     <target name="do-satin"
-	depends="set-satinc-files-so,set-satinc-files,set-satinc-flags-set,set-satinc-flags-notset">
+	depends="set-satinc-flags-set,set-satinc-flags-notset,set-satinc-main-notset,set-satinc-main,set-satinc-classes,set-satinc-classes-notset">
 	<antcall inheritRefs="true" target="satin"/>
     </target>
 
@@ -114,7 +84,6 @@
 	    description="Compile Satin application for parallel execution">
 	<antcall inheritAll="true" inheritRefs="true" target="compile"/>
 	<antcall inheritRefs="true" target="do-satin"/>
-	<antcall inheritRefs="true" target="iogen"/>
     </target>
 
     <target name="clean">

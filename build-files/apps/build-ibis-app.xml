@@ -4,7 +4,6 @@
     basedir=".">
 
     <import file="${ibis}/build-files/build-properties.xml"/>
-    <import file="${ibis}/build-files/build-iogen.xml"/>
     <import file="${ibis}/build-files/apps/build-run.xml"/>
 
     <target name="init" depends="property-init">
@@ -28,11 +27,22 @@
 	</javac>
     </target>
 
+    <target name="ibisc">
+	<java   classname="ibis.frontend.ibis.Ibisc"
+		taskname="Ibisc"
+		failonerror="true"
+		dir="${build}"
+		fork="true">
+		<arg line="."/>
+	    <classpath refid="default.classpath"/>
+	</java>
+    </target>
+
     <target name="build"
 	    depends="init"
 	    description="Compile with Ibis-serialization rewriting">
 	<antcall target="compile"/>
-	<antcall target="iogen"/>
+	<antcall target="ibisc"/>
     </target>
 
     <target name="clean"

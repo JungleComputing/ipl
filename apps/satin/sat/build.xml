@@ -8,14 +8,9 @@
     <property name="ibis"        location="${env.IBIS_ROOT}"/>
     <property name="build"       value="build"/>
 
-    <!--
-    <property name="satinc-flags" value=""/>
-    -->
-
     <property name="satinc-flags" value="-keep"/>
 
-    <property name="satin-main-class" value="Breeder SimpleSATSolver DPLLSolver SATSolver"/>
-    <property name="main-class" value="DPLLSolver"/>
+    <property name="satin-classes" value="Breeder, SimpleSATSolver, DPLLSolver, SATSolver"/>
 
     <import file="${ibis}/build-files/apps/build-satin-app.xml"/>
 

@@ -3,14 +3,18 @@
 package ibis.frontend.rmi;
 
 import ibis.frontend.generic.BT_Analyzer;
+import ibis.frontend.ibis.IbiscComponent;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 import org.apache.bcel.Repository;
+import org.apache.bcel.classfile.ClassParser;
 import org.apache.bcel.classfile.Constant;
 import org.apache.bcel.classfile.ConstantClass;
 import org.apache.bcel.classfile.ConstantNameAndType;
@@ -23,23 +27,55 @@ import org.apache.bcel.classfile.Method;
 import org.apache.bcel.generic.ClassGen;
 import org.apache.bcel.generic.ConstantPoolGen;
 
-//import org.apache.bcel.generic.FieldGen;
-//import org.apache.bcel.generic.MethodGen;
-//import org.apache.bcel.generic.Type;
+public class Rmic extends IbiscComponent {
+    private static final String ibisRmiInterface = "ibis.rmi.Remote";
 
-class Main {
-    static boolean local = true;
+    private boolean local = true;
 
-    public static String getFileName(String pkg, String name, String pre) {
-        if (!local && pkg != null && !pkg.equals("")) {
-            return pkg.replace('.', File.separatorChar) + File.separator + pre
-                    + name + ".java";
-        }
-        return pre + name + ".java";
+    private boolean printOnly = false;
+
+    private boolean java2ibis = false;
+
+    private JavaClass rmiInterface = null;
+
+    // For Ibisc
+    private boolean rmicEnabled = false;
+
+    private ArrayList javaFiles = new ArrayList();
+
+    private ArrayList classes = new ArrayList();
+
+    private boolean first = true;
+
+    public Rmic() {
+        this(ibisRmiInterface);
     }
 
-    public static PrintWriter createFile(String name) throws Exception {
+    private Rmic(String remoteInterface) {
+        rmiInterface = Repository.lookupClass(remoteInterface);
 
+        if (rmiInterface == null) {
+            System.err.println("Class " + remoteInterface + " not found");
+            System.exit(1);
+        }
+    }
+
+
+    private String getFileName(JavaClass subject, String pkg, String name, String pre) {
+        name = pre + name + ".java";
+        if (!local && pkg != null && !pkg.equals("")) {
+            return pkg.replace('.', File.separatorChar) + File.separator + name;
+        }
+        if (fromIbisc) {
+            String dir = getDirectory(subject.getClassName());
+            if (dir != null) {
+                return dir + File.separator + name;
+            }
+        }
+        return name;
+    }
+
+    private PrintWriter createFile(String name) throws Exception {
         File f = new File(name);
 
         if (!f.createNewFile()) {
@@ -52,7 +88,38 @@ class Main {
         return new PrintWriter(fileOut);
     }
 
-    public static String sig_java2ibis(String s) {
+    public ArrayList processArgs(ArrayList args) {
+        for (int i = 0; i < args.size(); i++) {
+            String arg = (String) args.get(i);
+            if (arg.equals("-rmi")) {
+                rmicEnabled = true;
+                args.remove(i--);
+            } else if (arg.equals("-rmi-java2ibis")) {
+                java2ibis = true;
+                args.remove(i--);
+            }
+        }
+        return args;
+    }
+
+    public void process(Iterator iter) {
+        if (! rmicEnabled) {
+            return;
+        }
+
+        while (iter.hasNext()) {
+            JavaClass subject = (JavaClass) iter.next();
+            classes.add(subject);
+        }
+
+        processClasses();
+    }
+
+    public String rewriterImpl() {
+        return "BCEL";
+    }
+
+    private String sig_java2ibis(String s) {
         for (int i = 0; i < s.length(); i++) {
             if (s.charAt(i) == 'L') {
                 if (s.startsWith("java/rmi/", i + 1)) {
@@ -66,7 +133,7 @@ class Main {
         return s;
     }
 
-    public static JavaClass cvt_java2ibis(JavaClass c) {
+    private JavaClass cvt_java2ibis(JavaClass c) {
         ClassGen cg = new ClassGen(c);
         ConstantPoolGen cpg = cg.getConstantPool();
         ConstantPool cp = c.getConstantPool();
@@ -149,14 +216,11 @@ class Main {
         }
 
         if (changed || must_save) {
-            String classname = c.getClassName();
-            String classfile = classname.replace('.',
-                    java.io.File.separatorChar)
+            String className = c.getClassName();
+            String classFile = className.replace('.', File.separatorChar)
                     + ".class";
-
             Repository.removeClass(c);
             c = cg.getJavaClass();
-
             /*
              * At this point, BCEL delivers an inconsistent JavaClass: there
              * exist constant_pool references in each Field, Method, Attribute,
@@ -164,34 +228,31 @@ class Main {
              * class. However, everything seems to be good enough to dump and
              * reload.
              */
-            try {
-                c.dump(classfile);
-            } catch (IOException e) {
-                System.err.println("got IOException " + e);
-                e.printStackTrace();
-                System.exit(1);
+            if (rmicEnabled) {
+                byte[] buf = c.getBytes();
+                try {
+                    c = new ClassParser(new ByteArrayInputStream(buf), classFile).parse();
+                } catch(IOException e) {
+                    // Should not happen
+                }
+                Repository.addClass(c);
+                setModified(wrapper.getInfo(c));
+            } else {
+                try {
+                    c.dump(classFile);
+                    c = Repository.lookupClass(className);
+                } catch(IOException e) {
+                    System.err.println("got IOException " + e);
+                    e.printStackTrace();
+                    System.exit(1);
+                }
             }
-
-            c = Repository.lookupClass(classname);
         }
 
         return c;
     }
 
-    public static void main(String[] args) {
-
-        Vector classes = new Vector();
-        boolean verbose = false;
-        boolean java2ibis = false;
-        JavaClass rmiInterface = null;
-        boolean printOnly = false;
-        String remoteInterface = "ibis.rmi.Remote";
-
-        if (args.length == 0) {
-            System.err.println("Usage : java Main [-n] [-v] [-java2ibis] "
-                    + "[-dir | -local] classname");
-            System.exit(1);
-        }
+    private void doCompile(String[] args) {
 
         int num = args.length;
         int i = 0;
@@ -203,11 +264,9 @@ class Main {
                 args[i] = args[num - 1];
                 num--;
             } else if (args[i].equals("-java")) {
-                remoteInterface = "java.rmi.Remote";
                 args[i] = args[num - 1];
                 num--;
             } else if (args[i].equals("-karmi")) {
-                remoteInterface = "uka.karmi.rmi.Remote";
                 args[i] = args[num - 1];
                 num--;
             } else if (args[i].equals("-v")) {
@@ -231,87 +290,118 @@ class Main {
             }
         }
 
-        rmiInterface = Repository.lookupClass(remoteInterface);
-
-        if (rmiInterface == null) {
-            System.err.println("Class " + remoteInterface + " not found");
-            System.exit(1);
-        }
-
         for (i = 0; i < num; i++) {
             JavaClass c = Repository.lookupClass(args[i]);
             if (c == null) {
                 System.err.println("Class " + args[i] + " not found");
                 System.exit(1);
             }
-            classes.addElement(c);
+            classes.add(c);
         }
 
+        processClasses();
+    }
+
+    private void processClasses() {
         if (java2ibis) {
-            for (i = 0; i < classes.size(); i++) {
-                classes.setElementAt(cvt_java2ibis((JavaClass) classes.get(i)),
-                        i);
+            for (int i = 0; i < classes.size(); i++) {
+                classes.set(i, cvt_java2ibis((JavaClass) classes.get(i)));
             }
         }
-
-        boolean first = true;
-
-        for (i = 0; i < classes.size(); i++) {
-
-            try {
-                PrintWriter output;
-                JavaClass subject = (JavaClass) classes.get(i);
-
-                if (subject.isInterface()) {
-                    continue;
-                }
-
-                if (! subject.implementationOf(rmiInterface)) {
-                    continue;
-                }
-
-                BT_Analyzer a = new BT_Analyzer(subject, rmiInterface, verbose);
-                a.start(true);
-
-                if (a.specialInterfaces.size() == 0) {
-                    continue;
-                }
-
-                if (printOnly) {
-                    if (! first) {
-                        System.out.print(" ");
-                    } else {
-                        first = false;
-                    }
-                    System.out.print(subject.getClassName() + ".class");
-                    continue;
-                }
-
-                if (verbose) {
-                    System.out.println("Handling " + subject.getClassName());
-                }
-
-                output = createFile(getFileName(a.packagename, a.classname,
-                        "rmi_stub_"));
-                new RMIStubGenerator(a, output).generate();
-                output.flush();
-
-                output = createFile(getFileName(a.packagename, a.classname,
-                        "rmi_skeleton_"));
-                new RMISkeletonGenerator(a, output).generate();
-                output.flush();
-
-            } catch (Exception e) {
-                System.err.println("Got exception during processing of "
-                        + ((JavaClass) classes.get(i)).getClassName());
-                System.err.println("exception is: " + e);
-                e.printStackTrace();
-                System.exit(1);
+        if (rmicEnabled) {
+            writeAll();
+        }
+        for (int i = 0; i < classes.size(); i++) {
+            JavaClass subject = (JavaClass) classes.get(i);
+            processFile(subject);
+            if (rmicEnabled && javaFiles.size() > 0) {
+                compile(javaFiles, subject.getClassName());
+                javaFiles.clear();
             }
+        }
+        if (printOnly) {
+            System.out.println("");
+        }
+    }
+
+    private void processFile(JavaClass subject) {
+        try {
+            PrintWriter output;
+
+            if (subject.isInterface()) {
+                return;
+            }
+
+            if (! subject.implementationOf(rmiInterface)) {
+                return;
+            }
+
+            BT_Analyzer a = new BT_Analyzer(subject, rmiInterface, verbose);
+            a.start(true);
+
+            if (a.specialInterfaces.size() == 0) {
+                return;
+            }
+
             if (printOnly) {
-                System.out.println("");
+                if (! first) {
+                    System.out.print(" ");
+                } else {
+                    first = false;
+                }
+                System.out.print(subject.getClassName() + ".class");
+                return;
             }
+
+            if (verbose) {
+                System.out.println("Handling " + subject.getClassName());
+            }
+
+            String fileName = getFileName(subject, a.packagename, a.classname,
+                    "rmi_stub_");
+            output = createFile(fileName);
+            new RMIStubGenerator(a, output).generate();
+            output.close();
+            javaFiles.add(fileName);
+
+            fileName = getFileName(subject, a.packagename, a.classname,
+                    "rmi_skeleton_");
+            output = createFile(fileName);
+            new RMISkeletonGenerator(a, output).generate();
+            output.close();
+            javaFiles.add(fileName);
+
+        } catch (Exception e) {
+            System.err.println("Got exception during processing of "
+                    + subject.getClassName());
+            System.err.println("exception is: " + e);
+            e.printStackTrace();
+            System.exit(1);
+        }
+    }
+
+    public static void main(String[] args) {
+
+        if (args.length == 0) {
+            System.err.println("Usage : java Rmic [-n] [-v] [-java2ibis] "
+                    + "[-dir | -local] classname");
+            System.exit(1);
         }
 
+        String remoteInterface = ibisRmiInterface;
+
+        int num = args.length;
+        int i = 0;
+
+        while (i < num) {
+            if (false) { /* do nothing */
+            } else if (args[i].equals("-java")) {
+                remoteInterface = "java.rmi.Remote";
+            } else if (args[i].equals("-karmi")) {
+                remoteInterface = "uka.karmi.rmi.Remote";
+            }
+            i++;
+        }
+        new Rmic(remoteInterface).doCompile(args);
     }
 }

@@ -8,8 +8,7 @@
     <property name="ibis"        location="${env.IBIS_ROOT}"/>
     <property name="build"       value="build"/>
 
-    <property name="main-class" value="Checkers"/>
-    <property name="satin-main-class" value="${main-class}"/>
+    <property name="satin-classes" value="Checkers"/>
 
     <import file="${ibis}/build-files/apps/build-satin-app.xml"/>
 

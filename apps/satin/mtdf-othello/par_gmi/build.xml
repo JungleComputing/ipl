@@ -8,20 +8,10 @@
     <property name="ibis"        location="${env.IBIS_ROOT}"/>
     <property name="build"       value="build"/>
 
-    <property name="main-class" value="Mtdf"/>
-    <property name="satin-main-class" value="${main-class}"/>
+    <property name="satinc-flags" value="-gmi"/>
+    <property name="satin-classes" value="Mtdf"/>
 
     <import file="${ibis}/build-files/apps/build-satin-app.xml"/>
-    <import file="${ibis}/build-files/apps/build-gmi-app.xml"/>
-
-    <target name="build"
-            depends="init"
-            description="build Mtdf application">
-        <antcall inheritAll="true" inheritRefs="true" target="compile"/>
-        <antcall inheritRefs="true" target="do-satin"/>
-        <antcall inheritRefs="true" target="gmi"/>
-        <antcall inheritRefs="true" target="iogen"/>
-    </target>
 
 </project>
 

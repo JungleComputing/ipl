@@ -8,12 +8,8 @@
     <property name="ibis"        location="${env.IBIS_ROOT}"/>
     <property name="build"       value="build"/>
 
-    <property name="main-class" value="Mtdf"/>
-    <property name="satin-main-class" value="${main-class}"/>
-    <property name="satin-so-classes" value="TranspositionTable"/>
-    
     <property name="satinc-flags" value="-keep"/>
-    <property name="satinsoc-flags" value="-keep"/>
+    <property name="satin-classes" value="Mtdf,TranspositionTable"/>
 
     <import file="${ibis}/build-files/apps/build-satin-app.xml"/>
 

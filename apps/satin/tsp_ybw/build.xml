@@ -6,9 +6,8 @@
     <property name="ibis"        location="../../.."/>
     <property name="build"       value="build"/>
 
-    <property name="satinc-flags" value=" -keep"/>
-    <property name="main-class" value="Tsp"/>
-    <property name="satin-main-class" value="${main-class}"/>
+    <property name="satinc-flags" value="-keep"/>
+    <property name="satin-classes" value="Tsp"/>
 
     <property name="ibis-run-args" value="-Dsatin.closed"/>
     <property name="test-par-run" value="Tsp"/>

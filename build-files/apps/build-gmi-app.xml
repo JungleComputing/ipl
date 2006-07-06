@@ -4,7 +4,6 @@
     basedir=".">
 
     <import file="${ibis}/build-files/build-properties.xml"/>
-    <import file="${ibis}/build-files/build-iogen.xml"/>
     <import file="${ibis}/build-files/apps/build-run.xml"/>
 
     <description>
@@ -16,8 +15,6 @@
 	<property name="build" location="build"/>
     </target>
 
-    <property name="builddir" location="${build}"/>
-
     <target name="gmi-init"
 	    depends="property-gmi-build,property-init"/>
 
@@ -26,43 +23,19 @@
 	    <!-- commented out description
 	    description="Preprocess GMI class files in the build tree"
 	    -->
-	<!-- <echo message="Do ONLY the class files in ibis/ipl"/> -->
-	<path id="all-classes">
-	    <fileset dir="${builddir}">
-		<include name="**/*.class"/>
-		<include name="ibis/ipl/*.class"/>
-	    </fileset>
-	</path>
-	<pathconvert pathsep=" " property="classes.all" refid="all-classes">
-	    <map from="${builddir}${file.separator}" to=""/>
-	</pathconvert>
-	<echo message="${classes.all}" file="${build}/GMI-Classes"/>
-	<loadfile
-		property="gmi-classes"
-		srcFile="${build}/GMI-Classes">
-	</loadfile>
-	<echo	level="debug"
-		message="All classes to be rewritten: ${gmi-classes}"/>
-	<echo	level="debug"
-		message="Run ibis gmi over all classes under ${builddir}${file.separator}"/>
-	<java   classname="ibis.frontend.gmi.Main"
-		taskname="ibis gmi"
-		dir="${builddir}"
+	<java   classname="ibis.frontend.ibis.Ibisc"
+		taskname="Ibisc"
 		failonerror="true"
+		dir="${build}"
 		fork="true">
-	    <arg line="-dir ${gmi-classes}"/>
+		<arg line="-gmi ."/>
 	    <classpath refid="default.classpath"/>
 	</java>
-	<javac	destdir="${builddir}"
-		srcdir="${builddir}">
-	    <include name="**/group_*.java"/>
-	    <classpath refid="default.classpath"/>
-	</javac>
     </target>
 
     <target name="init" depends="property-init">
 	<tstamp/>
-	<mkdir dir="${builddir}"/>
+	<mkdir dir="${build}"/>
 	<!--
 	<echo message="os.name = ${os.name} os.arch = ${os.arch}"/>
 	<echo message="user.name = ${user.name} user.dir = ${user.dir}"/>
@@ -72,7 +45,7 @@
 
     <target name="compile"
 	    depends="clean,init,property-init">
-	<javac  destdir="${builddir}"
+	<javac  destdir="${build}"
 		debug="true"
 		srcdir=".">
 	    <classpath refid="default.classpath"/>
@@ -85,7 +58,6 @@
 	    description="Compile a GMI program">
 	<antcall target="compile"/>
 	<antcall target="gmi"/>
-	<antcall target="iogen"/>
     </target>
 
     <target name="clean"

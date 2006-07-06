@@ -7,9 +7,11 @@ import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.security.MessageDigest;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Vector;
 
 import org.apache.bcel.Constants;
@@ -56,14 +58,11 @@ import org.apache.bcel.generic.ReferenceType;
 import org.apache.bcel.generic.SIPUSH;
 import org.apache.bcel.generic.SWITCH;
 import org.apache.bcel.generic.Type;
-import org.apache.bcel.verifier.VerificationResult;
-import org.apache.bcel.verifier.Verifier;
-import org.apache.bcel.verifier.VerifierFactory;
 
 /* TODO: docs.
  */
 
-public class IOGenerator {
+public class IOGenerator extends ibis.frontend.ibis.IbiscComponent {
     private static final String ibis_input_stream_name
             = "ibis.io.IbisSerializationInputStream";
 
@@ -1562,56 +1561,6 @@ public class IOGenerator {
             return read_il;
         }
 
-        private boolean doVerify(JavaClass c) {
-            Verifier verf = VerifierFactory.getVerifier(c.getClassName());
-            boolean verification_failed = false;
-
-            if (verbose) {
-                System.out.println("Verifying " + c.getClassName());
-            }
-
-            VerificationResult res = verf.doPass1();
-            if (res.getStatus() == VerificationResult.VERIFIED_REJECTED) {
-                System.out.println("Verification pass 1 failed.");
-                System.out.println(res.getMessage());
-                verification_failed = true;
-            } else {
-                res = verf.doPass2();
-                if (res.getStatus() == VerificationResult.VERIFIED_REJECTED) {
-                    System.out.println("Verification pass 2 failed.");
-                    System.out.println(res.getMessage());
-                    verification_failed = true;
-                } else {
-                    Method[] cMethods = c.getMethods();
-                    for (int i = 0; i < cMethods.length; i++) {
-                        if (verbose) {
-                            System.out.println("verifying method "
-                                    + cMethods[i].getName());
-                        }
-                        res = verf.doPass3a(i);
-                        if (res.getStatus() 
-                                == VerificationResult.VERIFIED_REJECTED) {
-                            System.out.println("Verification pass 3a failed "
-                                    + "for method " + cMethods[i].getName());
-                            System.out.println(res.getMessage());
-                            verification_failed = true;
-                        } else {
-                            res = verf.doPass3b(i);
-                            if (res.getStatus() 
-                                    == VerificationResult.VERIFIED_REJECTED) {
-                                System.out.println("Verification pass 3b "
-                                        + "failed for method "
-                                        + cMethods[i].getName());
-                                System.out.println(res.getMessage());
-                                verification_failed = true;
-                            }
-                        }
-                    }
-                }
-            }
-            return !verification_failed;
-        }
-
         private JavaClass generateInstanceGenerator() {
 
             /* Here we create a 'generator' object. We need this extra object
@@ -2073,21 +2022,13 @@ public class IOGenerator {
             Repository.removeClass(classname);
             Repository.addClass(clazz);
 
-            if (verify) {
-                if (!doVerify(clazz)) {
-                    System.err.println("Verification failed for " + classname);
-                }
-            }
-
             JavaClass instgen = generateInstanceGenerator();
 
             Repository.addClass(instgen);
 
-            if (verify) {
-                if (!doVerify(instgen)) {
-                    System.err.println("Verification failed for "
-                            + instgen.getClassName());
-                }
+            if (fromIbisc) {
+                setModified(wrapper.getInfo(clazz));
+                addEntry(wrapper.getInfo(instgen), clazz.getClassName());
             }
 
             classes_to_save.add(clazz);
@@ -2095,15 +2036,11 @@ public class IOGenerator {
         }
     }
 
-    boolean verbose = false;
-
     boolean local = true;
 
     boolean file = false;
 
     boolean force_generated_calls = false;
-
-    boolean verify = false;
 
     boolean silent = false;
 
@@ -2115,20 +2052,9 @@ public class IOGenerator {
 
     HashMap arguments;
 
-    public IOGenerator(boolean verbose, boolean local, boolean file,
-            boolean force_generated_calls, boolean verify, boolean silent) {
-        this.verbose = verbose;
-        this.local = local;
-        this.file = file;
-        this.force_generated_calls = force_generated_calls;
-        this.verify = verify;
-        this.silent = silent;
-        // this.verify = true;
-        if (force_generated_calls && verify) {
-            System.err.println("Warning: cannot have both -force and -verify");
-            this.verify = false;
-        }
+    boolean fromIbisc = false;
 
+    public IOGenerator() {
         classes_to_rewrite = new Vector();
         target_classes = new Vector();
         classes_to_save = new Vector();
@@ -2169,6 +2095,81 @@ public class IOGenerator {
 
         referenceSerialization = new SerializationInfo("writeObject",
                 "readObject", "readFieldObject", Type.OBJECT, false);
+
+        silent = true;
+    }
+
+    public IOGenerator(boolean verbose, boolean local, boolean file,
+            boolean force_generated_calls, boolean silent) {
+        this();
+        this.verbose = verbose;
+        this.local = local;
+        this.file = file;
+        this.force_generated_calls = force_generated_calls;
+        this.silent = silent;
+    }
+
+    public ArrayList processArgs(ArrayList args) {
+        for (int i = 0; i < args.size(); i++) {
+            String arg = (String) args.get(i);
+            if (arg.equals("-iogen-force")) {
+                force_generated_calls = true;
+                args.remove(i);
+                i--;
+            }
+        }
+        return args;
+    }
+
+    public void process(Iterator classes) {
+        fromIbisc = true;
+        arguments = new HashMap();
+        for (Iterator i = classes; i.hasNext();) {
+            JavaClass cl = (JavaClass) i.next();
+            arguments.put(cl.getClassName(), cl);
+        }
+        for (Iterator i = arguments.values().iterator(); i.hasNext();) {
+            JavaClass cl = (JavaClass) i.next();
+            if (isSerializable(cl)) {
+                if (! isIbisSerializable(cl)) {
+                    addClass(cl);
+                }
+            }
+        }
+        for (int i = 0; i < classes_to_rewrite.size(); i++) {
+            JavaClass clazz = (JavaClass) classes_to_rewrite.get(i);
+            addReferencesToRewrite(clazz);
+        }
+
+        /* Sort class to rewrite. Super classes first.  */
+        do_sort_classes(classes_to_rewrite);
+
+        for (int i = 0; i < classes_to_rewrite.size(); i++) {
+            JavaClass clazz = (JavaClass) classes_to_rewrite.get(i);
+            new CodeGenerator(clazz).generateMethods();
+        }
+
+        if (verbose) {
+            System.out.println("Ibisc: IOGenerator rewriting classes");
+        }
+
+        /* Sort target_classes. Super classes first.  */
+        do_sort_classes(target_classes);
+
+        for (int i = 0; i < target_classes.size(); i++) {
+            JavaClass clazz = (JavaClass) target_classes.get(i);
+            if (!clazz.isInterface()) {
+                if (!silent) {
+                    System.out.println("  Rewrite class : "
+                            + clazz.getClassName());
+                }
+                new CodeGenerator(clazz).generateCode();
+            }
+        }
+    }
+
+    public String rewriterImpl() {
+        return "BCEL";
     }
 
     SerializationInfo getSerializationInfo(Type tp) {
@@ -2549,7 +2550,6 @@ public class IOGenerator {
         boolean local = true;
         boolean file = false;
         boolean force_generated_calls = false;
-        boolean verify = false;
         boolean silent = false;
         Vector files = new Vector();
         String pack = null;
@@ -2573,8 +2573,6 @@ public class IOGenerator {
                 silent = true;
             } else if (args[i].equals("-force")) {
                 force_generated_calls = true;
-            } else if (args[i].equals("-verify")) {
-                verify = true;
             } else if (args[i].equals("-package")) {
                 pack = args[i + 1];
                 i++; // skip arg
@@ -2619,7 +2617,7 @@ public class IOGenerator {
             }
         }
 
-        new IOGenerator(verbose, local, file, force_generated_calls, verify,
+        new IOGenerator(verbose, local, file, force_generated_calls, 
                 silent).scanClass(newArgs);
     }
 
