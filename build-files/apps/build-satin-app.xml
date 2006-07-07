@@ -3,12 +3,19 @@
     default="build"
     basedir=".">
 
-    <import file="${ibis}/build-files/build-properties.xml"/>
-    <import file="${ibis}/build-files/apps/build-run.xml"/>
-
     <description>
 	Ibis satin application build
     </description>
+
+    <!--
+        Requires definition of 'satin-classes': a comma-separated list of class
+	    names that must be rewritten.
+	Optional definition of 'satinc-flags': extra options to be supplied
+	    to Ibisc.
+    -->
+
+    <import file="${ibis}/build-files/build-properties.xml"/>
+    <import file="${ibis}/build-files/apps/build-run.xml"/>
 
     <target name="property-satin-build" unless="build">
 	<echo message="build is undefined. Set it to the default value"/>
@@ -27,7 +34,7 @@
 		failonerror="true"
 		maxmemory="512M"
 		fork="true">
-		<arg line="${satinc-flags.value} ${satin-main} ${satin-classes.value} ."/>
+		<arg line="${satinc-flags.value} ${satin-so} ${satin-main} ${satin-classes.value} ."/>
 		<classpath refid="default.classpath"/>
 	</java>
 
@@ -67,6 +74,14 @@
 	<property name="satin-main" value=""/>
     </target>
 
+    <target name="set-satinc-so" if="satin-so-class">
+	<property name="satin-so" value="-satin &quot;${satin-so-class}&quot;"/>
+    </target>
+
+    <target name="set-satinc-so-notset" unless="satin-so-class">
+	<property name="satin-so" value=""/>
+    </target>
+
     <target name="set-satinc-classes" if="satin-classes">
 	<property name="satin-classes.value" value="-satin &quot;${satin-classes}&quot;"/>
     </target>
@@ -76,7 +91,7 @@
     </target>
 
     <target name="do-satin"
-	depends="set-satinc-flags-set,set-satinc-flags-notset,set-satinc-main-notset,set-satinc-main,set-satinc-classes,set-satinc-classes-notset">
+	depends="set-satinc-flags-set,set-satinc-flags-notset,set-satinc-main-notset,set-satinc-main,set-satinc-classes,set-satinc-classes-notset,set-satinc-so-notset,set-satinc-so">
 	<antcall inheritRefs="true" target="satin"/>
     </target>
 
