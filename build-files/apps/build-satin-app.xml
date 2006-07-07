@@ -12,6 +12,8 @@
 	    names that must be rewritten.
 	Optional definition of 'satinc-flags': extra options to be supplied
 	    to Ibisc.
+	Backwards compatibility: instead of 'satin-classes', 'satin-main-class'
+	    and 'satin-so-class' are also recognized.
     -->
 
     <import file="${ibis}/build-files/build-properties.xml"/>

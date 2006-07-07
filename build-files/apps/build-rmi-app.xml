@@ -3,17 +3,17 @@
     default="build"
     basedir=".">
 
-    <import file="${ibis}/build-files/build-properties.xml"/>
-    <import file="${ibis}/build-files/apps/build-run.xml"/>
-
     <description>
 	Ibis rmi application build.
     </description>
 
-    <target name="property-rmic-build" unless="build">
-	<echo message="build is undefined. Set it to the default value"/>
-	<property name="build" value="build"/>
-    </target>
+    <!--
+	Optional property 'rmic-flags' can be set to pass extra flags
+	    on to Ibisc.
+    -->
+
+    <import file="${ibis}/build-files/build-properties.xml"/>
+    <import file="${ibis}/build-files/apps/build-run.xml"/>
 
     <property name="builddir" location="${build}"/>
 
@@ -28,11 +28,8 @@
     <target name="set-rmic-flags"
 	depends="set-to-rmic-flags,set-def-rmic-flags"/>
 
-    <target name="rmic-init"
-	    depends="property-rmic-build,property-init"/>
-
     <target name="rmic"
-	    depends="rmic-init,set-rmic-flags">
+	    depends="property-init,set-rmic-flags">
 	    <!-- Commented out; not toplevel.
 	    description="Preprocess class files in the build tree for RMI"
 	    -->
@@ -97,18 +94,10 @@
     <target name="init" depends="property-init">
 	<tstamp/>
 	<mkdir dir="${build}"/>
-	<!--
-	<echo message="os.name = ${os.name} os.arch = ${os.arch}"/>
-	<echo message="user.name = ${user.name} user.dir = ${user.dir}"/>
-	<echo message="java.ext.dirs = ${java.ext.dirs}"/>
-	-->
     </target>
 
     <target name="compile"
 	depends="clean,init,property-init">
-	<property name="class-path" refid="default.classpath"/>
-	<echo   message="class path ${class-path}"/>
-
 	<javac  destdir="${build}"
 		debug="true"
 		srcdir=".:${ibis}/apps/rmi/shared">
