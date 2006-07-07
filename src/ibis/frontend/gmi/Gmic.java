@@ -63,15 +63,17 @@ public class Gmic extends IbiscComponent {
         return new PrintWriter(fileOut);
     }
 
-    public ArrayList processArgs(ArrayList args) {
+    public boolean processArgs(ArrayList args) {
+        boolean retval = false;
         for (int i = 0; i < args.size(); i++) {
             String arg = (String) args.get(i);
             if (arg.equals("-gmi")) {
                 gmicEnabled = true;
                 args.remove(i--);
+                retval = true;
             }
         }
-        return args;
+        return retval;
     }
 
     public void process(Iterator iter) {

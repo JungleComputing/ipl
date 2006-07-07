@@ -58,15 +58,15 @@ public abstract class IbiscComponent {
 
     /**
      * This method accepts an array of program arguments, processes the
-     * arguments that are intended for this component, and returns an
-     * array containing the remaining arguments. The parameter array may/must
-     * be modified.
+     * arguments that are intended for this component, and removes these
+     * arguments from the list. The parameter array may/must be modified.
      * @param args the array of program arguments.
-     * @return the remaining arguments.
+     * @return <code>true</code> when this component must be run,
+     * <code>false</code> otherwise.
      * @exception IllegalArgumentException may be thrown when there was an error
      *    in the arguments.
      */
-    public abstract ArrayList processArgs(ArrayList args);
+    public abstract boolean processArgs(ArrayList args);
 
     /**
      * This method processes an iterator which delivers java classes.

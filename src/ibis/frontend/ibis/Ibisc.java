@@ -260,11 +260,12 @@ public class Ibisc {
             IbiscComponent ic = null;
             try {
                 ic = (IbiscComponent) cl.newInstance();
-                components.add(ic);
                 ic.setVerbose(verbose);
                 ic.fromIbisc = true;
                 ic.setKeep(keep);
-                leftArgs = ic.processArgs(leftArgs);
+                if (ic.processArgs(leftArgs)) {
+                    components.add(ic);
+                }
             } catch(Exception e) {
                 System.err.println("Ibisc: warning: could not instantiate "
                         + cl.getName());

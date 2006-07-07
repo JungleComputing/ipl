@@ -3151,7 +3151,8 @@ public final class Satinc extends IbiscComponent {
         }
     }
 
-    public ArrayList processArgs(ArrayList args) {
+    public boolean processArgs(ArrayList args) {
+        boolean retval = false;
         for (int i = 0; i < args.size(); i++) {
             String arg = (String) args.get(i);
             if (false) {
@@ -3176,6 +3177,7 @@ public final class Satinc extends IbiscComponent {
                 args.remove(i--);
             } else if (arg.equals("-satin")) {
                 args.remove(i);
+                retval = true;
                 if (i >= args.size()) {
                     throw new IllegalArgumentException("-satin needs classlist");
                 }
@@ -3183,7 +3185,7 @@ public final class Satinc extends IbiscComponent {
                 args.remove(i);
             }
         }
-        return args;
+        return retval;
     }
 
     public String rewriterImpl() {

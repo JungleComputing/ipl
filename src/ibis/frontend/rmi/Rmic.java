@@ -88,7 +88,7 @@ public class Rmic extends IbiscComponent {
         return new PrintWriter(fileOut);
     }
 
-    public ArrayList processArgs(ArrayList args) {
+    public boolean processArgs(ArrayList args) {
         for (int i = 0; i < args.size(); i++) {
             String arg = (String) args.get(i);
             if (arg.equals("-rmi")) {
@@ -99,7 +99,7 @@ public class Rmic extends IbiscComponent {
                 args.remove(i--);
             }
         }
-        return args;
+        return rmicEnabled;
     }
 
     public void process(Iterator iter) {

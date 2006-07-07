@@ -2109,7 +2109,7 @@ public class IOGenerator extends ibis.frontend.ibis.IbiscComponent {
         this.silent = silent;
     }
 
-    public ArrayList processArgs(ArrayList args) {
+    public boolean processArgs(ArrayList args) {
         for (int i = 0; i < args.size(); i++) {
             String arg = (String) args.get(i);
             if (arg.equals("-iogen-force")) {
@@ -2118,7 +2118,7 @@ public class IOGenerator extends ibis.frontend.ibis.IbiscComponent {
                 i--;
             }
         }
-        return args;
+        return true;
     }
 
     public void process(Iterator classes) {
