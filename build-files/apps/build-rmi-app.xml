@@ -123,6 +123,7 @@
     <target name="clean"
 	    description="Clean up the build">
 	<delete dir="${build}"/>
+	<delete file="ant-test.out"/>
     </target>
 
 </project>

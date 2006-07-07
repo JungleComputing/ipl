@@ -10,16 +10,8 @@
 	Ibis repmi application build
     </description>
 
-    <target name="property-repmi-build" unless="build">
-	<echo message="build is undefined. Set it to the default value"/>
-	<property name="build" location="build"/>
-    </target>
-
-    <target name="repmi-init"
-	    depends="property-repmi-build,property-init"/>
-
     <target name="repmi"
-	    depends="repmi-init">
+	    depends="property-init">
 	    <!-- Commented out; not toplevel target
 	    description="Preprocesses classes in the build tree for RepMI"
 	    -->
@@ -44,20 +36,18 @@
 		debug="true"
 		srcdir=".">
 	    <classpath refid="default.classpath"/>
-	    <include name="*.java"/>
+	    <include name="**/*.java"/>
 	</javac>
     </target>
 
     <target name="build"
-	    depends="init"
-	    description="Compile a RepMI application">
-	<antcall target="compile" inheritRefs="true"/>
-	<antcall target="repmi" inheritRefs="true"/>
-    </target>
+	    depends="init, compile, repmi"
+	    description="Compile a RepMI application"/>
 
     <target name="clean"
 	    description="Clean up the build">
-	    <delete dir="${build}"/>
+	<delete dir="${build}"/>
+	<delete file="ant-test.out"/>
     </target>
 
 </project>
