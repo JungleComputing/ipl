@@ -203,11 +203,18 @@ public class Ibisc {
         }
     }
 
+    /**
+     * Writes all classes and jars that have been modified.
+     */
     static void writeAll() {
         writeClasses();
         writeJars();
     }
 
+    /**
+     * Reads all classes and jars from the specified arguments.
+     * @param leftArgs the arguments.
+     */
     static void readAll(ArrayList leftArgs) {
         // Convert the rest of the arguments to classes
         for (int i = 0; i < leftArgs.size(); i++) {
@@ -254,6 +261,16 @@ public class Ibisc {
         List clcomponents = clstr.getClassList("Ibisc-Component", IbiscComponent.class);
         ArrayList components = new ArrayList();
 
+        // If no classes found, at least add IOGenerator.
+        if (clcomponents.size() == 0) {
+            try {
+                Class cl = Class.forName("ibis.frontend.io.IOGenerator");
+                clcomponents.add(cl);
+            } catch(Exception e) {
+                // Ignore
+            }
+        }
+
         // Instantiate Ibisc components.
         for (Iterator iter = clcomponents.iterator(); iter.hasNext();) {
             Class cl = (Class) iter.next();
@@ -290,6 +307,10 @@ public class Ibisc {
                 components.set(szm1, ic);
                 break;
             }
+        }
+
+        if (components.size() == 0) {
+            System.err.println("Ibisc: warning: no components found!");
         }
 
         String wrapperKind = null;
