@@ -13,12 +13,6 @@
 	<delete dir="${build}"/>
     </target>
 
-    <target name="all"
-	    description="Build everything, including native code"
-	    depends="allclean,build,natives">
-	<delete dir="${build}"/>
-    </target>
-
     <target name="usage"
 	    description="Print this message">
 	<exec	executable="ant">
@@ -94,7 +88,7 @@
     -->
 
     <target name="build"
-	    depends="compile, build-bin, copyProperties, jars, ibis-iogen"
+	    depends="compile, build-bin, copyProperties, ibis-iogen, jars"
 	    description="Build Ibis">
     </target>
 
@@ -102,9 +96,10 @@
 	<java   classname="ibis.frontend.ibis.Ibisc"
 		taskname="Ibisc"
 		failonerror="true"
+		dir="${build}"
 		maxmemory="512m"
 		fork="true">
-		<arg line="-compress ${ibis}/lib/ibis.jar"/>
+		<arg line="."/>
 	    <classpath refid="default.classpath"/>
 	</java>
     </target>
@@ -130,60 +125,14 @@
 	</javac>
     </target>
 
-    <import file="${ibis}/build-files/build-native.xml"/>
-
-    <!--
-	Compile the native code in all directories that have native code
-    -->
-
-    <target name="natives.misc" depends="property-init">
-	<ant inheritRefs="false" inheritAll="false" dir="${ibis}/src/ibis/io">
-	    <property name="build" value="${build}"/>
-	</ant>
-	<ant inheritRefs="false" inheritAll="false" dir="${ibis}/3rdparty/omni/OmniTimer">
-	    <property name="build" value="${build}"/>
-	</ant>
-	<ant inheritRefs="false" inheritAll="false" dir="${ibis}/src/ibis/util/nativeCode">
-	    <property name="build" value="${build}"/>
-	</ant>
+    <target name="read-props">
+	<property file="build-properties"/>
     </target>
 
-    <target name="natives.net" depends="property-init" if="gm.present">
-	<ant inheritRefs="false" inheritAll="false" dir="${ibis}/src/ibis/impl/net/gm">
-	    <property name="build" value="${build}"/>
-	</ant>
+    <target name="natives-if-configured" depends="read-props"
+	    if="ibis.configured">
+	<ant dir="." antfile="build-files/build-natives.xml" target="natives"/>
     </target>
-
-    <target name="natives.mp" depends="property-init" if="panda.present">
-	<ant inheritRefs="false" inheritAll="false" dir="${ibis}/src/ibis/impl/messagePassing">
-	    <property name="build" value="${build}"/>
-	</ant>
-	<ant inheritRefs="false" inheritAll="false" dir="${ibis}/src/ibis/impl/messagePassing/panda">
-	    <property name="build" value="${build}"/>
-	</ant>
-	<!--
-	<ant inheritRefs="false" inheritAll="false" dir="${ibis}/src/ibis/impl/messagePassing/mpi">
-	    <property name="build" value="${build}"/>
-	</ant>
-	-->
-    </target>
-
-    <target name="natives-if-configured" if="ibis.configured">
-	<antcall target="natives"/>
-    </target>
-
-    <target name="natives"
-	    depends="javah,
-		     proprietary-tasks,
-		     natives.misc,
-	    	     natives.mp,
-		     natives.net">
-	<delete>
-	    <fileset dir="${lib}/natives">
-		<include name="**/*.o"/>
-	    </fileset>
-	</delete>
-     </target>
 
     <target name="copyProperties"
 	    depends="init"
@@ -192,8 +141,6 @@
 	    <fileset dir="${src}">
 		<include name="ibis/impl/**/properties"/>
 	    </fileset>
-	</copy>
-	<copy todir="${build}">
 	    <fileset dir="${ibis}">
 		<include name="ibis-sys-props"/>
 		<include name="ibis-properties"/>
