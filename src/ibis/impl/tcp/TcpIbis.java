@@ -47,13 +47,10 @@ public final class TcpIbis extends Ibis implements Config {
 
     private boolean ended = false;
 
-    private static final IbisSocketFactory socketFactory;
-
     private boolean i_joined = false;
 
     static {
         TypedProperties.checkProperties(PROPERTY_PREFIX, sysprops, null);
-        socketFactory = IbisSocketFactory.getFactory();
     }
 
     public TcpIbis() {
@@ -121,7 +118,9 @@ public final class TcpIbis extends Ibis implements Config {
 
         nameServer = NameServer.loadNameServer(this, resizeHandler != null);
 
-        tcpPortHandler = new TcpPortHandler(ident, socketFactory);
+        tcpPortHandler
+                = new TcpPortHandler(ident, IbisSocketFactory.getFactory());
+
         if (DEBUG) {
             System.err.println("Out of TcpIbis.init()");
         }

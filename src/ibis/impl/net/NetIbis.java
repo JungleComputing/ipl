@@ -168,6 +168,7 @@ public final class NetIbis extends Ibis {
     private NetBank bank = new NetBank();
 
     public static final ibis.util.PoolInfo poolInfo;
+
     static {
         ibis.util.PoolInfo p = null;
         try {
@@ -198,11 +199,19 @@ public final class NetIbis extends Ibis {
         return hostName;
     }
 
-    private static final Timer nowTimer = Timer.createTimer();
+    private static Timer nowTimer;
 
-    private static final long t_start = nowTimer.currentTimeNanos();
+    private static long t_start;
 
     public static float now() {
+        if (nowTimer == null) {
+            synchronized(NetIbis.class) {
+                if (nowTimer == null) {
+                    nowTimer = Timer.createTimer();
+                    t_start = nowTimer.currentTimeNanos();
+                }
+            }
+        }
         return (nowTimer.currentTimeNanos() - t_start) / 1.0E09F;
     }
 

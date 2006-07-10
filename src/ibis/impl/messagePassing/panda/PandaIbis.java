@@ -1,6 +1,6 @@
 /* $Id$ */
 
-package ibis.impl.messagePassing;
+package ibis.impl.messagePassing.panda;
 
 import ibis.ipl.IbisException;
 
@@ -9,7 +9,7 @@ import java.io.IOException;
 /**
  * Ibis implementation on top of native Panda layer
  */
-public class PandaIbis extends Ibis {
+public class PandaIbis extends ibis.impl.messagePassing.Ibis {
 
     public PandaIbis() throws IbisException {
         super();
@@ -25,6 +25,29 @@ public class PandaIbis extends Ibis {
         // new InterruptCatcher().start();
     }
 
+    private void pandaInit(String[] arg) throws IbisException {
+        System.err.println("Cluster gateway: run a stripped "
+                + getClass().getName());
+
+        myIbis = this;
+        ibmp_init(arg);
+        if (myCpu < nrCpus) {
+            throw new IbisException(
+                    "Use Ibis.main() only for cluster gateways");
+        }
+        ibmp_start();
+        /* The gateway will block in end() until all other participants have
+         * left */
+
+        lock();
+        try {
+            ibmp_end();
+        } finally {
+            unlock();
+        }
+        System.exit(0);
+    }
+
     /**
      * Provide a main method. This is the way to start a Panda cluster
      * gateway.
@@ -37,28 +60,8 @@ public class PandaIbis extends Ibis {
         ibis.ipl.Ibis.loadLibrary("ibis_mp_panda");
         // System.loadLibrary("ibis_mp");
         try {
-            Ibis i = new PandaIbis();
-
-            System.err.println("Cluster gateway: run a stripped "
-                    + i.getClass().getName());
-
-            Ibis.myIbis = i;
-            i.ibmp_init(arg);
-            if (i.myCpu < i.nrCpus) {
-                throw new IbisException(
-                        "Use Ibis.main() only for cluster gateways");
-            }
-            i.ibmp_start();
-            /* The gateway will block in end() until all other participants have
-             * left */
-
-            myIbis.lock();
-            try {
-                i.ibmp_end();
-            } finally {
-                myIbis.unlock();
-            }
-            System.exit(0);
+            PandaIbis i = new PandaIbis();
+            i.pandaInit(arg);
         } catch (IbisException e) {
             System.err.println("Ibis.main: " + e);
         }

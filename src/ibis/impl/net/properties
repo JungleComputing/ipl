@@ -10,3 +10,4 @@ communication = OneToOne, OneToMany, ManyToOne, \
 		FifoOrdered, Reliable, PollMessageUpcalls, \
 		AutoMessageUpcalls, ExplicitReceipt, ConnectionDowncalls, \
 		ConnectionUpcalls, Numbered
+nickname = net

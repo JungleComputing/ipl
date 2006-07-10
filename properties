@@ -34,25 +34,10 @@ default	tcp
 
 tcp	ibis.impl.tcp.TcpIbis
 
-panda	ibis.impl.messagePassing.PandaIbis
+panda	ibis.impl.messagePassing.panda.PandaIbis
 
-mpi	ibis.impl.messagePassing.MPIIbis
+mpi	ibis.impl.messagePassing.mpi.MPIIbis
 
 net	ibis.impl.net.NetIbis
 
 nio	ibis.impl.nio.NioIbis
-
-ibis.impl.messagePassing.PandaIbis \
-    ibis/impl/messagePassing/panda/properties
-
-ibis.impl.messagePassing.MPIIbis \
-    ibis/impl/messagePassing/mpi/properties
-
-ibis.impl.tcp.TcpIbis \
-    ibis/impl/tcp/properties
-
-ibis.impl.net.NetIbis \
-    ibis/impl/net/properties
-
-ibis.impl.nio.NioIbis \
-    ibis/impl/nio/properties

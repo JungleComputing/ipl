@@ -32,11 +32,11 @@ public class Ibis extends ibis.ipl.Ibis {
 
     private boolean i_joined = false;
 
-    static Ibis myIbis;
+    protected static Ibis myIbis;
 
-    int nrCpus;
+    protected int nrCpus;
 
-    int myCpu;
+    protected int myCpu;
 
     private IbisIdentifier ident;
 
@@ -79,7 +79,7 @@ public class Ibis extends ibis.ipl.Ibis {
 
     private boolean requireNumbered;
 
-    Ibis() throws IbisException {
+    protected Ibis() throws IbisException {
 
         if (DEBUG) {
             System.err.println("Turn on Ibis.DEBUG");
@@ -309,11 +309,11 @@ public class Ibis extends ibis.ipl.Ibis {
         rcve_poll.waitPolling(client, timeout, preempt);
     }
 
-    final void lock() {
+    protected final void lock() {
         monitor.lock();
     }
 
-    final void unlock() {
+    protected final void unlock() {
         monitor.unlock();
     }
 
