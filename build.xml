@@ -134,6 +134,10 @@
 	<ant dir="." antfile="build-files/build-natives.xml" target="natives"/>
     </target>
 
+    <target name="natives">
+	<ant dir="." antfile="build-files/build-natives.xml" target="natives"/>
+    </target>
+
     <target name="copyProperties"
 	    depends="init"
 	    description="Copy property files to the build tree">
@@ -144,7 +148,6 @@
 	    <fileset dir="${ibis}">
 		<include name="ibis-sys-props"/>
 		<include name="ibis-properties"/>
-		<include name="properties"/>
 	    </fileset>
 	</copy>
     </target>
@@ -157,9 +160,10 @@
     <target name="ibis.jar">
 	<jar	destfile="${ibis}/lib/ibis.jar"
 		basedir="${build}"
-		includes="**/*.class **/properties properties ibis-properties ibis-sys-props">
+		includes="**/*.class **/properties ibis-properties ibis-sys-props">
 	    <manifest>
 		<attribute name="Ibisc-Component" value="ibis.frontend.io.IOGenerator,ibis.frontend.gmi.Gmic,ibis.frontend.rmi.Rmic,ibis.frontend.satin.Satinc"/>
+		<attribute name="Ibis-Implementation" value="ibis.impl.messagePassing.panda.PandaIbis,ibis.impl.tcp.TcpIbis,ibis.impl.net.NetIbis,ibis.impl.nio.NioIbis,ibis.impl.messagePassing.mpi.MPIIbis"/>
 	    </manifest>
 	</jar>
     </target>
