@@ -357,10 +357,10 @@ public abstract class Ibis {
                 }
                 String n = ibissp.getProperty("nickname");
                 if (n == null) {
-                    n = cl.getName();
+                    n = cl.getName().toLowerCase();
                 }
 
-                if (name.equals(n) || name.equals(cl.getName())) {
+                if (name.equals(n) || name.equals(cl.getName().toLowerCase())) {
                     found = true;
                     implementations.add(cl);
                     break;
