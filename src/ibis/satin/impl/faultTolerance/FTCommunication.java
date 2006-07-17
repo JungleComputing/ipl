@@ -223,18 +223,6 @@ final class FTCommunication implements Config, ReceivePortConnectUpcall,
             joinThread.start();
         }
 
-        // @@@ this is not supported any more I think
-        if (joiner.name().equals("ControlCentreIbis")) {
-            return;
-        }
-
-        if (joiner.equals(s.ident)) {
-            ftLogger.debug("SATIN '" + s.ident + "': this is me, waiting for earlier joins");
-            joinThread.waitForEarlierJoins();
-            ftLogger.debug("SATIN '" + s.ident + "': waiting for earlier joins done");
-            return;
-        }
-
         joinThread.addJoiner(joiner);
     }
 
