@@ -290,8 +290,12 @@ final class FTCommunication implements Config, ReceivePortConnectUpcall,
             return;
         }
 
+        ftLogger.debug("SATIN '" + s.ident + "': lookups succeeded");
+
         for (int i = 0; i < r.length; i++) {
             IbisIdentifier joiner = joiners[i];
+
+            ftLogger.debug("SATIN '" + s.ident + "': creating sendport");
 
             SendPort p = null;
             try {
@@ -301,8 +305,12 @@ final class FTCommunication implements Config, ReceivePortConnectUpcall,
                     + "': got an exception in Satin.join", e);
                 continue;
             }
+            ftLogger.debug("SATIN '" + s.ident + "': creating sendport done");
 
+            ftLogger.debug("SATIN '" + s.ident + "': creating SO connections");
             s.so.addSOConnection(joiner);
+            ftLogger.debug("SATIN '" + s.ident + "': creating SO connections done");
+
 
             if (!FT_NAIVE) {
                 s.ft.globalResultTable.addReplica(joiner);
