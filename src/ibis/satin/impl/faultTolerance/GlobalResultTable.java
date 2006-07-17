@@ -255,19 +255,25 @@ final class GlobalResultTable implements Upcall, Config {
 
     protected void addReplica(IbisIdentifier ident) {
         try {
+            ftLogger.debug("addReplica: creating send port");
             SendPort send = globalResultTablePortType
                 .createSendPort("satin global result table send port on "
                     + s.ident.name());
+            ftLogger.debug("addReplica: creating send port done");
             ReceivePortIdentifier r = null;
+            ftLogger.debug("addReplica: lookup receive port");
             r = s.comm.lookup("satin global result table receive port on "
                 + ident.name());
+            ftLogger.debug("addReplica: lookup receive port done");
             synchronized (s) {
+                ftLogger.debug("addReplica: store victim");
                 numReplicas++;
                 sends.put(ident, new Victim(ident, send, r));
+                ftLogger.debug("addReplica: store victim done");
             }
         } catch (IOException e) {
             grtLogger.error("SATN '" + s.ident
-                + "': Transpositon table - unable to add new replica", e);
+                + "': Global result table - unable to add new replica", e);
         }
     }
 
