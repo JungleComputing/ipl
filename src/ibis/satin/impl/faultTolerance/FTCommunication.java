@@ -1,6 +1,7 @@
 /*
  * Created on Apr 26, 2006 by rob
  */
+
 package ibis.satin.impl.faultTolerance;
 
 import ibis.ipl.IbisIdentifier;
@@ -280,6 +281,8 @@ final class FTCommunication implements Config, ReceivePortConnectUpcall,
             + " joins");
 
         s.so.createSoPorts(joiners);
+
+        ftLogger.debug("SATIN '" + s.ident + "': SO ports created");
 
         ReceivePortIdentifier[] r = null;
         try {

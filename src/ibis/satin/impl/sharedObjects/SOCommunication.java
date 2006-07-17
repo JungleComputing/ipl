@@ -119,7 +119,7 @@ final class SOCommunication implements Config, Protocol {
      * Creates SO receive ports for new Satin instances. Do this first, to make
      * them available as soon as possible.
      */
-    protected void createSoPorts(IbisIdentifier[] joiners) {
+    protected void createSoReceivePorts(IbisIdentifier[] joiners) {
         // lrmc uses its own ports
         if(LABEL_ROUTING_MCAST) return;
         
@@ -127,7 +127,7 @@ final class SOCommunication implements Config, Protocol {
             // create a receive port for this guy
             try {
                 SOInvocationHandler soInvocationHandler = new SOInvocationHandler(
-                    Satin.getSatin());
+                    s);
                 ReceivePort rec = soPortType.createReceivePort(
                     "satin so receive port on " + s.ident.name() + " for "
                         + joiners[i].name(), soInvocationHandler, s.ft

@@ -265,7 +265,7 @@ public final class SharedObjects implements Config {
     }
 
     public void createSoPorts(IbisIdentifier[] joiners) {
-        soComm.createSoPorts(joiners);
+        soComm.createSoReceivePorts(joiners);
     }
 
     public void addSOConnection(IbisIdentifier id) {

@@ -109,7 +109,7 @@ public interface Config {
     static final int SO_MAX_MESSAGE_SIZE = TypedProperties.intProperty(
         s_so_size, 64 * 1024);
 
-    /** Enable or label routing multicast for shared objects . */
+    /** Enable or disable label routing multicast for shared objects . */
     static final boolean LABEL_ROUTING_MCAST = TypedProperties.booleanProperty(
         s_so_lrmc, true);
 
