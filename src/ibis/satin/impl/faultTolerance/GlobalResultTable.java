@@ -257,7 +257,7 @@ final class GlobalResultTable implements Upcall, Config {
         try {
             SendPort send = globalResultTablePortType
                 .createSendPort("satin global result table send port on "
-                    + s.ident.name() + System.currentTimeMillis());
+                    + s.ident.name());
             ReceivePortIdentifier r = null;
             r = s.comm.lookup("satin global result table receive port on "
                 + ident.name());

@@ -287,6 +287,7 @@ final class FTCommunication implements Config, ReceivePortConnectUpcall,
         } catch (Exception e) {
             ftLogger.warn("SATIN '" + s.ident
                 + "': got an exception while looking up receive ports", e);
+            return;
         }
 
         for (int i = 0; i < r.length; i++) {
