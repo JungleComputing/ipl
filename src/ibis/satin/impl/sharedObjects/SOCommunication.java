@@ -62,14 +62,6 @@ final class SOCommunication implements Config, Protocol {
     }
 
     protected void init(StaticProperties requestedProperties) {
-        try {
-            soPortType = createSOPortType(requestedProperties);
-        } catch (Exception e) {
-            commLogger.fatal("SATIN '" + s.ident + "': Could not start ibis: "
-                + e, e);
-            System.exit(1); // Could not start ibis                        
-        }
-
         if (LABEL_ROUTING_MCAST) {
             try {
                 omc = new ObjectMulticaster(s.comm.ibis);
@@ -80,11 +72,30 @@ final class SOCommunication implements Config, Protocol {
             }
 
             new SOInvocationReceiver(s, omc).start();
+        } else {
+            try {
+                soPortType = createSOPortType(requestedProperties);
+
+                // Create a multicast port to bcast shared object invocations.
+                // Connections are established later.
+                soSendPort = soPortType.createSendPort("satin so port on "
+                    + s.ident.name(), true);
+
+                if (SO_MAX_INVOCATION_DELAY > 0) {
+                    StaticProperties props = new StaticProperties();
+                    props.add("serialization", "ibis");
+                    soMessageCombiner = new MessageCombiner(props, soSendPort);
+                }
+            } catch (Exception e) {
+                commLogger.fatal("SATIN '" + s.ident
+                    + "': Could not start ibis: " + e, e);
+                System.exit(1); // Could not start ibis
+            }
         }
     }
 
     protected PortType createSOPortType(StaticProperties reqprops)
-        throws IOException, IbisException {
+            throws IOException, IbisException {
         StaticProperties satinPortProperties = new StaticProperties(reqprops);
 
         if (CLOSED) {
@@ -109,15 +120,18 @@ final class SOCommunication implements Config, Protocol {
      * them available as soon as possible.
      */
     protected void createSoPorts(IbisIdentifier[] joiners) {
+        // lrmc uses its own ports
+        if(LABEL_ROUTING_MCAST) return;
+        
         for (int i = 0; i < joiners.length; i++) {
             // create a receive port for this guy
             try {
                 SOInvocationHandler soInvocationHandler = new SOInvocationHandler(
                     Satin.getSatin());
-                ReceivePort rec;
-                rec = soPortType.createReceivePort("satin so receive port on "
-                    + s.ident.name() + " for " + joiners[i].name(),
-                    soInvocationHandler, s.ft.getReceivePortConnectHandler());
+                ReceivePort rec = soPortType.createReceivePort(
+                    "satin so receive port on " + s.ident.name() + " for "
+                        + joiners[i].name(), soInvocationHandler, s.ft
+                        .getReceivePortConnectHandler());
                 if (SO_MAX_INVOCATION_DELAY > 0) {
                     StaticProperties s = new StaticProperties();
                     s.add("serialization", "ibis");
@@ -126,19 +140,6 @@ final class SOCommunication implements Config, Protocol {
                 }
                 rec.enableConnections();
                 rec.enableUpcalls();
-
-                new SOInvocationHandler(s);
-
-                //Create a multicast port to bcast shared object invocations
-                //Connections are established in the join upcall
-                soSendPort = soPortType.createSendPort("satin so port on "
-                    + s.ident.name(), true);
-
-                if (SO_MAX_INVOCATION_DELAY > 0) {
-                    StaticProperties props = new StaticProperties();
-                    props.add("serialization", "ibis");
-                    soMessageCombiner = new MessageCombiner(props, soSendPort);
-                }
             } catch (Exception e) {
                 commLogger.fatal("SATIN '" + s.ident
                     + "': Could not start ibis: " + e, e);
@@ -353,7 +354,7 @@ final class SOCommunication implements Config, Protocol {
 
     /** Fetch a shared object from another node */
     protected void fetchObject(String objectId, IbisIdentifier source)
-        throws SOReferenceSourceCrashedException {
+            throws SOReferenceSourceCrashedException {
         // request the shared object from the source
         try {
             s.lb.setCurrentVictim(source);

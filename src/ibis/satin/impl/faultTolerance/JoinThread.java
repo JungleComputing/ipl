@@ -19,6 +19,7 @@ class JoinThread extends Thread implements Config {
     JoinThread(Satin s) {
         this.s = s;
         setDaemon(true);
+        setName("satin join thread");
     }
 
     private void handlePendingJoins() {
@@ -83,7 +84,11 @@ class JoinThread extends Thread implements Config {
             joiners.add(joiner);
             //        notifyAll();
         } else {
-            if (joiner.equals(s.ident)) return;
+            if (joiner.equals(s.ident)) {
+                ftLogger.debug("SATIN '" + s.ident
+                    + "': got my own join");
+                return;
+            }
             IbisIdentifier[] j = new IbisIdentifier[1];
             j[0] = joiner;
             s.ft.ftComm.handleJoins(j);
