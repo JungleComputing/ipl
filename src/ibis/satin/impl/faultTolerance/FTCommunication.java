@@ -214,6 +214,7 @@ final class FTCommunication implements Config, ReceivePortConnectUpcall,
         handleLostConnection(johnDoe.ibis());
     }
 
+    /** The ibis upcall that is called whenever a node joins the computation */
     public void joined(IbisIdentifier joiner) {
         ftLogger.debug("SATIN '" + s.ident + "': got join of " + joiner);
 
@@ -228,7 +229,9 @@ final class FTCommunication implements Config, ReceivePortConnectUpcall,
         }
 
         if (joiner.equals(s.ident)) {
+            ftLogger.debug("SATIN '" + s.ident + "': this is me, waiting for earlier joins");
             joinThread.waitForEarlierJoins();
+            ftLogger.debug("SATIN '" + s.ident + "': waiting for earlier joins done");
             return;
         }
 
