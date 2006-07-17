@@ -10,6 +10,8 @@ import ibis.satin.impl.Config;
 import ibis.satin.impl.Satin;
 
 class JoinThread extends Thread implements Config {
+    private static final boolean CACHE_JOINS = false;
+
     private Satin s;
 
     private ArrayList joiners = new ArrayList();
@@ -23,8 +25,7 @@ class JoinThread extends Thread implements Config {
         IbisIdentifier[] j = null;
         synchronized (this) {
             if (joiners.size() != 0) {
-                j = (IbisIdentifier[]) joiners
-                    .toArray(new IbisIdentifier[0]);
+                j = (IbisIdentifier[]) joiners.toArray(new IbisIdentifier[0]);
                 joiners.clear();
             }
         }
@@ -35,11 +36,11 @@ class JoinThread extends Thread implements Config {
             }
         }
     }
-    
+
     public void run() {
         while (true) {
             handlePendingJoins();
-            
+
             // Sleep 1 second, maybe more nodes have joined within this second.
             // we can aggregate the port lookups for all those joiners.
             try {
@@ -69,14 +70,23 @@ class JoinThread extends Thread implements Config {
             return;
         }
 
-        if (joiner.equals(s.ident)) {
-            ftLogger.debug("SATIN '" + s.ident + "': this is me, waiting for earlier joins");
-            waitForEarlierJoins();
-            ftLogger.debug("SATIN '" + s.ident + "': waiting for earlier joins done");
-            return;
+        if (CACHE_JOINS) {
+            if (joiner.equals(s.ident)) {
+                ftLogger.debug("SATIN '" + s.ident
+                    + "': this is me, waiting for earlier joins");
+                waitForEarlierJoins();
+                ftLogger.debug("SATIN '" + s.ident
+                    + "': waiting for earlier joins done");
+                return;
+            }
+
+            joiners.add(joiner);
+            //        notifyAll();
+        } else {
+            if (joiner.equals(s.ident)) return;
+            IbisIdentifier[] j = new IbisIdentifier[1];
+            j[0] = joiner;
+            s.ft.ftComm.handleJoins(j);
         }
-       
-        joiners.add(joiner);
-//        notifyAll();
     }
 }
