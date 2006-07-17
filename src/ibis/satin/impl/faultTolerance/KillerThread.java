@@ -6,7 +6,7 @@ class KillerThread extends Thread {
 
     private int milis; //wait that long before dying
 
-    private String cluster = null; //die only if your are in this cluster
+//    private String cluster = null; //die only if your are in this cluster
 
     KillerThread(int time) {
         super("SatinKillerThread");

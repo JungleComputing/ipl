@@ -31,15 +31,11 @@ public final class Communication implements Config, Protocol {
 
     public ReceivePort receivePort;
 
-    private MessageHandler messageHandler;
-
     private volatile boolean exitStageTwo = false;
 
     private volatile int barrierRequests = 0;
 
     private volatile boolean gotBarrierReply = false;
-
-    private long prevPoll = 0;
 
     private volatile int exitReplies = 0;
 
