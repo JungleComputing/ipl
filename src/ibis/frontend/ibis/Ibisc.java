@@ -2,8 +2,6 @@
 
 package ibis.frontend.ibis;
 
-import ibis.frontend.generic.RunJavac;
-
 import ibis.util.ClassLister;
 
 import java.io.BufferedOutputStream;
@@ -15,7 +13,6 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.zip.ZipOutputStream;
 

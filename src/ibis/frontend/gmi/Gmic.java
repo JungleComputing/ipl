@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import org.apache.bcel.Repository;
-import org.apache.bcel.classfile.ClassParser;
 import org.apache.bcel.classfile.JavaClass;
 
 public class Gmic extends IbiscComponent {
@@ -145,7 +144,7 @@ public class Gmic extends IbiscComponent {
     private void doCompile(String[] args) {
 
         ArrayList classes = new ArrayList();        
-        JavaClass groupInterface = null;
+//        JavaClass groupInterface = null;
 
         if (args.length == 0) {
             System.err.println("Usage : java Gmic [-v] [-dir | -local] "

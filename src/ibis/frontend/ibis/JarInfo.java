@@ -6,9 +6,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.NoSuchElementException;
-import java.util.jar.JarFile;
 import java.util.jar.JarEntry;
-import java.util.zip.ZipOutputStream;
+import java.util.jar.JarFile;
 
 /**
  * Maintains information about the contents of a jarfile.
