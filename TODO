@@ -34,6 +34,9 @@ general:
 - ant in applicaties doet niet eerst een clean
 
 nameserver+connection stuff:
+- joins, leaves and died messages have to be ordered to each other as well. --Rob
+- deadlocks in pinger, forwarders --Rob
+
 - enable control hub by default --Rob
 - if a control hub is started, ibises cannot connect to the normal server again?
 - allow different connection types to nameserver simulaneously: 
