@@ -15,7 +15,7 @@ public class PandaIbis extends ibis.impl.messagePassing.Ibis {
         super();
     }
 
-    boolean broadcastSupported() {
+    public boolean broadcastSupported() {
         return true;
     }
 

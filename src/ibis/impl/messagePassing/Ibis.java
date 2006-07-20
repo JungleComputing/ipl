@@ -87,7 +87,7 @@ public class Ibis extends ibis.ipl.Ibis {
 
     }
 
-    boolean broadcastSupported() {
+    public boolean broadcastSupported() {
         return false;
     }
 
