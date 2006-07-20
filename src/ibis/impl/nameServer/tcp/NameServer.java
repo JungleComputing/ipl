@@ -522,14 +522,19 @@ public class NameServer extends Thread implements Protocol {
                     }
 
                     failed = false;
+                    closeConnection(null, out2, s);
                     break;
                 } catch (Exception e) {
+                    closeConnection(null, out2, s);
                     if (! silent) {
                         logger.error("Could not forward "
                                 + type(message) + " to " + dest, e);
                     }
-                } finally {
-                    closeConnection(null, out2, s);
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException x) {
+                        // ignore
+                    }
                 }
             }
 
@@ -538,7 +543,7 @@ public class NameServer extends Thread implements Protocol {
                 if (failed) {
                     inf.failed++;
                 }
-                inf.notify();
+                inf.notifyAll();
             }
         }
     }
@@ -586,7 +591,7 @@ public class NameServer extends Thread implements Protocol {
             doPing();
             synchronized(run) {
                 run.pingers--;
-                run.notify();
+                run.notifyAll();
             }
         }
 
