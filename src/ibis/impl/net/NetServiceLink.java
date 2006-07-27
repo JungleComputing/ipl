@@ -624,7 +624,7 @@ public final class NetServiceLink {
          * id.
          */
         public void run() {
-            main_loop: while (!exit) {
+            while (!exit) {
 
                 try {
                     int id = is.read();
