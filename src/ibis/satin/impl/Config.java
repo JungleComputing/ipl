@@ -136,10 +136,6 @@ public interface Config {
     public static final Logger spawnLogger = ibis.util.GetLogger
         .getLogger("ibis.satin.spawn");
 
-    /** Logger for idle. */
-    public static final Logger idleLogger = ibis.util.GetLogger
-        .getLogger("ibis.satin.idle");
-
     /** Logger for inlets. */
     public static final Logger inletLogger = ibis.util.GetLogger
         .getLogger("ibis.satin.inlet");
@@ -148,13 +144,13 @@ public interface Config {
     public static final Logger abortLogger = ibis.util.GetLogger
         .getLogger("ibis.satin.abort");
 
-    /** Logger for the global result table. */
-    public static final Logger grtLogger = ibis.util.GetLogger
-        .getLogger("ibis.satin.grt");
-
     /** Logger for fault tolerance. */
     public static final Logger ftLogger = ibis.util.GetLogger
-        .getLogger("ibis.satin.faultTolerance");
+        .getLogger("ibis.satin.ft");
+
+    /** Logger for the global result table. */
+    public static final Logger grtLogger = ibis.util.GetLogger
+        .getLogger("ibis.satin.ft.grt");
 
     /** Logger for shared objects. */
     public static final Logger soLogger = ibis.util.GetLogger

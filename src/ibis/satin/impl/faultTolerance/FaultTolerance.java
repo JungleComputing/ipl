@@ -391,5 +391,4 @@ public final class FaultTolerance implements Config {
     public void sendAbortAndStoreMessage(InvocationRecord r) {
         ftComm.sendAbortAndStoreMessage(r);
     }
-
 }
