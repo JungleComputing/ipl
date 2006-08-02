@@ -77,13 +77,14 @@ public final class FaultTolerance implements Config {
         if (DELETE_CLUSTER_TIME > 0) {
             (new DeleteClusterThread(DELETE_CLUSTER_TIME)).start();
         }
-
     }
 
     public void init(StaticProperties requestedProperties) {
         ftComm.init(requestedProperties);
 
-        globalResultTable = new GlobalResultTable(s, requestedProperties);
+        if(!FT_NAIVE) {
+            globalResultTable = new GlobalResultTable(s, requestedProperties);
+        }
         abortAndStoreList = new StampVector();
 
         if (FT_NAIVE) {
