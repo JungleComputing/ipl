@@ -15,6 +15,7 @@ final class SOInvocationReceiver extends Thread {
     protected SOInvocationReceiver(Satin s, ObjectMulticaster omc) {
         this.s = s;
         this.omc = omc;
+        setName("SOInvocationReceiver");
     }
 
     public void run() {
