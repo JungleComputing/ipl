@@ -28,13 +28,16 @@ import java.util.Map;
 final class GlobalResultTable implements Upcall, Config {
     private Satin s;
 
+    /** The entries in the global result table. Entries are of type
+     * GlobalResultTableValue. */ 
     private Map entries;
 
     private Map toSend;
 
-    /* used for communication with other replicas of the table */
+    /** used for communication with other replicas of the table */
     private ReceivePort receive;
 
+    /** Entries are Victims */
     private Map sends = new Hashtable();
 
     private int numReplicas = 0;
@@ -74,11 +77,10 @@ final class GlobalResultTable implements Upcall, Config {
             satinPortProperties.add("worldmodel", "open");
         }
 
-        String commprops = "OneToOne, ManyToOne, ExplicitReceipt, Reliable";
+        String commprops = "OneToOne, ManyToOne, Reliable";
         commprops += ", ConnectionUpcalls, ConnectionDowncalls";
                 commprops += ", AutoUpcalls";
         satinPortProperties.add("communication", commprops);
-
         satinPortProperties.add("serialization", "object");
 
         return s.comm.ibis.createPortType("satin global result table porttype",
@@ -124,6 +126,7 @@ final class GlobalResultTable implements Upcall, Config {
         Stamp key = r.getStamp();
         Object oldValue = entries.get(key);
         entries.put(key, value);
+        s.stats.tableResultUpdates++;
         if (entries.size() > s.stats.tableMaxEntries) {
             s.stats.tableMaxEntries = entries.size();
         }
@@ -132,11 +135,7 @@ final class GlobalResultTable implements Upcall, Config {
             toSend.put(key, pointerValue);
             s.ft.updatesToSend = true;
         }
-        if (value.type == GlobalResultTableValue.TYPE_RESULT) {
-            s.stats.tableResultUpdates++;
-        } else if (value.type == GlobalResultTableValue.TYPE_LOCK) {
-            s.stats.tableLockUpdates++;
-        }
+        
         grtLogger.debug("SATIN '" + s.ident + "': update complete: " + key
             + "," + value);
 
@@ -228,7 +227,6 @@ final class GlobalResultTable implements Upcall, Config {
             Stamp key = (Stamp) element.getKey();
             switch (value.type) {
             case GlobalResultTableValue.TYPE_RESULT:
-            case GlobalResultTableValue.TYPE_LOCK:
                 newEntries.put(key, pointerValue);
                 break;
             case GlobalResultTableValue.TYPE_POINTER:
