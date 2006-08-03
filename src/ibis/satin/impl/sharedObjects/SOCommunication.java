@@ -28,7 +28,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import lrmcast.ObjectMulticaster;
+import mcast.object.ObjectMulticaster;
 
 final class SOCommunication implements Config, Protocol {
     private static final boolean ASYNC_SO_BCAST = false;
@@ -64,7 +64,7 @@ final class SOCommunication implements Config, Protocol {
     protected void init(StaticProperties requestedProperties) {
         if (LABEL_ROUTING_MCAST) {
             try {
-                omc = new ObjectMulticaster(s.comm.ibis);
+                omc = new ObjectMulticaster(s.comm.ibis, "satinSO");
             } catch (Exception e) {
                 System.err.println("cannot create OMC: " + e);
                 e.printStackTrace();

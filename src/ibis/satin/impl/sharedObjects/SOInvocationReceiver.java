@@ -3,7 +3,7 @@
  */
 package ibis.satin.impl.sharedObjects;
 
-import lrmcast.ObjectMulticaster;
+import mcast.object.ObjectMulticaster;
 import ibis.satin.SharedObject;
 import ibis.satin.impl.Satin;
 
