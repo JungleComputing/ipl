@@ -223,12 +223,7 @@ final class GlobalResultTable implements Config, Protocol {
         // no need to finish the message
 
         synchronized (s) {
-            if (map != null) {
-                entries.putAll(map);
-            }
-            if (entries.size() > s.stats.tableMaxEntries) {
-                s.stats.tableMaxEntries = entries.size();
-            }
+            addContents(map);
         }
         s.stats.handleUpdateTimer.stop();
     }
