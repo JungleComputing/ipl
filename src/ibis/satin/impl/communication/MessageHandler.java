@@ -17,7 +17,7 @@ public final class MessageHandler implements Upcall, Protocol, Config {
         this.s = s;
     }
 
-    public void upcall(ReadMessage m) {
+    public void upcall(ReadMessage m) throws IOException {
         SendPortIdentifier ident = m.origin();
 
         try {
@@ -87,8 +87,9 @@ public final class MessageHandler implements Upcall, Protocol, Config {
                     + opcode + " in MessageHandler");
             }
         } catch (IOException e) {
-            commLogger.warn("satin msgHandler upcall: " + e, e);
+            commLogger.warn("satin msgHandler upcall for " + ident.ibis() + ": " + e, e);
             // Ignore.
+            throw e;
         }
     }
 }

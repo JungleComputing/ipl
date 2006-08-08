@@ -7,6 +7,7 @@ import ibis.ipl.StaticProperties;
 import ibis.ipl.WriteMessage;
 import ibis.satin.impl.Config;
 import ibis.satin.impl.Satin;
+import ibis.satin.impl.communication.Protocol;
 import ibis.satin.impl.loadBalancing.Victim;
 import ibis.satin.impl.spawnSync.InvocationRecord;
 import ibis.satin.impl.spawnSync.Stamp;
@@ -18,16 +19,16 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
 
-final class GlobalResultTable implements Config {
+final class GlobalResultTable implements Config, Protocol {
     private Satin s;
 
     /** The entries in the global result table. Entries are of type
      * GlobalResultTableValue. */
     private Map entries;
 
+    /** A list of updates that has to be broadcast to the other nodes. Elements are
+     * of type (Stamp, GlobalResultTableValue). */
     private Map toSend;
-
-    private int numReplicas = 0;
 
     private GlobalResultTableValue pointerValue = new GlobalResultTableValue(
         GlobalResultTableValue.TYPE_POINTER, null);
@@ -121,8 +122,12 @@ final class GlobalResultTable implements Config {
         updateTimer.start();
 
         for(int i=0; i<size; i++) {
-            Victim send = s.victims.getVictim(i);
+            Victim send;
             WriteMessage m = null;
+
+            synchronized (s) {
+                send = s.victims.getVictim(i);
+            }
 
             try {
                 m = send.newMessage();
@@ -135,6 +140,7 @@ final class GlobalResultTable implements Config {
             tableSerializationTimer = Timer.createTimer();
             tableSerializationTimer.start();
             try {
+                m.writeByte(GRT_UPDATE);
                 m.writeObject(toSend);
             } catch (IOException e) {
                 grtLogger.info("Got exception in writeObject()", e);
@@ -203,25 +209,17 @@ final class GlobalResultTable implements Config {
     protected void handleGRTUpdate(ReadMessage m) {
         Map map = null;
 
-        Timer handleUpdateTimer = Timer.createTimer();
-        handleUpdateTimer.start();
+        s.stats.handleUpdateTimer.start();
 
-        Timer tableDeserializationTimer = Timer.createTimer();
-        tableDeserializationTimer.start();
+        s.stats.tableDeserializationTimer.start();
         try {
             map = (Map) m.readObject();
         } catch (Exception e) {
             grtLogger.error("SATIN '" + s.ident
                 + "': Global result table - error reading message", e);
         }
-        tableDeserializationTimer.stop();
-        s.stats.tableDeserializationTimer.add(tableDeserializationTimer);
-
-        try {
-            m.finish();
-        } catch (IOException e) {
-            //ignore
-        }
+        s.stats.tableDeserializationTimer.stop();
+        // no need to finish the message
 
         synchronized (s) {
             if (map != null) {
@@ -231,12 +229,7 @@ final class GlobalResultTable implements Config {
                 s.stats.tableMaxEntries = entries.size();
             }
         }
-
-        grtLogger.debug("SATIN '" + s.ident + "': upcall finished: "
-            + entries.size());
-
-        handleUpdateTimer.stop();
-        s.stats.handleUpdateTimer.add(handleUpdateTimer);
+        s.stats.handleUpdateTimer.stop();
     }
 
     protected void print(java.io.PrintStream out) {
