@@ -1,5 +1,6 @@
 /* $Id$ */
 
+// @@@ use lrmc here
 package ibis.satin.impl.faultTolerance;
 
 import ibis.ipl.ReadMessage;
