@@ -10,7 +10,7 @@ import ibis.satin.impl.Config;
 import ibis.satin.impl.Satin;
 
 class JoinThread extends Thread implements Config {
-    private static final boolean CACHE_JOINS = false;
+    private static final boolean CACHE_JOINS = true;
 
     private Satin s;
 
@@ -45,9 +45,6 @@ class JoinThread extends Thread implements Config {
             // Sleep 1 second, maybe more nodes have joined within this second.
             // we can aggregate the port lookups for all those joiners.
             try {
-                //                synchronized (this) {
-                //                    wait();
-                //                }
                 Thread.sleep(1000);
             } catch (Exception e) {
                 // ignored
@@ -82,7 +79,6 @@ class JoinThread extends Thread implements Config {
             }
 
             joiners.add(joiner);
-            //        notifyAll();
         } else {
             if (joiner.equals(s.ident)) {
                 ftLogger.debug("SATIN '" + s.ident
