@@ -314,11 +314,6 @@ final class FTCommunication implements Config, ReceivePortConnectUpcall,
             s.so.addSOConnection(joiner);
             ftLogger.debug("SATIN '" + s.ident + "': creating SO connections done");
 
-            if (!FT_NAIVE) {
-                ftLogger.debug("SATIN '" + s.ident + "': adding ft replica");
-                s.ft.globalResultTable.addReplica(joiner);
-                ftLogger.debug("SATIN '" + s.ident + "': adding ft replica done");
-            }
             synchronized (s) {
                 ftLogger.debug("SATIN '" + s.ident + "': adding victim");
                 s.victims.add(new Victim(joiner, p, r[i]));

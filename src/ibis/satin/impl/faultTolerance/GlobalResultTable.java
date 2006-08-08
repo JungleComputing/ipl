@@ -2,10 +2,7 @@
 
 package ibis.satin.impl.faultTolerance;
 
-import ibis.ipl.IbisIdentifier;
-import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
-import ibis.ipl.ReceivePort;
 import ibis.ipl.StaticProperties;
 import ibis.ipl.WriteMessage;
 import ibis.satin.impl.Config;
@@ -30,18 +27,10 @@ final class GlobalResultTable implements Config {
 
     private Map toSend;
 
-    /** used for communication with other replicas of the table */
-    private ReceivePort receive;
-
-    /** Entries are Victims */
-    private Map sends = new Hashtable();
-
     private int numReplicas = 0;
 
     private GlobalResultTableValue pointerValue = new GlobalResultTableValue(
         GlobalResultTableValue.TYPE_POINTER, null);
-
-    private PortType globalResultTablePortType;
 
     protected GlobalResultTable(Satin s, StaticProperties requestedProperties) {
         this.s = s;
@@ -79,8 +68,7 @@ final class GlobalResultTable implements Config {
     protected void storeResult(InvocationRecord r) {
         Satin.assertLocked(s);
 
-        Timer updateTimer = Timer.createTimer();
-        updateTimer.start();
+        s.stats.updateTimer.start();
 
         GlobalResultTableValue value = new GlobalResultTableValue(
             GlobalResultTableValue.TYPE_RESULT, r);
@@ -93,7 +81,7 @@ final class GlobalResultTable implements Config {
             s.stats.tableMaxEntries = entries.size();
         }
 
-        if (numReplicas > 0 && oldValue == null) {
+        if (oldValue == null) {
             toSend.put(key, pointerValue);
             s.ft.updatesToSend = true;
         }
@@ -101,8 +89,7 @@ final class GlobalResultTable implements Config {
         grtLogger.debug("SATIN '" + s.ident + "': update complete: " + key
             + "," + value);
 
-        updateTimer.stop();
-        s.stats.updateTimer.add(updateTimer);
+        s.stats.updateTimer.stop();
     }
 
     protected void updateAll(Map updates) {
@@ -111,6 +98,9 @@ final class GlobalResultTable implements Config {
         entries.putAll(updates);
         toSend.putAll(updates);
         s.stats.tableResultUpdates += updates.size();
+        if (entries.size() > s.stats.tableMaxEntries) {
+            s.stats.tableMaxEntries = entries.size();
+        }
         s.stats.updateTimer.stop();
         s.ft.updatesToSend = true;
     }
@@ -118,23 +108,20 @@ final class GlobalResultTable implements Config {
     protected void sendUpdates() {
         Timer updateTimer = null;
         Timer tableSerializationTimer = null;
-
+        int size = 0;
+        
         synchronized (s) {
             s.ft.updatesToSend = false;
+            size = s.victims.size();
         }
 
-        if (toSend.size() == 0) {
-            return;
-        }
+        if (size == 0) return;
 
         updateTimer = Timer.createTimer();
         updateTimer.start();
 
-        Iterator sendIter = sends.entrySet().iterator();
-
-        while (sendIter.hasNext()) {
-            Map.Entry entry = (Map.Entry) sendIter.next();
-            Victim send = (Victim) entry.getValue();
+        for(int i=0; i<size; i++) {
+            Victim send = s.victims.getVictim(i);
             WriteMessage m = null;
 
             try {
@@ -157,12 +144,12 @@ final class GlobalResultTable implements Config {
             s.stats.tableSerializationTimer.add(tableSerializationTimer);
 
             try {
-                long size = m.finish();
+                long msgSize = m.finish();
 
-                grtLogger.debug("SATIN '" + s.ident + "': " + size
+                grtLogger.debug("SATIN '" + s.ident + "': " + msgSize
                     + " sent in "
                     + s.stats.tableSerializationTimer.lastTimeVal() + " to "
-                    + entry.getKey());
+                    + send);
             } catch (IOException e) {
                 grtLogger.info("Got exception in finish()");
                 //always happens after a crash
@@ -210,30 +197,6 @@ final class GlobalResultTable implements Config {
 
         if (entries.size() > s.stats.tableMaxEntries) {
             s.stats.tableMaxEntries = entries.size();
-        }
-    }
-
-    protected void addReplica(IbisIdentifier ident) {
-        Victim v = s.victims.getVictim(ident);
-        if (v == null) { // victim crashed
-            return;
-        }
-
-        synchronized (s) {
-            ftLogger.debug("addReplica: store victim");
-            numReplicas++;
-            sends.put(ident, v);
-            ftLogger.debug("addReplica: store victim done");
-        }
-    }
-
-    protected void removeReplica(IbisIdentifier ident) {
-        Satin.assertLocked(s);
-
-        Victim send = (Victim) sends.remove(ident);
-
-        if (send != null) {
-            numReplicas--;
         }
     }
 

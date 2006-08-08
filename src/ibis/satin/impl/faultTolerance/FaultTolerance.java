@@ -144,8 +144,6 @@ public final class FaultTolerance implements Config {
                 s.algorithm.handleCrash(id);
 
                 if (!FT_NAIVE) {
-                    globalResultTable.removeReplica(id);
-
                     // abort all jobs stolen from id or descendants of jobs
                     // stolen from id
                     killAndStoreSubtreeOf(id);
