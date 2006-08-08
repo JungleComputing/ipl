@@ -95,7 +95,7 @@ public interface Config {
      * crashed.
      */
     public static final long CONNECT_TIMEOUT = TypedProperties.intProperty(
-        s_ft_connectTimeout, 120) * 1000L;
+        s_ft_connectTimeout, 30) * 1000L;
 
     /** Maximum time that messages may be buffered for message combining.
      * If > 0, it is used for combining shared objects invocations.

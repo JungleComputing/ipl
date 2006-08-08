@@ -2,15 +2,11 @@
 
 package ibis.satin.impl.faultTolerance;
 
-import ibis.ipl.IbisException;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
-import ibis.ipl.ReceivePortIdentifier;
-import ibis.ipl.SendPort;
 import ibis.ipl.StaticProperties;
-import ibis.ipl.Upcall;
 import ibis.ipl.WriteMessage;
 import ibis.satin.impl.Config;
 import ibis.satin.impl.Satin;
@@ -25,11 +21,11 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
 
-final class GlobalResultTable implements Upcall, Config {
+final class GlobalResultTable implements Config {
     private Satin s;
 
     /** The entries in the global result table. Entries are of type
-     * GlobalResultTableValue. */ 
+     * GlobalResultTableValue. */
     private Map entries;
 
     private Map toSend;
@@ -51,40 +47,6 @@ final class GlobalResultTable implements Upcall, Config {
         this.s = s;
         entries = new Hashtable();
         toSend = new Hashtable();
-
-        try {
-            globalResultTablePortType = createGlobalResultTablePortType(requestedProperties);
-            receive = globalResultTablePortType.createReceivePort(
-                "satin global result table receive port on " + s.ident.name(),
-                this);
-            receive.enableUpcalls();
-            receive.enableConnections();
-        } catch (Exception e) {
-            grtLogger.error("SATIN '" + s.ident
-                + "': Global result table - unable to create ports - "
-                + e.getMessage(), e);
-            System.exit(1);
-        }
-    }
-
-    private PortType createGlobalResultTablePortType(StaticProperties reqprops)
-        throws IOException, IbisException {
-        StaticProperties satinPortProperties = new StaticProperties(reqprops);
-
-        if (CLOSED) {
-            satinPortProperties.add("worldmodel", "closed");
-        } else {
-            satinPortProperties.add("worldmodel", "open");
-        }
-
-        String commprops = "OneToOne, ManyToOne, Reliable";
-        commprops += ", ConnectionUpcalls, ConnectionDowncalls";
-                commprops += ", AutoUpcalls";
-        satinPortProperties.add("communication", commprops);
-        satinPortProperties.add("serialization", "object");
-
-        return s.comm.ibis.createPortType("satin global result table porttype",
-            satinPortProperties);
     }
 
     protected GlobalResultTableValue lookup(Stamp key) {
@@ -135,7 +97,7 @@ final class GlobalResultTable implements Upcall, Config {
             toSend.put(key, pointerValue);
             s.ft.updatesToSend = true;
         }
-        
+
         grtLogger.debug("SATIN '" + s.ident + "': update complete: " + key
             + "," + value);
 
@@ -252,26 +214,16 @@ final class GlobalResultTable implements Upcall, Config {
     }
 
     protected void addReplica(IbisIdentifier ident) {
-        try {
-            ftLogger.debug("addReplica: creating send port");
-            SendPort send = globalResultTablePortType
-                .createSendPort("satin global result table send port on "
-                    + s.ident.name());
-            ftLogger.debug("addReplica: creating send port done");
-            ReceivePortIdentifier r = null;
-            ftLogger.debug("addReplica: lookup receive port");
-            r = s.comm.lookup("satin global result table receive port on "
-                + ident.name());
-            ftLogger.debug("addReplica: lookup receive port done");
-            synchronized (s) {
-                ftLogger.debug("addReplica: store victim");
-                numReplicas++;
-                sends.put(ident, new Victim(ident, send, r));
-                ftLogger.debug("addReplica: store victim done");
-            }
-        } catch (IOException e) {
-            grtLogger.error("SATN '" + s.ident
-                + "': Global result table - unable to add new replica", e);
+        Victim v = s.victims.getVictim(ident);
+        if (v == null) { // victim crashed
+            return;
+        }
+
+        synchronized (s) {
+            ftLogger.debug("addReplica: store victim");
+            numReplicas++;
+            sends.put(ident, v);
+            ftLogger.debug("addReplica: store victim done");
         }
     }
 
@@ -281,31 +233,11 @@ final class GlobalResultTable implements Upcall, Config {
         Victim send = (Victim) sends.remove(ident);
 
         if (send != null) {
-            send.close();
             numReplicas--;
         }
     }
 
-    protected void exit() {
-        try {
-            synchronized (s) {
-                if (numReplicas > 0) {
-                    Iterator sendIter = sends.values().iterator();
-                    while (sendIter.hasNext()) {
-                        Victim send = (Victim) sendIter.next();
-                        send.close();
-                    }
-                }
-            }
-            receive.close();
-        } catch (IOException e) {
-            grtLogger.error("SATIN '" + s.ident
-                + "': Unable to free global result table ports", e);
-        }
-    }
-
-    /** The Ibis upcall. Has to be public. */
-    public void upcall(ReadMessage m) {
+    protected void handleGRTUpdate(ReadMessage m) {
         Map map = null;
 
         Timer handleUpdateTimer = Timer.createTimer();

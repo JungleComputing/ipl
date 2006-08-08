@@ -79,6 +79,9 @@ public final class MessageHandler implements Upcall, Protocol, Config {
             case BARRIER_REPLY:
                 s.comm.handleBarrierReply(ident.ibis());
                 break;
+            case GRT_UPDATE:
+                s.ft.handleGRTUpdate(m);
+                break;
             default:
                 commLogger.error("SATIN '" + s.ident + "': Illegal opcode "
                     + opcode + " in MessageHandler");

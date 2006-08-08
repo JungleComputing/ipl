@@ -348,10 +348,6 @@ public final class FaultTolerance implements Config {
         globalResultTable.print(out);
     }
 
-    public void exit() {
-        globalResultTable.exit();
-    }
-
     public IbisIdentifier lookupOwner(InvocationRecord r) {
         return globalResultTable.lookup(r.getStamp()).sendTo;
     }
@@ -390,5 +386,9 @@ public final class FaultTolerance implements Config {
 
     public void sendAbortAndStoreMessage(InvocationRecord r) {
         ftComm.sendAbortAndStoreMessage(r);
+    }
+    
+    public void handleGRTUpdate(ReadMessage m) {
+        globalResultTable.handleGRTUpdate(m);
     }
 }

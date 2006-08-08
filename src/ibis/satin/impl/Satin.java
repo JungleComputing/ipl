@@ -196,10 +196,6 @@ public final class Satin implements Config {
         comm.closeSendPorts();
         comm.closeReceivePort();
 
-        if (!FT_NAIVE) {
-            ft.exit();
-        }
-
         comm.end();
 
         commLogger.debug("SATIN '" + ident + "': exited");

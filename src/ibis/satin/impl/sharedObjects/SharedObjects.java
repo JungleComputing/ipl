@@ -8,8 +8,6 @@
  * arrives in the meantime, cancel the request
  */
 
-// @@@ if LRMC is used, don't create bcast send and receive ports.
-
 package ibis.satin.impl.sharedObjects;
 
 import ibis.ipl.IbisIdentifier;
