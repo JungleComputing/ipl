@@ -36,9 +36,11 @@ public final class TcpIbisIdentifier extends IbisIdentifier implements
         if (toStringCache == null) {
             String a = address == null ? "<null>" : address.getHostName();
             String n = (name == null ? "<null>" : name);
+/* This is annoying, how can we debug if you can't see which ibis said what? --Rob
             if (n.length() > 8) {
                 n = n.substring(0,8) + "...";
             }
+*/
             toStringCache = "(TcpId: " + n + " on [" + a + "])";
         }
         return toStringCache;
