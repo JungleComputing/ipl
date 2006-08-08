@@ -33,6 +33,12 @@ general:
 - ant clean in apps gooit ant test output files niet weg
 - ant in applicaties doet niet eerst een clean
 
+- na een connectionLost upcall geeft het sluiten van de port soms:
+    Trying to close a sendport port while a message is alive!
+    Dat is natuurlijk zo, maar ja, de connectie is weg, dus dan zou je willen dat
+    de close gewoon netjes zonder exception terug komt. --Rob
+
+
 nameserver+connection stuff:
 - joins, leaves and died messages have to be ordered to each other as well. --Rob
 - deadlocks in pinger, forwarders --Rob
