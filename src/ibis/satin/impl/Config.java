@@ -57,7 +57,7 @@ public interface Config {
 
     /** Enable or disable asserts. */
     static final boolean ASSERTS = TypedProperties.booleanProperty(s_asserts,
-        true);
+        false);
 
     /** true if the node should dump its datastructures during shutdown. */
     static final boolean DUMP = TypedProperties.booleanProperty(s_dump, false);
