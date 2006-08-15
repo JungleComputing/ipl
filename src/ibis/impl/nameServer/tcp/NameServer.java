@@ -429,6 +429,9 @@ public class NameServer extends Thread implements Protocol {
                     if (inf.unfinishedJoins.size() > 0) {
                         IbisInfo[] message = (IbisInfo[])
                                 inf.unfinishedJoins.toArray(new IbisInfo[0]);
+
+                        inf.unfinishedJoins.clear();
+
                         for (Enumeration e2 = inf.pool.elements(); e2.hasMoreElements();) {
                             IbisInfo ibisInf = (IbisInfo) e2.nextElement();
                             if (ibisInf.completelyJoined && ibisInf.needsUpcalls) {
@@ -443,8 +446,6 @@ public class NameServer extends Thread implements Protocol {
                             }
                             ibisInf.completelyJoined = true;
                         }
-
-                        inf.unfinishedJoins.clear();
 
                         while (inf.forwarders != 0) {
                             try {
@@ -852,11 +853,15 @@ public class NameServer extends Thread implements Protocol {
             if (needsUpcalls) {
                 out.writeInt(p.pool.size());
 
+                logger.debug("Sending " + p.pool.size() + " nodes to " + name);
+
                 int i = 0;
                 while (i < p.arrayPool.size()) {
                     IbisInfo temp = (IbisInfo) p.pool.get(((IbisInfo) p.arrayPool.get(i)).name);
+
                     if (temp != null) {
                         out.writeInt(temp.serializedId.length);
+                        logger.debug("Sending " + temp.name + " to " + name);
                         out.write(temp.serializedId);
                         i++;
                     } else {
