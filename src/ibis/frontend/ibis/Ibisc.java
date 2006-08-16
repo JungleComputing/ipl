@@ -33,7 +33,7 @@ public class Ibisc {
     private static boolean verbose = false;
 
     /** Set when jar files must be compressed. */
-    private static boolean compress = false;
+    private static boolean compress = true;
 
     private static ByteCodeWrapper w;
 
@@ -83,7 +83,7 @@ public class Ibisc {
             return;
         }
         jarFiles.add(jarInfo);
-        jarInfo.modified = true;        // for testing ...
+        // jarInfo.modified = true;        // for testing ...
         for (Enumeration iitems = jarInfo.entries(); iitems.hasMoreElements();) {
             JarEntryInfo ient = (JarEntryInfo) iitems.nextElement();
             String iname = ient.jarEntry.getName();
@@ -240,14 +240,22 @@ public class Ibisc {
         // Process own arguments.
         for (int i = 0; i < args.length; i++) {
             if (false) {
-            } else if (args[i].equals("-v")) {
+            } else if (args[i].equals("-v") || args[i].equals("-verbose")) {
                 verbose = true;
+            } else if (args[i].equals("-no-verbose")) {
+                verbose = false;
             } else if (args[i].equals("-verify")) {
                 verify = true;
+            } else if (args[i].equals("-no-verify")) {
+                verify = false;
             } else if (args[i].equals("-keep")) {
                 keep = true;
+            } else if (args[i].equals("-no-keep")) {
+                keep = false;
             } else if (args[i].equals("-compress")) {
                 compress = true;
+            } else if (args[i].equals("-no-compress")) {
+                compress = false;
             } else {
                 leftArgs.add(args[i]);
             }
