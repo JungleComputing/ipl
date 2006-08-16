@@ -12,7 +12,7 @@
 	    depends="config-workstation"
 	    if="config.has-previous">
 	<echo message="Read previous configuration from build-properties.cache"/>
-	<property file="build-properties.cache"/>
+	<property file="build-files/build-properties.cache"/>
     </target>
 
     <target name="config.workstation"
@@ -23,7 +23,7 @@
 
     <target name="config-workstation">
 	<condition property="config.has-previous">
-	    <available file="build-properties.cache"/>
+	    <available file="build-files/build-properties.cache"/>
 	</condition>
 	<condition property="config.is-workstation">
 	    <not>
@@ -71,59 +71,59 @@
 	<property name="config.home.panda" location="${install.home.panda}"/>
 	<property name="config.home.mpi" location="${install.home.mpi}"/>
 
-	<delete file="build-properties.cache"/>
-	<echo	file="build-properties.cache"
+	<delete file="build-files/build-properties.cache"/>
+	<echo	file="build-files/build-properties.cache"
 		append="true">default.home.panda  = ${config.home.panda}
 </echo>
-	<echo	file="build-properties.cache"
+	<echo	file="build-files/build-properties.cache"
 		append="true">default.home.daslib = ${config.home.daslib}
 </echo>
-	<echo	file="build-properties.cache"
+	<echo	file="build-files/build-properties.cache"
 		append="true">default.home.lfc    = ${config.home.lfc}
 </echo>
-	<echo	file="build-properties.cache"
+	<echo	file="build-files/build-properties.cache"
 		append="true">default.home.mpi    = ${config.home.mpi}
 </echo>
-	<echo	file="build-properties.cache"
+	<echo	file="build-files/build-properties.cache"
 		append="true">default.home.gm     = ${config.home.gm}
 </echo>
 	<replace
-		file="${ibis}/build-properties.cache"
+	    file="${ibis}/build-files/build-properties.cache"
 		token="${file.separator}"
 		value="/"/>
 
-	<copy	file="${ibis}/build-properties"
-		tofile="${ibis}/build-properties.backup"
+	    <copy	file="${ibis}/build-files/build-properties"
+		tofile="${ibis}/build-files/build-properties.backup"
 		failonerror="false"
 		overwrite="true">
 	</copy>
 	<copy	file="${ibis}/src/scripts/build-properties.in"
-		tofile="${ibis}/build-properties"
+		tofile="${ibis}/build-files/build-properties"
 		overwrite="true">
 	</copy>
 
 	<replace
-		file="${ibis}/build-properties"
+	    file="${ibis}/build-files/build-properties"
 		token="@GM_HOME@"
 		value="${config.home.gm}"/>
 	<replace
-		file="${ibis}/build-properties"
+	    file="${ibis}/build-files/build-properties"
 		token="@DASLIB_HOME@"
 		value="${config.home.daslib}"/>
 	<replace
-		file="${ibis}/build-properties"
+	    file="${ibis}/build-files/build-properties"
 		token="@LFC_HOME@"
 		value="${config.home.lfc}"/>
 	<replace
-		file="${ibis}/build-properties"
+	    file="${ibis}/build-files/build-properties"
 		token="@PANDA_HOME@"
 		value="${config.home.panda}"/>
 	<replace
-		file="${ibis}/build-properties"
+	    file="${ibis}/build-files/build-properties"
 		token="@MPI_HOME@"
 		value="${config.home.mpi}"/>
 	<replace
-		file="${ibis}/build-properties"
+	    file="${ibis}/build-files/build-properties"
 		token="${file.separator}"
 		value="/"/>
 
@@ -155,7 +155,7 @@
     </target>
 
     <target name="set-ibis-configured" if="called-from-configure">
-	<echo	file="build-properties"
+	<echo	file="build-files/build-properties"
 		append="true">ibis.configured     = true
 </echo>
     </target>
@@ -171,7 +171,7 @@
 
     <target name="config-init-initial" depends="config-init">
 	<condition property="build-properties-available">
-	    <available file="build-properties"/>
+	    <available file="build-files/build-properties"/>
 	</condition>
 	<antcall inheritRefs="true" target="-config-lazy-build-properties"/>
     </target>

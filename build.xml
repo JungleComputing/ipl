@@ -126,7 +126,7 @@
     </target>
 
     <target name="read-props">
-	<property file="build-properties"/>
+	<property file="build-files/build-properties"/>
     </target>
 
     <target name="natives-if-configured" depends="read-props"
@@ -144,9 +144,6 @@
 	<copy todir="${build}">
 	    <fileset dir="${src}">
 		<include name="ibis/impl/**/properties"/>
-	    </fileset>
-	    <fileset dir="${ibis}">
-		<include name="ibis-sys-props"/>
 		<include name="ibis-properties"/>
 	    </fileset>
 	</copy>
@@ -160,7 +157,7 @@
     <target name="ibis.jar">
 	<jar	destfile="${ibis}/lib/ibis.jar"
 		basedir="${build}"
-		includes="**/*.class **/properties ibis-properties ibis-sys-props">
+		includes="**/*.class **/properties ibis-properties">
 	    <manifest>
 		<attribute name="Ibisc-Component" value="ibis.frontend.io.IOGenerator,ibis.frontend.gmi.Gmic,ibis.frontend.rmi.Rmic,ibis.frontend.satin.Satinc"/>
 		<attribute name="Ibis-Implementation" value="ibis.impl.messagePassing.panda.PandaIbis,ibis.impl.tcp.TcpIbis,ibis.impl.net.NetIbis,ibis.impl.nio.NioIbis,ibis.impl.messagePassing.mpi.MPIIbis"/>
@@ -238,9 +235,9 @@
     <target name="distclean"
 	    depends="clean,rewritten-clean"
 	    description="Clean up, also configuration cache and rewritten classlibs">
-	<delete file="build-properties"/>
-	<delete file="build-properties.cache"/>
-	<delete file="build-properties.backup"/>
+	<delete file="build-files/build-properties"/>
+	<delete file="build-files/build-properties.cache"/>
+	<delete file="build-files/build-properties.backup"/>
 	<ant dir="${ibis}/apps" inheritAll="false" target="clean">
 	    <property name="ibis" value="${ibis}"/>
 	</ant>

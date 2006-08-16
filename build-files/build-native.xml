@@ -38,7 +38,7 @@
 	    </and>
 	</condition>
 
-	<property file="${ibis}/build-properties"/>
+	<property file="${ibis}/build-files/build-properties"/>
 
 	<available file="${package.home.gm}" property="gm.present"/>
 	
