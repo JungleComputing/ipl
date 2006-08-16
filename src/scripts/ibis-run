@@ -16,9 +16,13 @@ done
 dir=`dirname "$PRG"`
 dir=`cd "$dir" && pwd`
 
-if [ -z "$IBIS_CONFIG_SEEN" ]; then
-. "$dir"/../configuration.sh
-fi
+case X$IBIS_ROOT in
+X)
+    IBIS_ROOT=`cd "$dir/.." && pwd`
+    ;;
+esac
+
+export IBIS_ROOT
 
 case "`uname`" in
 CYGWIN*)
@@ -201,7 +205,6 @@ Dns_server="-Dibis.name_server.host=$IBIS_NAMESERVER_HOST"
 Dns_port="-Dibis.name_server.port=$IBIS_NAMESERVER_PORT"
 Dns_key="-Dibis.name_server.key=no_key_supplied"
 
-dir=$PWD
 hosts="$HOSTS"
 export hosts
 
@@ -393,11 +396,17 @@ CYGWIN*)
     ;;
 esac
 
+case X$JAVA_ROOT in
+X)	;;
+*)	JAVA_EXEC="$JAVA_ROOT/bin/$JAVA_EXEC"
+	;;
+esac
+
 if [ $needsbootclasspath -eq 1 ]
 then
     if [ $hostnames -eq 1 ]
     then
-	$action "$JAVA_ROOT/bin/$JAVA_EXEC" \
+	$action "$JAVA_EXEC" \
 	    $JIT_OPTS \
 	    -Djava.library.path="$libpath" \
 	    -Dibis.library.path="$ibislib" \
@@ -407,7 +416,7 @@ then
 	    -classpath "$JAVACLASSPATH" \
 	    "$@"
     else
-	$action "$JAVA_ROOT/bin/$JAVA_EXEC" \
+	$action "$JAVA_EXEC" \
 	    $JIT_OPTS \
 	    -Djava.library.path="$libpath" \
 	    -Dibis.library.path="$ibislib" \
@@ -420,7 +429,7 @@ then
 else
     if [ $hostnames -eq 1 ]
     then
-	$action "$JAVA_ROOT/bin/$JAVA_EXEC" \
+	$action "$JAVA_EXEC" \
 	    $JIT_OPTS \
 	    -Djava.library.path="$libpath" \
 	    -Dibis.library.path="$ibislib" \
@@ -429,7 +438,7 @@ else
 	    -classpath "$JAVACLASSPATH" \
 	    "$@"
     else
-	$action "$JAVA_ROOT/bin/$JAVA_EXEC" \
+	$action "$JAVA_EXEC" \
 	    $JIT_OPTS \
 	    -Djava.library.path="$libpath" \
 	    -Dibis.library.path="$ibislib" \

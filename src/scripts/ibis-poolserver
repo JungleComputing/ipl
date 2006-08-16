@@ -16,8 +16,23 @@ done
 dir=`dirname "$PRG"`
 dir=`cd "$dir" && pwd`
 
-. "$dir"/../configuration.sh
+case X$IBIS_ROOT in
+X)
+    IBIS_ROOT=`cd "$dir/.." && pwd`
+    ;;
+esac
 
-JAVACLASSPATH="$CLASSPATH:$IBIS_ROOT/lib/ibis.jar:"
+export IBIS_ROOT
 
-"$JAVA_ROOT"/bin/java -classpath "$JAVACLASSPATH" ibis.util.PoolInfoServer "$@"
+JAVACLASSPATH="$CLASSPATH:$IBIS_ROOT/3rdparty/ibis-util.jar:"
+
+case X$JAVA_ROOT in
+X)
+    JAVA=java
+    ;;
+*)
+    JAVA="$JAVA_ROOT/bin/java"
+    ;;
+esac
+
+"$JAVA" -classpath "$JAVACLASSPATH" ibis.util.PoolInfoServer "$@"

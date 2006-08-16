@@ -20,7 +20,8 @@
     <import file="${ibis}/build-files/apps/build-run.xml"/>
 
     <target name="property-satin-build" unless="build">
-	<echo message="build is undefined. Set it to the default value"/>
+	<echo level="debug"
+	      message="build is undefined. Set it to the default value"/>
 	<property name="build" location="build"/>
 	<mkdir dir="${build}"/>
     </target>

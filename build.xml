@@ -246,6 +246,7 @@
 	</ant>
 	<ant dir="${ibis}/ibis-example" inheritAll="false" target="clean"/>
 	<delete dir="bin"/>
+	<delete dir="lib"/>
 	<delete dir="ant-tasks/tasks"/>
 	<ant dir="${docs}" inheritAll="false" target="distclean"/>
 	<delete file="configuration.sh"/>

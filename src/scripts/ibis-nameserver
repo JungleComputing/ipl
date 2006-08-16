@@ -16,7 +16,13 @@ done
 dir=`dirname "$PRG"`
 dir=`cd "$dir" && pwd`
 
-. "$dir"/../configuration.sh
+case X$IBIS_ROOT in
+X)
+    IBIS_ROOT=`cd "$dir/.." && pwd`
+    ;;
+esac
+
+export IBIS_ROOT
 
 case "`uname`" in
 CYGWIN*)
@@ -208,4 +214,13 @@ if [ $has_enable -eq 1 ]; then
     Ddefines="$Ddefines -Dibis.connect.control_links=RoutedMessages -Dibis.connect.data_links=PlainTCP -Dibis.name_server.host=`hostname -f`"
 fi
 
-"$JAVA_ROOT"/bin/java -classpath "$JAVACLASSPATH" $Ddefines $javaargs ibis.impl.nameServer.tcp.NameServer $args
+case X$JAVA_ROOT in
+X)
+    JAVA=java
+    ;;
+*)
+    JAVA="$JAVA_ROOT/bin/java"
+    ;;
+esac
+
+"$JAVA" -classpath "$JAVACLASSPATH" $Ddefines $javaargs ibis.impl.nameServer.tcp.NameServer $args

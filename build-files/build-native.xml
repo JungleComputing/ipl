@@ -46,7 +46,8 @@
     </target>
 
     <target name="property-javah-build" depends="property-init" unless="build">
-	<echo message="build is undefined. Set it to the default value"/>
+	<echo level="debug"
+	      message="build is undefined. Set it to the default value"/>
 	<property name="build" location="build"/>
 	<mkdir dir="${build}"/>
     </target>
@@ -207,7 +208,8 @@
     </target>
 
     <target name="property-native-local.lib" unless="local.lib">
-	<echo message="local.lib is undefined. Set it to the default value"/>
+	<echo level="debug"
+	      message="local.lib is undefined. Set it to the default value"/>
 	<property name="local.lib" value="ibis"/>
     </target>
 

@@ -7,8 +7,3 @@
 export IBIS_NAMESERVER_HOST
 @SET@IBIS_NAMESERVER_PORT=@IBIS_NS_PORT@
 export IBIS_NAMESERVER_PORT
-
-# not nameserver related, but re-configuration-proof:
-# set to 1 if javawrapper must be used
-@SET@USE_JAVAWRAPPER=0
-export USE_JAVAWRAPPER

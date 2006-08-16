@@ -16,7 +16,20 @@ done
 dir=`dirname "$PRG"`
 dir=`cd "$dir" && pwd`
 
-. $dir/../configuration.sh
+case X$IBIS_ROOT in
+X)
+    IBIS_ROOT=`cd "$dir/.." && pwd`
+    ;;
+esac
+
+export IBIS_ROOT
+
+JAVA=java
+case X$JAVA_ROOT in
+X)	;;
+*)	JAVA=$JAVA_ROOT/bin/java
+	;;
+esac
 
 . $dir/ns-env
 
@@ -115,6 +128,8 @@ dedicated_nameserver=0
 no_pool=0
 ncluster=0
 ibislib=$IBIS_ROOT/lib/natives
+
+USE_JAVAWRAPPER=0
 
 dir=$PWD
 
@@ -342,14 +357,14 @@ if [ $i_am_nameserver -eq 1 ]
 then
 	echo Start run-once name server on `hostname`
 	JAVACLASSPATH="$LIBCLASSPATH:$IBIS_ROOT/build/ibis.jar:"
-	$JAVA_ROOT/bin/java \
+	$JAVA \
 		-classpath $JAVACLASSPATH \
 		ibis.impl.nameServer.tcp.NameServer -single
 elif [ $i_am_cluster_coord -eq 1 ]
 then
 	JAVACLASSPATH="$LIBCLASSPATH:$IBIS_ROOT/build/ibis.jar:"
 	export LFC_INTR_FIRST=100
-	$JAVA_ROOT/bin/java \
+	$JAVA \
 		-classpath $JAVACLASSPATH \
 		-Dibis.library.path="$ibislib" \
 		ibis.impl.messagePassing.PandaIbis

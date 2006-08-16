@@ -4,9 +4,7 @@ if "%OS%"=="Windows_NT" @setlocal
 
 rem %~dp0 is expanded pathname of the current script under NT
 
-set DIR=%~dp0..
-
-call "%DIR%\configuration"
+set IBIS_ROOT=%~dp0..
 
 set JAVACLASSPATH=%CLASSPATH%;%IBIS_ROOT%\3rdparty\log4j-1.2.9.jar;%IBIS_ROOT%\3rdparty\colobus.jar;%IBIS_ROOT%\3rdparty\ibis-util.jar;%IBIS_ROOT%\3rdparty\ibis-connect.jar;%IBIS_ROOT%\lib\ibis.jar;
 
@@ -139,7 +137,12 @@ rem and for NT handling to skip to.
 
 :doneArgs
 
-"%JAVA_ROOT%\bin\java" -classpath "%JAVACLASSPATH%" %Dhub% %Dport% %Dpoolport% %Dhubport% %Dhubhost% %JAVA_ARGS% ibis.impl.nameServer.tcp.NameServer %NS_ARGS%
+set JAVA=java
+if not "%JAVA_ROOT%"=="" (
+    set JAVA=%JAVA_ROOT\bin\java
+)
+
+"%JAVA%" -classpath "%JAVACLASSPATH%" %Dhub% %Dport% %Dpoolport% %Dhubport% %Dhubhost% %JAVA_ARGS% ibis.impl.nameServer.tcp.NameServer %NS_ARGS%
 
 goto end
 

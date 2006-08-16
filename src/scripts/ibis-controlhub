@@ -16,7 +16,13 @@ done
 dir=`dirname "$PRG"`
 dir=`cd "$dir" && pwd`
 
-. "$dir"/../configuration.sh
+case X$IBIS_ROOT in
+X)
+    IBIS_ROOT=`cd "$dir/.." && pwd`
+    ;;
+esac
+
+export IBIS_ROOT
 
 JAVACLASSPATH="$CLASSPATH:$IBIS_ROOT/lib/ibis.jar:"
 
@@ -52,4 +58,13 @@ if [ ! -z "${IBIS_HUB_PORT}" ]; then
   Dhub="-Dibis.connect.hub.port=${IBIS_HUB_PORT}"
 fi
 
-"$JAVA_ROOT"/bin/java -classpath "$JAVACLASSPATH" $Dhub ibis.connect.controlHub.ControlHub
+case X$JAVA_ROOT in
+X)
+    JAVA=java
+    ;;
+*)
+    JAVA="$JAVA_ROOT/bin/java"
+    ;;
+esac
+
+"$JAVA" -classpath "$JAVACLASSPATH" $Dhub ibis.connect.controlHub.ControlHub

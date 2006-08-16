@@ -4,9 +4,7 @@ if "%OS%"=="Windows_NT" @setlocal
 
 rem %~dp0 is expanded pathname of the current script under NT
 
-set DIR=%~dp0..
-
-call "%DIR%\configuration"
+set IBIS_ROOT=%~dp0..
 
 set PRUN_CPU_RANK=0
 set NHOSTS=1
@@ -198,10 +196,15 @@ rem and for NT handling to skip to.
 
 :doneStart
 
+if not "%JAVA_ROOT%"=="" (
+    set JAVA_EXEC=%JAVA_ROOT%\bin\%JAVA_EXEC%
+)
+
+
 if not "%HOSTS%"=="" (
-    %action% "%JAVA_ROOT%\bin\%JAVA_EXEC%" %JIT_OPTS% %Dlibpath% %Dibislibs% %Dpool_host_num% %Dpool_total% -Dpool_host_names="%HOSTS%" %Dns_pool% %Dns_port% %Dns_server% %Xbootclasspath% -classpath "%JAVACLASSPATH%" %IBIS_APP_ARGS%
+    %action% "%JAVA_EXEC%" %JIT_OPTS% %Dlibpath% %Dibislibs% %Dpool_host_num% %Dpool_total% -Dpool_host_names="%HOSTS%" %Dns_pool% %Dns_port% %Dns_server% %Xbootclasspath% -classpath "%JAVACLASSPATH%" %IBIS_APP_ARGS%
 ) else (
-    %action% "%JAVA_ROOT%\bin\%JAVA_EXEC%" %JIT_OPTS% %Dlibpath% %Dibislibs% %Dpool_host_num% %Dpool_total% %Dns_pool% %Dns_port% %Dns_server% %Xbootclasspath% -classpath "%JAVACLASSPATH%" %IBIS_APP_ARGS%
+    %action% "%JAVA_EXEC%" %JIT_OPTS% %Dlibpath% %Dibislibs% %Dpool_host_num% %Dpool_total% %Dns_pool% %Dns_port% %Dns_server% %Xbootclasspath% -classpath "%JAVACLASSPATH%" %IBIS_APP_ARGS%
 )
 
 goto end

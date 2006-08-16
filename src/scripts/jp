@@ -1,5 +1,7 @@
 #!/bin/sh
 
+# Like javap, but with the Ibis stuff on the classpath.
+
 PRG="$0"
 
 # resolve symlinks
@@ -16,10 +18,45 @@ done
 dir=`dirname "$PRG"`
 dir=`cd "$dir" && pwd`
 
-. "$dir"/../configuration.sh
+case X$IBIS_ROOT in
+X)
+    IBIS_ROOT=`cd "$dir/.." && pwd`
+    ;;
+esac
+
+export IBIS_ROOT
+
+LIBCLASSPATH=""
+
+add_to_libclasspath () {
+    DIRLIBS=`cd "$1"; ls *.jar`
+    for i in ${DIRLIBS}
+    do
+	# if the directory is empty, then it will return the input string
+	if [ "$i" != "${DIRLIBS}" ] ; then
+	    if [ -z "$LIBCLASSPATH" ] ; then
+		LIBCLASSPATH="$1/$i"
+	    else
+		LIBCLASSPATH="$1/$i":$LIBCLASSPATH
+	    fi
+	fi
+    done
+}
+
+# Add the following dirs to the classpath 
+add_to_libclasspath "${IBIS_ROOT}"/3rdparty
 
 # javap with classpath
 
-JAVACLASSPATH="$CLASSPATH:$IBIS_ROOT/classlibs:$IBIS_ROOT/lib/ibis.jar:build:$BCEL:.:"
+JAVACLASSPATH="$CLASSPATH:$IBIS_ROOT/classlibs:$IBIS_ROOT/lib/ibis.jar:$LIBCLASSPATH:build:.:"
 
-"$JAVA_ROOT"/bin/javap -classpath "$JAVACLASSPATH" -bootclasspath "$JAVACLASSPATH" "$@"
+case X$JAVA_ROOT in
+X)
+    JAVAP=javap
+    ;;
+*)
+    JAVAP="$JAVA_ROOT/bin/javap"
+    ;;
+esac
+
+"$JAVAP" -classpath "$JAVACLASSPATH" -bootclasspath "$JAVACLASSPATH" "$@"

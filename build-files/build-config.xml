@@ -71,8 +71,6 @@
 	<property name="config.home.panda" location="${install.home.panda}"/>
 	<property name="config.home.mpi" location="${install.home.mpi}"/>
 
-	<property name="package.home.bcel" location="${ibis}/3rdparty/bcel-5.1.jar"/>
-
 	<delete file="build-properties.cache"/>
 	<echo	file="build-properties.cache"
 		append="true">default.home.panda  = ${config.home.panda}
@@ -129,40 +127,11 @@
 		token="${file.separator}"
 		value="/"/>
 
-	<!--
-	==============================================================
-	    Generate configuration.sh, on windows too, for it could be Cygwin.
-	-->
-
-	<condition property="JIT_OPTS" value="${env.JIT_OPTS}">
-	    <isset property="env.JIT_OPTS"/>
-	</condition>
-	<condition property="JIT_OPTS" value="">
-	    <not>
-		<isset property="env.JIT_OPTS"/>
-	    </not>
-	</condition>
-
 	<condition property="is-windows">
 	    <os family="windows"/>
 	</condition>
 
-	<property name="config.javac" location="${JAVA_HOME_ENV}/bin/javac"/>
-
 	<mkdir dir="${ibis}/bin"/>
-	<echo
-		file="${ibis}/configuration.sh">#!/bin/bash
-# Shell variables to describe Ibis configuration
-JAVA_ROOT="${JAVA_HOME_ENV}"
-# JAVA_ROOT=/usr/local/ibm-java/IBMJava2-141
-# JAVA_ROOT=/usr/local/sun-java/jdk1.4
-# JAVA_ROOT=/usr/local/sun-java/j2sdk1.5.0
-JAVAC="${config.javac}"
-JIT_OPTS="${JIT_OPTS}"
-IBIS_ROOT="${ibis}"
-BCEL="${package.home.bcel}"
-IBIS_CONFIG_SEEN=1
-</echo>
 
 	<copy
 		file="${ibis}/src/scripts/ns-env.in"
@@ -174,16 +143,6 @@ IBIS_CONFIG_SEEN=1
     </target>
 
     <target name="-config-build-windows" if="is-windows">
-	<echo
-	    file="${ibis}/configuration.bat">@rem Windows cmd variables to describe Ibis configuration
-@set JAVA_ROOT=${JAVA_HOME_ENV}
-@set JAVAC=${config.javac}
-@set JIT_OPTS=${JIT_OPTS}
-@set IBIS_ROOT=${ibis}
-@set BCEL=${package.home.bcel}
-@set IBIS_CONFIG_SEEN=1
-</echo>
-
 	<copy
 		file="${ibis}/src/scripts/ns-env.in"
 		tofile="${ibis}/bin/ns-env.bat">
