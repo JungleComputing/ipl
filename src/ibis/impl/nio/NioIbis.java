@@ -42,7 +42,9 @@ public final class NioIbis extends Ibis implements Config {
 
     private Hashtable portTypeList = new Hashtable();
 
-    private boolean open = false;
+    private boolean resizeUpcallerEnabled = false;
+
+    private boolean busyUpcaller = false;
 
     private ArrayList joinedIbises = new ArrayList();
 
@@ -50,7 +52,7 @@ public final class NioIbis extends Ibis implements Config {
 
     private ArrayList diedIbises = new ArrayList();
 
-    private ArrayList mustLeaveIbisses = new ArrayList();
+    private ArrayList mustLeaveIbises = new ArrayList();
 
     ChannelFactory factory;
 
@@ -110,114 +112,146 @@ public final class NioIbis extends Ibis implements Config {
         nameServer = NameServer.loadNameServer(this, resizeHandler != null);
 
         factory = new TcpChannelFactory();
-    }
-
-    /**
-     * this method forwards the join to the application running on top of ibis.
-     */
-    public void joined(IbisIdentifier joinIdent) {
-        synchronized (this) {
-            if (!open && resizeHandler != null) {
-                joinedIbises.add(joinIdent);
-                return;
-            }
-
-            if (logger.isInfoEnabled()) {
-                logger.info("ibis '" + joinIdent + "' joined");
-            }
-
-            // poolSize++;
-        }
 
         if (resizeHandler != null) {
-            resizeHandler.joined(joinIdent);
-            if (!i_joined && joinIdent.equals(identifier)) {
-                synchronized (this) {
-                    i_joined = true;
-                    notifyAll();
+            Thread p = new Thread("ResizeUpcaller") {
+                public void run() {
+                    resizeUpcaller();
                 }
+            };
+            p.setDaemon(true);
+            p.start();
+        }
+    }
+
+    private void resizeUpcaller() {
+        for (;;) {
+            synchronized(this) {
+                while (! resizeUpcallerEnabled || emptyArrays()) {
+                    try {
+                        wait();
+                    } catch(Exception e) {
+                        // nothing
+                    }
+                }
+                busyUpcaller = true;
+            }
+
+            upcaller();
+
+            synchronized(this) {
+                busyUpcaller = false;
+                notifyAll();
             }
         }
     }
 
     /**
-     * this method forwards the leave to the application running on top of ibis.
+     * This method forwards the join to the application running on top of ibis.
      */
-    public void left(IbisIdentifier leaveIdent) {
-        synchronized (this) {
-            if (!open && resizeHandler != null) {
-                leftIbises.add(leaveIdent);
-                return;
-            }
-
-            if (logger.isInfoEnabled()) {
-                logger.info("ibis '" + leaveIdent + "' left");
-            }
-
-            // poolSize--;
-        }
-
+    public synchronized void joined(IbisIdentifier joinIdent) {
         if (resizeHandler != null) {
-            resizeHandler.left(leaveIdent);
+            joinedIbises.add(joinIdent);
+            if (resizeUpcallerEnabled) {
+                notifyAll();
+            }
         }
+        if (logger.isInfoEnabled()) {
+            logger.info(name + ": Ibis '" + joinIdent + "' joined");
+        }
+        // poolSize++;
     }
 
     /**
-     * this method forwards the died to the application running on top of ibis.
+     * This method forwards the leave to the application running on top of
+     * ibis.
      */
-    public void died(IbisIdentifier[] corpses) {
-        synchronized (this) {
-            if (!open && resizeHandler != null) {
-                for (int i = 0; i < corpses.length; i++) {
-                    diedIbises.add(corpses[i]);
-                }
-                return;
+    public synchronized void left(IbisIdentifier leaveIdent) {
+        if (resizeHandler != null) {
+            leftIbises.add(leaveIdent);
+            if (resizeUpcallerEnabled) {
+                notifyAll();
             }
-
-            if (logger.isInfoEnabled()) {
-                for (int i = 0; i < corpses.length; i++) {
-                    logger.info("ibis '" + corpses[i] + "' died");
-                }
-            }
-
-            // poolSize -= corpses.length;
         }
+        if (logger.isInfoEnabled()) {
+            logger.info(name + ": Ibis '" + leaveIdent + "' left");
+        }
+        // poolSize--;
+    }
 
+    /**
+     * This method forwards the died to the application running on top of
+     * ibis.
+     */
+    public synchronized void died(IbisIdentifier[] corpses) {
         if (resizeHandler != null) {
             for (int i = 0; i < corpses.length; i++) {
-                resizeHandler.died(corpses[i]);
+                diedIbises.add(corpses[i]);
+            }
+            if (resizeUpcallerEnabled) {
+                notifyAll();
             }
         }
+        if (logger.isInfoEnabled()) {
+            for (int i = 0; i < corpses.length; i++) {
+                logger.info(name + ": Ibis '" + corpses[i] + "' died");
+            }
+        }
+        // poolSize -= corpses.length;
     }
-
 
     /**
      * This method forwards the mustLeave to the application running on top of
      * ibis.
      */
-    public void mustLeave(IbisIdentifier[] ibisses) {
-        synchronized (this) {
-            if (!open && resizeHandler != null) {
-                for (int i = 0; i < ibisses.length; i++) {
-                    mustLeaveIbisses.add(ibisses[i]);
-                }
-                return;
+    public synchronized void mustLeave(IbisIdentifier[] ibisses) {
+        if (resizeHandler != null) {
+            for (int i = 0; i < ibisses.length; i++) {
+                mustLeaveIbises.add(ibisses[i]);
+            }
+            if (resizeUpcallerEnabled) {
+                notifyAll();
             }
         }
 
-        if (resizeHandler != null) {
-            resizeHandler.mustLeave(ibisses);
+        if (logger.isInfoEnabled()) {
+            for (int i = 0; i < ibisses.length; i++) {
+                logger.info(name + ": Ibis '" + ibisses[i] + "' died");
+            }
         }
+        // poolSize -= corpses.length;
     }
 
-    public PortType getPortType(String name) {
-        return (PortType) portTypeList.get(name);
+    private synchronized boolean emptyArrays() {
+        return joinedIbises.size() == 0
+            && leftIbises.size() == 0
+            && diedIbises.size() == 0
+            && mustLeaveIbises.size() == 0;
     }
 
-    public void enableResizeUpcalls() {
-        NioIbisIdentifier ident = null;
+    public synchronized void enableResizeUpcalls() {
 
         logger.info("opening world");
+
+        resizeUpcallerEnabled = true;
+        notifyAll();
+
+        if (resizeHandler != null && !i_joined) {
+            while (!i_joined) {
+                try {
+                    wait();
+                } catch (Exception e) {
+                    /* ignore */
+                }
+            }
+        }
+
+        logger.info("world opened");
+    }
+
+    private void upcaller() {
+
+        NioIbisIdentifier id = null;
 
         if (resizeHandler != null) {
             while (true) {
@@ -226,12 +260,15 @@ public final class NioIbis extends Ibis implements Config {
                         break;
                     }
                     // poolSize++;
-                    ident = (NioIbisIdentifier) joinedIbises.remove(0);
+                    id = (NioIbisIdentifier) joinedIbises.remove(0);
                 }
-                resizeHandler.joined(ident); // Don't hold the lock during
-                // user upcall
-                if (ident.equals(this.identifier)) {
-                    i_joined = true;
+                // Don't hold the lock during user upcall
+                resizeHandler.joined(id);
+                if (id.equals(identifier)) {
+                    synchronized(this) {
+                        i_joined = true;
+                        notifyAll();
+                    }
                 }
             }
 
@@ -241,10 +278,10 @@ public final class NioIbis extends Ibis implements Config {
                         break;
                     }
                     // poolSize--;
-                    ident = (NioIbisIdentifier) leftIbises.remove(0);
+                    id = (NioIbisIdentifier) leftIbises.remove(0);
                 }
-                resizeHandler.left(ident); // Don't hold the lock during user
-                // upcall
+                // Don't hold the lock during user upcall
+                resizeHandler.left(id);
 
             }
             while (true) {
@@ -253,43 +290,38 @@ public final class NioIbis extends Ibis implements Config {
                         break;
                     }
                     // poolSize--;
-                    ident = (NioIbisIdentifier) diedIbises.remove(0);
+                    id = (NioIbisIdentifier) diedIbises.remove(0);
                 }
-                resizeHandler.died(ident); // Don't hold the lock during user
-                // upcall
-
+                // Don't hold the lock during user upcall
+                resizeHandler.died(id);
             }
 
             IbisIdentifier[] ids = new IbisIdentifier[0];
             synchronized(this) {
-                if (mustLeaveIbisses.size() != 0) {
-                    ids = (IbisIdentifier[]) mustLeaveIbisses.toArray(ids);
-                    mustLeaveIbisses.clear();
+                if (mustLeaveIbises.size() != 0) {
+                    ids = (IbisIdentifier[]) mustLeaveIbises.toArray(ids);
+                    mustLeaveIbises.clear();
                 }
             }
             if (ids.length != 0) {
                 resizeHandler.mustLeave(ids);
             }
         }
-
-        synchronized (this) {
-            open = true;
-            if (resizeHandler != null && !i_joined) {
-                while (!i_joined) {
-                    try {
-                        wait();
-                    } catch (Exception e) {
-                    	// ignored
-                    }
-                }
-            }
-        }
-
-        logger.info("world opened");
     }
 
     public synchronized void disableResizeUpcalls() {
-        open = false;
+        while (busyUpcaller) {
+            try {
+                wait();
+            } catch(Exception e) {
+                // nothing
+            }
+        }
+        resizeUpcallerEnabled = false;
+    }
+
+    public PortType getPortType(String name) {
+        return (PortType) portTypeList.get(name);
     }
 
     public void end() {
