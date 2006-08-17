@@ -176,16 +176,10 @@ public final class SharedObjects implements Config {
      */
     private void doExecuteGuard(InvocationRecord r)
         throws SOReferenceSourceCrashedException {
-        boolean satisfied;
-        long startTime;
-
         //restore shared object references
         r.setSOReferences();
 
-        satisfied = r.guard();
-        if (satisfied) {
-            return;
-        }
+        if (r.guard()) return;
 
         soLogger.info("SATIN '" + s.ident.name() + "': "
             + "guard not satisfied, waiting for updates..");
@@ -200,8 +194,10 @@ public final class SharedObjects implements Config {
             }
         }
 
-        startTime = System.currentTimeMillis();
+        long startTime = System.currentTimeMillis();
+        boolean satisfied;
         do {
+            Thread.yield();
             s.handleDelayedMessages();
             satisfied = r.guard();
         } while (!satisfied

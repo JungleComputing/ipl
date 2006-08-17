@@ -198,9 +198,7 @@ final class SOCommunication implements Config, Protocol {
             }
             byteCount = omc.send(tmp, r);
         } catch (Exception e) {
-            System.err.println("WARNING, SOI mcast failed: " + e + " msg: "
-                + e.getMessage());
-            e.printStackTrace();
+            soLogger.warn("SOI mcast failed: " + e + " msg: " + e.getMessage());
         }
 
         s.stats.soInvocations++;
