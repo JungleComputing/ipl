@@ -8,7 +8,7 @@ import ibis.util.DeepCopy;
 import java.io.Serializable;
 
 /**
- * This is the magic class that should be extended by objects that invoke
+ * This is the magic class that should be extended by objects that implement
  * spawnable methods. When the program is not rewritten by the Satin frontend,
  * the methods described here are basically no-ops, and the program will run
  * sequentially. When the program is rewritten by the Satin frontend, calls to
