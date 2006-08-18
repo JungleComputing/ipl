@@ -1536,55 +1536,22 @@ To resume Satin's operation, the \texttt{resume()} method must be used.
 
 \mysubsection{Satin program arguments}
 
-The Satin system accepts the following arguments. They are
-filtered out from the program arguments, leaving the application's
-arguments:
+The Satin system accepts the following parameters, which are
+passed to java as system property values.
 \begin{description}
-\item{\texttt{-satin-closed}}
+\item{\texttt{-Dsatin.closed}}
 Only use the initial set of hosts for the computation; do not allow
 further hosts to join the computation later on.
-\item{\texttt{-satin-stats}}
+\item{\texttt{-Dsatin.stats}}
 Display some statistics at the end of the Satin run. This is the default.
-\item{\texttt{-satin-detailed-stats}}
+\item{\texttt{-Dsatin.stats=false}}
+Don't display statistics.
+\item{\texttt{-Dsatin.detailedStats}}
 Display detailed statistics for every member at the end of the Satin run.
-\item{\texttt{-satin-no-stats}}
-Don't display statistics at the end of the Satin run.
-\item{\texttt{-satin-panda}}
-Use the Panda version of Ibis.
-\item{\texttt{-satin-mpi}}
-Use the MPI version of Ibis.
-\item{\texttt{-satin-net}}
-Use NetIbis.
-\item{\texttt{-satin-nio}}
-Use NIO Ibis.
-\item{\texttt{-satin-tcp}}
-Use the TCP version of Ibis.
-\item{\texttt{-satin-ibis}}
-Use Ibis serialization. When no serialization is specified,
-the object serialization used is determined by Ibis itself.
-\item{\texttt{-satin-sun}}
-Use Sun serialization.
-\item{\texttt{-satin-upcalls}}
-Use upcalls for receiving messages. This is the default.
-\item{\texttt{-satin-no-upcalls}}
-Use explicit receipt for receiving messages.
-\item{\texttt{-satin-upcall-polling}}
-Use upcalls for receiving messages, but Satin must explicitly poll to get
-upcalls.
-\item{\texttt{-satin-alg} \emph{algorithm}}
+\item{\texttt{-Dsatin.alg}=\emph{algorithm}}
 Specify the load-balancing algorithm to use. The possible values for
 \emph{algorithm} are: RS for random work-stealing, CRS for cluster-aware
-random-work stealing, and MW for master-worker
-\end{description}
-
-The following flags are for tuning by the developers of Satin,
-and should not be used unless you really know what you are doing:
-\begin{description}
-\item{\texttt{-satin-queue-size} \emph{integer}}
-The maximum desirable job queue size. If the current work queue 
-has more than this number of jobs, Satin indicates that 
-it does not need more jobs (as can be asked though the
-needMoreJobs() method).
+random-work stealing, and MW for master-worker.
 \end{description}
 
 \mysubsection{Satin Shared Objects}

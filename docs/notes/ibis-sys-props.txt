@@ -1,7 +1,7 @@
 #############################################################################
 #
-# This file contains all of the system properties that are currently
-# recognized by (parts of) Ibis.
+# This file contains all (or at least most) of the system properties that are
+# currently recognized by (parts of) Ibis.
 #
 #############################################################################
 
@@ -492,100 +492,15 @@
 # Must be enabled or there are no statistics at all
 # satin.stats:			true
 
-# Enable spawn statistics.
-# satin.stats.spawn:		true
+# Enables detailed statistics
+# satin.detailedStats:		false
 
-# Enable steal statistics.
-# satin.stats.steal:		true
+# Enables some assertions in satin
+# satin.asserts:		false
 
-# Enable abort statistics.
-# satin.stats.abort:		true
-
-# Enable tuple space statistics.
-# satin.stats.tuple:		true
-
-# Enable fault tolerance statistics.
-# satin.stats.ft:		true
-
-# Enable global result table statistics.
-# satin.stats.ft.grt:		true
-
-# Must be enabled or there are no timings at all.
-# satin.timing:			true
-
-# Enable steal timings.
-# satin.timing.steal:		true
-
-# Enable abort timings.
-# satin.timing.abort:		true
-
-# Enable idle timings.
-# satin.timing.idle:		false
-
-# Enable poll timings.
-# satin.timing.poll:		false
-
-# Enable tuple space timings.
-# satin.timing.tuple:		true
-
-# Enable global result table timings.
-# satin.timing.ft.grt:		true
-
-# Enable crash handling timings.
-# satin.timing.ft.crash:	true
-
-# Enable result table check timings.
-# satin.timing.ft.check:	true
-
-# Enable timings for getting a replica of the global result table.
-# satin.timing.ft.replica:	true
-
-# Sets the polling frequency. Not needed when running with automatic upcalls.
-# satin.pollfreq		0
-
-# Enables explicit polling of the Satin receiveport. The alternative to this
-# is to just poll Ibis (which will trigger upcalls).
-# satin.pollport		true
-
-# Enables aborts (and inlets).
-# satin.aborts			true
-
-# Enables Gosia's fault tolerant Satin.
-# satin.ft			false
-
-# If true, the global result table (GRT) is replicated, if false, it is
-# distributed.
-# satin.ft.grt.replicated	false
-
-# Enables message combining with the GRT.
-# satin.ft.grt.combine		true
-
-# If true, orphan jobs are not aborted. Pointers are stored immediately
-# after crashes and results later. Jobs stolen by crashed processors
-# are not put back into the work queue. The are marked as dead and
-# redone when their parent is on the top of the stack.
-# Do not use with replicated table.
-# satin.ft.grt.noAborts		false
-
-# Fault tolerance with restarting crashed jobs, but without the GRT.
-# satin.ft.grt.noTable		false
-
-# Enables the following optimization: when waiting for a steal reply, some types
-# of messages are handled, for instance aborts and exceptions. This is only
-# possible when using non-automatic upcalls (upcalls that must be polled for).
-# satin.messagesInLatency	false
-
-# Enables multicast for tuple space updates. If not enabled, point-to-point
-# messages are used for tuple updates.
-# satin.tuplespace.multicast	true
-
-# Three synonyms that, when set to true, indicate that a global ordering must
-# be used for the tuple space. This means that all updates to the tuple space
-# are tagged with a globally valid sequence number, so that the updates can be
-# applied in the same order on all nodes.
-# satin.tuplespace.ordered	false
-# satin.tuplespace.ordened	false
-# satin.tuplespace.numbered	false
+# Fault tolerance with restarting crashed jobs, but without the
+# global result table.
+# satin.ft.naive		false
 
 #############################################################################
 #
