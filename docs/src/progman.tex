@@ -1027,6 +1027,16 @@ for our example program:
 Now, invoking \emph{ant} compiles the application, leaving the class files
 in a directory called \texttt{build}.
 
+If, for some reason, it is not convenient to use \emph{ant} to compile
+your application, or you have only class files or jar files available
+for parts of your application, it is also possible to first compile
+your application to class files or jar files, and then process those
+using the \emph{ibisc} script. This script can be found in the Ibis
+bin directory. It takes either directories, class files, or jar files
+as parameter, and processes those, possibly rewriting them. In case
+of a directory, all class files and jar files in that directory or
+its subdirectories are processed.
+
 \mysubsection{The Ibis Nameserver}
 
 Most Ibis implementations depend on a nameserver for providing
@@ -1746,6 +1756,25 @@ leaving the class files in a directory called \texttt{build}.
 Invoking \emph{ant clean build} compiles the application for parallel
 runs.
 
+If, for some reason, it is not convenient to use \emph{ant} to compile
+your application, or you have only class files or jar files available
+for parts of your application, it is also possible to first compile
+your application to class files or jar files, and then process those
+using the \emph{ibisc} script. This script can be found in the Ibis
+bin directory. It takes either directories, class files, or jar files
+as parameter, and processes those, possibly rewriting them. In case
+of a directory, all class files and jar files in that directory or
+its subdirectories are processed.
+To process a Satin application, \emph{ibisc} needs to know which
+classes to process for Satin. This can be accomplished by passing
+flags to \emph{ibisc}:
+
+\texttt{-satin} \emph{comma-separated list of class names}
+
+where the comma-separated list of class names consists of the main class,
+any class that implements a shared object, and all classes that invoke
+spawns or syncs.
+
 Running a Satin program is very much like running an Ibis application.
 See Section \ref{Compiling and Running an Ibis Application} for details.
 
@@ -1931,6 +1960,21 @@ $ java \
 This should produce the same result as the Sun RMI test.
 If you want to run the application with the \texttt{ibis-run} script,
 you can use the same commandline as with the Sun RMI test.
+
+If, for some reason, it is not convenient to use \emph{ant} to compile
+your application, or you have only class files or jar files available
+for parts of your application, it is also possible to first compile
+your application to class files or jar files, and then process those
+using the \emph{ibisc} script. This script can be found in the Ibis
+bin directory. It takes either directories, class files, or jar files
+as parameter, and processes those, possibly rewriting them. In case
+of a directory, all class files and jar files in that directory or
+its subdirectories are processed.
+To process an RMI application, \emph{ibisc} needs to know that it has to
+do so.  This can be accomplished by passing either the \texttt{-rmi}
+or the \texttt{-rmi-java2ibis} flag to \emph{ibisc}. The latter instructs
+\emph{ibisc} to not only use the Ibis rmic, but also to change all
+references to \texttt{java.rmi} into references to \texttt{ibis.rmi}.
 
 \mysection{The GMI (Group Method Invocation) System}
 \label{gmi-sec}
@@ -2230,6 +2274,19 @@ the location of your Ibis installation.
 
 Invoking \emph{ant build} compiles the application for GMI.
 
+If, for some reason, it is not convenient to use \emph{ant} to compile
+your application, or you have only class files or jar files available
+for parts of your application, it is also possible to first compile
+your application to class files or jar files, and then process those
+using the \emph{ibisc} script. This script can be found in the Ibis
+bin directory. It takes either directories, class files, or jar files
+as parameter, and processes those, possibly rewriting them. In case
+of a directory, all class files and jar files in that directory or
+its subdirectories are processed.
+To process a GMI application, \emph{ibisc} needs to know that it has to
+do so.  This can be accomplished by passing the \texttt{-gmi}
+flag to \emph{ibisc}.
+
 Running a GMI program is very much like running an Ibis application.
 See Section \ref{Compiling and Running an Ibis Application} for details.
 
@@ -2241,8 +2298,8 @@ The Ibis web page
 {\latex {http://www.cs.vu.nl/ibis/publications.html}}
 contains links to various Ibis papers.
 The best starting point might be \\
-{\html {\htmladdnormallink{http://www.cs.vu.nl/~rob/papers/cpe03.ps.gz} {http://www.cs.vu.nl/\~{}rob/papers/cpe03.ps.gz}}}
-{\latex {http://www.cs.vu.nl/\~{}rob/papers/cpe03.ps.gz}}, which gives a high-level description of the stucture of the Ibis system.
+{\html {\htmladdnormallink{http://www.cs.vu.nl/ibis/papers/nieuwpoort_cpe_05.pdf} {http://www.cs.vu.nl/ibis/papers/nieuwpoort\_cpe\_05.pdf}}}
+{\latex {http://www.cs.vu.nl/ibis/papers/nieuwpoort\_cpe\_05.pdf}}, which gives a high-level description of the stucture of the Ibis system.
 It also gives some low-level and high-level benchmarks of the different Ibis implementations.
 
 The \emph{docs/api} subdirectory of the Ibis installation provides

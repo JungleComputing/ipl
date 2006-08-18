@@ -52,7 +52,7 @@ public class Ibisc {
                 getClassesFromDirectory(list[i], prefix);
             } else if (fname.endsWith(".class")) {
                 getClassFromClassFile(prefix + fname);
-            } else if (prefix.equals("") && fname.endsWith(".jar")) {
+            } else if (fname.endsWith(".jar")) {
                 getClassesFromJarFile(list[i], prefix + fname);
             }
         }

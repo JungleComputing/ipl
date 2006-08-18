@@ -96,6 +96,7 @@ public class Rmic extends IbiscComponent {
                 args.remove(i--);
             } else if (arg.equals("-rmi-java2ibis")) {
                 java2ibis = true;
+                rmicEnabled = true;
                 args.remove(i--);
             }
         }
