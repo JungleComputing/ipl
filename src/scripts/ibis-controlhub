@@ -16,15 +16,15 @@ done
 dir=`dirname "$PRG"`
 dir=`cd "$dir" && pwd`
 
-case X$IBIS_ROOT in
+case X$IBIS_HOME in
 X)
-    IBIS_ROOT=`cd "$dir/.." && pwd`
+    IBIS_HOME=`cd "$dir/.." && pwd`
     ;;
 esac
 
-export IBIS_ROOT
+export IBIS_HOME
 
-JAVACLASSPATH="$CLASSPATH:$IBIS_ROOT/lib/ibis.jar:"
+JAVACLASSPATH="$CLASSPATH:$IBIS_HOME/lib/ibis.jar:"
 
 usage() {
   echo "Usage: $0 [-port <port>]"
@@ -58,12 +58,12 @@ if [ ! -z "${IBIS_HUB_PORT}" ]; then
   Dhub="-Dibis.connect.hub.port=${IBIS_HUB_PORT}"
 fi
 
-case X$JAVA_ROOT in
+case X$JAVA_HOME in
 X)
     JAVA=java
     ;;
 *)
-    JAVA="$JAVA_ROOT/bin/java"
+    JAVA="$JAVA_HOME/bin/java"
     ;;
 esac
 

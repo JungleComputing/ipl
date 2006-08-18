@@ -1,6 +1,6 @@
 #!/bin/sh
-if [ -z "$IBIS_ROOT" ]; then
-   echo $0: fatal: IBIS_ROOT not in environment >&2; exit 1
+if [ -z "$IBIS_HOME" ]; then
+   echo $0: fatal: IBIS_HOME not in environment >&2; exit 1
 fi
 name=none
 hub=none
@@ -29,7 +29,7 @@ case $name in
 	    ;;
     *)	    opts="$opts -no-poolserver"
     esac
-    $IBIS_ROOT/bin/ibis-nameserver		\
+    $IBIS_HOME/bin/ibis-nameserver		\
     	 -port "$name"				\
 	$opts					\
     	 -single &

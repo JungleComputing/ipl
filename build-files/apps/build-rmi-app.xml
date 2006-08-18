@@ -100,7 +100,7 @@
 	depends="clean,init,property-init">
 	<javac  destdir="${build}"
 		debug="true"
-		srcdir=".:${ibis}/apps/rmi/shared">
+		srcdir=".:../shared">
 	    <classpath refid="default.classpath"/>
 	    <include name="**/*.java"/>
 	</javac>

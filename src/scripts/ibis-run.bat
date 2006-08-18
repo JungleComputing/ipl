@@ -4,7 +4,7 @@ if "%OS%"=="Windows_NT" @setlocal
 
 rem %~dp0 is expanded pathname of the current script under NT
 
-set IBIS_ROOT=%~dp0..
+set IBIS_HOME=%~dp0..
 
 set PRUN_CPU_RANK=0
 set NHOSTS=1
@@ -19,11 +19,11 @@ rem
 rem java.library.path and ibis.library.path ...
 rem
 
-set Dlibpath="-Djava.library.path=%IBIS_ROOT%\lib\natives;.;"
+set Dlibpath="-Djava.library.path=%IBIS_HOME%\lib\natives;.;"
 
 rem This is the location where all ibis native libs must go.
 rem It must be *one* dir.
-set Dibislibs="-Dibis.library.path=%IBIS_ROOT%\lib\natives"
+set Dibislibs="-Dibis.library.path=%IBIS_HOME%\lib\natives"
 
 rem
 rem Some defaults ...
@@ -44,7 +44,7 @@ rem
 rem nameserver defaults
 rem
 
-call "%IBIS_ROOT%\bin\ns-env"
+call "%IBIS_HOME%\bin\ns-env"
 
 set Dns_port="-Dibis.name_server.port=%IBIS_NAMESERVER_PORT%"
 set Dns_pool="-Dibis.name_server.key=no_key_supplied"
@@ -153,7 +153,7 @@ goto arguments
 
 :cont
 
-set JAVACLASSPATH=%CLASSPATH%;build;%IBIS_ROOT%\classlibs;%IBIS_ROOT%\lib\ibis.jar;%IBIS_ROOT%\3rdparty\junit.jar;%IBIS_ROOT%\3rdparty\log4j-1.2.9.jar;%IBIS_ROOT%\3rdparty\colobus.jar;.;
+set JAVACLASSPATH=%CLASSPATH%;build;%IBIS_HOME%\classlibs;%IBIS_HOME%\lib\ibis.jar;%IBIS_HOME%\3rdparty\junit.jar;%IBIS_HOME%\3rdparty\log4j-1.2.9.jar;%IBIS_HOME%\3rdparty\colobus.jar;.;
 
 if "%noJIT%"=="1" (
     set JIT_OPTS=%JIT_OPTS% -Djava.compiler=NONE
@@ -196,8 +196,8 @@ rem and for NT handling to skip to.
 
 :doneStart
 
-if not "%JAVA_ROOT%"=="" (
-    set JAVA_EXEC=%JAVA_ROOT%\bin\%JAVA_EXEC%
+if not "%JAVA_HOME%"=="" (
+    set JAVA_EXEC=%JAVA_HOME%\bin\%JAVA_EXEC%
 )
 
 

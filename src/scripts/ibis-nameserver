@@ -16,17 +16,17 @@ done
 dir=`dirname "$PRG"`
 dir=`cd "$dir" && pwd`
 
-case X$IBIS_ROOT in
+case X$IBIS_HOME in
 X)
-    IBIS_ROOT=`cd "$dir/.." && pwd`
+    IBIS_HOME=`cd "$dir/.." && pwd`
     ;;
 esac
 
-export IBIS_ROOT
+export IBIS_HOME
 
 case "`uname`" in
 CYGWIN*)
-    IBIS_ROOT=`cygpath --unix "$IBIS_ROOT"`
+    IBIS_HOME=`cygpath --unix "$IBIS_HOME"`
     CLASSPATH=`cygpath --unix --path "$CLASSPATH"`
     ;;
 esac
@@ -49,15 +49,15 @@ add_to_libclasspath () {
 }
 
 # Add the following dirs to the classpath 
-add_to_libclasspath "${IBIS_ROOT}"/3rdparty
+add_to_libclasspath "${IBIS_HOME}"/3rdparty
 
 case "`uname`" in
 CYGWIN*)
-    JAVACLASSPATH="$CLASSPATH:$IBIS_ROOT/lib/ibis.jar:$LIBCLASSPATH:"
+    JAVACLASSPATH="$CLASSPATH:$IBIS_HOME/lib/ibis.jar:$LIBCLASSPATH:"
     JAVACLASSPATH=`cygpath --path --windows "$JAVACLASSPATH"`
     ;;
 *)
-    JAVACLASSPATH="$CLASSPATH:$IBIS_ROOT/lib/ibis.jar:$LIBCLASSPATH:"
+    JAVACLASSPATH="$CLASSPATH:$IBIS_HOME/lib/ibis.jar:$LIBCLASSPATH:"
     ;;
 esac
 
@@ -214,12 +214,12 @@ if [ $has_enable -eq 1 ]; then
     Ddefines="$Ddefines -Dibis.connect.control_links=RoutedMessages -Dibis.connect.data_links=PlainTCP -Dibis.name_server.host=`hostname -f`"
 fi
 
-case X$JAVA_ROOT in
+case X$JAVA_HOME in
 X)
     JAVA=java
     ;;
 *)
-    JAVA="$JAVA_ROOT/bin/java"
+    JAVA="$JAVA_HOME/bin/java"
     ;;
 esac
 

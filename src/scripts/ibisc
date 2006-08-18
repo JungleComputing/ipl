@@ -16,24 +16,24 @@ done
 dir=`dirname "$PRG"`
 dir=`cd "$dir" && pwd`
 
-case X$IBIS_ROOT in
+case X$IBIS_HOME in
 X)
-    IBIS_ROOT=`cd "$dir/.." && pwd`
+    IBIS_HOME=`cd "$dir/.." && pwd`
     ;;
 esac
 
-export IBIS_ROOT
+export IBIS_HOME
 
-case X$JAVA_ROOT in
+case X$JAVA_HOME in
 X)
     JAVA=java
     ;;
 *)
-    JAVA="$JAVA_ROOT/bin/java"
+    JAVA="$JAVA_HOME/bin/java"
     ;;
 esac
 
-export IBIS_ROOT
+export IBIS_HOME
 
 LIBCLASSPATH=""
 
@@ -53,8 +53,8 @@ add_to_libclasspath () {
 }
 
 # Add the following dirs to the classpath 
-add_to_libclasspath "${IBIS_ROOT}"/3rdparty
+add_to_libclasspath "${IBIS_HOME}"/3rdparty
 
-JAVACLASSPATH="$CLASSPATH:$IBIS_ROOT/lib/ibis.jar:$LIBCLASSPATH"
+JAVACLASSPATH="$CLASSPATH:$IBIS_HOME/lib/ibis.jar:$LIBCLASSPATH"
 
 "$JAVA" -classpath "$JAVACLASSPATH" ibis.frontend.ibis.Ibisc "$@"

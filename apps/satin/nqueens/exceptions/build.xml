@@ -5,7 +5,7 @@
 
     <property environment="env"/>
 
-    <property name="ibis"        location="${env.IBIS_ROOT}"/>
+    <property name="ibis"        location="${env.IBIS_HOME}"/>
     <property name="build"       value="build"/>
 
     <property name="satin-classes" value="NQueens"/>

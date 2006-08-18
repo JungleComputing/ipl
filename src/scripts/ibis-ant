@@ -16,22 +16,18 @@ done
 dir=`dirname "$PRG"`
 dir=`cd "$dir" && pwd`
 
-case X$IBIS_ROOT in
+case X$IBIS_HOME in
 X)
-    IBIS_ROOT=`cd "$dir/.." && pwd`
+    IBIS_HOME=`cd "$dir/.." && pwd`
     ;;
 esac
 
-export IBIS_ROOT
+export IBIS_HOME
 
 if [ -z "$JAVA_HOME" ]
 then
-    if [ -z "$JAVA_ROOT" ]
-    then
-	echo "ibis-ant: either the JAVA_HOME or the JAVA_ROOT environment variable must be set" 1>&2
-	exit 1
-    fi
-    JAVA_HOME="$JAVA_ROOT"
+    echo "ibis-ant: the JAVA_HOME environment variable must be set" 1>&2
+    exit 1
 fi
 
 export JAVA_HOME

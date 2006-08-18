@@ -997,7 +997,7 @@ implement a functioning flow-control for these cases.
 
 Before running an Ibis application it must be compiled.  Using
 \emph{ant}, this is quite easy. Assuming that the environment variable
-\texttt{IBIS\_ROOT} reflects the location of your Ibis installation,
+\texttt{IBIS\_HOME} reflects the location of your Ibis installation,
 here is a \texttt{build.xml} file
 for our example program:
 
@@ -1014,7 +1014,7 @@ for our example program:
     </description>
 
     <property environment="env" />
-    <property name="ibis"   value="${env.IBIS_ROOT}" />
+    <property name="ibis"   value="${env.IBIS_HOME}" />
 
     <property name="build"  location="build"/>
 
@@ -1155,7 +1155,7 @@ Then, in both shells type:
 \noindent
 {\small
 \begin{verbatim}
-$ $IBIS_ROOT/bin/ibis-run \
+$ $IBIS_HOME/bin/ibis-run \
     -nhosts 2 -ns localhost Example
 \end{verbatim}
 }
@@ -1176,7 +1176,7 @@ In both shells, type:
 {\small
 \begin{verbatim}
 $ java \
-    -cp $IBIS_ROOT/lib/ibis.jar:$IBIS_ROOT/3rdparty/log4j-1.2.9.jar:build \
+    -cp $IBIS_HOME/lib/ibis.jar:$IBIS_HOME/3rdparty/log4j-1.2.9.jar:build \
     -Dibis.pool.total_hosts=2 -Dibis.name_server.host=localhost \
     -Dibis.name_server.key=bla \
     Example
@@ -1718,7 +1718,7 @@ our example program:
     </description>
 
     <property environment="env" />
-    <property name="ibis"   value="${env.IBIS_ROOT}" />
+    <property name="ibis"   value="${env.IBIS_HOME}" />
 
     <property name="satin-classes" value="Search"/>
 
@@ -1730,7 +1730,7 @@ our example program:
 \end{quote}
 }
 
-Again, we assume that the environment variable \texttt{IBIS\_ROOT} reflects
+Again, we assume that the environment variable \texttt{IBIS\_HOME} reflects
 the location of your Ibis installation.
 Also note that the Satin bytecode rewriter needs to know the
 classes in your application that must be rewritten.
@@ -1825,7 +1825,7 @@ Using \emph{ant}, this is quite easy. Here is an example build.xml file:
     </description>
 
     <property environment="env" />
-    <property name="ibis"   value="${env.IBIS_ROOT}" />
+    <property name="ibis"   value="${env.IBIS_HOME}" />
 
     <property name="build"  location="build"/>
 
@@ -1835,7 +1835,7 @@ Using \emph{ant}, this is quite easy. Here is an example build.xml file:
 \end{quote}
 }
 
-Again, we assume that the environment variable \texttt{IBIS\_ROOT} reflects
+Again, we assume that the environment variable \texttt{IBIS\_HOME} reflects
 the location of your Ibis installation.
 
 Invoking \emph{ant build-sun} compiles a standard Java RMI version of
@@ -1844,9 +1844,9 @@ Invoking \emph{ant build} compiles the application for Ibis RMI.
 Running an Ibis RMI program is very much like running an Ibis application.
 
 To test this for yourself, it is best to start with
-an example, say \texttt{\$IBIS\_ROOT/apps/rmi/tsp}. 
+an example, say \texttt{\$IBIS\_HOME/apps/rmi/tsp}. 
 If you want to test your own application, it is easiest to just copy
-the \texttt{build.xml} file from \texttt{\$IBIS\_ROOT/apps/rmi/tsp}, and adapt it for your
+the \texttt{build.xml} file from \texttt{\$IBIS\_HOME/apps/rmi/tsp}, and adapt it for your
 application. 
 To compile the TSP example, please type
 
@@ -1864,7 +1864,7 @@ Running the TSP example with Sun RMI can be done as follows. Run the command
 {\small
 \begin{verbatim}
 $ java \
-    -cp $IBIS_ROOT/lib/ibis.jar:$IBIS_ROOT/3rdparty/log4j-1.2.9.jar:build \
+    -cp $IBIS_HOME/lib/ibis.jar:$IBIS_HOME/3rdparty/log4j-1.2.9.jar:build \
     -Dibis.pool.total_hosts=2 -Dibis.pool.server.host=localhost \
     Server table_15.1
 \end{verbatim}
@@ -1876,7 +1876,7 @@ on the local machine. Alternatively, you can use the \emph{ibis-run} script:
 \noindent
 {\small
 \begin{verbatim}
-$ $IBIS_ROOT/bin/ibis-run -nhosts 2 -hostno 0 Server table_15.1
+$ $IBIS_HOME/bin/ibis-run -nhosts 2 -hostno 0 Server table_15.1
 \end{verbatim}
 }
 
@@ -1886,7 +1886,7 @@ in the first shell, and
 \noindent
 {\small
 \begin{verbatim}
-$ $IBIS_ROOT/bin/ibis-run -nhosts 2 -hostno 1 Server table_15.1
+$ $IBIS_HOME/bin/ibis-run -nhosts 2 -hostno 1 Server table_15.1
 \end{verbatim}
 }
 
@@ -1920,7 +1920,7 @@ Now we can run it by typing the following command in two seperate shells:
 {\small
 \begin{verbatim}
 $ java \
-    -cp $IBIS_ROOT/lib/ibis.jar:$IBIS_ROOT/3rdparty/log4j-1.2.9.jar:build \
+    -cp $IBIS_HOME/lib/ibis.jar:$IBIS_HOME/3rdparty/log4j-1.2.9.jar:build \
     -Dibis.pool.total_hosts=2 -Dibis.pool.server.host=localhost \
     -Dibis.name_server.host=localhost -Dibis.name_server.key=bla \
     Server table_15.1 
@@ -2215,7 +2215,7 @@ Using \emph{ant}, this is quite easy. Here is an example build.xml file:
     </description>
 
     <property environment="env" />
-    <property name="ibis"   value="${env.IBIS_ROOT}" />
+    <property name="ibis"   value="${env.IBIS_HOME}" />
 
     <property name="build"  location="build"/>
 
@@ -2225,7 +2225,7 @@ Using \emph{ant}, this is quite easy. Here is an example build.xml file:
 \end{quote}
 }
 
-Again, we assume that the environment variable \texttt{IBIS\_ROOT} reflects
+Again, we assume that the environment variable \texttt{IBIS\_HOME} reflects
 the location of your Ibis installation.
 
 Invoking \emph{ant build} compiles the application for GMI.

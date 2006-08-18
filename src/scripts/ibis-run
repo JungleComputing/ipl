@@ -16,18 +16,18 @@ done
 dir=`dirname "$PRG"`
 dir=`cd "$dir" && pwd`
 
-case X$IBIS_ROOT in
+case X$IBIS_HOME in
 X)
-    IBIS_ROOT=`cd "$dir/.." && pwd`
+    IBIS_HOME=`cd "$dir/.." && pwd`
     ;;
 esac
 
-export IBIS_ROOT
+export IBIS_HOME
 
 case "`uname`" in
 CYGWIN*)
     # convert to unix format before dealing with them.
-    IBIS_ROOT=`cygpath --unix "$IBIS_ROOT"`
+    IBIS_HOME=`cygpath --unix "$IBIS_HOME"`
     CLASSPATH=`cygpath --unix --path "$CLASSPATH"`
     LD_LIBRARY_PATH=`cygpath --unix --path "$LD_LIBRARY_PATH"`
     ;;
@@ -53,7 +53,7 @@ add_to_libclasspath () {
 }
 
 # Add the following dirs to the classpath 
-add_to_libclasspath "${IBIS_ROOT}"/3rdparty
+add_to_libclasspath "${IBIS_HOME}"/3rdparty
 
 Dns_pool=
 HOSTNO=0
@@ -170,12 +170,12 @@ fi
 
 if [ -z "$ibislib" ]
 then
-    ibislib="$IBIS_ROOT/lib/natives"
+    ibislib="$IBIS_HOME/lib/natives"
 fi
 
 libpath="$ibislib:.:$LD_LIBRARY_PATH:"
 
-JAVACLASSPATH="build/:$IBIS_ROOT/classlibs/:$IBIS_ROOT/lib/ibis.jar:$LIBCLASSPATH:.:"
+JAVACLASSPATH="build/:$IBIS_HOME/classlibs/:$IBIS_HOME/lib/ibis.jar:$LIBCLASSPATH:.:"
 
 #
 # Some defaults ...
@@ -188,7 +188,7 @@ ip_map=
 
 JAVA_EXEC=java
 
-if [ -d "$IBIS_ROOT"/classlibs ]
+if [ -d "$IBIS_HOME"/classlibs ]
 then
     needsbootclasspath=1
 else
@@ -199,7 +199,7 @@ fi
 # nameserver defaults
 #
 
-. "$IBIS_ROOT"/bin/ns-env
+. "$IBIS_HOME"/bin/ns-env
 
 Dns_server="-Dibis.name_server.host=$IBIS_NAMESERVER_HOST"
 Dns_port="-Dibis.name_server.port=$IBIS_NAMESERVER_PORT"
@@ -330,18 +330,18 @@ done
 
 if [ ! -z "$ip_map" ]
 then
-    ip_addr=`"$IBIS_ROOT"/bin/ip_map.perl "$ip_map" \`hostname\``
+    ip_addr=`"$IBIS_HOME"/bin/ip_map.perl "$ip_map" \`hostname\``
     JIT_OPTS="$JIT_OPTS -Dibis.util.ip.address=$ip_addr"
     # This is required if Sun's RMI is used
     JIT_OPTS="$JIT_OPTS -Djava.rmi.server.hostname=$ip_addr"
     if [ ! -z $hosts ]
     then
-	hosts="`"$IBIS_ROOT"/bin/ip_map.perl "$ip_map" $hosts`"
+	hosts="`"$IBIS_HOME"/bin/ip_map.perl "$ip_map" $hosts`"
 	export hosts
     fi
     if [ ! -z $PRUN_HOSTNAMES ]
     then
-	PRUN_HOSTNAMES="`"$IBIS_ROOT"/bin/ip_map.perl "$ip_map" $PRUN_HOSTNAMES`"
+	PRUN_HOSTNAMES="`"$IBIS_HOME"/bin/ip_map.perl "$ip_map" $PRUN_HOSTNAMES`"
 	export PRUN_HOSTNAMES
     fi
 fi
@@ -396,9 +396,9 @@ CYGWIN*)
     ;;
 esac
 
-case X$JAVA_ROOT in
+case X$JAVA_HOME in
 X)	;;
-*)	JAVA_EXEC="$JAVA_ROOT/bin/$JAVA_EXEC"
+*)	JAVA_EXEC="$JAVA_HOME/bin/$JAVA_EXEC"
 	;;
 esac
 

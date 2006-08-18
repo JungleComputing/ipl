@@ -16,18 +16,18 @@ done
 dir=`dirname "$PRG"`
 dir=`cd "$dir" && pwd`
 
-case X$IBIS_ROOT in
+case X$IBIS_HOME in
 X)
-    IBIS_ROOT=`cd "$dir/.." && pwd`
+    IBIS_HOME=`cd "$dir/.." && pwd`
     ;;
 esac
 
-export IBIS_ROOT
+export IBIS_HOME
 
 JAVA=java
-case X$JAVA_ROOT in
+case X$JAVA_HOME in
 X)	;;
-*)	JAVA=$JAVA_ROOT/bin/java
+*)	JAVA=$JAVA_HOME/bin/java
 	;;
 esac
 
@@ -127,7 +127,7 @@ cpumask="1"
 dedicated_nameserver=0
 no_pool=0
 ncluster=0
-ibislib=$IBIS_ROOT/lib/natives
+ibislib=$IBIS_HOME/lib/natives
 
 USE_JAVAWRAPPER=0
 
@@ -232,8 +232,8 @@ do
 		shift
 		args="$args -ip-map $1"
 		ip_map="$1"
-		export HOSTS="`$IBIS_ROOT/bin/ip_map.perl $ip_map $HOSTS`"
-		export PRUN_HOSTNAMES="`$IBIS_ROOT/bin/ip_map.perl $ip_map $PRUN_HOSTNAMES`"
+		export HOSTS="`$IBIS_HOME/bin/ip_map.perl $ip_map $HOSTS`"
+		export PRUN_HOSTNAMES="`$IBIS_HOME/bin/ip_map.perl $ip_map $PRUN_HOSTNAMES`"
 		;;
 	-sleep)
 		shift
@@ -263,7 +263,7 @@ then
 	JIT_OPTS="$JIT_OPTS -Xrunhprof:cpu=times,depth=8,thread=y,file=$gprof.$PRUN_CPU_RANK"
 fi
 
-wrapper_name="$IBIS_ROOT/bin/java_wrapper"
+wrapper_name="$IBIS_HOME/bin/java_wrapper"
 
 # Given a list, return the last element
 function last_array_elt () {
@@ -344,7 +344,7 @@ add_to_libclasspath () {
 }
 
 # Add the following dirs to the classpath 
-add_to_libclasspath ${IBIS_ROOT}/3rdparty
+add_to_libclasspath ${IBIS_HOME}/3rdparty
 
 export ibislib
 
@@ -356,13 +356,13 @@ fi
 if [ $i_am_nameserver -eq 1 ]
 then
 	echo Start run-once name server on `hostname`
-	JAVACLASSPATH="$LIBCLASSPATH:$IBIS_ROOT/build/ibis.jar:"
+	JAVACLASSPATH="$LIBCLASSPATH:$IBIS_HOME/build/ibis.jar:"
 	$JAVA \
 		-classpath $JAVACLASSPATH \
 		ibis.impl.nameServer.tcp.NameServer -single
 elif [ $i_am_cluster_coord -eq 1 ]
 then
-	JAVACLASSPATH="$LIBCLASSPATH:$IBIS_ROOT/build/ibis.jar:"
+	JAVACLASSPATH="$LIBCLASSPATH:$IBIS_HOME/build/ibis.jar:"
 	export LFC_INTR_FIRST=100
 	$JAVA \
 		-classpath $JAVACLASSPATH \
@@ -371,13 +371,13 @@ then
 else
 	if [ $no_pool -eq 0 ]
 	then
-		. $IBIS_ROOT/bin/ibis-run -action "$action" $args \
+		. $IBIS_HOME/bin/ibis-run -action "$action" $args \
 				-key "$key" \
 				-nhosts $NHOSTS \
 				-hosts "$hosts" \
 				-hostno $PRUN_CPU_RANK -- "$@"
 	else
-		. $IBIS_ROOT/bin/ibis-run -action "$action" $args \
+		. $IBIS_HOME/bin/ibis-run -action "$action" $args \
 				-key "$key" \
 				-- "$@"
 	fi
