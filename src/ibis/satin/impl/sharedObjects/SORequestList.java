@@ -13,9 +13,11 @@ final class SORequestList implements Config {
 
     private IbisIdentifier[] owners = new IbisIdentifier[50];
 
+    private boolean[] demands = new boolean[50];
+    
     private int count = 0;
 
-    protected void add(IbisIdentifier owner, String id) {
+    protected void add(IbisIdentifier owner, String id, boolean demand) {
         if (count >= ids.length) {
             String[] nids = new String[ids.length * 2];
             System.arraycopy(ids, 0, nids, 0, ids.length);
@@ -24,10 +26,15 @@ final class SORequestList implements Config {
             IbisIdentifier[] nowners = new IbisIdentifier[owners.length * 2];
             System.arraycopy(owners, 0, nowners, 0, owners.length);
             owners = nowners;
+
+            boolean[] ndemands = new boolean[demands.length * 2];
+            System.arraycopy(demands, 0, ndemands, 0, demands.length);
+            demands = ndemands;
         }
 
         ids[count] = id;
         owners[count] = owner;
+        demands[count] = demand;
         count++;
     }
 
@@ -43,6 +50,10 @@ final class SORequestList implements Config {
         return ids[index];
     }
 
+    protected boolean isDemand(int index) {
+        return demands[index];
+    }
+    
     protected void removeIndex(int i) {
         if (ASSERTS) {
             if (i >= count || i < 0) {

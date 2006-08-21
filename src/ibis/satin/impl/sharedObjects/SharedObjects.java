@@ -21,17 +21,19 @@ import ibis.satin.impl.spawnSync.InvocationRecord;
 import java.util.HashMap;
 import java.util.Vector;
 
-public final class SharedObjects implements Config {
-    private final static int WAIT_FOR_UPDATES_TIME = 10000;
+class SharedObjectInfo {
+    long lastBroadcastTime;
 
+    IbisIdentifier[] destinations;
+
+    SharedObject sharedObject;
+}
+
+public final class SharedObjects implements Config {
     /* use these to avoid locking */
     protected volatile boolean gotSORequests = false;
 
-    protected boolean gotObject = false;
-
     protected boolean receivingMcast = false;
-
-    protected SharedObject sharedObject = null;
 
     /** List that stores requests for shared object transfers */
     protected SORequestList SORequestList = new SORequestList();
@@ -43,7 +45,9 @@ public final class SharedObjects implements Config {
 
     private volatile boolean gotSOInvocations = false;
 
-    protected HashMap sharedObjects = new HashMap();
+    /** A hash containing all shared objects: 
+     * (String objectID, SharedObject object) */
+    private HashMap sharedObjects = new HashMap();
 
     private SOCommunication soComm;
 
@@ -55,8 +59,43 @@ public final class SharedObjects implements Config {
 
     /** Add an object to the object table */
     public void addObject(SharedObject object) {
+        SharedObjectInfo i = new SharedObjectInfo();
+        i.sharedObject = object;
         synchronized (s) {
-            sharedObjects.put(object.objectId, object);
+            sharedObjects.put(object.objectId, i);
+        }
+    }
+
+    /** Return a reference to a shared object */
+    public SharedObject getSOReference(String objectId) {
+        synchronized (s) {
+            SharedObjectInfo i = (SharedObjectInfo) sharedObjects.get(objectId);
+            if (i == null) {
+                soLogger.warn("OOPS, object not found in getSOReference");
+                return null;
+            }
+            return i.sharedObject;
+        }
+    }
+
+    /** Return a reference to a shared object */
+    public SharedObjectInfo getSOInfo(String objectId) {
+        synchronized (s) {
+            return (SharedObjectInfo) sharedObjects.get(objectId);
+        }
+    }
+
+    void registerMulticast(SharedObject object, IbisIdentifier[] destinations) {
+        synchronized (s) {
+            SharedObjectInfo i =
+                    (SharedObjectInfo) sharedObjects.get(object.objectId);
+            if (i == null) {
+                soLogger.warn("OOPS, object not found in registerMulticast");
+                return;
+            }
+
+            i.destinations = destinations;
+            i.lastBroadcastTime = System.currentTimeMillis();
         }
     }
 
@@ -64,10 +103,6 @@ public final class SharedObjects implements Config {
      * Execute all the so invocations stored in the so invocations list
      */
     public void handleSOInvocations() {
-        SharedObject so = null;
-        SOInvocationRecord soir = null;
-        String soid = null;
-
         gotSOInvocations = false;
         while (true) {
             s.stats.handleSOInvocationsTimer.start();
@@ -76,9 +111,9 @@ public final class SharedObjects implements Config {
                 s.stats.handleSOInvocationsTimer.stop();
                 return;
             }
-            soir = (SOInvocationRecord) soInvocationList.remove(0);
-            soid = soir.getObjectId();
-            so = (SharedObject) sharedObjects.get(soid);
+            SOInvocationRecord soir =
+                    (SOInvocationRecord) soInvocationList.remove(0);
+            SharedObject so = getSOReference(soir.getObjectId());
 
             if (so == null) {
                 s.stats.handleSOInvocationsTimer.stop();
@@ -95,54 +130,16 @@ public final class SharedObjects implements Config {
         }
     }
 
-    /** Return a reference to a shared object */
-    public SharedObject getSOReference(String objectId) {
-        synchronized (s) {
-            SharedObject obj = (SharedObject) sharedObjects.get(objectId);
-            if (obj == null) {
-                System.err.println("OOPS, object not found in getSOReference");
-            }
-            return obj;
-        }
-    }
-
     /**
      * Check if the given shared object is in the table, if not, ship it from
      * source. This is called from the generated code.
      */
     public void setSOReference(String objectId, IbisIdentifier source)
-        throws SOReferenceSourceCrashedException {
-        SharedObject obj = null;
-
-        synchronized (s) {
-            while (true) {
-                s.handleDelayedMessages();
-                obj = (SharedObject) sharedObjects.get(objectId);
-                if (obj != null) break;
-                if (!receivingMcast) break;
-
-                // wait if we are receiving a shared objects multicast at this moment. 
-                try {
-                    s.wait();
-                } catch (Exception e) {
-                    // ignored
-                }
-            }
-        }
-
+            throws SOReferenceSourceCrashedException {
+        s.handleDelayedMessages();
+        SharedObject obj = getSOReference(objectId);
         if (obj == null) {
-            soComm.fetchObject(objectId, source);
-        }
-    }
-
-    /**
-     * Receive a shared object from another node (called by the MessageHandler
-     */
-    public void receiveObject(SharedObject obj) {
-        synchronized (s) {
-            gotObject = true;
-            sharedObject = obj;
-            s.notifyAll();
+            soComm.fetchObject(objectId, source, null);
         }
     }
 
@@ -153,7 +150,6 @@ public final class SharedObjects implements Config {
     public void addSOInvocation(SOInvocationRecord soir) {
         synchronized (s) {
             soInvocationList.add(soir);
-            receivingMcast = false;
             gotSOInvocations = true;
             s.notifyAll();
         }
@@ -175,66 +171,37 @@ public final class SharedObjects implements Config {
      * necessary, ship objects if necessary
      */
     private void doExecuteGuard(InvocationRecord r)
-        throws SOReferenceSourceCrashedException {
-        //restore shared object references
+            throws SOReferenceSourceCrashedException {
+        // restore shared object references
         r.setSOReferences();
 
         if (r.guard()) return;
 
         soLogger.info("SATIN '" + s.ident.name() + "': "
-            + "guard not satisfied, waiting for updates..");
+            + "guard not satisfied, getting updates..");
 
-        synchronized (s) {
-            while (receivingMcast) {
-                try {
-                    s.wait();
-                } catch (Exception e) {
-                    // ignored
-                }
-            }
+        // try to ship the object(s) from the owner of the job
+        Vector objRefs = r.getSOReferences();
+        if (objRefs == null || objRefs.isEmpty()) {
+            soLogger
+                .fatal("SATIN '" + s.ident.name() + "': "
+                    + "a guard is not satisfied, but the spawn does not have shared objects.\nThis is not a correct Satin program.");
         }
 
-        long startTime = System.currentTimeMillis();
-        boolean satisfied;
-        do {
-            Thread.yield();
+        // A shared object update may have arrived
+        // during one of the fetches.
+        while (true) {
             s.handleDelayedMessages();
-            satisfied = r.guard();
-        } while (!satisfied
-            && System.currentTimeMillis() - startTime < WAIT_FOR_UPDATES_TIME);
+            if (r.guard()) return;
 
-        if (!satisfied) {
-            // try to ship the object from the owner of the job
-            soLogger.info("SATIN '" + s.ident.name() + "': "
-                + "guard not satisfied, trying to ship shared objects ...");
-            Vector objRefs = r.getSOReferences();
-
-            // A shared object update may have arrived
-            // during one of the fetches.
-            while (true) {
-                if (objRefs.isEmpty()) break;
-                s.handleDelayedMessages();
-                if (r.guard()) break;
-
-                String ref = (String) objRefs.remove(0);
-                soComm.fetchObject(ref, r.getOwner());
-            }
-
-            if (ASSERTS) {
-                soLogger.info("SATIN '" + s.ident.name() + "': "
-                    + "objects shipped, checking again..");
-                if (!r.guard()) {
-                    soLogger.fatal("SATIN '" + s.ident.name() + "':"
-                        + " panic! inconsistent after shipping objects");
-                    System.exit(1); // Failed assert
-                }
-            }
+            String ref = (String) objRefs.remove(0);
+            soComm.fetchObject(ref, r.getOwner(), r);
         }
     }
 
-    public void addToSORequestList(IbisIdentifier requester, String objID) {
+    public void addToSORequestList(IbisIdentifier requester, String objID, boolean demand) {
         Satin.assertLocked(s);
-        SORequestList.add(requester, objID);
+        SORequestList.add(requester, objID, demand);
         gotSORequests = true;
     }
 
@@ -250,12 +217,16 @@ public final class SharedObjects implements Config {
         soComm.sendAccumulatedSOInvocations();
     }
 
-    public void handleSORequest(ReadMessage m) {
-        soComm.handleSORequest(m);
+    public void handleSORequest(ReadMessage m, boolean demand) {
+        soComm.handleSORequest(m, demand);
     }
 
     public void handleSOTransfer(ReadMessage m) {
         soComm.handleSOTransfer(m);
+    }
+
+    public void handleSONack(ReadMessage m) {
+        soComm.handleSONack(m);
     }
 
     public void createSoPorts(IbisIdentifier[] joiners) {

@@ -71,10 +71,16 @@ public final class MessageHandler implements Upcall, Protocol, Config {
                 s.ft.handleResultPush(m);
                 break;
             case SO_REQUEST:
-                s.so.handleSORequest(m);
+                s.so.handleSORequest(m, false);
+                break;
+            case SO_DEMAND:
+                s.so.handleSORequest(m, true);
                 break;
             case SO_TRANSFER:
                 s.so.handleSOTransfer(m);
+                break;
+            case SO_NACK:
+                s.so.handleSONack(m);
                 break;
             case BARRIER_REPLY:
                 s.comm.handleBarrierReply(ident.ibis());

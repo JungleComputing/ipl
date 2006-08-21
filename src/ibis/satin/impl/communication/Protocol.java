@@ -53,11 +53,15 @@ public interface Protocol {
 
     static final byte SO_REQUEST = 27;
 
-    static final byte SO_TRANSFER = 28;
+    static final byte SO_DEMAND = 28;
 
-    static final byte EXIT_STAGE2 = 29;
+    static final byte SO_TRANSFER = 29;
 
-    static final byte BARRIER_REQUEST = 30;
+    static final byte SO_NACK = 30;
+
+    static final byte EXIT_STAGE2 = 31;
+
+    static final byte BARRIER_REQUEST = 32;
     
-    static final byte GRT_UPDATE = 31;
+    static final byte GRT_UPDATE = 33;
 }

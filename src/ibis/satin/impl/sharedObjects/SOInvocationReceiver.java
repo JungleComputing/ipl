@@ -28,9 +28,7 @@ final class SOInvocationReceiver extends Thread {
                     s.so.addSOInvocation(soir);
                 } else if (o instanceof SharedObject) {
                     SharedObject obj = (SharedObject) o;
-                    synchronized (s) {
-                        s.so.sharedObjects.put(obj.objectId, obj);
-                    }
+                    s.so.addObject(obj);
                 } else {
                     System.err.println("AAA");
                 }

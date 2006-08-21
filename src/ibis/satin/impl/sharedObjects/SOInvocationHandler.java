@@ -43,7 +43,7 @@ final class SOInvocationHandler implements Upcall, Config, Protocol {
 
                 // no need to finish the message
                 synchronized (s) {
-                    s.so.sharedObjects.put(obj.objectId, obj);
+                    s.so.addObject(obj);
                     s.so.receivingMcast = false;
                     s.notifyAll();
                 }
