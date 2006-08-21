@@ -319,7 +319,7 @@ final class SOCommunication implements Config, Protocol {
             w.writeByte(SO_TRANSFER);
             s.stats.soBroadcastSerializationTimer.start();
             w.writeObject(object);
-            s.stats.soBroadcastSerializationTimer.start();
+            s.stats.soBroadcastSerializationTimer.stop();
             size = w.finish();
             if (SO_MAX_INVOCATION_DELAY > 0) {
                 soMessageCombiner.sendAccumulatedMessages();
