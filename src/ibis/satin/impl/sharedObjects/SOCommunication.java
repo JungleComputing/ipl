@@ -198,6 +198,7 @@ final class SOCommunication implements Config, Protocol {
 
     /** Broadcast an so invocation */
     protected void doBroadcastSOInvocationLRMC(SOInvocationRecord r) {
+        soLogger.debug("SATIN '" + s.ident.name() + "': broadcasting so invocation for: " + r.getObjectId());
         long byteCount = 0;
         s.stats.broadcastSOInvocationsTimer.start();
         try {
