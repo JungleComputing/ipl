@@ -37,7 +37,7 @@ final class SOCommunication implements Config, Protocol {
     private static final boolean ASYNC_SO_BCAST = false;
 
     private final static int LOOKUP_WAIT_TIME = 10000;
-    private final static int WAIT_FOR_UPDATES_TIME = 10000;
+    private final static int WAIT_FOR_UPDATES_TIME = 30000;
 
     private Satin s;
 
