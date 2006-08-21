@@ -98,6 +98,11 @@ public final class SharedObjects implements Config {
 
             i.destinations = destinations;
             i.lastBroadcastTime = System.currentTimeMillis();
+            
+            System.err.println("SENDING TO: ");
+            for(int x=0; x<destinations.length; x++) {
+            	System.err.println(destinations[x]);
+            }
         }
     }
 
