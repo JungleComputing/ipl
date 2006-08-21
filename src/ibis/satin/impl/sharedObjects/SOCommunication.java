@@ -525,7 +525,7 @@ final class SOCommunication implements Config, Protocol {
             if (v == null) {
                 soLogger.debug("SATIN '" + s.ident.name()
                     + "': vicim crached in handleSORequest");
-                return; // node might have crashed
+                continue; // node might have crashed
             }
 
             SharedObjectInfo info = s.so.getSOInfo(objid);
@@ -551,7 +551,7 @@ final class SOCommunication implements Config, Protocol {
                         + "': got exception while sending" + " shared object NACK", e);
                 }
              
-                return;
+                continue;
             }
                 
             soLogger.debug("SATIN '" + s.ident.name()
