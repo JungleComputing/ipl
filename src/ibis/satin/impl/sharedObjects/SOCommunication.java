@@ -323,6 +323,7 @@ final class SOCommunication implements Config, Protocol {
 
     /** Broadcast an so invocation */
     protected void doBroadcastSharedObjectLRMC(SharedObject object) {
+        soLogger.debug("SATIN '" + s.ident.name() + "': broadcasting object: " + object.objectId);
         long size = 0;
         s.stats.soBroadcastTransferTimer.start();
         try {
