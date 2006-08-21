@@ -64,6 +64,7 @@ public final class SharedObjects implements Config {
         synchronized (s) {
             sharedObjects.put(object.objectId, i);
         }
+        soLogger.debug("SATIN '" + s.ident.name() + "': " + "received broadcast object");
     }
 
     /** Return a reference to a shared object */
@@ -71,7 +72,7 @@ public final class SharedObjects implements Config {
         synchronized (s) {
             SharedObjectInfo i = (SharedObjectInfo) sharedObjects.get(objectId);
             if (i == null) {
-                soLogger.warn("object not found in getSOReference");
+                soLogger.warn("SATIN '" + s.ident.name() + "': " + "object not found in getSOReference");
                 return null;
             }
             return i.sharedObject;
