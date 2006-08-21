@@ -239,7 +239,6 @@ public abstract class InvocationRecord implements java.io.Serializable, Config {
 
     public abstract ReturnRecord getReturnRecord();
 
-    //used for shared objects
     /** initializes the references to shared objects inside this
      invocation record after stealing the job */
     public abstract void setSOReferences()
