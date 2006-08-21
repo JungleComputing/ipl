@@ -521,8 +521,6 @@ final class SOCommunication implements Config, Protocol {
 
             if (v == null) return; // node might have crashed
 
-            s.stats.soTransferTimer.start();
-
             SharedObjectInfo info = s.so.getSOInfo(objid);
             if (ASSERTS && info == null) {
                 soLogger.fatal("SATIN '" + s.ident.name()
@@ -551,6 +549,8 @@ final class SOCommunication implements Config, Protocol {
             // Updates cannot change the state of the object during the send, 
             // they are delayed until safe a point.
             try {
+                s.stats.soTransferTimer.start();
+
                 SharedObject so = info.sharedObject;
                 wm = v.newMessage();
                 wm.writeByte(SO_TRANSFER);
