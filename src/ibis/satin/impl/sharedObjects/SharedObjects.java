@@ -64,7 +64,8 @@ public final class SharedObjects implements Config {
         synchronized (s) {
             sharedObjects.put(object.objectId, i);
         }
-        soLogger.debug("SATIN '" + s.ident.name() + "': " + "received broadcast object");
+        
+        soLogger.debug("SATIN '" + s.ident.name() + "': " + "object added, id = " + object.objectId);
     }
 
     /** Return a reference to a shared object */

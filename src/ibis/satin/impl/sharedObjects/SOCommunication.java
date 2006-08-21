@@ -400,7 +400,7 @@ final class SOCommunication implements Config, Protocol {
             synchronized (s) {
                 try {
                     s.wait(500);
-                } catch (Exception e) {
+                } catch (InterruptedException e) {
                     // Ignore
                 }
             }

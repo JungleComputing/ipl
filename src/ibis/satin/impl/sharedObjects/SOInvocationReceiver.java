@@ -5,9 +5,10 @@ package ibis.satin.impl.sharedObjects;
 
 import mcast.object.ObjectMulticaster;
 import ibis.satin.SharedObject;
+import ibis.satin.impl.Config;
 import ibis.satin.impl.Satin;
 
-final class SOInvocationReceiver extends Thread {
+final class SOInvocationReceiver extends Thread implements Config {
     private Satin s;
 
     private ObjectMulticaster omc;
@@ -28,13 +29,13 @@ final class SOInvocationReceiver extends Thread {
                     s.so.addSOInvocation(soir);
                 } else if (o instanceof SharedObject) {
                     SharedObject obj = (SharedObject) o;
+                    soLogger.debug("SATIN '" + s.ident.name() + "': " + "received broadcast object, id = " + obj.objectId);
                     s.so.addObject(obj);
                 } else {
-                    System.err.println("AAA");
+                    soLogger.warn("received unknown object in SOInvocation receiver");
                 }
             } catch (Exception e) {
-                System.err.println("WARNING, SOI Mcast receive failed: " + e);
-                e.printStackTrace();
+                soLogger.warn("WARNING, SOI Mcast receive failed: " + e, e);
             }
         }
     }
