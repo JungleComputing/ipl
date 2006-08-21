@@ -372,6 +372,7 @@ final class SOCommunication implements Config, Protocol {
             throws SOReferenceSourceCrashedException {
 
         soLogger.debug("SATIN '" + s.ident.name() + "': sending SO request");
+
         // first, ask for the object
         sendSORequest(objectId, source, false);
         
@@ -388,7 +389,13 @@ final class SOCommunication implements Config, Protocol {
         long start = System.currentTimeMillis();
         while(true) {
             if(System.currentTimeMillis() - start > WAIT_FOR_UPDATES_TIME) break;
-            Thread.yield();
+
+            try {
+                s.wait(500);
+            } catch (Exception e) {
+                // Ignore
+            }
+            
             s.handleDelayedMessages();
             
             if(r == null) {
