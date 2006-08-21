@@ -581,8 +581,6 @@ final class SOCommunication implements Config, Protocol {
                     wm = v.newMessage();
                     wm.writeByte(SO_NACK);
                     size = wm.finish();
-                    s.stats.soTransfers++;
-                    s.stats.soTransfersBytes += size;
                 } catch (IOException e) {
                     soLogger.error("SATIN '" + s.ident.name()
                         + "': got exception while sending"
