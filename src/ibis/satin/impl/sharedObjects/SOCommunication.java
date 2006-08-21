@@ -204,6 +204,9 @@ final class SOCommunication implements Config, Protocol {
             synchronized (s) {
                 tmp = s.victims.getIbises();
             }
+
+            s.so.registerMulticast(s.so.getSOReference(r.getObjectId()), tmp);
+            
             byteCount = omc.send(tmp, r);
         } catch (Exception e) {
             soLogger.warn("SOI mcast failed: " + e + " msg: " + e.getMessage());
@@ -489,7 +492,7 @@ final class SOCommunication implements Config, Protocol {
     }
     
     boolean broadcastInProgress(SharedObjectInfo info, IbisIdentifier dest) {
-        if (System.currentTimeMillis() - info.lastBroadcastTime > WAIT_FOR_UPDATES_TIME){
+        if (System.currentTimeMillis() - info.lastBroadcastTime > WAIT_FOR_UPDATES_TIME) {
             return false;
         }
         
@@ -519,7 +522,11 @@ final class SOCommunication implements Config, Protocol {
                 v = s.victims.getVictim(origin);
             }
 
-            if (v == null) return; // node might have crashed
+            if (v == null) {
+                soLogger.debug("SATIN '" + s.ident.name()
+                    + "': vicim crached in handleSORequest");
+                return; // node might have crashed
+            }
 
             SharedObjectInfo info = s.so.getSOInfo(objid);
             if (ASSERTS && info == null) {
@@ -530,6 +537,8 @@ final class SOCommunication implements Config, Protocol {
             }
 
             if(!demand && broadcastInProgress(info, v.getIdent())) {
+                soLogger.debug("SATIN '" + s.ident.name()
+                    + "': send NACK back in handleSORequest");
                 // send NACK back
                 try {
                     wm = v.newMessage();
@@ -545,6 +554,9 @@ final class SOCommunication implements Config, Protocol {
                 return;
             }
                 
+            soLogger.debug("SATIN '" + s.ident.name()
+                + "': send object back in handleSORequest");
+
             // No need to hold the lock while writing the object.
             // Updates cannot change the state of the object during the send, 
             // they are delayed until safe a point.
