@@ -472,6 +472,7 @@ final class SOCommunication implements Config, Protocol {
                     throw new SOReferenceSourceCrashedException();
                 }
                 if(receivedNack) {
+                    receivedNack = false;
                     s.currentVictimCrashed = false;
                     soLogger.info("SATIN '" + s.ident.name()
                         + "': received shared object NACK");
