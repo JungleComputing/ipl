@@ -371,7 +371,7 @@ final class SOCommunication implements Config, Protocol {
     protected void fetchObject(String objectId, IbisIdentifier source, InvocationRecord r)
             throws SOReferenceSourceCrashedException {
 
-        soLogger.debug("SATIN '" + s.ident.name() + "': sending SO request");
+        soLogger.debug("SATIN '" + s.ident.name() + "': sending SO request " + (r == null ? "FIRST TIME" : "GUARD"));
 
         // first, ask for the object
         sendSORequest(objectId, source, false);
