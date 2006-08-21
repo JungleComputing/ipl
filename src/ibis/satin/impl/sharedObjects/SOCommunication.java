@@ -199,16 +199,15 @@ final class SOCommunication implements Config, Protocol {
     /** Broadcast an so invocation */
     protected void doBroadcastSOInvocationLRMC(SOInvocationRecord r) {
         soLogger.debug("SATIN '" + s.ident.name() + "': broadcasting so invocation for: " + r.getObjectId());
-        long byteCount = 0;
         s.stats.broadcastSOInvocationsTimer.start();
+        IbisIdentifier[] tmp;
+        synchronized (s) {
+            tmp = s.victims.getIbises();
+        }
+        s.so.registerMulticast(s.so.getSOReference(r.getObjectId()), tmp);
+
+        long byteCount = 0;
         try {
-            IbisIdentifier[] tmp;
-            synchronized (s) {
-                tmp = s.victims.getIbises();
-            }
-
-            s.so.registerMulticast(s.so.getSOReference(r.getObjectId()), tmp);
-
             byteCount = omc.send(tmp, r);
         } catch (Exception e) {
             soLogger.warn("SOI mcast failed: " + e + " msg: " + e.getMessage());
@@ -337,16 +336,15 @@ final class SOCommunication implements Config, Protocol {
     /** Broadcast an so invocation */
     protected void doBroadcastSharedObjectLRMC(SharedObject object) {
         soLogger.debug("SATIN '" + s.ident.name() + "': broadcasting object: " + object.objectId);
-        long size = 0;
         s.stats.soBroadcastTransferTimer.start();
+        IbisIdentifier[] tmp;
+        synchronized (s) {
+            tmp = s.victims.getIbises();
+        }
+        s.so.registerMulticast(object, tmp);
+        
+        long size = 0;
         try {
-            IbisIdentifier[] tmp;
-            synchronized (s) {
-                tmp = s.victims.getIbises();
-            }
-
-            s.so.registerMulticast(object, tmp);
-
             s.stats.soBroadcastSerializationTimer.start();
             size = omc.send(tmp, object);
             s.stats.soBroadcastSerializationTimer.stop();
@@ -355,7 +353,6 @@ final class SOCommunication implements Config, Protocol {
                 + e.getMessage());
             e.printStackTrace();
         }
-
         s.stats.soBcasts++;
         s.stats.soBcastBytes += size;
         s.stats.soBroadcastTransferTimer.stop();
