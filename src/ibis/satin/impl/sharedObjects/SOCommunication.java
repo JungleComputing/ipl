@@ -229,6 +229,13 @@ final class SOCommunication implements Config, Protocol {
 
         connectSendPortToNewReceivers();
 
+        IbisIdentifier[] tmp;
+        synchronized (s) {
+            tmp = s.victims.getIbises();
+        }
+        s.so.registerMulticast(s.so.getSOReference(r.getObjectId()), tmp);
+
+        
         if (soSendPort != null && soSendPort.connectedTo().length > 0) {
             try {
                 if (SO_MAX_INVOCATION_DELAY > 0) { // do message combining
@@ -283,7 +290,6 @@ final class SOCommunication implements Config, Protocol {
     }
 
     protected void doBroadcastSharedObject(SharedObject object) {
-
         WriteMessage w = null;
         long size = 0;
 
@@ -295,6 +301,12 @@ final class SOCommunication implements Config, Protocol {
             s.stats.soBroadcastTransferTimer.stop();
             return;
         }
+
+        IbisIdentifier[] tmp;
+        synchronized (s) {
+            tmp = s.victims.getIbises();
+        }
+        s.so.registerMulticast(s.so.getSOReference(object.objectId), tmp);
 
         try {
             if (SO_MAX_INVOCATION_DELAY > 0) {
