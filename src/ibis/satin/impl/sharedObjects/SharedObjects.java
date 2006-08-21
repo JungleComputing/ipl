@@ -71,7 +71,7 @@ public final class SharedObjects implements Config {
         synchronized (s) {
             SharedObjectInfo i = (SharedObjectInfo) sharedObjects.get(objectId);
             if (i == null) {
-                soLogger.warn("OOPS, object not found in getSOReference");
+                soLogger.warn("object not found in getSOReference");
                 return null;
             }
             return i.sharedObject;

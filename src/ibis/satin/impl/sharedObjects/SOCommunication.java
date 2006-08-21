@@ -467,6 +467,8 @@ final class SOCommunication implements Config, Protocol {
                 if (s.currentVictimCrashed) {
                     s.currentVictimCrashed = false;
                     // the source has crashed, abort the job
+                    soLogger.info("SATIN '" + s.ident.name()
+                        + "': source crashed while waiting for SO reply");
                     throw new SOReferenceSourceCrashedException();
                 }
                 if(receivedNack) {
@@ -618,6 +620,7 @@ final class SOCommunication implements Config, Protocol {
     protected void handleSONack(ReadMessage m) {
         synchronized (s) {
             receivedNack = true;
+            s.notifyAll();
         }
     }
 
