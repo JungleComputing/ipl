@@ -37,6 +37,7 @@ final class SOCommunication implements Config, Protocol {
     private static final boolean ASYNC_SO_BCAST = false;
 
     private final static int LOOKUP_WAIT_TIME = 10000;
+
     private final static int WAIT_FOR_UPDATES_TIME = 60000;
 
     private Satin s;
@@ -64,7 +65,7 @@ final class SOCommunication implements Config, Protocol {
     private SharedObject sharedObject = null;
 
     private boolean receivedNack = false;
-    
+
     protected SOCommunication(Satin s) {
         this.s = s;
     }
@@ -103,7 +104,7 @@ final class SOCommunication implements Config, Protocol {
     }
 
     protected PortType createSOPortType(StaticProperties reqprops)
-            throws IOException, IbisException {
+        throws IOException, IbisException {
         StaticProperties satinPortProperties = new StaticProperties(reqprops);
 
         if (CLOSED) {
@@ -129,8 +130,8 @@ final class SOCommunication implements Config, Protocol {
      */
     protected void createSoReceivePorts(IbisIdentifier[] joiners) {
         // lrmc uses its own ports
-        if(LABEL_ROUTING_MCAST) return;
-        
+        if (LABEL_ROUTING_MCAST) return;
+
         for (int i = 0; i < joiners.length; i++) {
             // create a receive port for this guy
             try {
@@ -206,7 +207,7 @@ final class SOCommunication implements Config, Protocol {
             }
 
             s.so.registerMulticast(s.so.getSOReference(r.getObjectId()), tmp);
-            
+
             byteCount = omc.send(tmp, r);
         } catch (Exception e) {
             soLogger.warn("SOI mcast failed: " + e + " msg: " + e.getMessage());
@@ -331,7 +332,7 @@ final class SOCommunication implements Config, Protocol {
             }
 
             s.so.registerMulticast(object, tmp);
-            
+
             s.stats.soBroadcastSerializationTimer.start();
             size = omc.send(tmp, object);
             s.stats.soBroadcastSerializationTimer.stop();
@@ -368,64 +369,79 @@ final class SOCommunication implements Config, Protocol {
      * version of the object. If it is not null, we try to satisfy the guard of the 
      * invocation record. It might not be satisfied when this method returns, the
      * guard might depend on more than one shared object. */
-    protected void fetchObject(String objectId, IbisIdentifier source, InvocationRecord r)
-            throws SOReferenceSourceCrashedException {
+    protected void fetchObject(String objectId, IbisIdentifier source,
+        InvocationRecord r) throws SOReferenceSourceCrashedException {
 
-        soLogger.debug("SATIN '" + s.ident.name() + "': sending SO request " + (r == null ? "FIRST TIME" : "GUARD"));
+        soLogger.debug("SATIN '" + s.ident.name() + "': sending SO request "
+            + (r == null ? "FIRST TIME" : "GUARD"));
 
         // first, ask for the object
         sendSORequest(objectId, source, false);
-        
+
         boolean gotIt = waitForSOReply();
 
-        if(gotIt) {
-            soLogger.debug("SATIN '" + s.ident.name() + "': received the object after requesting it");
+        if (gotIt) {
+            soLogger.debug("SATIN '" + s.ident.name()
+                + "': received the object after requesting it");
             return;
         }
-        soLogger.debug("SATIN '" + s.ident.name() + "': received NACK, the object is probably already being broadcast to me, WAITING");
+        soLogger
+            .debug("SATIN '"
+                + s.ident.name()
+                + "': received NACK, the object is probably already being broadcast to me, WAITING");
 
         // got a nack back, the source thinks it sent it to me.
         // wait for the object to arrive. If it doesn't, demand the object.
         long start = System.currentTimeMillis();
-        while(true) {
-            if(System.currentTimeMillis() - start > WAIT_FOR_UPDATES_TIME) break;
+        while (true) {
+            if (System.currentTimeMillis() - start > WAIT_FOR_UPDATES_TIME)
+                break;
 
-            try {
-                s.wait(500);
-            } catch (Exception e) {
-                // Ignore
+            synchronized (s) {
+                try {
+                    s.wait(500);
+                } catch (Exception e) {
+                    // Ignore
+                }
             }
-            
+
             s.handleDelayedMessages();
-            
-            if(r == null) {
-                if(s.so.getSOInfo(objectId) != null) {
-                    soLogger.debug("SATIN '" + s.ident.name() + "': received new object from a bcast");
+
+            if (r == null) {
+                if (s.so.getSOInfo(objectId) != null) {
+                    soLogger.debug("SATIN '" + s.ident.name()
+                        + "': received new object from a bcast");
                     return; // got it!
                 }
             } else {
-                if(r.guard()) {
-                    soLogger.debug("SATIN '" + s.ident.name() + "': received object, guard satisfied");
+                if (r.guard()) {
+                    soLogger.debug("SATIN '" + s.ident.name()
+                        + "': received object, guard satisfied");
                     return;
                 }
             }
         }
 
-        soLogger.debug("SATIN '" + s.ident.name() + "': did not receive object in time, demanding it now");
-        
+        soLogger.debug("SATIN '" + s.ident.name()
+            + "': did not receive object in time, demanding it now");
+
         // haven't got it, demand it now.
         sendSORequest(objectId, source, true);
 
         gotIt = waitForSOReply();
-        if(gotIt) {
-            soLogger.debug("SATIN '" + s.ident.name() + "': received demanded object");
+        if (gotIt) {
+            soLogger.debug("SATIN '" + s.ident.name()
+                + "': received demanded object");
             return;
         }
-        soLogger.fatal("SATIN '" + s.ident.name() + "': internal error: did not receive shared object after I demanded it. ");
+        soLogger
+            .fatal("SATIN '"
+                + s.ident.name()
+                + "': internal error: did not receive shared object after I demanded it. ");
     }
 
-    private void sendSORequest(String objectId, IbisIdentifier source, boolean demand)
-    throws SOReferenceSourceCrashedException {
+    private void sendSORequest(String objectId, IbisIdentifier source,
+        boolean demand) throws SOReferenceSourceCrashedException {
         // request the shared object from the source
         try {
             s.lb.setCurrentVictim(source);
@@ -442,7 +458,7 @@ final class SOCommunication implements Config, Protocol {
             }
 
             WriteMessage w = v.newMessage();
-            if(demand) {
+            if (demand) {
                 w.writeByte(SO_DEMAND);
             } else {
                 w.writeByte(SO_REQUEST);
@@ -457,7 +473,7 @@ final class SOCommunication implements Config, Protocol {
             throw new SOReferenceSourceCrashedException();
         }
     }
-    
+
     private boolean waitForSOReply() throws SOReferenceSourceCrashedException {
         // wait for the reply
         // there are three possibilities:
@@ -481,7 +497,7 @@ final class SOCommunication implements Config, Protocol {
                         + "': source crashed while waiting for SO reply");
                     throw new SOReferenceSourceCrashedException();
                 }
-                if(receivedNack) {
+                if (receivedNack) {
                     receivedNack = false;
                     s.currentVictimCrashed = false;
                     soLogger.info("SATIN '" + s.ident.name()
@@ -497,19 +513,19 @@ final class SOCommunication implements Config, Protocol {
             }
         }
     }
-    
+
     boolean broadcastInProgress(SharedObjectInfo info, IbisIdentifier dest) {
         if (System.currentTimeMillis() - info.lastBroadcastTime > WAIT_FOR_UPDATES_TIME) {
             return false;
         }
-        
-        for(int i=0; i<info.destinations.length; i++) {
-            if(info.destinations[i].equals(dest)) return true; 
+
+        for (int i = 0; i < info.destinations.length; i++) {
+            if (info.destinations[i].equals(dest)) return true;
         }
-        
+
         return false;
     }
-    
+
     protected void handleSORequests() {
         s.so.gotSORequests = false;
         WriteMessage wm;
@@ -517,7 +533,7 @@ final class SOCommunication implements Config, Protocol {
         IbisIdentifier origin;
         String objid;
         boolean demand;
-        
+
         while (true) {
             Victim v;
             synchronized (s) {
@@ -543,7 +559,7 @@ final class SOCommunication implements Config, Protocol {
                 System.exit(1); // Failed assertion
             }
 
-            if(!demand && broadcastInProgress(info, v.getIdent())) {
+            if (!demand && broadcastInProgress(info, v.getIdent())) {
                 soLogger.debug("SATIN '" + s.ident.name()
                     + "': send NACK back in handleSORequest");
                 // send NACK back
@@ -555,12 +571,13 @@ final class SOCommunication implements Config, Protocol {
                     s.stats.soTransfersBytes += size;
                 } catch (IOException e) {
                     soLogger.error("SATIN '" + s.ident.name()
-                        + "': got exception while sending" + " shared object NACK", e);
+                        + "': got exception while sending"
+                        + " shared object NACK", e);
                 }
-             
+
                 continue;
             }
-                
+
             soLogger.debug("SATIN '" + s.ident.name()
                 + "': send object back in handleSORequest");
 
