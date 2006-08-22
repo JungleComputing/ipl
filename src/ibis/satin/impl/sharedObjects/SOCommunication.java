@@ -130,7 +130,12 @@ final class SOCommunication implements Config, Protocol {
      */
     protected void createSoReceivePorts(IbisIdentifier[] joiners) {
         // lrmc uses its own ports
-        if (LABEL_ROUTING_MCAST) return;
+        if (LABEL_ROUTING_MCAST) {
+        	for(int i=0; i<joiners.length; i++) {
+        		omc.addIbis(joiners[i]);
+        	}
+        	return;
+        }
 
         for (int i = 0; i < joiners.length; i++) {
             // create a receive port for this guy
