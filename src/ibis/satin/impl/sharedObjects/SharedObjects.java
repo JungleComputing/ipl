@@ -1,12 +1,6 @@
 /*
  * Created on Apr 27, 2006
  */
-/*
- * @todo: rethink the way objects are shipped, both at the beginning of the
- * computation and in case of inconsistencies; instead of waiting for some
- * time and only then shipping, start shipping immediately and if the object
- * arrives in the meantime, cancel the request
- */
 
 package ibis.satin.impl.sharedObjects;
 
