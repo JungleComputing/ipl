@@ -39,7 +39,7 @@ final class TranspositionTable extends SharedObject implements
     transient boolean inited;
 
     private void init() {
-        if (!Mtdf.SUPPORT_TT) {
+        if (!Othello.SUPPORT_TT) {
             SIZE = 0;
             this.tagSize = 0;
             tags = null;
@@ -105,7 +105,7 @@ final class TranspositionTable extends SharedObject implements
     }
 
     int lookup(Tag tag) {
-        if (!Mtdf.SUPPORT_TT) return -1;
+        if (!Othello.SUPPORT_TT) return -1;
 
         if (!inited) init();
 
@@ -120,13 +120,13 @@ final class TranspositionTable extends SharedObject implements
 
     void store(Tag tag, short value, short bestChild, byte depth,
         boolean lowerBound) {
-        if (!Mtdf.SUPPORT_TT) return;
+        if (!Othello.SUPPORT_TT) return;
 
         int index = tag.hashCode() & (SIZE - 1);
 
         if (valid[index] && depth < depths[index]) return;
 
-        if (depth >= Mtdf.REPLICATED_DEPTH) {
+        if (depth >= Othello.REPLICATED_DEPTH) {
             sharedStore(index, tag, value, bestChild, depth, lowerBound);
         } else {
             localStore(index, tag, value, bestChild, depth, lowerBound);

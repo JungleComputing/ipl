@@ -5,7 +5,7 @@
  */
 import ibis.util.TypedProperties;
 
-public final class Mtdf extends ibis.satin.SatinObject implements MtdfInterface {
+public final class Othello extends ibis.satin.SatinObject implements OthelloInterface {
 
     static final boolean BEST_FIRST = TypedProperties.booleanProperty(
         "mtdf.bestfirst", true);
@@ -28,7 +28,7 @@ public final class Mtdf extends ibis.satin.SatinObject implements MtdfInterface 
 
     transient int pivot = 0;
 
-    Mtdf() {
+    Othello() {
         try {
             tt = new TranspositionTable();
             tt.exportObject();
@@ -214,7 +214,7 @@ public final class Mtdf extends ibis.satin.SatinObject implements MtdfInterface 
         System.out.println("searching with root: ");
         root.print();
 
-        Mtdf m = new Mtdf();
+        Othello m = new Othello();
 
         long start = System.currentTimeMillis();
         OthelloBoard bestChild = m.search(root, depth);
