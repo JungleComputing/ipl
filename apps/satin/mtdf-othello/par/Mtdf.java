@@ -18,6 +18,16 @@ public final class Mtdf extends ibis.satin.SatinObject implements
 
     static int pivot = 0;
 
+    static {
+        try {
+            tt = new TranspositionTable(OthelloBoard.getTagSize());
+        } catch (Throwable e) {
+            System.err.println("Error creating transposition table: "
+                + e.getMessage());
+            System.exit(1);
+        }
+    }
+    
     public void spawn_depthFirstSearch(NodeType node, int pivot, int depth,
         short currChild) throws Done {
         depthFirstSearch(node, pivot, depth);
@@ -195,14 +205,6 @@ public final class Mtdf extends ibis.satin.SatinObject implements
 
         if (option > 1) {
             System.err.println("Usage: java Mtdf [-f file] [depth]");
-            System.exit(1);
-        }
-
-        try {
-            tt = new TranspositionTable(OthelloBoard.getTagSize());
-        } catch (Throwable e) {
-            System.err.println("Error creating transposition table: "
-                + e.getMessage());
             System.exit(1);
         }
 
