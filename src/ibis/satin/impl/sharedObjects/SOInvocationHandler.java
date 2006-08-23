@@ -25,52 +25,80 @@ final class SOInvocationHandler implements Upcall, Config, Protocol {
         messageSplitter = ms;
     }
 
-    private void handleMessage(ReadMessage m) {
+    private void handleMessage(ReadMessage m) throws IOException {
         SharedObject obj = null;
         SOInvocationRecord soir = null;
 
+        byte opt_code;
         try {
-            byte opt_code = m.readByte();
-            switch (opt_code) {
-            case SO_TRANSFER: // exportObject
-                //                System.err.print("X");
-                s.stats.soBroadcastDeserializationTimer.start();
-                synchronized (s) {
-                    s.so.receivingMcast = true;
-                }
-                obj = (SharedObject) m.readObject();
-                s.stats.soBroadcastDeserializationTimer.stop();
-
-                // no need to finish the message
-                synchronized (s) {
-                    s.so.addObject(obj);
-                    s.so.receivingMcast = false;
-                    s.notifyAll();
-                }
-                break;
-            case SO_INVOCATION: // normal invocation, can be message combined
-                s.stats.soInvocationDeserializationTimer.start();
-                synchronized (s) {
-                    s.so.receivingMcast = true;
-                }
-                soir = (SOInvocationRecord) m.readObject();
-                s.stats.soInvocationDeserializationTimer.stop();
-
-                // no need to finish here
-                s.so.addSOInvocation(soir);
-                break;
-            default:
-                System.err.println("SATIN '" + s.ident.name()
-                    + "': invalid opcode in SOInvocationHandler: " + opt_code);
-            }
+            opt_code = m.readByte();
         } catch (IOException e) {
             System.err.println("SATIN '" + s.ident.name()
                 + "': got exception in SOInvocationHandler: " + e.getMessage());
             e.printStackTrace();
-        } catch (ClassNotFoundException e) {
+            throw e;
+        }
+
+        switch (opt_code) {
+        case SO_TRANSFER: // exportObject
+            s.stats.soBroadcastDeserializationTimer.start();
+            synchronized (s) {
+                s.so.receivingMcast = true;
+            }
+            try {
+                obj = (SharedObject) m.readObject();
+            } catch (IOException e) {
+                System.err.println("SATIN '" + s.ident.name()
+                    + "': got exception in SOInvocationHandler: "
+                    + e.getMessage());
+                e.printStackTrace();
+                throw e;
+            } catch (ClassNotFoundException e) {
+                System.err.println("SATIN '" + s.ident.name()
+                    + "': got exception in SOInvocationHandler: "
+                    + e.getMessage());
+                e.printStackTrace();
+                return;
+            } finally {
+                s.stats.soBroadcastDeserializationTimer.stop();
+            }
+            
+            // no need to finish the message
+            synchronized (s) {
+                s.so.addObject(obj);
+                s.so.receivingMcast = false;
+                s.notifyAll();
+            }
+            break;
+        case SO_INVOCATION: // normal invocation, can be message combined
+            s.stats.soInvocationDeserializationTimer.start();
+            synchronized (s) {
+                s.so.receivingMcast = true;
+            }
+            try {
+                soir = (SOInvocationRecord) m.readObject();
+            } catch (IOException e) {
+                System.err.println("SATIN '" + s.ident.name()
+                    + "': got exception in SOInvocationHandler: "
+                    + e.getMessage());
+                e.printStackTrace();
+                throw e;
+            } catch (ClassNotFoundException e) {
+                System.err.println("SATIN '" + s.ident.name()
+                    + "': got exception in SOInvocationHandler: "
+                    + e.getMessage());
+                e.printStackTrace();
+                return;
+            } finally {
+                s.stats.soInvocationDeserializationTimer.stop();
+            }
+
+            // no need to finish here
+            s.so.addSOInvocation(soir);
+            break;
+        default:
             System.err.println("SATIN '" + s.ident.name()
-                + "': got exception in SOInvocationHandler: " + e.getMessage());
-            e.printStackTrace();
+                + "': invalid opcode in SOInvocationHandler: " + opt_code);
         }
     }
 
