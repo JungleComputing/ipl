@@ -71,7 +71,9 @@ final class SOInvocationHandler implements Upcall, Config, Protocol {
             }
             break;
         case SO_INVOCATION: // normal invocation, can be message combined
-            s.stats.soInvocationDeserializationTimer.start();
+// @@@ I am getting exceptions that this timer is started twice. How is this possible?
+// @@@ upcalls are guaranteed to be serialized if there is no finish!!!! --Rob
+            //            s.stats.soInvocationDeserializationTimer.start();
             synchronized (s) {
                 s.so.receivingMcast = true;
             }
@@ -90,7 +92,7 @@ final class SOInvocationHandler implements Upcall, Config, Protocol {
                 e.printStackTrace();
                 return;
             } finally {
-                s.stats.soInvocationDeserializationTimer.stop();
+//                s.stats.soInvocationDeserializationTimer.stop();
             }
 
             // no need to finish here
@@ -102,7 +104,7 @@ final class SOInvocationHandler implements Upcall, Config, Protocol {
         }
     }
 
-    public void upcall(ReadMessage m) {
+    public void upcall(ReadMessage m) throws IOException {
         try {
             if (SO_MAX_INVOCATION_DELAY > 0) { // message combining enabled
                 messageSplitter.setMessageToSplit(m);
@@ -120,6 +122,7 @@ final class SOInvocationHandler implements Upcall, Config, Protocol {
             System.err.println("SATIN '" + s.ident.name()
                 + "': got exception while reading"
                 + " opcode in SOInvocationHandler: " + e.getMessage());
+            throw e;
         }
     }
 }
