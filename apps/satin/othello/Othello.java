@@ -192,7 +192,7 @@ public final class Othello extends ibis.satin.SatinObject implements OthelloInte
         }
 
         if (option > 1) {
-            System.err.println("Usage: java Mtdf [-f file] [depth]");
+            System.err.println("Usage: java Othello [-f file] [depth]");
             System.exit(1);
         }
 
