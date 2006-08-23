@@ -131,10 +131,10 @@ final class SOCommunication implements Config, Protocol {
     protected void createSoReceivePorts(IbisIdentifier[] joiners) {
         // lrmc uses its own ports
         if (LABEL_ROUTING_MCAST) {
-        	for(int i=0; i<joiners.length; i++) {
-        		omc.addIbis(joiners[i]);
-        	}
-        	return;
+            for (int i = 0; i < joiners.length; i++) {
+                omc.addIbis(joiners[i]);
+            }
+            return;
         }
 
         for (int i = 0; i < joiners.length; i++) {
@@ -203,7 +203,8 @@ final class SOCommunication implements Config, Protocol {
 
     /** Broadcast an so invocation */
     protected void doBroadcastSOInvocationLRMC(SOInvocationRecord r) {
-        soLogger.debug("SATIN '" + s.ident.name() + "': broadcasting so invocation for: " + r.getObjectId());
+        soLogger.debug("SATIN '" + s.ident.name()
+            + "': broadcasting so invocation for: " + r.getObjectId());
         s.stats.broadcastSOInvocationsTimer.start();
         IbisIdentifier[] tmp;
         synchronized (s) {
@@ -239,7 +240,6 @@ final class SOCommunication implements Config, Protocol {
         }
         s.so.registerMulticast(s.so.getSOReference(r.getObjectId()), tmp);
 
-        
         if (soSendPort != null && soSendPort.connectedTo().length > 0) {
             try {
                 if (SO_MAX_INVOCATION_DELAY > 0) { // do message combining
@@ -340,14 +340,15 @@ final class SOCommunication implements Config, Protocol {
 
     /** Broadcast an so invocation */
     protected void doBroadcastSharedObjectLRMC(SharedObject object) {
-        soLogger.debug("SATIN '" + s.ident.name() + "': broadcasting object: " + object.objectId);
+        soLogger.debug("SATIN '" + s.ident.name() + "': broadcasting object: "
+            + object.objectId);
         s.stats.soBroadcastTransferTimer.start();
         IbisIdentifier[] tmp;
         synchronized (s) {
             tmp = s.victims.getIbises();
         }
         s.so.registerMulticast(object, tmp);
-        
+
         long size = 0;
         try {
             s.stats.soBroadcastSerializationTimer.start();
@@ -543,9 +544,7 @@ final class SOCommunication implements Config, Protocol {
     }
 
     protected void handleSORequests() {
-        s.so.gotSORequests = false;
         WriteMessage wm;
-        long size;
         IbisIdentifier origin;
         String objid;
         boolean demand;
@@ -553,7 +552,10 @@ final class SOCommunication implements Config, Protocol {
         while (true) {
             Victim v;
             synchronized (s) {
-                if (s.so.SORequestList.getCount() == 0) return;
+                if (s.so.SORequestList.getCount() == 0) {
+                    s.so.gotSORequests = false;
+                    return;
+                }
                 origin = s.so.SORequestList.getRequester(0);
                 objid = s.so.SORequestList.getobjID(0);
                 demand = s.so.SORequestList.isDemand(0);
@@ -582,7 +584,7 @@ final class SOCommunication implements Config, Protocol {
                 try {
                     wm = v.newMessage();
                     wm.writeByte(SO_NACK);
-                    size = wm.finish();
+                    wm.finish();
                 } catch (IOException e) {
                     soLogger.error("SATIN '" + s.ident.name()
                         + "': got exception while sending"
@@ -594,34 +596,56 @@ final class SOCommunication implements Config, Protocol {
 
             soLogger.debug("SATIN '" + s.ident.name()
                 + "': send object back in handleSORequest");
-
-            // No need to hold the lock while writing the object.
-            // Updates cannot change the state of the object during the send, 
-            // they are delayed until safe a point.
-            try {
-                s.stats.soTransferTimer.start();
-
-                SharedObject so = info.sharedObject;
-                wm = v.newMessage();
-                wm.writeByte(SO_TRANSFER);
-
-                s.stats.soSerializationTimer.start();
-                wm.writeObject(so);
-                s.stats.soSerializationTimer.stop();
-                size = wm.finish();
-
-                // stats
-                s.stats.soTransfers++;
-                s.stats.soTransfersBytes += size;
-
-                s.stats.soTransferTimer.stop();
-            } catch (IOException e) {
-                soLogger.error("SATIN '" + s.ident.name()
-                    + "': got exception while sending" + " shared object", e);
-            }
+            sendObjectBack(v, info);
         }
     }
 
+    private void sendObjectBack(Victim v, SharedObjectInfo info) {
+        WriteMessage wm;
+        long size;
+
+        // No need to hold the lock while writing the object.
+        // Updates cannot change the state of the object during the send, 
+        // they are delayed until safe a point.
+        s.stats.soTransferTimer.start();
+        SharedObject so = info.sharedObject;
+        try {
+            wm = v.newMessage();
+            wm.writeByte(SO_TRANSFER);
+        } catch (IOException e) {
+            soLogger.error("SATIN '" + s.ident.name()
+                + "': got exception while sending" + " shared object", e);
+            s.stats.soTransferTimer.stop();
+            return;
+        }
+
+        s.stats.soSerializationTimer.start();
+        try {
+            wm.writeObject(so);
+        } catch (IOException e) {
+            soLogger.error("SATIN '" + s.ident.name()
+                + "': got exception while sending" + " shared object", e);
+            s.stats.soSerializationTimer.stop();
+            s.stats.soTransferTimer.stop();
+            return;
+        }
+        s.stats.soSerializationTimer.stop();
+
+        try {
+            size = wm.finish();
+        } catch (IOException e) {
+            soLogger.error("SATIN '" + s.ident.name()
+                + "': got exception while sending" + " shared object", e);
+            s.stats.soTransferTimer.stop();
+            return;
+        }
+
+        s.stats.soTransfers++;
+        s.stats.soTransfersBytes += size;
+        s.stats.soTransferTimer.stop();
+    }
+    
+    
     protected void handleSORequest(ReadMessage m, boolean demand) {
         String objid = null;
         IbisIdentifier origin = m.origin().ibis();
@@ -722,10 +746,10 @@ final class SOCommunication implements Config, Protocol {
 
     public void handleMyOwnJoin() {
         if (LABEL_ROUTING_MCAST) {
-                omc.addIbis(s.ident);
+            omc.addIbis(s.ident);
         }
     }
-    
+
     static class AsyncBcaster extends Thread {
         private SOCommunication c;
 
