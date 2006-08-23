@@ -4,10 +4,11 @@ import ibis.util.TypedProperties;
 
 class MtdfShutdown extends Thread {
     TranspositionTable tt;
-    
+
     public MtdfShutdown(TranspositionTable tt) {
         this.tt = tt;
     }
+
     public void run() {
         tt.stats();
     }
@@ -25,7 +26,8 @@ public final class Mtdf extends ibis.satin.SatinObject implements
     static final boolean DO_ABORT = TypedProperties.booleanProperty(
         "mtdf.aborts", true);
 
-    static final int threshold = TypedProperties.intProperty("mtdf.threshold", 7);
+    static final int threshold = TypedProperties.intProperty("mtdf.threshold",
+        7);
 
     static int pivot = 0;
 
@@ -37,10 +39,10 @@ public final class Mtdf extends ibis.satin.SatinObject implements
                 + e.getMessage());
             System.exit(1);
         }
-        
+
         Runtime.getRuntime().addShutdownHook(new MtdfShutdown(tt));
     }
-    
+
     public void spawn_depthFirstSearch(NodeType node, int pivot, int depth,
         short currChild) throws Done {
         depthFirstSearch(node, pivot, depth);
@@ -141,7 +143,7 @@ public final class Mtdf extends ibis.satin.SatinObject implements
         int upperBound = INF;
         boolean first = true;
         NodeType bestChild;
-        
+
         do {
             System.out.print(first ? "[" : "|");
             System.out.print(pivot);

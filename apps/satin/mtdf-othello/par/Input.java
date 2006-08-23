@@ -60,19 +60,19 @@ public class Input {
     protected static final byte DOUBLE = 5;
 
     protected static final long MIN_VALUE[] = { BYTE_MIN_VALUE,
-            SHORT_MIN_VALUE, Integer.MIN_VALUE, Long.MIN_VALUE };
+        SHORT_MIN_VALUE, Integer.MIN_VALUE, Long.MIN_VALUE };
 
     protected static final long MAX_VALUE[] = { BYTE_MAX_VALUE,
-            SHORT_MAX_VALUE, Integer.MAX_VALUE, Long.MAX_VALUE };
+        SHORT_MAX_VALUE, Integer.MAX_VALUE, Long.MAX_VALUE };
 
     protected static final int LENGTH_MIN_VALUE[] = { LENGTH_BYTE_MIN_VALUE,
-            LENGTH_SHORT_MIN_VALUE, LENGTH_INT_MIN_VALUE, LENGTH_LONG_MIN_VALUE };
+        LENGTH_SHORT_MIN_VALUE, LENGTH_INT_MIN_VALUE, LENGTH_LONG_MIN_VALUE };
 
     protected static final int LENGTH_MAX_VALUE[] = { LENGTH_BYTE_MAX_VALUE,
-            LENGTH_SHORT_MAX_VALUE, LENGTH_INT_MAX_VALUE, LENGTH_LONG_MAX_VALUE };
+        LENGTH_SHORT_MAX_VALUE, LENGTH_INT_MAX_VALUE, LENGTH_LONG_MAX_VALUE };
 
     protected static final String NAME[] = { "byte", "short", "int", "long",
-            "float", "double" };
+        "float", "double" };
 
     /* INSTANCE VARIABLES */
 
@@ -378,7 +378,7 @@ public class Input {
         }
 
         if ((s.length() == LENGTH_MIN_VALUE[integerType])
-                && (s.compareTo(String.valueOf(MIN_VALUE[integerType])) > 0)) {
+            && (s.compareTo(String.valueOf(MIN_VALUE[integerType])) > 0)) {
             return true;
         }
 
@@ -401,7 +401,7 @@ public class Input {
         }
 
         if ((s.length() == LENGTH_MAX_VALUE[integerType])
-                && (s.compareTo(String.valueOf(MAX_VALUE[integerType])) > 0)) {
+            && (s.compareTo(String.valueOf(MAX_VALUE[integerType])) > 0)) {
             return true;
         }
 
@@ -458,7 +458,7 @@ public class Input {
                 s += decimalPoint() + cardinal() + optionalExponent();
             } else {
                 System.err.println(NAME[floatingPointType] + " should begin "
-                        + "with a digit or a decimal point");
+                    + "with a digit or a decimal point");
                 System.exit(1);
             }
         }

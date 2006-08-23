@@ -10,7 +10,7 @@ public abstract class NodeType implements java.io.Serializable, Comparable {
     abstract NodeType[] generateChildren(); // return null for leaf node
 
     public int compareTo(Object o) {
-        NodeType node = (NodeType)o;
+        NodeType node = (NodeType) o;
 
         return prescore - node.prescore;
     }

@@ -3,6 +3,7 @@
 // special-purpose heap sorting class
 final class Heap {
     private NodeType[] array;
+
     private int items, max;
 
     Heap(int max) {
@@ -27,9 +28,8 @@ final class Heap {
 
         if (child >= items) return;
 
-        if (child + 1 < items &&
-            array[child].compareTo(array[child + 1]) < 0)
-         child++;
+        if (child + 1 < items && array[child].compareTo(array[child + 1]) < 0)
+            child++;
 
         if (array[child].compareTo(array[parent]) > 0) {
             swap(parent, child);
@@ -42,7 +42,7 @@ final class Heap {
         NodeType[] heap = new NodeType[items];
 
         for (int i = (items - 1) / 2; i >= 0; i--)
-          heapify(i);
+            heapify(i);
 
         for (int i = items - 1; i >= 1; i--) {
             swap(0, i);

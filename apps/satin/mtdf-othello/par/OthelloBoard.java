@@ -2,6 +2,7 @@
 
 final class OthelloBoard extends NodeType {
     static final int SIZE = 8;
+
     static final int MAX_CHILDREN = 32;
 
     static final byte BLACK = 0, WHITE = 1, EMPTY = 2;
@@ -10,14 +11,14 @@ final class OthelloBoard extends NodeType {
 
     int childNr = -1;
 
-    byte[] pos = new byte[SIZE*SIZE];
+    byte[] pos = new byte[SIZE * SIZE];
 
     private byte getPos(int x, int y) {
-        return pos[y*SIZE+x];
+        return pos[y * SIZE + x];
     }
 
     private void setPos(int x, int y, byte value) {
-        pos[y*SIZE+x] = value;
+        pos[y * SIZE + x] = value;
     }
 
     // assumes it's white's move
@@ -74,14 +75,20 @@ final class OthelloBoard extends NodeType {
         OthelloBoard result = new OthelloBoard();
 
         for (int x = 0; x < SIZE; x++)
-          for (int y = 0; y < SIZE; y++)
-            switch (getPos(x, y)) {
-              case BLACK : result.setPos(x, y, WHITE); break;
-              case WHITE : result.setPos(x, y, BLACK); break;
-              case EMPTY : result.setPos(x, y, EMPTY); break;
-            }
+            for (int y = 0; y < SIZE; y++)
+                switch (getPos(x, y)) {
+                case BLACK:
+                    result.setPos(x, y, WHITE);
+                    break;
+                case WHITE:
+                    result.setPos(x, y, BLACK);
+                    break;
+                case EMPTY:
+                    result.setPos(x, y, EMPTY);
+                    break;
+                }
 
-        result.score = (short)-score;
+        result.score = (short) -score;
         result.yielded = yielded;
 
         return result;
@@ -111,10 +118,10 @@ final class OthelloBoard extends NodeType {
         // did we find any children at all?
         if (heap.size() == 0) {
             // did we reach an end position (by full board, win, or deadlock)?
-            if (nrStones == SIZE*SIZE || yielded == true ||
-                    nrBlack == 0 || nrBlack == nrStones) {
+            if (nrStones == SIZE * SIZE || yielded == true || nrBlack == 0
+                || nrBlack == nrStones) {
                 // store the score for this board, now that we know it's over
-                score = (short)(nrBlack * 2 - nrStones);
+                score = (short) (nrBlack * 2 - nrStones);
 
                 // make sure the end positions stand out
                 if (score > 0) score += 50;
@@ -149,8 +156,8 @@ final class OthelloBoard extends NodeType {
         child.yielded = false;
 
         // set the score for move ordering
-        child.prescore =
-            (short)(child.getStoneScore() + child.getSquareScore());
+        child.prescore = (short) (child.getStoneScore() + child
+            .getSquareScore());
 
         return child;
     }
@@ -158,7 +165,7 @@ final class OthelloBoard extends NodeType {
     private OthelloBoard copy() {
         OthelloBoard result = new OthelloBoard();
 
-        System.arraycopy(pos, 0, result.pos, 0, SIZE*SIZE);
+        System.arraycopy(pos, 0, result.pos, 0, SIZE * SIZE);
 
         result.yielded = yielded;
 
@@ -166,29 +173,21 @@ final class OthelloBoard extends NodeType {
     }
 
     // start of Marvin code (GPL)
-    private static final int weightMatrix[][] = {
-      { 90,   0,  5,  5,  5,  5,  0, 90},
-      {  0, -60,  0,  0,  0,  0,-60,  0},
-      {  5,   0,  0,  0,  0,  0,  0,  5},
-      {  5,   0,  0,  0,  0,  0,  0,  5},
-      {  5,   0,  0,  0,  0,  0,  0,  5},
-      {  5,   0,  0,  0,  0,  0,  0,  5},
-      {  0, -60,  0,  0,  0,  0,-60,  0},
-      { 90,   0,  5,  5,  5,  5,  0, 90}
-    };
+    private static final int weightMatrix[][] = { { 90, 0, 5, 5, 5, 5, 0, 90 },
+        { 0, -60, 0, 0, 0, 0, -60, 0 }, { 5, 0, 0, 0, 0, 0, 0, 5 },
+        { 5, 0, 0, 0, 0, 0, 0, 5 }, { 5, 0, 0, 0, 0, 0, 0, 5 },
+        { 5, 0, 0, 0, 0, 0, 0, 5 }, { 0, -60, 0, 0, 0, 0, -60, 0 },
+        { 90, 0, 5, 5, 5, 5, 0, 90 } };
 
     private int getCornerValue(int x, int y) {
         if (x <= 1 && y <= 1 && (x != 0 || y != 0) && getPos(0, 0) != EMPTY)
-          return 10;
-        if (x >= SIZE-2 && y >= SIZE-2 && (x != SIZE-1 || y != SIZE-1) &&
-            getPos(SIZE-1, SIZE-1) != EMPTY)
-          return 10;
-        if (x <= 1 && y >= SIZE-2 && (x != 0 || y != SIZE-1) &&
-            getPos(0, SIZE-1) != EMPTY)
-          return 10;
-        if (x >= SIZE-2 && y <= 1 && (x != SIZE-1 || y != 0) &&
-            getPos(SIZE-1, 0) != EMPTY)
-          return 10;
+            return 10;
+        if (x >= SIZE - 2 && y >= SIZE - 2 && (x != SIZE - 1 || y != SIZE - 1)
+            && getPos(SIZE - 1, SIZE - 1) != EMPTY) return 10;
+        if (x <= 1 && y >= SIZE - 2 && (x != 0 || y != SIZE - 1)
+            && getPos(0, SIZE - 1) != EMPTY) return 10;
+        if (x >= SIZE - 2 && y <= 1 && (x != SIZE - 1 || y != 0)
+            && getPos(SIZE - 1, 0) != EMPTY) return 10;
 
         return 0;
     }
@@ -210,7 +209,7 @@ final class OthelloBoard extends NodeType {
 
         return sum;
     }
- 
+
     private int getMoveValue(int x, int y, int dx, int dy) {
         x += dx;
         y += dy;
@@ -239,20 +238,20 @@ final class OthelloBoard extends NodeType {
             for (int y = 0; y < SIZE; y++) {
                 if (getPos(x, y) == EMPTY) {
                     sum += getMoveValue(x, y, -1, -1);
-                    sum += getMoveValue(x, y, -1,  0);
-                    sum += getMoveValue(x, y, -1,  1);
-                    sum += getMoveValue(x, y,  0, -1);
-                    sum += getMoveValue(x, y,  0,  1);
-                    sum += getMoveValue(x, y,  1, -1);
-                    sum += getMoveValue(x, y,  1,  0);
-                    sum += getMoveValue(x, y,  1,  1);
+                    sum += getMoveValue(x, y, -1, 0);
+                    sum += getMoveValue(x, y, -1, 1);
+                    sum += getMoveValue(x, y, 0, -1);
+                    sum += getMoveValue(x, y, 0, 1);
+                    sum += getMoveValue(x, y, 1, -1);
+                    sum += getMoveValue(x, y, 1, 0);
+                    sum += getMoveValue(x, y, 1, 1);
                 }
             }
         }
 
         return sum;
     }
-   
+
     private int getAdjacentValue(int x, int y) {
         if (isValidPos(x, y)) {
             if (getPos(x, y) == WHITE) return 1;
@@ -269,12 +268,12 @@ final class OthelloBoard extends NodeType {
             for (int y = 0; y < SIZE; y++) {
                 if (getPos(x, y) == EMPTY) {
                     sum += getAdjacentValue(x - 1, y - 1);
-                    sum += getAdjacentValue(x - 1, y    );
+                    sum += getAdjacentValue(x - 1, y);
                     sum += getAdjacentValue(x - 1, y + 1);
-                    sum += getAdjacentValue(x    , y - 1);
-                    sum += getAdjacentValue(x    , y + 1);
+                    sum += getAdjacentValue(x, y - 1);
+                    sum += getAdjacentValue(x, y + 1);
                     sum += getAdjacentValue(x + 1, y - 1);
-                    sum += getAdjacentValue(x + 1, y    );
+                    sum += getAdjacentValue(x + 1, y);
                     sum += getAdjacentValue(x + 1, y + 1);
                 }
             }
@@ -289,8 +288,12 @@ final class OthelloBoard extends NodeType {
         for (int x = 0; x < SIZE; x++) {
             for (int y = 0; y < SIZE; y++) {
                 switch (getPos(x, y)) {
-                    case BLACK : nrBlack++; break;
-                    case WHITE : nrWhite++; break;
+                case BLACK:
+                    nrBlack++;
+                    break;
+                case WHITE:
+                    nrWhite++;
+                    break;
                 }
             }
         }
@@ -302,8 +305,8 @@ final class OthelloBoard extends NodeType {
         int nrStones = 0;
 
         for (int x = 0; x < SIZE; x++)
-          for (int y = 0; y < SIZE; y++)
-            if (getPos(x, y) != EMPTY) nrStones++;
+            for (int y = 0; y < SIZE; y++)
+                if (getPos(x, y) != EMPTY) nrStones++;
 
         return nrStones;
     }
@@ -320,18 +323,19 @@ final class OthelloBoard extends NodeType {
         int potentialScore = getPotentialMobilityScore();
         int stoneScore = getStoneScore();
 
-        score = (short)((squareScore * 2 +
-          mobilityScore * (3 + rising(nrStones)) + 
-          potentialScore * falling(nrStones) +
-          stoneScore * rising(nrStones)) / 8);
+        score = (short) ((squareScore * 2 + mobilityScore
+            * (3 + rising(nrStones)) + potentialScore * falling(nrStones) + stoneScore
+            * rising(nrStones)) / 8);
     }
 
     private int rising(int nrStones) {
-        return 1 + (int)Math.round(nrStones * 0.1);
+        return 1 + (int) Math.round(nrStones * 0.1);
     }
+
     private int falling(int nrStones) {
-        return 7 - (int)Math.round(nrStones * 0.1);
+        return 7 - (int) Math.round(nrStones * 0.1);
     }
+
     // end of Marvin code
 
     void print() {
@@ -342,9 +346,15 @@ final class OthelloBoard extends NodeType {
 
             for (int x = 0; x < SIZE; x++) {
                 switch (getPos(x, y)) {
-                  case BLACK : System.out.print('*'); break;
-                  case WHITE : System.out.print('o'); break;
-                  case EMPTY : System.out.print('.'); break;
+                case BLACK:
+                    System.out.print('*');
+                    break;
+                case WHITE:
+                    System.out.print('o');
+                    break;
+                case EMPTY:
+                    System.out.print('.');
+                    break;
                 }
             }
 
@@ -357,14 +367,14 @@ final class OthelloBoard extends NodeType {
     static OthelloBoard getRoot() {
         OthelloBoard root = new OthelloBoard();
 
-	for (int x = 0; x < SIZE; x++)
-	  for (int y = 0; y < SIZE; y++)
-            root.setPos(x, y, EMPTY);
+        for (int x = 0; x < SIZE; x++)
+            for (int y = 0; y < SIZE; y++)
+                root.setPos(x, y, EMPTY);
 
-        root.setPos(SIZE/2-1, SIZE/2-1, WHITE);
-        root.setPos(SIZE/2-1, SIZE/2, BLACK);
-        root.setPos(SIZE/2, SIZE/2-1, BLACK);
-        root.setPos(SIZE/2, SIZE/2, WHITE);
+        root.setPos(SIZE / 2 - 1, SIZE / 2 - 1, WHITE);
+        root.setPos(SIZE / 2 - 1, SIZE / 2, BLACK);
+        root.setPos(SIZE / 2, SIZE / 2 - 1, BLACK);
+        root.setPos(SIZE / 2, SIZE / 2, WHITE);
 
         root.evaluate();
 
@@ -377,11 +387,17 @@ final class OthelloBoard extends NodeType {
 
         for (int y = 0; y < SIZE; y++) {
             for (int x = 0; x < SIZE; x++)
-              switch ((byte)in.readChar()) {
-                case '.' : res.setPos(x, y, EMPTY); break;
-                case '*' : res.setPos(x, y, BLACK); break;
-                case 'o' : res.setPos(x, y, WHITE); break;
-              }
+                switch ((byte) in.readChar()) {
+                case '.':
+                    res.setPos(x, y, EMPTY);
+                    break;
+                case '*':
+                    res.setPos(x, y, BLACK);
+                    break;
+                case 'o':
+                    res.setPos(x, y, WHITE);
+                    break;
+                }
             in.readln();
         }
 
