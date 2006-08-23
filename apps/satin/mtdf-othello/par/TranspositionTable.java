@@ -2,6 +2,18 @@ import ibis.util.TypedProperties;
 
 /* $Id$ */
 
+class Shutdown extends Thread {
+    TranspositionTable tt;
+
+    Shutdown(TranspositionTable tt) {
+        this.tt = tt;
+    }
+
+    public void run() {
+        tt.stats();
+    }
+}
+
 final class TranspositionTable {
 
     private static final boolean SUPPORT_TT = TypedProperties.booleanProperty(
@@ -86,6 +98,8 @@ final class TranspositionTable {
         lowerBounds = new boolean[SIZE];
         valid = new boolean[SIZE];
         tags = new int[SIZE * tagSize];
+
+        Runtime.getRuntime().addShutdownHook(new Shutdown(this));
     }
 
     int lookup(Tag tag) {
