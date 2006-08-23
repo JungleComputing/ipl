@@ -291,7 +291,7 @@ public class Input {
     }
 
     protected void skipWhiteSpace() {
-        while (Character.isSpace(nextChar())) {
+        while (Character.isWhitespace(nextChar())) {
             readChar();
         }
     }

@@ -124,8 +124,7 @@ final class OthelloBoard extends NodeType {
                 score = (short) (nrBlack * 2 - nrStones);
 
                 // make sure the end positions stand out
-                if (score > 0)
-                    score += 50;
+                if (score > 0) score += 50;
                 else if (score < 0) score -= 50;
 
                 return null;
