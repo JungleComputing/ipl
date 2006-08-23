@@ -1,7 +1,7 @@
 /* $Id$ */
 
 // special-purpose heap sorting class
-class Heap {
+final class Heap {
     private NodeType[] array;
     private int items, max;
 
