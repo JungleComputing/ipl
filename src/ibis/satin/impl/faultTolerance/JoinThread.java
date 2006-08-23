@@ -75,6 +75,7 @@ class JoinThread extends Thread implements Config {
                 waitForEarlierJoins();
                 ftLogger.debug("SATIN '" + s.ident
                     + "': waiting for earlier joins done");
+                s.ft.ftComm.handleMyOwnJoinJoin();
                 return;
             }
 
@@ -83,6 +84,7 @@ class JoinThread extends Thread implements Config {
             if (joiner.equals(s.ident)) {
                 ftLogger.debug("SATIN '" + s.ident
                     + "': got my own join");
+                s.ft.ftComm.handleMyOwnJoinJoin();
                 return;
             }
             IbisIdentifier[] j = new IbisIdentifier[1];

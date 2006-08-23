@@ -272,6 +272,10 @@ final class FTCommunication implements Config, ReceivePortConnectUpcall,
         }
     }
 
+    protected void handleMyOwnJoinJoin() {
+        s.so.handleMyOwnJoin();
+    }
+    
     protected void handleJoins(IbisIdentifier[] joiners) {
         String[] names = new String[joiners.length];
         for (int i = 0; i < names.length; i++) {

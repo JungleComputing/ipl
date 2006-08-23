@@ -234,6 +234,10 @@ public final class SharedObjects implements Config {
         soComm.createSoReceivePorts(joiners);
     }
 
+    public void handleMyOwnJoin() {
+        soComm.handleMyOwnJoin();
+    }
+    
     public void addSOConnection(IbisIdentifier id) {
         soComm.addSOConnection(id);
     }

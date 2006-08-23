@@ -720,6 +720,12 @@ final class SOCommunication implements Config, Protocol {
         }
     }
 
+    public void handleMyOwnJoin() {
+        if (LABEL_ROUTING_MCAST) {
+                omc.addIbis(s.ident);
+        }
+    }
+    
     static class AsyncBcaster extends Thread {
         private SOCommunication c;
 
