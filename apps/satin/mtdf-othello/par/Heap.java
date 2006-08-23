@@ -4,11 +4,10 @@
 final class Heap {
     private NodeType[] array;
 
-    private int items, max;
+    private int items;
 
     Heap(int max) {
         this.array = new NodeType[max];
-        this.max = max;
         this.items = 0;
     }
 
