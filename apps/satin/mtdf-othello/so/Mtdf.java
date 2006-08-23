@@ -1,4 +1,5 @@
 /**
+ * You can run the sequential version by setting the mtdf.threshold value to 0. 
  * You can get a version that only uses a local transposition table (the old "par" version)
  * by setting the mtdf.replicatedDepth larger than the search depth.
  */
@@ -21,7 +22,7 @@ public final class Mtdf extends ibis.satin.SatinObject implements MtdfInterface 
         "mtdf.replicatedDepth", 7);
 
     static final int SPAWN_THRESHOLD = ibis.util.TypedProperties.intProperty(
-        "mtdf.threshold", 7);
+        "mtdf.spawnThreshold", 7);
 
     static final int INF = 10000;
 
