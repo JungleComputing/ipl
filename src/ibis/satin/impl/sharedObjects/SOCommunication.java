@@ -351,8 +351,7 @@ final class SOCommunication implements Config, Protocol {
         long size = 0;
         try {
             s.stats.soBroadcastSerializationTimer.start();
-            omc.setDestination(tmp);
-            size = omc.send(object);
+            size = omc.send(tmp, object);
             s.stats.soBroadcastSerializationTimer.stop();
         } catch (Exception e) {
             System.err.println("WARNING, SO mcast failed: " + e + " msg: "
