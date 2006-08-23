@@ -47,25 +47,17 @@ public final class Othello extends ibis.satin.SatinObject implements OthelloInte
 
     NodeType depthFirstSearch(NodeType node, int pivot, int depth,
         TranspositionTable tt) {
-        NodeType children[] = null;
-        short bestChild = 0;
-        short currChild = 0;
-        int ttIndex = 0;
-        Tag tag = null;
-
         tt.visited++;
 
+        NodeType children[] = null;
         if (depth == 0 || (children = node.generateChildren()) == null) {
             node.evaluate();
             return null;
         }
 
-        tag = node.getTag();
-
-        // @@@ should maybe be sync, but satinc dies ??? --Rob
-
-        //        synchronized (tt) {
-        ttIndex = tt.lookup(tag);
+        short currChild = 0;
+        Tag tag = node.getTag();
+        int ttIndex = tt.lookup(tag);
         if (ttIndex != -1) {
             tt.sorts++;
             if (tt.depths[ttIndex] >= depth) {
@@ -80,8 +72,8 @@ public final class Othello extends ibis.satin.SatinObject implements OthelloInte
 
             currChild = tt.bestChildren[ttIndex];
         }
-        //        }
 
+        short bestChild = 0;
         node.score = -INF;
         if (BEST_FIRST) {
             depthFirstSearch(children[currChild], 1 - pivot, depth - 1, tt);
