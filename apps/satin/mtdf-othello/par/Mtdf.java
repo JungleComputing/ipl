@@ -2,6 +2,17 @@ import ibis.util.TypedProperties;
 
 /* $Id$ */
 
+class MtdfShutdown extends Thread {
+    TranspositionTable tt;
+    
+    public MtdfShutdown(TranspositionTable tt) {
+        this.tt = tt;
+    }
+    public void run() {
+        tt.stats();
+    }
+}
+
 public final class Mtdf extends ibis.satin.SatinObject implements
         MtdfInterface, java.io.Serializable {
     static final int INF = 10000;
@@ -26,6 +37,8 @@ public final class Mtdf extends ibis.satin.SatinObject implements
                 + e.getMessage());
             System.exit(1);
         }
+        
+        Runtime.getRuntime().addShutdownHook(new MtdfShutdown(tt));
     }
     
     public void spawn_depthFirstSearch(NodeType node, int pivot, int depth,
@@ -182,8 +195,6 @@ public final class Mtdf extends ibis.satin.SatinObject implements
         System.out.println("application Othello (" + depth + ","
             + (file == null ? "start" : file) + ") took "
             + ((double) (end - start) / 1000.0) + " seconds");
-
-        Mtdf.tt.stats();
     }
 
     public static void main(String[] args) {

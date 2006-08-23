@@ -122,6 +122,8 @@ final class TranspositionTable {
     }
 
     static void stats() {
+        if (!SUPPORT_TT)
+            return;
         System.out.println("TT: lookups: " + lookups + ", hits: " + hits
                 + ", sorts: " + sorts + ", stores: " + stores + ", used: "
                 + used + ", overwrites: " + overwrites + ", score incs: "
