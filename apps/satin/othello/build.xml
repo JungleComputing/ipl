@@ -9,7 +9,7 @@
     <property name="build"       value="build"/>
 
     <property name="satinc-flags" value="-keep"/>
-    <property name="satin-classes" value="Mtdf,TranspositionTable"/>
+    <property name="satin-classes" value="Othello,TranspositionTable"/>
 
     <property name="ibis-run-args" value="-Dsatin.closed"/>
     <property name="test-par-java-args" value="-Xmx256M"/>
