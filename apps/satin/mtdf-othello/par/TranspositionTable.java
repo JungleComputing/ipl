@@ -27,6 +27,19 @@ final class TranspositionTable {
     final boolean[] valid;
 
     TranspositionTable(int tagSize) {
+        if (!SUPPORT_TT) {
+            SIZE = 0;
+            this.tagSize = 0;
+            tags = null;
+            values = null;
+            bestChildren = null;
+            depths = null;
+            lowerBounds = null;
+            valid = null;
+            System.err.println("TT: disabled");
+            return;
+        }
+
         this.tagSize = tagSize;
         int elementSize = 7 + (4 * tagSize);
 

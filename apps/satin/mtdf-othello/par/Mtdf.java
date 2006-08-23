@@ -26,10 +26,6 @@ public final class Mtdf extends ibis.satin.SatinObject implements
 
     NodeType depthFirstSearch(NodeType node, int pivot, int depth) {
         NodeType children[];
-        short bestChild = 0;
-        short currChild = 0;
-        int ttIndex;
-        Tag tag;
 
         tt.visited++;
 
@@ -38,9 +34,9 @@ public final class Mtdf extends ibis.satin.SatinObject implements
             return null;
         }
 
-        tag = node.getTag();
-
-        ttIndex = tt.lookup(tag);
+        short currChild = 0;
+        Tag tag = node.getTag();
+        int ttIndex = tt.lookup(tag);
         if (ttIndex != -1) {
             tt.sorts++;
             if (tt.depths[ttIndex] >= depth) {
@@ -56,6 +52,7 @@ public final class Mtdf extends ibis.satin.SatinObject implements
         }
 
         node.score = -INF;
+        short bestChild = 0;
         if (BEST_FIRST) {
             depthFirstSearch(children[currChild], 1 - pivot, depth - 1);
 
