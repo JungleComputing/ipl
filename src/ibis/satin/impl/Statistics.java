@@ -324,6 +324,7 @@ public final class Statistics implements java.io.Serializable, Config {
         soBcastDeserializationTime = soBroadcastDeserializationTimer
             .totalTimeVal();
         soGuardTime = soGuardTimer.totalTimeVal();
+        soGuards = soGuardTimer.nrTimes();
     }
 
     protected void printStats(int size, double totalTime) {
