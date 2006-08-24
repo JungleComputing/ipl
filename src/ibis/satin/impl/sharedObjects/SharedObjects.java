@@ -32,7 +32,7 @@ public final class SharedObjects implements Config {
     /** List that stores requests for shared object transfers */
     protected SORequestList SORequestList = new SORequestList();
 
-    /** Used for storing pending shared object invocations (SOInvocationRecords)*/
+    /** Used for storing pending shared object invocations (SOInvocationRecords) */
     private Vector soInvocationList = new Vector();
 
     private Satin s;
@@ -183,7 +183,9 @@ public final class SharedObjects implements Config {
         if (objRefs == null || objRefs.isEmpty()) {
             soLogger
                 .fatal("SATIN '" + s.ident.name() + "': "
-                    + "a guard is not satisfied, but the spawn does not have shared objects.\nThis is not a correct Satin program.");
+                    + "a guard is not satisfied, but the spawn does not " +
+                                "have shared objects.\n" + 
+                                "This is not a correct Satin program.");
             System.exit(1);
         }
 
