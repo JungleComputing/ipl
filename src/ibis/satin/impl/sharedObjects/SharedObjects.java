@@ -154,6 +154,7 @@ public final class SharedObjects implements Config {
     /** returns false if the job must be aborted */
     public boolean executeGuard(InvocationRecord r) {   
         s.stats.soGuardTimer.start();
+        System.err.println("GUARD");
         try {
             doExecuteGuard(r);
         } catch (SOReferenceSourceCrashedException e) {
