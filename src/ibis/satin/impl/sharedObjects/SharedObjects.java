@@ -153,15 +153,12 @@ public final class SharedObjects implements Config {
 
     /** returns false if the job must be aborted */
     public boolean executeGuard(InvocationRecord r) {   
-        s.stats.soGuardTimer.start();
         try {
             doExecuteGuard(r);
         } catch (SOReferenceSourceCrashedException e) {
             //the source has crashed - abort the job
-            s.stats.soGuardTimer.stop();
             return false;
         }
-        s.stats.soGuardTimer.stop();
         return true;
     }
 
@@ -176,6 +173,8 @@ public final class SharedObjects implements Config {
 
         if (r.guard()) return;
 
+        s.stats.soGuardTimer.start();
+
         soLogger.info("SATIN '" + s.ident.name() + "': "
             + "guard not satisfied, getting updates..");
 
@@ -185,13 +184,17 @@ public final class SharedObjects implements Config {
             soLogger
                 .fatal("SATIN '" + s.ident.name() + "': "
                     + "a guard is not satisfied, but the spawn does not have shared objects.\nThis is not a correct Satin program.");
+            System.exit(1);
         }
 
         // A shared object update may have arrived
         // during one of the fetches.
         while (true) {
             s.handleDelayedMessages();
-            if (r.guard()) return;
+            if (r.guard()) {
+                s.stats.soGuardTimer.stop();
+                return;
+            }
 
             String ref = (String) objRefs.remove(0);
             soComm.fetchObject(ref, r.getOwner(), r);
