@@ -1,7 +1,6 @@
 The Ibis bug tracking system is available through the Ibis web-site:
 http://www.cs.vu.nl/ibis. If you cannot for some reason report a bug
-through this system, please Email your report to one of the maintainers
-mentioned in the MAINTAINERS file.
+through this system, please Email your report to ceriel@cs.vu.nl.
 
 Before  reporting  a bug, please make sure that you have the latest
 Ibis distribution (check with the Ibis website). Also check with

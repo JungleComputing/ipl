@@ -12,13 +12,13 @@
     </target>
 
     <target name="compile"
-	    depends="init"
+	    depends="clean,init"
 	    description="Compile without Ibis-serialization rewriting">
 	<javac  destdir="${build}"
 		debug="true"
 		srcdir=".">
 	    <classpath refid="default.classpath"/>
-	    <include name="*.java"/>
+	    <include name="**/*.java"/>
 	</javac>
     </target>
 
@@ -34,7 +34,7 @@
     </target>
 
     <target name="build"
-	    depends="init,compile,ibisc"
+	    depends="compile,ibisc"
 	    description="Compile with Ibis-serialization rewriting"/>
 
     <target name="clean"

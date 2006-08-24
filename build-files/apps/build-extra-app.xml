@@ -12,13 +12,13 @@
     </target>
 
     <target name="compile"
-	    depends="init"
+	    depends="clean,init"
 	    description="Compile">
 	<javac  destdir="${build}"
 		debug="true"
 		srcdir=".">
 	    <classpath refid="default.classpath"/>
-	    <include name="*.java"/>
+	    <include name="**/*.java"/>
 	</javac>
     </target>
 

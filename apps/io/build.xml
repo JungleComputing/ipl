@@ -7,10 +7,6 @@
 	IO tests build.
     </description>
 
-    <property environment="env"/>
-
-    <property name="ibis"        location="${env.IBIS_HOME}"/>
-
     <import file="../build-apps.xml"/>
 
 </project>

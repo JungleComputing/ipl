@@ -10,8 +10,7 @@
 	Ibis repmi application build
     </description>
 
-    <target name="repmi"
-	    depends="property-init">
+    <target name="repmi">
 	    <!-- Commented out; not toplevel target
 	    description="Preprocesses classes in the build tree for RepMI"
 	    -->
@@ -25,13 +24,13 @@
 	</java>
     </target>
 
-    <target name="init">
+    <target name="init" depends="property-init">
 	<tstamp/>
 	<mkdir dir="${build}"/>
     </target>
 
     <target name="compile"
-	    depends="init,property-init">
+	    depends="clean,init">
 	    <javac  destdir="${build}"
 		debug="true"
 		srcdir=".">
@@ -41,7 +40,7 @@
     </target>
 
     <target name="build"
-	    depends="init, compile, repmi"
+	    depends="compile, repmi"
 	    description="Compile a RepMI application"/>
 
     <target name="clean"

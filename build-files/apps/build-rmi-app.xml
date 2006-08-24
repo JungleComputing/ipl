@@ -29,7 +29,7 @@
 	depends="set-to-rmic-flags,set-def-rmic-flags"/>
 
     <target name="rmic"
-	    depends="property-init,set-rmic-flags">
+	    depends="set-rmic-flags">
 	    <!-- Commented out; not toplevel.
 	    description="Preprocess class files in the build tree for RMI"
 	    -->
@@ -43,8 +43,7 @@
 	</java>
     </target>
 
-    <target name="rmic-sun"
-	    depends="property-init">
+    <target name="rmic-sun">
 	    <!-- Commented out; not toplevel.
 	    description="Preprocess class files in the build tree for SUN RMI"
 	    -->
@@ -90,33 +89,44 @@
 	</rmic>
     </target>
 
+    <target name="set-shared">
+	<condition property="has-shared">
+	    <isset property="shared-dir"/>
+	</condition>
+    </target>
 
-    <target name="init" depends="property-init">
+    <target name="set-srcpath-shared" depends="set-shared" if="has-shared">
+	<property name="src-path" value=".:${shared-dir}"/>
+    </target>
+
+    <target name="set-srcpath-not-shared" depends="set-shared" unless="has-shared">
+	<property name="src-path" value="."/>
+    </target>
+
+    <target name="init" depends="property-init,set-srcpath-shared,set-srcpath-not-shared">
 	<tstamp/>
 	<mkdir dir="${build}"/>
     </target>
 
     <target name="compile"
-	depends="clean,init,property-init">
+	depends="clean,init">
 	<javac  destdir="${build}"
 		debug="true"
-		srcdir=".:../shared">
+		srcdir="${src-path}">
 	    <classpath refid="default.classpath"/>
 	    <include name="**/*.java"/>
 	</javac>
     </target>
 
     <target name="build"
-	    depends="init"
+	    depends="compile"
 	    description="Compile RMI application for Ibis RMI">
-	<antcall inheritAll="true" inheritRefs="true" target="compile"/>
 	<antcall inheritRefs="true" target="rmic"/>
     </target>
 
     <target name="build-sun"
-	    depends="init"
+	    depends="compile"
 	    description="Compile RMI application for Sun RMI">
-	<antcall inheritAll="true" inheritRefs="true" target="compile"/>
 	<antcall inheritRefs="true" target="rmic-sun"/>
     </target>
 

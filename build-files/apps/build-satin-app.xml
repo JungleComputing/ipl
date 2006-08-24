@@ -27,7 +27,7 @@
     </target>
 
     <target name="satin-init"
-	    depends="property-satin-build,property-init"/>
+	    depends="property-satin-build"/>
 
     <target name="satin"
 	    depends="satin-init">
@@ -43,19 +43,17 @@
 
     </target>
 
-    <target name="init">
+    <target name="init" depends="property-init">
 	<tstamp/>
-	<delete dir="${build}"/>
 	<mkdir dir="${build}"/>
     </target>
 
     <target name="compile"
-	    depends="init,property-init"
+	    depends="clean,init"
 	    description="Compile Satin application for sequential execution">
 	<javac  destdir="${build}"
 		debug="true"
 		includes="**/*.java"
-		excludes="${build}/*.java"
 		srcdir=".">
 	    <classpath refid="default.classpath"/>
 	</javac>
@@ -94,15 +92,12 @@
     </target>
 
     <target name="do-satin"
-	depends="set-satinc-flags-set,set-satinc-flags-notset,set-satinc-main-notset,set-satinc-main,set-satinc-classes,set-satinc-classes-notset,set-satinc-so-notset,set-satinc-so">
-	<antcall inheritRefs="true" target="satin"/>
+	depends="set-satinc-flags-set,set-satinc-flags-notset,set-satinc-main-notset,set-satinc-main,set-satinc-classes,set-satinc-classes-notset,set-satinc-so-notset,set-satinc-so,satin">
     </target>
 
     <target name="build"
-	    description="Compile Satin application for parallel execution">
-	<antcall inheritAll="true" inheritRefs="true" target="compile"/>
-	<antcall inheritRefs="true" target="do-satin"/>
-    </target>
+	description="Compile Satin application for parallel execution"
+	depends="compile,do-satin"/>
 
     <target name="clean">
 	<delete dir="${build}"/>

@@ -238,16 +238,11 @@
 	<delete file="build-files/build-properties"/>
 	<delete file="build-files/build-properties.cache"/>
 	<delete file="build-files/build-properties.backup"/>
-	<ant dir="${ibis}/apps" inheritAll="false" target="clean">
-	    <property name="ibis" value="${ibis}"/>
-	</ant>
 	<ant dir="${ibis}/ibis-example" inheritAll="false" target="clean"/>
 	<delete dir="bin"/>
 	<delete dir="lib"/>
 	<delete dir="ant-tasks/tasks"/>
 	<ant dir="${docs}" inheritAll="false" target="distclean"/>
-	<delete file="configuration.sh"/>
-	<delete file="configuration.bat"/>
     </target>
 
     <target name="docs"
@@ -264,13 +259,7 @@
 	<ant dir="${docs}" inheritAll="false" target="progman"/>
     </target>
 
-    <target name="simple-test" depends="build">
+    <target name="test" depends="build">
 	<ant dir="ibis-example" inheritAll="false" target="test"/>
-    </target>
-
-    <target name="test" depends="simple-test">
-	<ant dir="apps" inheritAll="false" target="test">
-	    <property name="ibis" value="${ibis}"/>
-	</ant>
     </target>
 </project>

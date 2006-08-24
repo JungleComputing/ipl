@@ -15,12 +15,6 @@
 	<echo message="os.name ${os.name} os.arch ${os.arch}"/>
     </target>
 
-    <property environment="env"/>
-
-    <property name="ibis"        location="${env.IBIS_HOME}"/>
-
-    <import file="${ibis}/build-files/build-properties.xml"/>
-
     <path id="buildfiles">
 	<fileset dir=".">
 	    <include name="*/build.xml"/>

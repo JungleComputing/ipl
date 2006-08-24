@@ -14,6 +14,8 @@
     <property name="ibis"        location="${env.IBIS_HOME}"/>
     <property name="build"       location="build"/>
 
+    <property name="shared-dir"	 location="../shared"/>
+
     <import file="${ibis}/build-files/apps/build-rmi-app.xml"/>
 
 </project>
