@@ -399,6 +399,8 @@ public final class Statistics implements java.io.Serializable, Config {
                 + " transfers, " + nf.format(soTransfersBytes) + " bytes ");
             out.println("SATIN: SO_BCAST:    " + nf.format(soBcasts)
                 + " bcasts, " + nf.format(soBcastBytes) + " bytes ");
+            out.println("SATIN: SO_GUARDS:    " + nf.format(soGuards)
+                + " guards executed");
         }
 
         if (haveAborts || haveSteals || haveCrashes || haveSO) {
