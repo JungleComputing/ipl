@@ -242,6 +242,8 @@
 	<delete dir="bin"/>
 	<delete dir="lib"/>
 	<delete dir="ant-tasks/tasks"/>
+	<delete dir="bin-temp"/>
+	<delete file="ibis.zip"/>
 	<ant dir="${docs}" inheritAll="false" target="distclean"/>
     </target>
 
@@ -262,4 +264,57 @@
     <target name="test" depends="build">
 	<ant dir="ibis-example" inheritAll="false" target="test"/>
     </target>
+
+    <target name="ibis.zip" depends="default,docs,progman"
+	    description="Create a binary release, in a file ibis.zip">
+	<delete dir="bin-temp"/>
+	<delete file="ibis.zip"/>
+	<mkdir dir="bin-temp/ibis"/>
+
+	<copy todir="bin-temp/ibis">
+	    <fileset dir=".">
+		<include name="3rdparty/**"/>
+		<include name="build-files/**"/>
+		<include name="docs/**"/>
+		<include name="grun/**"/>
+		<include name="lib/**"/>
+		<include name="notices/**"/>
+		<include name="bin/**"/>
+		<include name="BUGS.txt"/>
+		<include name="LICENSE.txt"/>
+	    </fileset>
+	</copy>
+
+	<copy todir="bin-temp/ibis/bin">
+	    <fileset dir="src/scripts">
+		<include name="*.bat"/>
+	    </fileset>
+	</copy>
+
+	<chmod file="bin-temp/ibis/bin/*" perm="+x"/>
+
+	<move file="bin-temp/ibis/docs/README-bin.html" tofile="bin-temp/ibis/README.html"/>
+
+	<delete dir="bin-temp/ibis/lib/natives"/>
+	<delete dir="bin-temp/ibis/docs/src"/>
+	<delete file="bin-temp/ibis/docs/build.xml"/>
+	<delete file="bin-temp/ibis/build-files/build-config.xml"/>
+	<delete file="bin-temp/ibis/build-files/build-natives.xml"/>
+	<delete file="bin-temp/ibis/build-files/build-native.xml"/>
+	<delete file="bin-temp/ibis/build-files/build-properties"/>
+	<delete file="bin-temp/ibis/build-files/build-properties.cache"/>
+	<delete file="bin-temp/ibis/build-files/build-properties.default"/>
+
+	<!--
+	 Unfortunately, the zip task does not deal with file permissions.
+	 In particular, it apparently strips the "execute" bit from the
+	 file in bin.
+	<zip destfile="ibis.zip" basedir="bin-temp"/>
+	-->
+	<exec executable="/usr/bin/zip"
+	    dir="bin-temp">
+	    <arg line="-qr ../ibis.zip ibis"/>
+	</exec>
+    </target>
+
 </project>

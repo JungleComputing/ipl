@@ -9,10 +9,13 @@
 general:
 - extend clusters to a hierarchical model:
      e.g., world.grid5k.sophia.machine321
+- to think about: would it be a good idea to allow an active upcall per
+  connection instead of per receiveport? This would make satin more simple:
+  no longer a receiveport per sender.
      
 - ibisidentifier -> Comparable (for Ana)
-- ibisc : gmic + rmic + satinc + ... (does not replace javac)
-- load ibisses dynamically from jar files (like JavaGAT)
++ ibisc : gmic + rmic + satinc + ... (does not replace javac) (Done Ceriel)
++ load ibisses dynamically from jar files (like JavaGAT) (Done Ceriel)
 - run central nameserver on fs0
 - split up ibis.jar in multiple files (in a sane manner)
 - binary release
@@ -24,14 +27,14 @@ general:
 - while(true) {fix eclipse warnings}
 - change codmon performance measurements to "sane" benchmarks
 - more efficient clone? Maybe generate code that clones without using 
-  serialization. Could be done for objects passes as a param
+  serialization. Could be done for objects passed as a param
   to a spawn, for instance. If code is not there, fall back to current impl.
-- migrate leftover prints ro log4j
+- migrate leftover prints to log4j (should we? Performance!)
 - improve performance of Ibis serialization for non-rewritten code.
 - automatically started nameserver hangs when application crashes or exits with code 1 
   (with ant test)
-- ant clean in apps gooit ant test output files niet weg
-- ant in applicaties doet niet eerst een clean
++ ant clean in apps gooit ant test output files niet weg (fixed Ceriel)
++ ant in applicaties doet niet eerst een clean (fixed Ceriel)
 
 - na een connectionLost upcall geeft het sluiten van de port soms:
     Trying to close a sendport port while a message is alive!
@@ -40,8 +43,10 @@ general:
 
 
 nameserver+connection stuff:
-- joins, leaves and died messages have to be ordered to each other as well. --Rob
-- deadlocks in pinger, forwarders --Rob
++ joins, leaves and died messages have to be ordered to each other as well. --Rob
+  They are (Ceriel)
++ deadlocks in pinger, forwarders --Rob
+  Fixed serious race (in nameserver, and TcpIbis) --Ceriel
 
 - enable control hub by default --Rob
 - if a control hub is started, ibises cannot connect to the normal server again?
@@ -99,7 +104,8 @@ satin:
   are not broadcast. Only if you get it as param from a spawn it is broadcast!
   This is very confusing --Rob
 + remove dependancy on IPUtils and hostname (mostly done, except for masterHome; Ceriel)
-- ant test should also run satin apps sequentially
++ ant test should also run satin apps sequentially
+  (It does, does'nt it? (Ceriel))
 
 satin-so:
 - count all messages+sizes for the total messages/data sent statistics --Rob
