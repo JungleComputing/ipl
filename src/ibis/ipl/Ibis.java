@@ -457,19 +457,13 @@ public abstract class Ibis {
         String packagename = cl.getPackage().getName();
         String propertyFile = packagename.replace('.', File.separatorChar)
                     + File.separator + "properties";
-
         StaticProperties sp = new StaticProperties();
-        StringTokenizer st = new StringTokenizer(propertyFile, " ,\t\n\r\f");
-        while (st.hasMoreTokens()) {
-            String file = st.nextToken();
-            InputStream in = cl.getClassLoader().getResourceAsStream(file);
-            if (in == null) {
-                System.err.println("could not open " + file);
-                System.exit(1);
-            }
-            sp.load(in);
-            in.close();
+        InputStream in = cl.getClassLoader().getResourceAsStream(propertyFile);
+        if (in == null) {
+            throw new IOException("Could not open " + propertyFile);
         }
+        sp.load(in);
+        in.close();
 
         sp.addImpliedProperties();
 
