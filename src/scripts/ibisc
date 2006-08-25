@@ -38,23 +38,21 @@ export IBIS_HOME
 LIBCLASSPATH=""
 
 add_to_libclasspath () {
-    DIRLIBS=`cd "$1"; ls *.jar`
+    DIRLIBS=`cd "$1" && ls *.jar 2>/dev/null`
     for i in ${DIRLIBS}
     do
-	# if the directory is empty, then it will return the input string
-	if [ "$i" != "${DIRLIBS}" ] ; then
-	    if [ -z "$LIBCLASSPATH" ] ; then
-		LIBCLASSPATH="$1/$i"
-	    else
-		LIBCLASSPATH="$1/$i":$LIBCLASSPATH
-	    fi
+	if [ -z "$LIBCLASSPATH" ] ; then
+	    LIBCLASSPATH="$1/$i"
+	else
+	    LIBCLASSPATH="$1/$i":$LIBCLASSPATH
 	fi
     done
 }
 
 # Add the following dirs to the classpath 
 add_to_libclasspath "${IBIS_HOME}"/3rdparty
+add_to_libclasspath "${IBIS_HOME}"/lib
 
-JAVACLASSPATH="$CLASSPATH:$IBIS_HOME/lib/ibis.jar:$LIBCLASSPATH"
+JAVACLASSPATH="$CLASSPATH:$LIBCLASSPATH"
 
 "$JAVA" -classpath "$JAVACLASSPATH" ibis.frontend.ibis.Ibisc "$@"
