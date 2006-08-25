@@ -39,7 +39,6 @@ add_to_libclasspath () {
 }
 
 # Add the following dirs to the classpath 
-add_to_libclasspath "${IBIS_HOME}"/3rdparty
 add_to_libclasspath "${IBIS_HOME}"/lib
 
 JAVACLASSPATH="$CLASSPATH:$LIBCLASSPATH:"

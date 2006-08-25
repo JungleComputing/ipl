@@ -24,7 +24,7 @@ esac
 
 export IBIS_HOME
 
-JAVACLASSPATH="$CLASSPATH:$IBIS_HOME/3rdparty/ibis-util.jar:"
+JAVACLASSPATH="$CLASSPATH:$IBIS_HOME/lib/ibis-util.jar:"
 
 case X$JAVA_HOME in
 X)

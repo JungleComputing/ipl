@@ -152,6 +152,11 @@
     <target name="jars"
 	    depends="ibis.jar"
 	    description="Generate jar files for ibis">
+	<copy todir="${ibis}/lib">
+	    <fileset dir="${ibis}/3rdparty">
+		<include name="*.jar"/>
+	    </fileset>
+	</copy>
     </target>
 
     <target name="ibis.jar">
@@ -273,7 +278,6 @@
 
 	<copy todir="bin-temp/ibis">
 	    <fileset dir=".">
-		<include name="3rdparty/**"/>
 		<include name="build-files/**"/>
 		<include name="docs/**"/>
 		<include name="grun/**"/>
@@ -297,6 +301,7 @@
 
 	<delete dir="bin-temp/ibis/lib/natives"/>
 	<delete dir="bin-temp/ibis/docs/src"/>
+	<delete file="bin-temp/ibis/notices/OmniSourceLicense.html"/>
 	<delete file="bin-temp/ibis/docs/build.xml"/>
 	<delete file="bin-temp/ibis/build-files/build-config.xml"/>
 	<delete file="bin-temp/ibis/build-files/build-natives.xml"/>
@@ -311,10 +316,12 @@
 	 file in bin.
 	<zip destfile="ibis.zip" basedir="bin-temp"/>
 	-->
-	<exec executable="/usr/bin/zip"
-	    dir="bin-temp">
+	<exec executable="/usr/bin/zip" dir="bin-temp">
 	    <arg line="-qr ../ibis.zip ibis"/>
 	</exec>
+
+	<delete dir="bin-temp"/>
+
     </target>
 
 </project>
