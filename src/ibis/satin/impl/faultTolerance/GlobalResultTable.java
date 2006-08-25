@@ -207,25 +207,35 @@ final class GlobalResultTable implements Config, Protocol {
         }
     }
 
+    // no need to finish the message, we don't block
+    // this method does not run exclusively, multiple receiveports can call it at the smae time.
     protected void handleGRTUpdate(ReadMessage m) {
         Map map = null;
 
-        s.stats.handleUpdateTimer.start();
-
-        s.stats.tableDeserializationTimer.start();
+        Timer handleUpdateTimer = Timer.createTimer();
+        Timer tableDeserializationTimer = Timer.createTimer();
+        
+        handleUpdateTimer.start();
+        tableDeserializationTimer.start();
         try {
             map = (Map) m.readObject();
         } catch (Exception e) {
             grtLogger.error("SATIN '" + s.ident
                 + "': Global result table - error reading message", e);
+            tableDeserializationTimer.stop();
+            s.stats.tableDeserializationTimer.add(tableDeserializationTimer);
+            handleUpdateTimer.stop();
+            s.stats.handleUpdateTimer.add(handleUpdateTimer);
+            return;
         }
-        s.stats.tableDeserializationTimer.stop();
-        // no need to finish the message
+        tableDeserializationTimer.stop();
+        s.stats.tableDeserializationTimer.add(tableDeserializationTimer);
 
         synchronized (s) {
             addContents(map);
         }
-        s.stats.handleUpdateTimer.stop();
+        handleUpdateTimer.stop();
+        s.stats.handleUpdateTimer.add(handleUpdateTimer);
     }
 
     protected void print(java.io.PrintStream out) {
