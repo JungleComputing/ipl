@@ -193,6 +193,7 @@ public final class Satin implements Config {
             totalStats.printStats(size, stats.totalTimer.totalTimeVal());
         }
 
+        so.exit();
         comm.closeSendPorts();
         comm.closeReceivePort();
 

@@ -256,4 +256,8 @@ public final class SharedObjects implements Config {
     public void broadcastSharedObject(SharedObject object) {
         soComm.broadcastSharedObject(object);
     }
+    
+    public void exit() {
+        soComm.exit();
+    }
 }

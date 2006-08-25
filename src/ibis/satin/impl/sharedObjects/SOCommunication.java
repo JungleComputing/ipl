@@ -764,4 +764,10 @@ final class SOCommunication implements Config, Protocol {
             c.doBroadcastSOInvocation(r);
         }
     }
+    
+    protected void exit() {
+        if(LABEL_ROUTING_MCAST) {
+            omc.done();
+        }
+    }
 }
