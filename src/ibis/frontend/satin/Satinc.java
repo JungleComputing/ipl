@@ -3188,6 +3188,10 @@ public final class Satinc extends IbiscComponent {
         return retval;
     }
 
+    public String getUsageString() {
+        return "[-satin <classlist>]";
+    }
+
     public String rewriterImpl() {
         return "BCEL";
     }

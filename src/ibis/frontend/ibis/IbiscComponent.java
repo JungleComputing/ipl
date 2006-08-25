@@ -69,6 +69,13 @@ public abstract class IbiscComponent {
     public abstract boolean processArgs(ArrayList args);
 
     /**
+     * This method returns a short string, usable for a "usage" message
+     * when the user passes wrong parameters to ibisc.
+     * @return a usage string.
+     */
+    public abstract String getUsageString();
+
+    /**
      * This method processes an iterator which delivers java classes.
      * The values are classes as represented by the byte code rewriter used.
      * The component processes these entries as it sees fit.

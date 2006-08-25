@@ -37,6 +37,8 @@ public class Ibisc {
 
     private static ByteCodeWrapper w;
 
+    private static ArrayList ibiscComponents = new ArrayList();
+
     private static void getClassesFromDirectory(File f, String prefix) {
         File[] list = f.listFiles();
 
@@ -232,9 +234,22 @@ public class Ibisc {
         }
     }
 
+    public static String usage() {
+        String rval = "Usage: java ibis.frontend.ibis.Ibisc [-verbose] [-verify] [-keep] [-help] ";
+        for (int i = 0; i < ibiscComponents.size(); i++) {
+            IbiscComponent ic = (IbiscComponent) ibiscComponents.get(i);
+            String s = ic.getUsageString();
+            if (! s.equals("")) {
+                rval = rval + s + " ";
+            }
+        }
+        return rval + " <jar-file|dir|class-file>+";
+    }
+
     public static void main(String[] args) {
         boolean keep = false;
         boolean verify = false;
+        boolean help = false;
         ArrayList leftArgs = new ArrayList();
 
         // Process own arguments.
@@ -256,6 +271,8 @@ public class Ibisc {
                 compress = true;
             } else if (args[i].equals("-no-compress")) {
                 compress = false;
+            } else if (args[i].equals("-help")) {
+                help = true;
             } else {
                 leftArgs.add(args[i]);
             }
@@ -288,6 +305,7 @@ public class Ibisc {
                 if (ic.processArgs(leftArgs)) {
                     components.add(ic);
                 }
+                ibiscComponents.add(ic);
             } catch(Exception e) {
                 System.err.println("Ibisc: warning: could not instantiate "
                         + cl.getName());
@@ -299,8 +317,20 @@ public class Ibisc {
             String arg = (String) leftArgs.get(i);
             if (arg.startsWith("-")) {
                 System.err.println("Ibisc: unrecognized argument: " + arg);
+                System.err.println(usage());
                 System.exit(1);
             }
+        }
+
+        if (help) {
+            System.out.println(usage());
+            System.exit(0);
+        }
+
+        if (leftArgs.size() == 0) {
+            System.err.println("Ibisc: no files to process?");
+            System.err.println(usage());
+            System.exit(1);
         }
 
         // IOGenerator should be last

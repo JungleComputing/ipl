@@ -2121,6 +2121,10 @@ public class IOGenerator extends ibis.frontend.ibis.IbiscComponent {
         return true;
     }
 
+    public String getUsageString() {
+        return "[-iogen-force]";
+    }
+
     public void process(Iterator classes) {
         fromIbisc = true;
         arguments = new HashMap();
