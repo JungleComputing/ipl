@@ -271,12 +271,15 @@
     </target>
 
     <target name="ibis.zip" depends="default,docs,progman"
-	    description="Create a binary release, in a file ibis.zip">
-	<delete dir="bin-temp"/>
-	<delete file="ibis.zip"/>
-	<mkdir dir="bin-temp/ibis"/>
+	description="Create a binary release, in a file ibis${version}.zip">
 
-	<copy todir="bin-temp/ibis">
+	<property name="version" value="-1.4"/>
+	<delete dir="bin-temp"/>
+	<delete file="ibis${version}.zip"/>
+	<property name="dirnam" value="bin-temp/ibis${version}"/>
+	<mkdir dir="${dirnam}"/>
+
+	<copy todir="${dirnam}">
 	    <fileset dir=".">
 		<include name="build-files/**"/>
 		<include name="docs/**"/>
@@ -289,26 +292,42 @@
 	    </fileset>
 	</copy>
 
-	<copy todir="bin-temp/ibis/bin">
+	<copy todir="${dirnam}/bin">
 	    <fileset dir="src/scripts">
 		<include name="*.bat"/>
 	    </fileset>
 	</copy>
 
-	<chmod file="bin-temp/ibis/bin/*" perm="+x"/>
+	<replace dir="${dirnam}/bin"
+	         includes="*.bat"
+		 token="ibis.jar"
+		 value="ibis-1.4.jar"/>
+	<replace dir="${dirnam}/bin"
+	     includes="*.bat"
+	     token="ibis-util.jar"
+	     value="ibis-util-1.4.jar"/>
+	<replace dir="${dirnam}/bin"
+	     includes="*.bat"
+	     token="ibis-connect.jar"
+	     value="ibis-connect-1.4.jar"/>
 
-	<move file="bin-temp/ibis/docs/README-bin.txt" tofile="bin-temp/ibis/README.txt"/>
+	<chmod file="${dirnam}/bin/*" perm="+x"/>
 
-	<delete dir="bin-temp/ibis/lib/natives"/>
-	<delete dir="bin-temp/ibis/docs/src"/>
-	<delete file="bin-temp/ibis/notices/OmniSourceLicense.html"/>
-	<delete file="bin-temp/ibis/docs/build.xml"/>
-	<delete file="bin-temp/ibis/build-files/build-config.xml"/>
-	<delete file="bin-temp/ibis/build-files/build-natives.xml"/>
-	<delete file="bin-temp/ibis/build-files/build-native.xml"/>
-	<delete file="bin-temp/ibis/build-files/build-properties"/>
-	<delete file="bin-temp/ibis/build-files/build-properties.cache"/>
-	<delete file="bin-temp/ibis/build-files/build-properties.default"/>
+	<move file="${dirnam}/docs/README-bin.txt" tofile="${dirnam}/README.txt"/>
+	<move file="${dirnam}/lib/ibis.jar" tofile="${dirnam}/lib/ibis-1.4.jar"/>
+	<move file="${dirnam}/lib/ibis-util.jar" tofile="${dirnam}/lib/ibis-util-1.4.jar"/>
+	<move file="${dirnam}/lib/ibis-connect.jar" tofile="${dirnam}/lib/ibis-connect-1.4.jar"/>
+
+	<delete dir="${dirnam}/lib/natives"/>
+	<delete dir="${dirnam}/docs/src"/>
+	<delete file="${dirnam}/notices/OmniSourceLicense.html"/>
+	<delete file="${dirnam}/docs/build.xml"/>
+	<delete file="${dirnam}/build-files/build-config.xml"/>
+	<delete file="${dirnam}/build-files/build-natives.xml"/>
+	<delete file="${dirnam}/build-files/build-native.xml"/>
+	<delete file="${dirnam}/build-files/build-properties"/>
+	<delete file="${dirnam}/build-files/build-properties.cache"/>
+	<delete file="${dirnam}/build-files/build-properties.default"/>
 
 	<!--
 	 Unfortunately, the zip task does not deal with file permissions.
@@ -317,7 +336,7 @@
 	<zip destfile="ibis.zip" basedir="bin-temp"/>
 	-->
 	<exec executable="/usr/bin/zip" dir="bin-temp">
-	    <arg line="-qr ../ibis.zip ibis"/>
+	    <arg line="-qr ../ibis${version}.zip ibis${version}"/>
 	</exec>
 
 	<delete dir="bin-temp"/>
