@@ -297,7 +297,7 @@
 
 	<chmod file="bin-temp/ibis/bin/*" perm="+x"/>
 
-	<move file="bin-temp/ibis/docs/README-bin.html" tofile="bin-temp/ibis/README.html"/>
+	<move file="bin-temp/ibis/docs/README-bin.txt" tofile="bin-temp/ibis/README.txt"/>
 
 	<delete dir="bin-temp/ibis/lib/natives"/>
 	<delete dir="bin-temp/ibis/docs/src"/>
