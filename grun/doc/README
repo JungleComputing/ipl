@@ -332,59 +332,6 @@ self-supporting, it does come with a price, so in practice it might be
 more convenient to keep a consistent Ibis tree at all remote sites,
 and use that for most of your application runs.
 
-However, an attractive alternative is to transfer just the
-ibis.jar and application.jar file in every run.  In most cases
-this is all you really need, and it is done as follows.
-
-Example 6: a quick self-supporting Ibis run:
----
-$ grun -v -o -s "$grun_etc/runsvrs.ibis -name $port1 -pool $port2"	\
-  -c "@GRUN_GASS@/$grun_etc/runit.ibis . Main 1000 1000"		\
-  -E IBIS_NAMESVR_PORT=$port1 -E IBIS_POOLSVR_PORT=$port2		\
-  -E IBIS_HOME="../../ibis.jar:../../sor_grid.jar"			\
-  -I ibis.jar -I sor_grid.jar -N 1 -m fs1 -m fs2
-grun: starting job 183
-PoolInfoServer: starting run, waiting for a host to connect...
-grun: fs2.das2.nikhef.nl/jobmanager-pbs: job stagein
-grun: fs1.das2.liacs.nl/jobmanager-pbs: job stagein
-grun: fs2.das2.nikhef.nl/jobmanager-pbs: job pending
-grun: fs1.das2.liacs.nl/jobmanager-pbs: job pending
-PoolInfoServer: Key key183 Host 0 has connected
-PoolInfoServer: starting run, waiting for a host to connect...
-PoolInfoServer: Key key183 Host 1 has connected
-PoolInfoServer: Key key183: All hosts have connected, now broadcasting host info...
-PoolInfoServer: Key key183: Broadcast done
-ibis@node231.das2.nikhef.nl_1089793630353 JOINS  pool key183 (1 nodes)
-ibis@node119.das2.liacs.nl_1089793630469 JOINS  pool key183 (2 nodes)
-grun: fs2.das2.nikhef.nl/jobmanager-pbs: job active
-grun: fs1.das2.liacs.nl/jobmanager-pbs: job active
-ibis@node119.das2.liacs.nl_1089793630469 LEAVES pool key183 (1 nodes)
-ibis@node231.das2.nikhef.nl_1089793630353 LEAVES pool key183 (0 nodes)
-grun: fs2.das2.nikhef.nl/jobmanager-pbs: job completed
-grun: fs1.das2.liacs.nl/jobmanager-pbs: job completed
-grun: Total running time: 31.2 sec
-grun: job 183 done
----
-
-The file "ibis.jar" in this example is the one from the $IBIS_HOME/build
-directory, and file "sor_grid.jar" was built by collecting the application
-class files using:
----
-$ jar cvf sor_grid.jar *.class
----
-in the $IBIS_HOME/ibis/apps/rmi/sor_grid/build directory.
-The "-I" options cause both files to be transfered to the
-remote sites in a "stagein" phase.  But since the jar files don't
-need additional processing (e.g., unpacking the -tree.jar files
-as in the previous example), a seperate stagein phase using
-the fork jobmanagers is no longer necessary.
-Since only the essential jar files are transferred, total running
-time is significantly reduced.
-Notice that IBIS_HOME in this case contains both the ibis.jar
-and application.jar file from the user's home directory; this
-will get both of them in the Java classpath as is needed here.
-
-
 On the Grid, compute resources are often hidden behind firewalls,
 NAT routers, etc.  Normally this would make it quite hard to
 connect these resources for truely distributed computing.
@@ -397,8 +344,10 @@ $ grun -v -o -s "$grun_etc/runsvrs.ibis -name $port1 -pool $port2 -hub $port3"\
   -c "@GRUN_GASS@/$grun_etc/runit.ibis . Main 1000 1000"		\
   -E IBIS_NAMESVR_PORT=$port1 -E IBIS_POOLSVR_PORT=$port2		\
   -E IBIS_NETWORK=firewall -E IBIS_HUB_PORT=$port3			\
-  -E IBIS_HOME="../../ibis.jar:../../sor_grid.jar"			\
-  -I ibis.jar -I sor_grid.jar -N 1 -m fs0 -m n0 
+  -p -E GRUN_INFILES="ibis-tree.jar:build-tree.jar"			\
+  -P -E GRUN_CLEANUP=1							\
+  -E IBIS_HOME="ibis"							\
+  -N 1 -m fs0 -m n0 
 grun: starting job 184
 PoolInfoServer: starting run, waiting for a host to connect...
 

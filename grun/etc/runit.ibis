@@ -220,10 +220,6 @@ done
 
 if [ "$GRUN_PHASE" = run ]; then
     # The actual work
-    case $IBIS_HOME in
-    *.jar) propopt="";;  # property file taken from the jar file itself
-    *)     propopt="-Dibis.property.file=$IBIS_HOME/properties";;
-    esac
     if [ -z "$IBIS_NAMESVR_KEY" ]; then
 	IBIS_NAMESVR_KEY="key$GRUN_TOKEN"
     fi
@@ -241,7 +237,7 @@ if [ "$GRUN_PHASE" = run ]; then
 	firewall)  IBIS_DATA_LINK=TCPSplice;;
 	routedmsg) IBIS_DATA_LINK=RoutedMessages;;
 	esac
-	IBIS_CONN_OPTS="-Dibis.connect.enable -Dibis.connect.control_links=$IBIS_CONTROL_LINK -Dibis.connect.data_links=$IBIS_DATA_LINK -Dibis.connect.hub_port=$IBIS_HUB_PORT"
+	IBIS_CONN_OPTS="-Dibis.connect.control_links=$IBIS_CONTROL_LINK -Dibis.connect.data_links=$IBIS_DATA_LINK -Dibis.connect.hub_port=$IBIS_HUB_PORT"
 	;;
     default|*)
 	IBIS_CONN_OPTS=""
@@ -250,10 +246,9 @@ if [ "$GRUN_PHASE" = run ]; then
 
     # taken from ibis-prun (only without the function for sh-portability):
     LIBCLASSPATH=""
-    DIRLIBS=${IBIS_HOME}/3rdparty/*.jar
+    DIRLIBS=${IBIS_HOME}/lib/*.jar
     for i in ${DIRLIBS}; do
-	# if the directory is empty, then it will return the input string
-	if [ "$i" != "${DIRLIBS}" ] ; then
+	if [ -f "$i" ] ; then
 	    if [ -z "$LIBCLASSPATH" ] ; then
 		LIBCLASSPATH=$i
 	    else
@@ -264,9 +259,7 @@ if [ "$GRUN_PHASE" = run ]; then
     classpath="$classpath:$LIBCLASSPATH"
 
     cmd="$JAVA_BINARY							      \
-        -Xbootclasspath/p:$classpath					      \
 	-classpath $classpath						      \
-	$propopt							      \
         -Dibis.name_server.impl=ibis.impl.nameServer.tcp.NameServerClient     \
 	-Dibis.name_server.host=$IBIS_NAMESVR_HOST			      \
 	-Dibis.name_server.port=$IBIS_NAMESVR_PORT			      \
