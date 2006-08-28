@@ -40,7 +40,7 @@
 	<mkdir dir="${ibis}/bin"/>
     </target>
 
-    <target name="init" depends="config-init-initial,property-init,make-dirs"/>
+    <target name="init" depends="config-init-initial,property-init,make-dirs,jars"/>
 
     <!--
 	Compile only
@@ -88,7 +88,7 @@
     -->
 
     <target name="build"
-	    depends="compile, build-bin, copyProperties, ibis-iogen, jars"
+	    depends="compile, build-bin, copyProperties, ibis-iogen, ibis.jar"
 	    description="Build Ibis">
     </target>
 
@@ -150,7 +150,6 @@
     </target>
 
     <target name="jars"
-	    depends="ibis.jar"
 	    description="Generate jar files for ibis">
 	<copy todir="${ibis}/lib">
 	    <fileset dir="${ibis}/3rdparty">
@@ -159,15 +158,21 @@
 	</copy>
     </target>
 
-    <target name="ibis.jar">
+    <target name="ibis.jar" depends="bcel-fixes.jar">
 	<jar	destfile="${ibis}/lib/ibis.jar"
 		basedir="${build}"
-		includes="**/*.class **/properties ibis-properties">
+		includes="ibis/**/*.class **/properties ibis-properties">
 	    <manifest>
 		<attribute name="Ibisc-Component" value="ibis.frontend.io.IOGenerator,ibis.frontend.gmi.Gmic,ibis.frontend.rmi.Rmic,ibis.frontend.satin.Satinc"/>
 		<attribute name="Ibis-Implementation" value="ibis.impl.messagePassing.panda.PandaIbis,ibis.impl.tcp.TcpIbis,ibis.impl.net.NetIbis,ibis.impl.nio.NioIbis,ibis.impl.messagePassing.mpi.MPIIbis"/>
 	    </manifest>
 	</jar>
+    </target>
+
+    <target name="bcel-fixes.jar">
+	<jar	destfile="${ibis}/lib/bcel-5.1-fixes.jar"
+		basedir="${build}"
+		includes="org/**/*.class"/>
     </target>
 
     <!--
