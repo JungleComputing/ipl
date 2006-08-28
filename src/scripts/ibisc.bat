@@ -7,7 +7,7 @@ rem %~dp0 is expanded pathname of the current script under NT
 
 set IBIS_HOME=%~dp0..
 
-set JAVACLASSPATH=%CLASSPATH%;%IBIS_HOME%\lib\ibis.jar;%IBIS_HOME%\lib\junit.jar;%IBIS_HOME%\lib\log4j-1.2.9.jar;%IBIS_HOME%\lib\colobus.jar;
+set JAVACLASSPATH=%CLASSPATH%;%IBIS_HOME%\lib\ibis.jar;%IBIS_HOME%\lib\ibis-util.jar;%IBIS_HOME%\lib\ibis-connect.jar;%IBIS_HOME%\lib\lrmc.jar;%IBIS_HOME%\lib\junit.jar;%IBIS_HOME%\lib\log4j-1.2.9.jar;%IBIS_HOME%\lib\colobus.jar;
 
 rem From Ant:
 rem Slurp the command line arguments. This loop allows for an unlimited number
