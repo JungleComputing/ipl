@@ -14,7 +14,8 @@ Ibis installation
 
     The Ibis build process requires `ant', a software building tool similar to
     `make', but written in Java, and well-suited for building Java software.
-    At least version 1.6.1 is required.
+    At least version 1.6.1 is required. Ant is available from
+    http://ant.apache.org.
 
 Configuration
 
@@ -66,7 +67,7 @@ System-specific notes
 Mac OS X
 
     Set the environment variable JAVA_HOME to "/Library/Java/Home".
-    For native code generation, you are required to install the Java SDK.
+    You are required to install the Java SDK.
 
 Windows 2000, Windows XP
 

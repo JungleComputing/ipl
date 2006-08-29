@@ -17,6 +17,13 @@ This Ibis distribution contains the following:
 
 Ibis is free software. See the file "LICENSE.txt" for copying permissions.
 
+The Ibis software requires at least a 1.4 JDK version of Java. With a
+1.3 or older version of Java, some parts of Ibis will not compile.
+Suitable versions of Java can be obtained from the web.
+IBM has versions for AIX (at http://www.ibm.com/developerworks/java),
+SUN has versions for Solaris, Linux, and Windows (at http://java.sun.com),
+and Apple has a version for Mac OS X (at http://developer.apple.com/java).
+
 This package does not require special installation. Just place this directory
 wherever you want it.
 
@@ -35,6 +42,9 @@ See http://www.cs.vu.nl/ibis/downloads.html.
 The latest Ibis source repository tree is accessible through anonymous SVN
 at "https://gforge.cs.vu.nl/svn/ibis/ibis/trunk". Likewise, the latest example
 applications are available at "https://gforge.cs.vu.nl/svn/ibis/apps/trunk".
+
+To build these applications, you first need to set some environment
+variables. See the README.txt file that accompanies the Ibis applications.
 
 The file BUGS.txt contains information for filing bug reports.
 

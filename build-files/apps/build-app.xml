@@ -4,33 +4,34 @@
     basedir=".">
 
     <description>
-	Ibis application run target.
+	Ibis application common build.
 
 	Require prior definition of properties:
 	ibis			location of ibis root
 
 	Targets:
 
-	run1	run the application as a parallel program,
+	test-seq
+		run the application as a parallel program,
 		with a single instance, using TCP ibis.
 		Set parameter:
-		runjob		main class name and arguments
-		java-args	flags for java
+		test-seq-run	main class name and arguments
+		jargs		flags for java
 		ibis-run-args	flags for ibis-run
 
-	run2	run the application as a parallel program,
+	test-par
+		run the application as a parallel program,
 		with two instances, using TCP ibis.
 		Set parameter:
-		runjob		main class name and arguments
-		java-args	flags for java
+		test-seq-run	main class name and arguments
+		jargs		flags for java
 		ibis-run-args	flags for ibis-run
 
-	runseq	run the application as a sequential program.
+	jar	build a jar file for the application.
 		Set parameter:
-		runjob		main class name and arguments
-		java-args	flags for java
-		ibis-run-args	flags for ibis-run
+		main-class	main class name
 
+	test	builds the application and runs test-seq as well as test-par.
     </description>
 
     <property name="ibis-run-args" value=""/>
@@ -181,14 +182,39 @@
     <target name="jar"
 	    depends="build"
 	    description="Build a Jar file for an application">
-	    <basename file="." property="application-name"/>
-	    <jar destfile="${build}/${application-name}.jar"
-		 basedir="${build}"
-		 includes="**/*.class">
-		 <manifest>
-		     <attribute name="Main-Class" value="${main-class}"/>
-		 </manifest>
-	    </jar>
+	<basename file="." property="application-name"/>
+	<jar destfile="${application-name}.jar"
+	     basedir="${build}"
+	     includes="**/*.class">
+	     <manifest>
+		 <attribute name="Main-Class" value="${main-class}"/>
+	     </manifest>
+	</jar>
+	<delete dir="${build}"/>
+    </target>
+
+    <target name="init" depends="property-init">
+	<tstamp/>
+	<mkdir dir="${build}"/>
+    </target>
+
+    <target name="compile"
+	    depends="clean,init"
+	    description="Compile application without any bytecode rewriting">
+	<javac  destdir="${build}"
+		debug="true"
+		srcdir=".">
+	    <classpath refid="default.classpath"/>
+	    <include name="**/*.java"/>
+	</javac>
+    </target>
+
+    <target name="clean"
+	    description="Clean up the build">
+	<basename file="." property="application-name"/>
+	<delete dir="${build}"/>
+	<delete file="${application-name}.jar"/>
+	<delete file="ant-test.out"/>
     </target>
 
 </project>
