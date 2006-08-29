@@ -315,6 +315,10 @@
 	     includes="*.bat"
 	     token="ibis-connect.jar"
 	     value="ibis-connect-1.4.jar"/>
+	<replace dir="${dirnam}/bin"
+	     includes="*.bat"
+	     token="lrmc.jar"
+	     value="lrmc-1.4.jar"/>
 
 	<chmod file="${dirnam}/bin/*" perm="+x"/>
 
@@ -322,6 +326,7 @@
 	<move file="${dirnam}/lib/ibis.jar" tofile="${dirnam}/lib/ibis-1.4.jar"/>
 	<move file="${dirnam}/lib/ibis-util.jar" tofile="${dirnam}/lib/ibis-util-1.4.jar"/>
 	<move file="${dirnam}/lib/ibis-connect.jar" tofile="${dirnam}/lib/ibis-connect-1.4.jar"/>
+	<move file="${dirnam}/lib/lrmc.jar" tofile="${dirnam}/lib/lrmc-1.4.jar"/>
 
 	<delete dir="${dirnam}/lib/natives"/>
 	<delete dir="${dirnam}/docs/src"/>

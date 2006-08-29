@@ -153,7 +153,7 @@ goto arguments
 
 :cont
 
-set JAVACLASSPATH=%CLASSPATH%;build;%IBIS_HOME%\classlibs;%IBIS_HOME%\lib\ibis.jar;%IBIS_HOME%\lib\ibis-util.jar;%IBIS_HOME%\lib\ibis-connect.jar;%IBIS_HOME%\lib\lrmc.jar;%IBIS_HOME%\lib\junit.jar;%IBIS_HOME%\lib\log4j-1.2.9.jar;%IBIS_HOME%\lib\colobus.jar;
+set JAVACLASSPATH=%CLASSPATH%;build;%IBIS_HOME%\classlibs;%IBIS_HOME%\lib\ibis.jar;%IBIS_HOME%\lib\ibis-util.jar;%IBIS_HOME%\lib\ibis-connect.jar;%IBIS_HOME%\lib\lrmc.jar;%IBIS_HOME%\lib\junit.jar;%IBIS_HOME%\lib\log4j-1.2.9.jar;%IBIS_HOME%\lib\colobus-0.1.jar;
 
 if "%noJIT%"=="1" (
     set JIT_OPTS=%JIT_OPTS% -Djava.compiler=NONE
