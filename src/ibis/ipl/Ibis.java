@@ -12,7 +12,6 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
-import java.util.StringTokenizer;
 
 /**
  * This class defines the Ibis API, which can be implemented by an Ibis
