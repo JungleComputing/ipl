@@ -67,7 +67,7 @@ public final class SharedObjects implements Config {
         synchronized (s) {
             SharedObjectInfo i = (SharedObjectInfo) sharedObjects.get(objectId);
             if (i == null) {
-                soLogger.warn("SATIN '" + s.ident.name() + "': " + "object not found in getSOReference");
+                soLogger.debug("SATIN '" + s.ident.name() + "': " + "object not found in getSOReference");
                 return null;
             }
             return i.sharedObject;
@@ -255,6 +255,10 @@ public final class SharedObjects implements Config {
 
     public void broadcastSharedObject(SharedObject object) {
         soComm.broadcastSharedObject(object);
+    }
+
+    public void handleCrash(IbisIdentifier id) {
+        soComm.handleCrash(id);
     }
     
     public void exit() {

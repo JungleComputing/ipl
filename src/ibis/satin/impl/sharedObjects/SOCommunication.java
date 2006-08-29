@@ -134,6 +134,8 @@ final class SOCommunication implements Config, Protocol {
             for (int i = 0; i < joiners.length; i++) {
                 omc.addIbis(joiners[i]);
             }
+            
+            omc.setDestination(s.victims.getIbises());
             return;
         }
 
@@ -214,7 +216,7 @@ final class SOCommunication implements Config, Protocol {
 
         long byteCount = 0;
         try {
-            byteCount = omc.send(tmp, r);
+            byteCount = omc.send(r);
         } catch (Exception e) {
             soLogger.warn("SOI mcast failed: " + e + " msg: " + e.getMessage());
         }
@@ -352,7 +354,7 @@ final class SOCommunication implements Config, Protocol {
         long size = 0;
         try {
             s.stats.soBroadcastSerializationTimer.start();
-            size = omc.send(tmp, object);
+            size = omc.send(object);
             s.stats.soBroadcastSerializationTimer.stop();
         } catch (Exception e) {
             System.err.println("WARNING, SO mcast failed: " + e + " msg: "
@@ -747,6 +749,19 @@ final class SOCommunication implements Config, Protocol {
     public void handleMyOwnJoin() {
         if (LABEL_ROUTING_MCAST) {
             omc.addIbis(s.ident);
+            omc.setDestination(s.victims.getIbises());
+        }
+    }
+
+    public void handleCrash(IbisIdentifier id) {
+        if(LABEL_ROUTING_MCAST) {
+            omc.setDestination(s.victims.getIbises());
+        }    
+    }
+
+    protected void exit() {
+        if(LABEL_ROUTING_MCAST) {
+            omc.done();
         }
     }
 
@@ -762,12 +777,6 @@ final class SOCommunication implements Config, Protocol {
 
         public void run() {
             c.doBroadcastSOInvocation(r);
-        }
-    }
-    
-    protected void exit() {
-        if(LABEL_ROUTING_MCAST) {
-            omc.done();
         }
     }
 }
