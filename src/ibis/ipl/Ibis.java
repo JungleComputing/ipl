@@ -454,8 +454,9 @@ public abstract class Ibis {
     private static void addIbis(int index) throws IOException {
         Class cl = implList[index];
         String packagename = cl.getPackage().getName();
-        String propertyFile = packagename.replace('.', File.separatorChar)
-                    + File.separator + "properties";
+        // Note: getResourceAsStream wants '/', not File.separatorChar!
+        String propertyFile = packagename.replace('.', '/')
+                    + "/" + "properties";
         StaticProperties sp = new StaticProperties();
         InputStream in = cl.getClassLoader().getResourceAsStream(propertyFile);
         if (in == null) {
