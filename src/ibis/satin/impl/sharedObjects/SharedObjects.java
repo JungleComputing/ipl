@@ -233,18 +233,14 @@ public final class SharedObjects implements Config {
         soComm.handleSONack(m);
     }
 
-    public void createSoPorts(IbisIdentifier[] joiners) {
-        soComm.createSoReceivePorts(joiners);
+    public void handleJoins(IbisIdentifier[] joiners) {
+        soComm.handleJoins(joiners);
     }
 
     public void handleMyOwnJoin() {
         soComm.handleMyOwnJoin();
     }
     
-    public void addSOConnection(IbisIdentifier id) {
-        soComm.addSOConnection(id);
-    }
-
     public void removeSOConnection(IbisIdentifier id) {
         soComm.removeSOConnection(id);
     }

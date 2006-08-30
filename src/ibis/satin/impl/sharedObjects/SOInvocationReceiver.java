@@ -17,6 +17,7 @@ final class SOInvocationReceiver extends Thread implements Config {
         this.s = s;
         this.omc = omc;
         setName("SOInvocationReceiver");
+        setDaemon(true);
     }
 
     public void run() {
