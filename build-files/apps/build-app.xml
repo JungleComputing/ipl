@@ -175,8 +175,8 @@
 	 Does test-par as well as test-seq.
     -->
     <target name="test"
-	    description="Build, run sequential test, run parallel test"
-	    depends="build,test-seq,test-par">
+	    description="Build, run sequential test, run parallel test, clean"
+	    depends="build,test-seq,test-par,clean">
     </target>
 
     <target name="jar"
