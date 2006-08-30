@@ -144,14 +144,11 @@
 
     <target name="-config-build-windows" if="is-windows">
 	<copy
-		file="${ibis}/src/scripts/ns-env.in"
+		file="${ibis}/src/scripts/ns-env.bat.in"
 		tofile="${ibis}/bin/ns-env.bat">
 	</copy>
 	<replace file="${ibis}/bin/ns-env.bat" token="@IBIS_NS_PORT@" value="9826"/>
 	<replace file="${ibis}/bin/ns-env.bat" token="@IBIS_NS_HOST@" value="localhost"/>
-	<replace file="${ibis}/bin/ns-env.bat" token="@SET@" value="set "/>
-	<replace file="${ibis}/bin/ns-env.bat" token="#" value="rem "/>
-	<replace file="${ibis}/bin/ns-env.bat" token="export" value="rem "/>
     </target>
 
     <target name="set-ibis-configured" if="called-from-configure">

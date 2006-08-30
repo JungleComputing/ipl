@@ -302,15 +302,14 @@
 	    </fileset>
 	</copy>
 
+	<delete file="${dirnam}/bin/ibis-prun"/>
+
 	<copy
-		file="${ibis}/src/scripts/ns-env.in"
+		file="${ibis}/src/scripts/ns-env.bat.in"
 		tofile="${dirnam}/bin/ns-env.bat">
 	</copy>
 	<replace file="${dirnam}/bin/ns-env.bat" token="@IBIS_NS_PORT@" value="9826"/>
 	<replace file="${dirnam}/bin/ns-env.bat" token="@IBIS_NS_HOST@" value="localhost"/>
-	<replace file="${dirnam}/bin/ns-env.bat" token="@SET@" value="set "/>
-	<replace file="${dirnam}/bin/ns-env.bat" token="#" value="rem "/>
-	<replace file="${dirnam}/bin/ns-env.bat" token="export" value="rem "/>
 
 	<replace dir="${dirnam}/bin"
 	         includes="*.bat"
