@@ -24,9 +24,9 @@
     <property name="ibis"        location="."/>
 
     <property name="ibis-major" value="1"/>
-    <property name="ibis-minor" value="3"/>
+    <property name="ibis-minor" value="4"/>
 
-    <property name="ibis-version" value="ibis-${ibis-major}.${ibis-minor}"/>
+    <property name="version" value="-${ibis-major}.${ibis-minor}"/>
 
     <!--
 	This must come first.
@@ -253,7 +253,7 @@
 	<delete dir="lib"/>
 	<delete dir="ant-tasks/tasks"/>
 	<delete dir="bin-temp"/>
-	<delete file="ibis.zip"/>
+	<delete file="ibis${version}.zip"/>
 	<ant dir="${docs}" inheritAll="false" target="distclean"/>
     </target>
 
@@ -278,7 +278,6 @@
     <target name="ibis.zip" depends="default,docs,progman"
 	description="Create a binary release, in a file ibis${version}.zip">
 
-	<property name="version" value="-1.4"/>
 	<delete dir="bin-temp"/>
 	<delete file="ibis${version}.zip"/>
 	<property name="dirnam" value="bin-temp/ibis${version}"/>
@@ -302,6 +301,16 @@
 		<include name="*.bat"/>
 	    </fileset>
 	</copy>
+
+	<copy
+		file="${ibis}/src/scripts/ns-env.in"
+		tofile="${dirnam}/bin/ns-env.bat">
+	</copy>
+	<replace file="${dirnam}/bin/ns-env.bat" token="@IBIS_NS_PORT@" value="9826"/>
+	<replace file="${dirnam}/bin/ns-env.bat" token="@IBIS_NS_HOST@" value="localhost"/>
+	<replace file="${dirnam}/bin/ns-env.bat" token="@SET@" value="set "/>
+	<replace file="${dirnam}/bin/ns-env.bat" token="#" value="rem "/>
+	<replace file="${dirnam}/bin/ns-env.bat" token="export" value="rem "/>
 
 	<replace dir="${dirnam}/bin"
 	         includes="*.bat"
@@ -343,7 +352,7 @@
 	 Unfortunately, the zip task does not deal with file permissions.
 	 In particular, it apparently strips the "execute" bit from the
 	 file in bin.
-	<zip destfile="ibis.zip" basedir="bin-temp"/>
+	 <zip destfile="ibis${version}.zip" basedir="bin-temp"/>
 	-->
 	<exec executable="/usr/bin/zip" dir="bin-temp">
 	    <arg line="-qr ../ibis${version}.zip ibis${version}"/>
