@@ -1,0 +1,131 @@
+CODE:
+0
+STDOUT:
+Running Lowlevel 50
+
+---iter 0---
+---news---
+object new took 0.0 seconds, 0.0 micro's per call
+throwable new took 0.0 seconds, 0.0 micro's per call
+overridden throwable new void took 0.0040 seconds, 80.0 micro's per call
+overridden throwable new int took 0.0030 seconds, 60.0 micro's per call
+overridden throwable new Object took 0.0020 seconds, 40.0 micro's per call
+---calls---
+call void took 0.0 seconds, 0.0 micro's per call
+call int took 0.0 seconds, 0.0 micro's per call
+call Object took 0.0 seconds, 0.0 micro's per call
+---exception calls---
+exception call void took 0.0 seconds, 0.0 micro's per call
+exception call int took 0.0 seconds, 0.0 micro's per call
+exception call object took 0.0010 seconds, 20.0 micro's per call
+exception call void no new took 0.0 seconds, 0.0 micro's per call
+exception call int no new took 0.0 seconds, 0.0 micro's per call
+exception call object no new took 0.0010 seconds, 20.0 micro's per call
+---spawns---
+spawn sync void took 0.034 seconds, 680.0 micro's per call
+spawn sync int took 0.041 seconds, 820.0 micro's per call
+spawn sync Object took 0.212 seconds, 4240.0 micro's per call
+---inlet spawns---
+inlet spawn void took 0.019 seconds, 380.0 micro's per call
+inlet spawn int took 0.012 seconds, 240.0 micro's per call
+inlet spawn object took 0.022 seconds, 440.0 micro's per call
+inlet spawn void no new took 0.01 seconds, 200.0 micro's per call
+inlet spawn int no new took 0.01 seconds, 200.0 micro's per call
+inlet spawn object no new took 0.128 seconds, 2560.0 micro's per call
+inlet spawn void overridden took 0.021 seconds, 420.0 micro's per call
+inlet spawn int overridden took 0.04 seconds, 800.0 micro's per call
+inlet spawn object overridden took 0.039 seconds, 780.0 micro's per call
+
+---iter 1---
+---news---
+object new took 0.0 seconds, 0.0 micro's per call
+throwable new took 0.0010 seconds, 20.0 micro's per call
+overridden throwable new void took 0.0 seconds, 0.0 micro's per call
+overridden throwable new int took 0.0 seconds, 0.0 micro's per call
+overridden throwable new Object took 0.0 seconds, 0.0 micro's per call
+---calls---
+call void took 0.0 seconds, 0.0 micro's per call
+call int took 0.0 seconds, 0.0 micro's per call
+call Object took 0.0 seconds, 0.0 micro's per call
+---exception calls---
+exception call void took 0.0 seconds, 0.0 micro's per call
+exception call int took 0.0010 seconds, 20.0 micro's per call
+exception call object took 0.0010 seconds, 20.0 micro's per call
+exception call void no new took 0.0 seconds, 0.0 micro's per call
+exception call int no new took 0.0 seconds, 0.0 micro's per call
+exception call object no new took 0.0 seconds, 0.0 micro's per call
+---spawns---
+spawn sync void took 0.0030 seconds, 60.0 micro's per call
+spawn sync int took 0.0040 seconds, 80.0 micro's per call
+spawn sync Object took 0.012 seconds, 240.0 micro's per call
+---inlet spawns---
+inlet spawn void took 0.032 seconds, 640.0 micro's per call
+inlet spawn int took 0.238 seconds, 4760.0 micro's per call
+inlet spawn object took 0.0060 seconds, 120.0 micro's per call
+inlet spawn void no new took 0.0040 seconds, 80.0 micro's per call
+inlet spawn int no new took 0.118 seconds, 2360.0 micro's per call
+inlet spawn object no new took 0.0060 seconds, 120.0 micro's per call
+inlet spawn void overridden took 0.0040 seconds, 80.0 micro's per call
+inlet spawn int overridden took 0.016 seconds, 320.0 micro's per call
+inlet spawn object overridden took 0.0050 seconds, 100.0 micro's per call
+
+---iter 2---
+---news---
+object new took 0.0 seconds, 0.0 micro's per call
+throwable new took 0.0 seconds, 0.0 micro's per call
+overridden throwable new void took 0.0 seconds, 0.0 micro's per call
+overridden throwable new int took 0.0 seconds, 0.0 micro's per call
+overridden throwable new Object took 0.0 seconds, 0.0 micro's per call
+---calls---
+call void took 0.0 seconds, 0.0 micro's per call
+call int took 0.0 seconds, 0.0 micro's per call
+call Object took 0.0010 seconds, 20.0 micro's per call
+---exception calls---
+exception call void took 0.0 seconds, 0.0 micro's per call
+exception call int took 0.0010 seconds, 20.0 micro's per call
+exception call object took 0.0010 seconds, 20.0 micro's per call
+exception call void no new took 0.0010 seconds, 20.0 micro's per call
+exception call int no new took 0.0 seconds, 0.0 micro's per call
+exception call object no new took 0.0 seconds, 0.0 micro's per call
+---spawns---
+spawn sync void took 0.0030 seconds, 60.0 micro's per call
+spawn sync int took 0.0030 seconds, 60.0 micro's per call
+spawn sync Object took 0.012 seconds, 240.0 micro's per call
+---inlet spawns---
+inlet spawn void took 0.0050 seconds, 100.0 micro's per call
+inlet spawn int took 0.0050 seconds, 100.0 micro's per call
+inlet spawn object took 0.023 seconds, 460.0 micro's per call
+inlet spawn void no new took 0.0070 seconds, 140.0 micro's per call
+inlet spawn int no new took 0.0040 seconds, 80.0 micro's per call
+inlet spawn object no new took 0.0040 seconds, 80.0 micro's per call
+inlet spawn void overridden took 0.0040 seconds, 80.0 micro's per call
+inlet spawn int overridden took 0.0040 seconds, 80.0 micro's per call
+inlet spawn object overridden took 0.0040 seconds, 80.0 micro's per call
+-------------------------------SATIN STATISTICS--------------------------------
+SATIN: SPAWN:       1,800 spawns, 1,800 executed, 1,800 syncs
+SATIN: ABORT:       0 aborts, 0 abort msgs, 0 aborted jobs
+SATIN: TUPLE_SPACE: 0 bcasts, 0 bytes
+SATIN: STEAL:       2,065 attempts, 5 successes (0.242 %)
+SATIN: MESSAGES:    intra 4,135 msgs, 77,643 bytes; inter 0 msgs, 0 bytes
+-------------------------------SATIN TOTAL TIMES-------------------------------
+SATIN: STEAL_TIME:               total   5.470  s time/req      2.649 ms
+SATIN: HANDLE_STEAL_TIME:        total   1.145  s time/handle 554.414 us
+SATIN: INV SERIALIZATION_TIME:   total   6.510 ms time/write    1.302 ms
+SATIN: INV DESERIALIZATION_TIME: total 153.222 ms time/read    30.644 ms
+SATIN: RET SERIALIZATION_TIME:   total  76.460 ms time/write   15.292 ms
+SATIN: RET DESERIALIZATION_TIME: total 185.732 ms time/read    37.146 ms
+SATIN: ABORT_TIME:               total   0.000  s time/abort  �  s
+SATIN: TUPLE_SPACE_BCAST_TIME:   total   0.000  s time/bcast  �  s
+SATIN: TUPLE_SPACE_WAIT_TIME:    total   0.000  s time/bcast  �  s
+-------------------------------SATIN RUN TIME BREAKDOWN------------------------
+SATIN: TOTAL_RUN_TIME:                             1.255  s
+SATIN: LOAD_BALANCING_TIME:      avg. per machine   1.291  s (102.908 %)
+SATIN: (DE)SERIALIZATION_TIME:   avg. per machine  84.385 ms ( 6.726 %)
+SATIN: ABORT_TIME:               avg. per machine   0.000  s ( 0.000 %)
+SATIN: TUPLE_SPACE_BCAST_TIME:   avg. per machine   0.000  s ( 0.000 %)
+SATIN: TUPLE_SPACE_WAIT_TIME:    avg. per machine   0.000  s ( 0.000 %)
+
+SATIN: TOTAL_PARALLEL_OVERHEAD:  avg. per machine   1.375  s (109.634 %)
+SATIN: USEFUL_APP_TIME:          avg. per machine   0.000  s ( 0.000 %)
+
+STDERR:

@@ -1,0 +1,21 @@
+<project
+    name="ibis.apps.satin.tsp"
+    default="build"
+    basedir=".">
+
+    <property name="ibis"        location="../../.."/>
+    <property name="build"       value="build"/>
+
+    <property name="satinc-flags" value=" -keep"/>
+    <property name="main-class" value="Tsp"/>
+    <property name="satin-main-class" value="${main-class}"/>
+
+    <property name="ibis-run-args" value="-Dsatin.closed"/>
+    <property name="test-par-run" value="Tsp"/>
+    <property name="test-seq-run" value="Tsp"/>
+
+    <import file="${ibis}/build-files/apps/build-satin-app.xml"/>
+
+</project>
+
+

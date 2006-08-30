@@ -1,0 +1,21 @@
+<project
+    name="ibis.apps.satin.spawntest"
+    default="build"
+    basedir=".">
+
+    <property environment="env"/>
+
+    <property name="ibis"        location="${env.IBIS_ROOT}"/>
+    <property name="build"       value="build"/>
+
+    <property name="satinc-flags" value=""/>
+    <property name="satin-main-class" value="SpawnTest Test"/>
+    <property name="main-class" value="SpawnTest"/>
+
+    <property name="ibis-run-args" value="-Dsatin.closed"/>
+    <property name="test-par-run" value="SpawnTest"/>
+    <property name="test-seq-run" value="SpawnTest"/>
+
+    <import file="${ibis}/build-files/apps/build-satin-app.xml"/>
+
+</project>

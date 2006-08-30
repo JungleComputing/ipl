@@ -1,0 +1,22 @@
+<project
+    name="ibis.apps.satin.fib"
+    default="build"
+    basedir=".">
+
+    <property environment="env"/>
+
+    <property name="ibis"        location="${env.IBIS_ROOT}"/>
+    <property name="build"       value="build"/>
+
+    <property name="satinc-flags" value="-keep -irc"/>
+    <property name="main-class" value="Fib"/>
+    <property name="satin-main-class" value="${main-class}"/>
+
+    <property name="ibis-run-args" value="-Dsatin.closed"/>
+	
+    <property name="test-par-run" value="Fib"/>
+    <property name="test-seq-run" value="Fib"/>
+
+    <import file="${ibis}/build-files/apps/build-satin-app.xml"/>
+
+</project>

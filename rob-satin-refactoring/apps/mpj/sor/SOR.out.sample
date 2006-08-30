@@ -1,0 +1,8 @@
+CODE:
+0
+STDOUT:
+Running 1000 x 1000 SOR
+SOR took 34.629 seconds
+Used 612 iterations, diff is 0.003194, allowed diff is 0.003199
+
+STDERR:

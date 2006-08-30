@@ -1,0 +1,1 @@
+2 Compress -verify ../sample1.txt ../sample1.xxx

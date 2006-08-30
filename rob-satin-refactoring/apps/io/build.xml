@@ -1,0 +1,16 @@
+<project
+    name="IO tests"
+    default="build"
+    basedir=".">
+
+    <description>
+	IO tests build.
+    </description>
+
+    <property environment="env"/>
+
+    <property name="ibis"        location="${env.IBIS_ROOT}"/>
+
+    <import file="${ibis}/apps/build-apps.xml"/>
+
+</project>

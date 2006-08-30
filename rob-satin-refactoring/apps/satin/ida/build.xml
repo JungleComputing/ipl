@@ -1,0 +1,24 @@
+<project
+    name="ibis.apps.satin.ida"
+    default="build"
+    basedir=".">
+
+    <property environment="env"/>
+
+    <property name="ibis"        location="${env.IBIS_ROOT}"/>
+    <property name="build"       value="build"/>
+
+    <property name="satinc-flags" value=""/>
+    <property name="main-class" value="Ida"/>
+    <property name="satin-main-class" value="${main-class}"/>
+
+    <property name="ibis-run-args" value="-Dsatin.closed"/>
+
+    <property name="test-par-run" value="Ida"/>
+    <property name="test-seq-run" value="Ida"/>
+
+    <import file="${ibis}/build-files/apps/build-satin-app.xml"/>
+
+</project>
+
+

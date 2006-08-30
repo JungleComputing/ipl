@@ -1,0 +1,17 @@
+<project
+    name="ibis.apps.mpj.Tests.group"
+    default="build"
+    basedir=".">
+
+    <description>
+        Ibis application build.
+    </description>
+
+    <property environment="env"/>
+
+    <property name="ibis"        location="${env.IBIS_ROOT}"/>
+    <property name="build"       location="build"/>
+
+    <import file="${ibis}/build-files/apps/build-ibis-app.xml"/>
+
+</project>

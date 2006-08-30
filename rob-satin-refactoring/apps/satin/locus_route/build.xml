@@ -1,0 +1,27 @@
+<project
+    name="ibis.apps.satin.locus_route"
+    default="build"
+    basedir=".">
+
+    <property environment="env"/>
+
+    <property name="ibis"        location="${env.IBIS_ROOT}"/>
+    <property name="build"       value="build"/>
+
+    <property name="satinc-flags" value="-keep"/>
+    <property name="satinsoc-flags" value="-keep"/>
+    <property name="main-class" value="LocusRoute"/>
+    <property name="satin-main-class" value="${main-class}"/>
+    <property name="satin-so-classes" value="CostArray"/>
+
+    <property name="ibis-run-args" value="-Dsatin.closed"/>
+    <property name="test-par-run"
+	      value="LocusRoute 2 circuits/circuit1"/>
+    <property name="test-seq-run"
+	      value="LocusRoute 2 circuits/circuit1"/>
+
+    <import file="${ibis}/build-files/apps/build-satin-app.xml"/>
+
+</project>
+
+

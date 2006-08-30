@@ -1,0 +1,34 @@
+<project
+    name="ibis applications"
+    default="build"
+    basedir=".">
+
+    <description>
+	Ibis applications build.
+    </description>
+
+    <target name="usage"
+	    description="Print this message">
+	<exec	executable="ant">
+	    <arg line="-projecthelp"/>
+	</exec>
+	<echo message="os.name ${os.name} os.arch ${os.arch}"/>
+    </target>
+
+    <property environment="env"/>
+
+    <property name="ibis"        location="${env.IBIS_ROOT}"/>
+
+    <import file="${ibis}/build-files/build-properties.xml"/>
+
+    <path id="buildfiles">
+	<fileset dir=".">
+	    <include name="*/build.xml"/>
+	    <exclude name="repmi/build.xml"/>
+	</fileset>
+    </path>
+    <property name="build.files" refid="buildfiles"/>
+
+    <import file="${ibis}/apps/build-apps.xml"/>
+
+</project>

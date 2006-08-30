@@ -1,0 +1,21 @@
+<project
+    name="ibis.apps.satin.nqueens.simple_exception"
+    default="build"
+    basedir=".">
+
+    <property environment="env"/>
+
+    <property name="ibis"        location="${env.IBIS_ROOT}"/>
+    <property name="build"       value="build"/>
+
+    <property name="satinc-flags" value="-keep"/>
+    <property name="main-class" value="NQueens"/>
+    <property name="satin-main-class" value="${main-class}"/>
+
+    <property name="ibis-run-args" value="-Dsatin.closed"/>
+    <property name="test-par-run" value="NQueens 14"/>
+    <property name="test-seq-run" value="NQueens 14"/>
+
+    <import file="${ibis}/build-files/apps/build-satin-app.xml"/>
+
+</project>

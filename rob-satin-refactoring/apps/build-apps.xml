@@ -1,0 +1,140 @@
+<project
+    name="Ibis applications build"
+    default="build"
+    basedir=".">
+
+    <description>
+	Ibis applications build.
+    </description>
+
+    <target name="usage"
+	    description="Print this message">
+	<exec	executable="ant">
+	    <arg line="-projecthelp"/>
+	</exec>
+	<echo message="os.name ${os.name} os.arch ${os.arch}"/>
+    </target>
+
+    <property name="ibis"        location="../.."/>
+
+    <import file="${ibis}/build-files/build-properties.xml"/>
+
+    <target name="-list-build-files">
+	<if>
+	    <isset property="build.files"/>
+	    <then>
+	    </then>
+	    <else>
+		<path id="buildfiles">
+		    <fileset dir=".">
+			<include name="*/**/build.xml"/>
+		    </fileset>
+		</path>
+		<property name="build.files" refid="buildfiles"/>
+	    </else>
+	</if>
+    </target>
+
+    <!--
+	Compile only
+    -->
+    <target name="compile"
+	    depends="-list-build-files"
+	    description="Compile without Ibis-serialization rewriting, or for sequential runs">
+	<foreach
+		list="${build.files}"
+		delimiter="${path.separator}"
+		target="-do-one"
+		param="build.file">
+	    <param name="do-one-target" value="compile"/>
+	</foreach>
+    </target>
+
+    <!--
+	Build
+    -->
+    <target name="build"
+	    depends="-list-build-files"
+	    description="Build Ibis applications">
+	<foreach
+		list="${build.files}"
+		delimiter="${path.separator}"
+		target="-do-one"
+		param="build.file">
+	    <param name="do-one-target" value="build"/>
+	</foreach>
+    </target>
+
+    <!--
+	Clean
+    -->
+    <target name="clean"
+	    depends="-list-build-files"
+	    description="Clean in Ibis applications">
+	<foreach
+		list="${build.files}"
+		delimiter="${path.separator}"
+		target="-do-one"
+		param="build.file">
+	    <param name="do-one-target" value="clean"/>
+	</foreach>
+    </target>
+
+    <!--
+	Test
+    -->
+    <target name="test"
+	    depends="clean,-list-build-files"
+	    description="Run tests in Ibis applications">
+	<foreach
+		list="${build.files}"
+		delimiter="${path.separator}"
+		target="-do-one"
+		param="build.file">
+	    <param name="do-one-target" value="test"/>
+	</foreach>
+    </target>
+
+    <target name="test-seq"
+	    depends="clean,-list-build-files"
+	    description="Run sequential tests in Ibis applications">
+	<foreach
+		list="${build.files}"
+		delimiter="${path.separator}"
+		target="-do-one"
+		param="build.file">
+	    <param name="do-one-target" value="test-seq"/>
+	</foreach>
+    </target>
+
+    <target name="test-par"
+	    depends="clean,-list-build-files"
+	    description="Run parallel tests in Ibis applications">
+	<foreach
+		list="${build.files}"
+		delimiter="${path.separator}"
+		target="-do-one"
+		param="build.file">
+	    <param name="do-one-target" value="test-par"/>
+	</foreach>
+    </target>
+
+    <target name="test-prun"
+	    depends="clean,-list-build-files"
+	    description="Run parallel tests with prun in Ibis applications">
+	<foreach
+		list="${build.files}"
+		delimiter="${path.separator}"
+		target="-do-one"
+		param="build.file">
+	    <param name="do-one-target" value="test-prun"/>
+	</foreach>
+    </target>
+
+    <target name="-do-one">
+	<dirname file="${build.file}" property="build.dir"/>
+	<echo message="Running 'ant ${do-one-target}' in ${build.dir}"/>
+	<ant dir="${build.dir}" target="${do-one-target}" inheritAll="false"/>
+    </target>
+
+</project>

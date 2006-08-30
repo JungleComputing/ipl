@@ -1,0 +1,35 @@
+#!/bin/sh
+
+PRG="$0"
+
+# resolve symlinks
+while [ -h "$PRG" ] ; do
+    ls=`ls -ld "$PRG"`
+    link=`expr "$ls" : '.*-> \(.*\)$'`
+    if expr "$link" : '/.*' > /dev/null; then
+    PRG="$link"
+    else
+    PRG=`dirname "$PRG"`"/$link"
+    fi
+done
+
+dir=`dirname "$PRG"`
+dir=`cd "$dir" && pwd`
+
+. "$dir"/../configuration.sh
+
+# rewrite all class files in the current tree.
+
+JAVACLASSPATH="$CLASSPATH:$IBIS_ROOT/build:build:$BCEL:.:"
+
+case X$# in
+X0)
+    find . -name '*.class' -print |
+	sed 's/^..//' |
+	tr '\n' ' ' |
+	xargs "$JAVA_ROOT"/bin/java -classpath "$JAVACLASSPATH" ibis.frontend.io.IOGenerator -dir "$@"
+	;;
+X*)
+    "$JAVA_ROOT"/bin/java -classpath "$JAVACLASSPATH" ibis.frontend.io.IOGenerator -dir "$@"
+    ;;
+esac

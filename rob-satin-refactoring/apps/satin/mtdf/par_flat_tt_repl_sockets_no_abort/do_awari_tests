@@ -1,0 +1,11 @@
+#!/bin/bash
+
+#nohup make PAR_OUT_FILE=output-awari_$1-par-RS-64 PAR_POOL_NAME=awari-$1-64 APP_OPTIONS=" -f ../seq/awaripos/$1 23" SIZES=64 parrun &
+#nohup make PAR_OUT_FILE=output-awari_$1-par-RS-48 PAR_POOL_NAME=awari-$1-48 APP_OPTIONS=" -f ../seq/awaripos/$1 23" SIZES=48 parrun &
+#nohup make PAR_OUT_FILE=output-awari_$1-par-RS-32 PAR_POOL_NAME=awari-$1-32 APP_OPTIONS=" -f ../seq/awaripos/$1 23" SIZES=32 parrun &
+#nohup make PAR_OUT_FILE=output-awari_$1-par-RS-24 PAR_POOL_NAME=awari-$1-24 APP_OPTIONS=" -f ../seq/awaripos/$1 23" SIZES=24 parrun &
+#nohup make PAR_OUT_FILE=output-awari_$1-par-RS-16 PAR_POOL_NAME=awari-$1-16 APP_OPTIONS=" -f ../seq/awaripos/$1 23" SIZES=16 parrun &
+#nohup make PAR_OUT_FILE=output-awari_$1-par-RS-8  PAR_POOL_NAME=awari-$1-8  APP_OPTIONS=" -f ../seq/awaripos/$1 23" SIZES=8  parrun &
+#nohup make PAR_OUT_FILE=output-awari_$1-par-RS-4  PAR_POOL_NAME=awari-$1-4  APP_OPTIONS=" -f ../seq/awaripos/$1 23" SIZES=4  parrun &
+#nohup make PAR_OUT_FILE=output-awari_$1-par-RS-2  PAR_POOL_NAME=awari-$1-2  APP_OPTIONS=" -f ../seq/awaripos/$1 23" SIZES=2  parrun &
+nohup make PAR_OUT_FILE=output-awari_$1-par-RS-1  PAR_POOL_NAME=awari-$1-1  APP_OPTIONS=" -f ../seq/awaripos/$1 25" SIZES=1  parrun &

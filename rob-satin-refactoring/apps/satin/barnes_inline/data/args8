@@ -1,0 +1,1 @@
+BarnesHut -input data/D8 -dt 0.02 -it 5000 -eps 0.025 -theta 5 -min 128 -so 8193 32

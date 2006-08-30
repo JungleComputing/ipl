@@ -1,0 +1,117 @@
+<project
+    name="repmi-app"
+    default="build"
+    basedir=".">
+
+    <import file="${ibis}/build-files/build-properties.xml"/>
+    <import file="${ibis}/build-files/build-iogen.xml"/>
+    <import file="${ibis}/build-files/build-native.xml"/>
+    <import file="${ibis}/build-files/apps/build-run.xml"/>
+
+    <description>
+	Ibis repmi application build
+    </description>
+
+    <target name="property-repmi-build" unless="build">
+	<echo message="build is undefined. Set it to the default value"/>
+	<property name="build" location="build"/>
+    </target>
+
+    <property name="builddir" location="${build}"/>
+
+    <target name="repmi-init"
+	    depends="property-repmi-build,property-init"/>
+
+    <target name="repmi"
+	    depends="repmi-init">
+	    <!-- Commented out; not toplevel target
+	    description="Preprocesses classes in the build tree for RepMI"
+	    -->
+	<!-- <echo message="Do ONLY the class files in ibis/ipl"/> -->
+	<path id="all-classes">
+	    <fileset dir="${builddir}">
+		<include name="**/*.class"/>
+		<include name="ibis/ipl/*.class"/>
+	    </fileset>
+	</path>
+	<pathconvert pathsep=" " property="classes.all" refid="all-classes">
+	    <map from="${builddir}${file.separator}" to=""/>
+	</pathconvert>
+
+	<!--
+	    Do regexp from ${classes.all} -> repmi-classes
+		%s/.class//g
+		%s/\${file.separator}/./g
+	-->
+	<echo message="${classes.all}" file="${build}/REPMI-Classes"/>
+	<replaceregexp
+		byline="true"
+		file="${build}/REPMI-Classes"
+		flags="g"
+		match=".class"
+		replace=""/>
+	<replaceregexp
+		byline="true"
+		file="${build}/REPMI-Classes"
+		flags="g"
+		match="\${file.separator}"
+		replace="."/>
+	<loadfile
+		property="repmi-classes"
+		srcFile="${build}/REPMI-Classes">
+	</loadfile>
+
+	<echo	level="debug"
+		message="All classes to be rewritten: ${repmi-classes}"/>
+	<echo	level="debug"
+	    message="Run ibis repmi over all classes under ${builddir}${file.separator}"/>
+	<java   classname="ibis.frontend.repmi.Main"
+		taskname="ibis repmi"
+		dir="${builddir}"
+		failonerror="true"
+		fork="true">
+	    <arg line="-dir ${repmi-classes}"/>
+	    <classpath refid="default.classpath"/>
+	</java>
+	<javac	destdir="${builddir}"
+	    srcdir="${builddir}">
+	    <include name="**/repmi_stub_*.java"/>
+	    <include name="**/repmi_skeleton_*.java"/>
+	    <classpath refid="default.classpath"/>
+	</javac>
+    </target>
+
+    <target name="init">
+	<tstamp/>
+	<mkdir dir="${builddir}"/>
+	<!--
+	<echo message="os.name = ${os.name} os.arch = ${os.arch}"/>
+	<echo message="user.name = ${user.name} user.dir = ${user.dir}"/>
+	<echo message="java.ext.dirs = ${java.ext.dirs}"/>
+	-->
+    </target>
+
+    <target name="compile"
+	    depends="init,property-init">
+	    <javac  destdir="${builddir}"
+		debug="${java.debug.value}"
+		srcdir=".">
+	    <classpath refid="default.classpath"/>
+	    <include name="*.java"/>
+	</javac>
+    </target>
+
+    <target name="build"
+	    depends="init"
+	    description="Compile a RepMI application">
+	<antcall target="compile" inheritRefs="true"/>
+	<antcall target="repmi" inheritRefs="true"/>
+	<antcall target="iogen" inheritRefs="true"/>
+    </target>
+
+    <target name="clean"
+	    description="Clean up the build">
+	    <delete dir="${builddir}"/>
+    </target>
+
+</project>

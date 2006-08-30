@@ -1,0 +1,54 @@
+CODE:
+0
+STDOUT:
+Problem has 1000 variables and 43636 clauses
+Problem has 1000 variables (422 known) and 17274 clauses
+ExecutionTime: 17.748
+application time DPLLSolver (examples/benchmark-suite/qg5-10.cnf) took 17.748 seconds
+There are no solutions
+-------------------------------SATIN STATISTICS--------------------------------
+SATIN: SPAWN:       2,802 spawns, 2,802 executed, 1,401 syncs
+SATIN: ABORT:       0 aborts, 0 abort msgs, 0 aborted jobs
+SATIN: STEAL:       3,253 attempts, 66 successes (2.029 %)
+SATIN: MESSAGES:    intra 6,571 msgs, 6,976,165 bytes; inter 0 msgs, 0 bytes
+SATIN: SO_CALLS:    0 invocations, 0 bytes, 0 messages
+SATIN: SO_TRANSFER: 3 transfers, 2,723,454 bytes 
+SATIN: SO_BCAST:    1 bcasts, 907,842 bytes 
+-------------------------------SATIN TOTAL TIMES-------------------------------
+SATIN: STEAL_TIME:               total  23.726  s time/req      7.294 ms
+SATIN: HANDLE_STEAL_TIME:        total  11.379  s time/handle   3.498 ms
+SATIN: INV SERIALIZATION_TIME:   total 549.423 ms time/write    8.325 ms
+SATIN: INV DESERIALIZATION_TIME: total   1.239  s time/read    18.769 ms
+SATIN: RET SERIALIZATION_TIME:   total  48.722 ms time/write  738.208 us
+SATIN: RET DESERIALIZATION_TIME: total  70.091 ms time/read     1.062 ms
+SATIN: ABORT_TIME:               total   0.000  s time/abort    0.000  s
+SATIN: BROADCAST_SO_INVOCATIONS: total   0.000  s time/inv      0.000  s
+SATIN: HANDLE_SO_INVOCATIONS:    total   0.000  s time/inv      0.000  s
+SATIN: SO_TRANSFERS:             total   1.053  s time/transf 350.947 ms
+SATIN: SO_SERIALIZATION:         total   1.051  s time/transf 350.192 ms
+SATIN: SO_DESERIALIZATION:       total   1.058  s time/transf 352.619 ms
+SATIN: SO_BCASTS:                total 256.211 ms time/bcast  256.211 ms
+SATIN: SO_BCAST_SERIALIZATION:   total 255.741 ms time/bcast  255.741 ms
+SATIN: SO_BCAST_DESERIALIZATION: total   0.000  s time/bcast    0.000  s
+-------------------------------SATIN RUN TIME BREAKDOWN------------------------
+SATIN: TOTAL_RUN_TIME:                            20.040  s
+SATIN: LOAD_BALANCING_TIME:      avg. per machine   8.300  s (41.415 %)
+SATIN: (DE)SERIALIZATION_TIME:   avg. per machine 476.742 ms ( 2.379 %)
+SATIN: ABORT_TIME:               avg. per machine   0.000  s ( 0.000 %)
+SATIN: BROADCAST_SO_INVOCATIONS: avg. per machine   0.000  s ( 0.000 %)
+SATIN: HANDLE_SO_INVOCATIONS:    avg. per machine   0.000  s ( 0.000 %)
+SATIN: SO_TRANSFERS:             avg. per machine 263.210 ms ( 1.313 %)
+SATIN: SO_SERIALIZATION:         avg. per machine 262.644 ms ( 1.311 %)
+SATIN: SO_DESERIALIZATION:       avg. per machine 264.464 ms ( 1.320 %)
+SATIN: SO_BCASTS:                avg. per machine  64.053 ms ( 0.320 %)
+SATIN: SO_BCAST_SERIALIZATION:   avg. per machine  63.935 ms ( 0.319 %)
+SATIN: SO_BCAST_DESERIALIZATION: avg. per machine   0.000  s ( 0.000 %)
+
+SATIN: TOTAL_PARALLEL_OVERHEAD:  avg. per machine   9.398  s (46.895 %)
+SATIN: USEFUL_APP_TIME:          avg. per machine  10.642  s (53.105 %)
+
+STDERR:
+Java 1.4.2 (Sun Microsystems Inc.) on Linux 2.4.21-20.ELcustomsmp (i386)
+Propagated 422 unit clauses
+Propagated 0 pure variables
+Did 4 optimization iterations

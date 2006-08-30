@@ -1,0 +1,9 @@
+#!/bin/bash
+
+grep "IDLE" $1 > idle
+grep "COMM" $1 > comm
+grep application $1 > runtime
+grep closed $1 > poolsize
+grep "tt:" $1 > out
+awari_totals poolsize runtime comm idle out seq
+rm -f runtime comm idle out poolsize

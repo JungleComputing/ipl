@@ -1,0 +1,6 @@
+c A SAT problem that has no solutions
+p cnf 5 3
+1 -2 4 0
+-1 -2 3 5 0
+3 0
+-3 0

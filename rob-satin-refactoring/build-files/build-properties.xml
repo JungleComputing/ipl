@@ -1,0 +1,147 @@
+<project
+    name="properties"
+    default="property-init"
+    basedir=".">
+
+    <description>
+	Properties to be shared by all files, apps in Ibis
+
+	Requires prior definition of the following properties:
+
+	    ibis          the root of the Ibis tree
+
+	Specify in this file:
+    </description>
+
+    <property name="build-properties.xml-imported" value="true"/>
+
+    <taskdef resource="net/sf/antcontrib/antcontrib.properties"/>
+
+    <property
+	    name="package.home.bcel"
+	    location="${ibis}/3rdparty/bcel-5.1.jar"/>
+
+    <property
+	    name="package.home.junit"
+	    location="${ibis}/3rdparty/junit.jar"/>
+
+    <property
+	    name="package.home.log4j"
+	    location="${ibis}/3rdparty/log4j-1.2.9.jar"/>
+
+    <property
+	    name="package.home.colobus"
+	    location="${ibis}/3rdparty/colobus.jar"/>
+
+    <property
+	    name="package.home.ibisUtil"
+	    location="${ibis}/3rdparty/ibis-util.jar"/>
+
+    <property
+	    name="package.home.ibisConnect"
+	    location="${ibis}/3rdparty/ibis-connect.jar"/>
+
+	<property
+		name="package.home.lrmc"
+		location="${ibis}/3rdparty/lrmc.jar"/>
+
+    <target name="property-init"
+	    unless="property.initialized">
+	    <!--
+	    depends="property-init-once"
+	    -->
+	<property name="property.initialized" value="true"/>
+
+	<property file="${ibis}/build-properties"/>
+
+	<if>
+	    <isreference refid="extra-classpath"/>
+	    <then>
+		<path id="default.classpath">
+		    <pathelement path="${ibisBuild}"/>
+		    <pathelement path="${build}"/>
+		    <pathelement path="${package.home.bcel}"/>
+		    <pathelement path="${package.home.log4j}"/>
+		    <pathelement path="${package.home.junit}"/>
+		    <pathelement path="${package.home.colobus}"/>
+		    <pathelement path="${package.home.ibisUtil}"/>
+		    <pathelement path="${package.home.ibisConnect}"/>
+		    <pathelement path="${package.home.lrmc}"/>
+		    <path refid="extra-classpath"/>
+		</path>
+		<property name="class-path-3" refid="default.classpath"/>
+		<echo   message="class path ${class-path-3}"/>
+
+	    </then>
+	    <else>
+		<path id="default.classpath">
+		    <pathelement path="${ibisBuild}"/>
+		    <pathelement path="${build}"/>
+		    <pathelement path="${package.home.bcel}"/>
+		    <pathelement path="${package.home.log4j}"/>
+		    <pathelement path="${package.home.colobus}"/>
+		    <pathelement path="${package.home.ibisUtil}"/>
+		    <pathelement path="${package.home.ibisConnect}"/>
+		    <pathelement path="${package.home.junit}"/>
+		    <pathelement path="${package.home.lrmc}"/>
+		</path>
+	    </else>
+	</if>
+
+	<echo	message="Now set default.classpath to ${default.classpath}"
+		level="verbose"/>
+
+	<!--
+	    First test whether this is a Mac. Some Macs are also Unix,
+	    so they say 'yes' to os family="unix". But for Ibis, we
+	    want to distinguish between macs and non-mac unixes.
+	-->
+	<if>
+	    <os family="mac"/>
+	    <then>
+		<property name="os.family" value="mac"/>
+		<property name="os-is-mac" value="true"/>
+	    </then>
+	<elseif>
+	    <os family="windows"/>
+	    <then>
+		<property name="os.family" value="windos"/>
+		<property name="os-is-windows" value="true"/>
+	    </then>
+	</elseif>
+	<elseif>
+	    <os family="unix"/>
+	    <then>
+		<property name="os.family" value="unix"/>
+		<property name="os-is-unix" value="true"/>
+	    </then>
+	</elseif>
+	</if>
+
+	<!--
+	    Expand the settings in build-properties for optimized compilation
+	    or debug symbol generation to more usable properties
+	-->
+	<if>
+	    <equals arg1="${java.optimization}" arg2="optimize"/>
+	    <then>
+		<property name="java.optimize" value="true"/>
+		<property name="java.optimize.value" value="true"/>
+	    </then>
+	    <else>
+		<!-- The trick is to NOT set java.optimize -->
+		<property name="java.optimize.value" value="false"/>
+	    </else>
+	</if>
+	<if>
+	    <isset property="java.debug"/>
+	    <then>
+		<property name="java.debug.value" value="true"/>
+	    </then>
+	    <else>
+		<property name="java.debug.value" value="false"/>
+	    </else>
+	</if>
+    </target>
+
+</project>

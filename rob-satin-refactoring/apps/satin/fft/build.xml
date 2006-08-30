@@ -1,0 +1,24 @@
+<project
+    name="ibis.apps.satin.fft"
+    default="build"
+    basedir=".">
+
+    <property environment="env"/>
+
+    <property name="ibis"        location="${env.IBIS_ROOT}"/>
+    <property name="build"       value="build"/>
+
+    <property name="satinc-flags" value=""/>
+    <property name="main-class" value="FFT"/>
+    <property name="satin-main-class" value="${main-class}"/>
+
+    <!-- Commented out, causes out-of-memory on some machines
+    <property name="test-par-run" value="FFT 524288"/>
+    <property name="test-seq-run" value="FFT 524288"/>
+    -->
+
+    <import file="${ibis}/build-files/apps/build-satin-app.xml"/>
+
+</project>
+
+

@@ -1,0 +1,41 @@
+CODE:
+0
+STDOUT:
+Running ida on ../inputs/2
+distance: 58, bound: 0, board:
+15 10  2  3 
+14  0  6  7 
+ 8 11  9  4 
+12 13  5  1 
+Try bound 58 60 62 64 66 68 
+application time ida (../inputs/2,68) took 36.202 s
+
+application result ida (../inputs/2,68) = 0 solutions of 68 steps
+-------------------------------SATIN STATISTICS--------------------------------
+SATIN: SPAWN:       151,781 spawns, 151,781 executed, 74,120 syncs
+SATIN: ABORT:       0 aborts, 0 abort msgs, 0 aborted jobs
+SATIN: TUPLE_SPACE: 0 bcasts, 0 bytes
+SATIN: STEAL:       1,446 attempts, 169 successes (11.687 %)
+SATIN: MESSAGES:    intra 3,061 msgs, 182,033 bytes; inter 0 msgs, 0 bytes
+-------------------------------SATIN TOTAL TIMES-------------------------------
+SATIN: STEAL_TIME:               total   5.461  s time/req      3.777 ms
+SATIN: HANDLE_STEAL_TIME:        total   1.165  s time/handle 805.623 us
+SATIN: INV SERIALIZATION_TIME:   total 670.064 ms time/write    3.965 ms
+SATIN: INV DESERIALIZATION_TIME: total 574.826 ms time/read     3.401 ms
+SATIN: RET SERIALIZATION_TIME:   total 183.038 ms time/write    1.083 ms
+SATIN: RET DESERIALIZATION_TIME: total 318.076 ms time/read     1.882 ms
+SATIN: ABORT_TIME:               total   0.000  s time/abort  �  s
+SATIN: TUPLE_SPACE_BCAST_TIME:   total   0.000  s time/bcast  �  s
+SATIN: TUPLE_SPACE_WAIT_TIME:    total   0.000  s time/bcast  �  s
+-------------------------------SATIN RUN TIME BREAKDOWN------------------------
+SATIN: TOTAL_RUN_TIME:                            36.463  s
+SATIN: LOAD_BALANCING_TIME:      avg. per machine   1.076  s ( 2.952 %)
+SATIN: (DE)SERIALIZATION_TIME:   avg. per machine 349.201 ms ( 0.958 %)
+SATIN: ABORT_TIME:               avg. per machine   0.000  s ( 0.000 %)
+SATIN: TUPLE_SPACE_BCAST_TIME:   avg. per machine   0.000  s ( 0.000 %)
+SATIN: TUPLE_SPACE_WAIT_TIME:    avg. per machine   0.000  s ( 0.000 %)
+
+SATIN: TOTAL_PARALLEL_OVERHEAD:  avg. per machine   1.425  s ( 3.909 %)
+SATIN: USEFUL_APP_TIME:          avg. per machine  35.037  s (96.091 %)
+
+STDERR:
