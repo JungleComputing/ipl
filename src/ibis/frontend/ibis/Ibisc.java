@@ -133,12 +133,11 @@ public class Ibisc {
             if (e.modified && e.jarInfo == null) {
                 File temp = null;
                 try {
-                    File canonicalDir = new File(e.fileName).getCanonicalFile().getParentFile();
+                    File file = new File(e.fileName);
+                    File canonicalDir = file.getCanonicalFile().getParentFile();
                     temp = File.createTempFile("Ibisc_", null, canonicalDir);
                     e.cl.dump(temp.getCanonicalPath());
-                    if (! temp.renameTo(new File(e.fileName))) {
-                        throw new Exception("Could not write " + e.fileName);
-                    }
+                    rename(file, temp, canonicalDir);
                 } catch (Exception ex) {
                     System.err.println("Ibisc: got exception while writing "
                             + e.fileName + ": " + ex);
@@ -150,6 +149,28 @@ public class Ibisc {
                 e.modified = false;
             }
         }
+    }
+
+    /**
+     * Safe(?) rename. Problem is that File.rename may not work if the
+     * destination exists.
+     */
+    private static void rename(File dest, File src, File dir) throws IOException {
+        File temp = File.createTempFile("Ibc_", null, dir);
+        temp.delete();
+        if (dest.exists() && ! dest.renameTo(temp)) {
+            throw new IOException("Could not rename "
+                    + dest.getName() + " to temporary");
+        }
+        if (! src.renameTo(dest)) {
+            if (temp.exists()) {
+                temp.renameTo(dest);    // Try to restore dest. If it fails,
+                                        // we at least have temp.
+            }
+            throw new IOException("Could not rename to "
+                    + dest.getName());
+        }
+        temp.delete();
     }
 
     /**
@@ -171,7 +192,8 @@ public class Ibisc {
                 String name = ji.jarFile.getName();
                 File temp = null;
                 try {
-                    File canonicalDir = new File(name).getCanonicalFile().getParentFile();
+                    File file = new File(name);
+                    File canonicalDir = file.getCanonicalFile().getParentFile();
                     temp = File.createTempFile("Ibisc_", null, canonicalDir);
                     FileOutputStream out = new FileOutputStream(temp);
                     BufferedOutputStream bo = new BufferedOutputStream(out, 16384);
@@ -185,9 +207,7 @@ public class Ibisc {
                         ient.write(zo);
                     }
                     zo.close();
-                    if (! temp.renameTo(new File(name))) {
-                        throw new Exception("Could not write " + name);
-                    }
+                    rename(file, temp, canonicalDir);
                 } catch(Exception e) {
                     System.err.println("Ibisc: got exception while writing "
                             + name + ": " + e);
