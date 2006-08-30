@@ -221,13 +221,14 @@ final class SOCommunication implements Config, Protocol {
 
     /** Broadcast an so invocation */
     protected void doBroadcastSOInvocationLRMC(SOInvocationRecord r) {
-        soLogger.debug("SATIN '" + s.ident.name()
-            + "': broadcasting so invocation for: " + r.getObjectId());
-        s.stats.broadcastSOInvocationsTimer.start();
         IbisIdentifier[] tmp;
         synchronized (s) {
             tmp = s.victims.getIbises();
+            if(tmp.length == 0) return;
         }
+        soLogger.debug("SATIN '" + s.ident.name()
+            + "': broadcasting so invocation for: " + r.getObjectId());
+        s.stats.broadcastSOInvocationsTimer.start();
         s.so.registerMulticast(s.so.getSOReference(r.getObjectId()), tmp);
 
         long byteCount = 0;
@@ -358,13 +359,15 @@ final class SOCommunication implements Config, Protocol {
 
     /** Broadcast an so invocation */
     protected void doBroadcastSharedObjectLRMC(SharedObject object) {
-        soLogger.debug("SATIN '" + s.ident.name() + "': broadcasting object: "
-            + object.objectId);
-        s.stats.soBroadcastTransferTimer.start();
         IbisIdentifier[] tmp;
         synchronized (s) {
             tmp = s.victims.getIbises();
+            if(tmp.length == 0) return;
         }
+
+        soLogger.debug("SATIN '" + s.ident.name() + "': broadcasting object: "
+            + object.objectId);
+        s.stats.soBroadcastTransferTimer.start();
         s.so.registerMulticast(object, tmp);
 
         long size = 0;
