@@ -4,9 +4,10 @@ if "%OS%"=="Windows_NT" @setlocal
 
 rem %~dp0 is expanded pathname of the current script under NT
 
-set IBIS_HOME=%~dp0..
+if "%IBIS_HOME%X"=="X" set IBIS_HOME=%~dp0..
 
-set JAVACLASSPATH=%CLASSPATH%;%IBIS_HOME%\lib\log4j-1.2.9.jar;%IBIS_HOME%\lib\colobus-0.1.jar;%IBIS_HOME%\lib\ibis-util.jar;%IBIS_HOME%\lib\ibis-connect.jar;%IBIS_HOME%\lib\ibis.jar;
+set JAVACLASSPATH=%CLASSPATH%;
+for %%i in ("%IBIS_HOME%\lib\*.jar") do call "%IBIS_HOME%\bin\AddToIbisClassPath.bat" %%i
 
 set ConnectHub="-Dibis.connect.control_links=RoutedMessages -Dibis.connect.data_links=PlainTCP"
 

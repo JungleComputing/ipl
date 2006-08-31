@@ -4,7 +4,7 @@ if "%OS%"=="Windows_NT" @setlocal
 
 rem %~dp0 is expanded pathname of the current script under NT
 
-set IBIS_HOME=%~dp0..
+if "%IBIS_HOME%X"=="X" set IBIS_HOME=%~dp0..
 
 set PRUN_CPU_RANK=0
 set NHOSTS=1
@@ -153,7 +153,8 @@ goto arguments
 
 :cont
 
-set JAVACLASSPATH=%CLASSPATH%;build;%IBIS_HOME%\classlibs;%IBIS_HOME%\lib\ibis.jar;%IBIS_HOME%\lib\ibis-util.jar;%IBIS_HOME%\lib\ibis-connect.jar;%IBIS_HOME%\lib\lrmc.jar;%IBIS_HOME%\lib\junit.jar;%IBIS_HOME%\lib\log4j-1.2.9.jar;%IBIS_HOME%\lib\colobus-0.1.jar;
+set JAVACLASSPATH=%CLASSPATH%;build;%IBIS_HOME%\classlibs;
+for %%i in ("%IBIS_HOME%\lib\*.jar") do call "%IBIS_HOME%\bin\AddToIbisClassPath.bat" %%i
 
 if "%noJIT%"=="1" (
     set JIT_OPTS=%JIT_OPTS% -Djava.compiler=NONE

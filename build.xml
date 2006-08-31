@@ -311,23 +311,6 @@
 	<replace file="${dirnam}/bin/ns-env.bat" token="@IBIS_NS_PORT@" value="9826"/>
 	<replace file="${dirnam}/bin/ns-env.bat" token="@IBIS_NS_HOST@" value="localhost"/>
 
-	<replace dir="${dirnam}/bin"
-	         includes="*.bat"
-		 token="ibis.jar"
-		 value="ibis-1.4.jar"/>
-	<replace dir="${dirnam}/bin"
-	     includes="*.bat"
-	     token="ibis-util.jar"
-	     value="ibis-util-1.4.jar"/>
-	<replace dir="${dirnam}/bin"
-	     includes="*.bat"
-	     token="ibis-connect.jar"
-	     value="ibis-connect-1.4.jar"/>
-	<replace dir="${dirnam}/bin"
-	     includes="*.bat"
-	     token="lrmc.jar"
-	     value="lrmc-1.4.jar"/>
-
 	<chmod file="${dirnam}/bin/*" perm="+x"/>
 
 	<move file="${dirnam}/docs/README-bin.txt" tofile="${dirnam}/README.txt"/>
