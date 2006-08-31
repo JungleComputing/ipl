@@ -100,6 +100,7 @@ public final class TestIbis extends TestCase {
     }
 
     public ReceivePortIdentifier lookup(String name) throws IOException {
+        System.out.println("lookup: " + name);
         try {
             ReceivePortIdentifier temp = registry.lookupReceivePort(name, 5000);
             assertTrue(temp != null);
@@ -117,6 +118,7 @@ public final class TestIbis extends TestCase {
         ReceivePort rport = oneToOneType
                 .createReceivePort("master receive port");
         rport.enableConnections();
+        System.out.println("Master created rport: " + rport.name());
 
         for (int i = 0; i < COUNT; i++) {
 
@@ -128,7 +130,7 @@ public final class TestIbis extends TestCase {
             assertTrue(data == i);
 
             if (sendPort == null) {
-                ReceivePortIdentifier peer = lookup("receiveport @ " + origin.ibis());
+                ReceivePortIdentifier peer = lookup("receiveport @ " + origin.ibis().name());
                 sendPort = oneToOneType.createSendPort();
                 connect(sendPort, peer);
             }
@@ -143,8 +145,9 @@ public final class TestIbis extends TestCase {
 
     void worker() throws Exception {
         ReceivePort rport = oneToOneType.createReceivePort("receiveport @ "
-                + ibis.identifier());
+                + ibis.identifier().name());
         rport.enableConnections();
+        System.out.println("Worker created rport: " + rport.name());
         SendPort sport = oneToOneType.createSendPort();
 
         ReceivePortIdentifier master = lookup("master receive port");
