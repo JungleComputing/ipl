@@ -176,7 +176,8 @@
     -->
     <target name="test"
 	    description="Build, run sequential test, run parallel test, clean"
-	    depends="build,test-seq,test-par,clean">
+	    depends="build,test-seq,test-par">
+	<antcall inheritRefs="true" target="clean"/>
     </target>
 
     <target name="jar"
