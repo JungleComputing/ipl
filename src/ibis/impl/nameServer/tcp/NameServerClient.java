@@ -127,31 +127,35 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
                 javadir = javadir.substring(0, javadir.length()-4);
             }
 
+            String conn = System.getProperty("ibis.connect.control_links");
+            String hubhost = null;
+            String hubport = null;
+            if (conn != null && conn.equals("RoutedMessages")) {
+                hubhost = System.getProperty("ibis.connect.hub.host");
+                if (hubhost == null) {
+                    hubhost = srvr;
+                }
+                hubport = System.getProperty("ibis.connect.hub.port");
+            }
+
             ArrayList command = new ArrayList();
             command.add(javadir + filesep + "bin" + filesep + "java");
             command.add("-classpath");
             command.add(javapath + pathsep);
             command.add("-Dibis.name_server.port="+prt);
+            if (hubhost != null && ! srvr.equals(hubhost)) {
+                command.add("-Dibis.connect.hub.host=" + hubhost);
+            }
+            if (hubport != null) {
+                command.add("-Dibis.connect.hub.port=" + hubport);
+            }
             command.add("ibis.impl.nameServer.tcp.NameServer");
             command.add("-single");
             command.add("-no-retry");
             command.add("-silent");
             command.add("-no-poolserver");
-
-            String conn = System.getProperty("ibis.connect.control_links");
-            if (conn != null && conn.equals("RoutedMessages")) {
-                conn = System.getProperty("ibis.connect.hub.host");
-                if (conn == null || conn.equals(srvr)) {
-                    command.add("-controlhub");
-                } else {
-                    command.add("-hubhost");
-                    command.add(conn);
-                }
-                conn = System.getProperty("ibis.connect.hub.port");
-                if (conn != null) {
-                    command.add("-hubport");
-                    command.add(conn);
-                }
+            if (hubhost != null && hubhost.equals(srvr)) {
+                command.add("-controlhub");
             }
 
             final String[] cmd = (String[]) command.toArray(new String[0]);
