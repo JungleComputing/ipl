@@ -23,10 +23,10 @@
 
     <property name="ibis"        location="."/>
 
-    <property name="ibis-major" value="1"/>
-    <property name="ibis-minor" value="4"/>
+    <property name="version" value=""/>
 
-    <property name="version" value="-${ibis-major}.${ibis-minor}"/>
+    <property name="jar" value="${ibis}/lib/ibis${version}.jar"/>
+    <property name="bcel-fixes-jar" value="${ibis}/lib/bcel-5.1-fixes${version}.jar"/>
 
     <!--
 	This must come first.
@@ -159,7 +159,7 @@
     </target>
 
     <target name="ibis.jar" depends="bcel-fixes.jar">
-	<jar	destfile="${ibis}/lib/ibis.jar"
+	<jar	destfile="${jar}"
 		basedir="${build}"
 		includes="ibis/**/*.class **/properties ibis-properties">
 	    <manifest>
@@ -170,7 +170,7 @@
     </target>
 
     <target name="bcel-fixes.jar">
-	<jar	destfile="${ibis}/lib/bcel-5.1-fixes.jar"
+	<jar	destfile="${bcel-fixes-jar}"
 		basedir="${build}"
 		includes="org/**/*.class"/>
     </target>
@@ -314,10 +314,6 @@
 	<chmod file="${dirnam}/bin/*" perm="+x"/>
 
 	<move file="${dirnam}/docs/README-bin.txt" tofile="${dirnam}/README.txt"/>
-	<move file="${dirnam}/lib/ibis.jar" tofile="${dirnam}/lib/ibis-1.4.jar"/>
-	<move file="${dirnam}/lib/ibis-util.jar" tofile="${dirnam}/lib/ibis-util-1.4.jar"/>
-	<move file="${dirnam}/lib/ibis-connect.jar" tofile="${dirnam}/lib/ibis-connect-1.4.jar"/>
-	<move file="${dirnam}/lib/lrmc.jar" tofile="${dirnam}/lib/lrmc-1.4.jar"/>
 
 	<delete dir="${dirnam}/lib/natives"/>
 	<delete dir="${dirnam}/docs/src"/>
