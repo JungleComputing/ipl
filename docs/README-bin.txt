@@ -25,7 +25,15 @@ SUN has versions for Solaris, Linux, and Windows (at http://java.sun.com),
 and Apple has a version for Mac OS X (at http://developer.apple.com/java).
 
 This package does not require special installation. Just place this directory
-wherever you want it.
+wherever you want it. You can then try a simple test which creates a single
+Ibis instance, and a client and a server thread that send messages to each
+other. To do so you first need to set a couple of environment variables.
+See below at the system-specific notes. You need to set JAVA_HOME to the
+root of your Java installation, and IBIS_HOME to the root of your Ibis
+installation. Then you can go to the ibis bin directory and run
+
+    ibis-run junit.textui.TestRunner ibis.impl.test.TestIbis
+
 
 The programmer's manual in the docs directory ("docs/progman.pdf" or
 "docs/progman/progman.html" for a HTML version) contains a detailed
@@ -65,3 +73,21 @@ distributed under the Common Public License Version 1.0
 This product includes software developed by the
 Ant-Contrib project (http://sourceforge.net/projects/ant-contrib).
 See "notices/LICENSE.ant-contrib.txt" for the ant-contrib copyright notice.
+
+System-specific notes
+
+Mac OS X
+    Set the environment variable JAVA_HOME to "/Library/Java/Home".
+    You are required to install the Java SDK.
+
+Windows 2000, Windows XP
+    Install a recent Java SDK, at least 1.4, and preferably 1.5, because
+    1.4 seems to have some problems. This will get installed in
+    for instance "c:\Program Files\Java\jdk1.5.0". You can set the
+    JAVA_HOME environment variable to this path by going to the
+    Control Panel, System, the "Advanced" tab, Environment variables,
+    add it there and reboot your system. IBIS_HOME can be set
+    similarly.
+
+Cygwin
+    See the notes on Windows 2000, Windows XP.
