@@ -276,7 +276,6 @@
 
     <target name="ibis.zip" depends="default,docs,progman">
 	<delete dir="bin-temp"/>
-	<delete dir="${version}"/>
 	<delete file="${version}.zip"/>
 
 	<property name="dirnam" value="bin-temp/${version}"/>
@@ -284,7 +283,7 @@
 	<mkdir dir="${dirnam}"/>
 
 	<copy todir="${dirnam}">
-	    <fileset dir="${version}">
+	    <fileset dir=".">
 		<include name="build-files/**"/>
 		<include name="docs/**"/>
 		<include name="grun/**"/>
@@ -297,7 +296,7 @@
 	</copy>
 
 	<copy todir="${dirnam}/bin">
-	    <fileset dir="${version}/src/scripts">
+	    <fileset dir="src/scripts">
 		<include name="*.bat"/>
 	    </fileset>
 	</copy>
@@ -305,7 +304,7 @@
 	<delete file="${dirnam}/bin/ibis-prun"/>
 
 	<copy
-		file="${version}/src/scripts/ns-env.bat.in"
+		file="src/scripts/ns-env.bat.in"
 		tofile="${dirnam}/bin/ns-env.bat">
 	</copy>
 	<replace file="${dirnam}/bin/ns-env.bat" token="@IBIS_NS_PORT@" value="9826"/>
@@ -337,8 +336,6 @@
 	</exec>
 
 	<delete dir="bin-temp"/>
-	<delete dir="${version}"/>
-
     </target>
 
 </project>
