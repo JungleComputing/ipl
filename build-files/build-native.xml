@@ -181,7 +181,7 @@
 	depends="set-c-debug, set-compiler" unless="property-compiler-init-done">
 	<property name="property-compiler-init-done" value="true"/>
 	<path id="cpp">
-	    <pathelement path="${ibis}/3rdparty/cpptasks-1.0-cvs.jar"/>
+	    <pathelement path="${ibis}/build-files/cpptasks-1.0-cvs.jar"/>
 	</path>
 	<taskdef resource="cpptasks.tasks" classpathref="cpp" loaderref="org.apache.tools.ant.loader.AntClassLoader2"/>
 	<typedef resource="cpptasks.types" classpathref="cpp" loaderref="org.apache.tools.ant.loader.AntClassLoader2"/>
