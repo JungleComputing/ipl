@@ -26,7 +26,6 @@
     <property name="version" value="ibis"/>
 
     <property name="jar" value="${ibis}/lib/${version}.jar"/>
-    <property name="bcel-fixes-jar" value="${ibis}/lib/bcel-5.1-fixes-${version}.jar"/>
 
     <!--
 	This must come first.
@@ -158,7 +157,7 @@
 	</copy>
     </target>
 
-    <target name="ibis.jar" depends="bcel-fixes.jar">
+    <target name="ibis.jar">
 	<jar	destfile="${jar}"
 		basedir="${build}"
 		includes="ibis/**/*.class **/properties ibis-properties">
@@ -167,12 +166,6 @@
 		<attribute name="Ibis-Implementation" value="ibis.impl.messagePassing.panda.PandaIbis,ibis.impl.tcp.TcpIbis,ibis.impl.net.NetIbis,ibis.impl.nio.NioIbis,ibis.impl.messagePassing.mpi.MPIIbis"/>
 	    </manifest>
 	</jar>
-    </target>
-
-    <target name="bcel-fixes.jar">
-	<jar	destfile="${bcel-fixes-jar}"
-		basedir="${build}"
-		includes="org/**/*.class"/>
     </target>
 
     <!--
