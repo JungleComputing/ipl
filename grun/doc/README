@@ -221,6 +221,8 @@ To support running Ibis jobs, grun employs two scripts:
 - runsvrs.ibis, which is used to start the local daemons required
   for startup (e.g., Ibis name server, and pool server in case of
   closed world jobs); this is done by means of the -s option above.
+  You need to have set the IBIS_HOME enviromnent variable to the
+  location of your Ibis installation.
 
 - runit.ibis, which is run on the Grid sites to actually start the
   Ibis job by using the remotely available JVMs.
@@ -315,6 +317,8 @@ parameter GRUN_INFILES are transferred by runit.ibis; since their name
 ends with "-tree.jar", they are then also unpacked using "jar xvf"
 into the sandbox.  For that reason the "ibis" and "build" directories
 are also no longer in "../.." .
+The ibis-tree.jar file should contain all ibis jar files, at the place
+where they are expected, i.e. ibis/lib/*.jar.
 
 The -P option is used to run post-execution stage.  In this case
 it is only used to delete the entire sandbox, since "GRUN_CLEANUP=1"
