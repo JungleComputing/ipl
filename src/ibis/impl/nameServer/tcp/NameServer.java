@@ -1042,56 +1042,55 @@ public class NameServer extends Thread implements Protocol {
                 logger.error("NameServer: unknown ibis " + name
                         + "/" + key + " tried to leave");
             }
-            return;
-        }
-
-        IbisInfo iinf = (IbisInfo) p.pool.get(name);
-
-        if (iinf != null) {
-            // found it.
-            if (! silent && logger.isDebugEnabled()) {
-                logger.debug("NameServer: leave from pool " + key
-                        + " of ibis " + name + " accepted");
-            }
-
-            // Let the election server know about it.
-            electionKill(p, new String[] { name });
-
-            // Let the receiveport nameserver know about it.
-            receiveportKill(p, new String[] { name });
-
-            // Also forward the leave to the requester.
-            // It is used as an acknowledgement, and
-            // the leaver is only allowed to exit when it
-            // has received its own leave message.
-            synchronized(p) {
-                p.leavers.add(iinf);
-                p.toBeDeleted.remove(iinf);
-                p.remove(iinf);
-            }
-
-            if (! silent && logger.isInfoEnabled()) {
-                logger.info(name + " LEAVES pool " + key
-                        + " (" + p.pool.size() + " nodes)");
-            }
-
-            if (p.pool.size() == 0) {
-                if (! silent && logger.isInfoEnabled()) {
-                    logger.info("NameServer: removing pool " + key);
-                }
-
-                // Send leavers before removing this run
-                synchronized(p) {
-                    sendLeavers(p);
-                }
-
-                pools.remove(key);
-                killThreads(p);
-            }
         } else {
-            if (! silent) {
-                logger.error("NameServer: unknown ibis " + name
-                    + "/" + key + " tried to leave");
+            IbisInfo iinf = (IbisInfo) p.pool.get(name);
+
+            if (iinf != null) {
+                // found it.
+                if (! silent && logger.isDebugEnabled()) {
+                    logger.debug("NameServer: leave from pool " + key
+                            + " of ibis " + name + " accepted");
+                }
+
+                // Let the election server know about it.
+                electionKill(p, new String[] { name });
+
+                // Let the receiveport nameserver know about it.
+                receiveportKill(p, new String[] { name });
+
+                // Also forward the leave to the requester.
+                // It is used as an acknowledgement, and
+                // the leaver is only allowed to exit when it
+                // has received its own leave message.
+                synchronized(p) {
+                    p.leavers.add(iinf);
+                    p.toBeDeleted.remove(iinf);
+                    p.remove(iinf);
+                }
+
+                if (! silent && logger.isInfoEnabled()) {
+                    logger.info(name + " LEAVES pool " + key
+                            + " (" + p.pool.size() + " nodes)");
+                }
+
+                if (p.pool.size() == 0) {
+                    if (! silent && logger.isInfoEnabled()) {
+                        logger.info("NameServer: removing pool " + key);
+                    }
+
+                    // Send leavers before removing this run
+                    synchronized(p) {
+                        sendLeavers(p);
+                    }
+
+                    pools.remove(key);
+                    killThreads(p);
+                }
+            } else {
+                if (! silent) {
+                    logger.error("NameServer: unknown ibis " + name
+                        + "/" + key + " tried to leave");
+                }
             }
         }
 
