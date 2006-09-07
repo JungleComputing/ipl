@@ -135,6 +135,9 @@ public final class SharedObjects implements Config {
         s.handleDelayedMessages();
         SharedObject obj = getSOReference(objectId);
         if (obj == null) {
+            if(source == null) {
+                throw new Error("internal error, source is null in setSOReference");
+            }
             soComm.fetchObject(objectId, source, null);
         }
     }

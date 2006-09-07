@@ -103,8 +103,6 @@ public final class Statistics implements java.io.Serializable, Config {
 
     public double crashHandlingTime;
 
-    public double addReplicaTime;
-
     public int numCrashesHandled;
 
     //shared objects
@@ -182,8 +180,6 @@ public final class Statistics implements java.io.Serializable, Config {
 
     public Timer redoTimer = Timer.createTimer();
 
-    public Timer addReplicaTimer = Timer.createTimer();
-
     public Timer handleSOInvocationsTimer = Timer.createTimer();
 
     public Timer broadcastSOInvocationsTimer = Timer.createTimer();
@@ -258,7 +254,6 @@ public final class Statistics implements java.io.Serializable, Config {
         tableCheckTime += s.tableCheckTime;
         tableMaxEntries += s.tableMaxEntries;
         crashHandlingTime += s.crashHandlingTime;
-        addReplicaTime += s.addReplicaTime;
         numCrashesHandled += s.numCrashesHandled;
 
         //shared objects
@@ -308,7 +303,6 @@ public final class Statistics implements java.io.Serializable, Config {
         tableDeserializationTime = tableDeserializationTimer.totalTimeVal();
         tableCheckTime = redoTimer.totalTimeVal();
         crashHandlingTime = crashTimer.totalTimeVal();
-        addReplicaTime = addReplicaTimer.totalTimeVal();
 
         handleSOInvocations = handleSOInvocationsTimer.nrTimes();
 
@@ -472,8 +466,6 @@ public final class Statistics implements java.io.Serializable, Config {
                 + Timer.format(perStats(tableCheckTime, tableLookups)));
             out.println("SATIN: CRASH_HANDLING_TIME:        total "
                 + Timer.format(crashHandlingTime));
-            out.println("SATIN: ADD_REPLICA_TIME:           total "
-                + Timer.format(addReplicaTime));
         }
 
         if (haveSO) {
@@ -552,8 +544,6 @@ public final class Statistics implements java.io.Serializable, Config {
             / totalTime * 100;
         double crashHandlingTimeAvg = crashHandlingTime / size;
         double crashHandlingPerc = crashHandlingTimeAvg / totalTime * 100.0;
-        double addReplicaTimeAvg = addReplicaTime / size;
-        double addReplicaPerc = addReplicaTimeAvg / totalTime * 100.0;
         double broadcastSOInvocationsTimeAvg = broadcastSOInvocationsTime
             / size;
         double broadcastSOInvocationsPerc = broadcastSOInvocationsTimeAvg
@@ -638,9 +628,6 @@ public final class Statistics implements java.io.Serializable, Config {
         }
 
         if (haveSO) {
-            out.println("SATIN: ADD_REPLICA_TIME:           agv. per machine "
-                + Timer.format(addReplicaTimeAvg) + " ("
-                + pf.format(addReplicaPerc) + " %)");
             out.println("SATIN: BROADCAST_SO_INVOCATIONS:   agv. per machine "
                 + Timer.format(broadcastSOInvocationsTimeAvg) + " ("
                 + pf.format(broadcastSOInvocationsPerc) + " %)");

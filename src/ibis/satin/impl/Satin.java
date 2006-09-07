@@ -138,11 +138,6 @@ public final class Satin implements Config {
             Runtime.getRuntime().addShutdownHook(dumpThread);
         }
 
-        // ok, we have finished the initialization, start some timers.
-        if (!master) {
-            stats.addReplicaTimer.start();
-        }
-
         stats.totalTimer.start();
     }
 
