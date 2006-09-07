@@ -49,7 +49,8 @@ public class NameServer extends Thread implements Protocol {
     static final int CHECKER_INTERVAL
         = TypedProperties.intProperty(NSProps.s_keychecker_interval, 0);
 
-    static final int MAXTHREADS = 32;
+    static final int MAXTHREADS =
+        TypedProperties.intProperty(NSProps.s_max_threads, 32);
 
     InetAddress myAddress;
 
