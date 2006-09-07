@@ -6,7 +6,6 @@ import ibis.util.ClassLister;
 import ibis.util.IPUtils;
 import ibis.util.TypedProperties;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
