@@ -17,6 +17,8 @@ import java.net.Socket;
 import java.util.HashMap;
 import java.util.Hashtable;
 
+import org.apache.log4j.Logger;
+
 class PortTypeNameServer extends Thread implements Protocol {
 
     /**
@@ -66,6 +68,9 @@ class PortTypeNameServer extends Thread implements Protocol {
             return "" + counters;
         }
     }
+
+    static Logger logger
+            = ibis.util.GetLogger.getLogger(PortTypeNameServer.class.getName());
 
     private Hashtable portTypes;
 
@@ -166,15 +171,14 @@ class PortTypeNameServer extends Thread implements Protocol {
                     break;
                 default:
                     if (! silent) {
-                        System.err.println("PortTypeNameServer: got an illegal "
+                        logger.error("PortTypeNameServer: got an illegal "
                                 + "opcode " + opcode);
                     }
                 }
             } catch (Exception e1) {
                 if (! silent) {
-                    System.err.println("Got an exception in PortTypeNameServer.run "
-                                    + e1);
-                    e1.printStackTrace();
+                    logger.error("Got an exception in PortTypeNameServer.run "
+                                    + e1, e1);
                 }
             } finally {
                 NameServer.closeConnection(in, out, s);

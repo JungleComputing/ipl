@@ -145,6 +145,8 @@ public class NameServer extends Thread implements Protocol {
 
         long pingLimit;
 
+        boolean silent;
+
         RunInfo(boolean silent) throws IOException {
             unfinishedJoins = new ArrayList();
             arrayPool = new ArrayList();
@@ -158,6 +160,7 @@ public class NameServer extends Thread implements Protocol {
             electionServer = new ElectionServer(silent,
                     NameServerClient.socketFactory);
             pingLimit = System.currentTimeMillis() + PINGER_TIMEOUT;
+            this.silent = silent;
         }
 
         public String toString() {
@@ -181,7 +184,9 @@ public class NameServer extends Thread implements Protocol {
             if (! iinf.completelyJoined) {
                 int index = unfinishedJoins.indexOf(iinf);
                 if (index == -1) {
-                    logger.error("Internal error: " + iinf.name + " not completelyJoined but not in unfinishedJoins!");
+                    if (! silent) {
+                        logger.error("Internal error: " + iinf.name + " not completelyJoined but not in unfinishedJoins!");
+                    }
                 } else {
                     unfinishedJoins.remove(index);
                 }
@@ -302,7 +307,7 @@ public class NameServer extends Thread implements Protocol {
 
     // Should be called within synchronized on inf.
     private void sendLeavers(RunInfo inf) {
-        if (logger.isDebugEnabled() && inf.leavers.size() > 0) {
+        if (! silent && logger.isDebugEnabled() && inf.leavers.size() > 0) {
             logger.debug("sendLeavers ... size = " + inf.leavers.size());
         }
 
@@ -349,19 +354,19 @@ public class NameServer extends Thread implements Protocol {
                 e = (PingerEntry) pingerEntries.get(0);
             }
             if (e.key == null) {
-                if (logger.isDebugEnabled()) {
+                if (! silent && logger.isDebugEnabled()) {
                     logger.debug("Doing full check");
                 }
                 poolPinger(true);
             } else if (e.name == null) {
-                if (logger.isDebugEnabled()) {
+                if (! silent && logger.isDebugEnabled()) {
                     logger.debug("Doing check of pool " + e.key);
                 }
                 poolPinger(e.key, true);
             } else {
                 RunInfo p = (RunInfo) pools.get(e.key);
                 if (p != null) {
-                    if (logger.isDebugEnabled()) {
+                    if (! silent && logger.isDebugEnabled()) {
                         logger.debug("Doing check of ibis " + e.name);
                     }
                     checkPool(p, e.name, false, e.key);
@@ -752,14 +757,18 @@ public class NameServer extends Thread implements Protocol {
 
     private void handleCheck() throws IOException {
         String key = in.readUTF();
-        logger.info("Got check for pool " + key);
+        if (! silent && logger.isInfoEnabled()) {
+            logger.info("Got check for pool " + key);
+        }
         addPingerEntry(key, null);
         out.writeByte(0);
         out.flush();
     }
 
     private void handleCheckAll() throws IOException {
-        logger.info("Got checkAll");
+        if (! silent && logger.isInfoEnabled()) {
+            logger.info("Got checkAll");
+        }
         addPingerEntry(null, null);
         out.writeByte(0);
         out.flush();
@@ -854,7 +863,9 @@ public class NameServer extends Thread implements Protocol {
             if (needsUpcalls) {
                 out.writeInt(p.pool.size());
 
-                logger.debug("Sending " + p.pool.size() + " nodes to " + name);
+                if (! silent && logger.isDebugEnabled()) {
+                    logger.debug("Sending " + p.pool.size() + " nodes to " + name);
+                }
 
                 int i = 0;
                 while (i < p.arrayPool.size()) {
@@ -862,7 +873,9 @@ public class NameServer extends Thread implements Protocol {
 
                     if (temp != null) {
                         out.writeInt(temp.serializedId.length);
-                        logger.debug("Sending " + temp.name + " to " + name);
+                        if (! silent && logger.isDebugEnabled()) {
+                            logger.debug("Sending " + temp.name + " to " + name);
+                        }
                         out.write(temp.serializedId);
                         i++;
                     } else {
