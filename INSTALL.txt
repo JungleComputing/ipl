@@ -55,6 +55,10 @@ Build
     IBIS_HOME environment variable to the path where Ibis is installed.
     See the system-specific notes on how to set environment variables
     on Windows.
+    You can also build a binary release by typing "ant ibis.zip". This
+    will create an ibis.zip file that can be unpacked on another system
+    and that contains everything needed to compile and run an Ibis
+    application.
 
 API
     The Ibis API documentation can be built by typing "ant docs".
