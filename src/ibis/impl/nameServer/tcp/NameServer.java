@@ -18,6 +18,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -229,6 +230,10 @@ public class NameServer extends Thread implements Protocol {
         String poolPort = System.getProperty("ibis.pool.server.port");
         int port = TCP_IBIS_NAME_SERVER_PORT_NR;
 
+        if (! silent && logger.isInfoEnabled()) {
+            logger.info("Creating nameserver on " + myAddress);
+        }
+
         if (controlhub) {
             if (hubPort == null) {
                 hubPort = Integer.toString(port + 2);
@@ -303,12 +308,22 @@ public class NameServer extends Thread implements Protocol {
         if (! silent && logger.isInfoEnabled()) {
             logger.info("NameServer: created server on " + serverSocket);
         }
+
+        if (! silent && logger.isInfoEnabled()) {
+            Runtime.getRuntime().addShutdownHook(
+                new Thread("Nameserver ShutdownHook") {
+                    public void run() {
+                        logger.info("Shutdown hook triggered");
+                    }
+                });
+        }
     }
 
     // Should be called within synchronized on inf.
-    private void sendLeavers(RunInfo inf) {
-        if (! silent && logger.isDebugEnabled() && inf.leavers.size() > 0) {
-            logger.debug("sendLeavers ... size = " + inf.leavers.size());
+    private void sendLeavers(RunInfo inf) throws IOException {
+        if (! silent && logger.isDebugEnabled()) {
+            logger.debug("sendLeavers ... size = " + inf.leavers.size()
+                    + ", forwarders = " + inf.forwarders);
         }
 
         IbisInfo[] leavers = null;
@@ -317,6 +332,7 @@ public class NameServer extends Thread implements Protocol {
             IbisInfo[] iinf = new IbisInfo[0];
             leavers = (IbisInfo[]) inf.leavers.toArray(iinf);
             inf.leavers.clear();
+
 
             for (Enumeration e = inf.pool.elements(); e.hasMoreElements();) {
                 IbisInfo ibisInf = (IbisInfo) e.nextElement();
@@ -330,12 +346,29 @@ public class NameServer extends Thread implements Protocol {
                     forward(IBIS_LEAVE, inf, leavers[i], leavers, 0);
                 }
             }
-            while (inf.forwarders != 0) {
-                try {
-                    inf.wait();
-                } catch(Exception ex) {
-                    // ignored
-                }
+
+            String[] names = new String[leavers.length];
+
+            for (int i = 0; i < leavers.length; i++) {
+                names[i] = leavers[i].name;
+            }
+
+            // Let the election server know about it.
+            electionKill(inf, names);
+
+            // Let the receiveport nameserver know about it.
+            receiveportKill(inf, names);
+        }
+
+        // After sendLeavers finishes, forwarders should be 0, even if
+        // this instance did not send anything! It may be called from
+        // several threads, so even if this instance does not send anything,
+        // there may still be work in progress. We wait for it to finish here.
+        while (inf.forwarders != 0) {
+            try {
+                inf.wait();
+            } catch(Exception ex) {
+                // ignored
             }
         }
     }
@@ -428,11 +461,16 @@ public class NameServer extends Thread implements Protocol {
                 boolean joinFailed = false;
 
                 synchronized(inf) {
-                    sendLeavers(inf);
-                    inf.failed = 0;
-                    inf.forwarders = 0;
+                    try {
+                        sendLeavers(inf);
+                    } catch(IOException ex) {
+                        if (! silent) {
+                            logger.error("Got exception: " + ex);
+                        }
+                    }
 
                     if (inf.unfinishedJoins.size() > 0) {
+                        inf.failed = 0;
                         IbisInfo[] message = (IbisInfo[])
                                 inf.unfinishedJoins.toArray(new IbisInfo[0]);
 
@@ -546,10 +584,18 @@ public class NameServer extends Thread implements Protocol {
 
             synchronized(inf) {
                 inf.forwarders--;
+                if (! silent && logger.isDebugEnabled()) {
+                    logger.debug("NameServer: forwarders decr: " + inf.forwarders);
+                }
                 if (failed) {
                     inf.failed++;
+                    if (! silent && logger.isDebugEnabled()) {
+                        logger.debug("NameServer: failed: " + inf.failed);
+                    }
                 }
-                inf.notifyAll();
+                if (inf.forwarders == 0 || inf.forwarders == MAXTHREADS-1) {
+                    inf.notifyAll();
+                }
             }
         }
     }
@@ -568,7 +614,7 @@ public class NameServer extends Thread implements Protocol {
         Forwarder forwarder = new Forwarder(message, inf, dest, info, offset);
 
         synchronized(inf) {
-            while (inf.forwarders > MAXTHREADS) {
+            while (inf.forwarders >= MAXTHREADS) {
                 try {
                     inf.wait();
                 } catch(Exception e) {
@@ -576,8 +622,11 @@ public class NameServer extends Thread implements Protocol {
                 }
             }
             inf.forwarders++;
+            if (! silent && logger.isDebugEnabled()) {
+                logger.debug("NameServer: forwarders = " + inf.forwarders);
+            }
+            ThreadPool.createNew(forwarder, "Forwarder thread");
         }
-        ThreadPool.createNew(forwarder, "Forwarder thread");
     }
 
     private class PingThread implements Runnable {
@@ -644,15 +693,15 @@ public class NameServer extends Thread implements Protocol {
                 IbisInfo temp = (IbisInfo) e.nextElement();
                 if (victim == null || temp.name.equals(victim)) {
                     if (! kill) {
-                        p.pingers++;
                         PingThread pt = new PingThread(p, temp, key, deadIbises);
-                        while (p.pingers > MAXTHREADS) {
+                        while (p.pingers >= MAXTHREADS) {
                             try {
                                 p.wait();
                             } catch(Exception ex) {
                                 // ignored
                             }
                         }
+                        p.pingers++;
                         ThreadPool.createNew(pt, "Ping thread");
                     } else {
                         deadIbises.add(temp);
@@ -1066,12 +1115,6 @@ public class NameServer extends Thread implements Protocol {
                             + " of ibis " + name + " accepted");
                 }
 
-                // Let the election server know about it.
-                electionKill(p, new String[] { name });
-
-                // Let the receiveport nameserver know about it.
-                receiveportKill(p, new String[] { name });
-
                 // Also forward the leave to the requester.
                 // It is used as an acknowledgement, and
                 // the leaver is only allowed to exit when it
@@ -1108,6 +1151,9 @@ public class NameServer extends Thread implements Protocol {
             }
         }
 
+        if (! silent && logger.isInfoEnabled()) {
+            logger.info("NameServer: confirming LEAVE " + name);
+        }
         out.writeByte(0);
         out.flush();
     }
