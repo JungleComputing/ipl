@@ -125,7 +125,7 @@
     </target>
 
     <target name="read-props">
-	<property file="{ibis}/build-files/build-properties"/>
+	<property file="${ibis}/build-files/build-properties"/>
     </target>
 
     <target name="natives-if-configured" depends="read-props"
