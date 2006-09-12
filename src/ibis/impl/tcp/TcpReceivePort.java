@@ -577,9 +577,11 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
     private synchronized void forcedClose() {
         // this may be ok with a forced close.
         if (m != null) {
-            throw new IbisError(
-                    "Doing forced close while a msg is alive, port = " + name
-                            + " fin = " + m.isFinished);
+            // throw new IbisError(
+            //         "Doing forced close while a msg is alive, port = " + name
+            //                 + " fin = " + m.isFinished);
+            // No, this can happen when an application closes after
+            // processing an upcall. Just let it go.
         }
 
         disableConnections();
