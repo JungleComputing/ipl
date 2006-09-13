@@ -229,7 +229,7 @@ public class NameServer extends Thread implements Protocol {
             }
 
             try {
-                h = Hub.createHub(p);
+                h = Hub.createHub(p, true);
                 Thread.sleep(2000); // Give it some time to start up
             } catch (Throwable e) {
                 throw new IOException("Could not start control hub" + e);
