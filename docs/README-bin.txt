@@ -18,7 +18,7 @@ This Ibis distribution contains the following:
 Ibis is free software. See the file "LICENSE.txt" for copying permissions.
 
 The Ibis software requires at least a 1.4 JDK version of Java. With a
-1.3 or older version of Java, some parts of Ibis will not compile.
+1.3 or older version of Java, some parts of Ibis will not run.
 Suitable versions of Java can be obtained from the web.
 IBM has versions for AIX (at http://www.ibm.com/developerworks/java),
 SUN has versions for Solaris, Linux, and Windows (at http://java.sun.com),
@@ -30,10 +30,9 @@ Ibis instance, and a client and a server thread that send messages to each
 other. To do so you first need to set a couple of environment variables.
 See below at the system-specific notes. You need to set JAVA_HOME to the
 root of your Java installation, and IBIS_HOME to the root of your Ibis
-installation. Then you can go to the ibis bin directory and run
+installation. Then you can go to the Ibis bin directory and run
 
     ibis-run junit.textui.TestRunner ibis.impl.test.TestIbis
-
 
 The programmer's manual in the docs directory ("docs/progman.pdf" or
 "docs/progman/progman.html" for a HTML version) contains a detailed
@@ -50,9 +49,9 @@ See http://www.cs.vu.nl/ibis/downloads.html.
 The latest Ibis source repository tree is accessible through anonymous SVN
 at "https://gforge.cs.vu.nl/svn/ibis/ibis/trunk". Likewise, the latest example
 applications are available at "https://gforge.cs.vu.nl/svn/ibis/apps/trunk".
-You need an account on https://gforge.cs.vu.nl/ to access these, which you
-can obtain there.
-
+You need an account on https://gforge.cs.vu.nl/ to access the repositories
+there. You can create an account by clicking the 'New Account' button
+on the https://gforge.cs.vu.nl/ page.
 To build these applications, you first need to set some environment
 variables. See the README.txt file that accompanies the Ibis applications.
 
@@ -78,9 +77,22 @@ See "notices/LICENSE.ant-contrib.txt" for the ant-contrib copyright notice.
 
 System-specific notes
 
+Linux, Solaris, other Unix systems
+    Install a recent Java SDK, at least 1.4, and set the JAVA_HOME
+    environment variable to the location where it is installed,
+    for example
+        export JAVA_HOME=/usr/local/java/jdk1.4
+    or
+        set JAVA_HOME=/usr/local/java/jdk1.4
+    for CSH users.
+    It is probably best to add this to your .bash_profile, .profile,
+    or .cshrc file (whichever gets executed when you log in to your
+    system).
+
 Mac OS X
     Set the environment variable JAVA_HOME to "/Library/Java/Home".
-    You are required to install the Java SDK.
+    You are required to install the Java SDK. See the Linux notes on
+    how to set environment variables.
 
 Windows 2000, Windows XP
     Install a recent Java SDK, at least 1.4, and preferably 1.5, because
