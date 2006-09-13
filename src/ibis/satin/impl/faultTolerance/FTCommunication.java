@@ -284,10 +284,6 @@ final class FTCommunication implements Config, ReceivePortConnectUpcall,
         ftLogger.debug("SATIN '" + s.ident + "': dealing with " + names.length
             + " joins");
 
-        s.so.createSoPorts(joiners);
-
-        ftLogger.debug("SATIN '" + s.ident + "': SO ports created");
-
         ReceivePortIdentifier[] r = null;
         try {
             r = s.comm.lookup(names);
@@ -298,6 +294,9 @@ final class FTCommunication implements Config, ReceivePortConnectUpcall,
         }
 
         ftLogger.debug("SATIN '" + s.ident + "': lookups succeeded");
+
+        s.so.handleJoins(joiners);
+        ftLogger.debug("SATIN '" + s.ident + "': SO ports created");
 
         for (int i = 0; i < r.length; i++) {
             IbisIdentifier joiner = joiners[i];
@@ -313,10 +312,6 @@ final class FTCommunication implements Config, ReceivePortConnectUpcall,
                 continue;
             }
             ftLogger.debug("SATIN '" + s.ident + "': creating sendport done");
-
-            ftLogger.debug("SATIN '" + s.ident + "': creating SO connections");
-            s.so.addSOConnection(joiner);
-            ftLogger.debug("SATIN '" + s.ident + "': creating SO connections done");
 
             synchronized (s) {
                 ftLogger.debug("SATIN '" + s.ident + "': adding victim");

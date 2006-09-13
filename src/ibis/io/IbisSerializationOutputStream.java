@@ -714,6 +714,7 @@ public class IbisSerializationOutputStream
 
         type_number = newType(clazz);
         lastTypeno = type_number;
+        lastClass = clazz;
         writeHandle(type_number); // TYPE_BIT is set, receiver sees it
         if (DEBUG) {
             dbPrint("wrote NEW type number 0x"

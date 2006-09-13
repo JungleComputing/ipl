@@ -14,7 +14,12 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 
+import org.apache.log4j.Logger;
+
 class ElectionServer extends Thread implements Protocol {
+
+    static Logger logger
+            = ibis.util.GetLogger.getLogger(ElectionServer.class.getName());
 
     private HashMap elections;
     private HashMap buffers;
@@ -126,15 +131,14 @@ class ElectionServer extends Thread implements Protocol {
                     return;
                 default:
                     if (! silent) {
-                        System.err.println("ElectionServer: got an illegal opcode "
+                        logger.error("ElectionServer: got an illegal opcode "
                                 + opcode);
                     }
                 }
             } catch (Exception e1) {
                 if (! silent) {
-                    System.err.println("Got an exception in ElectionServer.run "
-                            + e1);
-                    e1.printStackTrace();
+                    logger.error("Got an exception in ElectionServer.run " + e1,
+                            e1);
                 }
             } finally {
                 NameServer.closeConnection(in, out, s);

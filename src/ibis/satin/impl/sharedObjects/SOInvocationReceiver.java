@@ -17,6 +17,7 @@ final class SOInvocationReceiver extends Thread implements Config {
         this.s = s;
         this.omc = omc;
         setName("SOInvocationReceiver");
+        setDaemon(true);
     }
 
     public void run() {
@@ -26,14 +27,18 @@ final class SOInvocationReceiver extends Thread implements Config {
 
                 if (o instanceof SOInvocationRecord) {
                     SOInvocationRecord soir = (SOInvocationRecord) o;
-                    soLogger.debug("SATIN '" + s.ident.name() + "': " + "received SO invocation broadcast id = " + soir.getObjectId());
+                    soLogger.debug("SATIN '" + s.ident.name() + "': "
+                        + "received SO invocation broadcast id = "
+                        + soir.getObjectId());
                     s.so.addSOInvocation(soir);
                 } else if (o instanceof SharedObject) {
                     SharedObject obj = (SharedObject) o;
-                    soLogger.debug("SATIN '" + s.ident.name() + "': " + "received broadcast object, id = " + obj.objectId);
+                    soLogger.debug("SATIN '" + s.ident.name() + "': "
+                        + "received broadcast object, id = " + obj.objectId);
                     s.so.addObject(obj);
-                } else {
-                    soLogger.warn("received unknown object in SOInvocation receiver");
+                } else if (o != null) {
+                    soLogger
+                        .warn("received unknown object in SOInvocation receiver");
                 }
             } catch (Exception e) {
                 soLogger.warn("WARNING, SOI Mcast receive failed: " + e, e);

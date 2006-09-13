@@ -32,7 +32,7 @@ public final class SharedObjects implements Config {
     /** List that stores requests for shared object transfers */
     protected SORequestList SORequestList = new SORequestList();
 
-    /** Used for storing pending shared object invocations (SOInvocationRecords)*/
+    /** Used for storing pending shared object invocations (SOInvocationRecords) */
     private Vector soInvocationList = new Vector();
 
     private Satin s;
@@ -67,7 +67,7 @@ public final class SharedObjects implements Config {
         synchronized (s) {
             SharedObjectInfo i = (SharedObjectInfo) sharedObjects.get(objectId);
             if (i == null) {
-                soLogger.warn("SATIN '" + s.ident.name() + "': " + "object not found in getSOReference");
+                soLogger.debug("SATIN '" + s.ident.name() + "': " + "object not found in getSOReference");
                 return null;
             }
             return i.sharedObject;
@@ -135,6 +135,9 @@ public final class SharedObjects implements Config {
         s.handleDelayedMessages();
         SharedObject obj = getSOReference(objectId);
         if (obj == null) {
+            if(source == null) {
+                throw new Error("internal error, source is null in setSOReference");
+            }
             soComm.fetchObject(objectId, source, null);
         }
     }
@@ -153,15 +156,12 @@ public final class SharedObjects implements Config {
 
     /** returns false if the job must be aborted */
     public boolean executeGuard(InvocationRecord r) {   
-        s.stats.soGuardTimer.start();
         try {
             doExecuteGuard(r);
         } catch (SOReferenceSourceCrashedException e) {
             //the source has crashed - abort the job
-            s.stats.soGuardTimer.stop();
             return false;
         }
-        s.stats.soGuardTimer.stop();
         return true;
     }
 
@@ -176,6 +176,8 @@ public final class SharedObjects implements Config {
 
         if (r.guard()) return;
 
+        s.stats.soGuardTimer.start();
+
         soLogger.info("SATIN '" + s.ident.name() + "': "
             + "guard not satisfied, getting updates..");
 
@@ -184,14 +186,20 @@ public final class SharedObjects implements Config {
         if (objRefs == null || objRefs.isEmpty()) {
             soLogger
                 .fatal("SATIN '" + s.ident.name() + "': "
-                    + "a guard is not satisfied, but the spawn does not have shared objects.\nThis is not a correct Satin program.");
+                    + "a guard is not satisfied, but the spawn does not " +
+                                "have shared objects.\n" + 
+                                "This is not a correct Satin program.");
+            System.exit(1);
         }
 
         // A shared object update may have arrived
         // during one of the fetches.
         while (true) {
             s.handleDelayedMessages();
-            if (r.guard()) return;
+            if (r.guard()) {
+                s.stats.soGuardTimer.stop();
+                return;
+            }
 
             String ref = (String) objRefs.remove(0);
             soComm.fetchObject(ref, r.getOwner(), r);
@@ -228,18 +236,14 @@ public final class SharedObjects implements Config {
         soComm.handleSONack(m);
     }
 
-    public void createSoPorts(IbisIdentifier[] joiners) {
-        soComm.createSoReceivePorts(joiners);
+    public void handleJoins(IbisIdentifier[] joiners) {
+        soComm.handleJoins(joiners);
     }
 
     public void handleMyOwnJoin() {
         soComm.handleMyOwnJoin();
     }
     
-    public void addSOConnection(IbisIdentifier id) {
-        soComm.addSOConnection(id);
-    }
-
     public void removeSOConnection(IbisIdentifier id) {
         soComm.removeSOConnection(id);
     }
@@ -250,5 +254,13 @@ public final class SharedObjects implements Config {
 
     public void broadcastSharedObject(SharedObject object) {
         soComm.broadcastSharedObject(object);
+    }
+
+    public void handleCrash(IbisIdentifier id) {
+        soComm.handleCrash(id);
+    }
+    
+    public void exit() {
+        soComm.exit();
     }
 }

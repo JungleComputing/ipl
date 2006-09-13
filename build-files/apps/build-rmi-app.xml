@@ -13,7 +13,7 @@
     -->
 
     <import file="${ibis}/build-files/build-properties.xml"/>
-    <import file="${ibis}/build-files/apps/build-run.xml"/>
+    <import file="${ibis}/build-files/apps/build-app.xml"/>
 
     <property name="builddir" location="${build}"/>
 
@@ -109,13 +109,13 @@
     </target>
 
     <target name="compile"
-	depends="clean,init">
-	<javac  destdir="${build}"
-		debug="true"
-		srcdir="${src-path}">
-	    <classpath refid="default.classpath"/>
-	    <include name="**/*.java"/>
-	</javac>
+       depends="clean,init">
+       <javac  destdir="${build}"
+               debug="true"
+               srcdir="${src-path}">
+           <classpath refid="default.classpath"/>
+           <include name="**/*.java"/>
+       </javac>
     </target>
 
     <target name="build"
@@ -128,12 +128,6 @@
 	    depends="compile"
 	    description="Compile RMI application for Sun RMI">
 	<antcall inheritRefs="true" target="rmic-sun"/>
-    </target>
-
-    <target name="clean"
-	    description="Clean up the build">
-	<delete dir="${build}"/>
-	<delete file="ant-test.out"/>
     </target>
 
 </project>

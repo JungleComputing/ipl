@@ -37,6 +37,8 @@ public class Ibisc {
 
     private static ByteCodeWrapper w;
 
+    private static ArrayList ibiscComponents = new ArrayList();
+
     private static void getClassesFromDirectory(File f, String prefix) {
         File[] list = f.listFiles();
 
@@ -131,12 +133,11 @@ public class Ibisc {
             if (e.modified && e.jarInfo == null) {
                 File temp = null;
                 try {
-                    File canonicalDir = new File(e.fileName).getCanonicalFile().getParentFile();
+                    File file = new File(e.fileName);
+                    File canonicalDir = file.getCanonicalFile().getParentFile();
                     temp = File.createTempFile("Ibisc_", null, canonicalDir);
                     e.cl.dump(temp.getCanonicalPath());
-                    if (! temp.renameTo(new File(e.fileName))) {
-                        throw new Exception("Could not write " + e.fileName);
-                    }
+                    rename(file, temp, canonicalDir);
                 } catch (Exception ex) {
                     System.err.println("Ibisc: got exception while writing "
                             + e.fileName + ": " + ex);
@@ -148,6 +149,28 @@ public class Ibisc {
                 e.modified = false;
             }
         }
+    }
+
+    /**
+     * Safe(?) rename. Problem is that File.rename may not work if the
+     * destination exists.
+     */
+    private static void rename(File dest, File src, File dir) throws IOException {
+        File temp = File.createTempFile("Ibc_", null, dir);
+        temp.delete();
+        if (dest.exists() && ! dest.renameTo(temp)) {
+            throw new IOException("Could not rename "
+                    + dest.getName() + " to temporary");
+        }
+        if (! src.renameTo(dest)) {
+            if (temp.exists()) {
+                temp.renameTo(dest);    // Try to restore dest. If it fails,
+                                        // we at least have temp.
+            }
+            throw new IOException("Could not rename to "
+                    + dest.getName());
+        }
+        temp.delete();
     }
 
     /**
@@ -169,7 +192,8 @@ public class Ibisc {
                 String name = ji.jarFile.getName();
                 File temp = null;
                 try {
-                    File canonicalDir = new File(name).getCanonicalFile().getParentFile();
+                    File file = new File(name);
+                    File canonicalDir = file.getCanonicalFile().getParentFile();
                     temp = File.createTempFile("Ibisc_", null, canonicalDir);
                     FileOutputStream out = new FileOutputStream(temp);
                     BufferedOutputStream bo = new BufferedOutputStream(out, 16384);
@@ -183,9 +207,7 @@ public class Ibisc {
                         ient.write(zo);
                     }
                     zo.close();
-                    if (! temp.renameTo(new File(name))) {
-                        throw new Exception("Could not write " + name);
-                    }
+                    rename(file, temp, canonicalDir);
                 } catch(Exception e) {
                     System.err.println("Ibisc: got exception while writing "
                             + name + ": " + e);
@@ -232,9 +254,22 @@ public class Ibisc {
         }
     }
 
+    public static String usage() {
+        String rval = "Usage: java ibis.frontend.ibis.Ibisc [-verbose] [-verify] [-keep] [-help] ";
+        for (int i = 0; i < ibiscComponents.size(); i++) {
+            IbiscComponent ic = (IbiscComponent) ibiscComponents.get(i);
+            String s = ic.getUsageString();
+            if (! s.equals("")) {
+                rval = rval + s + " ";
+            }
+        }
+        return rval + " <jar-file|dir|class-file>+";
+    }
+
     public static void main(String[] args) {
         boolean keep = false;
         boolean verify = false;
+        boolean help = false;
         ArrayList leftArgs = new ArrayList();
 
         // Process own arguments.
@@ -256,6 +291,8 @@ public class Ibisc {
                 compress = true;
             } else if (args[i].equals("-no-compress")) {
                 compress = false;
+            } else if (args[i].equals("-help")) {
+                help = true;
             } else {
                 leftArgs.add(args[i]);
             }
@@ -288,6 +325,7 @@ public class Ibisc {
                 if (ic.processArgs(leftArgs)) {
                     components.add(ic);
                 }
+                ibiscComponents.add(ic);
             } catch(Exception e) {
                 System.err.println("Ibisc: warning: could not instantiate "
                         + cl.getName());
@@ -299,8 +337,20 @@ public class Ibisc {
             String arg = (String) leftArgs.get(i);
             if (arg.startsWith("-")) {
                 System.err.println("Ibisc: unrecognized argument: " + arg);
+                System.err.println(usage());
                 System.exit(1);
             }
+        }
+
+        if (help) {
+            System.out.println(usage());
+            System.exit(0);
+        }
+
+        if (leftArgs.size() == 0) {
+            System.err.println("Ibisc: no files to process?");
+            System.err.println(usage());
+            System.exit(1);
         }
 
         // IOGenerator should be last

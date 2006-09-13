@@ -151,6 +151,8 @@ public final class FaultTolerance implements Config {
 
                 s.outstandingJobs.redoStolenBy(id);
                 s.stats.numCrashesHandled++;
+                
+                s.so.handleCrash(id);
             }
 
             s.notifyAll();

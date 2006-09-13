@@ -207,8 +207,6 @@ final class LBCommunication implements Config, Protocol {
     }
 
     protected void handleStealRequest(SendPortIdentifier ident, int opcode) {
-        Map table = null;
-        Victim v = null;
 
         // This upcall may run in parallel with other upcalls.
         // Therefore, we cannot directly use the handleSteal timer in Satin.
@@ -224,9 +222,12 @@ final class LBCommunication implements Config, Protocol {
             + Communication.opcodeToString(opcode));
 
         InvocationRecord result = null;
+        Victim v = null;
+        Map table = null;
 
         synchronized (s) {
-            if (s.deadIbises.contains(ident.ibis())) {
+            v = s.victims.getVictim(ident.ibis());
+            if (v == null || s.deadIbises.contains(ident.ibis())) {
                 //this message arrived after the crash of its sender was
                 // detected. Is this actually possible?
                 stealLogger.warn("SATIN '" + s.ident
@@ -241,6 +242,9 @@ final class LBCommunication implements Config, Protocol {
                 result = lb.stealJobFromLocalQueue(ident,
                     opcode == BLOCKING_STEAL_REQUEST);
             } catch (IOException e) {
+                stealLogger.warn("SATIN '" + s.ident
+                + "': EEK!! got exception during steal request: "
+                + ident.ibis());
                 handleStealTimer.stop();
                 s.stats.handleStealTimer.add(handleStealTimer);
                 return; // the stealing ibis died
@@ -252,12 +256,6 @@ final class LBCommunication implements Config, Protocol {
                     table = s.ft.getContents();
                 }
             }
-
-            synchronized (s) {
-                v = s.victims.getVictim(ident.ibis());
-            }
-
-            if (v == null) return; // node might have crashed
         }
 
         if (result == null) {
@@ -300,7 +298,6 @@ final class LBCommunication implements Config, Protocol {
                     s.ft.addContents(table);
                 }
             }
-            s.stats.addReplicaTimer.stop();
         //fall through
         case STEAL_REPLY_SUCCESS:
         case ASYNC_STEAL_REPLY_SUCCESS:
@@ -347,7 +344,6 @@ final class LBCommunication implements Config, Protocol {
                     s.ft.addContents(table);
                 }
             }
-            s.stats.addReplicaTimer.stop();
         //fall through
         case STEAL_REPLY_FAILED:
         case ASYNC_STEAL_REPLY_FAILED:
@@ -361,6 +357,7 @@ final class LBCommunication implements Config, Protocol {
 
     private void sendStealFailedMessage(SendPortIdentifier ident, int opcode,
         Victim v, Map table) {
+        
         if (opcode == ASYNC_STEAL_REQUEST) {
             stealLogger.debug("SATIN '" + s.ident
                 + "': sending FAILED back to " + ident.ibis());
@@ -410,7 +407,6 @@ final class LBCommunication implements Config, Protocol {
             stealLogger.warn("SATIN '" + s.ident
                 + "': trying to send FAILURE back, but got exception: " + e, e);
         }
-
     }
 
     private void sendStolenJobMessage(SendPortIdentifier ident, int opcode,

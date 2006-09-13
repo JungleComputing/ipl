@@ -45,4 +45,14 @@ public class SplitterException extends IOException {
 
         return res;
     }
+
+    /* (non-Javadoc)
+     * @see java.lang.Throwable#printStackTrace()
+     */
+    public void printStackTrace() {
+        for (int i = 0; i < streams.size(); i++) {
+            System.err.println("Exception: " + exceptions.get(i));
+            ((Exception) exceptions.get(i)).printStackTrace();
+        }
+    }
 }

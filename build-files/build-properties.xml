@@ -17,8 +17,7 @@
 	<path id="default.classpath">
 	    <pathelement path="${ibis}/build"/>
 	    <pathelement path="${build}"/>
-	    <pathelement path="${ibis}/lib/ibis.jar"/>
-	    <fileset dir="${ibis}/3rdparty">
+	    <fileset dir="${ibis}/lib">
 		<include name="*.jar"/>
 	    </fileset>
 	</path>

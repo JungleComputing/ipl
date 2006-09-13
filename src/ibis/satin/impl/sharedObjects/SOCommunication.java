@@ -73,7 +73,7 @@ final class SOCommunication implements Config, Protocol {
     protected void init(StaticProperties requestedProperties) {
         if (LABEL_ROUTING_MCAST) {
             try {
-                omc = new ObjectMulticaster(s.comm.ibis, "satinSO");
+                omc = new ObjectMulticaster(s.comm.ibis, true /* efficient multi-cluster */, false, "satinSO");
             } catch (Exception e) {
                 System.err.println("cannot create OMC: " + e);
                 e.printStackTrace();
@@ -128,12 +128,23 @@ final class SOCommunication implements Config, Protocol {
      * Creates SO receive ports for new Satin instances. Do this first, to make
      * them available as soon as possible.
      */
-    protected void createSoReceivePorts(IbisIdentifier[] joiners) {
+    protected void handleJoins(IbisIdentifier[] joiners) {
         // lrmc uses its own ports
         if (LABEL_ROUTING_MCAST) {
             for (int i = 0; i < joiners.length; i++) {
                 omc.addIbis(joiners[i]);
             }
+            
+            // Set the destination for the multicast.
+            // The victimtable does not contain the new joiners yet.
+            IbisIdentifier[] victims;
+            synchronized (s) {
+                victims = s.victims.getIbises();
+            }
+            IbisIdentifier[] destinations = new IbisIdentifier[victims.length + joiners.length];
+            System.arraycopy(victims, 0, destinations, 0, victims.length);
+            System.arraycopy(joiners, 0, destinations, victims.length, joiners.length);
+            omc.setDestination(destinations);
             return;
         }
 
@@ -158,6 +169,13 @@ final class SOCommunication implements Config, Protocol {
                 commLogger.fatal("SATIN '" + s.ident
                     + "': Could not start ibis: " + e, e);
                 System.exit(1); // Could not start ibis
+            }
+        }
+
+        /** Add new connections to the soSendPort */
+        synchronized (s) {
+            for (int i = 0; i < joiners.length; i++) {
+                toConnect.add(joiners[i]);
             }
         }
     }
@@ -203,18 +221,19 @@ final class SOCommunication implements Config, Protocol {
 
     /** Broadcast an so invocation */
     protected void doBroadcastSOInvocationLRMC(SOInvocationRecord r) {
-        soLogger.debug("SATIN '" + s.ident.name()
-            + "': broadcasting so invocation for: " + r.getObjectId());
-        s.stats.broadcastSOInvocationsTimer.start();
         IbisIdentifier[] tmp;
         synchronized (s) {
             tmp = s.victims.getIbises();
+            if(tmp.length == 0) return;
         }
+        soLogger.debug("SATIN '" + s.ident.name()
+            + "': broadcasting so invocation for: " + r.getObjectId());
+        s.stats.broadcastSOInvocationsTimer.start();
         s.so.registerMulticast(s.so.getSOReference(r.getObjectId()), tmp);
 
         long byteCount = 0;
         try {
-            byteCount = omc.send(tmp, r);
+            byteCount = omc.send(r);
         } catch (Exception e) {
             soLogger.warn("SOI mcast failed: " + e + " msg: " + e.getMessage());
         }
@@ -340,19 +359,21 @@ final class SOCommunication implements Config, Protocol {
 
     /** Broadcast an so invocation */
     protected void doBroadcastSharedObjectLRMC(SharedObject object) {
-        soLogger.debug("SATIN '" + s.ident.name() + "': broadcasting object: "
-            + object.objectId);
-        s.stats.soBroadcastTransferTimer.start();
         IbisIdentifier[] tmp;
         synchronized (s) {
             tmp = s.victims.getIbises();
+            if(tmp.length == 0) return;
         }
+
+        soLogger.debug("SATIN '" + s.ident.name() + "': broadcasting object: "
+            + object.objectId);
+        s.stats.soBroadcastTransferTimer.start();
         s.so.registerMulticast(object, tmp);
 
         long size = 0;
         try {
             s.stats.soBroadcastSerializationTimer.start();
-            size = omc.send(tmp, object);
+            size = omc.send(object);
             s.stats.soBroadcastSerializationTimer.stop();
         } catch (Exception e) {
             System.err.println("WARNING, SO mcast failed: " + e + " msg: "
@@ -362,13 +383,6 @@ final class SOCommunication implements Config, Protocol {
         s.stats.soBcasts++;
         s.stats.soBcastBytes += size;
         s.stats.soBroadcastTransferTimer.stop();
-    }
-
-    /** Add a new connection to the soSendPort */
-    protected void addSOConnection(IbisIdentifier id) {
-        synchronized (s) {
-            toConnect.add(id);
-        }
     }
 
     /** Remove a connection to the soSendPort */
@@ -747,6 +761,19 @@ final class SOCommunication implements Config, Protocol {
     public void handleMyOwnJoin() {
         if (LABEL_ROUTING_MCAST) {
             omc.addIbis(s.ident);
+        }
+    }
+
+    public void handleCrash(IbisIdentifier id) {
+        if(LABEL_ROUTING_MCAST) {
+            omc.removeIbis(id);
+            omc.setDestination(s.victims.getIbises());
+        }    
+    }
+
+    protected void exit() {
+        if(LABEL_ROUTING_MCAST) {
+            omc.done();
         }
     }
 

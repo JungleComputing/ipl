@@ -75,6 +75,10 @@ public class Gmic extends IbiscComponent {
         return retval;
     }
 
+    public String getUsageString() {
+        return "[-gmi]";
+    }
+
     public void process(Iterator iter) {
         if (! gmicEnabled) {
             return;

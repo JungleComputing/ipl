@@ -103,6 +103,10 @@ public class Rmic extends IbiscComponent {
         return rmicEnabled;
     }
 
+    public String getUsageString() {
+        return "[-rmi] [-rmi-java2ibis]";
+    }
+
     public void process(Iterator iter) {
         if (! rmicEnabled) {
             return;

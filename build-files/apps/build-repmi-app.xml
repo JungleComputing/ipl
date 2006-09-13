@@ -4,7 +4,7 @@
     basedir=".">
 
     <import file="${ibis}/build-files/build-properties.xml"/>
-    <import file="${ibis}/build-files/apps/build-run.xml"/>
+    <import file="${ibis}/build-files/apps/build-app.xml"/>
 
     <description>
 	Ibis repmi application build
@@ -24,29 +24,8 @@
 	</java>
     </target>
 
-    <target name="init" depends="property-init">
-	<tstamp/>
-	<mkdir dir="${build}"/>
-    </target>
-
-    <target name="compile"
-	    depends="clean,init">
-	    <javac  destdir="${build}"
-		debug="true"
-		srcdir=".">
-	    <classpath refid="default.classpath"/>
-	    <include name="**/*.java"/>
-	</javac>
-    </target>
-
     <target name="build"
 	    depends="compile, repmi"
 	    description="Compile a RepMI application"/>
-
-    <target name="clean"
-	    description="Clean up the build">
-	<delete dir="${build}"/>
-	<delete file="ant-test.out"/>
-    </target>
 
 </project>

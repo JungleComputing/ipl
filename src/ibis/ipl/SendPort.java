@@ -47,6 +47,8 @@ public interface SendPort {
      * Requests a new message from this sendport.
      * It is allowed to get a message for a sendport that is not connected.
      * All data that is written into the message is then silently discarded.
+     * When a message is alive, the request is blocked until the live
+     * message is finished.
      *
      * @return a <code>WriteMessage</code>.
      * @exception IOException may be thrown when something goes wrong.
@@ -178,7 +180,7 @@ public interface SendPort {
     /**
      * Frees the resources held by the sendport.
      * If a close is attempted when a message is still alive, an exception
-     * will be thrown. Even if this call throws an exception, the connection
+     * will be thrown. Even if this call throws an exception, the sendport
      * cannot be used anymore.
      * @exception IOException is thrown in case of trouble.
      */

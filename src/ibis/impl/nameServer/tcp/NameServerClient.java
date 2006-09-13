@@ -69,21 +69,22 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
                 cnt++;
                 s = socketFactory.createClientSocket(dest, 1000, null);
             } catch (IOException e) {
-                if (cnt == 10 && verbose) {
-                    // Rather arbitrary, 10 seconds, print warning
-                    System.err.println("Nameserver client failed"
-                            + " to connect to nameserver\n at " + dest
-                            + ", will keep trying " + e);
-                } else if (cnt == timeout) {
+                if (cnt == timeout) {
                     if (verbose) {
-                        System.err.println("Nameserver client failed"
+                        logger.error("Nameserver client failed"
                                 + " to connect to nameserver\n at "
                                 + dest);
-                        System.err.println("Gave up after " + timeout
+                        logger.error("Gave up after " + timeout
                                 + " seconds");
                     }
-                    throw e;
+                    throw new ConnectionTimedOutException(e);
                 }
+                if (cnt == 10 && verbose) {
+                    // Rather arbitrary, 10 seconds, print warning
+                    logger.error("Nameserver client failed"
+                            + " to connect to nameserver\n at " + dest
+                            + ", will keep trying");
+                } 
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException e2) {
@@ -147,32 +148,36 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
                 javadir = javadir.substring(0, javadir.length()-4);
             }
 
+            String conn = System.getProperty("ibis.connect.control_links");
+            String hubhost = null;
+            String hubport = null;
+            if (conn != null && conn.equals("RoutedMessages")) {
+                hubhost = System.getProperty("ibis.connect.hub.host");
+                if (hubhost == null) {
+                    hubhost = srvr;
+                }
+                hubport = System.getProperty("ibis.connect.hub.port");
+            }
+
             ArrayList command = new ArrayList();
             command.add(javadir + filesep + "bin" + filesep + "java");
             command.add("-classpath");
             command.add(javapath + pathsep);
             command.add("-Dibis.name_server.port="+prt);
+            if (hubhost != null && ! srvr.equals(hubhost)) {
+                command.add("-Dibis.connect.hub.host=" + hubhost);
+            }
+            if (hubport != null) {
+                command.add("-Dibis.connect.hub.port=" + hubport);
+            }
             command.add("ibis.impl.nameServer.tcp.NameServer");
             command.add("-single");
             command.add("-no-retry");
             command.add("-silent");
             command.add("-no-poolserver");
 
-            // TODO: this stuff is wrong!!            
-            String conn = System.getProperty("ibis.connect.control_links");
-            if (conn != null && conn.equals("RoutedMessages")) {
-                conn = System.getProperty("ibis.connect.hub.host");
-                if (conn == null || conn.equals(srvr)) {                    
-                    command.add("-controlhub");
-                } else {
-                    command.add("-hubhost");
-                    command.add(conn);
-                }
-                conn = System.getProperty("ibis.connect.hub.port");
-                if (conn != null) {
-                    command.add("-hubport");
-                    command.add(conn);
-                }
+            if (hubhost != null && hubhost.equals(srvr)) {
+                command.add("-controlhub");
             }
 
             final String[] cmd = (String[]) command.toArray(new String[0]);
@@ -270,7 +275,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
                 port = Integer.parseInt(nameServerPortString);
                 logger.debug("Using nameserver port: " + port);
             } catch (Exception e) {
-                System.err.println("illegal nameserver port: "
+                logger.error("illegal nameserver port: "
                         + nameServerPortString + ", using default");
             }
         }
@@ -400,11 +405,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
         DataOutputStream out = null;
 
         try {
-            
             logger.debug("Sending maybeDead(" + ibisId + ") to nameserver");
-            
-            logger.debug("connecting to " + serverAddress);
-            
             s = socketFactory.createClientSocket(serverAddress, 5000, null);
 
             logger.debug("connection setup done");
@@ -484,13 +485,13 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
         DataOutputStream out = null;
         DataInputStream in = null;
 
-        logger.debug("NS client: leave");
+        logger.info("NS client: leave");
 
         try {
             s = socketFactory.createClientSocket(serverAddress, 5000, null);
         } catch (IOException e) {
-            if (logger.isDebugEnabled()) {
-                logger.debug("leave: connect got exception", e);
+            if (logger.isInfoEnabled()) {
+                logger.info("leave: connect got exception", e);
             }
             return;
         }
@@ -502,14 +503,14 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
             out.writeUTF(poolName);
             out.writeUTF(id.name());
             out.flush();
-            logger.debug("NS client: leave sent");
+            logger.info("NS client: leave sent");
 
             in = new DataInputStream(new BufferedInputStream(s.getInputStream()));
 
             in.readByte();
-            logger.debug("NS client: leave ack received");
+            logger.info("NS client: leave ack received");
         } catch (IOException e) {
-            logger.debug("leave got exception", e);
+            logger.info("leave got exception", e);
         } finally {
             NameServer.closeConnection(in, out, s);
         }
@@ -530,11 +531,11 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
             }
         }
 
-        logger.debug("NS client: leave DONE");
+        logger.info("NS client: leave DONE");
     }
 
     public void run() {
-        logger.debug("NameServerClient: thread started");
+        logger.info("NameServerClient: thread started");
 
         while (! stop) {
 
@@ -549,7 +550,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
 
             } catch (Exception e) {
                 if (stop) {
-                    logger.debug("NameServerClient: thread dying");
+                    logger.info("NameServerClient: thread dying");
                     try {
                         serverSocket.close();
                     } catch (IOException e1) {
@@ -622,7 +623,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
                         ibisId = (IbisIdentifier) Conversion.byte2object(buf);
                         if (ibisId.equals(this.id)) {
                             // received an ack from the nameserver that I left.
-                            logger.debug("NameServerClient: thread dying");
+                            logger.info("NameServerClient: thread dying");
                             stop = true;
                         } else {
                             ibisImpl.left(ibisId);
@@ -668,15 +669,14 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
                     break;
 
                 default:
-                    System.out.println("NameServerClient: got an illegal "
+                    logger.error("NameServerClient: got an illegal "
                             + "opcode " + opcode);
                 }
             } catch (Exception e1) {
                 if (! stop) {
-                    System.out.println("Got an exception in "
+                    logger.error("Got an exception in "
                             + "NameServerClient.run "
-                            + "(opcode = " + opcode + ") " + e1.toString());
-                    e1.printStackTrace();
+                            + "(opcode = " + opcode + ")", e1);
                 }
             } finally {
                 NameServer.closeConnection(in, out, s);

@@ -1,0 +1,37 @@
+<project
+    name="ibis-bin-release-builder"
+    default="ibis-zip"
+    basedir=".">
+
+    <!--
+    Separate build file, because it uses a nested ant call, which does
+    not work if it includes targets with the same name from several
+    places. If this sounds too complicated, just try and put this target
+    in build.xml, and see what happens when you invoke it. Or never mind.
+
+    Anyway, this build needs to be invoked with
+	-Dversion=<version>
+    where <version> is an existing branch in the ibis repository.
+    You can also specify a tag for <version>instead of a branch, but then
+    you must also specify
+	-Dbranches-or-tags=tags
+    -->
+
+    <property name="version" value="non-existent"/>
+    <property name="branches-or-tags" value="branches"/>
+
+    <target name="ibis-zip"
+	description="Create a binary release, in a file ${version}.zip">
+
+	<exec executable="/usr/local/package/subversion-1.3.1/bin/svn">
+	    <arg line="checkout https://gforge.cs.vu.nl/svn/ibis/ibis/${branches-or-tags}/${version}"/>
+	</exec>
+
+	<ant dir="${version}" inheritAll="false" target="ibis.zip"/>
+
+	<move file="${version}/${version}.zip" tofile="${version}.zip"/>
+
+	<delete dir="${version}"/>
+    </target>
+
+</project>

@@ -112,7 +112,7 @@ public final class VictimTable implements Config {
             return null;
         }
 
-        index = Math.abs(random.nextInt()) % victims.size();
+        index = random.nextInt(victims.size());
         v = ((Victim) victims.get(index));
 
         return v;
@@ -132,7 +132,7 @@ public final class VictimTable implements Config {
             return null;
         }
 
-        index = Math.abs(random.nextInt()) % clusterSize;
+        index = random.nextInt(clusterSize);
         v = thisCluster.get(index);
 
         return v;
@@ -161,7 +161,7 @@ public final class VictimTable implements Config {
             return null;
         }
 
-        vIndex = Math.abs(random.nextInt()) % remoteVictims;
+        vIndex = random.nextInt(remoteVictims);
 
         //find the cluster and index in the cluster for the victim
         cIndex = 1;

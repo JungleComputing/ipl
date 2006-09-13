@@ -23,10 +23,9 @@
 
     <property name="ibis"        location="."/>
 
-    <property name="ibis-major" value="1"/>
-    <property name="ibis-minor" value="3"/>
+    <property name="version" value="ibis"/>
 
-    <property name="ibis-version" value="ibis-${ibis-major}.${ibis-minor}"/>
+    <property name="jar" value="${ibis}/lib/${version}.jar"/>
 
     <!--
 	This must come first.
@@ -40,7 +39,7 @@
 	<mkdir dir="${ibis}/bin"/>
     </target>
 
-    <target name="init" depends="config-init-initial,property-init,make-dirs"/>
+    <target name="init" depends="config-init-initial,property-init,make-dirs,jars"/>
 
     <!--
 	Compile only
@@ -88,7 +87,7 @@
     -->
 
     <target name="build"
-	    depends="compile, build-bin, copyProperties, ibis-iogen, jars"
+	    depends="compile, build-bin, copyProperties, ibis-iogen, ibis.jar"
 	    description="Build Ibis">
     </target>
 
@@ -126,7 +125,7 @@
     </target>
 
     <target name="read-props">
-	<property file="build-files/build-properties"/>
+	<property file="${ibis}/build-files/build-properties"/>
     </target>
 
     <target name="natives-if-configured" depends="read-props"
@@ -150,14 +149,18 @@
     </target>
 
     <target name="jars"
-	    depends="ibis.jar"
 	    description="Generate jar files for ibis">
+	<copy todir="${ibis}/lib">
+	    <fileset dir="${ibis}/3rdparty">
+		<include name="*.jar"/>
+	    </fileset>
+	</copy>
     </target>
 
     <target name="ibis.jar">
-	<jar	destfile="${ibis}/lib/ibis.jar"
+	<jar	destfile="${jar}"
 		basedir="${build}"
-		includes="**/*.class **/properties ibis-properties">
+		includes="ibis/**/*.class **/properties ibis-properties">
 	    <manifest>
 		<attribute name="Ibisc-Component" value="ibis.frontend.io.IOGenerator,ibis.frontend.gmi.Gmic,ibis.frontend.rmi.Rmic,ibis.frontend.satin.Satinc"/>
 		<attribute name="Ibis-Implementation" value="ibis.impl.messagePassing.panda.PandaIbis,ibis.impl.tcp.TcpIbis,ibis.impl.net.NetIbis,ibis.impl.nio.NioIbis,ibis.impl.messagePassing.mpi.MPIIbis"/>
@@ -242,6 +245,7 @@
 	<delete dir="bin"/>
 	<delete dir="lib"/>
 	<delete dir="ant-tasks/tasks"/>
+	<delete file="${version}.zip"/>
 	<ant dir="${docs}" inheritAll="false" target="distclean"/>
     </target>
 
@@ -262,4 +266,69 @@
     <target name="test" depends="build">
 	<ant dir="ibis-example" inheritAll="false" target="test"/>
     </target>
+
+    <target name="ibis.zip" depends="default,docs,progman">
+	<delete dir="bin-temp"/>
+	<delete file="${version}.zip"/>
+
+	<property name="dirnam" value="bin-temp/${version}"/>
+
+	<mkdir dir="${dirnam}"/>
+
+	<copy todir="${dirnam}">
+	    <fileset dir=".">
+		<include name="build-files/**"/>
+		<include name="docs/**"/>
+		<include name="grun/**"/>
+		<include name="lib/**"/>
+		<include name="notices/**"/>
+		<include name="bin/**"/>
+		<include name="BUGS.txt"/>
+		<include name="LICENSE.txt"/>
+	    </fileset>
+	</copy>
+
+	<copy todir="${dirnam}/bin">
+	    <fileset dir="src/scripts">
+		<include name="*.bat"/>
+	    </fileset>
+	</copy>
+
+	<delete file="${dirnam}/bin/ibis-prun"/>
+
+	<copy
+		file="src/scripts/ns-env.bat.in"
+		tofile="${dirnam}/bin/ns-env.bat">
+	</copy>
+	<replace file="${dirnam}/bin/ns-env.bat" token="@IBIS_NS_PORT@" value="9826"/>
+	<replace file="${dirnam}/bin/ns-env.bat" token="@IBIS_NS_HOST@" value="localhost"/>
+
+	<chmod file="${dirnam}/bin/*" perm="+x"/>
+
+	<move file="${dirnam}/docs/README-bin.txt" tofile="${dirnam}/README.txt"/>
+
+	<delete dir="${dirnam}/lib/natives"/>
+	<delete dir="${dirnam}/docs/src"/>
+	<delete file="${dirnam}/notices/OmniSourceLicense.html"/>
+	<delete file="${dirnam}/docs/build.xml"/>
+	<delete file="${dirnam}/build-files/build-config.xml"/>
+	<delete file="${dirnam}/build-files/build-natives.xml"/>
+	<delete file="${dirnam}/build-files/build-native.xml"/>
+	<delete file="${dirnam}/build-files/build-properties"/>
+	<delete file="${dirnam}/build-files/build-properties.cache"/>
+	<delete file="${dirnam}/build-files/build-properties.default"/>
+
+	<!--
+	 Unfortunately, the zip task does not deal with file permissions.
+	 In particular, it apparently strips the "execute" bit from the
+	 file in bin.
+	 <zip destfile="${version}.zip" basedir="bin-temp"/>
+	-->
+	<exec executable="/usr/bin/zip" dir="bin-temp">
+	    <arg line="-qr ../${version}.zip ${version}"/>
+	</exec>
+
+	<delete dir="bin-temp"/>
+    </target>
+
 </project>

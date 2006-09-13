@@ -4,30 +4,8 @@
     basedir=".">
 
     <import file="${ibis}/build-files/build-properties.xml"/>
-    <import file="${ibis}/build-files/apps/build-run.xml"/>
-
-    <target name="init" depends="property-init">
-	<tstamp/>
-	<mkdir dir="${build}"/>
-    </target>
-
-    <target name="compile"
-	    depends="clean,init"
-	    description="Compile">
-	<javac  destdir="${build}"
-		debug="true"
-		srcdir=".">
-	    <classpath refid="default.classpath"/>
-	    <include name="**/*.java"/>
-	</javac>
-    </target>
+    <import file="${ibis}/build-files/apps/build-app.xml"/>
 
     <target name="build" depends="compile"/>
-
-    <target name="clean"
-	    description="Clean up the build">
-	<delete dir="${build}"/>
-	<delete file="ant-test.out"/>
-    </target>
 
 </project>

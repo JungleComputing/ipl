@@ -4,6 +4,7 @@
 package ibis.satin.impl.loadBalancing;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 import ibis.ipl.IbisError;
 import ibis.ipl.IbisIdentifier;
@@ -17,6 +18,39 @@ import ibis.satin.impl.spawnSync.ReturnRecord;
 import ibis.satin.impl.spawnSync.Stamp;
 
 public class LoadBalancing implements Config {
+    
+    static final class StealRequest {
+        int opcode;
+        SendPortIdentifier sp;
+    }
+
+    final class StealRequestHandler extends Thread {
+        public StealRequestHandler() {
+            setDaemon(true);
+            setName("Satin StealRequestHandler");
+        }
+        
+        public void run() {
+            while(true) {
+                StealRequest sr = null;
+                synchronized (s) {
+                    if(stealQueue.size() > 0) {
+                        sr = (StealRequest) stealQueue.remove(0);
+                    } else {
+                        try {
+                            s.wait();
+                        } catch (Exception e) {
+                            // ignore
+                        }
+                        continue;
+                    }
+                }
+                
+                lbComm.handleStealRequest(sr.sp, sr.opcode);
+            }
+        }
+    }
+    
     private LBCommunication lbComm;
 
     private Satin s;
@@ -30,6 +64,8 @@ public class LoadBalancing implements Config {
 
     private final IRVector resultList;
 
+    private final ArrayList stealQueue;
+    
     /**
      * Used for fault tolerance, we must know who the current victim is,
      * in case it crashes.
@@ -38,6 +74,15 @@ public class LoadBalancing implements Config {
 
     public LoadBalancing(Satin s) {
         this.s = s;
+     
+        if(QUEUE_STEALS) {
+            stealQueue = new ArrayList();
+            new StealRequestHandler().start();
+        } else {
+            stealQueue = null;
+        }
+        
+        
         resultList = new IRVector(s);
         lbComm = new LBCommunication(s, this);
     }
@@ -241,6 +286,16 @@ public class LoadBalancing implements Config {
 
     public void handleStealRequest(SendPortIdentifier ident, int opcode) {
         lbComm.handleStealRequest(ident, opcode);
+    }
+
+    public void queueStealRequest(SendPortIdentifier ident, int opcode) {
+        StealRequest r = new StealRequest();
+        r.opcode = opcode;
+        r.sp = ident;
+        synchronized (s) {
+            stealQueue.add(r);
+            s.notifyAll();
+        }
     }
 
     public void handleReply(ReadMessage m, int opcode) {

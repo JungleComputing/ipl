@@ -8,7 +8,7 @@
     </description>
 
     <import file="${ibis}/build-files/build-properties.xml"/>
-    <import file="${ibis}/build-files/apps/build-run.xml"/>
+    <import file="${ibis}/build-files/apps/build-app.xml"/>
 
     <target name="gmi">
 	<java   classname="ibis.frontend.ibis.Ibisc"
@@ -21,28 +21,8 @@
 	</java>
     </target>
 
-    <target name="init" depends="property-init">
-	<tstamp/>
-	<mkdir dir="${build}"/>
-    </target>
-
-    <target name="compile" depends="clean,init">
-	<javac  destdir="${build}"
-		debug="true"
-		srcdir=".">
-	    <classpath refid="default.classpath"/>
-	    <include name="**/*.java"/>
-	</javac>
-    </target>
-
     <target name="build"
 	    depends="compile, gmi"
 	    description="Compile a GMI program"/>
-
-    <target name="clean"
-	    description="Clean up the build">
-	<delete dir="${build}"/>
-	<delete file="ant-test.out"/>
-    </target>
 
 </project>

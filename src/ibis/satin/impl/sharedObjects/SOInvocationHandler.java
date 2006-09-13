@@ -8,6 +8,7 @@ import ibis.satin.SharedObject;
 import ibis.satin.impl.Config;
 import ibis.satin.impl.Satin;
 import ibis.satin.impl.communication.Protocol;
+import ibis.util.Timer;
 import ibis.util.messagecombining.MessageSplitter;
 
 import java.io.IOException;
@@ -41,7 +42,8 @@ final class SOInvocationHandler implements Upcall, Config, Protocol {
 
         switch (opt_code) {
         case SO_TRANSFER: // exportObject
-            s.stats.soBroadcastDeserializationTimer.start();
+            Timer tmp = Timer.createTimer();
+            tmp.start();
             synchronized (s) {
                 s.so.receivingMcast = true;
             }
@@ -60,7 +62,8 @@ final class SOInvocationHandler implements Upcall, Config, Protocol {
                 e.printStackTrace();
                 return;
             } finally {
-                s.stats.soBroadcastDeserializationTimer.stop();
+                tmp.stop();
+                s.stats.soBroadcastDeserializationTimer.add(tmp);
             }
             
             // no need to finish the message
@@ -71,9 +74,8 @@ final class SOInvocationHandler implements Upcall, Config, Protocol {
             }
             break;
         case SO_INVOCATION: // normal invocation, can be message combined
-// @@@ I am getting exceptions that this timer is started twice. How is this possible?
-// @@@ upcalls are guaranteed to be serialized if there is no finish!!!! --Rob
-            //            s.stats.soInvocationDeserializationTimer.start();
+            tmp = Timer.createTimer();
+            tmp.start();
             synchronized (s) {
                 s.so.receivingMcast = true;
             }
@@ -92,7 +94,8 @@ final class SOInvocationHandler implements Upcall, Config, Protocol {
                 e.printStackTrace();
                 return;
             } finally {
-//                s.stats.soInvocationDeserializationTimer.stop();
+                tmp.stop();
+                s.stats.soInvocationDeserializationTimer.add(tmp);
             }
 
             // no need to finish here
@@ -104,6 +107,8 @@ final class SOInvocationHandler implements Upcall, Config, Protocol {
         }
     }
 
+    // There is a receiveport per sender, and they share this upcall handler.
+    // Therefore, upcalls can run concurrently.
     public void upcall(ReadMessage m) throws IOException {
         try {
             if (SO_MAX_INVOCATION_DELAY > 0) { // message combining enabled

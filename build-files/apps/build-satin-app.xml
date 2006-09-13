@@ -17,7 +17,7 @@
     -->
 
     <import file="${ibis}/build-files/build-properties.xml"/>
-    <import file="${ibis}/build-files/apps/build-run.xml"/>
+    <import file="${ibis}/build-files/apps/build-app.xml"/>
 
     <target name="property-satin-build" unless="build">
 	<echo level="debug"
@@ -41,22 +41,6 @@
 		<classpath refid="default.classpath"/>
 	</java>
 
-    </target>
-
-    <target name="init" depends="property-init">
-	<tstamp/>
-	<mkdir dir="${build}"/>
-    </target>
-
-    <target name="compile"
-	    depends="clean,init"
-	    description="Compile Satin application for sequential execution">
-	<javac  destdir="${build}"
-		debug="true"
-		includes="**/*.java"
-		srcdir=".">
-	    <classpath refid="default.classpath"/>
-	</javac>
     </target>
 
     <target name="set-satinc-flags-set" if="satinc-flags">
@@ -98,10 +82,5 @@
     <target name="build"
 	description="Compile Satin application for parallel execution"
 	depends="compile,do-satin"/>
-
-    <target name="clean">
-	<delete dir="${build}"/>
-	<delete file="ant-test.out"/>
-    </target>
 
 </project>

@@ -6,13 +6,11 @@ import ibis.connect.util.NetworkUtils;
 import ibis.util.ClassLister;
 import ibis.util.TypedProperties;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
-import java.util.StringTokenizer;
 
 /**
  * This class defines the Ibis API, which can be implemented by an Ibis
@@ -455,21 +453,16 @@ public abstract class Ibis {
     private static void addIbis(int index) throws IOException {
         Class cl = implList[index];
         String packagename = cl.getPackage().getName();
-        String propertyFile = packagename.replace('.', File.separatorChar)
-                    + File.separator + "properties";
-
+        // Note: getResourceAsStream wants '/', not File.separatorChar!
+        String propertyFile = packagename.replace('.', '/')
+                    + "/" + "properties";
         StaticProperties sp = new StaticProperties();
-        StringTokenizer st = new StringTokenizer(propertyFile, " ,\t\n\r\f");
-        while (st.hasMoreTokens()) {
-            String file = st.nextToken();
-            InputStream in = cl.getClassLoader().getResourceAsStream(file);
-            if (in == null) {
-                System.err.println("could not open " + file);
-                System.exit(1);
-            }
-            sp.load(in);
-            in.close();
+        InputStream in = cl.getClassLoader().getResourceAsStream(propertyFile);
+        if (in == null) {
+            throw new IOException("Could not open " + propertyFile);
         }
+        sp.load(in);
+        in.close();
 
         sp.addImpliedProperties();
 

@@ -102,14 +102,18 @@ class ReceivePortNameServer extends Thread implements Protocol {
             synchronized(requestedPorts) {
                 socketCount++;
                 if (socketCount > MAXSOCKETS) {
-                    logger.info("Sent wait: socketCount = " + socketCount);
+                    if (! silent) {
+                        logger.info("Sent wait: socketCount = " + socketCount);
+                    }
                     socketCount--;
                     sentWait = true;
                     try {
                         myOut.writeByte(PORT_WAIT);
                     } catch(Throwable e) {
-                        logger.error("PortLookupRequest failed to return"
-                                + " result to " + s + ": got IOException", e);
+                        if (! silent) {
+                            logger.error("PortLookupRequest failed to return"
+                                    + " result to " + s + ": got IOException", e);
+                        }
                     } finally {
                         NameServer.closeConnection(myIn, myOut, s);
                         myIn = null;
@@ -156,7 +160,9 @@ class ReceivePortNameServer extends Thread implements Protocol {
         void writeResult() {
             try {
                 if (myOut == null) {
-                    logger.info("Setting up connection to client");
+                    if (! silent) {
+                        logger.info("Setting up connection to client");
+                    }
                     VirtualSocketAddress client;
                     client = (VirtualSocketAddress) Conversion.byte2object(clientAddress);
                     s = NameServerClient.socketFactory.createClientSocket(
@@ -189,8 +195,10 @@ class ReceivePortNameServer extends Thread implements Protocol {
                 } 
                 
             } catch (Throwable e) { 
-                logger.error("PortLookupRequest failed to return"
-                        + " result to " + s + ": got IOException", e);
+                if (! silent) {
+                    logger.error("PortLookupRequest failed to return"
+                            + " result to " + s + ": got IOException", e);
+                }
             } finally {
                 NameServer.closeConnection(myIn, myOut, s);
             }            
