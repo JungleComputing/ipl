@@ -36,6 +36,11 @@ see http://www.cs.vu.nl/ibis/downloads.html.
 The latest Ibis source repository tree is accessible through anonymous SVN
 at "https://gforge.cs.vu.nl/svn/ibis/ibis/trunk". Likewise, the latest example
 applications are available at "https://gforge.cs.vu.nl/svn/ibis/apps/trunk".
+You need an account on https://gforge.cs.vu.nl/ to access the repositories
+there. You can create an account by clicking the 'New Account' button
+on the https://gforge.cs.vu.nl/ page.
+To build these applications, you first need to set some environment
+variables. See the README.txt file that accompanies the Ibis applications.
 
 The file BUGS.txt contains information for filing bug reports.
 
