@@ -11,11 +11,9 @@
 
     <property environment="env"/>
 
-    <property name="ibis"        location="${env.IBIS_ROOT}"/>
+    <property name="ibis"        location="${env.IBIS_HOME}"/>
     <property name="build"       location="build"/>
 
     <import file="${ibis}/build-files/apps/build-extra-app.xml"/>
 
 </project>
-
-

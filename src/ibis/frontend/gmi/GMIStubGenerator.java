@@ -201,7 +201,7 @@ class GMIStubGenerator extends GMIGenerator {
         // The CPU with rank 0 will collect all parameters and perform the group invocation.
 
         output.println(spacing
-                + "\tParameterVector params = new group_parameter_vector_"
+                + "\tParameterVector params = new group_parametervector_"
                 + data.classname + "_" + GMIGenerator.getUniqueName(m) + "();");
 
         // Fill in our own parameters.
@@ -492,12 +492,12 @@ class GMIStubGenerator extends GMIGenerator {
         
         String methodName = GMIGenerator.getUniqueName(m);
 
-        output.println(spacing + "\tgroup_parameter_vector_" + data.classname
-                + "_" + methodName + "[] pv = new group_parameter_vector_"
+        output.println(spacing + "\tgroup_parametervector_" + data.classname
+                + "_" + methodName + "[] pv = new group_parametervector_"
                 + data.classname + "_" + methodName + "[targetGroupSize];");
         
-        output.println(spacing + "\tgroup_parameter_vector_" + data.classname
-                + "_" + methodName + " iv = new group_parameter_vector_"
+        output.println(spacing + "\tgroup_parametervector_" + data.classname
+                + "_" + methodName + " iv = new group_parametervector_"
                 + data.classname + "_" + methodName + "();");
 
         for (int i = 0; i < params.length; i++) {
@@ -505,7 +505,7 @@ class GMIStubGenerator extends GMIGenerator {
         }
 
         output.println(spacing + "\tfor (int i=0;i<targetGroupSize;i++) {");
-        output.println(spacing + "\t\tpv[i] = new group_parameter_vector_"
+        output.println(spacing + "\t\tpv[i] = new group_parametervector_"
                 + data.classname + "_" + methodName + "();");
         output.println(spacing + "\t}");
 
@@ -694,7 +694,7 @@ class GMIStubGenerator extends GMIGenerator {
             Type[] params = m.getArgumentTypes();
 
             output.print("\t\tmethods[" + i + "] = new GroupMethod(this, " + i
-                    + ", new group_parameter_vector_" + data.classname + "_"
+                    + ", new group_parametervector_" + data.classname + "_"
                     + GMIGenerator.getUniqueName(m) + "(), \"");
             output.print(getType(ret) + " " + m.getName() + "(");
             for (int j = 0; j < params.length; j++) {

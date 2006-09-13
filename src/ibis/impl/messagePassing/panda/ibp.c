@@ -706,7 +706,7 @@ ibp_init(JNIEnv *env, int *argc, char *argv[])
 {
     IBP_VPRINTF(2000, env, ("here...\n"));
 
-    ibmp_check_ibis_name(env, "ibis.impl.messagePassing.PandaIbis");
+    ibmp_check_ibis_name(env, "ibis.impl.messagePassing.panda.PandaIbis");
     IBP_VPRINTF(2000, env, ("here...\n"));
 
     ibp_pan_init(env, argc, argv);

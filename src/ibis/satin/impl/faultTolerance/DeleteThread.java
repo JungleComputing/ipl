@@ -9,7 +9,7 @@ class DeleteThread extends Thread {
 
     private int milis;
 
-    private String cluster = null;
+//    private String cluster = null;
 
     DeleteThread(int time) {
         super("SatinDeleteThread");

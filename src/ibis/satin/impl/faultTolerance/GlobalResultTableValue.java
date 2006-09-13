@@ -10,8 +10,6 @@ import ibis.satin.impl.spawnSync.InvocationRecord;
 import ibis.satin.impl.spawnSync.ReturnRecord;
 
 class GlobalResultTableValue implements java.io.Serializable, Config {
-    protected static final int TYPE_LOCK = 0;
-
     protected static final int TYPE_RESULT = 1;
 
     protected static final int TYPE_POINTER = 2;
@@ -35,9 +33,6 @@ class GlobalResultTableValue implements java.io.Serializable, Config {
     public String toString() {
         String str = "";
         switch (type) {
-        case TYPE_LOCK:
-            str += "(LOCK,sendTo:" + sendTo + ")";
-            break;
         case TYPE_RESULT:
             str += "(RESULT,result:" + result + ")";
             break;

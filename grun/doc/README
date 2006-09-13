@@ -113,9 +113,9 @@ Example 3: running a script and redirecting job output:
 $ cat >example.script
 #!/bin/sh
 uname -ns
-printenv IBIS_ROOT
+printenv IBIS_HOME
 $ chmod +x example.script 
-$ grun -v -o -c "@GRUN_GASS@/./example.script" -E IBIS_ROOT=ibis -m fs0 -m fs1
+$ grun -v -o -c "@GRUN_GASS@/./example.script" -E IBIS_HOME=ibis -m fs0 -m fs1
 grun: starting job 1125
 grun: fs1.das2.liacs.nl/jobmanager-pbs: job stagein
 grun: fs0.das2.cs.vu.nl/jobmanager-pbs: job stagein
@@ -184,7 +184,7 @@ $ grun_etc=/usr/local/package/grun/etc
 $ grun -v -o -s "$grun_etc/runsvrs.ibis -name $port1 -pool $port2" \
   -c "@GRUN_GASS@/$grun_etc/runit.ibis ../../build Main 2000 2000" \
   -E IBIS_NAMESVR_PORT=$port1 -E IBIS_POOLSVR_PORT=$port2          \
-  -E IBIS_ROOT="../../ibis" -H 2 -m fs0 -m fs1
+  -E IBIS_HOME="../../ibis" -H 2 -m fs0 -m fs1
 grun: starting job 1135
 PoolInfoServer: starting run, waiting for a host to connect...
 grun: fs1.das2.liacs.nl/jobmanager-pbs: job stagein
@@ -230,7 +230,7 @@ of runsvrs.ibis) and by environment parameter IBIS_*_PORT
 (in the case of runit.ibis). 
 
 Other information that is required for Ibis jobs is the location of
-the Ibis installation (IBIS_ROOT) and of the application.  In this first
+the Ibis installation (IBIS_HOME) and of the application.  In this first
 Ibis example, the assumption is that the right Ibis distribution is
 already available on all participating sites as $HOME/ibis, and that
 the application "Main" class is in $HOME/build.  The reason why "ibis"
@@ -259,7 +259,7 @@ $ grun -v -o -s "$grun_etc/runsvrs.ibis -name $port1 -pool $port2"      \
   -E IBIS_NAMESVR_PORT=$port1 -E IBIS_POOLSVR_PORT=$port2		\
   -p -E GRUN_INFILES="ibis-tree.jar:build-tree.jar"			\
   -P -E GRUN_CLEANUP=1							\
-  -E IBIS_ROOT="ibis" -H 2 -m fs0 -m fs1
+  -E IBIS_HOME="ibis" -H 2 -m fs0 -m fs1
 
 grun: starting job 1137
 PoolInfoServer: starting run, waiting for a host to connect...
@@ -341,7 +341,7 @@ Example 6: a quick self-supporting Ibis run:
 $ grun -v -o -s "$grun_etc/runsvrs.ibis -name $port1 -pool $port2"	\
   -c "@GRUN_GASS@/$grun_etc/runit.ibis . Main 1000 1000"		\
   -E IBIS_NAMESVR_PORT=$port1 -E IBIS_POOLSVR_PORT=$port2		\
-  -E IBIS_ROOT="../../ibis.jar:../../sor_grid.jar"			\
+  -E IBIS_HOME="../../ibis.jar:../../sor_grid.jar"			\
   -I ibis.jar -I sor_grid.jar -N 1 -m fs1 -m fs2
 grun: starting job 183
 PoolInfoServer: starting run, waiting for a host to connect...
@@ -366,13 +366,13 @@ grun: Total running time: 31.2 sec
 grun: job 183 done
 ---
 
-The file "ibis.jar" in this example is the one from the $IBIS_ROOT/build
+The file "ibis.jar" in this example is the one from the $IBIS_HOME/build
 directory, and file "sor_grid.jar" was built by collecting the application
 class files using:
 ---
 $ jar cvf sor_grid.jar *.class
 ---
-in the $IBIS_ROOT/ibis/apps/rmi/sor_grid/build directory.
+in the $IBIS_HOME/ibis/apps/rmi/sor_grid/build directory.
 The "-I" options cause both files to be transfered to the
 remote sites in a "stagein" phase.  But since the jar files don't
 need additional processing (e.g., unpacking the -tree.jar files
@@ -380,7 +380,7 @@ as in the previous example), a seperate stagein phase using
 the fork jobmanagers is no longer necessary.
 Since only the essential jar files are transferred, total running
 time is significantly reduced.
-Notice that IBIS_ROOT in this case contains both the ibis.jar
+Notice that IBIS_HOME in this case contains both the ibis.jar
 and application.jar file from the user's home directory; this
 will get both of them in the Java classpath as is needed here.
 
@@ -397,7 +397,7 @@ $ grun -v -o -s "$grun_etc/runsvrs.ibis -name $port1 -pool $port2 -hub $port3"\
   -c "@GRUN_GASS@/$grun_etc/runit.ibis . Main 1000 1000"		\
   -E IBIS_NAMESVR_PORT=$port1 -E IBIS_POOLSVR_PORT=$port2		\
   -E IBIS_NETWORK=firewall -E IBIS_HUB_PORT=$port3			\
-  -E IBIS_ROOT="../../ibis.jar:../../sor_grid.jar"			\
+  -E IBIS_HOME="../../ibis.jar:../../sor_grid.jar"			\
   -I ibis.jar -I sor_grid.jar -N 1 -m fs0 -m n0 
 grun: starting job 184
 PoolInfoServer: starting run, waiting for a host to connect...

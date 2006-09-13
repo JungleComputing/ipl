@@ -15,7 +15,9 @@
 	<echo message="os.name ${os.name} os.arch ${os.arch}"/>
     </target>
 
-    <property name="ibis"        location="../.."/>
+    <property environment="env"/>
+
+    <property name="ibis"        location="${env.IBIS_HOME}"/>
 
     <import file="${ibis}/build-files/build-properties.xml"/>
 
@@ -84,7 +86,7 @@
 	Test
     -->
     <target name="test"
-	    depends="clean,-list-build-files"
+	    depends="-list-build-files"
 	    description="Run tests in Ibis applications">
 	<antcall target="-do-list">
 	    <param name="do-target" value="test"/>
@@ -92,7 +94,7 @@
     </target>
 
     <target name="test-seq"
-	    depends="clean,-list-build-files"
+	    depends="-list-build-files"
 	    description="Run sequential tests in Ibis applications">
 	<antcall target="-do-list">
 	    <param name="do-target" value="test-seq"/>
@@ -100,7 +102,7 @@
     </target>
 
     <target name="test-par"
-	    depends="clean,-list-build-files"
+	    depends="-list-build-files"
 	    description="Run parallel tests in Ibis applications">
 	<antcall target="-do-list">
 	    <param name="do-target" value="test-par"/>
@@ -108,7 +110,7 @@
     </target>
 
     <target name="test-prun"
-	    depends="clean,-list-build-files"
+	    depends="-list-build-files"
 	    description="Run parallel tests with prun in Ibis applications">
 	<antcall target="-do-list">
 	    <param name="do-target" value="test-prun"/>

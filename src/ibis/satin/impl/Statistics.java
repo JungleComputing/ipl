@@ -134,6 +134,10 @@ public final class Statistics implements java.io.Serializable, Config {
 
     public double soBcastDeserializationTime;
 
+    public double soGuardTime;
+
+    public long soGuards;
+    
     public long soRealMessageCount;
 
     public long soBcasts;
@@ -197,6 +201,8 @@ public final class Statistics implements java.io.Serializable, Config {
     public Timer soBroadcastTransferTimer = Timer.createTimer();
 
     public Timer soInvocationDeserializationTimer = Timer.createTimer();
+
+    public Timer soGuardTimer = Timer.createTimer();
 
     public void add(Statistics s) {
         spawns += s.spawns;
@@ -273,6 +279,7 @@ public final class Statistics implements java.io.Serializable, Config {
         soRealMessageCount += s.soRealMessageCount;
         soBcasts += s.soBcasts;
         soBcastBytes += s.soBcastBytes;
+        soGuards += s.soGuards;
     }
 
     public void fillInStats() {
@@ -316,6 +323,7 @@ public final class Statistics implements java.io.Serializable, Config {
         soBcastSerializationTime = soBroadcastSerializationTimer.totalTimeVal();
         soBcastDeserializationTime = soBroadcastDeserializationTimer
             .totalTimeVal();
+        soGuardTime = soGuardTimer.totalTimeVal();
     }
 
     protected void printStats(int size, double totalTime) {
@@ -332,7 +340,7 @@ public final class Statistics implements java.io.Serializable, Config {
         boolean haveSteals = stealAttempts > 0;
         boolean haveCrashes = tableResultUpdates > 0 || tableLookups > 0
             || restartedJobs > 0;
-        boolean haveSO = soInvocations > 0 || soTransfers > 0 || soBcasts > 0;
+        boolean haveSO = soInvocations > 0 || soTransfers > 0 || soBcasts > 0 || soGuards > 0;
 
         out.println("-------------------------------SATIN STATISTICS------"
             + "--------------------------");
@@ -382,7 +390,7 @@ public final class Statistics implements java.io.Serializable, Config {
                 + nf.format(restartedJobs));
         }
 
-        if (soInvocations > 0 || soTransfers > 0 || soBcasts > 0) {
+        if (haveSO) {
             out.println("SATIN: SO_CALLS:    " + nf.format(soInvocations)
                 + " invocations, " + nf.format(soInvocationsBytes) + " bytes, "
                 + nf.format(soRealMessageCount) + " messages");
@@ -499,6 +507,9 @@ public final class Statistics implements java.io.Serializable, Config {
             out.println("SATIN: SO_BCAST_DESERIALIZATION:   total "
                 + Timer.format(soBcastDeserializationTime) + " time/bcast  "
                 + Timer.format(perStats(soBcastDeserializationTime, soBcasts)));
+            out.println("SATIN: SO_GUARDS:                  total "
+                + Timer.format(soGuardTime) + " time/guard  "
+                + Timer.format(perStats(soGuardTime, soGuards)));
         }
 
         out.println("-------------------------------SATIN RUN TIME "
@@ -568,7 +579,9 @@ public final class Statistics implements java.io.Serializable, Config {
             / size;
         double soBcastDeserializationPerc = soBcastDeserializationTimeAvg
             / totalTime * 100;
-
+        double soGuardTimeAvg = soGuardTime / size;
+        double soGuardPerc = soGuardTimeAvg / totalTime * 100;
+        
         double totalOverheadAvg = (abortTimeAvg + tableUpdateTimeAvg
             + tableLookupTimeAvg + tableHandleUpdateTimeAvg
             + tableHandleLookupTimeAvg + handleSOInvocationsTimeAvg
@@ -652,6 +665,9 @@ public final class Statistics implements java.io.Serializable, Config {
             out.println("SATIN: SO_BCAST_DESERIALIZATION:   agv. per machine "
                 + Timer.format(soBcastDeserializationTimeAvg) + " ("
                 + pf.format(soBcastDeserializationPerc) + " %)");
+            out.println("SATIN: SO_GUARD:                   agv. per machine "
+                + Timer.format(soGuardTimeAvg) + " ("
+                + pf.format(soGuardPerc) + " %)");
         }
 
         out.println("\nSATIN: TOTAL_PARALLEL_OVERHEAD:    agv. per machine "

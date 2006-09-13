@@ -21,7 +21,6 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -86,7 +85,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
                     "Tcpporthandler: trying to remove unknown receiveport");
         }
     }
-    
+    /*
     private void writeObject(OutputStream out, Object o) throws IOException { 
         
         byte[] tmp = Conversion.object2byte(o);
@@ -127,7 +126,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
         readFully(in, tmp);
         return Conversion.object2byte(tmp);
     }
-    
+    */
     
     
     VirtualSocket connect(TcpSendPort sp, TcpReceivePortIdentifier receiver,

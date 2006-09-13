@@ -23,12 +23,10 @@ ibis.impl.nameServer.tcp.NameServer
 ibis.satin.comm
 	   steal
 	   spawn
-	   idle
 	   inlet
 	   abort
-	   grt
-	   tuple
-	   faultTolerance
+	   ft
+	   ft.grt
 	   so
 
 ibis.rmi.registry.impl.RegistryImpl

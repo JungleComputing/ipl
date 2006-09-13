@@ -33,7 +33,7 @@ final class MethodTable {
 
     static class SpawnTableEntry {
 
-        Vector catchBlocks; /* indexed on spawnId */
+        ArrayList catchBlocks; /* indexed on spawnId */
 
         boolean hasInlet;
 
@@ -145,14 +145,14 @@ final class MethodTable {
                 CodeExceptionGen origE[] = origM.getExceptionHandlers();
                 CodeExceptionGen newE[] = mg.getExceptionHandlers();
 
-                catchBlocks = new Vector();
+                catchBlocks = new ArrayList();
 
                 for (int i = 0; i < orig.catchBlocks.size(); i++) {
                     CodeExceptionGen origCatch = (CodeExceptionGen) orig.catchBlocks
-                        .elementAt(i);
+                        .get(i);
                     for (int j = 0; j < origE.length; j++) {
                         if (origCatch == origE[j]) {
-                            catchBlocks.addElement(newE[j]);
+                            catchBlocks.add(newE[j]);
                             break;
                         }
                     }
@@ -471,10 +471,10 @@ final class MethodTable {
                 se.hasInlet = true;
 
                 if (se.catchBlocks == null) {
-                    se.catchBlocks = new Vector();
+                    se.catchBlocks = new ArrayList();
                 }
 
-                se.catchBlocks.addElement(e);
+                se.catchBlocks.add(e);
 
                 if (verbose) {
                     System.out.println("spawn " + spawnId + " with inlet " + e);
@@ -550,9 +550,6 @@ final class MethodTable {
             b = new BT_Analyzer(cl, spawnableClass, verbose);
             b.start(false);
             analyzers.put(cl, b);
-            if (b.hasSpecialMethods()) {
-                Satinc.do_satinc(cl);
-            }
         }
         return b;
     }
@@ -561,12 +558,10 @@ final class MethodTable {
         BT_Analyzer analyzer = getAnalyzer(cl);
         // System.out.println("isSpawnable: method = " + m + ", class = " +
         // cl.getClassName());
-        boolean b = analyzer.isSpecial(m);
-        // System.out.println("isSpawnable returns " + b);
-        if (b) {
-            Satinc.do_satinc(cl);
+        if (! analyzer.hasSpecialMethods()) {
+            return false;
         }
-        return b;
+        return analyzer.isSpecial(m);
     }
 
     void addCloneToInletTable(Method mOrig, MethodGen mg) {
@@ -646,7 +641,7 @@ final class MethodTable {
         return e.typesOfParamsNoThis;
     }
 
-    Vector getCatchTypes(MethodGen m, int spawnId) {
+    ArrayList getCatchTypes(MethodGen m, int spawnId) {
         MethodTableEntry e = findMethod(m);
         return e.spawnTable[spawnId].catchBlocks;
     }

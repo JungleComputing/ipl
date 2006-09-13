@@ -17,7 +17,7 @@ public final class MessageHandler implements Upcall, Protocol, Config {
         this.s = s;
     }
 
-    public void upcall(ReadMessage m) {
+    public void upcall(ReadMessage m) throws IOException {
         SendPortIdentifier ident = m.origin();
 
         try {
@@ -71,21 +71,31 @@ public final class MessageHandler implements Upcall, Protocol, Config {
                 s.ft.handleResultPush(m);
                 break;
             case SO_REQUEST:
-                s.so.handleSORequest(m);
+                s.so.handleSORequest(m, false);
+                break;
+            case SO_DEMAND:
+                s.so.handleSORequest(m, true);
                 break;
             case SO_TRANSFER:
                 s.so.handleSOTransfer(m);
                 break;
+            case SO_NACK:
+                s.so.handleSONack(m);
+                break;
             case BARRIER_REPLY:
                 s.comm.handleBarrierReply(ident.ibis());
+                break;
+            case GRT_UPDATE:
+                s.ft.handleGRTUpdate(m);
                 break;
             default:
                 commLogger.error("SATIN '" + s.ident + "': Illegal opcode "
                     + opcode + " in MessageHandler");
             }
         } catch (IOException e) {
-            commLogger.warn("satin msgHandler upcall: " + e, e);
+            commLogger.warn("satin msgHandler upcall for " + ident.ibis() + ": " + e, e);
             // Ignore.
+            throw e;
         }
     }
 }

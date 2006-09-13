@@ -77,13 +77,14 @@ public final class FaultTolerance implements Config {
         if (DELETE_CLUSTER_TIME > 0) {
             (new DeleteClusterThread(DELETE_CLUSTER_TIME)).start();
         }
-
     }
 
     public void init(StaticProperties requestedProperties) {
         ftComm.init(requestedProperties);
 
-        globalResultTable = new GlobalResultTable(s, requestedProperties);
+        if(!FT_NAIVE) {
+            globalResultTable = new GlobalResultTable(s, requestedProperties);
+        }
         abortAndStoreList = new StampVector();
 
         if (FT_NAIVE) {
@@ -143,8 +144,6 @@ public final class FaultTolerance implements Config {
                 s.algorithm.handleCrash(id);
 
                 if (!FT_NAIVE) {
-                    globalResultTable.removeReplica(id);
-
                     // abort all jobs stolen from id or descendants of jobs
                     // stolen from id
                     killAndStoreSubtreeOf(id);
@@ -161,7 +160,7 @@ public final class FaultTolerance implements Config {
 
     public void handleMasterCrash() {
         ftLogger.info("SATIN '" + s.ident + "': MASTER (" + s.masterIdent
-            + ") HAS CRASHED!!!");
+            + ") HAS CRASHED");
 
         // master has crashed, let's elect a new one
         IbisIdentifier newMaster = null;
@@ -177,10 +176,14 @@ public final class FaultTolerance implements Config {
             masterHasCrashed = false;
             s.masterIdent = newMaster;
             if (s.masterIdent.equals(s.ident)) {
+                ftLogger.info("SATIN '" + s.ident + "': I am the new master");
                 s.setMaster(true);
                 if (STATS) {
                     s.totalStats = new Statistics();
                 }
+            } else {
+                ftLogger.info("SATIN '" + s.ident + "': " + s.masterIdent
+                    + "is the new master");
             }
             restarted = true;
         }
@@ -347,10 +350,6 @@ public final class FaultTolerance implements Config {
         globalResultTable.print(out);
     }
 
-    public void exit() {
-        globalResultTable.exit();
-    }
-
     public IbisIdentifier lookupOwner(InvocationRecord r) {
         return globalResultTable.lookup(r.getStamp()).sendTo;
     }
@@ -390,5 +389,8 @@ public final class FaultTolerance implements Config {
     public void sendAbortAndStoreMessage(InvocationRecord r) {
         ftComm.sendAbortAndStoreMessage(r);
     }
-
+    
+    public void handleGRTUpdate(ReadMessage m) {
+        globalResultTable.handleGRTUpdate(m);
+    }
 }

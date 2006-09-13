@@ -348,7 +348,7 @@ ibp_init(JNIEnv *env, int *argc, char *argv[])
 {
     int		p4_argc = *argc;
 
-    ibmp_check_ibis_name(env, "ibis.impl.messagePassing.MPIIbis");
+    ibmp_check_ibis_name(env, "ibis.impl.messagePassing.mpi.MPIIbis");
 
     argv = ibmpi_p4_args(&p4_argc, argv);
 

@@ -61,7 +61,7 @@ code for absent modules.
 <P>
 If you want to change your configuration or want to set
 parameters for the build process, the preferred way is to
-change the generated file build-properties in the root Ibis
+change the generated file build-properties in the build-files
 directory.
 </P>
 <P><P>
@@ -70,10 +70,6 @@ Changes are currently:
 <ul>
 <li>
 paths to support libraries;
-</li>
-<li>
-switching on/off of java compiler optimization or debug symbol
-generation;
 </li>
 <li>
 switching on/off of native compiler optimization or debug symbol
@@ -97,15 +93,10 @@ Build by typing
 </P></P>
 
 <P><P>
-Afterwards, you can run a simple test by going to the
-<code>ibis-example</code>
-directory and running <code>ant test</code>.
-</P></P>
-
-<P><P>
-A more thorough test, which runs several applications and builds all
-of them can be run by going to the <code>apps</code> directory and running
-<code>ant test</code> there.
+Afterwards, you can run a simple test by
+running <code>ant test</code>.
+Before running tests, however, you need to set the <code>IBIS_HOME</code>
+environment variable to the path where Ibis is installed.
 </P></P>
 
 <hr>

@@ -11,78 +11,29 @@
  The results of orphan jobs are reused while recomputing jobs lost in
  crashes. 
 
- Fault tolerance in Satin comes in many flavours:
-
- 1. The job results in the Global Result Table can be identified either
- by job parameters or job identifiers (integer numbers). Using job
- identifiers is benefitial for applications with large job parameters.
- However, using job identifiers is only possible, when the maximal
- branching factor of the Satin execution tree can be determined.
- 
- 2. The Global Result Table can be either replicated or distributed.
- With replicated table, each processor has an identical copy of the
- table. Storing a job result in the table means broadcasting this result
- to all processors. For applications with large job results (e.g.
- Raytracer) this is inefficient, and using distributed table is
- recommended. With distributed table, a job result is stored only in the
- local replica of the table and a _pointer_ (i.e. processor ID) is
- broadcast to other processors. 
- 
- 3. There are two approaches to storing orphan jobs in the Global Result
- Table. In the first approach ("with aborts"), we store only those parts
- of the orphan jobs that are finished when a crash is detected. The rest
- is aborted. In the second approach ("without aborts"), when a crash is
- detected, we store a special "lock" entry for each unfinished, _whole_
- orphan job (most of them are unfinished, for finished ones we simply
- store the results). When the job is finished, we replace the lock entry
- with the job result. At the moment, the "with aborts" version performs
- better. The "withouts aborts" version, although it saves more work,
- influences load balancing which results in worse performance. However,
- it does much fewer broadcasts (about 20 times).
- 
- 4. For comparison purposes, we also implemented a "naive" version of
- fault tolerance, which recomputes jobs lost in a crash, but does not
- use the Global Result Table and simply discards orphan jobs.
- 
+ Fault tolerance in Satin comes in two flavours, either with or without
+ global result table. The version without global result table (the "naive"
+ version) recomputes all jobs lost in a crash, including all orphans.
  
  How to use fault tolerance:
  
  STEP 1 ----------------------------------------------------------------- 
- enable fault tolerance, by passing the flag -Dsatin.ft=true to java.
-
- STEP 2 ------------------------------------------------------------------
  chose the flavour
- 
- 2A ----------------------------
- to use replicated Global Result Table, pass the following flag to java:
-	
-	-Dsatin.ft.grt.replicated=true
- 
- to use distributed Global Result Table, pass the following flag to java:
-    
-	-Dsatin.ft.grt.replicated=false
- (this is the default).
-	
- 2B ----------------------------
- to use the "with aborts" version, pass the following flag to java:
- 
-	-Dsatin.ft.noAborts=false
- (this is the default).
- 
- to use the "without aborts" version, pass the following flag to java:
 
-	-Dsatin.ft.noAborts=true
-	
- 
- 2C -----------------------------
+ 2A ----------------------------
+ to use a Global Result Table, you don't have to do anything (this is
+ the default).
+
+ 2B ----------------------------
  to use the naive version, pass the following flag to java:
  
-	-Dsatin.ft.noTable=true -Dsatin.ft.noAborts=false
+	-Dsatin.ft.naive=true
 
  
  STEP 3 -----------------------------------------------------------------
  run the application (see the Ibis Programmers Manual) and try to kill
- some nodes, for example with prkill. You can also tell nodes to
- commit a suicide by specifying
+ some nodes. You can also tell nodes to commit a suicide by specifying
  
-	-satin-kill <time>
+	-Dsatin.killTime=<time in seconds>
+
+which instructs satin to commit suicide after <time in seconds> seconds.

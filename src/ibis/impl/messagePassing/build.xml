@@ -19,6 +19,8 @@
 
     <property name="ibis" location="../../../.."/>
 
+    <property name="local.lib" value="ibis_mp"/>
+
     <import file="${ibis}/build-files/build-properties.xml"/>
     <import file="${ibis}/build-files/build-native.xml"/>
 
@@ -37,8 +39,7 @@
     <target name="panda-arch"
 	depends="panda-arch-unix, panda-arch-mac, panda-arch-windows"/>
 
-    <target name="arch-init" depends="property-init, panda-arch">
-	<property name="local.lib" value="ibis_mp"/>
+    <target name="arch-init" depends="property-init, native-init, panda-arch">
 
 	<path id="mp-local.includes-ref">
 	    <pathelement path="${ibis}/src/ibis/impl/messagePassing/include"/>

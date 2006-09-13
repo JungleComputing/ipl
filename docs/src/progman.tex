@@ -997,7 +997,7 @@ implement a functioning flow-control for these cases.
 
 Before running an Ibis application it must be compiled.  Using
 \emph{ant}, this is quite easy. Assuming that the environment variable
-\texttt{IBIS\_ROOT} reflects the location of your Ibis installation,
+\texttt{IBIS\_HOME} reflects the location of your Ibis installation,
 here is a \texttt{build.xml} file
 for our example program:
 
@@ -1014,7 +1014,7 @@ for our example program:
     </description>
 
     <property environment="env" />
-    <property name="ibis"   value="${env.IBIS_ROOT}" />
+    <property name="ibis"   value="${env.IBIS_HOME}" />
 
     <property name="build"  location="build"/>
 
@@ -1026,6 +1026,16 @@ for our example program:
 
 Now, invoking \emph{ant} compiles the application, leaving the class files
 in a directory called \texttt{build}.
+
+If, for some reason, it is not convenient to use \emph{ant} to compile
+your application, or you have only class files or jar files available
+for parts of your application, it is also possible to first compile
+your application to class files or jar files, and then process those
+using the \emph{ibisc} script. This script can be found in the Ibis
+bin directory. It takes either directories, class files, or jar files
+as parameter, and processes those, possibly rewriting them. In case
+of a directory, all class files and jar files in that directory or
+its subdirectories are processed.
 
 \mysubsection{The Ibis Nameserver}
 
@@ -1155,7 +1165,7 @@ Then, in both shells type:
 \noindent
 {\small
 \begin{verbatim}
-$ $IBIS_ROOT/bin/ibis-run \
+$ $IBIS_HOME/bin/ibis-run \
     -nhosts 2 -ns localhost Example
 \end{verbatim}
 }
@@ -1176,7 +1186,7 @@ In both shells, type:
 {\small
 \begin{verbatim}
 $ java \
-    -cp $IBIS_ROOT/lib/ibis.jar:$IBIS_ROOT/3rdparty/log4j-1.2.9.jar:build \
+    -cp $IBIS_HOME/lib/ibis.jar:$IBIS_HOME/3rdparty/log4j-1.2.9.jar:build \
     -Dibis.pool.total_hosts=2 -Dibis.name_server.host=localhost \
     -Dibis.name_server.key=bla \
     Example
@@ -1526,55 +1536,22 @@ To resume Satin's operation, the \texttt{resume()} method must be used.
 
 \mysubsection{Satin program arguments}
 
-The Satin system accepts the following arguments. They are
-filtered out from the program arguments, leaving the application's
-arguments:
+The Satin system accepts the following parameters, which are
+passed to java as system property values.
 \begin{description}
-\item{\texttt{-satin-closed}}
+\item{\texttt{-Dsatin.closed}}
 Only use the initial set of hosts for the computation; do not allow
 further hosts to join the computation later on.
-\item{\texttt{-satin-stats}}
+\item{\texttt{-Dsatin.stats}}
 Display some statistics at the end of the Satin run. This is the default.
-\item{\texttt{-satin-detailed-stats}}
+\item{\texttt{-Dsatin.stats=false}}
+Don't display statistics.
+\item{\texttt{-Dsatin.detailedStats}}
 Display detailed statistics for every member at the end of the Satin run.
-\item{\texttt{-satin-no-stats}}
-Don't display statistics at the end of the Satin run.
-\item{\texttt{-satin-panda}}
-Use the Panda version of Ibis.
-\item{\texttt{-satin-mpi}}
-Use the MPI version of Ibis.
-\item{\texttt{-satin-net}}
-Use NetIbis.
-\item{\texttt{-satin-nio}}
-Use NIO Ibis.
-\item{\texttt{-satin-tcp}}
-Use the TCP version of Ibis.
-\item{\texttt{-satin-ibis}}
-Use Ibis serialization. When no serialization is specified,
-the object serialization used is determined by Ibis itself.
-\item{\texttt{-satin-sun}}
-Use Sun serialization.
-\item{\texttt{-satin-upcalls}}
-Use upcalls for receiving messages. This is the default.
-\item{\texttt{-satin-no-upcalls}}
-Use explicit receipt for receiving messages.
-\item{\texttt{-satin-upcall-polling}}
-Use upcalls for receiving messages, but Satin must explicitly poll to get
-upcalls.
-\item{\texttt{-satin-alg} \emph{algorithm}}
+\item{\texttt{-Dsatin.alg}=\emph{algorithm}}
 Specify the load-balancing algorithm to use. The possible values for
 \emph{algorithm} are: RS for random work-stealing, CRS for cluster-aware
-random-work stealing, and MW for master-worker
-\end{description}
-
-The following flags are for tuning by the developers of Satin,
-and should not be used unless you really know what you are doing:
-\begin{description}
-\item{\texttt{-satin-queue-size} \emph{integer}}
-The maximum desirable job queue size. If the current work queue 
-has more than this number of jobs, Satin indicates that 
-it does not need more jobs (as can be asked though the
-needMoreJobs() method).
+random-work stealing, and MW for master-worker.
 \end{description}
 
 \mysubsection{Satin Shared Objects}
@@ -1718,9 +1695,9 @@ our example program:
     </description>
 
     <property environment="env" />
-    <property name="ibis"   value="${env.IBIS_ROOT}" />
+    <property name="ibis"   value="${env.IBIS_HOME}" />
 
-    <property name="satin-main-class" value="Search"/>
+    <property name="satin-classes" value="Search"/>
 
     <property name="build"  location="build"/>
 
@@ -1730,11 +1707,14 @@ our example program:
 \end{quote}
 }
 
-Again, we assume that the environment variable \texttt{IBIS\_ROOT} reflects
+Again, we assume that the environment variable \texttt{IBIS\_HOME} reflects
 the location of your Ibis installation.
-Also note that the Satin bytecode rewriter needs to know the main class of your
-Satin application.
-Its name is specified in the \texttt{satin-main-class} property.
+Also note that the Satin bytecode rewriter needs to know the
+classes in your application that must be rewritten.
+Those classes are: the main class, any class that implements a shared object,
+and all classes that invoke spawns or syncs.
+The names of these classes are specified in the \texttt{satin-classes} property,
+as a comma-separated list.
 
 Invoking \emph{ant clean compile} compiles a sequential version
 of the application, 
@@ -1742,6 +1722,25 @@ leaving the class files in a directory called \texttt{build}.
 
 Invoking \emph{ant clean build} compiles the application for parallel
 runs.
+
+If, for some reason, it is not convenient to use \emph{ant} to compile
+your application, or you have only class files or jar files available
+for parts of your application, it is also possible to first compile
+your application to class files or jar files, and then process those
+using the \emph{ibisc} script. This script can be found in the Ibis
+bin directory. It takes either directories, class files, or jar files
+as parameter, and processes those, possibly rewriting them. In case
+of a directory, all class files and jar files in that directory or
+its subdirectories are processed.
+To process a Satin application, \emph{ibisc} needs to know which
+classes to process for Satin. This can be accomplished by passing
+flags to \emph{ibisc}:
+
+\texttt{-satin} \emph{comma-separated list of class names}
+
+where the comma-separated list of class names consists of the main class,
+any class that implements a shared object, and all classes that invoke
+spawns or syncs.
 
 Running a Satin program is very much like running an Ibis application.
 See Section \ref{Compiling and Running an Ibis Application} for details.
@@ -1822,7 +1821,7 @@ Using \emph{ant}, this is quite easy. Here is an example build.xml file:
     </description>
 
     <property environment="env" />
-    <property name="ibis"   value="${env.IBIS_ROOT}" />
+    <property name="ibis"   value="${env.IBIS_HOME}" />
 
     <property name="build"  location="build"/>
 
@@ -1832,7 +1831,7 @@ Using \emph{ant}, this is quite easy. Here is an example build.xml file:
 \end{quote}
 }
 
-Again, we assume that the environment variable \texttt{IBIS\_ROOT} reflects
+Again, we assume that the environment variable \texttt{IBIS\_HOME} reflects
 the location of your Ibis installation.
 
 Invoking \emph{ant build-sun} compiles a standard Java RMI version of
@@ -1841,9 +1840,9 @@ Invoking \emph{ant build} compiles the application for Ibis RMI.
 Running an Ibis RMI program is very much like running an Ibis application.
 
 To test this for yourself, it is best to start with
-an example, say \texttt{\$IBIS\_ROOT/apps/rmi/tsp}. 
+an example, say \texttt{\$IBIS\_HOME/apps/rmi/tsp}. 
 If you want to test your own application, it is easiest to just copy
-the \texttt{build.xml} file from \texttt{\$IBIS\_ROOT/apps/rmi/tsp}, and adapt it for your
+the \texttt{build.xml} file from \texttt{\$IBIS\_HOME/apps/rmi/tsp}, and adapt it for your
 application. 
 To compile the TSP example, please type
 
@@ -1861,7 +1860,7 @@ Running the TSP example with Sun RMI can be done as follows. Run the command
 {\small
 \begin{verbatim}
 $ java \
-    -cp $IBIS_ROOT/lib/ibis.jar:$IBIS_ROOT/3rdparty/log4j-1.2.9.jar:build \
+    -cp $IBIS_HOME/lib/ibis.jar:$IBIS_HOME/3rdparty/log4j-1.2.9.jar:build \
     -Dibis.pool.total_hosts=2 -Dibis.pool.server.host=localhost \
     Server table_15.1
 \end{verbatim}
@@ -1873,7 +1872,7 @@ on the local machine. Alternatively, you can use the \emph{ibis-run} script:
 \noindent
 {\small
 \begin{verbatim}
-$ $IBIS_ROOT/bin/ibis-run -nhosts 2 -hostno 0 Server table_15.1
+$ $IBIS_HOME/bin/ibis-run -nhosts 2 -hostno 0 Server table_15.1
 \end{verbatim}
 }
 
@@ -1883,7 +1882,7 @@ in the first shell, and
 \noindent
 {\small
 \begin{verbatim}
-$ $IBIS_ROOT/bin/ibis-run -nhosts 2 -hostno 1 Server table_15.1
+$ $IBIS_HOME/bin/ibis-run -nhosts 2 -hostno 1 Server table_15.1
 \end{verbatim}
 }
 
@@ -1917,7 +1916,7 @@ Now we can run it by typing the following command in two seperate shells:
 {\small
 \begin{verbatim}
 $ java \
-    -cp $IBIS_ROOT/lib/ibis.jar:$IBIS_ROOT/3rdparty/log4j-1.2.9.jar:build \
+    -cp $IBIS_HOME/lib/ibis.jar:$IBIS_HOME/3rdparty/log4j-1.2.9.jar:build \
     -Dibis.pool.total_hosts=2 -Dibis.pool.server.host=localhost \
     -Dibis.name_server.host=localhost -Dibis.name_server.key=bla \
     Server table_15.1 
@@ -1928,6 +1927,21 @@ $ java \
 This should produce the same result as the Sun RMI test.
 If you want to run the application with the \texttt{ibis-run} script,
 you can use the same commandline as with the Sun RMI test.
+
+If, for some reason, it is not convenient to use \emph{ant} to compile
+your application, or you have only class files or jar files available
+for parts of your application, it is also possible to first compile
+your application to class files or jar files, and then process those
+using the \emph{ibisc} script. This script can be found in the Ibis
+bin directory. It takes either directories, class files, or jar files
+as parameter, and processes those, possibly rewriting them. In case
+of a directory, all class files and jar files in that directory or
+its subdirectories are processed.
+To process an RMI application, \emph{ibisc} needs to know that it has to
+do so.  This can be accomplished by passing either the \texttt{-rmi}
+or the \texttt{-rmi-java2ibis} flag to \emph{ibisc}. The latter instructs
+\emph{ibisc} to not only use the Ibis rmic, but also to change all
+references to \texttt{java.rmi} into references to \texttt{ibis.rmi}.
 
 \mysection{The GMI (Group Method Invocation) System}
 \label{gmi-sec}
@@ -2212,7 +2226,7 @@ Using \emph{ant}, this is quite easy. Here is an example build.xml file:
     </description>
 
     <property environment="env" />
-    <property name="ibis"   value="${env.IBIS_ROOT}" />
+    <property name="ibis"   value="${env.IBIS_HOME}" />
 
     <property name="build"  location="build"/>
 
@@ -2222,10 +2236,23 @@ Using \emph{ant}, this is quite easy. Here is an example build.xml file:
 \end{quote}
 }
 
-Again, we assume that the environment variable \texttt{IBIS\_ROOT} reflects
+Again, we assume that the environment variable \texttt{IBIS\_HOME} reflects
 the location of your Ibis installation.
 
 Invoking \emph{ant build} compiles the application for GMI.
+
+If, for some reason, it is not convenient to use \emph{ant} to compile
+your application, or you have only class files or jar files available
+for parts of your application, it is also possible to first compile
+your application to class files or jar files, and then process those
+using the \emph{ibisc} script. This script can be found in the Ibis
+bin directory. It takes either directories, class files, or jar files
+as parameter, and processes those, possibly rewriting them. In case
+of a directory, all class files and jar files in that directory or
+its subdirectories are processed.
+To process a GMI application, \emph{ibisc} needs to know that it has to
+do so.  This can be accomplished by passing the \texttt{-gmi}
+flag to \emph{ibisc}.
 
 Running a GMI program is very much like running an Ibis application.
 See Section \ref{Compiling and Running an Ibis Application} for details.
@@ -2238,8 +2265,8 @@ The Ibis web page
 {\latex {http://www.cs.vu.nl/ibis/publications.html}}
 contains links to various Ibis papers.
 The best starting point might be \\
-{\html {\htmladdnormallink{http://www.cs.vu.nl/~rob/papers/cpe03.ps.gz} {http://www.cs.vu.nl/\~{}rob/papers/cpe03.ps.gz}}}
-{\latex {http://www.cs.vu.nl/\~{}rob/papers/cpe03.ps.gz}}, which gives a high-level description of the stucture of the Ibis system.
+{\html {\htmladdnormallink{http://www.cs.vu.nl/ibis/papers/nieuwpoort_cpe_05.pdf} {http://www.cs.vu.nl/ibis/papers/nieuwpoort\_cpe\_05.pdf}}}
+{\latex {http://www.cs.vu.nl/ibis/papers/nieuwpoort\_cpe\_05.pdf}}, which gives a high-level description of the stucture of the Ibis system.
 It also gives some low-level and high-level benchmarks of the different Ibis implementations.
 
 The \emph{docs/api} subdirectory of the Ibis installation provides

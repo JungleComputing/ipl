@@ -3,11 +3,12 @@
  */
 package ibis.satin.impl.sharedObjects;
 
-import lrmcast.ObjectMulticaster;
+import mcast.object.ObjectMulticaster;
 import ibis.satin.SharedObject;
+import ibis.satin.impl.Config;
 import ibis.satin.impl.Satin;
 
-final class SOInvocationReceiver extends Thread {
+final class SOInvocationReceiver extends Thread implements Config {
     private Satin s;
 
     private ObjectMulticaster omc;
@@ -15,6 +16,7 @@ final class SOInvocationReceiver extends Thread {
     protected SOInvocationReceiver(Satin s, ObjectMulticaster omc) {
         this.s = s;
         this.omc = omc;
+        setName("SOInvocationReceiver");
     }
 
     public void run() {
@@ -24,18 +26,17 @@ final class SOInvocationReceiver extends Thread {
 
                 if (o instanceof SOInvocationRecord) {
                     SOInvocationRecord soir = (SOInvocationRecord) o;
+                    soLogger.debug("SATIN '" + s.ident.name() + "': " + "received SO invocation broadcast id = " + soir.getObjectId());
                     s.so.addSOInvocation(soir);
                 } else if (o instanceof SharedObject) {
                     SharedObject obj = (SharedObject) o;
-                    synchronized (s) {
-                        s.so.sharedObjects.put(obj.objectId, obj);
-                    }
+                    soLogger.debug("SATIN '" + s.ident.name() + "': " + "received broadcast object, id = " + obj.objectId);
+                    s.so.addObject(obj);
                 } else {
-                    System.err.println("AAA");
+                    soLogger.warn("received unknown object in SOInvocation receiver");
                 }
             } catch (Exception e) {
-                System.err.println("WARNING, SOI Mcast receive failed: " + e);
-                e.printStackTrace();
+                soLogger.warn("WARNING, SOI Mcast receive failed: " + e, e);
             }
         }
     }

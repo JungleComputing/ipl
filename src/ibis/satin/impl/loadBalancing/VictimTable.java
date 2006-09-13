@@ -213,11 +213,6 @@ public final class VictimTable implements Config {
             v = getVictimNonBlocking(id);
             if (v != null) return v;
 
-            if (commLogger.isDebugEnabled()) {
-                commLogger.debug("SATIN '" + satin.ident
-                    + "': could not get reply port to " + id + ", retrying");
-            }
-
             try {
                 satin.wait(100);
             } catch (Exception e) {

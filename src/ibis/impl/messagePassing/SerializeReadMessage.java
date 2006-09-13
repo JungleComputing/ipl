@@ -9,7 +9,7 @@ import java.io.IOException;
  */
 final class SerializeReadMessage extends ReadMessage {
 
-    java.io.ObjectInput obj_in;
+    ibis.io.SunSerializationInputStream obj_in;
 
     SerializeReadMessage(ibis.ipl.SendPort origin, ReceivePort port) {
         super(origin, port);
@@ -53,11 +53,7 @@ final class SerializeReadMessage extends ReadMessage {
     }
 
     public String readString() throws IOException {
-        try {
-            return (String) obj_in.readObject();
-        } catch (ClassNotFoundException e) {
-            throw new Error("class String not found", e);
-        }
+        return obj_in.readString();
     }
 
     public Object readObject() throws IOException, ClassNotFoundException {

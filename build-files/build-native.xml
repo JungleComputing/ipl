@@ -15,15 +15,44 @@
 	Requires definition of the following properties:
 	build                  the root of the build tree to be javah'd
 	default.classpath      refid of sensible default classpath
+	Note: this depends on the ant optional tasks replaceregexp and
+	javah.
     -->
 
+    <property environment="env"/>
+    <property name="JAVA_HOME" value="${env.JAVA_HOME}"/>
+
+    <target name="prop-native-init">
+	<condition property="os-is-mac">
+	    <os family="mac"/>
+	</condition>
+	<condition property="os-is-windows">
+	    <os family="windows"/>
+	</condition>
+	<condition property="os-is-unix">
+	    <and>
+		<os family="unix"/>
+		<not>
+		    <os family="mac"/>
+		</not>
+	    </and>
+	</condition>
+
+	<property file="${ibis}/build-files/build-properties"/>
+
+	<available file="${package.home.gm}" property="gm.present"/>
+	
+	<available file="${package.home.panda}" property="panda.present"/>
+    </target>
+
     <target name="property-javah-build" depends="property-init" unless="build">
-	<echo message="build is undefined. Set it to the default value"/>
+	<echo level="debug"
+	      message="build is undefined. Set it to the default value"/>
 	<property name="build" location="build"/>
 	<mkdir dir="${build}"/>
     </target>
 
-    <target name="javah-init" depends="property-javah-build">
+    <target name="javah-init" depends="property-javah-build,prop-native-init">
 	<mkdir dir="${build}/include"/>
 	<echo level="warning" message="default.classpath = ${default.classpath}"/>
 	<path id="all-classes">
@@ -62,7 +91,7 @@
     <target name="find-natives"
 	depends="javah-init, -get-natives"/>
 
-    <target name="find-classes-native">
+    <target name="find-classes-native" depends="find-natives">
 	<loadfile
 		property="classes.native"
 		srcFile="${build}/NativeMethodClasses">
@@ -179,17 +208,20 @@
     </target>
 
     <target name="property-native-local.lib" unless="local.lib">
-	<echo message="local.lib is undefined. Set it to the default value"/>
+	<echo level="debug"
+	      message="local.lib is undefined. Set it to the default value"/>
 	<property name="local.lib" value="ibis"/>
     </target>
 
     <target name="native-init"
 	    depends="property-native-build,
+		     prop-native-init,
 		     property-native-local.lib,
 		     property-native-outtype,
 		     proprietary-tasks,
 		     property-compiler-init" unless="native-initialized">
 	<property name="native-initialized" value="true"/>
+
 	<mkdir dir="${build}"/>
 	<mkdir dir="${build}/include"/>
 	<mkdir dir="${ibis}/lib"/>

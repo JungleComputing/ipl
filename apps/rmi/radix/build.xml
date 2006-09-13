@@ -11,8 +11,10 @@
 
     <property environment="env"/>
 
-    <property name="ibis"        location="${env.IBIS_ROOT}"/>
+    <property name="ibis"        location="${env.IBIS_HOME}"/>
     <property name="build"       location="build"/>
+
+    <property name="shared-dir"	 location="../shared"/>
 
     <property name="test-par-run" value="Radix -t -r64"/>
     <property name="test-seq-run" value="Radix -t -r64"/>

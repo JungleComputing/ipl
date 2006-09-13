@@ -22,7 +22,7 @@ class GMIParameterVectorGenerator extends GMIGenerator {
     GMIParameterVectorGenerator(BT_Analyzer data, PrintWriter output) {
         this.data = data;
         this.output = output;
-        name = "group_parameter_vector_" + data.classname + "_";
+        name = "group_parametervector_" + data.classname + "_";
     }
 
     void header(Method m) {

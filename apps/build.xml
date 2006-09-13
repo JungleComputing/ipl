@@ -15,12 +15,6 @@
 	<echo message="os.name ${os.name} os.arch ${os.arch}"/>
     </target>
 
-    <property environment="env"/>
-
-    <property name="ibis"        location="${env.IBIS_ROOT}"/>
-
-    <import file="${ibis}/build-files/build-properties.xml"/>
-
     <path id="buildfiles">
 	<fileset dir=".">
 	    <include name="*/build.xml"/>
@@ -29,6 +23,6 @@
     </path>
     <property name="build.files" refid="buildfiles"/>
 
-    <import file="${ibis}/apps/build-apps.xml"/>
+    <import file="build-apps.xml"/>
 
 </project>

@@ -3,3 +3,4 @@ worldmodel = closed
 communication = OneToOne, OneToMany, ManyToOne, Poll, TotallyOrdered, \
 		FifoOrdered, Reliable, PollMessageUpcalls, \
 		AutoMessageUpcalls, ExplicitReceipt
+nickname = mpi 

@@ -14,5 +14,3 @@ build.xml	Ant build file for building Ibis applications.
 		"ant build" (or simply: "ant") will build all applications that
 		are present in your Ibis installation. "ant clean" will remove
 		what "ant build" made.
-    
-build-apps.xml	Ant build file used internally for building Ibis applications.

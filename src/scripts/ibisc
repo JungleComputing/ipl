@@ -16,8 +16,45 @@ done
 dir=`dirname "$PRG"`
 dir=`cd "$dir" && pwd`
 
-. "$dir"/../configuration.sh
+case X$IBIS_HOME in
+X)
+    IBIS_HOME=`cd "$dir/.." && pwd`
+    ;;
+esac
 
-JAVACLASSPATH="$CLASSPATH:$IBIS_ROOT/lib/ibis.jar:build:$BCEL:.:"
+export IBIS_HOME
 
-"$JAVA_ROOT"/bin/java -classpath "$JAVACLASSPATH" ibis.frontend.ibis.Ibisc -compiler "$JAVAC -g -classpath \"$JAVACLASSPATH\"" $@
+case X$JAVA_HOME in
+X)
+    JAVA=java
+    ;;
+*)
+    JAVA="$JAVA_HOME/bin/java"
+    ;;
+esac
+
+export IBIS_HOME
+
+LIBCLASSPATH=""
+
+add_to_libclasspath () {
+    DIRLIBS=`cd "$1"; ls *.jar`
+    for i in ${DIRLIBS}
+    do
+	# if the directory is empty, then it will return the input string
+	if [ "$i" != "${DIRLIBS}" ] ; then
+	    if [ -z "$LIBCLASSPATH" ] ; then
+		LIBCLASSPATH="$1/$i"
+	    else
+		LIBCLASSPATH="$1/$i":$LIBCLASSPATH
+	    fi
+	fi
+    done
+}
+
+# Add the following dirs to the classpath 
+add_to_libclasspath "${IBIS_HOME}"/3rdparty
+
+JAVACLASSPATH="$CLASSPATH:$IBIS_HOME/lib/ibis.jar:$LIBCLASSPATH"
+
+"$JAVA" -classpath "$JAVACLASSPATH" ibis.frontend.ibis.Ibisc "$@"

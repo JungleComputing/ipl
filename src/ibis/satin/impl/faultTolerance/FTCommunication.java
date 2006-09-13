@@ -1,6 +1,7 @@
 /*
  * Created on Apr 26, 2006 by rob
  */
+
 package ibis.satin.impl.faultTolerance;
 
 import ibis.ipl.IbisIdentifier;
@@ -214,22 +215,13 @@ final class FTCommunication implements Config, ReceivePortConnectUpcall,
         handleLostConnection(johnDoe.ibis());
     }
 
+    /** The ibis upcall that is called whenever a node joins the computation */
     public void joined(IbisIdentifier joiner) {
         ftLogger.debug("SATIN '" + s.ident + "': got join of " + joiner);
 
         if (joinThread == null) {
             joinThread = new JoinThread(s);
             joinThread.start();
-        }
-
-        // @@@ this is not supported any more I think
-        if (joiner.name().equals("ControlCentreIbis")) {
-            return;
-        }
-
-        if (joiner.equals(s.ident)) {
-            joinThread.waitForEarlierJoins();
-            return;
         }
 
         joinThread.addJoiner(joiner);
@@ -280,6 +272,10 @@ final class FTCommunication implements Config, ReceivePortConnectUpcall,
         }
     }
 
+    protected void handleMyOwnJoinJoin() {
+        s.so.handleMyOwnJoin();
+    }
+    
     protected void handleJoins(IbisIdentifier[] joiners) {
         String[] names = new String[joiners.length];
         for (int i = 0; i < names.length; i++) {
@@ -290,16 +286,23 @@ final class FTCommunication implements Config, ReceivePortConnectUpcall,
 
         s.so.createSoPorts(joiners);
 
+        ftLogger.debug("SATIN '" + s.ident + "': SO ports created");
+
         ReceivePortIdentifier[] r = null;
         try {
             r = s.comm.lookup(names);
         } catch (Exception e) {
             ftLogger.warn("SATIN '" + s.ident
                 + "': got an exception while looking up receive ports", e);
+            return;
         }
+
+        ftLogger.debug("SATIN '" + s.ident + "': lookups succeeded");
 
         for (int i = 0; i < r.length; i++) {
             IbisIdentifier joiner = joiners[i];
+
+            ftLogger.debug("SATIN '" + s.ident + "': creating sendport");
 
             SendPort p = null;
             try {
@@ -309,15 +312,17 @@ final class FTCommunication implements Config, ReceivePortConnectUpcall,
                     + "': got an exception in Satin.join", e);
                 continue;
             }
+            ftLogger.debug("SATIN '" + s.ident + "': creating sendport done");
 
+            ftLogger.debug("SATIN '" + s.ident + "': creating SO connections");
             s.so.addSOConnection(joiner);
+            ftLogger.debug("SATIN '" + s.ident + "': creating SO connections done");
 
-            if (!FT_NAIVE) {
-                s.ft.globalResultTable.addReplica(joiner);
-            }
             synchronized (s) {
+                ftLogger.debug("SATIN '" + s.ident + "': adding victim");
                 s.victims.add(new Victim(joiner, p, r[i]));
                 s.notifyAll();
+                ftLogger.debug("SATIN '" + s.ident + "': adding victim done");
             }
 
             ftLogger.debug("SATIN '" + s.ident + "': " + joiner + " JOINED");
