@@ -18,6 +18,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -49,7 +50,8 @@ public class NameServer extends Thread implements Protocol {
     static final int CHECKER_INTERVAL
         = TypedProperties.intProperty(NSProps.s_keychecker_interval, 0);
 
-    static final int MAXTHREADS = 32;
+    static final int MAXTHREADS =
+        TypedProperties.intProperty(NSProps.s_max_threads, 32);
 
     InetAddress myAddress;
 
@@ -144,6 +146,8 @@ public class NameServer extends Thread implements Protocol {
 
         long pingLimit;
 
+        boolean silent;
+
         RunInfo(boolean silent) throws IOException {
             unfinishedJoins = new ArrayList();
             arrayPool = new ArrayList();
@@ -157,13 +161,15 @@ public class NameServer extends Thread implements Protocol {
             electionServer = new ElectionServer(silent,
                     NameServerClient.socketFactory);
             pingLimit = System.currentTimeMillis() + PINGER_TIMEOUT;
+            this.silent = silent;
         }
 
         public String toString() {
             String res = "runinfo:\n" + "  pool = \n";
+            IbisInfo[] elts = instances();
 
-            for (Enumeration e = pool.elements(); e.hasMoreElements();) {
-                res += "    " + e.nextElement() + "\n";
+            for (int i = 0; i < elts.length; i++) {
+                res += "    " + elts[i] + "\n";
             }
 
             res += "  toBeDeleted = \n";
@@ -175,12 +181,18 @@ public class NameServer extends Thread implements Protocol {
             return res;
         }
 
+        public IbisInfo[] instances() {
+            return (IbisInfo[]) pool.values().toArray(new IbisInfo[0]);
+        }
+
         public void remove(IbisInfo iinf) {
             pool.remove(iinf.name);
             if (! iinf.completelyJoined) {
                 int index = unfinishedJoins.indexOf(iinf);
                 if (index == -1) {
-                    logger.error("Internal error: " + iinf.name + " not completelyJoined but not in unfinishedJoins!");
+                    if (! silent) {
+                        logger.error("Internal error: " + iinf.name + " not completelyJoined but not in unfinishedJoins!");
+                    }
                 } else {
                     unfinishedJoins.remove(index);
                 }
@@ -222,6 +234,10 @@ public class NameServer extends Thread implements Protocol {
         String hubPort = System.getProperty("ibis.connect.hub.port");
         String poolPort = System.getProperty("ibis.pool.server.port");
         int port = TCP_IBIS_NAME_SERVER_PORT_NR;
+
+        if (! silent && logger.isInfoEnabled()) {
+            logger.info("Creating nameserver on " + myAddress);
+        }
 
         if (controlhub) {
             if (hubPort == null) {
@@ -297,12 +313,22 @@ public class NameServer extends Thread implements Protocol {
         if (! silent && logger.isInfoEnabled()) {
             logger.info("NameServer: created server on " + serverSocket);
         }
+
+        if (! silent && logger.isInfoEnabled()) {
+            Runtime.getRuntime().addShutdownHook(
+                new Thread("Nameserver ShutdownHook") {
+                    public void run() {
+                        logger.info("Shutdown hook triggered");
+                    }
+                });
+        }
     }
 
     // Should be called within synchronized on inf.
-    private void sendLeavers(RunInfo inf) {
-        if (logger.isDebugEnabled() && inf.leavers.size() > 0) {
-            logger.debug("sendLeavers ... size = " + inf.leavers.size());
+    private void sendLeavers(RunInfo inf) throws IOException {
+        if (! silent && logger.isDebugEnabled()) {
+            logger.debug("sendLeavers ... size = " + inf.leavers.size()
+                    + ", forwarders = " + inf.forwarders);
         }
 
         IbisInfo[] leavers = null;
@@ -312,10 +338,12 @@ public class NameServer extends Thread implements Protocol {
             leavers = (IbisInfo[]) inf.leavers.toArray(iinf);
             inf.leavers.clear();
 
-            for (Enumeration e = inf.pool.elements(); e.hasMoreElements();) {
-                IbisInfo ibisInf = (IbisInfo) e.nextElement();
-                if (ibisInf.needsUpcalls) {
-                    forward(IBIS_LEAVE, inf, ibisInf, leavers, 0);
+            // Obtain elements to send to first. The forward() method
+            // may wait (and loose the lock).
+            IbisInfo[] elts = inf.instances();
+            for (int i = 0; i < elts.length; i++) {
+                if (elts[i].needsUpcalls) {
+                    forward(IBIS_LEAVE, inf, elts[i], leavers, 0);
                 }
             }
 
@@ -324,12 +352,29 @@ public class NameServer extends Thread implements Protocol {
                     forward(IBIS_LEAVE, inf, leavers[i], leavers, 0);
                 }
             }
-            while (inf.forwarders != 0) {
-                try {
-                    inf.wait();
-                } catch(Exception ex) {
-                    // ignored
-                }
+
+            String[] names = new String[leavers.length];
+
+            for (int i = 0; i < leavers.length; i++) {
+                names[i] = leavers[i].name;
+            }
+
+            // Let the election server know about it.
+            electionKill(inf, names);
+
+            // Let the receiveport nameserver know about it.
+            receiveportKill(inf, names);
+        }
+
+        // After sendLeavers finishes, forwarders should be 0, even if
+        // this instance did not send anything! It may be called from
+        // several threads, so even if this instance does not send anything,
+        // there may still be work in progress. We wait for it to finish here.
+        while (inf.forwarders != 0) {
+            try {
+                inf.wait();
+            } catch(Exception ex) {
+                // ignored
             }
         }
     }
@@ -348,19 +393,19 @@ public class NameServer extends Thread implements Protocol {
                 e = (PingerEntry) pingerEntries.get(0);
             }
             if (e.key == null) {
-                if (logger.isDebugEnabled()) {
+                if (! silent && logger.isDebugEnabled()) {
                     logger.debug("Doing full check");
                 }
                 poolPinger(true);
             } else if (e.name == null) {
-                if (logger.isDebugEnabled()) {
+                if (! silent && logger.isDebugEnabled()) {
                     logger.debug("Doing check of pool " + e.key);
                 }
                 poolPinger(e.key, true);
             } else {
                 RunInfo p = (RunInfo) pools.get(e.key);
                 if (p != null) {
-                    if (logger.isDebugEnabled()) {
+                    if (! silent && logger.isDebugEnabled()) {
                         logger.debug("Doing check of ibis " + e.name);
                     }
                     checkPool(p, e.name, false, e.key);
@@ -422,20 +467,27 @@ public class NameServer extends Thread implements Protocol {
                 boolean joinFailed = false;
 
                 synchronized(inf) {
-                    sendLeavers(inf);
-                    inf.failed = 0;
-                    inf.forwarders = 0;
+                    try {
+                        sendLeavers(inf);
+                    } catch(IOException ex) {
+                        if (! silent) {
+                            logger.error("Got exception: " + ex);
+                        }
+                    }
 
                     if (inf.unfinishedJoins.size() > 0) {
+                        inf.failed = 0;
                         IbisInfo[] message = (IbisInfo[])
                                 inf.unfinishedJoins.toArray(new IbisInfo[0]);
 
                         inf.unfinishedJoins.clear();
 
-                        for (Enumeration e2 = inf.pool.elements(); e2.hasMoreElements();) {
-                            IbisInfo ibisInf = (IbisInfo) e2.nextElement();
-                            if (ibisInf.completelyJoined && ibisInf.needsUpcalls) {
-                                forward(IBIS_JOIN, inf, ibisInf, message, 0);
+                        // Obtain elements to send to first. The forward()
+                        // method may wait (and loose the lock).
+                        IbisInfo[] elts = inf.instances();
+                        for (int i = 0; i < elts.length; i++) {
+                            if (elts[i].completelyJoined && elts[i].needsUpcalls) {
+                                forward(IBIS_JOIN, inf, elts[i], message, 0);
                             }
                         }
 
@@ -540,10 +592,18 @@ public class NameServer extends Thread implements Protocol {
 
             synchronized(inf) {
                 inf.forwarders--;
+                if (! silent && logger.isDebugEnabled()) {
+                    logger.debug("NameServer: forwarders decr: " + inf.forwarders);
+                }
                 if (failed) {
                     inf.failed++;
+                    if (! silent && logger.isDebugEnabled()) {
+                        logger.debug("NameServer: failed: " + inf.failed);
+                    }
                 }
-                inf.notifyAll();
+                if (inf.forwarders == 0 || inf.forwarders == MAXTHREADS-1) {
+                    inf.notifyAll();
+                }
             }
         }
     }
@@ -562,7 +622,7 @@ public class NameServer extends Thread implements Protocol {
         Forwarder forwarder = new Forwarder(message, inf, dest, info, offset);
 
         synchronized(inf) {
-            while (inf.forwarders > MAXTHREADS) {
+            while (inf.forwarders >= MAXTHREADS) {
                 try {
                     inf.wait();
                 } catch(Exception e) {
@@ -570,8 +630,11 @@ public class NameServer extends Thread implements Protocol {
                 }
             }
             inf.forwarders++;
+            if (! silent && logger.isDebugEnabled()) {
+                logger.debug("NameServer: forwarders = " + inf.forwarders);
+            }
+            ThreadPool.createNew(forwarder, "Forwarder thread");
         }
-        ThreadPool.createNew(forwarder, "Forwarder thread");
     }
 
     private class PingThread implements Runnable {
@@ -634,19 +697,21 @@ public class NameServer extends Thread implements Protocol {
         Vector deadIbises = new Vector();
 
         synchronized(p) {
-            for (Enumeration e = p.pool.elements(); e.hasMoreElements();) {
-                IbisInfo temp = (IbisInfo) e.nextElement();
+            // Obtain elements to send to first.
+            IbisInfo[] elts = p.instances();
+            for (int i = 0; i < elts.length; i++) {
+                IbisInfo temp = elts[i];
                 if (victim == null || temp.name.equals(victim)) {
                     if (! kill) {
-                        p.pingers++;
                         PingThread pt = new PingThread(p, temp, key, deadIbises);
-                        while (p.pingers > MAXTHREADS) {
+                        while (p.pingers >= MAXTHREADS) {
                             try {
                                 p.wait();
                             } catch(Exception ex) {
                                 // ignored
                             }
                         }
+                        p.pingers++;
                         ThreadPool.createNew(pt, "Ping thread");
                     } else {
                         deadIbises.add(temp);
@@ -696,28 +761,27 @@ public class NameServer extends Thread implements Protocol {
                 }
 
                 // ... and to all other ibis instances in this pool.
-                synchronized(p) {
-                    for (Enumeration e = p.pool.elements(); e.hasMoreElements();) {
-                        IbisInfo ibisInf = (IbisInfo) e.nextElement();
-                        if (ibisInf.needsUpcalls) {
-                            forward(IBIS_DEAD, p, ibisInf, ibisIds, 0);
+                elts = p.instances();
+                for (int i = 0; i < elts.length; i++) {
+                    IbisInfo ibisInf = elts[i];
+                    if (ibisInf.needsUpcalls) {
+                        forward(IBIS_DEAD, p, ibisInf, ibisIds, 0);
+                    }
+                }
+
+                if (kill) {
+                    for (int i = 0; i < ibisIds.length; i++) {
+                        if (ibisIds[i].needsUpcalls) {
+                            forward(IBIS_DEAD, p, ibisIds[i], ibisIds, 0);
                         }
                     }
+                }
 
-                    if (kill) {
-                        for (int i = 0; i < ibisIds.length; i++) {
-                            if (ibisIds[i].needsUpcalls) {
-                                forward(IBIS_DEAD, p, ibisIds[i], ibisIds, 0);
-                            }
-                        }
-                    }
-
-                    while (p.forwarders != 0) {
-                        try {
-                            p.wait();
-                        } catch(Exception ex) {
-                            // ignored
-                        }
+                while (p.forwarders != 0) {
+                    try {
+                        p.wait();
+                    } catch(Exception ex) {
+                        // ignored
                     }
                 }
             }
@@ -751,14 +815,18 @@ public class NameServer extends Thread implements Protocol {
 
     private void handleCheck() throws IOException {
         String key = in.readUTF();
-        logger.info("Got check for pool " + key);
+        if (! silent && logger.isInfoEnabled()) {
+            logger.info("Got check for pool " + key);
+        }
         addPingerEntry(key, null);
         out.writeByte(0);
         out.flush();
     }
 
     private void handleCheckAll() throws IOException {
-        logger.info("Got checkAll");
+        if (! silent && logger.isInfoEnabled()) {
+            logger.info("Got checkAll");
+        }
         addPingerEntry(null, null);
         out.writeByte(0);
         out.flush();
@@ -853,7 +921,9 @@ public class NameServer extends Thread implements Protocol {
             if (needsUpcalls) {
                 out.writeInt(p.pool.size());
 
-                logger.debug("Sending " + p.pool.size() + " nodes to " + name);
+                if (! silent && logger.isDebugEnabled()) {
+                    logger.debug("Sending " + p.pool.size() + " nodes to " + name);
+                }
 
                 int i = 0;
                 while (i < p.arrayPool.size()) {
@@ -861,7 +931,9 @@ public class NameServer extends Thread implements Protocol {
 
                     if (temp != null) {
                         out.writeInt(temp.serializedId.length);
-                        logger.debug("Sending " + temp.name + " to " + name);
+                        if (! silent && logger.isDebugEnabled()) {
+                            logger.debug("Sending " + temp.name + " to " + name);
+                        }
                         out.write(temp.serializedId);
                         i++;
                     } else {
@@ -1042,59 +1114,55 @@ public class NameServer extends Thread implements Protocol {
                 logger.error("NameServer: unknown ibis " + name
                         + "/" + key + " tried to leave");
             }
-            return;
-        }
-
-        IbisInfo iinf = (IbisInfo) p.pool.get(name);
-
-        if (iinf != null) {
-            // found it.
-            if (! silent && logger.isDebugEnabled()) {
-                logger.debug("NameServer: leave from pool " + key
-                        + " of ibis " + name + " accepted");
-            }
-
-            // Let the election server know about it.
-            electionKill(p, new String[] { name });
-
-            // Let the receiveport nameserver know about it.
-            receiveportKill(p, new String[] { name });
-
-            // Also forward the leave to the requester.
-            // It is used as an acknowledgement, and
-            // the leaver is only allowed to exit when it
-            // has received its own leave message.
-            synchronized(p) {
-                p.leavers.add(iinf);
-                p.toBeDeleted.remove(iinf);
-                p.remove(iinf);
-            }
-
-            if (! silent && logger.isInfoEnabled()) {
-                logger.info(name + " LEAVES pool " + key
-                        + " (" + p.pool.size() + " nodes)");
-            }
-
-            if (p.pool.size() == 0) {
-                if (! silent && logger.isInfoEnabled()) {
-                    logger.info("NameServer: removing pool " + key);
-                }
-
-                // Send leavers before removing this run
-                synchronized(p) {
-                    sendLeavers(p);
-                }
-
-                pools.remove(key);
-                killThreads(p);
-            }
         } else {
-            if (! silent) {
-                logger.error("NameServer: unknown ibis " + name
-                    + "/" + key + " tried to leave");
+            IbisInfo iinf = (IbisInfo) p.pool.get(name);
+
+            if (iinf != null) {
+                // found it.
+                if (! silent && logger.isDebugEnabled()) {
+                    logger.debug("NameServer: leave from pool " + key
+                            + " of ibis " + name + " accepted");
+                }
+
+                // Also forward the leave to the requester.
+                // It is used as an acknowledgement, and
+                // the leaver is only allowed to exit when it
+                // has received its own leave message.
+                synchronized(p) {
+                    p.leavers.add(iinf);
+                    p.toBeDeleted.remove(iinf);
+                    p.remove(iinf);
+                }
+
+                if (! silent && logger.isInfoEnabled()) {
+                    logger.info(name + " LEAVES pool " + key
+                            + " (" + p.pool.size() + " nodes)");
+                }
+
+                if (p.pool.size() == 0) {
+                    if (! silent && logger.isInfoEnabled()) {
+                        logger.info("NameServer: removing pool " + key);
+                    }
+
+                    // Send leavers before removing this run
+                    synchronized(p) {
+                        sendLeavers(p);
+                    }
+
+                    pools.remove(key);
+                    killThreads(p);
+                }
+            } else {
+                if (! silent) {
+                    logger.error("NameServer: unknown ibis " + name
+                        + "/" + key + " tried to leave");
+                }
             }
         }
 
+        if (! silent && logger.isInfoEnabled()) {
+            logger.info("NameServer: confirming LEAVE " + name);
+        }
         out.writeByte(0);
         out.flush();
     }
@@ -1130,8 +1198,11 @@ public class NameServer extends Thread implements Protocol {
                 }
             }
 
-            for (Enumeration e = p.pool.elements(); e.hasMoreElements();) {
-                IbisInfo ipp = (IbisInfo) e.nextElement();
+            // Obtain elements to send to first. The forward() method
+            // may wait (and loose the lock).
+            IbisInfo[] elts = p.instances();
+            for (int i = 0; i < elts.length; i++) {
+                IbisInfo ipp = elts[i];
                 if (ipp.needsUpcalls) {
                     forward(IBIS_MUSTLEAVE, p, ipp, iinf, 0);
                 }

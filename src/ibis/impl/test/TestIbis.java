@@ -2,16 +2,22 @@
 
 package ibis.impl.test;
 
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
-import junit.framework.Test;
+import ibis.ipl.Ibis;
+import ibis.ipl.PortType;
+import ibis.ipl.ReadMessage;
+import ibis.ipl.ReceivePort;
+import ibis.ipl.ReceivePortIdentifier;
+import ibis.ipl.Registry;
+import ibis.ipl.SendPort;
+import ibis.ipl.SendPortIdentifier;
+import ibis.ipl.StaticProperties;
+import ibis.ipl.WriteMessage;
 
-import java.util.HashMap;
 import java.io.IOException;
 
-import ibis.ipl.*;
-import ibis.io.*;
-import ibis.util.*;
+import junit.framework.Test;
+import junit.framework.TestCase;
+import junit.framework.TestSuite;
 
 /**
  * Simple Ibis test, on a single Ibis instance.

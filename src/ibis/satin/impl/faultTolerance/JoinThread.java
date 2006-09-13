@@ -28,11 +28,7 @@ class JoinThread extends Thread implements Config {
             if (joiners.size() != 0) {
                 j = (IbisIdentifier[]) joiners.toArray(new IbisIdentifier[0]);
                 joiners.clear();
-            }
-        }
-        if (j != null) {
-            s.ft.ftComm.handleJoins(j);
-            synchronized (this) {
+                s.ft.ftComm.handleJoins(j);
                 notifyAll();
             }
         }

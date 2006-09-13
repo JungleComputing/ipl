@@ -23,7 +23,7 @@
 
     <property name="ibis"        location="."/>
 
-    <property name="version" value="ibis-1.4-test"/>
+    <property name="version" value="ibis-1.4"/>
 
     <property name="jar" value="${ibis}/lib/${version}.jar"/>
 
@@ -125,7 +125,7 @@
     </target>
 
     <target name="read-props">
-	<property file="{ibis}/build-files/build-properties"/>
+	<property file="${ibis}/build-files/build-properties"/>
     </target>
 
     <target name="natives-if-configured" depends="read-props"

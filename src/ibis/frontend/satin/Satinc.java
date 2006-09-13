@@ -114,7 +114,7 @@ public final class Satinc extends IbiscComponent {
 
     private boolean local = true;
 
-    private boolean invocationRecordCache = true;
+    private boolean invocationRecordCache = false;
 
     private boolean inletOpt = true;
 

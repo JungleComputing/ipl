@@ -54,7 +54,6 @@ Sources of Ibis 1.4 are available at
 You need an account on https://gforge.cs.vu.nl/ to access the repositories
 there. You can create an account by clicking the 'New Account' button
 on the https://gforge.cs.vu.nl/ page.
-
 To build these applications, you first need to set some environment
 variables. See the README.txt file that accompanies the Ibis applications.
 

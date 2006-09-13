@@ -17,6 +17,8 @@ public interface Config {
 
     static final String s_asserts = PROPERTY_PREFIX + "asserts";
 
+    static final String s_queue_steals = PROPERTY_PREFIX + "queueSteals";
+    
     static final String s_closed = PROPERTY_PREFIX + "closed";
 
     static final String s_stats = PROPERTY_PREFIX + "stats";
@@ -49,7 +51,7 @@ public interface Config {
 
     static final String s_kill_time = PROPERTY_PREFIX + "killTime";
 
-    static final String[] sysprops = { s_stats,
+    static final String[] sysprops = { s_stats, s_queue_steals,
         s_detailed_stats, s_closed, s_asserts,
         s_ft_naive, s_ft_connectTimeout, s_masterhost, s_in_latency,
         s_delete_time, s_delete_cluster_time, s_kill_time, s_dump, s_so_delay,
@@ -124,6 +126,11 @@ public interface Config {
     /** Used in automatic ft tests */
     static final int KILL_TIME = TypedProperties.intProperty(s_kill_time, 0);
 
+    /** Enable or disable using a seperate queue for work steal requests to 
+     * avoid thread creation. */
+    static final boolean QUEUE_STEALS = TypedProperties.booleanProperty(
+        s_queue_steals, true);
+    
     /** Logger for communication. */
     public static final Logger commLogger = ibis.util.GetLogger
         .getLogger("ibis.satin.comm");

@@ -73,7 +73,7 @@ final class SOCommunication implements Config, Protocol {
     protected void init(StaticProperties requestedProperties) {
         if (LABEL_ROUTING_MCAST) {
             try {
-                omc = new ObjectMulticaster(s.comm.ibis, "satinSO");
+                omc = new ObjectMulticaster(s.comm.ibis, true /* efficient multi-cluster */, false, "satinSO");
             } catch (Exception e) {
                 System.err.println("cannot create OMC: " + e);
                 e.printStackTrace();

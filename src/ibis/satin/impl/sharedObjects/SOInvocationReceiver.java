@@ -36,7 +36,7 @@ final class SOInvocationReceiver extends Thread implements Config {
                     soLogger.debug("SATIN '" + s.ident.name() + "': "
                         + "received broadcast object, id = " + obj.objectId);
                     s.so.addObject(obj);
-                } else {
+                } else if (o != null) {
                     soLogger
                         .warn("received unknown object in SOInvocation receiver");
                 }
