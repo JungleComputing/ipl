@@ -54,7 +54,8 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
 
     private boolean left = false;
 
-    static VirtualSocketFactory socketFactory = VirtualSocketFactory.getSocketFactory();
+    static VirtualSocketFactory socketFactory = 
+        VirtualSocketFactory.getSocketFactory();
 
     private static Logger logger
             = ibis.util.GetLogger.getLogger(NameServerClient.class.getName());
