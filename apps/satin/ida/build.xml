@@ -12,8 +12,10 @@
     <property name="main-class" value="Ida"/>
     <property name="satin-main-class" value="${main-class}"/>
 
-    <property name="test-par-run" value="Ida -satin-closed"/>
-    <property name="test-seq-run" value="Ida -satin-closed"/>
+    <property name="ibis-run-args" value="-Dsatin.closed"/>
+
+    <property name="test-par-run" value="Ida"/>
+    <property name="test-seq-run" value="Ida"/>
 
     <import file="${ibis}/build-files/apps/build-satin-app.xml"/>
 

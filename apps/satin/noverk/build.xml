@@ -12,8 +12,9 @@
     <property name="main-class" value="NoverK"/>
     <property name="satin-main-class" value="${main-class}"/>
 
-    <property name="test-par-run" value="NoverK -satin-closed"/>
-    <property name="test-seq-run" value="NoverK -satin-closed"/>
+    <property name="ibis-run-args" value="-Dsatin.closed"/>
+    <property name="test-par-run" value="NoverK"/>
+    <property name="test-seq-run" value="NoverK"/>
 
     <import file="${ibis}/build-files/apps/build-satin-app.xml"/>
 

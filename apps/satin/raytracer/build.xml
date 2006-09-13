@@ -12,8 +12,9 @@
     <property name="main-class" value="Raytracer"/>
     <property name="satin-main-class" value="${main-class}"/>
 
-    <property name="test-par-run" value="Raytracer -satin-closed"/>
-    <property name="test-seq-run" value="Raytracer -satin-closed"/>
+    <property name="ibis-run-args" value="-Dsatin.closed"/>
+    <property name="test-par-run" value="Raytracer"/>
+    <property name="test-seq-run" value="Raytracer"/>
 
     <import file="${ibis}/build-files/apps/build-satin-app.xml"/>
 

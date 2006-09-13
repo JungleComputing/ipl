@@ -2,7 +2,7 @@
 
 final class Tsp extends ibis.satin.SatinObject implements TspInterface,
         java.io.Serializable {
-    static final int N_TOWNS = 11; /* Default nr of towns */
+    static final int N_TOWNS = 13; /* Default nr of towns */
 
     static final int INIT_SEED = 1; /* Default random seed */
 
@@ -17,10 +17,6 @@ final class Tsp extends ibis.satin.SatinObject implements TspInterface,
     static final int THRESHOLD = 6;
     
     static int numMinimumUpdates = 0;
-
-    static {
-        System.setProperty("satin.so", "true"); // So that we don't forget.
-    }
 
     static boolean present(int city, int hops, byte path[]) {
         for (int i = 0; i < hops; i++) {
@@ -198,7 +194,7 @@ final class Tsp extends ibis.satin.SatinObject implements TspInterface,
         System.out.println("application result tsp (" + NTowns + ") = "
                 + result);
         if (testing) {
-            if (result != 218) {
+            if (result != 294) {
                 System.out.println("Test failed!");
                 System.exit(1);
             }

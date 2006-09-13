@@ -2,10 +2,10 @@
 
 package ibis.satin;
 
-import java.io.Serializable;
-
-import ibis.satin.impl.APIMethods;
+import ibis.satin.impl.Satin;
 import ibis.util.DeepCopy;
+
+import java.io.Serializable;
 
 /**
  * This is the magic class that should be extended by objects that invoke
@@ -21,7 +21,7 @@ public class SatinObject implements java.io.Serializable {
      * Prevents constructor from being public.
      */
     protected SatinObject() {
-    	// nothing here
+        // nothing here
     }
 
     /**
@@ -46,7 +46,7 @@ public class SatinObject implements java.io.Serializable {
      * during sequential code.
      */
     public static void pause() {
-        APIMethods.pause();
+        Satin.pause();
     }
 
     /**
@@ -54,7 +54,7 @@ public class SatinObject implements java.io.Serializable {
      * large sequential part in a program.
      */
     public static void resume() {
-        APIMethods.resume();
+        Satin.resume();
     }
 
     /**
@@ -66,7 +66,7 @@ public class SatinObject implements java.io.Serializable {
      *         invocations, false if there is enough work in the system.
      */
     public static boolean needMoreJobs() {
-        return APIMethods.needMoreJobs();
+        return Satin.needMoreJobs();
     }
 
     /**
@@ -78,7 +78,7 @@ public class SatinObject implements java.io.Serializable {
      *         another processor.
      */
     public static boolean localJob() {
-        return APIMethods.localJob();
+        return Satin.localJob();
     }
 
     /**

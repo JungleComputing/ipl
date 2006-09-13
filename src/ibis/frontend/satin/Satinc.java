@@ -55,7 +55,6 @@ import org.apache.bcel.generic.IINC;
 import org.apache.bcel.generic.ILOAD;
 import org.apache.bcel.generic.INSTANCEOF;
 import org.apache.bcel.generic.INVOKEVIRTUAL;
-import org.apache.bcel.generic.IOR;
 import org.apache.bcel.generic.ISTORE;
 import org.apache.bcel.generic.Instruction;
 import org.apache.bcel.generic.InstructionFactory;
@@ -97,7 +96,7 @@ import org.apache.bcel.verifier.VerifierFactory;
 // maxLocals+2 = curr, the current invocation record we are syncing on
 // maxLocals+3 = temp invocationrecord, cast to correct invocationRecord type
 
-// @@@ optimizations TODO:
+// @@@ optimizations still to do:
 //     If there is only one spawn in a method, no need to test for ids.
 //     (o.a. for inlets).
 //     exception handler in non-clone is unreachable, delete.
@@ -144,8 +143,6 @@ public final class Satinc {
 
     boolean spawnCounterOpt;
 
-    boolean sharedObjects;
-
     boolean errors = false;
 
     MethodTable mtab;
@@ -184,15 +181,15 @@ public final class Satinc {
 
         private String classNameNoPackage;
 
-        StoreClass(InstructionList store, Method target,
-                JavaClass cl) {
+        StoreClass(InstructionList store, Method target, JavaClass cl) {
             this.store = store;
             this.target = target;
             className = cl.getClassName();
             packageName = cl.getPackageName();
 
-            if (packageName != null && ! packageName.equals("")) {
-                classNameNoPackage = className.substring(className.lastIndexOf('.')+1, className.length());
+            if (packageName != null && !packageName.equals("")) {
+                classNameNoPackage = className.substring(className
+                    .lastIndexOf('.') + 1, className.length());
             } else {
                 classNameNoPackage = className;
             }
@@ -257,9 +254,8 @@ public final class Satinc {
     private static Vector javalist = new Vector();
 
     public Satinc(boolean verbose, boolean local, boolean verify, boolean keep,
-            boolean invocationRecordCache, String className,
-            boolean inletOpt, boolean spawnCounterOpt, boolean sharedObjects) {
-
+        boolean invocationRecordCache, String className, boolean inletOpt,
+        boolean spawnCounterOpt) {
 
         this.verbose = verbose;
         this.verify = verify;
@@ -268,7 +264,6 @@ public final class Satinc {
         this.invocationRecordCache = invocationRecordCache;
         this.inletOpt = inletOpt;
         this.spawnCounterOpt = spawnCounterOpt;
-	this.sharedObjects = sharedObjects;
 
         c = Repository.lookupClass(className);
 
@@ -280,8 +275,9 @@ public final class Satinc {
         this.className = c.getClassName();
         packageName = c.getPackageName();
 
-        if (packageName != null && ! packageName.equals("")) {
-            classNameNoPackage = this.className.substring(this.className.lastIndexOf('.')+1, this.className.length());
+        if (packageName != null && !packageName.equals("")) {
+            classNameNoPackage = this.className.substring(this.className
+                .lastIndexOf('.') + 1, this.className.length());
         } else {
             classNameNoPackage = this.className;
         }
@@ -291,17 +287,18 @@ public final class Satinc {
         ins_f = new InstructionFactory(gen_c);
 
         satinObjectClass = Repository.lookupClass("ibis.satin.SatinObject");
-        spawnCounterType = new ObjectType("ibis.satin.impl.SpawnCounter");
-        irType = new ObjectType("ibis.satin.impl.InvocationRecord");
+        spawnCounterType = new ObjectType(
+            "ibis.satin.impl.spawnSync.SpawnCounter");
+        irType = new ObjectType("ibis.satin.impl.spawnSync.InvocationRecord");
         satinType = new ObjectType("ibis.satin.impl.Satin");
-        writeMethodsInterface = 
-	    Repository.lookupClass("ibis.satin.WriteMethodsInterface");
+        writeMethodsInterface = Repository
+            .lookupClass("ibis.satin.WriteMethodsInterface");
     }
 
     public String getFileBase(String pkg, String name, String pre, String post) {
         if (!local && pkg != null && !pkg.equals("")) {
             return pkg.replace('.', File.separatorChar) + File.separator + pre
-                    + name + post;
+                + name + post;
         }
         return pre + name + post;
     }
@@ -357,14 +354,15 @@ public final class Satinc {
 
     Instruction getSatin(InstructionFactory insf) {
         return insf.createInvoke("ibis.satin.impl.Satin", "getSatin",
-                satinType, Type.NO_ARGS, Constants.INVOKESTATIC);
+            satinType, Type.NO_ARGS, Constants.INVOKESTATIC);
     }
 
     void removeLocalTypeTables(MethodGen mg) {
         ConstantPoolGen cpg = mg.getConstantPool();
         Attribute[] a = mg.getCodeAttributes();
         for (int i = 0; i < a.length; i++) {
-            String attribName = ((ConstantUtf8) cpg.getConstant(a[i].getNameIndex())).getBytes();
+            String attribName = ((ConstantUtf8) cpg.getConstant(a[i]
+                .getNameIndex())).getBytes();
             if (attribName.equals("LocalVariableTypeTable")) {
                 mg.removeCodeAttribute(a[i]);
             }
@@ -375,97 +373,75 @@ public final class Satinc {
 
         InstructionList il = new InstructionList();
 
-        MethodGen new_main = new MethodGen(
-                Constants.ACC_STATIC | Constants.ACC_PUBLIC, Type.VOID,
-                new Type[] { new ArrayType( Type.STRING, 1) },
-                new String[] { "argv" }, "main",
-                clg.getClassName(), il, clg.getConstantPool());
-        /*
-         il.append(ins_f.createInvoke("ibis.satin.impl.Satin",
-         "createSatin",
-         Type.OBJECT,
-         new Type[] {new ArrayType(Type.STRING, 1)},
-         Constants.INVOKESTATIC));
-         */
+        MethodGen new_main = new MethodGen(Constants.ACC_STATIC
+            | Constants.ACC_PUBLIC, Type.VOID, new Type[] { new ArrayType(
+            Type.STRING, 1) }, new String[] { "argv" }, "main", clg
+            .getClassName(), il, clg.getConstantPool());
+
         il.append(ins_f.createNew(satinType));
         il.append(new DUP());
-        InstructionHandle argv_handle = il.append(new ALOAD(0));
         il.append(ins_f.createInvoke("ibis.satin.impl.Satin", "<init>",
-                Type.VOID, new Type[] { new ArrayType(Type.STRING, 1) },
-                Constants.INVOKESPECIAL));
+            Type.VOID, Type.NO_ARGS, Constants.INVOKESPECIAL));
         il.append(ins_f.createInvoke("ibis.satin.impl.Satin", "isMaster",
-                Type.BOOLEAN, Type.NO_ARGS, Constants.INVOKEVIRTUAL));
+            Type.BOOLEAN, Type.NO_ARGS, Constants.INVOKEVIRTUAL));
         BranchHandle ifcmp = il.append(new IFEQ(null));
-        //fault tolerance
-        InstructionHandle origMain_handle = il.append(getSatin(ins_f));
-        // was: il.append(getSatin(ins_f));
 
-        il.append(ins_f.createInvoke("ibis.satin.impl.Satin", "getMainArgs",
-                new ArrayType(Type.STRING, 1), Type.NO_ARGS,
-                Constants.INVOKEVIRTUAL));
-        InstructionHandle try_start = il.append(
-                ins_f.createInvoke(clg.getClassName(), origMain.getName(),
-                    Type.VOID, new Type[] { new ArrayType(Type.STRING, 1) },
-                    Constants.INVOKESTATIC));
+        InstructionHandle origMain_handle = il.append(new ALOAD(0));
+        
+        InstructionHandle try_start = il.append(ins_f.createInvoke(clg
+            .getClassName(), origMain.getName(), Type.VOID,
+            new Type[] { new ArrayType(Type.STRING, 1) },
+            Constants.INVOKESTATIC));
 
         BranchHandle try_end = il.append(new GOTO(null));
 
         InstructionHandle e_handler = il.append(new ASTORE(1));
         il.append(ins_f.createFieldAccess("java.lang.System", "out",
-                new ObjectType("java.io.PrintStream"), Constants.GETSTATIC));
+            new ObjectType("java.io.PrintStream"), Constants.GETSTATIC));
         il.append(ins_f.createNew("java.lang.StringBuffer"));
         il.append(new DUP());
         il.append(new PUSH(gen_c.getConstantPool(), "Exception in main: "));
         il.append(ins_f.createInvoke("java.lang.StringBuffer", "<init>",
-                Type.VOID, new Type[] { Type.STRING },
-                Constants.INVOKESPECIAL));
+            Type.VOID, new Type[] { Type.STRING }, Constants.INVOKESPECIAL));
         il.append(new ALOAD(1));
         il.append(ins_f.createInvoke("java.lang.StringBuffer", "append",
-                new ObjectType("java.lang.StringBuffer"),
-                new Type[] { Type.OBJECT }, Constants.INVOKEVIRTUAL));
+            new ObjectType("java.lang.StringBuffer"),
+            new Type[] { Type.OBJECT }, Constants.INVOKEVIRTUAL));
         il.append(ins_f.createInvoke("java.lang.StringBuffer", "toString",
-                Type.STRING, Type.NO_ARGS, Constants.INVOKEVIRTUAL));
+            Type.STRING, Type.NO_ARGS, Constants.INVOKEVIRTUAL));
         il.append(ins_f.createInvoke("java.io.PrintStream", "println",
-                Type.VOID, new Type[] { Type.STRING },
-                Constants.INVOKEVIRTUAL));
+            Type.VOID, new Type[] { Type.STRING }, Constants.INVOKEVIRTUAL));
         il.append(new ALOAD(1));
         il.append(ins_f.createInvoke("java.lang.Throwable", "printStackTrace",
-                Type.VOID, Type.NO_ARGS, Constants.INVOKEVIRTUAL));
+            Type.VOID, Type.NO_ARGS, Constants.INVOKEVIRTUAL));
 
         BranchHandle gto2 = il.append(new GOTO(null));
 
         InstructionHandle ifeq_target = il.append(getSatin(ins_f));
         ifcmp.setTarget(ifeq_target);
         il.append(ins_f.createInvoke("ibis.satin.impl.Satin", "client",
-                Type.VOID, Type.NO_ARGS, Constants.INVOKEVIRTUAL));
-        // fault tolerance
-        il.append(ins_f.createFieldAccess("ibis.satin.impl.Config",
-                "FAULT_TOLERANCE", Type.BOOLEAN, Constants.GETSTATIC));
-        ifcmp = il.append(new IFEQ(null));
+            Type.VOID, Type.NO_ARGS, Constants.INVOKEVIRTUAL));
+
         il.append(getSatin(ins_f));
         il.append(ins_f.createInvoke("ibis.satin.impl.Satin", "isMaster",
-                Type.BOOLEAN, Type.NO_ARGS, Constants.INVOKEVIRTUAL));
+            Type.BOOLEAN, Type.NO_ARGS, Constants.INVOKEVIRTUAL));
         il.append(new IFNE(origMain_handle));
-        //
 
         InstructionHandle gto_target = il.append(getSatin(ins_f));
-        // fault tolerance
-        ifcmp.setTarget(gto_target);
-        //
         try_end.setTarget(gto_target);
         gto2.setTarget(gto_target);
 
         il.append(ins_f.createInvoke("ibis.satin.impl.Satin", "exit",
-                Type.VOID, Type.NO_ARGS, Constants.INVOKEVIRTUAL));
+            Type.VOID, Type.NO_ARGS, Constants.INVOKEVIRTUAL));
         il.append(new RETURN());
 
         new_main.addExceptionHandler(try_start, try_end, e_handler,
-                new ObjectType("java.lang.Throwable"));
+            new ObjectType("java.lang.Throwable"));
         new_main.setMaxStack();
         new_main.setMaxLocals();
 
         new_main.addLocalVariable("argv", new ArrayType(Type.STRING, 1), 0,
-                argv_handle, null);
+            origMain_handle, null);
 
         removeLocalTypeTables(new_main);
 
@@ -511,7 +487,7 @@ public final class Satinc {
         return s.toString();
     }
 
-   static String do_mangle(String name, String sig) {
+    static String do_mangle(String name, String sig) {
         StringBuffer s = new StringBuffer(sig);
         name = do_mangle(new StringBuffer(name));
 
@@ -541,80 +517,67 @@ public final class Satinc {
     }
 
     String invocationRecordName(Method m, String clnam, String pnam) {
-        if (pnam != null && ! pnam.equals("")) {
-            return pnam + ".Satin_" + clnam
-                    + "_" + do_mangle(m) + "_InvocationRecord";
-        }
-        return "Satin_" + clnam + "_" + do_mangle(m)
+        if (pnam != null && !pnam.equals("")) {
+            return pnam + ".Satin_" + clnam + "_" + do_mangle(m)
                 + "_InvocationRecord";
+        }
+        return "Satin_" + clnam + "_" + do_mangle(m) + "_InvocationRecord";
     }
 
     String invocationRecordFileBase(Method m, String clnam, String pnam) {
-        return getFileBase(pnam, clnam + "_" + do_mangle(m), "Satin_", "_InvocationRecord");
+        return getFileBase(pnam, clnam + "_" + do_mangle(m), "Satin_",
+            "_InvocationRecord");
     }
 
     String invocationRecordClassName(Method m, String clnam, String pnam) {
-        return getFileBase(null, clnam + "_" + do_mangle(m), "Satin_", "_InvocationRecord");
+        return getFileBase(null, clnam + "_" + do_mangle(m), "Satin_",
+            "_InvocationRecord");
     }
 
     String localRecordName(Method m) {
-        if (packageName != null && ! packageName.equals("")) {
-            return packageName + ".Satin_" + classNameNoPackage
-                    + "_" + do_mangle(m) + "_LocalRecord";
+        if (packageName != null && !packageName.equals("")) {
+            return packageName + ".Satin_" + classNameNoPackage + "_"
+                + do_mangle(m) + "_LocalRecord";
         }
         return "Satin_" + classNameNoPackage + "_" + do_mangle(m)
-                + "_LocalRecord";
+            + "_LocalRecord";
     }
 
     String localRecordFileBase(Method m) {
-        return getFileBase(packageName, classNameNoPackage + "_" + do_mangle(m), "Satin_", "_LocalRecord");
+        return getFileBase(packageName,
+            classNameNoPackage + "_" + do_mangle(m), "Satin_", "_LocalRecord");
     }
 
     String localRecordClassName(Method m) {
-        return getFileBase(null, classNameNoPackage + "_" + do_mangle(m), "Satin_", "_LocalRecord");
+        return getFileBase(null, classNameNoPackage + "_" + do_mangle(m),
+            "Satin_", "_LocalRecord");
     }
 
     String localRecordName(MethodGen m) {
-        if (packageName != null && ! packageName.equals("")) {
-            return packageName + ".Satin_" + classNameNoPackage
-                    + "_" + do_mangle(m) + "_LocalRecord";
+        if (packageName != null && !packageName.equals("")) {
+            return packageName + ".Satin_" + classNameNoPackage + "_"
+                + do_mangle(m) + "_LocalRecord";
         }
         return "Satin_" + classNameNoPackage + "_" + do_mangle(m)
-                + "_LocalRecord";
+            + "_LocalRecord";
     }
 
     String returnRecordName(Method m, String clnam, String pnam) {
-        if (pnam != null && ! pnam.equals("")) {
-            return pnam + ".Satin_" + clnam
-                    + "_" + do_mangle(m) + "_ReturnRecord";
-        }
-        return "Satin_" + clnam + "_" + do_mangle(m)
+        if (pnam != null && !pnam.equals("")) {
+            return pnam + ".Satin_" + clnam + "_" + do_mangle(m)
                 + "_ReturnRecord";
+        }
+        return "Satin_" + clnam + "_" + do_mangle(m) + "_ReturnRecord";
     }
 
     String returnRecordFileBase(Method m, String clnam, String pnam) {
-        return getFileBase(pnam, clnam + "_" + do_mangle(m), "Satin_", "_ReturnRecord");
+        return getFileBase(pnam, clnam + "_" + do_mangle(m), "Satin_",
+            "_ReturnRecord");
     }
 
     String returnRecordClassName(Method m, String clnam, String pnam) {
-        return getFileBase(null, clnam + "_" + do_mangle(m), "Satin_", "_ReturnRecord");
-    }
-
-    String parameterRecordName(Method m) {
-        if (packageName != null && ! packageName.equals("")) {
-            return packageName + ".Satin_" + classNameNoPackage
-                    + "_" + do_mangle(m) + "_ParameterRecord";
-        }
-        return "Satin_" + classNameNoPackage + "_" + do_mangle(m)
-                + "_ParameterRecord";
-    }
-
-    String parameterRecordFileBase(Method m) {
-        return getFileBase(packageName, classNameNoPackage + "_" + do_mangle(m), "Satin_", "_ParameterRecord");
-    }
-
-    String parameterRecordClassName(Method m) {
-        return getFileBase(null, classNameNoPackage + "_" + do_mangle(m), "Satin_", "_ParameterRecord");
+        return getFileBase(null, clnam + "_" + do_mangle(m), "Satin_",
+            "_ReturnRecord");
     }
 
     void insertAllDeleteLocalRecords(MethodGen m) {
@@ -630,20 +593,20 @@ public final class Satinc {
     }
 
     InstructionHandle insertDeleteLocalRecord(MethodGen m, InstructionList il,
-            InstructionHandle i, int maxLocals) {
+        InstructionHandle i, int maxLocals) {
         String local_record_name = localRecordName(m);
 
         // Note: maxLocals has been recomputed at this point.
         il.insert(i, new ALOAD(maxLocals - 5));
         il.insert(i, ins_f.createInvoke(local_record_name, "delete", Type.VOID,
-                new Type[] { new ObjectType(local_record_name) },
-                Constants.INVOKESTATIC));
+            new Type[] { new ObjectType(local_record_name) },
+            Constants.INVOKESTATIC));
 
         return i;
     }
 
     InstructionHandle insertDeleteSpawncounter(InstructionList il,
-            InstructionHandle i, int maxLocals) {
+        InstructionHandle i, int maxLocals) {
         // In this case, jumps to the return must in fact jump to
         // the new instruction sequence! So, we change the instruction
         // at the handle.
@@ -652,16 +615,17 @@ public final class Satinc {
         Instruction r = i.getInstruction();
 
         i.setInstruction(new ALOAD(maxLocals));
-        i = il.append(i, ins_f.createInvoke("ibis.satin.impl.Satin",
-                "deleteSpawnCounter", Type.VOID,
-                new Type[] { spawnCounterType }, Constants.INVOKESTATIC));
+        i = il
+            .append(i, ins_f.createInvoke(
+                "ibis.satin.impl.spawnSync.SpawnCounter", "deleteSpawnCounter",
+                Type.VOID, new Type[] { spawnCounterType },
+                Constants.INVOKESTATIC));
         i = il.append(i, r);
 
         return i;
     }
 
-    int allocateId(InstructionList storeIns,
-            Method target, JavaClass cl) {
+    int allocateId(InstructionList storeIns, Method target, JavaClass cl) {
         StoreClass s = new StoreClass(storeIns, target, cl);
 
         int id = idTable.indexOf(s);
@@ -694,13 +658,12 @@ public final class Satinc {
     }
 
     void rewriteAbort(MethodGen m, InstructionList il, InstructionHandle i,
-            int maxLocals) {
+        int maxLocals) {
         // in a clone, we have to abort two lists: the outstanding spawns of
         // the parent, and the outstanding spawns of the clone.
         Instruction fa = getSatin(ins_f);
         Instruction ab = ins_f.createInvoke("ibis.satin.impl.Satin", "abort",
-                Type.VOID, new Type[] { irType, irType },
-                Constants.INVOKEVIRTUAL);
+            Type.VOID, new Type[] { irType, irType }, Constants.INVOKEVIRTUAL);
         if (mtab.isClone(m)) {
             int parentPos = 3;
 
@@ -739,7 +702,7 @@ public final class Satinc {
     }
 
     void rewriteSync(MethodGen m, InstructionList il, InstructionHandle i,
-            int maxLocals) {
+        int maxLocals) {
         BranchHandle firstJumpPos = null;
         InstructionHandle pos = null;
         if (verbose) {
@@ -747,15 +710,15 @@ public final class Satinc {
         }
 
         /*
-        this is allowed, sync is poll operation. --Rob
-        if (idTable.size() == 0) {
-            System.err.println("Error: sync without spawn");
-            System.exit(1);
-        }
-        */
+         this is allowed, sync is poll operation. --Rob
+         if (idTable.size() == 0) {
+         System.err.println("Error: sync without spawn");
+         System.exit(1);
+         }
+         */
         Instruction sync_invocation = ins_f.createInvoke(
-                "ibis.satin.impl.Satin", "sync", Type.VOID,
-                new Type[] { spawnCounterType }, Constants.INVOKEVIRTUAL);
+            "ibis.satin.impl.Satin", "sync", Type.VOID,
+            new Type[] { spawnCounterType }, Constants.INVOKEVIRTUAL);
         Instruction satin_field_access = getSatin(ins_f);
 
         // Now find the push-sequence of the sync parameter (the object).
@@ -764,7 +727,7 @@ public final class Satinc {
         do {
             par = par.getPrev();
             stackincr += par.getInstruction().produceStack(cpg)
-                    - par.getInstruction().consumeStack(cpg);
+                - par.getInstruction().consumeStack(cpg);
         } while (stackincr != 1);
 
         if (par != i.getPrev()) {
@@ -790,8 +753,8 @@ public final class Satinc {
         il.insert(pos, new ASTORE(maxLocals + 2));
 
         il.insert(pos, ins_f.createFieldAccess(
-                "ibis.satin.impl.InvocationRecord", "cacheNext", irType,
-                Constants.GETFIELD));
+            "ibis.satin.impl.spawnSync.InvocationRecord", "cacheNext", irType,
+            Constants.GETFIELD));
         il.insert(pos, new ASTORE(maxLocals + 1));
 
         InstructionHandle[] jumpTargets = new InstructionHandle[idTable.size()];
@@ -801,7 +764,7 @@ public final class Satinc {
         // loop over all ids handed out in this method 
         for (int k = 0; k < idTable.size(); k++) {
             String invClass = invocationRecordName(getStoreTarget(k),
-                    getStoreClass(k), getStorePackage(k));
+                getStoreClass(k), getStorePackage(k));
             Type target_returntype = getStoreTarget(k).getReturnType();
 
             // Now generate code to test the id, and do the assignment to the
@@ -814,8 +777,8 @@ public final class Satinc {
                 }
 
                 il.insert(pos, ins_f.createFieldAccess(
-                        "ibis.satin.impl.InvocationRecord", "storeId",
-                        Type.INT, Constants.GETFIELD));
+                    "ibis.satin.impl.spawnSync.InvocationRecord", "storeId",
+                    Type.INT, Constants.GETFIELD));
 
                 // push id value 
                 il.insert(pos, new BIPUSH((byte) k));
@@ -838,36 +801,38 @@ public final class Satinc {
                     // invocationRecord type
                     il.insert(pos, new DUP());
                     il.insert(pos, new ASTORE(maxLocals + 3));
-                    il.insert(pos,
-                            ins_f.createFieldAccess(invClass, "array",
-                                    new ArrayType(target_returntype, 1),
-                                    Constants.GETFIELD));
+                    il.insert(pos, ins_f
+                        .createFieldAccess(invClass, "array", new ArrayType(
+                            target_returntype, 1), Constants.GETFIELD));
 
                     il.insert(pos, new ALOAD(maxLocals + 3));
                     il.insert(pos, ins_f.createFieldAccess(invClass, "index",
-                            Type.INT, Constants.GETFIELD));
+                        Type.INT, Constants.GETFIELD));
                     il.insert(pos, new ALOAD(maxLocals + 3));
                 } else if (isPutField(storeIns.getStart())) {
-                    PUTFIELD pf = (PUTFIELD) storeIns.getStart().getInstruction();
+                    PUTFIELD pf = (PUTFIELD) storeIns.getStart()
+                        .getInstruction();
                     // we have a putfield, maxLocals+3 = temp, cast to
                     // correct invocationRecord type
                     il.insert(pos, new DUP());
                     il.insert(pos, new ASTORE(maxLocals + 3));
-                    il.insert(pos,
-                            ins_f.createFieldAccess(invClass, "ref",
-                                    new ObjectType("java.lang.Object"),
-                                    Constants.GETFIELD));
+                    il
+                        .insert(pos, ins_f.createFieldAccess(invClass, "ref",
+                            new ObjectType("java.lang.Object"),
+                            Constants.GETFIELD));
                     il.insert(pos, ins_f.createCheckCast(pf.getClassType(cpg)));
                     il.insert(pos, new ALOAD(maxLocals + 3));
                 }
                 il.insert(pos, ins_f.createFieldAccess(invClass, "result",
-                        target_returntype, Constants.GETFIELD));
+                    target_returntype, Constants.GETFIELD));
                 il.insert(pos, storeIns.copy());
             }
 
-            il.insert(pos, ins_f.createInvoke(invClass, "delete", Type.VOID,
-                    new Type[] { new ObjectType(invocationRecordName(
-                            getStoreTarget(k), getStoreClass(k), getStorePackage(k))) },
+            il.insert(pos, ins_f
+                .createInvoke(invClass, "delete", Type.VOID,
+                    new Type[] { new ObjectType(
+                        invocationRecordName(getStoreTarget(k),
+                            getStoreClass(k), getStorePackage(k))) },
                     Constants.INVOKESTATIC));
 
             if (k != idTable.size() - 1) {
@@ -903,67 +868,69 @@ public final class Satinc {
     }
 
     void insertAbortedCheck(MethodGen m, InstructionList il,
-            InstructionHandle pos) {
+        InstructionHandle pos) {
         // Generates:
         //   if (Config.FAULT_TOLERANCE || Config.ABORTS) {
         //       if (satin.getParent() != null && satin.getParent().aborted) {
-        //           throw new ibis.satin.impl.AbortException();
+        //           throw new ibis.satin.impl.aborts.AbortException();
         //       }
         //   }
         InstructionHandle abo = insertThrowAbort(m, il, pos);
 
-        il.insert(abo, ins_f.createFieldAccess("ibis.satin.impl.Config",
-                "FAULT_TOLERANCE", Type.BOOLEAN, Constants.GETSTATIC));
-        il.insert(abo, ins_f.createFieldAccess("ibis.satin.impl.Config",
-                "ABORTS", Type.BOOLEAN, Constants.GETSTATIC));
-        il.insert(abo, new IOR());
-        il.insert(abo, new IFEQ(pos));
+        // Fault tolerance and aborts are always on --Rob
+        //        il.insert(abo, ins_f.createFieldAccess("ibis.satin.impl.Config",
+        //                "FAULT_TOLERANCE", Type.BOOLEAN, Constants.GETSTATIC));
+        //        il.insert(abo, ins_f.createFieldAccess("ibis.satin.impl.Config",
+        //                "ABORTS", Type.BOOLEAN, Constants.GETSTATIC));
+        //        il.insert(abo, new IOR());
+        //        il.insert(abo, new IFEQ(pos));
         il.insert(abo, getSatin(ins_f));
         il.insert(abo, ins_f.createInvoke("ibis.satin.impl.Satin", "getParent",
-                irType, Type.NO_ARGS, Constants.INVOKEVIRTUAL));
+            irType, Type.NO_ARGS, Constants.INVOKEVIRTUAL));
 
         // test for null (root job)
         il.insert(abo, new IFNULL(pos));
 
         il.insert(abo, getSatin(ins_f));
         il.insert(abo, ins_f.createInvoke("ibis.satin.impl.Satin", "getParent",
-                irType, Type.NO_ARGS, Constants.INVOKEVIRTUAL));
+            irType, Type.NO_ARGS, Constants.INVOKEVIRTUAL));
 
         il.insert(abo, ins_f.createFieldAccess(
-                "ibis.satin.impl.InvocationRecord", "aborted", Type.BOOLEAN,
-                Constants.GETFIELD));
+            "ibis.satin.impl.spawnSync.InvocationRecord", "aborted",
+            Type.BOOLEAN, Constants.GETFIELD));
         il.insert(abo, new IFEQ(pos));
 
         /*
-        ////@@@@@@@@@@2 this needs fixing :-(
-        // Test for parent.eek, if non-null, throw it (exception in inlet).
-        il.insert(abo, getSatin(ins_f));
-        il.insert(abo, ins_f.createInvoke("ibis.satin.impl.Satin", "getParent",
-                irType, Type.NO_ARGS, Constants.INVOKEVIRTUAL));
-        il.insert(abo, ins_f.createFieldAccess(
-                "ibis.satin.impl.InvocationRecord", "eek",
-                 new ObjectType("java.lang.Throwable"), Constants.GETFIELD));
-        il.insert(abo, new IFNULL(abo));
-        il.insert(abo, getSatin(ins_f));
-        il.insert(abo, ins_f.createInvoke("ibis.satin.impl.Satin", "getParent",
-                irType, Type.NO_ARGS, Constants.INVOKEVIRTUAL));
-        il.insert(abo, ins_f.createFieldAccess(
-                "ibis.satin.impl.InvocationRecord", "eek",
-                new ObjectType("java.lang.Throwable"), Constants.GETFIELD));
+         ////@@@@@@@@@@2 this needs fixing :-(
+         // Test for parent.eek, if non-null, throw it (exception in inlet).
+         il.insert(abo, getSatin(ins_f));
+         il.insert(abo, ins_f.createInvoke("ibis.satin.impl.Satin", "getParent",
+         irType, Type.NO_ARGS, Constants.INVOKEVIRTUAL));
+         il.insert(abo, ins_f.createFieldAccess(
+         "ibis.satin.impl.spawnSync.InvocationRecord", "eek",
+         new ObjectType("java.lang.Throwable"), Constants.GETFIELD));
+         il.insert(abo, new IFNULL(abo));
+         il.insert(abo, getSatin(ins_f));
+         il.insert(abo, ins_f.createInvoke("ibis.satin.impl.Satin", "getParent",
+         irType, Type.NO_ARGS, Constants.INVOKEVIRTUAL));
+         il.insert(abo, ins_f.createFieldAccess(
+         "ibis.satin.impl.spawnSync.InvocationRecord", "eek",
+         new ObjectType("java.lang.Throwable"), Constants.GETFIELD));
 
-        il.insert(abo, new ATHROW());
-        */
+         il.insert(abo, new ATHROW());
+         */
     }
 
     InstructionHandle insertThrowAbort(MethodGen m, InstructionList il,
-            InstructionHandle pos) {
+        InstructionHandle pos) {
         InstructionHandle retval;
 
-        retval = il.insert(pos, ins_f.createNew("ibis.satin.impl.AbortException"));
+        retval = il.insert(pos, ins_f
+            .createNew("ibis.satin.impl.aborts.AbortException"));
         il.insert(pos, new DUP());
-        il.insert(pos, ins_f.createInvoke("ibis.satin.impl.AbortException",
-                    "<init>", Type.VOID, Type.NO_ARGS,
-                    Constants.INVOKESPECIAL));
+        il.insert(pos, ins_f.createInvoke(
+            "ibis.satin.impl.aborts.AbortException", "<init>", Type.VOID,
+            Type.NO_ARGS, Constants.INVOKESPECIAL));
         il.insert(pos, new ATHROW());
 
         return retval;
@@ -971,11 +938,11 @@ public final class Satinc {
 
     InstructionHandle getFirstParamPushPos(InstructionHandle i) {
         int paramsOnStack = i.getInstruction().consumeStack(cpg)
-                - i.getInstruction().produceStack(cpg);
+            - i.getInstruction().produceStack(cpg);
 
         if (verbose) {
             System.out.println("Expected params for " + i.getInstruction()
-                    + " is " + paramsOnStack);
+                + " is " + paramsOnStack);
         }
 
         InstructionHandle k = i.getPrev();
@@ -983,7 +950,7 @@ public final class Satinc {
 
         do {
             pushed += k.getInstruction().produceStack(cpg)
-                    - k.getInstruction().consumeStack(cpg);
+                - k.getInstruction().consumeStack(cpg);
             k = k.getPrev();
         } while (pushed < paramsOnStack);
 
@@ -991,7 +958,7 @@ public final class Satinc {
     }
 
     static private void deleteIns(InstructionList il, InstructionHandle ih,
-            InstructionHandle new_target) {
+        InstructionHandle new_target) {
         // System.out.println("deleteIns: instructionList = " + il);
         // System.out.println("   handle = " + ih);
         try {
@@ -1009,7 +976,7 @@ public final class Satinc {
     }
 
     static private void deleteIns(InstructionList il, InstructionHandle a,
-            InstructionHandle b, InstructionHandle new_target) {
+        InstructionHandle b, InstructionHandle new_target) {
         try {
             il.delete(a, b);
         } catch (TargetLostException e) {
@@ -1024,15 +991,14 @@ public final class Satinc {
         }
     }
 
-    InstructionList getAndRemoveStoreIns(InstructionList il,
-            InstructionHandle i) {
+    InstructionList getAndRemoveStoreIns(InstructionList il, InstructionHandle i) {
 
         int netto_stack_inc = 0;
         InstructionHandle storeStart = i;
 
         do {
             int inc = i.getInstruction().produceStack(cpg)
-                    - i.getInstruction().consumeStack(cpg);
+                - i.getInstruction().consumeStack(cpg);
             netto_stack_inc += inc;
             i = i.getNext();
         } while (netto_stack_inc >= 0);
@@ -1067,16 +1033,17 @@ public final class Satinc {
     }
 
     void rewriteSpawn(MethodGen m, InstructionList il, Method target,
-            InstructionHandle i, int maxLocals, int spawnId, JavaClass cl) {
+        InstructionHandle i, int maxLocals, int spawnId, JavaClass cl) {
         String clname = cl.getClassName();
         String pnam = cl.getPackageName();
-        if (pnam != null && ! pnam.equals("")) {
-            clname = clname.substring(clname.lastIndexOf('.')+1, clname.length());
+        if (pnam != null && !pnam.equals("")) {
+            clname = clname.substring(clname.lastIndexOf('.') + 1, clname
+                .length());
         }
 
         if (verbose) {
             System.out.println("rewriting spawn, target = " + target.getName()
-                    + ", sig = " + target.getSignature());
+                + ", sig = " + target.getSignature());
         }
 
         Instruction store = null;
@@ -1100,7 +1067,7 @@ public final class Satinc {
             storeIns = getAndRemoveStoreIns(il, i.getNext());
             if (store instanceof ReturnInstruction) {
                 System.err.println("\"return <spawnable method>\" is not "
-                        + "allowed");
+                    + "allowed");
                 System.exit(1);
             }
         }
@@ -1153,11 +1120,11 @@ public final class Satinc {
         parameters[ix++] = irType;
         parameters[ix++] = Type.INT;
         parameters[ix++] = Type.INT;
-        parameters[ix++] = new ObjectType("ibis.satin.impl.LocalRecord");
+        parameters[ix++] = new ObjectType("ibis.satin.impl.aborts.LocalRecord");
 
         ih = il.append(ih, ins_f.createInvoke(invocationRecordName(target,
-                clname, pnam), methodName, new ObjectType(invocationRecordName(
-                target, clname, pnam)), parameters, Constants.INVOKESTATIC));
+            clname, pnam), methodName, new ObjectType(invocationRecordName(
+            target, clname, pnam)), parameters, Constants.INVOKESTATIC));
 
         // Store result in outstandingSpawns 
         ih = il.append(ih, new ASTORE(maxLocals + 1));
@@ -1172,7 +1139,7 @@ public final class Satinc {
 
         // and call Satin.spawn 
         ih = il.append(ih, ins_f.createInvoke("ibis.satin.impl.Satin", "spawn",
-                Type.VOID, new Type[] { irType }, Constants.INVOKEVIRTUAL));
+            Type.VOID, new Type[] { irType }, Constants.INVOKEVIRTUAL));
         if (verbose) {
             System.out.println("outputting post-spawn aborted check for " + m);
         }
@@ -1189,12 +1156,11 @@ public final class Satinc {
             if (in instanceof LocalVariableInstruction) {
                 LocalVariableInstruction curr = (LocalVariableInstruction) in;
                 if (mtab.getLocal(m, curr, ins[i].getPosition()) != null
-                        && curr.getIndex() < m.getMaxLocals() - 5
-                        && !mtab.isLocalUsedInInlet(mOrig, curr.getIndex())) {
+                    && curr.getIndex() < m.getMaxLocals() - 5
+                    && !mtab.isLocalUsedInInlet(mOrig, curr.getIndex())) {
                     if (curr instanceof IINC) {
                         ins[i].setInstruction(new NOP());
-                    } else if (curr instanceof LSTORE
-                            || curr instanceof DSTORE) {
+                    } else if (curr instanceof LSTORE || curr instanceof DSTORE) {
                         ins[i].setInstruction(new POP2());
                     } else if (curr instanceof StoreInstruction) {
                         ins[i].setInstruction(new POP());
@@ -1210,7 +1176,7 @@ public final class Satinc {
                         ins[i].setInstruction(new LCONST(0L));
                     } else {
                         System.out.println("unhandled ins in "
-                                + "removeUnusedLocals: " + curr);
+                            + "removeUnusedLocals: " + curr);
                         System.exit(1);
                     }
                 }
@@ -1255,8 +1221,8 @@ public final class Satinc {
                 // no need to init.
             } else {
                 System.err.println("WARNING: Unhandled store instruction in "
-                        + "initSpawnTargets, opcode = " + store.getOpcode()
-                        + " ins = " + store);
+                    + "initSpawnTargets, opcode = " + store.getOpcode()
+                    + " ins = " + store);
                 // System.exit(1);
             }
         }
@@ -1282,7 +1248,7 @@ public final class Satinc {
             Method[] methods = cl.getMethods();
             for (int i = 0; i < methods.length; i++) {
                 if (methods[i].getName().equals(name)
-                        && methods[i].getSignature().equals(sig)) {
+                    && methods[i].getSignature().equals(sig)) {
                     return methods[i];
                 }
             }
@@ -1315,8 +1281,8 @@ public final class Satinc {
         while (cl != null) {
             Method[] methods = cl.getMethods();
             for (int i = 0; i < methods.length; i++) {
-                if (methods[i].getName().equals(name)
-                        && methods[i].getSignature().equals(sig)) {
+                    if (methods[i].getName().equals(name)
+                    && methods[i].getSignature().equals(sig)) {
                     return cl;
                 }
             }
@@ -1336,7 +1302,7 @@ public final class Satinc {
 
         if (verbose) {
             System.out.println("method " + mOrig
-                    + " contains a spawned call, rewriting");
+                + " contains a spawned call, rewriting");
         }
 
         clearIdTable();
@@ -1361,10 +1327,10 @@ public final class Satinc {
             CodeExceptionGen[] ceg = m.getExceptionHandlers();
             for (int i = 0; i < ih.length; i++) {
                 if (ih[i].getInstruction() instanceof INVOKEVIRTUAL) {
-                    Method target = findMethod(
-                            (INVOKEVIRTUAL) (ih[i].getInstruction()));
-                    JavaClass cl = findMethodClass(
-                            (INVOKEVIRTUAL) (ih[i].getInstruction()));
+                    Method target = findMethod((INVOKEVIRTUAL) (ih[i]
+                        .getInstruction()));
+                    JavaClass cl = findMethodClass((INVOKEVIRTUAL) (ih[i]
+                        .getInstruction()));
                     if (mtab.isSpawnable(target, cl)) {
                         for (int j = 0; j < i; j++) {
                             for (int k = 0; k < ceg.length; k++) {
@@ -1378,8 +1344,8 @@ public final class Satinc {
                                 break;
                             }
                             if (ih[j] instanceof BranchHandle) {
-                                InstructionHandle jumpTarget
-                                        = ((BranchHandle) (ih[j])).getTarget();
+                                InstructionHandle jumpTarget = ((BranchHandle) (ih[j]))
+                                    .getTarget();
                                 boolean found = false;
                                 for (int k = 0; k < i; k++) {
                                     if (ih[k] == jumpTarget) {
@@ -1409,9 +1375,9 @@ public final class Satinc {
 
         // Allocate a spawn counter at the start of the method,
         // local slot is maxLocals 
-        il.insert(insertAllocPos, ins_f.createInvoke("ibis.satin.impl.Satin",
-                "newSpawnCounter", spawnCounterType, Type.NO_ARGS,
-                Constants.INVOKESTATIC));
+        il.insert(insertAllocPos, ins_f.createInvoke(
+            "ibis.satin.impl.spawnSync.SpawnCounter", "newSpawnCounter",
+            spawnCounterType, Type.NO_ARGS, Constants.INVOKESTATIC));
 
         // Allocate and initialize spawn_counter at slot maxLocals.
         il.insert(insertAllocPos, new ASTORE(maxLocals));
@@ -1427,12 +1393,12 @@ public final class Satinc {
         InstructionHandle lr_h = il.insert(insertAllocPos, new NOP());
 
         m.addLocalVariable("spawn_counter", spawnCounterType, maxLocals, sp_h,
-                null);
+            null);
         m.addLocalVariable("outstanding_spawns", irType, maxLocals + 1, os_h,
-                null);
+            null);
         m.addLocalVariable("current", irType, maxLocals + 2, curr_h, null);
         m.addLocalVariable("local_record", new ObjectType(
-                "ibis.satin.impl.LocalRecord"), maxLocals + 3, lr_h, null);
+            "ibis.satin.impl.aborts.LocalRecord"), maxLocals + 3, lr_h, null);
 
         for (InstructionHandle i = insertAllocPos; i != null; i = i.getNext()) {
             if (i.getInstruction() instanceof ReturnInstruction) {
@@ -1445,7 +1411,7 @@ public final class Satinc {
 
                 // Rewrite the sync statement. 
                 if (target.getName().equals("sync")
-                        && target.getSignature().equals("()V")) {
+                    && target.getSignature().equals("()V")) {
                     if (cl != null && cl.equals(satinObjectClass)) {
                         rewriteSync(m, il, i, maxLocals);
                         rewritten = true;
@@ -1459,7 +1425,7 @@ public final class Satinc {
             }
         }
 
-        if (! mtab.containsInlet(m)) {
+        if (!mtab.containsInlet(m)) {
             initSpawnTargets(il);
         }
     }
@@ -1470,9 +1436,8 @@ public final class Satinc {
 
         for (int i = 0, param = 0; i < params.length; i++, param++) {
             if (params[i].equals(Type.BOOLEAN) || params[i].equals(Type.BYTE)
-                    || params[i].equals(Type.SHORT)
-                    || params[i].equals(Type.CHAR)
-                    || params[i].equals(Type.INT)) {
+                || params[i].equals(Type.SHORT) || params[i].equals(Type.CHAR)
+                || params[i].equals(Type.INT)) {
                 il.insert(pos, new ILOAD(param));
             } else if (params[i].equals(Type.FLOAT)) {
                 il.insert(pos, new FLOAD(param));
@@ -1491,9 +1456,9 @@ public final class Satinc {
     }
 
     InstructionHandle rewriteStore(MethodGen m, InstructionList il,
-            InstructionHandle i, int maxLocals, String localClassName) {
-        LocalVariableInstruction curr
-                = (LocalVariableInstruction) (i.getInstruction());
+        InstructionHandle i, int maxLocals, String localClassName) {
+        LocalVariableInstruction curr = (LocalVariableInstruction) (i
+            .getInstruction());
         Type type = mtab.getLocalType(m, curr, i.getPosition());
         if (type == null) {
             return i;
@@ -1512,14 +1477,14 @@ public final class Satinc {
         }
 
         i = il.insert(i, ins_f.createFieldAccess(localClassName, fieldName,
-                type, Constants.PUTFIELD));
+            type, Constants.PUTFIELD));
         return i;
     }
 
     InstructionHandle rewriteLoad(MethodGen m, InstructionList il,
-            InstructionHandle i, int maxLocals, String localClassName) {
-        LocalVariableInstruction curr
-                = (LocalVariableInstruction) (i.getInstruction());
+        InstructionHandle i, int maxLocals, String localClassName) {
+        LocalVariableInstruction curr = (LocalVariableInstruction) (i
+            .getInstruction());
         Type type = mtab.getLocalType(m, curr, i.getPosition());
         if (type == null) {
             return i;
@@ -1530,7 +1495,7 @@ public final class Satinc {
         i.setInstruction(new ALOAD(maxLocals));
         i = i.getNext();
         i = il.insert(i, ins_f.createFieldAccess(localClassName, fieldName,
-                type, Constants.GETFIELD));
+            type, Constants.GETFIELD));
 
         return i;
     }
@@ -1548,11 +1513,10 @@ public final class Satinc {
     }
 
     InstructionHandle insertTypecheckCode(MethodGen m, InstructionList il,
-            InstructionHandle pos, int spawnId, int exceptionPos) {
+        InstructionHandle pos, int spawnId, int exceptionPos) {
         Vector catches = mtab.getCatchTypes(m, spawnId);
 
-        InstructionHandle[] jumpTargets
-                = new InstructionHandle[catches.size() + 1];
+        InstructionHandle[] jumpTargets = new InstructionHandle[catches.size() + 1];
 
         BranchHandle[] jumps = new BranchHandle[catches.size()];
 
@@ -1599,19 +1563,19 @@ public final class Satinc {
 
         MethodGen m = new MethodGen(mOrig, className, cpg);
         m.setArgumentTypes(new Type[] { Type.INT,
-                new ObjectType(localRecordName(mOrig)),
-                new ObjectType("java.lang.Throwable"), irType });
+            new ObjectType(localRecordName(mOrig)),
+            new ObjectType("java.lang.Throwable"), irType });
 
         m.setName("exceptionHandlingClone_" + mOrig.getName());
-        m.setAccessFlags(Constants.ACC_PUBLIC
-                | (m.getAccessFlags()
-                        & ~(Constants.ACC_PRIVATE | Constants.ACC_PROTECTED)));
+        m
+            .setAccessFlags(Constants.ACC_PUBLIC
+                | (m.getAccessFlags() & ~(Constants.ACC_PRIVATE | Constants.ACC_PROTECTED)));
 
         InstructionList il = m.getInstructionList();
         il.setPositions();
 
-        InstructionHandle startLocalPos
-            = il.findHandle(mtab.getStartLocalAlloc(mOrig));
+        InstructionHandle startLocalPos = il.findHandle(mtab
+            .getStartLocalAlloc(mOrig));
 
         mtab.addCloneToInletTable(mOrig, m);
 
@@ -1630,11 +1594,11 @@ public final class Satinc {
         }
 
         m.addLocalVariable("spawn_id", Type.INT, spawnIdPos, startLocalPos,
-                null);
+            null);
         m.addLocalVariable("local_record", new ObjectType(
-                localRecordName(mOrig)), localRecordPos, startLocalPos, null);
+            localRecordName(mOrig)), localRecordPos, startLocalPos, null);
         m.addLocalVariable("excpt", new ObjectType("java.lang.Throwable"),
-                exceptionPos, startLocalPos, null);
+            exceptionPos, startLocalPos, null);
         m.addLocalVariable("parent", irType, parentPos, startLocalPos, null);
 
         // At pos 'startPos', the new of the local record starts.
@@ -1646,7 +1610,7 @@ public final class Satinc {
 
         // Save record
         startLocalPos.setInstruction(new ASTORE(m.getMaxLocals() - 5
-                + localsShift));
+            + localsShift));
         startLocalPos = startLocalPos.getNext();
 
         // Remove allocation of LocalRecord.
@@ -1706,8 +1670,8 @@ public final class Satinc {
     void rewriteInletMethod(Method mOrig, MethodGen m) {
         if (verbose) {
             System.out.println("method " + mOrig
-                    + " contains a spawned call and inlet, rewriting to local "
-                    + "record");
+                + " contains a spawned call and inlet, rewriting to local "
+                + "record");
         }
 
         String localClassName = localRecordName(m);
@@ -1724,11 +1688,11 @@ public final class Satinc {
 
         Type[] paramtypes = mtab.typesOfParams(mOrig);
         il.insert(pos, ins_f.createInvoke(localClassName, "getNew",
-                local_record_type, paramtypes, Constants.INVOKESTATIC));
+            local_record_type, paramtypes, Constants.INVOKESTATIC));
 
         il.insert(pos, new ASTORE(maxLocals));
-        m.addLocalVariable("local_record", local_record_type, maxLocals,
-                il.insert(pos, new NOP()), null);
+        m.addLocalVariable("local_record", local_record_type, maxLocals, il
+            .insert(pos, new NOP()), null);
 
         for (InstructionHandle i = pos; i != null; i = i.getNext()) {
 
@@ -1738,48 +1702,48 @@ public final class Satinc {
                 LocalVariableInstruction curr = (LocalVariableInstruction) ins;
 
                 if (!inletOpt
-                        || mtab.isLocalUsedInInlet(mOrig, curr.getIndex())) {
+                    || mtab.isLocalUsedInInlet(mOrig, curr.getIndex())) {
                     if (verbose) {
                         System.out.println(m + ": rewriting local "
-                                + curr.getIndex());
+                            + curr.getIndex());
                     }
                     i = rewriteStore(m, il, i, maxLocals, localClassName);
                 } else {
                     if (verbose) {
                         System.out.println(m + ": NOT rewriting local "
-                                + curr.getIndex());
+                            + curr.getIndex());
                     }
                 }
             } else if (isLocalLoad(ins)) {
                 LocalVariableInstruction curr = (LocalVariableInstruction) ins;
 
                 if (!inletOpt
-                        || mtab.isLocalUsedInInlet(mOrig, curr.getIndex())) {
+                    || mtab.isLocalUsedInInlet(mOrig, curr.getIndex())) {
                     if (verbose) {
                         System.out.println(m + ": rewriting local "
-                                + curr.getIndex());
+                            + curr.getIndex());
                     }
                     i = rewriteLoad(m, il, i, maxLocals, localClassName);
                 } else {
                     if (verbose) {
                         System.out.println(m + ": NOT rewriting local "
-                                + curr.getIndex());
+                            + curr.getIndex());
                     }
                 }
             } else if (ins instanceof IINC) {
                 IINC curr = (IINC) ins;
                 if (!inletOpt
-                        || mtab.isLocalUsedInInlet(mOrig, curr.getIndex())) {
+                    || mtab.isLocalUsedInInlet(mOrig, curr.getIndex())) {
                     if (verbose) {
                         System.out.println(m + ": rewriting local "
-                                + curr.getIndex());
+                            + curr.getIndex());
                     }
 
                     int val = curr.getIncrement();
-                    String fieldName = mtab.getLocalName(m, curr,
-                            i.getPosition());
-                    Type fieldType = mtab.getLocalType(m, curr,
-                            i.getPosition());
+                    String fieldName = mtab.getLocalName(m, curr, i
+                        .getPosition());
+                    Type fieldType = mtab
+                        .getLocalType(m, curr, i.getPosition());
                     if (fieldType == null) {
                         continue;
                     }
@@ -1789,19 +1753,17 @@ public final class Satinc {
                     il.insert(i, new DUP());
 
                     il.insert(i, ins_f.createFieldAccess(localClassName,
-                            MethodTable.generatedLocalName(fieldType,
-                                fieldName),
-                            fieldType, Constants.GETFIELD));
+                        MethodTable.generatedLocalName(fieldType, fieldName),
+                        fieldType, Constants.GETFIELD));
                     il.insert(i, new BIPUSH((byte) val));
                     il.insert(i, new IADD());
                     i = il.insert(i, ins_f.createFieldAccess(localClassName,
-                            MethodTable.generatedLocalName(fieldType,
-                                fieldName),
-                            fieldType, Constants.PUTFIELD));
+                        MethodTable.generatedLocalName(fieldType, fieldName),
+                        fieldType, Constants.PUTFIELD));
                 } else {
                     if (verbose) {
                         System.out.println(m + ": NOT rewriting local "
-                                + curr.getIndex());
+                            + curr.getIndex());
                     }
                 }
             }
@@ -1868,12 +1830,12 @@ public final class Satinc {
 
             int maxLocals = mg.getMaxLocals();
 
-            for (InstructionHandle i = il.getStart(); i != null;
-                    i = i.getNext()) {
+            for (InstructionHandle i = il.getStart(); i != null; i = i
+                .getNext()) {
                 Instruction ins = i.getInstruction();
                 if (ins instanceof INVOKEVIRTUAL) {
-                    String targetname
-                            = ((InvokeInstruction) ins).getMethodName(cpg);
+                    String targetname = ((InvokeInstruction) ins)
+                        .getMethodName(cpg);
                     String sig = ((InvokeInstruction) ins).getSignature(cpg);
 
                     if (targetname.equals("abort") && sig.equals("()V")) {
@@ -1919,15 +1881,15 @@ public final class Satinc {
         String[] compilerArgs = new String[sz + 1];
         compilerArgs[0] = "-g";
         for (int i = 0; i < sz; i++) {
-            compilerArgs[i+1] = ((String) args.get(i)) + ".java";
+            compilerArgs[i + 1] = ((String) args.get(i)) + ".java";
         }
-        if (! RunJavac.runJavac(compilerArgs, verbose)) {
+        if (!RunJavac.runJavac(compilerArgs, verbose)) {
             System.exit(1);
         }
 
         for (int i = 0; i < sz; i++) {
             if (!keep) { // remove generated files 
-                removeFile(compilerArgs[i+1]);
+                removeFile(compilerArgs[i + 1]);
             }
         }
     }
@@ -1952,13 +1914,14 @@ public final class Satinc {
             }
 
             if (mtab.isSpawnable(methods[i], c)) {
-                writeInvocationRecord(methods[i], classNameNoPackage, packageName);
+                writeInvocationRecord(methods[i], classNameNoPackage,
+                    packageName);
                 writeReturnRecord(methods[i], classNameNoPackage, packageName);
-                writeParameterRecord(methods[i]);
 
-                toCompiler.add(invocationRecordFileBase(methods[i], classNameNoPackage, packageName));
-                toCompiler.add(returnRecordFileBase(methods[i], classNameNoPackage, packageName));
-                toCompiler.add(parameterRecordFileBase(methods[i]));
+                toCompiler.add(invocationRecordFileBase(methods[i],
+                    classNameNoPackage, packageName));
+                toCompiler.add(returnRecordFileBase(methods[i],
+                    classNameNoPackage, packageName));
             }
         }
         if (toCompiler.size() > 0) {
@@ -1969,9 +1932,10 @@ public final class Satinc {
                 }
 
                 if (mtab.isSpawnable(methods[i], c)) {
-                    Repository.lookupClass(invocationRecordName(methods[i], classNameNoPackage, packageName));
-                    Repository.lookupClass(returnRecordName(methods[i], classNameNoPackage, packageName));
-                    Repository.lookupClass(parameterRecordName(methods[i]));
+                    Repository.lookupClass(invocationRecordName(methods[i],
+                        classNameNoPackage, packageName));
+                    Repository.lookupClass(returnRecordName(methods[i],
+                        classNameNoPackage, packageName));
                 }
             }
         }
@@ -2004,19 +1968,18 @@ public final class Satinc {
                 ClassGen recgen = new ClassGen(localRec);
 
                 Method exceptionHandler = recgen.containsMethod(
-                        "handleException",
-                        "(ILjava/lang/Throwable;"
-                                + "Libis/satin/impl/InvocationRecord;)V");
+                    "handleException", "(ILjava/lang/Throwable;"
+                        + "Libis/satin/impl/spawnSync/InvocationRecord;)V");
                 MethodGen handler_g = new MethodGen(exceptionHandler,
-                        local_record_name, recgen.getConstantPool());
+                    local_record_name, recgen.getConstantPool());
 
                 InstructionList il = handler_g.getInstructionList();
                 InstructionFactory insf = new InstructionFactory(recgen);
 
                 if (verbose) {
                     System.out.println(m
-                            + ":code contained an inlet, Rewriting localrecord,"
-                            + " clone = " + clone);
+                        + ":code contained an inlet, Rewriting localrecord,"
+                        + " clone = " + clone);
                 }
 
                 InstructionHandle old_end = il.getEnd();
@@ -2026,11 +1989,11 @@ public final class Satinc {
                     String thisName = MethodTable.getParamName(m, 0);
                     Type thisType = mtab.getParamType(m, 0);
                     String thisFieldName = MethodTable.generatedLocalName(
-                            thisType, thisName);
+                        thisType, thisName);
 
                     il.append(new ALOAD(0));
                     il.append(insf.createFieldAccess(local_record_name,
-                            thisFieldName, thisType, Constants.GETFIELD));
+                        thisFieldName, thisType, Constants.GETFIELD));
                 }
 
                 // push spawnId, push localrecord, push exception, push parent
@@ -2040,10 +2003,10 @@ public final class Satinc {
                 il.append(new ALOAD(2));
                 il.append(new ALOAD(3));
 
-                il.append(insf.createInvoke(className, clone.getName(),
-                        clone.getReturnType(), clone.getArgumentTypes(),
-                        clone.isStatic() ? Constants.INVOKESTATIC
-                                : Constants.INVOKEVIRTUAL));
+                il.append(insf.createInvoke(className, clone.getName(), clone
+                    .getReturnType(), clone.getArgumentTypes(), clone
+                    .isStatic() ? Constants.INVOKESTATIC
+                    : Constants.INVOKEVIRTUAL));
                 insertReturnPop(m, il);
                 il.append(new RETURN());
 
@@ -2065,7 +2028,7 @@ public final class Satinc {
                 String clnam = newclass.getClassName();
                 String dst;
                 if (local) {
-                    dst = clnam.substring(clnam.lastIndexOf('.')+1);
+                    dst = clnam.substring(clnam.lastIndexOf('.') + 1);
                 } else {
                     dst = clnam.replace('.', java.io.File.separatorChar);
                 }
@@ -2077,7 +2040,7 @@ public final class Satinc {
                     System.out.println("error writing " + dst);
                     System.exit(1);
                 }
- 
+
                 if (verify && !do_verify(newclass)) {
                     failed_verification = true;
                 }
@@ -2097,14 +2060,14 @@ public final class Satinc {
         PrintStream out = new PrintStream(b2);
 
         try {
-            if (packageName != null && ! packageName.equals("")) {
+            if (packageName != null && !packageName.equals("")) {
                 out.println("package " + packageName + ";");
             }
 
             name = localRecordClassName(m);
 
             out.println("public final class " + name
-                    + " extends ibis.satin.impl.LocalRecord {");
+                + " extends ibis.satin.impl.aborts.LocalRecord {");
             out.println("    private static " + name + " cache;");
             out.println("    private " + name + " cacheNext;");
 
@@ -2126,7 +2089,7 @@ public final class Satinc {
                 String paramName = MethodTable.getParamName(m, i);
 
                 out.print(params[i] + " "
-                        + MethodTable.generatedLocalName(params[i], paramName));
+                    + MethodTable.generatedLocalName(params[i], paramName));
                 if (i != params.length - 1) {
                     out.print(", ");
                 }
@@ -2137,10 +2100,10 @@ public final class Satinc {
                 String paramName = MethodTable.getParamName(m, i);
 
                 out.println("        this."
-                        + MethodTable.generatedLocalName(params[i], paramName)
-                        + " = "
-                        + MethodTable.generatedLocalName(params[i], paramName)
-                        + ";");
+                    + MethodTable.generatedLocalName(params[i], paramName)
+                    + " = "
+                    + MethodTable.generatedLocalName(params[i], paramName)
+                    + ";");
             }
 
             out.println("    }\n");
@@ -2152,7 +2115,7 @@ public final class Satinc {
                 String paramName = MethodTable.getParamName(m, i);
 
                 out.print(params[i] + " "
-                        + MethodTable.generatedLocalName(params[i], paramName));
+                    + MethodTable.generatedLocalName(params[i], paramName));
                 if (i != params.length - 1) {
                     out.print(", ");
                 }
@@ -2179,10 +2142,10 @@ public final class Satinc {
                 String paramName = MethodTable.getParamName(m, i);
 
                 out.println("        result."
-                        + MethodTable.generatedLocalName(params[i], paramName)
-                        + " = "
-                        + MethodTable.generatedLocalName(params[i], paramName)
-                        + ";");
+                    + MethodTable.generatedLocalName(params[i], paramName)
+                    + " = "
+                    + MethodTable.generatedLocalName(params[i], paramName)
+                    + ";");
             }
 
             out.println("        result.cacheNext = null;");
@@ -2207,14 +2170,16 @@ public final class Satinc {
             out.println("    }\n");
 
             // generate a method that runs the clone in case of exceptions 
-            out.println("    public void handleException(int spawnId, "
-                    + "Throwable t, ibis.satin.impl.InvocationRecord parent) "
+            out
+                .println("    public void handleException(int spawnId, "
+                    + "Throwable t, ibis.satin.impl.spawnSync.InvocationRecord parent) "
                     + "throws Throwable {");
-            out.println("        if (ibis.satin.impl.Config.inletLogger.isDebugEnabled()) {");
+            out
+                .println("        if (ibis.satin.impl.Config.inletLogger.isDebugEnabled()) {");
             out.println("            ibis.satin.impl.Config.inletLogger.debug("
-                    + "\"handleE: spawnId = \" + spawnId + "
-                    + "\", t = \" + t + \", parent = \" + parent + \", "
-                    + "this = \" + this);");
+                + "\"handleE: spawnId = \" + spawnId + "
+                + "\", t = \" + t + \", parent = \" + parent + \", "
+                + "this = \" + this);");
             out.println("        }");
             // This will later be replaced with call to exception handler
             out.println("    }");
@@ -2226,23 +2191,23 @@ public final class Satinc {
     }
 
     private boolean isSharedObject(Type t) {
-	if (t instanceof ObjectType) {
-	    ObjectType typ = (ObjectType) t;
-	    if (Repository.instanceOf(typ.getClassName(), 
-				      "ibis.satin.SharedObject")) {
-		return true;
-	    }
-	}
-	return false;
+        if (t instanceof ObjectType) {
+            ObjectType typ = (ObjectType) t;
+            if (Repository.instanceOf(typ.getClassName(),
+                "ibis.satin.SharedObject")) {
+                return true;
+            }
+        }
+        return false;
     }
 
-
-    void writeInvocationRecord(Method m, String clname, String pnam) throws IOException {
+    void writeInvocationRecord(Method m, String clname, String pnam)
+        throws IOException {
         String name = invocationRecordFileBase(m, clname, pnam);
 
         if (verbose) {
             System.out.println("writing invocationrecord code to " + name
-                    + ".java");
+                + ".java");
         }
 
         FileOutputStream f = new FileOutputStream(name + ".java");
@@ -2258,14 +2223,13 @@ public final class Satinc {
                 if (params[i] instanceof ObjectType) {
                     String clnam = ((ObjectType) params[i]).getClassName();
                     if (!Repository.implementationOf(clnam,
-                            "java.io.Serializable")) {
+                        "java.io.Serializable")) {
                         System.err.println(clname
-                                + ": parameter of spawnable method "
-                                + m.getName() + " with non-serializable type "
-                                + clnam);
+                            + ": parameter of spawnable method " + m.getName()
+                            + " with non-serializable type " + clnam);
                         System.err.println(clname
-                                + ": all parameters of a spawnable method must"
-                                + " be serializable.");
+                            + ": all parameters of a spawnable method must"
+                            + " be serializable.");
                         errors = true;
                     }
                 }
@@ -2277,36 +2241,36 @@ public final class Satinc {
                 String onam = ((ObjectType) returnType).getClassName();
                 if (!Repository.implementationOf(onam, "java.io.Serializable")) {
                     System.err.println(clname + ": spawnable method "
-                            + m.getName()
-                            + " has non-serializable return type: " + onam
-                            + ".");
+                        + m.getName() + " has non-serializable return type: "
+                        + onam + ".");
                     System.err.println(clname
-                            + ": the return type of a spawnable method must be "
-                            + "serializable.");
+                        + ": the return type of a spawnable method must be "
+                        + "serializable.");
                     errors = true;
                 }
             }
 
-            if (pnam != null && ! pnam.equals("")) {
+            if (pnam != null && !pnam.equals("")) {
                 out.println("package " + pnam + ";");
             }
 
             name = invocationRecordClassName(m, clname, pnam);
 
             out.println("public final class " + name
-                    + " extends ibis.satin.impl.InvocationRecord {");
+                + " extends ibis.satin.impl.spawnSync.InvocationRecord {");
 
             // fields 
             out.println("    public " + clname + " self;");
             for (int i = 0; i < params_types_as_names.length; i++) {
-		if (!sharedObjects || !isSharedObject(params[i])) {
-		    out.println("    public " + params_types_as_names[i] + " param" + i
-				+ ";");
-		} else {
-		    /*out.println("    transient " + params_types_as_names[i]
-		      + " param" + i + ";");*/
-		    out.println("    public String satin_so_reference_param" + i + ";");
-		}
+                if (!isSharedObject(params[i])) {
+                    out.println("    public " + params_types_as_names[i]
+                        + " param" + i + ";");
+                } else {
+                    /*out.println("    transient " + params_types_as_names[i]
+                     + " param" + i + ";");*/
+                    out.println("    public String satin_so_reference_param"
+                        + i + ";");
+                }
             }
 
             // result 
@@ -2330,20 +2294,23 @@ public final class Satinc {
             for (int i = 0; i < params_types_as_names.length; i++) {
                 out.print(params_types_as_names[i] + " param" + i + ", ");
             }
-            out.println("ibis.satin.impl.SpawnCounter s, "
-                    + "ibis.satin.impl.InvocationRecord next, int storeId, "
-                    + "int spawnId, ibis.satin.impl.LocalRecord parentLocals) {");
+            out
+                .println("ibis.satin.impl.spawnSync.SpawnCounter s, "
+                    + "ibis.satin.impl.spawnSync.InvocationRecord next, int storeId, "
+                    + "int spawnId, ibis.satin.impl.aborts.LocalRecord parentLocals) {");
             out.println("        super(s, next, storeId, spawnId, "
-                    + "parentLocals);");
+                + "parentLocals);");
             out.println("        this.self = self;");
 
             for (int i = 0; i < params_types_as_names.length; i++) {
-		if (!sharedObjects || !isSharedObject(params[i])) {
-		    out.println("        this.param" + i + " = param" + i + ";");
-		} else {
-		    out.println("        this.satin_so_reference_param" + i
-				+ " = param" + i + ".objectId;");
-		}
+                if (!isSharedObject(params[i])) {
+                    out
+                        .println("        this.param" + i + " = param" + i
+                            + ";");
+                } else {
+                    out.println("        this.satin_so_reference_param" + i
+                        + " = param" + i + ".objectId;");
+                }
             }
 
             out.println("    }\n");
@@ -2354,9 +2321,10 @@ public final class Satinc {
             for (int i = 0; i < params_types_as_names.length; i++) {
                 out.print(params_types_as_names[i] + " param" + i + ", ");
             }
-            out.println("ibis.satin.impl.SpawnCounter s, "
-                    + "ibis.satin.impl.InvocationRecord next, int storeId, "
-                    + "int spawnId, ibis.satin.impl.LocalRecord parentLocals) {");
+            out
+                .println("ibis.satin.impl.spawnSync.SpawnCounter s, "
+                    + "ibis.satin.impl.spawnSync.InvocationRecord next, int storeId, "
+                    + "int spawnId, ibis.satin.impl.aborts.LocalRecord parentLocals) {");
 
             if (invocationRecordCache) {
                 out.println("        if (invocationRecordCache == null) {");
@@ -2369,33 +2337,25 @@ public final class Satinc {
             if (invocationRecordCache) {
                 out.println("        }\n");
 
-                out.println("        " + name
+                out
+                    .println("        " + name
                         + " res = invocationRecordCache;");
                 out.println("        invocationRecordCache = (" + name
-                        + ") res.cacheNext;");
+                    + ") res.cacheNext;\n");
+
                 out.println("        res.self = self;");
+                
                 for (int i = 0; i < params_types_as_names.length; i++) {
-                    out.println("        res.param" + i + " = param" + i + ";");
-		    if (sharedObjects && isSharedObject(params[i])) {
-			out.println("        this.satin_so_reference_param" + i
-				    + " = param" + i + ".objectId;");
-		    }
+                    if (!isSharedObject(params[i])) {
+                        out.println("        res.param" + i + " = param" + i
+                                + ";");
+                    } else {
+                        out.println("        res.satin_so_reference_param" + i
+                            + " = param" + i + ".objectId;");
+                    }
                 }
-                out.println("        res.spawnCounter = s;");
-                out.println("        res.cacheNext = next;");
-                out.println("        res.storeId = storeId;");
 
-                out.println("        if (ibis.satin.impl.Config.ABORTS) {");
-                out.println("            res.spawnId = spawnId;");
-                out.println("            res.parentLocals = parentLocals;");
-                out.println("        }");
-
-                out.println("        if (ibis.satin.impl"
-                        + ".Config.FAULT_TOLERANCE) {");
-                out.println("            res.spawnId = spawnId;");
-                out.println("            res.numSpawned = 0;");
-                out.println("        }");
-
+                out.println("        res.init(s, next, storeId, spawnId, parentLocals);");
                 out.println("        return res;");
             }
             out.println("    }\n");
@@ -2408,10 +2368,10 @@ public final class Satinc {
                 for (int i = 0; i < params_types_as_names.length; i++) {
                     out.print(params_types_as_names[i] + " param" + i + ", ");
                 }
-                out.println("ibis.satin.impl.SpawnCounter s, "
-                        + "ibis.satin.impl.InvocationRecord next, "
-                        + "int storeId, int spawnId, "
-                        + "ibis.satin.impl.LocalRecord parentLocals) {");
+                out.println("ibis.satin.impl.spawnSync.SpawnCounter s, "
+                    + "ibis.satin.impl.spawnSync.InvocationRecord next, "
+                    + "int storeId, int spawnId, "
+                    + "ibis.satin.impl.aborts.LocalRecord parentLocals) {");
                 out.print("            " + name + " res = getNew(self, ");
                 for (int i = 0; i < params_types_as_names.length; i++) {
                     out.print(" param" + i + ", ");
@@ -2432,10 +2392,10 @@ public final class Satinc {
                 for (int i = 0; i < params_types_as_names.length; i++) {
                     out.print(params_types_as_names[i] + " param" + i + ", ");
                 }
-                out.println("ibis.satin.impl.SpawnCounter s, "
-                        + "ibis.satin.impl.InvocationRecord next, "
-                        + "int storeId, int spawnId, "
-                        + "ibis.satin.impl.LocalRecord parentLocals) {");
+                out.println("ibis.satin.impl.spawnSync.SpawnCounter s, "
+                    + "ibis.satin.impl.spawnSync.InvocationRecord next, "
+                    + "int storeId, int spawnId, "
+                    + "ibis.satin.impl.aborts.LocalRecord parentLocals) {");
                 out.print("            " + name + " res = getNew(self, ");
                 for (int i = 0; i < params_types_as_names.length; i++) {
                     out.print(" param" + i + ", ");
@@ -2460,7 +2420,12 @@ public final class Satinc {
 
                 for (int i = 0; i < params.length; i++) {
                     if (isRefType(params[i])) {
-                        out.println("        w.param" + i + " = null;");
+                        if (!isSharedObject(params[i])) {
+                            out.println("        w.param" + i + " = null;");
+                        } else {
+                            out.println("        w.satin_so_reference_param" + i
+                                + " = null;");
+                        }
                     }
                 }
                 out.println("        w.cacheNext = invocationRecordCache;");
@@ -2468,32 +2433,8 @@ public final class Satinc {
             }
             out.println("    }\n");
 
-            /*
-            // unused ...
-            // delete method (for abort)
-            out.println("    public void delete() {");
-            if (invocationRecordCache) {
-                if (! returnType.equals(Type.VOID)) {
-                    out.println("        array = null;");
-                }
-                 // Set everything to null, don't keep references live for gc. 
-                out.println("        clear();");
-                out.println("        self = null;");
-
-                for (int i=0; i<params.length; i++) {
-                    if (isRefType(params[i])) {
-                        out.println("        param" + i + " = null;");
-                    }
-                }
-                out.println("        cacheNext = invocationRecordCache;");
-                out.println("        invocationRecordCache = this;");
-            }
-            out.println("    }\n");
-            */
-
             // runLocal method 
             out.println("    public void runLocal() throws Throwable {");
-            out.println("        if (ibis.satin.impl.Config.ABORTS) {");
             out.println("            try {");
 
             if (!returnType.equals(Type.VOID)) {
@@ -2501,71 +2442,55 @@ public final class Satinc {
             }
             out.print("            self." + m.getName() + "(");
             for (int i = 0; i < params.length; i++) {
-		if (sharedObjects && isSharedObject(params[i])) {
-		    out.print("(" + params_types_as_names[i] + ")"
-			      +"ibis.satin.impl.Satin.getSatin().getSOReference(satin_so_reference_param" 
-			      + i + ")");
-		} else {
-            	    out.print("param" + i);
-		}
+                if (isSharedObject(params[i])) {
+                    out
+                        .print("("
+                            + params_types_as_names[i]
+                            + ")"
+                            + "ibis.satin.impl.Satin.getSatin().so.getSOReference(satin_so_reference_param"
+                            + i + ")");
+                } else {
+                    out.print("param" + i);
+                }
                 if (i != params.length - 1) {
                     out.print(", ");
                 }
             }
             out.println(");");
-            out.println(
-                      "            } catch (Throwable e) {\n"
+            out
+                .println("            } catch (Throwable e) {\n"
                     + "                if (ibis.satin.impl.Config.inletLogger.isDebugEnabled()) {\n"
                     + "                    ibis.satin.impl.Config.inletLogger.debug("
-                    +                        "\"caught exception in runlocal: "
-                    +                        "\" + e, e);\n"
+                    + "\"caught exception in runlocal: "
+                    + "\" + e, e);\n"
                     + "                }\n"
-                    + "                if (! (e instanceof ibis.satin.impl.AbortException)) {\n"
+                    + "                if (! (e instanceof ibis.satin.impl.aborts.AbortException)) {\n"
                     + "                    eek = e;\n"
                     + "                } else if (ibis.satin.impl.Config.abortLogger.isDebugEnabled()) {\n"
                     + "                    ibis.satin.impl.Config.abortLogger.debug("
-                    +                         "\"got AbortException \" + e, e);\n"
+                    + "\"got AbortException \" + e, e);\n"
                     + "                }\n"
                     + "            }\n"
                     + "            if (eek != null && !inletExecuted) {\n"
                     + "                if (ibis.satin.impl.Config.inletLogger.isDebugEnabled()) {\n"
                     + "                    ibis.satin.impl.Config.inletLogger.debug("
-                    +                         "\"runlocal: calling inlet for: "
-                    +                         "\" + this);\n"
+                    + "\"runlocal: calling inlet for: "
+                    + "\" + this);\n"
                     + "                }\n"
                     + "                if (parentLocals != null)\n"
                     + "                    parentLocals.handleException(spawnId, eek, this);\n"
                     + "                if (ibis.satin.impl.Config.inletLogger.isDebugEnabled()) {\n"
                     + "                    ibis.satin.impl.Config.inletLogger.debug(\"runlocal:"
-                    +                          " calling inlet for: \" + this + \" DONE\");\n"
+                    + " calling inlet for: \" + this + \" DONE\");\n"
                     + "                }\n"
                     + "                if (parentLocals == null)\n"
-                    + "                    throw eek;\n"
-                    + "            }\n"
-                    + "        } else {\n");
-            if (!returnType.equals(Type.VOID)) {
-                out.print("            result = ");
-            }
-            out.print("            self." + m.getName() + "(");
-            for (int i = 0; i < params.length; i++) {
-		if (sharedObjects && isSharedObject(params[i])) {
-		    out.print("(" + params_types_as_names[i] + ")"
-			      +"ibis.satin.impl.Satin.getSatin().getSOReference(satin_so_reference_param" 
-			      + i + ")");
-		} else {
-		    out.print("param" + i);
-		}
-                if (i != params.length - 1) {
-                    out.print(", ");
-                }
-            }
-            out.println(");");
-            out.println("        }");
+                    + "                    throw eek;\n" + "            }\n"
+                    + "\n");
             out.println("    }\n");
 
             // runRemote method 
-            out.println("    public ibis.satin.impl.ReturnRecord "
-                    + "runRemote() {");
+            out.println("    public ibis.satin.impl.spawnSync.ReturnRecord "
+                + "runRemote() {");
             out.println("        try {");
             out.print("            ");
             if (!returnType.equals(Type.VOID)) {
@@ -2574,13 +2499,16 @@ public final class Satinc {
             out.print("self." + m.getName() + "(");
 
             for (int i = 0; i < params.length; i++) {
-		if (sharedObjects && isSharedObject(params[i])) {
-		    out.print("(" + params_types_as_names[i] + ")"
-			      +"ibis.satin.impl.Satin.getSatin().getSOReference(satin_so_reference_param" 
-			      + i + ")");
-		} else {	    
+                if (isSharedObject(params[i])) {
+                    out
+                        .print("("
+                            + params_types_as_names[i]
+                            + ")"
+                            + "ibis.satin.impl.Satin.getSatin().so.getSOReference(satin_so_reference_param"
+                            + i + ")");
+                } else {
                     out.print("param" + i);
-		}
+                }
                 if (i != params.length - 1) {
                     out.print(", ");
                 }
@@ -2592,28 +2520,23 @@ public final class Satinc {
                       +                        "\"caught exception in runremote: "
                       +                        "\" + e, e);\n"
                       + "            }\n");
-            out.println("            if (ibis.satin.impl.Config.ABORTS) {");
-            out.println("                if (! (e instanceof ibis.satin.impl.AbortException)) {");
+            out
+                .println("                if (! (e instanceof ibis.satin.impl.aborts.AbortException)) {");
             out.println("                    eek = e;");
-            out.println("                } else if (ibis.satin.impl.Config.abortLogger.isDebugEnabled()) {");
-           out.println("                    ibis.satin.impl.Config.abortLogger.debug("
+            out
+                .println("                } else if (ibis.satin.impl.Config.abortLogger.isDebugEnabled()) {");
+            out
+                .println("                    ibis.satin.impl.Config.abortLogger.debug("
                     + "\"got AbortException \" + e, e);");
             out.println("                }");
-            out.println("            } else {");
-            out.println("                if (e instanceof Error) {");
-            out.println("                    throw (Error) e;");
-            out.println("                }");
-            out.println("                if (e instanceof RuntimeException) {");
-            out.println("                    throw (RuntimeException) e;");
-            out.println("                }");
-            out.println("                throw new RuntimeException(e);");
-            out.println("            }");
             out.println("        }");
-            out.print("        return new " + returnRecordName(m, clname, pnam));
+            out
+                .print("        return new "
+                    + returnRecordName(m, clname, pnam));
             if (!returnType.equals(Type.VOID)) {
-                out.println("(result, eek, stamp);");
+                out.println("(result, eek, getStamp());");
             } else {
-                out.println("(eek, stamp);");
+                out.println("(eek, getStamp());");
             }
             out.println("    }");
 
@@ -2629,138 +2552,123 @@ public final class Satinc {
             }
             out.println("    }");
 
-            //getParameterRecord method
-            out.println("    public ibis.satin.impl.ParameterRecord "
-                    + "getParameterRecord() {");
-            out.print("        return new " + parameterRecordName(m) + "(");
-            for (int i = 0; i < params.length; i++) {
-		if (!sharedObjects || !isSharedObject(params[i])) {
-		    out.print("param" + i);
-		} else {
-		    out.print("satin_so_reference_param" + i);
-		}
-                if (i != params.length - 1) {
-                    out.print(", ");
-                }
-            }
-            out.println(");");
-            out.println("    }\n");
-
             //getReturnRecord method
             if (returnType.equals(Type.VOID)) {
-                out.println("    public ibis.satin.impl.ReturnRecord "
+                out
+                    .println("    public ibis.satin.impl.spawnSync.ReturnRecord "
                         + "getReturnRecord() {");
-                out.println("        return new " + returnRecordName(m, clname, pnam)
-                        + "(null, stamp);");
+                out
+                    .println("        return new "
+                        + returnRecordName(m, clname, pnam)
+                        + "(null, getStamp());");
                 out.println("    }\n");
             } else {
-                out.println("    public ibis.satin.impl.ReturnRecord "
+                out
+                    .println("    public ibis.satin.impl.spawnSync.ReturnRecord "
                         + "getReturnRecord() {");
-                out.println("        return new " + returnRecordName(m, clname, pnam)
-                        + "(result, null, stamp);");
+                out.println("        return new "
+                    + returnRecordName(m, clname, pnam)
+                    + "(result, null, getStamp());");
                 out.println("    }\n");
             }
 
-	    //setSOReferences method
-	    out.println("    public void setSOReferences()");
-	    out.println("        throws ibis.satin.impl.SOReferenceSourceCrashedException {");
-	    if (!sharedObjects) {
-		out.println("    }\n");
-	    } else {
-		for (int i = 0; i < params.length; i++) {
-		    if(isSharedObject(params[i])) {
-			/*		    out.println("        param" + i + " = "
-					    + "(" + params_types_as_names[i] + ")"
-					    + "satin.getSOReference(satin_so_reference_param"
-					    + i + ", owner);");*/
-			out.println("        ibis.satin.impl.Satin.getSatin().setSOReference(satin_so_reference_param"
-				    + i + ", owner);");
-		    }
-		}
-		out.println("    }\n");
-	    }
-
-	    //getSOReferences method
-	    out.println("    public java.util.Vector getSOReferences() {");
-	    if (!sharedObjects) {
-		out.println("        return new java.util.Vector();");
-		out.println("    }\n");
-	    } else {
-		out.println("        java.util.Vector refs = new java.util.Vector();");
-		for (int i = 0; i < params.length; i++) {
-		    if(isSharedObject(params[i])) {
-			out.println("        refs.add(satin_so_reference_param"
-				    + i + ");");
-		    }
-		}
-		out.println("        return refs;");
-		out.println("    }\n");
-	    }
-	    
-
-	    //guard method
-	    //generate a guard method only if the programmer defined a
-	    // guard_method_name method
-	    if (sharedObjects) {
-		String signature = m.getSignature();
-		String guardSignature = signature.substring(0,signature.indexOf(")")+1)
-		    + "Z";
-		String guardName = "guard_" + m.getName();
-		
-		if (gen_c.containsMethod(guardName, guardSignature) != null) {
-                    if (verbose) {
-                        System.out.println("Generating a guard function for "
-                                           + m.getName());
-                    }
-		    out.println("    public boolean guard() {");
-		    out.print("        return self.guard_" + m.getName() + "(");
-		    for (int i = 0; i < params.length; i++) {
-			if (isSharedObject(params[i])) {
-			    out.print("(" + params_types_as_names[i] + ")"
-				      +"ibis.satin.impl.Satin.getSatin().getSOReference(satin_so_reference_param" 
-				      + i + ")");
-			} else {
-			    out.print("param" + i);
-			}
-			if (i != params.length - 1) {
-			    out.print(", ");
-			}
-		    }
-		    out.println(");");
-		    out.println("    }\n");
-		} else if (verbose) {
-		    //check if there are some misformed guards
-		    Method[] meth = gen_c.getMethods();
-		    for (int i = 0; i < meth.length; i++) {
-			if (meth[i].getName().startsWith("guard_")) {
-			    System.out.println("Possibly invalid guard function");
-			}
-		    }
-		}
-	    }
-
-        // method to clear object params to allow th e GC to clean them up --Rob
-        out.println("    protected void clearParams() {");
-        for (int i = 0; i < params.length; i++) {
-            if (!sharedObjects || !isSharedObject(params[i])) {
-                if (params[i] instanceof ObjectType || params[i] instanceof ArrayType) {
-                    out.println("        param" + i + " = null;");
+            //setSOReferences method
+            out.println("    public void setSOReferences()");
+            out
+                .println("        throws ibis.satin.impl.sharedObjects.SOReferenceSourceCrashedException {");
+            for (int i = 0; i < params.length; i++) {
+                if (isSharedObject(params[i])) {
+                    /*		    out.println("        param" + i + " = "
+                     + "(" + params_types_as_names[i] + ")"
+                     + "satin.getSOReference(satin_so_reference_param"
+                     + i + ", owner);");*/
+                    out
+                        .println("        ibis.satin.impl.Satin.getSatin().so.setSOReference(satin_so_reference_param"
+                            + i + ", owner);");
                 }
             }
-        }
-        out.println("    }");
-        
-        out.println("}");
+            out.println("    }\n");
+
+            //getSOReferences method
+            out.println("    public java.util.Vector getSOReferences() {");
+            out
+                .println("        java.util.Vector refs = new java.util.Vector();");
+            for (int i = 0; i < params.length; i++) {
+                if (isSharedObject(params[i])) {
+                    out.println("        refs.add(satin_so_reference_param" + i
+                        + ");");
+                }
+            }
+            out.println("        return refs;");
+            out.println("    }\n");
+
+            //guard method
+            //generate a guard method only if the programmer defined a
+            // guard_method_name method
+            String signature = m.getSignature();
+            String guardSignature = signature.substring(0, signature
+                .indexOf(")") + 1)
+                + "Z";
+            String guardName = "guard_" + m.getName();
+
+            if (gen_c.containsMethod(guardName, guardSignature) != null) {
+                if (verbose) {
+                    System.out.println("Generating a guard function for "
+                        + m.getName());
+                }
+                out.println("    public boolean guard() {");
+                out.print("        return self.guard_" + m.getName() + "(");
+                for (int i = 0; i < params.length; i++) {
+                    if (isSharedObject(params[i])) {
+                        out
+                            .print("("
+                                + params_types_as_names[i]
+                                + ")"
+                                + "ibis.satin.impl.Satin.getSatin().so.getSOReference(satin_so_reference_param"
+                                + i + ")");
+                    } else {
+                        out.print("param" + i);
+                    }
+                    if (i != params.length - 1) {
+                        out.print(", ");
+                    }
+                }
+                out.println(");");
+                out.println("    }\n");
+            } else if (verbose) {
+                //check if there are some misformed guards
+                Method[] meth = gen_c.getMethods();
+                for (int i = 0; i < meth.length; i++) {
+                    if (meth[i].getName().startsWith("guard_")) {
+                        System.out.println("Possibly invalid guard function");
+                    }
+                }
+            }
+
+            // method to clear object params to allow th e GC to clean them up --Rob
+            out.println("    public void clearParams() {");
+            for (int i = 0; i < params.length; i++) {
+                if (!isSharedObject(params[i])) {
+                    if (params[i] instanceof ObjectType
+                        || params[i] instanceof ArrayType) {
+                        out.println("        param" + i + " = null;");
+                    }
+                }
+            }
+            out.println("    }");
+
+            out.println("}");
         } finally {
             out.close();
         }
     }
 
-    void writeReturnRecord(Method m, String clname, String pnam) throws IOException {
+    void writeReturnRecord(Method m, String clname, String pnam)
+        throws IOException {
         String name = returnRecordFileBase(m, clname, pnam);
         if (verbose) {
-            System.out.println(
-                    "writing returnrecord code to " + name + ".java");
+            System.out
+                .println("writing returnrecord code to " + name + ".java");
         }
 
         FileOutputStream f = new FileOutputStream(name + ".java");
@@ -2773,11 +2681,11 @@ public final class Satinc {
         try {
             Type returnType = m.getReturnType();
 
-            if (pnam != null && ! pnam.equals("")) {
+            if (pnam != null && !pnam.equals("")) {
                 out.println("package " + pnam + ";");
             }
             out.println("public final class " + name
-                    + " extends ibis.satin.impl.ReturnRecord {");
+                + " extends ibis.satin.impl.spawnSync.ReturnRecord {");
             if (!returnType.equals(Type.VOID)) {
                 out.println("    " + returnType + " result;\n");
             }
@@ -2785,10 +2693,12 @@ public final class Satinc {
             // ctor 
             out.print("    public " + name + "(");
             if (!returnType.equals(Type.VOID)) {
-                out.println(returnType
-                        + " result, Throwable eek, ibis.satin.impl.Stamp stamp) {");
+                out
+                    .println(returnType
+                        + " result, Throwable eek, ibis.satin.impl.spawnSync.Stamp stamp) {");
             } else {
-                out.println(" Throwable eek, ibis.satin.impl.Stamp stamp) {");
+                out
+                    .println(" Throwable eek, ibis.satin.impl.spawnSync.Stamp stamp) {");
             }
 
             out.println("        super(eek);");
@@ -2798,10 +2708,10 @@ public final class Satinc {
             out.println("        this.stamp = stamp;");
             out.println("    }\n");
 
-            out.println("    public void assignTo(ibis.satin.impl.InvocationRecord rin) {");
+            out
+                .println("    public void assignTo(ibis.satin.impl.spawnSync.InvocationRecord rin) {");
             out.println("        " + invocationRecordName(m, clname, pnam)
-                    + " r = (" + invocationRecordName(m, clname, pnam)
-                    + ") rin;");
+                + " r = (" + invocationRecordName(m, clname, pnam) + ") rin;");
             out.print("	r.assignTo(eek");
             if (!returnType.equals(Type.VOID)) {
                 out.print(", result");
@@ -2814,323 +2724,29 @@ public final class Satinc {
         }
     }
 
-    void writeParameterRecord(Method m) throws IOException {
-        String name = parameterRecordFileBase(m);
-        if (verbose) {
-            System.out.println("writing parameterrecord code to " + name
-                    + ".java");
-        }
-
-        FileOutputStream f = new FileOutputStream(name + ".java");
-        BufferedOutputStream b = new BufferedOutputStream(f);
-        DollarFilter b2 = new DollarFilter(b);
-        PrintStream out = new PrintStream(b2);
-
-        Type[] params = mtab.typesOfParamsNoThis(m);
-        String[] params_types_as_names = new String[params.length];
-
-        for (int i = 0; i < params.length; i++) {
-            params_types_as_names[i] = params[i].toString();
-        }
-
-        if (packageName != null && ! packageName.equals("")) {
-            out.println("package " + packageName + ";");
-        }
-        name = parameterRecordClassName(m);
-        out.println("public final class " + name
-                + " extends ibis.satin.impl.ParameterRecord {");
-
-        //fields
-        for (int i = 0; i < params.length; i++) {
-	    if (!sharedObjects || !isSharedObject(params[i])) {
-		out.println("    public " + params_types_as_names[i] + " param" + i + ";");
-	    } else {
-		out.println("    public String param" + i + ";");
-	    }
-        }
-
-        out.println();
-
-        //constructor
-        out.print("    public " + name + "(");
-        for (int i = 0; i < params.length; i++) {
-	    if (!sharedObjects || !isSharedObject(params[i])) {
-		out.print(params_types_as_names[i] + " param" + i);
-	    } else {
-		out.print("String param" + i);
-	    }
-	    if (i < params.length - 1) {
-		out.print(",");
-	    }
-
-        }
-        out.println(") {");
-
-        for (int i = 0; i < params.length; i++) {
-	    out.println("        this.param" + i + " = param" + i + ";");
-        }
-        out.println("    }\n");
-
-        //equals method @@todo: take care about null parameters
-        out.println("    public boolean equals(Object obj) {");
-        out.println("        " + name + " other = (" + name + ") obj;");
-        for (int i = 0; i < params.length; i++) {
-            if (params[i] instanceof ObjectType) {
-                //check for nulls
-                out.println("	     if (this.param" + i
-                        + "==null && other.param" + i + "==null) return true;");
-                out.println("	     if (this.param" + i
-                        + "==null || other.param" + i + "==null) return false;");
-                //
-                out.println("        if (!this.param" + i
-                        + ".equals(other.param" + i + ")) return false;");
-            } else if (params[i] instanceof ArrayType) {
-                //check for nulls
-                out.println("	     if (this.param" + i
-                        + "==null && other.param" + i + "==null) return true;");
-                out.println("	     if (this.param" + i
-                        + "==null || other.param" + i + "==null) return false;");
-                //
-                int dimensions = ((ArrayType) params[i]).getDimensions();
-                for (int dim = 0; dim < dimensions; dim++) {
-                    out.print("        if (this.param" + i);
-                    for (int d = 0; d < dim; d++) {
-                        out.print("[i" + d + "]");
-                    }
-                    out.print(".length != other.param" + i);
-                    for (int d = 0; d < dim; d++) {
-                        out.print("[i" + d + "]");
-                    }
-                    out.println(".length) return false;");
-                    out.print("        for (int i" + dim + "=0; i" + dim
-                            + "<param" + i);
-                    for (int d = 0; d < dim; d++) {
-                        out.print("[i" + d + "]");
-                    }
-                    out.println(".length; i" + dim + "++) {");
-                }
-                if (((ArrayType) params[i]).getBasicType()
-                        instanceof ObjectType) {
-                    //check for nulls
-                    out.print("            if (param" + i);
-                    for (int dim = 0; dim < dimensions; dim++) {
-                        out.print("[i" + dim + "]");
-                    }
-                    out.print("==null && other.param" + i);
-                    for (int dim = 0; dim < dimensions; dim++) {
-                        out.print("[i" + dim + "]");
-                    }
-                    out.println("==null) return true;");
-
-                    out.print("            if (param" + i);
-                    for (int dim = 0; dim < dimensions; dim++) {
-                        out.print("[i" + dim + "]");
-                    }
-                    out.print("==null || other.param" + i);
-                    for (int dim = 0; dim < dimensions; dim++) {
-                        out.print("[i" + dim + "]");
-                    }
-                    out.println("==null) return false;");
-                    //
-                    out.print("            if (param" + i);
-                    for (int dim = 0; dim < dimensions; dim++) {
-                        out.print("[i" + dim + "]");
-                    }
-                    out.print(".equals(other.param" + i);
-                    for (int dim = 0; dim < dimensions; dim++) {
-                        out.print("[i" + dim + "]");
-                    }
-                    out.println(")) return false;");
-                } else {
-                    out.print("            if (param" + i);
-                    for (int dim = 0; dim < dimensions; dim++) {
-                        out.print("[i" + dim + "]");
-                    }
-                    out.print(" != other.param" + i);
-                    for (int dim = 0; dim < dimensions; dim++) {
-                        out.print("[i" + dim + "]");
-                    }
-                    out.println(") return false;");
-                }
-                for (int dim = 0; dim < dimensions; dim++) {
-                    out.println("        }");
-                }
-            } else {
-                out.println("        if (this.param" + i + " != other.param"
-                        + i + ") return false;");
-            }
-        }
-        out.println("        return true;");
-        out.println("    }\n");
-
-        //hashcode method
-        out.println("    public int hashCode() {");
-        out.println("        int hash = 0;");
-        for (int i = 0; i < params.length; i++) {
-            if (params[i] instanceof ObjectType) {
-                out.println("        if (param" + i + "!=null) {");
-                out.println("            hash += param" + i + ".hashCode();");
-                out.println("        }");
-            } else if (params[i] instanceof ArrayType) {
-                int dimensions = ((ArrayType) params[i]).getDimensions();
-                for (int dim = 0; dim < dimensions; dim++) {
-                    out.print("        for (int i" + dim + "=0; i" + dim
-                            + "<param" + i);
-                    for (int d = 0; d < dim; d++) {
-                        out.print("[i" + d + "]");
-                    }
-                    out.println(".length; i" + dim + "++) {");
-                }
-                if (((ArrayType) params[i]).getBasicType()
-                        instanceof ObjectType) {
-                    out.print("            if (param" + i);
-                    for (int dim = 0; dim < dimensions; dim++) {
-                        out.print("[i" + dim + "]");
-                    }
-                    out.println("!=null) {");
-                    out.print("                hash += param" + i);
-                    for (int dim = 0; dim < dimensions; dim++) {
-                        out.print("[i" + dim + "]");
-                    }
-                    out.println(".hashCode();");
-                    out.println("            }");
-                } else if (((ArrayType) params[i]).getBasicType().equals(
-                        Type.BOOLEAN)) {
-                    out.print("            hash += param" + i + " ? 1 : 0;)");
-                } else {
-                    out.print("            hash += (int) param" + i);
-                    for (int dim = 0; dim < dimensions; dim++) {
-                        out.print("[i" + dim + "]");
-                    }
-                    out.println(";");
-                }
-                for (int dim = 0; dim < dimensions; dim++) {
-                    out.println("        }");
-                }
-
-            } else if (params[i].equals(Type.BOOLEAN)) {
-                out.println("        hash += param" + i + " ? 1 : 0;");
-            } else {
-                out.println("        hash += (int) param" + i + ";");
-            }
-        }
-        out.println("        return hash;");
-        out.println("    }\n");
-
-        //toString method
-        out.println("    public String toString() {");
-        out.println("        String str = \"(\";");
-
-        if (params.length > 0) {
-            for (int i = 0; i < params.length - 1; i++) {
-                out.println("        str += param" + i + " + \",\";");
-            }
-
-            out.println("        str += param" + (params.length - 1) + ";");
-        }
-
-        out.println("        str += \")\";");
-        out.println("        return str;");
-        out.println("    }");
-
-        out.println("}");
-        out.close();
-    }
-
-    /*
-    void writeResultRecord(Method m, String basename, String className)
-            throws IOException {
-        String name = resultRecordName(m, className);
-        if (verbose) {
-            System.out.println("writing resultrecord code to "
-                    + name + ".java");
-        }
-
-        FileOutputStream f = new FileOutputStream(name + ".java");
-        BufferedOutputStream b = new BufferedOutputStream(f);
-        PrintStream out = new PrintStream(b);
-
-        Type returnType = getReturnType(m);
-
-        out.println("public final class " + name
-                + " extends ibis.satin.impl.ResultRecord {");
-        if (! returnType.equals(Type.VOID)) {
-            out.println("    " + returnType + " result;\n");
-        }
-
-        // ctor 
-        out.print("    " + name + "(");
-        if (! returnType.equals(Type.VOID)) {
-            out.println(returnType + " result) {");
-        } else {
-            out.println(") {");
-        }
-
-        out.println("        super();");
-        if (! returnType.equals(Type.VOID)) {
-            out.println("        this.result = result;");
-        }
-        out.println("    }\n");
-
-        //assignTo method
-        out.println("    public void assignTo(ibis.satin.impl.InvocationRecord rin) {");
-        out.println("        " + invocationRecordName(m, className) + " r = ("
-                + invocationRecordName(m, className) + ") rin;");
-        if (! returnType.equals(Type.VOID)) {
-            out.println("        r.result = result;");
-        }
-        out.println("    }");
-    
-        //toString method
-        out.println("    public String toString() {");
-       if (returnType.equals(Type.VOID)) {
-            out.println("        String str = \"()\";");
-        } else {
-            out.println("        String str = \"(\" + result + \")\";");
-        }
-        out.println("        return str;");
-        out.println("    }");
-
-        out.println("    public boolean isZero() {");
-        if(returnType.equals(Type.INT)) {
-            out.println("        return result==0;");
-        } else {
-            out.println("        return false;");
-        }
-        out.println("    }");
-     
-        out.println("}");
-
-        out.close();
-
-    }
-    */
 
     /* Start of SO rewriter. */
 
     String SOInvocationRecordName(Method m, String clnam, String pnam) {
-        if (pnam != null && ! pnam.equals("")) {
-            return pnam + ".Satin_" + clnam
-                    + "_" + do_mangle(m) + "_SOInvocationRecord";
-        }
-        return "Satin_" + clnam + "_" + do_mangle(m)
+        if (pnam != null && !pnam.equals("")) {
+            return pnam + ".Satin_" + clnam + "_" + do_mangle(m)
                 + "_SOInvocationRecord";
+        }
+        return "Satin_" + clnam + "_" + do_mangle(m) + "_SOInvocationRecord";
     }
 
-    String SOInvocationRecordFileBase(Method m, String clnam,
-            String pnam) {
+    String SOInvocationRecordFileBase(Method m, String clnam, String pnam) {
         return getFileBase(pnam, clnam + "_" + do_mangle(m), "Satin_",
-                "_SOInvocationRecord");
+            "_SOInvocationRecord");
     }
 
-    String SOInvocationRecordClassName(Method m, String clnam,
-            String pnam) {
+    String SOInvocationRecordClassName(Method m, String clnam, String pnam) {
         return getFileBase(null, clnam + "_" + do_mangle(m), "Satin_",
-                "_SOInvocationRecord");
+            "_SOInvocationRecord");
     }
 
-    private void writeSOInvocationRecord(Method m, String clname,
-            String pnam) throws java.io.IOException {
+    private void writeSOInvocationRecord(Method m, String clname, String pnam)
+        throws java.io.IOException {
         String name = SOInvocationRecordFileBase(m, clname, pnam);
         int i;
 
@@ -3141,63 +2757,59 @@ public final class Satinc {
 
         if (verbose) {
             System.err.println("Generating inv rec for method: " + m.getName()
-			       + " with signature: " + m.getSignature());
+                + " with signature: " + m.getSignature());
         }
 
         /* Copied from MethodTable.java; I have no clue why
-           m.getArgumentTypes is not used*/
+         m.getArgumentTypes is not used*/
         Type[] params = Type.getArgumentTypes(m.getSignature());
         String[] params_types_as_names = new String[params.length];
 
-        for (i = 0; i < params.length; i++ ) {
+        for (i = 0; i < params.length; i++) {
             if (params[i] instanceof ObjectType) {
                 String clnam = ((ObjectType) params[i]).getClassName();
-                if (!Repository.implementationOf(clnam, 
-                                                 "java.io.Serializable")) {
+                if (!Repository.implementationOf(clnam, "java.io.Serializable")) {
+                    System.err.println(clname + ": write method"
+                        + " with non-serializable parameter type " + clnam);
                     System.err.println(clname
-                               + ": write method"
-                               + " with non-serializable parameter type "
-                               + clnam);
-                    System.err.println(clname
-                               + ": all parameters of a write method"
-                               + " must be serializable.");
+                        + ": all parameters of a write method"
+                        + " must be serializable.");
                     System.exit(1);
                 }
             }
             params_types_as_names[i] = params[i].toString();
         }
 
-        if (pnam != null && ! pnam.equals("")) {
+        if (pnam != null && !pnam.equals("")) {
             out.println("package " + pnam + ";");
         }
 
         name = SOInvocationRecordClassName(m, clname, pnam);
 
-        out.println("public final class " + name 
-                + " extends ibis.satin.impl.SOInvocationRecord {");
+        out.println("public final class " + name
+            + " extends ibis.satin.impl.sharedObjects.SOInvocationRecord {");
 
         //fields
-        for (i = 0; i < params_types_as_names.length; i++ ) {
-            out.println("\t" + params_types_as_names[i] + " param" 
-                        + i + ";");
+        for (i = 0; i < params_types_as_names.length; i++) {
+            out.println("\t" + params_types_as_names[i] + " param" + i + ";");
         }
         out.println();
 
         //constructor
         out.print("\tpublic " + name + "(String objectId, ");
-        for (i = 0; i < params_types_as_names.length-1; i++) {
+        for (i = 0; i < params_types_as_names.length - 1; i++) {
             out.print(params_types_as_names[i] + " param" + i + ", ");
         }
         out.println(params_types_as_names[i] + " param" + i + ") {");
         out.println("\t\tsuper(objectId);");
         for (i = 0; i < params_types_as_names.length; i++) {
             //		if (params[i] instanceof BasicType) {
-                out.println("\t\tthis.param" + i + " = param" + i + ";");
-                /*		} else {
-                //copy the parameter
-                out.println("\t\tthis.param" + i + " = (" + params_types_as_names[i]
-                            + ") cloneObject(param" + i + ");");
-                            }*/
+            out.println("\t\tthis.param" + i + " = param" + i + ";");
+            /*		} else {
+             //copy the parameter
+             out.println("\t\tthis.param" + i + " = (" + params_types_as_names[i]
+             + ") cloneObject(param" + i + ");");
+             }*/
         }
         out.println("\t}\n");
 
@@ -3206,12 +2818,13 @@ public final class Satinc {
         out.println("\t\t" + clname + " obj = (" + clname + ") object;");
         out.println("\t\ttry{");
         out.print("\t\t\tobj.so_local_" + m.getName() + "(");
-        for (i = 0; i < params_types_as_names.length-1; i++ ) {
+        for (i = 0; i < params_types_as_names.length - 1; i++) {
             out.print("param" + i + ", ");
         }
         out.println("param" + i + ");");
         out.println("\t\t} catch (Throwable t) {");
-        out.println("\t\t\t/* exceptions will be only thrown at the originating node*/");
+        out
+            .println("\t\t\t/* exceptions will be only thrown at the originating node*/");
         out.println("\t\t}");
         out.println("\t}");
         out.println();
@@ -3220,135 +2833,124 @@ public final class Satinc {
     }
 
     void rewriteSOMethod(Method m, String clnam, String pnam) {
-       MethodGen origMethodGen;
-       MethodGen newMethodGen;
-       InstructionList newMethodInsList;
-       Type[] arguments;
-       Type[] objectId_and_arguments;
-       Type returnType;
-       int oldAccessFlags;
-       int monitorVarAddr;
-       String classname = clnam;
+        MethodGen origMethodGen;
+        MethodGen newMethodGen;
+        InstructionList newMethodInsList;
+        Type[] arguments;
+        Type[] objectId_and_arguments;
+        Type returnType;
+        int oldAccessFlags;
+        int monitorVarAddr;
+        String classname = clnam;
 
-       if (pnam != null && ! pnam.equals("")) {
-           classname = pnam + "." + clnam;
-       }
-
-       if (verbose) {
-           System.err.println("Rewriting method: " + m.getName() 
-                              + " with signature: " + m.getSignature());
+        if (pnam != null && !pnam.equals("")) {
+            classname = pnam + "." + clnam;
         }
 
-       //prefix the original method name with so_local
-       origMethodGen = new MethodGen(m, classname, cpg);
-       origMethodGen.setName("so_local_" + m.getName());
-       origMethodGen.setMaxStack();
-       origMethodGen.setMaxLocals();
-       oldAccessFlags = origMethodGen.getAccessFlags();
-       origMethodGen.setAccessFlags(0x0001); //public
-       gen_c.removeMethod(m);
-       removeLocalTypeTables(origMethodGen);
-       gen_c.addMethod(origMethodGen.getMethod());
-       
-       //create the new method with the following body:
-       //Satin.getSatin().
-       //broadcastSOInvocation(new Satin_methodname_SOInvocationRecord(params))
-       //synchronized(Satin.getSatin()) {
-       //return so_local_methodname(params);
-       //}
+        if (verbose) {
+            System.err.println("Rewriting method: " + m.getName()
+                + " with signature: " + m.getSignature());
+        }
 
-	newMethodInsList = new InstructionList();
-	//broadcast 
-	newMethodInsList.append(ins_f.createInvoke("ibis.satin.impl.Satin",
-						     "getSatin",
-						     new ObjectType("ibis.satin.impl.Satin"),
-						     new Type[] {},
-						     Constants.INVOKESTATIC));
-	newMethodInsList.append(ins_f.createNew(SOInvocationRecordName(m, clnam, pnam)));
-	newMethodInsList.append(InstructionFactory.createDup(1));
-	newMethodInsList.append(new ALOAD(0));
-	newMethodInsList.append(ins_f.createGetField(classname,
-						       "objectId",
-						       Type.STRING));
-	arguments = m.getArgumentTypes();			     
-	int k1 = 0;
-	for (int k = 0; k < arguments.length; k++) {
-	    newMethodInsList.append(InstructionFactory.createLoad(arguments[k], k1+1));
-	    k1 += arguments[k].getSize();
-	}
+        //prefix the original method name with so_local
+        origMethodGen = new MethodGen(m, classname, cpg);
+        origMethodGen.setName("so_local_" + m.getName());
+        origMethodGen.setMaxStack();
+        origMethodGen.setMaxLocals();
+        oldAccessFlags = origMethodGen.getAccessFlags();
+        origMethodGen.setAccessFlags(0x0001); //public
+        gen_c.removeMethod(m);
+        removeLocalTypeTables(origMethodGen);
+        gen_c.addMethod(origMethodGen.getMethod());
 
-	objectId_and_arguments = new Type[arguments.length+1];
-	objectId_and_arguments[0] = Type.STRING;
-	for (int k = 0; k < arguments.length; k++) {
-	    objectId_and_arguments[k+1] = arguments[k];
-	}
+        //create the new method with the following body:
+        //Satin.getSatin().
+        //broadcastSOInvocation(new Satin_methodname_SOInvocationRecord(params))
+        //synchronized(Satin.getSatin()) {
+        //return so_local_methodname(params);
+        //}
 
-	newMethodInsList.append(ins_f.createInvoke(SOInvocationRecordName(m, clnam, pnam), 
-						   "<init>",
-						   Type.VOID,
-						   objectId_and_arguments,
-						   Constants.INVOKESPECIAL));
-	newMethodInsList.append(ins_f.createInvoke("ibis.satin.impl.Satin",
-						    "broadcastSOInvocation",
-						    Type.VOID,
-						    new Type[] 
-	    {new ObjectType("ibis.satin.impl.SOInvocationRecord")},
-						    Constants.INVOKEVIRTUAL));
-	//enter the monitor	
-	monitorVarAddr = 1;
-	for (int k = 0; k < arguments.length; k++) {
-	    monitorVarAddr += arguments[k].getSize();
-	}
-	newMethodInsList.append(ins_f.createInvoke("ibis.satin.impl.Satin",
-							 "getSatin",
-							 new ObjectType("ibis.satin.impl.Satin"),
-							 new Type[] {},
-							 Constants.INVOKESTATIC));
-	newMethodInsList.append(InstructionFactory.createDup(1));
-	newMethodInsList.append(new ASTORE(monitorVarAddr));
-	newMethodInsList.append(new MONITORENTER());
-	//call the object method
-	InstructionHandle from1 = newMethodInsList.append(new ALOAD(0));
-	k1 = 0;
-	for (int k = 0; k < arguments.length; k++) {
-	    newMethodInsList.append(InstructionFactory.createLoad(arguments[k], k1+1));
-	    k1 += arguments[k].getSize();
-	}
-	returnType = m.getReturnType();
-	newMethodInsList.append(ins_f.createInvoke(classname,
-						     "so_local_" + m.getName(),
-						     returnType,
-						     arguments,
-						     Constants.INVOKEVIRTUAL));
-	//exit the monitor
-	newMethodInsList.append(new ALOAD(monitorVarAddr));
-	newMethodInsList.append(new MONITOREXIT());
-	//return statement
-	InstructionHandle to1 = newMethodInsList.append(InstructionFactory.createReturn(returnType));
-	//exception handlers
-	InstructionHandle from2 = newMethodInsList.append(new ASTORE(monitorVarAddr+1));
-	newMethodInsList.append(new ALOAD(monitorVarAddr));
-	newMethodInsList.append(new MONITOREXIT());
-	InstructionHandle to2 = newMethodInsList.append(new ALOAD(monitorVarAddr+1));
-	newMethodInsList.append(new ATHROW());
+        newMethodInsList = new InstructionList();
+        //broadcast 
+        newMethodInsList.append(ins_f.createInvoke("ibis.satin.impl.Satin",
+            "getSatin", new ObjectType("ibis.satin.impl.Satin"), new Type[] {},
+            Constants.INVOKESTATIC));
+        newMethodInsList.append(ins_f.createNew(SOInvocationRecordName(m,
+            clnam, pnam)));
+        newMethodInsList.append(InstructionFactory.createDup(1));
+        newMethodInsList.append(new ALOAD(0));
+        newMethodInsList.append(ins_f.createGetField(classname, "objectId",
+            Type.STRING));
+        arguments = m.getArgumentTypes();
+        int k1 = 0;
+        for (int k = 0; k < arguments.length; k++) {
+            newMethodInsList.append(InstructionFactory.createLoad(arguments[k],
+                k1 + 1));
+            k1 += arguments[k].getSize();
+        }
 
-	newMethodGen = new MethodGen(oldAccessFlags,
-				     returnType,
-				     arguments,
-				     origMethodGen.getArgumentNames(),
-				     m.getName(),
-				     classname,
-				     newMethodInsList,
-				     cpg);
- 
-	newMethodGen.addExceptionHandler(from1, to1, from2, null);
-	newMethodGen.addExceptionHandler(from2, to2, from2, null);
-	newMethodGen.setMaxStack();
-	newMethodGen.setMaxLocals();
+        objectId_and_arguments = new Type[arguments.length + 1];
+        objectId_and_arguments[0] = Type.STRING;
+        for (int k = 0; k < arguments.length; k++) {
+            objectId_and_arguments[k + 1] = arguments[k];
+        }
+
+        newMethodInsList.append(ins_f.createInvoke(SOInvocationRecordName(m,
+            clnam, pnam), "<init>", Type.VOID, objectId_and_arguments,
+            Constants.INVOKESPECIAL));
+        newMethodInsList.append(ins_f.createInvoke("ibis.satin.impl.Satin",
+            "broadcastSOInvocation", Type.VOID, new Type[] { new ObjectType(
+                "ibis.satin.impl.sharedObjects.SOInvocationRecord") },
+            Constants.INVOKEVIRTUAL));
+        //enter the monitor	
+        monitorVarAddr = 1;
+        for (int k = 0; k < arguments.length; k++) {
+            monitorVarAddr += arguments[k].getSize();
+        }
+        newMethodInsList.append(ins_f.createInvoke("ibis.satin.impl.Satin",
+            "getSatin", new ObjectType("ibis.satin.impl.Satin"), new Type[] {},
+            Constants.INVOKESTATIC));
+        newMethodInsList.append(InstructionFactory.createDup(1));
+        newMethodInsList.append(new ASTORE(monitorVarAddr));
+        newMethodInsList.append(new MONITORENTER());
+        //call the object method
+        InstructionHandle from1 = newMethodInsList.append(new ALOAD(0));
+        k1 = 0;
+        for (int k = 0; k < arguments.length; k++) {
+            newMethodInsList.append(InstructionFactory.createLoad(arguments[k],
+                k1 + 1));
+            k1 += arguments[k].getSize();
+        }
+        returnType = m.getReturnType();
+        newMethodInsList.append(ins_f.createInvoke(classname, "so_local_"
+            + m.getName(), returnType, arguments, Constants.INVOKEVIRTUAL));
+        //exit the monitor
+        newMethodInsList.append(new ALOAD(monitorVarAddr));
+        newMethodInsList.append(new MONITOREXIT());
+        //return statement
+        InstructionHandle to1 = newMethodInsList.append(InstructionFactory
+            .createReturn(returnType));
+        //exception handlers
+        InstructionHandle from2 = newMethodInsList.append(new ASTORE(
+            monitorVarAddr + 1));
+        newMethodInsList.append(new ALOAD(monitorVarAddr));
+        newMethodInsList.append(new MONITOREXIT());
+        InstructionHandle to2 = newMethodInsList.append(new ALOAD(
+            monitorVarAddr + 1));
+        newMethodInsList.append(new ATHROW());
+
+        newMethodGen = new MethodGen(oldAccessFlags, returnType, arguments,
+            origMethodGen.getArgumentNames(), m.getName(), classname,
+            newMethodInsList, cpg);
+
+        newMethodGen.addExceptionHandler(from1, to1, from2, null);
+        newMethodGen.addExceptionHandler(from2, to2, from2, null);
+        newMethodGen.setMaxStack();
+        newMethodGen.setMaxLocals();
         removeLocalTypeTables(newMethodGen);
-		    
-	gen_c.addMethod(newMethodGen.getMethod());
-	 	
+
+        gen_c.addMethod(newMethodGen.getMethod());
+
     }
 
     void doSORewrite() throws IOException {
@@ -3361,23 +2963,23 @@ public final class Satinc {
         if (methods == null) {
             return;
         }
-            
+
         //add the $SOrewritten$ field
         gen_c.addField(new FieldGen(Constants.ACC_STATIC, Type.BOOLEAN,
-                                    "$SOrewritten$", cpg).getField());		
+            "$SOrewritten$", cpg).getField());
 
         //add things to the constant pool
         /*		int getSatin = cpg.addMethodref("ibis.satin.impl.Satin",
-                               "getSatin",
-                               "()Libis/satin/impl/Satin");
-        int broadcastSOInvocation = 
-            cpg.addMethodref("ibis.satin.impl.Satin",
-                             "broadcastSOInvocation",
-                             "(Libis/satin/impl/SOInvocationRecord)V");*/
-    
+         "getSatin",
+         "()Libis/satin/impl/Satin");
+         int broadcastSOInvocation = 
+         cpg.addMethodref("ibis.satin.impl.Satin",
+         "broadcastSOInvocation",
+         "(Libis/satin/impl/SOInvocationRecord)V");*/
+
         //rewrite methods
-        for (int j = 0; j < methods.length; j ++) {		    
-            Method method = methods[j];		    
+        for (int j = 0; j < methods.length; j++) {
+            Method method = methods[j];
             //		    System.err.println(method.toString());
             if (a.isSpecial(method)) {
                 //change the name of the method to so_local_methodName
@@ -3385,7 +2987,6 @@ public final class Satinc {
                 //Satin.getSatin().broadcastSOInvocation(new SOInvRecord())
                 //return so_local_methodName
                 rewriteSOMethod(method, classNameNoPackage, packageName);
-
 
             }
         }
@@ -3397,7 +2998,7 @@ public final class Satinc {
         //dump the class
         String dst;
         if (local) {
-            dst = className.substring(className.lastIndexOf('.')+1);
+            dst = className.substring(className.lastIndexOf('.') + 1);
         } else {
             dst = className.replace('.', java.io.File.separatorChar);
         }
@@ -3407,22 +3008,23 @@ public final class Satinc {
 
         ArrayList toCompiler = new ArrayList();
         //generate so invocation records
-        for (int j = 0; j < methods.length; j ++) {
+        for (int j = 0; j < methods.length; j++) {
             Method method = methods[j];
             if (a.isSpecial(method)) {
                 //generate an SOInvocationRecord for this method
-                writeSOInvocationRecord(method, classNameNoPackage,
-                        packageName);
+                writeSOInvocationRecord(method, classNameNoPackage, packageName);
 
-                toCompiler.add(SOInvocationRecordFileBase(method, classNameNoPackage, packageName));
+                toCompiler.add(SOInvocationRecordFileBase(method,
+                    classNameNoPackage, packageName));
             }
         }
         if (toCompiler.size() > 0) {
             compile(toCompiler);
-            for (int j = 0; j < methods.length; j ++) {
+            for (int j = 0; j < methods.length; j++) {
                 Method method = methods[j];
                 if (a.isSpecial(method)) {
-                    Repository.lookupClass(SOInvocationRecordName(method, classNameNoPackage, packageName));
+                    Repository.lookupClass(SOInvocationRecordName(method,
+                        classNameNoPackage, packageName));
                 }
             }
         }
@@ -3451,8 +3053,7 @@ public final class Satinc {
             return;
         }
 
-        if (sharedObjects
-                && Repository.instanceOf(c, "ibis.satin.SharedObject")) {
+        if (Repository.instanceOf(c, "ibis.satin.SharedObject")) {
 
             if (gen_c.containsField("$SOrewritten$") != null) {
                 if (verbose) {
@@ -3461,7 +3062,7 @@ public final class Satinc {
             } else {
                 try {
                     doSORewrite();
-                } catch(IOException e) {
+                } catch (IOException e) {
                     System.out.println("IO error: " + e);
                     System.exit(1);
                 }
@@ -3473,19 +3074,19 @@ public final class Satinc {
         Method main = gen_c.containsMethod("main", "([Ljava/lang/String;)V");
 
         if (main != null) {
-            MethodGen m = new MethodGen(main, className,
-                    gen_c.getConstantPool());
+            MethodGen m = new MethodGen(main, className, gen_c
+                .getConstantPool());
 
             if (verbose) {
                 System.out.println("the class has main, renaming to "
-                        + "$origMain$");
+                    + "$origMain$");
             }
 
             m.setName("$origMain$");
             m.setMaxStack();
             m.setMaxLocals();
             m.setAccessFlags((m.getAccessFlags() & ~Constants.ACC_PUBLIC)
-                    | Constants.ACC_PRIVATE);
+                | Constants.ACC_PRIVATE);
 
             removeLocalTypeTables(m);
 
@@ -3517,13 +3118,12 @@ public final class Satinc {
             System.exit(1);
         }
 
-
         rewriteMethods();
 
         Repository.removeClass(c);
 
         gen_c.addField(new FieldGen(Constants.ACC_STATIC, Type.BOOLEAN,
-                "$rewritten$", cpg).getField());
+            "$rewritten$", cpg).getField());
 
         c = gen_c.getJavaClass();
 
@@ -3564,9 +3164,8 @@ public final class Satinc {
             for (int i = 0; i < javalist.size(); i++) {
                 JavaClass cl = (JavaClass) (javalist.get(i));
 
-                new Satinc(verbose, local, verify, keep,
-                        invocationRecordCache, cl.getClassName(),
-                        inletOpt, spawnCounterOpt, sharedObjects).start();
+                new Satinc(verbose, local, verify, keep, invocationRecordCache,
+                    cl.getClassName(), inletOpt, spawnCounterOpt).start();
             }
         }
 
@@ -3586,9 +3185,8 @@ public final class Satinc {
 
     public static void usage() {
         System.err.println("Usage : java Satinc [[-no]-verbose] [[-no]-keep] "
-                + "[-dir|-local] [[-no]-irc] [[-no]-sc-opt] "
-                + "[[-no]-inlet-opt] [[-no]-so] "
-                + "<classname>*");
+            + "[-dir|-local] [[-no]-irc] [[-no]-sc-opt] "
+            + "[[-no]-inlet-opt] [[-no]-so] " + "<classname>*");
         System.exit(1);
     }
 
@@ -3613,18 +3211,16 @@ public final class Satinc {
                 Method[] methods = c.getMethods();
                 for (int i = 0; i < methods.length; i++) {
                     res = verf.doPass3a(i);
-                    if (res.getStatus()
-                            == VerificationResult.VERIFIED_REJECTED) {
+                    if (res.getStatus() == VerificationResult.VERIFIED_REJECTED) {
                         System.out.println("Verification pass 3a failed for "
-                                + "method " + methods[i].getName());
+                            + "method " + methods[i].getName());
                         System.out.println(res.getMessage());
                         verification_failed = true;
                     } else {
                         res = verf.doPass3b(i);
-                        if (res.getStatus()
-                                == VerificationResult.VERIFIED_REJECTED) {
+                        if (res.getStatus() == VerificationResult.VERIFIED_REJECTED) {
                             System.out.println("Verification pass 3b failed "
-                                    + "for method " + methods[i].getName());
+                                + "for method " + methods[i].getName());
                             System.out.println(res.getMessage());
                             verification_failed = true;
                         }
@@ -3640,10 +3236,9 @@ public final class Satinc {
         boolean verify = false;
         boolean keep = false;
         boolean local = true;
-        boolean invocationRecordCache = false;
+        boolean invocationRecordCache = true;
         boolean inletOpt = true;
         boolean spawnCounterOpt = true;
-	boolean sharedObjects = true;
         Vector list = new Vector();
 
         for (int i = 0; i < args.length; i++) {
@@ -3681,10 +3276,6 @@ public final class Satinc {
                 spawnCounterOpt = false;
             } else if (args[i].equals("-sc-opt")) {
                 spawnCounterOpt = true;
-	    } else if (args[i].equals("-so")) {
-		sharedObjects = true;
-	    } else if (args[i].equals("-no-so")) {
-		sharedObjects = false;
             } else {
                 usage();
             }
@@ -3695,9 +3286,8 @@ public final class Satinc {
         }
 
         for (int i = 0; i < list.size(); i++) {
-            new Satinc(verbose, local, verify, keep,
-                    invocationRecordCache, (String) list.get(i),
-                    inletOpt, spawnCounterOpt, sharedObjects).start();
+            new Satinc(verbose, local, verify, keep, invocationRecordCache,
+                (String) list.get(i), inletOpt, spawnCounterOpt).start();
         }
     }
 

@@ -1,3 +1,6 @@
+SATIN REWRITE:
+- grep for wait, notify and synchronized. Always use satin lock.
+
 *** Website ***
 
 + add reference to Computer Systems and Computer Science to website (Done, Niels)
@@ -21,7 +24,7 @@ general:
 - binary release
 - make javadoc available in a file for eclipse somehow
 - move applications to a real tree
-- switch to subversion
++ switch to subversion
 - network(cluster) simulator
 - steering interface
 - remove deprecated functionality
@@ -82,6 +85,8 @@ rmi:
   - registers url's, not names.
 
 satin:
+- if main throws an exception, we exit with code 0. Ant test also succeeds.
+
 + remove tuple space alltogether now ? --Rob
   Ceriel: lijkt me voorbarig zolang we applicaties hebben die het gebruiken.
   Done, only app that is not fully rewritten for shared objects is Kees v R's SAT --Rob
@@ -97,8 +102,8 @@ satin:
 - check satin caches.
 - shutdownhook -> System.exit
 - satinc does not understand monitorenter/monitor exit instructions (othello)
-- major satin cleanup: remove old features, fix ugly structure --Rob
-- remove all satin commandline options, use properties instead 
++ major satin cleanup: remove old features, fix ugly structure --Rob
++ remove all satin commandline options, use properties instead 
   (now most options are there twice) --Rob
 + port Ceriel's load-balancing optimization for Barnes to the 
   shared objects version --Rob Was already done (Ceriel)
@@ -108,12 +113,13 @@ satin:
   are not broadcast. Only if you get it as param from a spawn it is broadcast!
   This is very confusing --Rob
 + remove dependancy on IPUtils and hostname (mostly done, except for masterHome; Ceriel)
+- ant test should also run satin apps sequentially
 
 satin-so:
 - count all messages+sizes for the total messages/data sent statistics --Rob
 - do not send the same object (and the same version) twice.
   This can happen if it is both broadcast, and pulled at the same time --Rob
-- remove exportObject call somehow if possible (or at least give error message 
++ remove exportObject call somehow if possible (or at least give error message 
   if forgotten) --Rob
 - Allow shared objects to be passed anywhere in the parameter data 
   structures. Now only directly as a param. Maybe use stubs instead of

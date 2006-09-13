@@ -12,8 +12,9 @@
     <property name="main-class" value="PrimFac"/>
     <property name="satin-main-class" value="${main-class}"/>
 
-    <property name="test-par-run" value="PrimFac -satin-closed"/>
-    <property name="test-seq-run" value="PrimFac -satin-closed"/>
+    <property name="ibis-run-args" value="-Dsatin.closed"/>
+    <property name="test-par-run" value="PrimFac"/>
+    <property name="test-seq-run" value="PrimFac"/>
  
     <import file="${ibis}/build-files/apps/build-satin-app.xml"/>
 

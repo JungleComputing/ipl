@@ -12,8 +12,9 @@
     <property name="main-class" value="Cover"/>
     <property name="satin-main-class" value="${main-class}"/>
 
-    <property name="test-par-run" value="Cover -satin-closed"/>
-    <property name="test-seq-run" value="Cover -satin-closed"/>
+    <property name="ibis-run-args" value="-Dsatin.closed"/>
+    <property name="test-par-run" value="Cover"/>
+    <property name="test-seq-run" value="Cover"/>
 
     <import file="${ibis}/build-files/apps/build-satin-app.xml"/>
 </project>

@@ -64,10 +64,6 @@ import java.util.List;
     private static String dump_file = null;
     private static int dump_iters = 100;
 
-    static {
-        System.setProperty("satin.so", "true"); // So that we don't forget.
-    }
-
     BarnesHut(int n, RunParameters params) {
 
         this.params = params;

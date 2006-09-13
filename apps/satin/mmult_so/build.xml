@@ -12,8 +12,9 @@
     <property name="main-class" value="Mmult"/>
     <property name="satin-main-class" value="${main-class}"/>
 
-    <property name="test-par-run" value="Mmult -satin-closed 4 0 32"/>
-    <property name="test-seq-run" value="Mmult -satin-closed 4 0 32"/>
+    <property name="ibis-run-args" value="-Dsatin.closed"/>
+    <property name="test-par-run" value="Mmult 4 0 32"/>
+    <property name="test-seq-run" value="Mmult 4 0 32"/>
 
     <import file="${ibis}/build-files/apps/build-satin-app.xml"/>
 

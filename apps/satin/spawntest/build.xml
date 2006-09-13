@@ -12,8 +12,9 @@
     <property name="satin-main-class" value="SpawnTest Test"/>
     <property name="main-class" value="SpawnTest"/>
 
-    <property name="test-par-run" value="SpawnTest -satin-closed"/>
-    <property name="test-seq-run" value="SpawnTest -satin-closed"/>
+    <property name="ibis-run-args" value="-Dsatin.closed"/>
+    <property name="test-par-run" value="SpawnTest"/>
+    <property name="test-seq-run" value="SpawnTest"/>
 
     <import file="${ibis}/build-files/apps/build-satin-app.xml"/>
 

@@ -15,7 +15,6 @@ class DumpThread extends Thread {
         satin.q.print(System.err);
         satin.onStack.print(System.err);
         satin.outstandingJobs.print(System.err);
-        satin.globalResultTable.print(System.err);
+        satin.ft.print(System.err);
     }
 }
-

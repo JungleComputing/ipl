@@ -14,10 +14,11 @@
     <property name="satin-main-class" value="${main-class}"/>
     <property name="satin-so-classes" value="CostArray"/>
 
+    <property name="ibis-run-args" value="-Dsatin.closed"/>
     <property name="test-par-run"
-	      value="LocusRoute 2 circuits/circuit1 -satin-closed"/>
+	      value="LocusRoute 2 circuits/circuit1"/>
     <property name="test-seq-run"
-	      value="LocusRoute 2 circuits/circuit1 -satin-closed"/>
+	      value="LocusRoute 2 circuits/circuit1"/>
 
     <import file="${ibis}/build-files/apps/build-satin-app.xml"/>
 

@@ -1,0 +1,19 @@
+<project
+    name="ibis.apps.satin.spawnOverhead"
+    default="build"
+    basedir=".">
+
+    <property environment="env"/>
+
+    <property name="ibis"        location="${env.IBIS_ROOT}"/>
+    <property name="build"       value="build"/>
+
+    <property name="satinc-flags" value=""/>
+    <property name="main-class" value="SpawnOverhead"/>
+    <property name="satin-main-class" value="${main-class}"/>
+
+    <property name="ibis-run-args" value="-Dsatin.closed"/>
+	
+    <import file="${ibis}/build-files/apps/build-satin-app.xml"/>
+
+</project>

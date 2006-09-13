@@ -12,8 +12,9 @@
     <property name="main-class" value="Knapsack"/>
     <property name="satin-main-class" value="${main-class}"/>
 
-    <property name="test-par-run" value="Knapsack -satin-closed"/>
-    <property name="test-seq-run" value="Knapsack -satin-closed"/>
+    <property name="ibis-run-args" value="-Dsatin.closed"/>
+    <property name="test-par-run" value="Knapsack"/>
+    <property name="test-seq-run" value="Knapsack"/>
 
     <import file="${ibis}/build-files/apps/build-satin-app.xml"/>
 

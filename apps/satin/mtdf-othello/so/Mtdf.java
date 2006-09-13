@@ -15,10 +15,6 @@ public final class Mtdf extends ibis.satin.SatinObject implements MtdfInterface 
 
     transient int pivot = 0;
 
-    static {
-        System.setProperty("satin.so", "true"); // So that we don't forget.
-    }
-
     Mtdf() {
         try {
             tt = new TranspositionTable();

@@ -21,10 +21,6 @@ public final class DPLLSolver extends ibis.satin.SatinObject implements DPLLInte
     private static final boolean traceNewCode = true;
     private static final boolean printOptimizerStats = true;
 
-    static {
-        System.setProperty( "satin.so", "true" );
-    }
-
     /**
      * Solve the leaf part of a SAT problem.
      * The method throws a SATResultException if it finds a solution,

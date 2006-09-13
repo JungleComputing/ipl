@@ -21,7 +21,7 @@ public class SharedObject implements java.io.Serializable {
     private static int sharedObjectsCounter = 0;
 
     private boolean exported = false;
-    
+
     /**
      * Creates an identification for the current object and marks it as shared.
      */
@@ -36,10 +36,10 @@ public class SharedObject implements java.io.Serializable {
         //create identifier
         sharedObjectsCounter++;
         objectId = "SO" + sharedObjectsCounter + "@"
-            + Satin.getSatinIdent().name();
+            + Satin.getSatin().ident.name();
 
         //add yourself to the sharedObjects hashtable
-        satin.addObject(this);
+        satin.so.addObject(this);
     }
 
     /**
@@ -49,7 +49,11 @@ public class SharedObject implements java.io.Serializable {
      * This way, machines won't have to ask for it later.
      */
     public void exportObject() {
-        
+        if (exported) {
+            throw new RuntimeException(
+                "you cannot export an object more than once.");
+        }
+
         Satin satin = Satin.getSatin();
 
         if (satin == null) {
@@ -57,12 +61,8 @@ public class SharedObject implements java.io.Serializable {
             return;
         }
 
-        if(exported) {
-            throw new RuntimeException("you cannot export an object more than once.");
-        }
-
         synchronized (satin) {
-            satin.broadcastSharedObject(this);
+            satin.so.broadcastSharedObject(this);
             exported = true;
         }
     }
