@@ -17,7 +17,7 @@
 	-->
     </target>
 
-    <target name="build"
+    <target name="compile"
 	    depends="init"
 	    description="Compile">
 	<javac  destdir="${build}"
@@ -27,6 +27,8 @@
 	    <include name="*.java"/>
 	</javac>
     </target>
+
+    <target name="build" depends="compile"/>
 
     <target name="clean"
 	    description="Clean up the build">

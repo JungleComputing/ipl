@@ -10,6 +10,7 @@
     </description>
 
     <property name="ibis" location="../../../"/>
+    <property name="native.dir" location="."/>
 
     <!-- Set the parameters expected by the native compile command -->
     <property name="cc.outtype" value="static"/>
@@ -24,7 +25,7 @@
 	    <pathelement path=".."/>
 	</path>
 	<property name="local.includes" refid="omni-includes-ref"/>
-	<antcall inheritRefs="true" target="native-compile"/>
+	<antcall inheritRefs="true" target="native"/>
     </target>
 
     <target name="build" depends="property-init,compile"/>

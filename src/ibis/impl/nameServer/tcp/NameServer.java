@@ -83,6 +83,37 @@ public class NameServer extends Thread implements Protocol {
         }
     }
 
+    static class PingerEntry {
+        String key;
+        String name;
+
+        PingerEntry(String key, String name) {
+            this.key = key;
+            this.name = name;
+        }
+
+        boolean largerOrEqual(PingerEntry e) {
+            if (key == null) {
+                // key == null means: ping everything.
+                return true;
+            }
+            if (e.key == null) {
+                return false;
+            }
+            if (! key.equals(e.key)) {
+                // unrelated.
+                return false;
+            }
+
+            if (name == null) {
+                // Same key, so this one pings whole pool.
+                return true;
+            }
+
+            return false;
+        }
+    }
+
     static class RunInfo {
         ArrayList unfinishedJoins; // a list of IbisInfos
 
@@ -155,6 +186,7 @@ public class NameServer extends Thread implements Protocol {
     private Hashtable pools;
 
     private VirtualServerSocket serverSocket;
+    private ArrayList pingerEntries = new ArrayList();
 
     private DataInputStream in;
 
@@ -258,6 +290,15 @@ public class NameServer extends Thread implements Protocol {
         p.setDaemon(true);
         p.start();
 
+        p = new Thread("Pinger Handler") {
+            public void run() {
+                pingRunner();
+            }
+        };
+
+        p.setDaemon(true);
+        p.start();
+
         if (! silent && logger.isInfoEnabled()) {
             logger.info("NameServer: created server on " + serverSocket);
         }
@@ -298,6 +339,81 @@ public class NameServer extends Thread implements Protocol {
                         // ignored
                     }
                 }
+            }
+        }
+    }
+
+    void pingRunner() {
+        for (;;) {
+            PingerEntry e = null;
+            synchronized(pingerEntries) {
+                while (pingerEntries.size() == 0) {
+                    try {
+                        pingerEntries.wait();
+                    } catch(Exception ex) {
+                        // ignored
+                    }
+                }
+                e = (PingerEntry) pingerEntries.get(0);
+            }
+            if (e.key == null) {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Doing full check");
+                }
+                poolPinger(true);
+            } else if (e.name == null) {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Doing check of pool " + e.key);
+                }
+                poolPinger(e.key, true);
+            } else {
+                RunInfo p = (RunInfo) pools.get(e.key);
+                if (p != null) {
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Doing check of ibis " + e.name);
+                    }
+                    checkPool(p, e.name, false, e.key);
+                }
+            }
+            synchronized(pingerEntries) {
+                // note: other threads may only replace/remove indices != 0.
+                pingerEntries.remove(0);
+            }
+        }
+    }
+
+    void addPingerEntry(String key, String name) {
+
+        PingerEntry added = new PingerEntry(key, name);
+        boolean replaced = false;
+
+        synchronized(pingerEntries) {
+            // First check if this request is already present. If so,
+            // just return. If a "larger" request is already present,
+            // also just return.
+            // Vice versa, if the request to be added is "larger" than
+            // any request in the list, remove/replace the "smaller" requests.
+            for (int i = 0; i < pingerEntries.size(); i++) {
+                PingerEntry e = (PingerEntry) pingerEntries.get(i);
+                if (e.largerOrEqual(added)) {
+                    return;
+                }
+                if (added.largerOrEqual(e)) {
+                    if (i == 0) {
+                        continue;
+                    }
+                    if (! replaced) {
+                        pingerEntries.set(i, added);
+                        replaced = true;
+                    } else {
+                        pingerEntries.remove(i);
+                        i--;
+                    }
+                }
+            }
+            if (! replaced) {
+                pingerEntries.add(added);
+                pingerEntries.notifyAll();
             }
         }
     }
@@ -510,10 +626,18 @@ public class NameServer extends Thread implements Protocol {
         }
     }
 
-    private boolean checkPool(RunInfo p, String victim, boolean kill, String key) {
+    /**
+     * Checks or kills a pool.
+     * @param p the pool.
+     * @param victim the name of the ibis instance that must be checked/killed,
+     *     or <code>null</code>, in which case the whole pool is checked/killed.
+     * @param kill <code>true</code> when the victim must be killed,
+     *     <code>false</code> otherwise.
+     * @param key the key of the pool.
+     */
+    private void checkPool(RunInfo p, String victim, boolean kill, String key) {
 
         Vector deadIbises = new Vector();
-        IbisInfo toDie = null;
 
         if (! silent && logger.isInfoEnabled()) {
             logger.info("Testing pool " + key + " for dead ibises");
@@ -522,6 +646,7 @@ public class NameServer extends Thread implements Protocol {
         synchronized(p) {
             for (Enumeration e = p.pool.elements(); e.hasMoreElements();) {
                 IbisInfo temp = (IbisInfo) e.nextElement();
+/*
                 if (victim == null || (! kill &&  temp.name.equals(victim))) {
                     p.pingers++;
                     
@@ -535,8 +660,23 @@ public class NameServer extends Thread implements Protocol {
                             p.wait();
                         } catch(Exception ex) {
                             // ignored
+*/
+                if (victim == null || temp.name.equals(victim)) {
+                    if (! kill) {
+                        p.pingers++;
+                        PingThread pt = new PingThread(p, temp, key, deadIbises);
+                        while (p.pingers > MAXTHREADS) {
+                            try {
+                                p.wait();
+                            } catch(Exception ex) {
+                                // ignored
+                            }
                         }
+                        ThreadPool.createNew(pt, "Ping thread");
+                    } else {
+                        deadIbises.add(temp);
                     }
+/*
                     ThreadPool.createNew(pt, "Ping thread");
                 } else if (kill &&  temp.name.equals(victim)) {
                     logger.info("Ibis " + key + " / " + temp.name 
@@ -544,6 +684,7 @@ public class NameServer extends Thread implements Protocol {
                     
                     toDie = temp;
                     deadIbises.add(temp);
+                    */
                 }
             }
 
@@ -557,7 +698,7 @@ public class NameServer extends Thread implements Protocol {
 
             for (int j = 0; j < deadIbises.size(); j++) {
                 IbisInfo temp = (IbisInfo) deadIbises.get(j);
-                if (! silent && logger.isInfoEnabled()) {
+                if (! kill && ! silent && logger.isInfoEnabled()) {
                     logger.info("NameServer: ibis " + temp.name + " seems dead");
                 }
 
@@ -597,8 +738,12 @@ public class NameServer extends Thread implements Protocol {
                         }
                     }
 
-                    if (toDie != null && toDie.needsUpcalls) {
-                        forward(IBIS_DEAD, p, toDie, ibisIds, 0);
+                    if (kill) {
+                        for (int i = 0; i < ibisIds.length; i++) {
+                            if (ibisIds[i].needsUpcalls) {
+                                forward(IBIS_DEAD, p, ibisIds[i], ibisIds, 0);
+                            }
+                        }
                     }
 
                     while (p.forwarders != 0) {
@@ -621,9 +766,7 @@ public class NameServer extends Thread implements Protocol {
                     logger.warn("pool " + key + " seems to be dead.");
                 }
                 killThreads(p);
-                return false;
             }
-            return true;
         }
     }
 
@@ -634,6 +777,11 @@ public class NameServer extends Thread implements Protocol {
 
         logger.debug("Got handleIbisIsalive(" + kill + ") " + key + "/" + name);
         
+        if (! kill) {
+            addPingerEntry(key, name);
+            return;
+        }
+
         RunInfo p = (RunInfo) pools.get(key);
         if (p != null) {
             checkPool(p, name, kill, key);
@@ -643,17 +791,14 @@ public class NameServer extends Thread implements Protocol {
     private void handleCheck() throws IOException {
         String key = in.readUTF();
         logger.info("Got check for pool " + key);
-        if (! poolPinger(key, true)) {
-            out.writeByte(0);
-        } else {
-            out.writeByte(1);
-        }
+        addPingerEntry(key, null);
+        out.writeByte(0);
         out.flush();
     }
 
     private void handleCheckAll() throws IOException {
         logger.info("Got checkAll");
-        poolPinger(true);
+        addPingerEntry(null, null);
         out.writeByte(0);
         out.flush();
     }
@@ -790,12 +935,12 @@ public class NameServer extends Thread implements Protocol {
         }
     }
 
-    private boolean poolPinger(String key, boolean force) {
+    private void poolPinger(String key, boolean force) {
 
         RunInfo p = (RunInfo) pools.get(key);
 
         if (p == null) {
-            return false;
+            return;
         }
 
         if (! force) {
@@ -806,7 +951,7 @@ public class NameServer extends Thread implements Protocol {
                 if (! silent && logger.isDebugEnabled()) {
                     logger.debug("NameServer: ping timeout not reached yet for pool " + key);
                 }
-                return true;
+                return;
             }
         }
 
@@ -814,7 +959,7 @@ public class NameServer extends Thread implements Protocol {
             logger.debug("NameServer: ping pool " + key);
         }
 
-        return checkPool(p, null, false, key);
+        checkPool(p, null, false, key);
     }
 
     /**

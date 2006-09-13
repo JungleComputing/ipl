@@ -20,6 +20,6 @@ dir=`cd "$dir" && pwd`
 
 # javap with classpath
 
-JAVACLASSPATH="$CLASSPATH:$IBIS_ROOT/classlibs:$IBIS_ROOT/build:build:$BCEL:.:"
+JAVACLASSPATH="$CLASSPATH:$IBIS_ROOT/classlibs:$IBIS_ROOT/lib/ibis.jar:build:$BCEL:.:"
 
 "$JAVA_ROOT"/bin/javap -classpath "$JAVACLASSPATH" -bootclasspath "$JAVACLASSPATH" "$@"

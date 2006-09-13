@@ -18,6 +18,6 @@ dir=`cd "$dir" && pwd`
 
 . "$dir"/../configuration.sh
 
-JAVACLASSPATH="$CLASSPATH:$IBIS_ROOT/build:build:$BCEL:.:"
+JAVACLASSPATH="$CLASSPATH:$IBIS_ROOT/lib/ibis.jar:build:$BCEL:.:"
 
 "$JAVA_ROOT"/bin/java -classpath "$JAVACLASSPATH" ibis.frontend.ibis.Ibisc -compiler "$JAVAC -g -classpath \"$JAVACLASSPATH\"" $@

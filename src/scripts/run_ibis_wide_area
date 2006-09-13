@@ -18,7 +18,7 @@ dir=`cd "$dir" && pwd`
 
 . $dir/../configuration.sh
 
-JAVACLASSPATH=build:.:$IBIS_ROOT/classlibs:$IBIS_ROOT/build:$IBIS_ROOT/build/lib
+JAVACLASSPATH=build:.:$IBIS_ROOT/classlibs:$IBIS_ROOT/lib/ibis.jar
 
 export LD_ASSUME_KERNEL=2.2.5
 
@@ -34,7 +34,7 @@ export IBP_SEND_SYNC=100
 export MANTA_NO_PANDA=1
 export PAN_COMM_NO_IDLE_POLL=1
 
-Dlibpath="-Dsun.boot.library.path=$IBIS_ROOT/build/lib:$JAVA_ROOT/jre/bin:$JAVA_ROOT/jre/lib/i386"
+Dlibpath="-Dsun.boot.library.path=$IBIS_ROOT/lib/natives:$JAVA_ROOT/jre/bin:$JAVA_ROOT/jre/lib/i386"
 
 Dpool_host_num="-Dibis.pool.host_number=$1"
 shift

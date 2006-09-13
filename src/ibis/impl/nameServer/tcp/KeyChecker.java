@@ -105,19 +105,14 @@ public class KeyChecker implements Protocol {
                 }
             }
             try {
-                if (check(poolName, address)) {
-                    System.out.println("Pool " + poolName + " is alive");
-                } else if (poolName != null) {
-                    System.out.println("Pool " + poolName + " is dead");
-                    break;
-                }
+                check(poolName, address);
             } catch(Exception e) {
                 // Ignored
             }
         } while (sleep != 0);
     }
 
-    public static boolean check(String poolName, VirtualSocketAddress address)
+    public static void check(String poolName, VirtualSocketAddress address)
             throws IOException {
         
         VirtualSocket s = null;
@@ -149,7 +144,6 @@ public class KeyChecker implements Protocol {
                 logger.debug("KeyChecker: nameserver reply, opcode "
                         + opcode);
             }
-            return opcode == 1 ? true : false;
         } finally {
             NameServer.closeConnection(in, out, s);
         }

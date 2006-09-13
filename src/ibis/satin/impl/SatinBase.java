@@ -15,7 +15,12 @@ import ibis.util.messagecombining.MessageCombiner;
 import java.util.Random;
 import java.util.Vector;
 
+import lrmcast.ObjectMulticaster;
+
 public abstract class SatinBase implements Config {
+
+    static final boolean LABEL_ROUTING_MCAST = false;
+
 
     Ibis ibis; //used in GlobalResultTable
 
@@ -363,6 +368,9 @@ public abstract class SatinBase implements Config {
      * time; the same ibis cannot crash and join the computation again
      */
     Vector deadIbises = new Vector();
+
+    ObjectMulticaster omc;
+
 
     static {
         TypedProperties.checkProperties(PROPERTY_PREFIX, sysprops, null);

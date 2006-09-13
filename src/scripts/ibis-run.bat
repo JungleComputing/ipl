@@ -21,11 +21,11 @@ rem
 rem java.library.path and ibis.library.path ...
 rem
 
-set Dlibpath="-Djava.library.path=%IBIS_ROOT%\build\lib;.;"
+set Dlibpath="-Djava.library.path=%IBIS_ROOT%\lib\natives;.;"
 
 rem This is the location where all ibis native libs must go.
 rem It must be *one* dir.
-set Dibislibs="-Dibis.library.path=%IBIS_ROOT%\build\lib"
+set Dibislibs="-Dibis.library.path=%IBIS_ROOT%\lib\natives"
 
 rem
 rem Some defaults ...
@@ -155,7 +155,7 @@ goto arguments
 
 :cont
 
-set JAVACLASSPATH=%CLASSPATH%;build;%IBIS_ROOT%\classlibs;%IBIS_ROOT%\build;%IBIS_ROOT%\3rdparty\junit.jar;%IBIS_ROOT%\3rdparty\log4j-1.2.9.jar;%IBIS_ROOT%\3rdparty\colobus.jar;.;
+set JAVACLASSPATH=%CLASSPATH%;build;%IBIS_ROOT%\classlibs;%IBIS_ROOT%\lib\ibis.jar;%IBIS_ROOT%\3rdparty\junit.jar;%IBIS_ROOT%\3rdparty\log4j-1.2.9.jar;%IBIS_ROOT%\3rdparty\colobus.jar;.;
 
 if "%noJIT%"=="1" (
     set JIT_OPTS=%JIT_OPTS% -Djava.compiler=NONE

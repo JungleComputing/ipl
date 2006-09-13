@@ -9,6 +9,8 @@ import org.apache.bcel.classfile.Method;
 
 public class CheckNativeMethods {
 
+    private static boolean first = true;
+
     private static void checkNativeMethods(JavaClass clazz) {
 
         // System.err.println("Inspect Class " + clazz);
@@ -17,7 +19,12 @@ public class CheckNativeMethods {
 
         for (int i = 0; i < methods.length; i++) {
             if (methods[i].isNative()) {
-                System.out.println(clazz.getClassName());
+                if (first) {
+                    first = false;
+                } else {
+                    System.out.print(",");
+                }
+                System.out.print(clazz.getClassName());
                 return;
             }
         }
@@ -86,6 +93,7 @@ public class CheckNativeMethods {
                     checkNativeMethods(clazz[i]);
                 }
             }
+            System.out.println("");
         }
     }
 

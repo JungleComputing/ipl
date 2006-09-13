@@ -8,7 +8,7 @@
     <property name="ibis"        location="${env.IBIS_ROOT}"/>
     <property name="build"       value="build"/>
 
-    <property name="satinc-flags" value=""/>
+    <property name="satinc-flags" value="-keep"/>
     <property name="main-class" value="Fib"/>
     <property name="satin-main-class" value="${main-class}"/>
 

@@ -15,6 +15,8 @@ import ibis.util.messagecombining.MessageCombiner;
 
 import java.net.InetAddress;
 
+import lrmcast.ObjectMulticaster;
+
 /*
  * One important invariant: there is only one thread per machine that spawns
  * work. Another: there is only one lock: the global satin object. invariant:
@@ -98,6 +100,18 @@ public final class Satin extends APIMethods implements ResizeHandler,
 
         ident = ibis.identifier();
 
+        if(LABEL_ROUTING_MCAST) {
+            try {
+                omc = new ObjectMulticaster(ibis);
+            } catch (Exception e) {
+                System.err.println("cannot create OMC: " + e);
+                e.printStackTrace();
+                System.exit(1);
+            }
+
+            new SOInvocationReceiver(this).start();
+        }
+        
         parentOwner = ident;
 
         victims = new VictimTable(this); //victimTable accesses ident..

@@ -38,22 +38,22 @@
     <target name="init">
 	<tstamp/>
 	<mkdir dir="${build}"/>
+	<condition property="src.excludes-ref.exists">
+	    <isreference refid="src.excludes-ref"/>
+	</condition>
+    </target>
+
+    <target name="do-excludes" if="src.excludes-ref.exists">
+	<property name="pwd" location="."/>
+	<pathconvert pathsep="${line.separator}" property="src.excludes" refid="src.excludes-ref">
+	    <map from="${pwd}${file.separator}" to=""/>
+	</pathconvert>
+	<echo message="${src.excludes}" file="${build}/excludes"/>
     </target>
 
     <target name="compile"
-	    depends="init,property-init"
+	    depends="init,property-init,do-excludes"
 	    description="Compile Satin application for sequential execution">
-	<if>
-	    <isreference refid="src.excludes-ref"/>
-	    <then>
-		<property name="pwd" location="."/>
-		<pathconvert pathsep="${line.separator}" property="src.excludes" refid="src.excludes-ref">
-		    <map from="${pwd}${file.separator}" to=""/>
-		</pathconvert>
-		<echo message="${src.excludes}" file="${build}/excludes"/>
-	    </then>
-	</if>
-
 	<javac  destdir="${build}"
 		debug="${java.debug.value}"
 		includes="**/*.java"
@@ -67,46 +67,46 @@
     <target name="build-no-satin">
 	<antcall inheritAll="true" inheritRefs="true" target="compile"/>
     </target>
+
+    <target name="set-fl-no-set" if="satinc-flags">
+	<property name="satinc-flags.value" value="${satinc-flags} -no-so"/>
+    </target>
+
+    <target name="set-fl-no-notset" unless="satinc-flags">
+	<property name="satinc-flags.value" value="-no-so"/>
+    </target>
+
+    <target name="set-satin-flags-no-so"
+	depends="set-fl-no-set,set-fl-no-notset"/>
     
     <target name="build-no-so"
+	    depends="set-satin-flags-no-so"
 	    description="Compile Satin application for parallel execution">
 	<property name="satinc-files" value="${satin-main-class}"/>
-	<if>
-	    <isset property="satinc-flags"/>
-	    <then>
-		<property name="satinc-flags.value" value="${satinc-flags} -no-so"/>
-	    </then>
-	    <else>
-		<property name="satinc-flags.value" value="-no-so"/>
-	    </else>
-	</if>
 
 	<antcall inheritAll="true" inheritRefs="true" target="compile"/>
 	<antcall inheritRefs="true" target="satin"/>
     	<antcall inheritRefs="true" target="iogen"/>
     </target>
 
+    <target name="set-satinc-files-so" if="satin-so-classes">
+	<property name="satinc-files" value="${satin-main-class} ${satin-so-classes}"/>
+    </target>
 
-    <target name="do-satin">
-	<if>
-	    <isset property="satin-so-classes"/>
-	    <then>
-		<property name="satinc-files" value="${satin-main-class} ${satin-so-classes}"/>
-	    </then>
-	    <else>
-		<property name="satinc-files" value="${satin-main-class}"/>
-	    </else>
-	</if>
+    <target name="set-satinc-files" unless="satin-so-classes">
+	<property name="satinc-files" value="${satin-main-class}"/>
+    </target>
 
-	<if>
-	    <isset property="satinc-flags"/>
-	    <then>
-		<property name="satinc-flags.value" value="${satinc-flags}"/>
-	    </then>
-	    <else>
-		<property name="satinc-flags.value" value=""/>
-	    </else>
-	</if>
+    <target name="set-satinc-flags-set" if="satinc-flags">
+	<property name="satinc-flags.value" value="${satinc-flags}"/>
+    </target>
+
+    <target name="set-satinc-flags-notset" unless="satinc-flags">
+	<property name="satinc-flags.value" value=""/>
+    </target>
+
+    <target name="do-satin"
+	depends="set-satinc-files-so,set-satinc-files,set-satinc-flags-set,set-satinc-flags-notset">
 	<antcall inheritRefs="true" target="satin"/>
     </target>
 
