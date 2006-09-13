@@ -166,9 +166,10 @@ public class NameServer extends Thread implements Protocol {
 
         public String toString() {
             String res = "runinfo:\n" + "  pool = \n";
+            IbisInfo[] elts = instances();
 
-            for (Enumeration e = pool.elements(); e.hasMoreElements();) {
-                res += "    " + e.nextElement() + "\n";
+            for (int i = 0; i < elts.length; i++) {
+                res += "    " + elts[i] + "\n";
             }
 
             res += "  toBeDeleted = \n";
@@ -178,6 +179,10 @@ public class NameServer extends Thread implements Protocol {
             }
 
             return res;
+        }
+
+        public IbisInfo[] instances() {
+            return (IbisInfo[]) pool.values().toArray(new IbisInfo[0]);
         }
 
         public void remove(IbisInfo iinf) {
@@ -333,11 +338,12 @@ public class NameServer extends Thread implements Protocol {
             leavers = (IbisInfo[]) inf.leavers.toArray(iinf);
             inf.leavers.clear();
 
-
-            for (Enumeration e = inf.pool.elements(); e.hasMoreElements();) {
-                IbisInfo ibisInf = (IbisInfo) e.nextElement();
-                if (ibisInf.needsUpcalls) {
-                    forward(IBIS_LEAVE, inf, ibisInf, leavers, 0);
+            // Obtain elements to send to first. The forward() method
+            // may wait (and loose the lock).
+            IbisInfo[] elts = inf.instances();
+            for (int i = 0; i < elts.length; i++) {
+                if (elts[i].needsUpcalls) {
+                    forward(IBIS_LEAVE, inf, elts[i], leavers, 0);
                 }
             }
 
@@ -476,10 +482,12 @@ public class NameServer extends Thread implements Protocol {
 
                         inf.unfinishedJoins.clear();
 
-                        for (Enumeration e2 = inf.pool.elements(); e2.hasMoreElements();) {
-                            IbisInfo ibisInf = (IbisInfo) e2.nextElement();
-                            if (ibisInf.completelyJoined && ibisInf.needsUpcalls) {
-                                forward(IBIS_JOIN, inf, ibisInf, message, 0);
+                        // Obtain elements to send to first. The forward()
+                        // method may wait (and loose the lock).
+                        IbisInfo[] elts = inf.instances();
+                        for (int i = 0; i < elts.length; i++) {
+                            if (elts[i].completelyJoined && elts[i].needsUpcalls) {
+                                forward(IBIS_JOIN, inf, elts[i], message, 0);
                             }
                         }
 
@@ -689,8 +697,10 @@ public class NameServer extends Thread implements Protocol {
         Vector deadIbises = new Vector();
 
         synchronized(p) {
-            for (Enumeration e = p.pool.elements(); e.hasMoreElements();) {
-                IbisInfo temp = (IbisInfo) e.nextElement();
+            // Obtain elements to send to first.
+            IbisInfo[] elts = p.instances();
+            for (int i = 0; i < elts.length; i++) {
+                IbisInfo temp = elts[i];
                 if (victim == null || temp.name.equals(victim)) {
                     if (! kill) {
                         PingThread pt = new PingThread(p, temp, key, deadIbises);
@@ -751,28 +761,27 @@ public class NameServer extends Thread implements Protocol {
                 }
 
                 // ... and to all other ibis instances in this pool.
-                synchronized(p) {
-                    for (Enumeration e = p.pool.elements(); e.hasMoreElements();) {
-                        IbisInfo ibisInf = (IbisInfo) e.nextElement();
-                        if (ibisInf.needsUpcalls) {
-                            forward(IBIS_DEAD, p, ibisInf, ibisIds, 0);
+                elts = p.instances();
+                for (int i = 0; i < elts.length; i++) {
+                    IbisInfo ibisInf = elts[i];
+                    if (ibisInf.needsUpcalls) {
+                        forward(IBIS_DEAD, p, ibisInf, ibisIds, 0);
+                    }
+                }
+
+                if (kill) {
+                    for (int i = 0; i < ibisIds.length; i++) {
+                        if (ibisIds[i].needsUpcalls) {
+                            forward(IBIS_DEAD, p, ibisIds[i], ibisIds, 0);
                         }
                     }
+                }
 
-                    if (kill) {
-                        for (int i = 0; i < ibisIds.length; i++) {
-                            if (ibisIds[i].needsUpcalls) {
-                                forward(IBIS_DEAD, p, ibisIds[i], ibisIds, 0);
-                            }
-                        }
-                    }
-
-                    while (p.forwarders != 0) {
-                        try {
-                            p.wait();
-                        } catch(Exception ex) {
-                            // ignored
-                        }
+                while (p.forwarders != 0) {
+                    try {
+                        p.wait();
+                    } catch(Exception ex) {
+                        // ignored
                     }
                 }
             }
@@ -1189,8 +1198,11 @@ public class NameServer extends Thread implements Protocol {
                 }
             }
 
-            for (Enumeration e = p.pool.elements(); e.hasMoreElements();) {
-                IbisInfo ipp = (IbisInfo) e.nextElement();
+            // Obtain elements to send to first. The forward() method
+            // may wait (and loose the lock).
+            IbisInfo[] elts = p.instances();
+            for (int i = 0; i < elts.length; i++) {
+                IbisInfo ipp = elts[i];
                 if (ipp.needsUpcalls) {
                     forward(IBIS_MUSTLEAVE, p, ipp, iinf, 0);
                 }
