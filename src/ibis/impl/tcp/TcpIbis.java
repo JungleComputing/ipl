@@ -18,6 +18,7 @@ import ibis.util.TypedProperties;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Hashtable;
 
 public final class TcpIbis extends Ibis implements Config {
@@ -54,7 +55,10 @@ public final class TcpIbis extends Ibis implements Config {
 
     static {
         TypedProperties.checkProperties(PROPERTY_PREFIX, sysprops, null);
-        socketFactory = VirtualSocketFactory.getSocketFactory();
+        
+        HashMap properties = new HashMap();        
+        properties.put("modules.direct.port", "17777");                
+        socketFactory = VirtualSocketFactory.getSocketFactory(properties);
     }
 
     public TcpIbis() {

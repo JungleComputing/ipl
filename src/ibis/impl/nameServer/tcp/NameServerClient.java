@@ -2,6 +2,7 @@
 
 package ibis.impl.nameServer.tcp;
 
+import ibis.connect.direct.SocketAddressSet;
 import ibis.connect.virtual.*;
 
 import ibis.impl.nameServer.NSProps;
@@ -23,6 +24,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.StreamCorruptedException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
@@ -54,14 +56,21 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
 
     private boolean left = false;
 
-    static VirtualSocketFactory socketFactory = 
-        VirtualSocketFactory.getSocketFactory();
+    private static VirtualSocketFactory socketFactory; 
+    
+    static { 
+        HashMap properties = new HashMap();        
+        properties.put("modules.direct.port", "16789");                
+        socketFactory = VirtualSocketFactory.getSocketFactory(properties);
+    } 
 
     private static Logger logger
             = ibis.util.GetLogger.getLogger(NameServerClient.class.getName());
 
     static VirtualSocket nsConnect(VirtualSocketAddress dest, boolean verbose, 
             int timeout) throws IOException {
+        
+        // TODO: fix timeout
         
         VirtualSocket s = null;
         int cnt = 0;
@@ -180,7 +189,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
             if (hubhost != null && hubhost.equals(srvr)) {
                 command.add("-controlhub");
             }
-
+                        
             final String[] cmd = (String[]) command.toArray(new String[0]);
 
             Thread p = new Thread("NameServer starter") {
@@ -245,7 +254,10 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
             // We want to start the server on this machine.
             // TODO: Fix!!
             runNameServer(port, "bla");            
-            serverAddress = new VirtualSocketAddress(myAddress.machine(), port);                    
+                        
+            serverAddress = new VirtualSocketAddress(
+                new SocketAddressSet(myAddress.machine().getAddressSet(), port), 
+                port);
         } else {                     
             if (containsColon) { 
                 // Assume "server" uses the IP/IP:PORT/IP:PORT format

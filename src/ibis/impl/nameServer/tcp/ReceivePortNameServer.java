@@ -34,7 +34,9 @@ class ReceivePortNameServer extends Thread implements Protocol {
     int socketCount = 0;
 
     boolean finishSweeper = false;
-
+    
+    private VirtualSocketFactory socketFactory; 
+    
     private VirtualServerSocket serverSocket;
 
     private boolean silent;
@@ -165,7 +167,7 @@ class ReceivePortNameServer extends Thread implements Protocol {
                     }
                     VirtualSocketAddress client;
                     client = (VirtualSocketAddress) Conversion.byte2object(clientAddress);
-                    s = NameServerClient.socketFactory.createClientSocket(
+                    s = socketFactory.createClientSocket(
                             client, NameServer.CONNECT_TIMEOUT, null);
                     myOut = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
                 }
@@ -207,10 +209,15 @@ class ReceivePortNameServer extends Thread implements Protocol {
 
     ReceivePortNameServer(boolean silent, VirtualSocketFactory socketFactory)
             throws IOException {
+        
         ports = new Hashtable();
         requestedPorts = new Hashtable();
+        
         this.silent = silent;
+        this.socketFactory = socketFactory;        
+        
         serverSocket = socketFactory.createServerSocket(0, 0, true, null);
+                
         setName("ReceivePort Name Server");
         start();
     }

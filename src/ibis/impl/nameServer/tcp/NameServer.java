@@ -6,6 +6,7 @@ import ibis.connect.controlhub.Hub;
 import ibis.connect.virtual.VirtualServerSocket;
 import ibis.connect.virtual.VirtualSocket;
 import ibis.connect.virtual.VirtualSocketAddress;
+import ibis.connect.virtual.VirtualSocketFactory;
 import ibis.impl.nameServer.NSProps;
 import ibis.util.PoolInfoServer;
 import ibis.util.ThreadPool;
@@ -19,8 +20,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.io.PrintStream;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Properties;
 import java.util.Vector;
@@ -150,11 +151,11 @@ public class NameServer extends Thread implements Protocol {
             leavers = new ArrayList();
             toBeDeleted = new Vector();
             portTypeNameServer = new PortTypeNameServer(silent,
-                    NameServerClient.socketFactory);
+                    socketFactory);
             receivePortNameServer = new ReceivePortNameServer(silent,
-                    NameServerClient.socketFactory);
+                    socketFactory);
             electionServer = new ElectionServer(silent,
-                    NameServerClient.socketFactory);
+                    socketFactory);
             pingLimit = System.currentTimeMillis() + PINGER_TIMEOUT;
             this.silent = silent;
         }
@@ -212,6 +213,14 @@ public class NameServer extends Thread implements Protocol {
 
     private Hub h = null;
 
+    private static VirtualSocketFactory socketFactory; 
+    
+    static { 
+        HashMap properties = new HashMap();        
+        properties.put("modules.direct.port", "" + TCP_IBIS_NAME_SERVER_PORT_NR);                
+        socketFactory = VirtualSocketFactory.getSocketFactory(properties);  
+    }
+    
     static Logger logger = 
             ibis.util.GetLogger.getLogger(NameServer.class.getName());
 
@@ -231,17 +240,16 @@ public class NameServer extends Thread implements Protocol {
         int port = TCP_IBIS_NAME_SERVER_PORT_NR;
 
 
-        /*if (! silent && logger.isInfoEnabled()) {
-            logger.info("Creating nameserver on " + myAddress);
-        }
-
+        //if (! silent && logger.isInfoEnabled()) {
+            logger.info("Creating nameserver on port " + port);
+        //}
+/*
         if (controlhub) {
             if (hubPort == null) {
                 hubPort = Integer.toString(port + 2);
                 System.setProperty("ibis.connect.hub.port", hubPort);
 */
         // TODO check if this is merged correclty !
-        
         
         if (starthub) { 
             
@@ -267,7 +275,7 @@ public class NameServer extends Thread implements Protocol {
                 logger.info("NameServer: created hub on " + host);
             }
         }
-        
+
         if (poolserver) {
             if (poolPort == null) {
                 poolPort = Integer.toString(port + 1);
@@ -282,7 +290,7 @@ public class NameServer extends Thread implements Protocol {
                 // throw new IOException("Could not start poolInfoServer" + e);
             }
         }
-
+        
         if (CHECKER_INTERVAL != 0) {
             final KeyChecker ck
                     = new KeyChecker(null, serverSocket.getLocalSocketAddress(), 
@@ -301,9 +309,13 @@ public class NameServer extends Thread implements Protocol {
         }
 
         // Create a server socket.
-        serverSocket = NameServerClient.socketFactory.createServerSocket(port,
+        serverSocket = socketFactory.createServerSocket(port,
                 50, false, null);
 
+        System.err.println("NameServer created on: " 
+                + serverSocket.getLocalSocketAddress());
+
+        
         pools = new Hashtable();
 
         Thread p = new Thread("NameServer Upcaller") {
@@ -328,9 +340,7 @@ public class NameServer extends Thread implements Protocol {
             logger.info("NameServer: created server on " + serverSocket);
         }
   */      
-        System.err.println("NameServer created on: " 
-                + serverSocket.getLocalSocketAddress());
-
+        
         if (! silent && logger.isInfoEnabled()) {
             Runtime.getRuntime().addShutdownHook(
                 new Thread("Nameserver ShutdownHook") {
@@ -574,7 +584,7 @@ public class NameServer extends Thread implements Protocol {
             // QUICK HACK -- JASON
             for (int h=0;h<3;h++) { 
                 try {
-                    s = NameServerClient.socketFactory.createClientSocket(
+                    s = socketFactory.createClientSocket(
                             dest.address, CONNECT_TIMEOUT, null);
                     out2 = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
                     out2.writeByte(message);
@@ -684,7 +694,7 @@ public class NameServer extends Thread implements Protocol {
             DataInputStream in2 = null;
 
             try {
-                s = NameServerClient.socketFactory.createClientSocket(
+                s = socketFactory.createClientSocket(
                         dest.address, CONNECT_TIMEOUT, null);
                 out2 = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
                 out2.writeByte(IBIS_PING);
@@ -1074,7 +1084,7 @@ public class NameServer extends Thread implements Protocol {
         DataOutputStream out3 = null;
         
         try {
-            s = NameServerClient.socketFactory.createClientSocket(
+            s = socketFactory.createClientSocket(
                     p.portTypeNameServer.getAddress(), CONNECT_TIMEOUT, null);
             out1 = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
             out1.writeByte(PORTTYPE_EXIT);
@@ -1086,7 +1096,7 @@ public class NameServer extends Thread implements Protocol {
         }
         
         try {
-            s2 = NameServerClient.socketFactory.createClientSocket(
+            s2 = socketFactory.createClientSocket(
                     p.receivePortNameServer.getAddress(), CONNECT_TIMEOUT, null);
             out2 = new DataOutputStream(new BufferedOutputStream(s2.getOutputStream()));
             out2.writeByte(PORT_EXIT);
@@ -1097,7 +1107,7 @@ public class NameServer extends Thread implements Protocol {
         }
         
         try {
-            s3 = NameServerClient.socketFactory.createClientSocket(
+            s3 = socketFactory.createClientSocket(
                     p.electionServer.getAddress(), CONNECT_TIMEOUT, null);
             out3 = new DataOutputStream(new BufferedOutputStream(s3.getOutputStream()));
             out3.writeByte(ELECTION_EXIT);
@@ -1121,7 +1131,7 @@ public class NameServer extends Thread implements Protocol {
         DataOutputStream out2 = null;
 
         try {
-            s = NameServerClient.socketFactory.createClientSocket(
+            s = socketFactory.createClientSocket(
                     p.electionServer.getAddress(), CONNECT_TIMEOUT, null);
             out2 = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
             out2.writeByte(ELECTION_KILL);
@@ -1148,7 +1158,7 @@ public class NameServer extends Thread implements Protocol {
         DataInputStream in2 = null;
 
         try {
-            s = NameServerClient.socketFactory.createClientSocket(
+            s = socketFactory.createClientSocket(
                     p.receivePortNameServer.getAddress(), CONNECT_TIMEOUT, null);
             out2 = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
             out2.writeByte(PORT_KILL);
