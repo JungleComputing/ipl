@@ -4,7 +4,6 @@ package ibis.impl.tcp;
 
 import ibis.connect.virtual.VirtualSocket;
 import ibis.connect.virtual.VirtualSocketAddress;
-import ibis.ipl.IbisError;
 import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;

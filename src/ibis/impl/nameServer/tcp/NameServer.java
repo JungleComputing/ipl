@@ -251,6 +251,7 @@ public class NameServer extends Thread implements Protocol {
 */
         // TODO check if this is merged correclty !
         
+            /*
         if (starthub) { 
             
             int p = 0; 
@@ -275,7 +276,8 @@ public class NameServer extends Thread implements Protocol {
                 logger.info("NameServer: created hub on " + host);
             }
         }
-
+             */
+                        
         if (poolserver) {
             if (poolPort == null) {
                 poolPort = Integer.toString(port + 1);
