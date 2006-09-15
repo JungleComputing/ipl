@@ -294,8 +294,6 @@
 	    </fileset>
 	</copy>
 
-	<delete file="${dirnam}/bin/ibis-prun"/>
-
 	<copy
 		file="src/scripts/ns-env.bat.in"
 		tofile="${dirnam}/bin/ns-env.bat">
