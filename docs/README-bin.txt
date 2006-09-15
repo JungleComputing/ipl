@@ -18,7 +18,7 @@ This Ibis distribution contains the following:
 Ibis is free software. See the file "LICENSE.txt" for copying permissions.
 
 The Ibis software requires at least a 1.4 JDK version of Java. With a
-1.3 or older version of Java, some parts of Ibis will not run.
+1.3 or older version of Java, this Ibis release will not run.
 Suitable versions of Java can be obtained from the web.
 IBM has versions for AIX (at http://www.ibm.com/developerworks/java),
 SUN has versions for Solaris, Linux, and Windows (at http://java.sun.com),
