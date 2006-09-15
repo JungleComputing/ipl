@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# This script can be used for running ibis applications with prun (which
+# probably is only available on our own DAS system).
+
 PRG="$0"
 
 # resolve symlinks
