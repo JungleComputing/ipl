@@ -44,7 +44,7 @@ add_to_libclasspath () {
 	if [ -z "$LIBCLASSPATH" ] ; then
 	    LIBCLASSPATH="$1/$i"
 	else
-	    LIBCLASSPATH="$1/$i":$LIBCLASSPATH
+	    LIBCLASSPATH="$LIBCLASSPATH:$1/$i"
 	fi
     done
 }
