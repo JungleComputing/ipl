@@ -1,0 +1,38 @@
+#!/bin/sh
+
+PRG="$0"
+
+# resolve symlinks
+while [ -h "$PRG" ] ; do
+    ls=`ls -ld "$PRG"`
+    link=`expr "$ls" : '.*-> \(.*\)$'`
+    if expr "$link" : '/.*' > /dev/null; then
+    PRG="$link"
+    else
+    PRG=`dirname "$PRG"`"/$link"
+    fi
+done
+
+dir=`dirname "$PRG"`
+dir=`cd "$dir" && pwd`
+
+case X$IBIS_HOME in
+X)
+    IBIS_HOME=`cd "$dir/.." && pwd`
+    ;;
+esac
+
+export IBIS_HOME
+
+JAVACLASSPATH="$CLASSPATH:$IBIS_HOME/lib/ibis-util.jar:"
+
+case X$JAVA_HOME in
+X)
+    JAVA=java
+    ;;
+*)
+    JAVA="$JAVA_HOME/bin/java"
+    ;;
+esac
+
+"$JAVA" -classpath "$JAVACLASSPATH" ibis.util.PoolInfoServer "$@"

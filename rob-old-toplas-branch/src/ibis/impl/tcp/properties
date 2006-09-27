@@ -1,0 +1,8 @@
+serialization = ibis, sun, byte
+worldmodel = open, closed
+communication = OneToOne, OneToMany, ManyToOne, \
+		Poll, ReceiveTimeout, \
+		FifoOrdered, Reliable, PollMessageUpcalls, \
+		AutoMessageUpcalls, ExplicitReceipt, ConnectionDowncalls, \
+		ConnectionUpcalls, Numbered
+nickname = tcp

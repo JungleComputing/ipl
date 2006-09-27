@@ -1,0 +1,168 @@
+*** Website ***
+
+- new toplevel for the website
+- change "related work" to "links" (like the ProActive site)
+- change UDP in documentation picture to being incomplete (striped)
+
+*** Ibis 2.0+ ***
+
+general:
+- extend clusters to a hierarchical model:
+     e.g., world.grid5k.sophia.machine321
+- to think about: would it be a good idea to allow an active upcall per
+  connection instead of per receiveport? This would make satin more simple:
+  no longer a receiveport per sender.
+     
+- ibisidentifier -> Comparable (for Ana)
++ ibisc : gmic + rmic + satinc + ... (does not replace javac) (Done Ceriel)
++ load ibisses dynamically from jar files (like JavaGAT) (Done Ceriel)
+- run central nameserver on fs0
+- split up ibis.jar in multiple files (in a sane manner)
+- binary release
+- make javadoc available in a file for eclipse somehow
+- move applications to a real tree
+- network(cluster) simulator
+- steering interface
+- remove deprecated functionality
+- while(true) {fix eclipse warnings}
+- change codmon performance measurements to "sane" benchmarks
+- more efficient clone? Maybe generate code that clones without using 
+  serialization. Could be done for objects passed as a param
+  to a spawn, for instance. If code is not there, fall back to current impl.
+- migrate leftover prints to log4j (should we? Performance!)
+- improve performance of Ibis serialization for non-rewritten code.
+- automatically started nameserver hangs when application crashes or exits with code 1 
+  (with ant test)
++ ant clean in apps gooit ant test output files niet weg (fixed Ceriel)
++ ant in applicaties doet niet eerst een clean (fixed Ceriel)
+
+- na een connectionLost upcall geeft het sluiten van de port soms:
+    Trying to close a sendport port while a message is alive!
+    Dat is natuurlijk zo, maar ja, de connectie is weg, dus dan zou je willen dat
+    de close gewoon netjes zonder exception terug komt. --Rob
+
+
+nameserver+connection stuff:
++ joins, leaves and died messages have to be ordered to each other as well. --Rob
+  They are (Ceriel)
++ deadlocks in pinger, forwarders --Rob
+  Fixed serious race (in nameserver, and TcpIbis) --Ceriel
+
+- enable control hub by default --Rob
+- if a control hub is started, ibises cannot connect to the normal server again?
+- allow different connection types to nameserver simulaneously: 
+  one ibis should be able to connect with routed messges, while others have 
+  a direct connection --Rob
+- -Dibis.nameserver=SOME_IP -> kijk of 1 van onze interfaces SOME_IP heeft 
+  (niet alleen eerste)...
+- add out-of-band communication support to the Nameserver interface
+
+ipl:
+
+- make ibis.ipl.Ibis an interface
+- add abstract classes for all classes in ibis.ipl to ibis.impl
+- add a final class ibis.ipl.IbisFactory which calls ibis.impl.IbisFactory
+  with reflection. It shouldn't import ibis.impl.IbisFactory as this would make
+  the ipl depend on ibis.impl (and ibisUtil, and IbisConnect, and....
+
+- IPL += sendPort.connect(ReceivePortIdentifier[] receivers);
+- close van poorten (in shutdownhooks)
+  docs vertellen niet dat je niet een close mag doen terwijl een message
+  levend is
+  Ceriel: ??? Hoe doe je dat (in een shutdownhook belanden als er een message
+  levend is ??? En, de javadocs vertellen dat wel degelijk.
+
+- add a way to create local receiveports local to and Ibis
+  in addition to global receiveports
+- add Registry.lookup(IbisIdentifier ibis, String receivePortName)
+- add SendPort.connect(IbisIdentifier ibis, String receivePortName)
+- remove Registry.lookupIbis()
+- remove (deprecated) createIbis(String name)
+- change Ibis.toString() to returning a "friendly"(user-printable), but not 
+  necessarily unique, string.
+  
+rmi:
+- check Ibis RMI registry:
+  - you don't have to actually start one;
+  - registers url's, not names.
+
+satin:
+- if main throws an exception, we exit with code 0. Ant test also succeeds.
+
+- make scalable ibis / scalable satin (don't keep sockets open) --Rob
+
+- add semantic analysis to the compiler
+- forgotten sync statements
+- make return / throw an implicit sync again?
+- add comments to abort / inlet machinism
+- check satin caches.
+- shutdownhook -> System.exit
+- satinc does not understand monitorenter/monitor exit instructions (othello)
+- detection of what is an inlet: now, if the invocation is inside a try-catch
+  it is assumed to be an inlet. Is this OK? (MAybe change to checked Exception)
+- shared objects model: no stubs are used. -> write methods on the orignal object
+  are not broadcast. Only if you get it as param from a spawn it is broadcast!
+  This is very confusing --Rob
++ remove dependancy on IPUtils and hostname (mostly done, except for masterHome; Ceriel)
++ ant test should also run satin apps sequentially
+  (It does, does'nt it? (Ceriel))
+
+satin-so:
+- count all messages+sizes for the total messages/data sent statistics --Rob
+- do not send the same object (and the same version) twice.
+  This can happen if it is both broadcast, and pulled at the same time --Rob
+- Allow shared objects to be passed anywhere in the parameter data 
+  structures. Now only directly as a param. Maybe use stubs instead of
+  direct access? This would make the implementation much easier --Rob
+- message combining does not help because:  (--Rob)
+    - object-id is sent every time (long string)
+    - combiner is synchronized
+    - overhead of method calls, serialization
+- remove export of shared object from interface. An application can mark any
+  initialization functions as being write functions for the same nett result.
+  
+
+abstract implementation:
+- check _all_ properties in _every_ Ibis
+- add support for properties in a ".ibis" config file
+- if closed.world is selected, check if ibis.pool.hosts is set, and ignore
+  joins beyond total hosts, and all leaves.
+
+implementations:
+- (re)implement MPIIbis
+- implement stacking Ibis
+- remove PandaIbis
+- remove NetIbis
+- PandaIbis connection management broken (e.g. connectedTo())
+  (who reported this? Please check if this is still actual ... I placed locks
+   in them .... Ceriel) I did, I'll check :-) --Rob
+- NetIbis: 
+    - fix performance issues in net.gm (e.g.  mpj+javagrande benchmarks)
+    - remove dependancy on "local" gm version in default set-up
+    - connection cache cannot be disabled without triggering a bug:
+      tcp_blk/TcpConnectionCache.java has:
+        synchronized Socket getCachedInput(IbisIdentifier ibis, int port) {
+            if (DISABLED) return null;
+      tcp_blk/Driver.java has:
+        while (true) {
+            Socket s = connectionCache.getCachedInput(ibis, port);
+	    if (s != null) return s;
+	    ... wait ...
+        }
+      so: deadlock if DISABLED==true.
+
+connect stuff:
+- Rob: allow user to load socket types per *connection* use the 
+       property map for this
+- control hub client side always binds to default local ip/port 
+  (partially fixed, but not fully correct yet --Rob)
+- routed messages logging crashes
+- use routed messages *while* trying to setup TCP splicing in the background
+- write a good anyTCP for control_links -Rob
+- support universal plug and play
+
+future projects:
+- build *Ibis: a stacking ibis
+
+apps:
+- check results of the different barnes versions

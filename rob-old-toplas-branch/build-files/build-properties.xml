@@ -1,0 +1,33 @@
+<project
+    name="properties"
+    default="property-init"
+    basedir=".">
+
+    <description>
+	Properties to be shared by all files, apps in Ibis
+
+	Requires prior definition of the following properties:
+
+	    ibis          the root of the Ibis tree
+
+	Specify in this file:
+    </description>
+
+    <target name="set-classpath" unless="classpath.initialized">
+	<path id="default.classpath">
+	    <pathelement path="${ibis}/build"/>
+	    <pathelement path="${build}"/>
+	    <fileset dir="${ibis}/lib">
+		<include name="*.jar"/>
+	    </fileset>
+	</path>
+	<echo	message="Now set default.classpath to ${default.classpath}"
+		level="verbose"/>
+	<property name="classpath.initialized" value="true"/>
+    </target>
+
+    <target name="property-init"
+	    depends="set-classpath">
+    </target>
+
+</project>
