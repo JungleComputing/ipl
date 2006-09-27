@@ -402,7 +402,7 @@ final class SOCommunication implements Config, Protocol {
      * guard might depend on more than one shared object. */
     protected void fetchObject(String objectId, IbisIdentifier source,
         InvocationRecord r) throws SOReferenceSourceCrashedException {
-
+/*
         soLogger.debug("SATIN '" + s.ident.name() + "': sending SO request "
             + (r == null ? "FIRST TIME" : "GUARD"));
 
@@ -420,7 +420,7 @@ final class SOCommunication implements Config, Protocol {
             .debug("SATIN '"
                 + s.ident.name()
                 + "': received NACK, the object is probably already being broadcast to me, WAITING");
-
+*/
         // got a nack back, the source thinks it sent it to me.
         // wait for the object to arrive. If it doesn't, demand the object.
         long start = System.currentTimeMillis();
@@ -459,7 +459,7 @@ final class SOCommunication implements Config, Protocol {
         // haven't got it, demand it now.
         sendSORequest(objectId, source, true);
 
-        gotIt = waitForSOReply();
+        boolean gotIt = waitForSOReply();
         if (gotIt) {
             soLogger.debug("SATIN '" + s.ident.name()
                 + "': received demanded object");
