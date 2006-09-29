@@ -5,6 +5,8 @@ package ibis.impl.net;
 import ibis.io.Replacer;
 
 import ibis.ipl.ConnectionTimedOutException;
+import ibis.ipl.IbisError;
+import ibis.ipl.IbisIdentifier;
 import ibis.ipl.PortType;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPort;
@@ -669,6 +671,18 @@ public final class NetSendPort implements SendPort,
         log.in();
         log.out();
         return identifier;
+    }
+
+    public synchronized ReceivePortIdentifier connect(IbisIdentifier id, String name,
+            long timeoutMillis) throws IOException {
+        // TODO!
+        throw new IbisError("not implemented");
+    }
+
+    public synchronized ReceivePortIdentifier connect(IbisIdentifier id, String name)
+            throws IOException {
+        // TODO!
+        throw new IbisError("not implemented");
     }
 
     /**

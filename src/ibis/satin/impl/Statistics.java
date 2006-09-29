@@ -307,7 +307,7 @@ public final class Statistics implements java.io.Serializable, Config {
         handleSOInvocations = handleSOInvocationsTimer.nrTimes();
 
         handleSOInvocationsTime = handleSOInvocationsTimer.totalTimeVal();
-        soInvocationDeserializationTime += soInvocationDeserializationTimer
+        soInvocationDeserializationTime = soInvocationDeserializationTimer
             .totalTimeVal();
         broadcastSOInvocationsTime = broadcastSOInvocationsTimer.totalTimeVal();
         soTransferTime = soTransferTimer.totalTimeVal();

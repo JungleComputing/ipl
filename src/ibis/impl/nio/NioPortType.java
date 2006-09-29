@@ -188,8 +188,9 @@ class NioPortType extends PortType implements Config {
     }
 
     public ReceivePort createReceivePort(String name, Upcall u,
-            ReceivePortConnectUpcall cU, boolean connectionAdministration)
-            throws IOException {
+            ReceivePortConnectUpcall cU, boolean connectionAdministration,
+            boolean global) throws IOException {
+        // TODO: implement the !global case
 
         switch (receivePortImplementation) {
         case IMPLEMENTATION_BLOCKING:

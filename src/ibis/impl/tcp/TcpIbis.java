@@ -126,10 +126,10 @@ public final class TcpIbis extends Ibis implements Config {
             System.err.println("Created IbisIdentifier " + ident);
         }
 
-        nameServer = NameServer.loadNameServer(this, resizeHandler != null);
-
         tcpPortHandler = new TcpPortHandler(ident, 
                 VirtualSocketFactory.getSocketFactory());
+
+        nameServer = NameServer.loadNameServer(this, resizeHandler != null);
 
         if (resizeHandler != null) {
             Thread p = new Thread("ResizeUpcaller") {

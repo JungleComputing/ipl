@@ -517,12 +517,12 @@ public final class NetPortType extends PortType {
     }
 
     public ReceivePort createReceivePort(String name, Upcall u,
-            ReceivePortConnectUpcall rpcu, boolean connectionAdministration)
-            throws IOException {
+            ReceivePortConnectUpcall rpcu, boolean connectionAdministration,
+            boolean global) throws IOException {
         NetReceivePort nrp = new NetReceivePort(this, name, u, rpcu,
                 connectionAdministration);
 
-        if (! name.equals(ReceivePort.ANONYMOUS)) {
+        if (global && ! name.equals(ReceivePort.ANONYMOUS)) {
             ibis.registry().bind(name, nrp.identifier());
         }
 

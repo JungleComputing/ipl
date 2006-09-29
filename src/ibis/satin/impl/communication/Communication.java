@@ -68,10 +68,15 @@ public final class Communication implements Config, Protocol {
 
             MessageHandler messageHandler = new MessageHandler(s);
 
-                receivePort = portType.createReceivePort("satin port on "
-                    + ident.name(), messageHandler, s.ft
-                    .getReceivePortConnectHandler());
-                receivePort.enableUpcalls();
+            if (LOCALPORTS) {
+                receivePort = portType.createLocalReceivePort("satin port",
+                        messageHandler, s.ft.getReceivePortConnectHandler());
+            } else {
+                receivePort = portType.createReceivePort(
+                        "satin port on " + ident.name(),
+                        messageHandler, s.ft.getReceivePortConnectHandler());
+            }
+            receivePort.enableUpcalls();
             receivePort.enableConnections();
 
         } catch (Exception e) {
@@ -157,6 +162,10 @@ public final class Communication implements Config, Protocol {
         String commprops = "OneToOne, OneToMany, ManyToOne, ExplicitReceipt, Reliable";
         commprops += ", ConnectionUpcalls, ConnectionDowncalls";
         commprops += ", AutoUpcalls";
+
+        if (LOCALPORTS) {
+            commprops += ", LocalReceivePorts";
+        }
 
         ibisProperties.add("communication", commprops);
         return ibisProperties;
@@ -286,6 +295,36 @@ public final class Communication implements Config, Protocol {
         } while (!success
             && System.currentTimeMillis() - startTime < timeoutMillis);
         return success;
+    }
+
+    public static ReceivePortIdentifier connect(SendPort s,
+            IbisIdentifier ident, String name, long timeoutMillis) {
+        long startTime = System.currentTimeMillis();
+        ReceivePortIdentifier r = null;
+        do {
+            try {
+                r = s.connect(ident, name, timeoutMillis);
+            } catch (AlreadyConnectedException x) {
+                ReceivePortIdentifier[] ports = s.connectedTo();
+                for (int i = 0; i < ports.length; i++) {
+                    if (ports[i].ibis().equals(ident) &&
+                            ports[i].name().equals(name)) {
+                        return ports[i];
+                    }
+                }
+                return null;
+            } catch (IOException e) {
+                commLogger.info(
+                    "IOException in connect to " + ident + ": " + e, e);
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e2) {
+                    // ignore
+                }
+            }
+        } while (r == null
+            && System.currentTimeMillis() - startTime < timeoutMillis);
+        return r;
     }
 
     public ReceivePortIdentifier lookup(String portname) throws IOException {

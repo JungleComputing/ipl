@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# This script can be used for running ibis applications with prun (which
+# probably is only available on our own DAS system).
+
 PRG="$0"
 
 # resolve symlinks
@@ -335,7 +338,7 @@ add_to_libclasspath () {
 	if [ -z "$LIBCLASSPATH" ] ; then
 	    LIBCLASSPATH="$1/$i"
 	else
-	    LIBCLASSPATH="$1/$i":$LIBCLASSPATH
+	    LIBCLASSPATH="$LIBCLASSPATH:$1/$i"
 	fi
     done
 }

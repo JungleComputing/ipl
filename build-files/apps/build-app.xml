@@ -63,7 +63,7 @@
 	      spawn="true">
 	    <arg line="-ns localhost -ns-port 46789 -hostno 1 -nhosts 2 ${ibis-run-args}"/>
 	    <arg value="${define-ibis-name}"/>
-	    <arg line="${java-args} ibis.util.Postpone 2 -o ant-test.out ${runjob}"/>
+	    <arg line="-Dsatin.localPorts ${java-args} ibis.util.Postpone 2 -o ant-test.out ${runjob}"/>
 	</exec>
 	<exec dir="${basedir}"
 	      executable="${ibis}/bin/ibis-run"
@@ -72,7 +72,7 @@
 	      vmlauncher="false">
 	    <arg line="-ns localhost -ns-port 46789 -hostno 0 -nhosts 2 ${ibis-run-args}"/>
 	    <arg value="${define-ibis-name}"/>
-	    <arg line="${java-args} ${runjob}"/>
+	    <arg line="-Dsatin.localPorts ${java-args} ${runjob}"/>
 	</exec>
     </target>
 
@@ -90,7 +90,7 @@
 	      vmlauncher="false">
 	      <arg line="-1 ${ibis}/bin/ibis-prun ${prun-nprocs} ${ibis-run-args}"/>
 	    <arg value="${define-ibis-name}"/>
-	    <arg line="${java-args} ${runjob}"/>
+	    <arg line="-Dsatin.localPorts ${java-args} ${runjob}"/>
 	</exec>
     </target>
 
@@ -103,7 +103,7 @@
 	      vmlauncher="false">
 	    <arg line="-ns localhost -ns-port 46789 -hostno 0 -nhosts 1 ${ibis-run-args}"/>
 	    <arg value="${define-ibis-name}"/>
-	    <arg line="${java-args} ${runjob}"/>
+	    <arg line="-Dsatin.localPorts ${java-args} ${runjob}"/>
 	</exec>
     </target>
 
@@ -113,7 +113,7 @@
 	      timeout="500000"
 	      failonerror="true"
 	      vmlauncher="false">
-	      <arg line="${ibis-run-args} -- ${java-args} ${runjob}"/>
+	      <arg line="${ibis-run-args} -- -Dsatin.localPorts ${java-args} ${runjob}"/>
 	</exec>
     </target>
 

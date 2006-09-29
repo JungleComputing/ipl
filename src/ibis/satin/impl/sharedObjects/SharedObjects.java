@@ -101,12 +101,11 @@ public final class SharedObjects implements Config {
     public void handleSOInvocations() {
         gotSOInvocations = false;
         while (true) {
-            s.stats.handleSOInvocationsTimer.start();
 
             if (soInvocationList.size() == 0) {
-                s.stats.handleSOInvocationsTimer.stop();
                 return;
             }
+            s.stats.handleSOInvocationsTimer.start();
             SOInvocationRecord soir =
                     (SOInvocationRecord) soInvocationList.remove(0);
             SharedObject so = getSOReference(soir.getObjectId());

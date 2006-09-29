@@ -138,21 +138,15 @@ public class PortType extends ibis.ipl.PortType {
 
     public ibis.ipl.ReceivePort createReceivePort(String nm, ibis.ipl.Upcall u,
             ibis.ipl.ReceivePortConnectUpcall cU,
-            boolean connectionAdministration) throws IOException {
+            boolean connectionAdministration, boolean global) throws IOException {
 
         ReceivePort port = new ReceivePort(this, nm, u, cU,
-                connectionAdministration);
+                connectionAdministration, global);
 
         if (Ibis.DEBUG) {
             System.out.println(Ibis.myIbis.myCpu
                     + ": Receiveport created of type '" + this.name
                     + "', name = '" + nm + "'" + " id " + port.identifier());
-        }
-
-        if (Ibis.DEBUG) {
-            System.out.println(Ibis.myIbis.myCpu
-                    + ": Receiveport bound in registry, type = '" + this.name
-                    + "', name = '" + nm + "'");
         }
 
         return port;

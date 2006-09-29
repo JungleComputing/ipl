@@ -6,6 +6,8 @@ import ibis.io.Replacer;
 
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.ConnectionTimedOutException;
+import ibis.ipl.IbisError;
+import ibis.ipl.IbisIdentifier;
 import ibis.ipl.PortMismatchException;
 import ibis.ipl.StaticProperties;
 
@@ -333,6 +335,18 @@ public class SendPort implements ibis.ipl.SendPort {
 
     private native void sendBindGroupRequest(int to, byte[] senderId, int grp)
             throws IOException;
+
+    public ibis.ipl.ReceivePortIdentifier connect(IbisIdentifier id, String name,
+            long timeoutMillis) throws IOException {
+        // TODO!
+        throw new IbisError("not implemented");
+    }
+
+    public ibis.ipl.ReceivePortIdentifier connect(IbisIdentifier id, String name)
+            throws IOException {
+        // TODO!
+        throw new IbisError("not implemented");
+    }
 
     public void connect(ibis.ipl.ReceivePortIdentifier receiver, long timeout)
             throws IOException {
