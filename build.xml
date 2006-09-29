@@ -267,7 +267,8 @@
 	<ant dir="ibis-example" inheritAll="false" target="test"/>
     </target>
 
-    <target name="ibis.zip" depends="default,docs,progman">
+<!-- removed docs,progman -->
+    <target name="ibis.zip" depends="default">
 	<delete dir="bin-temp"/>
 	<delete file="${version}.zip"/>
 
