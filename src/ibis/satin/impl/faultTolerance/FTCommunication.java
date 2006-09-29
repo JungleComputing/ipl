@@ -277,28 +277,32 @@ final class FTCommunication implements Config, ReceivePortConnectUpcall,
     }
     
     protected void handleJoins(IbisIdentifier[] joiners) {
-        String[] names = new String[joiners.length];
-        for (int i = 0; i < names.length; i++) {
-            names[i] = "satin port on " + joiners[i].name();
-        }
-        ftLogger.debug("SATIN '" + s.ident + "': dealing with " + names.length
+        ftLogger.debug("SATIN '" + s.ident + "': dealing with " + joiners.length
             + " joins");
-
         ReceivePortIdentifier[] r = null;
-        try {
-            r = s.comm.lookup(names);
-        } catch (Exception e) {
-            ftLogger.warn("SATIN '" + s.ident
-                + "': got an exception while looking up receive ports", e);
-            return;
-        }
 
-        ftLogger.debug("SATIN '" + s.ident + "': lookups succeeded");
+        if (! LOCALPORTS) {
+            String[] names = new String[joiners.length];
+            for (int i = 0; i < names.length; i++) {
+                names[i] = "satin port on " + joiners[i].name();
+            }
+            try {
+                r = s.comm.lookup(names);
+            } catch (Exception e) {
+                ftLogger.warn("SATIN '" + s.ident
+                    + "': got an exception while looking up receive ports", e);
+                return;
+            }
+
+            ftLogger.debug("SATIN '" + s.ident + "': lookups succeeded");
+        } else {
+            r = new ReceivePortIdentifier[joiners.length];
+        }
 
         s.so.handleJoins(joiners);
         ftLogger.debug("SATIN '" + s.ident + "': SO ports created");
 
-        for (int i = 0; i < r.length; i++) {
+        for (int i = 0; i < joiners.length; i++) {
             IbisIdentifier joiner = joiners[i];
 
             ftLogger.debug("SATIN '" + s.ident + "': creating sendport");

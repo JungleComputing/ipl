@@ -131,6 +131,8 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
 
     ReceivePort next;
 
+    boolean global;
+
     static {
         if (DEBUG) {
             if (Ibis.myIbis.myCpu == 0) {
@@ -140,17 +142,19 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
         }
     }
 
-    ReceivePort(PortType type, String name) throws IOException {
-        this(type, name, null, null, false);
-    }
+    //ReceivePort(PortType type, String name) throws IOException {
+    //    this(type, name, null, null, false);
+    //}
 
     ReceivePort(PortType type, String name, ibis.ipl.Upcall upcall,
             ReceivePortConnectUpcall connectUpcall,
-            boolean connectionAdministration) throws IOException {
+            boolean connectionAdministration, boolean global)
+            throws IOException {
         this.type = type;
         this.name = name;
         this.upcall = upcall;
         this.connectUpcall = connectUpcall;
+        this.global = global;
 
         /// @@@ implement connectionAdministration --Rob
 
@@ -346,7 +350,7 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
             Ibis.myIbis.lock();
             Ibis.myIbis.bindReceivePort(this, ident.port);
             Ibis.myIbis.unlock();
-            if (! name.equals(ANONYMOUS)) {
+            if (global && ! name.equals(ANONYMOUS)) {
                 try {
                     if (Ibis.DEBUG_RUTGER) {
                         System.err.println("In enableConnections: "
@@ -873,7 +877,7 @@ class ReceivePort implements ibis.ipl.ReceivePort, Runnable {
         Ibis.myIbis.unlock();
 
         /* unregister with name server */
-        if (! name.equals(ANONYMOUS)) {
+        if (global && ! name.equals(ANONYMOUS)) {
             try {
                 if (DEBUG) {
                     System.out.println(Thread.currentThread() + name

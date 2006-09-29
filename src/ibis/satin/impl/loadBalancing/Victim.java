@@ -60,8 +60,8 @@ public final class Victim {
             synchronized (s) {
                 if (connected) {
                     connected = false;
+                    s.disconnect(r);
                 }
-                s.disconnect(r);
             }
         }
     }
@@ -73,12 +73,24 @@ public final class Victim {
                     if (closed) {
                         return null;
                     }
-                    if (!Communication.connect(s, r, Satin.CONNECT_TIMEOUT)) {
-                        Config.commLogger.debug("SATIN '"
-                            + s.identifier().ibis()
-                            + "': unable to connect to " + r.ibis()
-                            + ", might have crashed");
-                        return null;
+                    if (r != null) {
+                        if (!Communication.connect(s, r, Satin.CONNECT_TIMEOUT)) {
+                            Config.commLogger.debug("SATIN '"
+                                + s.identifier().ibis()
+                                + "': unable to connect to " + r.ibis()
+                                + ", might have crashed");
+                            return null;
+                        }
+                    } else {
+                        r = Communication.connect(s, ident, "satin port",
+                                    Satin.CONNECT_TIMEOUT);
+                        if (r == null) {
+                            Config.commLogger.debug("SATIN '"
+                                + s.identifier().ibis()
+                                + "': unable to connect to " + ident
+                                + ", might have crashed");
+                            return null;
+                        }
                     }
                     connected = true;
                 }

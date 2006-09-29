@@ -17,6 +17,10 @@ public final class TcpIbisIdentifier extends IbisIdentifier implements
 
     private InetAddress address;
 
+    // Added for implementation of connect(IbisIdentifier, String).
+    // (Ceriel)
+    int port;
+
     private static IbisIdentifierTable cache = new IbisIdentifierTable();
 
     private static HashMap inetAddrMap = new HashMap();
@@ -28,7 +32,7 @@ public final class TcpIbisIdentifier extends IbisIdentifier implements
         this.address = address;
     }
 
-    public InetAddress address() {
+    InetAddress address() {
         return address;
     }
 
@@ -60,6 +64,7 @@ public final class TcpIbisIdentifier extends IbisIdentifier implements
         out.writeInt(handle);
         if (handle < 0) { // First time, send it.
             out.writeUTF(address.getHostAddress());
+            out.writeInt(port);
         }
     }
 
@@ -68,6 +73,7 @@ public final class TcpIbisIdentifier extends IbisIdentifier implements
         int handle = in.readInt();
         if (handle < 0) {
             String addr = in.readUTF();
+            port = in.readInt();
             address = (InetAddress) inetAddrMap.get(addr);
             if (address == null) {
                 try {
@@ -89,6 +95,7 @@ public final class TcpIbisIdentifier extends IbisIdentifier implements
                     handle);
             address = ident.address;
             name = ident.name;
+            port = ident.port;
             cluster = ident.cluster;
         }
     }

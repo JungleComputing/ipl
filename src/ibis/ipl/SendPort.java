@@ -149,13 +149,52 @@ public interface SendPort {
     public void connect(ReceivePortIdentifier receiver) throws IOException;
 
     /**
-     * Attempts to disconnect a connection with a receiver.
+     * Attempts to set up a connection with a receiver at the specified
+     * Ibis instance, with the specified name.
+     * It is not allowed to set up a new connection while a message
+     * is alive.
      *
-     * @param receiver identifies the {@link ReceivePort} to disconnect
-     * @exception IOException is thrown if there was no connection to
-     * the receiveport specified or in case of other trouble.
+     * @param id identifies the Ibis instance on which the {@link ReceivePort}
+     *   with the specified name is supposed to live.
+     * @param name specifies the name of the {@link ReceivePort}.
+     * @exception ConnectionRefusedException is thrown
+     * if the receiver denies the connection.
+     * @exception AlreadyConnectedException is thrown if the port was already
+     * connected to the receiver.
+     * Multiple connections to the same receiver are NOT allowed.
+     * @exception PortMismatchException is thrown if the receiveport
+     * port and the sendport are of different types.
+     * @exception IOException is thrown if a message is alive.
+     * @return the receiveport identifier, or <code>null</code>.
      */
-    public void disconnect(ReceivePortIdentifier receiver) throws IOException;
+    public ReceivePortIdentifier  connect(IbisIdentifier id, String name)
+            throws IOException;
+
+    /**
+     * Attempts to set up a connection with a receiver at the specified
+     * Ibis instance, with the specified name.
+     *
+     * It is not allowed to set up a new connection while a message
+     * is alive.
+     *
+     * @param id identifies the Ibis instance on which the {@link ReceivePort}
+     *   with the specified name is supposed to live.
+     * @param name specifies the name of the {@link ReceivePort}.
+     * @param timeoutMillis timeout in milliseconds
+     * @exception ibis.ipl.ConnectionTimedOutException is thrown
+     * if an accept/deny has not arrived within <code>timeoutmillis</code>.
+     * A value of 0 for <code>timeoutmillis</code> signifies no
+     * timeout on the connection attempt.
+     * @exception ConnectionRefusedException is thrown
+     * if the receiver denies the connection.
+     * @exception AlreadyConnectedException is thrown if the port was already
+     * connected to the receiver.
+     * Multiple connections to the same receiver are NOT allowed.
+     * @exception PortMismatchException is thrown if the receiveport
+     * port and the sendport are of different types.
+     */
+    public void connect(ReceivePortIdentifier receiver, long timeoutMillis)
+            throws IOException;
 
     /**
      * Attempts to set up a connection with receiver.
@@ -173,9 +212,19 @@ public interface SendPort {
      * Multiple connections to the same receiver are NOT allowed.
      * @exception PortMismatchException is thrown if the receiveport
      * port and the sendport are of different types.
+     * @return the receiveport identifier, or <code>null</code>.
      */
-    public void connect(ReceivePortIdentifier receiver, long timeoutMillis)
-            throws IOException;
+    public ReceivePortIdentifier  connect(IbisIdentifier id, String name,
+            long timeoutMillis) throws IOException;
+
+    /**
+     * Attempts to disconnect a connection with a receiver.
+     *
+     * @param receiver identifies the {@link ReceivePort} to disconnect
+     * @exception IOException is thrown if there was no connection to
+     * the receiveport specified or in case of other trouble.
+     */
+    public void disconnect(ReceivePortIdentifier receiver) throws IOException;
 
     /**
      * Frees the resources held by the sendport.

@@ -12,6 +12,7 @@ import ibis.io.Replacer;
 import ibis.ipl.AlreadyConnectedException;
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.IbisError;
+import ibis.ipl.IbisIdentifier;
 import ibis.ipl.PortMismatchException;
 import ibis.ipl.PortType;
 import ibis.ipl.ReceivePortIdentifier;
@@ -119,13 +120,8 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
         count = 0;
     }
 
-    public synchronized void connect(ReceivePortIdentifier receiver,
+    public synchronized ReceivePortIdentifier connect(IbisIdentifier id, String nm,
             long timeoutMillis) throws IOException {
-        /* first check the types */
-        if (!type.name().equals(receiver.type())) {
-            throw new PortMismatchException(
-                    "Cannot connect ports of different PortTypes");
-        }
 
         if (aMessageIsAlive) {
             throw new IOException(
@@ -134,20 +130,23 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 
         if (DEBUG) {
             System.err.println("Sendport " + this + " '" + name
-                    + "' connecting to " + receiver);
+                    + "' connecting to " + nm + " at " + id);
         }
 
-        // we have a new receiver, now add it to our tables.
-        TcpReceivePortIdentifier ri = (TcpReceivePortIdentifier) receiver;
+        return ibis.tcpPortHandler.connect(this, (TcpIbisIdentifier) id, nm,
+                null, (int) timeoutMillis);
+    }
+
+    void addConn(TcpReceivePortIdentifier ri, Socket s)
+            throws IOException {
         Conn c = new Conn();
         c.ident = ri;
-
         if (receivers.contains(c)) {
             throw new AlreadyConnectedException(
-                    "This sendport was already connected to " + receiver);
+                    "This sendport was already connected to " + ri);
         }
 
-        c.s = ibis.tcpPortHandler.connect(this, ri, (int) timeoutMillis);
+        c.s = s;
         if (c.s == null) {
             throw new ConnectionRefusedException("Could not connect");
         }
@@ -180,8 +179,37 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 
         if (DEBUG) {
             System.err.println("Sendport '" + name + "' connecting to "
-                    + receiver + " done");
+                    + ri + " done");
         }
+    }
+
+    public synchronized ReceivePortIdentifier  connect(IbisIdentifier id,
+            String name) throws IOException {
+        return connect(id, name, 0);
+    }
+
+    public synchronized void connect(ReceivePortIdentifier receiver,
+            long timeoutMillis) throws IOException {
+        /* first check the types */
+        if (!type.name().equals(receiver.type())) {
+            throw new PortMismatchException(
+                    "Cannot connect ports of different PortTypes");
+        }
+
+        if (aMessageIsAlive) {
+            throw new IOException(
+                    "A message was alive while adding a new connection");
+        }
+
+        if (DEBUG) {
+            System.err.println("Sendport " + this + " '" + name
+                    + "' connecting to " + receiver);
+        }
+
+        // we have a new receiver, now add it to our tables.
+        TcpReceivePortIdentifier ri = (TcpReceivePortIdentifier) receiver;
+        ibis.tcpPortHandler.connect(this, ri.ibis, ri.name, ri,
+                (int) timeoutMillis);
     }
 
     public synchronized void setReplacer(Replacer r) throws IOException {

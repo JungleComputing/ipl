@@ -58,6 +58,8 @@ PropertyCategories:	communication worldmodel serialization
 #	connection downcalls are supported.
 #   ConnectionUpcalls
 #	connection upcalls are supported.
+#   LocalReceivePorts
+#       set when local receive ports are supported.
 #
 
 communication:	OneToOne, OneToMany, ManyToOne, \
@@ -66,7 +68,8 @@ communication:	OneToOne, OneToMany, ManyToOne, \
 		Reliable, \
 		AutoUpcalls, PollUpcalls, ExplicitReceipt, \
 		AutoMessageUpcalls, PollMessageUpcalls, \
-		ConnectionDowncalls, ConnectionUpcalls
+		ConnectionDowncalls, ConnectionUpcalls, \
+		LocalReceivePorts
 
 #
 # There are some implied properties, for instance OneToMany implies OneToOne.

@@ -203,7 +203,7 @@ public abstract class PortType {
      * type does not match what is required here.
      */
     public ReceivePort createReceivePort(String name) throws IOException {
-        return doCreateReceivePort(name, null, null, false);
+        return doCreateReceivePort(name, null, null, false, true);
     }
 
     /** 
@@ -227,7 +227,7 @@ public abstract class PortType {
      */
     public ReceivePort createReceivePort(String name,
             boolean connectionDowncalls) throws IOException {
-        return doCreateReceivePort(name, null, null, connectionDowncalls);
+        return doCreateReceivePort(name, null, null, connectionDowncalls, true);
     }
 
     /** 
@@ -249,7 +249,7 @@ public abstract class PortType {
      */
     public ReceivePort createReceivePort(String name, Upcall u)
             throws IOException {
-        return doCreateReceivePort(name, u, null, false);
+        return doCreateReceivePort(name, u, null, false, true);
     }
 
     /** 
@@ -274,7 +274,7 @@ public abstract class PortType {
      */
     public ReceivePort createReceivePort(String name, Upcall u,
             boolean connectionDowncalls) throws IOException {
-        return doCreateReceivePort(name, u, null, connectionDowncalls);
+        return doCreateReceivePort(name, u, null, connectionDowncalls, true);
     }
 
     /** 
@@ -299,7 +299,7 @@ public abstract class PortType {
      */
     public ReceivePort createReceivePort(String name,
             ReceivePortConnectUpcall cU) throws IOException {
-        return doCreateReceivePort(name, null, cU, false);
+        return doCreateReceivePort(name, null, cU, false, true);
     }
 
     /** 
@@ -325,7 +325,143 @@ public abstract class PortType {
      */
     public ReceivePort createReceivePort(String name, Upcall u,
             ReceivePortConnectUpcall cU) throws IOException {
-        return doCreateReceivePort(name, u, cU, false);
+        return doCreateReceivePort(name, u, cU, false, true);
+    }
+
+    /**
+     * Creates a local, named {@link ReceivePort} of this <code>PortType</code>,
+     * with explicit receipt communication.
+     * New connections will not be accepted until
+     * {@link ReceivePort#enableConnections()} is invoked.
+     * This is done to avoid upcalls during initialization.
+     *
+     * @param name the name of this receiveport (or <code>null</code>,
+     *    in which case the port is created anonymously).
+     * @return the new receiveport.
+     * @exception java.io.IOException is thrown when the port could not be
+     * created.
+     * @exception ibis.ipl.IbisConfigurationException is thrown when the port
+     * type does not match what is required here.
+     */
+    public ReceivePort createLocalReceivePort(String name) throws IOException {
+        return doCreateReceivePort(name, null, null, false, false);
+    }
+
+    /** 
+     * Creates a local, named {@link ReceivePort} of this <code>PortType</code>,
+     * with explicit receipt communication.
+     * New connections will not be accepted until
+     * {@link ReceivePort#enableConnections()} is invoked.
+     * This is done to avoid upcalls during initialization.
+     *
+     * @param name the name of this receiveport (or <code>null</code>,
+     *    in which case the port is created anonymously).
+     * @param connectionDowncalls set when this port must keep
+     * connection administration to support the lostConnections and
+     * newConnections downcalls.
+     * @return the new receiveport.
+     * @exception java.io.IOException is thrown when the port could not be
+     * created.
+     * @exception ibis.ipl.IbisConfigurationException is thrown when the port
+     * type does not match what is required here.
+     */
+    public ReceivePort createLocalReceivePort(String name,
+            boolean connectionDowncalls) throws IOException {
+        return doCreateReceivePort(name, null, null, connectionDowncalls, false);
+    }
+
+    /** 
+     * Creates a local, named {@link ReceivePort} of this <code>PortType</code>,
+     * with upcall based communication.
+     * New connections will not be accepted until
+     * {@link ReceivePort#enableConnections()} is invoked.
+     * This is done to avoid upcalls during initialization.
+     *
+     * @param name the name of this receiveport (or <code>null</code>,
+     *    in which case the port is created anonymously).
+     * @param u the upcall handler.
+     * @return the new receiveport.
+     * @exception java.io.IOException is thrown when the port could not be
+     * created.
+     * @exception ibis.ipl.IbisConfigurationException is thrown when the port
+     * type does not match what is required here.
+     */
+    public ReceivePort createLocalReceivePort(String name, Upcall u)
+            throws IOException {
+        return doCreateReceivePort(name, u, null, false, false);
+    }
+
+    /** 
+     * Creates a local, named {@link ReceivePort} of this <code>PortType</code>,
+     * with upcall based communication.
+     * New connections will not be accepted until
+     * {@link ReceivePort#enableConnections()} is invoked.
+     * This is done to avoid upcalls during initialization.
+     *
+     * @param name the name of this receiveport (or <code>null</code>,
+     *    in which case the port is created anonymously).
+     * @param u the upcall handler.
+     * @param connectionDowncalls set when this port must keep
+     * connection administration to support the lostConnections and
+     * newConnections downcalls.
+     * @return the new receiveport.
+     * @exception java.io.IOException is thrown when the port could not be
+     * created.
+     * @exception ibis.ipl.IbisConfigurationException is thrown when the port
+     * type does not match what is required here.
+     */
+    public ReceivePort createLocalReceivePort(String name, Upcall u,
+            boolean connectionDowncalls) throws IOException {
+        return doCreateReceivePort(name, u, null, connectionDowncalls, false);
+    }
+
+    /** 
+     * Creates a local, named {@link ReceivePort} of this <code>PortType</code>,
+     * with explicit receipt communication.
+     * New connections will not be accepted until
+     * {@link ReceivePort#enableConnections()} is invoked.
+     * This is done to avoid upcalls during initialization.
+     * When a new connection request arrives, or when a connection is lost,
+     * a ConnectUpcall is performed.
+     *
+     * @param name the name of this receiveport (or <code>null</code>,
+     *    in which case the port is created anonymously).
+     * @param cU object implementing <code>gotConnection</code>() and
+     * <code>lostConnection</code>() upcalls.
+     * @return the new receiveport.
+     * @exception java.io.IOException is thrown when the port could not be
+     * created.
+     * @exception ibis.ipl.IbisConfigurationException is thrown when the port
+     * type does not match what is required here.
+     */
+    public ReceivePort createLocalReceivePort(String name,
+            ReceivePortConnectUpcall cU) throws IOException {
+        return doCreateReceivePort(name, null, cU, false, false);
+    }
+
+    /** 
+     * Creates a local, named {@link ReceivePort} of this <code>PortType</code>,
+     * with upcall based communication.
+     * New connections will not be accepted until
+     * {@link ReceivePort#enableConnections()} is invoked.
+     * This is done to avoid upcalls during initialization.
+     * When a new connection request arrives, or when a connection is lost,
+     * a ConnectUpcall is performed.
+     *
+     * @param name the name of this receiveport (or <code>null</code>,
+     *    in which case the port is created anonymously).
+     * @param u the upcall handler.
+     * @param cU object implementing <code>gotConnection</code>() and
+     * <code>lostConnection</code>() upcalls.
+     * @return the new receiveport.
+     * @exception java.io.IOException is thrown when the port could not be
+     * created.
+     * @exception ibis.ipl.IbisConfigurationException is thrown when the port
+     * type does not match what is required here.
+     */
+    public ReceivePort createLocalReceivePort(String name, Upcall u,
+            ReceivePortConnectUpcall cU) throws IOException {
+        return doCreateReceivePort(name, u, cU, false, false);
     }
 
     /** 
@@ -346,6 +482,7 @@ public abstract class PortType {
      * @param connectionDowncalls set when this port must keep
      * connection administration to support the lostConnections and
      * newConnections downcalls.
+     * @param global set if the port must be registered in the Ibis registry.
      * @return the new receiveport.
      * @exception java.io.IOException is thrown when the port could not be
      * created.
@@ -353,8 +490,8 @@ public abstract class PortType {
      * type does not match what is required here.
      */
     private ReceivePort doCreateReceivePort(String name, Upcall u,
-            ReceivePortConnectUpcall cU, boolean connectionDowncalls)
-            throws IOException {
+            ReceivePortConnectUpcall cU, boolean connectionDowncalls,
+            boolean global) throws IOException {
         StaticProperties p = properties();
         if (cU != null) {
             if (!p.isProp("communication", "ConnectionUpcalls")) {
@@ -384,7 +521,7 @@ public abstract class PortType {
             name = ReceivePort.ANONYMOUS;
         }
 
-        return createReceivePort(name, u, cU, connectionDowncalls);
+        return createReceivePort(name, u, cU, connectionDowncalls, global);
     }
 
     /** 
@@ -403,13 +540,14 @@ public abstract class PortType {
      * @param connectionDowncalls set when this port must keep
      * connection administration to support the lostConnections and
      * newConnections downcalls.
+     * @param global set if the port must be registered in the Ibis registry.
      * @return the new receiveport.
      * @exception java.io.IOException is thrown when the port could not be
      * created.
      */
     protected abstract ReceivePort createReceivePort(String name, Upcall u,
-            ReceivePortConnectUpcall cU, boolean connectionDowncalls)
-            throws IOException;
+            ReceivePortConnectUpcall cU, boolean connectionDowncalls,
+            boolean global) throws IOException;
 
     /**
      * The hashCode method is mentioned here just as a reminder that an

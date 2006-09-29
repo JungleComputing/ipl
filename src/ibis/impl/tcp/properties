@@ -4,5 +4,5 @@ communication = OneToOne, OneToMany, ManyToOne, \
 		Poll, ReceiveTimeout, \
 		FifoOrdered, Reliable, PollMessageUpcalls, \
 		AutoMessageUpcalls, ExplicitReceipt, ConnectionDowncalls, \
-		ConnectionUpcalls, Numbered
+		ConnectionUpcalls, Numbered, LocalReceivePorts
 nickname = tcp

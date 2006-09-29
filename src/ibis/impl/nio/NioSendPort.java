@@ -5,6 +5,7 @@ package ibis.impl.nio;
 import ibis.io.SerializationOutput;
 import ibis.io.Replacer;
 import ibis.ipl.IbisError;
+import ibis.ipl.IbisIdentifier;
 import ibis.ipl.IbisIOException;
 import ibis.ipl.PortMismatchException;
 import ibis.ipl.PortType;
@@ -98,6 +99,18 @@ public final class NioSendPort implements SendPort, Config, Protocol {
         result = (ReceivePortIdentifier[]) lostConnections.toArray();
         lostConnections.clear();
         return result;
+    }
+
+    public synchronized ReceivePortIdentifier connect(IbisIdentifier id, String name,
+            long timeoutMillis) throws IOException {
+        // TODO!
+        throw new IbisError("not implemented");
+    }
+
+    public synchronized ReceivePortIdentifier connect(IbisIdentifier id, String name)
+            throws IOException {
+        // TODO!
+        throw new IbisError("not implemented");
     }
 
     public final synchronized void connect(ReceivePortIdentifier receiver,

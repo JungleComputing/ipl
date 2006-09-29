@@ -153,10 +153,19 @@ final class SOCommunication implements Config, Protocol {
             try {
                 SOInvocationHandler soInvocationHandler = new SOInvocationHandler(
                     s);
-                ReceivePort rec = soPortType.createReceivePort(
-                    "satin so receive port on " + s.ident.name() + " for "
-                        + joiners[i].name(), soInvocationHandler, s.ft
-                        .getReceivePortConnectHandler());
+                ReceivePort rec;
+
+                if (LOCALPORTS) {
+                    rec = soPortType.createReceivePort(
+                        "satin so receive port for " + joiners[i].name(),
+                        soInvocationHandler,
+                        s.ft.getReceivePortConnectHandler());
+                } else {
+                    rec = soPortType.createReceivePort(
+                        "satin so receive port on " + s.ident.name() + " for "
+                            + joiners[i].name(), soInvocationHandler, s.ft
+                            .getReceivePortConnectHandler());
+                }
                 if (SO_MAX_INVOCATION_DELAY > 0) {
                     StaticProperties s = new StaticProperties();
                     s.add("serialization", "ibis");
@@ -714,31 +723,49 @@ final class SOCommunication implements Config, Protocol {
     }
 
     private void connectSOSendPort(IbisIdentifier ident) {
-        ReceivePortIdentifier r = s.comm.lookup_wait(
-            "satin so receive port on " + ident.name() + " for "
-                + s.ident.name(), LOOKUP_WAIT_TIME);
+        if (! LOCALPORTS) {
+            ReceivePortIdentifier r = s.comm.lookup_wait(
+                "satin so receive port on " + ident.name() + " for "
+                    + s.ident.name(), LOOKUP_WAIT_TIME);
 
-        if (r == null) {
-            soLogger.warn("SATIN '" + s.ident.name()
-                + "': unable to lookup SO receive port ");
-            // We won't broadcast the object to this receiver.
-            // This is not really a problem, it will get the object if it
-            // needs it. But the node has probably crashed anyway.
-            return;
-        }
+            if (r == null) {
+                soLogger.warn("SATIN '" + s.ident.name()
+                    + "': unable to lookup SO receive port ");
+                // We won't broadcast the object to this receiver.
+                // This is not really a problem, it will get the object if it
+                // needs it. But the node has probably crashed anyway.
+                return;
+            }
 
-        // and connect
-        if (Communication.connect(soSendPort, r, Satin.CONNECT_TIMEOUT)) {
-            synchronized (s) {
-                ports.put(ident, r);
+            // and connect
+            if (Communication.connect(soSendPort, r, Satin.CONNECT_TIMEOUT)) {
+                synchronized (s) {
+                    ports.put(ident, r);
+                }
+            } else {
+                soLogger.warn("SATIN '" + s.ident.name()
+                    + "': unable to connect to SO receive port ");
+                // We won't broadcast the object to this receiver.
+                // This is not really a problem, it will get the object if it
+                // needs it. But the node has probably crashed anyway.
+                return;
             }
         } else {
-            soLogger.warn("SATIN '" + s.ident.name()
-                + "': unable to connect to SO receive port ");
-            // We won't broadcast the object to this receiver.
-            // This is not really a problem, it will get the object if it
-            // needs it. But the node has probably crashed anyway.
-            return;
+            ReceivePortIdentifier r = Communication.connect(soSendPort,
+                    ident, "satin so receiveport for " + s.ident.name(),
+                    Satin.CONNECT_TIMEOUT);
+            if (r != null) {
+                synchronized (s) {
+                    ports.put(ident, r);
+                }
+            } else {
+                soLogger.warn("SATIN '" + s.ident.name()
+                    + "': unable to connect to SO receive port ");
+                // We won't broadcast the object to this receiver.
+                // This is not really a problem, it will get the object if it
+                // needs it. But the node has probably crashed anyway.
+                return;
+            }
         }
     }
 

@@ -3,6 +3,7 @@
 package ibis.impl.test;
 
 import ibis.ipl.Ibis;
+import ibis.ipl.IbisIdentifier;
 import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
@@ -23,7 +24,7 @@ import junit.framework.TestSuite;
  * Simple Ibis test, on a single Ibis instance.
  */
 public final class TestIbis extends TestCase {
-    static final int COUNT = 10000;
+    static final int COUNT = 100;
 
     Ibis ibis;
     Registry registry;
@@ -44,7 +45,9 @@ public final class TestIbis extends TestCase {
 
             registry = ibis.registry();
 
-            boolean master = registry.elect("master").equals(ibis.identifier());
+            final IbisIdentifier masterId = registry.elect("master");
+
+            boolean master = masterId.equals(ibis.identifier());
 
             // Since there will be only one ibis instance, master must be true
             assertTrue(master);
@@ -70,7 +73,7 @@ public final class TestIbis extends TestCase {
                 public void run() {
                     try {
                         System.out.println("Starting worker ...");
-                        worker();
+                        worker(masterId);
                     } catch(Exception e) {
                         System.err.println("worker caught exception: " + e);
                         e.printStackTrace();
@@ -105,6 +108,16 @@ public final class TestIbis extends TestCase {
         }
     }
 
+    public void connect(SendPort s, IbisIdentifier id, String name) {
+        try {
+            s.connect(id, name, 5000);
+        } catch (Exception e) {
+            System.err.println("connect caught exception: " + e);
+            e.printStackTrace();
+            assertTrue(false);
+        }
+    }
+
     public ReceivePortIdentifier lookup(String name) throws IOException {
         System.out.println("lookup: " + name);
         try {
@@ -122,7 +135,7 @@ public final class TestIbis extends TestCase {
     void master() throws Exception {
         SendPort sendPort = null;
         ReceivePort rport = oneToOneType
-                .createReceivePort("master receive port");
+                .createLocalReceivePort("master receive port");
         rport.enableConnections();
         System.out.println("Master created rport: " + rport.name());
 
@@ -149,16 +162,14 @@ public final class TestIbis extends TestCase {
         rport.close();
     }
 
-    void worker() throws Exception {
+    void worker(IbisIdentifier masterId) throws Exception {
         ReceivePort rport = oneToOneType.createReceivePort("receiveport @ "
                 + ibis.identifier().name());
         rport.enableConnections();
         System.out.println("Worker created rport: " + rport.name());
         SendPort sport = oneToOneType.createSendPort();
 
-        ReceivePortIdentifier master = lookup("master receive port");
-
-        connect(sport, master);
+        connect(sport, masterId, "master receive port");
 
         for (int i = 0; i < COUNT; i++) {
             WriteMessage writeMessage = sport.newMessage();

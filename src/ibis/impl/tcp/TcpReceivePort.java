@@ -632,6 +632,16 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
         return res;
     }
 
+    //Called from porthandler. Someone else may have lock, so no synch here.
+    boolean isConnectedTo(SendPortIdentifier id) {
+        for (int i = 0; i < connectionsIndex; i++) {
+            if (connections[i].origin.equals(id)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public synchronized SendPortIdentifier[] lostConnections() {
         SendPortIdentifier[] res
                 = (SendPortIdentifier[]) lostConnections.toArray(new SendPortIdentifier[0]);

@@ -8,9 +8,14 @@ import ibis.connect.IbisSocketFactory;
 import ibis.io.Conversion;
 import ibis.io.DummyInputStream;
 import ibis.io.DummyOutputStream;
+
+import ibis.ipl.AlreadyConnectedException;
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.IbisError;
+import ibis.ipl.PortMismatchException;
+import ibis.ipl.ReceivePortIdentifier;
+
 import ibis.util.ThreadPool;
 
 import java.io.BufferedInputStream;
@@ -48,6 +53,8 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
                 .createServerSocket(0, me.address(), true, null /* don't pass properties, this is not a socket that is used for an ibis port */);
         port = systemServer.getLocalPort();
 
+        me.port = port;
+
         if (DEBUG) {
             System.out.println("--> PORTHANDLER: port = " + port);
         }
@@ -74,8 +81,9 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
         }
     }
 
-    Socket connect(TcpSendPort sp, TcpReceivePortIdentifier receiver,
-            int timeout) throws IOException {
+    ReceivePortIdentifier connect(TcpSendPort sp, TcpIbisIdentifier id,
+            String name, TcpReceivePortIdentifier rip, int timeout)
+            throws IOException {
         Socket s = null;
 
         long startTime = System.currentTimeMillis();
@@ -83,12 +91,12 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
         try {
             if (DEBUG) {
                 System.err.println("--> Creating socket for connection to "
-                        + receiver);
+                        + name + " at " + id + ", port = " + id.port);
             }
 
             do {
-                s = socketFactory.createClientSocket(receiver.ibis.address(),
-                        receiver.port, me.address(), 0, timeout, sp.properties());
+                s = socketFactory.createClientSocket(id.address(),
+                        id.port, me.address(), 0, timeout, sp.properties());
 
                 InputStream sin = s.getInputStream();
                 OutputStream sout = s.getOutputStream();
@@ -97,43 +105,57 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
                 DataInputStream data_in = new DataInputStream(
                         new BufferedInputStream(sin));
 
-		byte[] recv = Conversion.object2byte(receiver);
 		byte[] spIdent = Conversion.object2byte(sp.identifier());
 
-		data_out.writeInt(recv.length);
-		data_out.write(recv, 0, recv.length);
+                data_out.writeUTF(name);
 		data_out.writeInt(spIdent.length);
 		data_out.write(spIdent, 0, spIdent.length);
 		data_out.flush();
 
                 int result = data_in.readByte();
+                byte[] buf = null;
+                Socket s1 = null;
+
+                if (result == RECEIVER_ACCEPTED) {
+                    int len = data_in.readInt();
+                    buf = new byte[len];
+                    data_in.readFully(buf, 0, len);
+		    s1 = socketFactory.createBrokeredSocket(
+			data_in, data_out, false,
+			sp.properties());
+                }
+
+                data_out.close();
+                data_in.close();
+                sin.close();
+                sout.close();
+                s.close();
 
 		switch(result) {
 		case RECEIVER_ACCEPTED:
-		    Socket s1 = socketFactory.createBrokeredSocket(
-			data_in, data_out, false,
-			sp.properties());
-
-		    data_out.close();
-		    data_in.close();
-		    sin.close();
-		    sout.close();
-		    s.close();
-		    return s1;
+                    TcpReceivePortIdentifier recv = null;
+                    try {
+                        recv = (TcpReceivePortIdentifier)
+                                Conversion.byte2object(buf);
+                    } catch(ClassNotFoundException e) {
+                        throw new IbisError("Wrong class in TcpPortHandler.connect", e);
+                    }
+                    if (rip != null) {
+                        sp.addConn(rip, s1);
+                        return rip;
+                    }
+                    sp.addConn(recv, s1);
+                    return recv;
+                case RECEIVER_ALREADYCONNECTED:
+                    throw new AlreadyConnectedException(
+                            "The sender was already connected to " + name
+                            + " at " + id);
+                case RECEIVER_TYPEMISMATCH:
+                    throw new PortMismatchException(
+                            "Cannot connect ports of different PortTypes");
 		case RECEIVER_DENIED:
-		    data_out.close();
-		    data_in.close();
-                    sin.close();
-                    sout.close();
-                    s.close();
-		    return null;
+		    throw new ConnectionRefusedException("Could not connect");
 		case RECEIVER_DISABLED:
-		    data_out.close();
-		    data_in.close();
-                    sin.close();
-                    sout.close();
-                    s.close();
-
 		    // and try again if we did not reach the timeout...
 		    if (timeout > 0
                         && System.currentTimeMillis() > startTime + timeout) {
@@ -178,45 +200,44 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
 
     private synchronized TcpReceivePort findReceivePort(
             TcpReceivePortIdentifier ident) {
-        TcpReceivePort rp = null;
-        int i = 0;
-
-        while (rp == null && i < receivePorts.size()) {
-
+    
+        for (int i = 0; i < receivePorts.size(); i++) {
             TcpReceivePort temp = (TcpReceivePort) receivePorts.get(i);
-
             if (ident.equals(temp.identifier())) {
-                if (DEBUG) {
-                    System.err.println("--> findRecPort found " + ident
-                            + " == " + temp.identifier());
-                }
-                rp = temp;
+                return temp;
             }
-            i++;
         }
+        return null;
+    }
 
-        return rp;
+    private synchronized TcpReceivePort findReceivePort(
+            String name) {
+    
+        for (int i = 0; i < receivePorts.size(); i++) {
+            TcpReceivePort temp = (TcpReceivePort) receivePorts.get(i);
+            if (name.equals(temp.identifier().name())) {
+                return temp;
+            }
+        }
+        return null;
     }
 
     /* returns: was it a close i.e. do we need to exit this thread */
-    private void handleRequest(Socket s, InputStream in, OutputStream out)
-            throws Exception {
+    private void handleRequest(Socket s) throws Exception {
         if (DEBUG) {
             System.err.println("--> portHandler on " + me
                     + " got new connection from " + s.getInetAddress() + ":"
                     + s.getPort() + " on local port " + s.getLocalPort());
         }
+        InputStream in = s.getInputStream();
+        OutputStream out = s.getOutputStream();
 
         DataInputStream data_in = new DataInputStream(new BufferedInputStream(
 	    new DummyInputStream(in)));
 	DataOutputStream data_out = new DataOutputStream(new BufferedOutputStream(
             new DummyOutputStream(out)));
 
-	int recvLen = data_in.readInt();
-	byte[] recv = new byte[recvLen];
-	data_in.readFully(recv, 0, recv.length);
-        TcpReceivePortIdentifier receive = (TcpReceivePortIdentifier)
-            Conversion.byte2object(recv);
+        String name = data_in.readUTF();
 
 	int spLen = data_in.readInt();
 	byte[] sp = new byte[spLen];
@@ -224,10 +245,8 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
 	TcpSendPortIdentifier send = (TcpSendPortIdentifier)
             Conversion.byte2object(sp);
 
-//        TcpIbisIdentifier ibis = send.ibis;
-
         /* First, try to find the receive port this message is for... */
-        TcpReceivePort rp = findReceivePort(receive);
+        TcpReceivePort rp = findReceivePort(name);
 
         if (DEBUG) {
             System.err.println("--> S  RP = "
@@ -237,34 +256,38 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
         int result;
         if (rp == null) {
             result = RECEIVER_DENIED;
+        } else if (! send.type.equals(rp.identifier().type())) {
+            result = RECEIVER_TYPEMISMATCH;
+        } else if (rp.isConnectedTo(send)) {
+            result = RECEIVER_ALREADYCONNECTED;
         } else {
             result = rp.connectionAllowed(send);
         }
 
+        Socket s1 = null;
 	data_out.writeByte(result);
+        if (result == RECEIVER_ACCEPTED) {
+            byte[] recv = Conversion.object2byte(rp.identifier());
+            data_out.writeInt(recv.length);
+            data_out.write(recv, 0, recv.length);
+            data_out.flush();
+            s1 = socketFactory.createBrokeredSocket(data_in, data_out, true, rp.properties());
+        }
 	data_out.flush();
 
-        if (result != RECEIVER_ACCEPTED) {
-	    data_out.close();
-	    data_in.close();
-            out.close();
-            in.close();
-            s.close();
-            return;
-        }
-
-        Socket s1 = socketFactory.createBrokeredSocket(data_in, data_out, true, rp.properties());
-	data_out.close();
-	data_in.close();
-	out.close();
-	in.close();
+        data_out.close();
+        data_in.close();
+        out.close();
+        in.close();
         s.close();
 
-        /* add the connection to the receiveport. */
-        rp.connect(send, s1);
+        if (result == RECEIVER_ACCEPTED) {
+            /* add the connection to the receiveport. */
+            rp.connect(send, s1);
 
-        if (DEBUG) {
-            System.err.println("--> S connect done ");
+            if (DEBUG) {
+                System.err.println("--> S connect done ");
+            }
         }
     }
 
@@ -324,10 +347,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
                     return;
                 }
 
-                InputStream sin = s.getInputStream();
-                OutputStream sout = s.getOutputStream();
-
-                handleRequest(s, sin, sout);
+                handleRequest(s);
 
             } catch (Exception e) {
                 try {
