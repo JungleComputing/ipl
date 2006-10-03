@@ -46,7 +46,7 @@ public abstract class InvocationRecord implements java.io.Serializable, Config {
     /**
      * The invocation record of my parent (can be null for root and stolen jobs).
      */
-    private transient InvocationRecord parent;
+    protected transient InvocationRecord parent;
 
     private transient SpawnCounter spawnCounter;
 

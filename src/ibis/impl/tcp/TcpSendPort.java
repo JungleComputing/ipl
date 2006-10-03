@@ -57,6 +57,8 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 
     private boolean aMessageIsAlive = false;
 
+    private int waitingForMessage = 0;
+
     private TcpIbis ibis;
 
     private OutputStreamSplitter splitter;
@@ -279,6 +281,8 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
             //     throw new IbisIOException("port is not connected");
             // }
 
+            waitingForMessage++;
+
             while (aMessageIsAlive) {
                 try {
                     wait();
@@ -286,6 +290,8 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
                     // Ignore.
                 }
             }
+
+            waitingForMessage--;
 
             aMessageIsAlive = true;
 
@@ -311,7 +317,9 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
             }
         }
         aMessageIsAlive = false;
-        notifyAll();
+        if (waitingForMessage > 0) {
+            notify();
+        }
     }
 
     public Map properties() {
