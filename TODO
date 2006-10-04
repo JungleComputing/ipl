@@ -18,9 +18,9 @@ general:
 + load ibisses dynamically from jar files (like JavaGAT) (Done Ceriel)
 - run central nameserver on fs0
 - split up ibis.jar in multiple files (in a sane manner)
-- binary release
++ binary release (Done ibis-1.4 Ceriel)
 - make javadoc available in a file for eclipse somehow
-- move applications to a real tree
++ move applications to a real tree (Done 1.4 Ceriel)
 - network(cluster) simulator
 - steering interface
 - remove deprecated functionality

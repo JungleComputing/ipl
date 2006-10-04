@@ -64,13 +64,18 @@ public final class SharedObjects implements Config {
 
     /** Return a reference to a shared object */
     public SharedObject getSOReference(String objectId) {
-        synchronized (s) {
-            SharedObjectInfo i = (SharedObjectInfo) sharedObjects.get(objectId);
-            if (i == null) {
-                soLogger.debug("SATIN '" + s.ident.name() + "': " + "object not found in getSOReference");
-                return null;
+        s.stats.getSOReferencesTimer.start();
+        try {
+            synchronized (s) {
+                SharedObjectInfo i = (SharedObjectInfo) sharedObjects.get(objectId);
+                if (i == null) {
+                    soLogger.debug("SATIN '" + s.ident.name() + "': " + "object not found in getSOReference");
+                    return null;
+                }
+                return i.sharedObject;
             }
-            return i.sharedObject;
+        } finally {
+            s.stats.getSOReferencesTimer.stop();
         }
     }
 
@@ -155,11 +160,14 @@ public final class SharedObjects implements Config {
 
     /** returns false if the job must be aborted */
     public boolean executeGuard(InvocationRecord r) {   
+        s.stats.soGuardTimer.start();
         try {
             doExecuteGuard(r);
         } catch (SOReferenceSourceCrashedException e) {
             //the source has crashed - abort the job
             return false;
+        } finally {
+            s.stats.soGuardTimer.stop();
         }
         return true;
     }
@@ -174,8 +182,6 @@ public final class SharedObjects implements Config {
         r.setSOReferences();
 
         if (r.guard()) return;
-
-        s.stats.soGuardTimer.start();
 
         soLogger.info("SATIN '" + s.ident.name() + "': "
             + "guard not satisfied, getting updates..");
@@ -196,7 +202,6 @@ public final class SharedObjects implements Config {
         while (true) {
             s.handleDelayedMessages();
             if (r.guard()) {
-                s.stats.soGuardTimer.stop();
                 return;
             }
 

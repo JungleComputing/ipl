@@ -118,6 +118,8 @@ public final class Statistics implements java.io.Serializable, Config {
 
     public double handleSOInvocationsTime;
 
+    public double getSOReferencesTime;
+
     public double soInvocationDeserializationTime;
 
     public double soTransferTime;
@@ -143,6 +145,8 @@ public final class Statistics implements java.io.Serializable, Config {
     public long soBcastBytes;
 
     public long handleSOInvocations;
+
+    public long getSOReferences;
 
     public Timer totalTimer = Timer.createTimer();
 
@@ -181,6 +185,8 @@ public final class Statistics implements java.io.Serializable, Config {
     public Timer redoTimer = Timer.createTimer();
 
     public Timer handleSOInvocationsTimer = Timer.createTimer();
+
+    public Timer getSOReferencesTimer = Timer.createTimer();
 
     public Timer broadcastSOInvocationsTimer = Timer.createTimer();
 
@@ -264,6 +270,8 @@ public final class Statistics implements java.io.Serializable, Config {
         broadcastSOInvocationsTime += s.broadcastSOInvocationsTime;
         handleSOInvocationsTime += s.handleSOInvocationsTime;
         handleSOInvocations += s.handleSOInvocations;
+        getSOReferencesTime += s.getSOReferencesTime;
+        getSOReferences += s.getSOReferences;
         soInvocationDeserializationTime += s.soInvocationDeserializationTime;
         soTransferTime += s.soTransferTime;
         soSerializationTime += s.soSerializationTime;
@@ -307,6 +315,9 @@ public final class Statistics implements java.io.Serializable, Config {
         handleSOInvocations = handleSOInvocationsTimer.nrTimes();
 
         handleSOInvocationsTime = handleSOInvocationsTimer.totalTimeVal();
+        getSOReferences = getSOReferencesTimer.nrTimes();
+
+        getSOReferencesTime = getSOReferencesTimer.totalTimeVal();
         soInvocationDeserializationTime = soInvocationDeserializationTimer
             .totalTimeVal();
         broadcastSOInvocationsTime = broadcastSOInvocationsTimer.totalTimeVal();
@@ -484,6 +495,11 @@ public final class Statistics implements java.io.Serializable, Config {
                 + " time/inv    "
                 + Timer.format(perStats(handleSOInvocationsTime,
                     handleSOInvocations)));
+            out.println("SATIN: GET_SO_REFERENCES:          total "
+                + Timer.format(getSOReferencesTime)
+                + " time/inv    "
+                + Timer.format(perStats(getSOReferencesTime,
+                    getSOReferences)));
             out.println("SATIN: SO_TRANSFERS:               total "
                 + Timer.format(soTransferTime) + " time/transf "
                 + Timer.format(perStats(soTransferTime, soTransfers)));
