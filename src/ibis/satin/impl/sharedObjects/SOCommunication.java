@@ -34,7 +34,7 @@ import java.util.HashMap;
 import mcast.object.ObjectMulticaster;
 import mcast.object.SendDoneUpcaller;
 
-final class SOCommunication implements Config, Protocol {
+final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
     private static final boolean ASYNC_SO_BCAST = false;
 
     private final static int LOOKUP_WAIT_TIME = 10000;
@@ -67,39 +67,6 @@ final class SOCommunication implements Config, Protocol {
 
     private boolean receivedNack = false;
 
-    private long sendCounter = 1;
-
-    static class Acker implements SendDoneUpcaller {
-        long id;
-        boolean done = false;
-        Acker(long id) {
-            this.id = id;
-        }
-
-        public synchronized void sendDone() {
-            done = true;
-            notifyAll();
-            if (soLogger.isDebugEnabled()) {
-                soLogger.debug("Got ACK for send " + id);
-            }
-        }
-
-        synchronized boolean isDone() {
-            return done;
-        }
-
-        synchronized boolean waitDone(long timeout) {
-            if (! done) {
-                try {
-                    wait(timeout);
-                } catch(Exception e) {
-                    // ignored
-                }
-            }
-            return done;
-        }
-    };
-
     protected SOCommunication(Satin s) {
         this.s = s;
     }
@@ -107,7 +74,7 @@ final class SOCommunication implements Config, Protocol {
     protected void init(StaticProperties requestedProperties) {
         if (LABEL_ROUTING_MCAST) {
             try {
-                omc = new ObjectMulticaster(s.comm.ibis, true /* efficient multi-cluster */, false, "satinSO");
+                omc = new ObjectMulticaster(s.comm.ibis, true /* efficient multi-cluster */, false, "satinSO", this);
             } catch (Exception e) {
                 System.err.println("cannot create OMC: " + e);
                 e.printStackTrace();
@@ -262,6 +229,13 @@ final class SOCommunication implements Config, Protocol {
         }
     }
 
+    public void sendDone(int id) {
+        if (soLogger.isDebugEnabled()) {
+            soLogger.debug("SATIN '" + s.ident.name()
+                    + "': got ACK for send " + id);
+        }
+    }
+
     /** Broadcast an so invocation */
     protected void doBroadcastSOInvocationLRMC(SOInvocationRecord r) {
         IbisIdentifier[] tmp;
@@ -274,20 +248,15 @@ final class SOCommunication implements Config, Protocol {
         s.stats.broadcastSOInvocationsTimer.start();
         s.so.registerMulticast(s.so.getSOReference(r.getObjectId()), tmp);
 
-        long byteCount = 0;
         try {
-            if (soLogger.isDebugEnabled()) {
-                byteCount = omc.send(r, new Acker(sendCounter++));
-            } else {
-                byteCount = omc.send(r);
-            }
+            omc.send(r);
         } catch (Exception e) {
             soLogger.warn("SOI mcast failed: " + e + " msg: " + e.getMessage());
         }
 
         s.stats.soInvocations++;
         s.stats.soRealMessageCount++;
-        s.stats.soInvocationsBytes += byteCount;
+        s.stats.soInvocationsBytes += omc.lastSize();
         s.stats.broadcastSOInvocationsTimer.stop();
     }
 
@@ -417,14 +386,9 @@ final class SOCommunication implements Config, Protocol {
         s.stats.soBroadcastTransferTimer.start();
         s.so.registerMulticast(object, tmp);
 
-        long size = 0;
         try {
             s.stats.soBroadcastSerializationTimer.start();
-            if (soLogger.isDebugEnabled()) {
-                size = omc.send(object, new Acker(sendCounter++));
-            } else {
-                size = omc.send(object);
-            }
+            omc.send(object);
             s.stats.soBroadcastSerializationTimer.stop();
         } catch (Exception e) {
             System.err.println("WARNING, SO mcast failed: " + e + " msg: "
@@ -432,7 +396,7 @@ final class SOCommunication implements Config, Protocol {
             e.printStackTrace();
         }
         s.stats.soBcasts++;
-        s.stats.soBcastBytes += size;
+        s.stats.soBcastBytes += omc.lastSize();
         s.stats.soBroadcastTransferTimer.stop();
     }
 
