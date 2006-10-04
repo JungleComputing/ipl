@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import mcast.object.ObjectMulticaster;
+import mcast.object.SendDoneUpcaller;
 
 final class SOCommunication implements Config, Protocol {
     private static final boolean ASYNC_SO_BCAST = false;
@@ -65,6 +66,39 @@ final class SOCommunication implements Config, Protocol {
     private SharedObject sharedObject = null;
 
     private boolean receivedNack = false;
+
+    private long sendCounter = 1;
+
+    static class Acker implements SendDoneUpcaller {
+        long id;
+        boolean done = false;
+        Acker(long id) {
+            this.id = id;
+        }
+
+        public synchronized void sendDone() {
+            done = true;
+            notifyAll();
+            if (soLogger.isDebugEnabled()) {
+                soLogger.debug("Got ACK for send " + id);
+            }
+        }
+
+        synchronized boolean isDone() {
+            return done;
+        }
+
+        synchronized boolean waitDone(long timeout) {
+            if (! done) {
+                try {
+                    wait(timeout);
+                } catch(Exception e) {
+                    // ignored
+                }
+            }
+            return done;
+        }
+    };
 
     protected SOCommunication(Satin s) {
         this.s = s;
@@ -242,7 +276,11 @@ final class SOCommunication implements Config, Protocol {
 
         long byteCount = 0;
         try {
-            byteCount = omc.send(r);
+            if (soLogger.isDebugEnabled()) {
+                byteCount = omc.send(r, new Acker(sendCounter++));
+            } else {
+                byteCount = omc.send(r);
+            }
         } catch (Exception e) {
             soLogger.warn("SOI mcast failed: " + e + " msg: " + e.getMessage());
         }
@@ -382,7 +420,11 @@ final class SOCommunication implements Config, Protocol {
         long size = 0;
         try {
             s.stats.soBroadcastSerializationTimer.start();
-            size = omc.send(object);
+            if (soLogger.isDebugEnabled()) {
+                size = omc.send(object, new Acker(sendCounter++));
+            } else {
+                size = omc.send(object);
+            }
             s.stats.soBroadcastSerializationTimer.stop();
         } catch (Exception e) {
             System.err.println("WARNING, SO mcast failed: " + e + " msg: "
