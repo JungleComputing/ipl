@@ -2,7 +2,7 @@
 
 package ibis.impl.nameServer.tcp;
 
-import ibis.connect.controlhub.Hub;
+//import ibis.connect.controlhub.Hub;
 import ibis.connect.virtual.VirtualServerSocket;
 import ibis.connect.virtual.VirtualSocket;
 import ibis.connect.virtual.VirtualSocketAddress;
@@ -211,14 +211,14 @@ public class NameServer extends Thread implements Protocol {
 
     boolean silent;
 
-    private Hub h = null;
+  //  private Hub h = null;
 
     private static VirtualSocketFactory socketFactory; 
     
     static { 
         HashMap properties = new HashMap();        
         properties.put("modules.direct.port", "" + TCP_IBIS_NAME_SERVER_PORT_NR);                
-        socketFactory = VirtualSocketFactory.getSocketFactory(properties);  
+        socketFactory = VirtualSocketFactory.getSocketFactory(properties, true);  
     }
     
     static Logger logger = 

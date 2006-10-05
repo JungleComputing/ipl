@@ -61,7 +61,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
     static { 
         HashMap properties = new HashMap();        
         properties.put("modules.direct.port", "16789");                
-        socketFactory = VirtualSocketFactory.getSocketFactory(properties);
+        socketFactory = VirtualSocketFactory.getSocketFactory(properties, true);
     } 
 
     private static Logger logger

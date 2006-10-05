@@ -58,7 +58,7 @@ public final class TcpIbis extends Ibis implements Config {
         
         HashMap properties = new HashMap();        
         properties.put("modules.direct.port", "17777");                
-        socketFactory = VirtualSocketFactory.getSocketFactory(properties);
+        socketFactory = VirtualSocketFactory.getSocketFactory(properties, true);
     }
 
     public TcpIbis() {
