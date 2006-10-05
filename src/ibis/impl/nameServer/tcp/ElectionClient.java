@@ -2,7 +2,6 @@
 
 package ibis.impl.nameServer.tcp;
 
-import ibis.connect.virtual.*;
 
 import ibis.io.Conversion;
 import ibis.ipl.IbisIdentifier;
@@ -12,6 +11,8 @@ import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+
+import smartsockets.virtual.*;
 
 class ElectionClient implements Protocol {
 

@@ -2,12 +2,13 @@
 
 package ibis.impl.net.tcp_blk;
 
-import ibis.connect.virtual.VirtualSocket;
 import ibis.ipl.IbisIdentifier;
 import ibis.util.TypedProperties;
 
 import java.util.Hashtable;
 import java.util.Vector;
+
+import smartsockets.virtual.VirtualSocket;
 
 /**
  * A cache for TCP sockets to attempt to reuse the back link for connections

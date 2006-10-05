@@ -2,9 +2,6 @@
 
 package ibis.impl.net;
 
-import ibis.connect.virtual.VirtualServerSocket;
-import ibis.connect.virtual.VirtualSocket;
-import ibis.connect.virtual.VirtualSocketAddress;
 import ibis.io.Conversion;
 import ibis.ipl.ConnectionTimedOutException;
 import ibis.util.ThreadPool;
@@ -23,6 +20,10 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Vector;
+
+import smartsockets.virtual.VirtualServerSocket;
+import smartsockets.virtual.VirtualSocket;
+import smartsockets.virtual.VirtualSocketAddress;
 
 /**
  * Provide a TCP connection parallel to an actual application network

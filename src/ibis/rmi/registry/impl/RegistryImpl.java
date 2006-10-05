@@ -2,7 +2,6 @@
 
 package ibis.rmi.registry.impl;
 
-import ibis.connect.util.NetworkUtils;
 import ibis.rmi.AlreadyBoundException;
 import ibis.rmi.NotBoundException;
 import ibis.rmi.Remote;
@@ -13,6 +12,8 @@ import ibis.rmi.registry.Registry;
 import java.net.InetAddress;
 
 import org.apache.log4j.Logger;
+
+import smartsockets.util.NetworkUtils;
 
 public class RegistryImpl implements Registry {
     static String host = null;

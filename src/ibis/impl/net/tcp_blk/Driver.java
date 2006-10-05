@@ -2,7 +2,6 @@
 
 package ibis.impl.net.tcp_blk;
 
-import ibis.connect.virtual.VirtualSocket;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetIbis;
 import ibis.impl.net.NetInput;
@@ -13,6 +12,8 @@ import ibis.ipl.IbisIdentifier;
 import ibis.util.TypedProperties;
 
 import java.io.IOException;
+
+import smartsockets.virtual.VirtualSocket;
 
 /**
  * The NetIbis TCP driver with pipelined block transmission.

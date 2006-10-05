@@ -2,7 +2,6 @@
 
 package ibis.impl.nameServer.tcp;
 
-import ibis.connect.virtual.*;
 
 import ibis.io.Conversion;
 import ibis.ipl.BindingException;
@@ -18,6 +17,8 @@ import java.io.IOException;
 import java.io.StreamCorruptedException;
 
 import org.apache.log4j.Logger;
+
+import smartsockets.virtual.*;
 
 class ReceivePortNameServerClient implements Protocol {
 

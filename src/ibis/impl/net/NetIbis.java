@@ -2,7 +2,6 @@
 
 package ibis.impl.net;
 
-import ibis.connect.virtual.VirtualSocketFactory;
 import ibis.impl.nameServer.NameServer;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisConfigurationException;
@@ -22,6 +21,8 @@ import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Vector;
+
+import smartsockets.virtual.VirtualSocketFactory;
 
 /**
  * Provides a generic {@link Ibis} implementation for pluggable network driver

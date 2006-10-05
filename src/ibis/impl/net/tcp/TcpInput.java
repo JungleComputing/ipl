@@ -2,7 +2,6 @@
 
 package ibis.impl.net.tcp;
 
-import ibis.connect.virtual.VirtualSocket;
 
 import ibis.impl.net.NetConnection;
 import ibis.impl.net.NetDriver;
@@ -22,6 +21,8 @@ import java.io.OutputStream;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.util.Map;
+
+import smartsockets.virtual.VirtualSocket;
 
 public final class TcpInput extends NetInput {
     private VirtualSocket tcpSocket = null;

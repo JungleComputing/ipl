@@ -2,8 +2,6 @@
 
 package ibis.impl.nameServer.tcp;
 
-import ibis.connect.direct.SocketAddressSet;
-import ibis.connect.virtual.*;
 
 import ibis.impl.nameServer.NSProps;
 import ibis.io.Conversion;
@@ -28,6 +26,9 @@ import java.util.HashMap;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
+
+import smartsockets.direct.SocketAddressSet;
+import smartsockets.virtual.*;
 
 public class NameServerClient extends ibis.impl.nameServer.NameServer
         implements Runnable, Protocol {

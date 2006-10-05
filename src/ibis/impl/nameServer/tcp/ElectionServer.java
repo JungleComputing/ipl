@@ -2,7 +2,6 @@
 
 package ibis.impl.nameServer.tcp;
 
-import ibis.connect.virtual.*;
 
 import ibis.ipl.IbisRuntimeException;
 
@@ -15,6 +14,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 import org.apache.log4j.Logger;
+
+import smartsockets.virtual.*;
 
 class ElectionServer extends Thread implements Protocol {
 

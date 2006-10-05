@@ -2,7 +2,6 @@
 
 package ibis.impl.net.tcp_plain;
 
-import ibis.connect.virtual.VirtualSocket;
 import ibis.impl.net.NetConnection;
 import ibis.impl.net.NetDriver;
 import ibis.impl.net.NetIbis;
@@ -15,6 +14,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
+
+import smartsockets.virtual.VirtualSocket;
 
 /**
  * The TCP input implementation.

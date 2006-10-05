@@ -4,10 +4,6 @@
  **/
 package ibis.impl.tcp;
 
-import ibis.connect.virtual.VirtualServerSocket;
-import ibis.connect.virtual.VirtualSocket;
-import ibis.connect.virtual.VirtualSocketAddress;
-import ibis.connect.virtual.VirtualSocketFactory;
 
 import ibis.io.Conversion;
 import ibis.io.DummyInputStream;
@@ -30,6 +26,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+
+import smartsockets.virtual.VirtualServerSocket;
+import smartsockets.virtual.VirtualSocket;
+import smartsockets.virtual.VirtualSocketAddress;
+import smartsockets.virtual.VirtualSocketFactory;
 
 final class TcpPortHandler implements Runnable, TcpProtocol, Config {
 

@@ -2,7 +2,6 @@
 
 package ibis.impl.tcp;
 
-import ibis.connect.virtual.VirtualSocket;
 import ibis.io.BufferedArrayOutputStream;
 import ibis.io.Conversion;
 import ibis.io.OutputStreamSplitter;
@@ -26,6 +25,8 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+
+import smartsockets.virtual.VirtualSocket;
 
 final class TcpSendPort implements SendPort, Config, TcpProtocol {
 

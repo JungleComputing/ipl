@@ -2,14 +2,15 @@
 
 package ibis.impl.tcp;
 
-import ibis.connect.direct.SocketAddressSet;
-import ibis.connect.virtual.VirtualSocketAddress;
 import ibis.impl.util.IbisIdentifierTable;
 import ibis.ipl.IbisError;
 import ibis.ipl.IbisIdentifier;
 
 import java.io.IOException;
 import java.util.HashMap;
+
+import smartsockets.direct.SocketAddressSet;
+import smartsockets.virtual.VirtualSocketAddress;
 
 public final class TcpIbisIdentifier extends IbisIdentifier implements
         java.io.Serializable {

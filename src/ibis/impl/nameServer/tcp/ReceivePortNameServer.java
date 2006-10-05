@@ -2,7 +2,6 @@
 
 package ibis.impl.nameServer.tcp;
 
-import ibis.connect.virtual.*;
 
 import ibis.io.Conversion;
 import ibis.ipl.IbisRuntimeException;
@@ -19,6 +18,8 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 
 import org.apache.log4j.Logger;
+
+import smartsockets.virtual.*;
 
 class ReceivePortNameServer extends Thread implements Protocol {
 

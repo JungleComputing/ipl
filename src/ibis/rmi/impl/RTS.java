@@ -2,7 +2,6 @@
 
 package ibis.rmi.impl;
 
-import ibis.connect.util.NetworkUtils;
 import ibis.ipl.BindingException;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisException;
@@ -35,6 +34,8 @@ import java.util.HashMap;
 import java.util.Hashtable;
 
 import org.apache.log4j.Logger;
+
+import smartsockets.util.NetworkUtils;
 
 import colobus.Colobus;
 

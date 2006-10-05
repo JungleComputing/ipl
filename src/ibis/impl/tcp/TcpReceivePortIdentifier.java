@@ -2,7 +2,7 @@
 
 package ibis.impl.tcp;
 
-import ibis.connect.virtual.VirtualSocketAddress;
+import smartsockets.virtual.VirtualSocketAddress;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.ReceivePortIdentifier;
 

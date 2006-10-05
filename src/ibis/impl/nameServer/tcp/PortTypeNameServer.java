@@ -2,7 +2,6 @@
 
 package ibis.impl.nameServer.tcp;
 
-import ibis.connect.virtual.*;
 
 import ibis.ipl.IbisRuntimeException;
 import ibis.ipl.StaticProperties;
@@ -16,6 +15,8 @@ import java.util.HashMap;
 import java.util.Hashtable;
 
 import org.apache.log4j.Logger;
+
+import smartsockets.virtual.*;
 
 class PortTypeNameServer extends Thread implements Protocol {
 

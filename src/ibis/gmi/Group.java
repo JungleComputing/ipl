@@ -2,7 +2,6 @@
 
 package ibis.gmi;
 
-import ibis.connect.util.NetworkUtils;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.NoMatchingIbisException;
@@ -28,6 +27,8 @@ import java.util.Hashtable;
 import java.util.StringTokenizer;
 
 import org.apache.log4j.Logger;
+
+import smartsockets.util.NetworkUtils;
 
 /**
  * The {@link Group} class takes care of the startup, and has methods

@@ -2,7 +2,6 @@
 
 package ibis.repmi;
 
-import ibis.connect.util.NetworkUtils;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.PortType;
@@ -18,6 +17,8 @@ import java.io.IOException;
 import java.util.Vector;
 
 import org.apache.log4j.Logger;
+
+import smartsockets.util.NetworkUtils;
 
 public final class RTS {
 

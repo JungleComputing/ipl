@@ -2,7 +2,6 @@
 
 package ibis.ipl;
 
-import ibis.connect.util.NetworkUtils;
 import ibis.util.ClassLister;
 import ibis.util.TypedProperties;
 
@@ -11,6 +10,8 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+
+import smartsockets.util.NetworkUtils;
 
 /**
  * This class defines the Ibis API, which can be implemented by an Ibis

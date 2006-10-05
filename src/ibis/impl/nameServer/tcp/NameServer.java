@@ -3,10 +3,6 @@
 package ibis.impl.nameServer.tcp;
 
 //import ibis.connect.controlhub.Hub;
-import ibis.connect.virtual.VirtualServerSocket;
-import ibis.connect.virtual.VirtualSocket;
-import ibis.connect.virtual.VirtualSocketAddress;
-import ibis.connect.virtual.VirtualSocketFactory;
 import ibis.impl.nameServer.NSProps;
 import ibis.util.PoolInfoServer;
 import ibis.util.ThreadPool;
@@ -27,6 +23,11 @@ import java.util.Properties;
 import java.util.Vector;
 
 import org.apache.log4j.Logger;
+
+import smartsockets.virtual.VirtualServerSocket;
+import smartsockets.virtual.VirtualSocket;
+import smartsockets.virtual.VirtualSocketAddress;
+import smartsockets.virtual.VirtualSocketFactory;
 
 public class NameServer extends Thread implements Protocol {
 

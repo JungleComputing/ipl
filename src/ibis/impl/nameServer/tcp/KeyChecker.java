@@ -2,9 +2,6 @@
 
 package ibis.impl.nameServer.tcp;
 
-import ibis.connect.virtual.VirtualSocket;
-import ibis.connect.virtual.VirtualSocketAddress;
-import ibis.connect.virtual.VirtualSocketFactory;
 import ibis.impl.nameServer.NSProps;
 
 import java.io.BufferedInputStream;
@@ -15,6 +12,10 @@ import java.io.IOException;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
+
+import smartsockets.virtual.VirtualSocket;
+import smartsockets.virtual.VirtualSocketAddress;
+import smartsockets.virtual.VirtualSocketFactory;
 
 public class KeyChecker implements Protocol {
 

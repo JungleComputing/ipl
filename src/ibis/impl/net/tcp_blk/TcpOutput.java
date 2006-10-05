@@ -2,7 +2,6 @@
 
 package ibis.impl.net.tcp_blk;
 
-import ibis.connect.virtual.VirtualSocket;
 import ibis.impl.net.NetBufferFactory;
 import ibis.impl.net.NetBufferedOutput;
 import ibis.impl.net.NetConnection;
@@ -23,6 +22,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
+
+import smartsockets.virtual.VirtualSocket;
 
 /**
  * The TCP output implementation (block version).

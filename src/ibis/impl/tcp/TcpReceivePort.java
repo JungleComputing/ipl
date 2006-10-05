@@ -2,8 +2,6 @@
 
 package ibis.impl.tcp;
 
-import ibis.connect.virtual.VirtualSocket;
-import ibis.connect.virtual.VirtualSocketAddress;
 import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
@@ -18,6 +16,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+
+import smartsockets.virtual.VirtualSocket;
+import smartsockets.virtual.VirtualSocketAddress;
 
 // why was shouldLeave here?
 // If I create a receiveport, do a receive, and someone leaves, 

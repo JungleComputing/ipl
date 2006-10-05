@@ -2,7 +2,6 @@
 
 package ibis.impl.net;
 
-import ibis.connect.virtual.VirtualServerSocket;
 import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.PortType;
@@ -24,6 +23,8 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Vector;
+
+import smartsockets.virtual.VirtualServerSocket;
 
 /**
  * Provides an implementation of the {@link ReceivePort} interface of the IPL.

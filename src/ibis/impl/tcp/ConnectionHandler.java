@@ -8,7 +8,6 @@
 
 package ibis.impl.tcp;
 
-import ibis.connect.virtual.VirtualSocket;
 import ibis.io.BufferedArrayInputStream;
 import ibis.io.Conversion;
 import ibis.io.SerializationBase;
@@ -17,6 +16,8 @@ import ibis.ipl.IbisError;
 
 import java.io.IOException;
 import java.io.InputStream;
+
+import smartsockets.virtual.VirtualSocket;
 
 final class ConnectionHandler implements Runnable, TcpProtocol { //, Config {
     private static boolean DEBUG = false;

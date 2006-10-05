@@ -2,8 +2,6 @@
 
 package ibis.impl.tcp;
 
-import ibis.connect.virtual.VirtualSocketFactory;
-import ibis.connect.direct.SocketAddressSet;
 import ibis.impl.nameServer.NameServer;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisException;
@@ -20,6 +18,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
+
+import smartsockets.direct.SocketAddressSet;
+import smartsockets.virtual.VirtualSocketFactory;
 
 public final class TcpIbis extends Ibis implements Config {
 

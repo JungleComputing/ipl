@@ -2,7 +2,6 @@
 
 package ibis.impl.nameServer.tcp;
 
-import ibis.connect.virtual.*;
 
 import ibis.ipl.StaticProperties;
 
@@ -14,6 +13,8 @@ import java.io.IOException;
 import java.io.StreamCorruptedException;
 import java.util.Iterator;
 import java.util.Set;
+
+import smartsockets.virtual.*;
 
 
 class PortTypeNameServerClient implements Protocol {
