@@ -119,13 +119,12 @@ public class LoadBalancing implements Config {
 
         try {
             lbComm.sendStealRequest(v, true, blockOnServer);
+            return waitForStealReply();
         } catch (IOException e) {
             return null;
+        } finally {
+            s.stats.stealTimer.stop();
         }
-
-        InvocationRecord res = waitForStealReply();
-        s.stats.stealTimer.stop();
-        return res;
     }
 
     public void handleDelayedMessages() {
