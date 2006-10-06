@@ -57,4 +57,4 @@ X)
     ;;
 esac
 
-"$JAVA" -classpath "$JAVACLASSPATH" ibis.connect.util.ProxyStarter
+"$JAVA" -classpath "$JAVACLASSPATH" -Dsmartsockets.cluster.member=routers smartsockets.util.HubStarter $@
