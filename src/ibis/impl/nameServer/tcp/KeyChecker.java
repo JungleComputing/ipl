@@ -19,6 +19,7 @@ import smartsockets.virtual.VirtualSocketFactory;
 
 public class KeyChecker implements Protocol {
 
+    // TODO FIX TIHS!!!    
     private static VirtualSocketFactory socketFactory 
         = VirtualSocketFactory.getSocketFactory();
 

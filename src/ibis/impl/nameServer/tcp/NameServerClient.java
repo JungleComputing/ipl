@@ -60,6 +60,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
     private static VirtualSocketFactory socketFactory; 
     
     static { 
+        // TODO: Do we really want this to be a seperate one ???        
         HashMap properties = new HashMap();        
         properties.put("modules.direct.port", "16789");                
         socketFactory = VirtualSocketFactory.getSocketFactory(properties, true);
@@ -220,6 +221,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
         this.id = ibisImpl.identifier();
         this.needsUpcalls = ndsUpcalls;
 
+        // TODO: This is a BUG!!! 
         Properties p = System.getProperties();
 
         String server = p.getProperty(NSProps.s_host);
