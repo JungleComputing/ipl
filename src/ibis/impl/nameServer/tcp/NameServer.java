@@ -13,8 +13,6 @@ import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -295,9 +293,11 @@ public class NameServer extends Thread implements Protocol {
         }
         
         if (CHECKER_INTERVAL != 0) {
-            final KeyChecker ck
-                    = new KeyChecker(null, serverSocket.getLocalSocketAddress(), 
-                        CHECKER_INTERVAL);
+            final KeyChecker ck = new KeyChecker(socketFactory, null, 
+                            serverSocket.getLocalSocketAddress(),
+                            CHECKER_INTERVAL);
+            
+            // TODO: Use threadpool ? 
             Thread p = new Thread("KeyChecker Upcaller") {
                 public void run() {
                     ck.run();

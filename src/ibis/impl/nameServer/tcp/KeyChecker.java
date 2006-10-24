@@ -19,102 +19,23 @@ import smartsockets.virtual.VirtualSocketFactory;
 
 public class KeyChecker implements Protocol {
 
-    // TODO FIX TIHS!!!    
-    private static VirtualSocketFactory socketFactory 
-        = VirtualSocketFactory.createSocketFactory();
-
     private static Logger logger
             = ibis.util.GetLogger.getLogger(KeyChecker.class.getName());
 
     private String poolName;
     private VirtualSocketAddress address;
     private int sleep;
-
-    public KeyChecker(String poolName, VirtualSocketAddress address, int sleep) {
+    private VirtualSocketFactory socketFactory; 
+    
+    public KeyChecker(VirtualSocketFactory factory, String poolName, 
+            VirtualSocketAddress address, int sleep) {
+        this.socketFactory = factory;
         this.poolName = poolName;
         this.address = address;
-        this.sleep = sleep;
+        this.sleep = sleep;        
     }
-
-    public static void main(String args[]) throws IOException {
-        String serverHost = null;
-        String poolName = null;
-        String portString = null;
-        int sleep = 0;
-
-        for (int i = 0; i < args.length; i++) {
-            if (args[i].equals("-key")) {
-                poolName = args[++i];
-            } else if (args[i].equals("-host") || args[i].equals("-ns")) {
-                serverHost = args[++i];
-            } else if (args[i].equals("-port")) {
-                portString = args[++i];
-            } else if (args[i].equals("-sleep")) {
-                sleep = Integer.parseInt(args[++i]);
-            }
-        }
-
-        check(poolName, serverHost, portString, sleep);
-    }
-
-    private static void check(String poolName, String serverHost,
-            String portString, int sleep) throws IOException {
-        Properties p = System.getProperties();
-
-        if (serverHost == null) {
-            serverHost = p.getProperty(NSProps.s_host);
-        }
-        if (serverHost == null) {
-            logger.fatal("KeyChecker: no nameserver host specified");
-            System.exit(1);
-        }
-
-        if (poolName == null) {
-            poolName = p.getProperty(NSProps.s_key);
-        }
-
-        if (portString == null) {
-            portString = p.getProperty(NSProps.s_port);
-        }
-
-        int port = NameServer.TCP_IBIS_NAME_SERVER_PORT_NR;
-
-        if (portString != null) {
-            try {
-                port = Integer.parseInt(portString);
-                logger.debug("Using nameserver port: " + port);
-            } catch (Exception e) {
-                logger.error("illegal nameserver port: "
-                        + portString + ", using default");
-            }
-        }
-        // TODO
-        // FIX!! check(poolName, serverHost, port, sleep);
-    }
-
-    static void check(String poolName, VirtualSocketAddress address, int sleep)
-            throws IOException {
-        new KeyChecker(poolName, address, sleep).run();
-    }
-
-    public void run() {
-        do {
-            if (sleep != 0) {
-                try {
-                    Thread.sleep(sleep * 1000);
-                } catch(Exception e) {
-                    // ignored
-                }
-            }
-            try {
-                check(poolName, address);
-            } catch(Exception e) {
-                // Ignored
-            }
-        } while (sleep != 0);
-    }
-
-    public static void check(String poolName, VirtualSocketAddress address)
+    
+    private void check(String poolName, VirtualSocketAddress address)
             throws IOException {
         
         VirtualSocket s = null;
@@ -150,4 +71,92 @@ public class KeyChecker implements Protocol {
             VirtualSocketFactory.close(s, out, in);
         }
     }
+    
+    public void run() {
+        do {
+            if (sleep != 0) {
+                try {
+                    Thread.sleep(sleep * 1000);
+                } catch(Exception e) {
+                    // ignored
+                }
+            }
+            try {
+                check(poolName, address);
+            } catch(Exception e) {
+                // Ignored
+            }
+        } while (sleep != 0);
+    }
+    
+    static void check(VirtualSocketFactory factory, String poolName, 
+            VirtualSocketAddress address, int sleep) throws IOException {
+        
+    }
+    
+    private static void check(String poolName, String serverHost,
+            String portString, int sleep) throws IOException {
+        Properties p = System.getProperties();
+
+        if (serverHost == null) {
+            serverHost = p.getProperty(NSProps.s_host);
+        }
+        
+        if (serverHost == null) {
+            logger.fatal("KeyChecker: no nameserver host specified");
+            System.exit(1);
+        }
+
+        if (poolName == null) {
+            poolName = p.getProperty(NSProps.s_key);
+        }
+
+        if (portString == null) {
+            portString = p.getProperty(NSProps.s_port);
+        }
+
+        int port = NameServer.TCP_IBIS_NAME_SERVER_PORT_NR;
+
+        if (portString != null) {
+            try {
+                port = Integer.parseInt(portString);
+                logger.debug("Using nameserver port: " + port);
+            } catch (Exception e) {
+                logger.error("illegal nameserver port: "
+                        + portString + ", using default");
+            }
+        }
+
+        // Use the default socket factory 
+        VirtualSocketFactory factory = 
+            VirtualSocketFactory.createSocketFactory();
+
+        VirtualSocketAddress address = 
+            VirtualSocketAddress.partialAddress(serverHost, port);
+        
+        new KeyChecker(factory, poolName, address, sleep).run();
+    }
+    
+    public static void main(String args[]) throws IOException {
+        String serverHost = null;
+        String poolName = null;
+        String portString = null;
+        int sleep = 0;
+
+        for (int i = 0; i < args.length; i++) {
+            if (args[i].equals("-key")) {
+                poolName = args[++i];
+            } else if (args[i].equals("-host") || args[i].equals("-ns")) {
+                serverHost = args[++i];
+            } else if (args[i].equals("-port")) {
+                portString = args[++i];
+            } else if (args[i].equals("-sleep")) {
+                sleep = Integer.parseInt(args[++i]);
+            }
+        }
+
+        check(poolName, serverHost, portString, sleep);
+    }
+
+
 }
