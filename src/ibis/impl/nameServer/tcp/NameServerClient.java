@@ -14,6 +14,7 @@ import ibis.ipl.IbisRuntimeException;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.StaticProperties;
 import ibis.util.RunProcess;
+import ibis.util.TypedProperties;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -33,6 +34,9 @@ import smartsockets.virtual.*;
 public class NameServerClient extends ibis.impl.nameServer.NameServer
         implements Runnable, Protocol {
 
+    public static final int TCP_IBIS_NAME_SERVER_PORT_NR
+        = TypedProperties.intProperty(NSProps.s_port, 9826);
+    
     private PortTypeNameServerClient portTypeNameServerClient;
 
     private ReceivePortNameServerClient receivePortNameServerClient;
@@ -234,7 +238,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
         serverSocket = socketFactory.createServerSocket(0, 50, true, null);
         myAddress = serverSocket.getLocalSocketAddress();
 
-        int port = NameServer.TCP_IBIS_NAME_SERVER_PORT_NR;
+        int port = TCP_IBIS_NAME_SERVER_PORT_NR;
         
         boolean containsColon = (server.lastIndexOf(':') >= 0);
         
@@ -412,7 +416,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
                         "NameServerClient: got illegal opcode " + opcode);
             }
         } finally {
-            NameServer.closeConnection(in, out, s);
+            VirtualSocketFactory.close(s, out, null);
         }
     }
 
@@ -440,7 +444,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
             // Apparently, the nameserver left. Assume dead.
             return;
         } finally {
-            NameServer.closeConnection(null, out, s);
+            VirtualSocketFactory.close(s, out, null);
         }
     }
 
@@ -460,7 +464,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
         } catch (ConnectionTimedOutException e) {
             return;
         } finally {
-            NameServer.closeConnection(null, out, s);
+            VirtualSocketFactory.close(s, out, null);
         }
     }
 
@@ -483,7 +487,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
         } catch (ConnectionTimedOutException e) {
             return;
         } finally {
-            NameServer.closeConnection(null, out, s);
+            VirtualSocketFactory.close(s, out, null);
         }
     }
 
@@ -528,7 +532,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
         } catch (IOException e) {
             logger.info("leave got exception", e);
         } finally {
-            NameServer.closeConnection(in, out, s);
+            VirtualSocketFactory.close(s, out, null);
         }
 
         if (! needsUpcalls) {
@@ -695,7 +699,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
                             + "(opcode = " + opcode + ")", e1);
                 }
             } finally {
-                NameServer.closeConnection(in, out, s);
+                VirtualSocketFactory.close(s, out, null);
             }
         }
         logger.debug("NameServerClient: thread stopped");
