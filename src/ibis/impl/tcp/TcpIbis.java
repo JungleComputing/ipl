@@ -116,10 +116,11 @@ public final class TcpIbis extends Ibis implements Config {
         
         HashMap properties = new HashMap();        
 
-        // Why is this a fixed port ??
-        properties.put("modules.direct.port", "17777");
+        // Why was this a fixed port ??
+        // properties.put("modules.direct.port", "17777");
         properties.put("smartsockets.factory.name", 
-                "Factory for Ibis: " + name);        
+                "Factory for Ibis: " + name);      
+        
         socketFactory = VirtualSocketFactory.createSocketFactory(properties, 
                 true);
               

@@ -230,8 +230,8 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
             logger.warn("Creating new VirtualSocketFactory!");
             
             HashMap properties = new HashMap();
-            // Why is this port hardcoded ?? 
-            properties.put("modules.direct.port", "16789");            
+            // Why was this port hardcoded ?? 
+            // properties.put("modules.direct.port", "16789");            
             socketFactory = 
                 VirtualSocketFactory.createSocketFactory(properties, true);
         } 
