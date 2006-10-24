@@ -62,14 +62,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
     private boolean left = false;
 
     private static VirtualSocketFactory socketFactory; 
-    
-    static { 
-        // TODO: Do we really want this to be a seperate one ???        
-        HashMap properties = new HashMap();        
-        properties.put("modules.direct.port", "16789");                
-        socketFactory = VirtualSocketFactory.getSocketFactory(properties, true);
-    } 
-
+        
     private static Logger logger
             = ibis.util.GetLogger.getLogger(NameServerClient.class.getName());
 
@@ -221,11 +214,29 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
 
     protected void init(Ibis ibis, boolean ndsUpcalls)
             throws IOException, IbisConfigurationException {
+        
         this.ibisImpl = ibis;
         this.id = ibisImpl.identifier();
         this.needsUpcalls = ndsUpcalls;
 
-        // TODO: This is a BUG!!! 
+        // Try to use the same socket factory as the Ibis that created us...
+        String name = "Factory for Ibis: " + id.name();             
+        socketFactory = VirtualSocketFactory.getSocketFactory(name);
+        
+        if (socketFactory == null) { 
+            // We failed to find Ibis' socketfactory. Create a new one instead.
+            
+            logger.warn("Failed to find VirtualSocketFactory: " + name);
+            logger.warn("Creating new VirtualSocketFactory!");
+            
+            HashMap properties = new HashMap();
+            // Why is this port hardcoded ?? 
+            properties.put("modules.direct.port", "16789");            
+            socketFactory = 
+                VirtualSocketFactory.createSocketFactory(properties, true);
+        } 
+        
+        // TODO: Using System propeties is a BUG!!! 
         Properties p = System.getProperties();
 
         String server = p.getProperty(NSProps.s_host);

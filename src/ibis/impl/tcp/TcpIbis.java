@@ -50,16 +50,12 @@ public final class TcpIbis extends Ibis implements Config {
 
     private boolean ended = false;
 
-    private static final VirtualSocketFactory socketFactory;
+    private VirtualSocketFactory socketFactory;
 
     private boolean i_joined = false;
 
     static {
         TypedProperties.checkProperties(PROPERTY_PREFIX, sysprops, null);
-        
-        HashMap properties = new HashMap();        
-        properties.put("modules.direct.port", "17777");                
-        socketFactory = VirtualSocketFactory.getSocketFactory(properties, true);
     }
 
     public TcpIbis() {
@@ -112,7 +108,21 @@ public final class TcpIbis extends Ibis implements Config {
             System.err.println("In TcpIbis.init()");
         }
         // poolSize = 1;
+        
+        // NOTE: moved here from the static initializer, since we may want to 
+        //       configure the thing differently for every TcpIbis instance in 
+        //       this process. Having a single -static- socketfactory doesn't 
+        //       work then....        
+        
+        HashMap properties = new HashMap();        
 
+        // Why is this a fixed port ??
+        properties.put("modules.direct.port", "17777");
+        properties.put("smartsockets.factory.name", 
+                "Factory for Ibis: " + name);        
+        socketFactory = VirtualSocketFactory.createSocketFactory(properties, 
+                true);
+              
         myAddress = socketFactory.getLocalHost();
         
         if (myAddress == null) {

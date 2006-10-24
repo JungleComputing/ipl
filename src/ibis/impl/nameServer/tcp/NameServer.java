@@ -219,7 +219,7 @@ public class NameServer extends Thread implements Protocol {
     static { 
         HashMap properties = new HashMap();        
         properties.put("modules.direct.port", "" + TCP_IBIS_NAME_SERVER_PORT_NR);                
-        socketFactory = VirtualSocketFactory.getSocketFactory(properties, true);  
+        socketFactory = VirtualSocketFactory.createSocketFactory(properties, true);  
     }
     
     static Logger logger = 

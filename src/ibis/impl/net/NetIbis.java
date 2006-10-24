@@ -73,7 +73,7 @@ public final class NetIbis extends Ibis {
      * The Ibis socket factory
      */
     public static VirtualSocketFactory socketFactory
-        = VirtualSocketFactory.getSocketFactory();
+        = VirtualSocketFactory.createSocketFactory();
 
     /**
      * The driver loading mode.

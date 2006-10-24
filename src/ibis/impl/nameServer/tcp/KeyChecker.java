@@ -21,7 +21,7 @@ public class KeyChecker implements Protocol {
 
     // TODO FIX TIHS!!!    
     private static VirtualSocketFactory socketFactory 
-        = VirtualSocketFactory.getSocketFactory();
+        = VirtualSocketFactory.createSocketFactory();
 
     private static Logger logger
             = ibis.util.GetLogger.getLogger(KeyChecker.class.getName());
