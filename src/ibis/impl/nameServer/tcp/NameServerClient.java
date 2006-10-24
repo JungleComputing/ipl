@@ -22,9 +22,11 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.StreamCorruptedException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Properties;
+import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
 
@@ -239,55 +241,11 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
         // TODO: Using System propeties is a BUG!!! 
         Properties p = System.getProperties();
 
-        String server = p.getProperty(NSProps.s_host);
-        
-        if (server == null) {
-            throw new IbisConfigurationException(
-                    "property ibis.name_server.host is not specified");
-        }
+        serverAddress = getServerAddress(p);
         
         serverSocket = socketFactory.createServerSocket(0, 50, true, null);
         myAddress = serverSocket.getLocalSocketAddress();
-
-        int port = TCP_IBIS_NAME_SERVER_PORT_NR;
         
-        boolean containsColon = (server.lastIndexOf(':') >= 0);
-        
-        if (!containsColon) { 
-            // no port number present, so check if it's provided seperately
-            String nameServerPortString = p.getProperty(NSProps.s_port);
-            
-            if (nameServerPortString != null) {
-                try {
-                    port = Integer.parseInt(nameServerPortString);
-                    logger.debug("Using nameserver port: " + port);
-                } catch (Exception e) {
-                    System.err.println("illegal nameserver port: "
-                            + nameServerPortString + ", using default");
-                }
-            }                        
-        } 
-                            
-        if (server.equals("localhost")) {            
-            // We want to start the server on this machine.
-            // TODO: Fix!!
-            runNameServer(port, "bla");            
-                        
-            serverAddress = new VirtualSocketAddress(
-                new SocketAddressSet(myAddress.machine().getAddressSet(), port), 
-                port);
-        } else {                     
-            if (containsColon) { 
-                // Assume "server" uses the IP/IP:PORT/IP:PORT format
-                serverAddress = new VirtualSocketAddress(server);            
-            } else {
-                // Assume "server" uses the IP/IP/IP format                 
-                serverAddress = new VirtualSocketAddress(server, port);
-            } 
-        }
-
-        logger.debug("Found nameServerInet " + serverAddress);
-
         // Next, get the nameserver key ....
         poolName = p.getProperty(NSProps.s_key);
         if (poolName == null) {
@@ -428,6 +386,98 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
             }
         } finally {
             VirtualSocketFactory.close(s, out, null);
+        }
+    }
+    
+    private VirtualSocketAddress getClassicServerAddress(String server, 
+            Properties p) {
+
+        final String original = server;        
+        int port = TCP_IBIS_NAME_SERVER_PORT_NR;
+        
+        int index = server.lastIndexOf(':');
+                        
+        if (index >= 0) {            
+            port = Integer.parseInt(server.substring(index+1));            
+            server = server.substring(0, index);
+        } else { 
+            // no port number present, so check if it's provided seperately
+            String nameServerPortString = p.getProperty(NSProps.s_port);
+            
+            if (nameServerPortString != null) {
+                try {
+                    port = Integer.parseInt(nameServerPortString);
+                    logger.debug("Using nameserver port: " + port);
+                } catch (Exception e) {
+                    System.err.println("illegal nameserver port: "
+                            + nameServerPortString + ", using default");
+                }
+            }                        
+        } 
+                            
+        if (server.equals("localhost")) {            
+            // We want to start the server on this machine.
+            // TODO: Fix!!
+            runNameServer(port, "bla");            
+                        
+            return new VirtualSocketAddress(
+                new SocketAddressSet(myAddress.machine().getAddressSet(), port), 
+                port);            
+        } 
+                     
+        try { 
+            return VirtualSocketAddress.partialAddress(server, port);
+        } catch (Exception e) {
+            throw new IbisConfigurationException(
+                "property ibis.name_server.host contains illegal address: " 
+                    + original); 
+        }
+    }
+    
+    private VirtualSocketAddress getServerAddress(Properties p) {
+        
+        // This method tries to decypher the properties which contain the 
+        // address and port number of the nameserver. The possibilities are:
+        //
+        // 'Classic addressing': 
+        //            
+        //      'hostname' + 'port'
+        //      'hostname:port'
+        //      'ip' + 'port'
+        //      'ip:port'
+        //
+        // 'Smart addressing': 
+        //
+        //       'virtual address' 
+        //       
+        //       (which contains at least: IP-PORT1:PORT2, but may also be 
+        //        something like: IP1/IP2-P1/IP3-P2:PORT)  
+
+        String server = p.getProperty(NSProps.s_host);
+        
+        if (server == null) {
+            throw new IbisConfigurationException(
+                    "property ibis.name_server.host is not specified");
+        }
+        
+        // The easiest way to distinguish between the two forms is to check the
+        // 'hostname' for a colon (':'). If it is NOT there is must be a classic 
+        // address. If it is there, we can check if it contains a dash ('-').
+        // Again, if it is not there, it must be a classic address.  
+                
+        if (server.indexOf(':') == -1 || server.indexOf('-') == -1) { 
+            return getClassicServerAddress(server, p); 
+        }
+        
+        // Now it becomes interesting. The server contains both a colon and a 
+        // dash, so it's likely to be a smart address, but it may still be a         
+        // classic one with a dash in the hostname, e.g., 'host-a.domain:2020'
+        // The simplest way to continue now it just to try loading it as a 
+        // smart address, and trying again as a classic address if we fail.
+        try { 
+            return new VirtualSocketAddress(server);
+        } catch (Exception e) {
+            return getClassicServerAddress(server, p);            
         }
     }
 
