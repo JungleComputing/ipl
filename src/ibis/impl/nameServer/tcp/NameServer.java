@@ -604,10 +604,10 @@ public class NameServer extends Thread implements Protocol {
                     }
 
                     failed = false;
-                    closeConnection(null, out2, s);
+                    VirtualSocketFactory.close(s, out2, null);
                     break;
                 } catch (Exception e) {
-                    closeConnection(null, out2, s);
+                    VirtualSocketFactory.close(s, out2, null);
                     if (! silent) {
                         logger.error("Could not forward "
                                 + type(message) + " to " + dest, e);
@@ -711,7 +711,7 @@ public class NameServer extends Thread implements Protocol {
             } catch (Exception e) {
                 deadIbises.add(dest);
             } finally {
-                closeConnection(in2, out2, s);
+                VirtualSocketFactory.close(s, out2, in2);
             }
         }
     }
@@ -1094,7 +1094,7 @@ public class NameServer extends Thread implements Protocol {
         } catch (IOException e) {
             // Ignore.
         } finally {
-            closeConnection(null, out1, s);
+            VirtualSocketFactory.close(s, out1, null);
             s = null;
         }
         
@@ -1106,7 +1106,7 @@ public class NameServer extends Thread implements Protocol {
         } catch (IOException e) {
             // ignore
         } finally {
-            closeConnection(null, out2, s2);
+            VirtualSocketFactory.close(s2, out2, null);
         }
         
         try {
@@ -1117,7 +1117,7 @@ public class NameServer extends Thread implements Protocol {
         } catch (IOException e) {
             // ignore
         } finally {
-            closeConnection(null, out3, s3);
+            VirtualSocketFactory.close(s3, out3, null);
         }
     }
 
@@ -1143,7 +1143,7 @@ public class NameServer extends Thread implements Protocol {
                 out2.writeUTF(ids[i]);
             }
         } finally {
-            closeConnection(null, out2, s);
+            VirtualSocketFactory.close(s, out2, null);
         }
     }
 
@@ -1173,7 +1173,7 @@ public class NameServer extends Thread implements Protocol {
             in2 = new DataInputStream(new BufferedInputStream(s.getInputStream()));
             in2.readInt();
         } finally {
-            closeConnection(in2, out2, s);
+            VirtualSocketFactory.close(s, out2, in2);
         }
     }
 
@@ -1373,7 +1373,7 @@ public class NameServer extends Thread implements Protocol {
                     logger.error("Got an exception in NameServer.run", e1);
                 }
             } finally {
-                closeConnection(in, out, s);
+                VirtualSocketFactory.close(s, out, in);
             }
         }
 
@@ -1426,49 +1426,6 @@ public class NameServer extends Thread implements Protocol {
             }
         }
         return ns;
-    }
-
-    /**
-     * Closes a socket and streams that are associated with it. These streams
-     * are given as separate parameters, because they may be streams that are
-     * built on top of the actual socket streams.
-     * 
-     * @param in
-     *            the inputstream ot be closed
-     * @param out
-     *            the outputstream to be closed
-     * @param s
-     *            the socket to be closed
-     */
-    static void closeConnection(InputStream in, OutputStream out, VirtualSocket s) {
-        if (out != null) {
-            try {
-                out.flush();
-            } catch (Exception e) {
-                // ignore
-            }
-            try {
-                out.close();
-            } catch (Exception e) {
-                // ignore
-            }
-        }
-
-        if (in != null) {
-            try {
-                in.close();
-            } catch (Exception e) {
-                // ignore
-            }
-        }
-
-        if (s != null) {
-            try {
-                s.close();
-            } catch (Exception e) {
-                // ignore
-            }
-        }
     }
 
     public static void main(String[] args) {

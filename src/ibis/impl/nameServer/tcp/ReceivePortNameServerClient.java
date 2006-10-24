@@ -111,7 +111,7 @@ class ReceivePortNameServerClient implements Protocol {
                     logger.debug("ReceivePort lookup: wait while disconnected");
                 }
                 
-                NameServer.closeConnection(in, out, s);
+                VirtualSocketFactory.close(s, out, in);
                 in = null;
                 out = null;
                 s = null;
@@ -137,7 +137,7 @@ class ReceivePortNameServerClient implements Protocol {
                         "Registry: lookup got illegal opcode " + result);
             }
         } finally {
-            NameServer.closeConnection(in, out, s);
+            VirtualSocketFactory.close(s, out, in);
         }
     }
 
@@ -227,7 +227,7 @@ class ReceivePortNameServerClient implements Protocol {
             in = new DataInputStream(new BufferedInputStream(s.getInputStream()));
             result = in.readByte();
         } finally {
-            NameServer.closeConnection(in, out, s);
+            VirtualSocketFactory.close(s, out, in);
         }
 
         switch (result) {
@@ -274,7 +274,7 @@ class ReceivePortNameServerClient implements Protocol {
             in = new DataInputStream(new BufferedInputStream(s.getInputStream()));
             result = in.readByte();
         } finally {
-            NameServer.closeConnection(in, out, s);
+            VirtualSocketFactory.close(s, out, in);
         }
 
         switch (result) {
@@ -316,7 +316,7 @@ class ReceivePortNameServerClient implements Protocol {
         } catch (Exception e) {
             logger.info("unbind of " + name + " failed");
         } finally {
-            NameServer.closeConnection(in, out, s);
+            VirtualSocketFactory.close(s, out, in);
         }
     }
 
@@ -345,7 +345,7 @@ class ReceivePortNameServerClient implements Protocol {
                 result[i] = in.readUTF();
             }
         } finally {
-            NameServer.closeConnection(in, out, s);
+            VirtualSocketFactory.close(s, out, in);
         }
         return result;
     }

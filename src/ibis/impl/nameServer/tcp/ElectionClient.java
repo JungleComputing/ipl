@@ -59,7 +59,7 @@ class ElectionClient implements Protocol {
                 in.readFully(buf, 0, len);
                 result = (IbisIdentifier) Conversion.byte2object(buf);
             } finally {
-                NameServer.closeConnection(in, out, s);
+                VirtualSocketFactory.close(s, out, in);
             }
             if (result == null) {
                 try {

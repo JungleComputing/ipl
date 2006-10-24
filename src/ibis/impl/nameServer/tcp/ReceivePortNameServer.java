@@ -118,7 +118,7 @@ class ReceivePortNameServer extends Thread implements Protocol {
                                     + " result to " + s + ": got IOException", e);
                         }
                     } finally {
-                        NameServer.closeConnection(myIn, myOut, s);
+                        VirtualSocketFactory.close(s, myOut, myIn);
                         myIn = null;
                         myOut = null;
                         s = null;
@@ -203,7 +203,7 @@ class ReceivePortNameServer extends Thread implements Protocol {
                             + " result to " + s + ": got IOException", e);
                 }
             } finally {
-                NameServer.closeConnection(myIn, myOut, s);
+                VirtualSocketFactory.close(s, myOut, myIn);
             }            
         }
     }
@@ -503,7 +503,7 @@ class ReceivePortNameServer extends Thread implements Protocol {
                 }
             } finally {
                 if (mustClose) {
-                    NameServer.closeConnection(in, out, s);
+                    VirtualSocketFactory.close(s, out, in);
                 }
             }
         }

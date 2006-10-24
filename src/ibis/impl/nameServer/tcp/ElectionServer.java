@@ -142,7 +142,7 @@ class ElectionServer extends Thread implements Protocol {
                             e1);
                 }
             } finally {
-                NameServer.closeConnection(in, out, s);
+                VirtualSocketFactory.close(s, out, in);
             }
         }
     }

@@ -64,7 +64,7 @@ class PortTypeNameServerClient implements Protocol {
             in = new DataInputStream(s.getInputStream());
             result = in.readByte();
         } finally {
-            NameServer.closeConnection(in, out, s);
+            VirtualSocketFactory.close(s, out, in);
         }
 
         switch (result) {
@@ -96,7 +96,7 @@ class PortTypeNameServerClient implements Protocol {
             return in.readLong();
 
         } finally {
-            NameServer.closeConnection(in, out, s);
+            VirtualSocketFactory.close(s, out, in);
         }
     }
 }

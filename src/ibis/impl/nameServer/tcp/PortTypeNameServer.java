@@ -180,7 +180,7 @@ class PortTypeNameServer extends Thread implements Protocol {
                                     + e1, e1);
                 }
             } finally {
-                NameServer.closeConnection(in, out, s);
+                VirtualSocketFactory.close(s, out, in);
             }
         }
     }

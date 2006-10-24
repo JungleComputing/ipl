@@ -147,7 +147,7 @@ public class KeyChecker implements Protocol {
                         + opcode);
             }
         } finally {
-            NameServer.closeConnection(in, out, s);
+            VirtualSocketFactory.close(s, out, in);
         }
     }
 }
