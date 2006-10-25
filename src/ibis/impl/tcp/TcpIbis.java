@@ -121,6 +121,9 @@ public final class TcpIbis extends Ibis implements Config {
         properties.put("smartsockets.factory.name", 
                 "Factory for Ibis: " + name);      
         
+        // Bit of a hack to improve the visualization
+        properties.put("smartsockets.register.property", "ibis," + name);      
+                
         socketFactory = VirtualSocketFactory.createSocketFactory(properties, 
                 true);
               

@@ -216,7 +216,11 @@ public class NameServer extends Thread implements Protocol {
     
     static { 
         HashMap properties = new HashMap();        
-        properties.put("modules.direct.port", "" + TCP_IBIS_NAME_SERVER_PORT_NR);                
+        properties.put("modules.direct.port", "" + TCP_IBIS_NAME_SERVER_PORT_NR);
+        
+        // Bit of a hack to improve the visualization
+        properties.put("smartsockets.register.property", "nameserver");      
+        
         socketFactory = VirtualSocketFactory.createSocketFactory(properties, true);  
     }
     
