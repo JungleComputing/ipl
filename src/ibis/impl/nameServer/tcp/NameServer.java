@@ -1317,7 +1317,7 @@ public class NameServer extends Thread implements Protocol {
                 }
                 s = serverSocket.accept();
 
-                if (! silent && logger.isDebugEnabled()) {
+                if (! silent && logger.isInfoEnabled()) {
                     logger.debug("NameServer: incoming connection from "
                             + s.toString());
                 }

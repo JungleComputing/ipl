@@ -207,6 +207,9 @@ public final class VictimTable implements Config {
         Satin.assertLocked(satin);
         Victim v = null;
 
+        ftLogger.info("SATIN '" + satin.ident + "': looking for victim "
+                + id);
+        
         long start = System.currentTimeMillis();
 
         do {
