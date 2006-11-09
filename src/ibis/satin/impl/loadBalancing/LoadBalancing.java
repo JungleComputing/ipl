@@ -35,7 +35,7 @@ public class LoadBalancing implements Config {
                 StealRequest sr = null;
                 synchronized (s) {
                     if(stealQueue.size() > 0) {
-                        sr = (StealRequest) stealQueue.remove(0);
+                        sr = stealQueue.remove(0);
                     } else {
                         try {
                             s.wait();
@@ -64,7 +64,7 @@ public class LoadBalancing implements Config {
 
     private final IRVector resultList;
 
-    private final ArrayList stealQueue;
+    private final ArrayList<StealRequest> stealQueue;
     
     /**
      * Used for fault tolerance, we must know who the current victim is,
@@ -76,7 +76,7 @@ public class LoadBalancing implements Config {
         this.s = s;
      
         if(QUEUE_STEALS) {
-            stealQueue = new ArrayList();
+            stealQueue = new ArrayList<StealRequest>();
             new StealRequestHandler().start();
         } else {
             stealQueue = null;
@@ -121,6 +121,7 @@ public class LoadBalancing implements Config {
             lbComm.sendStealRequest(v, true, blockOnServer);
             return waitForStealReply();
         } catch (IOException e) {
+            s.stats.stealTimer.stop();
             return null;
         } finally {
             s.stats.stealTimer.stop();

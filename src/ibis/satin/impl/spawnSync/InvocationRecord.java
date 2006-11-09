@@ -246,7 +246,7 @@ public abstract class InvocationRecord implements java.io.Serializable, Config {
 
     /** Returns a list of objectIds of the shared objects this
      record holds references of. */
-    public abstract java.util.Vector getSOReferences();
+    public abstract java.util.Vector<String> getSOReferences();
 
     /** Executes the guard function, used for shared objects consistency. */
     public boolean guard() {

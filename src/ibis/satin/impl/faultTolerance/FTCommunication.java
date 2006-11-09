@@ -397,7 +397,7 @@ final class FTCommunication implements Config, ReceivePortConnectUpcall,
     protected void handleResultPush(ReadMessage m) {
         grtLogger.info("SATIN '" + s.ident + ": handle result push");
         try {
-            Map results = (Map) m.readObject();
+            Map<Stamp, GlobalResultTableValue> results = (Map<Stamp, GlobalResultTableValue>) m.readObject();
             synchronized (s) {
                 s.ft.globalResultTable.updateAll(results);
             }
@@ -413,7 +413,7 @@ final class FTCommunication implements Config, ReceivePortConnectUpcall,
         connectionUpcallsDisabled = true;
     }
 
-    protected void pushResults(Victim victim, Map toPush) {
+    protected void pushResults(Victim victim, Map<Stamp, GlobalResultTableValue> toPush) {
         if (toPush.size() == 0) return;
 
         try {

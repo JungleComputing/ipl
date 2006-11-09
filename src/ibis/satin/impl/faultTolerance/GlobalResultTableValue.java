@@ -9,7 +9,7 @@ import ibis.satin.impl.Satin;
 import ibis.satin.impl.spawnSync.InvocationRecord;
 import ibis.satin.impl.spawnSync.ReturnRecord;
 
-class GlobalResultTableValue implements java.io.Serializable, Config {
+public class GlobalResultTableValue implements java.io.Serializable, Config {
     protected static final int TYPE_RESULT = 1;
 
     protected static final int TYPE_POINTER = 2;

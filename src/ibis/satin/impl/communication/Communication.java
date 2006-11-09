@@ -422,7 +422,8 @@ public final class Communication implements Config, Protocol {
             synchronized (s) {
                 while (exitReplies != size) {
                     try {
-                        s.wait();
+                        s.handleDelayedMessages();
+                        s.wait(250);
                     } catch (Exception e) {
                         // Ignore.
                     }
@@ -468,7 +469,8 @@ public final class Communication implements Config, Protocol {
             synchronized (s) {
                 while (!exitStageTwo) {
                     try {
-                        s.wait();
+                        s.handleDelayedMessages();
+                        s.wait(250);
                     } catch (Exception e) {
                         // Ignore.
                     }

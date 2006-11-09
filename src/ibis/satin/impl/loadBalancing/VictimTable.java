@@ -14,14 +14,14 @@ import java.util.Vector;
 public final class VictimTable implements Config {
     private Random random = new Random();
 
-    private Vector victims = new Vector(); // elements are of type Victim
+    private Vector<Victim> victims = new Vector<Victim>(); // elements are of type Victim
 
     // all victims grouped by cluster
-    private Vector clusters = new Vector();
+    private Vector<Cluster> clusters = new Vector<Cluster>();
 
     private Cluster thisCluster;
 
-    private HashMap clustersHash = new HashMap();
+    private HashMap<String, Cluster> clustersHash = new HashMap<String, Cluster>();
 
     private Satin satin;
 
@@ -36,7 +36,7 @@ public final class VictimTable implements Config {
         Satin.assertLocked(satin);
         victims.add(v);
 
-        Cluster c = (Cluster) clustersHash.get(v.getIdent().cluster());
+        Cluster c = clustersHash.get(v.getIdent().cluster());
         if (c == null) { // new cluster
             c = new Cluster(v); //v is automagically added to this cluster
             clusters.add(c);
@@ -61,9 +61,9 @@ public final class VictimTable implements Config {
             return null;
         }
 
-        Victim v = (Victim) victims.remove(i);
+        Victim v = victims.remove(i);
 
-        Cluster c = (Cluster) clustersHash.get(v.getIdent().cluster());
+        Cluster c = clustersHash.get(v.getIdent().cluster());
         c.remove(v);
 
         if (c.size() == 0) {
@@ -84,14 +84,14 @@ public final class VictimTable implements Config {
             commLogger.warn("trying to read a non-existing victim id");
             return null;
         }
-        return (Victim) victims.get(i);
+        return victims.get(i);
     }
 
     private Victim getVictimNonBlocking(IbisIdentifier ident) {
         Satin.assertLocked(satin);
         Victim v = null;
         for (int i = 0; i < victims.size(); i++) {
-            v = ((Victim) victims.get(i));
+            v = victims.get(i);
 
             if (v.getIdent().equals(ident)) {
                 return v;
@@ -113,7 +113,7 @@ public final class VictimTable implements Config {
         }
 
         index = random.nextInt(victims.size());
-        v = ((Victim) victims.get(index));
+        v = victims.get(index);
 
         return v;
     }
@@ -165,11 +165,11 @@ public final class VictimTable implements Config {
 
         //find the cluster and index in the cluster for the victim
         cIndex = 1;
-        c = (Cluster) clusters.get(cIndex);
+        c = clusters.get(cIndex);
         while (vIndex >= c.size()) {
             vIndex -= c.size();
             cIndex += 1;
-            c = (Cluster) clusters.get(cIndex);
+            c = clusters.get(cIndex);
         }
 
         v = c.get(vIndex);
@@ -196,7 +196,7 @@ public final class VictimTable implements Config {
         Satin.assertLocked(satin);
         IbisIdentifier[] tmp = new IbisIdentifier[victims.size()];
         for (int i = 0; i < tmp.length; i++) {
-            tmp[i] = ((Victim) victims.get(i)).getIdent();
+            tmp[i] = victims.get(i).getIdent();
         }
 
         return tmp;
@@ -218,7 +218,7 @@ public final class VictimTable implements Config {
             } catch (Exception e) {
                 // Ignore.
             }
-        } while (System.currentTimeMillis() - start < 10000);
+        } while (System.currentTimeMillis() - start < 60000);
 
         ftLogger.info("SATIN '" + satin.ident + "': could not get victim for "
             + id);
