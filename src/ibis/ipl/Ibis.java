@@ -187,12 +187,18 @@ public abstract class Ibis {
             ConnectionRefusedException {
 
         Ibis impl;
-
+        
+        System.err.println("Creating ibis instance class: " + c.getName());
+        
         try {
             impl = (Ibis) c.newInstance();
         } catch (InstantiationException e) {
+            System.err.println("Failed " + e);
+            
             throw new IllegalArgumentException("Could not initialize Ibis" + e);
         } catch (IllegalAccessException e2) {
+            System.err.println("Failed " + e2);
+            
             throw new IllegalArgumentException("Could not initialize Ibis"
                                                + e2);
         }
@@ -225,11 +231,15 @@ public abstract class Ibis {
             impl.combinedprops = impl.requiredprops.combineWithUserProps();
         }
 
+        System.err.println("Init ibis: " + impl.name);
+        
         try {
             impl.init();
         } catch (ConnectionRefusedException e) {
+            System.err.println("Failed: " + e);
             throw e;
         } catch (IOException e3) {
+            System.err.println("Failed: " + e3);
             throw new IbisException("Could not initialize Ibis", e3);
         }
 
