@@ -221,7 +221,7 @@ public final class VictimTable implements Config {
             } catch (Exception e) {
                 // Ignore.
             }
-        } while (System.currentTimeMillis() - start < 10000);
+        } while (System.currentTimeMillis() - start < 120000);
 
         ftLogger.info("SATIN '" + satin.ident + "': could not get victim for "
             + id);
