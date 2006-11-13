@@ -208,12 +208,20 @@ public abstract class Ibis {
         } catch (Throwable t) {
             /* handled elsewhere */
         }
-
+        
+        // No user-defined Ibis name is given, so see if the implementation has 
+        // a good suggestion for a name. This allows implementation specific 
+        // unique information to be used (e.g., a TCP port number or MPI rank).
+        if (name == null) { 
+            name = impl.generateName();
+        }
+       
         impl.name = name;
         impl.implName = c.getName();
         impl.resizeHandler = resizeHandler;
         impl.requiredprops = reqprop;
         impl.combinedprops = prop;
+        
         if (reqprop == null) {
             impl.requiredprops = impl.properties();
         } else if (reqprop.isProp("serialization", "object")) {
@@ -227,6 +235,7 @@ public abstract class Ibis {
             impl.requiredprops.add("serialization",
                     impl.properties().find("serialization"));
         }
+        
         if (impl.combinedprops == null) {
             impl.combinedprops = impl.requiredprops.combineWithUserProps();
         }
@@ -250,7 +259,7 @@ public abstract class Ibis {
         }
         return impl;
     }
-
+    
     /**
      * Returns a list of all Ibis implementations that are currently loaded.
      * When no Ibises are loaded, this method returns an array with no
@@ -303,14 +312,7 @@ public abstract class Ibis {
      */
     public static Ibis createIbis(StaticProperties reqprop, ResizeHandler r)
             throws IbisException {
-        String hostname;
-
-        try {
-            hostname = NetworkUtils.getHostname();
-        } catch (Exception e) {
-            hostname = "unknown";
-        }
-
+        
         StaticProperties combinedprops;
 
         if (reqprop == null) {
@@ -412,10 +414,8 @@ public abstract class Ibis {
                 System.out.println("trying " + cl.getName());
             }
             while (true) {
-                try {
-                    String name = "ibis@" + hostname + "_"
-                            + System.currentTimeMillis();
-                    return createIbis(name, cl, combinedprops, reqprop, r);
+                try {                    
+                    return createIbis(null, cl, combinedprops, reqprop, r);
                 } catch (ConnectionRefusedException e) {
                     // retry
                 } catch (IbisException e) {
@@ -676,6 +676,29 @@ public abstract class Ibis {
      */
     public abstract void poll() throws IOException;
 
+    /**
+     * Generates a (hopefully unique) name for this Ibis instance. By default
+     * a name will be generated based on a timestamp. Since this may not be 
+     * unique, it may take a couple of tries before a unique name is found. 
+     * 
+     * It is usually a good idea to override this method to generate an 
+     * implementation specific Ibis name. This allows the use of implementation   
+     * specific information (such as TCP port number or MPI ranks) which may 
+     * make it easier to generate a truely unique name;
+     */
+    protected String generateName() {
+        
+        String hostname;
+
+        try {
+            hostname = NetworkUtils.getHostname();
+        } catch (Exception e) {
+            hostname = "unknown";
+        }
+       
+        return "ibis@" + hostname + "_" + System.currentTimeMillis();
+    }
+    
     /**
      * Returns the name of this Ibis instance. This is a shorthand for
      * <code>identifier().name()</code> (See {@link IbisIdentifier#name()}).

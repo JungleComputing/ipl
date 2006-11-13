@@ -102,8 +102,9 @@ public final class TcpIbis extends Ibis implements Config {
     public IbisIdentifier identifier() {
         return ident;
     }
-
+    
     protected void init() throws IOException {
+        
         if (DEBUG) {
             System.err.println("In TcpIbis.init()");
         }
@@ -115,15 +116,6 @@ public final class TcpIbis extends Ibis implements Config {
         //       work then....        
         
         HashMap properties = new HashMap();        
-
-        // Why was this a fixed port ??
-        // properties.put("modules.direct.port", "17777");
-        properties.put("smartsockets.factory.name", 
-                "Factory for Ibis: " + name);      
-        
-        // Bit of a hack to improve the visualization
-        properties.put("smartsockets.register.property", "ibis," + name);      
-                
         socketFactory = VirtualSocketFactory.createSocketFactory(properties, 
                 true);
               
@@ -135,6 +127,8 @@ public final class TcpIbis extends Ibis implements Config {
             System.exit(1);
         }
         
+        name = "ibis@" + myAddress;
+        
         ident = new TcpIbisIdentifier(name, myAddress);
 
         if (DEBUG) {
@@ -142,9 +136,15 @@ public final class TcpIbis extends Ibis implements Config {
         }
 
         tcpPortHandler = new TcpPortHandler(ident, socketFactory);                  
-
+        
+        VirtualSocketFactory.registerSocketFactory("Factory for Ibis: " + name, 
+                socketFactory);
+       
         nameServer = NameServer.loadNameServer(this, resizeHandler != null);
 
+        // Bit of a hack to improve the visualization
+        socketFactory.getServiceLink().registerProperty("ibis", name);
+        
         if (resizeHandler != null) {
             Thread p = new Thread("ResizeUpcaller") {
                 public void run() {

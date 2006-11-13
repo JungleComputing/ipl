@@ -78,7 +78,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
         while (s == null) {
             try {
                 cnt++;
-                s = socketFactory.createClientSocket(dest, 1000, null);
+                s = socketFactory.createClientSocket(dest, 10000, null);
             } catch (IOException e) {
                 if (cnt == timeout) {
                     if (verbose) {
@@ -90,11 +90,11 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
                     }
                     throw new ConnectionTimedOutException(e);
                 }
-                if (cnt == 10 && verbose) {
+                if (cnt == 1 && verbose) {
                     // Rather arbitrary, 10 seconds, print warning
                     logger.error("Nameserver client failed"
                             + " to connect to nameserver\n at " + dest
-                            + ", will keep trying");
+                            + ", will keep trying: " + e);
                 } 
                 try {
                     Thread.sleep(1000);
