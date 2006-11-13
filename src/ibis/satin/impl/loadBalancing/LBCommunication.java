@@ -11,6 +11,7 @@ import ibis.satin.impl.Config;
 import ibis.satin.impl.Satin;
 import ibis.satin.impl.communication.Communication;
 import ibis.satin.impl.communication.Protocol;
+import ibis.satin.impl.faultTolerance.GlobalResultTableValue;
 import ibis.satin.impl.spawnSync.InvocationRecord;
 import ibis.satin.impl.spawnSync.ReturnRecord;
 import ibis.satin.impl.spawnSync.Stamp;
@@ -223,7 +224,7 @@ final class LBCommunication implements Config, Protocol {
 
         InvocationRecord result = null;
         Victim v = null;
-        Map table = null;
+        Map<Stamp, GlobalResultTableValue> table = null;
 
         synchronized (s) {
             v = s.victims.getVictim(ident.ibis());
@@ -276,7 +277,7 @@ final class LBCommunication implements Config, Protocol {
     protected void handleReply(ReadMessage m, int opcode) {
         SendPortIdentifier ident = m.origin();
         InvocationRecord tmp = null;
-        Map table = null;
+        Map<Stamp, GlobalResultTableValue> table = null;
 
         stealLogger.debug("SATIN '" + s.ident
             + "': got steal reply message from " + ident.ibis() + ": "
@@ -356,7 +357,7 @@ final class LBCommunication implements Config, Protocol {
     }
 
     private void sendStealFailedMessage(SendPortIdentifier ident, int opcode,
-        Victim v, Map table) {
+        Victim v, Map<Stamp, GlobalResultTableValue> table) {
         
         if (opcode == ASYNC_STEAL_REQUEST) {
             stealLogger.debug("SATIN '" + s.ident
@@ -410,7 +411,7 @@ final class LBCommunication implements Config, Protocol {
     }
 
     private void sendStolenJobMessage(SendPortIdentifier ident, int opcode,
-        Victim v, InvocationRecord result, Map table) {
+        Victim v, InvocationRecord result, Map<Stamp, GlobalResultTableValue> table) {
         if (ASSERTS && result.aborted) {
             stealLogger.warn("SATIN '" + s.ident
                 + ": trying to send aborted job!");

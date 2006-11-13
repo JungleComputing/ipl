@@ -58,7 +58,7 @@ public final class FaultTolerance implements Config {
      * Used for fault tolerance Ibises that crashed recently, and whose crashes
      * still need to be handled.
      */
-    protected ArrayList crashedIbises = new ArrayList();
+    protected ArrayList<IbisIdentifier> crashedIbises = new ArrayList<IbisIdentifier>();
 
     protected FTCommunication ftComm;
 
@@ -109,10 +109,10 @@ public final class FaultTolerance implements Config {
         ftLogger.debug("SATIN '" + s.ident + ": handling crashes");
         s.stats.crashTimer.start();
 
-        ArrayList crashesToHandle;
+        ArrayList<IbisIdentifier> crashesToHandle;
 
         synchronized (s) {
-            crashesToHandle = (ArrayList) crashedIbises.clone();
+            crashesToHandle = (ArrayList<IbisIdentifier>) crashedIbises.clone();
             crashedIbises.clear();
             gotCrashes = false;
         }
@@ -121,7 +121,7 @@ public final class FaultTolerance implements Config {
         // a cluster coordinator, otherwise everything gets terribly slow.
         // Don't hold the lock while doing this.
         for (int i = 0; i < crashesToHandle.size(); i++) {
-            IbisIdentifier id = (IbisIdentifier) crashesToHandle.get(0);
+            IbisIdentifier id = crashesToHandle.get(0);
             if (id.equals(s.masterIdent) || id.equals(clusterCoordinatorIdent)) {
                 try {
                     s.comm.ibis.registry().maybeDead(id);
@@ -136,7 +136,7 @@ public final class FaultTolerance implements Config {
 
         synchronized (s) {
             while (crashesToHandle.size() > 0) {
-                IbisIdentifier id = (IbisIdentifier) crashesToHandle.remove(0);
+                IbisIdentifier id = crashesToHandle.remove(0);
                 ftLogger.debug("SATIN '" + s.ident + ": handling crash of "
                     + id);
 
@@ -206,12 +206,12 @@ public final class FaultTolerance implements Config {
         Satin.assertLocked(s);
         // try work queue, outstanding jobs and jobs on the stack
         // but try stack first, many jobs in q are children of stack jobs
-        ArrayList toStore = s.onStack.killChildrenOf(targetStamp, true);
+        ArrayList<InvocationRecord> toStore = s.onStack.killChildrenOf(targetStamp, true);
 
         //update the global result table
 
         for (int i = 0; i < toStore.size(); i++) {
-            storeFinishedChildrenOf((InvocationRecord) toStore.get(i));
+            storeFinishedChildrenOf(toStore.get(i));
         }
 
         s.q.killChildrenOf(targetStamp);
@@ -227,11 +227,11 @@ public final class FaultTolerance implements Config {
     }
 
     public void killAndStoreSubtreeOf(IbisIdentifier targetOwner) {
-        ArrayList toStore = s.onStack.killSubtreesOf(targetOwner);
+        ArrayList<InvocationRecord> toStore = s.onStack.killSubtreesOf(targetOwner);
 
         // update the global result table
         for (int i = 0; i < toStore.size(); i++) {
-            storeFinishedChildrenOf((InvocationRecord) toStore.get(i));
+            storeFinishedChildrenOf(toStore.get(i));
         }
 
         s.q.killSubtreeOf(targetOwner);
@@ -284,12 +284,12 @@ public final class FaultTolerance implements Config {
     }
 
     private void pushJobs(Victim v) {
-        Map toPush = new HashMap();
+        Map<Stamp, GlobalResultTableValue> toPush = new HashMap<Stamp, GlobalResultTableValue>();
         synchronized (s) {
-            ArrayList tmp = s.onStack.getAllFinishedChildren(v);
+            ArrayList<InvocationRecord> tmp = s.onStack.getAllFinishedChildren(v);
 
             for (int i = 0; i < tmp.size(); i++) {
-                InvocationRecord curr = (InvocationRecord) tmp.get(i);
+                InvocationRecord curr = tmp.get(i);
                 Stamp key = curr.getStamp();
                 GlobalResultTableValue value = new GlobalResultTableValue(
                     GlobalResultTableValue.TYPE_RESULT, curr);
@@ -356,11 +356,11 @@ public final class FaultTolerance implements Config {
         return globalResultTable.lookup(r.getStamp()).sendTo;
     }
 
-    public Map getContents() {
+    public Map<Stamp, GlobalResultTableValue> getContents() {
         return globalResultTable.getContents();
     }
 
-    public void addContents(Map contents) {
+    public void addContents(Map<Stamp, GlobalResultTableValue> contents) {
         globalResultTable.addContents(contents);
     }
 

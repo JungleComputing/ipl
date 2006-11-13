@@ -7,11 +7,11 @@ import java.util.Vector;
 final class Cluster {
     private String name; //all references to a cluster's name are the same
 
-    private Vector victims;
+    private Vector<Victim> victims;
 
     protected Cluster(String name) {
         this.name = name;
-        victims = new Vector();
+        victims = new Vector<Victim>();
     }
 
     protected Cluster(Victim v) {
@@ -50,7 +50,7 @@ final class Cluster {
     }
 
     protected Victim get(int index) {
-        return (Victim) victims.get(index);
+        return victims.get(index);
     }
 
     protected int size() {

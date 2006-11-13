@@ -17,7 +17,6 @@ import ibis.util.Timer;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.Map;
 
 final class GlobalResultTable implements Config, Protocol {
@@ -25,19 +24,19 @@ final class GlobalResultTable implements Config, Protocol {
 
     /** The entries in the global result table. Entries are of type
      * GlobalResultTableValue. */
-    private Map entries;
+    private Map<Stamp, GlobalResultTableValue> entries;
 
     /** A list of updates that has to be broadcast to the other nodes. Elements are
      * of type (Stamp, GlobalResultTableValue). */
-    private Map toSend;
+    private Map<Stamp, GlobalResultTableValue> toSend;
 
     private GlobalResultTableValue pointerValue = new GlobalResultTableValue(
         GlobalResultTableValue.TYPE_POINTER, null);
 
     protected GlobalResultTable(Satin s, StaticProperties requestedProperties) {
         this.s = s;
-        entries = new Hashtable();
-        toSend = new Hashtable();
+        entries = new Hashtable<Stamp, GlobalResultTableValue>();
+        toSend = new Hashtable<Stamp, GlobalResultTableValue>();
     }
 
     protected GlobalResultTableValue lookup(Stamp key) {
@@ -46,7 +45,7 @@ final class GlobalResultTable implements Config, Protocol {
         s.stats.lookupTimer.start();
         Satin.assertLocked(s);
 
-        GlobalResultTableValue value = (GlobalResultTableValue) entries
+        GlobalResultTableValue value = entries
             .get(key);
 
         if (value != null) {
@@ -94,7 +93,7 @@ final class GlobalResultTable implements Config, Protocol {
         s.stats.updateTimer.stop();
     }
 
-    protected void updateAll(Map updates) {
+    protected void updateAll(Map<Stamp, GlobalResultTableValue> updates) {
         Satin.assertLocked(s);
         s.stats.updateTimer.start();
         entries.putAll(updates);
@@ -170,33 +169,30 @@ final class GlobalResultTable implements Config, Protocol {
     }
 
     // Returns ready to send contents of the table.
-    protected Map getContents() {
+    protected Map<Stamp, GlobalResultTableValue> getContents() {
         Satin.assertLocked(s);
 
         // Replace "real" results with pointer values.
-        Map newEntries = new HashMap();
-        Iterator iter = entries.entrySet().iterator();
-        while (iter.hasNext()) {
-            Map.Entry element = (Map.Entry) iter.next();
-            GlobalResultTableValue value = (GlobalResultTableValue) element
-                .getValue();
-            Stamp key = (Stamp) element.getKey();
-            switch (value.type) {
+        Map<Stamp, GlobalResultTableValue> newEntries = new HashMap<Stamp, GlobalResultTableValue>();
+        
+        for(Map.Entry<Stamp, GlobalResultTableValue> entry : entries.entrySet()) {
+            switch (entry.getValue().type) {
             case GlobalResultTableValue.TYPE_RESULT:
-                newEntries.put(key, pointerValue);
+                newEntries.put(entry.getKey(), pointerValue);
                 break;
             case GlobalResultTableValue.TYPE_POINTER:
-                newEntries.put(key, value);
+                newEntries.put(entry.getKey(), entry.getValue());
                 break;
             default:
                 grtLogger.error("SATIN '" + s.ident
                     + "': EEK invalid value type in getContents()");
             }
         }
+
         return newEntries;
     }
 
-    protected void addContents(Map contents) {
+    protected void addContents(Map<Stamp, GlobalResultTableValue> contents) {
         Satin.assertLocked(s);
         grtLogger.debug("adding contents");
 
@@ -209,12 +205,12 @@ final class GlobalResultTable implements Config, Protocol {
 
     // No need to finish the message, we don't block.
     protected void handleGRTUpdate(ReadMessage m) {
-        Map map = null;
+        Map<Stamp, GlobalResultTableValue> map = null;
 
         s.stats.handleUpdateTimer.start();
         s.stats.tableDeserializationTimer.start();
         try {
-            map = (Map) m.readObject();
+            map = (Map<Stamp, GlobalResultTableValue>) m.readObject();
         } catch (Exception e) {
             grtLogger.error("SATIN '" + s.ident
                 + "': Global result table - error reading message", e);
@@ -234,14 +230,13 @@ final class GlobalResultTable implements Config, Protocol {
         synchronized (s) {
             out.println("=GRT: " + s.ident + "=");
             int i = 0;
-            Iterator iter = entries.entrySet().iterator();
-            while (iter.hasNext()) {
-                Map.Entry entry = (Map.Entry) iter.next();
+
+            for(Map.Entry<Stamp, GlobalResultTableValue> entry : entries.entrySet()) {
                 out.println("GRT[" + i + "]= " + entry.getKey() + ";"
                     + entry.getValue());
-                i++;
+                i++;                
             }
-            out.println("=end of GRT " + s.ident + "=");
+            out.println("=end of GRT " + s.ident + "=");            
         }
     }
 }

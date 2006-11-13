@@ -79,7 +79,7 @@ public interface Config {
 
     /** Enable this if satin should use local receive ports. */
     static final boolean LOCALPORTS
-            = TypedProperties.booleanProperty(s_localports, false);
+            = TypedProperties.booleanProperty(s_localports, true);
 
     /** Determines master hostname. */
     static final String MASTER_HOST = TypedProperties

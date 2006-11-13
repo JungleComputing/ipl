@@ -65,11 +65,11 @@ public final class IRStack implements Config {
      * If store is true (used for fault tolerance), a list of jobs to store
      * is returned. Otherwise, null is returned
      */
-    public ArrayList killChildrenOf(Stamp targetStamp, boolean store) {
+    public ArrayList<InvocationRecord> killChildrenOf(Stamp targetStamp, boolean store) {
         Satin.assertLocked(s);
-        ArrayList toStore = null;
+        ArrayList<InvocationRecord> toStore = null;
         if (store) {
-            toStore = new ArrayList();
+            toStore = new ArrayList<InvocationRecord>();
         }
 
         for (int i = 0; i < count; i++) {
@@ -104,9 +104,9 @@ public final class IRStack implements Config {
      * or is a child of a job spawned on targetOwner. Store all finished children
      * of the aborted jobs in the global result table.
      */
-    public ArrayList killSubtreesOf(IbisIdentifier targetOwner) {
+    public ArrayList<InvocationRecord> killSubtreesOf(IbisIdentifier targetOwner) {
         Satin.assertLocked(s);
-        ArrayList toStore = new ArrayList();
+        ArrayList<InvocationRecord> toStore = new ArrayList<InvocationRecord>();
         for (int i = 0; i < count; i++) {
             InvocationRecord curr = l[i];
 
@@ -124,10 +124,10 @@ public final class IRStack implements Config {
         return toStore;
     }
 
-    public ArrayList getAllFinishedChildren(Victim victim) {
+    public ArrayList<InvocationRecord> getAllFinishedChildren(Victim victim) {
         Satin.assertLocked(s);
         InvocationRecord curr, child;
-        ArrayList toPush = new ArrayList();
+        ArrayList<InvocationRecord> toPush = new ArrayList<InvocationRecord>();
 
         for (int i = 0; i < count; i++) {
             curr = l[i];

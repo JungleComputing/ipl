@@ -14,7 +14,7 @@ class JoinThread extends Thread implements Config {
 
     private Satin s;
 
-    private ArrayList joiners = new ArrayList();
+    private ArrayList<IbisIdentifier> joiners = new ArrayList<IbisIdentifier>();
 
     JoinThread(Satin s) {
         this.s = s;
@@ -26,7 +26,7 @@ class JoinThread extends Thread implements Config {
         IbisIdentifier[] j = null;
         synchronized (this) {
             if (joiners.size() != 0) {
-                j = (IbisIdentifier[]) joiners.toArray(new IbisIdentifier[0]);
+                j = joiners.toArray(new IbisIdentifier[0]);
                 joiners.clear();
                 s.ft.ftComm.handleJoins(j);
                 notifyAll();

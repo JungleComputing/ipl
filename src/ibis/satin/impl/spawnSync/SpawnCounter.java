@@ -18,7 +18,7 @@ public final class SpawnCounter {
     private SpawnCounter next;
 
     /** For debugging purposes ... */
-    private HashMap m = null;
+    private HashMap<InvocationRecord, Throwable> m = null;
 
     /** For debugging purposes ... */
     private Throwable lastIncr = null;
@@ -85,7 +85,7 @@ public final class SpawnCounter {
         Throwable e = new Throwable();
         Throwable x;
         if (m == null) {
-            m = new HashMap();
+            m = new HashMap<InvocationRecord, Throwable>();
         }
         if (value != lastvalue) {
             System.out.println("Incr: lastvalue != value!");
@@ -101,7 +101,7 @@ public final class SpawnCounter {
         value++;
         lastvalue = value;
         lastIncr = e;
-        x = (Throwable) m.remove(r);
+        x = m.remove(r);
         if (x != null) {
             System.out.println("Incr: already present from here: ");
             x.printStackTrace();
@@ -131,7 +131,7 @@ public final class SpawnCounter {
 
     private synchronized void decrDebug(InvocationRecord r) {
         if (m == null) {
-            m = new HashMap();
+            m = new HashMap<InvocationRecord, Throwable>();
         }
         if (value != lastvalue) {
             System.out.println("Decr: lastvalue != value!");
@@ -148,7 +148,7 @@ public final class SpawnCounter {
         lastvalue = value;
         Throwable x;
         lastDecr = new Throwable();
-        x = (Throwable) m.remove(r);
+        x = m.remove(r);
         if (x == null) {
             System.out.println("Decr: not present: ");
             lastDecr.printStackTrace();

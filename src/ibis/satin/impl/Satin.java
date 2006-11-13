@@ -92,7 +92,7 @@ public final class Satin implements Config {
      * computation, but then crashed. Assumption: ibis identifiers are uniqe in
      * time; the same ibis cannot crash and join the computation again.
      */
-    public final Vector deadIbises = new Vector();
+    public final Vector<IbisIdentifier> deadIbises = new Vector<IbisIdentifier>();
 
     static {
         TypedProperties.checkProperties(PROPERTY_PREFIX, sysprops, null);
@@ -152,6 +152,7 @@ public final class Satin implements Config {
             stats.printDetailedStats(ident);
         }
 
+        // Do not accept new connections and joins.
         comm.disableUpcallsForExit();
 
         if (master) {
