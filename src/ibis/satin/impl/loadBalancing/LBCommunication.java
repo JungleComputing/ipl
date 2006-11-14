@@ -75,7 +75,7 @@ final class LBCommunication implements Config, Protocol {
         }
 
         writeMessage.writeByte(opcode);
-        long cnt = writeMessage.finish();
+        long cnt = v.finish(writeMessage);
         if (s.comm.inDifferentCluster(v.getIdent())) {
             s.stats.interClusterMessages++;
             s.stats.interClusterBytes += cnt;
@@ -191,7 +191,7 @@ final class LBCommunication implements Config, Protocol {
                 writeMessage.writeObject(r.getStamp());
             }
 
-            long cnt = writeMessage.finish();
+            long cnt = v.finish(writeMessage);
             s.stats.returnRecordWriteTimer.stop();
             s.stats.returnRecordBytes += cnt;
             if (s.comm.inDifferentCluster(r.getOwner())) {
@@ -393,7 +393,7 @@ final class LBCommunication implements Config, Protocol {
                     + " in handleStealRequest");
             }
 
-            long cnt = m.finish();
+            long cnt = v.finish(m);
             if (s.comm.inDifferentCluster(ident.ibis())) {
                 s.stats.interClusterMessages++;
                 s.stats.interClusterBytes += cnt;
@@ -454,7 +454,7 @@ final class LBCommunication implements Config, Protocol {
             invocationRecordWriteTimer.start();
             m.writeObject(result);
             invocationRecordWriteTimer.stop();
-            long cnt = m.finish();
+            long cnt = v.finish(m);
             s.stats.invocationRecordWriteTimer.add(invocationRecordWriteTimer);
             if (s.comm.inDifferentCluster(ident.ibis())) {
                 s.stats.interClusterMessages++;

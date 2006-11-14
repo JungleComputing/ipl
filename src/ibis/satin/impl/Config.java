@@ -23,6 +23,8 @@ public interface Config {
 
     static final String s_localports = PROPERTY_PREFIX + "localPorts";
 
+    static final String s_close_connections = PROPERTY_PREFIX + "closeConnections";
+
     static final String s_stats = PROPERTY_PREFIX + "stats";
 
     static final String s_detailed_stats = PROPERTY_PREFIX + "detailedStats";
@@ -57,7 +59,7 @@ public interface Config {
         s_detailed_stats, s_closed, s_localports, s_asserts,
         s_ft_naive, s_ft_connectTimeout, s_masterhost, s_in_latency,
         s_delete_time, s_delete_cluster_time, s_kill_time, s_dump, s_so_delay,
-        s_so_size, s_alg, s_so_lrmc };
+        s_so_size, s_alg, s_so_lrmc, s_close_connections };
 
     /** Enable or disable asserts. */
     static final boolean ASSERTS = TypedProperties.booleanProperty(s_asserts,
@@ -76,10 +78,6 @@ public interface Config {
     /** Enable this if satin should run with a closed world: no nodes can join or leave. */
     static final boolean CLOSED = TypedProperties.booleanProperty(s_closed,
         false);
-
-    /** Enable this if satin should use local receive ports. */
-    static final boolean LOCALPORTS
-            = TypedProperties.booleanProperty(s_localports, true);
 
     /** Determines master hostname. */
     static final String MASTER_HOST = TypedProperties
@@ -136,6 +134,9 @@ public interface Config {
      * avoid thread creation. */
     static final boolean QUEUE_STEALS = TypedProperties.booleanProperty(
         s_queue_steals, true);
+
+    static final boolean CLOSE_CONNECTIONS = TypedProperties.booleanProperty(
+        s_close_connections, true); 
     
     /** Logger for communication. */
     public static final Logger commLogger = ibis.util.GetLogger

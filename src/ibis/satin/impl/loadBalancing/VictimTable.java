@@ -48,7 +48,7 @@ public final class VictimTable implements Config {
 
     public Victim remove(IbisIdentifier ident) {
         Satin.assertLocked(satin);
-        Victim v = new Victim(ident, null, null);
+        Victim v = new Victim(ident, null);
 
         int i = victims.indexOf(v);
         return remove(i);
@@ -81,7 +81,7 @@ public final class VictimTable implements Config {
     public Victim getVictim(int i) {
         Satin.assertLocked(satin);
         if (ASSERTS && i < 0 || i >= victims.size()) {
-            commLogger.warn("trying to read a non-existing victim id");
+            commLogger.warn("trying to read a non-existing victim id: " + i + ", there are " + victims.size() + " victims");
             return null;
         }
         return victims.get(i);
@@ -202,7 +202,7 @@ public final class VictimTable implements Config {
         return tmp;
     }
 
-    // retry a couple of times, than assume a crash
+    // retry a couple of times, then assume a crash
     public Victim getVictim(IbisIdentifier id) {
         Satin.assertLocked(satin);
         Victim v = null;
@@ -214,7 +214,7 @@ public final class VictimTable implements Config {
             if (v != null) return v;
 
             try {
-                satin.wait(100);
+                satin.wait(250);
             } catch (Exception e) {
                 // Ignore.
             }

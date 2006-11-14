@@ -31,7 +31,9 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 
     private static class Conn {
         OutputStream out;
+
         Socket s;
+
         TcpReceivePortIdentifier ident;
 
         public boolean equals(Object o) {
@@ -82,9 +84,9 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
     long count;
 
     private java.util.Map props = new HashMap();
-    
+
     TcpSendPort(TcpIbis ibis, TcpPortType type, String name,
-            boolean connectionAdministration, SendPortConnectUpcall cU) {
+        boolean connectionAdministration, SendPortConnectUpcall cU) {
 
         this.name = name;
         this.type = type;
@@ -96,16 +98,16 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
         this.connectUpcall = cU;
 
         ident = new TcpSendPortIdentifier(name, type.name(),
-                (TcpIbisIdentifier) type.ibis.identifier());
+            (TcpIbisIdentifier) type.ibis.identifier());
 
         // if we keep administration, close connections when exception occurs.
         splitter = new OutputStreamSplitter(connectionAdministration,
-                connectionAdministration);
+            connectionAdministration);
 
         bufferedStream = new BufferedArrayOutputStream(splitter);
 
         out = SerializationBase.createSerializationOutput(type.ser,
-                bufferedStream);
+            bufferedStream);
         message = new TcpWriteMessage(this, out, connectionAdministration);
     }
 
@@ -122,101 +124,50 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
         count = 0;
     }
 
-    public synchronized ReceivePortIdentifier connect(IbisIdentifier id, String nm,
-            long timeoutMillis) throws IOException {
+    public synchronized ReceivePortIdentifier connect(IbisIdentifier id,
+        String nm, long timeoutMillis) throws IOException {
 
         if (aMessageIsAlive) {
             throw new IOException(
-                    "A message was alive while adding a new connection");
+                "A message was alive while adding a new connection");
         }
 
         if (DEBUG) {
             System.err.println("Sendport " + this + " '" + name
-                    + "' connecting to " + nm + " at " + id);
+                + "' connecting to " + nm + " at " + id);
         }
 
         return ibis.tcpPortHandler.connect(this, (TcpIbisIdentifier) id, nm,
-                null, (int) timeoutMillis);
+            null, (int) timeoutMillis);
     }
 
-    void addConn(TcpReceivePortIdentifier ri, Socket s)
-            throws IOException {
-        Conn c = new Conn();
-        c.ident = ri;
-        if (receivers.contains(c)) {
-            throw new AlreadyConnectedException(
-                    "This sendport was already connected to " + ri);
-        }
-
-        c.s = s;
-        if (c.s == null) {
-            throw new ConnectionRefusedException("Could not connect");
-        }
-        
-        c.out = c.s.getOutputStream();
-
-        if (DEBUG) {
-            System.err.println(name + " adding Connection to " + ri);
-        }
-
-        out.writeByte(NEW_RECEIVER);
-
-        if (DEBUG) {
-            System.err.println(name + " Sending NEW_RECEIVER");
-        }
-
-        out.flush();
-        out.close();
-
-        receivers.add(c);
-        splitter.add(c.out);
-
-        out = SerializationBase.createSerializationOutput(type.ser,
-                bufferedStream);
-        if (replacer != null) {
-            out.setReplacer(replacer);
-        }
-
-        message = new TcpWriteMessage(this, out, connectionAdministration);
-
-        if (DEBUG) {
-            System.err.println("Sendport '" + name + "' connecting to "
-                    + ri + " done");
-        }
-    }
-
-    public synchronized ReceivePortIdentifier  connect(IbisIdentifier id,
-            String name) throws IOException {
+    public synchronized ReceivePortIdentifier connect(IbisIdentifier id,
+        String name) throws IOException {
         return connect(id, name, 0);
     }
 
     public synchronized void connect(ReceivePortIdentifier receiver,
-            long timeoutMillis) throws IOException {
+        long timeoutMillis) throws IOException {
         /* first check the types */
         if (!type.name().equals(receiver.type())) {
             throw new PortMismatchException(
-                    "Cannot connect ports of different PortTypes");
+                "Cannot connect ports of different PortTypes");
         }
 
         if (aMessageIsAlive) {
             throw new IOException(
-                    "A message was alive while adding a new connection");
+                "A message was alive while adding a new connection");
         }
 
         if (DEBUG) {
             System.err.println("Sendport " + this + " '" + name
-                    + "' connecting to " + receiver);
+                + "' connecting to " + receiver);
         }
 
         // we have a new receiver, now add it to our tables.
         TcpReceivePortIdentifier ri = (TcpReceivePortIdentifier) receiver;
         ibis.tcpPortHandler.connect(this, ri.ibis, ri.name, ri,
-                (int) timeoutMillis);
-    }
-
-    public synchronized void setReplacer(Replacer r) throws IOException {
-        replacer = r;
-        out.setReplacer(r);
+            (int) timeoutMillis);
     }
 
     public void connect(ReceivePortIdentifier receiver) throws IOException {
@@ -224,7 +175,7 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
     }
 
     public synchronized void disconnect(ReceivePortIdentifier receiver)
-            throws IOException {
+        throws IOException {
         byte[] receiverBytes;
         byte[] receiverLength;
         Conn connection = null;
@@ -239,7 +190,7 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
         }
         if (connection == null) {
             throw new IOException("Cannot disconnect from " + receiver
-                    + " since we are not connected with it");
+                + " since we are not connected with it");
         }
 
         receivers.remove(connection);
@@ -251,7 +202,7 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
             receiverBytes = Conversion.object2byte(receiver);
             receiverLength = new byte[Conversion.INT_SIZE];
             Conversion.defaultConversion.int2byte(receiverBytes.length,
-                    receiverLength, 0);
+                receiverLength, 0);
             out.writeArray(receiverLength);
             out.writeArray(receiverBytes);
             out.flush();
@@ -267,6 +218,11 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
         } catch (Exception x) {
             // ignore
         }
+    }
+
+    public synchronized void setReplacer(Replacer r) throws IOException {
+        replacer = r;
+        out.setReplacer(r);
     }
 
     public ibis.ipl.WriteMessage newMessage() throws IOException {
@@ -333,11 +289,11 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
     public void setProperties(Map properties) {
         props = properties;
     }
-    
+
     public void setProperty(String key, Object val) {
         props.put(key, val);
     }
-    
+
     public String name() {
         return name;
     }
@@ -349,7 +305,7 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
     public synchronized void close() throws IOException {
         if (aMessageIsAlive) {
             throw new IOException(
-                    "Trying to close a sendport port while a message is alive!");
+                "Trying to close a sendport port while a message is alive!");
         }
 
         if (ident == null) {
@@ -358,7 +314,7 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 
         if (DEBUG) {
             System.err.println(type.ibis.identifier()
-                    + ": SendPort.close start");
+                + ": SendPort.close start");
         }
 
         try {
@@ -386,15 +342,14 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
         ident = null;
 
         if (DEBUG) {
-            System.err.println(type.ibis.identifier()
-                    + ": SendPort.close DONE");
+            System.err
+                .println(type.ibis.identifier() + ": SendPort.close DONE");
         }
     }
 
     public synchronized ReceivePortIdentifier[] connectedTo() {
         Conn[] connections = (Conn[]) receivers.toArray(new Conn[0]);
-        ReceivePortIdentifier[] res
-                = new ReceivePortIdentifier[connections.length];
+        ReceivePortIdentifier[] res = new ReceivePortIdentifier[connections.length];
         for (int i = 0; i < res.length; i++) {
             res[i] = connections[i].ident;
         }
@@ -427,7 +382,7 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
                 // connection list.
                 // Maybe we already reported the error?
                 throw new IbisError(
-                        "could not find connection in lostConnection");
+                    "could not find connection in lostConnection");
             }
             if (report && connectUpcall == null) {
                 lostConnections.add(rec);
@@ -442,9 +397,55 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
     }
 
     public synchronized ReceivePortIdentifier[] lostConnections() {
-        ReceivePortIdentifier[] result =
-                (ReceivePortIdentifier[]) lostConnections.toArray(new ReceivePortIdentifier[0]);
+        ReceivePortIdentifier[] result = (ReceivePortIdentifier[]) lostConnections
+            .toArray(new ReceivePortIdentifier[0]);
         lostConnections.clear();
         return result;
     }
+
+    void addConn(TcpReceivePortIdentifier ri, Socket s) throws IOException {
+        Conn c = new Conn();
+        c.ident = ri;
+        if (receivers.contains(c)) {
+            throw new AlreadyConnectedException(
+                "This sendport was already connected to " + ri);
+        }
+
+        c.s = s;
+        if (c.s == null) {
+            throw new ConnectionRefusedException("Could not connect");
+        }
+
+        c.out = c.s.getOutputStream();
+
+        if (DEBUG) {
+            System.err.println(name + " adding Connection to " + ri);
+        }
+
+        out.writeByte(NEW_RECEIVER);
+
+        if (DEBUG) {
+            System.err.println(name + " Sending NEW_RECEIVER");
+        }
+
+        out.flush();
+        out.close();
+
+        receivers.add(c);
+        splitter.add(c.out);
+
+        out = SerializationBase.createSerializationOutput(type.ser,
+            bufferedStream);
+        if (replacer != null) {
+            out.setReplacer(replacer);
+        }
+
+        message = new TcpWriteMessage(this, out, connectionAdministration);
+
+        if (DEBUG) {
+            System.err.println("Sendport '" + name + "' connecting to " + ri
+                + " done");
+        }
+    }
+
 }

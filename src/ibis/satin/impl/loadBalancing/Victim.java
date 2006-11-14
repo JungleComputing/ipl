@@ -12,7 +12,16 @@ import ibis.satin.impl.communication.Communication;
 
 import java.io.IOException;
 
-public final class Victim {
+/**
+ * 
+ * @author rob
+ *
+ * A Victim represents an Ibis we can steal work from.
+ * This class is immutable, only the sendport itself could be connected and 
+ * disconnected.
+ *  
+ */
+public final class Victim implements Config {
 
     private IbisIdentifier ident;
 
@@ -24,13 +33,11 @@ public final class Victim {
 
     private boolean closed = false;
 
-    public Victim(IbisIdentifier ident, SendPort s, ReceivePortIdentifier r) {
+    private int referenceCount = 0;
+    
+    public Victim(IbisIdentifier ident, SendPort s) {
         this.ident = ident;
         this.s = s;
-        this.r = r;
-        if (s != null && s.connectedTo().length != 0) {
-            connected = true;
-        }
     }
 
     public boolean equals(Object o) {
@@ -55,59 +62,71 @@ public final class Victim {
         return ident.hashCode();
     }
 
-    public void disconnect() throws IOException {
+    private void disconnect() throws IOException {
         if (connected) {
-            synchronized (s) {
-                if (connected) {
-                    connected = false;
-                    s.disconnect(r);
-                }
-            }
+            connected = false;
+            s.disconnect(r);
         }
     }
 
     private SendPort getSendPort() {
-        if (!connected) {
-            synchronized (s) {
-                if (!connected) {
-                    if (closed) {
-                        return null;
-                    }
-                    if (r != null) {
-                        if (!Communication.connect(s, r, Satin.CONNECT_TIMEOUT)) {
-                            Config.commLogger.debug("SATIN '"
-                                + s.identifier().ibis()
-                                + "': unable to connect to " + r.ibis()
-                                + ", might have crashed");
-                            return null;
-                        }
-                    } else {
-                        r = Communication.connect(s, ident, "satin port",
-                                    Satin.CONNECT_TIMEOUT);
-                        if (r == null) {
-                            Config.commLogger.debug("SATIN '"
-                                + s.identifier().ibis()
-                                + "': unable to connect to " + ident
-                                + ", might have crashed");
-                            return null;
-                        }
-                    }
-                    connected = true;
-                }
-            }
+        if (closed) {
+            return null;
         }
+
+        if (!connected) {
+            r = Communication.connect(s, ident, "satin port",
+                Satin.CONNECT_TIMEOUT);
+            if (r == null) {
+                Config.commLogger.debug("SATIN '" + s.identifier().ibis()
+                    + "': unable to connect to " + ident
+                    + ", might have crashed");
+                return null;
+            }
+            connected = true;
+        }
+        
         return s;
     }
 
     public WriteMessage newMessage() throws IOException {
-        SendPort s = getSendPort();
-        if (s != null) {
-            return getSendPort().newMessage();
+        synchronized (s) {
+            SendPort send = getSendPort();
+            if (send != null) {
+                referenceCount++;
+                return send.newMessage();
+            }
+            throw new IOException("Could not connect");
         }
-        throw new IOException("Could not connect");
     }
 
-    public void close() {
+    public long finish(WriteMessage m) throws IOException {
+        synchronized (s) {
+            long res = 0;
+            IOException e = null;
+            referenceCount--;
+            
+            try {
+                res = m.finish();
+            } catch (IOException x) {
+                e = x;
+            }
+
+            if (CLOSE_CONNECTIONS) {
+                if(referenceCount == 0) {
+                    disconnect();
+                }
+            }
+
+            if(e != null) {
+                throw e;
+            }
+            
+            return res;
+        }
+    }
+
+    public synchronized void close() {
         synchronized (s) {
             connected = false;
             closed = true;
