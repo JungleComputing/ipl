@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.Hashtable;
 
 import smartsockets.direct.SocketAddressSet;
+import smartsockets.hub.servicelink.ServiceLink;
 import smartsockets.virtual.VirtualSocketFactory;
 
 public final class TcpIbis extends Ibis implements Config {
@@ -143,7 +144,18 @@ public final class TcpIbis extends Ibis implements Config {
         nameServer = NameServer.loadNameServer(this, resizeHandler != null);
 
         // Bit of a hack to improve the visualization
-        socketFactory.getServiceLink().registerProperty("ibis", name);
+        try { 
+            ServiceLink sl = socketFactory.getServiceLink();
+        
+            if (sl != null) {
+                sl.registerProperty("ibis", name);
+            }
+        } catch (Exception e) {
+            if (DEBUG) {
+                System.err.println("Failed to register ibis property with " +
+                        "nameserver (not very important...)");
+            }
+        }
         
         if (resizeHandler != null) {
             Thread p = new Thread("ResizeUpcaller") {
