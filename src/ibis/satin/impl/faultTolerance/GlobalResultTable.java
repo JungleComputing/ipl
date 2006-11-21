@@ -131,7 +131,8 @@ final class GlobalResultTable implements Config, Protocol {
 
             try {
                 m = v.newMessage();
-            } catch (IOException e) {
+            } catch (Exception e) {
+                //Catch any exception: the victim may not exist anymore
                 grtLogger.info("Got exception in newMessage()", e);
                 continue;
                 //always happens after a crash
