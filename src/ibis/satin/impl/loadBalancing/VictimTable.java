@@ -92,7 +92,7 @@ public final class VictimTable implements Config {
         return victims.get(i);
     }
 
-    private Victim getVictimNonBlocking(IbisIdentifier ident) {
+    public Victim getVictimNonBlocking(IbisIdentifier ident) {
         Satin.assertLocked(satin);
         return ibisHash.get(ident);
     }
