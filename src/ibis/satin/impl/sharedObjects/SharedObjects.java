@@ -33,7 +33,7 @@ public final class SharedObjects implements Config {
     protected SORequestList SORequestList = new SORequestList();
 
     /** Used for storing pending shared object invocations (SOInvocationRecords) */
-    private Vector soInvocationList = new Vector();
+    private Vector<SOInvocationRecord> soInvocationList = new Vector<SOInvocationRecord>();
 
     private Satin s;
 
@@ -41,7 +41,7 @@ public final class SharedObjects implements Config {
 
     /** A hash containing all shared objects: 
      * (String objectID, SharedObject object) */
-    private HashMap sharedObjects = new HashMap();
+    private HashMap<String, SharedObjectInfo> sharedObjects = new HashMap<String, SharedObjectInfo>();
 
     private SOCommunication soComm;
 
@@ -67,7 +67,7 @@ public final class SharedObjects implements Config {
         s.stats.getSOReferencesTimer.start();
         try {
             synchronized (s) {
-                SharedObjectInfo i = (SharedObjectInfo) sharedObjects.get(objectId);
+                SharedObjectInfo i = sharedObjects.get(objectId);
                 if (i == null) {
                     soLogger.debug("SATIN '" + s.ident.name() + "': " + "object not found in getSOReference");
                     return null;
@@ -82,14 +82,14 @@ public final class SharedObjects implements Config {
     /** Return a reference to a shared object */
     public SharedObjectInfo getSOInfo(String objectId) {
         synchronized (s) {
-            return (SharedObjectInfo) sharedObjects.get(objectId);
+            return sharedObjects.get(objectId);
         }
     }
 
     void registerMulticast(SharedObject object, IbisIdentifier[] destinations) {
         synchronized (s) {
             SharedObjectInfo i =
-                    (SharedObjectInfo) sharedObjects.get(object.objectId);
+                    sharedObjects.get(object.objectId);
             if (i == null) {
                 soLogger.warn("OOPS, object not found in registerMulticast");
                 return;
@@ -112,7 +112,7 @@ public final class SharedObjects implements Config {
             }
             s.stats.handleSOInvocationsTimer.start();
             SOInvocationRecord soir =
-                    (SOInvocationRecord) soInvocationList.remove(0);
+                    soInvocationList.remove(0);
             SharedObject so = getSOReference(soir.getObjectId());
 
             if (so == null) {
@@ -187,7 +187,7 @@ public final class SharedObjects implements Config {
             + "guard not satisfied, getting updates..");
 
         // try to ship the object(s) from the owner of the job
-        Vector objRefs = r.getSOReferences();
+        Vector<String> objRefs = r.getSOReferences();
         if (objRefs == null || objRefs.isEmpty()) {
             soLogger
                 .fatal("SATIN '" + s.ident.name() + "': "
@@ -205,7 +205,7 @@ public final class SharedObjects implements Config {
                 return;
             }
 
-            String ref = (String) objRefs.remove(0);
+            String ref = objRefs.remove(0);
             soComm.fetchObject(ref, r.getOwner(), r);
         }
     }

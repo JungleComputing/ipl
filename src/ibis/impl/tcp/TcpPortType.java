@@ -78,7 +78,7 @@ class TcpPortType extends PortType implements Config {
             ReceivePortConnectUpcall cU, boolean connectionAdministration,
             boolean global) throws IOException {
         TcpReceivePort prt = new TcpReceivePort(ibis, this, nm, u,
-                connectionAdministration, cU);
+                connectionAdministration, cU, global);
 
         if (DEBUG) {
             System.out.println(ibis.identifier()

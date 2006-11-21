@@ -121,7 +121,7 @@ public class LoadBalancing implements Config {
             lbComm.sendStealRequest(v, true, blockOnServer);
             return waitForStealReply();
         } catch (IOException e) {
-            ftLogger.info("Caught exception in stealJob: ", e);
+            ftLogger.info("got exception during steal request", e);
             return null;
         } finally {
             s.stats.stealTimer.stop();

@@ -122,16 +122,17 @@ final class GlobalResultTable implements Config, Protocol {
         updateTimer.start();
 
         for(int i=0; i<size; i++) {
-            Victim send;
+            Victim v;
             WriteMessage m = null;
 
             synchronized (s) {
-                send = s.victims.getVictim(i);
+                v = s.victims.getVictim(i);
             }
 
             try {
-                m = send.newMessage();
-            } catch (IOException e) {
+                m = v.newMessage();
+            } catch (Exception e) {
+                //Catch any exception: the victim may not exist anymore
                 grtLogger.info("Got exception in newMessage()", e);
                 continue;
                 //always happens after a crash
@@ -150,12 +151,12 @@ final class GlobalResultTable implements Config, Protocol {
             s.stats.tableSerializationTimer.add(tableSerializationTimer);
 
             try {
-                long msgSize = m.finish();
+                long msgSize = v.finish(m);
 
                 grtLogger.debug("SATIN '" + s.ident + "': " + msgSize
                     + " sent in "
                     + s.stats.tableSerializationTimer.lastTimeVal() + " to "
-                    + send);
+                    + v);
             } catch (IOException e) {
                 grtLogger.info("Got exception in finish()");
                 //always happens after a crash

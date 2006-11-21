@@ -109,7 +109,7 @@ final class FTCommunication implements Config, ReceivePortConnectUpcall,
                 WriteMessage m = v.newMessage();
                 m.writeByte(Protocol.RESULT_REQUEST);
                 m.writeObject(r.getStamp());
-                m.finish();
+                v.finish(m);
             } catch (IOException e) {
                 grtLogger.warn("SATIN '" + s.ident
                     + "': trying to send RESULT_REQUEST but got "
@@ -152,7 +152,7 @@ final class FTCommunication implements Config, ReceivePortConnectUpcall,
             WriteMessage writeMessage = v.newMessage();
             writeMessage.writeByte(Protocol.ABORT_AND_STORE);
             writeMessage.writeObject(r.getParentStamp());
-            long cnt = writeMessage.finish();
+            long cnt = v.finish(writeMessage);
             if (s.comm.inDifferentCluster(r.getStealer())) {
                 s.stats.interClusterMessages++;
                 s.stats.interClusterBytes += cnt;
@@ -175,6 +175,7 @@ final class FTCommunication implements Config, ReceivePortConnectUpcall,
     }
 
     protected void handleLostConnection(IbisIdentifier dead) {
+/*
         Victim v = null;
         synchronized (s) {
             if (s.deadIbises.contains(dead)) return;
@@ -193,11 +194,12 @@ final class FTCommunication implements Config, ReceivePortConnectUpcall,
         if (v != null) {
             v.close();
         }
+*/
     }
 
     public void lostConnection(ReceivePort me, SendPortIdentifier johnDoe,
         Exception reason) {
-        ftLogger.debug("SATIN '" + s.ident + "': got lostConnection upcall: "
+        ftLogger.info("SATIN '" + s.ident + "': got lostConnection upcall: "
             + johnDoe.ibis() + ", reason = " + reason);
         if (connectionUpcallsDisabled) {
             return;
@@ -207,7 +209,7 @@ final class FTCommunication implements Config, ReceivePortConnectUpcall,
 
     public void lostConnection(SendPort me, ReceivePortIdentifier johnDoe,
         Exception reason) {
-        ftLogger.debug("SATIN '" + s.ident
+        ftLogger.info("SATIN '" + s.ident
             + "': got SENDPORT lostConnection upcall: " + johnDoe.ibis());
         if (connectionUpcallsDisabled) {
             return;
@@ -279,25 +281,6 @@ final class FTCommunication implements Config, ReceivePortConnectUpcall,
     protected void handleJoins(IbisIdentifier[] joiners) {
         ftLogger.debug("SATIN '" + s.ident + "': dealing with " + joiners.length
             + " joins");
-        ReceivePortIdentifier[] r = null;
-
-        if (! LOCALPORTS) {
-            String[] names = new String[joiners.length];
-            for (int i = 0; i < names.length; i++) {
-                names[i] = "satin port on " + joiners[i].name();
-            }
-            try {
-                r = s.comm.lookup(names);
-            } catch (Exception e) {
-                ftLogger.warn("SATIN '" + s.ident
-                    + "': got an exception while looking up receive ports", e);
-                return;
-            }
-
-            ftLogger.debug("SATIN '" + s.ident + "': lookups succeeded");
-        } else {
-            r = new ReceivePortIdentifier[joiners.length];
-        }
 
         s.so.handleJoins(joiners);
         ftLogger.debug("SATIN '" + s.ident + "': SO ports created");
@@ -319,7 +302,7 @@ final class FTCommunication implements Config, ReceivePortConnectUpcall,
 
             synchronized (s) {
                 ftLogger.debug("SATIN '" + s.ident + "': adding victim");
-                s.victims.add(new Victim(joiner, p, r[i]));
+                s.victims.add(new Victim(joiner, p));
                 s.notifyAll();
                 ftLogger.debug("SATIN '" + s.ident + "': adding victim done");
             }
@@ -385,7 +368,7 @@ final class FTCommunication implements Config, ReceivePortConnectUpcall,
             WriteMessage w = v.newMessage();
             w.writeByte(Protocol.JOB_RESULT_NORMAL);
             w.writeObject(value.result);
-            w.finish();
+            v.finish(w);
         } catch (Exception e) {
             grtLogger.error("SATIN '" + s.ident
                 + "': trying to send result back, but got exception: " + e, e);
@@ -420,7 +403,7 @@ final class FTCommunication implements Config, ReceivePortConnectUpcall,
             WriteMessage m = victim.newMessage();
             m.writeByte(Protocol.RESULT_PUSH);
             m.writeObject(toPush);
-            long numBytes = m.finish();
+            long numBytes = victim.finish(m);
             grtLogger.debug("SATIN '" + s.ident + "': " + numBytes
                 + " bytes pushed");
         } catch (IOException e) {

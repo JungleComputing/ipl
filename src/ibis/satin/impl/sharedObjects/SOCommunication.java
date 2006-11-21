@@ -24,6 +24,7 @@ import ibis.satin.impl.communication.Protocol;
 import ibis.satin.impl.loadBalancing.Victim;
 import ibis.satin.impl.spawnSync.InvocationRecord;
 import ibis.util.DeepCopy;
+import ibis.util.Timer;
 import ibis.util.messagecombining.MessageCombiner;
 import ibis.util.messagecombining.MessageSplitter;
 
@@ -34,10 +35,45 @@ import java.util.HashMap;
 import mcast.object.ObjectMulticaster;
 import mcast.object.SendDoneUpcaller;
 
+class OmcInfo implements Config {
+    HashMap<Integer, Timer> map = new HashMap<Integer, Timer>();
+
+    Timer total = Timer.createTimer();
+
+    Satin s;
+
+    public OmcInfo(Satin s) {
+        this.s = s;
+    }
+
+    synchronized void registerSend(int id) {
+        Timer t = Timer.createTimer();
+        map.put(id, t);
+        t.start();
+    }
+
+    public synchronized void sendDone(int id) {
+        Timer t = map.remove(id);
+        if (t == null) {
+            soLogger.info("SATIN '" + s.ident.name()
+                + "': got upcall for unknow id: " + id);
+            return;
+        }
+        t.stop();
+        total.add(t);
+
+        soLogger.info("SATIN '" + s.ident.name() + "': broadcast " + id
+            + " took " + t.totalTime());
+    }
+
+    void end() {
+        soLogger.info("SATIN '" + s.ident.name()
+            + "': total broadcast time was: " + total.totalTime());
+    }
+}
+
 final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
     private static final boolean ASYNC_SO_BCAST = false;
-
-    private final static int LOOKUP_WAIT_TIME = 10000;
 
     private final static int WAIT_FOR_UPDATES_TIME = 60000;
 
@@ -57,15 +93,19 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
     private MessageCombiner soMessageCombiner;
 
     /** a list of ibis identifiers that we still need to connect to */
-    private ArrayList toConnect = new ArrayList();
+    private ArrayList<IbisIdentifier> toConnect =
+            new ArrayList<IbisIdentifier>();
 
-    private HashMap ports = new HashMap();
+    private HashMap<IbisIdentifier, ReceivePortIdentifier> ports =
+            new HashMap<IbisIdentifier, ReceivePortIdentifier>();
 
     private ObjectMulticaster omc;
 
     private SharedObject sharedObject = null;
 
     private boolean receivedNack = false;
+
+    private OmcInfo omcInfo;
 
     protected SOCommunication(Satin s) {
         this.s = s;
@@ -74,7 +114,11 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
     protected void init(StaticProperties requestedProperties) {
         if (LABEL_ROUTING_MCAST) {
             try {
-                omc = new ObjectMulticaster(s.comm.ibis, true /* efficient multi-cluster */, false, "satinSO", this);
+                omc =
+                        new ObjectMulticaster(s.comm.ibis,
+                            true /* efficient multi-cluster */, false,
+                            "satinSO", this);
+                omcInfo = new OmcInfo(s);
             } catch (Exception e) {
                 System.err.println("cannot create OMC: " + e);
                 e.printStackTrace();
@@ -88,8 +132,9 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
 
                 // Create a multicast port to bcast shared object invocations.
                 // Connections are established later.
-                soSendPort = soPortType.createSendPort("satin so port on "
-                    + s.ident.name(), true);
+                soSendPort =
+                        soPortType.createSendPort("satin so port on "
+                            + s.ident.name(), true);
 
                 if (SO_MAX_INVOCATION_DELAY > 0) {
                     StaticProperties props = new StaticProperties();
@@ -105,7 +150,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
     }
 
     protected PortType createSOPortType(StaticProperties reqprops)
-        throws IOException, IbisException {
+            throws IOException, IbisException {
         StaticProperties satinPortProperties = new StaticProperties(reqprops);
 
         if (CLOSED) {
@@ -135,16 +180,18 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
             for (int i = 0; i < joiners.length; i++) {
                 omc.addIbis(joiners[i]);
             }
-            
+
             // Set the destination for the multicast.
             // The victimtable does not contain the new joiners yet.
             IbisIdentifier[] victims;
             synchronized (s) {
                 victims = s.victims.getIbises();
             }
-            IbisIdentifier[] destinations = new IbisIdentifier[victims.length + joiners.length];
+            IbisIdentifier[] destinations =
+                    new IbisIdentifier[victims.length + joiners.length];
             System.arraycopy(victims, 0, destinations, 0, victims.length);
-            System.arraycopy(joiners, 0, destinations, victims.length, joiners.length);
+            System.arraycopy(joiners, 0, destinations, victims.length,
+                joiners.length);
             omc.setDestination(destinations);
             return;
         }
@@ -152,21 +199,16 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
         for (int i = 0; i < joiners.length; i++) {
             // create a receive port for this guy
             try {
-                SOInvocationHandler soInvocationHandler = new SOInvocationHandler(
-                    s);
+                SOInvocationHandler soInvocationHandler =
+                        new SOInvocationHandler(s);
                 ReceivePort rec;
 
-                if (LOCALPORTS) {
-                    rec = soPortType.createReceivePort(
-                        "satin so receive port for " + joiners[i].name(),
-                        soInvocationHandler,
-                        s.ft.getReceivePortConnectHandler());
-                } else {
-                    rec = soPortType.createReceivePort(
-                        "satin so receive port on " + s.ident.name() + " for "
-                            + joiners[i].name(), soInvocationHandler, s.ft
-                            .getReceivePortConnectHandler());
-                }
+                rec =
+                        soPortType.createReceivePort(
+                            "satin so receive port for " + joiners[i].name(),
+                            soInvocationHandler, s.ft
+                                .getReceivePortConnectHandler());
+
                 if (SO_MAX_INVOCATION_DELAY > 0) {
                     StaticProperties s = new StaticProperties();
                     s.add("serialization", "ibis");
@@ -220,8 +262,8 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
         } else {
             if (ASYNC_SO_BCAST) {
                 // We have to make a copy of the object first, the caller might modify it.
-                SOInvocationRecord copy = (SOInvocationRecord) DeepCopy
-                    .deepCopy(r);
+                SOInvocationRecord copy =
+                        (SOInvocationRecord) DeepCopy.deepCopy(r);
                 new AsyncBcaster(this, copy).start();
             } else {
                 doBroadcastSOInvocation(r);
@@ -231,9 +273,11 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
 
     public void sendDone(int id) {
         if (soLogger.isDebugEnabled()) {
-            soLogger.debug("SATIN '" + s.ident.name()
-                    + "': got ACK for send " + id);
+            soLogger.debug("SATIN '" + s.ident.name() + "': got ACK for send "
+                + id);
         }
+
+        omcInfo.sendDone(id);
     }
 
     /** Broadcast an so invocation */
@@ -241,7 +285,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
         IbisIdentifier[] tmp;
         synchronized (s) {
             tmp = s.victims.getIbises();
-            if(tmp.length == 0) return;
+            if (tmp.length == 0) return;
         }
         soLogger.debug("SATIN '" + s.ident.name()
             + "': broadcasting so invocation for: " + r.getObjectId());
@@ -249,7 +293,8 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
         s.so.registerMulticast(s.so.getSOReference(r.getObjectId()), tmp);
 
         try {
-            omc.send(r);
+            int id = omc.send(r);
+            omcInfo.registerSend(id);
         } catch (Exception e) {
             soLogger.warn("SOI mcast failed: " + e + " msg: " + e.getMessage());
         }
@@ -378,7 +423,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
         IbisIdentifier[] tmp;
         synchronized (s) {
             tmp = s.victims.getIbises();
-            if(tmp.length == 0) return;
+            if (tmp.length == 0) return;
         }
 
         soLogger.debug("SATIN '" + s.ident.name() + "': broadcasting object: "
@@ -388,7 +433,8 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
 
         try {
             s.stats.soBroadcastSerializationTimer.start();
-            omc.send(object);
+            int id = omc.send(object);
+            omcInfo.registerSend(id);
             s.stats.soBroadcastSerializationTimer.stop();
         } catch (Exception e) {
             System.err.println("WARNING, SO mcast failed: " + e + " msg: "
@@ -403,7 +449,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
     /** Remove a connection to the soSendPort */
     protected void removeSOConnection(IbisIdentifier id) {
         Satin.assertLocked(s);
-        ReceivePortIdentifier r = (ReceivePortIdentifier) ports.remove(id);
+        ReceivePortIdentifier r = ports.remove(id);
 
         if (r != null) {
             Communication.disconnect(soSendPort, r);
@@ -416,26 +462,26 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
      * invocation record. It might not be satisfied when this method returns, the
      * guard might depend on more than one shared object. */
     protected void fetchObject(String objectId, IbisIdentifier source,
-        InvocationRecord r) throws SOReferenceSourceCrashedException {
-/*
-        soLogger.debug("SATIN '" + s.ident.name() + "': sending SO request "
-            + (r == null ? "FIRST TIME" : "GUARD"));
+            InvocationRecord r) throws SOReferenceSourceCrashedException {
+        /*
+         soLogger.debug("SATIN '" + s.ident.name() + "': sending SO request "
+         + (r == null ? "FIRST TIME" : "GUARD"));
 
-        // first, ask for the object
-        sendSORequest(objectId, source, false);
+         // first, ask for the object
+         sendSORequest(objectId, source, false);
 
-        boolean gotIt = waitForSOReply();
+         boolean gotIt = waitForSOReply();
 
-        if (gotIt) {
-            soLogger.debug("SATIN '" + s.ident.name()
-                + "': received the object after requesting it");
-            return;
-        }
-        soLogger
-            .debug("SATIN '"
-                + s.ident.name()
-                + "': received NACK, the object is probably already being broadcast to me, WAITING");
-*/
+         if (gotIt) {
+         soLogger.debug("SATIN '" + s.ident.name()
+         + "': received the object after requesting it");
+         return;
+         }
+         soLogger
+         .debug("SATIN '"
+         + s.ident.name()
+         + "': received NACK, the object is probably already being broadcast to me, WAITING");
+         */
         // got a nack back, the source thinks it sent it to me.
         // wait for the object to arrive. If it doesn't, demand the object.
         long start = System.currentTimeMillis();
@@ -487,7 +533,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
     }
 
     private void sendSORequest(String objectId, IbisIdentifier source,
-        boolean demand) throws SOReferenceSourceCrashedException {
+            boolean demand) throws SOReferenceSourceCrashedException {
         // request the shared object from the source
         try {
             s.lb.setCurrentVictim(source);
@@ -510,7 +556,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
                 w.writeByte(SO_REQUEST);
             }
             w.writeString(objectId);
-            w.finish();
+            v.finish(w);
         } catch (IOException e) {
             // hm we've got a problem here
             // push the job somewhere else?
@@ -613,7 +659,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
                 try {
                     wm = v.newMessage();
                     wm.writeByte(SO_NACK);
-                    wm.finish();
+                    v.finish(wm);
                 } catch (IOException e) {
                     soLogger.error("SATIN '" + s.ident.name()
                         + "': got exception while sending"
@@ -661,7 +707,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
         s.stats.soSerializationTimer.stop();
 
         try {
-            size = wm.finish();
+            size = v.finish(wm);
         } catch (IOException e) {
             soLogger.error("SATIN '" + s.ident.name()
                 + "': got exception while sending" + " shared object", e);
@@ -673,8 +719,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
         s.stats.soTransfersBytes += size;
         s.stats.soTransferTimer.stop();
     }
-    
-    
+
     protected void handleSORequest(ReadMessage m, boolean demand) {
         String objid = null;
         IbisIdentifier origin = m.origin().ibis();
@@ -729,49 +774,21 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
     }
 
     private void connectSOSendPort(IbisIdentifier ident) {
-        if (! LOCALPORTS) {
-            ReceivePortIdentifier r = s.comm.lookup_wait(
-                "satin so receive port on " + ident.name() + " for "
-                    + s.ident.name(), LOOKUP_WAIT_TIME);
-
-            if (r == null) {
-                soLogger.warn("SATIN '" + s.ident.name()
-                    + "': unable to lookup SO receive port ");
-                // We won't broadcast the object to this receiver.
-                // This is not really a problem, it will get the object if it
-                // needs it. But the node has probably crashed anyway.
-                return;
-            }
-
-            // and connect
-            if (Communication.connect(soSendPort, r, Satin.CONNECT_TIMEOUT)) {
-                synchronized (s) {
-                    ports.put(ident, r);
-                }
-            } else {
-                soLogger.warn("SATIN '" + s.ident.name()
-                    + "': unable to connect to SO receive port ");
-                // We won't broadcast the object to this receiver.
-                // This is not really a problem, it will get the object if it
-                // needs it. But the node has probably crashed anyway.
-                return;
+        ReceivePortIdentifier r =
+                Communication.connect(soSendPort, ident,
+                    "satin so receiveport for " + s.ident.name(),
+                    Satin.CONNECT_TIMEOUT);
+        if (r != null) {
+            synchronized (s) {
+                ports.put(ident, r);
             }
         } else {
-            ReceivePortIdentifier r = Communication.connect(soSendPort,
-                    ident, "satin so receiveport for " + s.ident.name(),
-                    Satin.CONNECT_TIMEOUT);
-            if (r != null) {
-                synchronized (s) {
-                    ports.put(ident, r);
-                }
-            } else {
-                soLogger.warn("SATIN '" + s.ident.name()
-                    + "': unable to connect to SO receive port ");
-                // We won't broadcast the object to this receiver.
-                // This is not really a problem, it will get the object if it
-                // needs it. But the node has probably crashed anyway.
-                return;
-            }
+            soLogger.warn("SATIN '" + s.ident.name()
+                + "': unable to connect to SO receive port ");
+            // We won't broadcast the object to this receiver.
+            // This is not really a problem, it will get the object if it
+            // needs it. But the node has probably crashed anyway.
+            return;
         }
     }
 
@@ -780,7 +797,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
         synchronized (s) {
             tmp = new IbisIdentifier[toConnect.size()];
             for (int i = 0; i < toConnect.size(); i++) {
-                tmp[i] = (IbisIdentifier) toConnect.get(i);
+                tmp[i] = toConnect.get(i);
             }
             toConnect.clear();
         }
@@ -798,15 +815,16 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
     }
 
     public void handleCrash(IbisIdentifier id) {
-        if(LABEL_ROUTING_MCAST) {
+        if (LABEL_ROUTING_MCAST) {
             omc.removeIbis(id);
             omc.setDestination(s.victims.getIbises());
-        }    
+        }
     }
 
     protected void exit() {
-        if(LABEL_ROUTING_MCAST) {
+        if (LABEL_ROUTING_MCAST) {
             omc.done();
+            omcInfo.end();
         }
     }
 

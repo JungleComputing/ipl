@@ -68,10 +68,15 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 
     long count = 0;
 
+    private boolean global = false;
+
+    private boolean reader_busy = false;
+
     TcpReceivePort(TcpIbis ibis, TcpPortType type, String name, Upcall upcall,
             boolean connectionAdministration,
-            ReceivePortConnectUpcall connUpcall) {
+            ReceivePortConnectUpcall connUpcall, boolean global) {
 
+        this.global = global;
         this.type = type;
         this.upcall = upcall;
         this.connUpcall = connUpcall;
@@ -263,29 +268,49 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
         count = 0;
     }
 
-    private synchronized TcpReadMessage getMessage(long timeout)
+    private TcpReadMessage getMessage(long timeout)
             throws IOException {
         
         if (no_connectionhandler_thread) {
-                       
-            // Since we don't have any threads or timeout here, this 'reader' 
-            // call directly handles the receive.              
-            do {
-                // Wait until there is a connection            
-                while (connectionsIndex == 0) {
+            // Allow only one reader in.
+            synchronized(this) {
+                while (reader_busy && ! shouldLeave) {
                     try {
                         wait();
-                    } catch (Exception e) {
-                        /* ignore */
+                    } catch(Exception e) {
+                        // ignored
                     }
                 }
-                
-                // Wait until the current message is done
-                while (m != null && !m.isFinished) {
-                    try {
-                        wait();
-                    } catch (Exception e) {
-                        /* ignore */
+                if (shouldLeave) {
+                    return null;
+                }
+                reader_busy = true;
+            }
+            // Since we don't have any threads or timeout here, this 'reader' 
+            // call directly handles the receive.              
+            for (;;) {
+                // Wait until there is a connection            
+                synchronized(this) {
+                    while (connectionsIndex == 0 && ! shouldLeave) {
+                        try {
+                            wait();
+                        } catch (Exception e) {
+                            /* ignore */
+                        }
+                    }
+                    
+                    // Wait until the current message is done
+                    while (m != null && !m.isFinished && ! shouldLeave) {
+                        try {
+                            wait();
+                        } catch (Exception e) {
+                            /* ignore */
+                        }
+                    }
+                    if (shouldLeave) {
+                        reader_busy = false;
+                        notifyAll();
+                        return null;
                     }
                 }
                 
@@ -295,23 +320,33 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
                 // receiving message. We must therefore keep trying until we see
                 // that there really is a message waiting in m!
                 connections[0].reader();
-            } while (m == null);                       
-        } else {
-            while ((m == null || delivered) && !shouldLeave) {
-                try {
-                    if (timeout > 0) {
-                        wait(timeout);
-                    } else {
-                        wait();
+                synchronized(this) {
+                    if (m != null) {
+                        reader_busy = false;
+                        delivered = true;
+                        notifyAll();
+                        return m;
                     }
-                } catch (Exception e) {
-                    throw new ReceiveTimedOutException(
-                            "timeout expired in receive()");
                 }
             }
+        } else {
+            synchronized(this) {
+                while ((m == null || delivered) && !shouldLeave) {
+                    try {
+                        if (timeout > 0) {
+                            wait(timeout);
+                        } else {
+                            wait();
+                        }
+                    } catch (Exception e) {
+                        throw new ReceiveTimedOutException(
+                                "timeout expired in receive()");
+                    }
+                }
+                delivered = true;
+                return m;
+            }
         }
-        delivered = true;
-        return m;
     }
 
     public synchronized void enableConnections() {
@@ -536,10 +571,12 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
         }
 
         /* unregister with nameserver */
-        try {
-            ibis.unbindReceivePort(name);
-        } catch (Exception e) {
-            // Ignore.
+        if (global) {
+            try {
+                ibis.unbindReceivePort(name);
+            } catch (Exception e) {
+                // Ignore.
+            }
         }
 
         /* unregister with porthandler */
@@ -636,8 +673,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
         return res;
     }
 
-    //Called from porthandler. Someone else may have lock, so no synch here.
-    boolean isConnectedTo(SendPortIdentifier id) {
+    synchronized boolean isConnectedTo(SendPortIdentifier id) {
         for (int i = 0; i < connectionsIndex; i++) {
             if (connections[i].origin.equals(id)) {
                 return true;

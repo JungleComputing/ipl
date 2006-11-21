@@ -68,14 +68,8 @@ public final class Communication implements Config, Protocol {
 
             MessageHandler messageHandler = new MessageHandler(s);
 
-            if (LOCALPORTS) {
-                receivePort = portType.createLocalReceivePort("satin port",
-                        messageHandler, s.ft.getReceivePortConnectHandler());
-            } else {
-                receivePort = portType.createReceivePort(
-                        "satin port on " + ident.name(),
-                        messageHandler, s.ft.getReceivePortConnectHandler());
-            }
+            receivePort = portType.createLocalReceivePort("satin port",
+                messageHandler, s.ft.getReceivePortConnectHandler());
             receivePort.enableUpcalls();
             receivePort.enableConnections();
 
@@ -162,10 +156,7 @@ public final class Communication implements Config, Protocol {
         String commprops = "OneToOne, OneToMany, ManyToOne, ExplicitReceipt, Reliable";
         commprops += ", ConnectionUpcalls, ConnectionDowncalls";
         commprops += ", AutoUpcalls";
-
-        if (LOCALPORTS) {
-            commprops += ", LocalReceivePorts";
-        }
+        commprops += ", LocalReceivePorts";
 
         ibisProperties.add("communication", commprops);
         return ibisProperties;
@@ -228,7 +219,7 @@ public final class Communication implements Config, Protocol {
 
                 writeMessage = v.newMessage();
                 writeMessage.writeByte(opcode);
-                writeMessage.finish();
+                v.finish(writeMessage);
             } catch (IOException e) {
                 synchronized (s) {
                     ftLogger.info("SATIN '" + s.ident
@@ -245,56 +236,12 @@ public final class Communication implements Config, Protocol {
         }
     }
 
-    public static void connect(SendPort s, ReceivePortIdentifier ident) {
-        boolean success = false;
-        do {
-            try {
-                s.connect(ident);
-                success = true;
-            } catch (AlreadyConnectedException x) {
-                return;
-            } catch (IOException e) {
-                commLogger.info(
-                    "IOException in connect to " + ident + ": " + e, e);
-                try {
-                    Thread.sleep(500);
-                } catch (InterruptedException e2) {
-                    // ignore
-                }
-            }
-        } while (!success);
-    }
-
     public static void disconnect(SendPort s, ReceivePortIdentifier ident) {
         try {
             s.disconnect(ident);
         } catch (IOException e) {
             // ignored
         }
-    }
-
-    public static boolean connect(SendPort s, ReceivePortIdentifier ident,
-        long timeoutMillis) {
-        boolean success = false;
-        long startTime = System.currentTimeMillis();
-        do {
-            try {
-                s.connect(ident, timeoutMillis);
-                success = true;
-            } catch (AlreadyConnectedException x) {
-                return true;
-            } catch (IOException e) {
-                commLogger.info(
-                    "IOException in connect to " + ident + ": " + e, e);
-                try {
-                    Thread.sleep(500);
-                } catch (InterruptedException e2) {
-                    // ignore
-                }
-            }
-        } while (!success
-            && System.currentTimeMillis() - startTime < timeoutMillis);
-        return success;
     }
 
     public static ReceivePortIdentifier connect(SendPort s,
@@ -305,14 +252,17 @@ public final class Communication implements Config, Protocol {
             try {
                 r = s.connect(ident, name, timeoutMillis);
             } catch (AlreadyConnectedException x) {
+                commLogger.info("the port was already connected");
                 ReceivePortIdentifier[] ports = s.connectedTo();
                 for (int i = 0; i < ports.length; i++) {
                     if (ports[i].ibis().equals(ident) &&
                             ports[i].name().equals(name)) {
+                        commLogger.info("the port was already connected, found it");
                         return ports[i];
                     }
                 }
-                return null;
+                commLogger.info("the port was already connected, but could not find it, retry!");
+//                return null;
             } catch (IOException e) {
                 commLogger.info(
                     "IOException in connect to " + ident + ": " + e, e);
@@ -324,6 +274,12 @@ public final class Communication implements Config, Protocol {
             }
         } while (r == null
             && System.currentTimeMillis() - startTime < timeoutMillis);
+        
+        if(r == null) {
+            commLogger.info("could not connect port within given time");
+        } else {
+            commLogger.info("port connected");            
+        }
         return r;
     }
 
@@ -375,10 +331,14 @@ public final class Communication implements Config, Protocol {
                     synchronized (s) {
                         v = s.victims.getVictim(i);
                     }
-
+                    if(v == null) {
+                        commLogger.fatal("a machine crashed with open world");
+                        System.exit(1);
+                    }
+                    
                     WriteMessage writeMessage = v.newMessage();
                     writeMessage.writeByte(Protocol.BARRIER_REPLY);
-                    writeMessage.finish();
+                    v.finish(writeMessage);
                 }
             } else {
                 Victim v;
@@ -433,26 +393,26 @@ public final class Communication implements Config, Protocol {
     }
 
     public void sendExitAck() {
-        Victim mp = null;
+        Victim v = null;
 
         synchronized (s) {
-            mp = s.victims.getVictim(s.masterIdent);
+            v = s.victims.getVictim(s.masterIdent);
         }
 
-        if (mp == null) return; // node might have crashed
+        if (v == null) return; // node might have crashed
 
         try {
             WriteMessage writeMessage;
             commLogger.debug("SATIN '" + s.ident
                 + "': sending exit ACK message to " + s.masterIdent);
 
-            writeMessage = mp.newMessage();
+            writeMessage = v.newMessage();
             writeMessage.writeByte(Protocol.EXIT_REPLY);
             if (STATS) {
                 s.stats.fillInStats();
                 writeMessage.writeObject(s.stats);
             }
-            writeMessage.finish();
+            v.finish(writeMessage);
         } catch (IOException e) {
             ftLogger.info("SATIN '" + s.ident
                 + "': could not send exit message to " + s.masterIdent, e);

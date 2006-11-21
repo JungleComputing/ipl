@@ -164,13 +164,12 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
                     throw new PortMismatchException(
                             "Cannot connect ports of different PortTypes");
                 case RECEIVER_DENIED:
-                    throw new ConnectionRefusedException("Could not connect");
+		    throw new ConnectionRefusedException("Receiver denied connection");
                 case RECEIVER_DISABLED:
                     // and try again if we did not reach the timeout...
                     if (timeout > 0
                             && System.currentTimeMillis() > startTime + timeout) {
-                        throw new ConnectionTimedOutException("Could not " +
-                                "connect: receiveport was disabled");
+			throw new ConnectionTimedOutException("could not connect");
                     }
                     try {
                         Thread.sleep(100);
@@ -181,7 +180,6 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
                 default:
                     throw new IbisError("Illegal opcode in TcpPorthandler.connect");
                 }
-                
             } while (true);
         } catch (IOException e) {
             // e.printStackTrace();
@@ -192,7 +190,8 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
             } catch (Exception e2) {
                 // Ignore.
             }
-            throw new ConnectionRefusedException("Could not connect: " + e);
+            // just rethrow the original exception, otherwise, we loose the type! --Rob
+            throw e; // new ConnectionRefusedException("Could not connect: " + e);
         }
     }
 
