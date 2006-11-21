@@ -126,6 +126,23 @@ public final class Victim implements Config {
         }
     }
 
+    public long finishKeepConnection(WriteMessage m) throws IOException {
+        synchronized (s) {
+            referenceCount--;
+            return m.finish();
+        }
+    }
+
+    public void loseConnection() throws IOException {
+        if (CLOSE_CONNECTIONS) {
+            synchronized(s) {
+                if (referenceCount == 0) {
+                    disconnect();
+                }
+            }
+        }
+    }
+
     public synchronized void close() {
         synchronized (s) {
             connected = false;
