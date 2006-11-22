@@ -75,7 +75,9 @@ final class LBCommunication implements Config, Protocol {
         }
 
         writeMessage.writeByte(opcode);
-        long cnt = v.finish(writeMessage);
+        // Finish the message but try to keep the connection. If the
+        // steal attempt succeeds, we need to send an answer later on.
+        long cnt = v.finishKeepConnection(writeMessage);
         if (s.comm.inDifferentCluster(v.getIdent())) {
             s.stats.interClusterMessages++;
             s.stats.interClusterBytes += cnt;
@@ -348,6 +350,20 @@ final class LBCommunication implements Config, Protocol {
         //fall through
         case STEAL_REPLY_FAILED:
         case ASYNC_STEAL_REPLY_FAILED:
+            if (CLOSE_CONNECTIONS) {
+                // Drop the connection that we kept in case the steal
+                // is succesful. It was'nt.
+                synchronized(s) {
+                    Victim v = s.victims.getVictimNonBlocking(ident.ibis());
+                    if (v != null) {
+                        try {
+                            v.loseConnection();
+                        } catch(Exception e) {
+                            // ignored
+                        }
+                    }
+                }
+            }
             s.algorithm.stealReplyHandler(null, opcode);
             break;
         default:

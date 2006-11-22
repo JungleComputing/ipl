@@ -23,6 +23,8 @@ public final class VictimTable implements Config {
 
     private HashMap clustersHash = new HashMap();
 
+    private HashMap<IbisIdentifier, Victim> ibisHash = new HashMap<IbisIdentifier, Victim>();
+
     private Satin satin;
 
     public VictimTable(Satin s) {
@@ -35,6 +37,7 @@ public final class VictimTable implements Config {
     public void add(Victim v) {
         Satin.assertLocked(satin);
         victims.add(v);
+        ibisHash.put(v.getIdent(), v);
 
         Cluster c = (Cluster) clustersHash.get(v.getIdent().cluster());
         if (c == null) { // new cluster
@@ -49,6 +52,7 @@ public final class VictimTable implements Config {
     public Victim remove(IbisIdentifier ident) {
         Satin.assertLocked(satin);
         Victim v = new Victim(ident, null);
+        ibisHash.remove(ident);
 
         int i = victims.indexOf(v);
         return remove(i);
@@ -65,6 +69,7 @@ public final class VictimTable implements Config {
 
         Cluster c = (Cluster) clustersHash.get(v.getIdent().cluster());
         c.remove(v);
+        ibisHash.remove(v.getIdent());
 
         if (c.size() == 0) {
             clustersHash.remove(c);
@@ -87,18 +92,9 @@ public final class VictimTable implements Config {
         return (Victim) victims.get(i);
     }
 
-    private Victim getVictimNonBlocking(IbisIdentifier ident) {
+    public Victim getVictimNonBlocking(IbisIdentifier ident) {
         Satin.assertLocked(satin);
-        Victim v = null;
-        for (int i = 0; i < victims.size(); i++) {
-            v = ((Victim) victims.get(i));
-
-            if (v.getIdent().equals(ident)) {
-                return v;
-            }
-        }
-
-        return null;
+        return ibisHash.get(ident);
     }
 
     public Victim getRandomVictim() {
@@ -189,7 +185,7 @@ public final class VictimTable implements Config {
 
     public boolean contains(IbisIdentifier ident) {
         Satin.assertLocked(satin);
-        return victims.contains(ident);
+        return ibisHash.get(ident) != null;
     }
 
     public IbisIdentifier[] getIbises() {
