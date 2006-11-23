@@ -329,7 +329,7 @@ final class LBCommunication implements Config, Protocol {
                 }
             }
 
-            s.algorithm.stealReplyHandler(tmp, opcode);
+            s.algorithm.stealReplyHandler(tmp, ident.ibis(), opcode);
             break;
 
         case STEAL_REPLY_FAILED_TABLE:
@@ -364,7 +364,7 @@ final class LBCommunication implements Config, Protocol {
                     }
                 }
             }
-            s.algorithm.stealReplyHandler(null, opcode);
+            s.algorithm.stealReplyHandler(null, ident.ibis(), opcode);
             break;
         default:
             stealLogger.error("INTERNAL ERROR, opcode = " + opcode);

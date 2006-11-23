@@ -34,8 +34,8 @@ public abstract class LoadBalancingAlgorithm {
      * algorithm knows about the reply (this is needed with asynchronous
      * communication)
      */
-    public void stealReplyHandler(InvocationRecord ir, int opcode) {
-        satin.lb.gotJobResult(ir);
+    public void stealReplyHandler(InvocationRecord ir, IbisIdentifier sender, int opcode) {
+        satin.lb.gotJobResult(ir, sender);
     }
 
     /**

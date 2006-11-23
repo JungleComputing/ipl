@@ -50,6 +50,8 @@ public interface Config {
 
     static final String s_delete_time = PROPERTY_PREFIX + "deleteTime";
 
+    static final String s_steal_wait_timeout = PROPERTY_PREFIX + "stealWaitTimeout";
+    
     static final String s_delete_cluster_time = PROPERTY_PREFIX
         + "deleteClusterTime";
 
@@ -59,7 +61,7 @@ public interface Config {
         s_detailed_stats, s_closed, s_localports, s_asserts,
         s_ft_naive, s_ft_connectTimeout, s_masterhost, s_in_latency,
         s_delete_time, s_delete_cluster_time, s_kill_time, s_dump, s_so_delay,
-        s_so_size, s_alg, s_so_lrmc, s_close_connections };
+        s_so_size, s_alg, s_so_lrmc, s_close_connections, s_steal_wait_timeout };
 
     /** Enable or disable asserts. */
     static final boolean ASSERTS = TypedProperties.booleanProperty(s_asserts,
@@ -102,6 +104,12 @@ public interface Config {
      */
     public static final long CONNECT_TIMEOUT = TypedProperties.intProperty(
         s_ft_connectTimeout, 30) * 1000L;
+
+    /**
+     * Timeout for waiting on a steal reply from another node.
+     */
+    public static final long STEAL_WAIT_TIMEOUT = TypedProperties.intProperty(
+        s_steal_wait_timeout, 30) * 1000L;
 
     /** Maximum time that messages may be buffered for message combining.
      * If > 0, it is used for combining shared objects invocations.
