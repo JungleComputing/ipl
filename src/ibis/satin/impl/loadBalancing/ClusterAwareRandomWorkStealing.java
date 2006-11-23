@@ -21,6 +21,9 @@ public final class ClusterAwareRandomWorkStealing extends
 
     private IbisIdentifier asyncCurrentVictim = null;
 
+    private long asyncStealStart = System.currentTimeMillis();
+
+    
     /**
      * This means we have sent an ASYNC request, and are waiting for the reply.
      * These are/should only (be) used in clientIteration.
@@ -38,12 +41,18 @@ public final class ClusterAwareRandomWorkStealing extends
         boolean canDoAsync = true;
         InvocationRecord remoteJob = null;
 
-        // First look if there was an oustanding WAN steal request that resulted
+        // First look if there was an outstanding WAN steal request that resulted
         // in a job.
         //check asyncStealInProgress, taking a lock is quite expensive..
         if (asyncStealInProgress) {
             synchronized (satin) {
-                if (gotAsyncStealReply) {
+            	boolean gotTimeout = System.currentTimeMillis() - asyncStealStart >= STEAL_WAIT_TIMEOUT;
+            	if(gotTimeout) {
+            		ftLogger.warn("SATIN '" + s.ident
+                            + "': a timeout occurred while waiting for a wide-area steal reply");
+            	}
+
+            	if (gotAsyncStealReply || gotTimeout) {
                     gotAsyncStealReply = false;
                     asyncStealInProgress = false;
                     asyncCurrentVictim = null;
@@ -52,7 +61,7 @@ public final class ClusterAwareRandomWorkStealing extends
                 }
             }
 
-            if (remoteJob != null) { //try a saved async job
+            if (remoteJob != null) { // try a saved async job
                 s.stats.asyncStealSuccess++;
                 return remoteJob;
             }
@@ -115,9 +124,17 @@ public final class ClusterAwareRandomWorkStealing extends
         case ASYNC_STEAL_REPLY_SUCCESS_TABLE:
         case ASYNC_STEAL_REPLY_FAILED_TABLE:
             synchronized (satin) {
-                gotAsyncStealReply = true;
-                asyncStolenJob = ir;
-                satin.notifyAll();
+            	if(sender.equals(asyncCurrentVictim)) {
+            		gotAsyncStealReply = true;
+            		asyncStolenJob = ir;
+            		satin.notifyAll();
+            	} else {
+            		ftLogger.warn("SATIN '" + s.ident
+                            + "': received an async job from a node that caused a timeout before.");
+            		if(ir != null) {
+            			s.q.addToTail(ir);
+            		}
+            	}
             }
             break;
         default:
