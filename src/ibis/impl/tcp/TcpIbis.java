@@ -132,9 +132,9 @@ public final class TcpIbis extends Ibis implements Config {
         
         ident = new TcpIbisIdentifier(name, myAddress);
 
-        if (DEBUG) {
+    //    if (DEBUG) {
             System.err.println("Created IbisIdentifier " + ident);
-        }
+    //    }
 
         tcpPortHandler = new TcpPortHandler(ident, socketFactory);                  
         

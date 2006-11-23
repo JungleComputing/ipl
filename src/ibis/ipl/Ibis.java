@@ -188,7 +188,7 @@ public abstract class Ibis {
 
         Ibis impl;
         
-        System.err.println("Creating ibis instance class: " + c.getName());
+        //System.err.println("Creating ibis instance class: " + c.getName());
         
         try {
             impl = (Ibis) c.newInstance();
@@ -240,7 +240,7 @@ public abstract class Ibis {
             impl.combinedprops = impl.requiredprops.combineWithUserProps();
         }
 
-        System.err.println("Init ibis: " + impl.name);
+        //System.err.println("Init ibis: " + impl.name);
         
         try {
             impl.init();
