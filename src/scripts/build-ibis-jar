@@ -31,7 +31,7 @@ cd $IBIS_HOME
 JARS=`ls lib/*.jar | grep -v ibis.jar`
 JARS="$JARS lib/ibis.jar"
 
-trap 'rm -rf bla' 0 1 2 3 15
+trap 'rm -rf $IBIS_HOME/bla' 0 1 2 3 15
 
 name=ibis-all
 if mkdir bla && cd bla
@@ -45,5 +45,5 @@ then
     do
 	jar x < ../$i
     done
-    jar cf ../$name.jar .
+    jar cmf META-INF/MANIFEST.MF ../$name.jar .
 fi
