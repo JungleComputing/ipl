@@ -153,7 +153,6 @@ public class LoadBalancing implements Config {
         }
     }
 
-    // returns false in case we have to stop because of a crash, or maybe we have to exit 
     private void waitForStealReplyMessage() {
         while (true) {
             synchronized (s) {

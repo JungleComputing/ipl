@@ -1,0 +1,49 @@
+#!/bin/sh
+
+PRG="$0"
+
+# resolve symlinks
+while [ -h "$PRG" ] ; do
+    ls=`ls -ld "$PRG"`
+    link=`expr "$ls" : '.*-> \(.*\)$'`
+    if expr "$link" : '/.*' > /dev/null; then
+    PRG="$link"
+    else
+    PRG=`dirname "$PRG"`"/$link"
+    fi
+done
+
+dir=`dirname "$PRG"`
+dir=`cd "$dir" && pwd`
+
+case X$IBIS_HOME in
+X)
+    IBIS_HOME=`cd "$dir/.." && pwd`
+    ;;
+esac
+
+export IBIS_HOME
+
+cd $IBIS_HOME
+
+# Note: ibis.jar must be last, because of its manifest.
+
+JARS=`ls lib/*.jar | grep -v ibis.jar`
+JARS="$JARS lib/ibis.jar"
+
+trap 'rm -rf bla' 0 1 2 3 15
+
+name=ibis-all
+if mkdir bla && cd bla
+then
+    if [ -f  ../smartsockets.properties ]
+    then
+	cp ../smartsockets.properties .
+	name=ibis-all-ss
+    fi
+    for i in $JARS
+    do
+	jar x < ../$i
+    done
+    jar cf ../$name.jar .
+fi
