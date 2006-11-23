@@ -171,7 +171,7 @@ public class LoadBalancing implements Config {
     	while (true) {
             synchronized (s) {
             	boolean gotTimeout = System.currentTimeMillis() - start >= STEAL_WAIT_TIMEOUT;
-            	if(gotTimeout) {
+            	if(gotTimeout && !gotStealReply) {
             		ftLogger.warn("SATIN '" + s.ident
                             + "': a timeout occurred while waiting for a steal reply");
             	}
