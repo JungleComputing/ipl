@@ -94,7 +94,8 @@ public class LoadBalancing implements Config {
         	// it is not the result of the current steal request.
         	if(!sender.equals(currentVictim)) {
         		ftLogger.warn("SATIN '" + s.ident
-                        + "': received a job from a node that caused a timeout before.");
+                        + "': received a job from " + sender + " that caused a " +
+                                "timeout before.");
         		if(ir != null) {
         			s.q.addToTail(ir);
         		}
@@ -173,7 +174,8 @@ public class LoadBalancing implements Config {
             	boolean gotTimeout = System.currentTimeMillis() - start >= STEAL_WAIT_TIMEOUT;
             	if(gotTimeout) {
             		ftLogger.warn("SATIN '" + s.ident
-                            + "': a timeout occurred while waiting for a steal reply");
+                            + "': a timeout occurred while waiting for a " +
+                                    "steal reply from " + currentVictim);
             	}
             	
                 if (gotStealReply || gotTimeout) {
