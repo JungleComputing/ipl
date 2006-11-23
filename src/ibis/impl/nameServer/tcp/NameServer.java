@@ -296,6 +296,14 @@ public class NameServer extends Thread implements Protocol {
             }
         }
         
+        if (! silent && logger.isInfoEnabled()) {
+            logger.info("NameServer: singleRun = " + singleRun);
+        }
+
+        // Create a server socket.
+        serverSocket = socketFactory.createServerSocket(port,
+                50, false, null);
+
         if (CHECKER_INTERVAL != 0) {
             final KeyChecker ck = new KeyChecker(socketFactory, null, 
                             serverSocket.getLocalSocketAddress(),
@@ -310,14 +318,6 @@ public class NameServer extends Thread implements Protocol {
             p.setDaemon(true);
             p.start();
         }
-
-        if (! silent && logger.isInfoEnabled()) {
-            logger.info("NameServer: singleRun = " + singleRun);
-        }
-
-        // Create a server socket.
-        serverSocket = socketFactory.createServerSocket(port,
-                50, false, null);
 
         System.err.println("NameServer created on: " 
                 + serverSocket.getLocalSocketAddress());

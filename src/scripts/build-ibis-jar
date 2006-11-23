@@ -28,8 +28,8 @@ cd $IBIS_HOME
 
 # Note: ibis.jar must be last, because of its manifest.
 
-JARS=`ls lib/*.jar | grep -v ibis.jar`
-JARS="$JARS lib/ibis.jar"
+JARS=`ls lib/*.jar | grep -v ibis.jar | grep -v lib/bcel-5.1-fixes*`
+JARS="$JARS `ls lib/bcel-5.1-fixes*` lib/ibis.jar"
 
 trap 'rm -rf $IBIS_HOME/bla' 0 1 2 3 15
 
@@ -39,11 +39,13 @@ then
     if [ -f  ../smartsockets.properties ]
     then
 	cp ../smartsockets.properties .
-	name=ibis-all-ss
+	name=ibis-ss-all
     fi
     for i in $JARS
     do
+	echo "Extracting $i ..."
 	jar x < ../$i
     done
+    echo "Building $name.jar ..."
     jar cmf META-INF/MANIFEST.MF ../$name.jar .
 fi
