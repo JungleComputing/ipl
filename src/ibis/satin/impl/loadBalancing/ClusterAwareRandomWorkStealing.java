@@ -21,8 +21,7 @@ public final class ClusterAwareRandomWorkStealing extends
 
     private IbisIdentifier asyncCurrentVictim = null;
 
-    private long asyncStealStart = System.currentTimeMillis();
-
+    private long asyncStealStart;
     
     /**
      * This means we have sent an ASYNC request, and are waiting for the reply.
@@ -95,7 +94,8 @@ public final class ClusterAwareRandomWorkStealing extends
                 asyncStealInProgress = true;
                 s.stats.asyncStealAttempts++;
                 try {
-                    satin.lb.sendStealRequest(remoteVictim, false, false);
+                	asyncStealStart = System.currentTimeMillis();
+                	satin.lb.sendStealRequest(remoteVictim, false, false);
                 } catch (IOException e) {
                     // Ignore this?
                 }
