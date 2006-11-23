@@ -102,13 +102,13 @@ public final class ClusterAwareRandomWorkStealing extends
         return null;
     }
 
-    public void stealReplyHandler(InvocationRecord ir, int opcode) {
+    public void stealReplyHandler(InvocationRecord ir, IbisIdentifier sender, int opcode) {
         switch (opcode) {
         case STEAL_REPLY_SUCCESS:
         case STEAL_REPLY_FAILED:
         case STEAL_REPLY_SUCCESS_TABLE:
         case STEAL_REPLY_FAILED_TABLE:
-            satin.lb.gotJobResult(ir);
+            satin.lb.gotJobResult(ir, sender);
             break;
         case ASYNC_STEAL_REPLY_SUCCESS:
         case ASYNC_STEAL_REPLY_FAILED:

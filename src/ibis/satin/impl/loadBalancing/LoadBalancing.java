@@ -87,8 +87,18 @@ public class LoadBalancing implements Config {
         lbComm = new LBCommunication(s, this);
     }
 
-    public void gotJobResult(InvocationRecord ir) {
+    public void gotJobResult(InvocationRecord ir, IbisIdentifier sender) {
         synchronized (s) {
+        	// This might be a job that came in after a STEAL_WAIT_TIMEOUT.
+        	// If this is the case, this job has to be added to the queue,
+        	// it is not the result of the current steal request.
+        	if(!sender.equals(currentVictim)) {
+        		ftLogger.warn("SATIN '" + s.ident
+                        + "': received a job from a node that caused a timeout before.");
+        		s.q.addToTail(ir);
+        		return;
+        	}
+        	
             gotStealReply = true;
             stolenJob = ir;
             currentVictim = null;
@@ -121,7 +131,8 @@ public class LoadBalancing implements Config {
             lbComm.sendStealRequest(v, true, blockOnServer);
             return waitForStealReply();
         } catch (IOException e) {
-            ftLogger.info("got exception during steal request", e);
+            ftLogger.info("SATIN '" + s.ident
+                    + "': got exception during steal request", e);
             return null;
         } finally {
             s.stats.stealTimer.stop();
@@ -154,9 +165,16 @@ public class LoadBalancing implements Config {
     }
 
     private void waitForStealReplyMessage() {
-        while (true) {
+    	long start = System.currentTimeMillis();
+    	while (true) {
             synchronized (s) {
-                if (gotStealReply) {
+            	boolean gotTimeout = System.currentTimeMillis() - start >= STEAL_WAIT_TIMEOUT;
+            	if(gotTimeout) {
+            		ftLogger.warn("SATIN '" + s.ident
+                            + "': a timeout occurred while waiting for a steal reply");
+            	}
+            	
+                if (gotStealReply || gotTimeout) {
                     // Immediately reset gotStealReply, a reply has arrived.
                     gotStealReply = false;
                     s.currentVictimCrashed = false;
@@ -174,11 +192,11 @@ public class LoadBalancing implements Config {
                     return;
                 }
 
-                if (!HANDLE_MESSAGES_IN_LATENCY) { // a normal blocking steal 
+                if (!HANDLE_MESSAGES_IN_LATENCY) { // a normal blocking steal
                     try {
-                        s.wait();
+                        s.wait(STEAL_WAIT_TIMEOUT);
                     } catch (InterruptedException e) {
-                        throw new IbisError(e);
+                        // ignore
                     }
                 }
             }
