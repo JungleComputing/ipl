@@ -95,7 +95,9 @@ public class LoadBalancing implements Config {
         	if(!sender.equals(currentVictim)) {
         		ftLogger.warn("SATIN '" + s.ident
                         + "': received a job from a node that caused a timeout before.");
-        		s.q.addToTail(ir);
+        		if(ir != null) {
+        			s.q.addToTail(ir);
+        		}
         		return;
         	}
         	
@@ -194,7 +196,7 @@ public class LoadBalancing implements Config {
 
                 if (!HANDLE_MESSAGES_IN_LATENCY) { // a normal blocking steal
                     try {
-                        s.wait(STEAL_WAIT_TIMEOUT);
+                        s.wait(500);
                     } catch (InterruptedException e) {
                         // ignore
                     }
