@@ -41,7 +41,7 @@ class ElectionServer extends Thread implements Protocol {
 
         this.silent = silent;
 
-        serverSocket = socketFactory.createServerSocket(0, null,
+        serverSocket = socketFactory.createServerSocket(0, null, 256,
                 true /* retry */, null);
         setName("NameServer ElectionServer");
         start();

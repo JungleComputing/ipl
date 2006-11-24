@@ -287,7 +287,7 @@ public class NameServer extends Thread implements Protocol {
 
         // Create a server socket.
         serverSocket = NameServerClient.socketFactory.createServerSocket(port,
-                null, 50, false, null);
+                null, 256, false, null);
 
         pools = new Hashtable();
 

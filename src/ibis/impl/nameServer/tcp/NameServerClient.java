@@ -79,7 +79,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
             } catch (IOException e) {
                 if (cnt == timeout) {
                     if (verbose) {
-                        logger.error("Nameserver client failed"
+                        logger.error("Nameserver client " + me + " failed"
                                 + " to connect to nameserver\n at "
                                 + dest + ":" + port);
                         logger.error("Gave up after " + timeout
@@ -89,7 +89,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
                 }
                 if (cnt == 10 && verbose) {
                     // Rather arbitrary, 10 seconds, print warning
-                    logger.error("Nameserver client failed"
+                    logger.error("Nameserver client " + me + " failed"
                             + " to connect to nameserver\n at " + dest
                             + ":" + port + ", will keep trying");
                 } 
