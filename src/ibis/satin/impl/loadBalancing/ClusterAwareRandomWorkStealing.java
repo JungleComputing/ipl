@@ -21,8 +21,7 @@ public final class ClusterAwareRandomWorkStealing extends
 
     private IbisIdentifier asyncCurrentVictim = null;
 
-    private long asyncStealStart = System.currentTimeMillis();
-
+    private long asyncStealStart;
     
     /**
      * This means we have sent an ASYNC request, and are waiting for the reply.
@@ -43,13 +42,13 @@ public final class ClusterAwareRandomWorkStealing extends
 
         // First look if there was an outstanding WAN steal request that resulted
         // in a job.
-        //check asyncStealInProgress, taking a lock is quite expensive..
+        // check asyncStealInProgress, taking a lock is quite expensive..
         if (asyncStealInProgress) {
             synchronized (satin) {
             	boolean gotTimeout = System.currentTimeMillis() - asyncStealStart >= STEAL_WAIT_TIMEOUT;
-            	if(gotTimeout) {
+            	if(gotTimeout && !gotAsyncStealReply) {
             		ftLogger.warn("SATIN '" + s.ident
-                            + "': a timeout occurred while waiting for a wide-area steal reply");
+                            + "': a timeout occurred while waiting for a wide-area steal reply from " + asyncCurrentVictim);
             	}
 
             	if (gotAsyncStealReply || gotTimeout) {
@@ -58,6 +57,7 @@ public final class ClusterAwareRandomWorkStealing extends
                     asyncCurrentVictim = null;
                     remoteJob = asyncStolenJob;
                     asyncStolenJob = null;
+                    asyncStealStart = 0;
                 }
             }
 
@@ -95,7 +95,8 @@ public final class ClusterAwareRandomWorkStealing extends
                 asyncStealInProgress = true;
                 s.stats.asyncStealAttempts++;
                 try {
-                    satin.lb.sendStealRequest(remoteVictim, false, false);
+                	asyncStealStart = System.currentTimeMillis();
+                	satin.lb.sendStealRequest(remoteVictim, false, false);
                 } catch (IOException e) {
                     // Ignore this?
                 }

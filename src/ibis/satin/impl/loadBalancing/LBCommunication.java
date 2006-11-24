@@ -120,8 +120,9 @@ final class LBCommunication implements Config, Protocol {
                     + "': got exception while reading job result: " + e
                     + opcode, e);
             gotException = true;
+        } finally {
+            returnRecordReadTimer.stop();
         }
-        returnRecordReadTimer.stop();
         s.stats.returnRecordReadTimer.add(returnRecordReadTimer);
 
         if (gotException) {
@@ -194,7 +195,6 @@ final class LBCommunication implements Config, Protocol {
             }
 
             long cnt = v.finish(writeMessage);
-            s.stats.returnRecordWriteTimer.stop();
             s.stats.returnRecordBytes += cnt;
             if (s.comm.inDifferentCluster(r.getOwner())) {
                 s.stats.interClusterMessages++;
@@ -206,6 +206,8 @@ final class LBCommunication implements Config, Protocol {
         } catch (IOException e) {
             ftLogger.info("SATIN '" + s.ident
                 + "': Got Exception while sending result of stolen job", e);
+        } finally {
+            s.stats.returnRecordWriteTimer.stop();
         }
     }
 
