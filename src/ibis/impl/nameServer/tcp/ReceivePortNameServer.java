@@ -217,7 +217,7 @@ class ReceivePortNameServer extends Thread implements Protocol {
         this.silent = silent;
         this.socketFactory = socketFactory;        
         
-        serverSocket = socketFactory.createServerSocket(0, 0, true, null);
+        serverSocket = socketFactory.createServerSocket(0, 256, true, null);
                 
         setName("ReceivePort Name Server");
         start();

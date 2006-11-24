@@ -89,7 +89,7 @@ class PortTypeNameServer extends Thread implements Protocol {
 
         this.silent = silent;
 
-        serverSocket = socketFactory.createServerSocket(0, 0, true, null);
+        serverSocket = socketFactory.createServerSocket(0, 256, true, null);
         setName("PortType Name Server");
         seq = new Sequencer();
         start();

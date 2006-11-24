@@ -302,7 +302,7 @@ public class NameServer extends Thread implements Protocol {
 
         // Create a server socket.
         serverSocket = socketFactory.createServerSocket(port,
-                50, false, null);
+                256, false, null);
 
         if (CHECKER_INTERVAL != 0) {
             final KeyChecker ck = new KeyChecker(socketFactory, null, 
