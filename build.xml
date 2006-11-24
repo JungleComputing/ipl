@@ -146,6 +146,11 @@
 		<include name="ibis-properties"/>
 	    </fileset>
 	</copy>
+	<copy todir="${build}">
+	    <fileset dir="${ibis}">
+		<include name="smartsockets.properties"/>
+	    </fileset>
+	</copy>
     </target>
 
     <target name="jars"
@@ -160,7 +165,7 @@
     <target name="ibis.jar">
 	<jar	destfile="${jar}"
 		basedir="${build}"
-		includes="ibis/**/*.class **/properties ibis-properties">
+		includes="ibis/**/*.class smartsockets.properties **/properties ibis-properties">
 	    <manifest>
 		<attribute name="Ibisc-Component" value="ibis.frontend.io.IOGenerator,ibis.frontend.gmi.Gmic,ibis.frontend.rmi.Rmic,ibis.frontend.satin.Satinc"/>
 		<attribute name="Ibis-Implementation" value="ibis.impl.messagePassing.panda.PandaIbis,ibis.impl.tcp.TcpIbis,ibis.impl.net.NetIbis,ibis.impl.nio.NioIbis,ibis.impl.messagePassing.mpi.MPIIbis"/>
