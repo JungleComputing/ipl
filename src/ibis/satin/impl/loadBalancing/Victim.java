@@ -23,6 +23,8 @@ import java.io.IOException;
  */
 public final class Victim implements Config {
 
+    private static int connectionCount = 0;
+
     private IbisIdentifier ident;
 
     private SendPort s;
@@ -65,6 +67,7 @@ public final class Victim implements Config {
     private void disconnect() throws IOException {
         if (connected) {
             connected = false;
+            connectionCount--;
             s.disconnect(r);
         }
     }
@@ -84,6 +87,7 @@ public final class Victim implements Config {
                 return null;
             }
             connected = true;
+            connectionCount++;
         }
         
         return s;
@@ -113,7 +117,7 @@ public final class Victim implements Config {
             }
 
             if (CLOSE_CONNECTIONS) {
-                if(referenceCount == 0) {
+                if (connectionCount >= MAX_CONNECTIONS && referenceCount == 0) {
                     disconnect();
                 }
             }
@@ -136,16 +140,19 @@ public final class Victim implements Config {
     public void loseConnection() throws IOException {
         if (CLOSE_CONNECTIONS) {
             synchronized(s) {
-                if (referenceCount == 0) {
+                if (connectionCount >= MAX_CONNECTIONS && referenceCount == 0) {
                     disconnect();
                 }
             }
         }
     }
 
-    public synchronized void close() {
+    public void close() {
         synchronized (s) {
-            connected = false;
+            if (connected) {
+                connected = false;
+                connectionCount--;
+            }
             closed = true;
             try {
                 s.close();

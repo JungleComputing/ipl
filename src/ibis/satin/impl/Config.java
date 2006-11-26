@@ -25,6 +25,8 @@ public interface Config {
 
     static final String s_close_connections = PROPERTY_PREFIX + "closeConnections";
 
+    static final String s_max_connections = PROPERTY_PREFIX + "maxConnections";
+
     static final String s_stats = PROPERTY_PREFIX + "stats";
 
     static final String s_detailed_stats = PROPERTY_PREFIX + "detailedStats";
@@ -61,7 +63,8 @@ public interface Config {
         s_detailed_stats, s_closed, s_localports, s_asserts,
         s_ft_naive, s_ft_connectTimeout, s_masterhost, s_in_latency,
         s_delete_time, s_delete_cluster_time, s_kill_time, s_dump, s_so_delay,
-        s_so_size, s_alg, s_so_lrmc, s_close_connections, s_steal_wait_timeout };
+        s_so_size, s_alg, s_so_lrmc, s_close_connections, s_max_connections,
+        s_steal_wait_timeout };
 
     /** Enable or disable asserts. */
     static final boolean ASSERTS = TypedProperties.booleanProperty(s_asserts,
@@ -143,8 +146,13 @@ public interface Config {
     static final boolean QUEUE_STEALS = TypedProperties.booleanProperty(
         s_queue_steals, true);
 
+    /** Close connections after use. Used for scalability. */
     static final boolean CLOSE_CONNECTIONS = TypedProperties.booleanProperty(
         s_close_connections, true); 
+
+    /** When using CLOSE_CONNECTIONS, keep open MAX_CONNECTIONS connections. */
+    static final int MAX_CONNECTIONS = TypedProperties.intProperty(
+        s_max_connections, 64); 
     
     /** Logger for communication. */
     public static final Logger commLogger = ibis.util.GetLogger
