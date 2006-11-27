@@ -77,6 +77,8 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
 
     private final static int WAIT_FOR_UPDATES_TIME = 60000;
 
+    public static final boolean DISABLE_SO_BCAST = true;
+    
     private Satin s;
 
     /** the current size of the accumulated so messages */
@@ -112,7 +114,9 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
     }
 
     protected void init(StaticProperties requestedProperties) {
-        if (LABEL_ROUTING_MCAST) {
+    	if(DISABLE_SO_BCAST) return;
+    	
+    	if (LABEL_ROUTING_MCAST) {
             try {
                 omc =
                         new ObjectMulticaster(s.comm.ibis,
@@ -126,7 +130,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
             }
 
             new SOInvocationReceiver(s, omc).start();
-        } else {
+    	} else {
             try {
                 soPortType = createSOPortType(requestedProperties);
 
@@ -175,7 +179,9 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
      * them available as soon as possible.
      */
     protected void handleJoins(IbisIdentifier[] joiners) {
-        // lrmc uses its own ports
+    	if(DISABLE_SO_BCAST) return;
+    	
+    	// lrmc uses its own ports
         if (LABEL_ROUTING_MCAST) {
             for (int i = 0; i < joiners.length; i++) {
                 omc.addIbis(joiners[i]);
@@ -257,6 +263,8 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
     }
 
     protected void broadcastSOInvocation(SOInvocationRecord r) {
+    	if(DISABLE_SO_BCAST) return;
+    	
         if (LABEL_ROUTING_MCAST) {
             doBroadcastSOInvocationLRMC(r);
         } else {
@@ -366,7 +374,9 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
      * as the SO invocation messages. This is only called by exportObject. 
      */
     protected void broadcastSharedObject(SharedObject object) {
-        if (LABEL_ROUTING_MCAST) {
+        if(DISABLE_SO_BCAST) return;
+        
+    	if (LABEL_ROUTING_MCAST) {
             doBroadcastSharedObjectLRMC(object);
         } else {
             doBroadcastSharedObject(object);
@@ -809,6 +819,8 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
     }
 
     public void handleMyOwnJoin() {
+    	if(DISABLE_SO_BCAST) return;
+    	
         if (LABEL_ROUTING_MCAST) {
             omc.addIbis(s.ident);
         }
@@ -822,6 +834,8 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
     }
 
     protected void exit() {
+    	if(DISABLE_SO_BCAST) return;
+    	
         if (LABEL_ROUTING_MCAST) {
             omc.done();
             omcInfo.end();
