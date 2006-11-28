@@ -10,7 +10,6 @@ import ibis.ipl.ResizeHandler;
 import ibis.ipl.StaticProperties;
 import ibis.satin.impl.Config;
 import ibis.satin.impl.Satin;
-import ibis.satin.impl.Statistics;
 import ibis.satin.impl.loadBalancing.Victim;
 import ibis.satin.impl.spawnSync.InvocationRecord;
 import ibis.satin.impl.spawnSync.Stamp;
@@ -79,8 +78,11 @@ public final class FaultTolerance implements Config {
         }
     }
 
+    public void electClusterCoordinator() {
+        ftComm.electClusterCoordinator();    	
+    }
+    
     public void init(StaticProperties requestedProperties) {
-        ftComm.init(requestedProperties);
 
         if(!FT_NAIVE) {
             globalResultTable = new GlobalResultTable(s, requestedProperties);
@@ -122,7 +124,7 @@ public final class FaultTolerance implements Config {
         // Don't hold the lock while doing this.
         for (int i = 0; i < crashesToHandle.size(); i++) {
             IbisIdentifier id = crashesToHandle.get(0);
-            if (id.equals(s.masterIdent) || id.equals(clusterCoordinatorIdent)) {
+            if (id.equals(s.getMasterIdent()) || id.equals(clusterCoordinatorIdent)) {
                 try {
                     s.comm.ibis.registry().maybeDead(id);
                 } catch (IOException e) {
@@ -161,7 +163,7 @@ public final class FaultTolerance implements Config {
     }
 
     public void handleMasterCrash() {
-        ftLogger.info("SATIN '" + s.ident + "': MASTER (" + s.masterIdent
+        ftLogger.info("SATIN '" + s.ident + "': MASTER (" + s.getMasterIdent()
             + ") HAS CRASHED");
 
         // master has crashed, let's elect a new one
@@ -176,15 +178,11 @@ public final class FaultTolerance implements Config {
 
         synchronized (s) {
             masterHasCrashed = false;
-            s.masterIdent = newMaster;
-            if (s.masterIdent.equals(s.ident)) {
+            s.setMaster(newMaster);
+            if (s.getMasterIdent().equals(s.ident)) {
                 ftLogger.info("SATIN '" + s.ident + "': I am the new master");
-                s.setMaster(true);
-                if (STATS) {
-                    s.totalStats = new Statistics();
-                }
             } else {
-                ftLogger.info("SATIN '" + s.ident + "': " + s.masterIdent
+                ftLogger.info("SATIN '" + s.ident + "': " + s.getMasterIdent()
                     + "is the new master");
             }
             restarted = true;
