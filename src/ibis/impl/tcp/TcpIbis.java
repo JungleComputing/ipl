@@ -372,6 +372,9 @@ public final class TcpIbis extends Ibis implements Config {
     }
 
     public void end() {
+        
+        socketFactory.printStatistics("Factory for Ibis: " + name);
+        
         synchronized (this) {
             if (ended) {
                 return;
@@ -389,6 +392,7 @@ public final class TcpIbis extends Ibis implements Config {
             throw new IbisRuntimeException(
                     "TcpIbisNameServerClient: leave failed ", e);
         }
+          
     }
 
     public void poll() {
