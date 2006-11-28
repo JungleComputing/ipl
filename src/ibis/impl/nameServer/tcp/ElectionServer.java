@@ -52,7 +52,6 @@ class ElectionServer extends Thread implements Protocol {
     }
 
     private void handleElection() throws IOException {
-
         String election = in.readUTF();
         int candidate = in.readInt();
         String name = null;
@@ -70,6 +69,10 @@ class ElectionServer extends Thread implements Protocol {
             if (name != null) {
                 elections.put(election, name);
                 buffers.put(election, buf);
+            } else {
+                out.writeInt(-1);
+                out.flush();
+                return;
             }
         } else {
             buf = (byte[])  buffers.get(election);

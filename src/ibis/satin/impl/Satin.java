@@ -51,7 +51,7 @@ public final class Satin implements Config {
     private boolean master;
 
     /** The ibis identifier for the master (the one running main). */
-    public IbisIdentifier masterIdent;
+    private IbisIdentifier masterIdent;
 
     /** Am I the cluster coordinator? */
     public boolean clusterCoordinator;
@@ -121,24 +121,28 @@ public final class Satin implements Config {
         ft = new FaultTolerance(this); // this must be first, it handles resize upcalls 
         comm = new Communication(this, requestedProperties); // creates ibis
         ident = comm.ibis.identifier();
+        ft.electClusterCoordinator(); // need ibis for this
         victims = new VictimTable(this); // need ibis for this
-        if (STATS && master) {
-            totalStats = new Statistics();
-        }
 
         lb = new LoadBalancing(this);
         so = new SharedObjects(this, requestedProperties);
         aborts = new Aborts(this, requestedProperties);
-        ft.init(requestedProperties); // this opens the world, other ibises might join from this point
+        
+        // elect the master
+        setMaster(comm.electMaster());
 
         createLoadBalancingAlgorithm();
-
+        
         if (DUMP) {
             DumpThread dumpThread = new DumpThread(this);
             Runtime.getRuntime().addShutdownHook(dumpThread);
         }
 
         stats.totalTimer.start();
+
+        // this opens the world, other ibises might join from this point
+        // we need the master to be set before this call
+        ft.init(requestedProperties); 
     }
 
     /**
@@ -392,11 +396,27 @@ public final class Satin implements Config {
      * @return <code>true</code> if this is the instance running main().
      */
     public boolean isMaster() {
+    	if(ASSERTS && masterIdent == null) {
+    		throw new Error("asked for master before he was elected");
+    	}
         return master;
     }
 
-    public void setMaster(boolean val) {
-        master = val;
+    public void setMaster(IbisIdentifier newMaster) {
+    	masterIdent = newMaster;
+    	
+		if (masterIdent.equals(ident)) {
+			/* I an the master. */
+			commLogger
+					.info("SATIN '" + ident + "': init ibis: I am the master");
+			master = true;
+		} else {
+			commLogger.info("SATIN '" + ident + "': init ibis I am slave");
+		}
+
+		if (STATS && master) {
+            totalStats = new Statistics();
+        }
     }
 
     // called from generated code
@@ -415,6 +435,9 @@ public final class Satin implements Config {
     }
 
     public IbisIdentifier getMasterIdent() {
+    	if(ASSERTS && masterIdent == null) {
+    		throw new Error("asked for master before he was elected");
+    	}
         return masterIdent;
     }
 

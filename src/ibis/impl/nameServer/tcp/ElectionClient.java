@@ -63,15 +63,17 @@ class ElectionClient implements Protocol {
 
                 in = new DataInputStream(new BufferedInputStream(s.getInputStream()));
                 int len = in.readInt();
-                byte[] buf = new byte[len];
-                in.readFully(buf, 0, len);
-                result = (IbisIdentifier) Conversion.byte2object(buf);
+                if(len >= 0) {
+                	byte[] buf = new byte[len];
+                	in.readFully(buf, 0, len);
+                	result = (IbisIdentifier) Conversion.byte2object(buf);
+                }
             } finally {
                 NameServer.closeConnection(in, out, s);
             }
             if (result == null) {
                 try {
-                    Thread.sleep(1000);
+                    Thread.sleep(30000);
                 } catch (Exception ee) { /* ignore */
                 }
             }

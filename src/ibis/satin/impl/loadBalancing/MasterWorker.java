@@ -33,7 +33,7 @@ public final class MasterWorker extends LoadBalancingAlgorithm implements
 
     public void jobAdded() {
         synchronized (satin) {
-            if (!satin.ident.equals(satin.masterIdent)) {
+            if (!satin.isMaster()) {
                 spawnLogger.fatal("with the master/worker algorithm, "
                     + "work can only be spawned on the master!");
                 System.exit(1); // Failed assertion
