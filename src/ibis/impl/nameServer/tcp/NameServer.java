@@ -313,6 +313,104 @@ public class NameServer extends Thread implements Protocol {
   //  private Hub h = null;
 
     private static VirtualSocketFactory socketFactory; 
+
+    static class CloseJob {
+        DataInputStream in;
+        DataOutputStream out;
+        ByteArrayOutputStream baos;
+        VirtualSocket s;
+        long startTime;
+        int opcode;
+
+        CloseJob(DataInputStream in, DataOutputStream out,
+                ByteArrayOutputStream baos, VirtualSocket s,
+                int opcode, long start) {
+            this.in = in;
+            this.out = out;
+            this.baos = baos;
+            this.s = s;
+            this.opcode = opcode;
+            this.startTime = start;
+        }
+
+        void close(boolean silent) {
+            try {
+                out.flush();
+                baos.writeTo(s.getOutputStream());
+                VirtualSocketFactory.close(s, out, in);
+            } catch(Exception e) {
+                if (! silent) {
+                    logger.error("Exception in close", e);
+                }
+            }
+            if (logger.isInfoEnabled() && opcode >= 0) {
+                String job = "unknown opcode " + opcode;
+                switch(opcode) {
+                case (IBIS_ISALIVE):
+                    job = "ISALIVE"; break;
+                case (IBIS_DEAD):
+                    job = "DEAD"; break;
+                case (IBIS_JOIN):
+                    job = "JOIN"; break;
+                case (IBIS_MUSTLEAVE):
+                    job = "MUSTLEAVE"; break;
+                case (IBIS_LEAVE):
+                    job = "LEAVE"; break;
+                case (IBIS_CHECK):
+                    job = "CHECK"; break;
+                case (IBIS_CHECKALL):
+                    job = "CHECKALL"; break;
+                default:
+                    job = "unknown opcode " + opcode; break;
+                }
+                logger.info("Request " + job + " took "
+                        + (System.currentTimeMillis() - startTime) + " ms.");
+            }
+        }
+    }
+
+    static ArrayList closeJobs = new ArrayList();
+    static int numClosers;
+
+    private static class Closer implements Runnable {
+        boolean silent;
+        Closer(boolean silent) {
+            this.silent = silent;
+            numClosers++;
+        }
+
+        static void addJob(CloseJob cl) {
+            synchronized(closeJobs) {
+                closeJobs.add(cl);
+                closeJobs.notify();
+            }
+        }
+
+        public void run() {
+            for (;;) {
+                CloseJob cl;
+                synchronized(closeJobs) {
+                    while (closeJobs.size() == 0) {
+                        if (numClosers > 1) {
+                            numClosers--;
+                            return;
+                        }
+                        try {
+                            closeJobs.wait();
+                        } catch(Exception e) {
+                            // ignored
+                        }
+                    }
+                    cl = (CloseJob) closeJobs.remove(0);
+                    if (numClosers < MAXTHREADS && closeJobs.size() > 0) {
+                        ThreadPool.createNew(new Closer(silent), "Closer");
+                    }
+
+                }
+                cl.close(silent);
+            }
+        }
+    }
     
     static { 
         HashMap properties = new HashMap();        
@@ -1409,6 +1507,7 @@ public class NameServer extends Thread implements Protocol {
 
         RequestHandler reqHandler = new RequestHandler(256);
         reqHandler.start();
+        ThreadPool.createNew(new Closer(silent), "Closer");
 
         while (!stop) {
             try {
@@ -1448,14 +1547,16 @@ public class NameServer extends Thread implements Protocol {
     }
 
     public void handleRequest(VirtualSocket s) {
-        int opcode;
+        int opcode = -1;
         out = null;
         in = null;
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        long startTime = System.currentTimeMillis();
 
         try {
-            BufferedOutputStream bo = new BufferedOutputStream(s.getOutputStream());
-            out = new DataOutputStream(bo);
+
             in = new DataInputStream(new BufferedInputStream(s.getInputStream()));
+            out = new DataOutputStream(new BufferedOutputStream(baos));
 
             opcode = in.readByte();
 
@@ -1468,22 +1569,7 @@ public class NameServer extends Thread implements Protocol {
                 handleIbisIsalive(opcode == IBIS_DEAD);
                 break;
             case (IBIS_JOIN):
-                long startTime = System.currentTimeMillis();
-                DataOutputStream savedOut = out;
-                ByteArrayOutputStream bbb = new ByteArrayOutputStream();
-                out = new DataOutputStream(bbb);
-                try {
-                    handleIbisJoin(startTime);
-                    out.flush();
-                    // System.out.println("after flush " + (System.currentTimeMillis() - startTime) + " size = " + bbb.size());
-                    bbb.writeTo(bo);
-                    bo.flush();
-                } finally {
-                    out = savedOut;
-                }
-                long endTime = System.currentTimeMillis();
-                logger.info("Join took " + (endTime - startTime)
-                        + " millis");
+                handleIbisJoin(startTime);
                 break;
             case (IBIS_MUSTLEAVE):
                 handleIbisMustLeave();
@@ -1514,7 +1600,7 @@ public class NameServer extends Thread implements Protocol {
                 logger.error("Got an exception in NameServer.run", e1);
             }
         } finally {
-            VirtualSocketFactory.close(s, out, in);
+            Closer.addJob(new CloseJob(in, out, baos, s, opcode, startTime));
         }
     }
     
