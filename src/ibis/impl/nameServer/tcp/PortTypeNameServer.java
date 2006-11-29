@@ -3,7 +3,6 @@
 package ibis.impl.nameServer.tcp;
 
 
-import ibis.ipl.IbisRuntimeException;
 import ibis.ipl.StaticProperties;
 
 import java.io.BufferedInputStream;
@@ -16,7 +15,10 @@ import java.util.Hashtable;
 
 import org.apache.log4j.Logger;
 
-import smartsockets.virtual.*;
+import smartsockets.virtual.VirtualServerSocket;
+import smartsockets.virtual.VirtualSocket;
+import smartsockets.virtual.VirtualSocketAddress;
+import smartsockets.virtual.VirtualSocketFactory;
 
 class PortTypeNameServer extends Thread implements Protocol {
 
@@ -145,8 +147,15 @@ class PortTypeNameServer extends Thread implements Protocol {
             try {
                 s = serverSocket.accept();
             } catch (Exception e) {
-                throw new IbisRuntimeException(
-                        "PortTypeNameServer: got an error ", e);
+                logger.warn("PortTypeNameServer: got an error " + e, e);
+                
+                try {
+                	Thread.sleep(1000);
+                } catch (Exception x) {
+                	// ignore
+                }
+                
+                continue;
             }
 
             out = null;

@@ -1533,6 +1533,13 @@ public class NameServer extends Thread implements Protocol {
                 if (! silent) {
                     logger.error("NameServer got an error", e);
                 }
+                
+                try {
+                	Thread.sleep(1000);
+                } catch (Exception x) {
+                	//ignore
+                }
+                
                 continue;
             }
             /*
