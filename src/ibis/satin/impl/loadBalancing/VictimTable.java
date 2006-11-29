@@ -215,20 +215,20 @@ public final class VictimTable implements Config {
 		Satin.assertLocked(satin);
 		Victim v = null;
 
-		long start = System.currentTimeMillis();
+//		long start = System.currentTimeMillis();
 
-		do {
+//		do {
 			v = getVictimNonBlocking(id);
 			if (v != null)
 				return v;
-
+/*
 			try {
 				satin.wait(250);
 			} catch (Exception e) {
 				// Ignore.
 			}
-		} while (System.currentTimeMillis() - start < 5000);
-
+		} while (System.currentTimeMillis() - start < 1000);
+*/
 		
 		// @@@ TODO: this only works with SOBCAST disabled!
 		ftLogger.warn("SATIN '" + satin.ident + "': could not get victim for "
