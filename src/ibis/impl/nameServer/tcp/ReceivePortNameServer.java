@@ -443,8 +443,15 @@ class ReceivePortNameServer extends Thread implements Protocol {
             try {
                 s = serverSocket.accept();
             } catch (Exception e) {
-                throw new IbisRuntimeException(
-                        "ReceivePortNameServer: got an error ", e);
+                logger.warn("ReceivePortNameServer: got an error in accept: " + e, e);
+                
+                try {
+                	Thread.sleep(1000);
+                } catch (Exception x) {
+                	// ignore
+                }
+                
+                continue;
             }
 
             DataInputStream in = null;
