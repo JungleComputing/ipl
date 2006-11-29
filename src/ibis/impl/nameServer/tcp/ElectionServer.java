@@ -3,8 +3,6 @@
 package ibis.impl.nameServer.tcp;
 
 
-import ibis.ipl.IbisRuntimeException;
-
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
@@ -15,7 +13,10 @@ import java.util.Iterator;
 
 import org.apache.log4j.Logger;
 
-import smartsockets.virtual.*;
+import smartsockets.virtual.VirtualServerSocket;
+import smartsockets.virtual.VirtualSocket;
+import smartsockets.virtual.VirtualSocketAddress;
+import smartsockets.virtual.VirtualSocketFactory;
 
 class ElectionServer extends Thread implements Protocol {
 
@@ -113,8 +114,14 @@ class ElectionServer extends Thread implements Protocol {
             try {
                 s = serverSocket.accept();
             } catch (Exception e) {
-                throw new IbisRuntimeException("ElectionServer: got an error",
-                        e);
+            	logger.error("Got an exception in ElectionServer.run " + e, e);
+            	
+            	try {
+            		Thread.sleep(1000);
+            	} catch (Exception x) {
+            		// ignore
+            	}
+            	continue;
             }
 
             try {
