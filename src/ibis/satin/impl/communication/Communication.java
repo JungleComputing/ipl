@@ -68,8 +68,6 @@ public final class Communication implements Config, Protocol {
 
 			receivePort = portType.createLocalReceivePort("satin port",
 					messageHandler, s.ft.getReceivePortConnectHandler());
-			receivePort.enableUpcalls();
-			receivePort.enableConnections();
 		} catch (Exception e) {
 			commLogger.fatal("SATIN '" + ident + "': Could not start ibis: "
 					+ e, e);
@@ -136,6 +134,11 @@ public final class Communication implements Config, Protocol {
 		return masterIdent;
 	}
 
+	public void enableConnections() {
+		receivePort.enableUpcalls();
+		receivePort.enableConnections();		
+	}
+	
 	public boolean inDifferentCluster(IbisIdentifier other) {
 		return !s.ident.cluster().equals(other.cluster());
 	}
