@@ -75,10 +75,13 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
         
         VirtualSocket s = null;
         int cnt = 0;
+        
+        int sleep = 1000;
+        
         while (s == null) {
             try {
                 cnt++;
-                s = socketFactory.createClientSocket(dest, 10000, null);
+                s = socketFactory.createClientSocket(dest, 2*sleep, null);
             } catch (IOException e) {
                 if (cnt == timeout) {
                     if (verbose) {
@@ -97,9 +100,15 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
                             + ", will keep trying: " + e);
                 } 
                 try {
-                    Thread.sleep(1000);
+                    Thread.sleep(sleep);
                 } catch (InterruptedException e2) {
                     // don't care
+                }
+                
+                sleep = 2*sleep;
+                
+                if (sleep > 60000) { 
+                    sleep = 60000;
                 }
             }
         }
