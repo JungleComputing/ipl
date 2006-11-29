@@ -38,7 +38,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
 
     private ArrayList receivePorts;
 
-    private final TcpIbisIdentifier me;
+    protected final TcpIbisIdentifier me;
 
     // Removed -- the idea of having a single port doesn't work -- Jason
     // private final int port;
@@ -50,10 +50,9 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
 
     private final VirtualSocketFactory socketFactory;
 
-    TcpPortHandler(TcpIbisIdentifier me, VirtualSocketFactory fac)
+    TcpPortHandler(VirtualSocketFactory fac)
             throws IOException {
-        this.me = me;
-
+        
         socketFactory = fac;
 
         /* We don't pass properties, since this is not a socket that is used 
@@ -66,12 +65,14 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
         // Added to replace the port -- Jason
         sa = systemServer.getLocalSocketAddress();
 
-        me.sa = sa;
-
         if (DEBUG) {
             System.out.println("--> PORTHANDLER: socket address = " + sa);
         }
 
+        String name = "ibis@" + sa.toString();
+        
+        me = new TcpIbisIdentifier(name, sa);
+        
         receivePorts = new ArrayList();
         ThreadPool.createNew(this, "TcpPortHandler");
     }

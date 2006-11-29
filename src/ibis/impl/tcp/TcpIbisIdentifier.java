@@ -7,9 +7,7 @@ import ibis.ipl.IbisError;
 import ibis.ipl.IbisIdentifier;
 
 import java.io.IOException;
-import java.util.HashMap;
 
-import smartsockets.direct.SocketAddressSet;
 import smartsockets.virtual.VirtualSocketAddress;
 
 public final class TcpIbisIdentifier extends IbisIdentifier implements
@@ -17,30 +15,30 @@ public final class TcpIbisIdentifier extends IbisIdentifier implements
 
     private static final long serialVersionUID = 3L;
 
-    private SocketAddressSet address;
+  //  private SocketAddressSet address;
 
     // Added for implementation of connect(IbisIdentifier, String).
     // (Ceriel)
-    VirtualSocketAddress sa;
+    protected VirtualSocketAddress sa;
 
     private static IbisIdentifierTable cache = new IbisIdentifierTable();
 
-    private static HashMap inetAddrMap = new HashMap();
+    //private static HashMap inetAddrMap = new HashMap();
 
     private transient String toStringCache = null;
 
-    public TcpIbisIdentifier(String name, SocketAddressSet address) {
+    public TcpIbisIdentifier(String name, VirtualSocketAddress address) {
         super(name);
-        this.address = address;
+        this.sa = address;
     }
 
-    SocketAddressSet address() {
-        return address;
-    }
+    //SocketAddressSet address() {
+    //    return address;
+   // }
 
     public String toString() {
         if (toStringCache == null) {
-            String a = (address == null ? "<null>" : address.toString());
+            String a = (sa == null ? "<null>" : sa.toString());
             String n = (name == null ? "<null>" : name);
 /* This is annoying, how can we debug if you can't see which ibis said what? --Rob
             if (n.length() > 8) {
@@ -59,13 +57,15 @@ public final class TcpIbisIdentifier extends IbisIdentifier implements
     // classlibs --Rob
     // Is this still a problem? I don't think so --Ceriel
     private void writeObject(java.io.ObjectOutputStream out) throws IOException {
+       
         int handle = -1;
+        
         if (Config.ID_CACHE) {
             handle = cache.getHandle(out, this);
         }
         out.writeInt(handle);
+        
         if (handle < 0) { // First time, send it.
-            out.writeUTF(address.toString());
             out.writeObject(sa);
         }
     }
@@ -74,18 +74,7 @@ public final class TcpIbisIdentifier extends IbisIdentifier implements
     private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
         int handle = in.readInt();
         if (handle < 0) {
-            String addr = in.readUTF();
             sa = (VirtualSocketAddress) in.readObject();
-            address = (SocketAddressSet) inetAddrMap.get(addr);
-            if (address == null) {
-                try {
-                    address = new SocketAddressSet(addr);
-                } catch(Exception e) {
-                    throw new IbisError("EEK, could not create an inet address"
-                            + "from a IP address. This shouldn't happen", e);
-                }
-                inetAddrMap.put(addr, address);
-            }
             if (Config.ID_CACHE) {
                 cache.addIbis(in, -handle, this);
             }
@@ -95,7 +84,6 @@ public final class TcpIbisIdentifier extends IbisIdentifier implements
             }
             TcpIbisIdentifier ident = (TcpIbisIdentifier) cache.getIbis(in,
                     handle);
-            address = ident.address;
             name = ident.name;
             sa = ident.sa;
             cluster = ident.cluster;

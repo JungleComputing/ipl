@@ -1527,6 +1527,61 @@ public class NameServer extends Thread implements Protocol {
                 }
                 continue;
             }
+            /*
+<<<<<<< .mine
+
+            out = null;
+            in = null;
+
+            try {
+                out = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
+                in = new DataInputStream(new BufferedInputStream(s.getInputStream()));
+
+                opcode = in.readByte();
+
+                logger.debug("NameServer got opcode: " + opcode);
+                
+                switch (opcode) {
+                case (IBIS_ISALIVE):
+                case (IBIS_DEAD):
+                    logger.debug("NameServer handling opcode IBIS_ISALIVE/IBIS_DEAD");
+                    handleIbisIsalive(opcode == IBIS_DEAD);
+                    break;
+                case (IBIS_JOIN):
+                    handleIbisJoin();
+                    break;
+                case (IBIS_MUSTLEAVE):
+                    handleIbisMustLeave();
+                    break;
+                case (IBIS_LEAVE):
+                    handleIbisLeave();
+                    if (singleRun && pools.size() == 0) {
+                        if (joined) {
+                            stop = true;
+                        }
+                        // ignore invalid leave req.
+                    }
+                    break;
+                case (IBIS_CHECK):
+                    handleCheck();
+                    break;
+                case (IBIS_CHECKALL):
+                    handleCheckAll();
+                    break;
+                default:
+                    if (! silent) {
+                        logger.error("NameServer got an illegal opcode: " + opcode);
+                    }
+                }
+
+            } catch (Exception e1) {
+                if (! silent) {
+                    logger.error("Got an exception in NameServer.run <Rob doesn't want a stacktrace!>");
+                }
+            } finally {
+                VirtualSocketFactory.close(s, out, in);
+            }
+=======*/
             reqHandler.addJob(s);
         }
         try {

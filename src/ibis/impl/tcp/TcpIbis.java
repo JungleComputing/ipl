@@ -27,7 +27,7 @@ public final class TcpIbis extends Ibis implements Config {
 
     private TcpIbisIdentifier ident;
 
-    private SocketAddressSet myAddress;
+   // private SocketAddressSet myAddress;
 
     private NameServer nameServer;
 
@@ -120,23 +120,25 @@ public final class TcpIbis extends Ibis implements Config {
         socketFactory = VirtualSocketFactory.createSocketFactory(properties, 
                 true);
               
-        myAddress = socketFactory.getLocalHost();
+       // myAddress = socketFactory.getLocalHost();
         
-        if (myAddress == null) {
-            System.err.println("ERROR: could not get my own network address, "
-                    + "exiting.");
-            System.exit(1);
-        }
+      //  if (myAddress == null) {
+      //      System.err.println("ERROR: could not get my own network address, "
+       //             + "exiting.");
+        //    System.exit(1);
+       // }
         
-        name = "ibis@" + myAddress;
+        //name = "ibis@" + myAddress;
         
-        ident = new TcpIbisIdentifier(name, myAddress);
+        //ident = new TcpIbisIdentifier(name, myAddress);
 
     //    if (DEBUG) {
             System.err.println("Created IbisIdentifier " + ident);
     //    }
 
-        tcpPortHandler = new TcpPortHandler(ident, socketFactory);                  
+        tcpPortHandler = new TcpPortHandler(socketFactory);                  
+        
+        ident = tcpPortHandler.me;
         
         VirtualSocketFactory.registerSocketFactory("Factory for Ibis: " + name, 
                 socketFactory);
