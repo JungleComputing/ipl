@@ -12,9 +12,13 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
+import org.apache.log4j.Logger;
+
 import smartsockets.virtual.*;
 
 class ElectionClient implements Protocol {
+    static Logger logger
+    = ibis.util.GetLogger.getLogger(ElectionClient.class.getName());
 
     VirtualSocketAddress server;
 
@@ -60,6 +64,8 @@ class ElectionClient implements Protocol {
                 	in.readFully(buf, 0, len);
                 	result = (IbisIdentifier) Conversion.byte2object(buf);
                 }
+            } catch (Exception e) {
+            	logger.warn("election client got exception: " + e, e);
             } finally {
                 VirtualSocketFactory.close(s, out, in);
             }
