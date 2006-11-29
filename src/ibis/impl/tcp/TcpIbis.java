@@ -132,16 +132,17 @@ public final class TcpIbis extends Ibis implements Config {
         
         //ident = new TcpIbisIdentifier(name, myAddress);
 
-    //    if (DEBUG) {
-            System.err.println("Created IbisIdentifier " + ident);
-    //    }
-
+   
         tcpPortHandler = new TcpPortHandler(socketFactory);                  
         
         ident = tcpPortHandler.me;
         
-        VirtualSocketFactory.registerSocketFactory("Factory for Ibis: " + name, 
-                socketFactory);
+        //    if (DEBUG) {
+        System.err.println("Created IbisIdentifier " + ident);
+        //    }
+
+        VirtualSocketFactory.registerSocketFactory("Factory for Ibis: " 
+                + ident.name(), socketFactory);
        
         nameServer = NameServer.loadNameServer(this, resizeHandler != null);
 

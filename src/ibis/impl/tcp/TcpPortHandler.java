@@ -155,7 +155,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
                 sin.close();
                 sout.close();
                 s.close();
-                                
+                   
                 switch(result) {
                 case RECEIVER_ALREADYCONNECTED:
                     throw new AlreadyConnectedException(
@@ -179,7 +179,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
                     }
                     break;
                 default:
-                    throw new IbisError("Illegal opcode in TcpPorthandler.connect");
+                    throw new IbisError("Illegal opcode in TcpPorthandler.connect: " + result);
                 }
             } while (true);
         } catch (IOException e) {
