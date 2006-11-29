@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.LinkedList;
 import java.util.Properties;
 import java.util.Vector;
 
@@ -322,6 +323,8 @@ public class NameServer extends Thread implements Protocol {
         long startTime;
         int opcode;
 
+        long myStartTime = System.currentTimeMillis();
+        
         CloseJob(DataInputStream in, DataOutputStream out,
                 ByteArrayOutputStream baos, VirtualSocket s,
                 int opcode, long start) {
@@ -363,8 +366,13 @@ public class NameServer extends Thread implements Protocol {
                 default:
                     job = "unknown opcode " + opcode; break;
                 }
+                
+                long now = System.currentTimeMillis();
+                
                 logger.info("Request " + job + " took "
-                        + (System.currentTimeMillis() - startTime) + " ms.");
+                        + (now - startTime) + " ms. -> " 
+                        + "job took " + (myStartTime - startTime) 
+                        + " closing took " + (now-myStartTime));
             }
         }
     }
@@ -1457,7 +1465,7 @@ public class NameServer extends Thread implements Protocol {
     boolean stop = false;
 
     public class RequestHandler extends Thread {
-        ArrayList jobs = new ArrayList();
+        LinkedList jobs = new LinkedList();
         int maxSize;
 
         public RequestHandler(int maxSize) {
@@ -1475,7 +1483,7 @@ public class NameServer extends Thread implements Protocol {
             if (jobs.size() == 0) {
                 notifyAll();
             }
-            jobs.add(s);
+            jobs.addLast(s);
         }
 
         public void run() {
