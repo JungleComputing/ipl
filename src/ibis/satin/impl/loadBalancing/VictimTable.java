@@ -3,6 +3,7 @@
 package ibis.satin.impl.loadBalancing;
 
 import ibis.ipl.IbisIdentifier;
+import ibis.ipl.SendPort;
 import ibis.satin.impl.Config;
 import ibis.satin.impl.Satin;
 
@@ -12,220 +13,248 @@ import java.util.Random;
 import java.util.Vector;
 
 public final class VictimTable implements Config {
-    private Random random = new Random();
+	private Random random = new Random();
 
-    private Vector<Victim> victims = new Vector<Victim>(); // elements are of type Victim
+	private Vector<Victim> victims = new Vector<Victim>(); // elements are of
+															// type Victim
 
-    // all victims grouped by cluster
-    private Vector<Cluster> clusters = new Vector<Cluster>();
+	// all victims grouped by cluster
+	private Vector<Cluster> clusters = new Vector<Cluster>();
 
-    private Cluster thisCluster;
+	private Cluster thisCluster;
 
-    private HashMap<String, Cluster> clustersHash = new HashMap<String, Cluster>();
+	private HashMap<String, Cluster> clustersHash = new HashMap<String, Cluster>();
 
-    private HashMap<IbisIdentifier, Victim> ibisHash = new HashMap<IbisIdentifier, Victim>();
+	private HashMap<IbisIdentifier, Victim> ibisHash = new HashMap<IbisIdentifier, Victim>();
 
-    private Satin satin;
+	private Satin satin;
 
-    public VictimTable(Satin s) {
-        this.satin = s;
-        thisCluster = new Cluster(s.ident.cluster());
-        clusters.add(thisCluster);
-        clustersHash.put(s.ident.cluster(), thisCluster);
-    }
+	public VictimTable(Satin s) {
+		this.satin = s;
+		thisCluster = new Cluster(s.ident.cluster());
+		clusters.add(thisCluster);
+		clustersHash.put(s.ident.cluster(), thisCluster);
+	}
 
-    public void add(Victim v) {
-        Satin.assertLocked(satin);
-        victims.add(v);
-        ibisHash.put(v.getIdent(), v);
+	public void add(Victim v) {
+		Satin.assertLocked(satin);
 
-        Cluster c = clustersHash.get(v.getIdent().cluster());
-        if (c == null) { // new cluster
-            c = new Cluster(v); //v is automagically added to this cluster
-            clusters.add(c);
-            clustersHash.put(v.getIdent().cluster(), c);
-        } else {
-            c.add(v);
-        }
-    }
+		if (victims.contains(v)) {
+			commLogger.warn("SATIN '" + satin.ident
+					+ "': victim was already added");
+			return;
+		}
+		victims.add(v);
+		ibisHash.put(v.getIdent(), v);
 
-    public Victim remove(IbisIdentifier ident) {
-        Satin.assertLocked(satin);
-        Victim v = new Victim(ident, null);
-        ibisHash.remove(ident);
+		Cluster c = clustersHash.get(v.getIdent().cluster());
+		if (c == null) { // new cluster
+			c = new Cluster(v); // v is automagically added to this cluster
+			clusters.add(c);
+			clustersHash.put(v.getIdent().cluster(), c);
+		} else {
+			c.add(v);
+		}
+	}
 
-        int i = victims.indexOf(v);
-        return remove(i);
-    }
+	public Victim remove(IbisIdentifier ident) {
+		Satin.assertLocked(satin);
+		Victim v = new Victim(ident, null);
+		ibisHash.remove(ident);
 
-    public Victim remove(int i) {
-        Satin.assertLocked(satin);
+		int i = victims.indexOf(v);
+		return remove(i);
+	}
 
-        if (i < 0 || i >= victims.size()) {
-            return null;
-        }
+	public Victim remove(int i) {
+		Satin.assertLocked(satin);
 
-        Victim v = victims.remove(i);
+		if (i < 0 || i >= victims.size()) {
+			return null;
+		}
 
-        Cluster c = clustersHash.get(v.getIdent().cluster());
-        c.remove(v);
-        ibisHash.remove(v.getIdent());
+		Victim v = victims.remove(i);
 
-        if (c.size() == 0) {
-            clustersHash.remove(c);
-        }
+		Cluster c = clustersHash.get(v.getIdent().cluster());
+		c.remove(v);
+		ibisHash.remove(v.getIdent());
 
-        return v;
-    }
+		if (c.size() == 0) {
+			clustersHash.remove(c);
+		}
 
-    public int size() {
-        Satin.assertLocked(satin);
-        return victims.size();
-    }
+		return v;
+	}
 
-    public Victim getVictim(int i) {
-        Satin.assertLocked(satin);
-        if (ASSERTS && i < 0 || i >= victims.size()) {
-            commLogger.warn("trying to read a non-existing victim id: " + i + ", there are " + victims.size() + " victims");
-            return null;
-        }
-        return victims.get(i);
-    }
+	public int size() {
+		Satin.assertLocked(satin);
+		return victims.size();
+	}
 
-    public Victim getVictimNonBlocking(IbisIdentifier ident) {
-        Satin.assertLocked(satin);
-        return ibisHash.get(ident);
-    }
+	public Victim getVictim(int i) {
+		Satin.assertLocked(satin);
+		if (ASSERTS && i < 0 || i >= victims.size()) {
+			commLogger.warn("SATIN '" + satin.ident
+					+ "': trying to read a non-existing victim id: " + i
+					+ ", there are " + victims.size() + " victims");
+			return null;
+		}
+		return victims.get(i);
+	}
 
-    public Victim getRandomVictim() {
-        Victim v = null;
-        int index;
+	public Victim getVictimNonBlocking(IbisIdentifier ident) {
+		Satin.assertLocked(satin);
+		return ibisHash.get(ident);
+	}
 
-        Satin.assertLocked(satin);
+	public Victim getRandomVictim() {
+		Victim v = null;
+		int index;
 
-        if (victims.size() == 0) {
-            // can happen with open world, no others have joined yet.
-            return null;
-        }
+		Satin.assertLocked(satin);
 
-        index = random.nextInt(victims.size());
-        v = victims.get(index);
+		if (victims.size() == 0) {
+			// can happen with open world, no others have joined yet.
+			return null;
+		}
 
-        return v;
-    }
+		index = random.nextInt(victims.size());
+		v = victims.get(index);
 
-    /**
-     * returns null if there are no other nodes in this cluster
-     */
-    public Victim getRandomLocalVictim() {
-        Victim v = null;
-        int index;
-        int clusterSize = thisCluster.size();
+		return v;
+	}
 
-        Satin.assertLocked(satin);
+	/**
+	 * returns null if there are no other nodes in this cluster
+	 */
+	public Victim getRandomLocalVictim() {
+		Victim v = null;
+		int index;
+		int clusterSize = thisCluster.size();
 
-        if (clusterSize == 0) {
-            return null;
-        }
+		Satin.assertLocked(satin);
 
-        index = random.nextInt(clusterSize);
-        v = thisCluster.get(index);
+		if (clusterSize == 0) {
+			return null;
+		}
 
-        return v;
-    }
+		index = random.nextInt(clusterSize);
+		v = thisCluster.get(index);
 
-    /**
-     * Returns null if there are no remote victims i.e., there's only one
-     * cluster
-     */
-    public Victim getRandomRemoteVictim() {
-        Victim v = null;
-        int vIndex, cIndex;
-        int remoteVictims;
-        Cluster c;
+		return v;
+	}
 
-        Satin.assertLocked(satin);
+	/**
+	 * Returns null if there are no remote victims i.e., there's only one
+	 * cluster
+	 */
+	public Victim getRandomRemoteVictim() {
+		Victim v = null;
+		int vIndex, cIndex;
+		int remoteVictims;
+		Cluster c;
 
-        if (ASSERTS && clusters.get(0) != thisCluster) {
-            commLogger.fatal("getRandomRemoteVictim: firstCluster != me");
-            System.exit(1); // Failed assertion
-        }
+		Satin.assertLocked(satin);
 
-        remoteVictims = victims.size() - thisCluster.size();
+		if (ASSERTS && clusters.get(0) != thisCluster) {
+			commLogger.fatal("SATIN '" + satin.ident
+					+ "': getRandomRemoteVictim: firstCluster != me");
+			System.exit(1); // Failed assertion
+		}
 
-        if (remoteVictims == 0) {
-            return null;
-        }
+		remoteVictims = victims.size() - thisCluster.size();
 
-        vIndex = random.nextInt(remoteVictims);
+		if (remoteVictims == 0) {
+			return null;
+		}
 
-        //find the cluster and index in the cluster for the victim
-        cIndex = 1;
-        c = clusters.get(cIndex);
-        while (vIndex >= c.size()) {
-            vIndex -= c.size();
-            cIndex += 1;
-            c = clusters.get(cIndex);
-        }
+		vIndex = random.nextInt(remoteVictims);
 
-        v = c.get(vIndex);
+		// find the cluster and index in the cluster for the victim
+		cIndex = 1;
+		c = clusters.get(cIndex);
+		while (vIndex >= c.size()) {
+			vIndex -= c.size();
+			cIndex += 1;
+			c = clusters.get(cIndex);
+		}
 
-        return v;
-    }
+		v = c.get(vIndex);
 
-    public void print(java.io.PrintStream out) {
-        Satin.assertLocked(satin);
+		return v;
+	}
 
-        out.println("victimtable on " + satin + ", size is " + victims.size());
+	public void print(java.io.PrintStream out) {
+		Satin.assertLocked(satin);
 
-        for (int i = 0; i < victims.size(); i++) {
-            out.println("   " + victims.get(i));
-        }
-    }
+		out.println("victimtable on " + satin + ", size is " + victims.size());
 
-    public boolean contains(IbisIdentifier ident) {
-        Satin.assertLocked(satin);
-        return ibisHash.get(ident) != null;
-    }
+		for (int i = 0; i < victims.size(); i++) {
+			out.println("   " + victims.get(i));
+		}
+	}
 
-    public IbisIdentifier[] getIbises() {
-        Satin.assertLocked(satin);
-        IbisIdentifier[] tmp = new IbisIdentifier[victims.size()];
-        for (int i = 0; i < tmp.length; i++) {
-            tmp[i] = victims.get(i).getIdent();
-        }
+	public boolean contains(IbisIdentifier ident) {
+		Satin.assertLocked(satin);
+		return ibisHash.get(ident) != null;
+	}
 
-        return tmp;
-    }
+	public IbisIdentifier[] getIbises() {
+		Satin.assertLocked(satin);
+		IbisIdentifier[] tmp = new IbisIdentifier[victims.size()];
+		for (int i = 0; i < tmp.length; i++) {
+			tmp[i] = victims.get(i).getIdent();
+		}
 
-    // retry a couple of times, then assume a crash
-    public Victim getVictim(IbisIdentifier id) {
-        Satin.assertLocked(satin);
-        Victim v = null;
+		return tmp;
+	}
 
-        long start = System.currentTimeMillis();
+	// retry a couple of times, then assume it will join at some point, so just
+	// add it.
+	public Victim getVictim(IbisIdentifier id) {
+		Satin.assertLocked(satin);
+		Victim v = null;
 
-        do {
-            v = getVictimNonBlocking(id);
-            if (v != null) return v;
+		long start = System.currentTimeMillis();
 
-            try {
-                satin.wait(250);
-            } catch (Exception e) {
-                // Ignore.
-            }
-        } while (System.currentTimeMillis() - start < 60000);
+		do {
+			v = getVictimNonBlocking(id);
+			if (v != null)
+				return v;
 
-        ftLogger.info("SATIN '" + satin.ident + "': could not get victim for "
-            + id);
+			try {
+				satin.wait(250);
+			} catch (Exception e) {
+				// Ignore.
+			}
+		} while (System.currentTimeMillis() - start < 5000);
 
-        try {
-            satin.comm.ibis.registry().maybeDead(id);
-        } catch (IOException e) {
-            ftLogger.warn("SATIN '" + satin.ident
-                + "': got exception in maybeDead", e);
-        }
+		
+		// @@@ TODO: this only works with SOBCAST disabled!
+		ftLogger.warn("SATIN '" + satin.ident + "': could not get victim for "
+				+ id + " creating victim on demand");
 
-        return null;
-    }
+		SendPort p = null;
+		try {
+			p = satin.comm.portType.createSendPort("satin sendport");
+		} catch (Exception e) {
+			ftLogger.warn("SATIN '" + satin.ident
+					+ "': got an exception in getVictim", e);
+		}
+		ftLogger.debug("SATIN '" + satin.ident + "': creating sendport done");
+
+		Victim newV = null;
+		if (p != null) {
+			newV = new Victim(id, p);
+			add(newV);
+		} else {
+			try {
+				satin.comm.ibis.registry().maybeDead(id);
+			} catch (IOException e) {
+				ftLogger.warn("SATIN '" + satin.ident
+						+ "': got exception in maybeDead", e);
+			}
+		}
+		return newV;
+	}
 }
