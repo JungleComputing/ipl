@@ -10,6 +10,7 @@ import ibis.util.TypedProperties;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -48,7 +49,7 @@ public class NameServer extends Thread implements Protocol {
         = TypedProperties.intProperty(NSProps.s_keychecker_interval, 0);
 
     static final int MAXTHREADS =
-        TypedProperties.intProperty(NSProps.s_max_threads, 32);
+        TypedProperties.intProperty(NSProps.s_max_threads, 8);
 
    // VirtualSocketAddress myAddress;
 
@@ -116,6 +117,95 @@ public class NameServer extends Thread implements Protocol {
         }
     }
 
+    static class DeadNotifier implements Runnable {
+        ArrayList corpses = new ArrayList();
+        final RunInfo runInfo;
+        boolean done = false;
+        int count = 0;
+        final VirtualSocketAddress serverAddr;
+        final byte message;
+
+        DeadNotifier(RunInfo p, VirtualSocketAddress s, byte m) {
+            runInfo = p;
+            serverAddr = s;
+            message = m;
+        }
+
+        synchronized void addCorpses(String[] ids) {
+            if (ids.length == 0) {
+                return;
+            }
+            corpses.add(ids);
+            count += ids.length;
+            notifyAll();
+        }
+
+        synchronized void quit() {
+            done = true;
+            notifyAll();
+        }
+
+        public void run() {
+            for (;;) {
+                String[] deadOnes = null;
+                synchronized(this) {
+                    while (! done && count == 0) {
+                        try {
+                            this.wait();
+                        } catch(Exception e) {
+                            // ignored
+                        }
+                    }
+                    if (count > 0) {
+                        deadOnes = new String[count];
+                        int i = 0;
+                        while (corpses.size() > 0) {
+                            String[] el = (String[]) corpses.remove(0);
+                            for (int j = 0; j < el.length; j++) {
+                                deadOnes[i] = el[j];
+                                i++;
+                            }
+                        }
+                        count = 0;
+                    }
+                }
+                if (deadOnes != null) {
+                    try {
+                        send(deadOnes);
+                    } catch(Exception e) {
+                        // ignored
+                    }
+                }
+                synchronized(this) {
+                    if (count != 0) {
+                        continue;
+                    }
+                    if (done) {
+                        return;
+                    }
+                }
+            }
+        }
+
+        private void send(String[] ids) throws IOException {
+            VirtualSocket s = null;
+            DataOutputStream out2 = null;
+
+            try {
+                s = socketFactory.createClientSocket(serverAddr,
+                        CONNECT_TIMEOUT, null);
+                out2 = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
+                out2.writeByte(message);
+                out2.writeInt(ids.length);
+                for (int i = 0; i < ids.length; i++) {
+                    out2.writeUTF(ids[i]);
+                }
+            } finally {
+                VirtualSocketFactory.close(s, out2, null);
+            }
+        }
+    }
+
     static class RunInfo {
         ArrayList unfinishedJoins; // a list of IbisInfos
 
@@ -137,7 +227,11 @@ public class NameServer extends Thread implements Protocol {
 
         ReceivePortNameServer receivePortNameServer;
 
+        DeadNotifier receivePortKiller;
+
         ElectionServer electionServer;
+
+        DeadNotifier electionKiller;
 
         long pingLimit;
 
@@ -153,8 +247,14 @@ public class NameServer extends Thread implements Protocol {
                     socketFactory);
             receivePortNameServer = new ReceivePortNameServer(silent,
                     socketFactory);
+            receivePortKiller = new DeadNotifier(this,
+                    receivePortNameServer.getAddress(), PORT_KILL);
+            ThreadPool.createNew(receivePortKiller, "ReceivePortKiller");
             electionServer = new ElectionServer(silent,
                     socketFactory);
+            electionKiller = new DeadNotifier(this, electionServer.getAddress(),
+                    ELECTION_KILL);
+            ThreadPool.createNew(electionKiller, "ElectionKiller");
             pingLimit = System.currentTimeMillis() + PINGER_TIMEOUT;
             this.silent = silent;
         }
@@ -394,10 +494,10 @@ public class NameServer extends Thread implements Protocol {
             }
 
             // Let the election server know about it.
-            electionKill(inf, names);
+            inf.electionKiller.addCorpses(names);
 
             // Let the receiveport nameserver know about it.
-            receiveportKill(inf, names);
+            inf.receivePortKiller.addCorpses(names);
         }
 
         // After sendLeavers finishes, forwarders should be 0, even if
@@ -811,19 +911,10 @@ public class NameServer extends Thread implements Protocol {
                     ibisIds[j] = temp2;
                 }
 
-                // Pass the dead ones on to the election server ...
-                try {
-                    electionKill(p, ids);
-                } catch (IOException e) {
-                    // ignored
-                }
-
-                // Pass the dead ones on to the receiveport nameserver ...
-                try {
-                    receiveportKill(p, ids);
-                } catch (IOException e) {
-                    // ignored
-                }
+                // Pass the dead ones on to the election server and
+                // receiveport nameserver
+                p.electionKiller.addCorpses(ids);
+                p.receivePortKiller.addCorpses(ids);
 
                 // ... and to all other ibis instances in this pool.
                 elts = p.instances();
@@ -925,15 +1016,18 @@ public class NameServer extends Thread implements Protocol {
         return new VirtualSocketAddress(in.readUTF());
     }
         
-    private void handleIbisJoin() throws IOException {
+    private void handleIbisJoin(long startTime) throws IOException {
         String key = in.readUTF();
         String name = in.readUTF();
         
         int len = in.readInt();
         byte[] serializedId = new byte[len];
         in.readFully(serializedId, 0, len);
+        // System.out.println("Join: serialized id length = " + len);
     
         VirtualSocketAddress address = readVirtualSocketAddress(in);
+        // System.out.println("After readVirtualSocketAddress: " +
+        //         (System.currentTimeMillis() - startTime));
 
         boolean needsUpcalls = in.readBoolean();
 
@@ -979,7 +1073,11 @@ public class NameServer extends Thread implements Protocol {
             }
             out.flush();
         } else {
+            // System.out.println("before poolPinger: " +
+            //         (System.currentTimeMillis() - startTime));
             poolPinger(key, false);
+            // System.out.println("after poolPinger: " +
+            //         (System.currentTimeMillis() - startTime));
             // Handle delayed leave messages before adding new members
             // to a pool, otherwise new members get leave messages from nodes
             // that they have never seen.
@@ -993,6 +1091,8 @@ public class NameServer extends Thread implements Protocol {
                 logger.debug("NameServer: join to pool " + key + " of ibis "
                     + name + " accepted");
             }
+            // System.out.println("before synchronized block: " +
+            //         (System.currentTimeMillis() - startTime));
 
             synchronized(p) {
                 sendLeavers(p);
@@ -1000,6 +1100,8 @@ public class NameServer extends Thread implements Protocol {
                 p.unfinishedJoins.add(info);
                 p.arrayPool.add(info);
             }
+            // System.out.println("after synchronized block: " +
+            //         (System.currentTimeMillis() - startTime));
 
             // first send all existing nodes (including the new one) to the
             // new one.
@@ -1041,6 +1143,8 @@ public class NameServer extends Thread implements Protocol {
                 logger.info("" + name + " JOINS  pool " + key
                         + " (" + p.pool.size() + " nodes)");
             }
+            // System.out.println("after write answer: " +
+            //         (System.currentTimeMillis() - startTime));
         }
     }
 
@@ -1089,6 +1193,9 @@ public class NameServer extends Thread implements Protocol {
         DataOutputStream out1 = null;
         DataOutputStream out2 = null;
         DataOutputStream out3 = null;
+
+        p.electionKiller.quit();
+        p.receivePortKiller.quit();
         
         try {
             s = socketFactory.createClientSocket(
@@ -1122,62 +1229,6 @@ public class NameServer extends Thread implements Protocol {
             // ignore
         } finally {
             VirtualSocketFactory.close(s3, out3, null);
-        }
-    }
-
-    /**
-     * Notifies the election server of the specified pool that the
-     * specified ibis instances are dead.
-     * @param p   the specified pool
-     * @param ids the dead ibis instances
-     * @exception IOException is thrown in case of trouble.
-     */
-    private void electionKill(RunInfo p, String[] ids)
-            throws IOException {
-        VirtualSocket s = null;
-        DataOutputStream out2 = null;
-
-        try {
-            s = socketFactory.createClientSocket(
-                    p.electionServer.getAddress(), CONNECT_TIMEOUT, null);
-            out2 = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
-            out2.writeByte(ELECTION_KILL);
-            out2.writeInt(ids.length);
-            for (int i = 0; i < ids.length; i++) {
-                out2.writeUTF(ids[i]);
-            }
-        } finally {
-            VirtualSocketFactory.close(s, out2, null);
-        }
-    }
-
-    /**
-     * Notifies the receiveport nameserver of the specified pool that the
-     * specified ibis instances are dead.
-     * @param p   the specified pool
-     * @param ids the dead ibis instances
-     * @exception IOException is thrown in case of trouble.
-     */
-    private void receiveportKill(RunInfo p, String[] ids)
-            throws IOException {
-        VirtualSocket s = null;
-        DataOutputStream out2 = null;
-        DataInputStream in2 = null;
-
-        try {
-            s = socketFactory.createClientSocket(
-                    p.receivePortNameServer.getAddress(), CONNECT_TIMEOUT, null);
-            out2 = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
-            out2.writeByte(PORT_KILL);
-            out2.writeInt(ids.length);
-            for (int i = 0; i < ids.length; i++) {
-                out2.writeUTF(ids[i]);
-            }
-            out2.flush();
-            in2 = new DataInputStream(new BufferedInputStream(s.getInputStream()));
-            in2.readInt();
-        } finally {
-            VirtualSocketFactory.close(s, out2, in2);
         }
     }
 
@@ -1305,16 +1356,66 @@ public class NameServer extends Thread implements Protocol {
         out.flush();
     }
 
+    boolean stop = false;
+
+    public class RequestHandler extends Thread {
+        ArrayList jobs = new ArrayList();
+        int maxSize;
+
+        public RequestHandler(int maxSize) {
+            this.maxSize = maxSize;
+        }
+
+        public synchronized void addJob(VirtualSocket s) {
+            while (jobs.size() > maxSize) {
+                try {
+                    wait();
+                } catch(Exception e) {
+                    // ignored
+                }
+            }
+            if (jobs.size() == 0) {
+                notifyAll();
+            }
+            jobs.add(s);
+        }
+
+        public void run() {
+            for (;;) {
+                VirtualSocket s;
+                synchronized(this) {
+                    while (! stop && jobs.size() == 0) {
+                        try {
+                            this.wait();
+                        } catch(Exception e) {
+                        }
+                    }
+                    if (jobs.size() == 0) {
+                        return;
+                    }
+                    if (jobs.size() >= maxSize) {
+                        notifyAll();
+                    }
+                    s = (VirtualSocket) jobs.remove(0);
+                }
+
+                handleRequest(s);
+            }
+        }
+    }
+
     public void run() {
-        int opcode;
         VirtualSocket s;
-        boolean stop = false;
+
+        RequestHandler reqHandler = new RequestHandler(256);
+        reqHandler.start();
 
         while (!stop) {
             try {
                 if (! silent && logger.isInfoEnabled()) {
                     logger.info("NameServer: accepting incoming connections... ");
                 }
+
                 s = serverSocket.accept();
 
                 if (! silent && logger.isInfoEnabled()) {
@@ -1327,60 +1428,8 @@ public class NameServer extends Thread implements Protocol {
                 }
                 continue;
             }
-
-            out = null;
-            in = null;
-
-            try {
-                out = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
-                in = new DataInputStream(new BufferedInputStream(s.getInputStream()));
-
-                opcode = in.readByte();
-
-                logger.debug("NameServer got opcode: " + opcode);
-                
-                switch (opcode) {
-                case (IBIS_ISALIVE):
-                case (IBIS_DEAD):
-                    logger.debug("NameServer handling opcode IBIS_ISALIVE/IBIS_DEAD");
-                    handleIbisIsalive(opcode == IBIS_DEAD);
-                    break;
-                case (IBIS_JOIN):
-                    handleIbisJoin();
-                    break;
-                case (IBIS_MUSTLEAVE):
-                    handleIbisMustLeave();
-                    break;
-                case (IBIS_LEAVE):
-                    handleIbisLeave();
-                    if (singleRun && pools.size() == 0) {
-                        if (joined) {
-                            stop = true;
-                        }
-                        // ignore invalid leave req.
-                    }
-                    break;
-                case (IBIS_CHECK):
-                    handleCheck();
-                    break;
-                case (IBIS_CHECKALL):
-                    handleCheckAll();
-                    break;
-                default:
-                    if (! silent) {
-                        logger.error("NameServer got an illegal opcode: " + opcode);
-                    }
-                }
-
-            } catch (Exception e1) {
-                if (! silent) {
-                    logger.error("Got an exception in NameServer.run", e1);
-                }
-            } finally {
-                VirtualSocketFactory.close(s, out, in);
-            }
+            reqHandler.addJob(s);
         }
-
         try {
             serverSocket.close();
         } catch (Exception e) {
@@ -1395,6 +1444,77 @@ public class NameServer extends Thread implements Protocol {
 */
         if (! silent && logger.isInfoEnabled()) {
             logger.info("NameServer: exit");
+        }
+    }
+
+    public void handleRequest(VirtualSocket s) {
+        int opcode;
+        out = null;
+        in = null;
+
+        try {
+            BufferedOutputStream bo = new BufferedOutputStream(s.getOutputStream());
+            out = new DataOutputStream(bo);
+            in = new DataInputStream(new BufferedInputStream(s.getInputStream()));
+
+            opcode = in.readByte();
+
+            logger.debug("NameServer got opcode: " + opcode);
+            
+            switch (opcode) {
+            case (IBIS_ISALIVE):
+            case (IBIS_DEAD):
+                logger.debug("NameServer handling opcode IBIS_ISALIVE/IBIS_DEAD");
+                handleIbisIsalive(opcode == IBIS_DEAD);
+                break;
+            case (IBIS_JOIN):
+                long startTime = System.currentTimeMillis();
+                DataOutputStream savedOut = out;
+                ByteArrayOutputStream bbb = new ByteArrayOutputStream();
+                out = new DataOutputStream(bbb);
+                try {
+                    handleIbisJoin(startTime);
+                    out.flush();
+                    // System.out.println("after flush " + (System.currentTimeMillis() - startTime) + " size = " + bbb.size());
+                    bbb.writeTo(bo);
+                    bo.flush();
+                } finally {
+                    out = savedOut;
+                }
+                long endTime = System.currentTimeMillis();
+                logger.info("Join took " + (endTime - startTime)
+                        + " millis");
+                break;
+            case (IBIS_MUSTLEAVE):
+                handleIbisMustLeave();
+                break;
+            case (IBIS_LEAVE):
+                handleIbisLeave();
+                if (singleRun && pools.size() == 0) {
+                    if (joined) {
+                        stop = true;
+                    }
+                    // ignore invalid leave req.
+                }
+                break;
+            case (IBIS_CHECK):
+                handleCheck();
+                break;
+            case (IBIS_CHECKALL):
+                handleCheckAll();
+                break;
+            default:
+                if (! silent) {
+                    logger.error("NameServer got an illegal opcode: " + opcode);
+                }
+            }
+
+        } catch (Exception e1) {
+            if (! silent) {
+                logger.error("Got an exception in NameServer.run", e1);
+            }
+        } finally {
+            VirtualSocketFactory.close(s, out, in);
         }
     }
     

@@ -428,8 +428,10 @@ class ReceivePortNameServer extends Thread implements Protocol {
             String name = (String) v.get(i);
             ports.remove(name);
         }
+        /*
         out.writeInt(0);
         out.flush();
+        */
     }
 
     public void run() {

@@ -74,43 +74,15 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
         // TODO: fix timeout
         
         VirtualSocket s = null;
-        int cnt = 0;
-        
-        int sleep = 1000;
-        
-        while (s == null) {
-            try {
-                cnt++;
-                s = socketFactory.createClientSocket(dest, 2*sleep, null);
-            } catch (IOException e) {
-                if (cnt == timeout) {
-                    if (verbose) {
-                        logger.error("Nameserver client failed"
-                                + " to connect to nameserver\n at "
-                                + dest);
-                        logger.error("Gave up after " + timeout
-                                + " seconds");
-                    }
-                    throw new ConnectionTimedOutException(e);
-                }
-                if (cnt == 1 && verbose) {
-                    // Rather arbitrary, 10 seconds, print warning
-                    logger.error("Nameserver client failed"
-                            + " to connect to nameserver\n at " + dest
-                            + ", will keep trying: " + e);
-                } 
-                try {
-                    Thread.sleep(sleep);
-                } catch (InterruptedException e2) {
-                    // don't care
-                }
-                
-                sleep = 2*sleep;
-                
-                if (sleep > 60000) { 
-                    sleep = 60000;
-                }
+        try {
+            s = socketFactory.createClientSocket(dest, timeout * 1000, null);
+        } catch (IOException e) {
+            if (verbose) {
+                logger.error("Nameserver client failed"
+                        + " to connect to nameserver\n at "
+                        + dest + ", gave up after " + timeout + " seconds");
             }
+            throw new ConnectionTimedOutException(e);
         }
         return s;
     }
@@ -264,6 +236,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
                         
         // Then connect to the nameserver
         VirtualSocket s = nsConnect(serverAddress, true, 60);
+        s.setReceiveBufferSize(65536);
 
         /*
         String nameServerPortString = p.getProperty(NSProps.s_port);
@@ -496,7 +469,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
 
         try {
             logger.debug("Sending maybeDead(" + ibisId + ") to nameserver");
-            s = socketFactory.createClientSocket(serverAddress, 5000, null);
+            s = socketFactory.createClientSocket(serverAddress, 60000, null);
 
             logger.debug("connection setup done");
                         
@@ -578,7 +551,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
         logger.info("NS client: leave");
 
         try {
-            s = socketFactory.createClientSocket(serverAddress, 5000, null);
+            s = socketFactory.createClientSocket(serverAddress, 60000, null);
         } catch (IOException e) {
             if (logger.isInfoEnabled()) {
                 logger.info("leave: connect got exception", e);
