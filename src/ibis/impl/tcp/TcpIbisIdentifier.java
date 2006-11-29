@@ -49,7 +49,7 @@ public final class TcpIbisIdentifier extends IbisIdentifier implements
         }
         return toStringCache;
     }
-
+/*
     // no need to serialize super class fields, this is done automatically
     // We handle the address field special.
     // Do not do a writeObject on it (or a defaultWriteObject of the current
@@ -95,4 +95,5 @@ public final class TcpIbisIdentifier extends IbisIdentifier implements
             cache.removeIbis(this);
         }
     }
+    */
 }
