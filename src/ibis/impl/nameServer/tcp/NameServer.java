@@ -1527,7 +1527,8 @@ public class NameServer extends Thread implements Protocol {
                 }
                 continue;
             }
-            reqHandler.addJob(s);
+            // reqHandler.addJob(s);
+            handleRequest(s);
         }
         try {
             serverSocket.close();
