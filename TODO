@@ -4,6 +4,11 @@
 - change "related work" to "links" (like the ProActive site)
 - change UDP in documentation picture to being incomplete (striped)
 
+*** Plugtest ***
+
+- Gossip Registry
+- PortType in registry?
+
 *** Ibis 2.0+ ***
 
 general:
