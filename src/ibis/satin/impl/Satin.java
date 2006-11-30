@@ -156,6 +156,7 @@ public final class Satin implements Config {
 
         if (STATS && DETAILED_STATS) {
             stats.printDetailedStats(ident);
+            comm.ibis.printStatistics();
         }
 
         // Do not accept new connections and joins.

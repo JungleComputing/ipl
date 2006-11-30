@@ -794,4 +794,8 @@ public abstract class Ibis {
      *  identifiers} of the Ibis instances that are requested to leave.
      */
     public abstract void mustLeave(IbisIdentifier[] ibisses);
+    
+    public void printStatistics() { 
+        // default is empty
+    }
 }

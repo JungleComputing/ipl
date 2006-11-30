@@ -414,6 +414,10 @@ public final class TcpIbis extends Ibis implements Config {
             nameServer.unbind(nm);
         }
     }
+    
+    public void printStatistics() { 
+        socketFactory.printStatistics(ident.name());
+    }
 
     class TcpShutdown extends Thread {
         public void run() {
