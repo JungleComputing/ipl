@@ -685,7 +685,7 @@ public final class Statistics implements java.io.Serializable, Config {
             + pf.format(appPerc) + " %)");
     }
 
-    protected void printDetailedStats(IbisIdentifier ident) {
+    public void printDetailedStats(IbisIdentifier ident) {
         java.text.NumberFormat nf = java.text.NumberFormat.getInstance();
         java.io.PrintStream out = System.out;
 
