@@ -14,7 +14,11 @@ import java.io.DataOutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
 
+import org.apache.log4j.Logger;
+
 class ElectionClient implements Protocol {
+    static Logger logger
+    = ibis.util.GetLogger.getLogger(ElectionClient.class.getName());
 
     InetAddress server;
 
@@ -68,6 +72,8 @@ class ElectionClient implements Protocol {
                 	in.readFully(buf, 0, len);
                 	result = (IbisIdentifier) Conversion.byte2object(buf);
                 }
+            } catch (Exception e) {
+            	logger.warn("election client got exception: " + e, e);
             } finally {
                 NameServer.closeConnection(in, out, s);
             }

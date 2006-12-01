@@ -408,8 +408,10 @@ class ReceivePortNameServer extends Thread implements Protocol {
             String name = (String) v.get(i);
             ports.remove(name);
         }
+        /*
         out.writeInt(0);
         out.flush();
+        */
     }
 
     public void run() {
@@ -421,8 +423,15 @@ class ReceivePortNameServer extends Thread implements Protocol {
             try {
                 s = serverSocket.accept();
             } catch (Exception e) {
-                throw new IbisRuntimeException(
-                        "ReceivePortNameServer: got an error ", e);
+                logger.warn("ReceivePortNameServer: got an error in accept: " + e, e);
+                
+                try {
+                	Thread.sleep(1000);
+                } catch (Exception x) {
+                	// ignore
+                }
+                
+                continue;
             }
 
             DataInputStream in = null;

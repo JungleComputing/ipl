@@ -105,14 +105,14 @@ public interface Config {
      * Timeout for connecting to other nodes (in joined()) who might be
      * crashed.
      */
-    public static final long CONNECT_TIMEOUT = TypedProperties.intProperty(
+    public static final long CONNECT_TIMEOUT = TypedProperties.longProperty(
         s_ft_connectTimeout, 30) * 1000L;
 
     /**
      * Timeout for waiting on a steal reply from another node.
      */
-    public static final long STEAL_WAIT_TIMEOUT = TypedProperties.intProperty(
-        s_steal_wait_timeout, 40) * 1000L;
+    public static final long STEAL_WAIT_TIMEOUT = TypedProperties.longProperty(
+        s_steal_wait_timeout, (CONNECT_TIMEOUT * 2) + 10) * 1000L;
 
     /** Maximum time that messages may be buffered for message combining.
      * If > 0, it is used for combining shared objects invocations.

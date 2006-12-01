@@ -343,6 +343,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
         DataOutputStream out = null;
 
         try {
+            logger.debug("Sending maybeDead(" + ibisId + ") to nameserver");
             s = nsConnect(serverAddress, port, myAddress, false, 2);
 
             out = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));

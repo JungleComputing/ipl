@@ -40,7 +40,7 @@ public final class VictimTable implements Config {
 		Satin.assertLocked(satin);
 
 		if (victims.contains(v)) {
-			commLogger.warn("SATIN '" + satin.ident
+			commLogger.info("SATIN '" + satin.ident
 					+ "': victim was already added");
 			return;
 		}
@@ -94,7 +94,7 @@ public final class VictimTable implements Config {
 	public Victim getVictim(int i) {
 		Satin.assertLocked(satin);
 		if (ASSERTS && i < 0 || i >= victims.size()) {
-			commLogger.warn("SATIN '" + satin.ident
+			commLogger.info("SATIN '" + satin.ident
 					+ "': trying to read a non-existing victim id: " + i
 					+ ", there are " + victims.size() + " victims");
 			return null;
@@ -231,7 +231,7 @@ public final class VictimTable implements Config {
 */
 		
 		// @@@ TODO: this only works with SOBCAST disabled!
-		ftLogger.warn("SATIN '" + satin.ident + "': could not get victim for "
+		ftLogger.info("SATIN '" + satin.ident + "': could not get victim for "
 				+ id + " creating victim on demand");
 
 		SendPort p = null;
