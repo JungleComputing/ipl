@@ -178,9 +178,8 @@ final class LBCommunication implements Config, Protocol {
             return;
         }
 
+        s.stats.returnRecordWriteTimer.start();
         try {
-            s.stats.returnRecordWriteTimer.start();
-
             WriteMessage writeMessage = v.newMessage();
             if (r.eek == null) {
                 writeMessage.writeByte(Protocol.JOB_RESULT_NORMAL);

@@ -25,13 +25,24 @@ public class LoadBalancing implements Config {
     }
 
     final class StealRequestHandler extends Thread {
+    	static final boolean CONTINUOUS_STATS = true;
+    	static final long CONTINUOUS_STATS_INTERVAL = 60 * 1000;
+    	
         public StealRequestHandler() {
             setDaemon(true);
             setName("Satin StealRequestHandler");
         }
         
         public void run() {
+        	long lastPrintTime = System.currentTimeMillis();
+        	
             while(true) {
+            	if(CONTINUOUS_STATS && System.currentTimeMillis() - lastPrintTime > CONTINUOUS_STATS_INTERVAL) {
+            		lastPrintTime = System.currentTimeMillis();
+            		s.stats.printDetailedStats(s.ident);
+                    s.comm.ibis.printStatistics();
+            	}
+            	
                 StealRequest sr = null;
                 synchronized (s) {
                     if(stealQueue.size() > 0) {

@@ -373,7 +373,7 @@ public final class TcpIbis extends Ibis implements Config {
             nameServer.unbind(nm);
         }
     }
-
+    
     class TcpShutdown extends Thread {
         public void run() {
             end();

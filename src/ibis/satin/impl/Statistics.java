@@ -685,106 +685,70 @@ public final class Statistics implements java.io.Serializable, Config {
             + pf.format(appPerc) + " %)");
     }
 
-    protected void printDetailedStats(IbisIdentifier ident) {
+    public void printDetailedStats(IbisIdentifier ident) {
         java.text.NumberFormat nf = java.text.NumberFormat.getInstance();
         java.io.PrintStream out = System.out;
 
         out.println("SATIN '" + ident + "': SPAWN_STATS: spawns = " + spawns
-            + " executed = " + jobsExecuted + " syncs = " + syncs);
-        out.println("SATIN '" + ident + "': ABORT_STATS 1: aborts = "
-            + abortsDone + " abort msgs = " + abortMessages
-            + " aborted jobs = " + abortedJobs);
-        out.println("SATIN '" + ident + "': INTRA_STATS: messages = "
-            + intraClusterMessages + ", bytes = "
-            + nf.format(intraClusterBytes));
+            + " executed = " + jobsExecuted + " syncs = " + syncs + " aborts = "
+                + abortsDone + " abort msgs = " + abortMessages
+                + " aborted jobs = " + abortedJobs + " total time = " + abortTimer.totalTime());
 
-        out.println("SATIN '" + ident + "': INTER_STATS: messages = "
+        out.println("SATIN '" + ident + "': MSG_STATS: intra = "
+            + intraClusterMessages + ", bytes = "
+            + nf.format(intraClusterBytes) +
+            " inter = "
             + interClusterMessages + ", bytes = "
             + nf.format(interClusterBytes));
 
-        out.println("SATIN '" + ident + "': STEAL_STATS 1: attempts = "
+        out.println("SATIN '" + ident + "': STEAL_STATS: attempts = "
             + stealAttempts + " success = " + stealSuccess + " ("
-            + (perStats(stealSuccess, stealAttempts) * 100.0) + " %)");
-
-        out.println("SATIN '" + ident + "': STEAL_STATS 2: requests = "
-            + stealRequests + " jobs stolen = " + stolenJobs);
-
-        out.println("SATIN '" + ident + "': STEAL_STATS 3: attempts = "
-            + stealTimer.nrTimes() + " total time = " + stealTimer.totalTime()
-            + " avg time = " + stealTimer.averageTime());
-
-        out.println("SATIN '" + ident + "': STEAL_STATS 4: handleSteals = "
-            + handleStealTimer.nrTimes() + " total time = "
-            + handleStealTimer.totalTime() + " avg time = "
-            + handleStealTimer.averageTime());
+            + (perStats(stealSuccess, stealAttempts) * 100.0) + " %)" 
+            + " time = " + stealTimer.totalTime()
+            + " requests = " + stealRequests + " jobs stolen = " + stolenJobs
+            + " time = "
+            + handleStealTimer.totalTime());
+        
         out.println("SATIN '" + ident
-            + "': STEAL_STATS 5: invocationRecordWrites = "
+            + "': SERIALIZATION_STATS: invocationRecordWrites = "
             + invocationRecordWriteTimer.nrTimes() + " total time = "
-            + invocationRecordWriteTimer.totalTime() + " avg time = "
-            + invocationRecordWriteTimer.averageTime());
-        out.println("SATIN '" + ident
-            + "': STEAL_STATS 6: invocationRecordReads = "
+            + invocationRecordWriteTimer.totalTime()
+            + " invocationRecordReads = "
             + invocationRecordReadTimer.nrTimes() + " total time = "
-            + invocationRecordReadTimer.totalTime() + " avg time = "
-            + invocationRecordReadTimer.averageTime());
-        out.println("SATIN '" + ident
-            + "': STEAL_STATS 7: returnRecordWrites = "
+            + invocationRecordReadTimer.totalTime() 
+            + " returnRecordWrites = "
             + returnRecordWriteTimer.nrTimes() + " total time = "
-            + returnRecordWriteTimer.totalTime() + " avg time = "
-            + returnRecordWriteTimer.averageTime());
-        out.println("SATIN '" + ident
-            + "': STEAL_STATS 8: returnRecordReads = "
+            + returnRecordWriteTimer.totalTime() 
+            + " returnRecordReads = "
             + returnRecordReadTimer.nrTimes() + " total time = "
-            + returnRecordReadTimer.totalTime() + " avg time = "
-            + returnRecordReadTimer.averageTime());
+            + returnRecordReadTimer.totalTime() );
 
-        out.println("SATIN '" + ident + "': ABORT_STATS 2: aborts = "
-            + abortTimer.nrTimes() + " total time = " + abortTimer.totalTime()
-            + " avg time = " + abortTimer.averageTime());
+        out.println("SATIN '" + ident + 
+        		"': GRT_STATS: updates = " + tableResultUpdates
+        		+ " lock updates = " + tableLockUpdates
+        		+ " update time = " + updateTimer.totalTime()
+        		+ " handle update time = " + handleUpdateTimer.totalTime()
+        		+ " msgs = " + tableUpdateMessages
+        		+ " lookups = " + tableLookups  
+        		+ " lookup time = " + lookupTimer.totalTime()
+        		+ " handle lookup time = " + lookupTimer.totalTime()
+        		+ " remote lookups = " + tableRemoteLookups 
+        		+ " successful lookups = " + tableSuccessfulLookups
+        		+ " max size = " + tableMaxEntries);
 
-        out.println("SATIN '" + ident + "': " + tableResultUpdates
-            + " result updates of the table.");
-        out.println("SATIN '" + ident + "': " + tableLockUpdates
-            + " lock updates of the table.");
-        out.println("SATIN '" + ident + "': " + tableUpdateMessages
-            + " update messages.");
-        out.println("SATIN '" + ident + "': " + tableSuccessfulLookups
-            + " lookups succeded, of which:");
-        out.println("SATIN '" + ident + "': " + tableRemoteLookups
-            + " remote lookups.");
-        out.println("SATIN '" + ident + "': " + tableMaxEntries
-            + " entries maximally.");
+        out.println("SATIN '" + ident + "': FT_STATS:" 
+        		+ " handle crash time = " + crashTimer.totalTime()
+        		+ " redo time = " + redoTimer.totalTime()
+        		+ " orphans killed = " + killedOrphans
+        		+ " jobs restarted = " + restartedJobs);
 
-        out.println("SATIN '" + ident + "': " + lookupTimer.totalTime()
-            + " spent in lookups");
-        out.println("SATIN '" + ident + "': " + lookupTimer.averageTime()
-            + " per lookup");
-        out.println("SATIN '" + ident + "': " + updateTimer.totalTime()
-            + " spent in updates");
-        out.println("SATIN '" + ident + "': " + updateTimer.averageTime()
-            + " per update");
-        out.println("SATIN '" + ident + "': " + handleUpdateTimer.totalTime()
-            + " spent in handling updates");
-        out.println("SATIN '" + ident + "': " + handleUpdateTimer.averageTime()
-            + " per update handle");
-        out.println("SATIN '" + ident + "': " + handleLookupTimer.totalTime()
-            + " spent in handling lookups");
-        out.println("SATIN '" + ident + "': " + handleLookupTimer.averageTime()
-            + " per lookup handle");
-
-        out.println("SATIN '" + ident + "': " + crashTimer.totalTime()
-            + " spent in handling crashes");
-        out.println("SATIN '" + ident + "': " + redoTimer.totalTime()
-            + " spent in redoing");
-
-        out.println("SATIN '" + ident + "': " + killedOrphans
-            + " orphans killed");
-        out.println("SATIN '" + ident + "': " + restartedJobs
-            + " jobs restarted");
-        out.println("SATIN '" + ident.name() + "': " + soInvocations
-            + " shared object invocations sent.");
-        out.println("SATIN '" + ident.name() + "': " + soTransfers
-            + " shared objects transfered.");
+        out.println("SATIN '" + ident.name() + "': SO_STATS: "
+        		+ " invocations = " + soInvocations
+        		+ " size = " + soInvocationsBytes
+        		+ " time = " + broadcastSOInvocationsTimer.totalTime()
+        		+ " transfers = " + soTransfers 
+        		+ " size = " + soTransfersBytes 
+        		+ " time = " + soTransferTimer.totalTime());
     }
 
     private double perStats(double tm, long cnt) {
