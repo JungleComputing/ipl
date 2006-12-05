@@ -24,7 +24,7 @@ public class Stub extends RemoteStub {
 
     protected int skeletonId;
 
-    transient private boolean initialized = false;
+    transient boolean initialized = false;
 
     transient private boolean initializing = false;
 
@@ -76,7 +76,6 @@ public class Stub extends RemoteStub {
 
             ReadMessage rm = reply.receive();
             stubID = rm.readInt();
-            rm.readInt();
             try {
                 rm.readObject();
             } catch (Exception e) {

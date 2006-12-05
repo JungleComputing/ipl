@@ -599,7 +599,6 @@ public final class RTS {
         }
 
         int stubID = rm.readInt();
-        int skelID = rm.readInt();
 
         try {
             result = (Stub) rm.readObject();
@@ -607,8 +606,8 @@ public final class RTS {
             throw new RemoteException("ClassNotFoundException ", e);
         }
         rm.finish();
-
-        result.init(s, r, stubID, skelID, dest, true, null);
+        result.init(s, r, stubID, result.skeletonId,
+                result.skeletonPortId, true, null);
 
         if (logger.isDebugEnabled()) {
             logger.debug(hostname + ": Found object " + url);
