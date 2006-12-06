@@ -636,12 +636,12 @@ public class NameServer extends Thread implements Protocol {
                 if (! silent && logger.isDebugEnabled()) {
                     logger.debug("Doing full check");
                 }
-                poolPinger(true);
+                poolPinger();
             } else if (e.name == null) {
                 if (! silent && logger.isDebugEnabled()) {
                     logger.debug("Doing check of pool " + e.key);
                 }
-                poolPinger(e.key, true);
+                poolPinger(e.key);
             } else {
                 RunInfo p = (RunInfo) pools.get(e.key);
                 if (p != null) {
@@ -751,7 +751,7 @@ public class NameServer extends Thread implements Protocol {
                         }
                     }
                     if (joinFailed) {
-                        poolPinger(key, true);
+                        addPingerEntry(key, null);
                     }
                 }
             }
@@ -1159,7 +1159,7 @@ public class NameServer extends Thread implements Protocol {
                 out.flush();
                 return;
             }
-            poolPinger(false);
+            initiatePoolPinger();
             p = new RunInfo(silent);
 
             pools.put(key, p);
@@ -1181,7 +1181,7 @@ public class NameServer extends Thread implements Protocol {
         } else {
             // System.out.println("before poolPinger: " +
             //         (System.currentTimeMillis() - startTime));
-            poolPinger(key, false);
+            initiatePoolPinger(key);
             // System.out.println("after poolPinger: " +
             //         (System.currentTimeMillis() - startTime));
             // Handle delayed leave messages before adding new members
@@ -1254,24 +1254,12 @@ public class NameServer extends Thread implements Protocol {
         }
     }
 
-    private void poolPinger(String key, boolean force) {
+    private void poolPinger(String key) {
 
         RunInfo p = (RunInfo) pools.get(key);
 
         if (p == null) {
             return;
-        }
-
-        if (! force) {
-            long t = System.currentTimeMillis();
-
-            // If the pool has not reached its ping-limit yet, return.
-            if (t < p.pingLimit) {
-                if (! silent && logger.isDebugEnabled()) {
-                    logger.debug("NameServer: ping timeout not reached yet for pool " + key);
-                }
-                return;
-            }
         }
 
         if (! silent && logger.isDebugEnabled()) {
@@ -1281,14 +1269,40 @@ public class NameServer extends Thread implements Protocol {
         checkPool(p, null, false, key);
     }
 
+    private void initiatePoolPinger(String key) {
+        RunInfo p = (RunInfo) pools.get(key);
+
+        if (p == null) {
+            return;
+        }
+
+        long t = System.currentTimeMillis();
+
+        // If the pool has not reached its ping-limit yet, return.
+        if (t < p.pingLimit) {
+            if (! silent && logger.isDebugEnabled()) {
+                logger.debug("NameServer: ping timeout not reached yet for pool " + key);
+            }
+            return;
+        }
+        addPingerEntry(key, null);
+    }
+
+    private void initiatePoolPinger() {
+        for (Enumeration e = pools.keys(); e.hasMoreElements();) {
+            String key = (String) e.nextElement();
+            initiatePoolPinger(key);
+        }
+    }
+
     /**
      * Checks all pools to see if they still are alive. If a pool is dead
      * (connect to all members fails), the pool is killed.
      */
-    private void poolPinger(boolean force) {
+    private void poolPinger() {
         for (Enumeration e = pools.keys(); e.hasMoreElements();) {
             String key = (String) e.nextElement();
-            poolPinger(key, force);
+            poolPinger(key);
         }
     }
 
