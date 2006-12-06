@@ -103,7 +103,7 @@
 	    includes="ibis/**/*.class **/properties ibis-properties">
 	    <manifest>
 		<attribute name="Ibisc-Component" value="ibis.frontend.io.IOGenerator,ibis.frontend.gmi.Gmic,ibis.frontend.rmi.Rmic,ibis.frontend.satin.Satinc"/>
-		<attribute name="Ibis-Implementation" value="ibis.impl.tcp.TcpIbis,ibis.impl.nio.NioIbis"/>
+		<attribute name="Ibis-Implementation" value="ibis.impl.tcp.TcpIbis"/>
 	    </manifest>
 	</jar>
     </target>
