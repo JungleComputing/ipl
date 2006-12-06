@@ -1,8 +1,0 @@
-serialization = ibis, sun, byte, data, iplibis
-worldmodel = open, closed
-communication = OneToOne, OneToMany, ManyToOne, \
-		Poll, ReceiveTimeout, \
-		FifoOrdered, Reliable, PollMessageUpcalls, \
-		AutoMessageUpcalls, ExplicitReceipt, ConnectionDowncalls, \
-		ConnectionUpcalls, Numbered
-nickname = nio
