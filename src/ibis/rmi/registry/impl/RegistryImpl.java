@@ -1,4 +1,4 @@
-/* $Id:$ */
+/* $Id$ */
 
 package ibis.rmi.registry.impl;
 
