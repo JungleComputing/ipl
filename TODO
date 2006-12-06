@@ -90,11 +90,11 @@ ipl:
   
 rmi:
 - check Ibis RMI registry:
-  - you don't have to actually start one;
-  - registers url's, not names.
-  - Don't use bind()/unbind() from the nameserver. Instead, implement
+  + you don't have to actually start one; (Fixed Ceriel)
+  + registers url's, not names. (Done Ceriel (the other way around ...))
+  + Don't use bind()/unbind() from the nameserver. Instead, implement
     a real registry thread on one of the nodes (or even have a separate
-    rmi registry).
+    rmi registry). (Done Ceriel)
 
 satin:
 - if main throws an exception, we exit with code 0. Ant test also succeeds.
