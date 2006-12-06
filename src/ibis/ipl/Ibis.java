@@ -135,51 +135,6 @@ public abstract class Ibis {
         System.loadLibrary(name);
     }
 
-    /** 
-     * Creates a new Ibis instance. Instances must be given a unique name,
-     * which identifies the instance. Lookups are done using this name. If
-     * the user tries to create two instances with the same name, an
-     * IbisException will be thrown.
-     *
-     * @param name a unique name, identifying this Ibis instance.
-     * @param implName the name of the implementation.
-     * @param resizeHandler will be invoked when Ibises join and leave, and
-     *  may be null to indicate that resize notifications are not wanted.
-     * @return the new Ibis instance.
-     *
-     * @exception ibis.ipl.IbisException two Ibis instances with the same
-     *  implName are created, or any IbisException the implementation
-     *  throws at its initialization
-     * @exception IllegalArgumentException name or implName are null, or
-     *  do not correspond to an existing Ibis implementation
-     * @exception ConnectionRefusedException is thrown when the name turns
-     *  out to be not unique.
-     * @deprecated The prefered method for creating Ibis instances is
-     *   {@link #createIbis(ibis.ipl.StaticProperties, ibis.ipl.ResizeHandler)}.
-     */
-    public static Ibis createIbis(String name, String implName,
-            ResizeHandler resizeHandler) throws IbisException,
-            ConnectionRefusedException {
-
-        if (implName == null) {
-            throw new IllegalArgumentException("Implementation name is null");
-        }
-
-        if (name == null) {
-            throw new IllegalArgumentException("Ibis name is null");
-        }
-
-        Class c;
-
-        try {
-            c = Class.forName(implName);
-        } catch (ClassNotFoundException t) {
-            throw new IllegalArgumentException("Could not initialize Ibis" + t);
-        }
-
-        return createIbis(name, c, null, null, resizeHandler);
-    }
-
     private static Ibis createIbis(String name, Class c,
             StaticProperties prop, StaticProperties reqprop,
             ResizeHandler resizeHandler) throws IbisException,

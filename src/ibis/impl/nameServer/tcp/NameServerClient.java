@@ -631,20 +631,6 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
                 allowPartialResult);
     }
 
-    public IbisIdentifier lookupIbis(String name) {
-        return lookupIbis(name, 0);
-    }
-
-    public IbisIdentifier lookupIbis(String name, long timeout) {
-        /* not implemented yet */
-        return null;
-    }
-
-    public ReceivePortIdentifier[] listReceivePorts(IbisIdentifier ident) {
-        /* not implemented yet */
-        return new ReceivePortIdentifier[0];
-    }
-
     public IbisIdentifier elect(String election) throws IOException,
             ClassNotFoundException {
         return electionClient.elect(election, id);

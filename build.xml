@@ -1,20 +1,13 @@
-<project
-    name="ibis"
-    default="default"
-    basedir=".">
-
+<project name="Ibis" default="default" basedir=".">
     <description>
-	Top-level Ibis build.
+	Build file for Ibis
     </description>
 
-    <target name="default"
-	    description="Build Ibis"
-	    depends="allclean,build">
+    <target name="default" description="Build Ibis" depends="allclean,build">
 	<delete dir="${build}"/>
     </target>
 
-    <target name="usage"
-	    description="Print this message">
+    <target name="usage" description="Print this message">
 	<exec	executable="ant">
 	    <arg line="-projecthelp"/>
 	</exec>
@@ -27,24 +20,18 @@
 
     <property name="jar" value="${ibis}/lib/${version}.jar"/>
 
-    <!--
-	This must come first.
-    -->
-
     <target name="make-dirs">
 	<tstamp/>
 	<mkdir dir="${build}"/>
 	<mkdir dir="${ibis}/lib"/>
-	<mkdir dir="${ibis}/bin"/>
     </target>
 
     <target name="init" depends="property-init,make-dirs,jars"/>
 
     <!--
-	Compile only
+    Compile only
     -->
-    <target name="compile"
-	    depends="init">
+    <target name="compile" depends="init">
 	<javac  destdir="${build}" debug="true" srcdir="${src}"
 	    includes="ibis/**/*.java"
 	    excludes="ibis/repmi/**/*.java">
@@ -52,52 +39,23 @@
 	</javac>
     </target>
 
-    <target name="check-windows" unless="bin-created">
-	<condition property="is-windows">
-	    <os family="windows"/>
-	</condition>
-    </target>
-
-    <target name="build-unix-bin" unless="bin-created">
     <!--
-	    Commented out so that unix scripts get installed on Cygwin
-	    (and on windows, but who cares ...)
-	    unless="is-windows">
-    -->
-	<copy todir="${ibis}/bin">
-	    <fileset dir="${ibis}/src/scripts" excludes="*.bat,*.in"/>
-	</copy>
-    </target>
-
-    <target name="build-windows-bin" unless="bin-created" if="is-windows">
-	<copy todir="${ibis}/bin">
-	    <fileset dir="${ibis}/src/scripts" includes="*.bat"/>
-	</copy>
-    </target>
-
-    <target name="build-bin"
-	    depends="check-windows, build-unix-bin, build-windows-bin">
-	<chmod file="${ibis}/bin/*" perm="+x"/>
-	<property name="bin-created" value="true"/>
-    </target>
-
-    <!--
-	Compile, run IOGenerator, build jars for the whole of Ibis
+    Compile, run IOGenerator, build jars for the whole of Ibis
     -->
 
     <target name="build"
-	    depends="compile, ibis-rmic, build-bin, copyProperties, ibis-iogen, ibis.jar"
-	    description="Build Ibis">
+	depends="compile, ibis-rmic, copyProperties, ibis-iogen, ibis.jar"
+	description="Build Ibis">
     </target>
 
     <target name="ibis-iogen">
 	<java   classname="ibis.frontend.ibis.Ibisc"
-		taskname="Ibisc"
-		failonerror="true"
-		dir="${build}"
-		maxmemory="512m"
-		fork="true">
-		<arg line="."/>
+	    taskname="Ibisc"
+	    failonerror="true"
+	    dir="${build}"
+	    maxmemory="512m"
+	    fork="true">
+	    <arg line="."/>
 	    <classpath refid="default.classpath"/>
 	</java>
     </target>
@@ -105,12 +63,12 @@
 
     <target name="ibis-rmic">
 	<java   classname="ibis.frontend.rmi.Rmic"
-		taskname="Rmic"
-		failonerror="true"
-		dir="${build}"
-		maxmemory="512m"
-		fork="true">
-		<arg line="-dir ibis.rmi.registry.impl.RegistryImpl"/>
+	    taskname="Rmic"
+	    failonerror="true"
+	    dir="${build}"
+	    maxmemory="512m"
+	    fork="true">
+	    <arg line="-dir ibis.rmi.registry.impl.RegistryImpl"/>
 	    <classpath refid="default.classpath"/>
 	</java>
 	<javac  destdir="${build}" debug="true" srcdir="${build}"
@@ -126,30 +84,23 @@
     <property name="lib"         location="${ibis}/lib"/>
     <property name="docs"        location="${ibis}/docs"/>
 
-    <target name="copyProperties"
-	    depends="init"
-	    description="Copy property files to the build tree">
+    <target name="copyProperties">
 	<copy todir="${build}">
-	    <fileset dir="${src}">
-		<include name="ibis/impl/**/properties"/>
-		<include name="ibis-properties"/>
-	    </fileset>
+	    <fileset dir="${src}" includes="ibis-properties,ibis/impl/**/properties"/>
 	</copy>
     </target>
 
     <target name="jars"
-	    description="Generate jar files for ibis">
+	description="Generate jar files for ibis">
 	<copy todir="${ibis}/lib">
-	    <fileset dir="${ibis}/3rdparty">
-		<include name="*.jar"/>
-	    </fileset>
+	    <fileset dir="${ibis}/3rdparty" includes="*.jar"/>
 	</copy>
     </target>
 
     <target name="ibis.jar">
 	<jar	destfile="${jar}"
-		basedir="${build}"
-		includes="ibis/**/*.class **/properties ibis-properties">
+	    basedir="${build}"
+	    includes="ibis/**/*.class **/properties ibis-properties">
 	    <manifest>
 		<attribute name="Ibisc-Component" value="ibis.frontend.io.IOGenerator,ibis.frontend.gmi.Gmic,ibis.frontend.rmi.Rmic,ibis.frontend.satin.Satinc"/>
 		<attribute name="Ibis-Implementation" value="ibis.impl.tcp.TcpIbis,ibis.impl.nio.NioIbis"/>
@@ -158,15 +109,15 @@
     </target>
 
     <!--
-	Run IOGenerator over the classlibs in $JAVA_HOME and
-	put them into ${rewritten-classlibs}
+    Run IOGenerator over the classlibs in $JAVA_HOME and
+    put them into ${rewritten-classlibs}
     -->
 
     <property name="rewritten-classlibs" location="${ibis}/classlibs"/>
 
     <target name="rewrite"
-	    depends="init"
-	    description="Preprocess all serializable classes of standard Java">
+	depends="init"
+	description="Preprocess all serializable classes of standard Java">
 	<!-- Create a directory for the rewritten classes -->
 
 	<mkdir dir="${rewritten-classlibs}"/>
@@ -183,39 +134,31 @@
 
 	<!-- Then, rewrite.  -->
 	<java   classname="ibis.frontend.ibis.Ibisc"
-		taskname="Ibisc"
-		failonerror="true"
-		maxmemory="512m"
-		dir="${rewritten-classlibs}"
-		fork="true">
-		<arg line="."/>
+	    taskname="Ibisc"
+	    failonerror="true"
+	    maxmemory="512m"
+	    dir="${rewritten-classlibs}"
+	    fork="true">
+	    <arg line="."/>
 	    <classpath refid="default.classpath"/>
 	</java>
     </target>
 
-    <target name="clean"
-	    description="Clean up the build">
+    <target name="clean" description="Clean up the build">
 	<delete dir="${ibis}/build"/>
     </target>
 
-    <target name="allclean"
-	depends="clean"
-	description="Clean up build, jars">
-	<!-- No, not bin: otherwise ns-env will disappear and never
-	     reappear. Note that ns-env should survive builds.
-	     Maybe put ns-env somewhere else???
-	<delete dir="${ibis}/bin"/>
-	-->
+    <target name="allclean" depends="clean" description="Clean up build, jars">
 	<delete dir="${ibis}/lib"/>
     </target>
 
     <target name="rewritten-clean"
-	    description="Clean up rewritten classlibs (except under sym links)">
+	description="Clean up rewritten classlibs (except under sym links)">
 	<!--
-	    If ${rewritten-classlibs} is a sym-link, we let the directory
-	    live on. In this case, I suppose the user knows what he is up to.
-	    If it isn't a symlink (which is the normal case) go ahead and
-	    throw away all your rewritten stuff.	RFHH
+	If ${rewritten-classlibs} is a sym-link, we let the directory
+	live on. In this case, I suppose the user knows what he is up to.
+	If it isn't a symlink (which is the normal case) go ahead and
+	throw away all your rewritten stuff.	RFHH
 	-->
 	<delete includeEmptyDirs="true">
 	    <fileset dir="${ibis}" followsymlinks="false">
@@ -224,22 +167,16 @@
 	</delete>
     </target>
 
-    <target name="distclean"
-	    depends="clean,rewritten-clean"
-	    description="Clean up, also configuration cache and rewritten classlibs">
-	<delete file="build-files/build-properties"/>
-	<delete file="build-files/build-properties.cache"/>
-	<delete file="build-files/build-properties.backup"/>
+    <target name="distclean" depends="allclean,rewritten-clean"
+	description="Clean up, also rewritten classlibs">
 	<ant dir="${ibis}/ibis-example" inheritAll="false" target="clean"/>
-	<delete dir="bin"/>
-	<delete dir="lib"/>
 	<delete dir="ant-tasks/tasks"/>
 	<delete file="${version}.zip"/>
+	<delete file="ibis-src.zip"/>
 	<ant dir="${docs}" inheritAll="false" target="distclean"/>
     </target>
 
-    <target name="docs"
-	    description="Build the Ibis API documentation">
+    <target name="docs" description="Build the Ibis API documentation">
 	<ant dir="${docs}" inheritAll="false" target="api"/>
     </target>
 
@@ -247,8 +184,7 @@
 	<ant dir="${docs}" inheritAll="false" target="developer-api"/>
     </target>
 
-    <target name="progman"
-	    description="Build the Ibis programmers manual">
+    <target name="progman" description="Build the Ibis programmers manual">
 	<ant dir="${docs}" inheritAll="false" target="progman"/>
     </target>
 
@@ -257,58 +193,26 @@
     </target>
 
     <target name="ibis.zip" depends="default,docs,progman">
-	<delete dir="bin-temp"/>
 	<delete file="${version}.zip"/>
 
-	<property name="dirnam" value="bin-temp/${version}"/>
+	<zip destfile="ibis-src.zip">
+	    <zipfileset dir="src" prefix="ibis-src"/>
+	</zip>
 
-	<mkdir dir="${dirnam}"/>
+	<zip destfile="${version}.zip">
+	    <zipfileset dir="." prefix="${version}"
+		includes="buildfiles/**,docs/**,grun/**,lib/**,notices/**,
+		BUGS.txt,LICENSE.txt,ibis-src.zip"
+		excludes="docs/src/**,notices/OmniSourceLicense.html,
+		docs/build.xml,docs/README-bin.txt"
+		/>
+	    <zipfileset dir="." prefix="${version}" filemode="755"
+		includes="bin/**"
+		/>
+	    <zipfileset dir="." includes="docs/README-bin.txt"
+		fullpath="${version}/README.txt"/>
+	</zip>
 
-	<copy todir="${dirnam}">
-	    <fileset dir=".">
-		<include name="build-files/**"/>
-		<include name="docs/**"/>
-		<include name="grun/**"/>
-		<include name="lib/**"/>
-		<include name="notices/**"/>
-		<include name="bin/**"/>
-		<include name="BUGS.txt"/>
-		<include name="LICENSE.txt"/>
-	    </fileset>
-	</copy>
-
-	<copy todir="${dirnam}/bin">
-	    <fileset dir="src/scripts">
-		<include name="*.bat"/>
-	    </fileset>
-	</copy>
-
-	<copy
-		file="src/scripts/ns-env.bat.in"
-		tofile="${dirnam}/bin/ns-env.bat">
-	</copy>
-	<replace file="${dirnam}/bin/ns-env.bat" token="@IBIS_NS_PORT@" value="9826"/>
-	<replace file="${dirnam}/bin/ns-env.bat" token="@IBIS_NS_HOST@" value="localhost"/>
-
-	<chmod file="${dirnam}/bin/*" perm="+x"/>
-
-	<move file="${dirnam}/docs/README-bin.txt" tofile="${dirnam}/README.txt"/>
-
-	<delete dir="${dirnam}/docs/src"/>
-	<delete file="${dirnam}/notices/OmniSourceLicense.html"/>
-	<delete file="${dirnam}/docs/build.xml"/>
-
-	<!--
-	 Unfortunately, the zip task does not deal with file permissions.
-	 In particular, it apparently strips the "execute" bit from the
-	 file in bin.
-	 <zip destfile="${version}.zip" basedir="bin-temp"/>
-	-->
-	<exec executable="/usr/bin/zip" dir="bin-temp">
-	    <arg line="-qr ../${version}.zip ${version}"/>
-	</exec>
-
-	<delete dir="bin-temp"/>
     </target>
 
 </project>

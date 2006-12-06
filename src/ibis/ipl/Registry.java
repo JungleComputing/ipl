@@ -83,51 +83,6 @@ public interface Registry {
             long timeout, boolean allowPartialResults) throws IOException;
 
     /**
-     * Locates the {@link ibis.ipl.IbisIdentifier IbisIdentifier}
-     * that has been bound to the specified <code>name</code>.
-     * The method blocks until an Ibis with the specified
-     * name is found.
-     *
-     * @param name name of the ibis.
-     * @return the identifier
-     * @exception ClassNotFoundException is thrown if an IbisIdentifier
-     * 	is returned whose class is locally unknown.
-     * @exception java.io.IOException is thrown in case of trouble.
-     */
-    public IbisIdentifier lookupIbis(String name) throws IOException,
-            ClassNotFoundException;
-
-    /**
-     * Locates the {@link ibis.ipl.IbisIdentifier IbisIdentifier}
-     * that has been bound to the specified <code>name</code>.
-     * The method blocks until an Ibis with the specified
-     * name is found, or the timeout expires.
-     * If timeout is 0, the method behaves as if no timeout was given.
-     *
-     * @param name name of the ibis.
-     * @param timeout the timeout, in milliseconds.
-     * @return the identifier
-     * @exception ClassNotFoundException is thrown if an IbisIdentifier
-     * 	is returned whose class is locally unknown.
-     * @exception ConnectionTimedOutException is thrown when the timeout
-     * 	expires.
-     * @exception java.io.IOException is thrown in case of trouble.
-     */
-    public IbisIdentifier lookupIbis(String name, long timeout)
-            throws IOException, ClassNotFoundException;
-
-    /**
-     * Returns the list of receiveport identifiers that are registered
-     * with this registry, and have the specified ibis as their
-     * controlling ibis.
-     * @exception ClassNotFoundException is thrown if an any receiveport
-     *  identifier is returned whose class is locally unknown.
-     * @exception java.io.IOException is thrown in case of trouble.
-     */
-    public ReceivePortIdentifier[] listReceivePorts(IbisIdentifier ident)
-            throws IOException, ClassNotFoundException;
-
-    /**
      * Elects a single candidate from a number of candidates calling this
      * method with a specified election name.
      * Note that this has nothing to do with a real election: it is not like

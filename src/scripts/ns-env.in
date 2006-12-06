@@ -1,9 +1,0 @@
-#
-# This file contains definitions for the ibis nameserver.
-# It can be modified by the user and survives reconfiguration of the
-# Ibis tree (but not distclean).
-#
-@SET@IBIS_NAMESERVER_HOST=@IBIS_NS_HOST@
-export IBIS_NAMESERVER_HOST
-@SET@IBIS_NAMESERVER_PORT=@IBIS_NS_PORT@
-export IBIS_NAMESERVER_PORT
