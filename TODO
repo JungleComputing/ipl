@@ -90,8 +90,9 @@ ipl:
 + add SendPort.connect(IbisIdentifier ibis, String receivePortName)
   (done Ceriel)
 - add Registry.lookup(IbisIdentifier ibis, String receivePortName)
-- remove Registry.lookupIbis()
-- remove (deprecated) createIbis(String name)
+  (Ceriel: Really??? )
++ remove Registry.lookupIbis() (Done ceriel)
++ remove (deprecated) createIbis(String name) (Done ceriel)
 - change Ibis.toString() to returning a "friendly"(user-printable), but not 
   necessarily unique, string.
   
@@ -106,7 +107,8 @@ rmi:
 satin:
 - if main throws an exception, we exit with code 0. Ant test also succeeds.
 
-- make scalable ibis / scalable satin (don't keep sockets open) --Rob
++ make scalable ibis / scalable satin (don't keep sockets open) --Rob
+  (Done Rob)
 
 - add semantic analysis to the compiler
 - forgotten sync statements
@@ -151,7 +153,7 @@ implementations:
 + remove PandaIbis (done Ceriel)
 + remove NetIbis (done Ceriel)
 
-connect stuff:
+connect stuff: (Ceriel: should all be fixed by smartSockets).
 - Rob: allow user to load socket types per *connection* use the 
        property map for this
 - control hub client side always binds to default local ip/port 
@@ -160,9 +162,6 @@ connect stuff:
 - use routed messages *while* trying to setup TCP splicing in the background
 - write a good anyTCP for control_links -Rob
 - support universal plug and play
-
-future projects:
-- build *Ibis: a stacking ibis
 
 apps:
 - check results of the different barnes versions
