@@ -44,7 +44,7 @@ public class Connection {
 
 
     protected void setupReceivePort() {
-        String portString = portName + '_'+ myRank + '_' + commPartnerRank;
+        String portString = portName + '_' + commPartnerRank;
 
         if (DEBUG) {
             System.err.println("Receive on: " + portString + "; Index: " + commPartnerRank);
@@ -61,15 +61,16 @@ public class Connection {
     }
 
     protected void setupSendPort() {
-        String portString = portName + '_' + commPartnerRank + '_' + myRank;
+        String portString = portName + '_' + myRank;
 
         if (DEBUG) {
             System.err.println("Send on: " + portString + "; Index: " + commPartnerRank);
         }
         try {
             sender = portType.createSendPort();
-            client = registry.lookupReceivePort(portString);
-            sender.connect(client);
+            IbisIdentifier rpHolder
+                    = registry.getElectionResult("" + commPartnerRank);
+            sender.connect(rpHolder, portString);
         }
         catch (Exception e) {
             System.err.println(e.getMessage());

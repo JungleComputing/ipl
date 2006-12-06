@@ -75,24 +75,14 @@ class TcpPortType extends PortType implements Config {
     }
 
     public ReceivePort createReceivePort(String nm, Upcall u,
-            ReceivePortConnectUpcall cU, boolean connectionAdministration,
-            boolean global) throws IOException {
+            ReceivePortConnectUpcall cU, boolean connectionAdministration)
+            throws IOException {
         TcpReceivePort prt = new TcpReceivePort(ibis, this, nm, u,
-                connectionAdministration, cU, global);
+                connectionAdministration, cU);
 
         if (DEBUG) {
             System.out.println(ibis.identifier()
                     + ": Receiveport created name = '" + prt.name() + "'");
-        }
-
-        if (global) {
-            ibis.bindReceivePort(nm, prt.identifier());
-
-            if (DEBUG) {
-                System.out.println(ibis.identifier()
-                        + ": Receiveport bound in registry, name = '" + prt.name()
-                        + "'");
-            }
         }
 
         return prt;

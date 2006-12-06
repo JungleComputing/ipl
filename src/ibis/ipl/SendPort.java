@@ -184,9 +184,9 @@ public interface SendPort {
      * @exception PortMismatchException is thrown if the receiveport
      * port and the sendport are of different types.
      * @exception IOException is thrown if a message is alive.
-     * @return the receiveport identifier, or <code>null</code>.
+     * @return the receiveport identifier.
      */
-    public ReceivePortIdentifier  connect(IbisIdentifier id, String name)
+    public ReceivePortIdentifier connect(IbisIdentifier id, String name)
             throws IOException;
 
     /**
@@ -210,9 +210,9 @@ public interface SendPort {
      * Multiple connections to the same receiver are NOT allowed.
      * @exception PortMismatchException is thrown if the receiveport
      * port and the sendport are of different types.
-     * @return the receiveport identifier, or <code>null</code>.
+     * @return the receiveport identifier.
      */
-    public ReceivePortIdentifier  connect(IbisIdentifier id, String name,
+    public ReceivePortIdentifier connect(IbisIdentifier id, String name,
             long timeoutMillis) throws IOException;
 
     /**

@@ -212,11 +212,11 @@ public final class Group implements GroupProtocol {
             MulticastGroups.init(ibis.createPortType("GMI OneToMany", props));
                        
             // Create the unicast receive port
-            receivePort = portTypeManyToOne.createReceivePort("GMI port on "
-                    + localID, new GroupCallHandler());            
+            receivePort = portTypeManyToOne.createReceivePort("GMI port",
+                    new GroupCallHandler());            
             receivePort.enableConnections();
             
-            IbisIdentifier winner = ibisRegistry.elect("GMI MASTER ELECTION");
+            IbisIdentifier master = ibisRegistry.elect("GMI MASTER ELECTION");
                         
             if (openWorld) {
                 _size = -1; 
@@ -225,7 +225,7 @@ public final class Group implements GroupProtocol {
                 _size = ibis.totalNrOfIbisesInPool();
             }            
             
-            if (winner.equals(ibis.identifier())) { 
+            if (master.equals(ibis.identifier())) { 
                 // I am the master
             
                 if (logger.isDebugEnabled()) {
@@ -269,26 +269,12 @@ public final class Group implements GroupProtocol {
                             name + " I am client");
                 }
 
-                systemIn = portTypeSystem.createReceivePort("GMI Client "
-                        + localID);
+                systemIn = portTypeSystem.createReceivePort("GMI Client");
                 systemIn.enableConnections();
 
-                systemOut = portTypeSystem.createSendPort("GMI Client "
-                        + localID);
+                systemOut = portTypeSystem.createSendPort("GMI Client");
 
-                ReceivePortIdentifier master = ibisRegistry.lookupReceivePort(
-                        "GMI Master");
-
-                while (master == null) {
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e) {
-                        // ignore
-                    }
-                    master = ibisRegistry.lookupReceivePort("GMI Master");
-                }
-
-                systemOut.connect(master);
+                systemOut.connect(master, "GMI Master");
 
                 WriteMessage w = systemOut.newMessage();
                 w.writeObject(systemIn.identifier());

@@ -226,10 +226,6 @@ public class NameServer extends Thread implements Protocol {
 
         PortTypeNameServer portTypeNameServer;
 
-        ReceivePortNameServer receivePortNameServer;
-
-        DeadNotifier receivePortKiller;
-
         ElectionServer electionServer;
 
         DeadNotifier electionKiller;
@@ -246,11 +242,6 @@ public class NameServer extends Thread implements Protocol {
             toBeDeleted = new Vector();
             portTypeNameServer = new PortTypeNameServer(silent,
                     socketFactory);
-            receivePortNameServer = new ReceivePortNameServer(silent,
-                    socketFactory);
-            receivePortKiller = new DeadNotifier(this,
-                    receivePortNameServer.getAddress(), PORT_KILL);
-            ThreadPool.createNew(receivePortKiller, "ReceivePortKiller");
             electionServer = new ElectionServer(silent,
                     socketFactory);
             electionKiller = new DeadNotifier(this, electionServer.getAddress(),
@@ -601,9 +592,6 @@ public class NameServer extends Thread implements Protocol {
 
             // Let the election server know about it.
             inf.electionKiller.addCorpses(names);
-
-            // Let the receiveport nameserver know about it.
-            inf.receivePortKiller.addCorpses(names);
         }
 
         // After sendLeavers finishes, forwarders should be 0, even if
@@ -1017,10 +1005,8 @@ public class NameServer extends Thread implements Protocol {
                     ibisIds[j] = temp2;
                 }
 
-                // Pass the dead ones on to the election server and
-                // receiveport nameserver
+                // Pass the dead ones on to the election server
                 p.electionKiller.addCorpses(ids);
-                p.receivePortKiller.addCorpses(ids);
 
                 // ... and to all other ibis instances in this pool.
                 elts = p.instances();
@@ -1190,7 +1176,6 @@ public class NameServer extends Thread implements Protocol {
 
             out.writeByte(IBIS_ACCEPTED);
             writeVirtualSocketAddress(out, p.portTypeNameServer.getAddress());
-            writeVirtualSocketAddress(out, p.receivePortNameServer.getAddress());
             writeVirtualSocketAddress(out, p.electionServer.getAddress());
 
             if (! silent && logger.isDebugEnabled()) {
@@ -1315,7 +1300,6 @@ public class NameServer extends Thread implements Protocol {
         DataOutputStream out3 = null;
 
         p.electionKiller.quit();
-        p.receivePortKiller.quit();
         
         try {
             s = socketFactory.createClientSocket(
@@ -1327,17 +1311,6 @@ public class NameServer extends Thread implements Protocol {
         } finally {
             VirtualSocketFactory.close(s, out1, null);
             s = null;
-        }
-        
-        try {
-            s2 = socketFactory.createClientSocket(
-                    p.receivePortNameServer.getAddress(), CONNECT_TIMEOUT, null);
-            out2 = new DataOutputStream(new BufferedOutputStream(s2.getOutputStream()));
-            out2.writeByte(PORT_EXIT);
-        } catch (IOException e) {
-            // ignore
-        } finally {
-            VirtualSocketFactory.close(s2, out2, null);
         }
         
         try {
@@ -1556,61 +1529,6 @@ public class NameServer extends Thread implements Protocol {
                 
                 continue;
             }
-            /*
-<<<<<<< .mine
-
-            out = null;
-            in = null;
-
-            try {
-                out = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
-                in = new DataInputStream(new BufferedInputStream(s.getInputStream()));
-
-                opcode = in.readByte();
-
-                logger.debug("NameServer got opcode: " + opcode);
-                
-                switch (opcode) {
-                case (IBIS_ISALIVE):
-                case (IBIS_DEAD):
-                    logger.debug("NameServer handling opcode IBIS_ISALIVE/IBIS_DEAD");
-                    handleIbisIsalive(opcode == IBIS_DEAD);
-                    break;
-                case (IBIS_JOIN):
-                    handleIbisJoin();
-                    break;
-                case (IBIS_MUSTLEAVE):
-                    handleIbisMustLeave();
-                    break;
-                case (IBIS_LEAVE):
-                    handleIbisLeave();
-                    if (singleRun && pools.size() == 0) {
-                        if (joined) {
-                            stop = true;
-                        }
-                        // ignore invalid leave req.
-                    }
-                    break;
-                case (IBIS_CHECK):
-                    handleCheck();
-                    break;
-                case (IBIS_CHECKALL):
-                    handleCheckAll();
-                    break;
-                default:
-                    if (! silent) {
-                        logger.error("NameServer got an illegal opcode: " + opcode);
-                    }
-                }
-
-            } catch (Exception e1) {
-                if (! silent) {
-                    logger.error("Got an exception in NameServer.run <Rob doesn't want a stacktrace!>");
-                }
-            } finally {
-                VirtualSocketFactory.close(s, out, in);
-            }
-=======*/
             reqHandler.addJob(s);
         }
         try {

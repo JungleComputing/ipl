@@ -11,7 +11,6 @@ import ibis.ipl.Ibis;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.IbisRuntimeException;
-import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.StaticProperties;
 import ibis.util.RunProcess;
 import ibis.util.TypedProperties;
@@ -40,8 +39,6 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
         = TypedProperties.intProperty(NSProps.s_port, 9826);
     
     private PortTypeNameServerClient portTypeNameServerClient;
-
-    private ReceivePortNameServerClient receivePortNameServerClient;
 
     private ElectionClient electionClient;
 
@@ -309,11 +306,6 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
                 /* Address for the PortTypeNameServer */
                 portTypeNameServerClient = new PortTypeNameServerClient(
                         readVirtualSocketAddress(in), id.name());
-
-                /* Address for the ReceivePortNameServer */
-                receivePortNameServerClient = new ReceivePortNameServerClient(
-                        readVirtualSocketAddress(in), id.name(), 
-                        serverSocket.getLocalSocketAddress());
 
                 /* Address for the ElectionServer */
                 electionClient = new ElectionClient(
@@ -726,11 +718,6 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
                     ibisImpl.mustLeave(ids);
                     break;
 
-                case PORT_KNOWN:
-                case PORT_UNKNOWN:
-                    receivePortNameServerClient.gotAnswer(opcode, in);
-                    break;
-
                 default:
                     logger.error("NameServerClient: got an illegal "
                             + "opcode " + opcode);
@@ -748,28 +735,6 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
         logger.debug("NameServerClient: thread stopped");
     }
 
-    public ReceivePortIdentifier lookupReceivePort(String name)
-            throws IOException {
-        return lookupReceivePort(name, 0);
-    }
-
-    public ReceivePortIdentifier lookupReceivePort(String name, long timeout)
-            throws IOException {
-        return receivePortNameServerClient.lookup(name, timeout);
-    }
-
-    public ReceivePortIdentifier[] lookupReceivePorts(String[] names)
-            throws IOException {
-        return lookupReceivePorts(names, 0, false);
-    }
-
-    public ReceivePortIdentifier[] lookupReceivePorts(String[] names, 
-            long timeout, boolean allowPartialResult)
-            throws IOException {
-        return receivePortNameServerClient.lookup(names, timeout, 
-                allowPartialResult);
-    }
-
     public IbisIdentifier elect(String election) throws IOException,
             ClassNotFoundException {
         return electionClient.elect(election, id);
@@ -778,14 +743,5 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
     public IbisIdentifier getElectionResult(String election)
             throws IOException, ClassNotFoundException {
         return electionClient.elect(election, null);
-    }
-
-    public void bind(String name, ReceivePortIdentifier rpi)
-            throws IOException {
-        receivePortNameServerClient.bind(name, rpi);
-    }
-
-    public void unbind(String name) throws IOException {
-        receivePortNameServerClient.unbind(name);
     }
 }
