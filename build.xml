@@ -8,8 +8,8 @@
     </description>
 
     <target name="default"
-	    description="Build Ibis, only native code if explicitly configured"
-	    depends="allclean,build,natives-if-configured">
+	    description="Build Ibis"
+	    depends="allclean,build">
 	<delete dir="${build}"/>
     </target>
 
@@ -30,7 +30,6 @@
     <!--
 	This must come first.
     -->
-    <import file="${ibis}/build-files/build-config.xml"/>
 
     <target name="make-dirs">
 	<tstamp/>
@@ -39,7 +38,7 @@
 	<mkdir dir="${ibis}/bin"/>
     </target>
 
-    <target name="init" depends="config-init-initial,property-init,make-dirs,jars"/>
+    <target name="init" depends="property-init,make-dirs,jars"/>
 
     <!--
 	Compile only
@@ -48,7 +47,7 @@
 	    depends="init">
 	<javac  destdir="${build}" debug="true" srcdir="${src}"
 	    includes="ibis/**/*.java"
-	    excludes="ibis/impl/net/nio/**/*.java,ibis/repmi/**/*.java">
+	    excludes="ibis/repmi/**/*.java">
 	    <classpath refid="default.classpath"/>
 	</javac>
     </target>
@@ -120,27 +119,12 @@
 	</javac>
     </target>
 
-
-
     <import file="${ibis}/build-files/build-properties.xml"/>
 
     <property name="src"         location="${ibis}/src"/>
     <property name="build"       location="${ibis}/build"/>
     <property name="lib"         location="${ibis}/lib"/>
     <property name="docs"        location="${ibis}/docs"/>
-
-    <target name="read-props">
-	<property file="${ibis}/build-files/build-properties"/>
-    </target>
-
-    <target name="natives-if-configured" depends="read-props"
-	    if="ibis.configured">
-	<ant dir="." antfile="build-files/build-natives.xml" target="natives"/>
-    </target>
-
-    <target name="natives">
-	<ant dir="." antfile="build-files/build-natives.xml" target="natives"/>
-    </target>
 
     <target name="copyProperties"
 	    depends="init"
@@ -168,7 +152,7 @@
 		includes="ibis/**/*.class **/properties ibis-properties">
 	    <manifest>
 		<attribute name="Ibisc-Component" value="ibis.frontend.io.IOGenerator,ibis.frontend.gmi.Gmic,ibis.frontend.rmi.Rmic,ibis.frontend.satin.Satinc"/>
-		<attribute name="Ibis-Implementation" value="ibis.impl.messagePassing.panda.PandaIbis,ibis.impl.tcp.TcpIbis,ibis.impl.net.NetIbis,ibis.impl.nio.NioIbis,ibis.impl.messagePassing.mpi.MPIIbis"/>
+		<attribute name="Ibis-Implementation" value="ibis.impl.tcp.TcpIbis,ibis.impl.nio.NioIbis"/>
 	    </manifest>
 	</jar>
     </target>
@@ -216,7 +200,7 @@
 
     <target name="allclean"
 	depends="clean"
-	description="Clean up build, jars, native">
+	description="Clean up build, jars">
 	<!-- No, not bin: otherwise ns-env will disappear and never
 	     reappear. Note that ns-env should survive builds.
 	     Maybe put ns-env somewhere else???
@@ -310,16 +294,9 @@
 
 	<move file="${dirnam}/docs/README-bin.txt" tofile="${dirnam}/README.txt"/>
 
-	<delete dir="${dirnam}/lib/natives"/>
 	<delete dir="${dirnam}/docs/src"/>
 	<delete file="${dirnam}/notices/OmniSourceLicense.html"/>
 	<delete file="${dirnam}/docs/build.xml"/>
-	<delete file="${dirnam}/build-files/build-config.xml"/>
-	<delete file="${dirnam}/build-files/build-natives.xml"/>
-	<delete file="${dirnam}/build-files/build-native.xml"/>
-	<delete file="${dirnam}/build-files/build-properties"/>
-	<delete file="${dirnam}/build-files/build-properties.cache"/>
-	<delete file="${dirnam}/build-files/build-properties.default"/>
 
 	<!--
 	 Unfortunately, the zip task does not deal with file permissions.

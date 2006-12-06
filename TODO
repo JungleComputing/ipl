@@ -36,8 +36,8 @@ general:
   to a spawn, for instance. If code is not there, fall back to current impl.
 - migrate leftover prints to log4j (should we? Performance!)
 - improve performance of Ibis serialization for non-rewritten code.
-- automatically started nameserver hangs when application crashes or exits with code 1 
-  (with ant test)
++ automatically started nameserver hangs when application crashes or exits
+  with code 1 (with ant test) (Fixed Ceriel: Added shutdownHook in RunProcess).
 + ant clean in apps gooit ant test output files niet weg (fixed Ceriel)
 + ant in applicaties doet niet eerst een clean (fixed Ceriel)
 
@@ -141,25 +141,8 @@ abstract implementation:
 implementations:
 - (re)implement MPIIbis
 - implement stacking Ibis
-- remove PandaIbis
-- remove NetIbis
-- PandaIbis connection management broken (e.g. connectedTo())
-  (who reported this? Please check if this is still actual ... I placed locks
-   in them .... Ceriel) I did, I'll check :-) --Rob
-- NetIbis: 
-    - fix performance issues in net.gm (e.g.  mpj+javagrande benchmarks)
-    - remove dependancy on "local" gm version in default set-up
-    - connection cache cannot be disabled without triggering a bug:
-      tcp_blk/TcpConnectionCache.java has:
-        synchronized Socket getCachedInput(IbisIdentifier ibis, int port) {
-            if (DISABLED) return null;
-      tcp_blk/Driver.java has:
-        while (true) {
-            Socket s = connectionCache.getCachedInput(ibis, port);
-	    if (s != null) return s;
-	    ... wait ...
-        }
-      so: deadlock if DISABLED==true.
++ remove PandaIbis (done Ceriel)
++ remove NetIbis (done Ceriel)
 
 connect stuff:
 - Rob: allow user to load socket types per *connection* use the 
