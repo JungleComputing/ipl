@@ -243,10 +243,6 @@ public class NameServer extends Thread implements Protocol {
 
         PortTypeNameServer portTypeNameServer;
 
-        ReceivePortNameServer receivePortNameServer;
-
-        DeadNotifier receivePortKiller;
-
         ElectionServer electionServer;
 
         DeadNotifier electionKiller;
@@ -263,11 +259,6 @@ public class NameServer extends Thread implements Protocol {
             toBeDeleted = new Vector();
             portTypeNameServer = new PortTypeNameServer(silent,
                     NameServerClient.socketFactory);
-            receivePortNameServer = new ReceivePortNameServer(silent,
-                    NameServerClient.socketFactory);
-            receivePortKiller = new DeadNotifier(this, myAddress,
-                    receivePortNameServer.getPort(), PORT_KILL);
-            ThreadPool.createNew(receivePortKiller, "ReceivePortKiller");
             electionServer = new ElectionServer(silent,
                     NameServerClient.socketFactory);
             electionKiller = new DeadNotifier(this, myAddress,
@@ -574,9 +565,6 @@ public class NameServer extends Thread implements Protocol {
 
             // Let the election server know about it.
             inf.electionKiller.addCorpses(names);
-
-            // Let the receiveport nameserver know about it.
-            inf.receivePortKiller.addCorpses(names);
         }
 
         // After sendLeavers finishes, forwarders should be 0, even if
@@ -959,10 +947,8 @@ public class NameServer extends Thread implements Protocol {
                     ibisIds[j] = temp2;
                 }
 
-                // Pass the dead ones on to the election server and
-                // receiveport nameserver
+                // Pass the dead ones on to the election server
                 p.electionKiller.addCorpses(ids);
-                p.receivePortKiller.addCorpses(ids);
 
                 // ... and to all other ibis instances in this pool.
                 elts = p.instances();
@@ -1113,7 +1099,6 @@ public class NameServer extends Thread implements Protocol {
 
             out.writeByte(IBIS_ACCEPTED);
             out.writeInt(p.portTypeNameServer.getPort());
-            out.writeInt(p.receivePortNameServer.getPort());
             out.writeInt(p.electionServer.getPort());
 
             if (! silent && logger.isDebugEnabled()) {
@@ -1239,7 +1224,6 @@ public class NameServer extends Thread implements Protocol {
         DataOutputStream out3 = null;
 
         p.electionKiller.quit();
-        p.receivePortKiller.quit();
         
         try {
             s = NameServerClient.socketFactory.createClientSocket(myAddress,
@@ -1251,17 +1235,6 @@ public class NameServer extends Thread implements Protocol {
         } finally {
             closeConnection(null, out1, s);
             s = null;
-        }
-
-        try {
-            s2 = NameServerClient.socketFactory.createClientSocket(myAddress,
-                    p.receivePortNameServer.getPort(), null, CONNECT_TIMEOUT);
-            out2 = new DataOutputStream(new BufferedOutputStream(s2.getOutputStream()));
-            out2.writeByte(PORT_EXIT);
-        } catch (IOException e) {
-            // ignore
-        } finally {
-            closeConnection(null, out2, s2);
         }
 
         try {

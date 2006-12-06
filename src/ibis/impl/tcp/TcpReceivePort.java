@@ -66,15 +66,12 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 
     long count = 0;
 
-    private boolean global = false;
-
     private boolean reader_busy = false;
 
     TcpReceivePort(TcpIbis ibis, TcpPortType type, String name, Upcall upcall,
             boolean connectionAdministration,
-            ReceivePortConnectUpcall connUpcall, boolean global) {
+            ReceivePortConnectUpcall connUpcall) {
 
-        this.global = global;
         this.type = type;
         this.upcall = upcall;
         this.connUpcall = connUpcall;
@@ -566,15 +563,6 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
             System.err.println(name + " all connections closed");
         }
 
-        /* unregister with nameserver */
-        if (global) {
-            try {
-                ibis.unbindReceivePort(name);
-            } catch (Exception e) {
-                // Ignore.
-            }
-        }
-
         /* unregister with porthandler */
         ibis.tcpPortHandler.deRegister(this);
 
@@ -621,13 +609,6 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
         }
 
         disableConnections();
-
-        /* unregister with nameserver */
-        try {
-            ibis.unbindReceivePort(name);
-        } catch (Exception e) {
-            // Ignore.
-        }
 
         /* unregister with porthandler */
         ibis.tcpPortHandler.deRegister(this);

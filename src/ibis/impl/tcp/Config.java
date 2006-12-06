@@ -17,9 +17,5 @@ interface Config {
 
     static final boolean STATS = TypedProperties.booleanProperty(s_stats, true);
 
-    // Not configurable at runtime: too error prone.
-    // Note that the nameserver uses this as well.
-    static final boolean ID_CACHE = false;
-
     static final String[] sysprops = { s_debug, s_stats, s_cache };
 }

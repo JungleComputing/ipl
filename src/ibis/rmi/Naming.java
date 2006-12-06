@@ -48,7 +48,7 @@ public final class Naming {
             } else if (name.startsWith("/")) {
                 name = name.substring(1);
             }
-
+            
             host = url.getHost();
             port = url.getPort();
 

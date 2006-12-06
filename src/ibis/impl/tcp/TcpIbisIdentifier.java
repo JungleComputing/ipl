@@ -2,7 +2,6 @@
 
 package ibis.impl.tcp;
 
-import ibis.impl.util.IbisIdentifierTable;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.IbisError;
 
@@ -20,8 +19,6 @@ public final class TcpIbisIdentifier extends IbisIdentifier implements
     // Added for implementation of connect(IbisIdentifier, String).
     // (Ceriel)
     int port;
-
-    private static IbisIdentifierTable cache = new IbisIdentifierTable();
 
     private static HashMap inetAddrMap = new HashMap();
 
@@ -57,52 +54,26 @@ public final class TcpIbisIdentifier extends IbisIdentifier implements
     // classlibs --Rob
     // Is this still a problem? I don't think so --Ceriel
     private void writeObject(java.io.ObjectOutputStream out) throws IOException {
-        int handle = -1;
-        if (Config.ID_CACHE) {
-            handle = cache.getHandle(out, this);
-        }
-        out.writeInt(handle);
-        if (handle < 0) { // First time, send it.
-            out.writeUTF(address.getHostAddress());
-            out.writeInt(port);
-        }
+        out.writeUTF(address.getHostAddress());
+        out.writeInt(port);
     }
 
     // no need to serialize super class fields, this is done automatically
     private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
-        int handle = in.readInt();
-        if (handle < 0) {
-            String addr = in.readUTF();
-            port = in.readInt();
-            address = (InetAddress) inetAddrMap.get(addr);
-            if (address == null) {
-                try {
-                    address = InetAddress.getByName(addr);
-                } catch(Exception e) {
-                    throw new IbisError("EEK, could not create an inet address"
-                            + "from a IP address. This shouldn't happen", e);
-                }
-                inetAddrMap.put(addr, address);
+        String addr = in.readUTF();
+        port = in.readInt();
+        address = (InetAddress) inetAddrMap.get(addr);
+        if (address == null) {
+            try {
+                address = InetAddress.getByName(addr);
+            } catch(Exception e) {
+                throw new IbisError("EEK, could not create an inet address"
+                        + "from a IP address. This shouldn't happen", e);
             }
-            if (Config.ID_CACHE) {
-                cache.addIbis(in, -handle, this);
-            }
-        } else {
-            if (! Config.ID_CACHE) {
-                throw new IbisError("This ibis cannot talk to ibisses or nameservers that do IbisIdentifier caching");
-            }
-            TcpIbisIdentifier ident = (TcpIbisIdentifier) cache.getIbis(in,
-                    handle);
-            address = ident.address;
-            name = ident.name;
-            port = ident.port;
-            cluster = ident.cluster;
+            inetAddrMap.put(addr, address);
         }
     }
 
     public void free() {
-        if (Config.ID_CACHE) {
-            cache.removeIbis(this);
-        }
     }
 }

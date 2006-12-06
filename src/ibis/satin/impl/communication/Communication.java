@@ -66,7 +66,7 @@ public final class Communication implements Config, Protocol {
 
 			MessageHandler messageHandler = new MessageHandler(s);
 
-			receivePort = portType.createLocalReceivePort("satin port",
+			receivePort = portType.createReceivePort("satin port",
 					messageHandler, s.ft.getReceivePortConnectHandler());
 		} catch (Exception e) {
 			commLogger.fatal("SATIN '" + ident + "': Could not start ibis: "
@@ -159,7 +159,6 @@ public final class Communication implements Config, Protocol {
 		String commprops = "OneToOne, OneToMany, ManyToOne, ExplicitReceipt, Reliable";
 		commprops += ", ConnectionUpcalls, ConnectionDowncalls";
 		commprops += ", AutoUpcalls";
-		commprops += ", LocalReceivePorts";
 
 		ibisProperties.add("communication", commprops);
 		return ibisProperties;
@@ -287,25 +286,6 @@ public final class Communication implements Config, Protocol {
 			commLogger.info("port connected");
 		}
 		return r;
-	}
-
-	public ReceivePortIdentifier lookup(String portname) throws IOException {
-		return ibis.registry().lookupReceivePort(portname);
-	}
-
-	public ReceivePortIdentifier[] lookup(String[] portnames)
-			throws IOException {
-		return ibis.registry().lookupReceivePorts(portnames);
-	}
-
-	public ReceivePortIdentifier lookup_wait(String portname, long timeoutMillis) {
-		ReceivePortIdentifier rpi = null;
-		try {
-			rpi = ibis.registry().lookupReceivePort(portname, timeoutMillis);
-		} catch (Exception e) {
-			// ignored
-		}
-		return rpi;
 	}
 
 	/* Only allowed when not stealing. And with a closed world */

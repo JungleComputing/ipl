@@ -267,7 +267,7 @@ public class MPJ {
                 }
             }
 
-
+            registry.elect("" + MPJ.info.rank());
 
             for (int i = 0; i < MPJ.info.size(); i++) {
                 String mpjHostName = MPJ.COMM_WORLD.group().getMPJHostName(i);

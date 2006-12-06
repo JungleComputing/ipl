@@ -554,57 +554,55 @@ public final class RTS {
         String name = "__REGISTRY__" + hostname + ":" + port;
         ReceivePort p;
         try {
-            p = requestPortType.createReceivePort(name,
-                    upcallHandler);
+            p = requestPortType.createReceivePort(name, upcallHandler);
         } catch (IOException e) {
-            throw new RemoteException(
-                    "there already is a registry running on port " + port);
-        }
-        if (logger.isDebugEnabled()) {
-            logger.debug("Created registry " + name);
+            throw new RemoteException("Could not create receive port", e);
         }
         Stub stub = (Stub) getStub(reg);
         stub.skeletonPortId = p.identifier();
         p.enableConnections();
         p.enableUpcalls();
+        IbisIdentifier bbb;
+        try {
+            bbb = ibisRegistry.elect(name);
+        } catch(Exception e) {
+            throw new RemoteException("Could not elect", e);
+        }
+        if (! bbb.equals(ibis.identifier())) {
+            throw new RemoteException(
+                    "there already is a registry running on port " + port);
+        }
         Skeleton skel = (Skeleton) skeletons.get(
                 new Integer(System.identityHashCode(reg)));
         nameHash.put(name, skel);
+        if (logger.isDebugEnabled()) {
+            logger.debug("Created registry " + name);
+        }
     }
 
     public static Registry lookupRegistry(String host, int port)
             throws IOException {
 
-        if (host == null) {
+        if (host == null || host.equals("")) {
             host = hostname;
         }
 
         String name = "__REGISTRY__" + host + ":" + port;
         Stub result;
-        SendPort s = null;
+        SendPort s = createSendPort(requestPortType);
 
         if (logger.isDebugEnabled()) {
             logger.debug(hostname + ": Trying to lookup registry " + name);
         }
 
-        ReceivePortIdentifier dest = null;
-
-        synchronized (RTS.class) {
-            try {
-                dest = ibisRegistry.lookupReceivePort(name);
-                // System.err.println("ibisRegistry.lookup(" + name + ". 1) is "
-                //         + dest);
-            } catch (IOException e) {
-                // System.err.println("ibisRegistry.lookup(" + name + ". 1) "
-                //         + "throws " + e);
-            }
+        IbisIdentifier owner;
+        try {
+            owner = ibisRegistry.getElectionResult(name);
+        } catch(ClassNotFoundException e) {
+            throw new IOException("Could not find IbisIdentifier class");
         }
 
-        if (logger.isDebugEnabled()) {
-            logger.debug(hostname + ": Found skeleton " + name + " connecting");
-        }
-
-        s = getStubSendPort(dest);
+        ReceivePortIdentifier dest = s.connect(owner, name);
 
         if (logger.isDebugEnabled()) {
             logger.debug(hostname + ": Got sendport");
@@ -629,6 +627,9 @@ public final class RTS {
         wm.writeInt(0);                 // no stubID yet
         wm.writeObject(r.identifier()); // my receive port
         wm.finish();
+
+        s.disconnect(dest);
+        s = getStubSendPort(dest);
 
         if (logger.isDebugEnabled()) {
             logger.debug(hostname + ": Sent new WriteMessage");

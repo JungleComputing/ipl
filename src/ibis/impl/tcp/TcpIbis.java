@@ -361,19 +361,6 @@ public final class TcpIbis extends Ibis implements Config {
         // Empty implementation, as TCP Ibis has interrupts.
     }
 
-    void bindReceivePort(String nm, ReceivePortIdentifier p)
-            throws IOException {
-        if (! name.equals(ReceivePort.ANONYMOUS)) {
-            nameServer.bind(nm, p);
-        }
-    }
-
-    void unbindReceivePort(String nm) throws IOException {
-        if (! name.equals(ReceivePort.ANONYMOUS)) {
-            nameServer.unbind(nm);
-        }
-    }
-    
     class TcpShutdown extends Thread {
         public void run() {
             end();

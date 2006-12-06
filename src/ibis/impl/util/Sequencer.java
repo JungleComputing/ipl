@@ -137,13 +137,6 @@ public final class Sequencer {
     private Sequencer(Ibis ibis) throws IOException {
         ident = ibis.identifier();
         idno = -1;
-        try {
-            IbisIdentifier boss = ibis.registry().elect("sequencer");
-            master = boss.equals(ident);
-        } catch (ClassNotFoundException e) {
-            throw new IOException("Got ClassNotFoundException " + e);
-        }
-
         StaticProperties p = new StaticProperties();
         p.add("serialization", "object");
         p.add("communication",
@@ -154,21 +147,25 @@ public final class Sequencer {
             throw new IOException("Got IbisException " + e);
         }
 
+        rcv = tp.createReceivePort("seq recvr");
+        rcv.enableConnections();
+
+        IbisIdentifier boss;
+        try {
+            boss = ibis.registry().elect("sequencer");
+            master = boss.equals(ident);
+        } catch (ClassNotFoundException e) {
+            throw new IOException("Got ClassNotFoundException " + e);
+        }
+
         if (master) {
             counters = new HashMap();
-            rcv = tp.createReceivePort("seq recvr");
-            rcv.enableConnections();
             ServerThread server = new ServerThread(rcv, this);
             server.setDaemon(true);
             server.start();
         } else {
             snd = tp.createSendPort();
-            rcv = tp.createReceivePort("sequencer port on "
-                    + ibis.identifier());
-            rcv.enableConnections();
-            ReceivePortIdentifier master_id
-                    = ibis.registry().lookupReceivePort("seq recvr");
-            snd.connect(master_id);
+            snd.connect(boss, "seq recvr");
             ReceivePortIdentifier rid = rcv.identifier();
             WriteMessage w = snd.newMessage();
             w.writeInt(-1);

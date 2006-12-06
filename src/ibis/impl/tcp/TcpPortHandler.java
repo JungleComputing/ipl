@@ -154,7 +154,10 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
                     throw new PortMismatchException(
                             "Cannot connect ports of different PortTypes");
 		case RECEIVER_DENIED:
-		    throw new ConnectionRefusedException("Receiver denied connection");
+                    if (rip != null) {
+                        throw new ConnectionRefusedException("Receiver denied connection");
+                    }
+                    // fall through
 		case RECEIVER_DISABLED:
 		    // and try again if we did not reach the timeout...
 		    if (timeout > 0
