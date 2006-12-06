@@ -20,6 +20,7 @@ import ibis.rmi.NotBoundException;
 import ibis.rmi.Remote;
 import ibis.rmi.RemoteException;
 import ibis.rmi.StubNotFoundException;
+import ibis.rmi.registry.Registry;
 import ibis.rmi.server.ExportException;
 import ibis.rmi.server.RemoteRef;
 import ibis.rmi.server.RemoteStub;
@@ -77,12 +78,9 @@ public final class RTS {
     private static HashMap sendports;
 
     /**
-     * Maps an URL to a skeleton. We need this because a ReceivePortIdentifier
-     * no longer uniquely defines the skeleton. In fact, a skeleton is now
-     * identified by a number. Unfortunately, the Ibis registry can only handle
-     * ReceivePortIdentifiers.
+     * Maps a name to a skeleton. We need this for registry lookup.
      */
-    static Hashtable urlHash; // No HashMap, this one should be synchronized.
+    static Hashtable nameHash; // No HashMap, this one should be synchronized.
 
     /**
      * This array maps skeleton ids to the corresponding skeleton.
@@ -211,7 +209,7 @@ public final class RTS {
 
             if (id == -1) {
                 String url = r.readString();
-                skel = (Skeleton) urlHash.get(url);
+                skel = (Skeleton) nameHash.get(url);
             } else {
                 skel = (Skeleton) (skeletonArray.get(id));
             }
@@ -254,7 +252,7 @@ public final class RTS {
             skeletons = new HashMap();
             stubs = new HashMap();
             sendports = new HashMap();
-            urlHash = new Hashtable();
+            nameHash = new Hashtable();
             receiveports = new HashMap();
             skeletonArray = new ArrayList();
 
@@ -466,171 +464,13 @@ public final class RTS {
         return stubs.get(new Integer(System.identityHashCode(o)));
     }
 
-    public static synchronized void bind(String url, Remote o)
-            throws AlreadyBoundException, IbisException, IOException {
-        //	String url = "//" + RTS.hostname + "/" + name;
-
-        if (logger.isDebugEnabled()) {
-            logger.debug(hostname + ": Trying to bind object to " + url);
-        }
-
-        Skeleton skel = (Skeleton) skeletons.get(
-                new Integer(System.identityHashCode(o)));
-        if (skel == null) {
-            //		    throw new RemoteException("object not exported");
-            //or just export it???
-
-            skel = createSkel(o);
-        }
-
-        //new method
-        try {
-            ibisRegistry.bind(url, skeletonReceivePort.identifier());
-        } catch (BindingException e) {
-            throw new AlreadyBoundException(url + " already bound");
-        }
-
-        urlHash.put(url, skel);
-
-        if (logger.isDebugEnabled()) {
-            logger.debug(hostname + ": Bound to object " + url);
-        }
-
-    }
-
-    public static synchronized void rebind(String url, Remote o)
-            throws IOException {
-        if (logger.isDebugEnabled()) {
-            logger.debug(hostname + ": Trying to rebind object to " + url);
-        }
-
-        Skeleton skel = (Skeleton) skeletons.get(
-                new Integer(System.identityHashCode(o)));
-        if (skel == null) {
-            // throw new RemoteException("object not exported");
-            // or just export it???
-            skel = createSkel(o);
-        }
-
-        //new method
-        ibisRegistry.rebind(url, skeletonReceivePort.identifier());
-
-        urlHash.put(url, skel);
-    }
-
-    public static void unbind(String url)
-            throws NotBoundException, IOException {
-        if (logger.isDebugEnabled()) {
-            logger.debug(hostname + ": Trying to unbind object from " + url);
-        }
-
-        try {
-            ibisRegistry.unbind(url);
-        } catch (BindingException e) {
-            throw new NotBoundException(url + " not bound");
-        }
-    }
-
-    public static Remote lookup(String url) throws NotBoundException,
-            IOException {
-
-        Stub result;
-        SendPort s = null;
-
-        if (logger.isDebugEnabled()) {
-            logger.debug(hostname + ": Trying to lookup object " + url);
-        }
-
-        ReceivePortIdentifier dest = null;
-
-        synchronized (RTS.class) {
-            try {
-                dest = ibisRegistry.lookupReceivePort(url, 1);
-                // System.err.println("ibisRegistry.lookup(" + url + ". 1) is "
-                //         + dest);
-            } catch (IOException e) {
-                // System.err.println("ibisRegistry.lookup(" + url + ". 1) "
-                //         + "throws " + e);
-            }
-        }
-
-        if (dest == null) {
-            throw new NotBoundException(url + " not bound");
-        }
-
-        if (logger.isDebugEnabled()) {
-            logger.debug(hostname + ": Found skeleton " + url + " connecting");
-        }
-
-        s = getStubSendPort(dest);
-
-        if (logger.isDebugEnabled()) {
-            logger.debug(hostname + ": Got sendport");
-        }
-
-        ReceivePort r = getStubReceivePort(dest.ibis());
-
-        if (logger.isDebugEnabled()) {
-            logger.debug(hostname + ": Created receiveport for stub  -> id = "
-                    + r.identifier());
-        }
-
-        WriteMessage wm = s.newMessage();
-
-        if (logger.isDebugEnabled()) {
-            logger.debug(hostname + ": Created new WriteMessage");
-        }
-
-        wm.writeInt(-1);
-        wm.writeString(url);
-        wm.writeInt(-1);
-        wm.writeInt(0);
-        wm.writeObject(r.identifier());
-        wm.finish();
-
-        if (logger.isDebugEnabled()) {
-            logger.debug(hostname + ": Sent new WriteMessage");
-        }
-
-        ReadMessage rm = r.receive();
-
-        if (logger.isDebugEnabled()) {
-            logger.debug(hostname + ": Received readMessage");
-        }
-
-        int stubID = rm.readInt();
-
-        try {
-            result = (Stub) rm.readObject();
-        } catch (ClassNotFoundException e) {
-            throw new RemoteException("ClassNotFoundException ", e);
-        }
-        rm.finish();
-        result.init(s, r, stubID, result.skeletonId,
-                result.skeletonPortId, true, null);
-
-        if (logger.isDebugEnabled()) {
-            logger.debug(hostname + ": Found object " + url);
-        }
-        return result;
-    }
-
-    public static String[] list(String url) throws IOException {
-        int urlLength = url.length();
-        String[] names = ibisRegistry.listNames("\\Q" + url + "\\E.*");
-        for (int i = 0; i < names.length; i++) {
-            names[i] = names[i].substring(urlLength);
-        }
-        return names;
-    }
-
-    public static SendPort createSendPort(PortType p) throws IOException {
+    private static SendPort createSendPort(PortType p) throws IOException {
         SendPort s = p.createSendPort();
         s.setReplacer(new RMIReplacer());
         return s;
     }
 
-    public static synchronized SendPort getSkeletonSendPort(
+    static synchronized SendPort getSkeletonSendPort(
             ReceivePortIdentifier rpi) throws IOException {
         SendPort s = (SendPort) sendports.get(rpi);
         if (s == null) {
@@ -650,7 +490,7 @@ public final class RTS {
         return s;
     }
 
-    public static synchronized SendPort getStubSendPort(
+    static synchronized SendPort getStubSendPort(
             ReceivePortIdentifier rpi) throws IOException {
         SendPort s = (SendPort) sendports.get(rpi);
         if (s == null) {
@@ -670,7 +510,7 @@ public final class RTS {
         return s;
     }
 
-    public static synchronized ReceivePort getStubReceivePort(IbisIdentifier id)
+    static synchronized ReceivePort getStubReceivePort(IbisIdentifier id)
             throws IOException {
         ArrayList a = (ArrayList) receiveports.get(id);
         ReceivePort r;
@@ -696,7 +536,7 @@ public final class RTS {
         return r;
     }
 
-    public static synchronized void putStubReceivePort(ReceivePort r,
+    static synchronized void putStubReceivePort(ReceivePort r,
             IbisIdentifier id) {
         if (logger.isDebugEnabled()) {
             logger.debug("receiveport " + r + " returned for ibis " + id);
@@ -709,14 +549,112 @@ public final class RTS {
         a.add(r);
     }
 
-    public static void createRegistry(int port) throws RemoteException {
-        String url = "registry://" + hostname + ":" + port;
+    public static void createRegistry(int port, Registry reg)
+            throws RemoteException {
+        String name = "__REGISTRY__" + hostname + ":" + port;
+        ReceivePort p;
         try {
-            replyPortType.createReceivePort(url);
+            p = requestPortType.createReceivePort(name,
+                    upcallHandler);
         } catch (IOException e) {
             throw new RemoteException(
                     "there already is a registry running on port " + port);
         }
+        if (logger.isDebugEnabled()) {
+            logger.debug("Created registry " + name);
+        }
+        Stub stub = (Stub) getStub(reg);
+        stub.skeletonPortId = p.identifier();
+        p.enableConnections();
+        p.enableUpcalls();
+        Skeleton skel = (Skeleton) skeletons.get(
+                new Integer(System.identityHashCode(reg)));
+        nameHash.put(name, skel);
+    }
+
+    public static Registry lookupRegistry(String host, int port)
+            throws IOException {
+
+        if (host == null) {
+            host = hostname;
+        }
+
+        String name = "__REGISTRY__" + host + ":" + port;
+        Stub result;
+        SendPort s = null;
+
+        if (logger.isDebugEnabled()) {
+            logger.debug(hostname + ": Trying to lookup registry " + name);
+        }
+
+        ReceivePortIdentifier dest = null;
+
+        synchronized (RTS.class) {
+            try {
+                dest = ibisRegistry.lookupReceivePort(name);
+                // System.err.println("ibisRegistry.lookup(" + name + ". 1) is "
+                //         + dest);
+            } catch (IOException e) {
+                // System.err.println("ibisRegistry.lookup(" + name + ". 1) "
+                //         + "throws " + e);
+            }
+        }
+
+        if (logger.isDebugEnabled()) {
+            logger.debug(hostname + ": Found skeleton " + name + " connecting");
+        }
+
+        s = getStubSendPort(dest);
+
+        if (logger.isDebugEnabled()) {
+            logger.debug(hostname + ": Got sendport");
+        }
+
+        ReceivePort r = getStubReceivePort(dest.ibis());
+
+        if (logger.isDebugEnabled()) {
+            logger.debug(hostname + ": Created receiveport for stub  -> id = "
+                    + r.identifier());
+        }
+
+        WriteMessage wm = s.newMessage();
+
+        if (logger.isDebugEnabled()) {
+            logger.debug(hostname + ": Created new WriteMessage");
+        }
+
+        wm.writeInt(-1);                // No skel Id known yet
+        wm.writeString(name);           // name for skeleton
+        wm.writeInt(-1);                // initialization method
+        wm.writeInt(0);                 // no stubID yet
+        wm.writeObject(r.identifier()); // my receive port
+        wm.finish();
+
+        if (logger.isDebugEnabled()) {
+            logger.debug(hostname + ": Sent new WriteMessage");
+        }
+
+        ReadMessage rm = r.receive();
+
+        if (logger.isDebugEnabled()) {
+            logger.debug(hostname + ": Received readMessage");
+        }
+
+        int stubID = rm.readInt();      // My stub id
+
+        try {
+            result = (Stub) rm.readObject();    // And the stub
+        } catch (ClassNotFoundException e) {
+            throw new RemoteException("ClassNotFoundException ", e);
+        }
+        rm.finish();
+
+        result.init(s, r, stubID, result.skeletonId, dest, true, null);
+
+        if (logger.isDebugEnabled()) {
+            logger.debug(hostname + ": Found object " + name);
+        }
+        return (Registry) result;
     }
 
     public static String getHostname() {

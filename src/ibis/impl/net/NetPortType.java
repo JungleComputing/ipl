@@ -523,7 +523,7 @@ public final class NetPortType extends PortType {
                 connectionAdministration);
 
         if (global && ! name.equals(ReceivePort.ANONYMOUS)) {
-            ibis.registry().bind(name, nrp.identifier());
+            ibis.nameServer.bind(name, nrp.identifier());
         }
 
         return nrp;

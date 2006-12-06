@@ -655,24 +655,12 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
         return electionClient.elect(election, null);
     }
 
-    //gosia	
-
     public void bind(String name, ReceivePortIdentifier rpi)
             throws IOException {
         receivePortNameServerClient.bind(name, rpi);
     }
 
-    public void rebind(String name, ReceivePortIdentifier rpi)
-            throws IOException {
-        receivePortNameServerClient.rebind(name, rpi);
-    }
-
     public void unbind(String name) throws IOException {
         receivePortNameServerClient.unbind(name);
     }
-
-    public String[] listNames(String pattern) throws IOException {
-        return receivePortNameServerClient.list(pattern);
-    }
-    //end gosia
 }

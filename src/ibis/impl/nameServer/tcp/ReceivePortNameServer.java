@@ -254,24 +254,6 @@ class ReceivePortNameServer extends Thread implements Protocol {
         }
     }
 
-    //gosia
-    private void handlePortRebind(DataInputStream in, DataOutputStream out)
-            throws IOException {
-
-        byte[] id;
-
-        String ibisName = in.readUTF();
-        String name = in.readUTF();
-        int len = in.readInt();
-        id = new byte[len];
-        in.readFully(id, 0, len);
-
-        /* Don't check whether the name is in use. */
-        ports.put(name, new Port(ibisName, id));
-        addPort(name, id, ibisName);
-        out.writeByte(PORT_ACCEPTED);
-    }
-
     private void addPort(String name, byte[] id, String ibisName) {
         
         ArrayList v = null;
@@ -287,30 +269,6 @@ class ReceivePortNameServer extends Thread implements Protocol {
             }
         }
     }
-
-    private void handlePortList(DataInputStream in, DataOutputStream out)
-            throws IOException {
-
-        ArrayList goodNames = new ArrayList();
-
-        String pattern = in.readUTF();
-        Enumeration names = null;
-        
-        names = ports.keys();
-        while (names.hasMoreElements()) {
-            String name = (String) names.nextElement();
-            if (name.matches(pattern)) {
-                goodNames.add(name);
-            }
-        }
-
-        out.writeByte(goodNames.size());
-        for (int i = 0; i < goodNames.size(); i++) {
-            out.writeUTF((String) goodNames.get(i));
-        }
-    }
-
-    //end gosia	
 
     private void handlePortLookup(Socket s, DataInputStream in,
                 DataOutputStream out) throws IOException {
@@ -449,14 +407,6 @@ class ReceivePortNameServer extends Thread implements Protocol {
                 switch (opcode) {
                 case (PORT_NEW):
                     handlePortNew(in, out);
-                    break;
-
-                case (PORT_REBIND):
-                    handlePortRebind(in, out);
-                    break;
-
-                case (PORT_LIST):
-                    handlePortList(in, out);
                     break;
 
                 case (PORT_FREE):

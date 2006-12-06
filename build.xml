@@ -45,7 +45,7 @@
 	Compile only
     -->
     <target name="compile"
-	    depends="init,bcel">
+	    depends="init">
 	<javac  destdir="${build}" debug="true" srcdir="${src}"
 	    includes="ibis/**/*.java"
 	    excludes="ibis/impl/net/nio/**/*.java,ibis/repmi/**/*.java">
@@ -87,7 +87,7 @@
     -->
 
     <target name="build"
-	    depends="compile, build-bin, copyProperties, ibis-iogen, ibis.jar"
+	    depends="compile, ibis-rmic, build-bin, copyProperties, ibis-iogen, ibis.jar"
 	    description="Build Ibis">
     </target>
 
@@ -104,6 +104,23 @@
     </target>
 
 
+    <target name="ibis-rmic">
+	<java   classname="ibis.frontend.rmi.Rmic"
+		taskname="Rmic"
+		failonerror="true"
+		dir="${build}"
+		maxmemory="512m"
+		fork="true">
+		<arg line="-dir ibis.rmi.registry.impl.RegistryImpl"/>
+	    <classpath refid="default.classpath"/>
+	</java>
+	<javac  destdir="${build}" debug="true" srcdir="${build}"
+	    includes="ibis/rmi/registry/impl/*.java">
+	    <classpath refid="default.classpath"/>
+	</javac>
+    </target>
+
+
 
     <import file="${ibis}/build-files/build-properties.xml"/>
 
@@ -111,18 +128,6 @@
     <property name="build"       location="${ibis}/build"/>
     <property name="lib"         location="${ibis}/lib"/>
     <property name="docs"        location="${ibis}/docs"/>
-
-    <!--
-	We depend on bcel. I am not sure it should be inside Ibis,
-	but there it is, so I include it in build.xml.
-    -->
-    <target name="bcel" depends="init">
-	<javac  destdir="${build}"
-		srcdir="${ibis}/src">
-	    <include name="org/**/*.java"/>
-	    <classpath refid="default.classpath"/>
-	</javac>
-    </target>
 
     <target name="read-props">
 	<property file="${ibis}/build-files/build-properties"/>

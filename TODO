@@ -17,7 +17,7 @@ general:
 - to think about: would it be a good idea to allow an active upcall per
   connection instead of per receiveport? This would make satin more simple:
   no longer a receiveport per sender.
-     
+
 - ibisidentifier -> Comparable (for Ana)
 + ibisc : gmic + rmic + satinc + ... (does not replace javac) (Done Ceriel)
 + load ibisses dynamically from jar files (like JavaGAT) (Done Ceriel)
@@ -53,13 +53,15 @@ nameserver+connection stuff:
 + deadlocks in pinger, forwarders --Rob
   Fixed serious race (in nameserver, and TcpIbis) --Ceriel
 
-- enable control hub by default --Rob
-- if a control hub is started, ibises cannot connect to the normal server again?
-- allow different connection types to nameserver simulaneously: 
++ enable control hub by default --Rob
++ if a control hub is started, ibises cannot connect to the normal server again?
++ allow different connection types to nameserver simulaneously: 
   one ibis should be able to connect with routed messges, while others have 
   a direct connection --Rob
-- -Dibis.nameserver=SOME_IP -> kijk of 1 van onze interfaces SOME_IP heeft 
++ -Dibis.nameserver=SOME_IP -> kijk of 1 van onze interfaces SOME_IP heeft 
   (niet alleen eerste)...
+Fixed by Jason's smartsockets library.
+
 - add out-of-band communication support to the Nameserver interface
 
 ipl:
@@ -69,7 +71,6 @@ ipl:
 - add a final class ibis.ipl.IbisFactory which calls ibis.impl.IbisFactory
   with reflection. It shouldn't import ibis.impl.IbisFactory as this would make
   the ipl depend on ibis.impl (and ibisUtil, and IbisConnect, and....
-
 - IPL += sendPort.connect(ReceivePortIdentifier[] receivers);
 - close van poorten (in shutdownhooks)
   docs vertellen niet dat je niet een close mag doen terwijl een message
@@ -77,10 +78,11 @@ ipl:
   Ceriel: ??? Hoe doe je dat (in een shutdownhook belanden als er een message
   levend is ??? En, de javadocs vertellen dat wel degelijk.
 
-- add a way to create local receiveports local to and Ibis
-  in addition to global receiveports
++ add a way to create local receiveports local to and Ibis
+  in addition to global receiveports (done Ceriel)
++ add SendPort.connect(IbisIdentifier ibis, String receivePortName)
+  (done Ceriel)
 - add Registry.lookup(IbisIdentifier ibis, String receivePortName)
-- add SendPort.connect(IbisIdentifier ibis, String receivePortName)
 - remove Registry.lookupIbis()
 - remove (deprecated) createIbis(String name)
 - change Ibis.toString() to returning a "friendly"(user-printable), but not 

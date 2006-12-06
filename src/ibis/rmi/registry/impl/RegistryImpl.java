@@ -1,130 +1,69 @@
-/* $Id$ */
+/* $Id:$ */
 
 package ibis.rmi.registry.impl;
 
 import ibis.rmi.AlreadyBoundException;
 import ibis.rmi.NotBoundException;
-import ibis.rmi.Remote;
 import ibis.rmi.RemoteException;
+import ibis.rmi.Remote;
 import ibis.rmi.impl.RTS;
 import ibis.rmi.registry.Registry;
-import ibis.util.IPUtils;
+
+import java.util.HashMap;
 
 import java.net.InetAddress;
 
 import org.apache.log4j.Logger;
 
-public class RegistryImpl implements Registry {
-    static String host = null;
+public class RegistryImpl extends ibis.rmi.server.UnicastRemoteObject
+        implements Registry {
 
-    static int port = 0;
+    private int port = 0;
 
-    static Logger logger = ibis.util.GetLogger.getLogger(RegistryImpl.class.getName());
+    HashMap remotes = new HashMap();
 
-    private String localhostName() {
-        String hostname = null;
-        InetAddress addr = IPUtils.getLocalHostAddress();
-        hostname = addr.getCanonicalHostName();
-        if (logger.isDebugEnabled()) {
-            logger.debug("localhostName() returns " + hostname);
-        }
-
-        return hostname;
-    }
-
-    public RegistryImpl(String host, int port) {
-        if (host != null && !host.equals("")) {
-            try {
-                InetAddress adres = InetAddress.getByName(host);
-                if (host.equals("localhost")
-                        || adres.getHostAddress().equals("127.0.0.1")) {
-                    host = localhostName();
-                }
-                else {
-                    host = adres.getCanonicalHostName();
-                }
-            } catch (java.net.UnknownHostException e) {
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Hostname " + host + " is unknown?");
-                }
-            }
-            RegistryImpl.host = host;
-        } else {
-            RegistryImpl.host = localhostName();
-        }
-        if (port <= 0) {
-            RegistryImpl.port = Registry.REGISTRY_PORT;
-        } else {
-            RegistryImpl.port = port;
-        }
-        if (logger.isDebugEnabled()) {
-            logger.debug("RegistryImpl<init>: host = " + RegistryImpl.host
-                    + " port = " + RegistryImpl.port);
-        }
-
-    }
+    static Logger logger
+            = ibis.util.GetLogger.getLogger(RegistryImpl.class.getName());
 
     public RegistryImpl(int port) throws RemoteException {
-        this(null, port);
-        RTS.createRegistry(port);
+        if (port <= 0) {
+            this.port = Registry.REGISTRY_PORT;
+        } else {
+            this.port = port;
+        }
+        if (logger.isDebugEnabled()) {
+            logger.debug("RegistryImpl<init>: " + " port = " + this.port);
+        }
+        RTS.createRegistry(port, this);
     }
 
-    public Remote lookup(String name)
-            throws RemoteException, NotBoundException {
-        String url = "rmi://" + host + ":" + port + "/" + name;
-        try {
-            return RTS.lookup(url);
-        } catch (NotBoundException e1) {
-            throw new NotBoundException(e1.getMessage(), e1);
-        } catch (Exception e2) {
-            throw new RemoteException(e2.getMessage(), e2);
+    public synchronized Remote lookup(String name) throws NotBoundException {
+        if (! remotes.containsKey(name)) {
+            throw new NotBoundException("lookup: " + name + " not bound");
         }
+        return (Remote) remotes.get(name);
     }
 
-    public void bind(String name, Remote obj)
-            throws RemoteException, AlreadyBoundException {
-        String url = "rmi://" + host + ":" + port + "/" + name;
-        try {
-            RTS.bind(url, obj);
-        } catch (AlreadyBoundException e1) {
-            throw e1;
-        } catch (Exception e2) {
-            throw new RemoteException(e2.getMessage(), e2);
+    public synchronized void bind(String name, Remote obj)
+            throws AlreadyBoundException {
+        if (remotes.containsKey(name)) {
+            throw new AlreadyBoundException("bind: " + name + " already bound");
         }
-
+        remotes.put(name, obj);
     }
 
-    public void rebind(String name, Remote obj) throws RemoteException {
-        String url = "rmi://" + host + ":" + port + "/" + name;
-        try {
-            RTS.rebind(url, obj);
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RemoteException(e.getMessage(), e);
-        }
+    public synchronized void rebind(String name, Remote obj) {
+        remotes.put(name, obj);
     }
 
-    public void unbind(String name) throws RemoteException, NotBoundException {
-        String url = "rmi://" + host + ":" + port + "/" + name;
-        try {
-            RTS.unbind(url);
-        } catch (NotBoundException e1) {
-            throw e1;
-        } catch (Exception e2) {
-            throw new RemoteException(e2.getMessage(), e2);
+    public synchronized void unbind(String name) throws NotBoundException {
+        if (! remotes.containsKey(name)) {
+            throw new NotBoundException("unbind: " + name + " not bound");
         }
+        remotes.remove(name);
     }
 
-    public String[] list() throws RemoteException {
-        try {
-            String url = "rmi://" + host + ":" + port + "/";
-            String[] names = RTS.list(url);
-            if (logger.isDebugEnabled()) {
-                logger.debug(names.length + " names bound in the registry");
-            }
-            return names;
-        } catch (Exception e) {
-            throw new RemoteException(e.getMessage(), e);
-        }
+    public synchronized String[] list() {
+        return (String[]) remotes.keySet().toArray(new String[0]);
     }
 }

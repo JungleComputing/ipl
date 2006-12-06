@@ -249,51 +249,6 @@ class ReceivePortNameServerClient implements Protocol {
         }
     }
 
-    public void rebind(String name, ReceivePortIdentifier prt)
-            throws IOException {
-        Socket s = null;
-        DataOutputStream out = null;
-        DataInputStream in = null;
-        int result;
-
-        if (logger.isDebugEnabled()) {
-            logger.debug(this + ": rebind \"" + name + "\" to " + prt);
-        }
-
-        try {
-            s = NameServerClient.nsConnect(server, port, localAddress, false,
-                    10);
-
-            out = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
-
-            // request a rebind
-            out.writeByte(PORT_REBIND);
-            out.writeUTF(ibisName);
-            out.writeUTF(name);
-            byte[] buf = Conversion.object2byte(prt);
-            out.writeInt(buf.length);
-            out.write(buf);
-            out.flush();
-
-            in = new DataInputStream(new BufferedInputStream(s.getInputStream()));
-            result = in.readByte();
-        } finally {
-            NameServer.closeConnection(in, out, s);
-        }
-
-        switch (result) {
-        case PORT_ACCEPTED:
-            break;
-        default:
-            throw new StreamCorruptedException(
-                    "Registry: bind got illegal opcode " + result);
-        }
-
-        if (logger.isDebugEnabled()) {
-            logger.debug(this + ": rebound \"" + name + "\" to " + prt);
-        }
-    }
-
     public void unbind(String name) {
 
         Socket s = null;
@@ -323,36 +278,5 @@ class ReceivePortNameServerClient implements Protocol {
         } finally {
             NameServer.closeConnection(in, out, s);
         }
-    }
-
-    public String[] list(String pattern) throws IOException {
-        Socket s = null;
-        DataOutputStream out = null;
-        DataInputStream in = null;
-        String[] result;
-
-        try {
-            s = NameServerClient.nsConnect(server, port, localAddress, false,
-                    10);
-
-            out = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
-
-            // request a list of names.
-            out.writeByte(PORT_LIST);
-            out.writeUTF(pattern);
-            out.flush();
-
-            in = new DataInputStream(new BufferedInputStream(s.getInputStream()));
-
-            byte num = in.readByte();
-
-            result = new String[num];
-            for (int i = 0; i < num; i++) {
-                result[i] = in.readUTF();
-            }
-        } finally {
-            NameServer.closeConnection(in, out, s);
-        }
-        return result;
     }
 }
