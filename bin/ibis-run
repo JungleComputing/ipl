@@ -259,17 +259,17 @@ do
 		nameserver_specified=1
 		shift
 		case $1 in
-#		*:*)
-#			# "new" syntax: <nameserver-host>:<portno>
-#			if [ $portno_specified -eq 1 ]
-#			then
-#				echo "$run_name: nameserver port specified more than once" 1>&2
-#				exit 1
-#			fi
-#			Dns_server="-Dibis.name_server.host="`expr "$1" : '\(.*\):.*'`
-#			Dns_port="-Dibis.name_server.port="`expr "$1" : '.*:\(.*\)'`
-#			portno_specified=1
-#			;;
+		*:*)
+			# "new" syntax: <nameserver-host>:<portno>
+			if [ $portno_specified -eq 1 ]
+			then
+				echo "$run_name: nameserver port specified more than once" 1>&2
+				exit 1
+			fi
+			Dns_server="-Dibis.name_server.host="`expr "$1" : '\(.*\):.*'`
+			Dns_port="-Dibis.name_server.port="`expr "$1" : '.*:\(.*\)'`
+			portno_specified=1
+			;;
 		*)
 			Dns_server="-Dibis.name_server.host=$1"
 			;;
