@@ -7,7 +7,14 @@
 *** Plugtest ***
 
 - Gossip Registry
-- PortType in registry?
+- Remove porttype from registry
+- parse "classic" ip-address:port strings in smart-sockets (e.g. nameserverclient)
+- instead of TcpIbisIdentifier extends IbisIdentifier make IbisIdentifier final and
+  include a byte array for the Ibis implementation specific information. This makes
+  it easier for the nameserver to use not-known ibisses without duplicating all the "generic"
+  data such as name, cluster, etc.
+- make pools explicit in the registry (ibis.getpool() etc)
+- make it possible to monitor (parts of) ibis.
 
 *** Ibis 2.0+ ***
 
