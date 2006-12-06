@@ -24,8 +24,6 @@ interface Protocol {
     static final byte PORT_KNOWN = 26;
     static final byte PORT_UNKNOWN = 27;
     static final byte PORT_EXIT = 28;
-    static final byte PORT_REBIND = 29;
-    static final byte PORT_LIST = 30;
     static final byte PORT_KILL = 31;
     static final byte PORT_WAIT = 32;
 

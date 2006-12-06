@@ -21,7 +21,7 @@ public final class TcpIbisIdentifier extends IbisIdentifier implements
     // (Ceriel)
     protected VirtualSocketAddress sa;
 
-    private static IbisIdentifierTable cache = new IbisIdentifierTable();
+    //private static IbisIdentifierTable cache = new IbisIdentifierTable();
 
     //private static HashMap inetAddrMap = new HashMap();
 

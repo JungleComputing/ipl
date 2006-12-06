@@ -60,12 +60,6 @@ class Registry implements ibis.ipl.Registry {
         nameServerClient.bind(name, (ReceivePortIdentifier) id);
     }
 
-    public void rebind(String name, ibis.ipl.ReceivePortIdentifier id)
-            throws IOException {
-        nameServerClient.unbind(name);
-        nameServerClient.bind(name, (ReceivePortIdentifier) id);
-    }
-
     public ibis.ipl.ReceivePortIdentifier lookupReceivePort(String name)
             throws IOException {
         return lookupReceivePort(name, 0);
@@ -115,11 +109,6 @@ class Registry implements ibis.ipl.Registry {
 
     public void mustLeave(ibis.ipl.IbisIdentifier[] id) throws IOException {
         /* not implemented yet */
-    }
-
-    public String[] listNames(String pattern) throws IOException {
-        /* not implemented yet */
-        return null;
     }
 
     public ibis.ipl.ReceivePortIdentifier[] listReceivePorts(

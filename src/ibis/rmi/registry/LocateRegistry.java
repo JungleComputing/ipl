@@ -2,8 +2,11 @@
 
 package ibis.rmi.registry;
 
+import ibis.rmi.registry.impl.RegistryWrapper;
+import ibis.rmi.registry.impl.RegistryImpl;
 import ibis.rmi.RemoteException;
 import ibis.rmi.impl.RTS;
+import ibis.rmi.impl.Stub;
 import ibis.rmi.server.RMIClientSocketFactory;
 import ibis.rmi.server.RMIServerSocketFactory;
 
@@ -25,7 +28,7 @@ public final class LocateRegistry {
      * @return a stub for the remote registry.
      */
     public static Registry getRegistry() {
-        return getRegistry(null, Registry.REGISTRY_PORT);
+        return getRegistry(Registry.REGISTRY_PORT);
     }
 
     /**
@@ -56,7 +59,7 @@ public final class LocateRegistry {
      * @return a stub for the remote registry.
      */
     public static Registry getRegistry(String host, int port) {
-        return new ibis.rmi.registry.impl.RegistryImpl(host, port);
+        return new RegistryWrapper(host, port);
     }
 
     /**
@@ -67,7 +70,8 @@ public final class LocateRegistry {
      * @exception RemoteException if the registry could not be created.
      */
     public static Registry createRegistry(int port) throws RemoteException {
-        return new ibis.rmi.registry.impl.RegistryImpl(port);
+        Registry reg = new ibis.rmi.registry.impl.RegistryImpl(port);
+        return (Registry) RTS.getStub(reg);
     }
 
     /**
@@ -81,7 +85,7 @@ public final class LocateRegistry {
      */
     public static Registry createRegistry(int port, RMIClientSocketFactory c,
             RMIServerSocketFactory s) throws RemoteException {
-        return new ibis.rmi.registry.impl.RegistryImpl(port);
+        return createRegistry(port);
     }
 
     static {

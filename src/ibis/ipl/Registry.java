@@ -159,49 +159,6 @@ public interface Registry {
             throws IOException, ClassNotFoundException;
 
     /**
-     * Binds the specified name to the specified identifier.
-     * If the name already is bound, an exception is thrown.
-     *
-     * @param name the name to which a port is being bound.
-     * @param port the receiveport identifier to which a binding is made.
-     * @exception BindingException is thrown when the specified name
-     * 	is already bound.
-     * @exception java.io.IOException is thrown in case of trouble.
-     */
-    public void bind(String name, ReceivePortIdentifier port)
-            throws IOException;
-
-    /**
-     * Rebinds the specified name to the specified identifier.
-     * If the name already is bound, the old binding is discarded.
-     *
-     * @param name the name to which a port is being bound.
-     * @param port the receiveport identifier to which a binding is made.
-     * @exception java.io.IOException is thrown in case of trouble.
-     */
-    public void rebind(String name, ReceivePortIdentifier port)
-            throws IOException;
-
-    /**
-     * Removes any binding for the specified name.
-     * @param name the name for which any binding is to be removed.
-     * @exception BindingException is thrown when the specified name was not
-     * bound
-     * @exception java.io.IOException is thrown in case of trouble.
-     */
-    public void unbind(String name) throws IOException;
-
-    /**
-     * Returns an array of strings representing names that have a
-     * receiveport identifier bound to it and match the given regular
-     * expression.
-     *
-     * @param regex the regular expression to match with.
-     * @exception java.io.IOException is thrown in case of trouble.
-     */
-    public String[] listNames(String regex) throws IOException;
-
-    /**
      * Notifies that an Ibis instance is suspected to be dead.
      *
      * @param ibis the Ibis identifier of the Ibis instance suspected

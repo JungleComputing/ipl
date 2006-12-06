@@ -4,6 +4,7 @@ package ibis.impl.nameServer;
 
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisConfigurationException;
+import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.StaticProperties;
 
 import java.io.IOException;
@@ -36,6 +37,28 @@ public abstract class NameServer implements ibis.ipl.Registry {
                             IbisConfigurationException {
         return loadNameServer(ibis, true);
     }
+
+    /**
+     * Binds the specified name to the specified identifier.
+     * If the name already is bound, an exception is thrown.
+     *
+     * @param name the name to which a port is being bound.
+     * @param port the receiveport identifier to which a binding is made.
+     * @exception BindingException is thrown when the specified name
+     * 	is already bound.
+     * @exception java.io.IOException is thrown in case of trouble.
+     */
+    public abstract void bind(String name, ReceivePortIdentifier port)
+            throws IOException;
+
+    /**
+     * Removes any binding for the specified name.
+     * @param name the name for which any binding is to be removed.
+     * @exception BindingException is thrown when the specified name was not
+     * bound
+     * @exception java.io.IOException is thrown in case of trouble.
+     */
+    public abstract void unbind(String name) throws IOException;
 
     /** Method to load a nameserver implementation. **/
     public static NameServer loadNameServer(Ibis ibis,
