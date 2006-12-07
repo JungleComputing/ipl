@@ -29,8 +29,7 @@ class ElectionClient implements Protocol {
         ibisName = name;
     }
 
-    IbisIdentifier elect(String election, IbisIdentifier candidate) throws IOException,
-            ClassNotFoundException {
+    IbisIdentifier elect(String election, IbisIdentifier candidate) throws IOException {
 
         VirtualSocket s = null;
         DataOutputStream out = null;
@@ -64,8 +63,9 @@ class ElectionClient implements Protocol {
                 	in.readFully(buf, 0, len);
                 	result = (IbisIdentifier) Conversion.byte2object(buf);
                 }
-            } catch (Exception e) {
+            } catch (ClassNotFoundException e) {
             	logger.warn("election client got exception: " + e, e);
+                throw new IOException("Got wrong class in elect");
             } finally {
                 VirtualSocketFactory.close(s, out, in);
             }

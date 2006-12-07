@@ -44,7 +44,7 @@ PropertyCategories:	communication worldmodel serialization
 #   AutoMessageUpcalls
 #	message upcalls are supported and polling for them is not required.
 #   AutoUpcalls
-#	synonym for AutoMessageUpcalls (hystorical name)
+#	synonym for AutoMessageUpcalls (historical name)
 #   PollMessageUpcalls
 #	message upcalls are supported but polling for them is required. When an
 #	Ibis implementation claims that it has this, it may also do
@@ -86,7 +86,7 @@ PollUpcalls:	PollMessageUpcalls
 #    Closed
 #	this means that the Ibises that can join the run are determined
 #	at the start of the run.
-#
+# Note that Ibis implementations may support both.
 
 worldmodel:	Open, Closed
 

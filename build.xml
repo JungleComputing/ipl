@@ -33,8 +33,7 @@
     -->
     <target name="compile" depends="init">
 	<javac  destdir="${build}" debug="true" srcdir="${src}"
-	    includes="ibis/**/*.java"
-	    excludes="ibis/repmi/**/*.java">
+	    includes="ibis/**/*.java">
 	    <classpath refid="default.classpath"/>
 	</javac>
     </target>
@@ -202,7 +201,7 @@
 	<delete file="${version}.zip"/>
 
 	<zip destfile="ibis-src.zip">
-	    <zipfileset dir="src" prefix="ibis-src"/>
+	    <zipfileset dir="src" includes="**/*.java" prefix="ibis-src"/>
 	</zip>
 
 	<zip destfile="${version}.zip">

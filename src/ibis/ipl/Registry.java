@@ -23,24 +23,18 @@ public interface Registry {
      *
      * @param election the name of this election.
      * @return the Ibis identifier of the elected Ibis instance.
-     * @exception ClassNotFoundException is thrown if an Ibis identifier
-     * 	is returned whose class is locally unknown.
      * @exception java.io.IOException is thrown in case of trouble.
      */
-    public IbisIdentifier elect(String election) throws IOException,
-            ClassNotFoundException;
+    public IbisIdentifier elect(String election) throws IOException;
 
     /**
      * Gets the result of an election, without being a candidate.
      *
      * @param election the name of this election.
      * @return the Ibis identifier of the elected Ibis instance.
-     * @exception ClassNotFoundException is thrown if an Ibis identifier
-     * 	is returned whose class is locally unknown.
      * @exception java.io.IOException is thrown in case of trouble.
      */
-    public IbisIdentifier getElectionResult(String election)
-            throws IOException, ClassNotFoundException;
+    public IbisIdentifier getElectionResult(String election) throws IOException;
 
     /**
      * Notifies that an Ibis instance is suspected to be dead.
