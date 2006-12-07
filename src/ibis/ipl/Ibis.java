@@ -674,29 +674,29 @@ public abstract class Ibis {
     }
 
     /**
-     * Notifies this Ibis instance that another Ibis instance has
+     * Notifies this Ibis instance that other Ibis instances have
      * joined the run.
      * <strong>
      * Note: used by the nameserver, do not call from outside Ibis.
      * </strong>
-     * @param joinIdent the Ibis {@linkplain ibis.ipl.IbisIdentifier
-     * identifier} of the Ibis instance joining the run.
+     * @param joinIdents the Ibis {@linkplain ibis.ipl.IbisIdentifier
+     * identifiers} of the Ibis instances joining the run.
      */
-    public abstract void joined(IbisIdentifier joinIdent);
+    public abstract void joined(IbisIdentifier[] joinIdents);
 
     /**
-     * Notifies this Ibis instance that another Ibis instance has
+     * Notifies this Ibis instance that other Ibis instances have
      * left the run.
      * <strong>
      * Note: used by the nameserver, do not call from outside Ibis.
      * </strong>
-     * @param leaveIdent the Ibis {@linkplain ibis.ipl.IbisIdentifier
-     *  identifier} of the Ibis instance leaving the run.
+     * @param leaveIdents the Ibis {@linkplain ibis.ipl.IbisIdentifier
+     *  identifiers} of the Ibis instances leaving the run.
      */
-    public abstract void left(IbisIdentifier leaveIdent);
+    public abstract void left(IbisIdentifier[] leaveIdents);
 
     /**
-     * Notifies this Ibis instance that another Ibis instance has died.
+     * Notifies this Ibis instance that other Ibis instances have died.
      * <strong>
      * Note: used by the nameserver, do not call from outside Ibis.
      * </strong>

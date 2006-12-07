@@ -25,6 +25,7 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
@@ -179,6 +180,63 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
         }
     }
 
+    private static class Message {
+        byte type;
+        IbisIdentifier[] list;
+        Message(byte type, IbisIdentifier[] list) {
+            this.type = type;
+            this.list = list;
+        }
+    }
+
+    private LinkedList messages = new LinkedList();
+    private boolean stopUpcaller = false;
+
+    private void addMessage(byte type, IbisIdentifier[] list) {
+        synchronized(messages) {
+            messages.add(new Message(type, list));
+            if (messages.size() == 1) {
+                messages.notifyAll();
+            }
+        }
+    }
+
+    private void upcaller() {
+        for (;;) {
+            Message m;
+            synchronized(messages) {
+                while (messages.size() == 0) {
+                    try {
+                        messages.wait(60000);
+                    } catch(Exception e) {
+                        // ignored
+                    }
+                    if (messages.size() == 0 && stop) {
+                        return;
+                    }
+                }
+                m = (Message) messages.removeFirst();
+            }
+            switch(m.type) {
+            case IBIS_JOIN:
+                ibisImpl.joined(m.list);
+                break;
+            case IBIS_LEAVE:
+                ibisImpl.left(m.list);
+                break;
+            case IBIS_DEAD:
+                ibisImpl.died(m.list);
+                break;
+            case IBIS_MUSTLEAVE:
+                ibisImpl.mustLeave(m.list);
+                break;
+            default:
+                logger.warn("Internal error, unknown opcode in message, ignored");
+                break;
+            }
+        }
+    }
+
     protected void init(Ibis ibis, boolean ndsUpcalls)
             throws IOException, IbisConfigurationException {
         this.ibisImpl = ibis;
@@ -288,37 +346,32 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
                     }
 
                     // Read existing nodes (including this one).
+                    IbisIdentifier[] ids = new IbisIdentifier[poolSize];
                     for (int i = 0; i < poolSize; i++) {
-                        IbisIdentifier newid;
                         try {
                             int len = in.readInt();
                             byte[] b = new byte[len];
                             in.readFully(b, 0, len);
-                            newid = (IbisIdentifier) Conversion.byte2object(b);
+                            ids[i] = (IbisIdentifier) Conversion.byte2object(b);
                         } catch (ClassNotFoundException e) {
                             throw new IOException("Receive IbisIdent of unknown class "
                                     + e);
                         }
                         if (logger.isDebugEnabled()) {
-                            logger.debug("NameServerClient: join of " + newid);
-                        }
-                        ibisImpl.joined(newid);
-                        if (logger.isDebugEnabled()) {
-                            logger.debug("NameServerClient: join of " + newid
-                                    + " DONE");
+                            logger.debug("NameServerClient: join of " + ids[i]);
                         }
                     }
-
-                    // at least read the tobedeleted stuff!
-                    int tmp = in.readInt();
-                    for (int i = 0; i < tmp; i++) {
-                        int len = in.readInt();
-                        byte[] b = new byte[len];
-                        in.readFully(b, 0, len);
-                    }
+                    addMessage(IBIS_JOIN, ids);
                 }
 
                 Thread t = new Thread(this, "NameServerClient accept thread");
+                t.setDaemon(true);
+                t.start();
+                t = new Thread("upcaller") {
+                    public void run() {
+                        upcaller();
+                    }
+                };
                 t.setDaemon(true);
                 t.start();
                 break;
@@ -519,54 +572,8 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
                     break;
 
                 case (IBIS_JOIN):
-                    count = in.readInt();
-                    for (int i = 0; i < count; i++) {
-                        int sz = in.readInt();
-                        byte[] buf = new byte[sz];
-                        in.readFully(buf, 0, sz);
-                        ibisId = (IbisIdentifier) Conversion.byte2object(buf);
-                        logger.debug("NameServerClient: receive join request "
-                            + ibisId);
-                        ibisImpl.joined(ibisId);
-                    }
-                    break;
-
                 case (IBIS_LEAVE):
-                    count = in.readInt();
-                    for (int i = 0; i < count; i++) {
-                        int sz = in.readInt();
-                        byte[] buf = new byte[sz];
-                        in.readFully(buf, 0, sz);
-                        ibisId = (IbisIdentifier) Conversion.byte2object(buf);
-                        if (ibisId.equals(this.id)) {
-                            // received an ack from the nameserver that I left.
-                            logger.info("NameServerClient: thread dying");
-                            stop = true;
-                        } else {
-                            ibisImpl.left(ibisId);
-                        }
-                    }
-                    if (stop) {
-                        synchronized(this) {
-                            left = true;
-                            notifyAll();
-                        }
-                    }
-                    break;
-
                 case (IBIS_DEAD):
-                    count = in.readInt();
-                    ids = new IbisIdentifier[count];
-                    for (int i = 0; i < count; i++) {
-                        int sz = in.readInt();
-                        byte[] buf = new byte[sz];
-                        in.readFully(buf, 0, sz);
-                        ids[i] = (IbisIdentifier) Conversion.byte2object(buf);
-                    }
-
-                    ibisImpl.died(ids);
-                    break;
-
                 case (IBIS_MUSTLEAVE):
                     count = in.readInt();
                     ids = new IbisIdentifier[count];
@@ -575,9 +582,20 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
                         byte[] buf = new byte[sz];
                         in.readFully(buf, 0, sz);
                         ids[i] = (IbisIdentifier) Conversion.byte2object(buf);
+                        if (opcode == IBIS_LEAVE && ids[i].equals(this.id)) {
+                            // received an ack from the nameserver that I left.
+                            logger.info("NameServerClient: thread dying");
+                            stop = true;
+                        }
                     }
-
-                    ibisImpl.mustLeave(ids);
+                    if (stop) {
+                        synchronized(this) {
+                            left = true;
+                            notifyAll();
+                        }
+                    } else {
+                        addMessage(opcode, ids);                       
+                    }
                     break;
 
                 default:

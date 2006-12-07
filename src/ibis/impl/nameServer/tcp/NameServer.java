@@ -239,8 +239,6 @@ public class NameServer extends Thread implements Protocol {
 
         int failed;
 
-        Vector toBeDeleted; // a list of ibis names
-
         PortTypeNameServer portTypeNameServer;
 
         ElectionServer electionServer;
@@ -256,7 +254,6 @@ public class NameServer extends Thread implements Protocol {
             arrayPool = new ArrayList();
             pool = new Hashtable();
             leavers = new ArrayList();
-            toBeDeleted = new Vector();
             portTypeNameServer = new PortTypeNameServer(silent,
                     NameServerClient.socketFactory);
             electionServer = new ElectionServer(silent,
@@ -274,12 +271,6 @@ public class NameServer extends Thread implements Protocol {
 
             for (int i = 0; i < elts.length; i++) {
                 res += "    " + elts[i] + "\n";
-            }
-
-            res += "  toBeDeleted = \n";
-
-            for (int i = 0; i < toBeDeleted.size(); i++) {
-                res += "    " + ((IbisInfo) (toBeDeleted.get(i))).name + "\n";
             }
 
             return res;
@@ -1141,15 +1132,6 @@ public class NameServer extends Thread implements Protocol {
                         p.arrayPool.remove(i);
                     }
                 }
-
-                //send all nodes about to leave to the new one
-                out.writeInt(p.toBeDeleted.size());
-
-                for (i = 0; i < p.toBeDeleted.size(); i++) {
-                    IbisInfo temp = (IbisInfo) p.toBeDeleted.get(i);
-                    out.writeInt(temp.serializedId.length);
-                    out.write(temp.serializedId);
-                }
             }
             out.flush();
 
@@ -1282,7 +1264,6 @@ public class NameServer extends Thread implements Protocol {
                 // has received its own leave message.
                 synchronized(p) {
                     p.leavers.add(iinf);
-                    p.toBeDeleted.remove(iinf);
                     p.remove(iinf);
                 }
 

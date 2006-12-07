@@ -33,8 +33,7 @@
     -->
     <target name="compile" depends="init">
 	<javac  destdir="${build}" debug="true" srcdir="${src}"
-	    includes="ibis/**/*.java"
-	    excludes="ibis/repmi/**/*.java">
+	    includes="ibis/**/*.java">
 	    <classpath refid="default.classpath"/>
 	</javac>
     </target>
