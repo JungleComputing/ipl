@@ -151,12 +151,8 @@ public final class Sequencer {
         rcv.enableConnections();
 
         IbisIdentifier boss;
-        try {
-            boss = ibis.registry().elect("sequencer");
-            master = boss.equals(ident);
-        } catch (ClassNotFoundException e) {
-            throw new IOException("Got ClassNotFoundException " + e);
-        }
+        boss = ibis.registry().elect("sequencer");
+        master = boss.equals(ident);
 
         if (master) {
             counters = new HashMap();

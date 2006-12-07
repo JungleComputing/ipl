@@ -195,7 +195,7 @@
 	<delete file="${version}.zip"/>
 
 	<zip destfile="ibis-src.zip">
-	    <zipfileset dir="src" prefix="ibis-src"/>
+	    <zipfileset dir="src" includes="**/*.java" prefix="ibis-src"/>
 	</zip>
 
 	<zip destfile="${version}.zip">

@@ -615,13 +615,12 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
         logger.debug("NameServerClient: thread stopped");
     }
 
-    public IbisIdentifier elect(String election) throws IOException,
-            ClassNotFoundException {
+    public IbisIdentifier elect(String election) throws IOException {
         return electionClient.elect(election, id);
     }
 
     public IbisIdentifier getElectionResult(String election)
-            throws IOException, ClassNotFoundException {
+            throws IOException {
         return electionClient.elect(election, null);
     }
 }

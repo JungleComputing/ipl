@@ -596,11 +596,7 @@ public final class RTS {
         }
 
         IbisIdentifier owner;
-        try {
-            owner = ibisRegistry.getElectionResult(name);
-        } catch(ClassNotFoundException e) {
-            throw new IOException("Could not find IbisIdentifier class");
-        }
+        owner = ibisRegistry.getElectionResult(name);
 
         ReceivePortIdentifier dest = s.connect(owner, name);
 
