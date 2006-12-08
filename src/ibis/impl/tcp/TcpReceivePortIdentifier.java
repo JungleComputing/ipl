@@ -5,6 +5,7 @@ package ibis.impl.tcp;
 import smartsockets.virtual.VirtualSocketAddress;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.ReceivePortIdentifier;
+import ibis.ipl.StaticProperties;
 
 public final class TcpReceivePortIdentifier implements ReceivePortIdentifier,
         java.io.Serializable {
@@ -12,7 +13,7 @@ public final class TcpReceivePortIdentifier implements ReceivePortIdentifier,
 
     String name;
 
-    String type;
+    StaticProperties type;
 
     TcpIbisIdentifier ibis;
 
@@ -20,7 +21,7 @@ public final class TcpReceivePortIdentifier implements ReceivePortIdentifier,
     // int port;
     VirtualSocketAddress sa;
     
-    TcpReceivePortIdentifier(String name, String type, TcpIbisIdentifier ibis,
+    TcpReceivePortIdentifier(String name, StaticProperties type, TcpIbisIdentifier ibis,
             VirtualSocketAddress sa) {
         this.name = name;
         this.type = type;
@@ -35,15 +36,8 @@ public final class TcpReceivePortIdentifier implements ReceivePortIdentifier,
         if (other == this) {
             return true;
         }
-        /*
-        System.out.println("TcpReceivePortIdentifier.equals: ");
-        System.out.println("type: " + (type().equals(other.type())));
-        System.out.println("ibis: " + (ibis.equals(other.ibis)));
-        System.out.println("name: " + (name().equals(other.name())));
-        System.out.println("sa  : " + (sa.equals(other.sa)));
-        */
-        return (type().equals(other.type()) && ibis.equals(other.ibis)
-                && name().equals(other.name()) && sa.equals(other.sa));
+        return (type.equals(other.type) && ibis.equals(other.ibis)
+                && name.equals(other.name) && sa.equals(other.sa));
     }
 
     public boolean equals(Object other) {
@@ -56,22 +50,16 @@ public final class TcpReceivePortIdentifier implements ReceivePortIdentifier,
         return false;
     }
 
-    //gosia
     public int hashCode() {
-        return name().hashCode() + sa.hashCode();
+        return name.hashCode() + sa.hashCode();
     }
-
-    //end gosia
 
     public String name() {
         return name;
     }
 
-    public String type() {
-        if (type != null) {
-            return type;
-        }
-        return "__notype__";
+    public StaticProperties type() {
+        return new StaticProperties(type);
     }
 
     public IbisIdentifier ibis() {

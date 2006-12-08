@@ -20,10 +20,6 @@ public abstract class NameServer implements ibis.ipl.Registry {
     /** Call on exit of an ibis. */
     public abstract void leave() throws IOException;
 
-    /** Register a new port type. */
-    public abstract boolean newPortType(String name, StaticProperties p)
-            throws IOException;
-
     /** Used internally to initialize the nameserver **/
     protected abstract void init(Ibis ibis, boolean needsUpcalls)
             throws IOException, IbisConfigurationException;

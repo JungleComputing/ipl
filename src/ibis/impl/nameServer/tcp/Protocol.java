@@ -15,23 +15,6 @@ interface Protocol {
     static final byte IBIS_CHECK = 8;
     static final byte IBIS_CHECKALL = 9;
 
-    static final byte PORT_NEW = 20;
-    static final byte PORT_ACCEPTED = 21;
-    static final byte PORT_REFUSED = 22;
-    static final byte PORT_LOOKUP = 23;
-    static final byte PORT_LEAVE = 24;
-    static final byte PORT_FREE = 25;
-    static final byte PORT_KNOWN = 26;
-    static final byte PORT_UNKNOWN = 27;
-    static final byte PORT_EXIT = 28;
-    static final byte PORT_KILL = 31;
-    static final byte PORT_WAIT = 32;
-
-    static final byte PORTTYPE_NEW = 40;
-    static final byte PORTTYPE_ACCEPTED = 41;
-    static final byte PORTTYPE_REFUSED = 42;
-    static final byte PORTTYPE_EXIT = 43;
-
     static final byte SEQNO = 50;
 
     static final byte ELECTION_KILL = 98;

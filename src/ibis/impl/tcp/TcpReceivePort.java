@@ -90,7 +90,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
 
         VirtualSocketAddress sa = ibis.tcpPortHandler.register(this);
         
-        ident = new TcpReceivePortIdentifier(name, type.name(),
+        ident = new TcpReceivePortIdentifier(name, type.p,
                 (TcpIbisIdentifier) type.ibis.identifier(), sa);
         
         if (upcall == null && connUpcall == null
