@@ -77,7 +77,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
 
     private final static int WAIT_FOR_UPDATES_TIME = 60000;
 
-    public static final boolean DISABLE_SO_BCAST = true;
+    public static final boolean DISABLE_SO_BCAST = false;
     
     private Satin s;
 
