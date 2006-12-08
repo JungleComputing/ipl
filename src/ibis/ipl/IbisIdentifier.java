@@ -25,7 +25,7 @@ public abstract class IbisIdentifier implements java.io.Serializable {
      * Parameter-less constructor should not happen, therefore private.
      */
     private IbisIdentifier() {
-        throw new IbisError("No args constructor of IbisIdentifier");
+        throw new Error("No args constructor of IbisIdentifier");
     }
 
     /**

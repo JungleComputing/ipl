@@ -328,7 +328,7 @@ public final class Group implements GroupProtocol {
                                 try {
                                     ibis.end();
                                 } catch (IOException e) {
-                                    throw new ibis.ipl.IbisError(e);
+                                    logger.error(name + ": in ShutdownHook: ", e);
                                 }
                                 ibis = null;
                             }

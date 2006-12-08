@@ -391,20 +391,20 @@ public final class StaticProperties implements java.io.Serializable {
     /**
      * Adds a key/value pair to the properties.
      * If the key is already bound, an
-     * {@link ibis.ipl.IbisRuntimeException IbisRuntimeException}
+     * {@link java.lang.RuntimeException RuntimeException}
      * is thrown. If either the key or the value is <code>null</code>,
      * a <code>NullPointerException</code> is thrown.
      *
      * @param key the key to be bound.
      * @param value the value to bind to the key.
-     * @exception IbisRuntimeException is thrown when the key is already bound.
+     * @exception RuntimeException is thrown when the key is already bound.
      * @exception NullPointerException is thrown when either key or value
      *  is <code>null</code>.
      */
     public void add(String key, String value) {
         key = key.toLowerCase();
         if (mappings.containsKey(key)) {
-            throw new IbisRuntimeException("Property " + key
+            throw new RuntimeException("Property " + key
                     + " already exists");
         }
         mappings.put(key, new Property(value));

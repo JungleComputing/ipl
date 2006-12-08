@@ -4,7 +4,6 @@ package ibis.impl.nameServer.tcp;
 
 import ibis.connect.controlHub.ControlHub;
 import ibis.impl.nameServer.NSProps;
-import ibis.ipl.IbisRuntimeException;
 import ibis.io.Conversion;
 import ibis.util.IPUtils;
 import ibis.util.PoolInfoServer;
@@ -1452,7 +1451,7 @@ public class NameServer extends Thread implements Protocol {
                     logger.debug("NameServer: incoming connection from "
                             + s.toString());
                 }
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 if (! silent) {
                     logger.error("NameServer got an error", e);
                 }
@@ -1462,7 +1461,6 @@ public class NameServer extends Thread implements Protocol {
                 } catch (Exception x) {
                 	//ignore
                 }
-                
                 continue;
             }
             reqHandler.addJob(s);
@@ -1471,7 +1469,7 @@ public class NameServer extends Thread implements Protocol {
         try {
             serverSocket.close();
         } catch (Exception e) {
-            throw new IbisRuntimeException("NameServer got an error", e);
+            throw new RuntimeException("NameServer got an error", e);
         }
 
         if (controlHub != null) {

@@ -7,7 +7,7 @@
 *** Plugtest ***
 
 - Gossip Registry
-- Remove porttype from registry
++ Remove porttype from registry (Done Ceriel)
 - parse "classic" ip-address:port strings in smart-sockets (e.g. nameserverclient)
 - instead of TcpIbisIdentifier extends IbisIdentifier make IbisIdentifier final and
   include a byte array for the Ibis implementation specific information. This makes

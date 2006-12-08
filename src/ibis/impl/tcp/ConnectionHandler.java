@@ -12,7 +12,6 @@ import ibis.io.BufferedArrayInputStream;
 import ibis.io.Conversion;
 import ibis.io.SerializationBase;
 import ibis.io.SerializationInput;
-import ibis.ipl.IbisError;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -58,7 +57,7 @@ final class ConnectionHandler implements Runnable, TcpProtocol { //, Config {
         m = new TcpReadMessage(port, in, origin, this);
     }
 
-    void close(Exception e) {
+    void close(Throwable e) {
         if (in != null) {
             try {
                 in.close();
@@ -88,7 +87,7 @@ final class ConnectionHandler implements Runnable, TcpProtocol { //, Config {
     public void run() {
         try {
             reader();
-        } catch (IOException e) {
+        } catch (Throwable e) {
             if (DEBUG) {
                 System.err.println("ConnectionHandler.run : " + port.name
                         + " Caught exception " + e);
@@ -97,9 +96,6 @@ final class ConnectionHandler implements Runnable, TcpProtocol { //, Config {
             }
 
             close(e);
-        } catch (Throwable t) {
-            close(null);
-            throw new IbisError(t);
         }
     }
 
@@ -184,13 +180,13 @@ final class ConnectionHandler implements Runnable, TcpProtocol { //, Config {
                     createNewStream();
                     */
                 } catch(ClassNotFoundException e) {
-                    System.err.println("TcpIbis: internal error, "
+                    throw new IOException("TcpIbis: internal error, "
                             + port.name + ": disconnect from: " + origin
                             + " failed: " + e);
                 }
                 break;
             default:
-                throw new IbisError(port.name + " EEK TcpReceivePort: "
+                throw new IOException(port.name + " EEK TcpReceivePort: "
                         + "run: got illegal opcode: " + opcode + " from: "
                         + origin);
             }

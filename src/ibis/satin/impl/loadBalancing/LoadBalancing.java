@@ -6,7 +6,6 @@ package ibis.satin.impl.loadBalancing;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import ibis.ipl.IbisError;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.SendPortIdentifier;
@@ -131,7 +130,7 @@ public class LoadBalancing implements Config {
      */
     public InvocationRecord stealJob(Victim v, boolean blockOnServer) {
         if (ASSERTS && stolenJob != null) {
-            throw new IbisError(
+            throw new Error(
                 "EEEK, trying to steal while an unhandled stolen job is available.");
         }
 

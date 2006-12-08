@@ -7,7 +7,6 @@
  */
 package ibis.satin.impl.sharedObjects;
 
-import ibis.ipl.IbisException;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
@@ -153,7 +152,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
     }
 
     protected PortType createSOPortType(StaticProperties reqprops)
-            throws IOException, IbisException {
+            throws IOException {
         StaticProperties satinPortProperties = new StaticProperties(reqprops);
 
         if (CLOSED) {

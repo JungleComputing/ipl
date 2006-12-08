@@ -12,7 +12,6 @@ import ibis.io.DummyOutputStream;
 import ibis.ipl.AlreadyConnectedException;
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.ConnectionTimedOutException;
-import ibis.ipl.IbisError;
 import ibis.ipl.PortMismatchException;
 import ibis.ipl.ReceivePortIdentifier;
 
@@ -76,7 +75,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
             System.err.println("--> TcpPortHandler deregistered " + p.name);
         }
         if (!receivePorts.remove(p)) {
-            throw new IbisError(
+            throw new Error(
                     "Tcpporthandler: trying to remove unknown receiveport");
         }
     }
@@ -138,7 +137,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
                         recv = (TcpReceivePortIdentifier)
                                 Conversion.byte2object(buf);
                     } catch(ClassNotFoundException e) {
-                        throw new IbisError("Wrong class in TcpPortHandler.connect", e);
+                        throw new Error("Wrong class in TcpPortHandler.connect", e);
                     }
                     if (rip != null) {
                         sp.addConn(rip, s1);
@@ -171,7 +170,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
 		    }
 		    break;
 		default:
-		    throw new IbisError("Illegal opcode in TcpPorthandler.connect");
+		    throw new Error("Illegal opcode in TcpPorthandler.connect");
 		}
 
             } while (true);
@@ -328,7 +327,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
                 }
 
                 cleanup();
-                throw new IbisError("Fatal: PortHandler could not do an accept");
+                throw new Error("Fatal: PortHandler could not do an accept");
             }
 
             if (DEBUG) {

@@ -186,7 +186,7 @@ final class FTCommunication implements Config, ReceivePortConnectUpcall,
 	}
 
 	public void lostConnection(ReceivePort me, SendPortIdentifier johnDoe,
-			Exception reason) {
+			Throwable reason) {
 		ftLogger.info("SATIN '" + s.ident + "': got lostConnection upcall: "
 				+ johnDoe.ibis() + ", reason = " + reason);
 		if (connectionUpcallsDisabled) {
@@ -196,7 +196,7 @@ final class FTCommunication implements Config, ReceivePortConnectUpcall,
 	}
 
 	public void lostConnection(SendPort me, ReceivePortIdentifier johnDoe,
-			Exception reason) {
+			Throwable reason) {
 		ftLogger.info("SATIN '" + s.ident
 				+ "': got SENDPORT lostConnection upcall: " + johnDoe.ibis());
 		if (connectionUpcallsDisabled) {

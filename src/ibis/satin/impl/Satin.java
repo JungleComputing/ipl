@@ -2,7 +2,6 @@
 
 package ibis.satin.impl;
 
-import ibis.ipl.IbisError;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.StaticProperties;
 import ibis.satin.impl.aborts.AbortException;
@@ -106,7 +105,7 @@ public final class Satin implements Config {
      */
     public Satin() {
         if (thisSatin != null) {
-            throw new IbisError(
+            throw new Error(
                 "multiple satin instances are currently not supported");
         }
         thisSatin = this;

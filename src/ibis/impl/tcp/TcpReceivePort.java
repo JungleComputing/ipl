@@ -459,7 +459,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
     }
 
     // called from the connectionHander.
-    void leave(ConnectionHandler leaving, Exception e) {
+    void leave(ConnectionHandler leaving, Throwable e) {
 
         // First update connection administration.
         synchronized (this) {
@@ -479,7 +479,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
             }
 
             if (!found) {
-                // throw new IbisError("TcpReceivePort: Connection handler "
+                // throw new Error("TcpReceivePort: Connection handler "
                 //         + "not found in leave");
                 // Ignored
             }
@@ -490,11 +490,10 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
         // Don't hold the lock when calling user upcall functions. --Rob
         if (connectionAdministration) {
             if (connUpcall != null) {
-                Exception x = e;
-                if (x == null) {
-                    x = new Exception("sender closed connection");
+                if (e == null) {
+                    e = new Exception("sender closed connection");
                 }
-                connUpcall.lostConnection(this, leaving.origin, x);
+                connUpcall.lostConnection(this, leaving.origin, e);
             } else {
                 lostConnections.add(leaving.origin);
             }
@@ -527,7 +526,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
         }
 
         if (m != null) {
-            // throw new IbisError("Doing close while a msg is alive, port = "
+            // throw new Error("Doing close while a msg is alive, port = "
             //         + name + " fin = " + m.isFinished);
             // No, this can happen when an application closes after
             // processing an upcall. Just let it go.
@@ -601,7 +600,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
     private synchronized void forcedClose() {
         // this may be ok with a forced close.
         if (m != null) {
-            // throw new IbisError(
+            // throw new Error(
             //         "Doing forced close while a msg is alive, port = " + name
             //                 + " fin = " + m.isFinished);
             // No, this can happen when an application closes after

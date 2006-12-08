@@ -5,7 +5,7 @@ package ibis.ipl;
 /**
  * Signals that a connection has been refused, because it already exists.
  */
-public class AlreadyConnectedException extends IbisIOException {
+public class AlreadyConnectedException extends java.io.IOException {
 
     /**
      * Constructs a <code>AlreadyConnectedException</code> with
@@ -33,7 +33,8 @@ public class AlreadyConnectedException extends IbisIOException {
      * @param cause	the cause
      */
     public AlreadyConnectedException(String s, Throwable cause) {
-        super(s, cause);
+        super(s);
+        initCause(cause);
     }
 
     /**
@@ -43,6 +44,7 @@ public class AlreadyConnectedException extends IbisIOException {
      * @param cause	the cause
      */
     public AlreadyConnectedException(Throwable cause) {
-        super(cause);
+        super();
+        initCause(cause);
     }
 }

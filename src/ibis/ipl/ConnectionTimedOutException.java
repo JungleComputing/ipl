@@ -7,7 +7,7 @@ package ibis.ipl;
  * <code>ConnectionTimedOutException</code> is thrown to indicate
  * that a sendport connect timed out.
  */
-public class ConnectionTimedOutException extends IbisIOException {
+public class ConnectionTimedOutException extends java.io.IOException {
 
     /**
      * Constructs a <code>ConnectionTimedOutException</code> with
@@ -35,7 +35,8 @@ public class ConnectionTimedOutException extends IbisIOException {
      * @param cause	the cause
      */
     public ConnectionTimedOutException(String s, Throwable cause) {
-        super(s, cause);
+        super(s);
+        initCause(cause);
     }
 
     /**
@@ -45,6 +46,7 @@ public class ConnectionTimedOutException extends IbisIOException {
      * @param cause	the cause
      */
     public ConnectionTimedOutException(Throwable cause) {
-        super(cause);
+        super();
+        initCause(cause);
     }
 }

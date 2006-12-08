@@ -9,7 +9,6 @@ import ibis.io.SerializationOutput;
 import ibis.ipl.SendPort;
 import ibis.io.Replacer;
 import ibis.ipl.WriteMessage;
-import ibis.ipl.IbisError;
 
 public class CombiningWriteMessage implements WriteMessage {
 
@@ -27,24 +26,14 @@ public class CombiningWriteMessage implements WriteMessage {
         this.ser = ser;
     }
 
-    protected void clear() {
+    protected void clear() throws IOException {
         if (out == null) {
             out = SerializationBase.createSerializationOutput(ser, storeOut);
             if (replacer != null) {
-                try {
-                    out.setReplacer(replacer);
-                } catch(IOException e) {
-                    // What to do here???
-                    throw new IbisError("Got IOException", e);
-                }
+                out.setReplacer(replacer);
             }
         }
-        try {
-            out.reset(true);
-        } catch(IOException e) {
-            // What to do here???
-            throw new IbisError("Got IOException", e);
-        }
+        out.reset(true);
     }
 
     protected void setReplacer(Replacer r) throws IOException {

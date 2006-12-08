@@ -6,7 +6,7 @@ package ibis.rmi;
  * A <code>NotBoundException</code> is thrown if an attempt is made
  * to lookup or unbind a name that has no binding.
  */
-public class NotBoundException extends ibis.ipl.IbisException {
+public class NotBoundException extends Exception {
     /**
      * Constructs an <code>NotBoundException</code> with no specified
      * detail message.

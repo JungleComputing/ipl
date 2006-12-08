@@ -2,8 +2,8 @@
 
 package ibis.impl.tcp;
 
-import ibis.ipl.IbisException;
 import ibis.ipl.PortType;
+import ibis.ipl.PortMismatchException;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.SendPort;
@@ -26,7 +26,7 @@ class TcpPortType extends PortType implements Config {
     String ser;
 
     TcpPortType(TcpIbis ibis, String name, StaticProperties p)
-            throws IbisException {
+            throws PortMismatchException {
         this.ibis = ibis;
         this.name = name;
         this.p = p;
@@ -37,7 +37,7 @@ class TcpPortType extends PortType implements Config {
         if (ser == null) ser = "sun";
 
         if (ser.equals("byte") && numbered) {
-            throw new IbisException(
+            throw new PortMismatchException(
                     "Numbered communication is not supported on byte "
                     + "serialization streams");
         }

@@ -2,7 +2,7 @@
 
 package ibis.gmi;
 
-import ibis.ipl.IbisException;
+import ibis.ipl.NestedException;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
@@ -334,7 +334,7 @@ public abstract class GroupSkeleton implements GroupProtocol {
         }
 
         if (ex != null) {
-            throw new IbisException(ex);
+            throw ex;
         }
 
         return local_result;
@@ -430,7 +430,7 @@ public abstract class GroupSkeleton implements GroupProtocol {
         }
 
         if (ex != null) {
-            throw new IbisException(ex);
+            throw ex;
         }
 
         return local_result;
@@ -525,7 +525,7 @@ public abstract class GroupSkeleton implements GroupProtocol {
         }
 
         if (ex != null) {
-            throw new IbisException(ex);
+            throw ex;
         }
 
         return local_result;
@@ -619,7 +619,7 @@ public abstract class GroupSkeleton implements GroupProtocol {
         }
 
         if (ex != null) {
-            throw new IbisException(ex);
+            throw ex;
         }
 
         return local_result;
@@ -714,7 +714,7 @@ public abstract class GroupSkeleton implements GroupProtocol {
         }
 
         if (ex != null) {
-            throw new IbisException(ex);
+            throw ex;
         }
 
         return local_result;
@@ -809,7 +809,7 @@ public abstract class GroupSkeleton implements GroupProtocol {
         }
 
         if (ex != null) {
-            throw new IbisException(ex);
+            throw ex;
         }
 
         return local_result;
@@ -905,7 +905,7 @@ public abstract class GroupSkeleton implements GroupProtocol {
         }
 
         if (ex != null) {
-            throw new IbisException(ex);
+            throw ex;
         }
 
         return local_result;
@@ -1001,7 +1001,7 @@ public abstract class GroupSkeleton implements GroupProtocol {
         }
 
         if (ex != null) {
-            throw new IbisException(ex);
+            throw ex;
         }
 
         return local_result;
@@ -1097,7 +1097,7 @@ public abstract class GroupSkeleton implements GroupProtocol {
         }
 
         if (ex != null) {
-            throw new IbisException(ex);
+            throw ex;
         }
 
         return local_result;
@@ -1189,7 +1189,7 @@ public abstract class GroupSkeleton implements GroupProtocol {
         }
 
         if (ex != null) {
-            throw new IbisException(ex);
+            throw ex;
         }
     }
 
@@ -1199,11 +1199,11 @@ public abstract class GroupSkeleton implements GroupProtocol {
      * @param invocationMode summary of the invocation scheme of this invocation
      * @param resultMode     summary of the result scheme of this invocation
      * @param r              the message
-     * @exception IbisException is thrown when the result is an exception; the
+     * @exception NestedException is thrown when the result is an exception; the
      * nested exception is this result exception.
      * @exception IOException is thrown on IO error.
      */
     public abstract void handleMessage(int invocationMode, int resultMode,
-            ReadMessage r) throws IbisException, IOException;
+            ReadMessage r) throws NestedException, IOException;
     // TODO: Exception behavior
 }

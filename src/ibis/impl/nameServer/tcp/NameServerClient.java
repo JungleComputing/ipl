@@ -10,7 +10,6 @@ import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.IbisIdentifier;
-import ibis.ipl.IbisRuntimeException;
 import ibis.ipl.StaticProperties;
 import ibis.util.IPUtils;
 import ibis.util.RunProcess;
@@ -534,7 +533,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
                 logger.debug("NameServerClient: incoming connection "
                         + "from " + s.toString());
 
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 if (stop) {
                     logger.info("NameServerClient: thread dying");
                     try {
@@ -551,7 +550,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
                         notifyAll();
                     }
                 }
-                throw new IbisRuntimeException(
+                throw new RuntimeException(
                         "NameServerClient: got an error", e);
             }
 

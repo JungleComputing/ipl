@@ -7,7 +7,7 @@ package ibis.rmi;
  * is made to bind an object in the registry to a name that is
  * already in use.
  */
-public class AlreadyBoundException extends ibis.ipl.IbisException {
+public class AlreadyBoundException extends Exception {
     /**
      * Constructs an <code>AlreadyBoundException</code> with no specified
      * detail message.

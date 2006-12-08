@@ -105,6 +105,10 @@
 		<attribute name="Ibis-Implementation" value="ibis.impl.tcp.TcpIbis"/>
 	    </manifest>
 	</jar>
+	<jar	destfile="lib/ibis-ipl.jar"
+	    basedir="${build}"
+	    includes="ibis/ipl/*.class ibis-properties">
+	</jar>
     </target>
 
     <!--

@@ -137,8 +137,7 @@ public abstract class Ibis {
 
     private static Ibis createIbis(String name, Class c,
             StaticProperties prop, StaticProperties reqprop,
-            ResizeHandler resizeHandler) throws IbisException,
-            ConnectionRefusedException {
+            ResizeHandler resizeHandler) throws IOException {
 
         Ibis impl;
 
@@ -179,15 +178,7 @@ public abstract class Ibis {
             impl.combinedprops = impl.requiredprops.combineWithUserProps();
         }
 
-        try {
-            impl.init();
-        } catch (ConnectionRefusedException e) {
-            throw e;
-        } catch (IOException e3) {
-            throw new IbisException("Could not initialize Ibis", e3);
-        }
-
-        //System.err.println("Create Ibis " + impl);
+        impl.init();
 
         synchronized (Ibis.class) {
             loadedIbises.add(impl);
@@ -242,11 +233,11 @@ public abstract class Ibis {
      *
      * @exception NoMatchingIbisException is thrown when no Ibis was
      *  found that matches the properties required.
-     * @exception IbisException is thrown when no Ibis could be
+     * @exception NextedException is thrown when no Ibis could be
      *  instantiated.
      */
     public static Ibis createIbis(StaticProperties reqprop, ResizeHandler r)
-            throws IbisException {
+            throws NoMatchingIbisException, NestedException {
         String hostname;
 
         try {
@@ -286,7 +277,7 @@ public abstract class Ibis {
                 StaticProperties clashes
                         = combinedprops.unmatchedProperties(ibissp);
                 nested.add(cl.getName(),
-                        new IbisException("Unmatched properties: "
+                        new Exception("Unmatched properties: "
                             + clashes.toString()));
             }
             if (implementations.size() == 0) {
@@ -319,7 +310,7 @@ public abstract class Ibis {
             }
 
             if (! found) {
-                throw new IbisException("Nickname " + ibisname + " not matched");
+                throw new NoMatchingIbisException("Nickname " + ibisname + " not matched");
             }
 
             if (!combinedprops.matchProperties(ibissp)) {
@@ -362,37 +353,13 @@ public abstract class Ibis {
                     return createIbis(name, cl, combinedprops, reqprop, r);
                 } catch (ConnectionRefusedException e) {
                     // retry
-                } catch (IbisException e) {
-                	nested.add(cl.getName(), e);
+                } catch (Throwable e) {
+                    nested.add(cl.getName(), e);
                     if (i == n - 1) {
                         // No more Ibis to try.
                         throw nested;
                     }
 
-                    if (combinedprops.find("verbose") != null) {
-                        System.err.println("Warning: could not create "
-                                + cl.getName() + ", got exception:" + e);
-                        e.printStackTrace();
-                    }
-                    break;
-                } catch (RuntimeException e) {
-                	nested.add(cl.getName(), e);
-                    if (i == n - 1) {
-                        // No more Ibis to try.
-                        throw nested;
-                    }
-                    if (combinedprops.find("verbose") != null) {
-                        System.err.println("Warning: could not create "
-                                + cl.getName() + ", got exception:" + e);
-                        e.printStackTrace();
-                    }
-                    break;
-                } catch (Error e) {
-                	nested.add(cl.getName(), e);
-                    if (i == n - 1) {
-                        // No more Ibis to try.
-                        throw nested;
-                    }
                     if (combinedprops.find("verbose") != null) {
                         System.err.println("Warning: could not create "
                                 + cl.getName() + ", got exception:" + e);
@@ -456,9 +423,8 @@ public abstract class Ibis {
 
     /**
      * When running closed-world, returns the total number of Ibis instances
-     * involved in the run.
+     * involved in the run. Otherwise returns -1.
      * @return the number of Ibis instances
-     * @exception IbisError is thrown when running open-world.
      * @exception NumberFormatException is thrown when the property
      *   ibis.pool.total_hosts is not defined or does not represent a number.
      */
@@ -466,7 +432,7 @@ public abstract class Ibis {
         if (combinedprops.isProp("worldmodel", "closed")) {
             return TypedProperties.intProperty("ibis.pool.total_hosts");
         }
-        throw new IbisError("totalNrOfIbisesInPool() called but open world");
+        return -1;
     }
 
     /**
@@ -508,9 +474,6 @@ public abstract class Ibis {
      * <code>PortType</code>.
      * If two Ibis instances want to communicate, they must both
      * create a <code>PortType</code> with the same name and properties.
-     * If multiple implementations try to create a <code>PortType</code>
-     * with the same name but different properties, an IbisException will
-     * be thrown.
      * A <code>PortType</code> can be used to create
      * {@link ibis.ipl.ReceivePort ReceivePorts} and
      * {@link ibis.ipl.SendPort SendPorts}.
@@ -522,13 +485,9 @@ public abstract class Ibis {
      * @param nm name of the porttype.
      * @param p properties of the porttype.
      * @return the porttype.
-     * @exception IbisException is thrown when Ibis configuration,
-     *  name or p are misconfigured
-     * @exception IOException may be thrown for instance when communication
-     *  with a nameserver fails.
+     * @exception PortMismatchException if this Ibis does not support the specified properties.
      */
-    public PortType createPortType(String nm, StaticProperties p)
-            throws IOException, IbisException {
+    public PortType createPortType(String nm, StaticProperties p) throws PortMismatchException {
         if (p == null) {
             p = combinedprops;
         } else {
@@ -548,9 +507,6 @@ public abstract class Ibis {
             // and may conflict with the ibis prop.
             checkPortProperties(p);
         }
-        if (nm == null) {
-            throw new IbisException("anonymous name for port type not allowed");
-        }
         if (combinedprops.find("verbose") != null) {
             System.out.println("Creating port type " + nm
                     + " with properties\n" + p);
@@ -569,32 +525,23 @@ public abstract class Ibis {
      * See {@link ibis.ipl.Ibis#createPortType(String, StaticProperties)}.
      */
     protected abstract PortType newPortType(String nm, StaticProperties p)
-            throws IOException, IbisException;
+            throws PortMismatchException;
 
     /**
      * This method is used to check if the properties for a PortType
      * match the properties of this Ibis.
      * @param p the properties for the PortType.
-     * @exception IbisException is thrown when this Ibis cannot provide
+     * @exception PortMismatchException is thrown when this Ibis cannot provide
      * the properties requested for the PortType.
      */
-    private void checkPortProperties(StaticProperties p) throws IbisException {
+    private void checkPortProperties(StaticProperties p) throws PortMismatchException {
         if (!p.matchProperties(requiredprops)) {
             System.err.println("Ibis required properties: " + requiredprops);
             System.err.println("Port required properties: " + p);
-            throw new IbisException(
+            throw new PortMismatchException(
                     "Port properties don't match the Ibis required properties");
         }
     }
-
-    /**
-     * Returns the {@link ibis.ipl.PortType PortType} corresponding to
-     * the given name.
-     * @param nm the name of the requested port type.
-     * @return a reference to the port type, or <code>null</code>
-     * if the given name is not the name of a valid port type.
-     */
-    public abstract PortType getPortType(String nm);
 
     /** 
      * Returns the Ibis {@linkplain ibis.ipl.Registry Registry}.
@@ -648,7 +595,7 @@ public abstract class Ibis {
     /**
      * Ibis-implementation-specific initialization.
      */
-    protected abstract void init() throws IbisException, IOException;
+    protected abstract void init() throws IOException;
 
     /**
      * Returns the current Ibis version.

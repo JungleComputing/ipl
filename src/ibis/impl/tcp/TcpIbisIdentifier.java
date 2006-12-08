@@ -3,7 +3,6 @@
 package ibis.impl.tcp;
 
 import ibis.ipl.IbisIdentifier;
-import ibis.ipl.IbisError;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -67,7 +66,7 @@ public final class TcpIbisIdentifier extends IbisIdentifier implements
             try {
                 address = InetAddress.getByName(addr);
             } catch(Exception e) {
-                throw new IbisError("EEK, could not create an inet address"
+                throw new Error("EEK, could not create an inet address"
                         + "from a IP address. This shouldn't happen", e);
             }
             inetAddrMap.put(addr, address);

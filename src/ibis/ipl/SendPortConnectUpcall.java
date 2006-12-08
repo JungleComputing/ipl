@@ -23,5 +23,5 @@ public interface SendPortConnectUpcall {
      * @param reason the reason for this upcall.
      */
     public void lostConnection(SendPort me, ReceivePortIdentifier johnDoe,
-            Exception reason);
+            Throwable reason);
 }

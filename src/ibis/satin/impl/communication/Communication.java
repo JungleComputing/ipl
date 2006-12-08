@@ -5,7 +5,6 @@ package ibis.satin.impl.communication;
 
 import ibis.ipl.AlreadyConnectedException;
 import ibis.ipl.Ibis;
-import ibis.ipl.IbisException;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
@@ -50,7 +49,7 @@ public final class Communication implements Config, Protocol {
 
 		try {
 			ibis = Ibis.createIbis(ibisProperties, s.ft.getResizeHandler());
-		} catch (IbisException e) {
+		} catch (Exception e) {
 			commLogger.fatal(
 					"SATIN '" + "- " + "': Could not start ibis: " + e, e);
 			System.exit(1); // Could not start ibis
@@ -165,7 +164,7 @@ public final class Communication implements Config, Protocol {
 	}
 
 	public PortType createSatinPortType(StaticProperties reqprops)
-			throws IOException, IbisException {
+			throws IOException {
 		StaticProperties satinPortProperties = new StaticProperties(reqprops);
 
 		if (CLOSED) {
@@ -187,7 +186,7 @@ public final class Communication implements Config, Protocol {
 	// The barrier port type is different from the satin port type.
 	// It does not do multicast, and does not need serialization.
 	public PortType createBarrierPortType(StaticProperties reqprops)
-			throws IOException, IbisException {
+			throws IOException {
 		StaticProperties s = new StaticProperties(reqprops);
 
 		s.add("serialization", "byte");

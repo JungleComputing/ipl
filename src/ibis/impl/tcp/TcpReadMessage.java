@@ -3,7 +3,6 @@
 package ibis.impl.tcp;
 
 import ibis.io.SerializationInput;
-import ibis.ipl.IbisError;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.SendPortIdentifier;
@@ -49,16 +48,12 @@ final class TcpReadMessage implements ReadMessage {
     }
 
     public ReceivePort localPort() {
-        if (isFinished) {
-            throw new IbisError(
-                    "Reading data from a message that was already finished");
-        }
         return port;
     }
 
     protected int available() throws IOException {
         if (isFinished) {
-            throw new IbisError(
+            throw new IOException(
                     "Reading data from a message that was already finished");
         }
         return in.available();
@@ -73,7 +68,7 @@ final class TcpReadMessage implements ReadMessage {
         long retval = 0;
 
         if (isFinished) {
-            throw new IbisError(
+            throw new IOException(
                     "Reading data from a message that was already finished");
         }
 
@@ -94,17 +89,12 @@ final class TcpReadMessage implements ReadMessage {
 
     public void finish(IOException e) {
         if (isFinished) {
-            throw new IbisError(
-                    "Reading data from a message that was already finished");
+            return;
         }
         port.finishMessage(e);
     }
 
     public SendPortIdentifier origin() {
-        if (isFinished) {
-            throw new IbisError(
-                    "Reading data from a message that was already finished");
-        }
         return origin;
     }
 
@@ -113,16 +103,12 @@ final class TcpReadMessage implements ReadMessage {
     }
 
     public long sequenceNumber() {
-        if (isFinished) {
-            throw new IbisError(
-                    "Reading data from a message that was already finished");
-        }
         return sequenceNr;
     }
 
     public boolean readBoolean() throws IOException {
         if (isFinished) {
-            throw new IbisError(
+            throw new IOException(
                     "Reading data from a message that was already finished");
         }
         return in.readBoolean();
@@ -130,7 +116,7 @@ final class TcpReadMessage implements ReadMessage {
 
     public byte readByte() throws IOException {
         if (isFinished) {
-            throw new IbisError(
+            throw new IOException(
                     "Reading data from a message that was already finished");
         }
         return in.readByte();
@@ -138,7 +124,7 @@ final class TcpReadMessage implements ReadMessage {
 
     public char readChar() throws IOException {
         if (isFinished) {
-            throw new IbisError(
+            throw new IOException(
                     "Reading data from a message that was already finished");
         }
         return in.readChar();
@@ -146,7 +132,7 @@ final class TcpReadMessage implements ReadMessage {
 
     public short readShort() throws IOException {
         if (isFinished) {
-            throw new IbisError(
+            throw new IOException(
                     "Reading data from a message that was already finished");
         }
         return in.readShort();
@@ -154,7 +140,7 @@ final class TcpReadMessage implements ReadMessage {
 
     public int readInt() throws IOException {
         if (isFinished) {
-            throw new IbisError(
+            throw new IOException(
                     "Reading data from a message that was already finished");
         }
         return in.readInt();
@@ -162,7 +148,7 @@ final class TcpReadMessage implements ReadMessage {
 
     public long readLong() throws IOException {
         if (isFinished) {
-            throw new IbisError(
+            throw new IOException(
                     "Reading data from a message that was already finished");
         }
         return in.readLong();
@@ -170,7 +156,7 @@ final class TcpReadMessage implements ReadMessage {
 
     public float readFloat() throws IOException {
         if (isFinished) {
-            throw new IbisError(
+            throw new IOException(
                     "Reading data from a message that was already finished");
         }
         return in.readFloat();
@@ -178,7 +164,7 @@ final class TcpReadMessage implements ReadMessage {
 
     public double readDouble() throws IOException {
         if (isFinished) {
-            throw new IbisError(
+            throw new IOException(
                     "Reading data from a message that was already finished");
         }
         return in.readDouble();
@@ -186,7 +172,7 @@ final class TcpReadMessage implements ReadMessage {
 
     public String readString() throws IOException {
         if (isFinished) {
-            throw new IbisError(
+            throw new IOException(
                     "Reading data from a message that was already finished");
         }
         return in.readString();
@@ -194,7 +180,7 @@ final class TcpReadMessage implements ReadMessage {
 
     public Object readObject() throws IOException, ClassNotFoundException {
         if (isFinished) {
-            throw new IbisError(
+            throw new IOException(
                     "Reading data from a message that was already finished");
         }
         return in.readObject();
@@ -202,7 +188,7 @@ final class TcpReadMessage implements ReadMessage {
 
     public void readArray(boolean[] destination) throws IOException {
         if (isFinished) {
-            throw new IbisError(
+            throw new IOException(
                     "Reading data from a message that was already finished");
         }
         in.readArray(destination, 0, destination.length);
@@ -210,7 +196,7 @@ final class TcpReadMessage implements ReadMessage {
 
     public void readArray(byte[] destination) throws IOException {
         if (isFinished) {
-            throw new IbisError(
+            throw new IOException(
                     "Reading data from a message that was already finished");
         }
         in.readArray(destination, 0, destination.length);
@@ -218,7 +204,7 @@ final class TcpReadMessage implements ReadMessage {
 
     public void readArray(char[] destination) throws IOException {
         if (isFinished) {
-            throw new IbisError(
+            throw new IOException(
                     "Reading data from a message that was already finished");
         }
         in.readArray(destination, 0, destination.length);
@@ -226,7 +212,7 @@ final class TcpReadMessage implements ReadMessage {
 
     public void readArray(short[] destination) throws IOException {
         if (isFinished) {
-            throw new IbisError(
+            throw new IOException(
                     "Reading data from a message that was already finished");
         }
         in.readArray(destination, 0, destination.length);
@@ -234,7 +220,7 @@ final class TcpReadMessage implements ReadMessage {
 
     public void readArray(int[] destination) throws IOException {
         if (isFinished) {
-            throw new IbisError(
+            throw new IOException(
                     "Reading data from a message that was already finished");
         }
         in.readArray(destination, 0, destination.length);
@@ -242,7 +228,7 @@ final class TcpReadMessage implements ReadMessage {
 
     public void readArray(long[] destination) throws IOException {
         if (isFinished) {
-            throw new IbisError(
+            throw new IOException(
                     "Reading data from a message that was already finished");
         }
         in.readArray(destination, 0, destination.length);
@@ -250,7 +236,7 @@ final class TcpReadMessage implements ReadMessage {
 
     public void readArray(float[] destination) throws IOException {
         if (isFinished) {
-            throw new IbisError(
+            throw new IOException(
                     "Reading data from a message that was already finished");
         }
         in.readArray(destination, 0, destination.length);
@@ -258,7 +244,7 @@ final class TcpReadMessage implements ReadMessage {
 
     public void readArray(double[] destination) throws IOException {
         if (isFinished) {
-            throw new IbisError(
+            throw new IOException(
                     "Reading data from a message that was already finished");
         }
         in.readArray(destination, 0, destination.length);
@@ -267,7 +253,7 @@ final class TcpReadMessage implements ReadMessage {
     public void readArray(Object[] destination) throws IOException,
             ClassNotFoundException {
         if (isFinished) {
-            throw new IbisError(
+            throw new IOException(
                     "Reading data from a message that was already finished");
         }
         in.readArray(destination, 0, destination.length);
@@ -276,7 +262,7 @@ final class TcpReadMessage implements ReadMessage {
     public void readArray(boolean[] destination, int offset, int size)
             throws IOException {
         if (isFinished) {
-            throw new IbisError(
+            throw new IOException(
                     "Reading data from a message that was already finished");
         }
         in.readArray(destination, offset, size);
@@ -285,7 +271,7 @@ final class TcpReadMessage implements ReadMessage {
     public void readArray(byte[] destination, int offset, int size)
             throws IOException {
         if (isFinished) {
-            throw new IbisError(
+            throw new IOException(
                     "Reading data from a message that was already finished");
         }
         in.readArray(destination, offset, size);
@@ -294,7 +280,7 @@ final class TcpReadMessage implements ReadMessage {
     public void readArray(char[] destination, int offset, int size)
             throws IOException {
         if (isFinished) {
-            throw new IbisError(
+            throw new IOException(
                     "Reading data from a message that was already finished");
         }
         in.readArray(destination, offset, size);
@@ -303,7 +289,7 @@ final class TcpReadMessage implements ReadMessage {
     public void readArray(short[] destination, int offset, int size)
             throws IOException {
         if (isFinished) {
-            throw new IbisError(
+            throw new IOException(
                     "Reading data from a message that was already finished");
         }
         in.readArray(destination, offset, size);
@@ -312,7 +298,7 @@ final class TcpReadMessage implements ReadMessage {
     public void readArray(int[] destination, int offset, int size)
             throws IOException {
         if (isFinished) {
-            throw new IbisError(
+            throw new IOException(
                     "Reading data from a message that was already finished");
         }
         in.readArray(destination, offset, size);
@@ -321,7 +307,7 @@ final class TcpReadMessage implements ReadMessage {
     public void readArray(long[] destination, int offset, int size)
             throws IOException {
         if (isFinished) {
-            throw new IbisError(
+            throw new IOException(
                     "Reading data from a message that was already finished");
         }
         in.readArray(destination, offset, size);
@@ -330,7 +316,7 @@ final class TcpReadMessage implements ReadMessage {
     public void readArray(float[] destination, int offset, int size)
             throws IOException {
         if (isFinished) {
-            throw new IbisError(
+            throw new IOException(
                     "Reading data from a message that was already finished");
         }
         in.readArray(destination, offset, size);
@@ -339,7 +325,7 @@ final class TcpReadMessage implements ReadMessage {
     public void readArray(double[] destination, int offset, int size)
             throws IOException {
         if (isFinished) {
-            throw new IbisError(
+            throw new IOException(
                     "Reading data from a message that was already finished");
         }
         in.readArray(destination, offset, size);
@@ -348,7 +334,7 @@ final class TcpReadMessage implements ReadMessage {
     public void readArray(Object[] destination, int offset, int size)
             throws IOException, ClassNotFoundException {
         if (isFinished) {
-            throw new IbisError(
+            throw new IOException(
                     "Reading data from a message that was already finished");
         }
         in.readArray(destination, offset, size);

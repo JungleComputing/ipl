@@ -7,7 +7,7 @@ package ibis.ipl;
  * <code>ConnectionRefusedException</code> is thrown to indicate
  * that a sendport connect was refused.
  */
-public class ConnectionRefusedException extends IbisIOException {
+public class ConnectionRefusedException extends java.io.IOException {
 
     /**
      * Constructs a <code>ConnectionRefusedException</code> with
@@ -35,7 +35,8 @@ public class ConnectionRefusedException extends IbisIOException {
      * @param cause	the cause
      */
     public ConnectionRefusedException(String s, Throwable cause) {
-        super(s, cause);
+        super(s);
+        initCause(cause);
     }
 
     /**
@@ -45,6 +46,7 @@ public class ConnectionRefusedException extends IbisIOException {
      * @param cause	the cause
      */
     public ConnectionRefusedException(Throwable cause) {
-        super(cause);
+        super();
+        initCause(cause);
     }
 }

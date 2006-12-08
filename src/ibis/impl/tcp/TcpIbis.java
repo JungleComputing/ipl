@@ -5,10 +5,9 @@ package ibis.impl.tcp;
 import ibis.connect.IbisSocketFactory;
 import ibis.impl.nameServer.NameServer;
 import ibis.ipl.Ibis;
-import ibis.ipl.IbisException;
 import ibis.ipl.IbisIdentifier;
-import ibis.ipl.IbisRuntimeException;
 import ibis.ipl.PortType;
+import ibis.ipl.PortMismatchException;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.Registry;
@@ -58,7 +57,7 @@ public final class TcpIbis extends Ibis implements Config {
     }
 
     protected PortType newPortType(String nm, StaticProperties p)
-            throws IOException, IbisException {
+            throws PortMismatchException {
 
         TcpPortType resultPort = new TcpPortType(this, nm, p);
         p = resultPort.properties();
@@ -196,10 +195,6 @@ public final class TcpIbis extends Ibis implements Config {
         }
     }
 
-    public PortType getPortType(String nm) {
-        return (PortType) portTypeList.get(nm);
-    }
-
     public synchronized void enableResizeUpcalls() {
         resizeUpcallerEnabled = true;
         notifyAll();
@@ -241,7 +236,7 @@ public final class TcpIbis extends Ibis implements Config {
                 tcpPortHandler.quit();
             }
         } catch (Exception e) {
-            throw new IbisRuntimeException(
+            throw new RuntimeException(
                     "TcpIbisNameServerClient: leave failed ", e);
         }
     }

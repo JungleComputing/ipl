@@ -3,7 +3,6 @@
  */
 package ibis.satin.impl.aborts;
 
-import ibis.ipl.IbisError;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.StaticProperties;
 import ibis.satin.impl.Config;
@@ -115,7 +114,7 @@ public final class Aborts implements Config {
                     RuntimeException tr = (RuntimeException) t;
                     throw tr;
                 }
-                throw new IbisError("Inlet threw exception: ", t);
+                throw new Error("Inlet threw exception: ", t);
             }
 
             s.stats.abortsDone++;
@@ -179,7 +178,7 @@ public final class Aborts implements Config {
         }
         if (r.getParent() == null) {
             // Throw the exception, otherwise it will just disappear ...
-            throw new IbisError("Spawned job threw exception: ", r.eek);
+            throw new Error("Spawned job threw exception: ", r.eek);
         }
         if (ASSERTS && r.getParentLocals() != null) {
             System.err.println("parenlocals is not null in empty inlet");
