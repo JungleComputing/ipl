@@ -28,7 +28,7 @@ import java.util.StringTokenizer;
  * find out if multicast is supported (or required, when a porttype is
  * created).
  */
-public class StaticProperties {
+public final class StaticProperties implements java.io.Serializable {
 
     /** Set containing the category names. */
     private static Set category_names;
@@ -43,10 +43,10 @@ public class StaticProperties {
     private static final StaticProperties ibis_properties;
 
     /** Maps property names to property values. */
-    private final HashMap mappings = new HashMap();
+    private transient HashMap mappings = new HashMap();
 
     /** Default properties. */
-    private final StaticProperties defaults;
+    private transient final StaticProperties defaults;
 
     /**
      * Container class for properties that are associated with a key.
@@ -620,5 +620,28 @@ public class StaticProperties {
      */
     public int hashCode() {
         return propertyNames().hashCode();
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out)
+            throws IOException {
+        Set keys = propertyNames();
+        out.writeInt(keys.size());
+        for (Iterator i = keys.iterator(); i.hasNext();) {
+            String key = (String) i.next();
+            String val = find(key);
+            out.writeUTF(key);
+            out.writeUTF(val);
+        }
+    }
+
+    private void readObject(java.io.ObjectInputStream in)
+            throws IOException, ClassNotFoundException {
+        int sz = in.readInt();
+        mappings = new HashMap();
+        for (int i = 0; i < sz; i++) {
+            String key = in.readUTF();
+            String val = in.readUTF();
+            add(key, val);
+        }
     }
 }

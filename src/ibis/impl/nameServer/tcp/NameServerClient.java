@@ -33,8 +33,6 @@ import org.apache.log4j.Logger;
 public class NameServerClient extends ibis.impl.nameServer.NameServer
         implements Runnable, Protocol {
 
-    private PortTypeNameServerClient portTypeNameServerClient;
-
     private ElectionClient electionClient;
 
     private ServerSocket serverSocket;
@@ -328,12 +326,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
             case IBIS_ACCEPTED:
                 // read the ports for the other name servers and start the
                 // receiver thread...
-                int temp = in.readInt(); /* Port for the PortTypeNameServer */
-                portTypeNameServerClient
-                        = new PortTypeNameServerClient(myAddress, serverAddress,
-                                temp, id.name());
-
-                temp = in.readInt(); /* Port for the ElectionServer */
+                int temp = in.readInt(); /* Port for the ElectionServer */
                 electionClient = new ElectionClient(myAddress, serverAddress,
                         temp, id.name());
 
@@ -451,13 +444,26 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
         }
     }
 
-    public boolean newPortType(String name, StaticProperties p)
-            throws IOException {
-        return portTypeNameServerClient.newPortType(name, p);
-    }
-
     public long getSeqno(String name) throws IOException {
-        return portTypeNameServerClient.getSeqno(name);
+        Socket s = null;
+        DataOutputStream out = null;
+        DataInputStream in = null;
+        try {
+            s = nsConnect(serverAddress, port, myAddress, false, 10);
+
+            out = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
+
+            out.writeByte(SEQNO);
+            out.writeUTF(name);
+            out.flush();
+
+            in = new DataInputStream(new BufferedInputStream(s.getInputStream()));
+
+            return in.readLong();
+
+        } finally {
+            NameServer.closeConnection(in, out, s);
+        }
     }
 
     public void leave() {

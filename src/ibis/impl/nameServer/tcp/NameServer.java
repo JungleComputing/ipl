@@ -23,6 +23,7 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.Properties;
@@ -56,6 +57,54 @@ public class NameServer extends Thread implements Protocol {
 
     static final Logger logger = 
             ibis.util.GetLogger.getLogger(NameServer.class.getName());
+
+    /**
+     * The <code>Sequencer</code> class provides a global numbering.
+     * This can be used, for instance, for global ordering of messages.
+     * A sender must then first obtain a sequence number from the sequencer,
+     * and tag the message with it. The receiver must then handle the messages
+     * in the "tag" order.
+     * <p>
+     * A Sequencer associates a numbering scheme with a name, so the user can
+     * associate different sequences with different names.
+     */
+    private static class Sequencer {
+        private HashMap counters;
+
+        private static class LongObject {
+            long val;
+
+            LongObject(long v) {
+                val = v;
+            }
+
+            public String toString() {
+                return "" + val;
+            }
+        }
+
+        Sequencer() {
+            counters = new HashMap();
+        }
+
+        /**
+         * Returns the next sequence number associated with the specified name.
+         * @param name the name of the sequence.
+         * @return the next sequence number
+         */
+        public synchronized long getSeqno(String name) {
+            LongObject i = (LongObject) counters.get(name);
+            if (i == null) {
+                i = new LongObject(ibis.ipl.ReadMessage.INITIAL_SEQNO);
+                counters.put(name, i);
+            }
+            return i.val++;
+        }
+
+        public String toString() {
+            return "" + counters;
+        }
+    }
 
     static InetAddress myAddress;
     static {
@@ -239,8 +288,6 @@ public class NameServer extends Thread implements Protocol {
 
         int failed;
 
-        PortTypeNameServer portTypeNameServer;
-
         ElectionServer electionServer;
 
         DeadNotifier electionKiller;
@@ -254,8 +301,6 @@ public class NameServer extends Thread implements Protocol {
             arrayPool = new ArrayList();
             pool = new Hashtable();
             leavers = new ArrayList();
-            portTypeNameServer = new PortTypeNameServer(silent,
-                    NameServerClient.socketFactory);
             electionServer = new ElectionServer(silent,
                     NameServerClient.socketFactory);
             electionKiller = new DeadNotifier(this, myAddress,
@@ -312,6 +357,8 @@ public class NameServer extends Thread implements Protocol {
     boolean silent;
 
     private ControlHub controlHub = null;
+
+    private Sequencer seq;
 
     static class CloseJob {
         DataInputStream in;
@@ -425,6 +472,7 @@ public class NameServer extends Thread implements Protocol {
         this.joined = false;
         this.silent = silent;
 
+        seq = new Sequencer();
 
         String hubPort = System.getProperty("ibis.connect.hub.port");
         String poolPort = System.getProperty("ibis.pool.server.port");
@@ -1089,7 +1137,6 @@ public class NameServer extends Thread implements Protocol {
             // that they have never seen.
 
             out.writeByte(IBIS_ACCEPTED);
-            out.writeInt(p.portTypeNameServer.getPort());
             out.writeInt(p.electionServer.getPort());
 
             if (! silent && logger.isDebugEnabled()) {
@@ -1198,27 +1245,11 @@ public class NameServer extends Thread implements Protocol {
 
 
     private void killThreads(RunInfo p) {
-        Socket s = null;
-        Socket s2 = null;
         Socket s3 = null;
-        DataOutputStream out1 = null;
-        DataOutputStream out2 = null;
         DataOutputStream out3 = null;
 
         p.electionKiller.quit();
         
-        try {
-            s = NameServerClient.socketFactory.createClientSocket(myAddress,
-                    p.portTypeNameServer.getPort(), null, CONNECT_TIMEOUT);
-            out1 = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
-            out1.writeByte(PORTTYPE_EXIT);
-        } catch (IOException e) {
-            // Ignore.
-        } finally {
-            closeConnection(null, out1, s);
-            s = null;
-        }
-
         try {
             s3 = NameServerClient.socketFactory.createClientSocket(myAddress,
                     p.electionServer.getPort(), null);
@@ -1452,6 +1483,14 @@ public class NameServer extends Thread implements Protocol {
         }
     }
 
+    private void handleSeqno() throws IOException {
+        String name = in.readUTF();
+
+        long l = seq.getSeqno(name);
+        out.writeLong(l);
+        out.flush();
+    }
+
     public void handleRequest(Socket s) {
         int opcode = -1;
         out = null;
@@ -1469,6 +1508,9 @@ public class NameServer extends Thread implements Protocol {
             logger.debug("NameServer got opcode: " + opcode);
             
             switch (opcode) {
+            case SEQNO:
+                handleSeqno();
+                break;
             case (IBIS_ISALIVE):
             case (IBIS_DEAD):
                 logger.debug("NameServer handling opcode IBIS_ISALIVE/IBIS_DEAD");

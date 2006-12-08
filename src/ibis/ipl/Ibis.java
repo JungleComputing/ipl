@@ -502,7 +502,7 @@ public abstract class Ibis {
      * -Dibis.&#60category&#62="..." mechanism).
      * If static properties <strong>are</strong> given,
      * the default properties described above are used for categories 
-     * not specifiedby the given properties.
+     * not specified by the given properties.
      * <p>
      * The name and properties <strong>together</strong> define the
      * <code>PortType</code>.

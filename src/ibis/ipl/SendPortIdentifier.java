@@ -7,11 +7,11 @@ package ibis.ipl;
  */
 public interface SendPortIdentifier {
     /**
-     * Returns the name of the {@link ibis.ipl.PortType PortType} of this
+     * Returns the type of the {@link ibis.ipl.PortType PortType} of this
      * identifier.
-     * @return the name of the porttype.
+     * @return the type of the porttype.
      */
-    public String type();
+    public StaticProperties type();
 
     /**
      * Returns the name of the {@link ibis.ipl.SendPort SendPort}

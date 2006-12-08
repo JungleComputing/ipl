@@ -63,14 +63,11 @@ public final class TcpIbis extends Ibis implements Config {
         TcpPortType resultPort = new TcpPortType(this, nm, p);
         p = resultPort.properties();
 
-        if (nameServer.newPortType(nm, p)) {
-            /* add type to our table */
-            portTypeList.put(nm, resultPort);
+        portTypeList.put(nm, resultPort);
 
-            if (DEBUG) {
-                System.out.println(this.name + ": created PortType '" + nm
-                        + "'");
-            }
+        if (DEBUG) {
+            System.out.println(this.name + ": created PortType '" + nm
+                    + "'");
         }
 
         return resultPort;

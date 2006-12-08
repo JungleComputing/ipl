@@ -97,7 +97,7 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
         this.connectionAdministration = connectionAdministration;
         this.connectUpcall = cU;
 
-        ident = new TcpSendPortIdentifier(name, type.name(),
+        ident = new TcpSendPortIdentifier(name, type.p,
             (TcpIbisIdentifier) type.ibis.identifier());
 
         // if we keep administration, close connections when exception occurs.
@@ -149,7 +149,7 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
     public synchronized void connect(ReceivePortIdentifier receiver,
         long timeoutMillis) throws IOException {
         /* first check the types */
-        if (!type.name().equals(receiver.type())) {
+        if (!type.p.equals(receiver.type())) {
             throw new PortMismatchException(
                 "Cannot connect ports of different PortTypes");
         }
