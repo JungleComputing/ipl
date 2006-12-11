@@ -1,13 +1,10 @@
 *** Website ***
 
-- new toplevel for the website
-- change "related work" to "links" (like the ProActive site)
 - change UDP in documentation picture to being incomplete (striped)
 
 *** Plugtest ***
 
 - Gossip Registry
-+ Remove porttype from registry (Done Ceriel)
 - parse "classic" ip-address:port strings in smart-sockets (e.g. nameserverclient)
 - instead of TcpIbisIdentifier extends IbisIdentifier make IbisIdentifier final and
   include a byte array for the Ibis implementation specific information. This makes
@@ -26,14 +23,9 @@ general:
   no longer a receiveport per sender.
 
 - ibisidentifier -> Comparable (for Ana)
-+ ibisc : gmic + rmic + satinc + ... (does not replace javac) (Done Ceriel)
-+ load ibisses dynamically from jar files (like JavaGAT) (Done Ceriel)
 - run central nameserver on fs0
 - split up ibis.jar in multiple files (in a sane manner)
-+ binary release (Done ibis-1.4 Ceriel)
-+ make javadoc available in a file for eclipse somehow
-  (Ceriel: ant ibis.zip now creates an ibis-src.zip inside it).
-+ move applications to a real tree (Done 1.4 Ceriel)
+- move applications to a real tree, use packages.
 - network(cluster) simulator
 - steering interface
 - remove deprecated functionality
@@ -44,35 +36,15 @@ general:
   to a spawn, for instance. If code is not there, fall back to current impl.
 - migrate leftover prints to log4j (should we? Performance!)
 - improve performance of Ibis serialization for non-rewritten code.
-+ automatically started nameserver hangs when application crashes or exits
-  with code 1 (with ant test) (Fixed Ceriel: Added shutdownHook in RunProcess).
-+ ant clean in apps gooit ant test output files niet weg (fixed Ceriel)
-+ ant in applicaties doet niet eerst een clean (fixed Ceriel)
+- automatically started nameserver hangs when application crashes or exits
+  with code 1 (with ant test)
 
 - na een connectionLost upcall geeft het sluiten van de port soms:
     Trying to close a sendport port while a message is alive!
     Dat is natuurlijk zo, maar ja, de connectie is weg, dus dan zou je willen dat
     de close gewoon netjes zonder exception terug komt. --Rob
 
-
 nameserver+connection stuff:
-+ joins, leaves and died messages have to be ordered to each other as well. --Rob
-  They are (Ceriel)
-- Ceriel: question: when a new Ibis instance joins a run, should it get only joins from
-  currently living Ibis instances, or should it get a complete history of joins and
-  leaves?
-+ deadlocks in pinger, forwarders --Rob
-  Fixed serious race (in nameserver, and TcpIbis) --Ceriel
-
-+ enable control hub by default --Rob
-+ if a control hub is started, ibises cannot connect to the normal server again?
-+ allow different connection types to nameserver simulaneously: 
-  one ibis should be able to connect with routed messges, while others have 
-  a direct connection --Rob
-+ -Dibis.nameserver=SOME_IP -> kijk of 1 van onze interfaces SOME_IP heeft 
-  (niet alleen eerste)...
-Fixed by Jason's smartsockets library.
-
 - add out-of-band communication support to the Nameserver interface
 
 ipl:
@@ -90,32 +62,12 @@ ipl:
   levend is
   Ceriel: ??? Hoe doe je dat (in een shutdownhook belanden als er een message
   levend is ??? En, de javadocs vertellen dat wel degelijk.
-
-+ add a way to create local receiveports local to and Ibis
-  in addition to global receiveports (done Ceriel)
-+ add SendPort.connect(IbisIdentifier ibis, String receivePortName)
-  (done Ceriel)
-- add Registry.lookup(IbisIdentifier ibis, String receivePortName)
-  (Ceriel: Really??? )
-+ remove Registry.lookupIbis() (Done ceriel)
-+ remove (deprecated) createIbis(String name) (Done ceriel)
 - change Ibis.toString() to returning a "friendly"(user-printable), but not 
   necessarily unique, string.
+- join numbering: each Ibis instance gets a join number tag.
   
-rmi:
-- check Ibis RMI registry:
-  + you don't have to actually start one; (Fixed Ceriel)
-  + registers url's, not names. (Done Ceriel (the other way around ...))
-  + Don't use bind()/unbind() from the nameserver. Instead, implement
-    a real registry thread on one of the nodes (or even have a separate
-    rmi registry). (Done Ceriel)
-
 satin:
 - if main throws an exception, we exit with code 0. Ant test also succeeds.
-
-+ make scalable ibis / scalable satin (don't keep sockets open) --Rob
-  (Done Rob)
-
 - add semantic analysis to the compiler
 - forgotten sync statements
 - make return / throw an implicit sync again?
@@ -124,13 +76,12 @@ satin:
 - shutdownhook -> System.exit
 - satinc does not understand monitorenter/monitor exit instructions (othello)
 - detection of what is an inlet: now, if the invocation is inside a try-catch
-  it is assumed to be an inlet. Is this OK? (MAybe change to checked Exception)
+  it is assumed to be an inlet. Is this OK? (Maybe change to checked Exception)
 - shared objects model: no stubs are used. -> write methods on the orignal object
   are not broadcast. Only if you get it as param from a spawn it is broadcast!
   This is very confusing --Rob
-+ remove dependancy on IPUtils and hostname (mostly done, except for masterHome; Ceriel)
-+ ant test should also run satin apps sequentially
-  (It does, does'nt it? (Ceriel))
+- ant test should also run satin apps sequentially
+  (It does, does'nt it? (Ceriel) No, it does not run non-rewritten code)
 
 satin-so:
 - count all messages+sizes for the total messages/data sent statistics --Rob
@@ -155,15 +106,8 @@ abstract implementation:
 implementations:
 - (re)implement MPIIbis
 - implement stacking Ibis
-+ remove PandaIbis (done Ceriel)
-+ remove NetIbis (done Ceriel)
 
-connect stuff: (Ceriel: should all be fixed by smartSockets).
-- Rob: allow user to load socket types per *connection* use the 
-       property map for this
-- control hub client side always binds to default local ip/port 
-  (partially fixed, but not fully correct yet --Rob)
-- routed messages logging crashes
+connect stuff:
 - use routed messages *while* trying to setup TCP splicing in the background
 - write a good anyTCP for control_links -Rob
 - support universal plug and play
