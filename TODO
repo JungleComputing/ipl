@@ -31,7 +31,8 @@ general:
 - run central nameserver on fs0
 - split up ibis.jar in multiple files (in a sane manner)
 + binary release (Done ibis-1.4 Ceriel)
-- make javadoc available in a file for eclipse somehow
++ make javadoc available in a file for eclipse somehow
+  (Ceriel: ant ibis.zip now creates an ibis-src.zip inside it).
 + move applications to a real tree (Done 1.4 Ceriel)
 - network(cluster) simulator
 - steering interface
@@ -57,6 +58,9 @@ general:
 nameserver+connection stuff:
 + joins, leaves and died messages have to be ordered to each other as well. --Rob
   They are (Ceriel)
+- Ceriel: question: when a new Ibis instance joins a run, should it get only joins from
+  currently living Ibis instances, or should it get a complete history of joins and
+  leaves?
 + deadlocks in pinger, forwarders --Rob
   Fixed serious race (in nameserver, and TcpIbis) --Ceriel
 
@@ -75,6 +79,8 @@ ipl:
 
 - make ibis.ipl.Ibis an interface
 - add abstract classes for all classes in ibis.ipl to ibis.impl
+- Ceriel: if there still remain classes in ibis.ipl, they should be final
+  (except for exceptions, of course :-)
 - add a final class ibis.ipl.IbisFactory which calls ibis.impl.IbisFactory
   with reflection. It shouldn't import ibis.impl.IbisFactory as this would make
   the ipl depend on ibis.impl (and ibisUtil, and IbisConnect, and....
@@ -139,7 +145,6 @@ satin-so:
     - overhead of method calls, serialization
 - remove export of shared object from interface. An application can mark any
   initialization functions as being write functions for the same nett result.
-  
 
 abstract implementation:
 - check _all_ properties in _every_ Ibis

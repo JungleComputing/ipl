@@ -112,8 +112,8 @@ class ElectionServer extends Thread implements Protocol {
 
             try {
                 s = serverSocket.accept();
-            } catch (Exception e) {
-            	logger.error("Got an exception in ElectionServer.run " + e, e);
+            } catch (Throwable e) {
+            	logger.error("Got an exception in ElectionServer accept: " + e, e);
             	
             	try {
             		Thread.sleep(1000);
@@ -145,10 +145,10 @@ class ElectionServer extends Thread implements Protocol {
                                 + opcode);
                     }
                 }
-            } catch (Exception e1) {
+            } catch (Throwable e) {
                 if (! silent) {
-                    logger.error("Got an exception in ElectionServer.run " + e1,
-                            e1);
+                    logger.error("Got an exception in ElectionServer.run " + e,
+                            e);
                 }
             } finally {
                 NameServer.closeConnection(in, out, s);
