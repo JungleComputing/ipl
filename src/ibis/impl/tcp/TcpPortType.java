@@ -81,7 +81,7 @@ class TcpPortType extends PortType implements Config {
                 connectionAdministration, cU);
 
         if (DEBUG) {
-            System.out.println(ibis.identifier()
+            System.out.println(ibis.ident
                     + ": Receiveport created name = '" + prt.name() + "'");
         }
 

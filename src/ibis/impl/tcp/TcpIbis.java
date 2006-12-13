@@ -3,7 +3,6 @@
 package ibis.impl.tcp;
 
 import ibis.connect.IbisSocketFactory;
-import ibis.impl.nameServer.NameServer;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.PortType;
@@ -15,18 +14,21 @@ import ibis.ipl.StaticProperties;
 import ibis.util.IPUtils;
 import ibis.util.TypedProperties;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
 public final class TcpIbis extends Ibis implements Config {
 
-    private TcpIbisIdentifier ident;
+    ibis.impl.IbisIdentifier ident;
 
-    private InetAddress myAddress;
+    InetSocketAddress myAddress;
 
-    private NameServer nameServer;
+    private ibis.impl.Registry registry;
 
     // private int poolSize;
 
@@ -56,6 +58,10 @@ public final class TcpIbis extends Ibis implements Config {
         */
     }
 
+    InetAddress address() {
+        return myAddress.getAddress();
+    }
+
     protected PortType newPortType(String nm, StaticProperties p)
             throws PortMismatchException {
 
@@ -65,7 +71,7 @@ public final class TcpIbis extends Ibis implements Config {
         portTypeList.put(nm, resultPort);
 
         if (DEBUG) {
-            System.out.println(this.name + ": created PortType '" + nm
+            System.out.println("" + this.ident.getId() + ": created PortType '" + nm
                     + "'");
         }
 
@@ -73,11 +79,11 @@ public final class TcpIbis extends Ibis implements Config {
     }
 
     long getSeqno(String nm) throws IOException {
-        return nameServer.getSeqno(nm);
+        return registry.getSeqno(nm);
     }
 
     public Registry registry() {
-        return nameServer;
+        return registry;
     }
 
     public StaticProperties properties() {
@@ -92,27 +98,29 @@ public final class TcpIbis extends Ibis implements Config {
         if (DEBUG) {
             System.err.println("In TcpIbis.init()");
         }
-        // poolSize = 1;
-
-        myAddress = IPUtils.getLocalHostAddress();
-        if (myAddress == null) {
+        InetAddress addr = IPUtils.getLocalHostAddress();
+        if (addr == null) {
             System.err.println("ERROR: could not get my own IP address, "
                     + "exiting.");
             System.exit(1);
         }
-        ident = new TcpIbisIdentifier(name, myAddress);
 
-        if (DEBUG) {
-            System.err.println("Created IbisIdentifier " + ident);
-        }
+        registry = ibis.impl.Registry.loadRegistry(this);
 
         tcpPortHandler
-                = new TcpPortHandler(ident, IbisSocketFactory.getFactory());
+                = new TcpPortHandler(this, IbisSocketFactory.getFactory());
 
-        nameServer = NameServer.loadNameServer(this, resizeHandler != null);
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        DataOutputStream out = new DataOutputStream(bos);
+        out.writeUTF(myAddress.getAddress().getHostAddress());
+        out.writeInt(myAddress.getPort());
+        out.flush();
+        out.close();
+
+        ident = registry.init(this, resizeHandler != null, bos.toByteArray());
 
         if (DEBUG) {
-            System.err.println("Out of TcpIbis.init()");
+            System.err.println("Out of TcpIbis.init(), ident = " + ident);
         }
     }
 
@@ -229,15 +237,15 @@ public final class TcpIbis extends Ibis implements Config {
             ended = true;
         }
         try {
-            if (nameServer != null) {
-                nameServer.leave();
+            if (registry != null) {
+                registry.leave();
             }
             if (tcpPortHandler != null) {
                 tcpPortHandler.quit();
             }
         } catch (Exception e) {
             throw new RuntimeException(
-                    "TcpIbisNameServerClient: leave failed ", e);
+                    "Registry: leave failed ", e);
         }
     }
 

@@ -26,14 +26,11 @@ class ElectionClient implements Protocol {
 
     InetAddress localAddress = null;
 
-    String ibisName;
 
-    ElectionClient(InetAddress localAddress, InetAddress server, int port,
-            String name) {
+    ElectionClient(InetAddress localAddress, InetAddress server, int port) {
         this.server = server;
         this.port = port;
         this.localAddress = localAddress;
-        ibisName = name;
     }
 
     IbisIdentifier elect(String election, IbisIdentifier candidate) throws IOException {
@@ -45,6 +42,7 @@ class ElectionClient implements Protocol {
 
         // Election: candidate==null means caller is not a candidate.
         // Note: at least one caller must have a candidate.
+        logger.info("Election " + election + ": candidate = " + candidate);
         while (result == null) {
             try {
                 s = NameServerClient.nsConnect(server, port, localAddress,
@@ -57,7 +55,7 @@ class ElectionClient implements Protocol {
                     out.writeInt(0);
                 } else {
                     out.writeInt(1);
-                    out.writeUTF(candidate.name());
+                    out.writeUTF(candidate.toString());
                     byte[] b = Conversion.object2byte(candidate);
                     out.writeInt(b.length);
                     out.write(b);
@@ -79,11 +77,13 @@ class ElectionClient implements Protocol {
             }
             if (result == null) {
                 try {
-                    Thread.sleep(30000);
+                    Thread.sleep(3000);
                 } catch (Exception ee) { /* ignore */
                 }
             }
         }
+
+        logger.info("Election result " + election + ": " + result);
 
         return result;
     }

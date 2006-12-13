@@ -593,8 +593,7 @@ public final class RTS {
             logger.debug(hostname + ": Trying to lookup registry " + name);
         }
 
-        IbisIdentifier owner;
-        owner = ibisRegistry.getElectionResult(name);
+        IbisIdentifier owner = ibisRegistry.getElectionResult(name);
 
         ReceivePortIdentifier dest = s.connect(owner, name);
 

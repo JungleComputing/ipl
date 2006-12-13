@@ -15,12 +15,13 @@ import org.apache.bcel.classfile.JavaClass;
  */
 public class BCELWrapper implements ByteCodeWrapper {
 
-    private HashMap javaClasses = new HashMap();
+    private HashMap<String, BCELClassInfo> javaClasses
+            = new HashMap<String, BCELClassInfo>();
 
     public ClassInfo getInfo(Object o) {
         JavaClass cl = (JavaClass) o;
         String name = cl.getClassName();
-        BCELClassInfo e = (BCELClassInfo) javaClasses.get(name);
+        BCELClassInfo e = javaClasses.get(name);
         if (e == null) {
             e = new BCELClassInfo(cl);
             javaClasses.put(name, e);
@@ -33,7 +34,7 @@ public class BCELWrapper implements ByteCodeWrapper {
         JavaClass cl = new ClassParser(fileName).parse();
         Repository.addClass(cl);
         String name = cl.getClassName();
-        BCELClassInfo e = (BCELClassInfo) javaClasses.get(name);
+        BCELClassInfo e = javaClasses.get(name);
         if (e == null) {
             e = new BCELClassInfo(cl);
             javaClasses.put(name, e);
@@ -48,7 +49,7 @@ public class BCELWrapper implements ByteCodeWrapper {
         JavaClass cl = new ClassParser(in, fileName).parse();
         Repository.addClass(cl);
         String name = cl.getClassName();
-        BCELClassInfo e = (BCELClassInfo) javaClasses.get(name);
+        BCELClassInfo e = javaClasses.get(name);
         if (e == null) {
             e = new BCELClassInfo(cl);
             javaClasses.put(name, e);

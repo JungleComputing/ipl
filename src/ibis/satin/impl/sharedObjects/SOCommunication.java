@@ -54,19 +54,19 @@ class OmcInfo implements Config {
     public synchronized void sendDone(int id) {
         Timer t = map.remove(id);
         if (t == null) {
-            soLogger.info("SATIN '" + s.ident.name()
+            soLogger.info("SATIN '" + s.ident
                 + "': got upcall for unknow id: " + id);
             return;
         }
         t.stop();
         total.add(t);
 
-        soLogger.info("SATIN '" + s.ident.name() + "': broadcast " + id
+        soLogger.info("SATIN '" + s.ident + "': broadcast " + id
             + " took " + t.totalTime());
     }
 
     void end() {
-        soLogger.info("SATIN '" + s.ident.name()
+        soLogger.info("SATIN '" + s.ident
             + "': total broadcast time was: " + total.totalTime());
     }
 }
@@ -136,7 +136,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
                 // Connections are established later.
                 soSendPort =
                         soPortType.createSendPort("satin so port on "
-                            + s.ident.name(), true);
+                            + s.ident, true);
 
                 if (SO_MAX_INVOCATION_DELAY > 0) {
                     StaticProperties props = new StaticProperties();
@@ -209,7 +209,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
 
                 rec =
                         soPortType.createReceivePort(
-                            "satin so receive port for " + joiners[i].name(),
+                            "satin so receive port for " + joiners[i],
                             soInvocationHandler, s.ft
                                 .getReceivePortConnectHandler());
 
@@ -248,7 +248,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
 
                 soMessageCombiner.sendAccumulatedMessages();
             } catch (IOException e) {
-                System.err.println("SATIN '" + s.ident.name()
+                System.err.println("SATIN '" + s.ident
                     + "': unable to broadcast shared object invocations " + e);
             }
 
@@ -279,7 +279,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
 
     public void sendDone(int id) {
         if (soLogger.isDebugEnabled()) {
-            soLogger.debug("SATIN '" + s.ident.name() + "': got ACK for send "
+            soLogger.debug("SATIN '" + s.ident + "': got ACK for send "
                 + id);
         }
 
@@ -293,7 +293,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
             tmp = s.victims.getIbises();
             if (tmp.length == 0) return;
         }
-        soLogger.debug("SATIN '" + s.ident.name()
+        soLogger.debug("SATIN '" + s.ident
             + "': broadcasting so invocation for: " + r.getObjectId());
         s.stats.broadcastSOInvocationsTimer.start();
         s.so.registerMulticast(s.so.getSOReference(r.getObjectId()), tmp);
@@ -348,7 +348,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
                 }
             } catch (IOException e) {
                 System.err
-                    .println("SATIN '" + s.ident.name()
+                    .println("SATIN '" + s.ident
                         + "': unable to broadcast a shared object invocation: "
                         + e);
             }
@@ -417,7 +417,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
                 soMessageCombiner.sendAccumulatedMessages();
             }
         } catch (IOException e) {
-            System.err.println("SATIN '" + s.ident.name()
+            System.err.println("SATIN '" + s.ident
                 + "': unable to broadcast a shared object: " + e);
         }
 
@@ -434,7 +434,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
             if (tmp.length == 0) return;
         }
 
-        soLogger.debug("SATIN '" + s.ident.name() + "': broadcasting object: "
+        soLogger.debug("SATIN '" + s.ident + "': broadcasting object: "
             + object.objectId);
         s.stats.soBroadcastTransferTimer.start();
         s.so.registerMulticast(object, tmp);
@@ -472,7 +472,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
     protected void fetchObject(String objectId, IbisIdentifier source,
             InvocationRecord r) throws SOReferenceSourceCrashedException {
         /*
-         soLogger.debug("SATIN '" + s.ident.name() + "': sending SO request "
+         soLogger.debug("SATIN '" + s.ident + "': sending SO request "
          + (r == null ? "FIRST TIME" : "GUARD"));
 
          // first, ask for the object
@@ -481,13 +481,13 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
          boolean gotIt = waitForSOReply();
 
          if (gotIt) {
-         soLogger.debug("SATIN '" + s.ident.name()
+         soLogger.debug("SATIN '" + s.ident
          + "': received the object after requesting it");
          return;
          }
          soLogger
          .debug("SATIN '"
-         + s.ident.name()
+         + s.ident
          + "': received NACK, the object is probably already being broadcast to me, WAITING");
          */
         // got a nack back, the source thinks it sent it to me.
@@ -509,20 +509,20 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
 
             if (r == null) {
                 if (s.so.getSOInfo(objectId) != null) {
-                    soLogger.debug("SATIN '" + s.ident.name()
+                    soLogger.debug("SATIN '" + s.ident
                         + "': received new object from a bcast");
                     return; // got it!
                 }
             } else {
                 if (r.guard()) {
-                    soLogger.debug("SATIN '" + s.ident.name()
+                    soLogger.debug("SATIN '" + s.ident
                         + "': received object, guard satisfied");
                     return;
                 }
             }
         }
 
-        soLogger.debug("SATIN '" + s.ident.name()
+        soLogger.debug("SATIN '" + s.ident
             + "': did not receive object in time, demanding it now");
 
         // haven't got it, demand it now.
@@ -530,13 +530,13 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
 
         boolean gotIt = waitForSOReply();
         if (gotIt) {
-            soLogger.debug("SATIN '" + s.ident.name()
+            soLogger.debug("SATIN '" + s.ident
                 + "': received demanded object");
             return;
         }
         soLogger
             .fatal("SATIN '"
-                + s.ident.name()
+                + s.ident
                 + "': internal error: did not receive shared object after I demanded it. ");
     }
 
@@ -552,7 +552,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
             if (v == null) {
                 // hm we've got a problem here
                 // push the job somewhere else?
-                soLogger.error("SATIN '" + s.ident.name() + "': could not "
+                soLogger.error("SATIN '" + s.ident + "': could not "
                     + "write shared-object request");
                 throw new SOReferenceSourceCrashedException();
             }
@@ -568,7 +568,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
         } catch (IOException e) {
             // hm we've got a problem here
             // push the job somewhere else?
-            soLogger.error("SATIN '" + s.ident.name() + "': could not "
+            soLogger.error("SATIN '" + s.ident + "': could not "
                 + "write shared-object request", e);
             throw new SOReferenceSourceCrashedException();
         }
@@ -586,21 +586,21 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
                     s.so.addObject(sharedObject);
                     sharedObject = null;
                     s.currentVictimCrashed = false;
-                    soLogger.info("SATIN '" + s.ident.name()
+                    soLogger.info("SATIN '" + s.ident
                         + "': received shared object");
                     return true;
                 }
                 if (s.currentVictimCrashed) {
                     s.currentVictimCrashed = false;
                     // the source has crashed, abort the job
-                    soLogger.info("SATIN '" + s.ident.name()
+                    soLogger.info("SATIN '" + s.ident
                         + "': source crashed while waiting for SO reply");
                     throw new SOReferenceSourceCrashedException();
                 }
                 if (receivedNack) {
                     receivedNack = false;
                     s.currentVictimCrashed = false;
-                    soLogger.info("SATIN '" + s.ident.name()
+                    soLogger.info("SATIN '" + s.ident
                         + "': received shared object NACK");
                     return false;
                 }
@@ -647,21 +647,21 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
             }
 
             if (v == null) {
-                soLogger.debug("SATIN '" + s.ident.name()
+                soLogger.debug("SATIN '" + s.ident
                     + "': vicim crached in handleSORequest");
                 continue; // node might have crashed
             }
 
             SharedObjectInfo info = s.so.getSOInfo(objid);
             if (ASSERTS && info == null) {
-                soLogger.fatal("SATIN '" + s.ident.name()
+                soLogger.fatal("SATIN '" + s.ident
                     + "': EEEK, requested shared object: " + objid
                     + " not found! Exiting..");
                 System.exit(1); // Failed assertion
             }
 
             if (!demand && broadcastInProgress(info, v.getIdent())) {
-                soLogger.debug("SATIN '" + s.ident.name()
+                soLogger.debug("SATIN '" + s.ident
                     + "': send NACK back in handleSORequest");
                 // send NACK back
                 try {
@@ -669,7 +669,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
                     wm.writeByte(SO_NACK);
                     v.finish(wm);
                 } catch (IOException e) {
-                    soLogger.error("SATIN '" + s.ident.name()
+                    soLogger.error("SATIN '" + s.ident
                         + "': got exception while sending"
                         + " shared object NACK", e);
                 }
@@ -677,7 +677,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
                 continue;
             }
 
-            soLogger.debug("SATIN '" + s.ident.name()
+            soLogger.debug("SATIN '" + s.ident
                 + "': send object back in handleSORequest");
             sendObjectBack(v, info);
         }
@@ -696,7 +696,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
             wm = v.newMessage();
             wm.writeByte(SO_TRANSFER);
         } catch (IOException e) {
-            soLogger.error("SATIN '" + s.ident.name()
+            soLogger.error("SATIN '" + s.ident
                 + "': got exception while sending" + " shared object", e);
             s.stats.soTransferTimer.stop();
             return;
@@ -706,7 +706,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
         try {
             wm.writeObject(so);
         } catch (IOException e) {
-            soLogger.error("SATIN '" + s.ident.name()
+            soLogger.error("SATIN '" + s.ident
                 + "': got exception while sending" + " shared object", e);
             s.stats.soSerializationTimer.stop();
             s.stats.soTransferTimer.stop();
@@ -717,7 +717,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
         try {
             size = v.finish(wm);
         } catch (IOException e) {
-            soLogger.error("SATIN '" + s.ident.name()
+            soLogger.error("SATIN '" + s.ident
                 + "': got exception while sending" + " shared object", e);
             s.stats.soTransferTimer.stop();
             return;
@@ -732,13 +732,13 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
         String objid = null;
         IbisIdentifier origin = m.origin().ibis();
 
-        soLogger.info("SATIN '" + s.ident.name() + "': got so request");
+        soLogger.info("SATIN '" + s.ident + "': got so request");
 
         try {
             objid = m.readString();
             // no need to finish the message. We don't do any communication
         } catch (IOException e) {
-            soLogger.warn("SATIN '" + s.ident.name()
+            soLogger.warn("SATIN '" + s.ident
                 + "': got exception while reading" + " shared object request: "
                 + e.getMessage());
         }
@@ -758,10 +758,10 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
         try {
             obj = (SharedObject) m.readObject();
         } catch (IOException e) {
-            soLogger.error("SATIN '" + s.ident.name()
+            soLogger.error("SATIN '" + s.ident
                 + "': got exception while reading" + " shared object", e);
         } catch (ClassNotFoundException e) {
-            soLogger.error("SATIN '" + s.ident.name()
+            soLogger.error("SATIN '" + s.ident
                 + "': got exception while reading" + " shared object", e);
         }
         s.stats.soDeserializationTimer.stop();
@@ -784,14 +784,14 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
     private void connectSOSendPort(IbisIdentifier ident) {
         ReceivePortIdentifier r =
                 Communication.connect(soSendPort, ident,
-                    "satin so receiveport for " + s.ident.name(),
+                    "satin so receiveport for " + s.ident,
                     Satin.CONNECT_TIMEOUT);
         if (r != null) {
             synchronized (s) {
                 ports.put(ident, r);
             }
         } else {
-            soLogger.warn("SATIN '" + s.ident.name()
+            soLogger.warn("SATIN '" + s.ident
                 + "': unable to connect to SO receive port ");
             // We won't broadcast the object to this receiver.
             // This is not really a problem, it will get the object if it

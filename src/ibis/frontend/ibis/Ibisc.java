@@ -24,10 +24,11 @@ import java.util.zip.ZipOutputStream;
 public class Ibisc {
 
     /** Contains the (classname, <code>IbiscEntry</code>) pairs. */
-    public static HashMap allClasses = new HashMap();
+    public static HashMap<String, IbiscEntry> allClasses
+            = new HashMap<String, IbiscEntry>();
 
     /** The list of jarfiles. */
-    private static ArrayList jarFiles = new ArrayList();
+    private static ArrayList<JarInfo> jarFiles = new ArrayList<JarInfo>();
 
     /** Verbose flag. */
     private static boolean verbose = false;
@@ -37,7 +38,8 @@ public class Ibisc {
 
     private static ByteCodeWrapper w;
 
-    private static ArrayList ibiscComponents = new ArrayList();
+    private static ArrayList<IbiscComponent> ibiscComponents
+            = new ArrayList<IbiscComponent>();
 
     private static void getClassesFromDirectory(File f, String prefix) {
         File[] list = f.listFiles();
@@ -112,8 +114,9 @@ public class Ibisc {
      * verification is run.
      */
     private static void verifyClasses(IbiscComponent ic) {
-        for (Iterator i = allClasses.values().iterator(); i.hasNext();) {
-            IbiscEntry e = (IbiscEntry) i.next();
+        for (Iterator<IbiscEntry> i = allClasses.values().iterator();
+                i.hasNext();) {
+            IbiscEntry e = i.next();
             if (e.modified) {
                 if (! e.cl.doVerify()) {
                     System.out.println("Ibisc: verification failed after "
@@ -128,8 +131,9 @@ public class Ibisc {
      * Writes all modified classes that are not part of a jar.
      */
     private static void writeClasses() {
-        for (Iterator i = allClasses.values().iterator(); i.hasNext();) {
-            IbiscEntry e = (IbiscEntry) i.next();
+        for (Iterator<IbiscEntry> i = allClasses.values().iterator();
+                i.hasNext();) {
+            IbiscEntry e = i.next();
             if (e.modified && e.jarInfo == null) {
                 File temp = null;
                 try {
@@ -178,8 +182,9 @@ public class Ibisc {
      */
     private static void writeJars() {
         // First, determine which jars have actually changed.
-        for (Iterator i = allClasses.values().iterator(); i.hasNext();) {
-            IbiscEntry e = (IbiscEntry) i.next();
+        for (Iterator<IbiscEntry> i = allClasses.values().iterator();
+                i.hasNext();) {
+            IbiscEntry e = i.next();
             if (e.modified && e.jarInfo != null) {
                 e.jarInfo.modified = true;
             }
@@ -187,7 +192,7 @@ public class Ibisc {
 
         // Then, write ...
         for (int i = 0; i < jarFiles.size(); i++) {
-            JarInfo ji = (JarInfo) jarFiles.get(i);
+            JarInfo ji = jarFiles.get(i);
             if (ji.modified) {
                 String name = ji.jarFile.getName();
                 File temp = null;
@@ -257,7 +262,7 @@ public class Ibisc {
     public static String usage() {
         String rval = "Usage: java ibis.frontend.ibis.Ibisc [-verbose] [-verify] [-keep] [-help] ";
         for (int i = 0; i < ibiscComponents.size(); i++) {
-            IbiscComponent ic = (IbiscComponent) ibiscComponents.get(i);
+            IbiscComponent ic = ibiscComponents.get(i);
             String s = ic.getUsageString();
             if (! s.equals("")) {
                 rval = rval + s + " ";
@@ -270,7 +275,7 @@ public class Ibisc {
         boolean keep = false;
         boolean verify = false;
         boolean help = false;
-        ArrayList leftArgs = new ArrayList();
+        ArrayList<String> leftArgs = new ArrayList<String>();
 
         // Process own arguments.
         for (int i = 0; i < args.length; i++) {
@@ -300,8 +305,8 @@ public class Ibisc {
 
         // Obtain a list of Ibisc components.
         ClassLister clstr = ClassLister.getClassLister(null);
-        List clcomponents = clstr.getClassList("Ibisc-Component", IbiscComponent.class);
-        ArrayList components = new ArrayList();
+        List<Class> clcomponents = clstr.getClassList("Ibisc-Component", IbiscComponent.class);
+        ArrayList<IbiscComponent> components = new ArrayList<IbiscComponent>();
 
         // If no classes found, at least add IOGenerator.
         if (clcomponents.size() == 0) {
@@ -356,7 +361,7 @@ public class Ibisc {
         // IOGenerator should be last
         int szm1 = components.size() - 1;
         for (int i = 0; i < szm1; i++) {
-            IbiscComponent ic = (IbiscComponent) components.get(i);
+            IbiscComponent ic = components.get(i);
             if (ic instanceof ibis.frontend.io.IOGenerator) {
                 components.set(i, components.get(szm1));
                 components.set(szm1, ic);
@@ -371,7 +376,7 @@ public class Ibisc {
         String wrapperKind = null;
         // Make all components process all classes.
         for (int i = 0; i < components.size(); i++) {
-            IbiscComponent ic = (IbiscComponent) components.get(i);
+            IbiscComponent ic = components.get(i);
             String knd = ic.rewriterImpl();
             if (wrapperKind == null || ! knd.equals(wrapperKind)) {
                 if (wrapperKind != null) {

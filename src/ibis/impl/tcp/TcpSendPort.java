@@ -96,8 +96,7 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
         this.connectionAdministration = connectionAdministration;
         this.connectUpcall = cU;
 
-        ident = new TcpSendPortIdentifier(name, type.p,
-            (TcpIbisIdentifier) type.ibis.identifier());
+        ident = new TcpSendPortIdentifier(name, type.p, type.ibis.identifier());
 
         // if we keep administration, close connections when exception occurs.
         splitter = new OutputStreamSplitter(connectionAdministration,
@@ -136,8 +135,8 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
                 + "' connecting to " + nm + " at " + id);
         }
 
-        return ibis.tcpPortHandler.connect(this, (TcpIbisIdentifier) id, nm,
-            null, (int) timeoutMillis);
+        return ibis.tcpPortHandler.connect(this, (ibis.impl.IbisIdentifier) id,
+                nm, null, (int) timeoutMillis);
     }
 
     public synchronized ReceivePortIdentifier connect(IbisIdentifier id,

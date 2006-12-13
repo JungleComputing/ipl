@@ -87,8 +87,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
         connectionsIndex = 0;
 
         int port = ibis.tcpPortHandler.register(this);
-        ident = new TcpReceivePortIdentifier(name, type.p,
-                (TcpIbisIdentifier) type.ibis.identifier(), port);
+        ident = new TcpReceivePortIdentifier(name, type.p, ibis.ident, port);
         if (upcall == null && connUpcall == null
                 && !type.p.isProp("communication", "ManyToOne")
                 && !type.p.isProp("communication", "Poll")

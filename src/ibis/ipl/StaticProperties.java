@@ -31,7 +31,7 @@ import java.util.StringTokenizer;
 public final class StaticProperties implements java.io.Serializable {
 
     /** Set containing the category names. */
-    private static Set category_names;
+    private static Set<String> category_names;
 
     /** User defined properties. */
     private static final StaticProperties user_properties;
@@ -43,7 +43,8 @@ public final class StaticProperties implements java.io.Serializable {
     private static final StaticProperties ibis_properties;
 
     /** Maps property names to property values. */
-    private transient HashMap mappings = new HashMap();
+    private transient HashMap<String, Property> mappings
+            = new HashMap<String, Property>();
 
     /** Default properties. */
     private transient final StaticProperties defaults;
@@ -52,7 +53,7 @@ public final class StaticProperties implements java.io.Serializable {
      * Container class for properties that are associated with a key.
      */
     private static class Property {
-        private HashSet h;
+        private HashSet<String> h;
 
         /**
          * Creates a <code>Property</code> from the specified string.
@@ -63,7 +64,7 @@ public final class StaticProperties implements java.io.Serializable {
         public Property(String v) {
             if (v != null) {
                 StringTokenizer st = new StringTokenizer(v, " ,\t\n\r\f");
-                h = new HashSet();
+                h = new HashSet<String>();
                 while (st.hasMoreTokens()) {
                     String s = st.nextToken().toLowerCase();
                     h.add(s);
@@ -75,13 +76,13 @@ public final class StaticProperties implements java.io.Serializable {
          * Creates an empty <code>Property</code>.
          */
         public Property() {
-            h = new HashSet();
+            h = new HashSet<String>();
         }
 
         /**
          * Creates a property from the specified set.
          */
-        Property(HashSet h) {
+        Property(HashSet<String> h) {
             this.h = h;
         }
 
@@ -123,7 +124,7 @@ public final class StaticProperties implements java.io.Serializable {
          * Allows access to the propertyset as a set.
          * @return the property set.
          */
-        public HashSet getSet() {
+        public HashSet<String> getSet() {
             return h;
         }
     }
@@ -187,7 +188,8 @@ public final class StaticProperties implements java.io.Serializable {
                     while (i.hasNext()) {
                         String catName = (String) i.next();
                         if (n.startsWith(catName + ".")) {
-                            Set catValues = ibis_properties.findSet(catName);
+                            Set<String> catValues
+                                    = ibis_properties.findSet(catName);
                             Iterator j = catValues.iterator();
                             while (j.hasNext()) {
                                 String catValue = (String) j.next();
@@ -200,7 +202,7 @@ public final class StaticProperties implements java.io.Serializable {
                                         user_merge_properties.mappings.put(
                                                 catName, p);
                                     }
-                                    HashSet h = p.getSet();
+                                    HashSet<String> h = p.getSet();
                                     h.add(catValue);
                                 }
                             }
@@ -230,11 +232,11 @@ public final class StaticProperties implements java.io.Serializable {
      * Returns the set of property names.
      * @return the set of property names.
      */
-    public Set propertyNames() {
+    public Set<String> propertyNames() {
         if (defaults == null) {
             return mappings.keySet();
         }
-        HashSet h = new HashSet(mappings.keySet());
+        HashSet<String> h = new HashSet<String>(mappings.keySet());
         defaults.addNames(h);
         return h;
     }
@@ -254,7 +256,7 @@ public final class StaticProperties implements java.io.Serializable {
      * Adds property names to the specified set.
      * @param h the set.
      */
-    private void addNames(HashSet h) {
+    private void addNames(HashSet<String> h) {
         h.addAll(mappings.keySet());
         if (defaults != null) {
             defaults.addNames(h);
@@ -291,7 +293,7 @@ public final class StaticProperties implements java.io.Serializable {
     public StaticProperties combine(StaticProperties p) {
         StaticProperties combined = new StaticProperties(this);
 
-        Set e = p.propertyNames();
+        Set<String> e = p.propertyNames();
         Iterator i = e.iterator();
 
         while (i.hasNext()) {
@@ -324,7 +326,7 @@ public final class StaticProperties implements java.io.Serializable {
     public StaticProperties merge(StaticProperties p) {
         StaticProperties merged = copy();
 
-        Set e = p.mappings.keySet();
+        Set<String> e = p.mappings.keySet();
         Iterator i = e.iterator();
         while (i.hasNext()) {
             String cat = (String) i.next();
@@ -355,8 +357,8 @@ public final class StaticProperties implements java.io.Serializable {
 
         while (i.hasNext()) {
             String cat = (String) i.next();
-            Set v1 = findSet(cat);
-            Set v2 = sp.findSet(cat);
+            Set<String> v1 = findSet(cat);
+            Set<String> v2 = sp.findSet(cat);
             if (!v2.containsAll(v1)) {
                 return false;
             }
@@ -377,10 +379,10 @@ public final class StaticProperties implements java.io.Serializable {
 
         while (i.hasNext()) {
             String cat = (String) i.next();
-            Set v1 = findSet(cat);
-            Set v2 = sp.findSet(cat);
+            Set<String> v1 = findSet(cat);
+            Set<String> v2 = sp.findSet(cat);
             if (!v2.containsAll(v1)) {
-                HashSet h = new HashSet(v1);
+                HashSet<String> h = new HashSet<String>(v1);
                 h.removeAll(v2);
                 p.add(cat, (new Property(h)).getValue());
             }
@@ -454,12 +456,12 @@ public final class StaticProperties implements java.io.Serializable {
      * @param key the specified key.
      * @return the value associated with the specified key.
      */
-    public Set findSet(String key) {
+    public Set<String> findSet(String key) {
         Property p = getProp(key.toLowerCase());
         if (p != null) {
-            return new HashSet(p.getSet());
+            return new HashSet<String>(p.getSet());
         }
-        return new HashSet();
+        return new HashSet<String>();
     }
 
     /**
@@ -485,7 +487,7 @@ public final class StaticProperties implements java.io.Serializable {
     public Object clone() {
         StaticProperties sp = new StaticProperties(defaults);
 
-        Set e = mappings.keySet();
+        Set<String> e = mappings.keySet();
         Iterator i = e.iterator();
         while (i.hasNext()) {
             String key = (String) i.next();
@@ -506,7 +508,7 @@ public final class StaticProperties implements java.io.Serializable {
 
         StringBuffer result = new StringBuffer("");
 
-        Set e = propertyNames();
+        Set<String> e = propertyNames();
         Iterator i = e.iterator();
         while (i.hasNext()) {
             String key = (String) i.next();
@@ -542,20 +544,20 @@ public final class StaticProperties implements java.io.Serializable {
      * DOES change the properties, but it is package protected.
      */
     void addImpliedProperties() {
-        Set e = mappings.keySet();
+        Set<String> e = mappings.keySet();
         Iterator i = e.iterator();
         while (i.hasNext()) {
             String cat = (String) i.next();
             if (category_names.contains(cat)) {
                 Property p = (Property) mappings.get(cat);
-                HashSet h = p.getSet();
+                HashSet<String> h = p.getSet();
                 boolean changed;
                 do {
                     changed = false;
-                    Iterator i2 = new HashSet(h).iterator();
+                    Iterator i2 = new HashSet<String>(h).iterator();
                     while (i2.hasNext()) {
                         String n = (String) i2.next();
-                        Set implied = ibis_properties.findSet(n);
+                        Set<String> implied = ibis_properties.findSet(n);
                         if (!h.containsAll(implied)) {
                             changed = true;
                             h.addAll(implied);
@@ -571,7 +573,7 @@ public final class StaticProperties implements java.io.Serializable {
      * @return the copy.
      */
     public StaticProperties copy() {
-        Set keys = propertyNames();
+        Set<String> keys = propertyNames();
         Iterator i = keys.iterator();
         StaticProperties p = new StaticProperties();
 
@@ -597,16 +599,16 @@ public final class StaticProperties implements java.io.Serializable {
             return false;
         }
         StaticProperties o = (StaticProperties) other;
-        Set keys1 = propertyNames();
-        Set keys2 = o.propertyNames();
+        Set<String> keys1 = propertyNames();
+        Set<String> keys2 = o.propertyNames();
         if (!keys1.equals(keys2)) {
             return false;
         }
         Iterator i = keys1.iterator();
         while (i.hasNext()) {
             String s = (String) i.next();
-            Set s1 = findSet(s);
-            Set s2 = o.findSet(s);
+            Set<String> s1 = findSet(s);
+            Set<String> s2 = o.findSet(s);
             if (!s1.equals(s2)) {
                 return false;
             }
@@ -624,7 +626,7 @@ public final class StaticProperties implements java.io.Serializable {
 
     private void writeObject(java.io.ObjectOutputStream out)
             throws IOException {
-        Set keys = propertyNames();
+        Set<String> keys = propertyNames();
         out.writeInt(keys.size());
         for (Iterator i = keys.iterator(); i.hasNext();) {
             String key = (String) i.next();
@@ -637,7 +639,7 @@ public final class StaticProperties implements java.io.Serializable {
     private void readObject(java.io.ObjectInputStream in)
             throws IOException, ClassNotFoundException {
         int sz = in.readInt();
-        mappings = new HashMap();
+        mappings = new HashMap<String, Property>();
         for (int i = 0; i < sz; i++) {
             String key = in.readUTF();
             String val = in.readUTF();

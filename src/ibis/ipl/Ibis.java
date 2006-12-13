@@ -48,9 +48,6 @@ public abstract class Ibis {
     private static final String implPathValue
         = TypedProperties.stringProperty(implpath);
 
-    /** A name for this Ibis. */
-    protected String name;
-
     /** The implementation name, for instance ibis.impl.tcp.TcpIbis. */
     protected String implName;
 
@@ -135,7 +132,7 @@ public abstract class Ibis {
         System.loadLibrary(name);
     }
 
-    private static Ibis createIbis(String name, Class c,
+    private static Ibis createIbis(Class c,
             StaticProperties prop, StaticProperties reqprop,
             ResizeHandler resizeHandler) throws IOException {
 
@@ -156,7 +153,6 @@ public abstract class Ibis {
             /* handled elsewhere */
         }
 
-        impl.name = name;
         impl.implName = c.getName();
         impl.resizeHandler = resizeHandler;
         impl.requiredprops = reqprop;
@@ -203,8 +199,7 @@ public abstract class Ibis {
 
     /**
      * Creates a new Ibis instance, based on the required properties,
-     * or on the system property "ibis.name",
-     * or on the staticproperty "name".
+     * or on the system property "ibis.name", or on the staticproperty "name".
      * If the system property "ibis.name" is set, the corresponding
      * Ibis implementation is chosen.
      * Else, if the staticproperty "name" is set in the specified
@@ -212,18 +207,6 @@ public abstract class Ibis {
      * Else, an Ibis implementation is chosen that matches the
      * required properties.
      *
-     * The currently recognized Ibis names are:
-     * <br>
-     * panda	Ibis built on top of Panda.
-     * <br>
-     * tcp	Ibis built on top of TCP (the current default).
-     * <br>
-     * nio	Ibis built on top of Java NIO.
-     * <br>
-     * mpi	Ibis built on top of MPI.
-     * <br>
-     * net.*	The future version, for tcp, udp, GM.
-     * <br>
      * @param reqprop static properties required by the application,
      *  or <code>null</code>.
      * @param  r a {@link ibis.ipl.ResizeHandler ResizeHandler} instance
@@ -348,9 +331,7 @@ public abstract class Ibis {
             }
             while (true) {
                 try {
-                    String name = "ibis@" + hostname + "_"
-                            + System.currentTimeMillis();
-                    return createIbis(name, cl, combinedprops, reqprop, r);
+                    return createIbis(cl, combinedprops, reqprop, r);
                 } catch (ConnectionRefusedException e) {
                     // retry
                 } catch (Throwable e) {
@@ -566,23 +547,6 @@ public abstract class Ibis {
      * @exception IOException is thrown when a communication error occurs.
      */
     public abstract void poll() throws IOException;
-
-    /**
-     * Returns the name of this Ibis instance. This is a shorthand for
-     * <code>identifier().name()</code> (See {@link IbisIdentifier#name()}).
-     * @return the name of this Ibis instance.
-     */
-    public String name() {
-        return identifier().name;
-    }
-
-    /**
-     * Returns the implementation name of this Ibis instance.
-     * @return the implementation name of this Ibis instance.
-     */
-    public String implementationName() {
-        return implName;
-    }
 
     /**
      * Returns an Ibis {@linkplain ibis.ipl.IbisIdentifier identifier} for

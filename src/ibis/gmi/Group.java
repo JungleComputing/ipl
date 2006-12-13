@@ -56,9 +56,6 @@ public final class Group implements GroupProtocol {
     /** My local ibis. */
     static Ibis ibis;
 
-    /** Name of my local Ibis. */
-    private static String localID;
-
     /** Ibis registry, used for setting up stuff. */
     private static Registry ibisRegistry;
 
@@ -166,7 +163,6 @@ public final class Group implements GroupProtocol {
                 System.exit(1);
             }
             
-            localID = ibis.identifier().name();
             name = ibis.identifier().toString();
             ibisRegistry = ibis.registry();
 

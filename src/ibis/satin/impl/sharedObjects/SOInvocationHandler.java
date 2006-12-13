@@ -34,7 +34,7 @@ final class SOInvocationHandler implements Upcall, Config, Protocol {
         try {
             opt_code = m.readByte();
         } catch (IOException e) {
-            System.err.println("SATIN '" + s.ident.name()
+            System.err.println("SATIN '" + s.ident
                 + "': got exception in SOInvocationHandler: " + e.getMessage());
             e.printStackTrace();
             throw e;
@@ -50,13 +50,13 @@ final class SOInvocationHandler implements Upcall, Config, Protocol {
             try {
                 obj = (SharedObject) m.readObject();
             } catch (IOException e) {
-                System.err.println("SATIN '" + s.ident.name()
+                System.err.println("SATIN '" + s.ident
                     + "': got exception in SOInvocationHandler: "
                     + e.getMessage());
                 e.printStackTrace();
                 throw e;
             } catch (ClassNotFoundException e) {
-                System.err.println("SATIN '" + s.ident.name()
+                System.err.println("SATIN '" + s.ident
                     + "': got exception in SOInvocationHandler: "
                     + e.getMessage());
                 e.printStackTrace();
@@ -82,13 +82,13 @@ final class SOInvocationHandler implements Upcall, Config, Protocol {
             try {
                 soir = (SOInvocationRecord) m.readObject();
             } catch (IOException e) {
-                System.err.println("SATIN '" + s.ident.name()
+                System.err.println("SATIN '" + s.ident
                     + "': got exception in SOInvocationHandler: "
                     + e.getMessage());
                 e.printStackTrace();
                 throw e;
             } catch (ClassNotFoundException e) {
-                System.err.println("SATIN '" + s.ident.name()
+                System.err.println("SATIN '" + s.ident
                     + "': got exception in SOInvocationHandler: "
                     + e.getMessage());
                 e.printStackTrace();
@@ -102,7 +102,7 @@ final class SOInvocationHandler implements Upcall, Config, Protocol {
             s.so.addSOInvocation(soir);
             break;
         default:
-            System.err.println("SATIN '" + s.ident.name()
+            System.err.println("SATIN '" + s.ident
                 + "': invalid opcode in SOInvocationHandler: " + opt_code);
         }
     }
@@ -124,7 +124,7 @@ final class SOInvocationHandler implements Upcall, Config, Protocol {
                 handleMessage(m);
             }
         } catch (IOException e) {
-            System.err.println("SATIN '" + s.ident.name()
+            System.err.println("SATIN '" + s.ident
                 + "': got exception while reading"
                 + " opcode in SOInvocationHandler: " + e.getMessage());
             throw e;

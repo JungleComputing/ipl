@@ -11,11 +11,9 @@ interface Config {
 
     static final String s_stats = PROPERTY_PREFIX + "stats";
 
-    static final String s_cache = PROPERTY_PREFIX + "cache";
-
     static final boolean DEBUG = TypedProperties.booleanProperty(s_debug);
 
     static final boolean STATS = TypedProperties.booleanProperty(s_stats, true);
 
-    static final String[] sysprops = { s_debug, s_stats, s_cache };
+    static final String[] sysprops = { s_debug, s_stats };
 }

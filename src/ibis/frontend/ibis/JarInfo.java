@@ -20,7 +20,7 @@ public class JarInfo {
     /**
      * A list of entries of the jarfile, including their contents.
      */
-    public ArrayList   entries = new ArrayList();
+    public ArrayList<JarEntryInfo>  entries = new ArrayList<JarEntryInfo>();
 
     /** Reference to the jarfile itself. */
     public JarFile     jarFile;

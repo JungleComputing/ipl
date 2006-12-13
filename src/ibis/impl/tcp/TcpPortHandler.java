@@ -9,6 +9,7 @@ import ibis.io.Conversion;
 import ibis.io.DummyInputStream;
 import ibis.io.DummyOutputStream;
 
+import ibis.impl.IbisIdentifier;
 import ibis.ipl.AlreadyConnectedException;
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.ConnectionTimedOutException;
@@ -16,17 +17,22 @@ import ibis.ipl.PortMismatchException;
 import ibis.ipl.ReceivePortIdentifier;
 
 import ibis.util.ThreadPool;
+import ibis.util.IPUtils;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.InetSocketAddress;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 final class TcpPortHandler implements Runnable, TcpProtocol, Config {
 
@@ -34,25 +40,32 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
 
     private ArrayList receivePorts;
 
-    private final TcpIbisIdentifier me;
-
-    private final int port;
+    private final TcpIbis me;
 
     private boolean quiting = false;
 
     private final IbisSocketFactory socketFactory;
 
-    TcpPortHandler(TcpIbisIdentifier me, IbisSocketFactory fac)
+    private HashMap addresses = new HashMap();
+
+    TcpPortHandler(TcpIbis me, IbisSocketFactory fac)
             throws IOException {
         this.me = me;
+
+        InetAddress addr = IPUtils.getLocalHostAddress();
+        if (addr == null) {
+            System.err.println("ERROR: could not get my own IP address, "
+                    + "exiting.");
+            System.exit(1);
+        }
 
         socketFactory = fac;
 
         systemServer = socketFactory
-                .createServerSocket(0, me.address(), true, null /* don't pass properties, this is not a socket that is used for an ibis port */);
-        port = systemServer.getLocalPort();
+                .createServerSocket(0, addr, true, null /* don't pass properties, this is not a socket that is used for an ibis port */);
+        int port = systemServer.getLocalPort();
 
-        me.port = port;
+        me.myAddress = new InetSocketAddress(addr, port);
 
         if (DEBUG) {
             System.out.println("--> PORTHANDLER: port = " + port);
@@ -67,7 +80,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
             System.err.println("--> TcpPortHandler registered " + p.name);
         }
         receivePorts.add(p);
-        return port;
+        return me.myAddress.getPort();
     }
 
     synchronized void deRegister(TcpReceivePort p) {
@@ -80,22 +93,47 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
         }
     }
 
-    ReceivePortIdentifier connect(TcpSendPort sp, TcpIbisIdentifier id,
-            String name, TcpReceivePortIdentifier rip, int timeout)
-            throws IOException {
+    ReceivePortIdentifier connect(TcpSendPort sp,
+            IbisIdentifier id, String name, TcpReceivePortIdentifier rip,
+            int timeout) throws IOException {
         Socket s = null;
+
+        InetSocketAddress idAddr;
+        int port;
+
+        synchronized(addresses) {
+            idAddr = (InetSocketAddress) addresses.get(id);
+            if (idAddr == null) {
+                byte[] b = id.getData();
+                DataInputStream in = new DataInputStream(
+                        new ByteArrayInputStream(b));
+                String addr = in.readUTF();
+                port = in.readInt();
+                in.close();
+                try {
+                    idAddr = new InetSocketAddress(InetAddress.getByName(addr),
+                            port);
+                } catch(Exception e) {
+                    throw new IOException("Could not get address from " + id);
+                }
+                addresses.put(id, idAddr);
+            }
+        }
+
+        port = idAddr.getPort();
 
         long startTime = System.currentTimeMillis();
 
         try {
             if (DEBUG) {
                 System.err.println("--> Creating socket for connection to "
-                        + name + " at " + id + ", port = " + id.port);
+                        + name + " at " + id + ", port = " + port);
             }
 
             do {
-                s = socketFactory.createClientSocket(id.address(),
-                        id.port, me.address(), 0, timeout, sp.properties());
+                s = socketFactory.createClientSocket(idAddr.getAddress(), port,
+                        me.myAddress.getAddress(), 0, timeout,
+                        sp.properties());
 
                 InputStream sin = s.getInputStream();
                 OutputStream sout = s.getOutputStream();
@@ -194,8 +232,9 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
             /* Connect to the serversocket, so that the port handler
              * thread wakes up.
              */
-            socketFactory.createClientSocket(me.address(), port, me.address(), 0, 
-                    0, null);
+            InetAddress addr = me.myAddress.getAddress();
+            int port = me.myAddress.getPort();
+            socketFactory.createClientSocket(addr, port, addr, 0, 0, null);
         } catch (Exception e) {
             // Ignore
         }

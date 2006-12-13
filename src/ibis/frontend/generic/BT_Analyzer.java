@@ -19,11 +19,11 @@ public class BT_Analyzer {
 
     public String packagename;
 
-    public Vector specialInterfaces;
+    public Vector<JavaClass> specialInterfaces;
 
-    public Vector specialMethods;
+    public Vector<Method> specialMethods;
 
-    public Vector subjectSpecialMethods;
+    public Vector<Method> subjectSpecialMethods;
 
     public BT_Analyzer(JavaClass subject, JavaClass specialInterface,
             boolean verbose) {
@@ -49,7 +49,7 @@ public class BT_Analyzer {
         }
 
         for (int i = 0; i < specialMethods.size(); i++) {
-            Method m2 = (Method) specialMethods.get(i);
+            Method m2 = specialMethods.get(i);
             if (compareMethods(m1, m2)) {
                 return true;
             }
@@ -65,9 +65,9 @@ public class BT_Analyzer {
         return specialMethods.size() > 0;
     }
 
-    private void addSpecialMethod(Vector sm, Method m) {
+    private void addSpecialMethod(Vector<Method> sm, Method m) {
         for (int i = 0; i < sm.size(); i++) {
-            if (compareMethods(m, (Method) sm.get(i))) {
+            if (compareMethods(m, sm.get(i))) {
                 // it is already in the vector
                 return;
             }
@@ -76,7 +76,7 @@ public class BT_Analyzer {
         sm.addElement(m);
     }
 
-    private void findSpecialMethods(JavaClass si, Vector sm) {
+    private void findSpecialMethods(JavaClass si, Vector<Method> sm) {
         Method[] methods = si.getMethods();
 
         for (int i = 0; i < methods.length; i++) {
@@ -86,18 +86,18 @@ public class BT_Analyzer {
         }
     }
 
-    Vector findSpecialMethods(Vector si) {
-        Vector mi = new Vector();
+    Vector<Method> findSpecialMethods(Vector<JavaClass> si) {
+        Vector<Method> mi = new Vector<Method>();
 
         for (int i = 0; i < si.size(); i++) {
-            findSpecialMethods((JavaClass) si.get(i), mi);
+            findSpecialMethods(si.get(i), mi);
         }
 
         return mi;
     }
 
     private void findSubjectSpecialMethod(Method[] sub, Method special,
-            Vector dest) {
+            Vector<Method> dest) {
 
         for (int i = 0; i < sub.length; i++) {
 
@@ -111,18 +111,18 @@ public class BT_Analyzer {
         }
     }
 
-    Vector findSubjectSpecialMethods() {
-        Vector temp = new Vector();
+    Vector<Method> findSubjectSpecialMethods() {
+        Vector<Method> temp = new Vector<Method>();
         Method v[] = subject.getMethods();
 
         for (int i = 0; i < specialMethods.size(); i++) {
-            findSubjectSpecialMethod(v, (Method) specialMethods.get(i), temp);
+            findSubjectSpecialMethod(v, specialMethods.get(i), temp);
         }
 
         return temp;
     }
 
-    boolean findSpecialInterfaces(String inter, Vector si) {
+    boolean findSpecialInterfaces(String inter, Vector<JavaClass> si) {
         boolean result = false;
         JavaClass interf = Repository.lookupClass(inter);
 
@@ -150,8 +150,8 @@ public class BT_Analyzer {
         return result;
     }
 
-    Vector findSpecialInterfaces() {
-        Vector si = new Vector();
+    Vector<JavaClass> findSpecialInterfaces() {
+        Vector<JavaClass> si = new Vector<JavaClass>();
 
         if (!subject.isClass()) {
             findSpecialInterfaces(subject.getClassName(), si);
@@ -170,7 +170,7 @@ public class BT_Analyzer {
         return si;
     }
 
-    void findSpecialInterfaces2(JavaClass inter, Vector si) {
+    void findSpecialInterfaces2(JavaClass inter, Vector<JavaClass> si) {
 //        boolean result = false;
 
         JavaClass[] interfaces = inter.getAllInterfaces();
@@ -186,8 +186,8 @@ public class BT_Analyzer {
         }
     }
 
-    Vector findSpecialInterfaces2() {
-        Vector si = new Vector();
+    Vector<JavaClass> findSpecialInterfaces2() {
+        Vector<JavaClass> si = new Vector<JavaClass>();
 
         if (!subject.isClass()) {
             if (subject.implementationOf(specialInterface)) {
@@ -234,8 +234,7 @@ public class BT_Analyzer {
 
             for (int i = 0; i < specialInterfaces.size(); i++) {
                 System.out.println("\t"
-                        + ((JavaClass)
-                            specialInterfaces.elementAt(i)).getClassName());
+                        + specialInterfaces.elementAt(i).getClassName());
             }
         }
 
@@ -247,7 +246,7 @@ public class BT_Analyzer {
 
             for (int i = 0; i < specialMethods.size(); i++) {
                 System.out.println("\t"
-                        + ((Method) specialMethods.get(i)).toString());
+                        + specialMethods.get(i).toString());
             }
         }
 

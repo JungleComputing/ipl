@@ -14,10 +14,10 @@ public final class TcpSendPortIdentifier implements SendPortIdentifier,
 
     String name;
 
-    TcpIbisIdentifier ibis;
+    IbisIdentifier ibis;
 
     TcpSendPortIdentifier(String name, StaticProperties type,
-            TcpIbisIdentifier ibis) {
+            IbisIdentifier ibis) {
         this.name = name;
         this.type = type;
         this.ibis = ibis;

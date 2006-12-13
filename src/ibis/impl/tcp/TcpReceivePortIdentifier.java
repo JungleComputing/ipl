@@ -2,7 +2,7 @@
 
 package ibis.impl.tcp;
 
-import ibis.ipl.IbisIdentifier;
+import ibis.impl.IbisIdentifier;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.StaticProperties;
 
@@ -14,12 +14,12 @@ public final class TcpReceivePortIdentifier implements ReceivePortIdentifier,
 
     StaticProperties type;
 
-    TcpIbisIdentifier ibis;
+    IbisIdentifier ibis;
 
     int port;
 
     TcpReceivePortIdentifier(String name, StaticProperties type,
-            TcpIbisIdentifier ibis, int port) {
+            IbisIdentifier ibis, int port) {
         this.name = name;
         this.type = type;
         this.ibis = ibis;
@@ -59,7 +59,7 @@ public final class TcpReceivePortIdentifier implements ReceivePortIdentifier,
         return new StaticProperties(type);
     }
 
-    public IbisIdentifier ibis() {
+    public ibis.ipl.IbisIdentifier ibis() {
         return ibis;
     }
 

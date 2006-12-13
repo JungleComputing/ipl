@@ -9,7 +9,7 @@ import ibis.ipl.SendPortIdentifier;
 
 import java.io.IOException;
 
-final class TcpReadMessage implements ReadMessage {
+final class TcpReadMessage implements ReadMessage, Config {
     private SerializationInput in;
 
     private long sequenceNr = -1;
@@ -69,10 +69,10 @@ final class TcpReadMessage implements ReadMessage {
 
         if (isFinished) {
             throw new IOException(
-                    "Reading data from a message that was already finished");
+                    "Finishing a message that was already finished");
         }
 
-        if (Config.STATS) {
+        if (STATS) {
             long after = handler.bufferedInput.bytesRead();
             retval = after - before;
             before = after;

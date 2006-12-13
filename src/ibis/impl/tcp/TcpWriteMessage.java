@@ -9,7 +9,7 @@ import ibis.ipl.WriteMessage;
 
 import java.io.IOException;
 
-final class TcpWriteMessage implements WriteMessage {
+final class TcpWriteMessage implements WriteMessage, Config {
     private TcpSendPort sport;
 
     private SerializationOutput out;
@@ -25,7 +25,7 @@ final class TcpWriteMessage implements WriteMessage {
         this.connectionAdministration = connectionAdministration;
         sport = p;
         this.out = out;
-        if (Config.STATS) {
+        if (STATS) {
             before = sport.bufferedStream.bytesWritten();
         }
     }
@@ -76,7 +76,7 @@ final class TcpWriteMessage implements WriteMessage {
         }
         isFinished = true;
         sport.finishMessage();
-        if (Config.STATS) {
+        if (STATS) {
             long after = sport.bufferedStream.bytesWritten();
             long retval = after - before;
             sport.count += retval;
