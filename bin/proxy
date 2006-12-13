@@ -1,0 +1,60 @@
+#!/bin/sh
+
+PRG="$0"
+
+# resolve symlinks
+while [ -h "$PRG" ] ; do
+    ls=`ls -ld "$PRG"`
+    link=`expr "$ls" : '.*-> \(.*\)$'`
+    if expr "$link" : '/.*' > /dev/null; then
+    PRG="$link"
+    else
+    PRG=`dirname "$PRG"`"/$link"
+    fi
+done
+
+dir=`dirname "$PRG"`
+dir=`cd "$dir" && pwd`
+
+case X$IBIS_HOME in
+X)
+    IBIS_HOME=`cd "$dir/.." && pwd`
+    ;;
+esac
+
+export IBIS_HOME
+
+LIBCLASSPATH=""
+
+add_to_libclasspath () {
+    DIRLIBS=`cd "$1" && ls *.jar 2>/dev/null`
+    for i in ${DIRLIBS}
+    do
+	if [ -z "$LIBCLASSPATH" ] ; then
+	    LIBCLASSPATH="$1/$i"
+	else
+	    LIBCLASSPATH="$1/$i":$LIBCLASSPATH
+	fi
+    done
+}
+
+# Add the following dirs to the classpath 
+add_to_libclasspath "${IBIS_HOME}"/lib
+
+JAVACLASSPATH="$CLASSPATH:$LIBCLASSPATH:"
+
+usage() {
+  echo "Usage: $0 [proxy_address1 proxy_address2 ...]"
+  echo "Start an SmartSockets proxy."
+}
+
+case X$JAVA_HOME in
+X)
+    JAVA=java
+    ;;
+*)
+    JAVA="$JAVA_HOME/bin/java"
+    ;;
+esac
+
+"$JAVA" -classpath "$JAVACLASSPATH" -Dsmartsockets.cluster.member=routers smartsockets.util.HubStarter $@
