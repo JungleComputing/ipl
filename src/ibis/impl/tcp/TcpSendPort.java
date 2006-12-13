@@ -11,7 +11,6 @@ import ibis.io.SerializationBase;
 import ibis.io.SerializationOutput;
 import ibis.ipl.AlreadyConnectedException;
 import ibis.ipl.ConnectionRefusedException;
-import ibis.ipl.IbisError;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.PortMismatchException;
 import ibis.ipl.PortType;
@@ -98,8 +97,7 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
         this.connectionAdministration = connectionAdministration;
         this.connectUpcall = cU;
 
-        ident = new TcpSendPortIdentifier(name, type.p,
-            (TcpIbisIdentifier) type.ibis.identifier());
+        ident = new TcpSendPortIdentifier(name, type.p, type.ibis.identifier());
 
         // if we keep administration, close connections when exception occurs.
         splitter = new OutputStreamSplitter(connectionAdministration,
@@ -138,8 +136,8 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
                 + "' connecting to " + nm + " at " + id);
         }
 
-        return ibis.tcpPortHandler.connect(this, (TcpIbisIdentifier) id, nm,
-            null, (int) timeoutMillis);
+        return ibis.tcpPortHandler.connect(this, (ibis.impl.IbisIdentifier) id,
+                nm, null, (int) timeoutMillis);
     }
 
     public synchronized ReceivePortIdentifier  connect(IbisIdentifier id,
@@ -235,7 +233,7 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 
         synchronized (this) {
             // if (receivers.size() == 0) {
-            //     throw new IbisIOException("port is not connected");
+            //     throw new IOException("port is not connected");
             // }
 
             waitingForMessage++;
@@ -270,7 +268,7 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
             try {
                 message.forwardLosses(e);
             } catch (Exception e2) {
-                throw new IbisError("forwardLosses threw exception: " + e, e);
+                throw new Error("forwardLosses threw exception: " + e, e);
             }
         }
         aMessageIsAlive = false;
@@ -310,7 +308,7 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
         }
 
         if (ident == null) {
-            throw new IbisError("Port already closed");
+            throw new IOException("Port already closed");
         }
 
         if (DEBUG) {
@@ -382,7 +380,7 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
                 // Strange, we can't seem to find the connection in the
                 // connection list.
                 // Maybe we already reported the error?
-                throw new IbisError(
+                throw new Error(
                     "could not find connection in lostConnection");
             }
             if (report && connectUpcall == null) {

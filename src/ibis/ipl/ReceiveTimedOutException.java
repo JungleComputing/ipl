@@ -7,7 +7,7 @@ package ibis.ipl;
  * This exception is thrown when, during an invocation of one of the
  * receive() variants with a timeout, the timeout expires.
  */
-public class ReceiveTimedOutException extends IbisIOException {
+public class ReceiveTimedOutException extends java.io.IOException {
 
     /**
      * Constructs a <code>ReceiveTimedOutException</code> with
@@ -35,7 +35,8 @@ public class ReceiveTimedOutException extends IbisIOException {
      * @param cause	the cause
      */
     public ReceiveTimedOutException(String s, Throwable cause) {
-        super(s, cause);
+        super(s);
+        initCause(cause);
     }
 
     /**
@@ -45,6 +46,7 @@ public class ReceiveTimedOutException extends IbisIOException {
      * @param cause	the cause
      */
     public ReceiveTimedOutException(Throwable cause) {
-        super(cause);
+        super();
+        initCause(cause);
     }
 }

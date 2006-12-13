@@ -3,7 +3,6 @@
 package ibis.impl.util;
 
 import ibis.ipl.Ibis;
-import ibis.ipl.IbisException;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
@@ -143,8 +142,8 @@ public final class Sequencer {
                 "OneToOne, ManyToOne, ExplicitReceipt, Reliable");
         try {
             tp = ibis.createPortType("sequencer", p);
-        } catch (IbisException e) {
-            throw new IOException("Got IbisException " + e);
+        } catch (Exception e) {
+            throw new IOException("Got Exception " + e);
         }
 
         rcv = tp.createReceivePort("seq recvr");

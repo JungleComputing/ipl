@@ -59,7 +59,7 @@ public final class SharedObjects implements Config {
             sharedObjects.put(object.objectId, i);
         }
         
-        soLogger.debug("SATIN '" + s.ident.name() + "': " + "object added, id = " + object.objectId);
+        soLogger.debug("SATIN '" + s.ident + "': " + "object added, id = " + object.objectId);
     }
 
     /** Return a reference to a shared object */
@@ -69,7 +69,7 @@ public final class SharedObjects implements Config {
             synchronized (s) {
                 SharedObjectInfo i = sharedObjects.get(objectId);
                 if (i == null) {
-                    soLogger.debug("SATIN '" + s.ident.name() + "': " + "object not found in getSOReference");
+                    soLogger.debug("SATIN '" + s.ident + "': " + "object not found in getSOReference");
                     return null;
                 }
                 return i.sharedObject;
@@ -183,14 +183,14 @@ public final class SharedObjects implements Config {
 
         if (r.guard()) return;
 
-        soLogger.info("SATIN '" + s.ident.name() + "': "
+        soLogger.info("SATIN '" + s.ident + "': "
             + "guard not satisfied, getting updates..");
 
         // try to ship the object(s) from the owner of the job
         Vector<String> objRefs = r.getSOReferences();
         if (objRefs == null || objRefs.isEmpty()) {
             soLogger
-                .fatal("SATIN '" + s.ident.name() + "': "
+                .fatal("SATIN '" + s.ident + "': "
                     + "a guard is not satisfied, but the spawn does not " +
                                 "have shared objects.\n" + 
                                 "This is not a correct Satin program.");

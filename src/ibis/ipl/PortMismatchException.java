@@ -5,7 +5,7 @@ package ibis.ipl;
 /**
  * Signals an attempt to connect ports of different types.
  */
-public class PortMismatchException extends IbisIOException {
+public class PortMismatchException extends java.io.IOException {
 
     /**
      * Constructs a <code>PortMismatchException</code> with
@@ -33,7 +33,8 @@ public class PortMismatchException extends IbisIOException {
      * @param cause	the cause
      */
     public PortMismatchException(String s, Throwable cause) {
-        super(s, cause);
+        super(s);
+        initCause(cause);
     }
 
     /**
@@ -43,6 +44,7 @@ public class PortMismatchException extends IbisIOException {
      * @param cause	the cause
      */
     public PortMismatchException(Throwable cause) {
-        super(cause);
+        super();
+        initCause(cause);
     }
 }

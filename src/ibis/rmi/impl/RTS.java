@@ -2,9 +2,7 @@
 
 package ibis.rmi.impl;
 
-import ibis.ipl.BindingException;
 import ibis.ipl.Ibis;
-import ibis.ipl.IbisException;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.NoMatchingIbisException;
 import ibis.ipl.PortType;
@@ -596,8 +594,7 @@ public final class RTS {
             logger.debug(hostname + ": Trying to lookup registry " + name);
         }
 
-        IbisIdentifier owner;
-        owner = ibisRegistry.getElectionResult(name);
+        IbisIdentifier owner = ibisRegistry.getElectionResult(name);
 
         ReceivePortIdentifier dest = s.connect(owner, name);
 

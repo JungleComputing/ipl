@@ -8,24 +8,26 @@ import ibis.io.Conversion;
 import ibis.io.DummyInputStream;
 import ibis.io.DummyOutputStream;
 
+import ibis.impl.IbisIdentifier;
 import ibis.ipl.AlreadyConnectedException;
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.ConnectionTimedOutException;
-import ibis.ipl.IbisError;
-import ibis.ipl.IbisIOException;
 import ibis.ipl.PortMismatchException;
 import ibis.ipl.ReceivePortIdentifier;
 
 import ibis.util.ThreadPool;
+import ibis.util.IPUtils;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import smartsockets.virtual.VirtualServerSocket;
 import smartsockets.virtual.VirtualSocket;
@@ -38,19 +40,19 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
 
     private ArrayList receivePorts;
 
-    protected final TcpIbisIdentifier me;
-
-    // Removed -- the idea of having a single port doesn't work -- Jason
-    // private final int port;
-
-    // Added to replace the port -- Jason
-    private final VirtualSocketAddress sa;
+    private final TcpIbis me;
 
     private boolean quiting = false;
 
     private final VirtualSocketFactory socketFactory;
 
-    TcpPortHandler(VirtualSocketFactory fac) throws IOException {
+    final VirtualSocketAddress sa;
+
+    private HashMap addresses = new HashMap();
+
+    TcpPortHandler(TcpIbis me, VirtualSocketFactory fac)
+            throws IOException {
+        this.me = me;
 
         socketFactory = fac;
 
@@ -60,19 +62,12 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
          */
         systemServer = socketFactory.createServerSocket(0, 0, true, null);
 
-        // Removed -- the idea of having a single port doesn't work -- Jason
-        // port = systemServer.getLocalPort();
-
         // Added to replace the port -- Jason
         sa = systemServer.getLocalSocketAddress();
 
         if (DEBUG) {
             System.out.println("--> PORTHANDLER: socket address = " + sa);
         }
-
-        String name = "ibis@" + sa.toString();
-
-        me = new TcpIbisIdentifier(name, sa);
 
         receivePorts = new ArrayList();
         ThreadPool.createNew(this, "TcpPortHandler");
@@ -91,16 +86,35 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
             System.err.println("--> TcpPortHandler deregistered " + p.name);
         }
         if (!receivePorts.remove(p)) {
-            throw new IbisError(
+            throw new Error(
                     "Tcpporthandler: trying to remove unknown receiveport");
         }
     }
 
-    ReceivePortIdentifier connect(TcpSendPort sp, TcpIbisIdentifier id,
-            String name, TcpReceivePortIdentifier rip, int timeout)
-        throws IOException {
+    ReceivePortIdentifier connect(TcpSendPort sp,
+            IbisIdentifier id, String name, TcpReceivePortIdentifier rip,
+            int timeout) throws IOException {
 
         VirtualSocket s = null;
+
+        VirtualSocketAddress sa;
+
+        synchronized(addresses) {
+            sa = (VirtualSocketAddress) addresses.get(id);
+            if (sa == null) {
+                byte[] b = id.getData();
+                DataInputStream in = new DataInputStream(
+                        new ByteArrayInputStream(b));
+                String addr = in.readUTF();
+                in.close();
+                try {
+                    sa = new VirtualSocketAddress(addr);
+                } catch(Exception e) {
+                    throw new IOException("Could not get address from " + id);
+                }
+                addresses.put(id, sa);
+            }
+        }
 
         long startTime = System.currentTimeMillis();
 
@@ -111,7 +125,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
             }
 
             do {
-                s = socketFactory.createClientSocket(id.sa, timeout, sp
+                s = socketFactory.createClientSocket(sa, timeout, sp
                         .properties());
 
                 InputStream sin = s.getInputStream();
@@ -141,7 +155,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
                         receive = (TcpReceivePortIdentifier) Conversion
                             .byte2object(buf);
                     } catch (ClassNotFoundException e) {
-                        throw new IbisError(
+                        throw new Error(
                                 "Wrong class in TcpPortHandler.connect", e);
                     }
                     if (rip != null) {
@@ -186,10 +200,9 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
                     }
                     break;
                 default:
-                    throw new IbisIOException(
-                            "Illegal opcode in TcpPorthandler.connect: "
-                            + result);
-                }
+		    throw new Error("Illegal opcode in TcpPorthandler.connect");
+		}
+
             } while (true);
         } catch (IOException e) {
             // e.printStackTrace();
@@ -255,7 +268,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
         OutputStream out = s.getOutputStream();
 
         if (DEBUG) {
-            System.err.println("--> portHandler on " + me
+            System.err.println("--> portHandler on " + me.ident
                     + " got new connection from " + s.getLocalSocketAddress()
                     + ":" + s.getPort() + " on local port " + s.getLocalPort());
         }
@@ -331,7 +344,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
             VirtualSocket s = null;
 
             if (DEBUG) {
-                System.err.println("--> PortHandler on " + me
+                System.err.println("--> PortHandler on " + me.ident
                         + " doing new accept()");
             }
 
@@ -352,11 +365,11 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
                 }
 
                 cleanup();
-                throw new IbisError("Fatal: PortHandler could not do an accept");
+                throw new Error("Fatal: PortHandler could not do an accept");
             }
 
             if (DEBUG) {
-                System.err.println("--> PortHandler on " + me
+                System.err.println("--> PortHandler on " + me.ident
                         + " through new accept()");
             }
             try {

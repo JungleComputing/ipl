@@ -9,7 +9,7 @@ package ibis.ipl;
  * {@link ibis.ipl.Ibis#createIbis(StaticProperties, ResizeHandler)
  * Ibis.createIbis}.
  */
-public class NoMatchingIbisException extends IbisException {
+public class NoMatchingIbisException extends Exception {
     /**
      * Constructs a <code>NoMatchingIbisException</code> with
      * <code>null</code> as its error detail message.

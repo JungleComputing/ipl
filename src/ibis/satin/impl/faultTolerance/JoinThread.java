@@ -59,11 +59,6 @@ class JoinThread extends Thread implements Config {
     }
 
     protected synchronized void addJoiner(IbisIdentifier joiner) {
-        // @@@ this is not supported any more I think
-        if (joiner.name().equals("ControlCentreIbis")) {
-            return;
-        }
-
         if (CACHE_JOINS) {
             if (joiner.equals(s.ident)) {
                 ftLogger.debug("SATIN '" + s.ident

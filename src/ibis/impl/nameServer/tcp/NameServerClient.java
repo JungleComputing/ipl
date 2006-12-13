@@ -9,8 +9,7 @@ import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisConfigurationException;
-import ibis.ipl.IbisIdentifier;
-import ibis.ipl.IbisRuntimeException;
+import ibis.impl.IbisIdentifier;
 import ibis.ipl.StaticProperties;
 import ibis.util.RunProcess;
 import ibis.util.TypedProperties;
@@ -33,7 +32,7 @@ import org.apache.log4j.Logger;
 import smartsockets.direct.SocketAddressSet;
 import smartsockets.virtual.*;
 
-public class NameServerClient extends ibis.impl.nameServer.NameServer
+public class NameServerClient extends ibis.impl.Registry
         implements Runnable, Protocol {
 
     public static final int TCP_IBIS_NAME_SERVER_PORT_NR
@@ -70,15 +69,26 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
         // TODO: fix timeout
         
         VirtualSocket s = null;
-        try {
-            s = socketFactory.createClientSocket(dest, timeout * 1000, null);
-        } catch (IOException e) {
-            if (verbose) {
-                logger.error("Nameserver client failed"
-                        + " to connect to nameserver\n at "
-                        + dest + ", gave up after " + timeout + " seconds");
+        int cnt = 0;
+        while (s == null) {
+            try {
+                cnt++;
+                s = socketFactory.createClientSocket(dest, 0, null);
+            } catch (IOException e) {
+                if (cnt >= timeout) {
+                    if (verbose) {
+                        logger.error("Nameserver client failed"
+                                + " to connect to nameserver\n at "
+                                + dest + ", gave up after " + timeout + " seconds");
+                    }
+                    throw new ConnectionTimedOutException(e);
+                }
+                try {
+                    Thread.sleep(1000);
+                } catch(Exception e2) {
+                    // ignored
+                }
             }
-            throw new ConnectionTimedOutException(e);
         }
         return s;
     }
@@ -147,7 +157,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
                 hubport = System.getProperty("ibis.connect.hub.port");
             }
 
-            ArrayList command = new ArrayList();
+            ArrayList<String> command = new ArrayList<String>();
             command.add(javadir + filesep + "bin" + filesep + "java");
             command.add("-classpath");
             command.add(javapath + pathsep);
@@ -200,7 +210,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
         }
     }
 
-    private LinkedList messages = new LinkedList();
+    private LinkedList<Message> messages = new LinkedList<Message>();
     private boolean stopUpcaller = false;
 
     private void addMessage(byte type, IbisIdentifier[] list) {
@@ -248,15 +258,14 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
         }
     }
 
-    protected void init(Ibis ibis, boolean ndsUpcalls)
+    public IbisIdentifier init(Ibis ibis, boolean ndsUpcalls, byte[] data)
             throws IOException, IbisConfigurationException {
         
         this.ibisImpl = ibis;
-        this.id = ibisImpl.identifier();
         this.needsUpcalls = ndsUpcalls;
 
         // Try to use the same socket factory as the Ibis that created us...
-        String name = "Factory for Ibis: " + id.name();             
+        String name = "Factory for Ibis";             
         socketFactory = VirtualSocketFactory.getSocketFactory(name);
         
         if (socketFactory == null) { 
@@ -272,13 +281,20 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
                 VirtualSocketFactory.createSocketFactory(properties, true);
         } 
         
-        // TODO: Using System propeties is a BUG!!! 
-        Properties p = System.getProperties();
-
-        serverAddress = getServerAddress(p);
-        
         serverSocket = socketFactory.createServerSocket(0, 50, true, null);
         myAddress = serverSocket.getLocalSocketAddress();
+
+        // TODO: Using System propeties is a BUG!!! 
+        Properties p = System.getProperties();
+        serverAddress = getServerAddress(p);
+
+        /*
+        try {
+            Thread.sleep(20000);
+        } catch(Exception e) {
+            // ignored
+        }
+        */
         
         // Next, get the nameserver key ....
         poolName = p.getProperty(NSProps.s_key);
@@ -323,6 +339,8 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
  
         DataOutputStream out = null;
         DataInputStream in = null;
+        int len;
+        byte[] buf;
 
         try {
             out = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
@@ -330,16 +348,13 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
             logger.debug("NameServerClient: contacting nameserver");
             out.writeByte(IBIS_JOIN);
             out.writeUTF(poolName);
-            out.writeUTF(id.name());
-            
-            byte[] buf = Conversion.object2byte(id);
-            out.writeInt(buf.length);
-            out.write(buf);
             
             writeVirtualSocketAddress(out, myAddress);
 
             out.writeBoolean(ndsUpcalls);
-
+            out.writeInt(data.length);
+            out.write(data);
+            out.writeUTF(IbisIdentifier.getCluster());
             out.flush();
 
             in = new DataInputStream(new BufferedInputStream(s.getInputStream()));
@@ -361,8 +376,17 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
                 
                 /* Address for the ElectionServer */
                 electionClient = new ElectionClient(
-                        readVirtualSocketAddress(in), id.name());
+                        readVirtualSocketAddress(in));
 
+                try {
+                    len = in.readInt();
+                    buf = new byte[len];
+                    in.readFully(buf, 0, len);
+                    id = (IbisIdentifier) Conversion.byte2object(buf);
+                } catch(ClassNotFoundException e) {
+                    throw new IOException("Receive IbisIdent of unknown class "
+                            + e);
+                }
                 if (ndsUpcalls) {
                     int poolSize = in.readInt();
 
@@ -375,10 +399,10 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
                     IbisIdentifier[] ids = new IbisIdentifier[poolSize];
                     for (int i = 0; i < poolSize; i++) {
                         try {
-                            int len = in.readInt();
-                            byte[] b = new byte[len];
-                            in.readFully(b, 0, len);
-                            ids[i] = (IbisIdentifier) Conversion.byte2object(b);
+                            len = in.readInt();
+                            buf = new byte[len];
+                            in.readFully(buf, 0, len);
+                            ids[i] = (IbisIdentifier) Conversion.byte2object(buf);
                         } catch (ClassNotFoundException e) {
                             throw new IOException("Receive IbisIdent of unknown class "
                                     + e);
@@ -408,6 +432,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
         } finally {
             VirtualSocketFactory.close(s, out, null);
         }
+        return id;
     }
     
     private VirtualSocketAddress getClassicServerAddress(String server, 
@@ -435,7 +460,9 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
                 }
             }                        
         } 
-                            
+
+        logger.debug("server = " + server);
+
         if (server.equals("localhost")) {            
             // We want to start the server on this machine.
             // TODO: Fix!!
@@ -502,7 +529,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
         }
     }
 
-    public void maybeDead(IbisIdentifier ibisId) throws IOException {
+    public void maybeDead(ibis.ipl.IbisIdentifier ibisId) throws IOException {
         VirtualSocket s = null;
         DataOutputStream out = null;
 
@@ -516,7 +543,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
 
             out.writeByte(IBIS_ISALIVE);
             out.writeUTF(poolName);
-            out.writeUTF(ibisId.name());
+            out.writeInt(((IbisIdentifier)ibisId).getId());
             out.flush();
             
             logger.debug("NS client: isAlive sent");
@@ -530,7 +557,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
         }
     }
 
-    public void dead(IbisIdentifier corpse) throws IOException {
+    public void dead(ibis.ipl.IbisIdentifier corpse) throws IOException {
         VirtualSocket s = null;
         DataOutputStream out = null;
 
@@ -541,7 +568,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
 
             out.writeByte(IBIS_DEAD);
             out.writeUTF(poolName);
-            out.writeUTF(corpse.name());
+            out.writeInt(((IbisIdentifier) corpse).getId());
             logger.debug("NS client: kill sent");
         } catch (ConnectionTimedOutException e) {
             return;
@@ -550,7 +577,8 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
         }
     }
 
-    public void mustLeave(IbisIdentifier[] ibisses) throws IOException {
+    public void mustLeave(ibis.ipl.IbisIdentifier[] ibisses)
+            throws IOException {
         VirtualSocket s = null;
         DataOutputStream out = null;
 
@@ -563,7 +591,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
             out.writeUTF(poolName);
             out.writeInt(ibisses.length);
             for (int i = 0; i < ibisses.length; i++) {
-                out.writeUTF(ibisses[i].name());
+                out.writeInt(((IbisIdentifier) ibisses[i]).getId());
             }
             logger.debug("NS client: mustLeave sent");
         } catch (ConnectionTimedOutException e) {
@@ -616,7 +644,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
 
             out.writeByte(IBIS_LEAVE);
             out.writeUTF(poolName);
-            out.writeUTF(id.name());
+            out.writeInt(id.getId());
             out.flush();
             logger.info("NS client: leave sent");
 
@@ -663,7 +691,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
                 logger.debug("NameServerClient: incoming connection "
                         + "from " + s.toString());
 
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 if (stop) {
                     logger.info("NameServerClient: thread dying");
                     try {
@@ -680,7 +708,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
                         notifyAll();
                     }
                 }
-                throw new IbisRuntimeException(
+                throw new RuntimeException(
                         "NameServerClient: got an error", e);
             }
 
@@ -702,7 +730,7 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
                         out = new DataOutputStream(
                                 new BufferedOutputStream(s.getOutputStream()));
                         out.writeUTF(poolName);
-                        out.writeUTF(id.name());
+                        out.writeInt(id.getId());
                     }
                     break;
 
@@ -750,11 +778,11 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
         logger.debug("NameServerClient: thread stopped");
     }
 
-    public IbisIdentifier elect(String election) throws IOException {
+    public ibis.ipl.IbisIdentifier elect(String election) throws IOException {
         return electionClient.elect(election, id);
     }
 
-    public IbisIdentifier getElectionResult(String election)
+    public ibis.ipl.IbisIdentifier getElectionResult(String election)
             throws IOException {
         return electionClient.elect(election, null);
     }

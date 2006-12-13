@@ -28,12 +28,13 @@ public abstract class IbiscComponent {
     /** Wrapper for specific bytecode rewriter implementation. */
     protected ByteCodeWrapper wrapper;
 
-    private HashMap allClasses;
+    private HashMap<String, IbiscEntry>  allClasses;
 
-    private HashMap newClasses = new HashMap();
+    private HashMap<String, IbiscEntry> newClasses
+            = new HashMap<String, IbiscEntry>();
 
     private class ClassIterator implements Iterator {
-        Iterator i;
+        Iterator<IbiscEntry> i;
         public ClassIterator() {
             i = allClasses.values().iterator();
         }
@@ -43,7 +44,7 @@ public abstract class IbiscComponent {
         }
 
         public Object next() {
-            IbiscEntry e = (IbiscEntry) i.next();
+            IbiscEntry e = i.next();
             return e.cl.getClassObject();
         }
 
@@ -66,7 +67,7 @@ public abstract class IbiscComponent {
      * @exception IllegalArgumentException may be thrown when there was an error
      *    in the arguments.
      */
-    public abstract boolean processArgs(ArrayList args);
+    public abstract boolean processArgs(ArrayList<String> args);
 
     /**
      * This method returns a short string, usable for a "usage" message
@@ -92,11 +93,12 @@ public abstract class IbiscComponent {
      */
     public abstract String rewriterImpl();
 
-    void processClasses(HashMap classes) {
+    void processClasses(HashMap<String, IbiscEntry> classes) {
         allClasses = classes;
         process(new ClassIterator());
-        for (Iterator i = newClasses.values().iterator(); i.hasNext();) {
-            IbiscEntry ie = (IbiscEntry) i.next();
+        for (Iterator<IbiscEntry> i = newClasses.values().iterator();
+                i.hasNext();) {
+            IbiscEntry ie = i.next();
             allClasses.put(ie.cl.getClassName(), ie);
         }
     }
@@ -110,9 +112,9 @@ public abstract class IbiscComponent {
      * @return the directory name or <code>null</code>.
      */
     protected String getDirectory(String cl) {
-        IbiscEntry ie = (IbiscEntry) allClasses.get(cl);
+        IbiscEntry ie = allClasses.get(cl);
         if (ie == null) {
-            ie = (IbiscEntry) newClasses.get(cl);
+            ie = newClasses.get(cl);
         }
         if (ie == null) {
             return null;
@@ -157,9 +159,9 @@ public abstract class IbiscComponent {
      */
     protected void setModified(ClassInfo cl) {
         String className = cl.getClassName();
-        IbiscEntry e = (IbiscEntry) allClasses.get(className);
+        IbiscEntry e = allClasses.get(className);
         if (e == null) {
-            e = (IbiscEntry) newClasses.get(className);
+            e = newClasses.get(className);
         }
         if (e != null) {
             e.cl = cl;
@@ -175,7 +177,7 @@ public abstract class IbiscComponent {
      * @param fromClass the name of the class from which it is derived.
      */
     protected void addEntry(ClassInfo cl, String fromClass) {
-        IbiscEntry from = (IbiscEntry) allClasses.get(fromClass);
+        IbiscEntry from = allClasses.get(fromClass);
         String fn = from.fileName;
         String className = cl.getClassName();
         String baseDir = (new File(fn)).getParent();

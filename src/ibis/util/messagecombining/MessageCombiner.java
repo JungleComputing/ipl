@@ -28,7 +28,7 @@ public class MessageCombiner {
      * @param sp Sendport that will produce the messages
      * 
      */
-    public MessageCombiner(StaticProperties prop, SendPort sp) {
+    public MessageCombiner(StaticProperties prop, SendPort sp) throws IOException {
 
         this.sp = sp;
                 

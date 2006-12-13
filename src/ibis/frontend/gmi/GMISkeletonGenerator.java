@@ -252,7 +252,7 @@ class GMISkeletonGenerator extends GMIGenerator {
         
         output.print(spacing + "private final void " + methodName 
                 + "(int invocationMode, int resultMode, ReadMessage r) "
-                + "throws IbisException, IOException {");
+                + "throws IOException {");
         output.println();
 
         output.println(spacing
@@ -426,7 +426,7 @@ class GMISkeletonGenerator extends GMIGenerator {
         output.println(spacing
                 + "public final void handleMessage(int invocationMode, "
                 + "int resultMode, ReadMessage r) "
-                + "throws IbisException, IOException {");
+                + "throws IOException {");
         output.println();
         output.println(spacing + "\tint method = r.readInt();");
 

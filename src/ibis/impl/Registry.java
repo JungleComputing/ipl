@@ -1,10 +1,9 @@
-/* $Id$ */
+/* $Id: Registry.java 4880 2006-12-08 09:06:32Z ceriel $ */
 
-package ibis.impl.nameServer;
+package ibis.impl;
 
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisConfigurationException;
-import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.StaticProperties;
 
 import java.io.IOException;
@@ -15,39 +14,25 @@ import java.util.Properties;
  * This way, an Ibis implementation can dynamically load any nameserver
  * implementaton.
  */
-public abstract class NameServer implements ibis.ipl.Registry {
+public abstract class Registry implements ibis.ipl.Registry {
 
     /** Call on exit of an ibis. */
     public abstract void leave() throws IOException;
 
     /** Used internally to initialize the nameserver **/
-    protected abstract void init(Ibis ibis, boolean needsUpcalls)
-            throws IOException, IbisConfigurationException;
+    public abstract IbisIdentifier init(Ibis ibis, boolean needsUpcalls,
+            byte[] data) throws IOException, IbisConfigurationException;
 
     /** Method to obtain a sequence number */
     public abstract long getSeqno(String name) throws IOException;
 
     /** Method to load a nameserver implementation. **/
-    public static NameServer loadNameServer(Ibis ibis) 
-            throws IllegalArgumentException, IOException,
-                            IbisConfigurationException {
-        return loadNameServer(ibis, true);
-    }
-
-    /** Method to load a nameserver implementation. **/
-    public static NameServer loadNameServer(Ibis ibis,
-            boolean needsUpcalls) throws IllegalArgumentException,
-                IOException, IbisConfigurationException {
-        NameServer res = null;
-
-        Properties p = System.getProperties();
-        String nameServerName = p.getProperty(NSProps.s_impl);
+    public static Registry loadRegistry(Ibis ibis)
+            throws IllegalArgumentException {
+        Registry res = null;
+        // TODO: fix properties
+        String nameServerName = System.getProperty("ibis.name_server.impl");
         if (nameServerName == null) {
-            // String rank = p.getProperty("ibis.pool.host_number");
-            // if (rank == null || Integer.parseInt(rank) == 0) {
-            //     System.err.println("property ibis.name_server.impl not set, "
-            //             + "using TCP nameserver");
-            // }
             nameServerName = "ibis.impl.nameServer.tcp.NameServerClient";
         }
 
@@ -60,7 +45,7 @@ public abstract class NameServer implements ibis.ipl.Registry {
         }
 
         try {
-            res = (NameServer) c.newInstance();
+            res = (Registry) c.newInstance();
         } catch (InstantiationException e) {
             throw new IllegalArgumentException(
                     "Could not initialize Ibis name server " + e);
@@ -69,7 +54,6 @@ public abstract class NameServer implements ibis.ipl.Registry {
                     "Could not initialize Ibis name server " + e2);
         }
 
-        res.init(ibis, needsUpcalls);
         return res;
     }
 }

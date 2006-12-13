@@ -742,7 +742,7 @@ public final class Statistics implements java.io.Serializable, Config {
         		+ " orphans killed = " + killedOrphans
         		+ " jobs restarted = " + restartedJobs);
 
-        out.println("SATIN '" + ident.name() + "': SO_STATS: "
+        out.println("SATIN '" + ident + "': SO_STATS: "
         		+ " invocations = " + soInvocations
         		+ " size = " + soInvocationsBytes
         		+ " time = " + broadcastSOInvocationsTimer.totalTime()

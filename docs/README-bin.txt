@@ -17,8 +17,8 @@ This Ibis distribution contains the following:
 
 Ibis is free software. See the file "LICENSE.txt" for copying permissions.
 
-The Ibis software requires at least a 1.4 JDK version of Java. With a
-1.3 or older version of Java, this Ibis release will not run.
+The Ibis software requires at least a 1.5 JDK version of Java. With a
+1.4 or older version of Java, this Ibis release will not run.
 Suitable versions of Java can be obtained from the web.
 IBM has versions for AIX (at http://www.ibm.com/developerworks/java),
 SUN has versions for Solaris, Linux, and Windows (at http://java.sun.com),
@@ -78,12 +78,12 @@ See "notices/LICENSE.ant-contrib.txt" for the ant-contrib copyright notice.
 System-specific notes
 
 Linux, Solaris, other Unix systems
-    Install a recent Java SDK, at least 1.4, and set the JAVA_HOME
+    Install a recent Java SDK, at least 1.5, and set the JAVA_HOME
     environment variable to the location where it is installed,
     for example
-        export JAVA_HOME=/usr/local/java/jdk1.4
+        export JAVA_HOME=/usr/local/java/jdk1.5
     or
-        set JAVA_HOME=/usr/local/java/jdk1.4
+        set JAVA_HOME=/usr/local/java/jdk1.5
     for CSH users.
     It is probably best to add this to your .bash_profile, .profile,
     or .cshrc file (whichever gets executed when you log in to your
@@ -95,8 +95,7 @@ Mac OS X
     how to set environment variables.
 
 Windows 2000, Windows XP
-    Install a recent Java SDK, at least 1.4, and preferably 1.5, because
-    1.4 seems to have some problems. This will get installed in
+    Install a recent Java SDK, at least 1.5.  This will get installed in
     for instance "c:\Program Files\Java\jdk1.5.0". You can set the
     JAVA_HOME environment variable to this path by going to the
     Control Panel, System, the "Advanced" tab, Environment variables,

@@ -3,7 +3,7 @@
 package ibis.impl.tcp;
 
 import smartsockets.virtual.VirtualSocketAddress;
-import ibis.ipl.IbisIdentifier;
+import ibis.impl.IbisIdentifier;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.StaticProperties;
 
@@ -15,14 +15,12 @@ public final class TcpReceivePortIdentifier implements ReceivePortIdentifier,
 
     StaticProperties type;
 
-    TcpIbisIdentifier ibis;
+    IbisIdentifier ibis;
 
-    // Removed -- simple ports don't work in a real system -- Jason 
-    // int port;
     VirtualSocketAddress sa;
     
-    TcpReceivePortIdentifier(String name, StaticProperties type, TcpIbisIdentifier ibis,
-            VirtualSocketAddress sa) {
+    TcpReceivePortIdentifier(String name, StaticProperties type,
+            IbisIdentifier ibis, VirtualSocketAddress sa) {
         this.name = name;
         this.type = type;
         this.ibis = ibis;
@@ -62,7 +60,7 @@ public final class TcpReceivePortIdentifier implements ReceivePortIdentifier,
         return new StaticProperties(type);
     }
 
-    public IbisIdentifier ibis() {
+    public ibis.ipl.IbisIdentifier ibis() {
         return ibis;
     }
 

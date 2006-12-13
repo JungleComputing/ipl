@@ -8,7 +8,7 @@ package ibis.ipl;
  * that an input or output operation has been terminated because
  * the connection was broken.
  */
-public class ConnectionClosedException extends IbisIOException {
+public class ConnectionClosedException extends java.io.IOException {
 
     /**
      * Constructs a <code>ConnectionClosedException</code> with
@@ -36,7 +36,8 @@ public class ConnectionClosedException extends IbisIOException {
      * @param cause	the cause
      */
     public ConnectionClosedException(String s, Throwable cause) {
-        super(s, cause);
+        super(s);
+        initCause(cause);
     }
 
     /**
@@ -46,6 +47,7 @@ public class ConnectionClosedException extends IbisIOException {
      * @param cause	the cause
      */
     public ConnectionClosedException(Throwable cause) {
-        super(cause);
+        super();
+        initCause(cause);
     }
 }

@@ -2,34 +2,30 @@
 
 package ibis.impl.tcp;
 
-import ibis.impl.nameServer.NameServer;
 import ibis.ipl.Ibis;
-import ibis.ipl.IbisException;
 import ibis.ipl.IbisIdentifier;
-import ibis.ipl.IbisRuntimeException;
 import ibis.ipl.PortType;
+import ibis.ipl.PortMismatchException;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.Registry;
 import ibis.ipl.StaticProperties;
 import ibis.util.TypedProperties;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
 
-import smartsockets.direct.SocketAddressSet;
 import smartsockets.hub.servicelink.ServiceLink;
 import smartsockets.virtual.VirtualSocketFactory;
 
 public final class TcpIbis extends Ibis implements Config {
 
-    private TcpIbisIdentifier ident;
+    ibis.impl.IbisIdentifier ident;
 
-   // private SocketAddressSet myAddress;
-
-    private NameServer nameServer;
+    private ibis.impl.Registry registry;
 
     // private int poolSize;
 
@@ -62,7 +58,7 @@ public final class TcpIbis extends Ibis implements Config {
     }
 
     protected PortType newPortType(String nm, StaticProperties p)
-            throws IOException, IbisException {
+            throws PortMismatchException {
 
         TcpPortType resultPort = new TcpPortType(this, nm, p);
         p = resultPort.properties();
@@ -70,7 +66,7 @@ public final class TcpIbis extends Ibis implements Config {
         portTypeList.put(nm, resultPort);
 
         if (DEBUG) {
-            System.out.println(this.name + ": created PortType '" + nm
+            System.out.println("" + this.ident.getId() + ": created PortType '" + nm
                     + "'");
         }
 
@@ -78,11 +74,11 @@ public final class TcpIbis extends Ibis implements Config {
     }
 
     long getSeqno(String nm) throws IOException {
-        return nameServer.getSeqno(nm);
+        return registry.getSeqno(nm);
     }
 
     public Registry registry() {
-        return nameServer;
+        return registry;
     }
 
     public StaticProperties properties() {
@@ -98,7 +94,6 @@ public final class TcpIbis extends Ibis implements Config {
         if (DEBUG) {
             System.err.println("In TcpIbis.init()");
         }
-        // poolSize = 1;
         
         // NOTE: moved here from the static initializer, since we may want to 
         //       configure the thing differently for every TcpIbis instance in 
@@ -108,39 +103,33 @@ public final class TcpIbis extends Ibis implements Config {
         HashMap properties = new HashMap();        
         socketFactory = VirtualSocketFactory.createSocketFactory(properties, 
                 true);
-              
-       // myAddress = socketFactory.getLocalHost();
-        
-      //  if (myAddress == null) {
-      //      System.err.println("ERROR: could not get my own network address, "
-       //             + "exiting.");
-        //    System.exit(1);
-       // }
-        
-        //name = "ibis@" + myAddress;
-        
-        //ident = new TcpIbisIdentifier(name, myAddress);
 
-   
-        tcpPortHandler = new TcpPortHandler(socketFactory);                  
+        tcpPortHandler = new TcpPortHandler(this, socketFactory);
         
-        ident = tcpPortHandler.me;
-        
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        DataOutputStream out = new DataOutputStream(bos);
+        out.writeUTF(tcpPortHandler.sa.toString());
+        out.flush();
+        out.close();
+
+        registry = ibis.impl.Registry.loadRegistry(this);
+
+        // TODO: fix for more than one Ibis instance in a jvm
+        VirtualSocketFactory.registerSocketFactory("Factory for Ibis",
+                socketFactory);
+       
+        ident = registry.init(this, resizeHandler != null, bos.toByteArray());
+
         //    if (DEBUG) {
         System.err.println("Created IbisIdentifier " + ident);
         //    }
-
-        VirtualSocketFactory.registerSocketFactory("Factory for Ibis: " 
-                + ident.name(), socketFactory);
-       
-        nameServer = NameServer.loadNameServer(this, resizeHandler != null);
 
         // Bit of a hack to improve the visualization
         try { 
             ServiceLink sl = socketFactory.getServiceLink();
         
             if (sl != null) {
-                sl.registerProperty("ibis", name);
+                sl.registerProperty("ibis", ident.toString());
             }
         } catch (Exception e) {
             if (DEBUG) {
@@ -150,7 +139,7 @@ public final class TcpIbis extends Ibis implements Config {
         }
         
         if (DEBUG) {
-            System.err.println("Out of TcpIbis.init()");
+            System.err.println("Out of TcpIbis.init(), ident = " + ident);
         }
     }
 
@@ -233,10 +222,6 @@ public final class TcpIbis extends Ibis implements Config {
         }
     }
 
-    public PortType getPortType(String nm) {
-        return (PortType) portTypeList.get(nm);
-    }
-
     public synchronized void enableResizeUpcalls() {
         resizeUpcallerEnabled = true;
         notifyAll();
@@ -265,7 +250,7 @@ public final class TcpIbis extends Ibis implements Config {
 
     public void end() {
         
-        socketFactory.printStatistics("Factory for Ibis: " + name);
+        socketFactory.printStatistics("Factory for Ibis");
         
         synchronized (this) {
             if (ended) {
@@ -274,15 +259,15 @@ public final class TcpIbis extends Ibis implements Config {
             ended = true;
         }
         try {
-            if (nameServer != null) {
-                nameServer.leave();
+            if (registry != null) {
+                registry.leave();
             }
             if (tcpPortHandler != null) {
                 tcpPortHandler.quit();
             }
         } catch (Exception e) {
-            throw new IbisRuntimeException(
-                    "TcpIbisNameServerClient: leave failed ", e);
+            throw new RuntimeException(
+                    "Registry: leave failed ", e);
         }
           
     }
@@ -292,7 +277,7 @@ public final class TcpIbis extends Ibis implements Config {
     }
 
     public void printStatistics() { 
-        socketFactory.printStatistics(ident.name());
+        socketFactory.printStatistics(ident.toString());
     }
 
     class TcpShutdown extends Thread {

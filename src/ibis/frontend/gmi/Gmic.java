@@ -23,7 +23,7 @@ public class Gmic extends IbiscComponent {
 
     private JavaClass groupInterface;
 
-    private ArrayList javaFiles = new ArrayList();
+    private ArrayList<String> javaFiles = new ArrayList<String>();
 
     public Gmic() {
         groupInterface = Repository.lookupClass("ibis.gmi.GroupInterface");
@@ -62,7 +62,7 @@ public class Gmic extends IbiscComponent {
         return new PrintWriter(fileOut);
     }
 
-    public boolean processArgs(ArrayList args) {
+    public boolean processArgs(ArrayList<String> args) {
         boolean retval = false;
         for (int i = 0; i < args.size(); i++) {
             String arg = (String) args.get(i);
@@ -147,7 +147,7 @@ public class Gmic extends IbiscComponent {
 
     private void doCompile(String[] args) {
 
-        ArrayList classes = new ArrayList();        
+        ArrayList<JavaClass> classes = new ArrayList<JavaClass>();        
 //        JavaClass groupInterface = null;
 
         if (args.length == 0) {

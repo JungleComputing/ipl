@@ -65,9 +65,6 @@ public final class Group implements GroupProtocol {
     /** My local ibis. */
     static Ibis ibis;
 
-    /** Name of my local Ibis. */
-    private static String localID;
-
     /** Ibis registry, used for setting up stuff. */
     private static Registry ibisRegistry;
 
@@ -184,7 +181,6 @@ public final class Group implements GroupProtocol {
                 System.exit(1);
             }
             
-            localID = ibis.identifier().name();
             name = ibis.identifier().toString();
             ibisRegistry = ibis.registry();
 
@@ -354,7 +350,7 @@ public final class Group implements GroupProtocol {
                                 try {
                                     ibis.end();
                                 } catch (IOException e) {
-                                    throw new ibis.ipl.IbisError(e);
+                                    logger.error(name + ": in ShutdownHook: ", e);
                                 }
                                 ibis = null;
                             }
