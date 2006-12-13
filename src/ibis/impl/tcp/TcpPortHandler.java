@@ -267,7 +267,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
     /* returns: was it a close i.e. do we need to exit this thread */
     private void handleRequest(Socket s) throws Exception {
         if (DEBUG) {
-            System.err.println("--> portHandler on " + me
+            System.err.println("--> portHandler on " + me.ident
                     + " got new connection from " + s.getInetAddress() + ":"
                     + s.getPort() + " on local port " + s.getLocalPort());
         }
@@ -346,7 +346,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
             Socket s = null;
 
             if (DEBUG) {
-                System.err.println("--> PortHandler on " + me
+                System.err.println("--> PortHandler on " + me.ident
                         + " doing new accept()");
             }
 
@@ -370,7 +370,7 @@ final class TcpPortHandler implements Runnable, TcpProtocol, Config {
             }
 
             if (DEBUG) {
-                System.err.println("--> PortHandler on " + me
+                System.err.println("--> PortHandler on " + me.ident
                         + " through new accept()");
             }
             try {
