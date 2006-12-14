@@ -135,20 +135,21 @@ public final class StaticProperties implements java.io.Serializable {
      */
     static {
         // First, read the ibis-properties file.
-        InputStream in = ClassLoader.getSystemClassLoader().getResourceAsStream(
-                "ibis-properties");
-        if (in == null) {
-            System.err.println("could not open ibis-properties");
-            System.exit(1);
-        }
-        ibis_properties = new StaticProperties();
         try {
+            ibis_properties = new StaticProperties();
+            InputStream in = ClassLoader.getSystemClassLoader().getResourceAsStream(
+                    "ibis-properties");
+            if (in == null) {
+                throw new IOException("Could not open ibis-properties");
+            }
             ibis_properties.load(in);
             in.close();
         } catch (IOException e) {
             System.err.println("IO exception during ibis-properties read");
             e.printStackTrace();
             System.exit(1);
+            // And, because javac does not understand exit ...
+            throw new Error("Got IOException", e);
         }
 
         // Then, find the property categories.
@@ -157,7 +158,6 @@ public final class StaticProperties implements java.io.Serializable {
             System.err.println("no PropertyCategories in ibis-properties!");
             System.exit(1);
         }
-
         ibis_properties.addImpliedProperties();
 
         // Now compute user-defined properties.
@@ -540,10 +540,29 @@ public final class StaticProperties implements java.io.Serializable {
     }
 
     /**
-     * Adds implied properties to the properties set. This method
-     * DOES change the properties, but it is package protected.
+     * Reads and returns the properties from the specified file name, which is
+     * searched for in the classpath.
+     * @param name the file name.
+     * @exception IOException is thrown when an IO error occurs.
      */
-    void addImpliedProperties() {
+    public static StaticProperties load(String name) throws IOException {
+        StaticProperties p = new StaticProperties();
+        InputStream in = ClassLoader.getSystemClassLoader().getResourceAsStream(
+                name);
+        if (in == null) {
+            throw new IOException("Could not open " + name);
+        }
+        p.load(in);
+        in.close();
+        p.addImpliedProperties();
+        return p;
+    }
+
+    /**
+     * Adds implied properties to the properties set. This method
+     * DOES change the properties, but it is private.
+     */
+    private void addImpliedProperties() {
         Set<String> e = mappings.keySet();
         Iterator i = e.iterator();
         while (i.hasNext()) {

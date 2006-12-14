@@ -2,7 +2,8 @@
 
 package ibis.impl.tcp;
 
-import ibis.ipl.PortType;
+import ibis.impl.PortType;
+import ibis.impl.PortType;
 import ibis.ipl.PortMismatchException;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortConnectUpcall;
@@ -15,58 +16,12 @@ import java.io.IOException;
 
 class TcpPortType extends PortType implements Config {
 
-    StaticProperties p;
-
-    String name;
-
     TcpIbis ibis;
 
-    boolean numbered;
-
-    String ser;
-
-    TcpPortType(TcpIbis ibis, String name, StaticProperties p)
+    TcpPortType(TcpIbis ibis, StaticProperties p)
             throws PortMismatchException {
+        super(p);
         this.ibis = ibis;
-        this.name = name;
-        this.p = p;
-        numbered = p.isProp("communication", "Numbered");
-
-        ser = p.find("Serialization");
-
-        if (ser == null) ser = "sun";
-
-        if (ser.equals("byte") && numbered) {
-            throw new PortMismatchException(
-                    "Numbered communication is not supported on byte "
-                    + "serialization streams");
-        }
-    }
-
-    public String name() {
-        return name;
-    }
-
-    private boolean equals(TcpPortType other) {
-        return name.equals(other.name) && ibis.equals(other.ibis);
-    }
-
-    public boolean equals(Object other) {
-        if (other == null) {
-            return false;
-        }
-        if (!(other instanceof TcpPortType)) {
-            return false;
-        }
-        return equals((TcpPortType) other);
-    }
-
-    public int hashCode() {
-        return name.hashCode() + ibis.hashCode();
-    }
-
-    public StaticProperties properties() {
-        return p;
     }
 
     public SendPort createSendPort(String nm, SendPortConnectUpcall cU,
@@ -86,9 +41,5 @@ class TcpPortType extends PortType implements Config {
         }
 
         return prt;
-    }
-
-    public String toString() {
-        return ("(TcpPortType: name = " + name + ")");
     }
 }

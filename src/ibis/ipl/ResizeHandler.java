@@ -49,7 +49,8 @@ public interface ResizeHandler {
     /**
      * Upcall generated when one or more Ibisses are requested to leave.
      *
-     * This call can only be the result of a {@link Registry#mustLeave(IbisIdentifier[])}
+     * This call can only be the result of a
+     * {@link Registry#mustLeave(IbisIdentifier[])}
      * call. It is always the result of a call by the application.
      * How the receiver of this upcall reacts to this is up to the application.
      * @param ibisses the ibisses which are told to leave. Multiple ibisses

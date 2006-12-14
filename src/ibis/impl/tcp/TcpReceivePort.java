@@ -87,11 +87,12 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
         connectionsIndex = 0;
 
         int port = ibis.tcpPortHandler.register(this);
-        ident = new TcpReceivePortIdentifier(name, type.p, ibis.ident, port);
+        ident = new TcpReceivePortIdentifier(name, type.props, ibis.ident,
+                port);
         if (upcall == null && connUpcall == null
-                && !type.p.isProp("communication", "ManyToOne")
-                && !type.p.isProp("communication", "Poll")
-                && !type.p.isProp("communication", "ReceiveTimeout")) {
+                && !type.props.isProp("communication", "ManyToOne")
+                && !type.props.isProp("communication", "Poll")
+                && !type.props.isProp("communication", "ReceiveTimeout")) {
             no_connectionhandler_thread = true;
         }
     }
@@ -388,7 +389,7 @@ final class TcpReceivePort implements ReceivePort, TcpProtocol, Config {
     }
 
     public ReadMessage poll() throws IOException {
-        if (! type.p.isProp("communication", "Poll")) {
+        if (! type.props.isProp("communication", "Poll")) {
             throw new IOException("Receiveport not configured for polls");
         }
 

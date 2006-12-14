@@ -2,7 +2,7 @@
 
 
 import ibis.ipl.Ibis;
-import ibis.ipl.IbisException;
+import ibis.ipl.IbisFactory;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
@@ -80,12 +80,10 @@ public class Example {
         }
     }
 
-    private void server() {
+    private void server(IbisIdentifier client) {
         try {
             // Create a send port for sending answers
             SendPort serverSender = porttype.createSendPort();
-            ReceivePortIdentifier client = rgstry.lookupReceivePort("client");
-            serverSender.connect(client);
 
             // Create an upcall handler
             RpcUpcall rpcUpcall = new RpcUpcall(serverSender);
@@ -93,6 +91,8 @@ public class Example {
                     rpcUpcall);
             serverReceiver.enableConnections();
             serverReceiver.enableUpcalls();
+
+            serverSender.connect(client, "client");
 
             // Wait until finished
             synchronized (rpcUpcall) {
@@ -119,7 +119,7 @@ public class Example {
         }
     }
 
-    private void client() {
+    private void client(IbisIdentifier server) {
         try {
             // Create a send port for sending requests
             SendPort clientSender = porttype.createSendPort();
@@ -129,8 +129,7 @@ public class Example {
             clientReceiver.enableConnections();
 
             // Connect send port
-            ReceivePortIdentifier srvr = rgstry.lookupReceivePort("server");
-            clientSender.connect(srvr);
+            clientSender.connect(server, "server");
 
             FileReader f = new FileReader("Example.java");
             BufferedReader bf = new BufferedReader(f);
@@ -182,9 +181,10 @@ public class Example {
         // Create an Ibis
         final Ibis ibis;
         try {
-            ibis = Ibis.createIbis(props, null);
-        } catch (IbisException e) {
+            ibis = IbisFactory.createIbis(props, null);
+        } catch (Exception e) {
             System.err.println("Could not create Ibis: " + e);
+            e.printStackTrace();
             failure = true;
             return;
         }
@@ -208,7 +208,7 @@ public class Example {
 
         // Create the port type
         try {
-            porttype = ibis.createPortType("RPC port", portprops);
+            porttype = ibis.createPortType(portprops);
         } catch (Exception e) {
             System.err.println("Could not create port type: " + e);
             failure = true;
@@ -218,9 +218,17 @@ public class Example {
         // Elect a server
         IbisIdentifier me = ibis.identifier();
         rgstry = ibis.registry();
-        IbisIdentifier server;
+        IbisIdentifier server = null;
+        IbisIdentifier client = null;
+        boolean i_am_server = false;
         try {
             server = rgstry.elect("Server");
+            if (server.equals(me)) {
+                client = rgstry.getElectionResult("Client");
+                i_am_server = true;
+            } else {
+                rgstry.elect("Client");
+            }
         } catch (Exception e) {
             System.err.println("Could not elect: " + e);
             failure = true;
@@ -228,11 +236,10 @@ public class Example {
         }
 
         // Start either a server or a client.
-        boolean i_am_server = server.equals(me);
         if (i_am_server) {
-            server();
+            server(client);
         } else {
-            client();
+            client(server);
         }
     }
 

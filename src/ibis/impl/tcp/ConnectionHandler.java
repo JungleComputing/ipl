@@ -51,7 +51,7 @@ final class ConnectionHandler implements Runnable, TcpProtocol { //, Config {
     }
 
     private void createNewStream() {
-        in = SerializationBase.createSerializationInput(port.type.ser,
+        in = SerializationBase.createSerializationInput(port.type.serialization,
                 bufferedInput);
 
         m = new TcpReadMessage(port, in, origin, this);

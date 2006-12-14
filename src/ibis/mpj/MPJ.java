@@ -234,7 +234,7 @@ public class MPJ {
             s.add( "serialization", "object" );
             s.add( "communication", "OneToOne, Reliable, ExplicitReceipt, Poll" );
             s.add( "worldmodel", "closed" );
-            ibis = Ibis.createIbis(s, null);
+            ibis = IbisFactory.createIbis(s, null);
 
             registry = ibis.registry();
 
@@ -242,7 +242,7 @@ public class MPJ {
             prop.add("serialization", "object");
             prop.add("communication", "OneToOne, Reliable, ExplicitReceipt, Poll");
 
-            porttype = ibis.createPortType("MPJ Port", prop);
+            porttype = ibis.createPortType(prop);
 
             if (DEBUG) {
                 System.err.println("My Hostname is " + MPJ.info.hostName());

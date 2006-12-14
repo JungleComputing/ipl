@@ -3,6 +3,7 @@
 package ibis.rmi.impl;
 
 import ibis.ipl.Ibis;
+import ibis.ipl.IbisFactory;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.NoMatchingIbisException;
 import ibis.ipl.PortType;
@@ -273,7 +274,7 @@ public final class RTS {
                     + "ExplicitReceipt");
 
             try {
-                ibis = Ibis.createIbis(reqprops, null);
+                ibis = IbisFactory.createIbis(reqprops, null);
             } catch (NoMatchingIbisException e) {
                 System.err.println("Could not find an Ibis that can run this"
                         + " RMI implementation");
@@ -297,8 +298,8 @@ public final class RTS {
             replyProps.add("worldmodel", "open");
             replyProps.add("communication",
                     "OneToOne, Reliable, ExplicitReceipt");
-            requestPortType = ibis.createPortType("RMI request", requestProps);
-            replyPortType = ibis.createPortType("RMI reply", replyProps);
+            requestPortType = ibis.createPortType(requestProps);
+            replyPortType = ibis.createPortType(replyProps);
 
             skeletonReceivePort = requestPortType.createReceivePort("//"
                     + hostname + "/rmi_skeleton"

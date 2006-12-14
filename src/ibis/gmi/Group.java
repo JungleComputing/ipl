@@ -3,6 +3,7 @@
 package ibis.gmi;
 
 import ibis.ipl.Ibis;
+import ibis.ipl.IbisFactory;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.NoMatchingIbisException;
 import ibis.ipl.PortType;
@@ -155,7 +156,7 @@ public final class Group implements GroupProtocol {
                     "OneToOne, ManyToOne, OneToMany, Reliable, "
                     + "AutoUpcalls, ExplicitReceipt");
             try {
-                ibis = Ibis.createIbis(reqprops, null);
+                ibis = IbisFactory.createIbis(reqprops, null);
             } catch (NoMatchingIbisException e) {
                 logger.warn("?: <static> - " + 
                         "Could not find an Ibis that can run this "
@@ -174,7 +175,7 @@ public final class Group implements GroupProtocol {
             props.add("worldmodel", "closed");
             props.add("communication", "ManyToOne, Reliable, ExplicitReceipt");
            
-            portTypeSystem = ibis.createPortType("GMI System", props);
+            portTypeSystem = ibis.createPortType(props);
             
             // Unicast (many to one) port type            
             props = new StaticProperties();
@@ -182,15 +183,15 @@ public final class Group implements GroupProtocol {
             props.add("worldmodel", "closed");
             props.add("communication", "ManyToOne, Reliable, AutoUpcalls");
             
-            portTypeManyToOne = ibis.createPortType("GMI ManyToOne", props);
+            portTypeManyToOne = ibis.createPortType(props);
             
-            // Multicast (on to many) port type            
+            // Multicast (one to many) port type            
             props = new StaticProperties();
             props.add("serialization", "object");
             props.add("worldmodel", "closed");
             props.add("communication", "OneToMany, Reliable, AutoUpcalls");
                        
-            MulticastGroups.init(ibis.createPortType("GMI OneToMany", props));
+            MulticastGroups.init(ibis.createPortType(props));
                        
             // Create the unicast receive port
             receivePort = portTypeManyToOne.createReceivePort("GMI port",

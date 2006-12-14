@@ -3,13 +3,14 @@
 package ibis.impl.tcp;
 
 import ibis.connect.IbisSocketFactory;
-import ibis.ipl.Ibis;
+import ibis.impl.Ibis;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.PortType;
 import ibis.ipl.PortMismatchException;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.Registry;
+import ibis.ipl.ResizeHandler;
 import ibis.ipl.StaticProperties;
 import ibis.util.IPUtils;
 import ibis.util.TypedProperties;
@@ -31,8 +32,6 @@ public final class TcpIbis extends Ibis implements Config {
     private ibis.impl.Registry registry;
 
     // private int poolSize;
-
-    private Hashtable portTypeList = new Hashtable();
 
     private boolean resizeUpcallerEnabled = false;
 
@@ -62,17 +61,15 @@ public final class TcpIbis extends Ibis implements Config {
         return myAddress.getAddress();
     }
 
-    protected PortType newPortType(String nm, StaticProperties p)
+    protected PortType newPortType(StaticProperties p)
             throws PortMismatchException {
 
-        TcpPortType resultPort = new TcpPortType(this, nm, p);
+        TcpPortType resultPort = new TcpPortType(this, p);
         p = resultPort.properties();
 
-        portTypeList.put(nm, resultPort);
-
         if (DEBUG) {
-            System.out.println("" + this.ident.getId() + ": created PortType '" + nm
-                    + "'");
+            System.out.println("" + this.ident.getId() + ": created PortType "
+                    + "with properties " + p);
         }
 
         return resultPort;
@@ -86,15 +83,13 @@ public final class TcpIbis extends Ibis implements Config {
         return registry;
     }
 
-    public StaticProperties properties() {
-        return staticProperties(implName);
-    }
-
     public IbisIdentifier identifier() {
         return ident;
     }
 
-    protected void init() throws IOException {
+    protected void init(ResizeHandler r, StaticProperties p1,
+            StaticProperties p2) throws IOException {
+        super.init(r, p1, p2);
         if (DEBUG) {
             System.err.println("In TcpIbis.init()");
         }

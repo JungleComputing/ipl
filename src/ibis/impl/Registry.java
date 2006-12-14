@@ -2,7 +2,6 @@
 
 package ibis.impl;
 
-import ibis.ipl.Ibis;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.StaticProperties;
 
