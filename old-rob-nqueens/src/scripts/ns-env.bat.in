@@ -1,0 +1,7 @@
+rem
+rem This file contains definitions for the ibis nameserver.
+rem It can be modified by the user and survives reconfiguration of the
+rem Ibis tree (but not distclean).
+rem
+set IBIS_NAMESERVER_HOST=@IBIS_NS_HOST@
+set IBIS_NAMESERVER_PORT=@IBIS_NS_PORT@
