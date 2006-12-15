@@ -270,8 +270,7 @@ public final class RTS {
             reqprops.add("serialization", "object");
             reqprops.add("worldmodel", "open");
             reqprops.add("communication",
-                    "OneToOne, ManyToOne, Reliable, AutoUpcalls, "
-                    + "ExplicitReceipt");
+                    "OneToOne, ManyToOne, Reliable, AutoUpcalls, ExplicitReceipt");
 
             try {
                 ibis = IbisFactory.createIbis(reqprops, null);
@@ -289,15 +288,13 @@ public final class RTS {
 
             StaticProperties requestProps = new StaticProperties();
             requestProps.add("serialization", "object");
-            requestProps.add("worldmodel", "open");
-            requestProps.add("communication",
-                    "OneToOne, ManyToOne, Reliable, AutoUpcalls");
+            requestProps.add("communication", "OneToOne, ManyToOne, Reliable, AutoUpcalls");
+            requestProps.addLiteral("serialization.replacer", "ibis.rmi.impl.RMIReplacer");
 
             StaticProperties replyProps = new StaticProperties();
             replyProps.add("serialization", "object");
-            replyProps.add("worldmodel", "open");
-            replyProps.add("communication",
-                    "OneToOne, Reliable, ExplicitReceipt");
+            replyProps.add("communication", "OneToOne, Reliable, ExplicitReceipt");
+            replyProps.addLiteral("serialization.replacer", "ibis.rmi.impl.RMIReplacer");
             requestPortType = ibis.createPortType(requestProps);
             replyPortType = ibis.createPortType(replyProps);
 
@@ -463,17 +460,11 @@ public final class RTS {
         return stubs.get(new Integer(System.identityHashCode(o)));
     }
 
-    private static SendPort createSendPort(PortType p) throws IOException {
-        SendPort s = p.createSendPort();
-        s.setReplacer(new RMIReplacer());
-        return s;
-    }
-
     static synchronized SendPort getSkeletonSendPort(
             ReceivePortIdentifier rpi) throws IOException {
         SendPort s = (SendPort) sendports.get(rpi);
         if (s == null) {
-            s = createSendPort(replyPortType);
+            s = replyPortType.createSendPort();
             s.connect(rpi);
             sendports.put(rpi, s);
             if (logger.isDebugEnabled()) {
@@ -493,7 +484,7 @@ public final class RTS {
             ReceivePortIdentifier rpi) throws IOException {
         SendPort s = (SendPort) sendports.get(rpi);
         if (s == null) {
-            s = createSendPort(requestPortType);
+            s = requestPortType.createSendPort();
             s.connect(rpi);
             sendports.put(rpi, s);
             if (logger.isDebugEnabled()) {
@@ -588,7 +579,7 @@ public final class RTS {
 
         String name = "__REGISTRY__" + host + ":" + port;
         Stub result;
-        SendPort s = createSendPort(requestPortType);
+        SendPort s = requestPortType.createSendPort();
 
         if (logger.isDebugEnabled()) {
             logger.debug(hostname + ": Trying to lookup registry " + name);

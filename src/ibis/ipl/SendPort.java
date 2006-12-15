@@ -2,8 +2,6 @@
 
 package ibis.ipl;
 
-import ibis.io.Replacer;
-
 import java.io.IOException;
 import java.util.Map;
 
@@ -54,16 +52,6 @@ public interface SendPort {
      * @exception IOException may be thrown when something goes wrong.
      */
     public WriteMessage newMessage() throws IOException;
-
-    /**
-     * Installs an object replacer on the underlying object stream.
-     * This can be used, for instance, by an RMI implementation to
-     * replace remote objects by stubs.
-     * @param r the object replacer.
-     * @exception IOException may be thrown when the underlying stream
-     *   does not allow for replacers.
-     */
-    public void setReplacer(Replacer r) throws IOException;
 
     /**
      * Returns the dynamic properties of

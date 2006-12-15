@@ -47,7 +47,36 @@ public final class TcpIbis extends Ibis implements Config {
         TypedProperties.checkProperties(PROPERTY_PREFIX, sysprops, null);
     }
 
-    public TcpIbis() {
+    public TcpIbis(ResizeHandler r, StaticProperties p1, StaticProperties p2)
+            throws IOException {
+        super(r, p1, p2);
+        if (DEBUG) {
+            System.err.println("In TcpIbis constructor");
+        }
+        InetAddress addr = IPUtils.getLocalHostAddress();
+        if (addr == null) {
+            System.err.println("ERROR: could not get my own IP address, "
+                    + "exiting.");
+            System.exit(1);
+        }
+
+        registry = ibis.impl.Registry.loadRegistry(this);
+
+        tcpPortHandler
+                = new TcpPortHandler(this, IbisSocketFactory.getFactory());
+
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        DataOutputStream out = new DataOutputStream(bos);
+        out.writeUTF(myAddress.getAddress().getHostAddress());
+        out.writeInt(myAddress.getPort());
+        out.flush();
+        out.close();
+
+        ident = registry.init(this, resizeHandler != null, bos.toByteArray());
+
+        if (DEBUG) {
+            System.err.println("Out of TcpIbis constructor, ident = " + ident);
+        }
         /*
         try {
             Runtime.getRuntime().addShutdownHook(new TcpShutdown());
@@ -87,37 +116,6 @@ public final class TcpIbis extends Ibis implements Config {
         return ident;
     }
 
-    protected void init(ResizeHandler r, StaticProperties p1,
-            StaticProperties p2) throws IOException {
-        super.init(r, p1, p2);
-        if (DEBUG) {
-            System.err.println("In TcpIbis.init()");
-        }
-        InetAddress addr = IPUtils.getLocalHostAddress();
-        if (addr == null) {
-            System.err.println("ERROR: could not get my own IP address, "
-                    + "exiting.");
-            System.exit(1);
-        }
-
-        registry = ibis.impl.Registry.loadRegistry(this);
-
-        tcpPortHandler
-                = new TcpPortHandler(this, IbisSocketFactory.getFactory());
-
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        DataOutputStream out = new DataOutputStream(bos);
-        out.writeUTF(myAddress.getAddress().getHostAddress());
-        out.writeInt(myAddress.getPort());
-        out.flush();
-        out.close();
-
-        ident = registry.init(this, resizeHandler != null, bos.toByteArray());
-
-        if (DEBUG) {
-            System.err.println("Out of TcpIbis.init(), ident = " + ident);
-        }
-    }
 
     private synchronized void waitForEnabled() {
         while (! resizeUpcallerEnabled) {

@@ -6,7 +6,7 @@ import ibis.io.Replacer;
 import ibis.rmi.Remote;
 import ibis.rmi.server.RemoteStub;
 
-final class RMIReplacer implements Replacer {
+public final class RMIReplacer implements Replacer {
 
     public Object replace(Object o) {
 

@@ -85,7 +85,7 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
     private java.util.Map props = new HashMap();
 
     TcpSendPort(TcpIbis ibis, TcpPortType type, String name,
-        boolean connectionAdministration, SendPortConnectUpcall cU) {
+        boolean connectionAdministration, SendPortConnectUpcall cU, Replacer replacer) {
 
         this.name = name;
         this.type = type;
@@ -95,6 +95,7 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
         }
         this.connectionAdministration = connectionAdministration;
         this.connectUpcall = cU;
+        this.replacer = replacer;
 
         ident = new TcpSendPortIdentifier(name, type.props,
                 type.ibis.identifier());
@@ -107,6 +108,14 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 
         out = SerializationBase.createSerializationOutput(type.serialization,
             bufferedStream);
+        if (replacer != null) {
+            try {
+                out.setReplacer(replacer);
+            } catch(Exception e) {
+                throw new Error("Exception in setReplacer should not happen", e);
+            }
+        }
+
         message = new TcpWriteMessage(this, out, connectionAdministration);
     }
 
@@ -217,11 +226,6 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
         } catch (Exception x) {
             // ignore
         }
-    }
-
-    public synchronized void setReplacer(Replacer r) throws IOException {
-        replacer = r;
-        out.setReplacer(r);
     }
 
     public ibis.ipl.WriteMessage newMessage() throws IOException {

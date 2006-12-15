@@ -2,6 +2,7 @@
 
 package ibis.impl;
 
+import ibis.io.Replacer;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.PortMismatchException;
@@ -170,13 +171,13 @@ public abstract class PortType implements ibis.ipl.PortType {
     private SendPort doCreateSendPort(String name, SendPortConnectUpcall cU,
             boolean connectionDowncalls) throws IOException {
         if (cU != null) {
-            if (!properties().isProp("communication", "ConnectionUpcalls")) {
+            if (! props.isProp("communication", "ConnectionUpcalls")) {
                 throw new IbisConfigurationException(
                         "no connection upcalls requested for this port type");
             }
         }
         if (connectionDowncalls) {
-            if (!properties().isProp("communication", "ConnectionDowncalls")) {
+            if (!props.isProp("communication", "ConnectionDowncalls")) {
                 throw new IbisConfigurationException(
                         "no connection downcalls requested for this port type");
             }
@@ -187,7 +188,25 @@ public abstract class PortType implements ibis.ipl.PortType {
             }
         }
 
-        return createSendPort(name, cU, connectionDowncalls);
+        String replacerName = props.find("serialization.replacer");
+        Replacer r = null;
+        if (replacerName != null) {
+            if (! props.isProp("serialization", "sun") &&
+                ! props.isProp("serialization", "object") &&
+                ! props.isProp("serialization", "ibis")) {
+                throw new IbisConfigurationException(
+                        "Object replacer specified but no object serialization");
+            }
+            try {
+                Class cl = Class.forName(replacerName);
+                r = (Replacer) cl.newInstance();
+            } catch(Exception e) {
+                throw new IOException("Could not locate or instantiate replacer class "
+                        + replacerName);
+            }
+        }
+
+        return createSendPort(name, cU, connectionDowncalls, r);
     }
 
     /**
@@ -200,12 +219,13 @@ public abstract class PortType implements ibis.ipl.PortType {
      * @param connectionDowncalls set when this port must keep
      * connection administration to support the lostConnections
      * downcall.
+     * @param replacer an object replacer, or <code>null</code>.
      * @return the new sendport.
      * @exception java.io.IOException is thrown when the port could not be
      * created.
      */
-    protected abstract SendPort createSendPort(String name,
-            SendPortConnectUpcall cU, boolean connectionDowncalls)
+    protected abstract SendPort createSendPort(String name, SendPortConnectUpcall cU,
+            boolean connectionDowncalls, Replacer replacer)
             throws IOException;
 
     /**

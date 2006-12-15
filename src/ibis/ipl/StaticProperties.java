@@ -60,16 +60,21 @@ public final class StaticProperties implements java.io.Serializable {
          * The string is tokenized, and each token is added to the 
          * property set.
          * @param v the property set as a string.
+         * @param toLower true when the value should be converted to lowercase
          */
-        public Property(String v) {
+        public Property(String v, boolean toLower) {
             if (v != null) {
                 StringTokenizer st = new StringTokenizer(v, " ,\t\n\r\f");
                 h = new HashSet<String>();
                 while (st.hasMoreTokens()) {
-                    String s = st.nextToken().toLowerCase();
+                    String s = toLower ? st.nextToken().toLowerCase() : st.nextToken();
                     h.add(s);
                 }
             }
+        }
+
+        public Property(String v) {
+            this(v, true);
         }
 
         /**
@@ -310,7 +315,7 @@ public final class StaticProperties implements java.io.Serializable {
                 }
             }
 
-            combined.add(name, prop);
+            combined.addLiteral(name, prop);
         }
         return combined;
     }
@@ -413,6 +418,29 @@ public final class StaticProperties implements java.io.Serializable {
     }
 
     /**
+     * Adds a key/value pair to the properties.
+     * If the key is already bound, an
+     * {@link java.lang.RuntimeException RuntimeException}
+     * is thrown. If either the key or the value is <code>null</code>,
+     * a <code>NullPointerException</code> is thrown.
+     * The value is NOT converted to lowercase.
+     *
+     * @param key the key to be bound.
+     * @param value the value to bind to the key.
+     * @exception RuntimeException is thrown when the key is already bound.
+     * @exception NullPointerException is thrown when either key or value
+     *  is <code>null</code>.
+     */
+    public void addLiteral(String key, String value) {
+        key = key.toLowerCase();
+        if (mappings.containsKey(key)) {
+            throw new RuntimeException("Property " + key
+                    + " already exists");
+        }
+        mappings.put(key, new Property(value, false));
+    }
+
+    /**
      * Returns the property associated with the specified key.
      * @param key the property category.
      * @return the Property structure, or null if not present.
@@ -492,7 +520,7 @@ public final class StaticProperties implements java.io.Serializable {
         while (i.hasNext()) {
             String key = (String) i.next();
             String value = find(key);
-            sp.add(key, value);
+            sp.addLiteral(key, value);
         }
         return sp;
     }
@@ -599,7 +627,7 @@ public final class StaticProperties implements java.io.Serializable {
         while (i.hasNext()) {
             String s = (String) i.next();
             String prop = getProperty(s);
-            p.add(s, prop);
+            p.addLiteral(s, prop);
         }
         return p;
     }
@@ -662,7 +690,7 @@ public final class StaticProperties implements java.io.Serializable {
         for (int i = 0; i < sz; i++) {
             String key = in.readUTF();
             String val = in.readUTF();
-            add(key, val);
+            addLiteral(key, val);
         }
     }
 }
