@@ -12,40 +12,9 @@ import java.io.IOException;
 
 public abstract class Ibis {
 
-    /** A user-supplied resize handler, with join/leave upcalls. */
-    protected ResizeHandler resizeHandler;
-
-    /**
-     * Properties, as given to
-     * {@link #createIbis(StaticProperties, ResizeHandler)}
-     */
-    protected StaticProperties requiredProps;
-
-    /** User properties, combined with required properties. */
-    protected StaticProperties combinedProps;
-
     /** Don't allow public creation. */
     protected Ibis() {
     	// nothing here
-    }
-
-    /**
-     * Initializes the fields of this class with the specified values.
-     * @param resizeHandler the resizeHandler specified by the caller
-     * of {@link ibis.ipl.IbisFactory#createIbis()}.
-     * @param requiredProps properties as specified by caller of
-     * {@link ibis.ipl.IbisFactory#createIbis()}.
-     * @param combinedProps properties that are the result of the combination
-     * of <code>requiredProps</code> and the user-specified properties.
-     * @exception IOException may be thrown when something goes wrong
-     * in the Ibis implementation-specific part.
-     */
-    protected void init(ResizeHandler resizeHandler,
-            StaticProperties requiredProps, StaticProperties combinedProps)
-            throws IOException {
-        this.resizeHandler = resizeHandler;
-        this.requiredProps = requiredProps;
-        this.combinedProps = combinedProps;
     }
 
     /**

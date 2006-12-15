@@ -46,46 +46,9 @@ public final class TcpIbis extends Ibis implements Config {
         TypedProperties.checkProperties(PROPERTY_PREFIX, sysprops, null);
     }
 
-    public TcpIbis() {
-        /*
-        try {
-            Runtime.getRuntime().addShutdownHook(new TcpShutdown());
-        } catch (Exception e) {
-            System.err.println("Warning: could not register tcp shutdown hook");
-        }
-        */
-    }
-
-    protected PortType newPortType(StaticProperties p)
-            throws PortMismatchException {
-
-        TcpPortType resultPort = new TcpPortType(this, p);
-        p = resultPort.properties();
-
-        if (DEBUG) {
-            System.out.println("" + this.ident.getId() + ": created PortType "
-                    + "with properties " + p);
-        }
-
-        return resultPort;
-    }
-
-    long getSeqno(String nm) throws IOException {
-        return registry.getSeqno(nm);
-    }
-
-    public Registry registry() {
-        return registry;
-    }
-
-    public IbisIdentifier identifier() {
-        return ident;
-    }
-    
-    protected void init(ResizeHandler r, StaticProperties p1,
-            StaticProperties p2) throws IOException {
-        super.init(r, p1, p2);
-        
+    public TcpIbis(ResizeHandler r, StaticProperties p1, StaticProperties p2)
+            throws IOException {
+        super(r, p1, p2);
         if (DEBUG) {
             System.err.println("In TcpIbis.init()");
         }
@@ -136,8 +99,41 @@ public final class TcpIbis extends Ibis implements Config {
         if (DEBUG) {
             System.err.println("Out of TcpIbis.init(), ident = " + ident);
         }
+        /*
+        try {
+            Runtime.getRuntime().addShutdownHook(new TcpShutdown());
+        } catch (Exception e) {
+            System.err.println("Warning: could not register tcp shutdown hook");
+        }
+        */
     }
 
+    protected PortType newPortType(StaticProperties p)
+            throws PortMismatchException {
+
+        TcpPortType resultPort = new TcpPortType(this, p);
+        p = resultPort.properties();
+
+        if (DEBUG) {
+            System.out.println("" + this.ident.getId() + ": created PortType "
+                    + "with properties " + p);
+        }
+
+        return resultPort;
+    }
+
+    long getSeqno(String nm) throws IOException {
+        return registry.getSeqno(nm);
+    }
+
+    public Registry registry() {
+        return registry;
+    }
+
+    public IbisIdentifier identifier() {
+        return ident;
+    }
+    
     private synchronized void waitForEnabled() {
         while (! resizeUpcallerEnabled) {
             try {

@@ -25,8 +25,8 @@ class TcpPortType extends PortType implements Config {
     }
 
     public SendPort createSendPort(String nm, SendPortConnectUpcall cU,
-            boolean connectionAdministration) {
-        return new TcpSendPort(ibis, this, nm, connectionAdministration, cU);
+            boolean connectionAdministration, ibis.io.Replacer replacer) {
+        return new TcpSendPort(ibis, this, nm, connectionAdministration, cU, replacer);
     }
 
     public ReceivePort createReceivePort(String nm, Upcall u,

@@ -4,6 +4,7 @@ package ibis.impl;
 
 import ibis.ipl.StaticProperties;
 import ibis.ipl.PortMismatchException;
+import ibis.ipl.ResizeHandler;
 
 import ibis.util.ClassLister;
 import ibis.util.IPUtils;
@@ -22,9 +23,34 @@ import java.util.Properties;
 
 public abstract class Ibis extends ibis.ipl.Ibis {
 
-    /** Don't allow public creation. */
-    protected Ibis() {
-    	// nothing here
+    /** A user-supplied resize handler, with join/leave upcalls. */
+    protected ResizeHandler resizeHandler;
+
+    /**
+     * Properties, as given to
+     * {@link #createIbis(StaticProperties, ResizeHandler)}
+     */
+    protected StaticProperties requiredProps;
+
+    /** User properties, combined with required properties. */
+    protected StaticProperties combinedProps;
+
+    /**
+     * Initializes the fields of this class with the specified values.
+     * @param resizeHandler the resizeHandler specified by the caller
+     * of {@link ibis.ipl.IbisFactory#createIbis()}.
+     * @param requiredProps properties as specified by caller of
+     * {@link ibis.ipl.IbisFactory#createIbis()}.
+     * @param combinedProps properties that are the result of the combination
+     * of <code>requiredProps</code> and the user-specified properties.
+     * Every Ibis implementation must have a public constructor with these
+     * parameters.
+     */
+    public Ibis(ResizeHandler resizeHandler, StaticProperties requiredProps,
+            StaticProperties combinedProps) {
+        this.resizeHandler = resizeHandler;
+        this.requiredProps = requiredProps;
+        this.combinedProps = combinedProps;
     }
 
     public ibis.ipl.PortType createPortType(StaticProperties p)
