@@ -3,6 +3,7 @@
 package ibis.impl.test;
 
 import ibis.ipl.Ibis;
+import ibis.ipl.IbisFactory;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
@@ -41,7 +42,7 @@ public final class TestIbis extends TestCase {
             s.add("serialization", "ibis");
             s.add("worldmodel", "open");
 
-            ibis = Ibis.createIbis(s, null);
+            ibis = IbisFactory.createIbis(s, null);
 
             registry = ibis.registry();
 
@@ -52,7 +53,7 @@ public final class TestIbis extends TestCase {
             // Since there will be only one ibis instance, master must be true
             assertTrue(master);
 
-            oneToOneType = ibis.createPortType("one2one type", s);
+            oneToOneType = ibis.createPortType(s);
 
             Thread masterThread = new Thread("Master thread") {
                 public void run() {

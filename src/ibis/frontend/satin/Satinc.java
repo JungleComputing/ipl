@@ -2538,9 +2538,9 @@ public final class Satinc extends IbiscComponent {
             out.println("    }\n");
 
             //getSOReferences method
-            out.println("    public java.util.Vector getSOReferences() {");
+            out.println("    public java.util.Vector<String> getSOReferences() {");
             out
-                .println("        java.util.Vector refs = new java.util.Vector();");
+                .println("        java.util.Vector<String> refs = new java.util.Vector<String>();");
             for (int i = 0; i < params.length; i++) {
                 if (isSharedObject(params[i])) {
                     out.println("        refs.add(satin_so_reference_param" + i

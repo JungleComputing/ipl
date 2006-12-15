@@ -7,7 +7,7 @@ import ibis.impl.nameServer.NSProps;
 import ibis.io.Conversion;
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.ConnectionTimedOutException;
-import ibis.ipl.Ibis;
+import ibis.impl.Ibis;
 import ibis.ipl.IbisConfigurationException;
 import ibis.impl.IbisIdentifier;
 import ibis.ipl.StaticProperties;

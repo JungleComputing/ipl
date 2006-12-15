@@ -97,7 +97,8 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
         this.connectionAdministration = connectionAdministration;
         this.connectUpcall = cU;
 
-        ident = new TcpSendPortIdentifier(name, type.p, type.ibis.identifier());
+        ident = new TcpSendPortIdentifier(name, type.props,
+                type.ibis.identifier());
 
         // if we keep administration, close connections when exception occurs.
         splitter = new OutputStreamSplitter(connectionAdministration,
@@ -105,7 +106,7 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 
         bufferedStream = new BufferedArrayOutputStream(splitter);
 
-        out = SerializationBase.createSerializationOutput(type.ser,
+        out = SerializationBase.createSerializationOutput(type.serialization,
             bufferedStream);
         message = new TcpWriteMessage(this, out, connectionAdministration);
     }
@@ -148,7 +149,7 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
     public synchronized void connect(ReceivePortIdentifier receiver,
         long timeoutMillis) throws IOException {
         /* first check the types */
-        if (!type.p.equals(receiver.type())) {
+        if (!type.props.equals(receiver.type())) {
             throw new PortMismatchException(
                 "Cannot connect ports of different PortTypes");
         }
@@ -256,7 +257,7 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
 
         out.writeByte(NEW_MESSAGE);
         if (type.numbered) {
-            long seqno = ibis.getSeqno(type.name);
+            long seqno = ibis.getSeqno(name);
             out.writeLong(seqno);
         }
         return res;
@@ -434,7 +435,7 @@ final class TcpSendPort implements SendPort, Config, TcpProtocol {
         receivers.add(c);
         splitter.add(c.out);
 
-        out = SerializationBase.createSerializationOutput(type.ser,
+        out = SerializationBase.createSerializationOutput(type.serialization,
                 bufferedStream);
         if (replacer != null) {
             out.setReplacer(replacer);

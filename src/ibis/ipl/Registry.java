@@ -37,7 +37,8 @@ public interface Registry {
     public IbisIdentifier getElectionResult(String election) throws IOException;
 
     /**
-     * Notifies that an Ibis instance is suspected to be dead.
+     * Should be called when an application suspects that a particular
+     * Ibis instance is dead. The registry may react by checking this.
      *
      * @param ibis the Ibis identifier of the Ibis instance suspected
      *   to be dead.
@@ -46,7 +47,8 @@ public interface Registry {
     public void maybeDead(IbisIdentifier ibis) throws IOException;
 
     /**
-     * Notifies that an Ibis instance must be assumed to be dead.
+     * Instructs the registry to assume that the specified Ibis instance
+     * is dead.
      *
      * @param ibis the Ibis identifier of the Ibis instance that must
      *   be assumed to be dead.
@@ -56,9 +58,9 @@ public interface Registry {
 
     /**
      * Requests some Ibis instances to leave.
-     * This results in a {@link ResizeHandler#mustLeave(IbisIdentifier[])} upcall on
-     * all Ibis instances in the current run. It is up to the application
-     * to react accordingly.
+     * This results in a {@link ResizeHandler#mustLeave(IbisIdentifier[])}
+     * upcall on all Ibis instances in the current run. It is up to the
+     * application to react accordingly.
      * @param ibisses the ibisses which are told to leave. Multiple ibisses
      * may be ordered to leave when, for instance, an entire cluster is killed.
      * @exception java.io.IOException is thrown in case of trouble.

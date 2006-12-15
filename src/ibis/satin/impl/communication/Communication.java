@@ -5,6 +5,7 @@ package ibis.satin.impl.communication;
 
 import ibis.ipl.AlreadyConnectedException;
 import ibis.ipl.Ibis;
+import ibis.ipl.IbisFactory;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
@@ -48,7 +49,7 @@ public final class Communication implements Config, Protocol {
 		commLogger.debug("SATIN '" + "- " + "': init ibis");
 
 		try {
-			ibis = Ibis.createIbis(ibisProperties, s.ft.getResizeHandler());
+			ibis = IbisFactory.createIbis(ibisProperties, s.ft.getResizeHandler());
 		} catch (Exception e) {
 			commLogger.fatal(
 					"SATIN '" + "- " + "': Could not start ibis: " + e, e);
@@ -180,7 +181,7 @@ public final class Communication implements Config, Protocol {
 
 		satinPortProperties.add("serialization", "object");
 
-		return ibis.createPortType("satin porttype", satinPortProperties);
+		return ibis.createPortType(satinPortProperties);
 	}
 
 	// The barrier port type is different from the satin port type.
@@ -199,7 +200,7 @@ public final class Communication implements Config, Protocol {
 		s.add("communication", "OneToOne, ManyToOne, Reliable, "
 				+ "ExplicitReceipt");
 
-		return this.ibis.createPortType("satin barrier porttype", s);
+		return this.ibis.createPortType(s);
 	}
 
 	public void bcastMessage(byte opcode) {

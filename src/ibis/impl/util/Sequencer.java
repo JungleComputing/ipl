@@ -141,7 +141,7 @@ public final class Sequencer {
         p.add("communication",
                 "OneToOne, ManyToOne, ExplicitReceipt, Reliable");
         try {
-            tp = ibis.createPortType("sequencer", p);
+            tp = ibis.createPortType(p);
         } catch (Exception e) {
             throw new IOException("Got Exception " + e);
         }

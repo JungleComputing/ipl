@@ -168,8 +168,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
 
         satinPortProperties.add("serialization", "object");
 
-        return s.comm.ibis.createPortType("satin SO porttype",
-            satinPortProperties);
+        return s.comm.ibis.createPortType(satinPortProperties);
     }
 
     /**

@@ -23,7 +23,6 @@ public class Connection {
     private WriteMessage writeMessage = null;
     private int commPartnerRank = -1;
     private int myRank = -1;
-    private String portName = null;
     private PortType portType = null;
     private int messageCount = 0;
     private MPJObjectQueue recvQueue = null;
@@ -33,7 +32,6 @@ public class Connection {
     private ReadMessage msg = null;
 
     public Connection(Registry registry, PortType portType, int myRank, int commPartnerRank) {
-        this.portName = portType.name();
         this.commPartnerRank = commPartnerRank;
         this.myRank = myRank;
         this.portType = portType;
@@ -44,7 +42,7 @@ public class Connection {
 
 
     protected void setupReceivePort() {
-        String portString = portName + '_' + commPartnerRank;
+        String portString = "_" + commPartnerRank;
 
         if (DEBUG) {
             System.err.println("Receive on: " + portString + "; Index: " + commPartnerRank);
@@ -61,7 +59,7 @@ public class Connection {
     }
 
     protected void setupSendPort() {
-        String portString = portName + '_' + myRank;
+        String portString = "_" + myRank;
 
         if (DEBUG) {
             System.err.println("Send on: " + portString + "; Index: " + commPartnerRank);
