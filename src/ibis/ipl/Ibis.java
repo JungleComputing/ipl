@@ -6,16 +6,12 @@ import java.io.InputStream;
 import java.io.IOException;
 
 /**
- * Base class for Ibis implementations. All Ibis implementations must
- * extend this class.
+ * An instance of this interface can only be created by the
+ * {@link ibis.ipl.IbisFactory#createIbis()} method, and is the starting point
+ * of all Ibis communication.
  */
 
-public abstract class Ibis {
-
-    /** Don't allow public creation. */
-    protected Ibis() {
-    	// nothing here
-    }
+public interface Ibis {
 
     /**
      * When running closed-world, returns the total number of Ibis instances
@@ -24,7 +20,7 @@ public abstract class Ibis {
      * @exception NumberFormatException is thrown when the property
      *   ibis.pool.total_hosts is not defined or does not represent a number.
      */
-    public abstract int totalNrOfIbisesInPool();
+    public int totalNrOfIbisesInPool();
 
     /**
      * Allows reception of {@link ibis.ipl.ResizeHandler ResizeHandler}
@@ -34,19 +30,19 @@ public abstract class Ibis {
      * {@link ibis.ipl.ResizeHandler#joined(IbisIdentifier) joined()}
      * upcall for this Ibis is invoked.
      */
-    public abstract void enableResizeUpcalls();
+    public void enableResizeUpcalls();
 
     /**
      * Disables reception of
      * {@link ibis.ipl.ResizeHandler ResizeHandler} upcalls.
      */
-    public abstract void disableResizeUpcalls();
+    public void disableResizeUpcalls();
 
     /**
      * Returns all Ibis recources to the system.
      * @exception IOException is thrown when an error occurs.
      */
-    public abstract void end() throws IOException;
+    public void end() throws IOException;
 
     /**
      * Creates a {@link ibis.ipl.PortType PortType}.
@@ -77,22 +73,20 @@ public abstract class Ibis {
      * do not match the properties as specified when creating the Ibis
      * instance.
      */
-    public abstract PortType createPortType(StaticProperties p)
+    public PortType createPortType(StaticProperties p)
             throws PortMismatchException;
 
     /** 
      * Returns the Ibis {@linkplain ibis.ipl.Registry Registry}.
      * @return the Ibis registry.
      */
-    public abstract Registry registry();
+    public Registry registry();
 
     /**
      * Returns the properties of this Ibis implementation.
      * @return the properties of this Ibis implementation.
      */
-    public StaticProperties properties() {
-        return IbisFactory.staticProperties(this.getClass().getName());
-    }
+    public StaticProperties properties();
 
     /**
      * Polls the network for new messages.
@@ -102,7 +96,7 @@ public abstract class Ibis {
      * port. Polling per port is provided in the receiveport itself.
      * @exception IOException is thrown when a communication error occurs.
      */
-    public abstract void poll() throws IOException;
+    public void poll() throws IOException;
 
     /**
      * Returns an Ibis {@linkplain ibis.ipl.IbisIdentifier identifier} for
@@ -110,32 +104,16 @@ public abstract class Ibis {
      * An Ibis identifier identifies an Ibis instance in the network.
      * @return the Ibis identifier of this Ibis instance.
      */
-    public abstract IbisIdentifier identifier();
+    public IbisIdentifier identifier();
 
     /**
      * Returns the current Ibis version.
      * @return the ibis version.
      */
-    public String getVersion() {
-        InputStream in
-            = ClassLoader.getSystemClassLoader().getResourceAsStream("VERSION");
-        String version = "Unknown Ibis Version ID";
-        if (in != null) {
-            byte[] b = new byte[512];
-            int l = 0;
-            try {
-                l = in.read(b);
-            } catch (Exception e) {
-                // Ignored
-            }
-            if (l > 0) {
-                version = "Ibis Version ID " + new String(b, 0, l);
-            }
-        }
-        return version + ", implementation = " + this.getClass().getName();
-    }
+    public String getVersion();
 
-    public void printStatistics() { 
-        // default is empty
-    }
+    /**
+     * May print Ibis-implementation-specific statistics.
+     */
+    public void printStatistics();
 }
