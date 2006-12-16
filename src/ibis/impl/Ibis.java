@@ -21,7 +21,7 @@ import java.util.Properties;
  * extend this class.
  */
 
-public abstract class Ibis extends ibis.ipl.Ibis {
+public abstract class Ibis implements ibis.ipl.Ibis {
 
     /** A user-supplied resize handler, with join/leave upcalls. */
     protected ResizeHandler resizeHandler;
@@ -148,4 +148,35 @@ public abstract class Ibis extends ibis.ipl.Ibis {
      *  identifiers} of the Ibis instances that are requested to leave.
      */
     public abstract void mustLeave(ibis.ipl.IbisIdentifier[] ibisses);
+
+    public StaticProperties properties() {
+        return ibis.ipl.IbisFactory.staticProperties(this.getClass().getName());
+    }
+
+    /**
+     * Returns the current Ibis version.
+     * @return the ibis version.
+     */
+    public String getVersion() {
+        InputStream in
+            = ClassLoader.getSystemClassLoader().getResourceAsStream("VERSION");
+        String version = "Unknown Ibis Version ID";
+        if (in != null) {
+            byte[] b = new byte[512];
+            int l = 0;
+            try {
+                l = in.read(b);
+            } catch (Exception e) {
+                // Ignored
+            }
+            if (l > 0) {
+                version = "Ibis Version ID " + new String(b, 0, l);
+            }
+        }
+        return version + ", implementation = " + this.getClass().getName();
+    }
+
+    public void printStatistics() { 
+        // default is empty
+    }
 }

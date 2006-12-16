@@ -86,10 +86,6 @@ public final class TcpIbis extends Ibis implements Config {
         */
     }
 
-    InetAddress address() {
-        return myAddress.getAddress();
-    }
-
     protected PortType newPortType(StaticProperties p)
             throws PortMismatchException {
 
