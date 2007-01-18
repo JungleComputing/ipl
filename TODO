@@ -83,6 +83,11 @@ satin:
 - ant test should also run satin apps sequentially
   (It does, does'nt it? (Ceriel) No, it does not run non-rewritten code)
 
+- investigate invocation record cache again. It makes a huge difference for
+  performance of small tasks. The fact that it does not seem to work is an
+  indication that there is a bug somewhere: someone touches an invocation
+  record after it has been cleared!
+
 satin-so:
 - count all messages+sizes for the total messages/data sent statistics --Rob
 - do not send the same object (and the same version) twice.
