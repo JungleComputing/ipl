@@ -39,29 +39,29 @@
 ############
 
 # Name of the nameserver client to be used.
-# ibis.name_server.impl		ibis.impl.nameServer.tcp.NameServerClient
+# ibis.registry.impl		ibis.impl.registry.tcp.NameServerClient
 
 # Host on which the nameserver is supposed to run. This property must
 # be specified. It is provided by the ibis-run script. Its rules are:
 # - if it is specified with the -ns option, use that;
 # - if the -hosts option is specified, use the first host on that list;
 # - otherwise, use the host on which ibis was configured/installed.
-# ibis.name_server.host
+# ibis.registry.host
 
 # Port number on which the nameserver is supposed accept connections.
-# ibis.name_server.port		9826
+# ibis.registry.port		9826
 
-#  A key which is supposed to be unique for this run. This property must
+#  A poolId which is supposed to be unique for this run. This property must
 # be specified. The ibis-run script provides it.
-# ibis.name_server.key
+# ibis.registry.pool
 
 # Only serve a single run.
-# ibis.name_server.single	false
+# ibis.registry.single	false
 
 # The nameserver pings each run it has under its control every
-# "ibis.name_server.timeout" seconds. If the run turns out to be dead, the
+# "ibis.registry.timeout" seconds. If the run turns out to be dead, the
 # information associated with it in the nameserver is discarded.
-# ibis.name_server.timeout	300
+# ibis.registry.timeout	300
 
 #############################################################################
 #
@@ -331,20 +331,20 @@
 # Cluster name of the current node.
 # ibis.pool.cluster			unknown
 
-# Contains the key identifying the current run. If not present, the
-# key from the nameserver is tried (ibis.name_server.key). If that is
+# Contains the poolId identifying the current run. If not present, the
+# poolId from the nameserver is tried (ibis.registry.pool). If that is
 # not present either, "unknown" is used.
-# ibis.pool.key				unknown
+# ibis.pool.pool			unknown
 
 # Must contain the port number on which the <code>PoolInfoServer</code>
-# is accepting connections. If not present, ibis.name_server.port
+# is accepting connections. If not present, ibis.registry.port
 # is tried. If present, 1 is added and that is used as port number. If not,
 # the default is used.
 # ibis.pool.server.port			9827
  
 # Must contain the hostname of the host on which the PoolInfoServer runs.
-# If not present, ibis.name_server.host is tried. One of the two system
-# properties must be defined. ibis-run provides ibis.name_server.host.
+# If not present, ibis.registry.host is tried. One of the two system
+# properties must be defined. ibis-run provides ibis.registry.host.
 # ibis.pool.server.host
 
 # If set to true, have the PoolInfoServer only accept a single registration

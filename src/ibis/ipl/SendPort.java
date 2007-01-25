@@ -61,7 +61,7 @@ public interface SendPort {
      * setProperty} method.
      * @return the dynamic properties of this port.
      */
-    public Map properties();
+    public Map<String, Object> properties();
 
     /**
      * Sets a number of dynamic properties of
@@ -69,7 +69,7 @@ public interface SendPort {
      * properties of the port.
      * @param properties the dynamic properties to set.
      */
-    public void setProperties(Map properties); 
+    public void setProperties(Map<String, Object> properties); 
     
     /**
      * Returns a dynamic property of
@@ -151,6 +151,7 @@ public interface SendPort {
      * Multiple connections to the same receiver are NOT allowed.
      * @exception PortMismatchException is thrown if the receiveport
      * port and the sendport are of different types.
+     * @exception IOException is thrown if a message is alive.
      */
     public void connect(ReceivePortIdentifier receiver, long timeoutMillis)
             throws IOException;

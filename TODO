@@ -5,11 +5,6 @@
 *** Plugtest ***
 
 - Gossip Registry
-- parse "classic" ip-address:port strings in smart-sockets (e.g. nameserverclient)
-- instead of TcpIbisIdentifier extends IbisIdentifier make IbisIdentifier final and
-  include a byte array for the Ibis implementation specific information. This makes
-  it easier for the nameserver to use not-known ibisses without duplicating all the "generic"
-  data such as name, cluster, etc.
 - make pools explicit in the registry (ibis.getpool() etc)
 - make it possible to monitor (parts of) ibis.
 
@@ -21,14 +16,10 @@ general:
 - to think about: would it be a good idea to allow an active upcall per
   connection instead of per receiveport? This would make satin more simple:
   no longer a receiveport per sender.
-
 - ibisidentifier -> Comparable (for Ana)
-- run central nameserver on fs0
 - split up ibis.jar in multiple files (in a sane manner)
 - move applications to a real tree, use packages.
-- network(cluster) simulator
 - steering interface
-- remove deprecated functionality
 - while(true) {fix eclipse warnings}
 - change codmon performance measurements to "sane" benchmarks
 - more efficient clone? Maybe generate code that clones without using 
@@ -38,24 +29,17 @@ general:
 - improve performance of Ibis serialization for non-rewritten code.
 - automatically started nameserver hangs when application crashes or exits
   with code 1 (with ant test)
-
 - na een connectionLost upcall geeft het sluiten van de port soms:
     Trying to close a sendport port while a message is alive!
-    Dat is natuurlijk zo, maar ja, de connectie is weg, dus dan zou je willen dat
-    de close gewoon netjes zonder exception terug komt. --Rob
+  Dat is natuurlijk zo, maar ja, de connectie is weg, dus dan zou je willen
+  dat de close gewoon netjes zonder exception terug komt. --Rob
 
 nameserver+connection stuff:
 - add out-of-band communication support to the Nameserver interface
 
 ipl:
 
-- make ibis.ipl.Ibis an interface
 - add abstract classes for all classes in ibis.ipl to ibis.impl
-- Ceriel: if there still remain classes in ibis.ipl, they should be final
-  (except for exceptions, of course :-)
-- add a final class ibis.ipl.IbisFactory which calls ibis.impl.IbisFactory
-  with reflection. It shouldn't import ibis.impl.IbisFactory as this would make
-  the ipl depend on ibis.impl (and ibisUtil, and IbisConnect, and....
 - IPL += sendPort.connect(ReceivePortIdentifier[] receivers);
 - close van poorten (in shutdownhooks)
   docs vertellen niet dat je niet een close mag doen terwijl een message
@@ -64,8 +48,7 @@ ipl:
   levend is ??? En, de javadocs vertellen dat wel degelijk.
 - change Ibis.toString() to returning a "friendly"(user-printable), but not 
   necessarily unique, string.
-- join numbering: each Ibis instance gets a join number tag.
-  
+ 
 satin:
 - if main throws an exception, we exit with code 0. Ant test also succeeds.
 - add semantic analysis to the compiler
@@ -82,7 +65,6 @@ satin:
   This is very confusing --Rob
 - ant test should also run satin apps sequentially
   (It does, does'nt it? (Ceriel) No, it does not run non-rewritten code)
-
 - investigate invocation record cache again. It makes a huge difference for
   performance of small tasks. The fact that it does not seem to work is an
   indication that there is a bug somewhere: someone touches an invocation

@@ -1,9 +1,9 @@
-/* $Id$ */
+/* $Id: PoolChecker.java 3799 2006-06-01 16:14:44Z ceriel $ */
 
-package ibis.impl.nameServer.tcp;
+package ibis.impl.registry.tcp;
 
 import ibis.connect.IbisSocketFactory;
-import ibis.impl.nameServer.NSProps;
+import ibis.impl.registry.NSProps;
 import ibis.util.IPUtils;
 
 import java.io.DataInputStream;
@@ -17,20 +17,20 @@ import java.util.Properties;
 
 import org.apache.log4j.Logger;
 
-public class KeyChecker implements Protocol {
+public class PoolChecker implements Protocol {
 
     private static IbisSocketFactory socketFactory 
         = IbisSocketFactory.getFactory();
 
     private static Logger logger
-            = ibis.util.GetLogger.getLogger(KeyChecker.class.getName());
+            = ibis.util.GetLogger.getLogger(PoolChecker.class.getName());
 
     private String poolName;
     private String serverHost;
     private int port;
     private int sleep;
 
-    public KeyChecker(String poolName, String serverHost, int port, int sleep) {
+    public PoolChecker(String poolName, String serverHost, int port, int sleep) {
         this.poolName = poolName;
         this.serverHost = serverHost;
         this.port = port;
@@ -44,7 +44,7 @@ public class KeyChecker implements Protocol {
         int sleep = 0;
 
         for (int i = 0; i < args.length; i++) {
-            if (args[i].equals("-key")) {
+            if (args[i].equals("-pool")) {
                 poolName = args[++i];
             } else if (args[i].equals("-host") || args[i].equals("-ns")) {
                 serverHost = args[++i];
@@ -66,12 +66,12 @@ public class KeyChecker implements Protocol {
             serverHost = p.getProperty(NSProps.s_host);
         }
         if (serverHost == null) {
-            logger.fatal("KeyChecker: no nameserver host specified");
+            logger.fatal("PoolChecker: no nameserver host specified");
             System.exit(1);
         }
 
         if (poolName == null) {
-            poolName = p.getProperty(NSProps.s_key);
+            poolName = p.getProperty(NSProps.s_pool);
         }
 
         if (portString == null) {
@@ -94,7 +94,7 @@ public class KeyChecker implements Protocol {
 
     static void check(String poolName, String serverHost, int port, int sleep)
             throws IOException {
-        KeyChecker ck = new KeyChecker(poolName, serverHost, port, sleep);
+        PoolChecker ck = new PoolChecker(poolName, serverHost, port, sleep);
         ck.run();
     }
 
@@ -137,7 +137,7 @@ public class KeyChecker implements Protocol {
                     myAddress, 0, -1, null);
 
             out = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
-            logger.debug("KeyChecker: contacting nameserver");
+            logger.debug("PoolChecker: contacting nameserver");
             if (poolName == null) {
                 out.writeByte(IBIS_CHECKALL);
             } else {
@@ -151,7 +151,7 @@ public class KeyChecker implements Protocol {
             int opcode = in.readByte();
 
             if (logger.isDebugEnabled()) {
-                logger.debug("KeyChecker: nameserver reply, opcode "
+                logger.debug("PoolChecker: nameserver reply, opcode "
                         + opcode);
             }
         } finally {

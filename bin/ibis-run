@@ -105,8 +105,8 @@ The ibis-run options are:
     pass profiling flags on to java, use <prefix> for the result file
 -p <prefix>
     pass different profiling flags on to java, use <prefix> for the result file
--key <key>
-    use the specified key to identify this run with the nameserver
+-pool <pool>
+    use the specified pool to identify this run with the nameserver
 -sleep <n>
     sleep <n> seconds before starting the run
 -?
@@ -198,9 +198,9 @@ fi
 
 . "$IBIS_HOME"/bin/ns-env
 
-Dns_server="-Dibis.name_server.host=$IBIS_NAMESERVER_HOST"
-Dns_port="-Dibis.name_server.port=$IBIS_NAMESERVER_PORT"
-Dns_key="-Dibis.name_server.key=no_key_supplied"
+Dns_server="-Dibis.registry.host=$IBIS_NAMESERVER_HOST"
+Dns_port="-Dibis.registry.port=$IBIS_NAMESERVER_PORT"
+Dns_pool="-Dibis.registry.pool=no_pool_supplied"
 
 hosts="$HOSTS"
 export hosts
@@ -266,12 +266,12 @@ do
 				echo "$run_name: nameserver port specified more than once" 1>&2
 				exit 1
 			fi
-			Dns_server="-Dibis.name_server.host="`expr "$1" : '\(.*\):.*'`
-			Dns_port="-Dibis.name_server.port="`expr "$1" : '.*:\(.*\)'`
+			Dns_server="-Dibis.registry.host="`expr "$1" : '\(.*\):.*'`
+			Dns_port="-Dibis.registry.port="`expr "$1" : '.*:\(.*\)'`
 			portno_specified=1
 			;;
 		*)
-			Dns_server="-Dibis.name_server.host=$1"
+			Dns_server="-Dibis.registry.host=$1"
 			;;
 		esac
 		;;
@@ -291,7 +291,7 @@ do
 		fi
 		portno_specified=1
 		shift
-		Dns_port="-Dibis.name_server.port=$1"
+		Dns_port="-Dibis.registry.port=$1"
 		;;
 	-no-bootcp)
 		needsbootclasspath=0
@@ -303,9 +303,9 @@ do
 		shift
 		ip_map="$1"
 		;;
-	-key)
+	-pool)
 		shift
-		Dns_key="-Dibis.name_server.key=$1"
+		Dns_pool="-Dibis.registry.pool=$1"
 		;;
 	-sleep)
 		shift
@@ -367,12 +367,12 @@ then
     then
 	for i in $hosts
 	do
-	    Dns_server="-Dibis.name_server.host=$i"
+	    Dns_server="-Dibis.registry.host=$i"
 	    break
 	done
     else
 	echo "ibis-run: warning: no nameserver host specified, assuming localhost" 1>&2
-	Dns_server="-Dibis.name_server.host=localhost"
+	Dns_server="-Dibis.registry.host=localhost"
     fi
 fi
 
@@ -408,7 +408,7 @@ then
 	    -Djava.library.path="$libpath" \
 	    -Dibis.library.path="$ibislib" \
 	    $Dpool_host_num $Dpool_total -Dibis.pool.host_names="$hosts" \
-	    $Dns_key $Dns_port $Dns_server $Dhub \
+	    $Dns_pool $Dns_port $Dns_server $Dhub \
 	    -Xbootclasspath/p:"$JAVACLASSPATH" \
 	    -classpath "$JAVACLASSPATH" \
 	    "$@"
@@ -418,7 +418,7 @@ then
 	    -Djava.library.path="$libpath" \
 	    -Dibis.library.path="$ibislib" \
 	    $Dpool_host_num $Dpool_total \
-	    $Dns_key $Dns_port $Dns_server $Dhub \
+	    $Dns_pool $Dns_port $Dns_server $Dhub \
 	    -Xbootclasspath/p:"$JAVACLASSPATH" \
 	    -classpath "$JAVACLASSPATH" \
 	    "$@"
@@ -431,7 +431,7 @@ else
 	    -Djava.library.path="$libpath" \
 	    -Dibis.library.path="$ibislib" \
 	    $Dpool_host_num $Dpool_total -Dibis.pool.host_names="$hosts" \
-	    $Dns_key $Dns_port $Dns_server $Dhub \
+	    $Dns_pool $Dns_port $Dns_server $Dhub \
 	    -classpath "$JAVACLASSPATH" \
 	    "$@"
     else
@@ -440,7 +440,7 @@ else
 	    -Djava.library.path="$libpath" \
 	    -Dibis.library.path="$ibislib" \
 	    $Dpool_host_num $Dpool_total \
-	    $Dns_key $Dns_port $Dns_server $Dhub \
+	    $Dns_pool $Dns_port $Dns_server $Dhub \
 	    -classpath "$JAVACLASSPATH" \
 	    "$@"
     fi

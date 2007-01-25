@@ -114,7 +114,7 @@ public interface ReceivePort {
      * setProperty} method.
      * @return the dynamic properties of this port.
      */
-    public Map properties();
+    public Map<String, Object> properties();
 
     /**
      * Sets a number of dynamic properties of
@@ -122,7 +122,7 @@ public interface ReceivePort {
      * properties of the port.
      * @param properties the dynamic properties to set.
      */
-    public void setProperties(Map properties); 
+    public void setProperties(Map<String, Object> properties); 
     
     /**
      * Returns a dynamic property of

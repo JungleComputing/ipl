@@ -1095,7 +1095,7 @@ specifies the total number of Ibis instances involved in this run.
 \item{\texttt{-hostno} \emph{hostno}}
 specifies the rank number of this Ibis instance within this run,
 so its range is $0 ... \emph{nhosts}-1$.
-\item{\texttt{-key} \emph{id}}
+\item{\texttt{-pool} \emph{id}}
 specifies the identifier used to identify the run to the nameserver.
 \item{\texttt{-ns} \emph{nameserverhost}}
 specifies the hostname of the machine where the Ibis nameserver runs.
@@ -1120,7 +1120,7 @@ system properties (see also Section \ref{PoolInfo}):
 the rank number of this Ibis instance.
 \item{\texttt{ibis.pool.total\_hosts}}
 the total number of Ibis instances.
-\item{\texttt{ibis.name\_server.key}}
+\item{\texttt{ibis.name\_server.pool}}
 identifies the run to the nameserver.
 \item{\texttt{ibis.name\_server.port}}
 the nameserver port.
@@ -1187,13 +1187,13 @@ In both shells, type:
 \begin{verbatim}
 $ java \
     -cp $IBIS_HOME/lib/ibis.jar:$IBIS_HOME/3rdparty/log4j-1.2.9.jar:build \
-    -Dibis.pool.total_hosts=2 -Dibis.name_server.host=localhost \
-    -Dibis.name_server.key=bla \
+    -Dibis.pool.total_hosts=2 -Dibis.registry.host=localhost \
+    -Dibis.registry.pool=bla \
     Example
 \end{verbatim}
 }
 \noindent
-The \texttt{ibis.name\_server.key} value can be any random string.
+The \texttt{ibis.name\_server.pool} value can be any random string.
 It identifies your run.
 This is done because one nameserver can serve multiple
 runs. For this test, we need to provide Ibis with the total number of
@@ -1918,7 +1918,7 @@ Now we can run it by typing the following command in two seperate shells:
 $ java \
     -cp $IBIS_HOME/lib/ibis.jar:$IBIS_HOME/3rdparty/log4j-1.2.9.jar:build \
     -Dibis.pool.total_hosts=2 -Dibis.pool.server.host=localhost \
-    -Dibis.name_server.host=localhost -Dibis.name_server.key=bla \
+    -Dibis.registry.host=localhost -Dibis.registry.pool=bla \
     Server table_15.1 
 \end{verbatim}
 }

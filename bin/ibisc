@@ -35,6 +35,36 @@ esac
 
 export IBIS_HOME
 
+while [ $# -gt 0 ]
+do
+# echo now inspect argument $1 -- left $#
+        case "$1" in
+	-cp)
+		shift
+		CLASSPATH="$1"
+		;;
+	*)
+		break
+                ;;
+        esac
+        shift
+done
+
+for i in *
+do
+    case $i in
+    *.jar)
+	CLASSPATH="$CLASSPATH:$i"
+	;;
+    *)
+	if [ -d $i ]
+	then
+	    CLASSPATH="$CLASSPATH:$i"
+	fi
+	;;
+    esac
+done
+
 LIBCLASSPATH=""
 
 add_to_libclasspath () {

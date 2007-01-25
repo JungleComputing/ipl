@@ -1,6 +1,6 @@
 /* $Id$ */
 
-package ibis.impl.nameServer.tcp;
+package ibis.impl.registry.tcp;
 
 import ibis.connect.IbisSocketFactory;
 

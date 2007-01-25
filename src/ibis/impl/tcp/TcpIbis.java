@@ -4,55 +4,60 @@ package ibis.impl.tcp;
 
 import ibis.connect.IbisSocketFactory;
 import ibis.impl.Ibis;
-import ibis.ipl.IbisIdentifier;
-import ibis.ipl.PortType;
+import ibis.impl.IbisIdentifier;
+import ibis.impl.ReceivePort;
+import ibis.impl.ReceivePortIdentifier;
+import ibis.impl.SendPortIdentifier;
+import ibis.io.Conversion;
+import ibis.ipl.AlreadyConnectedException;
+import ibis.ipl.ConnectionRefusedException;
+import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.PortMismatchException;
-import ibis.ipl.ReceivePortIdentifier;
-import ibis.ipl.ReceivePort;
+import ibis.ipl.PortType;
 import ibis.ipl.Registry;
 import ibis.ipl.ResizeHandler;
 import ibis.ipl.StaticProperties;
+import ibis.util.ThreadPool;
 import ibis.util.IPUtils;
 import ibis.util.TypedProperties;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.net.InetAddress;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
-import java.util.Hashtable;
+import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.HashMap;
 
-public final class TcpIbis extends Ibis implements Config {
+public final class TcpIbis extends Ibis implements Runnable, TcpProtocol {
 
-    ibis.impl.IbisIdentifier ident;
+    private ServerSocket systemServer;
 
-    InetSocketAddress myAddress;
+    private InetSocketAddress myAddress;
 
-    private ibis.impl.Registry registry;
+    private boolean quiting = false;
 
-    // private int poolSize;
+    private final IbisSocketFactory socketFactory;
 
-    private boolean resizeUpcallerEnabled = false;
-
-    private boolean busyUpcaller = false;
-
-    TcpPortHandler tcpPortHandler;
-
-    private boolean ended = false;
-
-    private boolean i_joined = false;
-
-    static {
-        TypedProperties.checkProperties(PROPERTY_PREFIX, sysprops, null);
-    }
+    private HashMap<IbisIdentifier, InetSocketAddress> addresses
+            = new HashMap<IbisIdentifier, InetSocketAddress>();
 
     public TcpIbis(ResizeHandler r, StaticProperties p1, StaticProperties p2)
             throws IOException {
+
         super(r, p1, p2);
+
         if (DEBUG) {
             System.err.println("In TcpIbis constructor");
         }
+
         InetAddress addr = IPUtils.getLocalHostAddress();
         if (addr == null) {
             System.err.println("ERROR: could not get my own IP address, "
@@ -60,10 +65,17 @@ public final class TcpIbis extends Ibis implements Config {
             System.exit(1);
         }
 
-        registry = ibis.impl.Registry.loadRegistry(this);
+        socketFactory = IbisSocketFactory.getFactory();
 
-        tcpPortHandler
-                = new TcpPortHandler(this, IbisSocketFactory.getFactory());
+        systemServer = socketFactory.createServerSocket(0, addr, true,
+                null /* don't pass properties, this is not a socket that is used for an ibis port */);
+        int port = systemServer.getLocalPort();
+
+        myAddress = new InetSocketAddress(addr, port);
+
+        if (DEBUG) {
+            System.out.println("--> TcpIbis: port = " + port);
+        }
 
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         DataOutputStream out = new DataOutputStream(bos);
@@ -72,10 +84,13 @@ public final class TcpIbis extends Ibis implements Config {
         out.flush();
         out.close();
 
-        ident = registry.init(this, resizeHandler != null, bos.toByteArray());
+        init(bos.toByteArray());
+
+        ThreadPool.createNew(this, "TcpIbis");
 
         if (DEBUG) {
-            System.err.println("Out of TcpIbis constructor, ident = " + ident);
+            System.err.println("Out of TcpIbis constructor, ident = "
+                    + identifier());
         }
         /*
         try {
@@ -89,152 +104,291 @@ public final class TcpIbis extends Ibis implements Config {
     protected PortType newPortType(StaticProperties p)
             throws PortMismatchException {
 
-        TcpPortType resultPort = new TcpPortType(this, p);
-        p = resultPort.properties();
+        return new TcpPortType(this, p);
+    }
+
+    ibis.ipl.ReceivePortIdentifier connect(TcpSendPort sp,
+            IbisIdentifier id, String name, ibis.ipl.ReceivePortIdentifier rip,
+            int timeout) throws IOException {
+        Socket s = null;
+
+        InetSocketAddress idAddr;
+        int port;
+
+        synchronized(addresses) {
+            idAddr = (InetSocketAddress) addresses.get(id);
+            if (idAddr == null) {
+                byte[] b = id.getData();
+                DataInputStream in = new DataInputStream(new ByteArrayInputStream(b));
+                String addr = in.readUTF();
+                port = in.readInt();
+                in.close();
+                try {
+                    idAddr = new InetSocketAddress(InetAddress.getByName(addr),
+                            port);
+                } catch(Exception e) {
+                    throw new IOException("Could not get address from " + id);
+                }
+                addresses.put(id, idAddr);
+            }
+        }
+
+        port = idAddr.getPort();
+
+        long startTime = System.currentTimeMillis();
+
+        try {
+            if (DEBUG) {
+                System.err.println("--> Creating socket for connection to "
+                        + name + " at " + id + ", port = " + port);
+            }
+
+            do {
+                s = socketFactory.createClientSocket(idAddr.getAddress(), port,
+                        myAddress.getAddress(), 0, timeout,
+                        sp.properties());
+
+                InputStream sin = s.getInputStream();
+                OutputStream sout = s.getOutputStream();
+                DataOutputStream data_out = new DataOutputStream(
+                        new BufferedOutputStream(sout));
+                DataInputStream data_in = new DataInputStream(
+                        new BufferedInputStream(sin));
+
+		byte[] spIdent = Conversion.object2byte(sp.identifier());
+
+                data_out.writeUTF(name);
+		data_out.writeInt(spIdent.length);
+		data_out.write(spIdent, 0, spIdent.length);
+		data_out.flush();
+
+                int result = data_in.readByte();
+                byte[] buf = null;
+                Socket s1 = null;
+
+                if (result == ReceivePort.ACCEPTED) {
+                    int len = data_in.readInt();
+                    buf = new byte[len];
+                    data_in.readFully(buf, 0, len);
+		    s1 = socketFactory.createBrokeredSocket(
+			data_in, data_out, false,
+			sp.properties());
+                }
+
+                data_out.close();
+                data_in.close();
+                s.close();
+
+		switch(result) {
+		case ReceivePort.ACCEPTED:
+                    ReceivePortIdentifier recv = null;
+                    try {
+                        recv = (ReceivePortIdentifier)
+                                Conversion.byte2object(buf);
+                    } catch(ClassNotFoundException e) {
+                        throw new Error("Wrong class in TcpIbis.connect", e);
+                    }
+                    if (rip != null) {
+                        recv = (ReceivePortIdentifier) rip;
+                    }
+                    sp.addConn(recv, s1);
+                    return recv;
+                case ReceivePort.ALREADY_CONNECTED:
+                    throw new AlreadyConnectedException(
+                            "The sender was already connected to " + name
+                            + " at " + id);
+                case ReceivePort.TYPE_MISMATCH:
+                    throw new PortMismatchException(
+                            "Cannot connect ports of different PortTypes");
+		case ReceivePort.DENIED:
+                    if (rip != null) {
+                        throw new ConnectionRefusedException("Receiver denied connection");
+                    }
+                    // fall through
+		case ReceivePort.DISABLED:
+		    // and try again if we did not reach the timeout...
+		    if (timeout > 0
+                        && System.currentTimeMillis() > startTime + timeout) {
+			throw new ConnectionTimedOutException("could not connect");
+		    }
+		    try {
+			Thread.sleep(100);
+		    } catch (InterruptedException e) {
+			// ignore
+		    }
+		    break;
+		default:
+		    throw new Error("Illegal opcode in TcpPorthandler.connect");
+		}
+
+            } while (true);
+        } catch (IOException e) {
+            // e.printStackTrace();
+            try {
+                if (s != null) {
+                    s.close();
+                }
+            } catch (Exception e2) {
+                // Ignore.
+            }
+            // just rethrow the original exception, otherwise, we loose the type! --Rob
+            throw e; // new ConnectionRefusedException("Could not connect: " + e);
+        }
+    }
+
+    protected void quit() {
+        try {
+            quiting = true;
+            /* Connect to the serversocket, so that the port handler
+             * thread wakes up.
+             */
+            InetAddress addr = myAddress.getAddress();
+            int port = myAddress.getPort();
+            socketFactory.createClientSocket(addr, port, addr, 0, 0, null);
+        } catch (Exception e) {
+            // Ignore
+        }
+    }
+
+    /* returns: was it a close i.e. do we need to exit this thread */
+    private void handleRequest(Socket s) throws Exception {
+        if (DEBUG) {
+            System.err.println("--> portHandler got new connection from "
+                    + s.getInetAddress() + ":"
+                    + s.getPort() + " on local port " + s.getLocalPort());
+        }
+        InputStream in = s.getInputStream();
+        OutputStream out = s.getOutputStream();
+
+        DataInputStream data_in = new DataInputStream(new BufferedInputStream(in));
+	DataOutputStream data_out = new DataOutputStream(new BufferedOutputStream(out));
+
+        String name = data_in.readUTF();
+
+	int spLen = data_in.readInt();
+	byte[] sp = new byte[spLen];
+	data_in.readFully(sp, 0, sp.length);
+	SendPortIdentifier send = (SendPortIdentifier)
+            Conversion.byte2object(sp);
+
+        /* First, try to find the receive port this message is for... */
+        TcpReceivePort rp = (TcpReceivePort) findReceivePort(name);
 
         if (DEBUG) {
-            System.out.println("" + this.ident.getId() + ": created PortType "
-                    + "with properties " + p);
+            System.err.println("--> S  RP = "
+                    + (rp == null ? "not found" : rp.identifier().toString()));
         }
 
-        return resultPort;
+        int result;
+        if (rp == null) {
+            result = ReceivePort.DENIED;
+        } else if (rp.isConnectedTo(send)) {
+            result = ReceivePort.ALREADY_CONNECTED;
+        } else {
+            result = rp.connectionAllowed(send);
+        }
+
+        Socket s1 = null;
+	data_out.writeByte(result);
+        if (result == ReceivePort.ACCEPTED) {
+            byte[] recv = Conversion.object2byte(rp.identifier());
+            data_out.writeInt(recv.length);
+            data_out.write(recv, 0, recv.length);
+            data_out.flush();
+            s1 = socketFactory.createBrokeredSocket(data_in, data_out, true, rp.properties());
+            /* add the connection to the receiveport. */
+            rp.connect(send, s1);
+
+            if (DEBUG) {
+                System.err.println("--> S connect done ");
+            }
+        }
+
+        data_out.close();
+        data_in.close();
+        s.close();
     }
 
-    long getSeqno(String nm) throws IOException {
-        return registry.getSeqno(nm);
-    }
+    public void run() {
+        /* This thread handles incoming connection request from the
+         * connect(TcpSendPort) call.
+         */
 
-    public Registry registry() {
-        return registry;
-    }
+        if (DEBUG) {
+            System.err.println("--> TcpIbis running");
+        }
 
-    public IbisIdentifier identifier() {
-        return ident;
-    }
+        while (true) {
+            Socket s = null;
 
+            if (DEBUG) {
+                System.err.println("--> PortHandler doing new accept()");
+            }
 
-    private synchronized void waitForEnabled() {
-        while (! resizeUpcallerEnabled) {
             try {
-                wait();
-            } catch(Exception e) {
-                // ignored
-            }
-        }
-        busyUpcaller = true;
-    }
-
-    /**
-     * This method forwards the join to the application running on top of ibis.
-     */
-    public void joined(IbisIdentifier[] joinIdent) {
-        if (resizeHandler != null) {
-            waitForEnabled();
-            for (int i = 0; i < joinIdent.length; i++) {
-                IbisIdentifier id = joinIdent[i];
-                resizeHandler.joined(id);
-                if (id.equals(this.ident)) {
-                    synchronized(this) {
-                        i_joined = true;
-                        notifyAll();
-                    }
-                }
-            }
-            synchronized(this) {
-                busyUpcaller = false;
-            }
-        }
-    }
-
-    /**
-     * This method forwards the leave to the application running on top of ibis.
-     */
-    public void left(IbisIdentifier[] leaveIdent) {
-        if (resizeHandler != null) {
-            waitForEnabled();
-            for (int i = 0; i < leaveIdent.length; i++) {
-                IbisIdentifier id = leaveIdent[i];
-                resizeHandler.left(id);
-            }
-            synchronized(this) {
-                busyUpcaller = false;
-            }
-        }
-    }
-
-    /**
-     * This method forwards the died to the application running on top of ibis.
-     */
-    public void died(IbisIdentifier[] corpses) {
-        if (resizeHandler != null) {
-            waitForEnabled();
-            for (int i = 0; i < corpses.length; i++) {
-                IbisIdentifier id = corpses[i];
-                resizeHandler.died(id);
-            }
-            synchronized(this) {
-                busyUpcaller = false;
-            }
-        }
-    }
-
-    /**
-     * This method forwards the mustLeave to the application running on top of
-     * ibis.
-     */
-    public void mustLeave(IbisIdentifier[] ibisses) {
-        if (resizeHandler != null) {
-            waitForEnabled();
-            resizeHandler.mustLeave(ibisses);
-            synchronized(this) {
-                busyUpcaller = false;
-            }
-        }
-    }
-
-    public synchronized void enableResizeUpcalls() {
-        resizeUpcallerEnabled = true;
-        notifyAll();
-
-        if (resizeHandler != null && !i_joined) {
-            while (!i_joined) {
+                s = systemServer.accept();
+            } catch (Exception e) {
+                /* if the accept itself fails, we have a fatal problem.
+                 Close this receiveport.
+                 */
                 try {
-                    wait();
-                } catch (Exception e) {
-                    /* ignore */
+                    System.err
+                            .println("EEK: TcpIbis:run: got exception "
+                                    + "in accept ReceivePort closing!: " + e);
+                    e.printStackTrace();
+                } catch (Exception e1) {
+                    e1.printStackTrace();
+                }
+
+                cleanup();
+                throw new Error("Fatal: PortHandler could not do an accept");
+            }
+
+            if (DEBUG) {
+                System.err.println("--> PortHandler through new accept()");
+            }
+            try {
+                if (quiting) {
+                    if (DEBUG) {
+                        System.err.println("--> it is a quit");
+                    }
+
+                    systemServer.close();
+                    s.close();
+                    if (DEBUG) {
+                        System.err.println("--> it is a quit: RETURN");
+                    }
+
+                    cleanup();
+                    return;
+                }
+
+                handleRequest(s);
+
+            } catch (Exception e) {
+                try {
+                    System.err
+                            .println("EEK: TcpIbis:run: got exception "
+                                    + "(closing this socket only: " + e);
+                    e.printStackTrace();
+                    if (s != null) {
+                        s.close();
+                    }
+                } catch (Exception e1) {
+                    e1.printStackTrace();
                 }
             }
         }
     }
 
-    public synchronized void disableResizeUpcalls() {
-        while (busyUpcaller) {
-            try {
-                wait();
-            } catch(Exception e) {
-                // nothing
-            }
-        }
-        resizeUpcallerEnabled = false;
-    }
-
-    public void end() {
-        synchronized (this) {
-            if (ended) {
-                return;
-            }
-            ended = true;
-        }
+    private void cleanup() {
         try {
-            if (registry != null) {
-                registry.leave();
+            if (systemServer != null) {
+                systemServer.close();
             }
-            if (tcpPortHandler != null) {
-                tcpPortHandler.quit();
-            }
+            systemServer = null;
         } catch (Exception e) {
-            throw new RuntimeException(
-                    "Registry: leave failed ", e);
+            // Ignore
         }
     }
 

@@ -230,6 +230,7 @@ class ClassLister {
         return list;
     }
 }
+
 /**
  * This is the class responsible for starting an Ibis instance.
  * During initialization, this class determines which Ibis implementations
@@ -255,7 +256,7 @@ public final class IbisFactory {
 
     private static final String[] excludes = { "ibis.util.", "ibis.connect.",
             "ibis.pool.", "ibis.io.", "ibis.net.", "ibis.mp.", "ibis.nio.",
-            "ibis.tcp.", "ibis.name_server.", "ibis.name", "ibis.verbose",
+            "ibis.tcp.", "ibis.registry.", "ibis.name", "ibis.verbose",
             "ibis.communication", "ibis.serialization", "ibis.worldmodel" };
 
     private static final String implPathValue

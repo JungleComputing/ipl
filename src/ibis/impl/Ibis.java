@@ -2,29 +2,27 @@
 
 package ibis.impl;
 
-import ibis.ipl.StaticProperties;
+import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.PortMismatchException;
 import ibis.ipl.ResizeHandler;
+import ibis.ipl.StaticProperties;
 
-import ibis.util.ClassLister;
 import ibis.util.IPUtils;
 import ibis.util.TypedProperties;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
+import java.util.HashMap;
 
 /**
  * Base class for Ibis implementations. All Ibis implementations must
  * extend this class.
  */
 
-public abstract class Ibis implements ibis.ipl.Ibis {
+public abstract class Ibis implements ibis.ipl.Ibis, Config {
 
     /** A user-supplied resize handler, with join/leave upcalls. */
-    protected ResizeHandler resizeHandler;
+    private ResizeHandler resizeHandler;
 
     /**
      * Properties, as given to
@@ -34,6 +32,24 @@ public abstract class Ibis implements ibis.ipl.Ibis {
 
     /** User properties, combined with required properties. */
     protected StaticProperties combinedProps;
+
+    private Registry registry;
+
+    private IbisIdentifier ident;
+
+    private boolean i_joined = false;
+
+    private boolean busyUpcaller = false;
+
+    private boolean resizeUpcallerEnabled = false;
+
+    private boolean ended = false;
+
+    private HashMap<String, ReceivePort> receivePorts;
+
+    static {
+        TypedProperties.checkProperties(PROPERTY_PREFIX, sysprops, null);
+    }
 
     /**
      * Initializes the fields of this class with the specified values.
@@ -51,6 +67,29 @@ public abstract class Ibis implements ibis.ipl.Ibis {
         this.resizeHandler = resizeHandler;
         this.requiredProps = requiredProps;
         this.combinedProps = combinedProps;
+        registry = ibis.impl.Registry.loadRegistry(this);
+        receivePorts = new HashMap<String, ReceivePort>();
+    }
+
+    /**
+     * To be called by the implementation-specific constructor, to initialize the registry
+     * and Ibis identifier.
+     * @param data the implementation-dependent data in the Ibis identifier.
+     */
+    protected void init(byte[] data) throws IOException {
+        ident = registry.init(this, resizeHandler != null, data);
+    }
+
+    public long getSeqno(String nm) throws IOException {
+        return registry.getSeqno(nm);
+    }
+
+    public Registry registry() {
+        return registry;
+    }
+
+    public ibis.ipl.IbisIdentifier identifier() {
+        return ident;
     }
 
     public ibis.ipl.PortType createPortType(StaticProperties p)
@@ -70,9 +109,22 @@ public abstract class Ibis implements ibis.ipl.Ibis {
              * with that.
              */
             p = new StaticProperties(combinedProps.combine(p));
-            p.add("worldmodel", ""); // not significant for port type,
-            // and may conflict with the ibis prop.
-            checkPortProperties(p);
+            // Select the properties that are significant for the port type.
+            StaticProperties portProps = new StaticProperties();
+            String prop = p.find("communication");
+            if (prop != null) {
+                portProps.add("communication", prop);
+            }
+            prop = p.find("serialization");
+            if (prop != null) {
+                portProps.add("serialization", prop);
+            }
+            prop = p.find("serialization.replacer");
+            if (prop != null) {
+                portProps.addLiteral("serialization.replacer", prop);
+            }
+            checkPortProperties(portProps);
+            p = portProps;
         }
         if (combinedProps.find("verbose") != null) {
             System.out.println("Creating port type"
@@ -115,7 +167,19 @@ public abstract class Ibis implements ibis.ipl.Ibis {
         if (combinedProps.isProp("worldmodel", "closed")) {
             return TypedProperties.intProperty("ibis.pool.total_hosts");
         }
-        return -1;
+        throw new IbisConfigurationException("totalNrOfIbisesInPool called but open world run");
+    }
+
+
+    private synchronized void waitForEnabled() {
+        while (! resizeUpcallerEnabled) {
+            try {
+                wait();
+            } catch(Exception e) {
+                // ignored
+            }
+        }
+        busyUpcaller = true;
     }
 
     /**
@@ -124,7 +188,24 @@ public abstract class Ibis implements ibis.ipl.Ibis {
      * @param joinIdents the Ibis {@linkplain ibis.ipl.IbisIdentifier
      * identifiers} of the Ibis instances joining the run.
      */
-    public abstract void joined(ibis.ipl.IbisIdentifier[] joinIdents);
+    public void joined(ibis.ipl.IbisIdentifier[] joinIdent) {
+        if (resizeHandler != null) {
+            waitForEnabled();
+            for (int i = 0; i < joinIdent.length; i++) {
+                ibis.ipl.IbisIdentifier id = joinIdent[i];
+                resizeHandler.joined(id);
+                if (id.equals(this.ident)) {
+                    synchronized(this) {
+                        i_joined = true;
+                        notifyAll();
+                    }
+                }
+            }
+            synchronized(this) {
+                busyUpcaller = false;
+            }
+        }
+    }
 
     /**
      * Notifies this Ibis instance that other Ibis instances have
@@ -132,14 +213,36 @@ public abstract class Ibis implements ibis.ipl.Ibis {
      * @param leaveIdents the Ibis {@linkplain ibis.ipl.IbisIdentifier
      *  identifiers} of the Ibis instances leaving the run.
      */
-    public abstract void left(ibis.ipl.IbisIdentifier[] leaveIdents);
+    public void left(IbisIdentifier[] leaveIdent) {
+        if (resizeHandler != null) {
+            waitForEnabled();
+            for (int i = 0; i < leaveIdent.length; i++) {
+                IbisIdentifier id = leaveIdent[i];
+                resizeHandler.left(id);
+            }
+            synchronized(this) {
+                busyUpcaller = false;
+            }
+        }
+    }
 
     /**
      * Notifies this Ibis instance that other Ibis instances have died.
      * @param corpses the Ibis {@linkplain ibis.ipl.IbisIdentifier
      *  identifiers} of the Ibis instances that died.
      */
-    public abstract void died(ibis.ipl.IbisIdentifier[] corpses);
+    public void died(IbisIdentifier[] corpses) {
+        if (resizeHandler != null) {
+            waitForEnabled();
+            for (int i = 0; i < corpses.length; i++) {
+                IbisIdentifier id = corpses[i];
+                resizeHandler.died(id);
+            }
+            synchronized(this) {
+                busyUpcaller = false;
+            }
+        }
+    }
 
     /**
      * Notifies this Ibis instance that some Ibis instances are requested
@@ -147,7 +250,41 @@ public abstract class Ibis implements ibis.ipl.Ibis {
      * @param ibisses the Ibis {@linkplain ibis.ipl.IbisIdentifier
      *  identifiers} of the Ibis instances that are requested to leave.
      */
-    public abstract void mustLeave(ibis.ipl.IbisIdentifier[] ibisses);
+    public void mustLeave(IbisIdentifier[] ibisses) {
+        if (resizeHandler != null) {
+            waitForEnabled();
+            resizeHandler.mustLeave(ibisses);
+            synchronized(this) {
+                busyUpcaller = false;
+            }
+        }
+    }
+
+    public synchronized void enableResizeUpcalls() {
+        resizeUpcallerEnabled = true;
+        notifyAll();
+
+        if (resizeHandler != null && !i_joined) {
+            while (!i_joined) {
+                try {
+                    wait();
+                } catch (Exception e) {
+                    /* ignore */
+                }
+            }
+        }
+    }
+
+    public synchronized void disableResizeUpcalls() {
+        while (busyUpcaller) {
+            try {
+                wait();
+            } catch(Exception e) {
+                // nothing
+            }
+        }
+        resizeUpcallerEnabled = false;
+    }
 
     public StaticProperties properties() {
         return ibis.ipl.IbisFactory.staticProperties(this.getClass().getName());
@@ -178,5 +315,39 @@ public abstract class Ibis implements ibis.ipl.Ibis {
 
     public void printStatistics() { 
         // default is empty
+    }
+
+    protected synchronized ReceivePort findReceivePort(String name) {
+        return receivePorts.get(name);
+    }
+
+    synchronized void register(ReceivePort p) {
+        if (receivePorts.get(p.name) != null) {
+            throw new Error("Multiple instances of receive port named " + p.name);
+        }
+        receivePorts.put(p.name, p);
+    }
+
+    synchronized void deRegister(ReceivePort p) {
+        if (receivePorts.remove(p.name) == null) {
+            throw new Error("Trying to remove unknown receiveport");
+        }
+    }
+
+    protected abstract void quit();
+
+    public void end() {
+        synchronized (this) {
+            if (ended) {
+                return;
+            }
+            ended = true;
+        }
+        try {
+            registry.leave();
+        } catch (Exception e) {
+            throw new RuntimeException("Registry: leave failed ", e);
+        }
+        quit();
     }
 }

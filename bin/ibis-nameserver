@@ -144,7 +144,7 @@ do
 	;;
     -checker)
 	shift
-	Ddefines="$Ddefines -Dibis.name_server.checkerInterval=$1"
+	Ddefines="$Ddefines -Dibis.registry.checkerInterval=$1"
 	;;
     -poolserver|-no-poolserver|-single|-no-controlhub)
 	args="$args $1"
@@ -170,7 +170,7 @@ do
 	;;
     -port|-ns-port)
 	shift
-	Ddefines="$Ddefines -Dibis.name_server.port=$1"
+	Ddefines="$Ddefines -Dibis.registry.port=$1"
 	;;
     -poolport|-pool-port)
 	shift
@@ -208,7 +208,7 @@ do
 done
 
 if [ $has_enable -eq 1 ]; then
-    Ddefines="$Ddefines -Dibis.connect.control_links=RoutedMessages -Dibis.connect.data_links=PlainTCP -Dibis.name_server.host=`hostname -f`"
+    Ddefines="$Ddefines -Dibis.connect.control_links=RoutedMessages -Dibis.connect.data_links=PlainTCP -Dibis.registry.host=`hostname -f`"
 fi
 
 case X$JAVA_HOME in
@@ -220,4 +220,4 @@ X)
     ;;
 esac
 
-"$JAVA" -classpath "$JAVACLASSPATH" $Ddefines $javaargs ibis.impl.nameServer.tcp.NameServer $args
+"$JAVA" -classpath "$JAVACLASSPATH" $Ddefines $javaargs ibis.impl.registry.tcp.NameServer $args

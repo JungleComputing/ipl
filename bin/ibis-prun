@@ -51,7 +51,7 @@ X$PRUN_CPU_RANK)
 	;;
 esac
 
-key="$PRUN_ENV"
+pool="$PRUN_ENV"
 
 function usage () {
 cat << 'EOF'
@@ -83,8 +83,8 @@ The ibis-prun parameters are:
     specifies that the javawrapper must not be used
 -jdb
     execute jdb instead of java
--key <key>
-    use <key> for identification with the nameserver, instead of the
+-pool <pool>
+    use <pool> for identification with the nameserver, instead of the
     prun-supplied one
 -no-jit
     disable just-in-time compiling
@@ -174,9 +174,9 @@ do
 	-jdb)
 		args="$args $1"
 		;;
-	-key)
+	-pool)
 		shift
-		key="$1"
+		pool="$1"
 		;;
 	-no-jit)
 		args="$args $1"
@@ -359,7 +359,7 @@ then
 	JAVACLASSPATH="$LIBCLASSPATH:"
 	$JAVA \
 		-classpath $JAVACLASSPATH \
-		ibis.impl.nameServer.tcp.NameServer -single
+		ibis.impl.registry.tcp.NameServer -single
 elif [ $i_am_cluster_coord -eq 1 ]
 then
 	JAVACLASSPATH="$LIBCLASSPATH:"
@@ -372,13 +372,13 @@ else
 	if [ $no_pool -eq 0 ]
 	then
 		. $IBIS_HOME/bin/ibis-run -action "$action" $args \
-				-key "$key" \
+				-pool "$pool" \
 				-nhosts $NHOSTS \
 				-hosts "$hosts" \
 				-hostno $PRUN_CPU_RANK -- "$@"
 	else
 		. $IBIS_HOME/bin/ibis-run -action "$action" $args \
-				-key "$key" \
+				-pool "$pool" \
 				-- "$@"
 	fi
 fi

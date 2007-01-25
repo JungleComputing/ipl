@@ -46,8 +46,8 @@ rem
 
 call "%IBIS_HOME%\bin\ns-env"
 
-set Dns_port="-Dibis.name_server.port=%IBIS_NAMESERVER_PORT%"
-set Dns_pool="-Dibis.name_server.key=no_key_supplied"
+set Dns_port="-Dibis.registry.port=%IBIS_NAMESERVER_PORT%"
+set Dns_pool="-Dibis.registry.pool=no_pool_supplied"
 
 rem
 rem parse arguments
@@ -102,13 +102,13 @@ if "%1"=="-n" (
     goto nextarg
 )
 if "%1"=="-ns" (
-    set Dns_server="-Dibis.name_server.host=%2"
+    set Dns_server="-Dibis.registry.host=%2"
     set ns_specified=1
     shift
     goto nextarg
 )
 if "%1"=="-ns-port" (
-    set Dns_port="-Dibis.name_server.port=%2"
+    set Dns_port="-Dibis.registry.port=%2"
     shift
     goto nextarg
 )
@@ -122,8 +122,8 @@ if "%1"=="-p" (
     shift
     goto nextarg
 )
-if "%1"=="-key" (
-    set Dns_pool="-Dibis.name_server.key=%2"
+if "%1"=="-pool" (
+    set Dns_pool="-Dibis.registry.pool=%2"
     shift
     goto nextarg
 )
@@ -164,7 +164,7 @@ if "%bootcp%"=="1" (
 )
 if "%ns_specified%"=="0" (
     echo ibis-run: warning: no nameserver host specified, assuming localhost
-    set Dns_server="-Dibis.name_server.host=localhost"
+    set Dns_server="-Dibis.registry.host=localhost"
 )
 if "%attach%"=="1" (
     set JIT_OPTS=%JIT_OPTS% -Xdebug -Xnoagent -Xrunjdwp:transport=dt_socket,address=8000,server=y,suspend=n -Djava.compiler=NONE
@@ -246,8 +246,8 @@ goto end
     echo     pass profiling flags on to java, use ^<prefix^> for the result file
     echo -p ^<prefix^>
     echo     pass different profiling flags on to java, use ^<prefix^> for the result file
-    echo -key ^<key^>
-    echo     use the specified key to identify this run with the nameserver
+    echo -pool ^<pool^>
+    echo     use the specified pool to identify this run with the nameserver
     echo -?
     echo -h
     echo -help

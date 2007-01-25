@@ -6,11 +6,17 @@ package ibis.impl;
  * Identifies an Ibis instance on the network.
  */
 public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
+    // TODO: add pool (what used to be named key)
     /**
      * This field is used to indicate to which virtual or physical cluster
      * this ibis belongs.
      */
     private final String cluster;
+
+    /**
+     * Hostname on which this Ibis instance runs.
+     */
+    private final String host;
 
     /**
      * Numbering of Ibis instances, provided by the registry.
@@ -25,10 +31,11 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
     /**
      * Constructs an <code>IbisIdentifier</code>.
      */
-    public IbisIdentifier(int id, byte[] data, String cluster) {
+    public IbisIdentifier(int id, byte[] data, String cluster, String host) {
         this.joinId = id;
         this.data = data;
         this.cluster = cluster;
+        this.host = host;
     }
 
     /**
@@ -75,13 +82,10 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
     }
 
     /**
-     * Returns a string identifying the Ibis instance to which this
-     * <code>IbisIdentifier</code> refers. This method can be overridden
-     * by Ibis implementations to add more information for debugging prints.
      * @return a string representation of this IbisIdentifier.
      */
     public String toString() {
-        return "(IbisNo " + joinId + ")";
+        return "(Ibis on " + host + ", id " + joinId + ")";
     }
 
     /**

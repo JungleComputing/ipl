@@ -3,8 +3,9 @@
 package ibis.ipl;
 
 /**
- * Identifies an Ibis on the network. Implementations probably redefine
- * hashCode() and equals().
+ * Identifies an Ibis on the network. Should be comparable with
+ * <code>equals()</code>, so implementations probably redefine
+ * <code>hashCode()</code> and <code>equals()</code>.
  */
 public interface IbisIdentifier extends java.io.Serializable {
     /**

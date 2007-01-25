@@ -76,13 +76,13 @@ if "%1"=="-controlhub" (
 )
 
 if "%1"=="-port" (
-    set Dport="-Dibis.name_server.port=%2"
+    set Dport="-Dibis.registry.port=%2"
     shift
     goto nextarg
 )
 
 if "%1"=="-ns-port" (
-    set Dport="-Dibis.name_server.port=%2"
+    set Dport="-Dibis.registry.port=%2"
     shift
     goto nextarg
 )
@@ -143,7 +143,7 @@ if not "%JAVA_HOME%"=="" (
     set JAVA=%JAVA_HOME\bin\java
 )
 
-"%JAVA%" -classpath "%JAVACLASSPATH%" %Dhub% %Dport% %Dpoolport% %Dhubport% %Dhubhost% %JAVA_ARGS% ibis.impl.nameServer.tcp.NameServer %NS_ARGS%
+"%JAVA%" -classpath "%JAVACLASSPATH%" %Dhub% %Dport% %Dpoolport% %Dhubport% %Dhubhost% %JAVA_ARGS% ibis.impl.registry.tcp.NameServer %NS_ARGS%
 
 goto end
 

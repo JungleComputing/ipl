@@ -1,9 +1,9 @@
 /* $Id$ */
 
-package ibis.impl.nameServer.tcp;
+package ibis.impl.registry.tcp;
 
 import ibis.connect.IbisSocketFactory;
-import ibis.impl.nameServer.NSProps;
+import ibis.impl.registry.NSProps;
 import ibis.io.Conversion;
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.ConnectionTimedOutException;
@@ -138,14 +138,14 @@ public class NameServerClient extends ibis.impl.Registry
             command.add(javadir + filesep + "bin" + filesep + "java");
             command.add("-classpath");
             command.add(javapath + pathsep);
-            command.add("-Dibis.name_server.port="+prt);
+            command.add("-Dibis.registry.port="+prt);
             if (hubhost != null && ! srvr.equals(hubhost)) {
                 command.add("-Dibis.connect.hub.host=" + hubhost);
             }
             if (hubport != null) {
                 command.add("-Dibis.connect.hub.port=" + hubport);
             }
-            command.add("ibis.impl.nameServer.tcp.NameServer");
+            command.add("ibis.impl.registry.tcp.NameServer");
             command.add("-single");
             command.add("-no-retry");
             command.add("-silent");
@@ -246,17 +246,17 @@ public class NameServerClient extends ibis.impl.Registry
         server = p.getProperty(NSProps.s_host);
         if (server == null) {
             throw new IbisConfigurationException(
-                    "property ibis.name_server.host is not specified");
+                    "property ibis.registry.host is not specified");
         }
 
         if (server.equals("localhost")) {
             server = myAddress.getHostName();
         }
 
-        poolName = p.getProperty(NSProps.s_key);
+        poolName = p.getProperty(NSProps.s_pool);
         if (poolName == null) {
             throw new IbisConfigurationException(
-                    "property ibis.name_server.key is not specified");
+                    "property ibis.registry.pool is not specified");
         }
 
         String nameServerPortString = p.getProperty(NSProps.s_port);
@@ -307,6 +307,7 @@ public class NameServerClient extends ibis.impl.Registry
             out.writeInt(data.length);
             out.write(data);
             out.writeUTF(IbisIdentifier.getCluster());
+            out.writeUTF(myAddress.getHostName());
             out.flush();
 
             in = new DataInputStream(new BufferedInputStream(s.getInputStream()));
