@@ -40,9 +40,6 @@ import java.util.Map;
  */
 public interface ReceivePort {
 
-    /** Name for anonymous ports. */
-    public static final String ANONYMOUS = "__anonymous__";
-
     /**
      * Returns the type that was used to create this port.
      * @return the type that was used to create this port.

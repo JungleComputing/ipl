@@ -256,7 +256,7 @@ public final class IbisFactory {
 
     private static final String[] excludes = { "ibis.util.", "ibis.connect.",
             "ibis.pool.", "ibis.io.", "ibis.net.", "ibis.mp.", "ibis.nio.",
-            "ibis.tcp.", "ibis.registry.", "ibis.name", "ibis.verbose",
+            "ibis.impl.", "ibis.registry.", "ibis.name", "ibis.verbose",
             "ibis.communication", "ibis.serialization", "ibis.worldmodel" };
 
     private static final String implPathValue

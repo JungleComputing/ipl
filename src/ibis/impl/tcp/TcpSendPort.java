@@ -2,22 +2,22 @@
 
 package ibis.impl.tcp;
 
+import ibis.impl.Ibis;
 import ibis.impl.IbisIdentifier;
+import ibis.impl.ReceivePortIdentifier;
 import ibis.impl.SendPortConnectionInfo;
 import ibis.impl.WriteMessage;
 import ibis.io.BufferedArrayOutputStream;
 import ibis.io.Conversion;
 import ibis.io.OutputStreamSplitter;
 import ibis.io.SplitterException;
-import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPortConnectUpcall;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
 
-final class TcpSendPort extends ibis.impl.SendPort
-        implements TcpProtocol {
+final class TcpSendPort extends ibis.impl.SendPort implements TcpProtocol {
 
     private class Conn extends SendPortConnectionInfo {
         Socket s;
@@ -43,11 +43,10 @@ final class TcpSendPort extends ibis.impl.SendPort
 
     private final BufferedArrayOutputStream bufferedStream;
 
-    TcpSendPort(TcpIbis ibis, TcpPortType type, String name,
+    TcpSendPort(Ibis ibis, TcpPortType type, String name,
             boolean connectionAdministration, SendPortConnectUpcall cU)
             throws IOException {
-        super(ibis, type, name, (IbisIdentifier) ibis.identifier(),
-                connectionAdministration, cU);
+        super(ibis, type, name, connectionAdministration, cU);
 
         boolean connectAdmin = connectionAdministration || (cU != null);
 
@@ -75,16 +74,14 @@ final class TcpSendPort extends ibis.impl.SendPort
 
         out.writeByte(CLOSE_ONE_CONNECTION);
 
-        byte[] receiverBytes = Conversion.object2byte(receiver);
+        byte[] receiverBytes = ((ReceivePortIdentifier)receiver).getBytes();
         byte[] receiverLength = new byte[Conversion.INT_SIZE];
         Conversion.defaultConversion.int2byte(receiverBytes.length,
             receiverLength, 0);
         out.writeArray(receiverLength);
         out.writeArray(receiverBytes);
         out.flush();
-        // Not close! Or, if we do close, we should also create a new
-        // stream! (Ceriel)
-        // out.close();
+        // Don't close the stream.
     }
 
     protected void announceNewMessage() throws IOException {
@@ -92,10 +89,6 @@ final class TcpSendPort extends ibis.impl.SendPort
         if (numbered) {
             out.writeLong(ibis.getSeqno(name));
         }
-    }
-
-    protected long bytesWritten(WriteMessage w) {
-        return bufferedStream.bytesWritten();
     }
 
     protected void handleSendException(WriteMessage w, IOException e)
@@ -110,7 +103,9 @@ final class TcpSendPort extends ibis.impl.SendPort
     // If we have connectionUpcalls, forward exception to
     // upcalls. Otherwise, rethrow the exception to the user.
     private void forwardLosses(SplitterException e) throws IOException {
-        ReceivePortIdentifier[] ports = connectedTo();
+        ReceivePortIdentifier[] ports = receivers.keySet().toArray(
+                new ReceivePortIdentifier[0]);
+
         for (int i = 0; i < ports.length; i++) {
             Conn c = (Conn) getInfo(ports[i]);
             for (int j = 0; j < e.count(); j++) {
@@ -127,35 +122,23 @@ final class TcpSendPort extends ibis.impl.SendPort
         }
     }
 
-    protected void closePort() throws IOException {
-
+    protected void closePort() {
         try {
             out.writeByte(CLOSE_ALL_CONNECTIONS);
             out.reset();
             out.close();
         } catch (IOException e) {
-            // System.err.println("Error in TcpSendPort.close: " + e);
-            // e.printStackTrace();
+            // ignored
         }
 
         out = null;
     }
 
-    void addConn(ReceivePortIdentifier ri, Socket s)
-            throws IOException {
-        Conn c = null;
-        if (s != null) {
-            c = new Conn(s);
-        }
+    void addConn(ReceivePortIdentifier ri, Socket s) throws IOException {
+        Conn c = new Conn(s);
         addConnectionInfo(ri, c);
         splitter.add(c.out);
-
         out.writeByte(NEW_RECEIVER);
-
-        if (DEBUG) {
-            System.err.println(name + " Sending NEW_RECEIVER");
-        }
-
         initStream(bufferedStream);
     }
 }

@@ -329,15 +329,10 @@ public class NameServerClient extends ibis.impl.Registry
                 int temp = in.readInt(); /* Port for the ElectionServer */
                 electionClient = new ElectionClient(myAddress, serverAddress,
                         temp);
-                try {
-                    len = in.readInt();
-                    buf = new byte[len];
-                    in.readFully(buf, 0, len);
-                    id = (IbisIdentifier) Conversion.byte2object(buf);
-                } catch(ClassNotFoundException e) {
-                    throw new IOException("Receive IbisIdent of unknown class "
-                            + e);
-                }
+                len = in.readInt();
+                buf = new byte[len];
+                in.readFully(buf, 0, len);
+                id = new IbisIdentifier(buf);
                 if (ndsUpcalls) {
                     int poolSize = in.readInt();
 
@@ -349,15 +344,10 @@ public class NameServerClient extends ibis.impl.Registry
                     // Read existing nodes (including this one).
                     IbisIdentifier[] ids = new IbisIdentifier[poolSize];
                     for (int i = 0; i < poolSize; i++) {
-                        try {
-                            len = in.readInt();
-                            buf = new byte[len];
-                            in.readFully(buf, 0, len);
-                            ids[i] = (IbisIdentifier) Conversion.byte2object(buf);
-                        } catch (ClassNotFoundException e) {
-                            throw new IOException("Receive IbisIdent of unknown class "
-                                    + e);
-                        }
+                        len = in.readInt();
+                        buf = new byte[len];
+                        in.readFully(buf, 0, len);
+                        ids[i] = new IbisIdentifier(buf);
                         if (logger.isDebugEnabled()) {
                             logger.debug("NameServerClient: join of " + ids[i]);
                         }
@@ -597,7 +587,7 @@ public class NameServerClient extends ibis.impl.Registry
                         int sz = in.readInt();
                         byte[] buf = new byte[sz];
                         in.readFully(buf, 0, sz);
-                        ids[i] = (IbisIdentifier) Conversion.byte2object(buf);
+                        ids[i] = new IbisIdentifier(buf);
                         if (opcode == IBIS_LEAVE && ids[i].equals(this.id)) {
                             // received an ack from the nameserver that I left.
                             logger.info("NameServerClient: thread dying");

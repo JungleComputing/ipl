@@ -2,7 +2,11 @@
 
 package ibis.impl;
 
+import ibis.io.Conversion;
+import ibis.io.SerializationOutput;
 import ibis.ipl.StaticProperties;
+
+import java.io.IOException;
 
 /**
  * Implementation of the <code>ReceivePortIdentifier</code> interface.
@@ -20,6 +24,8 @@ public class ReceivePortIdentifier implements ibis.ipl.ReceivePortIdentifier,
     /** The IbisIdentifier of the Ibis instance that created the receiveport. */
     protected final IbisIdentifier ibis;
 
+    protected transient byte[] codedForm = null;
+
     /**
      * Constructor, initializing the fields with the specified parameters.
      * @param name the name of the receiveport.
@@ -31,6 +37,50 @@ public class ReceivePortIdentifier implements ibis.ipl.ReceivePortIdentifier,
         this.name = name;
         this.type = type;
         this.ibis = ibis;
+    }
+
+    public ReceivePortIdentifier(byte[] codedForm) throws IOException {
+        this(codedForm, 0, codedForm.length);
+        this.codedForm = codedForm;
+    }
+
+    public ReceivePortIdentifier(byte[] codedForm, int offset, int length)
+            throws IOException {
+        int nameSize = Conversion.defaultConversion.byte2int(codedForm, offset);
+        int typeSize = Conversion.defaultConversion.byte2int(codedForm,
+                offset + Conversion.INT_SIZE);
+        int ibisSize = Conversion.defaultConversion.byte2int(codedForm,
+                offset + 2*Conversion.INT_SIZE);
+        offset += 3*Conversion.INT_SIZE;
+        name = new String(codedForm, offset, nameSize);
+        offset += nameSize;
+        type = new StaticProperties(codedForm, offset, typeSize);
+        offset += typeSize;
+        ibis = new IbisIdentifier(codedForm, offset, ibisSize);
+    }
+
+    public byte[] getBytes() throws IOException {
+        if (codedForm == null) {
+            byte[] nameBytes = name.getBytes();
+            byte[] typeBytes = type.getBytes();
+            byte[] ibisBytes = ibis.getBytes();
+            int sz = nameBytes.length + typeBytes.length + ibisBytes.length
+                + 3 * Conversion.INT_SIZE;
+            codedForm = new byte[sz];
+            Conversion.defaultConversion.int2byte(nameBytes.length,
+                    codedForm, 0);
+            Conversion.defaultConversion.int2byte(typeBytes.length,
+                    codedForm, Conversion.INT_SIZE);
+            Conversion.defaultConversion.int2byte(ibisBytes.length,
+                    codedForm, 2*Conversion.INT_SIZE);
+            int offset = 3*Conversion.INT_SIZE;
+            System.arraycopy(nameBytes, 0, codedForm, offset, nameBytes.length);
+            offset += nameBytes.length;
+            System.arraycopy(typeBytes, 0, codedForm, offset, typeBytes.length);
+            offset += typeBytes.length;
+            System.arraycopy(ibisBytes, 0, codedForm, offset, ibisBytes.length);
+        }
+        return codedForm;
     }
 
     private boolean equals(ReceivePortIdentifier other) {

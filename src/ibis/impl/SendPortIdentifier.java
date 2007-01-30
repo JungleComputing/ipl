@@ -2,8 +2,10 @@
 
 package ibis.impl;
 
-import ibis.ipl.IbisIdentifier;
+import ibis.io.Conversion;
 import ibis.ipl.StaticProperties;
+
+import java.io.IOException;
 
 /**
  * Implementation of the <code>SendPortIdentifier</code> interface.
@@ -12,14 +14,16 @@ import ibis.ipl.StaticProperties;
 public class SendPortIdentifier implements ibis.ipl.SendPortIdentifier,
         java.io.Serializable {
 
-    /** The properties of the corresponding sendport. */
-    protected StaticProperties type;
-
     /** The name of the corresponding sendport. */
-    protected String name;
+    protected final String name;
+
+    /** The properties of the corresponding sendport. */
+    protected final StaticProperties type;
 
     /** The IbisIdentifier of the Ibis instance that created the sendport. */
-    protected IbisIdentifier ibis;
+    protected final IbisIdentifier ibis;
+
+    protected transient byte[] codedForm = null;
 
     /**
      * Constructor, initializing the fields with the specified parameters.
@@ -32,6 +36,50 @@ public class SendPortIdentifier implements ibis.ipl.SendPortIdentifier,
         this.name = name;
         this.type = type;
         this.ibis = ibis;
+    }
+
+    public SendPortIdentifier(byte[] codedForm) throws IOException {
+        this(codedForm, 0, codedForm.length);
+        this.codedForm = codedForm;
+    }
+
+    public SendPortIdentifier(byte[] codedForm, int offset, int length)
+            throws IOException {
+        int nameSize = Conversion.defaultConversion.byte2int(codedForm, offset);
+        int typeSize = Conversion.defaultConversion.byte2int(codedForm,
+                offset + Conversion.INT_SIZE);
+        int ibisSize = Conversion.defaultConversion.byte2int(codedForm,
+                offset + 2*Conversion.INT_SIZE);
+        offset += 3*Conversion.INT_SIZE;
+        name = new String(codedForm, offset, nameSize);
+        offset += nameSize;
+        type = new StaticProperties(codedForm, offset, typeSize);
+        offset += typeSize;
+        ibis = new IbisIdentifier(codedForm, offset, ibisSize);
+    }
+
+    public byte[] getBytes() throws IOException {
+        if (codedForm == null) {
+            byte[] nameBytes = name.getBytes();
+            byte[] typeBytes = type.getBytes();
+            byte[] ibisBytes = ibis.getBytes();
+            int sz = nameBytes.length + typeBytes.length + ibisBytes.length
+                + 3 * Conversion.INT_SIZE;
+            codedForm = new byte[sz];
+            Conversion.defaultConversion.int2byte(nameBytes.length,
+                    codedForm, 0);
+            Conversion.defaultConversion.int2byte(typeBytes.length,
+                    codedForm, Conversion.INT_SIZE);
+            Conversion.defaultConversion.int2byte(ibisBytes.length,
+                    codedForm, 2*Conversion.INT_SIZE);
+            int offset = 3*Conversion.INT_SIZE;
+            System.arraycopy(nameBytes, 0, codedForm, offset, nameBytes.length);
+            offset += nameBytes.length;
+            System.arraycopy(typeBytes, 0, codedForm, offset, typeBytes.length);
+            offset += typeBytes.length;
+            System.arraycopy(ibisBytes, 0, codedForm, offset, ibisBytes.length);
+        }
+        return codedForm;
     }
 
     private boolean equals(SendPortIdentifier other) {
@@ -64,7 +112,7 @@ public class SendPortIdentifier implements ibis.ipl.SendPortIdentifier,
         return new StaticProperties(type);
     }
 
-    public IbisIdentifier ibis() {
+    public ibis.ipl.IbisIdentifier ibis() {
         return ibis;
     }
 

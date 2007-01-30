@@ -6,20 +6,23 @@ import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.PortMismatchException;
 import ibis.ipl.ResizeHandler;
 import ibis.ipl.StaticProperties;
-
-import ibis.util.IPUtils;
+import ibis.util.GetLogger;
 import ibis.util.TypedProperties;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 
+import org.apache.log4j.Logger;
+
 /**
  * Base class for Ibis implementations. All Ibis implementations must
  * extend this class.
  */
 
-public abstract class Ibis implements ibis.ipl.Ibis, Config {
+public abstract class Ibis implements ibis.ipl.Ibis {
+
+    private static final Logger logger = GetLogger.getLogger("ibis.impl.Ibis");
 
     /** A user-supplied resize handler, with join/leave upcalls. */
     private ResizeHandler resizeHandler;
@@ -35,7 +38,7 @@ public abstract class Ibis implements ibis.ipl.Ibis, Config {
 
     private Registry registry;
 
-    private IbisIdentifier ident;
+    public final IbisIdentifier ident;
 
     private boolean i_joined = false;
 
@@ -46,10 +49,6 @@ public abstract class Ibis implements ibis.ipl.Ibis, Config {
     private boolean ended = false;
 
     private HashMap<String, ReceivePort> receivePorts;
-
-    static {
-        TypedProperties.checkProperties(PROPERTY_PREFIX, sysprops, null);
-    }
 
     /**
      * Initializes the fields of this class with the specified values.
@@ -63,22 +62,16 @@ public abstract class Ibis implements ibis.ipl.Ibis, Config {
      * parameters.
      */
     public Ibis(ResizeHandler resizeHandler, StaticProperties requiredProps,
-            StaticProperties combinedProps) {
+            StaticProperties combinedProps) throws IOException {
         this.resizeHandler = resizeHandler;
         this.requiredProps = requiredProps;
         this.combinedProps = combinedProps;
         registry = ibis.impl.Registry.loadRegistry(this);
         receivePorts = new HashMap<String, ReceivePort>();
+        ident = registry.init(this, resizeHandler != null, getData());
     }
 
-    /**
-     * To be called by the implementation-specific constructor, to initialize the registry
-     * and Ibis identifier.
-     * @param data the implementation-dependent data in the Ibis identifier.
-     */
-    protected void init(byte[] data) throws IOException {
-        ident = registry.init(this, resizeHandler != null, data);
-    }
+    protected abstract byte[] getData() throws IOException;
 
     public long getSeqno(String nm) throws IOException {
         return registry.getSeqno(nm);
@@ -126,13 +119,10 @@ public abstract class Ibis implements ibis.ipl.Ibis, Config {
             checkPortProperties(portProps);
             p = portProps;
         }
-        if (combinedProps.find("verbose") != null) {
-            System.out.println("Creating port type"
-                    + " with properties\n" + p);
-        }
+        logger.info("Creating port type" + " with properties\n" + p);
         if (p.isProp("communication", "manytoone") &&
                 p.isProp("communication", "onetomany")) {
-            System.err.println("WARNING: combining ManyToOne and OneToMany in "
+            logger.warn("WARNING: combining ManyToOne and OneToMany in "
                     + "a port type may result in\ndeadlocks! Most systems "
                     + "don't have a working flow control when multiple\n"
                     + "senders do multicasts.");
@@ -156,8 +146,8 @@ public abstract class Ibis implements ibis.ipl.Ibis, Config {
     private void checkPortProperties(StaticProperties p)
             throws PortMismatchException {
         if (!p.matchProperties(requiredProps)) {
-            System.err.println("Ibis required properties: " + requiredProps);
-            System.err.println("Port required properties: " + p);
+            logger.error("Ibis required properties: " + requiredProps);
+            logger.error("Port required properties: " + p);
             throw new PortMismatchException(
                     "Port properties don't match the Ibis required properties");
         }

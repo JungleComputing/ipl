@@ -2,8 +2,12 @@
 
 package ibis.ipl;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -48,6 +52,8 @@ public final class StaticProperties implements java.io.Serializable {
 
     /** Default properties. */
     private transient final StaticProperties defaults;
+
+    private transient byte[] codedForm = null;
 
     /**
      * Container class for properties that are associated with a key.
@@ -231,6 +237,51 @@ public final class StaticProperties implements java.io.Serializable {
      */
     public StaticProperties(StaticProperties sp) {
         defaults = sp;
+    }
+
+    /**
+     * Creates a property set from a serialized form.
+     * @param codedForm the serialized form, as produced by the
+     * {@link #getBytes()} method.
+     * @exception IOException is thrown in case of trouble.
+     */
+    public StaticProperties(byte[] codedForm) throws IOException {
+        this(codedForm, 0, codedForm.length);
+        this.codedForm = codedForm;
+    }
+
+    /**
+     * Creates a property set from a serialized form.
+     * @param codedForm contains the serialized form, as produced by the
+     * {@link #getBytes()} method.
+     * @param offset offset where input for this method starts.
+     * @param length length of input for this method.
+     * @exception IOException is thrown in case of trouble.
+     */
+    public StaticProperties(byte[] codedForm, int offset, int length)
+            throws IOException {
+        defaults = null;
+        ByteArrayInputStream bis = new ByteArrayInputStream(codedForm, offset,
+                length);
+        ObjectInputStream ois = new ObjectInputStream(bis);
+        readObject(ois);
+        ois.close();
+    }
+
+    /**
+     * Returns the property set represented as a byte array.
+     * @return the byte array.
+     * @exception IOException is thrown in case of trouble.
+     */
+    public byte[] getBytes() throws IOException {
+        if (codedForm == null) {
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            ObjectOutputStream oos = new ObjectOutputStream(bos);
+            writeObject(oos);
+            oos.close();
+            codedForm = bos.toByteArray();
+        }
+        return codedForm;
     }
 
     /**
@@ -683,8 +734,7 @@ public final class StaticProperties implements java.io.Serializable {
         }
     }
 
-    private void readObject(java.io.ObjectInputStream in)
-            throws IOException, ClassNotFoundException {
+    private void readObject(java.io.ObjectInputStream in) throws IOException {
         int sz = in.readInt();
         mappings = new HashMap<String, Property>();
         for (int i = 0; i < sz; i++) {

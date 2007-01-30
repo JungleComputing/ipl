@@ -3,7 +3,6 @@
 package ibis.impl;
 
 import ibis.io.SerializationInput;
-import ibis.ipl.SendPortIdentifier;
 
 import java.io.IOException;
 
@@ -21,17 +20,12 @@ public class ReadMessage implements ibis.ipl.ReadMessage {
 
     private ReceivePort port;
 
-    public ReadMessage(SerializationInput in,
-            ReceivePortConnectionInfo info, ReceivePort port) {
+    public ReadMessage(SerializationInput in, ReceivePortConnectionInfo info,
+            ReceivePort port) {
         this.in = in;
         this.info = info;
         this.port = port;
         this.before = info.bytesRead();
-    }
-
-    public ReadMessage(ReadMessage orig) {
-        this(orig.in, orig.info, orig.port);
-        this.sequenceNr = orig.sequenceNr;
     }
 
     public ibis.ipl.ReceivePort localPort() {
@@ -47,6 +41,10 @@ public class ReadMessage implements ibis.ipl.ReadMessage {
         return info;
     }
 
+    public void setInfo(ReceivePortConnectionInfo info) {
+        this.info = info;
+    }
+
     protected final void checkNotFinished() throws IOException {
         if (isFinished) {
             throw new IOException(
@@ -54,7 +52,7 @@ public class ReadMessage implements ibis.ipl.ReadMessage {
         }
     }
 
-    public SendPortIdentifier origin() {
+    public ibis.ipl.SendPortIdentifier origin() {
         return info.origin;
     }
 
@@ -219,7 +217,8 @@ public class ReadMessage implements ibis.ipl.ReadMessage {
         long after = info.bytesRead();
         long retval = after - before;
         before = after;
-        port.finishMessage(this, retval);
+        port.addCount(retval);
+        port.finishMessage(this);
         return retval;
     }
 

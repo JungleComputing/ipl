@@ -2,9 +2,7 @@
 
 package ibis.impl.registry.tcp;
 
-import ibis.ipl.IbisIdentifier;
-
-import ibis.io.Conversion;
+import ibis.impl.IbisIdentifier;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -56,7 +54,7 @@ class ElectionClient implements Protocol {
                 } else {
                     out.writeInt(1);
                     out.writeUTF(candidate.toString());
-                    byte[] b = Conversion.object2byte(candidate);
+                    byte[] b = candidate.getBytes();
                     out.writeInt(b.length);
                     out.write(b);
                 }
@@ -67,11 +65,8 @@ class ElectionClient implements Protocol {
                 if(len >= 0) {
                 	byte[] buf = new byte[len];
                 	in.readFully(buf, 0, len);
-                	result = (IbisIdentifier) Conversion.byte2object(buf);
+                	result = new IbisIdentifier(buf);
                 }
-            } catch (ClassNotFoundException e) {
-            	logger.warn("election client got exception: " + e, e);
-                throw new IOException("Got wrong class in elect");
             } finally {
                 NameServer.closeConnection(in, out, s);
             }

@@ -23,7 +23,7 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
     protected void initMessage(SerializationOutput out) {
         this.out = out;
         this.isFinished = false;
-        this.before = port.bytesWritten(this);
+        this.before = port.bytesWritten();
     }
 
     private final void checkNotFinished() throws IOException {
@@ -321,7 +321,7 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
     }
 
     public long bytesWritten() {
-        return port.bytesWritten(this) - before;
+        return port.bytesWritten() - before;
     }
 
     public long finish() throws IOException {
@@ -337,8 +337,7 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
             port.handleSendException(this, e);
         }
         isFinished = true;
-        long after = port.bytesWritten(this);
-        long retval = after - before;
+        long retval = bytesWritten();
         port.finishMessage(this, retval);
         return retval;
     }

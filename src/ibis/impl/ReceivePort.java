@@ -4,16 +4,22 @@ package ibis.impl;
 
 import ibis.io.SerializationInput;
 import ibis.ipl.IbisConfigurationException;
-import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.Upcall;
 import ibis.ipl.ReceivePortConnectUpcall;
+import ibis.util.GetLogger;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-public abstract class ReceivePort implements ibis.ipl.ReceivePort, Config {
+import org.apache.log4j.Logger;
+
+public abstract class ReceivePort implements ibis.ipl.ReceivePort {
+
+    public static final String ANONYMOUS = "__anonymous__";
+
+    private static final Logger logger = GetLogger.getLogger("ibis.impl.ReceivePort");
 
     // Possible results of a connection attempt.
     public static final byte ACCEPTED = 0;
@@ -36,7 +42,7 @@ public abstract class ReceivePort implements ibis.ipl.ReceivePort, Config {
 
     private boolean connectionAdministration = false;
 
-    private ReceivePortIdentifier ident;
+    public final ReceivePortIdentifier ident;
 
     private ArrayList<SendPortIdentifier> lostConnections
         = new ArrayList<SendPortIdentifier>();
@@ -61,23 +67,19 @@ public abstract class ReceivePort implements ibis.ipl.ReceivePort, Config {
 
     protected final String serialization;
 
-    public ReceivePort(Ibis ibis, PortType type, String name, IbisIdentifier id,
-            Upcall upcall, ReceivePortConnectUpcall connectUpcall,
-            boolean connectionAdmimistration) {
+    public ReceivePort(Ibis ibis, PortType type, String name, Upcall upcall,
+            ReceivePortConnectUpcall connectUpcall, boolean connectionAdmimistration) {
         this.ibis = ibis;
         this.type = type;
         this.name = name;
-        this.ident = new ReceivePortIdentifier(name, type.props, id);
+        this.ident = new ReceivePortIdentifier(name, type.props, ibis.ident);
         this.upcall = upcall;
         this.connectUpcall = connectUpcall;
         this.connectionAdministration = connectionAdministration;
         this.numbered = type.props.isProp("communication", "Numbered");
         this.serialization = type.serialization;
         ibis.register(this);
-        if (DEBUG) {
-            System.out.println(ibis.identifier() + ": ReceivePort '"
-                    + name + "' created");
-        }
+        logger.debug(ibis.ident + ": ReceivePort '" + name + "' created");
     }
 
     public synchronized void enableUpcalls() {
@@ -97,15 +99,20 @@ public abstract class ReceivePort implements ibis.ipl.ReceivePort, Config {
     protected synchronized void addInfo(SendPortIdentifier id,
             ReceivePortConnectionInfo info) {
         connections.put(id, info);
+        notifyAll();
     }
 
     protected synchronized ReceivePortConnectionInfo removeInfo(
             SendPortIdentifier id) {
-        return connections.remove(id);
+        ReceivePortConnectionInfo info = connections.remove(id);
+        if (connections.size() == 0) {
+            notifyAll();
+        }
+        return info;
     }
 
-    public synchronized SendPortIdentifier[] connectedTo() {
-        return connections.keySet().toArray(new SendPortIdentifier[0]);
+    public synchronized ibis.ipl.SendPortIdentifier[] connectedTo() {
+        return connections.keySet().toArray(new ibis.ipl.SendPortIdentifier[0]);
     }
 
     protected synchronized ReceivePortConnectionInfo[] connections() {
@@ -144,24 +151,24 @@ public abstract class ReceivePort implements ibis.ipl.ReceivePort, Config {
         props.put(key, val);
     }
     
-    public synchronized SendPortIdentifier[] lostConnections() {
+    public synchronized ibis.ipl.SendPortIdentifier[] lostConnections() {
         if (! connectionAdministration) {
             throw new IbisConfigurationException("ReceivePort.lostConnections()"
                     + " called but connectiondowncalls not configured");
         }
-        SendPortIdentifier[] result = lostConnections.toArray(
-                new SendPortIdentifier[0]);
+        ibis.ipl.SendPortIdentifier[] result = lostConnections.toArray(
+                new ibis.ipl.SendPortIdentifier[0]);
         lostConnections.clear();
         return result;
     }
 
-    public synchronized SendPortIdentifier[] newConnections() {
+    public synchronized ibis.ipl.SendPortIdentifier[] newConnections() {
         if (! connectionAdministration) {
             throw new IbisConfigurationException("ReceivePort.newConnections()"
                     + " called but connectiondowncalls not configured");
         }
-        SendPortIdentifier[] result = newConnections.toArray(
-                new SendPortIdentifier[0]);
+        ibis.ipl.SendPortIdentifier[] result = newConnections.toArray(
+                new ibis.ipl.SendPortIdentifier[0]);
         newConnections.clear();
         return result;
     }
@@ -178,6 +185,7 @@ public abstract class ReceivePort implements ibis.ipl.ReceivePort, Config {
             }
             connectUpcall.lostConnection(this, id, e);
         }
+        removeInfo(id);
     }
 
     public String name() {
@@ -209,8 +217,6 @@ public abstract class ReceivePort implements ibis.ipl.ReceivePort, Config {
         return getMessage(timeoutMillis);
     }
 
-    protected abstract void doClose(long timeout);
-
     public void close() {
         doClose(0);
         ibis.deRegister(this);
@@ -220,8 +226,6 @@ public abstract class ReceivePort implements ibis.ipl.ReceivePort, Config {
         doClose(timeout);
         ibis.deRegister(this);
     }
-
-    protected abstract ReadMessage getMessage(long timeoutMillis) throws IOException;
 
     public synchronized byte connectionAllowed(SendPortIdentifier id) {
         if (! id.type().equals(type.props)) {
@@ -240,8 +244,11 @@ public abstract class ReceivePort implements ibis.ipl.ReceivePort, Config {
         return DISABLED;
     }
 
-    protected abstract void finishMessage(ReadMessage r, long cnt)
-            throws IOException;
+    protected abstract void doClose(long timeout);
+
+    protected abstract ReadMessage getMessage(long timeoutMillis) throws IOException;
+
+    protected abstract void finishMessage(ReadMessage r) throws IOException;
 
     protected abstract void finishMessage(ReadMessage r, IOException e);
 

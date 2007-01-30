@@ -14,4 +14,11 @@ public interface IbisIdentifier extends java.io.Serializable {
      * @return the cluster name.
      */
     public String cluster();
+
+    /**
+     * Returns the name of the pool that identifies the run to which
+     * this Ibis instance belongs with the Ibis registry.
+     * @return the poolname.
+     */
+    public String getPool();
 }

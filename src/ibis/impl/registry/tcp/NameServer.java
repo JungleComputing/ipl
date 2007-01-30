@@ -126,14 +126,15 @@ public class NameServer extends Thread implements Protocol {
 
         IbisInfo(InetAddress ibisNameServerAddress, int ibisNameServerport,
                 boolean needsUpcalls, RunInfo p, byte[] data, String cluster,
-                String host) throws IOException {
+                String host, String poolId) throws IOException {
             this.ibisNameServerAddress = ibisNameServerAddress;
             this.ibisNameServerport = ibisNameServerport;
             this.needsUpcalls = needsUpcalls;
             synchronized(p) {
-                id = new IbisIdentifier(p.joinCount++, data, cluster, host);
+                id = new IbisIdentifier(p.joinCount++, data, cluster, poolId,
+                        host);
             }
-            this.serializedId = Conversion.object2byte(id);
+            this.serializedId = id.getBytes();
 
         }
 
@@ -1141,7 +1142,7 @@ public class NameServer extends Thread implements Protocol {
         //         (System.currentTimeMillis() - startTime));
 
         IbisInfo info = new IbisInfo(address, port, needsUpcalls, p, data,
-                cluster, host);
+                cluster, host, poolId);
 
         synchronized(p) {
             sendLeavers(p);

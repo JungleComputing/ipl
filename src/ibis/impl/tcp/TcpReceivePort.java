@@ -2,53 +2,62 @@
 
 package ibis.impl.tcp;
 
+import ibis.impl.Ibis;
+import ibis.impl.PortType;
 import ibis.impl.ReadMessage;
+import ibis.impl.ReceivePort;
 import ibis.impl.ReceivePortIdentifier;
 import ibis.impl.ReceivePortConnectionInfo;
+import ibis.impl.SendPortIdentifier;
 import ibis.io.BufferedArrayInputStream;
 import ibis.io.Conversion;
-import ibis.ipl.PortType;
-import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.ReceiveTimedOutException;
-import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.StaticProperties;
 import ibis.ipl.Upcall;
+import ibis.util.GetLogger;
 import ibis.util.ThreadPool;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
 
-final class TcpReceivePort extends ibis.impl.ReceivePort
-        implements TcpProtocol {
+import org.apache.log4j.Logger;
+
+final class TcpReceivePort extends ReceivePort implements TcpProtocol {
+
+    private static final Logger logger
+            = GetLogger.getLogger("ibis.impl.tcp.TcpReceivePort");
 
     private class ConnectionHandler extends ReceivePortConnectionInfo 
         implements Runnable, TcpProtocol {
 
-        final BufferedArrayInputStream bufferedInput;
-
-        private InputStream input;
-
-        private Socket s;
+        private final Socket s;
         
-        ReadMessage m;
-
         volatile boolean iMustDie = false;
 
-        ConnectionHandler(SendPortIdentifier origin, Socket s)
-                throws IOException {
-            super(origin);
-            this.s = s;
-            this.input = s.getInputStream();
+        private final boolean noThread;
 
-            bufferedInput = new BufferedArrayInputStream(input);
-            initStream(serialization, bufferedInput);
-            m = createMessage(in, this);
+        private boolean upcallCalledFinish = false;
+
+        ConnectionHandler(SendPortIdentifier origin, Socket s,
+                ReceivePort port, boolean noThread) throws IOException {
+            super(origin, port,
+                    new BufferedArrayInputStream(s.getInputStream()));
+            this.noThread = noThread;
+            this.s = s;
+            if (! noThread) {
+                ThreadPool.createNew(this, "ConnectionHandler");
+            }
         }
 
-        protected long bytesRead() {
-            return bufferedInput.bytesRead();
+        ConnectionHandler(ConnectionHandler orig) {
+            super(orig);
+            s = orig.s;
+            noThread = false;
+            orig.upcallCalledFinish = true;
+            ThreadPool.createNew(this, "ConnectionHandler");
+            logger.debug("Created new connection handler, finish called from upcall");
         }
 
         void close(Throwable e) {
@@ -82,13 +91,8 @@ final class TcpReceivePort extends ibis.impl.ReceivePort
             try {
                 reader();
             } catch (Throwable e) {
-                if (DEBUG) {
-                    System.err.println("ConnectionHandler.run : " + name()
-                            + " Caught exception " + e);
-                    System.err.println("I am connected to " + origin);
-                    e.printStackTrace();
-                }
-
+                logger.debug("ConnectionHandler.run, connected "
+                        + "to " + origin + ", caught exception", e);
                 close(e);
             }
         }
@@ -97,9 +101,8 @@ final class TcpReceivePort extends ibis.impl.ReceivePort
             byte opcode = -1;
 
             while (!iMustDie) {
-                if (DEBUG) {
-                    System.err.println("handler " + this + " for port: "
-                            + name() + " woke up");
+                if (logger.isDebugEnabled()) {
+                    logger.debug("handler " + this + " for port: " + name() + " woke up");
                 }
                 opcode = in.readByte();
                 if (iMustDie) {
@@ -108,40 +111,28 @@ final class TcpReceivePort extends ibis.impl.ReceivePort
                     return;
                 }
 
-                if (DEBUG) {
-                    System.err.println("handler " + this + " for port: "
-                            + name() + ", READ BYTE " + opcode);
-                }
-
                 switch (opcode) {
                 case NEW_RECEIVER:
-                    if (DEBUG) {
-                        System.err.println(name() + ": Got a NEW_RECEIVER");
-                    }
-                    initStream(serialization, bufferedInput);
-                    m = createMessage(in, this);
+                    logger.debug(name() + ": Got a NEW_RECEIVER");
+                    newStream();
                     break;
                 case NEW_MESSAGE:
-                    if (DEBUG) {
-                        System.err.println("handler " + this
-                                + " GOT a new MESSAGE " + m + " on port "
-                                + name());
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("handler " + this + " GOT a new MESSAGE "
+                                + message + " on port " + name());
                     }
-
-                    if (setMessage(m)) {
-                        // The port created a new reader thread, I must exit.
-                        // Also when there is no separate connectionhandler thread.
-                        return;
+                    setMessage(message, this);
+                    synchronized(this) {
+                        if (noThread || upcallCalledFinish) {
+                            logger.debug("Terminating ConnectionHandler thread");
+                            return;
+                        }
                     }
-
                     // If the upcall did not release the message, cool, 
                     // no need to create a new thread, we are the reader.
                     break;
                 case CLOSE_ALL_CONNECTIONS:
-                    if (DEBUG) {
-                        System.err.println(name() + ": Got a FREE from "
-                                + origin);
-                    }
+                    logger.debug(name() + ": Got a FREE from " + origin);
                     close(null);
                     return;
                 case CLOSE_ONE_CONNECTION:
@@ -154,28 +145,17 @@ final class TcpReceivePort extends ibis.impl.ReceivePort
                     receiverBytes = new byte[Conversion.defaultConversion.byte2int(
                             receiverLength, 0)];
                     in.readArray(receiverBytes);
-                    try {
-                        identifier = (ReceivePortIdentifier)
-                                Conversion.byte2object(receiverBytes);
-                        if (identifier.equals(identifier())) {
-                            // Sendport is disconnecting from me.
-                            if (DEBUG) {
-                                System.err.println(name()
-                                        + ": got a disconnect from: " + origin);
-                            }
-                            close(null);
-                            return;
-                        }
-                    } catch(ClassNotFoundException e) {
-                        throw new IOException("TcpIbis: internal error, "
-                                + name() + ": disconnect from: " + origin
-                                + " failed: " + e);
+                    identifier = new ReceivePortIdentifier(receiverBytes);
+                    if (identifier.equals(identifier())) {
+                        // Sendport is disconnecting from me.
+                        logger.debug(name() + ": disconnect from: " + origin);
+                        close(null);
+                        return;
                     }
                     break;
                 default:
                     throw new IOException(name() + " EEK TcpReceivePort: "
-                            + "run: got illegal opcode: " + opcode + " from: "
-                            + origin);
+                            + "run: got illegal opcode: " + opcode + " from: " + origin);
                 }
             }
         }
@@ -187,17 +167,16 @@ final class TcpReceivePort extends ibis.impl.ReceivePort
 
     private boolean delivered = false;
 
-    private boolean no_connectionhandler_thread = false;
+    private final boolean no_connectionhandler_thread;
 
     private boolean reader_busy = false;
 
     private boolean fromDoUpcall = false;
 
-    TcpReceivePort(TcpIbis ibis, TcpPortType type, String name, Upcall upcall,
+    TcpReceivePort(Ibis ibis, TcpPortType type, String name, Upcall upcall,
             boolean connectionAdministration,
             ReceivePortConnectUpcall connUpcall) {
-        super(ibis, type, name, (ibis.impl.IbisIdentifier) ibis.identifier(), upcall,
-                connUpcall, connectionAdministration);
+        super(ibis, type, name, upcall, connUpcall, connectionAdministration);
         StaticProperties props = type.properties();
 
         if (upcall == null && connUpcall == null
@@ -205,11 +184,12 @@ final class TcpReceivePort extends ibis.impl.ReceivePort
                 && !props.isProp("communication", "Poll")
                 && !props.isProp("communication", "ReceiveTimeout")) {
             no_connectionhandler_thread = true;
+        } else {
+            no_connectionhandler_thread = false;
         }
     }
 
-    // returns:  was the message already finised?
-    private boolean doUpcall(ReadMessage msg) {
+    private void doUpcall(ReadMessage msg, ConnectionHandler con) {
         synchronized (this) {
             // Wait until the previous message was finished.
             while (this.m != null || !allowUpcalls) {
@@ -225,59 +205,37 @@ final class TcpReceivePort extends ibis.impl.ReceivePort
 
         try {
             upcall.upcall(msg);
-        } catch (IOException e) {
+        } catch (Throwable e) {
             // An error occured on receiving (or finishing!) the message during
             // the upcall.
-            System.err.println("Got IO Exception in upcall(): " + e);
+            System.err.println("Got Exception in upcall(): " + e);
             e.printStackTrace();
-            if (! msg.isFinished()) {
-                finishMessage(msg, e);
-                return false;
-            }
-            return true;
-        } catch(Throwable e2) {
-            System.err.println("Got exception in upcall(): " + e2);
-            e2.printStackTrace();
-            if (msg.isFinished()) {
-                return true;
+            if (e instanceof IOException && ! con.upcallCalledFinish) {
+                finishMessage(msg, (IOException) e);
+                return;
             }
         }
 
-        synchronized (this) {
-            if (!msg.isFinished()) {
-                // It wasn't finished. Cool, this means that we don't have to
-                // start a new thread!
-                // We can touch msg here, because if it was finished, a new
-                // message was created.
-                fromDoUpcall = true;
-                try {
-                    msg.finish();
-                } catch(Throwable e) {
-                    // Should not happen.
-                } finally {
-                    fromDoUpcall = false;
-                }
-
-                return false;
+        if (! con.upcallCalledFinish) {
+            // It wasn't finished, so finish the message now.
+            fromDoUpcall = true;
+            try {
+                msg.finish();
+            } catch(Throwable e) {
+                // Should not happen.
+            } finally {
+                fromDoUpcall = false;
             }
         }
-        return true;
     }
 
-    protected synchronized void finishMessage(ReadMessage r, long cnt)
-            throws IOException {
-        addCount(cnt);
+    protected synchronized void finishMessage(ReadMessage r) throws IOException {
         m = null;
         notifyAll();
 
         if (! fromDoUpcall && upcall != null) {
-            /* We need to create a new ReadMessage here.
-             * Otherwise, there is no way to find out later if a message
-             * was finished or not.
-             */
-            ConnectionHandler h = (ConnectionHandler) r.getInfo();
-            h.m = new ReadMessage(r);
-            ThreadPool.createNew(h, "ConnectionHandler");
+            // Create a new connection handler. The old one will terminate itself.
+            new ConnectionHandler((ConnectionHandler) r.getInfo());
         }
     }
 
@@ -292,13 +250,14 @@ final class TcpReceivePort extends ibis.impl.ReceivePort
         notifyAll();
     }
 
-    boolean setMessage(ReadMessage m) throws IOException {
+    public void setMessage(ReadMessage m, ConnectionHandler con) throws IOException {
         setFinished(m, false);
         if (numbered) {
             m.setSequenceNumber(m.readLong());
         }
         if (upcall != null) {
-            return doUpcall(m);
+            doUpcall(m, con);
+            return;
         }
 
         synchronized(this) {
@@ -333,7 +292,6 @@ final class TcpReceivePort extends ibis.impl.ReceivePort
                 }
             }
         }
-        return no_connectionhandler_thread;
     }
 
     protected ReadMessage getMessage(long timeout)
@@ -442,25 +400,16 @@ final class TcpReceivePort extends ibis.impl.ReceivePort
     }
 
     // called from the connectionHander.
-    void leave(ConnectionHandler leaving, Throwable e) {
+    public void leave(ConnectionHandler leaving, Throwable e) {
 
         // First update connection administration.
-        synchronized (this) {
-            if (DEBUG) {
-                System.err.println("TcpReceivePort.leave: " + name);
-                (new Throwable()).printStackTrace();
-            }
-            removeInfo(leaving.origin);
-            notifyAll();
-        }
-
-        lostConnection(leaving.origin, e);
+        logger.debug(name() + ": connection with " + leaving.origin() +
+                    " terminating");
+        lostConnection(leaving.origin(), e);
     }
 
     protected synchronized void doClose(long timeout) {
-        if (DEBUG) {
-            System.err.println("TcpReceivePort.close: " + name + ": Starting");
-        }
+        logger.debug("TcpReceivePort.close: " + name + ": Starting");
 
         if (timeout > 0) {
             // @@@ this is of course "sub optimal" --Rob
@@ -484,9 +433,11 @@ final class TcpReceivePort extends ibis.impl.ReceivePort
         notifyAll();
 
         if (timeout != 0L) {
-            SendPortIdentifier[] ids = connectedTo();
+
+            SendPortIdentifier[] ids = 
+                    connections.keySet().toArray(new SendPortIdentifier[0]);
             for (int i = 0; i < ids.length; i++) {
-                ConnectionHandler conn = (ConnectionHandler) removeInfo(ids[i]);
+                ConnectionHandler conn = (ConnectionHandler) getInfo(ids[i]);
                 conn.die();
 
                 lostConnection(ids[i], new Exception(
@@ -494,17 +445,14 @@ final class TcpReceivePort extends ibis.impl.ReceivePort
             }
         } else {
             while (connections.size() > 0) {
-                if (DEBUG) {
-                    System.err.println(name
-                            + " waiting for all connections to close ("
+                logger.debug(name + " waiting for all connections to close ("
                             + connections.size() + ")");
-                }
                 if (no_connectionhandler_thread) {
                     ReceivePortConnectionInfo conns[] = connections();
                     try {
                         ((ConnectionHandler)conns[0]).reader();
                     } catch (IOException e) {
-                        removeInfo(((ConnectionHandler)conns[0]).origin);
+                        removeInfo(((ConnectionHandler)conns[0]).origin());
                     }
                 } else {
                     try {
@@ -516,24 +464,10 @@ final class TcpReceivePort extends ibis.impl.ReceivePort
             }
         }
 
-        if (DEBUG) {
-            System.err.println(name + ":done receiveport.close");
-        }
+        logger.debug(name + ":done receiveport.close");
     }
 
-    synchronized void connect(SendPortIdentifier origin, Socket s) {
-        try {
-            ConnectionHandler con = new ConnectionHandler(origin, s);
-            addInfo(origin, con);
-
-            if (!no_connectionhandler_thread) {
-                ThreadPool.createNew(con, "ConnectionHandler");
-            }
-
-            notifyAll();
-        } catch (Exception e) {
-            System.err.println("Got exception " + e);
-            e.printStackTrace();
-        }
+    synchronized void connect(SendPortIdentifier origin, Socket s) throws IOException {
+        new ConnectionHandler(origin, s, this, no_connectionhandler_thread);
     }
 }

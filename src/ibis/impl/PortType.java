@@ -3,23 +3,26 @@
 package ibis.impl;
 
 import ibis.io.Replacer;
-import ibis.ipl.Ibis;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.PortMismatchException;
 import ibis.ipl.StaticProperties;
-import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortConnectUpcall;
-import ibis.ipl.SendPort;
 import ibis.ipl.SendPortConnectUpcall;
 import ibis.ipl.Upcall;
+import ibis.util.GetLogger;
 
 import java.io.IOException;
+
+import org.apache.log4j.Logger;
 
 /**
  * An Ibis implementation can choose to extend this class to implement
  * the PortType interface.
  */
-public abstract class PortType implements ibis.ipl.PortType, Config {
+public abstract class PortType implements ibis.ipl.PortType {
+
+    private static final Logger logger
+            = GetLogger.getLogger("ibis.impl.PortType");
 
     /** Counter for allocating names for anonymous ports. */
     private static int anon_counter = 0;
@@ -33,8 +36,12 @@ public abstract class PortType implements ibis.ipl.PortType, Config {
     /** Replacer for object output streams. */
     protected Class replacerClass = null;
 
-    public PortType(StaticProperties p)
+    /** The Ibis instance that created this port type. */
+    protected Ibis ibis;
+
+    public PortType(Ibis ibis, StaticProperties p)
             throws PortMismatchException {
+        this.ibis = ibis;
     	this.props = p;
         boolean numbered = p.isProp("communication", "Numbered");
 
@@ -47,9 +54,8 @@ public abstract class PortType implements ibis.ipl.PortType, Config {
                     "Numbered communication is not supported on byte "
                     + "serialization streams");
         }
-        if (DEBUG) {
-            System.out.println("Created PortType with properties " + p);
-        }
+
+        logger.debug("Created PortType with properties " + p);
 
         String replacerName = props.find("serialization.replacer");
 
@@ -74,35 +80,35 @@ public abstract class PortType implements ibis.ipl.PortType, Config {
         return props;
     }
 
-    public SendPort createSendPort() throws IOException {
+    public ibis.ipl.SendPort createSendPort() throws IOException {
         return createSendPort(null, null, false);
     }
 
-    public SendPort createSendPort(String name) throws IOException {
+    public ibis.ipl.SendPort createSendPort(String name) throws IOException {
         return createSendPort(name, null, false);
     }
 
-    public SendPort createSendPort(boolean connectionDowncalls)
+    public ibis.ipl.SendPort createSendPort(boolean connectionDowncalls)
             throws IOException {
         return createSendPort(null, null, connectionDowncalls);
     }
 
-    public SendPort createSendPort(String name, boolean connectionDowncalls)
-            throws IOException {
+    public ibis.ipl.SendPort createSendPort(String name,
+            boolean connectionDowncalls) throws IOException {
         return createSendPort(name, null, connectionDowncalls);
     }
 
-    public SendPort createSendPort(String name, SendPortConnectUpcall cU)
-            throws IOException {
+    public ibis.ipl.SendPort createSendPort(String name,
+            SendPortConnectUpcall cU) throws IOException {
         return createSendPort(name, cU, false);
     }
 
     /**
-     * Creates a {@link SendPort} of this <code>PortType</code>.
+     * Creates a {@link ibis.ipl.SendPort} of this <code>PortType</code>.
      *
      * @param name the name of this sendport.
      * @param cU object implementing the
-     * {@link SendPortConnectUpcall#lostConnection(SendPort,
+     * {@link SendPortConnectUpcall#lostConnection(ibis.ipl.SendPort,
      * ReceivePortIdentifier, Exception)} method.
      * @param connectionDowncalls set when this port must keep
      * connection administration to support the lostConnections
@@ -113,8 +119,9 @@ public abstract class PortType implements ibis.ipl.PortType, Config {
      * @exception ibis.ipl.IbisConfigurationException is thrown when the port
      * type does not match what is required here.
      */
-    private SendPort createSendPort(String name, SendPortConnectUpcall cU,
-            boolean connectionDowncalls) throws IOException {
+    private ibis.ipl.SendPort createSendPort(String name,
+            SendPortConnectUpcall cU, boolean connectionDowncalls)
+            throws IOException {
         if (cU != null) {
             if (! props.isProp("communication", "ConnectionUpcalls")) {
                 throw new IbisConfigurationException(
@@ -137,11 +144,11 @@ public abstract class PortType implements ibis.ipl.PortType, Config {
     }
 
     /**
-     * Creates a {@link SendPort} of this <code>PortType</code>.
+     * Creates a {@link ibis.ipl.SendPort} of this <code>PortType</code>.
      *
      * @param name the name of this sendport.
      * @param cU object implementing the
-     * {@link SendPortConnectUpcall#lostConnection(SendPort,
+     * {@link SendPortConnectUpcall#lostConnection(ibis.ipl.SendPort,
      * ReceivePortIdentifier, Exception)} method.
      * @param connectionDowncalls set when this port must keep
      * connection administration to support the lostConnections
@@ -150,44 +157,45 @@ public abstract class PortType implements ibis.ipl.PortType, Config {
      * @exception java.io.IOException is thrown when the port could not be
      * created.
      */
-    protected abstract SendPort doCreateSendPort(String name,
+    protected abstract ibis.ipl.SendPort doCreateSendPort(String name,
             SendPortConnectUpcall cU, boolean connectionDowncalls)
             throws IOException;
 
-    public ReceivePort createReceivePort(String name) throws IOException {
+    public ibis.ipl.ReceivePort createReceivePort(String name)
+            throws IOException {
         return createReceivePort(name, null, null, false);
     }
 
-    public ReceivePort createReceivePort(String name,
+    public ibis.ipl.ReceivePort createReceivePort(String name,
             boolean connectionDowncalls) throws IOException {
         return createReceivePort(name, null, null, connectionDowncalls);
     }
 
-    public ReceivePort createReceivePort(String name, Upcall u)
+    public ibis.ipl.ReceivePort createReceivePort(String name, Upcall u)
             throws IOException {
         return createReceivePort(name, u, null, false);
     }
 
-    public ReceivePort createReceivePort(String name, Upcall u,
+    public ibis.ipl.ReceivePort createReceivePort(String name, Upcall u,
             boolean connectionDowncalls) throws IOException {
         return createReceivePort(name, u, null, connectionDowncalls);
     }
 
-    public ReceivePort createReceivePort(String name,
+    public ibis.ipl.ReceivePort createReceivePort(String name,
             ReceivePortConnectUpcall cU) throws IOException {
         return createReceivePort(name, null, cU, false);
     }
 
-    public ReceivePort createReceivePort(String name, Upcall u,
+    public ibis.ipl.ReceivePort createReceivePort(String name, Upcall u,
             ReceivePortConnectUpcall cU) throws IOException {
         return createReceivePort(name, u, cU, false);
     }
 
     /** 
-     * Creates a named {@link ReceivePort} of this <code>PortType</code>,
-     * with upcall based communication.
+     * Creates a named {@link ibis.ipl.ReceivePort} of this
+     * <code>PortType</code>, with upcall based communication.
      * New connections will not be accepted until
-     * {@link ReceivePort#enableConnections()} is invoked.
+     * {@link ibis.ipl.ReceivePort#enableConnections()} is invoked.
      * This is done to avoid upcalls during initialization.
      * When a new connection request arrives, or when a connection is lost,
      * a ConnectUpcall is performed.
@@ -207,7 +215,7 @@ public abstract class PortType implements ibis.ipl.PortType, Config {
      * @exception ibis.ipl.IbisConfigurationException is thrown when the port
      * type does not match what is required here.
      */
-    private ReceivePort createReceivePort(String name, Upcall u,
+    private ibis.ipl.ReceivePort createReceivePort(String name, Upcall u,
             ReceivePortConnectUpcall cU, boolean connectionDowncalls)
             throws IOException {
         StaticProperties p = properties();
@@ -263,8 +271,8 @@ public abstract class PortType implements ibis.ipl.PortType, Config {
      * @exception java.io.IOException is thrown when the port could not be
      * created.
      */
-    protected abstract ReceivePort doCreateReceivePort(String name, Upcall u,
-            ReceivePortConnectUpcall cU, boolean connectionDowncalls)
+    protected abstract ibis.ipl.ReceivePort doCreateReceivePort(String name,
+            Upcall u, ReceivePortConnectUpcall cU, boolean connectionDowncalls)
             throws IOException;
 
     public boolean equals(Object other) {

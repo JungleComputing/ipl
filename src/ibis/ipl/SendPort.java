@@ -16,10 +16,12 @@ import java.util.Map;
  * ReceivePortIdentifier, Exception)} upcall is invoked.
  * This upcall is completely asynchronous, but Ibis ensures that 
  * at most one is alive at any given time.
+ * When a {@link SendPortConnectUpcall} object is installed, no exceptions are
+ * thrown by methods in the write message. Instead, the exception is passed
+ * on to the <code>lostConnection</code> upcall.
  *
  * If no {@link SendPortConnectUpcall} is registered, the user is NOT informed 
- * of connections that are lost. No exceptions are thrown by 
- * the write message. It is then the user's own responisbility 
+ * of connections that are lost. It is then the user's own responsibility 
  * to use the {@link #lostConnections()} method to poll for connections 
  * that are lost.
  *
@@ -235,12 +237,13 @@ public interface SendPort {
      * Returns the changes since the last <code>lostConnections</code> call,
      * or, if this is the first call, all connections that were lost since
      * the port was created.
-     * This call only works if the connectionAdministration parameter was true
+     * This call only works if the connectionDowncalls parameter was true
      * when this port was created.
-     * If no connections were lost, or connectionAdministration was not
-     * requested, an array with 0 entries is returned.
+     * If no connections were lost, an array with 0 entries is returned.
      * @return A set of receiveport identifiers to which the connection
      * is lost.
+     * @exception IbisConfigurationException is thrown when connectionDowncalls
+     * where not requested when creating the port.
      */
     public ReceivePortIdentifier[] lostConnections();
 }
