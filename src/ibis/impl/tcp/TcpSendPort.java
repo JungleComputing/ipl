@@ -5,7 +5,9 @@ package ibis.impl.tcp;
 import ibis.impl.Ibis;
 import ibis.impl.IbisIdentifier;
 import ibis.impl.ReceivePortIdentifier;
+import ibis.impl.SendPort;
 import ibis.impl.SendPortConnectionInfo;
+import ibis.impl.SendPortIdentifier;
 import ibis.impl.WriteMessage;
 import ibis.io.BufferedArrayOutputStream;
 import ibis.io.Conversion;
@@ -17,21 +19,23 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
 
-final class TcpSendPort extends ibis.impl.SendPort implements TcpProtocol {
+final class TcpSendPort extends SendPort implements TcpProtocol {
 
     private class Conn extends SendPortConnectionInfo {
         Socket s;
         OutputStream out;
 
-        Conn(Socket s) throws IOException {
+        Conn(Socket s, TcpSendPort port, ReceivePortIdentifier target) throws IOException {
+            super(port, target);
             this.s = s;
             out = s.getOutputStream();
+            splitter.add(out);
         }
 
         protected void closeConnection() {
             try {
                 s.close();
-            } catch(IOException e) {
+            } catch(Throwable e) {
                 // ignored
             } finally {
                 splitter.remove(out);
@@ -39,34 +43,35 @@ final class TcpSendPort extends ibis.impl.SendPort implements TcpProtocol {
         }
     }
 
-    private final OutputStreamSplitter splitter;
+    final OutputStreamSplitter splitter;
 
-    private final BufferedArrayOutputStream bufferedStream;
+    final BufferedArrayOutputStream bufferedStream;
 
     TcpSendPort(Ibis ibis, TcpPortType type, String name,
-            boolean connectionAdministration, SendPortConnectUpcall cU)
+            boolean connectionDowncalls, SendPortConnectUpcall cU)
             throws IOException {
-        super(ibis, type, name, connectionAdministration, cU);
+        super(ibis, type, name, cU, connectionDowncalls);
 
-        boolean connectAdmin = connectionAdministration || (cU != null);
-
-        // if we keep administration, close connections when exception occurs.
-        splitter = new OutputStreamSplitter(connectAdmin, connectAdmin);
+        splitter = new OutputStreamSplitter(connectionDowncalls || (cU != null),
+                false);
 
         bufferedStream = new BufferedArrayOutputStream(splitter);
-
         initStream(bufferedStream);
     }
 
-    protected ReceivePortIdentifier doConnect(IbisIdentifier id, String nm,
-            long timeoutMillis) throws IOException {
-        return ((TcpIbis)ibis).connect(this, id, nm, null, (int) timeoutMillis);
+    SendPortIdentifier getIdent() {
+        return ident;
     }
 
-    protected void doConnect(ReceivePortIdentifier receiver,
-        long timeoutMillis) throws IOException {
-        ((TcpIbis)ibis).connect(this, (IbisIdentifier) receiver.ibis(),
-                receiver.name(), receiver, (int) timeoutMillis);
+    protected SendPortConnectionInfo doConnect(ReceivePortIdentifier receiver,
+            long timeoutMillis) throws IOException {
+        Socket s = ((TcpIbis)ibis).connect(this, receiver, (int) timeoutMillis);
+        Conn c = new Conn(s, this, receiver);
+        if (out != null) {
+            out.writeByte(NEW_RECEIVER);
+        }
+        initStream(bufferedStream);
+        return c;
     }
 
     protected void disconnectPort(ReceivePortIdentifier receiver,
@@ -81,64 +86,48 @@ final class TcpSendPort extends ibis.impl.SendPort implements TcpProtocol {
         out.writeArray(receiverLength);
         out.writeArray(receiverBytes);
         out.flush();
-        // Don't close the stream.
     }
 
     protected void announceNewMessage() throws IOException {
         out.writeByte(NEW_MESSAGE);
-        if (numbered) {
-            out.writeLong(ibis.getSeqno(name));
+        if (type.numbered) {
+            out.writeLong(ibis.registry().getSeqno(name));
         }
     }
 
-    protected void handleSendException(WriteMessage w, IOException e)
-            throws IOException {
+    protected void handleSendException(WriteMessage w, IOException e) {
         if (e instanceof SplitterException) {
             forwardLosses((SplitterException) e);
-        } else {
-            throw e;
         }
     }
 
-    // If we have connectionUpcalls, forward exception to
-    // upcalls. Otherwise, rethrow the exception to the user.
-    private void forwardLosses(SplitterException e) throws IOException {
+    private void forwardLosses(SplitterException e) {
         ReceivePortIdentifier[] ports = receivers.keySet().toArray(
                 new ReceivePortIdentifier[0]);
+        Exception[] exceptions = e.getExceptions();
+        OutputStream[] streams = e.getStreams();
 
         for (int i = 0; i < ports.length; i++) {
             Conn c = (Conn) getInfo(ports[i]);
-            for (int j = 0; j < e.count(); j++) {
-                if (c.out == e.getStream(j)) {
-                    lostConnection(ports[i], e.getException(j));
+            for (int j = 0; j < streams.length; j++) {
+                if (c.out == streams[j]) {
+                    c.closeConnection();
+                    lostConnection(ports[i], exceptions[j]);
                     break;
                 }
             }
-        }
-
-        if (connectUpcall == null) {
-            // otherwise an upcall was/will be done
-            throw e;
         }
     }
 
     protected void closePort() {
         try {
             out.writeByte(CLOSE_ALL_CONNECTIONS);
-            out.reset();
             out.close();
-        } catch (IOException e) {
+        } catch (Throwable e) {
             // ignored
         }
 
         out = null;
     }
 
-    void addConn(ReceivePortIdentifier ri, Socket s) throws IOException {
-        Conn c = new Conn(s);
-        addConnectionInfo(ri, c);
-        splitter.add(c.out);
-        out.writeByte(NEW_RECEIVER);
-        initStream(bufferedStream);
-    }
 }

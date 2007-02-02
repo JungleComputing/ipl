@@ -8,7 +8,7 @@ import ibis.ipl.StaticProperties;
 import java.io.IOException;
 
 /**
- * Implementation of the <code>SendPortIdentifier</code> interface.
+ * Implementation of the {@link ibis.ipl.SendPortIdentifier} interface.
  * This class can be extended by Ibis implementations.
  */
 public class SendPortIdentifier implements ibis.ipl.SendPortIdentifier,
@@ -23,6 +23,7 @@ public class SendPortIdentifier implements ibis.ipl.SendPortIdentifier,
     /** The IbisIdentifier of the Ibis instance that created the sendport. */
     protected final IbisIdentifier ibis;
 
+    /** Coded form, computed only once. */    
     protected transient byte[] codedForm = null;
 
     /**
@@ -38,11 +39,25 @@ public class SendPortIdentifier implements ibis.ipl.SendPortIdentifier,
         this.ibis = ibis;
     }
 
+    /**
+     * Constructs a <code>SendPortIdentifier</code> from the specified coded
+     * form.
+     * @param codedForm the coded form.
+     * @exception IOException is thrown in case of trouble.
+     */
     public SendPortIdentifier(byte[] codedForm) throws IOException {
         this(codedForm, 0, codedForm.length);
         this.codedForm = codedForm;
     }
 
+    /**
+     * Constructs a <code>SendPortIdentifier</code> from the specified coded
+     * form, at a particular offset and size.
+     * @param codedForm the coded form.
+     * @param offset offset in the coded form.
+     * @param length length of the coded form.
+     * @exception IOException is thrown in case of trouble.
+     */
     public SendPortIdentifier(byte[] codedForm, int offset, int length)
             throws IOException {
         int nameSize = Conversion.defaultConversion.byte2int(codedForm, offset);
@@ -58,6 +73,11 @@ public class SendPortIdentifier implements ibis.ipl.SendPortIdentifier,
         ibis = new IbisIdentifier(codedForm, offset, ibisSize);
     }
 
+    /**
+     * Computes the coded form of this <code>SendPortIdentifier</code>.
+     * @return the coded form.
+     * @exception IOException is thrown in case of trouble.
+     */
     public byte[] getBytes() throws IOException {
         if (codedForm == null) {
             byte[] nameBytes = name.getBytes();

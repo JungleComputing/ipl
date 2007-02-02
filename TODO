@@ -27,6 +27,7 @@ general:
   serialization. Could be done for objects passed as a param
   to a spawn, for instance. If code is not there, fall back to current impl.
 - migrate leftover prints to log4j (should we? Performance!)
+  (Ceriel: did Ibis implementation).
 - improve performance of Ibis serialization for non-rewritten code.
 - automatically started nameserver hangs when application crashes or exits
   with code 1 (with ant test)
@@ -43,7 +44,7 @@ nameserver+connection stuff:
 
 ipl:
 
-- add abstract classes for all classes in ibis.ipl to ibis.impl
++ add abstract classes for all classes in ibis.ipl to ibis.impl (done Ceriel)
 - IPL += sendPort.connect(ReceivePortIdentifier[] receivers);
 - close van poorten (in shutdownhooks)
   docs vertellen niet dat je niet een close mag doen terwijl een message
@@ -73,6 +74,10 @@ satin:
   performance of small tasks. The fact that it does not seem to work is an
   indication that there is a bug somewhere: someone touches an invocation
   record after it has been cleared!
+- update docs: don't call System.exit at the end of main(). Satin should be
+  allowed to terminate normally. If main() calls exit, fault-tolerance will
+  think that the master died, and restart the master on another node!
+  Or: could the Satin rewriter somehow deal with this?
 
 satin-so:
 - count all messages+sizes for the total messages/data sent statistics --Rob

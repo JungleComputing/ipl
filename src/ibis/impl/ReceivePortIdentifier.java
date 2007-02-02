@@ -39,11 +39,25 @@ public class ReceivePortIdentifier implements ibis.ipl.ReceivePortIdentifier,
         this.ibis = ibis;
     }
 
+    /**
+     * Constructs a <code>ReceivePortIdentifier</code> from the specified coded
+     * form.
+     * @param codedForm the coded form.
+     * @exception IOException is thrown in case of trouble.
+     */
     public ReceivePortIdentifier(byte[] codedForm) throws IOException {
         this(codedForm, 0, codedForm.length);
         this.codedForm = codedForm;
     }
 
+    /**
+     * Constructs a <code>ReceivePortIdentifier</code> from the specified coded
+     * form, at a particular offset and size.
+     * @param codedForm the coded form.
+     * @param offset offset in the coded form.
+     * @param length length of the coded form.
+     * @exception IOException is thrown in case of trouble.
+     */
     public ReceivePortIdentifier(byte[] codedForm, int offset, int length)
             throws IOException {
         int nameSize = Conversion.defaultConversion.byte2int(codedForm, offset);
@@ -59,6 +73,11 @@ public class ReceivePortIdentifier implements ibis.ipl.ReceivePortIdentifier,
         ibis = new IbisIdentifier(codedForm, offset, ibisSize);
     }
 
+    /**
+     * Computes the coded form of this <code>ReceivePortIdentifier</code>.
+     * @return the coded form.
+     * @exception IOException is thrown in case of trouble.
+     */
     public byte[] getBytes() throws IOException {
         if (codedForm == null) {
             byte[] nameBytes = name.getBytes();
@@ -87,8 +106,7 @@ public class ReceivePortIdentifier implements ibis.ipl.ReceivePortIdentifier,
         if (other == this) {
             return true;
         }
-        return name.equals(other.name) && ibis.equals(other.ibis)
-                && type.equals(other.type);
+        return name.equals(other.name) && ibis.equals(other.ibis);
     }
 
     public boolean equals(Object other) {

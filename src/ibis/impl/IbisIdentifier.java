@@ -9,31 +9,38 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
 /**
- * Identifies an Ibis instance on the network.
+ * This implementation of the {@link ibis.ipl.IbisIdentifier} interface
+ * identifies an Ibis instance on the network.
  */
 public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
     /**
      * This field is used to indicate to which virtual or physical cluster
      * this ibis belongs.
      */
-    private final String cluster;
+    public final String cluster;
 
     /** Hostname on which this Ibis instance runs. */
-    private final String host;
+    public final String host;
 
     /** Numbering of Ibis instances, provided by the registry. */
-    private final int joinId;
+    public final int joinId;
 
     /** The name of the pool to which this Ibis instance belongs. */
-    private final String pool;
+    public final String pool;
 
     /** Extra data for implementation. */
     private final byte[] data;
 
+    /** An Ibis identifier coded as a byte array. Computed once. */
     private transient byte[] codedForm = null;
 
     /**
-     * Constructs an <code>IbisIdentifier</code>.
+     * Constructs an <code>IbisIdentifier</code> with the specified parameters.
+     * @param id join number, allocated by the registry.
+     * @param data implementation-dependent data.
+     * @param cluster cluster to which this ibis instance belongs.
+     * @param pool identifies the run with the registry.
+     * @param host host name on which this instance runs.
      */
     public IbisIdentifier(int id, byte[] data, String cluster,
             String pool, String host) {
@@ -44,11 +51,22 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
         this.host = host;
     }
 
+    /**
+     * Constructs an <code>IbisIdentifier</code> from the specified coded form.
+     * @param codedForm the coded form.
+     */
     public IbisIdentifier(byte[] codedForm) {
         this(codedForm, 0, codedForm.length);
         this.codedForm = codedForm;
     }
 
+    /**
+     * Constructs an <code>IbisIdentifier</code> from the specified coded form,
+     * at a particular offset and size.
+     * @param codedForm the coded form.
+     * @param offset offset in the coded form.
+     * @param size size of the coded form.
+     */
     public IbisIdentifier(byte[] codedForm, int offset, int size) {
         int clusterSize = Conversion.defaultConversion.byte2int(codedForm,
                 offset);
@@ -69,8 +87,13 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
         offset += poolSize;
         data = new byte[dataSize];
         System.arraycopy(codedForm, offset, data, 0, dataSize);
+        // size should now be equal offset + dataSize.
     }
 
+    /**
+     * Computes the coded form of this <code>IbisIdentifier</code>.
+     * @return the coded form.
+     */
     public byte[] getBytes() {
         if (codedForm == null) {
             byte[] clusterBytes = cluster.getBytes();
@@ -161,17 +184,10 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
     }
 
     /**
-     * Obtains the implementation dependant data.
+     * Obtains the implementation dependent data.
      * @return the data.
      */
     public byte[] getData() {
         return data;
-    }
-
-    /**
-     * Obtains the Id of this Ibis instance.
-     */
-    public int getId() {
-        return joinId;
     }
 }

@@ -6,6 +6,12 @@ import ibis.io.SerializationInput;
 
 import java.io.IOException;
 
+/**
+ * Implementation of the {@link ibis.ipl.ReadMessage} interface.
+ * This is a complete implementation, but may be extended by an implementation.
+ * In that case, the {@link ReceivePortConnectionInfo#newStream()} method
+ * must also be redefined.
+ */
 public class ReadMessage implements ibis.ipl.ReadMessage {
 
     private SerializationInput in;
@@ -233,7 +239,7 @@ public class ReadMessage implements ibis.ipl.ReadMessage {
         return isFinished;
     }
 
-    void setFinished(boolean val) {
+    public void setFinished(boolean val) {
         isFinished = val;
     }
 }

@@ -13,7 +13,7 @@ import java.util.Map;
  * When a connection is lost for some reason (normal close or 
  * link error), the 
  * {@link SendPortConnectUpcall#lostConnection(SendPort,
- * ReceivePortIdentifier, Exception)} upcall is invoked.
+ * ReceivePortIdentifier, Throwable)} upcall is invoked.
  * This upcall is completely asynchronous, but Ibis ensures that 
  * at most one is alive at any given time.
  * When a {@link SendPortConnectUpcall} object is installed, no exceptions are
@@ -21,8 +21,9 @@ import java.util.Map;
  * on to the <code>lostConnection</code> upcall.
  *
  * If no {@link SendPortConnectUpcall} is registered, the user is NOT informed 
- * of connections that are lost. It is then the user's own responsibility 
- * to use the {@link #lostConnections()} method to poll for connections 
+ * of connections that are lost.
+ * If the port supports connection downcalls, the user can
+ * use the {@link #lostConnections()} method to poll for connections 
  * that are lost.
  *
  * Connections are unrelated to messages! If the sending of a message 
@@ -140,6 +141,8 @@ public interface SendPort {
 
     /**
      * Attempts to set up a connection with receiver.
+     * It is not allowed to set up a new connection while a message
+     * is alive.
      *
      * @param timeoutMillis timeout in milliseconds
      * @exception ibis.ipl.ConnectionTimedOutException is thrown

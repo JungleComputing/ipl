@@ -15,67 +15,119 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
+/**
+ * Implementation of the {@link ibis.ipl.ReceivePort} interface, to be extended
+ * by specific Ibis implementations.
+ */
 public abstract class ReceivePort implements ibis.ipl.ReceivePort {
 
-    public static final String ANONYMOUS = "__anonymous__";
-
-    private static final Logger logger = GetLogger.getLogger("ibis.impl.ReceivePort");
+    /** Debugging output. */
+    private static final Logger logger
+            = GetLogger.getLogger("ibis.impl.ReceivePort");
 
     // Possible results of a connection attempt.
+
+    /** Connection attempt accepted. */
     public static final byte ACCEPTED = 0;
 
+    /** Connection attempt denied by user code. */
     public static final byte DENIED = 1;
 
+    /** Connection attempt disabled. */
     public static final byte DISABLED = 2;
 
+    /** Sendport was already connected to this receiveport. */
     public static final byte ALREADY_CONNECTED = 3;
 
+    /** PortType does not match. */
     public static final byte TYPE_MISMATCH = 4;
 
+    /** Receiveport not found. */
+    public static final byte NOT_PRESENT = 5;
+
+    /** Receiveport already has a connection, and ManyToOne is not specified. */
+    public static final byte NO_MANYTOONE = 6;
+
+    /** The type of this port. */
     protected final PortType type;
 
+    /** The name of this port. */
     protected final String name;
 
+    /** Number of bytes read from messages of this port. */
     private long count = 0;
 
+    /** Set when connections are enabled. */
     private boolean connectionsEnabled = false;
 
-    private boolean connectionAdministration = false;
+    /** Set when connection downcalls are supported. */
+    private boolean connectionDowncalls = false;
 
-    public final ReceivePortIdentifier ident;
+    /** The identification of this receiveport. */
+    protected final ReceivePortIdentifier ident;
 
+    /**
+     * The connections lost since the last call to {@link #lostConnections()}.
+     */
     private ArrayList<SendPortIdentifier> lostConnections
         = new ArrayList<SendPortIdentifier>();
 
+    /**
+     * The new connections since the last call to {@link #newConnections()}.
+     */
     private ArrayList<SendPortIdentifier> newConnections
         = new ArrayList<SendPortIdentifier>();
 
+    /** Map for implementing the dynamic properties. */
     private Map<String, Object> props = new HashMap<String, Object>();
 
+    /** Message upcall, if specified, or <code>null</code>. */
     protected Upcall upcall;
 
+    /** Connection upcall handler, or <code>null</code>. */
     protected ReceivePortConnectUpcall connectUpcall;
 
+    /** The current connections. */
     protected HashMap<SendPortIdentifier, ReceivePortConnectionInfo> connections
             = new HashMap<SendPortIdentifier, ReceivePortConnectionInfo>();
 
+    /** Set when upcalls are enabled. */
     protected boolean allowUpcalls = false;
 
-    private Ibis ibis;
+    /** The Ibis instance of this receive port. */
+    protected Ibis ibis;
 
+    /** Set when messages are numbered. */
     protected final boolean numbered;
 
+    /** The serialization for this receive port. */
     protected final String serialization;
 
-    public ReceivePort(Ibis ibis, PortType type, String name, Upcall upcall,
-            ReceivePortConnectUpcall connectUpcall, boolean connectionAdmimistration) {
+    /** Set when this port is closed. */
+    protected boolean closed = false;
+
+    /**
+     * Constructs a <code>ReceivePort</code> with the specified parameters.
+     * Note that all property checks are already performed in the
+     * <code>PortType.createReceivePort</code> methods.
+     * @param ibis the ibis instance.
+     * @param type the port type.
+     * @param name the name of the <code>ReceivePort</code>.
+     * @param upcall the message upcall object, or <code>null</code>.
+     * @param connectUpcall the connection upcall object, or <code>null</code>.
+     * @param connectionDowncalls set when connection downcalls must be
+     * supported.
+     */
+    protected ReceivePort(Ibis ibis, PortType type, String name, Upcall upcall,
+            ReceivePortConnectUpcall connectUpcall,
+            boolean connectionDowncalls) {
         this.ibis = ibis;
         this.type = type;
         this.name = name;
         this.ident = new ReceivePortIdentifier(name, type.props, ibis.ident);
         this.upcall = upcall;
         this.connectUpcall = connectUpcall;
-        this.connectionAdministration = connectionAdministration;
+        this.connectionDowncalls = connectionDowncalls;
         this.numbered = type.props.isProp("communication", "Numbered");
         this.serialization = type.serialization;
         ibis.register(this);
@@ -87,36 +139,32 @@ public abstract class ReceivePort implements ibis.ipl.ReceivePort {
         notifyAll();
     }
 
+    public static String getString(int result) {
+        switch(result) {
+        case ACCEPTED:
+            return "ACCEPTED";
+        case DENIED:
+            return "DENIED";
+        case NO_MANYTOONE:
+            return "NO_MANYTOONE";
+        case DISABLED:
+            return "DISABLED";
+        case ALREADY_CONNECTED:
+            return "ALREADY_CONNECTED";
+        case TYPE_MISMATCH:
+            return "TYPE_MISMATCH";
+        case NOT_PRESENT:
+            return "NOT_PRESENT";
+        }
+        return "UNKNOWN";
+    }
+
     public synchronized void disableUpcalls() {
         allowUpcalls = false;
     }
 
-    protected synchronized ReceivePortConnectionInfo getInfo(
-            SendPortIdentifier id) {
-        return connections.get(id);
-    }
-
-    protected synchronized void addInfo(SendPortIdentifier id,
-            ReceivePortConnectionInfo info) {
-        connections.put(id, info);
-        notifyAll();
-    }
-
-    protected synchronized ReceivePortConnectionInfo removeInfo(
-            SendPortIdentifier id) {
-        ReceivePortConnectionInfo info = connections.remove(id);
-        if (connections.size() == 0) {
-            notifyAll();
-        }
-        return info;
-    }
-
     public synchronized ibis.ipl.SendPortIdentifier[] connectedTo() {
         return connections.keySet().toArray(new ibis.ipl.SendPortIdentifier[0]);
-    }
-
-    protected synchronized ReceivePortConnectionInfo[] connections() {
-        return connections.values().toArray(new ReceivePortConnectionInfo[0]);
     }
 
     public synchronized long getCount() {
@@ -125,10 +173,6 @@ public abstract class ReceivePort implements ibis.ipl.ReceivePort {
 
     public synchronized void resetCount() {
         count = 0;
-    }
-
-    protected synchronized void addCount(long cnt) {
-        count += cnt;
     }
 
     public PortType getType() {
@@ -152,7 +196,7 @@ public abstract class ReceivePort implements ibis.ipl.ReceivePort {
     }
     
     public synchronized ibis.ipl.SendPortIdentifier[] lostConnections() {
-        if (! connectionAdministration) {
+        if (! connectionDowncalls) {
             throw new IbisConfigurationException("ReceivePort.lostConnections()"
                     + " called but connectiondowncalls not configured");
         }
@@ -163,7 +207,7 @@ public abstract class ReceivePort implements ibis.ipl.ReceivePort {
     }
 
     public synchronized ibis.ipl.SendPortIdentifier[] newConnections() {
-        if (! connectionAdministration) {
+        if (! connectionDowncalls) {
             throw new IbisConfigurationException("ReceivePort.newConnections()"
                     + " called but connectiondowncalls not configured");
         }
@@ -171,21 +215,6 @@ public abstract class ReceivePort implements ibis.ipl.ReceivePort {
                 new ibis.ipl.SendPortIdentifier[0]);
         newConnections.clear();
         return result;
-    }
-
-    protected void lostConnection(SendPortIdentifier id,
-            Throwable e) {
-        if (connectionAdministration) {
-            synchronized(this) {
-                lostConnections.add(id);
-            }
-        } else if (connectUpcall != null) {
-            if (e == null) {
-                e = new Exception("sender closed connection");
-            }
-            connectUpcall.lostConnection(this, id, e);
-        }
-        removeInfo(id);
     }
 
     public String name() {
@@ -208,22 +237,34 @@ public abstract class ReceivePort implements ibis.ipl.ReceivePort {
         return receive(-1);
     }
 
-    public ReadMessage receive(long timeoutMillis) throws IOException {
+    public ReadMessage receive(long timeout) throws IOException {
         if (upcall != null) {
             throw new IbisConfigurationException(
                     "Configured Receiveport for upcalls, downcall not allowed");
         }
+        if (timeout > 0 &&
+                ! type.props.isProp("communication", "ReceiveTimeout")) {
+            throw new IbisConfigurationException(
+                    "This port is not configured for receive() with timeout");
+        }
 
-        return getMessage(timeoutMillis);
+        return getMessage(timeout);
     }
 
-    public void close() {
-        doClose(0);
-        ibis.deRegister(this);
+    public final void close() {
+        close(0L);
     }
 
     public void close(long timeout) {
-        doClose(timeout);
+        if (logger.isDebugEnabled()) {
+            logger.debug("Receiveport " + name + ": closing");
+        }
+        disableConnections();
+        synchronized(this) {
+            closed = true;
+            notifyAll();
+        }
+        closePort(timeout);
         ibis.deRegister(this);
     }
 
@@ -232,7 +273,11 @@ public abstract class ReceivePort implements ibis.ipl.ReceivePort {
             return TYPE_MISMATCH;
         }
         if (connectionsEnabled) {
-            if (connectionAdministration) {
+            if (connections.size() != 0 &&
+                    ! type.props.isProp("communication", "ManyToOne")) {
+                return DENIED;
+            }
+            if (connectionDowncalls) {
                 newConnections.add(id);
             } else if (connectUpcall != null) {
                 if (!connectUpcall.gotConnection(this, id)) {
@@ -242,18 +287,6 @@ public abstract class ReceivePort implements ibis.ipl.ReceivePort {
             return ACCEPTED;
         }
         return DISABLED;
-    }
-
-    protected abstract void doClose(long timeout);
-
-    protected abstract ReadMessage getMessage(long timeoutMillis) throws IOException;
-
-    protected abstract void finishMessage(ReadMessage r) throws IOException;
-
-    protected abstract void finishMessage(ReadMessage r, IOException e);
-
-    protected void setFinished(ReadMessage r, boolean val) {
-        r.setFinished(val);
     }
 
     public int hashCode() {
@@ -276,8 +309,135 @@ public abstract class ReceivePort implements ibis.ipl.ReceivePort {
         return getInfo(id) != null;
     }
 
-    protected ReadMessage createMessage(SerializationInput in,
-            ReceivePortConnectionInfo info) {
-        return new ReadMessage(in, info, this);
+    public ReadMessage poll() throws IOException {
+        if (! type.properties().isProp("communication", "Poll")) {
+            throw new IbisConfigurationException(
+                    "Receiveport not configured for polls");
+        }
+        return doPoll();
     }
+
+    synchronized void addCount(long cnt) {
+        count += cnt;
+    }
+
+    // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    // Protected methods, to be called by Ibis implementations.
+    // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    /**
+     * Notifies this receiveport that the connection associated with the
+     * specified sendport must be assumed to be lost, due to the specified
+     * reason. It updates the administration, and performs the
+     * lostConnection upcall, if required.
+     * @param id the identification of the sendport.
+     * @param e the cause of the lost connection.
+     */
+    protected void lostConnection(SendPortIdentifier id,
+            Throwable e) {
+        if (connectionDowncalls) {
+            synchronized(this) {
+                lostConnections.add(id);
+            }
+        } else if (connectUpcall != null) {
+            if (e == null) {
+                e = new Exception("sender closed connection");
+            }
+            connectUpcall.lostConnection(this, id, e);
+        }
+        removeInfo(id);
+    }
+
+    /**
+     * Returns the connection information for the specified sendport identifier.
+     * @param id the identification of the sendport.
+     * @return the connection information, or <code>null</code> if not
+     * present.
+     */
+    protected synchronized ReceivePortConnectionInfo getInfo(
+            SendPortIdentifier id) {
+        return connections.get(id);
+    }
+
+    /**
+     * Adds a connection entry for the specified sendport identifier,
+     * and notifies, for possible waiters on a new connection.
+     * @param id the identification of the sendport.
+     * @param info the associated connection information.
+     */
+    protected synchronized void addInfo(SendPortIdentifier id,
+            ReceivePortConnectionInfo info) {
+        connections.put(id, info);
+        notifyAll();
+    }
+
+    /**
+     * Removes the connection entry for the specified sendport identifier.
+     * If after this there are no connections left, a notify is done.
+     * A {@link #closePort} can wait for this to happen.
+     * @param id the identification of the sendport.
+     * @return the removed connection.
+     */
+    protected synchronized ReceivePortConnectionInfo removeInfo(
+            SendPortIdentifier id) {
+        ReceivePortConnectionInfo info = connections.remove(id);
+        if (connections.size() == 0) {
+            notifyAll();
+        }
+        return info;
+    }
+
+    /**
+     * Returns an array with entries for each connection.
+     * @return the connections.
+     */
+    protected synchronized ReceivePortConnectionInfo[] connections() {
+        return connections.values().toArray(new ReceivePortConnectionInfo[0]);
+    }
+
+    // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    // Protected methods, to be implemented by Ibis implementations.
+    // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    /**
+     * Implementation-dependent part of the {@link #poll()} method.
+     * @exception IOException is thrown in case of trouble.
+     * @return a new {@link ReadMessage} or <code>null</code>.
+     */
+    protected abstract ReadMessage doPoll() throws IOException;
+
+    /**
+     * Waits for all connections to close. If the specified timeout is larger
+     * than 0, the implementation waits for the specified time, and then
+     * forcibly closes all connections.
+     * @param timeout the timeout in milliseconds.
+     */
+    protected abstract void closePort(long timeout);
+
+    /**
+     * Waits for a new message and returns it. If the specified timeout is
+     * larger than 0, the implementation waits for the specified time,
+     * and returns <code>null</code> if a message did not arrive within
+     * this time.
+     * @param timeout the timeout in milliseconds.
+     * @exception IOException is thrown in case of trouble.
+     * @return the new message, or <code>null</code>.
+     */
+    protected abstract ReadMessage getMessage(long timeout) throws IOException;
+
+    /**
+     * Notifies the port that {@link ReadMessage#finish()} was called on the
+     * specified message. The port should prepare for a new message.
+     * @param r the message.
+     */
+    protected abstract void finishMessage(ReadMessage r);
+
+    /**
+     * Notifies the port that {@link ReadMessage#finish(IOException)}
+     * was called on the specified message.
+     * The port should close the connection, with the specified reason.
+     * @param r the message.
+     * @param e the Exception.
+     */
+    protected abstract void finishMessage(ReadMessage r, IOException e);
 }

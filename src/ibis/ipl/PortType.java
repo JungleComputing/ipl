@@ -92,7 +92,7 @@ public interface PortType {
      * @param name the name of this sendport.
      * @param cU object implementing the
      * {@link SendPortConnectUpcall#lostConnection(SendPort,
-     * ReceivePortIdentifier, Exception)} method.
+     * ReceivePortIdentifier, Throwable)} method.
      * @return the new sendport.
      * @exception java.io.IOException is thrown when the port could not be
      * created.
@@ -110,8 +110,7 @@ public interface PortType {
      * This is done to avoid upcalls during initialization.
      *
      * @param name the unique name of this receiveport (or <code>null</code>,
-     *    in which case the port is created anonymously and is not bound
-     *    in the registry).
+     *    in which case the port is created anonymously).
      * @return the new receiveport.
      * @exception java.io.IOException is thrown when the port could not be
      * created.
@@ -128,8 +127,7 @@ public interface PortType {
      * This is done to avoid upcalls during initialization.
      *
      * @param name the unique name of this receiveport (or <code>null</code>,
-     *    in which case the port is created anonymously and is not bound
-     *    in the registry).
+     *    in which case the port is created anonymously).
      * @param connectionDowncalls set when this port must keep
      * connection administration to support the lostConnections and
      * newConnections downcalls.
@@ -150,8 +148,7 @@ public interface PortType {
      * This is done to avoid upcalls during initialization.
      *
      * @param name the unique name of this receiveport (or <code>null</code>,
-     *    in which case the port is created anonymously and is not bound
-     *    in the registry).
+     *    in which case the port is created anonymously).
      * @param u the upcall handler.
      * @return the new receiveport.
      * @exception java.io.IOException is thrown when the port could not be
@@ -170,8 +167,7 @@ public interface PortType {
      * This is done to avoid upcalls during initialization.
      *
      * @param name the unique name of this receiveport (or <code>null</code>,
-     *    in which case the port is created anonymously and is not bound
-     *    in the registry).
+     *    in which case the port is created anonymously).
      * @param u the upcall handler.
      * @param connectionDowncalls set when this port must keep
      * connection administration to support the lostConnections and
@@ -195,8 +191,7 @@ public interface PortType {
      * a ConnectUpcall is performed.
      *
      * @param name the unique name of this receiveport (or <code>null</code>,
-     *    in which case the port is created anonymously and is not bound
-     *    in the registry).
+     *    in which case the port is created anonymously).
      * @param cU object implementing <code>gotConnection</code>() and
      * <code>lostConnection</code>() upcalls.
      * @return the new receiveport.
@@ -218,8 +213,7 @@ public interface PortType {
      * a ConnectUpcall is performed.
      *
      * @param name the unique name of this receiveport (or <code>null</code>,
-     *    in which case the port is created anonymously and is not bound
-     *    in the registry).
+     *    in which case the port is created anonymously).
      * @param u the upcall handler.
      * @param cU object implementing <code>gotConnection</code>() and
      * <code>lostConnection</code>() upcalls.

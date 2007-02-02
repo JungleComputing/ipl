@@ -7,10 +7,9 @@ import java.io.IOException;
 
 /**
  * An instance of this interface can only be created by the
- * {@link ibis.ipl.IbisFactory#createIbis()} method, and is the starting point
- * of all Ibis communication.
+ * {@link ibis.ipl.IbisFactory#createIbis(StaticProperties, ResizeHandler)}
+ * method, and is the starting point of all Ibis communication.
  */
-
 public interface Ibis {
 
     /**

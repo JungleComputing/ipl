@@ -274,12 +274,12 @@ public final class Group implements GroupProtocol {
 
             for (int j = 0; j < _size; j++) {
                 unicast[j] = portTypeManyToOne.createSendPort("Unicast on " 
-                        + name + " to " + pool[j].name());
+                        + name + " to " + j);
 
                 if (logger.isDebugEnabled()) {
                     logger.debug(_rank + ": <static> - " + 
                             "Connecting unicast sendport "
-                            + unicast[j].name() + " to " + pool[j].name());
+                            + unicast[j].name());
                 }
 
                 unicast[j].connect(pool[j]);
@@ -287,7 +287,7 @@ public final class Group implements GroupProtocol {
                 if (logger.isDebugEnabled()) {
                     logger.debug(_rank + ": <static> - " + 
                             "Connecting unicast sendport "
-                            + unicast[j].identifier() + " done");
+                            + unicast[j].name() + " done");
                 }
             }
 

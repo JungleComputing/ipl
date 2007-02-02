@@ -71,8 +71,7 @@ public final class TcpIbis extends Ibis implements Runnable, TcpProtocol {
 
         socketFactory = IbisSocketFactory.getFactory();
 
-        systemServer = socketFactory.createServerSocket(0, addr, true,
-                null /* don't pass properties, this is not a socket that is used for an ibis port */);
+        systemServer = socketFactory.createServerSocket(0, addr, true, null);
         int port = systemServer.getLocalPort();
 
         myAddress = new InetSocketAddress(addr, port);
@@ -91,24 +90,21 @@ public final class TcpIbis extends Ibis implements Runnable, TcpProtocol {
 
     protected PortType newPortType(StaticProperties p)
             throws PortMismatchException {
-
         return new TcpPortType(this, p);
     }
 
-    ReceivePortIdentifier connect(TcpSendPort sp,
-            IbisIdentifier id, String name, ReceivePortIdentifier rip,
-            int timeout) throws IOException {
-        Socket s = null;
-
+    Socket connect(TcpSendPort sp, ReceivePortIdentifier rip, int timeout)
+            throws IOException {
+        IbisIdentifier id = (IbisIdentifier) rip.ibis();
+        String name = rip.name();
         InetSocketAddress idAddr;
         int port;
 
         synchronized(addresses) {
             idAddr = (InetSocketAddress) addresses.get(id);
             if (idAddr == null) {
-                byte[] b = id.getData();
-                DataInputStream in
-                    = new DataInputStream(new ByteArrayInputStream(b));
+                DataInputStream in = new DataInputStream(
+                        new ByteArrayInputStream(id.getData()));
                 String addr = in.readUTF();
                 port = in.readInt();
                 in.close();
@@ -126,25 +122,27 @@ public final class TcpIbis extends Ibis implements Runnable, TcpProtocol {
 
         long startTime = System.currentTimeMillis();
 
-        try {
-            if (logger.isDebugEnabled()) {
-                logger.debug("--> Creating socket for connection to " + name
-                        + " at " + id + ", port = " + port);
-            }
+        if (logger.isDebugEnabled()) {
+            logger.debug("--> Creating socket for connection to " + name
+                    + " at " + id + ", port = " + port);
+        }
 
-            do {
+        do {
+            DataOutputStream data_out = null;
+            DataInputStream data_in = null;
+            Socket s = null;
+
+            try {
                 s = socketFactory.createClientSocket(idAddr.getAddress(), port,
                         myAddress.getAddress(), 0, timeout,
                         sp.properties());
 
-                InputStream sin = s.getInputStream();
-                OutputStream sout = s.getOutputStream();
-                DataOutputStream data_out = new DataOutputStream(
-                        new BufferedOutputStream(sout));
-                DataInputStream data_in = new DataInputStream(
-                        new BufferedInputStream(sin));
+                data_out = new DataOutputStream(new BufferedOutputStream(
+                            s.getOutputStream()));
+                data_in = new DataInputStream(new BufferedInputStream(
+                            s.getInputStream()));
 
-		byte[] spIdent = sp.ident.getBytes();
+		byte[] spIdent = sp.getIdent().getBytes();
 
                 data_out.writeUTF(name);
 		data_out.writeInt(spIdent.length);
@@ -152,28 +150,11 @@ public final class TcpIbis extends Ibis implements Runnable, TcpProtocol {
 		data_out.flush();
 
                 int result = data_in.readByte();
-                byte[] buf = null;
-                Socket s1 = null;
-
-                if (result == ReceivePort.ACCEPTED) {
-                    int len = data_in.readInt();
-                    buf = new byte[len];
-                    data_in.readFully(buf, 0, len);
-		    s1 = socketFactory.createBrokeredSocket(data_in, data_out,
-                            false, sp.properties());
-                }
-
-                data_out.close();
-                data_in.close();
-                s.close();
 
 		switch(result) {
 		case ReceivePort.ACCEPTED:
-                    if (rip == null) {
-                        rip = new ReceivePortIdentifier(buf);
-                    }
-                    sp.addConn(rip, s1);
-                    return rip;
+		    return socketFactory.createBrokeredSocket(data_in, data_out,
+                            false, sp.properties());
                 case ReceivePort.ALREADY_CONNECTED:
                     throw new AlreadyConnectedException(
                             "The sender was already connected to " + name
@@ -182,11 +163,13 @@ public final class TcpIbis extends Ibis implements Runnable, TcpProtocol {
                     throw new PortMismatchException(
                             "Cannot connect ports of different PortTypes");
 		case ReceivePort.DENIED:
-                    if (rip != null) {
-                        throw new ConnectionRefusedException(
-                                "Receiver denied connection");
-                    }
-                    // fall through
+                    throw new ConnectionRefusedException(
+                            "Receiver denied connection");
+		case ReceivePort.NO_MANYTOONE:
+                    throw new ConnectionRefusedException(
+                            "Receiver already has a connection and ManyToOne "
+                            + "is not set");
+                case ReceivePort.NOT_PRESENT:
 		case ReceivePort.DISABLED:
 		    // and try again if we did not reach the timeout...
 		    if (timeout > 0
@@ -194,29 +177,33 @@ public final class TcpIbis extends Ibis implements Runnable, TcpProtocol {
 			throw new ConnectionTimedOutException(
                                 "Could not connect");
 		    }
-		    try {
-			Thread.sleep(100);
-		    } catch (InterruptedException e) {
-			// ignore
-		    }
 		    break;
 		default:
 		    throw new Error("Illegal opcode in TcpIbis.connect");
 		}
-
-            } while (true);
-        } catch (IOException e) {
-            // e.printStackTrace();
-            try {
-                if (s != null) {
-                    s.close();
+            } finally {
+                try {
+                    data_in.close();
+                } catch(Throwable e) {
+                    // ignored
                 }
-            } catch (Exception e2) {
-                // Ignore.
+                try {
+                    data_out.close();
+                } catch(Throwable e) {
+                    // ignored
+                }
+                try {
+                    s.close();
+                } catch(Throwable e) {
+                    // ignored
+                }
             }
-            // just rethrow the original exception so we don't loose the type.
-            throw e;
-        }
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                // ignore
+            }
+        } while (true);
     }
 
     protected void quit() {
@@ -226,28 +213,24 @@ public final class TcpIbis extends Ibis implements Runnable, TcpProtocol {
             InetAddress addr = myAddress.getAddress();
             int port = myAddress.getPort();
             socketFactory.createClientSocket(addr, port, addr, 0, 0, null);
-        } catch (Exception e) {
+        } catch (Throwable e) {
             // Ignore
         }
     }
 
-    /* returns: was it a close i.e. do we need to exit this thread */
-    private void handleRequest(Socket s) throws Exception {
+    private void handleConnectionRequest(Socket s) throws Exception {
         if (logger.isDebugEnabled()) {
-            logger.debug("--> TcpIbis got new connection from "
+            logger.debug("--> TcpIbis got connection request from "
                     + s.getInetAddress() + ":" + s.getPort() + " on local port "
                     + s.getLocalPort());
         }
-        InputStream in = s.getInputStream();
-        OutputStream out = s.getOutputStream();
 
-        DataInputStream data_in
-                = new DataInputStream(new BufferedInputStream(in));
-	DataOutputStream data_out
-                = new DataOutputStream(new BufferedOutputStream(out));
+        DataInputStream data_in = new DataInputStream(
+                new BufferedInputStream(s.getInputStream()));
+	DataOutputStream data_out = new DataOutputStream(
+                new BufferedOutputStream(s.getOutputStream()));
 
         String name = data_in.readUTF();
-
 	int spLen = data_in.readInt();
 	byte[] sp = new byte[spLen];
 	data_in.readFully(sp, 0, sp.length);
@@ -256,26 +239,20 @@ public final class TcpIbis extends Ibis implements Runnable, TcpProtocol {
         /* First, try to find the receive port this message is for... */
         TcpReceivePort rp = (TcpReceivePort) findReceivePort(name);
 
-        if (logger.isDebugEnabled()) {
-            logger.debug("--> S  RP = "
-                    + (rp == null ? "not found" : rp.identifier()));
-        }
-
         int result;
         if (rp == null) {
-            result = ReceivePort.DENIED;
+            result = ReceivePort.NOT_PRESENT;
         } else if (rp.isConnectedTo(send)) {
             result = ReceivePort.ALREADY_CONNECTED;
         } else {
             result = rp.connectionAllowed(send);
         }
+        logger.debug("--> S RP = " + name + ": "
+                + ReceivePort.getString(result));
 
         Socket s1 = null;
 	data_out.writeByte(result);
         if (result == ReceivePort.ACCEPTED) {
-            byte[] recv = rp.ident.getBytes();
-            data_out.writeInt(recv.length);
-            data_out.write(recv, 0, recv.length);
             data_out.flush();
             s1 = socketFactory.createBrokeredSocket(data_in, data_out, true,
                     rp.properties());
@@ -286,14 +263,11 @@ public final class TcpIbis extends Ibis implements Runnable, TcpProtocol {
 
         data_out.close();
         data_in.close();
-        s.close();
     }
 
     public void run() {
-        /* This thread handles incoming connection request from the
-         * connect(TcpSendPort) call.
-         */
-
+        // This thread handles incoming connection request from the
+        // connect(TcpSendPort) call.
         logger.debug("--> TcpIbis running");
         while (true) {
             Socket s = null;
@@ -301,35 +275,28 @@ public final class TcpIbis extends Ibis implements Runnable, TcpProtocol {
             logger.debug("--> TcpIbis doing new accept()");
             try {
                 s = systemServer.accept();
-            } catch (Exception e) {
-                /* if the accept itself fails, we have a fatal problem.
-                 Close this receiveport.
-                 */
-                logger.error("EEK: TcpIbis:run: got exception "
-                        + "in accept ReceivePort closing! ", e);
+            } catch (Throwable e) {
+                /* if the accept itself fails, we have a fatal problem. */
+                logger.fatal("TcpIbis:run: got fatal exception in accept! ", e);
                 cleanup();
-                throw new Error("Fatal: TcpIbis could not do an accept");
+                throw new Error("Fatal: TcpIbis could not do an accept", e);
             }
 
             logger.debug("--> TcpIbis through new accept()");
             try {
                 if (quiting) {
-                    systemServer.close();
-                    s.close();
                     logger.debug("--> it is a quit: RETURN");
                     cleanup();
                     return;
                 }
-                handleRequest(s);
-
-            } catch (Exception e) {
+                handleConnectionRequest(s);
+            } catch (Throwable e) {
                 logger.error("EEK: TcpIbis:run: got exception "
                             + "(closing this socket only: ", e);
+            } finally {
                 try {
-                    if (s != null) {
-                        s.close();
-                    }
-                } catch (Exception e1) {
+                    s.close();
+                } catch (Throwable e1) {
                     // ignored
                 }
             }
@@ -338,16 +305,10 @@ public final class TcpIbis extends Ibis implements Runnable, TcpProtocol {
 
     private void cleanup() {
         try {
-            if (systemServer != null) {
-                systemServer.close();
-            }
-            systemServer = null;
-        } catch (Exception e) {
+            systemServer.close();
+        } catch (Throwable e) {
             // Ignore
         }
-    }
-
-    public void poll() {
-        // Empty implementation, as TCP Ibis has interrupts.
+        systemServer = null;
     }
 }

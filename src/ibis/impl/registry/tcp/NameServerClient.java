@@ -388,7 +388,7 @@ public class NameServerClient extends ibis.impl.Registry
 
             out.writeByte(IBIS_ISALIVE);
             out.writeUTF(poolName);
-            out.writeInt(((IbisIdentifier)ibisId).getId());
+            out.writeInt(((IbisIdentifier)ibisId).joinId);
             out.flush();
             logger.debug("NS client: isAlive sent");
 
@@ -411,7 +411,7 @@ public class NameServerClient extends ibis.impl.Registry
 
             out.writeByte(IBIS_DEAD);
             out.writeUTF(poolName);
-            out.writeInt(((IbisIdentifier) corpse).getId());
+            out.writeInt(((IbisIdentifier) corpse).joinId);
             logger.debug("NS client: kill sent");
         } catch (ConnectionTimedOutException e) {
             return;
@@ -434,7 +434,7 @@ public class NameServerClient extends ibis.impl.Registry
             out.writeUTF(poolName);
             out.writeInt(ibisses.length);
             for (int i = 0; i < ibisses.length; i++) {
-                out.writeInt(((IbisIdentifier) ibisses[i]).getId());
+                out.writeInt(((IbisIdentifier) ibisses[i]).joinId);
             }
             logger.debug("NS client: mustLeave sent");
         } catch (ConnectionTimedOutException e) {
@@ -487,7 +487,7 @@ public class NameServerClient extends ibis.impl.Registry
 
             out.writeByte(IBIS_LEAVE);
             out.writeUTF(poolName);
-            out.writeInt(id.getId());
+            out.writeInt(id.joinId);
             out.flush();
             logger.info("NS client: leave sent");
 
@@ -573,7 +573,7 @@ public class NameServerClient extends ibis.impl.Registry
                         out = new DataOutputStream(
                                 new BufferedOutputStream(s.getOutputStream()));
                         out.writeUTF(poolName);
-                        out.writeInt(id.getId());
+                        out.writeInt(id.joinId);
                     }
                     break;
 

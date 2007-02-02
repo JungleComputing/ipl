@@ -16,41 +16,67 @@ import java.io.IOException;
 import org.apache.log4j.Logger;
 
 /**
- * An Ibis implementation can choose to extend this class to implement
- * the PortType interface.
+ * Implementation of the {@link ibis.ipl.PortType} interface, to be extended
+ * by specific Ibis implementations.
  */
 public abstract class PortType implements ibis.ipl.PortType {
 
+    /** Debugging output. */
     private static final Logger logger
             = GetLogger.getLogger("ibis.impl.PortType");
 
-    /** Counter for allocating names for anonymous ports. */
-    private static int anon_counter = 0;
+    /** Counter for allocating names for anonymous sendports. */
+    private static int send_counter = 0;
+
+    /** Counter for allocating names for anonymous receiveports. */
+    private static int receive_counter = 0;
 
     /** The properties for this port type. */
-    protected StaticProperties props;
+    public final StaticProperties props;
 
     /** The serialization used for this port type. */
-    protected String serialization;
+    protected final String serialization;
 
     /** Replacer for object output streams. */
-    protected Class replacerClass = null;
+    protected final Class replacerClass;
 
     /** The Ibis instance that created this port type. */
     protected Ibis ibis;
 
-    public PortType(Ibis ibis, StaticProperties p)
-            throws PortMismatchException {
+    /** Set when messages are numbered. */
+    public final boolean numbered;
+
+    /** Set when the port type supports OneToOne communication. */
+    public final boolean oneToOne;
+
+    /** Set when the port type supports OneToMany communication. */
+    public final boolean oneToMany;
+
+    /** Set when the port type supports ManyToOne communication. */
+    public final boolean manyToOne;
+
+    /**
+     * Constructs a <code>PortType</code> with the specified parameters.
+     * @param ibis the ibis instance.
+     * @param p the properties for the <code>PortType</code>.
+     * @exception IbisConfigurationException is thrown when there is some
+     * inconsistency in the specified properties.
+     */
+    protected PortType(Ibis ibis, StaticProperties p) {
         this.ibis = ibis;
     	this.props = p;
-        boolean numbered = p.isProp("communication", "Numbered");
 
-        serialization = p.find("Serialization");
-        if (serialization == null) {
+        numbered = p.isProp("communication", "Numbered");
+
+        String ser = p.find("Serialization");
+        if (ser == null) {
             serialization = "sun";
+        } else {
+            serialization = ser;
         }
+
         if (serialization.equals("byte") && numbered) {
-            throw new PortMismatchException(
+            throw new IbisConfigurationException(
                     "Numbered communication is not supported on byte "
                     + "serialization streams");
         }
@@ -59,19 +85,26 @@ public abstract class PortType implements ibis.ipl.PortType {
 
         String replacerName = props.find("serialization.replacer");
 
+        this.oneToMany = props.isProp("communication", "OneToMany");
+        this.manyToOne = props.isProp("communication", "ManyToOne");
+        this.oneToOne = props.isProp("communication", "OneToOne")
+                || oneToMany || manyToOne;
+
         if (replacerName != null) {
-            if (! props.isProp("serialization", "sun") &&
-                ! props.isProp("serialization", "object") &&
-                ! props.isProp("serialization", "ibis")) {
-                throw new IbisConfigurationException(
-                       "Object replacer specified but no object serialization");
-            }
             try {
                 replacerClass = Class.forName(replacerName);
             } catch(Exception e) {
                 throw new IbisConfigurationException(
                         "Could not locate replacer class " + replacerName);
             }
+            if (! props.isProp("serialization", "sun") &&
+                ! props.isProp("serialization", "object") &&
+                ! props.isProp("serialization", "ibis")) {
+                throw new IbisConfigurationException(
+                       "Object replacer specified but no object serialization");
+            }
+        } else {
+            replacerClass = null;
         }
     }
 
@@ -109,7 +142,7 @@ public abstract class PortType implements ibis.ipl.PortType {
      * @param name the name of this sendport.
      * @param cU object implementing the
      * {@link SendPortConnectUpcall#lostConnection(ibis.ipl.SendPort,
-     * ReceivePortIdentifier, Exception)} method.
+     * ReceivePortIdentifier, Throwable)} method.
      * @param connectionDowncalls set when this port must keep
      * connection administration to support the lostConnections
      * downcall.
@@ -136,7 +169,7 @@ public abstract class PortType implements ibis.ipl.PortType {
         }
         if (name == null) {
             synchronized(this.getClass()) {
-                name = "anonymous send port " + anon_counter++;
+                name = "anonymous send port " + send_counter++;
             }
         }
 
@@ -149,7 +182,7 @@ public abstract class PortType implements ibis.ipl.PortType {
      * @param name the name of this sendport.
      * @param cU object implementing the
      * {@link SendPortConnectUpcall#lostConnection(ibis.ipl.SendPort,
-     * ReceivePortIdentifier, Exception)} method.
+     * ReceivePortIdentifier, Throwable)} method.
      * @param connectionDowncalls set when this port must keep
      * connection administration to support the lostConnections
      * downcall.
@@ -244,11 +277,31 @@ public abstract class PortType implements ibis.ipl.PortType {
             }
         }
         if (name == null) {
-            name = ReceivePort.ANONYMOUS;
+            synchronized(this.getClass()) {
+                name = "anonymous receive port " + receive_counter++;
+            }
         }
 
         return doCreateReceivePort(name, u, cU, connectionDowncalls);
     }
+
+    public boolean equals(Object other) {
+        if (other == null) {
+            return false;
+        }
+        if (!(other instanceof PortType)) {
+            return false;
+        }
+            return props.equals(((PortType) other).props);
+        }
+
+    public int hashCode() {
+        return props.hashCode();
+    }
+
+    // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    // Protected methods, to be implemented by Ibis implementations.
+    // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     /** 
      * Creates a named {@link ibis.ipl.ReceivePort} of this
@@ -266,7 +319,6 @@ public abstract class PortType implements ibis.ipl.PortType {
      * @param connectionDowncalls set when this port must keep
      * connection administration to support the lostConnections and
      * newConnections downcalls.
-     * @param global set if the port must be registered in the Ibis registry.
      * @return the new receiveport.
      * @exception java.io.IOException is thrown when the port could not be
      * created.
@@ -274,18 +326,4 @@ public abstract class PortType implements ibis.ipl.PortType {
     protected abstract ibis.ipl.ReceivePort doCreateReceivePort(String name,
             Upcall u, ReceivePortConnectUpcall cU, boolean connectionDowncalls)
             throws IOException;
-
-    public boolean equals(Object other) {
-        if (other == null) {
-            return false;
-        }
-        if (!(other instanceof PortType)) {
-            return false;
-        }
-            return props.equals(((PortType) other).props);
-        }
-
-    public int hashCode() {
-        return props.hashCode();
-    }
 }

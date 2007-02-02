@@ -16,27 +16,26 @@ import java.util.Map;
  * connection to the receiveport.  When a connection is lost 
  * for some reason (normal close or link error), the 
  * {@link ReceivePortConnectUpcall#lostConnection(ReceivePort,
- * SendPortIdentifier, Exception)}
+ * SendPortIdentifier, Throwable)}
  * upcall is performed. Both upcalls are completely
  * asynchronous, but Ibis ensures that at most one is active at any given
  * time.
  *
  * If no {@link ReceivePortConnectUpcall} is registered, the user is NOT
  * informed of connections that are created or lost.
- * No exceptions are thrown by the read message when a connection is lost.
- * It is the user's own responsibility to use the {@link #lostConnections()}
- * method to poll for connections that are lost.  The {@link #newConnections()}
- * method can be used to find out about new connections.
+ * If the port supports connection downcalls, the user can
+ * use the {@link #lostConnections()} * method to poll for connections that
+ * are lost,  and the {@link #newConnections()}  method to find out about new
+ * connections.
  *
- * Only one upcall is alive at a one time, this includes BOTH
+ * Only one upcall is alive at any one time, this includes BOTH
  * normal (message) upcalls AND ConnectUpcalls.
  *
- * Only one message is alive at one time for a given
+ * Only one message is alive at any time for a given
  * receiveport. This is done to prevent flow control problems.
  * A receiveport can be configured to generate upcalls or to 
  * support blocking receive, but NOT both!  The message object
- * is always destroyed when the upcall is finished; it is thus 
- * not correct to put it in a global variable / queue.
+ * is always destroyed when it is finished.
  */
 public interface ReceivePort {
 
@@ -50,12 +49,13 @@ public interface ReceivePort {
      * Explicit blocking receive.
      * This method blocks until a message arrives on this receiveport.
      * When a receiveport is configured to generate upcalls, 
-     * using this method is NOT allowed; in that case an {@link IOException}
-     * is thrown.
+     * using this method is NOT allowed; in that case an
+     * {@link IbisConfigurationException} is thrown.
      *
      * @return the message received.
-     * @exception IOException is thrown when the receiveport is configured
-     * to use upcalls, or something else is wrong.
+     * @exception IbisConfigurationException is thrown when the receiveport
+     * is configured to use upcalls.
+     * @exception IOException is thrown in case of other trouble.
      */
     public ReadMessage receive() throws IOException;
 
@@ -72,8 +72,9 @@ public interface ReceivePort {
      * @return the message received.
      * @exception ReceiveTimedOutException is thrown when the timeout
      * expires and no message arrives.
-     * @exception IOException is thrown when the receiveport is configured
-     * to use upcalls, or something else is wrong.
+     * @exception IbisConfigurationException is thrown when the receiveport
+     * is configured to use upcalls.
+     * @exception IOException is thrown in case of other trouble.
      **/
     public ReadMessage receive(long timeoutMillis) throws IOException;
 
@@ -83,6 +84,8 @@ public interface ReceivePort {
      * Also works for ports configured for upcalls, in which case it is a
      * normal poll: it will always return null, but it might generate an upcall.
      * @return the message received, or <code>null</code>.
+     * @exception IbisConfigurationException is thrown when the receiveport
+     * is not configured to support polls.
      * @exception IOException on IO error.
      */
     public ReadMessage poll() throws IOException;
@@ -150,7 +153,7 @@ public interface ReceivePort {
     /**
      * Returns the name of the receiveport.
      * When the receiveport was created anonymously, a system-invented
-     * name, not suitable for lookup, will be returned.
+     * name will be returned.
      *
      * @return the name.
      */
@@ -238,8 +241,9 @@ public interface ReceivePort {
      * the port was created.
      * This call only works if this port is configured to maintain
      * connection administration.
-     * If no connections were lost, or connection administration was not
-     * requested, an array with 0 entries is returned.
+     * If no connections were lost, an array with 0 entries is returned.
+     * @exception IbisConfigurationException is thrown when the port was
+     * not configured to support connection downcalls.
      * @return the lost connections.
      */
     public SendPortIdentifier[] lostConnections();
@@ -251,8 +255,9 @@ public interface ReceivePort {
      * the port was created.
      * This call only works if this port is configured to maintain 
      * connection administration.
-     * If there are no new connections, or connection administration was not
-     * requested, an array with 0 entries is returned.
+     * If there are no new connections, an array with 0 entries is returned.
+     * @exception IbisConfigurationException is thrown when the port was
+     * not configured to support connection downcalls.
      * @return the new connections.
      */
     public SendPortIdentifier[] newConnections();

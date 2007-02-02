@@ -6,6 +6,12 @@ import ibis.io.SerializationOutput;
 
 import java.io.IOException;
 
+/**
+ * Implementation of the {@link ibis.ipl.WriteMessage} interface.
+ * This is a complete implementation, but may be extended by an implementation.
+ * In that case, the {@link SendPort#createWriteMessage()} method
+ * must also be redefined.
+ */
 public class WriteMessage implements ibis.ipl.WriteMessage {
 
     private SerializationOutput out;
@@ -46,7 +52,7 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         try {
             out.reset();
         } catch (IOException e) {
-            port.handleSendException(this, e);
+            port.gotSendException(this, e);
         }
     }
 
@@ -55,7 +61,7 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         try {
             out.flush();
         } catch (IOException e) {
-            port.handleSendException(this, e);
+            port.gotSendException(this, e);
         }
     }
 
@@ -64,7 +70,7 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         try {
             out.writeBoolean(value);
         } catch (IOException e) {
-            port.handleSendException(this, e);
+            port.gotSendException(this, e);
         }
     }
 
@@ -73,7 +79,7 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         try {
             out.writeByte(value);
         } catch (IOException e) {
-            port.handleSendException(this, e);
+            port.gotSendException(this, e);
         }
     }
 
@@ -82,7 +88,7 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         try {
             out.writeChar(value);
         } catch (IOException e) {
-            port.handleSendException(this, e);
+            port.gotSendException(this, e);
         }
     }
 
@@ -91,7 +97,7 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         try {
             out.writeShort(value);
         } catch (IOException e) {
-            port.handleSendException(this, e);
+            port.gotSendException(this, e);
         }
     }
 
@@ -100,7 +106,7 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         try {
             out.writeInt(value);
         } catch (IOException e) {
-            port.handleSendException(this, e);
+            port.gotSendException(this, e);
         }
     }
 
@@ -109,7 +115,7 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         try {
             out.writeLong(value);
         } catch (IOException e) {
-            port.handleSendException(this, e);
+            port.gotSendException(this, e);
         }
     }
 
@@ -118,7 +124,7 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         try {
             out.writeFloat(value);
         } catch (IOException e) {
-            port.handleSendException(this, e);
+            port.gotSendException(this, e);
         }
     }
 
@@ -127,7 +133,7 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         try {
             out.writeDouble(value);
         } catch (IOException e) {
-            port.handleSendException(this, e);
+            port.gotSendException(this, e);
         }
     }
 
@@ -136,7 +142,7 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         try {
             out.writeString(value);
         } catch (IOException e) {
-            port.handleSendException(this, e);
+            port.gotSendException(this, e);
         }
     }
 
@@ -145,7 +151,7 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         try {
             out.writeObject(value);
         } catch (IOException e) {
-            port.handleSendException(this, e);
+            port.gotSendException(this, e);
         }
     }
 
@@ -154,7 +160,7 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         try {
             out.writeArray(value);
         } catch (IOException e) {
-            port.handleSendException(this, e);
+            port.gotSendException(this, e);
         }
     }
 
@@ -163,7 +169,7 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         try {
             out.writeArray(value);
         } catch (IOException e) {
-            port.handleSendException(this, e);
+            port.gotSendException(this, e);
         }
     }
 
@@ -172,7 +178,7 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         try {
             out.writeArray(value);
         } catch (IOException e) {
-            port.handleSendException(this, e);
+            port.gotSendException(this, e);
         }
     }
 
@@ -181,7 +187,7 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         try {
             out.writeArray(value);
         } catch (IOException e) {
-            port.handleSendException(this, e);
+            port.gotSendException(this, e);
         }
     }
 
@@ -190,7 +196,7 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         try {
             out.writeArray(value);
         } catch (IOException e) {
-            port.handleSendException(this, e);
+            port.gotSendException(this, e);
         }
     }
 
@@ -199,7 +205,7 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         try {
             out.writeArray(value);
         } catch (IOException e) {
-            port.handleSendException(this, e);
+            port.gotSendException(this, e);
         }
     }
 
@@ -208,7 +214,7 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         try {
             out.writeArray(value);
         } catch (IOException e) {
-            port.handleSendException(this, e);
+            port.gotSendException(this, e);
         }
     }
 
@@ -217,7 +223,7 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         try {
             out.writeArray(value);
         } catch (IOException e) {
-            port.handleSendException(this, e);
+            port.gotSendException(this, e);
         }
     }
 
@@ -226,7 +232,7 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         try {
             out.writeArray(value);
         } catch (IOException e) {
-            port.handleSendException(this, e);
+            port.gotSendException(this, e);
         }
     }
 
@@ -236,7 +242,7 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         try {
             out.writeArray(value, offset, size);
         } catch (IOException e) {
-            port.handleSendException(this, e);
+            port.gotSendException(this, e);
         }
     }
 
@@ -246,7 +252,7 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         try {
             out.writeArray(value, offset, size);
         } catch (IOException e) {
-            port.handleSendException(this, e);
+            port.gotSendException(this, e);
         }
     }
 
@@ -256,7 +262,7 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         try {
             out.writeArray(value, offset, size);
         } catch (IOException e) {
-            port.handleSendException(this, e);
+            port.gotSendException(this, e);
         }
     }
 
@@ -266,7 +272,7 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         try {
             out.writeArray(value, offset, size);
         } catch (IOException e) {
-            port.handleSendException(this, e);
+            port.gotSendException(this, e);
         }
     }
 
@@ -276,7 +282,7 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         try {
             out.writeArray(value, offset, size);
         } catch (IOException e) {
-            port.handleSendException(this, e);
+            port.gotSendException(this, e);
         }
     }
 
@@ -286,7 +292,7 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         try {
             out.writeArray(value, offset, size);
         } catch (IOException e) {
-            port.handleSendException(this, e);
+            port.gotSendException(this, e);
         }
     }
 
@@ -296,7 +302,7 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         try {
             out.writeArray(value, offset, size);
         } catch (IOException e) {
-            port.handleSendException(this, e);
+            port.gotSendException(this, e);
         }
     }
 
@@ -306,7 +312,7 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         try {
             out.writeArray(value, offset, size);
         } catch (IOException e) {
-            port.handleSendException(this, e);
+            port.gotSendException(this, e);
         }
     }
 
@@ -316,7 +322,7 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         try {
             out.writeArray(value, offset, size);
         } catch (IOException e) {
-            port.handleSendException(this, e);
+            port.gotSendException(this, e);
         }
     }
 
@@ -329,12 +335,12 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         try {
             out.reset();
         } catch(IOException e) {
-            port.handleSendException(this, e);
+            port.gotSendException(this, e);
         }
         try {
             out.flush();
         } catch(IOException e) {
-            port.handleSendException(this, e);
+            port.gotSendException(this, e);
         }
         isFinished = true;
         long retval = bytesWritten();
@@ -351,7 +357,7 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
             out.reset();
         } catch (IOException e2) {
             try {
-                port.handleSendException(this, e2);
+                port.gotSendException(this, e2);
             } catch(Exception e4) {
                 // ignored
             }
@@ -361,7 +367,7 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
             out.flush();
         } catch (IOException e2) {
             try {
-                port.handleSendException(this, e2);
+                port.gotSendException(this, e2);
             } catch(Exception e4) {
                 // ignored
             }

@@ -9,7 +9,8 @@ import java.io.IOException;
 import java.util.Properties;
 
 /** 
- * This class defines the API between an Ibis implementation and the registry.
+ * This implementation of the {@link ibis.ipl.Registry} interface
+ * defines the API between an Ibis implementation and the registry.
  * This way, an Ibis implementation can dynamically load any registry
  * implementaton.
  */
@@ -50,19 +51,15 @@ public abstract class Registry implements ibis.ipl.Registry {
     /**
      * Creates a registry for the specified Ibis instance.
      * @param ibis the Ibis instance.
+     * @param registryName the class name of the registry implementation.
      * @exception IllegalArgumentException may be thrown if the registry
      * could not be created for some reason.
      */
-    public static Registry loadRegistry(Ibis ibis)
+    public static Registry loadRegistry(Ibis ibis, String registryName)
             throws IllegalArgumentException {
         Registry res = null;
-        // TODO: fix properties
-        String registryName = System.getProperty("ibis.registry.impl");
-        if (registryName == null) {
-            registryName = "ibis.impl.registry.tcp.NameServerClient";
-        }
-
         Class c;
+
         try {
             c = Class.forName(registryName);
         } catch (ClassNotFoundException t) {

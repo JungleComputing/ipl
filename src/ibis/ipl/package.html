@@ -10,9 +10,9 @@ Communication is based on {@link ibis.ipl.ReceivePort ReceivePorts}
 and {@link ibis.ipl.SendPort SendPorts} of a certain
 {@link ibis.ipl.PortType PortType}.
 A {@link ibis.ipl.PortType PortType} can be created using the
-{@link ibis.ipl.Ibis#createPortType(String, StaticProperties) createPortType}
-method, where a name is given to the port type (e.g. "satin porttype"
-or "RMI porttype"). Port properties are given to the port type (for
+{@link ibis.ipl.Ibis#createPortType(StaticProperties) createPortType}
+method.
+Port properties are given to the port type (for
 example ports are "totally-ordered" and "reliable" and support "NWS").
 For each port type there is a {@link ibis.ipl.ReceivePort ReceivePort}
 and a {@link ibis.ipl.SendPort SendPort}.
