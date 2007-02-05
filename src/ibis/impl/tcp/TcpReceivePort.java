@@ -38,7 +38,8 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
 
         ConnectionHandler(SendPortIdentifier origin, Socket s, ReceivePort port)
                 throws IOException {
-            super(origin, port, new BufferedArrayInputStream(s.getInputStream()));
+            super(origin, port,
+                    new BufferedArrayInputStream(s.getInputStream()));
             this.s = s;
         }
 
@@ -91,35 +92,40 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
                     break;
                 case NEW_MESSAGE:
                     if (logger.isDebugEnabled()) {
-                        logger.debug(name + ": Got a NEW_MESSAGE from " + origin);
+                        logger.debug(name + ": Got a NEW_MESSAGE from "
+                                + origin);
                     }
                     setMessage(message, this);
                     if (returnOnMessage || upcallCalledFinish) {
-                        // if upcallCalledFinish is set, a new thread was created.
+                        // if upcallCalledFinish is set, a new thread was
+                        // created.
                         return;
                     }
                     break;
                 case CLOSE_ALL_CONNECTIONS:
-                    logger.debug(name + ": Got a CLOSE_ALL_CONNECTIONS from " + origin);
+                    logger.debug(name + ": Got a CLOSE_ALL_CONNECTIONS from "
+                            + origin);
                     close(null);
                     return;
                 case CLOSE_ONE_CONNECTION:
-                    logger.debug(name + ": Got a CLOSE_ONE_CONNECTION from " + origin);
-                    // read the receiveport identifier from which the sendport disconnects.
-                    byte[] receiverLength = new byte[Conversion.INT_SIZE];
-                    in.readArray(receiverLength);
-                    byte[] receiverBytes = new byte[Conversion.defaultConversion
-                            .byte2int(receiverLength, 0)];
-                    in.readArray(receiverBytes);
-                    if (ident.equals(new ReceivePortIdentifier(receiverBytes))) {
+                    logger.debug(name + ": Got a CLOSE_ONE_CONNECTION from "
+                            + origin);
+                    // read the receiveport identifier from which the sendport
+                    // disconnects.
+                    byte[] length = new byte[Conversion.INT_SIZE];
+                    in.readArray(length);
+                    byte[] bytes = new byte[Conversion.defaultConversion
+                            .byte2int(length, 0)];
+                    in.readArray(bytes);
+                    if (ident.equals(new ReceivePortIdentifier(bytes))) {
                         // Sendport is disconnecting from me.
                         logger.debug(name + ": disconnect from " + origin);
                         close(null);
                     }
                     break;
                 default:
-                    throw new IOException(name + ": Got illegal opcode " + opcode + " from "
-                            + origin);
+                    throw new IOException(name + ": Got illegal opcode "
+                            + opcode + " from " + origin);
                 }
             }
         }

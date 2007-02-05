@@ -85,7 +85,7 @@ public abstract class SendPort implements ibis.ipl.SendPort {
     /** The underlying data output stream. */
     protected DataOutputStream dataOut;
 
-    /** The write message for this port. There is only one. */
+    /** The write message for this port. */
     protected final WriteMessage w;
 
     /**

@@ -1603,11 +1603,6 @@ public class NameServer extends Thread implements Protocol {
     static void closeConnection(InputStream in, OutputStream out, Socket s) {
         if (out != null) {
             try {
-                out.flush();
-            } catch (Exception e) {
-                // ignore
-            }
-            try {
                 out.close();
             } catch (Exception e) {
                 // ignore

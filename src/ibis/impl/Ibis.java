@@ -161,7 +161,8 @@ public abstract class Ibis implements ibis.ipl.Ibis {
         if (combinedProps.isProp("worldmodel", "closed")) {
             return TypedProperties.intProperty("ibis.pool.total_hosts");
         }
-        throw new IbisConfigurationException("totalNrOfIbisesInPool called but open world run");
+        throw new IbisConfigurationException(
+                "totalNrOfIbisesInPool called but open world run");
     }
 
 

@@ -16,26 +16,22 @@ public class ReadMessage implements ibis.ipl.ReadMessage {
 
     private SerializationInput in;
 
-    private boolean isFinished = false;
+    private ReceivePortConnectionInfo info;
 
-    private long sequenceNr = -1;
+    private boolean isFinished = false;
 
     private long before;
 
-    private ReceivePortConnectionInfo info;
+    private long sequenceNr = -1;
 
-    private ReceivePort port;
-
-    public ReadMessage(SerializationInput in, ReceivePortConnectionInfo info,
-            ReceivePort port) {
+    public ReadMessage(SerializationInput in, ReceivePortConnectionInfo info) {
         this.in = in;
         this.info = info;
-        this.port = port;
         this.before = info.bytesRead();
     }
 
     public ibis.ipl.ReceivePort localPort() {
-        return port;
+        return info.port;
     }
 
     public long bytesRead() {
@@ -223,8 +219,8 @@ public class ReadMessage implements ibis.ipl.ReadMessage {
         long after = info.bytesRead();
         long retval = after - before;
         before = after;
-        port.addCount(retval);
-        port.finishMessage(this);
+        info.port.addCount(retval);
+        info.port.finishMessage(this);
         return retval;
     }
 
@@ -232,7 +228,7 @@ public class ReadMessage implements ibis.ipl.ReadMessage {
         if (isFinished) {
             return;
         }
-        port.finishMessage(this, e);
+        info.port.finishMessage(this, e);
     }
 
     public boolean isFinished() {

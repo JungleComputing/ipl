@@ -3,12 +3,8 @@
 package ibis.impl.tcp;
 
 import ibis.connect.IbisSocketFactory;
-import ibis.impl.Ibis;
 import ibis.impl.IbisIdentifier;
-import ibis.impl.PortType;
 import ibis.impl.ReceivePort;
-import ibis.impl.ReceivePortIdentifier;
-import ibis.impl.Registry;
 import ibis.impl.SendPortIdentifier;
 import ibis.ipl.AlreadyConnectedException;
 import ibis.ipl.ConnectionRefusedException;
@@ -23,13 +19,10 @@ import ibis.util.TypedProperties;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.InetAddress;
 import java.net.ServerSocket;
@@ -38,7 +31,8 @@ import java.util.HashMap;
 
 import org.apache.log4j.Logger;
 
-public final class TcpIbis extends Ibis implements Runnable, TcpProtocol {
+public final class TcpIbis extends ibis.impl.Ibis
+        implements Runnable, TcpProtocol {
 
     private static final Logger logger
             = GetLogger.getLogger("ibis.impl.tcp.TcpIbis");
@@ -52,10 +46,10 @@ public final class TcpIbis extends Ibis implements Runnable, TcpProtocol {
     private IbisSocketFactory socketFactory;
 
     private HashMap<IbisIdentifier, InetSocketAddress> addresses
-            = new HashMap<IbisIdentifier, InetSocketAddress>();
+        = new HashMap<IbisIdentifier, InetSocketAddress>();
 
     public TcpIbis(ResizeHandler r, StaticProperties p1, StaticProperties p2)
-            throws IOException {
+        throws IOException {
 
         super(r, p1, p2);
 
@@ -72,53 +66,49 @@ public final class TcpIbis extends Ibis implements Runnable, TcpProtocol {
         socketFactory = IbisSocketFactory.getFactory();
 
         systemServer = socketFactory.createServerSocket(0, addr, true, null);
-        int port = systemServer.getLocalPort();
 
-        myAddress = new InetSocketAddress(addr, port);
+        myAddress = new InetSocketAddress(addr, systemServer.getLocalPort());
 
-        logger.debug("--> TcpIbis: port = " + port);
+        logger.debug("--> TcpIbis: address = " + myAddress);
 
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         DataOutputStream out = new DataOutputStream(bos);
         out.writeUTF(myAddress.getAddress().getHostAddress());
         out.writeInt(myAddress.getPort());
-        out.flush();
         out.close();
 
         return bos.toByteArray();
     }
 
-    protected PortType newPortType(StaticProperties p)
+    protected ibis.impl.PortType newPortType(StaticProperties p)
             throws PortMismatchException {
         return new TcpPortType(this, p);
     }
 
-    Socket connect(TcpSendPort sp, ReceivePortIdentifier rip, int timeout)
-            throws IOException {
+    Socket connect(TcpSendPort sp, ibis.impl.ReceivePortIdentifier rip,
+            int timeout) throws IOException {
         IbisIdentifier id = (IbisIdentifier) rip.ibis();
         String name = rip.name();
         InetSocketAddress idAddr;
-        int port;
 
         synchronized(addresses) {
             idAddr = (InetSocketAddress) addresses.get(id);
             if (idAddr == null) {
                 DataInputStream in = new DataInputStream(
-                        new ByteArrayInputStream(id.getData()));
+                        new java.io.ByteArrayInputStream(id.getData()));
                 String addr = in.readUTF();
-                port = in.readInt();
-                in.close();
                 try {
                     idAddr = new InetSocketAddress(InetAddress.getByName(addr),
-                            port);
+                            in.readInt());
                 } catch(Exception e) {
                     throw new IOException("Could not get address from " + id);
                 }
+                in.close();
                 addresses.put(id, idAddr);
             }
         }
 
-        port = idAddr.getPort();
+        int port = idAddr.getPort();
 
         long startTime = System.currentTimeMillis();
 
@@ -134,26 +124,25 @@ public final class TcpIbis extends Ibis implements Runnable, TcpProtocol {
 
             try {
                 s = socketFactory.createClientSocket(idAddr.getAddress(), port,
-                        myAddress.getAddress(), 0, timeout,
-                        sp.properties());
+                        myAddress.getAddress(), 0, timeout, sp.properties());
 
                 data_out = new DataOutputStream(new BufferedOutputStream(
                             s.getOutputStream()));
                 data_in = new DataInputStream(new BufferedInputStream(
                             s.getInputStream()));
 
-		byte[] spIdent = sp.getIdent().getBytes();
+                byte[] spIdent = sp.getIdent().getBytes();
 
                 data_out.writeUTF(name);
-		data_out.writeInt(spIdent.length);
-		data_out.write(spIdent, 0, spIdent.length);
-		data_out.flush();
+                data_out.writeInt(spIdent.length);
+                data_out.write(spIdent, 0, spIdent.length);
+                data_out.flush();
 
                 int result = data_in.readByte();
 
-		switch(result) {
-		case ReceivePort.ACCEPTED:
-		    return socketFactory.createBrokeredSocket(data_in, data_out,
+                switch(result) {
+                case ReceivePort.ACCEPTED:
+                    return socketFactory.createBrokeredSocket(data_in, data_out,
                             false, sp.properties());
                 case ReceivePort.ALREADY_CONNECTED:
                     throw new AlreadyConnectedException(
@@ -162,25 +151,25 @@ public final class TcpIbis extends Ibis implements Runnable, TcpProtocol {
                 case ReceivePort.TYPE_MISMATCH:
                     throw new PortMismatchException(
                             "Cannot connect ports of different PortTypes");
-		case ReceivePort.DENIED:
+                case ReceivePort.DENIED:
                     throw new ConnectionRefusedException(
                             "Receiver denied connection");
-		case ReceivePort.NO_MANYTOONE:
+                case ReceivePort.NO_MANYTOONE:
                     throw new ConnectionRefusedException(
                             "Receiver already has a connection and ManyToOne "
                             + "is not set");
                 case ReceivePort.NOT_PRESENT:
-		case ReceivePort.DISABLED:
-		    // and try again if we did not reach the timeout...
-		    if (timeout > 0
-                        && System.currentTimeMillis() > startTime + timeout) {
-			throw new ConnectionTimedOutException(
+                case ReceivePort.DISABLED:
+                    // and try again if we did not reach the timeout...
+                    if (timeout > 0 && System.currentTimeMillis()
+                            > startTime + timeout) {
+                        throw new ConnectionTimedOutException(
                                 "Could not connect");
-		    }
-		    break;
-		default:
-		    throw new Error("Illegal opcode in TcpIbis.connect");
-		}
+                    }
+                    break;
+                default:
+                    throw new Error("Illegal opcode in TcpIbis.connect");
+                }
             } finally {
                 try {
                     data_in.close();
@@ -227,36 +216,34 @@ public final class TcpIbis extends Ibis implements Runnable, TcpProtocol {
 
         DataInputStream data_in = new DataInputStream(
                 new BufferedInputStream(s.getInputStream()));
-	DataOutputStream data_out = new DataOutputStream(
+        DataOutputStream data_out = new DataOutputStream(
                 new BufferedOutputStream(s.getOutputStream()));
 
         String name = data_in.readUTF();
-	int spLen = data_in.readInt();
-	byte[] sp = new byte[spLen];
-	data_in.readFully(sp, 0, sp.length);
-	SendPortIdentifier send = new SendPortIdentifier(sp);
+        int spLen = data_in.readInt();
+        byte[] sp = new byte[spLen];
+        data_in.readFully(sp, 0, sp.length);
+        SendPortIdentifier send = new SendPortIdentifier(sp);
 
-        /* First, try to find the receive port this message is for... */
+        // First, lookup receiveport.
         TcpReceivePort rp = (TcpReceivePort) findReceivePort(name);
 
         int result;
         if (rp == null) {
             result = ReceivePort.NOT_PRESENT;
-        } else if (rp.isConnectedTo(send)) {
-            result = ReceivePort.ALREADY_CONNECTED;
         } else {
             result = rp.connectionAllowed(send);
         }
+
         logger.debug("--> S RP = " + name + ": "
                 + ReceivePort.getString(result));
 
-        Socket s1 = null;
-	data_out.writeByte(result);
+        data_out.writeByte(result);
         if (result == ReceivePort.ACCEPTED) {
             data_out.flush();
-            s1 = socketFactory.createBrokeredSocket(data_in, data_out, true,
-                    rp.properties());
-            /* add the connection to the receiveport. */
+            Socket s1 = socketFactory.createBrokeredSocket(data_in, data_out,
+                    true, rp.properties());
+            // add the connection to the receiveport.
             rp.connect(send, s1);
             logger.debug("--> S connect done ");
         }
@@ -292,7 +279,7 @@ public final class TcpIbis extends Ibis implements Runnable, TcpProtocol {
                 handleConnectionRequest(s);
             } catch (Throwable e) {
                 logger.error("EEK: TcpIbis:run: got exception "
-                            + "(closing this socket only: ", e);
+                        + "(closing this socket only: ", e);
             } finally {
                 try {
                     s.close();
@@ -309,6 +296,5 @@ public final class TcpIbis extends Ibis implements Runnable, TcpProtocol {
         } catch (Throwable e) {
             // Ignore
         }
-        systemServer = null;
     }
 }

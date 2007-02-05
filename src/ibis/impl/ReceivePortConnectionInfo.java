@@ -87,6 +87,6 @@ public class ReceivePortConnectionInfo {
         }
         in = SerializationBase.createSerializationInput(port.serialization,
                 dataIn);
-        message = new ReadMessage(in, this, port);
+        message = new ReadMessage(in, this);
     }
 }

@@ -269,6 +269,9 @@ public abstract class ReceivePort implements ibis.ipl.ReceivePort {
     }
 
     public synchronized byte connectionAllowed(SendPortIdentifier id) {
+        if (isConnectedTo(id)) {
+            return ALREADY_CONNECTED;
+        }
         if (! id.type().equals(type.props)) {
             return TYPE_MISMATCH;
         }
