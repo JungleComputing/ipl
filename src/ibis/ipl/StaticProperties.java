@@ -4,8 +4,12 @@ package ibis.ipl;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
+import java.io.DataInput;
+import java.io.DataInputStream;
+import java.io.DataOutput;
+import java.io.DataOutputStream;
 import java.io.InputStream;
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Enumeration;
@@ -242,7 +246,7 @@ public final class StaticProperties implements java.io.Serializable {
     /**
      * Creates a property set from a serialized form.
      * @param codedForm the serialized form, as produced by the
-     * {@link #getBytes()} method.
+     * {@link #toBytes()} method.
      * @exception IOException is thrown in case of trouble.
      */
     public StaticProperties(byte[] codedForm) throws IOException {
@@ -253,19 +257,25 @@ public final class StaticProperties implements java.io.Serializable {
     /**
      * Creates a property set from a serialized form.
      * @param codedForm contains the serialized form, as produced by the
-     * {@link #getBytes()} method.
+     * {@link #toBytes()} method.
      * @param offset offset where input for this method starts.
      * @param length length of input for this method.
      * @exception IOException is thrown in case of trouble.
      */
     public StaticProperties(byte[] codedForm, int offset, int length)
             throws IOException {
+        this(new DataInputStream(
+                new ByteArrayInputStream(codedForm, offset, length)));
+    }
+
+    /**
+     * Creates a property set by reading it from the specified input stream.
+     * @param dis the input stream to read from.
+     * @exception IOException is thrown in case of trouble.
+     */
+    public StaticProperties(DataInput dis) throws IOException {
         defaults = null;
-        ByteArrayInputStream bis = new ByteArrayInputStream(codedForm, offset,
-                length);
-        ObjectInputStream ois = new ObjectInputStream(bis);
-        readObject(ois);
-        ois.close();
+        doRead(dis);
     }
 
     /**
@@ -273,15 +283,25 @@ public final class StaticProperties implements java.io.Serializable {
      * @return the byte array.
      * @exception IOException is thrown in case of trouble.
      */
-    public byte[] getBytes() throws IOException {
+    public byte[] toBytes() throws IOException {
         if (codedForm == null) {
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            ObjectOutputStream oos = new ObjectOutputStream(bos);
-            writeObject(oos);
-            oos.close();
+            DataOutputStream dos = new DataOutputStream(bos);
+            doWrite(dos);
+            dos.close();
             codedForm = bos.toByteArray();
         }
         return codedForm;
+    }
+
+    /**
+     * Writes the property set to the specified output stream.
+     * @param dos the output stream to write to.
+     * @exception IOException is thrown in case of trouble.
+     */
+    public void writeTo(DataOutput dos) throws IOException {
+        toBytes();
+        dos.write(codedForm);
     }
 
     /**
@@ -722,8 +742,12 @@ public final class StaticProperties implements java.io.Serializable {
         return propertyNames().hashCode();
     }
 
-    private void writeObject(java.io.ObjectOutputStream out)
+    private void writeObject(ObjectOutputStream out)
             throws IOException {
+        doWrite(out);
+    }
+
+    private void doWrite(DataOutput out) throws IOException {
         Set<String> keys = propertyNames();
         out.writeInt(keys.size());
         for (Iterator i = keys.iterator(); i.hasNext();) {
@@ -734,7 +758,11 @@ public final class StaticProperties implements java.io.Serializable {
         }
     }
 
-    private void readObject(java.io.ObjectInputStream in) throws IOException {
+    private void readObject(ObjectInputStream in) throws IOException {
+        doRead(in);
+    }
+
+    private void doRead(DataInput in) throws IOException {
         int sz = in.readInt();
         mappings = new HashMap<String, Property>();
         for (int i = 0; i < sz; i++) {

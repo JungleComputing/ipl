@@ -13,18 +13,20 @@ import ibis.ipl.PortMismatchException;
 import ibis.ipl.ResizeHandler;
 import ibis.ipl.StaticProperties;
 import ibis.util.GetLogger;
-import ibis.util.ThreadPool;
 import ibis.util.IPUtils;
+import ibis.util.ThreadPool;
 import ibis.util.TypedProperties;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
+import java.io.InputStream;
 import java.io.IOException;
-import java.net.InetSocketAddress;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
@@ -72,9 +74,8 @@ public final class TcpIbis extends ibis.impl.Ibis
         logger.debug("--> TcpIbis: address = " + myAddress);
 
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        DataOutputStream out = new DataOutputStream(bos);
-        out.writeUTF(myAddress.getAddress().getHostAddress());
-        out.writeInt(myAddress.getPort());
+        ObjectOutputStream out = new ObjectOutputStream(bos);
+        out.writeObject(myAddress);
         out.close();
 
         return bos.toByteArray();
@@ -85,6 +86,24 @@ public final class TcpIbis extends ibis.impl.Ibis
         return new TcpPortType(this, p);
     }
 
+    public void left(IbisIdentifier[] ids) {
+        super.left(ids);
+        synchronized(addresses) {
+            for (int i = 0; i < ids.length; i++) {
+                addresses.remove(ids[i]);
+            }
+        }
+    }
+
+    public void died(IbisIdentifier[] ids) {
+        super.died(ids);
+        synchronized(addresses) {
+            for (int i = 0; i < ids.length; i++) {
+                addresses.remove(ids[i]);
+            }
+        }
+    }
+
     Socket connect(TcpSendPort sp, ibis.impl.ReceivePortIdentifier rip,
             int timeout) throws IOException {
         IbisIdentifier id = (IbisIdentifier) rip.ibis();
@@ -92,15 +111,14 @@ public final class TcpIbis extends ibis.impl.Ibis
         InetSocketAddress idAddr;
 
         synchronized(addresses) {
-            idAddr = (InetSocketAddress) addresses.get(id);
+            idAddr = addresses.get(id);
             if (idAddr == null) {
-                DataInputStream in = new DataInputStream(
-                        new java.io.ByteArrayInputStream(id.getData()));
-                String addr = in.readUTF();
+                ObjectInputStream in = new ObjectInputStream(
+                        new java.io.ByteArrayInputStream(
+                                id.getImplementationData()));
                 try {
-                    idAddr = new InetSocketAddress(InetAddress.getByName(addr),
-                            in.readInt());
-                } catch(Exception e) {
+                    idAddr = (InetSocketAddress) in.readObject();
+                } catch(ClassNotFoundException e) {
                     throw new IOException("Could not get address from " + id);
                 }
                 in.close();
@@ -118,31 +136,27 @@ public final class TcpIbis extends ibis.impl.Ibis
         }
 
         do {
-            DataOutputStream data_out = null;
-            DataInputStream data_in = null;
+            ObjectOutputStream out = null;
+            InputStream in = null;
             Socket s = null;
 
             try {
                 s = socketFactory.createClientSocket(idAddr.getAddress(), port,
                         myAddress.getAddress(), 0, timeout, sp.properties());
 
-                data_out = new DataOutputStream(new BufferedOutputStream(
+                out = new ObjectOutputStream(new BufferedOutputStream(
                             s.getOutputStream()));
-                data_in = new DataInputStream(new BufferedInputStream(
-                            s.getInputStream()));
+                in = new BufferedInputStream(s.getInputStream());
 
-                byte[] spIdent = sp.getIdent().getBytes();
+                out.writeUTF(name);
+                out.writeObject(sp.getIdent());
+                out.flush();
 
-                data_out.writeUTF(name);
-                data_out.writeInt(spIdent.length);
-                data_out.write(spIdent, 0, spIdent.length);
-                data_out.flush();
-
-                int result = data_in.readByte();
+                int result = in.read();
 
                 switch(result) {
                 case ReceivePort.ACCEPTED:
-                    return socketFactory.createBrokeredSocket(data_in, data_out,
+                    return socketFactory.createBrokeredSocket(in, out,
                             false, sp.properties());
                 case ReceivePort.ALREADY_CONNECTED:
                     throw new AlreadyConnectedException(
@@ -172,12 +186,12 @@ public final class TcpIbis extends ibis.impl.Ibis
                 }
             } finally {
                 try {
-                    data_in.close();
+                    in.close();
                 } catch(Throwable e) {
                     // ignored
                 }
                 try {
-                    data_out.close();
+                    out.close();
                 } catch(Throwable e) {
                     // ignored
                 }
@@ -214,16 +228,12 @@ public final class TcpIbis extends ibis.impl.Ibis
                     + s.getLocalPort());
         }
 
-        DataInputStream data_in = new DataInputStream(
+        ObjectInputStream in = new ObjectInputStream(
                 new BufferedInputStream(s.getInputStream()));
-        DataOutputStream data_out = new DataOutputStream(
-                new BufferedOutputStream(s.getOutputStream()));
+        OutputStream out = new BufferedOutputStream(s.getOutputStream());
 
-        String name = data_in.readUTF();
-        int spLen = data_in.readInt();
-        byte[] sp = new byte[spLen];
-        data_in.readFully(sp, 0, sp.length);
-        SendPortIdentifier send = new SendPortIdentifier(sp);
+        String name = in.readUTF();
+        SendPortIdentifier send = (SendPortIdentifier) in.readObject();
 
         // First, lookup receiveport.
         TcpReceivePort rp = (TcpReceivePort) findReceivePort(name);
@@ -238,18 +248,18 @@ public final class TcpIbis extends ibis.impl.Ibis
         logger.debug("--> S RP = " + name + ": "
                 + ReceivePort.getString(result));
 
-        data_out.writeByte(result);
+        out.write(result);
         if (result == ReceivePort.ACCEPTED) {
-            data_out.flush();
-            Socket s1 = socketFactory.createBrokeredSocket(data_in, data_out,
+            out.flush();
+            Socket s1 = socketFactory.createBrokeredSocket(in, out,
                     true, rp.properties());
             // add the connection to the receiveport.
             rp.connect(send, s1);
             logger.debug("--> S connect done ");
         }
 
-        data_out.close();
-        data_in.close();
+        out.close();
+        in.close();
     }
 
     public void run() {

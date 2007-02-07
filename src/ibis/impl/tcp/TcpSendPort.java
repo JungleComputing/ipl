@@ -79,7 +79,7 @@ final class TcpSendPort extends SendPort implements TcpProtocol {
 
         out.writeByte(CLOSE_ONE_CONNECTION);
 
-        byte[] receiverBytes = ((ReceivePortIdentifier)receiver).getBytes();
+        byte[] receiverBytes = Conversion.object2byte(receiver);
         byte[] receiverLength = new byte[Conversion.INT_SIZE];
         Conversion.defaultConversion.int2byte(receiverBytes.length,
             receiverLength, 0);

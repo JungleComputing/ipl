@@ -4,9 +4,13 @@ package ibis.impl;
 
 import ibis.io.Conversion;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInput;
+import java.io.DataInputStream;
+import java.io.DataOutput;
+import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 
 /**
  * This implementation of the {@link ibis.ipl.IbisIdentifier} interface
@@ -17,45 +21,46 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
      * This field is used to indicate to which virtual or physical cluster
      * this ibis belongs.
      */
-    public final String cluster;
-
-    /** Hostname on which this Ibis instance runs. */
-    public final String host;
-
-    /** Numbering of Ibis instances, provided by the registry. */
-    public final int joinId;
+    public final String[] cluster;
 
     /** The name of the pool to which this Ibis instance belongs. */
     public final String pool;
 
     /** Extra data for implementation. */
-    private final byte[] data;
+    private final byte[] implementationData;
+
+    /** Extra data for registry. */
+    private final byte[] registryData;
+
+    /** Identification of Ibis instances, provided by the registry. */
+    public final String idData;
 
     /** An Ibis identifier coded as a byte array. Computed once. */
     private transient byte[] codedForm = null;
 
     /**
      * Constructs an <code>IbisIdentifier</code> with the specified parameters.
-     * @param id join number, allocated by the registry.
-     * @param data implementation-dependent data.
+     * @param id join id, allocated by the registry.
+     * @param implementationData implementation-dependent data.
+     * @param registryData registry-dependent data.
      * @param cluster cluster to which this ibis instance belongs.
      * @param pool identifies the run with the registry.
-     * @param host host name on which this instance runs.
      */
-    public IbisIdentifier(int id, byte[] data, String cluster,
-            String pool, String host) {
-        this.joinId = id;
-        this.data = data;
+    public IbisIdentifier(String id, byte[] implementationData,
+            byte[] registryData, String[] cluster, String pool) {
+        this.idData = id;
+        this.implementationData = implementationData;
+        this.registryData = registryData;
         this.cluster = cluster;
         this.pool = pool;
-        this.host = host;
     }
 
     /**
      * Constructs an <code>IbisIdentifier</code> from the specified coded form.
      * @param codedForm the coded form.
+     * @exception IOException is thrown in case of trouble.
      */
-    public IbisIdentifier(byte[] codedForm) {
+    public IbisIdentifier(byte[] codedForm) throws IOException {
         this(codedForm, 0, codedForm.length);
         this.codedForm = codedForm;
     }
@@ -66,63 +71,93 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
      * @param codedForm the coded form.
      * @param offset offset in the coded form.
      * @param size size of the coded form.
+     * @exception IOException is thrown in case of trouble.
      */
-    public IbisIdentifier(byte[] codedForm, int offset, int size) {
-        int clusterSize = Conversion.defaultConversion.byte2int(codedForm,
-                offset);
-        int hostSize = Conversion.defaultConversion.byte2int(codedForm,
-                offset + Conversion.INT_SIZE);
-        int poolSize = Conversion.defaultConversion.byte2int(codedForm,
-                offset + 2*Conversion.INT_SIZE);
-        int dataSize = Conversion.defaultConversion.byte2int(codedForm,
-                offset + 3*Conversion.INT_SIZE);
-        joinId = Conversion.defaultConversion.byte2int(codedForm,
-                offset + 4*Conversion.INT_SIZE);
-        offset += 5*Conversion.INT_SIZE;
-        cluster = new String(codedForm, offset, clusterSize);
-        offset += clusterSize;
-        host = new String(codedForm, offset, hostSize);
-        offset += hostSize;
-        pool = new String(codedForm, offset, poolSize);
-        offset += poolSize;
-        data = new byte[dataSize];
-        System.arraycopy(codedForm, offset, data, 0, dataSize);
-        // size should now be equal offset + dataSize.
+    public IbisIdentifier(byte[] codedForm, int offset, int size)
+            throws IOException {
+        this(new DataInputStream(
+                new ByteArrayInputStream(codedForm, offset, size)));
+    }
+
+    /**
+     * Reads an <code>IbisIdentifier</code> from the specified input stream.
+     * @param dis the input stream.
+     * @exception IOException is thrown in case of trouble.
+     */
+    public IbisIdentifier(DataInput dis) throws IOException {
+        int clusterSize = dis.readInt();
+        if (clusterSize < 0) {
+            cluster = null;
+        } else {
+            cluster = new String[clusterSize];
+            for (int i = 0; i < clusterSize; i++) {
+                cluster[i] = dis.readUTF();
+            }
+        }
+        pool = dis.readUTF();
+        int implementationSize = dis.readInt();
+        if (implementationSize < 0) {
+            implementationData = null;
+        } else {
+            implementationData = new byte[implementationSize];
+            dis.readFully(implementationData);
+        }
+        int registrySize = dis.readInt();
+        if (registrySize < 0) {
+            registryData = null;
+        } else {
+            registryData = new byte[registrySize];
+            dis.readFully(registryData);
+        }
+        idData = dis.readUTF();
     }
 
     /**
      * Computes the coded form of this <code>IbisIdentifier</code>.
      * @return the coded form.
+     * @exception IOException is thrown in case of trouble.
      */
-    public byte[] getBytes() {
+    public byte[] toBytes() throws IOException {
         if (codedForm == null) {
-            byte[] clusterBytes = cluster.getBytes();
-            byte[] hostBytes = host.getBytes();
-            byte[] poolBytes = pool.getBytes();
-            int sz = clusterBytes.length + hostBytes.length + poolBytes.length
-                + data.length + 5 * Conversion.INT_SIZE;
-            codedForm = new byte[sz];
-            Conversion.defaultConversion.int2byte(clusterBytes.length,
-                    codedForm, 0);
-            Conversion.defaultConversion.int2byte(hostBytes.length,
-                    codedForm, Conversion.INT_SIZE);
-            Conversion.defaultConversion.int2byte(poolBytes.length,
-                    codedForm, 2*Conversion.INT_SIZE);
-            Conversion.defaultConversion.int2byte(data.length,
-                    codedForm, 3*Conversion.INT_SIZE);
-            Conversion.defaultConversion.int2byte(joinId,
-                    codedForm, 4*Conversion.INT_SIZE);
-            int offset = 5*Conversion.INT_SIZE;
-            System.arraycopy(clusterBytes, 0, codedForm, offset,
-                    clusterBytes.length);
-            offset += clusterBytes.length;
-            System.arraycopy(hostBytes, 0, codedForm, offset, hostBytes.length);
-            offset += hostBytes.length;
-            System.arraycopy(poolBytes, 0, codedForm, offset, poolBytes.length);
-            offset += poolBytes.length;
-            System.arraycopy(data, 0, codedForm, offset, data.length);
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            DataOutputStream dos = new DataOutputStream(bos);
+            if (cluster == null) {
+                dos.writeInt(-1);
+            } else {
+                dos.writeInt(cluster.length);
+                for (int i = 0; i < cluster.length; i++) {
+                    dos.writeUTF(cluster[i]);
+                }
+            }
+            dos.writeUTF(pool);
+            if (implementationData == null) {
+                dos.writeInt(-1);
+            } else {
+                dos.writeInt(implementationData.length);
+                dos.write(implementationData);
+            }
+            if (registryData == null) {
+                dos.writeInt(-1);
+            } else {
+                dos.writeInt(registryData.length);
+                dos.write(registryData);
+            }
+            dos.writeUTF(idData);
+            dos.close();
+            codedForm = bos.toByteArray();
         }
         return codedForm;
+    }
+
+    /**
+     * Adds coded form of this <code>IbisIdentifier</code> to the specified
+     * output stream.
+     * @param dos the output stream.
+     * @exception IOException is thrown in case of trouble.
+     */
+    public void writeTo(DataOutput dos) throws IOException {
+        toBytes();
+        dos.write(codedForm);
     }
 
     /**
@@ -142,7 +177,7 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
         }
 
         IbisIdentifier other = (IbisIdentifier) o;
-        return other.joinId == joinId && other.pool.equals(pool);
+        return other.idData.equals(idData) && other.pool.equals(pool);
     }
 
     /**
@@ -150,7 +185,7 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
      * @return the hashcode.
      */
     public int hashCode() {
-        return joinId;
+        return idData.hashCode();
     }
 
     /**
@@ -172,11 +207,19 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
      * @return a string representation of this IbisIdentifier.
      */
     public String toString() {
-        return "(Ibis on " + host + ", pool " + pool + ", id " + joinId + ")";
+        return "(Ibis " + idData + ", pool " + pool + ")";
     }
 
     public String cluster() {
-        return cluster;
+        // Todo: convert ...
+        if (cluster == null) {
+            return null;
+        }
+        String str = "";
+        for (int i = 0; i < cluster.length-1; i++) {
+            str += "#" + cluster[i];
+        }
+        return str;
     }
 
     public String getPool() {
@@ -187,7 +230,15 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
      * Obtains the implementation dependent data.
      * @return the data.
      */
-    public byte[] getData() {
-        return data;
+    public byte[] getImplementationData() {
+        return implementationData;
+    }
+
+    /**
+     * Obtains the registry dependent data.
+     * @return the data.
+     */
+    public byte[] getRegistryData() {
+        return registryData;
     }
 }

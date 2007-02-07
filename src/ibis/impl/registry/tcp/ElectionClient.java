@@ -53,19 +53,14 @@ class ElectionClient implements Protocol {
                     out.writeInt(0);
                 } else {
                     out.writeInt(1);
-                    out.writeUTF(candidate.toString());
-                    byte[] b = candidate.getBytes();
-                    out.writeInt(b.length);
-                    out.write(b);
+                    candidate.writeTo(out);
                 }
                 out.flush();
 
                 in = new DataInputStream(new BufferedInputStream(s.getInputStream()));
-                int len = in.readInt();
-                if(len >= 0) {
-                	byte[] buf = new byte[len];
-                	in.readFully(buf, 0, len);
-                	result = new IbisIdentifier(buf);
+                int retval = in.readInt();
+                if (retval == 0) {
+                    result = new IbisIdentifier(in);
                 }
             } finally {
                 NameServer.closeConnection(in, out, s);

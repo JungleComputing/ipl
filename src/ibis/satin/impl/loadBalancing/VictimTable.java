@@ -236,7 +236,7 @@ public final class VictimTable implements Config {
 
 		SendPort p = null;
 		try {
-			p = satin.comm.portType.createSendPort("satin sendport");
+			p = satin.comm.portType.createSendPort();
 		} catch (Exception e) {
 			ftLogger.warn("SATIN '" + satin.ident
 					+ "': got an exception in getVictim", e);

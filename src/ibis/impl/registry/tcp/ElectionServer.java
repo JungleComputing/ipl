@@ -3,6 +3,7 @@
 package ibis.impl.registry.tcp;
 
 import ibis.connect.IbisSocketFactory;
+import ibis.impl.IbisIdentifier;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -21,8 +22,7 @@ class ElectionServer extends Thread implements Protocol {
     static Logger logger
             = ibis.util.GetLogger.getLogger(ElectionServer.class.getName());
 
-    private HashMap elections;
-    private HashMap buffers;
+    private HashMap<String, IbisIdentifier> elections;
 
     private ServerSocket serverSocket;
 
@@ -34,8 +34,7 @@ class ElectionServer extends Thread implements Protocol {
 
     ElectionServer(boolean silent, IbisSocketFactory socketFactory)
             throws IOException {
-        elections = new HashMap();
-        buffers = new HashMap();
+        elections = new HashMap<String, IbisIdentifier>();
 
         this.silent = silent;
 
@@ -51,52 +50,45 @@ class ElectionServer extends Thread implements Protocol {
 
     private void handleElection() throws IOException {
         String election = in.readUTF();
-        int candidate = in.readInt();
-        String name = null;
-        byte[] buf = null;
-        if (candidate != 0) {
-            name = in.readUTF();
-            int len = in.readInt();
-            buf = new byte[len];
-            in.readFully(buf, 0, len);
+        IbisIdentifier id = null;
+        if (in.readInt() != 0) {
+            id = new IbisIdentifier(in);
         }
 
-        Object temp = elections.get(election);
+        IbisIdentifier temp = elections.get(election);
 
         if (temp == null) {
-            if (name != null) {
-                elections.put(election, name);
-                buffers.put(election, buf);
+            if (id != null) {
+                elections.put(election, id);
             } else {
                 out.writeInt(-1);
                 out.flush();
                 return;
             }
         } else {
-            buf = (byte[])  buffers.get(election);
+            id = temp;
         }
-        out.writeInt(buf.length);
-        out.write(buf);
+        out.writeInt(0);
+        id.writeTo(out);
         out.flush();
     }
 
     private void handleKill() throws IOException {
 
         int ns = in.readInt();
-        String ids[] = new String[ns];
+        IbisIdentifier ids[] = new IbisIdentifier[ns];
         for (int i = 0; i < ns; i++) {
-            ids[i] = in.readUTF();
+            ids[i] = new IbisIdentifier(in);
         }
 
         for (Iterator key = elections.keySet().iterator(); key.hasNext();) {
             String election = (String) key.next();
-            Object o = elections.get(election);
+            IbisIdentifier o = elections.get(election);
             for (int i = 0; i < ids.length; i++) {
                 if (o.equals(ids[i])) {
                     // result of election is dead. Make new election
                     // possible.
                     key.remove();
-                    buffers.remove(election);
                     break;
                 }
             }

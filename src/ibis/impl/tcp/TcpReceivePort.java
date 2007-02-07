@@ -33,22 +33,12 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
             implements Runnable, TcpProtocol {
 
         private final Socket s;
-        
-        private boolean upcallCalledFinish = false;
 
         ConnectionHandler(SendPortIdentifier origin, Socket s, ReceivePort port)
                 throws IOException {
             super(origin, port,
                     new BufferedArrayInputStream(s.getInputStream()));
             this.s = s;
-        }
-
-        ConnectionHandler(ConnectionHandler orig) {
-            super(orig);
-            s = orig.s;
-            orig.upcallCalledFinish = true;
-            ThreadPool.createNew(this, "ConnectionHandler");
-            logger.debug("New connection handler, finish called from upcall");
         }
 
         void close(Throwable e) {
@@ -77,6 +67,12 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
             }
         }
 
+        void upcallCalledFinish() {
+            message = new ReadMessage(in, this);
+            logger.debug("New connection handler, finish called from upcall");
+            ThreadPool.createNew(this, "ConnectionHandler");
+        }
+
         void reader(boolean returnOnMessage) throws IOException {
             byte opcode = -1;
 
@@ -95,10 +91,8 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
                         logger.debug(name + ": Got a NEW_MESSAGE from "
                                 + origin);
                     }
-                    setMessage(message, this);
-                    if (returnOnMessage || upcallCalledFinish) {
-                        // if upcallCalledFinish is set, a new thread was
-                        // created.
+                    boolean goAway = setMessage(message, this);
+                    if (returnOnMessage || goAway) {
                         return;
                     }
                     break;
@@ -117,9 +111,17 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
                     byte[] bytes = new byte[Conversion.defaultConversion
                             .byte2int(length, 0)];
                     in.readArray(bytes);
-                    if (ident.equals(new ReceivePortIdentifier(bytes))) {
-                        // Sendport is disconnecting from me.
-                        logger.debug(name + ": disconnect from " + origin);
+                    try {
+                        ReceivePortIdentifier identifier =
+                            (ReceivePortIdentifier) 
+                                Conversion.byte2object(bytes);
+                        if (ident.equals(identifier)) {
+                            // Sendport is disconnecting from me.
+                            logger.debug(name + ": disconnect from " + origin);
+                            close(null);
+                        }
+                    } catch(ClassNotFoundException e) {
+                        logger.error("Internal error", e);
                         close(null);
                     }
                     break;
@@ -152,7 +154,7 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
                 && !type.props.isProp("communication", "ReceiveTimeout");
     }
 
-    void doUpcall(ReadMessage msg, ConnectionHandler con) {
+    boolean doUpcall(ReadMessage msg, ConnectionHandler con) {
         synchronized (this) {
             // Wait until the previous message was finished.
             while (this.m != null || !allowUpcalls) {
@@ -171,13 +173,13 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
             // An error occured on receiving (or finishing!) the message during
             // the upcall.
             logger.error("Got Exception in upcall()", e);
-            if (e instanceof IOException && ! con.upcallCalledFinish) {
+            if (e instanceof IOException && ! msg.isFinished()) {
                 finishMessage(msg, (IOException) e);
-                return;
+                return true;
             }
         }
 
-        if (! con.upcallCalledFinish) {
+        if (! msg.isFinished()) {
             // It wasn't finished, so finish the message now.
             fromDoUpcall = true;
             try {
@@ -187,7 +189,9 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
             } finally {
                 fromDoUpcall = false;
             }
+            return false;
         }
+        return true;
     }
 
     protected synchronized void finishMessage(ReadMessage r) {
@@ -195,9 +199,9 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
         notifyAll();
 
         if (! fromDoUpcall && upcall != null) {
-            // Create a new connection handler.
-            // The old one will terminate itself.
-            new ConnectionHandler((ConnectionHandler) r.getInfo());
+            // Create new connection handler thread and message.
+            ConnectionHandler h = (ConnectionHandler) r.getInfo();
+            h.upcallCalledFinish();
         }
     }
 
@@ -207,14 +211,14 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
         notifyAll();
     }
 
-    void setMessage(ReadMessage m, ConnectionHandler con) throws IOException {
+    boolean setMessage(ReadMessage m, ConnectionHandler con)
+            throws IOException {
         m.setFinished(false);
         if (type.numbered) {
             m.setSequenceNumber(m.readLong());
         }
         if (upcall != null) {
-            doUpcall(m, con);
-            return;
+            return doUpcall(m, con);
         }
 
         synchronized(this) {
@@ -249,6 +253,7 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
                 }
             }
         }
+        return false;
     }
 
     protected ReadMessage getMessage(long timeout)

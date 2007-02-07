@@ -51,22 +51,6 @@ public class ReceivePortConnectionInfo {
     }
 
     /**
-     * Copying constructor. This may come in handy for implementations that
-     * have separate threads for each connection, in case a message upcall
-     * does a finish. In this case a new thread may have to be created.
-     * @param orig the info to be copied.
-     */
-    public ReceivePortConnectionInfo(ReceivePortConnectionInfo orig) {
-        origin = orig.origin;
-        port = orig.port;
-        dataIn = orig.dataIn;
-        in = orig.in;
-        message = orig.message;
-        message.setFinished(false);
-        message.setInfo(this);
-    }
-
-    /**
      * Returns the number of bytes read from the data stream.
      * @return the number of bytes.
      */

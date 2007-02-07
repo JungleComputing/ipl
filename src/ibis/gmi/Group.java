@@ -61,7 +61,8 @@ public final class Group implements GroupProtocol {
     private static Registry ibisRegistry;
 
     /** Port types for ports used in GMI. */
-    private static PortType portTypeSystem;    
+    private static PortType portTypeSystemUcast;    
+    private static PortType portTypeSystemMcast;    
     private static PortType portTypeManyToOne;
    // private static PortType portTypeOneToMany;
       
@@ -167,15 +168,23 @@ public final class Group implements GroupProtocol {
             name = ibis.identifier().toString();
             ibisRegistry = ibis.registry();
 
-            // Create the three port types used in GMI  
+            // Create the four port types used in GMI  
 
-            // System port type 
+            // System unicast (many to one) port type 
             StaticProperties props = new StaticProperties();
             props.add("serialization", "object");
             props.add("worldmodel", "closed");
             props.add("communication", "ManyToOne, Reliable, ExplicitReceipt");
            
-            portTypeSystem = ibis.createPortType(props);
+            portTypeSystemUcast = ibis.createPortType(props);
+            
+            // System unicast (many to one) port type 
+            props = new StaticProperties();
+            props.add("serialization", "object");
+            props.add("worldmodel", "closed");
+            props.add("communication", "OneToMany, Reliable, ExplicitReceipt");
+           
+            portTypeSystemMcast = ibis.createPortType(props);
             
             // Unicast (many to one) port type            
             props = new StaticProperties();
@@ -219,10 +228,10 @@ public final class Group implements GroupProtocol {
 
                 if (_size > 1) {
 
-                    systemIn = portTypeSystem.createReceivePort("GMI Master");
+                    systemIn = portTypeSystemUcast.createReceivePort("Master");
                     systemIn.enableConnections();
 
-                    systemOut = portTypeSystem.createSendPort("GMI Master");
+                    systemOut = portTypeSystemMcast.createSendPort("Master");
 
                     for (int j = 1; j < _size; j++) {
                         ReadMessage r = systemIn.receive();
@@ -241,17 +250,12 @@ public final class Group implements GroupProtocol {
                     w.finish();
                 }
             } else {
-                if (logger.isDebugEnabled()) {
-                    logger.debug(_rank + ": <static> - " + 
-                            name + " I am client");
-                }
-
-                systemIn = portTypeSystem.createReceivePort("GMI Client");
+                systemIn = portTypeSystemMcast.createReceivePort("Client");
                 systemIn.enableConnections();
 
-                systemOut = portTypeSystem.createSendPort("GMI Client");
+                systemOut = portTypeSystemUcast.createSendPort("Client");
 
-                systemOut.connect(master, "GMI Master");
+                systemOut.connect(master, "Master");
 
                 WriteMessage w = systemOut.newMessage();
                 w.writeObject(systemIn.identifier());
@@ -268,6 +272,12 @@ public final class Group implements GroupProtocol {
                         break;
                     }
                 }
+
+                if (logger.isDebugEnabled()) {
+                    logger.debug(_rank + ": <static> - " + 
+                            name + " I am client");
+                }
+
             }
 
             unicast = new SendPort[_size];

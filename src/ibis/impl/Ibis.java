@@ -179,7 +179,7 @@ public abstract class Ibis implements ibis.ipl.Ibis {
 
     /**
      * Notifies this Ibis instance that other Ibis instances have
-     * joined the run.
+     * joined the run. Called by the registry.
      * @param joinIdents the Ibis {@linkplain ibis.ipl.IbisIdentifier
      * identifiers} of the Ibis instances joining the run.
      */
@@ -204,7 +204,7 @@ public abstract class Ibis implements ibis.ipl.Ibis {
 
     /**
      * Notifies this Ibis instance that other Ibis instances have
-     * left the run.
+     * left the run. Called by the Registry.
      * @param leaveIdents the Ibis {@linkplain ibis.ipl.IbisIdentifier
      *  identifiers} of the Ibis instances leaving the run.
      */
@@ -223,6 +223,7 @@ public abstract class Ibis implements ibis.ipl.Ibis {
 
     /**
      * Notifies this Ibis instance that other Ibis instances have died.
+     * Called by the registry.
      * @param corpses the Ibis {@linkplain ibis.ipl.IbisIdentifier
      *  identifiers} of the Ibis instances that died.
      */
@@ -241,7 +242,7 @@ public abstract class Ibis implements ibis.ipl.Ibis {
 
     /**
      * Notifies this Ibis instance that some Ibis instances are requested
-     * to leave.
+     * to leave. Called by the registry.
      * @param ibisses the Ibis {@linkplain ibis.ipl.IbisIdentifier
      *  identifiers} of the Ibis instances that are requested to leave.
      */

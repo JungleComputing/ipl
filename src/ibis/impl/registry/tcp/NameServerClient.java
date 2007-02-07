@@ -234,6 +234,21 @@ public class NameServerClient extends ibis.impl.Registry
         }
     }
 
+    /**
+     * Initializes the <code>cluster</code> field.
+     */
+    public static String getCluster() {
+        String cluster = System.getProperty("ibis.pool.cluster");
+        if (cluster == null) {
+            // Backwards compatibility, will be deprecated.
+            cluster = System.getProperty("cluster");
+        }
+        if (cluster == null) {
+            cluster = "unknown";
+        }
+        return cluster;
+    }
+
     public IbisIdentifier init(Ibis ibis, boolean ndsUpcalls, byte[] data)
             throws IOException, IbisConfigurationException {
         this.ibisImpl = ibis;
@@ -281,7 +296,8 @@ public class NameServerClient extends ibis.impl.Registry
 
         logger.debug("Found nameServerInet " + serverAddress);
 
-        serverSocket = socketFactory.createServerSocket(0, myAddress, 50, true, null);
+        serverSocket = socketFactory.createServerSocket(0, myAddress, 50, true,
+                null);
 
         localPort = serverSocket.getLocalPort();
 
@@ -289,28 +305,30 @@ public class NameServerClient extends ibis.impl.Registry
 
         DataOutputStream out = null;
         DataInputStream in = null;
-        int len;
-        byte[] buf;
 
         try {
 
-            out = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
+            out = new DataOutputStream(
+                    new BufferedOutputStream(s.getOutputStream()));
 
             logger.debug("NameServerClient: contacting nameserver");
             out.writeByte(IBIS_JOIN);
             out.writeUTF(poolName);
-            buf = Conversion.object2byte(myAddress);
+            byte[] buf = Conversion.object2byte(myAddress);
             out.writeInt(buf.length);
             out.write(buf);
             out.writeInt(localPort);
             out.writeBoolean(ndsUpcalls);
             out.writeInt(data.length);
             out.write(data);
-            out.writeUTF(IbisIdentifier.getCluster());
+            // Cluster needs work ...
+            out.writeInt(2);
+            out.writeUTF(getCluster());
             out.writeUTF(myAddress.getHostName());
             out.flush();
 
-            in = new DataInputStream(new BufferedInputStream(s.getInputStream()));
+            in = new DataInputStream(
+                    new BufferedInputStream(s.getInputStream()));
 
             int opcode = in.readByte();
 
@@ -329,28 +347,20 @@ public class NameServerClient extends ibis.impl.Registry
                 int temp = in.readInt(); /* Port for the ElectionServer */
                 electionClient = new ElectionClient(myAddress, serverAddress,
                         temp);
-                len = in.readInt();
-                buf = new byte[len];
-                in.readFully(buf, 0, len);
-                id = new IbisIdentifier(buf);
+                id = new IbisIdentifier(in);
                 if (ndsUpcalls) {
                     int poolSize = in.readInt();
 
                     if (logger.isDebugEnabled()) {
-                        logger.debug("NameServerClient: accepted by nameserver, "
-                                    + "poolsize " + poolSize);
+                        logger.debug("NameServerClient: accepted by nameserver"
+                                    + ", poolsize " + poolSize);
                     }
 
                     // Read existing nodes (including this one).
                     IbisIdentifier[] ids = new IbisIdentifier[poolSize];
                     for (int i = 0; i < poolSize; i++) {
-                        len = in.readInt();
-                        buf = new byte[len];
-                        in.readFully(buf, 0, len);
-                        ids[i] = new IbisIdentifier(buf);
-                        if (logger.isDebugEnabled()) {
-                            logger.debug("NameServerClient: join of " + ids[i]);
-                        }
+                        ids[i] = new IbisIdentifier(in);
+                        logger.debug("NameServerClient: join of " + ids[i]);
                     }
                     addMessage(IBIS_JOIN, ids);
                 }
@@ -384,11 +394,12 @@ public class NameServerClient extends ibis.impl.Registry
             logger.debug("Sending maybeDead(" + ibisId + ") to nameserver");
             s = nsConnect(serverAddress, port, myAddress, false, 2);
 
-            out = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
+            out = new DataOutputStream(
+                    new BufferedOutputStream(s.getOutputStream()));
 
             out.writeByte(IBIS_ISALIVE);
             out.writeUTF(poolName);
-            out.writeInt(((IbisIdentifier)ibisId).joinId);
+            out.writeUTF(((IbisIdentifier)ibisId).idData);
             out.flush();
             logger.debug("NS client: isAlive sent");
 
@@ -407,11 +418,12 @@ public class NameServerClient extends ibis.impl.Registry
         try {
             s = nsConnect(serverAddress, port, myAddress, false, 10);
 
-            out = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
+            out = new DataOutputStream(
+                    new BufferedOutputStream(s.getOutputStream()));
 
             out.writeByte(IBIS_DEAD);
             out.writeUTF(poolName);
-            out.writeInt(((IbisIdentifier) corpse).joinId);
+            out.writeUTF(((IbisIdentifier) corpse).idData);
             logger.debug("NS client: kill sent");
         } catch (ConnectionTimedOutException e) {
             return;
@@ -428,13 +440,14 @@ public class NameServerClient extends ibis.impl.Registry
         try {
             s = nsConnect(serverAddress, port, myAddress, false, 10);
 
-            out = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
+            out = new DataOutputStream(
+                    new BufferedOutputStream(s.getOutputStream()));
 
             out.writeByte(IBIS_MUSTLEAVE);
             out.writeUTF(poolName);
             out.writeInt(ibisses.length);
             for (int i = 0; i < ibisses.length; i++) {
-                out.writeInt(((IbisIdentifier) ibisses[i]).joinId);
+                out.writeUTF(((IbisIdentifier) ibisses[i]).idData);
             }
             logger.debug("NS client: mustLeave sent");
         } catch (ConnectionTimedOutException e) {
@@ -451,13 +464,15 @@ public class NameServerClient extends ibis.impl.Registry
         try {
             s = nsConnect(serverAddress, port, myAddress, false, 10);
 
-            out = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
+            out = new DataOutputStream(
+                    new BufferedOutputStream(s.getOutputStream()));
 
             out.writeByte(SEQNO);
             out.writeUTF(name);
             out.flush();
 
-            in = new DataInputStream(new BufferedInputStream(s.getInputStream()));
+            in = new DataInputStream(
+                    new BufferedInputStream(s.getInputStream()));
 
             return in.readLong();
 
@@ -483,15 +498,17 @@ public class NameServerClient extends ibis.impl.Registry
         }
 
         try {
-            out = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
+            out = new DataOutputStream(
+                    new BufferedOutputStream(s.getOutputStream()));
 
             out.writeByte(IBIS_LEAVE);
             out.writeUTF(poolName);
-            out.writeInt(id.joinId);
+            out.writeUTF(id.idData);
             out.flush();
             logger.info("NS client: leave sent");
 
-            in = new DataInputStream(new BufferedInputStream(s.getInputStream()));
+            in = new DataInputStream(
+                    new BufferedInputStream(s.getInputStream()));
 
             in.readByte();
             logger.info("NS client: leave ack received");
@@ -560,7 +577,8 @@ public class NameServerClient extends ibis.impl.Registry
             DataOutputStream out = null;
 
             try {
-                in = new DataInputStream(new BufferedInputStream(s.getInputStream()));
+                in = new DataInputStream(
+                        new BufferedInputStream(s.getInputStream()));
                 int count;
                 IbisIdentifier[] ids;
 
@@ -573,7 +591,7 @@ public class NameServerClient extends ibis.impl.Registry
                         out = new DataOutputStream(
                                 new BufferedOutputStream(s.getOutputStream()));
                         out.writeUTF(poolName);
-                        out.writeInt(id.joinId);
+                        out.writeUTF(id.idData);
                     }
                     break;
 
@@ -584,10 +602,7 @@ public class NameServerClient extends ibis.impl.Registry
                     count = in.readInt();
                     ids = new IbisIdentifier[count];
                     for (int i = 0; i < count; i++) {
-                        int sz = in.readInt();
-                        byte[] buf = new byte[sz];
-                        in.readFully(buf, 0, sz);
-                        ids[i] = new IbisIdentifier(buf);
+                        ids[i] = new IbisIdentifier(in);
                         if (opcode == IBIS_LEAVE && ids[i].equals(this.id)) {
                             // received an ack from the nameserver that I left.
                             logger.info("NameServerClient: thread dying");

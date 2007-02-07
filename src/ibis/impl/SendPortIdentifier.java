@@ -5,6 +5,12 @@ package ibis.impl;
 import ibis.io.Conversion;
 import ibis.ipl.StaticProperties;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInput;
+import java.io.DataInputStream;
+import java.io.DataOutput;
+import java.io.DataOutputStream;
 import java.io.IOException;
 
 /**
@@ -60,17 +66,20 @@ public class SendPortIdentifier implements ibis.ipl.SendPortIdentifier,
      */
     public SendPortIdentifier(byte[] codedForm, int offset, int length)
             throws IOException {
-        int nameSize = Conversion.defaultConversion.byte2int(codedForm, offset);
-        int typeSize = Conversion.defaultConversion.byte2int(codedForm,
-                offset + Conversion.INT_SIZE);
-        int ibisSize = Conversion.defaultConversion.byte2int(codedForm,
-                offset + 2*Conversion.INT_SIZE);
-        offset += 3*Conversion.INT_SIZE;
-        name = new String(codedForm, offset, nameSize);
-        offset += nameSize;
-        type = new StaticProperties(codedForm, offset, typeSize);
-        offset += typeSize;
-        ibis = new IbisIdentifier(codedForm, offset, ibisSize);
+        this(new DataInputStream(
+                new ByteArrayInputStream(codedForm, offset, length)));
+    }
+
+    /**
+     * Constructs a <code>SendPortIdentifier</code> by reading it from the
+     * specified input stream.
+     * @param dis the input stream.
+     * @exception IOException is thrown in case of trouble.
+     */
+    public SendPortIdentifier(DataInput dis) throws IOException {
+        name = dis.readUTF();
+        type = new StaticProperties(dis);
+        ibis = new IbisIdentifier(dis);
     }
 
     /**
@@ -78,28 +87,28 @@ public class SendPortIdentifier implements ibis.ipl.SendPortIdentifier,
      * @return the coded form.
      * @exception IOException is thrown in case of trouble.
      */
-    public byte[] getBytes() throws IOException {
+    public byte[] toBytes() throws IOException {
         if (codedForm == null) {
-            byte[] nameBytes = name.getBytes();
-            byte[] typeBytes = type.getBytes();
-            byte[] ibisBytes = ibis.getBytes();
-            int sz = nameBytes.length + typeBytes.length + ibisBytes.length
-                + 3 * Conversion.INT_SIZE;
-            codedForm = new byte[sz];
-            Conversion.defaultConversion.int2byte(nameBytes.length,
-                    codedForm, 0);
-            Conversion.defaultConversion.int2byte(typeBytes.length,
-                    codedForm, Conversion.INT_SIZE);
-            Conversion.defaultConversion.int2byte(ibisBytes.length,
-                    codedForm, 2*Conversion.INT_SIZE);
-            int offset = 3*Conversion.INT_SIZE;
-            System.arraycopy(nameBytes, 0, codedForm, offset, nameBytes.length);
-            offset += nameBytes.length;
-            System.arraycopy(typeBytes, 0, codedForm, offset, typeBytes.length);
-            offset += typeBytes.length;
-            System.arraycopy(ibisBytes, 0, codedForm, offset, ibisBytes.length);
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            DataOutputStream dos = new DataOutputStream(bos);
+            dos.writeUTF(name);
+            type.writeTo(dos);
+            ibis.writeTo(dos);
+            dos.close();
+            codedForm = bos.toByteArray();
         }
         return codedForm;
+    }
+
+    /**
+     * Writes this <code>SendPortIdentifier</code> to the specified output
+     * stream.
+     * @param dos the output stream.
+     * @exception IOException is thrown in case of trouble.
+     */
+    public void writeTo(DataOutput dos) throws IOException {
+        toBytes();
+        dos.write(codedForm);
     }
 
     private boolean equals(SendPortIdentifier other) {
@@ -137,7 +146,7 @@ public class SendPortIdentifier implements ibis.ipl.SendPortIdentifier,
     }
 
     public String toString() {
-        return ("(SendPortIdentifier: name = " + name + ", type = " + type
-                + ", ibis = " + ibis + ")");
+        return ("(SendPortIdentifier: name = \"" + name
+                + "\", ibis = \"" + ibis + "\")");
     }
 }
