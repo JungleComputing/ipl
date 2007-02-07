@@ -7,7 +7,8 @@ package ibis.ipl;
  * <code>equals()</code>, so implementations probably redefine
  * <code>hashCode()</code> and <code>equals()</code>.
  */
-public interface IbisIdentifier extends java.io.Serializable {
+public interface IbisIdentifier extends java.io.Serializable,
+       Comparable<IbisIdentifier> {
     /**
      * Returns the name of the virtual or physical cluster this Ibis
      * instance belongs to.

@@ -33,7 +33,7 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
     private final byte[] registryData;
 
     /** Identification of Ibis instances, provided by the registry. */
-    public final String idData;
+    public final String myId;
 
     /** An Ibis identifier coded as a byte array. Computed once. */
     private transient byte[] codedForm = null;
@@ -48,7 +48,7 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
      */
     public IbisIdentifier(String id, byte[] implementationData,
             byte[] registryData, String[] cluster, String pool) {
-        this.idData = id;
+        this.myId = id;
         this.implementationData = implementationData;
         this.registryData = registryData;
         this.cluster = cluster;
@@ -109,7 +109,7 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
             registryData = new byte[registrySize];
             dis.readFully(registryData);
         }
-        idData = dis.readUTF();
+        myId = dis.readUTF();
     }
 
     /**
@@ -142,7 +142,7 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
                 dos.writeInt(registryData.length);
                 dos.write(registryData);
             }
-            dos.writeUTF(idData);
+            dos.writeUTF(myId);
             dos.close();
             codedForm = bos.toByteArray();
         }
@@ -177,7 +177,7 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
         }
 
         IbisIdentifier other = (IbisIdentifier) o;
-        return other.idData.equals(idData) && other.pool.equals(pool);
+        return other.myId.equals(myId) && other.pool.equals(pool);
     }
 
     /**
@@ -185,7 +185,7 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
      * @return the hashcode.
      */
     public int hashCode() {
-        return idData.hashCode();
+        return myId.hashCode();
     }
 
     /**
@@ -207,7 +207,7 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
      * @return a string representation of this IbisIdentifier.
      */
     public String toString() {
-        return "(Ibis " + idData + ", pool " + pool + ")";
+        return "(Ibis " + myId + ", pool " + pool + ")";
     }
 
     public String cluster() {
@@ -240,5 +240,38 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
      */
     public byte[] getRegistryData() {
         return registryData;
+    }
+
+    /**
+     * Compare to the specified Ibis identifier.
+     * @param c the Ibis identifier to compare to.
+     */
+    public int compareTo(ibis.ipl.IbisIdentifier c) {
+        if (c instanceof IbisIdentifier) {
+            // If not, the specified Ibis identifier is from a completely
+            // different implementation.
+            IbisIdentifier id = (IbisIdentifier) c;
+            // First compare pools.
+            int cmp = pool.compareTo(id.pool);
+            if (cmp == 0) {
+                // Then compare cluster.
+                for (int i = 0; i < cluster.length; i++) {
+                    if (i >= id.cluster.length) {
+                        return -1;
+                    }
+                    cmp = cluster[i].compareTo(id.cluster[i]);
+                    if (cmp != 0) {
+                        return cmp;
+                    }
+                }
+                if (id.cluster.length > cluster.length) {
+                    return 1;
+                }
+                // Finally compare id.
+                return myId.compareTo(id.myId);
+            }
+            return cmp;
+        }
+        return this.getClass().getName().compareTo(c.getClass().getName());
     }
 }
