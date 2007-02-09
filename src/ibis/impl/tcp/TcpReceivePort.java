@@ -41,20 +41,13 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
             this.s = s;
         }
 
-        void close(Throwable e) {
-            try {
-                in.close();
-            } catch (Throwable z) {
-                // Ignore.
-            }
-            in = null;
+        protected void close(Throwable e) {
+            super.close(e);
             try {
                 s.close();
             } catch (Throwable x) {
                 // ignore
             }
-            logger.debug(name + ": connection with " + origin + " terminating");
-            lostConnection(origin, e);
         }
 
         public void run() {
@@ -67,13 +60,12 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
             }
         }
 
-        void upcallCalledFinish() {
-            message = new ReadMessage(in, this);
-            logger.debug("New connection handler, finish called from upcall");
+        protected void upcallCalledFinish() {
+            super.upcallCalledFinish();
             ThreadPool.createNew(this, "ConnectionHandler");
         }
 
-        void reader(boolean returnOnMessage) throws IOException {
+        void reader(boolean noThread) throws IOException {
             byte opcode = -1;
 
             while (in != null) {
@@ -91,8 +83,15 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
                         logger.debug(name + ": Got a NEW_MESSAGE from "
                                 + origin);
                     }
-                    boolean goAway = setMessage(message, this);
-                    if (returnOnMessage || goAway) {
+                    message.setFinished(false);
+                    if (type.numbered) {
+                        message.setSequenceNumber(message.readLong());
+                    }
+                    ReadMessage m = message;
+                    messageArrived(message);
+                    // Note: if upcall calls finish, a new message is
+                    // allocated, so we cannot look at "message" anymore.
+                    if (noThread || m.finishCalledInUpcall()) {
                         return;
                     }
                     break;
@@ -111,17 +110,11 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
                     byte[] bytes = new byte[Conversion.defaultConversion
                             .byte2int(length, 0)];
                     in.readArray(bytes);
-                    try {
-                        ReceivePortIdentifier identifier =
-                            (ReceivePortIdentifier) 
-                                Conversion.byte2object(bytes);
-                        if (ident.equals(identifier)) {
-                            // Sendport is disconnecting from me.
-                            logger.debug(name + ": disconnect from " + origin);
-                            close(null);
-                        }
-                    } catch(ClassNotFoundException e) {
-                        logger.error("Internal error", e);
+                    ReceivePortIdentifier identifier
+                            = new ReceivePortIdentifier(bytes);
+                    if (ident.equals(identifier)) {
+                        // Sendport is disconnecting from me.
+                        logger.debug(name + ": disconnect from " + origin);
                         close(null);
                     }
                     break;
@@ -133,15 +126,9 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
         }
     }
 
-    private ReadMessage m = null;
-
-    private boolean delivered = false;
-
     private final boolean no_connectionhandler_thread;
 
     private boolean reader_busy = false;
-
-    private boolean fromDoUpcall = false;
 
     TcpReceivePort(Ibis ibis, TcpPortType type, String name, Upcall upcall,
             boolean connectionAdministration,
@@ -154,111 +141,24 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
                 && !type.props.isProp("communication", "ReceiveTimeout");
     }
 
-    boolean doUpcall(ReadMessage msg, ConnectionHandler con) {
-        synchronized (this) {
-            // Wait until the previous message was finished.
-            while (this.m != null || !allowUpcalls) {
-                try {
-                    wait();
-                } catch (InterruptedException e) {
-                    // Ignore.
-                }
-            }
-            this.m = msg;
-        }
-
-        try {
-            upcall.upcall(msg);
-        } catch (Throwable e) {
-            // An error occured on receiving (or finishing!) the message during
-            // the upcall.
-            logger.error("Got Exception in upcall()", e);
-            if (e instanceof IOException && ! msg.isFinished()) {
-                finishMessage(msg, (IOException) e);
-                return true;
-            }
-        }
-
-        if (! msg.isFinished()) {
-            // It wasn't finished, so finish the message now.
-            fromDoUpcall = true;
-            try {
-                msg.finish();
-            } catch(Throwable e) {
-                // Should not happen.
-            } finally {
-                fromDoUpcall = false;
-            }
-            return false;
-        }
-        return true;
-    }
-
-    protected synchronized void finishMessage(ReadMessage r) {
-        m = null;
-        notifyAll();
-
-        if (! fromDoUpcall && upcall != null) {
-            // Create new connection handler thread and message.
-            ConnectionHandler h = (ConnectionHandler) r.getInfo();
-            h.upcallCalledFinish();
-        }
-    }
-
-    protected synchronized void finishMessage(ReadMessage r, IOException e) {
-        ((ConnectionHandler) r.getInfo()).close(e);
-        m = null;
-        notifyAll();
-    }
-
-    boolean setMessage(ReadMessage m, ConnectionHandler con)
-            throws IOException {
-        m.setFinished(false);
-        if (type.numbered) {
-            m.setSequenceNumber(m.readLong());
-        }
-        if (upcall != null) {
-            return doUpcall(m, con);
-        }
-
-        synchronized(this) {
-            // Wait until the previous message was finished.
-            if (!no_connectionhandler_thread) {
-                while (this.m != null) {
+    protected void messageArrived(ReadMessage msg) {
+        super.messageArrived(msg);
+        if (! no_connectionhandler_thread && upcall == null) {
+            synchronized(this) {
+                // Wait until the message is finished before starting to
+                // read from the stream again ...
+                while (! msg.isFinished()) {
                     try {
                         wait();
-                    } catch (Exception e) {
-                        // Ignore.
-                    }
-                }
-            }
-
-            this.m = m;
-            delivered = false;
-
-            if (!no_connectionhandler_thread) {
-                notifyAll(); // now handle this message.
-
-                // Wait until the receiver thread finishes this message.
-                // We must wait here, because the thread that calls this method 
-                // wants to read an opcode from the stream.
-                // It can only read this opcode after the whole message is gone
-                // first.
-                while (this.m != null) {
-                    try {
-                        wait();
-                    } catch (Exception e) {
-                        // Ignore.
+                    } catch(Exception e) {
+                        // Ignored
                     }
                 }
             }
         }
-        return false;
     }
 
-    protected ReadMessage getMessage(long timeout)
-            throws IOException {
-
+    protected ReadMessage getMessage(long timeout) throws IOException {
         if (no_connectionhandler_thread) {
             // Allow only one reader in.
             synchronized(this) {
@@ -288,7 +188,7 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
                     }
 
                     // Wait until the current message is done
-                    while (m != null && ! closed) {
+                    while (message != null && ! closed) {
                         try {
                             wait();
                         } catch (Exception e) {
@@ -306,82 +206,25 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
                 // Note: This call does NOT always result in a message!
                 ((ConnectionHandler)conns[0]).reader(true);
                 synchronized(this) {
-                    if (m != null) {
+                    if (message != null) {
                         reader_busy = false;
                         notifyAll();
-                        return m;
+                        return message;
                     }
                 }
             }
         } else {
-            synchronized(this) {
-                while ((m == null || delivered) && !closed) {
-                    try {
-                        if (timeout > 0) {
-                            wait(timeout);
-                        } else {
-                            wait();
-                        }
-                    } catch (Exception e) {
-                        throw new ReceiveTimedOutException( "timeout expired in receive()");
-                    }
-                }
-                delivered = true;
-                return m;
-            }
-        }
-    }
-
-    protected ReadMessage doPoll() throws IOException {
-
-        Thread.yield(); // Give connection handler thread a chance to deliver
-
-        if (upcall != null) {
-            return null;
-        }
-
-        synchronized (this) { // Connection handler thread may modify data.
-            if (m == null || delivered) {
-                return null;
-            }
-            if (m != null) {
-                delivered = true;
-            }
-            return m;
+            return super.getMessage(timeout);
         }
     }
 
     protected synchronized void closePort(long timeout) {
         ReceivePortConnectionInfo conns[] = connections();
         if (no_connectionhandler_thread && conns.length > 0) {
-            ThreadPool.createNew((ConnectionHandler) conns[0], "ConnectionHandler");
+            ThreadPool.createNew((ConnectionHandler) conns[0],
+                    "ConnectionHandler");
         }
-        if (timeout == 0) {
-            while (connections.size() > 0) {
-                try {
-                    wait();
-                } catch(Exception e) {
-                    // ignored
-                }
-            }
-        } else {
-            long endTime = System.currentTimeMillis() + timeout;
-            while (connections.size() > 0 && timeout > 0) {
-                try {
-                    wait(timeout);
-                } catch(Exception e) {
-                    // ignored
-                }
-                timeout = endTime - System.currentTimeMillis();
-            }
-            conns = connections();
-            for (int i = 0; i < conns.length; i++) {
-                ConnectionHandler conn = (ConnectionHandler) conns[i];
-                conn.close(new IOException(
-                            "receiver forcibly closed connection"));
-            }
-        }
-        logger.debug(name + ":done receiveport.close");
+        super.closePort(timeout);
     }
 
     synchronized void connect(SendPortIdentifier origin, Socket s)

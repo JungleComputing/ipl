@@ -5,14 +5,21 @@ package ibis.impl;
 import ibis.io.DataInputStream;
 import ibis.io.SerializationBase;
 import ibis.io.SerializationInput;
+import ibis.util.GetLogger;
 
 import java.io.IOException;
+
+import org.apache.log4j.Logger;
 
 /**
  * This class represents the information about a particular sendport/receiveport
  * connection, on the receiver side.
  */
 public class ReceivePortConnectionInfo {
+
+    /** Debugging. */
+    protected static final Logger logger
+            = GetLogger.getLogger("ibis.impl.ReceivePortConnectionInfo");
 
     /** Identifies the sendport side of the connection. */
     protected final SendPortIdentifier origin;
@@ -72,5 +79,35 @@ public class ReceivePortConnectionInfo {
         in = SerializationBase.createSerializationInput(port.serialization,
                 dataIn);
         message = new ReadMessage(in, this);
+    }
+
+    /**
+     * This method closes the connection, as the result of the specified
+     * exception. Implementations may need to redefine this method 
+     * @param e the exception.
+     */
+    protected void close(Throwable e) {
+        try {
+            in.close();
+        } catch(Throwable z) {
+            // ignore
+        }
+        in = null;
+        if (logger.isDebugEnabled()) {
+            logger.debug(port.name + ": connection with " + origin
+                    + " closing", e);
+        }
+        port.lostConnection(origin, e);
+    }
+
+    /**
+     * This method gets called when the upcall for the message explicitly
+     * called {@link ReadMessage#finish()}.
+     * The default implementation just allocates a new message.
+     */
+    protected void upcallCalledFinish() {
+        message = new ReadMessage(in, this);
+        logger.debug(port.name + ": new connection handler for " + origin
+                + ", finish called from upcall");
     }
 }

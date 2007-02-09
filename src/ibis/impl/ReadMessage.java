@@ -24,6 +24,10 @@ public class ReadMessage implements ibis.ipl.ReadMessage {
 
     private long sequenceNr = -1;
 
+    private boolean inUpcall = false;
+
+    private boolean finishCalledFromUpcall = false;
+
     public ReadMessage(SerializationInput in, ReceivePortConnectionInfo info) {
         this.in = in;
         this.info = info;
@@ -32,6 +36,27 @@ public class ReadMessage implements ibis.ipl.ReadMessage {
 
     public ibis.ipl.ReceivePort localPort() {
         return info.port;
+    }
+
+    /**
+     * May be called by an implementation to allow for detection of finish()
+     * calls within an upcall.
+     * @param val the value to set.
+     */
+    public void setInUpcall(boolean val) {
+        inUpcall = val;
+    }
+
+    /**
+     * May be called by an implementation to allow for detection of finish()
+     * calls within an upcall.
+     */
+    public boolean getInUpcall() {
+        return inUpcall;
+    }
+
+    public boolean finishCalledInUpcall() {
+        return finishCalledFromUpcall;
     }
 
     public long bytesRead() {
@@ -216,6 +241,10 @@ public class ReadMessage implements ibis.ipl.ReadMessage {
         checkNotFinished();
         in.clear();
         isFinished = true;
+        if (inUpcall) {
+            finishCalledFromUpcall = true;
+            getInfo().upcallCalledFinish();
+        }
         long after = info.bytesRead();
         long retval = after - before;
         before = after;
@@ -228,6 +257,9 @@ public class ReadMessage implements ibis.ipl.ReadMessage {
         if (isFinished) {
             return;
         }
+        if (inUpcall) {
+            finishCalledFromUpcall = true;
+        }
         info.port.finishMessage(this, e);
     }
 
@@ -237,5 +269,8 @@ public class ReadMessage implements ibis.ipl.ReadMessage {
 
     public void setFinished(boolean val) {
         isFinished = val;
+        if (! isFinished) {
+            finishCalledFromUpcall = false;
+        }
     }
 }

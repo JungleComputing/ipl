@@ -6,6 +6,7 @@ import ibis.io.SerializationInput;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.Upcall;
 import ibis.ipl.ReceivePortConnectUpcall;
+import ibis.ipl.ReceiveTimedOutException;
 import ibis.util.GetLogger;
 
 import java.io.IOException;
@@ -105,6 +106,15 @@ public abstract class ReceivePort implements ibis.ipl.ReceivePort {
 
     /** Set when this port is closed. */
     protected boolean closed = false;
+
+    /** The current message. */
+    protected ReadMessage message = null;
+
+    /**
+     * Set when the current message has been delivered. Only used for
+     * explicit receive.
+     */
+    boolean delivered = false;
 
     /**
      * Constructs a <code>ReceivePort</code> with the specified parameters.
@@ -259,8 +269,8 @@ public abstract class ReceivePort implements ibis.ipl.ReceivePort {
         if (logger.isDebugEnabled()) {
             logger.debug("Receiveport " + name + ": closing");
         }
-        disableConnections();
         synchronized(this) {
+            connectionsEnabled = false;
             closed = true;
             notifyAll();
         }
@@ -325,7 +335,7 @@ public abstract class ReceivePort implements ibis.ipl.ReceivePort {
     }
 
     // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    // Protected methods, to be called by Ibis implementations.
+    // Protected methods, may be called or redefined by implementations.
     // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     /**
@@ -398,42 +408,113 @@ public abstract class ReceivePort implements ibis.ipl.ReceivePort {
         return connections.values().toArray(new ReceivePortConnectionInfo[0]);
     }
 
-    // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    // Protected methods, to be implemented by Ibis implementations.
-    // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    /**
-     * Implementation-dependent part of the {@link #poll()} method.
-     * @exception IOException is thrown in case of trouble.
-     * @return a new {@link ReadMessage} or <code>null</code>.
-     */
-    protected abstract ReadMessage doPoll() throws IOException;
-
-    /**
-     * Waits for all connections to close. If the specified timeout is larger
-     * than 0, the implementation waits for the specified time, and then
-     * forcibly closes all connections.
-     * @param timeout the timeout in milliseconds.
-     */
-    protected abstract void closePort(long timeout);
-
     /**
      * Waits for a new message and returns it. If the specified timeout is
-     * larger than 0, the implementation waits for the specified time,
-     * and returns <code>null</code> if a message did not arrive within
-     * this time.
+     * larger than 0, the implementation waits for the specified time.
+     * This method gets called by {@link #receive()} or {@link #receive(long)},
+     * and may be redefined by implementations, for instance when there
+     * is no separate thread delivering the messages.
      * @param timeout the timeout in milliseconds.
+     * @exception ReceiveTimedOutException is thrown on timeout.
      * @exception IOException is thrown in case of trouble.
      * @return the new message, or <code>null</code>.
      */
-    protected abstract ReadMessage getMessage(long timeout) throws IOException;
+    protected ReadMessage getMessage(long timeout) throws IOException {
+        synchronized(this) {
+            // Wait until a new message is delivered or the port is closed.
+            while ((message == null || delivered) && ! closed) {
+                try {
+                    if (timeout > 0) {
+                        wait(timeout);
+                        throw new ReceiveTimedOutException(
+                                "timeout expired in receive()");
+                    } else {
+                        wait();
+                    }
+                } catch(InterruptedException e) {
+                    // ignored
+                }
+                if (closed) {
+                    throw new IOException("receive() on closed port");
+                }
+            }
+            delivered = true;
+            return message;
+        }
+    }
+
+    /**
+     * This method is called when a message arrived and the port is configured
+     * for upcalls.
+     * The assumption here is that when the upcall does an explicit
+     * {@link ReadMessage#finish()}, a new message is allocated, because
+     * at that point new messages can be delivered to the receive port.
+     * This method may be redefined, for instance when there is a separate
+     * thread for dealing with upcalls.
+     * @param msg the message.
+     */
+    protected void doUpcall(ReadMessage msg) {
+        synchronized(this) {
+            // Wait until upcalls are enabled.
+            while (! allowUpcalls) {
+                try {
+                    wait();
+                } catch(InterruptedException e) {
+                    // ignored
+                }
+            }
+        }
+        try {
+            // Notify the message that is is processed from an upcall,
+            // so that finish() calls can be detected.
+            msg.setInUpcall(true);
+            upcall.upcall(msg);
+            msg.setInUpcall(false);
+        } catch(IOException e) {
+            if (! msg.isFinished()) {
+                msg.finish(e);
+                return;
+            }
+        } catch(Throwable e1) {
+            logger.error("Got Exception in upcall()", e1);
+        }
+        if (! msg.isFinished()) {
+            try {
+                msg.finish();
+            } catch(IOException e) {
+                msg.finish(e);
+            }
+        }
+    }
+
+    protected void messageArrived(ReadMessage msg) {
+        // Wait until the previous message was finished.
+        synchronized(this) {
+            while (message != null) {
+                try {
+                    wait();
+                } catch(InterruptedException e) {
+                    // ignored.
+                }
+            }
+            message = msg;
+            delivered = false;
+            notifyAll();
+        }
+        if (upcall != null) {
+            doUpcall(message);
+        }
+    }
 
     /**
      * Notifies the port that {@link ReadMessage#finish()} was called on the
      * specified message. The port should prepare for a new message.
      * @param r the message.
      */
-    protected abstract void finishMessage(ReadMessage r);
+    protected synchronized void finishMessage(ReadMessage r) {
+        message = null;
+        notifyAll();
+    }
 
     /**
      * Notifies the port that {@link ReadMessage#finish(IOException)}
@@ -442,5 +523,72 @@ public abstract class ReceivePort implements ibis.ipl.ReceivePort {
      * @param r the message.
      * @param e the Exception.
      */
-    protected abstract void finishMessage(ReadMessage r, IOException e);
+    protected synchronized void finishMessage(ReadMessage r, IOException e) {
+        r.getInfo().close(e);
+        message = null;
+        notifyAll();
+    }
+
+    /**
+     * Waits for all connections to close. If the specified timeout is larger
+     * than 0, the implementation waits for the specified time, and then
+     * forcibly closes all connections.
+     * @param timeout the timeout in milliseconds.
+     */
+    protected synchronized void closePort(long timeout) {
+        if (timeout == 0) {
+            while (connections.size() > 0) {
+                try {
+                    wait();
+                } catch(InterruptedException e) {
+                    // ignored
+                }
+            }
+        } else {
+            long endTime = System.currentTimeMillis() + timeout;
+            while (connections.size() > 0 && timeout > 0) {
+                try {
+                    wait(timeout);
+                } catch(InterruptedException e) {
+                    // ignored
+                }
+                timeout = endTime - System.currentTimeMillis();
+            }
+            ReceivePortConnectionInfo[] conns = connections();
+            for (int i = 0; i < conns.length; i++) {
+                conns[i].close(new IOException(
+                            "receiver forcibly closed connection"));
+            }
+        }
+        logger.debug(name + ":done receiveport.close");
+    }
+
+    /**
+     * Implementation-dependent part of the {@link #poll()} method.
+     * This version assumes that other threads deliver messages and
+     * do upcalls.
+     * @exception IOException is thrown in case of trouble.
+     * @return a new {@link ReadMessage} or <code>null</code>.
+     */
+    protected ReadMessage doPoll() throws IOException {
+        Thread.yield(); // Give other thread a chance to deliver
+
+        if (upcall != null) {
+            return null;
+        }
+
+        synchronized (this) { // Other thread may modify data.
+            if (message == null || delivered) {
+                return null;
+            }
+            if (message != null) {
+                delivered = true;
+            }
+            return message;
+        }
+    }
+
+    // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    // Protected methods, to be implemented by Ibis implementations.
+    // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 }
