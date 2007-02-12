@@ -1,4 +1,4 @@
-/* $Id: IbisFactory.java 4910 2006-12-13 09:01:33Z ceriel $ */
+/* $Id$ */
 
 package ibis.ipl;
 
