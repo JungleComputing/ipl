@@ -4,12 +4,13 @@ package ibis.impl.registry.tcp;
 
 import ibis.connect.IbisSocketFactory;
 import ibis.impl.registry.NSProps;
+import ibis.impl.Ibis;
+import ibis.impl.IbisIdentifier;
+import ibis.impl.Location;
 import ibis.io.Conversion;
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.ConnectionTimedOutException;
-import ibis.impl.Ibis;
 import ibis.ipl.IbisConfigurationException;
-import ibis.impl.IbisIdentifier;
 import ibis.ipl.StaticProperties;
 import ibis.util.IPUtils;
 import ibis.util.RunProcess;
@@ -235,18 +236,14 @@ public class NameServerClient extends ibis.impl.Registry
     }
 
     /**
-     * Initializes the <code>cluster</code> field.
+     * Initializes the <code>location</code> field.
      */
-    public static String getCluster() {
-        String cluster = System.getProperty("ibis.pool.cluster");
-        if (cluster == null) {
-            // Backwards compatibility, will be deprecated.
-            cluster = System.getProperty("cluster");
+    private static Location getLocation() {
+        String location = System.getProperty("ibis.location");
+        if (location == null) {
+            return Location.defaultLocation();
         }
-        if (cluster == null) {
-            cluster = "unknown";
-        }
-        return cluster;
+        return new Location(location);
     }
 
     public IbisIdentifier init(Ibis ibis, boolean ndsUpcalls, byte[] data)
@@ -321,10 +318,8 @@ public class NameServerClient extends ibis.impl.Registry
             out.writeBoolean(ndsUpcalls);
             out.writeInt(data.length);
             out.write(data);
-            // Cluster needs work ...
-            out.writeInt(2);
-            out.writeUTF(getCluster());
-            out.writeUTF(myAddress.getHostName());
+            Location l = getLocation();
+            l.writeTo(out);
             out.flush();
 
             in = new DataInputStream(

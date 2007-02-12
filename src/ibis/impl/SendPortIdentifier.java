@@ -2,7 +2,6 @@
 
 package ibis.impl;
 
-import ibis.io.Conversion;
 import ibis.ipl.StaticProperties;
 
 import java.io.ByteArrayInputStream;

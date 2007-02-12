@@ -2,8 +2,6 @@
 
 package ibis.impl;
 
-import ibis.io.Conversion;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInput;
@@ -18,10 +16,8 @@ import java.io.IOException;
  */
 public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
     /**
-     * This field is used to indicate to which virtual or physical cluster
-     * this ibis belongs.
-     */
-    public final String[] cluster;
+     * The location for this Ibis instance. */
+    public final Location location;
 
     /** The name of the pool to which this Ibis instance belongs. */
     public final String pool;
@@ -43,15 +39,15 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
      * @param id join id, allocated by the registry.
      * @param implementationData implementation-dependent data.
      * @param registryData registry-dependent data.
-     * @param cluster cluster to which this ibis instance belongs.
+     * @param location location of this Ibis instance.
      * @param pool identifies the run with the registry.
      */
     public IbisIdentifier(String id, byte[] implementationData,
-            byte[] registryData, String[] cluster, String pool) {
+            byte[] registryData, Location location, String pool) {
         this.myId = id;
         this.implementationData = implementationData;
         this.registryData = registryData;
-        this.cluster = cluster;
+        this.location = location;
         this.pool = pool;
     }
 
@@ -85,15 +81,7 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
      * @exception IOException is thrown in case of trouble.
      */
     public IbisIdentifier(DataInput dis) throws IOException {
-        int clusterSize = dis.readInt();
-        if (clusterSize < 0) {
-            cluster = null;
-        } else {
-            cluster = new String[clusterSize];
-            for (int i = 0; i < clusterSize; i++) {
-                cluster[i] = dis.readUTF();
-            }
-        }
+        location = new Location(dis);
         pool = dis.readUTF();
         int implementationSize = dis.readInt();
         if (implementationSize < 0) {
@@ -121,14 +109,7 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
         if (codedForm == null) {
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             DataOutputStream dos = new DataOutputStream(bos);
-            if (cluster == null) {
-                dos.writeInt(-1);
-            } else {
-                dos.writeInt(cluster.length);
-                for (int i = 0; i < cluster.length; i++) {
-                    dos.writeUTF(cluster[i]);
-                }
-            }
+            location.writeTo(dos);
             dos.writeUTF(pool);
             if (implementationData == null) {
                 dos.writeInt(-1);
@@ -189,37 +170,14 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
     }
 
     /**
-     * Initializes the <code>cluster</code> field.
-     */
-    public static String getCluster() {
-        String cluster = System.getProperty("ibis.pool.cluster");
-        if (cluster == null) {
-            // Backwards compatibility, will be deprecated.
-            cluster = System.getProperty("cluster");
-        }
-        if (cluster == null) {
-            cluster = "unknown";
-        }
-        return cluster;
-    }
-
-    /**
      * @return a string representation of this IbisIdentifier.
      */
     public String toString() {
         return "(Ibis " + myId + ", pool " + pool + ")";
     }
 
-    public String cluster() {
-        // Todo: convert ...
-        if (cluster == null) {
-            return null;
-        }
-        String str = "";
-        for (int i = 0; i < cluster.length-1; i++) {
-            str += "#" + cluster[i];
-        }
-        return str;
+    public ibis.ipl.Location getLocation() {
+        return location;
     }
 
     public String getPool() {
@@ -242,6 +200,18 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
         return registryData;
     }
 
+    public String cluster() {
+        String retval = "";
+        int n = location.levels() - 1;
+        for (int i = 0; i < n; i++) {
+            if (i != 0) {
+                retval += Location.SEPARATOR;
+            }
+            retval += location.levelName(i);
+        }
+        return retval;
+    }
+
     /**
      * Compare to the specified Ibis identifier.
      * @param c the Ibis identifier to compare to.
@@ -254,21 +224,11 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
             // First compare pools.
             int cmp = pool.compareTo(id.pool);
             if (cmp == 0) {
-                // Then compare cluster.
-                for (int i = 0; i < cluster.length; i++) {
-                    if (i >= id.cluster.length) {
-                        return -1;
-                    }
-                    cmp = cluster[i].compareTo(id.cluster[i]);
-                    if (cmp != 0) {
-                        return cmp;
-                    }
+                cmp = location.compareTo(id.location);
+                if (cmp == 0) {
+                    // Finally compare id.
+                    return myId.compareTo(id.myId);
                 }
-                if (id.cluster.length > cluster.length) {
-                    return 1;
-                }
-                // Finally compare id.
-                return myId.compareTo(id.myId);
             }
             return cmp;
         }

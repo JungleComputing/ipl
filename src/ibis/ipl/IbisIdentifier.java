@@ -10,11 +10,10 @@ package ibis.ipl;
 public interface IbisIdentifier extends java.io.Serializable,
        Comparable<IbisIdentifier> {
     /**
-     * Returns the name of the virtual or physical cluster this Ibis
-     * instance belongs to.
-     * @return the cluster name.
+     * Returns the {@link Location} of this Ibis instance.
+     * @return the location.
      */
-    public String cluster();
+    public Location getLocation();
 
     /**
      * Returns the name of the pool that identifies the run to which
@@ -22,4 +21,11 @@ public interface IbisIdentifier extends java.io.Serializable,
      * @return the poolname.
      */
     public String getPool();
+
+    /**
+     * Returns something that could represent a cluster name. This is a
+     * concatenation of all location level names but the last.
+     * @return the cluster.
+     */
+    public String cluster();
 }

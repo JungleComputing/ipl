@@ -3,9 +3,10 @@
 package ibis.impl.registry.tcp;
 
 import ibis.connect.controlHub.ControlHub;
-import ibis.impl.registry.NSProps;
 import ibis.io.Conversion;
+import ibis.impl.registry.NSProps;
 import ibis.impl.IbisIdentifier;
+import ibis.impl.Location;
 import ibis.util.IPUtils;
 import ibis.util.PoolInfoServer;
 import ibis.util.TypedProperties;
@@ -124,14 +125,14 @@ public class NameServer extends Thread implements Protocol {
         IbisIdentifier id;
 
         IbisInfo(InetAddress ibisNameServerAddress, int ibisNameServerport,
-                boolean needsUpcalls, RunInfo p, byte[] data, String[] cluster,
+                boolean needsUpcalls, RunInfo p, byte[] data, Location location,
                 String poolId) throws IOException {
             this.ibisNameServerAddress = ibisNameServerAddress;
             this.ibisNameServerport = ibisNameServerport;
             this.needsUpcalls = needsUpcalls;
             synchronized(p) {
                 id = new IbisIdentifier(Integer.toString(p.joinCount++), data,
-                        null, cluster, poolId);
+                        null, location, poolId);
             }
         }
 
@@ -1084,14 +1085,7 @@ public class NameServer extends Thread implements Protocol {
         len = in.readInt();
         byte[] data = new byte[len];
         in.readFully(data, 0, len);
-        len = in.readInt();
-        String[] cluster = null;
-        if (len >= 0) {
-            cluster = new String[len];
-            for (int i = 0; i < len; i++) {
-                cluster[i] = in.readUTF();
-            }
-        }
+        Location location = new Location(in);
 
         if (logger.isDebugEnabled()) {
             logger.debug("NameServer: join to pool " + poolId
@@ -1144,7 +1138,7 @@ public class NameServer extends Thread implements Protocol {
         //         (System.currentTimeMillis() - startTime));
 
         IbisInfo info = new IbisInfo(address, port, needsUpcalls, p, data,
-                cluster, poolId);
+                location, poolId);
 
         synchronized(p) {
             sendLeavers(p);
