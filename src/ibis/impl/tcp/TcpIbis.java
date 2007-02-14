@@ -20,6 +20,8 @@ import ibis.util.TypedProperties;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.InputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -136,7 +138,7 @@ public final class TcpIbis extends ibis.impl.Ibis
         }
 
         do {
-            ObjectOutputStream out = null;
+            DataOutputStream out = null;
             InputStream in = null;
             Socket s = null;
 
@@ -144,12 +146,13 @@ public final class TcpIbis extends ibis.impl.Ibis
                 s = socketFactory.createClientSocket(idAddr.getAddress(), port,
                         myAddress.getAddress(), 0, timeout, sp.properties());
 
-                out = new ObjectOutputStream(new BufferedOutputStream(
+                out = new DataOutputStream(new BufferedOutputStream(
                             s.getOutputStream()));
                 in = new BufferedInputStream(s.getInputStream());
 
                 out.writeUTF(name);
-                out.writeObject(sp.getIdent());
+                sp.getIdent().writeTo(out);
+                sp.getType().properties().writeTo(out);
                 out.flush();
 
                 int result = in.read();
@@ -221,19 +224,20 @@ public final class TcpIbis extends ibis.impl.Ibis
         }
     }
 
-    private void handleConnectionRequest(Socket s) throws Exception {
+    private void handleConnectionRequest(Socket s) throws IOException {
         if (logger.isDebugEnabled()) {
             logger.debug("--> TcpIbis got connection request from "
                     + s.getInetAddress() + ":" + s.getPort() + " on local port "
                     + s.getLocalPort());
         }
 
-        ObjectInputStream in = new ObjectInputStream(
+        DataInputStream in = new DataInputStream(
                 new BufferedInputStream(s.getInputStream()));
         OutputStream out = new BufferedOutputStream(s.getOutputStream());
 
         String name = in.readUTF();
-        SendPortIdentifier send = (SendPortIdentifier) in.readObject();
+        SendPortIdentifier send = new SendPortIdentifier(in);
+        StaticProperties sp = new StaticProperties(in);
 
         // First, lookup receiveport.
         TcpReceivePort rp = (TcpReceivePort) findReceivePort(name);
@@ -242,7 +246,7 @@ public final class TcpIbis extends ibis.impl.Ibis
         if (rp == null) {
             result = ReceivePort.NOT_PRESENT;
         } else {
-            result = rp.connectionAllowed(send);
+            result = rp.connectionAllowed(send, sp);
         }
 
         logger.debug("--> S RP = " + name + ": "

@@ -1,4 +1,4 @@
-/* $Id: ReceivePortIdentifier.java 4910 2006-12-13 09:01:33Z ceriel $ */
+/* $Id$ */
 
 package ibis.impl;
 
@@ -22,9 +22,6 @@ public class ReceivePortIdentifier implements ibis.ipl.ReceivePortIdentifier,
     /** The name of the corresponding receiveport. */
     protected final String name;
 
-    /** The properties of the corresponding receiveport. */
-    protected final StaticProperties type;
-
     /** The IbisIdentifier of the Ibis instance that created the receiveport. */
     protected final IbisIdentifier ibis;
 
@@ -34,13 +31,10 @@ public class ReceivePortIdentifier implements ibis.ipl.ReceivePortIdentifier,
     /**
      * Constructor, initializing the fields with the specified parameters.
      * @param name the name of the receiveport.
-     * @param type the properties of the receiveport.
      * @param ibis the Ibis instance that created the receiveport.
      */
-    public ReceivePortIdentifier(String name, StaticProperties type,
-            IbisIdentifier ibis) {
+    public ReceivePortIdentifier(String name, IbisIdentifier ibis) {
         this.name = name;
-        this.type = type;
         this.ibis = ibis;
     }
 
@@ -77,7 +71,6 @@ public class ReceivePortIdentifier implements ibis.ipl.ReceivePortIdentifier,
      */
     public ReceivePortIdentifier(DataInput dis) throws IOException {
         name = dis.readUTF();
-        type = new StaticProperties(dis);
         ibis = new IbisIdentifier(dis);
     }
 
@@ -91,7 +84,6 @@ public class ReceivePortIdentifier implements ibis.ipl.ReceivePortIdentifier,
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             DataOutputStream dos = new DataOutputStream(bos);
             dos.writeUTF(name);
-            type.writeTo(dos);
             ibis.writeTo(dos);
             dos.flush();
             codedForm = bos.toByteArray();
@@ -133,10 +125,6 @@ public class ReceivePortIdentifier implements ibis.ipl.ReceivePortIdentifier,
 
     public String name() {
         return name;
-    }
-
-    public StaticProperties type() {
-        return new StaticProperties(type);
     }
 
     public ibis.ipl.IbisIdentifier ibis() {

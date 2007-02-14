@@ -1,12 +1,13 @@
-/* $Id: ReceivePort.java 4939 2006-12-14 19:02:20Z ceriel $ */
+/* $Id$ */
 
 package ibis.impl;
 
 import ibis.io.SerializationInput;
 import ibis.ipl.IbisConfigurationException;
-import ibis.ipl.Upcall;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.ReceiveTimedOutException;
+import ibis.ipl.StaticProperties;
+import ibis.ipl.Upcall;
 import ibis.util.GetLogger;
 
 import java.io.IOException;
@@ -134,7 +135,7 @@ public abstract class ReceivePort implements ibis.ipl.ReceivePort {
         this.ibis = ibis;
         this.type = type;
         this.name = name;
-        this.ident = new ReceivePortIdentifier(name, type.props, ibis.ident);
+        this.ident = new ReceivePortIdentifier(name, ibis.ident);
         this.upcall = upcall;
         this.connectUpcall = connectUpcall;
         this.connectionDowncalls = connectionDowncalls;
@@ -278,11 +279,12 @@ public abstract class ReceivePort implements ibis.ipl.ReceivePort {
         ibis.deRegister(this);
     }
 
-    public synchronized byte connectionAllowed(SendPortIdentifier id) {
+    public synchronized byte connectionAllowed(SendPortIdentifier id,
+            StaticProperties sp) {
         if (isConnectedTo(id)) {
             return ALREADY_CONNECTED;
         }
-        if (! id.type().equals(type.props)) {
+        if (! sp.equals(type.props)) {
             return TYPE_MISMATCH;
         }
         if (connectionsEnabled) {

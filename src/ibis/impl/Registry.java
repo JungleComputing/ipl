@@ -1,4 +1,4 @@
-/* $Id: Registry.java 4880 2006-12-08 09:06:32Z ceriel $ */
+/* $Id$ */
 
 package ibis.impl;
 

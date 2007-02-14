@@ -88,7 +88,7 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
                         message.setSequenceNumber(message.readLong());
                     }
                     ReadMessage m = message;
-                    messageArrived(message);
+                    messageArrived(m);
                     // Note: if upcall calls finish, a new message is
                     // allocated, so we cannot look at "message" anymore.
                     if (noThread || m.finishCalledInUpcall()) {

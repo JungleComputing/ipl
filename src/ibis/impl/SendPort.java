@@ -1,4 +1,4 @@
-/* $Id: SendPort.java 4945 2006-12-15 13:19:22Z ceriel $ */
+/* $Id$ */
 
 package ibis.impl;
 
@@ -106,7 +106,7 @@ public abstract class SendPort implements ibis.ipl.SendPort {
         this.ibis = ibis;
         this.type = type;
         this.name = name;
-        this.ident = new SendPortIdentifier(name, type.props, ibis.ident);
+        this.ident = new SendPortIdentifier(name, ibis.ident);
         this.connectionDowncalls = connectionDowncalls;
         this.connectUpcall = connectUpcall;
         if (type.replacerClass != null) {
@@ -223,11 +223,8 @@ public abstract class SendPort implements ibis.ipl.SendPort {
 
     public synchronized void connect(ibis.ipl.ReceivePortIdentifier receiver,
             long timeout) throws IOException {
+
         logger.debug("Sendport '" + name + "' connecting to " + receiver);
-        if (!type.properties().equals(receiver.type())) {
-            throw new PortMismatchException(
-                "Cannot connect ports of different PortTypes");
-        }
 
         if (aMessageIsAlive) {
             throw new IOException(
@@ -244,7 +241,7 @@ public abstract class SendPort implements ibis.ipl.SendPort {
     public synchronized ibis.ipl.ReceivePortIdentifier connect(
             ibis.ipl.IbisIdentifier id, String name, long timeout)
             throws IOException {
-        ReceivePortIdentifier r = new ReceivePortIdentifier(name, type.props,
+        ReceivePortIdentifier r = new ReceivePortIdentifier(name,
                 (IbisIdentifier) id);
 
         logger.debug("Sendport '" + name + "' connecting to " + r);

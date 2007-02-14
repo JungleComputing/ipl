@@ -1,4 +1,4 @@
-/* $Id: IbisIdentifier.java 4893 2006-12-08 15:15:12Z ceriel $ */
+/* $Id$ */
 
 package ibis.impl;
 

@@ -10,7 +10,6 @@ import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
-import java.util.StringTokenizer;
 
 /**
  * Represents a location on which an Ibis instance runs. This is the
@@ -46,11 +45,7 @@ public final class Location implements ibis.ipl.Location {
      * @param s the specified string.
      */
     public Location(String s) {
-        StringTokenizer st = new StringTokenizer(s, SEPARATOR);
-        levelNames = new String[st.countTokens()];
-        for (int i = 0; i < levelNames.length; i++) {
-            levelNames[i] = st.nextToken();
-        }
+        levelNames = s.split(SEPARATOR);
     }
 
     /**

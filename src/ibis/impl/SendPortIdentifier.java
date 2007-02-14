@@ -1,4 +1,4 @@
-/* $Id: SendPortIdentifier.java 4910 2006-12-13 09:01:33Z ceriel $ */
+/* $Id$ */
 
 package ibis.impl;
 
@@ -22,9 +22,6 @@ public class SendPortIdentifier implements ibis.ipl.SendPortIdentifier,
     /** The name of the corresponding sendport. */
     protected final String name;
 
-    /** The properties of the corresponding sendport. */
-    protected final StaticProperties type;
-
     /** The IbisIdentifier of the Ibis instance that created the sendport. */
     protected final IbisIdentifier ibis;
 
@@ -34,13 +31,10 @@ public class SendPortIdentifier implements ibis.ipl.SendPortIdentifier,
     /**
      * Constructor, initializing the fields with the specified parameters.
      * @param name the name of the sendport.
-     * @param type the properties of the sendport.
      * @param ibis the Ibis instance that created the sendport.
      */
-    public SendPortIdentifier(String name, StaticProperties type,
-            IbisIdentifier ibis) {
+    public SendPortIdentifier(String name, IbisIdentifier ibis) {
         this.name = name;
-        this.type = type;
         this.ibis = ibis;
     }
 
@@ -77,7 +71,6 @@ public class SendPortIdentifier implements ibis.ipl.SendPortIdentifier,
      */
     public SendPortIdentifier(DataInput dis) throws IOException {
         name = dis.readUTF();
-        type = new StaticProperties(dis);
         ibis = new IbisIdentifier(dis);
     }
 
@@ -91,7 +84,6 @@ public class SendPortIdentifier implements ibis.ipl.SendPortIdentifier,
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             DataOutputStream dos = new DataOutputStream(bos);
             dos.writeUTF(name);
-            type.writeTo(dos);
             ibis.writeTo(dos);
             dos.close();
             codedForm = bos.toByteArray();
@@ -114,8 +106,7 @@ public class SendPortIdentifier implements ibis.ipl.SendPortIdentifier,
         if (other == this) {
             return true;
         }
-        return name.equals(other.name) && ibis.equals(other.ibis)
-                && type.equals(other.type);
+        return name.equals(other.name) && ibis.equals(other.ibis);
     }
 
     public boolean equals(Object other) {
@@ -134,10 +125,6 @@ public class SendPortIdentifier implements ibis.ipl.SendPortIdentifier,
 
     public final String name() {
         return name;
-    }
-
-    public final StaticProperties type() {
-        return new StaticProperties(type);
     }
 
     public ibis.ipl.IbisIdentifier ibis() {

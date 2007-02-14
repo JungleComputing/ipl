@@ -1,4 +1,4 @@
-/* $Id: PortType.java 4871 2006-12-06 16:54:07Z ceriel $ */
+/* $Id$ */
 
 package ibis.impl;
 
