@@ -2,12 +2,16 @@
 
 package ibis.io;
 
-import ibis.util.TypedProperties;
+import ibis.ipl.IbisAttributes;
+import ibis.ipl.TypedProperties;
 
 /**
  * Collects all system properties used by the ibis.io package.
  */
 class IOProps {
+    static final TypedProperties attribs
+            = IbisAttributes.getDefaultAttributes();
+
     static final String PROPERTY_PREFIX = "ibis.io.";
 
     static final String s_stats_nonrewritten = PROPERTY_PREFIX
@@ -34,7 +38,6 @@ class IOProps {
 
     static final String s_array_buffer = PROPERTY_PREFIX + "array.buffer";
 
-
     static final String s_dbg = PROPERTY_PREFIX + "debug";
 
     static final String s_asserts = PROPERTY_PREFIX + "assert";
@@ -57,6 +60,6 @@ class IOProps {
             s_hash_timings, s_hash_resize, s_buffer_size, s_array_buffer };
 
     static {
-        TypedProperties.checkProperties(PROPERTY_PREFIX, sysprops, null);
+        attribs.checkProperties(PROPERTY_PREFIX, sysprops, null, true);
     }
 }

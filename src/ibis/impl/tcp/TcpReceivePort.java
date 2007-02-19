@@ -13,7 +13,6 @@ import ibis.io.BufferedArrayInputStream;
 import ibis.io.Conversion;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.ReceiveTimedOutException;
-import ibis.ipl.StaticProperties;
 import ibis.ipl.Upcall;
 import ibis.util.GetLogger;
 import ibis.util.ThreadPool;
@@ -137,8 +136,8 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
 
         no_connectionhandler_thread = upcall == null && connUpcall == null
                 && !type.manyToOne
-                && !type.props.isProp("communication", "Poll")
-                && !type.props.isProp("communication", "ReceiveTimeout");
+                && !type.capabilities().hasCapability(RECV_POLL)
+                && !type.capabilities().hasCapability(RECV_TIMEOUT);
     }
 
     protected void messageArrived(ReadMessage msg) {

@@ -1,4 +1,4 @@
-/* $Id:$ */
+/* $Id$ */
 
 package ibis.ipl;
 
@@ -15,19 +15,7 @@ public final class TypedProperties extends Properties {
 
     private static final long serialVersionUID = 1L;
 
-    /**
-     * Constructs a typed properties object from a map.
-     * @param initialValues the map to initialize with.
-     */
-    public TypedProperties(Map<String,String> initialValues) {        
-        if (initialValues != null) {        
-            putAll(initialValues);
-        }
-    }
-
-    /**
-     * Constructs an empty typed properties object.
-     */
+    /** Constructs an empty typed properties object. */
     public TypedProperties() {
         super();
     }
@@ -405,8 +393,8 @@ public final class TypedProperties extends Properties {
      * @param prefix
      *            the prefix that should be checked
      * @param validKeys
-     *            the set of valid keys within the given prefix
-     * @param validPrefixes
+     *            the set of valid keys (all with the prefix).
+     * @param validSubPrefixes
      *            if a propery starts with one of these prefixes, it is declared
      *            valid
      * @param printWarning
@@ -421,6 +409,7 @@ public final class TypedProperties extends Properties {
             prefix = "";
         }
 
+        // Not good! This does not include default. TODO
         Iterator iterator = entrySet().iterator();
 
         while (iterator.hasNext()) {
@@ -432,7 +421,7 @@ public final class TypedProperties extends Properties {
                 String suffix = key.substring(prefix.length());
 
                 if (!startsWith(suffix, validPrefixes)
-                    && !contains(validKeys, suffix)) {
+                    && !contains(validKeys, key)) {
                     if (printWarning) {
                         System.err.println("Warning, unknown property: " + key
                             + " with value: " + value);
@@ -518,7 +507,7 @@ public final class TypedProperties extends Properties {
         }
     }
 
-    public String toVerboseString() {
+    public String toString() {
         String result = "";
 
         for (Enumeration e = propertyNames(); e.hasMoreElements();) {

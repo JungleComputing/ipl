@@ -4,7 +4,7 @@ package ibis.util.messagecombining;
 
 import ibis.io.Replacer;
 import ibis.ipl.SendPort;
-import ibis.ipl.StaticProperties;
+import ibis.ipl.TypedProperties;
 import ibis.ipl.WriteMessage;
 
 import java.io.IOException;
@@ -28,11 +28,12 @@ public class MessageCombiner {
      * @param sp Sendport that will produce the messages
      * 
      */
-    public MessageCombiner(StaticProperties prop, SendPort sp) throws IOException {
+    public MessageCombiner(TypedProperties prop, SendPort sp)
+            throws IOException {
 
         this.sp = sp;
                 
-        String ser = prop.find("Serialization");
+        String ser = prop.getProperty("ibis.serialization");
 
         if (ser == null) ser = "sun";
 

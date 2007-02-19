@@ -3,7 +3,6 @@
 package ibis.impl;
 
 import ibis.ipl.IbisConfigurationException;
-import ibis.ipl.StaticProperties;
 
 import java.io.IOException;
 import java.util.Properties;
@@ -24,22 +23,6 @@ public abstract class Registry implements ibis.ipl.Registry {
     protected abstract void leave() throws IOException;
 
     /**
-     * Used internally to initialize the registry.
-     * @param ibis the Ibis instance.
-     * @param needsUpcalls set when the registry must provide for connection
-     * upcalls.
-     * @param data the implementation dependent data in the IbisIdentifier.
-     * @return the IbisIdentifier as initialized by the registry.
-     * @exception IOException may be thrown when communication with the
-     * registry fails.
-     * @exception IbisConfigurationException may be thrown when the Ibis
-     * instance is not configured for connection upcalls, but
-     * <code>needsUpcalls</code> is set.
-     */
-    protected abstract IbisIdentifier init(Ibis ibis, boolean needsUpcalls,
-            byte[] data) throws IOException, IbisConfigurationException;
-
-    /**
      * Obtains a sequence number from the registry.
      * Each sequencer has a name, which must be provided to this call.
      * @param name the name of this sequencer.
@@ -52,31 +35,30 @@ public abstract class Registry implements ibis.ipl.Registry {
      * Creates a registry for the specified Ibis instance.
      * @param ibis the Ibis instance.
      * @param registryName the class name of the registry implementation.
-     * @exception IllegalArgumentException may be thrown if the registry
-     * could not be created for some reason.
+     * @param needsUpcalls set when the registry must provide for connection
+     * upcalls.
+     * @param data the implementation dependent data in the IbisIdentifier.
+     * @exception Throwable can be any exception resulting from looking up
+     * the registry constructor or the invocation attempt.
      */
-    public static Registry loadRegistry(Ibis ibis, String registryName)
-            throws IllegalArgumentException {
+    public static Registry loadRegistry(Ibis ibis, String registryName,
+            boolean needsUpcalls, byte[] data) throws Throwable {
         Registry res = null;
         Class c;
 
-        try {
-            c = Class.forName(registryName);
-        } catch (ClassNotFoundException t) {
-            throw new IllegalArgumentException(
-                    "Could not initialize Ibis registry " + t);
-        }
+        c = Class.forName(registryName);
 
         try {
-            res = (Registry) c.newInstance();
-        } catch (InstantiationException e) {
-            throw new IllegalArgumentException(
-                    "Could not initialize Ibis registry " + e);
-        } catch (IllegalAccessException e2) {
-            throw new IllegalArgumentException(
-                    "Could not initialize Ibis registry " + e2);
+            return (Registry) c.getConstructor(new Class[] {
+                    Ibis.class, boolean.class, byte[].class}).newInstance(
+                        new Object[] {ibis, needsUpcalls, data});
+        } catch (java.lang.reflect.InvocationTargetException e) {
+            throw e.getCause();
         }
-
-        return res;
     }
+
+    /**
+     * Returns the Ibis identifier.
+     */
+    public abstract IbisIdentifier getIbisIdentifier();
 }

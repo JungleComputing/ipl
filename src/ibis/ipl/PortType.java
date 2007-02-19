@@ -6,12 +6,12 @@ import java.io.IOException;
 
 /**
  * A <code>PortType</code> represents a class of send and receive
- * ports with specific properties and with a specific role in the program.
+ * ports with specific capabilities and with a specific role in the program.
  * Each class also
  * serves as the factory to create instances of these ports.
  * Ports can only connect to other ports of the same type.
  * A <code>PortType</code> is created using the
- * {@link Ibis#createPortType(StaticProperties)} method. 
+ * {@link Ibis#createPortType(Capabilities)} method. 
  * <p>
  * Support for connection downcalls can be explicitly turned on and off, because
  * it might incur some overhead. Moreover, if downcalls are used,
@@ -21,14 +21,14 @@ import java.io.IOException;
  * </p>
  */
 
-public interface PortType {
+public interface PortType extends IbisCapabilities {
 
     /**
-     * Returns the properties given to this PortType upon creation. 
+     * Returns the capabilities given to this PortType upon creation. 
      *
-     * @return the static properties of this port type.
+     * @return the capabilities of this port type.
      */
-    public StaticProperties properties();
+    public Capabilities capabilities();
 
     /**
      * Creates a anonymous {@link SendPort} of this <code>PortType</code>.

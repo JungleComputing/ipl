@@ -5,9 +5,10 @@ package ibis.impl;
 import ibis.io.Replacer;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.PortMismatchException;
-import ibis.ipl.StaticProperties;
+import ibis.ipl.Capabilities;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.SendPortConnectUpcall;
+import ibis.ipl.TypedProperties;
 import ibis.ipl.Upcall;
 import ibis.util.GetLogger;
 
@@ -31,8 +32,8 @@ public abstract class PortType implements ibis.ipl.PortType {
     /** Counter for allocating names for anonymous receiveports. */
     private static int receive_counter = 0;
 
-    /** The properties for this port type. */
-    public final StaticProperties props;
+    /** The capabilities for this port type. */
+    private final Capabilities capabilities;
 
     /** The serialization used for this port type. */
     protected final String serialization;
@@ -46,33 +47,37 @@ public abstract class PortType implements ibis.ipl.PortType {
     /** Set when messages are numbered. */
     public final boolean numbered;
 
-    /** Set when the port type supports OneToOne communication. */
-    public final boolean oneToOne;
-
     /** Set when the port type supports OneToMany communication. */
     public final boolean oneToMany;
 
     /** Set when the port type supports ManyToOne communication. */
     public final boolean manyToOne;
 
+    /** Attributes for this port type. */
+    protected final TypedProperties attributes;
+
     /**
      * Constructs a <code>PortType</code> with the specified parameters.
      * @param ibis the ibis instance.
-     * @param p the properties for the <code>PortType</code>.
+     * @param p the capabilities for the <code>PortType</code>.
+     * @param tp the attributes for the <code>PortType</code>.
      * @exception IbisConfigurationException is thrown when there is some
-     * inconsistency in the specified properties.
+     * inconsistency in the specified capabilities.
      */
-    protected PortType(Ibis ibis, StaticProperties p) {
+    protected PortType(Ibis ibis, Capabilities p, TypedProperties tp) {
         this.ibis = ibis;
-    	this.props = p;
+    	this.capabilities = p;
+        this.attributes = tp;
 
-        numbered = p.isProp("communication", "Numbered");
-
-        String ser = p.find("Serialization");
-        if (ser == null) {
+        numbered = p.hasCapability(COMM_NUMBERED);
+        if (p.hasCapability(SER_DATA)) {
+            serialization = "data";
+        } else if (p.hasCapability(SER_OBJECT)) {
+            serialization = "object";
+        } else if (p.hasCapability(SER_STRICTOBJECT)) {
             serialization = "sun";
         } else {
-            serialization = ser;
+            serialization = "byte";
         }
 
         if (serialization.equals("byte") && numbered) {
@@ -81,14 +86,12 @@ public abstract class PortType implements ibis.ipl.PortType {
                     + "serialization streams");
         }
 
-        logger.debug("Created PortType with properties " + p);
+        logger.debug("Created PortType with capabilities " + p);
 
-        String replacerName = props.find("serialization.replacer");
+        this.oneToMany = capabilities.hasCapability(CONN_ONETOMANY);
+        this.manyToOne = capabilities.hasCapability(CONN_MANYTOONE);
 
-        this.oneToMany = props.isProp("communication", "OneToMany");
-        this.manyToOne = props.isProp("communication", "ManyToOne");
-        this.oneToOne = props.isProp("communication", "OneToOne")
-                || oneToMany || manyToOne;
+        String replacerName = attributes.getProperty("serialization.replacer");
 
         if (replacerName != null) {
             try {
@@ -97,9 +100,9 @@ public abstract class PortType implements ibis.ipl.PortType {
                 throw new IbisConfigurationException(
                         "Could not locate replacer class " + replacerName);
             }
-            if (! props.isProp("serialization", "sun") &&
-                ! props.isProp("serialization", "object") &&
-                ! props.isProp("serialization", "ibis")) {
+            if (replacerName != null
+                && ! capabilities.hasCapability(SER_OBJECT)
+                && ! capabilities.hasCapability(SER_STRICTOBJECT)) {
                 throw new IbisConfigurationException(
                        "Object replacer specified but no object serialization");
             }
@@ -108,9 +111,8 @@ public abstract class PortType implements ibis.ipl.PortType {
         }
     }
 
-    public StaticProperties properties() {
-        // TODO: return a copy?
-        return props;
+    public Capabilities capabilities() {
+        return capabilities;
     }
 
     public ibis.ipl.SendPort createSendPort() throws IOException {
@@ -156,13 +158,13 @@ public abstract class PortType implements ibis.ipl.PortType {
             SendPortConnectUpcall cU, boolean connectionDowncalls)
             throws IOException {
         if (cU != null) {
-            if (! props.isProp("communication", "ConnectionUpcalls")) {
+            if (! capabilities.hasCapability(CONN_UPCALLS)) {
                 throw new IbisConfigurationException(
                         "no connection upcalls requested for this port type");
             }
         }
         if (connectionDowncalls) {
-            if (!props.isProp("communication", "ConnectionDowncalls")) {
+            if (!capabilities.hasCapability(CONN_DOWNCALLS)) {
                 throw new IbisConfigurationException(
                         "no connection downcalls requested for this port type");
             }
@@ -251,29 +253,29 @@ public abstract class PortType implements ibis.ipl.PortType {
     private ibis.ipl.ReceivePort createReceivePort(String name, Upcall u,
             ReceivePortConnectUpcall cU, boolean connectionDowncalls)
             throws IOException {
-        StaticProperties p = properties();
+        Capabilities p = capabilities;
         if (cU != null) {
-            if (!p.isProp("communication", "ConnectionUpcalls")) {
+            if (!p.hasCapability(CONN_UPCALLS)) {
                 throw new IbisConfigurationException(
                         "no connection upcalls requested for this port type");
             }
         }
         if (connectionDowncalls) {
-            if (!p.isProp("communication", "ConnectionDowncalls")) {
+            if (!p.hasCapability(CONN_DOWNCALLS)) {
                 throw new IbisConfigurationException(
                         "no connection downcalls requested for this port type");
             }
         }
         if (u != null) {
-            if (!p.isProp("communication", "AutoUpcalls")
-                    && !p.isProp("communication", "PollUpcalls")) {
+            if (!p.hasCapability(RECV_AUTOUPCALLS)
+                    && !p.hasCapability(RECV_POLLUPCALLS)) {
                 throw new IbisConfigurationException(
                         "no message upcalls requested for this port type");
             }
         } else {
-            if (!p.isProp("communication", "ExplicitReceipt")) {
+            if (!p.hasCapability(RECV_EXPLICIT)) {
                 throw new IbisConfigurationException(
-                        "no explicit receipt requested for this port type");
+                        "no explicit receive requested for this port type");
             }
         }
         if (name == null) {
@@ -292,11 +294,11 @@ public abstract class PortType implements ibis.ipl.PortType {
         if (!(other instanceof PortType)) {
             return false;
         }
-            return props.equals(((PortType) other).props);
+            return capabilities.equals(((PortType) other).capabilities);
         }
 
     public int hashCode() {
-        return props.hashCode();
+        return capabilities.hashCode();
     }
 
     // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

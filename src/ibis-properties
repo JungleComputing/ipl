@@ -1,124 +1,87 @@
 #
-# This file describes the properties that can be associated with
+# This file describes the capabilities that can be associated with
 # an Ibis implementation. The format of this file is described
 # in the java.util.Properties.load() API.
 #
 # Properties must be formulated in such a way that a suitable Ibis
-# implementation can be selected by specifying the required properties,
-# which must then be a subset of the properties of this Ibis
-# implementation.
+# implementation can be selected by specifying the required capabilities,
+# and specifying which capabilities might come in handy.
 #
 # Note that an Ibis application may later on only create port types
-# with properties that are a subset of the properties supplied by
-# the Ibis implementation.
+# with capabilities that are a subset of the capabilities supplied by
+# the Ibis implementation, and not ask for capabilities that were not
+# required or specified to come in handy.
 #
-# All properties fall in one of the following property categories:
+# Most, if not all, capabilities are of a boolean type. Their presence
+# implies that the capability is requested. In capability names,
+# case is ignored.
 #
-
-PropertyCategories:	communication worldmodel serialization
-
+# The list presented here is not complete, and cannot be. Future Ibis
+# implementations may specify capabilities that are not present here, and
+# applications may request them. If an application requests capabilities that
+# cannot be found in any Ibis implementation, no Ibis instance can be created
+# and the application is notified.
 #
-# The possible "communication" properties are:
-#   OneToOne
-#	one-to-one communication is supported (if an Ibis does not support
-#	this, you may wonder what it DOES support ...)
-#   OneToMany
+conn.onetomany:
 #	one-to-many communication is supported (in Ibis terms: a sendport
 #	may connect to multiple receiveports).
-#   ManyToOne
+conn.manytoone:
 #	many-to-one communication is supported (in Ibis terms: multiple
 #	sendports may connect to a single receiveport).
-#   Poll
-#       receiveport.poll() is supported.
-#   ReceiveTimeout
+conn.downcalls:
+#	connection downcalls are supported.
+conn.upcalls:
+#	connection upcalls are supported.
+conn.timeout:
+#	connection attempts with a timeout are supported.
+recv.explicitreceipt:
+#       explicit receive is supported.
+recv.timeout:
 #       blocking receives with a timeout are supported.
-#   FifoOrdered
+recv.poll:
+#	poll is supported.
+recv.autoupcalls:
+#	message upcalls are supported and polling for them is not required.
+recv.pollupcalls:
+#	message upcalls are supported but polling for them is required. When an
+#	Ibis implementation claims that it has this, it may also do
+#	recv.autoupcalls, but polling does no harm. When an application asks
+#	for this (and not recv.autoupcalls), it must poll.
+#       Note: for this to work, poll must be supported and requested!
+comm.fifo:
 #   	messages from a sendport are delivered to its receiveports in the
 #   	order in which they were sent.
-#   Numbered
+comm.numbered:
 #	messages from sendports of a port type with this property are
 #	given global sequence numbers so that the application can order
 #	them. The numbering is per port type.
-#   Reliable
+comm.reliable:
 #	reliable communication is supported.
-#   AutoMessageUpcalls
-#	message upcalls are supported and polling for them is not required.
-#   AutoUpcalls
-#	synonym for AutoMessageUpcalls (historical name)
-#   PollMessageUpcalls
-#	message upcalls are supported but polling for them is required. When an
-#	Ibis implementation claims that it has this, it may also do
-#	AutoMessageUpcalls but polling does no harm. When an application asks
-#	for this (and not AutoMessageUpcalls), it must poll.
-#   PollUpcalls
-#	synonym for PollMessageUpcalls (hystorical name)
-#   ExplicitReceipt
-#	explicit receive is supported.
-#   ConnectionDowncalls
-#	connection downcalls are supported.
-#   ConnectionUpcalls
-#	connection upcalls are supported.
-#
 
-communication:	OneToOne, OneToMany, ManyToOne, \
-		Poll, ReceiveTimeout, \
-		FifoOrdered, Numbered, \
-		Reliable, \
-		AutoUpcalls, PollUpcalls, ExplicitReceipt, \
-		AutoMessageUpcalls, PollMessageUpcalls, \
-		ConnectionDowncalls, ConnectionUpcalls
 
-#
-# There are some implied properties, for instance OneToMany implies OneToOne.
-#
-
-OneToMany:	OneToOne
-ManyToOne:	OneToOne
-AutoMessageUpcalls:	AutoUpcalls
-PollMessageUpcalls:	PollUpcalls
-AutoUpcalls:	AutoMessageUpcalls
-PollUpcalls:	PollMessageUpcalls
-
-#
-# The possible "worldmodel" properties are:
-#    Open
+# Model capabilities are:
+worldmodel.open:
 #	this means that Ibises can join the run at any time.
-#    Closed
+worldmodel.closed:
 #	this means that the Ibises that can join the run are determined
 #	at the start of the run.
 # Note that Ibis implementations may support both.
 
-worldmodel:	Open, Closed
 
-#
-# The possible "serialization" properties are:
-#    Byte
+# Serialization capabilities are:
+serialization.byte:
 #	readByte/writeByte and readArray/writeArray(byte[]) are supported.
-#    Data
+serialization.data:
 #	read/write and readArray/writeArray of primitive types are supported.
-#    Object
-#	Some sort of object serialization is supported. An Ibis implementation
-#	will, of course, specify what kind of object serialization it supports.
-#	The "Object" property allows a user to just ask for object
-#	serialization, and not care if it is Ibis or Sun serialization.
-#    Ibis
-#	Ibis serialization is supported.
-#    Sun
-#	Sun serialization (through java.io.ObjectOutputStream/InputStream) is
-#	supported.
-#
-# Note: Ibis serialization does not support versioning, and does not support
-# non-symmetrical writeObject/readObject methods (where readObject does not
-# read everything that writeObject writes).
-#
+#	readString and writeString are also supported.
+serialization.object:
+#	Some sort of object serialization is supported. This is sufficient if
+#       all writeObject/readObject methods are symmetrical, t.i. readObject
+#       reads everything that writeObject writes, and no versioning support
+#       is needed (object versions are the same on both ends).
+serialization.strictobject:
+#	Specify this if you depend on the Sun version of object serialization.
 
-serialization:	Byte, Data, Object, Ibis, Sun
-
-#
-# Implied properties:
-#
-
-Data:		Byte
-Object:		Data
-Ibis:		Object
-Sun:		Object
+# Finally, specific ibis implementations can be given nicknames. An example:
+nickname:tcp
+# This property can be requested when creating an Ibis.

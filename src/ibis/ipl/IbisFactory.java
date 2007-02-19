@@ -242,60 +242,52 @@ class ClassLister {
  * "Ibis-Implementation" entry. This entry should contain a
  * comma- or space-separated list of class names, where each class named
  * provides an Ibis implementation. In addition, a jar-entry named
- * "properties" should be present in the package of this Ibis implementation,
- * and describe the specific properties of this Ibis implementation.
+ * "capabilities" should be present in the package of this Ibis implementation,
+ * and describe the specific capabilities of this Ibis implementation.
  */
 
-public final class IbisFactory {
+public final class IbisFactory implements IbisCapabilities {
 
-    private static final String ldpath = "ibis.library.path";
+    private static final String[] excludes = { "util.", "connect.", "pool.",
+            "library.",
+            "io.", "impl.", "registry.", "name", "verbose", "serialization" };
 
-    private static final String implpath = "ibis.impl.path";
+    private Class[] implList;
 
-    private static final String[] sysprops = { ldpath, implpath };
-
-    private static final String[] excludes = { "ibis.util.", "ibis.connect.",
-            "ibis.pool.", "ibis.io.", "ibis.net.", "ibis.mp.", "ibis.nio.",
-            "ibis.impl.", "ibis.registry.", "ibis.name", "ibis.verbose",
-            "ibis.communication", "ibis.serialization", "ibis.worldmodel" };
-
-    private static final String implPathValue
-        = System.getProperty(implpath);
-
-    /** A list of available ibis implementations. */
-    private static Class[] implList;
-
-    /** Properties of available ibis implementations. */
-    private static StaticProperties[] implProperties;
+    private Capabilities[] capsList;
 
     /** The currently loaded Ibises. */
     private static ArrayList loadedIbises = new ArrayList();
 
-    static {
-        // Check properties
-        checkProperties("ibis.", sysprops, excludes);
+    private static IbisFactory defaultFactory = new IbisFactory(
+            IbisAttributes.getDefaultAttributes());
 
+    private TypedProperties attribs;
+
+    /**
+     * Private constructor prevents creation from outside.
+     */
+    private IbisFactory(TypedProperties attribs) {
+        this.attribs = attribs;
+        // Check capabilities
+        attribs.checkProperties(IbisAttributes.PREFIX, new String[] {},
+                excludes, true);
         // Obtain a list of Ibis implementations
+        String implPathValue = attribs.getProperty(IbisAttributes.IMPLPATH);
         ClassLister clstr = ClassLister.getClassLister(implPathValue);
         List compnts = clstr.getClassList("Ibis-Implementation", Ibis.class);
         implList = (Class[]) compnts.toArray(new Class[0]);
-        implProperties = new StaticProperties[implList.length];
-        for (int i = 0; i < implProperties.length; i++) {
+        capsList = new Capabilities[implList.length];
+        for (int i = 0; i < capsList.length; i++) {
             try {
                 addIbis(i);
             } catch(IOException e) {
-                System.err.println("Error while reading properties of "
+                System.err.println("Error while reading capabilities of "
                         + implList[i].getName() + ": " + e);
                 e.printStackTrace();
                 System.exit(1);
             }
         }
-    }
-
-    /**
-     * Private constructor prevents creation.
-     */
-    private IbisFactory() {
     }
 
     /** 
@@ -310,11 +302,10 @@ public final class IbisFactory {
      * @exception SecurityException may be thrown by loadLibrary.
      * @exception UnsatisfiedLinkError may be thrown by loadLibrary.
      */
-    public static void loadLibrary(String name) throws SecurityException,
+    public void loadLibrary(String name) throws SecurityException,
             UnsatisfiedLinkError {
-        Properties p = System.getProperties();
-        String libPath = p.getProperty(ldpath);
-        String sep = p.getProperty("file.separator");
+        String libPath = attribs.getProperty(IbisAttributes.LDPATH);
+        String sep = System.getProperty("file.separator");
 
         if (libPath != null) {
             String s = System.mapLibraryName(name);
@@ -332,47 +323,16 @@ public final class IbisFactory {
         System.loadLibrary(name);
     }
 
-    private static Ibis createIbis(Class c,
-            StaticProperties prop, StaticProperties reqprop,
-            ResizeHandler resizeHandler) throws IOException {
-
+    private Ibis createIbis(Class c, Capabilities caps,
+            ResizeHandler resizeHandler) throws Throwable {
         Ibis impl;
 
         try {
-            loadLibrary("uninitialized_object");
-        } catch (Throwable t) {
-            /* handled elsewhere */
-        }
-
-        if (reqprop == null) {
-            reqprop = staticProperties(c.getName());
-        } else if (reqprop.isProp("serialization", "object")) {
-            /*
-             * required properties had "object", but if we later
-             * ask for "sun" or "ibis", these may not be in the
-             * required properties, so put the original serialization
-             * specs back.
-             */
-            reqprop = new StaticProperties(reqprop);
-            reqprop.add("serialization",
-                    staticProperties(c.getName()).find("serialization"));
-        }
-        if (prop == null) {
-            prop = reqprop.combineWithUserProps();
-        }
-
-        try {
-            impl = (Ibis) c.getConstructor(new Class[] { ResizeHandler.class,
-                StaticProperties.class, StaticProperties.class } ).newInstance(new Object[] {
-                    resizeHandler, reqprop, prop } );
-        } catch (NoSuchMethodException e) {
-            throw new IllegalArgumentException("No valid constructor", e);
-        } catch (InstantiationException e1) {
-            throw new IllegalArgumentException("Could not initialize Ibis", e1);
-        } catch (IllegalAccessException e2) {
-            throw new IllegalArgumentException("Could not initialize Ibis", e2);
-        } catch (java.lang.reflect.InvocationTargetException e3) {
-            throw new IllegalArgumentException("Could not initialize Ibis", e3);
+            impl = (Ibis) c.getConstructor(new Class[] {ResizeHandler.class,
+                    Capabilities.class, TypedProperties.class}).newInstance(
+                        new Object[] {resizeHandler, caps, attribs});
+        } catch (java.lang.reflect.InvocationTargetException e) {
+            throw e.getCause();
         }
 
         synchronized (Ibis.class) {
@@ -397,118 +357,139 @@ public final class IbisFactory {
     }
 
     /**
-     * Creates a new Ibis instance, based on the required properties,
-     * or on the system property "ibis.name", or on the staticproperty "name".
-     * If the system property "ibis.name" is set, the corresponding
-     * Ibis implementation is chosen.
-     * Else, if the staticproperty "name" is set in the specified
-     * required properties, the corresponding Ibis implementation is chosen.
-     * Else, an Ibis implementation is chosen that matches the
-     * required properties.
+     * Creates a new Ibis instance, based on the required capabilities,
+     * and using the specified attributes.
      *
-     * @param reqprop static properties required by the application,
-     *  or <code>null</code>.
-     * @param  r a {@link ibis.ipl.ResizeHandler ResizeHandler} instance
+     * @param requiredCapabilities capabilities required by the application.
+     * @param usefulCapabilities capabilities that might come in handy, or
+     * <code>null</code>.
+     * @param attributes properties that can be set, for instance
+     * a class path for searching ibis implementations, or which registry
+     * to use. There is a default, so <code>null</code> may be specified.
+     * @param r a {@link ibis.ipl.ResizeHandler ResizeHandler} instance
      *  if upcalls for joining or leaving ibis instances are required,
      *  or <code>null</code>.
      * @return the new Ibis instance.
      *
      * @exception NoMatchingIbisException is thrown when no Ibis was
-     *  found that matches the properties required.
+     *  found that matches the capabilities required.
      * @exception NextedException is thrown when no Ibis could be
      *  instantiated.
      */
-    public static Ibis createIbis(StaticProperties reqprop, ResizeHandler r)
+    public static Ibis createIbis(Capabilities requiredCapabilities,
+            Capabilities usefulCapabilities, TypedProperties attributes,
+            ResizeHandler r) throws NoMatchingIbisException, NestedException {
+
+        IbisFactory fac;
+
+        if (attributes == null) {
+            fac = defaultFactory;
+        } else {
+            TypedProperties tp =
+                    new TypedProperties(IbisAttributes.getDefaultAttributes());
+            tp.putAll(attributes);
+            fac = new IbisFactory(tp);
+        }
+
+        return fac.createIbis(requiredCapabilities, usefulCapabilities, r);
+    }
+
+    private Ibis createIbis(Capabilities requiredCapabilities,
+            Capabilities usefulCapabilities, ResizeHandler r)
             throws NoMatchingIbisException, NestedException {
 
-        StaticProperties combinedprops;
+        if (attribs.getProperty("ibis.verbose") != null) {
+            System.out.println("Looking for an Ibis with capabilities: ");
+            System.out.println("" + requiredCapabilities);
+        }
 
-        if (reqprop == null) {
-            combinedprops = (new StaticProperties()).combineWithUserProps();
+        Capabilities total;
+        if (usefulCapabilities != null) {
+            total = requiredCapabilities.unite(usefulCapabilities);
         } else {
-            combinedprops = reqprop.combineWithUserProps();
+            total = requiredCapabilities;
         }
 
-        if (combinedprops.find("verbose") != null) {
-            System.out.println("Looking for an Ibis with properties: ");
-            System.out.println("" + combinedprops);
+        if (total.hasCapability(WORLD_OPEN) &&
+            total.hasCapability(WORLD_CLOSED)) {
+            throw new IbisConfigurationException("It is not allowed to ask for "
+                    + "open world as well as closed world");
         }
 
-        String ibisname = combinedprops.find("name");
+        String ibisname = attribs.getProperty("ibis.name");
 
-        ArrayList implementations = new ArrayList();
+        ArrayList<Class> implementations = new ArrayList<Class>();
+
+        ArrayList<Capabilities> caps = new ArrayList<Capabilities>();
 
         if (ibisname == null) {
             NestedException nested = new NestedException(
                     "Could not find a matching Ibis");
-            for (int i = 0; i < implProperties.length; i++) {
-                StaticProperties ibissp = implProperties[i];
+            for (int i = 0; i < capsList.length; i++) {
+                Capabilities ibissp = capsList[i];
                 Class cl = implList[i];
                 // System.out.println("try " + cl.getName());
-                if (combinedprops.matchProperties(ibissp)) {
+                if (requiredCapabilities.matchCapabilities(ibissp)) {
                     // System.out.println("match!");
                     implementations.add(cl);
+                    caps.add(ibissp.intersect(total));
                 }
-                StaticProperties clashes
-                        = combinedprops.unmatchedProperties(ibissp);
+                Capabilities clashes
+                        = requiredCapabilities.unmatchedCapabilities(ibissp);
                 nested.add(cl.getName(),
-                        new Exception("Unmatched properties: "
+                        new Exception("Unmatched capabilities: "
                             + clashes.toString()));
             }
             if (implementations.size() == 0) {
-                // System.err.println("Properties:");
-                // System.err.println(combinedprops.toString());
+                // System.err.println("Capabilities:");
+                // System.err.println(requiredCapabilities.toString());
                 throw new NoMatchingIbisException(nested);
             }
         } else {
-            StaticProperties ibissp = null;
+            Capabilities ibissp = null;
             Class cl = null;
             boolean found = false;
-            for (int i = 0; i < implProperties.length; i++) {
-                ibissp = implProperties[i];
+            for (int i = 0; i < capsList.length; i++) {
+                ibissp = capsList[i];
                 cl = implList[i];
 
-                String name = ibisname;
-                if (name.startsWith("net")) {
-                    name = "net";
-                }
-                String n = ibissp.getProperty("nickname");
-                if (n == null) {
-                    n = cl.getName().toLowerCase();
-                }
+                String n = ibissp.getCapability("nickname");
+                String classname = cl.getName();
 
-                if (name.equals(n) || name.equals(cl.getName().toLowerCase())) {
+                if (ibisname.equals(n) || ibisname.equals(classname)) {
                     found = true;
                     implementations.add(cl);
+                    caps.add(ibissp.intersect(total));
                     break;
                 }
             }
 
             if (! found) {
-                throw new NoMatchingIbisException("Nickname " + ibisname + " not matched");
+                throw new NoMatchingIbisException("Nickname " + ibisname
+                        + " not matched");
             }
 
-            if (!combinedprops.matchProperties(ibissp)) {
-                StaticProperties clashes
-                        = combinedprops.unmatchedProperties(ibissp);
+            if (!requiredCapabilities.matchCapabilities(ibissp)) {
+                Capabilities clashes
+                        = requiredCapabilities.unmatchedCapabilities(ibissp);
                 System.err.println("WARNING: the " + ibisname
                        + " version of Ibis does not match the required "
-                       + "properties.\nThe unsupported properties are:\n"
+                       + "capabilities.\nThe unsupported capabilities are:\n"
                        + clashes.toString()
                        + "This Ibis version was explicitly requested, "
                        + "so the run continues ...");
-            }
-            if (ibisname.startsWith("net")) {
-                ibissp.add("IbisName", ibisname);
             }
         }
 
         int n = implementations.size();
 
-        if (combinedprops.find("verbose") != null) {
+        // TODO: sort implementations: the one that has the most of
+        // usefulCapabilities first.
+
+        if (attribs.getProperty("ibis.verbose") != null) {
             System.out.print("Matching Ibis implementations:");
             for (int i = 0; i < n; i++) {
-                Class cl = (Class) implementations.get(i);
+                Class cl = implementations.get(i);
                 System.out.print(" " + cl.getName());
             }
             System.out.println();
@@ -518,12 +499,12 @@ public final class IbisFactory {
         
         for (int i = 0; i < n; i++) {
             Class cl = (Class) implementations.get(i);
-            if (combinedprops.find("verbose") != null) {
+            if (attribs.getProperty("ibis.verbose") != null) {
                 System.out.println("trying " + cl.getName());
             }
             while (true) {
                 try {
-                    return createIbis(cl, combinedprops, reqprop, r);
+                    return createIbis(cl, caps.get(i), r);
                 } catch (ConnectionRefusedException e) {
                     // retry
                 } catch (Throwable e) {
@@ -533,7 +514,7 @@ public final class IbisFactory {
                         throw nested;
                     }
 
-                    if (combinedprops.find("verbose") != null) {
+                    if (attribs.getProperty("ibis.verbose") != null) {
                         System.err.println("Warning: could not create "
                                 + cl.getName() + ", got exception:" + e);
                         e.printStackTrace();
@@ -545,75 +526,12 @@ public final class IbisFactory {
         throw nested;
     }
 
-    private static void addIbis(int index) throws IOException {
+    private void addIbis(int index) throws IOException {
         Class cl = implList[index];
         String packagename = cl.getPackage().getName();
         // Note: getResourceAsStream wants '/', not File.separatorChar!
-        String propertyFile = packagename.replace('.', '/')
-                    + "/" + "properties";
-        StaticProperties sp = StaticProperties.load(propertyFile);
-        implProperties[index] = sp;
-    }
-
-    /**
-     * Returns the static properties for a certain implementation.
-     * @param implName implementation name of an Ibis for which
-     * properties are requested.
-     * @return the static properties for a given implementation,
-     *  or <code>null</code> if not present.
-     */
-    public static synchronized StaticProperties staticProperties(
-            String implName) {
-        for (int i = 0; i < implList.length; i++) {
-            if (implList[i].getName().equals(implName)) {
-                return implProperties[i];
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Check validity of a System property.
-     * All system properties are checked; when the name starts with the
-     * specified prefix, it should be in the specified list of property names,
-     * unless it starts with one of the exclude members.
-     * If the property is not found, a warning is printed.
-     *
-     * @param prefix prefix of checked property names, for instance "satin.".
-     * @param propnames list of accepted property names.
-     * @param excludes list of property prefixes that should not be checked.
-     */
-    private static void checkProperties(String prefix, String[] propnames,
-            String[] excludes) {
-        Properties p = System.getProperties();
-        for (Enumeration e = p.propertyNames(); e.hasMoreElements();) {
-            String name = (String) e.nextElement();
-            if (name.startsWith(prefix)) {
-                boolean found = false;
-                if (excludes != null) {
-                    for (int i = 0; i < excludes.length; i++) {
-                        if (name.startsWith(excludes[i])) {
-                            found = true;
-                            break;
-                        }
-                    }
-                }
-                if (!found) {
-                    if (propnames != null) {
-                        for (int i = 0; i < propnames.length; i++) {
-                            if (name.equals(propnames[i])) {
-                                found = true;
-                                break;
-                            }
-                        }
-                    }
-                }
-                if (!found) {
-                    System.err.println("Warning: property \"" + name
-                            + "\" has prefix \"" + prefix
-                            + "\" but is not recognized");
-                }
-            }
-        }
+        String capabilityFile = packagename.replace('.', '/')
+                    + "/" + "capabilities";
+        capsList[index] = Capabilities.load(capabilityFile);
     }
 }

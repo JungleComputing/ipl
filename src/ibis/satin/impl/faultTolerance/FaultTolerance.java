@@ -7,7 +7,6 @@ import ibis.ipl.IbisIdentifier;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.ResizeHandler;
-import ibis.ipl.StaticProperties;
 import ibis.satin.impl.Config;
 import ibis.satin.impl.Satin;
 import ibis.satin.impl.loadBalancing.Victim;
@@ -82,10 +81,10 @@ public final class FaultTolerance implements Config {
         ftComm.electClusterCoordinator();    	
     }
     
-    public void init(StaticProperties requestedProperties) {
+    public void init() {
 
         if(!FT_NAIVE) {
-            globalResultTable = new GlobalResultTable(s, requestedProperties);
+            globalResultTable = new GlobalResultTable(s);
         }
         abortAndStoreList = new StampVector();
 

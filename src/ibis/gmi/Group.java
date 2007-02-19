@@ -12,7 +12,7 @@ import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.Registry;
 import ibis.ipl.SendPort;
-import ibis.ipl.StaticProperties;
+import ibis.ipl.Capabilities;
 import ibis.ipl.WriteMessage;
 
 import ibis.util.GetLogger;
@@ -31,10 +31,9 @@ import org.apache.log4j.Logger;
  * The {@link Group} class takes care of the startup, and has methods
  * to create, join, lookup, and exit a group.
  */
-public final class Group implements GroupProtocol {
+public final class Group implements GroupProtocol, ibis.ipl.IbisCapabilities {
 
-    static Logger logger
-            = GetLogger.getLogger(Group.class.getName());
+    static Logger logger = GetLogger.getLogger(Group.class.getName());
      
     /** Ibis rank number in this run. */
     static int _rank;
@@ -150,14 +149,11 @@ public final class Group implements GroupProtocol {
                 logger.debug("?: <static> - Init Group RTS");
             }
 
-            StaticProperties reqprops = new StaticProperties();
-            reqprops.add("serialization", "object");
-            reqprops.add("worldmodel", "closed");
-            reqprops.add("communication",
-                    "OneToOne, ManyToOne, OneToMany, Reliable, "
-                    + "AutoUpcalls, ExplicitReceipt");
+            Capabilities reqprops = new Capabilities(new String[] {
+                SER_OBJECT, WORLD_CLOSED, CONN_MANYTOONE, CONN_ONETOMANY,
+                COMM_RELIABLE, RECV_AUTOUPCALLS, RECV_EXPLICIT});
             try {
-                ibis = IbisFactory.createIbis(reqprops, null);
+                ibis = IbisFactory.createIbis(reqprops, null, null, null);
             } catch (NoMatchingIbisException e) {
                 logger.warn("?: <static> - " + 
                         "Could not find an Ibis that can run this "
@@ -171,37 +167,30 @@ public final class Group implements GroupProtocol {
             // Create the four port types used in GMI  
 
             // System unicast (many to one) port type 
-            StaticProperties props = new StaticProperties();
-            props.add("serialization", "object");
-            props.add("worldmodel", "closed");
-            props.add("communication", "ManyToOne, Reliable, ExplicitReceipt");
+            Capabilities props = new Capabilities(new String[] {
+                SER_OBJECT, CONN_MANYTOONE,
+                COMM_RELIABLE, RECV_AUTOUPCALLS, RECV_EXPLICIT});
            
             portTypeSystemUcast = ibis.createPortType(props);
             
             // System unicast (many to one) port type 
-            props = new StaticProperties();
-            props.add("serialization", "object");
-            props.add("worldmodel", "closed");
-            props.add("communication", "OneToMany, Reliable, ExplicitReceipt");
+            props = new Capabilities(new String[] {
+                SER_OBJECT, CONN_ONETOMANY, COMM_RELIABLE, RECV_EXPLICIT});
            
             portTypeSystemMcast = ibis.createPortType(props);
             
             // Unicast (many to one) port type            
-            props = new StaticProperties();
-            props.add("serialization", "object");
-            props.add("worldmodel", "closed");
-            props.add("communication", "ManyToOne, Reliable, AutoUpcalls");
+            props = new Capabilities(new String[] {
+                SER_OBJECT, CONN_MANYTOONE, COMM_RELIABLE, RECV_AUTOUPCALLS});
             
             portTypeManyToOne = ibis.createPortType(props);
             
             // Multicast (one to many) port type            
-            props = new StaticProperties();
-            props.add("serialization", "object");
-            props.add("worldmodel", "closed");
-            props.add("communication", "OneToMany, Reliable, AutoUpcalls");
-                       
+            props = new Capabilities(new String[] {
+                SER_OBJECT, CONN_ONETOMANY, COMM_RELIABLE, RECV_AUTOUPCALLS});
+
             MulticastGroups.init(ibis.createPortType(props));
-                       
+
             // Create the unicast receive port
             receivePort = portTypeManyToOne.createReceivePort("GMI port",
                     new GroupCallHandler());            

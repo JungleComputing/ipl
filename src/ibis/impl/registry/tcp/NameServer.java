@@ -3,13 +3,14 @@
 package ibis.impl.registry.tcp;
 
 import ibis.connect.controlHub.ControlHub;
+import ibis.ipl.IbisAttributes;
+import ibis.ipl.TypedProperties;
 import ibis.io.Conversion;
 import ibis.impl.registry.NSProps;
 import ibis.impl.IbisIdentifier;
 import ibis.impl.Location;
 import ibis.util.IPUtils;
 import ibis.util.PoolInfoServer;
-import ibis.util.TypedProperties;
 import ibis.util.ThreadPool;
 
 import java.io.BufferedInputStream;
@@ -35,26 +36,29 @@ import org.apache.log4j.Logger;
 
 public class NameServer extends Thread implements Protocol {
 
+    public static final TypedProperties
+            attribs = IbisAttributes.getDefaultAttributes();
+
     public static final int TCP_IBIS_NAME_SERVER_PORT_NR
-            = TypedProperties.intProperty(NSProps.s_port, 9826);
+            = attribs.getIntProperty(NSProps.s_port, 9826);
 
     static final int PINGER_TIMEOUT
-        = TypedProperties.intProperty(NSProps.s_pinger_timeout, 60) * 1000;
+        = attribs.getIntProperty(NSProps.s_pinger_timeout, 60) * 1000;
         // Property is in seconds, convert to milliseconds.
 
     static final int CONNECT_TIMEOUT
-        = TypedProperties.intProperty(NSProps.s_connect_timeout, 10) * 1000;
+        = attribs.getIntProperty(NSProps.s_connect_timeout, 10) * 1000;
         // Property is in seconds, convert to milliseconds.
 
     static final int JOINER_INTERVAL
-        = TypedProperties.intProperty(NSProps.s_joiner_interval, 5) * 1000;
+        = attribs.getIntProperty(NSProps.s_joiner_interval, 5) * 1000;
 
     // In seconds, as PoolChecker expects.
     static final int CHECKER_INTERVAL
-        = TypedProperties.intProperty(NSProps.s_poolchecker_interval, 0);
+        = attribs.getIntProperty(NSProps.s_poolchecker_interval, 0);
 
     static final int MAXTHREADS =
-        TypedProperties.intProperty(NSProps.s_max_threads, 8);
+        attribs.getIntProperty(NSProps.s_max_threads, 8);
 
     static final Logger logger = 
             ibis.util.GetLogger.getLogger(NameServer.class.getName());

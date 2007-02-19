@@ -2,13 +2,11 @@
 
 package ibis.io;
 
-import ibis.util.TypedProperties;
-
 /**
  * Allocator for arrays of primitives that is tailored towards the
  * IbisSerializationOutputStream.
  */
-public class DataAllocator implements IbisStreamFlags {
+public class DataAllocator extends IOProps implements IbisStreamFlags {
 
     /** Number of buffers per type that is cached at maximum. */
     private final static int DEFAULT_CACHE_MAX = 512; // 64; // 256;
@@ -16,8 +14,7 @@ public class DataAllocator implements IbisStreamFlags {
     private final static int CACHE_MAX;
 
     static {
-        CACHE_MAX = TypedProperties.intProperty(IOProps.s_cache_max,
-                DEFAULT_CACHE_MAX);
+        CACHE_MAX = attribs.getIntProperty(s_cache_max, DEFAULT_CACHE_MAX);
     }
 
     /** The number of currently cached buffers per type. */
@@ -57,7 +54,7 @@ public class DataAllocator implements IbisStreamFlags {
     private IbisHash doubleHash;
 
     private final static boolean STATISTICS
-            = TypedProperties.booleanProperty(IOProps.s_cache_stats);
+            = attribs.booleanProperty(s_cache_stats);
 
     // if (STATISTICS)
     int alloc_index;

@@ -2,8 +2,6 @@
 
 package ibis.impl;
 
-import ibis.ipl.StaticProperties;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInput;
@@ -26,7 +24,7 @@ public class ReceivePortIdentifier implements ibis.ipl.ReceivePortIdentifier,
     protected final IbisIdentifier ibis;
 
     /** A receiveport identifier coded as a byte array. Computed once. */
-    protected transient byte[] codedForm = null;
+    private final transient byte[] codedForm;
 
     /**
      * Constructor, initializing the fields with the specified parameters.
@@ -36,6 +34,7 @@ public class ReceivePortIdentifier implements ibis.ipl.ReceivePortIdentifier,
     public ReceivePortIdentifier(String name, IbisIdentifier ibis) {
         this.name = name;
         this.ibis = ibis;
+        codedForm = computeCodedForm();
     }
 
     /**
@@ -46,7 +45,6 @@ public class ReceivePortIdentifier implements ibis.ipl.ReceivePortIdentifier,
      */
     public ReceivePortIdentifier(byte[] codedForm) throws IOException {
         this(codedForm, 0, codedForm.length);
-        this.codedForm = codedForm;
     }
 
     /**
@@ -72,23 +70,29 @@ public class ReceivePortIdentifier implements ibis.ipl.ReceivePortIdentifier,
     public ReceivePortIdentifier(DataInput dis) throws IOException {
         name = dis.readUTF();
         ibis = new IbisIdentifier(dis);
+        codedForm = computeCodedForm();
     }
 
     /**
-     * Computes the coded form of this <code>ReceivePortIdentifier</code>.
+     * Returns the coded form of this <code>ReceivePortIdentifier</code>.
      * @return the coded form.
-     * @exception IOException is thrown in case of trouble.
      */
-    public byte[] toBytes() throws IOException {
-        if (codedForm == null) {
+    public byte[] toBytes() {
+        return codedForm;
+    }
+
+    private byte[] computeCodedForm() {
+        try {
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             DataOutputStream dos = new DataOutputStream(bos);
             dos.writeUTF(name);
             ibis.writeTo(dos);
             dos.flush();
-            codedForm = bos.toByteArray();
+            return bos.toByteArray();
+        } catch(Exception e) {
+            // should not happen.
+            return null;
         }
-        return codedForm;
     }
 
     /**
@@ -98,7 +102,6 @@ public class ReceivePortIdentifier implements ibis.ipl.ReceivePortIdentifier,
      * @exception IOException is thrown in case of trouble.
      */
     public void writeTo(DataOutput dos) throws IOException {
-        toBytes();
         dos.write(codedForm);
     }
 

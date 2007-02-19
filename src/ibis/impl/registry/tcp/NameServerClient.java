@@ -11,7 +11,7 @@ import ibis.io.Conversion;
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.IbisConfigurationException;
-import ibis.ipl.StaticProperties;
+import ibis.ipl.TypedProperties;
 import ibis.util.IPUtils;
 import ibis.util.RunProcess;
 
@@ -26,7 +26,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.Properties;
 
 import org.apache.log4j.Logger;
 
@@ -37,11 +36,11 @@ public class NameServerClient extends ibis.impl.Registry
 
     private ServerSocket serverSocket;
 
-    private Ibis ibisImpl;
+    private final Ibis ibisImpl;
 
-    private boolean needsUpcalls;
+    private final boolean needsUpcalls;
 
-    private IbisIdentifier id;
+    private final IbisIdentifier id;
 
     private volatile boolean stop = false;
 
@@ -63,6 +62,143 @@ public class NameServerClient extends ibis.impl.Registry
 
     private static Logger logger
             = ibis.util.GetLogger.getLogger(NameServerClient.class.getName());
+
+    public NameServerClient(Ibis ibis, boolean ndsUpcalls, byte[] data)
+            throws IOException, IbisConfigurationException {
+        this.ibisImpl = ibis;
+        this.needsUpcalls = ndsUpcalls;
+
+        myAddress = IPUtils.getAlternateLocalHostAddress();
+
+        server = ibis.attributes().getProperty(NSProps.s_host);
+        if (server == null) {
+            throw new IbisConfigurationException(
+                    "property ibis.registry.host is not specified");
+        }
+
+        if (server.equals("localhost")) {
+            server = myAddress.getHostName();
+        }
+
+        poolName = ibis.attributes().getProperty(NSProps.s_pool);
+        if (poolName == null) {
+            throw new IbisConfigurationException(
+                    "property ibis.registry.pool is not specified");
+        }
+
+        String nameServerPortString
+                = ibis.attributes().getProperty(NSProps.s_port);
+        port = NameServer.TCP_IBIS_NAME_SERVER_PORT_NR;
+        if (nameServerPortString != null) {
+            try {
+                port = Integer.parseInt(nameServerPortString);
+                logger.debug("Using nameserver port: " + port);
+            } catch (Exception e) {
+                logger.error("illegal nameserver port: "
+                        + nameServerPortString + ", using default");
+            }
+        }
+
+        serverAddress = InetAddress.getByName(server);
+        // serverAddress.getHostName();
+
+        if (myAddress.equals(serverAddress)) {
+            // Try and start a nameserver ...
+            runNameServer(port, server);
+        }
+
+        logger.debug("Found nameServerInet " + serverAddress);
+
+        serverSocket = socketFactory.createServerSocket(0, myAddress, 50, true,
+                null);
+
+        localPort = serverSocket.getLocalPort();
+
+        Socket s = nsConnect(serverAddress, port, myAddress, true, 60);
+
+        DataOutputStream out = null;
+        DataInputStream in = null;
+
+        try {
+
+            out = new DataOutputStream(
+                    new BufferedOutputStream(s.getOutputStream()));
+
+            logger.debug("NameServerClient: contacting nameserver");
+            out.writeByte(IBIS_JOIN);
+            out.writeUTF(poolName);
+            byte[] buf = Conversion.object2byte(myAddress);
+            out.writeInt(buf.length);
+            out.write(buf);
+            out.writeInt(localPort);
+            out.writeBoolean(ndsUpcalls);
+            out.writeInt(data.length);
+            out.write(data);
+            Location l = getLocation(ibis.attributes());
+            l.writeTo(out);
+            out.flush();
+
+            in = new DataInputStream(
+                    new BufferedInputStream(s.getInputStream()));
+
+            int opcode = in.readByte();
+
+            if (logger.isDebugEnabled()) {
+                logger.debug("NameServerClient: nameserver reply, opcode "
+                        + opcode);
+            }
+
+            switch (opcode) {
+            case IBIS_REFUSED:
+                throw new ConnectionRefusedException("NameServerClient: "
+                        + "registry did not accept new pool");
+            case IBIS_ACCEPTED:
+                // read the ports for the other name servers and start the
+                // receiver thread...
+                int temp = in.readInt(); /* Port for the ElectionServer */
+                electionClient = new ElectionClient(myAddress, serverAddress,
+                        temp);
+                id = new IbisIdentifier(in);
+                if (ndsUpcalls) {
+                    int poolSize = in.readInt();
+
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("NameServerClient: accepted by nameserver"
+                                    + ", poolsize " + poolSize);
+                    }
+
+                    // Read existing nodes (including this one).
+                    IbisIdentifier[] ids = new IbisIdentifier[poolSize];
+                    for (int i = 0; i < poolSize; i++) {
+                        ids[i] = new IbisIdentifier(in);
+                        logger.debug("NameServerClient: join of " + ids[i]);
+                    }
+                    addMessage(IBIS_JOIN, ids);
+                }
+
+                Thread t = new Thread(this, "NameServerClient accept thread");
+                t.setDaemon(true);
+                t.start();
+                t = new Thread("upcaller") {
+                    public void run() {
+                        upcaller();
+                    }
+                };
+                t.setDaemon(true);
+                t.start();
+                break;
+            default:
+                throw new StreamCorruptedException(
+                        "NameServerClient: got illegal opcode " + opcode);
+            }
+        } finally {
+            NameServer.closeConnection(in, out, s);
+        }
+    }
+
+    public IbisIdentifier getIbisIdentifier() {
+        return id;
+    }
 
     static Socket nsConnect(InetAddress dest, int port, InetAddress me,
             boolean verbose, int timeout) throws IOException {
@@ -97,10 +233,6 @@ public class NameServerClient extends ibis.impl.Registry
             }
         }
         return s;
-    }
-
-    public NameServerClient() {
-        /* do nothing */
     }
 
     void runNameServer(int prt, String srvr) {
@@ -238,148 +370,14 @@ public class NameServerClient extends ibis.impl.Registry
     /**
      * Initializes the <code>location</code> field.
      */
-    private static Location getLocation() {
-        String location = System.getProperty("ibis.location");
+    private static Location getLocation(TypedProperties tp) {
+        String location = tp.getProperty("ibis.location");
         if (location == null) {
             return Location.defaultLocation();
         }
         return new Location(location);
     }
 
-    public IbisIdentifier init(Ibis ibis, boolean ndsUpcalls, byte[] data)
-            throws IOException, IbisConfigurationException {
-        this.ibisImpl = ibis;
-        this.needsUpcalls = ndsUpcalls;
-
-        Properties p = System.getProperties();
-
-        myAddress = IPUtils.getAlternateLocalHostAddress();
-
-        server = p.getProperty(NSProps.s_host);
-        if (server == null) {
-            throw new IbisConfigurationException(
-                    "property ibis.registry.host is not specified");
-        }
-
-        if (server.equals("localhost")) {
-            server = myAddress.getHostName();
-        }
-
-        poolName = p.getProperty(NSProps.s_pool);
-        if (poolName == null) {
-            throw new IbisConfigurationException(
-                    "property ibis.registry.pool is not specified");
-        }
-
-        String nameServerPortString = p.getProperty(NSProps.s_port);
-        port = NameServer.TCP_IBIS_NAME_SERVER_PORT_NR;
-        if (nameServerPortString != null) {
-            try {
-                port = Integer.parseInt(nameServerPortString);
-                logger.debug("Using nameserver port: " + port);
-            } catch (Exception e) {
-                logger.error("illegal nameserver port: "
-                        + nameServerPortString + ", using default");
-            }
-        }
-
-        serverAddress = InetAddress.getByName(server);
-        // serverAddress.getHostName();
-
-        if (myAddress.equals(serverAddress)) {
-            // Try and start a nameserver ...
-            runNameServer(port, server);
-        }
-
-        logger.debug("Found nameServerInet " + serverAddress);
-
-        serverSocket = socketFactory.createServerSocket(0, myAddress, 50, true,
-                null);
-
-        localPort = serverSocket.getLocalPort();
-
-        Socket s = nsConnect(serverAddress, port, myAddress, true, 60);
-
-        DataOutputStream out = null;
-        DataInputStream in = null;
-
-        try {
-
-            out = new DataOutputStream(
-                    new BufferedOutputStream(s.getOutputStream()));
-
-            logger.debug("NameServerClient: contacting nameserver");
-            out.writeByte(IBIS_JOIN);
-            out.writeUTF(poolName);
-            byte[] buf = Conversion.object2byte(myAddress);
-            out.writeInt(buf.length);
-            out.write(buf);
-            out.writeInt(localPort);
-            out.writeBoolean(ndsUpcalls);
-            out.writeInt(data.length);
-            out.write(data);
-            Location l = getLocation();
-            l.writeTo(out);
-            out.flush();
-
-            in = new DataInputStream(
-                    new BufferedInputStream(s.getInputStream()));
-
-            int opcode = in.readByte();
-
-            if (logger.isDebugEnabled()) {
-                logger.debug("NameServerClient: nameserver reply, opcode "
-                        + opcode);
-            }
-
-            switch (opcode) {
-            case IBIS_REFUSED:
-                throw new ConnectionRefusedException("NameServerClient: "
-                        + id + " is not unique!");
-            case IBIS_ACCEPTED:
-                // read the ports for the other name servers and start the
-                // receiver thread...
-                int temp = in.readInt(); /* Port for the ElectionServer */
-                electionClient = new ElectionClient(myAddress, serverAddress,
-                        temp);
-                id = new IbisIdentifier(in);
-                if (ndsUpcalls) {
-                    int poolSize = in.readInt();
-
-                    if (logger.isDebugEnabled()) {
-                        logger.debug("NameServerClient: accepted by nameserver"
-                                    + ", poolsize " + poolSize);
-                    }
-
-                    // Read existing nodes (including this one).
-                    IbisIdentifier[] ids = new IbisIdentifier[poolSize];
-                    for (int i = 0; i < poolSize; i++) {
-                        ids[i] = new IbisIdentifier(in);
-                        logger.debug("NameServerClient: join of " + ids[i]);
-                    }
-                    addMessage(IBIS_JOIN, ids);
-                }
-
-                Thread t = new Thread(this, "NameServerClient accept thread");
-                t.setDaemon(true);
-                t.start();
-                t = new Thread("upcaller") {
-                    public void run() {
-                        upcaller();
-                    }
-                };
-                t.setDaemon(true);
-                t.start();
-                break;
-            default:
-                throw new StreamCorruptedException(
-                        "NameServerClient: got illegal opcode " + opcode);
-            }
-        } finally {
-            NameServer.closeConnection(in, out, s);
-        }
-        return id;
-    }
 
     public void maybeDead(ibis.ipl.IbisIdentifier ibisId) throws IOException {
         Socket s = null;

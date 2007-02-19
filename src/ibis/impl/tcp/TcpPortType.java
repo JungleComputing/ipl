@@ -9,15 +9,17 @@ import ibis.impl.SendPort;
 import ibis.ipl.PortMismatchException;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.SendPortConnectUpcall;
-import ibis.ipl.StaticProperties;
+import ibis.ipl.Capabilities;
+import ibis.ipl.TypedProperties;
 import ibis.ipl.Upcall;
 
 import java.io.IOException;
 
 class TcpPortType extends PortType {
 
-    TcpPortType(Ibis ibis, StaticProperties p) throws PortMismatchException {
-        super(ibis, p);
+    TcpPortType(Ibis ibis, Capabilities p, TypedProperties tp)
+            throws PortMismatchException {
+        super(ibis, p, tp);
     }
 
     protected SendPort doCreateSendPort(String nm, SendPortConnectUpcall cU,

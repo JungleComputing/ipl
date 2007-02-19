@@ -205,10 +205,6 @@ public abstract class SendPort implements ibis.ipl.SendPort {
     }
 
     private void checkConnect(ReceivePortIdentifier r) throws IOException {
-        if (! type.oneToOne) {
-            throw new IbisConfigurationException("This sendport cannot connect "
-                    + "because OneToOne is not requested");
-        }
 
         if (receivers.size() > 0 && ! type.oneToMany) {
             throw new IbisConfigurationException("Sendport already has a "

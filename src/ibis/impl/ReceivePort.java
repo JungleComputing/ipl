@@ -6,7 +6,7 @@ import ibis.io.SerializationInput;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.ReceiveTimedOutException;
-import ibis.ipl.StaticProperties;
+import ibis.ipl.Capabilities;
 import ibis.ipl.Upcall;
 import ibis.util.GetLogger;
 
@@ -21,7 +21,8 @@ import org.apache.log4j.Logger;
  * Implementation of the {@link ibis.ipl.ReceivePort} interface, to be extended
  * by specific Ibis implementations.
  */
-public abstract class ReceivePort implements ibis.ipl.ReceivePort {
+public abstract class ReceivePort implements ibis.ipl.ReceivePort,
+        ibis.ipl.IbisCapabilities {
 
     /** Debugging output. */
     private static final Logger logger
@@ -139,7 +140,7 @@ public abstract class ReceivePort implements ibis.ipl.ReceivePort {
         this.upcall = upcall;
         this.connectUpcall = connectUpcall;
         this.connectionDowncalls = connectionDowncalls;
-        this.numbered = type.props.isProp("communication", "Numbered");
+        this.numbered = type.capabilities().hasCapability(COMM_NUMBERED);
         this.serialization = type.serialization;
         ibis.register(this);
         logger.debug(ibis.ident + ": ReceivePort '" + name + "' created");
@@ -254,7 +255,7 @@ public abstract class ReceivePort implements ibis.ipl.ReceivePort {
                     "Configured Receiveport for upcalls, downcall not allowed");
         }
         if (timeout > 0 &&
-                ! type.props.isProp("communication", "ReceiveTimeout")) {
+                ! type.capabilities().hasCapability(RECV_TIMEOUT)) {
             throw new IbisConfigurationException(
                     "This port is not configured for receive() with timeout");
         }
@@ -280,16 +281,16 @@ public abstract class ReceivePort implements ibis.ipl.ReceivePort {
     }
 
     public synchronized byte connectionAllowed(SendPortIdentifier id,
-            StaticProperties sp) {
+            Capabilities sp) {
         if (isConnectedTo(id)) {
             return ALREADY_CONNECTED;
         }
-        if (! sp.equals(type.props)) {
+        if (! sp.equals(type.capabilities())) {
             return TYPE_MISMATCH;
         }
         if (connectionsEnabled) {
             if (connections.size() != 0 &&
-                    ! type.props.isProp("communication", "ManyToOne")) {
+                    ! type.capabilities().hasCapability(CONN_MANYTOONE)) {
                 return DENIED;
             }
             if (connectionDowncalls) {
@@ -325,7 +326,7 @@ public abstract class ReceivePort implements ibis.ipl.ReceivePort {
     }
 
     public ReadMessage poll() throws IOException {
-        if (! type.properties().isProp("communication", "Poll")) {
+        if (! type.capabilities().hasCapability(RECV_POLL)) {
             throw new IbisConfigurationException(
                     "Receiveport not configured for polls");
         }

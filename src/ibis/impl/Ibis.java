@@ -5,9 +5,9 @@ package ibis.impl;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.PortMismatchException;
 import ibis.ipl.ResizeHandler;
-import ibis.ipl.StaticProperties;
+import ibis.ipl.Capabilities;
 import ibis.util.GetLogger;
-import ibis.util.TypedProperties;
+import ibis.ipl.TypedProperties;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,13 +28,18 @@ public abstract class Ibis implements ibis.ipl.Ibis {
     private ResizeHandler resizeHandler;
 
     /**
-     * Properties, as given to
-     * {@link ibis.ipl.IbisFactory#createIbis(StaticProperties, ResizeHandler)}.
+     * Capabilities, as derived from the capabilities passed to
+     * {@link ibis.ipl.IbisFactory#createIbis(Capabilities, Capabilities
+     * TypedProperties, ResizeHandler)} and the capabilities of this ibis.
      */
-    protected StaticProperties requiredProps;
+    protected Capabilities capabilities;
 
-    /** User properties, combined with required properties. */
-    protected StaticProperties combinedProps;
+    /**
+     * Attributes, as given to
+     * {@link ibis.ipl.IbisFactory#createIbis(Capabilities, Capabilities,
+     * TypedProperties, ResizeHandler)}.
+     */
+    protected TypedProperties attributes;
 
     /** The Ibis registry. */
     private final Registry registry;
@@ -60,31 +65,41 @@ public abstract class Ibis implements ibis.ipl.Ibis {
     /** The sendports running on this Ibis instance. */
     private HashMap<String, SendPort> sendPorts;
 
+    private final boolean closedWorld;
+
+    private final int numInstances;
+
     /**
      * Constructs an <code>Ibis</code> instance with the specified parameters.
-     * @param resizeHandler the resizeHandler specified by the caller of
-     * {@link ibis.ipl.IbisFactory#createIbis(StaticProperties, ResizeHandler)}.
-     * @param requiredProps properties as specified by caller of
-     * {@link ibis.ipl.IbisFactory#createIbis(StaticProperties, ResizeHandler)}.
-     * @param combinedProps properties that are the result of the combination
-     * of <code>requiredProps</code> and the user-specified properties.
+     * @param resizeHandler the resizeHandler.
+     * @param caps the capabilities.
+     * @param attributes the attributes.
      * Every Ibis implementation must have a public constructor with these
      * parameters.
      */
-    protected Ibis(ResizeHandler resizeHandler, StaticProperties requiredProps,
-            StaticProperties combinedProps) throws IOException {
+    protected Ibis(ResizeHandler resizeHandler, Capabilities caps,
+            TypedProperties attributes) throws Throwable {
         this.resizeHandler = resizeHandler;
-        this.requiredProps = requiredProps;
-        this.combinedProps = combinedProps;
-        // TODO: fix props
-        String registryName = System.getProperty("ibis.registry.impl");
-        if (registryName == null) {
-            registryName = "ibis.impl.registry.tcp.NameServerClient";
-        }
-        registry = Registry.loadRegistry(this, registryName);
+        this.capabilities = caps;
+        this.attributes = attributes;
         receivePorts = new HashMap<String, ReceivePort>();
         sendPorts = new HashMap<String, SendPort>();
-        ident = registry.init(this, resizeHandler != null, getData());
+        String registryName = attributes.getProperty("ibis.registry.impl");
+        registry = Registry.loadRegistry(this, registryName,
+                resizeHandler != null, getData());
+        ident = registry.getIbisIdentifier();
+        closedWorld = caps.hasCapability(WORLD_CLOSED);
+        if (closedWorld) {
+            try {
+                numInstances = attributes.getIntProperty(
+                        "ibis.pool.total_hosts");
+            } catch(NumberFormatException e) {
+                throw new IbisConfigurationException("Could not get number of "
+                        + "instances", e);
+            }
+        } else {
+            numInstances = -1;
+        }
     }
 
     public Registry registry() {
@@ -95,76 +110,62 @@ public abstract class Ibis implements ibis.ipl.Ibis {
         return ident;
     }
 
-    public ibis.ipl.PortType createPortType(StaticProperties p)
-            throws PortMismatchException {
+    public ibis.ipl.PortType createPortType(Capabilities p,
+            TypedProperties tp) throws PortMismatchException {
         if (p == null) {
-            p = combinedProps;
+            p = capabilities;
         } else {
-            /*
-             * The properties given as parameter have preference.
-             * It is not clear to me if the user properties should have
-             * preference here. The user could say that he wants Ibis
-             * serialization, but the parameter could say: sun serialization.
-             * On the other hand, the parameter could just say: object
-             * serialization, in which case the user specification is
-             * more specific.
-             * The {@link StaticProperties#combine} method should deal
-             * with that.
-             */
-            p = new StaticProperties(combinedProps.combine(p));
-            // Select the properties that are significant for the port type.
-            StaticProperties portProps = new StaticProperties();
-            String prop = p.find("communication");
-            if (prop != null) {
-                portProps.add("communication", prop);
-            }
-            prop = p.find("serialization");
-            if (prop != null) {
-                portProps.add("serialization", prop);
-            }
-            prop = p.find("serialization.replacer");
-            if (prop != null) {
-                portProps.addLiteral("serialization.replacer", prop);
-            }
-            checkPortProperties(portProps);
-            p = portProps;
+            checkPortCapabilities(p);
         }
-        logger.info("Creating port type" + " with properties\n" + p);
-        if (p.isProp("communication", "manytoone") &&
-                p.isProp("communication", "onetomany")) {
+        logger.info("Creating port type" + " with capabilities\n" + p);
+        if (p.hasCapability(CONN_MANYTOONE) &&
+                p.hasCapability(CONN_ONETOMANY)) {
             logger.warn("Combining ManyToOne and OneToMany in "
                     + "a port type may result in\ndeadlocks! Most systems "
                     + "don't have a working flow control when multiple\n"
                     + "senders do multicasts.");
         }
-        return newPortType(p);
+        if (tp == null) {
+            tp = attributes;
+        }
+
+        return newPortType(p, tp);
+    }
+
+    public ibis.ipl.PortType createPortType(Capabilities p)
+            throws PortMismatchException {
+        return createPortType(p, null);
+    }
+
+    public TypedProperties attributes() {
+        return new TypedProperties(attributes);
     }
 
     /**
-     * This method is used to check if the properties for a PortType
-     * match the properties of this Ibis.
-     * @param p the properties for the PortType.
+     * This method is used to check if the capabilities for a PortType
+     * match the capabilities of this Ibis.
+     * @param p the capabilities for the PortType.
      * @exception PortMismatchException is thrown when this Ibis cannot provide
-     * the properties requested for the PortType.
+     * the capabilities requested for the PortType.
      */
-    private void checkPortProperties(StaticProperties p)
+    private void checkPortCapabilities(Capabilities p)
             throws PortMismatchException {
-        if (!p.matchProperties(requiredProps)) {
-            logger.error("Ibis required properties: " + requiredProps);
-            logger.error("Port required properties: " + p);
+        if (!p.matchCapabilities(capabilities)) {
+            logger.error("Ibis capabilities: " + capabilities);
+            logger.error("Port required capabilities: " + p);
             throw new PortMismatchException(
-                    "Port properties don't match the Ibis required properties");
+                    "Port capabilities don't match the Ibis required capabilities");
         }
     }
 
     public int totalNrOfIbisesInPool() {
-        if (combinedProps.isProp("worldmodel", "closed")) {
-            return TypedProperties.intProperty("ibis.pool.total_hosts");
-        }
-        throw new IbisConfigurationException(
+        if (! closedWorld) {
+            throw new IbisConfigurationException(
                 "totalNrOfIbisesInPool called but open world run");
+        } else {
+            return numInstances;
+        }
     }
-
 
     private synchronized void waitForEnabled() {
         while (! resizeUpcallerEnabled) {
@@ -282,8 +283,8 @@ public abstract class Ibis implements ibis.ipl.Ibis {
         resizeUpcallerEnabled = false;
     }
 
-    public StaticProperties properties() {
-        return ibis.ipl.IbisFactory.staticProperties(this.getClass().getName());
+    public Capabilities capabilities() {
+        return capabilities;
     }
 
     /**
@@ -402,8 +403,8 @@ public abstract class Ibis implements ibis.ipl.Ibis {
     protected abstract byte[] getData() throws IOException;
 
     /**
-     * See {@link ibis.ipl.Ibis#createPortType(StaticProperties)}.
+     * See {@link ibis.ipl.Ibis#createPortType(Capabilities, TypedProperties)}.
      */
-    protected abstract ibis.ipl.PortType newPortType(StaticProperties p)
-            throws PortMismatchException;
+    protected abstract ibis.ipl.PortType newPortType(Capabilities p,
+            TypedProperties attrib) throws PortMismatchException;
 }

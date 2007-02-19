@@ -20,13 +20,13 @@ import java.net.InetAddress;
 public final class Location implements ibis.ipl.Location {
 
     /** Separates level names in a string representation of the location. */
-    public static final String SEPARATOR = "#";
+    public static final String SEPARATOR = "@";
 
     /** The names of the levels. */
     private String levelNames[];
 
     /** Coded form. */
-    private transient byte[] codedForm;
+    private final transient byte[] codedForm;
 
     /**
      * Constructs a location object from the specified level names.
@@ -37,6 +37,7 @@ public final class Location implements ibis.ipl.Location {
         for (int i = 0; i < levels.length; i++) {
             levelNames[i] = levels[i];
         }
+        codedForm = computeCodedForm();
     }
 
     /**
@@ -46,6 +47,7 @@ public final class Location implements ibis.ipl.Location {
      */
     public Location(String s) {
         levelNames = s.split(SEPARATOR);
+        codedForm = computeCodedForm();
     }
 
     /**
@@ -55,7 +57,6 @@ public final class Location implements ibis.ipl.Location {
      */
     public Location(byte[] codedForm) throws IOException {
         this(codedForm, 0, codedForm.length);
-        this.codedForm = codedForm;
     }
 
     /**
@@ -82,19 +83,25 @@ public final class Location implements ibis.ipl.Location {
     }
 
     /**
-     * Computes the coded form of this <code>Location</code>.
+     * Returns the coded form of this <code>Location</code>.
      * @return the coded form.
      * @exception IOException is thrown in case of trouble.
      */
-    public byte[] toBytes() throws IOException {
-        if (codedForm == null) {
+    public byte[] toBytes() {
+        return codedForm;
+    }
+
+    private byte[] computeCodedForm() {
+        try {
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             DataOutputStream dos = new DataOutputStream(bos);
             dos.writeUTF(toString());
             dos.close();
-            codedForm = bos.toByteArray();
+            return bos.toByteArray();
+        } catch(Exception e) {
+            // Should not happen. Ignore.
+            return null;
         }
-        return codedForm;
     }
 
     /**
@@ -104,7 +111,6 @@ public final class Location implements ibis.ipl.Location {
      * @exception IOException is thrown in case of trouble.
      */
     public void writeTo(DataOutput dos) throws IOException {
-        toBytes();
         dos.write(codedForm);
     }
 
@@ -176,7 +182,7 @@ public final class Location implements ibis.ipl.Location {
             return new Location(new String[] {
                 s.substring(0, index), s.substring(index+1)});
         } catch(IOException e) {
-            return null;
+            return new Location("Unknown location");
         }
     }
 

@@ -2,13 +2,11 @@
 
 package ibis.impl.registry;
 
-import ibis.util.TypedProperties;
-
 /**
  * Collects all system properties used by the ibis.impl.registry package
  * and sub-packages.
  */
-public class NSProps {
+public interface NSProps {
     static final String PROPERTY_PREFIX = "ibis.registry.";
 
     public static final String s_impl = PROPERTY_PREFIX + "impl";
@@ -31,11 +29,7 @@ public class NSProps {
 
     public static final String s_max_threads = PROPERTY_PREFIX + "maxThreads";
 
-    private static final String[] sysprops = { s_impl, s_host, s_pool, s_port,
+    public static final String[] sysprops = { s_impl, s_host, s_pool, s_port,
             s_single, s_pinger_timeout, s_connect_timeout, s_joiner_interval,
             s_poolchecker_interval, s_max_threads};
-
-    static {
-        TypedProperties.checkProperties(PROPERTY_PREFIX, sysprops, null);
-    }
 }

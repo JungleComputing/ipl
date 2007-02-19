@@ -6,7 +6,6 @@ package ibis.satin.impl.sharedObjects;
 
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.ReadMessage;
-import ibis.ipl.StaticProperties;
 import ibis.satin.SharedObject;
 import ibis.satin.impl.Config;
 import ibis.satin.impl.Satin;
@@ -45,10 +44,10 @@ public final class SharedObjects implements Config {
 
     private SOCommunication soComm;
 
-    public SharedObjects(Satin s, StaticProperties requestedProperties) {
+    public SharedObjects(Satin s) {
         this.s = s;
         soComm = new SOCommunication(s);
-        soComm.init(requestedProperties);
+        soComm.init();
     }
 
     /** Add an object to the object table */

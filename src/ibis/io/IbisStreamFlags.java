@@ -2,23 +2,21 @@
 
 package ibis.io;
 
-import ibis.util.TypedProperties;
-
 public interface IbisStreamFlags {
 
-    public static final boolean DEBUG = TypedProperties.booleanProperty(
+    public static final boolean DEBUG = IOProps.attribs.booleanProperty(
             IOProps.s_dbg, false);
 
-    public static final boolean ASSERTS = TypedProperties.booleanProperty(
+    public static final boolean ASSERTS = IOProps.attribs.booleanProperty(
             IOProps.s_asserts, false);
 
-    public static final int SMALL_ARRAY_BOUND = TypedProperties.intProperty(
+    public static final int SMALL_ARRAY_BOUND = IOProps.attribs.getIntProperty(
             IOProps.s_small_array_bound, 256); // byte
 
-    public static final int BUFFER_SIZE = TypedProperties.intProperty(
+    public static final int BUFFER_SIZE = IOProps.attribs.getIntProperty(
             IOProps.s_buffer_size, 2 * 1024);
 
-    public static final int ARRAY_BUFFER_SIZE = TypedProperties.intProperty(
+    public static final int ARRAY_BUFFER_SIZE = IOProps.attribs.getIntProperty(
             IOProps.s_array_buffer, 1024);
 
     public static final int TYPE_BIT = (1 << 31);

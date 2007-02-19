@@ -3,7 +3,6 @@
 package ibis.satin.impl;
 
 import ibis.ipl.IbisIdentifier;
-import ibis.ipl.StaticProperties;
 import ibis.satin.impl.aborts.AbortException;
 import ibis.satin.impl.aborts.Aborts;
 import ibis.satin.impl.communication.Communication;
@@ -24,7 +23,6 @@ import ibis.satin.impl.spawnSync.InvocationRecord;
 import ibis.satin.impl.spawnSync.ReturnRecord;
 import ibis.satin.impl.spawnSync.SpawnCounter;
 import ibis.satin.impl.spawnSync.Stamp;
-import ibis.util.TypedProperties;
 
 import java.util.Vector;
 
@@ -94,7 +92,7 @@ public final class Satin implements Config {
     public final Vector<IbisIdentifier> deadIbises = new Vector<IbisIdentifier>();
 
     static {
-        TypedProperties.checkProperties(PROPERTY_PREFIX, sysprops, null);
+        attribs.checkProperties(PROPERTY_PREFIX, sysprops, null, true);
     }
 
     /**
@@ -110,22 +108,20 @@ public final class Satin implements Config {
         }
         thisSatin = this;
 
-        StaticProperties requestedProperties = new StaticProperties();
-
         q = new DoubleEndedQueue(this);
 
         outstandingJobs = new IRVector(this);
         onStack = new IRStack(this);
 
         ft = new FaultTolerance(this); // this must be first, it handles resize upcalls 
-        comm = new Communication(this, requestedProperties); // creates ibis
+        comm = new Communication(this); // creates ibis
         ident = comm.ibis.identifier();
         ft.electClusterCoordinator(); // need ibis for this
         victims = new VictimTable(this); // need ibis for this
 
         lb = new LoadBalancing(this);
-        so = new SharedObjects(this, requestedProperties);
-        aborts = new Aborts(this, requestedProperties);
+        so = new SharedObjects(this);
+        aborts = new Aborts(this);
         
         // elect the master
         setMaster(comm.electMaster());
@@ -143,7 +139,7 @@ public final class Satin implements Config {
         
         // this opens the world, other ibises might join from this point
         // we need the master to be set before this call
-        ft.init(requestedProperties); 
+        ft.init(); 
     }
 
     /**

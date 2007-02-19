@@ -32,7 +32,7 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
     public final String myId;
 
     /** An Ibis identifier coded as a byte array. Computed once. */
-    private transient byte[] codedForm = null;
+    private final transient byte[] codedForm;
 
     /**
      * Constructs an <code>IbisIdentifier</code> with the specified parameters.
@@ -49,6 +49,7 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
         this.registryData = registryData;
         this.location = location;
         this.pool = pool;
+        this.codedForm = computeCodedForm();
     }
 
     /**
@@ -58,7 +59,6 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
      */
     public IbisIdentifier(byte[] codedForm) throws IOException {
         this(codedForm, 0, codedForm.length);
-        this.codedForm = codedForm;
     }
 
     /**
@@ -98,15 +98,19 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
             dis.readFully(registryData);
         }
         myId = dis.readUTF();
+        codedForm = computeCodedForm();
     }
 
     /**
-     * Computes the coded form of this <code>IbisIdentifier</code>.
+     * Returns the coded form of this <code>IbisIdentifier</code>.
      * @return the coded form.
-     * @exception IOException is thrown in case of trouble.
      */
-    public byte[] toBytes() throws IOException {
-        if (codedForm == null) {
+    public byte[] toBytes() {
+        return codedForm;
+    }
+
+    private byte[] computeCodedForm() {
+        try {
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             DataOutputStream dos = new DataOutputStream(bos);
             location.writeTo(dos);
@@ -125,9 +129,11 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
             }
             dos.writeUTF(myId);
             dos.close();
-            codedForm = bos.toByteArray();
+            return bos.toByteArray();
+        } catch(Exception e) {
+            // Should not happen.
+            return null;
         }
-        return codedForm;
     }
 
     /**
@@ -137,7 +143,6 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
      * @exception IOException is thrown in case of trouble.
      */
     public void writeTo(DataOutput dos) throws IOException {
-        toBytes();
         dos.write(codedForm);
     }
 

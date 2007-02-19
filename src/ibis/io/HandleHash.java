@@ -3,19 +3,18 @@
 package ibis.io;
 
 import ibis.util.Timer;
-import ibis.util.TypedProperties;
 
 /**
  * A hash table that aims for speed for pairs (Object, int). This one is
  * specially made for (object, handle) pairs.
  */
-public final class HandleHash {
+public final class HandleHash extends IOProps {
 
-    private static final boolean STATS = TypedProperties
-            .booleanProperty(IOProps.s_hash_stats);
+    private static final boolean STATS = attribs.booleanProperty(
+            IOProps.s_hash_stats);
 
-    private static final boolean TIMINGS = TypedProperties
-            .booleanProperty(IOProps.s_hash_timings);
+    private static final boolean TIMINGS = attribs.booleanProperty(
+            IOProps.s_hash_timings);
 
     private static final int MIN_BUCKETS = 32;
 
@@ -27,8 +26,8 @@ public final class HandleHash {
      * before the hashmap is resized. Lower value means less chaining, but
      * larger hashtable.
      */
-    private static final int RESIZE_PERCENTAGE = TypedProperties
-            .intProperty(IOProps.s_hash_resize, 100);
+    private static final int RESIZE_PERCENTAGE = attribs.getIntProperty(
+            IOProps.s_hash_resize, 100);
 
     /** Maps handle to object. */
     private Object[] dataBucket;

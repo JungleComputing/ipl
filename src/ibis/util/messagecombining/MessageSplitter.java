@@ -5,7 +5,7 @@ package ibis.util.messagecombining;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.SendPortIdentifier;
-import ibis.ipl.StaticProperties;
+import ibis.ipl.TypedProperties;
 
 import java.io.IOException;
 
@@ -36,10 +36,10 @@ public class MessageSplitter {
      * @param rp The ReceivePort that will produce the messages 
      * 
      */
-    public MessageSplitter(StaticProperties prop, ReceivePort rp) {
+    public MessageSplitter(TypedProperties prop, ReceivePort rp) {
         this.rp = rp;
                         
-        String ser = prop.find("Serialization");
+        String ser = prop.getProperty("ibis.serialization");
 
         if (ser == null) ser = "sun";
         
@@ -47,7 +47,7 @@ public class MessageSplitter {
         
         rm = new CombiningReadMessage(this, storeIn, ser);
     }
-        
+
     /**
      * Use this method to provide the message that must be split.
      * The original message will not be finished! 

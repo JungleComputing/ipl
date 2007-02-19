@@ -2,7 +2,8 @@
 
 package ibis.satin.impl;
 
-import ibis.util.TypedProperties;
+import ibis.ipl.TypedProperties;
+import ibis.ipl.IbisAttributes;
 
 import org.apache.log4j.Logger;
 
@@ -12,6 +13,9 @@ import org.apache.log4j.Logger;
  */
 
 public interface Config {
+
+    static final TypedProperties attribs
+            = IbisAttributes.getDefaultAttributes();
 
     static final String PROPERTY_PREFIX = "satin.";
 
@@ -23,7 +27,8 @@ public interface Config {
 
     static final String s_localports = PROPERTY_PREFIX + "localPorts";
 
-    static final String s_close_connections = PROPERTY_PREFIX + "closeConnections";
+    static final String s_close_connections
+            = PROPERTY_PREFIX + "closeConnections";
 
     static final String s_max_connections = PROPERTY_PREFIX + "maxConnections";
 
@@ -45,14 +50,15 @@ public interface Config {
 
     static final String s_ft_naive = PROPERTY_PREFIX + "ft.naive";
 
-    static final String s_ft_connectTimeout = PROPERTY_PREFIX
-        + "ft.connectTimeout";
+    static final String s_ft_connectTimeout
+            = PROPERTY_PREFIX + "ft.connectTimeout";
 
     static final String s_masterhost = PROPERTY_PREFIX + "masterHost";
 
     static final String s_delete_time = PROPERTY_PREFIX + "deleteTime";
 
-    static final String s_steal_wait_timeout = PROPERTY_PREFIX + "stealWaitTimeout";
+    static final String s_steal_wait_timeout
+            = PROPERTY_PREFIX + "stealWaitTimeout";
     
     static final String s_delete_cluster_time = PROPERTY_PREFIX
         + "deleteClusterTime";
@@ -67,122 +73,123 @@ public interface Config {
         s_steal_wait_timeout };
 
     /** Enable or disable asserts. */
-    static final boolean ASSERTS = TypedProperties.booleanProperty(s_asserts,
-        false);
+    static final boolean ASSERTS = attribs.booleanProperty(s_asserts, false);
 
     /** true if the node should dump its datastructures during shutdown. */
-    static final boolean DUMP = TypedProperties.booleanProperty(s_dump, false);
+    static final boolean DUMP = attribs.booleanProperty(s_dump, false);
 
     /** Enable this if Satin should print statistics at the end. */
-    static final boolean STATS = TypedProperties.booleanProperty(s_stats, true);
+    static final boolean STATS = attribs.booleanProperty(s_stats, true);
 
     /** Enable this if Satin should print statistics per machine at the end. */
-    static final boolean DETAILED_STATS = TypedProperties.booleanProperty(
+    static final boolean DETAILED_STATS = attribs.booleanProperty(
         s_detailed_stats, false);
 
-    /** Enable this if satin should run with a closed world: no nodes can join or leave. */
-    static final boolean CLOSED = TypedProperties.booleanProperty(s_closed,
-        false);
+    /**
+     * Enable this if satin should run with a closed world: no nodes can join
+     * or leave.
+     */
+    static final boolean CLOSED = attribs.booleanProperty(s_closed, false);
 
     /** Determines master hostname. */
-    static final String MASTER_HOST = TypedProperties
-        .stringProperty(s_masterhost);
+    static final String MASTER_HOST = attribs.getProperty(s_masterhost);
 
     /** Determines which load-balancing algorithm is used. */
-    static final String SUPPLIED_ALG = TypedProperties.stringProperty(s_alg);
+    static final String SUPPLIED_ALG = attribs.getProperty(s_alg);
 
     /**
-     * Fault tolerance with restarting crashed jobs, but without the global result table
+     * Fault tolerance with restarting crashed jobs, but without the global
+     * result table.
      */
-    static final boolean FT_NAIVE = TypedProperties.booleanProperty(s_ft_naive,
-        false);
+    static final boolean FT_NAIVE = attribs.booleanProperty(s_ft_naive, false);
 
     /** Enable or disable an optimization for handling delayed messages. */
-    static final boolean HANDLE_MESSAGES_IN_LATENCY = TypedProperties
-        .booleanProperty(s_in_latency, false);
+    static final boolean HANDLE_MESSAGES_IN_LATENCY = attribs.booleanProperty(
+            s_in_latency, false);
 
     /**
      * Timeout for connecting to other nodes (in joined()) who might be
      * crashed.
      */
-    public static final long CONNECT_TIMEOUT = TypedProperties.longProperty(
+    public static final long CONNECT_TIMEOUT = attribs.getLongProperty(
         s_ft_connectTimeout, 30) * 1000L;
 
-    /**
-     * Timeout for waiting on a steal reply from another node.
-     */
-    public static final long STEAL_WAIT_TIMEOUT = TypedProperties.longProperty(
+    /** Timeout for waiting on a steal reply from another node. */
+    public static final long STEAL_WAIT_TIMEOUT = attribs.getLongProperty(
         s_steal_wait_timeout, (CONNECT_TIMEOUT * 2) + 10) * 1000L;
 
-    /** Maximum time that messages may be buffered for message combining.
+    /**
+     * Maximum time that messages may be buffered for message combining.
      * If > 0, it is used for combining shared objects invocations.
-     * setting this to 0 disables message combining. */
-    static final int SO_MAX_INVOCATION_DELAY = TypedProperties.intProperty(
-        s_so_delay, 0);
+     * setting this to 0 disables message combining.
+     */
+    static final int SO_MAX_INVOCATION_DELAY = attribs.getIntProperty(
+            s_so_delay, 0);
 
     /** 
      * The maximum message size if message combining is used for SO Invocations.
      */
-    static final int SO_MAX_MESSAGE_SIZE = TypedProperties.intProperty(
-        s_so_size, 64 * 1024);
+    static final int SO_MAX_MESSAGE_SIZE = attribs.getIntProperty(s_so_size,
+            64 * 1024);
 
     /** Enable or disable label routing multicast for shared objects . */
-    static final boolean LABEL_ROUTING_MCAST = TypedProperties.booleanProperty(
-        s_so_lrmc, true);
+    static final boolean LABEL_ROUTING_MCAST = attribs.booleanProperty(
+            s_so_lrmc, true);
 
     /** Used in automatic ft tests */
-    static final int DELETE_TIME = TypedProperties
-        .intProperty(s_delete_time, 0);
+    static final int DELETE_TIME = attribs.getIntProperty(s_delete_time, 0);
 
     /** Used in automatic ft tests */
-    static final int DELETE_CLUSTER_TIME = TypedProperties.intProperty(
-        s_delete_cluster_time, 0);
+    static final int DELETE_CLUSTER_TIME = attribs.getIntProperty(
+            s_delete_cluster_time, 0);
 
     /** Used in automatic ft tests */
-    static final int KILL_TIME = TypedProperties.intProperty(s_kill_time, 0);
+    static final int KILL_TIME = attribs.getIntProperty(s_kill_time, 0);
 
-    /** Enable or disable using a seperate queue for work steal requests to 
-     * avoid thread creation. */
-    static final boolean QUEUE_STEALS = TypedProperties.booleanProperty(
-        s_queue_steals, true);
+    /**
+     * Enable or disable using a seperate queue for work steal requests to 
+     * avoid thread creation.
+     */
+    static final boolean QUEUE_STEALS = attribs.booleanProperty(s_queue_steals,
+            true);
 
     /** Close connections after use. Used for scalability. */
-    static final boolean CLOSE_CONNECTIONS = TypedProperties.booleanProperty(
-        s_close_connections, true); 
+    static final boolean CLOSE_CONNECTIONS = attribs.booleanProperty(
+            s_close_connections, true); 
 
     /** When using CLOSE_CONNECTIONS, keep open MAX_CONNECTIONS connections. */
-    static final int MAX_CONNECTIONS = TypedProperties.intProperty(
-        s_max_connections, 64); 
+    static final int MAX_CONNECTIONS = attribs.getIntProperty(s_max_connections,
+            64); 
     
     /** Logger for communication. */
-    public static final Logger commLogger = ibis.util.GetLogger
-        .getLogger("ibis.satin.comm");
+    public static final Logger commLogger = ibis.util.GetLogger.getLogger(
+            "ibis.satin.comm");
 
     /** Logger for job stealing. */
-    public static final Logger stealLogger = ibis.util.GetLogger
-        .getLogger("ibis.satin.steal");
+    public static final Logger stealLogger = ibis.util.GetLogger.getLogger(
+            "ibis.satin.steal");
 
     /** Logger for spawns. */
-    public static final Logger spawnLogger = ibis.util.GetLogger
-        .getLogger("ibis.satin.spawn");
+    public static final Logger spawnLogger = ibis.util.GetLogger.getLogger(
+            "ibis.satin.spawn");
 
     /** Logger for inlets. */
-    public static final Logger inletLogger = ibis.util.GetLogger
-        .getLogger("ibis.satin.inlet");
+    public static final Logger inletLogger = ibis.util.GetLogger.getLogger(
+            "ibis.satin.inlet");
 
     /** Logger for aborts. */
-    public static final Logger abortLogger = ibis.util.GetLogger
-        .getLogger("ibis.satin.abort");
+    public static final Logger abortLogger = ibis.util.GetLogger.getLogger(
+            "ibis.satin.abort");
 
     /** Logger for fault tolerance. */
-    public static final Logger ftLogger = ibis.util.GetLogger
-        .getLogger("ibis.satin.ft");
+    public static final Logger ftLogger = ibis.util.GetLogger.getLogger(
+            "ibis.satin.ft");
 
     /** Logger for the global result table. */
-    public static final Logger grtLogger = ibis.util.GetLogger
-        .getLogger("ibis.satin.ft.grt");
+    public static final Logger grtLogger = ibis.util.GetLogger.getLogger(
+            "ibis.satin.ft.grt");
 
     /** Logger for shared objects. */
-    public static final Logger soLogger = ibis.util.GetLogger
-        .getLogger("ibis.satin.so");
+    public static final Logger soLogger = ibis.util.GetLogger.getLogger(
+            "ibis.satin.so");
 }

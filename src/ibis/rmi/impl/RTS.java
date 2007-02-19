@@ -2,6 +2,7 @@
 
 package ibis.rmi.impl;
 
+import ibis.ipl.Capabilities;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisFactory;
 import ibis.ipl.IbisIdentifier;
@@ -11,7 +12,7 @@ import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPort;
-import ibis.ipl.StaticProperties;
+import ibis.ipl.TypedProperties;
 import ibis.ipl.Upcall;
 import ibis.ipl.WriteMessage;
 import ibis.rmi.AlreadyBoundException;
@@ -27,7 +28,6 @@ import ibis.rmi.server.SkeletonNotFoundException;
 import ibis.util.GetLogger;
 import ibis.util.IPUtils;
 import ibis.util.Timer;
-import ibis.util.TypedProperties;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -38,7 +38,7 @@ import org.apache.log4j.Logger;
 
 import colobus.Colobus;
 
-public final class RTS {
+public final class RTS implements ibis.ipl.IbisCapabilities {
 
     static final String prefix = "rmi.";
 
@@ -111,8 +111,7 @@ public final class RTS {
 
     private static String[] timerId;
 
-    final static boolean enableRMITimer
-            = TypedProperties.booleanProperty(s_timer);
+    final static boolean enableRMITimer;
 
     private static double r10(double d) {
         long ld = (long) (d * 10.0);
@@ -246,7 +245,6 @@ public final class RTS {
     private static UpcallHandler upcallHandler;
 
     static {
-        TypedProperties.checkProperties(prefix, props, null);
         try {
             skeletons = new HashMap();
             stubs = new HashMap();
@@ -266,14 +264,12 @@ public final class RTS {
                 logger.debug(hostname + ": init RMI RTS --> creating ibis");
             }
 
-            StaticProperties reqprops = new StaticProperties();
-            reqprops.add("serialization", "object");
-            reqprops.add("worldmodel", "open");
-            reqprops.add("communication",
-                    "OneToOne, ManyToOne, Reliable, AutoUpcalls, ExplicitReceipt");
+            Capabilities reqprops = new Capabilities(new String[] {
+                SER_OBJECT, WORLD_OPEN, CONN_MANYTOONE, COMM_RELIABLE,
+                RECV_AUTOUPCALLS, RECV_EXPLICIT});
 
             try {
-                ibis = IbisFactory.createIbis(reqprops, null);
+                ibis = IbisFactory.createIbis(reqprops, null, null, null);
             } catch (NoMatchingIbisException e) {
                 System.err.println("Could not find an Ibis that can run this"
                         + " RMI implementation");
@@ -286,17 +282,20 @@ public final class RTS {
 
             ibisRegistry = ibis.registry();
 
-            StaticProperties requestProps = new StaticProperties();
-            requestProps.add("serialization", "object");
-            requestProps.add("communication", "OneToOne, ManyToOne, Reliable, AutoUpcalls");
-            requestProps.addLiteral("serialization.replacer", "ibis.rmi.impl.RMIReplacer");
+            Capabilities requestProps = new Capabilities(new String[] {
+                SER_OBJECT, CONN_MANYTOONE, COMM_RELIABLE, RECV_AUTOUPCALLS});
 
-            StaticProperties replyProps = new StaticProperties();
-            replyProps.add("serialization", "object");
-            replyProps.add("communication", "OneToOne, Reliable, ExplicitReceipt");
-            replyProps.addLiteral("serialization.replacer", "ibis.rmi.impl.RMIReplacer");
-            requestPortType = ibis.createPortType(requestProps);
-            replyPortType = ibis.createPortType(replyProps);
+            Capabilities replyProps = new Capabilities(new String[] {
+                SER_OBJECT, COMM_RELIABLE, RECV_EXPLICIT});
+
+            TypedProperties tp = ibis.attributes();
+            tp.setProperty("serialization.replacer",
+                    "ibis.rmi.impl.RMIReplacer");
+
+            enableRMITimer = tp.booleanProperty(s_timer);
+
+            requestPortType = ibis.createPortType(requestProps, tp);
+            replyPortType = ibis.createPortType(replyProps, tp);
 
             skeletonReceivePort = requestPortType.createReceivePort("//"
                     + hostname + "/rmi_skeleton"
@@ -314,6 +313,7 @@ public final class RTS {
             System.err.println(hostname + ": Could not init RMI RTS " + e);
             e.printStackTrace();
             System.exit(1);
+            throw new Error(e);
         }
 
         if (enableRMITimer) {

@@ -2,8 +2,6 @@
 
 package ibis.io;
 
-import ibis.util.TypedProperties;
-
 import java.io.IOException;
 import java.io.NotActiveException;
 import java.io.NotSerializableException;
@@ -23,7 +21,7 @@ public class IbisSerializationOutputStream
 
     /** Record how many objects of any class are sent. */
     private static final boolean STATS_OBJECTS
-            = TypedProperties.booleanProperty(IOProps.s_stats_written);
+            = attribs.booleanProperty(s_stats_written);
 
     // if STATS_OBJECTS
     static java.util.Hashtable statSendObjects;

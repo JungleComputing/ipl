@@ -12,7 +12,7 @@ import ibis.util.PoolInfo;
 /**
  * Main MPJ class.
  */
-public class MPJ {
+public class MPJ implements IbisCapabilities {
     protected static boolean LOCALCOPYIBIS = true;
 
 
@@ -230,17 +230,17 @@ public class MPJ {
             }
 
             info = PoolInfo.createPoolInfo();
-            StaticProperties s = new StaticProperties();
-            s.add( "serialization", "object" );
-            s.add( "communication", "OneToOne, Reliable, ExplicitReceipt, Poll" );
-            s.add( "worldmodel", "closed" );
-            ibis = IbisFactory.createIbis(s, null);
+            Capabilities s = new Capabilities(new String[] {
+                SER_OBJECT, COMM_RELIABLE, RECV_EXPLICIT, RECV_POLL,
+                WORLD_CLOSED
+            });
+            ibis = IbisFactory.createIbis(s, null, null, null);
 
             registry = ibis.registry();
 
-            StaticProperties prop = new StaticProperties();
-            prop.add("serialization", "object");
-            prop.add("communication", "OneToOne, Reliable, ExplicitReceipt, Poll");
+            Capabilities prop = new Capabilities(new String[] {
+                SER_OBJECT, COMM_RELIABLE, RECV_EXPLICIT, RECV_POLL
+            });
 
             porttype = ibis.createPortType(prop);
 

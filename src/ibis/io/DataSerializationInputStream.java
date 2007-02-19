@@ -2,8 +2,6 @@
 
 package ibis.io;
 
-import ibis.util.TypedProperties;
-
 import java.io.IOException;
 import java.io.UTFDataFormatException;
 
@@ -16,7 +14,7 @@ public class DataSerializationInputStream extends ByteSerializationInputStream
         implements IbisStreamFlags {
     /** When true, no buffering in this layer. */
     private static final boolean NO_ARRAY_BUFFERS
-            = TypedProperties.booleanProperty(IOProps.s_no_array_buffers);
+            = attribs.booleanProperty(s_no_array_buffers);
 
     /** If <code>false</code>, makes all timer calls disappear. */
     private static final boolean TIME_DATA_SERIALIZATION = true;

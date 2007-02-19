@@ -7,15 +7,15 @@ import ibis.impl.IbisIdentifier;
 import ibis.impl.ReceivePort;
 import ibis.impl.SendPortIdentifier;
 import ibis.ipl.AlreadyConnectedException;
+import ibis.ipl.Capabilities;
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.PortMismatchException;
 import ibis.ipl.ResizeHandler;
-import ibis.ipl.StaticProperties;
+import ibis.ipl.TypedProperties;
 import ibis.util.GetLogger;
 import ibis.util.IPUtils;
 import ibis.util.ThreadPool;
-import ibis.util.TypedProperties;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -52,10 +52,10 @@ public final class TcpIbis extends ibis.impl.Ibis
     private HashMap<IbisIdentifier, InetSocketAddress> addresses
         = new HashMap<IbisIdentifier, InetSocketAddress>();
 
-    public TcpIbis(ResizeHandler r, StaticProperties p1, StaticProperties p2)
-        throws IOException {
+    public TcpIbis(ResizeHandler r, Capabilities p, TypedProperties tp)
+        throws Throwable {
 
-        super(r, p1, p2);
+        super(r, p, tp);
 
         ThreadPool.createNew(this, "TcpIbis");
     }
@@ -83,9 +83,9 @@ public final class TcpIbis extends ibis.impl.Ibis
         return bos.toByteArray();
     }
 
-    protected ibis.impl.PortType newPortType(StaticProperties p)
+    protected ibis.impl.PortType newPortType(Capabilities p, TypedProperties tp)
             throws PortMismatchException {
-        return new TcpPortType(this, p);
+        return new TcpPortType(this, p, tp);
     }
 
     public void left(IbisIdentifier[] ids) {
@@ -152,7 +152,7 @@ public final class TcpIbis extends ibis.impl.Ibis
 
                 out.writeUTF(name);
                 sp.getIdent().writeTo(out);
-                sp.getType().properties().writeTo(out);
+                sp.getType().capabilities().writeTo(out);
                 out.flush();
 
                 int result = in.read();
@@ -237,7 +237,7 @@ public final class TcpIbis extends ibis.impl.Ibis
 
         String name = in.readUTF();
         SendPortIdentifier send = new SendPortIdentifier(in);
-        StaticProperties sp = new StaticProperties(in);
+        Capabilities sp = new Capabilities(in);
 
         // First, lookup receiveport.
         TcpReceivePort rp = (TcpReceivePort) findReceivePort(name);

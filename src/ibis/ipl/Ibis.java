@@ -7,10 +7,11 @@ import java.io.IOException;
 
 /**
  * An instance of this interface can only be created by the
- * {@link ibis.ipl.IbisFactory#createIbis(StaticProperties, ResizeHandler)}
- * method, and is the starting point of all Ibis communication.
+ * {@link ibis.ipl.IbisFactory#createIbis(Capabilities, Capabilities,
+ * TypedProperties, ResizeHandler)} method, and is the starting point
+ * of all Ibis communication.
  */
-public interface Ibis {
+public interface Ibis extends IbisCapabilities {
 
     /**
      * When running closed-world, returns the total number of Ibis instances
@@ -45,19 +46,13 @@ public interface Ibis {
 
     /**
      * Creates a {@link ibis.ipl.PortType PortType}.
-     * Port properties are specified (for example ports are "OneToOne",
-     * with "Ibis serialization").
-     * If no static properties are given, the properties that were
-     * requested from the Ibis implementation are used, possibly combined
-     * with properties specified by the user (using the
-     * -Dibis.&#60category&#62="..." mechanism).
-     * If static properties <strong>are</strong> given,
-     * the default properties described above are used for categories 
-     * not specified by the given properties.
-     * <p>
-     * The properties define the <code>PortType</code>.
+     * Port capabilities are specified (for example ports are "OneToOne",
+     * with "Object serialization").
+     * If no capabilities are given, the capabilities that were
+     * requested from the Ibis implementation are used.
+     * The capabilities define the <code>PortType</code>.
      * If two Ibis instances want to communicate, they must both
-     * create a <code>PortType</code> with the same properties.
+     * create a <code>PortType</code> with the same capabilities.
      * A <code>PortType</code> can be used to create
      * {@link ibis.ipl.ReceivePort ReceivePorts} and
      * {@link ibis.ipl.SendPort SendPorts}.
@@ -66,13 +61,28 @@ public interface Ibis {
      * Any number of <code>ReceivePort</code>s and <code>SendPort</code>s
      * can be created on a JVM (even of the same <code>PortType</code>).
      * </p>
-     * @param p properties of the porttype.
+     * @param p capabilities of the porttype.
      * @return the porttype.
-     * @exception ibis.ipl.PortMismatchException if the required properties
-     * do not match the properties as specified when creating the Ibis
+     * @exception ibis.ipl.PortMismatchException if the required capabilities
+     * do not match the capabilities as specified when creating the Ibis
      * instance.
      */
-    public PortType createPortType(StaticProperties p)
+    public PortType createPortType(Capabilities p)
+            throws PortMismatchException;
+
+    /**
+     * Creates a {@link ibis.ipl.PortType PortType}.
+     * See {@link #createPortType(Capabilities)}.
+     * Also sets some attributes for this porttype.
+     *
+     * @param p capabilities of the porttype.
+     * @param tp some attributes for this port type.
+     * @return the porttype.
+     * @exception ibis.ipl.PortMismatchException if the required capabilities
+     * do not match the capabilities as specified when creating the Ibis
+     * instance.
+     */
+    public PortType createPortType(Capabilities p, TypedProperties tp)
             throws PortMismatchException;
 
     /** 
@@ -82,10 +92,10 @@ public interface Ibis {
     public Registry registry();
 
     /**
-     * Returns the properties of this Ibis implementation.
-     * @return the properties of this Ibis implementation.
+     * Returns the capabilities of this Ibis implementation.
+     * @return the capabilities of this Ibis implementation.
      */
-    public StaticProperties properties();
+    public Capabilities capabilities();
 
     /**
      * Polls the network for new messages.
@@ -115,4 +125,10 @@ public interface Ibis {
      * May print Ibis-implementation-specific statistics.
      */
     public void printStatistics();
+
+    /**
+     * Returns the attributes as provided when instantiating Ibis.
+     * @return the attributes.
+     */
+    public TypedProperties attributes();
 }
