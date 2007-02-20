@@ -8,7 +8,7 @@ package ibis.ipl;
  * application can import the names by implementing this interface, so that
  * it does not have to qualify every name.
  */
-public interface IbisCapabilities {
+public interface PredefinedCapabilities {
 
     /** Prefix for connection capabilities. */
     final static String CONN_PREFIX = "connection.";
@@ -138,4 +138,3 @@ public interface IbisCapabilities {
      */
     public final static String NICKNAME = "nickname";
 }
-

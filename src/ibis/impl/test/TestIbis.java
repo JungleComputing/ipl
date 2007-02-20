@@ -12,7 +12,7 @@ import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.Registry;
 import ibis.ipl.SendPort;
 import ibis.ipl.SendPortIdentifier;
-import ibis.ipl.Capabilities;
+import ibis.ipl.CapabilitySet;
 import ibis.ipl.WriteMessage;
 
 import java.io.IOException;
@@ -25,7 +25,7 @@ import junit.framework.TestSuite;
  * Simple Ibis test, on a single Ibis instance.
  */
 public final class TestIbis extends TestCase
-        implements ibis.ipl.IbisCapabilities {
+        implements ibis.ipl.PredefinedCapabilities {
     static final int COUNT = 100;
 
     Ibis ibis;
@@ -38,8 +38,8 @@ public final class TestIbis extends TestCase
 
     public void testIbis() {
         try {
-            Capabilities s = new Capabilities(new String[] {
-                COMM_RELIABLE, SER_OBJECT, RECV_EXPLICIT, WORLD_OPEN});
+            CapabilitySet s = new CapabilitySet(
+                COMM_RELIABLE, SER_OBJECT, RECV_EXPLICIT, WORLD_OPEN);
 
             ibis = IbisFactory.createIbis(s, null, null, null);
 

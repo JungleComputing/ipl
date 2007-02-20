@@ -216,9 +216,9 @@ public final class TypedProperties extends Properties {
 
     /**
      * Returns the long value of a size property. Valid values for the property
-     * are a long, a long followed by K, a long followed by M or a long followed
-     * by G. Size modifiers multiply the value by 1024, 1024^2 and 1024^3
-     * respectively.
+     * are a long, a long followed by K, a long followed by M or a long
+     * followed by G. Size modifiers multiply the value by 1024, 1024^2
+     * and 1024^3 respectively.
      * 
      * @return the size value of property
      * @param key
@@ -238,9 +238,10 @@ public final class TypedProperties extends Properties {
 
     /**
      * Returns the long value of a size property. Valid values for the property
-     * are a long, a long followed by K, a long followed by M or a long followed
-     * by G. Size modifiers multiply the value by 1024, 1024^2 and 1024^3
-     * respectively. Returns the default value if the property is undefined.
+     * are a long, a long followed by K, a long followed by M or a long
+     * followed by G. Size modifiers multiply the value by 1024, 1024^2
+     * and 1024^3 respectively. Returns the default value if the property is
+     * undefined.
      * 
      * @return the size value of property
      * @param key
@@ -395,8 +396,8 @@ public final class TypedProperties extends Properties {
      * @param validKeys
      *            the set of valid keys (all with the prefix).
      * @param validSubPrefixes
-     *            if a propery starts with one of these prefixes, it is declared
-     *            valid
+     *            if a propery starts with one of these prefixes, it is
+     *            declared valid
      * @param printWarning
      *            if true, a warning is printed to standard error for each
      *            unknown property
@@ -409,19 +410,15 @@ public final class TypedProperties extends Properties {
             prefix = "";
         }
 
-        // Not good! This does not include default. TODO
-        Iterator iterator = entrySet().iterator();
-
-        while (iterator.hasNext()) {
-            Map.Entry entry = (Map.Entry) iterator.next();
-            String key = (String) entry.getKey();
-            String value = (String) entry.getValue();
-
+        for (Enumeration e = propertyNames(); e.hasMoreElements();) {
+            String key = (String) e.nextElement();
+            
             if (key.startsWith(prefix)) {
                 String suffix = key.substring(prefix.length());
-
+                String value = getProperty(key);
+               
                 if (!startsWith(suffix, validPrefixes)
-                    && !contains(validKeys, key)) {
+                        && !contains(validKeys, key)) {
                     if (printWarning) {
                         System.err.println("Warning, unknown property: " + key
                             + " with value: " + value);
@@ -438,7 +435,7 @@ public final class TypedProperties extends Properties {
      * 
      * @return a Property object containing all matching properties. 
      * @param prefix the desired prefix
-     * @param removePrefix should the prefix be removed from the property name? 
+     * @param removePrefix should the prefix be removed from the property name?
      * @param removeProperties should the returned properties be removed from
      * the current properties?
      */

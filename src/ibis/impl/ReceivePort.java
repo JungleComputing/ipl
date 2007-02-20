@@ -6,7 +6,7 @@ import ibis.io.SerializationInput;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.ReceiveTimedOutException;
-import ibis.ipl.Capabilities;
+import ibis.ipl.CapabilitySet;
 import ibis.ipl.Upcall;
 import ibis.util.GetLogger;
 
@@ -22,7 +22,7 @@ import org.apache.log4j.Logger;
  * by specific Ibis implementations.
  */
 public abstract class ReceivePort implements ibis.ipl.ReceivePort,
-        ibis.ipl.IbisCapabilities {
+        ibis.ipl.PredefinedCapabilities {
 
     /** Debugging output. */
     private static final Logger logger
@@ -281,7 +281,7 @@ public abstract class ReceivePort implements ibis.ipl.ReceivePort,
     }
 
     public synchronized byte connectionAllowed(SendPortIdentifier id,
-            Capabilities sp) {
+            CapabilitySet sp) {
         if (isConnectedTo(id)) {
             return ALREADY_CONNECTED;
         }

@@ -9,7 +9,7 @@ import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPort;
-import ibis.ipl.Capabilities;
+import ibis.ipl.CapabilitySet;
 import ibis.ipl.WriteMessage;
 
 import java.io.IOException;
@@ -30,7 +30,7 @@ import java.util.HashMap;
  * A sequence number is obtained from a sequencer <code>seq</code> by
  * the {@link #getSeqno seq.getSeqno(name)} call.
  */
-public final class Sequencer implements ibis.ipl.IbisCapabilities {
+public final class Sequencer implements ibis.ipl.PredefinedCapabilities {
     /** The first sequence number that gets given out. */
     public static final int START_SEQNO = 1;
 
@@ -136,8 +136,8 @@ public final class Sequencer implements ibis.ipl.IbisCapabilities {
     private Sequencer(Ibis ibis) throws IOException {
         ident = ibis.identifier();
         idno = -1;
-        Capabilities p = new Capabilities(new String[] {
-            SER_OBJECT, CONN_MANYTOONE, COMM_RELIABLE, RECV_EXPLICIT});
+        CapabilitySet p = new CapabilitySet(
+            SER_OBJECT, CONN_MANYTOONE, COMM_RELIABLE, RECV_EXPLICIT);
         try {
             tp = ibis.createPortType(p);
         } catch (Exception e) {

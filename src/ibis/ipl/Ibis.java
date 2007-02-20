@@ -7,11 +7,11 @@ import java.io.IOException;
 
 /**
  * An instance of this interface can only be created by the
- * {@link ibis.ipl.IbisFactory#createIbis(Capabilities, Capabilities,
+ * {@link ibis.ipl.IbisFactory#createIbis(CapabilitySet, CapabilitySet,
  * TypedProperties, ResizeHandler)} method, and is the starting point
  * of all Ibis communication.
  */
-public interface Ibis extends IbisCapabilities {
+public interface Ibis {
 
     /**
      * When running closed-world, returns the total number of Ibis instances
@@ -67,12 +67,12 @@ public interface Ibis extends IbisCapabilities {
      * do not match the capabilities as specified when creating the Ibis
      * instance.
      */
-    public PortType createPortType(Capabilities p)
+    public PortType createPortType(CapabilitySet p)
             throws PortMismatchException;
 
     /**
      * Creates a {@link ibis.ipl.PortType PortType}.
-     * See {@link #createPortType(Capabilities)}.
+     * See {@link #createPortType(CapabilitySet)}.
      * Also sets some attributes for this porttype.
      *
      * @param p capabilities of the porttype.
@@ -82,7 +82,7 @@ public interface Ibis extends IbisCapabilities {
      * do not match the capabilities as specified when creating the Ibis
      * instance.
      */
-    public PortType createPortType(Capabilities p, TypedProperties tp)
+    public PortType createPortType(CapabilitySet p, TypedProperties tp)
             throws PortMismatchException;
 
     /** 
@@ -95,7 +95,7 @@ public interface Ibis extends IbisCapabilities {
      * Returns the capabilities of this Ibis implementation.
      * @return the capabilities of this Ibis implementation.
      */
-    public Capabilities capabilities();
+    public CapabilitySet capabilities();
 
     /**
      * Polls the network for new messages.

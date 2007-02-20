@@ -5,6 +5,8 @@
  */
 package ibis.ipl;
 
+import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 
@@ -71,18 +73,38 @@ public class NestedException extends Exception {
     }
 
     public void printStackTrace() {
+        printStackTrace(System.err);
+    }
+
+    public void printStackTrace(PrintStream s) {
         if (throwables.size() == 0) {
-            super.printStackTrace();
+            super.printStackTrace(s);
             return;
         }
 
-        System.err.println("--- START OF NESTED EXCEPTION STACK TRACE ---");
+        s.println("--- START OF NESTED EXCEPTION STACK TRACE ---");
         for (int i = 0; i < throwables.size(); i++) {
             if (throwerIDs.get(i) != null) {
-                System.err.println("*** stack trace of " + throwerIDs.get(i));
+                s.println("*** stack trace of " + throwerIDs.get(i));
             }
-            ((Throwable) throwables.get(i)).printStackTrace();
+            ((Throwable) throwables.get(i)).printStackTrace(s);
         }
-        System.err.println("--- END OF NESTED EXCEPTION STACK TRACE ---");
+        s.println("--- END OF NESTED EXCEPTION STACK TRACE ---");
+    }
+
+    public void printStackTrace(PrintWriter s) {
+        if (throwables.size() == 0) {
+            super.printStackTrace(s);
+            return;
+        }
+
+        s.println("--- START OF NESTED EXCEPTION STACK TRACE ---");
+        for (int i = 0; i < throwables.size(); i++) {
+            if (throwerIDs.get(i) != null) {
+                s.println("*** stack trace of " + throwerIDs.get(i));
+            }
+            ((Throwable) throwables.get(i)).printStackTrace(s);
+        }
+        s.println("--- END OF NESTED EXCEPTION STACK TRACE ---");
     }
 }

@@ -34,4 +34,11 @@ public interface Location extends java.io.Serializable, Comparable<Location> {
      * comparing from the bottom up.
      */
     public int matchingLevels(Location l);
+
+    /**
+     * Returns something that could represent a cluster name. This is a
+     * concatenation of all location level names but the last.
+     * @return the cluster.
+     */
+    public String cluster();
 }

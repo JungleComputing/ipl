@@ -12,7 +12,7 @@ import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.Registry;
 import ibis.ipl.SendPort;
-import ibis.ipl.Capabilities;
+import ibis.ipl.CapabilitySet;
 import ibis.ipl.WriteMessage;
 
 import ibis.util.GetLogger;
@@ -31,7 +31,8 @@ import org.apache.log4j.Logger;
  * The {@link Group} class takes care of the startup, and has methods
  * to create, join, lookup, and exit a group.
  */
-public final class Group implements GroupProtocol, ibis.ipl.IbisCapabilities {
+public final class Group implements GroupProtocol,
+        ibis.ipl.PredefinedCapabilities {
 
     static Logger logger = GetLogger.getLogger(Group.class.getName());
      
@@ -149,9 +150,9 @@ public final class Group implements GroupProtocol, ibis.ipl.IbisCapabilities {
                 logger.debug("?: <static> - Init Group RTS");
             }
 
-            Capabilities reqprops = new Capabilities(new String[] {
+            CapabilitySet reqprops = new CapabilitySet(
                 SER_OBJECT, WORLD_CLOSED, CONN_MANYTOONE, CONN_ONETOMANY,
-                COMM_RELIABLE, RECV_AUTOUPCALLS, RECV_EXPLICIT});
+                COMM_RELIABLE, RECV_AUTOUPCALLS, RECV_EXPLICIT);
             try {
                 ibis = IbisFactory.createIbis(reqprops, null, null, null);
             } catch (NoMatchingIbisException e) {
@@ -167,27 +168,27 @@ public final class Group implements GroupProtocol, ibis.ipl.IbisCapabilities {
             // Create the four port types used in GMI  
 
             // System unicast (many to one) port type 
-            Capabilities props = new Capabilities(new String[] {
+            CapabilitySet props = new CapabilitySet(
                 SER_OBJECT, CONN_MANYTOONE,
-                COMM_RELIABLE, RECV_AUTOUPCALLS, RECV_EXPLICIT});
+                COMM_RELIABLE, RECV_AUTOUPCALLS, RECV_EXPLICIT);
            
             portTypeSystemUcast = ibis.createPortType(props);
             
             // System unicast (many to one) port type 
-            props = new Capabilities(new String[] {
-                SER_OBJECT, CONN_ONETOMANY, COMM_RELIABLE, RECV_EXPLICIT});
+            props = new CapabilitySet(
+                SER_OBJECT, CONN_ONETOMANY, COMM_RELIABLE, RECV_EXPLICIT);
            
             portTypeSystemMcast = ibis.createPortType(props);
             
             // Unicast (many to one) port type            
-            props = new Capabilities(new String[] {
-                SER_OBJECT, CONN_MANYTOONE, COMM_RELIABLE, RECV_AUTOUPCALLS});
+            props = new CapabilitySet(
+                SER_OBJECT, CONN_MANYTOONE, COMM_RELIABLE, RECV_AUTOUPCALLS);
             
             portTypeManyToOne = ibis.createPortType(props);
             
             // Multicast (one to many) port type            
-            props = new Capabilities(new String[] {
-                SER_OBJECT, CONN_ONETOMANY, COMM_RELIABLE, RECV_AUTOUPCALLS});
+            props = new CapabilitySet(
+                SER_OBJECT, CONN_ONETOMANY, COMM_RELIABLE, RECV_AUTOUPCALLS);
 
             MulticastGroups.init(ibis.createPortType(props));
 

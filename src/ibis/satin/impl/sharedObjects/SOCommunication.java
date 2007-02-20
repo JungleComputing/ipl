@@ -7,7 +7,7 @@
  */
 package ibis.satin.impl.sharedObjects;
 
-import ibis.ipl.Capabilities;
+import ibis.ipl.CapabilitySet;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
@@ -73,7 +73,7 @@ class OmcInfo implements Config {
 }
 
 final class SOCommunication implements Config, Protocol, SendDoneUpcaller,
-        ibis.ipl.IbisCapabilities {
+        ibis.ipl.PredefinedCapabilities {
     private static final boolean ASYNC_SO_BCAST = false;
 
     private final static int WAIT_FOR_UPDATES_TIME = 60000;
@@ -154,9 +154,9 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller,
     }
 
     private PortType createSOPortType() throws IOException {
-        Capabilities satinPortProperties = new Capabilities( new String[] {
+        CapabilitySet satinPortProperties = new CapabilitySet(
                 CONN_ONETOMANY, CONN_UPCALLS, CONN_DOWNCALLS,
-                RECV_EXPLICIT, RECV_AUTOUPCALLS, SER_OBJECT});
+                RECV_EXPLICIT, RECV_AUTOUPCALLS, SER_OBJECT);
 
         return s.comm.ibis.createPortType(satinPortProperties);
     }

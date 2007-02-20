@@ -5,7 +5,7 @@ package ibis.impl;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.PortMismatchException;
 import ibis.ipl.ResizeHandler;
-import ibis.ipl.Capabilities;
+import ibis.ipl.CapabilitySet;
 import ibis.util.GetLogger;
 import ibis.ipl.TypedProperties;
 
@@ -19,7 +19,8 @@ import org.apache.log4j.Logger;
  * This implementation of the {@link ibis.ipl.Ibis} interface 
  * is a base class, to be extended by specific Ibis implementations.
  */
-public abstract class Ibis implements ibis.ipl.Ibis {
+public abstract class Ibis implements ibis.ipl.Ibis,
+       ibis.ipl.PredefinedCapabilities {
 
     /** Debugging output. */
     private static final Logger logger = GetLogger.getLogger("ibis.impl.Ibis");
@@ -28,15 +29,15 @@ public abstract class Ibis implements ibis.ipl.Ibis {
     private ResizeHandler resizeHandler;
 
     /**
-     * Capabilities, as derived from the capabilities passed to
-     * {@link ibis.ipl.IbisFactory#createIbis(Capabilities, Capabilities
+     * CapabilitySet, as derived from the capabilities passed to
+     * {@link ibis.ipl.IbisFactory#createIbis(CapabilitySet, CapabilitySet
      * TypedProperties, ResizeHandler)} and the capabilities of this ibis.
      */
-    protected Capabilities capabilities;
+    protected CapabilitySet capabilities;
 
     /**
      * Attributes, as given to
-     * {@link ibis.ipl.IbisFactory#createIbis(Capabilities, Capabilities,
+     * {@link ibis.ipl.IbisFactory#createIbis(CapabilitySet, CapabilitySet,
      * TypedProperties, ResizeHandler)}.
      */
     protected TypedProperties attributes;
@@ -77,7 +78,7 @@ public abstract class Ibis implements ibis.ipl.Ibis {
      * Every Ibis implementation must have a public constructor with these
      * parameters.
      */
-    protected Ibis(ResizeHandler resizeHandler, Capabilities caps,
+    protected Ibis(ResizeHandler resizeHandler, CapabilitySet caps,
             TypedProperties attributes) throws Throwable {
         this.resizeHandler = resizeHandler;
         this.capabilities = caps;
@@ -110,7 +111,7 @@ public abstract class Ibis implements ibis.ipl.Ibis {
         return ident;
     }
 
-    public ibis.ipl.PortType createPortType(Capabilities p,
+    public ibis.ipl.PortType createPortType(CapabilitySet p,
             TypedProperties tp) throws PortMismatchException {
         if (p == null) {
             p = capabilities;
@@ -132,7 +133,7 @@ public abstract class Ibis implements ibis.ipl.Ibis {
         return newPortType(p, tp);
     }
 
-    public ibis.ipl.PortType createPortType(Capabilities p)
+    public ibis.ipl.PortType createPortType(CapabilitySet p)
             throws PortMismatchException {
         return createPortType(p, null);
     }
@@ -148,7 +149,7 @@ public abstract class Ibis implements ibis.ipl.Ibis {
      * @exception PortMismatchException is thrown when this Ibis cannot provide
      * the capabilities requested for the PortType.
      */
-    private void checkPortCapabilities(Capabilities p)
+    private void checkPortCapabilities(CapabilitySet p)
             throws PortMismatchException {
         if (!p.matchCapabilities(capabilities)) {
             logger.error("Ibis capabilities: " + capabilities);
@@ -283,7 +284,7 @@ public abstract class Ibis implements ibis.ipl.Ibis {
         resizeUpcallerEnabled = false;
     }
 
-    public Capabilities capabilities() {
+    public CapabilitySet capabilities() {
         return capabilities;
     }
 
@@ -403,8 +404,8 @@ public abstract class Ibis implements ibis.ipl.Ibis {
     protected abstract byte[] getData() throws IOException;
 
     /**
-     * See {@link ibis.ipl.Ibis#createPortType(Capabilities, TypedProperties)}.
+     * See {@link ibis.ipl.Ibis#createPortType(CapabilitySet, TypedProperties)}.
      */
-    protected abstract ibis.ipl.PortType newPortType(Capabilities p,
+    protected abstract ibis.ipl.PortType newPortType(CapabilitySet p,
             TypedProperties attrib) throws PortMismatchException;
 }

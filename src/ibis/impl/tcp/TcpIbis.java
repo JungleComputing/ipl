@@ -7,7 +7,7 @@ import ibis.impl.IbisIdentifier;
 import ibis.impl.ReceivePort;
 import ibis.impl.SendPortIdentifier;
 import ibis.ipl.AlreadyConnectedException;
-import ibis.ipl.Capabilities;
+import ibis.ipl.CapabilitySet;
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.PortMismatchException;
@@ -52,7 +52,7 @@ public final class TcpIbis extends ibis.impl.Ibis
     private HashMap<IbisIdentifier, InetSocketAddress> addresses
         = new HashMap<IbisIdentifier, InetSocketAddress>();
 
-    public TcpIbis(ResizeHandler r, Capabilities p, TypedProperties tp)
+    public TcpIbis(ResizeHandler r, CapabilitySet p, TypedProperties tp)
         throws Throwable {
 
         super(r, p, tp);
@@ -83,7 +83,7 @@ public final class TcpIbis extends ibis.impl.Ibis
         return bos.toByteArray();
     }
 
-    protected ibis.impl.PortType newPortType(Capabilities p, TypedProperties tp)
+    protected ibis.impl.PortType newPortType(CapabilitySet p, TypedProperties tp)
             throws PortMismatchException {
         return new TcpPortType(this, p, tp);
     }
@@ -237,7 +237,7 @@ public final class TcpIbis extends ibis.impl.Ibis
 
         String name = in.readUTF();
         SendPortIdentifier send = new SendPortIdentifier(in);
-        Capabilities sp = new Capabilities(in);
+        CapabilitySet sp = new CapabilitySet(in);
 
         // First, lookup receiveport.
         TcpReceivePort rp = (TcpReceivePort) findReceivePort(name);

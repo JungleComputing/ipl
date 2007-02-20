@@ -11,7 +11,7 @@ import java.io.IOException;
  * serves as the factory to create instances of these ports.
  * Ports can only connect to other ports of the same type.
  * A <code>PortType</code> is created using the
- * {@link Ibis#createPortType(Capabilities)} method. 
+ * {@link Ibis#createPortType(CapabilitySet)} method. 
  * <p>
  * Support for connection downcalls can be explicitly turned on and off, because
  * it might incur some overhead. Moreover, if downcalls are used,
@@ -21,14 +21,14 @@ import java.io.IOException;
  * </p>
  */
 
-public interface PortType extends IbisCapabilities {
+public interface PortType {
 
     /**
      * Returns the capabilities given to this PortType upon creation. 
      *
      * @return the capabilities of this port type.
      */
-    public Capabilities capabilities();
+    public CapabilitySet capabilities();
 
     /**
      * Creates a anonymous {@link SendPort} of this <code>PortType</code>.

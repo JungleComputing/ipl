@@ -169,6 +169,18 @@ public final class Location implements ibis.ipl.Location {
         return retval;
     }
 
+    public String cluster() {
+        String retval = "";
+        int n = levels() - 1;
+        for (int i = 0; i < n; i++) {
+            if (i != 0) {
+                retval += SEPARATOR;
+            }
+            retval += levelName(i);
+        }
+        return retval;
+    }
+
     public static Location defaultLocation() {
         try {
             InetAddress a = InetAddress.getLocalHost();

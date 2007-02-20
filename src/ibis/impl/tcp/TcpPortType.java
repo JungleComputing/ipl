@@ -9,7 +9,7 @@ import ibis.impl.SendPort;
 import ibis.ipl.PortMismatchException;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.SendPortConnectUpcall;
-import ibis.ipl.Capabilities;
+import ibis.ipl.CapabilitySet;
 import ibis.ipl.TypedProperties;
 import ibis.ipl.Upcall;
 
@@ -17,7 +17,7 @@ import java.io.IOException;
 
 class TcpPortType extends PortType {
 
-    TcpPortType(Ibis ibis, Capabilities p, TypedProperties tp)
+    TcpPortType(Ibis ibis, CapabilitySet p, TypedProperties tp)
             throws PortMismatchException {
         super(ibis, p, tp);
     }

@@ -2,7 +2,7 @@
 
 package ibis.rmi.impl;
 
-import ibis.ipl.Capabilities;
+import ibis.ipl.CapabilitySet;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisFactory;
 import ibis.ipl.IbisIdentifier;
@@ -38,7 +38,7 @@ import org.apache.log4j.Logger;
 
 import colobus.Colobus;
 
-public final class RTS implements ibis.ipl.IbisCapabilities {
+public final class RTS implements ibis.ipl.PredefinedCapabilities {
 
     static final String prefix = "rmi.";
 
@@ -264,9 +264,9 @@ public final class RTS implements ibis.ipl.IbisCapabilities {
                 logger.debug(hostname + ": init RMI RTS --> creating ibis");
             }
 
-            Capabilities reqprops = new Capabilities(new String[] {
+            CapabilitySet reqprops = new CapabilitySet(
                 SER_OBJECT, WORLD_OPEN, CONN_MANYTOONE, COMM_RELIABLE,
-                RECV_AUTOUPCALLS, RECV_EXPLICIT});
+                RECV_AUTOUPCALLS, RECV_EXPLICIT);
 
             try {
                 ibis = IbisFactory.createIbis(reqprops, null, null, null);
@@ -282,11 +282,11 @@ public final class RTS implements ibis.ipl.IbisCapabilities {
 
             ibisRegistry = ibis.registry();
 
-            Capabilities requestProps = new Capabilities(new String[] {
-                SER_OBJECT, CONN_MANYTOONE, COMM_RELIABLE, RECV_AUTOUPCALLS});
+            CapabilitySet requestProps = new CapabilitySet(
+                SER_OBJECT, CONN_MANYTOONE, COMM_RELIABLE, RECV_AUTOUPCALLS);
 
-            Capabilities replyProps = new Capabilities(new String[] {
-                SER_OBJECT, COMM_RELIABLE, RECV_EXPLICIT});
+            CapabilitySet replyProps = new CapabilitySet(
+                SER_OBJECT, COMM_RELIABLE, RECV_EXPLICIT);
 
             TypedProperties tp = ibis.attributes();
             tp.setProperty("serialization.replacer",

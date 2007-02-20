@@ -21,11 +21,4 @@ public interface IbisIdentifier extends java.io.Serializable,
      * @return the poolname.
      */
     public String getPool();
-
-    /**
-     * Returns something that could represent a cluster name. This is a
-     * concatenation of all location level names but the last.
-     * @return the cluster.
-     */
-    public String cluster();
 }

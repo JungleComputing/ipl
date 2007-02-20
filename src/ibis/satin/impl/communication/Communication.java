@@ -4,7 +4,7 @@
 package ibis.satin.impl.communication;
 
 import ibis.ipl.AlreadyConnectedException;
-import ibis.ipl.Capabilities;
+import ibis.ipl.CapabilitySet;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisFactory;
 import ibis.ipl.IbisIdentifier;
@@ -25,7 +25,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 
 public final class Communication implements Config, Protocol,
-       ibis.ipl.IbisCapabilities {
+       ibis.ipl.PredefinedCapabilities {
     private Satin s;
 
     public PortType portType;
@@ -45,7 +45,7 @@ public final class Communication implements Config, Protocol,
     public Communication(Satin s) {
         this.s = s;
 
-        Capabilities ibisProperties = createIbisProperties();
+        CapabilitySet ibisProperties = createIbisProperties();
 
         commLogger.debug("SATIN '" + "- " + "': init ibis");
 
@@ -143,26 +143,27 @@ public final class Communication implements Config, Protocol,
     }
 
     public boolean inDifferentCluster(IbisIdentifier other) {
-        return !s.ident.cluster().equals(other.cluster());
+        return !s.ident.getLocation().cluster().equals(
+                other.getLocation().cluster());
     }
 
-    public Capabilities createIbisProperties() {
-        Capabilities ibisProperties = new Capabilities( new String[] {
+    public CapabilitySet createIbisProperties() {
+        CapabilitySet ibisProperties = new CapabilitySet(
                 CLOSED ? WORLD_CLOSED : WORLD_OPEN,
                 SER_BYTE, SER_DATA, SER_OBJECT,
                 COMM_RELIABLE,
                 CONN_ONETOMANY, CONN_MANYTOONE, CONN_UPCALLS,
                 CONN_DOWNCALLS,
-                RECV_EXPLICIT, RECV_AUTOUPCALLS});
+                RECV_EXPLICIT, RECV_AUTOUPCALLS);
 
         return ibisProperties;
     }
 
     public PortType createSatinPortType() throws IOException {
-        Capabilities satinPortProperties = new Capabilities( new String[] {
+        CapabilitySet satinPortProperties = new CapabilitySet(
                 SER_OBJECT, COMM_RELIABLE,
                 CONN_MANYTOONE, CONN_UPCALLS, CONN_DOWNCALLS,
-                RECV_EXPLICIT, RECV_AUTOUPCALLS});
+                RECV_EXPLICIT, RECV_AUTOUPCALLS);
 
         return ibis.createPortType(satinPortProperties);
     }
@@ -170,9 +171,9 @@ public final class Communication implements Config, Protocol,
     // The barrier port type is different from the satin port type.
     // It does not do multicast, and does not need serialization.
     public PortType createBarrierPortType() throws IOException {
-        Capabilities s = new Capabilities(new String[] {
+        CapabilitySet s = new CapabilitySet(
                 SER_BYTE, COMM_RELIABLE,
-                CONN_MANYTOONE, RECV_EXPLICIT});
+                CONN_MANYTOONE, RECV_EXPLICIT);
         return this.ibis.createPortType(s);
     }
 

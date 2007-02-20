@@ -205,18 +205,6 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
         return registryData;
     }
 
-    public String cluster() {
-        String retval = "";
-        int n = location.levels() - 1;
-        for (int i = 0; i < n; i++) {
-            if (i != 0) {
-                retval += Location.SEPARATOR;
-            }
-            retval += location.levelName(i);
-        }
-        return retval;
-    }
-
     /**
      * Compare to the specified Ibis identifier.
      * @param c the Ibis identifier to compare to.

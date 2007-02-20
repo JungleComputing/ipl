@@ -24,9 +24,9 @@ import java.util.Properties;
  * string-valued capabilities.
  * There are a number of predefined
  * capabilities, but Ibis implementations may add new ones.
- * A <code>Capabilities</code> object is immutable.
+ * A <code>CapabilitySet</code> object is immutable.
  */
-public final class Capabilities implements java.io.Serializable {
+public final class CapabilitySet implements java.io.Serializable {
 
     private transient byte[] codedForm;
 
@@ -38,30 +38,15 @@ public final class Capabilities implements java.io.Serializable {
     /**
      * Constructs an empty capabilities object.
      */
-    public Capabilities() {
+    public CapabilitySet() {
         codedForm = computeCodedForm();
     }
 
     /**
-     * Creates a capability object with the values specified in a
-     * TypedProperties object.
+     * Creates a capability object with the specified values.
      * @param sp the specified values.
      */
-    public Capabilities(TypedProperties sp) {
-        for (Enumeration e = sp.propertyNames(); e.hasMoreElements();) {
-            String name = (String) e.nextElement();
-            if (sp.booleanProperty(name)) {
-                booleanCapabilities.add(name.toLowerCase());
-            } else {
-                stringCapabilities.put(name.toLowerCase(), 
-                        sp.getProperty(name));
-            }
-        }
-
-        codedForm = computeCodedForm();
-    }
-
-    public Capabilities(String[] values) {
+    public CapabilitySet(String... values) {
         for (int i = 0; i < values.length; i++) {
             String s = values[i];
             int index = s.indexOf('=');
@@ -79,7 +64,7 @@ public final class Capabilities implements java.io.Serializable {
      * Creates a copy of a capability set.
      * @param c the capability set to copy.
      */
-    public Capabilities(Capabilities c) {
+    public CapabilitySet(CapabilitySet c) {
         for (String cap : c.booleanCapabilities) {
             booleanCapabilities.add(cap);
         }
@@ -90,12 +75,34 @@ public final class Capabilities implements java.io.Serializable {
     }
 
     /**
+     * Creates a capability object with the values specified in a
+     * Properties object.
+     * @param sp the specified values.
+     */
+    private CapabilitySet(Properties sp) {
+        for (Enumeration e = sp.propertyNames(); e.hasMoreElements();) {
+            String name = (String) e.nextElement();
+            String value = sp.getProperty(name);
+            if (value != null
+                    && (value.equals("1") || value.equals("on")
+                        || value.equals("") || value.equals("true")
+                        || value.equals("yes"))) {
+                booleanCapabilities.add(name.toLowerCase());
+            } else {
+                stringCapabilities.put(name.toLowerCase(), value);
+            }
+        }
+
+        codedForm = computeCodedForm();
+    }
+
+    /**
      * Creates a property set from a serialized form.
      * @param codedForm the serialized form, as produced by the
      * {@link #toBytes()} method.
      * @exception IOException is thrown in case of trouble.
      */
-    public Capabilities(byte[] codedForm) throws IOException {
+    public CapabilitySet(byte[] codedForm) throws IOException {
         this(codedForm, 0, codedForm.length);
     }
 
@@ -107,7 +114,7 @@ public final class Capabilities implements java.io.Serializable {
      * @param length length of input for this method.
      * @exception IOException is thrown in case of trouble.
      */
-    public Capabilities(byte[] codedForm, int offset, int length)
+    public CapabilitySet(byte[] codedForm, int offset, int length)
             throws IOException {
         this(new DataInputStream(
                 new ByteArrayInputStream(codedForm, offset, length)));
@@ -118,7 +125,7 @@ public final class Capabilities implements java.io.Serializable {
      * @param dis the input stream to read from.
      * @exception IOException is thrown in case of trouble.
      */
-    public Capabilities(DataInput dis) throws IOException {
+    public CapabilitySet(DataInput dis) throws IOException {
         doRead(dis);
         codedForm = computeCodedForm();
     }
@@ -128,8 +135,7 @@ public final class Capabilities implements java.io.Serializable {
      * @return the byte array.
      */
     public byte[] toBytes() {
-        // Not safe!! TODO: copy??? Or remove?
-        return codedForm;
+        return (byte[]) codedForm.clone();
     }
 
     private byte[] computeCodedForm() {
@@ -155,7 +161,7 @@ public final class Capabilities implements java.io.Serializable {
     }
 
     /**
-     * Returns true if the specified capability is set.
+     * Returns true if the specified boolean capability is set.
      * @param cap the specified capability.
      * @return true if the capability is set.
      */
@@ -181,7 +187,7 @@ public final class Capabilities implements java.io.Serializable {
      * @return <code>true</code> if we have a match,
      * <code>false</code> otherwise.
      */
-    public boolean matchCapabilities(Capabilities sp) {
+    public boolean matchCapabilities(CapabilitySet sp) {
         for (String cap : booleanCapabilities) {
             if (! sp.hasCapability(cap)) {
                 return false;
@@ -202,8 +208,8 @@ public final class Capabilities implements java.io.Serializable {
      * @param sp the capabilities to be matched with.
      * @return the capabilities that don't match.
      */
-    public Capabilities unmatchedCapabilities(Capabilities sp) {
-        Capabilities c = new Capabilities();
+    public CapabilitySet unmatchedCapabilities(CapabilitySet sp) {
+        CapabilitySet c = new CapabilitySet();
         for (String cap : booleanCapabilities) {
             if (! sp.hasCapability(cap)) {
                 c.booleanCapabilities.add(cap);
@@ -225,8 +231,8 @@ public final class Capabilities implements java.io.Serializable {
      * @param sp the capabilities to intersect with.
      * @return the intersection.
      */
-    public Capabilities intersect(Capabilities sp) {
-        Capabilities c = new Capabilities();
+    public CapabilitySet intersect(CapabilitySet sp) {
+        CapabilitySet c = new CapabilitySet();
         for (String cap : booleanCapabilities) {
             if (sp.hasCapability(cap)) {
                 c.booleanCapabilities.add(cap);
@@ -248,8 +254,8 @@ public final class Capabilities implements java.io.Serializable {
      * @param sp the capabilities to unite with.
      * @return the union.
      */
-    public Capabilities unite(Capabilities sp) {
-        Capabilities c = (Capabilities) sp.clone();
+    public CapabilitySet uniteWith(CapabilitySet sp) {
+        CapabilitySet c = (CapabilitySet) sp.clone();
         for (String cap : booleanCapabilities) {
             if (! sp.hasCapability(cap)) {
                 c.booleanCapabilities.add(cap);
@@ -275,7 +281,7 @@ public final class Capabilities implements java.io.Serializable {
      * @return a clone.
      */
     public Object clone() {
-        return new Capabilities(this);
+        return new CapabilitySet(this);
     }
 
     /**
@@ -284,9 +290,9 @@ public final class Capabilities implements java.io.Serializable {
      * @param name the file name.
      * @exception IOException is thrown when an IO error occurs.
      */
-    public static Capabilities load(String name) throws IOException {
-        InputStream in = ClassLoader.getSystemClassLoader().getResourceAsStream(
-                name);
+    public static CapabilitySet load(String name) throws IOException {
+        InputStream in
+            = ClassLoader.getSystemClassLoader().getResourceAsStream(name);
         if (in == null) {
             throw new IOException("Could not open " + name);
         }
@@ -298,11 +304,11 @@ public final class Capabilities implements java.io.Serializable {
      * @param in the input stream.
      * @exception IOException is thrown when an IO error occurs.
      */
-    public static Capabilities load(InputStream in) throws IOException {
+    public static CapabilitySet load(InputStream in) throws IOException {
         Properties p = new Properties();
         p.load(in);
         in.close();
-        return new Capabilities(new TypedProperties(p));
+        return new CapabilitySet(p);
     }
 
     /**
@@ -315,10 +321,10 @@ public final class Capabilities implements java.io.Serializable {
         if (other == null) {
             return false;
         }
-        if (!(other instanceof Capabilities)) {
+        if (!(other instanceof CapabilitySet)) {
             return false;
         }
-        Capabilities o = (Capabilities) other;
+        CapabilitySet o = (CapabilitySet) other;
         return booleanCapabilities.equals(o.booleanCapabilities)
             && stringCapabilities.equals(o.stringCapabilities);
     }

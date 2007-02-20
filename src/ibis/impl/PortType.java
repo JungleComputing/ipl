@@ -5,7 +5,7 @@ package ibis.impl;
 import ibis.io.Replacer;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.PortMismatchException;
-import ibis.ipl.Capabilities;
+import ibis.ipl.CapabilitySet;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.SendPortConnectUpcall;
 import ibis.ipl.TypedProperties;
@@ -20,7 +20,8 @@ import org.apache.log4j.Logger;
  * Implementation of the {@link ibis.ipl.PortType} interface, to be extended
  * by specific Ibis implementations.
  */
-public abstract class PortType implements ibis.ipl.PortType {
+public abstract class PortType implements ibis.ipl.PortType,
+        ibis.ipl.PredefinedCapabilities {
 
     /** Debugging output. */
     private static final Logger logger
@@ -33,7 +34,7 @@ public abstract class PortType implements ibis.ipl.PortType {
     private static int receive_counter = 0;
 
     /** The capabilities for this port type. */
-    private final Capabilities capabilities;
+    private final CapabilitySet capabilities;
 
     /** The serialization used for this port type. */
     protected final String serialization;
@@ -64,7 +65,7 @@ public abstract class PortType implements ibis.ipl.PortType {
      * @exception IbisConfigurationException is thrown when there is some
      * inconsistency in the specified capabilities.
      */
-    protected PortType(Ibis ibis, Capabilities p, TypedProperties tp) {
+    protected PortType(Ibis ibis, CapabilitySet p, TypedProperties tp) {
         this.ibis = ibis;
     	this.capabilities = p;
         this.attributes = tp;
@@ -111,7 +112,7 @@ public abstract class PortType implements ibis.ipl.PortType {
         }
     }
 
-    public Capabilities capabilities() {
+    public CapabilitySet capabilities() {
         return capabilities;
     }
 
@@ -253,7 +254,7 @@ public abstract class PortType implements ibis.ipl.PortType {
     private ibis.ipl.ReceivePort createReceivePort(String name, Upcall u,
             ReceivePortConnectUpcall cU, boolean connectionDowncalls)
             throws IOException {
-        Capabilities p = capabilities;
+        CapabilitySet p = capabilities;
         if (cU != null) {
             if (!p.hasCapability(CONN_UPCALLS)) {
                 throw new IbisConfigurationException(

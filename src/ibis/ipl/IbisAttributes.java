@@ -92,7 +92,7 @@ public final class IbisAttributes {
                                 + file + "\" not found!");
                     }                                            
                 } else {                  
-                    // If we managed to load the file, we add the properties to 
+                    // If we managed to load the file, we add the properties to
                     // the 'defaultAttributes' possibly overwriting defaults.
                     defaultAttributes.putAll(fromFile);
                 }
