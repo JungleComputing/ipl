@@ -2,7 +2,6 @@
 
 package ibis.impl.tcp;
 
-import ibis.connect.IbisSocketFactory;
 import ibis.impl.IbisIdentifier;
 import ibis.impl.ReceivePort;
 import ibis.impl.SendPortIdentifier;
@@ -30,6 +29,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.util.HashMap;
 import java.util.Properties;
 
@@ -45,9 +45,9 @@ public final class TcpIbis extends ibis.impl.Ibis
 
     private InetSocketAddress myAddress;
 
-    private boolean quiting = false;
+    private InetSocketAddress local;
 
-    private IbisSocketFactory socketFactory;
+    private boolean quiting = false;
 
     private HashMap<IbisIdentifier, InetSocketAddress> addresses
         = new HashMap<IbisIdentifier, InetSocketAddress>();
@@ -67,10 +67,10 @@ public final class TcpIbis extends ibis.impl.Ibis
             System.exit(1);
         }
 
-        socketFactory = IbisSocketFactory.getFactory();
-
-        systemServer = socketFactory.createServerSocket(0, addr, true, null);
-
+        systemServer = new ServerSocket();
+        systemServer.setReceiveBufferSize(0x10000); // before the bind!
+        local = new InetSocketAddress(addr, 0);
+        systemServer.bind(local, 50);
         myAddress = new InetSocketAddress(addr, systemServer.getLocalPort());
 
         logger.debug("--> TcpIbis: address = " + myAddress);
@@ -140,11 +140,10 @@ public final class TcpIbis extends ibis.impl.Ibis
             DataOutputStream out = null;
             InputStream in = null;
             Socket s = null;
+            int result = -1;
 
             try {
-                s = socketFactory.createClientSocket(idAddr.getAddress(), port,
-                        myAddress.getAddress(), 0, timeout, sp.properties());
-
+                s = createClientSocket(local, idAddr, timeout);
                 out = new DataOutputStream(new BufferedOutputStream(
                             s.getOutputStream()));
                 in = new BufferedInputStream(s.getInputStream());
@@ -154,12 +153,11 @@ public final class TcpIbis extends ibis.impl.Ibis
                 sp.getType().capabilities().writeTo(out);
                 out.flush();
 
-                int result = in.read();
+                result = in.read();
 
                 switch(result) {
                 case ReceivePort.ACCEPTED:
-                    return socketFactory.createBrokeredSocket(in, out,
-                            false, sp.properties());
+                    return s;
                 case ReceivePort.ALREADY_CONNECTED:
                     throw new AlreadyConnectedException(
                             "The sender was already connected to " + name
@@ -186,21 +184,25 @@ public final class TcpIbis extends ibis.impl.Ibis
                 default:
                     throw new Error("Illegal opcode in TcpIbis.connect");
                 }
+            } catch(SocketTimeoutException e) {
+                throw new ConnectionTimedOutException("Could not connect");
             } finally {
-                try {
-                    in.close();
-                } catch(Throwable e) {
-                    // ignored
-                }
-                try {
-                    out.close();
-                } catch(Throwable e) {
-                    // ignored
-                }
-                try {
-                    s.close();
-                } catch(Throwable e) {
-                    // ignored
+                if (result != ReceivePort.ACCEPTED) {
+                    try {
+                        in.close();
+                    } catch(Throwable e) {
+                        // ignored
+                    }
+                    try {
+                        out.close();
+                    } catch(Throwable e) {
+                        // ignored
+                    }
+                    try {
+                        s.close();
+                    } catch(Throwable e) {
+                        // ignored
+                    }
                 }
             }
             try {
@@ -215,9 +217,7 @@ public final class TcpIbis extends ibis.impl.Ibis
         try {
             quiting = true;
             // Connect so that the TcpIbis thread wakes up.
-            InetAddress addr = myAddress.getAddress();
-            int port = myAddress.getPort();
-            socketFactory.createClientSocket(addr, port, addr, 0, 0, null);
+            createClientSocket(local, myAddress, 0);
         } catch (Throwable e) {
             // Ignore
         }
@@ -252,17 +252,26 @@ public final class TcpIbis extends ibis.impl.Ibis
                 + ReceivePort.getString(result));
 
         out.write(result);
+        out.flush();
         if (result == ReceivePort.ACCEPTED) {
-            out.flush();
-            Socket s1 = socketFactory.createBrokeredSocket(in, out,
-                    true, rp.properties());
             // add the connection to the receiveport.
-            rp.connect(send, s1);
+            rp.connect(send, s);
             logger.debug("--> S connect done ");
+        } else {
+            out.close();
+            in.close();
+            s.close();
         }
+    }
 
-        out.close();
-        in.close();
+    private Socket createClientSocket(InetSocketAddress local,
+            InetSocketAddress remote, int timeout) throws IOException {
+        Socket s = new Socket();
+        s.setReceiveBufferSize(0x10000); // before the bind!
+        s.bind(local);
+        s.connect(remote, timeout);
+        tuneSocket(s);
+        return s;
     }
 
     public void run() {
@@ -275,6 +284,7 @@ public final class TcpIbis extends ibis.impl.Ibis
             logger.debug("--> TcpIbis doing new accept()");
             try {
                 s = systemServer.accept();
+                tuneSocket(s);
             } catch (Throwable e) {
                 /* if the accept itself fails, we have a fatal problem. */
                 logger.fatal("TcpIbis:run: got fatal exception in accept! ", e);
@@ -285,22 +295,27 @@ public final class TcpIbis extends ibis.impl.Ibis
             logger.debug("--> TcpIbis through new accept()");
             try {
                 if (quiting) {
+                    s.close();
                     logger.debug("--> it is a quit: RETURN");
                     cleanup();
                     return;
                 }
                 handleConnectionRequest(s);
             } catch (Throwable e) {
-                logger.error("EEK: TcpIbis:run: got exception "
-                        + "(closing this socket only: ", e);
-            } finally {
                 try {
                     s.close();
-                } catch (Throwable e1) {
+                } catch(Throwable e2) {
                     // ignored
                 }
+                logger.error("EEK: TcpIbis:run: got exception "
+                        + "(closing this socket only: ", e);
             }
         }
+    }
+
+    private void tuneSocket(Socket s) throws IOException {
+        s.setTcpNoDelay(true);
+        s.setSendBufferSize(0x10000);
     }
 
     private void cleanup() {
