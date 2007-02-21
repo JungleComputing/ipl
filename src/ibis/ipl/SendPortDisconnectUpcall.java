@@ -3,10 +3,10 @@
 package ibis.ipl;
 
 /**
- * Connection upcall interface for sendports. An Ibis implementation may
+ * Disconect upcall interface for sendports. An Ibis implementation may
  * choose to block while processing this upcall.
  */
-public interface SendPortConnectUpcall {
+public interface SendPortDisconnectUpcall {
     /**
      * Upcall that indicates that a connection to a receiveport was lost.
      * If a {@link SendPort} has been configured with connection upcalls,

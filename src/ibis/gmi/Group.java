@@ -151,8 +151,9 @@ public final class Group implements GroupProtocol,
             }
 
             CapabilitySet reqprops = new CapabilitySet(
-                SER_OBJECT, WORLD_CLOSED, CONN_MANYTOONE, CONN_ONETOMANY,
-                COMM_RELIABLE, RECV_AUTOUPCALLS, RECV_EXPLICIT);
+                SERIALIZATION_OBJECT, WORLDMODEL_CLOSED, CONNECTION_MANY_TO_ONE,
+                CONNECTION_ONE_TO_MANY, COMMUNICATION_RELIABLE,
+                RECEIVE_AUTO_UPCALLS, RECEIVE_EXPLICIT);
             try {
                 ibis = IbisFactory.createIbis(reqprops, null, null, null);
             } catch (NoMatchingIbisException e) {
@@ -169,26 +170,30 @@ public final class Group implements GroupProtocol,
 
             // System unicast (many to one) port type 
             CapabilitySet props = new CapabilitySet(
-                SER_OBJECT, CONN_MANYTOONE,
-                COMM_RELIABLE, RECV_AUTOUPCALLS, RECV_EXPLICIT);
+                    SERIALIZATION_OBJECT, CONNECTION_MANY_TO_ONE,
+                    COMMUNICATION_RELIABLE, RECEIVE_AUTO_UPCALLS,
+                    RECEIVE_EXPLICIT);
            
             portTypeSystemUcast = ibis.createPortType(props);
             
             // System unicast (many to one) port type 
             props = new CapabilitySet(
-                SER_OBJECT, CONN_ONETOMANY, COMM_RELIABLE, RECV_EXPLICIT);
+                    SERIALIZATION_OBJECT, CONNECTION_ONE_TO_MANY,
+                    COMMUNICATION_RELIABLE, RECEIVE_EXPLICIT);
            
             portTypeSystemMcast = ibis.createPortType(props);
             
             // Unicast (many to one) port type            
             props = new CapabilitySet(
-                SER_OBJECT, CONN_MANYTOONE, COMM_RELIABLE, RECV_AUTOUPCALLS);
+                    SERIALIZATION_OBJECT, CONNECTION_MANY_TO_ONE,
+                    COMMUNICATION_RELIABLE, RECEIVE_AUTO_UPCALLS);
             
             portTypeManyToOne = ibis.createPortType(props);
             
             // Multicast (one to many) port type            
             props = new CapabilitySet(
-                SER_OBJECT, CONN_ONETOMANY, COMM_RELIABLE, RECV_AUTOUPCALLS);
+                    SERIALIZATION_OBJECT, CONNECTION_ONE_TO_MANY,
+                    COMMUNICATION_RELIABLE, RECEIVE_AUTO_UPCALLS);
 
             MulticastGroups.init(ibis.createPortType(props));
 

@@ -106,7 +106,7 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
      * @return the coded form.
      */
     public byte[] toBytes() {
-        return codedForm;
+        return (byte[]) codedForm.clone();
     }
 
     private byte[] computeCodedForm() {

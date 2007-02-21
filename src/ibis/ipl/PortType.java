@@ -3,6 +3,7 @@
 package ibis.ipl;
 
 import java.io.IOException;
+import java.util.Properties;
 
 /**
  * A <code>PortType</code> represents a class of send and receive
@@ -29,6 +30,13 @@ public interface PortType {
      * @return the capabilities of this port type.
      */
     public CapabilitySet capabilities();
+
+    /**
+     * Returns the attributes given to this PortType upon creation.
+     *
+     * @return the attributes of this port type.
+     */
+    public Properties attributes();
 
     /**
      * Creates a anonymous {@link SendPort} of this <code>PortType</code>.
@@ -91,7 +99,7 @@ public interface PortType {
      *
      * @param name the name of this sendport.
      * @param cU object implementing the
-     * {@link SendPortConnectUpcall#lostConnection(SendPort,
+     * {@link SendPortDisconnectUpcall#lostConnection(SendPort,
      * ReceivePortIdentifier, Throwable)} method.
      * @return the new sendport.
      * @exception java.io.IOException is thrown when the port could not be
@@ -99,7 +107,7 @@ public interface PortType {
      * @exception ibis.ipl.IbisConfigurationException is thrown when the port
      * type does not match what is required here.
      */
-    public SendPort createSendPort(String name, SendPortConnectUpcall cU)
+    public SendPort createSendPort(String name, SendPortDisconnectUpcall cU)
             throws IOException;
 
     /**

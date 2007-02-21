@@ -39,7 +39,7 @@ public final class TestIbis extends TestCase
     public void testIbis() {
         try {
             CapabilitySet s = new CapabilitySet(
-                COMM_RELIABLE, SER_OBJECT, RECV_EXPLICIT, WORLD_OPEN);
+                COMMUNICATION_RELIABLE, SERIALIZATION_OBJECT, RECEIVE_EXPLICIT, WORLDMODEL_OPEN);
 
             ibis = IbisFactory.createIbis(s, null, null, null);
 

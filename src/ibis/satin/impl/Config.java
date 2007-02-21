@@ -3,7 +3,7 @@
 package ibis.satin.impl;
 
 import ibis.ipl.TypedProperties;
-import ibis.ipl.IbisAttributes;
+import ibis.ipl.IbisFactory;
 
 import org.apache.log4j.Logger;
 
@@ -15,7 +15,7 @@ import org.apache.log4j.Logger;
 public interface Config {
 
     static final TypedProperties attribs
-            = IbisAttributes.getDefaultAttributes();
+            = new TypedProperties(IbisFactory.getDefaultAttributes());
 
     static final String PROPERTY_PREFIX = "satin.";
 

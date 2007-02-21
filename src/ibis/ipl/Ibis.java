@@ -4,11 +4,13 @@ package ibis.ipl;
 
 import java.io.InputStream;
 import java.io.IOException;
+import java.io.PrintStream;
+import java.util.Properties;
 
 /**
  * An instance of this interface can only be created by the
  * {@link ibis.ipl.IbisFactory#createIbis(CapabilitySet, CapabilitySet,
- * TypedProperties, ResizeHandler)} method, and is the starting point
+ * Properties, ResizeHandler)} method, and is the starting point
  * of all Ibis communication.
  */
 public interface Ibis {
@@ -63,12 +65,11 @@ public interface Ibis {
      * </p>
      * @param p capabilities of the porttype.
      * @return the porttype.
-     * @exception ibis.ipl.PortMismatchException if the required capabilities
-     * do not match the capabilities as specified when creating the Ibis
-     * instance.
+     * @exception ibis.ipl.IbisConfigurationException if the required 
+     * capabilities do not match the capabilities as specified when creating
+     * the Ibis instance.
      */
-    public PortType createPortType(CapabilitySet p)
-            throws PortMismatchException;
+    public PortType createPortType(CapabilitySet p);
 
     /**
      * Creates a {@link ibis.ipl.PortType PortType}.
@@ -78,12 +79,11 @@ public interface Ibis {
      * @param p capabilities of the porttype.
      * @param tp some attributes for this port type.
      * @return the porttype.
-     * @exception ibis.ipl.PortMismatchException if the required capabilities
-     * do not match the capabilities as specified when creating the Ibis
-     * instance.
+     * @exception ibis.ipl.IbisConfigurationException if the required
+     * capabilities do not match the capabilities as specified when creating
+     * the Ibis instance.
      */
-    public PortType createPortType(CapabilitySet p, TypedProperties tp)
-            throws PortMismatchException;
+    public PortType createPortType(CapabilitySet p, Properties tp);
 
     /** 
      * Returns the Ibis {@linkplain ibis.ipl.Registry Registry}.
@@ -123,12 +123,13 @@ public interface Ibis {
 
     /**
      * May print Ibis-implementation-specific statistics.
+     * @param out the stream to print to.
      */
-    public void printStatistics();
+    public void printStatistics(PrintStream out);
 
     /**
      * Returns the attributes as provided when instantiating Ibis.
      * @return the attributes.
      */
-    public TypedProperties attributes();
+    public Properties attributes();
 }

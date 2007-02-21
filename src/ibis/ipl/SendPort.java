@@ -9,19 +9,19 @@ import java.util.Map;
  * Maintains connections to one or more receive ports.
  *
  * When creating a sendport, it is possible to pass a
- * {@link SendPortConnectUpcall} object.
+ * {@link SendPortDisconnectUpcall} object.
  * When a connection is lost for some reason (normal close or 
  * link error), the 
- * {@link SendPortConnectUpcall#lostConnection(SendPort,
+ * {@link SendPortDisconnectUpcall#lostConnection(SendPort,
  * ReceivePortIdentifier, Throwable)} upcall is invoked.
  * This upcall is completely asynchronous, but Ibis ensures that 
  * at most one is alive at any given time.
- * When a {@link SendPortConnectUpcall} object is installed, no exceptions are
- * thrown by methods in the write message. Instead, the exception is passed
+ * When a {@link SendPortDisconnectUpcall} object is installed, no exceptions
+ * are thrown by methods in the write message. Instead, the exception is passed
  * on to the <code>lostConnection</code> upcall.
  *
- * If no {@link SendPortConnectUpcall} is registered, the user is NOT informed 
- * of connections that are lost.
+ * If no {@link SendPortDisconnectUpcall} is registered, the user is NOT
+ * informed of connections that are lost.
  * If the port supports connection downcalls, the user can
  * use the {@link #lostConnections()} method to poll for connections 
  * that are lost.

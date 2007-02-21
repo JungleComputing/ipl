@@ -155,8 +155,9 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller,
 
     private PortType createSOPortType() throws IOException {
         CapabilitySet satinPortProperties = new CapabilitySet(
-                CONN_ONETOMANY, CONN_UPCALLS, CONN_DOWNCALLS,
-                RECV_EXPLICIT, RECV_AUTOUPCALLS, SER_OBJECT);
+                CONNECTION_ONE_TO_MANY, CONNECTION_UPCALLS,
+                CONNECTION_DOWNCALLS, RECEIVE_EXPLICIT, RECEIVE_AUTO_UPCALLS,
+                SERIALIZATION_OBJECT);
 
         return s.comm.ibis.createPortType(satinPortProperties);
     }

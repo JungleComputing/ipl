@@ -3,9 +3,11 @@
 package ibis.ipl;
 
 /**
- * Identifies an Ibis on the network. Should be comparable with
+ * Uniquely identifies an Ibis on the network. Should be comparable with
  * <code>equals()</code>, so implementations probably redefine
  * <code>hashCode()</code> and <code>equals()</code>.
+ * When two IbisIdentifiers compare equal, they identify the same Ibis
+ * instance.
  */
 public interface IbisIdentifier extends java.io.Serializable,
        Comparable<IbisIdentifier> {

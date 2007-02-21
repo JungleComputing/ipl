@@ -11,7 +11,6 @@ import ibis.io.Conversion;
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.IbisConfigurationException;
-import ibis.ipl.TypedProperties;
 import ibis.util.IPUtils;
 import ibis.util.RunProcess;
 
@@ -26,6 +25,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.Properties;
 
 import org.apache.log4j.Logger;
 
@@ -370,7 +370,7 @@ public class NameServerClient extends ibis.impl.Registry
     /**
      * Initializes the <code>location</code> field.
      */
-    private static Location getLocation(TypedProperties tp) {
+    private static Location getLocation(Properties tp) {
         String location = tp.getProperty("ibis.location");
         if (location == null) {
             return Location.defaultLocation();

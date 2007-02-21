@@ -9,8 +9,7 @@ import ibis.io.DataOutputStream;
 import ibis.ipl.AlreadyConnectedException;
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.IbisConfigurationException;
-import ibis.ipl.PortMismatchException;
-import ibis.ipl.SendPortConnectUpcall;
+import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.util.GetLogger;
 
 import java.io.IOException;
@@ -46,7 +45,7 @@ public abstract class SendPort implements ibis.ipl.SendPort {
     private final boolean connectionDowncalls;
 
     /** Connection upcall handler, or <code>null</code>. */
-    protected final SendPortConnectUpcall connectUpcall;
+    protected final SendPortDisconnectUpcall connectUpcall;
 
     /** Map for implementing the dynamic properties. */
     protected Map<String, Object> props = new HashMap<String, Object>();
@@ -101,7 +100,7 @@ public abstract class SendPort implements ibis.ipl.SendPort {
      * @exception IOException is thrown in case of trouble.
      */
     protected SendPort(Ibis ibis, PortType type, String name,
-            SendPortConnectUpcall connectUpcall, boolean connectionDowncalls)
+            SendPortDisconnectUpcall connectUpcall, boolean connectionDowncalls)
             throws IOException {
         this.ibis = ibis;
         this.type = type;

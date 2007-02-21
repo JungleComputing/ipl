@@ -3,7 +3,6 @@
 package ibis.impl;
 
 import ibis.ipl.IbisConfigurationException;
-import ibis.ipl.PortMismatchException;
 import ibis.ipl.ResizeHandler;
 import ibis.ipl.CapabilitySet;
 import ibis.util.GetLogger;
@@ -12,6 +11,7 @@ import ibis.ipl.TypedProperties;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.Properties;
 
 import org.apache.log4j.Logger;
 
@@ -31,14 +31,14 @@ public abstract class Ibis implements ibis.ipl.Ibis,
     /**
      * CapabilitySet, as derived from the capabilities passed to
      * {@link ibis.ipl.IbisFactory#createIbis(CapabilitySet, CapabilitySet
-     * TypedProperties, ResizeHandler)} and the capabilities of this ibis.
+     * Properties, ResizeHandler)} and the capabilities of this ibis.
      */
     protected CapabilitySet capabilities;
 
     /**
      * Attributes, as given to
      * {@link ibis.ipl.IbisFactory#createIbis(CapabilitySet, CapabilitySet,
-     * TypedProperties, ResizeHandler)}.
+     * Properties, ResizeHandler)}.
      */
     protected TypedProperties attributes;
 
@@ -79,20 +79,20 @@ public abstract class Ibis implements ibis.ipl.Ibis,
      * parameters.
      */
     protected Ibis(ResizeHandler resizeHandler, CapabilitySet caps,
-            TypedProperties attributes) throws Throwable {
+            Properties attributes) throws Throwable {
         this.resizeHandler = resizeHandler;
         this.capabilities = caps;
-        this.attributes = attributes;
+        this.attributes = new TypedProperties(attributes);
         receivePorts = new HashMap<String, ReceivePort>();
         sendPorts = new HashMap<String, SendPort>();
         String registryName = attributes.getProperty("ibis.registry.impl");
         registry = Registry.loadRegistry(this, registryName,
                 resizeHandler != null, getData());
         ident = registry.getIbisIdentifier();
-        closedWorld = caps.hasCapability(WORLD_CLOSED);
+        closedWorld = caps.hasCapability(WORLDMODEL_CLOSED);
         if (closedWorld) {
             try {
-                numInstances = attributes.getIntProperty(
+                numInstances = this.attributes.getIntProperty(
                         "ibis.pool.total_hosts");
             } catch(NumberFormatException e) {
                 throw new IbisConfigurationException("Could not get number of "
@@ -111,51 +111,45 @@ public abstract class Ibis implements ibis.ipl.Ibis,
         return ident;
     }
 
-    public ibis.ipl.PortType createPortType(CapabilitySet p,
-            TypedProperties tp) throws PortMismatchException {
+    public ibis.ipl.PortType createPortType(CapabilitySet p, Properties tp) {
         if (p == null) {
             p = capabilities;
         } else {
             checkPortCapabilities(p);
         }
         logger.info("Creating port type" + " with capabilities\n" + p);
-        if (p.hasCapability(CONN_MANYTOONE) &&
-                p.hasCapability(CONN_ONETOMANY)) {
+        if (p.hasCapability(CONNECTION_MANY_TO_ONE) &&
+                p.hasCapability(CONNECTION_ONE_TO_MANY)) {
             logger.warn("Combining ManyToOne and OneToMany in "
                     + "a port type may result in\ndeadlocks! Most systems "
                     + "don't have a working flow control when multiple\n"
                     + "senders do multicasts.");
         }
-        if (tp == null) {
-            tp = attributes;
-        }
 
         return newPortType(p, tp);
     }
 
-    public ibis.ipl.PortType createPortType(CapabilitySet p)
-            throws PortMismatchException {
+    public ibis.ipl.PortType createPortType(CapabilitySet p) {
         return createPortType(p, null);
     }
 
-    public TypedProperties attributes() {
-        return new TypedProperties(attributes);
+    public Properties attributes() {
+        return new Properties(attributes);
     }
 
     /**
      * This method is used to check if the capabilities for a PortType
      * match the capabilities of this Ibis.
      * @param p the capabilities for the PortType.
-     * @exception PortMismatchException is thrown when this Ibis cannot provide
-     * the capabilities requested for the PortType.
+     * @exception IbisConfigurationException is thrown when this Ibis cannot
+     * provide the capabilities requested for the PortType.
      */
-    private void checkPortCapabilities(CapabilitySet p)
-            throws PortMismatchException {
+    private void checkPortCapabilities(CapabilitySet p) {
         if (!p.matchCapabilities(capabilities)) {
             logger.error("Ibis capabilities: " + capabilities);
             logger.error("Port required capabilities: " + p);
-            throw new PortMismatchException(
-                    "Port capabilities don't match the Ibis required capabilities");
+            throw new IbisConfigurationException(
+                "Port capabilities don't match the Ibis required capabilities");
         }
     }
 
@@ -311,7 +305,7 @@ public abstract class Ibis implements ibis.ipl.Ibis,
         return version + ", implementation = " + this.getClass().getName();
     }
 
-    public void printStatistics() { 
+    public void printStatistics(java.io.PrintStream out) { 
         // default is empty
     }
 
@@ -404,8 +398,8 @@ public abstract class Ibis implements ibis.ipl.Ibis,
     protected abstract byte[] getData() throws IOException;
 
     /**
-     * See {@link ibis.ipl.Ibis#createPortType(CapabilitySet, TypedProperties)}.
+     * See {@link ibis.ipl.Ibis#createPortType(CapabilitySet, Properties)}.
      */
     protected abstract ibis.ipl.PortType newPortType(CapabilitySet p,
-            TypedProperties attrib) throws PortMismatchException;
+            Properties attrib);
 }

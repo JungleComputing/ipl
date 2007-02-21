@@ -9,6 +9,8 @@ import java.io.DataInputStream;
 import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.net.InetAddress;
 
 /**
@@ -88,7 +90,7 @@ public final class Location implements ibis.ipl.Location {
      * @exception IOException is thrown in case of trouble.
      */
     public byte[] toBytes() {
-        return codedForm;
+        return (byte[]) codedForm.clone();
     }
 
     private byte[] computeCodedForm() {
@@ -114,36 +116,25 @@ public final class Location implements ibis.ipl.Location {
         dos.write(codedForm);
     }
 
-    /**
-     * Returns the number of levels in this location.
-     * @return the number of levels.
-     */
-    public int levels() {
+    public int numLevels() {
         return levelNames.length;
     }
 
-    /**
-     * Returns the name of the specified level.
-     * @param level the specified level.
-     * @return the corresponding name.
-     * @exception ArrayIndexOutOfBoundsException is thrown when the specified
-     * level does not correspond to a level in this location.
-     */
-    public String levelName(int level) {
+    public String[] levels() {
+        return levelNames.clone();
+    }
+
+    public String level(int level) {
         return levelNames[level];
     }
 
-    /**
-     * Returns the number of matching levels with the specified location,
-     * comparing from the bottom up.
-     */
     public int matchingLevels(ibis.ipl.Location o) {
-        int n = o.levels();
+        int n = o.numLevels();
         for (int i = 0; i < levelNames.length; i++) {
             if (i >= n) {
                 return i;
             }
-            if (! levelNames[i].equals(o.levelName(i))) {
+            if (! levelNames[i].equals(o.level(i))) {
                 return i;
             }
         }
@@ -151,11 +142,11 @@ public final class Location implements ibis.ipl.Location {
     }
 
     public boolean equals(Object o) {
-        if (! (o instanceof ibis.ipl.Location)) {
+        if (! (o instanceof ibis.impl.Location)) {
             return false;
         }
         Location l = (Location) o;
-        if (l.levels() != levelNames.length) {
+        if (l.levelNames.length != levelNames.length) {
             return false;
         }
         return matchingLevels(l) == levelNames.length;
@@ -171,12 +162,12 @@ public final class Location implements ibis.ipl.Location {
 
     public String cluster() {
         String retval = "";
-        int n = levels() - 1;
+        int n = levelNames.length - 1;
         for (int i = 0; i < n; i++) {
             if (i != 0) {
                 retval += SEPARATOR;
             }
-            retval += levelName(i);
+            retval += levelNames[i];
         }
         return retval;
     }
@@ -210,12 +201,12 @@ public final class Location implements ibis.ipl.Location {
     }
 
     public int compareTo(ibis.ipl.Location o) {
-        int n = o.levels();
+        int n = o.numLevels();
         for (int i = 0; i < levelNames.length; i++) {
             if (i >= n) {
                 return 1;
             }
-            int cmp = levelNames[i].compareTo(o.levelName(i));
+            int cmp = levelNames[i].compareTo(o.level(i));
             if (cmp != 0) {
                 return cmp;
             }
@@ -224,5 +215,28 @@ public final class Location implements ibis.ipl.Location {
             return 0;
         }
         return -1;
+    }
+
+    public Iterator<String> iterator() {
+        return new Iter();
+    }
+
+    private class Iter implements Iterator<String> {
+        int index = 0;
+
+        public boolean hasNext() {
+            return index < levelNames.length;
+        }
+
+        public String next() {
+            if (hasNext()) {
+                return levelNames[index++];
+            }
+            throw new NoSuchElementException("Iterator exhausted");
+        }
+
+        public void remove() {
+            throw new UnsupportedOperationException("remove() not supported");
+        }
     }
 }

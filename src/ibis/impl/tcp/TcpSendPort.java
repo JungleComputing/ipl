@@ -13,7 +13,7 @@ import ibis.io.BufferedArrayOutputStream;
 import ibis.io.Conversion;
 import ibis.io.OutputStreamSplitter;
 import ibis.io.SplitterException;
-import ibis.ipl.SendPortConnectUpcall;
+import ibis.ipl.SendPortDisconnectUpcall;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -48,7 +48,7 @@ final class TcpSendPort extends SendPort implements TcpProtocol {
     final BufferedArrayOutputStream bufferedStream;
 
     TcpSendPort(Ibis ibis, TcpPortType type, String name,
-            boolean connectionDowncalls, SendPortConnectUpcall cU)
+            boolean connectionDowncalls, SendPortDisconnectUpcall cU)
             throws IOException {
         super(ibis, type, name, cU, connectionDowncalls);
 

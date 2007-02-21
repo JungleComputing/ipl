@@ -137,7 +137,8 @@ public final class Sequencer implements ibis.ipl.PredefinedCapabilities {
         ident = ibis.identifier();
         idno = -1;
         CapabilitySet p = new CapabilitySet(
-            SER_OBJECT, CONN_MANYTOONE, COMM_RELIABLE, RECV_EXPLICIT);
+            SERIALIZATION_OBJECT, CONNECTION_MANY_TO_ONE,
+            COMMUNICATION_RELIABLE, RECEIVE_EXPLICIT);
         try {
             tp = ibis.createPortType(p);
         } catch (Exception e) {

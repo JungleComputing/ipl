@@ -2,9 +2,6 @@
 
 package ibis.ipl;
 
-import java.io.IOException;
-import java.net.InetAddress;
-
 /**
  * Represents a location on which an Ibis instance runs. This is the
  * data type returned by {@link IbisIdentifier#getLocation()}.
@@ -13,12 +10,13 @@ import java.net.InetAddress;
  * Should be comparable with <code>equals()</code>, so implementations
  * probably redefine <code>hashCode()</code> and <code>equals()</code>.
  */
-public interface Location extends java.io.Serializable, Comparable<Location> {
+public interface Location extends java.io.Serializable, Comparable<Location>,
+        Iterable<String> {
     /**
      * Returns the number of levels in this location.
      * @return the number of levels.
      */
-    public int levels();
+    public int numLevels();
 
     /**
      * Returns the name of the specified level.
@@ -27,11 +25,18 @@ public interface Location extends java.io.Serializable, Comparable<Location> {
      * @exception ArrayIndexOutOfBoundsException is thrown when the specified
      * level does not correspond to a level in this location.
      */
-    public String levelName(int level);
+    public String level(int level);
+
+    /**
+     * Returns the location as a String array.
+     * @return the location as a string array.
+     */
+    public String[] levels();
 
     /**
      * Returns the number of matching levels with the specified location,
-     * comparing from the bottom up.
+     * comparing from coarse to detailed.
+     * @Return the number of matching levels.
      */
     public int matchingLevels(Location l);
 

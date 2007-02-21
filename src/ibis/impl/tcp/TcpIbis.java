@@ -12,7 +12,6 @@ import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.PortMismatchException;
 import ibis.ipl.ResizeHandler;
-import ibis.ipl.TypedProperties;
 import ibis.util.GetLogger;
 import ibis.util.IPUtils;
 import ibis.util.ThreadPool;
@@ -32,6 +31,7 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
+import java.util.Properties;
 
 import org.apache.log4j.Logger;
 
@@ -52,7 +52,7 @@ public final class TcpIbis extends ibis.impl.Ibis
     private HashMap<IbisIdentifier, InetSocketAddress> addresses
         = new HashMap<IbisIdentifier, InetSocketAddress>();
 
-    public TcpIbis(ResizeHandler r, CapabilitySet p, TypedProperties tp)
+    public TcpIbis(ResizeHandler r, CapabilitySet p, Properties tp)
         throws Throwable {
 
         super(r, p, tp);
@@ -83,8 +83,7 @@ public final class TcpIbis extends ibis.impl.Ibis
         return bos.toByteArray();
     }
 
-    protected ibis.impl.PortType newPortType(CapabilitySet p, TypedProperties tp)
-            throws PortMismatchException {
+    protected ibis.impl.PortType newPortType(CapabilitySet p, Properties tp) {
         return new TcpPortType(this, p, tp);
     }
 

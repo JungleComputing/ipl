@@ -265,8 +265,8 @@ public final class RTS implements ibis.ipl.PredefinedCapabilities {
             }
 
             CapabilitySet reqprops = new CapabilitySet(
-                SER_OBJECT, WORLD_OPEN, CONN_MANYTOONE, COMM_RELIABLE,
-                RECV_AUTOUPCALLS, RECV_EXPLICIT);
+                SERIALIZATION_OBJECT, WORLDMODEL_OPEN, CONNECTION_MANY_TO_ONE,
+                COMMUNICATION_RELIABLE, RECEIVE_AUTO_UPCALLS, RECEIVE_EXPLICIT);
 
             try {
                 ibis = IbisFactory.createIbis(reqprops, null, null, null);
@@ -283,12 +283,13 @@ public final class RTS implements ibis.ipl.PredefinedCapabilities {
             ibisRegistry = ibis.registry();
 
             CapabilitySet requestProps = new CapabilitySet(
-                SER_OBJECT, CONN_MANYTOONE, COMM_RELIABLE, RECV_AUTOUPCALLS);
+                SERIALIZATION_OBJECT, CONNECTION_MANY_TO_ONE,
+                COMMUNICATION_RELIABLE, RECEIVE_AUTO_UPCALLS);
 
             CapabilitySet replyProps = new CapabilitySet(
-                SER_OBJECT, COMM_RELIABLE, RECV_EXPLICIT);
+                SERIALIZATION_OBJECT, COMMUNICATION_RELIABLE, RECEIVE_EXPLICIT);
 
-            TypedProperties tp = ibis.attributes();
+            TypedProperties tp = new TypedProperties(ibis.attributes());
             tp.setProperty("serialization.replacer",
                     "ibis.rmi.impl.RMIReplacer");
 

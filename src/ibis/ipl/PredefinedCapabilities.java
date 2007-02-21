@@ -11,61 +11,67 @@ package ibis.ipl;
 public interface PredefinedCapabilities {
 
     /** Prefix for connection capabilities. */
-    final static String CONN_PREFIX = "connection.";
+    final static String CONNECTION_PREFIX = "connection.";
 
     /** Prefix for receive capabilities. */
-    final static String RECV_PREFIX = "receive.";
+    final static String RECEIVE_PREFIX = "receive.";
 
     /** Prefix for serialization capabilities. */
-    final static String SER_PREFIX = "serialization.";
+    final static String SERIALIZATION_PREFIX = "serialization.";
 
     /** Prefix for communication capabilities. */
-    final static String COMM_PREFIX = "communication.";
+    final static String COMMUNICATION_PREFIX = "communication.";
 
     /** Prefix for worldmodel capabilities. */
-    final static String WORLD_PREFIX = "worldmodel.";
+    final static String WORLDMODEL_PREFIX = "worldmodel.";
 
     /**
      * Boolean capability, set when a sendport can connect to more than
      * one receiveport.
      */
-    public final static String CONN_ONETOMANY = CONN_PREFIX + "onetomany";
+    public final static String CONNECTION_ONE_TO_MANY
+            = CONNECTION_PREFIX + "onetomany";
 
     /**
      * Boolean capability, set when multiple sendports can connect to a
      * single receiveport.
      */
-    public final static String CONN_MANYTOONE = CONN_PREFIX + "manytoone";
+    public final static String CONNECTION_MANY_TO_ONE
+            = CONNECTION_PREFIX + "manytoone";
 
     /** Boolean capability, set when connection downcalls are supported. */
-    public final static String CONN_DOWNCALLS = CONN_PREFIX + "downcalls";
+    public final static String CONNECTION_DOWNCALLS
+            = CONNECTION_PREFIX + "downcalls";
 
     /** Boolean capability, set when connection upcalls are supported. */
-    public final static String CONN_UPCALLS = CONN_PREFIX + "upcalls";
+    public final static String CONNECTION_UPCALLS
+            = CONNECTION_PREFIX + "upcalls";
 
     /**
      * Boolean capability, set when timeouts on connection attempts are
      * supported.
      */
-    public final static String CONN_TIMEOUT = CONN_PREFIX + "timeout";
+    public final static String CONNECTION_TIMEOUT
+            = CONNECTION_PREFIX + "timeout";
 
     /** Boolean capability, set when explicit receive is supported. */
-    public final static String RECV_EXPLICIT = RECV_PREFIX + "explicit";
+    public final static String RECEIVE_EXPLICIT = RECEIVE_PREFIX + "explicit";
 
     /**
      * Boolean capability, set when explicit receive with a timeout
      * is supported.
      */
-    public final static String RECV_TIMEOUT = RECV_PREFIX + "timeout";
+    public final static String RECEIVE_TIMEOUT = RECEIVE_PREFIX + "timeout";
 
     /** Boolean capability, set when poll is supported. */
-    public final static String RECV_POLL = RECV_PREFIX + "poll";
+    public final static String RECEIVE_POLL = RECEIVE_PREFIX + "poll";
 
     /**
      * Boolean capability, set when message upcalls are supported without
      * the need to poll for them.
      */
-    public final static String RECV_AUTOUPCALLS = RECV_PREFIX + "autoupcalls";
+    public final static String RECEIVE_AUTO_UPCALLS
+            = RECEIVE_PREFIX + "autoupcalls";
 
     /**
      * Boolean capability, set when message upcalls are supported but the
@@ -74,45 +80,51 @@ public interface PredefinedCapabilities {
      * When an application asks for this (and not autoupcalls), it must poll.
      * For this to work, poll must be supported and requested!
      */
-    public final static String RECV_POLLUPCALLS = RECV_PREFIX + "pollupcalls";
+    public final static String RECEIVE_POLL_UPCALLS
+            = RECEIVE_PREFIX + "pollupcalls";
 
     /**
      * Boolean capability, set when messages from a sendport are delivered
      * to the receiveport(s) in the order in which they were sent.
      */
-    public final static String COMM_FIFO = COMM_PREFIX + "fifo";
+    public final static String COMMUNICATION_FIFO
+            = COMMUNICATION_PREFIX + "fifo";
 
     /**
      * Messages from sendports of a port type with this property are
      * given global sequence numbers so that the application can order
      * them. The numbering is per port type.
      */
-    public final static String COMM_NUMBERED = COMM_PREFIX + "numbered";
+    public final static String COMMUNICATION_NUMBERED
+            = COMMUNICATION_PREFIX + "numbered";
 
     /** Boolean capability, set when reliable communication is supported. */
-    public final static String COMM_RELIABLE = COMM_PREFIX + "reliable";
+    public final static String COMMUNICATION_RELIABLE
+            = COMMUNICATION_PREFIX + "reliable";
 
     /** Boolean capability, set when Ibises can join the run at any time. */
-    public final static String WORLD_OPEN = WORLD_PREFIX + "open";
+    public final static String WORLDMODEL_OPEN = WORLDMODEL_PREFIX + "open";
 
     /**
      * Boolean capability, set when the Ibises that can join the run are
      * determined at the start of the run.
      * Note that Ibis implementations may support both world models.
      */
-    public final static String WORLD_CLOSED = WORLD_PREFIX + "closed";
+    public final static String WORLDMODEL_CLOSED = WORLDMODEL_PREFIX + "closed";
 
     /**
      * Boolean capability, indicating that readByte/writeByte and
      * readArray/writeArray(byte[]) are supported.
      */
-    public final static String SER_BYTE = SER_PREFIX + "byte";
+    public final static String SERIALIZATION_BYTE
+            = SERIALIZATION_PREFIX + "byte";
 
     /**
      * Boolean capability, indicating that read/write and readArray/writeArray
      * of primitive types are supported.
      */
-    public final static String SER_DATA = SER_PREFIX + "data";
+    public final static String SERIALIZATION_DATA
+            = SERIALIZATION_PREFIX + "data";
 
     /**
      * Boolean capability, indicating that some sort of object serialization
@@ -121,13 +133,15 @@ public interface PredefinedCapabilities {
      * writes, and no versioning support is needed (object versions are the
      * same on both ends).
      */
-    public final static String SER_OBJECT = SER_PREFIX + "object";
+    public final static String SERIALIZATION_OBJECT
+            = SERIALIZATION_PREFIX + "object";
 
     /**
      * Boolean capability, indicating that object serialization, exactly
      * as specified by SUN is supported.
      */
-    public final static String SER_STRICTOBJECT = SER_PREFIX + "strictobject";
+    public final static String SERIALIZATION_STRICT_OBJECT
+            = SERIALIZATION_PREFIX + "strictobject";
 
     /**
      * String capability, indicating a nickname (or just the classname)

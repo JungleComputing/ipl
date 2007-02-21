@@ -1,7 +1,7 @@
 /* $Id$ */
 
 
-import ibis.ipl.Capabilities;
+import ibis.ipl.CapabilitySet;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisFactory;
 import ibis.ipl.IbisIdentifier;
@@ -23,7 +23,7 @@ import java.io.IOException;
  * Programmers manual. A server computes lengths of strings, and
  * a client supplies the server with strings.
  */
-public class Example implements ibis.ipl.IbisCapabilities {
+public class Example implements ibis.ipl.PredefinedCapabilities {
 
     /**
      * The port type for both send and receive ports.
@@ -172,10 +172,10 @@ public class Example implements ibis.ipl.IbisCapabilities {
 
     private void run() {
         // Create properties for the Ibis to be created.
-        Capabilities props = new Capabilities(new String[] {
-                SER_OBJECT, WORLD_CLOSED, COMM_RELIABLE,
-                RECV_EXPLICIT, RECV_AUTOUPCALLS
-        });
+        CapabilitySet props = new CapabilitySet(
+                SERIALIZATION_OBJECT, WORLDMODEL_CLOSED,
+                COMMUNICATION_RELIABLE, RECEIVE_EXPLICIT, RECEIVE_AUTO_UPCALLS
+        );
 
         // Create an Ibis
         final Ibis ibis;
@@ -200,10 +200,10 @@ public class Example implements ibis.ipl.IbisCapabilities {
         });
 
         // Create properties for the port type
-        Capabilities portprops = new Capabilities(new String[] {
-            COMM_RELIABLE, SER_OBJECT,
-            RECV_EXPLICIT, RECV_AUTOUPCALLS
-        });
+        CapabilitySet portprops = new CapabilitySet(
+            COMMUNICATION_RELIABLE, SERIALIZATION_OBJECT,
+            RECEIVE_EXPLICIT, RECEIVE_AUTO_UPCALLS
+        );
 
         // Create the port type
         try {

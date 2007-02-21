@@ -78,7 +78,7 @@ public class ReceivePortIdentifier implements ibis.ipl.ReceivePortIdentifier,
      * @return the coded form.
      */
     public byte[] toBytes() {
-        return codedForm;
+        return (byte[]) codedForm.clone();
     }
 
     private byte[] computeCodedForm() {

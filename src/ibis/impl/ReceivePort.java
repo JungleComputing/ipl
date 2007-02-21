@@ -140,7 +140,8 @@ public abstract class ReceivePort implements ibis.ipl.ReceivePort,
         this.upcall = upcall;
         this.connectUpcall = connectUpcall;
         this.connectionDowncalls = connectionDowncalls;
-        this.numbered = type.capabilities().hasCapability(COMM_NUMBERED);
+        this.numbered
+                = type.capabilities().hasCapability(COMMUNICATION_NUMBERED);
         this.serialization = type.serialization;
         ibis.register(this);
         logger.debug(ibis.ident + ": ReceivePort '" + name + "' created");
@@ -255,7 +256,7 @@ public abstract class ReceivePort implements ibis.ipl.ReceivePort,
                     "Configured Receiveport for upcalls, downcall not allowed");
         }
         if (timeout > 0 &&
-                ! type.capabilities().hasCapability(RECV_TIMEOUT)) {
+                ! type.capabilities().hasCapability(RECEIVE_TIMEOUT)) {
             throw new IbisConfigurationException(
                     "This port is not configured for receive() with timeout");
         }
@@ -290,7 +291,7 @@ public abstract class ReceivePort implements ibis.ipl.ReceivePort,
         }
         if (connectionsEnabled) {
             if (connections.size() != 0 &&
-                    ! type.capabilities().hasCapability(CONN_MANYTOONE)) {
+                ! type.capabilities().hasCapability(CONNECTION_MANY_TO_ONE)) {
                 return DENIED;
             }
             if (connectionDowncalls) {
@@ -326,7 +327,7 @@ public abstract class ReceivePort implements ibis.ipl.ReceivePort,
     }
 
     public ReadMessage poll() throws IOException {
-        if (! type.capabilities().hasCapability(RECV_POLL)) {
+        if (! type.capabilities().hasCapability(RECEIVE_POLL)) {
             throw new IbisConfigurationException(
                     "Receiveport not configured for polls");
         }

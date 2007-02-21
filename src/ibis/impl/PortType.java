@@ -4,15 +4,15 @@ package ibis.impl;
 
 import ibis.io.Replacer;
 import ibis.ipl.IbisConfigurationException;
-import ibis.ipl.PortMismatchException;
 import ibis.ipl.CapabilitySet;
 import ibis.ipl.ReceivePortConnectUpcall;
-import ibis.ipl.SendPortConnectUpcall;
+import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.ipl.TypedProperties;
 import ibis.ipl.Upcall;
 import ibis.util.GetLogger;
 
 import java.io.IOException;
+import java.util.Properties;
 
 import org.apache.log4j.Logger;
 
@@ -65,17 +65,21 @@ public abstract class PortType implements ibis.ipl.PortType,
      * @exception IbisConfigurationException is thrown when there is some
      * inconsistency in the specified capabilities.
      */
-    protected PortType(Ibis ibis, CapabilitySet p, TypedProperties tp) {
+    protected PortType(Ibis ibis, CapabilitySet p, Properties tp) {
         this.ibis = ibis;
     	this.capabilities = p;
-        this.attributes = tp;
+        if (tp != null) {
+            this.attributes = new TypedProperties(tp);
+        } else {
+            this.attributes = new TypedProperties();
+        }
 
-        numbered = p.hasCapability(COMM_NUMBERED);
-        if (p.hasCapability(SER_DATA)) {
+        numbered = p.hasCapability(COMMUNICATION_NUMBERED);
+        if (p.hasCapability(SERIALIZATION_DATA)) {
             serialization = "data";
-        } else if (p.hasCapability(SER_OBJECT)) {
+        } else if (p.hasCapability(SERIALIZATION_OBJECT)) {
             serialization = "object";
-        } else if (p.hasCapability(SER_STRICTOBJECT)) {
+        } else if (p.hasCapability(SERIALIZATION_STRICT_OBJECT)) {
             serialization = "sun";
         } else {
             serialization = "byte";
@@ -89,8 +93,8 @@ public abstract class PortType implements ibis.ipl.PortType,
 
         logger.debug("Created PortType with capabilities " + p);
 
-        this.oneToMany = capabilities.hasCapability(CONN_ONETOMANY);
-        this.manyToOne = capabilities.hasCapability(CONN_MANYTOONE);
+        this.oneToMany = capabilities.hasCapability(CONNECTION_ONE_TO_MANY);
+        this.manyToOne = capabilities.hasCapability(CONNECTION_MANY_TO_ONE);
 
         String replacerName = attributes.getProperty("serialization.replacer");
 
@@ -102,8 +106,8 @@ public abstract class PortType implements ibis.ipl.PortType,
                         "Could not locate replacer class " + replacerName);
             }
             if (replacerName != null
-                && ! capabilities.hasCapability(SER_OBJECT)
-                && ! capabilities.hasCapability(SER_STRICTOBJECT)) {
+                && ! capabilities.hasCapability(SERIALIZATION_OBJECT)
+                && ! capabilities.hasCapability(SERIALIZATION_STRICT_OBJECT)) {
                 throw new IbisConfigurationException(
                        "Object replacer specified but no object serialization");
             }
@@ -114,6 +118,10 @@ public abstract class PortType implements ibis.ipl.PortType,
 
     public CapabilitySet capabilities() {
         return capabilities;
+    }
+
+    public Properties attributes() {
+        return new Properties(attributes);
     }
 
     public ibis.ipl.SendPort createSendPort() throws IOException {
@@ -135,7 +143,7 @@ public abstract class PortType implements ibis.ipl.PortType,
     }
 
     public ibis.ipl.SendPort createSendPort(String name,
-            SendPortConnectUpcall cU) throws IOException {
+            SendPortDisconnectUpcall cU) throws IOException {
         return createSendPort(name, cU, false);
     }
 
@@ -144,7 +152,7 @@ public abstract class PortType implements ibis.ipl.PortType,
      *
      * @param name the name of this sendport.
      * @param cU object implementing the
-     * {@link SendPortConnectUpcall#lostConnection(ibis.ipl.SendPort,
+     * {@link SendPortDisconnectUpcall#lostConnection(ibis.ipl.SendPort,
      * ReceivePortIdentifier, Throwable)} method.
      * @param connectionDowncalls set when this port must keep
      * connection administration to support the lostConnections
@@ -156,16 +164,16 @@ public abstract class PortType implements ibis.ipl.PortType,
      * type does not match what is required here.
      */
     private ibis.ipl.SendPort createSendPort(String name,
-            SendPortConnectUpcall cU, boolean connectionDowncalls)
+            SendPortDisconnectUpcall cU, boolean connectionDowncalls)
             throws IOException {
         if (cU != null) {
-            if (! capabilities.hasCapability(CONN_UPCALLS)) {
+            if (! capabilities.hasCapability(CONNECTION_UPCALLS)) {
                 throw new IbisConfigurationException(
                         "no connection upcalls requested for this port type");
             }
         }
         if (connectionDowncalls) {
-            if (!capabilities.hasCapability(CONN_DOWNCALLS)) {
+            if (!capabilities.hasCapability(CONNECTION_DOWNCALLS)) {
                 throw new IbisConfigurationException(
                         "no connection downcalls requested for this port type");
             }
@@ -184,7 +192,7 @@ public abstract class PortType implements ibis.ipl.PortType,
      *
      * @param name the name of this sendport.
      * @param cU object implementing the
-     * {@link SendPortConnectUpcall#lostConnection(ibis.ipl.SendPort,
+     * {@link SendPortDisconnectUpcall#lostConnection(ibis.ipl.SendPort,
      * ReceivePortIdentifier, Throwable)} method.
      * @param connectionDowncalls set when this port must keep
      * connection administration to support the lostConnections
@@ -194,7 +202,7 @@ public abstract class PortType implements ibis.ipl.PortType,
      * created.
      */
     protected abstract ibis.ipl.SendPort doCreateSendPort(String name,
-            SendPortConnectUpcall cU, boolean connectionDowncalls)
+            SendPortDisconnectUpcall cU, boolean connectionDowncalls)
             throws IOException;
 
     public ibis.ipl.ReceivePort createReceivePort(String name)
@@ -256,25 +264,25 @@ public abstract class PortType implements ibis.ipl.PortType,
             throws IOException {
         CapabilitySet p = capabilities;
         if (cU != null) {
-            if (!p.hasCapability(CONN_UPCALLS)) {
+            if (!p.hasCapability(CONNECTION_UPCALLS)) {
                 throw new IbisConfigurationException(
                         "no connection upcalls requested for this port type");
             }
         }
         if (connectionDowncalls) {
-            if (!p.hasCapability(CONN_DOWNCALLS)) {
+            if (!p.hasCapability(CONNECTION_DOWNCALLS)) {
                 throw new IbisConfigurationException(
                         "no connection downcalls requested for this port type");
             }
         }
         if (u != null) {
-            if (!p.hasCapability(RECV_AUTOUPCALLS)
-                    && !p.hasCapability(RECV_POLLUPCALLS)) {
+            if (!p.hasCapability(RECEIVE_AUTO_UPCALLS)
+                    && !p.hasCapability(RECEIVE_POLL_UPCALLS)) {
                 throw new IbisConfigurationException(
                         "no message upcalls requested for this port type");
             }
         } else {
-            if (!p.hasCapability(RECV_EXPLICIT)) {
+            if (!p.hasCapability(RECEIVE_EXPLICIT)) {
                 throw new IbisConfigurationException(
                         "no explicit receive requested for this port type");
             }

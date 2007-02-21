@@ -3,7 +3,7 @@
 package ibis.impl.registry.tcp;
 
 import ibis.connect.controlHub.ControlHub;
-import ibis.ipl.IbisAttributes;
+import ibis.ipl.IbisFactory;
 import ibis.ipl.TypedProperties;
 import ibis.io.Conversion;
 import ibis.impl.registry.NSProps;
@@ -37,7 +37,7 @@ import org.apache.log4j.Logger;
 public class NameServer extends Thread implements Protocol {
 
     public static final TypedProperties
-            attribs = IbisAttributes.getDefaultAttributes();
+            attribs = new TypedProperties(IbisFactory.getDefaultAttributes());
 
     public static final int TCP_IBIS_NAME_SERVER_PORT_NR
             = attribs.getIntProperty(NSProps.s_port, 9826);

@@ -3,6 +3,8 @@
 package ibis.ipl;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -32,12 +34,125 @@ import java.util.jar.Manifest;
  * "capabilities" should be present in the package of this Ibis implementation,
  * and describe the specific capabilities of this Ibis implementation.
  */
-
 public final class IbisFactory implements PredefinedCapabilities {
 
     private static final String[] excludes = { "util.", "connect.", "pool.",
-            "library.",
-            "io.", "impl.", "registry.", "name", "verbose", "serialization" };
+            "library.", "io.", "impl.", "registry.", "name", "verbose",
+            "serialization" };
+
+    private static final String DEFAULT_FILE = "ibis.attributes";
+
+    /** All our own properties start with this prefix. */
+    public static final String PREFIX = "ibis.";
+
+    /** Property name of the property file. */
+    public static final String FILE = PREFIX + "file";
+
+    /** Property name for the native library path. */
+    public static final String LDPATH = PREFIX + "library.path";
+
+    /** Property name for the registry implementation. */
+    public static final String REGISTRYIMPL = PREFIX + "registry.impl";
+
+    /** Property name for the path used to find Ibis implementations. */
+    public static final String IMPLPATH = PREFIX + "impl.path";
+
+    private static final String[] defaults = new String[] {
+        REGISTRYIMPL,
+        "ibis.impl.registry.tcp.NameServerClient"
+    };
+
+    private static Properties defaultAttributes;
+
+    private static Properties getAttributeFile(String file) {
+
+        InputStream in = null;
+
+        // First, try current directory.
+        try {
+            in = new FileInputStream(file);
+        } catch (FileNotFoundException e) {
+            // ignored
+        }
+
+        // Then try classpath.
+        if (in == null) {
+            ClassLoader loader = ClassLoader.getSystemClassLoader();
+            in = loader.getResourceAsStream(file);
+
+            if (in == null) {
+                return null;
+            }
+        }
+
+        try {
+            Properties p = new Properties();
+            p.load(in);
+            return p;
+        } catch (IOException e) {
+            try {
+                in.close();
+            } catch (Exception x) {
+                // ignore
+            }
+        }
+        return null;
+    }
+
+    public static Properties getDefaultAttributes() {
+        if (defaultAttributes == null) { 
+            defaultAttributes = new Properties();
+
+            // Start by inserting the default values.            
+            for (int i=0;i<defaults.length;i+=2) { 
+                defaultAttributes.put(defaults[i], defaults[i+1]);            
+            }
+
+            // Get the properties from the commandline. 
+            // Run through filter to get all properties at the toplevel,
+            // not in some nested (default) level, so that the putAll below
+            // does what we want.
+            Properties system = System.getProperties();
+
+            // Check what property file we should load.
+            String file = system.getProperty(FILE, DEFAULT_FILE); 
+
+            // If the file is not explicitly set to null, we try to load it.
+            if (file != null) {
+
+                Properties fromFile = getAttributeFile(file);
+
+                if (fromFile == null) { 
+                    if (!file.equals(DEFAULT_FILE)) { 
+                        // If we fail to load the user specified file, we give
+                        // an error, since only the default file may fail
+                        // silently.                     
+                        System.err.println("User specified preferences \""
+                                + file + "\" not found!");
+                    }                                            
+                } else {                  
+                    // If we managed to load the file, we add the properties to
+                    // the 'defaultAttributes' possibly overwriting defaults.
+                    for (Enumeration e = fromFile.propertyNames();
+                            e.hasMoreElements();) {
+                        String key = (String) e.nextElement();
+                        String value = fromFile.getProperty(key);
+                        defaultAttributes.setProperty(key, value);
+                    }
+                }
+            }
+
+            // Finally, add the properties from the command line to the result,
+            // possibly overriding entries from file or the defaults.
+            for (Enumeration e = system.propertyNames(); e.hasMoreElements();) {
+                String key = (String) e.nextElement();
+                String value = system.getProperty(key);
+                defaultAttributes.setProperty(key, value);
+            }
+        } 
+
+        return defaultAttributes;        
+    }
 
     private Class[] implList;
 
@@ -46,21 +161,22 @@ public final class IbisFactory implements PredefinedCapabilities {
     /** The currently loaded Ibises. */
     private static ArrayList loadedIbises = new ArrayList();
 
-    private static IbisFactory defaultFactory = new IbisFactory(
-            IbisAttributes.getDefaultAttributes());
+    private static IbisFactory defaultFactory
+            = new IbisFactory(getDefaultAttributes());
 
-    private TypedProperties attribs;
+    private Properties attribs;
 
     /**
      * Private constructor prevents creation from outside.
      */
-    private IbisFactory(TypedProperties attribs) {
+    private IbisFactory(Properties attribs) {
         this.attribs = attribs;
         // Check capabilities
-        attribs.checkProperties(IbisAttributes.PREFIX, new String[] {},
+        TypedProperties tp = new TypedProperties(attribs);
+        tp.checkProperties(PREFIX, new String[] {},
                 excludes, true);
         // Obtain a list of Ibis implementations
-        String implPathValue = attribs.getProperty(IbisAttributes.IMPLPATH);
+        String implPathValue = attribs.getProperty(IMPLPATH);
         ClassLister clstr = ClassLister.getClassLister(implPathValue);
         List compnts = clstr.getClassList("Ibis-Implementation", Ibis.class);
         implList = (Class[]) compnts.toArray(new Class[0]);
@@ -91,7 +207,7 @@ public final class IbisFactory implements PredefinedCapabilities {
      */
     public void loadLibrary(String name) throws SecurityException,
             UnsatisfiedLinkError {
-        String libPath = attribs.getProperty(IbisAttributes.LDPATH);
+        String libPath = attribs.getProperty(LDPATH);
         String sep = System.getProperty("file.separator");
 
         if (libPath != null) {
@@ -116,7 +232,7 @@ public final class IbisFactory implements PredefinedCapabilities {
 
         try {
             impl = (Ibis) c.getConstructor(new Class[] {ResizeHandler.class,
-                    CapabilitySet.class, TypedProperties.class}).newInstance(
+                    CapabilitySet.class, Properties.class}).newInstance(
                         new Object[] {resizeHandler, caps, attribs});
         } catch (java.lang.reflect.InvocationTargetException e) {
             throw e.getCause();
@@ -164,7 +280,7 @@ public final class IbisFactory implements PredefinedCapabilities {
      *  instantiated.
      */
     public static Ibis createIbis(CapabilitySet requiredCapabilities,
-            CapabilitySet optionalCapabilities, TypedProperties attributes,
+            CapabilitySet optionalCapabilities, Properties attributes,
             ResizeHandler r) throws NoMatchingIbisException, NestedException {
 
         IbisFactory fac;
@@ -172,9 +288,13 @@ public final class IbisFactory implements PredefinedCapabilities {
         if (attributes == null) {
             fac = defaultFactory;
         } else {
-            TypedProperties tp =
-                    new TypedProperties(IbisAttributes.getDefaultAttributes());
-            tp.putAll(attributes);
+            Properties tp = getDefaultAttributes();
+            for (Enumeration e = attributes.propertyNames();
+                    e.hasMoreElements();) {
+                String key = (String) e.nextElement();
+                String value = attributes.getProperty(key);
+                defaultAttributes.setProperty(key, value);
+            }
             fac = new IbisFactory(tp);
         }
 
@@ -197,8 +317,8 @@ public final class IbisFactory implements PredefinedCapabilities {
             total = requiredCapabilities;
         }
 
-        if (total.hasCapability(WORLD_OPEN) &&
-            total.hasCapability(WORLD_CLOSED)) {
+        if (total.hasCapability(WORLDMODEL_OPEN) &&
+            total.hasCapability(WORLDMODEL_CLOSED)) {
             throw new IbisConfigurationException("It is not allowed to ask for "
                     + "open world as well as closed world");
         }

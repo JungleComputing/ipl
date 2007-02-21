@@ -149,21 +149,20 @@ public final class Communication implements Config, Protocol,
 
     public CapabilitySet createIbisProperties() {
         CapabilitySet ibisProperties = new CapabilitySet(
-                CLOSED ? WORLD_CLOSED : WORLD_OPEN,
-                SER_BYTE, SER_DATA, SER_OBJECT,
-                COMM_RELIABLE,
-                CONN_ONETOMANY, CONN_MANYTOONE, CONN_UPCALLS,
-                CONN_DOWNCALLS,
-                RECV_EXPLICIT, RECV_AUTOUPCALLS);
+                CLOSED ? WORLDMODEL_CLOSED : WORLDMODEL_OPEN,
+                SERIALIZATION_BYTE, SERIALIZATION_DATA, SERIALIZATION_OBJECT,
+                COMMUNICATION_RELIABLE, CONNECTION_ONE_TO_MANY,
+                CONNECTION_MANY_TO_ONE, CONNECTION_UPCALLS,
+                CONNECTION_DOWNCALLS, RECEIVE_EXPLICIT, RECEIVE_AUTO_UPCALLS);
 
         return ibisProperties;
     }
 
     public PortType createSatinPortType() throws IOException {
         CapabilitySet satinPortProperties = new CapabilitySet(
-                SER_OBJECT, COMM_RELIABLE,
-                CONN_MANYTOONE, CONN_UPCALLS, CONN_DOWNCALLS,
-                RECV_EXPLICIT, RECV_AUTOUPCALLS);
+                SERIALIZATION_OBJECT, COMMUNICATION_RELIABLE,
+                CONNECTION_MANY_TO_ONE, CONNECTION_UPCALLS,
+                CONNECTION_DOWNCALLS, RECEIVE_EXPLICIT, RECEIVE_AUTO_UPCALLS);
 
         return ibis.createPortType(satinPortProperties);
     }
@@ -172,8 +171,8 @@ public final class Communication implements Config, Protocol,
     // It does not do multicast, and does not need serialization.
     public PortType createBarrierPortType() throws IOException {
         CapabilitySet s = new CapabilitySet(
-                SER_BYTE, COMM_RELIABLE,
-                CONN_MANYTOONE, RECV_EXPLICIT);
+                SERIALIZATION_BYTE, COMMUNICATION_RELIABLE,
+                CONNECTION_MANY_TO_ONE, RECEIVE_EXPLICIT);
         return this.ibis.createPortType(s);
     }
 

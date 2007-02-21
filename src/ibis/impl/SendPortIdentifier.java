@@ -78,7 +78,7 @@ public class SendPortIdentifier implements ibis.ipl.SendPortIdentifier,
      * @return the coded form.
      */
     public byte[] toBytes() {
-        return codedForm;
+        return (byte[]) codedForm.clone();
     }
 
     private byte[] computeCodedForm() {

@@ -2,7 +2,7 @@
 
 package ibis.io;
 
-import ibis.ipl.IbisAttributes;
+import ibis.ipl.IbisFactory;
 import ibis.ipl.TypedProperties;
 
 /**
@@ -10,7 +10,7 @@ import ibis.ipl.TypedProperties;
  */
 class IOProps {
     static final TypedProperties attribs
-            = IbisAttributes.getDefaultAttributes();
+            = new TypedProperties(IbisFactory.getDefaultAttributes());
 
     static final String PROPERTY_PREFIX = "ibis.io.";
 

@@ -136,8 +136,8 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
 
         no_connectionhandler_thread = upcall == null && connUpcall == null
                 && !type.manyToOne
-                && !type.capabilities().hasCapability(RECV_POLL)
-                && !type.capabilities().hasCapability(RECV_TIMEOUT);
+                && !type.capabilities().hasCapability(RECEIVE_POLL)
+                && !type.capabilities().hasCapability(RECEIVE_TIMEOUT);
     }
 
     protected void messageArrived(ReadMessage msg) {
