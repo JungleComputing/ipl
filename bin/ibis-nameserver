@@ -34,8 +34,8 @@ esac
 LIBCLASSPATH=""
 
 add_to_libclasspath () {
-    DIRLIBS=`cd "$1" && ls *.jar 2>/dev/null`
-    for i in ${DIRLIBS}
+    JARS=`cd "$1" && ls *.jar 2>/dev/null`
+    for i in ${JARS}
     do
 	if [ -z "$LIBCLASSPATH" ] ; then
 	    LIBCLASSPATH="$1/$i"
@@ -58,8 +58,6 @@ CYGWIN*)
     ;;
 esac
 
-Ddefines=
-
 args=
 javaargs=
 
@@ -70,24 +68,12 @@ Usage:
 
 The nameserver parameters are:
 -single
-    make the nameserver only serve a single Ibis run. (In fact, it will
-    server more than one run, but will exit as soon as no more runs are
-    active).
--port <portno>
-    make the nameserver listen to port number <portno>. The default
-    port number is 9826.
--ns-port <portno>
-    same as "-port".
+    make the nameserver only serve a single Ibis run.
 -poolserver
     make the nameserver start a pool server (see ibis.util.PoolInfo in the
     Ibis API). This is the default.
 -no-poolserver
     with this option, the nameserver does not start a pool server.
--poolport <poolportno>
-    make the poolserver listen to port number <poolportno>. The default
-    port number is the nameserver port number + 1.
--checker <interval>
-    check all pools every <interval> seconds. Default is no checks.
 -v
 -verbose
     make the nameserver verbose
@@ -109,23 +95,8 @@ do
     -\?|-h|-help|--help)
 	usage
 	;;
-    -checker)
-	shift
-	Ddefines="$Ddefines -Dibis.registry.checkerInterval=$1"
-	;;
-    -poolserver|-no-poolserver|-single)
+    -poolserver|-no-poolserver|-single|-v|-verbose)
 	args="$args $1"
-	;;
-    -v|-verbose)
-	args="$args -verbose"
-	;;
-    -port|-ns-port)
-	shift
-	Ddefines="$Ddefines -Dibis.registry.port=$1"
-	;;
-    -poolport|-pool-port)
-	shift
-	Ddefines="$Ddefines -Dibis.pool.server.port=$1"
 	;;
     *)
 	javaargs="$javaargs $1"
@@ -143,4 +114,4 @@ X)
     ;;
 esac
 
-"$JAVA" -classpath "$JAVACLASSPATH" $Ddefines $javaargs ibis.impl.registry.tcp.NameServer $args
+"$JAVA" -classpath "$JAVACLASSPATH" $javaargs ibis.impl.registry.tcp.NameServer $args

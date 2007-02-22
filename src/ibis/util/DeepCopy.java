@@ -5,14 +5,14 @@ package ibis.util;
 // This code is not in the ibisUtil package, because we do not want
 // the ibisUtil package to depend on ibis.io.
 
-import java.io.IOException;
-import java.io.Serializable;
-
-import java.util.Hashtable;
-
 import ibis.io.SerializationBase;
 import ibis.io.SerializationInput;
 import ibis.io.SerializationOutput;
+import ibis.ipl.IbisFactory;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.Hashtable;
 
 /**
  * Exports a single static method that creates a deep copy of any
@@ -20,8 +20,11 @@ import ibis.io.SerializationOutput;
  */
 public class DeepCopy {
 
+    static TypedProperties props
+            = new TypedProperties(IbisFactory.getDefaultAttributes());
+
     private static final String serialization
-            = TypedProperties.stringProperty("deepcopy.serialization", "ibis");
+            = props.getProperty("deepcopy.serialization", "ibis");
 
     /** Prevent creation of a DeepCopy object. */
     private DeepCopy() {

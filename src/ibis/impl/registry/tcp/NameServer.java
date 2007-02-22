@@ -502,7 +502,7 @@ public class NameServer extends Thread implements Protocol {
 
         seq = new Sequencer();
 
-        String poolPort = System.getProperty("ibis.pool.server.port");
+        String poolPort = attribs.getProperty("ibis.pool.server.port");
         int port = TCP_IBIS_NAME_SERVER_PORT_NR;
 
         if (! silent && logger.isInfoEnabled()) {
@@ -1658,10 +1658,7 @@ public class NameServer extends Thread implements Protocol {
         }
 
         if (!single) {
-            Properties p = System.getProperties();
-            String singleS = p.getProperty(NSProps.s_single);
-
-            single = (singleS != null && singleS.equals("true"));
+            single = attribs.booleanProperty(NSProps.s_single);
         }
 
         ns = createNameServer(single, retry, pool_server, silent);
