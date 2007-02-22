@@ -2,7 +2,6 @@
 
 package ibis.impl.registry.tcp;
 
-import ibis.connect.IbisSocketFactory;
 import ibis.impl.registry.NSProps;
 import ibis.impl.Ibis;
 import ibis.impl.IbisIdentifier;
@@ -21,6 +20,7 @@ import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.StreamCorruptedException;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -57,8 +57,6 @@ public class NameServerClient extends ibis.impl.Registry
     private int localPort;
 
     private boolean left = false;
-
-    static IbisSocketFactory socketFactory = IbisSocketFactory.getFactory();
 
     private static Logger logger
             = ibis.util.GetLogger.getLogger(NameServerClient.class.getName());
@@ -109,8 +107,8 @@ public class NameServerClient extends ibis.impl.Registry
 
         logger.debug("Found nameServerInet " + serverAddress);
 
-        serverSocket = socketFactory.createServerSocket(0, myAddress, 50, true,
-                null);
+        serverSocket = new ServerSocket();
+        serverSocket.bind(new InetSocketAddress(myAddress, 0), 50);
 
         localPort = serverSocket.getLocalPort();
 
@@ -207,9 +205,10 @@ public class NameServerClient extends ibis.impl.Registry
         while (s == null) {
             try {
                 cnt++;
-                s = socketFactory.createClientSocket(dest, port, me, 0, -1, null);
+                s = NameServer.createClientSocket(
+                        new InetSocketAddress(dest, port), 1000);
             } catch (IOException e) {
-                if (cnt == timeout) {
+                if (cnt >= timeout) {
                     if (verbose) {
                         logger.error("Nameserver client " + me + " failed"
                                 + " to connect to nameserver\n at "
@@ -239,7 +238,7 @@ public class NameServerClient extends ibis.impl.Registry
         if (System.getProperty("os.name").matches(".*indows.*")) {
             // The code below does not work for windows2000, don't know why ...
             NameServer n = NameServer.createNameServer(true, false, false,
-                    false, true);
+                    true);
             if (n != null) {
                 n.setDaemon(true);
                 n.start();
@@ -256,36 +255,16 @@ public class NameServerClient extends ibis.impl.Registry
                 javadir = javadir.substring(0, javadir.length()-4);
             }
 
-            String conn = System.getProperty("ibis.connect.control_links");
-            String hubhost = null;
-            String hubport = null;
-            if (conn != null && conn.equals("RoutedMessages")) {
-                hubhost = System.getProperty("ibis.connect.hub.host");
-                if (hubhost == null) {
-                    hubhost = srvr;
-                }
-                hubport = System.getProperty("ibis.connect.hub.port");
-            }
-
             ArrayList<String> command = new ArrayList<String>();
             command.add(javadir + filesep + "bin" + filesep + "java");
             command.add("-classpath");
             command.add(javapath + pathsep);
             command.add("-Dibis.registry.port="+prt);
-            if (hubhost != null && ! srvr.equals(hubhost)) {
-                command.add("-Dibis.connect.hub.host=" + hubhost);
-            }
-            if (hubport != null) {
-                command.add("-Dibis.connect.hub.port=" + hubport);
-            }
             command.add("ibis.impl.registry.tcp.NameServer");
             command.add("-single");
             command.add("-no-retry");
             command.add("-silent");
             command.add("-no-poolserver");
-            if (hubhost != null && hubhost.equals(srvr)) {
-                command.add("-controlhub");
-            }
 
             final String[] cmd = (String[]) command.toArray(new String[0]);
 

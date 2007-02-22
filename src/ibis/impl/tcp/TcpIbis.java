@@ -68,7 +68,6 @@ public final class TcpIbis extends ibis.impl.Ibis
         }
 
         systemServer = new ServerSocket();
-        systemServer.setReceiveBufferSize(0x10000); // before the bind!
         local = new InetSocketAddress(addr, 0);
         systemServer.bind(local, 50);
         myAddress = new InetSocketAddress(addr, systemServer.getLocalPort());
@@ -267,10 +266,9 @@ public final class TcpIbis extends ibis.impl.Ibis
     private Socket createClientSocket(InetSocketAddress local,
             InetSocketAddress remote, int timeout) throws IOException {
         Socket s = new Socket();
-        s.setReceiveBufferSize(0x10000); // before the bind!
         s.bind(local);
         s.connect(remote, timeout);
-        tuneSocket(s);
+        s.setTcpNoDelay(true);
         return s;
     }
 
@@ -284,7 +282,7 @@ public final class TcpIbis extends ibis.impl.Ibis
             logger.debug("--> TcpIbis doing new accept()");
             try {
                 s = systemServer.accept();
-                tuneSocket(s);
+                s.setTcpNoDelay(true);
             } catch (Throwable e) {
                 /* if the accept itself fails, we have a fatal problem. */
                 logger.fatal("TcpIbis:run: got fatal exception in accept! ", e);
@@ -311,11 +309,6 @@ public final class TcpIbis extends ibis.impl.Ibis
                         + "(closing this socket only: ", e);
             }
         }
-    }
-
-    private void tuneSocket(Socket s) throws IOException {
-        s.setTcpNoDelay(true);
-        s.setSendBufferSize(0x10000);
     }
 
     private void cleanup() {

@@ -2,7 +2,6 @@
 
 package ibis.impl.registry.tcp;
 
-import ibis.connect.controlHub.ControlHub;
 import ibis.ipl.IbisFactory;
 import ibis.ipl.TypedProperties;
 import ibis.io.Conversion;
@@ -22,6 +21,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Enumeration;
@@ -266,8 +266,8 @@ public class NameServer extends Thread implements Protocol {
             DataOutputStream out2 = null;
 
             try {
-                s = NameServerClient.socketFactory.createClientSocket(
-                        addr, port, null, CONNECT_TIMEOUT);
+                s = createClientSocket(new InetSocketAddress(addr, port),
+                        CONNECT_TIMEOUT);
                 out2 = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
                 out2.writeByte(message);
                 out2.writeInt(ids.length);
@@ -278,6 +278,15 @@ public class NameServer extends Thread implements Protocol {
                 closeConnection(null, out2, s);
             }
         }
+    }
+
+    static Socket createClientSocket(InetSocketAddress remote, int timeout)
+            throws IOException {
+        Socket s = new Socket();
+        s.bind(null);
+        s.connect(remote, timeout);
+        s.setTcpNoDelay(true);
+        return s;
     }
 
     static class RunInfo {
@@ -310,8 +319,7 @@ public class NameServer extends Thread implements Protocol {
             arrayPool = new ArrayList();
             pool = new Hashtable();
             leavers = new ArrayList();
-            electionServer = new ElectionServer(silent,
-                    NameServerClient.socketFactory);
+            electionServer = new ElectionServer(silent);
             electionKiller = new DeadNotifier(this, myAddress,
                     electionServer.getPort(), ELECTION_KILL);
             ThreadPool.createNew(electionKiller, "ElectionKiller");
@@ -364,8 +372,6 @@ public class NameServer extends Thread implements Protocol {
     private boolean joined;
 
     boolean silent;
-
-    private ControlHub controlHub = null;
 
     private Sequencer seq;
 
@@ -474,8 +480,8 @@ public class NameServer extends Thread implements Protocol {
         }
     }
 
-    private NameServer(boolean singleRun, boolean poolserver,
-            boolean controlhub, boolean silent) throws IOException {
+    private NameServer(boolean singleRun, boolean poolserver, boolean silent)
+            throws IOException {
 
         this.singleRun = singleRun;
         this.joined = false;
@@ -483,27 +489,11 @@ public class NameServer extends Thread implements Protocol {
 
         seq = new Sequencer();
 
-        String hubPort = System.getProperty("ibis.connect.hub.port");
         String poolPort = System.getProperty("ibis.pool.server.port");
         int port = TCP_IBIS_NAME_SERVER_PORT_NR;
 
         if (! silent && logger.isInfoEnabled()) {
             logger.info("Creating nameserver on " + myAddress);
-        }
-
-        if (controlhub) {
-            if (hubPort == null) {
-                hubPort = Integer.toString(port + 2);
-                System.setProperty("ibis.connect.hub.port", hubPort);
-            }
-            try {
-                controlHub = new ControlHub();
-                controlHub.setDaemon(true);
-                controlHub.start();
-                Thread.sleep(2000); // Give it some time to start up
-            } catch (Throwable e) {
-                throw new IOException("Could not start control hub" + e);
-            }
         }
 
         if (poolserver) {
@@ -539,8 +529,9 @@ public class NameServer extends Thread implements Protocol {
         }
 
         // Create a server socket.
-        serverSocket = NameServerClient.socketFactory.createServerSocket(port,
-                null, 256, false, null);
+
+        serverSocket = new ServerSocket();
+        serverSocket.bind(new InetSocketAddress(myAddress, port), 256);
 
         pools = new Hashtable();
 
@@ -806,8 +797,9 @@ public class NameServer extends Thread implements Protocol {
             // QUICK HACK -- JASON
             for (int h=0;h<3;h++) { 
                 try {
-                    s = NameServerClient.socketFactory.createClientSocket(
-                            dest.ibisNameServerAddress, dest.ibisNameServerport, null, CONNECT_TIMEOUT);
+                    s = createClientSocket(
+                            new InetSocketAddress(dest.ibisNameServerAddress,
+                                dest.ibisNameServerport), CONNECT_TIMEOUT);
                     out2 = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
                     out2.writeByte(message);
                     out2.writeInt(info.length - offset);
@@ -912,8 +904,9 @@ public class NameServer extends Thread implements Protocol {
             DataInputStream in2 = null;
 
             try {
-                s = NameServerClient.socketFactory.createClientSocket(
-                        dest.ibisNameServerAddress, dest.ibisNameServerport, null, CONNECT_TIMEOUT);
+                s = createClientSocket(
+                        new InetSocketAddress(dest.ibisNameServerAddress,
+                            dest.ibisNameServerport), CONNECT_TIMEOUT);
                 out2 = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
                 out2.writeByte(IBIS_PING);
                 out2.flush();
@@ -1246,8 +1239,9 @@ public class NameServer extends Thread implements Protocol {
         p.electionKiller.quit();
         
         try {
-            s3 = NameServerClient.socketFactory.createClientSocket(myAddress,
-                    p.electionServer.getPort(), null);
+            s3 = createClientSocket(
+                new InetSocketAddress(myAddress, p.electionServer.getPort()),
+                0);
             out3 = new DataOutputStream(new BufferedOutputStream(s3.getOutputStream()));
             out3.writeByte(ELECTION_EXIT);
         } catch (IOException e) {
@@ -1469,10 +1463,6 @@ public class NameServer extends Thread implements Protocol {
             throw new RuntimeException("NameServer got an error", e);
         }
 
-        if (controlHub != null) {
-            controlHub.waitForCount(1);
-        }
-
         if (! silent && logger.isInfoEnabled()) {
             logger.info("NameServer: exit");
         }
@@ -1554,12 +1544,11 @@ public class NameServer extends Thread implements Protocol {
     }
 
     public static synchronized NameServer createNameServer(boolean singleRun,
-            boolean retry, boolean poolserver, boolean controlhub,
-            boolean silent) {
+            boolean retry, boolean poolserver, boolean silent) {
         NameServer ns = null;
         while (true) {
             try {
-                ns = new NameServer(singleRun, poolserver, controlhub, silent);
+                ns = new NameServer(singleRun, poolserver, silent);
                 break;
             } catch (Throwable e) {
                 if (retry) {
@@ -1625,7 +1614,6 @@ public class NameServer extends Thread implements Protocol {
     public static void main(String[] args) {
         boolean single = false;
         boolean silent = false;
-        boolean control_hub = false;
         boolean pool_server = true;
         boolean retry = true;
         NameServer ns = null;
@@ -1640,10 +1628,6 @@ public class NameServer extends Thread implements Protocol {
                 retry = true;
             } else if (args[i].equals("-no-retry")) {
                 retry = false;
-            } else if (args[i].equals("-controlhub")) {
-                control_hub = true;
-            } else if (args[i].equals("-no-controlhub")) {
-                control_hub = false;
             } else if (args[i].equals("-poolserver")) {
                 pool_server = true;
             } else if (args[i].equals("-no-poolserver")) {
@@ -1667,7 +1651,7 @@ public class NameServer extends Thread implements Protocol {
             single = (singleS != null && singleS.equals("true"));
         }
 
-        ns = createNameServer(single, retry, pool_server, control_hub, silent);
+        ns = createNameServer(single, retry, pool_server, silent);
 
         try {
             if (ns == null) {

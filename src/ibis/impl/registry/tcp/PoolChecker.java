@@ -2,7 +2,6 @@
 
 package ibis.impl.registry.tcp;
 
-import ibis.connect.IbisSocketFactory;
 import ibis.impl.registry.NSProps;
 import ibis.util.IPUtils;
 
@@ -18,9 +17,6 @@ import java.util.Properties;
 import org.apache.log4j.Logger;
 
 public class PoolChecker implements Protocol {
-
-    private static IbisSocketFactory socketFactory 
-        = IbisSocketFactory.getFactory();
 
     private static Logger logger
             = ibis.util.GetLogger.getLogger(PoolChecker.class.getName());
@@ -133,8 +129,8 @@ public class PoolChecker implements Protocol {
         DataInputStream in = null;
 
         try {
-            s = socketFactory.createClientSocket(serverAddress, port, 
-                    myAddress, 0, -1, null);
+            s = NameServerClient.nsConnect(serverAddress, port, myAddress,
+                    false, 5);
 
             out = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
             logger.debug("PoolChecker: contacting nameserver");
