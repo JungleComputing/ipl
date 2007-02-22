@@ -8,7 +8,6 @@ import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.ReceiveTimedOutException;
 import ibis.ipl.CapabilitySet;
 import ibis.ipl.Upcall;
-import ibis.util.GetLogger;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -26,7 +25,7 @@ public abstract class ReceivePort implements ibis.ipl.ReceivePort,
 
     /** Debugging output. */
     private static final Logger logger
-            = GetLogger.getLogger("ibis.impl.ReceivePort");
+            = Logger.getLogger("ibis.impl.ReceivePort");
 
     // Possible results of a connection attempt.
 

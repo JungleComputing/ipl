@@ -25,7 +25,6 @@ import ibis.rmi.server.ExportException;
 import ibis.rmi.server.RemoteRef;
 import ibis.rmi.server.RemoteStub;
 import ibis.rmi.server.SkeletonNotFoundException;
-import ibis.util.GetLogger;
 import ibis.util.IPUtils;
 import ibis.util.Timer;
 
@@ -33,6 +32,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.Properties;
 
 import org.apache.log4j.Logger;
 
@@ -40,13 +40,16 @@ import colobus.Colobus;
 
 public final class RTS implements ibis.ipl.PredefinedCapabilities {
 
+    static TypedProperties attribs
+            = new TypedProperties(IbisFactory.getDefaultAttributes());
+
     static final String prefix = "rmi.";
 
     static final String s_timer = prefix + "timer";
 
     static final String[] props = { s_timer };
 
-    public static Logger logger = GetLogger.getLogger(RTS.class.getName());
+    public static Logger logger = Logger.getLogger(RTS.class.getName());
 
     /** Sent when a remote invocation resulted in an exception. */
     public final static byte EXCEPTION = 0;
@@ -289,14 +292,15 @@ public final class RTS implements ibis.ipl.PredefinedCapabilities {
             CapabilitySet replyProps = new CapabilitySet(
                 SERIALIZATION_OBJECT, COMMUNICATION_RELIABLE, RECEIVE_EXPLICIT);
 
-            TypedProperties tp = new TypedProperties(ibis.attributes());
+            Properties tp = ibis.attributes();
+
             tp.setProperty("serialization.replacer",
                     "ibis.rmi.impl.RMIReplacer");
 
-            enableRMITimer = tp.booleanProperty(s_timer);
-
             requestPortType = ibis.createPortType(requestProps, tp);
             replyPortType = ibis.createPortType(replyProps, tp);
+
+            enableRMITimer = attribs.booleanProperty(s_timer);
 
             skeletonReceivePort = requestPortType.createReceivePort("//"
                     + hostname + "/rmi_skeleton"

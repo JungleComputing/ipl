@@ -40,14 +40,8 @@ set JAVA_EXEC=java
 
 set action=
 
-rem
-rem nameserver defaults
-rem
-
-call "%IBIS_HOME%\bin\ns-env"
-
-set Dns_port="-Dibis.registry.port=%IBIS_NAMESERVER_PORT%"
-set Dns_pool="-Dibis.registry.pool=no_pool_supplied"
+set Dns_port=
+set Dns_pool=
 
 rem
 rem parse arguments

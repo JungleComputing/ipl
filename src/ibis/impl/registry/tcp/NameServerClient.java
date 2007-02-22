@@ -58,8 +58,7 @@ public class NameServerClient extends ibis.impl.Registry
 
     private boolean left = false;
 
-    private static Logger logger
-            = ibis.util.GetLogger.getLogger(NameServerClient.class.getName());
+    private static Logger logger = Logger.getLogger(NameServerClient.class);
 
     public NameServerClient(Ibis ibis, boolean ndsUpcalls, byte[] data)
             throws IOException, IbisConfigurationException {

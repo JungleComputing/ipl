@@ -18,8 +18,7 @@ import org.apache.log4j.Logger;
 
 public class PoolChecker implements Protocol {
 
-    private static Logger logger
-            = ibis.util.GetLogger.getLogger(PoolChecker.class.getName());
+    private static Logger logger = Logger.getLogger(PoolChecker.class);
 
     private String poolName;
     private String serverHost;

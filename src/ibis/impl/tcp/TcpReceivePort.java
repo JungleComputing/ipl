@@ -14,7 +14,6 @@ import ibis.io.Conversion;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.ReceiveTimedOutException;
 import ibis.ipl.Upcall;
-import ibis.util.GetLogger;
 import ibis.util.ThreadPool;
 
 import java.io.IOException;
@@ -26,7 +25,7 @@ import org.apache.log4j.Logger;
 class TcpReceivePort extends ReceivePort implements TcpProtocol {
 
     private static final Logger logger
-            = GetLogger.getLogger("ibis.impl.tcp.TcpReceivePort");
+            = Logger.getLogger("ibis.impl.tcp.TcpReceivePort");
 
     class ConnectionHandler extends ReceivePortConnectionInfo 
             implements Runnable, TcpProtocol {

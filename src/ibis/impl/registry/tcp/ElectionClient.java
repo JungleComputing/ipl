@@ -15,8 +15,7 @@ import java.net.Socket;
 import org.apache.log4j.Logger;
 
 class ElectionClient implements Protocol {
-    static Logger logger
-    = ibis.util.GetLogger.getLogger(ElectionClient.class.getName());
+    static Logger logger = Logger.getLogger(ElectionClient.class);
 
     InetAddress server;
 

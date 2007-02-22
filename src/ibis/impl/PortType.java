@@ -9,7 +9,6 @@ import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.ipl.TypedProperties;
 import ibis.ipl.Upcall;
-import ibis.util.GetLogger;
 
 import java.io.IOException;
 import java.util.Properties;
@@ -24,8 +23,7 @@ public abstract class PortType implements ibis.ipl.PortType,
         ibis.ipl.PredefinedCapabilities {
 
     /** Debugging output. */
-    private static final Logger logger
-            = GetLogger.getLogger("ibis.impl.PortType");
+    private static final Logger logger = Logger.getLogger("ibis.impl.PortType");
 
     /** Counter for allocating names for anonymous sendports. */
     private static int send_counter = 0;

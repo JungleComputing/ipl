@@ -20,6 +20,11 @@ import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
+import org.apache.log4j.Logger;
+import org.apache.log4j.Level;
+import org.apache.log4j.PatternLayout;
+import org.apache.log4j.WriterAppender;
+
 /**
  * This is the class responsible for starting an Ibis instance.
  * During initialization, this class determines which Ibis implementations
@@ -36,11 +41,22 @@ import java.util.jar.Manifest;
  */
 public final class IbisFactory implements PredefinedCapabilities {
 
+    static {
+        Logger ibisLogger = Logger.getLogger("ibis");
+        if (!ibisLogger.getAllAppenders().hasMoreElements()) {
+            // No appenders defined, print to standard out by default
+            PatternLayout layout = new PatternLayout("%d{HH:mm:ss} %-5p %m%n");
+            WriterAppender appender = new WriterAppender(layout, System.err);
+            ibisLogger.addAppender(appender);
+            ibisLogger.setLevel(Level.WARN);
+        }
+    }
+
     private static final String[] excludes = { "util.", "connect.", "pool.",
             "library.", "io.", "impl.", "registry.", "name", "verbose",
             "serialization" };
 
-    private static final String DEFAULT_FILE = "ibis.attributes";
+    private static final String ATTRIBUTES_FILENAME = "ibis-attributes";
 
     /** All our own properties start with this prefix. */
     public static final String PREFIX = "ibis.";
@@ -51,16 +67,8 @@ public final class IbisFactory implements PredefinedCapabilities {
     /** Property name for the native library path. */
     public static final String LDPATH = PREFIX + "library.path";
 
-    /** Property name for the registry implementation. */
-    public static final String REGISTRYIMPL = PREFIX + "registry.impl";
-
     /** Property name for the path used to find Ibis implementations. */
     public static final String IMPLPATH = PREFIX + "impl.path";
-
-    private static final String[] defaults = new String[] {
-        REGISTRYIMPL,
-        "ibis.impl.registry.tcp.NameServerClient"
-    };
 
     private static Properties defaultAttributes;
 
@@ -99,46 +107,65 @@ public final class IbisFactory implements PredefinedCapabilities {
         return null;
     }
 
+    private static void load(InputStream in) {
+        if (in != null) {
+            try {
+                defaultAttributes.load(in);
+            } catch(IOException e) {
+                // ignored
+            } finally {
+                try {
+                    in.close();
+                } catch(Throwable e1) {
+                    // ignored
+                }
+            }
+        }
+    }
+
     public static Properties getDefaultAttributes() {
         if (defaultAttributes == null) { 
+            InputStream in = null;
+
             defaultAttributes = new Properties();
-
-            // Start by inserting the default values.            
-            for (int i=0;i<defaults.length;i+=2) { 
-                defaultAttributes.put(defaults[i], defaults[i+1]);            
-            }
-
             // Get the properties from the commandline. 
-            // Run through filter to get all properties at the toplevel,
-            // not in some nested (default) level, so that the putAll below
-            // does what we want.
             Properties system = System.getProperties();
 
-            // Check what property file we should load.
-            String file = system.getProperty(FILE, DEFAULT_FILE); 
+            // Then get the default properties from the classpath:
+            ClassLoader loader = ClassLoader.getSystemClassLoader();
+            in = loader.getResourceAsStream(ATTRIBUTES_FILENAME);
 
-            // If the file is not explicitly set to null, we try to load it.
+            load(in);
+
+            // Then see if there is an ibis-attributes file in the users
+            // home directory.
+            String fn = system.getProperty("user.home") +
+                system.getProperty("file.separator") + ATTRIBUTES_FILENAME;
+            try {
+                in = new FileInputStream(fn);
+                load(in);
+            } catch (FileNotFoundException e) {
+                // ignored
+            }
+
+            // Then see if there is an ibis-attributes file in the current
+            // directory.
+            try {
+                in = new FileInputStream(ATTRIBUTES_FILENAME);
+                load(in);
+            } catch (FileNotFoundException e) {
+                // ignored
+            }
+
+            // Then see if the user specified an attributes file.
+            String file = system.getProperty(FILE); 
             if (file != null) {
-
-                Properties fromFile = getAttributeFile(file);
-
-                if (fromFile == null) { 
-                    if (!file.equals(DEFAULT_FILE)) { 
-                        // If we fail to load the user specified file, we give
-                        // an error, since only the default file may fail
-                        // silently.                     
-                        System.err.println("User specified preferences \""
-                                + file + "\" not found!");
-                    }                                            
-                } else {                  
-                    // If we managed to load the file, we add the properties to
-                    // the 'defaultAttributes' possibly overwriting defaults.
-                    for (Enumeration e = fromFile.propertyNames();
-                            e.hasMoreElements();) {
-                        String key = (String) e.nextElement();
-                        String value = fromFile.getProperty(key);
-                        defaultAttributes.setProperty(key, value);
-                    }
+                try {
+                    in = new FileInputStream(file);
+                    load(in);
+                } catch (FileNotFoundException e) {
+                    System.err.println("User specified preferences \""
+                            + file + "\" not found!");
                 }
             }
 

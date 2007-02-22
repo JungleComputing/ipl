@@ -13,11 +13,8 @@ set ConnectHub="-Dibis.connect.control_links=RoutedMessages -Dibis.connect.data_
 
 set NS_ARGS=
 set JAVA_ARGS=
-set Dhub=
 set Dport=
 set Dpoolport=
-set Dhubport=
-set Dhubhost=
 
 :setupArgs
 
@@ -48,11 +45,6 @@ if "%1"=="-verbose" (
     goto nextarg
 )
 
-if "%1"=="-no-controlhub" (
-    set NS_ARGS=%NS_ARGS% -no-controlhub
-    goto nextarg
-)
-
 if "%1"=="-?" (
     goto usage
 )
@@ -67,12 +59,6 @@ if "%1"=="-help" (
 
 if "%1"=="--help" (
     goto usage
-)
-
-if "%1"=="-controlhub" (
-    set Dhub=%ConnectHub%
-    set NS_ARGS=%NS_ARGS% -controlhub
-    goto nextarg
 )
 
 if "%1"=="-port" (
@@ -99,34 +85,6 @@ if "%1"=="-pool-port" (
     goto nextarg
 )
 
-if "%1"=="-hubport" (
-    set Dhubport="-Dibis.connect.hub.port=%2"
-    set Dhub=%ConnectHub%
-    shift
-    goto nextarg
-)
-
-if "%1"=="-hub-port" (
-    set Dhubport="-Dibis.connect.hub.port=%2"
-    set Dhub=%ConnectHub%
-    shift
-    goto nextarg
-)
-
-if "%1"=="-hubhost" (
-    set Dhubhost="-Dibis.connect.hub.host=%2"
-    set Dhub=%ConnectHub%
-    shift
-    goto nextarg
-)
-
-if "%1"=="-hub-host" (
-    set Dhubhost="-Dibis.connect.hub.host=%2"
-    set Dhub=%ConnectHub%
-    shift
-    goto nextarg
-)
-
 set JAVA_ARGS=%JAVA_ARGS% "%1"
 
 :nextarg
@@ -143,7 +101,7 @@ if not "%JAVA_HOME%"=="" (
     set JAVA=%JAVA_HOME\bin\java
 )
 
-"%JAVA%" -classpath "%JAVACLASSPATH%" %Dhub% %Dport% %Dpoolport% %Dhubport% %Dhubhost% %JAVA_ARGS% ibis.impl.registry.tcp.NameServer %NS_ARGS%
+"%JAVA%" -classpath "%JAVACLASSPATH%" %Dport% %Dpoolport% %JAVA_ARGS% ibis.impl.registry.tcp.NameServer %NS_ARGS%
 
 goto end
 
@@ -170,23 +128,6 @@ goto end
     echo -poolport ^<poolportno^>
     echo     make the poolserver listen to port number ^<poolportno^>. The default
     echo     port number is the nameserver port number + 1.
-    echo -controlhub
-    echo     make the nameserver start a controlhub
-    echo     (see ibis/docs/notes/Crossing-firewalls.txt). Note that this
-    echo     option also makes the nameserver use communication that goes through
-    echo     this controlhub.
-    echo -no-controlhub
-    echo     don't make the nameserver start a controlhub. This is the default.
-    echo -hubport ^<hubportno^>
-    echo     make the controlhub listen to port number ^<hubportno^>. The default port
-    echo     number is the nameserver port number + 2. If the -controlhub flag is not
-    echo     given, it is assumed that one is already listening on port ^<hubportno^>.
-    echo     Anyway, the nameserver will use communication that goes through a
-    echo     controlhub.
-    echo -hubhost ^<hubhostname^>
-    echo     specifies the hostname with the controlhub that is to be used by the
-    echo     nameserver. All communication with the nameserver will go through this
-    echo     controlhub.
     echo -?
     echo     print this message
     echo -h

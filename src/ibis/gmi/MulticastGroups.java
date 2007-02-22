@@ -14,11 +14,10 @@ import ibis.ipl.WriteMessage;
 
 import ibis.ipl.SendPort;
 import ibis.ipl.ReceivePort;
-import ibis.util.GetLogger;
 
 class MulticastGroups {
     
-    public static Logger logger = GetLogger.getLogger(Group.class.getName());
+    public static Logger logger = Logger.getLogger(Group.class.getName());
     
     private static final HashMap receivePorts = new HashMap();    
     private static final HashMap sendPorts = new HashMap();

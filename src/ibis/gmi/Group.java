@@ -15,7 +15,6 @@ import ibis.ipl.SendPort;
 import ibis.ipl.CapabilitySet;
 import ibis.ipl.WriteMessage;
 
-import ibis.util.GetLogger;
 import ibis.util.Ticket;
 
 import java.io.IOException;
@@ -26,6 +25,9 @@ import java.util.Hashtable;
 import java.util.StringTokenizer;
 
 import org.apache.log4j.Logger;
+import org.apache.log4j.Level;
+import org.apache.log4j.PatternLayout;
+import org.apache.log4j.WriterAppender;
 
 /**
  * The {@link Group} class takes care of the startup, and has methods
@@ -34,7 +36,18 @@ import org.apache.log4j.Logger;
 public final class Group implements GroupProtocol,
         ibis.ipl.PredefinedCapabilities {
 
-    static Logger logger = GetLogger.getLogger(Group.class.getName());
+    static {
+        Logger ibisLogger = Logger.getLogger("ibis");
+        if (!ibisLogger.getAllAppenders().hasMoreElements()) {
+            // No appenders defined, print to standard out by default
+            PatternLayout layout = new PatternLayout("%d{HH:mm:ss} %-5p %m%n");
+            WriterAppender appender = new WriterAppender(layout, System.err);
+            ibisLogger.addAppender(appender);
+            ibisLogger.setLevel(Level.WARN);
+        }
+    }
+
+    static Logger logger = Logger.getLogger(Group.class.getName());
      
     /** Ibis rank number in this run. */
     static int _rank;

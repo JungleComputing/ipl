@@ -5,7 +5,6 @@ package ibis.impl;
 import ibis.io.DataInputStream;
 import ibis.io.SerializationBase;
 import ibis.io.SerializationInput;
-import ibis.util.GetLogger;
 
 import java.io.IOException;
 
@@ -19,7 +18,7 @@ public class ReceivePortConnectionInfo {
 
     /** Debugging. */
     protected static final Logger logger
-            = GetLogger.getLogger("ibis.impl.ReceivePortConnectionInfo");
+            = Logger.getLogger("ibis.impl.ReceivePortConnectionInfo");
 
     /** Identifies the sendport side of the connection. */
     protected final SendPortIdentifier origin;

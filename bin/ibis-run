@@ -52,7 +52,6 @@ add_to_libclasspath () {
 # Add the following dirs to the classpath 
 add_to_libclasspath "${IBIS_HOME}"/lib
 
-Dns_pool=
 HOSTNO=0
 HOSTS="$HOSTS"
 export HOSTS
@@ -192,16 +191,6 @@ else
     needsbootclasspath=0
 fi
 
-#
-# nameserver defaults
-#
-
-. "$IBIS_HOME"/bin/ns-env
-
-Dns_server="-Dibis.registry.host=$IBIS_NAMESERVER_HOST"
-Dns_port="-Dibis.registry.port=$IBIS_NAMESERVER_PORT"
-Dns_pool="-Dibis.registry.pool=no_pool_supplied"
-
 hosts="$HOSTS"
 export hosts
 
@@ -223,13 +212,6 @@ do
 	-cp)
 		shift
 		CLASSPATH="$1"
-		;;
-	-hubport|-hub-port)
-		shift
-		Dhub="$Dhub -Dibis.connect.hub.port=$1"
-		;;
-	-controlhub)
-		Dhub="$Dhub -Dibis.connect.control_links=RoutedMessages"
 		;;
 	-nhosts)
 		shift
@@ -408,7 +390,7 @@ then
 	    -Djava.library.path="$libpath" \
 	    -Dibis.library.path="$ibislib" \
 	    $Dpool_host_num $Dpool_total -Dibis.pool.host_names="$hosts" \
-	    $Dns_pool $Dns_port $Dns_server $Dhub \
+	    $Dns_pool $Dns_port $Dns_server \
 	    -Xbootclasspath/p:"$JAVACLASSPATH" \
 	    -classpath "$JAVACLASSPATH" \
 	    "$@"
@@ -418,7 +400,7 @@ then
 	    -Djava.library.path="$libpath" \
 	    -Dibis.library.path="$ibislib" \
 	    $Dpool_host_num $Dpool_total \
-	    $Dns_pool $Dns_port $Dns_server $Dhub \
+	    $Dns_pool $Dns_port $Dns_server \
 	    -Xbootclasspath/p:"$JAVACLASSPATH" \
 	    -classpath "$JAVACLASSPATH" \
 	    "$@"
@@ -431,7 +413,7 @@ else
 	    -Djava.library.path="$libpath" \
 	    -Dibis.library.path="$ibislib" \
 	    $Dpool_host_num $Dpool_total -Dibis.pool.host_names="$hosts" \
-	    $Dns_pool $Dns_port $Dns_server $Dhub \
+	    $Dns_pool $Dns_port $Dns_server \
 	    -classpath "$JAVACLASSPATH" \
 	    "$@"
     else
@@ -440,7 +422,7 @@ else
 	    -Djava.library.path="$libpath" \
 	    -Dibis.library.path="$ibislib" \
 	    $Dpool_host_num $Dpool_total \
-	    $Dns_pool $Dns_port $Dns_server $Dhub \
+	    $Dns_pool $Dns_port $Dns_server \
 	    -classpath "$JAVACLASSPATH" \
 	    "$@"
     fi

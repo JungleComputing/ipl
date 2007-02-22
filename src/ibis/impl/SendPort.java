@@ -10,7 +10,6 @@ import ibis.ipl.AlreadyConnectedException;
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.SendPortDisconnectUpcall;
-import ibis.util.GetLogger;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -26,8 +25,7 @@ import org.apache.log4j.Logger;
 public abstract class SendPort implements ibis.ipl.SendPort {
 
     /** Debugging output. */
-    private static final Logger logger
-            = GetLogger.getLogger("ibis.impl.SendPort");
+    private static final Logger logger = Logger.getLogger("ibis.impl.SendPort");
 
     /** Number of bytes written to messages of this port. */
     private long count = 0;

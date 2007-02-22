@@ -18,8 +18,7 @@ import org.apache.log4j.Logger;
 
 class ElectionServer extends Thread implements Protocol {
 
-    static Logger logger
-            = ibis.util.GetLogger.getLogger(ElectionServer.class.getName());
+    static Logger logger = Logger.getLogger(ElectionServer.class);
 
     private HashMap<String, IbisIdentifier> elections;
 

@@ -58,23 +58,7 @@ CYGWIN*)
     ;;
 esac
 
-has_enable=0
-has_hubport=0
-has_hubhost=0
 Ddefines=
-
-# Ibis Hub controller
-if [ "x$IBIS_HUB" != "x" ]; then
-  # decode Ibis control hub reference
-  HUB_HOST=`echo $IBIS_HUB|cut -f 1 -d :`
-  HUB_PORT=`echo $IBIS_HUB|cut -f 2 -d :`
-  echo "Name service will connect to Ibis hub:"
-  echo "  ${HUB_HOST}:${HUB_PORT}"
-  Ddefines="-Dibis.connect.hub.host=$HUB_HOST -Dibis.connect.hub.port=$HUB_PORT"
-  has_enable=1
-  has_hubport=1
-  has_hubhost=1
-fi
 
 args=
 javaargs=
@@ -102,23 +86,6 @@ The nameserver parameters are:
 -poolport <poolportno>
     make the poolserver listen to port number <poolportno>. The default
     port number is the nameserver port number + 1.
--controlhub
-    make the nameserver start a controlhub
-    (see ibis/docs/notes/Crossing-firewalls.txt). Note that this
-    option also makes the nameserver use communication that goes through
-    this controlhub.
--no-controlhub
-    do not make the nameserver start a controlhub. This is the default.
--hubport <hubportno>
-    make the controlhub listen to port number <hubportno>. The default port
-    number is the nameserver port number + 2. If the -controlhub flag is not
-    given, it is assumed that one is already listening on port <hubportno>.
-    Anyway, the nameserver will use communication that goes through a
-    controlhub.
--hubhost <hubhostname>
-    specifies the hostname with the controlhub that is to be used by the
-    nameserver. All communication with the nameserver will go through this
-    controlhub.
 -checker <interval>
     check all pools every <interval> seconds. Default is no checks.
 -v
@@ -146,27 +113,11 @@ do
 	shift
 	Ddefines="$Ddefines -Dibis.registry.checkerInterval=$1"
 	;;
-    -poolserver|-no-poolserver|-single|-no-controlhub)
+    -poolserver|-no-poolserver|-single)
 	args="$args $1"
 	;;
     -v|-verbose)
 	args="$args -verbose"
-	;;
-    -controlhub)
-	# Note: ibis.connect.data_links must be set or ibis.connect does not
-	# work. However, the nameserver only uses control_links, so the
-	# contents for data_links does not really matter, as long as the
-	# socket type exists.
-	if [ "x$IBIS_HUB" != "x" ]; then
-		echo "You cannot use both -controlhub and the IBIS_HUB environment variable" 1>&2
-		exit 1
-	fi
-	has_enable=1
-	if [ $has_hubhost -eq 0 ]; then
-	    has_hubhost=1
-	    Ddefines="$Ddefines -Dibis.connect.hub.host=`hostname -f`"
-	fi
-	args="$args -controlhub"
 	;;
     -port|-ns-port)
 	shift
@@ -176,40 +127,12 @@ do
 	shift
 	Ddefines="$Ddefines -Dibis.pool.server.port=$1"
 	;;
-    -hubport|-hub-port)
-	shift
-	if [ "x$IBIS_HUB" != "x" ]; then
-		echo "You cannot use both -hubport and the IBIS_HUB environment variable" 1>&2
-		exit 1
-	fi
-	if [ $has_hubport -eq 0 ]; then
-	    has_hubport=1
-	    Ddefines="$Ddefines -Dibis.connect.hub.port=$1"
-	fi
-	has_enable=1
-	;;
-    -hubhost|-hub-host)
-	shift
-	if [ "x$IBIS_HUB" != "x" ]; then
-		echo "You cannot use both -hubhost and the IBIS_HUB environment variable" 1>&2
-		exit 1
-	fi
-	if [ $has_hubhost -eq 0 ]; then
-	    has_hubhost=1
-	    Ddefines="$Ddefines -Dibis.connect.hub.host=$1"
-	fi
-	has_enable=1
-	;;
     *)
 	javaargs="$javaargs $1"
 	;;
     esac
     shift
 done
-
-if [ $has_enable -eq 1 ]; then
-    Ddefines="$Ddefines -Dibis.connect.control_links=RoutedMessages -Dibis.connect.data_links=PlainTCP -Dibis.registry.host=`hostname -f`"
-fi
 
 case X$JAVA_HOME in
 X)

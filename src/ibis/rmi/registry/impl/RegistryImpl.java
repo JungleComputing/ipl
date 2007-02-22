@@ -23,7 +23,7 @@ public class RegistryImpl extends ibis.rmi.server.UnicastRemoteObject
     HashMap remotes = new HashMap();
 
     static Logger logger
-            = ibis.util.GetLogger.getLogger(RegistryImpl.class.getName());
+            = Logger.getLogger(RegistryImpl.class.getName());
 
     public RegistryImpl(int port) throws RemoteException {
         if (port <= 0) {

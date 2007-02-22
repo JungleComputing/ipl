@@ -5,7 +5,6 @@ package ibis.impl;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.ResizeHandler;
 import ibis.ipl.CapabilitySet;
-import ibis.util.GetLogger;
 import ibis.ipl.TypedProperties;
 
 import java.io.IOException;
@@ -23,7 +22,7 @@ public abstract class Ibis implements ibis.ipl.Ibis,
        ibis.ipl.PredefinedCapabilities {
 
     /** Debugging output. */
-    private static final Logger logger = GetLogger.getLogger("ibis.impl.Ibis");
+    private static final Logger logger = Logger.getLogger("ibis.impl.Ibis");
 
     /** A user-supplied resize handler, with join/leave upcalls. */
     private ResizeHandler resizeHandler;
@@ -85,9 +84,8 @@ public abstract class Ibis implements ibis.ipl.Ibis,
         this.attributes = new TypedProperties(attributes);
         receivePorts = new HashMap<String, ReceivePort>();
         sendPorts = new HashMap<String, SendPort>();
-        String registryName = attributes.getProperty("ibis.registry.impl");
-        registry = Registry.loadRegistry(this, registryName,
-                resizeHandler != null, getData());
+        registry = Registry.createRegistry(this, resizeHandler != null,
+                getData());
         ident = registry.getIbisIdentifier();
         closedWorld = caps.hasCapability(WORLDMODEL_CLOSED);
         if (closedWorld) {

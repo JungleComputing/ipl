@@ -19,7 +19,7 @@ import org.apache.log4j.Logger;
 public abstract class GroupSkeleton implements GroupProtocol {
 
     protected static Logger logger
-            = ibis.util.GetLogger.getLogger(GroupSkeleton.class.getName());
+            = Logger.getLogger(GroupSkeleton.class.getName());
 
     /** Indicates the group member for which this is the skeleton. */
     protected GroupMember destination;

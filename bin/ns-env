@@ -1,7 +1,0 @@
-#
-# This file contains definitions for the ibis nameserver.
-#
-IBIS_NAMESERVER_HOST=localhost
-export IBIS_NAMESERVER_HOST
-IBIS_NAMESERVER_PORT=9826
-export IBIS_NAMESERVER_PORT

@@ -19,7 +19,7 @@ import org.apache.log4j.Logger;
 public final class RegistryWrapper implements Registry {
 
     static Logger logger
-            = ibis.util.GetLogger.getLogger(RegistryWrapper.class.getName());
+            = Logger.getLogger(RegistryWrapper.class.getName());
 
     private Registry registry = null;
     private int port = 0;

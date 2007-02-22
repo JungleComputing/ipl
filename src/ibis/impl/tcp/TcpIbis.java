@@ -11,7 +11,6 @@ import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.PortMismatchException;
 import ibis.ipl.ResizeHandler;
-import ibis.util.GetLogger;
 import ibis.util.IPUtils;
 import ibis.util.ThreadPool;
 
@@ -39,7 +38,7 @@ public final class TcpIbis extends ibis.impl.Ibis
         implements Runnable, TcpProtocol {
 
     private static final Logger logger
-            = GetLogger.getLogger("ibis.impl.tcp.TcpIbis");
+            = Logger.getLogger("ibis.impl.tcp.TcpIbis");
 
     private ServerSocket systemServer;
 

@@ -2,10 +2,11 @@
 
 package ibis.impl;
 
+import ibis.ipl.CapabilitySet;
 import ibis.ipl.IbisConfigurationException;
+import ibis.ipl.TypedProperties;
 
 import java.io.IOException;
-import java.util.Properties;
 
 /** 
  * This implementation of the {@link ibis.ipl.Registry} interface
@@ -34,19 +35,28 @@ public abstract class Registry implements ibis.ipl.Registry {
     /**
      * Creates a registry for the specified Ibis instance.
      * @param ibis the Ibis instance.
-     * @param registryName the class name of the registry implementation.
      * @param needsUpcalls set when the registry must provide for connection
      * upcalls.
      * @param data the implementation dependent data in the IbisIdentifier.
      * @exception Throwable can be any exception resulting from looking up
      * the registry constructor or the invocation attempt.
      */
-    public static Registry loadRegistry(Ibis ibis, String registryName,
-            boolean needsUpcalls, byte[] data) throws Throwable {
-        Registry res = null;
-        Class c;
+    public static Registry createRegistry(Ibis ibis, boolean needsUpcalls,
+            byte[] data) throws Throwable {
 
-        c = Class.forName(registryName);
+        Registry res = null;
+
+        // You can get attributes and capabilities from the ibis instance
+        // here.
+
+        String registryName = ibis.attributes.getProperty("ibis.registry.impl");
+
+        if (registryName == null) {
+            throw new IbisConfigurationException("Could not create registry: "
+                    + "attribute ibis.registry.impl is not set.");
+        }
+
+        Class c = Class.forName(registryName);
 
         try {
             return (Registry) c.getConstructor(new Class[] {

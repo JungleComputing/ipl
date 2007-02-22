@@ -34,8 +34,6 @@ X)	;;
 	;;
 esac
 
-. $dir/ns-env
-
 # prun mangles the program name ($0) into something like
 # ./ibis-prun.0.8949.fs0, which does not look nice.
 NHOSTS=`echo $PRUN_HOSTNAMES | awk '{print NF}'`
@@ -185,14 +183,6 @@ do
 		args="$args $1"
 		;;
 	-bootcp)
-		args="$args $1"
-		;;
-	-hubport|-hub-port)
-		args="$args $1"
-		shift
-		args="$args $1"
-		;;
-	-controlhub)
 		args="$args $1"
 		;;
 	-no-pool)

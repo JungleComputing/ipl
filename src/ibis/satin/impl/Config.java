@@ -160,36 +160,33 @@ public interface Config {
     /** When using CLOSE_CONNECTIONS, keep open MAX_CONNECTIONS connections. */
     static final int MAX_CONNECTIONS = attribs.getIntProperty(s_max_connections,
             64); 
-    
+
     /** Logger for communication. */
-    public static final Logger commLogger = ibis.util.GetLogger.getLogger(
-            "ibis.satin.comm");
+    public static final Logger commLogger = Logger.getLogger("ibis.satin.comm");
 
     /** Logger for job stealing. */
-    public static final Logger stealLogger = ibis.util.GetLogger.getLogger(
+    public static final Logger stealLogger = Logger.getLogger(
             "ibis.satin.steal");
 
     /** Logger for spawns. */
-    public static final Logger spawnLogger = ibis.util.GetLogger.getLogger(
+    public static final Logger spawnLogger = Logger.getLogger(
             "ibis.satin.spawn");
 
     /** Logger for inlets. */
-    public static final Logger inletLogger = ibis.util.GetLogger.getLogger(
+    public static final Logger inletLogger = Logger.getLogger(
             "ibis.satin.inlet");
 
     /** Logger for aborts. */
-    public static final Logger abortLogger = ibis.util.GetLogger.getLogger(
+    public static final Logger abortLogger = Logger.getLogger(
             "ibis.satin.abort");
 
     /** Logger for fault tolerance. */
-    public static final Logger ftLogger = ibis.util.GetLogger.getLogger(
-            "ibis.satin.ft");
+    public static final Logger ftLogger = Logger.getLogger("ibis.satin.ft");
 
     /** Logger for the global result table. */
-    public static final Logger grtLogger = ibis.util.GetLogger.getLogger(
+    public static final Logger grtLogger = Logger.getLogger(
             "ibis.satin.ft.grt");
 
     /** Logger for shared objects. */
-    public static final Logger soLogger = ibis.util.GetLogger.getLogger(
-            "ibis.satin.so");
+    public static final Logger soLogger = Logger.getLogger("ibis.satin.so");
 }
