@@ -62,9 +62,13 @@ public class NestedException extends Exception {
                 res += "*** " + throwerIDs.get(i)
                     + " failed because of: ";
             }
-            String msg = ((Throwable) throwables.get(i)).getMessage();
-            if (msg == null)
-                msg = ((Throwable) throwables.get(i)).toString();
+            Throwable t = (Throwable) throwables.get(i);
+            res += t.getClass().getName();
+            res += ": ";
+            String msg = t.getMessage();
+            if (msg == null) {
+                msg = t.toString();
+            }
             res += msg;
             res += "\n";
         }
