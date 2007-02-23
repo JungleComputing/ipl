@@ -14,8 +14,7 @@ import java.io.IOException;
  * Implementation of the {@link ibis.ipl.SendPortIdentifier} interface.
  * This class can be extended by Ibis implementations.
  */
-public class SendPortIdentifier implements ibis.ipl.SendPortIdentifier,
-        java.io.Serializable {
+public class SendPortIdentifier implements ibis.ipl.SendPortIdentifier {
 
     /** The name of the corresponding sendport. */
     protected final String name;

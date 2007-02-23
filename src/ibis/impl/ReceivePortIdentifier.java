@@ -14,8 +14,7 @@ import java.io.IOException;
  * Implementation of the <code>ReceivePortIdentifier</code> interface.
  * This class can be extended by Ibis implementations.
  */
-public class ReceivePortIdentifier implements ibis.ipl.ReceivePortIdentifier,
-        java.io.Serializable {
+public class ReceivePortIdentifier implements ibis.ipl.ReceivePortIdentifier {
 
     /** The name of the corresponding receiveport. */
     protected final String name;

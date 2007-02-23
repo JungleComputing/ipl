@@ -5,7 +5,7 @@ package ibis.ipl;
 /**
  * Identifies a {@link ibis.ipl.SendPort SendPort} on the receiver side.
  */
-public interface SendPortIdentifier {
+public interface SendPortIdentifier extends java.io.Serializable {
     /**
      * Returns the name of the {@link ibis.ipl.SendPort SendPort}
      * corresponding to this identifier.
