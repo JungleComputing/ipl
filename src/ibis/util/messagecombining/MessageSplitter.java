@@ -5,7 +5,7 @@ package ibis.util.messagecombining;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.SendPortIdentifier;
-import ibis.ipl.TypedProperties;
+import ibis.util.TypedProperties;
 
 import java.io.IOException;
 

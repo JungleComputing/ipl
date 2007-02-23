@@ -14,7 +14,6 @@ import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPort;
-import ibis.ipl.TypedProperties;
 import ibis.ipl.WriteMessage;
 import ibis.satin.SharedObject;
 import ibis.satin.impl.Config;
@@ -25,6 +24,7 @@ import ibis.satin.impl.loadBalancing.Victim;
 import ibis.satin.impl.spawnSync.InvocationRecord;
 import ibis.util.DeepCopy;
 import ibis.util.Timer;
+import ibis.util.TypedProperties;
 import ibis.util.messagecombining.MessageCombiner;
 import ibis.util.messagecombining.MessageSplitter;
 

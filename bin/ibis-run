@@ -327,20 +327,20 @@ fi
 
 if [ $noJIT -eq 1 ]
 then
-	JIT_OPTS="$JIT_OPTS -Djava.compiler=NONE"
+    JIT_OPTS="$JIT_OPTS -Djava.compiler=NONE"
 fi
 if [ $attach -eq 1 ]
 then
-	JIT_OPTS="$JIT_OPTS -Xdebug -Xnoagent -Xrunjdwp:transport=dt_socket,address=8000,server=y,suspend=n -Djava.compiler=NONE"
+    JIT_OPTS="$JIT_OPTS -Xdebug -Xnoagent -Xrunjdwp:transport=dt_socket,address=8000,server=y,suspend=n -Djava.compiler=NONE"
 fi
 if [ ! -z "$prof" ]
 then
-	JIT_OPTS="$JIT_OPTS -Xrunhprof:cpu=samples,depth=8,thread=y,file=$prof.$HOSTNO -Djava.compiler=NONE"
+    JIT_OPTS="$JIT_OPTS -Xrunhprof:cpu=samples,depth=8,thread=y,file=$prof.$HOSTNO -Djava.compiler=NONE"
 fi
 if [ ! -z "$gprof" ]
 then
-	# JIT_OPTS="$JIT_OPTS -Xrunhprof:cpu=times,depth=8,thread=y,file=$gprof.$HOSTNO -Djava.compiler=NONE"
-	JIT_OPTS="$JIT_OPTS -Xrunhprof:cpu=times,depth=8,thread=y,file=$gprof.$HOSTNO"
+    # JIT_OPTS="$JIT_OPTS -Xrunhprof:cpu=times,depth=8,thread=y,file=$gprof.$HOSTNO -Djava.compiler=NONE"
+    JIT_OPTS="$JIT_OPTS -Xrunhprof:cpu=times,depth=8,thread=y,file=$gprof.$HOSTNO"
 fi
 
 if [ $nameserver_specified -eq 0 ]

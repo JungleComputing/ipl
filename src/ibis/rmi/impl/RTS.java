@@ -12,7 +12,6 @@ import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPort;
-import ibis.ipl.TypedProperties;
 import ibis.ipl.Upcall;
 import ibis.ipl.WriteMessage;
 import ibis.rmi.AlreadyBoundException;
@@ -27,6 +26,7 @@ import ibis.rmi.server.RemoteStub;
 import ibis.rmi.server.SkeletonNotFoundException;
 import ibis.util.IPUtils;
 import ibis.util.Timer;
+import ibis.util.TypedProperties;
 
 import java.io.IOException;
 import java.util.ArrayList;

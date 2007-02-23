@@ -7,8 +7,8 @@ import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.CapabilitySet;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.SendPortDisconnectUpcall;
-import ibis.ipl.TypedProperties;
 import ibis.ipl.Upcall;
+import ibis.util.TypedProperties;
 
 import java.io.IOException;
 import java.util.Properties;

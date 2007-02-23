@@ -5,7 +5,7 @@ package ibis.impl;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.ResizeHandler;
 import ibis.ipl.CapabilitySet;
-import ibis.ipl.TypedProperties;
+import ibis.util.TypedProperties;
 
 import java.io.IOException;
 import java.io.InputStream;

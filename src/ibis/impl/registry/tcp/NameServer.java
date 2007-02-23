@@ -3,7 +3,6 @@
 package ibis.impl.registry.tcp;
 
 import ibis.ipl.IbisFactory;
-import ibis.ipl.TypedProperties;
 import ibis.io.Conversion;
 import ibis.impl.registry.NSProps;
 import ibis.impl.IbisIdentifier;
@@ -11,6 +10,7 @@ import ibis.impl.Location;
 import ibis.util.IPUtils;
 import ibis.util.PoolInfoServer;
 import ibis.util.ThreadPool;
+import ibis.util.TypedProperties;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;

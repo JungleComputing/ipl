@@ -39,6 +39,10 @@
 	    -->
 	    <classpath refid="default.classpath"/>
 	</javac>
+	<jar	destfile="lib/ibis-ipl.jar"
+	    basedir="${build}"
+	    includes="ibis/ipl/*.class">
+	</jar>
     </target>
 
     <!--
@@ -107,10 +111,6 @@
 		<attribute name="Ibisc-Component" value="ibis.frontend.io.IOGenerator,ibis.frontend.gmi.Gmic,ibis.frontend.rmi.Rmic,ibis.frontend.satin.Satinc"/>
 		<attribute name="Ibis-Implementation" value="ibis.impl.tcp.TcpIbis"/>
 	    </manifest>
-	</jar>
-	<jar	destfile="lib/ibis-ipl.jar"
-	    basedir="${build}"
-	    includes="ibis/ipl/*.class">
 	</jar>
     </target>
 

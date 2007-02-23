@@ -3,7 +3,7 @@
 package ibis.io;
 
 import ibis.ipl.IbisFactory;
-import ibis.ipl.TypedProperties;
+import ibis.util.TypedProperties;
 
 /**
  * Collects all system properties used by the ibis.io package.

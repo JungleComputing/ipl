@@ -4,7 +4,6 @@ package ibis.impl;
 
 import ibis.ipl.CapabilitySet;
 import ibis.ipl.IbisConfigurationException;
-import ibis.ipl.TypedProperties;
 
 import java.io.IOException;
 

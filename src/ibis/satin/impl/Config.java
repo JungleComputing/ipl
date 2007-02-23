@@ -2,8 +2,8 @@
 
 package ibis.satin.impl;
 
-import ibis.ipl.TypedProperties;
 import ibis.ipl.IbisFactory;
+import ibis.util.TypedProperties;
 
 import org.apache.log4j.Logger;
 
