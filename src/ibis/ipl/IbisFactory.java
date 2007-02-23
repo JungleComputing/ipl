@@ -54,7 +54,7 @@ public final class IbisFactory {
 
     private static final String[] excludes = { "util.", "connect.", "pool.",
             "library.", "io.", "impl.", "registry.", "name", "verbose",
-            "serialization" };
+            "serialization", "attributes." };
 
     static {
         Logger ibisLogger = Logger.getLogger("ibis");
@@ -91,7 +91,7 @@ public final class IbisFactory {
         }
     }
 
-    public static Properties getDefaultAttributes() {
+    public synchronized static Properties getDefaultAttributes() {
         if (defaultAttributes == null) { 
             InputStream in = null;
 
@@ -176,6 +176,10 @@ public final class IbisFactory {
             return;
         }
 
+        libPath = attrib.getProperty("java.library.path");
+        if (libPath != null) {
+            System.setProperty("java.library.path", libPath);
+        }
         // Fall back to regular loading.
         // This might not work, or it might not :-)
         // System.err.println("LOADING NON IBIS LIB: " + name);

@@ -39,6 +39,11 @@
 	    -->
 	    <classpath refid="default.classpath"/>
 	</javac>
+	<!--
+	    Build ibis-ipl.jar before rewriting, otherwise it has references
+	    to ibis.io. We want to be able to compile an Ibis application
+	    with only ibis-ipl.jar in the classpath.
+	-->
 	<jar	destfile="lib/ibis-ipl.jar"
 	    basedir="${build}"
 	    includes="ibis/ipl/*.class">

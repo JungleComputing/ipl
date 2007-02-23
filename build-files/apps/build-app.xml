@@ -17,7 +17,6 @@
 		Set parameter:
 		test-seq-run	main class name and arguments
 		jargs		flags for java
-		ibis-run-args	flags for ibis-run
 
 	test-par
 		run the application as a parallel program,
@@ -25,7 +24,6 @@
 		Set parameter:
 		test-seq-run	main class name and arguments
 		jargs		flags for java
-		ibis-run-args	flags for ibis-run
 
 	jar	build a jar file for the application.
 		Set parameter:
@@ -34,7 +32,6 @@
 	test	builds the application and runs test-seq as well as test-par.
     </description>
 
-    <property name="ibis-run-args" value=""/>
     <property name="java-args" value=""/>
 
     <target name="set-ibis-name">
@@ -61,7 +58,7 @@
 	      executable="${ibis}/bin/ibis-run"
 	      vmlauncher="false"
 	      spawn="true">
-	    <arg line="-ns localhost -ns-port 46789 -hostno 1 -nhosts 2 ${ibis-run-args}"/>
+	    <arg line="-Dibis.pool.total_hosts=2"/>
 	    <arg value="${define-ibis-name}"/>
 	    <arg line="-Dsatin.localPorts ${java-args} ibis.util.Postpone 2 -o ant-test.out ${runjob}"/>
 	</exec>
@@ -70,7 +67,7 @@
 	      timeout="500000"
 	      failonerror="true"
 	      vmlauncher="false">
-	    <arg line="-ns localhost -ns-port 46789 -hostno 0 -nhosts 2 ${ibis-run-args}"/>
+	    <arg line="-Dibis.pool.total_hosts=2"/>
 	    <arg value="${define-ibis-name}"/>
 	    <arg line="-Dsatin.localPorts ${java-args} ${runjob}"/>
 	</exec>
@@ -88,7 +85,7 @@
 	<exec dir="${basedir}"
 	    executable="/usr/local/VU/reserve.sge/bin/prun"
 	      vmlauncher="false">
-	      <arg line="-1 ${ibis}/bin/ibis-prun ${prun-nprocs} ${ibis-run-args}"/>
+	      <arg line="-1 ${ibis}/bin/ibis-prun ${prun-nprocs}"/>
 	    <arg value="${define-ibis-name}"/>
 	    <arg line="-Dsatin.localPorts ${java-args} ${runjob}"/>
 	</exec>
@@ -101,7 +98,7 @@
 	      timeout="500000"
 	      failonerror="true"
 	      vmlauncher="false">
-	    <arg line="-ns localhost -ns-port 46789 -hostno 0 -nhosts 1 ${ibis-run-args}"/>
+	    <arg line="-Dibis.pool.total_hosts=1"/>
 	    <arg value="${define-ibis-name}"/>
 	    <arg line="-Dsatin.localPorts ${java-args} ${runjob}"/>
 	</exec>
@@ -113,7 +110,7 @@
 	      timeout="500000"
 	      failonerror="true"
 	      vmlauncher="false">
-	      <arg line="${ibis-run-args} -- -Dsatin.localPorts ${java-args} ${runjob}"/>
+	      <arg line="-Dsatin.localPorts ${java-args} ${runjob}"/>
 	</exec>
     </target>
 

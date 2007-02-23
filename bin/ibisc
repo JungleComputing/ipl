@@ -1,30 +1,11 @@
 #!/bin/sh
 
-PRG="$0"
+if [ -z "$IBIS_HOME" ];  then
+    echo "please set IBIS_HOME to the location of your Ibis installation" 1>&2
+    exit 1
+fi
 
-# resolve symlinks
-while [ -h "$PRG" ] ; do
-    ls=`ls -ld "$PRG"`
-    link=`expr "$ls" : '.*-> \(.*\)$'`
-    if expr "$link" : '/.*' > /dev/null; then
-    PRG="$link"
-    else
-    PRG=`dirname "$PRG"`"/$link"
-    fi
-done
-
-dir=`dirname "$PRG"`
-dir=`cd "$dir" && pwd`
-
-case X$IBIS_HOME in
-X)
-    IBIS_HOME=`cd "$dir/.." && pwd`
-    ;;
-esac
-
-export IBIS_HOME
-
-case X$JAVA_HOME in
+case "X$JAVA_HOME" in
 X)
     JAVA=java
     ;;
@@ -32,8 +13,6 @@ X)
     JAVA="$JAVA_HOME/bin/java"
     ;;
 esac
-
-export IBIS_HOME
 
 while [ $# -gt 0 ]
 do
@@ -65,12 +44,11 @@ do
     esac
 done
 
+# deal with classpath
 LIBCLASSPATH=""
-
 add_to_libclasspath () {
-    DIRLIBS=`cd "$1" && ls *.jar 2>/dev/null`
-    for i in ${DIRLIBS}
-    do
+    JARFILES=`cd "$1" && ls *.jar 2>/dev/null`
+    for i in ${JARFILES} ; do
 	if [ -z "$LIBCLASSPATH" ] ; then
 	    LIBCLASSPATH="$1/$i"
 	else

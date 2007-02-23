@@ -1,46 +1,24 @@
 #!/bin/sh
 
-PRG="$0"
+# check setting of IBIS_HOME
+if [ -z "$IBIS_HOME" ];  then
+    echo "please set IBIS_HOME to the location of your Ibis installation" 1>&2
+    exit 1
+fi
 
-# resolve symlinks
-while [ -h "$PRG" ] ; do
-    ls=`ls -ld "$PRG"`
-    link=`expr "$ls" : '.*-> \(.*\)$'`
-    if expr "$link" : '/.*' > /dev/null; then
-    PRG="$link"
-    else
-    PRG=`dirname "$PRG"`"/$link"
-    fi
-done
-
-dir=`dirname "$PRG"`
-dir=`cd "$dir" && pwd`
-
-case X$IBIS_HOME in
-X)
-    IBIS_HOME=`cd "$dir/.." && pwd`
-    ;;
-esac
-
-export IBIS_HOME
-
+# On cygwin, convert paths to unix format before dealing with them.
 case "`uname`" in
 CYGWIN*)
-    # convert to unix format before dealing with them.
     IBIS_HOME=`cygpath --unix "$IBIS_HOME"`
     CLASSPATH=`cygpath --unix --path "$CLASSPATH"`
-    LD_LIBRARY_PATH=`cygpath --unix --path "$LD_LIBRARY_PATH"`
-    ;;
-*)
     ;;
 esac
 
+# Jar-files from library.
 LIBCLASSPATH=""
-
 add_to_libclasspath () {
-    DIRLIBS=`cd "$1" && ls *.jar 2>/dev/null`
-    for i in ${DIRLIBS}
-    do
+    JARFILES=`cd "$1" && ls *.jar 2>/dev/null`
+    for i in ${JARFILES} ; do
 	if [ -z "$LIBCLASSPATH" ] ; then
 	    LIBCLASSPATH="$1/$i"
 	else
@@ -49,381 +27,41 @@ add_to_libclasspath () {
     done
 }
 
-# Add the following dirs to the classpath 
+# Add the jar files in the Ibis lib dir to the classpath 
 add_to_libclasspath "${IBIS_HOME}"/lib
 
-HOSTNO=0
-HOSTS="$HOSTS"
-export HOSTS
-NHOSTS=1
-run_name=$0
-action=
-hostnames=0
-nameserver_specified=0
-
-usage () {
-	cat << 'EOF' | sed "s#ibis-run#$run_name#"
-Usage:
-  $run_name <$run_name params> <jvm params> <classname> <application params>
-The first parameter that is not recognized as an option to ibis-run
-terminates the ibis-run parameters.
-The ibis-run options are:
--attach
-    set jvm parameters so that jdb can attach to the running process
--bootcp
-    set the bootclasspath to the classpath. This is the default if the standard
-    Java libraries have been rewritten
--no-bootcp
-    don't set the bootclasspath. This is the default if the standard Java
-    libraries have not been rewritten
--cp <classpath>
-    sets the user classpath to the specified path. This overrides the
-    CLASSPATH environment variable. Note that $run_name adds some directories
-    and jars that are needed to run an Ibis application
--nhosts <nhosts>
-    specifies the total number of hosts involved in this run
--hostno <hostno>
-    specifies the rank number of this host (0 .. <nhosts>-1)
--hosts "<list of hostnames>"
-    specifies the host names for this run.
--jdb
-    execute jdb instead of java
--no-jit
-    disable just-in-time compiling
--n
-    only print the run command, do not actually execute it
--ns <nameserver>
-    specifies the hostname on which the nameserver runs. If no namesever
-    is given, and a list of host names is given with the -hosts option,
-    a nameserver is started on the first host of that list. If the -hosts
-    option is not given either, the host on which this ibis installation is
-    configured is tried.
--ns-port
-    specifies the port number on which the nameserver is listening
--pg <prefix>
-    pass profiling flags on to java, use <prefix> for the result file
--p <prefix>
-    pass different profiling flags on to java, use <prefix> for the result file
--pool <pool>
-    use the specified pool to identify this run with the nameserver
--sleep <n>
-    sleep <n> seconds before starting the run
--?
--h
--help
---help
-    print this message
---
-    terminates the parameters for ibis-run; following parameters are passed
-    on to java, even if they would be acceptable to ibis-run
-EOF
-	exit 1
-}
-
-if [ -z "$1" -o $# -le 0 ]
-then
-	usage
-fi
-
-#needed for ibm 1.3 JITs and SMPs
-# LD_ASSUME_KERNEL=2.2.5
-# export LD_ASSUME_KERNEL
-
-#
-# Some Panda Ibis stuff
-#
-
-#disable panda interrupts
-#IBP_NO_INTR=1
-#export IBP_NO_INTR
-
-# fix panda/lfc flow control
-#LFC_SEND_COPY_ASIDE=1
-#export LFC_SEND_COPY_ASIDE
-#PAN_SYS_CREDITS=65535
-#export PAN_SYS_CREDITS
-
-if [ -z "$LFC_INTR_FIRST" ] ; then
-	LFC_INTR_FIRST=100
-	export LFC_INTR_FIRST
-fi
-if [ -z "$IBP_SEND_SYNC" ] ; then
-	IBP_SEND_SYNC=0 
-	export IBP_SEND_SYNC
-fi
-if [ -z "$PAN_COMM_NO_IDLE_POLL" ] ; then
-	PAN_COMM_NO_IDLE_POLL=1
-	export PAN_COMM_NO_IDLE_POLL
-fi
-
-
-#
-# java.library.path and ibis.library.path ...
-#
-
-# ibislib is the location where all ibis native libs must go.
-# It must be *one* dir.
-
-if [ -z "$ibislib" ]
-then
-    ibislib="$IBIS_HOME/lib/natives"
-fi
-
-libpath="$ibislib:.:$LD_LIBRARY_PATH:"
-
-JAVACLASSPATH="build/:$IBIS_HOME/classlibs/:$LIBCLASSPATH:.:"
-
-#
-# Some defaults ...
-#
-
-attach=0
-noJIT=0
-portno_specified=0
-ip_map=
-
-JAVA_EXEC=java
-
+# Set classpath and determine wether to set bootclasspath.
+JAVACLASSPATH="build/:$LIBCLASSPATH:.:"
 if [ -d "$IBIS_HOME"/classlibs ]
 then
-    needsbootclasspath=1
-else
-    needsbootclasspath=0
+    JAVACLASSPATH="$IBIS_HOME/classlibs:$JAVACLASSPATH"
+    BOOTCLASSPATH="-Xbootclasspath/p:$JAVACLASSPATH"
 fi
 
-hosts="$HOSTS"
-export hosts
-
-#
-# parse arguments
-#
-
-while [ $# -gt 0 ]
-do
-# echo now inspect argument $1 -- left $#
-        case "$1" in
-	-action)
-		shift
-		action="$1"
-		;;
-	-attach)
-		attach=1
-		;;
-	-cp)
-		shift
-		CLASSPATH="$1"
-		;;
-	-nhosts)
-		shift
-		Dpool_total="-Dibis.pool.total_hosts=$1"
-		NHOSTS=$1
-		;;
-	-hostno)
-		shift
-		Dpool_host_num="-Dibis.pool.host_number=$1"
-		HOSTNO=$1
-		;;
-	-hosts)
-		shift
-		hosts="$1"
-		hostnames=1
-		;;
-	-jdb)
-		JAVA_EXEC=jdb
-		;;
-	-no-jit)
-		noJIT=1
-		;;
-	-n)
-		action="echo $action"
-		;;
-	-ns)
-		nameserver_specified=1
-		shift
-		case $1 in
-		*:*)
-			# "new" syntax: <nameserver-host>:<portno>
-			if [ $portno_specified -eq 1 ]
-			then
-				echo "$run_name: nameserver port specified more than once" 1>&2
-				exit 1
-			fi
-			Dns_server="-Dibis.registry.host="`expr "$1" : '\(.*\):.*'`
-			Dns_port="-Dibis.registry.port="`expr "$1" : '.*:\(.*\)'`
-			portno_specified=1
-			;;
-		*)
-			Dns_server="-Dibis.registry.host=$1"
-			;;
-		esac
-		;;
-	-pg)
-		shift
-		gprof="$1"
-		;;
-	-p)
-		shift
-		prof="$1"
-		;;
-	-ns-port)
-		if [ $portno_specified -eq 1 ]
-		then
-			echo "$run_name: nameserver port specified more than once" 1>&2
-			exit 1
-		fi
-		portno_specified=1
-		shift
-		Dns_port="-Dibis.registry.port=$1"
-		;;
-	-no-bootcp)
-		needsbootclasspath=0
-		;;
-	-bootcp)
-		needsbootclasspath=1
-		;;
-	-ip-map)
-		shift
-		ip_map="$1"
-		;;
-	-pool)
-		shift
-		Dns_pool="-Dibis.registry.pool=$1"
-		;;
-	-sleep)
-		shift
-		sleep "$1"
-		;;
-	-\?|-h|-help|--help)
-		usage
-		;;
-	--)
-		shift
-		break
-		;;
-        *)      
-		break
-                ;;
-        esac
-        shift
-done
-
-if [ ! -z "$ip_map" ]
-then
-    ip_addr=`"$IBIS_HOME"/bin/ip_map.perl "$ip_map" \`hostname\``
-    JIT_OPTS="$JIT_OPTS -Dibis.util.ip.address=$ip_addr"
-    # This is required if Sun's RMI is used
-    JIT_OPTS="$JIT_OPTS -Djava.rmi.server.hostname=$ip_addr"
-    if [ ! -z $hosts ]
-    then
-	hosts="`"$IBIS_HOME"/bin/ip_map.perl "$ip_map" $hosts`"
-	export hosts
-    fi
-    if [ ! -z $PRUN_HOSTNAMES ]
-    then
-	PRUN_HOSTNAMES="`"$IBIS_HOME"/bin/ip_map.perl "$ip_map" $PRUN_HOSTNAMES`"
-	export PRUN_HOSTNAMES
-    fi
-fi
-
-if [ $noJIT -eq 1 ]
-then
-    JIT_OPTS="$JIT_OPTS -Djava.compiler=NONE"
-fi
-if [ $attach -eq 1 ]
-then
-    JIT_OPTS="$JIT_OPTS -Xdebug -Xnoagent -Xrunjdwp:transport=dt_socket,address=8000,server=y,suspend=n -Djava.compiler=NONE"
-fi
-if [ ! -z "$prof" ]
-then
-    JIT_OPTS="$JIT_OPTS -Xrunhprof:cpu=samples,depth=8,thread=y,file=$prof.$HOSTNO -Djava.compiler=NONE"
-fi
-if [ ! -z "$gprof" ]
-then
-    # JIT_OPTS="$JIT_OPTS -Xrunhprof:cpu=times,depth=8,thread=y,file=$gprof.$HOSTNO -Djava.compiler=NONE"
-    JIT_OPTS="$JIT_OPTS -Xrunhprof:cpu=times,depth=8,thread=y,file=$gprof.$HOSTNO"
-fi
-
-if [ $nameserver_specified -eq 0 ]
-then
-    if [ ! -z "$hosts" ]
-    then
-	for i in $hosts
-	do
-	    Dns_server="-Dibis.registry.host=$i"
-	    break
-	done
-    else
-	echo "ibis-run: warning: no nameserver host specified, assuming localhost" 1>&2
-	Dns_server="-Dibis.registry.host=localhost"
-    fi
-fi
-
-case "X$CLASSPATH" in
-X)
-    ;;
-*)
+# Put value of environment variable CLASSPATH in front, if present.
+if [ -z "$CLASSPATH" ] ; then
+    :
+else 
     JAVACLASSPATH="$CLASSPATH:$JAVACLASSPATH"
-    ;;
-esac
+fi
 
-
+# On cygwin, convert paths back.
 case "`uname`" in
 CYGWIN*)
     JAVACLASSPATH=`cygpath --path --windows "$JAVACLASSPATH"`
-    libpath=`cygpath --path --windows "$libpath"`
-    ibislib=`cygpath --windows "$ibislib"`
     ;;
 esac
 
-case X$JAVA_HOME in
-X)	;;
-*)	JAVA_EXEC="$JAVA_HOME/bin/$JAVA_EXEC"
+# Find out which Java to run
+case "X$JAVA_HOME" in
+X)	JAVA_EXEC=java
+	;;
+*)	JAVA_EXEC="$JAVA_HOME/bin/java"
 	;;
 esac
 
-if [ $needsbootclasspath -eq 1 ]
-then
-    if [ $hostnames -eq 1 ]
-    then
-	$action "$JAVA_EXEC" \
-	    $JIT_OPTS \
-	    -Djava.library.path="$libpath" \
-	    -Dibis.library.path="$ibislib" \
-	    $Dpool_host_num $Dpool_total -Dibis.pool.host_names="$hosts" \
-	    $Dns_pool $Dns_port $Dns_server \
-	    -Xbootclasspath/p:"$JAVACLASSPATH" \
-	    -classpath "$JAVACLASSPATH" \
-	    "$@"
-    else
-	$action "$JAVA_EXEC" \
-	    $JIT_OPTS \
-	    -Djava.library.path="$libpath" \
-	    -Dibis.library.path="$ibislib" \
-	    $Dpool_host_num $Dpool_total \
-	    $Dns_pool $Dns_port $Dns_server \
-	    -Xbootclasspath/p:"$JAVACLASSPATH" \
-	    -classpath "$JAVACLASSPATH" \
-	    "$@"
-    fi
-else
-    if [ $hostnames -eq 1 ]
-    then
-	$action "$JAVA_EXEC" \
-	    $JIT_OPTS \
-	    -Djava.library.path="$libpath" \
-	    -Dibis.library.path="$ibislib" \
-	    $Dpool_host_num $Dpool_total -Dibis.pool.host_names="$hosts" \
-	    $Dns_pool $Dns_port $Dns_server \
-	    -classpath "$JAVACLASSPATH" \
-	    "$@"
-    else
-	$action "$JAVA_EXEC" \
-	    $JIT_OPTS \
-	    -Djava.library.path="$libpath" \
-	    -Dibis.library.path="$ibislib" \
-	    $Dpool_host_num $Dpool_total \
-	    $Dns_pool $Dns_port $Dns_server \
-	    -classpath "$JAVACLASSPATH" \
-	    "$@"
-    fi
-fi
+# And finally, run ...
+"$JAVA_EXEC" \
+    ${BOOTCLASSPATH:+"$BOOTCLASSPATH"} \
+    -classpath "$JAVACLASSPATH" \
+    "$@"

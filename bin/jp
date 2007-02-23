@@ -2,36 +2,16 @@
 
 # Like javap, but with the Ibis stuff on the classpath.
 
-PRG="$0"
+if [ -z "$IBIS_HOME" ];  then
+    echo "please set IBIS_HOME to the location of your Ibis installation" 1>&2
+    exit 1
+fi
 
-# resolve symlinks
-while [ -h "$PRG" ] ; do
-    ls=`ls -ld "$PRG"`
-    link=`expr "$ls" : '.*-> \(.*\)$'`
-    if expr "$link" : '/.*' > /dev/null; then
-    PRG="$link"
-    else
-    PRG=`dirname "$PRG"`"/$link"
-    fi
-done
-
-dir=`dirname "$PRG"`
-dir=`cd "$dir" && pwd`
-
-case X$IBIS_HOME in
-X)
-    IBIS_HOME=`cd "$dir/.." && pwd`
-    ;;
-esac
-
-export IBIS_HOME
-
+# deal with classpath
 LIBCLASSPATH=""
-
 add_to_libclasspath () {
-    DIRLIBS=`cd "$1" && ls *.jar 2>/dev/null`
-    for i in ${DIRLIBS}
-    do
+    JARFILES=`cd "$1" && ls *.jar 2>/dev/null`
+    for i in ${JARFILES} ; do
 	if [ -z "$LIBCLASSPATH" ] ; then
 	    LIBCLASSPATH="$1/$i"
 	else
@@ -45,7 +25,7 @@ add_to_libclasspath "${IBIS_HOME}"/lib
 
 # javap with classpath
 
-JAVACLASSPATH="$CLASSPATH:$IBIS_HOME/classlibs:$LIBCLASSPATH:build:.:"
+JAVACLASSPATH="$CLASSPATH:$LIBCLASSPATH:build:.:"
 
 case X$JAVA_HOME in
 X)
@@ -56,4 +36,4 @@ X)
     ;;
 esac
 
-"$JAVAP" -classpath "$JAVACLASSPATH" -bootclasspath "$JAVACLASSPATH" "$@"
+"$JAVAP" -classpath "$JAVACLASSPATH" "$@"
