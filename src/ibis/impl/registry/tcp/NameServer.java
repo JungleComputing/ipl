@@ -926,7 +926,7 @@ public class NameServer extends Thread implements Protocol {
                 in2 = new DataInputStream(new BufferedInputStream(s.getInputStream()));
                 String k = in2.readUTF();
                 String n = in2.readUTF();
-                if (!k.equals(poolId) || n != dest.id.myId) {
+                if (!k.equals(poolId) || ! n.equals(dest.id.myId)) {
                     deadIbises.add(dest);
                 }
             } catch (Exception e) {
