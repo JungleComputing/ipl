@@ -77,13 +77,16 @@ public abstract class PortType implements ibis.ipl.PortType,
             serialization = "data";
         } else if (p.hasCapability(SERIALIZATION_OBJECT)) {
             String ser = attributes.getProperty("ibis.serialization");
-            serialization = "object";
             if (ser != null) {
                 if (ser.equals("sun")) {
                     serialization = "sun";
                 } else if (ser.equals("ibis")) {
                     serialization = "ibis";
+                } else {
+                    serialization = "object";
                 }
+            } else {
+                serialization = "object";
             }
         } else if (p.hasCapability(SERIALIZATION_STRICT_OBJECT)) {
             serialization = "sun";
