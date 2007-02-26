@@ -73,7 +73,10 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
                 opcode = in.readByte();
                 switch (opcode) {
                 case NEW_RECEIVER:
-                    logger.debug(name + ": Got a NEW_RECEIVER from " + origin);
+                    if (logger.isDebugEnabled()) {
+                        logger.debug(name + ": Got a NEW_RECEIVER from "
+                                + origin);
+                    }
                     newStream();
                     break;
                 case NEW_MESSAGE:
@@ -94,13 +97,18 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
                     }
                     break;
                 case CLOSE_ALL_CONNECTIONS:
-                    logger.debug(name + ": Got a CLOSE_ALL_CONNECTIONS from "
-                            + origin);
+                    if (logger.isDebugEnabled()) {
+                        logger.debug(name
+                                + ": Got a CLOSE_ALL_CONNECTIONS from "
+                                + origin);
+                    }
                     close(null);
                     return;
                 case CLOSE_ONE_CONNECTION:
-                    logger.debug(name + ": Got a CLOSE_ONE_CONNECTION from "
-                            + origin);
+                    if (logger.isDebugEnabled()) {
+                        logger.debug(name + ": Got a CLOSE_ONE_CONNECTION from "
+                                + origin);
+                    }
                     // read the receiveport identifier from which the sendport
                     // disconnects.
                     byte[] length = new byte[Conversion.INT_SIZE];
@@ -112,7 +120,9 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
                             = new ReceivePortIdentifier(bytes);
                     if (ident.equals(identifier)) {
                         // Sendport is disconnecting from me.
-                        logger.debug(name + ": disconnect from " + origin);
+                        if (logger.isDebugEnabled()) {
+                            logger.debug(name + ": disconnect from " + origin);
+                        }
                         close(null);
                     }
                     break;

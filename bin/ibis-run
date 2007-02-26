@@ -1,6 +1,11 @@
 #!/bin/sh
 
-# check setting of IBIS_HOME
+#ibis_run script.
+#This script is a convenience script to automatically set the correct
+#classpath and bootclasspath for Ibis given the location of a Ibis
+#installation, specified in the $IBIS_HOME environment variable.
+
+# Check setting of IBIS_HOME
 if [ -z "$IBIS_HOME" ];  then
     echo "please set IBIS_HOME to the location of your Ibis installation" 1>&2
     exit 1
@@ -27,7 +32,7 @@ add_to_libclasspath () {
     done
 }
 
-# Add the jar files in the Ibis lib dir to the classpath 
+# Add the jar files in the Ibis lib dir to the classpath.
 add_to_libclasspath "${IBIS_HOME}"/lib
 
 # Set classpath and determine wether to set bootclasspath.

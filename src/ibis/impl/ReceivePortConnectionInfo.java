@@ -106,7 +106,9 @@ public class ReceivePortConnectionInfo {
      */
     protected void upcallCalledFinish() {
         message = new ReadMessage(in, this);
-        logger.debug(port.name + ": new connection handler for " + origin
-                + ", finish called from upcall");
+        if (logger.isDebugEnabled()) {
+            logger.debug(port.name + ": new connection handler for " + origin
+                    + ", finish called from upcall");
+        }
     }
 }

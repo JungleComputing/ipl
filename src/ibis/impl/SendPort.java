@@ -117,7 +117,10 @@ public abstract class SendPort implements ibis.ipl.SendPort {
             this.replacer = null;
         }
         ibis.register(this);
-        logger.debug(ibis.identifier() + ": Sendport '" + name + "' created");
+        if (logger.isDebugEnabled()) {
+            logger.debug(ibis.identifier() + ": Sendport '" + name
+                    + "' created");
+        }
         w = createWriteMessage();
     }
 
@@ -196,8 +199,10 @@ public abstract class SendPort implements ibis.ipl.SendPort {
 
     public ibis.ipl.ReceivePortIdentifier connect(ibis.ipl.IbisIdentifier id,
             String name) throws IOException {
-        logger.debug("Sendport '" + this.name + "' connecting to "
-                + name + " at " + id);
+        if (logger.isDebugEnabled()) {
+            logger.debug("Sendport '" + this.name + "' connecting to "
+                    + name + " at " + id);
+        }
         return connect(id, name, 0);
     }
 
@@ -217,7 +222,9 @@ public abstract class SendPort implements ibis.ipl.SendPort {
     public synchronized void connect(ibis.ipl.ReceivePortIdentifier receiver,
             long timeout) throws IOException {
 
-        logger.debug("Sendport '" + name + "' connecting to " + receiver);
+        if (logger.isDebugEnabled()) {
+            logger.debug("Sendport '" + name + "' connecting to " + receiver);
+        }
 
         if (aMessageIsAlive) {
             throw new IOException(
@@ -237,7 +244,9 @@ public abstract class SendPort implements ibis.ipl.SendPort {
         ReceivePortIdentifier r = new ReceivePortIdentifier(name,
                 (IbisIdentifier) id);
 
-        logger.debug("Sendport '" + name + "' connecting to " + r);
+        if (logger.isDebugEnabled()) {
+            logger.debug("Sendport '" + name + "' connecting to " + r);
+        }
 
         if (aMessageIsAlive) {
             throw new IOException(
@@ -253,7 +262,9 @@ public abstract class SendPort implements ibis.ipl.SendPort {
 
     private synchronized void addConnectionInfo(ReceivePortIdentifier ri,
             SendPortConnectionInfo connection) throws IOException {
-        logger.debug("SendPort '" + name + "': added connection to " + ri);
+        if (logger.isDebugEnabled()) {
+            logger.debug("SendPort '" + name + "': added connection to " + ri);
+        }
         if (connection == null) {
             throw new ConnectionRefusedException("Could not connect");
         }
@@ -288,8 +299,10 @@ public abstract class SendPort implements ibis.ipl.SendPort {
 
 
     public synchronized void close() throws IOException {
-        logger.debug("SendPort '" + name + "': start close()");
-        if (aMessageIsAlive) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("SendPort '" + name + "': start close()");
+        }
+        if (receivers.size() > 0 && aMessageIsAlive) {
             throw new IOException(
                 "Trying to close a sendport port while a message is alive!");
         }
@@ -308,7 +321,9 @@ public abstract class SendPort implements ibis.ipl.SendPort {
             closed = true;
             ibis.deRegister(this);
         }
-        logger.debug("SendPort '" + name + "': close() done");
+        if (logger.isDebugEnabled()) {
+            logger.debug("SendPort '" + name + "': close() done");
+        }
     }
 
     public synchronized void disconnect(ibis.ipl.ReceivePortIdentifier receiver)

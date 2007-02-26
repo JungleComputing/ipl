@@ -89,7 +89,9 @@ public abstract class PortType implements ibis.ipl.PortType,
                     + "serialization streams");
         }
 
-        logger.debug("Created PortType with capabilities " + p);
+        if (logger.isDebugEnabled()) {
+            logger.debug("Created PortType with capabilities " + p);
+        }
 
         this.oneToMany = capabilities.hasCapability(CONNECTION_ONE_TO_MANY);
         this.manyToOne = capabilities.hasCapability(CONNECTION_MANY_TO_ONE);

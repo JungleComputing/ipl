@@ -143,7 +143,9 @@ public abstract class ReceivePort implements ibis.ipl.ReceivePort,
                 = type.capabilities().hasCapability(COMMUNICATION_NUMBERED);
         this.serialization = type.serialization;
         ibis.register(this);
-        logger.debug(ibis.ident + ": ReceivePort '" + name + "' created");
+        if (logger.isDebugEnabled()) {
+            logger.debug(ibis.ident + ": ReceivePort '" + name + "' created");
+        }
     }
 
     public synchronized void enableUpcalls() {
@@ -563,7 +565,9 @@ public abstract class ReceivePort implements ibis.ipl.ReceivePort,
                             "receiver forcibly closed connection"));
             }
         }
-        logger.debug(name + ":done receiveport.close");
+        if (logger.isDebugEnabled()) {
+            logger.debug(name + ":done receiveport.close");
+        }
     }
 
     /**

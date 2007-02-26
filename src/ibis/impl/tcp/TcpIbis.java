@@ -71,7 +71,9 @@ public final class TcpIbis extends ibis.impl.Ibis
         systemServer.bind(local, 50);
         myAddress = new InetSocketAddress(addr, systemServer.getLocalPort());
 
-        logger.debug("--> TcpIbis: address = " + myAddress);
+        if (logger.isDebugEnabled()) {
+            logger.debug("--> TcpIbis: address = " + myAddress);
+        }
 
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         ObjectOutputStream out = new ObjectOutputStream(bos);
@@ -246,15 +248,19 @@ public final class TcpIbis extends ibis.impl.Ibis
             result = rp.connectionAllowed(send, sp);
         }
 
-        logger.debug("--> S RP = " + name + ": "
-                + ReceivePort.getString(result));
+        if (logger.isDebugEnabled()) {
+            logger.debug("--> S RP = " + name + ": "
+                    + ReceivePort.getString(result));
+        }
 
         out.write(result);
         out.flush();
         if (result == ReceivePort.ACCEPTED) {
             // add the connection to the receiveport.
             rp.connect(send, s);
-            logger.debug("--> S connect done ");
+            if (logger.isDebugEnabled()) {
+                logger.debug("--> S connect done ");
+            }
         } else {
             out.close();
             in.close();
@@ -274,11 +280,12 @@ public final class TcpIbis extends ibis.impl.Ibis
     public void run() {
         // This thread handles incoming connection request from the
         // connect(TcpSendPort) call.
-        logger.debug("--> TcpIbis running");
         while (true) {
             Socket s = null;
 
-            logger.debug("--> TcpIbis doing new accept()");
+            if (logger.isDebugEnabled()) {
+                logger.debug("--> TcpIbis doing new accept()");
+            }
             try {
                 s = systemServer.accept();
                 s.setTcpNoDelay(true);
@@ -289,11 +296,15 @@ public final class TcpIbis extends ibis.impl.Ibis
                 throw new Error("Fatal: TcpIbis could not do an accept", e);
             }
 
-            logger.debug("--> TcpIbis through new accept()");
+            if (logger.isDebugEnabled()) {
+                logger.debug("--> TcpIbis through new accept()");
+            }
             try {
                 if (quiting) {
                     s.close();
-                    logger.debug("--> it is a quit: RETURN");
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("--> it is a quit: RETURN");
+                    }
                     cleanup();
                     return;
                 }

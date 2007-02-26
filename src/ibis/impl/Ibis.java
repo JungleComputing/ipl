@@ -115,7 +115,9 @@ public abstract class Ibis implements ibis.ipl.Ibis,
         } else {
             checkPortCapabilities(p);
         }
-        logger.info("Creating port type" + " with capabilities\n" + p);
+        if (logger.isInfoEnabled()) {
+            logger.info("Creating port type" + " with capabilities\n" + p);
+        }
         if (p.hasCapability(CONNECTION_MANY_TO_ONE) &&
                 p.hasCapability(CONNECTION_ONE_TO_MANY)) {
             logger.warn("Combining ManyToOne and OneToMany in "
@@ -263,6 +265,11 @@ public abstract class Ibis implements ibis.ipl.Ibis,
                 }
             }
         }
+    }
+
+    public synchronized void enableResizeUpcallsNonBlocking() {
+        resizeUpcallerEnabled = true;
+        notifyAll();
     }
 
     public synchronized void disableResizeUpcalls() {

@@ -35,6 +35,13 @@ public interface Ibis {
     public void enableResizeUpcalls();
 
     /**
+     * Allows reception of {@link ibis.ipl.ResizeHandler ResizeHandler}
+     * upcalls. Unlike {@link #enableResizeUpcalls()}, this call does not
+     * block.
+     */
+    public void enableResizeUpcallsNonBlocking();
+
+    /**
      * Disables reception of
      * {@link ibis.ipl.ResizeHandler ResizeHandler} upcalls.
      */

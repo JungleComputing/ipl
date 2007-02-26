@@ -1,10 +1,16 @@
 #!/bin/sh
 
+# ibis-nameserver script.
+# This script is a convenience script to start the ibis nameserver from the
+# Ibis installation, specified in the $IBIS_HOME environment variable.
+
+# Check IBIS_HOME.
 if [ -z "$IBIS_HOME" ];  then
     echo "please set IBIS_HOME to the location of your Ibis installation" 1>&2
     exit 1
 fi
 
+# On cygwin, convert paths to unix format.
 case "`uname`" in
 CYGWIN*)
     IBIS_HOME=`cygpath --unix "$IBIS_HOME"`
@@ -25,20 +31,24 @@ add_to_libclasspath () {
     done
 }
 
-# Add the Ibis jars to the classpath 
+# Add the Ibis jars to the classpath.
 add_to_libclasspath "${IBIS_HOME}"/lib
 
 JAVACLASSPATH="$CLASSPATH:$LIBCLASSPATH:"
+
+# On cygwin, convert paths back to windows format.
 case "`uname`" in
 CYGWIN*)
     JAVACLASSPATH=`cygpath --path --windows "$JAVACLASSPATH"`
     ;;
 esac
 
+# Check which Java to execute.
 if [ -z "$JAVA_HOME" ] ; then
     JAVA=java
 else
     JAVA="$JAVA_HOME/bin/java"
 fi
 
+# And execute.
 "$JAVA" -classpath "$JAVACLASSPATH" ibis.impl.registry.tcp.NameServer "$@"
