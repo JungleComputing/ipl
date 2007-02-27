@@ -9,8 +9,8 @@ import ibis.util.TypedProperties;
  * Collects all system properties used by the ibis.io package.
  */
 class IOProps {
-    static final TypedProperties attribs
-            = new TypedProperties(IbisFactory.getDefaultAttributes());
+    static final TypedProperties properties
+            = new TypedProperties(IbisFactory.getDefaultProperties());
 
     static final String PROPERTY_PREFIX = "ibis.io.";
 
@@ -60,6 +60,6 @@ class IOProps {
             s_hash_timings, s_hash_resize, s_buffer_size, s_array_buffer };
 
     static {
-        attribs.checkProperties(PROPERTY_PREFIX, sysprops, null, true);
+        properties.checkProperties(PROPERTY_PREFIX, sysprops, null, true);
     }
 }

@@ -45,14 +45,14 @@ public abstract class Registry implements ibis.ipl.Registry {
 
         Registry res = null;
 
-        // You can get attributes and capabilities from the ibis instance
+        // You can get properties and capabilities from the ibis instance
         // here.
 
-        String registryName = ibis.attributes.getProperty("ibis.registry.impl");
+        String registryName = ibis.properties.getProperty("ibis.registry.impl");
 
         if (registryName == null) {
             throw new IbisConfigurationException("Could not create registry: "
-                    + "attribute ibis.registry.impl is not set.");
+                    + "property ibis.registry.impl is not set.");
         }
 
         Class c = Class.forName(registryName);

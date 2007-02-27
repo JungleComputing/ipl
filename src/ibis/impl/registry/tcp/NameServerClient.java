@@ -61,6 +61,8 @@ public class NameServerClient extends ibis.impl.Registry
         this.ibisImpl = ibis;
         this.needsUpcalls = ndsUpcalls;
 
+        TypedProperties p = new TypedProperties(ibis.properties());
+
         // Try to use the same socket factory as the Ibis that created us...
         synchronized(NameServerClient.class) {
             if (socketFactory == null) {
@@ -74,8 +76,7 @@ public class NameServerClient extends ibis.impl.Registry
 
                     try {
                         socketFactory =
-                            VirtualSocketFactory.createSocketFactory(
-                                    ibis.attributes(), true);
+                            VirtualSocketFactory.createSocketFactory(p, true);
                     } catch(Exception e) {
                         logger.error("Could not create VirtualSocketFactory",
                                 e);
@@ -89,7 +90,6 @@ public class NameServerClient extends ibis.impl.Registry
         serverSocket = socketFactory.createServerSocket(0, 50, true, null);
         myAddress = serverSocket.getLocalSocketAddress();
 
-        TypedProperties p = new TypedProperties(ibis.attributes());
         serverAddress = getServerAddress(p);
 
         // Next, get the nameserver pool ....

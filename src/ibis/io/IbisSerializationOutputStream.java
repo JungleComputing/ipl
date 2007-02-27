@@ -21,7 +21,7 @@ public class IbisSerializationOutputStream
 
     /** Record how many objects of any class are sent. */
     private static final boolean STATS_OBJECTS
-            = attribs.booleanProperty(s_stats_written);
+            = properties.booleanProperty(s_stats_written);
 
     // if STATS_OBJECTS
     static java.util.Hashtable statSendObjects;

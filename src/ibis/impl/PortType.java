@@ -52,14 +52,14 @@ public abstract class PortType implements ibis.ipl.PortType,
     /** Set when the port type supports ManyToOne communication. */
     public final boolean manyToOne;
 
-    /** Attributes for this port type. */
-    protected final TypedProperties attributes;
+    /** Properties for this port type. */
+    protected final TypedProperties properties;
 
     /**
      * Constructs a <code>PortType</code> with the specified parameters.
      * @param ibis the ibis instance.
      * @param p the capabilities for the <code>PortType</code>.
-     * @param tp the attributes for the <code>PortType</code>.
+     * @param tp the properties for the <code>PortType</code>.
      * @exception IbisConfigurationException is thrown when there is some
      * inconsistency in the specified capabilities.
      */
@@ -67,16 +67,16 @@ public abstract class PortType implements ibis.ipl.PortType,
         this.ibis = ibis;
     	this.capabilities = p;
         if (tp != null) {
-            this.attributes = new TypedProperties(tp);
+            this.properties = new TypedProperties(tp);
         } else {
-            this.attributes = new TypedProperties();
+            this.properties = new TypedProperties();
         }
 
         numbered = p.hasCapability(COMMUNICATION_NUMBERED);
         if (p.hasCapability(SERIALIZATION_DATA)) {
             serialization = "data";
         } else if (p.hasCapability(SERIALIZATION_OBJECT)) {
-            String ser = attributes.getProperty("ibis.serialization");
+            String ser = properties.getProperty("ibis.serialization");
             if (ser != null) {
                 if (ser.equals("sun")) {
                     serialization = "sun";
@@ -107,7 +107,7 @@ public abstract class PortType implements ibis.ipl.PortType,
         this.oneToMany = capabilities.hasCapability(CONNECTION_ONE_TO_MANY);
         this.manyToOne = capabilities.hasCapability(CONNECTION_MANY_TO_ONE);
 
-        String replacerName = attributes.getProperty("serialization.replacer");
+        String replacerName = properties.getProperty("serialization.replacer");
 
         if (replacerName != null) {
             try {
@@ -131,8 +131,8 @@ public abstract class PortType implements ibis.ipl.PortType,
         return capabilities;
     }
 
-    public Properties attributes() {
-        return new Properties(attributes);
+    public Properties properties() {
+        return new Properties(properties);
     }
 
     public ibis.ipl.SendPort createSendPort() throws IOException {

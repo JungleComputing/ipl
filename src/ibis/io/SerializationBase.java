@@ -15,7 +15,7 @@ public class SerializationBase extends IOProps {
      * Each serialization entry/exit point must start/stop the timer.
      */
     protected final static boolean TIME_SERIALIZATION
-            = attribs.booleanProperty(s_timer, false);
+            = properties.booleanProperty(s_timer, false);
 
     /** The serialization timer. */
     protected final SerializationTimer timer

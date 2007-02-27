@@ -92,7 +92,7 @@ public final class Satin implements Config {
     public final Vector<IbisIdentifier> deadIbises = new Vector<IbisIdentifier>();
 
     static {
-        attribs.checkProperties(PROPERTY_PREFIX, sysprops, null, true);
+        properties.checkProperties(PROPERTY_PREFIX, sysprops, null, true);
     }
 
     /**

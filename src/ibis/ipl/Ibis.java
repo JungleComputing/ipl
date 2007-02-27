@@ -81,10 +81,10 @@ public interface Ibis {
     /**
      * Creates a {@link ibis.ipl.PortType PortType}.
      * See {@link #createPortType(CapabilitySet)}.
-     * Also sets some attributes for this porttype.
+     * Also sets some properties for this porttype.
      *
      * @param p capabilities of the porttype.
-     * @param tp some attributes for this port type.
+     * @param tp some properties for this port type.
      * @return the porttype.
      * @exception ibis.ipl.IbisConfigurationException if the required
      * capabilities do not match the capabilities as specified when creating
@@ -135,8 +135,8 @@ public interface Ibis {
     public void printStatistics(PrintStream out);
 
     /**
-     * Returns the attributes as provided when instantiating Ibis.
-     * @return the attributes.
+     * Returns the properties as provided when instantiating Ibis.
+     * @return the properties.
      */
-    public Properties attributes();
+    public Properties properties();
 }

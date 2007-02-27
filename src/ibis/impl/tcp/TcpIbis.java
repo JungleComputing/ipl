@@ -76,7 +76,7 @@ public final class TcpIbis extends ibis.impl.Ibis
         //       work then....        
         
         try {
-            socketFactory = VirtualSocketFactory.createSocketFactory(attributes,
+            socketFactory = VirtualSocketFactory.createSocketFactory(properties,
                 true);
         } catch (InitializationException e1) {
             throw new IOException("Failed to create socket factory");

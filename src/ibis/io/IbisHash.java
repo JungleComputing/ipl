@@ -17,14 +17,14 @@ import ibis.util.Timer;
 final class IbisHash extends IOProps {
 
     private static final boolean ASSERTS
-            = attribs.booleanProperty(s_hash_asserts);
+            = properties.booleanProperty(s_hash_asserts);
 
     // private final boolean ASSERTS;
     private static final boolean STATS
-            = attribs.booleanProperty(s_hash_stats);
+            = properties.booleanProperty(s_hash_stats);
 
     private static final boolean TIMINGS
-            = attribs.booleanProperty(s_hash_timings);
+            = properties.booleanProperty(s_hash_timings);
 
     private static final int MIN_BUCKETS = 32;
 

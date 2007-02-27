@@ -4,20 +4,21 @@ package ibis.io;
 
 public interface IbisStreamFlags {
 
-    public static final boolean DEBUG = IOProps.attribs.booleanProperty(
+    public static final boolean DEBUG = IOProps.properties.booleanProperty(
             IOProps.s_dbg, false);
 
-    public static final boolean ASSERTS = IOProps.attribs.booleanProperty(
+    public static final boolean ASSERTS = IOProps.properties.booleanProperty(
             IOProps.s_asserts, false);
 
-    public static final int SMALL_ARRAY_BOUND = IOProps.attribs.getIntProperty(
-            IOProps.s_small_array_bound, 256); // byte
+    public static final int SMALL_ARRAY_BOUND
+            = IOProps.properties.getIntProperty(IOProps.s_small_array_bound,
+                    256); // byte
 
-    public static final int BUFFER_SIZE = IOProps.attribs.getIntProperty(
+    public static final int BUFFER_SIZE = IOProps.properties.getIntProperty(
             IOProps.s_buffer_size, 2 * 1024);
 
-    public static final int ARRAY_BUFFER_SIZE = IOProps.attribs.getIntProperty(
-            IOProps.s_array_buffer, 1024);
+    public static final int ARRAY_BUFFER_SIZE
+            = IOProps.properties.getIntProperty(IOProps.s_array_buffer, 1024);
 
     public static final int TYPE_BIT = (1 << 31);
 

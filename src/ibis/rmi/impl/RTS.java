@@ -41,8 +41,8 @@ import colobus.Colobus;
 
 public final class RTS implements ibis.ipl.PredefinedCapabilities {
 
-    static TypedProperties attribs
-            = new TypedProperties(IbisFactory.getDefaultAttributes());
+    static TypedProperties properties
+            = new TypedProperties(IbisFactory.getDefaultProperties());
 
     static final String prefix = "rmi.";
 
@@ -293,7 +293,7 @@ public final class RTS implements ibis.ipl.PredefinedCapabilities {
             CapabilitySet replyProps = new CapabilitySet(
                 SERIALIZATION_OBJECT, COMMUNICATION_RELIABLE, RECEIVE_EXPLICIT);
 
-            Properties tp = ibis.attributes();
+            Properties tp = ibis.properties();
 
             tp.setProperty("serialization.replacer",
                     "ibis.rmi.impl.RMIReplacer");
@@ -301,7 +301,7 @@ public final class RTS implements ibis.ipl.PredefinedCapabilities {
             requestPortType = ibis.createPortType(requestProps, tp);
             replyPortType = ibis.createPortType(replyProps, tp);
 
-            enableRMITimer = attribs.booleanProperty(s_timer);
+            enableRMITimer = properties.booleanProperty(s_timer);
 
             skeletonReceivePort = requestPortType.createReceivePort("//"
                     + hostname + "/rmi_skeleton"

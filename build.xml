@@ -97,7 +97,7 @@
 
     <target name="copyProperties">
 	<copy todir="${build}">
-	    <fileset dir="${src}" includes="ibis/impl/**/capabilities ibis-attributes"/>
+	    <fileset dir="${src}" includes="ibis/impl/**/capabilities ibis-properties"/>
 	</copy>
 	<copy todir="${build}">
 	    <fileset dir="${ibis}">
@@ -116,7 +116,7 @@
     <target name="ibis.jar">
 	<jar	destfile="${jar}"
 		basedir="${build}"
-		includes="ibis/**/*.class smartsockets.properties **/capabilities ibis-attributes">
+		includes="ibis/**/*.class smartsockets.properties **/capabilities ibis-properties">
 	    <manifest>
 		<attribute name="Ibisc-Component" value="ibis.frontend.io.IOGenerator,ibis.frontend.gmi.Gmic,ibis.frontend.rmi.Rmic,ibis.frontend.satin.Satinc"/>
 		<attribute name="Ibis-Implementation" value="ibis.impl.tcp.TcpIbis"/>

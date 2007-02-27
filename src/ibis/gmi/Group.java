@@ -161,7 +161,7 @@ public final class Group implements GroupProtocol,
      */
     static {
         TypedProperties tp
-                = new TypedProperties(IbisFactory.getDefaultAttributes());
+                = new TypedProperties(IbisFactory.getDefaultProperties());
         try {
             tp.checkProperties("gmi", GMI_PROPERTIES, null, true);
             
