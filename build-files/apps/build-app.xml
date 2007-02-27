@@ -59,6 +59,7 @@
 	      vmlauncher="false"
 	      spawn="true">
 	    <arg line="-Dibis.pool.total_hosts=2"/>
+	    <arg line="-Dibis.pool.server.host=localhost"/>
 	    <arg value="${define-ibis-name}"/>
 	    <arg line="-Dsatin.localPorts ${java-args} ibis.util.Postpone 2 -o ant-test.out ${runjob}"/>
 	</exec>
@@ -68,6 +69,7 @@
 	      failonerror="true"
 	      vmlauncher="false">
 	    <arg line="-Dibis.pool.total_hosts=2"/>
+	    <arg line="-Dibis.pool.server.host=localhost"/>
 	    <arg value="${define-ibis-name}"/>
 	    <arg line="-Dsatin.localPorts ${java-args} ${runjob}"/>
 	</exec>
@@ -99,6 +101,7 @@
 	      failonerror="true"
 	      vmlauncher="false">
 	    <arg line="-Dibis.pool.total_hosts=1"/>
+	    <arg line="-Dibis.pool.server.host=localhost"/>
 	    <arg value="${define-ibis-name}"/>
 	    <arg line="-Dsatin.localPorts ${java-args} ${runjob}"/>
 	</exec>
