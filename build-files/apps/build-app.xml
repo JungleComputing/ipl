@@ -148,6 +148,10 @@
 	    <param name="runjob" value="${test-par-run}"/>
 	    <param name="java-args" value="${jargs}"/>
 	</antcall>
+	<echo message="Output of 2nd JVM"/>
+	<concat>
+	    <fileset dir="." includes="ant-test.out"/>
+	</concat>
     </target>
 
     <target name="test-prun"
