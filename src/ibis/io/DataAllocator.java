@@ -14,7 +14,7 @@ public class DataAllocator extends IOProps implements IbisStreamFlags {
     private final static int CACHE_MAX;
 
     static {
-        CACHE_MAX = attribs.getIntProperty(s_cache_max, DEFAULT_CACHE_MAX);
+        CACHE_MAX = properties.getIntProperty(s_cache_max, DEFAULT_CACHE_MAX);
     }
 
     /** The number of currently cached buffers per type. */
@@ -54,7 +54,7 @@ public class DataAllocator extends IOProps implements IbisStreamFlags {
     private IbisHash doubleHash;
 
     private final static boolean STATISTICS
-            = attribs.booleanProperty(s_cache_stats);
+            = properties.booleanProperty(s_cache_stats);
 
     // if (STATISTICS)
     int alloc_index;

@@ -35,11 +35,11 @@ public abstract class Ibis implements ibis.ipl.Ibis,
     protected CapabilitySet capabilities;
 
     /**
-     * Attributes, as given to
+     * Properties, as given to
      * {@link ibis.ipl.IbisFactory#createIbis(CapabilitySet, CapabilitySet,
      * Properties, ResizeHandler)}.
      */
-    protected TypedProperties attributes;
+    protected TypedProperties properties;
 
     /** The Ibis registry. */
     private final Registry registry;
@@ -73,15 +73,15 @@ public abstract class Ibis implements ibis.ipl.Ibis,
      * Constructs an <code>Ibis</code> instance with the specified parameters.
      * @param resizeHandler the resizeHandler.
      * @param caps the capabilities.
-     * @param attributes the attributes.
+     * @param properties the properties.
      * Every Ibis implementation must have a public constructor with these
      * parameters.
      */
     protected Ibis(ResizeHandler resizeHandler, CapabilitySet caps,
-            Properties attributes) throws Throwable {
+            Properties properties) throws Throwable {
         this.resizeHandler = resizeHandler;
         this.capabilities = caps;
-        this.attributes = new TypedProperties(attributes);
+        this.properties = new TypedProperties(properties);
         receivePorts = new HashMap<String, ReceivePort>();
         sendPorts = new HashMap<String, SendPort>();
         registry = Registry.createRegistry(this, resizeHandler != null,
@@ -90,7 +90,7 @@ public abstract class Ibis implements ibis.ipl.Ibis,
         closedWorld = caps.hasCapability(WORLDMODEL_CLOSED);
         if (closedWorld) {
             try {
-                numInstances = this.attributes.getIntProperty(
+                numInstances = this.properties.getIntProperty(
                         "ibis.pool.total_hosts");
             } catch(NumberFormatException e) {
                 throw new IbisConfigurationException("Could not get number of "
@@ -133,8 +133,8 @@ public abstract class Ibis implements ibis.ipl.Ibis,
         return createPortType(p, null);
     }
 
-    public Properties attributes() {
-        return new Properties(attributes);
+    public Properties properties() {
+        return new Properties(properties);
     }
 
     /**

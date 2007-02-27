@@ -10,10 +10,10 @@ import ibis.util.Timer;
  */
 public final class HandleHash extends IOProps {
 
-    private static final boolean STATS = attribs.booleanProperty(
+    private static final boolean STATS = properties.booleanProperty(
             IOProps.s_hash_stats);
 
-    private static final boolean TIMINGS = attribs.booleanProperty(
+    private static final boolean TIMINGS = properties.booleanProperty(
             IOProps.s_hash_timings);
 
     private static final int MIN_BUCKETS = 32;
@@ -26,7 +26,7 @@ public final class HandleHash extends IOProps {
      * before the hashmap is resized. Lower value means less chaining, but
      * larger hashtable.
      */
-    private static final int RESIZE_PERCENTAGE = attribs.getIntProperty(
+    private static final int RESIZE_PERCENTAGE = properties.getIntProperty(
             IOProps.s_hash_resize, 100);
 
     /** Maps handle to object. */

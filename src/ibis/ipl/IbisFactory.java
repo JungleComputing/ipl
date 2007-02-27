@@ -27,7 +27,7 @@ import org.apache.log4j.WriterAppender;
  * class path, or all jar files in the directories indicated by the
  * ibis.impl.path property.
  * All Ibis implementations should be mentioned in the main
- * attributes of the manifest of the jar file containing it, in the
+ * properties of the manifest of the jar file containing it, in the
  * "Ibis-Implementation" entry. This entry should contain a
  * comma- or space-separated list of class names, where each class named
  * provides an Ibis implementation. In addition, a jar-entry named
@@ -36,13 +36,13 @@ import org.apache.log4j.WriterAppender;
  */
 public final class IbisFactory {
 
-    private static final String ATTRIBUTES_FILENAME = "ibis-attributes";
+    private static final String PROPERTIES_FILENAME = "ibis-properties";
 
     /** All our own properties start with this prefix. */
     public static final String PREFIX = "ibis.";
 
     /** Property name of the property file. */
-    public static final String FILE = PREFIX + "attributes.file";
+    public static final String FILE = PREFIX + "properties.file";
 
     /** Property name for the native library path. */
     public static final String LDPATH = PREFIX + "library.path";
@@ -50,11 +50,11 @@ public final class IbisFactory {
     /** Property name for the path used to find Ibis implementations. */
     public static final String IMPLPATH = PREFIX + "impl.path";
 
-    private static Properties defaultAttributes;
+    private static Properties defaultProperties;
 
     private static final String[] excludes = { "util.", "connect.", "pool.",
             "library.", "io.", "impl.", "registry.", "name", "verbose",
-            "serialization", "attributes." };
+            "serialization", "properties." };
 
     static {
         Logger ibisLogger = Logger.getLogger("ibis");
@@ -71,14 +71,14 @@ public final class IbisFactory {
 
     private CapabilitySet[] capsList;
 
-    private Properties attribs;
+    private Properties properties;
 
     Logger logger = Logger.getLogger("ibis.ipl.IbisFactory");
 
     private static void load(InputStream in) {
         if (in != null) {
             try {
-                defaultAttributes.load(in);
+                defaultProperties.load(in);
             } catch(IOException e) {
                 // ignored
             } finally {
@@ -91,24 +91,24 @@ public final class IbisFactory {
         }
     }
 
-    public synchronized static Properties getDefaultAttributes() {
-        if (defaultAttributes == null) { 
+    public synchronized static Properties getDefaultProperties() {
+        if (defaultProperties == null) { 
             InputStream in = null;
 
-            defaultAttributes = new Properties();
+            defaultProperties = new Properties();
             // Get the properties from the commandline. 
             Properties system = System.getProperties();
 
             // Then get the default properties from the classpath:
             ClassLoader loader = ClassLoader.getSystemClassLoader();
-            in = loader.getResourceAsStream(ATTRIBUTES_FILENAME);
+            in = loader.getResourceAsStream(PROPERTIES_FILENAME);
 
             load(in);
 
-            // Then see if there is an ibis-attributes file in the users
+            // Then see if there is an ibis-properties file in the users
             // home directory.
             String fn = system.getProperty("user.home") +
-                system.getProperty("file.separator") + ATTRIBUTES_FILENAME;
+                system.getProperty("file.separator") + PROPERTIES_FILENAME;
             try {
                 in = new FileInputStream(fn);
                 load(in);
@@ -116,16 +116,16 @@ public final class IbisFactory {
                 // ignored
             }
 
-            // Then see if there is an ibis-attributes file in the current
+            // Then see if there is an ibis-properties file in the current
             // directory.
             try {
-                in = new FileInputStream(ATTRIBUTES_FILENAME);
+                in = new FileInputStream(PROPERTIES_FILENAME);
                 load(in);
             } catch (FileNotFoundException e) {
                 // ignored
             }
 
-            // Then see if the user specified an attributes file.
+            // Then see if the user specified an properties file.
             String file = system.getProperty(FILE); 
             if (file != null) {
                 try {
@@ -142,11 +142,11 @@ public final class IbisFactory {
             for (Enumeration e = system.propertyNames(); e.hasMoreElements();) {
                 String key = (String) e.nextElement();
                 String value = system.getProperty(key);
-                defaultAttributes.setProperty(key, value);
+                defaultProperties.setProperty(key, value);
             }
         } 
 
-        return defaultAttributes;        
+        return defaultProperties;        
     }
 
     /** 
@@ -158,13 +158,13 @@ public final class IbisFactory {
      * which is not portable.
      *
      * @param name the name of the library to be loaded.
-     * @param attrib properties to get a library path from.
+     * @param properties properties to get a library path from.
      * @exception SecurityException may be thrown by loadLibrary.
      * @exception UnsatisfiedLinkError may be thrown by loadLibrary.
      */
-    public static void loadLibrary(String name, Properties attrib)
+    public static void loadLibrary(String name, Properties properties)
             throws SecurityException, UnsatisfiedLinkError {
-        String libPath = attrib.getProperty(LDPATH);
+        String libPath = properties.getProperty(LDPATH);
         String sep = System.getProperty("file.separator");
 
         if (libPath != null) {
@@ -176,7 +176,7 @@ public final class IbisFactory {
             return;
         }
 
-        libPath = attrib.getProperty("java.library.path");
+        libPath = properties.getProperty("java.library.path");
         if (libPath != null) {
             System.setProperty("java.library.path", libPath);
         }
@@ -191,7 +191,7 @@ public final class IbisFactory {
     private static ArrayList<Ibis> loadedIbises = new ArrayList<Ibis>();
 
     private static IbisFactory defaultFactory
-            = new IbisFactory(getDefaultAttributes());
+            = new IbisFactory(getDefaultProperties());
 
     /**
      * Returns a list of all Ibis implementations that are currently loaded.
@@ -205,12 +205,12 @@ public final class IbisFactory {
 
     /**
      * Creates a new Ibis instance, based on the required capabilities,
-     * and using the specified attributes.
+     * and using the specified properties.
      *
      * @param requiredCapabilities capabilities required by the application.
      * @param optionalCapabilities capabilities that might come in handy, or
      * <code>null</code>.
-     * @param attributes properties that can be set, for instance
+     * @param properties properties that can be set, for instance
      * a class path for searching ibis implementations, or which registry
      * to use. There is a default, so <code>null</code> may be specified.
      * @param r a {@link ibis.ipl.ResizeHandler ResizeHandler} instance
@@ -224,20 +224,20 @@ public final class IbisFactory {
      *  instantiated.
      */
     public static Ibis createIbis(CapabilitySet requiredCapabilities,
-            CapabilitySet optionalCapabilities, Properties attributes,
+            CapabilitySet optionalCapabilities, Properties properties,
             ResizeHandler r) throws NoMatchingIbisException, NestedException {
 
         IbisFactory fac;
 
-        if (attributes == null) {
+        if (properties == null) {
             fac = defaultFactory;
         } else {
-            Properties tp = getDefaultAttributes();
-            for (Enumeration e = attributes.propertyNames();
+            Properties tp = getDefaultProperties();
+            for (Enumeration e = properties.propertyNames();
                     e.hasMoreElements();) {
                 String key = (String) e.nextElement();
-                String value = attributes.getProperty(key);
-                defaultAttributes.setProperty(key, value);
+                String value = properties.getProperty(key);
+                defaultProperties.setProperty(key, value);
             }
             fac = new IbisFactory(tp);
         }
@@ -253,14 +253,14 @@ public final class IbisFactory {
     }
 
     /**
-     * Constructs an Ibis factory, with the specified attribute set.
-     * @param attribs the specified attributes.
+     * Constructs an Ibis factory, with the specified properties.
+     * @param properties the specified properties.
      */
-    private IbisFactory(Properties attribs) {
-        this.attribs = attribs;
+    private IbisFactory(Properties properties) {
+        this.properties = properties;
 
         // Check capabilities
-        TypedProperties tp = new TypedProperties(attribs);
+        TypedProperties tp = new TypedProperties(properties);
         tp.checkProperties(PREFIX, new String[] {}, excludes, true);
 
         // Check verbose
@@ -271,7 +271,7 @@ public final class IbisFactory {
         }
 
         // Obtain a list of Ibis implementations
-        String implPath = attribs.getProperty(IMPLPATH);
+        String implPath = properties.getProperty(IMPLPATH);
         ClassLister clstr = ClassLister.getClassLister(implPath);
         List<Class> compnts
             = clstr.getClassList("Ibis-Implementation", Ibis.class);
@@ -300,7 +300,7 @@ public final class IbisFactory {
         try {
             impl = (Ibis) c.getConstructor(new Class[] {ResizeHandler.class,
                     CapabilitySet.class, Properties.class}).newInstance(
-                        new Object[] {resizeHandler, caps, attribs});
+                        new Object[] {resizeHandler, caps, properties});
         } catch (java.lang.reflect.InvocationTargetException e) {
             throw e.getCause();
         }
@@ -331,7 +331,7 @@ public final class IbisFactory {
                     + "open world as well as closed world");
         }
 
-        String ibisname = attribs.getProperty("ibis.name");
+        String ibisname = properties.getProperty("ibis.name");
 
         ArrayList<Class> implementations = new ArrayList<Class>();
 

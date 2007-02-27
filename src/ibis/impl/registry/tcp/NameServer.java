@@ -51,7 +51,7 @@ public class NameServer extends Thread implements Protocol {
     }
 
     public static final TypedProperties
-            attribs = new TypedProperties(IbisFactory.getDefaultAttributes());
+            attribs = new TypedProperties(IbisFactory.getDefaultProperties());
 
     public static final int TCP_IBIS_NAME_SERVER_PORT_NR
             = attribs.getIntProperty(NSProps.s_port, 9826);

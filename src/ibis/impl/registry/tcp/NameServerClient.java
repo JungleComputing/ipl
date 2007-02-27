@@ -67,7 +67,7 @@ public class NameServerClient extends ibis.impl.Registry
 
         myAddress = IPUtils.getAlternateLocalHostAddress();
 
-        server = ibis.attributes().getProperty(NSProps.s_host);
+        server = ibis.properties().getProperty(NSProps.s_host);
         if (server == null) {
             throw new IbisConfigurationException(
                     "property ibis.registry.host is not specified");
@@ -77,14 +77,14 @@ public class NameServerClient extends ibis.impl.Registry
             server = myAddress.getHostName();
         }
 
-        poolName = ibis.attributes().getProperty(NSProps.s_pool);
+        poolName = ibis.properties().getProperty(NSProps.s_pool);
         if (poolName == null) {
             throw new IbisConfigurationException(
                     "property ibis.registry.pool is not specified");
         }
 
         String nameServerPortString
-                = ibis.attributes().getProperty(NSProps.s_port);
+                = ibis.properties().getProperty(NSProps.s_port);
         port = NameServer.TCP_IBIS_NAME_SERVER_PORT_NR;
         if (nameServerPortString != null) {
             try {
@@ -131,7 +131,7 @@ public class NameServerClient extends ibis.impl.Registry
             out.writeBoolean(ndsUpcalls);
             out.writeInt(data.length);
             out.write(data);
-            Location l = getLocation(ibis.attributes());
+            Location l = getLocation(ibis.properties());
             l.writeTo(out);
             out.flush();
 

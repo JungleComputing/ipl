@@ -32,11 +32,11 @@ public interface PortType {
     public CapabilitySet capabilities();
 
     /**
-     * Returns the attributes given to this PortType upon creation.
+     * Returns the properties given to this PortType upon creation.
      *
-     * @return the attributes of this port type.
+     * @return the properties of this port type.
      */
-    public Properties attributes();
+    public Properties properties();
 
     /**
      * Creates a anonymous {@link SendPort} of this <code>PortType</code>.

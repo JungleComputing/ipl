@@ -14,7 +14,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
         implements IbisStreamFlags {
     /** When true, no buffering in this layer. */
     private static final boolean NO_ARRAY_BUFFERS
-            = attribs.booleanProperty(s_no_array_buffers);
+            = properties.booleanProperty(s_no_array_buffers);
 
     /** If <code>false</code>, makes all timer calls disappear. */
     private static final boolean TIME_DATA_SERIALIZATION = true;
@@ -24,7 +24,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
 
     /** Allocator for the typed buffer arrays. */
     private static final DataAllocator allocator
-        = attribs.booleanProperty(s_cache, false)
+        = properties.booleanProperty(s_cache, false)
             ? new DataAllocator()
             : (DataAllocator) new DummyAllocator();
 
