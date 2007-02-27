@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.Hashtable;
 
 import smartsockets.hub.servicelink.ServiceLink;
+import smartsockets.virtual.InitializationException;
 import smartsockets.virtual.VirtualSocketFactory;
 
 public final class TcpIbis extends Ibis implements Config {
@@ -58,9 +59,11 @@ public final class TcpIbis extends Ibis implements Config {
         //       this process. Having a single -static- socketfactory doesn't 
         //       work then....        
         
-        HashMap properties = new HashMap();        
-        socketFactory = VirtualSocketFactory.createSocketFactory(properties, 
-                true);
+        try {
+            socketFactory = VirtualSocketFactory.createSocketFactory(null, true);
+        } catch (InitializationException e1) {
+            throw new IOException("Failed to create socket factory");
+        }
 
         tcpPortHandler = new TcpPortHandler(this, socketFactory);
         

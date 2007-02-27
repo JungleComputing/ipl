@@ -10,7 +10,6 @@ import ibis.ipl.ConnectionTimedOutException;
 import ibis.impl.Ibis;
 import ibis.ipl.IbisConfigurationException;
 import ibis.impl.IbisIdentifier;
-import ibis.ipl.StaticProperties;
 import ibis.util.RunProcess;
 import ibis.util.TypedProperties;
 
@@ -25,11 +24,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Properties;
-import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
 
-import smartsockets.direct.SocketAddressSet;
+import smartsockets.direct.DirectSocketAddress;
 import smartsockets.virtual.*;
 
 public class NameServerClient extends ibis.impl.Registry
@@ -274,11 +272,14 @@ public class NameServerClient extends ibis.impl.Registry
             logger.warn("Failed to find VirtualSocketFactory: " + name);
             logger.warn("Creating new VirtualSocketFactory!");
             
-            HashMap properties = new HashMap();
             // Why was this port hardcoded ?? 
             // properties.put("modules.direct.port", "16789");            
-            socketFactory = 
-                VirtualSocketFactory.createSocketFactory(properties, true);
+
+            try {
+                socketFactory = VirtualSocketFactory.createSocketFactory(null, true);
+            } catch (InitializationException e) {
+                throw new IOException("Failed to create socket factory!");
+            }
         } 
         
         serverSocket = socketFactory.createServerSocket(0, 50, true, null);
@@ -436,7 +437,7 @@ public class NameServerClient extends ibis.impl.Registry
     }
     
     private VirtualSocketAddress getClassicServerAddress(String server, 
-            Properties p) {
+            Properties p) throws UnknownHostException {
 
         final String original = server;        
         int port = TCP_IBIS_NAME_SERVER_PORT_NR;
@@ -469,7 +470,7 @@ public class NameServerClient extends ibis.impl.Registry
             runNameServer(port, "bla");            
                         
             return new VirtualSocketAddress(
-                new SocketAddressSet(myAddress.machine().getAddressSet(), port), 
+                DirectSocketAddress.getByAddress(myAddress.machine().getAddressSet(), port), 
                 port);            
         } 
                      
@@ -482,7 +483,7 @@ public class NameServerClient extends ibis.impl.Registry
         }
     }
     
-    private VirtualSocketAddress getServerAddress(Properties p) {
+    private VirtualSocketAddress getServerAddress(Properties p) throws UnknownHostException {
         
         // This method tries to decypher the properties which contain the 
         // address and port number of the nameserver. The possibilities are:

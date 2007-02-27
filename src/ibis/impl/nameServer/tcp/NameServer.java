@@ -26,6 +26,7 @@ import java.util.Vector;
 
 import org.apache.log4j.Logger;
 
+import smartsockets.virtual.InitializationException;
 import smartsockets.virtual.VirtualServerSocket;
 import smartsockets.virtual.VirtualSocket;
 import smartsockets.virtual.VirtualSocketAddress;
@@ -171,7 +172,7 @@ public class NameServer extends Thread implements Protocol {
         }
     }
 
-    static class DeadNotifier implements Runnable {
+    class DeadNotifier implements Runnable {
         ArrayList corpses = new ArrayList();
         final RunInfo runInfo;
         boolean done = false;
@@ -260,7 +261,7 @@ public class NameServer extends Thread implements Protocol {
         }
     }
 
-    static class RunInfo {
+    class RunInfo {
         ArrayList unfinishedJoins; // a list of IbisInfos
 
         ArrayList arrayPool;    // IbisInfos in fixed order.
@@ -346,7 +347,7 @@ public class NameServer extends Thread implements Protocol {
 
   //  private Hub h = null;
 
-    private static VirtualSocketFactory socketFactory; 
+    private VirtualSocketFactory socketFactory; 
 
     private Sequencer seq;
 
@@ -456,13 +457,7 @@ public class NameServer extends Thread implements Protocol {
     }
     
     static { 
-        HashMap properties = new HashMap();        
-        properties.put("modules.direct.port", "" + TCP_IBIS_NAME_SERVER_PORT_NR);
-        
-        // Bit of a hack to improve the visualization
-        properties.put("smartsockets.register.property", "nameserver");      
-        
-        socketFactory = VirtualSocketFactory.createSocketFactory(properties, true);  
+     
     }
     
     static Logger logger = 
@@ -482,6 +477,18 @@ public class NameServer extends Thread implements Protocol {
         
         int port = TCP_IBIS_NAME_SERVER_PORT_NR;
 
+        HashMap<String, String> properties = new HashMap<String, String>();        
+        properties.put("smartsockets.direct.port", "" + port);
+        
+        // Bit of a hack to improve the visualization
+        properties.put("smartsockets.register.property", "nameserver");      
+        
+        try {
+            socketFactory = VirtualSocketFactory.createSocketFactory(properties, true);
+        } catch (InitializationException e1) {
+            throw new IOException("Failed to create socket factory");
+        }  
+        
 
         //if (! silent && logger.isInfoEnabled()) {
             logger.info("Creating nameserver on port " + port);

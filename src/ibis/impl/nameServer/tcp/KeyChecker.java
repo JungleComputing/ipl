@@ -13,6 +13,7 @@ import java.util.Properties;
 
 import org.apache.log4j.Logger;
 
+import smartsockets.virtual.InitializationException;
 import smartsockets.virtual.VirtualSocket;
 import smartsockets.virtual.VirtualSocketAddress;
 import smartsockets.virtual.VirtualSocketFactory;
@@ -128,8 +129,12 @@ public class KeyChecker implements Protocol {
         }
 
         // Use the default socket factory 
-        VirtualSocketFactory factory = 
-            VirtualSocketFactory.createSocketFactory();
+        VirtualSocketFactory factory;
+        try {
+            factory = VirtualSocketFactory.createSocketFactory();
+        } catch (InitializationException e) {
+            throw new IOException("Failed to create socket factory");
+        }
 
         VirtualSocketAddress address = 
             VirtualSocketAddress.partialAddress(serverHost, port);
