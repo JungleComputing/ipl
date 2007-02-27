@@ -39,6 +39,15 @@
 	    -->
 	    <classpath refid="default.classpath"/>
 	</javac>
+	<!--
+	    Build ibis-ipl.jar before rewriting, otherwise it has references
+	    to ibis.io. We want to be able to compile an Ibis application
+	    with only ibis-ipl.jar in the classpath.
+	-->
+	<jar	destfile="lib/ibis-ipl.jar"
+	    basedir="${build}"
+	    includes="ibis/ipl/*.class">
+	</jar>
     </target>
 
     <!--
@@ -88,7 +97,7 @@
 
     <target name="copyProperties">
 	<copy todir="${build}">
-	    <fileset dir="${src}" includes="ibis-properties,ibis/impl/**/properties"/>
+	    <fileset dir="${src}" includes="ibis/impl/**/capabilities ibis-attributes"/>
 	</copy>
 	<copy todir="${build}">
 	    <fileset dir="${ibis}">
@@ -107,15 +116,11 @@
     <target name="ibis.jar">
 	<jar	destfile="${jar}"
 		basedir="${build}"
-		includes="ibis/**/*.class smartsockets.properties **/properties ibis-properties">
+		includes="ibis/**/*.class smartsockets.properties **/capabilities ibis-attributes">
 	    <manifest>
 		<attribute name="Ibisc-Component" value="ibis.frontend.io.IOGenerator,ibis.frontend.gmi.Gmic,ibis.frontend.rmi.Rmic,ibis.frontend.satin.Satinc"/>
 		<attribute name="Ibis-Implementation" value="ibis.impl.tcp.TcpIbis"/>
 	    </manifest>
-	</jar>
-	<jar	destfile="lib/ibis-ipl.jar"
-	    basedir="${build}"
-	    includes="ibis/ipl/*.class ibis-properties">
 	</jar>
     </target>
 

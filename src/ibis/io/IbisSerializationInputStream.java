@@ -2,8 +2,6 @@
 
 package ibis.io;
 
-import ibis.util.TypedProperties;
-
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InvalidObjectException;
@@ -30,7 +28,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
      * via the uninitialized native creator.
      */
     private static final boolean STATS_NONREWRITTEN
-            = TypedProperties.booleanProperty(IOProps.s_stats_nonrewritten);
+            = attribs.booleanProperty(s_stats_nonrewritten);
 
     // if STATS_NONREWRITTEN
     static java.util.Hashtable nonRewritten = new java.util.Hashtable();

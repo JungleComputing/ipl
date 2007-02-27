@@ -1,32 +1,33 @@
 /* $Id$ */
 
-package ibis.impl.nameServer.tcp;
+package ibis.impl.registry.tcp;
 
-
-import ibis.io.Conversion;
-import ibis.ipl.IbisIdentifier;
+import ibis.impl.IbisIdentifier;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.IOException;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.IOException;
 
 import org.apache.log4j.Logger;
 
 import smartsockets.virtual.*;
 
 class ElectionClient implements Protocol {
-    static Logger logger
-    = ibis.util.GetLogger.getLogger(ElectionClient.class.getName());
+    static Logger logger = Logger.getLogger(ElectionClient.class);
 
     VirtualSocketAddress server;
 
-    ElectionClient(VirtualSocketAddress server) {
+    NameServerClient cl;
+
+    ElectionClient(VirtualSocketAddress server, NameServerClient cl) {
         this.server = server;
+        this.cl = cl;
     }
 
-    IbisIdentifier elect(String election, IbisIdentifier candidate) throws IOException {
+    IbisIdentifier elect(String election, IbisIdentifier candidate)
+            throws IOException {
 
         VirtualSocket s = null;
         DataOutputStream out = null;
@@ -38,7 +39,7 @@ class ElectionClient implements Protocol {
         logger.info("Election " + election + ": candidate = " + candidate);
         while (result == null) {
             try {
-                s = NameServerClient.nsConnect(server, false, 10);
+                s = cl.nsConnect(server, false, 10);
                 out = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
 
                 out.writeByte(ELECTION);
@@ -47,23 +48,15 @@ class ElectionClient implements Protocol {
                     out.writeInt(0);
                 } else {
                     out.writeInt(1);
-                    out.writeUTF(candidate.toString());
-                    byte[] b = Conversion.object2byte(candidate);
-                    out.writeInt(b.length);
-                    out.write(b);
+                    candidate.writeTo(out);
                 }
                 out.flush();
 
                 in = new DataInputStream(new BufferedInputStream(s.getInputStream()));
-                int len = in.readInt();
-                if(len >= 0) {
-                	byte[] buf = new byte[len];
-                	in.readFully(buf, 0, len);
-                	result = (IbisIdentifier) Conversion.byte2object(buf);
+                int retval = in.readInt();
+                if (retval == 0) {
+                    result = new IbisIdentifier(in);
                 }
-            } catch (ClassNotFoundException e) {
-            	logger.warn("election client got exception: " + e, e);
-                throw new IOException("Got wrong class in elect");
             } finally {
                 VirtualSocketFactory.close(s, out, in);
             }

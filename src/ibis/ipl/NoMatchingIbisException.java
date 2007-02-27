@@ -6,8 +6,8 @@ package ibis.ipl;
  * Signals that no matching Ibis could be found.
  * <code>NoMatchingIbisException</code> is thrown to indicate
  * that no matching Ibis could be found in
- * {@link ibis.ipl.Ibis#createIbis(StaticProperties, ResizeHandler)
- * Ibis.createIbis}.
+ * {@link ibis.ipl.IbisFactory#createIbis(CapabilitySet, CapabilitySet,
+ * java.util.Properties, ResizeHandler) Ibis.createIbis}.
  */
 public class NoMatchingIbisException extends Exception {
     /**

@@ -6,7 +6,6 @@ package ibis.satin.impl.aborts;
 import java.io.IOException;
 
 import ibis.ipl.ReadMessage;
-import ibis.ipl.StaticProperties;
 import ibis.ipl.WriteMessage;
 import ibis.satin.impl.Config;
 import ibis.satin.impl.Satin;
@@ -18,7 +17,7 @@ import ibis.satin.impl.spawnSync.Stamp;
 final class AbortsCommunication implements Config {
     private Satin s;
 
-    AbortsCommunication(Satin s, StaticProperties requestedProperties) {
+    AbortsCommunication(Satin s) {
         this.s = s;
     }
 

@@ -12,10 +12,9 @@ import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.Registry;
 import ibis.ipl.SendPort;
-import ibis.ipl.StaticProperties;
+import ibis.ipl.CapabilitySet;
 import ibis.ipl.WriteMessage;
 
-import ibis.util.GetLogger;
 import ibis.util.Ticket;
 import ibis.util.TypedProperties;
 
@@ -28,6 +27,9 @@ import java.util.Hashtable;
 import java.util.StringTokenizer;
 
 import org.apache.log4j.Logger;
+import org.apache.log4j.Level;
+import org.apache.log4j.PatternLayout;
+import org.apache.log4j.WriterAppender;
 
 import smartsockets.util.NetworkUtils;
 
@@ -35,10 +37,21 @@ import smartsockets.util.NetworkUtils;
  * The {@link Group} class takes care of the startup, and has methods
  * to create, join, lookup, and exit a group.
  */
-public final class Group implements GroupProtocol {
+public final class Group implements GroupProtocol,
+        ibis.ipl.PredefinedCapabilities {
 
-    static Logger logger
-            = GetLogger.getLogger(Group.class.getName());
+    static {
+        Logger ibisLogger = Logger.getLogger("ibis");
+        if (!ibisLogger.getAllAppenders().hasMoreElements()) {
+            // No appenders defined, print to standard out by default
+            PatternLayout layout = new PatternLayout("%d{HH:mm:ss} %-5p %m%n");
+            WriterAppender appender = new WriterAppender(layout, System.err);
+            ibisLogger.addAppender(appender);
+            ibisLogger.setLevel(Level.WARN);
+        }
+    }
+
+    static Logger logger = Logger.getLogger(Group.class.getName());
     
     private static final String [] GMI_PROPERTIES = { "gmi.openworld" }; 
     
@@ -70,7 +83,8 @@ public final class Group implements GroupProtocol {
     private static Registry ibisRegistry;
 
     /** Port types for ports used in GMI. */
-    private static PortType portTypeSystem;    
+    private static PortType portTypeSystemUcast;    
+    private static PortType portTypeSystemMcast;    
     private static PortType portTypeManyToOne;
    // private static PortType portTypeOneToMany;
       
@@ -146,12 +160,12 @@ public final class Group implements GroupProtocol {
      * group registry, creates send and receive ports.
      */
     static {
+        TypedProperties tp
+                = new TypedProperties(IbisFactory.getDefaultAttributes());
         try {
+            tp.checkProperties("gmi", GMI_PROPERTIES, null, true);
             
-            TypedProperties.checkProperties("gmi", GMI_PROPERTIES, null);
-            
-            openWorld = TypedProperties.booleanProperty("gmi.closedworld", 
-                    false);
+            openWorld = tp.booleanProperty("gmi.closedworld", false);
             
             ticketMaster = new Ticket();
             groups = new ArrayList();            
@@ -167,14 +181,14 @@ public final class Group implements GroupProtocol {
                 logger.debug("?: <static> - Init Group RTS");
             }
 
-            StaticProperties reqprops = new StaticProperties();
-            reqprops.add("serialization", "object");
-            reqprops.add("worldmodel", openWorld ? "open" : "closed");
-            reqprops.add("communication",
-                    "OneToOne, ManyToOne, OneToMany, Reliable, "
-                    + "AutoUpcalls, ExplicitReceipt");
+            CapabilitySet reqprops = new CapabilitySet(
+                SERIALIZATION_OBJECT,
+                openWorld ? WORLDMODEL_OPEN : WORLDMODEL_CLOSED,
+                CONNECTION_MANY_TO_ONE,
+                CONNECTION_ONE_TO_MANY, COMMUNICATION_RELIABLE,
+                RECEIVE_AUTO_UPCALLS, RECEIVE_EXPLICIT);
             try {
-                ibis = IbisFactory.createIbis(reqprops, null);
+                ibis = IbisFactory.createIbis(reqprops, null, null, null);
             } catch (NoMatchingIbisException e) {
                 logger.warn("?: <static> - " + 
                         "Could not find an Ibis that can run this "
@@ -185,29 +199,36 @@ public final class Group implements GroupProtocol {
             name = ibis.identifier().toString();
             ibisRegistry = ibis.registry();
 
-            // Create the three port types used in GMI  
+            // Create the four port types used in GMI  
 
-            // System port type 
-            StaticProperties props = new StaticProperties();
-            props.add("serialization", "object");
-            props.add("communication", "ManyToOne, Reliable, ExplicitReceipt");
+            // System unicast (many to one) port type 
+            CapabilitySet props = new CapabilitySet(
+                    SERIALIZATION_OBJECT, CONNECTION_MANY_TO_ONE,
+                    COMMUNICATION_RELIABLE, RECEIVE_EXPLICIT);
            
-            portTypeSystem = ibis.createPortType(props);
+            portTypeSystemUcast = ibis.createPortType(props);
+            
+            // System unicast (many to one) port type 
+            props = new CapabilitySet(
+                    SERIALIZATION_OBJECT, CONNECTION_ONE_TO_MANY,
+                    COMMUNICATION_RELIABLE, RECEIVE_EXPLICIT);
+           
+            portTypeSystemMcast = ibis.createPortType(props);
             
             // Unicast (many to one) port type            
-            props = new StaticProperties();
-            props.add("serialization", "object");
-            props.add("communication", "ManyToOne, Reliable, AutoUpcalls");
+            props = new CapabilitySet(
+                    SERIALIZATION_OBJECT, CONNECTION_MANY_TO_ONE,
+                    COMMUNICATION_RELIABLE, RECEIVE_AUTO_UPCALLS);
             
             portTypeManyToOne = ibis.createPortType(props);
             
             // Multicast (one to many) port type            
-            props = new StaticProperties();
-            props.add("serialization", "object");
-            props.add("communication", "OneToMany, Reliable, AutoUpcalls");
-                       
+            props = new CapabilitySet(
+                    SERIALIZATION_OBJECT, CONNECTION_ONE_TO_MANY,
+                    COMMUNICATION_RELIABLE, RECEIVE_AUTO_UPCALLS);
+
             MulticastGroups.init(ibis.createPortType(props));
-                       
+
             // Create the unicast receive port
             receivePort = portTypeManyToOne.createReceivePort("GMI port",
                     new GroupCallHandler());            
@@ -239,10 +260,10 @@ public final class Group implements GroupProtocol {
 
                 if (_size > 1) {
 
-                    systemIn = portTypeSystem.createReceivePort("GMI Master");
+                    systemIn = portTypeSystemUcast.createReceivePort("Master");
                     systemIn.enableConnections();
 
-                    systemOut = portTypeSystem.createSendPort("GMI Master");
+                    systemOut = portTypeSystemMcast.createSendPort("Master");
 
                     for (int j = 1; j < _size; j++) {
                         ReadMessage r = systemIn.receive();
@@ -261,17 +282,12 @@ public final class Group implements GroupProtocol {
                     w.finish();
                 }
             } else {
-                if (logger.isDebugEnabled()) {
-                    logger.debug(_rank + ": <static> - " + 
-                            name + " I am client");
-                }
-
-                systemIn = portTypeSystem.createReceivePort("GMI Client");
+                systemIn = portTypeSystemMcast.createReceivePort("Client");
                 systemIn.enableConnections();
 
-                systemOut = portTypeSystem.createSendPort("GMI Client");
+                systemOut = portTypeSystemUcast.createSendPort("Client");
 
-                systemOut.connect(master, "GMI Master");
+                systemOut.connect(master, "Master");
 
                 WriteMessage w = systemOut.newMessage();
                 w.writeObject(systemIn.identifier());
@@ -288,6 +304,12 @@ public final class Group implements GroupProtocol {
                         break;
                     }
                 }
+
+                if (logger.isDebugEnabled()) {
+                    logger.debug(_rank + ": <static> - " + 
+                            name + " I am client");
+                }
+
             }
 
             unicast = new SendPort[_size];
@@ -296,12 +318,12 @@ public final class Group implements GroupProtocol {
             
             for (int j = 0; j < _size; j++) {
                 unicast[j] = portTypeManyToOne.createSendPort("Unicast on " 
-                        + name + " to " + pool[j].name());
+                        + name + " to " + j);
 
                 if (logger.isDebugEnabled()) {
                     logger.debug(_rank + ": <static> - " + 
                             "Connecting unicast sendport "
-                            + unicast[j].name() + " to " + pool[j].name());
+                            + unicast[j].name());
                 }
 
                 unicast[j].connect(pool[j]);
@@ -309,7 +331,7 @@ public final class Group implements GroupProtocol {
                 if (logger.isDebugEnabled()) {
                     logger.debug(_rank + ": <static> - " + 
                             "Connecting unicast sendport "
-                            + unicast[j].identifier() + " done");
+                            + unicast[j].name() + " done");
                 }
                 
                 // map the IbisID to a sendport leading to that Ibis  

@@ -4,7 +4,6 @@
 package ibis.satin.impl.aborts;
 
 import ibis.ipl.ReadMessage;
-import ibis.ipl.StaticProperties;
 import ibis.satin.impl.Config;
 import ibis.satin.impl.Satin;
 import ibis.satin.impl.spawnSync.IRVector;
@@ -27,9 +26,9 @@ public final class Aborts implements Config {
 
     private IRVector exceptionList;
 
-    public Aborts(Satin s, StaticProperties requestedProperties) {
+    public Aborts(Satin s) {
         this.s = s;
-        abortsComm = new AbortsCommunication(s, requestedProperties);
+        abortsComm = new AbortsCommunication(s);
         exceptionList = new IRVector(s);
     }
 

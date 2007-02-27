@@ -15,10 +15,10 @@ ibis.gmi.GroupMember
 	 GroupSkeleton
 	 GroupStub
 
-ibis.impl.nameServer.tcp.NameServer
-			 NameServerClient
-			 ReceivePortNameServerClient
-			 NameServerClient
+ibis.impl.registry.tcp.NameServer
+		       NameServerClient
+		       ReceivePortNameServerClient
+		       NameServerClient
 
 ibis.satin.comm
 	   steal

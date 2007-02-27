@@ -1,34 +1,149 @@
-/* $Id: IbisIdentifier.java 4893 2006-12-08 15:15:12Z ceriel $ */
+/* $Id$ */
 
 package ibis.impl;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInput;
+import java.io.DataInputStream;
+import java.io.DataOutput;
+import java.io.DataOutputStream;
+import java.io.IOException;
+
 /**
- * Identifies an Ibis instance on the network.
+ * This implementation of the {@link ibis.ipl.IbisIdentifier} interface
+ * identifies an Ibis instance on the network.
  */
 public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
     /**
-     * This field is used to indicate to which virtual or physical cluster
-     * this ibis belongs.
-     */
-    private final String cluster;
+     * The location for this Ibis instance. */
+    public final Location location;
+
+    /** The name of the pool to which this Ibis instance belongs. */
+    public final String pool;
+
+    /** Extra data for implementation. */
+    private final byte[] implementationData;
+
+    /** Extra data for registry. */
+    private final byte[] registryData;
+
+    /** Identification of Ibis instances, provided by the registry. */
+    public final String myId;
+
+    /** An Ibis identifier coded as a byte array. Computed once. */
+    private final transient byte[] codedForm;
 
     /**
-     * Numbering of Ibis instances, provided by the registry.
+     * Constructs an <code>IbisIdentifier</code> with the specified parameters.
+     * @param id join id, allocated by the registry.
+     * @param implementationData implementation-dependent data.
+     * @param registryData registry-dependent data.
+     * @param location location of this Ibis instance.
+     * @param pool identifies the run with the registry.
      */
-    private final int joinId;
+    public IbisIdentifier(String id, byte[] implementationData,
+            byte[] registryData, Location location, String pool) {
+        this.myId = id;
+        this.implementationData = implementationData;
+        this.registryData = registryData;
+        this.location = location;
+        this.pool = pool;
+        this.codedForm = computeCodedForm();
+    }
 
     /**
-     * Extra data for implementation.
+     * Constructs an <code>IbisIdentifier</code> from the specified coded form.
+     * @param codedForm the coded form.
+     * @exception IOException is thrown in case of trouble.
      */
-    private final byte[] data;
+    public IbisIdentifier(byte[] codedForm) throws IOException {
+        this(codedForm, 0, codedForm.length);
+    }
 
     /**
-     * Constructs an <code>IbisIdentifier</code>.
+     * Constructs an <code>IbisIdentifier</code> from the specified coded form,
+     * at a particular offset and size.
+     * @param codedForm the coded form.
+     * @param offset offset in the coded form.
+     * @param size size of the coded form.
+     * @exception IOException is thrown in case of trouble.
      */
-    public IbisIdentifier(int id, byte[] data, String cluster) {
-        this.joinId = id;
-        this.data = data;
-        this.cluster = cluster;
+    public IbisIdentifier(byte[] codedForm, int offset, int size)
+            throws IOException {
+        this(new DataInputStream(
+                new ByteArrayInputStream(codedForm, offset, size)));
+    }
+
+    /**
+     * Reads an <code>IbisIdentifier</code> from the specified input stream.
+     * @param dis the input stream.
+     * @exception IOException is thrown in case of trouble.
+     */
+    public IbisIdentifier(DataInput dis) throws IOException {
+        location = new Location(dis);
+        pool = dis.readUTF();
+        int implementationSize = dis.readInt();
+        if (implementationSize < 0) {
+            implementationData = null;
+        } else {
+            implementationData = new byte[implementationSize];
+            dis.readFully(implementationData);
+        }
+        int registrySize = dis.readInt();
+        if (registrySize < 0) {
+            registryData = null;
+        } else {
+            registryData = new byte[registrySize];
+            dis.readFully(registryData);
+        }
+        myId = dis.readUTF();
+        codedForm = computeCodedForm();
+    }
+
+    /**
+     * Returns the coded form of this <code>IbisIdentifier</code>.
+     * @return the coded form.
+     */
+    public byte[] toBytes() {
+        return (byte[]) codedForm.clone();
+    }
+
+    private byte[] computeCodedForm() {
+        try {
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            DataOutputStream dos = new DataOutputStream(bos);
+            location.writeTo(dos);
+            dos.writeUTF(pool);
+            if (implementationData == null) {
+                dos.writeInt(-1);
+            } else {
+                dos.writeInt(implementationData.length);
+                dos.write(implementationData);
+            }
+            if (registryData == null) {
+                dos.writeInt(-1);
+            } else {
+                dos.writeInt(registryData.length);
+                dos.write(registryData);
+            }
+            dos.writeUTF(myId);
+            dos.close();
+            return bos.toByteArray();
+        } catch(Exception e) {
+            // Should not happen.
+            return null;
+        }
+    }
+
+    /**
+     * Adds coded form of this <code>IbisIdentifier</code> to the specified
+     * output stream.
+     * @param dos the output stream.
+     * @exception IOException is thrown in case of trouble.
+     */
+    public void writeTo(DataOutput dos) throws IOException {
+        dos.write(codedForm);
     }
 
     /**
@@ -48,7 +163,7 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
         }
 
         IbisIdentifier other = (IbisIdentifier) o;
-        return other.joinId == joinId;
+        return other.myId.equals(myId) && other.pool.equals(pool);
     }
 
     /**
@@ -56,55 +171,60 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
      * @return the hashcode.
      */
     public int hashCode() {
-        return joinId;
+        return myId.hashCode();
     }
 
     /**
-     * Initializes the <code>cluster</code> field.
-     */
-    public static String getCluster() {
-        String cluster = System.getProperty("ibis.pool.cluster");
-        if (cluster == null) {
-            // Backwards compatibility, will be deprecated.
-            cluster = System.getProperty("cluster");
-        }
-        if (cluster == null) {
-            cluster = "unknown";
-        }
-        return cluster;
-    }
-
-    /**
-     * Returns a string identifying the Ibis instance to which this
-     * <code>IbisIdentifier</code> refers. This method can be overridden
-     * by Ibis implementations to add more information for debugging prints.
      * @return a string representation of this IbisIdentifier.
      */
     public String toString() {
-        return "(IbisNo " + joinId + ")";
+        return "(Ibis " + myId + ", pool " + pool + ")";
+    }
+
+    public ibis.ipl.Location getLocation() {
+        return location;
+    }
+
+    public String getPool() {
+        return pool;
     }
 
     /**
-     * Returns the name of the virtual or physical cluster this Ibis
-     * belongs to. If not set in the System property, it is "unknown".
-     * @return the cluster name.
-     */
-    public String cluster() {
-        return cluster;
-    }
-
-    /**
-     * Obtains the implementation dependant data.
+     * Obtains the implementation dependent data.
      * @return the data.
      */
-    public byte[] getData() {
-        return data;
+    public byte[] getImplementationData() {
+        return implementationData;
     }
 
     /**
-     * Obtains the Id of this Ibis instance.
+     * Obtains the registry dependent data.
+     * @return the data.
      */
-    public int getId() {
-        return joinId;
+    public byte[] getRegistryData() {
+        return registryData;
+    }
+
+    /**
+     * Compare to the specified Ibis identifier.
+     * @param c the Ibis identifier to compare to.
+     */
+    public int compareTo(ibis.ipl.IbisIdentifier c) {
+        if (c instanceof IbisIdentifier) {
+            // If not, the specified Ibis identifier is from a completely
+            // different implementation.
+            IbisIdentifier id = (IbisIdentifier) c;
+            // First compare pools.
+            int cmp = pool.compareTo(id.pool);
+            if (cmp == 0) {
+                cmp = location.compareTo(id.location);
+                if (cmp == 0) {
+                    // Finally compare id.
+                    return myId.compareTo(id.myId);
+                }
+            }
+            return cmp;
+        }
+        return this.getClass().getName().compareTo(c.getClass().getName());
     }
 }

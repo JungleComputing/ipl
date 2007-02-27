@@ -1,58 +1,73 @@
-/* $Id: Registry.java 4880 2006-12-08 09:06:32Z ceriel $ */
+/* $Id$ */
 
 package ibis.impl;
 
+import ibis.ipl.CapabilitySet;
 import ibis.ipl.IbisConfigurationException;
-import ibis.ipl.StaticProperties;
 
 import java.io.IOException;
-import java.util.Properties;
 
 /** 
- * This class defines the API between an Ibis implementation and the nameserver.
- * This way, an Ibis implementation can dynamically load any nameserver
+ * This implementation of the {@link ibis.ipl.Registry} interface
+ * defines the API between an Ibis implementation and the registry.
+ * This way, an Ibis implementation can dynamically load any registry
  * implementaton.
  */
 public abstract class Registry implements ibis.ipl.Registry {
 
-    /** Call on exit of an ibis. */
-    public abstract void leave() throws IOException;
+    /**
+     * Notifies the registry that the calling Ibis instance is leaving.
+     * @exception IOException may be thrown when communication with the
+     * registry fails.
+     */
+    protected abstract void leave() throws IOException;
 
-    /** Used internally to initialize the nameserver **/
-    public abstract IbisIdentifier init(Ibis ibis, boolean needsUpcalls,
-            byte[] data) throws IOException, IbisConfigurationException;
-
-    /** Method to obtain a sequence number */
+    /**
+     * Obtains a sequence number from the registry.
+     * Each sequencer has a name, which must be provided to this call.
+     * @param name the name of this sequencer.
+     * @exception IOException may be thrown when communication with the
+     * registry fails.
+     */
     public abstract long getSeqno(String name) throws IOException;
 
-    /** Method to load a nameserver implementation. **/
-    public static Registry loadRegistry(Ibis ibis)
-            throws IllegalArgumentException {
+    /**
+     * Creates a registry for the specified Ibis instance.
+     * @param ibis the Ibis instance.
+     * @param needsUpcalls set when the registry must provide for connection
+     * upcalls.
+     * @param data the implementation dependent data in the IbisIdentifier.
+     * @exception Throwable can be any exception resulting from looking up
+     * the registry constructor or the invocation attempt.
+     */
+    public static Registry createRegistry(Ibis ibis, boolean needsUpcalls,
+            byte[] data) throws Throwable {
+
         Registry res = null;
-        // TODO: fix properties
-        String nameServerName = System.getProperty("ibis.name_server.impl");
-        if (nameServerName == null) {
-            nameServerName = "ibis.impl.nameServer.tcp.NameServerClient";
+
+        // You can get attributes and capabilities from the ibis instance
+        // here.
+
+        String registryName = ibis.attributes.getProperty("ibis.registry.impl");
+
+        if (registryName == null) {
+            throw new IbisConfigurationException("Could not create registry: "
+                    + "attribute ibis.registry.impl is not set.");
         }
 
-        Class c;
+        Class c = Class.forName(registryName);
+
         try {
-            c = Class.forName(nameServerName);
-        } catch (ClassNotFoundException t) {
-            throw new IllegalArgumentException(
-                    "Could not initialize Ibis name server " + t);
+            return (Registry) c.getConstructor(new Class[] {
+                    Ibis.class, boolean.class, byte[].class}).newInstance(
+                        new Object[] {ibis, needsUpcalls, data});
+        } catch (java.lang.reflect.InvocationTargetException e) {
+            throw e.getCause();
         }
-
-        try {
-            res = (Registry) c.newInstance();
-        } catch (InstantiationException e) {
-            throw new IllegalArgumentException(
-                    "Could not initialize Ibis name server " + e);
-        } catch (IllegalAccessException e2) {
-            throw new IllegalArgumentException(
-                    "Could not initialize Ibis name server " + e2);
-        }
-
-        return res;
     }
+
+    /**
+     * Returns the Ibis identifier.
+     */
+    public abstract IbisIdentifier getIbisIdentifier();
 }

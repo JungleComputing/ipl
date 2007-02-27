@@ -258,20 +258,20 @@ if [ "$GRUN_PHASE" = run ]; then
     done
     classpath="$classpath:$LIBCLASSPATH"
 
-    cmd="$JAVA_BINARY							      \
-	-classpath $classpath						      \
-        -Dibis.name_server.impl=ibis.impl.nameServer.tcp.NameServerClient     \
-	-Dibis.name_server.host=$IBIS_NAMESVR_HOST			      \
-	-Dibis.name_server.port=$IBIS_NAMESVR_PORT			      \
-	-Dibis.name_server.key=$IBIS_NAMESVR_KEY			      \
-	-Dibis.pool.total_hosts=$GRUN_NUMNODES				      \
-	-Dibis.pool.server.host=$IBIS_POOLSVR_HOST			      \
-	$IBIS_POOLSVR_PORT_OPT						      \
-	-Dibis.pool.cluster=$GRUN_CLUSTER				      \
-	-Dibis.pool.key=$IBIS_POOLSVR_KEY				      \
-	-Dcluster=$GRUN_CLUSTER						      \
-	$IBIS_CONN_OPTS							      \
-	$IBIS_JAVA_OPTS							      \
+    cmd="$JAVA_BINARY \
+	-classpath $classpath \
+        -Dibis.registry.impl=ibis.impl.registry.tcp.NameServerClient \
+	-Dibis.registry.host=$IBIS_NAMESVR_HOST \
+	-Dibis.registry.port=$IBIS_NAMESVR_PORT \
+	-Dibis.registry.key=$IBIS_NAMESVR_KEY \
+	-Dibis.pool.total_hosts=$GRUN_NUMNODES \
+	-Dibis.pool.server.host=$IBIS_POOLSVR_HOST \
+	$IBIS_POOLSVR_PORT_OPT \
+	-Dibis.pool.cluster=$GRUN_CLUSTER \
+	-Dibis.pool.key=$IBIS_POOLSVR_KEY \
+	-Dcluster=$GRUN_CLUSTER \
+	$IBIS_CONN_OPTS \
+	$IBIS_JAVA_OPTS \
 	$*"
     if [ $GRUN_VERBOSE -ge 1 ]; then
 	echo $PROG: Running $cmd

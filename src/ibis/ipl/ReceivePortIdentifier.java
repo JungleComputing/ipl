@@ -7,13 +7,6 @@ package ibis.ipl;
  */
 public interface ReceivePortIdentifier extends java.io.Serializable {
     /**
-     * Returns the type of the {@link ibis.ipl.PortType PortType} of this
-     * identifier.
-     * @return the type of the porttype.
-     */
-    public StaticProperties type();
-
-    /**
      * Returns the name of the {@link ibis.ipl.ReceivePort ReceivePort}
      * corresponding to this identifier.
      * @return the name of the receiveport.

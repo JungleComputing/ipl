@@ -20,7 +20,7 @@ class DeleteClusterThread extends Thread {
             //ignore
         }
         Satin satin = Satin.getSatin();
-        satin.ft.deleteCluster(satin.ident.cluster());
+        satin.ft.deleteCluster(satin.ident.getLocation().cluster());
     }
 
 }

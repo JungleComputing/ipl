@@ -3,15 +3,16 @@
 package ibis.ipl;
 
 import java.io.IOException;
+import java.util.Properties;
 
 /**
  * A <code>PortType</code> represents a class of send and receive
- * ports with specific properties and with a specific role in the program.
+ * ports with specific capabilities and with a specific role in the program.
  * Each class also
  * serves as the factory to create instances of these ports.
  * Ports can only connect to other ports of the same type.
  * A <code>PortType</code> is created using the
- * {@link Ibis#createPortType(StaticProperties)} method. 
+ * {@link Ibis#createPortType(CapabilitySet)} method. 
  * <p>
  * Support for connection downcalls can be explicitly turned on and off, because
  * it might incur some overhead. Moreover, if downcalls are used,
@@ -24,11 +25,18 @@ import java.io.IOException;
 public interface PortType {
 
     /**
-     * Returns the properties given to this PortType upon creation. 
+     * Returns the capabilities given to this PortType upon creation. 
      *
-     * @return the static properties of this port type.
+     * @return the capabilities of this port type.
      */
-    public StaticProperties properties();
+    public CapabilitySet capabilities();
+
+    /**
+     * Returns the attributes given to this PortType upon creation.
+     *
+     * @return the attributes of this port type.
+     */
+    public Properties attributes();
 
     /**
      * Creates a anonymous {@link SendPort} of this <code>PortType</code>.
@@ -91,15 +99,15 @@ public interface PortType {
      *
      * @param name the name of this sendport.
      * @param cU object implementing the
-     * {@link SendPortConnectUpcall#lostConnection(SendPort,
-     * ReceivePortIdentifier, Exception)} method.
+     * {@link SendPortDisconnectUpcall#lostConnection(SendPort,
+     * ReceivePortIdentifier, Throwable)} method.
      * @return the new sendport.
      * @exception java.io.IOException is thrown when the port could not be
      * created.
      * @exception ibis.ipl.IbisConfigurationException is thrown when the port
      * type does not match what is required here.
      */
-    public SendPort createSendPort(String name, SendPortConnectUpcall cU)
+    public SendPort createSendPort(String name, SendPortDisconnectUpcall cU)
             throws IOException;
 
     /**
@@ -110,8 +118,7 @@ public interface PortType {
      * This is done to avoid upcalls during initialization.
      *
      * @param name the unique name of this receiveport (or <code>null</code>,
-     *    in which case the port is created anonymously and is not bound
-     *    in the registry).
+     *    in which case the port is created anonymously).
      * @return the new receiveport.
      * @exception java.io.IOException is thrown when the port could not be
      * created.
@@ -128,8 +135,7 @@ public interface PortType {
      * This is done to avoid upcalls during initialization.
      *
      * @param name the unique name of this receiveport (or <code>null</code>,
-     *    in which case the port is created anonymously and is not bound
-     *    in the registry).
+     *    in which case the port is created anonymously).
      * @param connectionDowncalls set when this port must keep
      * connection administration to support the lostConnections and
      * newConnections downcalls.
@@ -150,8 +156,7 @@ public interface PortType {
      * This is done to avoid upcalls during initialization.
      *
      * @param name the unique name of this receiveport (or <code>null</code>,
-     *    in which case the port is created anonymously and is not bound
-     *    in the registry).
+     *    in which case the port is created anonymously).
      * @param u the upcall handler.
      * @return the new receiveport.
      * @exception java.io.IOException is thrown when the port could not be
@@ -170,8 +175,7 @@ public interface PortType {
      * This is done to avoid upcalls during initialization.
      *
      * @param name the unique name of this receiveport (or <code>null</code>,
-     *    in which case the port is created anonymously and is not bound
-     *    in the registry).
+     *    in which case the port is created anonymously).
      * @param u the upcall handler.
      * @param connectionDowncalls set when this port must keep
      * connection administration to support the lostConnections and
@@ -195,8 +199,7 @@ public interface PortType {
      * a ConnectUpcall is performed.
      *
      * @param name the unique name of this receiveport (or <code>null</code>,
-     *    in which case the port is created anonymously and is not bound
-     *    in the registry).
+     *    in which case the port is created anonymously).
      * @param cU object implementing <code>gotConnection</code>() and
      * <code>lostConnection</code>() upcalls.
      * @return the new receiveport.
@@ -218,8 +221,7 @@ public interface PortType {
      * a ConnectUpcall is performed.
      *
      * @param name the unique name of this receiveport (or <code>null</code>,
-     *    in which case the port is created anonymously and is not bound
-     *    in the registry).
+     *    in which case the port is created anonymously).
      * @param u the upcall handler.
      * @param cU object implementing <code>gotConnection</code>() and
      * <code>lostConnection</code>() upcalls.

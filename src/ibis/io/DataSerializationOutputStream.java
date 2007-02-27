@@ -2,8 +2,6 @@
 
 package ibis.io;
 
-import ibis.util.TypedProperties;
-
 import java.io.IOException;
 
 /**
@@ -16,7 +14,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
         implements IbisStreamFlags {
     /** When true, no buffering in this layer. */
     private static final boolean NO_ARRAY_BUFFERS
-            = TypedProperties.booleanProperty(IOProps.s_no_array_buffers);
+            = attribs.booleanProperty(s_no_array_buffers);
 
     /** If <code>false</code>, makes all timer calls disappear. */
     private static final boolean TIME_DATA_SERIALIZATION = false;
@@ -24,12 +22,9 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
     /** Boolean count is not used, use it for arrays. */
     static final int TYPE_ARRAY = TYPE_BOOLEAN;
 
-    private static final boolean haveAllocator
-        = TypedProperties.booleanProperty(IOProps.s_cache, false);
-    
     /** Allocator for the typed buffer arrays. */
     private static final DataAllocator allocator
-        = TypedProperties.booleanProperty(IOProps.s_cache, false)
+        = attribs.booleanProperty(s_cache, false)
             ? new DataAllocator()
             : (DataAllocator) new DummyAllocator();
 
@@ -524,7 +519,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             resumeTimer();
         }
 
-        if (! NO_ARRAY_BUFFERS && haveAllocator && !out.finished()) {
+        if (! NO_ARRAY_BUFFERS && !out.finished()) {
             indices_short = allocator.getIndexArray();
             if (touched[TYPE_BYTE]) {
                 byte_buffer = allocator.getByteArray();

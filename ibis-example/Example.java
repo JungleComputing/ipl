@@ -1,6 +1,7 @@
 /* $Id$ */
 
 
+import ibis.ipl.CapabilitySet;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisFactory;
 import ibis.ipl.IbisIdentifier;
@@ -10,7 +11,6 @@ import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.Registry;
 import ibis.ipl.SendPort;
-import ibis.ipl.StaticProperties;
 import ibis.ipl.Upcall;
 import ibis.ipl.WriteMessage;
 
@@ -23,7 +23,7 @@ import java.io.IOException;
  * Programmers manual. A server computes lengths of strings, and
  * a client supplies the server with strings.
  */
-public class Example {
+public class Example implements ibis.ipl.PredefinedCapabilities {
 
     /**
      * The port type for both send and receive ports.
@@ -172,16 +172,15 @@ public class Example {
 
     private void run() {
         // Create properties for the Ibis to be created.
-        StaticProperties props = new StaticProperties();
-        props.add("communication",
-                "OneToOne, Reliable, AutoUpcalls, ExplicitReceipt");
-        props.add("serialization", "object");
-        props.add("worldmodel", "closed");
+        CapabilitySet props = new CapabilitySet(
+                SERIALIZATION_OBJECT, WORLDMODEL_CLOSED,
+                COMMUNICATION_RELIABLE, RECEIVE_EXPLICIT, RECEIVE_AUTO_UPCALLS
+        );
 
         // Create an Ibis
         final Ibis ibis;
         try {
-            ibis = IbisFactory.createIbis(props, null);
+            ibis = IbisFactory.createIbis(props, null, null, null);
         } catch (Exception e) {
             System.err.println("Could not create Ibis: " + e);
             e.printStackTrace();
@@ -201,10 +200,10 @@ public class Example {
         });
 
         // Create properties for the port type
-        StaticProperties portprops = new StaticProperties();
-        portprops.add("communication",
-                "OneToOne, Reliable, AutoUpcalls, ExplicitReceipt");
-        portprops.add("serialization", "object");
+        CapabilitySet portprops = new CapabilitySet(
+            COMMUNICATION_RELIABLE, SERIALIZATION_OBJECT,
+            RECEIVE_EXPLICIT, RECEIVE_AUTO_UPCALLS
+        );
 
         // Create the port type
         try {

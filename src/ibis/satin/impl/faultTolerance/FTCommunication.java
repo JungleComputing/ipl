@@ -12,7 +12,7 @@ import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.Registry;
 import ibis.ipl.ResizeHandler;
 import ibis.ipl.SendPort;
-import ibis.ipl.SendPortConnectUpcall;
+import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.WriteMessage;
 import ibis.satin.impl.Config;
@@ -28,7 +28,7 @@ import java.io.IOException;
 import java.util.Map;
 
 final class FTCommunication implements Config, ReceivePortConnectUpcall,
-		SendPortConnectUpcall, ResizeHandler {
+		SendPortDisconnectUpcall, ResizeHandler {
 	private Satin s;
 
 	private JoinThread joinThread;
@@ -43,13 +43,13 @@ final class FTCommunication implements Config, ReceivePortConnectUpcall,
 		try {
 			Registry r = s.comm.ibis.registry();
 			s.ft.clusterCoordinatorIdent = r.elect("satin "
-					+ s.comm.ibis.identifier().cluster()
+					+ s.comm.ibis.identifier().getLocation().cluster()
 					+ " cluster coordinator");
 			if (s.ft.clusterCoordinatorIdent.equals(s.comm.ibis.identifier())) {
 				/* I am the cluster coordinator */
 				s.clusterCoordinator = true;
 				ftLogger.info("cluster coordinator for cluster "
-						+ s.comm.ibis.identifier().cluster() + " is "
+						+ s.comm.ibis.identifier().getLocation().cluster() + " is "
 						+ s.ft.clusterCoordinatorIdent);
 			}
 		} catch (Exception e) {
@@ -281,7 +281,7 @@ final class FTCommunication implements Config, ReceivePortConnectUpcall,
 
 			SendPort p = null;
 			try {
-				p = s.comm.portType.createSendPort("satin sendport");
+				p = s.comm.portType.createSendPort();
 			} catch (Exception e) {
 				ftLogger.warn("SATIN '" + s.ident
 						+ "': got an exception in Satin.join", e);

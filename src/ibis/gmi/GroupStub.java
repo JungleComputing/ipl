@@ -19,7 +19,7 @@ import org.apache.log4j.Logger;
 public class GroupStub implements GroupInterface, GroupProtocol {
 
     protected static Logger logger
-            = ibis.util.GetLogger.getLogger(GroupStub.class.getName());
+            = Logger.getLogger(GroupStub.class.getName());
 
     /** The identification of the target group. */
     protected int groupID;

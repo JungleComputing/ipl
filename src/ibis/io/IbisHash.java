@@ -3,7 +3,6 @@
 package ibis.io;
 
 import ibis.util.Timer;
-import ibis.util.TypedProperties;
 
 /**
  * A hash table that aims for speed for pairs (Object, int).
@@ -15,17 +14,17 @@ import ibis.util.TypedProperties;
  *   lookups can be faster.
  * + Hash table size is always a power of two for fast modulo calculations.
  */
-final class IbisHash {
+final class IbisHash extends IOProps {
 
     private static final boolean ASSERTS
-            = TypedProperties.booleanProperty(IOProps.s_hash_asserts);
+            = attribs.booleanProperty(s_hash_asserts);
 
     // private final boolean ASSERTS;
     private static final boolean STATS
-            = TypedProperties.booleanProperty(IOProps.s_hash_stats);
+            = attribs.booleanProperty(s_hash_stats);
 
     private static final boolean TIMINGS
-            = TypedProperties.booleanProperty(IOProps.s_hash_timings);
+            = attribs.booleanProperty(s_hash_timings);
 
     private static final int MIN_BUCKETS = 32;
 

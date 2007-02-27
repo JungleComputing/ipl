@@ -5,14 +5,7 @@ package ibis.ipl;
 /**
  * Identifies a {@link ibis.ipl.SendPort SendPort} on the receiver side.
  */
-public interface SendPortIdentifier {
-    /**
-     * Returns the type of the {@link ibis.ipl.PortType PortType} of this
-     * identifier.
-     * @return the type of the porttype.
-     */
-    public StaticProperties type();
-
+public interface SendPortIdentifier extends java.io.Serializable {
     /**
      * Returns the name of the {@link ibis.ipl.SendPort SendPort}
      * corresponding to this identifier.

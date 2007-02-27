@@ -7,13 +7,13 @@
  */
 package ibis.satin.impl.sharedObjects;
 
+import ibis.ipl.CapabilitySet;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPort;
-import ibis.ipl.StaticProperties;
 import ibis.ipl.WriteMessage;
 import ibis.satin.SharedObject;
 import ibis.satin.impl.Config;
@@ -24,6 +24,7 @@ import ibis.satin.impl.loadBalancing.Victim;
 import ibis.satin.impl.spawnSync.InvocationRecord;
 import ibis.util.DeepCopy;
 import ibis.util.Timer;
+import ibis.util.TypedProperties;
 import ibis.util.messagecombining.MessageCombiner;
 import ibis.util.messagecombining.MessageSplitter;
 
@@ -71,7 +72,8 @@ class OmcInfo implements Config {
     }
 }
 
-final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
+final class SOCommunication implements Config, Protocol, SendDoneUpcaller,
+        ibis.ipl.PredefinedCapabilities {
     private static final boolean ASYNC_SO_BCAST = false;
 
     private final static int WAIT_FOR_UPDATES_TIME = 60000;
@@ -112,7 +114,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
         this.s = s;
     }
 
-    protected void init(StaticProperties requestedProperties) {
+    protected void init() {
     	if(DISABLE_SO_BCAST) return;
     	
     	if (LABEL_ROUTING_MCAST) {
@@ -130,7 +132,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
             new SOInvocationReceiver(s, omc).start();
     	} else {
             try {
-                soPortType = createSOPortType(requestedProperties);
+                soPortType = createSOPortType();
 
                 // Create a multicast port to bcast shared object invocations.
                 // Connections are established later.
@@ -139,8 +141,8 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
                             + s.ident, true);
 
                 if (SO_MAX_INVOCATION_DELAY > 0) {
-                    StaticProperties props = new StaticProperties();
-                    props.add("serialization", "ibis");
+                    TypedProperties props = new TypedProperties();
+                    props.setProperty("ibis.serialization", "ibis");
                     soMessageCombiner = new MessageCombiner(props, soSendPort);
                 }
             } catch (Exception e) {
@@ -151,22 +153,11 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
         }
     }
 
-    protected PortType createSOPortType(StaticProperties reqprops)
-            throws IOException {
-        StaticProperties satinPortProperties = new StaticProperties(reqprops);
-
-        if (CLOSED) {
-            satinPortProperties.add("worldmodel", "closed");
-        } else {
-            satinPortProperties.add("worldmodel", "open");
-        }
-
-        String commprops = "OneToOne, OneToMany, ExplicitReceipt, Reliable";
-        commprops += ", ConnectionUpcalls, ConnectionDowncalls";
-        commprops += ", AutoUpcalls";
-        satinPortProperties.add("communication", commprops);
-
-        satinPortProperties.add("serialization", "object");
+    private PortType createSOPortType() throws IOException {
+        CapabilitySet satinPortProperties = new CapabilitySet(
+                CONNECTION_ONE_TO_MANY, CONNECTION_UPCALLS,
+                CONNECTION_DOWNCALLS, RECEIVE_EXPLICIT, RECEIVE_AUTO_UPCALLS,
+                SERIALIZATION_OBJECT);
 
         return s.comm.ibis.createPortType(satinPortProperties);
     }
@@ -213,8 +204,8 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
                                 .getReceivePortConnectHandler());
 
                 if (SO_MAX_INVOCATION_DELAY > 0) {
-                    StaticProperties s = new StaticProperties();
-                    s.add("serialization", "ibis");
+                    TypedProperties s = new TypedProperties();
+                    s.setProperty("ibis.serialization", "ibis");
                     soInvocationHandler.setMessageSplitter(new MessageSplitter(
                         s, rec));
                 }

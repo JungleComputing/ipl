@@ -18,14 +18,14 @@ import org.apache.log4j.Logger;
 public class RegistryImpl extends ibis.rmi.server.UnicastRemoteObject
         implements Registry {
 
-    static Logger logger
-            = ibis.util.GetLogger.getLogger(RegistryImpl.class.getName());
-
     static String host = null;
 
     private int port = 0;
 
     HashMap remotes = new HashMap();
+
+    static Logger logger
+            = Logger.getLogger(RegistryImpl.class.getName());
 
     public RegistryImpl(int port) throws RemoteException {
         if (port <= 0) {

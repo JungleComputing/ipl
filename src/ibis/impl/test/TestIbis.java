@@ -12,7 +12,7 @@ import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.Registry;
 import ibis.ipl.SendPort;
 import ibis.ipl.SendPortIdentifier;
-import ibis.ipl.StaticProperties;
+import ibis.ipl.CapabilitySet;
 import ibis.ipl.WriteMessage;
 
 import java.io.IOException;
@@ -24,7 +24,8 @@ import junit.framework.TestSuite;
 /**
  * Simple Ibis test, on a single Ibis instance.
  */
-public final class TestIbis extends TestCase {
+public final class TestIbis extends TestCase
+        implements ibis.ipl.PredefinedCapabilities {
     static final int COUNT = 100;
 
     Ibis ibis;
@@ -37,12 +38,10 @@ public final class TestIbis extends TestCase {
 
     public void testIbis() {
         try {
-            StaticProperties s = new StaticProperties();
-            s.add("communication", "OneToOne Reliable ExplicitReceipt");
-            s.add("serialization", "ibis");
-            s.add("worldmodel", "open");
+            CapabilitySet s = new CapabilitySet(
+                COMMUNICATION_RELIABLE, SERIALIZATION_OBJECT, RECEIVE_EXPLICIT, WORLDMODEL_OPEN);
 
-            ibis = IbisFactory.createIbis(s, null);
+            ibis = IbisFactory.createIbis(s, null, null, null);
 
             registry = ibis.registry();
 

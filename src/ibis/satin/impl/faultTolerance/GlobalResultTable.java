@@ -4,7 +4,6 @@
 package ibis.satin.impl.faultTolerance;
 
 import ibis.ipl.ReadMessage;
-import ibis.ipl.StaticProperties;
 import ibis.ipl.WriteMessage;
 import ibis.satin.impl.Config;
 import ibis.satin.impl.Satin;
@@ -33,7 +32,7 @@ final class GlobalResultTable implements Config, Protocol {
     private GlobalResultTableValue pointerValue = new GlobalResultTableValue(
         GlobalResultTableValue.TYPE_POINTER, null);
 
-    protected GlobalResultTable(Satin s, StaticProperties requestedProperties) {
+    protected GlobalResultTable(Satin s) {
         this.s = s;
         entries = new Hashtable<Stamp, GlobalResultTableValue>();
         toSend = new Hashtable<Stamp, GlobalResultTableValue>();

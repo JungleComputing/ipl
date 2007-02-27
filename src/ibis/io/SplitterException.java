@@ -8,9 +8,9 @@ import java.util.ArrayList;
 
 public class SplitterException extends IOException {
 
-    private ArrayList streams = new ArrayList();
+    private ArrayList<OutputStream> streams = new ArrayList<OutputStream>();
 
-    private ArrayList exceptions = new ArrayList();
+    private ArrayList<Exception> exceptions = new ArrayList<Exception>();
 
     public SplitterException() {
         // empty constructor
@@ -29,12 +29,20 @@ public class SplitterException extends IOException {
         return streams.size();
     }
 
+    public OutputStream[] getStreams() {
+        return streams.toArray(new OutputStream[0]);
+    }
+
+    public Exception[] getExceptions() {
+        return exceptions.toArray(new Exception[0]);
+    }
+
     public OutputStream getStream(int pos) {
-        return (OutputStream) streams.get(pos);
+        return streams.get(pos);
     }
 
     public Exception getException(int pos) {
-        return (Exception) exceptions.get(pos);
+        return exceptions.get(pos);
     }
 
     public String toString() {

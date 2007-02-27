@@ -1,28 +1,9 @@
 #!/bin/sh
 
-PRG="$0"
-
-# resolve symlinks
-while [ -h "$PRG" ] ; do
-    ls=`ls -ld "$PRG"`
-    link=`expr "$ls" : '.*-> \(.*\)$'`
-    if expr "$link" : '/.*' > /dev/null; then
-    PRG="$link"
-    else
-    PRG=`dirname "$PRG"`"/$link"
-    fi
-done
-
-dir=`dirname "$PRG"`
-dir=`cd "$dir" && pwd`
-
-case X$IBIS_HOME in
-X)
-    IBIS_HOME=`cd "$dir/.." && pwd`
-    ;;
-esac
-
-export IBIS_HOME
+if [ -z "$IBIS_HOME" ];  then
+    echo "please set IBIS_HOME to the location of your Ibis installation" 1>&2
+    exit 1
+fi
 
 cd $IBIS_HOME
 

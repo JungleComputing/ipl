@@ -9,18 +9,21 @@ import java.util.Map;
  * Maintains connections to one or more receive ports.
  *
  * When creating a sendport, it is possible to pass a
- * {@link SendPortConnectUpcall} object.
+ * {@link SendPortDisconnectUpcall} object.
  * When a connection is lost for some reason (normal close or 
  * link error), the 
- * {@link SendPortConnectUpcall#lostConnection(SendPort,
- * ReceivePortIdentifier, Exception)} upcall is invoked.
+ * {@link SendPortDisconnectUpcall#lostConnection(SendPort,
+ * ReceivePortIdentifier, Throwable)} upcall is invoked.
  * This upcall is completely asynchronous, but Ibis ensures that 
  * at most one is alive at any given time.
+ * When a {@link SendPortDisconnectUpcall} object is installed, no exceptions
+ * are thrown by methods in the write message. Instead, the exception is passed
+ * on to the <code>lostConnection</code> upcall.
  *
- * If no {@link SendPortConnectUpcall} is registered, the user is NOT informed 
- * of connections that are lost. No exceptions are thrown by 
- * the write message. It is then the user's own responisbility 
- * to use the {@link #lostConnections()} method to poll for connections 
+ * If no {@link SendPortDisconnectUpcall} is registered, the user is NOT
+ * informed of connections that are lost.
+ * If the port supports connection downcalls, the user can
+ * use the {@link #lostConnections()} method to poll for connections 
  * that are lost.
  *
  * Connections are unrelated to messages! If the sending of a message 
@@ -61,7 +64,7 @@ public interface SendPort {
      * setProperty} method.
      * @return the dynamic properties of this port.
      */
-    public Map properties();
+    public Map<String, Object> properties();
 
     /**
      * Sets a number of dynamic properties of
@@ -69,7 +72,7 @@ public interface SendPort {
      * properties of the port.
      * @param properties the dynamic properties to set.
      */
-    public void setProperties(Map properties); 
+    public void setProperties(Map<String, Object> properties); 
     
     /**
      * Returns a dynamic property of
@@ -138,6 +141,8 @@ public interface SendPort {
 
     /**
      * Attempts to set up a connection with receiver.
+     * It is not allowed to set up a new connection while a message
+     * is alive.
      *
      * @param timeoutMillis timeout in milliseconds
      * @exception ibis.ipl.ConnectionTimedOutException is thrown
@@ -151,6 +156,7 @@ public interface SendPort {
      * Multiple connections to the same receiver are NOT allowed.
      * @exception PortMismatchException is thrown if the receiveport
      * port and the sendport are of different types.
+     * @exception IOException is thrown if a message is alive.
      */
     public void connect(ReceivePortIdentifier receiver, long timeoutMillis)
             throws IOException;
@@ -234,12 +240,13 @@ public interface SendPort {
      * Returns the changes since the last <code>lostConnections</code> call,
      * or, if this is the first call, all connections that were lost since
      * the port was created.
-     * This call only works if the connectionAdministration parameter was true
+     * This call only works if the connectionDowncalls parameter was true
      * when this port was created.
-     * If no connections were lost, or connectionAdministration was not
-     * requested, an array with 0 entries is returned.
+     * If no connections were lost, an array with 0 entries is returned.
      * @return A set of receiveport identifiers to which the connection
      * is lost.
+     * @exception IbisConfigurationException is thrown when connectionDowncalls
+     * where not requested when creating the port.
      */
     public ReceivePortIdentifier[] lostConnections();
 }
