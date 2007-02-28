@@ -95,12 +95,7 @@ public final class TcpIbis extends ibis.impl.Ibis
             logger.debug("--> TcpIbis: address = " + myAddress);
         }
 
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        DataOutputStream out = new DataOutputStream(bos);
-        out.writeUTF(myAddress.toString());
-        out.flush();
-        out.close();
-        return bos.toByteArray();
+        return myAddress.toBytes();
     }
 
         
@@ -135,13 +130,8 @@ public final class TcpIbis extends ibis.impl.Ibis
         synchronized(addresses) {
             idAddr = addresses.get(id);
             if (idAddr == null) {
-                DataInputStream in = new DataInputStream(
-                        new java.io.ByteArrayInputStream(
-                                id.getImplementationData()));
-                String addr = in.readUTF();
-                in.close();
                 try {
-                    idAddr = new VirtualSocketAddress(addr);
+                    idAddr = VirtualSocketAddress.fromBytes(id.getImplementationData(), 0);
                 } catch(Exception e) {
                     throw new IOException("Could not get address from " + id);
                 }
