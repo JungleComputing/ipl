@@ -34,9 +34,9 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
         private final VirtualSocket s;
 
         ConnectionHandler(SendPortIdentifier origin, VirtualSocket s,
-                ReceivePort port) throws IOException {
-            super(origin, port,
-                    new BufferedArrayInputStream(s.getInputStream()));
+                ReceivePort port, BufferedArrayInputStream in)
+                throws IOException {
+            super(origin, port, in);
             this.s = s;
         }
 
@@ -236,9 +236,9 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
         super.closePort(timeout);
     }
 
-    synchronized void connect(SendPortIdentifier origin, VirtualSocket s)
-            throws IOException {
-        ConnectionHandler conn = new ConnectionHandler(origin, s, this);
+    synchronized void connect(SendPortIdentifier origin, VirtualSocket s,
+            BufferedArrayInputStream in) throws IOException {
+        ConnectionHandler conn = new ConnectionHandler(origin, s, this, in);
         if (! no_connectionhandler_thread) {
             ThreadPool.createNew(conn, "ConnectionHandler");
         }

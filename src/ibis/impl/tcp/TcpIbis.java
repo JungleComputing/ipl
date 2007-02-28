@@ -5,6 +5,8 @@ package ibis.impl.tcp;
 import ibis.impl.IbisIdentifier;
 import ibis.impl.ReceivePort;
 import ibis.impl.SendPortIdentifier;
+import ibis.io.BufferedArrayInputStream;
+import ibis.io.BufferedArrayOutputStream;
 import ibis.ipl.AlreadyConnectedException;
 import ibis.ipl.CapabilitySet;
 import ibis.ipl.ConnectionRefusedException;
@@ -14,8 +16,6 @@ import ibis.ipl.ResizeHandler;
 import ibis.util.IPUtils;
 import ibis.util.ThreadPool;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -144,16 +144,15 @@ public final class TcpIbis extends ibis.impl.Ibis
 
             try {
                 s = createClientSocket(local, idAddr, timeout);
-                out = new DataOutputStream(new BufferedOutputStream(
+                out = new DataOutputStream(new BufferedArrayOutputStream(
                             s.getOutputStream()));
-                in = new BufferedInputStream(s.getInputStream());
 
                 out.writeUTF(name);
                 sp.getIdent().writeTo(out);
                 sp.getType().capabilities().writeTo(out);
                 out.flush();
 
-                result = in.read();
+                result = s.getInputStream().read();
 
                 switch(result) {
                 case ReceivePort.ACCEPTED:
@@ -188,11 +187,6 @@ public final class TcpIbis extends ibis.impl.Ibis
                 throw new ConnectionTimedOutException("Could not connect");
             } finally {
                 if (result != ReceivePort.ACCEPTED) {
-                    try {
-                        in.close();
-                    } catch(Throwable e) {
-                        // ignored
-                    }
                     try {
                         out.close();
                     } catch(Throwable e) {
@@ -230,9 +224,11 @@ public final class TcpIbis extends ibis.impl.Ibis
                     + s.getLocalPort());
         }
 
-        DataInputStream in = new DataInputStream(
-                new BufferedInputStream(s.getInputStream()));
-        OutputStream out = new BufferedOutputStream(s.getOutputStream());
+        BufferedArrayInputStream bais
+                = new BufferedArrayInputStream(s.getInputStream());
+
+        DataInputStream in = new DataInputStream(bais);
+        OutputStream out = s.getOutputStream();
 
         String name = in.readUTF();
         SendPortIdentifier send = new SendPortIdentifier(in);
@@ -257,7 +253,7 @@ public final class TcpIbis extends ibis.impl.Ibis
         out.flush();
         if (result == ReceivePort.ACCEPTED) {
             // add the connection to the receiveport.
-            rp.connect(send, s);
+            rp.connect(send, s, bais);
             if (logger.isDebugEnabled()) {
                 logger.debug("--> S connect done ");
             }
