@@ -46,25 +46,26 @@ public final class Sequencer implements ibis.ipl.PredefinedCapabilities {
 
     private int idno;
 
-    private HashMap counters;
+    private HashMap<String, IntObject> counters;
 
-    private static HashMap sequencers = new HashMap();
+    private static HashMap<IbisIdentifier, Sequencer> sequencers
+            = new HashMap<IbisIdentifier, Sequencer>();
 
     private static class ServerThread extends Thread {
 
-        private ArrayList sendports;
+        private ArrayList<SendPort> sendports;
 
         private Sequencer seq;
 
-        private ArrayList clients;
+        private ArrayList<ReceivePortIdentifier> clients;
 
         private ReceivePort rcv;
 
         ServerThread(ReceivePort r, Sequencer s) {
             seq = s;
             rcv = r;
-            sendports = new ArrayList();
-            clients = new ArrayList();
+            sendports = new ArrayList<SendPort>();
+            clients = new ArrayList<ReceivePortIdentifier>();
         }
 
         public void handleMessage(ReadMessage m) throws IOException {
@@ -89,7 +90,7 @@ public final class Sequencer implements ibis.ipl.PredefinedCapabilities {
                 w = s.newMessage();
                 w.writeInt(clients.size() - 1);
             } else {
-                rid = (ReceivePortIdentifier) clients.get(index);
+                rid = clients.get(index);
                 name = m.readString();
                 m.finish();
                 s = (SendPort) sendports.get(index);
@@ -115,7 +116,7 @@ public final class Sequencer implements ibis.ipl.PredefinedCapabilities {
 
         protected void finalize() {
             for (int i = 0; i < sendports.size(); i++) {
-                SendPort s = (SendPort) sendports.get(i);
+                SendPort s = sendports.get(i);
                 try {
                     s.close();
                 } catch (IOException e) {
@@ -153,7 +154,7 @@ public final class Sequencer implements ibis.ipl.PredefinedCapabilities {
         master = boss.equals(ident);
 
         if (master) {
-            counters = new HashMap();
+            counters = new HashMap<String, IntObject>();
             ServerThread server = new ServerThread(rcv, this);
             server.setDaemon(true);
             server.start();
@@ -191,7 +192,7 @@ public final class Sequencer implements ibis.ipl.PredefinedCapabilities {
     public static synchronized Sequencer getSequencer(Ibis ibis)
             throws IOException {
         IbisIdentifier ident = ibis.identifier();
-        Sequencer seq = (Sequencer) sequencers.get(ident);
+        Sequencer seq = sequencers.get(ident);
         if (seq != null) {
             return seq;
         }
@@ -201,7 +202,7 @@ public final class Sequencer implements ibis.ipl.PredefinedCapabilities {
     }
 
     synchronized int getNo(String name) {
-        IntObject i = (IntObject) counters.get(name);
+        IntObject i = counters.get(name);
         if (i == null) {
             i = new IntObject(START_SEQNO);
             counters.put(name, i);

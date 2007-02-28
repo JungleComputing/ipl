@@ -73,7 +73,7 @@ public class NameServer extends Thread implements Protocol {
      * associate different sequences with different names.
      */
     private static class Sequencer {
-        private HashMap counters;
+        private HashMap<String, LongObject> counters;
 
         private static class LongObject {
             long val;
@@ -88,7 +88,7 @@ public class NameServer extends Thread implements Protocol {
         }
 
         Sequencer() {
-            counters = new HashMap();
+            counters = new HashMap<String, LongObject>();
         }
 
         /**
@@ -97,7 +97,7 @@ public class NameServer extends Thread implements Protocol {
          * @return the next sequence number
          */
         public synchronized long getSeqno(String name) {
-            LongObject i = (LongObject) counters.get(name);
+            LongObject i = counters.get(name);
             if (i == null) {
                 i = new LongObject(ibis.ipl.ReadMessage.INITIAL_SEQNO);
                 counters.put(name, i);
@@ -175,7 +175,7 @@ public class NameServer extends Thread implements Protocol {
     }
 
     static class DeadNotifier implements Runnable {
-        ArrayList corpses = new ArrayList();
+        ArrayList<IbisIdentifier[]> corpses = new ArrayList<IbisIdentifier[]>();
         final RunInfo runInfo;
         boolean done = false;
         int count = 0;
@@ -217,8 +217,7 @@ public class NameServer extends Thread implements Protocol {
                         deadOnes = new IbisIdentifier[count];
                         int i = 0;
                         while (corpses.size() > 0) {
-                            IbisIdentifier[] el
-                                    = (IbisIdentifier[]) corpses.remove(0);
+                            IbisIdentifier[] el = corpses.remove(0);
                             for (int j = 0; j < el.length; j++) {
                                 deadOnes[i] = el[j];
                                 i++;
@@ -266,13 +265,13 @@ public class NameServer extends Thread implements Protocol {
     }
 
     static class RunInfo {
-        ArrayList unfinishedJoins; // a list of IbisInfos
+        ArrayList<IbisInfo> unfinishedJoins; // a list of IbisInfos
 
-        ArrayList arrayPool;    // IbisInfos in fixed order.
+        ArrayList<IbisInfo> arrayPool;    // IbisInfos in fixed order.
 
-        Hashtable pool;
+        Hashtable<String, IbisInfo> pool;
 
-        ArrayList leavers;
+        ArrayList<IbisInfo> leavers;
 
         int forwarders;
 
@@ -291,10 +290,10 @@ public class NameServer extends Thread implements Protocol {
         int joinCount = 0;
 
         RunInfo(boolean silent) throws IOException {
-            unfinishedJoins = new ArrayList();
-            arrayPool = new ArrayList();
-            pool = new Hashtable();
-            leavers = new ArrayList();
+            unfinishedJoins = new ArrayList<IbisInfo>();
+            arrayPool = new ArrayList<IbisInfo>();
+            pool = new Hashtable<String, IbisInfo>();
+            leavers = new ArrayList<IbisInfo>();
             electionServer = new ElectionServer(silent, socketFactory);
             electionKiller = new DeadNotifier(this, electionServer.getAddress(),
                     ELECTION_KILL);
@@ -315,7 +314,7 @@ public class NameServer extends Thread implements Protocol {
         }
 
         public IbisInfo[] instances() {
-            return (IbisInfo[]) pool.values().toArray(new IbisInfo[0]);
+            return pool.values().toArray(new IbisInfo[pool.size()]);
         }
 
         public void remove(IbisInfo iinf) {
@@ -333,11 +332,11 @@ public class NameServer extends Thread implements Protocol {
         }
     }
 
-    private Hashtable pools;
+    private Hashtable<String, RunInfo> pools;
 
     private VirtualServerSocket serverSocket;
 
-    private ArrayList pingerEntries = new ArrayList();
+    private ArrayList<PingerEntry> pingerEntries = new ArrayList<PingerEntry>();
 
     private DataInputStream in;
 
@@ -415,7 +414,7 @@ public class NameServer extends Thread implements Protocol {
         }
     }
 
-    static ArrayList closeJobs = new ArrayList();
+    static ArrayList<CloseJob> closeJobs = new ArrayList<CloseJob>();
     static int numClosers;
 
     private static class Closer implements Runnable {
@@ -447,7 +446,7 @@ public class NameServer extends Thread implements Protocol {
                             // ignored
                         }
                     }
-                    cl = (CloseJob) closeJobs.remove(0);
+                    cl = closeJobs.remove(0);
                     if (numClosers < MAXTHREADS && closeJobs.size() > 0) {
                         ThreadPool.createNew(new Closer(silent), "Closer");
                     }
@@ -467,12 +466,13 @@ public class NameServer extends Thread implements Protocol {
 
         synchronized(NameServer.class) {
             if (socketFactory == null) {
-                HashMap properties = new HashMap();        
-                properties.put("smartsockets.direct.port",
+                Properties properties = new Properties();        
+                properties.setProperty("smartsockets.direct.port",
                         "" + TCP_IBIS_NAME_SERVER_PORT_NR);
             
                 // Bit of a hack to improve the visualization
-                properties.put("smartsockets.register.property", "nameserver");
+                properties.setProperty("smartsockets.register.property",
+                        "nameserver");
 
                 try {
                     socketFactory = VirtualSocketFactory
@@ -533,7 +533,7 @@ public class NameServer extends Thread implements Protocol {
                     + serverSocket.getLocalSocketAddress());
         }
 
-        pools = new Hashtable();
+        pools = new Hashtable<String, RunInfo>();
 
         Thread p = new Thread("NameServer Upcaller") {
             public void run() {
@@ -573,8 +573,7 @@ public class NameServer extends Thread implements Protocol {
         IbisInfo[] leavers = null;
 
         if (inf.leavers.size() != 0) {
-            IbisInfo[] iinf = new IbisInfo[0];
-            leavers = (IbisInfo[]) inf.leavers.toArray(iinf);
+            leavers = inf.leavers.toArray(new IbisInfo[inf.leavers.size()]);
             inf.leavers.clear();
 
             // Obtain elements to send to first. The forward() method
@@ -626,7 +625,7 @@ public class NameServer extends Thread implements Protocol {
                         // ignored
                     }
                 }
-                e = (PingerEntry) pingerEntries.get(0);
+                e = pingerEntries.get(0);
             }
             if (e.poolId == null) {
                 if (logger.isDebugEnabled()) {
@@ -639,7 +638,7 @@ public class NameServer extends Thread implements Protocol {
                 }
                 poolPinger(e.poolId);
             } else {
-                RunInfo p = (RunInfo) pools.get(e.poolId);
+                RunInfo p = pools.get(e.poolId);
                 if (p != null) {
                     if (logger.isDebugEnabled()) {
                         logger.debug("Doing check of ibis " + e.id);
@@ -666,7 +665,7 @@ public class NameServer extends Thread implements Protocol {
             // Vice versa, if the request to be added is "larger" than
             // any request in the list, remove/replace the "smaller" requests.
             for (int i = 0; i < pingerEntries.size(); i++) {
-                PingerEntry e = (PingerEntry) pingerEntries.get(i);
+                PingerEntry e = pingerEntries.get(i);
                 if (e.largerOrEqual(added)) {
                     return;
                 }
@@ -697,9 +696,9 @@ public class NameServer extends Thread implements Protocol {
             } catch(InterruptedException e) {
                 // ignore
             }
-            for (Enumeration e = pools.keys(); e.hasMoreElements();) {
-                String poolId = (String) e.nextElement();
-                RunInfo inf = (RunInfo) pools.get(poolId);
+            for (Enumeration<String> e = pools.keys(); e.hasMoreElements();) {
+                String poolId = e.nextElement();
+                RunInfo inf = pools.get(poolId);
                 boolean joinFailed = false;
 
                 synchronized(inf) {
@@ -713,8 +712,9 @@ public class NameServer extends Thread implements Protocol {
 
                     if (inf.unfinishedJoins.size() > 0) {
                         inf.failed = 0;
-                        IbisInfo[] message = (IbisInfo[])
-                                inf.unfinishedJoins.toArray(new IbisInfo[0]);
+                        IbisInfo[] message =
+                                inf.unfinishedJoins.toArray(
+                                    new IbisInfo[inf.unfinishedJoins.size()]);
 
                         inf.unfinishedJoins.clear();
 
@@ -880,9 +880,10 @@ public class NameServer extends Thread implements Protocol {
         RunInfo run;
         IbisInfo dest;
         String poolId;
-        Vector deadIbises;
+        Vector<IbisInfo> deadIbises;
 
-        PingThread(RunInfo run, IbisInfo dest, String poolId, Vector deadIbises) {
+        PingThread(RunInfo run, IbisInfo dest, String poolId,
+                Vector<IbisInfo> deadIbises) {
             this.run = run;
             this.dest = dest;
             this.poolId = poolId;
@@ -935,7 +936,7 @@ public class NameServer extends Thread implements Protocol {
      */
     private void checkPool(RunInfo p, String id, boolean kill, String poolId) {
 
-        Vector deadIbises = new Vector();
+        Vector<IbisInfo> deadIbises = new Vector<IbisInfo>();
 
         if (! silent && logger.isInfoEnabled()) {
             logger.info("Testing pool " + poolId + " for dead ibises");
@@ -973,7 +974,7 @@ public class NameServer extends Thread implements Protocol {
             }
 
             for (int j = 0; j < deadIbises.size(); j++) {
-                IbisInfo temp = (IbisInfo) deadIbises.get(j);
+                IbisInfo temp = deadIbises.get(j);
                 if (! kill && ! silent && logger.isInfoEnabled()) {
                     logger.info("NameServer: ibis " + temp.id + " seems dead");
                 }
@@ -986,7 +987,7 @@ public class NameServer extends Thread implements Protocol {
                 IbisIdentifier[] ids = new IbisIdentifier[deadIbises.size()];
                 IbisInfo[] ibisIds = new IbisInfo[ids.length];
                 for (int j = 0; j < ids.length; j++) {
-                    IbisInfo temp2 = (IbisInfo) deadIbises.get(j);
+                    IbisInfo temp2 = deadIbises.get(j);
                     ids[j] = temp2.id;
                     ibisIds[j] = temp2;
                 }
@@ -1048,7 +1049,7 @@ public class NameServer extends Thread implements Protocol {
             return;
         }
 
-        RunInfo p = (RunInfo) pools.get(poolId);
+        RunInfo p = pools.get(poolId);
         if (p != null) {
             checkPool(p, id, kill, poolId);
         }
@@ -1092,7 +1093,7 @@ public class NameServer extends Thread implements Protocol {
         }
 
 
-        RunInfo p = (RunInfo) pools.get(poolId);
+        RunInfo p = pools.get(poolId);
 
         if (p == null) {
             // new run
@@ -1161,7 +1162,7 @@ public class NameServer extends Thread implements Protocol {
 
             int i = 0;
             while (i < p.arrayPool.size()) {
-                IbisInfo temp = (IbisInfo) p.pool.get(((IbisInfo) p.arrayPool.get(i)).id.myId);
+                IbisInfo temp = p.pool.get(p.arrayPool.get(i).id.myId);
 
                 if (temp != null) {
                     temp.id.writeTo(out);
@@ -1183,7 +1184,7 @@ public class NameServer extends Thread implements Protocol {
 
     private void poolPinger(String poolId) {
 
-        RunInfo p = (RunInfo) pools.get(poolId);
+        RunInfo p = pools.get(poolId);
 
         if (p == null) {
             return;
@@ -1197,7 +1198,7 @@ public class NameServer extends Thread implements Protocol {
     }
 
     private void initiatePoolPinger(String poolId) {
-        RunInfo p = (RunInfo) pools.get(poolId);
+        RunInfo p = pools.get(poolId);
 
         if (p == null) {
             return;
@@ -1216,8 +1217,8 @@ public class NameServer extends Thread implements Protocol {
     }
 
     private void initiatePoolPinger() {
-        for (Enumeration e = pools.keys(); e.hasMoreElements();) {
-            String poolId = (String) e.nextElement();
+        for (Enumeration<String> e = pools.keys(); e.hasMoreElements();) {
+            String poolId = e.nextElement();
             initiatePoolPinger(poolId);
         }
     }
@@ -1227,8 +1228,8 @@ public class NameServer extends Thread implements Protocol {
      * (connect to all members fails), the pool is killed.
      */
     private void poolPinger() {
-        for (Enumeration e = pools.keys(); e.hasMoreElements();) {
-            String poolId = (String) e.nextElement();
+        for (Enumeration<String> e = pools.keys(); e.hasMoreElements();) {
+            String poolId = e.nextElement();
             poolPinger(poolId);
         }
     }
@@ -1257,7 +1258,7 @@ public class NameServer extends Thread implements Protocol {
         String poolId = in.readUTF();
         String id = in.readUTF();
 
-        RunInfo p = (RunInfo) pools.get(poolId);
+        RunInfo p = pools.get(poolId);
 
         if (logger.isDebugEnabled()) {
             logger.debug("NameServer: leave from pool " + poolId
@@ -1271,7 +1272,7 @@ public class NameServer extends Thread implements Protocol {
                         + "/" + poolId + " tried to leave");
             }
         } else {
-            IbisInfo iinf = (IbisInfo) p.pool.get(id);
+            IbisInfo iinf = p.pool.get(id);
 
             if (iinf != null) {
                 // found it.
@@ -1324,7 +1325,7 @@ public class NameServer extends Thread implements Protocol {
 
     private void handleIbisMustLeave() throws IOException {
         String poolId = in.readUTF();
-        RunInfo p = (RunInfo) pools.get(poolId);
+        RunInfo p = pools.get(poolId);
         int count = in.readInt();
         String[] ids = new String[count];
         IbisInfo[] iinf = new IbisInfo[count];
@@ -1344,7 +1345,7 @@ public class NameServer extends Thread implements Protocol {
 
         synchronized(p) {
             for (int i = 0; i < count; i++) {
-                IbisInfo info = (IbisInfo) p.pool.get(ids[i]);
+                IbisInfo info = p.pool.get(ids[i]);
                 if (info != null) {
                     found++;
                     iinf[i] = info;
