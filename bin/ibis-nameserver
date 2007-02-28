@@ -10,45 +10,4 @@ if [ -z "$IBIS_HOME" ];  then
     exit 1
 fi
 
-# On cygwin, convert paths to unix format.
-case "`uname`" in
-CYGWIN*)
-    IBIS_HOME=`cygpath --unix "$IBIS_HOME"`
-    CLASSPATH=`cygpath --unix --path "$CLASSPATH"`
-    ;;
-esac
-
-# deal with classpath
-LIBCLASSPATH=""
-add_to_libclasspath () {
-    JARFILES=`cd "$1" && ls *.jar 2>/dev/null`
-    for i in ${JARFILES} ; do
-	if [ -z "$LIBCLASSPATH" ] ; then
-	    LIBCLASSPATH="$1/$i"
-	else
-	    LIBCLASSPATH="$LIBCLASSPATH:$1/$i"
-	fi
-    done
-}
-
-# Add the Ibis jars to the classpath.
-add_to_libclasspath "${IBIS_HOME}"/lib
-
-JAVACLASSPATH="$CLASSPATH:$LIBCLASSPATH:"
-
-# On cygwin, convert paths back to windows format.
-case "`uname`" in
-CYGWIN*)
-    JAVACLASSPATH=`cygpath --path --windows "$JAVACLASSPATH"`
-    ;;
-esac
-
-# Check which Java to execute.
-if [ -z "$JAVA_HOME" ] ; then
-    JAVA=java
-else
-    JAVA="$JAVA_HOME/bin/java"
-fi
-
-# And execute.
-"$JAVA" -classpath "$JAVACLASSPATH" ibis.impl.registry.tcp.NameServer "$@"
+. $IBIS_HOME/bin/ibis-run ibis.impl.registry.tcp.NameServer "$@"

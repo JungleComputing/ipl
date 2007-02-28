@@ -93,13 +93,17 @@ satin-so:
 - remove export of shared object from interface. An application can mark any
   initialization functions as being write functions for the same nett result.
 
+rmi:
+- rmic fails if target file exists.
+
 abstract implementation:
-- check _all_ properties in _every_ Ibis
-- add support for properties in a ".ibis" config file
++ check _all_ properties in _every_ Ibis (Done Ceriel)
++ add support for properties in a ".ibis" config file (Done Ceriel: ibis-properties).
 - if closed.world is selected, check if ibis.pool.hosts is set, and ignore
   joins beyond total hosts, and all leaves.
 
 implementations:
+- (re)implement NioIbis
 - (re)implement MPIIbis
 - implement stacking Ibis
 
