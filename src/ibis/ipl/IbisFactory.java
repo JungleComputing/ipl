@@ -36,7 +36,7 @@ import org.apache.log4j.WriterAppender;
  */
 public final class IbisFactory {
 
-    private static final String PROPERTIES_FILENAME = "ibis-properties";
+    private static final String PROPERTIES_FILENAME = "ibis.properties";
 
     /** All our own properties start with this prefix. */
     public static final String PREFIX = "ibis.";
@@ -58,7 +58,9 @@ public final class IbisFactory {
 
     static {
         Logger ibisLogger = Logger.getLogger("ibis");
-        if (!ibisLogger.getAllAppenders().hasMoreElements()) {
+        Logger rootLogger = Logger.getRootLogger();
+        if (! rootLogger.getAllAppenders().hasMoreElements()
+             && !ibisLogger.getAllAppenders().hasMoreElements()) {
             // No appenders defined, print to standard err by default
             PatternLayout layout = new PatternLayout("%d{HH:mm:ss} %-5p %m%n");
             WriterAppender appender = new WriterAppender(layout, System.err);
@@ -105,7 +107,7 @@ public final class IbisFactory {
 
             load(in);
 
-            // Then see if there is an ibis-properties file in the users
+            // Then see if there is an ibis.properties file in the users
             // home directory.
             String fn = system.getProperty("user.home") +
                 system.getProperty("file.separator") + PROPERTIES_FILENAME;
@@ -116,7 +118,7 @@ public final class IbisFactory {
                 // ignored
             }
 
-            // Then see if there is an ibis-properties file in the current
+            // Then see if there is an ibis.properties file in the current
             // directory.
             try {
                 in = new FileInputStream(PROPERTIES_FILENAME);

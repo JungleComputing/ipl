@@ -44,7 +44,7 @@ public final class CapabilitySet implements java.io.Serializable {
 
     /**
      * Creates a capability object with the specified values.
-     * @param sp the specified values.
+     * @param values the specified values.
      */
     public CapabilitySet(String... values) {
         for (int i = 0; i < values.length; i++) {

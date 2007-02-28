@@ -22,6 +22,11 @@ import java.io.IOException;
  * {@link #writeObject writeObject} does duplicate detection, and may
  * have written only a handle.
  * </strong>
+ * 
+ * The {@link #writeObject(Object)} and {@link #writeString(String)} methods
+ * do duplicate checks if the underlying serialization stream is an object
+ * serialization stream: if the object was already written to this
+ * message, a handle for this object is written instead of the object itself.
  **/
 
 public interface WriteMessage {
@@ -97,6 +102,9 @@ public interface WriteMessage {
 
     /**
      * Writes a boolean value to the message.
+     * This method throws an IOException if the underlying serialization
+     * stream can only do byte serialization.
+     * (See {@link PredefinedCapabilities#SERIALIZATION_BYTE}).
      * @param     val             	the boolean value to write.
      *
      * @exception java.io.IOException	an error occurred 
@@ -113,6 +121,9 @@ public interface WriteMessage {
 
     /**
      * Writes a char value to the message.
+     * This method throws an IOException if the underlying serialization
+     * stream can only do byte serialization.
+     * (See {@link PredefinedCapabilities#SERIALIZATION_BYTE}).
      * @param     val			the char value to write.
      *
      * @exception java.io.IOException	an error occurred 
@@ -121,6 +132,9 @@ public interface WriteMessage {
 
     /**
      * Writes a short value to the message.
+     * This method throws an IOException if the underlying serialization
+     * stream can only do byte serialization.
+     * (See {@link PredefinedCapabilities#SERIALIZATION_BYTE}).
      * @param     val			the short value to write.
      *
      * @exception java.io.IOException	an error occurred 
@@ -129,6 +143,9 @@ public interface WriteMessage {
 
     /**
      * Writes a int value to the message.
+     * This method throws an IOException if the underlying serialization
+     * stream can only do byte serialization.
+     * (See {@link PredefinedCapabilities#SERIALIZATION_BYTE}).
      * @param     val			the int value to write.
      *
      * @exception java.io.IOException	an error occurred 
@@ -137,6 +154,9 @@ public interface WriteMessage {
 
     /**
      * Writes a long value to the message.
+     * This method throws an IOException if the underlying serialization
+     * stream can only do byte serialization.
+     * (See {@link PredefinedCapabilities#SERIALIZATION_BYTE}).
      * @param     val			the long value to write.
      *
      * @exception java.io.IOException	an error occurred 
@@ -145,6 +165,9 @@ public interface WriteMessage {
 
     /**
      * Writes a float value to the message.
+     * This method throws an IOException if the underlying serialization
+     * stream can only do byte serialization.
+     * (See {@link PredefinedCapabilities#SERIALIZATION_BYTE}).
      * @param     val			the float value to write.
      *
      * @exception java.io.IOException	an error occurred 
@@ -153,6 +176,9 @@ public interface WriteMessage {
 
     /**
      * Writes a double value to the message.
+     * This method throws an IOException if the underlying serialization
+     * stream can only do byte serialization.
+     * (See {@link PredefinedCapabilities#SERIALIZATION_BYTE}).
      * @param     val			the double value to write.
      *
      * @exception java.io.IOException	an error occurred 
@@ -161,7 +187,11 @@ public interface WriteMessage {
 
     /**
      * Writes a <code>String</code> to the message.
-     * A duplicate check for this <code>String</code> object
+     * This method throws an IOException if the underlying serialization
+     * stream can only do byte serialization.
+     * (See {@link PredefinedCapabilities#SERIALIZATION_BYTE}).
+     * If the underlying serialization stream is an object serialization
+     * stream, a duplicate check for this <code>String</code> object
      * is performed: if the object was already written to this
      * message, a handle for this object is written instead of
      * the object itself.
@@ -174,6 +204,9 @@ public interface WriteMessage {
 
     /**
      * Writes a <code>Serializable</code> object to the message.
+     * This method throws an IOException if the underlying serialization
+     * stream cannot do object serialization.
+     * (See {@link PredefinedCapabilities#SERIALIZATION_OBJECT}).
      * A duplicate check for this <code>String</code> object
      * is performed: if the object was already written to this
      * message, a handle for this object is written instead of
@@ -187,6 +220,9 @@ public interface WriteMessage {
 
     /**
      * Writes an array to the message.
+     * This method throws an IOException if the underlying serialization
+     * stream can only do byte serialization.
+     * (See {@link PredefinedCapabilities#SERIALIZATION_BYTE}).
      * No duplicate check is performed for this array!
      * This method is just a shortcut for doing:
      * <code>writeArray(val, 0, val.length);</code>
@@ -211,6 +247,9 @@ public interface WriteMessage {
 
     /**
      * Writes an array to the message.
+     * This method throws an IOException if the underlying serialization
+     * stream can only do byte serialization.
+     * (See {@link PredefinedCapabilities#SERIALIZATION_BYTE}).
      * No duplicate check is performed for this array!
      * This method is just a shortcut for doing:
      * <code>writeArray(val, 0, val.length);</code>
@@ -223,6 +262,9 @@ public interface WriteMessage {
 
     /**
      * Writes an array to the message.
+     * This method throws an IOException if the underlying serialization
+     * stream can only do byte serialization.
+     * (See {@link PredefinedCapabilities#SERIALIZATION_BYTE}).
      * No duplicate check is performed for this array!
      * This method is just a shortcut for doing:
      * <code>writeArray(val, 0, val.length);</code>
@@ -235,6 +277,9 @@ public interface WriteMessage {
 
     /**
      * Writes an array to the message.
+     * This method throws an IOException if the underlying serialization
+     * stream can only do byte serialization.
+     * (See {@link PredefinedCapabilities#SERIALIZATION_BYTE}).
      * No duplicate check is performed for this array!
      * This method is just a shortcut for doing:
      * <code>writeArray(val, 0, val.length);</code>
@@ -247,6 +292,9 @@ public interface WriteMessage {
 
     /**
      * Writes an array to the message.
+     * This method throws an IOException if the underlying serialization
+     * stream can only do byte serialization.
+     * (See {@link PredefinedCapabilities#SERIALIZATION_BYTE}).
      * No duplicate check is performed for this array!
      * This method is just a shortcut for doing:
      * <code>writeArray(val, 0, val.length);</code>
@@ -259,6 +307,9 @@ public interface WriteMessage {
 
     /**
      * Writes an array to the message.
+     * This method throws an IOException if the underlying serialization
+     * stream can only do byte serialization.
+     * (See {@link PredefinedCapabilities#SERIALIZATION_BYTE}).
      * No duplicate check is performed for this array!
      * This method is just a shortcut for doing:
      * <code>writeArray(val, 0, val.length);</code>
@@ -271,6 +322,9 @@ public interface WriteMessage {
 
     /**
      * Writes an array to the message.
+     * This method throws an IOException if the underlying serialization
+     * stream can only do byte serialization.
+     * (See {@link PredefinedCapabilities#SERIALIZATION_BYTE}).
      * No duplicate check is performed for this array!
      * This method is just a shortcut for doing:
      * <code>writeArray(val, 0, val.length);</code>
@@ -283,6 +337,9 @@ public interface WriteMessage {
 
     /**
      * Writes an array to the message.
+     * This method throws an IOException if the underlying serialization
+     * stream cannot do object serialization.
+     * (See {@link PredefinedCapabilities#SERIALIZATION_OBJECT}).
      * No duplicate check is performed for this array!
      * This method is just a shortcut for doing:
      * <code>writeArray(val, 0, val.length);</code>
@@ -295,6 +352,9 @@ public interface WriteMessage {
 
     /**
      * Writes a slice of an array. The slice starts at offset <code>off</code>.
+     * This method throws an IOException if the underlying serialization
+     * stream can only do byte serialization.
+     * (See {@link PredefinedCapabilities#SERIALIZATION_BYTE}).
      * No duplicate check is performed for this array!
      *
      * @param val			the array to be written
@@ -319,6 +379,9 @@ public interface WriteMessage {
 
     /**
      * Writes a slice of an array. The slice starts at offset <code>off</code>.
+     * This method throws an IOException if the underlying serialization
+     * stream can only do byte serialization.
+     * (See {@link PredefinedCapabilities#SERIALIZATION_BYTE}).
      * No duplicate check is performed for this array!
      *
      * @param val			the array to be written
@@ -331,6 +394,9 @@ public interface WriteMessage {
 
     /**
      * Writes a slice of an array. The slice starts at offset <code>off</code>.
+     * This method throws an IOException if the underlying serialization
+     * stream can only do byte serialization.
+     * (See {@link PredefinedCapabilities#SERIALIZATION_BYTE}).
      * No duplicate check is performed for this array!
      *
      * @param val			the array to be written
@@ -343,6 +409,9 @@ public interface WriteMessage {
 
     /**
      * Writes a slice of an array. The slice starts at offset <code>off</code>.
+     * This method throws an IOException if the underlying serialization
+     * stream can only do byte serialization.
+     * (See {@link PredefinedCapabilities#SERIALIZATION_BYTE}).
      * No duplicate check is performed for this array!
      *
      * @param val			the array to be written
@@ -355,6 +424,9 @@ public interface WriteMessage {
 
     /**
      * Writes a slice of an array. The slice starts at offset <code>off</code>.
+     * This method throws an IOException if the underlying serialization
+     * stream can only do byte serialization.
+     * (See {@link PredefinedCapabilities#SERIALIZATION_BYTE}).
      * No duplicate check is performed for this array!
      *
      * @param val			the array to be written
@@ -367,6 +439,9 @@ public interface WriteMessage {
 
     /**
      * Writes a slice of an array. The slice starts at offset <code>off</code>.
+     * This method throws an IOException if the underlying serialization
+     * stream can only do byte serialization.
+     * (See {@link PredefinedCapabilities#SERIALIZATION_BYTE}).
      * No duplicate check is performed for this array!
      *
      * @param val			the array to be written
@@ -379,6 +454,9 @@ public interface WriteMessage {
 
     /**
      * Writes a slice of an array. The slice starts at offset <code>off</code>.
+     * This method throws an IOException if the underlying serialization
+     * stream can only do byte serialization.
+     * (See {@link PredefinedCapabilities#SERIALIZATION_BYTE}).
      * No duplicate check is performed for this array!
      *
      * @param val			the array to be written
@@ -391,6 +469,9 @@ public interface WriteMessage {
 
     /**
      * Writes a slice of an array. The slice starts at offset <code>off</code>.
+     * This method throws an IOException if the underlying serialization
+     * stream cannot do object serialization.
+     * (See {@link PredefinedCapabilities#SERIALIZATION_OBJECT}).
      * No duplicate check is performed for this array!
      *
      * @param val			the array to be written

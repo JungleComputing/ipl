@@ -72,7 +72,7 @@ public class NameServerClient extends ibis.impl.Registry
                 if (socketFactory == null) {
                     // We failed to find Ibis' socketfactory. Create a new one instead.
                     logger.warn("Failed to find VirtualSocketFactory: " + name);
-                    logger.warn("Creating new VirtualSocketFactory!");
+                    logger.info("Creating new VirtualSocketFactory!");
 
                     try {
                         socketFactory =

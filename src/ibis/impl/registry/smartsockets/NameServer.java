@@ -28,9 +28,6 @@ import java.util.Properties;
 import java.util.Vector;
 
 import org.apache.log4j.Logger;
-import org.apache.log4j.Level;
-import org.apache.log4j.PatternLayout;
-import org.apache.log4j.WriterAppender;
 
 import smartsockets.virtual.VirtualServerSocket;
 import smartsockets.virtual.VirtualSocket;
@@ -38,17 +35,6 @@ import smartsockets.virtual.VirtualSocketAddress;
 import smartsockets.virtual.VirtualSocketFactory;
 
 public class NameServer extends Thread implements Protocol {
-
-    static {
-        Logger ibisLogger = Logger.getLogger("ibis");
-        if (!ibisLogger.getAllAppenders().hasMoreElements()) {
-            // No appenders defined, print to standard out by default
-            PatternLayout layout = new PatternLayout("%d{HH:mm:ss} %-5p %m%n");
-            WriterAppender appender = new WriterAppender(layout, System.err);
-            ibisLogger.addAppender(appender);
-            ibisLogger.setLevel(Level.WARN);
-        }
-    }
 
     public static final TypedProperties
             attribs = new TypedProperties(IbisFactory.getDefaultProperties());

@@ -98,7 +98,7 @@ rmi:
 
 abstract implementation:
 + check _all_ properties in _every_ Ibis (Done Ceriel)
-+ add support for properties in a ".ibis" config file (Done Ceriel: ibis-properties).
++ add support for properties in a ".ibis" config file (Done Ceriel: ibis.properties).
 - if closed.world is selected, check if ibis.pool.hosts is set, and ignore
   joins beyond total hosts, and all leaves.
 

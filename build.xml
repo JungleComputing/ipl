@@ -97,12 +97,7 @@
 
     <target name="copyProperties">
 	<copy todir="${build}">
-	    <fileset dir="${src}" includes="ibis/impl/**/capabilities ibis-properties"/>
-	</copy>
-	<copy todir="${build}">
-	    <fileset dir="${ibis}">
-		<include name="smartsockets.properties"/>
-	    </fileset>
+	    <fileset dir="${src}" includes="ibis/impl/**/capabilities ibis.properties smartsockets.properties"/>
 	</copy>
     </target>
 
@@ -116,7 +111,7 @@
     <target name="ibis.jar">
 	<jar	destfile="${jar}"
 	    basedir="${build}"
-	    includes="ibis/**/*.class **/capabilities smartsockets.properties ibis-properties">
+	    includes="ibis/**/*.class **/capabilities smartsockets.properties ibis.properties">
 	    <manifest>
 		<attribute name="Ibisc-Component" value="ibis.frontend.io.IOGenerator,ibis.frontend.gmi.Gmic,ibis.frontend.rmi.Rmic,ibis.frontend.satin.Satinc"/>
 		<attribute name="Ibis-Implementation" value="ibis.impl.tcp.TcpIbis,ibis.impl.smartsockets.TcpIbis"/>
@@ -204,7 +199,7 @@
 	<ant dir="${docs}" inheritAll="false" target="progman"/>
     </target>
 
-    <target name="test" depends="build">
+    <target name="test" depends="allclean, build">
 	<ant dir="ibis-example" inheritAll="false" target="test"/>
     </target>
 

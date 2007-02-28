@@ -55,7 +55,7 @@ public class PoolChecker implements Protocol {
 
     private static void check(String poolName, String serverHost,
             String portString, int sleep) throws IOException {
-        Properties p = System.getProperties();
+        Properties p = ibis.ipl.IbisFactory.getDefaultProperties();
 
         if (serverHost == null) {
             serverHost = p.getProperty(NSProps.s_host);

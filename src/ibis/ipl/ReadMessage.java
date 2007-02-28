@@ -97,6 +97,9 @@ public interface ReadMessage {
 
     /**
      * Reads a boolean value from the message.
+     * This method throws an IOException if the underlying serialization
+     * stream can only do byte serialization.
+     * (See {@link PredefinedCapabilities#SERIALIZATION_BYTE}).
      *
      * @return the value read.
      * @exception java.io.IOException	an error occurred 
@@ -113,6 +116,9 @@ public interface ReadMessage {
 
     /**
      * Reads a char value from the message.
+     * This method throws an IOException if the underlying serialization
+     * stream can only do byte serialization.
+     * (See {@link PredefinedCapabilities#SERIALIZATION_BYTE}).
      *
      * @return the value read.
      * @exception java.io.IOException	an error occurred 
@@ -121,6 +127,9 @@ public interface ReadMessage {
 
     /**
      * Reads a short value from the message.
+     * This method throws an IOException if the underlying serialization
+     * stream can only do byte serialization.
+     * (See {@link PredefinedCapabilities#SERIALIZATION_BYTE}).
      *
      * @return the value read.
      * @exception java.io.IOException	an error occurred 
@@ -129,6 +138,9 @@ public interface ReadMessage {
 
     /**
      * Reads an int value from the message.
+     * This method throws an IOException if the underlying serialization
+     * stream can only do byte serialization.
+     * (See {@link PredefinedCapabilities#SERIALIZATION_BYTE}).
      *
      * @return the value read.
      * @exception java.io.IOException	an error occurred 
@@ -137,6 +149,9 @@ public interface ReadMessage {
 
     /**
      * Reads a long value from the message.
+     * This method throws an IOException if the underlying serialization
+     * stream can only do byte serialization.
+     * (See {@link PredefinedCapabilities#SERIALIZATION_BYTE}).
      *
      * @return the value read.
      * @exception java.io.IOException	an error occurred 
@@ -145,6 +160,9 @@ public interface ReadMessage {
 
     /**
      * Reads a float value from the message.
+     * This method throws an IOException if the underlying serialization
+     * stream can only do byte serialization.
+     * (See {@link PredefinedCapabilities#SERIALIZATION_BYTE}).
      *
      * @return the value read.
      * @exception java.io.IOException	an error occurred 
@@ -153,6 +171,9 @@ public interface ReadMessage {
 
     /**
      * Reads a double value from the message.
+     * This method throws an IOException if the underlying serialization
+     * stream can only do byte serialization.
+     * (See {@link PredefinedCapabilities#SERIALIZATION_BYTE}).
      *
      * @return the value read.
      * @exception java.io.IOException	an error occurred 
@@ -161,6 +182,9 @@ public interface ReadMessage {
 
     /**
      * Reads a <code>String</code> value from the message.
+     * This method throws an IOException if the underlying serialization
+     * stream can only do byte serialization.
+     * (See {@link PredefinedCapabilities#SERIALIZATION_BYTE}).
      *
      * @return the value read.
      * @exception java.io.IOException	an error occurred 
@@ -171,6 +195,9 @@ public interface ReadMessage {
      * Reads an <code>Object</code> value from the message.
      * Note: implementations should take care that an array, written with one
      * of the writeArray variants, can be read with <code>readObject</code>.
+     * This method throws an IOException if the underlying serialization
+     * stream cannot do object serialization.
+     * (See {@link PredefinedCapabilities#SERIALIZATION_OBJECT}).
      *
      * @return the value read.
      * @exception java.io.IOException	an error occurred 
@@ -180,6 +207,14 @@ public interface ReadMessage {
     public Object readObject() throws IOException, ClassNotFoundException;
 
     /**
+     * Receives an array in place. This method is a shortcut for
+     * <code>readArray(destination, 0, destination.length);</code>
+     * This method throws an IOException if the underlying serialization
+     * stream can only do byte serialization.
+     * (See {@link PredefinedCapabilities#SERIALIZATION_BYTE}).
+     *
+     * @param destination where the received array is stored.
+     * @exception IOException is thrown when an IO error occurs.
      */
     public void readArray(boolean[] destination) throws IOException;
 
@@ -195,6 +230,9 @@ public interface ReadMessage {
     /**
      * Receives an array in place. This method is a shortcut for
      * <code>readArray(destination, 0, destination.length);</code>
+     * This method throws an IOException if the underlying serialization
+     * stream can only do byte serialization.
+     * (See {@link PredefinedCapabilities#SERIALIZATION_BYTE}).
      *
      * @param destination where the received array is stored.
      * @exception IOException is thrown when an IO error occurs.
@@ -204,6 +242,9 @@ public interface ReadMessage {
     /**
      * Receives an array in place. This method is a shortcut for
      * <code>readArray(destination, 0, destination.length);</code>
+     * This method throws an IOException if the underlying serialization
+     * stream can only do byte serialization.
+     * (See {@link PredefinedCapabilities#SERIALIZATION_BYTE}).
      *
      * @param destination where the received array is stored.
      * @exception IOException is thrown when an IO error occurs.
@@ -213,6 +254,9 @@ public interface ReadMessage {
     /**
      * Receives an array in place. This method is a shortcut for
      * <code>readArray(destination, 0, destination.length);</code>
+     * This method throws an IOException if the underlying serialization
+     * stream can only do byte serialization.
+     * (See {@link PredefinedCapabilities#SERIALIZATION_BYTE}).
      *
      * @param destination where the received array is stored.
      * @exception IOException is thrown when an IO error occurs.
@@ -222,6 +266,9 @@ public interface ReadMessage {
     /**
      * Receives an array in place. This method is a shortcut for
      * <code>readArray(destination, 0, destination.length);</code>
+     * This method throws an IOException if the underlying serialization
+     * stream can only do byte serialization.
+     * (See {@link PredefinedCapabilities#SERIALIZATION_BYTE}).
      *
      * @param destination where the received array is stored.
      * @exception IOException is thrown when an IO error occurs.
@@ -231,6 +278,9 @@ public interface ReadMessage {
     /**
      * Receives an array in place. This method is a shortcut for
      * <code>readArray(destination, 0, destination.length);</code>
+     * This method throws an IOException if the underlying serialization
+     * stream can only do byte serialization.
+     * (See {@link PredefinedCapabilities#SERIALIZATION_BYTE}).
      *
      * @param destination where the received array is stored.
      * @exception IOException is thrown when an IO error occurs.
@@ -240,6 +290,9 @@ public interface ReadMessage {
     /**
      * Receives an array in place. This method is a shortcut for
      * <code>readArray(destination, 0, destination.length);</code>
+     * This method throws an IOException if the underlying serialization
+     * stream can only do byte serialization.
+     * (See {@link PredefinedCapabilities#SERIALIZATION_BYTE}).
      *
      * @param destination where the received array is stored.
      * @exception IOException is thrown when an IO error occurs.
@@ -250,6 +303,9 @@ public interface ReadMessage {
     /**
      * Receives an array in place. This method is a shortcut for
      * <code>readArray(destination, 0, destination.length);</code>
+     * This method throws an IOException if the underlying serialization
+     * stream cannot do object serialization.
+     * (See {@link PredefinedCapabilities#SERIALIZATION_OBJECT}).
      *
      * @param destination where the received array is stored.
      * @exception IOException is thrown when an IO error occurs.
@@ -260,7 +316,10 @@ public interface ReadMessage {
             ClassNotFoundException;
 
     /**
-     * Reads a slice of an array in place. No cycle checks are done. 
+     * Reads a slice of an array in place.
+     * This method throws an IOException if the underlying serialization
+     * stream can only do byte serialization.
+     * (See {@link PredefinedCapabilities#SERIALIZATION_BYTE}).
      *
      * @param destination array in which the slice is stored
      * @param offset      offset where the slice starts
@@ -271,7 +330,7 @@ public interface ReadMessage {
             throws IOException;
 
     /**
-     * Reads a slice of an array in place. No cycle checks are done. 
+     * Reads a slice of an array in place.
      *
      * @param destination array in which the slice is stored
      * @param offset      offset where the slice starts
@@ -282,7 +341,10 @@ public interface ReadMessage {
             throws IOException;
 
     /**
-     * Reads a slice of an array in place. No cycle checks are done. 
+     * Reads a slice of an array in place.
+     * This method throws an IOException if the underlying serialization
+     * stream can only do byte serialization.
+     * (See {@link PredefinedCapabilities#SERIALIZATION_BYTE}).
      *
      * @param destination array in which the slice is stored
      * @param offset      offset where the slice starts
@@ -293,7 +355,10 @@ public interface ReadMessage {
             throws IOException;
 
     /**
-     * Reads a slice of an array in place. No cycle checks are done. 
+     * Reads a slice of an array in place.
+     * This method throws an IOException if the underlying serialization
+     * stream can only do byte serialization.
+     * (See {@link PredefinedCapabilities#SERIALIZATION_BYTE}).
      *
      * @param destination array in which the slice is stored
      * @param offset      offset where the slice starts
@@ -304,7 +369,10 @@ public interface ReadMessage {
             throws IOException;
 
     /**
-     * Reads a slice of an array in place. No cycle checks are done. 
+     * Reads a slice of an array in place.
+     * This method throws an IOException if the underlying serialization
+     * stream can only do byte serialization.
+     * (See {@link PredefinedCapabilities#SERIALIZATION_BYTE}).
      *
      * @param destination array in which the slice is stored
      * @param offset      offset where the slice starts
@@ -315,7 +383,10 @@ public interface ReadMessage {
             throws IOException;
 
     /**
-     * Reads a slice of an array in place. No cycle checks are done. 
+     * Reads a slice of an array in place.
+     * This method throws an IOException if the underlying serialization
+     * stream can only do byte serialization.
+     * (See {@link PredefinedCapabilities#SERIALIZATION_BYTE}).
      *
      * @param destination array in which the slice is stored
      * @param offset      offset where the slice starts
@@ -326,7 +397,10 @@ public interface ReadMessage {
             throws IOException;
 
     /**
-     * Reads a slice of an array in place. No cycle checks are done. 
+     * Reads a slice of an array in place.
+     * This method throws an IOException if the underlying serialization
+     * stream can only do byte serialization.
+     * (See {@link PredefinedCapabilities#SERIALIZATION_BYTE}).
      *
      * @param destination array in which the slice is stored
      * @param offset      offset where the slice starts
@@ -337,7 +411,10 @@ public interface ReadMessage {
             throws IOException;
 
     /**
-     * Reads a slice of an array in place. No cycle checks are done. 
+     * Reads a slice of an array in place.
+     * This method throws an IOException if the underlying serialization
+     * stream can only do byte serialization.
+     * (See {@link PredefinedCapabilities#SERIALIZATION_BYTE}).
      *
      * @param destination array in which the slice is stored
      * @param offset      offset where the slice starts
@@ -348,7 +425,10 @@ public interface ReadMessage {
             throws IOException;
 
     /**
-     * Reads a slice of an array in place. No cycle checks are done. 
+     * Reads a slice of an array in place.
+     * This method throws an IOException if the underlying serialization
+     * stream cannot do object serialization.
+     * (See {@link PredefinedCapabilities#SERIALIZATION_OBJECT}).
      *
      * @param destination array in which the slice is stored
      * @param offset      offset where the slice starts

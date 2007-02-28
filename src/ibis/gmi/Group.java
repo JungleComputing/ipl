@@ -38,8 +38,10 @@ public final class Group implements GroupProtocol,
 
     static {
         Logger ibisLogger = Logger.getLogger("ibis");
-        if (!ibisLogger.getAllAppenders().hasMoreElements()) {
-            // No appenders defined, print to standard out by default
+        Logger rootLogger = Logger.getRootLogger();
+        if (! rootLogger.getAllAppenders().hasMoreElements()
+             && !ibisLogger.getAllAppenders().hasMoreElements()) {
+            // No appenders defined, print to standard err by default
             PatternLayout layout = new PatternLayout("%d{HH:mm:ss} %-5p %m%n");
             WriterAppender appender = new WriterAppender(layout, System.err);
             ibisLogger.addAppender(appender);

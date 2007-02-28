@@ -39,7 +39,7 @@ The ibis-prun parameters are:
     specifies the hostname and port on which the nameserver runs. If not
     specified, ibis-prun picks the first host, unless -no-ns is specified,
     in which case ibis-prun assumes that another way is used to pass on the
-    nameserver location (for instance an ibis-properties file).
+    nameserver location (for instance an ibis.properties file).
 -no-ns
     no nameserver info is supplied by ibis-prun. See above.
 -?

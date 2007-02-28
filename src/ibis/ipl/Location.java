@@ -36,7 +36,8 @@ public interface Location extends java.io.Serializable, Comparable<Location>,
     /**
      * Returns the number of matching levels with the specified location,
      * comparing from coarse to detailed.
-     * @Return the number of matching levels.
+     * @param l the location to match with.
+     * @return the number of matching levels.
      */
     public int matchingLevels(Location l);
 

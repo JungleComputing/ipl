@@ -91,9 +91,10 @@ public abstract class Conversion {
      * Load a conversion
      */
     public static final Conversion loadConversion(boolean bigEndian) {
-        Properties systemProperties = System.getProperties();
+        Properties properties
+                = ibis.ipl.IbisFactory.getDefaultProperties();
 
-        String conversion = systemProperties.getProperty(IOProps.s_conversion);
+        String conversion = properties.getProperty(IOProps.s_conversion);
 
         if (conversion != null && conversion.equalsIgnoreCase("wrap")) {
             System.err.println("nio/wrap conversion selected");
