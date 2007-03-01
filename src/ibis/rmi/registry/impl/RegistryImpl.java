@@ -20,7 +20,7 @@ public class RegistryImpl extends ibis.rmi.server.UnicastRemoteObject
 
     private int port = 0;
 
-    HashMap remotes = new HashMap();
+    HashMap<String, Remote> remotes = new HashMap<String, Remote>();
 
     static Logger logger
             = Logger.getLogger(RegistryImpl.class.getName());
@@ -41,7 +41,7 @@ public class RegistryImpl extends ibis.rmi.server.UnicastRemoteObject
         if (! remotes.containsKey(name)) {
             throw new NotBoundException("lookup: " + name + " not bound");
         }
-        return (Remote) remotes.get(name);
+        return remotes.get(name);
     }
 
     public synchronized void bind(String name, Remote obj)
@@ -64,6 +64,6 @@ public class RegistryImpl extends ibis.rmi.server.UnicastRemoteObject
     }
 
     public synchronized String[] list() {
-        return (String[]) remotes.keySet().toArray(new String[0]);
+        return remotes.keySet().toArray(new String[remotes.size()]);
     }
 }

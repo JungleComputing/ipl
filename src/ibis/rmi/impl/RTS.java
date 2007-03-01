@@ -64,36 +64,36 @@ public final class RTS implements ibis.ipl.PredefinedCapabilities {
      * In fact, it maps hashcodes to skeletons. The reason for this is that some
      * objects have strange implementations for hashCode()!
      */
-    private static HashMap skeletons;
+    private static HashMap<Integer, Skeleton> skeletons;
 
     /**
      * Maps objects to their stubs.
      * In fact, it maps hashcodes to stubs. The reason for this is that some
      * objects have strange implementations for hashCode()!
      */
-    private static HashMap stubs;
+    private static HashMap<Integer, Stub> stubs;
 
     /**
      * Maps ReceivePortIdentifiers to sendports that have a connection to that
      * receiveport.
      */
-    private static HashMap sendports;
+    private static HashMap<ReceivePortIdentifier, SendPort> sendports;
 
     /**
      * Maps a name to a skeleton. We need this for registry lookup.
      */
-    static Hashtable nameHash; // No HashMap, this one should be synchronized.
+    static Hashtable<String, Skeleton> nameHash; // No HashMap, this one should be synchronized.
 
     /**
      * This array maps skeleton ids to the corresponding skeleton.
      */
-    static ArrayList skeletonArray;
+    static ArrayList<Skeleton> skeletonArray;
 
     /**
      * Cache receiveports from stubs, hashed with an IbisIdentifier of an Ibis
      * that has a connection to it.
      */
-    private static HashMap receiveports;
+    private static HashMap<IbisIdentifier, ArrayList<ReceivePort>> receiveports;
 
     static String hostname;
 
@@ -105,7 +105,7 @@ public final class RTS implements ibis.ipl.PredefinedCapabilities {
 
     private static ibis.ipl.Registry ibisRegistry;
 
-    private static ThreadLocal clientHost;
+    private static ThreadLocal<String> clientHost;
 
     private static ReceivePort skeletonReceivePort = null;
 
@@ -210,9 +210,9 @@ public final class RTS implements ibis.ipl.PredefinedCapabilities {
 
             if (id == -1) {
                 String url = r.readString();
-                skel = (Skeleton) nameHash.get(url);
+                skel = nameHash.get(url);
             } else {
-                skel = (Skeleton) (skeletonArray.get(id));
+                skel = skeletonArray.get(id);
             }
 
             int method = r.readInt();
@@ -249,12 +249,12 @@ public final class RTS implements ibis.ipl.PredefinedCapabilities {
 
     static {
         try {
-            skeletons = new HashMap();
-            stubs = new HashMap();
-            sendports = new HashMap();
-            nameHash = new Hashtable();
-            receiveports = new HashMap();
-            skeletonArray = new ArrayList();
+            skeletons = new HashMap<Integer, Skeleton>();
+            stubs = new HashMap<Integer, Stub>();
+            sendports = new HashMap<ReceivePortIdentifier, SendPort>();
+            nameHash = new Hashtable<String, Skeleton>();
+            receiveports = new HashMap<IbisIdentifier, ArrayList<ReceivePort>>();
+            skeletonArray = new ArrayList<Skeleton>();
 
             upcallHandler = new UpcallHandler();
 
@@ -308,7 +308,7 @@ public final class RTS implements ibis.ipl.PredefinedCapabilities {
             skeletonReceivePort.enableConnections();
             skeletonReceivePort.enableUpcalls();
 
-            clientHost = new ThreadLocal();
+            clientHost = new ThreadLocal<String>();
 
             if (logger.isDebugEnabled()) {
                 logger.debug(hostname + ": init RMI RTS done");
@@ -414,8 +414,7 @@ public final class RTS implements ibis.ipl.PredefinedCapabilities {
         String classname = c.getName();
 
         synchronized (RTS.class) {
-            skel = (Skeleton) skeletons.get(
-                    new Integer(System.identityHashCode(obj)));
+            skel = skeletons.get(new Integer(System.identityHashCode(obj)));
         }
         if (skel == null) {
             //create a skeleton
@@ -461,13 +460,13 @@ public final class RTS implements ibis.ipl.PredefinedCapabilities {
         return stub;
     }
 
-    public static synchronized Object getStub(Object o) {
+    public static synchronized Stub getStub(Object o) {
         return stubs.get(new Integer(System.identityHashCode(o)));
     }
 
     static synchronized SendPort getSkeletonSendPort(
             ReceivePortIdentifier rpi) throws IOException {
-        SendPort s = (SendPort) sendports.get(rpi);
+        SendPort s = sendports.get(rpi);
         if (s == null) {
             s = replyPortType.createSendPort();
             s.connect(rpi);
@@ -487,7 +486,7 @@ public final class RTS implements ibis.ipl.PredefinedCapabilities {
 
     static synchronized SendPort getStubSendPort(
             ReceivePortIdentifier rpi) throws IOException {
-        SendPort s = (SendPort) sendports.get(rpi);
+        SendPort s = sendports.get(rpi);
         if (s == null) {
             s = requestPortType.createSendPort();
             s.connect(rpi);
@@ -507,7 +506,7 @@ public final class RTS implements ibis.ipl.PredefinedCapabilities {
 
     static synchronized ReceivePort getStubReceivePort(IbisIdentifier id)
             throws IOException {
-        ArrayList a = (ArrayList) receiveports.get(id);
+        ArrayList<ReceivePort> a = receiveports.get(id);
         ReceivePort r;
 
         if (logger.isDebugEnabled()) {
@@ -523,7 +522,7 @@ public final class RTS implements ibis.ipl.PredefinedCapabilities {
             }
             r.enableConnections();
         } else {
-            r = (ReceivePort) a.remove(a.size() - 1);
+            r = a.remove(a.size() - 1);
             if (logger.isDebugEnabled()) {
                 logger.debug(hostname + ": Reuse receiveport: " + r.identifier());
             }
@@ -536,9 +535,9 @@ public final class RTS implements ibis.ipl.PredefinedCapabilities {
         if (logger.isDebugEnabled()) {
             logger.debug("receiveport " + r + " returned for ibis " + id);
         }
-        ArrayList a = (ArrayList) receiveports.get(id);
+        ArrayList<ReceivePort> a = receiveports.get(id);
         if (a == null) {
-            a = new ArrayList();
+            a = new ArrayList<ReceivePort>();
             receiveports.put(id, a);
         }
         a.add(r);
@@ -567,8 +566,7 @@ public final class RTS implements ibis.ipl.PredefinedCapabilities {
             throw new RemoteException(
                     "there already is a registry running on port " + port);
         }
-        Skeleton skel = (Skeleton) skeletons.get(
-                new Integer(System.identityHashCode(reg)));
+        Skeleton skel = skeletons.get(new Integer(System.identityHashCode(reg)));
         nameHash.put(name, skel);
         if (logger.isDebugEnabled()) {
             logger.debug("Created registry " + name);
@@ -657,12 +655,11 @@ public final class RTS implements ibis.ipl.PredefinedCapabilities {
     }
 
     public static String getClientHost() {
-        Object o = clientHost.get();
+        String o = clientHost.get();
         if (o == null) {
             return "UNKNOWN_HOST";
         }
-        String s = (String) o;
-        return s;
+        return o;
     }
 
 }
