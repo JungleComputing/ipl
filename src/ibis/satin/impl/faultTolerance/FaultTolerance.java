@@ -113,7 +113,7 @@ public final class FaultTolerance implements Config {
         ArrayList<IbisIdentifier> crashesToHandle;
 
         synchronized (s) {
-            crashesToHandle = (ArrayList<IbisIdentifier>) crashedIbises.clone();
+            crashesToHandle = new ArrayList<IbisIdentifier>(crashedIbises);
             crashedIbises.clear();
             gotCrashes = false;
         }

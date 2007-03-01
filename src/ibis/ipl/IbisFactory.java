@@ -295,7 +295,7 @@ public final class IbisFactory {
         }
     }
 
-    private Ibis createIbis(Class c, CapabilitySet caps,
+    private Ibis createIbis(Class<?> c, CapabilitySet caps,
             ResizeHandler resizeHandler) throws Throwable {
         Ibis impl;
 

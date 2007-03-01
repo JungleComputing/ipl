@@ -31,7 +31,8 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
             = properties.booleanProperty(s_stats_nonrewritten);
 
     // if STATS_NONREWRITTEN
-    static java.util.Hashtable nonRewritten = new java.util.Hashtable();
+    static java.util.Hashtable<Class, Integer> nonRewritten
+            = new java.util.Hashtable<Class, Integer>();
 
     // Only works as of Java 1.4, earlier versions of Java don't have Unsafe.
     private static Unsafe unsafe = null;
@@ -661,7 +662,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
      * @exception ClassNotFoundException when the array class could
      *  not be loaded.
      */
-    private void readArrayHeader(Class clazz, int len) throws IOException,
+    private void readArrayHeader(Class<?> clazz, int len) throws IOException,
             ClassNotFoundException {
 
         if (DEBUG) {
@@ -1489,7 +1490,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
                 = AlternativeTypeInfo.getAlternativeTypeInfo(clazz);
 
         if (STATS_NONREWRITTEN) {
-            Integer n = (Integer) nonRewritten.get(clazz);
+            Integer n = nonRewritten.get(clazz);
             if (n == null) {
                 n = new Integer(1);
             } else {

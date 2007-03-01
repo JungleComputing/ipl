@@ -34,9 +34,7 @@
     <target name="compile" depends="init">
 	<javac  destdir="${build}" debug="true" srcdir="${src}"
 	    includes="ibis/**/*.java">
-	    <!--
 	    <compilerarg value="-Xlint:unchecked"/>
-	    -->
 	    <classpath refid="default.classpath"/>
 	</javac>
 	<!--

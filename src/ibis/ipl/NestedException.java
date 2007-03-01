@@ -15,9 +15,9 @@ import java.util.ArrayList;
  */
 public class NestedException extends Exception {
 
-    private ArrayList throwables = new ArrayList();
+    private ArrayList<Throwable> throwables = new ArrayList<Throwable>();
 
-    private ArrayList throwerIDs = new ArrayList();
+    private ArrayList<String> throwerIDs = new ArrayList<String>();
 
     public NestedException(String s) {
         super(s);
@@ -40,8 +40,8 @@ public class NestedException extends Exception {
         if (t instanceof NestedException) {
             NestedException ge = (NestedException) t;
             if (ge.throwables.size() == 1) {
-                t = (Throwable) ge.throwables.get(0);
-                throwerID = (String) ge.throwerIDs.get(0);
+                t = ge.throwables.get(0);
+                throwerID = ge.throwerIDs.get(0);
             }
         }
 
@@ -62,7 +62,7 @@ public class NestedException extends Exception {
                 res += "*** " + throwerIDs.get(i)
                     + " failed because of: ";
             }
-            Throwable t = (Throwable) throwables.get(i);
+            Throwable t = throwables.get(i);
             res += t.getClass().getName();
             res += ": ";
             String msg = t.getMessage();
@@ -91,7 +91,7 @@ public class NestedException extends Exception {
             if (throwerIDs.get(i) != null) {
                 s.println("*** stack trace of " + throwerIDs.get(i));
             }
-            ((Throwable) throwables.get(i)).printStackTrace(s);
+            throwables.get(i).printStackTrace(s);
         }
         s.println("--- END OF NESTED EXCEPTION STACK TRACE ---");
     }
@@ -107,7 +107,7 @@ public class NestedException extends Exception {
             if (throwerIDs.get(i) != null) {
                 s.println("*** stack trace of " + throwerIDs.get(i));
             }
-            ((Throwable) throwables.get(i)).printStackTrace(s);
+            throwables.get(i).printStackTrace(s);
         }
         s.println("--- END OF NESTED EXCEPTION STACK TRACE ---");
     }

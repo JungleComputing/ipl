@@ -24,7 +24,7 @@ public class IbisSerializationOutputStream
             = properties.booleanProperty(s_stats_written);
 
     // if STATS_OBJECTS
-    static java.util.Hashtable statSendObjects;
+    static java.util.Hashtable<Class, Integer> statSendObjects;
 
     static final int[] statArrayCount;
 
@@ -34,7 +34,7 @@ public class IbisSerializationOutputStream
 
     static final long[] statArrayLength;
 
-    static Class enumClass;
+    static Class<?> enumClass;
 
     static Method enumNameMethod;
 
@@ -68,7 +68,7 @@ public class IbisSerializationOutputStream
                     });
             System.out.println("IbisSerializationOutputStream.STATS_OBJECTS "
                     + "enabled");
-            statSendObjects = new java.util.Hashtable();
+            statSendObjects = new java.util.Hashtable<Class, Integer>();
             statArrayCount = new int[PRIMITIVE_TYPES];
             statArrayHandle = new int[PRIMITIVE_TYPES];
             statArrayLength = new long[PRIMITIVE_TYPES];
@@ -1044,7 +1044,7 @@ public class IbisSerializationOutputStream
     private static void addStatSendObject(Object ref) {
         if (STATS_OBJECTS) {
             Class clazz = ref.getClass();
-            Integer n = (Integer) statSendObjects.get(clazz);
+            Integer n = statSendObjects.get(clazz);
             if (n == null) {
                 n = new Integer(1);
             } else {

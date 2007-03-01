@@ -1468,7 +1468,7 @@ public class DeepCopy {
      * @param args ignored.
      */
     public static void main(String[] args) {
-        Hashtable h = new Hashtable();
+        Hashtable<String, Hashtable> h = new Hashtable<String, Hashtable>();
         String[] strings = new String[10];
 
         for (int i = 0; i < strings.length; i++) {

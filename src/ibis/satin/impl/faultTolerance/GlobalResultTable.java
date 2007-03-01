@@ -44,8 +44,7 @@ final class GlobalResultTable implements Config, Protocol {
         s.stats.lookupTimer.start();
         Satin.assertLocked(s);
 
-        GlobalResultTableValue value = entries
-            .get(key);
+        GlobalResultTableValue value = entries.get(key);
 
         if (value != null) {
             grtLogger
@@ -205,25 +204,23 @@ final class GlobalResultTable implements Config, Protocol {
 
     // No need to finish the message, we don't block.
     protected void handleGRTUpdate(ReadMessage m) {
-        Map<Stamp, GlobalResultTableValue> map = null;
-
         s.stats.handleUpdateTimer.start();
         s.stats.tableDeserializationTimer.start();
         try {
-            map = (Map<Stamp, GlobalResultTableValue>) m.readObject();
+            @SuppressWarnings("unchecked")
+            Map<Stamp, GlobalResultTableValue> map
+                    = (Map<Stamp, GlobalResultTableValue>) m.readObject();
+            synchronized (s) {
+                addContents(map);
+            }
         } catch (Exception e) {
             grtLogger.error("SATIN '" + s.ident
                 + "': Global result table - error reading message", e);
+        } finally {
             s.stats.tableDeserializationTimer.stop();
             s.stats.handleUpdateTimer.stop();
-            return;
         }
-        s.stats.tableDeserializationTimer.stop();
 
-        synchronized (s) {
-            addContents(map);
-        }
-        s.stats.handleUpdateTimer.stop();
     }
 
     protected void print(java.io.PrintStream out) {

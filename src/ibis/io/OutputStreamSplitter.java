@@ -24,7 +24,7 @@ public final class OutputStreamSplitter extends OutputStream {
     private boolean saveException = false;
     private SplitterException savedException = null;
 
-    ArrayList out = new ArrayList();
+    ArrayList<OutputStream> out = new ArrayList<OutputStream>();
 
     private int numSenders = 0;
 
@@ -75,7 +75,7 @@ public final class OutputStreamSplitter extends OutputStream {
 
     void doWrite(byte[] buf, int offset, int len, int index) {
         try {
-            OutputStream o = (OutputStream) out.get(index);
+            OutputStream o = out.get(index);
             o.write(buf, offset, len);
         } catch(IOException e) {
             addException(e, index);
@@ -84,7 +84,7 @@ public final class OutputStreamSplitter extends OutputStream {
 
     void doFlush(int index) {
         try {
-            OutputStream o = (OutputStream) out.get(index);
+            OutputStream o = out.get(index);
             o.flush();
         } catch(IOException e) {
             addException(e, index);
@@ -93,7 +93,7 @@ public final class OutputStreamSplitter extends OutputStream {
 
     void doClose(int index) {
         try {
-            OutputStream o = (OutputStream) out.get(index);
+            OutputStream o = out.get(index);
             o.close();
         } catch(IOException e) {
             addException(e, index);
@@ -109,7 +109,7 @@ public final class OutputStreamSplitter extends OutputStream {
         if (savedException == null) {
             savedException = new SplitterException();
         }
-        savedException.add(((OutputStream) out.get(index)), e);
+        savedException.add(out.get(index), e);
         if (removeOnException) {
             out.set(index, null);
         }
@@ -148,7 +148,7 @@ public final class OutputStreamSplitter extends OutputStream {
 
         for (int i = 0; i < out.size(); i++) {
             try {
-                ((OutputStream) out.get(i)).write(b);
+                out.get(i).write(b);
             } catch (IOException e2) {
                 if (DEBUG) {
                     System.err.println("splitter got exception");
@@ -156,7 +156,7 @@ public final class OutputStreamSplitter extends OutputStream {
                 if (savedException == null) {
                     savedException = new SplitterException();
                 }
-                savedException.add(((OutputStream) out.get(i)), e2);
+                savedException.add(out.get(i), e2);
                 if (removeOnException) {
                     out.remove(i);
                     i--;

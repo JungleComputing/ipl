@@ -280,7 +280,6 @@ final class LBCommunication implements Config, Protocol {
     protected void handleReply(ReadMessage m, int opcode) {
         SendPortIdentifier ident = m.origin();
         InvocationRecord tmp = null;
-        Map<Stamp, GlobalResultTableValue> table = null;
 
         stealLogger.debug("SATIN '" + s.ident
             + "': got steal reply message from " + ident.ibis() + ": "
@@ -290,17 +289,19 @@ final class LBCommunication implements Config, Protocol {
         case STEAL_REPLY_SUCCESS_TABLE:
         case ASYNC_STEAL_REPLY_SUCCESS_TABLE:
             try {
-                table = (Map) m.readObject();
+                @SuppressWarnings("unchecked")
+                Map<Stamp, GlobalResultTableValue> table
+                        = (Map<Stamp, GlobalResultTableValue>) m.readObject();
+                if (table != null) {
+                    synchronized (s) {
+                        s.ft.getTable = false;
+                        s.ft.addContents(table);
+                    }
+                }
             } catch (Exception e) {
                 stealLogger.error("SATIN '" + s.ident
                     + "': Got Exception while reading steal " + "reply from "
                     + ident + ", opcode:" + +opcode + ", exception: " + e, e);
-            }
-            if (table != null) {
-                synchronized (s) {
-                    s.ft.getTable = false;
-                    s.ft.addContents(table);
-                }
             }
         //fall through
         case STEAL_REPLY_SUCCESS:
@@ -336,17 +337,19 @@ final class LBCommunication implements Config, Protocol {
         case STEAL_REPLY_FAILED_TABLE:
         case ASYNC_STEAL_REPLY_FAILED_TABLE:
             try {
-                table = (Map) m.readObject();
+                @SuppressWarnings("unchecked")
+                Map<Stamp, GlobalResultTableValue> table
+                    = (Map<Stamp, GlobalResultTableValue>) m.readObject();
+                if (table != null) {
+                    synchronized (s) {
+                        s.ft.getTable = false;
+                        s.ft.addContents(table);
+                    }
+                }
             } catch (Exception e) {
                 stealLogger.error("SATIN '" + s.ident
                     + "': Got Exception while reading steal " + "reply from "
                     + ident + ", opcode:" + +opcode + ", exception: " + e, e);
-            }
-            if (table != null) {
-                synchronized (s) {
-                    s.ft.getTable = false;
-                    s.ft.addContents(table);
-                }
             }
         //fall through
         case STEAL_REPLY_FAILED:

@@ -210,6 +210,9 @@
 		debug="true"
 		srcdir=".">
 	    <classpath refid="default.classpath"/>
+	    <!--
+	    <compilerarg value="-Xlint:unchecked"/>
+	    -->
 	    <include name="**/*.java"/>
 	</javac>
     </target>

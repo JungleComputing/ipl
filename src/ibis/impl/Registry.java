@@ -55,7 +55,7 @@ public abstract class Registry implements ibis.ipl.Registry {
                     + "property ibis.registry.impl is not set.");
         }
 
-        Class c = Class.forName(registryName);
+        Class<?> c = Class.forName(registryName);
 
         try {
             return (Registry) c.getConstructor(new Class[] {

@@ -16,7 +16,7 @@ public final class DataOutputStreamSplitter extends DataOutputStream {
 
     private boolean removeOnException = false;
 
-    ArrayList out = new ArrayList();
+    ArrayList<DataOutputStream> out = new ArrayList<DataOutputStream>();
 
     int bytesWritten = 0;
     
@@ -53,7 +53,7 @@ public final class DataOutputStreamSplitter extends DataOutputStream {
         if (e == null) {
             e = new SplitterException();
         }
-        e.add(((DataOutputStream) out.get(pos)), newException);
+        e.add(out.get(pos), newException);
         if (removeOnException) {
             out.remove(pos);
         }
@@ -67,7 +67,7 @@ public final class DataOutputStreamSplitter extends DataOutputStream {
         
         for (int i = 0; i < out.size(); i++) {
             try {
-                ((DataOutputStream) out.get(i)).write(b);
+                out.get(i).write(b);
             } catch (IOException e2) {
                 e = handleException(e, e2, i);
                 if (removeOnException)
@@ -88,7 +88,7 @@ public final class DataOutputStreamSplitter extends DataOutputStream {
         bytesWritten += b.length;
         for (int i = 0; i < out.size(); i++) {
             try {
-                ((DataOutputStream) out.get(i)).write(b);
+                out.get(i).write(b);
             } catch (IOException e2) {
                 e = handleException(e, e2, i);
                 if (removeOnException) {
@@ -114,7 +114,7 @@ public final class DataOutputStreamSplitter extends DataOutputStream {
         bytesWritten += len;
         for (int i = 0; i < out.size(); i++) {
             try {
-                ((DataOutputStream) out.get(i)).write(b, off, len);
+                out.get(i).write(b, off, len);
             } catch (IOException e2) {
                 e = handleException(e, e2, i);
                 if (removeOnException) {
@@ -139,7 +139,7 @@ public final class DataOutputStreamSplitter extends DataOutputStream {
 
         for (int i = 0; i < out.size(); i++) {
             try {
-                ((DataOutputStream) out.get(i)).flush();
+                out.get(i).flush();
             } catch (IOException e2) {
                 e = handleException(e, e2, i);
                 if (removeOnException) {
@@ -164,7 +164,7 @@ public final class DataOutputStreamSplitter extends DataOutputStream {
 
         for (int i = 0; i < out.size(); i++) {
             try {
-                ((DataOutputStream) out.get(i)).close();
+                out.get(i).close();
             } catch (IOException e2) {
                 e = handleException(e, e2, i);
                 if (removeOnException) {
@@ -196,7 +196,7 @@ public final class DataOutputStreamSplitter extends DataOutputStream {
         
         for (int i = 0; i < out.size(); i++) {
             try {
-                ((DataOutputStream) out.get(i)).writeArray(source, offset, length);
+                out.get(i).writeArray(source, offset, length);
             } catch (IOException e2) {
                 e = handleException(e, e2, i);
                 if (removeOnException)
@@ -219,7 +219,7 @@ public final class DataOutputStreamSplitter extends DataOutputStream {
         
         for (int i = 0; i < out.size(); i++) {
             try {
-                ((DataOutputStream) out.get(i)).writeArray(source, offset, length);
+                out.get(i).writeArray(source, offset, length);
             } catch (IOException e2) {
                 e = handleException(e, e2, i);
                 if (removeOnException)
@@ -238,7 +238,7 @@ public final class DataOutputStreamSplitter extends DataOutputStream {
         
         for (int i = 0; i < out.size(); i++) {
             try {
-                ((DataOutputStream) out.get(i)).writeArray(source, offset, length);
+                out.get(i).writeArray(source, offset, length);
             } catch (IOException e2) {
                 e = handleException(e, e2, i);
                 if (removeOnException)
@@ -257,7 +257,7 @@ public final class DataOutputStreamSplitter extends DataOutputStream {
         
         for (int i = 0; i < out.size(); i++) {
             try {
-                ((DataOutputStream) out.get(i)).writeArray(source, offset, length);
+                out.get(i).writeArray(source, offset, length);
             } catch (IOException e2) {
                 e = handleException(e, e2, i);
                 if (removeOnException)
@@ -276,7 +276,7 @@ public final class DataOutputStreamSplitter extends DataOutputStream {
         
         for (int i = 0; i < out.size(); i++) {
             try {
-                ((DataOutputStream) out.get(i)).writeArray(source, offset, length);
+                out.get(i).writeArray(source, offset, length);
             } catch (IOException e2) {
                 e = handleException(e, e2, i);
                 if (removeOnException)
@@ -295,7 +295,7 @@ public final class DataOutputStreamSplitter extends DataOutputStream {
         
         for (int i = 0; i < out.size(); i++) {
             try {
-                ((DataOutputStream) out.get(i)).writeArray(source, offset, length);
+                out.get(i).writeArray(source, offset, length);
             } catch (IOException e2) {
                 e = handleException(e, e2, i);
                 if (removeOnException)
@@ -314,7 +314,7 @@ public final class DataOutputStreamSplitter extends DataOutputStream {
         
         for (int i = 0; i < out.size(); i++) {
             try {
-                ((DataOutputStream) out.get(i)).writeArray(source, offset, length);
+                out.get(i).writeArray(source, offset, length);
             } catch (IOException e2) {
                 e = handleException(e, e2, i);
                 if (removeOnException)
@@ -333,7 +333,7 @@ public final class DataOutputStreamSplitter extends DataOutputStream {
         
         for (int i = 0; i < out.size(); i++) {
             try {
-                ((DataOutputStream) out.get(i)).writeBoolean(value);
+                out.get(i).writeBoolean(value);
             } catch (IOException e2) {
                 e = handleException(e, e2, i);
                 if (removeOnException)
@@ -352,7 +352,7 @@ public final class DataOutputStreamSplitter extends DataOutputStream {
         
         for (int i = 0; i < out.size(); i++) {
             try {
-                ((DataOutputStream) out.get(i)).writeByte(value);
+                out.get(i).writeByte(value);
             } catch (IOException e2) {
                 e = handleException(e, e2, i);
                 if (removeOnException)
@@ -371,7 +371,7 @@ public final class DataOutputStreamSplitter extends DataOutputStream {
         
         for (int i = 0; i < out.size(); i++) {
             try {
-                ((DataOutputStream) out.get(i)).writeChar(value);
+                out.get(i).writeChar(value);
             } catch (IOException e2) {
                 e = handleException(e, e2, i);
                 if (removeOnException)
@@ -390,7 +390,7 @@ public final class DataOutputStreamSplitter extends DataOutputStream {
         
         for (int i = 0; i < out.size(); i++) {
             try {
-                ((DataOutputStream) out.get(i)).writeDouble(value);
+                out.get(i).writeDouble(value);
             } catch (IOException e2) {
                 e = handleException(e, e2, i);
                 if (removeOnException)
@@ -409,7 +409,7 @@ public final class DataOutputStreamSplitter extends DataOutputStream {
         
         for (int i = 0; i < out.size(); i++) {
             try {
-                ((DataOutputStream) out.get(i)).writeFloat(value);
+                out.get(i).writeFloat(value);
             } catch (IOException e2) {
                 e = handleException(e, e2, i);
                 if (removeOnException)
@@ -428,7 +428,7 @@ public final class DataOutputStreamSplitter extends DataOutputStream {
         
         for (int i = 0; i < out.size(); i++) {
             try {
-                ((DataOutputStream) out.get(i)).writeInt(value);
+                out.get(i).writeInt(value);
             } catch (IOException e2) {
                 e = handleException(e, e2, i);
                 if (removeOnException)
@@ -447,7 +447,7 @@ public final class DataOutputStreamSplitter extends DataOutputStream {
         
         for (int i = 0; i < out.size(); i++) {
             try {
-                ((DataOutputStream) out.get(i)).writeLong(value);
+                out.get(i).writeLong(value);
             } catch (IOException e2) {
                 e = handleException(e, e2, i);
                 if (removeOnException)
@@ -466,7 +466,7 @@ public final class DataOutputStreamSplitter extends DataOutputStream {
         
         for (int i = 0; i < out.size(); i++) {
             try {
-                ((DataOutputStream) out.get(i)).writeShort(value);
+                out.get(i).writeShort(value);
             } catch (IOException e2) {
                 e = handleException(e, e2, i);
                 if (removeOnException)

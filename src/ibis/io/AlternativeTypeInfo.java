@@ -32,7 +32,8 @@ final class AlternativeTypeInfo implements IbisStreamFlags {
      * Maintains all <code>AlternativeTypeInfo</code> structures in a
      * hashmap, to be accessed through their classname.
      */
-    private static HashMap alternativeTypes = new HashMap();
+    private static HashMap<Class, AlternativeTypeInfo> alternativeTypes
+            = new HashMap<Class, AlternativeTypeInfo>();
 
     /** newInstance method of ObjectStreamClass, when it exists. */
     private static Method newInstance = null;
@@ -41,7 +42,7 @@ final class AlternativeTypeInfo implements IbisStreamFlags {
      * The <code>Class</code> structure of the class represented by this
      * <code>AlternativeTypeInfo</code> structure.
      */
-    Class clazz;
+    Class<?> clazz;
 
     /** The ObjectStreamClass of clazz. */
     private ObjectStreamClass objectStreamClass;
@@ -138,14 +139,11 @@ final class AlternativeTypeInfo implements IbisStreamFlags {
      * A <code>Comparator</code> implementation for sorting the
      * fields array.
      */
-    private static class FieldComparator implements Comparator {
+    private static class FieldComparator implements Comparator<Field> {
         /**
          * Compare fields alphabetically.
          */
-        public int compare(Object o1, Object o2) {
-            Field f1 = (Field) o1;
-            Field f2 = (Field) o2;
-
+        public int compare(Field f1, Field f2) {
             return f1.getName().compareTo(f2.getName());
         }
     }
@@ -223,8 +221,7 @@ final class AlternativeTypeInfo implements IbisStreamFlags {
      */
     public static synchronized AlternativeTypeInfo getAlternativeTypeInfo(
             Class type) {
-        AlternativeTypeInfo t
-                = (AlternativeTypeInfo) alternativeTypes.get(type);
+        AlternativeTypeInfo t = alternativeTypes.get(type);
 
         if (t == null) {
             t = new AlternativeTypeInfo(type);
@@ -281,7 +278,7 @@ final class AlternativeTypeInfo implements IbisStreamFlags {
             /* Make method accessible, so that it may be called. */
             if (!method.isAccessible()) {
                 temporary_method = method;
-                AccessController.doPrivileged(new PrivilegedAction() {
+                AccessController.doPrivileged(new PrivilegedAction<Object>() {
                     public Object run() {
                         temporary_method.setAccessible(true);
                         return null;
@@ -358,7 +355,7 @@ final class AlternativeTypeInfo implements IbisStreamFlags {
      * Constructor is private. Use {@link #getAlternativeTypeInfo(Class)} to
      * obtain the <code>AlternativeTypeInfo</code> for a type.
      */
-    private AlternativeTypeInfo(Class clazz) {
+    private AlternativeTypeInfo(Class<?> clazz) {
 
         this.clazz = clazz;
 
@@ -514,7 +511,7 @@ final class AlternativeTypeInfo implements IbisStreamFlags {
                         if (!field.isAccessible()) {
                             temporary_field = field;
                             AccessController.doPrivileged(
-                                    new PrivilegedAction() {
+                                    new PrivilegedAction<Object>() {
                                         public Object run() {
                                             temporary_field.setAccessible(true);
                                             return null;
@@ -551,7 +548,7 @@ final class AlternativeTypeInfo implements IbisStreamFlags {
                     Class field_type = serial_persistent_fields[i].getType();
                     if (field != null && !field.isAccessible()) {
                         temporary_field = field;
-                        AccessController.doPrivileged(new PrivilegedAction() {
+                        AccessController.doPrivileged(new PrivilegedAction<Object>() {
                             public Object run() {
                                 temporary_field.setAccessible(true);
                                 return null;
@@ -659,7 +656,7 @@ final class AlternativeTypeInfo implements IbisStreamFlags {
             if ((f.getModifiers() & mask) == mask) {
                 if (!f.isAccessible()) {
                     temporary_field = f;
-                    AccessController.doPrivileged(new PrivilegedAction() {
+                    AccessController.doPrivileged(new PrivilegedAction<Object>() {
                         public Object run() {
                             temporary_field.setAccessible(true);
                             return null;

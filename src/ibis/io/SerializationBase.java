@@ -21,7 +21,8 @@ public class SerializationBase extends IOProps {
     protected final SerializationTimer timer
         = TIME_SERIALIZATION ? new SerializationTimer(toString()) : null;
 
-    private static java.util.Vector timerList = new java.util.Vector();
+    private static java.util.Vector<SerializationTimer> timerList
+            = new java.util.Vector<SerializationTimer>();
 
     static {
         if (TIME_SERIALIZATION) {
@@ -42,9 +43,7 @@ public class SerializationBase extends IOProps {
 
     public static void resetAllTimers() {
         synchronized (SerializationBase.class) {
-            java.util.Enumeration e = timerList.elements();
-            while (e.hasMoreElements()) {
-                SerializationTimer t = (SerializationTimer) e.nextElement();
+            for (SerializationTimer t : timerList) {
                 t.reset();
             }
         }
@@ -52,9 +51,7 @@ public class SerializationBase extends IOProps {
 
     public static void printAllTimers() {
         synchronized (SerializationBase.class) {
-            java.util.Enumeration e = timerList.elements();
-            while (e.hasMoreElements()) {
-                SerializationTimer t = (SerializationTimer) e.nextElement();
+            for (SerializationTimer t : timerList) {
                 t.report();
             }
         }
@@ -141,7 +138,7 @@ public class SerializationBase extends IOProps {
             DataInputStream in) {
         String impl = implName(name) + "InputStream";
         try {
-            Class cl = Class.forName(impl);
+            Class<?> cl = Class.forName(impl);
             Constructor cons =
                     cl.getConstructor(new Class[] {DataInputStream.class});
             return (SerializationInput) cons.newInstance(new Object[] {in});
@@ -174,7 +171,7 @@ public class SerializationBase extends IOProps {
             DataOutputStream out) {
         String impl = implName(name) + "OutputStream";
         try {
-            Class cl = Class.forName(impl);
+            Class<?> cl = Class.forName(impl);
             Constructor cons =
                     cl.getConstructor(new Class[] {DataOutputStream.class});
             return (SerializationOutput) cons.newInstance(new Object[] {out});
