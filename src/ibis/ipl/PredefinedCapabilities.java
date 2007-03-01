@@ -25,6 +25,9 @@ public interface PredefinedCapabilities {
     /** Prefix for worldmodel capabilities. */
     final static String WORLDMODEL_PREFIX = "worldmodel.";
 
+    /** Prefix for resize capabilities. */
+    final static String RESIZE_PREFIX = "resize.";
+
     /**
      * Boolean capability, set when a sendport can connect to more than
      * one receiveport.
@@ -142,6 +145,12 @@ public interface PredefinedCapabilities {
      */
     public final static String SERIALIZATION_STRICT_OBJECT
             = SERIALIZATION_PREFIX + "strictobject";
+
+    /** Boolean capability, indicating that resize downcalls are supported. */
+    public final static String RESIZE_DOWNCALLS = RESIZE_PREFIX + "downcalls";
+
+    /** Boolean capability, indicating that resize upcalls are supported. */
+    public final static String RESIZE_UPCALLS = RESIZE_PREFIX + "upcalls";
 
     /**
      * String capability, indicating a nickname (or just the classname)

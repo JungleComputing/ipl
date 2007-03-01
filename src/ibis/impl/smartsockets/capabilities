@@ -17,5 +17,7 @@ receive.timeout:
 receive.pollupcalls:
 receive.autoupcalls:
 receive.explicit:
+resize.upcalls:
+resize.downcalls:
 # Nickname for smartsockets TcpIbis
 nickname:smartsockets

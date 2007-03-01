@@ -10,6 +10,7 @@ import ibis.util.TypedProperties;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
@@ -69,6 +70,10 @@ public abstract class Ibis implements ibis.ipl.Ibis,
 
     private final int numInstances;
 
+    private final HashSet<ibis.ipl.IbisIdentifier> joinedIbises;
+
+    private final HashSet<ibis.ipl.IbisIdentifier> leftIbises;
+
     /**
      * Constructs an <code>Ibis</code> instance with the specified parameters.
      * @param resizeHandler the resizeHandler.
@@ -79,12 +84,14 @@ public abstract class Ibis implements ibis.ipl.Ibis,
      */
     protected Ibis(ResizeHandler resizeHandler, CapabilitySet caps,
             Properties properties) throws Throwable {
+        boolean needsRegistryCalls = resizeHandler != null
+                || caps.hasCapability(RESIZE_DOWNCALLS);
         this.resizeHandler = resizeHandler;
         this.capabilities = caps;
         this.properties = new TypedProperties(properties);
         receivePorts = new HashMap<String, ReceivePort>();
         sendPorts = new HashMap<String, SendPort>();
-        registry = Registry.createRegistry(this, resizeHandler != null,
+        registry = Registry.createRegistry(this, needsRegistryCalls,
                 getData());
         ident = registry.getIbisIdentifier();
         closedWorld = caps.hasCapability(WORLDMODEL_CLOSED);
@@ -98,6 +105,13 @@ public abstract class Ibis implements ibis.ipl.Ibis,
             }
         } else {
             numInstances = -1;
+        }
+        if (caps.hasCapability(RESIZE_DOWNCALLS)) {
+            joinedIbises = new HashSet<ibis.ipl.IbisIdentifier>();
+            leftIbises = new HashSet<ibis.ipl.IbisIdentifier>();
+        } else {
+            joinedIbises = null;
+            leftIbises = null;
         }
     }
 
@@ -157,9 +171,8 @@ public abstract class Ibis implements ibis.ipl.Ibis,
         if (! closedWorld) {
             throw new IbisConfigurationException(
                 "totalNrOfIbisesInPool called but open world run");
-        } else {
-            return numInstances;
         }
+        return numInstances;
     }
 
     private synchronized void waitForEnabled() {
@@ -171,6 +184,28 @@ public abstract class Ibis implements ibis.ipl.Ibis,
             }
         }
         busyUpcaller = true;
+    }
+
+    public synchronized ibis.ipl.IbisIdentifier[] joinedIbises() {
+        if (joinedIbises == null) {
+            throw new IbisConfigurationException(
+                    "Resize downcalls not configured");
+        }
+        ibis.ipl.IbisIdentifier[] retval = joinedIbises.toArray(
+                new ibis.ipl.IbisIdentifier[joinedIbises.size()]);
+        joinedIbises.clear();
+        return retval;
+    }
+
+    public synchronized ibis.ipl.IbisIdentifier[] leftIbises() {
+        if (leftIbises == null) {
+            throw new IbisConfigurationException(
+                    "Resize downcalls not configured");
+        }
+        ibis.ipl.IbisIdentifier[] retval = leftIbises.toArray(
+                new ibis.ipl.IbisIdentifier[leftIbises.size()]);
+        leftIbises.clear();
+        return retval;
     }
 
     /**
@@ -196,6 +231,13 @@ public abstract class Ibis implements ibis.ipl.Ibis,
                 busyUpcaller = false;
             }
         }
+        if (joinedIbises != null) {
+            synchronized(this) {
+                for (int i = 0; i < joinIdents.length; i++) {
+                    joinedIbises.add(joinIdents[i]);
+                }
+            }
+        }
     }
 
     /**
@@ -213,6 +255,13 @@ public abstract class Ibis implements ibis.ipl.Ibis,
             }
             synchronized(this) {
                 busyUpcaller = false;
+            }
+        }
+        if (leftIbises != null) {
+            synchronized(this) {
+                for (int i = 0; i < leaveIdents.length; i++) {
+                    leftIbises.add(leaveIdents[i]);
+                }
             }
         }
     }

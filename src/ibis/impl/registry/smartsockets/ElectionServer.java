@@ -10,6 +10,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.Iterator;
 
 import org.apache.log4j.Logger;
@@ -81,16 +82,21 @@ class ElectionServer extends Thread implements Protocol {
             ids[i] = new IbisIdentifier(in);
         }
 
+        ArrayList<String> removals = new ArrayList<String>();
+
         for (String election : elections.keySet()) {
             IbisIdentifier o = elections.get(election);
             for (int i = 0; i < ids.length; i++) {
                 if (o.equals(ids[i])) {
                     // result of election is dead. Make new election
                     // possible.
-                    elections.remove(election);
+                    removals.add(election);
                     break;
                 }
             }
+        }
+        for (String election : removals) {
+            elections.remove(election);
         }
     }
 

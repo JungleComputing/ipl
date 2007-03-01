@@ -139,4 +139,30 @@ public interface Ibis {
      * @return the properties.
      */
     public Properties properties();
+
+    /**
+     * Returns the Ibis instances that joined the run.
+     * Returns the changes since the last joinedIbises call,
+     * or, if this is the first call, all Ibis instances that joined.
+     * This call only works if this Ibis is configured to support
+     * resize downcalls.
+     * If no Ibis instances joined, an array with 0 entries is returned.
+     * @exception IbisConfigurationException is thrown when the port was
+     * not configured to support resize downcalls.
+     * @return the joined Ibises.
+     */
+    public IbisIdentifier[] joinedIbises();
+
+    /**
+     * Returns the Ibis instances that left the run (or died).
+     * Returns the changes since the last leftIbises call,
+     * or, if this is the first call, all Ibis instances that left.
+     * This call only works if this Ibis is configured to support
+     * resize downcalls.
+     * If no Ibis instances left, an array with 0 entries is returned.
+     * @exception IbisConfigurationException is thrown when the port was
+     * not configured to support resize downcalls.
+     * @return the left Ibises.
+     */
+    public IbisIdentifier[] leftIbises();
 }

@@ -150,6 +150,7 @@ public final class Communication implements Config, Protocol,
     public CapabilitySet createIbisProperties() {
         CapabilitySet ibisProperties = new CapabilitySet(
                 CLOSED ? WORLDMODEL_CLOSED : WORLDMODEL_OPEN,
+                RESIZE_UPCALLS,
                 SERIALIZATION_BYTE, SERIALIZATION_DATA, SERIALIZATION_OBJECT,
                 COMMUNICATION_RELIABLE, CONNECTION_ONE_TO_MANY,
                 CONNECTION_MANY_TO_ONE, CONNECTION_UPCALLS,

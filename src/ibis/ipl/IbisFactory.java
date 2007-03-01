@@ -231,6 +231,13 @@ public final class IbisFactory {
 
         IbisFactory fac;
 
+        if (r != null && ! requiredCapabilities.hasCapability(
+                    PredefinedCapabilities.RESIZE_UPCALLS)) {
+            throw new NoMatchingIbisException("Resize handler specified but no "
+                    + PredefinedCapabilities.RESIZE_UPCALLS
+                    + " capability requested");
+        }
+
         if (properties == null) {
             fac = defaultFactory;
         } else {

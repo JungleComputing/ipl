@@ -179,7 +179,7 @@ public abstract class SendPort implements ibis.ipl.SendPort {
                     + " called but connectiondowncalls not configured");
         }
         ibis.ipl.ReceivePortIdentifier[] result = lostConnections.toArray(
-                new ibis.ipl.ReceivePortIdentifier[0]);
+                new ibis.ipl.ReceivePortIdentifier[lostConnections.size()]);
         lostConnections.clear();
         return result;
     }
@@ -313,7 +313,7 @@ public abstract class SendPort implements ibis.ipl.SendPort {
             closePort();
         } finally {
             ReceivePortIdentifier[] ports = receivers.keySet().toArray(
-                    new ReceivePortIdentifier[0]);
+                    new ReceivePortIdentifier[receivers.size()]);
             for (int i = 0; i < ports.length; i++) {
                 SendPortConnectionInfo c = removeInfo(ports[i]);
                 c.closeConnection();
@@ -343,7 +343,7 @@ public abstract class SendPort implements ibis.ipl.SendPort {
 
     public synchronized ibis.ipl.ReceivePortIdentifier[] connectedTo() {
         return receivers.keySet().toArray(
-                new ibis.ipl.ReceivePortIdentifier[0]);
+                new ibis.ipl.ReceivePortIdentifier[receivers.size()]);
     }
 
     // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -388,7 +388,8 @@ public abstract class SendPort implements ibis.ipl.SendPort {
      * @return the connections.
      */
     protected synchronized SendPortConnectionInfo[] connections() {
-        return receivers.values().toArray(new SendPortConnectionInfo[0]);
+        return receivers.values().toArray(
+                new SendPortConnectionInfo[receivers.size()]);
     }
 
     /**
