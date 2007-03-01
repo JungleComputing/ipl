@@ -128,7 +128,7 @@ public final class Satinc extends IbiscComponent {
 
     private InstructionFactory ins_f;
 
-    private ArrayList idTable = new ArrayList();
+    private ArrayList<StoreClass> idTable = new ArrayList<StoreClass>();
 
     private String className;
 
@@ -141,7 +141,7 @@ public final class Satinc extends IbiscComponent {
     private MethodTable mtab;
 
     // for ibisc
-    private HashSet satinSet = new HashSet();
+    private HashSet<String> satinSet = new HashSet<String>();
 
     /**
      * Nested classes have '$'-signs in their bytecode names, but
@@ -615,19 +615,19 @@ public final class Satinc extends IbiscComponent {
     }
 
     InstructionList getStoreIns(int id) {
-        return ((StoreClass) idTable.get(id)).getStoreIns();
+        return idTable.get(id).getStoreIns();
     }
 
     Method getStoreTarget(int id) {
-        return ((StoreClass) idTable.get(id)).getMethod();
+        return idTable.get(id).getMethod();
     }
 
     String getStoreClass(int id) {
-        return ((StoreClass) idTable.get(id)).getClassNameNoPackage();
+        return idTable.get(id).getClassNameNoPackage();
     }
 
     String getStorePackage(int id) {
-        return ((StoreClass) idTable.get(id)).getPackageName();
+        return idTable.get(id).getPackageName();
     }
 
     void clearIdTable() {
@@ -1847,7 +1847,7 @@ public final class Satinc extends IbiscComponent {
     // pass write the real method, and compile the whole class again.
     void generateInvocationRecords() throws IOException {
         Method[] methods = gen_c.getMethods();
-        ArrayList toCompiler = new ArrayList();
+        ArrayList<String> toCompiler = new ArrayList<String>();
 
         for (int i = 0; i < methods.length; i++) {
             if (mtab.containsInlet(methods[i])) {
@@ -2957,7 +2957,7 @@ public final class Satinc extends IbiscComponent {
             writeAll();
         }
 
-        ArrayList toCompiler = new ArrayList();
+        ArrayList<String> toCompiler = new ArrayList<String>();
         //generate so invocation records
         for (int j = 0; j < methods.length; j++) {
             Method method = methods[j];
@@ -3215,7 +3215,7 @@ public final class Satinc extends IbiscComponent {
         boolean invocationRecordCache = true;
         boolean inletOpt = true;
         boolean spawnCounterOpt = true;
-        ArrayList list = new ArrayList();
+        ArrayList<String> list = new ArrayList<String>();
 
         for (int i = 0; i < args.length; i++) {
             if (!args[i].startsWith("-")) {
@@ -3261,7 +3261,7 @@ public final class Satinc extends IbiscComponent {
                 inletOpt, spawnCounterOpt);
 
         for (int i = 0; i < list.size(); i++) {
-            satinc.start(lookup((String) list.get(i)));
+            satinc.start(lookup(list.get(i)));
         }
     }
 }

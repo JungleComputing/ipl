@@ -95,13 +95,10 @@ public class IOGenerator extends ibis.frontend.ibis.IbiscComponent {
 
     static final Type java_lang_class_type = Type.getType("Ljava/lang/Class;");
 
-    static HashMap serialversionids = new HashMap();
+    static HashMap<String, Long> serialversionids = new HashMap<String, Long>();
 
-    private static class FieldComparator implements Comparator {
-        public int compare(Object o1, Object o2) {
-            Field f1 = (Field) o1;
-            Field f2 = (Field) o2;
-
+    private static class FieldComparator implements Comparator<Field> {
+        public int compare(Field f1, Field f2) {
             return f1.getName().compareTo(f2.getName());
         }
     }
@@ -234,13 +231,7 @@ public class IOGenerator extends ibis.frontend.ibis.IbiscComponent {
                 // 4. For each field of the class sorted by field name (except
                 //    private static and private transient fields):
                 Field[] cFields = clazz.getFields();
-                Arrays.sort(cFields, new Comparator() {
-                    public int compare(Object o1, Object o2) {
-                        String name1 = ((Field) o1).getName();
-                        String name2 = ((Field) o2).getName();
-                        return name1.compareTo(name2);
-                    }
-                });
+                Arrays.sort(cFields, fieldComparator);
                 for (int i = 0; i < cFields.length; i++) {
                     int mods = cFields[i].getModifiers();
                     if (((mods & Constants.ACC_PRIVATE) == 0)
@@ -275,13 +266,13 @@ public class IOGenerator extends ibis.frontend.ibis.IbiscComponent {
                     }
                 }
 
-                Arrays.sort(cMethods, new Comparator() {
-                    public int compare(Object o1, Object o2) {
-                        String name1 = ((Method) o1).getName();
-                        String name2 = ((Method) o2).getName();
+                Arrays.sort(cMethods, new Comparator<Method>() {
+                    public int compare(Method o1, Method o2) {
+                        String name1 = o1.getName();
+                        String name2 = o2.getName();
                         if (name1.equals(name2)) {
-                            String sig1 = ((Method) o1).getSignature();
-                            String sig2 = ((Method) o2).getSignature();
+                            String sig1 = o1.getSignature();
+                            String sig2 = o2.getSignature();
                             return sig1.compareTo(sig2);
                         }
                         return name1.compareTo(name2);
@@ -364,7 +355,7 @@ public class IOGenerator extends ibis.frontend.ibis.IbiscComponent {
             }
 
             long uid = 0;
-            Long ui = (Long) serialversionids.get(classname);
+            Long ui = serialversionids.get(classname);
             if (ui == null) {
                 uid = computeSUID();
                 serialversionids.put(classname, new Long(uid));
@@ -2044,23 +2035,23 @@ public class IOGenerator extends ibis.frontend.ibis.IbiscComponent {
 
     boolean silent = false;
 
-    HashMap primitiveSerialization;
+    HashMap<Type, SerializationInfo>  primitiveSerialization;
 
     SerializationInfo referenceSerialization;
 
-    Vector classes_to_rewrite, target_classes, classes_to_save;
+    Vector<JavaClass> classes_to_rewrite, target_classes, classes_to_save;
 
-    HashMap arguments;
+    HashMap<String, JavaClass> arguments;
 
     boolean fromIbisc = false;
 
     public IOGenerator() {
-        classes_to_rewrite = new Vector();
-        target_classes = new Vector();
-        classes_to_save = new Vector();
+        classes_to_rewrite = new Vector<JavaClass>();
+        target_classes = new Vector<JavaClass>();
+        classes_to_save = new Vector<JavaClass>();
 
-        primitiveSerialization = new HashMap();
-        arguments = new HashMap();
+        primitiveSerialization = new HashMap<Type, SerializationInfo> ();
+        arguments = new HashMap<String, JavaClass>();
 
         primitiveSerialization.put(Type.BOOLEAN, new SerializationInfo(
                 "writeBoolean", "readBoolean", "readFieldBoolean",
@@ -2109,9 +2100,9 @@ public class IOGenerator extends ibis.frontend.ibis.IbiscComponent {
         this.silent = silent;
     }
 
-    public boolean processArgs(ArrayList args) {
+    public boolean processArgs(ArrayList<String> args) {
         for (int i = 0; i < args.size(); i++) {
-            String arg = (String) args.get(i);
+            String arg = args.get(i);
             if (arg.equals("-iogen-force")) {
                 force_generated_calls = true;
                 args.remove(i);
@@ -2127,13 +2118,12 @@ public class IOGenerator extends ibis.frontend.ibis.IbiscComponent {
 
     public void process(Iterator classes) {
         fromIbisc = true;
-        arguments = new HashMap();
+        arguments = new HashMap<String, JavaClass> ();
         for (Iterator i = classes; i.hasNext();) {
             JavaClass cl = (JavaClass) i.next();
             arguments.put(cl.getClassName(), cl);
         }
-        for (Iterator i = arguments.values().iterator(); i.hasNext();) {
-            JavaClass cl = (JavaClass) i.next();
+	for (JavaClass cl : arguments.values()) {
             if (isSerializable(cl)) {
                 if (! isIbisSerializable(cl)) {
                     addClass(cl);
@@ -2141,7 +2131,7 @@ public class IOGenerator extends ibis.frontend.ibis.IbiscComponent {
             }
         }
         for (int i = 0; i < classes_to_rewrite.size(); i++) {
-            JavaClass clazz = (JavaClass) classes_to_rewrite.get(i);
+            JavaClass clazz = classes_to_rewrite.get(i);
             addReferencesToRewrite(clazz);
         }
 
@@ -2161,7 +2151,7 @@ public class IOGenerator extends ibis.frontend.ibis.IbiscComponent {
         do_sort_classes(target_classes);
 
         for (int i = 0; i < target_classes.size(); i++) {
-            JavaClass clazz = (JavaClass) target_classes.get(i);
+            JavaClass clazz = target_classes.get(i);
             if (!clazz.isInterface()) {
                 if (!silent) {
                     System.out.println("  Rewrite class : "
@@ -2178,7 +2168,7 @@ public class IOGenerator extends ibis.frontend.ibis.IbiscComponent {
 
     SerializationInfo getSerializationInfo(Type tp) {
         SerializationInfo temp
-                = (SerializationInfo) primitiveSerialization.get(tp);
+                = primitiveSerialization.get(tp);
         return (temp == null ? referenceSerialization : temp);
     }
 
@@ -2364,7 +2354,7 @@ public class IOGenerator extends ibis.frontend.ibis.IbiscComponent {
         return predecessor(c1, Repository.lookupClass(n));
     }
 
-    private void do_sort_classes(Vector t) {
+    private void do_sort_classes(Vector<JavaClass> t) {
         int l = t.size();
 
         for (int i = 0; i < l; i++) {
@@ -2385,7 +2375,7 @@ public class IOGenerator extends ibis.frontend.ibis.IbiscComponent {
         }
     }
 
-    public void scanClass(Vector classnames) {
+    private void scanClass(Vector<String> classnames) {
 
         /* do the following here....
 
@@ -2481,7 +2471,7 @@ public class IOGenerator extends ibis.frontend.ibis.IbiscComponent {
         }
 
         for (int i = 0; i < classes_to_rewrite.size(); i++) {
-            JavaClass clazz = (JavaClass) classes_to_rewrite.get(i);
+            JavaClass clazz = classes_to_rewrite.get(i);
             addReferencesToRewrite(clazz);
         }
 
@@ -2491,7 +2481,7 @@ public class IOGenerator extends ibis.frontend.ibis.IbiscComponent {
         do_sort_classes(classes_to_rewrite);
 
         for (int i = 0; i < classes_to_rewrite.size(); i++) {
-            JavaClass clazz = (JavaClass) classes_to_rewrite.get(i);
+            JavaClass clazz = classes_to_rewrite.get(i);
             new CodeGenerator(clazz).generateMethods();
         }
 
@@ -2503,7 +2493,7 @@ public class IOGenerator extends ibis.frontend.ibis.IbiscComponent {
         do_sort_classes(target_classes);
 
         for (int i = 0; i < target_classes.size(); i++) {
-            JavaClass clazz = (JavaClass) target_classes.get(i);
+            JavaClass clazz = target_classes.get(i);
             if (!clazz.isInterface()) {
                 if (!silent) {
                     System.out.println("  Rewrite class : "
@@ -2518,7 +2508,7 @@ public class IOGenerator extends ibis.frontend.ibis.IbiscComponent {
         }
 
         for (int i = 0; i < classes_to_save.size(); i++) {
-            JavaClass clazz = (JavaClass) classes_to_save.get(i);
+            JavaClass clazz = classes_to_save.get(i);
             String cl = clazz.getClassName();
             String classfile = "";
 
@@ -2555,7 +2545,7 @@ public class IOGenerator extends ibis.frontend.ibis.IbiscComponent {
         boolean file = false;
         boolean force_generated_calls = false;
         boolean silent = false;
-        Vector files = new Vector();
+        Vector<String> files = new Vector<String>();
         String pack = null;
 
         if (args.length == 0) {
@@ -2585,9 +2575,9 @@ public class IOGenerator extends ibis.frontend.ibis.IbiscComponent {
             }
         }
 
-        Vector newArgs = new Vector();
+        Vector<String> newArgs = new Vector<String>();
         for (int i = 0; i < files.size(); i++) {
-            String name = (String) files.elementAt(i);
+            String name = files.elementAt(i);
 
             int colon = name.indexOf(':');
             if (colon != -1) {
@@ -2625,7 +2615,8 @@ public class IOGenerator extends ibis.frontend.ibis.IbiscComponent {
                 silent).scanClass(newArgs);
     }
 
-    private static void processDirectory(File f, Vector args, String name) {
+    private static void processDirectory(File f, Vector<String> args,
+            String name) {
         File[] list = f.listFiles();
         String prefix = "";
 

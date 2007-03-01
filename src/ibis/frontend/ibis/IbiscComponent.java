@@ -33,7 +33,7 @@ public abstract class IbiscComponent {
     private HashMap<String, IbiscEntry> newClasses
             = new HashMap<String, IbiscEntry>();
 
-    private class ClassIterator implements Iterator {
+    private class ClassIterator implements Iterator<Object> {
         Iterator<IbiscEntry> i;
         public ClassIterator() {
             i = allClasses.values().iterator();
@@ -96,9 +96,7 @@ public abstract class IbiscComponent {
     void processClasses(HashMap<String, IbiscEntry> classes) {
         allClasses = classes;
         process(new ClassIterator());
-        for (Iterator<IbiscEntry> i = newClasses.values().iterator();
-                i.hasNext();) {
-            IbiscEntry ie = i.next();
+        for (IbiscEntry ie : newClasses.values()) {
             allClasses.put(ie.cl.getClassName(), ie);
         }
     }
@@ -209,12 +207,12 @@ public abstract class IbiscComponent {
      * @param args the list of Java files to compile.
      * @param fromClass the name of the class from which they are derived.
      */
-    protected void compile(ArrayList args, String fromClass) {
+    protected void compile(ArrayList<String> args, String fromClass) {
         int sz = args.size();
         String[] compilerArgs = new String[sz + 1];
         compilerArgs[0] = "-g";
         for (int i = 0; i < sz; i++) {
-            compilerArgs[i + 1] = (String) args.get(i);
+            compilerArgs[i + 1] = args.get(i);
         }
         if (!RunJavac.runJavac(compilerArgs, verbose)) {
             System.exit(1);

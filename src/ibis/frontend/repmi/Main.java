@@ -39,7 +39,7 @@ class Main {
 
     public static void main(String[] args) {
 
-        Vector classes = new Vector();
+        Vector<JavaClass> classes = new Vector<JavaClass>();
         boolean verbose = false;
         JavaClass repmiInterface = null;
 
@@ -90,7 +90,7 @@ class Main {
 
             try {
                 PrintWriter output;
-                JavaClass subject = (JavaClass) classes.get(i);
+                JavaClass subject = classes.get(i);
 
                 if (verbose) {
                     System.out.println("Handling " + subject.getClassName());

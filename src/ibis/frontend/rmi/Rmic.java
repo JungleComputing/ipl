@@ -41,9 +41,9 @@ public class Rmic extends IbiscComponent {
     // For Ibisc
     private boolean rmicEnabled = false;
 
-    private ArrayList javaFiles = new ArrayList();
+    private ArrayList<String> javaFiles = new ArrayList<String>();
 
-    private ArrayList classes = new ArrayList();
+    private ArrayList<JavaClass> classes = new ArrayList<JavaClass>();
 
     private boolean first = true;
 
@@ -317,7 +317,7 @@ public class Rmic extends IbiscComponent {
             writeAll();
         }
         for (int i = 0; i < classes.size(); i++) {
-            JavaClass subject = (JavaClass) classes.get(i);
+            JavaClass subject = classes.get(i);
             processFile(subject);
             if (rmicEnabled && javaFiles.size() > 0) {
                 compile(javaFiles, subject.getClassName());

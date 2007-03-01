@@ -24,9 +24,9 @@ public class Scan {
 
     public static final int BATCH_SIZE = 20;
 
-    private static Vector classes = new Vector();
+    private static Vector<String> classes = new Vector<String>();
 
-    private static Vector failed = new Vector();
+    private static Vector<Failed> failed = new Vector<Failed>();
 
     public static String[] getClassPath() {
         int i = 0;
@@ -135,7 +135,7 @@ public class Scan {
         for (int i = 0; i < total; i += BATCH_SIZE) {
             for (int j = 0; j < BATCH_SIZE; j++) {
                 if (i + j < total) {
-                    batch[j] = (String) classes.get(i + j);
+                    batch[j] = classes.get(i + j);
                     System.out.println(batch[j] + " (" + (i + j) + " of "
                             + total + ")");
                 } else {
@@ -164,7 +164,7 @@ public class Scan {
                     + "properly:");
 
             for (int i = 0; i < total; i++) {
-                Failed f = (Failed) failed.get(i);
+                Failed f = failed.get(i);
 
                 for (int j = 0; j < BATCH_SIZE; j++) {
                     System.out.println(f.class_names[j]);

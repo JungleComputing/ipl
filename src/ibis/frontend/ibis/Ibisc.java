@@ -114,9 +114,7 @@ public class Ibisc {
      * verification is run.
      */
     private static void verifyClasses(IbiscComponent ic) {
-        for (Iterator<IbiscEntry> i = allClasses.values().iterator();
-                i.hasNext();) {
-            IbiscEntry e = i.next();
+        for (IbiscEntry e : allClasses.values()) {
             if (e.modified) {
                 if (! e.cl.doVerify()) {
                     System.out.println("Ibisc: verification failed after "
@@ -131,9 +129,7 @@ public class Ibisc {
      * Writes all modified classes that are not part of a jar.
      */
     private static void writeClasses() {
-        for (Iterator<IbiscEntry> i = allClasses.values().iterator();
-                i.hasNext();) {
-            IbiscEntry e = i.next();
+        for (IbiscEntry e : allClasses.values()) {
             if (e.modified && e.jarInfo == null) {
                 File temp = null;
                 try {
@@ -182,9 +178,7 @@ public class Ibisc {
      */
     private static void writeJars() {
         // First, determine which jars have actually changed.
-        for (Iterator<IbiscEntry> i = allClasses.values().iterator();
-                i.hasNext();) {
-            IbiscEntry e = i.next();
+        for (IbiscEntry e : allClasses.values()) {
             if (e.modified && e.jarInfo != null) {
                 e.jarInfo.modified = true;
             }
@@ -319,8 +313,7 @@ public class Ibisc {
         }
 
         // Instantiate Ibisc components.
-        for (Iterator iter = clcomponents.iterator(); iter.hasNext();) {
-            Class cl = (Class) iter.next();
+        for (Class cl : clcomponents) {
             IbiscComponent ic = null;
             try {
                 ic = (IbiscComponent) cl.newInstance();

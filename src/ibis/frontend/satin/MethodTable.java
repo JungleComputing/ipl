@@ -33,7 +33,7 @@ final class MethodTable {
 
     static class SpawnTableEntry {
 
-        ArrayList catchBlocks; /* indexed on spawnId */
+        ArrayList<CodeExceptionGen> catchBlocks; /* indexed on spawnId */
 
         boolean hasInlet;
 
@@ -145,10 +145,10 @@ final class MethodTable {
                 CodeExceptionGen origE[] = origM.getExceptionHandlers();
                 CodeExceptionGen newE[] = mg.getExceptionHandlers();
 
-                catchBlocks = new ArrayList();
+                catchBlocks = new ArrayList<CodeExceptionGen>();
 
                 for (int i = 0; i < orig.catchBlocks.size(); i++) {
-                    CodeExceptionGen origCatch = (CodeExceptionGen) orig.catchBlocks
+                    CodeExceptionGen origCatch = orig.catchBlocks
                         .get(i);
                     for (int j = 0; j < origE.length; j++) {
                         if (origCatch == origE[j]) {
@@ -229,7 +229,7 @@ final class MethodTable {
         }
     }
 
-    private Vector methodTable; /* a vector of MethodTableEntries */
+    private Vector<MethodTableEntry> methodTable; /* a vector of MethodTableEntries */
 
     private JavaClass spawnableClass;
 
@@ -239,7 +239,8 @@ final class MethodTable {
 
     JavaClass c;
 
-    private static HashMap analyzers = new HashMap();
+    private static HashMap<JavaClass, BT_Analyzer> analyzers
+            = new HashMap<JavaClass, BT_Analyzer>();
 
     private boolean available_slot(Type[] types, int ind, Type t) {
         Type tp = types[ind];
@@ -317,9 +318,9 @@ final class MethodTable {
         // collide with locals in the LocalVariableTable.
         // For now, if they occur in an inlet handler, they will not be
         // rewritten!
-        ArrayList newLocals = new ArrayList();
-        for (InstructionHandle h = m.getInstructionList().getStart(); h != null; h = h
-            .getNext()) {
+        ArrayList<Integer> newLocals = new ArrayList<Integer>();
+        for (InstructionHandle h = m.getInstructionList().getStart(); h != null;
+                h = h.getNext()) {
             Instruction ins = h.getInstruction();
             if (ins instanceof LocalVariableInstruction) {
                 LocalVariableInstruction lins = (LocalVariableInstruction) ins;
@@ -340,7 +341,7 @@ final class MethodTable {
                                 maxpos++;
                             }
                         }
-                        Integer i = (Integer) newLocals.get(local);
+                        Integer i = newLocals.get(local);
                         lins.setIndex(i.intValue());
                     }
                 }
@@ -376,7 +377,7 @@ final class MethodTable {
 
         spawnableClass = Repository.lookupClass("ibis.satin.Spawnable");
 
-        methodTable = new Vector();
+        methodTable = new Vector<MethodTableEntry>();
 
         Method[] methods = gen_c.getMethods();
         for (int i = 0; i < methods.length; i++) {
@@ -417,7 +418,7 @@ final class MethodTable {
         out.println("---------------------");
 
         for (int i = 0; i < methodTable.size(); i++) {
-            MethodTableEntry m = (MethodTableEntry) methodTable.elementAt(i);
+            MethodTableEntry m = methodTable.elementAt(i);
             m.print(out);
         }
         out.println("---------------------");
@@ -471,7 +472,7 @@ final class MethodTable {
                 se.hasInlet = true;
 
                 if (se.catchBlocks == null) {
-                    se.catchBlocks = new ArrayList();
+                    se.catchBlocks = new ArrayList<CodeExceptionGen>();
                 }
 
                 se.catchBlocks.add(e);
@@ -545,7 +546,7 @@ final class MethodTable {
     }
 
     private BT_Analyzer getAnalyzer(JavaClass cl) {
-        BT_Analyzer b = (BT_Analyzer) analyzers.get(cl);
+        BT_Analyzer b = analyzers.get(cl);
         if (b == null) {
             b = new BT_Analyzer(cl, spawnableClass, verbose);
             b.start(false);
@@ -566,7 +567,7 @@ final class MethodTable {
 
     void addCloneToInletTable(Method mOrig, MethodGen mg) {
         for (int i = 0; i < methodTable.size(); i++) {
-            MethodTableEntry e = (MethodTableEntry) methodTable.elementAt(i);
+            MethodTableEntry e = methodTable.elementAt(i);
             if (e.m.equals(mOrig)) {
                 MethodTableEntry newE = new MethodTableEntry(e, mg);
                 methodTable.addElement(newE);
@@ -581,7 +582,7 @@ final class MethodTable {
 
     private MethodTableEntry findMethod(MethodGen mg) {
         for (int i = 0; i < methodTable.size(); i++) {
-            MethodTableEntry e = (MethodTableEntry) methodTable.elementAt(i);
+            MethodTableEntry e = methodTable.elementAt(i);
             if (e.mg == mg) {
                 return e;
             }
@@ -596,7 +597,7 @@ final class MethodTable {
 
     private MethodTableEntry findMethod(Method m) {
         for (int i = 0; i < methodTable.size(); i++) {
-            MethodTableEntry e = (MethodTableEntry) methodTable.elementAt(i);
+            MethodTableEntry e = methodTable.elementAt(i);
             if (e.m == m) {
                 return e;
             }
@@ -641,7 +642,7 @@ final class MethodTable {
         return e.typesOfParamsNoThis;
     }
 
-    ArrayList getCatchTypes(MethodGen m, int spawnId) {
+    ArrayList<CodeExceptionGen> getCatchTypes(MethodGen m, int spawnId) {
         MethodTableEntry e = findMethod(m);
         return e.spawnTable[spawnId].catchBlocks;
     }
@@ -831,7 +832,7 @@ final class MethodTable {
 
     static String[] getAllLocalDecls(Method m) {
         LocalVariable[] lt = getLocalTable(m).getLocalVariableTable();
-        Vector v = new Vector();
+        Vector<String> v = new Vector<String>();
 
         for (int i = 0; i < lt.length; i++) {
             LocalVariable l = lt[i];
@@ -844,27 +845,23 @@ final class MethodTable {
         }
 
         String[] result = new String[v.size()];
-        for (int i = 0; i < v.size(); i++) {
-            result[i] = (String) v.elementAt(i);
+        result = v.toArray(result);
+        // for (int i = 0; i < v.size(); i++) {
+        //     result[i] = (String) v.elementAt(i);
             // System.out.println("localdecls for " + m + ": " + result[i]);
-        }
+        // }
 
         return result;
     }
 
     static Type[] getAllLocalTypes(Method m) {
         LocalVariable[] lt = getLocalTable(m).getLocalVariableTable();
-        Vector v = new Vector();
+        Type[] result = new Type[lt.length];
 
         for (int i = 0; i < lt.length; i++) {
             LocalVariable l = lt[i];
             Type tp = Type.getType(l.getSignature());
-            v.addElement(tp);
-        }
-
-        Type[] result = new Type[v.size()];
-        for (int i = 0; i < v.size(); i++) {
-            result[i] = (Type) v.elementAt(i);
+            result[i] = tp;
         }
 
         return result;
@@ -872,20 +869,14 @@ final class MethodTable {
 
     static String[] getAllLocalNames(Method m) {
         LocalVariable[] lt = getLocalTable(m).getLocalVariableTable();
-        Vector v = new Vector();
+        String[] result = new String[lt.length];
 
         for (int i = 0; i < lt.length; i++) {
             LocalVariable l = lt[i];
             Type tp = Type.getType(l.getSignature());
             String e = generatedLocalName(tp, l.getName());
-            v.addElement(e);
+            result[i] = e;
         }
-
-        String[] result = new String[v.size()];
-        for (int i = 0; i < v.size(); i++) {
-            result[i] = (String) v.elementAt(i);
-        }
-
         return result;
     }
 
