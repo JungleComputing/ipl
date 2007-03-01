@@ -19,8 +19,10 @@ class MulticastGroups {
     
     public static Logger logger = Logger.getLogger(Group.class.getName());
     
-    private static final HashMap receivePorts = new HashMap();    
-    private static final HashMap sendPorts = new HashMap();
+    private static final HashMap<String, ReceivePort> receivePorts
+            = new HashMap<String, ReceivePort>();    
+    private static final HashMap<String, SendPort> sendPorts
+            = new HashMap<String, SendPort>();
     
     private static PortType portType;
             
@@ -128,7 +130,7 @@ class MulticastGroups {
                         
         // First check if we already have one a sendport to this group...
         synchronized (sendPorts) {            
-            SendPort s = (SendPort) sendPorts.get(ID);
+            SendPort s = sendPorts.get(ID);
             if (s != null) {
                 
                 if (logger.isDebugEnabled()) { 
@@ -231,10 +233,7 @@ class MulticastGroups {
         
         // Close all send and receive ports...
         synchronized (sendPorts) {
-            Iterator ports = sendPorts.values().iterator();
-
-            while (ports.hasNext()) {
-                SendPort sp = (SendPort) (ports.next());
+            for (SendPort sp : sendPorts.values()) {
                 try { 
                     sp.close();
                 } catch (Exception e) {
@@ -244,10 +243,7 @@ class MulticastGroups {
         } 
         
         synchronized (receivePorts) {
-            Iterator ports = receivePorts.values().iterator();
-
-            while (ports.hasNext()) {
-                ReceivePort rp = (ReceivePort) (ports.next());
+            for (ReceivePort rp : receivePorts.values()) {
                 try { 
                     rp.close();
                 } catch (Exception e) {

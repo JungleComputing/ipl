@@ -21,16 +21,16 @@ final class GroupRegistry implements GroupProtocol {
             = Logger.getLogger(GroupRegistry.class.getName());
 
     /** Hash table for the groups. */
-    private Hashtable groups;
+    private Hashtable<String, GroupRegistryData> groups;
 
     /** Current number of groups, used to hand out group identifications. */
     private int groupNumber;
 
     /** Hash table for the combined invocations. */
-    private Hashtable combinedInvocations;
+    private Hashtable<String, CombinedInvocationInfo> combinedInvocations;
 
     /** Hash table for the combined invocations. */
-    private Hashtable barriers;
+    private Hashtable<String, BarrierInfo> barriers;
 
     /**
      * Class for barrier information.
@@ -268,9 +268,9 @@ final class GroupRegistry implements GroupProtocol {
      * Allocates hash tables for groups and combined invocations.
      */
     public GroupRegistry() {
-        combinedInvocations = new Hashtable();
-        groups = new Hashtable();
-        barriers = new Hashtable();
+        combinedInvocations = new Hashtable<String, CombinedInvocationInfo>();
+        groups = new Hashtable<String, GroupRegistryData>();
+        barriers = new Hashtable<String, BarrierInfo>();
         groupNumber = 0;
     }
 
@@ -335,7 +335,7 @@ final class GroupRegistry implements GroupProtocol {
                     timeout +")");                      
         }
         
-        GroupRegistryData e = (GroupRegistryData) groups.get(groupName);
+        GroupRegistryData e = groups.get(groupName);
 
         // Check if the group exists
         if (e == null) {
@@ -464,7 +464,7 @@ final class GroupRegistry implements GroupProtocol {
                     + groupName + ", " + rank + ", " + ticket + ")");                    
         }
         
-        GroupRegistryData e = (GroupRegistryData) groups.get(groupName);
+        GroupRegistryData e = groups.get(groupName);
 
         WriteMessage w = Group.unicast[rank].newMessage();
         w.writeByte(REGISTRY_REPLY);
@@ -508,7 +508,7 @@ final class GroupRegistry implements GroupProtocol {
         CombinedInvocationInfo inf;
 
         synchronized (this) {
-            inf = (CombinedInvocationInfo) combinedInvocations.get(id);
+            inf = combinedInvocations.get(id);
             if (inf == null) {
                 inf = new CombinedInvocationInfo(groupID, method, name, mode,
                         size);
@@ -556,7 +556,7 @@ final class GroupRegistry implements GroupProtocol {
         BarrierInfo inf;
 
         synchronized (this) {
-            inf = (BarrierInfo) barriers.get(id);
+            inf = barriers.get(id);
             if (inf == null) {
                 inf = new BarrierInfo(size);
                 barriers.put(id, inf);
@@ -577,7 +577,7 @@ final class GroupRegistry implements GroupProtocol {
         inf.addAndWaitUntilFull();
 
         synchronized (this) {
-            inf = (BarrierInfo) barriers.get(id);
+            inf = barriers.get(id);
             if (inf != null) {
                 barriers.remove(id);
             }

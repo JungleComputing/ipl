@@ -67,7 +67,7 @@ public final class Group implements GroupProtocol,
      * Local cache of stub classes, so that not every group lookup has to
      * go through the registry.
      */
-    private static Hashtable stubclasses;
+    private static Hashtable<String, GroupStubData> stubclasses;
 
     /** My local ibis. */
     static Ibis ibis;
@@ -88,7 +88,7 @@ public final class Group implements GroupProtocol,
     private static ReceivePort receivePort;
     
     /** Currently allocated multicast send ports. */
-//    private static Hashtable multicastSendports;
+//    private static Hashtable<String, SendPort>  multicastSendports;
     
     /** For receiving messages from the GMI master. */
     private static ReceivePort systemIn;
@@ -103,13 +103,13 @@ public final class Group implements GroupProtocol,
   //  private static GroupCallHandler groupCallHandler;
 
     /** Skeletons available through group identification. */
-    private static ArrayList groups;
+    private static ArrayList<GroupSkeleton> groups;
 
     /** Skeletons on this node. */
-    private static ArrayList skeletons;
+    private static ArrayList<GroupSkeleton> skeletons;
 
     /** Stubs and stub identifications. */
-    private static ArrayList stubIDStack;
+    private static ArrayList<GroupStub> stubIDStack;
 
     /** The stub counter, used to allocate stubs. */
     static int stubCounter;
@@ -154,12 +154,12 @@ public final class Group implements GroupProtocol,
     static {
         try {
             ticketMaster = new Ticket();
-            groups = new ArrayList();            
-            skeletons = new ArrayList();
-            stubIDStack = new ArrayList();
+            groups = new ArrayList<GroupSkeleton>();            
+            skeletons = new ArrayList<GroupSkeleton>();
+            stubIDStack = new ArrayList<GroupStub>();
             
-            stubclasses = new Hashtable();
- //           multicastSendports = new Hashtable();
+            stubclasses = new Hashtable<String, GroupStubData>();
+ //           multicastSendports = new Hashtable<String, SendPort> ();
 
             if (logger.isDebugEnabled()) {
                 logger.debug("?: <static> - Init Group RTS");
@@ -388,7 +388,7 @@ public final class Group implements GroupProtocol,
                     "Looking for multicast sendport " + ID);
         }
 
-        SendPort temp = (SendPort) multicastSendports.get(ID);
+        SendPort temp = multicastSendports.get(ID);
 
         System.err.println("Should now create receiveports " + _rank + "-" + ID);
         
@@ -457,7 +457,7 @@ public final class Group implements GroupProtocol,
      */
     static synchronized GroupSkeleton getSkeleton(int skel) {
 
-        GroupSkeleton tmp = (GroupSkeleton) skeletons.get(skel);
+        GroupSkeleton tmp = skeletons.get(skel);
 
         while (tmp == null) {
             try { 
@@ -510,7 +510,7 @@ public final class Group implements GroupProtocol,
             } 
         }  
 
-        return (GroupSkeleton) groups.get(groupID);
+        return groups.get(groupID);
     }
 
     /**
@@ -760,7 +760,7 @@ public final class Group implements GroupProtocol,
      */
     public static GroupInterface lookup(String nm, long timeout) throws RuntimeException {
         
-        GroupStubData data = (GroupStubData) stubclasses.get(nm);
+        GroupStubData data = stubclasses.get(nm);
 
         long time = System.currentTimeMillis();
                
@@ -952,7 +952,7 @@ public final class Group implements GroupProtocol,
      */    
     protected static GroupStub getGroupStub(int stubID) {
         synchronized (stubIDStack) {
-            return (GroupStub) stubIDStack.get(stubID);
+            return stubIDStack.get(stubID);
         }
     }
        

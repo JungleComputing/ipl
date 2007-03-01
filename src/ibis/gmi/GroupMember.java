@@ -90,7 +90,7 @@ public class GroupMember {
                 logger.debug(Group._rank +": constructor() skelID is " + mySkel);
             }
 
-            Vector group_interfaces = new Vector();
+            Vector<Class> group_interfaces = new Vector<Class>();
 
             Class tempClass = myClass;
 
@@ -116,7 +116,7 @@ public class GroupMember {
 
             for (int i = 0; i < group_interfaces.size(); i++) {
                 groupInterfaces[i]
-                        = ((Class) group_interfaces.get(i)).getName();
+                        = (group_interfaces.get(i)).getName();
                 logger.debug("\t" + groupInterfaces[i]);
             }
 
