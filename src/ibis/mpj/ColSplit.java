@@ -99,18 +99,16 @@ class SplitItem implements Serializable {
     }
 }
 
-class SplitComp implements Comparator {
-    public int compare(Object o1, Object o2) {
-        if (((SplitItem)o1).key < ((SplitItem)o2).key) {
+class SplitComp implements Comparator<SplitItem> {
+    public int compare(SplitItem o1, SplitItem o2) {
+        if (o1.key < o2.key) {
             return(-1);
         }
-        else if (((SplitItem)o1).key == ((SplitItem)o2).key) {
+        else if (o1.key == o2.key) {
             return(0);
         }
         else {
             return(1);
         }
-
-
     }
 }

@@ -12,11 +12,11 @@ import java.util.*;
  * Collection of all MPJ connections.
  */
 public class ConnectionTable {
-    private HashMap conTable = null;
+    private final HashMap<String, Connection> conTable;
     private String myMPJHostName = null;
 
     public ConnectionTable() {
-        this.conTable = new HashMap();
+        this.conTable = new HashMap<String, Connection>();
 
     }
 
@@ -42,7 +42,7 @@ public class ConnectionTable {
 
     protected Connection getConnection(String mpjHostName) throws MPJException {
         if (conTable.containsKey(mpjHostName)) {
-            return (Connection)conTable.get(mpjHostName);
+            return conTable.get(mpjHostName);
         }
         throw new MPJException(mpjHostName + " not found in ConnectionTable.");
      }

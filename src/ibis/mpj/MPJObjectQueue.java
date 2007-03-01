@@ -12,11 +12,11 @@ import java.util.*;
  */
 public class MPJObjectQueue {
 
-    private Vector queue;
+    private Vector<MPJObject> queue;
     private boolean lock;
 
     protected MPJObjectQueue() {
-        this.queue = new Vector();
+        this.queue = new Vector<MPJObject>();
         this.lock = false;
     }
 
@@ -33,28 +33,19 @@ public class MPJObjectQueue {
         int i = 0;
         boolean found = false;
 
-        for (Enumeration el = queue.elements(); el.hasMoreElements();) {
-            obj = (MPJObject)el.nextElement();
+        for (MPJObject o : queue) {
+            if (((o.getTag() == tag) || 
+                        ((tag == MPJ.ANY_TAG) && (o.getTag() >= 0))) && 
+                    (o.getContextId() == contextId)) {
 
-            if (((obj.getTag() == tag) || 
-                        ((tag == MPJ.ANY_TAG) && (obj.getTag() >= 0))) && 
-                    (obj.getContextId() == contextId)) {
-
-                found = true;
-
-
+                obj = o;
                 break;
                     }
             i++;
         }
 
-        if (found) {
-
+        if (obj != null) {
             queue.remove(i);
-
-        }
-        else {
-            obj = null;
         }
 
         return obj;
@@ -64,22 +55,18 @@ public class MPJObjectQueue {
         MPJObject obj = null;
         Status status = null;
 
-        boolean found = false;
         //System.out.println("checking ObjectQueue.");
 
-        for (Enumeration el = queue.elements(); el.hasMoreElements();) {
-            obj = (MPJObject)el.nextElement();
-
-            if (((obj.getTag() == tag) || 
-                        ((tag == MPJ.ANY_TAG) && (obj.getTag() >= 0))) && 
-                    (obj.getContextId() == contextId)) {
-
-                found = true;
+        for (MPJObject o : queue) {
+            if (((o.getTag() == tag) || 
+                        ((tag == MPJ.ANY_TAG) && (o.getTag() >= 0))) && 
+                    (o.getContextId() == contextId)) {
+                obj = o;
                 break;
                     }
         }
 
-        if (found) {
+        if (obj != null) {
             status = new Status();
             if (obj.getObjectData() != null) {
                 status.setTag(obj.getTag());

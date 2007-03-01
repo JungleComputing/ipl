@@ -12,10 +12,10 @@ import java.util.Vector;
  * Organisation of groups within each communicator.
  */
 public class Group {
-    protected Vector table = null;
+    protected Vector<String> table;
 
     public Group() {
-        this.table = new Vector();
+        this.table = new Vector<String>();
     }
 
     protected void addHost(String hostName) {
@@ -23,7 +23,7 @@ public class Group {
     }
 
     protected String getMPJHostName(int rank) {
-        return((String)(this.table.elementAt(rank)));
+        return this.table.elementAt(rank);
     }
 
 
@@ -54,7 +54,7 @@ public class Group {
         if (this.table != null) { 
             for (int i = 0; i < this.table.size(); i++) {
 
-                String a = (String)this.table.elementAt(i); 
+                String a = this.table.elementAt(i); 
                 if (a.equals(hostName)) {
                     return(i);
                 }
@@ -94,9 +94,9 @@ public class Group {
                 transRanks[i] = MPJ.UNDEFINED;
             }
             else {
-                String a = (String) group1.table.elementAt(ranks1[i]); 
+                String a = group1.table.elementAt(ranks1[i]); 
                 for (int j = 0; j < this.table.size(); j++) {
-                    String b = (String)this.table.elementAt(j);
+                    String b = this.table.elementAt(j);
                     if (a.equals(b)) {
 
                         transRanks[i] = j;
@@ -132,8 +132,8 @@ public class Group {
         else {
 
             for (int i = 0; i < group2.size(); i++) {
-                String a = (String)group2.table.elementAt(i);
-                String b = (String)group1.table.elementAt(i);
+                String a = group2.table.elementAt(i);
+                String b = group1.table.elementAt(i);
                 if (!(a.equals(b))) {
                     result = MPJ.SIMILAR;
                 }
@@ -142,7 +142,7 @@ public class Group {
                     boolean test = false;
 
                     for (int j = 0; j < group1.size(); j++) {
-                        String c = (String)group1.table.elementAt(j);
+                        String c = group1.table.elementAt(j);
                         if (a.equals(c)) {
                             test = true;
                             break;
@@ -175,25 +175,25 @@ public class Group {
         }
         else if (group1 == null) {
             Group uGroup = new Group();
-            uGroup.table = (Vector)group2.table.clone();
+            uGroup.table = new Vector<String>(group2.table);
 
             return(uGroup);
         }
         else if (group2 == null) {
             Group uGroup = new Group();
-            uGroup.table = (Vector)group1.table.clone();
+            uGroup.table = new Vector<String>(group1.table);
 
             return(uGroup);
         }
         else {
             Group uGroup = new Group();
-            uGroup.table = (Vector)group1.table.clone();
+            uGroup.table = new Vector<String>(group1.table);
 
             for (int i = 0; i < group2.size(); i++) {
                 boolean check = false;
-                String a = (String)group2.table.elementAt(i);
+                String a = group2.table.elementAt(i);
                 for (int j = 0; j < group1.size();  j++) {
-                    String b = (String)group1.table.elementAt(j);
+                    String b = group1.table.elementAt(j);
 
                     if (a.equals(b)) {
                         check = true;
@@ -229,9 +229,9 @@ public class Group {
         
         for (int i = 0; i < group2.size(); i++) {
         	boolean check = false;
-        	String a = (String)group2.table.elementAt(i);
+        	String a = group2.table.elementAt(i);
         	for (int j = 0; j < group1.size();  j++) {
-        		String b = (String)group1.table.elementAt(j);
+        		String b = group1.table.elementAt(j);
         		
         		if (a.equals(b)) {
         			check = true;
@@ -261,7 +261,7 @@ public class Group {
         }
         else if (group2 == null) {
             Group dGroup = new Group();
-            dGroup.table = (Vector)group1.table.clone();
+            dGroup.table = new Vector<String>(group1.table);
             return(dGroup);
         }
         else
@@ -270,10 +270,10 @@ public class Group {
 
             for (int i = 0; i < group1.size(); i++) {
                 boolean check = false;
-                String a = (String)group1.table.elementAt(i);
+                String a = group1.table.elementAt(i);
 
                 for (int j = 0; j < group2.size();j ++) {
-                    String b = (String)group2.table.elementAt(j);
+                    String b = group2.table.elementAt(j);
                     if (a.equals(b)) {
                         check = true;
                         break;
@@ -307,7 +307,7 @@ public class Group {
         Group iGroup = new Group();
         for (int i = 0; i < ranks.length; i++) {
         	if ((ranks[i] >= 0) && (ranks[i] < this.size())) {
-        		String a = (String)this.table.elementAt(ranks[i]);
+        		String a = this.table.elementAt(ranks[i]);
         		iGroup.addHost(a);
         	}
         }
@@ -325,13 +325,11 @@ public class Group {
      * @throws MPJException
      */
     public Group excl(int[] ranks) throws MPJException {
+        Group eGroup = new Group();
+        eGroup.table = new Vector<String>(this.table);
     	if (ranks == null) {
-    		Group eGroup = new Group();
-    		eGroup.table = (Vector)this.table.clone();
-    		return(eGroup);			
+            return(eGroup);			
     	}
-    	Group eGroup = new Group();
-    	eGroup.table = (Vector)this.table.clone();
     	for (int i = 0; i < ranks.length; i++) {
     		if ((ranks[i] >= 0) && (ranks[i] < this.size())) {
     			eGroup.table.removeElementAt(ranks[i]);
@@ -376,7 +374,7 @@ public class Group {
         		while(j <= ranks[i][1]) {
         			
         			if ((j >= 0) && (j < this.size())) {
-        				iGroup.addHost((String)this.table.elementAt(j));
+        				iGroup.addHost(this.table.elementAt(j));
         				
         			}
         			j += ranks[i][2]; 
@@ -386,7 +384,7 @@ public class Group {
         		while(j >= ranks[i][1]) {
         			
         			if ((j >= 0) && (j < this.size())) {
-        				iGroup.addHost((String)this.table.elementAt(j));
+        				iGroup.addHost(this.table.elementAt(j));
         				
         			}
         			j += ranks[i][2]; 
@@ -418,12 +416,12 @@ public class Group {
     public Group rangeExcl(int[][] ranks) throws MPJException {
         if ((ranks == null) || (ranks.length == 0)) {
             Group eGroup = new Group();
-            eGroup.table = (Vector)this.table.clone();
+            eGroup.table = new Vector<String>(this.table);
             return(eGroup);			
         }
  
         Group eGroup = new Group();
-        Vector exc = new Vector();
+        Vector<Integer> exc = new Vector<Integer>();
         
         for (int i = 0; i < ranks.length; i++) {
         	
@@ -449,15 +447,10 @@ public class Group {
         		j += step;
         	}
         	
-        	
-
 
             for (int k = 0; k < this.size(); k++) {
-
-                Enumeration enu = exc.elements();
                 boolean exclude = false;
-                while(enu.hasMoreElements()) {
-                    Integer in = (Integer)enu.nextElement();
+                for (Integer in : exc) {
                     if (k == in.intValue()) {
                         exclude = true;
                         break;
@@ -465,10 +458,8 @@ public class Group {
                 }
 
                 if(!exclude) {
-                    eGroup.addHost((String)this.table.elementAt(k));
-
+                    eGroup.addHost(this.table.elementAt(k));
                 }
-
             }
         }
         if (eGroup.table.isEmpty()) {

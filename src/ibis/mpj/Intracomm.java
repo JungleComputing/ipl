@@ -41,7 +41,7 @@ public class Intracomm extends Comm {
 
                 cpComm.group = new Group();
 
-                cpComm.group.table = (Vector)this.group.table.clone();
+                cpComm.group.table = new Vector<String>(this.group.table);
                 return(cpComm);
 
             }
