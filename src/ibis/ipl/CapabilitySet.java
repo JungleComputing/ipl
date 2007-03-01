@@ -26,7 +26,7 @@ import java.util.Properties;
  * capabilities, but Ibis implementations may add new ones.
  * A <code>CapabilitySet</code> object is immutable.
  */
-public final class CapabilitySet implements java.io.Serializable {
+public final class CapabilitySet {
 
     private transient byte[] codedForm;
 
@@ -381,5 +381,25 @@ public final class CapabilitySet implements java.io.Serializable {
             str += cap + "=" + stringCapabilities.get(cap) + "\n";
         }
         return str;
+    }
+
+    /**
+     * Returns all the capabilities in this capability set as a String
+     * array, one element per capability.
+     * @return the capabilities.
+     */
+    public String[] getCapabilities() {
+        int sz = booleanCapabilities.size() + stringCapabilities.size();
+        String[] result = new String[sz];
+        int i = 0;
+        for (String cap : booleanCapabilities) {
+            result[i] = cap;
+            i++;
+        }
+        for (String cap : stringCapabilities.keySet()) {
+            result[i] = cap + "=" + stringCapabilities.get(cap);
+            i++;
+        }
+        return result;
     }
 }
