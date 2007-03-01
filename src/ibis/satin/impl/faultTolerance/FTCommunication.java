@@ -376,7 +376,8 @@ final class FTCommunication implements Config, ReceivePortConnectUpcall,
 		try {
                         @SuppressWarnings("unchecked")
 			Map<Stamp, GlobalResultTableValue> results
-                            = (Map) m.readObject();
+                            = (Map<Stamp, GlobalResultTableValue>)
+                                m.readObject();
 			synchronized (s) {
 				s.ft.globalResultTable.updateAll(results);
 			}

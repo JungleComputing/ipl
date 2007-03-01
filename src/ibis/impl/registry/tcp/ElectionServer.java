@@ -78,14 +78,13 @@ class ElectionServer extends Thread implements Protocol {
             ids[i] = new IbisIdentifier(in);
         }
 
-        for (Iterator key = elections.keySet().iterator(); key.hasNext();) {
-            String election = (String) key.next();
+        for (String election : elections.keySet()) {
             IbisIdentifier o = elections.get(election);
             for (int i = 0; i < ids.length; i++) {
                 if (o.equals(ids[i])) {
                     // result of election is dead. Make new election
                     // possible.
-                    key.remove();
+                    elections.remove(election);
                     break;
                 }
             }
