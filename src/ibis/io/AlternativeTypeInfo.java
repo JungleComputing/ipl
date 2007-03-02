@@ -2,6 +2,8 @@
 
 package ibis.io;
 
+import java.io.IOException;
+import java.io.NotSerializableException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.ObjectStreamClass;
@@ -38,17 +40,212 @@ final class AlternativeTypeInfo implements IbisStreamFlags {
     /** newInstance method of ObjectStreamClass, when it exists. */
     private static Method newInstance = null;
 
+    private static class ArrayWriter extends IbisWriter {
+        void writeObject(IbisSerializationOutputStream out, Object ref,
+            Class clazz, int hashCode, boolean unshared) throws IOException {
+            out.writeArray(ref, clazz, unshared);
+        }
+    }
+
+    private static class IbisSerializableWriter extends IbisWriter {
+        void writeObject(IbisSerializationOutputStream out, Object ref,
+            Class clazz, int hashCode, boolean unshared) throws IOException {
+            if (! unshared) {
+                out.assignHandle(ref, hashCode);
+            }
+            out.writeType(clazz);
+            ((Serializable) ref).generated_WriteObject(out);
+            out.addStatSendObject(ref);
+        }
+    }
+
+    private static class ExternalizableWriter extends IbisWriter {
+        void writeObject(IbisSerializationOutputStream out, Object ref,
+            Class clazz, int hashCode, boolean unshared) throws IOException {
+            if (! unshared) {
+                out.assignHandle(ref, hashCode);
+            }
+            out.writeType(clazz);
+            out.push_current_object(ref, 0);
+            ((java.io.Externalizable) ref).writeExternal(
+                    out.getJavaObjectOutputStream());
+            out.pop_current_object();
+            out.addStatSendObject(ref);
+        }
+    }
+
+    private static class StringWriter extends IbisWriter {
+        void writeObject(IbisSerializationOutputStream out, Object ref,
+            Class clazz, int hashCode, boolean unshared) throws IOException {
+            if (! unshared) {
+                out.assignHandle(ref, hashCode);
+            }
+            out.writeType(clazz);
+            out.writeUTF((String) ref);
+            out.addStatSendObject(ref);
+        }
+    }
+
+    private static class ClassWriter extends IbisWriter {
+        void writeObject(IbisSerializationOutputStream out, Object ref,
+            Class clazz, int hashCode, boolean unshared) throws IOException {
+            if (! unshared) {
+                out.assignHandle(ref, hashCode);
+            }
+            out.writeType(clazz);
+            out.writeUTF((String) ref);
+            out.addStatSendObject(ref);
+        }
+    }
+
+    private class EnumWriter extends IbisWriter {
+        void writeObject(IbisSerializationOutputStream out, Object ref,
+            Class clazz, int hashCode, boolean unshared) throws IOException {
+            if (! unshared) {
+                out.assignHandle(ref, hashCode);
+            }
+            out.writeType(clazz);
+            out.writeUTF(((Enum) ref).name());
+            out.addStatSendObject(ref);
+        }
+    }
+
+    private static class SerializableWriter extends IbisWriter {
+        void writeObject(IbisSerializationOutputStream out, Object ref,
+            Class clazz, int hashCode, boolean unshared) throws IOException {
+            if (! unshared) {
+                out.assignHandle(ref, hashCode);
+            }
+            out.writeType(clazz);
+            out.writeSerializableObject(ref, clazz);
+            out.addStatSendObject(ref);
+        }
+    }
+
+    private static class NotSerializableWriter extends IbisWriter {
+        void writeObject(IbisSerializationOutputStream out, Object ref,
+            Class clazz, int hashCode, boolean unshared) throws IOException {
+            throw new NotSerializableException("Not serializable: " +
+                    clazz.getName());
+        }
+    }
+
+    private static class IbisSerializableReader extends IbisReader {
+        Object readObject(IbisSerializationInputStream in,
+                AlternativeTypeInfo t, int typeHandle)
+                throws IOException, ClassNotFoundException {
+            return t.gen.generated_newInstance(in);
+        }
+    }
+
+    private static class ArrayReader extends IbisReader {
+        Object readObject(IbisSerializationInputStream in,
+                AlternativeTypeInfo t, int typeHandle)
+                throws IOException, ClassNotFoundException {
+            return in.readArray(t.clazz, typeHandle);
+        }
+    }
+
+    private static class StringReader extends IbisReader {
+        Object readObject(IbisSerializationInputStream in,
+                AlternativeTypeInfo t, int typeHandle)
+                throws IOException, ClassNotFoundException {
+            String o = in.readUTF();
+            in.addObjectToCycleCheck(o);
+            return o;
+        }
+    }
+
+    private static class ClassReader extends IbisReader {
+        Object readObject(IbisSerializationInputStream in,
+                AlternativeTypeInfo t, int typeHandle)
+                throws IOException, ClassNotFoundException {
+            String o = in.readUTF();
+            Object obj = in.getClassFromName(o);
+            in.addObjectToCycleCheck(obj);
+            return obj;
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static class EnumReader extends IbisReader {
+        Object readObject(IbisSerializationInputStream in,
+                AlternativeTypeInfo t, int typeHandle)
+                throws IOException, ClassNotFoundException {
+            String o = in.readUTF();
+            Object obj;
+            try {
+                obj = java.lang.Enum.valueOf(t.clazz, o);
+            } catch(Throwable e) {
+                throw new IOException("Exception while reading enumeration"
+                        + e);
+            }
+            in.addObjectToCycleCheck(obj);
+            return obj;
+        }
+    }
+
+    private static class ExternalizableReader extends IbisReader {
+        Object readObject(IbisSerializationInputStream in,
+                AlternativeTypeInfo t, int typeHandle)
+                throws IOException, ClassNotFoundException {
+            Object obj;
+            try {
+                // Also calls parameter-less constructor
+                obj = t.clazz.newInstance();
+            } catch(Throwable e) {
+                if (IbisStreamFlags.DEBUG) {
+                    in.dbPrint("Caught exception: " + e);
+                    e.printStackTrace();
+                    in.dbPrint("now rethrow as ClassNotFound ...");
+                }
+                throw new ClassNotFoundException("Could not instantiate" + e);
+            }
+            in.addObjectToCycleCheck(obj);
+            in.push_current_object(obj, 0);
+            ((java.io.Externalizable) obj).readExternal(
+                    in.getJavaObjectInputStream());
+            in.pop_current_object();
+            return obj;
+        }
+    }
+
+    private static class SerializableReader extends IbisReader {
+        Object readObject(IbisSerializationInputStream in,
+                AlternativeTypeInfo t, int typeHandle)
+                throws IOException, ClassNotFoundException {
+            Object obj = in.create_uninitialized_object(t.clazz);
+            in.push_current_object(obj, 0);
+            try {
+                in.alternativeReadObject(t, obj);
+            } catch(IllegalAccessException e) {
+                if (IbisStreamFlags.DEBUG) {
+                    in.dbPrint("Caught exception: " + e);
+                    e.printStackTrace();
+                    in.dbPrint("now rethrow as NotSerializableException ...");
+                }
+                throw new NotSerializableException(typeHandle + " " + e);
+            }
+            in.pop_current_object();
+            return obj;
+        }
+    }
+
     /**
      * The <code>Class</code> structure of the class represented by this
      * <code>AlternativeTypeInfo</code> structure.
      */
-    Class<?> clazz;
+    Class clazz;
 
     /** The ObjectStreamClass of clazz. */
     private ObjectStreamClass objectStreamClass;
 
     /** The sorted list of serializable fields. */
     Field[] serializable_fields;
+
+    final IbisWriter writer;
+
+    final IbisReader reader;
 
     /**
      * For each field, indicates whether the field is final.
@@ -642,6 +839,56 @@ final class AlternativeTypeInfo implements IbisStreamFlags {
             throw new SerializationError("Cannot initialize serialization "
                     + "info for " + clazz.getName(), e);
         }
+
+        writer = createWriter();
+        reader = createReader();
+    }
+
+    private IbisWriter createWriter() {
+        if (isArray) {
+            return new ArrayWriter();
+        }
+        if (isIbisSerializable) {
+            return new IbisSerializableWriter();
+        }
+        if (isExternalizable) {
+            return new ExternalizableWriter();
+        }
+        if (isString) {
+            return new StringWriter();
+        }
+        if (isClass) {
+            return new ClassWriter();
+        }
+        if (clazz.isEnum()) {
+            return new EnumWriter();
+        }
+        if (isSerializable) {
+            return new SerializableWriter();
+        }
+        return new NotSerializableWriter();
+    }
+
+    private IbisReader createReader() {
+        if (isArray) {
+            return new ArrayReader();
+        }
+        if (gen != null) {
+            return new IbisSerializableReader();
+        }
+        if (isExternalizable) {
+            return new ExternalizableReader();
+        }
+        if (isString) {
+            return new StringReader();
+        }
+        if (isClass) {
+            return new ClassReader();
+        }
+        if (clazz.isEnum()) {
+            return new EnumReader();
+        }
+        return new SerializableReader();
     }
 
     /**

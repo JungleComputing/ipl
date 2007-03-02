@@ -662,7 +662,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
      * @exception ClassNotFoundException when the array class could
      *  not be loaded.
      */
-    private void readArrayHeader(Class<?> clazz, int len) throws IOException,
+    void readArrayHeader(Class<?> clazz, int len) throws IOException,
             ClassNotFoundException {
 
         if (DEBUG) {
@@ -778,7 +778,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
      *
      * @return the array read.
      */
-    private Object readArray(Class clazz, int type) throws IOException,
+    Object readArray(Class clazz, int type) throws IOException,
             ClassNotFoundException {
 
         if (DEBUG) {
@@ -833,7 +833,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
      * not be loaded.
      * @return the loaded class
      */
-    private Class getClassFromName(String typeName)
+    Class getClassFromName(String typeName)
             throws ClassNotFoundException {
         try {
             return Class.forName(typeName);
@@ -1343,7 +1343,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
      *    denied.
      * @exception ClassNotFoundException when readObject throws it.
      */
-    private void alternativeReadObject(AlternativeTypeInfo t, Object ref)
+    void alternativeReadObject(AlternativeTypeInfo t, Object ref)
             throws ClassNotFoundException, IllegalAccessException, IOException {
 
         if (t.superSerializable) {
@@ -1485,7 +1485,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
         return create_uninitialized_object(clazz);
     }
 
-    private Object create_uninitialized_object(Class clazz) {
+    Object create_uninitialized_object(Class clazz) {
         AlternativeTypeInfo t
                 = AlternativeTypeInfo.getAlternativeTypeInfo(clazz);
 
@@ -1685,63 +1685,8 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
                     + " handle = " + next_handle);
         }
 
-        Object obj;
+        Object obj = t.reader.readObject(this, t, type);
 
-        if (t.gen != null) {
-            obj = t.gen.generated_newInstance(this);
-        } else if (t.isArray) {
-            obj = readArray(t.clazz, type);
-        } else if (t.isString) {
-            obj = readUTF();
-            addObjectToCycleCheck(obj);
-        } else if (t.isClass) {
-            String name = readUTF();
-            obj = getClassFromName(name);
-            addObjectToCycleCheck(obj);
-        } else if (IbisSerializationOutputStream.enumClass != null
-                 && IbisSerializationOutputStream.enumClass.isAssignableFrom(t.clazz)) {
-            String s = readUTF();
-            try {
-                obj = IbisSerializationOutputStream.enumValueOfMethod.invoke(
-                        null, new Object[] { t.clazz, s});
-            } catch(Exception e) {
-                throw new IOException("Exception while reading enumeration" + e);
-            }
-            addObjectToCycleCheck(obj);
-        } else if (t.isExternalizable) {
-            try {
-                // Also calls parameter-less constructor
-                obj = t.clazz.newInstance();
-            } catch (Exception e) {
-                if (DEBUG) {
-                    dbPrint("Caught exception: " + e);
-                    e.printStackTrace();
-                    dbPrint("now rethrow as ClassNotFound ...");
-                }
-                throw new ClassNotFoundException("Could not instantiate" + e);
-            }
-            addObjectToCycleCheck(obj);
-            push_current_object(obj, 0);
-            ((java.io.Externalizable) obj).readExternal(
-                    getJavaObjectInputStream());
-            pop_current_object();
-        } else {
-            // obj = t.clazz.newInstance(); Not correct:
-            // calls wrong constructor.
-            obj = create_uninitialized_object(t.clazz);
-            push_current_object(obj, 0);
-            try {
-                alternativeReadObject(t, obj);
-            } catch (IllegalAccessException e) {
-                if (DEBUG) {
-                    dbPrint("Caught exception: " + e);
-                    e.printStackTrace();
-                    dbPrint("now rethrow as NotSerializableException ...");
-                }
-                throw new NotSerializableException(type + " " + e);
-            }
-            pop_current_object();
-        }
         if (TIME_IBIS_SERIALIZATION) {
             stopTimer();
         }

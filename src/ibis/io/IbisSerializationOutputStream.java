@@ -34,12 +34,6 @@ public class IbisSerializationOutputStream
 
     static final long[] statArrayLength;
 
-    static Class<?> enumClass;
-
-    static Method enumNameMethod;
-
-    static Method enumValueOfMethod;
-
     static {
         if (STATS_OBJECTS) {
             Runtime.getRuntime().addShutdownHook(
@@ -77,27 +71,6 @@ public class IbisSerializationOutputStream
             statArrayCount = null;
             statArrayLength = null;
             statArrayHandle = null;
-        }
-
-        // Special handling of enumeration type, only we cannot use it because
-        // this should be compilable with 1.4. Introspection ...
-
-        try {
-            enumClass = Class.forName("java.lang.Enum");
-        } catch(ClassNotFoundException e) {
-            // O well
-        }
-
-        if (enumClass != null) {
-            try {
-                enumNameMethod = enumClass.getMethod("name", new Class[] {});
-                enumValueOfMethod = enumClass.getMethod("valueOf",
-                        new Class[] { java.lang.Class.class, java.lang.String.class });
-            } catch(Exception e) {
-                enumClass = null;
-                e.printStackTrace();
-                // O well again ...
-            }
         }
     }
 
@@ -356,11 +329,7 @@ public class IbisSerializationOutputStream
         int hashCode = HandleHash.getHashCode(ref);
         int handle = references.find(ref, hashCode);
         if (handle == 0) {
-            handle = next_handle++;
-            references.put(ref, handle, hashCode);
-            if (DEBUG) {
-                dbPrint("writeClass: references[" + handle + "] = " + ref);
-            }
+            assignHandle(ref, hashCode);
             writeType(java.lang.Class.class);
             writeUTF(ref.getName());
         } else {
@@ -1041,7 +1010,7 @@ public class IbisSerializationOutputStream
         }
     }
 
-    private static void addStatSendObject(Object ref) {
+    static void addStatSendObject(Object ref) {
         if (STATS_OBJECTS) {
             Class clazz = ref.getClass();
             Integer n = statSendObjects.get(clazz);
@@ -1092,6 +1061,14 @@ public class IbisSerializationOutputStream
         doWriteObject(ref);
     }
 
+    void assignHandle(Object ref, int hashCode) {
+        int handle = next_handle++;
+        references.put(ref, handle, hashCode);
+        if (DEBUG) {
+            dbPrint("assignHandle: references[" + handle + "] = " + ref);
+        }
+    }
+
     void doWriteObject(Object ref) throws IOException {
         /*
          * ref < 0:	type
@@ -1132,45 +1109,7 @@ public class IbisSerializationOutputStream
                 dbPrint("start writeObject of class " + clazz.getName()
                         + " handle = " + next_handle);
             }
-
-            if (t.isArray) {
-                writeArray(ref, clazz, false);
-            } else {
-                handle = next_handle++;
-                references.put(ref, handle, hashCode);
-                if (DEBUG) {
-                    dbPrint("doWriteObject: references[" + handle + "] = " + ref);
-                }
-                writeType(clazz);
-                if (t.isIbisSerializable) {
-                    ((Serializable) ref).generated_WriteObject(this);
-                } else if (t.isExternalizable) {
-                    push_current_object(ref, 0);
-                    ((java.io.Externalizable) ref).writeExternal(
-                            getJavaObjectOutputStream());
-                    pop_current_object();
-                } else if (clazz == java.lang.String.class) {
-                    /* EEK this is not nice !! */
-                    writeUTF((String) ref);
-                } else if (clazz == java.lang.Class.class) {
-                    /* EEK this is not nice !! */
-                    writeUTF(((Class) ref).getName());
-                } else if (enumClass != null && enumClass.isAssignableFrom(clazz)) {
-                    try {
-                        Object o = enumNameMethod.invoke(ref, new Object[] { });
-                        writeUTF((String) o);
-                    } catch(Exception e) {
-                        throw new IOException("Got exception writing enum" + e);
-                    }
-                } else if (t.isSerializable) {
-                    writeSerializableObject(ref, clazz);
-                } else {
-                    throw new NotSerializableException("Not Serializable : "
-                            + clazz.getName());
-                }
-
-                addStatSendObject(ref);
-            }
+            t.writer.writeObject(this, ref, clazz, hashCode, false);
             if (DEBUG) {
                 dbPrint("finished writeObject of class " + clazz.getName());
             }
@@ -1308,36 +1247,16 @@ public class IbisSerializationOutputStream
              but we don't want to use that when we have ibis.io.Serializable.
              */
             Class clazz = ref.getClass();
+            AlternativeTypeInfo t
+                    = AlternativeTypeInfo.getAlternativeTypeInfo(clazz);
+
             if (DEBUG) {
                 dbPrint("start writeUnshared of class " + clazz.getName()
                         + " handle = " + next_handle);
             }
 
-            if (clazz.isArray()) {
-                ibisStream.writeArray(ref, clazz, true);
-            } else {
-                AlternativeTypeInfo t
-                        = AlternativeTypeInfo.getAlternativeTypeInfo(clazz);
-                ibisStream.writeType(clazz);
-                if (t.isIbisSerializable) {
-                    ((Serializable) ref).generated_WriteObject(ibisStream);
-                } else if (clazz == java.lang.String.class) {
-                    /* EEK this is not nice !! */
-                    ibisStream.writeUTF((String) ref);
-                } else if (clazz == java.lang.Class.class) {
-                    /* EEK this is not nice !! */
-                    ibisStream.writeUTF(((Class) ref).getName());
-                } else if (ref instanceof java.io.Externalizable) {
-                    push_current_object(ref, 0);
-                    ((java.io.Externalizable) ref).writeExternal(this);
-                    pop_current_object();
-                } else if (ref instanceof java.io.Serializable) {
-                    ibisStream.writeSerializableObject(ref, clazz);
-                } else {
-                    throw new RuntimeException("Not Serializable : "
-                            + clazz.getName());
-                }
-            }
+            t.writer.writeObject(ibisStream, ref, clazz, 0, true);
+
             if (DEBUG) {
                 dbPrint("finished writeUnshared of class " + clazz.getName()
                         + " handle = " + next_handle);
