@@ -26,7 +26,7 @@
 	<mkdir dir="${ibis}/lib"/>
     </target>
 
-    <target name="init" depends="property-init,make-dirs,jars"/>
+    <target name="init" depends="property-init,make-dirs,copyjars"/>
 
     <!--
     Compile only
@@ -34,18 +34,11 @@
     <target name="compile" depends="init">
 	<javac  destdir="${build}" debug="true" srcdir="${src}"
 	    includes="ibis/**/*.java">
+	    <!--
 	    <compilerarg value="-Xlint:unchecked"/>
+	    -->
 	    <classpath refid="default.classpath"/>
 	</javac>
-	<!--
-	    Build ibis-ipl.jar before rewriting, otherwise it has references
-	    to ibis.io. We want to be able to compile an Ibis application
-	    with only ibis-ipl.jar in the classpath.
-	-->
-	<jar	destfile="lib/ibis-ipl.jar"
-	    basedir="${build}"
-	    includes="ibis/ipl/*.class">
-	</jar>
     </target>
 
     <!--
@@ -53,7 +46,7 @@
     -->
 
     <target name="build"
-	depends="compile, ibis-rmic, copyProperties, ibis-iogen, ibis.jar"
+	depends="compile, ibis-rmic, copyProperties, ibis-iogen, jars"
 	description="Build Ibis">
     </target>
 
@@ -99,14 +92,14 @@
 	</copy>
     </target>
 
-    <target name="jars"
-	description="Generate jar files for ibis">
+    <target name="copyjars"
+	description="Copy jar files for ibis">
 	<copy todir="${ibis}/lib">
 	    <fileset dir="${ibis}/3rdparty" includes="*.jar"/>
 	</copy>
     </target>
 
-    <target name="ibis.jar">
+    <target name="jars">
 	<jar	destfile="${jar}"
 	    basedir="${build}"
 	    includes="ibis/**/*.class **/capabilities smartsockets.properties ibis.properties">
@@ -114,6 +107,10 @@
 		<attribute name="Ibisc-Component" value="ibis.frontend.io.IOGenerator,ibis.frontend.gmi.Gmic,ibis.frontend.rmi.Rmic,ibis.frontend.satin.Satinc"/>
 		<attribute name="Ibis-Implementation" value="ibis.impl.tcp.TcpIbis,ibis.impl.smartsockets.TcpIbis"/>
 	    </manifest>
+	</jar>
+	<jar	destfile="lib/ibis-ipl.jar"
+	    basedir="${build}"
+	    includes="ibis/ipl/*.class">
 	</jar>
     </target>
 
