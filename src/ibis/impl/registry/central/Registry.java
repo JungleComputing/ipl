@@ -19,7 +19,7 @@ import ibis.util.TypedProperties;
  * Gossiping registry.
  */
 public final class Registry extends ibis.impl.Registry implements Runnable {
-    
+
     public static final boolean DEFAULT_SMARTSOCKETS = true;
 
     public static final int MAX_GOSSIP_INTERVAL = 20 * 1000;
@@ -55,6 +55,8 @@ public final class Registry extends ibis.impl.Registry implements Runnable {
 
     private boolean stopped = false;
 
+    private final Server server;
+
     public Registry(ibis.impl.Ibis ibis, boolean needsUpcalls, byte[] data)
             throws IOException, IbisConfigurationException {
 
@@ -67,26 +69,47 @@ public final class Registry extends ibis.impl.Registry implements Runnable {
         TypedProperties properties = new TypedProperties(ibis.properties());
         String serverString = properties
                 .getProperty(RegistryProperties.SERVER_ADDRESS);
-        
-        boolean smart = properties.booleanProperty(RegistryProperties.SMARTSOCKETS, DEFAULT_SMARTSOCKETS);
-        
-        connectionFactory = new ConnectionFactory(0, smart, serverString, properties);
-        
+
+        boolean smart = properties.booleanProperty(
+                RegistryProperties.SMARTSOCKETS, DEFAULT_SMARTSOCKETS);
+
+        connectionFactory = new ConnectionFactory(0, smart, serverString,
+                properties);
+
+        Server server = null;
+        if (connectionFactory.serverIsLocalHost()) {
+            try {
+                properties.setProperty(RegistryProperties.SERVER_IMPL,
+                        "ibis.impl.registry.central.Server");
+                properties
+                        .setProperty(RegistryProperties.SERVER_SINGLE, "true");
+                server = new Server(properties);
+                server.setDaemon(true);
+                server.start();
+                logger.warn("Automagically created server on " + server.getLocalAddress());
+            } catch (Throwable t) {
+                // IGNORE
+            }
+        }
+        this.server = server;
+
         // Next, get the nameserver pool ....
         poolName = properties.getProperty(RegistryProperties.POOL);
         if (poolName == null) {
-            throw new IbisConfigurationException("property " + RegistryProperties.POOL
-                    + " is not specified");
+            throw new IbisConfigurationException("property "
+                    + RegistryProperties.POOL + " is not specified");
         }
 
         boolean gossip = properties.booleanProperty(RegistryProperties.GOSSIP);
-        keepClientState = properties.booleanProperty(RegistryProperties.KEEP_NODE_STATE);
+        keepClientState = properties
+                .booleanProperty(RegistryProperties.KEEP_NODE_STATE);
 
         Location location = Location.defaultLocation();
 
         // join at server, also sets identifier and adds a number of ibisses
         // to the "current" ibis list
-        identifier = join(connectionFactory.getLocalAddress(), location, data, gossip, keepClientState);
+        identifier = join(connectionFactory.getLocalAddress(), location, data,
+                gossip, keepClientState);
 
         if (gossip) {
             // start gossiping
@@ -157,16 +180,16 @@ public final class Registry extends ibis.impl.Registry implements Runnable {
      * @throws IOException
      *             in case of trouble
      */
-    private IbisIdentifier join(byte[] myAddress,
-            Location location, byte[] implementationData, boolean gossip,
-            boolean stateFullServer) throws IOException {
+    private IbisIdentifier join(byte[] myAddress, Location location,
+            byte[] implementationData, boolean gossip, boolean stateFullServer)
+            throws IOException {
         logger.debug("joining to " + getPoolName());
-        Connection connection = connectionFactory.connectToServer(Protocol.OPCODE_JOIN, SERVER_CONNECT_TIMEOUT); 
+        Connection connection = connectionFactory.connectToServer(
+                Protocol.OPCODE_JOIN, SERVER_CONNECT_TIMEOUT);
 
         try {
             connection.out().writeInt(myAddress.length);
             connection.out().write(myAddress);
-
 
             connection.out().writeUTF(getPoolName());
             connection.out().writeInt(implementationData.length);
@@ -214,6 +237,14 @@ public final class Registry extends ibis.impl.Registry implements Runnable {
             }
             connectionFactory.end();
             logger.debug("left");
+            if (server != null) {
+                logger.info("waiting for server to stop");
+                try {
+                    server.join();
+                } catch (InterruptedException e) {
+                    // IGNORE
+                }
+            }
         } catch (IOException e) {
             connection.close();
             synchronized (this) {

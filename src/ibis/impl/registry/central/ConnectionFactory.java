@@ -36,7 +36,7 @@ public class ConnectionFactory {
 
     private final ServerSocket plainServerSocket;
     
-    private final InetAddress plainServerSocketAddress;
+    private final InetAddress plainLocalAddress;
 
     private final InetSocketAddress plainServerAddress;
 
@@ -72,7 +72,7 @@ public class ConnectionFactory {
         if (smart) {
             plainServerSocket = null;
             plainServerAddress = null;
-            plainServerSocketAddress = null;
+            plainLocalAddress = null;
 
             try {
                 if (port != 0) {
@@ -107,7 +107,7 @@ public class ConnectionFactory {
             virtualServerAddress = null;
 
             plainServerSocket = new ServerSocket(port, CONNECTION_BACKLOG);
-            plainServerSocketAddress = IPUtils.getLocalHostAddress();
+            plainLocalAddress = IPUtils.getLocalHostAddress();
 
             if (serverString != null) {
 
@@ -227,7 +227,7 @@ public class ConnectionFactory {
         if (smart) {
             return virtualServerSocket.getLocalSocketAddress().toBytes();
         } else {
-            return plainAddressToBytes(plainServerSocketAddress,
+            return plainAddressToBytes(plainLocalAddress,
                     plainServerSocket.getLocalPort());
         }
     }
@@ -236,7 +236,7 @@ public class ConnectionFactory {
         if (smart) {
             return virtualServerSocket.getLocalSocketAddress().toString();
         } else {
-            return plainServerSocketAddress.getHostAddress() + ":"
+            return plainLocalAddress.getHostAddress() + ":"
                     + plainServerSocket.getLocalPort();
         }
     }
@@ -256,6 +256,23 @@ public class ConnectionFactory {
                         "could not connection to server, address not specified");
             }
             return new Connection(plainServerAddress, opcode, timeout);
+        }
+    }
+
+    public boolean serverIsLocalHost() {
+        if (smart) {
+            if (virtualServerAddress == null) {
+                return false;
+            }
+            return virtualServerSocket.getLocalSocketAddress().machine().sameMachine(virtualServerAddress.machine());
+        } else {
+            if (plainServerAddress == null) {
+                return false;
+            }
+            if (plainServerAddress.getAddress().isLoopbackAddress()) {
+                return true;
+            }
+            return plainServerAddress.equals(plainLocalAddress);
         }
     }
 }

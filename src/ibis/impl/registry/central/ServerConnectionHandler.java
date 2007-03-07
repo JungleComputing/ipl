@@ -85,6 +85,11 @@ public class ServerConnectionHandler implements Runnable {
             connection.closeWithError(e.toString());
             return;
         }
+        
+        if (pool.ended()) {
+            //wake up the server so it can check the pools (and remove this one)
+            server.nudge();
+        }
 
         connection.sendOKReply();
     }

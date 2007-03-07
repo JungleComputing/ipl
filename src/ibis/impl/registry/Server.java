@@ -3,7 +3,6 @@ package ibis.impl.registry;
 import ibis.ipl.IbisProperties;
 import ibis.util.Log;
 import ibis.util.PoolInfoServer;
-import ibis.util.ThreadPool;
 import ibis.util.TypedProperties;
 
 import java.io.PrintStream;
@@ -20,8 +19,9 @@ public abstract class Server extends Thread {
     private static final Logger logger = Logger.getLogger("ibis.impl.registry");
 
     private static void printUsage(PrintStream stream) {
+        stream.println("Start a registry server for Ibis)");
         stream.println();
-        stream.println("Ibis Server USAGE: ibis-server [OPTIONS]");
+        stream.println("USAGE: ibis-registry-server [OPTIONS]");
         stream.println();
         stream.println("Basic options:");
         stream.println();
@@ -36,7 +36,7 @@ public abstract class Server extends Thread {
         stream.println("\t\t\tOnly works with --hub or --hub_only options");
         stream.println();
         stream
-                .println("--pool_info_server\t\t\tAlso start a PoolInfoServer hub on PORT+2");
+                .println("--pool_info_server\tAlso start a PoolInfoServer hub on PORT+2");
         stream.println();
 
         stream.println("--warn\t\t\tOnly print warnings and errors, "
@@ -48,14 +48,14 @@ public abstract class Server extends Thread {
         stream.println("Advanced options:");
         stream.println();
         stream
-                .println("--old_plain\t\tUse a version of the registry without smart sockets");
+                .println("--old_plain\t\tUse a version of the registry without smartsockets");
 
         stream
-                .println("--old_smart\t\tUse a version of the registry with smart sockets");
+                .println("--old_smart\t\tUse a version of the registry with smartsockets");
         stream
-                .println("--new_plain\t\tUse the new registry implementation, without smart sockets");
+                .println("--new_plain\t\tNew registry implementation, without smartsockets");
         stream
-                .println("--new_smart\t\tUse the new registry implementation, with smart sockets (default)");
+                .println("--new_smart\t\tUse the new registry implementation, with smartsockets");
         stream.println();
         stream.println("PROPERTY=VALUE\t\tset a property");
         stream.println();
@@ -176,7 +176,7 @@ public abstract class Server extends Thread {
                 new PoolInfoServer(port, false);
                 logger.info("PoolInfoServer running on port " + port);
             } catch (Throwable t) {
-               logger.warn("Could not start Pool info: ", t);
+                logger.warn("Could not start Pool info: ", t);
             }
         }
 
@@ -187,8 +187,7 @@ public abstract class Server extends Thread {
         if (!hubOnly) {
             try {
                 server = createServer(properties);
-                logger.info("Server running on "
-                        + server.getLocalAddress());
+                logger.info("Server running on " + server.getLocalAddress());
             } catch (Throwable t) {
                 logger.error("Could not start Server", t);
                 System.exit(1);

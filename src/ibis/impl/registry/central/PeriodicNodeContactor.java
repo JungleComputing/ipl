@@ -3,6 +3,7 @@ package ibis.impl.registry.central;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -13,7 +14,7 @@ import ibis.util.ThreadPool;
 class PeriodicNodeContactor implements Runnable {
 
     private static final long MIN_TIMEOUT = 100;
-    
+
     private static final long MAX_TIMEOUT = 10 * 1000;
 
     private static final long DELAY = 1000;
@@ -29,6 +30,14 @@ class PeriodicNodeContactor implements Runnable {
     private final boolean randomNodeSelection;
 
     private final boolean sendEvents;
+
+    private static class SimpleThreadFactory implements ThreadFactory {
+        public Thread newThread(Runnable r) {
+            Thread result = new Thread(r);
+            result.setDaemon(true);
+            return result;
+        }
+    }
 
     private static class Scheduler implements Runnable {
 
@@ -48,7 +57,7 @@ class PeriodicNodeContactor implements Runnable {
             BlockingQueue<Runnable> workQ = new ArrayBlockingQueue<Runnable>(
                     threads * 2);
             executor = new ThreadPoolExecutor(threads, threads, 60,
-                    TimeUnit.SECONDS, workQ);
+                    TimeUnit.SECONDS, workQ, new SimpleThreadFactory());
 
             ThreadPool.createNew(this, "scheduler thread");
         }

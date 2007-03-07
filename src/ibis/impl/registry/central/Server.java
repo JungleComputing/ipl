@@ -11,7 +11,7 @@ import org.apache.log4j.Logger;
 
 public final class Server extends ibis.impl.registry.Server {
 
-    private static final Logger logger = Logger.getLogger(Registry.class);
+    private static final Logger logger = Logger.getLogger(Server.class);
 
     private static final long POOL_CLEANUP_TIMEOUT = 60 * 1000;
 
@@ -74,6 +74,11 @@ public final class Server extends ibis.impl.registry.Server {
         connectionFactory.end();
         handler.printStats(false);
     }
+    
+    //force the server to check the pools _now_
+    synchronized void nudge(){
+        notifyAll();
+    }
 
     // pool cleanup thread
     public synchronized void run() {
@@ -87,14 +92,15 @@ public final class Server extends ibis.impl.registry.Server {
                 if (poolArray[i].ended()) {
                     pools.remove(poolArray[i].getName());
                     if (single && pools.size() == 0) {
-                        logger.info("server exiting");
                         stopServer();
+                        logger.info("server exiting");
                         return;
                     }
                 }
                 logger.info("event time for pool " + poolArray[i].getName() + " with " + poolArray[i].getSize()
                         + " members now " + poolArray[i].getEventTime());
             }
+          
 
             try {
                 wait(POOL_CLEANUP_TIMEOUT);
