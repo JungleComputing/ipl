@@ -23,70 +23,94 @@ public class RegistryProperties {
     public static final String SERVER_PORT = SERVER_PREFIX + "port";
 
     public static final String SERVER_IMPL = SERVER_PREFIX + "impl";
-    
+
     public static final String SERVER_SINGLE = SERVER_PREFIX + "single";
 
     // "tcp" and "smartsockets" registry specific properties
-    
-    public static final String CHECKER_INTERVAL = SERVER_PREFIX
+
+    public static final String CLASSIC_PREFIX = PREFIX + "classic.";
+
+    public static final String CLASSIC_PINGER_TIMEOUT = CLASSIC_PREFIX
+            + "pingerTimeout";
+
+    public static final String CLASSIC_CHECKER_INTERVAL = CLASSIC_PREFIX
             + "checkerInterval";
+
+    public static final String CLASSIC_CONNECT_TIMEOUT = CLASSIC_PREFIX
+            + "connectTimeout";
+
+    public static final String CLASSIC_JOINER_INTERVAL = CLASSIC_PREFIX
+            + "joinerInterval";
+
+    public static final String CLASSIC_MAX_THREADS = CLASSIC_PREFIX
+            + "maxThreads";
 
     // "central" registry specific properties
 
-    public static final String SMARTSOCKETS = PREFIX + "smartSockets";
-    
-    public static final String GOSSIP = PREFIX + "gossip";
-    
-    public static final String KEEP_NODE_STATE = PREFIX + "keepClientState";  
+    public static final String CENTRAL_PREFIX = PREFIX + "central.";
+
+    public static final String CENTRAL_SMARTSOCKETS = CENTRAL_PREFIX
+            + "smartSockets";
+
+    public static final String CENTRAL_GOSSIP = CENTRAL_PREFIX + "gossip";
+
+    public static final String CENTRAL_KEEP_NODE_STATE = CENTRAL_PREFIX
+            + "keepClientState";
 
     // list of decriptions and defaults
     private static final String[][] propertiesList = new String[][] {
-            {IMPL,
-            "Implementation of registry(client)",
-            "ibis.impl.registry.tcp.NameServerClient"},
+            { IMPL, "ibis.impl.registry.tcp.NameServerClient",
+                    "Implementation of registry(client)" },
 
-            {SERVER_ADDRESS,
-            "Address of server to connect to",
-            "localhost:9826"},
+            { SERVER_ADDRESS, "localhost:9826",
+                    "Address of server to connect to" },
 
-            {POOL,
-            "Pool to join",
-            "DEFAULT"},
+            { POOL, "DEFAULT", "Pool to join" },
 
-            {SERVER_PORT,
-            "Int: Port which the server binds to",
-            "9826"},
+            { SERVER_PORT, "9826", "Int: Port which the server binds to" },
 
-            {SERVER_IMPL,
-            "Implementation of the registry server (must match client)",
-            "ibis.impl.registry.tcp.NameServer"},
-            
-            {SERVER_SINGLE,
-            "Boolean: Stop server after one pool has been served",
-            "false"},
+            { SERVER_IMPL, "ibis.impl.registry.tcp.NameServer",
+                    "Implementation of the registry server (must match client)" },
 
-            {CHECKER_INTERVAL,
-            "Int: How often do we check if each Ibis in the pool is still alive 0=never",
-            "0"},
+            { SERVER_SINGLE, "false",
+                    "Boolean: Stop server after one pool has been served" },
 
-            {SMARTSOCKETS,
-            "Boolean: if true use smartsockets, if false just plain tcp",
-            "true"},
-            
-            {GOSSIP,
-             "Boolean: do we gossip, or send events centrally",
-             "false"},
-             
-            {KEEP_NODE_STATE,
-             "Boolean: do we keep track of which events nodes have",
-             "false"},
+            { CLASSIC_PINGER_TIMEOUT, "60",
+                    "Int: seconds until we delare a ping attempt failed" },
+
+            {
+                    CLASSIC_CHECKER_INTERVAL,
+                    "0",
+                    "Int(seconds): How often do we check if each Ibis in the "
+                            + "pool is still alive (0 = never)" },
+
+            { CLASSIC_CONNECT_TIMEOUT, "10",
+                    "Int(seconds): How long may creating a connection take" },
+
+            { CLASSIC_JOINER_INTERVAL, "5",
+                    "Int(seconds): How often do we forward joins to nodes" },
+
+            { CLASSIC_MAX_THREADS, "8",
+                    "Int: Maximum number of forwarder threads" },
+                    
+            { CENTRAL_SMARTSOCKETS, "true",
+                    "Boolean: if true use smartsockets, if false just plain tcp" },
+
+            { CENTRAL_GOSSIP, "false",
+                    "Boolean: do we gossip, or send events centrally" },
+
+            { CENTRAL_KEEP_NODE_STATE, "false",
+                    "Boolean: do we keep track of which events nodes have" }
+
     };
 
     public static Properties getHardcodedProperties() {
         Properties properties = new Properties();
 
-        for (String[] element: propertiesList) {
-            properties.setProperty(element[0], element[2]);
+        for (String[] element : propertiesList) {
+            if (element[1] != null) {
+                properties.setProperty(element[0], element[1]);
+            }
         }
 
         return properties;
@@ -95,8 +119,8 @@ public class RegistryProperties {
     public static Map<String, String> getDescriptions() {
         Map<String, String> result = new HashMap<String, String>();
 
-        for (String[] element: propertiesList) {
-            result.put(element[0], element[1]);
+        for (String[] element : propertiesList) {
+            result.put(element[0], element[2]);
         }
 
         return result;

@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 
 import org.apache.log4j.Logger;
@@ -17,16 +18,13 @@ import org.apache.log4j.Logger;
 class ElectionClient implements Protocol {
     static Logger logger = Logger.getLogger(ElectionClient.class);
 
-    InetAddress server;
-
-    int port;
+    InetSocketAddress server;
 
     InetAddress localAddress = null;
 
 
-    ElectionClient(InetAddress localAddress, InetAddress server, int port) {
+    ElectionClient(InetAddress localAddress, InetSocketAddress server) {
         this.server = server;
-        this.port = port;
         this.localAddress = localAddress;
     }
 
@@ -42,7 +40,7 @@ class ElectionClient implements Protocol {
         logger.info("Election " + election + ": candidate = " + candidate);
         while (result == null) {
             try {
-                s = NameServerClient.nsConnect(server, port, localAddress,
+                s = NameServerClient.nsConnect(server, localAddress,
                         false, 10);
                 out = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
 

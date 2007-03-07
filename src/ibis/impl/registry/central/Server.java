@@ -36,7 +36,7 @@ public final class Server extends ibis.impl.registry.Server {
             throw new IOException("can only start registry server on a positive port");
         }
 
-        boolean smart = typedProperties.booleanProperty(RegistryProperties.SMARTSOCKETS, true);
+        boolean smart = typedProperties.booleanProperty(RegistryProperties.CENTRAL_SMARTSOCKETS, true);
 
         connectionFactory = new ConnectionFactory(port, smart, null, properties);
         

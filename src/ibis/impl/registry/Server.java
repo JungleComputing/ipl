@@ -122,21 +122,19 @@ public abstract class Server extends Thread {
             } else if (args[i].equalsIgnoreCase("--old_plain")) {
                 properties.setProperty(RegistryProperties.SERVER_IMPL,
                         "ibis.impl.registry.tcp.NameServer");
-                properties
-                        .setProperty(RegistryProperties.SMARTSOCKETS, "false");
             } else if (args[i].equalsIgnoreCase("--old_smart")) {
                 properties.setProperty(RegistryProperties.SERVER_IMPL,
                         "ibis.impl.registry.smartsockets.NameServer");
-                properties.setProperty(RegistryProperties.SMARTSOCKETS, "true");
             } else if (args[i].equalsIgnoreCase("--new_plain")) {
                 properties.setProperty(RegistryProperties.SERVER_IMPL,
                         "ibis.impl.registry.central.Server");
-                properties
-                        .setProperty(RegistryProperties.SMARTSOCKETS, "false");
+                properties.setProperty(RegistryProperties.CENTRAL_SMARTSOCKETS,
+                        "false");
             } else if (args[i].equalsIgnoreCase("--new_smart")) {
                 properties.setProperty(RegistryProperties.SERVER_IMPL,
                         "ibis.impl.registry.central.Server");
-                properties.setProperty(RegistryProperties.SMARTSOCKETS, "true");
+                properties.setProperty(RegistryProperties.CENTRAL_SMARTSOCKETS,
+                        "true");
             } else if (args[i].contains("=")) {
                 String[] parts = args[i].split("=", 2);
                 properties.setProperty(parts[0], parts[1]);

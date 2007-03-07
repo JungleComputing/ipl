@@ -13,7 +13,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
 import java.util.ArrayList;
-import java.util.Iterator;
 
 import org.apache.log4j.Logger;
 
@@ -29,12 +28,8 @@ class ElectionServer extends Thread implements Protocol {
 
     private DataOutputStream out;
 
-    boolean silent;
-
-    ElectionServer(boolean silent) throws IOException {
+    ElectionServer() throws IOException {
         elections = new HashMap<String, IbisIdentifier>();
-
-        this.silent = silent;
 
         serverSocket = new ServerSocket();
         serverSocket.bind(null, 256);
@@ -107,19 +102,22 @@ class ElectionServer extends Thread implements Protocol {
             try {
                 s = serverSocket.accept();
             } catch (Throwable e) {
-            	logger.error("Got an exception in ElectionServer accept: " + e, e);
-            	
-            	try {
-            		Thread.sleep(1000);
-            	} catch (Exception x) {
-            		// ignore
-            	}
-            	continue;
+                logger.error("Got an exception in ElectionServer accept: " + e,
+                        e);
+
+                try {
+                    Thread.sleep(1000);
+                } catch (Exception x) {
+                    // ignore
+                }
+                continue;
             }
 
             try {
-                in = new DataInputStream(new BufferedInputStream(s.getInputStream()));
-                out = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
+                in = new DataInputStream(new BufferedInputStream(s
+                        .getInputStream()));
+                out = new DataOutputStream(new BufferedOutputStream(s
+                        .getOutputStream()));
 
                 opcode = in.readByte();
 
@@ -134,16 +132,11 @@ class ElectionServer extends Thread implements Protocol {
                     serverSocket.close();
                     return;
                 default:
-                    if (! silent) {
-                        logger.error("ElectionServer: got an illegal opcode "
-                                + opcode);
-                    }
+                    logger.error("ElectionServer: got an illegal opcode "
+                            + opcode);
                 }
             } catch (Throwable e) {
-                if (! silent) {
-                    logger.error("Got an exception in ElectionServer.run " + e,
-                            e);
-                }
+                logger.error("Got an exception in ElectionServer.run " + e, e);
             } finally {
                 NameServer.closeConnection(in, out, s);
             }

@@ -71,7 +71,7 @@ public final class Registry extends ibis.impl.Registry implements Runnable {
                 .getProperty(RegistryProperties.SERVER_ADDRESS);
 
         boolean smart = properties.booleanProperty(
-                RegistryProperties.SMARTSOCKETS, DEFAULT_SMARTSOCKETS);
+                RegistryProperties.CENTRAL_SMARTSOCKETS, DEFAULT_SMARTSOCKETS);
 
         connectionFactory = new ConnectionFactory(0, smart, serverString,
                 properties);
@@ -79,14 +79,13 @@ public final class Registry extends ibis.impl.Registry implements Runnable {
         Server server = null;
         if (connectionFactory.serverIsLocalHost()) {
             try {
-                properties.setProperty(RegistryProperties.SERVER_IMPL,
-                        "ibis.impl.registry.central.Server");
                 properties
                         .setProperty(RegistryProperties.SERVER_SINGLE, "true");
                 server = new Server(properties);
                 server.setDaemon(true);
                 server.start();
-                logger.warn("Automagically created server on " + server.getLocalAddress());
+                logger.warn("Automagically created server on "
+                        + server.getLocalAddress());
             } catch (Throwable t) {
                 // IGNORE
             }
@@ -100,9 +99,10 @@ public final class Registry extends ibis.impl.Registry implements Runnable {
                     + RegistryProperties.POOL + " is not specified");
         }
 
-        boolean gossip = properties.booleanProperty(RegistryProperties.GOSSIP);
+        boolean gossip = properties
+                .booleanProperty(RegistryProperties.CENTRAL_GOSSIP);
         keepClientState = properties
-                .booleanProperty(RegistryProperties.KEEP_NODE_STATE);
+                .booleanProperty(RegistryProperties.CENTRAL_KEEP_NODE_STATE);
 
         Location location = Location.defaultLocation();
 
