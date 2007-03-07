@@ -58,8 +58,9 @@ public final class SharedObjects implements Config {
         synchronized (s) {
             sharedObjects.put(object.objectId, i);
         }
-        
-        soLogger.debug("SATIN '" + s.ident.name() + "': " + "object added, id = " + object.objectId);
+
+        soLogger.debug("SATIN '" + s.ident.name() + "': "
+                + "object added, id = " + object.objectId);
     }
 
     /** Return a reference to a shared object */
@@ -67,7 +68,8 @@ public final class SharedObjects implements Config {
         synchronized (s) {
             SharedObjectInfo i = (SharedObjectInfo) sharedObjects.get(objectId);
             if (i == null) {
-                soLogger.debug("SATIN '" + s.ident.name() + "': " + "object not found in getSOReference");
+                soLogger.debug("SATIN '" + s.ident.name() + "': "
+                        + "object not found in getSOReference");
                 return null;
             }
             return i.sharedObject;
@@ -99,28 +101,32 @@ public final class SharedObjects implements Config {
      * Execute all the so invocations stored in the so invocations list
      */
     public void handleSOInvocations() {
-        gotSOInvocations = false;
         while (true) {
-            s.stats.handleSOInvocationsTimer.start();
+            SOInvocationRecord soir = null;
+            SharedObject so = null;
 
-            if (soInvocationList.size() == 0) {
-                s.stats.handleSOInvocationsTimer.stop();
-                return;
+            synchronized (s) {
+                if (soInvocationList.size() == 0) {
+                    gotSOInvocations = false;
+                    return;
+                }
+
+                soir = (SOInvocationRecord) soInvocationList.remove(0);
+                so = getSOReference(soir.getObjectId());
+
+                // This could be an update for an object that is 
+                // not in our tables. Just ignore it.
+                if (so == null) {
+                    continue;
+                }
             }
-            SOInvocationRecord soir =
-                    (SOInvocationRecord) soInvocationList.remove(0);
-            SharedObject so = getSOReference(soir.getObjectId());
-
-            if (so == null) {
-                s.stats.handleSOInvocationsTimer.stop();
-                return;
-            }
-
+            
             // No need to hold the satin lock here.
             // Object transfer requests cannot be handled
             // in the middle of a method invocation, 
             // as transfers are  delayed until a safe point is
             // reached
+            s.stats.handleSOInvocationsTimer.start();
             soir.invoke(so);
             s.stats.handleSOInvocationsTimer.stop();
         }
@@ -135,8 +141,9 @@ public final class SharedObjects implements Config {
         s.handleDelayedMessages();
         SharedObject obj = getSOReference(objectId);
         if (obj == null) {
-            if(source == null) {
-                throw new Error("internal error, source is null in setSOReference");
+            if (source == null) {
+                throw new Error(
+                        "internal error, source is null in setSOReference");
             }
             soComm.fetchObject(objectId, source, null);
         }
@@ -155,7 +162,7 @@ public final class SharedObjects implements Config {
     }
 
     /** returns false if the job must be aborted */
-    public boolean executeGuard(InvocationRecord r) {   
+    public boolean executeGuard(InvocationRecord r) {
         try {
             doExecuteGuard(r);
         } catch (SOReferenceSourceCrashedException e) {
@@ -174,21 +181,21 @@ public final class SharedObjects implements Config {
         // restore shared object references
         r.setSOReferences();
 
-        if (r.guard()) return;
+        if (r.guard())
+            return;
 
         s.stats.soGuardTimer.start();
 
         soLogger.info("SATIN '" + s.ident.name() + "': "
-            + "guard not satisfied, getting updates..");
+                + "guard not satisfied, getting updates..");
 
         // try to ship the object(s) from the owner of the job
         Vector objRefs = r.getSOReferences();
         if (objRefs == null || objRefs.isEmpty()) {
-            soLogger
-                .fatal("SATIN '" + s.ident.name() + "': "
-                    + "a guard is not satisfied, but the spawn does not " +
-                                "have shared objects.\n" + 
-                                "This is not a correct Satin program.");
+            soLogger.fatal("SATIN '" + s.ident.name() + "': "
+                    + "a guard is not satisfied, but the spawn does not "
+                    + "have shared objects.\n"
+                    + "This is not a correct Satin program.");
             System.exit(1);
         }
 
@@ -206,7 +213,8 @@ public final class SharedObjects implements Config {
         }
     }
 
-    public void addToSORequestList(IbisIdentifier requester, String objID, boolean demand) {
+    public void addToSORequestList(IbisIdentifier requester, String objID,
+            boolean demand) {
         Satin.assertLocked(s);
         SORequestList.add(requester, objID, demand);
         gotSORequests = true;
@@ -243,7 +251,7 @@ public final class SharedObjects implements Config {
     public void handleMyOwnJoin() {
         soComm.handleMyOwnJoin();
     }
-    
+
     public void removeSOConnection(IbisIdentifier id) {
         soComm.removeSOConnection(id);
     }
@@ -259,7 +267,7 @@ public final class SharedObjects implements Config {
     public void handleCrash(IbisIdentifier id) {
         soComm.handleCrash(id);
     }
-    
+
     public void exit() {
         soComm.exit();
     }
