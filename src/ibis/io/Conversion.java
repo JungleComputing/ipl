@@ -2,7 +2,7 @@
 
 package ibis.io;
 
-//import java.lang.reflect.Constructor;
+// import java.lang.reflect.Constructor;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -12,11 +12,12 @@ import java.util.Properties;
 
 public abstract class Conversion {
 
-    /* NOTE: 
-     *  
-     * All conversion methods in this class have the precondition that 
-     * the data actually fits in the destination buffer. The user should 
-     * do the buffering himself.  
+    /*
+     * NOTE:
+     * 
+     * All conversion methods in this class have the precondition that the data
+     * actually fits in the destination buffer. The user should do the buffering
+     * himself.
      */
 
     public static final Conversion defaultConversion;
@@ -71,10 +72,10 @@ public abstract class Conversion {
     /** The number of bits in a single 'float'. */
     public final static int BITS_PER_FLOAT = BITS_PER_BYTE * FLOAT_SIZE;
 
-    /** The number of bytes in a single 'double'  */
+    /** The number of bytes in a single 'double' */
     public final static int DOUBLE_SIZE = 8;
 
-    /** The number of bits in a single 'double'  */
+    /** The number of bits in a single 'double' */
     public final static int BITS_PER_DOUBLE = BITS_PER_BYTE * DOUBLE_SIZE;
 
     /**
@@ -91,8 +92,7 @@ public abstract class Conversion {
      * Load a conversion
      */
     public static final Conversion loadConversion(boolean bigEndian) {
-        Properties properties
-                = ibis.ipl.IbisFactory.getDefaultProperties();
+        Properties properties = IOProps.properties;
 
         String conversion = properties.getProperty(IOProps.s_conversion);
 
@@ -104,7 +104,7 @@ public abstract class Conversion {
                 }
                 return new ibis.io.nio.NioWrapLittleConversion();
             } catch (Exception e) {
-                //nio conversion loading failed
+                // nio conversion loading failed
             }
         } else if (conversion != null && conversion.equalsIgnoreCase("chunk")) {
             System.err.println("nio/chunk conversion selected");
@@ -114,11 +114,10 @@ public abstract class Conversion {
                 }
                 return new ibis.io.nio.NioChunkLittleConversion();
             } catch (Exception e) {
-                //nio conversion loading failed
+                // nio conversion loading failed
             }
-        } else if (conversion == null
-                || conversion.equalsIgnoreCase("hybrid")) {
-            //default conversion
+        } else if (conversion == null || conversion.equalsIgnoreCase("hybrid")) {
+            // default conversion
             if (conversion != null) {
                 System.err.println("hybrid conversion selected");
             }
@@ -129,11 +128,11 @@ public abstract class Conversion {
                 }
                 return new ibis.io.nio.HybridChunkLittleConversion();
             } catch (Exception e) {
-                //hybrid conversion loading failed
+                // hybrid conversion loading failed
             }
         }
 
-        //loading of nio type conversions failed, return simple conversion
+        // loading of nio type conversions failed, return simple conversion
 
         System.err.println("falling back to simple conversion");
 

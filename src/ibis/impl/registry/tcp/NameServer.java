@@ -3,8 +3,11 @@
 package ibis.impl.registry.tcp;
 
 import ibis.ipl.IbisFactory;
+import ibis.ipl.IbisProperties;
 import ibis.io.Conversion;
 import ibis.impl.registry.NSProps;
+import ibis.impl.registry.RegistryProperties;
+import ibis.impl.registry.Server;
 import ibis.impl.IbisIdentifier;
 import ibis.impl.Location;
 import ibis.util.IPUtils;
@@ -34,10 +37,10 @@ import java.util.ArrayList;
 
 import org.apache.log4j.Logger;
 
-public class NameServer extends Thread implements Protocol {
+public class NameServer extends Server implements Protocol,Runnable {
 
     public static final TypedProperties
-            attribs = new TypedProperties(IbisFactory.getDefaultProperties());
+    attribs = new TypedProperties(IbisProperties.getConfigProperties(IbisProperties.getHardcodedProperties(RegistryProperties.getHardcodedProperties())));
 
     public static final int TCP_IBIS_NAME_SERVER_PORT_NR
             = attribs.getIntProperty(NSProps.s_port, 9826);
@@ -476,6 +479,11 @@ public class NameServer extends Thread implements Protocol {
                 cl.close(silent);
             }
         }
+    }
+    
+    public NameServer(Properties properties) throws IOException {
+        //FIXME: do this better :)
+        this(false, false, false);
     }
 
     private NameServer(boolean singleRun, boolean poolserver, boolean silent)
@@ -1608,6 +1616,11 @@ public class NameServer extends Thread implements Protocol {
                 // ignore
             }
         }
+    }
+    
+    @Override
+    public String getLocalAddress() {
+        return serverSocket.toString();
     }
 
     public static void main(String[] args) {

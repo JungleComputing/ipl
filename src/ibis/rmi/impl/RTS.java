@@ -6,6 +6,7 @@ import ibis.ipl.CapabilitySet;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisFactory;
 import ibis.ipl.IbisIdentifier;
+import ibis.ipl.IbisProperties;
 import ibis.ipl.NoMatchingIbisException;
 import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
@@ -25,6 +26,7 @@ import ibis.rmi.server.RemoteRef;
 import ibis.rmi.server.RemoteStub;
 import ibis.rmi.server.SkeletonNotFoundException;
 import ibis.util.IPUtils;
+import ibis.util.Log;
 import ibis.util.Timer;
 import ibis.util.TypedProperties;
 
@@ -41,7 +43,7 @@ import colobus.Colobus;
 public final class RTS implements ibis.ipl.PredefinedCapabilities {
 
     static TypedProperties properties
-            = new TypedProperties(IbisFactory.getDefaultProperties());
+            = new TypedProperties(IbisProperties.getConfigProperties());
 
     static final String prefix = "rmi.";
 
@@ -255,6 +257,8 @@ public final class RTS implements ibis.ipl.PredefinedCapabilities {
             nameHash = new Hashtable<String, Skeleton>();
             receiveports = new HashMap<IbisIdentifier, ArrayList<ReceivePort>>();
             skeletonArray = new ArrayList<Skeleton>();
+            
+            Log.initLog4J("ibis.rmi");
 
             upcallHandler = new UpcallHandler();
 

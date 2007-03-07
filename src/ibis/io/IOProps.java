@@ -3,14 +3,16 @@
 package ibis.io;
 
 import ibis.ipl.IbisFactory;
+import ibis.ipl.IbisProperties;
 import ibis.util.TypedProperties;
 
 /**
  * Collects all system properties used by the ibis.io package.
  */
 class IOProps {
-    static final TypedProperties properties
-            = new TypedProperties(IbisFactory.getDefaultProperties());
+    static final TypedProperties properties = new TypedProperties(
+            IbisProperties.getConfigProperties(IbisProperties
+                    .getHardcodedProperties()));
 
     static final String PROPERTY_PREFIX = "ibis.io.";
 
@@ -54,10 +56,10 @@ class IOProps {
     static final String s_hash_resize = PROPERTY_PREFIX + "hash.resize";
 
     private static final String[] sysprops = { s_stats_nonrewritten,
-            s_stats_written, s_classloader, s_timer,
-            s_conversion, s_cache, s_cache_max, s_cache_stats, s_dbg,
-            s_asserts, s_small_array_bound, s_hash_asserts, s_hash_stats,
-            s_hash_timings, s_hash_resize, s_buffer_size, s_array_buffer };
+            s_stats_written, s_classloader, s_timer, s_conversion, s_cache,
+            s_cache_max, s_cache_stats, s_dbg, s_asserts, s_small_array_bound,
+            s_hash_asserts, s_hash_stats, s_hash_timings, s_hash_resize,
+            s_buffer_size, s_array_buffer };
 
     static {
         properties.checkProperties(PROPERTY_PREFIX, sysprops, null, true);

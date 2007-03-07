@@ -54,7 +54,7 @@ public final class TcpIbis extends ibis.impl.Ibis
     public TcpIbis(ResizeHandler r, CapabilitySet p, Properties tp)
         throws Throwable {
 
-        super(r, p, tp);
+        super(r, p, tp, null);
 
         ThreadPool.createNew(this, "TcpIbis");
     }

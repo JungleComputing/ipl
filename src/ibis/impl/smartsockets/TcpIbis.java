@@ -54,7 +54,7 @@ public final class TcpIbis extends ibis.impl.Ibis
     public TcpIbis(ResizeHandler r, CapabilitySet p, Properties tp)
         throws Throwable {
 
-        super(r, p, tp);
+        super(r, p, tp, null);
         // Bit of a hack to improve the visualization
         try { 
             ServiceLink sl = socketFactory.getServiceLink();

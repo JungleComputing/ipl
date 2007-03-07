@@ -3,8 +3,11 @@
 package ibis.impl.registry.smartsockets;
 
 import ibis.ipl.IbisFactory;
+import ibis.ipl.IbisProperties;
 import ibis.io.Conversion;
 import ibis.impl.registry.NSProps;
+import ibis.impl.registry.RegistryProperties;
+import ibis.impl.registry.Server;
 import ibis.impl.IbisIdentifier;
 import ibis.impl.Location;
 import ibis.util.PoolInfoServer;
@@ -34,10 +37,10 @@ import smartsockets.virtual.VirtualSocket;
 import smartsockets.virtual.VirtualSocketAddress;
 import smartsockets.virtual.VirtualSocketFactory;
 
-public class NameServer extends Thread implements Protocol {
+public class NameServer extends Server implements Protocol, Runnable {
 
     public static final TypedProperties
-            attribs = new TypedProperties(IbisFactory.getDefaultProperties());
+            attribs = new TypedProperties(IbisProperties.getConfigProperties(IbisProperties.getHardcodedProperties(RegistryProperties.getHardcodedProperties())));
 
     public static final int TCP_IBIS_NAME_SERVER_PORT_NR
             = attribs.getIntProperty(NSProps.s_port, 9826);
@@ -455,6 +458,11 @@ public class NameServer extends Thread implements Protocol {
                 cl.close(silent);
             }
         }
+    }
+    
+    public NameServer(Properties properties) throws IOException {
+        //FIXME: do this better :)
+        this(false, false, false);
     }
 
     private NameServer(boolean singleRun, boolean poolserver, boolean silent)
@@ -1575,6 +1583,11 @@ public class NameServer extends Thread implements Protocol {
             }
         }
         return ns;
+    }
+    
+    @Override
+    public String getLocalAddress() {
+        return serverSocket.toString();
     }
 
     public static void main(String[] args) {

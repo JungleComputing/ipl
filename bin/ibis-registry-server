@@ -1,0 +1,12 @@
+#!/bin/sh
+
+if [ -z $IBIS_HOME ];  then
+	echo please set IBIS_HOME to the location of your Ibis installation
+	exit
+fi
+
+CLASSPATH="."
+for i in $IBIS_HOME/lib/*.jar ; do CLASSPATH="$CLASSPATH:$i" ; done
+
+java -cp $CLASSPATH ibis.impl.registry.Server $@
+

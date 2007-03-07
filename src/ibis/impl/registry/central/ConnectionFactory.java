@@ -1,0 +1,261 @@
+package ibis.impl.registry.central;
+
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
+import java.util.Properties;
+
+import org.apache.log4j.Logger;
+
+import smartsockets.direct.DirectSocketAddress;
+import smartsockets.virtual.InitializationException;
+import smartsockets.virtual.VirtualServerSocket;
+import smartsockets.virtual.VirtualSocketAddress;
+import smartsockets.virtual.VirtualSocketFactory;
+
+import ibis.impl.IbisIdentifier;
+import ibis.io.Conversion;
+import ibis.util.IPUtils;
+
+public class ConnectionFactory {
+    public static final int CONNECTION_BACKLOG = 50;
+
+    private static final Logger logger = Logger
+            .getLogger(ConnectionFactory.class);
+
+    private final boolean smart;
+
+    // smart socket fields
+
+    private final VirtualSocketFactory virtualSocketFactory;
+
+    private final VirtualServerSocket virtualServerSocket;
+
+    private final VirtualSocketAddress virtualServerAddress;
+
+    private final ServerSocket plainServerSocket;
+    
+    private final InetAddress plainServerSocketAddress;
+
+    private final InetSocketAddress plainServerAddress;
+
+    private static InetSocketAddress plainAddressFromBytes(byte[] bytes)
+            throws IOException {
+        int port = Conversion.defaultConversion.byte2int(bytes, 0);
+        byte[] addressBytes = new byte[bytes.length - 4];
+        System.arraycopy(bytes, 4, addressBytes, 0, addressBytes.length);
+        InetAddress address = InetAddress.getByAddress(addressBytes);
+
+        return new InetSocketAddress(address, port);
+    }
+
+    private static byte[] plainAddressToBytes(InetAddress address, int port) {
+        byte[] addressBytes = address.getAddress();
+        byte[] result = new byte[addressBytes.length + 4];
+
+        System.arraycopy(addressBytes, 0, result, 4, addressBytes.length);
+        Conversion.defaultConversion.int2byte(port, result, 0);
+
+        return result;
+    }
+
+    ConnectionFactory(int port, boolean smart, String serverString,
+            Properties properties) throws IOException {
+        this.smart = smart;
+
+        if (port < 0) {
+            throw new IOException("port number cannot be negative " + port);
+        }
+        logger.debug("port = " + port);
+
+        if (smart) {
+            plainServerSocket = null;
+            plainServerAddress = null;
+            plainServerSocketAddress = null;
+
+            try {
+                if (port != 0) {
+                    properties.put("smartsockets.direct.port", Integer
+                            .toString(port));
+                    virtualSocketFactory = VirtualSocketFactory
+                            .createSocketFactory(properties, true);
+                } else {
+                    virtualSocketFactory = VirtualSocketFactory
+                            .createSocketFactory(properties, true);
+                }
+            } catch (InitializationException e) {
+                throw new IOException("could not initialize socket factory: "
+                        + e);
+            }
+
+            // serverSocket = socketFactory.createServerSocket(0,
+            // CONNECTION_BACKLOG,
+            // null);
+
+            virtualServerSocket = virtualSocketFactory.createServerSocket(port,
+                    CONNECTION_BACKLOG, null);
+
+            virtualServerAddress = createAddressFromString(serverString);
+
+            logger.debug("local address = "
+                    + virtualServerSocket.getLocalSocketAddress());
+            logger.debug("server address = " + virtualServerAddress);
+        } else {
+            virtualSocketFactory = null;
+            virtualServerSocket = null;
+            virtualServerAddress = null;
+
+            plainServerSocket = new ServerSocket(port, CONNECTION_BACKLOG);
+            plainServerSocketAddress = IPUtils.getLocalHostAddress();
+
+            if (serverString != null) {
+
+                if (!serverString.contains(":")) {
+                    throw new IOException("illegal server socket address: "
+                            + serverString);
+                }
+
+                // FIXME: not very robust/nice/etc
+                try {
+                    String serverHost = serverString.split(":", 2)[0];
+                    int serverPort = Integer.parseInt(serverString
+                            .split(":", 2)[1]);
+
+                    plainServerAddress = new InetSocketAddress(serverHost,
+                            serverPort);
+                } catch (Throwable t) {
+                    throw new IOException("illegal server address ("
+                            + serverString + ") : " + t.getMessage());
+                }
+            } else {
+                plainServerAddress = null;
+            }
+        }
+    }
+
+    private static VirtualSocketAddress createAddressFromString(
+            String serverString) throws IOException {
+
+        if (serverString == null || serverString.equals("")) {
+            return null;
+        }
+
+        VirtualSocketAddress serverAddress = null;
+
+        // first, try to create a complete virtual socket address
+        try {
+            serverAddress = new VirtualSocketAddress(serverString);
+        } catch (IllegalArgumentException e) {
+            logger.debug("could not create server address", e);
+        }
+
+        // maybe it is a socketaddressset without a virtual port?
+        if (serverAddress == null) {
+            try {
+                DirectSocketAddress directAddress = DirectSocketAddress
+                        .getByAddress(serverString);
+                int[] ports = directAddress.getPorts(false);
+                if (ports.length == 0) {
+                    throw new IOException(
+                            "cannot determine port from server address");
+                }
+                int port = ports[0];
+                for (int p : ports) {
+                    if (p != port) {
+                        throw new IOException(
+                                "cannot determine port from server address");
+                    }
+                }
+                serverAddress = new VirtualSocketAddress(directAddress, port);
+            } catch (IllegalArgumentException e) {
+                logger.debug("could not create server address", e);
+            }
+        }
+
+        // maybe it is only a hostname?
+        if (serverAddress == null) {
+            DirectSocketAddress directAddress = DirectSocketAddress
+                    .getByAddress(serverString, Protocol.DEFAULT_PORT);
+            serverAddress = new VirtualSocketAddress(directAddress,
+                    Protocol.DEFAULT_PORT);
+        }
+
+        if (serverAddress == null) {
+            throw new IOException("Invalid server address: " + serverString);
+        }
+
+        return serverAddress;
+    }
+
+    Connection accept() throws IOException {
+        if (smart) {
+            return new Connection(virtualServerSocket);
+        } else {
+            return new Connection(plainServerSocket);
+        }
+    }
+
+    Connection connect(IbisIdentifier ibis, byte opcode, int timeout)
+            throws IOException {
+        if (smart) {
+            VirtualSocketAddress address = VirtualSocketAddress.fromBytes(ibis
+                    .getRegistryData(), 0);
+            return new Connection(address, virtualSocketFactory, opcode,
+                    timeout);
+        } else {
+            InetSocketAddress address = plainAddressFromBytes(ibis
+                    .getRegistryData());
+
+            return new Connection(address, opcode, timeout);
+        }
+    }
+
+    public void end() {
+        try {
+            if (smart) {
+                virtualServerSocket.close();
+            } else {
+                plainServerSocket.close();
+            }
+        } catch (IOException e) {
+            // IGNORE
+        }
+    }
+
+    public byte[] getLocalAddress() {
+        if (smart) {
+            return virtualServerSocket.getLocalSocketAddress().toBytes();
+        } else {
+            return plainAddressToBytes(plainServerSocketAddress,
+                    plainServerSocket.getLocalPort());
+        }
+    }
+
+    public String getAddressString() {
+        if (smart) {
+            return virtualServerSocket.getLocalSocketAddress().toString();
+        } else {
+            return plainServerSocketAddress.getHostAddress() + ":"
+                    + plainServerSocket.getLocalPort();
+        }
+    }
+
+    public Connection connectToServer(byte opcode, int timeout)
+            throws IOException {
+        if (smart) {
+            if (virtualServerAddress == null) {
+                throw new IOException(
+                        "could not connection to server, address not specified");
+            }
+            return new Connection(virtualServerAddress, virtualSocketFactory,
+                    opcode, timeout);
+        } else {
+            if (plainServerAddress == null) {
+                throw new IOException(
+                        "could not connection to server, address not specified");
+            }
+            return new Connection(plainServerAddress, opcode, timeout);
+        }
+    }
+}

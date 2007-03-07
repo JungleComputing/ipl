@@ -2,9 +2,13 @@
 
 package ibis.impl;
 
+import ibis.impl.registry.RegistryProperties;
 import ibis.ipl.IbisConfigurationException;
+import ibis.ipl.IbisProperties;
 import ibis.ipl.ResizeHandler;
 import ibis.ipl.CapabilitySet;
+import ibis.ipl.CapabilitySet;
+import ibis.util.Log;
 import ibis.util.TypedProperties;
 
 import java.io.IOException;
@@ -83,12 +87,24 @@ public abstract class Ibis implements ibis.ipl.Ibis,
      * parameters.
      */
     protected Ibis(ResizeHandler resizeHandler, CapabilitySet caps,
-            Properties properties) throws Throwable {
+            Properties userProperties,Properties defaultProperties) throws Throwable {
         boolean needsRegistryCalls = resizeHandler != null
                 || caps.hasCapability(RESIZE_DOWNCALLS);
         this.resizeHandler = resizeHandler;
         this.capabilities = caps;
         this.properties = new TypedProperties(properties);
+        
+        Log.initLog4J("ibis");
+
+        this.properties = new TypedProperties();
+        
+        //bottom up add properties, starting with hard coded ones
+        properties.addProperties(IbisProperties.getHardcodedProperties());
+        properties.addProperties(RegistryProperties.getHardcodedProperties());
+        properties.addProperties(defaultProperties);
+        properties.addProperties(IbisProperties.getConfigProperties());
+        properties.addProperties(userProperties);
+        
         receivePorts = new HashMap<String, ReceivePort>();
         sendPorts = new HashMap<String, SendPort>();
         registry = Registry.createRegistry(this, needsRegistryCalls,
