@@ -427,7 +427,7 @@ final class SOCommunication implements Config, Protocol {
         while (true) {
             if (System.currentTimeMillis() - start > WAIT_FOR_UPDATES_TIME)
                 break;
-
+/*
             synchronized (s) {
                 try {
                     s.wait(500);
@@ -435,7 +435,13 @@ final class SOCommunication implements Config, Protocol {
                     // Ignore
                 }
             }
-
+*/
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                // Ignore
+            }
+            
             s.handleDelayedMessages();
 
             if (r == null) {
