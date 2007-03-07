@@ -205,6 +205,7 @@ public final class SharedObjects implements Config {
             s.handleDelayedMessages();
             if (r.guard()) {
                 s.stats.soGuardTimer.stop();
+                soLogger.debug("guard satisfied");
                 return;
             }
 
