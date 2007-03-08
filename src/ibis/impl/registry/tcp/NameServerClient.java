@@ -11,6 +11,7 @@ import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.IbisConfigurationException;
 import ibis.util.IPUtils;
+import ibis.util.TypedProperties;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -62,23 +63,27 @@ public class NameServerClient extends ibis.impl.Registry implements Runnable,
         this.needsUpcalls = ndsUpcalls;
 
         myAddress = IPUtils.getAlternateLocalHostAddress();
+        
+        TypedProperties typedProperties = new TypedProperties(ibis.properties());
 
-        String serverString = ibis.properties().getProperty(
+        String serverString = typedProperties.getProperty(
                 RegistryProperties.SERVER_ADDRESS);
 
         if (serverString == null) {
             throw new IOException("server address not specified");
         }
 
-        if (!serverString.contains(":")) {
-            throw new IOException("illegal server socket address: "
-                    + serverString);
-        }
-
-        // FIXME: not very robust/nice/etc
         try {
-            String serverHost = serverString.split(":", 2)[0];
-            int serverPort = Integer.parseInt(serverString.split(":", 2)[1]);
+            String[] addressParts = serverString.split(":", 2); 
+            
+            String serverHost = addressParts[0];
+            int serverPort;
+            
+            if (addressParts.length < 2) {
+                serverPort = typedProperties.getIntProperty(RegistryProperties.SERVER_PORT);
+            } else {
+                serverPort = Integer.parseInt(addressParts[1]);
+            }
 
             serverSocketAddress = new InetSocketAddress(serverHost, serverPort);
         } catch (Throwable t) {

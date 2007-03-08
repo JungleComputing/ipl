@@ -34,7 +34,7 @@ class Connection {
     private final byte opcode;
     
     Connection(VirtualSocketAddress address, VirtualSocketFactory factory,
-            byte opcode, long timeout) throws IOException {
+            byte opcode, long timeout, boolean printWarning) throws IOException {
         plainSocket = null;
         VirtualSocket socket = null;
         DataOutputStream out = null;
@@ -68,6 +68,9 @@ class Connection {
                 success = true;
             } catch (IOException e) {
                 // failure: wait some time before trying again...
+                if (printWarning && tries == 0) {
+                    logger.warn("Registry: failed to connect to " + address + ", will keep trying");
+                }
                 
                 if (tries > MAX_TRIES) {
                     throw e;
@@ -101,7 +104,7 @@ class Connection {
 
     }
     
-    public Connection(InetSocketAddress address, byte opcode, int timeout) throws IOException {
+    public Connection(InetSocketAddress address, byte opcode, int timeout, boolean printWarning) throws IOException {
         virtualSocket = null;
         Socket socket = null;
         DataOutputStream out = null;
@@ -135,6 +138,10 @@ class Connection {
                 success = true;
             } catch (IOException e) {
                 // failure: wait some time before trying again...
+                if (printWarning && tries == 0) {
+                    logger.warn("Registry: failed to connect to " + address + ", will keep trying");
+                }
+
                 
                 if (tries > MAX_TRIES) {
                     throw e;

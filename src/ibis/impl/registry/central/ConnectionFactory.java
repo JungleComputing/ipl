@@ -61,7 +61,7 @@ public class ConnectionFactory {
         return result;
     }
 
-    ConnectionFactory(int port, boolean smart, String serverString,
+    ConnectionFactory(int port, boolean smart, String serverString, int defaultServerPort,
             Properties properties) throws IOException {
         this.smart = smart;
 
@@ -95,7 +95,7 @@ public class ConnectionFactory {
             virtualServerSocket = virtualSocketFactory.createServerSocket(port,
                     CONNECTION_BACKLOG, null);
 
-            virtualServerAddress = createAddressFromString(serverString);
+            virtualServerAddress = createAddressFromString(serverString, defaultServerPort);
 
             logger.debug("local address = "
                     + virtualServerSocket.getLocalSocketAddress());
@@ -110,22 +110,22 @@ public class ConnectionFactory {
 
             if (serverString != null) {
 
-                if (!serverString.contains(":")) {
-                    throw new IOException("illegal server socket address: "
-                            + serverString);
-                }
-
-                // FIXME: not very robust/nice/etc
                 try {
-                    String serverHost = serverString.split(":", 2)[0];
-                    int serverPort = Integer.parseInt(serverString
-                            .split(":", 2)[1]);
+                    String[] addressParts = serverString.split(":", 2); 
+                    
+                    String serverHost = addressParts[0];
+                    int serverPort;
+                    
+                    if (addressParts.length < 2) {
+                        serverPort = defaultServerPort;
+                    } else {
+                        serverPort = Integer.parseInt(addressParts[1]);
+                    }
 
-                    plainServerAddress = new InetSocketAddress(serverHost,
-                            serverPort);
+                    plainServerAddress = new InetSocketAddress(serverHost, serverPort);
                 } catch (Throwable t) {
-                    throw new IOException("illegal server address ("
-                            + serverString + ") : " + t.getMessage());
+                    throw new IOException("illegal server address (" + serverString
+                            + ") : " + t.getMessage());
                 }
             } else {
                 plainServerAddress = null;
@@ -134,7 +134,7 @@ public class ConnectionFactory {
     }
 
     private static VirtualSocketAddress createAddressFromString(
-            String serverString) throws IOException {
+            String serverString, int defaultPort) throws IOException {
         
         if (serverString == null) {
             return null;
@@ -179,9 +179,9 @@ public class ConnectionFactory {
             try {
                 DirectSocketAddress directAddress = DirectSocketAddress
                         .getByAddress(serverString,
-                                RegistryProperties.DEFAULT_SERVER_PORT);
+                                defaultPort);
                 serverAddress = new VirtualSocketAddress(directAddress,
-                        RegistryProperties.DEFAULT_SERVER_PORT);
+                        defaultPort);
             } catch (Exception e) {
                 logger.debug("could not create server address", e);
             }
@@ -208,12 +208,12 @@ public class ConnectionFactory {
             VirtualSocketAddress address = VirtualSocketAddress.fromBytes(ibis
                     .getRegistryData(), 0);
             return new Connection(address, virtualSocketFactory, opcode,
-                    timeout);
+                    timeout, false);
         } else {
             InetSocketAddress address = plainAddressFromBytes(ibis
                     .getRegistryData());
 
-            return new Connection(address, opcode, timeout);
+            return new Connection(address, opcode, timeout, false);
         }
     }
 
@@ -252,16 +252,16 @@ public class ConnectionFactory {
         if (smart) {
             if (virtualServerAddress == null) {
                 throw new IOException(
-                        "could not connection to server, address not specified");
+                        "could not connect to server, address not specified");
             }
             return new Connection(virtualServerAddress, virtualSocketFactory,
-                    opcode, timeout);
+                    opcode, timeout, true);
         } else {
             if (plainServerAddress == null) {
                 throw new IOException(
-                        "could not connection to server, address not specified");
+                        "could not connect to server, address not specified");
             }
-            return new Connection(plainServerAddress, opcode, timeout);
+            return new Connection(plainServerAddress, opcode, timeout, true);
         }
     }
 

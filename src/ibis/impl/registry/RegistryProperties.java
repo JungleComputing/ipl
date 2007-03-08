@@ -65,7 +65,7 @@ public class RegistryProperties {
                     "Implementation of registry(client)" },
 
             { SERVER_ADDRESS, "localhost:9826",
-                    "Address of server to connect to" },
+                    "Socket Address of server to connect to" },
 
             { POOL, "DEFAULT", "Pool to join" },
 

@@ -73,7 +73,9 @@ public final class Registry extends ibis.impl.Registry implements Runnable {
         boolean smart = properties.booleanProperty(
                 RegistryProperties.CENTRAL_SMARTSOCKETS, DEFAULT_SMARTSOCKETS);
 
-        connectionFactory = new ConnectionFactory(0, smart, serverString,
+        int defaultServerPort = properties.getIntProperty(RegistryProperties.SERVER_PORT); 
+        
+        connectionFactory = new ConnectionFactory(0, smart, serverString, defaultServerPort,
                 properties);
 
         Server server = null;
