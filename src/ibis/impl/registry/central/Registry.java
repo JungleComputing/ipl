@@ -26,8 +26,6 @@ public final class Registry extends ibis.impl.Registry implements Runnable {
 
     public static final int GOSSIP_ATTEMPTS = 20;
 
-    public static final int SERVER_CONNECT_TIMEOUT = 10 * 60 * 1000;
-
     private static final int PEER_CONNECT_TIMEOUT = 60 * 1000;
 
     private static final Logger logger = Logger.getLogger(Registry.class);
@@ -57,6 +55,8 @@ public final class Registry extends ibis.impl.Registry implements Runnable {
 
     private final Server server;
 
+    private final int serverConnectTimeout;
+
     public Registry(ibis.impl.Ibis ibis, boolean needsUpcalls, byte[] data)
             throws IOException, IbisConfigurationException {
 
@@ -70,13 +70,17 @@ public final class Registry extends ibis.impl.Registry implements Runnable {
         String serverString = properties
                 .getProperty(RegistryProperties.SERVER_ADDRESS);
 
+        serverConnectTimeout = properties
+                .getIntProperty(RegistryProperties.CENTRAL_SERVER_CONNECT_TIMEOUT) * 1000;
+
         boolean smart = properties.booleanProperty(
                 RegistryProperties.CENTRAL_SMARTSOCKETS, DEFAULT_SMARTSOCKETS);
 
-        int defaultServerPort = properties.getIntProperty(RegistryProperties.SERVER_PORT); 
-        
-        connectionFactory = new ConnectionFactory(0, smart, serverString, defaultServerPort,
-                properties);
+        int defaultServerPort = properties
+                .getIntProperty(RegistryProperties.SERVER_PORT);
+
+        connectionFactory = new ConnectionFactory(0, smart, serverString,
+                defaultServerPort, properties);
 
         Server server = null;
         if (connectionFactory.serverIsLocalHost()) {
@@ -189,7 +193,7 @@ public final class Registry extends ibis.impl.Registry implements Runnable {
             throws IOException {
         logger.debug("joining to " + getPoolName());
         Connection connection = connectionFactory.connectToServer(
-                Protocol.OPCODE_JOIN, SERVER_CONNECT_TIMEOUT);
+                Protocol.OPCODE_JOIN, serverConnectTimeout);
 
         try {
             connection.out().writeInt(myAddress.length);
@@ -226,7 +230,7 @@ public final class Registry extends ibis.impl.Registry implements Runnable {
         logger.debug("leaving pool");
 
         Connection connection = connectionFactory.connectToServer(
-                Protocol.OPCODE_LEAVE, SERVER_CONNECT_TIMEOUT);
+                Protocol.OPCODE_LEAVE, serverConnectTimeout);
 
         try {
             getIbisIdentifier().writeTo(connection.out());
@@ -327,7 +331,7 @@ public final class Registry extends ibis.impl.Registry implements Runnable {
         }
 
         Connection connection = connectionFactory.connectToServer(
-                Protocol.OPCODE_ELECT, SERVER_CONNECT_TIMEOUT);
+                Protocol.OPCODE_ELECT, serverConnectTimeout);
 
         try {
 
@@ -380,7 +384,7 @@ public final class Registry extends ibis.impl.Registry implements Runnable {
     public long getSeqno(String name) throws IOException {
         logger.debug("getting sequence number");
         Connection connection = connectionFactory.connectToServer(
-                Protocol.OPCODE_SEQUENCE_NR, SERVER_CONNECT_TIMEOUT);
+                Protocol.OPCODE_SEQUENCE_NR, serverConnectTimeout);
 
         try {
             connection.out().writeUTF(getPoolName());
@@ -404,7 +408,7 @@ public final class Registry extends ibis.impl.Registry implements Runnable {
         logger.debug("declaring " + ibis + " to be dead");
 
         Connection connection = connectionFactory.connectToServer(
-                Protocol.OPCODE_DEAD, SERVER_CONNECT_TIMEOUT);
+                Protocol.OPCODE_DEAD, serverConnectTimeout);
 
         try {
             ((IbisIdentifier) ibis).writeTo(connection.out());
@@ -424,7 +428,7 @@ public final class Registry extends ibis.impl.Registry implements Runnable {
         logger.debug("reporting " + ibis + " to possibly be dead");
 
         Connection connection = connectionFactory.connectToServer(
-                Protocol.OPCODE_MAYBE_DEAD, SERVER_CONNECT_TIMEOUT);
+                Protocol.OPCODE_MAYBE_DEAD, serverConnectTimeout);
 
         try {
 
@@ -443,7 +447,7 @@ public final class Registry extends ibis.impl.Registry implements Runnable {
     public void mustLeave(ibis.ipl.IbisIdentifier[] ibisses) throws IOException {
         logger.debug("telling " + ibisses.length + " ibisses to leave");
         Connection connection = connectionFactory.connectToServer(
-                Protocol.OPCODE_MUST_LEAVE, SERVER_CONNECT_TIMEOUT);
+                Protocol.OPCODE_MUST_LEAVE, serverConnectTimeout);
 
         try {
             connection.out().writeUTF(getPoolName());

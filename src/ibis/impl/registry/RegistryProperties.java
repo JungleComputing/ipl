@@ -58,7 +58,10 @@ public class RegistryProperties {
 
     public static final String CENTRAL_KEEP_NODE_STATE = CENTRAL_PREFIX
             + "keepNodeState";
-
+    
+    public static final String CENTRAL_SERVER_CONNECT_TIMEOUT = CENTRAL_PREFIX
+    + "serverConnectTimeout";
+    
     // list of decriptions and defaults
     private static final String[][] propertiesList = new String[][] {
             { IMPL, "ibis.impl.registry.central.Registry",
@@ -102,7 +105,10 @@ public class RegistryProperties {
                     "Boolean: do we gossip, or send events centrally" },
 
             { CENTRAL_KEEP_NODE_STATE, "false",
-                    "Boolean: do we keep track of which events nodes have" }
+                    "Boolean: do we keep track of which events nodes have" },
+                    
+            { CENTRAL_SERVER_CONNECT_TIMEOUT, "120",
+                "int(seconds): how long do we attempt to connect to the server" },
 
     };
 

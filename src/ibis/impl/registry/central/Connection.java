@@ -19,12 +19,14 @@ import smartsockets.virtual.VirtualSocketFactory;
 
 class Connection {
 
-    private static final int MAX_TRIES = 5;
-
+    // private static final int MAX_TRIES = 10;
+    
+    private static final int INITIAL_MAX_WAIT = 1000;
+    
     private static final Logger logger = Logger.getLogger(Connection.class);
 
     private final VirtualSocket virtualSocket;
-    
+
     private final Socket plainSocket;
 
     private final DataOutputStream out;
@@ -32,9 +34,10 @@ class Connection {
     private final DataInputStream in;
 
     private final byte opcode;
-    
+
     Connection(VirtualSocketAddress address, VirtualSocketFactory factory,
             byte opcode, long timeout, boolean printWarning) throws IOException {
+        long hardDeadline = System.currentTimeMillis() + timeout;
         plainSocket = null;
         VirtualSocket socket = null;
         DataOutputStream out = null;
@@ -42,19 +45,24 @@ class Connection {
 
         this.opcode = opcode;
 
-        int maxWait = (int) (timeout / Math.pow(2, (MAX_TRIES - 1)));
-
-        logger.debug("max wait = " + maxWait);
+        // int maxWait = (int) (timeout / Math.pow(2, (MAX_TRIES - 1)));
+        int maxWait = INITIAL_MAX_WAIT;
 
         int tries = 0;
         boolean success = false;
         while (!success) {
             int currentTimeout = (int) (Math.random() * maxWait);
             long deadline = System.currentTimeMillis() + currentTimeout;
+            if (deadline > hardDeadline) {
+                currentTimeout = (int) (hardDeadline - System
+                        .currentTimeMillis());
+                deadline = hardDeadline;
+                logger.debug("last attempt, timeout = " + currentTimeout);
+            }
 
             try {
                 socket = factory.createClientSocket(address, currentTimeout,
-                        new HashMap<String,Object>());
+                        new HashMap<String, Object>());
 
                 out = new DataOutputStream(new BufferedOutputStream(socket
                         .getOutputStream()));
@@ -69,14 +77,17 @@ class Connection {
             } catch (IOException e) {
                 // failure: wait some time before trying again...
                 if (printWarning && tries == 0) {
-                    logger.warn("Registry: failed to connect to " + address + ", will keep trying");
+                    logger.warn("Registry: failed to connect to " + address
+                            + ", will keep trying");
                 }
-                
-                if (tries > MAX_TRIES) {
+
+                long currentTime = System.currentTimeMillis();
+
+                if (currentTime >= hardDeadline) {
                     throw e;
                 }
 
-                long sleepTime = deadline  - System.currentTimeMillis(); 
+                long sleepTime = deadline - currentTime;
 
                 logger.debug("failed to connect to " + address, e);
 
@@ -103,8 +114,9 @@ class Connection {
         this.in = in;
 
     }
-    
-    public Connection(InetSocketAddress address, byte opcode, int timeout, boolean printWarning) throws IOException {
+
+    public Connection(InetSocketAddress address, byte opcode, int timeout,
+            boolean printWarning) throws IOException {
         virtualSocket = null;
         Socket socket = null;
         DataOutputStream out = null;
@@ -112,15 +124,23 @@ class Connection {
 
         this.opcode = opcode;
 
-        int maxWait = (int) (timeout / Math.pow(2, (MAX_TRIES - 1)));
+        long hardDeadline = System.currentTimeMillis() + timeout;
 
-        logger.debug("max wait = " + maxWait);
+        // int maxWait = (int) (timeout / Math.pow(2, (MAX_TRIES - 1)));
+        int maxWait = INITIAL_MAX_WAIT;
+
 
         int tries = 0;
         boolean success = false;
         while (!success) {
             int currentTimeout = (int) (Math.random() * maxWait);
             long deadline = System.currentTimeMillis() + currentTimeout;
+            if (deadline > hardDeadline) {
+                currentTimeout = (int) (hardDeadline - System
+                        .currentTimeMillis());
+                logger.debug("last attempt, timeout = " + currentTimeout);
+                deadline = hardDeadline;
+            }
 
             try {
                 socket = new Socket();
@@ -139,15 +159,17 @@ class Connection {
             } catch (IOException e) {
                 // failure: wait some time before trying again...
                 if (printWarning && tries == 0) {
-                    logger.warn("Registry: failed to connect to " + address + ", will keep trying");
+                    logger.warn("Registry: failed to connect to " + address
+                            + ", will keep trying");
                 }
 
-                
-                if (tries > MAX_TRIES) {
+                long currentTime = System.currentTimeMillis();
+
+                if (currentTime >= hardDeadline) {
                     throw e;
                 }
 
-                long sleepTime = deadline  - System.currentTimeMillis(); 
+                long sleepTime = deadline - currentTime;
 
                 logger.debug("failed to connect to " + address, e);
 
@@ -201,8 +223,6 @@ class Connection {
         opcode = in.readByte();
 
     }
-
-
 
     DataOutputStream out() {
         return out;
@@ -259,18 +279,18 @@ class Connection {
         }
 
         if (virtualSocket != null) {
-        try {
-            virtualSocket.close();
-        } catch (IOException e) {
-            // IGNORE
+            try {
+                virtualSocket.close();
+            } catch (IOException e) {
+                // IGNORE
+            }
         }
-        }
-        
+
         if (plainSocket != null) {
             try {
                 plainSocket.close();
             } catch (IOException e) {
-                //IGNORE
+                // IGNORE
             }
         }
     }
