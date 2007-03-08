@@ -457,7 +457,7 @@ final class SOCommunication implements Config, Protocol {
                     return;
                 } else {
                     soLogger.debug("SATIN '" + s.ident.name()
-                            + "': received object, but guard still NOT satisfied");                    
+                            + "': guard still NOT satisfied");                    
                 }
             }
         }
