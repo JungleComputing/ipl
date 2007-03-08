@@ -57,7 +57,7 @@ public class RegistryProperties {
     public static final String CENTRAL_GOSSIP = CENTRAL_PREFIX + "gossip";
 
     public static final String CENTRAL_KEEP_NODE_STATE = CENTRAL_PREFIX
-            + "keepClientState";
+            + "keepNodeState";
 
     // list of decriptions and defaults
     private static final String[][] propertiesList = new String[][] {
