@@ -15,7 +15,6 @@ import smartsockets.virtual.VirtualSocketAddress;
 import smartsockets.virtual.VirtualSocketFactory;
 
 import ibis.impl.IbisIdentifier;
-import ibis.impl.registry.RegistryProperties;
 import ibis.io.Conversion;
 import ibis.util.IPUtils;
 
@@ -28,6 +27,17 @@ public class ConnectionFactory {
     private final boolean smart;
 
     // smart socket fields
+    
+    private static VirtualSocketFactory defaultSocketFactory = null;
+    
+    private static synchronized VirtualSocketFactory getDefaultSocketFactory() throws InitializationException {
+        if (defaultSocketFactory == null) {
+            defaultSocketFactory = VirtualSocketFactory
+            .createSocketFactory();
+        }
+        return defaultSocketFactory;
+    }
+        
 
     private final VirtualSocketFactory virtualSocketFactory;
 
@@ -61,8 +71,8 @@ public class ConnectionFactory {
         return result;
     }
 
-    ConnectionFactory(int port, boolean smart, String serverString, int defaultServerPort,
-            Properties properties) throws IOException {
+    ConnectionFactory(int port, boolean smart, String serverString,
+            int defaultServerPort) throws IOException {
         this.smart = smart;
 
         if (port < 0) {
@@ -77,12 +87,16 @@ public class ConnectionFactory {
 
             try {
                 if (port != 0) {
+                    Properties properties = new Properties();
                     properties.put("smartsockets.direct.port", Integer
                             .toString(port));
-                }
-                virtualSocketFactory = VirtualSocketFactory
-                        .createSocketFactory(properties, true);
+                    
+                    virtualSocketFactory = VirtualSocketFactory
+                    .createSocketFactory(properties, true);
 
+                } else {
+                    virtualSocketFactory = getDefaultSocketFactory();
+                }
             } catch (InitializationException e) {
                 throw new IOException("could not initialize socket factory: "
                         + e);
@@ -95,7 +109,8 @@ public class ConnectionFactory {
             virtualServerSocket = virtualSocketFactory.createServerSocket(port,
                     CONNECTION_BACKLOG, null);
 
-            virtualServerAddress = createAddressFromString(serverString, defaultServerPort);
+            virtualServerAddress = createAddressFromString(serverString,
+                    defaultServerPort);
 
             logger.debug("local address = "
                     + virtualServerSocket.getLocalSocketAddress());
@@ -111,21 +126,22 @@ public class ConnectionFactory {
             if (serverString != null) {
 
                 try {
-                    String[] addressParts = serverString.split(":", 2); 
-                    
+                    String[] addressParts = serverString.split(":", 2);
+
                     String serverHost = addressParts[0];
                     int serverPort;
-                    
+
                     if (addressParts.length < 2) {
                         serverPort = defaultServerPort;
                     } else {
                         serverPort = Integer.parseInt(addressParts[1]);
                     }
 
-                    plainServerAddress = new InetSocketAddress(serverHost, serverPort);
+                    plainServerAddress = new InetSocketAddress(serverHost,
+                            serverPort);
                 } catch (Throwable t) {
-                    throw new IOException("illegal server address (" + serverString
-                            + ") : " + t.getMessage());
+                    throw new IOException("illegal server address ("
+                            + serverString + ") : " + t.getMessage());
                 }
             } else {
                 plainServerAddress = null;
@@ -135,7 +151,7 @@ public class ConnectionFactory {
 
     private static VirtualSocketAddress createAddressFromString(
             String serverString, int defaultPort) throws IOException {
-        
+
         if (serverString == null) {
             return null;
         }
@@ -178,8 +194,7 @@ public class ConnectionFactory {
         if (serverAddress == null) {
             try {
                 DirectSocketAddress directAddress = DirectSocketAddress
-                        .getByAddress(serverString,
-                                defaultPort);
+                        .getByAddress(serverString, defaultPort);
                 serverAddress = new VirtualSocketAddress(directAddress,
                         defaultPort);
             } catch (Exception e) {
