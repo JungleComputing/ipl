@@ -11,7 +11,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.ArrayList;
-import java.util.Iterator;
 
 import org.apache.log4j.Logger;
 
@@ -32,13 +31,9 @@ class ElectionServer extends Thread implements Protocol {
 
     private DataOutputStream out;
 
-    boolean silent;
-
-    ElectionServer(boolean silent, VirtualSocketFactory socketFactory)
+    ElectionServer(VirtualSocketFactory socketFactory)
             throws IOException {
         elections = new HashMap<String, IbisIdentifier>();
-
-        this.silent = silent;
 
         serverSocket = socketFactory.createServerSocket(0, 256, true, null);
         setName("NameServer ElectionServer");
@@ -137,16 +132,12 @@ class ElectionServer extends Thread implements Protocol {
                     serverSocket.close();
                     return;
                 default:
-                    if (! silent) {
                         logger.error("ElectionServer: got an illegal opcode "
                                 + opcode);
-                    }
                 }
             } catch (Throwable e) {
-                if (! silent) {
                     logger.error("Got an exception in ElectionServer.run " + e,
                             e);
-                }
             } finally {
                 VirtualSocketFactory.close(s, out, in);
             }

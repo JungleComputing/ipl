@@ -439,7 +439,7 @@ public class NameServer extends Server implements Protocol, Runnable {
 
                 long now = System.currentTimeMillis();
 
-                logger.info("Request " + job + " took " + (now - startTime)
+                logger.debug("Request " + job + " took " + (now - startTime)
                         + " ms. -> " + "job took " + (myStartTime - startTime)
                         + " closing took " + (now - myStartTime));
             }
@@ -499,13 +499,13 @@ public class NameServer extends Server implements Protocol, Runnable {
         port = typedProperties.getIntProperty(RegistryProperties.SERVER_PORT);
 
         pingerTimeout = typedProperties
-                .getIntProperty(RegistryProperties.CLASSIC_PINGER_TIMEOUT);
+                .getIntProperty(RegistryProperties.CLASSIC_PINGER_TIMEOUT) * 1000;
 
         connectTimeout = typedProperties
-                .getIntProperty(RegistryProperties.CLASSIC_CONNECT_TIMEOUT);
+                .getIntProperty(RegistryProperties.CLASSIC_CONNECT_TIMEOUT) * 1000;
 
         joinerInterval = typedProperties
-                .getIntProperty(RegistryProperties.CLASSIC_JOINER_INTERVAL);
+                .getIntProperty(RegistryProperties.CLASSIC_JOINER_INTERVAL) * 1000;
 
         checkerInterval = typedProperties
                 .getIntProperty(RegistryProperties.CLASSIC_CHECKER_INTERVAL);
@@ -519,7 +519,7 @@ public class NameServer extends Server implements Protocol, Runnable {
 
         seq = new Sequencer();
 
-        logger.info("Creating nameserver on " + myAddress);
+        logger.debug("Creating nameserver on " + myAddress);
 
         if (checkerInterval != 0) {
             final PoolChecker ck = new PoolChecker(null, myAddress
@@ -559,7 +559,7 @@ public class NameServer extends Server implements Protocol, Runnable {
         p.setDaemon(true);
         p.start();
 
-        logger.info("NameServer: created server on " + serverSocket);
+        logger.debug("NameServer: created server on " + serverSocket);
 
     }
 
@@ -1302,7 +1302,7 @@ public class NameServer extends Server implements Protocol, Runnable {
             }
         }
 
-        logger.info("NameServer: confirming LEAVE " + id);
+        logger.debug("NameServer: confirming LEAVE " + id);
         out.writeByte(0);
         out.flush();
     }
@@ -1415,7 +1415,7 @@ public class NameServer extends Server implements Protocol, Runnable {
 
         while (!stop) {
             try {
-                logger.info("NameServer: accepting incoming connections... ");
+                logger.debug("NameServer: accepting incoming connections... ");
 
                 s = serverSocket.accept();
 
@@ -1561,7 +1561,7 @@ public class NameServer extends Server implements Protocol, Runnable {
 
     @Override
     public String getLocalAddress() {
-        return serverSocket.toString();
+        return myAddress.getHostAddress() + ":" + serverSocket.getLocalPort();
     }
 
 }

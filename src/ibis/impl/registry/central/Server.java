@@ -30,7 +30,7 @@ public final class Server extends ibis.impl.registry.Server {
     public Server(Properties properties) throws IOException {
         TypedProperties typedProperties = new TypedProperties(properties);        
         
-        int port = typedProperties.getIntProperty(RegistryProperties.SERVER_PORT, Protocol.DEFAULT_PORT);
+        int port = typedProperties.getIntProperty(RegistryProperties.SERVER_PORT);
         
         if (port <= 0) {
             throw new IOException("can only start registry server on a positive port");

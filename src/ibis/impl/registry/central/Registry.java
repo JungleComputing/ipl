@@ -79,6 +79,8 @@ public final class Registry extends ibis.impl.Registry implements Runnable {
         Server server = null;
         if (connectionFactory.serverIsLocalHost()) {
             try {
+                properties.setProperty(RegistryProperties.SERVER_PORT, Integer
+                        .toString(connectionFactory.getServerPort()));
                 properties
                         .setProperty(RegistryProperties.SERVER_SINGLE, "true");
                 server = new Server(properties);

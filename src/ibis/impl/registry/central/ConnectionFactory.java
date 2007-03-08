@@ -15,6 +15,7 @@ import smartsockets.virtual.VirtualSocketAddress;
 import smartsockets.virtual.VirtualSocketFactory;
 
 import ibis.impl.IbisIdentifier;
+import ibis.impl.registry.RegistryProperties;
 import ibis.io.Conversion;
 import ibis.util.IPUtils;
 
@@ -35,7 +36,7 @@ public class ConnectionFactory {
     private final VirtualSocketAddress virtualServerAddress;
 
     private final ServerSocket plainServerSocket;
-    
+
     private final InetAddress plainLocalAddress;
 
     private final InetSocketAddress plainServerAddress;
@@ -78,12 +79,10 @@ public class ConnectionFactory {
                 if (port != 0) {
                     properties.put("smartsockets.direct.port", Integer
                             .toString(port));
-                    virtualSocketFactory = VirtualSocketFactory
-                            .createSocketFactory(properties, true);
-                } else {
-                    virtualSocketFactory = VirtualSocketFactory
-                            .createSocketFactory(properties, true);
                 }
+                virtualSocketFactory = VirtualSocketFactory
+                        .createSocketFactory(properties, true);
+
             } catch (InitializationException e) {
                 throw new IOException("could not initialize socket factory: "
                         + e);
@@ -136,8 +135,8 @@ public class ConnectionFactory {
 
     private static VirtualSocketAddress createAddressFromString(
             String serverString) throws IOException {
-
-        if (serverString == null || serverString.equals("")) {
+        
+        if (serverString == null) {
             return null;
         }
 
@@ -158,13 +157,15 @@ public class ConnectionFactory {
                 int[] ports = directAddress.getPorts(false);
                 if (ports.length == 0) {
                     throw new IOException(
-                            "cannot determine port from server address");
+                            "cannot determine port from server address: "
+                                    + serverString);
                 }
                 int port = ports[0];
                 for (int p : ports) {
                     if (p != port) {
                         throw new IOException(
-                                "cannot determine port from server address");
+                                "cannot determine port from server address: "
+                                        + serverString);
                     }
                 }
                 serverAddress = new VirtualSocketAddress(directAddress, port);
@@ -175,10 +176,15 @@ public class ConnectionFactory {
 
         // maybe it is only a hostname?
         if (serverAddress == null) {
-            DirectSocketAddress directAddress = DirectSocketAddress
-                    .getByAddress(serverString, Protocol.DEFAULT_PORT);
-            serverAddress = new VirtualSocketAddress(directAddress,
-                    Protocol.DEFAULT_PORT);
+            try {
+                DirectSocketAddress directAddress = DirectSocketAddress
+                        .getByAddress(serverString,
+                                RegistryProperties.DEFAULT_SERVER_PORT);
+                serverAddress = new VirtualSocketAddress(directAddress,
+                        RegistryProperties.DEFAULT_SERVER_PORT);
+            } catch (Exception e) {
+                logger.debug("could not create server address", e);
+            }
         }
 
         if (serverAddress == null) {
@@ -227,8 +233,8 @@ public class ConnectionFactory {
         if (smart) {
             return virtualServerSocket.getLocalSocketAddress().toBytes();
         } else {
-            return plainAddressToBytes(plainLocalAddress,
-                    plainServerSocket.getLocalPort());
+            return plainAddressToBytes(plainLocalAddress, plainServerSocket
+                    .getLocalPort());
         }
     }
 
@@ -264,7 +270,8 @@ public class ConnectionFactory {
             if (virtualServerAddress == null) {
                 return false;
             }
-            return virtualServerSocket.getLocalSocketAddress().machine().sameMachine(virtualServerAddress.machine());
+            return virtualServerSocket.getLocalSocketAddress().machine()
+                    .sameMachine(virtualServerAddress.machine());
         } else {
             if (plainServerAddress == null) {
                 return false;
@@ -273,6 +280,14 @@ public class ConnectionFactory {
                 return true;
             }
             return plainServerAddress.equals(plainLocalAddress);
+        }
+    }
+
+    public int getServerPort() {
+        if (smart) {
+            return virtualServerAddress.port();
+        } else {
+            return plainServerAddress.getPort();
         }
     }
 }

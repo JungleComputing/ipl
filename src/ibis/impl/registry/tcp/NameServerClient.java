@@ -27,8 +27,8 @@ import java.util.Properties;
 
 import org.apache.log4j.Logger;
 
-public class NameServerClient extends ibis.impl.Registry
-        implements Runnable, Protocol {
+public class NameServerClient extends ibis.impl.Registry implements Runnable,
+        Protocol {
 
     private ElectionClient electionClient;
 
@@ -63,12 +63,13 @@ public class NameServerClient extends ibis.impl.Registry
 
         myAddress = IPUtils.getAlternateLocalHostAddress();
 
-        String serverString = ibis.properties().getProperty(RegistryProperties.SERVER_ADDRESS);
-        
+        String serverString = ibis.properties().getProperty(
+                RegistryProperties.SERVER_ADDRESS);
+
         if (serverString == null) {
             throw new IOException("server address not specified");
         }
-        
+
         if (!serverString.contains(":")) {
             throw new IOException("illegal server socket address: "
                     + serverString);
@@ -77,25 +78,24 @@ public class NameServerClient extends ibis.impl.Registry
         // FIXME: not very robust/nice/etc
         try {
             String serverHost = serverString.split(":", 2)[0];
-            int serverPort = Integer.parseInt(serverString
-                    .split(":", 2)[1]);
+            int serverPort = Integer.parseInt(serverString.split(":", 2)[1]);
 
-            serverSocketAddress = new InetSocketAddress(serverHost,
-                    serverPort);
+            serverSocketAddress = new InetSocketAddress(serverHost, serverPort);
         } catch (Throwable t) {
-            throw new IOException("illegal server address ("
-                    + serverString + ") : " + t.getMessage());
+            throw new IOException("illegal server address (" + serverString
+                    + ") : " + t.getMessage());
         }
-        
+
         poolName = ibis.properties().getProperty(RegistryProperties.POOL);
         if (poolName == null) {
             throw new IbisConfigurationException(
                     "property ibis.registry.pool is not specified");
         }
 
-        if (serverSocketAddress.getAddress().isLoopbackAddress() ||
-         myAddress.equals(serverSocketAddress.getAddress()) ) {
-            server = runNameServer(new Properties(ibis.properties()));
+        if (serverSocketAddress.getAddress().isLoopbackAddress()
+                || myAddress.equals(serverSocketAddress.getAddress())) {
+            server = runNameServer(serverSocketAddress.getPort(),
+                    new Properties(ibis.properties()));
         } else {
             server = null;
         }
@@ -112,8 +112,8 @@ public class NameServerClient extends ibis.impl.Registry
 
         try {
 
-            out = new DataOutputStream(
-                    new BufferedOutputStream(s.getOutputStream()));
+            out = new DataOutputStream(new BufferedOutputStream(s
+                    .getOutputStream()));
 
             logger.debug("NameServerClient: contacting nameserver");
             out.writeByte(IBIS_JOIN);
@@ -147,15 +147,16 @@ public class NameServerClient extends ibis.impl.Registry
                 // read the ports for the other name servers and start the
                 // receiver thread...
                 int temp = in.readInt(); /* Port for the ElectionServer */
-                electionClient = new ElectionClient(myAddress, new InetSocketAddress(serverSocketAddress.getAddress(),
-                        temp));
+                electionClient = new ElectionClient(myAddress,
+                        new InetSocketAddress(serverSocketAddress.getAddress(),
+                                temp));
                 id = new IbisIdentifier(in);
                 if (ndsUpcalls) {
                     int poolSize = in.readInt();
 
                     if (logger.isDebugEnabled()) {
                         logger.debug("NameServerClient: accepted by nameserver"
-                                    + ", poolsize " + poolSize);
+                                + ", poolsize " + poolSize);
                     }
 
                     // Read existing nodes (including this one).
@@ -191,23 +192,20 @@ public class NameServerClient extends ibis.impl.Registry
         return id;
     }
 
-    static Socket nsConnect(InetSocketAddress dest,  InetAddress me,
+    static Socket nsConnect(InetSocketAddress dest, InetAddress me,
             boolean verbose, int timeout) throws IOException {
         Socket s = null;
         int cnt = 0;
         while (s == null) {
             try {
                 cnt++;
-                s = NameServer.createClientSocket(
-                        dest, 1000);
+                s = NameServer.createClientSocket(dest, 1000);
             } catch (IOException e) {
                 if (cnt >= timeout) {
                     if (verbose) {
                         logger.error("Nameserver client " + me + " failed"
-                                + " to connect to nameserver\n at "
-                                + dest);
-                        logger.error("Gave up after " + timeout
-                                + " seconds");
+                                + " to connect to nameserver\n at " + dest);
+                        logger.error("Gave up after " + timeout + " seconds");
                     }
                     throw new ConnectionTimedOutException(e);
                 }
@@ -215,8 +213,8 @@ public class NameServerClient extends ibis.impl.Registry
                     // Rather arbitrary, 10 seconds, print warning
                     logger.error("Nameserver client " + me + " failed"
                             + " to connect to nameserver\n at " + dest
-                             + ", will keep trying");
-                } 
+                            + ", will keep trying");
+                }
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException e2) {
@@ -227,14 +225,16 @@ public class NameServerClient extends ibis.impl.Registry
         return s;
     }
 
-    NameServer runNameServer(Properties properties) {
+    NameServer runNameServer(int port, Properties properties) {
         try {
-            properties
-                    .setProperty(RegistryProperties.SERVER_SINGLE, "true");
+            properties.setProperty(RegistryProperties.SERVER_PORT, Integer
+                    .toString(port));
+            properties.setProperty(RegistryProperties.SERVER_SINGLE, "true");
             NameServer server = new NameServer(properties);
             server.setDaemon(true);
             server.start();
-            logger.warn("Automagically created server on " + server.getLocalAddress());
+            logger.warn("Automagically created server on "
+                    + server.getLocalAddress());
             return server;
         } catch (Throwable t) {
             // IGNORE
@@ -244,7 +244,9 @@ public class NameServerClient extends ibis.impl.Registry
 
     private static class Message {
         byte type;
+
         IbisIdentifier[] list;
+
         Message(byte type, IbisIdentifier[] list) {
             this.type = type;
             this.list = list;
@@ -254,7 +256,7 @@ public class NameServerClient extends ibis.impl.Registry
     private LinkedList<Message> messages = new LinkedList<Message>();
 
     private void addMessage(byte type, IbisIdentifier[] list) {
-        synchronized(messages) {
+        synchronized (messages) {
             messages.add(new Message(type, list));
             if (messages.size() == 1) {
                 messages.notifyAll();
@@ -265,11 +267,11 @@ public class NameServerClient extends ibis.impl.Registry
     private void upcaller() {
         for (;;) {
             Message m;
-            synchronized(messages) {
+            synchronized (messages) {
                 while (messages.size() == 0) {
                     try {
                         messages.wait(60000);
-                    } catch(Exception e) {
+                    } catch (Exception e) {
                         // ignored
                     }
                     if (messages.size() == 0 && stop) {
@@ -278,7 +280,7 @@ public class NameServerClient extends ibis.impl.Registry
                 }
                 m = (Message) messages.removeFirst();
             }
-            switch(m.type) {
+            switch (m.type) {
             case IBIS_JOIN:
                 ibisImpl.joined(m.list);
                 break;
@@ -292,7 +294,8 @@ public class NameServerClient extends ibis.impl.Registry
                 ibisImpl.mustLeave(m.list);
                 break;
             default:
-                logger.warn("Internal error, unknown opcode in message, ignored");
+                logger
+                        .warn("Internal error, unknown opcode in message, ignored");
                 break;
             }
         }
@@ -309,7 +312,6 @@ public class NameServerClient extends ibis.impl.Registry
         return new Location(location);
     }
 
-
     public void maybeDead(ibis.ipl.IbisIdentifier ibisId) throws IOException {
         Socket s = null;
         DataOutputStream out = null;
@@ -318,12 +320,12 @@ public class NameServerClient extends ibis.impl.Registry
             logger.debug("Sending maybeDead(" + ibisId + ") to nameserver");
             s = nsConnect(serverSocketAddress, myAddress, false, 2);
 
-            out = new DataOutputStream(
-                    new BufferedOutputStream(s.getOutputStream()));
+            out = new DataOutputStream(new BufferedOutputStream(s
+                    .getOutputStream()));
 
             out.writeByte(IBIS_ISALIVE);
             out.writeUTF(poolName);
-            out.writeUTF(((IbisIdentifier)ibisId).myId);
+            out.writeUTF(((IbisIdentifier) ibisId).myId);
             out.flush();
             logger.debug("NS client: isAlive sent");
 
@@ -342,8 +344,8 @@ public class NameServerClient extends ibis.impl.Registry
         try {
             s = nsConnect(serverSocketAddress, myAddress, false, 10);
 
-            out = new DataOutputStream(
-                    new BufferedOutputStream(s.getOutputStream()));
+            out = new DataOutputStream(new BufferedOutputStream(s
+                    .getOutputStream()));
 
             out.writeByte(IBIS_DEAD);
             out.writeUTF(poolName);
@@ -356,16 +358,15 @@ public class NameServerClient extends ibis.impl.Registry
         }
     }
 
-    public void mustLeave(ibis.ipl.IbisIdentifier[] ibisses)
-            throws IOException {
+    public void mustLeave(ibis.ipl.IbisIdentifier[] ibisses) throws IOException {
         Socket s = null;
         DataOutputStream out = null;
 
         try {
             s = nsConnect(serverSocketAddress, myAddress, false, 10);
 
-            out = new DataOutputStream(
-                    new BufferedOutputStream(s.getOutputStream()));
+            out = new DataOutputStream(new BufferedOutputStream(s
+                    .getOutputStream()));
 
             out.writeByte(IBIS_MUSTLEAVE);
             out.writeUTF(poolName);
@@ -388,8 +389,8 @@ public class NameServerClient extends ibis.impl.Registry
         try {
             s = nsConnect(serverSocketAddress, myAddress, false, 10);
 
-            out = new DataOutputStream(
-                    new BufferedOutputStream(s.getOutputStream()));
+            out = new DataOutputStream(new BufferedOutputStream(s
+                    .getOutputStream()));
 
             out.writeByte(SEQNO);
             out.writeUTF(name);
@@ -422,8 +423,8 @@ public class NameServerClient extends ibis.impl.Registry
         }
 
         try {
-            out = new DataOutputStream(
-                    new BufferedOutputStream(s.getOutputStream()));
+            out = new DataOutputStream(new BufferedOutputStream(s
+                    .getOutputStream()));
 
             out.writeByte(IBIS_LEAVE);
             out.writeUTF(poolName);
@@ -442,16 +443,16 @@ public class NameServerClient extends ibis.impl.Registry
             NameServer.closeConnection(in, out, s);
         }
 
-        if (! needsUpcalls) {
+        if (!needsUpcalls) {
             synchronized (this) {
                 stop = true;
             }
         } else {
-            synchronized(this) {
-                while (! left) {
+            synchronized (this) {
+                while (!left) {
                     try {
                         wait();
-                    } catch(Exception e) {
+                    } catch (Exception e) {
                         // Ignored
                     }
                 }
@@ -461,7 +462,7 @@ public class NameServerClient extends ibis.impl.Registry
         if (server != null) {
             try {
                 server.join();
-            } catch(InterruptedException e) {
+            } catch (InterruptedException e) {
                 // ignored
             }
         }
@@ -472,15 +473,15 @@ public class NameServerClient extends ibis.impl.Registry
     public void run() {
         logger.info("NameServerClient: thread started");
 
-        while (! stop) {
+        while (!stop) {
 
             Socket s;
 
             try {
                 s = serverSocket.accept();
 
-                logger.debug("NameServerClient: incoming connection "
-                        + "from " + s.toString());
+                logger.debug("NameServerClient: incoming connection " + "from "
+                        + s.toString());
 
             } catch (Throwable e) {
                 if (stop) {
@@ -493,14 +494,13 @@ public class NameServerClient extends ibis.impl.Registry
                     break;
                 }
                 if (needsUpcalls) {
-                    synchronized(this) {
+                    synchronized (this) {
                         stop = true;
                         left = true;
                         notifyAll();
                     }
                 }
-                throw new RuntimeException(
-                        "NameServerClient: got an error", e);
+                throw new RuntimeException("NameServerClient: got an error", e);
             }
 
             byte opcode = 0;
@@ -508,8 +508,8 @@ public class NameServerClient extends ibis.impl.Registry
             DataOutputStream out = null;
 
             try {
-                in = new DataInputStream(
-                        new BufferedInputStream(s.getInputStream()));
+                in = new DataInputStream(new BufferedInputStream(s
+                        .getInputStream()));
                 int count;
                 IbisIdentifier[] ids;
 
@@ -517,13 +517,12 @@ public class NameServerClient extends ibis.impl.Registry
                 logger.debug("NameServerClient: opcode " + opcode);
 
                 switch (opcode) {
-                case (IBIS_PING):
-                    {
-                        out = new DataOutputStream(
-                                new BufferedOutputStream(s.getOutputStream()));
-                        out.writeUTF(poolName);
-                        out.writeUTF(id.myId);
-                    }
+                case (IBIS_PING): {
+                    out = new DataOutputStream(new BufferedOutputStream(s
+                            .getOutputStream()));
+                    out.writeUTF(poolName);
+                    out.writeUTF(id.myId);
+                }
                     break;
 
                 case (IBIS_JOIN):
@@ -541,12 +540,12 @@ public class NameServerClient extends ibis.impl.Registry
                         }
                     }
                     if (stop) {
-                        synchronized(this) {
+                        synchronized (this) {
                             left = true;
                             notifyAll();
                         }
                     } else {
-                        addMessage(opcode, ids);                       
+                        addMessage(opcode, ids);
                     }
                     break;
 
@@ -555,10 +554,10 @@ public class NameServerClient extends ibis.impl.Registry
                             + "opcode " + opcode);
                 }
             } catch (Exception e1) {
-                if (! stop) {
+                if (!stop) {
                     logger.error("Got an exception in "
-                            + "NameServerClient.run "
-                            + "(opcode = " + opcode + ")", e1);
+                            + "NameServerClient.run " + "(opcode = " + opcode
+                            + ")", e1);
                 }
             } finally {
                 NameServer.closeConnection(in, out, s);

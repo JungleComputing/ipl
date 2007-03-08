@@ -27,23 +27,17 @@ public class IbisProperties {
 
     public static final String VERBOSE = PREFIX + "verbose";
 
-    //list of {NAME, DESCRIPTION, DEFAULT_VALUE} for properties
+    // list of {NAME, DESCRIPTION, DEFAULT_VALUE} for properties
     private static final String[][] propertiesList = new String[][] {
-            { PROPERTIES_FILE,
-              "Name of the property file used for the configuration of Ibis",
-              null },
+            { PROPERTIES_FILE, null,
+                    "Name of the property file used for the configuration of Ibis" },
 
-            { LIBRARY_PATH, 
-              "Native library path", 
-              null },
+            { LIBRARY_PATH, null, "Native library path" },
 
-            { IMPL_PATH, 
-              "Path used to find Ibis implementations", 
-              null },
+            { IMPL_PATH, null, "Path used to find Ibis implementations", },
 
-            { VERBOSE,
-              "Boolean: If true, makes Ibis more verbose, if false, does not",
-              "false" },
+            { VERBOSE, "false",
+                    "Boolean: If true, makes Ibis more verbose, if false, does not" },
 
     };
 
@@ -66,8 +60,7 @@ public class IbisProperties {
     public static Properties getConfigProperties() {
         return getConfigProperties(null);
     }
-    
-    
+
     /**
      * Returns properties set in config files and system properties
      */
@@ -130,13 +123,13 @@ public class IbisProperties {
     public static Properties getHardcodedProperties() {
         return getHardcodedProperties(null);
     }
-    
+
     public static Properties getHardcodedProperties(Properties defaults) {
         Properties properties = new Properties(defaults);
 
-        for (String[] element: propertiesList) {
-            if(element[2] != null) {
-                properties.setProperty(element[0], element[2]);
+        for (String[] element : propertiesList) {
+            if (element[1] != null) {
+                properties.setProperty(element[0], element[1]);
             }
         }
 
@@ -146,8 +139,8 @@ public class IbisProperties {
     public static Map<String, String> getDescriptions() {
         Map<String, String> result = new HashMap<String, String>();
 
-        for (String[] element: propertiesList) {
-            result.put(element[0], element[1]);
+        for (String[] element : propertiesList) {
+            result.put(element[0], element[2]);
         }
 
         return result;

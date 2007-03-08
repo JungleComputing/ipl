@@ -2,15 +2,13 @@
 
 package ibis.impl.registry.smartsockets;
 
-import ibis.impl.registry.NSProps;
 import ibis.impl.Ibis;
 import ibis.impl.IbisIdentifier;
 import ibis.impl.Location;
-import ibis.io.Conversion;
+import ibis.impl.registry.RegistryProperties;
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.IbisConfigurationException;
-import ibis.util.RunProcess;
 import ibis.util.TypedProperties;
 
 import java.io.BufferedInputStream;
@@ -19,8 +17,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.StreamCorruptedException;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Properties;
 
@@ -29,8 +25,8 @@ import org.apache.log4j.Logger;
 import smartsockets.direct.DirectSocketAddress;
 import smartsockets.virtual.*;
 
-public class NameServerClient extends ibis.impl.Registry
-        implements Runnable, Protocol {
+public class NameServerClient extends ibis.impl.Registry implements Runnable,
+        Protocol {
 
     private ElectionClient electionClient;
 
@@ -56,34 +52,36 @@ public class NameServerClient extends ibis.impl.Registry
 
     private static VirtualSocketFactory socketFactory;
 
-    private NameServer ns = null;
+    private final NameServer server;
 
     public NameServerClient(Ibis ibis, boolean ndsUpcalls, byte[] data)
             throws IOException, IbisConfigurationException {
         this.ibisImpl = ibis;
         this.needsUpcalls = ndsUpcalls;
 
-        TypedProperties p = new TypedProperties(ibis.properties());
+        TypedProperties typedProperties = new TypedProperties(ibis.properties());
 
         // Try to use the same socket factory as the Ibis that created us...
-        synchronized(NameServerClient.class) {
+        synchronized (NameServerClient.class) {
             if (socketFactory == null) {
                 String name = "Factory for Ibis";
                 socketFactory = VirtualSocketFactory.getSocketFactory(name);
 
                 if (socketFactory == null) {
-                    // We failed to find Ibis' socketfactory. Create a new one instead.
+                    // We failed to find Ibis' socketfactory. Create a new one
+                    // instead.
                     logger.info("Failed to find VirtualSocketFactory: " + name);
                     logger.info("Creating new VirtualSocketFactory!");
 
                     try {
-                        socketFactory =
-                            VirtualSocketFactory.createSocketFactory(p, true);
-                    } catch(Exception e) {
-                        logger.error("Could not create VirtualSocketFactory",
-                                e);
-                        throw new IbisConfigurationException("Could not create "
-                                + "VirtualSocketFactory", e);
+                        socketFactory = VirtualSocketFactory
+                                .createSocketFactory(typedProperties, true);
+                    } catch (Exception e) {
+                        logger
+                                .error("Could not create VirtualSocketFactory",
+                                        e);
+                        throw new IbisConfigurationException(
+                                "Could not create " + "VirtualSocketFactory", e);
                     }
                 }
             }
@@ -92,10 +90,25 @@ public class NameServerClient extends ibis.impl.Registry
         serverSocket = socketFactory.createServerSocket(0, 50, true, null);
         myAddress = serverSocket.getLocalSocketAddress();
 
-        serverAddress = getServerAddress(p);
+        String serverString = typedProperties
+                .getProperty(RegistryProperties.SERVER_ADDRESS);
+
+        if (serverString == null) {
+            throw new IOException("Server address unspecified");
+        }
+
+        serverAddress = createAddressFromString(serverString);
+
+        // start a server...
+        if (serverSocket.getLocalSocketAddress().machine().sameMachine(
+                serverAddress.machine())) {
+            server = runNameServer(serverAddress.port(),typedProperties);
+        } else {
+            server = null;
+        }
 
         // Next, get the nameserver pool ....
-        poolName = p.getProperty(NSProps.s_pool);
+        poolName = typedProperties.getProperty(RegistryProperties.POOL);
         if (poolName == null) {
             throw new IbisConfigurationException(
                     "property ibis.registry.pool is not specified");
@@ -111,8 +124,8 @@ public class NameServerClient extends ibis.impl.Registry
 
         try {
 
-            out = new DataOutputStream(
-                    new BufferedOutputStream(s.getOutputStream()));
+            out = new DataOutputStream(new BufferedOutputStream(s
+                    .getOutputStream()));
 
             logger.debug("NameServerClient: contacting nameserver");
             out.writeByte(IBIS_JOIN);
@@ -121,7 +134,7 @@ public class NameServerClient extends ibis.impl.Registry
             out.writeBoolean(ndsUpcalls);
             out.writeInt(data.length);
             out.write(data);
-            Location l = getLocation(p);
+            Location l = getLocation(typedProperties);
             l.writeTo(out);
             out.flush();
 
@@ -150,7 +163,7 @@ public class NameServerClient extends ibis.impl.Registry
 
                     if (logger.isDebugEnabled()) {
                         logger.debug("NameServerClient: accepted by nameserver"
-                                    + ", poolsize " + poolSize);
+                                + ", poolsize " + poolSize);
                     }
 
                     // Read existing nodes (including this one).
@@ -182,105 +195,69 @@ public class NameServerClient extends ibis.impl.Registry
         }
     }
 
+    private static VirtualSocketAddress createAddressFromString(
+            String serverString) throws IOException {
+
+        VirtualSocketAddress serverAddress = null;
+
+        // first, try to create a complete virtual socket address
+        try {
+            serverAddress = new VirtualSocketAddress(serverString);
+        } catch (IllegalArgumentException e) {
+            logger.debug("could not create server address", e);
+        }
+
+        // maybe it is a socketaddressset without a virtual port?
+        if (serverAddress == null) {
+            try {
+                DirectSocketAddress directAddress = DirectSocketAddress
+                        .getByAddress(serverString);
+                int[] ports = directAddress.getPorts(false);
+                if (ports.length == 0) {
+                    throw new IOException(
+                            "cannot determine port from server address: "
+                                    + serverString);
+                }
+                int port = ports[0];
+                for (int p : ports) {
+                    if (p != port) {
+                        throw new IOException(
+                                "cannot determine port from server address: "
+                                        + serverString);
+                    }
+                }
+                serverAddress = new VirtualSocketAddress(directAddress, port);
+            } catch (IllegalArgumentException e) {
+                logger.debug("could not create server address", e);
+            }
+        }
+
+        // maybe it is only a hostname?
+        if (serverAddress == null) {
+            try {
+                DirectSocketAddress directAddress = DirectSocketAddress
+                        .getByAddress(serverString,
+                                RegistryProperties.DEFAULT_SERVER_PORT);
+                serverAddress = new VirtualSocketAddress(directAddress,
+                        RegistryProperties.DEFAULT_SERVER_PORT);
+            } catch (Exception e) {
+                logger.debug("could not create server address", e);
+            }
+        }
+
+        if (serverAddress == null) {
+            throw new IOException("Invalid server address: " + serverString);
+        }
+
+        return serverAddress;
+    }
+
     public IbisIdentifier getIbisIdentifier() {
         return id;
     }
 
-
-    private VirtualSocketAddress getClassicServerAddress(String server,
-            TypedProperties p) {
-
-        final String original = server;
-        int port = p.getIntProperty(NSProps.s_port, 9826);
-
-        int index = server.lastIndexOf(':');
-
-        if (index >= 0) {
-            port = Integer.parseInt(server.substring(index+1));
-            server = server.substring(0, index);
-        } else {
-            // no port number present, so check if it's provided seperately
-            String nameServerPortString = p.getProperty(NSProps.s_port);
-
-            if (nameServerPortString != null) {
-                try {
-                    port = Integer.parseInt(nameServerPortString);
-                    logger.debug("Using nameserver port: " + port);
-                } catch (Exception e) {
-                    System.err.println("illegal nameserver port: "
-                            + nameServerPortString + ", using default");
-                }
-            }
-        }
-
-        logger.debug("server = " + server);
-
-        if (server.equals("localhost")) {
-            // We want to start the server on this machine.
-            // TODO: Fix!!
-            runNameServer();
-
-            // return new VirtualSocketAddress(myAddress.machine(), port);
-        }
-
-        try {
-            return VirtualSocketAddress.partialAddress(server, port);
-        } catch (Exception e) {
-            throw new IbisConfigurationException(
-                "property ibis.registry.host contains illegal address: "
-                    + original);
-        }
-    }
-
-    private VirtualSocketAddress getServerAddress(TypedProperties p) {
-
-        // This method tries to decypher the properties which contain the
-        // address and port number of the nameserver. The possibilities are:
-        //
-        // 'Classic addressing':
-        //
-        //      'hostname' + 'port'
-        //      'hostname:port'
-        //      'ip' + 'port'
-        //      'ip:port'
-        //
-        // 'Smart addressing':
-        //
-        //       'virtual address'
-        //
-        //       (which contains at least: IP-PORT1:PORT2, but may also be
-        //        something like: IP1/IP2-P1/IP3-P2:PORT)
-
-        String server = p.getProperty(NSProps.s_host);
-
-        if (server == null) {
-            throw new IbisConfigurationException(
-                    "property ibis.registry.host is not specified");
-        }
-
-        // The easiest way to distinguish between the two forms is to check the
-        // 'hostname' for a colon (':'). If it is NOT there is must be a classic
-        // address. If it is there, we can check if it contains a dash ('-').
-        // Again, if it is not there, it must be a classic address.
-
-        if (server.indexOf(':') == -1 || server.indexOf('-') == -1) {
-            return getClassicServerAddress(server, p);
-        }
-
-        // Now it becomes interesting. The server contains both a colon and a
-        // dash, so it's likely to be a smart address, but it may still be a
-        // classic one with a dash in the hostname, e.g., 'host-a.domain:2020'
-        // The simplest way to continue now it just to try loading it as a
-        // smart address, and trying again as a classic address if we fail.
-        try {
-            return new VirtualSocketAddress(server);
-        } catch (Exception e) {
-            return getClassicServerAddress(server, p);
-        }
-    }
-
-    VirtualSocket nsConnect(VirtualSocketAddress dest,
-            boolean verbose, int timeout) throws IOException {
+    VirtualSocket nsConnect(VirtualSocketAddress dest, boolean verbose,
+            int timeout) throws IOException {
         // TODO: fix timeout
         VirtualSocket s = null;
         int cnt = 0;
@@ -292,9 +269,8 @@ public class NameServerClient extends ibis.impl.Registry
                 if (cnt >= timeout) {
                     if (verbose) {
                         logger.error("Nameserver client failed"
-                                + " to connect to nameserver\n at "
-                                + dest + ", gave up after " + timeout
-                                + " seconds");
+                                + " to connect to nameserver\n at " + dest
+                                + ", gave up after " + timeout + " seconds");
                     }
                     throw new ConnectionTimedOutException(e);
                 }
@@ -314,17 +290,29 @@ public class NameServerClient extends ibis.impl.Registry
         return s;
     }
 
-    void runNameServer() {
-        ns = NameServer.createNameServer(true, false, false, true);
-        if (ns != null) {
-            ns.setDaemon(true);
-            ns.start();
+    NameServer runNameServer(int port, Properties properties) {
+        try {
+            properties.setProperty(RegistryProperties.SERVER_PORT, Integer
+                    .toString(port));
+
+            properties.setProperty(RegistryProperties.SERVER_SINGLE, "true");
+            NameServer server = new NameServer(properties);
+            server.setDaemon(true);
+            server.start();
+            logger.warn("Automagically created server on "
+                    + server.getLocalAddress());
+            return server;
+        } catch (Throwable t) {
+            // IGNORE
+            return null;
         }
     }
 
     private static class Message {
         byte type;
+
         IbisIdentifier[] list;
+
         Message(byte type, IbisIdentifier[] list) {
             this.type = type;
             this.list = list;
@@ -332,10 +320,9 @@ public class NameServerClient extends ibis.impl.Registry
     }
 
     private LinkedList<Message> messages = new LinkedList<Message>();
-    private boolean stopUpcaller = false;
 
     private void addMessage(byte type, IbisIdentifier[] list) {
-        synchronized(messages) {
+        synchronized (messages) {
             messages.add(new Message(type, list));
             if (messages.size() == 1) {
                 messages.notifyAll();
@@ -346,11 +333,11 @@ public class NameServerClient extends ibis.impl.Registry
     private void upcaller() {
         for (;;) {
             Message m;
-            synchronized(messages) {
+            synchronized (messages) {
                 while (messages.size() == 0) {
                     try {
                         messages.wait(60000);
-                    } catch(Exception e) {
+                    } catch (Exception e) {
                         // ignored
                     }
                     if (messages.size() == 0 && stop) {
@@ -359,7 +346,7 @@ public class NameServerClient extends ibis.impl.Registry
                 }
                 m = (Message) messages.removeFirst();
             }
-            switch(m.type) {
+            switch (m.type) {
             case IBIS_JOIN:
                 ibisImpl.joined(m.list);
                 break;
@@ -373,7 +360,8 @@ public class NameServerClient extends ibis.impl.Registry
                 ibisImpl.mustLeave(m.list);
                 break;
             default:
-                logger.warn("Internal error, unknown opcode in message, ignored");
+                logger
+                        .warn("Internal error, unknown opcode in message, ignored");
                 break;
             }
         }
@@ -390,7 +378,6 @@ public class NameServerClient extends ibis.impl.Registry
         return new Location(location);
     }
 
-
     public void maybeDead(ibis.ipl.IbisIdentifier ibisId) throws IOException {
         VirtualSocket s = null;
         DataOutputStream out = null;
@@ -401,12 +388,12 @@ public class NameServerClient extends ibis.impl.Registry
 
             logger.debug("connection setup done");
 
-            out = new DataOutputStream(
-                    new BufferedOutputStream(s.getOutputStream()));
+            out = new DataOutputStream(new BufferedOutputStream(s
+                    .getOutputStream()));
 
             out.writeByte(IBIS_ISALIVE);
             out.writeUTF(poolName);
-            out.writeUTF(((IbisIdentifier)ibisId).myId);
+            out.writeUTF(((IbisIdentifier) ibisId).myId);
             out.flush();
 
             logger.debug("NS client: isAlive sent");
@@ -427,8 +414,8 @@ public class NameServerClient extends ibis.impl.Registry
         try {
             s = socketFactory.createClientSocket(serverAddress, -1, null);
 
-            out = new DataOutputStream(
-                    new BufferedOutputStream(s.getOutputStream()));
+            out = new DataOutputStream(new BufferedOutputStream(s
+                    .getOutputStream()));
 
             out.writeByte(IBIS_DEAD);
             out.writeUTF(poolName);
@@ -441,16 +428,15 @@ public class NameServerClient extends ibis.impl.Registry
         }
     }
 
-    public void mustLeave(ibis.ipl.IbisIdentifier[] ibisses)
-            throws IOException {
+    public void mustLeave(ibis.ipl.IbisIdentifier[] ibisses) throws IOException {
         VirtualSocket s = null;
         DataOutputStream out = null;
 
         try {
             s = socketFactory.createClientSocket(serverAddress, 0, null);
 
-            out = new DataOutputStream(
-                    new BufferedOutputStream(s.getOutputStream()));
+            out = new DataOutputStream(new BufferedOutputStream(s
+                    .getOutputStream()));
 
             out.writeByte(IBIS_MUSTLEAVE);
             out.writeUTF(poolName);
@@ -473,8 +459,8 @@ public class NameServerClient extends ibis.impl.Registry
         try {
             s = nsConnect(serverAddress, false, 60);
 
-            out = new DataOutputStream(
-                    new BufferedOutputStream(s.getOutputStream()));
+            out = new DataOutputStream(new BufferedOutputStream(s
+                    .getOutputStream()));
 
             out.writeByte(SEQNO);
             out.writeUTF(name);
@@ -507,8 +493,8 @@ public class NameServerClient extends ibis.impl.Registry
         }
 
         try {
-            out = new DataOutputStream(
-                    new BufferedOutputStream(s.getOutputStream()));
+            out = new DataOutputStream(new BufferedOutputStream(s
+                    .getOutputStream()));
 
             out.writeByte(IBIS_LEAVE);
             out.writeUTF(poolName);
@@ -527,26 +513,26 @@ public class NameServerClient extends ibis.impl.Registry
             VirtualSocketFactory.close(s, out, null);
         }
 
-        if (! needsUpcalls) {
+        if (!needsUpcalls) {
             synchronized (this) {
                 stop = true;
             }
         } else {
-            synchronized(this) {
-                while (! left) {
+            synchronized (this) {
+                while (!left) {
                     try {
                         wait();
-                    } catch(Exception e) {
+                    } catch (Exception e) {
                         // Ignored
                     }
                 }
             }
         }
 
-        if (ns != null) {
+        if (server != null) {
             try {
-                ns.join();
-            } catch(InterruptedException e) {
+                server.join();
+            } catch (InterruptedException e) {
                 // ignored
             }
         }
@@ -557,16 +543,15 @@ public class NameServerClient extends ibis.impl.Registry
     public void run() {
         logger.info("NameServerClient: thread started");
 
-        while (! stop) {
+        while (!stop) {
 
             VirtualSocket s;
-            IbisIdentifier ibisId;
 
             try {
                 s = serverSocket.accept();
 
-                logger.debug("NameServerClient: incoming connection "
-                        + "from " + s.toString());
+                logger.debug("NameServerClient: incoming connection " + "from "
+                        + s.toString());
 
             } catch (Throwable e) {
                 if (stop) {
@@ -579,14 +564,13 @@ public class NameServerClient extends ibis.impl.Registry
                     break;
                 }
                 if (needsUpcalls) {
-                    synchronized(this) {
+                    synchronized (this) {
                         stop = true;
                         left = true;
                         notifyAll();
                     }
                 }
-                throw new RuntimeException(
-                        "NameServerClient: got an error", e);
+                throw new RuntimeException("NameServerClient: got an error", e);
             }
 
             byte opcode = 0;
@@ -594,8 +578,8 @@ public class NameServerClient extends ibis.impl.Registry
             DataOutputStream out = null;
 
             try {
-                in = new DataInputStream(
-                        new BufferedInputStream(s.getInputStream()));
+                in = new DataInputStream(new BufferedInputStream(s
+                        .getInputStream()));
                 int count;
                 IbisIdentifier[] ids;
 
@@ -603,13 +587,12 @@ public class NameServerClient extends ibis.impl.Registry
                 logger.debug("NameServerClient: opcode " + opcode);
 
                 switch (opcode) {
-                case (IBIS_PING):
-                    {
-                        out = new DataOutputStream(
-                                new BufferedOutputStream(s.getOutputStream()));
-                        out.writeUTF(poolName);
-                        out.writeUTF(id.myId);
-                    }
+                case (IBIS_PING): {
+                    out = new DataOutputStream(new BufferedOutputStream(s
+                            .getOutputStream()));
+                    out.writeUTF(poolName);
+                    out.writeUTF(id.myId);
+                }
                     break;
 
                 case (IBIS_JOIN):
@@ -627,7 +610,7 @@ public class NameServerClient extends ibis.impl.Registry
                         }
                     }
                     if (stop) {
-                        synchronized(this) {
+                        synchronized (this) {
                             left = true;
                             notifyAll();
                         }
@@ -641,10 +624,10 @@ public class NameServerClient extends ibis.impl.Registry
                             + "opcode " + opcode);
                 }
             } catch (Exception e1) {
-                if (! stop) {
+                if (!stop) {
                     logger.error("Got an exception in "
-                            + "NameServerClient.run "
-                            + "(opcode = " + opcode + ")", e1);
+                            + "NameServerClient.run " + "(opcode = " + opcode
+                            + ")", e1);
                 }
             } finally {
                 VirtualSocketFactory.close(s, out, in);

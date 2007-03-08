@@ -2,14 +2,11 @@
 
 package ibis.impl.registry.smartsockets;
 
-import ibis.impl.registry.NSProps;
-
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.util.Properties;
 
 import org.apache.log4j.Logger;
 
@@ -32,74 +29,6 @@ public class PoolChecker implements Protocol {
         this.poolName = poolName;
         this.address = address;
         this.sleep = sleep;
-    }
-
-    public static void main(String args[]) throws IOException {
-        String serverHost = null;
-        String poolName = null;
-        String portString = null;
-        int sleep = 0;
-
-        for (int i = 0; i < args.length; i++) {
-            if (args[i].equals("-pool")) {
-                poolName = args[++i];
-            } else if (args[i].equals("-host") || args[i].equals("-ns")) {
-                serverHost = args[++i];
-            } else if (args[i].equals("-port")) {
-                portString = args[++i];
-            } else if (args[i].equals("-sleep")) {
-                sleep = Integer.parseInt(args[++i]);
-            }
-        }
-
-        check(poolName, serverHost, portString, sleep);
-    }
-
-    private static void check(String poolName, String serverHost,
-            String portString, int sleep) throws IOException {
-        Properties p = NameServer.attribs;
-
-        if (serverHost == null) {
-            serverHost = p.getProperty(NSProps.s_host);
-        }
-
-        if (serverHost == null) {
-            logger.fatal("PoolChecker: no nameserver host specified");
-            System.exit(1);
-        }
-
-        if (poolName == null) {
-            poolName = p.getProperty(NSProps.s_pool);
-        }
-
-        if (portString == null) {
-            portString = p.getProperty(NSProps.s_port);
-        }
-
-        int port = NameServer.TCP_IBIS_NAME_SERVER_PORT_NR;
-
-        if (portString != null) {
-            try {
-                port = Integer.parseInt(portString);
-                logger.debug("Using nameserver port: " + port);
-            } catch (Exception e) {
-                logger.error("illegal nameserver port: "
-                        + portString + ", using default");
-            }
-        }
-
-        // Use the default socket factory
-        VirtualSocketFactory factory;
-        try {
-            factory = VirtualSocketFactory.createSocketFactory();
-        } catch(Exception e) {
-            throw new RuntimeException("Could not create socket factory", e);
-        }
-
-        VirtualSocketAddress address =
-            VirtualSocketAddress.partialAddress(serverHost, port);
-        
-        new PoolChecker(factory, poolName, address, sleep).run();
     }
 
     public void run() {

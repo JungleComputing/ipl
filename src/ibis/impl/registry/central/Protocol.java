@@ -42,9 +42,6 @@ class Protocol {
 
     public static final int BOOTSTRAP_LIST_SIZE = 200;
 
-    
-    public static final int DEFAULT_PORT = 7777;
-
     static String opcodeString(byte opcode) {
         if (opcode == OPCODE_JOIN) {
             return "JOIN";

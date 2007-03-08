@@ -5,6 +5,8 @@ import java.util.Map;
 import java.util.Properties;
 
 public class RegistryProperties {
+    
+    public static final int DEFAULT_SERVER_PORT = 9826;
 
     public static final String PREFIX = "ibis.registry.";
 
@@ -59,7 +61,7 @@ public class RegistryProperties {
 
     // list of decriptions and defaults
     private static final String[][] propertiesList = new String[][] {
-            { IMPL, "ibis.impl.registry.tcp.NameServerClient",
+            { IMPL, "ibis.impl.registry.central.Registry",
                     "Implementation of registry(client)" },
 
             { SERVER_ADDRESS, "localhost:9826",
@@ -69,7 +71,7 @@ public class RegistryProperties {
 
             { SERVER_PORT, "9826", "Int: Port which the server binds to" },
 
-            { SERVER_IMPL, "ibis.impl.registry.tcp.NameServer",
+            { SERVER_IMPL, "ibis.impl.registry.central.Server",
                     "Implementation of the registry server (must match client)" },
 
             { SERVER_SINGLE, "false",
