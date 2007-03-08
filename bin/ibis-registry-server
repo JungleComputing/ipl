@@ -1,12 +1,13 @@
 #!/bin/sh
 
-if [ -z $IBIS_HOME ];  then
-	echo please set IBIS_HOME to the location of your Ibis installation
-	exit
+# ibis-registry-server script.
+# This script is a convenience script to start the ibis registry server from the
+# Ibis installation, specified in the $IBIS_HOME environment variable.
+
+# Check IBIS_HOME.
+if [ -z "$IBIS_HOME" ];  then
+    echo "please set IBIS_HOME to the location of your Ibis installation" 1>&2
+    exit 1
 fi
 
-CLASSPATH="."
-for i in $IBIS_HOME/lib/*.jar ; do CLASSPATH="$CLASSPATH:$i" ; done
-
-java -cp $CLASSPATH ibis.impl.registry.Server $@
-
+. $IBIS_HOME/bin/ibis-run ibis.impl.registry.Server "$@"

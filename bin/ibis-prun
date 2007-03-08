@@ -42,6 +42,8 @@ The ibis-prun parameters are:
     nameserver location (for instance an ibis.properties file).
 -no-ns
     no nameserver info is supplied by ibis-prun. See above.
+-cpdir <dir>
+    add all jar files in the specified directory to the classpath.
 -?
 -h
 -help
@@ -73,6 +75,20 @@ ibislib=$IBIS_HOME/lib/natives
 nameserver_specified=0
 no_nameserver=0
 
+# Jar-files from library.
+LIBCLASSPATH=""
+add_to_libclasspath () {
+    JARFILES=`cd "$1" && ls *.jar 2>/dev/null`
+    for i in ${JARFILES} ; do
+	if [ -z "$LIBCLASSPATH" ] ; then
+	    LIBCLASSPATH="$1/$i"
+	else
+	    LIBCLASSPATH="$LIBCLASSPATH:$1/$i"
+	fi
+    done
+}
+
+
 while [ $# -gt 0 ]
 do
 # echo now inspect argument $1 -- left $#
@@ -96,13 +112,16 @@ do
 		shift
 		case $1 in
 		*:*)
-		    Dns_server="-Dibis.registry.host="`expr "$1" : '\(.*\):.*'`
-		    Dns_port="-Dibis.registry.port="`expr "$1" : '.*:\(.*\)'`
+		    Dns_server="-Dibis.registry.serverAddress=$1"
 		    ;;
 		*)
-		    Dns_server="-Dibis.registry.host=$1"
+		    usage
 		    ;;
 		esac
+		;;
+	-cpdir)
+		shift
+		add_to_libclasspath "$1"
 		;;
 	-\?|-h|-help|--help)
 		usage
@@ -124,7 +143,7 @@ then
     then
 	for i in $HOSTS
 	do
-	    Dns_server="-Dibis.registry.host=$i"
+	    Dns_server="-Dibis.registry.serverAddress=$i:9826"
 	    break
 	done
     fi
@@ -132,18 +151,25 @@ fi
 
 export ibislib
 
+# Put value of environment variable CLASSPATH in front, if present.
+if [ -z "$CLASSPATH" ] ; then
+    CLASSPATH="$LIBCLASSPATH"
+else 
+    CLASSPATH="$CLASSPATH:$LIBCLASSPATH"
+fi
+
 if [ $no_pool -eq 0 ]
 then
 	. $IBIS_HOME/bin/ibis-run \
 		-Dibis.pool.host_number=$PRUN_CPU_RANK \
 		-Dibis.pool.total_hosts=$NHOSTS \
-		$Dns_server $Dns_port \
+		$Dns_server \
 		-Dibis.registry.pool="$pool" \
 		-Dibis.pool.host_names="$HOSTS" \
 		"$@"
 else
 	. $IBIS_HOME/bin/ibis-run \
 		-Dibis.registry.pool="$pool" \
-		$Dns_server $Dns_port \
+		$Dns_server \
 		"$@"
 fi

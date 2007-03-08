@@ -9,13 +9,13 @@ if "%IBIS_HOME%X"=="X" set IBIS_HOME=%~dp0..
 set JAVACLASSPATH=%CLASSPATH%;
 for %%i in ("%IBIS_HOME%\lib\*.jar") do call "%IBIS_HOME%\bin\AddToIbisClassPath.bat" %%i
 
-set NS_ARGS=
+set SERVER_ARGS=
 
 :setupArgs
 
 if ""%1""=="""" goto doneArgs
 
-set NS_ARGS=%NS_ARGS% "%1"
+set SERVER_ARGS=%SERVER_ARGS% "%1"
 
 shift
 goto setupArgs
@@ -30,6 +30,6 @@ if not "%JAVA_HOME%"=="" (
     set JAVA=%JAVA_HOME\bin\java
 )
 
-"%JAVA%" -classpath "%JAVACLASSPATH%" %JAVA_ARGS% ibis.impl.registry.tcp.NameServer %NS_ARGS%
+"%JAVA%" -classpath "%JAVACLASSPATH%" ibis.impl.registry.Server %SERVER_ARGS%
 
 if "%OS%"=="Windows_NT" @endlocal
