@@ -11,6 +11,7 @@ import java.util.Properties;
 
 public class IbisProperties {
 
+    /** Filename for the properties. */
     private static final String PROPERTIES_FILENAME = "ibis.properties";
 
     /** All our own properties start with this prefix. */
@@ -25,9 +26,10 @@ public class IbisProperties {
     /** Property name for the path used to find Ibis implementations. */
     public static final String IMPL_PATH = PREFIX + "impl.path";
 
+    /** Property name for verbosity. */
     public static final String VERBOSE = PREFIX + "verbose";
 
-    // list of {NAME, DESCRIPTION, DEFAULT_VALUE} for properties
+    /** List of {NAME, DESCRIPTION, DEFAULT_VALUE} for properties. */
     private static final String[][] propertiesList = new String[][] {
             { PROPERTIES_FILE, null,
                     "Name of the property file used for the configuration of Ibis" },
@@ -41,6 +43,12 @@ public class IbisProperties {
 
     };
 
+    /**
+     * Adds the properties as loaded from the specified stream to the
+     * specified properties.
+     * @param in the input stream.
+     * @param properties the properties.
+     */
     private static void load(InputStream in, Properties properties) {
         if (in != null) {
             try {
@@ -57,12 +65,19 @@ public class IbisProperties {
         }
     }
 
+    /**
+     * Returns properties set in configuration files and system properties.
+     * @return the properties.
+     */
     public static Properties getConfigProperties() {
         return getConfigProperties(null);
     }
 
     /**
-     * Returns properties set in config files and system properties
+     * Returns the properties set in configuration files and system properties,
+     * overriding the specified defaults.
+     * @param defaults the default properties.
+     * @return the resulting properties.
      */
     public static Properties getConfigProperties(Properties defaults) {
         InputStream in = null;
@@ -120,10 +135,20 @@ public class IbisProperties {
         return configProperties;
     }
 
+    /**
+     * Returns the built-in properties of this class.
+     * @return the resulting properties.
+     */
     public static Properties getHardcodedProperties() {
         return getHardcodedProperties(null);
     }
 
+    /**
+     * Returns the properties that are the result of having the hardcoded
+     * properties override the specified properties.
+     * @param defaults the default properties
+     * @return the resulting properties.
+     */
     public static Properties getHardcodedProperties(Properties defaults) {
         Properties properties = new Properties(defaults);
 
@@ -136,6 +161,10 @@ public class IbisProperties {
         return properties;
     }
 
+    /**
+     * Returns a map mapping hard-coded property names to their descriptions.
+     * @return the name/description map.
+     */
     public static Map<String, String> getDescriptions() {
         Map<String, String> result = new HashMap<String, String>();
 

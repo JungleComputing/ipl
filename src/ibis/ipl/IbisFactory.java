@@ -138,7 +138,7 @@ public final class IbisFactory {
     /**
      * Constructs an Ibis factory, with the specified properties.
      * 
-     * @param properties
+     * @param userProperties
      *            the specified properties.
      */
     private IbisFactory(Properties userProperties) {

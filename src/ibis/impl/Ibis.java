@@ -82,17 +82,17 @@ public abstract class Ibis implements ibis.ipl.Ibis,
      * Constructs an <code>Ibis</code> instance with the specified parameters.
      * @param resizeHandler the resizeHandler.
      * @param caps the capabilities.
-     * @param properties the properties.
-     * Every Ibis implementation must have a public constructor with these
-     * parameters.
+     * @param userProperties the properties as provided by the Ibis factory.
+     * @param defaultProperties the default properties of this particular
+     * ibis implementation.
      */
     protected Ibis(ResizeHandler resizeHandler, CapabilitySet caps,
-            Properties userProperties,Properties defaultProperties) throws Throwable {
+            Properties userProperties,Properties defaultProperties)
+            throws Throwable {
         boolean needsRegistryCalls = resizeHandler != null
                 || caps.hasCapability(RESIZE_DOWNCALLS);
         this.resizeHandler = resizeHandler;
         this.capabilities = caps;
-        this.properties = new TypedProperties(properties);
         
         Log.initLog4J("ibis");
 
