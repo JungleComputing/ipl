@@ -2818,6 +2818,12 @@ public final class Satinc extends IbiscComponent {
         //}
 
         newMethodInsList = new InstructionList();
+        // Set writeDone flag.
+        newMethodInsList.append(new ALOAD(0));
+        newMethodInsList.append(new ICONST(1));
+        newMethodInsList.append(ins_f.createFieldAccess(
+                "ibis.satin.SharedObject", "writeDone", Type.BOOLEAN,
+                Constants.PUTFIELD));
         //broadcast 
         newMethodInsList.append(ins_f.createInvoke("ibis.satin.impl.Satin",
             "getSatin", new ObjectType("ibis.satin.impl.Satin"), new Type[] {},

@@ -22,6 +22,8 @@ public class SharedObject implements java.io.Serializable {
 
     private boolean exported = false;
 
+    protected boolean writeDone = false;
+
     /**
      * Creates an identification for the current object and marks it as shared.
      */
@@ -59,6 +61,11 @@ public class SharedObject implements java.io.Serializable {
         if (satin == null) {
             // Assuming sequential run, not rewritten code.
             return;
+        }
+
+        if (writeDone) {
+            throw new RuntimeException(
+                    "write method invoked before exportObject");
         }
 
         synchronized (satin) {
