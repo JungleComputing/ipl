@@ -86,17 +86,17 @@ public class ConnectionFactory {
             plainLocalAddress = null;
 
             try {
-                Properties properties = new Properties();
                 if (port != 0) {
+                    Properties properties = new Properties();
                     properties.setProperty("smartsockets.direct.port", Integer
                             .toString(port));
                     
 
-                }//  else {
-                  //   virtualSocketFactory = getDefaultSocketFactory();
-                // }
                     virtualSocketFactory = VirtualSocketFactory
                     .createSocketFactory(properties, true);
+                } else {
+                    virtualSocketFactory = getDefaultSocketFactory();
+                }
             } catch (InitializationException e) {
                 throw new IOException("could not initialize socket factory: "
                         + e);
@@ -285,6 +285,7 @@ public class ConnectionFactory {
             if (virtualServerAddress == null) {
                 return false;
             }
+
             return virtualServerSocket.getLocalSocketAddress().machine()
                     .sameMachine(virtualServerAddress.machine());
         } else {

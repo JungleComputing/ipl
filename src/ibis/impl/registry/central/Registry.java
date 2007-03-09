@@ -95,7 +95,7 @@ public final class Registry extends ibis.impl.Registry implements Runnable {
                 logger.warn("Automagically created server on "
                         + server.getLocalAddress());
             } catch (Throwable t) {
-                // IGNORE
+                logger.debug("Could not create registry server", t);
             }
         }
         this.server = server;
