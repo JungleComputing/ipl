@@ -61,30 +61,12 @@ public class NameServerClient extends ibis.impl.Registry implements Runnable,
 
         TypedProperties typedProperties = new TypedProperties(ibis.properties());
 
-        // Try to use the same socket factory as the Ibis that created us...
-        synchronized (NameServerClient.class) {
-            if (socketFactory == null) {
-                String name = "Factory for Ibis";
-                socketFactory = VirtualSocketFactory.getSocketFactory(name);
-
-                if (socketFactory == null) {
-                    // We failed to find Ibis' socketfactory. Create a new one
-                    // instead.
-                    logger.info("Failed to find VirtualSocketFactory: " + name);
-                    logger.info("Creating new VirtualSocketFactory!");
-
-                    try {
-                        socketFactory = VirtualSocketFactory
-                                .createSocketFactory(typedProperties, true);
-                    } catch (Exception e) {
-                        logger
-                                .error("Could not create VirtualSocketFactory",
-                                        e);
-                        throw new IbisConfigurationException(
-                                "Could not create " + "VirtualSocketFactory", e);
-                    }
-                }
-            }
+        try {
+            socketFactory = VirtualSocketFactory.getDefaultSocketFactory();
+        } catch (Exception e) {
+            logger.error("Could not create VirtualSocketFactory", e);
+            throw new IbisConfigurationException("Could not create "
+                    + "VirtualSocketFactory", e);
         }
 
         serverSocket = socketFactory.createServerSocket(0, 50, true, null);
@@ -102,7 +84,7 @@ public class NameServerClient extends ibis.impl.Registry implements Runnable,
         // start a server...
         if (serverSocket.getLocalSocketAddress().machine().sameMachine(
                 serverAddress.machine())) {
-            server = runNameServer(serverAddress.port(),typedProperties);
+            server = runNameServer(serverAddress.port(), typedProperties);
         } else {
             server = null;
         }
@@ -299,8 +281,8 @@ public class NameServerClient extends ibis.impl.Registry implements Runnable,
             NameServer server = new NameServer(properties);
             server.setDaemon(true);
             server.start();
-            logger.warn("Automagically created server on "
-                    + server.getLocalAddress());
+            logger.warn("Automagically created "
+                    + server.toString());
             return server;
         } catch (Throwable t) {
             // IGNORE

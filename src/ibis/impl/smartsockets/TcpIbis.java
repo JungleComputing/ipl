@@ -70,14 +70,8 @@ public final class TcpIbis extends ibis.impl.Ibis
     }
 
     protected byte[] getData() throws IOException {
-        // NOTE: moved here from the static initializer, since we may want to 
-        //       configure the thing differently for every TcpIbis instance in 
-        //       this process. Having a single -static- socketfactory doesn't 
-        //       work then....        
-        
         try {
-            socketFactory = VirtualSocketFactory.createSocketFactory(properties,
-                true);
+            socketFactory = VirtualSocketFactory.getDefaultSocketFactory();
         } catch (InitializationException e1) {
             throw new IOException("Failed to create socket factory");
         }

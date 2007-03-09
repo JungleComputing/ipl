@@ -245,8 +245,8 @@ public class NameServerClient extends ibis.impl.Registry implements Runnable,
             NameServer server = new NameServer(properties);
             server.setDaemon(true);
             server.start();
-            logger.warn("Automagically created server on "
-                    + server.getLocalAddress());
+            logger.warn("Automagically created "
+                    + server.toString());
             return server;
         } catch (Throwable t) {
             // IGNORE

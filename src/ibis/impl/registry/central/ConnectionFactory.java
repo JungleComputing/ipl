@@ -28,17 +28,6 @@ public class ConnectionFactory {
 
     // smart socket fields
     
-    private static VirtualSocketFactory defaultSocketFactory = null;
-    
-    private static synchronized VirtualSocketFactory getDefaultSocketFactory() throws InitializationException {
-        if (defaultSocketFactory == null) {
-            defaultSocketFactory = VirtualSocketFactory
-            .createSocketFactory();
-        }
-        return defaultSocketFactory;
-    }
-        
-
     private final VirtualSocketFactory virtualSocketFactory;
 
     private final VirtualServerSocket virtualServerSocket;
@@ -95,7 +84,8 @@ public class ConnectionFactory {
                     virtualSocketFactory = VirtualSocketFactory
                     .createSocketFactory(properties, true);
                 } else {
-                    virtualSocketFactory = getDefaultSocketFactory();
+                    //get default factory
+                    virtualSocketFactory = VirtualSocketFactory.getDefaultSocketFactory();
                 }
             } catch (InitializationException e) {
                 throw new IOException("could not initialize socket factory: "

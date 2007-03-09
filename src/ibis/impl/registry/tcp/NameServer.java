@@ -1563,5 +1563,10 @@ public class NameServer extends Server implements Protocol, Runnable {
     public String getLocalAddress() {
         return myAddress.getHostAddress() + ":" + serverSocket.getLocalPort();
     }
+    
+    @Override
+    public String toString() {
+        return "plain-tcp NameServer on " + getLocalAddress();
+    }
 
 }

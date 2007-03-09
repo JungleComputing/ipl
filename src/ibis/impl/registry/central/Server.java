@@ -117,4 +117,9 @@ public final class Server extends ibis.impl.registry.Server {
     public String getLocalAddress() {
         return connectionFactory.getAddressString();
     }
+    
+    @Override
+    public String toString() {
+        return "central server on " + getLocalAddress();
+    }
 }

@@ -489,15 +489,18 @@ public class NameServer extends Server implements Protocol, Runnable {
                 .booleanProperty(RegistryProperties.SERVER_SINGLE);
         this.joined = false;
 
-        typedProperties.setProperty("smartsockets.direct.port", "" + port);
-
-        // Bit of a hack to improve the visualization
-        typedProperties.setProperty("smartsockets.register.property",
-                "nameserver");
 
         try {
+            Properties smartProperties = new Properties();
+            
+            smartProperties.setProperty("smartsockets.direct.port", "" + port);
+
+            // Bit of a hack to improve the visualization
+            smartProperties.setProperty("smartsockets.register.property",
+                    "nameserver");
+
             socketFactory = VirtualSocketFactory.createSocketFactory(
-                    typedProperties, true);
+                    smartProperties, true);
         } catch (Throwable e) {
             throw new IOException("could not create socket factory");
         }
@@ -1511,6 +1514,11 @@ public class NameServer extends Server implements Protocol, Runnable {
 
     @Override
     public String getLocalAddress() {
-        return serverSocket.toString();
+        return serverSocket.getLocalSocketAddress().toString();
+    }
+    
+    @Override
+    public String toString() {
+        return "smartsockets NameServer on " + getLocalAddress();
     }
 }

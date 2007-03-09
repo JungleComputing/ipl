@@ -35,8 +35,7 @@ public abstract class Server extends Thread {
         stream.println("\t\t\tAddresses of additional hubs to connect to");
         stream.println("\t\t\tOnly works with --hub or --hub_only options");
         stream.println();
-        stream
-                .println("--pool_info_server\tAlso start a PoolInfoServer hub on PORT+2");
+        stream.println("--pool_info\t\tAlso start a PoolInfo Server on PORT+2");
         stream.println();
 
         stream.println("--warn\t\t\tOnly print warnings and errors, "
@@ -155,12 +154,15 @@ public abstract class Server extends Thread {
             // FIXME: use new/improved hub constructor when/if it arrives
             try {
                 int port = basePort + 1;
-                properties.setProperty(smartsockets.Properties.HUB_PORT,
+                smartsockets.util.TypedProperties smartProperties = 
+                    new smartsockets.util.TypedProperties();
+                smartProperties.setProperty(smartsockets.Properties.HUB_PORT,
                         Integer.toString(port));
-                hub = new Hub(null, new smartsockets.util.TypedProperties(
-                        properties));
+                hub = new Hub(null, smartProperties);
                 hub.addHubs(null, hubAddresses);
-                properties.setProperty(smartsockets.Properties.HUB_ADDRESS, hub
+
+                // FIXME: HACK: tell smartsockets about the hub we started...
+                System.setProperty(smartsockets.Properties.HUB_ADDRESS, hub
                         .getHubAddress().toString());
                 logger.info("Hub running on " + hub.getHubAddress());
             } catch (Throwable t) {
@@ -170,7 +172,7 @@ public abstract class Server extends Thread {
 
         if (startPoolInfo) {
             try {
-                int port = basePort + 1;
+                int port = basePort + 2;
                 new PoolInfoServer(port, false);
                 logger.info("PoolInfoServer running on port " + port);
             } catch (Throwable t) {
@@ -185,7 +187,7 @@ public abstract class Server extends Thread {
         if (!hubOnly) {
             try {
                 server = createServer(properties);
-                logger.info("Server running on " + server.getLocalAddress());
+                logger.info("Started " + server.toString());
             } catch (Throwable t) {
                 logger.error("Could not start Server", t);
                 System.exit(1);
