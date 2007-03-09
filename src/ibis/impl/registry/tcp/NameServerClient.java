@@ -63,6 +63,8 @@ public class NameServerClient extends ibis.impl.Registry implements Runnable,
         this.needsUpcalls = ndsUpcalls;
 
         myAddress = IPUtils.getAlternateLocalHostAddress();
+
+        logger.debug("myAddress = " + myAddress);
         
         TypedProperties typedProperties = new TypedProperties(ibis.properties());
 
@@ -86,6 +88,7 @@ public class NameServerClient extends ibis.impl.Registry implements Runnable,
             }
 
             serverSocketAddress = new InetSocketAddress(serverHost, serverPort);
+            logger.debug("serverSocketAddress = " + serverSocketAddress);
         } catch (Throwable t) {
             throw new IOException("illegal server address (" + serverString
                     + ") : " + t.getMessage());
@@ -97,8 +100,12 @@ public class NameServerClient extends ibis.impl.Registry implements Runnable,
                     "property ibis.registry.pool is not specified");
         }
 
+        InetAddress localHost = InetAddress.getLocalHost();
+
+        logger.debug("localHost = " + localHost);
+
         if (serverSocketAddress.getAddress().isLoopbackAddress()
-                || myAddress.equals(serverSocketAddress.getAddress())) {
+                || localHost.equals(serverSocketAddress.getAddress())) {
             server = runNameServer(serverSocketAddress.getPort(),
                     new Properties(ibis.properties()));
         } else {
