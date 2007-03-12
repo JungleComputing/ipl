@@ -248,13 +248,17 @@ public abstract class ReceivePort implements ibis.ipl.ReceivePort,
     }
 
     public ReadMessage receive() throws IOException {
-        return receive(-1);
+        return receive(0);
     }
 
     public ReadMessage receive(long timeout) throws IOException {
         if (upcall != null) {
             throw new IbisConfigurationException(
                     "Configured Receiveport for upcalls, downcall not allowed");
+        }
+
+        if (timeout < 0) {
+            throw new IOException("timeout must be a non-negative number");
         }
         if (timeout > 0 &&
                 ! type.capabilities().hasCapability(RECEIVE_TIMEOUT)) {
