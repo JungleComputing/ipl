@@ -60,84 +60,122 @@ public class ConnectionFactory {
         return result;
     }
 
-    ConnectionFactory(int port, boolean smart, String serverString,
-            int defaultServerPort) throws IOException {
-        this.smart = smart;
+    ConnectionFactory(boolean smart, String serverString, int defaultServerPort)
+    throws IOException {
+this.smart = smart;
 
-        if (port < 0) {
-            throw new IOException("port number cannot be negative " + port);
-        }
-        logger.debug("port = " + port);
+if (smart) {
+    plainServerSocket = null;
+    plainServerAddress = null;
+    plainLocalAddress = null;
 
-        if (smart) {
-            plainServerSocket = null;
-            plainServerAddress = null;
-            plainLocalAddress = null;
-
-            try {
-                if (port != 0) {
-                    Properties properties = new Properties();
-                    properties.setProperty("smartsockets.direct.port", Integer
-                            .toString(port));
-                    
-
-                    virtualSocketFactory = VirtualSocketFactory
-                    .createSocketFactory(properties, true);
-                } else {
-                    //get default factory
-                    virtualSocketFactory = VirtualSocketFactory.getDefaultSocketFactory();
-                }
-            } catch (InitializationException e) {
-                throw new IOException("could not initialize socket factory: "
-                        + e);
-            }
-
-            // serverSocket = socketFactory.createServerSocket(0,
-            // CONNECTION_BACKLOG,
-            // null);
-
-            virtualServerSocket = virtualSocketFactory.createServerSocket(port,
-                    CONNECTION_BACKLOG, null);
-
-            virtualServerAddress = createAddressFromString(serverString,
-                    defaultServerPort);
-
-            logger.debug("local address = "
-                    + virtualServerSocket.getLocalSocketAddress());
-            logger.debug("server address = " + virtualServerAddress);
-        } else {
-            virtualSocketFactory = null;
-            virtualServerSocket = null;
-            virtualServerAddress = null;
-
-            plainServerSocket = new ServerSocket(port, CONNECTION_BACKLOG);
-            plainLocalAddress = IPUtils.getLocalHostAddress();
-
-            if (serverString != null) {
-
-                try {
-                    String[] addressParts = serverString.split(":", 2);
-
-                    String serverHost = addressParts[0];
-                    int serverPort;
-
-                    if (addressParts.length < 2) {
-                        serverPort = defaultServerPort;
-                    } else {
-                        serverPort = Integer.parseInt(addressParts[1]);
-                    }
-
-                    plainServerAddress = new InetSocketAddress(serverHost,
-                            serverPort);
-                } catch (Throwable t) {
-                    throw new IOException("illegal server address ("
-                            + serverString + ") : " + t.getMessage());
-                }
-            } else {
-                plainServerAddress = null;
-            }
-        }
+    try {
+        virtualSocketFactory = VirtualSocketFactory
+                .getDefaultSocketFactory();
+    } catch (InitializationException e) {
+        throw new IOException("could not initialize socket factory: "
+                + e);
     }
+
+    // serverSocket = socketFactory.createServerSocket(0,
+    // CONNECTION_BACKLOG,
+    // null);
+
+    virtualServerSocket = virtualSocketFactory.createServerSocket(0,
+            CONNECTION_BACKLOG, null);
+
+    virtualServerAddress = createAddressFromString(serverString,
+            defaultServerPort);
+
+    logger.debug("local address = "
+            + virtualServerSocket.getLocalSocketAddress());
+    logger.debug("server address = " + virtualServerAddress);
+} else {
+    virtualSocketFactory = null;
+    virtualServerSocket = null;
+    virtualServerAddress = null;
+
+    plainServerSocket = new ServerSocket(0, CONNECTION_BACKLOG);
+    plainLocalAddress = IPUtils.getLocalHostAddress();
+
+    if (serverString != null) {
+        try {
+            String[] addressParts = serverString.split(":", 2);
+
+            String serverHost = addressParts[0];
+            int serverPort;
+
+            if (addressParts.length < 2) {
+                serverPort = defaultServerPort;
+            } else {
+                serverPort = Integer.parseInt(addressParts[1]);
+            }
+
+            plainServerAddress = new InetSocketAddress(serverHost,
+                    serverPort);
+        } catch (Throwable t) {
+            throw new IOException("illegal server address ("
+                    + serverString + ") : " + t.getMessage());
+        }
+    } else {
+        plainServerAddress = null;
+    }
+}
+}
+
+ConnectionFactory(int port, boolean smart, String hubAddress)
+    throws IOException {
+this.smart = smart;
+
+if (port < 0) {
+    throw new IOException("port number cannot be negative " + port);
+}
+logger.debug("port = " + port);
+
+if (smart) {
+    plainServerSocket = null;
+    plainServerAddress = null;
+    plainLocalAddress = null;
+
+    try {
+        Properties smartProperties = new Properties();
+        if (hubAddress != null) {
+            smartProperties.setProperty(
+                    smartsockets.Properties.HUB_ADDRESS, hubAddress);
+        }
+        smartProperties.setProperty(
+                smartsockets.Properties.DIRECT_PORT, Integer
+                        .toString(port));
+
+        virtualSocketFactory = VirtualSocketFactory
+                .createSocketFactory(smartProperties, true);
+    } catch (InitializationException e) {
+        throw new IOException("could not initialize socket factory: "
+                + e);
+    }
+
+    // serverSocket = socketFactory.createServerSocket(0,
+    // CONNECTION_BACKLOG,
+    // null);
+
+    virtualServerSocket = virtualSocketFactory.createServerSocket(port,
+            CONNECTION_BACKLOG, null);
+
+    virtualServerAddress = null;
+
+    logger.debug("local address = "
+            + virtualServerSocket.getLocalSocketAddress());
+    logger.debug("server address = " + virtualServerAddress);
+} else {
+    virtualSocketFactory = null;
+    virtualServerSocket = null;
+    virtualServerAddress = null;
+
+    plainServerSocket = new ServerSocket(port, CONNECTION_BACKLOG);
+    plainLocalAddress = IPUtils.getLocalHostAddress();
+    plainServerAddress = null;
+}
+}
 
     private static VirtualSocketAddress createAddressFromString(
             String serverString, int defaultPort) throws IOException {

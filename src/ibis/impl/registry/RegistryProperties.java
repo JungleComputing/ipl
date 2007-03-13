@@ -27,6 +27,11 @@ public class RegistryProperties {
     public static final String SERVER_IMPL = SERVER_PREFIX + "impl";
 
     public static final String SERVER_SINGLE = SERVER_PREFIX + "single";
+    
+    // address of smart sockets hub
+    public static final String SERVER_HUB_ADDRESS = SERVER_PREFIX
+            + "hubAddress";
+
 
     // "tcp" and "smartsockets" registry specific properties
 

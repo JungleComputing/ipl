@@ -495,6 +495,12 @@ public class NameServer extends Server implements Protocol, Runnable {
             
             smartProperties.setProperty("smartsockets.direct.port", "" + port);
 
+            String hubAddress = typedProperties.getProperty(RegistryProperties.SERVER_HUB_ADDRESS); 
+
+            if (hubAddress != null) {
+                smartProperties.setProperty(smartsockets.Properties.HUB_ADDRESS, hubAddress);
+            }
+            
             // Bit of a hack to improve the visualization
             smartProperties.setProperty("smartsockets.register.property",
                     "nameserver");

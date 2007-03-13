@@ -19,45 +19,33 @@ public abstract class Server extends Thread {
     private static final Logger logger = Logger.getLogger("ibis.impl.registry");
 
     private static void printUsage(PrintStream stream) {
-        stream.println("Start a registry server for Ibis)");
+        stream.println("Start a registry server for Ibis.");
         stream.println();
         stream.println("USAGE: ibis-registry-server [OPTIONS]");
         stream.println();
-        stream.println("Basic options:");
-        stream.println();
-        stream.println("--port PORT\t\tBase port used for the server");
+
+        stream.println("--port PORT\t\tBase port used for the server.");
         stream
-                .println("\t\t\tAdditional services will use PORT+1, PORT+2, etc");
+                .println("\t\t\tAdditional services will use PORT+1, PORT+2, etc.");
         stream.println();
-        stream.println("--hub\t\t\tAlso start a SmartSockets hub on PORT+1");
-        stream.println("--hub_only\t\tONLY start a SmartSockets hub");
-        stream.println("--hub_addresses ADDRESS,[ADDRESS]*");
-        stream.println("\t\t\tAddresses of additional hubs to connect to");
-        stream.println("\t\t\tOnly works with --hub or --hub_only options");
+        stream.println("--hub\t\t\tAlso start a SmartSockets hub on PORT+1.");
+        stream
+                .println("--hub-only\t\tONLY start a SmartSockets hub on PORT+1.");
+        stream.println("--hub-addresses ADDRESS,[ADDRESS]*");
+        stream.println("\t\t\tAddresses of additional hubs to connect to.");
+        stream.println("\t\t\tOnly works with --hub or --hub-only options.");
         stream.println();
-        stream.println("--pool_info\t\tAlso start a PoolInfo Server on PORT+2");
+        stream.println("--pool-info\t\tAlso start a PoolInfo Server on PORT+2");
+        stream.println();
+
+        stream.println("PROPERTY=VALUE\t\tSet a property, as if it was set in a configuration");
+        stream.println("\t\t\tfile or as a System property.");
         stream.println();
 
         stream.println("--warn\t\t\tOnly print warnings and errors, "
-                + "no status messages");
-        stream.println("--debug\t\t\tPrint debug output");
-        stream.println("--help | -h | /?\tThis message");
-        stream.println();
-
-        stream.println("Advanced options:");
-        stream.println();
-        stream
-                .println("--old_plain\t\tUse a version of the registry without smartsockets");
-
-        stream
-                .println("--old_smart\t\tUse a version of the registry with smartsockets");
-        stream
-                .println("--new_plain\t\tNew registry implementation, without smartsockets");
-        stream
-                .println("--new_smart\t\tUse the new registry implementation, with smartsockets");
-        stream.println();
-        stream.println("PROPERTY=VALUE\t\tset a property");
-        stream.println();
+                + "no status messages.");
+        stream.println("--debug\t\t\tPrint debug output.");
+        stream.println("--help | -h | /?\tThis message.");
     }
 
     public static Server createServer(Properties properties) throws Throwable {
@@ -101,13 +89,13 @@ public abstract class Server extends Thread {
                 properties.put(RegistryProperties.SERVER_PORT, args[i]);
             } else if (args[i].equalsIgnoreCase("--hub")) {
                 startHub = true;
-            } else if (args[i].equalsIgnoreCase("--hub_only")) {
+            } else if (args[i].equalsIgnoreCase("--hub-only")) {
                 startHub = true;
                 hubOnly = true;
-            } else if (args[i].equalsIgnoreCase("--hub_addresses")) {
+            } else if (args[i].equalsIgnoreCase("--hub-addresses")) {
                 i++;
                 hubAddresses = args[i].split(",");
-            } else if (args[i].equalsIgnoreCase("--pool_info")) {
+            } else if (args[i].equalsIgnoreCase("--pool-info")) {
                 startPoolInfo = true;
             } else if (args[i].equalsIgnoreCase("--warn")) {
                 logLevel = Level.WARN;
@@ -118,22 +106,6 @@ public abstract class Server extends Thread {
                     || args[i].equalsIgnoreCase("/?")) {
                 printUsage(System.out);
                 System.exit(0);
-            } else if (args[i].equalsIgnoreCase("--old_plain")) {
-                properties.setProperty(RegistryProperties.SERVER_IMPL,
-                        "ibis.impl.registry.tcp.NameServer");
-            } else if (args[i].equalsIgnoreCase("--old_smart")) {
-                properties.setProperty(RegistryProperties.SERVER_IMPL,
-                        "ibis.impl.registry.smartsockets.NameServer");
-            } else if (args[i].equalsIgnoreCase("--new_plain")) {
-                properties.setProperty(RegistryProperties.SERVER_IMPL,
-                        "ibis.impl.registry.central.Server");
-                properties.setProperty(RegistryProperties.CENTRAL_SMARTSOCKETS,
-                        "false");
-            } else if (args[i].equalsIgnoreCase("--new_smart")) {
-                properties.setProperty(RegistryProperties.SERVER_IMPL,
-                        "ibis.impl.registry.central.Server");
-                properties.setProperty(RegistryProperties.CENTRAL_SMARTSOCKETS,
-                        "true");
             } else if (args[i].contains("=")) {
                 String[] parts = args[i].split("=", 2);
                 properties.setProperty(parts[0], parts[1]);
@@ -154,16 +126,16 @@ public abstract class Server extends Thread {
             // FIXME: use new/improved hub constructor when/if it arrives
             try {
                 int port = basePort + 1;
-                smartsockets.util.TypedProperties smartProperties = 
-                    new smartsockets.util.TypedProperties();
+                smartsockets.util.TypedProperties smartProperties = new smartsockets.util.TypedProperties();
                 smartProperties.setProperty(smartsockets.Properties.HUB_PORT,
                         Integer.toString(port));
                 hub = new Hub(null, smartProperties);
                 hub.addHubs(null, hubAddresses);
 
-                // FIXME: HACK: tell smartsockets about the hub we started...
-                System.setProperty(smartsockets.Properties.HUB_ADDRESS, hub
-                        .getHubAddress().toString());
+                // tell the server there is a hub
+                properties.setProperty(RegistryProperties.SERVER_HUB_ADDRESS,
+                        hub.getHubAddress().toString());
+
                 logger.info("Hub running on " + hub.getHubAddress());
             } catch (Throwable t) {
                 logger.warn("Could not start Hub", t);

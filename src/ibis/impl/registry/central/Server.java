@@ -38,7 +38,8 @@ public final class Server extends ibis.impl.registry.Server {
 
         boolean smart = typedProperties.booleanProperty(RegistryProperties.CENTRAL_SMARTSOCKETS, true);
 
-        connectionFactory = new ConnectionFactory(port, smart, null, 0);
+        connectionFactory = new ConnectionFactory(port, smart, properties.getProperty(RegistryProperties.SERVER_HUB_ADDRESS));
+        
         
         single = typedProperties.booleanProperty(RegistryProperties.SERVER_SINGLE);
 
