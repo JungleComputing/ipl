@@ -8,7 +8,7 @@ package ibis.impl.nio;
 interface Config {
 
     /** Do we do asserts (may make it a bit slower).  */
-    static final boolean ASSERT = false;
+    static final boolean ASSERT = true;
 
     /** Gather and print some timing statistics.  */
     static final boolean STATS = false;

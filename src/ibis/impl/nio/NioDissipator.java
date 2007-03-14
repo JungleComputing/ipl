@@ -233,16 +233,18 @@ public abstract class NioDissipator extends DataInputStream implements Config,
 
         if (logger.isDebugEnabled()) {
             logger.debug("receiving buffer");
-        }
-
-        if (ASSERT && (remaining() > 0)) {
-            logger.error("receiving with data still left in the buffer"
-                    + ", content: " + "l[" + longs.remaining() + "] d["
-                    + doubles.remaining() + "] i[" + ints.remaining() + "] f["
-                    + floats.remaining() + "] s[" + shorts.remaining() + "] c["
-                    + chars.remaining() + "] b[" + bytes.remaining() + "]");
-            throw new Error("tried receive() while there was data"
-                    + " left in the buffer");
+            if (remaining() > 0) {
+                logger.error("receiving with data still left in the buffer"
+                        + ", content: " + "l[" + longs.remaining()
+                        + "] d[" + doubles.remaining()
+                        + "] i[" + ints.remaining()
+                        + "] f[" + floats.remaining()
+                        + "] s[" + shorts.remaining()
+                        + "] c[" + chars.remaining()
+                        + "] b[" + bytes.remaining() + "]");
+                throw new Error("tried receive() while there was data"
+                        + " left in the buffer");
+            }
         }
 
         // release old used data
@@ -411,7 +413,8 @@ public abstract class NioDissipator extends DataInputStream implements Config,
                 + (ints.remaining() * SIZEOF_INT)
                 + (floats.remaining() * SIZEOF_INT)
                 + (shorts.remaining() * SIZEOF_SHORT)
-                + (chars.remaining() * SIZEOF_CHAR) + (bytes.remaining() * SIZEOF_BYTE));
+                + (chars.remaining() * SIZEOF_CHAR)
+                + (bytes.remaining() * SIZEOF_BYTE));
     }
 
     /**
@@ -426,6 +429,10 @@ public abstract class NioDissipator extends DataInputStream implements Config,
             // unpredictable
             // so we assume there's only 1 byte in it
             result += 1;
+        }
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("available: " + result);
         }
 
         return result;

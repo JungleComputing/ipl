@@ -148,7 +148,7 @@ final class NonBlockingChannelNioAccumulator extends NioAccumulator {
             }
         }
 
-        if (ASSERT && connection != null) {
+        if (logger.isDebugEnabled() && connection != null) {
             boolean found = false;
             for (int i = 0; i < nrOfConnections; i++) {
                 if (connections[i] == connection) {
@@ -219,7 +219,7 @@ final class NonBlockingChannelNioAccumulator extends NioAccumulator {
 
                 try {
                     if (selected.send()) {
-                        if (ASSERT && key.interestOps() == 0) {
+                        if (key.interestOps() == 0) {
                             throw new Error("selected non-active channel");
                         }
                         key.interestOps(0);
@@ -249,7 +249,7 @@ final class NonBlockingChannelNioAccumulator extends NioAccumulator {
             }
         }
 
-        if (ASSERT && (connection == null)) {
+        if (logger.isDebugEnabled() && (connection == null)) {
             for (int i = 0; i < nrOfConnections; i++) {
                 NioAccumulatorConnection conn
                         = (NioAccumulatorConnection) connections[i];

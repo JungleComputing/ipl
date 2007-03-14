@@ -73,10 +73,12 @@ final class BlockingChannelNioAccumulator extends NioAccumulator {
             try {
                 buffer.reset();
                 while (buffer.hasRemaining()) {
+                    logger.debug("Write...");
                     connection.channel.write(buffer.byteBuffers);
                 }
             } catch (IOException e) {
                 // inform the SendPort
+                logger.debug("lost connection", e);
                 port.lostConnection(connection.target, e);
 
                 // remove connection

@@ -48,7 +48,7 @@ public final class NioSendPort extends SendPort implements Config, Protocol {
     }
 
     protected void handleSendException(WriteMessage w, IOException e) {
-        // nothing.
+        logger.debug("handleSendException", e);
     }
 
     protected SendPortConnectionInfo doConnect(ReceivePortIdentifier receiver,
@@ -60,11 +60,9 @@ public final class NioSendPort extends SendPort implements Config, Protocol {
         Channel channel = ((NioIbis)ibis).factory.connect(this, receiver,
                 timeoutMillis);
 
-        if (ASSERT) {
-            if (!(channel instanceof GatheringByteChannel)) {
-                logger.error("factory returned wrong type of channel");
-                throw new Error("factory returned wrong type of channel");
-            }
+        if (!(channel instanceof GatheringByteChannel)) {
+            logger.error("factory returned wrong type of channel");
+            throw new Error("factory returned wrong type of channel");
         }
 
         // close output stream (if it exist). The new receiver needs the

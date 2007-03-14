@@ -149,10 +149,7 @@ abstract class NioReceivePort extends ibis.impl.ReceivePort implements
                             + " not finished yet");
                 }
             }
-            reader_busy = true;
-        }
 
-        synchronized(this) {
             // Wait until there is a connection            
             while (connections.size() == 0 && ! closed) {
                 if (!waitForNotify(deadline)) {
@@ -160,6 +157,7 @@ abstract class NioReceivePort extends ibis.impl.ReceivePort implements
                     throw new ReceiveTimedOutException("no connection yet");
                 }
             }
+
             // Wait until the current message is done
             while (message != null && ! closed) {
                 if (!waitForNotify(deadline)) {
@@ -170,49 +168,49 @@ abstract class NioReceivePort extends ibis.impl.ReceivePort implements
                 }
             }
             if (closed) {
-                reader_busy = false;
-                notifyAll();
                 throw new IOException("receive() on closed port");
             }
+
+            reader_busy = true;
         }
 
         try {
             dissipator = getReadyDissipator(deadline);
-        } catch (ReceiveTimedOutException e) {
-            synchronized (this) {
-                reader_busy = false;
-                notifyAll();
+            ReceivePortConnectionInfo info = dissipator.info;
+
+            info.message.setFinished(false);
+
+            if (type.numbered) {
+                try {
+                     info.message.setSequenceNumber(info.message.readLong());
+                } catch (IOException e) {
+                    errorOnRead(dissipator, e);
+                    // do recursive call
+                    reader_busy = false;
+                    return getMessage(deadline);
+                }
             }
+
+            messageArrived(info.message);
+
+            if (logger.isDebugEnabled()) {
+                logger.debug("new message received");
+            }
+
+            return message;
+
+        } catch (ReceiveTimedOutException e) {
             logger.debug("timeout while waiting on dissipator with message");
             throw e;
         } catch (ConnectionClosedException e) {
+            logger.debug("receiveport closed while waiting on message");
+            throw e;
+        } finally {
             synchronized (this) {
                 reader_busy = false;
                 notifyAll();
             }
-            logger.debug("receiveport closed while waiting on message");
-            throw e;
         }
-
-        ReceivePortConnectionInfo info = dissipator.info;
-
-        if (type.numbered) {
-            try {
-                 info.message.setSequenceNumber(info.message.readLong());
-            } catch (IOException e) {
-                errorOnRead(dissipator, e);
-                // do recursive call
-                return getMessage(deadline);
-            }
-        }
-
-        messageArrived(info.message);
-
-        if (logger.isDebugEnabled()) {
-            logger.debug("new message received");
-        }
-
-        return message;
     }
 
     protected ReadMessage doPoll() throws IOException {
@@ -226,7 +224,17 @@ abstract class NioReceivePort extends ibis.impl.ReceivePort implements
 
     public void closePort(long timeout) {
         closing(); // signal the subclass we are closing down
-        super.closePort(timeout);
+        if (upcall != null) {
+            super.closePort(timeout);
+        } else {
+            try {
+                getMessage(timeout);
+            } catch(ConnectionClosedException e) {
+                // OK
+            } catch(IOException e2) {
+                super.closePort(1);
+            }
+        }
     }
 
     public void run() {
@@ -249,6 +257,8 @@ abstract class NioReceivePort extends ibis.impl.ReceivePort implements
             }
 
             ReceivePortConnectionInfo info = dissipator.info;
+
+            info.message.setFinished(false);
 
             if (type.numbered) {
                 try {

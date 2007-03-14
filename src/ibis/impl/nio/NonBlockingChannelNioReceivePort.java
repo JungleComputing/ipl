@@ -100,7 +100,8 @@ final class NonBlockingChannelNioReceivePort extends NioReceivePort
     }
 
     synchronized void errorOnRead(NioDissipator dissipator, Exception cause) {
-        logger.error("lost connection: " + cause);
+
+        logger.debug("lost connection", cause);
 
         for (int i = 0; i < nrOfPendingConnections; i++) {
             if (dissipator == pendingConnections[i]) {

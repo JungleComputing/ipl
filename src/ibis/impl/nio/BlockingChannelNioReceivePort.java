@@ -191,6 +191,7 @@ final class BlockingChannelNioReceivePort extends NioReceivePort
             } catch (IOException e) {
                 // FIXME: is this a good idea?
                 // IGNORE
+                logger.debug("Got IOException", e);
             }
 
             keys = (SelectionKey[]) selector.selectedKeys().toArray(keys);

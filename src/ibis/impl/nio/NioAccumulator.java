@@ -229,7 +229,7 @@ public abstract class NioAccumulator extends DataOutputStream implements Config 
     }
 
     public void writeArray(byte[] array, int off, int len) throws IOException {
-        if (logger.isInfoEnabled()) {
+        if (logger.isDebugEnabled()) {
             String message = "NioAccumulator.writeArray(byte[], off = " + off
                     + " len = " + len + ") Contents: ";
 
