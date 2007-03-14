@@ -159,7 +159,7 @@ public abstract class Ibis implements ibis.ipl.Ibis,
         TypedProperties ttp = new TypedProperties(properties);
 
         if (tp != null) {
-            ttp.addProperties(ttp);
+            ttp.addProperties(tp);
         }
 
         return newPortType(p, ttp);
