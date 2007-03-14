@@ -37,7 +37,7 @@ public abstract class Ibis implements ibis.ipl.Ibis,
      * {@link ibis.ipl.IbisFactory#createIbis(CapabilitySet, CapabilitySet
      * Properties, ResizeHandler)} and the capabilities of this ibis.
      */
-    protected CapabilitySet capabilities;
+    public final CapabilitySet capabilities;
 
     /**
      * Properties, as given to
@@ -50,7 +50,7 @@ public abstract class Ibis implements ibis.ipl.Ibis,
     private final Registry registry;
 
     /** Identifies this Ibis instance in the registry. */
-    protected final IbisIdentifier ident;
+    public final IbisIdentifier ident;
 
     /** Set when the registry supplied the join upcall for this instance. */
     private boolean i_joined = false;
@@ -426,7 +426,7 @@ public abstract class Ibis implements ibis.ipl.Ibis,
     }
 
     // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    // Protected methods, may called by Ibis implementations.
+    // Public methods, may called by Ibis implementations.
     // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     /**
@@ -435,7 +435,7 @@ public abstract class Ibis implements ibis.ipl.Ibis,
      * @param name the name of the receiveport.
      * @return the receiveport.
      */
-    protected synchronized ReceivePort findReceivePort(String name) {
+    public synchronized ReceivePort findReceivePort(String name) {
         return receivePorts.get(name);
     }
 
@@ -445,7 +445,7 @@ public abstract class Ibis implements ibis.ipl.Ibis,
      * @param name the name of the sendport.
      * @return the sendport.
      */
-    protected synchronized SendPort findSendPort(String name) {
+    public synchronized SendPort findSendPort(String name) {
         return sendPorts.get(name);
     }
 

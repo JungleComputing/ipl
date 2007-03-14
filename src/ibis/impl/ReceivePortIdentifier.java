@@ -17,10 +17,10 @@ import java.io.IOException;
 public class ReceivePortIdentifier implements ibis.ipl.ReceivePortIdentifier {
 
     /** The name of the corresponding receiveport. */
-    protected final String name;
+    public final String name;
 
     /** The IbisIdentifier of the Ibis instance that created the receiveport. */
-    protected final IbisIdentifier ibis;
+    public final IbisIdentifier ibis;
 
     /** A receiveport identifier coded as a byte array. Computed once. */
     private final transient byte[] codedForm;

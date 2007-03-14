@@ -21,22 +21,22 @@ public class ReceivePortConnectionInfo {
             = Logger.getLogger("ibis.impl.ReceivePortConnectionInfo");
 
     /** Identifies the sendport side of the connection. */
-    protected final SendPortIdentifier origin;
+    public final SendPortIdentifier origin;
 
     /** The serialization input stream of the connection. */
-    protected SerializationInput in;
+    public SerializationInput in;
 
     /** The receiveport of the connection. */
-    protected ReceivePort port;
+    public final ReceivePort port;
 
     /** The message that arrives on this connection. */
-    protected ReadMessage message;
+    public ReadMessage message;
 
     /**
      * The underlying data stream for this connection.
      * The serialization steam lies on top of this.
      */
-    protected DataInputStream dataIn;
+    public DataInputStream dataIn;
 
     /**
      * Constructs a new <code>ReceivePortConnectionInfo</code> with the
@@ -60,7 +60,7 @@ public class ReceivePortConnectionInfo {
      * Returns the number of bytes read from the data stream.
      * @return the number of bytes.
      */
-    protected long bytesRead() {
+    public long bytesRead() {
         return dataIn.bytesRead();
     }
 
@@ -71,7 +71,7 @@ public class ReceivePortConnectionInfo {
      * recreated.
      * @exception IOException is thrown in case of trouble.
      */
-    protected void newStream() throws IOException {
+    public void newStream() throws IOException {
         if (in != null) {
             in.close();
         }
@@ -85,9 +85,10 @@ public class ReceivePortConnectionInfo {
      * exception. Implementations may need to redefine this method 
      * @param e the exception.
      */
-    protected void close(Throwable e) {
+    public void close(Throwable e) {
         try {
             in.close();
+            dataIn.close();
         } catch(Throwable z) {
             // ignore
         }

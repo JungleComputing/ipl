@@ -35,13 +35,13 @@ public abstract class PortType implements ibis.ipl.PortType,
     private final CapabilitySet capabilities;
 
     /** The serialization used for this port type. */
-    protected final String serialization;
+    public final String serialization;
 
     /** Replacer for object output streams. */
-    protected final Class replacerClass;
+    public final Class replacerClass;
 
     /** The Ibis instance that created this port type. */
-    protected Ibis ibis;
+    public Ibis ibis;
 
     /** Set when messages are numbered. */
     public final boolean numbered;

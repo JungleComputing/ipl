@@ -11,9 +11,8 @@ import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.ipl.CapabilitySet;
 import ibis.ipl.Upcall;
 
-import java.util.Properties;
-
 import java.io.IOException;
+import java.util.Properties;
 
 class TcpPortType extends PortType {
 

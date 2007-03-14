@@ -51,10 +51,10 @@ public abstract class ReceivePort implements ibis.ipl.ReceivePort,
     public static final byte NO_MANYTOONE = 6;
 
     /** The type of this port. */
-    protected final PortType type;
+    public final PortType type;
 
     /** The name of this port. */
-    protected final String name;
+    public final String name;
 
     /** Number of bytes read from messages of this port. */
     private long count = 0;
@@ -66,7 +66,7 @@ public abstract class ReceivePort implements ibis.ipl.ReceivePort,
     private boolean connectionDowncalls = false;
 
     /** The identification of this receiveport. */
-    protected final ReceivePortIdentifier ident;
+    public final ReceivePortIdentifier ident;
 
     /**
      * The connections lost since the last call to {@link #lostConnections()}.
@@ -344,7 +344,7 @@ public abstract class ReceivePort implements ibis.ipl.ReceivePort,
     }
 
     // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    // Protected methods, may be called or redefined by implementations.
+    // Public methods, may be called or redefined by implementations.
     // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     /**
@@ -355,7 +355,7 @@ public abstract class ReceivePort implements ibis.ipl.ReceivePort,
      * @param id the identification of the sendport.
      * @param e the cause of the lost connection.
      */
-    protected void lostConnection(SendPortIdentifier id,
+    public void lostConnection(SendPortIdentifier id,
             Throwable e) {
         if (connectionDowncalls) {
             synchronized(this) {
@@ -376,7 +376,7 @@ public abstract class ReceivePort implements ibis.ipl.ReceivePort,
      * @return the connection information, or <code>null</code> if not
      * present.
      */
-    protected synchronized ReceivePortConnectionInfo getInfo(
+    public synchronized ReceivePortConnectionInfo getInfo(
             SendPortIdentifier id) {
         return connections.get(id);
     }
@@ -387,7 +387,7 @@ public abstract class ReceivePort implements ibis.ipl.ReceivePort,
      * @param id the identification of the sendport.
      * @param info the associated connection information.
      */
-    protected synchronized void addInfo(SendPortIdentifier id,
+    public synchronized void addInfo(SendPortIdentifier id,
             ReceivePortConnectionInfo info) {
         connections.put(id, info);
         notifyAll();
@@ -400,7 +400,7 @@ public abstract class ReceivePort implements ibis.ipl.ReceivePort,
      * @param id the identification of the sendport.
      * @return the removed connection.
      */
-    protected synchronized ReceivePortConnectionInfo removeInfo(
+    public synchronized ReceivePortConnectionInfo removeInfo(
             SendPortIdentifier id) {
         ReceivePortConnectionInfo info = connections.remove(id);
         if (connections.size() == 0) {
@@ -413,7 +413,7 @@ public abstract class ReceivePort implements ibis.ipl.ReceivePort,
      * Returns an array with entries for each connection.
      * @return the connections.
      */
-    protected synchronized ReceivePortConnectionInfo[] connections() {
+    public synchronized ReceivePortConnectionInfo[] connections() {
         return connections.values().toArray(new ReceivePortConnectionInfo[0]);
     }
 
@@ -428,7 +428,7 @@ public abstract class ReceivePort implements ibis.ipl.ReceivePort,
      * @exception IOException is thrown in case of trouble.
      * @return the new message, or <code>null</code>.
      */
-    protected ReadMessage getMessage(long timeout) throws IOException {
+    public ReadMessage getMessage(long timeout) throws IOException {
         synchronized(this) {
             // Wait until a new message is delivered or the port is closed.
             while ((message == null || delivered) && ! closed) {
@@ -462,7 +462,7 @@ public abstract class ReceivePort implements ibis.ipl.ReceivePort,
      * thread for dealing with upcalls.
      * @param msg the message.
      */
-    protected void doUpcall(ReadMessage msg) {
+    public void doUpcall(ReadMessage msg) {
         synchronized(this) {
             // Wait until upcalls are enabled.
             while (! allowUpcalls) {
@@ -496,7 +496,7 @@ public abstract class ReceivePort implements ibis.ipl.ReceivePort,
         }
     }
 
-    protected void messageArrived(ReadMessage msg) {
+    public void messageArrived(ReadMessage msg) {
         // Wait until the previous message was finished.
         synchronized(this) {
             while (message != null) {
@@ -520,7 +520,7 @@ public abstract class ReceivePort implements ibis.ipl.ReceivePort,
      * specified message. The port should prepare for a new message.
      * @param r the message.
      */
-    protected synchronized void finishMessage(ReadMessage r) {
+    public synchronized void finishMessage(ReadMessage r) {
         message = null;
         notifyAll();
     }
@@ -532,7 +532,7 @@ public abstract class ReceivePort implements ibis.ipl.ReceivePort,
      * @param r the message.
      * @param e the Exception.
      */
-    protected synchronized void finishMessage(ReadMessage r, IOException e) {
+    public synchronized void finishMessage(ReadMessage r, IOException e) {
         r.getInfo().close(e);
         message = null;
         notifyAll();
@@ -544,7 +544,7 @@ public abstract class ReceivePort implements ibis.ipl.ReceivePort,
      * forcibly closes all connections.
      * @param timeout the timeout in milliseconds.
      */
-    protected synchronized void closePort(long timeout) {
+    public synchronized void closePort(long timeout) {
         if (timeout == 0) {
             while (connections.size() > 0) {
                 try {
@@ -598,8 +598,4 @@ public abstract class ReceivePort implements ibis.ipl.ReceivePort,
             return message;
         }
     }
-
-    // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    // Protected methods, to be implemented by Ibis implementations.
-    // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 }

@@ -17,10 +17,10 @@ import java.io.IOException;
 public class SendPortIdentifier implements ibis.ipl.SendPortIdentifier {
 
     /** The name of the corresponding sendport. */
-    protected final String name;
+    public final String name;
 
     /** The IbisIdentifier of the Ibis instance that created the sendport. */
-    protected final IbisIdentifier ibis;
+    public final IbisIdentifier ibis;
 
     /** Coded form, computed only once. */    
     private final transient byte[] codedForm;

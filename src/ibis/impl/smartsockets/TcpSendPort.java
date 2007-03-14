@@ -34,7 +34,7 @@ final class TcpSendPort extends SendPort implements TcpProtocol {
             splitter.add(out);
         }
 
-        protected void closeConnection() {
+        public void closeConnection() {
             try {
                 s.close();
             } catch(Throwable e) {

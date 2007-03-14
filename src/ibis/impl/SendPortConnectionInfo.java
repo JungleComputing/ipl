@@ -7,10 +7,10 @@ package ibis.impl;
  */
 public abstract class SendPortConnectionInfo {
     /** Identifies the receiveport side of the connection. */
-    protected final ReceivePortIdentifier target;
+    public final ReceivePortIdentifier target;
 
     /** The sendport of the connection. */
-    protected SendPort port;
+    public final SendPort port;
 
     /**
      * Constructs a <code>SendPortConnectionInfo</code> with the specified parameters.
@@ -25,5 +25,5 @@ public abstract class SendPortConnectionInfo {
     /**
      * Should close this particular connection.
      */
-    protected abstract void closeConnection();
+    public abstract void closeConnection() throws java.io.IOException;
 }

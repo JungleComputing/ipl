@@ -31,19 +31,19 @@ public abstract class SendPort implements ibis.ipl.SendPort {
     private long count = 0;
 
     /** The type of this port. */
-    protected final PortType type;
+    public final PortType type;
 
     /** The name of this port. */
-    protected final String name;
+    public final String name;
 
     /** The identification of this sendport. */
-    protected final SendPortIdentifier ident;
+    public final SendPortIdentifier ident;
 
     /** Set when connection downcalls are supported. */
     private final boolean connectionDowncalls;
 
     /** Connection upcall handler, or <code>null</code>. */
-    protected final SendPortDisconnectUpcall connectUpcall;
+    public final SendPortDisconnectUpcall connectUpcall;
 
     /** Map for implementing the dynamic properties. */
     protected Map<String, Object> props = new HashMap<String, Object>();
@@ -231,6 +231,10 @@ public abstract class SendPort implements ibis.ipl.SendPort {
                 "A message was alive while adding a new connection");
         }
 
+        if (timeout < 0) {
+            throw new IOException("connect(): timeout must be >= 0");
+        }
+
         ReceivePortIdentifier r = (ReceivePortIdentifier) receiver;
 
         checkConnect(r);
@@ -329,6 +333,10 @@ public abstract class SendPort implements ibis.ipl.SendPort {
     public synchronized void disconnect(ibis.ipl.ReceivePortIdentifier receiver)
             throws IOException {
         ReceivePortIdentifier r = (ReceivePortIdentifier) receiver;
+        if (aMessageIsAlive) {
+            throw new IOException(
+                "Trying to disconnect while a message is alive!");
+        }
         SendPortConnectionInfo c = removeInfo(r);
         if (c == null) {
             throw new IOException("Cannot disconnect from " + r
@@ -387,7 +395,7 @@ public abstract class SendPort implements ibis.ipl.SendPort {
      * Returns an array with entries for each connection.
      * @return the connections.
      */
-    protected synchronized SendPortConnectionInfo[] connections() {
+    public synchronized SendPortConnectionInfo[] connections() {
         return receivers.values().toArray(
                 new SendPortConnectionInfo[receivers.size()]);
     }
@@ -450,7 +458,7 @@ public abstract class SendPort implements ibis.ipl.SendPort {
     }
 
     // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    // Protected methods, to be called by Ibis implementations.
+    // Public methods, to be called by Ibis implementations.
     // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     /**
@@ -461,7 +469,7 @@ public abstract class SendPort implements ibis.ipl.SendPort {
      * @param cause the exception that describes the reason for the loss of
      * the connection.
      */
-    protected void lostConnection(ReceivePortIdentifier id, Throwable cause) {
+    public void lostConnection(ReceivePortIdentifier id, Throwable cause) {
         if (connectionDowncalls) {
             synchronized(this) {
                 lostConnections.add(id);
@@ -469,7 +477,14 @@ public abstract class SendPort implements ibis.ipl.SendPort {
         } else if (connectUpcall != null) {
             connectUpcall.lostConnection(this, id, cause);
         }
-        removeInfo(id);
+        SendPortConnectionInfo c = removeInfo(id);
+        if (c != null) {
+            try {
+                c.closeConnection();
+            } catch(Throwable e) {
+                // ignored
+            }
+        }
     }
 
     /**
@@ -481,7 +496,7 @@ public abstract class SendPort implements ibis.ipl.SendPort {
      * @param dataOut the {@link ibis.io.DataOutputStream} to be used when
      * creating a new serialization stream is created.
      */
-    protected void initStream(DataOutputStream dataOut) {
+    public void initStream(DataOutputStream dataOut) {
         this.dataOut = dataOut;
         // Close the serialization stream. A new one will be created when
         // needed.

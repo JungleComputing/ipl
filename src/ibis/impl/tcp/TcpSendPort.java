@@ -32,7 +32,7 @@ final class TcpSendPort extends SendPort implements TcpProtocol {
             splitter.add(out);
         }
 
-        protected void closeConnection() {
+        public void closeConnection() {
             try {
                 s.close();
             } catch(Throwable e) {
@@ -111,7 +111,6 @@ final class TcpSendPort extends SendPort implements TcpProtocol {
             Conn c = (Conn) getInfo(ports[i]);
             for (int j = 0; j < streams.length; j++) {
                 if (c.out == streams[j]) {
-                    c.closeConnection();
                     lostConnection(ports[i], exceptions[j]);
                     break;
                 }

@@ -39,7 +39,7 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
             this.s = s;
         }
 
-        protected void close(Throwable e) {
+        public void close(Throwable e) {
             super.close(e);
             try {
                 s.close();
@@ -149,7 +149,7 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
                 && !type.capabilities().hasCapability(RECEIVE_TIMEOUT);
     }
 
-    protected void messageArrived(ReadMessage msg) {
+    public void messageArrived(ReadMessage msg) {
         super.messageArrived(msg);
         if (! no_connectionhandler_thread && upcall == null) {
             synchronized(this) {
@@ -166,7 +166,7 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
         }
     }
 
-    protected ReadMessage getMessage(long timeout) throws IOException {
+    public ReadMessage getMessage(long timeout) throws IOException {
         if (no_connectionhandler_thread) {
             // Allow only one reader in.
             synchronized(this) {
@@ -226,7 +226,7 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
         }
     }
 
-    protected synchronized void closePort(long timeout) {
+    public synchronized void closePort(long timeout) {
         ReceivePortConnectionInfo conns[] = connections();
         if (no_connectionhandler_thread && conns.length > 0) {
             ThreadPool.createNew((ConnectionHandler) conns[0],
