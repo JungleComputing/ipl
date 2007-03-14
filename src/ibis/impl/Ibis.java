@@ -156,7 +156,13 @@ public abstract class Ibis implements ibis.ipl.Ibis,
                     + "senders do multicasts.");
         }
 
-        return newPortType(p, tp);
+        TypedProperties ttp = new TypedProperties(properties);
+
+        if (tp != null) {
+            ttp.addProperties(ttp);
+        }
+
+        return newPortType(p, ttp);
     }
 
     public ibis.ipl.PortType createPortType(CapabilitySet p) {

@@ -66,11 +66,7 @@ public abstract class PortType implements ibis.ipl.PortType,
     protected PortType(Ibis ibis, CapabilitySet p, Properties tp) {
         this.ibis = ibis;
     	this.capabilities = p;
-        if (tp != null) {
-            this.properties = new TypedProperties(tp);
-        } else {
-            this.properties = new TypedProperties();
-        }
+        this.properties = new TypedProperties(tp);
 
         numbered = p.hasCapability(COMMUNICATION_NUMBERED);
         if (p.hasCapability(SERIALIZATION_DATA)) {
