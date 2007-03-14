@@ -15,7 +15,7 @@ import java.util.Properties;
 
 import org.apache.log4j.Logger;
 
-class NioPortType extends PortType implements Config {
+class NioPortType extends PortType {
 
     static final byte IMPLEMENTATION_BLOCKING = 0;
 

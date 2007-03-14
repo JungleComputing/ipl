@@ -25,7 +25,7 @@ import org.apache.log4j.Logger;
  * 
  * A NioAccumulator may not send any stream header or trailer data.
  */
-public abstract class NioAccumulator extends DataOutputStream implements Config {
+public abstract class NioAccumulator extends DataOutputStream {
     public static final int SIZEOF_BYTE = 1;
 
     public static final int SIZEOF_CHAR = 2;
@@ -60,6 +60,11 @@ public abstract class NioAccumulator extends DataOutputStream implements Config 
 
     private DoubleBuffer doubles;
 
+    NioAccumulatorConnection[] connections
+            = new NioAccumulatorConnection[INITIAL_CONNECTIONS_SIZE];
+
+    int nrOfConnections = 0;
+
     NioSendPort port;
 
     long count = 0;
@@ -91,6 +96,36 @@ public abstract class NioAccumulator extends DataOutputStream implements Config 
         count = 0;
 
         return result;
+    }
+
+    synchronized NioAccumulatorConnection add(GatheringByteChannel channel,
+            ReceivePortIdentifier receiver) throws IOException {
+        if (nrOfConnections == connections.length) {
+            NioAccumulatorConnection[] newConnections = new NioAccumulatorConnection[connections.length * 2];
+            for (int i = 0; i < connections.length; i++) {
+                newConnections[i] = connections[i];
+            }
+            connections = newConnections;
+        }
+
+        NioAccumulatorConnection c = newConnection(channel, receiver);
+        connections[nrOfConnections] = c;
+        nrOfConnections++;
+
+        return c;
+    }
+
+    synchronized void removeConnection(ReceivePortIdentifier receiver)
+            throws IOException {
+        for (int i = 0; i < nrOfConnections; i++) {
+            if (connections[i].target == receiver) {
+                nrOfConnections--;
+                connections[i] = connections[nrOfConnections];
+                connections[nrOfConnections] = null;
+                return;
+            }
+        }
+        throw new Error("tried to remove non existing connections");
     }
 
     synchronized private void send() throws IOException {
@@ -383,9 +418,6 @@ public abstract class NioAccumulator extends DataOutputStream implements Config 
 
     abstract NioAccumulatorConnection newConnection(
             GatheringByteChannel channel, ReceivePortIdentifier peer)
-            throws IOException;
-
-    abstract void removeConnection(SendPortConnectionInfo c)
             throws IOException;
 
     /**

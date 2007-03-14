@@ -19,7 +19,7 @@ import java.nio.channels.GatheringByteChannel;
 
 import org.apache.log4j.Logger;
 
-public final class NioSendPort extends SendPort implements Config, Protocol {
+public final class NioSendPort extends SendPort implements Protocol {
 
     private static Logger logger = Logger.getLogger(NioSendPort.class);
 
@@ -77,7 +77,7 @@ public final class NioSendPort extends SendPort implements Config, Protocol {
             logger.debug("done connecting " + ident + " to " + receiver);
         }
 
-        SendPortConnectionInfo c = accumulator.newConnection(
+        SendPortConnectionInfo c = accumulator.add(
                 (GatheringByteChannel) channel, receiver);
 
         initStream(accumulator);
@@ -90,7 +90,7 @@ public final class NioSendPort extends SendPort implements Config, Protocol {
         // tell out peer someone is going to have to disconnect
         out.writeByte(CLOSE_ONE_CONNECTION);
 
-        accumulator.removeConnection(c);
+        accumulator.removeConnection(receiver);
 
         byte[] receiverBytes = receiver.toBytes();
         byte[] receiverLength = new byte[Conversion.INT_SIZE];

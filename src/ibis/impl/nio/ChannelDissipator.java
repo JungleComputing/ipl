@@ -14,7 +14,7 @@ import java.nio.channels.ReadableByteChannel;
 /**
  * Reads data from a channel.
  */
-public final class ChannelDissipator extends DataInputStream implements Config {
+public final class ChannelDissipator extends DataInputStream {
     public static final int SIZEOF_BYTE = 1;
 
     public static final int SIZEOF_CHAR = 2;

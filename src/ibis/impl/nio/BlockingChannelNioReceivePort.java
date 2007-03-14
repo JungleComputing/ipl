@@ -18,8 +18,7 @@ import java.nio.channels.Selector;
 
 import org.apache.log4j.Logger;
 
-final class BlockingChannelNioReceivePort extends NioReceivePort
-        implements Config {
+final class BlockingChannelNioReceivePort extends NioReceivePort {
     static final int INITIAL_DISSIPATOR_SIZE = 8;
 
     private static Logger logger

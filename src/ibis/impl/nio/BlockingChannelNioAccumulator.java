@@ -3,7 +3,6 @@
 package ibis.impl.nio;
 
 import ibis.impl.ReceivePortIdentifier;
-import ibis.impl.SendPortConnectionInfo;
 
 import java.io.IOException;
 import java.nio.channels.GatheringByteChannel;
@@ -16,8 +15,6 @@ final class BlockingChannelNioAccumulator extends NioAccumulator {
     private static Logger logger = Logger.getLogger(
             BlockingChannelNioAccumulator.class);
 
-    SendPortConnectionInfo[] connections = null;
-
     public BlockingChannelNioAccumulator(NioSendPort port) {
         super(port);
     }
@@ -28,10 +25,8 @@ final class BlockingChannelNioAccumulator extends NioAccumulator {
 
         logger.debug("registering new connection");
 
-        int nConnections = port.connections().length;
-
-        if (nConnections != 0) {
-            logger.warn("" + (nConnections + 1)
+        if (nrOfConnections != 0) {
+            logger.warn("" + (nrOfConnections + 1)
                     + " connections from a blocking send port");
         }
 
@@ -43,13 +38,7 @@ final class BlockingChannelNioAccumulator extends NioAccumulator {
 
         logger.debug("registered new connection");
 
-        connections = null;
-
         return result;
-    }
-
-    void removeConnection(SendPortConnectionInfo c) {
-        connections = null;
     }
 
     /**
@@ -60,16 +49,10 @@ final class BlockingChannelNioAccumulator extends NioAccumulator {
             logger.debug("sending a buffer");
         }
 
-        if (connections == null) {
-            connections = port.connections();
-        }
         buffer.mark();
 
-        int nrOfConnections = connections.length;
-
         for (int i = 0; i < nrOfConnections; i++) {
-            NioAccumulatorConnection connection = (NioAccumulatorConnection)
-                connections[i];
+            NioAccumulatorConnection connection = connections[i];
             try {
                 buffer.reset();
                 while (buffer.hasRemaining()) {
@@ -80,7 +63,6 @@ final class BlockingChannelNioAccumulator extends NioAccumulator {
                 // inform the SendPort
                 logger.debug("lost connection", e);
                 port.lostConnection(connection.target, e);
-
                 // remove connection
                 nrOfConnections--;
                 connections[i] = connections[nrOfConnections];
@@ -90,9 +72,6 @@ final class BlockingChannelNioAccumulator extends NioAccumulator {
         }
         if (logger.isDebugEnabled()) {
             logger.debug("done sending a buffer");
-        }
-        if (nrOfConnections != connections.length) {
-            connections = null;
         }
         return true; // signal we are done with the buffer now
     }

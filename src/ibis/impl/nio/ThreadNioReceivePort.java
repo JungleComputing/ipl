@@ -16,7 +16,7 @@ import java.nio.channels.Channel;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.SelectableChannel;
 
-final class ThreadNioReceivePort extends NioReceivePort implements Config {
+final class ThreadNioReceivePort extends NioReceivePort {
 
     private ThreadNioDissipator current = null;
 

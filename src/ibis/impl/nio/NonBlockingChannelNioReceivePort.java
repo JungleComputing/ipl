@@ -18,8 +18,7 @@ import java.nio.channels.Selector;
 
 import org.apache.log4j.Logger;
 
-final class NonBlockingChannelNioReceivePort extends NioReceivePort
-        implements Config {
+final class NonBlockingChannelNioReceivePort extends NioReceivePort {
     static final int INITIAL_ARRAY_SIZE = 8;
 
     private static Logger logger

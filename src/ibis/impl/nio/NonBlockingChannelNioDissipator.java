@@ -14,9 +14,7 @@ import org.apache.log4j.Logger;
  * Dissipator which reads from a single channel, with the channel normally in
  * non-blocking mode.
  */
-final class NonBlockingChannelNioDissipator extends NioDissipator implements
-        Config {
-
+final class NonBlockingChannelNioDissipator extends NioDissipator {
     private static Logger logger
             = Logger.getLogger(NonBlockingChannelNioDissipator.class);
 

@@ -13,7 +13,7 @@ import java.nio.channels.Channel;
  * implementation should also handle incoming connections in the run() method
  * and register them with the receiveport.
  */
-public interface ChannelFactory extends Runnable, Config {
+public interface ChannelFactory extends Runnable {
 
     /**
      * Tries to connect to sendport to the given receiveport for tileoutMillis

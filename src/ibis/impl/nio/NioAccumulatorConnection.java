@@ -11,8 +11,7 @@ import java.nio.channels.SelectionKey;
 
 import org.apache.log4j.Logger;
 
-class NioAccumulatorConnection extends SendPortConnectionInfo
-        implements Config {
+class NioAccumulatorConnection extends SendPortConnectionInfo {
     static final int MAX_SEND_BUFFERS = 32;
 
     private static Logger logger

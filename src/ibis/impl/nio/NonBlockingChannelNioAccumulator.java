@@ -3,7 +3,6 @@
 package ibis.impl.nio;
 
 import ibis.impl.ReceivePortIdentifier;
-import ibis.impl.SendPortConnectionInfo;
 
 import java.io.IOException;
 import java.nio.channels.GatheringByteChannel;
@@ -20,8 +19,6 @@ final class NonBlockingChannelNioAccumulator extends NioAccumulator {
             NonBlockingChannelNioAccumulator.class);
 
     private final Selector selector;
-
-    SendPortConnectionInfo[] connections = null;
 
     public NonBlockingChannelNioAccumulator(NioSendPort port)
             throws IOException {
@@ -40,13 +37,7 @@ final class NonBlockingChannelNioAccumulator extends NioAccumulator {
         result.key = sChannel.register(selector, 0);
         result.key.attach(result);
 
-        connections = null;
-
         return result;
-    }
-
-    void removeConnection(SendPortConnectionInfo c) {
-        connections = null;
     }
 
     /**
@@ -59,12 +50,6 @@ final class NonBlockingChannelNioAccumulator extends NioAccumulator {
             logger.debug("doSend()");
         }
 
-        if (connections == null) {
-            connections = port.connections();
-        }
-
-        int nrOfConnections = connections.length;
-
         if (nrOfConnections == 0) {
             logger.error("not connected");
             return true;
@@ -72,8 +57,7 @@ final class NonBlockingChannelNioAccumulator extends NioAccumulator {
             if (logger.isDebugEnabled()) {
                 logger.debug("sending to 1 connection");
             }
-            NioAccumulatorConnection connection
-                    = (NioAccumulatorConnection) connections[0];
+            NioAccumulatorConnection connection = connections[0];
             try {
                 if (!connection.addToSendList(buffer)) {
                     if (logger.isDebugEnabled()) {
@@ -98,8 +82,7 @@ final class NonBlockingChannelNioAccumulator extends NioAccumulator {
             SendBuffer[] copies = SendBuffer.replicate(buffer, nrOfConnections);
 
             for (int i = 0; i < nrOfConnections; i++) {
-                NioAccumulatorConnection connection
-                        = (NioAccumulatorConnection) connections[i];
+                NioAccumulatorConnection connection = connections[i];
                 try {
                     if (!connection.addToSendList(copies[i])) {
                         doFlush(connection);
@@ -119,9 +102,6 @@ final class NonBlockingChannelNioAccumulator extends NioAccumulator {
                 }
             }
         }
-        if (nrOfConnections != connections.length) {
-            connections = null;
-        }
         return false;
     }
 
@@ -133,12 +113,6 @@ final class NonBlockingChannelNioAccumulator extends NioAccumulator {
         int nrOfSendingConnections = 0;
         NioAccumulatorConnection selected;
         boolean done = false;
-
-        if (connections == null) {
-            connections = port.connections();
-        }
-
-        int nrOfConnections = connections.length;
 
         if (logger.isDebugEnabled()) {
             if (connection == null) {
@@ -163,8 +137,7 @@ final class NonBlockingChannelNioAccumulator extends NioAccumulator {
         // first try to send out data one more time, and remember
         // which connections still have data left
         for (int i = 0; i < nrOfConnections; i++) {
-            NioAccumulatorConnection conn
-                    = (NioAccumulatorConnection) connections[i];
+            NioAccumulatorConnection conn = connections[i];
             try {
                 if (!conn.send()) {
                     conn.key.interestOps(SelectionKey.OP_WRITE);
@@ -186,9 +159,6 @@ final class NonBlockingChannelNioAccumulator extends NioAccumulator {
 
 
         if (done || (nrOfSendingConnections == 0)) {
-            if (nrOfConnections != connections.length) {
-                connections = null;
-            }
             if (logger.isDebugEnabled()) {
                 logger.debug("flush done");
             }
@@ -257,10 +227,6 @@ final class NonBlockingChannelNioAccumulator extends NioAccumulator {
                     throw new Error("data left to send after doing flush");
                 }
             }
-        }
-
-        if (nrOfConnections != connections.length) {
-            connections = null;
         }
 
         if (logger.isDebugEnabled()) {

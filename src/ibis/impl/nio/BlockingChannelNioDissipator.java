@@ -10,8 +10,7 @@ import java.nio.channels.SelectableChannel;
  * Dissipator which reads from a single channel, with the channel normally in
  * blocking mode.
  */
-final class BlockingChannelNioDissipator extends NioDissipator implements
-        Config {
+final class BlockingChannelNioDissipator extends NioDissipator {
 
     BlockingChannelNioDissipator(ReadableByteChannel channel)
             throws IOException {

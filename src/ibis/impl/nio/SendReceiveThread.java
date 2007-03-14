@@ -15,9 +15,9 @@ import java.util.Iterator;
 import org.apache.log4j.Logger;
 
 /**
- * Class used as a single send/receive thread for an entire NioIbis instance
+ * Class used as a single send/receive thread for an entire NioIbis instance.
  */
-final class SendReceiveThread implements Runnable, Config {
+final class SendReceiveThread implements Runnable {
 
     static final int INITIAL_ARRAY_SIZE = 8;
 

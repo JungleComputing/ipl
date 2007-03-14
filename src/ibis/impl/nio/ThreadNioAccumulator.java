@@ -3,7 +3,6 @@
 package ibis.impl.nio;
 
 import ibis.impl.ReceivePortIdentifier;
-import ibis.impl.SendPortConnectionInfo;
 
 import java.io.IOException;
 import java.nio.channels.GatheringByteChannel;
@@ -11,15 +10,13 @@ import java.nio.channels.SelectableChannel;
 
 import org.apache.log4j.Logger;
 
-final class ThreadNioAccumulator extends NioAccumulator implements Config {
+final class ThreadNioAccumulator extends NioAccumulator {
 
     static final int LOST_CONNECTION_SIZE = 8;
 
     private static Logger logger = Logger.getLogger(ThreadNioAccumulator.class);
 
     SendReceiveThread thread;
-
-    SendPortConnectionInfo[] connections;
 
     ThreadNioAccumulator(NioSendPort port, SendReceiveThread thread) {
         super(port);
@@ -36,31 +33,21 @@ final class ThreadNioAccumulator extends NioAccumulator implements Config {
             logger.debug("creating new" + " ThreadNioAccumulatorConnection");
         }
 
-        connections = null;
-
         return new ThreadNioAccumulatorConnection(port, thread, channel, peer);
     }
 
-    void removeConnection(SendPortConnectionInfo c) {
-        connections = null;
-    }
-
     boolean doSend(SendBuffer buffer) throws IOException {
-
-        if (connections == null) {
-            connections = port.connections();
-        }
 
         if (logger.isDebugEnabled()) {
             logger.debug("doing send");
         }
 
-        if (connections.length == 0) {
+        if (nrOfConnections == 0) {
             if (logger.isInfoEnabled()) {
                 logger.info("no connections to send to");
             }
             return true;
-        } else if (connections.length == 1) {
+        } else if (nrOfConnections == 1) {
             if (logger.isDebugEnabled()) {
                 logger.debug("sending to one(1) connection");
             }
@@ -70,7 +57,6 @@ final class ThreadNioAccumulator extends NioAccumulator implements Config {
                 connection.addToThreadSendList(buffer);
             } catch (IOException e) {
                 port.lostConnection(connection.target, e);
-                connections = null;
                 if (logger.isInfoEnabled()) {
                     logger.error("(only) connection lost");
                     return false; // don't do normal exit message
@@ -78,14 +64,11 @@ final class ThreadNioAccumulator extends NioAccumulator implements Config {
             }
         } else {
             if (logger.isDebugEnabled()) {
-                logger.debug("sending to " + connections.length
-                        + " connections");
+                logger.debug("sending to " + nrOfConnections + " connections");
             }
 
-            SendBuffer[] copies = SendBuffer.replicate(buffer,
-                    connections.length);
+            SendBuffer[] copies = SendBuffer.replicate(buffer, nrOfConnections);
 
-            int nrOfConnections = connections.length;
             for (int i = 0; i < nrOfConnections; i++) {
                 ThreadNioAccumulatorConnection connection;
                 connection = (ThreadNioAccumulatorConnection) connections[i];
@@ -103,9 +86,6 @@ final class ThreadNioAccumulator extends NioAccumulator implements Config {
                     connections[nrOfConnections] = null;
                     i--;
                 }
-            }
-            if (nrOfConnections != connections.length) {
-                connections = null;
             }
         }
         if (logger.isDebugEnabled()) {

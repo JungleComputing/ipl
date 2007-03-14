@@ -11,7 +11,7 @@ import java.nio.channels.SelectionKey;
  * Dissipator which reads from a single channel. Reads whenever the
  * SendReceiveThread askes it to.
  */
-final class ThreadNioDissipator extends NioDissipator implements Config {
+final class ThreadNioDissipator extends NioDissipator {
 
     final SendReceiveThread sendReceiveThread;
 
