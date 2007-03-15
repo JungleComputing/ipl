@@ -63,18 +63,18 @@ public final class SharedObjects implements Config {
 
     /** Return a reference to a shared object */
     public SharedObject getSOReference(String objectId) {
-        s.stats.getSOReferencesTimer.start();
-        try {
-            synchronized (s) {
+        synchronized (s) {
+            s.stats.getSOReferencesTimer.start();
+            try {
                 SharedObjectInfo i = sharedObjects.get(objectId);
                 if (i == null) {
                     soLogger.debug("SATIN '" + s.ident + "': " + "object not found in getSOReference");
                     return null;
                 }
                 return i.sharedObject;
+            } finally {
+                s.stats.getSOReferencesTimer.stop();
             }
-        } finally {
-            s.stats.getSOReferencesTimer.stop();
         }
     }
 
@@ -150,6 +150,11 @@ public final class SharedObjects implements Config {
      * the invocation will be executed later
      */
     public void addSOInvocation(SOInvocationRecord soir) {
+        SharedObject so = getSOReference(soir.getObjectId());
+        if (so == null) {
+            // we don't have the object. Drop the invocation.
+            return;
+        }
         synchronized (s) {
             soInvocationList.add(soir);
             gotSOInvocations = true;
