@@ -61,7 +61,8 @@ MPJ:
   Should use Ibis identifiers for this, and should not use PoolInfo.
  
 satin:
-- if main throws an exception, we exit with code 0. Ant test also succeeds.
++ if main throws an exception, we exit with code 0. Ant test also succeeds.
+  (Fixed Ceriel)
 - add semantic analysis to the compiler
 - forgotten sync statements
 - make return / throw an implicit sync again?
