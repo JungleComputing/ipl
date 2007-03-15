@@ -149,6 +149,10 @@ public final class Satin implements Config {
      * Called at the end of the rewritten "main", to do a synchronized exit.
      */
     public void exit() {
+        exit(0);
+    }
+
+    private void exit(int status) {
 
         stats.totalTimer.stop();
 
@@ -208,7 +212,17 @@ public final class Satin implements Config {
         System.gc();
         System.runFinalization();
 
-        System.exit(0); // Needed for IBM jit.
+        System.exit(status); // Needed for IBM jit.
+    }
+
+    /**
+     * Called at the end of the rewritten main in case the original main
+     * threw an exception.
+     */
+    public void exit(Throwable e) {
+        System.err.println("Exception in main: " + e);
+        e.printStackTrace(System.err);
+        exit(1);
     }
 
     /**

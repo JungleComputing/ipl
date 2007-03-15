@@ -374,25 +374,11 @@ public final class Satinc extends IbiscComponent {
 
         BranchHandle try_end = il.append(new GOTO(null));
 
-        InstructionHandle e_handler = il.append(new ASTORE(1));
-        il.append(ins_f.createFieldAccess("java.lang.System", "out",
-            new ObjectType("java.io.PrintStream"), Constants.GETSTATIC));
-        il.append(ins_f.createNew("java.lang.StringBuffer"));
-        il.append(new DUP());
-        il.append(new PUSH(gen_c.getConstantPool(), "Exception in main: "));
-        il.append(ins_f.createInvoke("java.lang.StringBuffer", "<init>",
-            Type.VOID, new Type[] { Type.STRING }, Constants.INVOKESPECIAL));
-        il.append(new ALOAD(1));
-        il.append(ins_f.createInvoke("java.lang.StringBuffer", "append",
-            new ObjectType("java.lang.StringBuffer"),
-            new Type[] { Type.OBJECT }, Constants.INVOKEVIRTUAL));
-        il.append(ins_f.createInvoke("java.lang.StringBuffer", "toString",
-            Type.STRING, Type.NO_ARGS, Constants.INVOKEVIRTUAL));
-        il.append(ins_f.createInvoke("java.io.PrintStream", "println",
-            Type.VOID, new Type[] { Type.STRING }, Constants.INVOKEVIRTUAL));
-        il.append(new ALOAD(1));
-        il.append(ins_f.createInvoke("java.lang.Throwable", "printStackTrace",
-            Type.VOID, Type.NO_ARGS, Constants.INVOKEVIRTUAL));
+        InstructionHandle e_handler = il.append(getSatin(ins_f));
+        il.append(new SWAP());
+        il.append(ins_f.createInvoke("ibis.satin.impl.Satin", "exit",
+                Type.VOID, new Type[] { new ObjectType("java.lang.Throwable")},
+                Constants.INVOKEVIRTUAL));
 
         BranchHandle gto2 = il.append(new GOTO(null));
 
@@ -408,11 +394,11 @@ public final class Satinc extends IbiscComponent {
 
         InstructionHandle gto_target = il.append(getSatin(ins_f));
         try_end.setTarget(gto_target);
-        gto2.setTarget(gto_target);
 
         il.append(ins_f.createInvoke("ibis.satin.impl.Satin", "exit",
             Type.VOID, Type.NO_ARGS, Constants.INVOKEVIRTUAL));
-        il.append(new RETURN());
+        InstructionHandle gto2_target = il.append(new RETURN());
+        gto2.setTarget(gto2_target);
 
         new_main.addExceptionHandler(try_start, try_end, e_handler,
             new ObjectType("java.lang.Throwable"));
