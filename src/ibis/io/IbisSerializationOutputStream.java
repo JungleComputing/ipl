@@ -817,7 +817,7 @@ public class IbisSerializationOutputStream
      * 					 <code>writeObject</code> method is
      * 					 denied.
      */
-    private void alternativeWriteObject(AlternativeTypeInfo t, Object ref)
+    void alternativeWriteObject(AlternativeTypeInfo t, Object ref)
             throws IOException, IllegalAccessException {
         if (t.superSerializable) {
             alternativeWriteObject(t.alternativeSuperInfo, ref);
@@ -938,33 +938,6 @@ public class IbisSerializationOutputStream
             }
             throw new NotSerializableException("Serializable failed for : "
                     + classname);
-        }
-    }
-
-    /**
-     * This method takes care of writing the serializable fields of the
-     * parent object, and also those of its parent objects.
-     *
-     * @param ref	the object with a non-Ibis-serializable parent object
-     * @param clazz	the superclass
-     * @exception IOException	gets thrown on IO error
-     */
-    void writeSerializableObject(Object ref, Class clazz)
-            throws IOException {
-        AlternativeTypeInfo t
-                = AlternativeTypeInfo.getAlternativeTypeInfo(clazz);
-        try {
-            push_current_object(ref, 0);
-            alternativeWriteObject(t, ref);
-            pop_current_object();
-        } catch (IllegalAccessException e) {
-            if (DEBUG) {
-                dbPrint("Caught exception: " + e);
-                e.printStackTrace();
-                dbPrint("now rethrow as java.io.NotSerializableException ...");
-            }
-            throw new NotSerializableException("Serializable failed for : "
-                    + clazz.getName());
         }
     }
 
@@ -1109,7 +1082,7 @@ public class IbisSerializationOutputStream
                 dbPrint("start writeObject of class " + clazz.getName()
                         + " handle = " + next_handle);
             }
-            t.writer.writeObject(this, ref, clazz, hashCode, false);
+            t.writer.writeObject(this, ref, t, hashCode, false);
             if (DEBUG) {
                 dbPrint("finished writeObject of class " + clazz.getName());
             }
@@ -1255,7 +1228,7 @@ public class IbisSerializationOutputStream
                         + " handle = " + next_handle);
             }
 
-            t.writer.writeObject(ibisStream, ref, clazz, 0, true);
+            t.writer.writeObject(ibisStream, ref, t, 0, true);
 
             if (DEBUG) {
                 dbPrint("finished writeUnshared of class " + clazz.getName()

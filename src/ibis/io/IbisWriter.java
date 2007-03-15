@@ -9,5 +9,17 @@ import java.io.IOException;
  */
 abstract class IbisWriter {
     abstract void writeObject(IbisSerializationOutputStream out, Object ref,
-            Class clazz, int hashCode, boolean unshared) throws IOException;
+            AlternativeTypeInfo t, int hashCode, boolean unshared)
+            throws IOException;
+
+    void writeHeader(IbisSerializationOutputStream out, Object ref,
+            AlternativeTypeInfo t, int hashCode, boolean unshared)
+            throws IOException {
+        // Code needed for most IbisWriters.
+        if (! unshared) {
+            out.assignHandle(ref, hashCode);
+        }
+        out.writeType(t.clazz);
+        out.addStatSendObject(ref);
+    }
 }

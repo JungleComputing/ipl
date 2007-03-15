@@ -42,91 +42,88 @@ final class AlternativeTypeInfo implements IbisStreamFlags {
 
     private static class ArrayWriter extends IbisWriter {
         void writeObject(IbisSerializationOutputStream out, Object ref,
-            Class clazz, int hashCode, boolean unshared) throws IOException {
-            out.writeArray(ref, clazz, unshared);
+                AlternativeTypeInfo t, int hashCode, boolean unshared)
+                throws IOException {
+            out.writeArray(ref, t.clazz, unshared);
         }
     }
 
     private static class IbisSerializableWriter extends IbisWriter {
         void writeObject(IbisSerializationOutputStream out, Object ref,
-            Class clazz, int hashCode, boolean unshared) throws IOException {
-            if (! unshared) {
-                out.assignHandle(ref, hashCode);
-            }
-            out.writeType(clazz);
+                AlternativeTypeInfo t, int hashCode, boolean unshared)
+                throws IOException {
+            super.writeHeader(out, ref, t, hashCode, unshared);
             ((Serializable) ref).generated_WriteObject(out);
-            out.addStatSendObject(ref);
         }
     }
 
     private static class ExternalizableWriter extends IbisWriter {
         void writeObject(IbisSerializationOutputStream out, Object ref,
-            Class clazz, int hashCode, boolean unshared) throws IOException {
-            if (! unshared) {
-                out.assignHandle(ref, hashCode);
-            }
-            out.writeType(clazz);
+                AlternativeTypeInfo t, int hashCode, boolean unshared)
+                throws IOException {
+            super.writeHeader(out, ref, t, hashCode, unshared);
             out.push_current_object(ref, 0);
             ((java.io.Externalizable) ref).writeExternal(
                     out.getJavaObjectOutputStream());
             out.pop_current_object();
-            out.addStatSendObject(ref);
         }
     }
 
     private static class StringWriter extends IbisWriter {
         void writeObject(IbisSerializationOutputStream out, Object ref,
-            Class clazz, int hashCode, boolean unshared) throws IOException {
-            if (! unshared) {
-                out.assignHandle(ref, hashCode);
-            }
-            out.writeType(clazz);
+                AlternativeTypeInfo t, int hashCode, boolean unshared)
+                throws IOException {
+            super.writeHeader(out, ref, t, hashCode, unshared);
             out.writeUTF((String) ref);
-            out.addStatSendObject(ref);
         }
     }
 
     private static class ClassWriter extends IbisWriter {
         void writeObject(IbisSerializationOutputStream out, Object ref,
-            Class clazz, int hashCode, boolean unshared) throws IOException {
-            if (! unshared) {
-                out.assignHandle(ref, hashCode);
-            }
-            out.writeType(clazz);
+                AlternativeTypeInfo t, int hashCode, boolean unshared)
+                throws IOException {
+            super.writeHeader(out, ref, t, hashCode, unshared);
             out.writeUTF((String) ref);
-            out.addStatSendObject(ref);
         }
     }
 
     private class EnumWriter extends IbisWriter {
         void writeObject(IbisSerializationOutputStream out, Object ref,
-            Class clazz, int hashCode, boolean unshared) throws IOException {
-            if (! unshared) {
-                out.assignHandle(ref, hashCode);
-            }
-            out.writeType(clazz);
+                AlternativeTypeInfo t, int hashCode, boolean unshared)
+                throws IOException {
+            super.writeHeader(out, ref, t, hashCode, unshared);
             out.writeUTF(((Enum) ref).name());
-            out.addStatSendObject(ref);
         }
     }
 
     private static class SerializableWriter extends IbisWriter {
         void writeObject(IbisSerializationOutputStream out, Object ref,
-            Class clazz, int hashCode, boolean unshared) throws IOException {
-            if (! unshared) {
-                out.assignHandle(ref, hashCode);
+                AlternativeTypeInfo t, int hashCode, boolean unshared)
+                throws IOException {
+            super.writeHeader(out, ref, t, hashCode, unshared);
+            out.push_current_object(ref, 0);
+            try {
+                out.alternativeWriteObject(t, ref);
+            } catch (IllegalAccessException e) {
+                if (IbisStreamFlags.DEBUG) {
+                    out.dbPrint("Caught exception: " + e);
+                    e.printStackTrace();
+                    out.dbPrint("now rethrow as NotSerializableException ...");
+                }
+                throw new NotSerializableException("Serializable failed for : "
+                        + t.clazz.getName());
             }
-            out.writeType(clazz);
-            out.writeSerializableObject(ref, clazz);
+            out.pop_current_object();
             out.addStatSendObject(ref);
         }
     }
 
     private static class NotSerializableWriter extends IbisWriter {
         void writeObject(IbisSerializationOutputStream out, Object ref,
-            Class clazz, int hashCode, boolean unshared) throws IOException {
+                AlternativeTypeInfo t, int hashCode, boolean unshared)
+                throws IOException {
             throw new NotSerializableException("Not serializable: " +
-                    clazz.getName());
+                    t.clazz.getName());
         }
     }
 
