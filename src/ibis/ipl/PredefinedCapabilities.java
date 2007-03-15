@@ -29,6 +29,13 @@ public interface PredefinedCapabilities {
     final static String RESIZE_PREFIX = "resize.";
 
     /**
+     * Boolean capability, set when a sendport can connect to a single
+     * receiveport.
+     */
+    public final static String CONNECTION_ONE_TO_ONE
+            = CONNECTION_PREFIX + "onetoone";
+
+    /**
      * Boolean capability, set when a sendport can connect to more than
      * one receiveport.
      */

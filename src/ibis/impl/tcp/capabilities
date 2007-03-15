@@ -10,6 +10,7 @@ communication.reliable:
 communication.numbered:
 connection.onetomany:
 connection.manytoone:
+connection.onetoone:
 connection.downcalls:
 connection.upcalls:
 receive.poll:

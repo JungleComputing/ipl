@@ -173,7 +173,7 @@ public class Example implements ibis.ipl.PredefinedCapabilities {
     private void run() {
         // Create properties for the Ibis to be created.
         CapabilitySet props = new CapabilitySet(
-                SERIALIZATION_OBJECT, WORLDMODEL_CLOSED,
+                SERIALIZATION_OBJECT, WORLDMODEL_CLOSED, CONNECTION_ONE_TO_ONE,
                 COMMUNICATION_RELIABLE, RECEIVE_EXPLICIT, RECEIVE_AUTO_UPCALLS
         );
 
@@ -202,7 +202,7 @@ public class Example implements ibis.ipl.PredefinedCapabilities {
         // Create properties for the port type
         CapabilitySet portprops = new CapabilitySet(
             COMMUNICATION_RELIABLE, SERIALIZATION_OBJECT,
-            RECEIVE_EXPLICIT, RECEIVE_AUTO_UPCALLS
+            RECEIVE_EXPLICIT, RECEIVE_AUTO_UPCALLS, CONNECTION_ONE_TO_ONE
         );
 
         // Create the port type

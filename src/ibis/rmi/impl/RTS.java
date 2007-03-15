@@ -273,6 +273,7 @@ public final class RTS implements ibis.ipl.PredefinedCapabilities {
 
             CapabilitySet reqprops = new CapabilitySet(
                 SERIALIZATION_OBJECT, WORLDMODEL_OPEN, CONNECTION_MANY_TO_ONE,
+                CONNECTION_ONE_TO_ONE,
                 COMMUNICATION_RELIABLE, RECEIVE_AUTO_UPCALLS, RECEIVE_EXPLICIT);
 
             try {
@@ -294,6 +295,7 @@ public final class RTS implements ibis.ipl.PredefinedCapabilities {
                 COMMUNICATION_RELIABLE, RECEIVE_AUTO_UPCALLS);
 
             CapabilitySet replyProps = new CapabilitySet(
+                CONNECTION_ONE_TO_ONE,
                 SERIALIZATION_OBJECT, COMMUNICATION_RELIABLE, RECEIVE_EXPLICIT);
 
             Properties tp = ibis.properties();

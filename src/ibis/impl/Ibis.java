@@ -187,6 +187,15 @@ public abstract class Ibis implements ibis.ipl.Ibis,
             throw new IbisConfigurationException(
                 "Port capabilities don't match the Ibis required capabilities");
         }
+
+        if (! p.hasCapability(CONNECTION_ONE_TO_ONE)
+            && ! p.hasCapability(CONNECTION_ONE_TO_MANY)
+            && ! p.hasCapability(CONNECTION_MANY_TO_ONE)) {
+            logger.error("No connection capability set");
+            throw new IbisConfigurationException(
+                    "You need to specify at least one of connection.onetomany, "
+                    + "connection.manytoone or connection.onetoone");
+        }
     }
 
     public int totalNrOfIbisesInPool() {

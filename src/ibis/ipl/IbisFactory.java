@@ -123,6 +123,14 @@ public final class IbisFactory {
                             + " capability requested");
         }
 
+        if (! requiredCapabilities.hasCapability(PredefinedCapabilities.CONNECTION_ONE_TO_ONE)
+                && ! requiredCapabilities.hasCapability(PredefinedCapabilities.CONNECTION_ONE_TO_MANY)
+                && ! requiredCapabilities.hasCapability(PredefinedCapabilities.CONNECTION_MANY_TO_ONE)) {
+            throw new NoMatchingIbisException(
+                    "You need to specify at least one of connection.onetomany, "
+                    + "connection.manytoone or connection.onetoone");
+        }
+
         IbisFactory factory = new IbisFactory(properties);
 
         Ibis ibis = factory.createIbis(requiredCapabilities,

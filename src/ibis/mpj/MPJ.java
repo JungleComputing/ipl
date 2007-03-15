@@ -231,14 +231,15 @@ public class MPJ implements PredefinedCapabilities {
 
             info = PoolInfo.createPoolInfo();
             CapabilitySet s = new CapabilitySet(
-                SERIALIZATION_OBJECT, COMMUNICATION_RELIABLE, RECEIVE_EXPLICIT, RECEIVE_POLL,
-                WORLDMODEL_CLOSED);
+                SERIALIZATION_OBJECT, COMMUNICATION_RELIABLE, RECEIVE_EXPLICIT,
+                RECEIVE_POLL, CONNECTION_ONE_TO_ONE, WORLDMODEL_CLOSED);
             ibis = IbisFactory.createIbis(s, null, null, null);
 
             registry = ibis.registry();
 
             CapabilitySet prop = new CapabilitySet(
-                SERIALIZATION_OBJECT, COMMUNICATION_RELIABLE, RECEIVE_EXPLICIT, RECEIVE_POLL);
+                SERIALIZATION_OBJECT, COMMUNICATION_RELIABLE, RECEIVE_EXPLICIT,
+                CONNECTION_ONE_TO_ONE, RECEIVE_POLL);
 
             porttype = ibis.createPortType(prop);
 
