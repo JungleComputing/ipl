@@ -76,16 +76,7 @@ public class Rmic extends IbiscComponent {
     }
 
     private PrintWriter createFile(String name) throws Exception {
-        File f = new File(name);
-
-        if (!f.createNewFile()) {
-            System.err.println("File " + name + " already exists!");
-            System.exit(1);
-        }
-
-        FileOutputStream fileOut = new FileOutputStream(f);
-
-        return new PrintWriter(fileOut);
+        return new PrintWriter(new FileOutputStream(name));
     }
 
     public boolean processArgs(ArrayList args) {
