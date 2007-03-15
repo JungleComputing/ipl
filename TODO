@@ -45,13 +45,20 @@ nameserver+connection stuff:
 ipl:
 
 - IPL += sendPort.connect(ReceivePortIdentifier[] receivers);
+  (Moet dat echt? Wat doe je dan met exceptions? en evt timeout?
+  Gebruiker kan toch een loopje maken? (Ceriel))
 - close van poorten (in shutdownhooks)
   docs vertellen niet dat je niet een close mag doen terwijl een message
   levend is
   Ceriel: ??? Hoe doe je dat (in een shutdownhook belanden als er een message
   levend is ??? En, de javadocs vertellen dat wel degelijk.
-- change Ibis.toString() to returning a "friendly"(user-printable), but not 
-  necessarily unique, string.
++ change Ibis.toString() to returning a "friendly"(user-printable), but not 
+  necessarily unique, string (Done Ceriel, and it is unique, within the same
+  registry server).
+
+MPJ:
+- uses PoolInfo to get hostnames and then hostnames to identify ibis instances!
+  Should use Ibis identifiers for this, and should not use PoolInfo.
  
 satin:
 - if main throws an exception, we exit with code 0. Ant test also succeeds.
@@ -93,9 +100,14 @@ satin-so:
     - overhead of method calls, serialization
 - remove export of shared object from interface. An application can mark any
   initialization functions as being write functions for the same nett result.
+  (Ceriel: not true: a write method broadcast is dropped when the destination
+   does not have the object).
+- Update docs: don't call write methods from within shared-object constructor,
+  don't call exportObject after already having done a write method (the latter
+  is detected now).
 
-rmi:
-- rmic fails if target file exists.
+rmi/gmi:
++ rmic/gmic fail if target java file exists (fixed Ceriel).
 
 abstract implementation:
 + check _all_ properties in _every_ Ibis (Done Ceriel)
@@ -104,7 +116,7 @@ abstract implementation:
   joins beyond total hosts, and all leaves.
 
 implementations:
-- (re)implement NioIbis
++ (re)implement NioIbis (Done Ceriel)
 - (re)implement MPIIbis
 - implement stacking Ibis
 
