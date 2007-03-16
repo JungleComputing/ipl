@@ -262,7 +262,8 @@ public final class SharedObjects implements Config {
             // Write method invoked while object is not shared yet.
             // Don't broadcast: noone has the object yet.
             soLogger.debug(
-                    "No broadcast from writeMethod: object is not shared yet");
+                    "No broadcast from writeMethod: object "
+                    + r.getObjectId() + " is not shared yet");
             return;
         }
         soComm.broadcastSOInvocation(r);
