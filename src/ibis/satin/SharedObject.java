@@ -11,18 +11,15 @@ import ibis.satin.impl.Satin;
  */
 public class SharedObject implements java.io.Serializable {
 
-    /**
-     * Identification of this shared object. Must be public because it is
-     * accessed from code that is rewritten by Satinc.
-     */
-    public String objectId;
+    /** Identification of this shared object. */
+    private String objectId;
 
     /** Counter for generating shared-object identifications. */
     private static int sharedObjectsCounter = 0;
 
     private boolean exported = false;
 
-    protected boolean writeDone = false;
+    private boolean isUnshared = true;
 
     /**
      * Creates an identification for the current object and marks it as shared.
@@ -45,6 +42,18 @@ public class SharedObject implements java.io.Serializable {
     }
 
     /**
+     * Returns true if the shared object is still local.
+     * Write operations that are done while the object is still local
+     * are not broadcasted.
+     * As soon as an invocation record is made with this object,
+     * or exportObject is called, the object is considered non-local.
+     * @return true if the object is still local.
+     */
+    public final boolean isUnshared() {
+        return isUnshared;
+    }
+
+    /**
      * This method is optional, and can be used after creating a shared object.
      * It allows Satin to immediately distribute a replica to all machines
      * participating in the application.
@@ -63,14 +72,25 @@ public class SharedObject implements java.io.Serializable {
             return;
         }
 
-        if (writeDone) {
+        if (! isUnshared) {
             throw new RuntimeException(
                     "write method invoked before exportObject");
         }
+
+        isUnshared = false;
 
         synchronized (satin) {
             satin.so.broadcastSharedObject(this);
             exported = true;
         }
+    }
+
+    public final String getObjectId() {
+        return objectId;
+    }
+
+    public final String getObjectIdAndSetNonlocal() {
+        isUnshared = false;
+        return objectId;
     }
 }

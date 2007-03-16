@@ -296,19 +296,11 @@ public final class Satinc extends IbiscComponent {
         return false;
     }
 
-    static boolean isRetIns(Instruction i) {
-        return i instanceof ReturnInstruction;
-    }
-
     static String getInitVal(Type s) {
         if (s instanceof BasicType) {
             return "0";
         }
         return "null";
-    }
-
-    static boolean isRefType(Type s) {
-        return (s instanceof ReferenceType);
     }
 
     CodeExceptionGen getExceptionHandler(MethodGen m, InstructionHandle self) {
@@ -2243,7 +2235,7 @@ public final class Satinc extends IbiscComponent {
                             + ";");
                 } else {
                     out.println("        this.satin_so_reference_param" + i
-                        + " = param" + i + ".objectId;");
+                        + " = param" + i + ".getObjectIdAndSetNonlocal();");
                 }
             }
 
@@ -2285,7 +2277,7 @@ public final class Satinc extends IbiscComponent {
                                 + ";");
                     } else {
                         out.println("        res.satin_so_reference_param" + i
-                            + " = param" + i + ".objectId;");
+                            + " = param" + i + ".getObjectIdAndSetNonlocal();");
                     }
                 }
 
@@ -2353,7 +2345,7 @@ public final class Satinc extends IbiscComponent {
                 out.println("        w.self = null;");
 
                 for (int i = 0; i < params.length; i++) {
-                    if (isRefType(params[i])) {
+                    if (params[i] instanceof ReferenceType) {
                         if (!isSharedObject(params[i])) {
                             out.println("        w.param" + i + " = null;");
                         } else {
@@ -2774,11 +2766,6 @@ public final class Satinc extends IbiscComponent {
         Type returnType;
         int oldAccessFlags;
         int monitorVarAddr;
-        String classname = clnam;
-
-        if (pnam != null && !pnam.equals("")) {
-            classname = pnam + "." + clnam;
-        }
 
         if (verbose) {
             System.err.println("Rewriting method: " + m.getName()
@@ -2786,7 +2773,7 @@ public final class Satinc extends IbiscComponent {
         }
 
         //prefix the original method name with so_local
-        origMethodGen = new MethodGen(m, classname, cpg);
+        origMethodGen = new MethodGen(m, className, cpg);
         origMethodGen.setName("so_local_" + m.getName());
         origMethodGen.setMaxStack();
         origMethodGen.setMaxLocals();
@@ -2804,12 +2791,6 @@ public final class Satinc extends IbiscComponent {
         //}
 
         newMethodInsList = new InstructionList();
-        // Set writeDone flag.
-        newMethodInsList.append(new ALOAD(0));
-        newMethodInsList.append(new ICONST(1));
-        newMethodInsList.append(ins_f.createFieldAccess(
-                "ibis.satin.SharedObject", "writeDone", Type.BOOLEAN,
-                Constants.PUTFIELD));
         //broadcast 
         newMethodInsList.append(ins_f.createInvoke("ibis.satin.impl.Satin",
             "getSatin", new ObjectType("ibis.satin.impl.Satin"), new Type[] {},
@@ -2818,8 +2799,9 @@ public final class Satinc extends IbiscComponent {
             clnam, pnam)));
         newMethodInsList.append(InstructionFactory.createDup(1));
         newMethodInsList.append(new ALOAD(0));
-        newMethodInsList.append(ins_f.createGetField(classname, "objectId",
-            Type.STRING));
+        newMethodInsList.append(ins_f.createInvoke("ibis.satin.SharedObject",
+            "getObjectId", Type.STRING, new Type[] {},
+            Constants.INVOKEVIRTUAL));
         arguments = m.getArgumentTypes();
         int k1 = 0;
         for (int k = 0; k < arguments.length; k++) {
@@ -2861,7 +2843,7 @@ public final class Satinc extends IbiscComponent {
             k1 += arguments[k].getSize();
         }
         returnType = m.getReturnType();
-        newMethodInsList.append(ins_f.createInvoke(classname, "so_local_"
+        newMethodInsList.append(ins_f.createInvoke(className, "so_local_"
             + m.getName(), returnType, arguments, Constants.INVOKEVIRTUAL));
         //exit the monitor
         newMethodInsList.append(new ALOAD(monitorVarAddr));
@@ -2879,7 +2861,7 @@ public final class Satinc extends IbiscComponent {
         newMethodInsList.append(new ATHROW());
 
         newMethodGen = new MethodGen(oldAccessFlags, returnType, arguments,
-            origMethodGen.getArgumentNames(), m.getName(), classname,
+            origMethodGen.getArgumentNames(), m.getName(), className,
             newMethodInsList, cpg);
 
         newMethodGen.addExceptionHandler(from1, to1, from2, null);
@@ -2926,7 +2908,6 @@ public final class Satinc extends IbiscComponent {
                 //Satin.getSatin().broadcastSOInvocation(new SOInvRecord())
                 //return so_local_methodName
                 rewriteSOMethod(method, classNameNoPackage, packageName);
-
             }
         }
 

@@ -36,7 +36,7 @@ general:
 - tot nu toe was het zo dat als je connection downcalls had bij de sendport,
   writes geen exception geven. Vind ik eigenlijk een slecht idee, en stel dan
   ook voor om writes alleen geen exception te laten geven als je
-  connectionUpcalls hebt (Ceriel).
+  connectionUpcalls hebt (Ceriel). Of: opsparen exceptions tot de finish?
 
 nameserver+connection stuff:
 - add out-of-band communication support to the Nameserver interface
@@ -103,9 +103,11 @@ satin-so:
   initialization functions as being write functions for the same nett result.
   (Ceriel: not true: a write method broadcast is dropped when the destination
    does not have the object).
-- Update docs: don't call write methods from within shared-object constructor,
++ Update docs: don't call write methods from within shared-object constructor,
   don't call exportObject after already having done a write method (the latter
-  is detected now).
+  is detected now). (Ceriel: fixed differently: you can now call write methods
+  from within the constructor. You can call exportObject as long as the object
+  is not passed to a spawn yet).
 
 rmi/gmi:
 + rmic/gmic fail if target java file exists (fixed Ceriel).

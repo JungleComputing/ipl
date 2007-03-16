@@ -34,7 +34,7 @@ final class SOInvocationReceiver extends Thread implements Config {
                 } else if (o instanceof SharedObject) {
                     SharedObject obj = (SharedObject) o;
                     soLogger.debug("SATIN '" + s.ident + "': "
-                        + "received broadcast object, id = " + obj.objectId);
+                        + "received broadcast object, id = " + obj.getObjectId());
                     s.so.addObject(obj);
                 } else if (o != null) {
                     soLogger

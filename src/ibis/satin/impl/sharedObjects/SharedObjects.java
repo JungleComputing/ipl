@@ -55,10 +55,10 @@ public final class SharedObjects implements Config {
         SharedObjectInfo i = new SharedObjectInfo();
         i.sharedObject = object;
         synchronized (s) {
-            sharedObjects.put(object.objectId, i);
+            sharedObjects.put(object.getObjectId(), i);
         }
         
-        soLogger.debug("SATIN '" + s.ident + "': " + "object added, id = " + object.objectId);
+        soLogger.debug("SATIN '" + s.ident + "': " + "object added, id = " + object.getObjectId());
     }
 
     /** Return a reference to a shared object */
@@ -88,7 +88,7 @@ public final class SharedObjects implements Config {
     void registerMulticast(SharedObject object, IbisIdentifier[] destinations) {
         synchronized (s) {
             SharedObjectInfo i =
-                    sharedObjects.get(object.objectId);
+                    sharedObjects.get(object.getObjectId());
             if (i == null) {
                 soLogger.warn("OOPS, object not found in registerMulticast");
                 return;
@@ -257,6 +257,14 @@ public final class SharedObjects implements Config {
     }
 
     public void broadcastSOInvocation(SOInvocationRecord r) {
+        SharedObject so = getSOReference(r.getObjectId());
+        if (so != null && so.isUnshared()) {
+            // Write method invoked while object is not shared yet.
+            // Don't broadcast: noone has the object yet.
+            soLogger.debug(
+                    "No broadcast from writeMethod: object is not shared yet");
+            return;
+        }
         soComm.broadcastSOInvocation(r);
     }
 

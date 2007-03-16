@@ -388,7 +388,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller,
         synchronized (s) {
             tmp = s.victims.getIbises();
         }
-        s.so.registerMulticast(s.so.getSOReference(object.objectId), tmp);
+        s.so.registerMulticast(s.so.getSOReference(object.getObjectId()), tmp);
 
         try {
             if (SO_MAX_INVOCATION_DELAY > 0) {
@@ -425,7 +425,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller,
         }
 
         soLogger.debug("SATIN '" + s.ident + "': broadcasting object: "
-            + object.objectId);
+            + object.getObjectId());
         s.stats.soBroadcastTransferTimer.start();
         s.so.registerMulticast(object, tmp);
 
