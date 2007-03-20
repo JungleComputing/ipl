@@ -100,6 +100,18 @@
     </target>
 
     <target name="jars">
+	<jar destfile="lib/ipl-api.jar"
+	    basedir="${build}"
+	    includes="ibis/ipl/*.class">
+	</jar>
+	<jar	destfile="lib/ipl-impl.jar"
+	    basedir="${build}"
+	    includes="ibis.properties ibis/impl/**/*.class ibis/io/**/*.class ibis/util/**/*.class ibis/frontend/generic/*.class ibis/frontend/ibis/*.class ibis/frontend/io/*.class">
+	    <manifest>
+		<attribute name="Ibis-Implementation" value="ibis.impl.tcp.TcpIbis,ibis.impl.smartsockets.TcpIbis,ibis.impl.nio.NioIbis"/>
+		<attribute name="Ibisc-Component" value="ibis.frontend.io.IOGenerator"/>
+	    </manifest>
+	</jar>
 	<jar	destfile="${jar}"
 	    basedir="${build}"
 	    includes="ibis/**/*.class **/capabilities smartsockets.properties ibis.properties">
@@ -108,9 +120,34 @@
 		<attribute name="Ibis-Implementation" value="ibis.impl.tcp.TcpIbis,ibis.impl.smartsockets.TcpIbis,ibis.impl.nio.NioIbis"/>
 	    </manifest>
 	</jar>
-	<jar	destfile="lib/ibis-ipl.jar"
+	<jar destfile="lib/satin-api.jar"
 	    basedir="${build}"
-	    includes="ibis/ipl/*.class">
+	    includes="ibis/satin/*.class">
+	</jar>
+	<jar destfile="lib/satin-impl.jar"
+	    basedir="${build}"
+	    includes="ibis/satin/impl/**/*.class ibis/frontend/satin/*.class">
+	    <manifest>
+		<attribute name="Ibisc-Component" value="ibis.frontend.satin.Satinc"/>
+	    </manifest>
+	</jar>
+	<jar destfile="lib/gmi.jar"
+	    basedir="${build}"
+	    includes="ibis/gmi/**/*.class ibis/frontend/gmi/*.class">
+	    <manifest>
+		<attribute name="Ibisc-Component" value="ibis.frontend.gmi.Gmic"/>
+	    </manifest>
+	</jar>
+	<jar destfile="lib/rmi.jar"
+	    basedir="${build}"
+	    includes="ibis/rmi/**/*.class ibis/frontend/rmi/*.class">
+	    <manifest>
+		<attribute name="Ibisc-Component" value="ibis.frontend.rmi.Rmic"/>
+	    </manifest>
+	</jar>
+	<jar destfile="lib/mpj.jar"
+	    basedir="${build}"
+	    includes="ibis/mpj/**/*.class">
 	</jar>
     </target>
 
