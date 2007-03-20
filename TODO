@@ -130,3 +130,6 @@ connect stuff:
 
 apps:
 - check results of the different barnes versions
+
+ibis-util:
+- remove dependancy on Smartsockets
