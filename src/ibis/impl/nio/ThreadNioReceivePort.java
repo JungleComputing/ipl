@@ -14,7 +14,6 @@ import ibis.util.Queue;
 import java.io.IOException;
 import java.nio.channels.Channel;
 import java.nio.channels.ReadableByteChannel;
-import java.nio.channels.SelectableChannel;
 
 final class ThreadNioReceivePort extends NioReceivePort {
 

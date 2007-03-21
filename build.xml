@@ -228,7 +228,9 @@
     </target>
 
     <target name="progman" description="Build the Ibis programmers manual">
+<!--
 	<ant dir="${docs}" inheritAll="false" target="progman"/>
+-->
     </target>
 
     <target name="test" depends="allclean, build">

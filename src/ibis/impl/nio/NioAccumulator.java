@@ -3,8 +3,6 @@
 package ibis.impl.nio;
 
 import ibis.impl.ReceivePortIdentifier;
-import ibis.impl.SendPortConnectionInfo;
-
 import ibis.io.DataOutputStream;
 
 import java.io.IOException;

@@ -4,9 +4,7 @@ package ibis.impl.nio;
 
 import ibis.impl.Ibis;
 import ibis.impl.ReadMessage;
-import ibis.impl.ReceivePort;
 import ibis.impl.ReceivePortConnectionInfo;
-import ibis.impl.ReceivePortIdentifier;
 import ibis.impl.SendPortIdentifier;
 import ibis.ipl.CapabilitySet;
 import ibis.ipl.ConnectionClosedException;

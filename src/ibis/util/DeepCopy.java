@@ -9,8 +9,6 @@ import ibis.io.SerializationBase;
 import ibis.io.SerializationInput;
 import ibis.io.SerializationOutput;
 import ibis.ipl.IbisProperties;
-import ibis.ipl.IbisFactory;
-
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Hashtable;

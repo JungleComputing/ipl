@@ -8,8 +8,6 @@ import java.io.NotSerializableException;
 import java.io.ObjectOutput;
 import java.io.ObjectStreamClass;
 
-import java.lang.reflect.Method;
-
 /**
  * This is the <code>SerializationOutputStream</code> version that is used
  * for Ibis serialization.

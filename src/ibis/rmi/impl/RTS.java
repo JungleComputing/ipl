@@ -15,8 +15,6 @@ import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPort;
 import ibis.ipl.Upcall;
 import ibis.ipl.WriteMessage;
-import ibis.rmi.AlreadyBoundException;
-import ibis.rmi.NotBoundException;
 import ibis.rmi.Remote;
 import ibis.rmi.RemoteException;
 import ibis.rmi.StubNotFoundException;

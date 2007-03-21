@@ -3,7 +3,6 @@
 package ibis.impl.tcp;
 
 import ibis.impl.Ibis;
-import ibis.impl.IbisIdentifier;
 import ibis.impl.ReceivePortIdentifier;
 import ibis.impl.SendPort;
 import ibis.impl.SendPortConnectionInfo;

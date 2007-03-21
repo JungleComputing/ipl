@@ -13,12 +13,10 @@ import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.PortMismatchException;
 import ibis.ipl.ResizeHandler;
-import ibis.util.IPUtils;
 import ibis.util.ThreadPool;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.InputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.SocketTimeoutException;
@@ -113,7 +111,6 @@ public final class TcpIbis extends ibis.impl.Ibis
 
         do {
             DataOutputStream out = null;
-            InputStream in = null;
             IbisSocket s = null;
             int result = -1;
 

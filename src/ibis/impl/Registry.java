@@ -2,7 +2,6 @@
 
 package ibis.impl;
 
-import ibis.ipl.CapabilitySet;
 import ibis.ipl.IbisConfigurationException;
 
 import java.io.IOException;

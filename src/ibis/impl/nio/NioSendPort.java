@@ -9,8 +9,6 @@ import ibis.impl.SendPort;
 import ibis.impl.SendPortConnectionInfo;
 import ibis.impl.WriteMessage;
 import ibis.io.Conversion;
-import ibis.ipl.IbisIdentifier;
-import ibis.ipl.PortType;
 import ibis.ipl.SendPortDisconnectUpcall;
 
 import java.io.IOException;

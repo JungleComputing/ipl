@@ -7,7 +7,6 @@ import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.IbisProperties;
 import ibis.ipl.ResizeHandler;
 import ibis.ipl.CapabilitySet;
-import ibis.ipl.CapabilitySet;
 import ibis.util.Log;
 import ibis.util.TypedProperties;
 

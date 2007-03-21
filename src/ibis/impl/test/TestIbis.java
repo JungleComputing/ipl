@@ -15,8 +15,6 @@ import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.CapabilitySet;
 import ibis.ipl.WriteMessage;
 
-import java.io.IOException;
-
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;

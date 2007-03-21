@@ -13,7 +13,6 @@ import java.util.Properties;
 
 import smartsockets.hub.servicelink.ServiceLink;
 import smartsockets.virtual.InitializationException;
-import smartsockets.virtual.VirtualServerSocket;
 import smartsockets.virtual.VirtualSocketFactory;
 
 /**

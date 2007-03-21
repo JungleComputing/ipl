@@ -11,8 +11,6 @@ import ibis.rmi.registry.Registry;
 
 import java.util.HashMap;
 
-import java.net.InetAddress;
-
 import org.apache.log4j.Logger;
 
 public class RegistryImpl extends ibis.rmi.server.UnicastRemoteObject

@@ -3,11 +3,9 @@
 package ibis.impl.nio;
 
 import ibis.impl.IbisIdentifier;
-import ibis.impl.ReceivePort;
 import ibis.ipl.CapabilitySet;
 import ibis.ipl.ResizeHandler;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;

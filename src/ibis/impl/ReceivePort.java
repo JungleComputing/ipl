@@ -2,7 +2,6 @@
 
 package ibis.impl;
 
-import ibis.io.SerializationInput;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.ReceiveTimedOutException;

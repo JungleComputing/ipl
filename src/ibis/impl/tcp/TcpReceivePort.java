@@ -3,7 +3,6 @@
 package ibis.impl.tcp;
 
 import ibis.impl.Ibis;
-import ibis.impl.PortType;
 import ibis.impl.ReadMessage;
 import ibis.impl.ReceivePort;
 import ibis.impl.ReceivePortIdentifier;
@@ -12,12 +11,10 @@ import ibis.impl.SendPortIdentifier;
 import ibis.io.BufferedArrayInputStream;
 import ibis.io.Conversion;
 import ibis.ipl.ReceivePortConnectUpcall;
-import ibis.ipl.ReceiveTimedOutException;
 import ibis.ipl.Upcall;
 import ibis.util.ThreadPool;
 
 import java.io.IOException;
-import java.io.InputStream;
 
 import org.apache.log4j.Logger;
 

@@ -2,7 +2,6 @@
 
 package ibis.io;
 
-import ibis.ipl.IbisFactory;
 import ibis.ipl.IbisProperties;
 import ibis.util.TypedProperties;
 
