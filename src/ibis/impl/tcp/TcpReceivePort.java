@@ -18,7 +18,6 @@ import ibis.util.ThreadPool;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.Socket;
 
 import org.apache.log4j.Logger;
 
@@ -30,9 +29,9 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
     class ConnectionHandler extends ReceivePortConnectionInfo 
             implements Runnable, TcpProtocol {
 
-        private final Socket s;
+        private final IbisSocket s;
 
-        ConnectionHandler(SendPortIdentifier origin, Socket s,
+        ConnectionHandler(SendPortIdentifier origin, IbisSocket s,
                 ReceivePort port, BufferedArrayInputStream in)
                 throws IOException {
             super(origin, port, in);
@@ -235,7 +234,7 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
         super.closePort(timeout);
     }
 
-    synchronized void connect(SendPortIdentifier origin, Socket s,
+    synchronized void connect(SendPortIdentifier origin, IbisSocket s,
             BufferedArrayInputStream in) throws IOException {
         ConnectionHandler conn = new ConnectionHandler(origin, s, this, in);
         if (! no_connectionhandler_thread) {

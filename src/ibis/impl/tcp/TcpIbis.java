@@ -16,18 +16,11 @@ import ibis.ipl.ResizeHandler;
 import ibis.util.IPUtils;
 import ibis.util.ThreadPool;
 
-import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.InputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.OutputStream;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.util.HashMap;
 import java.util.Properties;
@@ -37,50 +30,42 @@ import org.apache.log4j.Logger;
 public final class TcpIbis extends ibis.impl.Ibis
         implements Runnable, TcpProtocol {
 
-    private static final Logger logger
+    static final Logger logger
             = Logger.getLogger("ibis.impl.tcp.TcpIbis");
 
-    private ServerSocket systemServer;
+    private IbisSocketFactory factory;
 
-    private InetSocketAddress myAddress;
+    private IbisServerSocket systemServer;
 
-    private InetSocketAddress local;
+    private IbisSocketAddress myAddress;
 
     private boolean quiting = false;
 
-    private HashMap<IbisIdentifier, InetSocketAddress> addresses
-        = new HashMap<IbisIdentifier, InetSocketAddress>();
+    private HashMap<IbisIdentifier, IbisSocketAddress> addresses
+        = new HashMap<IbisIdentifier, IbisSocketAddress>();
 
     public TcpIbis(ResizeHandler r, CapabilitySet p, Properties tp)
         throws Throwable {
 
         super(r, p, tp, null);
 
+        factory.setIdent(ident);
+
         ThreadPool.createNew(this, "TcpIbis");
     }
 
     protected byte[] getData() throws IOException {
-        InetAddress addr = IPUtils.getLocalHostAddress();
-        if (addr == null) {
-            logger.fatal("ERROR: could not get my own IP address, exiting.");
-            System.exit(1);
-        }
 
-        systemServer = new ServerSocket();
-        local = new InetSocketAddress(addr, 0);
-        systemServer.bind(local, 50);
-        myAddress = new InetSocketAddress(addr, systemServer.getLocalPort());
+        factory = new IbisSocketFactory(properties);
+
+        systemServer = factory.createServerSocket(0, 50, true, null);
+        myAddress = systemServer.getLocalSocketAddress();
 
         if (logger.isDebugEnabled()) {
             logger.debug("--> TcpIbis: address = " + myAddress);
         }
 
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        ObjectOutputStream out = new ObjectOutputStream(bos);
-        out.writeObject(myAddress);
-        out.close();
-
-        return bos.toByteArray();
+        return myAddress.toBytes();
     }
 
     protected ibis.impl.PortType newPortType(CapabilitySet p, Properties tp) {
@@ -105,45 +90,36 @@ public final class TcpIbis extends ibis.impl.Ibis
         }
     }
 
-    Socket connect(TcpSendPort sp, ibis.impl.ReceivePortIdentifier rip,
+    IbisSocket connect(TcpSendPort sp, ibis.impl.ReceivePortIdentifier rip,
             int timeout) throws IOException {
         IbisIdentifier id = (IbisIdentifier) rip.ibis();
         String name = rip.name();
-        InetSocketAddress idAddr;
+        IbisSocketAddress idAddr;
 
         synchronized(addresses) {
             idAddr = addresses.get(id);
             if (idAddr == null) {
-                ObjectInputStream in = new ObjectInputStream(
-                        new java.io.ByteArrayInputStream(
-                                id.getImplementationData()));
-                try {
-                    idAddr = (InetSocketAddress) in.readObject();
-                } catch(ClassNotFoundException e) {
-                    throw new IOException("Could not get address from " + id);
-                }
-                in.close();
+                idAddr = new IbisSocketAddress(id.getImplementationData());
                 addresses.put(id, idAddr);
             }
         }
-
-        int port = idAddr.getPort();
 
         long startTime = System.currentTimeMillis();
 
         if (logger.isDebugEnabled()) {
             logger.debug("--> Creating socket for connection to " + name
-                    + " at " + id + ", port = " + port);
+                    + " at " + idAddr);
         }
 
         do {
             DataOutputStream out = null;
             InputStream in = null;
-            Socket s = null;
+            IbisSocket s = null;
             int result = -1;
 
             try {
-                s = createClientSocket(local, idAddr, timeout);
+                s = factory.createClientSocket(idAddr, timeout,
+                        sp.properties());
                 out = new DataOutputStream(new BufferedArrayOutputStream(
                             s.getOutputStream()));
 
@@ -211,16 +187,16 @@ public final class TcpIbis extends ibis.impl.Ibis
         try {
             quiting = true;
             // Connect so that the TcpIbis thread wakes up.
-            createClientSocket(local, myAddress, 0);
+            factory.createClientSocket(myAddress, 0, null);
         } catch (Throwable e) {
             // Ignore
         }
     }
 
-    private void handleConnectionRequest(Socket s) throws IOException {
+    private void handleConnectionRequest(IbisSocket s) throws IOException {
         if (logger.isDebugEnabled()) {
             logger.debug("--> TcpIbis got connection request from "
-                    + s.getInetAddress() + ":" + s.getPort() + " on local port "
+                    + s.getAddress() + ":" + s.getPort() + " on local port "
                     + s.getLocalPort());
         }
 
@@ -264,20 +240,11 @@ public final class TcpIbis extends ibis.impl.Ibis
         }
     }
 
-    private Socket createClientSocket(InetSocketAddress local,
-            InetSocketAddress remote, int timeout) throws IOException {
-        Socket s = new Socket();
-        s.bind(local);
-        s.connect(remote, timeout);
-        s.setTcpNoDelay(true);
-        return s;
-    }
-
     public void run() {
         // This thread handles incoming connection request from the
         // connect(TcpSendPort) call.
         while (true) {
-            Socket s = null;
+            IbisSocket s = null;
 
             if (logger.isDebugEnabled()) {
                 logger.debug("--> TcpIbis doing new accept()");
@@ -317,11 +284,20 @@ public final class TcpIbis extends ibis.impl.Ibis
         }
     }
 
+    public void printStatistics() {
+        factory.printStatistics(ident.toString());
+    }
+
     private void cleanup() {
         try {
             systemServer.close();
         } catch (Throwable e) {
             // Ignore
         }
+    }
+
+    public void end() {
+        super.end();
+        printStatistics();
     }
 }

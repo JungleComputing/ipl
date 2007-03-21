@@ -17,15 +17,14 @@ import ibis.ipl.SendPortDisconnectUpcall;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.Socket;
 
 final class TcpSendPort extends SendPort implements TcpProtocol {
 
     private class Conn extends SendPortConnectionInfo {
-        Socket s;
+        IbisSocket s;
         OutputStream out;
 
-        Conn(Socket s, TcpSendPort port, ReceivePortIdentifier target) throws IOException {
+        Conn(IbisSocket s, TcpSendPort port, ReceivePortIdentifier target) throws IOException {
             super(port, target);
             this.s = s;
             out = s.getOutputStream();
@@ -65,7 +64,7 @@ final class TcpSendPort extends SendPort implements TcpProtocol {
 
     protected SendPortConnectionInfo doConnect(ReceivePortIdentifier receiver,
             long timeoutMillis) throws IOException {
-        Socket s = ((TcpIbis)ibis).connect(this, receiver, (int) timeoutMillis);
+        IbisSocket s = ((TcpIbis)ibis).connect(this, receiver, (int) timeoutMillis);
         Conn c = new Conn(s, this, receiver);
         if (out != null) {
             out.writeByte(NEW_RECEIVER);

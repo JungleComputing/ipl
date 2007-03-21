@@ -108,7 +108,7 @@
 	    basedir="${build}"
 	    includes="ibis.properties ibis/impl/**/*.class ibis/io/**/*.class ibis/util/**/*.class ibis/frontend/generic/*.class ibis/frontend/ibis/*.class ibis/frontend/io/*.class">
 	    <manifest>
-		<attribute name="Ibis-Implementation" value="ibis.impl.tcp.TcpIbis,ibis.impl.smartsockets.TcpIbis,ibis.impl.nio.NioIbis"/>
+		<attribute name="Ibis-Implementation" value="ibis.impl.tcp.TcpIbis,ibis.impl.nio.NioIbis"/>
 		<attribute name="Ibisc-Component" value="ibis.frontend.io.IOGenerator"/>
 	    </manifest>
 	</jar>
@@ -117,7 +117,7 @@
 	    includes="ibis/**/*.class **/capabilities smartsockets.properties ibis.properties">
 	    <manifest>
 		<attribute name="Ibisc-Component" value="ibis.frontend.io.IOGenerator,ibis.frontend.gmi.Gmic,ibis.frontend.rmi.Rmic,ibis.frontend.satin.Satinc"/>
-		<attribute name="Ibis-Implementation" value="ibis.impl.tcp.TcpIbis,ibis.impl.smartsockets.TcpIbis,ibis.impl.nio.NioIbis"/>
+		<attribute name="Ibis-Implementation" value="ibis.impl.tcp.TcpIbis,ibis.impl.nio.NioIbis"/>
 	    </manifest>
 	</jar>
 	<jar destfile="lib/satin-api.jar"
