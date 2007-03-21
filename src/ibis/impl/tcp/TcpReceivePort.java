@@ -20,9 +20,6 @@ import org.apache.log4j.Logger;
 
 class TcpReceivePort extends ReceivePort implements TcpProtocol {
 
-    private static final Logger logger
-            = Logger.getLogger("ibis.impl.tcp.TcpReceivePort");
-
     class ConnectionHandler extends ReceivePortConnectionInfo 
             implements Runnable, TcpProtocol {
 
