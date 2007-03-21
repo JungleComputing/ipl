@@ -1792,7 +1792,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
             throw new SerializationError("registerValidation not implemented");
         }
 
-        public Class resolveClass(ObjectStreamClass desc)
+        public Class<?> resolveClass(ObjectStreamClass desc)
                   throws IOException, ClassNotFoundException {
                 return desc.forClass();
         }
