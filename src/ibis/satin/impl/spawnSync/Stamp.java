@@ -7,6 +7,11 @@ package ibis.satin.impl.spawnSync;
  */
 public final class Stamp implements java.io.Serializable {
 
+    /** 
+     * Generated
+     */
+    private static final long serialVersionUID = 8947244353656024534L;
+
     private static boolean ENABLE_CACHE = true;
 
     /** I found that there actually is no need to start with larger stamps arrays.

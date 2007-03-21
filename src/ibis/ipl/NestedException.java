@@ -15,6 +15,11 @@ import java.util.ArrayList;
  */
 public class NestedException extends Exception {
 
+    /** 
+     * Generated
+     */
+    private static final long serialVersionUID = -387342205084916635L;
+
     private ArrayList<Throwable> throwables = new ArrayList<Throwable>();
 
     private ArrayList<String> throwerIDs = new ArrayList<String>();

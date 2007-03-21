@@ -17,6 +17,11 @@ import java.io.Serializable;
  */
 public class SatinObject implements java.io.Serializable {
 
+    /** 
+     * Generated
+     */
+    private static final long serialVersionUID = -3958487192660018892L;
+
     /**
      * Prevents constructor from being public.
      */

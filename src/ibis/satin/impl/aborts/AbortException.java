@@ -7,6 +7,8 @@ package ibis.satin.impl.aborts;
  */
 public final class AbortException extends RuntimeException {
 
+    private static final long serialVersionUID = -7480459385900857525L;
+
     /**
      * Constructs an <code>AbortException</code>.
      */

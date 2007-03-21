@@ -10,6 +10,11 @@ package ibis.ipl;
  * java.util.Properties, ResizeHandler) Ibis.createIbis}.
  */
 public class NoMatchingIbisException extends Exception {
+    /** 
+     * Generated
+     */
+    private static final long serialVersionUID = 5408221950692659540L;
+
     /**
      * Constructs a <code>NoMatchingIbisException</code> with
      * <code>null</code> as its error detail message.

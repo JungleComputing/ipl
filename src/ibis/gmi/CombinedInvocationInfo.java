@@ -9,6 +9,11 @@ package ibis.gmi;
  */
 public class CombinedInvocationInfo implements java.io.Serializable {
 
+    /** 
+     * Generated
+     */
+    private static final long serialVersionUID = -4818948805724083490L;
+
     /**
      * Group on which a group method using this combined-invocation info is
      * invoked. 

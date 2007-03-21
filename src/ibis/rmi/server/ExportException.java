@@ -12,6 +12,11 @@ import ibis.rmi.RemoteException;
  * {@link ibis.rmi.server.UnicastRemoteObject#exportObject} method.
  */
 public class ExportException extends RemoteException {
+    /** 
+     * Generated
+     */
+    private static final long serialVersionUID = -2653164684620421071L;
+
     /**
      * Constructs an <code>ExportException</code> with the specified
      * detail message.

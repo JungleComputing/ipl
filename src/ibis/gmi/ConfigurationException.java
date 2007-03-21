@@ -7,6 +7,11 @@ package ibis.gmi;
  * illegal group method configurations.
  */
 public class ConfigurationException extends Exception {
+    /** 
+     * Generated
+     */
+    private static final long serialVersionUID = -7899875713676822277L;
+
     /**
      * Constructor.
      *

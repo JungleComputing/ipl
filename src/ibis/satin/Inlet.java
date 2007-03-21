@@ -9,6 +9,11 @@ package ibis.satin;
  */
 public class Inlet extends Throwable {
 
+    /** 
+     * Generated
+     */
+    private static final long serialVersionUID = 5167746747259483619L;
+
     /**
      * Constructs an <code>Inlet</code>.
      */

@@ -20,6 +20,6 @@ abstract class IbisWriter {
             out.assignHandle(ref, hashCode);
         }
         out.writeType(t.clazz);
-        out.addStatSendObject(ref);
+        IbisSerializationOutputStream.addStatSendObject(ref);
     }
 }

@@ -8,6 +8,9 @@ package ibis.rmi;
  * already in use.
  */
 public class AlreadyBoundException extends Exception {
+    
+    private static final long serialVersionUID = -913191118620596055L;
+
     /**
      * Constructs an <code>AlreadyBoundException</code> with no specified
      * detail message.

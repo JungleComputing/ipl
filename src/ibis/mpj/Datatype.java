@@ -11,6 +11,10 @@ import java.io.*;
  * Organisation of primitive and derived datatypes.
  */
 public class Datatype implements Serializable {
+    /** 
+     * Generated
+     */
+    private static final long serialVersionUID = 2863490198818044959L;
     protected static final int BASE_TYPE_BYTE = 1; 
     protected static final int BASE_TYPE_CHAR = 2;
     protected static final int BASE_TYPE_SHORT = 3;

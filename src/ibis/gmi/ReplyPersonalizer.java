@@ -8,6 +8,11 @@ package ibis.gmi;
  */
 public class ReplyPersonalizer implements java.io.Serializable {
 
+    /** 
+     * Generated
+     */
+    private static final long serialVersionUID = 2993153667667593601L;
+
     /** Creates a copying <code>ReplyPersonalizer</code>.
     public ReplyPersonalizer() {
     }

@@ -8,6 +8,11 @@ import java.util.ArrayList;
 
 public class SplitterException extends IOException {
 
+    /** 
+     * Generated
+     */
+    private static final long serialVersionUID = 9005051418523286737L;
+
     private ArrayList<OutputStream> streams = new ArrayList<OutputStream>();
 
     private ArrayList<Exception> exceptions = new ArrayList<Exception>();

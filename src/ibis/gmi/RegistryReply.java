@@ -4,6 +4,11 @@ package ibis.gmi;
 
 /** Container class for a registry reply. */
 class RegistryReply implements java.io.Serializable {
+    /** 
+     * Generated
+     */
+    private static final long serialVersionUID = 457084290261425800L;
+
     byte result;
 
     int groupnum = 0;

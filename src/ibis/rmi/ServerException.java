@@ -9,6 +9,11 @@ package ibis.rmi;
  */
 public class ServerException extends RemoteException {
 
+    /** 
+     * Generated
+     */
+    private static final long serialVersionUID = 545208981874643134L;
+
     /**
      * Constructs a <code>ServerException</code> with the specified
      * detail message.

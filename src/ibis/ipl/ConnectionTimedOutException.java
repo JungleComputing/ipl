@@ -9,6 +9,11 @@ package ibis.ipl;
  */
 public class ConnectionTimedOutException extends java.io.IOException {
 
+    /** 
+     * Generated
+     */
+    private static final long serialVersionUID = -635963914522956036L;
+
     /**
      * Constructs a <code>ConnectionTimedOutException</code> with
      * <code>null</code> as its error detail message.

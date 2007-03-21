@@ -9,6 +9,11 @@ package ibis.ipl;
  */
 public class ConnectionRefusedException extends java.io.IOException {
 
+    /** 
+     * Generated
+     */
+    private static final long serialVersionUID = -1714304933116019249L;
+
     /**
      * Constructs a <code>ConnectionRefusedException</code> with
      * <code>null</code> as its error detail message.

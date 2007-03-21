@@ -9,6 +9,11 @@ package ibis.rmi.server;
  * invocation.
  */
 public class ServerNotActiveException extends Exception {
+    /** 
+     * Generated
+     */
+    private static final long serialVersionUID = -4592718431800740541L;
+
     /**
      * Constructs an <code>ServerNotActiveException</code> with no specified
      * detail message.

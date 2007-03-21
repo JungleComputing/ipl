@@ -11,6 +11,11 @@ import ibis.rmi.RemoteException;
  */
 public class SkeletonNotFoundException extends RemoteException {
 
+    /** 
+     * Generated
+     */
+    private static final long serialVersionUID = -9033123731524006368L;
+
     /**
      * Constructs an <code>SkeletonNotFoundException</code> with the specified
      * detail message.

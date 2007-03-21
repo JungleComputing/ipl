@@ -15,6 +15,11 @@ package ibis.gmi;
  */
 public class BinomialCombiner implements java.io.Serializable {
 
+    /** 
+     * Generated
+     */
+    private static final long serialVersionUID = -3995475149446785792L;
+
     /** Disallow construction from outside. */
     protected BinomialCombiner() {
     	// nothing here

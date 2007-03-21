@@ -15,6 +15,11 @@ import java.io.IOException;
  * identifies an Ibis instance on the network.
  */
 public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
+    /** 
+     * Generated
+     */
+    private static final long serialVersionUID = 3654888190542934889L;
+
     /**
      * The location for this Ibis instance. */
     public final Location location;

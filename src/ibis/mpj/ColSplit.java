@@ -84,6 +84,10 @@ public class ColSplit {
 }
 
 class SplitItem implements Serializable {
+    /** 
+     * Generated
+     */
+    private static final long serialVersionUID = 4733437597501895765L;
     public int colour = 0;
     public int key = 0;
     public int rank = 0;

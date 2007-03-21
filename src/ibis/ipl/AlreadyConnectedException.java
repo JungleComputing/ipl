@@ -7,6 +7,8 @@ package ibis.ipl;
  */
 public class AlreadyConnectedException extends java.io.IOException {
 
+    private static final long serialVersionUID = 1166386225417807654L;
+
     /**
      * Constructs a <code>AlreadyConnectedException</code> with
      * <code>null</code> as its error detail message.

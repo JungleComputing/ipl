@@ -6,6 +6,11 @@ import ibis.ipl.IbisIdentifier;
 import ibis.util.Timer;
 
 public final class Statistics implements java.io.Serializable, Config {
+    /** 
+     * Generated
+     */
+    private static final long serialVersionUID = 7954856934035669311L;
+
     public long spawns;
 
     public long syncs;

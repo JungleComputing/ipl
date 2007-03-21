@@ -8,6 +8,11 @@ package ibis.rmi;
  * invocation on the server.
  */
 public class ServerRuntimeException extends RemoteException {
+    /** 
+     * Generated
+     */
+    private static final long serialVersionUID = -2791906070755014943L;
+
     /**
      * Constructs a <code>ServerRuntimeException</code> with the specified
      * detail message and nested exception.

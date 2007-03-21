@@ -6,6 +6,9 @@ package ibis.rmi;
  * The <code>AccessException</code> is never actually thrown in Ibis RMI.
  */
 public class AccessException extends RemoteException {
+    
+    private static final long serialVersionUID = 2624100394468533023L;
+
     /**
      * Constructs an <code>AccessException</code> with the specified
      * detail message.

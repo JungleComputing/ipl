@@ -7,6 +7,11 @@ package ibis.rmi;
  * exceptions that may occur during a remove method invocation.
  */
 public class RemoteException extends java.io.IOException {
+    /** 
+     * Generated
+     */
+    private static final long serialVersionUID = -494751317591364350L;
+
     /**
      * Constructs an <code>RemoteException</code> with no specified
      * detail message.

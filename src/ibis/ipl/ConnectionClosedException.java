@@ -10,6 +10,11 @@ package ibis.ipl;
  */
 public class ConnectionClosedException extends java.io.IOException {
 
+    /** 
+     * Generated
+     */
+    private static final long serialVersionUID = 9097069370016270215L;
+
     /**
      * Constructs a <code>ConnectionClosedException</code> with
      * <code>null</code> as its error detail message.

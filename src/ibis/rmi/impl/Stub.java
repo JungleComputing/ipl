@@ -14,6 +14,11 @@ import java.io.IOException;
 
 public class Stub extends RemoteStub {
 
+    /** 
+     * Generated
+     */
+    private static final long serialVersionUID = -5921435196709798621L;
+
     transient protected int stubID;
 
     transient protected SendPort send;

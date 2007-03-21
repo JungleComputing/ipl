@@ -7,6 +7,11 @@ package ibis.rmi;
  * version of same occurs while creating a connection to a remote host.
  */
 public class UnknownHostException extends RemoteException {
+    /** 
+     * Generated
+     */
+    private static final long serialVersionUID = 2032825821964521715L;
+
     /**
      * Constructs an <code>UnknownHostException</code> with the specified
      * detail message.

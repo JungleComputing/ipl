@@ -7,6 +7,11 @@ package ibis.ipl;
  */
 public class PortMismatchException extends java.io.IOException {
 
+    /** 
+     * Generated
+     */
+    private static final long serialVersionUID = 654693413464052963L;
+
     /**
      * Constructs a <code>PortMismatchException</code> with
      * <code>null</code> as its error detail message.

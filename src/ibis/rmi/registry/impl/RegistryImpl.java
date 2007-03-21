@@ -16,6 +16,11 @@ import org.apache.log4j.Logger;
 public class RegistryImpl extends ibis.rmi.server.UnicastRemoteObject
         implements Registry {
 
+    /** 
+     * Generated
+     */
+    private static final long serialVersionUID = -542877109530651565L;
+
     private int port = 0;
 
     HashMap<String, Remote> remotes = new HashMap<String, Remote>();

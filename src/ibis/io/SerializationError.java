@@ -3,6 +3,10 @@
 package ibis.io;
 
 public class SerializationError extends Error {
+    /** 
+     * Generated
+     */
+    private static final long serialVersionUID = 8658882919059316317L;
     Throwable cause = null;
 
     public SerializationError() {

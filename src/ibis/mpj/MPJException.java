@@ -10,6 +10,11 @@ package ibis.mpj;
  */
 public class MPJException extends Throwable {
 
+    /** 
+     * Generated
+     */
+    private static final long serialVersionUID = -6740661058871456218L;
+
     /**
      * Constructs an <code>MPJException</code> with no specified
      * detail message.

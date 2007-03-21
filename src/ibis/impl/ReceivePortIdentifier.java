@@ -16,6 +16,11 @@ import java.io.IOException;
  */
 public class ReceivePortIdentifier implements ibis.ipl.ReceivePortIdentifier {
 
+    /** 
+     * Generated
+     */
+    private static final long serialVersionUID = -6757071659785922784L;
+
     /** The name of the corresponding receiveport. */
     public final String name;
 

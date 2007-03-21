@@ -16,6 +16,11 @@ import java.io.ObjectInputStream;
  * extending <code>UnicastRemoteObject</code>.
  */
 public class UnicastRemoteObject extends RemoteServer {
+    /** 
+     * Generated
+     */
+    private static final long serialVersionUID = 5245546242783456894L;
+
     /**
      * Creates and exports a new UnicastRemoteObject object.
      * @throws RemoteException if it failed to export the object

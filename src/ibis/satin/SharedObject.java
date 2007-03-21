@@ -11,6 +11,11 @@ import ibis.satin.impl.Satin;
  */
 public class SharedObject implements java.io.Serializable {
 
+    /** 
+     * Generated
+     */
+    private static final long serialVersionUID = -5944640339385558907L;
+
     /** Identification of this shared object. */
     private String objectId;
 

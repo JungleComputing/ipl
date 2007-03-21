@@ -13,6 +13,11 @@ import java.io.ObjectOutput;
 
 public class UnicastServerRef extends UnicastRef implements ServerRef,
         java.io.Serializable {
+    /** 
+     * Generated
+     */
+    private static final long serialVersionUID = -8098955765393733420L;
+
     public UnicastServerRef() {
         GUID = "//" + RTS.getHostname() + "/"
                 + (new java.rmi.server.UID()).toString();

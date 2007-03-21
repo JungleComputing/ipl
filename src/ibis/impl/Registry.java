@@ -42,8 +42,6 @@ public abstract class Registry implements ibis.ipl.Registry {
     public static Registry createRegistry(Ibis ibis, boolean needsUpcalls,
             byte[] data) throws Throwable {
 
-        Registry res = null;
-
         // You can get properties and capabilities from the ibis instance
         // here.
 

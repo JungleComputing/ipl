@@ -16,6 +16,11 @@ import java.io.IOException;
  */
 public class SendPortIdentifier implements ibis.ipl.SendPortIdentifier {
 
+    /** 
+     * Generated
+     */
+    private static final long serialVersionUID = 8169019358172536222L;
+
     /** The name of the corresponding sendport. */
     public final String name;
 

@@ -8,6 +8,11 @@ package ibis.rmi;
  */
 public class StubNotFoundException extends RemoteException {
 
+    /** 
+     * Generated
+     */
+    private static final long serialVersionUID = 4284233021779120379L;
+
     /**
      * Constructs a <code>StubNotFoundException</code> with the specified
      * detail message.

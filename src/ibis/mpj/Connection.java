@@ -26,7 +26,6 @@ public class Connection {
     private PortType portType = null;
     private int messageCount = 0;
     private MPJObjectQueue recvQueue = null;
-    private ReceivePortIdentifier client = null; 
     private Registry registry = null;
     //	private boolean sync = false;
     private ReadMessage msg = null;

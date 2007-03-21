@@ -8,6 +8,11 @@ package ibis.rmi;
  */
 public class ConnectException extends RemoteException {
 
+    /** 
+     * Generated
+     */
+    private static final long serialVersionUID = 5718287693576468887L;
+
     /**
      * Constructs an <code>ConnectException</code> with the specified
      * detail message.

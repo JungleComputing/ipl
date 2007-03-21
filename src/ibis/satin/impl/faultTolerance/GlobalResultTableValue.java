@@ -10,6 +10,11 @@ import ibis.satin.impl.spawnSync.InvocationRecord;
 import ibis.satin.impl.spawnSync.ReturnRecord;
 
 public class GlobalResultTableValue implements java.io.Serializable, Config {
+    /** 
+     * Generated
+     */
+    private static final long serialVersionUID = 4797223605264498290L;
+
     protected static final int TYPE_RESULT = 1;
 
     protected static final int TYPE_POINTER = 2;

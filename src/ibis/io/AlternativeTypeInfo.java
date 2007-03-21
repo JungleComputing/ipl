@@ -114,7 +114,7 @@ final class AlternativeTypeInfo implements IbisStreamFlags {
                         + t.clazz.getName());
             }
             out.pop_current_object();
-            out.addStatSendObject(ref);
+            IbisSerializationOutputStream.addStatSendObject(ref);
         }
     }
 

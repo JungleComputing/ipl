@@ -9,6 +9,11 @@ package ibis.ipl;
  */
 public class ReceiveTimedOutException extends java.io.IOException {
 
+    /** 
+     * Generated
+     */
+    private static final long serialVersionUID = 2363906632233361366L;
+
     /**
      * Constructs a <code>ReceiveTimedOutException</code> with
      * <code>null</code> as its error detail message.

@@ -12,6 +12,10 @@ import java.io.*;
  * Object which will be sent and received by the basic point-to-point modes.
  */
 public class MPJObject implements Serializable {
+    /** 
+     * Generated
+     */
+    private static final long serialVersionUID = 879088312956043084L;
     private final boolean DEBUG = false;
     private static final int HEADER_SIZE = 5;
 

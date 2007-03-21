@@ -9,6 +9,11 @@ package ibis.rmi;
  */
 public class MarshalException extends RemoteException {
 
+    /** 
+     * Generated
+     */
+    private static final long serialVersionUID = 4973006754937979928L;
+
     /**
      * Constructs an <code>MarshalException</code> with the specified
      * detail message.

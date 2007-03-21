@@ -21,6 +21,11 @@ import java.net.InetAddress;
  */
 public final class Location implements ibis.ipl.Location {
 
+    /** 
+     * Generated
+     */
+    private static final long serialVersionUID = -4383273888756018079L;
+
     /** Separates level names in a string representation of the location. */
     public static final String SEPARATOR = "@";
 

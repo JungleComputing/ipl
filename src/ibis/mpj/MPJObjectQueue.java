@@ -31,7 +31,6 @@ public class MPJObjectQueue {
     protected synchronized MPJObject getObject(int contextId, int tag) {
         MPJObject obj = null;
         int i = 0;
-        boolean found = false;
 
         for (MPJObject o : queue) {
             if (((o.getTag() == tag) || 

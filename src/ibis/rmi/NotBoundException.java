@@ -7,6 +7,11 @@ package ibis.rmi;
  * to lookup or unbind a name that has no binding.
  */
 public class NotBoundException extends Exception {
+    /** 
+     * Generated
+     */
+    private static final long serialVersionUID = 9022607518512985985L;
+
     /**
      * Constructs an <code>NotBoundException</code> with no specified
      * detail message.

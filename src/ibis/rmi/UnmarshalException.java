@@ -18,6 +18,11 @@ package ibis.rmi;
  */
 public class UnmarshalException extends RemoteException {
 
+    /** 
+     * Generated
+     */
+    private static final long serialVersionUID = -3714317819768762330L;
+
     /**
      * Constructs an <code>UnmarshalException</code> with the specified
      * detail message.

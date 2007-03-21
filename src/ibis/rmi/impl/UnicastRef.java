@@ -11,6 +11,10 @@ import java.io.ObjectOutput;
 import java.lang.reflect.Method;
 
 public class UnicastRef implements RemoteRef, java.io.Serializable {
+    /** 
+     * Generated
+     */
+    private static final long serialVersionUID = -3035431810738249213L;
     public String GUID = null;
 
     public UnicastRef() {
