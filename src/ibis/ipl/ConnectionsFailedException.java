@@ -2,11 +2,11 @@
 
 package ibis.ipl;
 
-import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Map;
 
 /**
  * Signals a failure to connect to some of the receive ports specified in
