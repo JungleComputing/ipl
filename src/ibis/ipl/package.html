@@ -1,7 +1,7 @@
 <body>
 This package describes the Ibis Portability Layer (IPL), which is
 to be implemented by Ibis implementations.
-Ibis is a new programming environment that combines Java's
+Ibis is a programming environment that combines Java's
 "run everywhere" portability both with flexible treatment of
 dynamically available networks and processor pools, and with highly
 efficient, object-based communication.
@@ -12,10 +12,10 @@ and {@link ibis.ipl.SendPort SendPorts} of a certain
 A {@link ibis.ipl.PortType PortType} can be created using the
 {@link ibis.ipl.Ibis#createPortType(CapabilitySet) createPortType}
 method.
-Port properties are given to the port type (for
-example ports are "totally-ordered" and "reliable" and support "NWS").
-For each port type there is a {@link ibis.ipl.ReceivePort ReceivePort}
-and a {@link ibis.ipl.SendPort SendPort}.
+Port capabilities are given to the port type (for
+example ports are "ONE_TO_ONE" and "RELIABLE" and support
+"OBJECT_SERIALIZATION").
+{@link ibis.ipl.ReceivePort ReceivePorts} and {@link ibis.ipl.SendPort SendPorts} both have a port type.
 Only receive ports and send ports of the same port type can communicate.
 Any number of receive ports and send ports can be created on a JVM
 (even of the same port type).
@@ -33,21 +33,15 @@ and {@link ibis.ipl.SendPortIdentifier SendPortIdentifier}
 for every ReceivePort and SendPort. These identifiers
 are implementation specific and serializable (and can be sent over the
 network/saved in a file etc.).
-When a ReceivePort is created its ReceivePortIdentifier may be stored
-in a {@link ibis.ipl.Registry registry}.
-The application storing the ReceivePortIdentifier is
-responsible for providing a globally unique name (key) that
-identifies the ReceivePortIdentifier in the registry.
 <br>
 A SendPort takes the initiative to connect to or disconnect from
 ReceivePorts (otherwise the one-way traffic scheme is violated).
 A SendPort can be connected to one or more ReceivePorts using their
-ReceivePortIdentifiers. These ReceivePortIdentifiers may be obtained
-using the registry, by sending them over the network, or any other
-way.  Additional ReceivePorts may be connected at any time.
+ReceivePortIdentifiers or their Ibis identifiers and names.
+Additional ReceivePorts may be connected at any time.
 A SendPort can be disconnected from one or more ReceivePorts using
 their ReceivePortIdentifiers. Additional ReceivePorts may be
-disconnected at any time
+disconnected at any time.
 When a SendPort is no longer used it must be closed 
 using the {@link ibis.ipl.SendPort#close() close} method.
 All connections the SendPort has are disconnected.
