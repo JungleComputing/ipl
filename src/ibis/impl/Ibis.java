@@ -5,7 +5,7 @@ package ibis.impl;
 import ibis.impl.registry.RegistryProperties;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.IbisProperties;
-import ibis.ipl.ResizeHandler;
+import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.CapabilitySet;
 import ibis.util.Log;
 import ibis.util.TypedProperties;
@@ -28,20 +28,20 @@ public abstract class Ibis implements ibis.ipl.Ibis,
     /** Debugging output. */
     private static final Logger logger = Logger.getLogger("ibis.impl.Ibis");
 
-    /** A user-supplied resize handler, with join/leave upcalls. */
-    private ResizeHandler resizeHandler;
+    /** A user-supplied registry handler, with join/leave upcalls. */
+    private RegistryEventHandler registryHandler;
 
     /**
      * CapabilitySet, as derived from the capabilities passed to
      * {@link ibis.ipl.IbisFactory#createIbis(CapabilitySet, CapabilitySet
-     * Properties, ResizeHandler)} and the capabilities of this ibis.
+     * Properties, RegistryEventHandler)} and the capabilities of this ibis.
      */
     public final CapabilitySet capabilities;
 
     /**
      * Properties, as given to
      * {@link ibis.ipl.IbisFactory#createIbis(CapabilitySet, CapabilitySet,
-     * Properties, ResizeHandler)}.
+     * Properties, RegistryEventHandler)}.
      */
     protected TypedProperties properties;
 
@@ -51,14 +51,11 @@ public abstract class Ibis implements ibis.ipl.Ibis,
     /** Identifies this Ibis instance in the registry. */
     public final IbisIdentifier ident;
 
-    /** Set when the registry supplied the join upcall for this instance. */
-    private boolean i_joined = false;
-
     /** Set when processing a registry upcall. */
     private boolean busyUpcaller = false;
 
     /** Set when registry upcalls are enabled. */
-    private boolean resizeUpcallerEnabled = false;
+    private boolean registryUpcallerEnabled = false;
 
     /** Set when {@link #end()} is called. */
     private boolean ended = false;
@@ -79,18 +76,18 @@ public abstract class Ibis implements ibis.ipl.Ibis,
 
     /**
      * Constructs an <code>Ibis</code> instance with the specified parameters.
-     * @param resizeHandler the resizeHandler.
+     * @param registryHandler the registryHandler.
      * @param caps the capabilities.
      * @param userProperties the properties as provided by the Ibis factory.
      * @param defaultProperties the default properties of this particular
      * ibis implementation.
      */
-    protected Ibis(ResizeHandler resizeHandler, CapabilitySet caps,
+    protected Ibis(RegistryEventHandler registryHandler, CapabilitySet caps,
             Properties userProperties,Properties defaultProperties)
             throws Throwable {
-        boolean needsRegistryCalls = resizeHandler != null
+        boolean needsRegistryCalls = registryHandler != null
                 || caps.hasCapability(RESIZE_DOWNCALLS);
-        this.resizeHandler = resizeHandler;
+        this.registryHandler = registryHandler;
         this.capabilities = caps;
         
         Log.initLog4J("ibis");
@@ -206,7 +203,7 @@ public abstract class Ibis implements ibis.ipl.Ibis,
     }
 
     private synchronized void waitForEnabled() {
-        while (! resizeUpcallerEnabled) {
+        while (! registryUpcallerEnabled) {
             try {
                 wait();
             } catch(Exception e) {
@@ -245,17 +242,11 @@ public abstract class Ibis implements ibis.ipl.Ibis,
      * identifiers} of the Ibis instances joining the run.
      */
     public void joined(ibis.ipl.IbisIdentifier[] joinIdents) {
-        if (resizeHandler != null) {
+        if (registryHandler != null) {
             waitForEnabled();
             for (int i = 0; i < joinIdents.length; i++) {
                 ibis.ipl.IbisIdentifier id = joinIdents[i];
-                resizeHandler.joined(id);
-                if (id.equals(this.ident)) {
-                    synchronized(this) {
-                        i_joined = true;
-                        notifyAll();
-                    }
-                }
+                registryHandler.joined(id);
             }
             synchronized(this) {
                 busyUpcaller = false;
@@ -277,11 +268,11 @@ public abstract class Ibis implements ibis.ipl.Ibis,
      *  identifiers} of the Ibis instances leaving the run.
      */
     public void left(IbisIdentifier[] leaveIdents) {
-        if (resizeHandler != null) {
+        if (registryHandler != null) {
             waitForEnabled();
             for (int i = 0; i < leaveIdents.length; i++) {
                 IbisIdentifier id = leaveIdents[i];
-                resizeHandler.left(id);
+                registryHandler.left(id);
             }
             synchronized(this) {
                 busyUpcaller = false;
@@ -303,11 +294,11 @@ public abstract class Ibis implements ibis.ipl.Ibis,
      *  identifiers} of the Ibis instances that died.
      */
     public void died(IbisIdentifier[] corpses) {
-        if (resizeHandler != null) {
+        if (registryHandler != null) {
             waitForEnabled();
             for (int i = 0; i < corpses.length; i++) {
                 IbisIdentifier id = corpses[i];
-                resizeHandler.died(id);
+                registryHandler.died(id);
             }
             synchronized(this) {
                 busyUpcaller = false;
@@ -322,36 +313,21 @@ public abstract class Ibis implements ibis.ipl.Ibis,
      *  identifiers} of the Ibis instances that are requested to leave.
      */
     public void mustLeave(IbisIdentifier[] ibisses) {
-        if (resizeHandler != null) {
+        if (registryHandler != null) {
             waitForEnabled();
-            resizeHandler.mustLeave(ibisses);
+            registryHandler.mustLeave(ibisses);
             synchronized(this) {
                 busyUpcaller = false;
             }
         }
     }
 
-    public synchronized void enableResizeUpcalls() {
-        resizeUpcallerEnabled = true;
-        notifyAll();
-
-        if (resizeHandler != null && !i_joined) {
-            while (!i_joined) {
-                try {
-                    wait();
-                } catch (Exception e) {
-                    /* ignore */
-                }
-            }
-        }
-    }
-
-    public synchronized void enableResizeUpcallsNonBlocking() {
-        resizeUpcallerEnabled = true;
+    public synchronized void enableRegistryEvents() {
+        registryUpcallerEnabled = true;
         notifyAll();
     }
 
-    public synchronized void disableResizeUpcalls() {
+    public synchronized void disableRegistryEvents() {
         while (busyUpcaller) {
             try {
                 wait();
@@ -359,7 +335,7 @@ public abstract class Ibis implements ibis.ipl.Ibis,
                 // nothing
             }
         }
-        resizeUpcallerEnabled = false;
+        registryUpcallerEnabled = false;
     }
 
     public CapabilitySet capabilities() {

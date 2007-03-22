@@ -51,7 +51,7 @@ public final class Communication implements Config, Protocol,
 
         try {
             ibis = IbisFactory.createIbis(ibisProperties,
-                    null, null, s.ft.getResizeHandler());
+                    null, null, s.ft.getRegistryEventHandler());
         } catch (Exception e) {
             commLogger.fatal(
                     "SATIN '" + "- " + "': Could not start ibis: " + e, e);
@@ -527,7 +527,7 @@ public final class Communication implements Config, Protocol,
 
     public void disableUpcallsForExit() {
         if (!CLOSED) {
-            ibis.disableResizeUpcalls();
+            ibis.disableRegistryEvents();
         }
 
         s.ft.disableConnectionUpcalls();

@@ -4,7 +4,7 @@ package ibis.impl.nio;
 
 import ibis.impl.IbisIdentifier;
 import ibis.ipl.CapabilitySet;
-import ibis.ipl.ResizeHandler;
+import ibis.ipl.RegistryEventHandler;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -40,7 +40,7 @@ public final class NioIbis extends ibis.impl.Ibis {
 
     private SendReceiveThread sendReceiveThread = null;
 
-    public NioIbis(ResizeHandler r, CapabilitySet p, Properties tp)
+    public NioIbis(RegistryEventHandler r, CapabilitySet p, Properties tp)
         throws Throwable {
 
         super(r, p, tp, null);

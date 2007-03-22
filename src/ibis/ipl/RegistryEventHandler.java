@@ -1,4 +1,4 @@
-/* $Id$ */
+/* $Id: RegistryEventHandler.java 5028 2007-02-12 11:43:36Z ceriel $ */
 
 package ibis.ipl;
 
@@ -8,7 +8,7 @@ package ibis.ipl;
  * At most one of the methods in this interface will be active at any
  * time (they are serialized by ibis).
  * These upcalls must be explicitly enabled, by means of the
- * {@link ibis.ipl.Ibis#enableResizeUpcalls Ibis.enableResizeUpcalls()}
+ * {@link ibis.ipl.Ibis#enableRegistryEvents Ibis.enableRegistryEvents()}
  * method.
  * The following also holds:
  * <BR>
@@ -21,7 +21,7 @@ package ibis.ipl;
  * - An Ibis instance will also receive a
  *   {@link #joined(IbisIdentifier) joined()} upcall for itself.
  */
-public interface ResizeHandler {
+public interface RegistryEventHandler {
     /**
      * Upcall generated when an Ibis instance joined the current run.
      * @param ident the ibis identifier of the Ibis instance that joined the

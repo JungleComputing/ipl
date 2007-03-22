@@ -12,7 +12,7 @@ import ibis.ipl.CapabilitySet;
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.PortMismatchException;
-import ibis.ipl.ResizeHandler;
+import ibis.ipl.RegistryEventHandler;
 import ibis.util.ThreadPool;
 
 import java.io.DataInputStream;
@@ -42,7 +42,7 @@ public final class TcpIbis extends ibis.impl.Ibis
     private HashMap<IbisIdentifier, IbisSocketAddress> addresses
         = new HashMap<IbisIdentifier, IbisSocketAddress>();
 
-    public TcpIbis(ResizeHandler r, CapabilitySet p, Properties tp)
+    public TcpIbis(RegistryEventHandler r, CapabilitySet p, Properties tp)
         throws Throwable {
 
         super(r, p, tp, null);

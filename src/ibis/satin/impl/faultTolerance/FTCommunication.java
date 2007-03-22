@@ -10,7 +10,7 @@ import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.Registry;
-import ibis.ipl.ResizeHandler;
+import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.SendPort;
 import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.ipl.SendPortIdentifier;
@@ -28,7 +28,7 @@ import java.io.IOException;
 import java.util.Map;
 
 final class FTCommunication implements Config, ReceivePortConnectUpcall,
-		SendPortDisconnectUpcall, ResizeHandler {
+		SendPortDisconnectUpcall, RegistryEventHandler {
 	private Satin s;
 
 	private JoinThread joinThread;

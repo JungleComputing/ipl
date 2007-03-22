@@ -105,7 +105,7 @@ public final class IbisFactory {
      *            searching ibis implementations, or which registry to use.
      *            There is a default, so <code>null</code> may be specified.
      * @param r
-     *            a {@link ibis.ipl.ResizeHandler ResizeHandler} instance if
+     *            a {@link ibis.ipl.RegistryEventHandler RegistryEventHandler} instance if
      *            upcalls for joining or leaving ibis instances are required, or
      *            <code>null</code>.
      * @return the new Ibis instance.
@@ -118,7 +118,7 @@ public final class IbisFactory {
      */
     public static Ibis createIbis(CapabilitySet requiredCapabilities,
             CapabilitySet optionalCapabilities, Properties properties,
-            ResizeHandler r) throws NoMatchingIbisException, NestedException {
+            RegistryEventHandler r) throws NoMatchingIbisException, NestedException {
 
         if (r != null
                 && !requiredCapabilities
@@ -212,14 +212,14 @@ public final class IbisFactory {
     }
 
     private Ibis createIbis(Class<?> c, CapabilitySet caps,
-            ResizeHandler resizeHandler) throws Throwable {
+            RegistryEventHandler registryHandler) throws Throwable {
         Ibis impl;
 
         try {
             impl = (Ibis) c.getConstructor(
-                    new Class[] { ResizeHandler.class, CapabilitySet.class,
+                    new Class[] { RegistryEventHandler.class, CapabilitySet.class,
                             Properties.class }).newInstance(
-                    new Object[] { resizeHandler, caps, properties });
+                    new Object[] { registryHandler, caps, properties });
         } catch (java.lang.reflect.InvocationTargetException e) {
             throw e.getCause();
         }
@@ -228,7 +228,7 @@ public final class IbisFactory {
     }
 
     private Ibis createIbis(CapabilitySet requiredCapabilities,
-            CapabilitySet optionalCapabilities, ResizeHandler r)
+            CapabilitySet optionalCapabilities, RegistryEventHandler r)
             throws NoMatchingIbisException, NestedException {
 
         if (verbose) {

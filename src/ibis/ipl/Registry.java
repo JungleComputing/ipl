@@ -58,7 +58,7 @@ public interface Registry {
 
     /**
      * Requests some Ibis instances to leave.
-     * This results in a {@link ResizeHandler#mustLeave(IbisIdentifier[])}
+     * This results in a {@link RegistryEventHandler#mustLeave(IbisIdentifier[])}
      * upcall on all Ibis instances in the current run. It is up to the
      * application to react accordingly.
      * @param ibisses the ibisses which are told to leave. Multiple ibisses

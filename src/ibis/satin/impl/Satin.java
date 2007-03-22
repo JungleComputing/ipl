@@ -116,7 +116,7 @@ public final class Satin implements Config {
         outstandingJobs = new IRVector(this);
         onStack = new IRStack(this);
 
-        ft = new FaultTolerance(this); // this must be first, it handles resize upcalls 
+        ft = new FaultTolerance(this); // this must be first, it handles registry upcalls 
         comm = new Communication(this); // creates ibis
         ident = comm.ibis.identifier();
         ft.electClusterCoordinator(); // need ibis for this

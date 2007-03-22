@@ -6,7 +6,7 @@ package ibis.satin.impl.faultTolerance;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePortConnectUpcall;
-import ibis.ipl.ResizeHandler;
+import ibis.ipl.RegistryEventHandler;
 import ibis.satin.impl.Config;
 import ibis.satin.impl.Satin;
 import ibis.satin.impl.loadBalancing.Victim;
@@ -63,7 +63,7 @@ public final class FaultTolerance implements Config {
     public FaultTolerance(Satin s) {
         this.s = s;
 
-        ftComm = new FTCommunication(s); // must be created first, it handles resize upcalls.
+        ftComm = new FTCommunication(s); // must be created first, it handles registry upcalls.
 
         /* the threads below are used for debugging */
         if (KILL_TIME > 0) {
@@ -98,7 +98,7 @@ public final class FaultTolerance implements Config {
             getTable = false;
         }
 
-        s.comm.ibis.enableResizeUpcalls();
+        s.comm.ibis.enableRegistryEvents();
 
         if (CLOSED) {
             s.comm.waitForAllNodes();
@@ -361,7 +361,7 @@ public final class FaultTolerance implements Config {
         globalResultTable.addContents(contents);
     }
 
-    public ResizeHandler getResizeHandler() {
+    public RegistryEventHandler getRegistryEventHandler() {
         return ftComm;
     }
 

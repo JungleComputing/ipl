@@ -9,7 +9,7 @@ import java.util.Properties;
 /**
  * An instance of this interface can only be created by the
  * {@link ibis.ipl.IbisFactory#createIbis(CapabilitySet, CapabilitySet,
- * Properties, ResizeHandler)} method, and is the starting point
+ * Properties, RegistryEventHandler)} method, and is the starting point
  * of all Ibis communication.
  */
 public interface Ibis {
@@ -24,27 +24,16 @@ public interface Ibis {
     public int totalNrOfIbisesInPool();
 
     /**
-     * Allows reception of {@link ibis.ipl.ResizeHandler ResizeHandler}
+     * Allows reception of {@link ibis.ipl.RegistryEventHandler RegistryEventHandler}
      * upcalls.
-     * If a {@link ibis.ipl.ResizeHandler ResizeHandler} is installed,
-     * this call blocks until its
-     * {@link ibis.ipl.ResizeHandler#joined(IbisIdentifier) joined()}
-     * upcall for this Ibis is invoked.
      */
-    public void enableResizeUpcalls();
-
-    /**
-     * Allows reception of {@link ibis.ipl.ResizeHandler ResizeHandler}
-     * upcalls. Unlike {@link #enableResizeUpcalls()}, this call does not
-     * block.
-     */
-    public void enableResizeUpcallsNonBlocking();
+    public void enableRegistryEvents();
 
     /**
      * Disables reception of
-     * {@link ibis.ipl.ResizeHandler ResizeHandler} upcalls.
+     * {@link ibis.ipl.RegistryEventHandler RegistryEventHandler} upcalls.
      */
-    public void disableResizeUpcalls();
+    public void disableRegistryEvents();
 
     /**
      * Returns all Ibis recources to the system.
