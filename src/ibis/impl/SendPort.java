@@ -303,12 +303,9 @@ public abstract class SendPort implements ibis.ipl.SendPort {
 
 
     public synchronized void close() throws IOException {
+        boolean alive = receivers.size() > 0 && aMessageIsAlive;
         if (logger.isDebugEnabled()) {
             logger.debug("SendPort '" + name + "': start close()");
-        }
-        if (receivers.size() > 0 && aMessageIsAlive) {
-            throw new IOException(
-                "Trying to close a sendport port while a message is alive!");
         }
         if (closed) {
             throw new IOException("Port already closed");
@@ -324,9 +321,13 @@ public abstract class SendPort implements ibis.ipl.SendPort {
             }
             closed = true;
             ibis.deRegister(this);
-        }
-        if (logger.isDebugEnabled()) {
-            logger.debug("SendPort '" + name + "': close() done");
+            if (alive) {
+                throw new IOException(
+                    "Closed a sendport port while a message is alive!");
+            }
+            if (logger.isDebugEnabled()) {
+                logger.debug("SendPort '" + name + "': close() done");
+            }
         }
     }
 
