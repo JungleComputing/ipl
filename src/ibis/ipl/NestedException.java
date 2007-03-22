@@ -11,6 +11,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 
 /**
+ * This is a container class for a list of exceptions. The Ibis factory
+ * uses this when it cannot create any Ibis instance.
  * @author rob
  */
 public class NestedException extends Exception {
@@ -24,30 +26,44 @@ public class NestedException extends Exception {
 
     private ArrayList<String> throwerIDs = new ArrayList<String>();
 
+    /**
+     * Constructs a <code>NestedException</code> with
+     * the specified detail message.
+     *
+     * @param s         the detail message
+     */
     public NestedException(String s) {
         super(s);
     }
 
+    /**
+     * Constructs a <code>NestedException</code> with no specified detail
+     * message.
+     */
     public NestedException() {
         super();
     }
 
-    public NestedException(String adaptor, Throwable t) {
+    /**
+     * Constructs a <code>NestedException</code> with no specified detail
+     * message, and adds the specified <String, Throwable> pair to the
+     * list of exceptions.
+     * @param throwerID some identification of the exception thrower.
+     * @param t the exception.
+     */
+    public NestedException(String throwerID, Throwable t) {
         super();
-        add(adaptor, t);
+        add(throwerID, t);
     }
 
+    /**
+     * Adds the specified <String, Throwable> pair to the list of exceptions.
+     * @param throwerID some identification of the exception thrower.
+     * @param t the exception.
+     */
     public void add(String throwerID, Throwable t) {
         if (t instanceof InvocationTargetException) {
             t = t.getCause();
-        }
-
-        if (t instanceof NestedException) {
-            NestedException ge = (NestedException) t;
-            if (ge.throwables.size() == 1) {
-                t = ge.throwables.get(0);
-                throwerID = ge.throwerIDs.get(0);
-            }
         }
 
         throwables.add(t);

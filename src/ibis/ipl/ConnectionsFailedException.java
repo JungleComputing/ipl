@@ -6,24 +6,94 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Map;
 
 /**
  * Signals a failure to connect to some of the receive ports specified in
- * a {@link SendPort#connect(Map)}, {@link SendPort#connect(Map, long)},
+ * a {@link SendPort#connect(java.util.Map)},
+ * {@link SendPort#connect(java.util.Map, long)},
  * {@link SendPort#connect(ReceivePortIdentifier[])} or
  * {@link SendPort#connect(ReceivePortIdentifier[], long)} call.
  */
 public class ConnectionsFailedException extends java.io.IOException {
+
+    /**
+     * Container class for a single failure.
+     */
+    public static class Failure {
+        private final ReceivePortIdentifier rp;
+        private final IbisIdentifier id;
+        private final String name;
+        private final Throwable cause;
+
+        /**
+         * Constructs a container for a specific failed attempt to connect
+         * to a specific named receiveport at a specific ibis instance.
+         * @param identifier the Ibis identifier of the ibis instance.
+         * @param name the name of the receive port.
+         * @param cause the cause of the failure.
+         */
+        Failure(IbisIdentifier identifier, String name, Throwable cause) {
+            this.id = identifier;
+            this.name = name;
+            this.cause = cause;
+            this.rp = null;
+        }
+
+        /**
+         * Constructs a container for a specific failed attempt to connect
+         * to a specific receiveport.
+         * @param rp the receiveport identifier.
+         * @param cause the cause of the failure.
+         */
+        Failure(ReceivePortIdentifier rp, Throwable cause) {
+            this.rp = rp;
+            this.cause = cause;
+            this.id = rp.ibis();
+            this.name = rp.name();
+        }
+
+        /**
+         * Returns the ibis identifier of the ibis instance running the
+         * receive port.
+         * @return the ibis identifier.
+         */
+        public IbisIdentifier identifier() {
+            return id;
+        }
+
+        /**
+         * Returns the receiveport identifier of the failed connection attempt.
+         * If the connection attempt specified ibis identifiers and names,
+         * this call may return <code>null</code>.
+         * @return the receiveport identifier, or <code>null</code>.
+         */
+        public ReceivePortIdentifier receivePortIdentifier() {
+            return rp;
+        }
+
+        /**
+         * Returns the name of the receive port.
+         * @return the name.
+         */
+        public String name() {
+            return name;
+        }
+
+        /**
+         * Returns the cause of the failure.
+         * @return the cause.
+         */
+        public Throwable cause() {
+            return cause;
+        }
+    }
 
     /** 
      * Generated.
      */
     private static final long serialVersionUID = -387342205084916635L;
 
-    private ArrayList<Throwable> throwables = new ArrayList<Throwable>();
-    private ArrayList<IbisIdentifier> ids = new ArrayList<IbisIdentifier>();
-    private ArrayList<String> names = new ArrayList<String>();
+    private ArrayList<Failure> failures = new ArrayList<Failure>();
 
     private ReceivePortIdentifier[] obtainedConnections;
 
@@ -46,22 +116,6 @@ public class ConnectionsFailedException extends java.io.IOException {
     }
 
     /**
-     * Constructs a <code>ConnectionsFailedException</code> with
-     * <code>null</code> as its error detail message, and the specified
-     * failed connection (including the exception that caused the failure).
-     * 
-     * @param id the ibis identifier identifying the ibis instance to which
-     * a connection attempt was done.
-     * @param name the name of the receiveport.
-     * @param t the exception that was thrown on this connection attempt.
-     */
-    public ConnectionsFailedException(IbisIdentifier id, String name,
-            Throwable t) {
-        super();
-        add(id, name, t);
-    }
-
-    /**
      * Adds a failed connection attempt.
      * 
      * @param id the ibis identifier identifying the ibis instance to which
@@ -73,9 +127,20 @@ public class ConnectionsFailedException extends java.io.IOException {
         if (t instanceof InvocationTargetException) {
             t = t.getCause();
         }
-        throwables.add(t);
-        ids.add(id);
-        names.add(name);
+        failures.add(new Failure(id, name, t));
+    }
+
+    /**
+     * Adds a failed connection attempt.
+     * 
+     * @param rp the receiveport identifier to which a connection was attempted.
+     * @param t the exception that was thrown on this connection attempt.
+     */
+    public void add(ReceivePortIdentifier rp, Throwable t) {
+        if (t instanceof InvocationTargetException) {
+            t = t.getCause();
+        }
+        failures.add(new Failure(rp, t));
     }
 
     /**
@@ -95,52 +160,32 @@ public class ConnectionsFailedException extends java.io.IOException {
     }
 
     /**
-     * Returns the number of failed connection attempts.
-     * @return the number of failures.
+     * Returns the connection attempts that failed, including the exception that
+     * caused the failure.
+     * @return an array with one element for each failure.
      */
-    public int numFailures() {
-        return throwables.size();
-    }
-
-    /**
-     * Returns the ibis identifier of the <code>i</code>-th failure.
-     * @param i the failure index.
-     * @return the ibis identifier.
-     */
-    public IbisIdentifier getIdentifier(int i) {
-        return ids.get(i);
-    }
-
-    /**
-     * Returns the receiveport name of the <code>i</code>-th failure.
-     * @param i the failure index.
-     * @return the name.
-     */
-    public String getName(int i) {
-        return names.get(i);
-    }
-
-    /**
-     * Returns the cause of the <code>i</code>-th failure.
-     * @param i the failure index.
-     * @return the cause.
-     */
-    public Throwable getCause(int i) {
-        return throwables.get(i);
+    public Failure[] getFailures() {
+        return failures.toArray(new Failure[failures.size()]);
     }
 
     public String toString() {
         String res = "";
 
-        if (throwables.size() == 0) {
+        if (failures.size() == 0) {
             return super.toString();
         }
 
         res = "\n--- START OF CONNECTIONS FAILED EXCEPTION ---\n";
-        for (int i = 0; i < throwables.size(); i++) {
-            Throwable t = throwables.get(i);
-            res += "Connection to <" + ids.get(i) + ", " + names.get(i)
-                    + "> failed: ";
+        for (int i = 0; i < failures.size(); i++) {
+            Failure f = failures.get(i);
+            if (f.receivePortIdentifier() != null) {
+                res += "Connection to <" + f.receivePortIdentifier()
+                        + "> failed: ";
+            } else {
+                res += "Connection to <" + f.identifier() + ", " + f.name()
+                        + "> failed: ";
+            }
+            Throwable t = f.cause();
             res += t.getClass().getName();
             res += ": ";
             String msg = t.getMessage();
@@ -159,32 +204,43 @@ public class ConnectionsFailedException extends java.io.IOException {
     }
 
     public void printStackTrace(PrintStream s) {
-        if (throwables.size() == 0) {
+        if (failures.size() == 0) {
             super.printStackTrace(s);
             return;
         }
 
         s.println("--- START OF CONNECTIONS FAILED EXCEPTION STACK TRACE ---");
-        for (int i = 0; i < throwables.size(); i++) {
-            s.println("Connection to <" + ids.get(i) + ", " + names.get(i)
-                    + "> failed: ");
-            throwables.get(i).printStackTrace(s);
+        for (int i = 0; i < failures.size(); i++) {
+            Failure f = failures.get(i);
+            if (f.receivePortIdentifier() != null) {
+                s.println("Connection to <" + f.receivePortIdentifier()
+                        + "> failed: ");
+            } else {
+                s.println("Connection to <" + f.identifier() + ", " + f.name()
+                        + "> failed: ");
+            }
+            f.cause().printStackTrace(s);
         }
         s.println("--- END OF CONNECTIONS FAILED EXCEPTION STACK TRACE ---");
     }
 
     public void printStackTrace(PrintWriter s) {
-        if (throwables.size() == 0) {
+        if (failures.size() == 0) {
             super.printStackTrace(s);
             return;
         }
 
-        s.println("--- START OF NESTED EXCEPTION STACK TRACE ---");
-        for (int i = 0; i < throwables.size(); i++) {
-            s.println("Connection to <" + ids.get(i) + ", " + names.get(i)
-                    + "> failed: ");
-            throwables.get(i).printStackTrace(s);
+        s.println("--- START OF CONNECTIONS FAILED EXCEPTION STACK TRACE ---");
+        for (int i = 0; i < failures.size(); i++) {
+            Failure f = failures.get(i);
+            if (f.receivePortIdentifier() != null) {
+                s.println("Connection to <" + f.receivePortIdentifier()
+                        + "> failed: ");
+            } else {
+                s.println("Connection to <" + f.identifier() + ", " + f.name()
+                        + "> failed: ");
+            }
         }
-        s.println("--- END OF NESTED EXCEPTION STACK TRACE ---");
+        s.println("--- END OF CONNECTIONS FAILED EXCEPTION STACK TRACE ---");
     }
 }

@@ -333,7 +333,7 @@ public abstract class SendPort implements ibis.ipl.SendPort {
                     if (ex == null) {
                         ex = new ConnectionsFailedException();
                     }
-                    ex.add(ports[i].ibis(), ports[i].name(), e);
+                    ex.add(ports[i], e);
                     continue;
                 }              
                 t = (endTime - now) / count;
@@ -349,7 +349,7 @@ public abstract class SendPort implements ibis.ipl.SendPort {
                 if (ex == null) {
                     ex = new ConnectionsFailedException();
                 }
-                ex.add(ports[i].ibis(), ports[i].name(), e);
+                ex.add(ports[i], e);
             }
         }
 

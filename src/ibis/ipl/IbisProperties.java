@@ -9,7 +9,22 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-public class IbisProperties {
+/**
+ * Utility methods for setting and getting configuration properties.
+ * The {@link #getConfigProperties()} method obtains the properties in
+ * the following order: first, some hardcoded properties are set. Next,
+ * a file <code>ibis.properties</code> is obtained from the classpath,
+ * if present. If so, it is read as a properties file, and the properties
+ * contained in it are set, possibly overriding already set properties.
+ * Next, the same is done for the property file <code>ibis.properties</code>
+ * in the user home directory, if present. And finally, the same is done for
+ * the property file <code>ibis.properties</code> in the current directory.
+ * This allows the user to set some properties that he/she wants for all
+ * his/her applications in a property file in his/her home directory,
+ * and to also set some application-specific properties in the current
+ * directory.
+ */
+public final class IbisProperties {
 
     /** Filename for the properties. */
     private static final String PROPERTIES_FILENAME = "ibis.properties";
@@ -42,6 +57,13 @@ public class IbisProperties {
                     "Boolean: If true, makes Ibis more verbose, if false, does not" },
 
     };
+
+    /**
+     * Private constructor, to prevent construction of an IbisProperties object.
+     */
+    private IbisProperties() {
+        // nothing
+    }
 
     /**
      * Adds the properties as loaded from the specified stream to the
@@ -174,5 +196,4 @@ public class IbisProperties {
 
         return result;
     }
-
 }
