@@ -16,8 +16,6 @@ import ibis.util.ThreadPool;
 
 import java.io.IOException;
 
-import org.apache.log4j.Logger;
-
 class TcpReceivePort extends ReceivePort implements TcpProtocol {
 
     class ConnectionHandler extends ReceivePortConnectionInfo 
