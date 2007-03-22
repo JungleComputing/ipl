@@ -60,7 +60,8 @@ public class ConnectionFactory {
         return result;
     }
 
-    ConnectionFactory(boolean smart, String serverString, int defaultServerPort)
+    ConnectionFactory(boolean smart, String serverString, int defaultServerPort,
+            Properties defaults)
     throws IOException {
 this.smart = smart;
 
@@ -70,8 +71,8 @@ if (smart) {
     plainLocalAddress = null;
 
     try {
-        virtualSocketFactory = VirtualSocketFactory
-                .getDefaultSocketFactory();
+        virtualSocketFactory = VirtualSocketFactory.getOrCreateSocketFactory(
+                    "ibis", defaults, true);
     } catch (InitializationException e) {
         throw new IOException("could not initialize socket factory: "
                 + e);
@@ -123,8 +124,8 @@ if (smart) {
 }
 }
 
-ConnectionFactory(int port, boolean smart, String hubAddress)
-    throws IOException {
+ConnectionFactory(int port, boolean smart, String hubAddress,
+        Properties defaults) throws IOException {
 this.smart = smart;
 
 if (port < 0) {
@@ -138,7 +139,7 @@ if (smart) {
     plainLocalAddress = null;
 
     try {
-        Properties smartProperties = new Properties();
+        Properties smartProperties = new Properties(defaults);
         if (hubAddress != null) {
             smartProperties.setProperty(
                     smartsockets.Properties.HUB_ADDRESS, hubAddress);

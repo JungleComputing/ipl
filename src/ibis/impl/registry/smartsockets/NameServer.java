@@ -491,7 +491,7 @@ public class NameServer extends Server implements Protocol, Runnable {
 
 
         try {
-            Properties smartProperties = new Properties();
+            Properties smartProperties = new Properties(properties);
             
             smartProperties.setProperty("smartsockets.direct.port", "" + port);
 

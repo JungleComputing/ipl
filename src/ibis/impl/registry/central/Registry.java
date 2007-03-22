@@ -80,7 +80,7 @@ public final class Registry extends ibis.impl.Registry implements Runnable {
                 .getIntProperty(RegistryProperties.SERVER_PORT);
 
         connectionFactory = new ConnectionFactory(smart, serverString,
-                defaultServerPort);
+                defaultServerPort, properties);
 
         Server server = null;
         if (connectionFactory.serverIsLocalHost()) {

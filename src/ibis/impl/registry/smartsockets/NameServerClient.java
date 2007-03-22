@@ -62,7 +62,8 @@ public class NameServerClient extends ibis.impl.Registry implements Runnable,
         TypedProperties typedProperties = new TypedProperties(ibis.properties());
 
         try {
-            socketFactory = VirtualSocketFactory.getDefaultSocketFactory();
+            socketFactory = VirtualSocketFactory.getOrCreateSocketFactory(
+                    "ibis", typedProperties, true);
         } catch (Exception e) {
             logger.error("Could not create VirtualSocketFactory", e);
             throw new IbisConfigurationException("Could not create "
