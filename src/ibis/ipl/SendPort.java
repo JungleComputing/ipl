@@ -210,6 +210,64 @@ public interface SendPort {
             long timeoutMillis) throws IOException;
 
     /**
+     * Attempts to set up connections with the specified receivers.
+     * It is not allowed to set up a new connection while a message
+     * is alive.
+     * @param ports the receivers.
+     * @exception ConnectionsFailedException is thrown when one or more
+     * connections fail. This exception object also identifies which connection
+     * attempts actually succeeded.
+     */
+    public void connect(ibis.ipl.ReceivePortIdentifier[] ports)
+            throws ConnectionsFailedException;
+
+    /**
+     * Attempts to set up connections with the specified receivers.
+     * It is not allowed to set up a new connection while a message
+     * is alive.
+     * @param ports the receivers.
+     * @param timeoutMillis timeout in milliseconds
+     * @exception ConnectionsFailedException is thrown when one or more
+     * connections fail. This exception object also identifies which connection
+     * attempts actually succeeded.
+     */
+    public void connect(ibis.ipl.ReceivePortIdentifier[] ports,
+            long timeoutMillis) throws ConnectionsFailedException;
+
+    /**
+     * Attempts to set up connection with receivers at the specified
+     * Ibis instances, with the specified names.
+     * It is not allowed to set up a new connection while a message
+     * is alive.
+     * @param ports maps ibis identifiers onto names. Together, an ibis
+     * identifier and a name identify a receiver.
+     * @exception ConnectionsFailedException is thrown when one or more
+     * connections fail. This exception object also identifies which connection
+     * attempts actually succeeded.
+     * @return an array of receiveport identifiers.
+     */
+    public ibis.ipl.ReceivePortIdentifier[] connect(
+            Map<ibis.ipl.IbisIdentifier, String> ports)
+            throws ConnectionsFailedException;
+
+    /**
+     * Attempts to set up connection with receivers at the specified
+     * Ibis instances, with the specified names.
+     * It is not allowed to set up a new connection while a message
+     * is alive.
+     * @param ports maps ibis identifiers onto names. Together, an ibis
+     * identifier and a name identify a receiver.
+     * @param timeoutMillis timeout in milliseconds
+     * @exception ConnectionsFailedException is thrown when one or more
+     * connections fail. This exception object also identifies which connection
+     * attempts actually succeeded.
+     * @return an array of receiveport identifiers.
+     */
+    public ibis.ipl.ReceivePortIdentifier[] connect(
+            Map<ibis.ipl.IbisIdentifier, String> ports, long timeoutMillis)
+            throws ConnectionsFailedException;
+
+    /**
      * Attempts to disconnect a connection with a receiver.
      *
      * @param receiver identifies the {@link ReceivePort} to disconnect

@@ -8,6 +8,8 @@ import ibis.io.SerializationOutput;
 import ibis.io.DataOutputStream;
 import ibis.ipl.AlreadyConnectedException;
 import ibis.ipl.ConnectionRefusedException;
+import ibis.ipl.ConnectionTimedOutException;
+import ibis.ipl.ConnectionsFailedException;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.SendPortDisconnectUpcall;
 
@@ -240,6 +242,123 @@ public abstract class SendPort implements ibis.ipl.SendPort {
         checkConnect(r);
 
         addConnectionInfo(r, doConnect(r, timeout));
+    }
+
+    public ibis.ipl.ReceivePortIdentifier[] connect(
+            Map<ibis.ipl.IbisIdentifier, String> ports)
+            throws ConnectionsFailedException {
+        return connect(ports, 0);
+    }
+
+    public synchronized ibis.ipl.ReceivePortIdentifier[] connect(
+            Map<ibis.ipl.IbisIdentifier, String> ports, long timeout)
+            throws ConnectionsFailedException {
+        ConnectionsFailedException ex = null;
+        ArrayList<ibis.ipl.ReceivePortIdentifier> portIds
+                = new ArrayList<ibis.ipl.ReceivePortIdentifier>();
+
+        int count = ports.size();
+        long endTime = 0;
+        if (timeout > 0) {
+            endTime = System.currentTimeMillis() + timeout;
+        }
+
+        for (Map.Entry<ibis.ipl.IbisIdentifier, String> entry : ports.entrySet()) {
+            long t = 0;
+            if (endTime != 0) {
+                long now = System.currentTimeMillis();
+                if (endTime < now) {
+                    IOException e = 
+                            new ConnectionTimedOutException(
+                            "Out of time, connection to (" +  entry.getKey()
+                            + ", " + entry.getValue() + ") not even tried");
+                    if (ex == null) {
+                        ex = new ConnectionsFailedException();
+                    }
+                    ex.add(entry.getKey(), entry.getValue(), e);
+                    continue;
+                }              
+                t = (endTime - now) / count;
+                if (t <= 0) {
+                    t = 1;
+                }
+            }
+            count--;
+            try {
+                portIds.add(connect(entry.getKey(), entry.getValue(), t));
+            } catch(IOException e) {
+                if (ex == null) {
+                    ex = new ConnectionsFailedException();
+                }
+                ex.add(entry.getKey(), entry.getValue(), e);
+            }
+        }
+
+        ibis.ipl.ReceivePortIdentifier[] result = portIds.toArray(
+                new ibis.ipl.ReceivePortIdentifier[portIds.size()]);
+
+        if (ex != null) {
+            ex.setObtainedConnections(result);
+            throw ex;
+        }
+
+        return result;
+    }
+
+    public void connect(ibis.ipl.ReceivePortIdentifier[] ports)
+            throws ConnectionsFailedException {
+        connect(ports, 0);
+    }
+
+    public synchronized void connect(ibis.ipl.ReceivePortIdentifier[] ports,
+            long timeout) throws ConnectionsFailedException {
+
+        ArrayList<ibis.ipl.ReceivePortIdentifier> portIds
+                = new ArrayList<ibis.ipl.ReceivePortIdentifier>();
+        ConnectionsFailedException ex = null;
+
+        int count = ports.length;
+        long endTime = 0;
+        if (timeout > 0) {
+            endTime = System.currentTimeMillis() + timeout;
+        }
+        for (int i = 0; i < ports.length; i++) {
+            long t = 0;
+            if (endTime != 0) {
+                long now = System.currentTimeMillis();
+                if (endTime < now) {
+                    IOException e = new ConnectionTimedOutException(
+                            "Out of time, connection to (" +  ports[i].ibis()
+                            + ", " + ports[i].name() + ") not even tried");
+                    if (ex == null) {
+                        ex = new ConnectionsFailedException();
+                    }
+                    ex.add(ports[i].ibis(), ports[i].name(), e);
+                    continue;
+                }              
+                t = (endTime - now) / count;
+                if (t <= 0) {
+                    t = 1;
+                }
+            }
+            count--;
+            try {
+                connect(ports[i], t);
+                portIds.add(ports[i]);
+            } catch(IOException e) {
+                if (ex == null) {
+                    ex = new ConnectionsFailedException();
+                }
+                ex.add(ports[i].ibis(), ports[i].name(), e);
+            }
+        }
+
+        if (ex != null) {
+            ibis.ipl.ReceivePortIdentifier[] result = portIds.toArray(
+                    new ibis.ipl.ReceivePortIdentifier[portIds.size()]);
+            ex.setObtainedConnections(result);
+            throw ex;
+        }
     }
 
     public synchronized ibis.ipl.ReceivePortIdentifier connect(
