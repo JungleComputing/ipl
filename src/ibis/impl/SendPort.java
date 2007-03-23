@@ -87,6 +87,9 @@ public abstract class SendPort implements ibis.ipl.SendPort {
     /** The write message for this port. */
     protected final WriteMessage w;
 
+    /** Collected exceptions for multicast ports. */
+    private CollectedWriteException collectedExceptions;
+
     /**
      * Constructs a <code>SendPort</code> with the specified parameters.
      * Note that all property checks are already performed in the
@@ -535,6 +538,11 @@ public abstract class SendPort implements ibis.ipl.SendPort {
             notifyAll();
         }
         count += cnt;
+        if (collectedExceptions != null) {
+            IOException e = collectedExceptions;
+            collectedExceptions = null;
+            throw e;
+        }
     }
 
     /**
@@ -565,16 +573,20 @@ public abstract class SendPort implements ibis.ipl.SendPort {
      * Called when a method from {@link WriteMessage} receives an
      * <code>IOException</code>.
      * It calls the implementation-specific {@link #handleSendException}
-     * method and then rethrows the exception unless the port has
-     * connection upcalls.
+     * method and then rethrows the exception unless we are dealing with a
+     * multicast port, in which case the exception is saved.
      */
     protected void gotSendException(WriteMessage w, IOException e)
             throws IOException {
         handleSendException(w, e);
-        if (connectUpcall == null) {
-            // otherwise upcalls were done.
+        if (! type.oneToMany) {
+            // Otherwise exception will be saved until the finish.
             throw e;
         }
+        if (collectedExceptions == null) {
+            collectedExceptions = new CollectedWriteException();
+        }
+        collectedExceptions.add(e);
     }
 
     // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

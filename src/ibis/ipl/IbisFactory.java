@@ -124,7 +124,7 @@ public final class IbisFactory {
                 && !requiredCapabilities
                         .hasCapability(PredefinedCapabilities.RESIZE_UPCALLS)) {
             throw new NoMatchingIbisException(
-                    "Resize handler specified but no "
+                    "RegistryEventHandler specified but no "
                             + PredefinedCapabilities.RESIZE_UPCALLS
                             + " capability requested");
         }

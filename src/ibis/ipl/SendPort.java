@@ -16,9 +16,14 @@ import java.util.Map;
  * ReceivePortIdentifier, Throwable)} upcall is invoked.
  * This upcall is completely asynchronous, but Ibis ensures that 
  * at most one is alive at any given time.
- * When a {@link SendPortDisconnectUpcall} object is installed, no exceptions
- * are thrown by methods in the write message. Instead, the exception is passed
- * on to the <code>lostConnection</code> upcall.
+ *
+ * When the port type has the ONE_TO_MANY capability set, no exceptions
+ * are thrown by write methods in the write message.
+ * Instead, the exception may be passed on to the <code>lostConnection</code>
+ * upcall, in case a {@link SendPortDisconnectUpcall} is registered.
+ * This allows the multicast to continue to the other destinations.
+ * Ultimately, the {@link WriteMessage#finish() finish} method will
+ * throw an exception.
  *
  * If no {@link SendPortDisconnectUpcall} is registered, the user is NOT
  * informed of connections that are lost.
