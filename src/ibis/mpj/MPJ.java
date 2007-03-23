@@ -7,7 +7,6 @@ package ibis.mpj;
 
 
 import ibis.ipl.*;    
-import ibis.util.PoolInfo;
 
 /**
  * Main MPJ class.
@@ -24,10 +23,9 @@ public class MPJ implements PredefinedCapabilities {
     private static PortType porttype = null;
     private static ConnectionTable connectionTable = null;
 
-    protected static PoolInfo info;
     protected static Ibis ibis;
     protected static Registry registry;
-
+    protected static RegEvtHandler regEvtHandler;
 
 
     public static Datatype BYTE, CHAR, SHORT, BOOLEAN, INT, LONG, FLOAT, DOUBLE, OBJECT, PACKED, LB, UB;
@@ -229,11 +227,15 @@ public class MPJ implements PredefinedCapabilities {
                 k++;
             }
 
-            info = PoolInfo.createPoolInfo();
+            regEvtHandler = new RegEvtHandler();
+
             CapabilitySet s = new CapabilitySet(
                 SERIALIZATION_OBJECT, COMMUNICATION_RELIABLE, RECEIVE_EXPLICIT,
-                RECEIVE_POLL, CONNECTION_ONE_TO_ONE, WORLDMODEL_CLOSED);
-            ibis = IbisFactory.createIbis(s, null, null, null);
+                RECEIVE_POLL, CONNECTION_ONE_TO_ONE, WORLDMODEL_CLOSED,
+                RESIZE_UPCALLS);
+            ibis = IbisFactory.createIbis(s, null, null, regEvtHandler);
+
+            regEvtHandler.waitForEveryone(ibis);
 
             registry = ibis.registry();
 
@@ -243,9 +245,10 @@ public class MPJ implements PredefinedCapabilities {
 
             porttype = ibis.createPortType(prop);
 
+
             if (DEBUG) {
-                System.err.println("My Hostname is " + MPJ.info.hostName());
-                System.err.println("MyRank is " + MPJ.info.rank() + " of " + MPJ.info.size() + "\n");
+                System.err.println("My Id is " + ibis.identifier());
+                System.err.println("MyRank is " + regEvtHandler.myRank + " of " + regEvtHandler.nInstances + "\n");
                 System.err.println("establishing communication...");
             }
 
@@ -255,22 +258,18 @@ public class MPJ implements PredefinedCapabilities {
             //MPJ.upcall = new MPJUpcall(MPJQueue);
 
             connectionTable = new ConnectionTable();
-            for (int i = 0; i < MPJ.info.size(); i++) {
+            for (int i = 0; i < MPJ.regEvtHandler.nInstances; i++) {
 
-                Connection connection = new Connection(registry, porttype, MPJ.info.rank(), i);
+                Connection connection = new Connection(registry, porttype, MPJ.regEvtHandler.myRank, i);
                 connection.setupReceivePort();
-                String mpjHostName = connectionTable.addConnection(MPJ.info.hostName(i), connection);
-                COMM_WORLD.group().addHost(mpjHostName);
-                if (i == MPJ.info.rank()) {
-                    connectionTable.setMyMPJHostName(mpjHostName);
-                }
+                connectionTable.addConnection(MPJ.regEvtHandler.identifiers[i], connection);
+                COMM_WORLD.group().addId(MPJ.regEvtHandler.identifiers[i]);
             }
 
-            registry.elect("" + MPJ.info.rank());
+            registry.elect("" + MPJ.regEvtHandler.myRank);
 
-            for (int i = 0; i < MPJ.info.size(); i++) {
-                String mpjHostName = MPJ.COMM_WORLD.group().getMPJHostName(i);
-                Connection con = MPJ.connectionTable.getConnection(mpjHostName);
+            for (int i = 0; i < MPJ.regEvtHandler.nInstances; i++) {
+                Connection con = MPJ.connectionTable.getConnection(MPJ.regEvtHandler.identifiers[i]);
                 con.setupSendPort();
             }
 
@@ -279,9 +278,8 @@ public class MPJ implements PredefinedCapabilities {
 
             while (!check) {
                 check = true;
-                for (int i=0; i<MPJ.info.size(); i++) {
-                    String mpjHostName = MPJ.COMM_WORLD.group().getMPJHostName(i);
-                    Connection con = MPJ.connectionTable.getConnection(mpjHostName);
+                for (int i=0; i<MPJ.regEvtHandler.nInstances; i++) {
+                    Connection con = MPJ.connectionTable.getConnection(MPJ.regEvtHandler.identifiers[i]);
                     if (!con.isConnectionEstablished()) {
                         check = false;
                         break;
@@ -291,7 +289,7 @@ public class MPJ implements PredefinedCapabilities {
 
             COMM_SELF = new Comm();
             COMM_SELF.group = new Group();
-            COMM_SELF.group().addHost(info.hostName(info.rank()));
+            COMM_SELF.group().addId(ibis.identifier());
             //COMM_SELF.contextId = 0;
 
 
@@ -334,10 +332,9 @@ public class MPJ implements PredefinedCapabilities {
             }
 
 
-            for (int i=0; i<MPJ.info.size(); i++) {
-                String mpjHostName = MPJ.COMM_WORLD.group().getMPJHostName(i);
-                Connection con = MPJ.connectionTable.getConnection(mpjHostName);
-
+            for (int i=0; i<MPJ.regEvtHandler.nInstances; i++) {
+                IbisIdentifier mpjId = MPJ.COMM_WORLD.group().getId(i);
+                Connection con = MPJ.connectionTable.getConnection(mpjId);
                 con.close();
             }
 
@@ -364,7 +361,7 @@ public class MPJ implements PredefinedCapabilities {
      * @throws MPJException
      */
     public static String getProcessorName() throws MPJException {
-        return(MPJ.getMyMPJHostName());
+        return ibis.identifier().toString();
     }
 
     /**
@@ -466,12 +463,12 @@ public class MPJ implements PredefinedCapabilities {
     }
 
 
-    protected static String getMyMPJHostName() {
-        return(MPJ.connectionTable.getMyMPJHostName());
+    protected static IbisIdentifier getMyId() {
+        return ibis.identifier();
     }
 
-    protected static Connection getConnection(String mpjHostName) throws MPJException {
-        return(MPJ.connectionTable.getConnection(mpjHostName));
+    protected static Connection getConnection(IbisIdentifier id) throws MPJException {
+        return(MPJ.connectionTable.getConnection(id));
     }
 
     protected static int getNewContextId() {

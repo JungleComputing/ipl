@@ -29,10 +29,6 @@ general:
 nameserver+connection stuff:
 - signal/gotSignal: registry events.
 
-MPJ:
-- uses PoolInfo to get hostnames and then hostnames to identify ibis instances!
-  Should use Ibis identifiers for this, and should not use PoolInfo.
- 
 satin:
 - add semantic analysis to the compiler
 - forgotten sync statements

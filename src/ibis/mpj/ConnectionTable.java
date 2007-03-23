@@ -5,55 +5,31 @@
  */
 package ibis.mpj;
 
-import java.util.*;
+import ibis.ipl.IbisIdentifier;
+
+import java.util.HashMap;
 
 
 /**
  * Collection of all MPJ connections.
  */
 public class ConnectionTable {
-    private final HashMap<String, Connection> conTable;
-    private String myMPJHostName = null;
+    private final HashMap<IbisIdentifier, Connection> conTable;
+    private IbisIdentifier myId;
 
     public ConnectionTable() {
-        this.conTable = new HashMap<String, Connection>();
+        this.conTable = new HashMap<IbisIdentifier, Connection>();
 
     }
 
-    protected String addConnection(String ibisHostName, Connection con) {
-        int i = 0;
-        String host =  ibisHostName + "_" + i;
+    protected void addConnection(IbisIdentifier id, Connection con) {
+        conTable.put(id, con);
+    }
 
-        boolean written = false;
-
-        while(!written) {
-            if (conTable.containsKey(host)) {
-                i++;
-                host =  ibisHostName + "_" + i;
-            }
-            else {
-
-                conTable.put(host, con);
-                written = true;
-            }
+    protected Connection getConnection(IbisIdentifier id) throws MPJException {
+        if (conTable.containsKey(id)) {
+            return conTable.get(id);
         }
-        return host;
-    }
-
-    protected Connection getConnection(String mpjHostName) throws MPJException {
-        if (conTable.containsKey(mpjHostName)) {
-            return conTable.get(mpjHostName);
-        }
-        throw new MPJException(mpjHostName + " not found in ConnectionTable.");
-     }
-
-
-
-    protected void setMyMPJHostName(String hostName) {
-        myMPJHostName = hostName;
-    }
-
-    protected String getMyMPJHostName() {
-        return(myMPJHostName);
+        throw new MPJException("" + id + " not found in ConnectionTable.");
     }
 }

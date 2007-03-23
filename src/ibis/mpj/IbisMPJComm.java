@@ -93,15 +93,15 @@ public class IbisMPJComm extends Thread {
 
 
         if (DEBUG) {
-            System.out.println("irecv: " + this.comm.rank() + ": " + MPJ.getMyMPJHostName() + ": ANY_SOURCE");
+            System.out.println("irecv: " + this.comm.rank() + ": " + MPJ.getMyId() + ": ANY_SOURCE");
         }
 
         int src = 0;
         boolean msgReceived = false;
         while (!msgReceived) {
 
-            String mpjHostName = this.comm.group().getMPJHostName(src);
-            Connection con = MPJ.getConnection(mpjHostName);
+            IbisIdentifier id = this.comm.group().getId(src);
+            Connection con = MPJ.getConnection(id);
             MPJObjectQueue queue = con.getRecvQueue();
 
 
@@ -261,12 +261,12 @@ public class IbisMPJComm extends Thread {
         //boolean DEBUG = true;
 
 
-        String mpjHostName = this.comm.group().getMPJHostName(source);
-        Connection con = MPJ.getConnection(mpjHostName);
+        IbisIdentifier id = this.comm.group().getId(source);
+        Connection con = MPJ.getConnection(id);
         MPJObjectQueue queue = con.getRecvQueue();
 
         if (DEBUG) {
-            System.out.println("irecv: " + this.comm.rank() + ": " + MPJ.getMyMPJHostName() + ": SOURCE: " + mpjHostName + "; rank: " + source);
+            System.out.println("irecv: " + this.comm.rank() + ": " + MPJ.getMyId() + ": SOURCE: " + id + "; rank: " + source);
         }
 
         // 	first check the object queue and hold the monitor on it
@@ -497,10 +497,10 @@ public class IbisMPJComm extends Thread {
         }
 
         try {
-            String mpjHostName = this.comm.group().getMPJHostName(dest);
-            Connection con = MPJ.getConnection(mpjHostName);
+            IbisIdentifier id = this.comm.group().getId(dest);
+            Connection con = MPJ.getConnection(id);
             if (DEBUG) {
-                System.out.println("isend: " + this.comm.rank() + ": " + MPJ.getMyMPJHostName() + ": DEST: " + mpjHostName + "; rank: " + dest + "; tag: " + tag);
+                System.out.println("isend: " + this.comm.rank() + ": " + MPJ.getMyId() + ": DEST: " + id + "; rank: " + dest + "; tag: " + tag);
             }
 
 
@@ -598,11 +598,11 @@ public class IbisMPJComm extends Thread {
         //		int realCount = 0;
         //boolean DEBUG = true;
 
-        String mpjHostName = this.comm.group().getMPJHostName(source);
-        Connection con = MPJ.getConnection(mpjHostName);
+        IbisIdentifier id = this.comm.group().getId(source);
+        Connection con = MPJ.getConnection(id);
 
         if (DEBUG) {
-            System.out.println("iprobe: " + this.comm.rank() + ": " + MPJ.getMyMPJHostName() + ": SOURCE: " + mpjHostName + "; rank: " + source);
+            System.out.println("iprobe: " + this.comm.rank() + ": " + MPJ.getMyId() + ": SOURCE: " + id + "; rank: " + source);
         }
 
 
@@ -679,7 +679,7 @@ public class IbisMPJComm extends Thread {
 
 
         if (DEBUG) {
-            System.out.println("iprobe: " + this.comm.rank() + ": " + MPJ.getMyMPJHostName() + ": ANY_SOURCE");
+            System.out.println("iprobe: " + this.comm.rank() + ": " + MPJ.getMyId() + ": ANY_SOURCE");
         }
 
 
@@ -692,8 +692,8 @@ public class IbisMPJComm extends Thread {
 
         while (!msgFound) {
             if (DEBUG) System.out.println("msg not found");
-            String mpjHostName = this.comm.group().getMPJHostName(src);
-            Connection con = MPJ.getConnection(mpjHostName);
+            IbisIdentifier id = this.comm.group().getId(src);
+            Connection con = MPJ.getConnection(id);
             MPJObjectQueue queue = con.getRecvQueue();
 
             if (queue.isLocked()) {

@@ -5,6 +5,8 @@
  */
 package ibis.mpj;
 
+import ibis.ipl.IbisIdentifier;
+
 import java.util.Vector;
 
 /**
@@ -41,7 +43,7 @@ public class Intracomm extends Comm {
 
                 cpComm.group = new Group();
 
-                cpComm.group.table = new Vector<String>(this.group.table);
+                cpComm.group.table = new Vector<IbisIdentifier>(this.group.table);
                 return(cpComm);
 
             }

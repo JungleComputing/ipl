@@ -7,6 +7,7 @@ package ibis.mpj;
 
 
 import ibis.io.*;
+import ibis.ipl.IbisIdentifier;
 
 import java.io.*;
 import java.util.*;
@@ -118,7 +119,7 @@ public class Comm {
 
                 cpComm.group = new Group();
 
-                cpComm.group.table = new Vector<String>(this.group.table);
+                cpComm.group.table = new Vector<IbisIdentifier>(this.group.table);
                 return(cpComm);
 
             }
@@ -180,7 +181,7 @@ public class Comm {
             return(new Integer(Integer.MAX_VALUE));
         }
         else if (keyval == MPJ.HOST) {
-            return(new String(MPJ.getMyMPJHostName()));
+            return(MPJ.getMyId().toString());
         }
         else if (keyval == MPJ.IO) {
             return(new Integer(MPJ.ANY_SOURCE));
