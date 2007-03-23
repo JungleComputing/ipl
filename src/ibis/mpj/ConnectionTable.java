@@ -15,8 +15,6 @@ import java.util.HashMap;
  */
 public class ConnectionTable {
     private final HashMap<IbisIdentifier, Connection> conTable;
-    private IbisIdentifier myId;
-
     public ConnectionTable() {
         this.conTable = new HashMap<IbisIdentifier, Connection>();
 

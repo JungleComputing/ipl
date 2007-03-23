@@ -12,6 +12,9 @@ import java.util.ArrayList;
  */
 public class CollectedWriteException extends IOException {
 
+    /** Added. */
+    private static final long serialVersionUID = 5494793976122105110L;
+    
     private ArrayList<IOException> exceptions = new ArrayList<IOException>();
 
     /**
