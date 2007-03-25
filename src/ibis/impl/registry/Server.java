@@ -145,7 +145,7 @@ public abstract class Server extends Thread {
         if (startPoolInfo) {
             try {
                 int port = basePort + 2;
-                new PoolInfoServer(port, false);
+                new PoolInfoServer(port, false).start();
                 logger.info("PoolInfoServer running on port " + port);
             } catch (Throwable t) {
                 logger.warn("Could not start Pool info: ", t);
