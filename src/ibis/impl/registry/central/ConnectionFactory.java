@@ -70,10 +70,10 @@ public class ConnectionFactory {
             plainLocalAddress = null;
 
             try {
-                // virtualSocketFactory = VirtualSocketFactory
-                // .getOrCreateSocketFactory("ibis", defaults, true);
                 virtualSocketFactory = VirtualSocketFactory
-                        .getDefaultSocketFactory();
+                        .getOrCreateSocketFactory("ibis", defaults, true);
+                // virtualSocketFactory = VirtualSocketFactory
+                //         .getDefaultSocketFactory();
             } catch (InitializationException e) {
                 throw new IOException("could not initialize socket factory: "
                         + e);
