@@ -23,7 +23,7 @@
 
     <property name="ibis"        location="."/>
 
-    <property name="version" value="ibis-1.4"/>
+    <property name="version" value="ibis-1.4rc1"/>
 
     <property name="jar" value="${ibis}/lib/${version}.jar"/>
 
