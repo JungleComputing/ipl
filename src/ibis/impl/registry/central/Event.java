@@ -19,7 +19,7 @@ final class Event implements Serializable {
 
     public static final int DIED = 3;
 
-    public static final int MUST_LEAVE = 4;
+    public static final int SIGNAL = 4;
 
     public static final int ELECT = 5;
 
@@ -29,11 +29,11 @@ final class Event implements Serializable {
 
     private final int type;
 
-    private final String electionName;
+    private final String description;
 
     private final IbisIdentifier[] ibisses;
 
-    public Event(int time, int type, IbisIdentifier ibis, String electionName) {
+    public Event(int time, int type, IbisIdentifier ibis, String description) {
         this.time = time;
         this.type = type;
         if (ibis == null) {
@@ -41,29 +41,29 @@ final class Event implements Serializable {
         } else {
             this.ibisses = new IbisIdentifier[] { ibis };
         }
-        if (electionName == null) {
-            this.electionName = "";
+        if (description == null) {
+            this.description = "";
         } else {
-            this.electionName = electionName;
+            this.description = description;
         }
     }
 
     public Event(int time, int type, IbisIdentifier[] ibisses,
-            String electionName) {
+            String description) {
         this.time = time;
         this.type = type;
         this.ibisses = ibisses.clone();
-        if (electionName == null) {
-            this.electionName = "";
+        if (description == null) {
+            this.description = "";
         } else {
-            this.electionName = electionName;
+            this.description = description;
         }
     }
 
     public Event(DataInput in) throws IOException {
         time = in.readInt();
         type = in.readInt();
-        electionName = in.readUTF();
+        description = in.readUTF();
         ibisses = new IbisIdentifier[in.readInt()];
         for (int i = 0; i < ibisses.length; i++) {
             ibisses[i] = new IbisIdentifier(in);
@@ -73,7 +73,7 @@ final class Event implements Serializable {
     public void writeTo(DataOutput out) throws IOException {
         out.writeInt(time);
         out.writeInt(type);
-        out.writeUTF(electionName);
+        out.writeUTF(description);
         out.writeInt(ibisses.length);
         for (int i = 0; i < ibisses.length; i++) {
             ibisses[i].writeTo(out);
@@ -85,8 +85,8 @@ final class Event implements Serializable {
         return time;
     }
 
-    public String getElectionName() {
-        return electionName;
+    public String getDescription() {
+        return description;
     }
 
     public IbisIdentifier getFirstIbis() {
@@ -112,8 +112,8 @@ final class Event implements Serializable {
             return "LEAVE";
         case DIED:
             return "DIED";
-        case MUST_LEAVE:
-            return "MUST_LEAVE";
+        case SIGNAL:
+            return "SIGNAL";
         case ELECT:
             return "ELECT";
         case UN_ELECT:

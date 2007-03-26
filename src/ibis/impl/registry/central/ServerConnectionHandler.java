@@ -167,9 +167,11 @@ public class ServerConnectionHandler implements Runnable {
 
     }
 
-    private void handleMustLeave(Connection connection) throws IOException {
+    private void handleSignal(Connection connection) throws IOException {
         String poolName = connection.in().readUTF();
 
+        String signal = connection.in().readUTF();
+        
         IbisIdentifier[] identifiers = new IbisIdentifier[connection.in()
                 .readInt()];
         for (int i = 0; i < identifiers.length; i++) {
@@ -184,7 +186,7 @@ public class ServerConnectionHandler implements Runnable {
             return;
         }
 
-        pool.mustLeave(identifiers);
+        pool.signal(signal, identifiers);
 
         connection.sendOKReply();
 
@@ -236,8 +238,8 @@ public class ServerConnectionHandler implements Runnable {
             case Protocol.OPCODE_MAYBE_DEAD:
                 handleMaybeDead(connection);
                 break;
-            case Protocol.OPCODE_MUST_LEAVE:
-                handleMustLeave(connection);
+            case Protocol.OPCODE_SIGNAL:
+                handleSignal(connection);
                 break;
             default:
                 logger.error("unknown opcode: " + connection.getOpcode());

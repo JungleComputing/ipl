@@ -444,13 +444,14 @@ public final class Registry extends ibis.impl.Registry implements Runnable {
         }
     }
 
-    public void mustLeave(ibis.ipl.IbisIdentifier[] ibisses) throws IOException {
-        logger.debug("telling " + ibisses.length + " ibisses to leave");
+    public void signal(String signal, ibis.ipl.IbisIdentifier... ibisses) throws IOException {
+        logger.debug("telling " + ibisses.length + " ibisses a signal: " + signal);
         Connection connection = connectionFactory.connectToServer(
-                Protocol.OPCODE_MUST_LEAVE, serverConnectTimeout);
+                Protocol.OPCODE_SIGNAL, serverConnectTimeout);
 
         try {
             connection.out().writeUTF(getPoolName());
+            connection.out().writeUTF(signal);
             connection.out().writeInt(ibisses.length);
             for (int i = 0; i < ibisses.length; i++) {
                 ((IbisIdentifier) ibisses[i]).writeTo(connection.out());
@@ -461,7 +462,7 @@ public final class Registry extends ibis.impl.Registry implements Runnable {
 
             logger
                     .debug("done telling " + ibisses.length
-                            + " ibisses to leave");
+                            + " ibisses a signal: " + signal);
         } catch (IOException e) {
             connection.close();
             throw e;
@@ -520,15 +521,15 @@ public final class Registry extends ibis.impl.Registry implements Runnable {
                     removeIbis(ibis);
                 }
                 break;
-            case Event.MUST_LEAVE:
+            case Event.SIGNAL:
                 // Only handled in upcaller
                 break;
             case Event.ELECT:
-                elections.put(newEvents[i].getElectionName(), newEvents[i]
+                elections.put(newEvents[i].getDescription(), newEvents[i]
                         .getFirstIbis());
                 break;
             case Event.UN_ELECT:
-                elections.remove(newEvents[i].getElectionName());
+                elections.remove(newEvents[i].getDescription());
                 break;
             default:
                 logger.error("unknown event type: " + newEvents[i].getType());

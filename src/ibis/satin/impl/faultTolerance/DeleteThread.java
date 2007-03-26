@@ -2,7 +2,6 @@
 
 package ibis.satin.impl.faultTolerance;
 
-import ibis.ipl.IbisIdentifier;
 import ibis.satin.impl.Satin;
 
 class DeleteThread extends Thread {
@@ -23,6 +22,6 @@ class DeleteThread extends Thread {
             //ignore
         }
         Satin satin = Satin.getSatin();
-        satin.ft.ftComm.mustLeave(new IbisIdentifier[] { satin.ident });
+        satin.ft.ftComm.gotSignal("delete");
     }
 }

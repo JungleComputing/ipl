@@ -57,13 +57,14 @@ public interface Registry {
     public void dead(IbisIdentifier ibis) throws IOException;
 
     /**
-     * Requests some Ibis instances to leave.
-     * This results in a {@link RegistryEventHandler#mustLeave(IbisIdentifier[])}
-     * upcall on all Ibis instances in the current run. It is up to the
+     * Send a signal to one or more Ibisses
+     * This results in a {@link RegistryEventHandler#signal(String)}
+     * upcall on all Ibis instances in the given list. It is up to the
      * application to react accordingly.
-     * @param ibisses the ibisses which are told to leave. Multiple ibisses
-     * may be ordered to leave when, for instance, an entire cluster is killed.
+     * @param signal, the value of the signal/ Usefull if more than one
+     * type of signal is needed.
+     * @param ibisses the ibisses to wich the signal is sent.
      * @exception java.io.IOException is thrown in case of trouble.
      */
-    public void mustLeave(IbisIdentifier[] ibisses) throws IOException;
+    public void signal(String signal, IbisIdentifier... ibisses) throws IOException;
 }

@@ -47,14 +47,13 @@ public interface RegistryEventHandler {
     public void died(IbisIdentifier corpse);
 
     /**
-     * Upcall generated when one or more Ibisses are requested to leave.
+     * Upcall generated when one or more Ibisses are send a signal.
      *
      * This call can only be the result of a
-     * {@link Registry#mustLeave(IbisIdentifier[])}
+     * {@link Registry#signal(String, IbisIdentifier[])}
      * call. It is always the result of a call by the application.
      * How the receiver of this upcall reacts to this is up to the application.
-     * @param ibisses the ibisses which are told to leave. Multiple ibisses
-     * may be ordered to leave when, for instance, an entire cluster is killed.
+     * @param signal, the value of the signal supplied by the user.
      */
-    public void mustLeave(IbisIdentifier[] ibisses);
+    public void gotSignal(String signal);
 }

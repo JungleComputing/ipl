@@ -256,7 +256,7 @@ final class Pool implements Runnable {
         notifyAll();
     }
 
-    public synchronized void mustLeave(IbisIdentifier[] victims) {
+    public synchronized void signal(String signal, IbisIdentifier[] victims) {
         ArrayList<IbisIdentifier> result = new ArrayList<IbisIdentifier>();
 
         for (IbisIdentifier victim : victims) {
@@ -264,8 +264,8 @@ final class Pool implements Runnable {
                 result.add(victim);
             }
         }
-        events.add(new Event(events.size(), Event.MUST_LEAVE, result
-                .toArray(new IbisIdentifier[0]), null));
+        events.add(new Event(events.size(), Event.SIGNAL, result
+                .toArray(new IbisIdentifier[0]), signal));
         notifyAll();
 
     }

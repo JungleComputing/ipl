@@ -53,8 +53,8 @@ public final class NullRegistry extends ibis.impl.Registry {
         //NOTHING
     }
 
-    public void mustLeave(ibis.ipl.IbisIdentifier[] ibisses) throws IOException {
-        throw new IOException("pool management supported by NullRegistry");
+    public void signal(String string, ibis.ipl.IbisIdentifier... ibisses) throws IOException {
+        throw new IOException("signals not supported by NullRegistry");
     }
 
     @Override

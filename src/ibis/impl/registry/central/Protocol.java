@@ -18,7 +18,7 @@ class Protocol {
 
     public static final byte OPCODE_MAYBE_DEAD = 7;
 
-    public static final byte OPCODE_MUST_LEAVE = 8;
+    public static final byte OPCODE_SIGNAL = 8;
 
     public static final byte OPCODE_PING = 9;
     
@@ -57,8 +57,8 @@ class Protocol {
             return "DEAD";
         } else if (opcode == OPCODE_MAYBE_DEAD) {
             return "MAYBE_DEAD";
-        } else if (opcode == OPCODE_MUST_LEAVE) {
-            return "MUST_LEAVE";
+        } else if (opcode == OPCODE_SIGNAL) {
+            return "SIGNAL";
         } else if (opcode == OPCODE_PING) {
             return "PING";
         } else {

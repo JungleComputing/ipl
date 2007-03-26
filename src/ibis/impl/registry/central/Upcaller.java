@@ -3,6 +3,7 @@ package ibis.impl.registry.central;
 import org.apache.log4j.Logger;
 
 import ibis.impl.Ibis;
+import ibis.ipl.IbisIdentifier;
 import ibis.util.ThreadPool;
 
 final class Upcaller implements Runnable {
@@ -46,8 +47,13 @@ final class Upcaller implements Runnable {
                 case Event.DIED:
                     ibis.died(event.getIbisses());
                     break;
-                case Event.MUST_LEAVE:
-                    ibis.mustLeave(event.getIbisses());
+                case Event.SIGNAL:
+                    IbisIdentifier[] ibisses = event.getIbisses();
+                    for (IbisIdentifier identifier: ibisses) {
+                        if (identifier.equals(ibis.identifier())) {
+                            ibis.gotSignal(event.getDescription());
+                        }
+                    }
                     break;
                 case Event.ELECT:
                     // Only handled in registry

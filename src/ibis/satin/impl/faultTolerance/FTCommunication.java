@@ -254,13 +254,10 @@ final class FTCommunication implements Config, ReceivePortConnectUpcall,
 		}
 	}
 
-	public void mustLeave(IbisIdentifier[] ids) {
-		for (int i = 0; i < ids.length; i++) {
-			if (s.ident.equals(ids[i])) {
+	public void gotSignal(String signal) {
+            if (signal != null && signal.equals("delete")) {
 				s.ft.gotDelete = true;
-				break;
-			}
-		}
+            }
 	}
 
 	protected void handleMyOwnJoinJoin() {

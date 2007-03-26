@@ -30,10 +30,6 @@ class RegEvtHandler implements RegistryEventHandler {
         // ignored
     }
 
-    public void mustLeave(IbisIdentifier[] ibisses) {
-        // ignored
-    }
-
     void waitForEveryone(Ibis ibis) {
         nInstances = ibis.totalNrOfIbisesInPool();
         identifiers = new IbisIdentifier[nInstances];
@@ -48,5 +44,10 @@ class RegEvtHandler implements RegistryEventHandler {
                 }
             }
         }
+    }
+
+    public void gotSignal(String signal) {
+        // TODO Auto-generated method stub
+        
     }
 }

@@ -312,10 +312,10 @@ public abstract class Ibis implements ibis.ipl.Ibis,
      * @param ibisses the Ibis {@linkplain ibis.ipl.IbisIdentifier
      *  identifiers} of the Ibis instances that are requested to leave.
      */
-    public void mustLeave(IbisIdentifier[] ibisses) {
+    public void gotSignal(String signal) {
         if (registryHandler != null) {
             waitForEnabled();
-            registryHandler.mustLeave(ibisses);
+            registryHandler.gotSignal(signal);
             synchronized(this) {
                 busyUpcaller = false;
             }
