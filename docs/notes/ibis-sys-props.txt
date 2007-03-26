@@ -2,6 +2,10 @@
 #
 # This file contains all (or at least most) of the system properties that are
 # currently recognized by (parts of) Ibis.
+# Ibis by default tries to read properties from a file ibis.properties in
+# the users home directory, and also from a file with the same name in the
+# current directory. In addition, properties can be passed on to Java with
+# the -D flag.
 #
 #############################################################################
 
@@ -9,59 +13,59 @@
 # IPL
 #####
 
-# Nickname of the Ibis implementation to be chosen.
+# Name of the Ibis implementation to be chosen.
 # ibis.name
 
-# Communication properties. See the file "ibis-capabilities".
-# ibis.communication
-
-# World model, either "open" or "closed". See the file "ibis-capabilities".
-# ibis.worldmodel
-
-# Serialization type: "byte", "data", "sun", "ibis", "object".
-# See the file "ibis-capabilities".
+# Serialization: either "sun" or "ibis".
 # ibis.serialization
 
-# When set, indicates an absolute path to a file containing a list of Ibis
-# nicknames, their implementation names, and for each implementation the name of
-# a property file.
-# ibis.property.file
+# When set, represents an additional properties file to read.
+# ibis.properties.file
 
 # When set, indicates a path from where to load native libraries.
 # ibis.library.path
 
-# Should be replaced by a log4j logger. Gives verbosity during the Ibis
-# startup.
+# Path used to find Ibis implementations. This path may include directories,
+# in which case all jar files in this directory are included.
+# The default is the classpath.
+# ibis.impl.path
+
+# Gives verbosity during the Ibis startup.
 # ibis.verbose:			false
 
 ############
-# Nameserver
+# Registry
 ############
 
-# Name of the nameserver client to be used.
-# ibis.registry.impl		ibis.impl.registry.tcp.NameServerClient
+# Name of the registry class to be used.
+# ibis.registry.impl:		ibis.impl.registry.central.Registry
 
-# Host on which the nameserver is supposed to run. This property must
-# be specified. It is provided by the ibis-run script. Its rules are:
-# - if it is specified with the -ns option, use that;
-# - if the -hosts option is specified, use the first host on that list;
-# - otherwise, use the host on which ibis was configured/installed.
-# ibis.registry.host
+# Host/port on which the registry server is supposed to run.
+# ibis.registry.serverHost:     localhost:9826
 
-# Port number on which the nameserver is supposed accept connections.
-# ibis.registry.port		9826
+# A poolId which is supposed to be unique for this run.
+# ibis.registry.pool:           DEFAULT
 
-#  A poolId which is supposed to be unique for this run. This property must
-# be specified. The ibis-run script provides it.
-# ibis.registry.pool
+# The next few properties are only used by the registry server (or the
+# server startup program).
+
+# Name of the registry server class to be used. Note: this must match the
+# client.
+# ibis.registry.server.impl:    ibis.impl.registry.central.Server
+
+# Port number on which the registry server is supposed accept connections.
+# Only read by the registry server! Registries should use ibis.registry.serverHost.
+# ibis.registry.server.port:    9826
 
 # Only serve a single run.
-# ibis.registry.single	false
+# ibis.registry.server.single:  false
 
-# The nameserver pings each run it has under its control every
-# "ibis.registry.timeout" seconds. If the run turns out to be dead, the
-# information associated with it in the nameserver is discarded.
-# ibis.registry.timeout	300
+# The next few properties are specific for the "central" registry.
+
+# ibis.registry.central.smartSockets:  true
+# ibis.registry.central.gossip:        false
+# ibis.registry.central.keepNodeState: false
+# ibis.registry.central.serverConnectTimeout: false
 
 #############################################################################
 #
@@ -70,220 +74,26 @@
 #############################################################################
 
 ##########
-# TCP Ibis
-##########
-
-# Enables debugging messages. Will eventually be replaced by a log4j logger.
-# ibis.tcp.debug:			false
-
-# Enables finish() to return the number of bytes read/written.
-# It is debatable whether the user should be able to disable this.
-# ibis.tcp.stats:			true
-
-# Enables caching and reusing of connections. TCP connections are two-way,
-# Ibis connections are one-way. The "other half" may be used for a connection
-# that goes in the opposite direction. Also, when an Ibis connection is closed,
-# the connection can be reused.
-# ibis.tcp.cache:			true
-
-#####################
-# MessagePassing Ibis
-#####################
-
-# After serving a message, the receive thread may optimistically
-# poll for a while. A new request might arrive in a short while,
-# and that saves an interrupt. Set this to 0 if you don't want
-# optimistic polling.
-# ibis.mp.polls.optimistic:		500
-
-# When blocked reading a message, the receive thread may poll for a while
-# before yielding to another thread. Set this to 0 if you don't want this.
-# ibis.mp.polls.yield:			500
-
-# Disables interrupts during the processing of multi-fragment messages.
-# ibis.mp.intr.disable.multifragment:	false
-
-# Enables the presence of an election server within MP Ibis.
-# It is debatable whether the user should be able to disable this.
-# ibis.mp.election:			true
-
-# Enables debugging messages from the election server of MP Ibis and its
-# clients. Will eventually be replaced by a log4j logger.
-# ibis.mp.elect.debug:			false
-
-# Enables debugging messages from MP Ibis.
-# Will eventually be replaced by a log4j logger.
-# ibis.mp.debug:			false
-
-# Some thread implementation don't have (did'nt have?) a properly functioning
-# Thread.yield(). In this case, setting this property to true makes MP Ibis
-# use Thread.sleep instead.
-# ibis.mp.yield:			false
-
-# There are two ways to enable broadcasting: setting ibis.mp.broadcast.native
-# to true, or setting ibis.mp.broadcast to native
-# ibis.mp.broadcast:			none
-# ibis.mp.broadcast.native:		true
-
-# Currently ignored. Used to explicitly enable broadcasting in the presence of a
-# home connection. This is now always enabled when broadcasting is enabled.
-# ibis.mp.broadcast.all:		false
-
-# Use broadcast when running on two nodes and the sendport has only one outgoing
-# connection.
-# ibis.mp.broadcast.2:			false
-
-# When a node is sending multiple messages at the same time, serialize these
-# sends.
-# ibis.mp.serialize-sends:		false
-
-# Enables debugging messages from the nameserver of MP Ibis and its clients.
-# Will eventually be replaced by a log4j logger.
-# ibis.mp.ns.debug:			false
-
-##########
 # NIO Ibis
 ##########
 
-# The mere presence of the ibis.nio.numbered property is synonymous with
-# the "Numbered" communication property. Remove???
-# ibis.nio.numbered:
-
 # Allows the user to choose between different sendport implementations.
 # possible values are "Blocking", "NonBlocking", and "Thread".
-# The default depends on the presence of the "OneToMany" communication
-# property, so the property is not set here.
-# Also, properties with name ibis.nio.spi.<name> are recognized, and
-# only affect the sendports created with a port type with name <name>.
+# The default depends on the presence of the "CONNECTION_ONE_TO_MANY" 
+# capability, so the property is not set here.
 # ibis.nio.spi:
 
 # Allows the user to choose between different receiveport implementations.
 # possible values are "Blocking", "NonBlocking", and "Thread".
-# The default depends on the presence of the "OneToMany" communication
-# property, so the property is not set here.
-# Also, properties with name ibis.nio.rpi.<name> are recognized, and
-# only affect the receiveports created with a port type with name <name>.
+# The default depends on the presence of the "CONNECTION_MANY_TO_ONE"
+# capability, so the property is not set here.
 # ibis.nio.rpi:
-
-##########
-# Net Ibis
-##########
-
-# Enables some allocator statistics
-# ibis.net.allocator.stats;		false
-
-# If blocks are larger than this threshold, less of them are cached.
-# ibis.net.allocator.bigThr:		131072
-
-# Enables code to store owner and stacktrace in mutex.
-# ibis.net.mutex.debug:			false
-
-# Enables some debugging prints in exception handlers. Will eventually be
-# replaced by a log4j logger.
-# ibis.net.input.exc.verbose:		false
-
-# Enables some debugging prints at manipulation of dynamic singleton state.
-# Will eventually be replaced by a log4j logger.
-# ibis.net.poller.singleton.verbose:	false
-
-# Enables fast path for connections that dynamically turn out to be singleton,
-# although the port type may allow for non-singleton connections.
-# ibis.net.poller.singleton.dynamic:	true
-
-# Filename for NetIbis configuration
-# ibis.net.config.filename:		net_port_type_defaults.txt
-
-# Alternate property name for filename for NetIbis configuration
-# ibis.net.config.file:			net_port_type_defaults.txt
-
-# Alternate property name for filename for NetIbis configuration. This
-# one does not fit in the naming hierarchy of ibis property names. Remove???
-# netibis.config.filename:		net_port_type_defaults.txt
-
-# Enable fast paths for singleton connections.
-# ibis.net.porttype.singleton:		true
-
-# Can someone clarify??? 
-# ibis.net.multi.gen:			false
-
-# When true, unsuccessful active polling will be followed by a yield (only
-# for asynchronous multithreaded polling).
-# ibis.net.port.yield:			true
-
-# Upper bound on the length of byte buffers generated by the 'bytes' driver.
-# The default is set to Integer.MAX_VALUE.
-# ibis.net.bytes.mtu
-
-# Upper bound on the length of byte buffers generated by the 'gm' driver.
-# ibis.net.gm.mtu:			131072
-
-# To be replaced by log4j logger.
-# ibis.net.gm.intr.verbose:		false
-
-# Enables the use of a priority mutex.
-# ibis.net.gm.prioritymutex:		true
-
-# Number of polls when waiting for input, before yielding.
-# ibis.net.gm.polls:			300
-
-# Presence of this property makes NetIbis load a library called "gm".
-# Who knows why???
-# ibis.net.gm.dynamic
-
-# To be replaced by log4j logger. Even more verbose than ibis.net.gm.verbose
-# ibis.net.gm.debug:			false
-
-# A buffer of half this size is appended after each buffered message.
-# (Can someone clarify???)
-# ibis.net.gm.rendez-vous:		16384
-
-# Window size for sliding window protocol
-# ibis.net.rel.window:			5
-
-# Enables read-ahead on the TCP input stream.
-# ibis.net.tcp_blk.read_ahead:		true
-
-# Timeout in milliseconds of interruptable poll.
-# ibis.net.tcp_blk.timeout:		1000
-
-# To be replaced by log4j logger
-# ibis.net.tcp_blk.cache.verbose:	false
-
-# Enables caching and reusing of connections. TCP connections are two-way,
-# Ibis connections are one-way. The "other half" may be used for a connection
-# that goes in the opposite direction. Also, when an Ibis connection is closed,
-# the connection can be reused.
-# ibis.net.tcp_blk.cache:		true
-
-# Upper bound on the length of byte buffers generated by the 'tcp_blk' driver.
-# ibis.net.tcp_blk.mtu:			32768
-
 
 #############################################################################
 #
 # Ibis utilities
 #
 #############################################################################
-
-###############
-# SocketFactory
-###############
-
-# Sets the socket factory to be used.
-# ibis.util.socketfactory.class		ibis.impl.util.IbisConnectSocketFactory
-
-# When set, should specify a range of ports to be used, f.i. 3000-4000.
-# This can be used to make Ibis choose port numbers that are for instance not
-# protected by a firewall.
-# ibis.util.socketfactory.port.range
-
-# When set to non-zero, indicates the size to which the socket input
-# buffer size should be set.
-# ibis.util.socketfactory.InputBufferSize
-
-# When set to non-zero, indicates the size to which the socket output
-# buffer size should be set.
-# ibis.util.socketfactory.OutputBufferSize
 
 #########
 # IpUtils
@@ -343,8 +153,6 @@
 # ibis.pool.server.port			9827
  
 # Must contain the hostname of the host on which the PoolInfoServer runs.
-# If not present, ibis.registry.host is tried. One of the two system
-# properties must be defined. ibis-run provides ibis.registry.host.
 # ibis.pool.server.host
 
 # If set to true, have the PoolInfoServer only accept a single registration
@@ -353,9 +161,7 @@
 # ibis.pool.single			false
 
 #############################################################################
-#
 # Ibis I/O
-#
 #############################################################################
 
 # Enables statistics about the use of classes that have not been rewritten
@@ -421,100 +227,3 @@
 
 # Enable timers in the Ibis hash table (which is used in Ibis serialization).
 # ibis.io.hash.timings			false
-
-#############################################################################
-#
-# Connection stuff
-#
-#############################################################################
-
-# The connection method for setting up data links.
-# Possible values are: PlainTCP, NIOTCP, TCPSplice, RoutedMessages,
-#   ParallelStreams, NIOParallelStreams, PortRange, AnyTCP
-# See ibis/docs/notes/Crossing-firewalls.txt for an explanation.
-# ibis.connect.data_links		PlainTCP
-
-# The connection method for setting up control links.
-# Possible values are: PlainTCP, NIOTCP, RoutedMessages, PortRange
-# ibis.connect.control_links		PlainTCP
-
-################
-# RoutedMessages
-################
-
-# Port number on which the controlhub is accepting connections
-# ibis.connect.hub_port			9828
-
-# Host name of the host on which the controlhub is running.
-# ibis.connect.hub_host
-
-# Enables statistics in the controlhub.
-# ibis.connect.controlhub.stats		false
-
-#################
-# ParallelStreams
-#################
-
-# The default number of parallel streams to be used.
-# ibis.connect.NumWays			4
-
-# The default block size to be used. 
-# ibis.connect.BlockSize		1460
-
-#####################
-# PortRangeSocketType
-#####################
-
-# Rob? Why is this still here? Either this one or
-# ibis.util.SocketFactory.port.range is superfluous???
-# ibis.connect.port_range
-
-###########
-# TCPSplice
-###########
-
-# Port number of a local server that gives out port numbers.
-# If two JVM's running on the same node are both creating spliced sockets,
-# there is a race if such a server is not used.
-# ibis.connect.splice_port	20246
-
-# If not set, set the input and output buffer size of a socket obtained
-# through TCP splicing to 64k.
-# ibis.connect.default.sizes	false
-
-
-#############################################################################
-#
-# Satin
-#
-#############################################################################
-
-# Must be enabled or there are no statistics at all
-# satin.stats:			true
-
-# Enables detailed statistics
-# satin.detailedStats:		false
-
-# Enables some assertions in satin
-# satin.asserts:		false
-
-# Fault tolerance with restarting crashed jobs, but without the
-# global result table.
-# satin.ft.naive		false
-
-#############################################################################
-#
-# GMI
-#
-#############################################################################
-
-# GMI currently does not use system properties.
-
-#############################################################################
-#
-# RMI
-#
-#############################################################################
-
-# Enables the RMI timer.
-# rmi.timer:			true
