@@ -23,8 +23,6 @@ general:
   to a spawn, for instance. If code is not there, fall back to current impl.
 - migrate leftover prints to log4j (should we? Performance!)
   (Ceriel: did Ibis implementation).
-- writes on onetomany sendports no longer should give exceptions. Save them
-  until the finish. This makes writing multicasts much simpler.
 
 nameserver+connection stuff:
 - signal/gotSignal: registry events.
