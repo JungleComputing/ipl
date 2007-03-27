@@ -72,7 +72,7 @@ public abstract class SendPort implements ibis.ipl.SendPort {
     /** Set when this port is closed. */
     private boolean closed = false;
 
-    /** The Ibis instance of this receive port. */
+    /** The Ibis instance of this send port. */
     protected Ibis ibis;
 
     /** Object replacer for serialization streams. */
@@ -108,7 +108,7 @@ public abstract class SendPort implements ibis.ipl.SendPort {
         this.ibis = ibis;
         this.type = type;
         this.name = name;
-        this.ident = new SendPortIdentifier(name, ibis.ident);
+        this.ident = ibis.createSendPortIdentifier(name, ibis.ident);
         this.connectionDowncalls = connectionDowncalls;
         this.connectUpcall = connectUpcall;
         if (type.replacerClass != null) {
@@ -367,7 +367,7 @@ public abstract class SendPort implements ibis.ipl.SendPort {
     public synchronized ibis.ipl.ReceivePortIdentifier connect(
             ibis.ipl.IbisIdentifier id, String name, long timeout)
             throws IOException {
-        ReceivePortIdentifier r = new ReceivePortIdentifier(name,
+        ReceivePortIdentifier r = ibis.createReceivePortIdentifier(name,
                 (IbisIdentifier) id);
 
         if (logger.isDebugEnabled()) {

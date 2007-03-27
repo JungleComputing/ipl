@@ -2,6 +2,7 @@
 
 package ibis.impl;
 
+import ibis.io.SerializationInput;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.ReceiveTimedOutException;
@@ -134,7 +135,7 @@ public abstract class ReceivePort implements ibis.ipl.ReceivePort,
         this.ibis = ibis;
         this.type = type;
         this.name = name;
-        this.ident = new ReceivePortIdentifier(name, ibis.ident);
+        this.ident = ibis.createReceivePortIdentifier(name, ibis.ident);
         this.upcall = upcall;
         this.connectUpcall = connectUpcall;
         this.connectionDowncalls = connectionDowncalls;
@@ -147,6 +148,10 @@ public abstract class ReceivePort implements ibis.ipl.ReceivePort,
         }
     }
 
+    protected ReadMessage createReadMessage(SerializationInput in, ReceivePortConnectionInfo info) {
+        return new ReadMessage(in, info);
+    }
+    
     public synchronized void enableUpcalls() {
         allowUpcalls = true;
         notifyAll();

@@ -14,13 +14,13 @@ import java.io.IOException;
  */
 public class WriteMessage implements ibis.ipl.WriteMessage {
 
-    private SerializationOutput out;
+    protected SerializationOutput out;
 
-    private SendPort port;
+    protected SendPort port;
 
-    private boolean isFinished = false;
+    protected boolean isFinished = false;
 
-    private long before;
+    protected long before;
 
     protected WriteMessage(SendPort port) {
         this.port = port;

@@ -83,8 +83,7 @@ public abstract class Ibis implements ibis.ipl.Ibis,
      * ibis implementation.
      */
     protected Ibis(RegistryEventHandler registryHandler, CapabilitySet caps,
-            Properties userProperties,Properties defaultProperties)
-            throws Throwable {
+            Properties userProperties,Properties defaultProperties) {
         boolean needsRegistryCalls = registryHandler != null
                 || caps.hasCapability(RESIZE_DOWNCALLS);
         this.registryHandler = registryHandler;
@@ -103,8 +102,12 @@ public abstract class Ibis implements ibis.ipl.Ibis,
         
         receivePorts = new HashMap<String, ReceivePort>();
         sendPorts = new HashMap<String, SendPort>();
-        registry = Registry.createRegistry(this, needsRegistryCalls,
-                getData());
+        try {
+            registry = Registry.createRegistry(this, needsRegistryCalls,
+                    getData());
+        } catch(Throwable e) {
+            throw new IbisConfigurationException("Coulld not create registry", e);
+        }
         ident = registry.getIbisIdentifier();
         closedWorld = caps.hasCapability(WORLDMODEL_CLOSED);
         if (closedWorld) {
@@ -437,6 +440,16 @@ public abstract class Ibis implements ibis.ipl.Ibis,
      */
     public synchronized SendPort findSendPort(String name) {
         return sendPorts.get(name);
+    }
+
+    public ReceivePortIdentifier createReceivePortIdentifier(String name,
+            IbisIdentifier id) {
+        return new ReceivePortIdentifier(name, id);
+    }
+
+    public SendPortIdentifier createSendPortIdentifier(String name,
+            IbisIdentifier id) {
+        return new SendPortIdentifier(name, id);
     }
 
     // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

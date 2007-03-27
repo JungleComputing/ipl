@@ -77,7 +77,7 @@ public class ReceivePortConnectionInfo {
         }
         in = SerializationBase.createSerializationInput(port.serialization,
                 dataIn);
-        message = new ReadMessage(in, this);
+        message = port.createReadMessage(in, this);
     }
 
     /**
@@ -106,7 +106,7 @@ public class ReceivePortConnectionInfo {
      * The default implementation just allocates a new message.
      */
     protected void upcallCalledFinish() {
-        message = new ReadMessage(in, this);
+        message = port.createReadMessage(in, this);
         if (logger.isDebugEnabled()) {
             logger.debug(port.name + ": new connection handler for " + origin
                     + ", finish called from upcall");

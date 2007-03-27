@@ -40,8 +40,7 @@ public final class NioIbis extends ibis.impl.Ibis {
 
     private SendReceiveThread sendReceiveThread = null;
 
-    public NioIbis(RegistryEventHandler r, CapabilitySet p, Properties tp)
-        throws Throwable {
+    public NioIbis(RegistryEventHandler r, CapabilitySet p, Properties tp) {
 
         super(r, p, tp, null);
         properties.checkProperties(prefix, props, unchecked, true);

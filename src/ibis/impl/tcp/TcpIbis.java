@@ -42,8 +42,7 @@ public final class TcpIbis extends ibis.impl.Ibis
     private HashMap<IbisIdentifier, IbisSocketAddress> addresses
         = new HashMap<IbisIdentifier, IbisSocketAddress>();
 
-    public TcpIbis(RegistryEventHandler r, CapabilitySet p, Properties tp)
-        throws Throwable {
+    public TcpIbis(RegistryEventHandler r, CapabilitySet p, Properties tp) {
 
         super(r, p, tp, null);
 

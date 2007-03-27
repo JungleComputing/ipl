@@ -9,24 +9,25 @@ import java.io.IOException;
 /**
  * Implementation of the {@link ibis.ipl.ReadMessage} interface.
  * This is a complete implementation, but may be extended by an implementation.
- * In that case, the {@link ReceivePortConnectionInfo#newStream()} method
- * must also be redefined.
+ * In that case, the
+ * {@link ReceivePort#createReadMessage(SerializationInput, ReceivePortConnectionInfo)()}
+ * method must also be redefined.
  */
 public class ReadMessage implements ibis.ipl.ReadMessage {
 
-    private SerializationInput in;
+    protected SerializationInput in;
 
-    private ReceivePortConnectionInfo info;
+    protected ReceivePortConnectionInfo info;
 
-    private boolean isFinished = false;
+    protected boolean isFinished = false;
 
-    private long before;
+    protected long before;
 
-    private long sequenceNr = -1;
+    protected long sequenceNr = -1;
 
-    private boolean inUpcall = false;
+    protected boolean inUpcall = false;
 
-    private boolean finishCalledFromUpcall = false;
+    protected boolean finishCalledFromUpcall = false;
 
     public ReadMessage(SerializationInput in, ReceivePortConnectionInfo info) {
         this.in = in;
