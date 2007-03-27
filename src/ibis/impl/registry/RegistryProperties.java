@@ -1,8 +1,8 @@
 package ibis.impl.registry;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.TreeMap;
 
 public class RegistryProperties {
     
@@ -31,27 +31,7 @@ public class RegistryProperties {
     // address of smart sockets hub
     public static final String SERVER_HUB_ADDRESS = SERVER_PREFIX
             + "hubAddress";
-
-
-    // "tcp" and "smartsockets" registry specific properties
-
-    public static final String CLASSIC_PREFIX = PREFIX + "classic.";
-
-    public static final String CLASSIC_PINGER_TIMEOUT = CLASSIC_PREFIX
-            + "pingerTimeout";
-
-    public static final String CLASSIC_CHECKER_INTERVAL = CLASSIC_PREFIX
-            + "checkerInterval";
-
-    public static final String CLASSIC_CONNECT_TIMEOUT = CLASSIC_PREFIX
-            + "connectTimeout";
-
-    public static final String CLASSIC_JOINER_INTERVAL = CLASSIC_PREFIX
-            + "joinerInterval";
-
-    public static final String CLASSIC_MAX_THREADS = CLASSIC_PREFIX
-            + "maxThreads";
-
+  
     // "central" registry specific properties
 
     public static final String CENTRAL_PREFIX = PREFIX + "central.";
@@ -85,24 +65,6 @@ public class RegistryProperties {
             { SERVER_SINGLE, "false",
                     "Boolean: Stop server after one pool has been served" },
 
-            { CLASSIC_PINGER_TIMEOUT, "60",
-                    "Int: seconds until we delare a ping attempt failed" },
-
-            {
-                    CLASSIC_CHECKER_INTERVAL,
-                    "0",
-                    "Int(seconds): How often do we check if each Ibis in the "
-                            + "pool is still alive (0 = never)" },
-
-            { CLASSIC_CONNECT_TIMEOUT, "10",
-                    "Int(seconds): How long may creating a connection take" },
-
-            { CLASSIC_JOINER_INTERVAL, "5",
-                    "Int(seconds): How often do we forward joins to nodes" },
-
-            { CLASSIC_MAX_THREADS, "8",
-                    "Int: Maximum number of forwarder threads" },
-                    
             { CENTRAL_SMARTSOCKETS, "true",
                     "Boolean: if true use smartsockets, if false just plain tcp" },
 
@@ -130,7 +92,7 @@ public class RegistryProperties {
     }
 
     public static Map<String, String> getDescriptions() {
-        Map<String, String> result = new HashMap<String, String>();
+        Map<String, String> result = new TreeMap<String, String>();
 
         for (String[] element : propertiesList) {
             result.put(element[0], element[2]);

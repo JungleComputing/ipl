@@ -37,10 +37,10 @@
 # protocol sends a UDP packet to an external server which returns a UDP packet 
 # containing the global address of the sending machine. This mechanism is 
 # usually quite fast, but may take longer if is encounters a stubborn firewall 
-# on its path. The default value is true. A list of STUN servers can also be 
+# on its path. The default value is false. A list of STUN servers can also be 
 # specified.
 #
-# smartsockets.networks.external.stun=true
+# smartsockets.networks.external.stun=false
 # smartsockets.networks.external.stun.servers=iphone-stun.freenet.de,stun.xten.net,stun.fwdnet.net,stun.fwd.org
 
 # Should UPnP be used to discover the external address of a machine ? The UPnP 
@@ -51,6 +51,14 @@
 # or Cable modems. The default value is false
 #
 # smartsockets.networks.external.upnp=false
+#
+# If UPnP is used, it is possible to enable 'port forwarding' which,  
+# upon creation of a serversocket, will signal the UPnP device to allocate an 
+# external port number and automatically forward all incoming connections to the 
+# serversocket. The default value is false. Note that this may not work on all 
+# UPnP devices.
+#
+# smartsockets.networks.external.upnp.forwarding=false
 
 # If required, the user can also explicitly set the global network address of 
 # the machine. Note that this is not necessary, since smartsockets will usually 
@@ -63,11 +71,22 @@
 # established or the operation times out. The order in which the addresses are 
 # tried can be specified here. 
 
-# By default smartsockets will first try to connect to a site-local address, 
-# then to a link-local address, and finally to a global address. If required, 
-# you can change this order here.
+# By default smartsockets will try to come up with a reasonable order in which 
+# to connect. For example, if two machine both have a global address and a local
+# one (in the same range), the local address will by tried first. On the other 
+# hand, if a machine with a single global address tries to connect to a machine 
+# with several local addresses and a global one, the global address will be 
+# tried first. If required, it is also possible to force a specific order here, 
+# for example: 
+# 
+#    "..=site,link,global"
 #
-# smartsockets.networks.default=site,link,global
+# This example will always try site local addresses first, followed by link local 
+# and global addresses.
+#
+# The default setting is 'auto'.
+#130.37.199.2
+# smartsockets.networks.default=auto
 
 ###
 # Smartsockets also allows you define rules which specify the connection order 
@@ -77,56 +96,41 @@
 
 # Start by defining the five networks (one for each cluster).
 #
-smartsockets.networks.define=fs0,fs1,fs2,fs3,fs4,supermike,minimike,fwg
-
+# smartsockets.networks.define=fs0,fs1,fs2,fs3,fs4
+ 
 # Next, we specify which machines belong to each network, and how they should 
 # setup connections inside the network cluster and between 
 # networks
 
 # The network of the fs0 (VU) cluster
 #
-smartsockets.networks.fs0.range=130.37.199.0/255.255.255.0,!130.37.199.2
-smartsockets.networks.fs0.preference.internal=192.168.0.0/255.255.255.0
-smartsockets.networks.fs0.preference.default=global
-
+# smartsockets.networks.fs0.range=130.37.199.0/255.255.255.0
+# smartsockets.networks.fs0.preference.internal=192.168.0.0/255.255.255.0
+# smartsockets.networks.fs0.preference.default=global
+130.37.199.2
 # The network of the fs1 (Leiden) cluster
 #
-smartsockets.networks.fs1.range=132.229.24.0/255.255.255.0
-smartsockets.networks.fs1.preference.internal=192.168.0.0/255.255.255.0
-smartsockets.networks.fs1.preference.default=global
+# smartsockets.networks.fs1.range=132.229.24.0/255.255.255.0
+# smartsockets.networks.fs1.preference.internal=192.168.0.0/255.255.255.0
+# smartsockets.networks.fs1.preference.default=global
 
 # The network of the fs2 (UvA) cluster
 #
-smartsockets.networks.fs2.range=192.16.186.0/255.255.255.0
-smartsockets.networks.fs2.preference.internal=192.168.0.0/255.255.255.0
-smartsockets.networks.fs2.preference.default=global
+# smartsockets.networks.fs2.range=192.16.186.0/255.255.255.0
+# smartsockets.networks.fs2.preference.internal=192.168.0.0/255.255.255.0
+# smartsockets.networks.fs2.preference.default=global
 
 # The network of the fs3 (Delft) cluster
 #
-smartsockets.networks.fs3.range=130.161.211.0/255.255.255.0
-smartsockets.networks.fs3.preference.internal=192.168.0.0/255.255.255.0
-smartsockets.networks.fs3.preference.default=global
+# smartsockets.networks.fs3.range=130.161.211.0/255.255.255.0
+# smartsockets.networks.fs3.preference.internal=192.168.0.0/255.255.255.0
+# smartsockets.networks.fs3.preference.default=global
 
 # The network of the fs4 (Utrecht) cluster
 #
-smartsockets.networks.fs4.range=131.211.38.0/255.255.255.0
-smartsockets.networks.fs4.preference.internal=192.168.0.0/255.255.255.0
-smartsockets.networks.fs4.preference.default=global
-
-# The SuperMike (USA) cluster
-smartsockets.networks.supermike.range=204.90.41.0/255.255.252.0
-smartsockets.networks.supermike.preference.internal=172.17.0.0/255.255.0.0
-smartsockets.networks.supermike.preference.default=global
-
-# The MiniMike (USA) cluster
-smartsockets.networks.minimike.range=204.90.40.0/255.255.0.0
-smartsockets.networks.minimike.preference.internal=172.17.0.0/255.255.0.0
-smartsockets.networks.minimike.preference.default=global
-
-# The FWGrid (USA) cluster
-smartsockets.networks.fwg.range=137.110.131.0/255.255.255.0
-smartsockets.networks.fwg.preference.internal=10.1.0.0/255.255.0.0
-smartsockets.networks.fwg.preference.default=137.110.131.0/255.255.255.0,global
+# smartsockets.networks.fs4.range=131.211.38.0/255.255.255.0
+# smartsockets.networks.fs4.preference.internal=192.168.0.0/255.255.255.0
+# smartsockets.networks.fs4.preference.default=global
 
 # End of the low-level network section. 
 ################################################################################
@@ -142,7 +146,7 @@ smartsockets.networks.fwg.preference.default=137.110.131.0/255.255.255.0,global
 # These are the available high-level modules. The default value is 
 # 'direct,reverse,splice,routed'
 #
-# smartsockets.modules.define=direct,reverse,splice,routed
+smartsockets.modules.define=direct,hubrouted
 
 # For each of the modules used, we specify the name of the class implementing 
 # the module. This allows the modules to be loaded dynamically. If no class 
@@ -153,10 +157,11 @@ smartsockets.networks.fwg.preference.default=137.110.131.0/255.255.255.0,global
 # where <name> is the module name in lower-case and <Name> is the module name 
 # starting with an upper-case letter.
 #
-# smartsockets.modules.direct=smartsockets.virtual.modules.direct.Direct
-# smartsockets.modules.reverse=smartsockets.virtual.modules.reverse.Reverse
+smartsockets.modules.direct=smartsockets.virtual.modules.direct.Direct
+#smartsockets.modules.reverse=smartsockets.virtual.modules.reverse.Reverse
 # smartsockets.modules.splice=smartsockets.virtual.modules.splice.Splice
 # smartsockets.modules.routed=smartsockets.virtual.modules.routed.Routed
+smartsockets.modules.hubrouted=smartsockets.virtual.modules.hubrouted.HubRouted
 
 ###
 # We now define in which order the modules should be tried when a connection is   
@@ -164,19 +169,41 @@ smartsockets.networks.fwg.preference.default=137.110.131.0/255.255.255.0,global
 # necessary to use all of the modules here. The default order is: 
 # 'direct,reverse,splice,routed' 
 #
-# smartsockets.modules.order=direct,reverse,splice,routed
+smartsockets.modules.order=direct,hubrouted
 
 ###
 # Most of the modules require out-of-band control messages to set up a  
-# connection to other machines. These control messages are send to 'proxy' 
-# who will forward them (possibly via several other proxies) to the destination 
-# machine. Using this property a default proxy location can be specified. If 
-# this property is not set, smartsockets will try to locate a proxy on the 
-# local network using UDP multicast. If this fails, some of the modules will not 
-# work. Note that this property can also be set on the command line during 
-# application startup.    
+# connection to other machines. These control messages are send to a 'hub' 
+# who will forward them (possibly via several other hubs) to the destination 
+# machine. Using this property a default hub location can be specified. If 
+# this property is not set, smartsockets will try to locate a hub on the 
+# local network using UDP multicast. Port and timeout values related to this 
+# multicast are shown below. If the multicast fails, some of the modules will 
+# not work. Note that this property can also be set on the command line during 
+# application startup.     
 #
-# smartsockets.proxy=
+# smartsockets.hub.address=
+#
+# The Hub itself can also be configured using the following poperties. It is 
+# possible to change the port the hub accepts connections on, define a list of 
+# 'virtual clusters' (explained below) to which it should limit is services, and 
+# define a simple human-readable name which makes is easier to read the 
+# debugging output.
+#
+smartsockets.hub.port=23456
+# smartsockets.hub.clusters=
+# smartsockets.hub.simple_name=
+
+
+###
+# These properties determine the port at which the hubs listnens to lookup 
+# requests of the clients. The timeout is used on the client side to determine 
+# how long the client should wait for a reply. The default values are port 
+# 24545, and a timeout of 5 seconds.
+#
+smartsockets.discovery.port=23458
+# smartsockets.discovery.sleep=
+
 
 ###
 # Smartsockets can define 'virtual clusters'; sets of machines which have  
@@ -186,7 +213,7 @@ smartsockets.networks.fwg.preference.default=137.110.131.0/255.255.255.0,global
 
 # Start by defining the three 'virtual clusters'.
 #
-smartsockets.cluster.define=routers,cluster1,cluster2
+# smartsockets.cluster.define=routers,cluster1,cluster2
 
 # Next, we specify for each of the clusters how we can determine if a machine is
 # part of the cluster, and how connection setup works inside and between the 
@@ -203,16 +230,16 @@ smartsockets.cluster.define=routers,cluster1,cluster2
 
 # The setup for virtual cluster 'routers'
 #
-smartsockets.cluster.routers.preference.membership=manual
-smartsockets.cluster.routers.preference.inside=direct
-smartsockets.cluster.routers.preference.default=direct
+#smartsockets.cluster.routers.preference.membership=manual
+#smartsockets.cluster.routers.preference.inside=direct,reverse,splice
+#smartsockets.cluster.routers.preference.default=direct,reverse,splice
 
 # The setup for virtual cluster 'cluster1'
 # 
 smartsockets.cluster.cluster1.preference.membership=manual
 smartsockets.cluster.cluster1.preference.inside=direct
 smartsockets.cluster.cluster1.preference.routers=direct
-smartsockets.cluster.cluster1.preference.cluster2=routed
+smartsockets.cluster.cluster1.preference.cluster2=hubrouted
 smartsockets.cluster.cluster1.preference.default=none
 
 # The setup for virtual cluster 'cluster2'
@@ -220,7 +247,7 @@ smartsockets.cluster.cluster1.preference.default=none
 smartsockets.cluster.cluster2.preference.membership=manual
 smartsockets.cluster.cluster2.preference.inside=direct
 smartsockets.cluster.cluster2.preference.routers=direct
-smartsockets.cluster.cluster2.preference.cluster1=routed
+smartsockets.cluster.cluster2.preference.cluster1=hubrouted
 smartsockets.cluster.cluster2.preference.default=none
 
 ###
@@ -229,9 +256,6 @@ smartsockets.cluster.cluster2.preference.default=none
 #
 # smartsockets.default.backlog=20
 # smartsockets.default.timeout=1000
-#
-# smartsockets.discovery.port=24545
-# smartsockets.discovery.sleep=5000
 
 # End of high-level section.
 ################################################################################

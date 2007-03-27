@@ -29,8 +29,9 @@ class IbisSocketFactory {
         if (useSmartsockets) {
             TcpIbis.logger.info("Using smartsockets TcpIbis");
             try {
-                factory = VirtualSocketFactory.getOrCreateSocketFactory(
-                        "ibis", props, true);
+//                factory = VirtualSocketFactory.getOrCreateSocketFactory(
+//                        "ibis", props, true);
+              factory = VirtualSocketFactory.getDefaultSocketFactory();
             } catch(InitializationException e) {
                 throw new IOException("Failed to create socket factory");
             }

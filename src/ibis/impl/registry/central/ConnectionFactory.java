@@ -61,7 +61,7 @@ public class ConnectionFactory {
     }
 
     ConnectionFactory(boolean smart, String serverString,
-            int defaultServerPort, Properties defaults) throws IOException {
+            int defaultServerPort) throws IOException {
         this.smart = smart;
 
         if (smart) {
@@ -70,19 +70,15 @@ public class ConnectionFactory {
             plainLocalAddress = null;
 
             try {
-                virtualSocketFactory = VirtualSocketFactory
-                        .getOrCreateSocketFactory("ibis", defaults, true);
-                // virtualSocketFactory = VirtualSocketFactory
-                //         .getDefaultSocketFactory();
+//                virtualSocketFactory = VirtualSocketFactory
+//                        .getOrCreateSocketFactory("ibis", defaults, true);
+                 virtualSocketFactory = VirtualSocketFactory
+                         .getDefaultSocketFactory();
             } catch (InitializationException e) {
                 throw new IOException("could not initialize socket factory: "
                         + e);
             }
-
-            // serverSocket = socketFactory.createServerSocket(0,
-            // CONNECTION_BACKLOG,
-            // null);
-
+            
             virtualServerSocket = virtualSocketFactory.createServerSocket(0,
                     CONNECTION_BACKLOG, null);
 
@@ -125,8 +121,8 @@ public class ConnectionFactory {
         }
     }
 
-    ConnectionFactory(int port, boolean smart, String hubAddress,
-            Properties defaults) throws IOException {
+    ConnectionFactory(int port, boolean smart, String hubAddress
+            ) throws IOException {
         this.smart = smart;
 
         if (port < 0) {
@@ -140,7 +136,7 @@ public class ConnectionFactory {
             plainLocalAddress = null;
 
             try {
-                Properties smartProperties = new Properties(defaults);
+                Properties smartProperties = new Properties();
                 if (hubAddress != null) {
                     smartProperties.setProperty(
                             smartsockets.Properties.HUB_ADDRESS, hubAddress);
