@@ -3,48 +3,49 @@
 #### Generic Ibis properties ####
 
 # Boolean: If true, makes Ibis more verbose, if false, does not
-# ibis.verbose = false
+#ibis.verbose=false
 
 # Path used to find Ibis implementations
-# ibis.impl.path = null
+#ibis.impl.path=null
 
 # Name of the property file used for the configuration of Ibis
-# ibis.properties.file = null
+#ibis.properties.file=null
 
 # Native library path
-# ibis.library.path = null
+#ibis.library.path=null
 
 #### Ibis Generic Registry properties ####
-#
+
 # Pool to join
-# ibis.registry.pool = DEFAULT
+#ibis.registry.pool=DEFAULT
 
 # Implementation of the registry server (must match client)
-# ibis.registry.server.impl = ibis.impl.registry.central.Server
+#ibis.registry.server.impl=ibis.impl.registry.central.Server
 
 # Int: Port which the server binds to
-# ibis.registry.server.port = 9826
+#ibis.registry.server.port=9826
 
 # Boolean: Stop server after one pool has been served
-# ibis.registry.server.single = false
+#ibis.registry.server.single=false
 
 # Socket Address of server to connect to
-# ibis.registry.serverAddress = localhost:9826
+#ibis.registry.serverAddress=localhost:9826
 
 # Implementation of registry(client)
-# ibis.registry.impl = ibis.impl.registry.central.Registry
+#ibis.registry.impl=ibis.impl.registry.central.Registry
 
-#### Ibis Central Registry properties
+#### Ibis Central Registry properties ####
 
 # Boolean: do we gossip, or send events centrally
-# ibis.registry.central.gossip = false
+#ibis.registry.central.gossip=false
 
 # Boolean: do we keep track of which events nodes have
-# ibis.registry.central.keepNodeState = false
+#ibis.registry.central.keepNodeState=false
 
 # int(seconds): how long do we attempt to connect to the server
-# ibis.registry.central.serverConnectTimeout = 120
+#ibis.registry.central.serverConnectTimeout=120
 
 # Boolean: if true use smartsockets, if false just plain tcp
-# ibis.registry.central.smartSockets = true
+#ibis.registry.central.smartSockets=true
+
 

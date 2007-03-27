@@ -190,9 +190,11 @@ final class Pool implements Runnable {
         events.add(new Event(events.size(), Event.DIED, identifier, null));
         notifyAll();
 
-        for (Map.Entry<String, IbisIdentifier> entry : elections.entrySet()) {
+        Iterator<Map.Entry<String, IbisIdentifier>> iterator = elections.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<String, IbisIdentifier> entry = iterator.next();
             if (entry.getValue().equals(identifier)) {
-                elections.remove(entry.getKey());
+                iterator.remove();
 
                 events.add(new Event(events.size(), Event.UN_ELECT, identifier,
                         entry.getKey()));
