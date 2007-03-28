@@ -178,23 +178,18 @@ public final class Communication implements Config, Protocol,
     }
 
     public void bcastMessage(byte opcode) {
-        int size = 0;
+        Victim[] victims;
         synchronized (s) {
-            size = s.victims.size();
+            victims = s.victims.victims();
         }
 
-        for (int i = 0; i < size; i++) {
-            Victim v = null;
+        for (int i = 0; i < victims.length; i++) {
+            Victim v = victims[i];
+            commLogger.debug("SATIN '" + s.ident + "': sending "
+                    + opcodeToString(opcode) + " message to "
+                    + v.getIdent());
             try {
-                WriteMessage writeMessage;
-                synchronized (s) {
-                    v = s.victims.getVictim(i);
-                }
-                commLogger.debug("SATIN '" + s.ident + "': sending "
-                        + opcodeToString(opcode) + " message to "
-                        + v.getIdent());
-
-                writeMessage = v.newMessage();
+                WriteMessage writeMessage = v.newMessage();
                 writeMessage.writeByte(opcode);
                 v.finish(writeMessage);
             } catch (IOException e) {
