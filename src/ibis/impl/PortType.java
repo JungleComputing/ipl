@@ -2,8 +2,8 @@
 
 package ibis.impl;
 
-import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.CapabilitySet;
+import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.ipl.Upcall;

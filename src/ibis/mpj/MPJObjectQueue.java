@@ -5,7 +5,7 @@
  */
 package ibis.mpj;
 
-import java.util.*;
+import java.util.Vector;
 
 /**
  * The queue which holds all received objects, which were not expected.

@@ -3,8 +3,6 @@
  */
 package ibis.satin.impl.aborts;
 
-import java.io.IOException;
-
 import ibis.ipl.ReadMessage;
 import ibis.ipl.WriteMessage;
 import ibis.satin.impl.Config;
@@ -13,6 +11,8 @@ import ibis.satin.impl.communication.Protocol;
 import ibis.satin.impl.loadBalancing.Victim;
 import ibis.satin.impl.spawnSync.InvocationRecord;
 import ibis.satin.impl.spawnSync.Stamp;
+
+import java.io.IOException;
 
 final class AbortsCommunication implements Config {
     private Satin s;

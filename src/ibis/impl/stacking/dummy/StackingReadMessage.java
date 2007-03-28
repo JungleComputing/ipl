@@ -1,10 +1,10 @@
 package ibis.impl.stacking.dummy;
 
-import java.io.IOException;
-
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.SendPortIdentifier;
+
+import java.io.IOException;
 
 public class StackingReadMessage implements ReadMessage {
     

@@ -5,8 +5,15 @@
  */
 package ibis.mpj;
 
-import ibis.ipl.*;
-import java.io.*;
+import ibis.ipl.IbisIdentifier;
+import ibis.ipl.PortType;
+import ibis.ipl.ReadMessage;
+import ibis.ipl.ReceivePort;
+import ibis.ipl.Registry;
+import ibis.ipl.SendPort;
+import ibis.ipl.WriteMessage;
+
+import java.io.IOException;
 
 /**
  * Holds all information about a connection between two nodes.

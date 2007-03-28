@@ -6,8 +6,9 @@
 package ibis.mpj;
 
 
-import java.io.*;
-import java.util.*;
+import java.io.Serializable;
+import java.util.Arrays;
+import java.util.Comparator;
 
 /**
  * Implementation of the collective operation: split.

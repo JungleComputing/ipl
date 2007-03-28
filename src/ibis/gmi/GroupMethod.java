@@ -2,9 +2,9 @@
 
 package ibis.gmi;
 
-import java.util.Arrays;
-
 import ibis.ipl.SendPort;
+
+import java.util.Arrays;
 
 /**
  * A {@link GroupMethod} object represents a method of a specific group

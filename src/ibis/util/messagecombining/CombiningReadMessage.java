@@ -8,13 +8,13 @@
  */
 package ibis.util.messagecombining;
 
-import java.io.IOException;
-
 import ibis.io.SerializationBase;
 import ibis.io.SerializationInput;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.SendPortIdentifier;
+
+import java.io.IOException;
 
 public class CombiningReadMessage implements ReadMessage {
 

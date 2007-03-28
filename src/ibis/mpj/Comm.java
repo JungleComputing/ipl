@@ -6,11 +6,20 @@
 package ibis.mpj;
 
 
-import ibis.io.*;
+import ibis.io.BufferedArrayInputStream;
+import ibis.io.BufferedArrayOutputStream;
+import ibis.io.IbisSerializationInputStream;
+import ibis.io.IbisSerializationOutputStream;
+import ibis.io.SerializationInput;
+import ibis.io.SerializationOutput;
 import ibis.ipl.IbisIdentifier;
 
-import java.io.*;
-import java.util.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.Vector;
 
 /**
  * Communicator for point-to-point messages.

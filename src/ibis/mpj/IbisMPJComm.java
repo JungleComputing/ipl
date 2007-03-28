@@ -6,7 +6,8 @@
 package ibis.mpj;
 
 
-import ibis.ipl.*;
+import ibis.ipl.IbisIdentifier;
+import ibis.ipl.ReadMessage;
 
 
 

@@ -1,8 +1,5 @@
 package ibis.impl.stacking.dummy;
 
-import java.io.IOException;
-import java.util.Properties;
-
 import ibis.impl.Ibis;
 import ibis.impl.PortType;
 import ibis.ipl.CapabilitySet;
@@ -11,6 +8,9 @@ import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.SendPort;
 import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.ipl.Upcall;
+
+import java.io.IOException;
+import java.util.Properties;
 
 public class StackingPortType extends PortType {
     

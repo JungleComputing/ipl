@@ -2,13 +2,13 @@
 
 package ibis.util.messagecombining;
 
-import java.io.IOException;
-
+import ibis.io.Replacer;
 import ibis.io.SerializationBase;
 import ibis.io.SerializationOutput;
 import ibis.ipl.SendPort;
-import ibis.io.Replacer;
 import ibis.ipl.WriteMessage;
+
+import java.io.IOException;
 
 public class CombiningWriteMessage implements WriteMessage {
 

@@ -1,8 +1,8 @@
 package ibis.impl.registry.central;
 
-import org.apache.log4j.Logger;
-
 import ibis.impl.IbisIdentifier;
+
+import org.apache.log4j.Logger;
 
 public class Member {
     

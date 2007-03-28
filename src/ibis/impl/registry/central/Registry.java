@@ -1,19 +1,21 @@
 package ibis.impl.registry.central;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
-
-import org.apache.log4j.Logger;
-
 import ibis.impl.IbisIdentifier;
 import ibis.impl.Location;
 import ibis.impl.registry.RegistryProperties;
 import ibis.ipl.IbisConfigurationException;
+import ibis.ipl.RegistryEventHandler;
 import ibis.util.ThreadPool;
 import ibis.util.TypedProperties;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Random;
+
+import org.apache.log4j.Logger;
 
 /**
  * Gossiping registry.
@@ -57,7 +59,7 @@ public final class Registry extends ibis.impl.Registry implements Runnable {
 
     private final int serverConnectTimeout;
 
-    public Registry(ibis.impl.Ibis ibis, boolean needsUpcalls, byte[] data)
+    public Registry(RegistryEventHandler handler, Properties props, boolean needsUpcalls, byte[] data)
             throws IOException, IbisConfigurationException {
 
         events = new ArrayList<Event>();
@@ -66,7 +68,7 @@ public final class Registry extends ibis.impl.Registry implements Runnable {
 
         random = new Random();
 
-        TypedProperties properties = new TypedProperties(ibis.properties());
+        TypedProperties properties = new TypedProperties(props);
         String serverString = properties
                 .getProperty(RegistryProperties.SERVER_ADDRESS);
 
@@ -126,7 +128,7 @@ public final class Registry extends ibis.impl.Registry implements Runnable {
 
         // start sending events to the ibis instance we belong to
         if (needsUpcalls) {
-            new Upcaller(ibis, this);
+            new Upcaller(handler, identifier, this);
         }
 
         // start handling incoming connections

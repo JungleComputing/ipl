@@ -39,8 +39,8 @@ public final class TcpIbis extends ibis.impl.Ibis
 
     private boolean quiting = false;
 
-    private HashMap<IbisIdentifier, IbisSocketAddress> addresses
-        = new HashMap<IbisIdentifier, IbisSocketAddress>();
+    private HashMap<ibis.ipl.IbisIdentifier, IbisSocketAddress> addresses
+        = new HashMap<ibis.ipl.IbisIdentifier, IbisSocketAddress>();
 
     public TcpIbis(RegistryEventHandler r, CapabilitySet p, Properties tp) {
 
@@ -69,21 +69,17 @@ public final class TcpIbis extends ibis.impl.Ibis
         return new TcpPortType(this, p, tp);
     }
 
-    public void left(IbisIdentifier[] ids) {
-        super.left(ids);
+    public void left(ibis.ipl.IbisIdentifier id) {
+        super.left(id);
         synchronized(addresses) {
-            for (int i = 0; i < ids.length; i++) {
-                addresses.remove(ids[i]);
-            }
+            addresses.remove(id);
         }
     }
 
-    public void died(IbisIdentifier[] ids) {
-        super.died(ids);
+    public void died(ibis.ipl.IbisIdentifier id) {
+        super.died(id);
         synchronized(addresses) {
-            for (int i = 0; i < ids.length; i++) {
-                addresses.remove(ids[i]);
-            }
+            addresses.remove(id);
         }
     }
 

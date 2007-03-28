@@ -10,6 +10,7 @@ import ibis.rmi.impl.RTS;
 import ibis.rmi.registry.Registry;
 
 import java.io.IOException;
+
 import org.apache.log4j.Logger;
 
 public final class RegistryWrapper implements Registry {

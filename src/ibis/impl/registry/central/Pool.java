@@ -1,5 +1,9 @@
 package ibis.impl.registry.central;
 
+import ibis.impl.IbisIdentifier;
+import ibis.impl.Location;
+import ibis.util.ThreadPool;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -10,10 +14,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
-
-import ibis.impl.IbisIdentifier;
-import ibis.impl.Location;
-import ibis.util.ThreadPool;
 
 final class Pool implements Runnable {
 
@@ -267,7 +267,7 @@ final class Pool implements Runnable {
             }
         }
         events.add(new Event(events.size(), Event.SIGNAL, result
-                .toArray(new IbisIdentifier[0]), signal));
+                .toArray(new IbisIdentifier[result.size()]), signal));
         notifyAll();
 
     }

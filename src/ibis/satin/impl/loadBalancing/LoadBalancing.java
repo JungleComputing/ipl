@@ -3,9 +3,6 @@
  */
 package ibis.satin.impl.loadBalancing;
 
-import java.io.IOException;
-import java.util.ArrayList;
-
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.SendPortIdentifier;
@@ -15,6 +12,9 @@ import ibis.satin.impl.spawnSync.IRVector;
 import ibis.satin.impl.spawnSync.InvocationRecord;
 import ibis.satin.impl.spawnSync.ReturnRecord;
 import ibis.satin.impl.spawnSync.Stamp;
+
+import java.io.IOException;
+import java.util.ArrayList;
 
 public class LoadBalancing implements Config {
     

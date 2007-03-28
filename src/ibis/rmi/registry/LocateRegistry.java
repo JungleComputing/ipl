@@ -2,9 +2,9 @@
 
 package ibis.rmi.registry;
 
-import ibis.rmi.registry.impl.RegistryWrapper;
 import ibis.rmi.RemoteException;
 import ibis.rmi.impl.RTS;
+import ibis.rmi.registry.impl.RegistryWrapper;
 import ibis.rmi.server.RMIClientSocketFactory;
 import ibis.rmi.server.RMIServerSocketFactory;
 

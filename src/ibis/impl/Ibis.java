@@ -3,10 +3,10 @@
 package ibis.impl;
 
 import ibis.impl.registry.RegistryProperties;
+import ibis.ipl.CapabilitySet;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.IbisProperties;
 import ibis.ipl.RegistryEventHandler;
-import ibis.ipl.CapabilitySet;
 import ibis.util.Log;
 import ibis.util.TypedProperties;
 
@@ -22,7 +22,7 @@ import org.apache.log4j.Logger;
  * This implementation of the {@link ibis.ipl.Ibis} interface 
  * is a base class, to be extended by specific Ibis implementations.
  */
-public abstract class Ibis implements ibis.ipl.Ibis,
+public abstract class Ibis implements ibis.ipl.Ibis, RegistryEventHandler,
        ibis.ipl.PredefinedCapabilities {
 
     /** Debugging output. */
@@ -103,7 +103,7 @@ public abstract class Ibis implements ibis.ipl.Ibis,
         receivePorts = new HashMap<String, ReceivePort>();
         sendPorts = new HashMap<String, SendPort>();
         try {
-            registry = Registry.createRegistry(this, needsRegistryCalls,
+            registry = Registry.createRegistry(this, properties, needsRegistryCalls,
                     getData());
         } catch(Throwable e) {
             throw new IbisConfigurationException("Coulld not create registry", e);
@@ -244,23 +244,18 @@ public abstract class Ibis implements ibis.ipl.Ibis,
      * @param joinIdents the Ibis {@linkplain IbisIdentifier
      * identifiers} of the Ibis instances joining the run.
      */
-    public void joined(IbisIdentifier[] joinIdents) {
+    public void joined(ibis.ipl.IbisIdentifier joinIdent) {
         if (registryHandler != null) {
             waitForEnabled();
-            for (int i = 0; i < joinIdents.length; i++) {
-                IbisIdentifier id = joinIdents[i];
-                registryHandler.joined(id);
-            }
+            registryHandler.joined(joinIdent);
             synchronized(this) {
                 busyUpcaller = false;
             }
         }
         if (joinedIbises != null) {
             synchronized(this) {
-                for (int i = 0; i < joinIdents.length; i++) {
-                    joinedIbises.add(joinIdents[i]);
-                }
-            }
+                joinedIbises.add(joinIdent);
+             }
         }
     }
 
@@ -270,22 +265,17 @@ public abstract class Ibis implements ibis.ipl.Ibis,
      * @param leaveIdents the Ibis {@linkplain IbisIdentifier
      *  identifiers} of the Ibis instances leaving the run.
      */
-    public void left(IbisIdentifier[] leaveIdents) {
+    public void left(ibis.ipl.IbisIdentifier leaveIdent) {
         if (registryHandler != null) {
             waitForEnabled();
-            for (int i = 0; i < leaveIdents.length; i++) {
-                IbisIdentifier id = leaveIdents[i];
-                registryHandler.left(id);
-            }
+            registryHandler.left(leaveIdent);
             synchronized(this) {
                 busyUpcaller = false;
             }
         }
         if (leftIbises != null) {
             synchronized(this) {
-                for (int i = 0; i < leaveIdents.length; i++) {
-                    leftIbises.add(leaveIdents[i]);
-                }
+                leftIbises.add(leaveIdent);
             }
         }
     }
@@ -296,22 +286,17 @@ public abstract class Ibis implements ibis.ipl.Ibis,
      * @param corpses the Ibis {@linkplain IbisIdentifier
      *  identifiers} of the Ibis instances that died.
      */
-    public void died(IbisIdentifier[] corpses) {
+    public void died(ibis.ipl.IbisIdentifier corpse) {
         if (registryHandler != null) {
             waitForEnabled();
-            for (int i = 0; i < corpses.length; i++) {
-                IbisIdentifier id = corpses[i];
-                registryHandler.died(id);
-            }
+            registryHandler.died(corpse);
             synchronized(this) {
                 busyUpcaller = false;
             }
         }
         if (leftIbises != null) {
             synchronized(this) {
-                for (int i = 0; i < corpses.length; i++) {
-                    leftIbises.add(corpses[i]);
-                }
+                leftIbises.add(corpse);
             }
         }
     }

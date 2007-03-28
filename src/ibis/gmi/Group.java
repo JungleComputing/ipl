@@ -2,6 +2,7 @@
 
 package ibis.gmi;
 
+import ibis.ipl.CapabilitySet;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisFactory;
 import ibis.ipl.IbisIdentifier;
@@ -12,20 +13,16 @@ import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.Registry;
 import ibis.ipl.SendPort;
-import ibis.ipl.CapabilitySet;
 import ibis.ipl.WriteMessage;
-
 import ibis.util.Ticket;
 
 import java.io.IOException;
-
 import java.util.ArrayList;
-
 import java.util.Hashtable;
 import java.util.StringTokenizer;
 
-import org.apache.log4j.Logger;
 import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
 import org.apache.log4j.WriterAppender;
 

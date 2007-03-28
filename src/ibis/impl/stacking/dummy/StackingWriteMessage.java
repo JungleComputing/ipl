@@ -1,9 +1,9 @@
 package ibis.impl.stacking.dummy;
 
-import java.io.IOException;
-
 import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
+
+import java.io.IOException;
 
 public class StackingWriteMessage implements ibis.ipl.WriteMessage {
     

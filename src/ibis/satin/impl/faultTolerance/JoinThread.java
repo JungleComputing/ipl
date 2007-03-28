@@ -3,11 +3,11 @@
  */
 package ibis.satin.impl.faultTolerance;
 
-import java.util.ArrayList;
-
 import ibis.ipl.IbisIdentifier;
 import ibis.satin.impl.Config;
 import ibis.satin.impl.Satin;
+
+import java.util.ArrayList;
 
 class JoinThread extends Thread implements Config {
     private static final boolean CACHE_JOINS = true;

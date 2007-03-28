@@ -2,9 +2,10 @@
 
 package ibis.util.messagecombining;
 
-import java.io.IOException;
 import ibis.io.DataOutputStream;
 import ibis.ipl.WriteMessage;
+
+import java.io.IOException;
 
 final class StoreArrayOutputStream extends DataOutputStream {
     

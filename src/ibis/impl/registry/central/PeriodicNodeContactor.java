@@ -1,5 +1,7 @@
 package ibis.impl.registry.central;
 
+import ibis.util.ThreadPool;
+
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.RejectedExecutionException;
@@ -8,8 +10,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
-
-import ibis.util.ThreadPool;
 
 class PeriodicNodeContactor implements Runnable {
 

@@ -6,9 +6,9 @@ import ibis.impl.Ibis;
 import ibis.impl.PortType;
 import ibis.impl.ReceivePort;
 import ibis.impl.SendPort;
+import ibis.ipl.CapabilitySet;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.SendPortDisconnectUpcall;
-import ibis.ipl.CapabilitySet;
 import ibis.ipl.Upcall;
 
 import java.io.IOException;

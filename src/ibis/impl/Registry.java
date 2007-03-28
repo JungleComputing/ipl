@@ -3,8 +3,10 @@
 package ibis.impl;
 
 import ibis.ipl.IbisConfigurationException;
+import ibis.ipl.RegistryEventHandler;
 
 import java.io.IOException;
+import java.util.Properties;
 
 /** 
  * This implementation of the {@link ibis.ipl.Registry} interface
@@ -39,13 +41,14 @@ public abstract class Registry implements ibis.ipl.Registry {
      * @exception Throwable can be any exception resulting from looking up
      * the registry constructor or the invocation attempt.
      */
-    public static Registry createRegistry(Ibis ibis, boolean needsUpcalls,
-            byte[] data) throws Throwable {
+    public static Registry createRegistry(RegistryEventHandler handler,
+            Properties properties, boolean needsUpcalls, byte[] data)
+            throws Throwable {
 
         // You can get properties and capabilities from the ibis instance
         // here.
 
-        String registryName = ibis.properties.getProperty("ibis.registry.impl");
+        String registryName = properties.getProperty("ibis.registry.impl");
 
         if (registryName == null) {
             throw new IbisConfigurationException("Could not create registry: "
@@ -56,8 +59,9 @@ public abstract class Registry implements ibis.ipl.Registry {
 
         try {
             return (Registry) c.getConstructor(new Class[] {
-                    Ibis.class, boolean.class, byte[].class}).newInstance(
-                        new Object[] {ibis, needsUpcalls, data});
+                    RegistryEventHandler.class, Properties.class,
+                    boolean.class, byte[].class}).newInstance(
+                        new Object[] {handler, properties, needsUpcalls, data});
         } catch (java.lang.reflect.InvocationTargetException e) {
             throw e.getCause();
         }

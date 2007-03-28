@@ -9,6 +9,7 @@ import java.nio.channels.GatheringByteChannel;
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
+
 import org.apache.log4j.Logger;
 
 final class NonBlockingChannelNioAccumulator extends NioAccumulator {

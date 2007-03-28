@@ -2,10 +2,10 @@
 
 package ibis.impl;
 
+import ibis.io.DataOutputStream;
 import ibis.io.Replacer;
 import ibis.io.SerializationBase;
 import ibis.io.SerializationOutput;
-import ibis.io.DataOutputStream;
 import ibis.ipl.AlreadyConnectedException;
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.ConnectionTimedOutException;
@@ -15,8 +15,8 @@ import ibis.ipl.SendPortDisconnectUpcall;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Map;
 import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 

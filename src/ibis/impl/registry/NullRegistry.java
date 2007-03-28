@@ -1,11 +1,12 @@
 package ibis.impl.registry;
 
-import ibis.impl.Ibis;
 import ibis.impl.IbisIdentifier;
 import ibis.impl.Location;
 import ibis.ipl.IbisConfigurationException;
+import ibis.ipl.RegistryEventHandler;
 
 import java.io.IOException;
+import java.util.Properties;
 import java.util.UUID;
 
 public final class NullRegistry extends ibis.impl.Registry {
@@ -17,7 +18,8 @@ public final class NullRegistry extends ibis.impl.Registry {
         throw new IOException("sequence numbers not supported by NullRegistry");
     }
 
-    public NullRegistry(Ibis ibis, boolean needsUpcalls, byte[] data) throws IOException, IbisConfigurationException {
+    public NullRegistry(RegistryEventHandler handler, Properties props,
+            boolean needsUpcalls, byte[] data) throws IOException, IbisConfigurationException {
         if (needsUpcalls) {
             throw new IOException("upcalls not supported by NullRegistry");
         }
@@ -27,7 +29,7 @@ public final class NullRegistry extends ibis.impl.Registry {
         
         Location location = Location.defaultLocation();
 
-        String pool = ibis.properties().getProperty(RegistryProperties.POOL);
+        String pool = props.getProperty(RegistryProperties.POOL);
         
         identifier = new IbisIdentifier(id.toString(), data, null, location, pool);
     }

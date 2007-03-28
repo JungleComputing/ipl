@@ -2,6 +2,7 @@
 
 package ibis.impl.test;
 
+import ibis.ipl.CapabilitySet;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisFactory;
 import ibis.ipl.IbisIdentifier;
@@ -12,9 +13,7 @@ import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.Registry;
 import ibis.ipl.SendPort;
 import ibis.ipl.SendPortIdentifier;
-import ibis.ipl.CapabilitySet;
 import ibis.ipl.WriteMessage;
-
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;

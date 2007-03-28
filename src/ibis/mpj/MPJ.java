@@ -6,7 +6,13 @@
 package ibis.mpj;
 
 
-import ibis.ipl.*;    
+import ibis.ipl.CapabilitySet;
+import ibis.ipl.Ibis;
+import ibis.ipl.IbisFactory;
+import ibis.ipl.IbisIdentifier;
+import ibis.ipl.PortType;
+import ibis.ipl.PredefinedCapabilities;
+import ibis.ipl.Registry;
 
 /**
  * Main MPJ class.

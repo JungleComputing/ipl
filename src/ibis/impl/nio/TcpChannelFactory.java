@@ -11,9 +11,9 @@ import ibis.ipl.ConnectionTimedOutException;
 import ibis.util.IPUtils;
 import ibis.util.ThreadPool;
 
-import java.io.IOException;
-import java.io.DataOutputStream;
 import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.channels.Channel;

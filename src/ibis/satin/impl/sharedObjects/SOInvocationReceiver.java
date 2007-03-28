@@ -3,10 +3,10 @@
  */
 package ibis.satin.impl.sharedObjects;
 
-import mcast.object.ObjectMulticaster;
 import ibis.satin.SharedObject;
 import ibis.satin.impl.Config;
 import ibis.satin.impl.Satin;
+import mcast.object.ObjectMulticaster;
 
 final class SOInvocationReceiver extends Thread implements Config {
     private Satin s;

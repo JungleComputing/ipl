@@ -31,8 +31,8 @@ public final class NioIbis extends ibis.impl.Ibis {
 
     ChannelFactory factory;
 
-    private HashMap<IbisIdentifier, InetSocketAddress> addresses
-        = new HashMap<IbisIdentifier, InetSocketAddress>();
+    private HashMap<ibis.ipl.IbisIdentifier, InetSocketAddress> addresses
+        = new HashMap<ibis.ipl.IbisIdentifier, InetSocketAddress>();
 
     private SendReceiveThread sendReceiveThread = null;
 
@@ -56,21 +56,17 @@ public final class NioIbis extends ibis.impl.Ibis {
         return bos.toByteArray();
     }
 
-    public void left(IbisIdentifier[] ids) {
-        super.left(ids);
+    public void left(ibis.ipl.IbisIdentifier id) {
+        super.left(id);
         synchronized(addresses) {
-            for (int i = 0; i < ids.length; i++) {
-                addresses.remove(ids[i]);
-            }
+            addresses.remove(id);
         }
     }
 
-    public void died(IbisIdentifier[] ids) {
-        super.died(ids);
+    public void died(ibis.ipl.IbisIdentifier id) {
+        super.died(id);
         synchronized(addresses) {
-            for (int i = 0; i < ids.length; i++) {
-                addresses.remove(ids[i]);
-            }
+            addresses.remove(id);
         }
     }
 

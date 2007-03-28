@@ -4,7 +4,6 @@ package ibis.impl.nio;
 
 import ibis.impl.Ibis;
 import ibis.impl.SendPortIdentifier;
-
 import ibis.ipl.ConnectionClosedException;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.ReceiveTimedOutException;

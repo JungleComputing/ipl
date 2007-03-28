@@ -5,6 +5,7 @@ import ibis.impl.Location;
 import ibis.util.ThreadPool;
 
 import java.io.IOException;
+
 import org.apache.log4j.Logger;
 
 public class ServerConnectionHandler implements Runnable {

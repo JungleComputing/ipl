@@ -1,6 +1,7 @@
 package ibis.impl.tcp;
 
 import java.net.ServerSocket;
+
 import smartsockets.virtual.VirtualServerSocket;
 
 /**

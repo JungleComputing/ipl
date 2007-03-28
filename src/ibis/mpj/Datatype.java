@@ -5,7 +5,7 @@
  */
 package ibis.mpj;
 
-import java.io.*;
+import java.io.Serializable;
 
 /**
  * Organisation of primitive and derived datatypes.

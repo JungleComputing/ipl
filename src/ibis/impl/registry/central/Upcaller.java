@@ -1,21 +1,24 @@
 package ibis.impl.registry.central;
 
-import org.apache.log4j.Logger;
-
-import ibis.impl.Ibis;
 import ibis.ipl.IbisIdentifier;
+import ibis.ipl.RegistryEventHandler;
 import ibis.util.ThreadPool;
+
+import org.apache.log4j.Logger;
 
 final class Upcaller implements Runnable {
 
     private static final Logger logger = Logger.getLogger(Upcaller.class);
 
-    private Ibis ibis;
+    private RegistryEventHandler handler;
+    
+    private IbisIdentifier ibisId;
 
     private Registry registry;
 
-    public Upcaller(Ibis ibis, Registry registry) {
-        this.ibis = ibis;
+    public Upcaller(RegistryEventHandler handler, IbisIdentifier id, Registry registry) {
+        this.handler = handler;
+        this.ibisId = id;
         this.registry = registry;
 
         ThreadPool.createNew(this, "upcaller");
@@ -39,19 +42,19 @@ final class Upcaller implements Runnable {
             try {
                 switch (event.getType()) {
                 case Event.JOIN:
-                    ibis.joined(event.getIbisses());
+                    handler.joined(event.getFirstIbis());
                     break;
                 case Event.LEAVE:
-                    ibis.left(event.getIbisses());
+                    handler.left(event.getFirstIbis());
                     break;
                 case Event.DIED:
-                    ibis.died(event.getIbisses());
+                    handler.died(event.getFirstIbis());
                     break;
                 case Event.SIGNAL:
                     IbisIdentifier[] ibisses = event.getIbisses();
                     for (IbisIdentifier identifier: ibisses) {
-                        if (identifier.equals(ibis.identifier())) {
-                            ibis.gotSignal(event.getDescription());
+                        if (identifier.equals(ibisId)) {
+                            handler.gotSignal(event.getDescription());
                         }
                     }
                     break;

@@ -1,5 +1,9 @@
 package ibis.impl.registry.central;
 
+import ibis.impl.IbisIdentifier;
+import ibis.io.Conversion;
+import ibis.util.IPUtils;
+
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -13,10 +17,6 @@ import smartsockets.virtual.InitializationException;
 import smartsockets.virtual.VirtualServerSocket;
 import smartsockets.virtual.VirtualSocketAddress;
 import smartsockets.virtual.VirtualSocketFactory;
-
-import ibis.impl.IbisIdentifier;
-import ibis.io.Conversion;
-import ibis.util.IPUtils;
 
 public class ConnectionFactory {
     public static final int CONNECTION_BACKLOG = 50;

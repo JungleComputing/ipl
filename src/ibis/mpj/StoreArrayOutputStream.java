@@ -1,8 +1,9 @@
 /* $Id$ */
 
 package ibis.mpj;
-import java.io.IOException;
 import ibis.io.DataOutputStream;
+
+import java.io.IOException;
 
 final class StoreArrayOutputStream extends DataOutputStream {
 

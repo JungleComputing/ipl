@@ -2,16 +2,16 @@
 
 package ibis.gmi;
 
-import java.util.HashMap;
-import org.apache.log4j.Logger;
-
-import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
+import ibis.ipl.ReceivePort;
+import ibis.ipl.ReceivePortIdentifier;
+import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
 
-import ibis.ipl.SendPort;
-import ibis.ipl.ReceivePort;
+import java.util.HashMap;
+
+import org.apache.log4j.Logger;
 
 class MulticastGroups {
     

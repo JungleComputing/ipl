@@ -6,8 +6,8 @@ import ibis.impl.tcp.TcpIbis;
 import ibis.ipl.CapabilitySet;
 import ibis.ipl.PortType;
 import ibis.ipl.PredefinedCapabilities;
-import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.ReceivePortIdentifier;
+import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.SendPortIdentifier;
 
 import java.io.IOException;
@@ -34,56 +34,48 @@ public class StackingIbis extends Ibis {
         base.printStatistics(out);
     }
 
-    public void joined(IbisIdentifier[] joins) {
+    public void joined(ibis.ipl.IbisIdentifier id) {
         System.out.println("joined called");
-        super.joined(joins);
+        super.joined(id);
+        IbisIdentifier i = (IbisIdentifier) id;
         synchronized(this) {
-            for (int i = 0; i < joins.length; i++) {
-                IbisIdentifier idBase = null;
-                IbisIdentifier id = joins[i];
-                try {
-                    idBase = new IbisIdentifier(id.getImplementationData());
-                } catch(IOException e) {
-                    throw new Error("Internal error", e);
-                }
-                toBase.put(id, idBase);
-                fromBase.put(idBase, id);
+            IbisIdentifier idBase = null;
+            try {
+                idBase = new IbisIdentifier(i.getImplementationData());
+            } catch(IOException e) {
+                throw new Error("Internal error", e);
             }
+            toBase.put(i, idBase);
+            fromBase.put(idBase, i);
             notifyAll();
         }
     }
     
-    public void left(IbisIdentifier[] leavers) {
-        super.left(leavers);
+    public void left(ibis.ipl.IbisIdentifier id) {
+        super.left(id);
         synchronized(this) {
-            for (int i = 0; i < leavers.length; i++) {
-                IbisIdentifier idBase = null;
-                IbisIdentifier id = leavers[i];
-                try {
-                    idBase = new IbisIdentifier(id.getImplementationData());
-                } catch(IOException e) {
-                    throw new Error("Internal error", e);
-                }
-                toBase.remove(id);
-                fromBase.remove(idBase);
+            IbisIdentifier idBase = null;
+            try {
+                idBase = new IbisIdentifier(((IbisIdentifier)id).getImplementationData());
+            } catch(IOException e) {
+                throw new Error("Internal error", e);
             }
+            toBase.remove(id);
+            fromBase.remove(idBase);
         }
     }
     
-    public void died(IbisIdentifier[] leavers) {
-        super.died(leavers);
+    public void died(ibis.ipl.IbisIdentifier id) {
+        super.died(id);
         synchronized(this) {
-            for (int i = 0; i < leavers.length; i++) {
-                IbisIdentifier idBase = null;
-                IbisIdentifier id = leavers[i];
-                try {
-                    idBase = new IbisIdentifier(id.getImplementationData());
-                } catch(IOException e) {
-                    throw new Error("Internal error", e);
-                }
-                toBase.remove(id);
-                fromBase.remove(idBase);
+            IbisIdentifier idBase = null;
+            try {
+                idBase = new IbisIdentifier(((IbisIdentifier)id).getImplementationData());
+            } catch(IOException e) {
+                throw new Error("Internal error", e);
             }
+            toBase.remove(id);
+            fromBase.remove(idBase);
         }
     }
     
