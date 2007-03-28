@@ -47,7 +47,7 @@ public interface RegistryEventHandler {
     public void died(IbisIdentifier corpse);
 
     /**
-     * Upcall generated when one or more Ibisses are send a signal.
+     * Upcall generated when one or more Ibisses are sent a signal.
      *
      * This call can only be the result of a
      * {@link Registry#signal(String, IbisIdentifier[])}
