@@ -241,14 +241,14 @@ public abstract class Ibis implements ibis.ipl.Ibis,
     /**
      * Notifies this Ibis instance that other Ibis instances have
      * joined the run. Called by the registry.
-     * @param joinIdents the Ibis {@linkplain ibis.ipl.IbisIdentifier
+     * @param joinIdents the Ibis {@linkplain IbisIdentifier
      * identifiers} of the Ibis instances joining the run.
      */
-    public void joined(ibis.ipl.IbisIdentifier[] joinIdents) {
+    public void joined(IbisIdentifier[] joinIdents) {
         if (registryHandler != null) {
             waitForEnabled();
             for (int i = 0; i < joinIdents.length; i++) {
-                ibis.ipl.IbisIdentifier id = joinIdents[i];
+                IbisIdentifier id = joinIdents[i];
                 registryHandler.joined(id);
             }
             synchronized(this) {
@@ -267,7 +267,7 @@ public abstract class Ibis implements ibis.ipl.Ibis,
     /**
      * Notifies this Ibis instance that other Ibis instances have
      * left the run. Called by the Registry.
-     * @param leaveIdents the Ibis {@linkplain ibis.ipl.IbisIdentifier
+     * @param leaveIdents the Ibis {@linkplain IbisIdentifier
      *  identifiers} of the Ibis instances leaving the run.
      */
     public void left(IbisIdentifier[] leaveIdents) {
@@ -293,7 +293,7 @@ public abstract class Ibis implements ibis.ipl.Ibis,
     /**
      * Notifies this Ibis instance that other Ibis instances have died.
      * Called by the registry.
-     * @param corpses the Ibis {@linkplain ibis.ipl.IbisIdentifier
+     * @param corpses the Ibis {@linkplain IbisIdentifier
      *  identifiers} of the Ibis instances that died.
      */
     public void died(IbisIdentifier[] corpses) {
@@ -317,10 +317,9 @@ public abstract class Ibis implements ibis.ipl.Ibis,
     }
 
     /**
-     * Notifies this Ibis instance that some Ibis instances are requested
-     * to leave. Called by the registry.
-     * @param ibisses the Ibis {@linkplain ibis.ipl.IbisIdentifier
-     *  identifiers} of the Ibis instances that are requested to leave.
+     * Notifies this Ibis instance that some signal arrived.
+     * Called by the registry.
+     * @param signal the signal.
      */
     public void gotSignal(String signal) {
         if (registryHandler != null) {
