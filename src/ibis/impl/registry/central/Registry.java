@@ -245,13 +245,23 @@ public final class Registry extends ibis.impl.Registry implements Runnable {
             }
             connectionFactory.end();
             logger.debug("left");
+            
+            //print a warning about waiting for the server after a few seconds
             if (server != null) {
-                logger.info("waiting for server to stop");
+                logger.debug("Waiting for central server to finish");
                 try {
-                    server.join();
+                    server.join(5000);
                 } catch (InterruptedException e) {
                     // IGNORE
                 }
+                if (server.isAlive()) {
+                    logger.warn("Waiting for central server to finish");
+                    try {
+                        server.join();
+                    } catch (InterruptedException e) {
+                        // IGNORE
+                    }
+                }                    
             }
         } catch (IOException e) {
             connection.close();
