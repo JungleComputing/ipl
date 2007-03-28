@@ -43,7 +43,7 @@ public final class CapabilitySet {
     }
 
     /**
-     * Creates a capability object with the specified values.
+     * Creates a capability set with the specified values.
      * @param values the specified values.
      */
     public CapabilitySet(String... values) {
@@ -75,7 +75,7 @@ public final class CapabilitySet {
     }
 
     /**
-     * Creates a capability object with the values specified in a
+     * Creates a capability set with the values specified in a
      * Properties object.
      * @param sp the specified values.
      */
@@ -204,7 +204,7 @@ public final class CapabilitySet {
 
     /**
      * Matches the current capabilities with the capabilities
-     * supplied. Returns a capability object with the unmatched capabilities.
+     * supplied. Returns a capability set with the unmatched capabilities.
      * @param sp the capabilities to be matched with.
      * @return the capabilities that don't match.
      */
@@ -226,8 +226,31 @@ public final class CapabilitySet {
     }
 
     /**
-     * Computes and returns the intersection of this capability with the
-     * specified capability.
+     * Computes and returns the result of subtracting the specified capability
+     * set from this capability set.
+     * @param sp the capabilities to subtract.
+     * @return the result.
+     */
+    public CapabilitySet subtract(CapabilitySet sp) {
+        CapabilitySet c = new CapabilitySet();
+        for (String cap : booleanCapabilities) {
+            if (! sp.hasCapability(cap)) {
+                c.booleanCapabilities.add(cap);
+            }
+        }
+        for (String cap : stringCapabilities.keySet()) {
+            if (! stringCapabilities.get(cap).equals(
+                        sp.stringCapabilities.get(cap))) {
+                c.stringCapabilities.put(cap, stringCapabilities.get(cap));
+            }
+        }
+        c.codedForm = computeCodedForm();
+        return c;
+    }
+
+    /**
+     * Computes and returns the intersection of this capability set with the
+     * specified capability set.
      * @param sp the capabilities to intersect with.
      * @return the intersection.
      */
@@ -249,8 +272,8 @@ public final class CapabilitySet {
     }
 
     /**
-     * Computes and returns the union of this capability with the
-     * specified capability.
+     * Computes and returns the union of this capability set with the
+     * specified capability set.
      * @param sp the capabilities to unite with.
      * @return the union.
      */
@@ -269,7 +292,7 @@ public final class CapabilitySet {
     }
 
     /**
-     * Computes and returns the number of entries in this capability.
+     * Computes and returns the number of entries in this capability set.
      * @return the number of entries.
      */
     public int size() {
