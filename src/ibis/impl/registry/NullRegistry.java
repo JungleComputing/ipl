@@ -17,7 +17,7 @@ public final class NullRegistry extends ibis.impl.Registry {
         throw new IOException("sequence numbers not supported by NullRegistry");
     }
 
-    NullRegistry(Ibis ibis, boolean needsUpcalls, byte[] data) throws IOException, IbisConfigurationException {
+    public NullRegistry(Ibis ibis, boolean needsUpcalls, byte[] data) throws IOException, IbisConfigurationException {
         if (needsUpcalls) {
             throw new IOException("upcalls not supported by NullRegistry");
         }
