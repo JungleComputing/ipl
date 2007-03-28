@@ -20,15 +20,11 @@ public final class NioIbis extends ibis.impl.Ibis {
 
     static final String prefix = "ibis.impl.nio.";
 
-    static final String s_numbered = prefix + "numbererd";
-
     static final String s_spi = prefix + "spi";
 
     static final String s_rpi = prefix + "rpi";
 
-    static final String[] props = { s_numbered, s_spi, s_rpi };
-
-    static final String[] unchecked = { s_spi + ".", s_rpi + "." };
+    static final String[] props = { s_spi, s_rpi };
 
     private static final Logger logger
             = Logger.getLogger("ibis.impl.nio.NioIbis");
@@ -43,7 +39,7 @@ public final class NioIbis extends ibis.impl.Ibis {
     public NioIbis(RegistryEventHandler r, CapabilitySet p, Properties tp) {
 
         super(r, p, tp, null);
-        properties.checkProperties(prefix, props, unchecked, true);
+        properties.checkProperties(prefix, props, null, true);
     }
 
     protected byte[] getData() throws IOException {
