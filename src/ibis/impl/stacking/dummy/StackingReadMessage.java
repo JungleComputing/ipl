@@ -1,4 +1,4 @@
-package ibis.impl.stacking.generic;
+package ibis.impl.stacking.dummy;
 
 import java.io.IOException;
 
@@ -33,8 +33,7 @@ public class StackingReadMessage implements ReadMessage {
     }
 
     public SendPortIdentifier origin() {
-        // TODO: fix
-        return base.origin();
+        return ((StackingIbis) port.type.ibis).fromBase(base.origin());
     }
 
     public void readArray(boolean[] destination, int offset, int size) throws IOException {

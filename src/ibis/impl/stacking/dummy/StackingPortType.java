@@ -1,4 +1,4 @@
-package ibis.impl.stacking.generic;
+package ibis.impl.stacking.dummy;
 
 import java.io.IOException;
 import java.util.Properties;
@@ -18,7 +18,7 @@ public class StackingPortType extends PortType {
     
     public StackingPortType(Ibis ibis, CapabilitySet p, Properties tp) {
         super(ibis, p, tp);
-        base = ((StackingIbis)ibis).ibis.createPortType(p, tp);
+        base = ((StackingIbis)ibis).base.createPortType(p, tp);
     }
 
     @Override

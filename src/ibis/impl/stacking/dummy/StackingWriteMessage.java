@@ -1,4 +1,4 @@
-package ibis.impl.stacking.generic;
+package ibis.impl.stacking.dummy;
 
 import java.io.IOException;
 

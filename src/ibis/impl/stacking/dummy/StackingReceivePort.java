@@ -1,4 +1,4 @@
-package ibis.impl.stacking.generic;
+package ibis.impl.stacking.dummy;
 
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePortConnectUpcall;
@@ -36,8 +36,7 @@ public class StackingReceivePort implements ibis.ipl.ReceivePort {
     }
 
     public SendPortIdentifier[] connectedTo() {
-        // TODO: fix
-        return base.connectedTo();
+        return ((StackingIbis) type.ibis).fromBase(base.connectedTo());
     }
 
     public void disableConnections() {
@@ -69,13 +68,11 @@ public class StackingReceivePort implements ibis.ipl.ReceivePort {
     }
 
     public ReceivePortIdentifier identifier() {
-        // TODO: fix
-        return base.identifier();
+        return identifier;
     }
 
     public SendPortIdentifier[] lostConnections() {
-        // TODO: fix
-        return base.lostConnections();
+        return ((StackingIbis) type.ibis).fromBase(base.lostConnections());
     }
 
     public String name() {
@@ -83,8 +80,7 @@ public class StackingReceivePort implements ibis.ipl.ReceivePort {
     }
 
     public SendPortIdentifier[] newConnections() {
-        // TODO: fix
-        return base.newConnections();
+        return ((StackingIbis) type.ibis).fromBase(base.newConnections());
     }
 
     public ReadMessage poll() throws IOException {
@@ -100,8 +96,7 @@ public class StackingReceivePort implements ibis.ipl.ReceivePort {
     }
 
     public ReadMessage receive(long timeoutMillis) throws IOException {
-        // TODO fix
-        return base.receive(timeoutMillis);
+        return new StackingReadMessage(base.receive(timeoutMillis), this);
     }
 
     public void resetCount() {

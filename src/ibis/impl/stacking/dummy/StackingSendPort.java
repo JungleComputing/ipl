@@ -1,4 +1,4 @@
-package ibis.impl.stacking.generic;
+package ibis.impl.stacking.dummy;
 
 import ibis.ipl.ConnectionsFailedException;
 import ibis.ipl.IbisIdentifier;
@@ -7,6 +7,7 @@ import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.ipl.SendPortIdentifier;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 
 public class StackingSendPort implements ibis.ipl.SendPort {
@@ -35,52 +36,53 @@ public class StackingSendPort implements ibis.ipl.SendPort {
     }
 
     public void connect(ibis.ipl.ReceivePortIdentifier receiver) throws IOException {
-        // TODO
+        connect(receiver, 0L);
     }
 
     public void connect(ibis.ipl.ReceivePortIdentifier receiver, long timeoutMillis) throws IOException {
-        // TODO Auto-generated method stub
+        base.connect(((StackingIbis) type.ibis).toBase(receiver), timeoutMillis);
         
     }
 
     public ibis.ipl.ReceivePortIdentifier connect(IbisIdentifier id, String name) throws IOException {
-        // TODO Auto-generated method stub
-        return null;
+        return connect(id, name, 0L);
     }
 
     public ibis.ipl.ReceivePortIdentifier connect(IbisIdentifier id, String name, long timeoutMillis) throws IOException {
-        // TODO Auto-generated method stub
-        return null;
+        ibis.impl.IbisIdentifier idBase = ((StackingIbis)type.ibis).toBase.get(id);
+        ibis.ipl.ReceivePortIdentifier rp = base.connect(idBase, name, timeoutMillis);
+        return ((StackingIbis)type.ibis).fromBase(rp);
     }
 
     public void connect(ibis.ipl.ReceivePortIdentifier[] ports) throws ConnectionsFailedException {
-        // TODO Auto-generated method stub
+        connect(ports, 0L);
         
     }
 
     public void connect(ibis.ipl.ReceivePortIdentifier[] ports, long timeoutMillis) throws ConnectionsFailedException {
-        // TODO Auto-generated method stub
+        base.connect(((StackingIbis)type.ibis).toBase(ports), timeoutMillis);
         
     }
 
     public ibis.ipl.ReceivePortIdentifier[] connect(Map<IbisIdentifier, String> ports) throws ConnectionsFailedException {
-        // TODO Auto-generated method stub
-        return null;
+        return connect(ports, 0L);
     }
 
     public ibis.ipl.ReceivePortIdentifier[] connect(Map<IbisIdentifier, String> ports, long timeoutMillis) throws ConnectionsFailedException {
-        // TODO Auto-generated method stub
-        return null;
+        HashMap<IbisIdentifier, String> h = new HashMap<IbisIdentifier, String>();
+        for (IbisIdentifier i : ports.keySet()) {
+            IbisIdentifier id = ((StackingIbis)type.ibis).toBase.get(i);
+            h.put(id, ports.get(i));
+        }
+        return ((StackingIbis)type.ibis).fromBase(base.connect(h, timeoutMillis));
     }
 
     public ibis.ipl.ReceivePortIdentifier[] connectedTo() {
-        // TODO Auto-generated method stub
-        return null;
+        return ((StackingIbis)type.ibis).fromBase(base.connectedTo());
     }
 
     public void disconnect(ibis.ipl.ReceivePortIdentifier receiver) throws IOException {
-        // TODO Auto-generated method stub
-        
+       base.disconnect(((StackingIbis)type.ibis).toBase(receiver)); 
     }
 
     public long getCount() {
@@ -100,8 +102,7 @@ public class StackingSendPort implements ibis.ipl.SendPort {
     }
 
     public ibis.ipl.ReceivePortIdentifier[] lostConnections() {
-        // TODO Auto-generated method stub
-        return null;
+        return ((StackingIbis) type.ibis).fromBase(base.lostConnections());
     }
 
     public String name() {
