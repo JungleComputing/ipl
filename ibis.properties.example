@@ -2,6 +2,9 @@
 
 #### Generic Ibis properties ####
 
+# Nickname or classname of the Ibis implementation
+#ibis.name=tcp
+
 # Boolean: If true, makes Ibis more verbose, if false, does not
 #ibis.verbose=false
 

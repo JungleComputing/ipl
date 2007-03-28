@@ -252,7 +252,7 @@ public final class IbisFactory {
                             + "open world as well as closed world");
         }
 
-        String ibisname = properties.getProperty("ibis.name");
+        String ibisname = properties.getProperty(IbisProperties.NAME);
 
         ArrayList<Class> implementations = new ArrayList<Class>();
 
