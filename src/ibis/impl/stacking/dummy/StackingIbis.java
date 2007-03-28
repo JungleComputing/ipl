@@ -1,10 +1,11 @@
 package ibis.impl.stacking.dummy;
 
 import ibis.impl.Ibis;
+import ibis.impl.IbisIdentifier;
 import ibis.impl.tcp.TcpIbis;
 import ibis.ipl.CapabilitySet;
-import ibis.impl.IbisIdentifier;
 import ibis.ipl.PortType;
+import ibis.ipl.PredefinedCapabilities;
 import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPortIdentifier;
@@ -15,13 +16,17 @@ import java.util.HashMap;
 import java.util.Properties;
 
 public class StackingIbis extends Ibis {
+    private static CapabilitySet cp
+            = new CapabilitySet(PredefinedCapabilities.RESIZE_DOWNCALLS);
     Ibis base;
-    HashMap<IbisIdentifier,IbisIdentifier> toBase = new HashMap<IbisIdentifier, IbisIdentifier>();
-    HashMap<IbisIdentifier,IbisIdentifier> fromBase = new HashMap<IbisIdentifier, IbisIdentifier>();
+    private HashMap<IbisIdentifier,IbisIdentifier> toBase
+            = new HashMap<IbisIdentifier, IbisIdentifier>();
+    private HashMap<IbisIdentifier,IbisIdentifier> fromBase
+            = new HashMap<IbisIdentifier, IbisIdentifier>();
 
     public StackingIbis(RegistryEventHandler registryHandler,
             CapabilitySet caps, Properties tp) {
-        super(registryHandler, caps, tp, null);
+        super(registryHandler, caps.uniteWith(cp), tp, null);
     }
 
     public void printStatistics(PrintStream out) {
@@ -30,47 +35,55 @@ public class StackingIbis extends Ibis {
     }
 
     public void joined(IbisIdentifier[] joins) {
+        System.out.println("joined called");
         super.joined(joins);
-        for (int i = 0; i < joins.length; i++) {
-            IbisIdentifier idBase = null;
-            IbisIdentifier id = joins[i];
-            try {
-                idBase = new IbisIdentifier(id.getImplementationData());
-            } catch(IOException e) {
-                throw new Error("Internal error", e);
+        synchronized(this) {
+            for (int i = 0; i < joins.length; i++) {
+                IbisIdentifier idBase = null;
+                IbisIdentifier id = joins[i];
+                try {
+                    idBase = new IbisIdentifier(id.getImplementationData());
+                } catch(IOException e) {
+                    throw new Error("Internal error", e);
+                }
+                toBase.put(id, idBase);
+                fromBase.put(idBase, id);
             }
-            toBase.put(id, idBase);
-            fromBase.put(idBase, id);
+            notifyAll();
         }
     }
     
     public void left(IbisIdentifier[] leavers) {
         super.left(leavers);
-        for (int i = 0; i < leavers.length; i++) {
-            IbisIdentifier idBase = null;
-            IbisIdentifier id = leavers[i];
-            try {
-                idBase = new IbisIdentifier(id.getImplementationData());
-            } catch(IOException e) {
-                throw new Error("Internal error", e);
+        synchronized(this) {
+            for (int i = 0; i < leavers.length; i++) {
+                IbisIdentifier idBase = null;
+                IbisIdentifier id = leavers[i];
+                try {
+                    idBase = new IbisIdentifier(id.getImplementationData());
+                } catch(IOException e) {
+                    throw new Error("Internal error", e);
+                }
+                toBase.remove(id);
+                fromBase.remove(idBase);
             }
-            toBase.remove(id);
-            fromBase.remove(idBase);
         }
     }
     
     public void died(IbisIdentifier[] leavers) {
         super.died(leavers);
-        for (int i = 0; i < leavers.length; i++) {
-            IbisIdentifier idBase = null;
-            IbisIdentifier id = leavers[i];
-            try {
-                idBase = new IbisIdentifier(id.getImplementationData());
-            } catch(IOException e) {
-                throw new Error("Internal error", e);
+        synchronized(this) {
+            for (int i = 0; i < leavers.length; i++) {
+                IbisIdentifier idBase = null;
+                IbisIdentifier id = leavers[i];
+                try {
+                    idBase = new IbisIdentifier(id.getImplementationData());
+                } catch(IOException e) {
+                    throw new Error("Internal error", e);
+                }
+                toBase.remove(id);
+                fromBase.remove(idBase);
             }
-            toBase.remove(id);
-            fromBase.remove(idBase);
         }
     }
     
@@ -78,16 +91,43 @@ public class StackingIbis extends Ibis {
     protected byte[] getData() throws IOException {
         // For now:
         Properties p = new Properties(properties);
+        CapabilitySet baseCp = capabilities.subtract(
+                new CapabilitySet(PredefinedCapabilities.RESIZE_DOWNCALLS,
+                    PredefinedCapabilities.RESIZE_UPCALLS));
         p.setProperty("ibis.registry.impl", "ibis.impl.registry.NullRegistry");
-        base = new TcpIbis(null, capabilities, properties);
+        base = new TcpIbis(null, baseCp, p);
         return base.ident.toBytes();
+    }
+
+    synchronized IbisIdentifier toBase(ibis.ipl.IbisIdentifier id) {
+        IbisIdentifier newId = toBase.get(id);
+        while (newId == null) {
+            try {
+                wait();
+            } catch(Exception e) {
+                // ignored
+            }
+            newId = toBase.get(id);
+        }
+        return newId;
+    }
+    
+    synchronized IbisIdentifier fromBase(ibis.ipl.IbisIdentifier id) {
+        IbisIdentifier newId = fromBase.get(id);
+        while (newId == null) {
+            try {
+                wait();
+            } catch(Exception e) {
+                // ignored
+            }
+            newId = fromBase.get(id);
+        }
+        return newId;
     }
     
     ReceivePortIdentifier toBase(ReceivePortIdentifier id) {
-        String name = id.name();
-        IbisIdentifier ibisId = (IbisIdentifier) id.ibis();
-        IbisIdentifier newId = toBase.get(ibisId);
-        return new ibis.impl.ReceivePortIdentifier(name, newId);
+        return new ibis.impl.ReceivePortIdentifier(id.name(),
+                toBase(id.ibis()));
     }
     
     ReceivePortIdentifier[] toBase(ReceivePortIdentifier[] ids) {
@@ -99,10 +139,8 @@ public class StackingIbis extends Ibis {
     }
     
     ReceivePortIdentifier fromBase(ReceivePortIdentifier id) {
-        String name = id.name();
-        IbisIdentifier ibisId = (IbisIdentifier) id.ibis();
-        IbisIdentifier newId = fromBase.get(ibisId);
-        return new ibis.impl.ReceivePortIdentifier(name, newId);
+        return new ibis.impl.ReceivePortIdentifier(id.name(),
+                fromBase(id.ibis()));
     }
     
     ReceivePortIdentifier[] fromBase(ReceivePortIdentifier[] ids) {
@@ -114,10 +152,7 @@ public class StackingIbis extends Ibis {
     }
        
     SendPortIdentifier toBase(SendPortIdentifier id) {
-        String name = id.name();
-        IbisIdentifier ibisId = (IbisIdentifier) id.ibis();
-        IbisIdentifier newId = toBase.get(ibisId);
-        return new ibis.impl.SendPortIdentifier(name, newId);
+        return new ibis.impl.SendPortIdentifier(id.name(), toBase(id.ibis()));
     }
     
     SendPortIdentifier[] toBase(SendPortIdentifier[] ids) {
@@ -129,10 +164,7 @@ public class StackingIbis extends Ibis {
     }
     
     SendPortIdentifier fromBase(SendPortIdentifier id) {
-        String name = id.name();
-        IbisIdentifier ibisId = (IbisIdentifier) id.ibis();
-        IbisIdentifier newId = fromBase.get(ibisId);
-        return new ibis.impl.SendPortIdentifier(name, newId);
+        return new ibis.impl.SendPortIdentifier(id.name(), fromBase(id.ibis()));
     }
     
     SendPortIdentifier[] fromBase(SendPortIdentifier[] ids) {

@@ -49,7 +49,7 @@ public class StackingSendPort implements ibis.ipl.SendPort {
     }
 
     public ibis.ipl.ReceivePortIdentifier connect(IbisIdentifier id, String name, long timeoutMillis) throws IOException {
-        ibis.impl.IbisIdentifier idBase = ((StackingIbis)type.ibis).toBase.get(id);
+        ibis.impl.IbisIdentifier idBase = ((StackingIbis)type.ibis).toBase(id);
         ibis.ipl.ReceivePortIdentifier rp = base.connect(idBase, name, timeoutMillis);
         return ((StackingIbis)type.ibis).fromBase(rp);
     }
@@ -71,7 +71,7 @@ public class StackingSendPort implements ibis.ipl.SendPort {
     public ibis.ipl.ReceivePortIdentifier[] connect(Map<IbisIdentifier, String> ports, long timeoutMillis) throws ConnectionsFailedException {
         HashMap<IbisIdentifier, String> h = new HashMap<IbisIdentifier, String>();
         for (IbisIdentifier i : ports.keySet()) {
-            IbisIdentifier id = ((StackingIbis)type.ibis).toBase.get(i);
+            IbisIdentifier id = ((StackingIbis)type.ibis).toBase(i);
             h.put(id, ports.get(i));
         }
         return ((StackingIbis)type.ibis).fromBase(base.connect(h, timeoutMillis));
