@@ -307,6 +307,13 @@ public abstract class Ibis implements ibis.ipl.Ibis,
                 busyUpcaller = false;
             }
         }
+        if (leftIbises != null) {
+            synchronized(this) {
+                for (int i = 0; i < corpses.length; i++) {
+                    leftIbises.add(corpses[i]);
+                }
+            }
+        }
     }
 
     /**
@@ -322,7 +329,7 @@ public abstract class Ibis implements ibis.ipl.Ibis,
             synchronized(this) {
                 busyUpcaller = false;
             }
-        }
+        } 
     }
 
     public synchronized void enableRegistryEvents() {
