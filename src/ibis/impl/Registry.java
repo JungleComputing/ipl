@@ -34,21 +34,16 @@ public abstract class Registry implements ibis.ipl.Registry {
 
     /**
      * Creates a registry for the specified Ibis instance.
-     * @param handler the handler for registry events.
+     * @param handler the handler for registry events, or <code>null</code>
+     * if no registry events are needed.
      * @param properties to get some properties from, and to pass on
      * to the registry.
-     * @param needsUpcalls set when the registry must provide for connection
-     * upcalls.
      * @param data the implementation dependent data in the IbisIdentifier.
      * @exception Throwable can be any exception resulting from looking up
      * the registry constructor or the invocation attempt.
      */
     public static Registry createRegistry(RegistryEventHandler handler,
-            Properties properties, boolean needsUpcalls, byte[] data)
-            throws Throwable {
-
-        // You can get properties and capabilities from the ibis instance
-        // here.
+            Properties properties, byte[] data) throws Throwable {
 
         String registryName = properties.getProperty("ibis.registry.impl");
 
@@ -62,8 +57,8 @@ public abstract class Registry implements ibis.ipl.Registry {
         try {
             return (Registry) c.getConstructor(new Class[] {
                     RegistryEventHandler.class, Properties.class,
-                    boolean.class, byte[].class}).newInstance(
-                        new Object[] {handler, properties, needsUpcalls, data});
+                    byte[].class}).newInstance(
+                        new Object[] {handler, properties, data});
         } catch (java.lang.reflect.InvocationTargetException e) {
             throw e.getCause();
         }

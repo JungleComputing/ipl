@@ -103,8 +103,8 @@ public abstract class Ibis implements ibis.ipl.Ibis, RegistryEventHandler,
         receivePorts = new HashMap<String, ReceivePort>();
         sendPorts = new HashMap<String, SendPort>();
         try {
-            registry = Registry.createRegistry(this, properties, needsRegistryCalls,
-                    getData());
+            registry = Registry.createRegistry(needsRegistryCalls ? this : null,
+                    properties, getData());
         } catch(Throwable e) {
             throw new IbisConfigurationException("Coulld not create registry", e);
         }

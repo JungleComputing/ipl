@@ -19,8 +19,8 @@ public final class NullRegistry extends ibis.impl.Registry {
     }
 
     public NullRegistry(RegistryEventHandler handler, Properties props,
-            boolean needsUpcalls, byte[] data) throws IOException, IbisConfigurationException {
-        if (needsUpcalls) {
+            byte[] data) throws IOException, IbisConfigurationException {
+        if (handler != null) {
             throw new IOException("upcalls not supported by NullRegistry");
         }
         

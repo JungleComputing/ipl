@@ -59,7 +59,7 @@ public final class Registry extends ibis.impl.Registry implements Runnable {
 
     private final int serverConnectTimeout;
 
-    public Registry(RegistryEventHandler handler, Properties props, boolean needsUpcalls, byte[] data)
+    public Registry(RegistryEventHandler handler, Properties props, byte[] data)
             throws IOException, IbisConfigurationException {
 
         events = new ArrayList<Event>();
@@ -127,7 +127,7 @@ public final class Registry extends ibis.impl.Registry implements Runnable {
         }
 
         // start sending events to the ibis instance we belong to
-        if (needsUpcalls) {
+        if (handler != null) {
             new Upcaller(handler, identifier, this);
         }
 
