@@ -22,8 +22,8 @@ import org.apache.log4j.Logger;
  * This implementation of the {@link ibis.ipl.Ibis} interface 
  * is a base class, to be extended by specific Ibis implementations.
  */
-public abstract class Ibis implements ibis.ipl.Ibis, RegistryEventHandler,
-       ibis.ipl.PredefinedCapabilities {
+public abstract class Ibis extends Managable implements ibis.ipl.Ibis,
+       RegistryEventHandler, ibis.ipl.PredefinedCapabilities {
 
     /** Debugging output. */
     private static final Logger logger = Logger.getLogger("ibis.impl.Ibis");
@@ -66,6 +66,8 @@ public abstract class Ibis implements ibis.ipl.Ibis, RegistryEventHandler,
     /** The sendports running on this Ibis instance. */
     private HashMap<String, SendPort> sendPorts;
 
+    private int nJoins;
+
     private final boolean closedWorld;
 
     private final int numInstances;
@@ -84,8 +86,10 @@ public abstract class Ibis implements ibis.ipl.Ibis, RegistryEventHandler,
      */
     protected Ibis(RegistryEventHandler registryHandler, CapabilitySet caps,
             Properties userProperties,Properties defaultProperties) {
+        closedWorld = caps.hasCapability(WORLDMODEL_CLOSED);
         boolean needsRegistryCalls = registryHandler != null
-                || caps.hasCapability(RESIZE_DOWNCALLS);
+                || caps.hasCapability(RESIZE_DOWNCALLS)
+                || closedWorld;
         this.registryHandler = registryHandler;
         this.capabilities = caps;
         
@@ -109,7 +113,6 @@ public abstract class Ibis implements ibis.ipl.Ibis, RegistryEventHandler,
             throw new IbisConfigurationException("Coulld not create registry", e);
         }
         ident = registry.getIbisIdentifier();
-        closedWorld = caps.hasCapability(WORLDMODEL_CLOSED);
         if (closedWorld) {
             try {
                 numInstances = this.properties.getIntProperty(
@@ -127,6 +130,24 @@ public abstract class Ibis implements ibis.ipl.Ibis, RegistryEventHandler,
         } else {
             joinedIbises = null;
             leftIbises = null;
+        }
+    }
+
+    public synchronized void waitForAll() {
+        if (! closedWorld) {
+            throw new IbisConfigurationException("waitForAll() called but not "
+                    + "closed world");
+        }
+        if (registryHandler != null && ! registryUpcallerEnabled) {
+            throw new IbisConfigurationException("waitForAll() called but "
+                    + "registry events not enabled yet");
+        }
+        while (nJoins < numInstances) {
+            try {
+                wait();
+            } catch(Exception e) {
+                // ignored
+            }
         }
     }
 
@@ -245,6 +266,17 @@ public abstract class Ibis implements ibis.ipl.Ibis, RegistryEventHandler,
      * identifier} of the Ibis instance joining the run.
      */
     public void joined(ibis.ipl.IbisIdentifier joinIdent) {
+        if (closedWorld) {
+            synchronized(this) {
+                nJoins++;
+                if (nJoins > numInstances) {
+                    return;
+                }
+                if (nJoins == numInstances) {
+                    notifyAll();
+                }
+            }
+        }
         if (registryHandler != null) {
             waitForEnabled();
             registryHandler.joined(joinIdent);

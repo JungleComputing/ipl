@@ -21,7 +21,7 @@ public abstract class Registry implements ibis.ipl.Registry {
      * @exception IOException may be thrown when communication with the
      * registry fails.
      */
-    protected abstract void leave() throws IOException;
+    public abstract void leave() throws IOException;
 
     /**
      * Obtains a sequence number from the registry.

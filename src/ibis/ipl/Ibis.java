@@ -12,7 +12,7 @@ import java.util.Properties;
  * Properties, RegistryEventHandler)} method, and is the starting point
  * of all Ibis communication.
  */
-public interface Ibis {
+public interface Ibis extends Managable {
 
     /**
      * When running closed-world, returns the total number of Ibis instances
@@ -20,8 +20,18 @@ public interface Ibis {
      * @return the number of Ibis instances
      * @exception NumberFormatException is thrown when the property
      *   ibis.pool.total_hosts is not defined or does not represent a number.
+     * @exception IbisConfigurationException is thrown when this is not a
+     * closed-world run.
      */
     public int totalNrOfIbisesInPool();
+
+    /**
+     * When running closed-world, wait for all Ibis instances
+     * involved in the run.
+     * @exception IbisConfigurationException is thrown when this is not a
+     * closed-world run, or when registry events are not enabled yet.
+     */
+    public void waitForAll();
 
     /**
      * Allows reception of {@link ibis.ipl.RegistryEventHandler RegistryEventHandler}

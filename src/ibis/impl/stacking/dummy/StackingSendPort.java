@@ -89,8 +89,8 @@ public class StackingSendPort implements ibis.ipl.SendPort {
         return base.getCount();
     }
 
-    public Object getProperty(String key) {
-        return base.getProperty(key);
+    public void resetCount() {
+        base.resetCount();   
     }
 
     public PortType getType() {
@@ -113,21 +113,19 @@ public class StackingSendPort implements ibis.ipl.SendPort {
         return new StackingWriteMessage(base.newMessage(), this);
     }
 
-    public Map<String, Object> properties() {
-        return base.properties();
+    public Map<String, Object> dynamicProperties() {
+        return base.dynamicProperties();
     }
 
-    public void resetCount() {
-        base.resetCount();   
+    public Object getDynamicProperty(String key) {
+        return base.getDynamicProperty(key);
     }
 
-    public void setProperties(Map<String, Object> properties) {
-        base.setProperties(properties);      
+    public void setDynamicProperties(Map<String, Object> properties) {
+        base.setDynamicProperties(properties);      
     }
 
-    public void setProperty(String key, Object val) {
-        base.setProperty(key, val);
-        
+    public void setDynamicProperty(String key, Object val) {
+        base.setDynamicProperty(key, val);
     }
-
 }

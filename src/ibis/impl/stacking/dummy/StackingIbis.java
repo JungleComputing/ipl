@@ -12,6 +12,7 @@ import ibis.ipl.SendPortIdentifier;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.Map;
 import java.util.HashMap;
 import java.util.Properties;
 
@@ -178,4 +179,19 @@ public class StackingIbis extends Ibis {
         
     }
 
+    public Map<String, Object> dynamicProperties() {
+        return base.dynamicProperties();
+    }
+
+    public Object getDynamicProperty(String key) {
+        return base.getDynamicProperty(key);
+    }
+
+    public void setDynamicProperties(Map<String, Object> properties) {
+        base.setDynamicProperties(properties);      
+    }
+
+    public void setDynamicProperty(String key, Object val) {
+        base.setDynamicProperty(key, val);
+    }
 }

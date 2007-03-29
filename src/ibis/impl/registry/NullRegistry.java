@@ -35,7 +35,7 @@ public final class NullRegistry extends ibis.impl.Registry {
     }
 
     @Override
-    protected void leave() throws IOException {
+    public void leave() throws IOException {
         //NOTHING
     }
 

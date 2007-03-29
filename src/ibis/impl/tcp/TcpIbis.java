@@ -111,7 +111,7 @@ public final class TcpIbis extends ibis.impl.Ibis
 
             try {
                 s = factory.createClientSocket(idAddr, timeout,
-                        sp.properties());
+                        sp.dynamicProperties());
                 out = new DataOutputStream(new BufferedArrayOutputStream(
                             s.getOutputStream()));
 

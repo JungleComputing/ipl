@@ -24,7 +24,7 @@ import org.apache.log4j.Logger;
  * Implementation of the {@link ibis.ipl.SendPort} interface, to be extended
  * by specific Ibis implementations.
  */
-public abstract class SendPort implements ibis.ipl.SendPort {
+public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
 
     /** Debugging output. */
     private static final Logger logger = Logger.getLogger("ibis.impl.SendPort");
@@ -46,9 +46,6 @@ public abstract class SendPort implements ibis.ipl.SendPort {
 
     /** Connection upcall handler, or <code>null</code>. */
     public final SendPortDisconnectUpcall connectUpcall;
-
-    /** Map for implementing the dynamic properties. */
-    protected Map<String, Object> props = new HashMap<String, Object>();
 
     /**
      * The connections lost since the last call to {@link #lostConnections()}.
@@ -162,22 +159,6 @@ public abstract class SendPort implements ibis.ipl.SendPort {
         return type;
     }
 
-    public synchronized Map<String, Object> properties() {
-        return props;
-    }
-
-    public synchronized void setProperties(Map<String, Object> properties) {
-        props = properties;
-    }
-    
-    public synchronized Object getProperty(String key) {
-        return props.get(key);
-    }
-    
-    public synchronized void setProperty(String key, Object val) {
-        props.put(key, val);
-    }
-    
     public synchronized ibis.ipl.ReceivePortIdentifier[] lostConnections() {
         if (! connectionDowncalls) {
             throw new IbisConfigurationException("SendPort.lostConnections()"

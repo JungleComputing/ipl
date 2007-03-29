@@ -41,7 +41,7 @@ import java.util.Map;
  * message is alive, and a new message is requested, the request is
  * blocked until the live message is finished.
  */
-public interface SendPort {
+public interface SendPort extends Managable {
 
     /**
      * Returns the type that was used to create this port.
@@ -61,44 +61,6 @@ public interface SendPort {
      */
     public WriteMessage newMessage() throws IOException;
 
-    /**
-     * Returns the dynamic properties of
-     * this port. The user can set some implementation-specific dynamic
-     * properties of the port, by means of the
-     * {@link ibis.ipl.SendPort#setProperty(String, Object)
-     * setProperty} method.
-     * @return the dynamic properties of this port.
-     */
-    public Map<String, Object> properties();
-
-    /**
-     * Sets a number of dynamic properties of
-     * this port. The user can set some implementation-specific dynamic
-     * properties of the port.
-     * @param properties the dynamic properties to set.
-     */
-    public void setProperties(Map<String, Object> properties); 
-    
-    /**
-     * Returns a dynamic property of
-     * this port. The user can set some implementation-specific dynamic
-     * properties of the port, by means of the
-     * {@link ibis.ipl.SendPort#setProperty(String, Object)
-     * setProperty} method.
-     * @param key the key for the requested property.
-     * @return the value associated with the property.
-     */
-    public Object getProperty(String key);
-    
-    /**
-     * Sets a dynamic property of
-     * this port. The user can set some implementation-specific dynamic
-     * properties of the port.
-     * @param key the key for the property.
-     * @param val the value associated with the property.
-     */
-    public void setProperty(String key, Object val);
-    
     /**
      * Obtains an identification for this sendport.
      * @return the identification.

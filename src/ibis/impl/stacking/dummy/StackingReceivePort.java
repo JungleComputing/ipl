@@ -59,10 +59,6 @@ public class StackingReceivePort implements ibis.ipl.ReceivePort {
         return base.getCount();
     }
 
-    public Object getProperty(String key) {
-        return base.getProperty(key);
-    }
-
     public ibis.ipl.PortType getType() {
         return type;
     }
@@ -87,10 +83,6 @@ public class StackingReceivePort implements ibis.ipl.ReceivePort {
         return base.poll();
     }
 
-    public Map<String, Object> properties() {
-        return base.properties();
-    }
-
     public ReadMessage receive() throws IOException {
         return receive(0);
     }
@@ -103,12 +95,19 @@ public class StackingReceivePort implements ibis.ipl.ReceivePort {
         base.resetCount();
     }
 
-    public void setProperties(Map<String, Object> properties) {
-        base.setProperties(properties);
+    public Map<String, Object> dynamicProperties() {
+        return base.dynamicProperties();
     }
 
-    public void setProperty(String key, Object val) {
-        base.setProperty(key, val);
+    public Object getDynamicProperty(String key) {
+        return base.getDynamicProperty(key);
     }
 
+    public void setDynamicProperties(Map<String, Object> properties) {
+        base.setDynamicProperties(properties);      
+    }
+
+    public void setDynamicProperty(String key, Object val) {
+        base.setDynamicProperty(key, val);
+    }
 }

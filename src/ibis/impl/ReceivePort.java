@@ -20,8 +20,8 @@ import org.apache.log4j.Logger;
  * Implementation of the {@link ibis.ipl.ReceivePort} interface, to be extended
  * by specific Ibis implementations.
  */
-public abstract class ReceivePort implements ibis.ipl.ReceivePort,
-        ibis.ipl.PredefinedCapabilities {
+public abstract class ReceivePort extends Managable
+        implements ibis.ipl.ReceivePort, ibis.ipl.PredefinedCapabilities {
 
     /** Debugging output. */
     private static final Logger logger
@@ -79,9 +79,6 @@ public abstract class ReceivePort implements ibis.ipl.ReceivePort,
      */
     private ArrayList<SendPortIdentifier> newConnections
         = new ArrayList<SendPortIdentifier>();
-
-    /** Map for implementing the dynamic properties. */
-    private Map<String, Object> props = new HashMap<String, Object>();
 
     /** Message upcall, if specified, or <code>null</code>. */
     protected Upcall upcall;
@@ -197,22 +194,6 @@ public abstract class ReceivePort implements ibis.ipl.ReceivePort,
         return type;
     }
 
-    public Map<String, Object> properties() {
-        return props;
-    }
-
-    public synchronized Object getProperty(String key) {
-        return props.get(key);
-    }
-    
-    public synchronized void setProperties(Map<String, Object> properties) {
-        props = properties;
-    }
-    
-    public synchronized void setProperty(String key, Object val) {
-        props.put(key, val);
-    }
-    
     public synchronized ibis.ipl.SendPortIdentifier[] lostConnections() {
         if (! connectionDowncalls) {
             throw new IbisConfigurationException("ReceivePort.lostConnections()"
