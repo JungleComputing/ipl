@@ -53,7 +53,7 @@ public interface RegistryEventHandler {
      * {@link Registry#signal(String, IbisIdentifier[])}
      * call. It is always the result of a call by the application.
      * How the receiver of this upcall reacts to this is up to the application.
-     * @param signal, the value of the signal supplied by the user.
+     * @param signal the value of the signal supplied by the user.
      */
     public void gotSignal(String signal);
 }

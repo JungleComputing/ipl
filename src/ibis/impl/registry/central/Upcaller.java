@@ -40,18 +40,24 @@ final class Upcaller implements Runnable {
             logger.debug("doing upcall for event: " + event);
 
             try {
+                IbisIdentifier[] ibisses = event.getIbisses();
                 switch (event.getType()) {
                 case Event.JOIN:
-                    handler.joined(event.getFirstIbis());
+                    for (IbisIdentifier identifier: ibisses) {
+                        handler.joined(identifier);
+                    }
                     break;
                 case Event.LEAVE:
-                    handler.left(event.getFirstIbis());
+                    for (IbisIdentifier identifier: ibisses) {
+                        handler.left(identifier);
+                    }
                     break;
                 case Event.DIED:
-                    handler.died(event.getFirstIbis());
+                    for (IbisIdentifier identifier: ibisses) {
+                        handler.died(identifier);
+                    }
                     break;
                 case Event.SIGNAL:
-                    IbisIdentifier[] ibisses = event.getIbisses();
                     for (IbisIdentifier identifier: ibisses) {
                         if (identifier.equals(ibisId)) {
                             handler.gotSignal(event.getDescription());

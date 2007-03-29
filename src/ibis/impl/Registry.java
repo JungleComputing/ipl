@@ -34,7 +34,9 @@ public abstract class Registry implements ibis.ipl.Registry {
 
     /**
      * Creates a registry for the specified Ibis instance.
-     * @param ibis the Ibis instance.
+     * @param handler the handler for registry events.
+     * @param properties to get some properties from, and to pass on
+     * to the registry.
      * @param needsUpcalls set when the registry must provide for connection
      * upcalls.
      * @param data the implementation dependent data in the IbisIdentifier.

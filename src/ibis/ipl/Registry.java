@@ -57,14 +57,15 @@ public interface Registry {
     public void dead(IbisIdentifier ibis) throws IOException;
 
     /**
-     * Send a signal to one or more Ibisses
-     * This results in a {@link RegistryEventHandler#signal(String)}
+     * Send a signal to one or more Ibisses.
+     * This results in a {@link RegistryEventHandler#gotSignal(String)}
      * upcall on all Ibis instances in the given list. It is up to the
      * application to react accordingly.
-     * @param signal, the value of the signal/ Usefull if more than one
+     * @param signal the value of the signal. Useful if more than one
      * type of signal is needed.
      * @param ibisses the ibisses to wich the signal is sent.
      * @exception java.io.IOException is thrown in case of trouble.
      */
-    public void signal(String signal, IbisIdentifier... ibisses) throws IOException;
+    public void signal(String signal, IbisIdentifier... ibisses)
+            throws IOException;
 }

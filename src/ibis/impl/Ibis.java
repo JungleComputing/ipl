@@ -239,10 +239,10 @@ public abstract class Ibis implements ibis.ipl.Ibis, RegistryEventHandler,
     }
 
     /**
-     * Notifies this Ibis instance that other Ibis instances have
+     * Notifies this Ibis instance that another Ibis instance has
      * joined the run. Called by the registry.
-     * @param joinIdents the Ibis {@linkplain IbisIdentifier
-     * identifiers} of the Ibis instances joining the run.
+     * @param joinIdent the Ibis {@linkplain ibis.ipl.IbisIdentifier
+     * identifier} of the Ibis instance joining the run.
      */
     public void joined(ibis.ipl.IbisIdentifier joinIdent) {
         if (registryHandler != null) {
@@ -260,10 +260,10 @@ public abstract class Ibis implements ibis.ipl.Ibis, RegistryEventHandler,
     }
 
     /**
-     * Notifies this Ibis instance that other Ibis instances have
+     * Notifies this Ibis instance that another Ibis instance has
      * left the run. Called by the Registry.
-     * @param leaveIdents the Ibis {@linkplain IbisIdentifier
-     *  identifiers} of the Ibis instances leaving the run.
+     * @param leaveIdent the Ibis {@linkplain ibis.ipl.IbisIdentifier
+     *  identifier} of the Ibis instance leaving the run.
      */
     public void left(ibis.ipl.IbisIdentifier leaveIdent) {
         if (registryHandler != null) {
@@ -281,10 +281,10 @@ public abstract class Ibis implements ibis.ipl.Ibis, RegistryEventHandler,
     }
 
     /**
-     * Notifies this Ibis instance that other Ibis instances have died.
+     * Notifies this Ibis instance that another Ibis instance has died.
      * Called by the registry.
-     * @param corpses the Ibis {@linkplain IbisIdentifier
-     *  identifiers} of the Ibis instances that died.
+     * @param corpse the Ibis {@linkplain ibis.ipl.IbisIdentifier
+     *  identifier} of the Ibis instance that died.
      */
     public void died(ibis.ipl.IbisIdentifier corpse) {
         if (registryHandler != null) {
