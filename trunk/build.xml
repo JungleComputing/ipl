@@ -1,0 +1,261 @@
+<project name="Ibis" default="default" basedir=".">
+    <description>
+	Build file for Ibis
+    </description>
+
+    <target name="default" description="Build Ibis" depends="allclean,build">
+	<delete dir="${build}"/>
+    </target>
+
+    <target name="usage" description="Print this message">
+	<exec	executable="ant">
+	    <arg line="-projecthelp"/>
+	</exec>
+	<echo message="os.name ${os.name} os.arch ${os.arch}"/>
+    </target>
+
+    <property name="ibis"        location="."/>
+
+    <property name="version" value="ibis"/>
+
+    <property name="jar" value="${ibis}/lib/${version}.jar"/>
+
+    <target name="make-dirs">
+	<tstamp/>
+	<mkdir dir="${build}"/>
+	<mkdir dir="${ibis}/lib"/>
+    </target>
+
+    <target name="init" depends="property-init,make-dirs,copyjars"/>
+
+    <!--
+    Compile only
+    -->
+    <target name="compile" depends="init">
+	<javac  destdir="${build}" debug="true" srcdir="${src}"
+	    includes="ibis/**/*.java">
+	    <!--
+	    <compilerarg value="-Xlint:unchecked"/>
+	    -->
+	    <classpath refid="default.classpath"/>
+	</javac>
+    </target>
+
+    <!--
+    Compile, run IOGenerator, build jars for the whole of Ibis
+    -->
+
+    <target name="build"
+	depends="compile, ibis-rmic, copyProperties, ibis-iogen, jars"
+	description="Build Ibis">
+    </target>
+
+    <target name="ibis-iogen">
+	<java   classname="ibis.frontend.ibis.Ibisc"
+	    taskname="Ibisc"
+	    failonerror="true"
+	    dir="${build}"
+	    maxmemory="512m"
+	    fork="true">
+	    <arg line="."/>
+	    <classpath refid="default.classpath"/>
+	</java>
+    </target>
+
+
+    <target name="ibis-rmic">
+	<java   classname="ibis.frontend.rmi.Rmic"
+	    taskname="Rmic"
+	    failonerror="true"
+	    dir="${build}"
+	    maxmemory="512m"
+	    fork="true">
+	    <arg line="-dir ibis.rmi.registry.impl.RegistryImpl"/>
+	    <classpath refid="default.classpath"/>
+	</java>
+	<javac  destdir="${build}" debug="true" srcdir="${build}"
+	    includes="ibis/rmi/registry/impl/*.java">
+	    <classpath refid="default.classpath"/>
+	</javac>
+    </target>
+
+    <import file="${ibis}/build-files/build-properties.xml"/>
+
+    <property name="src"         location="${ibis}/src"/>
+    <property name="build"       location="${ibis}/build"/>
+    <property name="lib"         location="${ibis}/lib"/>
+    <property name="docs"        location="${ibis}/docs"/>
+
+    <target name="copyProperties">
+	<copy todir="${build}">
+	    <fileset dir="${src}" includes="ibis/impl/**/capabilities"/>
+	</copy>
+    </target>
+
+    <target name="copyjars"
+	description="Copy jar files for ibis">
+	<copy todir="${ibis}/lib">
+	    <fileset dir="${ibis}/3rdparty" includes="*.jar"/>
+	</copy>
+    </target>
+
+    <target name="jars">
+	<jar destfile="lib/ipl-api.jar"
+	    basedir="${build}"
+	    includes="ibis/ipl/*.class">
+	</jar>
+	<jar	destfile="lib/ipl-impl.jar"
+	    basedir="${build}"
+	    includes="ibis/impl/**/*.class ibis/io/**/*.class ibis/util/**/*.class ibis/frontend/generic/*.class ibis/frontend/ibis/*.class ibis/frontend/io/*.class">
+	    <manifest>
+		<attribute name="Ibis-Implementation" value="ibis.impl.tcp.TcpIbis,ibis.impl.nio.NioIbis"/>
+		<attribute name="Ibisc-Component" value="ibis.frontend.io.IOGenerator"/>
+	    </manifest>
+	</jar>
+	<jar	destfile="${jar}"
+	    basedir="${build}"
+	    includes="ibis/**/*.class **/capabilities">
+	    <manifest>
+		<attribute name="Ibisc-Component" value="ibis.frontend.io.IOGenerator,ibis.frontend.gmi.Gmic,ibis.frontend.rmi.Rmic,ibis.frontend.satin.Satinc"/>
+		<attribute name="Ibis-Implementation" value="ibis.impl.tcp.TcpIbis,ibis.impl.nio.NioIbis"/>
+	    </manifest>
+	</jar>
+	<jar destfile="lib/satin-api.jar"
+	    basedir="${build}"
+	    includes="ibis/satin/*.class">
+	</jar>
+	<jar destfile="lib/satin-impl.jar"
+	    basedir="${build}"
+	    includes="ibis/satin/impl/**/*.class ibis/frontend/satin/*.class">
+	    <manifest>
+		<attribute name="Ibisc-Component" value="ibis.frontend.satin.Satinc"/>
+	    </manifest>
+	</jar>
+	<jar destfile="lib/gmi.jar"
+	    basedir="${build}"
+	    includes="ibis/gmi/**/*.class ibis/frontend/gmi/*.class">
+	    <manifest>
+		<attribute name="Ibisc-Component" value="ibis.frontend.gmi.Gmic"/>
+	    </manifest>
+	</jar>
+	<jar destfile="lib/rmi.jar"
+	    basedir="${build}"
+	    includes="ibis/rmi/**/*.class ibis/frontend/rmi/*.class">
+	    <manifest>
+		<attribute name="Ibisc-Component" value="ibis.frontend.rmi.Rmic"/>
+	    </manifest>
+	</jar>
+	<jar destfile="lib/mpj.jar"
+	    basedir="${build}"
+	    includes="ibis/mpj/**/*.class">
+	</jar>
+    </target>
+
+    <!--
+    Run IOGenerator over the classlibs in $JAVA_HOME and
+    put them into ${rewritten-classlibs}
+    -->
+
+    <property name="rewritten-classlibs" location="${ibis}/classlibs"/>
+
+    <target name="rewrite"
+	depends="init"
+	description="Preprocess all serializable classes of standard Java">
+	<!-- Create a directory for the rewritten classes -->
+
+	<mkdir dir="${rewritten-classlibs}"/>
+
+	<!-- Then, find and extract jars.  -->
+	<unjar dest="${rewritten-classlibs}">
+	    <patternset>
+		<include name="**/*.class"/>
+	    </patternset>
+	    <fileset dir="${JAVA_HOME}/jre/lib">
+		<include name="**/*.jar"/>
+	    </fileset>
+	</unjar>
+
+	<!-- Then, rewrite.  -->
+	<java   classname="ibis.frontend.ibis.Ibisc"
+	    taskname="Ibisc"
+	    failonerror="true"
+	    maxmemory="512m"
+	    dir="${rewritten-classlibs}"
+	    fork="true">
+	    <arg line="."/>
+	    <classpath refid="default.classpath"/>
+	</java>
+    </target>
+
+    <target name="clean" description="Clean up the build">
+	<delete dir="${ibis}/build"/>
+    </target>
+
+    <target name="allclean" depends="clean" description="Clean up build, jars">
+	<delete dir="${ibis}/lib"/>
+    </target>
+
+    <target name="rewritten-clean"
+	description="Clean up rewritten classlibs (except under sym links)">
+	<!--
+	If ${rewritten-classlibs} is a sym-link, we let the directory
+	live on. In this case, I suppose the user knows what he is up to.
+	If it isn't a symlink (which is the normal case) go ahead and
+	throw away all your rewritten stuff.	RFHH
+	-->
+	<delete includeEmptyDirs="true">
+	    <fileset dir="${ibis}" followsymlinks="false">
+		<include name="classlibs/**"/>
+	    </fileset>
+	</delete>
+    </target>
+
+    <target name="distclean" depends="allclean,rewritten-clean"
+	description="Clean up, also rewritten classlibs">
+	<ant dir="${ibis}/ibis-example" inheritAll="false" target="clean"/>
+	<delete dir="ant-tasks/tasks"/>
+	<delete file="${version}.zip"/>
+	<delete file="ibis-src.zip"/>
+	<ant dir="${docs}" inheritAll="false" target="distclean"/>
+    </target>
+
+    <target name="docs" description="Build the Ibis API documentation">
+	<ant dir="${docs}" inheritAll="false" target="api"/>
+    </target>
+
+    <target name="developer-docs">
+	<ant dir="${docs}" inheritAll="false" target="developer-api"/>
+    </target>
+
+    <target name="progman" description="Build the Ibis programmers manual">
+	<ant dir="${docs}" inheritAll="false" target="progman"/>
+    </target>
+
+    <target name="test" depends="allclean, build">
+	<ant dir="ibis-example" inheritAll="false" target="test"/>
+    </target>
+
+    <target name="ibis.zip" depends="default">
+	<delete file="${version}.zip"/>
+
+	<zip destfile="ibis-src.zip">
+	    <zipfileset dir="src" includes="**/*.java" prefix="ibis-src"/>
+	</zip>
+
+	<zip destfile="${version}.zip">
+	    <zipfileset dir="." prefix="${version}"
+		includes="buildfiles/**,docs/**,grun/**,lib/**,notices/**,
+		BUGS.txt,LICENSE.txt,ibis-src.zip"
+		excludes="docs/src/**,notices/OmniSourceLicense.html,
+		docs/build.xml,docs/README-bin.txt"
+		/>
+	    <zipfileset dir="." prefix="${version}" filemode="755"
+		includes="bin/**"
+		/>
+	    <zipfileset dir="." includes="docs/README-bin.txt"
+		fullpath="${version}/README.txt"/>
+	</zip>
+
+    </target>
+
+</project>
