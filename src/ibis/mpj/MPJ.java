@@ -31,7 +31,7 @@ public class MPJ implements PredefinedCapabilities {
 
     protected static Ibis ibis;
     protected static Registry registry;
-    protected static RegEvtHandler regEvtHandler;
+    private static RegEvtHandler regEvtHandler;
 
 
     public static Datatype BYTE, CHAR, SHORT, BOOLEAN, INT, LONG, FLOAT, DOUBLE, OBJECT, PACKED, LB, UB;
