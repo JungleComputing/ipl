@@ -1,0 +1,23 @@
+#example log4j property file
+
+#print warnings to console...
+log4j.rootLogger=warn, SIMPLE_CONSOLE
+
+#and all ibis info too
+log4j.logger.ibis=info
+
+#and possibly some other things...
+#log4j.logger.ibis.impl.tcp.TcpIbis=debug
+#log4j.logger.ibis.impl.registry=debug
+
+
+#console appender
+log4j.appender.CONSOLE=org.apache.log4j.ConsoleAppender
+log4j.appender.CONSOLE.layout=org.apache.log4j.PatternLayout
+log4j.appender.CONSOLE.layout.ConversionPattern=%d{HH:mm:ss} %-5p [%t] %c - %m%n
+
+#simple console appender
+log4j.appender.SIMPLE_CONSOLE=org.apache.log4j.ConsoleAppender
+log4j.appender.SIMPLE_CONSOLE.layout=org.apache.log4j.PatternLayout
+log4j.appender.SIMPLE_CONSOLE.layout.ConversionPattern=%d{HH:mm:ss} %-5p %m%n
+

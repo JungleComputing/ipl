@@ -1,0 +1,72 @@
+#!/bin/sh
+
+#ibis_run script.
+#This script is a convenience script to automatically set the correct
+#classpath and bootclasspath for Ibis given the location of a Ibis
+#installation, specified in the $IBIS_HOME environment variable.
+
+# Check setting of IBIS_HOME
+if [ -z "$IBIS_HOME" ];  then
+    echo "please set IBIS_HOME to the location of your Ibis installation" 1>&2
+    exit 1
+fi
+
+# On cygwin, convert paths to unix format before dealing with them.
+case "`uname`" in
+CYGWIN*)
+    IBIS_HOME=`cygpath --unix "$IBIS_HOME"`
+    CLASSPATH=`cygpath --unix --path "$CLASSPATH"`
+    ;;
+esac
+
+# Jar-files from library.
+LIBCLASSPATH=""
+add_to_libclasspath () {
+    JARFILES=`cd "$1" && ls *.jar 2>/dev/null`
+    for i in ${JARFILES} ; do
+	if [ -z "$LIBCLASSPATH" ] ; then
+	    LIBCLASSPATH="$1/$i"
+	else
+	    LIBCLASSPATH="$LIBCLASSPATH:$1/$i"
+	fi
+    done
+}
+
+# Add the jar files in the Ibis lib dir to the classpath.
+add_to_libclasspath "${IBIS_HOME}"/lib
+
+# Set classpath and determine wether to set bootclasspath.
+JAVACLASSPATH="build/:$LIBCLASSPATH:.:"
+if [ -d "$IBIS_HOME"/classlibs ]
+then
+    JAVACLASSPATH="$IBIS_HOME/classlibs:$JAVACLASSPATH"
+    BOOTCLASSPATH="-Xbootclasspath/p:$JAVACLASSPATH"
+fi
+
+# Put value of environment variable CLASSPATH in front, if present.
+if [ -z "$CLASSPATH" ] ; then
+    :
+else 
+    JAVACLASSPATH="$CLASSPATH:$JAVACLASSPATH"
+fi
+
+# On cygwin, convert paths back.
+case "`uname`" in
+CYGWIN*)
+    JAVACLASSPATH=`cygpath --path --windows "$JAVACLASSPATH"`
+    ;;
+esac
+
+# Find out which Java to run
+case "X$JAVA_HOME" in
+X)	JAVA_EXEC=java
+	;;
+*)	JAVA_EXEC="$JAVA_HOME/bin/java"
+	;;
+esac
+
+# And finally, run ...
+"$JAVA_EXEC" \
+    ${BOOTCLASSPATH:+"$BOOTCLASSPATH"} \
+    -classpath "$JAVACLASSPATH" \
+    "$@"
