@@ -187,9 +187,7 @@ public final class TcpIbis extends ibis.impl.Ibis
 
     private void handleConnectionRequest(IbisSocket s) throws IOException {
         if (logger.isDebugEnabled()) {
-            logger.debug("--> TcpIbis got connection request from "
-                    + s.getAddress() + ":" + s.getPort() + " on local port "
-                    + s.getLocalPort());
+            logger.debug("--> TcpIbis got connection request from " + s);
         }
 
         BufferedArrayInputStream bais

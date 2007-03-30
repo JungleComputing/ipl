@@ -77,4 +77,11 @@ class IbisSocket {
         }
         return new IbisSocketAddress(smartSocket.getLocalSocketAddress());
     }
+
+    public String toString() {
+        if (socket != null) {
+            return socket.toString();
+        }
+        return smartSocket.toString();
+    }
 }
