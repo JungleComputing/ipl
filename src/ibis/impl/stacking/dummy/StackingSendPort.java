@@ -16,11 +16,33 @@ public class StackingSendPort implements ibis.ipl.SendPort {
     final StackingPortType type;
     final ibis.impl.SendPortIdentifier identifier;
     
+    private static final class DisconnectUpcaller
+            implements SendPortDisconnectUpcall {
+        StackingSendPort port;
+        SendPortDisconnectUpcall upcaller;
+
+        public DisconnectUpcaller(StackingSendPort port,
+                SendPortDisconnectUpcall upcaller) {
+            this.port = port;
+            this.upcaller = upcaller;
+        }
+
+        public void lostConnection(ibis.ipl.SendPort me,
+                ibis.ipl.ReceivePortIdentifier johnDoe, Throwable reason) {
+            johnDoe = ((StackingIbis)port.type.ibis).fromBase(johnDoe);
+            upcaller.lostConnection(port, johnDoe, reason);
+        }
+    }
+    
     public StackingSendPort(StackingPortType type, String name,
             SendPortDisconnectUpcall connectUpcall, boolean connectionDowncalls)
             throws IOException {
         this.type = type;
         this.identifier = type.ibis.createSendPortIdentifier(name, type.ibis.ident);
+
+        if (connectUpcall != null) {
+            connectUpcall = new DisconnectUpcaller(this, connectUpcall);
+        }
         if (connectionDowncalls) {
             base = type.base.createSendPort(name, true);
         } else if (connectUpcall != null) {

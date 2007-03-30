@@ -86,6 +86,7 @@ public class StackingIbis extends Ibis {
         Properties p = new Properties(properties);
         CapabilitySet baseCp = capabilities.subtract(
                 new CapabilitySet(PredefinedCapabilities.RESIZE_DOWNCALLS,
+                    PredefinedCapabilities.WORLDMODEL_CLOSED,
                     PredefinedCapabilities.RESIZE_UPCALLS));
         p.setProperty("ibis.registry.impl", "ibis.impl.registry.NullRegistry");
         base = new TcpIbis(null, baseCp, p);

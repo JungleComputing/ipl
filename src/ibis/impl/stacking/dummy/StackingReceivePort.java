@@ -14,12 +14,56 @@ public class StackingReceivePort implements ibis.ipl.ReceivePort {
     final ibis.ipl.ReceivePort base;
     final StackingPortType type;
     final ibis.impl.ReceivePortIdentifier identifier;
+
+    private static final class ConnectUpcaller
+            implements ReceivePortConnectUpcall {
+        StackingReceivePort port;
+        ReceivePortConnectUpcall upcaller;
+
+        public ConnectUpcaller(StackingReceivePort port,
+                ReceivePortConnectUpcall upcaller) {
+            this.port = port;
+            this.upcaller = upcaller;
+        }
+
+        public boolean gotConnection(ibis.ipl.ReceivePort me,
+                SendPortIdentifier applicant) {
+            applicant = ((StackingIbis)port.type.ibis).fromBase(applicant);
+            return upcaller.gotConnection(me, applicant);
+        }
+
+        public void lostConnection(ibis.ipl.ReceivePort me,
+                SendPortIdentifier johnDoe, Throwable reason) {
+            johnDoe = ((StackingIbis)port.type.ibis).fromBase(johnDoe);
+            upcaller.lostConnection(port, johnDoe, reason);
+        }
+    }
+    
+    private static final class Upcaller implements Upcall {
+        Upcall upcaller;
+        StackingReceivePort port;
+
+        public Upcaller(Upcall upcaller, StackingReceivePort port) {
+            this.upcaller = upcaller;
+            this.port = port;
+        }
+
+        public void upcall(ReadMessage m) throws IOException {
+            upcaller.upcall(new StackingReadMessage(m, port));
+        }
+    }
     
     public StackingReceivePort(StackingPortType type, String name,
             Upcall upcall, ReceivePortConnectUpcall connectUpcall,
             boolean connectionDowncalls) throws IOException {
         this.type = type;
         this.identifier = type.ibis.createReceivePortIdentifier(name, type.ibis.ident);
+        if (connectUpcall != null) {
+            connectUpcall = new ConnectUpcaller(this, connectUpcall);
+        }
+        if (upcall != null) {
+            upcall = new Upcaller(upcall, this);
+        }
         if (connectionDowncalls) {
             base = type.base.createReceivePort(name, upcall, true);
         } else {
@@ -80,7 +124,11 @@ public class StackingReceivePort implements ibis.ipl.ReceivePort {
     }
 
     public ReadMessage poll() throws IOException {
-        return base.poll();
+        ReadMessage m = base.poll();
+        if (m != null) {
+            m = new StackingReadMessage(m, this);
+        }
+        return m;
     }
 
     public ReadMessage receive() throws IOException {
