@@ -94,46 +94,41 @@ public final class Victim implements Config {
     }
 
     public WriteMessage newMessage() throws IOException {
+        SendPort send;
         synchronized (s) {
-            SendPort send = getSendPort();
+            send = getSendPort();
             if (send != null) {
                 referenceCount++;
-                return send.newMessage();
+            } else {
+                throw new IOException("Could not connect");
             }
-            throw new IOException("Could not connect");
         }
+        return send.newMessage();
     }
 
     public long finish(WriteMessage m) throws IOException {
-        synchronized (s) {
-            long res = 0;
-            IOException e = null;
-            referenceCount--;
-            
-            try {
-                res = m.finish();
-            } catch (IOException x) {
-                e = x;
-            }
+        try {
+            return m.finish();
+        }  finally {
+            synchronized (s) {
+                referenceCount--;
 
-            if (CLOSE_CONNECTIONS) {
-                if (connectionCount >= MAX_CONNECTIONS && referenceCount == 0) {
-                    disconnect();
+                if (CLOSE_CONNECTIONS) {
+                    if (connectionCount >= MAX_CONNECTIONS && referenceCount == 0) {
+                        disconnect();
+                    }
                 }
             }
-
-            if(e != null) {
-                throw e;
-            }
-            
-            return res;
         }
     }
 
     public long finishKeepConnection(WriteMessage m) throws IOException {
-        synchronized (s) {
-            referenceCount--;
+        try {
             return m.finish();
+        } finally {
+            synchronized (s) {
+                referenceCount--;
+            }
         }
     }
 
