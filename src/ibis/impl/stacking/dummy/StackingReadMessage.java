@@ -29,11 +29,12 @@ public class StackingReadMessage implements ReadMessage {
     }
 
     public ReceivePort localPort() {
+        // This method is the only reason why we need a forwarder message.
         return port;
     }
 
     public SendPortIdentifier origin() {
-        return ((StackingIbis) port.type.ibis).fromBase(base.origin());
+        return base.origin();
     }
 
     public void readArray(boolean[] destination, int offset, int size) throws IOException {

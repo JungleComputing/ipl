@@ -28,13 +28,11 @@ public class StackingReceivePort implements ibis.ipl.ReceivePort {
 
         public boolean gotConnection(ibis.ipl.ReceivePort me,
                 SendPortIdentifier applicant) {
-            applicant = ((StackingIbis)port.type.ibis).fromBase(applicant);
-            return upcaller.gotConnection(me, applicant);
+            return upcaller.gotConnection(port, applicant);
         }
 
         public void lostConnection(ibis.ipl.ReceivePort me,
                 SendPortIdentifier johnDoe, Throwable reason) {
-            johnDoe = ((StackingIbis)port.type.ibis).fromBase(johnDoe);
             upcaller.lostConnection(port, johnDoe, reason);
         }
     }
@@ -80,7 +78,7 @@ public class StackingReceivePort implements ibis.ipl.ReceivePort {
     }
 
     public SendPortIdentifier[] connectedTo() {
-        return ((StackingIbis) type.ibis).fromBase(base.connectedTo());
+        return base.connectedTo();
     }
 
     public void disableConnections() {
@@ -112,7 +110,7 @@ public class StackingReceivePort implements ibis.ipl.ReceivePort {
     }
 
     public SendPortIdentifier[] lostConnections() {
-        return ((StackingIbis) type.ibis).fromBase(base.lostConnections());
+        return base.lostConnections();
     }
 
     public String name() {
@@ -120,7 +118,7 @@ public class StackingReceivePort implements ibis.ipl.ReceivePort {
     }
 
     public SendPortIdentifier[] newConnections() {
-        return ((StackingIbis) type.ibis).fromBase(base.newConnections());
+        return base.newConnections();
     }
 
     public ReadMessage poll() throws IOException {

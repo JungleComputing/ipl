@@ -15,13 +15,13 @@ public final class NullRegistry extends ibis.impl.Registry {
 
     @Override
     public long getSeqno(String name) throws IOException {
-        throw new IOException("sequence numbers not supported by NullRegistry");
+        throw new IbisConfigurationException("sequence numbers not supported by NullRegistry");
     }
 
     public NullRegistry(RegistryEventHandler handler, Properties props,
-            byte[] data) throws IOException, IbisConfigurationException {
+            byte[] data) throws IOException {
         if (handler != null) {
-            throw new IOException("upcalls not supported by NullRegistry");
+            throw new IbisConfigurationException("upcalls not supported by NullRegistry");
         }
         
         //FIXME: use real UUID generator (from smartsockets?)
@@ -44,11 +44,11 @@ public final class NullRegistry extends ibis.impl.Registry {
     }
 
     public ibis.ipl.IbisIdentifier elect(String election) throws IOException {
-        throw new IOException("elections not supported by NullRegistry");
+        throw new IbisConfigurationException("elections not supported by NullRegistry");
     }
 
     public ibis.ipl.IbisIdentifier getElectionResult(String election) throws IOException {
-        throw new IOException("elections not supported by NullRegistry");
+        throw new IbisConfigurationException("elections not supported by NullRegistry");
     }
 
     public void maybeDead(ibis.ipl.IbisIdentifier ibis) throws IOException {
@@ -56,7 +56,7 @@ public final class NullRegistry extends ibis.impl.Registry {
     }
 
     public void signal(String string, ibis.ipl.IbisIdentifier... ibisses) throws IOException {
-        throw new IOException("signals not supported by NullRegistry");
+        throw new IbisConfigurationException("signals not supported by NullRegistry");
     }
 
     @Override

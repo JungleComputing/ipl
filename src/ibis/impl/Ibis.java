@@ -29,7 +29,7 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis,
     private static final Logger logger = Logger.getLogger("ibis.impl.Ibis");
 
     /** A user-supplied registry handler, with join/leave upcalls. */
-    private RegistryEventHandler registryHandler;
+    protected final RegistryEventHandler registryHandler;
 
     /**
      * CapabilitySet, as derived from the capabilities passed to
@@ -106,12 +106,9 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis,
         
         receivePorts = new HashMap<String, ReceivePort>();
         sendPorts = new HashMap<String, SendPort>();
-        try {
-            registry = Registry.createRegistry(needsRegistryCalls ? this : null,
-                    properties, getData());
-        } catch(Throwable e) {
-            throw new IbisConfigurationException("Coulld not create registry", e);
-        }
+
+        registry = initializeRegistry(needsRegistryCalls ? this : null);
+
         ident = registry.getIbisIdentifier();
         if (closedWorld) {
             try {
@@ -130,6 +127,15 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis,
         } else {
             joinedIbises = null;
             leftIbises = null;
+        }
+    }
+
+    protected Registry initializeRegistry(RegistryEventHandler handler) {
+        try {
+            return Registry.createRegistry(handler, properties, getData());
+        } catch(Throwable e) {
+            throw new IbisConfigurationException("Coulld not create registry",
+                    e);
         }
     }
 
