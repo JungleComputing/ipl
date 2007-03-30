@@ -3,7 +3,6 @@
 package ibis.ipl;
 
 import java.io.IOException;
-import java.util.Map;
 
 /**
  * A receiveport maintains connections to one or more sendports.

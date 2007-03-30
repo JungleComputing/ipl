@@ -7,7 +7,6 @@ import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.ipl.SendPortIdentifier;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 
 public class StackingSendPort implements ibis.ipl.SendPort {

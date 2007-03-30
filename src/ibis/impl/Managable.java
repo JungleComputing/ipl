@@ -7,6 +7,7 @@ public class Managable implements ibis.ipl.Managable {
     /** Map for implementing the dynamic properties. */
     private HashMap<String, Object> properties = new HashMap<String, Object>();
 
+    @SuppressWarnings("unchecked")
     public synchronized Map<String, Object> dynamicProperties() {
         return (Map<String, Object>) properties.clone();
     }

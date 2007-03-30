@@ -1,20 +1,15 @@
 package ibis.impl.stacking.dummy;
 
 import ibis.impl.Ibis;
-import ibis.impl.IbisIdentifier;
 import ibis.impl.Registry;
 import ibis.impl.tcp.TcpIbis;
 import ibis.ipl.CapabilitySet;
 import ibis.ipl.PortType;
-import ibis.ipl.PredefinedCapabilities;
-import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.RegistryEventHandler;
-import ibis.ipl.SendPortIdentifier;
 
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Map;
-import java.util.HashMap;
 import java.util.Properties;
 
 public class StackingIbis extends Ibis {

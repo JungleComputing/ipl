@@ -12,7 +12,6 @@ import ibis.ipl.Upcall;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
 
 import org.apache.log4j.Logger;
 
