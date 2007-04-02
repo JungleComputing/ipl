@@ -104,6 +104,10 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis,
         properties.addProperties(IbisProperties.getConfigProperties());
         properties.addProperties(userProperties);
         
+        if (logger.isDebugEnabled()) {
+            logger.debug("Ibis constructor: properties = " + properties);
+        }
+        
         receivePorts = new HashMap<String, ReceivePort>();
         sendPorts = new HashMap<String, SendPort>();
 
@@ -165,63 +169,12 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis,
         return ident;
     }
 
-    public ibis.ipl.PortType createPortType(CapabilitySet p, Properties tp) {
-        if (p == null) {
-            p = capabilities;
-        } else {
-            checkPortCapabilities(p);
-        }
-        if (logger.isInfoEnabled()) {
-            logger.info("Creating port type" + " with capabilities\n" + p);
-        }
-        if (p.hasCapability(CONNECTION_MANY_TO_ONE) &&
-                p.hasCapability(CONNECTION_ONE_TO_MANY)) {
-            logger.warn("Combining ManyToOne and OneToMany in "
-                    + "a port type may result in\ndeadlocks! Most systems "
-                    + "don't have a working flow control when multiple\n"
-                    + "senders do multicasts.");
-        }
-
-        TypedProperties ttp = new TypedProperties(properties);
-
-        if (tp != null) {
-            ttp.addProperties(tp);
-        }
-
-        return newPortType(p, ttp);
-    }
-
     public ibis.ipl.PortType createPortType(CapabilitySet p) {
-        return createPortType(p, null);
+        return newPortType(p);
     }
 
     public Properties properties() {
         return new Properties(properties);
-    }
-
-    /**
-     * This method is used to check if the capabilities for a PortType
-     * match the capabilities of this Ibis.
-     * @param p the capabilities for the PortType.
-     * @exception IbisConfigurationException is thrown when this Ibis cannot
-     * provide the capabilities requested for the PortType.
-     */
-    private void checkPortCapabilities(CapabilitySet p) {
-        if (!p.matchCapabilities(capabilities)) {
-            logger.error("Ibis capabilities: " + capabilities);
-            logger.error("Port required capabilities: " + p);
-            throw new IbisConfigurationException(
-                "Port capabilities don't match the Ibis required capabilities");
-        }
-
-        if (! p.hasCapability(CONNECTION_ONE_TO_ONE)
-            && ! p.hasCapability(CONNECTION_ONE_TO_MANY)
-            && ! p.hasCapability(CONNECTION_MANY_TO_ONE)) {
-            logger.error("No connection capability set");
-            throw new IbisConfigurationException(
-                    "You need to specify at least one of connection.onetomany, "
-                    + "connection.manytoone or connection.onetoone");
-        }
     }
 
     public int totalNrOfIbisesInPool() {
@@ -500,8 +453,7 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis,
     protected abstract byte[] getData() throws IOException;
 
     /**
-     * See {@link ibis.ipl.Ibis#createPortType(CapabilitySet, Properties)}.
+     * See {@link ibis.ipl.Ibis#createPortType(CapabilitySet)}.
      */
-    protected abstract ibis.ipl.PortType newPortType(CapabilitySet p,
-            Properties attrib);
+    protected abstract ibis.ipl.PortType newPortType(CapabilitySet p);
 }

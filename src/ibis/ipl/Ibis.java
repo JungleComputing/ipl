@@ -76,20 +76,6 @@ public interface Ibis extends Managable {
      */
     public PortType createPortType(CapabilitySet p);
 
-    /**
-     * Creates a {@link ibis.ipl.PortType PortType}.
-     * See {@link #createPortType(CapabilitySet)}.
-     * Also sets some properties for this porttype.
-     *
-     * @param p capabilities of the porttype.
-     * @param tp some properties for this port type.
-     * @return the porttype.
-     * @exception ibis.ipl.IbisConfigurationException if the required
-     * capabilities do not match the capabilities as specified when creating
-     * the Ibis instance.
-     */
-    public PortType createPortType(CapabilitySet p, Properties tp);
-
     /** 
      * Returns the Ibis {@linkplain ibis.ipl.Registry Registry}.
      * @return the Ibis registry.

@@ -146,6 +146,8 @@ public interface PredefinedCapabilities {
     public final static String SERIALIZATION_OBJECT
             = SERIALIZATION_PREFIX + "object";
 
+    public final static String SERIALIZATION_REPLACER
+        = SERIALIZATION_PREFIX + "replacer";
     /**
      * Boolean capability, indicating that object serialization, exactly
      * as specified by SUN is supported.

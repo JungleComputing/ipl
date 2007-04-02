@@ -3,7 +3,6 @@
 package ibis.ipl;
 
 import java.io.IOException;
-import java.util.Properties;
 
 /**
  * A <code>PortType</code> represents a class of send and receive
@@ -30,13 +29,6 @@ public interface PortType {
      * @return the capabilities of this port type.
      */
     public CapabilitySet capabilities();
-
-    /**
-     * Returns the properties given to this PortType upon creation.
-     *
-     * @return the properties of this port type.
-     */
-    public Properties properties();
 
     /**
      * Creates a anonymous {@link SendPort} of this <code>PortType</code>.

@@ -7,10 +7,8 @@ import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.ipl.Upcall;
-import ibis.util.TypedProperties;
 
 import java.io.IOException;
-import java.util.Properties;
 
 import org.apache.log4j.Logger;
 
@@ -51,44 +49,25 @@ public abstract class PortType implements ibis.ipl.PortType,
     /** Set when the port type supports ManyToOne communication. */
     public final boolean manyToOne;
 
-    /** Properties for this port type. */
-    protected final TypedProperties properties;
-
     /**
      * Constructs a <code>PortType</code> with the specified parameters.
      * @param ibis the ibis instance.
      * @param p the capabilities for the <code>PortType</code>.
-     * @param tp the properties for the <code>PortType</code>.
      * @exception IbisConfigurationException is thrown when there is some
      * inconsistency in the specified capabilities.
      */
-    protected PortType(Ibis ibis, CapabilitySet p, Properties tp) {
+    protected PortType(Ibis ibis, CapabilitySet p) {
         this.ibis = ibis;
     	this.capabilities = p;
-        this.properties = new TypedProperties(tp);
-
+   	     
         numbered = p.hasCapability(COMMUNICATION_NUMBERED);
         if (p.hasCapability(SERIALIZATION_DATA)) {
             serialization = "data";
         } else if (p.hasCapability(SERIALIZATION_OBJECT)) {
-            String ser = properties.getProperty("ibis.serialization");
-            if (ser != null) {
-                if (ser.equals("sun")) {
-                    serialization = "sun";
-                } else if (ser.equals("ibis")) {
-                    serialization = "ibis";
-                } else {
-                    serialization = "object";
-                }
-            } else {
-                serialization = "object";
-            }
-        } else if (p.hasCapability(SERIALIZATION_STRICT_OBJECT)) {
-            serialization = "sun";
+            serialization = "object";
         } else {
             serialization = "byte";
         }
-
         if (serialization.equals("byte") && numbered) {
             throw new IbisConfigurationException(
                     "Numbered communication is not supported on byte "
@@ -102,7 +81,7 @@ public abstract class PortType implements ibis.ipl.PortType,
         this.oneToMany = capabilities.hasCapability(CONNECTION_ONE_TO_MANY);
         this.manyToOne = capabilities.hasCapability(CONNECTION_MANY_TO_ONE);
 
-        String replacerName = properties.getProperty("serialization.replacer");
+        String replacerName = capabilities.getCapability("serialization.replacer");
 
         if (replacerName != null) {
             try {
@@ -124,10 +103,6 @@ public abstract class PortType implements ibis.ipl.PortType,
 
     public CapabilitySet capabilities() {
         return capabilities;
-    }
-
-    public Properties properties() {
-        return new Properties(properties);
     }
 
     public ibis.ipl.SendPort createSendPort() throws IOException {

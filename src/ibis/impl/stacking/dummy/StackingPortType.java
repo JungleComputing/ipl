@@ -10,15 +10,14 @@ import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.ipl.Upcall;
 
 import java.io.IOException;
-import java.util.Properties;
 
 public class StackingPortType extends PortType {
     
     ibis.ipl.PortType base;
     
-    public StackingPortType(Ibis ibis, CapabilitySet p, Properties tp) {
-        super(ibis, p, tp);
-        base = ((StackingIbis)ibis).base.createPortType(p, tp);
+    public StackingPortType(Ibis ibis, CapabilitySet p) {
+        super(ibis, p);
+        base = ((StackingIbis)ibis).base.createPortType(p);
     }
 
     @Override

@@ -12,12 +12,11 @@ import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.ipl.Upcall;
 
 import java.io.IOException;
-import java.util.Properties;
 
 class TcpPortType extends PortType {
 
-    TcpPortType(Ibis ibis, CapabilitySet p, Properties tp) {
-        super(ibis, p, tp);
+    TcpPortType(Ibis ibis, CapabilitySet p) {
+        super(ibis, p);
     }
 
     protected SendPort doCreateSendPort(String nm, SendPortDisconnectUpcall cU,

@@ -32,7 +32,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
-import java.util.Properties;
 
 import org.apache.log4j.Logger;
 
@@ -293,16 +292,11 @@ public final class RTS implements ibis.ipl.PredefinedCapabilities {
                 COMMUNICATION_RELIABLE, RECEIVE_AUTO_UPCALLS);
 
             CapabilitySet replyProps = new CapabilitySet(
-                CONNECTION_ONE_TO_ONE,
+                CONNECTION_ONE_TO_ONE, SERIALIZATION_REPLACER + "=ibis.rmi.impl.Replacer",
                 SERIALIZATION_OBJECT, COMMUNICATION_RELIABLE, RECEIVE_EXPLICIT);
 
-            Properties tp = ibis.properties();
-
-            tp.setProperty("serialization.replacer",
-                    "ibis.rmi.impl.RMIReplacer");
-
-            requestPortType = ibis.createPortType(requestProps, tp);
-            replyPortType = ibis.createPortType(replyProps, tp);
+            requestPortType = ibis.createPortType(requestProps);
+            replyPortType = ibis.createPortType(replyProps);
 
             enableRMITimer = properties.booleanProperty(s_timer);
 

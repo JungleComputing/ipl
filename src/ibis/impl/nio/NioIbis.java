@@ -70,8 +70,8 @@ public final class NioIbis extends ibis.impl.Ibis {
         }
     }
 
-    protected ibis.impl.PortType newPortType(CapabilitySet p, Properties tp) {
-        return new NioPortType(this, p, tp);
+    protected ibis.impl.PortType newPortType(CapabilitySet p) {
+        return new NioPortType(this, p);
     }
 
     protected void quit() {

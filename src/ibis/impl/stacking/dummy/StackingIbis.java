@@ -55,8 +55,8 @@ public class StackingIbis extends Ibis {
     }
 
     @Override
-    protected PortType newPortType(CapabilitySet p, Properties attrib) {
-         return new StackingPortType(this, p, attrib);
+    protected PortType newPortType(CapabilitySet p) {
+         return new StackingPortType(this, p);
     }
 
     @Override

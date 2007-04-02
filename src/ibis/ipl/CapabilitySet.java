@@ -194,8 +194,7 @@ public final class CapabilitySet {
             }
         }
         for (String cap : stringCapabilities.keySet()) {
-            if (! stringCapabilities.get(cap).equals(
-                        sp.stringCapabilities.get(cap))) {
+               if (! sp.stringCapabilities.keySet().contains(cap)) {
                 return false;
             }
         }

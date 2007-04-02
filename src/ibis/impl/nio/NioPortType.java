@@ -11,7 +11,6 @@ import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.ipl.Upcall;
 
 import java.io.IOException;
-import java.util.Properties;
 
 import org.apache.log4j.Logger;
 
@@ -32,10 +31,10 @@ class NioPortType extends PortType {
 
     byte receivePortImplementation;
 
-    NioPortType(NioIbis ibis, CapabilitySet p, Properties tp) {
-        super(ibis, p, tp);
+    NioPortType(NioIbis ibis, CapabilitySet p) {
+        super(ibis, p);
 
-        String typeSPI = tp.getProperty(NioIbis.s_spi);
+        String typeSPI = null;
 
         if (typeSPI != null) {
             if (typeSPI.equalsIgnoreCase("Blocking")) {
@@ -54,7 +53,7 @@ class NioPortType extends PortType {
             sendPortImplementation = IMPLEMENTATION_BLOCKING;
         }
 
-        String typeRPI = tp.getProperty(NioIbis.s_rpi);
+        String typeRPI = null;
 
         if (typeRPI != null) {
             if (typeRPI.equalsIgnoreCase("Blocking")) {

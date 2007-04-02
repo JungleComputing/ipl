@@ -65,8 +65,8 @@ public final class TcpIbis extends ibis.impl.Ibis
         return myAddress.toBytes();
     }
 
-    protected ibis.impl.PortType newPortType(CapabilitySet p, Properties tp) {
-        return new TcpPortType(this, p, tp);
+    protected ibis.impl.PortType newPortType(CapabilitySet p) {
+        return new TcpPortType(this, p);
     }
 
     public void left(ibis.ipl.IbisIdentifier id) {
