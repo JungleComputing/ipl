@@ -180,7 +180,7 @@ public final class Group implements GroupProtocol,
             // Create the four port types used in GMI  
 
             // System unicast (many to one) port type 
-            CapabilitySet portTypeSystemUcast = new CapabilitySet(
+            portTypeSystemUcast = new CapabilitySet(
                     SERIALIZATION_OBJECT, CONNECTION_MANY_TO_ONE,
                     COMMUNICATION_RELIABLE, RECEIVE_AUTO_UPCALLS,
                     RECEIVE_EXPLICIT);

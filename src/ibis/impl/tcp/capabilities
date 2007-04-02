@@ -1,5 +1,5 @@
 # Capabilities supported by the TcpIbis implementation.
-serialization.strictobject:
+serialization.replacer:*
 serialization.object:
 serialization.data:
 serialization.byte:

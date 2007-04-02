@@ -125,8 +125,6 @@ public final class NioIbis extends ibis.impl.Ibis {
             String name, Upcall u, ReceivePortConnectUpcall cU,
             boolean connectionDowncalls) throws IOException {
 
-        int receivePortImplementation;
-
         if (tp.hasCapability("receiveport.blocking")) {
             return new BlockingChannelNioReceivePort(this, tp, name, u,
                     connectionDowncalls, cU);

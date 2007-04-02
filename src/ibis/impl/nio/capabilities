@@ -1,6 +1,6 @@
 # Capabilities supported by the NioIbis implementation.
-serialization.strictobject:
 serialization.object:
+serialization.replacer:*
 serialization.data:
 serialization.byte:
 worldmodel.closed:
