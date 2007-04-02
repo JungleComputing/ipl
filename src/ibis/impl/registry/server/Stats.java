@@ -1,4 +1,6 @@
-package ibis.impl.registry.central;
+package ibis.impl.registry.server;
+
+import ibis.impl.registry.Protocol;
 
 import java.util.Formatter;
 
@@ -45,15 +47,15 @@ class Stats {
 
         formatter.format("registry server statistics at %.2f seconds\n",
                 (System.currentTimeMillis() - start) / 1000.0);
-        formatter.format("TYPE          COUNT TOTAL_TIME   AVG_TIME\n");
-        formatter.format("                         (sec)       (ms)\n");
+        formatter.format("TYPE          COUNT  TOTAL_TIME   AVG_TIME\n");
+        formatter.format("                          (sec)       (ms)\n");
         for (byte i = 0; i < opcodes; i++) {
             double average = totalTimes[i] / requestCounter[i];
             if (requestCounter[i] == 0) {
                 average = 0;
             }
 
-            formatter.format("%-12s %6d %10.2f %10.2f\n", Protocol
+            formatter.format("%-12s %6d  %10.2f %10.2f\n", Protocol
                     .opcodeString(i), requestCounter[i],
                     totalTimes[i] / 1000.0, average);
         }

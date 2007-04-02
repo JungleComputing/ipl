@@ -1,6 +1,6 @@
-package ibis.impl.registry.central;
+package ibis.impl.registry;
 
-class Protocol {
+public class Protocol {
 
     // opcodes
 
@@ -42,7 +42,7 @@ class Protocol {
 
     public static final int BOOTSTRAP_LIST_SIZE = 200;
 
-    static String opcodeString(byte opcode) {
+    public static String opcodeString(byte opcode) {
         if (opcode == OPCODE_JOIN) {
             return "JOIN";
         } else if (opcode == OPCODE_LEAVE) {
@@ -61,6 +61,8 @@ class Protocol {
             return "SIGNAL";
         } else if (opcode == OPCODE_PING) {
             return "PING";
+        } else if (opcode == OPCODE_PUSH) {
+            return "PUSH";
         } else {
             return "UNKNOWN";
         }

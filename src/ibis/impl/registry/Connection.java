@@ -1,4 +1,5 @@
-package ibis.impl.registry.central;
+package ibis.impl.registry;
+
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -17,7 +18,7 @@ import smartsockets.virtual.VirtualSocket;
 import smartsockets.virtual.VirtualSocketAddress;
 import smartsockets.virtual.VirtualSocketFactory;
 
-class Connection {
+public class Connection {
 
     // private static final int MAX_TRIES = 10;
     
@@ -224,19 +225,19 @@ class Connection {
 
     }
 
-    DataOutputStream out() {
+    public DataOutputStream out() {
         return out;
     }
 
-    DataInputStream in() {
+    public DataInputStream in() {
         return in;
     }
 
-    byte getOpcode() {
+    public byte getOpcode() {
         return opcode;
     }
 
-    void getAndCheckReply() throws IOException {
+    public void getAndCheckReply() throws IOException {
         // flush output, just in case...
         out.flush();
 
@@ -253,11 +254,11 @@ class Connection {
 
     }
 
-    void sendOKReply() throws IOException {
+    public void sendOKReply() throws IOException {
         out.writeByte(Protocol.REPLY_OK);
     }
 
-    void closeWithError(String message) {
+    public void closeWithError(String message) {
         if (message == null) {
             message = "";
         }
@@ -271,7 +272,7 @@ class Connection {
         }
     }
 
-    void close() {
+    public void close() {
         try {
             out.flush();
         } catch (IOException e) {

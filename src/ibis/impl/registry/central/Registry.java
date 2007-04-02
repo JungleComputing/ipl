@@ -2,7 +2,12 @@ package ibis.impl.registry.central;
 
 import ibis.impl.IbisIdentifier;
 import ibis.impl.Location;
+import ibis.impl.registry.Connection;
+import ibis.impl.registry.ConnectionFactory;
+import ibis.impl.registry.Event;
+import ibis.impl.registry.Protocol;
 import ibis.impl.registry.RegistryProperties;
+import ibis.impl.registry.server.Server;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.RegistryEventHandler;
 import ibis.util.ThreadPool;

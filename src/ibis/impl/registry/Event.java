@@ -1,4 +1,4 @@
-package ibis.impl.registry.central;
+package ibis.impl.registry;
 
 import ibis.impl.IbisIdentifier;
 
@@ -7,7 +7,7 @@ import java.io.DataOutput;
 import java.io.IOException;
 import java.io.Serializable;
 
-final class Event implements Serializable {
+public final class Event implements Serializable {
 
     private static final long serialVersionUID = 1L;
 

@@ -1,4 +1,4 @@
-package ibis.impl.registry.central;
+package ibis.impl.registry;
 
 import ibis.impl.IbisIdentifier;
 import ibis.io.Conversion;
@@ -60,7 +60,7 @@ public class ConnectionFactory {
         return result;
     }
 
-    ConnectionFactory(boolean smart, String serverString,
+    public ConnectionFactory(boolean smart, String serverString,
             int defaultServerPort) throws IOException {
         this.smart = smart;
 
@@ -121,7 +121,7 @@ public class ConnectionFactory {
         }
     }
 
-    ConnectionFactory(int port, boolean smart, String hubAddress
+    public ConnectionFactory(int port, boolean smart, String hubAddress
             ) throws IOException {
         this.smart = smart;
 
@@ -235,7 +235,7 @@ public class ConnectionFactory {
         return serverAddress;
     }
 
-    Connection accept() throws IOException {
+    public Connection accept() throws IOException {
         if (smart) {
             return new Connection(virtualServerSocket);
         } else {
@@ -243,7 +243,7 @@ public class ConnectionFactory {
         }
     }
 
-    Connection connect(IbisIdentifier ibis, byte opcode, int timeout)
+    public Connection connect(IbisIdentifier ibis, byte opcode, int timeout)
             throws IOException {
         if (smart) {
             VirtualSocketAddress address = VirtualSocketAddress.fromBytes(ibis

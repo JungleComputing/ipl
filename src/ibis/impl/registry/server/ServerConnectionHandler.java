@@ -1,7 +1,11 @@
-package ibis.impl.registry.central;
+package ibis.impl.registry.server;
 
 import ibis.impl.IbisIdentifier;
 import ibis.impl.Location;
+import ibis.impl.registry.Connection;
+import ibis.impl.registry.ConnectionFactory;
+import ibis.impl.registry.Protocol;
+import ibis.impl.registry.Pool;
 import ibis.util.ThreadPool;
 
 import java.io.IOException;
@@ -58,13 +62,7 @@ public class ServerConnectionHandler implements Runnable {
         connection.sendOKReply();
         result.writeTo(connection.out());
 
-        Member[] peers = pool
-                .getRandomMembers(Protocol.BOOTSTRAP_LIST_SIZE);
-
-        connection.out().writeInt(peers.length);
-        for (Member member : peers) {
-            member.ibis().writeTo(connection.out());
-        }
+        pool.writeBootstrap(connection.out());
 
         connection.out().flush();
     }

@@ -1,6 +1,8 @@
-package ibis.impl.registry.central;
+package ibis.impl.registry.server;
 
+import ibis.impl.registry.ConnectionFactory;
 import ibis.impl.registry.RegistryProperties;
+import ibis.impl.registry.Pool;
 import ibis.util.TypedProperties;
 
 import java.io.IOException;
@@ -57,7 +59,7 @@ public final class Server extends ibis.impl.registry.Server {
 
         if (result == null || result.ended()) {
             logger.info("creating new pool: " + poolName);
-            result = new Pool(poolName, connectionFactory, gossip, keepNodeState);
+            result = new ibis.impl.registry.central.Pool(poolName, connectionFactory, gossip, keepNodeState);
             pools.put(poolName, result);
         }
 
@@ -98,8 +100,7 @@ public final class Server extends ibis.impl.registry.Server {
                         return;
                     }
                 }
-                logger.info("event time for pool " + poolArray[i].getName() + " with " + poolArray[i].getSize()
-                        + " members now " + poolArray[i].getEventTime());
+                logger.info(poolArray[i].toString());
             }
           
 

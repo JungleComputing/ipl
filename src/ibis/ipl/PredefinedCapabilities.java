@@ -119,6 +119,9 @@ public interface PredefinedCapabilities {
      */
     public final static String WORLDMODEL_CLOSED = WORLDMODEL + ".closed";
 
+    public final static String WORLDMODEL_OPEN = WORLDMODEL + ".open";
+
+    
     /**
      * Boolean capability, indicating that readByte/writeByte and
      * readArray/writeArray(byte[]) are supported.
