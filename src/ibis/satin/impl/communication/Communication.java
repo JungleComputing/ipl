@@ -8,7 +8,6 @@ import ibis.ipl.CapabilitySet;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisFactory;
 import ibis.ipl.IbisIdentifier;
-import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortIdentifier;
@@ -28,7 +27,7 @@ public final class Communication implements Config, Protocol,
        ibis.ipl.PredefinedCapabilities {
     private Satin s;
 
-    public PortType portType;
+    public CapabilitySet portType;
 
     public ReceivePort receivePort;
 
@@ -69,7 +68,7 @@ public final class Communication implements Config, Protocol,
 
             MessageHandler messageHandler = new MessageHandler(s);
 
-            receivePort = portType.createReceivePort("satin port",
+            receivePort = ibis.createReceivePort(portType, "satin port",
                     messageHandler, s.ft.getReceivePortConnectHandler());
         } catch (Exception e) {
             commLogger.fatal("SATIN '" + ident + "': Could not start ibis: "
@@ -162,22 +161,19 @@ public final class Communication implements Config, Protocol,
         return ibisProperties;
     }
 
-    public PortType createSatinPortType() throws IOException {
-        CapabilitySet satinPortProperties = new CapabilitySet(
+    public CapabilitySet createSatinPortType() throws IOException {
+        return new CapabilitySet(
                 SERIALIZATION_OBJECT, COMMUNICATION_RELIABLE,
                 CONNECTION_MANY_TO_ONE, CONNECTION_UPCALLS,
                 CONNECTION_DOWNCALLS, RECEIVE_EXPLICIT, RECEIVE_AUTO_UPCALLS);
-
-        return ibis.createPortType(satinPortProperties);
     }
 
     // The barrier port type is different from the satin port type.
     // It does not do multicast, and does not need serialization.
-    public PortType createBarrierPortType() throws IOException {
-        CapabilitySet s = new CapabilitySet(
+    public CapabilitySet createBarrierPortType() throws IOException {
+        return new CapabilitySet(
                 SERIALIZATION_BYTE, COMMUNICATION_RELIABLE,
                 CONNECTION_MANY_TO_ONE, RECEIVE_EXPLICIT);
-        return this.ibis.createPortType(s);
     }
 
     public void bcastMessage(byte opcode) {

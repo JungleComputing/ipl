@@ -8,7 +8,6 @@ import ibis.ipl.IbisFactory;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.IbisProperties;
 import ibis.ipl.NoMatchingIbisException;
-import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortIdentifier;
@@ -96,9 +95,9 @@ public final class RTS implements ibis.ipl.PredefinedCapabilities {
 
     static String hostname;
 
-    private static PortType requestPortType;
+    private static CapabilitySet requestPortType;
 
-    private static PortType replyPortType;
+    private static CapabilitySet replyPortType;
 
     static Ibis ibis;
 
@@ -287,22 +286,19 @@ public final class RTS implements ibis.ipl.PredefinedCapabilities {
 
             ibisRegistry = ibis.registry();
 
-            CapabilitySet requestProps = new CapabilitySet(
+            requestPortType = new CapabilitySet(
                 SERIALIZATION_OBJECT, CONNECTION_MANY_TO_ONE,
                 SERIALIZATION_REPLACER + "=ibis.rmi.impl.RMIReplacer",
                 COMMUNICATION_RELIABLE, RECEIVE_AUTO_UPCALLS);
 
-            CapabilitySet replyProps = new CapabilitySet(
+            replyPortType = new CapabilitySet(
                 CONNECTION_ONE_TO_ONE,
                 SERIALIZATION_REPLACER + "=ibis.rmi.impl.RMIReplacer",
                 SERIALIZATION_OBJECT, COMMUNICATION_RELIABLE, RECEIVE_EXPLICIT);
 
-            requestPortType = ibis.createPortType(requestProps);
-            replyPortType = ibis.createPortType(replyProps);
-
             enableRMITimer = properties.booleanProperty(s_timer);
 
-            skeletonReceivePort = requestPortType.createReceivePort("//"
+            skeletonReceivePort = ibis.createReceivePort(requestPortType, "//"
                     + hostname + "/rmi_skeleton"
                     + (new java.rmi.server.UID()).toString(), upcallHandler);
             skeletonReceivePort.enableConnections();
@@ -468,7 +464,7 @@ public final class RTS implements ibis.ipl.PredefinedCapabilities {
             ReceivePortIdentifier rpi) throws IOException {
         SendPort s = sendports.get(rpi);
         if (s == null) {
-            s = replyPortType.createSendPort();
+            s = ibis.createSendPort(replyPortType);
             s.connect(rpi);
             sendports.put(rpi, s);
             if (logger.isDebugEnabled()) {
@@ -488,7 +484,7 @@ public final class RTS implements ibis.ipl.PredefinedCapabilities {
             ReceivePortIdentifier rpi) throws IOException {
         SendPort s = sendports.get(rpi);
         if (s == null) {
-            s = requestPortType.createSendPort();
+            s = ibis.createSendPort(requestPortType);
             s.connect(rpi);
             sendports.put(rpi, s);
             if (logger.isDebugEnabled()) {
@@ -515,7 +511,7 @@ public final class RTS implements ibis.ipl.PredefinedCapabilities {
 
         if (a == null || a.size() == 0) {
 
-            r = replyPortType.createReceivePort("//" + hostname + "/rmi_stub"
+            r = ibis.createReceivePort(replyPortType, "//" + hostname + "/rmi_stub"
                     + (new java.rmi.server.UID()).toString());
             if (logger.isDebugEnabled()) {
                 logger.debug(hostname + ": New receiveport: " + r.identifier());
@@ -548,7 +544,7 @@ public final class RTS implements ibis.ipl.PredefinedCapabilities {
         String name = "__REGISTRY__" + hostname + ":" + port;
         ReceivePort p;
         try {
-            p = requestPortType.createReceivePort(name, upcallHandler);
+            p =ibis.createReceivePort(requestPortType, name, upcallHandler);
         } catch (IOException e) {
             throw new RemoteException("Could not create receive port", e);
         }
@@ -582,7 +578,7 @@ public final class RTS implements ibis.ipl.PredefinedCapabilities {
 
         String name = "__REGISTRY__" + host + ":" + port;
         Stub result;
-        SendPort s = requestPortType.createSendPort();
+        SendPort s = ibis.createSendPort(requestPortType);
 
         if (logger.isDebugEnabled()) {
             logger.debug(hostname + ": Trying to lookup registry " + name);

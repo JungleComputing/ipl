@@ -9,6 +9,7 @@ import ibis.impl.SendPort;
 import ibis.impl.SendPortConnectionInfo;
 import ibis.impl.WriteMessage;
 import ibis.io.Conversion;
+import ibis.ipl.CapabilitySet;
 import ibis.ipl.SendPortDisconnectUpcall;
 
 import java.io.IOException;
@@ -23,25 +24,27 @@ public final class NioSendPort extends SendPort implements Protocol {
 
     private final NioAccumulator accumulator;
 
-    NioSendPort(Ibis ibis, NioPortType type, String name,
+    NioSendPort(Ibis ibis, CapabilitySet type, String name,
             boolean connectionDowncalls, SendPortDisconnectUpcall cU)
             throws IOException {
         super(ibis, type, name, cU, connectionDowncalls);
 
-        switch (type.sendPortImplementation) {
-        case NioPortType.IMPLEMENTATION_BLOCKING:
+        if (type.hasCapability("sendport.blocking")) {
             accumulator = new BlockingChannelNioAccumulator(this);
-            break;
-        case NioPortType.IMPLEMENTATION_NON_BLOCKING:
+        }
+        else if (type.hasCapability("sendport.nonblocking")) {
             accumulator = new NonBlockingChannelNioAccumulator(this);
-            break;
-        case NioPortType.IMPLEMENTATION_THREAD:
+        }
+        else if (type.hasCapability("sendport.thread")) {
             accumulator = new ThreadNioAccumulator(this,
                     ((NioIbis)ibis).sendReceiveThread());
-            break;
-        default:
-            throw new Error("unknown send port implementation type");
         }
+        else if (type.hasCapability(CONNECTION_ONE_TO_ONE)) {
+            accumulator = new BlockingChannelNioAccumulator(this);
+        } else {
+            accumulator = new NonBlockingChannelNioAccumulator(this);
+        }
+
         initStream(accumulator);
     }
 
@@ -102,7 +105,7 @@ public final class NioSendPort extends SendPort implements Protocol {
     protected void announceNewMessage() throws IOException {
         out.writeByte(NEW_MESSAGE);
 
-        if (type.numbered) {
+        if (type.hasCapability(COMMUNICATION_NUMBERED)) {
             out.writeLong(ibis.registry().getSeqno(name));
         }
     }

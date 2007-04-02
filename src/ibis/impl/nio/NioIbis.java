@@ -5,6 +5,9 @@ package ibis.impl.nio;
 import ibis.impl.IbisIdentifier;
 import ibis.ipl.CapabilitySet;
 import ibis.ipl.RegistryEventHandler;
+import ibis.ipl.ReceivePortConnectUpcall;
+import ibis.ipl.SendPortDisconnectUpcall;
+import ibis.ipl.Upcall;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -70,10 +73,6 @@ public final class NioIbis extends ibis.impl.Ibis {
         }
     }
 
-    protected ibis.impl.PortType newPortType(CapabilitySet p) {
-        return new NioPortType(this, p);
-    }
-
     protected void quit() {
         try {
             if (factory != null) {
@@ -114,5 +113,37 @@ public final class NioIbis extends ibis.impl.Ibis {
             }
         }
         return idAddr;
+    }
+
+    protected ibis.ipl.SendPort doCreateSendPort(CapabilitySet tp,
+            String name, SendPortDisconnectUpcall cU,
+            boolean connectionDowncalls) throws IOException {
+        return new NioSendPort(this, tp, name, connectionDowncalls, cU);
+    }
+
+    protected ibis.ipl.ReceivePort doCreateReceivePort(CapabilitySet tp,
+            String name, Upcall u, ReceivePortConnectUpcall cU,
+            boolean connectionDowncalls) throws IOException {
+
+        int receivePortImplementation;
+
+        if (tp.hasCapability("receiveport.blocking")) {
+            return new BlockingChannelNioReceivePort(this, tp, name, u,
+                    connectionDowncalls, cU);
+        }
+        if (tp.hasCapability("receiveport.nonblocking")) {
+            return new NonBlockingChannelNioReceivePort(this, tp, name, u,
+                    connectionDowncalls, cU);
+        }
+        if (tp.hasCapability("receiveport.thread")) {
+            return new ThreadNioReceivePort(this, tp, name, u,
+                    connectionDowncalls, cU);
+        }
+        if (tp.hasCapability(CONNECTION_ONE_TO_ONE)) {
+            return new BlockingChannelNioReceivePort(this, tp, name, u,
+                    connectionDowncalls, cU);
+        }
+        return new NonBlockingChannelNioReceivePort(this, tp, name, u,
+                connectionDowncalls, cU);
     }
 }

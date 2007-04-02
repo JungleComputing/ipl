@@ -19,7 +19,7 @@ import java.util.Properties;
 
 /**
  * Container for the capabilities of an {@link ibis.ipl.Ibis Ibis} or a
- * {@link ibis.ipl.PortType PortType}. There are boolean capabilities,
+ * representation of a port type. There are boolean capabilities,
  * indicating that a certain capability is present, and there are
  * string-valued capabilities.
  * There are a number of predefined

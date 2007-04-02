@@ -5,7 +5,6 @@ import ibis.ipl.CapabilitySet;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisFactory;
 import ibis.ipl.IbisIdentifier;
-import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortIdentifier;
@@ -25,14 +24,13 @@ import java.io.IOException;
  */
 public class Example implements ibis.ipl.PredefinedCapabilities {
 
-    /**
-     * The port type for both send and receive ports.
-     */
-    PortType porttype;
+    /** The ibis instance. */
+    Ibis ibis;
 
-    /**
-     * Registry where receive ports are registered.
-     */
+    /** The port type for both send and receive ports.  */
+    CapabilitySet porttype;
+
+    /** Registry where receive ports are registered.  */
     Registry rgstry;
 
     /**
@@ -83,12 +81,12 @@ public class Example implements ibis.ipl.PredefinedCapabilities {
     private void server(IbisIdentifier client) {
         try {
             // Create a send port for sending answers
-            SendPort serverSender = porttype.createSendPort();
+            SendPort serverSender = ibis.createSendPort(porttype);
 
             // Create an upcall handler
             RpcUpcall rpcUpcall = new RpcUpcall(serverSender);
-            ReceivePort serverReceiver = porttype.createReceivePort("server",
-                    rpcUpcall);
+            ReceivePort serverReceiver = ibis.createReceivePort(porttype,
+                    "server", rpcUpcall);
             serverReceiver.enableConnections();
             serverReceiver.enableUpcalls();
 
@@ -122,10 +120,11 @@ public class Example implements ibis.ipl.PredefinedCapabilities {
     private void client(IbisIdentifier server) {
         try {
             // Create a send port for sending requests
-            SendPort clientSender = porttype.createSendPort();
+            SendPort clientSender = ibis.createSendPort(porttype);
 
             // Create a receive port for receiving answers
-            ReceivePort clientReceiver = porttype.createReceivePort("client");
+            ReceivePort clientReceiver = ibis.createReceivePort(porttype,
+                    "client");
             clientReceiver.enableConnections();
 
             // Connect send port
@@ -178,7 +177,6 @@ public class Example implements ibis.ipl.PredefinedCapabilities {
         );
 
         // Create an Ibis
-        final Ibis ibis;
         try {
             ibis = IbisFactory.createIbis(props, null, null, null);
         } catch (Exception e) {
@@ -200,19 +198,10 @@ public class Example implements ibis.ipl.PredefinedCapabilities {
         });
 
         // Create properties for the port type
-        CapabilitySet portprops = new CapabilitySet(
+        porttype = new CapabilitySet(
             COMMUNICATION_RELIABLE, SERIALIZATION_OBJECT,
             RECEIVE_EXPLICIT, RECEIVE_AUTO_UPCALLS, CONNECTION_ONE_TO_ONE
         );
-
-        // Create the port type
-        try {
-            porttype = ibis.createPortType(portprops);
-        } catch (Exception e) {
-            System.err.println("Could not create port type: " + e);
-            failure = true;
-            return;
-        }
 
         // Elect a server
         IbisIdentifier me = ibis.identifier();

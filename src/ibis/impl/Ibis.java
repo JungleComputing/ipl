@@ -6,7 +6,10 @@ import ibis.impl.registry.RegistryProperties;
 import ibis.ipl.CapabilitySet;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.IbisProperties;
+import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.RegistryEventHandler;
+import ibis.ipl.SendPortDisconnectUpcall;
+import ibis.ipl.Upcall;
 import ibis.util.Log;
 import ibis.util.TypedProperties;
 
@@ -75,6 +78,12 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis,
     private final HashSet<ibis.ipl.IbisIdentifier> joinedIbises;
 
     private final HashSet<ibis.ipl.IbisIdentifier> leftIbises;
+
+    /** Counter for allocating names for anonymous sendports. */
+    private static int send_counter = 0;
+
+    /** Counter for allocating names for anonymous receiveports. */
+    private static int receive_counter = 0;
 
     /**
      * Constructs an <code>Ibis</code> instance with the specified parameters.
@@ -167,10 +176,6 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis,
 
     public ibis.ipl.IbisIdentifier identifier() {
         return ident;
-    }
-
-    public ibis.ipl.PortType createPortType(CapabilitySet p) {
-        return newPortType(p);
     }
 
     public Properties properties() {
@@ -452,8 +457,206 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis,
      */
     protected abstract byte[] getData() throws IOException;
 
+    public ibis.ipl.SendPort createSendPort(CapabilitySet tp)
+            throws IOException {
+        return createSendPort(tp, null, null, false);
+    }
+
+    public ibis.ipl.SendPort createSendPort(CapabilitySet tp, String name)
+            throws IOException {
+        return createSendPort(tp, name, null, false);
+    }
+
+    public ibis.ipl.SendPort createSendPort(CapabilitySet tp,
+            boolean connectionDowncalls) throws IOException {
+        return createSendPort(tp, null, null, connectionDowncalls);
+    }
+
+    public ibis.ipl.SendPort createSendPort(CapabilitySet tp, String name,
+            boolean connectionDowncalls) throws IOException {
+        return createSendPort(tp, name, null, connectionDowncalls);
+    }
+
+    public ibis.ipl.SendPort createSendPort(CapabilitySet tp, String name,
+            SendPortDisconnectUpcall cU) throws IOException {
+        return createSendPort(tp, name, cU, false);
+    }
+
     /**
-     * See {@link ibis.ipl.Ibis#createPortType(CapabilitySet)}.
+     * Creates a {@link ibis.ipl.SendPort} of the specified port type.
+     *
+     * @param tp the port type.
+     * @param name the name of this sendport.
+     * @param cU object implementing the
+     * {@link SendPortDisconnectUpcall#lostConnection(ibis.ipl.SendPort,
+     * ReceivePortIdentifier, Throwable)} method.
+     * @param connectionDowncalls set when this port must keep
+     * connection administration to support the lostConnections
+     * downcall.
+     * @return the new sendport.
+     * @exception java.io.IOException is thrown when the port could not be
+     * created.
+     * @exception ibis.ipl.IbisConfigurationException is thrown when the port
+     * type does not match what is required here.
      */
-    protected abstract ibis.ipl.PortType newPortType(CapabilitySet p);
+    private ibis.ipl.SendPort createSendPort(CapabilitySet tp, String name,
+            SendPortDisconnectUpcall cU, boolean connectionDowncalls)
+            throws IOException {
+        if (cU != null) {
+            if (! capabilities.hasCapability(CONNECTION_UPCALLS)) {
+                throw new IbisConfigurationException(
+                        "no connection upcalls requested for this port type");
+            }
+        }
+        if (connectionDowncalls) {
+            if (!capabilities.hasCapability(CONNECTION_DOWNCALLS)) {
+                throw new IbisConfigurationException(
+                        "no connection downcalls requested for this port type");
+            }
+        }
+        if (name == null) {
+            synchronized(this.getClass()) {
+                name = "anonymous send port " + send_counter++;
+            }
+        }
+
+        return doCreateSendPort(tp, name, cU, connectionDowncalls);
+    }
+
+    /**
+     * Creates a {@link ibis.ipl.SendPort} of the specified port type.
+     *
+     * @param tp the port type.
+     * @param name the name of this sendport.
+     * @param cU object implementing the
+     * {@link SendPortDisconnectUpcall#lostConnection(ibis.ipl.SendPort,
+     * ReceivePortIdentifier, Throwable)} method.
+     * @param connectionDowncalls set when this port must keep
+     * connection administration to support the lostConnections
+     * downcall.
+     * @return the new sendport.
+     * @exception java.io.IOException is thrown when the port could not be
+     * created.
+     */
+    protected abstract ibis.ipl.SendPort doCreateSendPort(CapabilitySet tp,
+            String name, SendPortDisconnectUpcall cU,
+            boolean connectionDowncalls) throws IOException;
+
+    public ibis.ipl.ReceivePort createReceivePort(CapabilitySet tp, String name)
+            throws IOException {
+        return createReceivePort(tp, name, null, null, false);
+    }
+
+    public ibis.ipl.ReceivePort createReceivePort(CapabilitySet tp, String name,
+            boolean connectionDowncalls) throws IOException {
+        return createReceivePort(tp, name, null, null, connectionDowncalls);
+    }
+
+    public ibis.ipl.ReceivePort createReceivePort(CapabilitySet tp, String name,
+            Upcall u) throws IOException {
+        return createReceivePort(tp, name, u, null, false);
+    }
+
+    public ibis.ipl.ReceivePort createReceivePort(CapabilitySet tp, String name,
+            Upcall u, boolean connectionDowncalls) throws IOException {
+        return createReceivePort(tp, name, u, null, connectionDowncalls);
+    }
+
+    public ibis.ipl.ReceivePort createReceivePort(CapabilitySet tp, String name,
+            ReceivePortConnectUpcall cU) throws IOException {
+        return createReceivePort(tp, name, null, cU, false);
+    }
+
+    public ibis.ipl.ReceivePort createReceivePort(CapabilitySet tp, String name,
+            Upcall u, ReceivePortConnectUpcall cU) throws IOException {
+        return createReceivePort(tp, name, u, cU, false);
+    }
+
+    /** 
+     * Creates a named {@link ibis.ipl.ReceivePort} of the specified
+     * port type, with upcall based communication.
+     * New connections will not be accepted until
+     * {@link ibis.ipl.ReceivePort#enableConnections()} is invoked.
+     * This is done to avoid upcalls during initialization.
+     * When a new connection request arrives, or when a connection is lost,
+     * a ConnectUpcall is performed.
+     *
+     * @param tp the port type.
+     * @param name the unique name of this receiveport (or <code>null</code>,
+     *    in which case the port is created anonymously and is not bound
+     *    in the registry).
+     * @param u the upcall handler.
+     * @param cU object implementing <code>gotConnection</code>() and
+     * <code>lostConnection</code>() upcalls.
+     * @param connectionDowncalls set when this port must keep
+     * connection administration to support the lostConnections and
+     * newConnections downcalls.
+     * @return the new receiveport.
+     * @exception java.io.IOException is thrown when the port could not be
+     * created.
+     * @exception ibis.ipl.IbisConfigurationException is thrown when the port
+     * type does not match what is required here.
+     */
+    private ibis.ipl.ReceivePort createReceivePort(CapabilitySet tp, String name,
+            Upcall u, ReceivePortConnectUpcall cU, boolean connectionDowncalls)
+            throws IOException {
+        CapabilitySet p = capabilities;
+        if (cU != null) {
+            if (!p.hasCapability(CONNECTION_UPCALLS)) {
+                throw new IbisConfigurationException(
+                        "no connection upcalls requested for this port type");
+            }
+        }
+        if (connectionDowncalls) {
+            if (!p.hasCapability(CONNECTION_DOWNCALLS)) {
+                throw new IbisConfigurationException(
+                        "no connection downcalls requested for this port type");
+            }
+        }
+        if (u != null) {
+            if (!p.hasCapability(RECEIVE_AUTO_UPCALLS)
+                    && !p.hasCapability(RECEIVE_POLL_UPCALLS)) {
+                throw new IbisConfigurationException(
+                        "no message upcalls requested for this port type");
+            }
+        } else {
+            if (!p.hasCapability(RECEIVE_EXPLICIT)) {
+                throw new IbisConfigurationException(
+                        "no explicit receive requested for this port type");
+            }
+        }
+        if (name == null) {
+            synchronized(this.getClass()) {
+                name = "anonymous receive port " + receive_counter++;
+            }
+        }
+
+        return doCreateReceivePort(tp, name, u, cU, connectionDowncalls);
+    }
+
+    /** 
+     * Creates a named {@link ibis.ipl.ReceivePort} of the specified port type,
+     * with upcall based communication.
+     * New connections will not be accepted until
+     * {@link ibis.ipl.ReceivePort#enableConnections()} is invoked.
+     * This is done to avoid upcalls during initialization.
+     * When a new connection request arrives, or when a connection is lost,
+     * a ConnectUpcall is performed.
+     *
+     * @param tp the port type.
+     * @param name the name of this receiveport.
+     * @param u the upcall handler.
+     * @param cU object implementing <code>gotConnection</code>() and
+     * <code>lostConnection</code>() upcalls.
+     * @param connectionDowncalls set when this port must keep
+     * connection administration to support the lostConnections and
+     * newConnections downcalls.
+     * @return the new receiveport.
+     * @exception java.io.IOException is thrown when the port could not be
+     * created.
+     */
+    protected abstract ibis.ipl.ReceivePort doCreateReceivePort(
+            CapabilitySet tp, String name, Upcall u,
+            ReceivePortConnectUpcall cU, boolean connectionDowncalls)
+        throws IOException;
 }

@@ -144,7 +144,7 @@ class TcpChannelFactory implements ChannelFactory, Protocol {
             DataOutputStream d = new DataOutputStream(accumulator);
             d.writeUTF(rpi.name());
             spi.ident.writeTo(d);
-            spi.type.capabilities().writeTo(d);
+            spi.type.writeTo(d);
             d.flush();
 
             if (logger.isDebugEnabled()) {

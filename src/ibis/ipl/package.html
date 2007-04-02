@@ -7,11 +7,9 @@ dynamically available networks and processor pools, and with highly
 efficient, object-based communication.
 <br>
 Communication is based on {@link ibis.ipl.ReceivePort ReceivePorts}
-and {@link ibis.ipl.SendPort SendPorts} of a certain
-{@link ibis.ipl.PortType PortType}.
-A {@link ibis.ipl.PortType PortType} can be created using the
-{@link ibis.ipl.Ibis#createPortType(CapabilitySet) createPortType}
-method.
+and {@link ibis.ipl.SendPort SendPorts} of a certain port type, which is
+represented by a
+{@link ibis.ipl.CapabilitySet CapabilitySet}.
 Port capabilities are given to the port type (for
 example ports are "ONE_TO_ONE" and "RELIABLE" and support
 "OBJECT_SERIALIZATION").
@@ -20,9 +18,9 @@ Only receive ports and send ports of the same port type can communicate.
 Any number of receive ports and send ports can be created on a JVM
 (even of the same port type).
 <br>
-SendPorts and ReceivePorts are created by their PortType using the
-{@link ibis.ipl.PortType#createSendPort(String) createSendPort} and
-{@link ibis.ipl.PortType#createReceivePort(String) createReceivePort} methods.
+SendPorts and ReceivePorts are created by their Ibis instance using the
+{@link ibis.ipl.Ibis#createSendPort(CapabilitySet, String) createSendPort} and
+{@link ibis.ipl.Ibis#createReceivePort(CapabilitySet, String) createReceivePort} methods.
 When creating a ReceivePort, it can be supplied with an
 {@link ibis.ipl.Upcall Upcall} object. If so,
 upcalls are generated when messages arrive.

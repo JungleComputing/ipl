@@ -1,5 +1,6 @@
 package ibis.impl.stacking.dummy;
 
+import ibis.ipl.CapabilitySet;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.ReceivePortIdentifier;
@@ -12,7 +13,7 @@ import java.util.Map;
 public class StackingReceivePort implements ibis.ipl.ReceivePort {
 
     final ibis.ipl.ReceivePort base;
-    final StackingPortType type;
+    final CapabilitySet type;
     final ibis.impl.ReceivePortIdentifier identifier;
 
     private static final class ConnectUpcaller
@@ -51,11 +52,11 @@ public class StackingReceivePort implements ibis.ipl.ReceivePort {
         }
     }
     
-    public StackingReceivePort(StackingPortType type, String name,
-            Upcall upcall, ReceivePortConnectUpcall connectUpcall,
+    public StackingReceivePort(CapabilitySet type, StackingIbis ibis,
+            String name, Upcall upcall, ReceivePortConnectUpcall connectUpcall,
             boolean connectionDowncalls) throws IOException {
         this.type = type;
-        this.identifier = type.ibis.createReceivePortIdentifier(name, type.ibis.ident);
+        this.identifier = ibis.createReceivePortIdentifier(name, ibis.ident);
         if (connectUpcall != null) {
             connectUpcall = new ConnectUpcaller(this, connectUpcall);
         }
@@ -63,9 +64,9 @@ public class StackingReceivePort implements ibis.ipl.ReceivePort {
             upcall = new Upcaller(upcall, this);
         }
         if (connectionDowncalls) {
-            base = type.base.createReceivePort(name, upcall, true);
+            base = ibis.base.createReceivePort(type, name, upcall, true);
         } else {
-            base = type.base.createReceivePort(name, upcall, connectUpcall);
+            base = ibis.base.createReceivePort(type, name, upcall, connectUpcall);
         }
     }
 
@@ -101,7 +102,7 @@ public class StackingReceivePort implements ibis.ipl.ReceivePort {
         return base.getCount();
     }
 
-    public ibis.ipl.PortType getType() {
+    public CapabilitySet getType() {
         return type;
     }
 

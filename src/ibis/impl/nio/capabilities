@@ -19,5 +19,11 @@ receive.autoupcalls:
 receive.explicit:
 registry.events:
 resize.downcalls:
+sendport.blocking:
+sendport.nonblocking:
+sendport.thread:
+receiveport.blocking:
+receiveport.nonblocking:
+receiveport.thread:
 # Nickname for NioIbis.
 nickname:nio

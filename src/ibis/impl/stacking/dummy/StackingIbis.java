@@ -4,8 +4,10 @@ import ibis.impl.Ibis;
 import ibis.impl.Registry;
 import ibis.impl.tcp.TcpIbis;
 import ibis.ipl.CapabilitySet;
-import ibis.ipl.PortType;
 import ibis.ipl.RegistryEventHandler;
+import ibis.ipl.ReceivePortConnectUpcall;
+import ibis.ipl.SendPortDisconnectUpcall;
+import ibis.ipl.Upcall;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -52,11 +54,6 @@ public class StackingIbis extends Ibis {
     @Override
     protected byte[] getData() throws IOException {
         return null;
-    }
-
-    @Override
-    protected PortType newPortType(CapabilitySet p) {
-         return new StackingPortType(this, p);
     }
 
     @Override
@@ -109,4 +106,19 @@ public class StackingIbis extends Ibis {
     public void poll() {
         base.poll();
     }
+
+    @Override
+    protected ibis.ipl.ReceivePort doCreateReceivePort(CapabilitySet tp,
+            String name, Upcall u, ReceivePortConnectUpcall cU,
+            boolean connectionDowncalls) throws IOException {
+        return new StackingReceivePort(tp, this, name, u, cU, connectionDowncalls);
+    }
+
+    @Override
+    protected ibis.ipl.SendPort doCreateSendPort(CapabilitySet tp, String name,
+            SendPortDisconnectUpcall cU, boolean connectionDowncalls)
+            throws IOException {
+        return new StackingSendPort(tp, this, name, cU, connectionDowncalls);
+    }
+
 }

@@ -42,7 +42,7 @@ public interface ReceivePort extends Managable {
      * Returns the type that was used to create this port.
      * @return the type that was used to create this port.
      */
-    public PortType getType();
+    public CapabilitySet getType();
     
     /**
      * Explicit blocking receive.

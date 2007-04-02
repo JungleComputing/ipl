@@ -4,6 +4,7 @@ package ibis.impl.tcp;
 
 import ibis.impl.IbisIdentifier;
 import ibis.impl.ReceivePort;
+import ibis.impl.SendPort;
 import ibis.impl.SendPortIdentifier;
 import ibis.io.BufferedArrayInputStream;
 import ibis.io.BufferedArrayOutputStream;
@@ -12,7 +13,10 @@ import ibis.ipl.CapabilitySet;
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.PortMismatchException;
+import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.RegistryEventHandler;
+import ibis.ipl.SendPortDisconnectUpcall;
+import ibis.ipl.Upcall;
 import ibis.util.ThreadPool;
 
 import java.io.DataInputStream;
@@ -65,10 +69,6 @@ public final class TcpIbis extends ibis.impl.Ibis
         return myAddress.toBytes();
     }
 
-    protected ibis.impl.PortType newPortType(CapabilitySet p) {
-        return new TcpPortType(this, p);
-    }
-
     public void left(ibis.ipl.IbisIdentifier id) {
         super.left(id);
         synchronized(addresses) {
@@ -117,7 +117,7 @@ public final class TcpIbis extends ibis.impl.Ibis
 
                 out.writeUTF(name);
                 sp.getIdent().writeTo(out);
-                sp.getType().capabilities().writeTo(out);
+                sp.getType().writeTo(out);
                 out.flush();
 
                 result = s.getInputStream().read();
@@ -131,7 +131,7 @@ public final class TcpIbis extends ibis.impl.Ibis
                             + " at " + id);
                 case ReceivePort.TYPE_MISMATCH:
                     throw new PortMismatchException(
-                            "Cannot connect ports of different PortTypes");
+                            "Cannot connect ports of different port types");
                 case ReceivePort.DENIED:
                     throw new ConnectionRefusedException(
                             "Receiver denied connection");
@@ -289,5 +289,17 @@ public final class TcpIbis extends ibis.impl.Ibis
     public void end() {
         super.end();
         printStatistics();
+    }
+
+    protected SendPort doCreateSendPort(CapabilitySet tp, String nm,
+            SendPortDisconnectUpcall cU, boolean connectionDowncalls)
+            throws IOException {
+        return new TcpSendPort(this, tp, nm, connectionDowncalls, cU);
+    }
+
+    protected ReceivePort doCreateReceivePort(CapabilitySet tp, String nm,
+            Upcall u, ReceivePortConnectUpcall cU, boolean connectionDowncalls)
+            throws IOException {
+        return new TcpReceivePort(this, tp, nm, u, connectionDowncalls, cU);
     }
 }

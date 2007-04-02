@@ -45,9 +45,9 @@ public interface SendPort extends Managable {
 
     /**
      * Returns the type that was used to create this port.
-     * @return the <code>PortType</code>.
+     * @return the capability set representing the port type.
      */
-    public PortType getType();
+    public CapabilitySet getType();
 
     /**
      * Requests a new message from this sendport.

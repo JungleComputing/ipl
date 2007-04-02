@@ -5,7 +5,6 @@ package ibis.impl.util;
 import ibis.ipl.CapabilitySet;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisIdentifier;
-import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortIdentifier;
@@ -36,11 +35,13 @@ public final class Sequencer implements ibis.ipl.PredefinedCapabilities {
 
     private IbisIdentifier ident;
 
+    Ibis ibis;
+
     private boolean master;
 
     private ReceivePort rcv;
 
-    PortType tp;
+    CapabilitySet tp;
 
     private SendPort snd; // Only for client
 
@@ -84,7 +85,7 @@ public final class Sequencer implements ibis.ipl.PredefinedCapabilities {
                 }
                 m.finish();
                 clients.add(rid);
-                s = seq.tp.createSendPort();
+                s = seq.ibis.createSendPort(seq.tp);
                 s.connect(rid);
                 sendports.add(s);
                 w = s.newMessage();
@@ -135,18 +136,15 @@ public final class Sequencer implements ibis.ipl.PredefinedCapabilities {
     }
 
     private Sequencer(Ibis ibis) throws IOException {
+        this.ibis = ibis;
         ident = ibis.identifier();
         idno = -1;
         CapabilitySet p = new CapabilitySet(
             SERIALIZATION_OBJECT, CONNECTION_MANY_TO_ONE,
             COMMUNICATION_RELIABLE, RECEIVE_EXPLICIT);
-        try {
-            tp = ibis.createPortType(p);
-        } catch (Exception e) {
-            throw new IOException("Got Exception " + e);
-        }
+        tp = p;
 
-        rcv = tp.createReceivePort("seq recvr");
+        rcv = ibis.createReceivePort(tp, "seq recvr");
         rcv.enableConnections();
 
         IbisIdentifier boss;
@@ -159,7 +157,7 @@ public final class Sequencer implements ibis.ipl.PredefinedCapabilities {
             server.setDaemon(true);
             server.start();
         } else {
-            snd = tp.createSendPort();
+            snd = ibis.createSendPort(tp);
             snd.connect(boss, "seq recvr");
             ReceivePortIdentifier rid = rcv.identifier();
             WriteMessage w = snd.newMessage();

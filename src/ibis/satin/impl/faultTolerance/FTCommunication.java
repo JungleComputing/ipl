@@ -278,7 +278,7 @@ final class FTCommunication implements Config, ReceivePortConnectUpcall,
 
 			SendPort p = null;
 			try {
-				p = s.comm.portType.createSendPort();
+				p = s.comm.ibis.createSendPort(s.comm.portType);
 			} catch (Exception e) {
 				ftLogger.warn("SATIN '" + s.ident
 						+ "': got an exception in Satin.join", e);

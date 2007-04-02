@@ -7,6 +7,7 @@ import ibis.io.Replacer;
 import ibis.io.SerializationBase;
 import ibis.io.SerializationOutput;
 import ibis.ipl.AlreadyConnectedException;
+import ibis.ipl.CapabilitySet;
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.ConnectionsFailedException;
@@ -24,7 +25,8 @@ import org.apache.log4j.Logger;
  * Implementation of the {@link ibis.ipl.SendPort} interface, to be extended
  * by specific Ibis implementations.
  */
-public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
+public abstract class SendPort extends Managable implements ibis.ipl.SendPort,
+            ibis.ipl.PredefinedCapabilities {
 
     /** Debugging output. */
     private static final Logger logger = Logger.getLogger("ibis.impl.SendPort");
@@ -33,7 +35,7 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
     private long count = 0;
 
     /** The type of this port. */
-    public final PortType type;
+    public final CapabilitySet type;
 
     /** The name of this port. */
     public final String name;
@@ -90,7 +92,7 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
     /**
      * Constructs a <code>SendPort</code> with the specified parameters.
      * Note that all property checks are already performed in the
-     * <code>PortType.createSendPort</code> methods.
+     * <code>Ibis.createSendPort</code> methods.
      * @param ibis the ibis instance.
      * @param type the port type.
      * @param name the name of the <code>SendPort</code>.
@@ -99,7 +101,7 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
      * supported.
      * @exception IOException is thrown in case of trouble.
      */
-    protected SendPort(Ibis ibis, PortType type, String name,
+    protected SendPort(Ibis ibis, CapabilitySet type, String name,
             SendPortDisconnectUpcall connectUpcall, boolean connectionDowncalls)
             throws IOException {
         this.ibis = ibis;
@@ -108,12 +110,15 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
         this.ident = ibis.createSendPortIdentifier(name, ibis.ident);
         this.connectionDowncalls = connectionDowncalls;
         this.connectUpcall = connectUpcall;
-        if (type.replacerClass != null) {
+        
+        String replacerName = type.getCapability("serialization.replacer");
+        if (replacerName != null) {
             try {
-                this.replacer = (Replacer) type.replacerClass.newInstance();
+                Class replacerClass = Class.forName(replacerName);
+                this.replacer = (Replacer) replacerClass.newInstance();
             } catch(Throwable e) {
                 throw new IOException("Could not instantiate replacer class "
-                        + type.replacerClass.getName());
+                        + replacerName);
             }
         } else {
             this.replacer = null;
@@ -135,7 +140,15 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
     }
 
     private void createOut() {
-        out = SerializationBase.createSerializationOutput(type.serialization,
+        String serialization;
+        if (type.hasCapability(SERIALIZATION_DATA)) {
+            serialization = "data";
+        } else if (type.hasCapability(SERIALIZATION_OBJECT)) {
+            serialization = "object";
+        } else {
+            serialization = "byte";
+        }
+        out = SerializationBase.createSerializationOutput(serialization,
                 dataOut);
         if (replacer != null) {
             try {
@@ -155,7 +168,7 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
         count = 0;
     }
 
-    public PortType getType() {
+    public CapabilitySet getType() {
         return type;
     }
 
@@ -194,9 +207,11 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
 
     private void checkConnect(ReceivePortIdentifier r) throws IOException {
 
-        if (receivers.size() > 0 && ! type.oneToMany) {
+        if (receivers.size() > 0
+                && ! type.hasCapability(CONNECTION_ONE_TO_MANY)
+                && ! type.hasCapability(CONNECTION_MANY_TO_MANY)) {
             throw new IbisConfigurationException("Sendport already has a "
-                    + "connection and OneToMany not requested");
+                    + "connection and OneToMany or ManyToMany not requested");
         }
 
         if (getInfo(r) != null) {
@@ -560,7 +575,7 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
     protected void gotSendException(WriteMessage w, IOException e)
             throws IOException {
         handleSendException(w, e);
-        if (! type.oneToMany) {
+        if (type.hasCapability(CONNECTION_ONE_TO_ONE)) {
             // Otherwise exception will be saved until the finish.
             throw e;
         }

@@ -2,7 +2,7 @@
 
 package ibis.gmi;
 
-import ibis.ipl.PortType;
+import ibis.ipl.CapabilitySet;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortIdentifier;
@@ -22,9 +22,9 @@ class MulticastGroups {
     private static final HashMap<String, SendPort> sendPorts
             = new HashMap<String, SendPort>();
     
-    private static PortType portType;
+    private static CapabilitySet portType;
             
-    static void init(PortType type) { 
+    static void init(CapabilitySet type) { 
         portType = type;
     }
     
@@ -61,7 +61,7 @@ class MulticastGroups {
                         + "Creating multicast receive port " + myID);
             }            
             
-            ReceivePort rp = portType.createReceivePort(myID, 
+            ReceivePort rp = Group.ibis.createReceivePort(portType, myID, 
                     new GroupCallHandler());
             rp.enableConnections();
             rp.enableUpcalls();
@@ -196,7 +196,7 @@ class MulticastGroups {
             }
             
             // Create a sendport
-            SendPort sp = portType.createSendPort(); 
+            SendPort sp = Group.ibis.createSendPort(portType); 
             
             // Connect sendport to all receiveports
             for (int i=0;i<rids.length;i++) {

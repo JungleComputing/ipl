@@ -39,7 +39,7 @@ abstract class NioReceivePort extends ibis.impl.ReceivePort implements
         }
     }
 
-    NioReceivePort(Ibis ibis, NioPortType type, String name, Upcall upcall,
+    NioReceivePort(Ibis ibis, CapabilitySet type, String name, Upcall upcall,
             boolean connectionAdministration,
             ReceivePortConnectUpcall connUpcall) throws IOException {
         super(ibis, type, name, upcall, connUpcall, connectionAdministration);
@@ -178,7 +178,7 @@ abstract class NioReceivePort extends ibis.impl.ReceivePort implements
 
             info.message.setFinished(false);
 
-            if (type.numbered) {
+            if (numbered) {
                 try {
                      info.message.setSequenceNumber(info.message.readLong());
                 } catch (IOException e) {
@@ -258,7 +258,7 @@ abstract class NioReceivePort extends ibis.impl.ReceivePort implements
 
             info.message.setFinished(false);
 
-            if (type.numbered) {
+            if (numbered) {
                 try {
                      info.message.setSequenceNumber(info.message.readLong());
                 } catch (IOException e) {

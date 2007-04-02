@@ -10,7 +10,6 @@ import ibis.ipl.CapabilitySet;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisFactory;
 import ibis.ipl.IbisIdentifier;
-import ibis.ipl.PortType;
 import ibis.ipl.PredefinedCapabilities;
 import ibis.ipl.Registry;
 
@@ -26,7 +25,7 @@ public class MPJ implements PredefinedCapabilities {
     private static byte[] attachedBuffer;
     private static boolean isInitialized = false;
     private static int highestContextId = -1;
-    private static PortType porttype = null;
+    private static CapabilitySet porttype = null;
     private static ConnectionTable connectionTable = null;
 
     protected static Ibis ibis;
@@ -245,11 +244,9 @@ public class MPJ implements PredefinedCapabilities {
 
             registry = ibis.registry();
 
-            CapabilitySet prop = new CapabilitySet(
+            porttype = new CapabilitySet(
                 SERIALIZATION_OBJECT, COMMUNICATION_RELIABLE, RECEIVE_EXPLICIT,
                 CONNECTION_ONE_TO_ONE, RECEIVE_POLL);
-
-            porttype = ibis.createPortType(prop);
 
 
             if (DEBUG) {

@@ -4,6 +4,7 @@ package ibis.impl.nio;
 
 import ibis.impl.Ibis;
 import ibis.impl.SendPortIdentifier;
+import ibis.ipl.CapabilitySet;
 import ibis.ipl.ConnectionClosedException;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.ReceiveTimedOutException;
@@ -38,7 +39,7 @@ final class NonBlockingChannelNioReceivePort extends NioReceivePort {
 
     Selector selector;
 
-    NonBlockingChannelNioReceivePort(Ibis ibis, NioPortType type,
+    NonBlockingChannelNioReceivePort(Ibis ibis, CapabilitySet type,
             String name, Upcall upcall, boolean connectionAdministration,
             ReceivePortConnectUpcall connUpcall) throws IOException {
         super(ibis, type, name, upcall, connectionAdministration, connUpcall);

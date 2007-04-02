@@ -9,7 +9,6 @@ package ibis.satin.impl.sharedObjects;
 
 import ibis.ipl.CapabilitySet;
 import ibis.ipl.IbisIdentifier;
-import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortIdentifier;
@@ -90,7 +89,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller,
     /** used to broadcast shared object invocations */
     private SendPort soSendPort;
 
-    private PortType soPortType;
+    private CapabilitySet soPortType;
 
     /** used to do message combining on soSendPort */
     private MessageCombiner soMessageCombiner;
@@ -137,7 +136,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller,
                 // Create a multicast port to bcast shared object invocations.
                 // Connections are established later.
                 soSendPort =
-                        soPortType.createSendPort("satin so port on "
+                        s.comm.ibis.createSendPort(soPortType, "satin so port on "
                             + s.ident, true);
 
                 if (SO_MAX_INVOCATION_DELAY > 0) {
@@ -153,13 +152,11 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller,
         }
     }
 
-    private PortType createSOPortType() throws IOException {
-        CapabilitySet satinPortProperties = new CapabilitySet(
+    private CapabilitySet createSOPortType() throws IOException {
+        return new CapabilitySet(
                 CONNECTION_ONE_TO_MANY, CONNECTION_UPCALLS,
                 CONNECTION_DOWNCALLS, RECEIVE_EXPLICIT, RECEIVE_AUTO_UPCALLS,
                 SERIALIZATION_OBJECT);
-
-        return s.comm.ibis.createPortType(satinPortProperties);
     }
 
     /**
@@ -198,7 +195,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller,
                 ReceivePort rec;
 
                 rec =
-                        soPortType.createReceivePort(
+                        s.comm.ibis.createReceivePort(soPortType,
                             "satin so receive port for " + joiners[i],
                             soInvocationHandler, s.ft
                                 .getReceivePortConnectHandler());

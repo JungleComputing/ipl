@@ -40,7 +40,7 @@ public abstract class ReceivePort extends Managable
     /** Sendport was already connected to this receiveport. */
     public static final byte ALREADY_CONNECTED = 3;
 
-    /** PortType does not match. */
+    /** Port type does not match. */
     public static final byte TYPE_MISMATCH = 4;
 
     /** Receiveport not found. */
@@ -50,7 +50,7 @@ public abstract class ReceivePort extends Managable
     public static final byte NO_MANYTOONE = 6;
 
     /** The type of this port. */
-    public final PortType type;
+    public final CapabilitySet type;
 
     /** The name of this port. */
     public final String name;
@@ -116,7 +116,7 @@ public abstract class ReceivePort extends Managable
     /**
      * Constructs a <code>ReceivePort</code> with the specified parameters.
      * Note that all property checks are already performed in the
-     * <code>PortType.createReceivePort</code> methods.
+     * <code>Ibis.createReceivePort</code> methods.
      * @param ibis the ibis instance.
      * @param type the port type.
      * @param name the name of the <code>ReceivePort</code>.
@@ -125,8 +125,8 @@ public abstract class ReceivePort extends Managable
      * @param connectionDowncalls set when connection downcalls must be
      * supported.
      */
-    protected ReceivePort(Ibis ibis, PortType type, String name, Upcall upcall,
-            ReceivePortConnectUpcall connectUpcall,
+    protected ReceivePort(Ibis ibis, CapabilitySet type, String name,
+            Upcall upcall, ReceivePortConnectUpcall connectUpcall,
             boolean connectionDowncalls) {
         this.ibis = ibis;
         this.type = type;
@@ -136,8 +136,14 @@ public abstract class ReceivePort extends Managable
         this.connectUpcall = connectUpcall;
         this.connectionDowncalls = connectionDowncalls;
         this.numbered
-                = type.capabilities().hasCapability(COMMUNICATION_NUMBERED);
-        this.serialization = type.serialization;
+                = type.hasCapability(COMMUNICATION_NUMBERED);
+        if (type.hasCapability(SERIALIZATION_DATA)) {
+            serialization = "data";
+        } else if (type.hasCapability(SERIALIZATION_OBJECT)) {
+            serialization = "object";
+        } else {
+            serialization = "byte";
+        }
         ibis.register(this);
         if (logger.isDebugEnabled()) {
             logger.debug(ibis.ident + ": ReceivePort '" + name + "' created");
@@ -189,7 +195,7 @@ public abstract class ReceivePort extends Managable
         count = 0;
     }
 
-    public PortType getType() {
+    public CapabilitySet getType() {
         return type;
     }
 
@@ -245,7 +251,7 @@ public abstract class ReceivePort extends Managable
             throw new IOException("timeout must be a non-negative number");
         }
         if (timeout > 0 &&
-                ! type.capabilities().hasCapability(RECEIVE_TIMEOUT)) {
+                ! type.hasCapability(RECEIVE_TIMEOUT)) {
             throw new IbisConfigurationException(
                     "This port is not configured for receive() with timeout");
         }
@@ -275,12 +281,12 @@ public abstract class ReceivePort extends Managable
         if (isConnectedTo(id)) {
             return ALREADY_CONNECTED;
         }
-        if (! sp.equals(type.capabilities())) {
+        if (! sp.equals(type)) {
             return TYPE_MISMATCH;
         }
         if (connectionsEnabled) {
             if (connections.size() != 0 &&
-                ! type.capabilities().hasCapability(CONNECTION_MANY_TO_ONE)) {
+                ! type.hasCapability(CONNECTION_MANY_TO_ONE)) {
                 return DENIED;
             }
             if (connectionDowncalls) {
@@ -316,7 +322,7 @@ public abstract class ReceivePort extends Managable
     }
 
     public ReadMessage poll() throws IOException {
-        if (! type.capabilities().hasCapability(RECEIVE_POLL)) {
+        if (! type.hasCapability(RECEIVE_POLL)) {
             throw new IbisConfigurationException(
                     "Receiveport not configured for polls");
         }

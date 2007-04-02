@@ -5,8 +5,8 @@
  */
 package ibis.mpj;
 
+import ibis.ipl.CapabilitySet;
 import ibis.ipl.IbisIdentifier;
-import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.Registry;
@@ -30,14 +30,14 @@ public class Connection {
     private WriteMessage writeMessage = null;
     private int commPartnerRank = -1;
     private int myRank = -1;
-    private PortType portType = null;
+    private CapabilitySet portType = null;
     private int messageCount = 0;
     private MPJObjectQueue recvQueue = null;
     private Registry registry = null;
     //	private boolean sync = false;
     private ReadMessage msg = null;
 
-    public Connection(Registry registry, PortType portType, int myRank, int commPartnerRank) {
+    public Connection(Registry registry, CapabilitySet portType, int myRank, int commPartnerRank) {
         this.commPartnerRank = commPartnerRank;
         this.myRank = myRank;
         this.portType = portType;
@@ -55,7 +55,7 @@ public class Connection {
         }
         try {
             this.recvQueue = new MPJObjectQueue();
-            this.receiver = portType.createReceivePort(portString);
+            this.receiver = MPJ.ibis.createReceivePort(portType, portString);
             this.receiver.enableConnections();
         }
         catch (Exception e) {
@@ -71,7 +71,7 @@ public class Connection {
             System.err.println("Send on: " + portString + "; Index: " + commPartnerRank);
         }
         try {
-            sender = portType.createSendPort();
+            sender = MPJ.ibis.createSendPort(portType);
             IbisIdentifier rpHolder
                     = registry.getElectionResult("" + commPartnerRank);
             sender.connect(rpHolder, portString);

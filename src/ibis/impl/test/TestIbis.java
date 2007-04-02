@@ -6,7 +6,6 @@ import ibis.ipl.CapabilitySet;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisFactory;
 import ibis.ipl.IbisIdentifier;
-import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortIdentifier;
@@ -27,7 +26,7 @@ public final class TestIbis extends TestCase
 
     Ibis ibis;
     Registry registry;
-    PortType oneToOneType;
+    CapabilitySet oneToOneType;
 
     public static Test suite() {
         return new TestSuite(TestIbis.class);
@@ -35,11 +34,11 @@ public final class TestIbis extends TestCase
 
     public void testIbis() {
         try {
-            CapabilitySet s = new CapabilitySet(
+            oneToOneType = new CapabilitySet(
                 COMMUNICATION_RELIABLE, SERIALIZATION_OBJECT, RECEIVE_EXPLICIT,
                 CONNECTION_ONE_TO_ONE);
 
-            ibis = IbisFactory.createIbis(s, null, null, null);
+            ibis = IbisFactory.createIbis(oneToOneType, null, null, null);
 
             registry = ibis.registry();
 
@@ -49,8 +48,6 @@ public final class TestIbis extends TestCase
 
             // Since there will be only one ibis instance, master must be true
             assertTrue(master);
-
-            oneToOneType = ibis.createPortType(s);
 
             Thread masterThread = new Thread("Master thread") {
                 public void run() {
@@ -118,8 +115,8 @@ public final class TestIbis extends TestCase
 
     void master() throws Exception {
         SendPort sendPort = null;
-        ReceivePort rport = oneToOneType
-                .createReceivePort("master receive port");
+        ReceivePort rport = ibis.createReceivePort(oneToOneType,
+                "master receive port");
         rport.enableConnections();
         System.out.println("Master created rport: " + rport.name());
 
@@ -133,7 +130,7 @@ public final class TestIbis extends TestCase
             assertTrue(data == i);
 
             if (sendPort == null) {
-                sendPort = oneToOneType.createSendPort();
+                sendPort = ibis.createSendPort(oneToOneType);
                 connect(sendPort, origin.ibis(), "client receive port");
             }
 
@@ -146,11 +143,11 @@ public final class TestIbis extends TestCase
     }
 
     void worker(IbisIdentifier masterId) throws Exception {
-        ReceivePort rport = oneToOneType
-                .createReceivePort("client receive port");
+        ReceivePort rport = ibis.createReceivePort(oneToOneType,
+                "client receive port");
         rport.enableConnections();
         System.out.println("Worker created rport: " + rport.name());
-        SendPort sport = oneToOneType.createSendPort();
+        SendPort sport = ibis.createSendPort(oneToOneType);
 
         connect(sport, masterId, "master receive port");
 

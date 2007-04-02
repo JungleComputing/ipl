@@ -10,6 +10,7 @@ import ibis.impl.ReceivePortIdentifier;
 import ibis.impl.SendPortIdentifier;
 import ibis.io.BufferedArrayInputStream;
 import ibis.io.Conversion;
+import ibis.ipl.CapabilitySet;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.Upcall;
 import ibis.util.ThreadPool;
@@ -76,7 +77,7 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
                                 + origin);
                     }
                     message.setFinished(false);
-                    if (type.numbered) {
+                    if (numbered) {
                         message.setSequenceNumber(message.readLong());
                     }
                     ReadMessage m = message;
@@ -129,15 +130,15 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
 
     private boolean reader_busy = false;
 
-    TcpReceivePort(Ibis ibis, TcpPortType type, String name, Upcall upcall,
+    TcpReceivePort(Ibis ibis, CapabilitySet type, String name, Upcall upcall,
             boolean connectionAdministration,
             ReceivePortConnectUpcall connUpcall) {
         super(ibis, type, name, upcall, connUpcall, connectionAdministration);
 
         no_connectionhandler_thread = upcall == null && connUpcall == null
-                && !type.manyToOne
-                && !type.capabilities().hasCapability(RECEIVE_POLL)
-                && !type.capabilities().hasCapability(RECEIVE_TIMEOUT);
+                && type.hasCapability(CONNECTION_ONE_TO_ONE)
+                && !type.hasCapability(RECEIVE_POLL)
+                && !type.hasCapability(RECEIVE_TIMEOUT);
     }
 
     public void messageArrived(ReadMessage msg) {
