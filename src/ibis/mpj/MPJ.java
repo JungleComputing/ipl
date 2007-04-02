@@ -238,7 +238,7 @@ public class MPJ implements PredefinedCapabilities {
             CapabilitySet s = new CapabilitySet(
                 SERIALIZATION_OBJECT, COMMUNICATION_RELIABLE, RECEIVE_EXPLICIT,
                 RECEIVE_POLL, CONNECTION_ONE_TO_ONE, WORLDMODEL_CLOSED,
-                RESIZE_UPCALLS);
+                REGISTRY_EVENTS);
             ibis = IbisFactory.createIbis(s, null, null, regEvtHandler);
 
             regEvtHandler.waitForEveryone(ibis);

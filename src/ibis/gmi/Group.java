@@ -550,7 +550,7 @@ public final class Group implements GroupProtocol,
             int ticket = ticketMaster.get();
 
             WriteMessage w = unicast[0].newMessage();
-            w.writeByte(REGISTRY);
+            w.writeByte(GroupProtocol.REGISTRY);
             w.writeByte(CREATE_GROUP);
             w.writeInt(_rank);
             w.writeInt(ticket);
@@ -614,7 +614,7 @@ public final class Group implements GroupProtocol,
                 ticket = ticketMaster.get();
 
                 w = unicast[0].newMessage();
-                w.writeByte(REGISTRY);
+                w.writeByte(GroupProtocol.REGISTRY);
                 w.writeByte(JOIN_GROUP);
                 w.writeInt(_rank);
                 w.writeInt(rank);                
@@ -772,7 +772,7 @@ public final class Group implements GroupProtocol,
                     // Send registry a request.
                     int ticket = ticketMaster.get();
                     WriteMessage w = unicast[0].newMessage();
-                    w.writeByte(REGISTRY);
+                    w.writeByte(GroupProtocol.REGISTRY);
                     w.writeByte(FIND_GROUP);
                     w.writeInt(_rank);
                     w.writeInt(ticket);
@@ -975,7 +975,7 @@ public final class Group implements GroupProtocol,
         try {
             int ticket = ticketMaster.get();
             WriteMessage w = unicast[0].newMessage();
-            w.writeByte(REGISTRY);
+            w.writeByte(GroupProtocol.REGISTRY);
             w.writeByte(DEFINE_COMBINED);
             w.writeInt(groupID);
             w.writeInt(_rank);
@@ -1016,7 +1016,7 @@ public final class Group implements GroupProtocol,
         try {
             int ticket = ticketMaster.get();
             WriteMessage w = unicast[0].newMessage();
-            w.writeByte(REGISTRY);
+            w.writeByte(GroupProtocol.REGISTRY);
             w.writeByte(BARRIER);
             w.writeInt(ticket);
             w.writeString(id);

@@ -91,8 +91,7 @@ public abstract class PortType implements ibis.ipl.PortType,
                         "Could not locate replacer class " + replacerName);
             }
             if (replacerName != null
-                && ! capabilities.hasCapability(SERIALIZATION_OBJECT)
-                && ! capabilities.hasCapability(SERIALIZATION_STRICT_OBJECT)) {
+                && ! capabilities.hasCapability(SERIALIZATION_OBJECT)) {
                 throw new IbisConfigurationException(
                        "Object replacer specified but no object serialization");
             }
@@ -289,6 +288,10 @@ public abstract class PortType implements ibis.ipl.PortType,
 
     public int hashCode() {
         return capabilities.hashCode();
+    }
+
+    public String toString() {
+        return "PortType: " + capabilities;
     }
 
     // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

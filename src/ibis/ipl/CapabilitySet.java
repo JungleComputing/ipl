@@ -346,6 +346,7 @@ public final class CapabilitySet {
         if (!(other instanceof CapabilitySet)) {
             return false;
         }
+
         CapabilitySet o = (CapabilitySet) other;
         return booleanCapabilities.equals(o.booleanCapabilities)
             && stringCapabilities.equals(o.stringCapabilities);

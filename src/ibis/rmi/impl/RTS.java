@@ -269,7 +269,7 @@ public final class RTS implements ibis.ipl.PredefinedCapabilities {
             }
 
             CapabilitySet reqprops = new CapabilitySet(
-                SERIALIZATION_OBJECT, WORLDMODEL_OPEN, CONNECTION_MANY_TO_ONE,
+                SERIALIZATION_OBJECT, CONNECTION_MANY_TO_ONE,
                 CONNECTION_ONE_TO_ONE,
                 COMMUNICATION_RELIABLE, RECEIVE_AUTO_UPCALLS, RECEIVE_EXPLICIT);
 
@@ -289,10 +289,12 @@ public final class RTS implements ibis.ipl.PredefinedCapabilities {
 
             CapabilitySet requestProps = new CapabilitySet(
                 SERIALIZATION_OBJECT, CONNECTION_MANY_TO_ONE,
+                SERIALIZATION_REPLACER + "=ibis.rmi.impl.RMIReplacer",
                 COMMUNICATION_RELIABLE, RECEIVE_AUTO_UPCALLS);
 
             CapabilitySet replyProps = new CapabilitySet(
-                CONNECTION_ONE_TO_ONE, SERIALIZATION_REPLACER + "=ibis.rmi.impl.Replacer",
+                CONNECTION_ONE_TO_ONE,
+                SERIALIZATION_REPLACER + "=ibis.rmi.impl.RMIReplacer",
                 SERIALIZATION_OBJECT, COMMUNICATION_RELIABLE, RECEIVE_EXPLICIT);
 
             requestPortType = ibis.createPortType(requestProps);

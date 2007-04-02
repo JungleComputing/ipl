@@ -122,10 +122,10 @@ public final class IbisFactory {
 
         if (r != null
                 && !requiredCapabilities
-                        .hasCapability(PredefinedCapabilities.RESIZE_UPCALLS)) {
+                        .hasCapability(PredefinedCapabilities.REGISTRY_EVENTS)) {
             throw new NoMatchingIbisException(
                     "RegistryEventHandler specified but no "
-                            + PredefinedCapabilities.RESIZE_UPCALLS
+                            + PredefinedCapabilities.REGISTRY_EVENTS
                             + " capability requested");
         }
 
@@ -242,14 +242,6 @@ public final class IbisFactory {
             total = requiredCapabilities.uniteWith(optionalCapabilities);
         } else {
             total = requiredCapabilities;
-        }
-
-        if (total.hasCapability(PredefinedCapabilities.WORLDMODEL_OPEN)
-                && total
-                        .hasCapability(PredefinedCapabilities.WORLDMODEL_CLOSED)) {
-            throw new IbisConfigurationException(
-                    "It is not allowed to ask for "
-                            + "open world as well as closed world");
         }
 
         String ibisname = properties.getProperty(IbisProperties.NAME);
