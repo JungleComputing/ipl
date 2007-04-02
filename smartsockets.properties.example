@@ -161,7 +161,7 @@ smartsockets.modules.direct=smartsockets.virtual.modules.direct.Direct
 #smartsockets.modules.reverse=smartsockets.virtual.modules.reverse.Reverse
 # smartsockets.modules.splice=smartsockets.virtual.modules.splice.Splice
 # smartsockets.modules.routed=smartsockets.virtual.modules.routed.Routed
-smartsockets.modules.hubrouted=smartsockets.virtual.modules.hubrouted.HubRouted
+smartsockets.modules.hubrouted=smartsockets.virtual.modules.hubrouted.Hubrouted
 
 ###
 # We now define in which order the modules should be tried when a connection is   
