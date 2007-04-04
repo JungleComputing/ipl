@@ -212,7 +212,6 @@
 
     <target name="distclean" depends="allclean,rewritten-clean"
 	description="Clean up, also rewritten classlibs">
-	<ant dir="${ibis}/ibis-example" inheritAll="false" target="clean"/>
 	<delete dir="ant-tasks/tasks"/>
 	<delete file="${version}.zip"/>
 	<delete file="ibis-src.zip"/>
@@ -232,7 +231,9 @@
     </target>
 
     <target name="test" depends="allclean, build">
-	<ant dir="ibis-example" inheritAll="false" target="test"/>
+	<ant dir="src/ibis/ipl/apps/example" antfile="${ibis}/build-files/apps/build-ibis-app.xml" target="test-par">
+	    <property name="test-par-run" value="ibis.ipl.apps.example.Example"/>
+	</ant>
     </target>
 
     <target name="ibis.zip" depends="default">

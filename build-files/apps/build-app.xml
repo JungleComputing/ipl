@@ -1,6 +1,6 @@
 <project
     name="run"
-    default="run1"
+  default="run1"
     basedir=".">
 
     <description>
