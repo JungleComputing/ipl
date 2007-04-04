@@ -24,9 +24,9 @@ final class ThreadNioReceivePort extends NioReceivePort {
     private boolean closing = false;
 
     ThreadNioReceivePort(Ibis ibis, CapabilitySet type, String name,
-            Upcall upcall, boolean connectionAdministration,
-            ReceivePortConnectUpcall connUpcall) throws IOException {
-        super(ibis, type, name, upcall, connectionAdministration, connUpcall);
+            Upcall upcall, ReceivePortConnectUpcall connUpcall)
+            throws IOException {
+        super(ibis, type, name, upcall, connUpcall);
 
         readyDissipators = new Queue();
     }

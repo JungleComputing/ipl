@@ -47,9 +47,8 @@ final class TcpSendPort extends SendPort implements TcpProtocol {
     final BufferedArrayOutputStream bufferedStream;
 
     TcpSendPort(Ibis ibis, CapabilitySet type, String name,
-            boolean connectionDowncalls, SendPortDisconnectUpcall cU)
-            throws IOException {
-        super(ibis, type, name, cU, connectionDowncalls);
+            SendPortDisconnectUpcall cU) throws IOException {
+        super(ibis, type, name, cU);
 
         splitter = new OutputStreamSplitter(
                 ! type.hasCapability(CONNECTION_ONE_TO_ONE), false);

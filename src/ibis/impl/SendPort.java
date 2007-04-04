@@ -97,18 +97,15 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort,
      * @param type the port type.
      * @param name the name of the <code>SendPort</code>.
      * @param connectUpcall the connection upcall object, or <code>null</code>.
-     * @param connectionDowncalls set when connection downcalls must be
-     * supported.
      * @exception IOException is thrown in case of trouble.
      */
     protected SendPort(Ibis ibis, CapabilitySet type, String name,
-            SendPortDisconnectUpcall connectUpcall, boolean connectionDowncalls)
-            throws IOException {
+            SendPortDisconnectUpcall connectUpcall) throws IOException {
         this.ibis = ibis;
         this.type = type;
         this.name = name;
         this.ident = ibis.createSendPortIdentifier(name, ibis.ident);
-        this.connectionDowncalls = connectionDowncalls;
+        this.connectionDowncalls = type.hasCapability(CONNECTION_DOWNCALLS);
         this.connectUpcall = connectUpcall;
         
         String replacerName = type.getCapability("serialization.replacer");

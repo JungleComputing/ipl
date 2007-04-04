@@ -136,8 +136,8 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller,
                 // Create a multicast port to bcast shared object invocations.
                 // Connections are established later.
                 soSendPort =
-                        s.comm.ibis.createSendPort(soPortType, "satin so port on "
-                            + s.ident, true);
+                        s.comm.ibis.createSendPort(soPortType,
+                                "satin so port on " + s.ident);
 
                 if (SO_MAX_INVOCATION_DELAY > 0) {
                     TypedProperties props = new TypedProperties();

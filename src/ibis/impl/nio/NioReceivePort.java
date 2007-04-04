@@ -40,9 +40,8 @@ abstract class NioReceivePort extends ibis.impl.ReceivePort implements
     }
 
     NioReceivePort(Ibis ibis, CapabilitySet type, String name, Upcall upcall,
-            boolean connectionAdministration,
             ReceivePortConnectUpcall connUpcall) throws IOException {
-        super(ibis, type, name, upcall, connUpcall, connectionAdministration);
+        super(ibis, type, name, upcall, connUpcall);
 
         if (upcall != null) {
             ThreadPool.createNew(this, "NioReceivePort with upcall");

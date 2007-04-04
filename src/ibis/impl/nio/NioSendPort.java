@@ -25,9 +25,8 @@ public final class NioSendPort extends SendPort implements Protocol {
     private final NioAccumulator accumulator;
 
     NioSendPort(Ibis ibis, CapabilitySet type, String name,
-            boolean connectionDowncalls, SendPortDisconnectUpcall cU)
-            throws IOException {
-        super(ibis, type, name, cU, connectionDowncalls);
+            SendPortDisconnectUpcall cU) throws IOException {
+        super(ibis, type, name, cU);
 
         if (type.hasCapability("sendport.blocking")) {
             accumulator = new BlockingChannelNioAccumulator(this);
@@ -39,7 +38,8 @@ public final class NioSendPort extends SendPort implements Protocol {
             accumulator = new ThreadNioAccumulator(this,
                     ((NioIbis)ibis).sendReceiveThread());
         }
-        else if (type.hasCapability(CONNECTION_ONE_TO_ONE)) {
+        else if (type.hasCapability(CONNECTION_ONE_TO_ONE)
+                || type.hasCapability(CONNECTION_ONE_TO_MANY)) {
             accumulator = new BlockingChannelNioAccumulator(this);
         } else {
             accumulator = new NonBlockingChannelNioAccumulator(this);

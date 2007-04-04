@@ -131,9 +131,8 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
     private boolean reader_busy = false;
 
     TcpReceivePort(Ibis ibis, CapabilitySet type, String name, Upcall upcall,
-            boolean connectionAdministration,
             ReceivePortConnectUpcall connUpcall) {
-        super(ibis, type, name, upcall, connUpcall, connectionAdministration);
+        super(ibis, type, name, upcall, connUpcall);
 
         no_connectionhandler_thread = upcall == null && connUpcall == null
                 && type.hasCapability(CONNECTION_ONE_TO_ONE)

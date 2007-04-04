@@ -33,9 +33,9 @@ final class BlockingChannelNioReceivePort extends NioReceivePort {
     private int nrOfConnections = 0;
 
     BlockingChannelNioReceivePort(Ibis ibis, CapabilitySet type, String name,
-            Upcall upcall, boolean connectionAdministration,
-            ReceivePortConnectUpcall connUpcall) throws IOException {
-        super(ibis, type, name, upcall, connectionAdministration, connUpcall);
+            Upcall upcall, ReceivePortConnectUpcall connUpcall)
+            throws IOException {
+        super(ibis, type, name, upcall, connUpcall);
     }
 
     synchronized void newConnection(SendPortIdentifier spi, Channel channel)

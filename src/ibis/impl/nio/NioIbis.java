@@ -116,32 +116,27 @@ public final class NioIbis extends ibis.impl.Ibis {
     }
 
     protected ibis.ipl.SendPort doCreateSendPort(CapabilitySet tp,
-            String name, SendPortDisconnectUpcall cU,
-            boolean connectionDowncalls) throws IOException {
-        return new NioSendPort(this, tp, name, connectionDowncalls, cU);
+            String name, SendPortDisconnectUpcall cU) throws IOException {
+        return new NioSendPort(this, tp, name, cU);
     }
 
     protected ibis.ipl.ReceivePort doCreateReceivePort(CapabilitySet tp,
-            String name, Upcall u, ReceivePortConnectUpcall cU,
-            boolean connectionDowncalls) throws IOException {
+            String name, Upcall u, ReceivePortConnectUpcall cU)
+            throws IOException {
 
         if (tp.hasCapability("receiveport.blocking")) {
-            return new BlockingChannelNioReceivePort(this, tp, name, u,
-                    connectionDowncalls, cU);
+            return new BlockingChannelNioReceivePort(this, tp, name, u, cU);
         }
         if (tp.hasCapability("receiveport.nonblocking")) {
-            return new NonBlockingChannelNioReceivePort(this, tp, name, u,
-                    connectionDowncalls, cU);
+            return new NonBlockingChannelNioReceivePort(this, tp, name, u, cU);
         }
         if (tp.hasCapability("receiveport.thread")) {
-            return new ThreadNioReceivePort(this, tp, name, u,
-                    connectionDowncalls, cU);
+            return new ThreadNioReceivePort(this, tp, name, u, cU);
         }
-        if (tp.hasCapability(CONNECTION_ONE_TO_ONE)) {
-            return new BlockingChannelNioReceivePort(this, tp, name, u,
-                    connectionDowncalls, cU);
+        if (tp.hasCapability(CONNECTION_ONE_TO_ONE)
+                || tp.hasCapability(CONNECTION_MANY_TO_ONE)) {
+            return new BlockingChannelNioReceivePort(this, tp, name, u, cU);
         }
-        return new NonBlockingChannelNioReceivePort(this, tp, name, u,
-                connectionDowncalls, cU);
+        return new NonBlockingChannelNioReceivePort(this, tp, name, u, cU);
     }
 }

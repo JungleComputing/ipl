@@ -33,17 +33,12 @@ public class StackingSendPort implements ibis.ipl.SendPort {
     }
     
     public StackingSendPort(CapabilitySet type, StackingIbis ibis, String name,
-            SendPortDisconnectUpcall connectUpcall, boolean connectionDowncalls)
-            throws IOException {
+            SendPortDisconnectUpcall connectUpcall) throws IOException {
         this.type = type;
         this.identifier = ibis.createSendPortIdentifier(name, ibis.ident);
 
         if (connectUpcall != null) {
             connectUpcall = new DisconnectUpcaller(this, connectUpcall);
-        }
-        if (connectionDowncalls) {
-            base = ibis.base.createSendPort(type, name, true);
-        } else if (connectUpcall != null) {
             base = ibis.base.createSendPort(type, name, connectUpcall);
         } else {
             base = ibis.base.createSendPort(type, name);

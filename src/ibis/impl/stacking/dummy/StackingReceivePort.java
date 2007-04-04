@@ -53,8 +53,8 @@ public class StackingReceivePort implements ibis.ipl.ReceivePort {
     }
     
     public StackingReceivePort(CapabilitySet type, StackingIbis ibis,
-            String name, Upcall upcall, ReceivePortConnectUpcall connectUpcall,
-            boolean connectionDowncalls) throws IOException {
+            String name, Upcall upcall, ReceivePortConnectUpcall connectUpcall)
+            throws IOException {
         this.type = type;
         this.identifier = ibis.createReceivePortIdentifier(name, ibis.ident);
         if (connectUpcall != null) {
@@ -63,11 +63,7 @@ public class StackingReceivePort implements ibis.ipl.ReceivePort {
         if (upcall != null) {
             upcall = new Upcaller(upcall, this);
         }
-        if (connectionDowncalls) {
-            base = ibis.base.createReceivePort(type, name, upcall, true);
-        } else {
-            base = ibis.base.createReceivePort(type, name, upcall, connectUpcall);
-        }
+        base = ibis.base.createReceivePort(type, name, upcall, connectUpcall);
     }
 
     public void close() throws IOException {

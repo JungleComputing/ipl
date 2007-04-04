@@ -40,9 +40,9 @@ final class NonBlockingChannelNioReceivePort extends NioReceivePort {
     Selector selector;
 
     NonBlockingChannelNioReceivePort(Ibis ibis, CapabilitySet type,
-            String name, Upcall upcall, boolean connectionAdministration,
-            ReceivePortConnectUpcall connUpcall) throws IOException {
-        super(ibis, type, name, upcall, connectionAdministration, connUpcall);
+            String name, Upcall upcall, ReceivePortConnectUpcall connUpcall)
+            throws IOException {
+        super(ibis, type, name, upcall, connUpcall);
 
         selector = Selector.open();
     }

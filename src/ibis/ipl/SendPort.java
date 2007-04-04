@@ -17,8 +17,8 @@ import java.util.Map;
  * This upcall is completely asynchronous, but Ibis ensures that 
  * at most one is alive at any given time.
  *
- * When the port type has the ONE_TO_MANY capability set, no exceptions
- * are thrown by write methods in the write message.
+ * When the port type has the ONE_TO_MANY or MANY_TO_MANY capability set,
+ * no exceptions are thrown by write methods in the write message.
  * Instead, the exception may be passed on to the <code>lostConnection</code>
  * upcall, in case a {@link SendPortDisconnectUpcall} is registered.
  * This allows the multicast to continue to the other destinations.

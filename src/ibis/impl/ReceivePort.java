@@ -126,15 +126,14 @@ public abstract class ReceivePort extends Managable
      * supported.
      */
     protected ReceivePort(Ibis ibis, CapabilitySet type, String name,
-            Upcall upcall, ReceivePortConnectUpcall connectUpcall,
-            boolean connectionDowncalls) {
+            Upcall upcall, ReceivePortConnectUpcall connectUpcall) {
         this.ibis = ibis;
         this.type = type;
         this.name = name;
         this.ident = ibis.createReceivePortIdentifier(name, ibis.ident);
         this.upcall = upcall;
         this.connectUpcall = connectUpcall;
-        this.connectionDowncalls = connectionDowncalls;
+        this.connectionDowncalls = type.hasCapability(CONNECTION_DOWNCALLS);
         this.numbered
                 = type.hasCapability(COMMUNICATION_NUMBERED);
         if (type.hasCapability(SERIALIZATION_DATA)) {

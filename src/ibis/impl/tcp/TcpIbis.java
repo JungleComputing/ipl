@@ -292,14 +292,12 @@ public final class TcpIbis extends ibis.impl.Ibis
     }
 
     protected SendPort doCreateSendPort(CapabilitySet tp, String nm,
-            SendPortDisconnectUpcall cU, boolean connectionDowncalls)
-            throws IOException {
-        return new TcpSendPort(this, tp, nm, connectionDowncalls, cU);
+            SendPortDisconnectUpcall cU) throws IOException {
+        return new TcpSendPort(this, tp, nm, cU);
     }
 
     protected ReceivePort doCreateReceivePort(CapabilitySet tp, String nm,
-            Upcall u, ReceivePortConnectUpcall cU, boolean connectionDowncalls)
-            throws IOException {
-        return new TcpReceivePort(this, tp, nm, u, connectionDowncalls, cU);
+            Upcall u, ReceivePortConnectUpcall cU) throws IOException {
+        return new TcpReceivePort(this, tp, nm, u, cU);
     }
 }
