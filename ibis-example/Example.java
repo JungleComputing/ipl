@@ -10,7 +10,7 @@ import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.Registry;
 import ibis.ipl.SendPort;
-import ibis.ipl.Upcall;
+import ibis.ipl.MessageUpcall;
 import ibis.ipl.WriteMessage;
 
 import java.io.BufferedReader;
@@ -45,7 +45,7 @@ public class Example implements ibis.ipl.PredefinedCapabilities {
     /**
      * Upcall handler class for the server.
      */
-    private class RpcUpcall implements Upcall {
+    private class RpcUpcall implements MessageUpcall {
         /**
          */
         SendPort serverSender;
@@ -88,7 +88,7 @@ public class Example implements ibis.ipl.PredefinedCapabilities {
             ReceivePort serverReceiver = ibis.createReceivePort(porttype,
                     "server", rpcUpcall);
             serverReceiver.enableConnections();
-            serverReceiver.enableUpcalls();
+            serverReceiver.enableMessageUpcalls();
 
             serverSender.connect(client, "client");
 

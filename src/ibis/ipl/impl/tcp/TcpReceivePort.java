@@ -6,7 +6,7 @@ import ibis.io.BufferedArrayInputStream;
 import ibis.io.Conversion;
 import ibis.ipl.CapabilitySet;
 import ibis.ipl.ReceivePortConnectUpcall;
-import ibis.ipl.Upcall;
+import ibis.ipl.MessageUpcall;
 import ibis.ipl.impl.Ibis;
 import ibis.ipl.impl.ReadMessage;
 import ibis.ipl.impl.ReceivePort;
@@ -130,7 +130,7 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
 
     private boolean reader_busy = false;
 
-    TcpReceivePort(Ibis ibis, CapabilitySet type, String name, Upcall upcall,
+    TcpReceivePort(Ibis ibis, CapabilitySet type, String name, MessageUpcall upcall,
             ReceivePortConnectUpcall connUpcall) {
         super(ibis, type, name, upcall, connUpcall);
 

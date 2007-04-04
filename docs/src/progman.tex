@@ -546,7 +546,7 @@ to receive a request and a send port to send an answer.
 The server is not allowed to block waiting for a request, so it will
 want a receive port that enables upcalls.
 To do that, the server must first define a class that implements
-the \texttt{ibis.ipl.Upcall} interface. This interface contains one
+the \texttt{ibis.ipl.MessageUpcall} interface. This interface contains one
 method:
 
 {\small
@@ -605,7 +605,7 @@ Incoming connection attempts are kept pending until connections are enabled.
 So, the creator of
 the receive port can determine when he is ready to accept connections.
 If the receive port is configured for upcalls, these must
-explicitly be enabled by invoking the \texttt{enableUpcalls()} method.
+explicitly be enabled by invoking the \texttt{enableMessageUpcalls()} method.
 Again, incoming messages are kept pending until upcalls are enabled.
 
 \subsubsection{Setting Up a Connection}

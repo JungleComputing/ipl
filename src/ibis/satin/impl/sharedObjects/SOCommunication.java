@@ -207,7 +207,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller,
                         s, rec));
                 }
                 rec.enableConnections();
-                rec.enableUpcalls();
+                rec.enableMessageUpcalls();
             } catch (Exception e) {
                 commLogger.fatal("SATIN '" + s.ident
                     + "': Could not start ibis: " + e, e);

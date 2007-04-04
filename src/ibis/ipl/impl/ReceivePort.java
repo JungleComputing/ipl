@@ -7,7 +7,7 @@ import ibis.ipl.CapabilitySet;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.ReceiveTimedOutException;
-import ibis.ipl.Upcall;
+import ibis.ipl.MessageUpcall;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -80,7 +80,7 @@ public abstract class ReceivePort extends Managable
         = new ArrayList<SendPortIdentifier>();
 
     /** Message upcall, if specified, or <code>null</code>. */
-    protected Upcall upcall;
+    protected MessageUpcall upcall;
 
     /** Connection upcall handler, or <code>null</code>. */
     protected ReceivePortConnectUpcall connectUpcall;
@@ -126,7 +126,7 @@ public abstract class ReceivePort extends Managable
      * supported.
      */
     protected ReceivePort(Ibis ibis, CapabilitySet type, String name,
-            Upcall upcall, ReceivePortConnectUpcall connectUpcall) {
+            MessageUpcall upcall, ReceivePortConnectUpcall connectUpcall) {
         this.ibis = ibis;
         this.type = type;
         this.name = name;
@@ -153,7 +153,7 @@ public abstract class ReceivePort extends Managable
         return new ReadMessage(in, info);
     }
     
-    public synchronized void enableUpcalls() {
+    public synchronized void enableMessageUpcalls() {
         allowUpcalls = true;
         notifyAll();
     }
@@ -178,7 +178,7 @@ public abstract class ReceivePort extends Managable
         return "UNKNOWN";
     }
 
-    public synchronized void disableUpcalls() {
+    public synchronized void disableMessageUpcalls() {
         allowUpcalls = false;
     }
 

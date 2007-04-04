@@ -3,7 +3,7 @@
 package ibis.satin.impl.sharedObjects;
 
 import ibis.ipl.ReadMessage;
-import ibis.ipl.Upcall;
+import ibis.ipl.MessageUpcall;
 import ibis.satin.SharedObject;
 import ibis.satin.impl.Config;
 import ibis.satin.impl.Satin;
@@ -13,7 +13,7 @@ import ibis.util.messagecombining.MessageSplitter;
 
 import java.io.IOException;
 
-final class SOInvocationHandler implements Upcall, Config, Protocol {
+final class SOInvocationHandler implements MessageUpcall, Config, Protocol {
     private Satin s;
 
     private MessageSplitter messageSplitter;

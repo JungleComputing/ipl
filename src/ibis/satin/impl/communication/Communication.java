@@ -137,7 +137,7 @@ public final class Communication implements Config, Protocol,
     }
 
     public void enableConnections() {
-        receivePort.enableUpcalls();
+        receivePort.enableMessageUpcalls();
         receivePort.enableConnections();
     }
 

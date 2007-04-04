@@ -319,7 +319,7 @@ public final class Group implements GroupProtocol,
                 }
             }
 
-            receivePort.enableUpcalls();
+            receivePort.enableMessageUpcalls();
 
             if (logger.isDebugEnabled()) {
                 logger.debug(_rank + ": <static> - " + name + ": Group init");

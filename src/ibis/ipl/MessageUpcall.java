@@ -6,14 +6,14 @@ import java.io.IOException;
 
 /**
  * Describes the interface for upcall based communication.
- * Creating a {@link ReceivePort} with an <code>Upcall</code> allows for
+ * Creating a {@link ReceivePort} with an <code>MessageUpcall</code> allows for
  * upcall based communication.
  * The <code>ReceivePort</code> must be created with the
- * {@link Ibis#createReceivePort(CapabilitySet, String, Upcall)} method,
- * or one of its other variants with a <code>Upcall</code> parameter.
+ * {@link Ibis#createReceivePort(CapabilitySet, String, MessageUpcall)} method,
+ * or one of its other variants with a <code>MessageUpcall</code> parameter.
  * After the receive port is created, upcalls can be enabled through the
- * {@link ReceivePort#enableUpcalls()} call, and disabled through the
- * {@link ReceivePort#disableUpcalls()} call. Initially, upcalls are
+ * {@link ReceivePort#enableMessageUpcalls()} call, and disabled through the
+ * {@link ReceivePort#disableMessageUpcalls()} call. Initially, upcalls are
  * disabled.
  * <P>For a given receive port, only one message can be active at any time,
  * and by default, the message is active as long as the upcall is active. 
@@ -28,7 +28,7 @@ import java.io.IOException;
  * synchronized methods for critical section operation.
  * </p>
  */
-public interface Upcall {
+public interface MessageUpcall {
     /**
      * This is the upcall announcing the receipt of a {@link ReadMessage}.
      *

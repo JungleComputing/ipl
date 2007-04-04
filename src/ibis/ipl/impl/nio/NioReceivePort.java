@@ -6,7 +6,7 @@ import ibis.ipl.CapabilitySet;
 import ibis.ipl.ConnectionClosedException;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.ReceiveTimedOutException;
-import ibis.ipl.Upcall;
+import ibis.ipl.MessageUpcall;
 import ibis.ipl.impl.Ibis;
 import ibis.ipl.impl.ReadMessage;
 import ibis.ipl.impl.ReceivePortConnectionInfo;
@@ -39,7 +39,7 @@ abstract class NioReceivePort extends ibis.ipl.impl.ReceivePort implements
         }
     }
 
-    NioReceivePort(Ibis ibis, CapabilitySet type, String name, Upcall upcall,
+    NioReceivePort(Ibis ibis, CapabilitySet type, String name, MessageUpcall upcall,
             ReceivePortConnectUpcall connUpcall) throws IOException {
         super(ibis, type, name, upcall, connUpcall);
 

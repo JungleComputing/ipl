@@ -64,7 +64,7 @@ class MulticastGroups {
             ReceivePort rp = Group.ibis.createReceivePort(portType, myID, 
                     new GroupCallHandler());
             rp.enableConnections();
-            rp.enableUpcalls();
+            rp.enableMessageUpcalls();
                                     
             synchronized (receivePorts) {
                 receivePorts.put(id, rp);

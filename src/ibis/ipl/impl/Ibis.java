@@ -8,7 +8,7 @@ import ibis.ipl.IbisProperties;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.SendPortDisconnectUpcall;
-import ibis.ipl.Upcall;
+import ibis.ipl.MessageUpcall;
 import ibis.ipl.impl.registry.RegistryProperties;
 import ibis.util.Log;
 import ibis.util.TypedProperties;
@@ -505,7 +505,7 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis,
     }
 
     public ibis.ipl.ReceivePort createReceivePort(CapabilitySet tp, String name,
-            Upcall u) throws IOException {
+            MessageUpcall u) throws IOException {
         return createReceivePort(tp, name, u, null);
     }
 
@@ -515,7 +515,7 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis,
     }
 
     public ibis.ipl.ReceivePort createReceivePort(CapabilitySet tp, String name,
-            Upcall u, ReceivePortConnectUpcall cU) throws IOException {
+            MessageUpcall u, ReceivePortConnectUpcall cU) throws IOException {
         if (cU != null) {
             if (!tp.hasCapability(CONNECTION_UPCALLS)) {
                 throw new IbisConfigurationException(
@@ -562,6 +562,6 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis,
      * created.
      */
     protected abstract ibis.ipl.ReceivePort doCreateReceivePort(
-            CapabilitySet tp, String name, Upcall u,
+            CapabilitySet tp, String name, MessageUpcall u,
             ReceivePortConnectUpcall cU) throws IOException;
 }

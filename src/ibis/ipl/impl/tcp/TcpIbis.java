@@ -12,7 +12,7 @@ import ibis.ipl.PortMismatchException;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.SendPortDisconnectUpcall;
-import ibis.ipl.Upcall;
+import ibis.ipl.MessageUpcall;
 import ibis.ipl.impl.IbisIdentifier;
 import ibis.ipl.impl.ReceivePort;
 import ibis.ipl.impl.SendPort;
@@ -297,7 +297,7 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
     }
 
     protected ReceivePort doCreateReceivePort(CapabilitySet tp, String nm,
-            Upcall u, ReceivePortConnectUpcall cU) throws IOException {
+            MessageUpcall u, ReceivePortConnectUpcall cU) throws IOException {
         return new TcpReceivePort(this, tp, nm, u, cU);
     }
 }

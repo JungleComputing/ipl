@@ -6,7 +6,7 @@ import ibis.ipl.CapabilitySet;
 import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.SendPortDisconnectUpcall;
-import ibis.ipl.Upcall;
+import ibis.ipl.MessageUpcall;
 import ibis.ipl.impl.IbisIdentifier;
 
 import java.io.ByteArrayOutputStream;
@@ -121,7 +121,7 @@ public final class NioIbis extends ibis.ipl.impl.Ibis {
     }
 
     protected ibis.ipl.ReceivePort doCreateReceivePort(CapabilitySet tp,
-            String name, Upcall u, ReceivePortConnectUpcall cU)
+            String name, MessageUpcall u, ReceivePortConnectUpcall cU)
             throws IOException {
 
         if (tp.hasCapability("receiveport.blocking")) {

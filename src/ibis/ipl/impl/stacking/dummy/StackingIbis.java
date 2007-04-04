@@ -4,7 +4,7 @@ import ibis.ipl.CapabilitySet;
 import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.SendPortDisconnectUpcall;
-import ibis.ipl.Upcall;
+import ibis.ipl.MessageUpcall;
 import ibis.ipl.impl.Ibis;
 import ibis.ipl.impl.Registry;
 import ibis.ipl.impl.tcp.TcpIbis;
@@ -109,7 +109,7 @@ public class StackingIbis extends Ibis {
 
     @Override
     protected ibis.ipl.ReceivePort doCreateReceivePort(CapabilitySet tp,
-            String name, Upcall u, ReceivePortConnectUpcall cU)
+            String name, MessageUpcall u, ReceivePortConnectUpcall cU)
             throws IOException {
         return new StackingReceivePort(tp, this, name, u, cU);
     }

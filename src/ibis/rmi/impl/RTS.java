@@ -12,7 +12,7 @@ import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPort;
-import ibis.ipl.Upcall;
+import ibis.ipl.MessageUpcall;
 import ibis.ipl.WriteMessage;
 import ibis.rmi.Remote;
 import ibis.rmi.RemoteException;
@@ -198,7 +198,7 @@ public final class RTS implements ibis.ipl.PredefinedCapabilities {
         }
     }
 
-    private static class UpcallHandler implements Upcall {
+    private static class UpcallHandler implements MessageUpcall {
         private static final Colobus colobus = Colobus.getColobus(UpcallHandler.class.getName());
 
         public void upcall(ReadMessage r) throws IOException {
@@ -302,7 +302,7 @@ public final class RTS implements ibis.ipl.PredefinedCapabilities {
                     + hostname + "/rmi_skeleton"
                     + (new java.rmi.server.UID()).toString(), upcallHandler);
             skeletonReceivePort.enableConnections();
-            skeletonReceivePort.enableUpcalls();
+            skeletonReceivePort.enableMessageUpcalls();
 
             clientHost = new ThreadLocal<String>();
 
@@ -551,7 +551,7 @@ public final class RTS implements ibis.ipl.PredefinedCapabilities {
         Stub stub = (Stub) getStub(reg);
         stub.skeletonPortId = p.identifier();
         p.enableConnections();
-        p.enableUpcalls();
+        p.enableMessageUpcalls();
         IbisIdentifier bbb;
         try {
             bbb = ibisRegistry.elect(name);

@@ -5,7 +5,7 @@ import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPortIdentifier;
-import ibis.ipl.Upcall;
+import ibis.ipl.MessageUpcall;
 
 import java.io.IOException;
 import java.util.Map;
@@ -38,11 +38,11 @@ public class StackingReceivePort implements ibis.ipl.ReceivePort {
         }
     }
     
-    private static final class Upcaller implements Upcall {
-        Upcall upcaller;
+    private static final class Upcaller implements MessageUpcall {
+        MessageUpcall upcaller;
         StackingReceivePort port;
 
-        public Upcaller(Upcall upcaller, StackingReceivePort port) {
+        public Upcaller(MessageUpcall upcaller, StackingReceivePort port) {
             this.upcaller = upcaller;
             this.port = port;
         }
@@ -53,7 +53,7 @@ public class StackingReceivePort implements ibis.ipl.ReceivePort {
     }
     
     public StackingReceivePort(CapabilitySet type, StackingIbis ibis,
-            String name, Upcall upcall, ReceivePortConnectUpcall connectUpcall)
+            String name, MessageUpcall upcall, ReceivePortConnectUpcall connectUpcall)
             throws IOException {
         this.type = type;
         this.identifier = ibis.createReceivePortIdentifier(name, ibis.ident);
@@ -82,16 +82,16 @@ public class StackingReceivePort implements ibis.ipl.ReceivePort {
         base.disableConnections();
     }
 
-    public void disableUpcalls() {
-        base.disableUpcalls();
+    public void disableMessageUpcalls() {
+        base.disableMessageUpcalls();
     }
 
     public void enableConnections() {
         base.enableConnections();
     }
 
-    public void enableUpcalls() {
-        base.enableUpcalls();
+    public void enableMessageUpcalls() {
+        base.enableMessageUpcalls();
     }
 
     public long getCount() {

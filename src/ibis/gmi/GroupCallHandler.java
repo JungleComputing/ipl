@@ -3,12 +3,12 @@
 package ibis.gmi;
 
 import ibis.ipl.ReadMessage;
-import ibis.ipl.Upcall;
+import ibis.ipl.MessageUpcall;
 
 /**
  * Handler class for all upcalls.
  */
-final class GroupCallHandler implements GroupProtocol, Upcall {
+final class GroupCallHandler implements GroupProtocol, MessageUpcall {
 
     /**
      * Invocation handler.
@@ -45,7 +45,7 @@ final class GroupCallHandler implements GroupProtocol, Upcall {
     }
 
     /**
-     * Upcall method. Handle the upcall, divide and conquer.
+     * MessageUpcall method. Handle the upcall, divide and conquer.
      *
      * @param m  the message to be read.
      */

@@ -144,22 +144,22 @@ public interface ReceivePort extends Managable {
      * Upon startup, message upcalls are disabled.
      * They must be explicitly enabled to receive message upcalls.
      */
-    public void enableUpcalls();
+    public void enableMessageUpcalls();
 
     /**
      * Prohibits message upcalls.
      * After this call, no message upcalls will occur until
-     * {@link #enableUpcalls()} is called.
-     * The <code>disableUpcalls</code>/<code>enableUpcalls</code> mechanism
+     * {@link #enableMessageUpcalls()} is called.
+     * The <code>disableMessageUpcalls</code>/<code>enableMessageUpcalls</code> mechanism
      * allows the user to selectively allow or disallow message upcalls during
      * program run.
      * <strong>Note: the
-     * <code>disableUpcalls</code>/<code>enableUpcalls</code>
+     * <code>disableMessageUpcalls</code>/<code>enableMessageUpcalls</code>
      * mechanism is not necessary to enforce serialization of Upcalls for
      * this port.</strong> Ibis already guarantees that only one message
      * per port is active at any time.
      */
-    public void disableUpcalls();
+    public void disableMessageUpcalls();
 
     /** 
      * Frees the resources held by the receiveport. 

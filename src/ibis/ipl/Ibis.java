@@ -195,7 +195,7 @@ public interface Ibis extends Managable {
      * {@link ReceivePort#enableConnections()} is invoked.
      * This is done to avoid connection upcalls during initialization.
      * Upcalls will not be invoked until
-     * {@link ReceivePort#enableUpcalls()} has been called.
+     * {@link ReceivePort#enableMessageUpcalls()} has been called.
      * This is done to avoid message upcalls during initialization.
      *
      * @param tp the port type.
@@ -209,7 +209,7 @@ public interface Ibis extends Managable {
      * type does not match what is required here.
      */
     public ReceivePort createReceivePort(CapabilitySet tp, String name,
-            Upcall u) throws IOException;
+            MessageUpcall u) throws IOException;
 
     /** 
      * Creates a named {@link ReceivePort} of the specified port type.
@@ -243,7 +243,7 @@ public interface Ibis extends Managable {
      * When a new connection request arrives, or when a connection is lost,
      * a ConnectUpcall is performed.
      * Upcalls will not be invoked until
-     * {@link ReceivePort#enableUpcalls()} has been called.
+     * {@link ReceivePort#enableMessageUpcalls()} has been called.
      * This is done to avoid message upcalls during initialization.
      *
      * @param tp the port type.
@@ -259,5 +259,5 @@ public interface Ibis extends Managable {
      * type does not match what is required here.
      */
     public ReceivePort createReceivePort(CapabilitySet tp, String name,
-            Upcall u, ReceivePortConnectUpcall cU) throws IOException;
+            MessageUpcall u, ReceivePortConnectUpcall cU) throws IOException;
 }

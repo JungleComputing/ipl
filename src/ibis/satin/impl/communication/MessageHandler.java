@@ -4,13 +4,13 @@ package ibis.satin.impl.communication;
 
 import ibis.ipl.ReadMessage;
 import ibis.ipl.SendPortIdentifier;
-import ibis.ipl.Upcall;
+import ibis.ipl.MessageUpcall;
 import ibis.satin.impl.Config;
 import ibis.satin.impl.Satin;
 
 import java.io.IOException;
 
-public final class MessageHandler implements Upcall, Protocol, Config {
+public final class MessageHandler implements MessageUpcall, Protocol, Config {
     private Satin s;
 
     public MessageHandler(Satin s) {
