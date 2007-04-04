@@ -7,8 +7,8 @@ log4j.rootLogger=warn, SIMPLE_CONSOLE
 log4j.logger.ibis=info
 
 #and possibly some other things...
-#log4j.logger.ibis.impl.tcp.TcpIbis=debug
-#log4j.logger.ibis.impl.registry=debug
+#log4j.logger.ibis.ipl.impl.tcp.TcpIbis=debug
+#log4j.logger.ibis.ipl.impl.registry=debug
 
 
 #console appender

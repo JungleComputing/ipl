@@ -30,6 +30,6 @@ if not "%JAVA_HOME%"=="" (
     set JAVA=%JAVA_HOME\bin\java
 )
 
-"%JAVA%" -classpath "%JAVACLASSPATH%" ibis.impl.registry.Server %SERVER_ARGS%
+"%JAVA%" -classpath "%JAVACLASSPATH%" ibis.ipl.impl.registry.Server %SERVER_ARGS%
 
 if "%OS%"=="Windows_NT" @endlocal

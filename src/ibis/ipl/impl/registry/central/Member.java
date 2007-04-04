@@ -1,0 +1,42 @@
+package ibis.ipl.impl.registry.central;
+
+import ibis.ipl.impl.IbisIdentifier;
+
+import org.apache.log4j.Logger;
+
+public class Member {
+    
+    private static final Logger logger = Logger.getLogger(Member.class);
+    
+    private final IbisIdentifier ibis;
+    private int currentTime;
+    
+    Member(IbisIdentifier ibis) {
+        this.ibis = ibis;
+        currentTime  = 0;
+    }
+    
+    public IbisIdentifier ibis() {
+        return ibis;
+    }
+    
+    public synchronized int getCurrentTime() {
+        return currentTime;
+    }
+    
+    public synchronized void setCurrentTime(int currentTime) {
+        if (currentTime < this.currentTime) {
+            logger.error("tried to set time backwards on member");
+            return;
+        }
+        this.currentTime = currentTime;
+    }
+
+    public String getID() {
+        return ibis.myId;
+    }
+    
+    public String toString() {
+        return ibis.toString() + "@T" + getCurrentTime();
+    }
+}

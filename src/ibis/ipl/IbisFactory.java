@@ -20,7 +20,7 @@ import java.util.jar.Manifest;
  * This is the class responsible for starting an Ibis instance. During
  * initialization, this class determines which Ibis implementations are
  * available. It does so, by finding all jar files in either the class path, or
- * all jar files in the directories indicated by the ibis.impl.path property.
+ * all jar files in the directories indicated by the ibis.ipl.impl.path property.
  * All Ibis implementations should be mentioned in the main properties of the
  * manifest of the jar file containing it, in the "Ibis-Implementation" entry.
  * This entry should contain a comma- or space-separated list of class names,

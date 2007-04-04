@@ -28,7 +28,7 @@
 # Path used to find Ibis implementations. This path may include directories,
 # in which case all jar files in this directory are included.
 # The default is the classpath.
-# ibis.impl.path
+# ibis.ipl.impl.path
 
 # Gives verbosity during the Ibis startup.
 # ibis.verbose:			false
@@ -38,7 +38,7 @@
 ############
 
 # Name of the registry class to be used.
-# ibis.registry.impl:		ibis.impl.registry.central.Registry
+# ibis.registry.impl:		ibis.ipl.impl.registry.central.Registry
 
 # Host/port on which the registry server is supposed to run.
 # ibis.registry.serverHost:     localhost:9826
@@ -51,7 +51,7 @@
 
 # Name of the registry server class to be used. Note: this must match the
 # client.
-# ibis.registry.server.impl:    ibis.impl.registry.central.Server
+# ibis.registry.server.impl:    ibis.ipl.impl.registry.central.Server
 
 # Port number on which the registry server is supposed accept connections.
 # Only read by the registry server! Registries should use ibis.registry.serverHost.

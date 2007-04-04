@@ -15,7 +15,7 @@ ibis.gmi.GroupMember
 	 GroupSkeleton
 	 GroupStub
 
-ibis.impl.registry.tcp.NameServer
+ibis.ipl.impl.registry.tcp.NameServer
 		       NameServerClient
 		       ReceivePortNameServerClient
 		       NameServerClient

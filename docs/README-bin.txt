@@ -32,7 +32,7 @@ See below at the system-specific notes. You need to set JAVA_HOME to the
 root of your Java installation, and IBIS_HOME to the root of your Ibis
 installation. Then you can go to the Ibis bin directory and run
 
-    ibis-run junit.textui.TestRunner ibis.impl.test.TestIbis
+    ibis-run junit.textui.TestRunner ibis.ipl.impl.test.TestIbis
 
 The programmer's manual in the docs directory ("docs/progman.pdf" or
 "docs/progman/progman.html" for a HTML version) contains a detailed

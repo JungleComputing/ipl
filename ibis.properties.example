@@ -9,7 +9,7 @@
 #ibis.verbose=false
 
 # Path used to find Ibis implementations
-#ibis.impl.path=null
+#ibis.ipl.impl.path=null
 
 # Name of the property file used for the configuration of Ibis
 #ibis.properties.file=null
@@ -23,7 +23,7 @@
 #ibis.registry.pool=DEFAULT
 
 # Implementation of the registry server (must match client)
-#ibis.registry.server.impl=ibis.impl.registry.central.Server
+#ibis.registry.server.impl=ibis.ipl.impl.registry.central.Server
 
 # Int: Port which the server binds to
 #ibis.registry.server.port=9826
@@ -35,7 +35,7 @@
 #ibis.registry.serverAddress=localhost:9826
 
 # Implementation of registry(client)
-#ibis.registry.impl=ibis.impl.registry.central.Registry
+#ibis.registry.impl=ibis.ipl.impl.registry.central.Registry
 
 #### Ibis Central Registry properties ####
 

@@ -260,7 +260,7 @@ if [ "$GRUN_PHASE" = run ]; then
 
     cmd="$JAVA_BINARY \
 	-classpath $classpath \
-        -Dibis.registry.impl=ibis.impl.registry.tcp.NameServerClient \
+        -Dibis.registry.impl=ibis.ipl.impl.registry.tcp.NameServerClient \
 	-Dibis.registry.host=$IBIS_NAMESVR_HOST \
 	-Dibis.registry.port=$IBIS_NAMESVR_PORT \
 	-Dibis.registry.key=$IBIS_NAMESVR_KEY \

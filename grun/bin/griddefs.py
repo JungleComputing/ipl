@@ -131,7 +131,7 @@ def sitedefs():
               [])
 
     # JDK1.3 startup error:
-    # could not create ibis.impl.tcp.TcpIbis, trying ibis.impl.net.NetIbis
+    # could not create ibis.ipl.impl.tcp.TcpIbis, trying ibis.ipl.impl.net.NetIbis
     Grid_site("grape",     "grape.man.poznan.pl",         fork, 0, gass, fork,
               [])
 

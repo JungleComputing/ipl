@@ -89,7 +89,7 @@
 	    <classpath refid="default.classpath"/>
 	    <link href="http://java.sun.com/j2se/1.5.0/docs/api/"/>
 	    <package name="ibis.ipl"/>
-	    <package name="ibis.impl.*"/>
+	    <package name="ibis.ipl.*"/>
 	    <package name="ibis.io"/>
 	    <package name="ibis.gmi"/>
 	    <package name="ibis.rmi"/>

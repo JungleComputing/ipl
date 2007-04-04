@@ -88,7 +88,7 @@
 
     <target name="copyProperties">
 	<copy todir="${build}">
-	    <fileset dir="${src}" includes="ibis/impl/**/capabilities"/>
+            <fileset dir="${src}" includes="ibis/ipl/impl/**/capabilities"/>
 	</copy>
     </target>
 
@@ -106,9 +106,9 @@
 	</jar>
 	<jar	destfile="lib/ipl-impl.jar"
 	    basedir="${build}"
-	    includes="ibis/impl/**/*.class ibis/io/**/*.class ibis/util/**/*.class ibis/frontend/generic/*.class ibis/frontend/ibis/*.class ibis/frontend/io/*.class">
+	    includes="ibis/ipl/impl/**/*.class ibis/io/**/*.class ibis/util/**/*.class ibis/frontend/generic/*.class ibis/frontend/ibis/*.class ibis/frontend/io/*.class">
 	    <manifest>
-		<attribute name="Ibis-Implementation" value="ibis.impl.tcp.TcpIbis,ibis.impl.nio.NioIbis"/>
+		<attribute name="Ibis-Implementation" value="ibis.ipl.impl.tcp.TcpIbis,ibis.ipl.impl.nio.NioIbis"/>
 		<attribute name="Ibisc-Component" value="ibis.frontend.io.IOGenerator"/>
 	    </manifest>
 	</jar>
@@ -117,7 +117,7 @@
 	    includes="ibis/**/*.class **/capabilities">
 	    <manifest>
 		<attribute name="Ibisc-Component" value="ibis.frontend.io.IOGenerator,ibis.frontend.gmi.Gmic,ibis.frontend.rmi.Rmic,ibis.frontend.satin.Satinc"/>
-		<attribute name="Ibis-Implementation" value="ibis.impl.tcp.TcpIbis,ibis.impl.nio.NioIbis"/>
+		<attribute name="Ibis-Implementation" value="ibis.ipl.impl.tcp.TcpIbis,ibis.ipl.impl.nio.NioIbis"/>
 	    </manifest>
 	</jar>
 	<jar destfile="lib/satin-api.jar"
