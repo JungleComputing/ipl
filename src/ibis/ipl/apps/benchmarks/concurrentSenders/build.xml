@@ -1,0 +1,21 @@
+<project
+    name="ibis.apps.ibis.benchmarks.concurrentSenders"
+    default="build"
+    basedir=".">
+
+    <description>
+	Ibis application build.
+    </description>
+
+    <property name="main-class"  value="ConcurrentSenders"/>
+
+    <property environment="env"/>
+
+    <property name="ibis"        location="${env.IBIS_HOME}"/>
+    <property name="build"       location="build"/>
+
+    <import file="${ibis}/build-files/apps/build-ibis-app.xml"/>
+
+</project>
+
+
