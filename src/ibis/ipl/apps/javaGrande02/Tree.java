@@ -1,4 +1,4 @@
-package JavaGrande02;
+package ibis.ipl.apps.javaGrande02;
 
 /* $Id$ */
 
