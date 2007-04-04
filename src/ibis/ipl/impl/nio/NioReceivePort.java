@@ -4,9 +4,9 @@ package ibis.ipl.impl.nio;
 
 import ibis.ipl.CapabilitySet;
 import ibis.ipl.ConnectionClosedException;
+import ibis.ipl.MessageUpcall;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.ReceiveTimedOutException;
-import ibis.ipl.MessageUpcall;
 import ibis.ipl.impl.Ibis;
 import ibis.ipl.impl.ReadMessage;
 import ibis.ipl.impl.ReceivePortConnectionInfo;

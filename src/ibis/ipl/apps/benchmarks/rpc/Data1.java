@@ -1,9 +1,12 @@
+package ibis.ipl.apps.benchmarks.rpc;
+
 /* $Id$ */
 
 
-import java.io.Serializable;
 
 final class Data1 implements java.io.Serializable {
+
+    private static final long serialVersionUID = 7366807900682527528L;
 
     static int fill;
 

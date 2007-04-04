@@ -1,9 +1,11 @@
+package ibis.ipl.apps.traffic;
+
 // File: $Id$
 
 import java.util.Random;
-import java.text.DecimalFormat;
 
 public class Vehicle implements Configuration, java.io.Serializable {
+    private static final long serialVersionUID = -4211871979243598668L;
     static Random r = new Random( 0 );
     static int labeler = 0;
 

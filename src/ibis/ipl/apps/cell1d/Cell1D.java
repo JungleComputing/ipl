@@ -1,12 +1,18 @@
+package ibis.ipl.apps.cell1d;
+
 // File: $Id$
 
-import ibis.ipl.*;
-
-import java.util.Properties;
-import java.util.Random;
+import ibis.ipl.CapabilitySet;
+import ibis.ipl.Ibis;
+import ibis.ipl.IbisFactory;
+import ibis.ipl.IbisIdentifier;
+import ibis.ipl.PredefinedCapabilities;
+import ibis.ipl.ReadMessage;
+import ibis.ipl.ReceivePort;
+import ibis.ipl.Registry;
+import ibis.ipl.SendPort;
+import ibis.ipl.WriteMessage;
 import ibis.util.PoolInfo;
-
-import java.io.IOException;
 
 interface Config {
     static final boolean tracePortCreation = false;
@@ -29,12 +35,6 @@ class Cell1D implements Config, PredefinedCapabilities {
     // the board.
     static byte updatecol[];
     static byte nextupdatecol[];
-
-    private static void usage()
-    {
-        System.out.println( "Usage: Cell1D [-size <n>] [count]" );
-        System.exit( 0 );
-    }
 
     /**
      * Creates an update send port that connected to the specified neighbour.
@@ -156,11 +156,6 @@ class Cell1D implements Config, PredefinedCapabilities {
     public static void main( String [] args )
     {
         int count = GENERATIONS;
-        int repeat = 10;
-        int rank = 0;
-        int remoteRank = 1;
-        boolean noneSer = false;
-
         /* Parse commandline parameters. */
         for( int i=0; i<args.length; i++ ){
             if( args[i].equals( "-size" ) ){

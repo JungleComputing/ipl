@@ -1,10 +1,10 @@
 package ibis.ipl.impl.registry;
 
-import java.io.DataOutputStream;
-import java.io.IOException;
-
 import ibis.ipl.impl.IbisIdentifier;
 import ibis.ipl.impl.Location;
+
+import java.io.DataOutputStream;
+import java.io.IOException;
 
 public interface Pool {
 

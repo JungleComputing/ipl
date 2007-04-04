@@ -1,9 +1,20 @@
+package ibis.ipl.apps.benchmarks.biglatency;
+
 /* $Id$ */
 
 
-import ibis.ipl.*;
+import ibis.ipl.CapabilitySet;
+import ibis.ipl.Ibis;
+import ibis.ipl.IbisFactory;
+import ibis.ipl.IbisIdentifier;
+import ibis.ipl.MessageUpcall;
+import ibis.ipl.PredefinedCapabilities;
+import ibis.ipl.ReadMessage;
+import ibis.ipl.ReceivePort;
+import ibis.ipl.Registry;
+import ibis.ipl.SendPort;
+import ibis.ipl.WriteMessage;
 
-import java.util.Properties;
 import java.io.IOException;
 
 class Sender {
@@ -31,8 +42,8 @@ class Sender {
             writeMessage.finish();
 
             ReadMessage readMessage = rport.receive();
-            byte b = readMessage.readByte();
-            b = readMessage.readByte();
+            readMessage.readByte();
+            readMessage.readByte();
             readMessage.finish();
         }
 
@@ -51,8 +62,8 @@ class Sender {
             writeMessage.finish();
 
             ReadMessage readMessage = rport.receive();
-            byte b = readMessage.readByte();
-            b = readMessage.readByte();
+            readMessage.readByte();
+            readMessage.readByte();
             readMessage.finish();
         }
 
@@ -79,13 +90,13 @@ class ExplicitReceiver {
     void receive(int count) throws IOException {
         for (int i = 0; i < count; i++) {
             ReadMessage readMessage = rport.receive();
-            byte b = readMessage.readByte();
-            b = readMessage.readByte();
-            int p = readMessage.readInt();
-            p = readMessage.readInt();
-            p = readMessage.readInt();
-            p = readMessage.readInt();
-            p = readMessage.readInt();
+            readMessage.readByte();
+            readMessage.readByte();
+            readMessage.readInt();
+            readMessage.readInt();
+            readMessage.readInt();
+            readMessage.readInt();
+            readMessage.readInt();
             readMessage.finish();
 
             WriteMessage writeMessage = sport.newMessage();
@@ -112,13 +123,13 @@ class UpcallReceiver implements MessageUpcall {
     public void upcall(ReadMessage readMessage) {
 
         try {
-            byte b = readMessage.readByte();
-            b = readMessage.readByte();
-            int p = readMessage.readInt();
-            p = readMessage.readInt();
-            p = readMessage.readInt();
-            p = readMessage.readInt();
-            p = readMessage.readInt();
+            readMessage.readByte();
+            readMessage.readByte();
+            readMessage.readInt();
+            readMessage.readInt();
+            readMessage.readInt();
+            readMessage.readInt();
+            readMessage.readInt();
             readMessage.finish();
 
             WriteMessage writeMessage = sport.newMessage();
@@ -182,8 +193,6 @@ class Latency implements PredefinedCapabilities {
 
             SendPort sport = ibis.createSendPort(t);
             ReceivePort rport;
-            Latency lat = null;
-
             IbisIdentifier master = registry.elect("latency");
             IbisIdentifier remote;
             if (master.equals(ibis.identifier())) {

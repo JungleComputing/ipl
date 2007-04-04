@@ -1,6 +1,6 @@
-// File: $Id$
+package ibis.ipl.apps.traffic;
 
-import ibis.ipl.*;
+// File: $Id$
 
 import java.util.Random;
 
@@ -82,7 +82,6 @@ class Road implements Configuration {
             if( traceVehicleUpdates ){
                 System.out.println( "Update vehicle in lane " + lane + ": " + v );
             }
-            Vehicle vfront = v.next;
             double frontpos = 2*ROAD_LENGTH;
             double frontVelocity = 2*ROAD_LENGTH;
 
@@ -116,7 +115,6 @@ class Road implements Configuration {
                     if( lane+1<LANES ){
                         boolean safeSwitch = true;
 
-                        Vehicle pv = prev[lane+1];
                         if( v.isUncomfortablyClose( prev[lane+1] ) ){
                             // There is a vehicle in the next lane that blocks
                             // a lane switch.
@@ -173,7 +171,6 @@ class Road implements Configuration {
                 }
                 // We want to switch to a faster lane.
                 if( lane>0 ){
-                    Vehicle pv = prev[lane-1];
                     if( v.isUncomfortablyClose( prev[lane-1] ) ){
                         // There is a vehicle in the previous lane that blocks
                         // a lane switch.

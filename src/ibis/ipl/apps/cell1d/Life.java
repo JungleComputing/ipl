@@ -1,3 +1,5 @@
+package ibis.ipl.apps.cell1d;
+
 // File: $Id$
 
 class Life {
@@ -26,6 +28,7 @@ class Life {
         { 0, 0, 0 },
     };
 
+    @SuppressWarnings("unused")
     private static byte horTril[][] = {
         { 0, 0, 0, 0, 0, 0 },
         { 0, 0, 1, 1, 0, 0 },
@@ -34,6 +37,7 @@ class Life {
         { 0, 0, 0, 0, 0, 0 },
     };
 
+    @SuppressWarnings("unused")
     private static byte vertTril[][] = {
         { 0, 0, 0, 0, 0 },
         { 0, 0, 1, 0, 0 },

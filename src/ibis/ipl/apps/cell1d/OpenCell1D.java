@@ -1,11 +1,19 @@
+package ibis.ipl.apps.cell1d;
+
 // File: $Id$
 
-import ibis.ipl.*;
-
-import java.util.Properties;
-import java.util.Random;
-
-import java.io.IOException;
+import ibis.ipl.CapabilitySet;
+import ibis.ipl.Ibis;
+import ibis.ipl.IbisFactory;
+import ibis.ipl.IbisIdentifier;
+import ibis.ipl.MessageUpcall;
+import ibis.ipl.PredefinedCapabilities;
+import ibis.ipl.ReadMessage;
+import ibis.ipl.ReceivePort;
+import ibis.ipl.Registry;
+import ibis.ipl.RegistryEventHandler;
+import ibis.ipl.SendPort;
+import ibis.ipl.WriteMessage;
 
 interface OpenConfig {
     static final boolean tracePortCreation = false;
@@ -200,12 +208,6 @@ class OpenCell1D implements OpenConfig, PredefinedCapabilities {
 
     static int max_lsteal = 1;
     static int max_rsteal = 1;
-
-    private static void usage()
-    {
-        System.out.println( "Usage: OpenCell1D [-size <int>] [count]" );
-        System.exit( 0 );
-    }
 
     /**
      * Creates an update send port that connected to the specified neighbour.

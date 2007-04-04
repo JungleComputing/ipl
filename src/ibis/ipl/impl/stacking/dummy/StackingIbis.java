@@ -1,10 +1,10 @@
 package ibis.ipl.impl.stacking.dummy;
 
 import ibis.ipl.CapabilitySet;
-import ibis.ipl.RegistryEventHandler;
-import ibis.ipl.ReceivePortConnectUpcall;
-import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.ipl.MessageUpcall;
+import ibis.ipl.ReceivePortConnectUpcall;
+import ibis.ipl.RegistryEventHandler;
+import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.ipl.impl.Ibis;
 import ibis.ipl.impl.Registry;
 import ibis.ipl.impl.tcp.TcpIbis;

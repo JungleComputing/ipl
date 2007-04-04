@@ -1,8 +1,11 @@
+package ibis.ipl.apps.benchmarks.rpc;
+
 /* $Id$ */
 
 import java.io.Serializable;
 
 final public class VBFField implements Serializable {
+    private static final long serialVersionUID = 6697247545896124734L;
     public int indexOfRemoteCopy;
     public double[] field = new double[3];
     transient public int indexOfSubDomain;

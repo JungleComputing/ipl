@@ -2,8 +2,8 @@
 
 package ibis.gmi;
 
-import ibis.ipl.ReadMessage;
 import ibis.ipl.MessageUpcall;
+import ibis.ipl.ReadMessage;
 
 /**
  * Handler class for all upcalls.

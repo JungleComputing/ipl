@@ -1,11 +1,11 @@
 package ibis.ipl.impl.stacking.dummy;
 
 import ibis.ipl.CapabilitySet;
+import ibis.ipl.MessageUpcall;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPortIdentifier;
-import ibis.ipl.MessageUpcall;
 
 import java.io.IOException;
 import java.util.Map;

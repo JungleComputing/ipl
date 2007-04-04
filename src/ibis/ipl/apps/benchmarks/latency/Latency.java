@@ -1,15 +1,22 @@
+package ibis.ipl.apps.benchmarks.latency;
+
 /* $Id$ */
 
 
-import ibis.ipl.*;
-
-import ibis.util.GetLogger;
-
-import java.util.Properties;
-import java.util.Random;
+import ibis.ipl.CapabilitySet;
+import ibis.ipl.Ibis;
+import ibis.ipl.IbisFactory;
+import ibis.ipl.IbisIdentifier;
+import ibis.ipl.MessageUpcall;
+import ibis.ipl.PredefinedCapabilities;
+import ibis.ipl.ReadMessage;
+import ibis.ipl.ReceivePort;
+import ibis.ipl.Registry;
+import ibis.ipl.SendPort;
+import ibis.ipl.WriteMessage;
 
 import java.io.IOException;
-
+import java.util.Properties;
 import org.apache.log4j.Logger;
 
 class Computer extends Thread {
@@ -314,7 +321,7 @@ class UpcallSender implements MessageUpcall {
 
 class Latency implements PredefinedCapabilities {
 
-    static Logger logger = GetLogger.getLogger(Latency.class.getName());
+    static Logger logger = Logger.getLogger(Latency.class.getName());
 
     static Ibis ibis;
 
@@ -333,7 +340,6 @@ class Latency implements PredefinedCapabilities {
         int count = -1;
         int repeat = 10;
         int rank;
-        Random r = new Random();
         boolean compRec = false;
         boolean compSnd = false;
         Computer c = null;
@@ -404,8 +410,6 @@ class Latency implements PredefinedCapabilities {
 
             SendPort sport = ibis.createSendPort(t, "send port");
             ReceivePort rport;
-            Latency lat = null;
-
             logger.debug("LAT: pre elect");
             IbisIdentifier master = registry.elect("latency");
             IbisIdentifier remote;

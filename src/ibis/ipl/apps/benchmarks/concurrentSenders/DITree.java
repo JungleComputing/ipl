@@ -1,10 +1,13 @@
+package ibis.ipl.apps.benchmarks.concurrentSenders;
+
 /* $Id$ */
 
 
-import java.io.IOException;
 import java.io.Serializable;
 
 public final class DITree implements Serializable {
+
+    private static final long serialVersionUID = -958642085796432906L;
 
     public static final int OBJECT_SIZE = 4 * 4 + 2 * 4;
 

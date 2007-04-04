@@ -1,5 +1,7 @@
-import ibis.ipl.impl.registry.RegistryProperties;
+package ibis.ipl.apps.propertyFileGenerator;
+
 import ibis.ipl.IbisProperties;
+import ibis.ipl.impl.registry.RegistryProperties;
 
 import java.io.PrintStream;
 import java.util.Map;

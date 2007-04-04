@@ -1,11 +1,20 @@
+package ibis.ipl.apps.benchmarks.mcast;
+
 /* $Id$ */
 
 
-import ibis.ipl.*;
+import ibis.ipl.CapabilitySet;
+import ibis.ipl.Ibis;
+import ibis.ipl.IbisFactory;
+import ibis.ipl.IbisIdentifier;
+import ibis.ipl.PredefinedCapabilities;
+import ibis.ipl.ReadMessage;
+import ibis.ipl.ReceivePort;
+import ibis.ipl.ReceivePortIdentifier;
+import ibis.ipl.Registry;
+import ibis.ipl.SendPort;
+import ibis.ipl.WriteMessage;
 import ibis.util.PoolInfo;
-
-import java.util.Properties;
-import java.io.IOException;
 
 class Latency implements PredefinedCapabilities {
 
@@ -16,19 +25,11 @@ class Latency implements PredefinedCapabilities {
     public static void main(String[] args) {
         /* Parse commandline. */
 
-        boolean upcall = false;
-
-        if (args.length > 1) {
-            upcall = args[1].equals("-u");
-        }
-
         try {
             PoolInfo info = PoolInfo.createPoolInfo();
 
             int rank = info.rank();
             int size = info.size();
-            int remoteRank = (rank == 0 ? 1 : 0);
-
             CapabilitySet sp = new CapabilitySet(WORLDMODEL_CLOSED,
                     SERIALIZATION_OBJECT, COMMUNICATION_RELIABLE,
                     RECEIVE_AUTO_UPCALLS,  RECEIVE_EXPLICIT,
@@ -44,8 +45,6 @@ class Latency implements PredefinedCapabilities {
             SendPort sport = ibis.createSendPort(t, "send port");
 
             rport.enableConnections();
-
-            Latency lat = null;
 
             if (rank == 0) {
                 registry.elect("0");

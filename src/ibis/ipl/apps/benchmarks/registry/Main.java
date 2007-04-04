@@ -1,11 +1,10 @@
+package ibis.ipl.apps.benchmarks.registry;
 
-import org.apache.log4j.Logger;
-import org.apache.log4j.Level;
-
-import sun.misc.Signal;
-import sun.misc.SignalHandler;
 
 import ibis.util.Log;
+
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 
 
 public final class Main {

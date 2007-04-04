@@ -1,12 +1,21 @@
+package ibis.ipl.apps.benchmarks.masterWorker;
+
 /* $Id$ */
 
 
-import java.util.HashMap;
-import java.io.IOException;
+import ibis.ipl.CapabilitySet;
+import ibis.ipl.Ibis;
+import ibis.ipl.IbisFactory;
+import ibis.ipl.IbisIdentifier;
+import ibis.ipl.PredefinedCapabilities;
+import ibis.ipl.ReadMessage;
+import ibis.ipl.ReceivePort;
+import ibis.ipl.Registry;
+import ibis.ipl.SendPort;
+import ibis.ipl.SendPortIdentifier;
+import ibis.ipl.WriteMessage;
 
-import ibis.ipl.*;
-import ibis.io.*;
-import ibis.util.*;
+import java.util.HashMap;
 
 /**
  * Simulates master worker communication model. Workers request work/return
@@ -70,7 +79,6 @@ final class MasterWorker implements PredefinedCapabilities {
 
         ReadMessage readMessage;
         WriteMessage writeMessage;
-        ReceivePortIdentifier peer;
         SendPort sendPort;
         SendPortIdentifier origin;
         Object data;
@@ -129,9 +137,6 @@ final class MasterWorker implements PredefinedCapabilities {
         ReadMessage readMessage;
         Data original = new Data();
         Data result;
-        long start;
-        long end;
-
         ReceivePort rport = ibis.createReceivePort(oneToOneType, "receiveport");
         rport.enableConnections();
         SendPort sport = ibis.createSendPort(manyToOneType);

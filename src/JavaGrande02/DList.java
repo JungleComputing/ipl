@@ -1,9 +1,12 @@
+package JavaGrande02;
+
 /* $Id$ */
 
-import java.io.IOException;
 import java.io.Serializable;
 
 public final class DList implements Serializable {
+
+    private static final long serialVersionUID = -1747815590000713983L;
 
     public static final int PAYLOAD = 4*4;
 

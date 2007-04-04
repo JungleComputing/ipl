@@ -1,9 +1,19 @@
+package ibis.ipl.apps.benchmarks.rpc;
+
 /* $Id$ */
 
 
-import ibis.ipl.*;
-
-import java.util.Properties;
+import ibis.ipl.CapabilitySet;
+import ibis.ipl.Ibis;
+import ibis.ipl.IbisFactory;
+import ibis.ipl.IbisIdentifier;
+import ibis.ipl.MessageUpcall;
+import ibis.ipl.PredefinedCapabilities;
+import ibis.ipl.ReadMessage;
+import ibis.ipl.ReceivePort;
+import ibis.ipl.Registry;
+import ibis.ipl.SendPort;
+import ibis.ipl.WriteMessage;
 import ibis.util.Ticket;
 
 import java.io.IOException;
@@ -49,7 +59,7 @@ class Sender implements MessageUpcall {
              ibis.poll();
              */
 
-            ReadMessage readMessage = (ReadMessage) t.collect(ticket);
+            t.collect(ticket);
         }
 
         // test
@@ -80,7 +90,7 @@ class Sender implements MessageUpcall {
              ibis.poll();
              */
 
-            ReadMessage readMessage = (ReadMessage) t.collect(ticket);
+            t.collect(ticket);
         }
 
         time = System.currentTimeMillis() - time;
@@ -196,8 +206,6 @@ class Latency implements PredefinedCapabilities {
 
             SendPort sport = ibis.createSendPort(t);
             ReceivePort rport;
-            Latency lat = null;
-
             IbisIdentifier master = registry.elect("latency");
             IbisIdentifier remote;
 

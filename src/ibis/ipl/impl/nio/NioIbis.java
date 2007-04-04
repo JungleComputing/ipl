@@ -3,10 +3,10 @@
 package ibis.ipl.impl.nio;
 
 import ibis.ipl.CapabilitySet;
-import ibis.ipl.RegistryEventHandler;
-import ibis.ipl.ReceivePortConnectUpcall;
-import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.ipl.MessageUpcall;
+import ibis.ipl.ReceivePortConnectUpcall;
+import ibis.ipl.RegistryEventHandler;
+import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.ipl.impl.IbisIdentifier;
 
 import java.io.ByteArrayOutputStream;

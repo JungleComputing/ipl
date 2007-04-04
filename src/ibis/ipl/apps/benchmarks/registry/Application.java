@@ -1,16 +1,16 @@
-import org.apache.log4j.Logger;
+package ibis.ipl.apps.benchmarks.registry;
 
-import java.io.IOException;
-
-import sun.misc.Signal;
-import sun.misc.SignalHandler;
-
+import ibis.ipl.CapabilitySet;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisFactory;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.RegistryEventHandler;
-import ibis.ipl.CapabilitySet;
 import ibis.util.ThreadPool;
+
+import org.apache.log4j.Logger;
+
+import sun.misc.Signal;
+import sun.misc.SignalHandler;
 
 final class Application implements Runnable, RegistryEventHandler, ibis.ipl.PredefinedCapabilities {
 

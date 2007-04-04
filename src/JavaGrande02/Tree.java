@@ -1,9 +1,12 @@
+package JavaGrande02;
+
 /* $Id$ */
 
-import java.io.IOException;
 import java.io.Serializable;
 
 public final class Tree implements Serializable {
+
+    private static final long serialVersionUID = 7054266833506012536L;
 
     public static final int PAYLOAD = 4*4;
 

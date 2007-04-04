@@ -1,13 +1,22 @@
+package ibis.ipl.apps.benchmarks.ping;
+
 /* $Id$ */
 
 
-import ibis.ipl.*;
-
+import ibis.ipl.CapabilitySet;
+import ibis.ipl.Ibis;
+import ibis.ipl.IbisFactory;
+import ibis.ipl.IbisIdentifier;
+import ibis.ipl.PredefinedCapabilities;
+import ibis.ipl.ReadMessage;
+import ibis.ipl.ReceivePort;
+import ibis.ipl.Registry;
+import ibis.ipl.SendPort;
+import ibis.ipl.WriteMessage;
 import ibis.util.Timer;
 
-import java.text.*;
-
-import java.util.Random;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 
 /**
  * One-way and two-way benchmarking application.

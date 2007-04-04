@@ -2,8 +2,8 @@
 
 package ibis.satin.impl.sharedObjects;
 
-import ibis.ipl.ReadMessage;
 import ibis.ipl.MessageUpcall;
+import ibis.ipl.ReadMessage;
 import ibis.satin.SharedObject;
 import ibis.satin.impl.Config;
 import ibis.satin.impl.Satin;

@@ -1,10 +1,13 @@
+package ibis.ipl.apps.benchmarks.masterWorker;
+
 /* $Id$ */
 
 
 import java.io.Serializable;
-import java.util.Random;
 
 public final class Data implements Serializable {
+    private static final long serialVersionUID = 3320470528572444820L;
+
     boolean bool = true;
 
     byte b = 5;

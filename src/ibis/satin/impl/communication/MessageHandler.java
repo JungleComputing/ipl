@@ -2,9 +2,9 @@
 
 package ibis.satin.impl.communication;
 
+import ibis.ipl.MessageUpcall;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.SendPortIdentifier;
-import ibis.ipl.MessageUpcall;
 import ibis.satin.impl.Config;
 import ibis.satin.impl.Satin;
 

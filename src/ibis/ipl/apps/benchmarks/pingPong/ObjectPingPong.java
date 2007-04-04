@@ -1,15 +1,26 @@
+package ibis.ipl.apps.benchmarks.pingPong;
+
 /* $Id$ */
 
 
-import ibis.ipl.*;
-
-import java.util.Properties;
-import java.util.Random;
+import ibis.ipl.CapabilitySet;
+import ibis.ipl.Ibis;
+import ibis.ipl.IbisFactory;
+import ibis.ipl.IbisIdentifier;
+import ibis.ipl.PredefinedCapabilities;
+import ibis.ipl.ReadMessage;
+import ibis.ipl.ReceivePort;
+import ibis.ipl.Registry;
+import ibis.ipl.SendPort;
+import ibis.ipl.WriteMessage;
 
 import java.io.IOException;
 class ObjectPingPong implements PredefinedCapabilities {
 
 static class Aap implements java.io.Serializable {
+    /** Generated id. */
+
+    private static final long serialVersionUID = -7277767720469228408L;
     byte b;
 }
 
@@ -24,9 +35,7 @@ static class Sender {
 
     void send(int count, int repeat) throws Exception {
 	Aap x = new Aap();
-	Aap y = new Aap();
-
-        for (int r = 0; r < repeat; r++) {
+	for (int r = 0; r < repeat; r++) {
 
             long time = System.currentTimeMillis();
 
@@ -93,7 +102,7 @@ static class ExplicitReceiver {
     public static void main(String[] args) {
         int count = 10000;
         int repeat = 10;
-        int rank = 0, remoteRank = 1;
+        int rank = 0;
 
         try {
             CapabilitySet s = new CapabilitySet(

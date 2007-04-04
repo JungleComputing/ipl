@@ -1,9 +1,12 @@
+package ibis.ipl.apps.benchmarks.pingPong;
+
 /* $Id$ */
 
-import java.io.IOException;
 import java.io.Serializable;
 
 public final class Tree implements Serializable {
+
+    private static final long serialVersionUID = -3021696985605964883L;
 
     public static final int PAYLOAD = 4*4;
 

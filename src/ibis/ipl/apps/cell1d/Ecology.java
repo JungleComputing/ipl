@@ -1,3 +1,5 @@
+package ibis.ipl.apps.cell1d;
+
 /* $Id$ */
 
 class Ecology {

@@ -1,3 +1,5 @@
+package ibis.ipl.apps.sor;
+
 /* $Id$ */
 
 /**
@@ -17,25 +19,21 @@
  * 	   	exchange has become twice as expensive.
  */
 
-import java.io.IOException;
-
+import ibis.ipl.CapabilitySet;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisFactory;
-import ibis.ipl.SendPort;
-import ibis.ipl.ReceivePort;
-import ibis.ipl.SendPortIdentifier;
-import ibis.ipl.ReceivePortIdentifier;
-import ibis.ipl.ReadMessage;
-import ibis.ipl.WriteMessage;
-import ibis.ipl.Registry;
-import ibis.ipl.CapabilitySet;
 import ibis.ipl.IbisIdentifier;
-import ibis.ipl.NoMatchingIbisException;
 import ibis.ipl.MessageUpcall;
-
+import ibis.ipl.ReadMessage;
+import ibis.ipl.ReceivePort;
+import ibis.ipl.Registry;
+import ibis.ipl.SendPort;
+import ibis.ipl.WriteMessage;
 import ibis.util.PoolInfo;
 import ibis.util.Timer;
 import ibis.util.TypedProperties;
+
+import java.io.IOException;
 
 public class SOR  implements ibis.ipl.PredefinedCapabilities {
 
@@ -45,8 +43,6 @@ public class SOR  implements ibis.ipl.PredefinedCapabilities {
             .booleanProperty("bcast.O_n", false);
 
     private static final double TOLERANCE = 0.00001; /* termination criterion */
-
-    private static final double LOCAL_STEPS = 0;
 
     private static final boolean PREV = true;
 
@@ -91,18 +87,6 @@ public class SOR  implements ibis.ipl.PredefinedCapabilities {
     private ReceivePort leftR;
 
     private ReceivePort rightR;
-
-    private SendPort reduceS;
-
-    private ReceivePort reduceR;
-
-    private SendPort reduceSreduce;
-
-    private ReceivePort[] reduceRreduce;
-
-    private SendPort reduceSbcast;
-
-    private ReceivePort reduceRbcast;
 
     private Syncer leftSyncer;
 
@@ -161,8 +145,6 @@ public class SOR  implements ibis.ipl.PredefinedCapabilities {
         size = info.size();
 
         createIbis();
-
-        String name = "SOR" + rank;
 
         getBounds();
 
@@ -321,8 +303,6 @@ public class SOR  implements ibis.ipl.PredefinedCapabilities {
         // getBounds
         int n = N - 1;
         int nlarge = n % size;
-        int nsmall = size - nlarge;
-
         int size_small = n / size;
         int size_large = size_small + 1;
 

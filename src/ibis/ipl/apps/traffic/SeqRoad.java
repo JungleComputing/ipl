@@ -1,3 +1,5 @@
+package ibis.ipl.apps.traffic;
+
 // File: $Id$
 
 import java.util.Random;
@@ -78,7 +80,6 @@ class SeqRoad implements Configuration {
             if( traceVehicleUpdates ){
                 System.out.println( "Update vehicle in lane " + lane + ": " + v );
             }
-            Vehicle vfront = v.next;
             double frontpos = 2*ROAD_LENGTH;
             double frontVelocity = 2*ROAD_LENGTH;
 
@@ -112,7 +113,6 @@ class SeqRoad implements Configuration {
                     if( lane+1<LANES ){
                         boolean safeSwitch = true;
 
-                        Vehicle pv = prev[lane+1];
                         if( v.isUncomfortablyClose( prev[lane+1] ) ){
                             // There is a vehicle in the next lane that blocks
                             // a lane switch.
@@ -171,7 +171,6 @@ class SeqRoad implements Configuration {
                 if( lane>0 ){
                     boolean safeSwitch = true;
 
-                    Vehicle pv = prev[lane-1];
                     if( v.isUncomfortablyClose( prev[lane-1] ) ){
                         // There is a vehicle in the previous lane that blocks
                         // a lane switch.

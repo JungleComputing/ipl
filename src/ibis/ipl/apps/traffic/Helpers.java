@@ -1,3 +1,5 @@
+package ibis.ipl.apps.traffic;
+
 // File: $Id$
 
 /** Helper methods. */

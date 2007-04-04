@@ -1,10 +1,10 @@
+package JavaGrande02;
+
 /* $Id$ */
 
 import ibis.ipl.*;
 import ibis.util.PoolInfo;
 import java.util.Properties;
-
-import java.io.IOException;
 
 final class Receiver implements MessageUpcall { 
 

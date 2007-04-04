@@ -1,29 +1,28 @@
+package ibis.ipl.apps.benchmarks.rpc;
+
 /* $Id$ */
 
-import java.util.Properties;
-import java.util.Hashtable;
-import java.io.IOException;
-
+import ibis.ipl.CapabilitySet;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisFactory;
 import ibis.ipl.IbisIdentifier;
-import ibis.ipl.Registry;
-import ibis.ipl.SendPort;
+import ibis.ipl.MessageUpcall;
+import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
+import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.ReceivePortIdentifier;
+import ibis.ipl.Registry;
+import ibis.ipl.RegistryEventHandler;
+import ibis.ipl.SendPort;
+import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.WriteMessage;
-import ibis.ipl.ReadMessage;
-import ibis.ipl.MessageUpcall;
-import ibis.ipl.CapabilitySet;
-import ibis.ipl.ReceivePortConnectUpcall;
-import ibis.ipl.SendPortDisconnectUpcall;
-import ibis.ipl.RegistryEventHandler;
-
-import ibis.util.TypedProperties;
-import ibis.util.Timer;
 import ibis.util.PoolInfo;
+import ibis.util.TypedProperties;
+
+import java.io.IOException;
 import java.util.HashMap;
+import java.util.Hashtable;
 
 class RszHandler implements RegistryEventHandler {
 
@@ -187,6 +186,7 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
 
     private final int DATA_VBFField = DATA_HASH + 1;
 
+    @SuppressWarnings("unused")
     private final int DATATYPES = DATA_VBFField + 1;
 
     private final long data_size[] = { 1, 2, 4, 8, 4, 8, 4 * 4, 4 * 4, 3 * 4,
@@ -327,6 +327,7 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
         if (one_way) {
             for (int i = 0; i < count; i++) {
                 for (int k = 0; k < client_spin; k++) {
+                    @SuppressWarnings("unused")
                     int r = rand.nextInt();
                 }
                 send_one(false /* Not is_server */);
@@ -345,6 +346,7 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
 
             for (int i = 0; i < count; i++) {
                 for (int k = 0; k < client_spin; k++) {
+                    @SuppressWarnings("unused")
                     int r = rand.nextInt();
                 }
                 if (VARIANCE_TIMER) {
@@ -382,6 +384,7 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
             for (int i = 0; i < count; i++) {
                 rcve_one(true /* read_data */, partners);
                 for (int k = 0; k < server_spin; k++) {
+                    @SuppressWarnings("unused")
                     int r = rand.nextInt();
                 }
             }
@@ -392,6 +395,7 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
                 rcve_one(true /* read_data */, partners);
                 // System.err.print(":");
                 for (int k = 0; k < server_spin; k++) {
+                    @SuppressWarnings("unused")
                     int r = rand.nextInt();
                 }
                 if (clients == 1 || (i + 1) % clients == 0) {
@@ -457,6 +461,7 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
             }
 
             for (int k = 0; k < server_spin; k++) {
+                @SuppressWarnings("unused")
                 int r = rand.nextInt();
             }
 
@@ -1014,15 +1019,6 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
 
         if (USE_RESIZEHANDLER || rank == -1) {
             rszHandler = new RszHandler();
-        }
-
-        java.util.Random random = new java.util.Random();
-        String hostName = "localhost";
-        try {
-            java.net.InetAddress addr = java.net.InetAddress.getLocalHost();
-            hostName = addr.getHostName();
-        } catch (java.net.UnknownHostException e) {
-            // let it be the default
         }
 
         CapabilitySet s = new CapabilitySet(SERIALIZATION_OBJECT,
