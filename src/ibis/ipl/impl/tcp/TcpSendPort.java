@@ -51,7 +51,9 @@ final class TcpSendPort extends SendPort implements TcpProtocol {
         super(ibis, type, name, cU);
 
         splitter = new OutputStreamSplitter(
-                ! type.hasCapability(CONNECTION_ONE_TO_ONE), false);
+                ! type.hasCapability(CONNECTION_ONE_TO_ONE) &&
+                ! type.hasCapability(CONNECTION_MANY_TO_ONE),
+                false);
 
         bufferedStream = new BufferedArrayOutputStream(splitter);
         initStream(bufferedStream);
