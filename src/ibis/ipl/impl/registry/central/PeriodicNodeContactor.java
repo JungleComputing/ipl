@@ -11,7 +11,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 
-class PeriodicNodeContactor implements Runnable {
+final class PeriodicNodeContactor implements Runnable {
 
     private static final long MIN_TIMEOUT = 100;
 

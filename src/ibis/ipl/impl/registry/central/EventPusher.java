@@ -4,7 +4,7 @@ import ibis.util.ThreadPool;
 
 import org.apache.log4j.Logger;
 
-public class EventPusher implements Runnable {
+final class EventPusher implements Runnable {
 
     private class Scheduler implements Runnable {
 
@@ -18,13 +18,13 @@ public class EventPusher implements Runnable {
             while (!pool.ended()) {
                 int time = pool.getEventTime();
                 
-                logger.info("updating nodes in pool to event-time " + time);
+                logger.debug("updating nodes in pool to event-time " + time);
                 
                 start();
 
                 waitUntilDone();
                 
-                logger.info("DONE updating nodes in pool to event-time " + time);
+                logger.debug("DONE updating nodes in pool to event-time " + time);
 
                 // wait until some event has happened
                 // (which it might already have)

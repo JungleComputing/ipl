@@ -1,4 +1,5 @@
-package ibis.ipl.impl.registry;
+package ibis.ipl.impl.registry.central;
+
 
 
 import java.io.BufferedInputStream;
@@ -18,7 +19,7 @@ import smartsockets.virtual.VirtualSocket;
 import smartsockets.virtual.VirtualSocketAddress;
 import smartsockets.virtual.VirtualSocketFactory;
 
-public class Connection {
+final class Connection {
 
     // private static final int MAX_TRIES = 10;
     

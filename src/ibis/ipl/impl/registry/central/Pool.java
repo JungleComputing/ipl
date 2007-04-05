@@ -2,10 +2,6 @@ package ibis.ipl.impl.registry.central;
 
 import ibis.ipl.impl.IbisIdentifier;
 import ibis.ipl.impl.Location;
-import ibis.ipl.impl.registry.Connection;
-import ibis.ipl.impl.registry.ConnectionFactory;
-import ibis.ipl.impl.registry.Event;
-import ibis.ipl.impl.registry.Protocol;
 import ibis.util.ThreadPool;
 
 import java.io.DataOutputStream;
@@ -20,7 +16,7 @@ import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
 
-public final class Pool implements Runnable, ibis.ipl.impl.registry.Pool {
+final class Pool implements Runnable {
 
 	public static final int MAX_TRIES = 5;
 
@@ -85,7 +81,7 @@ public final class Pool implements Runnable, ibis.ipl.impl.registry.Pool {
 			new PeriodicNodeContactor(this, true, true, GOSSIP_INTERVAL,
 					GOSSIP_THREADS);
 
-			logger.info("created new GOSSIPING pool " + name);
+			logger.info("created new central/gossiping pool " + name);
 
 		} else { // central
 			// ping iteratively
@@ -94,7 +90,7 @@ public final class Pool implements Runnable, ibis.ipl.impl.registry.Pool {
 
 			new EventPusher(this, PUSH_THREADS);
 
-			logger.info("created new CENTRALIZED pool " + name);
+			logger.info("created new centralized pool " + name);
 		}
 
 		ThreadPool.createNew(this, "pool management thread");
@@ -287,7 +283,7 @@ public final class Pool implements Runnable, ibis.ipl.impl.registry.Pool {
 			winner = candidate;
 			elections.put(election, winner);
 
-			logger.info(winner + " won election \"" + election
+			logger.debug(winner + " won election \"" + election
 					+ "\" in pool \"" + name + "\"");
 
 			events.add(new Event(events.size(), Event.ELECT, winner, election));

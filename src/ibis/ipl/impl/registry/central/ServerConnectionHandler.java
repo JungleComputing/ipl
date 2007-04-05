@@ -1,18 +1,14 @@
-package ibis.ipl.impl.registry.server;
+package ibis.ipl.impl.registry.central;
 
 import ibis.ipl.impl.IbisIdentifier;
 import ibis.ipl.impl.Location;
-import ibis.ipl.impl.registry.Connection;
-import ibis.ipl.impl.registry.ConnectionFactory;
-import ibis.ipl.impl.registry.Pool;
-import ibis.ipl.impl.registry.Protocol;
 import ibis.util.ThreadPool;
 
 import java.io.IOException;
 
 import org.apache.log4j.Logger;
 
-public class ServerConnectionHandler implements Runnable {
+final class ServerConnectionHandler implements Runnable {
 
     public static final int THREADS = 10;
 
@@ -191,8 +187,8 @@ public class ServerConnectionHandler implements Runnable {
 
     }
 
-    void printStats(boolean clear) {
-        stats.print("registry server statistics", clear);
+    String getStats(boolean clear) {
+        return stats.getStats(clear);
     }
 
     public void run() {

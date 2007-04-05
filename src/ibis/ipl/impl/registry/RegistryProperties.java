@@ -59,7 +59,7 @@ public class RegistryProperties {
 
             { SERVER_PORT, "9826", "Int: Port which the server binds to" },
 
-            { SERVER_IMPL, "ibis.ipl.impl.registry.server.Server",
+            { SERVER_IMPL, "ibis.ipl.impl.registry.central.Server",
                     "Implementation of the registry server (must match client)" },
 
             { SERVER_SINGLE, "false",

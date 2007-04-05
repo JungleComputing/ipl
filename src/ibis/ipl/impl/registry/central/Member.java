@@ -4,7 +4,7 @@ import ibis.ipl.impl.IbisIdentifier;
 
 import org.apache.log4j.Logger;
 
-public class Member {
+final class Member {
     
     private static final Logger logger = Logger.getLogger(Member.class);
     

@@ -1,9 +1,5 @@
 package ibis.ipl.impl.registry.central;
 
-import ibis.ipl.impl.registry.Connection;
-import ibis.ipl.impl.registry.ConnectionFactory;
-import ibis.ipl.impl.registry.Event;
-import ibis.ipl.impl.registry.Protocol;
 import ibis.util.ThreadPool;
 
 import java.io.IOException;

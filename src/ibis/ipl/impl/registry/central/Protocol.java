@@ -1,6 +1,6 @@
-package ibis.ipl.impl.registry;
+package ibis.ipl.impl.registry.central;
 
-public class Protocol {
+final class Protocol {
 
     // opcodes
 

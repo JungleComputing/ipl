@@ -1,11 +1,10 @@
-package ibis.ipl.impl.registry.server;
+package ibis.ipl.impl.registry.central;
 
-import ibis.ipl.impl.registry.ConnectionFactory;
-import ibis.ipl.impl.registry.Pool;
 import ibis.ipl.impl.registry.RegistryProperties;
 import ibis.util.TypedProperties;
 
 import java.io.IOException;
+import java.util.Formatter;
 import java.util.HashMap;
 import java.util.Properties;
 
@@ -20,46 +19,51 @@ public final class Server extends ibis.ipl.impl.registry.Server {
     private final ConnectionFactory connectionFactory;
 
     private final HashMap<String, Pool> pools;
-    
-    //if non-null, this server will ONLY serve this one pool, and stop after
-    //the pool has ended
+
+    // if non-null, this server will ONLY serve this one pool, and stop after
+    // the pool has ended
     private final boolean single;
-    
+
     private ServerConnectionHandler handler;
 
     private boolean stopped = false;
-    
+
     public Server(Properties properties) throws IOException {
-        TypedProperties typedProperties = new TypedProperties(properties);        
-        
-        int port = typedProperties.getIntProperty(RegistryProperties.SERVER_PORT);
-        
+        TypedProperties typedProperties = new TypedProperties(properties);
+
+        int port = typedProperties
+                .getIntProperty(RegistryProperties.SERVER_PORT);
+
         if (port <= 0) {
-            throw new IOException("can only start registry server on a positive port");
+            throw new IOException(
+                    "can only start registry server on a positive port");
         }
 
-        boolean smart = typedProperties.booleanProperty(RegistryProperties.CENTRAL_SMARTSOCKETS, true);
+        boolean smart = typedProperties.booleanProperty(
+                RegistryProperties.CENTRAL_SMARTSOCKETS, true);
 
-        connectionFactory = new ConnectionFactory(port, smart, properties.getProperty(RegistryProperties.SERVER_HUB_ADDRESS));
-        
-        
-        single = typedProperties.booleanProperty(RegistryProperties.SERVER_SINGLE);
+        connectionFactory = new ConnectionFactory(port, smart, properties
+                .getProperty(RegistryProperties.SERVER_HUB_ADDRESS));
+
+        single = typedProperties
+                .booleanProperty(RegistryProperties.SERVER_SINGLE);
 
         pools = new HashMap<String, Pool>();
     }
-
 
     synchronized Pool getPool(String poolName) {
         return pools.get(poolName);
     }
 
     // atomic get/create pool
-    synchronized Pool getAndCreatePool(String poolName, boolean gossip, boolean keepNodeState) throws IOException {
+    synchronized Pool getAndCreatePool(String poolName, boolean gossip,
+            boolean keepNodeState) throws IOException {
         Pool result = getPool(poolName);
 
         if (result == null || result.ended()) {
-            logger.info("creating new pool: " + poolName);
-            result = new ibis.ipl.impl.registry.central.Pool(poolName, connectionFactory, gossip, keepNodeState);
+            logger.debug("creating new pool: " + poolName);
+            result = new Pool(poolName,
+                    connectionFactory, gossip, keepNodeState);
             pools.put(poolName, result);
         }
 
@@ -69,17 +73,16 @@ public final class Server extends ibis.ipl.impl.registry.Server {
     synchronized boolean isStopped() {
         return stopped;
     }
-    
-    
+
     public synchronized void stopServer() {
         stopped = true;
         notifyAll();
         connectionFactory.end();
-        handler.printStats(false);
+        logger.info(handler.getStats(false));
     }
-    
-    //force the server to check the pools _now_
-    synchronized void nudge(){
+
+    // force the server to check the pools _now_
+    synchronized void nudge() {
         notifyAll();
     }
 
@@ -89,9 +92,19 @@ public final class Server extends ibis.ipl.impl.registry.Server {
         handler = new ServerConnectionHandler(this, connectionFactory);
 
         while (!stopped) {
+            StringBuilder message = new StringBuilder(handler.getStats(false));
+            Formatter formatter = new Formatter(message);
+            formatter.format("\nPOOL_NAME           POOL_SIZE   EVENT_TIME\n");
+
             Pool[] poolArray = pools.values().toArray(new Pool[0]);
+            if (poolArray.length == 0) {
+                formatter.format("%-18s %10d   %10d\n", "-", 0, 0);
+            }
 
             for (int i = 0; i < poolArray.length; i++) {
+                formatter.format("%-18s %10d   %10d\n", poolArray[i].getName(),
+                        poolArray[i].getSize(), poolArray[i].getEventTime());
+
                 if (poolArray[i].ended()) {
                     pools.remove(poolArray[i].getName());
                     if (single && pools.size() == 0) {
@@ -100,17 +113,16 @@ public final class Server extends ibis.ipl.impl.registry.Server {
                         return;
                     }
                 }
-                logger.info(poolArray[i].toString());
+
             }
-          
+            logger.info(message);
 
             try {
                 wait(POOL_CLEANUP_TIMEOUT);
             } catch (InterruptedException e) {
                 // IGNORE
             }
-            
-            handler.printStats(false);
+
         }
 
     }
@@ -119,7 +131,7 @@ public final class Server extends ibis.ipl.impl.registry.Server {
     public String getLocalAddress() {
         return connectionFactory.getAddressString();
     }
-    
+
     @Override
     public String toString() {
         return "central server on " + getLocalAddress();

@@ -4,12 +4,7 @@ import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.impl.IbisIdentifier;
 import ibis.ipl.impl.Location;
-import ibis.ipl.impl.registry.Connection;
-import ibis.ipl.impl.registry.ConnectionFactory;
-import ibis.ipl.impl.registry.Event;
-import ibis.ipl.impl.registry.Protocol;
 import ibis.ipl.impl.registry.RegistryProperties;
-import ibis.ipl.impl.registry.server.Server;
 import ibis.util.ThreadPool;
 import ibis.util.TypedProperties;
 
@@ -23,7 +18,7 @@ import java.util.Random;
 import org.apache.log4j.Logger;
 
 /**
- * Gossiping registry.
+ * Central registry.
  */
 public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
 

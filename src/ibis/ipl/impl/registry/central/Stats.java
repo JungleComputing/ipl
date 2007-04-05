@@ -1,12 +1,11 @@
-package ibis.ipl.impl.registry.server;
+package ibis.ipl.impl.registry.central;
 
-import ibis.ipl.impl.registry.Protocol;
 
 import java.util.Formatter;
 
 import org.apache.log4j.Logger;
 
-class Stats {
+final class Stats {
     private static Logger logger = Logger.getLogger(Stats.class);
 
     private double[] totalTimes;
@@ -41,7 +40,7 @@ class Stats {
         }
     }
 
-    synchronized void print(String title, boolean clear) {
+    synchronized String getStats(boolean clear) {
         StringBuilder message = new StringBuilder();
         Formatter formatter = new Formatter(message);
 
@@ -60,11 +59,11 @@ class Stats {
                     totalTimes[i] / 1000.0, average);
         }
 
-        logger.info(message);
-        
         if (clear) {
             clear();
         }
+        
+        return message.toString();
     }
 
 }

@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Random;
 
-public class MemberSet {
+final class MemberSet {
 
     private final ArrayList<Member> list;
 

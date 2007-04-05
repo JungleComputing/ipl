@@ -1,4 +1,4 @@
-package ibis.ipl.impl.registry;
+package ibis.ipl.impl.registry.central;
 
 import ibis.io.Conversion;
 import ibis.ipl.impl.IbisIdentifier;
@@ -18,7 +18,7 @@ import smartsockets.virtual.VirtualServerSocket;
 import smartsockets.virtual.VirtualSocketAddress;
 import smartsockets.virtual.VirtualSocketFactory;
 
-public class ConnectionFactory {
+final class ConnectionFactory {
     public static final int CONNECTION_BACKLOG = 50;
 
     private static final Logger logger = Logger
