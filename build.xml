@@ -104,11 +104,15 @@
 	    basedir="${build}"
 	    includes="ibis/ipl/*.class">
 	</jar>
+	<jar destfile="lib/ipl-apps.jar"
+	    basedir="${build}"
+	    includes="ibis/ipl/apps/**/*.class">
+	</jar>
 	<jar	destfile="lib/ipl-impl.jar"
 	    basedir="${build}"
 	    includes="ibis/ipl/impl/**/*.class ibis/io/**/*.class ibis/util/**/*.class ibis/frontend/generic/*.class ibis/frontend/ibis/*.class ibis/frontend/io/*.class">
 	    <manifest>
-		<attribute name="Ibis-Implementation" value="ibis.ipl.impl.tcp.TcpIbis,ibis.ipl.impl.nio.NioIbis"/>
+		<attribute name="Ibis-Implementation" value="ibis.ipl.impl.tcp.TcpIbis,ibis.ipl.impl.nio.NioIbis,ibis.ipl.impl.stacking.dummy.StackingIbis"/>
 		<attribute name="Ibisc-Component" value="ibis.frontend.io.IOGenerator"/>
 	    </manifest>
 	</jar>
@@ -117,7 +121,7 @@
 	    includes="ibis/**/*.class **/capabilities">
 	    <manifest>
 		<attribute name="Ibisc-Component" value="ibis.frontend.io.IOGenerator,ibis.frontend.gmi.Gmic,ibis.frontend.rmi.Rmic,ibis.frontend.satin.Satinc"/>
-		<attribute name="Ibis-Implementation" value="ibis.ipl.impl.tcp.TcpIbis,ibis.ipl.impl.nio.NioIbis"/>
+		<attribute name="Ibis-Implementation" value="ibis.ipl.impl.tcp.TcpIbis,ibis.ipl.impl.nio.NioIbis,ibis.ipl.impl.stacking.dummy.StackingIbis"/>
 	    </manifest>
 	</jar>
 	<jar destfile="lib/satin-api.jar"
