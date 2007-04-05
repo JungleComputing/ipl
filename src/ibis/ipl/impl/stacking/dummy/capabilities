@@ -1,0 +1,24 @@
+# Capabilities supported by the Dummy stacking implementation.
+serialization.strictobject:
+serialization.object:
+serialization.data:
+serialization.byte:
+worldmodel.open:
+worldmodel.closed:
+communication.fifo:
+communication.reliable:
+communication.numbered:
+connection.onetomany:
+connection.manytoone:
+connection.onetoone:
+connection.downcalls:
+connection.upcalls:
+receive.poll:
+receive.timeout:
+receive.pollupcalls:
+receive.autoupcalls:
+receive.explicit:
+resize.upcalls:
+resize.downcalls:
+# Nickname for Dummy stacking.
+nickname:dummy
