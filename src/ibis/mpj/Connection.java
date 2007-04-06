@@ -5,8 +5,8 @@
  */
 package ibis.mpj;
 
-import ibis.ipl.CapabilitySet;
 import ibis.ipl.IbisIdentifier;
+import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.Registry;
@@ -30,14 +30,14 @@ public class Connection {
     private WriteMessage writeMessage = null;
     private int commPartnerRank = -1;
     private int myRank = -1;
-    private CapabilitySet portType = null;
+    private PortType portType = null;
     private int messageCount = 0;
     private MPJObjectQueue recvQueue = null;
     private Registry registry = null;
     //	private boolean sync = false;
     private ReadMessage msg = null;
 
-    public Connection(Registry registry, CapabilitySet portType, int myRank, int commPartnerRank) {
+    public Connection(Registry registry, PortType portType, int myRank, int commPartnerRank) {
         this.commPartnerRank = commPartnerRank;
         this.myRank = myRank;
         this.portType = portType;

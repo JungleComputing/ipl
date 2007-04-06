@@ -7,11 +7,11 @@ import ibis.io.Replacer;
 import ibis.io.SerializationBase;
 import ibis.io.SerializationOutput;
 import ibis.ipl.AlreadyConnectedException;
-import ibis.ipl.CapabilitySet;
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.ConnectionsFailedException;
 import ibis.ipl.IbisConfigurationException;
+import ibis.ipl.PortType;
 import ibis.ipl.SendPortDisconnectUpcall;
 
 import java.io.IOException;
@@ -25,8 +25,7 @@ import org.apache.log4j.Logger;
  * Implementation of the {@link ibis.ipl.SendPort} interface, to be extended
  * by specific Ibis implementations.
  */
-public abstract class SendPort extends Managable implements ibis.ipl.SendPort,
-            ibis.ipl.PredefinedCapabilities {
+public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
 
     /** Debugging output. */
     private static final Logger logger = Logger.getLogger("ibis.ipl.impl.SendPort");
@@ -35,7 +34,7 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort,
     private long count = 0;
 
     /** The type of this port. */
-    public final CapabilitySet type;
+    public final PortType type;
 
     /** The name of this port. */
     public final String name;
@@ -99,13 +98,13 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort,
      * @param connectUpcall the connection upcall object, or <code>null</code>.
      * @exception IOException is thrown in case of trouble.
      */
-    protected SendPort(Ibis ibis, CapabilitySet type, String name,
+    protected SendPort(Ibis ibis, PortType type, String name,
             SendPortDisconnectUpcall connectUpcall) throws IOException {
         this.ibis = ibis;
         this.type = type;
         this.name = name;
         this.ident = ibis.createSendPortIdentifier(name, ibis.ident);
-        this.connectionDowncalls = type.hasCapability(CONNECTION_DOWNCALLS);
+        this.connectionDowncalls = type.hasCapability(PortType.CONNECTION_DOWNCALLS);
         this.connectUpcall = connectUpcall;
         
         String replacerName = type.getCapability("serialization.replacer");
@@ -138,9 +137,9 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort,
 
     private void createOut() {
         String serialization;
-        if (type.hasCapability(SERIALIZATION_DATA)) {
+        if (type.hasCapability(PortType.SERIALIZATION_DATA)) {
             serialization = "data";
-        } else if (type.hasCapability(SERIALIZATION_OBJECT)) {
+        } else if (type.hasCapability(PortType.SERIALIZATION_OBJECT)) {
             serialization = "object";
         } else {
             serialization = "byte";
@@ -165,7 +164,7 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort,
         count = 0;
     }
 
-    public CapabilitySet getType() {
+    public PortType getType() {
         return type;
     }
 
@@ -205,8 +204,8 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort,
     private void checkConnect(ReceivePortIdentifier r) throws IOException {
 
         if (receivers.size() > 0
-                && ! type.hasCapability(CONNECTION_ONE_TO_MANY)
-                && ! type.hasCapability(CONNECTION_MANY_TO_MANY)) {
+                && ! type.hasCapability(PortType.CONNECTION_ONE_TO_MANY)
+                && ! type.hasCapability(PortType.CONNECTION_MANY_TO_MANY)) {
             throw new IbisConfigurationException("Sendport already has a "
                     + "connection and OneToMany or ManyToMany not requested");
         }
@@ -572,7 +571,8 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort,
     protected void gotSendException(WriteMessage w, IOException e)
             throws IOException {
         handleSendException(w, e);
-        if (type.hasCapability(CONNECTION_ONE_TO_ONE)) {
+        if (type.hasCapability(PortType.CONNECTION_ONE_TO_ONE)
+                || type.hasCapability(PortType.CONNECTION_MANY_TO_ONE)) {
             // Otherwise exception will be saved until the finish.
             throw e;
         }

@@ -2,13 +2,14 @@
 
 package ibis.rmi.impl;
 
-import ibis.ipl.CapabilitySet;
 import ibis.ipl.Ibis;
+import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisFactory;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.IbisProperties;
 import ibis.ipl.MessageUpcall;
 import ibis.ipl.NoMatchingIbisException;
+import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortIdentifier;
@@ -36,7 +37,7 @@ import org.apache.log4j.Logger;
 
 import colobus.Colobus;
 
-public final class RTS implements ibis.ipl.PredefinedCapabilities {
+public final class RTS {
 
     static TypedProperties properties
             = new TypedProperties(IbisProperties.getConfigProperties());
@@ -95,9 +96,9 @@ public final class RTS implements ibis.ipl.PredefinedCapabilities {
 
     static String hostname;
 
-    private static CapabilitySet requestPortType;
+    private static PortType requestPortType;
 
-    private static CapabilitySet replyPortType;
+    private static PortType replyPortType;
 
     static Ibis ibis;
 
@@ -267,13 +268,22 @@ public final class RTS implements ibis.ipl.PredefinedCapabilities {
                 logger.debug(hostname + ": init RMI RTS --> creating ibis");
             }
 
-            CapabilitySet reqprops = new CapabilitySet(
-                SERIALIZATION_OBJECT, CONNECTION_MANY_TO_ONE,
-                CONNECTION_ONE_TO_ONE,
-                COMMUNICATION_RELIABLE, RECEIVE_AUTO_UPCALLS, RECEIVE_EXPLICIT);
+            IbisCapabilities reqprops = new IbisCapabilities(
+                    IbisCapabilities.WORLDMODEL_OPEN);
+
+            requestPortType = new PortType(
+                    PortType.SERIALIZATION_OBJECT, PortType.CONNECTION_MANY_TO_ONE,
+                    PortType.SERIALIZATION_REPLACER + "=ibis.rmi.impl.RMIReplacer",
+                    PortType.COMMUNICATION_RELIABLE, PortType.RECEIVE_AUTO_UPCALLS);
+
+            replyPortType = new PortType(
+                    PortType.CONNECTION_ONE_TO_ONE,
+                    PortType.SERIALIZATION_REPLACER + "=ibis.rmi.impl.RMIReplacer",
+                    PortType.SERIALIZATION_OBJECT, PortType.COMMUNICATION_RELIABLE, PortType.RECEIVE_EXPLICIT);
 
             try {
-                ibis = IbisFactory.createIbis(reqprops, null, null, null);
+                ibis = IbisFactory.createIbis(reqprops, null, null, requestPortType,
+                        replyPortType);
             } catch (NoMatchingIbisException e) {
                 System.err.println("Could not find an Ibis that can run this"
                         + " RMI implementation");
@@ -286,15 +296,6 @@ public final class RTS implements ibis.ipl.PredefinedCapabilities {
 
             ibisRegistry = ibis.registry();
 
-            requestPortType = new CapabilitySet(
-                SERIALIZATION_OBJECT, CONNECTION_MANY_TO_ONE,
-                SERIALIZATION_REPLACER + "=ibis.rmi.impl.RMIReplacer",
-                COMMUNICATION_RELIABLE, RECEIVE_AUTO_UPCALLS);
-
-            replyPortType = new CapabilitySet(
-                CONNECTION_ONE_TO_ONE,
-                SERIALIZATION_REPLACER + "=ibis.rmi.impl.RMIReplacer",
-                SERIALIZATION_OBJECT, COMMUNICATION_RELIABLE, RECEIVE_EXPLICIT);
 
             enableRMITimer = properties.booleanProperty(s_timer);
 

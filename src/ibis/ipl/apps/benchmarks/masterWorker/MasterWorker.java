@@ -3,11 +3,11 @@ package ibis.ipl.apps.benchmarks.masterWorker;
 /* $Id$ */
 
 
-import ibis.ipl.CapabilitySet;
 import ibis.ipl.Ibis;
+import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisFactory;
 import ibis.ipl.IbisIdentifier;
-import ibis.ipl.PredefinedCapabilities;
+import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.Registry;
@@ -21,7 +21,7 @@ import java.util.HashMap;
  * Simulates master worker communication model. Workers request work/return
  * results to the master, and the master replies to the workers.
  */
-final class MasterWorker implements PredefinedCapabilities {
+final class MasterWorker {
     static final int COUNT = 10000;
 
     static final boolean ASSERT = false;
@@ -30,9 +30,9 @@ final class MasterWorker implements PredefinedCapabilities {
 
     Registry registry;
 
-    CapabilitySet oneToOneType;
+    PortType oneToOneType;
 
-    CapabilitySet manyToOneType;
+    PortType manyToOneType;
 
     IbisIdentifier masterID;
 
@@ -40,11 +40,21 @@ final class MasterWorker implements PredefinedCapabilities {
 
         try {
 
-            CapabilitySet s = new CapabilitySet(
-                    SERIALIZATION_OBJECT, COMMUNICATION_RELIABLE,
-                    CONNECTION_ONE_TO_ONE, RECEIVE_EXPLICIT,
-                    CONNECTION_MANY_TO_ONE);
-            ibis = IbisFactory.createIbis(s, null, null, null);
+            IbisCapabilities s = new IbisCapabilities(
+                    IbisCapabilities.WORLDMODEL_OPEN);
+            
+            manyToOneType = new PortType(
+                    PortType.SERIALIZATION_OBJECT,
+                    PortType.COMMUNICATION_RELIABLE,
+                    PortType.RECEIVE_EXPLICIT,
+                    PortType.CONNECTION_MANY_TO_ONE);
+            
+            oneToOneType = new PortType(PortType.SERIALIZATION_OBJECT,
+                    PortType.CONNECTION_ONE_TO_ONE,
+                    PortType.COMMUNICATION_RELIABLE,
+                    PortType.RECEIVE_EXPLICIT);
+
+            ibis = IbisFactory.createIbis(s, null, null, manyToOneType, oneToOneType);
 
             registry = ibis.registry();
 
@@ -52,14 +62,7 @@ final class MasterWorker implements PredefinedCapabilities {
 
             boolean master = masterID.equals(ibis.identifier());
 
-            manyToOneType = s;
-
-            s = new CapabilitySet(SERIALIZATION_OBJECT,
-                    CONNECTION_ONE_TO_ONE,
-                    COMMUNICATION_RELIABLE, RECEIVE_EXPLICIT);
-
-            oneToOneType = s;
-
+ 
             if (master) {
                 master();
             } else {

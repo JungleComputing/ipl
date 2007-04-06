@@ -1,9 +1,10 @@
 package ibis.ipl.apps.benchmarks.registry;
 
-import ibis.ipl.CapabilitySet;
 import ibis.ipl.Ibis;
+import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisFactory;
 import ibis.ipl.IbisIdentifier;
+import ibis.ipl.PortType;
 import ibis.ipl.RegistryEventHandler;
 import ibis.util.ThreadPool;
 
@@ -12,7 +13,7 @@ import org.apache.log4j.Logger;
 import sun.misc.Signal;
 import sun.misc.SignalHandler;
 
-final class Application implements Runnable, RegistryEventHandler, ibis.ipl.PredefinedCapabilities {
+final class Application implements Runnable, RegistryEventHandler {
 
     private static final Logger logger = Logger.getLogger(Application.class);
 
@@ -54,13 +55,11 @@ final class Application implements Runnable, RegistryEventHandler, ibis.ipl.Pred
 
     public void run() {
         try {
-            CapabilitySet s = new CapabilitySet(SERIALIZATION_OBJECT,
-                    CONNECTION_ONE_TO_ONE,
-                    COMMUNICATION_RELIABLE,
-                    RECEIVE_EXPLICIT, REGISTRY_EVENTS);
+            IbisCapabilities s = new IbisCapabilities(IbisCapabilities.WORLDMODEL_OPEN);
+            PortType p = new PortType(PortType.CONNECTION_ONE_TO_ONE, PortType.SERIALIZATION_DATA);
 
             logger.debug("creating ibis");
-            Ibis ibis = IbisFactory.createIbis(s, null, null, this);
+            Ibis ibis = IbisFactory.createIbis(s, null, this, p);
             logger.debug("ibis created, enabling upcalls");
 
             ibis.enableRegistryEvents();

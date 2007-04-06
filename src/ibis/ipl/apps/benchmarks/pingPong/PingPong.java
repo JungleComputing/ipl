@@ -2,12 +2,11 @@ package ibis.ipl.apps.benchmarks.pingPong;
 
 /* $Id$ */
 
-
-import ibis.ipl.CapabilitySet;
 import ibis.ipl.Ibis;
+import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisFactory;
 import ibis.ipl.IbisIdentifier;
-import ibis.ipl.PredefinedCapabilities;
+import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.Registry;
@@ -16,7 +15,7 @@ import ibis.ipl.WriteMessage;
 
 import java.io.IOException;
 
-class PingPong implements PredefinedCapabilities {
+class PingPong {
 
 static class Sender {
     SendPort sport;
@@ -85,15 +84,18 @@ static class ExplicitReceiver {
         int rank = 0;
 
         try {
-            CapabilitySet s = new CapabilitySet(
-                    WORLDMODEL_CLOSED, SERIALIZATION_OBJECT,
-                    CONNECTION_ONE_TO_ONE,
-                    COMMUNICATION_RELIABLE, RECEIVE_EXPLICIT);
-            ibis = IbisFactory.createIbis(s, null, null, null);
+            IbisCapabilities s = new IbisCapabilities(
+                    IbisCapabilities.WORLDMODEL_CLOSED);
+            
+            PortType t = new PortType(    
+                    PortType.SERIALIZATION_OBJECT,
+                    PortType.CONNECTION_ONE_TO_ONE,
+                    PortType.COMMUNICATION_RELIABLE,
+                    PortType.RECEIVE_EXPLICIT);
+            
+            ibis = IbisFactory.createIbis(s, null, null, t);
 
             registry = ibis.registry();
-
-            CapabilitySet t = s;
 
             SendPort sport = ibis.createSendPort(t, "send port");
             ReceivePort rport;

@@ -2,12 +2,11 @@ package ibis.ipl.apps.benchmarks.ping;
 
 /* $Id$ */
 
-
-import ibis.ipl.CapabilitySet;
 import ibis.ipl.Ibis;
+import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisFactory;
 import ibis.ipl.IbisIdentifier;
-import ibis.ipl.PredefinedCapabilities;
+import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.Registry;
@@ -33,7 +32,7 @@ import java.text.NumberFormat;
  * </OL>
  * The 'individual results' line also display the test cycle number. The test cycle numbered 0 is a warmup test cycle and is ignored when computing the average results.
  */
-public final class Ping implements PredefinedCapabilities {
+public final class Ping {
 
     /**
      * Flag indicating whether the application should perform one-way
@@ -511,10 +510,16 @@ public final class Ping implements PredefinedCapabilities {
         try {
             // Local initialization
 
-            CapabilitySet props = new CapabilitySet(SERIALIZATION_BYTE,
-                    WORLDMODEL_CLOSED, COMMUNICATION_RELIABLE,
-                    CONNECTION_ONE_TO_ONE, RECEIVE_EXPLICIT);
-            ibis = IbisFactory.createIbis(props, null, null, null);
+            IbisCapabilities props = new IbisCapabilities(
+                    IbisCapabilities.WORLDMODEL_CLOSED);
+            
+            PortType t = new PortType(
+                    PortType.SERIALIZATION_BYTE,
+                    PortType.COMMUNICATION_RELIABLE,
+                    PortType.CONNECTION_ONE_TO_ONE,
+                    PortType.RECEIVE_EXPLICIT);
+            
+            ibis = IbisFactory.createIbis(props, null, null, t);
 
             // Configuration information
             registry = ibis.registry();
@@ -529,7 +534,7 @@ public final class Ping implements PredefinedCapabilities {
             }
 
             // Local communication setup
-            CapabilitySet t = props;
+
             sport = ibis.createSendPort(t);
             rport = null;
             ibis.registry().elect("" + rank);

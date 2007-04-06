@@ -2,13 +2,12 @@ package ibis.ipl.apps.benchmarks.concurrentSenders;
 
 /* $Id$ */
 
-
-import ibis.ipl.CapabilitySet;
 import ibis.ipl.Ibis;
+import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisFactory;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.MessageUpcall;
-import ibis.ipl.PredefinedCapabilities;
+import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.Registry;
@@ -22,13 +21,13 @@ class Sender extends Thread {
 
     Ibis ibis;
 
-    CapabilitySet t;
+    PortType t;
 
     boolean sendTree;
 
     IbisIdentifier master;
 
-    Sender(Ibis ibis, CapabilitySet t, int count, int repeat, boolean sendTree,
+    Sender(Ibis ibis, PortType t, int count, int repeat, boolean sendTree,
             IbisIdentifier master) {
         this.ibis = ibis;
         this.t = t;
@@ -105,13 +104,13 @@ class Receiver implements MessageUpcall {
 
     Ibis ibis;
 
-    CapabilitySet t;
+    PortType t;
 
     int msgs = 0;
 
     int senders;
 
-    Receiver(Ibis ibis, CapabilitySet t, int count, int repeat, int senders,
+    Receiver(Ibis ibis, PortType t, int count, int repeat, int senders,
             boolean doFinish) {
         this.ibis = ibis;
         this.t = t;
@@ -177,7 +176,7 @@ class Receiver implements MessageUpcall {
     }
 }
 
-class ConcurrentSenders implements PredefinedCapabilities {
+class ConcurrentSenders {
 
     static Ibis ibis;
 
@@ -230,12 +229,15 @@ class ConcurrentSenders implements PredefinedCapabilities {
         }
 
         try {
-            CapabilitySet sp = new CapabilitySet(SERIALIZATION_OBJECT,
-                    WORLDMODEL_CLOSED, COMMUNICATION_RELIABLE,
-                    RECEIVE_AUTO_UPCALLS, RECEIVE_EXPLICIT,
-                    CONNECTION_ONE_TO_ONE, CONNECTION_ONE_TO_MANY);
+            IbisCapabilities sp = new IbisCapabilities(
+                    IbisCapabilities.WORLDMODEL_CLOSED);
 
-            ibis = IbisFactory.createIbis(sp, null, null, null);
+            PortType t = new PortType(PortType.SERIALIZATION_OBJECT,
+                    PortType.COMMUNICATION_RELIABLE,
+                    PortType.RECEIVE_AUTO_UPCALLS, PortType.RECEIVE_EXPLICIT,
+                    PortType.CONNECTION_ONE_TO_MANY);
+
+            ibis = IbisFactory.createIbis(sp, null, null, t);
 
             registry = ibis.registry();
 
@@ -250,8 +252,6 @@ class ConcurrentSenders implements PredefinedCapabilities {
                 logger.debug("LAT: I am slave");
                 rank = 1;
             }
-
-            CapabilitySet t = sp;
 
             if (rank == 0) {
                 new Receiver(ibis, t, count, repeat, senders, doFinish);

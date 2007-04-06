@@ -19,23 +19,23 @@ package ibis.ipl.apps.sor;
  * 	   	exchange has become twice as expensive.
  */
 
-import ibis.ipl.CapabilitySet;
 import ibis.ipl.Ibis;
+import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisFactory;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.MessageUpcall;
+import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.Registry;
 import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
-import ibis.util.PoolInfo;
 import ibis.util.Timer;
 import ibis.util.TypedProperties;
 
 import java.io.IOException;
 
-public class SOR  implements ibis.ipl.PredefinedCapabilities {
+public class SOR {
 
     static TypedProperties tp = new TypedProperties(System.getProperties());
 
@@ -78,6 +78,8 @@ public class SOR  implements ibis.ipl.PredefinedCapabilities {
 
     private int rank; /* process ranks */
 
+    private IbisIdentifier[] instances;
+
     private double[][] g;
 
     private SendPort leftS;
@@ -101,8 +103,6 @@ public class SOR  implements ibis.ipl.PredefinedCapabilities {
 
     private Timer t_reduce = Timer.createTimer();
 
-    private PoolInfo info;
-
     private Ibis ibis;
 
     private Registry registry;
@@ -115,22 +115,6 @@ public class SOR  implements ibis.ipl.PredefinedCapabilities {
             boolean upcall, int itersPerReduce, boolean clusterReduce)
             throws IOException {
 
-        info = PoolInfo.createPoolInfo();
-
-        if (N < info.size()) {
-            /* give each process at least one row */
-            if (info.rank() == 0) {
-                System.out.println("Problem to small for number of CPU's");
-            }
-            System.exit(1);
-        }
-        if (maxIters ==
-            0 && !reduceAlways) {
-            if (info.rank() == 0) {
-                System.out.println("Need to specify maxIters if -Dreduce=off");
-            }
-            System.exit(1);
-        }
 
         this.N = N;
         nrow = N;
@@ -141,20 +125,32 @@ public class SOR  implements ibis.ipl.PredefinedCapabilities {
         this.upcall = upcall;
         this.itersPerReduce = itersPerReduce;
 
-        rank = info.rank();
-        size = info.size();
-
         createIbis();
+
+        if (N < size) {
+            /* give each process at least one row */
+            if (rank == 0) {
+                System.out.println("Problem to small for number of CPU's");
+            }
+            System.exit(1);
+        }
+        if (maxIters ==
+            0 && !reduceAlways) {
+            if (rank == 0) {
+                System.out.println("Need to specify maxIters if -Dreduce=off");
+            }
+            System.exit(1);
+        }
 
         getBounds();
 
         createNeighbourPorts();
         if (clusterReduce) {
-            reducer = new ClusterReducer(ibis, info);
+            reducer = new ClusterReducer(ibis, instances, rank);
         } else if (USE_O_N_BROADCAST) {
-            reducer = new Reducer(ibis, info);
+            reducer = new Reducer(ibis, rank, size);
         } else {
-            reducer = new TreeReducer(ibis, info);
+            reducer = new TreeReducer(ibis, rank, size);
         }
 
         // System.err.println(rank + ": hi, I'm connected...");
@@ -175,19 +171,15 @@ public class SOR  implements ibis.ipl.PredefinedCapabilities {
 
     private static void usage(String[] args) {
 
-        PoolInfo info = PoolInfo.createPoolInfo();
-        if (info.rank() == 0) {
+        System.out.println("Usage: sor {<N> {<ITERATIONS>}}");
+        System.out.println("");
+        System.out.println("N x N   : (int, int). Problem matrix size");
+        System.out
+                .println("ITERATIONS    : (int). Number of iterations to calculate. 0 means dynamic termination detection.");
+        System.out.println("");
 
-            System.out.println("Usage: sor {<N> {<ITERATIONS>}}");
-            System.out.println("");
-            System.out.println("N x N   : (int, int). Problem matrix size");
-            System.out
-                    .println("ITERATIONS    : (int). Number of iterations to calculate. 0 means dynamic termination detection.");
-            System.out.println("");
-
-            for (int i = 0; i < args.length; i++) {
-                System.out.println(i + " : " + args[i]);
-            }
+        for (int i = 0; i < args.length; i++) {
+            System.out.println(i + " : " + args[i]);
         }
     }
 
@@ -235,13 +227,19 @@ public class SOR  implements ibis.ipl.PredefinedCapabilities {
     }
 
     private void createIbis() throws IOException {
-        CapabilitySet reqprops = new CapabilitySet(SERIALIZATION_DATA,
-                WORLDMODEL_CLOSED, COMMUNICATION_RELIABLE,
-                CONNECTION_ONE_TO_MANY, CONNECTION_MANY_TO_ONE,
-                CONNECTION_ONE_TO_ONE, RECEIVE_EXPLICIT);
+        IbisCapabilities reqprops = new IbisCapabilities(
+                IbisCapabilities.WORLDMODEL_CLOSED);
+        
+        PortType portTypeReduce = new PortType(PortType.SERIALIZATION_DATA,
+                PortType.CONNECTION_MANY_TO_ONE, PortType.COMMUNICATION_RELIABLE,
+                PortType.RECEIVE_EXPLICIT);
 
+        PortType portTypeBroadcast = new PortType(PortType.SERIALIZATION_DATA,
+                PortType.CONNECTION_ONE_TO_MANY, PortType.COMMUNICATION_RELIABLE,
+                PortType.RECEIVE_EXPLICIT);
         try {
-            ibis = IbisFactory.createIbis(reqprops, null, null, null);
+            ibis = IbisFactory.createIbis(reqprops, null, null, portTypeReduce,
+                    portTypeBroadcast);
         } catch (Exception e) {
             System.err
                     .println("Could not find an Ibis that can run this SOR implementation");
@@ -257,14 +255,30 @@ public class SOR  implements ibis.ipl.PredefinedCapabilities {
                 });
 
         registry = ibis.registry();
-        registry.elect("" + rank);
+
+        size = ibis.totalNrOfIbisesInPool();
+
+        instances = new IbisIdentifier[size];
+
+        for (int i = 0; i < size; i++) {
+            IbisIdentifier id = registry.elect("" + i);
+            instances[i] = id;
+            if (id.equals(ibis.identifier())) {
+                rank = i;
+                break;
+            }
+        }
+
+        for (int i = rank+1; i < size; i++) {
+            instances[i] = registry.getElectionResult("" + i);
+        }
     }
 
     private void createNeighbourPorts() throws IOException {
 
-        CapabilitySet portTypeNeighbour = new CapabilitySet(SERIALIZATION_DATA,
-                COMMUNICATION_RELIABLE, CONNECTION_ONE_TO_ONE,
-                RECEIVE_EXPLICIT);
+        PortType portTypeNeighbour = new PortType(PortType.SERIALIZATION_DATA,
+                PortType.COMMUNICATION_RELIABLE, PortType.CONNECTION_ONE_TO_ONE,
+                PortType.RECEIVE_EXPLICIT);
 
         if (rank != 0) {
             if (upcall) {

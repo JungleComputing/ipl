@@ -2,17 +2,16 @@ package ibis.ipl.apps.cell1d;
 
 // File: $Id$
 
-import ibis.ipl.CapabilitySet;
 import ibis.ipl.Ibis;
+import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisFactory;
 import ibis.ipl.IbisIdentifier;
-import ibis.ipl.PredefinedCapabilities;
+import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.Registry;
 import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
-import ibis.util.PoolInfo;
 
 interface Config {
     static final boolean tracePortCreation = false;
@@ -24,10 +23,10 @@ interface Config {
     static final int SHOWNBOARDHEIGHT = 30;
 }
 
-class Cell1D implements Config, PredefinedCapabilities {
+class Cell1D implements Config {
     static Ibis ibis;
     static Registry registry;
-    static PoolInfo info;
+    static IbisIdentifier[] instances;
     static int boardsize = 3000;
 
     // We need two extra column arrays to temporarily store the update
@@ -42,7 +41,7 @@ class Cell1D implements Config, PredefinedCapabilities {
      * @param me My own processor number.
      * @param procno The processor number to connect to.
      */
-    private static SendPort createUpdateSendPort( CapabilitySet t, int me, int procno )
+    private static SendPort createUpdateSendPort( PortType t, int me, int procno )
         throws java.io.IOException
     {
         String portclass;
@@ -53,17 +52,17 @@ class Cell1D implements Config, PredefinedCapabilities {
         else {
             portclass = "Downstream";
         }
-        String sendportname = "send" + portclass + me;
-        String receiveportname = "receive" + portclass + procno;
+        String sendportname = "send" + portclass;
+        String receiveportname = "receive" + portclass;
 
         SendPort res = ibis.createSendPort( t, sendportname );
         if( tracePortCreation ){
             System.err.println( "P" + me + ": created send port " + sendportname  );
         }
-        IbisIdentifier id = registry.getElectionResult( receiveportname );
+        IbisIdentifier id = instances[procno];
         res.connect( id, receiveportname );
         if( tracePortCreation ){
-            System.err.println( "P" + me + ": connected " + sendportname + " to " + receiveportname );
+            System.err.println( "P" + me + ": connected " + sendportname + " to " + receiveportname + " on " + procno);
         }
         return res;
     }
@@ -74,7 +73,7 @@ class Cell1D implements Config, PredefinedCapabilities {
      * @param me My own processor number.
      * @param procno The processor to receive from.
      */
-    private static ReceivePort createUpdateReceivePort( CapabilitySet t, int me, int procno )
+    private static ReceivePort createUpdateReceivePort( PortType t, int me, int procno )
         throws java.io.IOException
     {
         String portclass;
@@ -85,9 +84,8 @@ class Cell1D implements Config, PredefinedCapabilities {
         else {
             portclass = "receiveUpstream";
         }
-        String receiveportname = portclass + me;
+        String receiveportname = portclass;
 
-        registry.elect( receiveportname );
         ReceivePort res = ibis.createReceivePort( t, receiveportname );
         if( tracePortCreation ){
             System.err.println( "P" + me + ": created receive port " + receiveportname  );
@@ -168,20 +166,35 @@ class Cell1D implements Config, PredefinedCapabilities {
         }
 
         try {
-            info = PoolInfo.createPoolInfo();
-            CapabilitySet s = new CapabilitySet(WORLDMODEL_CLOSED,
-                    CONNECTION_ONE_TO_ONE,
-                    COMMUNICATION_RELIABLE, RECEIVE_EXPLICIT,
-                    SERIALIZATION_DATA);
-            ibis = IbisFactory.createIbis( s, null, null, null );
+            IbisCapabilities s = new IbisCapabilities(
+                    IbisCapabilities.WORLDMODEL_CLOSED);
+
+            PortType t = new PortType(
+                    PortType.CONNECTION_ONE_TO_ONE,
+                    PortType.COMMUNICATION_RELIABLE,
+                    PortType.RECEIVE_EXPLICIT,
+                    PortType.SERIALIZATION_DATA);
+
+            ibis = IbisFactory.createIbis( s, null, null, t );
+            final int nProcs = ibis.totalNrOfIbisesInPool();
+            int me = -1;
 
             registry = ibis.registry();
 
-            // This only works for a closed world...
-            final int me = info.rank();         // My processor number.
-            final int nProcs = info.size();     // Total number of procs.
+            instances = new IbisIdentifier[nProcs];
 
-            CapabilitySet t = s;
+            for (int i = 0; i < nProcs; i++) {
+                IbisIdentifier id = registry.elect("" + i);
+                instances[i] = id;
+                if (id.equals(ibis.identifier())) {
+                    me = i;
+                    break;
+                }
+            }
+            
+            for (int i = me + 1; i < nProcs; i++) {
+                instances[i] = registry.getElectionResult("" + i);
+            }
 
             SendPort leftSendPort = null;
             SendPort rightSendPort = null;

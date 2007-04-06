@@ -2,8 +2,9 @@
 
 package ibis.ipl.impl.nio;
 
-import ibis.ipl.CapabilitySet;
+import ibis.ipl.IbisCapabilities;
 import ibis.ipl.MessageUpcall;
+import ibis.ipl.PortType;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.SendPortDisconnectUpcall;
@@ -29,6 +30,42 @@ public final class NioIbis extends ibis.ipl.impl.Ibis {
 
     static final String[] props = { s_spi, s_rpi };
 
+    static final IbisCapabilities ibisCapabilities = new IbisCapabilities(
+            IbisCapabilities.WORLDMODEL_OPEN,
+            IbisCapabilities.WORLDMODEL_CLOSED,
+            IbisCapabilities.REGISTRY_DOWNCALLS,
+            IbisCapabilities.REGISTRY_UPCALLS,
+            "nickname.nio"
+    );
+    
+    static final PortType portCapabilities = new PortType(
+            PortType.SERIALIZATION_OBJECT,
+            PortType.SERIALIZATION_DATA,
+            PortType.SERIALIZATION_BYTE,
+            PortType.SERIALIZATION_REPLACER + "=*",
+            PortType.COMMUNICATION_FIFO,
+            PortType.COMMUNICATION_NUMBERED,
+            PortType.COMMUNICATION_RELIABLE,
+            PortType.CONNECTION_DOWNCALLS,
+            PortType.CONNECTION_UPCALLS,
+            PortType.CONNECTION_TIMEOUT,
+            PortType.CONNECTION_MANY_TO_MANY,
+            PortType.CONNECTION_MANY_TO_ONE,
+            PortType.CONNECTION_ONE_TO_MANY,
+            PortType.CONNECTION_ONE_TO_ONE,
+            PortType.RECEIVE_POLL,
+            PortType.RECEIVE_AUTO_UPCALLS,
+            PortType.RECEIVE_EXPLICIT,
+            PortType.RECEIVE_POLL_UPCALLS,
+            PortType.RECEIVE_TIMEOUT,
+            "sendport.blocking",
+            "sendport.nonblocking",
+            "sendport.thread",
+            "receiveport.blocking",
+            "receivport.nonblocking",
+            "receiveport.thread"
+    );    
+    
     private static final Logger logger
             = Logger.getLogger("ibis.ipl.impl.nio.NioIbis");
 
@@ -39,12 +76,20 @@ public final class NioIbis extends ibis.ipl.impl.Ibis {
 
     private SendReceiveThread sendReceiveThread = null;
 
-    public NioIbis(RegistryEventHandler r, CapabilitySet p, Properties tp) {
+    public NioIbis(RegistryEventHandler r, IbisCapabilities p, PortType[] types, Properties tp) {
 
-        super(r, p, tp, null);
+        super(r, p, types, tp, null);
         properties.checkProperties(prefix, props, null, true);
     }
 
+    protected PortType getPortCapabilities() {
+        return portCapabilities;
+    }
+    
+    protected IbisCapabilities getCapabilities() {
+        return ibisCapabilities;
+    }
+    
     protected byte[] getData() throws IOException {
 
         factory = new TcpChannelFactory(this);
@@ -115,12 +160,12 @@ public final class NioIbis extends ibis.ipl.impl.Ibis {
         return idAddr;
     }
 
-    protected ibis.ipl.SendPort doCreateSendPort(CapabilitySet tp,
+    protected ibis.ipl.SendPort doCreateSendPort(PortType tp,
             String name, SendPortDisconnectUpcall cU) throws IOException {
         return new NioSendPort(this, tp, name, cU);
     }
 
-    protected ibis.ipl.ReceivePort doCreateReceivePort(CapabilitySet tp,
+    protected ibis.ipl.ReceivePort doCreateReceivePort(PortType tp,
             String name, MessageUpcall u, ReceivePortConnectUpcall cU)
             throws IOException {
 
@@ -133,8 +178,8 @@ public final class NioIbis extends ibis.ipl.impl.Ibis {
         if (tp.hasCapability("receiveport.thread")) {
             return new ThreadNioReceivePort(this, tp, name, u, cU);
         }
-        if (tp.hasCapability(CONNECTION_ONE_TO_ONE)
-                || tp.hasCapability(CONNECTION_MANY_TO_ONE)) {
+        if (tp.hasCapability(PortType.CONNECTION_ONE_TO_ONE)
+                || tp.hasCapability(PortType.CONNECTION_MANY_TO_ONE)) {
             return new BlockingChannelNioReceivePort(this, tp, name, u, cU);
         }
         return new NonBlockingChannelNioReceivePort(this, tp, name, u, cU);

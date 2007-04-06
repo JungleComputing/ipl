@@ -3,9 +3,9 @@
 package ibis.ipl.impl;
 
 import ibis.io.SerializationInput;
-import ibis.ipl.CapabilitySet;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.MessageUpcall;
+import ibis.ipl.PortType;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.ReceiveTimedOutException;
 
@@ -20,7 +20,7 @@ import org.apache.log4j.Logger;
  * by specific Ibis implementations.
  */
 public abstract class ReceivePort extends Managable
-        implements ibis.ipl.ReceivePort, ibis.ipl.PredefinedCapabilities {
+        implements ibis.ipl.ReceivePort {
 
     /** Debugging output. */
     private static final Logger logger
@@ -50,7 +50,7 @@ public abstract class ReceivePort extends Managable
     public static final byte NO_MANYTOONE = 6;
 
     /** The type of this port. */
-    public final CapabilitySet type;
+    public final PortType type;
 
     /** The name of this port. */
     public final String name;
@@ -125,7 +125,7 @@ public abstract class ReceivePort extends Managable
      * @param connectionDowncalls set when connection downcalls must be
      * supported.
      */
-    protected ReceivePort(Ibis ibis, CapabilitySet type, String name,
+    protected ReceivePort(Ibis ibis, PortType type, String name,
             MessageUpcall upcall, ReceivePortConnectUpcall connectUpcall) {
         this.ibis = ibis;
         this.type = type;
@@ -133,12 +133,12 @@ public abstract class ReceivePort extends Managable
         this.ident = ibis.createReceivePortIdentifier(name, ibis.ident);
         this.upcall = upcall;
         this.connectUpcall = connectUpcall;
-        this.connectionDowncalls = type.hasCapability(CONNECTION_DOWNCALLS);
+        this.connectionDowncalls = type.hasCapability(PortType.CONNECTION_DOWNCALLS);
         this.numbered
-                = type.hasCapability(COMMUNICATION_NUMBERED);
-        if (type.hasCapability(SERIALIZATION_DATA)) {
+                = type.hasCapability(PortType.COMMUNICATION_NUMBERED);
+        if (type.hasCapability(PortType.SERIALIZATION_DATA)) {
             serialization = "data";
-        } else if (type.hasCapability(SERIALIZATION_OBJECT)) {
+        } else if (type.hasCapability(PortType.SERIALIZATION_OBJECT)) {
             serialization = "object";
         } else {
             serialization = "byte";
@@ -194,7 +194,7 @@ public abstract class ReceivePort extends Managable
         count = 0;
     }
 
-    public CapabilitySet getType() {
+    public PortType getType() {
         return type;
     }
 
@@ -250,7 +250,7 @@ public abstract class ReceivePort extends Managable
             throw new IOException("timeout must be a non-negative number");
         }
         if (timeout > 0 &&
-                ! type.hasCapability(RECEIVE_TIMEOUT)) {
+                ! type.hasCapability(PortType.RECEIVE_TIMEOUT)) {
             throw new IbisConfigurationException(
                     "This port is not configured for receive() with timeout");
         }
@@ -276,7 +276,7 @@ public abstract class ReceivePort extends Managable
     }
 
     public synchronized byte connectionAllowed(SendPortIdentifier id,
-            CapabilitySet sp) {
+            PortType sp) {
         if (isConnectedTo(id)) {
             return ALREADY_CONNECTED;
         }
@@ -285,7 +285,7 @@ public abstract class ReceivePort extends Managable
         }
         if (connectionsEnabled) {
             if (connections.size() != 0 &&
-                ! type.hasCapability(CONNECTION_MANY_TO_ONE)) {
+                ! type.hasCapability(PortType.CONNECTION_MANY_TO_ONE)) {
                 return DENIED;
             }
             if (connectionDowncalls) {
@@ -321,7 +321,7 @@ public abstract class ReceivePort extends Managable
     }
 
     public ReadMessage poll() throws IOException {
-        if (! type.hasCapability(RECEIVE_POLL)) {
+        if (! type.hasCapability(PortType.RECEIVE_POLL)) {
             throw new IbisConfigurationException(
                     "Receiveport not configured for polls");
         }

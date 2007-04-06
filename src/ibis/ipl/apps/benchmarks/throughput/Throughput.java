@@ -3,11 +3,11 @@ package ibis.ipl.apps.benchmarks.throughput;
 /* $Id$ */
 
 
-import ibis.ipl.CapabilitySet;
 import ibis.ipl.Ibis;
+import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisFactory;
 import ibis.ipl.IbisIdentifier;
-import ibis.ipl.PredefinedCapabilities;
+import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.Registry;
@@ -16,7 +16,7 @@ import ibis.ipl.WriteMessage;
 
 import java.io.IOException;
 
-class Throughput extends Thread implements PredefinedCapabilities {
+class Throughput extends Thread {
 
     int count = 1000;
 
@@ -103,11 +103,15 @@ class Throughput extends Thread implements PredefinedCapabilities {
 
     public void run() {
         try {
-            CapabilitySet s = new CapabilitySet(
-                    SERIALIZATION_OBJECT,
-                    CONNECTION_ONE_TO_ONE,
-                    COMMUNICATION_RELIABLE, RECEIVE_EXPLICIT);
-            Ibis ibis = IbisFactory.createIbis(s, null, null, null);
+            IbisCapabilities s = new IbisCapabilities(
+                    IbisCapabilities.WORLDMODEL_OPEN);
+            PortType t = new PortType(
+                    PortType.SERIALIZATION_OBJECT,
+                    PortType.CONNECTION_ONE_TO_ONE,
+                    PortType.COMMUNICATION_RELIABLE,
+                    PortType.RECEIVE_EXPLICIT);
+                     
+            Ibis ibis = IbisFactory.createIbis(s, null, null, t);
 
             Registry r = ibis.registry();
 
@@ -125,8 +129,6 @@ class Throughput extends Thread implements PredefinedCapabilities {
                 System.err.println(">>>>>>>> Righto, I'm the slave");
             }
 
-
-            CapabilitySet t = s;
             rport = ibis.createReceivePort(t, "test port");
             rport.enableConnections();
             sport = ibis.createSendPort(t);

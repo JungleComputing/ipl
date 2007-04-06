@@ -7,22 +7,19 @@ package ibis.ipl.apps.sor;
  *
  * Performs a reduce2all(max, double).
  *
- * Uses PoolInfo.IPCluster() to determine which cluster any host is in.
  * For each cluster, build a standard spanning tree.
  * Between clusters, do the reduce as in MagPIe.
  *
  * @author Rutger Hofman
  */
 
-import ibis.ipl.CapabilitySet;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisIdentifier;
+import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
-import ibis.ipl.Registry;
 import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
-import ibis.util.PoolInfo;
 
 import java.io.IOException;
 
@@ -36,15 +33,30 @@ public class ClusterReducer extends TreeReducer {
 
     private int clusterSize;
 
-    public ClusterReducer(Ibis ibis, PoolInfo info) throws IOException {
+    public ClusterReducer(Ibis ibis, IbisIdentifier[] instances, int rank)
+            throws IOException {
 
-        int rank = info.rank();
-        int size = info.size();
+        int size = instances.length;
 
-        Registry registry = ibis.registry();
+        String[] clusters = new String[size];
+        int[] cluster = new int[size];
 
-        int[] cluster = info.clusterIPRank();
-        clusterSize = info.clusterIPSize();
+        int clusterSize = 0;
+        for (int i = 0; i < size; i++) {
+            String myCluster = ibis.identifier().getLocation().cluster();
+            int j = 0;
+            for (j = 0; j < clusterSize; j++) {
+                if (clusters[i].equals(myCluster)) {
+                    cluster[i] = j;
+                    break;
+                }
+            }
+            if (j >= clusterSize) {
+                clusters[clusterSize] = myCluster;
+                cluster[j] = clusterSize++;
+            }
+        }
+
         myCluster = cluster[rank];
 
         /*
@@ -97,13 +109,13 @@ public class ClusterReducer extends TreeReducer {
         // for (int i = 0; i < clusterSize; i++) System.err.print(globalRank[i] + " ");
         // System.err.println("}");
 
-        CapabilitySet portTypeReduce = new CapabilitySet(SERIALIZATION_DATA,
-                CONNECTION_ONE_TO_ONE, COMMUNICATION_RELIABLE,
-                RECEIVE_EXPLICIT);
+        PortType portTypeReduce = new PortType(PortType.SERIALIZATION_DATA,
+                PortType.CONNECTION_MANY_TO_ONE, PortType.COMMUNICATION_RELIABLE,
+                PortType.RECEIVE_EXPLICIT);
 
-        CapabilitySet portTypeBroadcast = new CapabilitySet(SERIALIZATION_DATA,
-                CONNECTION_ONE_TO_MANY, COMMUNICATION_RELIABLE,
-                RECEIVE_EXPLICIT);
+        PortType portTypeBroadcast = new PortType(PortType.SERIALIZATION_DATA,
+                PortType.CONNECTION_ONE_TO_MANY, PortType.COMMUNICATION_RELIABLE,
+                PortType.RECEIVE_EXPLICIT);
 
         if (localRank[rank] == 0) {
             parent = LEAF_NODE;
@@ -139,7 +151,7 @@ public class ClusterReducer extends TreeReducer {
             int childrank = localRank[rank] - 2 * localRank[parent] - 1;
             reduceSreduce = ibis.createSendPort(portTypeReduce,
                     "SOR" + childrank + "_reduceS");
-            IbisIdentifier id = registry.getElectionResult("" + parent);
+            IbisIdentifier id = instances[parent];
             reduceSreduce.connect(id, "SOR" + childrank + "_reduceR");
         }
 
@@ -155,7 +167,7 @@ public class ClusterReducer extends TreeReducer {
                     "SORreduceS");
             for (int c = 0; c < 2; c++) {
                 if (child[c] != LEAF_NODE) {
-                    IbisIdentifier id = registry.getElectionResult("" + child[c]);
+                    IbisIdentifier id = instances[c];
                     reduceSbcast.connect(id, "SORreduceR");
                 }
             }
@@ -165,9 +177,9 @@ public class ClusterReducer extends TreeReducer {
         if (rank == clusterRoot[myCluster]) {
             /* Create and connect ports for the inter-cluster reduce phase */
 
-            CapabilitySet portTypeInter = new CapabilitySet(SERIALIZATION_DATA,
-                    CONNECTION_ONE_TO_MANY, COMMUNICATION_RELIABLE,
-                    RECEIVE_EXPLICIT);
+            PortType portTypeInter = new PortType(PortType.SERIALIZATION_DATA,
+                    PortType.CONNECTION_ONE_TO_MANY, PortType.COMMUNICATION_RELIABLE,
+                    PortType.RECEIVE_EXPLICIT);
 
             reduceRinter = new ReceivePort[clusterSize];
             for (int i = 0; i < clusterSize; i++) {
@@ -181,7 +193,7 @@ public class ClusterReducer extends TreeReducer {
             reduceSinter = ibis.createSendPort(portTypeInter, "SORinterS");
             for (int i = 0; i < clusterSize; i++) {
                 if (i != myCluster) {
-                    IbisIdentifier id = registry.getElectionResult("" + clusterRoot[i]);
+                    IbisIdentifier id = instances[clusterRoot[i]];
                     reduceSinter.connect(id, "SOR" + myCluster + "_interR");
                 }
             }

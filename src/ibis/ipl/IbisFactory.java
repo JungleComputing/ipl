@@ -33,8 +33,6 @@ public final class IbisFactory {
 
     private Class[] implList;
 
-    private CapabilitySet[] capsList;
-
     private Properties properties;
 
     private final boolean verbose;
@@ -98,8 +96,6 @@ public final class IbisFactory {
      * 
      * @param requiredCapabilities
      *            capabilities required by the application.
-     * @param optionalCapabilities
-     *            capabilities that might come in handy, or <code>null</code>.
      * @param properties
      *            properties that can be set, for instance a class path for
      *            searching ibis implementations, or which registry to use.
@@ -108,6 +104,7 @@ public final class IbisFactory {
      *            a {@link ibis.ipl.RegistryEventHandler RegistryEventHandler} instance if
      *            upcalls for joining or leaving ibis instances are required, or
      *            <code>null</code>.
+     * @param types the list of port types required by the application.
      * @return the new Ibis instance.
      * 
      * @exception NoMatchingIbisException
@@ -116,31 +113,23 @@ public final class IbisFactory {
      * @exception NextedException
      *                is thrown when no Ibis could be instantiated.
      */
-    public static Ibis createIbis(CapabilitySet requiredCapabilities,
-            CapabilitySet optionalCapabilities, Properties properties,
-            RegistryEventHandler r) throws NoMatchingIbisException, NestedException {
+    public static Ibis createIbis(IbisCapabilities requiredCapabilities,
+            Properties properties,
+            RegistryEventHandler r,
+            PortType... types) throws NoMatchingIbisException, NestedException {
 
         if (r != null
                 && !requiredCapabilities
-                        .hasCapability(PredefinedCapabilities.REGISTRY_EVENTS)) {
+                        .hasCapability(IbisCapabilities.REGISTRY_UPCALLS)) {
             throw new NoMatchingIbisException(
                     "RegistryEventHandler specified but no "
-                            + PredefinedCapabilities.REGISTRY_EVENTS
+                            + IbisCapabilities.REGISTRY_UPCALLS
                             + " capability requested");
-        }
-
-        if (! requiredCapabilities.hasCapability(PredefinedCapabilities.CONNECTION_ONE_TO_ONE)
-                && ! requiredCapabilities.hasCapability(PredefinedCapabilities.CONNECTION_ONE_TO_MANY)
-                && ! requiredCapabilities.hasCapability(PredefinedCapabilities.CONNECTION_MANY_TO_ONE)) {
-            throw new NoMatchingIbisException(
-                    "You need to specify at least one of connection.onetomany, "
-                    + "connection.manytoone or connection.onetoone");
         }
 
         IbisFactory factory = new IbisFactory(properties);
 
-        Ibis ibis = factory.createIbis(requiredCapabilities,
-                optionalCapabilities, r);
+        Ibis ibis = factory.createIbis(requiredCapabilities, types, r);
 
         synchronized (IbisFactory.class) {
             loadedIbises.add(ibis);
@@ -193,33 +182,18 @@ public final class IbisFactory {
         List<Class> compnts = clstr.getClassList("Ibis-Implementation",
                 Ibis.class);
         implList = compnts.toArray(new Class[compnts.size()]);
-        capsList = new CapabilitySet[implList.length];
-        for (int i = 0; i < capsList.length; i++) {
-            try {
-                Class cl = implList[i];
-                String packagename = cl.getPackage().getName();
-                // Note: getResourceAsStream wants '/', not File.separatorChar!
-                String capabilityFile = packagename.replace('.', '/') + "/"
-                        + "capabilities";
-                capsList[i] = CapabilitySet.load(capabilityFile);
-            } catch (IOException e) {
-                System.err.println("Error while reading capabilities of "
-                        + implList[i].getName());
-                e.printStackTrace(System.err);
-                System.exit(1);
-            }
-        }
     }
 
-    private Ibis createIbis(Class<?> c, CapabilitySet caps,
+    private Ibis createIbis(Class<?> c, IbisCapabilities caps, PortType[] types,
             RegistryEventHandler registryHandler) throws Throwable {
         Ibis impl;
 
         try {
             impl = (Ibis) c.getConstructor(
-                    new Class[] { RegistryEventHandler.class, CapabilitySet.class,
+                    new Class[] { RegistryEventHandler.class, IbisCapabilities.class,
+                            types.getClass(),
                             Properties.class }).newInstance(
-                    new Object[] { registryHandler, caps, properties });
+                    new Object[] { registryHandler, caps, types, properties });
         } catch (java.lang.reflect.InvocationTargetException e) {
             throw e.getCause();
         }
@@ -227,8 +201,9 @@ public final class IbisFactory {
         return impl;
     }
 
-    private Ibis createIbis(CapabilitySet requiredCapabilities,
-            CapabilitySet optionalCapabilities, RegistryEventHandler r)
+    private Ibis createIbis(IbisCapabilities requiredCapabilities,
+            PortType[] types,
+            RegistryEventHandler r)
             throws NoMatchingIbisException, NestedException {
 
         if (verbose) {
@@ -236,86 +211,23 @@ public final class IbisFactory {
                     + requiredCapabilities);
         }
 
-        CapabilitySet total;
-
-        if (optionalCapabilities != null) {
-            total = requiredCapabilities.uniteWith(optionalCapabilities);
-        } else {
-            total = requiredCapabilities;
-        }
-
         String ibisname = properties.getProperty(IbisProperties.NAME);
-
-        ArrayList<Class> implementations = new ArrayList<Class>();
-
-        ArrayList<CapabilitySet> caps = new ArrayList<CapabilitySet>();
-
-        if (ibisname == null) {
-            NestedException nested = new NestedException(
-                    "Could not find a matching Ibis");
-            for (int i = 0; i < capsList.length; i++) {
-                CapabilitySet ibissp = capsList[i];
-                Class cl = implList[i];
-                // System.err.println("Trying " + cl.getName());
-                if (requiredCapabilities.matchCapabilities(ibissp)) {
-                    // System.err.println("Found match!");
-                    implementations.add(cl);
-                    caps.add(ibissp.intersect(total));
-                }
-                CapabilitySet clashes = requiredCapabilities
-                        .unmatchedCapabilities(ibissp);
-                nested.add(cl.getName(), new Exception(
-                        "Unmatched capabilities: " + clashes.toString()));
+        if (ibisname != null) {
+            String[] caps = requiredCapabilities.getCapabilities();
+            String[] n = new String[caps.length+1];
+            for (int i = 0; i < caps.length; i++) {
+                n[i] = caps[i];
             }
-            if (implementations.size() == 0) {
-                throw new NoMatchingIbisException(nested);
-            }
-        } else {
-            CapabilitySet ibissp = null;
-            Class cl = null;
-            boolean found = false;
-            for (int i = 0; i < capsList.length; i++) {
-                ibissp = capsList[i];
-                cl = implList[i];
-
-                String n = ibissp.getCapability("nickname");
-                String classname = cl.getName();
-
-                if (ibisname.equals(n) || ibisname.equals(classname)) {
-                    found = true;
-                    implementations.add(cl);
-                    caps.add(ibissp.intersect(total));
-                    break;
-                }
-            }
-
-            if (!found) {
-                throw new NoMatchingIbisException("Nickname " + ibisname
-                        + " not matched");
-            }
-
-            if (!requiredCapabilities.matchCapabilities(ibissp)) {
-                CapabilitySet clashes = requiredCapabilities
-                        .unmatchedCapabilities(ibissp);
-                System.err.println("WARNING: the " + ibisname
-                        + " version of Ibis does not match the required "
-                        + "capabilities.\nThe unsupported capabilities are:\n"
-                        + clashes.toString()
-                        + "This Ibis version was explicitly requested, "
-                        + "so the run continues ...");
-            }
+            n[caps.length] = "nickname." + ibisname;;
+            requiredCapabilities = new IbisCapabilities(n);
         }
 
-        int n = implementations.size();
-
-        // TODO: sort implementations: the one that has the most of
-        // optionalCapabilities first.
+        int n = implList.length;
 
         if (verbose) {
             String str = "";
             for (int i = 0; i < n; i++) {
-                Class cl = implementations.get(i);
-                str += " " + cl.getName();
+                str += " " + implList[i].getName();
             }
             System.err.println("Matching Ibis implementations:" + str);
         }
@@ -323,13 +235,13 @@ public final class IbisFactory {
         NestedException nested = new NestedException("Ibis creation failed");
 
         for (int i = 0; i < n; i++) {
-            Class cl = (Class) implementations.get(i);
+            Class cl = implList[i];
             if (verbose) {
                 System.err.println("Trying " + cl.getName());
             }
             while (true) {
                 try {
-                    return createIbis(cl, caps.get(i), r);
+                    return createIbis(cl, requiredCapabilities, types, r);
                 } catch (ConnectionRefusedException e) {
                     // retry
                 } catch (Throwable e) {

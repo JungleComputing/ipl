@@ -2,13 +2,12 @@ package ibis.ipl.apps.benchmarks.latency;
 
 /* $Id$ */
 
-
-import ibis.ipl.CapabilitySet;
 import ibis.ipl.Ibis;
+import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisFactory;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.MessageUpcall;
-import ibis.ipl.PredefinedCapabilities;
+import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.Registry;
@@ -17,6 +16,7 @@ import ibis.ipl.WriteMessage;
 
 import java.io.IOException;
 import java.util.Properties;
+
 import org.apache.log4j.Logger;
 
 class Computer extends Thread {
@@ -319,7 +319,7 @@ class UpcallSender implements MessageUpcall {
     }
 }
 
-class Latency implements PredefinedCapabilities {
+class Latency {
 
     static Logger logger = Logger.getLogger(Latency.class.getName());
 
@@ -384,11 +384,13 @@ class Latency implements PredefinedCapabilities {
 
         try {
 
-            CapabilitySet s = new CapabilitySet(
-                    noneSer ? SERIALIZATION_BYTE : SERIALIZATION_OBJECT,
-                    COMMUNICATION_RELIABLE,
-                    CONNECTION_ONE_TO_ONE,
-                    RECEIVE_AUTO_UPCALLS, RECEIVE_EXPLICIT);
+            IbisCapabilities s = new IbisCapabilities(
+                    IbisCapabilities.WORLDMODEL_OPEN);
+            PortType t = new PortType(
+                    noneSer ? PortType.SERIALIZATION_BYTE : PortType.SERIALIZATION_OBJECT,
+                    PortType.COMMUNICATION_RELIABLE,
+                    PortType.CONNECTION_ONE_TO_ONE,
+                    PortType.RECEIVE_AUTO_UPCALLS, PortType.RECEIVE_EXPLICIT);
             Properties p = new Properties();
             if (ibisSer) {
                 p.setProperty("ibis.serialization", "ibis");
@@ -397,16 +399,10 @@ class Latency implements PredefinedCapabilities {
                 p.setProperty("ibis.serialization", "sun");
             }
 
-            ibis = IbisFactory.createIbis(s, null, p, null);
+            ibis = IbisFactory.createIbis(s, p, null, t);
 
             registry = ibis.registry();
 
-            s = new CapabilitySet(
-                    noneSer ? SERIALIZATION_BYTE : SERIALIZATION_OBJECT,
-                    COMMUNICATION_RELIABLE,
-                    CONNECTION_ONE_TO_ONE,
-                    RECEIVE_AUTO_UPCALLS, RECEIVE_EXPLICIT);
-            CapabilitySet t = s;
 
             SendPort sport = ibis.createSendPort(t, "send port");
             ReceivePort rport;

@@ -5,11 +5,12 @@ package ibis.ipl.impl.tcp;
 import ibis.io.BufferedArrayInputStream;
 import ibis.io.BufferedArrayOutputStream;
 import ibis.ipl.AlreadyConnectedException;
-import ibis.ipl.CapabilitySet;
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.ConnectionTimedOutException;
+import ibis.ipl.IbisCapabilities;
 import ibis.ipl.MessageUpcall;
 import ibis.ipl.PortMismatchException;
+import ibis.ipl.PortType;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.SendPortDisconnectUpcall;
@@ -35,6 +36,36 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
     static final Logger logger
             = Logger.getLogger("ibis.ipl.impl.tcp.TcpIbis");
 
+    static final IbisCapabilities ibisCapabilities = new IbisCapabilities(
+        IbisCapabilities.WORLDMODEL_OPEN,
+        IbisCapabilities.WORLDMODEL_CLOSED,
+        IbisCapabilities.REGISTRY_DOWNCALLS,
+        IbisCapabilities.REGISTRY_UPCALLS,
+        "nickname.tcp"
+    );
+
+    static final PortType portCapabilities = new PortType(
+        PortType.SERIALIZATION_OBJECT,
+        PortType.SERIALIZATION_DATA,
+        PortType.SERIALIZATION_BYTE,
+        PortType.SERIALIZATION_REPLACER + "=*",
+        PortType.COMMUNICATION_FIFO,
+        PortType.COMMUNICATION_NUMBERED,
+        PortType.COMMUNICATION_RELIABLE,
+        PortType.CONNECTION_DOWNCALLS,
+        PortType.CONNECTION_UPCALLS,
+        PortType.CONNECTION_TIMEOUT,
+        PortType.CONNECTION_MANY_TO_MANY,
+        PortType.CONNECTION_MANY_TO_ONE,
+        PortType.CONNECTION_ONE_TO_MANY,
+        PortType.CONNECTION_ONE_TO_ONE,
+        PortType.RECEIVE_POLL,
+        PortType.RECEIVE_AUTO_UPCALLS,
+        PortType.RECEIVE_EXPLICIT,
+        PortType.RECEIVE_POLL_UPCALLS,
+        PortType.RECEIVE_TIMEOUT
+    );
+
     private IbisSocketFactory factory;
 
     private IbisServerSocket systemServer;
@@ -46,15 +77,22 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
     private HashMap<ibis.ipl.IbisIdentifier, IbisSocketAddress> addresses
         = new HashMap<ibis.ipl.IbisIdentifier, IbisSocketAddress>();
 
-    public TcpIbis(RegistryEventHandler r, CapabilitySet p, Properties tp) {
+    public TcpIbis(RegistryEventHandler r, IbisCapabilities p, PortType[] types, Properties tp) {
 
-        super(r, p, tp, null);
+        super(r, p, types, tp, null);
 
         factory.setIdent(ident);
 
         ThreadPool.createNew(this, "TcpIbis");
     }
-
+    protected PortType getPortCapabilities() {
+        return portCapabilities;
+    }
+    
+    protected IbisCapabilities getCapabilities() {
+        return ibisCapabilities;
+    }
+    
     protected byte[] getData() throws IOException {
 
         factory = new IbisSocketFactory(properties);
@@ -112,6 +150,7 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
             try {
                 s = factory.createClientSocket(idAddr, timeout,
                         sp.dynamicProperties());
+                s.setTcpNoDelay(true);
                 out = new DataOutputStream(new BufferedArrayOutputStream(
                             s.getOutputStream()));
 
@@ -198,7 +237,7 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
 
         String name = in.readUTF();
         SendPortIdentifier send = new SendPortIdentifier(in);
-        CapabilitySet sp = new CapabilitySet(in);
+        PortType sp = new PortType(in);
 
         // First, lookup receiveport.
         TcpReceivePort rp = (TcpReceivePort) findReceivePort(name);
@@ -291,12 +330,12 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
         printStatistics();
     }
 
-    protected SendPort doCreateSendPort(CapabilitySet tp, String nm,
+    protected SendPort doCreateSendPort(PortType tp, String nm,
             SendPortDisconnectUpcall cU) throws IOException {
         return new TcpSendPort(this, tp, nm, cU);
     }
 
-    protected ReceivePort doCreateReceivePort(CapabilitySet tp, String nm,
+    protected ReceivePort doCreateReceivePort(PortType tp, String nm,
             MessageUpcall u, ReceivePortConnectUpcall cU) throws IOException {
         return new TcpReceivePort(this, tp, nm, u, cU);
     }

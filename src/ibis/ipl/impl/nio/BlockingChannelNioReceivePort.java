@@ -2,9 +2,9 @@
 
 package ibis.ipl.impl.nio;
 
-import ibis.ipl.CapabilitySet;
 import ibis.ipl.ConnectionClosedException;
 import ibis.ipl.MessageUpcall;
+import ibis.ipl.PortType;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.ReceiveTimedOutException;
 import ibis.ipl.impl.Ibis;
@@ -32,7 +32,7 @@ final class BlockingChannelNioReceivePort extends NioReceivePort {
 
     private int nrOfConnections = 0;
 
-    BlockingChannelNioReceivePort(Ibis ibis, CapabilitySet type, String name,
+    BlockingChannelNioReceivePort(Ibis ibis, PortType type, String name,
             MessageUpcall upcall, ReceivePortConnectUpcall connUpcall)
             throws IOException {
         super(ibis, type, name, upcall, connUpcall);
@@ -105,7 +105,7 @@ final class BlockingChannelNioReceivePort extends NioReceivePort {
                 }
             }
             if (nrOfConnections == 1
-                    && type.hasCapability(CONNECTION_ONE_TO_ONE)
+                    && type.hasCapability(PortType.CONNECTION_ONE_TO_ONE)
                     && deadline == 0) {
                 dissipator = connections[0];
             }

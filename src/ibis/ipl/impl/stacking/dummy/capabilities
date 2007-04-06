@@ -18,7 +18,7 @@ receive.timeout:
 receive.pollupcalls:
 receive.autoupcalls:
 receive.explicit:
-resize.upcalls:
-resize.downcalls:
+registry.upcalls:
+registry.downcalls:
 # Nickname for Dummy stacking.
 nickname:dummy

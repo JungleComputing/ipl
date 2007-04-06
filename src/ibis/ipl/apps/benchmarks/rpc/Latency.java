@@ -2,13 +2,12 @@ package ibis.ipl.apps.benchmarks.rpc;
 
 /* $Id$ */
 
-
-import ibis.ipl.CapabilitySet;
 import ibis.ipl.Ibis;
+import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisFactory;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.MessageUpcall;
-import ibis.ipl.PredefinedCapabilities;
+import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.Registry;
@@ -177,7 +176,7 @@ class UpcallReceiver implements MessageUpcall {
     }
 }
 
-class Latency implements PredefinedCapabilities {
+class Latency {
     static Ibis ibis;
 
     static Registry registry;
@@ -194,15 +193,18 @@ class Latency implements PredefinedCapabilities {
         int rank = 0;
 
         try {
-            CapabilitySet s = new CapabilitySet(WORLDMODEL_CLOSED,
-                    CONNECTION_ONE_TO_ONE,
-                    COMMUNICATION_RELIABLE, SERIALIZATION_OBJECT,
-                    RECEIVE_AUTO_UPCALLS, RECEIVE_POLL);
+            IbisCapabilities s = new IbisCapabilities(
+                    IbisCapabilities.WORLDMODEL_CLOSED);
 
-            ibis = IbisFactory.createIbis(s, null, null, null);
+            PortType t = new PortType(
+                    PortType.CONNECTION_ONE_TO_ONE,
+                    PortType.COMMUNICATION_RELIABLE,
+                    PortType.SERIALIZATION_OBJECT,
+                    PortType.RECEIVE_AUTO_UPCALLS,
+                    PortType.RECEIVE_POLL);
+            
+            ibis = IbisFactory.createIbis(s, null, null, t);
             registry = ibis.registry();
-
-            CapabilitySet t = s;
 
             SendPort sport = ibis.createSendPort(t);
             ReceivePort rport;

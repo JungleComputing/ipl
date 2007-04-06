@@ -8,8 +8,8 @@ import java.util.Properties;
 
 /**
  * An instance of this interface can only be created by the
- * {@link ibis.ipl.IbisFactory#createIbis(CapabilitySet, CapabilitySet,
- * Properties, RegistryEventHandler)} method, and is the starting point
+ * {@link ibis.ipl.IbisFactory#createIbis(CapabilitySet,
+ * Properties, RegistryEventHandler, PortType...)} method, and is the starting point
  * of all Ibis communication.
  */
 public interface Ibis extends Managable {
@@ -56,12 +56,6 @@ public interface Ibis extends Managable {
      * @return the Ibis registry.
      */
     public Registry registry();
-
-    /**
-     * Returns the capabilities of this Ibis implementation.
-     * @return the capabilities of this Ibis implementation.
-     */
-    public CapabilitySet capabilities();
 
     /**
      * Polls the network for new messages.
@@ -133,7 +127,7 @@ public interface Ibis extends Managable {
      * @exception java.io.IOException is thrown when the port could not be
      * created.
      */
-    public SendPort createSendPort(CapabilitySet tp) throws IOException;
+    public SendPort createSendPort(PortType tp) throws IOException;
 
     /**
      * Creates a named {@link SendPort} of the specified port type.
@@ -147,7 +141,7 @@ public interface Ibis extends Managable {
      * @exception ibis.ipl.IbisConfigurationException is thrown when the port
      * type does not match what is required here.
      */
-    public SendPort createSendPort(CapabilitySet tp, String name)
+    public SendPort createSendPort(PortType tp, String name)
             throws IOException;
 
     /** 
@@ -166,7 +160,7 @@ public interface Ibis extends Managable {
      * @exception ibis.ipl.IbisConfigurationException is thrown when the port
      * type does not match what is required here.
      */
-    public SendPort createSendPort(CapabilitySet tp, String name,
+    public SendPort createSendPort(PortType tp, String name,
         SendPortDisconnectUpcall cU) throws IOException;
 
     /**
@@ -185,7 +179,7 @@ public interface Ibis extends Managable {
      * @exception ibis.ipl.IbisConfigurationException is thrown when the port
      * type does not match what is required here.
      */
-    public ReceivePort createReceivePort(CapabilitySet tp, String name)
+    public ReceivePort createReceivePort(PortType tp, String name)
         throws IOException;
 
     /** 
@@ -208,7 +202,7 @@ public interface Ibis extends Managable {
      * @exception ibis.ipl.IbisConfigurationException is thrown when the port
      * type does not match what is required here.
      */
-    public ReceivePort createReceivePort(CapabilitySet tp, String name,
+    public ReceivePort createReceivePort(PortType tp, String name,
             MessageUpcall u) throws IOException;
 
     /** 
@@ -231,7 +225,7 @@ public interface Ibis extends Managable {
      * @exception ibis.ipl.IbisConfigurationException is thrown when the port
      * type does not match what is required here.
      */
-    public ReceivePort createReceivePort(CapabilitySet tp, String name,
+    public ReceivePort createReceivePort(PortType tp, String name,
             ReceivePortConnectUpcall cU) throws IOException;
 
     /** 
@@ -258,6 +252,7 @@ public interface Ibis extends Managable {
      * @exception ibis.ipl.IbisConfigurationException is thrown when the port
      * type does not match what is required here.
      */
-    public ReceivePort createReceivePort(CapabilitySet tp, String name,
+    
+    public ReceivePort createReceivePort(PortType tp, String name,
             MessageUpcall u, ReceivePortConnectUpcall cU) throws IOException;
 }

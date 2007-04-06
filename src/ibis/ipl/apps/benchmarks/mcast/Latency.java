@@ -2,21 +2,19 @@ package ibis.ipl.apps.benchmarks.mcast;
 
 /* $Id$ */
 
-
-import ibis.ipl.CapabilitySet;
 import ibis.ipl.Ibis;
+import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisFactory;
 import ibis.ipl.IbisIdentifier;
-import ibis.ipl.PredefinedCapabilities;
+import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.Registry;
 import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
-import ibis.util.PoolInfo;
 
-class Latency implements PredefinedCapabilities {
+class Latency {
 
     static Ibis ibis;
 
@@ -26,72 +24,72 @@ class Latency implements PredefinedCapabilities {
         /* Parse commandline. */
 
         try {
-            PoolInfo info = PoolInfo.createPoolInfo();
+            IbisCapabilities sp = new IbisCapabilities(IbisCapabilities.WORLDMODEL_CLOSED);
+            PortType oneToMany = new PortType(
+                    PortType.SERIALIZATION_OBJECT, PortType.COMMUNICATION_RELIABLE,
+                    PortType.RECEIVE_AUTO_UPCALLS,  PortType.RECEIVE_EXPLICIT,
+                     PortType.CONNECTION_ONE_TO_MANY);
+            PortType manyToOne = new PortType(
+                    PortType.SERIALIZATION_OBJECT, PortType.COMMUNICATION_RELIABLE,
+                    PortType.RECEIVE_AUTO_UPCALLS,  PortType.RECEIVE_EXPLICIT,
+                    PortType.CONNECTION_MANY_TO_ONE);
 
-            int rank = info.rank();
-            int size = info.size();
-            CapabilitySet sp = new CapabilitySet(WORLDMODEL_CLOSED,
-                    SERIALIZATION_OBJECT, COMMUNICATION_RELIABLE,
-                    RECEIVE_AUTO_UPCALLS,  RECEIVE_EXPLICIT,
-                    CONNECTION_ONE_TO_ONE, CONNECTION_MANY_TO_ONE,
-                    CONNECTION_ONE_TO_MANY);
-
-            ibis = IbisFactory.createIbis(sp, null, null, null);
+            ibis = IbisFactory.createIbis(sp, null, null, oneToMany, manyToOne);
             registry = ibis.registry();
 
-            CapabilitySet t = sp;
+            IbisIdentifier master = registry.elect("0");
 
-            ReceivePort rport = ibis.createReceivePort(t, "receive port");
-            SendPort sport = ibis.createSendPort(t, "send port");
+            int size = ibis.totalNrOfIbisesInPool();
 
-            rport.enableConnections();
-
-            if (rank == 0) {
-                registry.elect("0");
+            ReceivePort rport;
+            SendPort sport;
+            
+            if (master.equals(ibis.identifier())) {
+                rport = ibis.createReceivePort(oneToMany, "receive port");
+                rport.enableConnections();
+                sport = ibis.createSendPort(manyToOne, "send port");
                 sport.connect(rport.identifier());
 
-                System.err.println(rank + "*******  connect to myself");
+                System.err.println("*******  connect to myself");
 
                 for (int i = 1; i < size; i++) {
 
-                    System.err.println(rank + "******* receive");
+                    System.err.println("******* receive");
 
                     ReadMessage r = rport.receive();
                     ReceivePortIdentifier id = (ReceivePortIdentifier) r
                             .readObject();
                     r.finish();
 
-                    System.err.println(rank + "*******  connect to " + id);
+                    System.err.println("*******  connect to " + id);
 
                     sport.connect(id);
                 }
 
-                System.err.println(rank + "*******  connect done ");
+                System.err.println("*******  connect done ");
 
                 WriteMessage w = sport.newMessage();
                 w.writeInt(42);
                 w.finish();
-
-                sport.close();
-
             } else {
+                rport = ibis.createReceivePort(oneToMany, "receive port");
+                rport.enableConnections();
+                sport = ibis.createSendPort(manyToOne, "send port");
                 IbisIdentifier id = registry.getElectionResult("0");
-                System.err.println(rank + "*******  connect to 0");
+                System.err.println("*******  connect to 0");
                 sport.connect(id, "receive port");
-                System.err.println(rank + "*******  connect done");
+                System.err.println("*******  connect done");
 
                 WriteMessage w = sport.newMessage();
                 w.writeObject(rport.identifier());
                 w.finish();
-
-                sport.close();
             }
-
+            sport.close();
             ReadMessage r = rport.receive();
             int result = r.readInt();
             r.finish();
 
-            System.out.println(rank + " got " + result);
+            System.out.println("got " + result);
 
             rport.close();
             ibis.end();

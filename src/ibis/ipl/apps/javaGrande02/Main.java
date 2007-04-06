@@ -2,8 +2,18 @@ package ibis.ipl.apps.javaGrande02;
 
 /* $Id$ */
 
-import ibis.ipl.*;
-import ibis.util.PoolInfo;
+import ibis.ipl.Ibis;
+import ibis.ipl.IbisCapabilities;
+import ibis.ipl.IbisFactory;
+import ibis.ipl.IbisIdentifier;
+import ibis.ipl.MessageUpcall;
+import ibis.ipl.PortType;
+import ibis.ipl.ReadMessage;
+import ibis.ipl.ReceivePort;
+import ibis.ipl.Registry;
+import ibis.ipl.SendPort;
+import ibis.ipl.WriteMessage;
+
 import java.util.Properties;
 
 final class Receiver implements MessageUpcall { 
@@ -89,7 +99,7 @@ final class Receiver implements MessageUpcall {
     } 
 } 
 
-final class Main implements PredefinedCapabilities { 
+final class Main { 
 
     public static boolean verbose = false;
     public static final double MB = (1024.0*1024.0);
@@ -181,7 +191,6 @@ final class Main implements PredefinedCapabilities {
 
 	try { 
 	    boolean array = false, tree = false, list = false, dlist = false, oarray = false, one_way = true;
-	    PoolInfo info = PoolInfo.createPoolInfo();		
 	    int i           = 0;
 	    int len         = 1023;
 	    int arraysize   = 16*1024;
@@ -191,7 +200,6 @@ final class Main implements PredefinedCapabilities {
 	    boolean stream  = false;
 	    boolean ibisSer = false;
 
-	    int rank = info.rank(); 
 	    int tests = 0;
 
 	    while (i < args.length) { 
@@ -249,15 +257,21 @@ final class Main implements PredefinedCapabilities {
 		}
 	    } 
 
-	    CapabilitySet s = new CapabilitySet(COMMUNICATION_RELIABLE,
-                    CONNECTION_ONE_TO_ONE,
-                    WORLDMODEL_CLOSED, RECEIVE_AUTO_UPCALLS,
-                    RECEIVE_EXPLICIT, SERIALIZATION_OBJECT);
+	    IbisCapabilities s = new IbisCapabilities(
+                    IbisCapabilities.WORLDMODEL_CLOSED);
+            
+            PortType t = new PortType(       
+                    PortType.COMMUNICATION_RELIABLE,
+                    PortType.CONNECTION_ONE_TO_ONE,
+                    PortType.RECEIVE_AUTO_UPCALLS,
+                    PortType.RECEIVE_EXPLICIT,
+                    PortType.SERIALIZATION_OBJECT);
+            
             Properties attribs = new Properties();
             attribs.setProperty("ibis.serialization",
                     ibisSer ? "ibis" : "sun");
 
-	    ibis = IbisFactory.createIbis(s, null, attribs, null);
+	    ibis = IbisFactory.createIbis(s, attribs, null, t);
 
 	    if (verbose) { 
 		System.out.println("Ibis created; getting registry ...");
@@ -269,7 +283,6 @@ final class Main implements PredefinedCapabilities {
 		System.out.println("Got registry");
 	    }
 
-	    CapabilitySet t = s;
 	    SendPort sport = ibis.createSendPort(t);					      
 	    ReceivePort rport;
 
@@ -277,8 +290,9 @@ final class Main implements PredefinedCapabilities {
 		System.out.println("Got sendport");
 	    }
 
-	    if (rank == 0) {
-                registry.elect("0");
+            IbisIdentifier master = registry.elect("0");
+
+	    if (master.equals(ibis.identifier())) {
 		rport = ibis.createReceivePort(t, "test port");
 		rport.enableConnections();
                 IbisIdentifier other = registry.getElectionResult("1");

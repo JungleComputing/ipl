@@ -17,7 +17,7 @@ receive.timeout:
 receive.pollupcalls:
 receive.autoupcalls:
 receive.explicit:
-registry.events:
-resize.downcalls:
+registry.upcalls:
+registry.downcalls:
 # Nickname for TcpIbis.
 nickname:tcp

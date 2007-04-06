@@ -1,8 +1,8 @@
 package ibis.ipl.impl.stacking.dummy;
 
-import ibis.ipl.CapabilitySet;
 import ibis.ipl.ConnectionsFailedException;
 import ibis.ipl.IbisIdentifier;
+import ibis.ipl.PortType;
 import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.ipl.SendPortIdentifier;
 
@@ -12,7 +12,7 @@ import java.util.Map;
 public class StackingSendPort implements ibis.ipl.SendPort {
     
     final ibis.ipl.SendPort base;
-    final CapabilitySet type;
+    final PortType type;
     final ibis.ipl.impl.SendPortIdentifier identifier;
     
     private static final class DisconnectUpcaller
@@ -32,7 +32,7 @@ public class StackingSendPort implements ibis.ipl.SendPort {
         }
     }
     
-    public StackingSendPort(CapabilitySet type, StackingIbis ibis, String name,
+    public StackingSendPort(PortType type, StackingIbis ibis, String name,
             SendPortDisconnectUpcall connectUpcall) throws IOException {
         this.type = type;
         this.identifier = ibis.createSendPortIdentifier(name, ibis.ident);
@@ -101,7 +101,7 @@ public class StackingSendPort implements ibis.ipl.SendPort {
         base.resetCount();   
     }
 
-    public CapabilitySet getType() {
+    public PortType getType() {
         return type;
     }
 

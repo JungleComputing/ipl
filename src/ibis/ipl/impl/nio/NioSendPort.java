@@ -2,9 +2,8 @@
 
 package ibis.ipl.impl.nio;
 
-
 import ibis.io.Conversion;
-import ibis.ipl.CapabilitySet;
+import ibis.ipl.PortType;
 import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.ipl.impl.Ibis;
 import ibis.ipl.impl.ReceivePortIdentifier;
@@ -24,7 +23,7 @@ public final class NioSendPort extends SendPort implements Protocol {
 
     private final NioAccumulator accumulator;
 
-    NioSendPort(Ibis ibis, CapabilitySet type, String name,
+    NioSendPort(Ibis ibis, PortType type, String name,
             SendPortDisconnectUpcall cU) throws IOException {
         super(ibis, type, name, cU);
 
@@ -38,8 +37,8 @@ public final class NioSendPort extends SendPort implements Protocol {
             accumulator = new ThreadNioAccumulator(this,
                     ((NioIbis)ibis).sendReceiveThread());
         }
-        else if (type.hasCapability(CONNECTION_ONE_TO_ONE)
-                || type.hasCapability(CONNECTION_ONE_TO_MANY)) {
+        else if (type.hasCapability(PortType.CONNECTION_ONE_TO_ONE)
+                || type.hasCapability(PortType.CONNECTION_ONE_TO_MANY)) {
             accumulator = new BlockingChannelNioAccumulator(this);
         } else {
             accumulator = new NonBlockingChannelNioAccumulator(this);
@@ -105,7 +104,7 @@ public final class NioSendPort extends SendPort implements Protocol {
     protected void announceNewMessage() throws IOException {
         out.writeByte(NEW_MESSAGE);
 
-        if (type.hasCapability(COMMUNICATION_NUMBERED)) {
+        if (type.hasCapability(PortType.COMMUNICATION_NUMBERED)) {
             out.writeLong(ibis.registry().getSeqno(name));
         }
     }

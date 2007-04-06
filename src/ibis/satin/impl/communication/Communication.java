@@ -4,10 +4,11 @@
 package ibis.satin.impl.communication;
 
 import ibis.ipl.AlreadyConnectedException;
-import ibis.ipl.CapabilitySet;
 import ibis.ipl.Ibis;
+import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisFactory;
 import ibis.ipl.IbisIdentifier;
+import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortIdentifier;
@@ -23,11 +24,10 @@ import ibis.satin.impl.loadBalancing.Victim;
 import java.io.IOException;
 import java.net.InetAddress;
 
-public final class Communication implements Config, Protocol,
-       ibis.ipl.PredefinedCapabilities {
+public final class Communication implements Config, Protocol {
     private Satin s;
 
-    public CapabilitySet portType;
+    public PortType portType;
 
     public ReceivePort receivePort;
 
@@ -44,13 +44,24 @@ public final class Communication implements Config, Protocol,
     public Communication(Satin s) {
         this.s = s;
 
-        CapabilitySet ibisProperties = createIbisProperties();
+        IbisCapabilities ibisProperties = createIbisProperties();
 
         commLogger.debug("SATIN '" + "- " + "': init ibis");
-
+        
+        portType = createSatinPortType();
+        
         try {
             ibis = IbisFactory.createIbis(ibisProperties,
-                    null, null, s.ft.getRegistryEventHandler());
+                    null, s.ft.getRegistryEventHandler(), portType, createBarrierPortType(),
+                    // lrmc port type
+                    new PortType(
+                        PortType.SERIALIZATION_DATA, PortType.COMMUNICATION_RELIABLE,
+                        PortType.CONNECTION_MANY_TO_ONE, PortType.RECEIVE_AUTO_UPCALLS),
+                    // so port type
+                    new PortType(
+                            PortType.CONNECTION_ONE_TO_MANY, PortType.CONNECTION_UPCALLS,
+                            PortType.CONNECTION_DOWNCALLS, PortType.RECEIVE_EXPLICIT,
+                            PortType.RECEIVE_AUTO_UPCALLS, PortType.SERIALIZATION_OBJECT));
         } catch (Exception e) {
             commLogger.fatal(
                     "SATIN '" + "- " + "': Could not start ibis: " + e, e);
@@ -64,8 +75,6 @@ public final class Communication implements Config, Protocol,
                 + "'");
 
         try {
-            portType = createSatinPortType();
-
             MessageHandler messageHandler = new MessageHandler(s);
 
             receivePort = ibis.createReceivePort(portType, "satin port",
@@ -146,34 +155,27 @@ public final class Communication implements Config, Protocol,
                 other.getLocation().cluster());
     }
 
-    public CapabilitySet createIbisProperties() {
-        CapabilitySet ibisProperties = new CapabilitySet(
-                REGISTRY_EVENTS,
-                SERIALIZATION_BYTE, SERIALIZATION_DATA, SERIALIZATION_OBJECT,
-                COMMUNICATION_RELIABLE, CONNECTION_ONE_TO_MANY,
-                CONNECTION_MANY_TO_ONE, CONNECTION_UPCALLS,
-                CONNECTION_DOWNCALLS, RECEIVE_EXPLICIT, RECEIVE_AUTO_UPCALLS);
+    public IbisCapabilities createIbisProperties() {
+        IbisCapabilities ibisProperties = new IbisCapabilities(
+                CLOSED ? IbisCapabilities.WORLDMODEL_CLOSED : IbisCapabilities.WORLDMODEL_OPEN,
+                IbisCapabilities.REGISTRY_UPCALLS);
 
-        if (CLOSED) {
-            return ibisProperties.uniteWith(
-                    new CapabilitySet(WORLDMODEL_CLOSED));
-        }
         return ibisProperties;
     }
 
-    public CapabilitySet createSatinPortType() throws IOException {
-        return new CapabilitySet(
-                SERIALIZATION_OBJECT, COMMUNICATION_RELIABLE,
-                CONNECTION_MANY_TO_ONE, CONNECTION_UPCALLS,
-                CONNECTION_DOWNCALLS, RECEIVE_EXPLICIT, RECEIVE_AUTO_UPCALLS);
+    public PortType createSatinPortType() {
+        return new PortType(
+                PortType.SERIALIZATION_OBJECT, PortType.COMMUNICATION_RELIABLE,
+                PortType.CONNECTION_MANY_TO_ONE, PortType.CONNECTION_UPCALLS,
+                PortType.CONNECTION_DOWNCALLS, PortType.RECEIVE_EXPLICIT, PortType.RECEIVE_AUTO_UPCALLS);
     }
 
     // The barrier port type is different from the satin port type.
     // It does not do multicast, and does not need serialization.
-    public CapabilitySet createBarrierPortType() throws IOException {
-        return new CapabilitySet(
-                SERIALIZATION_BYTE, COMMUNICATION_RELIABLE,
-                CONNECTION_MANY_TO_ONE, RECEIVE_EXPLICIT);
+    public PortType createBarrierPortType() throws IOException {
+        return new PortType(
+                PortType.SERIALIZATION_BYTE, PortType.COMMUNICATION_RELIABLE,
+                PortType.CONNECTION_MANY_TO_ONE, PortType.RECEIVE_EXPLICIT);
     }
 
     public void bcastMessage(byte opcode) {

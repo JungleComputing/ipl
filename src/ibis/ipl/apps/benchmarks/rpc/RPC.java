@@ -2,11 +2,12 @@ package ibis.ipl.apps.benchmarks.rpc;
 
 /* $Id$ */
 
-import ibis.ipl.CapabilitySet;
 import ibis.ipl.Ibis;
+import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisFactory;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.MessageUpcall;
+import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortConnectUpcall;
@@ -17,7 +18,6 @@ import ibis.ipl.SendPort;
 import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.WriteMessage;
-import ibis.util.PoolInfo;
 import ibis.util.TypedProperties;
 
 import java.io.IOException;
@@ -68,7 +68,7 @@ class RszHandler implements RegistryEventHandler {
 }
 
 class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
-        SendPortDisconnectUpcall, ibis.ipl.PredefinedCapabilities {
+        SendPortDisconnectUpcall {
 
     static final TypedProperties tp = new TypedProperties(System.getProperties());
     private final static int BUFSIZ = tp.getIntProperty("socketbuffersize", 0);
@@ -82,9 +82,9 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
 
     private RszHandler rszHandler;
 
-    private CapabilitySet requestPortType;
+    private PortType requestPortType;
 
-    private CapabilitySet replyPortType;
+    private PortType replyPortType;
 
     private SendPort sport;
 
@@ -157,8 +157,6 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
     private boolean requireOneToMany = false;
 
     private boolean sequenced = false;
-
-    private final boolean USE_RESIZEHANDLER = false;
 
     private final boolean EMPTY_REPLY = true; // false; // true;
 
@@ -976,14 +974,7 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
     private void parseIbisName() throws IOException {
         /* Parse commandline. */
 
-        PoolInfo info = PoolInfo.createPoolInfo();
-        ncpus = info.size();
-        rank = info.rank();
-
-        if (ncpus == 0) {
-            System.err.println("PoolInfo.size() should be > 0");
-            System.exit(41);
-        } else if (bcast) {
+        if (bcast) {
             if (clients != -1 || servers != -1) {
                 System.err
                         .println("Cannot both specify -bcast[-all] and -cliets/-servers");
@@ -1017,18 +1008,24 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
 
     private void createIbis() throws Exception {
 
-        if (USE_RESIZEHANDLER || rank == -1) {
-            rszHandler = new RszHandler();
-        }
+        rszHandler = new RszHandler();
 
-        CapabilitySet s = new CapabilitySet(SERIALIZATION_OBJECT,
-                COMMUNICATION_RELIABLE, RECEIVE_AUTO_UPCALLS,
-                RECEIVE_EXPLICIT, CONNECTION_UPCALLS,
-                sequenced ? COMMUNICATION_NUMBERED : COMMUNICATION_FIFO,
-                REGISTRY_EVENTS,
-                CONNECTION_ONE_TO_MANY, CONNECTION_MANY_TO_ONE);
+        IbisCapabilities s = new IbisCapabilities(
+                IbisCapabilities.WORLDMODEL_CLOSED,
+                IbisCapabilities.REGISTRY_UPCALLS);
+        requestPortType = new PortType(PortType.SERIALIZATION_OBJECT,
+                PortType.COMMUNICATION_RELIABLE, PortType.RECEIVE_AUTO_UPCALLS,
+                PortType.RECEIVE_EXPLICIT, PortType.CONNECTION_UPCALLS,
+                sequenced ? PortType.COMMUNICATION_NUMBERED : PortType.COMMUNICATION_FIFO,
+                PortType.CONNECTION_ONE_TO_MANY);
+        replyPortType = new PortType(PortType.SERIALIZATION_OBJECT,
+                PortType.COMMUNICATION_RELIABLE, PortType.RECEIVE_AUTO_UPCALLS,
+                PortType.RECEIVE_EXPLICIT, PortType.CONNECTION_UPCALLS,
+                sequenced ? PortType.COMMUNICATION_NUMBERED : PortType.COMMUNICATION_FIFO,
+                PortType.CONNECTION_MANY_TO_ONE);
 
-        myIbis = IbisFactory.createIbis(s, null, null, rszHandler);
+        myIbis = IbisFactory.createIbis(s, null, rszHandler, requestPortType,
+                replyPortType);
 
         Runtime.getRuntime().addShutdownHook(new Thread() {
             public void run() {
@@ -1042,24 +1039,8 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
             }
         });
 
-        s = new CapabilitySet(SERIALIZATION_OBJECT,
-                COMMUNICATION_RELIABLE, RECEIVE_AUTO_UPCALLS,
-                RECEIVE_EXPLICIT, CONNECTION_UPCALLS,
-                sequenced ? COMMUNICATION_NUMBERED : COMMUNICATION_FIFO,
-                CONNECTION_ONE_TO_MANY);
-        requestPortType = s;
-
-        s = new CapabilitySet(SERIALIZATION_OBJECT,
-                COMMUNICATION_RELIABLE, RECEIVE_AUTO_UPCALLS,
-                RECEIVE_EXPLICIT, CONNECTION_UPCALLS,
-                sequenced ? COMMUNICATION_NUMBERED : COMMUNICATION_FIFO,
-                CONNECTION_MANY_TO_ONE);
-        replyPortType = s;
-
-        if (rank == -1 && rszHandler != null) {
-            rszHandler.sync(clients + servers);
-            rank = rszHandler.idents.indexOf(myIbis.identifier());
-        }
+        ncpus = myIbis.totalNrOfIbisesInPool();
+        
     }
 
     private void registerIbis() throws IOException {
@@ -1135,12 +1116,19 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
     RPC(String[] args, RPC client) {
         try {
 
+            if (client == null) {
+                createIbis();
+            }
+
             parseArgs(args);
             parseIbisName();
             parseDataType();
 
             if (client == null) {
-                createIbis();
+                if (rank == -1 && rszHandler != null) {
+                    rszHandler.sync(clients + servers);
+                    rank = rszHandler.idents.indexOf(myIbis.identifier());
+                }
                 // Timer timer = Timer.createTimer();
                 // timer.start();
                 registerIbis();

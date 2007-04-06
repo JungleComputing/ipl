@@ -1,7 +1,7 @@
 package ibis.ipl.impl.stacking.dummy;
 
-import ibis.ipl.CapabilitySet;
 import ibis.ipl.MessageUpcall;
+import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.ReceivePortIdentifier;
@@ -13,7 +13,7 @@ import java.util.Map;
 public class StackingReceivePort implements ibis.ipl.ReceivePort {
 
     final ibis.ipl.ReceivePort base;
-    final CapabilitySet type;
+    final PortType type;
     final ibis.ipl.impl.ReceivePortIdentifier identifier;
 
     private static final class ConnectUpcaller
@@ -52,7 +52,7 @@ public class StackingReceivePort implements ibis.ipl.ReceivePort {
         }
     }
     
-    public StackingReceivePort(CapabilitySet type, StackingIbis ibis,
+    public StackingReceivePort(PortType type, StackingIbis ibis,
             String name, MessageUpcall upcall, ReceivePortConnectUpcall connectUpcall)
             throws IOException {
         this.type = type;
@@ -98,7 +98,7 @@ public class StackingReceivePort implements ibis.ipl.ReceivePort {
         return base.getCount();
     }
 
-    public CapabilitySet getType() {
+    public PortType getType() {
         return type;
     }
 

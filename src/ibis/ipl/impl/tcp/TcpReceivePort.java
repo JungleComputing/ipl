@@ -4,8 +4,8 @@ package ibis.ipl.impl.tcp;
 
 import ibis.io.BufferedArrayInputStream;
 import ibis.io.Conversion;
-import ibis.ipl.CapabilitySet;
 import ibis.ipl.MessageUpcall;
+import ibis.ipl.PortType;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.impl.Ibis;
 import ibis.ipl.impl.ReadMessage;
@@ -130,14 +130,14 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
 
     private boolean reader_busy = false;
 
-    TcpReceivePort(Ibis ibis, CapabilitySet type, String name, MessageUpcall upcall,
+    TcpReceivePort(Ibis ibis, PortType type, String name, MessageUpcall upcall,
             ReceivePortConnectUpcall connUpcall) {
         super(ibis, type, name, upcall, connUpcall);
 
         no_connectionhandler_thread = upcall == null && connUpcall == null
-                && type.hasCapability(CONNECTION_ONE_TO_ONE)
-                && !type.hasCapability(RECEIVE_POLL)
-                && !type.hasCapability(RECEIVE_TIMEOUT);
+                && type.hasCapability(PortType.CONNECTION_ONE_TO_ONE)
+                && !type.hasCapability(PortType.RECEIVE_POLL)
+                && !type.hasCapability(PortType.RECEIVE_TIMEOUT);
     }
 
     public void messageArrived(ReadMessage msg) {

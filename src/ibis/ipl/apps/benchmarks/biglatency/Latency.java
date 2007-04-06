@@ -3,12 +3,12 @@ package ibis.ipl.apps.benchmarks.biglatency;
 /* $Id$ */
 
 
-import ibis.ipl.CapabilitySet;
 import ibis.ipl.Ibis;
+import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisFactory;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.MessageUpcall;
-import ibis.ipl.PredefinedCapabilities;
+import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.Registry;
@@ -164,7 +164,7 @@ class UpcallReceiver implements MessageUpcall {
     }
 }
 
-class Latency implements PredefinedCapabilities {
+class Latency {
 
     static Ibis ibis;
 
@@ -183,14 +183,20 @@ class Latency implements PredefinedCapabilities {
         }
 
         try {
-            CapabilitySet p = new CapabilitySet(SERIALIZATION_OBJECT,
-                    COMMUNICATION_RELIABLE,
-                    CONNECTION_ONE_TO_ONE,
-                    RECEIVE_AUTO_UPCALLS, RECEIVE_EXPLICIT);
-            ibis = IbisFactory.createIbis(p, null, null, null);
+            IbisCapabilities p = new IbisCapabilities(
+                    IbisCapabilities.WORLDMODEL_OPEN
+            );
+            
+            PortType t = new PortType(
+                    PortType.SERIALIZATION_OBJECT,
+                    PortType.COMMUNICATION_RELIABLE,
+                    PortType.CONNECTION_ONE_TO_ONE,
+                    PortType.RECEIVE_AUTO_UPCALLS,
+                    PortType.RECEIVE_EXPLICIT);
+            
+            ibis = IbisFactory.createIbis(p, null, null, t);
             registry = ibis.registry();
-            CapabilitySet t = p;
-
+ 
             SendPort sport = ibis.createSendPort(t);
             ReceivePort rport;
             IbisIdentifier master = registry.elect("latency");

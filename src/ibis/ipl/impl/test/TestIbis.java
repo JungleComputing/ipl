@@ -2,10 +2,11 @@
 
 package ibis.ipl.impl.test;
 
-import ibis.ipl.CapabilitySet;
 import ibis.ipl.Ibis;
+import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisFactory;
 import ibis.ipl.IbisIdentifier;
+import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortIdentifier;
@@ -20,13 +21,12 @@ import junit.framework.TestSuite;
 /**
  * Simple Ibis test, on a single Ibis instance.
  */
-public final class TestIbis extends TestCase
-        implements ibis.ipl.PredefinedCapabilities {
+public final class TestIbis extends TestCase {
     static final int COUNT = 100;
 
     Ibis ibis;
     Registry registry;
-    CapabilitySet oneToOneType;
+    PortType oneToOneType;
 
     public static Test suite() {
         return new TestSuite(TestIbis.class);
@@ -34,11 +34,14 @@ public final class TestIbis extends TestCase
 
     public void testIbis() {
         try {
-            oneToOneType = new CapabilitySet(
-                COMMUNICATION_RELIABLE, SERIALIZATION_OBJECT, RECEIVE_EXPLICIT,
-                CONNECTION_ONE_TO_ONE);
+            oneToOneType = new PortType(
+                PortType.COMMUNICATION_RELIABLE,
+                PortType.SERIALIZATION_OBJECT,
+                PortType.RECEIVE_EXPLICIT,
+                PortType.CONNECTION_ONE_TO_ONE);
 
-            ibis = IbisFactory.createIbis(oneToOneType, null, null, null);
+            ibis = IbisFactory.createIbis(new IbisCapabilities(IbisCapabilities.WORLDMODEL_OPEN),
+                    null, null, oneToOneType);
 
             registry = ibis.registry();
 

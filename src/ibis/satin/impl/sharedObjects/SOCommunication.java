@@ -7,8 +7,8 @@
  */
 package ibis.satin.impl.sharedObjects;
 
-import ibis.ipl.CapabilitySet;
 import ibis.ipl.IbisIdentifier;
+import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortIdentifier;
@@ -71,8 +71,7 @@ class OmcInfo implements Config {
     }
 }
 
-final class SOCommunication implements Config, Protocol, SendDoneUpcaller,
-        ibis.ipl.PredefinedCapabilities {
+final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
     private static final boolean ASYNC_SO_BCAST = false;
 
     private final static int WAIT_FOR_UPDATES_TIME = 60000;
@@ -89,7 +88,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller,
     /** used to broadcast shared object invocations */
     private SendPort soSendPort;
 
-    private CapabilitySet soPortType;
+    private PortType soPortType;
 
     /** used to do message combining on soSendPort */
     private MessageCombiner soMessageCombiner;
@@ -152,11 +151,11 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller,
         }
     }
 
-    private CapabilitySet createSOPortType() throws IOException {
-        return new CapabilitySet(
-                CONNECTION_ONE_TO_MANY, CONNECTION_UPCALLS,
-                CONNECTION_DOWNCALLS, RECEIVE_EXPLICIT, RECEIVE_AUTO_UPCALLS,
-                SERIALIZATION_OBJECT);
+    private PortType createSOPortType() throws IOException {
+        return new PortType(
+                PortType.CONNECTION_ONE_TO_MANY, PortType.CONNECTION_UPCALLS,
+                PortType.CONNECTION_DOWNCALLS, PortType.RECEIVE_EXPLICIT, PortType.RECEIVE_AUTO_UPCALLS,
+                PortType.SERIALIZATION_OBJECT);
     }
 
     /**

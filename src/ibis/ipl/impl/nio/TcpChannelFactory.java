@@ -2,9 +2,9 @@
 
 package ibis.ipl.impl.nio;
 
-import ibis.ipl.CapabilitySet;
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.ConnectionTimedOutException;
+import ibis.ipl.PortType;
 import ibis.ipl.impl.ReceivePort;
 import ibis.ipl.impl.ReceivePortIdentifier;
 import ibis.ipl.impl.SendPortIdentifier;
@@ -225,7 +225,7 @@ class TcpChannelFactory implements ChannelFactory, Protocol {
         byte request;
         String name;
         SendPortIdentifier spi = null;
-        CapabilitySet capabilities = null;
+        PortType capabilities = null;
         ReceivePortIdentifier rpi;
         NioReceivePort rp = null;
         ChannelDissipator dissipator = new ChannelDissipator(channel);
@@ -256,7 +256,7 @@ class TcpChannelFactory implements ChannelFactory, Protocol {
 
             name = d.readUTF();
             spi = new SendPortIdentifier(d);
-            capabilities = new CapabilitySet(d);
+            capabilities = new PortType(d);
             rpi = new ReceivePortIdentifier(name, ibis.ident);
 
             rp = (NioReceivePort) ibis.findReceivePort(name);

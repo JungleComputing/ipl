@@ -26,7 +26,7 @@ import java.util.Properties;
  * capabilities, but Ibis implementations may add new ones.
  * A <code>CapabilitySet</code> object is immutable.
  */
-public final class CapabilitySet {
+class CapabilitySet {
 
     private transient byte[] codedForm;
 
@@ -79,7 +79,7 @@ public final class CapabilitySet {
      * Properties object.
      * @param sp the specified values.
      */
-    private CapabilitySet(Properties sp) {
+    protected CapabilitySet(Properties sp) {
         for (Enumeration e = sp.propertyNames(); e.hasMoreElements();) {
             String name = (String) e.nextElement();
             String value = sp.getProperty(name);
@@ -225,85 +225,11 @@ public final class CapabilitySet {
     }
 
     /**
-     * Computes and returns the result of subtracting the specified capability
-     * set from this capability set.
-     * @param sp the capabilities to subtract.
-     * @return the result.
-     */
-    public CapabilitySet subtract(CapabilitySet sp) {
-        CapabilitySet c = new CapabilitySet();
-        for (String cap : booleanCapabilities) {
-            if (! sp.hasCapability(cap)) {
-                c.booleanCapabilities.add(cap);
-            }
-        }
-        for (String cap : stringCapabilities.keySet()) {
-            if (! stringCapabilities.get(cap).equals(
-                        sp.stringCapabilities.get(cap))) {
-                c.stringCapabilities.put(cap, stringCapabilities.get(cap));
-            }
-        }
-        c.codedForm = computeCodedForm();
-        return c;
-    }
-
-    /**
-     * Computes and returns the intersection of this capability set with the
-     * specified capability set.
-     * @param sp the capabilities to intersect with.
-     * @return the intersection.
-     */
-    public CapabilitySet intersect(CapabilitySet sp) {
-        CapabilitySet c = new CapabilitySet();
-        for (String cap : booleanCapabilities) {
-            if (sp.hasCapability(cap)) {
-                c.booleanCapabilities.add(cap);
-            }
-        }
-        for (String cap : stringCapabilities.keySet()) {
-            if (stringCapabilities.get(cap).equals(
-                        sp.stringCapabilities.get(cap))) {
-                c.stringCapabilities.put(cap, stringCapabilities.get(cap));
-            }
-        }
-        c.codedForm = computeCodedForm();
-        return c;
-    }
-
-    /**
-     * Computes and returns the union of this capability set with the
-     * specified capability set.
-     * @param sp the capabilities to unite with.
-     * @return the union.
-     */
-    public CapabilitySet uniteWith(CapabilitySet sp) {
-        CapabilitySet c = (CapabilitySet) sp.clone();
-        for (String cap : booleanCapabilities) {
-            if (! sp.hasCapability(cap)) {
-                c.booleanCapabilities.add(cap);
-            }
-        }
-        for (String cap : stringCapabilities.keySet()) {
-            c.stringCapabilities.put(cap, stringCapabilities.get(cap));
-        }
-        c.codedForm = computeCodedForm();
-        return c;
-    }
-
-    /**
      * Computes and returns the number of entries in this capability set.
      * @return the number of entries.
      */
     public int size() {
         return booleanCapabilities.size() + stringCapabilities.size();
-    }
-
-    /**
-     * Creates and returns a clone of this.
-     * @return a clone.
-     */
-    public Object clone() {
-        return new CapabilitySet(this);
     }
 
     /**

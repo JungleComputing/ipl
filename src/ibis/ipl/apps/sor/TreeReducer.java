@@ -13,15 +13,14 @@ package ibis.ipl.apps.sor;
  * @author Rutger Hofman
  */
 
-import ibis.ipl.CapabilitySet;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisIdentifier;
+import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.Registry;
 import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
-import ibis.util.PoolInfo;
 import ibis.util.TypedProperties;
 
 import java.io.IOException;
@@ -49,18 +48,15 @@ public class TreeReducer extends Reducer {
         // then I will know *why*.
     }
 
-    public TreeReducer(Ibis ibis, PoolInfo info) throws IOException {
+    public TreeReducer(Ibis ibis, int rank, int size) throws IOException {
 
-        int rank = info.rank();
-        int size = info.size();
+        PortType portTypeReduce = new PortType(PortType.SERIALIZATION_DATA,
+                PortType.CONNECTION_MANY_TO_ONE, PortType.COMMUNICATION_RELIABLE,
+                PortType.RECEIVE_EXPLICIT);
 
-        CapabilitySet portTypeReduce = new CapabilitySet(SERIALIZATION_DATA,
-                CONNECTION_ONE_TO_ONE, COMMUNICATION_RELIABLE,
-                RECEIVE_EXPLICIT);
-
-        CapabilitySet portTypeBroadcast = new CapabilitySet(SERIALIZATION_DATA,
-                CONNECTION_ONE_TO_MANY, COMMUNICATION_RELIABLE,
-                RECEIVE_EXPLICIT);
+        PortType portTypeBroadcast = new PortType(PortType.SERIALIZATION_DATA,
+                PortType.CONNECTION_ONE_TO_MANY, PortType.COMMUNICATION_RELIABLE,
+                PortType.RECEIVE_EXPLICIT);
         
         if (rank == 0) {
             parent = LEAF_NODE;

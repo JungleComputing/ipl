@@ -2,7 +2,7 @@
 
 package ibis.gmi;
 
-import ibis.ipl.CapabilitySet;
+import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortIdentifier;
@@ -22,9 +22,9 @@ class MulticastGroups {
     private static final HashMap<String, SendPort> sendPorts
             = new HashMap<String, SendPort>();
     
-    private static CapabilitySet portType;
+    private static PortType portType;
             
-    static void init(CapabilitySet type) { 
+    static void init(PortType type) { 
         portType = type;
     }
     

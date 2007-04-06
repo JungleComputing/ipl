@@ -2,12 +2,12 @@ package ibis.ipl.apps.cell1d;
 
 // File: $Id$
 
-import ibis.ipl.CapabilitySet;
 import ibis.ipl.Ibis;
+import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisFactory;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.MessageUpcall;
-import ibis.ipl.PredefinedCapabilities;
+import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.Registry;
@@ -162,7 +162,7 @@ class LevelRecorder implements MessageUpcall {
     }
 }
 
-class OpenCell1D implements OpenConfig, PredefinedCapabilities {
+class OpenCell1D implements OpenConfig {
     static Ibis ibis;
     static Registry registry;
     static IbisIdentifier leftNeighbour;
@@ -215,7 +215,7 @@ class OpenCell1D implements OpenConfig, PredefinedCapabilities {
      * @param dest The destination processor.
      * @param prefix The prefix of the port names.
      */
-    private static SendPort createNeighbourSendPort( CapabilitySet updatePort, IbisIdentifier dest, String prefix )
+    private static SendPort createNeighbourSendPort( PortType updatePort, IbisIdentifier dest, String prefix )
         throws java.io.IOException
     {
         String sendportname = prefix + "Send" + myName;
@@ -238,7 +238,7 @@ class OpenCell1D implements OpenConfig, PredefinedCapabilities {
      * @param updatePort The type of the port to construct.
      * @param prefix The prefix of the port names.
      */
-    private static ReceivePort createNeighbourReceivePort( CapabilitySet updatePort, String prefix, MessageUpcall up )
+    private static ReceivePort createNeighbourReceivePort( PortType updatePort, String prefix, MessageUpcall up )
         throws java.io.IOException
     {
         String receiveportname = prefix + "Receive" + myName;
@@ -852,30 +852,28 @@ class OpenCell1D implements OpenConfig, PredefinedCapabilities {
 
         try {
             // The properties of Ibis; the union of the properties below.
-            CapabilitySet iprop = new CapabilitySet(
-                    SERIALIZATION_DATA, COMMUNICATION_RELIABLE,
-                    CONNECTION_ONE_TO_ONE,
-                    RECEIVE_AUTO_UPCALLS, RECEIVE_EXPLICIT);
+            IbisCapabilities iprop = new IbisCapabilities(
+                    IbisCapabilities.WORLDMODEL_OPEN);
 
             // The properties of the update port.
-            CapabilitySet uprop = new CapabilitySet(SERIALIZATION_DATA,
-                    CONNECTION_ONE_TO_ONE,
-                    COMMUNICATION_RELIABLE, RECEIVE_EXPLICIT);
+            PortType uprop = new PortType(PortType.SERIALIZATION_DATA,
+                    PortType.CONNECTION_ONE_TO_ONE,
+                    PortType.COMMUNICATION_RELIABLE, PortType.RECEIVE_EXPLICIT);
 
             // The properties of the worksteal port.
-            CapabilitySet sprop = new CapabilitySet(SERIALIZATION_DATA,
-                    CONNECTION_ONE_TO_ONE,
-                    COMMUNICATION_RELIABLE, RECEIVE_AUTO_UPCALLS,
-                    REGISTRY_EVENTS);
-            ibis = IbisFactory.createIbis( iprop, null, null, rszHandler );
+            PortType sprop = new PortType(PortType.SERIALIZATION_DATA,
+                    PortType.CONNECTION_ONE_TO_ONE,
+                    PortType.COMMUNICATION_RELIABLE, PortType.RECEIVE_AUTO_UPCALLS,
+                    IbisCapabilities.REGISTRY_UPCALLS);
+            ibis = IbisFactory.createIbis( iprop, null, rszHandler, uprop, sprop );
             myName = ibis.identifier();
 
             registry = ibis.registry();
 
             // TODO: be more precise about the properties for the two
             // port types.
-            CapabilitySet updatePort = uprop;
-            CapabilitySet stealPort = sprop;
+            PortType updatePort = uprop;
+            PortType stealPort = sprop;
 
             long startTime = System.currentTimeMillis();
             ibis.enableRegistryEvents();

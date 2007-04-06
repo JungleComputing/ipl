@@ -2,15 +2,16 @@
 
 package ibis.ipl.apps.example;
 
-import ibis.ipl.CapabilitySet;
 import ibis.ipl.Ibis;
+import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisFactory;
 import ibis.ipl.IbisIdentifier;
+import ibis.ipl.MessageUpcall;
+import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.Registry;
 import ibis.ipl.SendPort;
-import ibis.ipl.MessageUpcall;
 import ibis.ipl.WriteMessage;
 
 import java.io.BufferedReader;
@@ -22,13 +23,13 @@ import java.io.IOException;
  * Programmers manual. A server computes lengths of strings, and
  * a client supplies the server with strings.
  */
-public class Example implements ibis.ipl.PredefinedCapabilities {
+public class Example {
 
     /** The ibis instance. */
     Ibis ibis;
 
     /** The port type for both send and receive ports.  */
-    CapabilitySet porttype;
+    PortType porttype;
 
     /** Registry where receive ports are registered.  */
     Registry rgstry;
@@ -171,14 +172,17 @@ public class Example implements ibis.ipl.PredefinedCapabilities {
 
     private void run() {
         // Create properties for the Ibis to be created.
-        CapabilitySet props = new CapabilitySet(
-                SERIALIZATION_OBJECT, WORLDMODEL_CLOSED, CONNECTION_ONE_TO_ONE,
-                COMMUNICATION_RELIABLE, RECEIVE_EXPLICIT, RECEIVE_AUTO_UPCALLS
-        );
+        IbisCapabilities props = new IbisCapabilities(
+                IbisCapabilities.WORLDMODEL_CLOSED);
 
+        // Create properties for the port type
+        porttype = new PortType(
+            PortType.COMMUNICATION_RELIABLE, PortType.SERIALIZATION_OBJECT,
+            PortType.RECEIVE_EXPLICIT, PortType.RECEIVE_AUTO_UPCALLS, PortType.CONNECTION_ONE_TO_ONE
+        );
         // Create an Ibis
         try {
-            ibis = IbisFactory.createIbis(props, null, null, null);
+            ibis = IbisFactory.createIbis(props, null, null, porttype);
         } catch (Exception e) {
             System.err.println("Could not create Ibis: " + e);
             e.printStackTrace();
@@ -196,12 +200,6 @@ public class Example implements ibis.ipl.PredefinedCapabilities {
                 }
             }
         });
-
-        // Create properties for the port type
-        porttype = new CapabilitySet(
-            COMMUNICATION_RELIABLE, SERIALIZATION_OBJECT,
-            RECEIVE_EXPLICIT, RECEIVE_AUTO_UPCALLS, CONNECTION_ONE_TO_ONE
-        );
 
         // Elect a server
         IbisIdentifier me = ibis.identifier();

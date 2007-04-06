@@ -2,10 +2,11 @@
 
 package ibis.ipl.impl;
 
-import ibis.ipl.CapabilitySet;
+import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.IbisProperties;
 import ibis.ipl.MessageUpcall;
+import ibis.ipl.PortType;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.SendPortDisconnectUpcall;
@@ -26,7 +27,7 @@ import org.apache.log4j.Logger;
  * is a base class, to be extended by specific Ibis implementations.
  */
 public abstract class Ibis extends Managable implements ibis.ipl.Ibis,
-       RegistryEventHandler, ibis.ipl.PredefinedCapabilities {
+       RegistryEventHandler {
 
     /** Debugging output. */
     private static final Logger logger = Logger.getLogger("ibis.ipl.impl.Ibis");
@@ -34,17 +35,16 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis,
     /** A user-supplied registry handler, with join/leave upcalls. */
     protected final RegistryEventHandler registryHandler;
 
-    /**
-     * CapabilitySet, as derived from the capabilities passed to
-     * {@link ibis.ipl.IbisFactory#createIbis(CapabilitySet, CapabilitySet
-     * Properties, RegistryEventHandler)} and the capabilities of this ibis.
-     */
-    public final CapabilitySet capabilities;
+    /** The IbisCapabilities as specified by the user. */
+    public final IbisCapabilities capabilities;
 
+    /** List of port types given by the user */
+    public final PortType[] portTypes;
+    
     /**
      * Properties, as given to
-     * {@link ibis.ipl.IbisFactory#createIbis(CapabilitySet, CapabilitySet,
-     * Properties, RegistryEventHandler)}.
+     * {@link ibis.ipl.IbisFactory#createIbis(CapabilitySet,
+     * Properties, RegistryEventHandler, PortType...)}.
      */
     protected TypedProperties properties;
 
@@ -89,18 +89,25 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis,
      * Constructs an <code>Ibis</code> instance with the specified parameters.
      * @param registryHandler the registryHandler.
      * @param caps the capabilities.
+     * @param portTypes the port types requested for this ibis implementation.
      * @param userProperties the properties as provided by the Ibis factory.
      * @param defaultProperties the default properties of this particular
      * ibis implementation.
      */
-    protected Ibis(RegistryEventHandler registryHandler, CapabilitySet caps,
-            Properties userProperties,Properties defaultProperties) {
-        closedWorld = caps.hasCapability(WORLDMODEL_CLOSED);
+    protected Ibis(RegistryEventHandler registryHandler, IbisCapabilities caps,
+            PortType[] portTypes,
+            Properties userProperties, Properties defaultProperties) {
+        
+        checkIbisCapabilities(caps);
+        checkPortTypes(portTypes);
+        
+        closedWorld = caps.hasCapability(IbisCapabilities.WORLDMODEL_CLOSED);
         boolean needsRegistryCalls = registryHandler != null
-                || caps.hasCapability(RESIZE_DOWNCALLS)
+                || caps.hasCapability(IbisCapabilities.REGISTRY_DOWNCALLS)
                 || closedWorld;
         this.registryHandler = registryHandler;
         this.capabilities = caps;
+        this.portTypes = portTypes;
         
         Log.initLog4J("ibis");
 
@@ -134,7 +141,7 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis,
         } else {
             numInstances = -1;
         }
-        if (caps.hasCapability(RESIZE_DOWNCALLS)) {
+        if (caps.hasCapability(IbisCapabilities.REGISTRY_DOWNCALLS)) {
             joinedIbises = new HashSet<ibis.ipl.IbisIdentifier>();
             leftIbises = new HashSet<ibis.ipl.IbisIdentifier>();
         } else {
@@ -143,11 +150,77 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis,
         }
     }
 
+    protected void checkIbisCapabilities(IbisCapabilities caps) {
+        int cnt = 0;
+        if (caps.hasCapability(IbisCapabilities.WORLDMODEL_OPEN)) {
+            cnt++;
+        }
+        if (caps.hasCapability(IbisCapabilities.WORLDMODEL_CLOSED)) {
+            cnt++;
+        }
+        if (cnt != 1) {
+            throw new IbisConfigurationException("IbisCapabilities should"
+                    + " either have worldmodel.open or worldmodel.closed");
+        }
+        cnt = 0;
+
+        if (! caps.matchCapabilities(getCapabilities())) {
+            throw new IbisConfigurationException("unmatched IbisCapabilities: "
+                    + caps.unmatchedCapabilities(getCapabilities()));
+        }
+    }
+    
+    protected void checkPortTypes(PortType[] types) {
+        for (PortType tp: types) {
+            checkPortType(tp);
+        }
+    }
+    
+    protected void checkPortType(PortType tp){
+        if (! tp.matchCapabilities(getPortCapabilities())) {
+            throw new IbisConfigurationException("unmatched capabilities in port type: "
+                    + tp.unmatchedCapabilities(getPortCapabilities()));
+        }
+        int cnt = 0;
+        if (tp.hasCapability(PortType.CONNECTION_MANY_TO_MANY)) {
+            cnt++;
+        }
+        if (tp.hasCapability(PortType.CONNECTION_ONE_TO_ONE)) {
+            cnt++;
+        }
+        if (tp.hasCapability(PortType.CONNECTION_ONE_TO_MANY)) {
+            cnt++;
+        }
+        if (tp.hasCapability(PortType.CONNECTION_MANY_TO_ONE)) {
+            cnt++;
+        }
+        if (cnt != 1) {
+            throw new IbisConfigurationException("PortType should"
+                    + "specify exactly one connection type");
+        }
+        String[] caps = tp.getCapabilities();
+        boolean ok = false;
+        for (String s : caps) {
+            if (s.startsWith(PortType.SERIALIZATION)) {
+                ok = true;
+                break;
+            }
+        }
+        if (! ok) {
+            throw new IbisConfigurationException("Port type should"
+                    + " specify serialization");
+        }
+    }
+    
+    protected abstract IbisCapabilities getCapabilities();
+    
+    protected abstract PortType getPortCapabilities();
+    
     protected Registry initializeRegistry(RegistryEventHandler handler) {
         try {
             return Registry.createRegistry(handler, properties, getData());
         } catch(Throwable e) {
-            throw new IbisConfigurationException("Coulld not create registry",
+            throw new IbisConfigurationException("Could not create registry",
                     e);
         }
     }
@@ -328,10 +401,6 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis,
         registryUpcallerEnabled = false;
     }
 
-    public CapabilitySet capabilities() {
-        return capabilities;
-    }
-
     /**
      * Returns the current Ibis version.
      * @return the ibis version.
@@ -457,20 +526,20 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis,
      */
     protected abstract byte[] getData() throws IOException;
 
-    public ibis.ipl.SendPort createSendPort(CapabilitySet tp)
+    public ibis.ipl.SendPort createSendPort(PortType tp)
             throws IOException {
         return createSendPort(tp, null, null);
     }
 
-    public ibis.ipl.SendPort createSendPort(CapabilitySet tp, String name)
+    public ibis.ipl.SendPort createSendPort(PortType tp, String name)
             throws IOException {
         return createSendPort(tp, name, null);
     }
 
-    public ibis.ipl.SendPort createSendPort(CapabilitySet tp, String name,
+    public ibis.ipl.SendPort createSendPort(PortType tp, String name,
             SendPortDisconnectUpcall cU) throws IOException {
         if (cU != null) {
-            if (! tp.hasCapability(CONNECTION_UPCALLS)) {
+            if (! tp.hasCapability(PortType.CONNECTION_UPCALLS)) {
                 throw new IbisConfigurationException(
                         "no connection upcalls requested for this port type");
             }
@@ -496,40 +565,40 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis,
      * @exception java.io.IOException is thrown when the port could not be
      * created.
      */
-    protected abstract ibis.ipl.SendPort doCreateSendPort(CapabilitySet tp,
+    protected abstract ibis.ipl.SendPort doCreateSendPort(PortType tp,
             String name, SendPortDisconnectUpcall cU) throws IOException;
 
-    public ibis.ipl.ReceivePort createReceivePort(CapabilitySet tp, String name)
+    public ibis.ipl.ReceivePort createReceivePort(PortType tp, String name)
             throws IOException {
         return createReceivePort(tp, name, null, null);
     }
 
-    public ibis.ipl.ReceivePort createReceivePort(CapabilitySet tp, String name,
+    public ibis.ipl.ReceivePort createReceivePort(PortType tp, String name,
             MessageUpcall u) throws IOException {
         return createReceivePort(tp, name, u, null);
     }
 
-    public ibis.ipl.ReceivePort createReceivePort(CapabilitySet tp, String name,
+    public ibis.ipl.ReceivePort createReceivePort(PortType tp, String name,
             ReceivePortConnectUpcall cU) throws IOException {
         return createReceivePort(tp, name, null, cU);
     }
 
-    public ibis.ipl.ReceivePort createReceivePort(CapabilitySet tp, String name,
+    public ibis.ipl.ReceivePort createReceivePort(PortType tp, String name,
             MessageUpcall u, ReceivePortConnectUpcall cU) throws IOException {
         if (cU != null) {
-            if (!tp.hasCapability(CONNECTION_UPCALLS)) {
+            if (!tp.hasCapability(PortType.CONNECTION_UPCALLS)) {
                 throw new IbisConfigurationException(
                         "no connection upcalls requested for this port type");
             }
         }
         if (u != null) {
-            if (!tp.hasCapability(RECEIVE_AUTO_UPCALLS)
-                    && !tp.hasCapability(RECEIVE_POLL_UPCALLS)) {
+            if (! tp.hasCapability(PortType.RECEIVE_AUTO_UPCALLS)
+                   && !tp.hasCapability(PortType.RECEIVE_POLL_UPCALLS)) {
                 throw new IbisConfigurationException(
                         "no message upcalls requested for this port type");
             }
         } else {
-            if (!tp.hasCapability(RECEIVE_EXPLICIT)) {
+            if (!tp.hasCapability(PortType.RECEIVE_EXPLICIT)) {
                 throw new IbisConfigurationException(
                         "no explicit receive requested for this port type");
             }
@@ -562,6 +631,6 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis,
      * created.
      */
     protected abstract ibis.ipl.ReceivePort doCreateReceivePort(
-            CapabilitySet tp, String name, MessageUpcall u,
+            PortType tp, String name, MessageUpcall u,
             ReceivePortConnectUpcall cU) throws IOException;
 }

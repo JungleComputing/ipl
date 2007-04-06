@@ -6,7 +6,7 @@ import ibis.io.BufferedArrayOutputStream;
 import ibis.io.Conversion;
 import ibis.io.OutputStreamSplitter;
 import ibis.io.SplitterException;
-import ibis.ipl.CapabilitySet;
+import ibis.ipl.PortType;
 import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.ipl.impl.Ibis;
 import ibis.ipl.impl.ReceivePortIdentifier;
@@ -46,13 +46,13 @@ final class TcpSendPort extends SendPort implements TcpProtocol {
 
     final BufferedArrayOutputStream bufferedStream;
 
-    TcpSendPort(Ibis ibis, CapabilitySet type, String name,
+    TcpSendPort(Ibis ibis, PortType type, String name,
             SendPortDisconnectUpcall cU) throws IOException {
         super(ibis, type, name, cU);
 
         splitter = new OutputStreamSplitter(
-                ! type.hasCapability(CONNECTION_ONE_TO_ONE) &&
-                ! type.hasCapability(CONNECTION_MANY_TO_ONE),
+                ! type.hasCapability(PortType.CONNECTION_ONE_TO_ONE) &&
+                ! type.hasCapability(PortType.CONNECTION_MANY_TO_ONE),
                 false);
 
         bufferedStream = new BufferedArrayOutputStream(splitter);
@@ -90,7 +90,7 @@ final class TcpSendPort extends SendPort implements TcpProtocol {
 
     protected void announceNewMessage() throws IOException {
         out.writeByte(NEW_MESSAGE);
-        if (type.hasCapability(COMMUNICATION_NUMBERED)) {
+        if (type.hasCapability(PortType.COMMUNICATION_NUMBERED)) {
             out.writeLong(ibis.registry().getSeqno(name));
         }
     }

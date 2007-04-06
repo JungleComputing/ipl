@@ -2,9 +2,9 @@
 
 package ibis.ipl.impl.nio;
 
-import ibis.ipl.CapabilitySet;
 import ibis.ipl.ConnectionClosedException;
 import ibis.ipl.MessageUpcall;
+import ibis.ipl.PortType;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.ReceiveTimedOutException;
 import ibis.ipl.impl.Ibis;
@@ -39,7 +39,7 @@ abstract class NioReceivePort extends ibis.ipl.impl.ReceivePort implements
         }
     }
 
-    NioReceivePort(Ibis ibis, CapabilitySet type, String name, MessageUpcall upcall,
+    NioReceivePort(Ibis ibis, PortType type, String name, MessageUpcall upcall,
             ReceivePortConnectUpcall connUpcall) throws IOException {
         super(ibis, type, name, upcall, connUpcall);
 
@@ -60,7 +60,7 @@ abstract class NioReceivePort extends ibis.ipl.impl.ReceivePort implements
      * 
      * @return the reply for the send port
      */
-    byte connectionRequested(SendPortIdentifier spi, CapabilitySet capabilities,
+    byte connectionRequested(SendPortIdentifier spi, PortType capabilities,
             Channel channel) {
         if (logger.isDebugEnabled()) {
             logger.debug("handling connection request");

@@ -2,11 +2,12 @@
 
 package ibis.gmi;
 
-import ibis.ipl.CapabilitySet;
 import ibis.ipl.Ibis;
+import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisFactory;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.NoMatchingIbisException;
+import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortIdentifier;
@@ -29,8 +30,7 @@ import org.apache.log4j.WriterAppender;
  * The {@link Group} class takes care of the startup, and has methods
  * to create, join, lookup, and exit a group.
  */
-public final class Group implements GroupProtocol,
-        ibis.ipl.PredefinedCapabilities {
+public final class Group implements GroupProtocol {
 
     static {
         Logger ibisLogger = Logger.getLogger("ibis");
@@ -72,10 +72,10 @@ public final class Group implements GroupProtocol,
     private static Registry ibisRegistry;
 
     /** Port types for ports used in GMI. */
-    private static CapabilitySet portTypeSystemUcast;    
-    private static CapabilitySet portTypeSystemMcast;    
-    private static CapabilitySet portTypeManyToOne;
-   // private static CapabilitySet portTypeOneToMany;
+    private static PortType portTypeSystemUcast;    
+    private static PortType portTypeSystemMcast;    
+    private static PortType portTypeManyToOne;
+   // private static PortType portTypeOneToMany;
       
     /** Unicast send ports, one for each destination node. */
     static SendPort[] unicast;
@@ -161,12 +161,35 @@ public final class Group implements GroupProtocol,
                 logger.debug("?: <static> - Init Group RTS");
             }
 
-            CapabilitySet reqprops = new CapabilitySet(
-                SERIALIZATION_OBJECT, WORLDMODEL_CLOSED, CONNECTION_MANY_TO_ONE,
-                CONNECTION_ONE_TO_MANY, COMMUNICATION_RELIABLE,
-                RECEIVE_AUTO_UPCALLS, RECEIVE_EXPLICIT);
+            IbisCapabilities reqprops = new IbisCapabilities(
+                IbisCapabilities.WORLDMODEL_CLOSED);
+
+            // Create the four port types used in GMI  
+
+            // System unicast (many to one) port type 
+            portTypeSystemUcast = new PortType(
+                    PortType.SERIALIZATION_OBJECT, PortType.CONNECTION_MANY_TO_ONE,
+                    PortType.COMMUNICATION_RELIABLE, PortType.RECEIVE_AUTO_UPCALLS,
+                    PortType.RECEIVE_EXPLICIT);
+            
+            // System unicast (many to one) port type 
+            portTypeSystemMcast = new PortType(
+                    PortType.SERIALIZATION_OBJECT, PortType.CONNECTION_ONE_TO_MANY,
+                    PortType.COMMUNICATION_RELIABLE, PortType.RECEIVE_EXPLICIT);
+           
+            // Unicast (many to one) port type            
+            portTypeManyToOne = new PortType(
+                    PortType.SERIALIZATION_OBJECT, PortType.CONNECTION_MANY_TO_ONE,
+                    PortType.COMMUNICATION_RELIABLE, PortType.RECEIVE_AUTO_UPCALLS);
+
+            // Multicast (one to many) port type            
+            PortType props = new PortType(
+                    PortType.SERIALIZATION_OBJECT, PortType.CONNECTION_ONE_TO_MANY,
+                    PortType.COMMUNICATION_RELIABLE, PortType.RECEIVE_AUTO_UPCALLS);
+
             try {
-                ibis = IbisFactory.createIbis(reqprops, null, null, null);
+                ibis = IbisFactory.createIbis(reqprops, null, null, portTypeSystemUcast,
+                        portTypeSystemMcast, portTypeSystemMcast, props);
             } catch (NoMatchingIbisException e) {
                 logger.warn("?: <static> - " + 
                         "Could not find an Ibis that can run this "
@@ -177,28 +200,6 @@ public final class Group implements GroupProtocol,
             name = ibis.identifier().toString();
             ibisRegistry = ibis.registry();
 
-            // Create the four port types used in GMI  
-
-            // System unicast (many to one) port type 
-            portTypeSystemUcast = new CapabilitySet(
-                    SERIALIZATION_OBJECT, CONNECTION_MANY_TO_ONE,
-                    COMMUNICATION_RELIABLE, RECEIVE_AUTO_UPCALLS,
-                    RECEIVE_EXPLICIT);
-            
-            // System unicast (many to one) port type 
-            portTypeSystemMcast = new CapabilitySet(
-                    SERIALIZATION_OBJECT, CONNECTION_ONE_TO_MANY,
-                    COMMUNICATION_RELIABLE, RECEIVE_EXPLICIT);
-           
-            // Unicast (many to one) port type            
-            portTypeManyToOne = new CapabilitySet(
-                    SERIALIZATION_OBJECT, CONNECTION_MANY_TO_ONE,
-                    COMMUNICATION_RELIABLE, RECEIVE_AUTO_UPCALLS);
-
-            // Multicast (one to many) port type            
-            CapabilitySet props = new CapabilitySet(
-                    SERIALIZATION_OBJECT, CONNECTION_ONE_TO_MANY,
-                    COMMUNICATION_RELIABLE, RECEIVE_AUTO_UPCALLS);
 
             MulticastGroups.init(props);
 

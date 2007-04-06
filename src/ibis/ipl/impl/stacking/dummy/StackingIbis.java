@@ -1,7 +1,8 @@
 package ibis.ipl.impl.stacking.dummy;
 
-import ibis.ipl.CapabilitySet;
+import ibis.ipl.IbisCapabilities;
 import ibis.ipl.MessageUpcall;
+import ibis.ipl.PortType;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.SendPortDisconnectUpcall;
@@ -16,12 +17,41 @@ import java.util.Properties;
 
 public class StackingIbis extends Ibis {
     private static int count = 0;
+    static final IbisCapabilities ibisCapabilities = new IbisCapabilities(
+            IbisCapabilities.WORLDMODEL_OPEN,
+            IbisCapabilities.WORLDMODEL_CLOSED,
+            IbisCapabilities.REGISTRY_DOWNCALLS,
+            IbisCapabilities.REGISTRY_UPCALLS,
+            "nickname.dummy"
+        );
+
+        static final PortType portCapabilities = new PortType(
+            PortType.SERIALIZATION_OBJECT,
+            PortType.SERIALIZATION_DATA,
+            PortType.SERIALIZATION_BYTE,
+            PortType.SERIALIZATION_REPLACER + "=*",
+            PortType.COMMUNICATION_FIFO,
+            PortType.COMMUNICATION_NUMBERED,
+            PortType.COMMUNICATION_RELIABLE,
+            PortType.CONNECTION_DOWNCALLS,
+            PortType.CONNECTION_UPCALLS,
+            PortType.CONNECTION_TIMEOUT,
+            PortType.CONNECTION_MANY_TO_MANY,
+            PortType.CONNECTION_MANY_TO_ONE,
+            PortType.CONNECTION_ONE_TO_MANY,
+            PortType.CONNECTION_ONE_TO_ONE,
+            PortType.RECEIVE_POLL,
+            PortType.RECEIVE_AUTO_UPCALLS,
+            PortType.RECEIVE_EXPLICIT,
+            PortType.RECEIVE_POLL_UPCALLS,
+            PortType.RECEIVE_TIMEOUT
+        );
 
     Ibis base;
 
     public StackingIbis(RegistryEventHandler registryHandler,
-            CapabilitySet caps, Properties tp) {
-        super(registryHandler, caps, tp, null);
+            IbisCapabilities caps, PortType[] types, Properties tp) {
+        super(registryHandler, caps, types, tp, null);
     }
 
     public void printStatistics(PrintStream out) {
@@ -36,15 +66,15 @@ public class StackingIbis extends Ibis {
         if (count < 5) {
             count++;
             if (handler != null) {
-                base = new StackingIbis(handler, capabilities, properties);
+                base = new StackingIbis(handler, capabilities, portTypes,  properties);
             } else {
-                base = new StackingIbis(null, capabilities, properties);
+                base = new StackingIbis(null, capabilities, portTypes, properties);
             }
         } else {
             if (handler != null) {
-                base = new TcpIbis(handler, capabilities, properties);
+                base = new TcpIbis(handler, capabilities, portTypes, properties);
             } else {
-                base = new TcpIbis(null, capabilities, properties);
+                base = new TcpIbis(null, capabilities, portTypes, properties);
             }
         }
         // return new ibis.ipl.impl.registry.ForwardingRegistry(base.registry());
@@ -108,16 +138,26 @@ public class StackingIbis extends Ibis {
     }
 
     @Override
-    protected ibis.ipl.ReceivePort doCreateReceivePort(CapabilitySet tp,
+    protected ibis.ipl.ReceivePort doCreateReceivePort(PortType tp,
             String name, MessageUpcall u, ReceivePortConnectUpcall cU)
             throws IOException {
         return new StackingReceivePort(tp, this, name, u, cU);
     }
 
     @Override
-    protected ibis.ipl.SendPort doCreateSendPort(CapabilitySet tp, String name,
+    protected ibis.ipl.SendPort doCreateSendPort(PortType tp, String name,
             SendPortDisconnectUpcall cU) throws IOException {
         return new StackingSendPort(tp, this, name, cU);
+    }
+
+    @Override
+    protected IbisCapabilities getCapabilities() {
+        return ibisCapabilities;
+    }
+
+    @Override
+    protected PortType getPortCapabilities() {
+        return portCapabilities;
     }
 
 }

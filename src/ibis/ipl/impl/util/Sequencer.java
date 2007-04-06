@@ -2,9 +2,9 @@
 
 package ibis.ipl.impl.util;
 
-import ibis.ipl.CapabilitySet;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisIdentifier;
+import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortIdentifier;
@@ -29,7 +29,7 @@ import java.util.HashMap;
  * A sequence number is obtained from a sequencer <code>seq</code> by
  * the {@link #getSeqno seq.getSeqno(name)} call.
  */
-public final class Sequencer implements ibis.ipl.PredefinedCapabilities {
+public final class Sequencer {
     /** The first sequence number that gets given out. */
     public static final int START_SEQNO = 1;
 
@@ -41,8 +41,10 @@ public final class Sequencer implements ibis.ipl.PredefinedCapabilities {
 
     private ReceivePort rcv;
 
-    CapabilitySet tp;
-
+    private static PortType tp = new PortType(
+            PortType.SERIALIZATION_OBJECT, PortType.CONNECTION_MANY_TO_ONE,
+            PortType.COMMUNICATION_RELIABLE, PortType.RECEIVE_EXPLICIT);
+    
     private SendPort snd; // Only for client
 
     private int idno;
@@ -52,6 +54,10 @@ public final class Sequencer implements ibis.ipl.PredefinedCapabilities {
     private static HashMap<IbisIdentifier, Sequencer> sequencers
             = new HashMap<IbisIdentifier, Sequencer>();
 
+    public static PortType getSequencerPortType() {
+        return tp;
+    }
+    
     private static class ServerThread extends Thread {
 
         private ArrayList<SendPort> sendports;
@@ -85,7 +91,7 @@ public final class Sequencer implements ibis.ipl.PredefinedCapabilities {
                 }
                 m.finish();
                 clients.add(rid);
-                s = seq.ibis.createSendPort(seq.tp);
+                s = seq.ibis.createSendPort(tp);
                 s.connect(rid);
                 sendports.add(s);
                 w = s.newMessage();
@@ -139,10 +145,9 @@ public final class Sequencer implements ibis.ipl.PredefinedCapabilities {
         this.ibis = ibis;
         ident = ibis.identifier();
         idno = -1;
-        CapabilitySet p = new CapabilitySet(
-            SERIALIZATION_OBJECT, CONNECTION_MANY_TO_ONE,
-            COMMUNICATION_RELIABLE, RECEIVE_EXPLICIT);
-        tp = p;
+        PortType tp = new PortType(
+            PortType.SERIALIZATION_OBJECT, PortType.CONNECTION_MANY_TO_ONE,
+            PortType.COMMUNICATION_RELIABLE, PortType.RECEIVE_EXPLICIT);
 
         rcv = ibis.createReceivePort(tp, "seq recvr");
         rcv.enableConnections();
