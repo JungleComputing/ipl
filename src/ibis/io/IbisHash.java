@@ -14,7 +14,7 @@ import ibis.util.Timer;
  *   lookups can be faster.
  * + Hash table size is always a power of two for fast modulo calculations.
  */
-final class IbisHash extends IOProps {
+final class IbisHash extends IOProperties {
 
     private static final boolean ASSERTS
             = properties.booleanProperty(s_hash_asserts);

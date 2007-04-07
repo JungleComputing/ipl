@@ -49,6 +49,10 @@ public class StoreArrayInputStream extends ibis.io.DataInputStream {
     	// nothing here
     }
        
+    public int bufferSize() {
+        return -1;
+    }
+    
     public void reset(ReadMessage m) throws IOException {                     
         
         boolean_count = 0;

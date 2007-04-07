@@ -42,6 +42,10 @@ public final class ChannelAccumulator extends DataOutputStream {
         this.channel = channel;
     }
 
+    public int bufferSize() {
+        return BUFFER_SIZE;
+    }
+    
     private ChannelAccumulator() {
         // DONT USE THIS
     }

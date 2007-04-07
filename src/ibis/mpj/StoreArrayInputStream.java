@@ -30,6 +30,11 @@ public class StoreArrayInputStream extends ibis.io.DataInputStream {
         this.buf = buf;
     }
 
+    public int bufferSize() {
+        // Let serialization stream decide.
+        return -1;
+    }
+    
     public void reset() {
         boolean_count = 0;
         byte_count = 0;

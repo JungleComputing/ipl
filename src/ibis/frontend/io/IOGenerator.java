@@ -22,6 +22,7 @@ import org.apache.bcel.classfile.JavaClass;
 import org.apache.bcel.classfile.Method;
 import org.apache.bcel.generic.AALOAD;
 import org.apache.bcel.generic.AASTORE;
+import org.apache.bcel.generic.ACONST_NULL;
 import org.apache.bcel.generic.ALOAD;
 import org.apache.bcel.generic.ARETURN;
 import org.apache.bcel.generic.ARRAYLENGTH;
@@ -41,6 +42,7 @@ import org.apache.bcel.generic.IF_ICMPEQ;
 import org.apache.bcel.generic.IF_ICMPGT;
 import org.apache.bcel.generic.IF_ICMPLT;
 import org.apache.bcel.generic.IF_ICMPNE;
+import org.apache.bcel.generic.IF_ACMPEQ;
 import org.apache.bcel.generic.IINC;
 import org.apache.bcel.generic.ILOAD;
 import org.apache.bcel.generic.ISTORE;
@@ -680,18 +682,29 @@ public class IOGenerator extends ibis.frontend.ibis.IbiscComponent {
                     || (isfinal
                             && (hasIbisConstructor(field_class)
                                     || (isSerializable(field_class)
-                                            && force_generated_calls))
-                            && (!(Repository.implementationOf(field_class,
-                                            "java.rmi.Remote")
-                                    || Repository.implementationOf(field_class,
-                                            "ibis.rmi.Remote"))))) {
+                                            && force_generated_calls)))) {
+                // If there is an object replacer, we cannot do the
+                // "fast" code.
+                write_il.append(new ACONST_NULL());
                 write_il.append(new ALOAD(1));
+                write_il.append(factory.createFieldAccess(
+                            ibis_output_stream_name, "replacer", 
+                            new ObjectType("ibis.io.Replacer"),
+                            Constants.GETFIELD));
+                IF_ACMPEQ replacertest = new IF_ACMPEQ(null);
+                write_il.append(replacertest);
+                write_il.append(writeInstructions(field));
+                GOTO toEnd = new GOTO(null);
+                write_il.append(toEnd);
+
+                // "fast" code.
+                replacertest.setTarget(write_il.append(new ALOAD(1)));
                 write_il.append(new ALOAD(0));
                 write_il.append(factory.createFieldAccess(classname,
                         field.getName(), field_type, Constants.GETFIELD));
                 if (basicname != null) {
                     write_il.append(factory.createFieldAccess(
-                            "ibis.io.IbisStreamFlags",
+                            "ibis.io.Constants",
                             "TYPE_" + basicname.toUpperCase(), Type.INT,
                             Constants.GETSTATIC));
                     write_il.append(factory.createInvoke(
@@ -805,6 +818,7 @@ public class IOGenerator extends ibis.frontend.ibis.IbiscComponent {
 
                 InstructionHandle target = write_il.append(new NOP());
                 ifcmp.setTarget(target);
+                toEnd.setTarget(target);
             } else {
                 write_il.append(writeInstructions(field));
             }
@@ -1118,12 +1132,7 @@ public class IOGenerator extends ibis.frontend.ibis.IbiscComponent {
                     || (isfinal
                             && (hasIbisConstructor(field_class)
                                     || (isSerializable(field_class)
-                                            && force_generated_calls))
-                            && (!(Repository.implementationOf(
-                                        field_class, "java.rmi.Remote")
-                                    || Repository.implementationOf(
-                                        field_class, "ibis.rmi.Remote"))))) {
-
+                                            && force_generated_calls)))) {
                 read_il.append(new ALOAD(1));
                 read_il.append(factory.createInvoke(ibis_input_stream_name,
                         "readKnownTypeHeader", Type.INT, Type.NO_ARGS,

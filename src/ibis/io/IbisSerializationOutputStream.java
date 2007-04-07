@@ -13,7 +13,7 @@ import java.io.ObjectStreamClass;
  * for Ibis serialization.
  */
 public class IbisSerializationOutputStream
-        extends DataSerializationOutputStream implements IbisStreamFlags {
+        extends DataSerializationOutputStream {
     /** If <code>false</code>, makes all timer calls disappear. */
     private static final boolean TIME_IBIS_SERIALIZATION = true;
 
@@ -72,7 +72,8 @@ public class IbisSerializationOutputStream
         }
     }
 
-    protected Replacer replacer;
+    /** Accessed from IOGenerator-generated code. */
+    public Replacer replacer;
 
     /** The first free object handle. */
     int next_handle;

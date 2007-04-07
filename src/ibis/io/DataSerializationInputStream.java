@@ -10,8 +10,7 @@ import java.io.UTFDataFormatException;
  * for Data serialization. With data serialization, you can only write
  * basic types and arrays of basic types.
  */
-public class DataSerializationInputStream extends ByteSerializationInputStream
-        implements IbisStreamFlags {
+public class DataSerializationInputStream extends ByteSerializationInputStream {
     /** When true, no buffering in this layer. */
     private static final boolean NO_ARRAY_BUFFERS
             = properties.booleanProperty(s_no_array_buffers);
@@ -98,7 +97,25 @@ public class DataSerializationInputStream extends ByteSerializationInputStream
 
     /** Number of arrays in current bunch. */
     private int max_array_index;
-
+    
+    private final int BYTE_BUFFER_SIZE;
+    
+    private final int CHAR_BUFFER_SIZE;
+    
+    private final int SHORT_BUFFER_SIZE;
+    
+    private final int INT_BUFFER_SIZE;
+    
+    private final int LONG_BUFFER_SIZE;
+    
+    private final int FLOAT_BUFFER_SIZE;
+    
+    private final int DOUBLE_BUFFER_SIZE;
+    
+    static int typedBufferSize(int bufferSize, int elSize) {
+        return (bufferSize -(PRIMITIVE_TYPES - BEGIN_TYPES) * SIZEOF_SHORT) / elSize;    
+    }
+    
     /**
      * Constructor with an <code>DataInputStream</code>.
      * @param in		the underlying <code>DataInputStream</code>
@@ -106,6 +123,18 @@ public class DataSerializationInputStream extends ByteSerializationInputStream
      */
     public DataSerializationInputStream(DataInputStream in) throws IOException {
         super(in);
+        int bufferSize = in.bufferSize();
+        if (bufferSize <= 0) {
+            bufferSize = BUFFER_SIZE;
+        }
+        BYTE_BUFFER_SIZE = typedBufferSize(bufferSize, SIZEOF_BYTE);
+        CHAR_BUFFER_SIZE = typedBufferSize(bufferSize, SIZEOF_CHAR);
+        SHORT_BUFFER_SIZE = typedBufferSize(bufferSize, SIZEOF_SHORT);
+        INT_BUFFER_SIZE = typedBufferSize(bufferSize, SIZEOF_INT);
+        LONG_BUFFER_SIZE = typedBufferSize(bufferSize, SIZEOF_LONG);
+        FLOAT_BUFFER_SIZE = typedBufferSize(bufferSize, SIZEOF_FLOAT);
+        DOUBLE_BUFFER_SIZE = typedBufferSize(bufferSize, SIZEOF_DOUBLE);
+
         if (! NO_ARRAY_BUFFERS) {
             initArrays();
         }
@@ -116,6 +145,13 @@ public class DataSerializationInputStream extends ByteSerializationInputStream
      */
     protected DataSerializationInputStream() throws IOException {
         super();
+        BYTE_BUFFER_SIZE = 0;
+        CHAR_BUFFER_SIZE = 0;
+        SHORT_BUFFER_SIZE = 0;
+        INT_BUFFER_SIZE = 0;
+        LONG_BUFFER_SIZE = 0;
+        FLOAT_BUFFER_SIZE = 0;
+        DOUBLE_BUFFER_SIZE = 0;
     }
 
     public String serializationImplName() {
@@ -678,24 +714,45 @@ public class DataSerializationInputStream extends ByteSerializationInputStream
         }
 
         if (max_byte_index > 0) {
+            if (max_byte_index > byte_buffer.length) {
+                byte_buffer = new byte[max_byte_index];
+            }
             in.readArray(byte_buffer, 0, max_byte_index);
         }
         if (max_char_index > 0) {
+            if (max_char_index > char_buffer.length) {
+                char_buffer = new char[max_char_index];
+            }
             in.readArray(char_buffer, 0, max_char_index);
         }
         if (max_short_index > 0) {
+            if (max_short_index > short_buffer.length) {
+                short_buffer = new short[max_short_index];
+            }
             in.readArray(short_buffer, 0, max_short_index);
         }
         if (max_int_index > 0) {
+            if (max_int_index > int_buffer.length) {
+                int_buffer = new int[max_int_index];
+            }
             in.readArray(int_buffer, 0, max_int_index);
         }
         if (max_long_index > 0) {
+            if (max_long_index > long_buffer.length) {
+                long_buffer = new long[max_long_index];
+            }
             in.readArray(long_buffer, 0, max_long_index);
         }
         if (max_float_index > 0) {
+            if (max_float_index > float_buffer.length) {
+                float_buffer = new float[max_float_index];
+            }
             in.readArray(float_buffer, 0, max_float_index);
         }
         if (max_double_index > 0) {
+            if (max_double_index > double_buffer.length) {
+                double_buffer = new double[max_double_index];
+            }
             in.readArray(double_buffer, 0, max_double_index);
         }
 

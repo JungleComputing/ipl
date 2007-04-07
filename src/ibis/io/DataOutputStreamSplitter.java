@@ -477,4 +477,15 @@ public final class DataOutputStreamSplitter extends DataOutputStream {
         if (e != null)
             throw e;
     }
+    
+    public int bufferSize() {
+        int min = Integer.MAX_VALUE;
+        for (DataOutputStream o : out) {
+            int sz = o.bufferSize();
+            if (sz < min) {
+                min = sz;
+            }
+        }
+        return min;
+    }
 }

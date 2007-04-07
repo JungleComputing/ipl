@@ -138,6 +138,10 @@ public abstract class NioDissipator extends DataInputStream implements Config,
         chars.limit(0);
         bytes.limit(0);
     }
+    
+    public int bufferSize() {
+        return -1;
+    }
 
     /**
      * (re) Initialize buffers in the right byte order.

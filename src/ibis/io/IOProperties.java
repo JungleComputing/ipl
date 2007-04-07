@@ -8,7 +8,7 @@ import ibis.util.TypedProperties;
 /**
  * Collects all system properties used by the ibis.io package.
  */
-class IOProps {
+class IOProperties implements Constants {
     static final TypedProperties properties = new TypedProperties(
             IbisProperties.getConfigProperties(IbisProperties
                     .getHardcodedProperties()));
@@ -29,12 +29,6 @@ class IOProps {
 
     static final String s_conversion = PROPERTY_PREFIX + "conversion";
 
-    static final String s_cache = PROPERTY_PREFIX + "allocator";
-
-    static final String s_cache_max = s_cache + ".size";
-
-    static final String s_cache_stats = s_cache + ".statistics";
-
     static final String s_buffer_size = PROPERTY_PREFIX + "buffer.size";
 
     static final String s_array_buffer = PROPERTY_PREFIX + "array.buffer";
@@ -53,10 +47,23 @@ class IOProps {
     static final String s_hash_timings = PROPERTY_PREFIX + "hash.timings";
 
     static final String s_hash_resize = PROPERTY_PREFIX + "hash.resize";
+    
+    public static final boolean DEBUG = properties.booleanProperty(s_dbg, false);
 
-    private static final String[] sysprops = { s_stats_nonrewritten,
-            s_stats_written, s_classloader, s_timer, s_conversion, s_cache,
-            s_cache_max, s_cache_stats, s_dbg, s_asserts, s_small_array_bound,
+    public static final boolean ASSERTS = properties.booleanProperty(s_asserts, false);
+
+    public static final int SMALL_ARRAY_BOUND
+            = properties.getIntProperty(s_small_array_bound, 256); // byte
+
+    public static final int BUFFER_SIZE = properties.getIntProperty(
+            s_buffer_size, 4 * 1024);
+
+    public static final int ARRAY_BUFFER_SIZE
+            = properties.getIntProperty(s_array_buffer, 1024);
+
+    static final String[] sysprops = { s_stats_nonrewritten,
+            s_stats_written, s_classloader, s_timer, s_conversion, 
+            s_dbg, s_asserts, s_small_array_bound,
             s_hash_asserts, s_hash_stats, s_hash_timings, s_hash_resize,
             s_buffer_size, s_array_buffer };
 

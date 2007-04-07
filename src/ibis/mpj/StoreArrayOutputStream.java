@@ -13,6 +13,11 @@ final class StoreArrayOutputStream extends DataOutputStream {
         this.buf = buf;
     }
 
+    public int bufferSize() {
+        // Let serialization stream decide/
+        return -1;
+    }       
+        
     public void writeByte(byte b) {
         buf.writeByte(b);
     }

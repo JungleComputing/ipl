@@ -84,4 +84,6 @@ public abstract class DataOutputStream extends java.io.OutputStream
     public void writeArray(double[] source) throws IOException {
         writeArray(source, 0, source.length);
     }
+    
+    abstract public int bufferSize();
 }

@@ -110,8 +110,8 @@ public class ColAllreduce {
             StoreOutputStream store_out = new StoreOutputStream(stBuf);
             StoreInputStream store_in = new StoreInputStream(stBuf);
 
-            ibis.io.DataOutputStream out = new BufferedArrayOutputStream(store_out);
-            ibis.io.DataInputStream in =  new BufferedArrayInputStream(store_in);
+            ibis.io.DataOutputStream out = new BufferedArrayOutputStream(store_out, 4096);
+            ibis.io.DataInputStream in =  new BufferedArrayInputStream(store_in, 4096);
 
             try {
                 mout = new IbisSerializationOutputStream(out);

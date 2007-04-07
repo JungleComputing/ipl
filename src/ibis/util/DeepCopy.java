@@ -34,7 +34,7 @@ public class DeepCopy {
     /** Storage for the input and output streams. */
     static class Store {
         /** Size of buffers. */
-        private static final int BUFSIZ = 4096;
+        static final int BUFSIZ = 4096;
 
         private boolean closed = false;
 
@@ -1216,7 +1216,11 @@ public class DeepCopy {
         public StoreArrayInputStream(Store buf) {
             this.buf = buf;
         }
-
+        
+        public int bufferSize() {
+            return Store.BUFSIZ;
+        }
+        
         public void reset() {
             buf.reset();
         }
@@ -1322,6 +1326,10 @@ public class DeepCopy {
             this.buf = buf;
         }
 
+        public int bufferSize() {
+            return Store.BUFSIZ;
+        }
+        
         public void writeByte(byte b) {
             buf.putByte(b);
         }

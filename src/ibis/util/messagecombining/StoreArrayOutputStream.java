@@ -44,6 +44,10 @@ final class StoreArrayOutputStream extends DataOutputStream {
         clear();
     }
     
+    public int bufferSize() {
+        return -1;
+    }
+    
     private void clear() {
         boolean_store = new boolean[initialSize];
         byte_store = new byte[initialSize];

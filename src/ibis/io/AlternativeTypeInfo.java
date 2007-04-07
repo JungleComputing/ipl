@@ -28,7 +28,7 @@ import java.util.HashMap;
  * boolean, reference. This determines the order in which fields are
  * serialized.
  */
-final class AlternativeTypeInfo implements IbisStreamFlags {
+final class AlternativeTypeInfo extends IOProperties implements Constants {
 
     /**
      * Maintains all <code>AlternativeTypeInfo</code> structures in a
@@ -105,7 +105,7 @@ final class AlternativeTypeInfo implements IbisStreamFlags {
             try {
                 out.alternativeWriteObject(t, ref);
             } catch (IllegalAccessException e) {
-                if (IbisStreamFlags.DEBUG) {
+                if (DEBUG) {
                     out.dbPrint("Caught exception: " + e);
                     e.printStackTrace();
                     out.dbPrint("now rethrow as NotSerializableException ...");
@@ -191,7 +191,7 @@ final class AlternativeTypeInfo implements IbisStreamFlags {
                 // Also calls parameter-less constructor
                 obj = t.clazz.newInstance();
             } catch(Throwable e) {
-                if (IbisStreamFlags.DEBUG) {
+                if (DEBUG) {
                     in.dbPrint("Caught exception: " + e);
                     e.printStackTrace();
                     in.dbPrint("now rethrow as ClassNotFound ...");
@@ -216,7 +216,7 @@ final class AlternativeTypeInfo implements IbisStreamFlags {
             try {
                 in.alternativeReadObject(t, obj);
             } catch(IllegalAccessException e) {
-                if (IbisStreamFlags.DEBUG) {
+                if (DEBUG) {
                     in.dbPrint("Caught exception: " + e);
                     e.printStackTrace();
                     in.dbPrint("now rethrow as NotSerializableException ...");

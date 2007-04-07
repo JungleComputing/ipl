@@ -13,17 +13,17 @@ import java.io.InputStream;
  * does all the buffering needed.
  */
 public final class BufferedArrayInputStream extends DataInputStream
-        implements IbisStreamFlags {
+        implements Constants {
 
     /** The buffer size. */
-    private static final int BUF_SIZE = BUFFER_SIZE;
+    private final int BUF_SIZE;
 
     /** The underlying <code>InputStream</code>. */
     private InputStream in;
 
     /** The buffer. */
-    private byte[] buffer = new byte[BUF_SIZE];
-
+    private byte[] buffer;
+    
     private int index, buffered_bytes;
 
     /** Number of bytes read so far from the underlying layer. */
@@ -32,8 +32,10 @@ public final class BufferedArrayInputStream extends DataInputStream
     /** Object used to convert primitive types to bytes. */
     private Conversion conversion;
 
-    public BufferedArrayInputStream(InputStream in) {
+    public BufferedArrayInputStream(InputStream in, int bufSize) {
         this.in = in;
+        BUF_SIZE = bufSize;
+        buffer = new byte[BUF_SIZE];
         conversion = Conversion.loadConversion(false);
     }
 
@@ -94,7 +96,7 @@ public final class BufferedArrayInputStream extends DataInputStream
 
     public void readArray(boolean[] a, int off, int len) throws IOException {
 
-        if (DEBUG) {
+        if (IOProperties.DEBUG) {
             System.err.println("readArray(boolean[" + off + " ... "
                     + (off + len) + "])");
         }
@@ -139,7 +141,7 @@ public final class BufferedArrayInputStream extends DataInputStream
     }
 
     public void readArray(byte[] a, int off, int len) throws IOException {
-        if (DEBUG) {
+        if (IOProperties.DEBUG) {
             System.err.println("readArray(byte[" + off + " ... " + (off + len)
                     + "])");
         }
@@ -228,7 +230,7 @@ public final class BufferedArrayInputStream extends DataInputStream
         buffered_bytes -= to_convert;
         index += to_convert;
 
-        if (DEBUG) {
+        if (IOProperties.DEBUG) {
             System.err.print("readArray(short[");
             for (int i = 0; i < len; i++) {
                 System.err.print(a[off + i] + ",");
@@ -240,7 +242,7 @@ public final class BufferedArrayInputStream extends DataInputStream
 
     public void readArray(char[] a, int off, int len) throws IOException {
 
-        if (DEBUG) {
+        if (IOProperties.DEBUG) {
             System.err.println("readArray(char[" + off + " ... " + (off + len)
                     + "])");
         }
@@ -286,7 +288,7 @@ public final class BufferedArrayInputStream extends DataInputStream
 
     public void readArray(int[] a, int off, int len) throws IOException {
 
-        if (DEBUG) {
+        if (IOProperties.DEBUG) {
             System.err.println("readArray(int[" + off + " ... " + (off + len)
                     + "])");
         }
@@ -349,7 +351,7 @@ public final class BufferedArrayInputStream extends DataInputStream
 
     public void readArray(long[] a, int off, int len) throws IOException {
 
-        if (DEBUG) {
+        if (IOProperties.DEBUG) {
             System.err.println("readArray(long[" + off + " ... " + (off + len)
                     + "])");
         }
@@ -395,7 +397,7 @@ public final class BufferedArrayInputStream extends DataInputStream
 
     public void readArray(float[] a, int off, int len) throws IOException {
 
-        if (DEBUG) {
+        if (IOProperties.DEBUG) {
             System.err.println("readArray(float[" + off + " ... " + (off + len)
                     + "])");
         }
@@ -441,7 +443,7 @@ public final class BufferedArrayInputStream extends DataInputStream
 
     public void readArray(double[] a, int off, int len) throws IOException {
 
-        if (DEBUG) {
+        if (IOProperties.DEBUG) {
             System.err.println("readArray(double[" + off + " ... "
                     + (off + len) + "])");
         }
@@ -556,7 +558,7 @@ public final class BufferedArrayInputStream extends DataInputStream
     }
 
     public int read(byte[] a, int off, int len) throws IOException {
-        if (DEBUG) {
+        if (IOProperties.DEBUG) {
             System.err.println("read(byte[" + off + " ... " + (off + len)
                     + "])");
         }
@@ -604,5 +606,9 @@ public final class BufferedArrayInputStream extends DataInputStream
 
     public void close() throws IOException {
         in.close();
+    }
+    
+    public int bufferSize() {
+        return BUF_SIZE;
     }
 }

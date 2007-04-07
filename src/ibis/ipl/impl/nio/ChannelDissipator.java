@@ -44,6 +44,10 @@ public final class ChannelDissipator extends DataInputStream {
         this.channel = channel;
     }
 
+    public int bufferSize() {
+        return BUFFER_SIZE;
+    }
+    
     public int available() throws IOException {
         return buffer.remaining();
     }

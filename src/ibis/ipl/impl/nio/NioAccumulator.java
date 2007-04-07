@@ -23,7 +23,7 @@ import org.apache.log4j.Logger;
  * 
  * A NioAccumulator may not send any stream header or trailer data.
  */
-public abstract class NioAccumulator extends DataOutputStream {
+public abstract class NioAccumulator extends DataOutputStream implements Config {
     public static final int SIZEOF_BYTE = 1;
 
     public static final int SIZEOF_CHAR = 2;
@@ -81,6 +81,10 @@ public abstract class NioAccumulator extends DataOutputStream {
         doubles = buffer.doubles;
     }
 
+    public int bufferSize() {
+        return PRIMITIVE_BUFFER_SIZE;
+    }
+    
     synchronized public long bytesWritten() {
         return count;
     }

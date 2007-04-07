@@ -71,4 +71,6 @@ public abstract class DataInputStream extends java.io.InputStream
     public void readArray(double[] source) throws IOException {
         readArray(source, 0, source.length);
     }
+    
+    public abstract int bufferSize();
 }

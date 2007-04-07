@@ -10,8 +10,7 @@ import java.io.IOException;
  * basic types and arrays of basic types. It also serves as a base type
  * for Ibis serialization.
  */
-public class DataSerializationOutputStream extends ByteSerializationOutputStream
-        implements IbisStreamFlags {
+public class DataSerializationOutputStream extends ByteSerializationOutputStream {
     /** When true, no buffering in this layer. */
     private static final boolean NO_ARRAY_BUFFERS
             = properties.booleanProperty(s_no_array_buffers);
@@ -21,12 +20,6 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
 
     /** Boolean count is not used, use it for arrays. */
     static final int TYPE_ARRAY = TYPE_BOOLEAN;
-
-    /** Allocator for the typed buffer arrays. */
-    private static final DataAllocator allocator
-        = properties.booleanProperty(s_cache, false)
-            ? new DataAllocator()
-            : (DataAllocator) new DummyAllocator();
 
     /** Storage for bytes (or booleans) written. */
     private byte[] byte_buffer;
@@ -85,7 +78,20 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
      });
      }
      */
-
+    private final int BYTE_BUFFER_SIZE;
+    
+    private final int CHAR_BUFFER_SIZE;
+    
+    private final int SHORT_BUFFER_SIZE;
+    
+    private final int INT_BUFFER_SIZE;
+    
+    private final int LONG_BUFFER_SIZE;
+    
+    private final int FLOAT_BUFFER_SIZE;
+    
+    private final int DOUBLE_BUFFER_SIZE;
+    
     /** Structure summarizing an array write. */
     private static final class ArrayDescriptor {
         int type;
@@ -131,6 +137,18 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
     public DataSerializationOutputStream(DataOutputStream out)
             throws IOException {
         super(out);
+        int bufferSize = out.bufferSize();
+        if (bufferSize <= 0) {
+            bufferSize = BUFFER_SIZE;
+        }
+        BYTE_BUFFER_SIZE = DataSerializationInputStream.typedBufferSize(bufferSize, SIZEOF_BYTE);
+        CHAR_BUFFER_SIZE = DataSerializationInputStream.typedBufferSize(bufferSize, SIZEOF_CHAR);
+        SHORT_BUFFER_SIZE = DataSerializationInputStream.typedBufferSize(bufferSize, SIZEOF_SHORT);
+        INT_BUFFER_SIZE = DataSerializationInputStream.typedBufferSize(bufferSize, SIZEOF_INT);
+        LONG_BUFFER_SIZE = DataSerializationInputStream.typedBufferSize(bufferSize, SIZEOF_LONG);
+        FLOAT_BUFFER_SIZE = DataSerializationInputStream.typedBufferSize(bufferSize, SIZEOF_FLOAT);
+        DOUBLE_BUFFER_SIZE = DataSerializationInputStream.typedBufferSize(bufferSize, SIZEOF_DOUBLE);
+
         if (! NO_ARRAY_BUFFERS) {
             initArrays();
         }
@@ -141,6 +159,13 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
      */
     protected DataSerializationOutputStream() throws IOException {
         super();
+        BYTE_BUFFER_SIZE = 0;
+        CHAR_BUFFER_SIZE = 0;
+        SHORT_BUFFER_SIZE = 0;
+        INT_BUFFER_SIZE = 0;
+        LONG_BUFFER_SIZE = 0;
+        FLOAT_BUFFER_SIZE = 0;
+        DOUBLE_BUFFER_SIZE = 0;
     }
 
     public String serializationImplName() {
@@ -520,27 +545,27 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
         }
 
         if (! NO_ARRAY_BUFFERS && !out.finished()) {
-            indices_short = allocator.getIndexArray();
+            indices_short = new short[PRIMITIVE_TYPES];
             if (touched[TYPE_BYTE]) {
-                byte_buffer = allocator.getByteArray();
+                byte_buffer = new byte[BYTE_BUFFER_SIZE];
             }
             if (touched[TYPE_CHAR]) {
-                char_buffer = allocator.getCharArray();
+                char_buffer = new char[CHAR_BUFFER_SIZE];
             }
             if (touched[TYPE_SHORT]) {
-                short_buffer = allocator.getShortArray();
+                short_buffer = new short[SHORT_BUFFER_SIZE];
             }
             if (touched[TYPE_INT]) {
-                int_buffer = allocator.getIntArray();
+                int_buffer = new int[INT_BUFFER_SIZE];
             }
             if (touched[TYPE_LONG]) {
-                long_buffer = allocator.getLongArray();
+                long_buffer = new long[LONG_BUFFER_SIZE];
             }
             if (touched[TYPE_FLOAT]) {
-                float_buffer = allocator.getFloatArray();
+                float_buffer = new float[FLOAT_BUFFER_SIZE];
             }
             if (touched[TYPE_DOUBLE]) {
-                double_buffer = allocator.getDoubleArray();
+                double_buffer = new double[DOUBLE_BUFFER_SIZE];
             }
             // unfinished++;
         }
@@ -562,7 +587,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
         if (NO_ARRAY_BUFFERS) {
             out.writeBoolean(value);
         } else {
-            if (byte_index == BYTE_BUFFER_SIZE) {
+            if (byte_index == byte_buffer.length) {
                 flush();
             }
             byte_buffer[byte_index++] = (byte) (value ? 1 : 0);
@@ -587,7 +612,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
         if (NO_ARRAY_BUFFERS) {
             out.writeByte(value);
         } else {
-            if (byte_index == BYTE_BUFFER_SIZE) {
+            if (byte_index == byte_buffer.length) {
                 flush();
             }
             byte_buffer[byte_index++] = value;
@@ -612,7 +637,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
         if (NO_ARRAY_BUFFERS) {
             out.writeChar(value);
         } else {
-            if (char_index == CHAR_BUFFER_SIZE) {
+            if (char_index == char_buffer.length) {
                 flush();
             }
             char_buffer[char_index++] = value;
@@ -637,7 +662,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
         if (NO_ARRAY_BUFFERS) {
             out.writeShort(value);
         } else {
-            if (short_index == SHORT_BUFFER_SIZE) {
+            if (short_index == short_buffer.length) {
                 flush();
             }
             short_buffer[short_index++] = value;
@@ -662,7 +687,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
         if (NO_ARRAY_BUFFERS) {
             out.writeInt(value);
         } else {
-            if (int_index == INT_BUFFER_SIZE) {
+            if (int_index == int_buffer.length) {
                 flush();
             }
             int_buffer[int_index++] = value;
@@ -688,7 +713,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
         if (NO_ARRAY_BUFFERS) {
             out.writeLong(value);
         } else {
-            if (long_index == LONG_BUFFER_SIZE) {
+            if (long_index == long_buffer.length) {
                 flush();
             }
             long_buffer[long_index++] = value;
@@ -713,7 +738,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
         if (NO_ARRAY_BUFFERS) {
             out.writeFloat(value);
         } else {
-            if (float_index == FLOAT_BUFFER_SIZE) {
+            if (float_index == float_buffer.length) {
                 flush();
             }
             float_buffer[float_index++] = value;
@@ -738,7 +763,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
         if (NO_ARRAY_BUFFERS) {
             out.writeDouble(value);
         } else {
-            if (double_index == DOUBLE_BUFFER_SIZE) {
+            if (double_index == double_buffer.length) {
                 flush();
             }
             double_buffer[double_index++] = value;
@@ -760,25 +785,14 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             array[i] = new ArrayDescriptor();
         }
 
-        indices_short = allocator.getIndexArray();
-        byte_buffer = allocator.getByteArray();
-        char_buffer = allocator.getCharArray();
-        short_buffer = allocator.getShortArray();
-        int_buffer = allocator.getIntArray();
-        long_buffer = allocator.getLongArray();
-        float_buffer = allocator.getFloatArray();
-        double_buffer = allocator.getDoubleArray();
-    }
-
-    /**
-     * The array buffer allocator. Use this to return data arrays
-     * when they are finished. The allocator may cache/reuse them.
-     */
-    public DataAllocator getAllocator() {
-        if (allocator instanceof DummyAllocator) {
-            return null;
-        }
-        return allocator;
+        indices_short = new short[PRIMITIVE_TYPES];
+        byte_buffer = new byte[BYTE_BUFFER_SIZE];
+        char_buffer = new char[CHAR_BUFFER_SIZE];
+        short_buffer = new short[SHORT_BUFFER_SIZE];
+        int_buffer = new int[INT_BUFFER_SIZE];
+        long_buffer = new long[LONG_BUFFER_SIZE];
+        float_buffer = new float[FLOAT_BUFFER_SIZE];
+        double_buffer = new double[DOUBLE_BUFFER_SIZE];
     }
 
     /* This is the data output / object output part */

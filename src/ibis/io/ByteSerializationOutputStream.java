@@ -15,7 +15,7 @@ import java.io.IOException;
  * serialization.
  */
 public class ByteSerializationOutputStream extends SerializationBase
-        implements SerializationOutput, IbisStreamFlags {
+        implements SerializationOutput {
 
     /** The underlying stream. */
     DataOutputStream out;

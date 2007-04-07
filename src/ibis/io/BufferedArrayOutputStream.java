@@ -12,16 +12,16 @@ import java.io.OutputStream;
  * does all the buffering needed.
  */
 public final class BufferedArrayOutputStream extends DataOutputStream
-        implements IbisStreamFlags {
+        implements Constants {
 
     /** Size of the buffer in which output data is collected. */
-    private static final int BUF_SIZE = BUFFER_SIZE;
+    private final int BUF_SIZE;
 
     /** The underlying <code>OutputStream</code>. */
     private OutputStream out;
 
     /** The buffer in which output data is collected. */
-    private byte[] buffer = new byte[BUF_SIZE];
+    private byte[] buffer;
 
     /** Size of the buffer in which output data is collected. */
     private int index = 0;
@@ -36,8 +36,10 @@ public final class BufferedArrayOutputStream extends DataOutputStream
      * Constructor.
      * @param out	the underlying <code>OutputStream</code>
      */
-    public BufferedArrayOutputStream(OutputStream out) {
+    public BufferedArrayOutputStream(OutputStream out, int bufSize) {
         this.out = out;
+        BUF_SIZE = bufSize;
+        buffer = new byte[BUF_SIZE];
         conversion = Conversion.loadConversion(false);
     }
 
@@ -58,7 +60,7 @@ public final class BufferedArrayOutputStream extends DataOutputStream
      */
     private void flush(int incr) throws IOException {
 
-        if (DEBUG) {
+        if (IOProperties.DEBUG) {
             System.err.println("flush(" + incr + ") : " + " "
                     + (index + incr >= BUF_SIZE) + " " + (index) + ")");
         }
@@ -138,7 +140,7 @@ public final class BufferedArrayOutputStream extends DataOutputStream
 
     public void writeArray(boolean[] ref, int off, int len)
             throws IOException {
-        if (DEBUG) {
+        if (IOProperties.DEBUG) {
             System.err.println("writeArray(boolean[" + off + " ... "
                     + (off + len) + "])");
         }
@@ -159,7 +161,7 @@ public final class BufferedArrayOutputStream extends DataOutputStream
 
     public void writeArray(byte[] ref, int off, int len)
             throws IOException {
-        if (DEBUG) {
+        if (IOProperties.DEBUG) {
             System.err.println("writeArray(byte[" + off + " ... " + (off + len)
                     + "])");
         }
@@ -186,7 +188,7 @@ public final class BufferedArrayOutputStream extends DataOutputStream
 
     public void writeArray(char[] ref, int off, int len)
             throws IOException {
-        if (DEBUG) {
+        if (IOProperties.DEBUG) {
             System.err.println("writeArray(char[" + off + " ... " + (off + len)
                     + "])");
         }
@@ -207,7 +209,7 @@ public final class BufferedArrayOutputStream extends DataOutputStream
 
     public void writeArray(short[] ref, int off, int len)
             throws IOException {
-        if (DEBUG) {
+        if (IOProperties.DEBUG) {
             System.err.println("writeArray(short[" + off + " ... "
                     + (off + len) + "])");
         }
@@ -232,7 +234,7 @@ public final class BufferedArrayOutputStream extends DataOutputStream
 
     public void writeArray(int[] ref, int off, int len)
             throws IOException {
-        if (DEBUG) {
+        if (IOProperties.DEBUG) {
             System.err.println("writeArray(int[" + off + " ... " + (off + len)
                     + "])");
         }
@@ -257,7 +259,7 @@ public final class BufferedArrayOutputStream extends DataOutputStream
 
     public void writeArray(long[] ref, int off, int len)
             throws IOException {
-        if (DEBUG) {
+        if (IOProperties.DEBUG) {
             System.err.println("writeArray(long[" + off + " ... " + (off + len)
                     + "])");
         }
@@ -278,7 +280,7 @@ public final class BufferedArrayOutputStream extends DataOutputStream
 
     public void writeArray(float[] ref, int off, int len)
             throws IOException {
-        if (DEBUG) {
+        if (IOProperties.DEBUG) {
             System.err.println("writeArray(float[" + off + " ... "
                     + (off + len) + "])");
         }
@@ -298,7 +300,7 @@ public final class BufferedArrayOutputStream extends DataOutputStream
 
     public void writeArray(double[] ref, int off, int len)
             throws IOException {
-        if (DEBUG) {
+        if (IOProperties.DEBUG) {
             System.err.println("writeArray(double[" + off + " ... "
                     + (off + len) + "])");
         }
@@ -333,5 +335,9 @@ public final class BufferedArrayOutputStream extends DataOutputStream
     public void close() throws IOException {
         flush();
         out.close();
+    }
+    
+    public int bufferSize() {
+        return BUF_SIZE;
     }
 }

@@ -152,7 +152,7 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
                         sp.dynamicProperties());
                 s.setTcpNoDelay(true);
                 out = new DataOutputStream(new BufferedArrayOutputStream(
-                            s.getOutputStream()));
+                            s.getOutputStream(), 4096));
 
                 out.writeUTF(name);
                 sp.getIdent().writeTo(out);
@@ -230,7 +230,7 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
         }
 
         BufferedArrayInputStream bais
-                = new BufferedArrayInputStream(s.getInputStream());
+                = new BufferedArrayInputStream(s.getInputStream(), 4096);
 
         DataInputStream in = new DataInputStream(bais);
         OutputStream out = s.getOutputStream();

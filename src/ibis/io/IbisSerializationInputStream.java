@@ -18,8 +18,7 @@ import sun.misc.Unsafe;
  * This is the <code>SerializationInputStream</code> version that is used
  * for Ibis serialization.
  */
-public class IbisSerializationInputStream extends DataSerializationInputStream
-        implements IbisStreamFlags {
+public class IbisSerializationInputStream extends DataSerializationInputStream {
     /** If <code>false</code>, makes all timer calls disappear. */
     private static final boolean TIME_IBIS_SERIALIZATION = true;
 
@@ -148,7 +147,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream
             = AlternativeTypeInfo.getAlternativeTypeInfo(classDoubleArray);
 
     static {
-        String clName = System.getProperty(IOProps.s_classloader);
+        String clName = System.getProperty(IOProperties.s_classloader);
         if (clName != null) {
             //we try to instanciate it
             try {

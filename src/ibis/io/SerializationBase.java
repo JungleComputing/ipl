@@ -9,7 +9,7 @@ import java.lang.reflect.InvocationTargetException;
  * A base class for all Ibis serialization classes, providing some
  * method implementations that they share.
  */
-public class SerializationBase extends IOProps {
+public class SerializationBase extends IOProperties {
     /** 
      * Enable this to measure the time spent in serialization.
      * Each serialization entry/exit point must start/stop the timer.
