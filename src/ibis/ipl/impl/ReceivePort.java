@@ -2,12 +2,12 @@
 
 package ibis.ipl.impl;
 
-import ibis.io.SerializationInput;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.MessageUpcall;
 import ibis.ipl.PortType;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.ReceiveTimedOutException;
+import ibis.util.io.SerializationInput;
 
 import java.io.IOException;
 import java.util.ArrayList;

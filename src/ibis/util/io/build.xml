@@ -1,0 +1,27 @@
+<project
+    name="ibis.util.io.native"
+    default="build"
+    basedir=".">
+
+    <description>
+	Compile natives in this directory
+
+	The shared target definitions require you to define:
+	    local.includes	a property that contains include paths specific
+				to this module
+
+	Optional:
+	    local.lib		the truncated name of the lib you want to create
+    </description>
+
+    <property name="local.lib" value="uninitialized_object"/>
+
+    <property name="native.dir" location="."/>
+    <property name="ibis" location="../../.."/>
+
+    <import file="${ibis}/build-files/build-properties.xml"/>
+    <import file="${ibis}/build-files/build-native.xml"/>
+
+    <target name="build" depends="native"/>
+
+</project>

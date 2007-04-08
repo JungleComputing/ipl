@@ -1,7 +1,7 @@
 /* $Id$ */
 
 package ibis.mpj;
-import ibis.io.DataOutputStream;
+import ibis.util.io.DataOutputStream;
 
 import java.io.IOException;
 

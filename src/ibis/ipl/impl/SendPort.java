@@ -2,10 +2,6 @@
 
 package ibis.ipl.impl;
 
-import ibis.io.DataOutputStream;
-import ibis.io.Replacer;
-import ibis.io.SerializationBase;
-import ibis.io.SerializationOutput;
 import ibis.ipl.AlreadyConnectedException;
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.ConnectionTimedOutException;
@@ -13,6 +9,10 @@ import ibis.ipl.ConnectionsFailedException;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.PortType;
 import ibis.ipl.SendPortDisconnectUpcall;
+import ibis.util.io.DataOutputStream;
+import ibis.util.io.Replacer;
+import ibis.util.io.SerializationBase;
+import ibis.util.io.SerializationOutput;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -613,12 +613,12 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
     }
 
     /**
-     * This method (re-)initializes the {@link ibis.io.DataOutputStream}, and
+     * This method (re-)initializes the {@link ibis.util.io.DataOutputStream}, and
      * closes the serialization stream if there was one.
      * This method should be called from the implementation-specific
      * constructor, and from each
      * {@link #doConnect(ReceivePortIdentifier, long)} call.
-     * @param dataOut the {@link ibis.io.DataOutputStream} to be used when
+     * @param dataOut the {@link ibis.util.io.DataOutputStream} to be used when
      * creating a new serialization stream is created.
      */
     public void initStream(DataOutputStream dataOut) {

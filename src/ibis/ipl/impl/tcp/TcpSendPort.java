@@ -2,10 +2,6 @@
 
 package ibis.ipl.impl.tcp;
 
-import ibis.io.BufferedArrayOutputStream;
-import ibis.io.Conversion;
-import ibis.io.OutputStreamSplitter;
-import ibis.io.SplitterException;
 import ibis.ipl.PortType;
 import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.ipl.impl.Ibis;
@@ -14,6 +10,10 @@ import ibis.ipl.impl.SendPort;
 import ibis.ipl.impl.SendPortConnectionInfo;
 import ibis.ipl.impl.SendPortIdentifier;
 import ibis.ipl.impl.WriteMessage;
+import ibis.util.io.BufferedArrayOutputStream;
+import ibis.util.io.Conversion;
+import ibis.util.io.OutputStreamSplitter;
+import ibis.util.io.SplitterException;
 
 import java.io.IOException;
 import java.io.OutputStream;

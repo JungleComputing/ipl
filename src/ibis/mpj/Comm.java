@@ -6,13 +6,13 @@
 package ibis.mpj;
 
 
-import ibis.io.BufferedArrayInputStream;
-import ibis.io.BufferedArrayOutputStream;
-import ibis.io.IbisSerializationInputStream;
-import ibis.io.IbisSerializationOutputStream;
-import ibis.io.SerializationInput;
-import ibis.io.SerializationOutput;
 import ibis.ipl.IbisIdentifier;
+import ibis.util.io.BufferedArrayInputStream;
+import ibis.util.io.BufferedArrayOutputStream;
+import ibis.util.io.IbisSerializationInputStream;
+import ibis.util.io.IbisSerializationOutputStream;
+import ibis.util.io.SerializationInput;
+import ibis.util.io.SerializationOutput;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -981,8 +981,8 @@ public class Comm {
                 StoreOutputStream store_out = new StoreOutputStream(stBuf);
                 StoreInputStream store_in = new StoreInputStream(stBuf);
 
-                ibis.io.DataOutputStream out = new BufferedArrayOutputStream(store_out, 4096);
-                ibis.io.DataInputStream in =  new BufferedArrayInputStream(store_in, 4096);
+                ibis.util.io.DataOutputStream out = new BufferedArrayOutputStream(store_out, 4096);
+                ibis.util.io.DataInputStream in =  new BufferedArrayInputStream(store_in, 4096);
 
                 try {
                     mout = new IbisSerializationOutputStream(out);
@@ -1255,8 +1255,8 @@ public class Comm {
                 StoreOutputStream store_out = new StoreOutputStream(stBuf);
                 StoreInputStream store_in = new StoreInputStream(stBuf);
 
-                ibis.io.DataOutputStream out = new BufferedArrayOutputStream(store_out, 4096);
-                ibis.io.DataInputStream in =  new BufferedArrayInputStream(store_in, 4096);
+                ibis.util.io.DataOutputStream out = new BufferedArrayOutputStream(store_out, 4096);
+                ibis.util.io.DataInputStream in =  new BufferedArrayInputStream(store_in, 4096);
 
                 try {
                     mout = new IbisSerializationOutputStream(out);

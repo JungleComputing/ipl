@@ -1,8 +1,8 @@
 package ibis.ipl.impl.registry.central;
 
-import ibis.io.Conversion;
 import ibis.ipl.impl.IbisIdentifier;
 import ibis.util.IPUtils;
+import ibis.util.io.Conversion;
 
 import java.io.IOException;
 import java.net.InetAddress;

@@ -2,8 +2,8 @@
 
 package ibis.ipl.impl.nio;
 
-import ibis.io.DataOutputStream;
 import ibis.ipl.impl.ReceivePortIdentifier;
+import ibis.util.io.DataOutputStream;
 
 import java.io.IOException;
 import java.nio.BufferOverflowException;

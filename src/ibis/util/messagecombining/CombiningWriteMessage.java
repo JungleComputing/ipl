@@ -2,11 +2,11 @@
 
 package ibis.util.messagecombining;
 
-import ibis.io.Replacer;
-import ibis.io.SerializationBase;
-import ibis.io.SerializationOutput;
 import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
+import ibis.util.io.Replacer;
+import ibis.util.io.SerializationBase;
+import ibis.util.io.SerializationOutput;
 
 import java.io.IOException;
 

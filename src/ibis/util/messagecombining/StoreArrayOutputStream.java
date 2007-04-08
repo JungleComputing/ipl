@@ -2,8 +2,8 @@
 
 package ibis.util.messagecombining;
 
-import ibis.io.DataOutputStream;
 import ibis.ipl.WriteMessage;
+import ibis.util.io.DataOutputStream;
 
 import java.io.IOException;
 
