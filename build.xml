@@ -51,7 +51,7 @@
     </target>
 
     <target name="ibis-iogen">
-	<java   classname="ibis.frontend.ibis.Ibisc"
+	<java   classname="ibis.frontend.Ibisc"
 	    taskname="Ibisc"
 	    failonerror="true"
 	    dir="${build}"
@@ -64,7 +64,7 @@
 
 
     <target name="ibis-rmic">
-	<java   classname="ibis.frontend.rmi.Rmic"
+	<java   classname="ibis.rmi.impl.frontend.Rmic"
 	    taskname="Rmic"
 	    failonerror="true"
 	    dir="${build}"
@@ -110,17 +110,17 @@
 	</jar>
 	<jar	destfile="lib/ipl-impl.jar"
 	    basedir="${build}"
-	    includes="ibis/ipl/impl/**/*.class ibis/util/**/*.class ibis/frontend/generic/*.class ibis/frontend/ibis/*.class ibis/frontend/io/*.class">
+	    includes="ibis/ipl/impl/**/*.class ibis/util/**/*.class ibis/frontend/**/*.class">
 	    <manifest>
 		<attribute name="Ibis-Implementation" value="ibis.ipl.impl.tcp.TcpIbis,ibis.ipl.impl.nio.NioIbis,ibis.ipl.impl.stacking.dummy.StackingIbis"/>
-		<attribute name="Ibisc-Component" value="ibis.frontend.io.IOGenerator"/>
+		<attribute name="Ibisc-Component" value="ibis.util.io.rewriter.IOGenerator"/>
 	    </manifest>
 	</jar>
 	<jar	destfile="${jar}"
 	    basedir="${build}"
 	    includes="ibis/**/*.class **/capabilities">
 	    <manifest>
-		<attribute name="Ibisc-Component" value="ibis.frontend.io.IOGenerator,ibis.frontend.gmi.Gmic,ibis.frontend.rmi.Rmic,ibis.frontend.satin.Satinc"/>
+		<attribute name="Ibisc-Component" value="ibis.util.io.rewriter.IOGenerator,ibis.gmi.frontend.Gmic,ibis.rmi.impl.frontend.Rmic,ibis.satin.impl.rewriter.Satinc"/>
 		<attribute name="Ibis-Implementation" value="ibis.ipl.impl.tcp.TcpIbis,ibis.ipl.impl.nio.NioIbis,ibis.ipl.impl.stacking.dummy.StackingIbis"/>
 	    </manifest>
 	</jar>
@@ -130,23 +130,23 @@
 	</jar>
 	<jar destfile="lib/satin-impl.jar"
 	    basedir="${build}"
-	    includes="ibis/satin/impl/**/*.class ibis/frontend/satin/*.class">
+	    includes="ibis/satin/impl/**/*.class">
 	    <manifest>
-		<attribute name="Ibisc-Component" value="ibis.frontend.satin.Satinc"/>
+		<attribute name="Ibisc-Component" value="ibis.satin.impl.rewriter.Satinc"/>
 	    </manifest>
 	</jar>
 	<jar destfile="lib/gmi.jar"
 	    basedir="${build}"
-	    includes="ibis/gmi/**/*.class ibis/frontend/gmi/*.class">
+	    includes="ibis/gmi/**/*.class">
 	    <manifest>
-		<attribute name="Ibisc-Component" value="ibis.frontend.gmi.Gmic"/>
+		<attribute name="Ibisc-Component" value="ibis.gmi.frontend.Gmic"/>
 	    </manifest>
 	</jar>
 	<jar destfile="lib/rmi.jar"
 	    basedir="${build}"
-	    includes="ibis/rmi/**/*.class ibis/frontend/rmi/*.class">
+	    includes="ibis/rmi/**/*.class">
 	    <manifest>
-		<attribute name="Ibisc-Component" value="ibis.frontend.rmi.Rmic"/>
+		<attribute name="Ibisc-Component" value="ibis.rmi.impl.frontend.Rmic"/>
 	    </manifest>
 	</jar>
 	<jar destfile="lib/mpj.jar"
@@ -180,7 +180,7 @@
 	</unjar>
 
 	<!-- Then, rewrite.  -->
-	<java   classname="ibis.frontend.ibis.Ibisc"
+	<java   classname="ibis.frontend.Ibisc"
 	    taskname="Ibisc"
 	    failonerror="true"
 	    maxmemory="512m"
@@ -234,7 +234,7 @@
 	<ant dir="${docs}" inheritAll="false" target="progman"/>
     </target>
 
-    <target name="test" depends="allclean, build">
+    <target name="test" depends="default">
 	<ant dir="src/ibis/ipl/apps/example" antfile="${ibis}/build-files/apps/build-ibis-app.xml" target="test-par">
 	    <property name="test-par-run" value="ibis.ipl.apps.example.Example"/>
 	</ant>

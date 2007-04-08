@@ -11,7 +11,7 @@
     <import file="${ibis}/build-files/apps/build-app.xml"/>
 
     <target name="gmi">
-	<java   classname="ibis.frontend.ibis.Ibisc"
+	<java   classname="ibis.frontend.Ibisc"
 		taskname="Ibisc"
 		failonerror="true"
 		dir="${build}"

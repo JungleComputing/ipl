@@ -62,4 +62,4 @@ add_to_libclasspath "${IBIS_HOME}"/lib
 
 JAVACLASSPATH="$CLASSPATH:$LIBCLASSPATH"
 
-"$JAVA" -classpath "$JAVACLASSPATH" ibis.frontend.ibis.Ibisc "$@"
+"$JAVA" -classpath "$JAVACLASSPATH" ibis.frontend.Ibisc "$@"

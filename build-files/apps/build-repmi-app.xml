@@ -14,7 +14,7 @@
 	    <!-- Commented out; not toplevel target
 	    description="Preprocesses classes in the build tree for RepMI"
 	    -->
-	<java   classname="ibis.frontend.ibis.Ibisc"
+	<java   classname="ibis.frontend.Ibisc"
 		taskname="Ibisc"
 		dir="${build}"
 		failonerror="true"

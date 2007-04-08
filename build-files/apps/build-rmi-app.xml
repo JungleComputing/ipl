@@ -33,7 +33,7 @@
 	    <!-- Commented out; not toplevel.
 	    description="Preprocess class files in the build tree for RMI"
 	    -->
-	<java   classname="ibis.frontend.ibis.Ibisc"
+	<java   classname="ibis.frontend.Ibisc"
 		taskname="Ibisc"
 		dir="${builddir}"
 		failonerror="true"
@@ -69,7 +69,7 @@
 		message="All classes to be inspected: ${rmic-classes}"/>
 	<echo   level="debug"
 		message="Run frontend.rmi.Rmic -n -java over all classes under ${build}${file.separator}"/>
-	<java   classname="ibis.frontend.rmi.Rmic"
+	<java   classname="ibis.rmi.impl.frontend.Rmic"
 		taskname="rmic locator"
 		dir="${builddir}"
 		failonerror="true"

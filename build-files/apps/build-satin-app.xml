@@ -31,7 +31,7 @@
 
     <target name="satin"
 	    depends="satin-init">
-	<java	classname="ibis.frontend.ibis.Ibisc"
+	<java	classname="ibis.frontend.Ibisc"
 		taskname="Ibisc"
 		dir="${build}"
 		failonerror="true"

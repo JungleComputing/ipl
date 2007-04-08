@@ -31,7 +31,7 @@ if not "%JAVA_HOME%"=="" (
     set JAVA=%JAVA_HOME%\bin\java
 )
 
-"%JAVA%" -classpath "%JAVACLASSPATH%" ibis.frontend.ibis.Ibisc %IBISC_ARGS%
+"%JAVA%" -classpath "%JAVACLASSPATH%" ibis.frontend.Ibisc %IBISC_ARGS%
 
 if "%OS%"=="Windows_NT" @endlocal
 
