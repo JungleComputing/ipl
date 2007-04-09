@@ -189,7 +189,7 @@ public final class Group implements GroupProtocol {
 
             try {
                 ibis = IbisFactory.createIbis(reqprops, null, null, portTypeSystemUcast,
-                        portTypeSystemMcast, portTypeSystemMcast, props);
+                        portTypeSystemMcast, portTypeManyToOne, props);
             } catch (NoMatchingIbisException e) {
                 logger.warn("?: <static> - " + 
                         "Could not find an Ibis that can run this "

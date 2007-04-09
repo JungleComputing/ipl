@@ -107,7 +107,7 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis,
                 || closedWorld;
         this.registryHandler = registryHandler;
         this.capabilities = caps;
-        this.portTypes = portTypes;
+        this.portTypes = portTypes.clone();
         
         Log.initLog4J("ibis");
 
@@ -535,7 +535,20 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis,
             throws IOException {
         return createSendPort(tp, name, null);
     }
-
+ 
+    private void matchPortType(PortType tp) {
+        boolean matched = false;
+        for (PortType p : portTypes) {
+            if (tp.equals(p)) {
+                matched = true;
+            }
+        }
+        if (! matched) {
+            throw new IbisConfigurationException("PortType " + tp
+                    + " not specified when creating this Ibis instance");
+        }
+    }
+    
     public ibis.ipl.SendPort createSendPort(PortType tp, String name,
             SendPortDisconnectUpcall cU) throws IOException {
         if (cU != null) {
@@ -549,6 +562,8 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis,
                 name = "anonymous send port " + send_counter++;
             }
         }
+
+        matchPortType(tp);
 
         return doCreateSendPort(tp, name, cU);
     }
@@ -608,7 +623,7 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis,
                 name = "anonymous receive port " + receive_counter++;
             }
         }
-
+        matchPortType(tp);
         return doCreateReceivePort(tp, name, u, cU);
     }
 
