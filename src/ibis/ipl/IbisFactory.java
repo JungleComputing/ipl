@@ -91,37 +91,33 @@ public final class IbisFactory {
     }
 
     /**
-     * Creates a new Ibis instance, based on the required capabilities, and
-     * using the specified properties.
-     * 
+     * Creates a new Ibis instance, based on the required capabilities and
+     * port types, and using the specified properties.
      * @param requiredCapabilities
-     *            capabilities required by the application.
+     *            ibis capabilities required by the application.
      * @param properties
      *            properties that can be set, for instance a class path for
      *            searching ibis implementations, or which registry to use.
      *            There is a default, so <code>null</code> may be specified.
-     * @param r
-     *            a {@link ibis.ipl.RegistryEventHandler RegistryEventHandler} instance if
-     *            upcalls for joining or leaving ibis instances are required, or
-     *            <code>null</code>.
+     * @param eventHandler
+     *            a {@link ibis.ipl.RegistryEventHandler RegistryEventHandler}
+     *            instance, or <code>null</code>.
      * @param types the list of port types required by the application.
      * @return the new Ibis instance.
      * 
      * @exception NoMatchingIbisException
      *                is thrown when no Ibis was found that matches the
      *                capabilities required.
-     * @exception NextedException
-     *                is thrown when no Ibis could be instantiated.
      */
     public static Ibis createIbis(IbisCapabilities requiredCapabilities,
             Properties properties,
-            RegistryEventHandler r,
-            PortType... types) throws NoMatchingIbisException, NestedException {
+            RegistryEventHandler reventHandler,
+            PortType... types) throws NoMatchingIbisException {
 
-        if (r != null
+        if (reventHandler != null
                 && !requiredCapabilities
                         .hasCapability(IbisCapabilities.REGISTRY_UPCALLS)) {
-            throw new NoMatchingIbisException(
+            throw new IbisConfigurationException(
                     "RegistryEventHandler specified but no "
                             + IbisCapabilities.REGISTRY_UPCALLS
                             + " capability requested");
@@ -129,7 +125,7 @@ public final class IbisFactory {
 
         IbisFactory factory = new IbisFactory(properties);
 
-        Ibis ibis = factory.createIbis(requiredCapabilities, types, r);
+        Ibis ibis = factory.createIbis(requiredCapabilities, types, reventHandler);
 
         synchronized (IbisFactory.class) {
             loadedIbises.add(ibis);
@@ -203,8 +199,8 @@ public final class IbisFactory {
 
     private Ibis createIbis(IbisCapabilities requiredCapabilities,
             PortType[] types,
-            RegistryEventHandler r)
-            throws NoMatchingIbisException, NestedException {
+            RegistryEventHandler reventHandler)
+            throws NoMatchingIbisException {
 
         if (verbose) {
             System.err.println("Looking for an Ibis with capabilities: "
@@ -232,7 +228,7 @@ public final class IbisFactory {
             System.err.println("Matching Ibis implementations:" + str);
         }
 
-        NestedException nested = new NestedException("Ibis creation failed");
+        NoMatchingIbisException nested = new NoMatchingIbisException("Ibis creation failed");
 
         for (int i = 0; i < n; i++) {
             Class cl = implList[i];
@@ -241,7 +237,7 @@ public final class IbisFactory {
             }
             while (true) {
                 try {
-                    return createIbis(cl, requiredCapabilities, types, r);
+                    return createIbis(cl, requiredCapabilities, types, reventHandler);
                 } catch (ConnectionRefusedException e) {
                     // retry
                 } catch (Throwable e) {

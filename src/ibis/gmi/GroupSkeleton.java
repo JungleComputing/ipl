@@ -2,7 +2,6 @@
 
 package ibis.gmi;
 
-import ibis.ipl.NestedException;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;

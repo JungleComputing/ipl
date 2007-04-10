@@ -1,9 +1,6 @@
-/* $Id$ */
+/* $Id: NestedException.java 5248 2007-03-22 21:39:28Z ceriel $ */
 
-/*
- * Created on May 14, 2004
- */
-package ibis.ipl;
+package ibis.gmi;
 
 import java.io.PrintStream;
 import java.io.PrintWriter;
@@ -11,9 +8,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 
 /**
- * This is a container class for a list of exceptions. The Ibis factory
- * uses this when it cannot create any Ibis instance.
- * @author rob
+ * This is a container class for a list of exceptions.
  */
 public class NestedException extends Exception {
 
@@ -23,8 +18,6 @@ public class NestedException extends Exception {
     private static final long serialVersionUID = -387342205084916635L;
 
     private ArrayList<Throwable> throwables = new ArrayList<Throwable>();
-
-    private ArrayList<String> throwerIDs = new ArrayList<String>();
 
     /**
      * Constructs a <code>NestedException</code> with
@@ -46,28 +39,25 @@ public class NestedException extends Exception {
 
     /**
      * Constructs a <code>NestedException</code> with no specified detail
-     * message, and adds the specified <String, Throwable> pair to the
+     * message, and adds the specified Throwable to the
      * list of exceptions.
-     * @param throwerID some identification of the exception thrower.
      * @param t the exception.
      */
-    public NestedException(String throwerID, Throwable t) {
+    public NestedException(Throwable t) {
         super();
-        add(throwerID, t);
+        add(t);
     }
 
     /**
-     * Adds the specified <String, Throwable> pair to the list of exceptions.
-     * @param throwerID some identification of the exception thrower.
+     * Adds the specified Throwable to the list of exceptions.
      * @param t the exception.
      */
-    public void add(String throwerID, Throwable t) {
+    public void add(Throwable t) {
         if (t instanceof InvocationTargetException) {
             t = t.getCause();
         }
 
         throwables.add(t);
-        throwerIDs.add(throwerID);
     }
 
     public String toString() {
@@ -79,10 +69,6 @@ public class NestedException extends Exception {
 
         res = "\n--- START OF NESTED EXCEPTION ---\n";
         for (int i = 0; i < throwables.size(); i++) {
-            if (throwerIDs.get(i) != null) {
-                res += "*** " + throwerIDs.get(i)
-                    + " failed because of: ";
-            }
             Throwable t = throwables.get(i);
             res += t.getClass().getName();
             res += ": ";
@@ -109,9 +95,6 @@ public class NestedException extends Exception {
 
         s.println("--- START OF NESTED EXCEPTION STACK TRACE ---");
         for (int i = 0; i < throwables.size(); i++) {
-            if (throwerIDs.get(i) != null) {
-                s.println("*** stack trace of " + throwerIDs.get(i));
-            }
             throwables.get(i).printStackTrace(s);
         }
         s.println("--- END OF NESTED EXCEPTION STACK TRACE ---");
@@ -125,9 +108,6 @@ public class NestedException extends Exception {
 
         s.println("--- START OF NESTED EXCEPTION STACK TRACE ---");
         for (int i = 0; i < throwables.size(); i++) {
-            if (throwerIDs.get(i) != null) {
-                s.println("*** stack trace of " + throwerIDs.get(i));
-            }
             throwables.get(i).printStackTrace(s);
         }
         s.println("--- END OF NESTED EXCEPTION STACK TRACE ---");
