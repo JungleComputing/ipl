@@ -9,7 +9,7 @@ import java.io.IOException;
  * Creating a {@link ReceivePort} with an <code>MessageUpcall</code> allows for
  * upcall based communication.
  * The <code>ReceivePort</code> must be created with the
- * {@link Ibis#createReceivePort(CapabilitySet, String, MessageUpcall)} method,
+ * {@link Ibis#createReceivePort(PortType, String, MessageUpcall)} method,
  * or one of its other variants with a <code>MessageUpcall</code> parameter.
  * After the receive port is created, upcalls can be enabled through the
  * {@link ReceivePort#enableMessageUpcalls()} call, and disabled through the

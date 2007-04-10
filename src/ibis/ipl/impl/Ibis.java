@@ -16,8 +16,8 @@ import ibis.util.TypedProperties;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
@@ -75,10 +75,14 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis,
 
     private final int numInstances;
 
-    private final HashSet<ibis.ipl.IbisIdentifier> joinedIbises;
+    private final ArrayList<ibis.ipl.IbisIdentifier> joinedIbises;
 
-    private final HashSet<ibis.ipl.IbisIdentifier> leftIbises;
+    private final ArrayList<ibis.ipl.IbisIdentifier> leftIbises;
+    
+    private final ArrayList<ibis.ipl.IbisIdentifier> diedIbises;
 
+    private final ArrayList<String> signals;
+    
     /** Counter for allocating names for anonymous sendports. */
     private static int send_counter = 0;
 
@@ -142,11 +146,15 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis,
             numInstances = -1;
         }
         if (caps.hasCapability(IbisCapabilities.REGISTRY_DOWNCALLS)) {
-            joinedIbises = new HashSet<ibis.ipl.IbisIdentifier>();
-            leftIbises = new HashSet<ibis.ipl.IbisIdentifier>();
+            joinedIbises = new ArrayList<ibis.ipl.IbisIdentifier>();
+            leftIbises = new ArrayList<ibis.ipl.IbisIdentifier>();
+            diedIbises = new ArrayList<ibis.ipl.IbisIdentifier>();
+            signals = new ArrayList<String>();
         } else {
             joinedIbises = null;
             leftIbises = null;
+            diedIbises = null;
+            signals = null;
         }
     }
 
@@ -295,6 +303,27 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis,
         leftIbises.clear();
         return retval;
     }
+    
+    public synchronized ibis.ipl.IbisIdentifier[] diedIbises() {
+        if (diedIbises == null) {
+            throw new IbisConfigurationException(
+                    "Resize downcalls not configured");
+        }
+        ibis.ipl.IbisIdentifier[] retval = diedIbises.toArray(
+                new ibis.ipl.IbisIdentifier[diedIbises.size()]);
+        diedIbises.clear();
+        return retval;
+    }
+
+    public synchronized String[] receivedSignals() {
+        if (signals == null) {
+            throw new IbisConfigurationException(
+                    "Registry downcalls not configured");
+        }
+        String[] retval = signals.toArray(new String[signals.size()]);
+        signals.clear();
+        return retval;
+    }
 
     /**
      * Notifies this Ibis instance that another Ibis instance has
@@ -363,9 +392,9 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis,
                 busyUpcaller = false;
             }
         }
-        if (leftIbises != null) {
+        if (diedIbises != null) {
             synchronized(this) {
-                leftIbises.add(corpse);
+                diedIbises.add(corpse);
             }
         }
     }
@@ -382,7 +411,10 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis,
             synchronized(this) {
                 busyUpcaller = false;
             }
-        } 
+        }
+        if (signals != null) {
+            signals.add(signal);
+        }
     }
 
     public synchronized void enableRegistryEvents() {

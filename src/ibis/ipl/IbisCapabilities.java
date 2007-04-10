@@ -6,7 +6,12 @@ import java.io.InputStream;
 import java.util.Properties;
 
 /**
-
+ * This class describes the capabilities of an ibis instance.
+ * Combined with a list of {@link PortType} it is
+ * used to select a particular Ibis implementation.
+ * See the
+ * {@link IbisFactory#createIbis(IbisCapabilities, Properties, RegistryEventHandler, PortType...) createIbis}
+ * method from {@link IbisFactory}.       
  */
 public final class IbisCapabilities extends CapabilitySet {
 
@@ -29,14 +34,10 @@ public final class IbisCapabilities extends CapabilitySet {
      */
     public final static String WORLDMODEL_OPEN = WORLDMODEL + ".open";
 
- 
     /** Boolean capability, indicating that registry event downcalls are supported. */
     public final static String REGISTRY_DOWNCALLS = REGISTRY + ".downcalls";
 
-    /**
-     * Boolean capability, indicating that registry event upcall handlers are
-     * supported.
-     */
+    /** Boolean capability, indicating that registry event handlers are supported. */
     public final static String REGISTRY_UPCALLS = REGISTRY + ".upcalls";
     
     /** 
@@ -48,14 +49,18 @@ public final class IbisCapabilities extends CapabilitySet {
     }
     
     /**
-     * Constructs a port type from the specified properties.
+     * Constructs an IbisCapabilities object from the specified properties.
      * @param sp the properties.
      */
     protected IbisCapabilities(Properties sp) {
         super(sp);
     }
-    
-    public IbisCapabilities(CapabilitySet s) {
+
+    /**
+     * Constructs an IbisCapabilities from the specified capabilityset.
+     * @param s the capabilityset.
+     */
+    protected IbisCapabilities(CapabilitySet s) {
          super(s);
     }
     

@@ -8,9 +8,8 @@ import java.util.Properties;
 
 /**
  * An instance of this interface can only be created by the
- * {@link ibis.ipl.IbisFactory#createIbis(CapabilitySet,
- * Properties, RegistryEventHandler, PortType...)} method, and is the starting point
- * of all Ibis communication.
+ * {@link ibis.ipl.IbisFactory#createIbis(IbisCapabilities, Properties, RegistryEventHandler, PortType...) createIbis}
+ * method, and is the starting point of all Ibis communication.
  */
 public interface Ibis extends Managable {
 
@@ -98,26 +97,52 @@ public interface Ibis extends Managable {
      * Returns the changes since the last joinedIbises call,
      * or, if this is the first call, all Ibis instances that joined.
      * This call only works if this Ibis is configured to support
-     * resize downcalls.
+     * registry downcalls.
      * If no Ibis instances joined, an array with 0 entries is returned.
      * @exception IbisConfigurationException is thrown when the port was
-     * not configured to support resize downcalls.
+     * not configured to support registry downcalls.
      * @return the joined Ibises.
      */
     public IbisIdentifier[] joinedIbises();
 
     /**
-     * Returns the Ibis instances that left the run (or died).
+     * Returns the Ibis instances that left the run.
      * Returns the changes since the last leftIbises call,
      * or, if this is the first call, all Ibis instances that left.
      * This call only works if this Ibis is configured to support
-     * resize downcalls.
+     * registry downcalls.
      * If no Ibis instances left, an array with 0 entries is returned.
-     * @exception IbisConfigurationException is thrown when the port was
-     * not configured to support resize downcalls.
+     * @exception IbisConfigurationException is thrown when ibis was
+     * not configured to support registr downcalls.
      * @return the left Ibises.
      */
     public IbisIdentifier[] leftIbises();
+    
+    /**
+     * Returns the Ibis instances that died.
+     * Returns the changes since the last diedIbises call,
+     * or, if this is the first call, all Ibis instances that died.
+     * This call only works if this Ibis is configured to support
+     * registry downcalls.
+     * If no Ibis instances died, an array with 0 entries is returned.
+     * @exception IbisConfigurationException is thrown when ibis was
+     * not configured to support registry downcalls.
+     * @return the Ibises that died.
+     */
+    public IbisIdentifier[] diedIbises();
+
+    /**
+     * Returns the signals received.
+     * Returns the changes since the last receivedSignals call,
+     * or, if this is the first call, all signals received so far.
+     * This call only works if this Ibis is configured to support
+     * registry downcalls.
+     * If no signals were received, an array with 0 entries is returned.
+     * @exception IbisConfigurationException is thrown when ibis was
+     * not configured to support registry downcalls.
+     * @return the received signals.
+     */
+    public String[] receivedSignals();
 
     /**
      * Creates a anonymous {@link SendPort} of the specified port type.
