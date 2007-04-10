@@ -55,11 +55,11 @@ public final class Ping {
      * Parameter indicating how many measured testing cycles
      * should be performed for each message size.
      *
-     * The {@link param_nb_tests} individual results are sent over STDERR.
+     * The {@link #param_nb_tests} individual results are sent over STDERR.
      * The average of {@link #param_nb_tests} individual results is sent over STDOUT.
      *
      * <BR><B>Note</B>: an additional dummy testing cycle is performed as a warm-up before the
-     * {@link param_nb_tests} testing cycles.
+     * {@link #param_nb_tests} testing cycles.
      */
     final static int param_nb_tests = 5;
 

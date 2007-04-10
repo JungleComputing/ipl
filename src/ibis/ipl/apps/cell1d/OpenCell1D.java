@@ -267,8 +267,8 @@ class OpenCell1D implements OpenConfig {
      * neighbour.
      * @param port The port to send to.
      * @param p The problem.
-     * @param aimFirstColomn The first column we should own.
-     * @param aimFirstNoColomn The first column we should not own.
+     * @param aimFirstColumn The first column we should own.
+     * @param aimFirstNoColumn The first column we should not own.
      */
     static void sendToLeft( SendPort port, Problem p, int aimFirstColumn, int aimFirstNoColumn )
         throws java.io.IOException
@@ -351,8 +351,8 @@ class OpenCell1D implements OpenConfig {
      * neighbour.
      * @param port The port to send to.
      * @param p The problem.
-     * @param aimFirstColomn The first column we should own.
-     * @param aimFirstNoColomn The first column we should not own.
+     * @param aimFirstColumn The first column we should own.
+     * @param aimFirstNoColumn The first column we should not own.
      */
     static void sendToRight( SendPort port, Problem p, int aimFirstColumn, int aimFirstNoColumn )
         throws java.io.IOException

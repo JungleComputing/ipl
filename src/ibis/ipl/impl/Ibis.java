@@ -43,7 +43,7 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis,
     
     /**
      * Properties, as given to
-     * {@link ibis.ipl.IbisFactory#createIbis(CapabilitySet,
+     * {@link ibis.ipl.IbisFactory#createIbis(IbisCapabilities,
      * Properties, RegistryEventHandler, PortType...)}.
      */
     protected TypedProperties properties;

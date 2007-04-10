@@ -122,8 +122,6 @@ public abstract class ReceivePort extends Managable
      * @param name the name of the <code>ReceivePort</code>.
      * @param upcall the message upcall object, or <code>null</code>.
      * @param connectUpcall the connection upcall object, or <code>null</code>.
-     * @param connectionDowncalls set when connection downcalls must be
-     * supported.
      */
     protected ReceivePort(Ibis ibis, PortType type, String name,
             MessageUpcall upcall, ReceivePortConnectUpcall connectUpcall) {
