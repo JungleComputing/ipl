@@ -14,7 +14,7 @@ import java.util.zip.ZipOutputStream;
  */
 public class JarEntryInfo {
 
-    public JarEntry       jarEntry;
+    public  JarEntry      jarEntry;
     public byte[]         content;
     public JarInfo        jarInfo;
     public IbiscEntry     ibiscEntry;
@@ -64,4 +64,25 @@ public class JarEntryInfo {
     InputStream getInputStream() {
         return new ByteArrayInputStream(content);
     }
+
+	/**
+	 * @return the ibiscEntry
+	 */
+	public IbiscEntry getIbiscEntry() {
+		return ibiscEntry;
+	}
+
+	/**
+	 * @return the jarEntry
+	 */
+	public JarEntry getJarEntry() {
+		return jarEntry;
+	}
+
+	/**
+	 * @return the jarInfo
+	 */
+	public JarInfo getJarInfo() {
+		return jarInfo;
+	}
 }

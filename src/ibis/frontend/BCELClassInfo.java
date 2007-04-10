@@ -18,6 +18,11 @@ public class BCELClassInfo implements ClassInfo {
 
     private JavaClass cl;
 
+    /**
+     * Create a BCELClassInfo object for a given class.
+     * 
+     * @param cl Class to create the info object for.
+     */
     public BCELClassInfo(JavaClass cl) {
         this.cl = cl;
     }

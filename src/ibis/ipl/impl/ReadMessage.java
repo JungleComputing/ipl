@@ -9,8 +9,7 @@ import java.io.IOException;
 /**
  * Implementation of the {@link ibis.ipl.ReadMessage} interface.
  * This is a complete implementation, but may be extended by an implementation.
- * In that case, the
- * {@link ReceivePort#createReadMessage(SerializationInput, ReceivePortConnectionInfo)()}
+ * In that case, the {@link ReceivePort#createReadMessage(SerializationInput, ReceivePortConnectionInfo)} 
  * method must also be redefined.
  */
 public class ReadMessage implements ibis.ipl.ReadMessage {

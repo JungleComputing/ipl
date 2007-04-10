@@ -92,7 +92,6 @@ public final class Location implements ibis.ipl.Location {
     /**
      * Returns the coded form of this <code>Location</code>.
      * @return the coded form.
-     * @exception IOException is thrown in case of trouble.
      */
     public byte[] toBytes() {
         return (byte[]) codedForm.clone();
@@ -177,6 +176,12 @@ public final class Location implements ibis.ipl.Location {
         return retval;
     }
 
+    /**
+     * Method to retreive a default location, consisting of the domain and
+     * hostname of this machine.
+     * 
+     * @return the default location of this machine.
+     */
     public static Location defaultLocation() {
         try {
             InetAddress a = InetAddress.getLocalHost();

@@ -252,7 +252,7 @@ public class Ibisc {
         }
     }
 
-    public static String usage() {
+    private static String usage() {
         String rval = "Usage: java ibis.frontend.Ibisc [-verbose] [-verify] [-keep] [-help] ";
         for (int i = 0; i < ibiscComponents.size(); i++) {
             IbiscComponent ic = ibiscComponents.get(i);
@@ -264,6 +264,10 @@ public class Ibisc {
         return rval + " <jar-file|dir|class-file>+";
     }
 
+    /**
+     * Main entry point for Ibisc
+     * @param args arguments from the command line
+     */
     public static void main(String[] args) {
         boolean keep = false;
         boolean verify = false;

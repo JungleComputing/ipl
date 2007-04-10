@@ -35,7 +35,7 @@ public abstract class IbiscComponent {
 
     private class ClassIterator implements Iterator<Object> {
         Iterator<IbiscEntry> i;
-        public ClassIterator() {
+        ClassIterator() {
             i = allClasses.values().iterator();
         }
 
@@ -80,7 +80,7 @@ public abstract class IbiscComponent {
      * This method processes an iterator which delivers java classes.
      * The values are classes as represented by the byte code rewriter used.
      * The component processes these entries as it sees fit.
-     * It can add entries by means of the  {@link #addEntry()} method.
+     * It can add entries by means of the  {@link #addEntry(ClassInfo cl, String fromClass)} method.
      * @param classes the class iterator to process.
      */
     public abstract void process(Iterator classes);
