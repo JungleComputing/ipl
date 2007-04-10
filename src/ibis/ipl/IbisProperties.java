@@ -169,7 +169,7 @@ public final class IbisProperties {
     }
 
     /**
-     * Returns the built-in properties of this class.
+     * Returns the built-in properties of Ibis.
      * 
      * @return the resulting properties.
      */

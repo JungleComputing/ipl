@@ -5,9 +5,7 @@ package ibis.ipl;
 import java.io.IOException;
 
 /**
- * A <code>Registry</code> provides methods for storing and retrieving
- * {@link ibis.ipl.ReceivePortIdentifier ReceivePortIdentifier}s or
- * {@link ibis.ipl.IbisIdentifier}s with arbitrary names.
+ * A <code>Registry</code> coordinates the Pool which an Ibis instance is part of.
  */
 public interface Registry {
 

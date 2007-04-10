@@ -8,8 +8,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 
 /**
- * Signals that no Ibis could be found whose constructor did not throw
- * an exception.
+ * Signals that no Ibis could be created.
  * <code>IbisCreationFailedException</code> is thrown to indicate
  * that no matching Ibis could be found in
  * {@link ibis.ipl.IbisFactory#createIbis(IbisCapabilities,

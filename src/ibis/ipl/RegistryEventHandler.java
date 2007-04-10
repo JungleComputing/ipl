@@ -4,7 +4,7 @@ package ibis.ipl;
 
 /**
  * Describes the upcalls that are generated for the Ibis group
- * management of a run.
+ * management of a pool.
  * At most one of the methods in this interface will be active at any
  * time (they are serialized by ibis).
  * These upcalls must be explicitly enabled, by means of the

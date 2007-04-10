@@ -4,8 +4,8 @@ import java.io.DataInput;
 import java.io.IOException;
 
 /**
- * This class represents the type of a receive or send port,
- * the port type. It consists of a capability set and  some
+ * This class represents the type of a receive or send port.
+ * It consists of a capability set and some
  * predefined capability strings.
  */
 public final class PortType extends CapabilitySet {

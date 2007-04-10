@@ -8,11 +8,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 
 /**
- * Signals a failure to connect to some of the receive ports specified in
- * a {@link SendPort#connect(java.util.Map)},
- * {@link SendPort#connect(java.util.Map, long)},
- * {@link SendPort#connect(ReceivePortIdentifier[])} or
- * {@link SendPort#connect(ReceivePortIdentifier[], long)} call.
+ * Signals a failure to connect to one or more ReceivePorts. Besides 
+ * failed connections, also has a list of succeeded connection attempts. 
  */
 public class ConnectionsFailedException extends java.io.IOException {
 

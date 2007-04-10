@@ -7,9 +7,7 @@ import java.io.PrintStream;
 import java.util.Properties;
 
 /**
- * An instance of this interface can only be created by the
- * {@link ibis.ipl.IbisFactory#createIbis(IbisCapabilities, Properties, RegistryEventHandler, PortType...) createIbis}
- * method, and is the starting point of all Ibis communication.
+ * The starting point of all Ibis communication, created using the {@link ibis.ipl.IbisFactory}.
  */
 public interface Ibis extends Managable {
 
