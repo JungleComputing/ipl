@@ -14,27 +14,55 @@ import java.util.zip.ZipOutputStream;
  */
 public class JarEntryInfo {
 
-    public  JarEntry      jarEntry;
-    public byte[]         content;
-    public JarInfo        jarInfo;
-    public IbiscEntry     ibiscEntry;
+    private JarEntry       jarEntry;
+    private byte[]         content;
+    private JarInfo        jarInfo;
+    private IbiscEntry     ibiscEntry;
+
 
     JarEntryInfo(JarEntry jarEntry, JarInfo jarInfo) throws IOException {
         this.jarEntry = jarEntry;
         this.jarInfo = jarInfo;
-        content = getContent();
+        this.content = getContent();
+        this.ibiscEntry = getIbiscEntry();
     }
 
     JarEntryInfo(JarEntry jarEntry, JarInfo jarInfo, byte[] content) {
         this.jarEntry = jarEntry;
         this.jarInfo = jarInfo;
         this.content = content;
+        this.ibiscEntry = getIbiscEntry();
     }
 
+    JarEntryInfo(JarEntry jarEntry, JarInfo jarInfo, byte[] content, IbiscEntry ibiscEntry) {
+        this.jarEntry = jarEntry;
+        this.jarInfo = jarInfo;
+        this.content = content;
+        this.ibiscEntry = ibiscEntry;
+    }
+   
+    private IbiscEntry getIbiscEntry() {
+        String iname = jarEntry.getName();
+        if (iname.endsWith(".class")) {
+            try {
+                ClassInfo cl = Ibisc.w.parseInputStream(getInputStream(),
+                            iname);
+                IbiscEntry entry = new IbiscEntry(cl, iname, jarInfo);
+                Ibisc.allClasses.put(cl.getClassName(), entry);
+                return entry;
+            } catch(IOException e) {
+                System.err.println("Ibisc: warning: could not read "
+                        + "class " + iname + " from jar file "
+                        + jarInfo.getName());
+            }
+        }
+        return null;
+    }
+    
     private byte[] getContent() throws IOException {
         ByteArrayOutputStream Bos = new ByteArrayOutputStream();
         byte[] buf = new byte[16384];
-        InputStream in = jarInfo.jarFile.getInputStream(jarEntry);
+        InputStream in = jarInfo.getInputStream(jarEntry);
         int cnt;
         do {
             cnt = in.read(buf, 0, 16384);
@@ -52,9 +80,9 @@ public class JarEntryInfo {
         if (extra != null) {
             je.setExtra(extra);
         }
-        if (ibiscEntry != null && ibiscEntry.modified) {
+        if (ibiscEntry != null && ibiscEntry.getModified()) {
             je.setTime(System.currentTimeMillis());
-            content = ibiscEntry.cl.getBytes();
+            content = ibiscEntry.getClassInfo().getBytes();
         }
         ozip.putNextEntry(je);
         ozip.write(content);
@@ -65,24 +93,19 @@ public class JarEntryInfo {
         return new ByteArrayInputStream(content);
     }
 
-	/**
-	 * @return the ibiscEntry
-	 */
-	public IbiscEntry getIbiscEntry() {
-		return ibiscEntry;
-	}
 
-	/**
-	 * @return the jarEntry
-	 */
-	public JarEntry getJarEntry() {
-		return jarEntry;
-	}
 
-	/**
-	 * @return the jarInfo
-	 */
-	public JarInfo getJarInfo() {
-		return jarInfo;
-	}
+    /**
+     * @return the jarEntry
+     */
+    public JarEntry getJarEntry() {
+        return jarEntry;
+    }
+
+    /**
+     * @return the jarInfo
+     */
+    public JarInfo getJarInfo() {
+        return jarInfo;
+    }
 }

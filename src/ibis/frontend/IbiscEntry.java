@@ -7,25 +7,25 @@ package ibis.frontend;
  */
 class IbiscEntry {
     /** The Java class. */
-    public ClassInfo   cl;
+    private ClassInfo   cl;
 
     /**
      * The name of the file from which the class was read (or the name of
      * the jar file entry).
      */
-    public String      fileName;
+    public final String      fileName;
 
     /**
      * Wether the entry was modified. Should be set to <code>true</code> by
      * any {@link ibis.frontend.IbiscComponent} that modifies this class.
      */
-    public boolean     modified = false;
+    private boolean     modified = false;
 
     /**
      * When the class comes from a jar file, information about this jar file
      * can be found here.
      */
-    public JarInfo     jarInfo = null;
+    private final JarInfo     jarInfo;
 
     /**
      * Constructs an <code>IbiscEntry</code> from the specified class and
@@ -36,5 +36,33 @@ class IbiscEntry {
     public IbiscEntry(ClassInfo cl, String fn) {
         this.cl = cl;
         this.fileName = fn;
+        this.jarInfo = null;
+    }
+    
+    public IbiscEntry(ClassInfo cl, String fn, JarInfo jarInfo) {
+        this.cl = cl;
+        this.fileName = fn;
+        this.jarInfo = jarInfo;
+    }
+    
+    public void setModified(boolean val) {
+        modified = val;
+    }
+    
+    public boolean getModified() {
+        return modified;
+    }
+    
+    public JarInfo getJarInfo() {
+        return jarInfo;
+    }
+    
+    public ClassInfo getClassInfo() {
+        return cl;
+    }
+    
+    public void setClassInfo(ClassInfo cl) {
+        this.cl = cl;
+        this.modified = true;
     }
 }

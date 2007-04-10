@@ -3,6 +3,7 @@
 package ibis.frontend;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.NoSuchElementException;
@@ -15,15 +16,13 @@ import java.util.jar.JarFile;
 public class JarInfo {
 
     /** Wether the contents of the jarfile is modified. */
-    public boolean     modified;
+    private boolean     modified;
 
-    /**
-     * A list of entries of the jarfile, including their contents.
-     */
-    public ArrayList<JarEntryInfo>  entries = new ArrayList<JarEntryInfo>();
+    /** A list of entries of the jarfile, including their contents. */
+    private ArrayList<JarEntryInfo>  entries = new ArrayList<JarEntryInfo>();
 
     /** Reference to the jarfile itself. */
-    public JarFile     jarFile;
+    private JarFile     jarFile;
 
     private class Enum implements Enumeration {
         int count = 0;
@@ -56,8 +55,23 @@ public class JarInfo {
 
     public void addEntry(IbiscEntry e) {
         JarEntry je = new JarEntry(e.fileName);
-        JarEntryInfo jei = new JarEntryInfo(je, this, null);
-        jei.ibiscEntry = e;
+        JarEntryInfo jei = new JarEntryInfo(je, this, null, e);
         entries.add(jei);
+    }
+    
+    public void setModified(boolean val) {
+        modified = val;
+    }
+    
+    public boolean getModified() {
+        return modified;
+    }
+    
+    public String getName() {
+        return jarFile.getName();
+    }
+    
+    public InputStream getInputStream(JarEntry j) throws IOException {
+        return jarFile.getInputStream(j);
     }
 }

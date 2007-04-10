@@ -35,7 +35,7 @@ public class Ibisc {
     /** Set when jar files must be compressed. */
     private static boolean compress = true;
 
-    private static ByteCodeWrapper w;
+    static ByteCodeWrapper w;
 
     private static ArrayList<IbiscComponent> ibiscComponents
             = new ArrayList<IbiscComponent>();
@@ -87,24 +87,6 @@ public class Ibisc {
         }
         jarFiles.add(jarInfo);
         // jarInfo.modified = true;        // for testing ...
-        for (Enumeration iitems = jarInfo.entries(); iitems.hasMoreElements();) {
-            JarEntryInfo ient = (JarEntryInfo) iitems.nextElement();
-            String iname = ient.jarEntry.getName();
-            if (iname.endsWith(".class")) {
-                try {
-                    ClassInfo cl = w.parseInputStream(ient.getInputStream(),
-                                iname);
-                    IbiscEntry entry = new IbiscEntry(cl, iname);
-                    allClasses.put(cl.getClassName(), entry);
-                    entry.jarInfo = jarInfo;
-                    ient.ibiscEntry = entry;
-                } catch(IOException e) {
-                    System.err.println("Ibisc: warning: could not read "
-                            + "class " + iname + " from jar file "
-                            + fileName);
-                }
-            }
-        }
     }
 
     /**
@@ -114,8 +96,8 @@ public class Ibisc {
      */
     private static void verifyClasses(IbiscComponent ic) {
         for (IbiscEntry e : allClasses.values()) {
-            if (e.modified) {
-                if (! e.cl.doVerify()) {
+            if (e.getModified()) {
+                if (! e.getClassInfo().doVerify()) {
                     System.out.println("Ibisc: verification failed after "
                             + "component " + ic.getClass().getName());
                     System.exit(1);
@@ -129,13 +111,13 @@ public class Ibisc {
      */
     private static void writeClasses() {
         for (IbiscEntry e : allClasses.values()) {
-            if (e.modified && e.jarInfo == null) {
+            if (e.getModified() && e.getJarInfo() == null) {
                 File temp = null;
                 try {
                     File file = new File(e.fileName);
                     File canonicalDir = file.getCanonicalFile().getParentFile();
                     temp = File.createTempFile("Ibisc_", null, canonicalDir);
-                    e.cl.dump(temp.getCanonicalPath());
+                    e.getClassInfo().dump(temp.getCanonicalPath());
                     rename(file, temp, canonicalDir);
                 } catch (Exception ex) {
                     System.err.println("Ibisc: got exception while writing "
@@ -145,7 +127,7 @@ public class Ibisc {
                     }
                     System.exit(1);
                 }
-                e.modified = false;
+                e.setModified(false);
             }
         }
     }
@@ -178,16 +160,19 @@ public class Ibisc {
     private static void writeJars() {
         // First, determine which jars have actually changed.
         for (IbiscEntry e : allClasses.values()) {
-            if (e.modified && e.jarInfo != null) {
-                e.jarInfo.modified = true;
+            if (e.getModified()) {
+                JarInfo j = e.getJarInfo();
+                if (j != null) {
+                    j.setModified(true);
+                }
             }
         }
 
         // Then, write ...
         for (int i = 0; i < jarFiles.size(); i++) {
             JarInfo ji = jarFiles.get(i);
-            if (ji.modified) {
-                String name = ji.jarFile.getName();
+            if (ji.getModified()) {
+                String name = ji.getName();
                 File temp = null;
                 try {
                     File file = new File(name);
@@ -215,7 +200,7 @@ public class Ibisc {
                     }
                     System.exit(1);
                 }
-                ji.modified = false;
+                ji.setModified(false);
             }
         }
     }

@@ -45,7 +45,7 @@ public abstract class IbiscComponent {
 
         public Object next() {
             IbiscEntry e = i.next();
-            return e.cl.getClassObject();
+            return e.getClassInfo().getClassObject();
         }
 
         public void remove() {
@@ -97,7 +97,7 @@ public abstract class IbiscComponent {
         allClasses = classes;
         process(new ClassIterator());
         for (IbiscEntry ie : newClasses.values()) {
-            allClasses.put(ie.cl.getClassName(), ie);
+            allClasses.put(ie.getClassInfo().getClassName(), ie);
         }
     }
 
@@ -118,10 +118,11 @@ public abstract class IbiscComponent {
             return null;
         }
         File f;
-        if (ie.jarInfo == null) {
+        JarInfo ji = ie.getJarInfo();
+        if (ji == null) {
             f = new File(ie.fileName);
         } else {
-            f = new File(ie.jarInfo.jarFile.getName());
+            f = new File(ji.getName());
         }
         return f.getParent();
     }
@@ -162,8 +163,7 @@ public abstract class IbiscComponent {
             e = newClasses.get(className);
         }
         if (e != null) {
-            e.cl = cl;
-            e.modified = true;
+            e.setClassInfo(cl);
         }
     }
 
@@ -190,12 +190,13 @@ public abstract class IbiscComponent {
         } else {
             newFilename = baseDir + File.separator + name + ".class";
         }
-        IbiscEntry newEntry = new IbiscEntry(cl, newFilename);
-        newEntry.modified = true;
-        newEntry.jarInfo = from.jarInfo;
+        JarInfo fromInfo = from.getJarInfo();
+        IbiscEntry newEntry = new IbiscEntry(cl, newFilename, fromInfo);
+        newEntry.setModified(true);
+
         newClasses.put(className, newEntry);
-        if (from.jarInfo != null) {
-            from.jarInfo.addEntry(newEntry);
+        if (fromInfo != null) {
+            fromInfo.addEntry(newEntry);
         }
     }
 
