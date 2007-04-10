@@ -99,7 +99,7 @@ public final class IbisFactory {
      *            properties that can be set, for instance a class path for
      *            searching ibis implementations, or which registry to use.
      *            There is a default, so <code>null</code> may be specified.
-     * @param eventHandler
+     * @param reventHandler
      *            a {@link ibis.ipl.RegistryEventHandler RegistryEventHandler}
      *            instance, or <code>null</code>.
      * @param types the list of port types required by the application.

@@ -236,6 +236,7 @@ class CapabilitySet {
      * Reads and returns the capabilities from the specified file name, which is
      * searched for in the classpath.
      * @param name the file name.
+     * @return the capabilities from the specified file.
      * @exception IOException is thrown when an IO error occurs.
      */
     public static CapabilitySet load(String name) throws IOException {
@@ -250,6 +251,7 @@ class CapabilitySet {
     /**
      * Reads and returns the capabilities from the specified input stream.
      * @param in the input stream.
+     * @return the capabilities from the specified input stream.
      * @exception IOException is thrown when an IO error occurs.
      */
     public static CapabilitySet load(InputStream in) throws IOException {

@@ -110,7 +110,8 @@ public interface SendPort extends Managable {
      * Attempts to set up a connection with receiver.
      * It is not allowed to set up a new connection while a message
      * is alive.
-     *
+     * 
+     * @param receiver identifies the {@link ReceivePort} to connect to.
      * @param timeoutMillis timeout in milliseconds
      * @exception ibis.ipl.ConnectionTimedOutException is thrown
      * if an accept/deny has not arrived within <code>timeoutmillis</code>.
@@ -172,6 +173,7 @@ public interface SendPort extends Managable {
      * @exception PortMismatchException is thrown if the receiveport
      * port and the sendport are of different types.
      * @return the receiveport identifier.
+     * @throws IOException in case of trouble.
      */
     public ReceivePortIdentifier connect(IbisIdentifier id, String name,
             long timeoutMillis) throws IOException;

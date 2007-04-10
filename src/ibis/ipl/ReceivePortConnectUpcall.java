@@ -24,6 +24,7 @@ public interface ReceivePortConnectUpcall {
      * @param me the {@link ReceivePort} receiving a connection attempt.
      * @param applicant identifier for the {@link SendPort} attempting to
      * 			set up a connection.
+     * @return true to accept the connection and false to refuse the connection.
      */
     public boolean gotConnection(ReceivePort me, SendPortIdentifier applicant);
 

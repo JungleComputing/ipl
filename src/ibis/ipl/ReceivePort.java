@@ -165,6 +165,7 @@ public interface ReceivePort extends Managable {
      * Frees the resources held by the receiveport. 
      * Important: this method blocks until all sendports that are
      * connected to it have been closed. 
+     * @throws IOException in case of trouble.
      */
     public void close() throws IOException;
 
@@ -183,6 +184,7 @@ public interface ReceivePort extends Managable {
      * @param timeoutMillis timeout in milliseconds. When zero, the call is
      * equivalent to a {@link #close()}; when less than zero, the port is
      * closed immediately.
+     * @throws IOException in case of trouble.
      */
     public void close(long timeoutMillis) throws IOException;
 
