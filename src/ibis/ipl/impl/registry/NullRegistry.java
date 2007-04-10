@@ -9,54 +9,81 @@ import java.io.IOException;
 import java.util.Properties;
 import java.util.UUID;
 
+/**
+ * 
+ * Registry implementation that does nothing. Throws an Exception most calls.
+ * 
+ */
 public final class NullRegistry extends ibis.ipl.impl.Registry {
-    
+
     private final IbisIdentifier identifier;
 
     @Override
     public long getSeqno(String name) throws IOException {
-        throw new IbisConfigurationException("sequence numbers not supported by NullRegistry");
+        throw new IbisConfigurationException(
+                "sequence numbers not supported by NullRegistry");
     }
 
+    /**
+     * Creates a Null Registry.
+     * 
+     * @param handler
+     *            registry handler to pass events to.
+     * @param props
+     *            properties of this registry.
+     * @param data
+     *            Ibis implementation data to attach to the IbisIdentifier.
+     * @throws IOException
+     *             in case of trouble.
+     * @throws IbisConfigurationException
+     *             In case invalid properties were given.
+     */
     public NullRegistry(RegistryEventHandler handler, Properties props,
             byte[] data) throws IOException {
         if (handler != null) {
-            throw new IbisConfigurationException("upcalls not supported by NullRegistry");
+            throw new IbisConfigurationException(
+                    "upcalls not supported by NullRegistry");
         }
-        
-        //FIXME: use real UUID generator (from smartsockets?)
+
+        // FIXME: use real UUID generator (from smartsockets?)
         UUID id = UUID.randomUUID();
-        
+
         Location location = Location.defaultLocation();
 
         String pool = props.getProperty(RegistryProperties.POOL);
-        
-        identifier = new IbisIdentifier(id.toString(), data, null, location, pool);
+
+        identifier = new IbisIdentifier(id.toString(), data, null, location,
+                pool);
     }
 
     @Override
     public void leave() throws IOException {
-        //NOTHING
+        // NOTHING
     }
 
     public void dead(ibis.ipl.IbisIdentifier ibis) throws IOException {
-        //NOTHING
+        // NOTHING
     }
 
     public ibis.ipl.IbisIdentifier elect(String election) throws IOException {
-        throw new IbisConfigurationException("elections not supported by NullRegistry");
+        throw new IbisConfigurationException(
+                "elections not supported by NullRegistry");
     }
 
-    public ibis.ipl.IbisIdentifier getElectionResult(String election) throws IOException {
-        throw new IbisConfigurationException("elections not supported by NullRegistry");
+    public ibis.ipl.IbisIdentifier getElectionResult(String election)
+            throws IOException {
+        throw new IbisConfigurationException(
+                "elections not supported by NullRegistry");
     }
 
     public void maybeDead(ibis.ipl.IbisIdentifier ibis) throws IOException {
-        //NOTHING
+        // NOTHING
     }
 
-    public void signal(String string, ibis.ipl.IbisIdentifier... ibisses) throws IOException {
-        throw new IbisConfigurationException("signals not supported by NullRegistry");
+    public void signal(String string, ibis.ipl.IbisIdentifier... ibisses)
+            throws IOException {
+        throw new IbisConfigurationException(
+                "signals not supported by NullRegistry");
     }
 
     @Override

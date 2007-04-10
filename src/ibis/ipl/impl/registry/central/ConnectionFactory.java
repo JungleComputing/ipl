@@ -19,7 +19,7 @@ import smartsockets.virtual.VirtualSocketAddress;
 import smartsockets.virtual.VirtualSocketFactory;
 
 final class ConnectionFactory {
-    public static final int CONNECTION_BACKLOG = 50;
+    private static final int CONNECTION_BACKLOG = 50;
 
     private static final Logger logger = Logger
             .getLogger(ConnectionFactory.class);
@@ -60,8 +60,8 @@ final class ConnectionFactory {
         return result;
     }
 
-    public ConnectionFactory(boolean smart, String serverString,
-            int defaultServerPort) throws IOException {
+    ConnectionFactory(boolean smart, String serverString, int defaultServerPort)
+            throws IOException {
         this.smart = smart;
 
         if (smart) {
@@ -70,15 +70,15 @@ final class ConnectionFactory {
             plainLocalAddress = null;
 
             try {
-//                virtualSocketFactory = VirtualSocketFactory
-//                        .getOrCreateSocketFactory("ibis", defaults, true);
-                 virtualSocketFactory = VirtualSocketFactory
-                         .getDefaultSocketFactory();
+                // virtualSocketFactory = VirtualSocketFactory
+                // .getOrCreateSocketFactory("ibis", defaults, true);
+                virtualSocketFactory = VirtualSocketFactory
+                        .getDefaultSocketFactory();
             } catch (InitializationException e) {
                 throw new IOException("could not initialize socket factory: "
                         + e);
             }
-            
+
             virtualServerSocket = virtualSocketFactory.createServerSocket(0,
                     CONNECTION_BACKLOG, null);
 
@@ -121,8 +121,8 @@ final class ConnectionFactory {
         }
     }
 
-    public ConnectionFactory(int port, boolean smart, String hubAddress
-            ) throws IOException {
+    ConnectionFactory(int port, boolean smart, String hubAddress)
+            throws IOException {
         this.smart = smart;
 
         if (port < 0) {
@@ -235,7 +235,7 @@ final class ConnectionFactory {
         return serverAddress;
     }
 
-    public Connection accept() throws IOException {
+    Connection accept() throws IOException {
         if (smart) {
             return new Connection(virtualServerSocket);
         } else {
@@ -243,7 +243,7 @@ final class ConnectionFactory {
         }
     }
 
-    public Connection connect(IbisIdentifier ibis, byte opcode, int timeout)
+    Connection connect(IbisIdentifier ibis, byte opcode, int timeout)
             throws IOException {
         if (smart) {
             VirtualSocketAddress address = VirtualSocketAddress.fromBytes(ibis
@@ -258,7 +258,7 @@ final class ConnectionFactory {
         }
     }
 
-    public void end() {
+    void end() {
         try {
             if (smart) {
                 virtualServerSocket.close();
@@ -270,7 +270,7 @@ final class ConnectionFactory {
         }
     }
 
-    public byte[] getLocalAddress() {
+    byte[] getLocalAddress() {
         if (smart) {
             return virtualServerSocket.getLocalSocketAddress().toBytes();
         } else {
@@ -279,7 +279,7 @@ final class ConnectionFactory {
         }
     }
 
-    public String getAddressString() {
+    String getAddressString() {
         if (smart) {
             return virtualServerSocket.getLocalSocketAddress().toString();
         } else {
@@ -288,8 +288,7 @@ final class ConnectionFactory {
         }
     }
 
-    public Connection connectToServer(byte opcode, int timeout)
-            throws IOException {
+    Connection connectToServer(byte opcode, int timeout) throws IOException {
         if (smart) {
             if (virtualServerAddress == null) {
                 throw new IOException(
@@ -306,7 +305,7 @@ final class ConnectionFactory {
         }
     }
 
-    public boolean serverIsLocalHost() {
+    boolean serverIsLocalHost() {
         if (smart) {
             if (virtualServerAddress == null) {
                 return false;
@@ -325,7 +324,7 @@ final class ConnectionFactory {
         }
     }
 
-    public int getServerPort() {
+    int getServerPort() {
         if (smart) {
             return virtualServerAddress.port();
         } else {

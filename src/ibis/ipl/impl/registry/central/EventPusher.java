@@ -17,23 +17,24 @@ final class EventPusher implements Runnable {
         public void run() {
             while (!pool.ended()) {
                 int time = pool.getEventTime();
-                
+
                 logger.debug("updating nodes in pool to event-time " + time);
-                
+
                 start();
 
                 waitUntilDone();
-                
-                logger.debug("DONE updating nodes in pool to event-time " + time);
+
+                logger.debug("DONE updating nodes in pool to event-time "
+                        + time);
 
                 // wait until some event has happened
                 // (which it might already have)
                 pool.waitForEventTime(time + 1);
-                
+
                 try {
                     Thread.sleep(DELAY);
                 } catch (InterruptedException e) {
-                    //IGNORE
+                    // IGNORE
                 }
             }
         }
@@ -97,8 +98,6 @@ final class EventPusher implements Runnable {
         logger.debug("done!");
     }
 
-   
-
     public void run() {
         while (true) {
             Member next = getNext();
@@ -107,7 +106,7 @@ final class EventPusher implements Runnable {
                 // pool ended
                 return;
             }
-            
+
             logger.debug("pushing to " + next);
 
             pool.push(next);

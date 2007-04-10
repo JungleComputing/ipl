@@ -22,11 +22,11 @@ import org.apache.log4j.Logger;
  */
 public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
 
-    public static final boolean DEFAULT_SMARTSOCKETS = true;
+    static final boolean DEFAULT_SMARTSOCKETS = true;
 
-    public static final int MAX_GOSSIP_INTERVAL = 20 * 1000;
+    static final int MAX_GOSSIP_INTERVAL = 20 * 1000;
 
-    public static final int GOSSIP_ATTEMPTS = 20;
+    static final int GOSSIP_ATTEMPTS = 20;
 
     private static final int PEER_CONNECT_TIMEOUT = 60 * 1000;
 
@@ -59,6 +59,20 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
 
     private final int serverConnectTimeout;
 
+    /**
+     * Creates a Central Registry.
+     * 
+     * @param handler
+     *            registry handler to pass events to.
+     * @param props
+     *            properties of this registry.
+     * @param data
+     *            Ibis implementation data to attach to the IbisIdentifier.
+     * @throws IOException
+     *             in case of trouble.
+     * @throws IbisConfigurationException
+     *             In case invalid properties were given.
+     */
     public Registry(RegistryEventHandler handler, Properties props, byte[] data)
             throws IOException, IbisConfigurationException {
 
@@ -94,8 +108,7 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
                 server = new Server(properties);
                 server.setDaemon(true);
                 server.start();
-                logger.warn("Automagically created "
-                        + server.toString());
+                logger.warn("Automagically created " + server.toString());
             } catch (Throwable t) {
                 logger.debug("Could not create registry server", t);
             }
@@ -141,7 +154,7 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
         return poolName;
     }
 
-    public boolean statefulServer() {
+    boolean statefulServer() {
         return keepClientState;
     }
 
@@ -247,8 +260,8 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
             }
             connectionFactory.end();
             logger.debug("left");
-            
-            //print a warning about waiting for the server after a few seconds
+
+            // print a warning about waiting for the server after a few seconds
             if (server != null) {
                 logger.debug("Waiting for central server to finish");
                 try {
@@ -263,7 +276,7 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
                     } catch (InterruptedException e) {
                         // IGNORE
                     }
-                }                    
+                }
             }
         } catch (IOException e) {
             connection.close();
@@ -456,8 +469,10 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
         }
     }
 
-    public void signal(String signal, ibis.ipl.IbisIdentifier... ibisses) throws IOException {
-        logger.debug("telling " + ibisses.length + " ibisses a signal: " + signal);
+    public void signal(String signal, ibis.ipl.IbisIdentifier... ibisses)
+            throws IOException {
+        logger.debug("telling " + ibisses.length + " ibisses a signal: "
+                + signal);
         Connection connection = connectionFactory.connectToServer(
                 Protocol.OPCODE_SIGNAL, serverConnectTimeout);
 
@@ -472,9 +487,8 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
             connection.getAndCheckReply();
             connection.close();
 
-            logger
-                    .debug("done telling " + ibisses.length
-                            + " ibisses a signal: " + signal);
+            logger.debug("done telling " + ibisses.length
+                    + " ibisses a signal: " + signal);
         } catch (IOException e) {
             connection.close();
             throw e;

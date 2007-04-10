@@ -13,17 +13,17 @@ final class Event implements Serializable {
 
     // event types
 
-    public static final int JOIN = 1;
+    static final int JOIN = 1;
 
-    public static final int LEAVE = 2;
+    static final int LEAVE = 2;
 
-    public static final int DIED = 3;
+    static final int DIED = 3;
 
-    public static final int SIGNAL = 4;
+    static final int SIGNAL = 4;
 
-    public static final int ELECT = 5;
+    static final int ELECT = 5;
 
-    public static final int UN_ELECT = 6;
+    static final int UN_ELECT = 6;
 
     private final int time;
 
@@ -33,7 +33,7 @@ final class Event implements Serializable {
 
     private final IbisIdentifier[] ibisses;
 
-    public Event(int time, int type, IbisIdentifier ibis, String description) {
+    Event(int time, int type, IbisIdentifier ibis, String description) {
         this.time = time;
         this.type = type;
         if (ibis == null) {
@@ -48,8 +48,7 @@ final class Event implements Serializable {
         }
     }
 
-    public Event(int time, int type, IbisIdentifier[] ibisses,
-            String description) {
+    Event(int time, int type, IbisIdentifier[] ibisses, String description) {
         this.time = time;
         this.type = type;
         this.ibisses = ibisses.clone();
@@ -60,7 +59,7 @@ final class Event implements Serializable {
         }
     }
 
-    public Event(DataInput in) throws IOException {
+    Event(DataInput in) throws IOException {
         time = in.readInt();
         type = in.readInt();
         description = in.readUTF();
@@ -70,7 +69,7 @@ final class Event implements Serializable {
         }
     }
 
-    public void writeTo(DataOutput out) throws IOException {
+    void writeTo(DataOutput out) throws IOException {
         out.writeInt(time);
         out.writeInt(type);
         out.writeUTF(description);
@@ -81,26 +80,26 @@ final class Event implements Serializable {
 
     }
 
-    public int getTime() {
+    int getTime() {
         return time;
     }
 
-    public String getDescription() {
+    String getDescription() {
         return description;
     }
 
-    public IbisIdentifier getFirstIbis() {
+    IbisIdentifier getFirstIbis() {
         if (ibisses.length == 0) {
             return null;
         }
         return ibisses[0];
     }
 
-    public IbisIdentifier[] getIbisses() {
+    IbisIdentifier[] getIbisses() {
         return ibisses.clone();
     }
 
-    public int getType() {
+    int getType() {
         return type;
     }
 

@@ -11,12 +11,12 @@ final class Upcaller implements Runnable {
     private static final Logger logger = Logger.getLogger(Upcaller.class);
 
     private RegistryEventHandler handler;
-    
+
     private IbisIdentifier ibisId;
 
     private Registry registry;
 
-    public Upcaller(RegistryEventHandler handler, IbisIdentifier id, Registry registry) {
+    Upcaller(RegistryEventHandler handler, IbisIdentifier id, Registry registry) {
         this.handler = handler;
         this.ibisId = id;
         this.registry = registry;
@@ -43,22 +43,22 @@ final class Upcaller implements Runnable {
                 IbisIdentifier[] ibisses = event.getIbisses();
                 switch (event.getType()) {
                 case Event.JOIN:
-                    for (IbisIdentifier identifier: ibisses) {
+                    for (IbisIdentifier identifier : ibisses) {
                         handler.joined(identifier);
                     }
                     break;
                 case Event.LEAVE:
-                    for (IbisIdentifier identifier: ibisses) {
+                    for (IbisIdentifier identifier : ibisses) {
                         handler.left(identifier);
                     }
                     break;
                 case Event.DIED:
-                    for (IbisIdentifier identifier: ibisses) {
+                    for (IbisIdentifier identifier : ibisses) {
                         handler.died(identifier);
                     }
                     break;
                 case Event.SIGNAL:
-                    for (IbisIdentifier identifier: ibisses) {
+                    for (IbisIdentifier identifier : ibisses) {
                         if (identifier.equals(ibisId)) {
                             handler.gotSignal(event.getDescription());
                         }

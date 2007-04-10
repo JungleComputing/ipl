@@ -15,8 +15,7 @@ final class PeerConnectionHandler implements Runnable {
 
     private final Registry registry;
 
-    public PeerConnectionHandler(ConnectionFactory connectionFactory,
-            Registry registry) {
+    PeerConnectionHandler(ConnectionFactory connectionFactory, Registry registry) {
         this.connectionFactory = connectionFactory;
         this.registry = registry;
 
@@ -75,12 +74,11 @@ final class PeerConnectionHandler implements Runnable {
             connection.closeWithError("wrong pool: " + poolName
                     + " instead of " + registry.getPoolName());
         }
-        
+
         if (!registry.statefulServer()) {
             connection.out().writeInt(registry.currentEventTime());
             connection.out().flush();
         }
-        
 
         Event[] newEvents = new Event[connection.in().readInt()];
         for (int i = 0; i < newEvents.length; i++) {
@@ -88,9 +86,9 @@ final class PeerConnectionHandler implements Runnable {
         }
 
         connection.sendOKReply();
-        
+
         connection.close();
-        
+
         registry.handleNewEvents(newEvents);
     }
 
@@ -112,7 +110,7 @@ final class PeerConnectionHandler implements Runnable {
         }
         // create new thread for next connection
         ThreadPool.createNew(this, "peer connection handler");
-        
+
         try {
             switch (connection.getOpcode()) {
             case Protocol.OPCODE_GOSSIP:

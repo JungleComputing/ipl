@@ -10,6 +10,10 @@ import java.util.Properties;
 
 import org.apache.log4j.Logger;
 
+/**
+ * Server for the centralized registry implementation.
+ * 
+ */
 public final class Server extends ibis.ipl.impl.registry.Server {
 
     private static final Logger logger = Logger.getLogger(Server.class);
@@ -28,6 +32,13 @@ public final class Server extends ibis.ipl.impl.registry.Server {
 
     private boolean stopped = false;
 
+    /**
+     * Creates a registry server with the given properties
+     * 
+     * @param properties
+     *            settings for this server.
+     * @throws IOException
+     */
     public Server(Properties properties) throws IOException {
         TypedProperties typedProperties = new TypedProperties(properties);
 
@@ -62,8 +73,8 @@ public final class Server extends ibis.ipl.impl.registry.Server {
 
         if (result == null || result.ended()) {
             logger.debug("creating new pool: " + poolName);
-            result = new Pool(poolName,
-                    connectionFactory, gossip, keepNodeState);
+            result = new Pool(poolName, connectionFactory, gossip,
+                    keepNodeState);
             pools.put(poolName, result);
         }
 
@@ -74,6 +85,9 @@ public final class Server extends ibis.ipl.impl.registry.Server {
         return stopped;
     }
 
+    /**
+     * Stop this server.
+     */
     public synchronized void stopServer() {
         stopped = true;
         notifyAll();

@@ -10,7 +10,7 @@ import org.apache.log4j.Logger;
 
 final class ServerConnectionHandler implements Runnable {
 
-    public static final int THREADS = 10;
+    static final int THREADS = 10;
 
     private static final Logger logger = Logger
             .getLogger(ServerConnectionHandler.class);
@@ -35,14 +35,14 @@ final class ServerConnectionHandler implements Runnable {
 
         byte[] clientAddress = new byte[connection.in().readInt()];
         connection.in().read(clientAddress);
-        
+
         String poolName = connection.in().readUTF();
 
         byte[] implementationData = new byte[connection.in().readInt()];
         connection.in().read(implementationData);
 
         Location location = new Location(connection.in());
-        
+
         boolean gossip = connection.in().readBoolean();
         boolean keepNodeState = connection.in().readBoolean();
 
@@ -80,9 +80,10 @@ final class ServerConnectionHandler implements Runnable {
             connection.closeWithError(e.toString());
             return;
         }
-        
+
         if (pool.ended()) {
-            //wake up the server so it can check the pools (and remove this one)
+            // wake up the server so it can check the pools (and remove this
+            // one)
             server.nudge();
         }
 
@@ -166,7 +167,7 @@ final class ServerConnectionHandler implements Runnable {
         String poolName = connection.in().readUTF();
 
         String signal = connection.in().readUTF();
-        
+
         IbisIdentifier[] identifiers = new IbisIdentifier[connection.in()
                 .readInt()];
         for (int i = 0; i < identifiers.length; i++) {
@@ -243,7 +244,7 @@ final class ServerConnectionHandler implements Runnable {
             logger.error("error on handling connection", e);
         }
         connection.close();
-        
+
         stats.add(connection.getOpcode(), System.currentTimeMillis() - start);
         logger.debug("done handling request");
     }

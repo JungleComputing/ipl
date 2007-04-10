@@ -18,15 +18,15 @@ final class MemberSet {
         behindNext = 0;
     }
 
-    public int size() {
+    int size() {
         return list.size();
     }
 
-    public void add(Member member) {
+    void add(Member member) {
         list.add(member);
     }
 
-    public boolean remove(String ID) {
+    boolean remove(String ID) {
         for (int i = 0; i < list.size(); i++) {
             if (list.get(i).getID().equals(ID)) {
                 list.remove(i);
@@ -36,7 +36,7 @@ final class MemberSet {
         return false;
     }
 
-    public boolean contains(String ID) {
+    boolean contains(String ID) {
         for (int i = 0; i < list.size(); i++) {
             if (list.get(i).getID().equals(ID)) {
                 return true;
@@ -45,18 +45,18 @@ final class MemberSet {
         return false;
     }
 
-    public Member get(int index) {
+    Member get(int index) {
         if (index >= list.size()) {
             return null;
         }
         return list.get(index);
     }
 
-    public Member getRandom() {
+    Member getRandom() {
         return list.get(random.nextInt(size()));
     }
 
-    public Member[] getRandom(int size) {
+    Member[] getRandom(int size) {
         ArrayList<Member> result = new ArrayList<Member>();
         BitSet added = new BitSet();
 

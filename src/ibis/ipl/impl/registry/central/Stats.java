@@ -1,6 +1,5 @@
 package ibis.ipl.impl.registry.central;
 
-
 import java.util.Formatter;
 
 import org.apache.log4j.Logger;
@@ -62,7 +61,7 @@ final class Stats {
         if (clear) {
             clear();
         }
-        
+
         return message.toString();
     }
 

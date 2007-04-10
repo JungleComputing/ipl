@@ -1,7 +1,5 @@
 package ibis.ipl.impl.registry.central;
 
-
-
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
@@ -22,9 +20,9 @@ import smartsockets.virtual.VirtualSocketFactory;
 final class Connection {
 
     // private static final int MAX_TRIES = 10;
-    
+
     private static final int INITIAL_MAX_WAIT = 1000;
-    
+
     private static final Logger logger = Logger.getLogger(Connection.class);
 
     private final VirtualSocket virtualSocket;
@@ -117,7 +115,7 @@ final class Connection {
 
     }
 
-    public Connection(InetSocketAddress address, byte opcode, int timeout,
+    Connection(InetSocketAddress address, byte opcode, int timeout,
             boolean printWarning) throws IOException {
         virtualSocket = null;
         Socket socket = null;
@@ -130,7 +128,6 @@ final class Connection {
 
         // int maxWait = (int) (timeout / Math.pow(2, (MAX_TRIES - 1)));
         int maxWait = INITIAL_MAX_WAIT;
-
 
         int tries = 0;
         boolean success = false;
@@ -212,7 +209,7 @@ final class Connection {
         opcode = in.readByte();
     }
 
-    public Connection(ServerSocket plainServerSocket) throws IOException {
+    Connection(ServerSocket plainServerSocket) throws IOException {
         virtualSocket = null;
         logger.debug("waiting for incomming connection...");
         plainSocket = plainServerSocket.accept();
@@ -226,19 +223,19 @@ final class Connection {
 
     }
 
-    public DataOutputStream out() {
+    DataOutputStream out() {
         return out;
     }
 
-    public DataInputStream in() {
+    DataInputStream in() {
         return in;
     }
 
-    public byte getOpcode() {
+    byte getOpcode() {
         return opcode;
     }
 
-    public void getAndCheckReply() throws IOException {
+    void getAndCheckReply() throws IOException {
         // flush output, just in case...
         out.flush();
 
@@ -255,11 +252,11 @@ final class Connection {
 
     }
 
-    public void sendOKReply() throws IOException {
+    void sendOKReply() throws IOException {
         out.writeByte(Protocol.REPLY_OK);
     }
 
-    public void closeWithError(String message) {
+    void closeWithError(String message) {
         if (message == null) {
             message = "";
         }
@@ -273,7 +270,7 @@ final class Connection {
         }
     }
 
-    public void close() {
+    void close() {
         try {
             out.flush();
         } catch (IOException e) {
