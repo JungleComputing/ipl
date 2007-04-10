@@ -22,7 +22,7 @@ public interface Ibis extends Managable {
      * @exception IbisConfigurationException is thrown when this is not a
      * closed-world run.
      */
-    public int totalNrOfIbisesInPool();
+    public int getPoolSize();
 
     /**
      * When running closed-world, wait for all Ibis instances

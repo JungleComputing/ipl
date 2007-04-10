@@ -31,7 +31,7 @@ class RegEvtHandler implements RegistryEventHandler {
     }
 
     void waitForEveryone(Ibis ibis) {
-        nInstances = ibis.totalNrOfIbisesInPool();
+        nInstances = ibis.getPoolSize();
         identifiers = new IbisIdentifier[nInstances];
         myId = ibis.identifier();
         ibis.enableRegistryEvents();

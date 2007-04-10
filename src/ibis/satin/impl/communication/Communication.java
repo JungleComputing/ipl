@@ -88,7 +88,7 @@ public final class Communication implements Config, Protocol {
         if (CLOSED) {
             commLogger.info("SATIN '" + ident
                     + "': running with closed world, "
-                    + ibis.totalNrOfIbisesInPool() + " host(s)");
+                    + ibis.getPoolSize() + " host(s)");
         } else {
             commLogger.info("SATIN '" + ident + "': running with open world");
         }
@@ -445,7 +445,7 @@ public final class Communication implements Config, Protocol {
     public void waitForAllNodes() {
         commLogger.debug("SATIN '" + s.ident + "': pre barrier");
 
-        int poolSize = ibis.totalNrOfIbisesInPool();
+        int poolSize = ibis.getPoolSize();
 
         synchronized (s) {
             while (s.victims.size() != poolSize - 1) {

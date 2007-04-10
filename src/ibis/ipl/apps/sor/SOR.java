@@ -256,7 +256,7 @@ public class SOR {
 
         registry = ibis.registry();
 
-        size = ibis.totalNrOfIbisesInPool();
+        size = ibis.getPoolSize();
 
         instances = new IbisIdentifier[size];
 

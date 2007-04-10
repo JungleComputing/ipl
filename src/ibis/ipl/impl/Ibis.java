@@ -263,7 +263,7 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis,
         return new Properties(properties);
     }
 
-    public int totalNrOfIbisesInPool() {
+    public int getPoolSize() {
         if (! closedWorld) {
             throw new IbisConfigurationException(
                 "totalNrOfIbisesInPool called but open world run");

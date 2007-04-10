@@ -24,7 +24,7 @@ public final class IbisCapabilities extends CapabilitySet {
     /**
      * Boolean capability, set when the Ibises that can join the run are
      * determined at the start of the run. This enables the methods
-     * {@link Ibis#totalNrOfIbisesInPool()} and {@link Ibis#waitForAll()}.
+     * {@link Ibis#getPoolSize()} and {@link Ibis#waitForAll()}.
      */
     public final static String WORLDMODEL_CLOSED = WORLDMODEL + ".closed";
     

@@ -1039,7 +1039,7 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
             }
         });
 
-        ncpus = myIbis.totalNrOfIbisesInPool();
+        ncpus = myIbis.getPoolSize();
         
     }
 

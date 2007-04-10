@@ -92,8 +92,8 @@ public class StackingIbis extends Ibis {
     }
 
     @Override
-    public int totalNrOfIbisesInPool() {
-        return base.totalNrOfIbisesInPool();
+    public int getPoolSize() {
+        return base.getPoolSize();
     }
 
     @Override

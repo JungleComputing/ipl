@@ -39,7 +39,7 @@ class Latency {
 
             IbisIdentifier master = registry.elect("0");
 
-            int size = ibis.totalNrOfIbisesInPool();
+            int size = ibis.getPoolSize();
 
             ReceivePort rport;
             SendPort sport;
