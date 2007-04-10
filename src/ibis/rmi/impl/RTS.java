@@ -8,7 +8,7 @@ import ibis.ipl.IbisFactory;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.IbisProperties;
 import ibis.ipl.MessageUpcall;
-import ibis.ipl.NoMatchingIbisException;
+import ibis.ipl.IbisCreationFailedException;
 import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
@@ -284,7 +284,7 @@ public final class RTS {
             try {
                 ibis = IbisFactory.createIbis(reqprops, null, null, requestPortType,
                         replyPortType);
-            } catch (NoMatchingIbisException e) {
+            } catch (IbisCreationFailedException e) {
                 System.err.println("Could not find an Ibis that can run this"
                         + " RMI implementation");
                 System.exit(1);

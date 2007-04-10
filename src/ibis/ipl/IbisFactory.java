@@ -105,14 +105,14 @@ public final class IbisFactory {
      * @param types the list of port types required by the application.
      * @return the new Ibis instance.
      * 
-     * @exception NoMatchingIbisException
+     * @exception IbisCreationFailedException
      *                is thrown when no Ibis was found that matches the
      *                capabilities required.
      */
     public static Ibis createIbis(IbisCapabilities requiredCapabilities,
             Properties properties,
             RegistryEventHandler reventHandler,
-            PortType... types) throws NoMatchingIbisException {
+            PortType... types) throws IbisCreationFailedException {
 
         if (reventHandler != null
                 && !requiredCapabilities
@@ -200,7 +200,7 @@ public final class IbisFactory {
     private Ibis createIbis(IbisCapabilities requiredCapabilities,
             PortType[] types,
             RegistryEventHandler reventHandler)
-            throws NoMatchingIbisException {
+            throws IbisCreationFailedException {
 
         if (verbose) {
             System.err.println("Looking for an Ibis with capabilities: "
@@ -228,7 +228,7 @@ public final class IbisFactory {
             System.err.println("Matching Ibis implementations:" + str);
         }
 
-        NoMatchingIbisException nested = new NoMatchingIbisException("Ibis creation failed");
+        IbisCreationFailedException nested = new IbisCreationFailedException("Ibis creation failed");
 
         for (int i = 0; i < n; i++) {
             Class cl = implList[i];

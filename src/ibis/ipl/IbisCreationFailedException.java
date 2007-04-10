@@ -10,12 +10,12 @@ import java.util.ArrayList;
 /**
  * Signals that no Ibis could be found whose constructor did not throw
  * an exception.
- * <code>NoMatchingIbisException</code> is thrown to indicate
+ * <code>IbisCreationFailedException</code> is thrown to indicate
  * that no matching Ibis could be found in
  * {@link ibis.ipl.IbisFactory#createIbis(IbisCapabilities,
  * java.util.Properties, RegistryEventHandler, PortType...) Ibis.createIbis}.
  */
-public class NoMatchingIbisException extends Exception {
+public class IbisCreationFailedException extends Exception {
 
     /** 
      * Generated
@@ -27,31 +27,31 @@ public class NoMatchingIbisException extends Exception {
     private ArrayList<String> throwerIDs = new ArrayList<String>();
 
     /**
-     * Constructs a <code>NoMatchingIbisException</code> with
+     * Constructs a <code>IbisCreationFailedException</code> with
      * the specified detail message.
      *
      * @param s         the detail message
      */
-    public NoMatchingIbisException(String s) {
+    public IbisCreationFailedException(String s) {
         super(s);
     }
 
     /**
-     * Constructs a <code>NoMatchingIbisException</code> with no specified detail
+     * Constructs a <code>IbisCreationFailedException</code> with no specified detail
      * message.
      */
-    public NoMatchingIbisException() {
+    public IbisCreationFailedException() {
         super();
     }
 
     /**
-     * Constructs a <code>NoMatchingIbisException</code> with no specified detail
+     * Constructs a <code>IbisCreationFailedException</code> with no specified detail
      * message, and adds the specified <String, Throwable> pair to the
      * list of exceptions.
      * @param throwerID some identification of the exception thrower.
      * @param t the exception.
      */
-    public NoMatchingIbisException(String throwerID, Throwable t) {
+    public IbisCreationFailedException(String throwerID, Throwable t) {
         super();
         add(throwerID, t);
     }

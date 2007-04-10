@@ -6,7 +6,7 @@ import ibis.ipl.Ibis;
 import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisFactory;
 import ibis.ipl.IbisIdentifier;
-import ibis.ipl.NoMatchingIbisException;
+import ibis.ipl.IbisCreationFailedException;
 import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
@@ -190,7 +190,7 @@ public final class Group implements GroupProtocol {
             try {
                 ibis = IbisFactory.createIbis(reqprops, null, null, portTypeSystemUcast,
                         portTypeSystemMcast, portTypeManyToOne, props);
-            } catch (NoMatchingIbisException e) {
+            } catch (IbisCreationFailedException e) {
                 logger.warn("?: <static> - " + 
                         "Could not find an Ibis that can run this "
                         + "GMI implementation");
