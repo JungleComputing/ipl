@@ -37,9 +37,6 @@ public final class IbisProperties {
     /** Property name of the property file. */
     public static final String PROPERTIES_FILE = PREFIX + "properties.file";
 
-    /** Property name for the native library path. */
-    public static final String LIBRARY_PATH = PREFIX + "library.path";
-
     /** Property name for the path used to find Ibis implementations. */
     public static final String IMPL_PATH = PREFIX + "impl.path";
 
@@ -53,8 +50,6 @@ public final class IbisProperties {
 
             { PROPERTIES_FILE, null,
                     "Name of the property file used for the configuration of Ibis" },
-
-            { LIBRARY_PATH, null, "Native library path" },
 
             { IMPL_PATH, null, "Path used to find Ibis implementations", },
 

@@ -14,9 +14,6 @@
 # Name of the property file used for the configuration of Ibis
 #ibis.properties.file=null
 
-# Native library path
-#ibis.library.path=null
-
 #### Ibis Generic Registry properties ####
 
 # Pool to join
