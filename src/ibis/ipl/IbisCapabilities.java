@@ -22,7 +22,7 @@ public final class IbisCapabilities extends CapabilitySet {
     final static String REGISTRY = "registry";
 
     /**
-     * Boolean capability, set when the Ibises that can join the run are
+     * Boolean capability, set when the Ibises that can join the pool are
      * determined at the start of the run. This enables the methods
      * {@link Ibis#getPoolSize()} and {@link Ibis#waitForAll()}.
      */

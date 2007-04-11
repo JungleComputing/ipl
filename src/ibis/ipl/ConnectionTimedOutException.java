@@ -7,51 +7,60 @@ package ibis.ipl;
  * <code>ConnectionTimedOutException</code> is thrown to indicate
  * that a sendport connect timed out.
  */
-public class ConnectionTimedOutException extends java.io.IOException {
-
-    /** 
-     * Generated
-     */
-    private static final long serialVersionUID = -635963914522956036L;
+public class ConnectionTimedOutException extends ConnectionFailedException {
+    private static final long serialVersionUID = 1L;
 
     /**
-     * Constructs a <code>ConnectionTimedOutException</code> with
-     * <code>null</code> as its error detail message.
+     * Constructs a <code>ConnectionTimedOuException</code>.
+     * with the specified parameters.
+     * @param detail    the detail message.
+     * @param receivePort
+     *                 identifies the target port of the failed connection attempt.
+     * @param cause     cause of the failure.
      */
-    public ConnectionTimedOutException() {
-        super();
+    public ConnectionTimedOutException(String detail, ReceivePortIdentifier receivePort,
+            Throwable cause) {
+        super(detail, receivePort, cause);
+    }
+    
+    /**
+     * Constructs a <code>ConnectionTimedOutException</code>.
+     * with the specified parameter.
+     * @param detail the detail message.
+     * @param receivePort
+     *                 identifies the target port of the failed connection attempt.
+     */
+    public ConnectionTimedOutException(String detail, ReceivePortIdentifier receivePort) {
+        super(detail, receivePort);
+    }
+    
+    /**
+     * Constructs a <code>ConnectionTimedOuException</code> with the
+     * specified parameters.
+     * @param detail the detail message.
+     * @param ibisIdentifier 
+     *                 identifies the Ibis instance of the target port of
+     *                 the failed connection attempt.
+     * @param portName  the name of the receive port of the failed connection attempt.
+     * @param cause     the cause of the failure.
+     */
+    public ConnectionTimedOutException(String detail, IbisIdentifier ibisIdentifier,
+            String portName, Throwable cause) {
+        super(detail, ibisIdentifier, portName, cause);
+    }
+    
+    /**
+     * Constructs a <code>ConnectionTimedOutException</code> with the
+     * specified parameters.
+     * @param detail the detail message.
+     * @param ibisIdentifier 
+     *                 identifies the Ibis instance of the target port of
+     *                 the failed connection attempt.
+     * @param portName  the name of the receive port of the failed connection attempt.
+     */
+    public ConnectionTimedOutException(String detail, IbisIdentifier ibisIdentifier,
+            String portName) {
+        super(detail, ibisIdentifier, portName);
     }
 
-    /**
-     * Constructs a <code>ConnectionTimedOutException</code> with
-     * the specified detail message.
-     *
-     * @param s		the detail message
-     */
-    public ConnectionTimedOutException(String s) {
-        super(s);
-    }
-
-    /**
-     * Constructs a <code>ConnectionTimedOutException</code> with
-     * the specified detail message and cause.
-     *
-     * @param s		the detail message
-     * @param cause	the cause
-     */
-    public ConnectionTimedOutException(String s, Throwable cause) {
-        super(s);
-        initCause(cause);
-    }
-
-    /**
-     * Constructs a <code>ConnectionTimedOutException</code> with
-     * the specified cause.
-     *
-     * @param cause	the cause
-     */
-    public ConnectionTimedOutException(Throwable cause) {
-        super();
-        initCause(cause);
-    }
 }

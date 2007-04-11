@@ -23,9 +23,9 @@ package ibis.ipl;
  */
 public interface RegistryEventHandler {
     /**
-     * Upcall generated when an Ibis instance joined the current run.
+     * Upcall generated when an Ibis instance joined the pool.
      * @param ident the ibis identifier of the Ibis instance that joined the
-     * current run. Note: an Ibis instance will also receive a
+     * pool. Note: an Ibis instance will also receive a
      * <code>joined</code> upcall for itself.
      * All Ibis instances receive the <code>joined</code> upcalls in the
      * same order.
@@ -33,15 +33,15 @@ public interface RegistryEventHandler {
     public void joined(IbisIdentifier ident);
 
     /**
-     * Upcall generated when an Ibis instance voluntarily left the current run.
+     * Upcall generated when an Ibis instance voluntarily left the pool.
      * @param ident the ibis identifier of the Ibis instance that left the
-     * current run.
+     * pool.
      */
     public void left(IbisIdentifier ident);
 
     /**
      * Upcall generated when an Ibis instance crashed or was killed, implicitly
-     * removing it from the current run.
+     * removing it from the pool.
      * @param corpse the ibis identifier of the dead Ibis instance.
      */
     public void died(IbisIdentifier corpse);

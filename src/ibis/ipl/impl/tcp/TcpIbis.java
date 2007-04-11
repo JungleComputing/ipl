@@ -165,33 +165,31 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
                 case ReceivePort.ACCEPTED:
                     return s;
                 case ReceivePort.ALREADY_CONNECTED:
-                    throw new AlreadyConnectedException(
-                            "The sender was already connected to " + name
-                            + " at " + id);
+                    throw new AlreadyConnectedException("Already connected", rip);
                 case ReceivePort.TYPE_MISMATCH:
                     throw new PortMismatchException(
-                            "Cannot connect ports of different port types");
+                            "Cannot connect ports of different port types", rip);
                 case ReceivePort.DENIED:
                     throw new ConnectionRefusedException(
-                            "Receiver denied connection");
+                            "Receiver denied connection", rip);
                 case ReceivePort.NO_MANYTOONE:
                     throw new ConnectionRefusedException(
                             "Receiver already has a connection and ManyToOne "
-                            + "is not set");
+                            + "is not set", rip);
                 case ReceivePort.NOT_PRESENT:
                 case ReceivePort.DISABLED:
                     // and try again if we did not reach the timeout...
                     if (timeout > 0 && System.currentTimeMillis()
                             > startTime + timeout) {
                         throw new ConnectionTimedOutException(
-                                "Could not connect");
+                                "Could not connect", rip);
                     }
                     break;
                 default:
                     throw new Error("Illegal opcode in TcpIbis.connect");
                 }
             } catch(SocketTimeoutException e) {
-                throw new ConnectionTimedOutException("Could not connect");
+                throw new ConnectionTimedOutException("Could not connect", rip);
             } finally {
                 if (result != ReceivePort.ACCEPTED) {
                     try {

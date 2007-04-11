@@ -5,51 +5,60 @@ package ibis.ipl;
 /**
  * Signals an attempt to connect ports of different types.
  */
-public class PortMismatchException extends java.io.IOException {
-
-    /** 
-     * Generated
-     */
-    private static final long serialVersionUID = 654693413464052963L;
+public class PortMismatchException extends ConnectionFailedException {
+    private static final long serialVersionUID = 1L;
 
     /**
-     * Constructs a <code>PortMismatchException</code> with
-     * <code>null</code> as its error detail message.
+     * Constructs a <code>PortMismatchExceptio</code>.
+     * with the specified parameters.
+     * @param detail    the detail message.
+     * @param receivePort
+     *                 identifies the target port of the failed connection attempt.
+     * @param cause     cause of the failure.
      */
-    public PortMismatchException() {
-        super();
+    public PortMismatchException(String detail, ReceivePortIdentifier receivePort,
+            Throwable cause) {
+        super(detail, receivePort, cause);
+    }
+    
+    /**
+     * Constructs a <code>PortMismatchException</code>.
+     * with the specified parameter.
+     * @param detail the detail message.
+     * @param receivePort
+     *                 identifies the target port of the failed connection attempt.
+     */
+    public PortMismatchException(String detail, ReceivePortIdentifier receivePort) {
+        super(detail, receivePort);
+    }
+    
+    /**
+     * Constructs a <code>PortMismatchException</code> with the
+     * specified parameters.
+     * @param detail the detail message.
+     * @param ibisIdentifier 
+     *                 identifies the Ibis instance of the target port of
+     *                 the failed connection attempt.
+     * @param portName  the name of the receive port of the failed connection attempt.
+     * @param cause     the cause of the failure.
+     */
+    public PortMismatchException(String detail, IbisIdentifier ibisIdentifier,
+            String portName, Throwable cause) {
+        super(detail, ibisIdentifier, portName, cause);
+    }
+    
+    /**
+     * Constructs a <code>PortMismatchException</code> with the
+     * specified parameters.
+     * @param detail the detail message.
+     * @param ibisIdentifier 
+     *                 identifies the Ibis instance of the target port of
+     *                 the failed connection attempt.
+     * @param portName  the name of the receive port of the failed connection attempt.
+     */
+    public PortMismatchException(String detail, IbisIdentifier ibisIdentifier,
+            String portName) {
+        super(detail, ibisIdentifier, portName);
     }
 
-    /**
-     * Constructs a <code>PortMismatchException</code> with
-     * the specified detail message.
-     *
-     * @param s		the detail message
-     */
-    public PortMismatchException(String s) {
-        super(s);
-    }
-
-    /**
-     * Constructs a <code>PortMismatchException</code> with
-     * the specified detail message and cause.
-     *
-     * @param s		the detail message
-     * @param cause	the cause
-     */
-    public PortMismatchException(String s, Throwable cause) {
-        super(s);
-        initCause(cause);
-    }
-
-    /**
-     * Constructs a <code>PortMismatchException</code> with
-     * the specified cause.
-     *
-     * @param cause	the cause
-     */
-    public PortMismatchException(Throwable cause) {
-        super();
-        initCause(cause);
-    }
 }

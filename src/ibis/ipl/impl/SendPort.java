@@ -3,7 +3,7 @@
 package ibis.ipl.impl;
 
 import ibis.ipl.AlreadyConnectedException;
-import ibis.ipl.ConnectionRefusedException;
+import ibis.ipl.ConnectionFailedException;
 import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.ConnectionsFailedException;
 import ibis.ipl.IbisConfigurationException;
@@ -211,8 +211,7 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
         }
 
         if (getInfo(r) != null) {
-            throw new AlreadyConnectedException(
-                    "This sendport was already connected to " + r);
+            throw new AlreadyConnectedException("Already connected", r);
         }
     }
 
@@ -263,14 +262,13 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
             if (endTime != 0) {
                 long now = System.currentTimeMillis();
                 if (endTime < now) {
-                    IOException e = 
+                    ConnectionFailedException e = 
                             new ConnectionTimedOutException(
-                            "Out of time, connection to (" +  entry.getKey()
-                            + ", " + entry.getValue() + ") not even tried");
+                            "Out of time, connection not even tried", entry.getKey(), entry.getValue());
                     if (ex == null) {
                         ex = new ConnectionsFailedException();
                     }
-                    ex.add(entry.getKey(), entry.getValue(), e);
+                    ex.add(e);
                     continue;
                 }              
                 t = (endTime - now) / count;
@@ -281,11 +279,17 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
             count--;
             try {
                 portIds.add(connect(entry.getKey(), entry.getValue(), t));
-            } catch(IOException e) {
+            } catch(ConnectionFailedException e1) {
                 if (ex == null) {
                     ex = new ConnectionsFailedException();
                 }
-                ex.add(entry.getKey(), entry.getValue(), e);
+                ex.add(e1);
+            } catch(Throwable e) {
+                if (ex == null) {
+                    ex = new ConnectionsFailedException();
+                }
+                ex.add(new ConnectionFailedException("Failed connection",
+                        entry.getKey(), entry.getValue(), e));
             }
         }
 
@@ -322,13 +326,13 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
             if (endTime != 0) {
                 long now = System.currentTimeMillis();
                 if (endTime < now) {
-                    IOException e = new ConnectionTimedOutException(
-                            "Out of time, connection to (" +  ports[i].ibis()
-                            + ", " + ports[i].name() + ") not even tried");
+                    ConnectionFailedException e = new ConnectionTimedOutException(
+                            "Out of time, connection not even tried",
+                            ports[i]);
                     if (ex == null) {
                         ex = new ConnectionsFailedException();
                     }
-                    ex.add(ports[i], e);
+                    ex.add(e);
                     continue;
                 }              
                 t = (endTime - now) / count;
@@ -340,11 +344,17 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
             try {
                 connect(ports[i], t);
                 portIds.add(ports[i]);
-            } catch(IOException e) {
+            } catch(ConnectionFailedException e1) {
                 if (ex == null) {
                     ex = new ConnectionsFailedException();
                 }
-                ex.add(ports[i], e);
+                ex.add(e1);
+            } catch(Throwable e) {
+                if (ex == null) {
+                    ex = new ConnectionsFailedException();
+                }
+                ex.add(new ConnectionFailedException("Connection failed",
+                        ports[i], e));
             }
         }
 
@@ -373,8 +383,13 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
 
         checkConnect(r);
 
-        addConnectionInfo(r, doConnect(r, timeout));
-
+        try {
+            addConnectionInfo(r, doConnect(r, timeout));
+        } catch(ConnectionFailedException e1) {
+            throw e1;
+        } catch(Throwable e) {
+            throw new ConnectionFailedException("Connection failed", r, e);
+        }
         return r;
     }
 
@@ -382,9 +397,6 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
             SendPortConnectionInfo connection) throws IOException {
         if (logger.isDebugEnabled()) {
             logger.debug("SendPort '" + name + "': added connection to " + ri);
-        }
-        if (connection == null) {
-            throw new ConnectionRefusedException("Could not connect");
         }
         addInfo(ri, connection);
     }

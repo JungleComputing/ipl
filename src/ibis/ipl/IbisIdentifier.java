@@ -18,8 +18,8 @@ public interface IbisIdentifier extends java.io.Serializable,
     public Location getLocation();
 
     /**
-     * Returns the name of the pool that identifies the run to which
-     * this Ibis instance belongs with the Ibis registry.
+     * Returns the name of the pool to which
+     * this Ibis instance belongs.
      * @return the poolname.
      */
     public String getPool();

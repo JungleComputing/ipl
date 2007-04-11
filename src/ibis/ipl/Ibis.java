@@ -13,7 +13,7 @@ public interface Ibis extends Managable {
 
     /**
      * When running closed-world, returns the total number of Ibis instances
-     * involved in the run. Otherwise returns -1.
+     * in the pool.
      * @return the number of Ibis instances
      * @exception NumberFormatException is thrown when the property
      *   ibis.pool.total_hosts is not defined or does not represent a number.
@@ -24,7 +24,7 @@ public interface Ibis extends Managable {
 
     /**
      * When running closed-world, wait for all Ibis instances
-     * involved in the run.
+     * in the pool.
      * @exception IbisConfigurationException is thrown when this is not a
      * closed-world run, or when registry events are not enabled yet.
      */
@@ -91,7 +91,7 @@ public interface Ibis extends Managable {
     public Properties properties();
 
     /**
-     * Returns the Ibis instances that joined the run.
+     * Returns the Ibis instances that joined the pool.
      * Returns the changes since the last joinedIbises call,
      * or, if this is the first call, all Ibis instances that joined.
      * This call only works if this Ibis is configured to support
@@ -104,7 +104,7 @@ public interface Ibis extends Managable {
     public IbisIdentifier[] joinedIbises();
 
     /**
-     * Returns the Ibis instances that left the run.
+     * Returns the Ibis instances that left the pool.
      * Returns the changes since the last leftIbises call,
      * or, if this is the first call, all Ibis instances that left.
      * This call only works if this Ibis is configured to support

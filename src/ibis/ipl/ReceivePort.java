@@ -152,7 +152,7 @@ public interface ReceivePort extends Managable {
      * {@link #enableMessageUpcalls()} is called.
      * The <code>disableMessageUpcalls</code>/<code>enableMessageUpcalls</code> mechanism
      * allows the user to selectively allow or disallow message upcalls during
-     * program run.
+     * runtime.
      * <strong>Note: the
      * <code>disableMessageUpcalls</code>/<code>enableMessageUpcalls</code>
      * mechanism is not necessary to enforce serialization of Upcalls for

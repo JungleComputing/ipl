@@ -122,7 +122,7 @@ class TcpChannelFactory implements ChannelFactory, Protocol {
                             + "to receiver");
 
                     throw new ConnectionTimedOutException("timed out while"
-                            + " connecting socket to receiver");
+                            + " connecting socket to receiver", rpi);
                 }
 
                 if (!channel.finishConnect()) {
@@ -175,7 +175,7 @@ class TcpChannelFactory implements ChannelFactory, Protocol {
                     logger.error("timed out while for reply from receiver");
 
                     throw new ConnectionTimedOutException("timed out while"
-                            + " waiting for reply from receiver");
+                            + " waiting for reply from receiver", rpi);
                 }
                 selector.close();
                 channel.configureBlocking(true);
@@ -188,8 +188,7 @@ class TcpChannelFactory implements ChannelFactory, Protocol {
             if (reply == ReceivePort.DENIED) {
                 logger.error("Receiver denied connection");
                 channel.close();
-                throw new ConnectionRefusedException(
-                        "Receiver denied connection");
+                throw new ConnectionRefusedException("Receiver denied connection", rpi);
             } else if (reply == ReceivePort.ACCEPTED) {
                 if (logger.isDebugEnabled()) {
                     logger.debug("made new connection from \"" + spi
