@@ -50,44 +50,44 @@ public final class IbisCapabilities extends CapabilitySet {
     
     /**
      * Constructs an IbisCapabilities object from the specified properties.
-     * @param sp the properties.
+     * @param properties the properties.
      */
-    protected IbisCapabilities(Properties sp) {
-        super(sp);
+    protected IbisCapabilities(Properties properties) {
+        super(properties);
     }
 
     /**
      * Constructs an IbisCapabilities from the specified capabilityset.
-     * @param s the capabilityset.
+     * @param capabilitySet the capabilityset.
      */
-    protected IbisCapabilities(CapabilitySet s) {
-         super(s);
+    protected IbisCapabilities(CapabilitySet capabilitySet) {
+         super(capabilitySet);
     }
     
     /**
      * Reads and returns the capabilities from the specified file name, which is
      * searched for in the classpath.
-     * @param name the file name.
+     * @param capabilityFileName the file name.
      * @exception IOException is thrown when an IO error occurs.
      */
-    public static IbisCapabilities load(String name) throws IOException {
-        InputStream in
-            = ClassLoader.getSystemClassLoader().getResourceAsStream(name);
-        if (in == null) {
-            throw new IOException("Could not open " + name);
+    public static IbisCapabilities load(String capabilityFileName) throws IOException {
+        InputStream input
+            = ClassLoader.getSystemClassLoader().getResourceAsStream(capabilityFileName);
+        if (input == null) {
+            throw new IOException("Could not open " + capabilityFileName);
         }
-        return load(in);
+        return load(input);
     }
 
     /**
      * Reads and returns the capabilities from the specified input stream.
-     * @param in the input stream.
+     * @param input the input stream.
      * @exception IOException is thrown when an IO error occurs.
      */
-    public static IbisCapabilities load(InputStream in) throws IOException {
-        Properties p = new Properties();
-        p.load(in);
-        in.close();
-        return new IbisCapabilities(p);
+    public static IbisCapabilities load(InputStream input) throws IOException {
+        Properties properties = new Properties();
+        properties.load(input);
+        input.close();
+        return new IbisCapabilities(properties);
     }
 }

@@ -32,9 +32,9 @@ public interface MessageUpcall {
     /**
      * This is the upcall announcing the receipt of a {@link ReadMessage}.
      *
-     * @param m the message received.
+     * @param readMessage the message received.
      * @exception IOException may be thrown by any of the methods
      * invoked on the message.
      */
-    public void upcall(ReadMessage m) throws IOException;
+    public void upcall(ReadMessage readMessage) throws IOException;
 }

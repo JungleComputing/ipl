@@ -143,7 +143,7 @@ public final class Sequencer {
 
     private Sequencer(Ibis ibis) throws IOException {
         this.ibis = ibis;
-        ident = ibis.identifier();
+        ident = ibis.ibisIdentifier();
         idno = -1;
         PortType tp = new PortType(
             PortType.SERIALIZATION_OBJECT, PortType.CONNECTION_MANY_TO_ONE,
@@ -164,7 +164,7 @@ public final class Sequencer {
         } else {
             snd = ibis.createSendPort(tp);
             snd.connect(boss, "seq recvr");
-            ReceivePortIdentifier rid = rcv.identifier();
+            ReceivePortIdentifier rid = rcv.receivePortIdentifier();
             WriteMessage w = snd.newMessage();
             w.writeInt(-1);
             w.writeObject(rid);
@@ -194,7 +194,7 @@ public final class Sequencer {
      */
     public static synchronized Sequencer getSequencer(Ibis ibis)
             throws IOException {
-        IbisIdentifier ident = ibis.identifier();
+        IbisIdentifier ident = ibis.ibisIdentifier();
         Sequencer seq = sequencers.get(ident);
         if (seq != null) {
             return seq;

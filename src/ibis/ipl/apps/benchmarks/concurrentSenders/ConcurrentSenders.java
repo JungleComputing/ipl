@@ -245,7 +245,7 @@ class ConcurrentSenders {
             master = registry.elect("latency");
             logger.debug("LAT: post elect");
 
-            if (master.equals(ibis.identifier())) {
+            if (master.equals(ibis.ibisIdentifier())) {
                 logger.debug("LAT: I am master");
                 rank = 0;
             } else {

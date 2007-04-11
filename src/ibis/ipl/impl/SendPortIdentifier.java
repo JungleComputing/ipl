@@ -130,11 +130,11 @@ public class SendPortIdentifier implements ibis.ipl.SendPortIdentifier {
         return name.hashCode();
     }
 
-    public final String name() {
+    public final String sendPortName() {
         return name;
     }
 
-    public ibis.ipl.IbisIdentifier ibis() {
+    public ibis.ipl.IbisIdentifier ibisIdentifier() {
         return ibis;
     }
 

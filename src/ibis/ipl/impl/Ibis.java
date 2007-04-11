@@ -121,7 +121,7 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis,
         properties.addProperties(IbisProperties.getHardcodedProperties());
         properties.addProperties(RegistryProperties.getHardcodedProperties());
         properties.addProperties(defaultProperties);
-        properties.addProperties(IbisProperties.getConfigProperties());
+        properties.addProperties(IbisProperties.getConfigurationProperties());
         properties.addProperties(userProperties);
         
         if (logger.isDebugEnabled()) {
@@ -255,7 +255,7 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis,
         return registry;
     }
 
-    public ibis.ipl.IbisIdentifier identifier() {
+    public ibis.ipl.IbisIdentifier ibisIdentifier() {
         return ident;
     }
 

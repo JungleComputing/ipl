@@ -11,7 +11,7 @@ import java.util.Properties;
 
 /**
  * Utility methods for setting and getting configuration properties. The
- * {@link #getConfigProperties()} method obtains the properties in the following
+ * {@link #getConfigurationProperties()} method obtains the properties in the following
  * order: first, some hardcoded properties are set. Next, a file
  * <code>ibis.properties</code> is obtained from the classpath, if present. If
  * so, it is read as a properties file, and the properties contained in it are
@@ -74,20 +74,20 @@ public final class IbisProperties {
      * Adds the properties as loaded from the specified stream to the specified
      * properties.
      * 
-     * @param in
+     * @param inputStream
      *            the input stream.
      * @param properties
      *            the properties.
      */
-    private static void load(InputStream in, Properties properties) {
-        if (in != null) {
+    private static void load(InputStream inputStream, Properties properties) {
+        if (inputStream != null) {
             try {
-                properties.load(in);
+                properties.load(inputStream);
             } catch (IOException e) {
                 // ignored
             } finally {
                 try {
-                    in.close();
+                    inputStream.close();
                 } catch (Throwable e1) {
                     // ignored
                 }
@@ -100,8 +100,8 @@ public final class IbisProperties {
      * 
      * @return the properties.
      */
-    public static Properties getConfigProperties() {
-        return getConfigProperties(null);
+    public static Properties getConfigurationProperties() {
+        return getConfigurationProperties(null);
     }
 
     /**
@@ -112,26 +112,26 @@ public final class IbisProperties {
      *            the default properties.
      * @return the resulting properties.
      */
-    public static Properties getConfigProperties(Properties defaults) {
-        InputStream in = null;
+    public static Properties getConfigurationProperties(Properties defaults) {
+        InputStream inputStream = null;
 
-        Properties configProperties = new Properties(defaults);
+        Properties configurationProperties = new Properties(defaults);
         // Get the properties from the commandline.
-        Properties system = System.getProperties();
+        Properties systemProperties = System.getProperties();
 
         // Then get the default properties from the classpath:
-        ClassLoader loader = ClassLoader.getSystemClassLoader();
-        in = loader.getResourceAsStream(PROPERTIES_FILENAME);
+        ClassLoader classLoader = ClassLoader.getSystemClassLoader();
+        inputStream = classLoader.getResourceAsStream(PROPERTIES_FILENAME);
 
-        load(in, configProperties);
+        load(inputStream, configurationProperties);
 
         // Then see if there is an ibis.properties file in the users
         // home directory.
-        String fn = system.getProperty("user.home")
-                + system.getProperty("file.separator") + PROPERTIES_FILENAME;
+        String fileName = systemProperties.getProperty("user.home")
+                + systemProperties.getProperty("file.separator") + PROPERTIES_FILENAME;
         try {
-            in = new FileInputStream(fn);
-            load(in, configProperties);
+            inputStream = new FileInputStream(fileName);
+            load(inputStream, configurationProperties);
         } catch (FileNotFoundException e) {
             // ignored
         }
@@ -139,18 +139,18 @@ public final class IbisProperties {
         // Then see if there is an ibis.properties file in the current
         // directory.
         try {
-            in = new FileInputStream(PROPERTIES_FILENAME);
-            load(in, configProperties);
+            inputStream = new FileInputStream(PROPERTIES_FILENAME);
+            load(inputStream, configurationProperties);
         } catch (FileNotFoundException e) {
             // ignored
         }
 
         // Then see if the user specified an properties file.
-        String file = system.getProperty(PROPERTIES_FILE);
+        String file = systemProperties.getProperty(PROPERTIES_FILE);
         if (file != null) {
             try {
-                in = new FileInputStream(file);
-                load(in, configProperties);
+                inputStream = new FileInputStream(file);
+                load(inputStream, configurationProperties);
             } catch (FileNotFoundException e) {
                 System.err.println("User specified preferences \"" + file
                         + "\" not found!");
@@ -159,13 +159,13 @@ public final class IbisProperties {
 
         // Finally, add the properties from the command line to the result,
         // possibly overriding entries from file or the defaults.
-        for (Enumeration e = system.propertyNames(); e.hasMoreElements();) {
+        for (Enumeration e = systemProperties.propertyNames(); e.hasMoreElements();) {
             String key = (String) e.nextElement();
-            String value = system.getProperty(key);
-            configProperties.setProperty(key, value);
+            String value = systemProperties.getProperty(key);
+            configurationProperties.setProperty(key, value);
         }
 
-        return configProperties;
+        return configurationProperties;
     }
 
     /**
@@ -181,12 +181,12 @@ public final class IbisProperties {
      * Returns the properties that are the result of having the hardcoded
      * properties override the specified properties.
      * 
-     * @param defaults
+     * @param defaultProperties
      *            the default properties
      * @return the resulting properties.
      */
-    public static Properties getHardcodedProperties(Properties defaults) {
-        Properties properties = new Properties(defaults);
+    public static Properties getHardcodedProperties(Properties defaultProperties) {
+        Properties properties = new Properties(defaultProperties);
 
         for (String[] element : propertiesList) {
             if (element[1] != null) {

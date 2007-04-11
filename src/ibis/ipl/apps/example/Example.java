@@ -202,7 +202,7 @@ public class Example {
         });
 
         // Elect a server
-        IbisIdentifier me = ibis.identifier();
+        IbisIdentifier me = ibis.ibisIdentifier();
         rgstry = ibis.registry();
         IbisIdentifier server = null;
         IbisIdentifier client = null;

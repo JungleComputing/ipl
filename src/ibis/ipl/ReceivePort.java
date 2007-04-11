@@ -42,7 +42,7 @@ public interface ReceivePort extends Managable {
      * Returns the type that was used to create this port.
      * @return the type that was used to create this port.
      */
-    public CapabilitySet getType();
+    public PortType getPortType();
     
     /**
      * Explicit blocking receive.
@@ -109,7 +109,7 @@ public interface ReceivePort extends Managable {
      * Returns the {@link ReceivePortIdentifier} of this receiveport.
      * @return the identifier.
      */
-    public ReceivePortIdentifier identifier();
+    public ReceivePortIdentifier receivePortIdentifier();
 
     /**
      * Returns the name of the receiveport.
@@ -118,7 +118,7 @@ public interface ReceivePort extends Managable {
      *
      * @return the name.
      */
-    public String name();
+    public String receivePortName();
 
     /**
      * Enables the accepting of new connections.

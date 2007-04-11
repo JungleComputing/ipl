@@ -29,7 +29,7 @@ public interface Managable {
     /**
      * Sets a specified dynamic property to a specified value.
      * @param key the key for the property.
-     * @param val the value associated with the property.
+     * @param value the value associated with the property.
      */
-    public void setDynamicProperty(String key, Object val);
+    public void setDynamicProperty(String key, Object value);
 }

@@ -142,7 +142,7 @@ class TcpChannelFactory implements ChannelFactory, Protocol {
             ChannelAccumulator accumulator = new ChannelAccumulator(channel);
             accumulator.writeByte(CONNECTION_REQUEST);
             DataOutputStream d = new DataOutputStream(accumulator);
-            d.writeUTF(rpi.name());
+            d.writeUTF(rpi.receivePortName());
             spi.ident.writeTo(d);
             spi.type.writeTo(d);
             d.flush();

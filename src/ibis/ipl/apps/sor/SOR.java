@@ -263,7 +263,7 @@ public class SOR {
         for (int i = 0; i < size; i++) {
             IbisIdentifier id = registry.elect("" + i);
             instances[i] = id;
-            if (id.equals(ibis.identifier())) {
+            if (id.equals(ibis.ibisIdentifier())) {
                 rank = i;
                 break;
             }

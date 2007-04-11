@@ -20,8 +20,8 @@ public final class ForwardingRegistry extends ibis.ipl.impl.Registry {
         target.leave();
     }
 
-    public void dead(ibis.ipl.IbisIdentifier ibis) throws IOException {
-        target.dead(ibis);
+    public void assumeDead(ibis.ipl.IbisIdentifier ibis) throws IOException {
+        target.assumeDead(ibis);
     }
 
     public ibis.ipl.IbisIdentifier elect(String election) throws IOException {

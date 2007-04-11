@@ -89,9 +89,9 @@ public interface WriteMessage {
      * This method can be used to inform Ibis that one of the
      * <code>WriteMessage</code> methods has thrown an IOException.
      * It implies a {@link #finish()}.
-     * @param e the exception that was thrown.
+     * @param exception the exception that was thrown.
      */
-    public void finish(IOException e);
+    public void finish(IOException exception);
 
     /**
      * Returns the number of bytes written to this message. This number
@@ -113,85 +113,85 @@ public interface WriteMessage {
      * This method throws an IOException if the underlying serialization
      * stream can only do byte serialization.
      * (See {@link PortType#SERIALIZATION_BYTE}).
-     * @param     val             	the boolean value to write.
+     * @param     value             	the boolean value to write.
      *
      * @exception java.io.IOException	an error occurred 
      */
-    public void writeBoolean(boolean val) throws IOException;
+    public void writeBoolean(boolean value) throws IOException;
 
     /**
      * Writes a byte value to the message.
-     * @param     val			the byte value to write.
+     * @param     value			the byte value to write.
      *
      * @exception java.io.IOException	an error occurred 
      */
-    public void writeByte(byte val) throws IOException;
+    public void writeByte(byte value) throws IOException;
 
     /**
      * Writes a char value to the message.
      * This method throws an IOException if the underlying serialization
      * stream can only do byte serialization.
      * (See {@link PortType#SERIALIZATION_BYTE}).
-     * @param     val			the char value to write.
+     * @param     value			the char value to write.
      *
      * @exception java.io.IOException	an error occurred 
      */
-    public void writeChar(char val) throws IOException;
+    public void writeChar(char value) throws IOException;
 
     /**
      * Writes a short value to the message.
      * This method throws an IOException if the underlying serialization
      * stream can only do byte serialization.
      * (See {@link PortType#SERIALIZATION_BYTE}).
-     * @param     val			the short value to write.
+     * @param     value			the short value to write.
      *
      * @exception java.io.IOException	an error occurred 
      */
-    public void writeShort(short val) throws IOException;
+    public void writeShort(short value) throws IOException;
 
     /**
      * Writes a int value to the message.
      * This method throws an IOException if the underlying serialization
      * stream can only do byte serialization.
      * (See {@link PortType#SERIALIZATION_BYTE}).
-     * @param     val			the int value to write.
+     * @param     value			the int value to write.
      *
      * @exception java.io.IOException	an error occurred 
      */
-    public void writeInt(int val) throws IOException;
+    public void writeInt(int value) throws IOException;
 
     /**
      * Writes a long value to the message.
      * This method throws an IOException if the underlying serialization
      * stream can only do byte serialization.
      * (See {@link PortType#SERIALIZATION_BYTE}).
-     * @param     val			the long value to write.
+     * @param     value			the long value to write.
      *
      * @exception java.io.IOException	an error occurred 
      */
-    public void writeLong(long val) throws IOException;
+    public void writeLong(long value) throws IOException;
 
     /**
      * Writes a float value to the message.
      * This method throws an IOException if the underlying serialization
      * stream can only do byte serialization.
      * (See {@link PortType#SERIALIZATION_BYTE}).
-     * @param     val			the float value to write.
+     * @param     value			the float value to write.
      *
      * @exception java.io.IOException	an error occurred 
      */
-    public void writeFloat(float val) throws IOException;
+    public void writeFloat(float value) throws IOException;
 
     /**
      * Writes a double value to the message.
      * This method throws an IOException if the underlying serialization
      * stream can only do byte serialization.
      * (See {@link PortType#SERIALIZATION_BYTE}).
-     * @param     val			the double value to write.
+     * @param     value			the double value to write.
      *
      * @exception java.io.IOException	an error occurred 
      */
-    public void writeDouble(double val) throws IOException;
+    public void writeDouble(double value) throws IOException;
 
     /**
      * Writes a <code>String</code> to the message.
@@ -204,11 +204,11 @@ public interface WriteMessage {
      * message, a handle for this object is written instead of
      * the object itself.
      *
-     * @param     val			the string to write.
+     * @param     value			the string to write.
      *
      * @exception java.io.IOException	an error occurred 
      */
-    public void writeString(String val) throws IOException;
+    public void writeString(String value) throws IOException;
 
     /**
      * Writes a <code>Serializable</code> object to the message.
@@ -220,11 +220,11 @@ public interface WriteMessage {
      * message, a handle for this object is written instead of
      * the object itself.
      *
-     * @param     val			the object value to write.
+     * @param     value			the object value to write.
      *
      * @exception java.io.IOException	an error occurred 
      */
-    public void writeObject(Object val) throws IOException;
+    public void writeObject(Object value) throws IOException;
 
     /**
      * Writes an array to the message.
@@ -235,11 +235,11 @@ public interface WriteMessage {
      * This method is just a shortcut for doing:
      * <code>writeArray(val, 0, val.length);</code>
      *
-     * @param val			the array to be written.
+     * @param value			the array to be written.
      *
      * @exception java.io.IOException	an error occurred 
      **/
-    public void writeArray(boolean[] val) throws IOException;
+    public void writeArray(boolean[] value) throws IOException;
 
     /**
      * Writes an array to the message.
@@ -247,26 +247,11 @@ public interface WriteMessage {
      * This method is just a shortcut for doing:
      * <code>writeArray(val, 0, val.length);</code>
      *
-     * @param val			the array to be written.
+     * @param value			the array to be written.
      *
      * @exception java.io.IOException	an error occurred 
      */
-    public void writeArray(byte[] val) throws IOException;
-
-    /**
-     * Writes an array to the message.
-     * This method throws an IOException if the underlying serialization
-     * stream can only do byte serialization.
-     * (See {@link PortType#SERIALIZATION_BYTE}).
-     * No duplicate check is performed for this array!
-     * This method is just a shortcut for doing:
-     * <code>writeArray(val, 0, val.length);</code>
-     *
-     * @param val			the array to be written.
-     *
-     * @exception java.io.IOException	an error occurred 
-     */
-    public void writeArray(char[] val) throws IOException;
+    public void writeArray(byte[] value) throws IOException;
 
     /**
      * Writes an array to the message.
@@ -277,11 +262,11 @@ public interface WriteMessage {
      * This method is just a shortcut for doing:
      * <code>writeArray(val, 0, val.length);</code>
      *
-     * @param val			the array to be written.
+     * @param value			the array to be written.
      *
      * @exception java.io.IOException	an error occurred 
      */
-    public void writeArray(short[] val) throws IOException;
+    public void writeArray(char[] value) throws IOException;
 
     /**
      * Writes an array to the message.
@@ -292,11 +277,11 @@ public interface WriteMessage {
      * This method is just a shortcut for doing:
      * <code>writeArray(val, 0, val.length);</code>
      *
-     * @param val			the array to be written.
+     * @param value			the array to be written.
      *
      * @exception java.io.IOException	an error occurred 
      */
-    public void writeArray(int[] val) throws IOException;
+    public void writeArray(short[] value) throws IOException;
 
     /**
      * Writes an array to the message.
@@ -307,11 +292,11 @@ public interface WriteMessage {
      * This method is just a shortcut for doing:
      * <code>writeArray(val, 0, val.length);</code>
      *
-     * @param val			the array to be written.
+     * @param value			the array to be written.
      *
      * @exception java.io.IOException	an error occurred 
      */
-    public void writeArray(long[] val) throws IOException;
+    public void writeArray(int[] value) throws IOException;
 
     /**
      * Writes an array to the message.
@@ -322,11 +307,11 @@ public interface WriteMessage {
      * This method is just a shortcut for doing:
      * <code>writeArray(val, 0, val.length);</code>
      *
-     * @param val			the array to be written.
+     * @param value			the array to be written.
      *
      * @exception java.io.IOException	an error occurred 
      */
-    public void writeArray(float[] val) throws IOException;
+    public void writeArray(long[] value) throws IOException;
 
     /**
      * Writes an array to the message.
@@ -337,11 +322,26 @@ public interface WriteMessage {
      * This method is just a shortcut for doing:
      * <code>writeArray(val, 0, val.length);</code>
      *
-     * @param val			the array to be written.
+     * @param value			the array to be written.
      *
      * @exception java.io.IOException	an error occurred 
      */
-    public void writeArray(double[] val) throws IOException;
+    public void writeArray(float[] value) throws IOException;
+
+    /**
+     * Writes an array to the message.
+     * This method throws an IOException if the underlying serialization
+     * stream can only do byte serialization.
+     * (See {@link PortType#SERIALIZATION_BYTE}).
+     * No duplicate check is performed for this array!
+     * This method is just a shortcut for doing:
+     * <code>writeArray(val, 0, val.length);</code>
+     *
+     * @param value			the array to be written.
+     *
+     * @exception java.io.IOException	an error occurred 
+     */
+    public void writeArray(double[] value) throws IOException;
 
     /**
      * Writes an array to the message.
@@ -352,11 +352,11 @@ public interface WriteMessage {
      * This method is just a shortcut for doing:
      * <code>writeArray(val, 0, val.length);</code>
      *
-     * @param val			the array to be written.
+     * @param value			the array to be written.
      *
      * @exception java.io.IOException	an error occurred 
      */
-    public void writeArray(Object[] val) throws IOException;
+    public void writeArray(Object[] value) throws IOException;
 
     /**
      * Writes a slice of an array. The slice starts at offset <code>off</code>.
@@ -365,40 +365,25 @@ public interface WriteMessage {
      * (See {@link PortType#SERIALIZATION_BYTE}).
      * No duplicate check is performed for this array!
      *
-     * @param val			the array to be written
-     * @param off			offset in the array
-     * @param len			the number of elements to be written
+     * @param value			the array to be written
+     * @param offset			offset in the array
+     * @param length			the number of elements to be written
      *
      * @exception java.io.IOException	an error occurred 
      */
-    public void writeArray(boolean[] val, int off, int len) throws IOException;
+    public void writeArray(boolean[] value, int offset, int length) throws IOException;
 
     /**
      * Writes a slice of an array. The slice starts at offset <code>off</code>.
      * No duplicate check is performed for this array!
      *
-     * @param val			the array to be written
-     * @param off			offset in the array
-     * @param len			the number of elements to be written
+     * @param value			the array to be written
+     * @param offset			offset in the array
+     * @param length			the number of elements to be written
      *
      * @exception java.io.IOException	an error occurred 
      */
-    public void writeArray(byte[] val, int off, int len) throws IOException;
-
-    /**
-     * Writes a slice of an array. The slice starts at offset <code>off</code>.
-     * This method throws an IOException if the underlying serialization
-     * stream can only do byte serialization.
-     * (See {@link PortType#SERIALIZATION_BYTE}).
-     * No duplicate check is performed for this array!
-     *
-     * @param val			the array to be written
-     * @param off			offset in the array
-     * @param len			the number of elements to be written
-     *
-     * @exception java.io.IOException	an error occurred 
-     */
-    public void writeArray(char[] val, int off, int len) throws IOException;
+    public void writeArray(byte[] value, int offset, int length) throws IOException;
 
     /**
      * Writes a slice of an array. The slice starts at offset <code>off</code>.
@@ -407,13 +392,13 @@ public interface WriteMessage {
      * (See {@link PortType#SERIALIZATION_BYTE}).
      * No duplicate check is performed for this array!
      *
-     * @param val			the array to be written
-     * @param off			offset in the array
-     * @param len			the number of elements to be written
+     * @param value			the array to be written
+     * @param offset			offset in the array
+     * @param length			the number of elements to be written
      *
      * @exception java.io.IOException	an error occurred 
      */
-    public void writeArray(short[] val, int off, int len) throws IOException;
+    public void writeArray(char[] value, int offset, int length) throws IOException;
 
     /**
      * Writes a slice of an array. The slice starts at offset <code>off</code>.
@@ -422,13 +407,13 @@ public interface WriteMessage {
      * (See {@link PortType#SERIALIZATION_BYTE}).
      * No duplicate check is performed for this array!
      *
-     * @param val			the array to be written
-     * @param off			offset in the array
-     * @param len			the number of elements to be written
+     * @param value			the array to be written
+     * @param offset			offset in the array
+     * @param length			the number of elements to be written
      *
      * @exception java.io.IOException	an error occurred 
      */
-    public void writeArray(int[] val, int off, int len) throws IOException;
+    public void writeArray(short[] value, int offset, int length) throws IOException;
 
     /**
      * Writes a slice of an array. The slice starts at offset <code>off</code>.
@@ -437,13 +422,13 @@ public interface WriteMessage {
      * (See {@link PortType#SERIALIZATION_BYTE}).
      * No duplicate check is performed for this array!
      *
-     * @param val			the array to be written
-     * @param off			offset in the array
-     * @param len			the number of elements to be written
+     * @param value			the array to be written
+     * @param offset			offset in the array
+     * @param length			the number of elements to be written
      *
      * @exception java.io.IOException	an error occurred 
      */
-    public void writeArray(long[] val, int off, int len) throws IOException;
+    public void writeArray(int[] value, int offset, int length) throws IOException;
 
     /**
      * Writes a slice of an array. The slice starts at offset <code>off</code>.
@@ -452,13 +437,13 @@ public interface WriteMessage {
      * (See {@link PortType#SERIALIZATION_BYTE}).
      * No duplicate check is performed for this array!
      *
-     * @param val			the array to be written
-     * @param off			offset in the array
-     * @param len			the number of elements to be written
+     * @param value			the array to be written
+     * @param offset			offset in the array
+     * @param length			the number of elements to be written
      *
      * @exception java.io.IOException	an error occurred 
      */
-    public void writeArray(float[] val, int off, int len) throws IOException;
+    public void writeArray(long[] value, int offset, int length) throws IOException;
 
     /**
      * Writes a slice of an array. The slice starts at offset <code>off</code>.
@@ -467,13 +452,28 @@ public interface WriteMessage {
      * (See {@link PortType#SERIALIZATION_BYTE}).
      * No duplicate check is performed for this array!
      *
-     * @param val			the array to be written
-     * @param off			offset in the array
-     * @param len			the number of elements to be written
+     * @param value			the array to be written
+     * @param offset			offset in the array
+     * @param length			the number of elements to be written
      *
      * @exception java.io.IOException	an error occurred 
      */
-    public void writeArray(double[] val, int off, int len) throws IOException;
+    public void writeArray(float[] value, int offset, int length) throws IOException;
+
+    /**
+     * Writes a slice of an array. The slice starts at offset <code>off</code>.
+     * This method throws an IOException if the underlying serialization
+     * stream can only do byte serialization.
+     * (See {@link PortType#SERIALIZATION_BYTE}).
+     * No duplicate check is performed for this array!
+     *
+     * @param value			the array to be written
+     * @param offset			offset in the array
+     * @param length			the number of elements to be written
+     *
+     * @exception java.io.IOException	an error occurred 
+     */
+    public void writeArray(double[] value, int offset, int length) throws IOException;
 
     /**
      * Writes a slice of an array. The slice starts at offset <code>off</code>.
@@ -482,11 +482,11 @@ public interface WriteMessage {
      * (See {@link PortType#SERIALIZATION_OBJECT}).
      * No duplicate check is performed for this array!
      *
-     * @param val			the array to be written
-     * @param off			offset in the array
-     * @param len			the number of elements to be written
+     * @param value			the array to be written
+     * @param offset			offset in the array
+     * @param length			the number of elements to be written
      *
      * @exception java.io.IOException	an error occurred 
      */
-    public void writeArray(Object[] val, int off, int len) throws IOException;
+    public void writeArray(Object[] value, int offset, int length) throws IOException;
 }

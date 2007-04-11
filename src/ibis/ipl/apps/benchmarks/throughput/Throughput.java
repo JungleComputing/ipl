@@ -118,7 +118,7 @@ class Throughput extends Thread {
             IbisIdentifier master = r.elect("throughput");
             IbisIdentifier remote;
 
-            if (master.equals(ibis.identifier())) {
+            if (master.equals(ibis.ibisIdentifier())) {
                 rank = 0;
                 remote = r.getElectionResult("1");
                 System.err.println(">>>>>>>> Righto, I'm the master");

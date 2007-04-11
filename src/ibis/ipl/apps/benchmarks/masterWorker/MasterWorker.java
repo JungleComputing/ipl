@@ -60,7 +60,7 @@ final class MasterWorker {
 
             masterID = registry.elect("master");
 
-            boolean master = masterID.equals(ibis.identifier());
+            boolean master = masterID.equals(ibis.ibisIdentifier());
 
  
             if (master) {
@@ -107,7 +107,7 @@ final class MasterWorker {
 
                 if (sendPort == null) {
                     sendPort = ibis.createSendPort(oneToOneType);
-                    sendPort.connect(origin.ibis(), "receiveport");
+                    sendPort.connect(origin.ibisIdentifier(), "receiveport");
 
                     workers.put(origin, sendPort);
 

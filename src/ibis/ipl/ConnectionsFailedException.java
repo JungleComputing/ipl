@@ -22,10 +22,10 @@ public class ConnectionsFailedException extends java.io.IOException {
      * Constructs a <code>ConnectionsFailedException</code> with
      * the specified detail message.
      *
-     * @param s         the detail message
+     * @param detailMessage         the detail message
      */
-    public ConnectionsFailedException(String s) {
-        super(s);
+    public ConnectionsFailedException(String detailMessage) {
+        super(detailMessage);
     }
 
     /**
@@ -47,10 +47,10 @@ public class ConnectionsFailedException extends java.io.IOException {
 
     /**
      * Sets the obtained connections.
-     * @param ports the obtained connections.
+     * @param receivePortIdentifiers the obtained connections.
      */
-    public void setObtainedConnections(ReceivePortIdentifier[] ports) {
-        obtainedConnections = ports;
+    public void setObtainedConnections(ReceivePortIdentifier[] receivePortIdentifiers) {
+        obtainedConnections = receivePortIdentifiers;
     }
 
     /**
@@ -71,85 +71,82 @@ public class ConnectionsFailedException extends java.io.IOException {
     }
 
     public String toString() {
-        String res = "";
+        String result = "";
 
         if (failures.size() == 0) {
             return super.toString();
         }
 
-        res = "\n--- START OF CONNECTIONS FAILED EXCEPTION ---\n";
-        for (int i = 0; i < failures.size(); i++) {
-            ConnectionFailedException f = failures.get(i);
-            if (f.receivePortIdentifier() != null) {
-                res += "Connection to <" + f.receivePortIdentifier()
+        result = "\n--- START OF CONNECTIONS FAILED EXCEPTION ---\n";
+        for (ConnectionFailedException failure : failures) {
+            if (failure.receivePortIdentifier() != null) {
+                result += "Connection to <" + failure.receivePortIdentifier()
                         + "> failed: ";
             } else {
-                res += "Connection to <" + f.identifier() + ", " + f.name()
+                result += "Connection to <" + failure.ibisIdentifier() + ", " + failure.receivePortName()
                         + "> failed: ";
             }
-            res += f.getMessage() + "\n";
-            Throwable t = f.getCause();
-            if (t != null) {
-                res += t.getClass().getName();
-                res += ": ";
-                String msg = t.getMessage();
-                if (msg == null) {
-                    msg = t.toString();
+            result += failure.getMessage() + "\n";
+            Throwable throwable = failure.getCause();
+            if (throwable != null) {
+                result += throwable.getClass().getName();
+                result += ": ";
+                String message = throwable.getMessage();
+                if (message == null) {
+                    message = throwable.toString();
                 }
-                res += msg;
-                res += "\n";
+                result += message;
+                result += "\n";
             }
         }
-        res += "--- END OF CONNECTIONS FAILED EXCEPTION ---\n";
-        return res;
+        result += "--- END OF CONNECTIONS FAILED EXCEPTION ---\n";
+        return result;
     }
 
     public void printStackTrace() {
         printStackTrace(System.err);
     }
 
-    public void printStackTrace(PrintStream s) {
+    public void printStackTrace(PrintStream printStream) {
         if (failures.size() == 0) {
-            super.printStackTrace(s);
+            super.printStackTrace(printStream);
             return;
         }
 
-        s.println("--- START OF CONNECTIONS FAILED EXCEPTION STACK TRACE ---");
+        printStream.println("--- START OF CONNECTIONS FAILED EXCEPTION STACK TRACE ---");
 
-        for (int i = 0; i < failures.size(); i++) {
-            ConnectionFailedException f = failures.get(i);
-            if (f.receivePortIdentifier() != null) {
-                s.println("Connection to <" + f.receivePortIdentifier()
+        for (ConnectionFailedException failure : failures) {
+            if (failure.receivePortIdentifier() != null) {
+                printStream.println("Connection to <" + failure.receivePortIdentifier()
                         + "> failed: ");
             } else {
-                s.println("Connection to <" + f.identifier() + ", " + f.name()
+                printStream.println("Connection to <" + failure.ibisIdentifier() + ", " + failure.receivePortName()
                         + "> failed: ");
             }
-            s.println(f.getMessage());
-            f.printStackTrace(s);
+            printStream.println(failure.getMessage());
+            failure.printStackTrace(printStream);
         }
-        s.println("--- END OF CONNECTIONS FAILED EXCEPTION STACK TRACE ---");
+        printStream.println("--- END OF CONNECTIONS FAILED EXCEPTION STACK TRACE ---");
     }
 
-    public void printStackTrace(PrintWriter s) {
+    public void printStackTrace(PrintWriter printWriter) {
         if (failures.size() == 0) {
-            super.printStackTrace(s);
+            super.printStackTrace(printWriter);
             return;
         }
 
-        s.println("--- START OF CONNECTIONS FAILED EXCEPTION STACK TRACE ---");
-        for (int i = 0; i < failures.size(); i++) {
-            ConnectionFailedException f = failures.get(i);
-            if (f.receivePortIdentifier() != null) {
-                s.println("Connection to <" + f.receivePortIdentifier()
+        printWriter.println("--- START OF CONNECTIONS FAILED EXCEPTION STACK TRACE ---");
+        for (ConnectionFailedException failure : failures) {
+            if (failure.receivePortIdentifier() != null) {
+                printWriter.println("Connection to <" + failure.receivePortIdentifier()
                         + "> failed: ");
             } else {
-                s.println("Connection to <" + f.identifier() + ", " + f.name()
+                printWriter.println("Connection to <" + failure.ibisIdentifier() + ", " + failure.receivePortName()
                         + "> failed: ");
             }
-            s.println(f.getMessage());
-            f.printStackTrace();
+            printWriter.println(failure.getMessage());
+            failure.printStackTrace();
         }
-        s.println("--- END OF CONNECTIONS FAILED EXCEPTION STACK TRACE ---");
+        printWriter.println("--- END OF CONNECTIONS FAILED EXCEPTION STACK TRACE ---");
     }
 }

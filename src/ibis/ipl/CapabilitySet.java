@@ -47,14 +47,13 @@ class CapabilitySet {
      * @param values the specified values.
      */
     public CapabilitySet(String... values) {
-        for (int i = 0; i < values.length; i++) {
-            String s = values[i];
-            int index = s.indexOf('=');
+        for (String value : values) {
+            int index = value.indexOf('=');
             if (index == -1) {
-                booleanCapabilities.add(s.toLowerCase());
+                booleanCapabilities.add(value.toLowerCase());
             } else {
-                stringCapabilities.put(s.substring(0, index).toLowerCase(),
-                        s.substring(index+1));
+                stringCapabilities.put(value.substring(0, index).toLowerCase(),
+                        value.substring(index+1));
             }
         }
         codedForm = computeCodedForm();
@@ -62,27 +61,27 @@ class CapabilitySet {
 
     /**
      * Creates a copy of a capability set.
-     * @param c the capability set to copy.
+     * @param capabilitySet the capability set to copy.
      */
-    public CapabilitySet(CapabilitySet c) {
-        for (String cap : c.booleanCapabilities) {
-            booleanCapabilities.add(cap);
+    public CapabilitySet(CapabilitySet capabilitySet) {
+        for (String capability : capabilitySet.booleanCapabilities) {
+            booleanCapabilities.add(capability);
         }
-        for (String cap : c.stringCapabilities.keySet()) {
-            stringCapabilities.put(cap, c.stringCapabilities.get(cap));
+        for (String capability : capabilitySet.stringCapabilities.keySet()) {
+            stringCapabilities.put(capability, capabilitySet.stringCapabilities.get(capability));
         }
-        codedForm = c.codedForm;
+        codedForm = capabilitySet.codedForm;
     }
 
     /**
      * Creates a capability set with the values specified in a
      * Properties object.
-     * @param sp the specified values.
+     * @param properties the specified values.
      */
-    protected CapabilitySet(Properties sp) {
-        for (Enumeration e = sp.propertyNames(); e.hasMoreElements();) {
+    protected CapabilitySet(Properties properties) {
+        for (Enumeration e = properties.propertyNames(); e.hasMoreElements();) {
             String name = (String) e.nextElement();
-            String value = sp.getProperty(name);
+            String value = properties.getProperty(name);
             if (value != null
                     && (value.equals("1") || value.equals("on")
                         || value.equals("") || value.equals("true")
@@ -153,48 +152,48 @@ class CapabilitySet {
 
     /**
      * Writes the property set to the specified output stream.
-     * @param dos the output stream to write to.
+     * @param dataOutput the output stream to write to.
      * @exception IOException is thrown in case of trouble.
      */
-    public void writeTo(DataOutput dos) throws IOException {
-        dos.write(codedForm);
+    public void writeTo(DataOutput dataOutput) throws IOException {
+        dataOutput.write(codedForm);
     }
 
     /**
      * Returns true if the specified boolean capability is set.
-     * @param cap the specified capability.
+     * @param capability the specified capability.
      * @return true if the capability is set.
      */
-    public boolean hasCapability(String cap) {
-        return booleanCapabilities.contains(cap.toLowerCase());
+    public boolean hasCapability(String capability) {
+        return booleanCapabilities.contains(capability.toLowerCase());
     }
 
     /**
      * Returns the string value of the specified capability, or null if not
      * present.
-     * @param cap the specified capability name.
+     * @param capability the specified capability name.
      * @return the value, or null.
      */
-    public String getCapability(String cap) {
-        return stringCapabilities.get(cap.toLowerCase());
+    public String getCapability(String capability) {
+        return stringCapabilities.get(capability.toLowerCase());
     }
 
     /**
      * Matches the current capabilities with the capabilities
      * supplied. We have a match if the current capabilities are a subset
      * of the specified capabilities.
-     * @param sp the capabilities to be matched with.
+     * @param capabilitySet the capabilities to be matched with.
      * @return <code>true</code> if we have a match,
      * <code>false</code> otherwise.
      */
-    public boolean matchCapabilities(CapabilitySet sp) {
-        for (String cap : booleanCapabilities) {
-            if (! sp.hasCapability(cap)) {
+    public boolean matchCapabilities(CapabilitySet capabilitySet) {
+        for (String capability : booleanCapabilities) {
+            if (! capabilitySet.hasCapability(capability)) {
                 return false;
             }
         }
-        for (String cap : stringCapabilities.keySet()) {
-               if (! sp.stringCapabilities.keySet().contains(cap)) {
+        for (String capability : stringCapabilities.keySet()) {
+               if (! capabilitySet.stringCapabilities.keySet().contains(capability)) {
                 return false;
             }
         }
@@ -204,24 +203,24 @@ class CapabilitySet {
     /**
      * Matches the current capabilities with the capabilities
      * supplied. Returns a capability set with the unmatched capabilities.
-     * @param sp the capabilities to be matched with.
+     * @param capabilitySet the capabilities to be matched with.
      * @return the capabilities that don't match.
      */
-    public CapabilitySet unmatchedCapabilities(CapabilitySet sp) {
-        CapabilitySet c = new CapabilitySet();
-        for (String cap : booleanCapabilities) {
-            if (! sp.hasCapability(cap)) {
-                c.booleanCapabilities.add(cap);
+    public CapabilitySet unmatchedCapabilities(CapabilitySet capabilitySet) {
+        CapabilitySet result = new CapabilitySet();
+        for (String capability : booleanCapabilities) {
+            if (! capabilitySet.hasCapability(capability)) {
+                result.booleanCapabilities.add(capability);
             }
         }
-        for (String cap : stringCapabilities.keySet()) {
-            if (! stringCapabilities.get(cap).equals(
-                        sp.stringCapabilities.get(cap))) {
-                c.stringCapabilities.put(cap, stringCapabilities.get(cap));
+        for (String capability : stringCapabilities.keySet()) {
+            if (! stringCapabilities.get(capability).equals(
+                        capabilitySet.stringCapabilities.get(capability))) {
+                result.stringCapabilities.put(capability, stringCapabilities.get(capability));
             }
         }
-        c.codedForm = computeCodedForm();
-        return c;
+        result.codedForm = computeCodedForm();
+        return result;
     }
 
     /**
@@ -250,15 +249,15 @@ class CapabilitySet {
 
     /**
      * Reads and returns the capabilities from the specified input stream.
-     * @param in the input stream.
+     * @param input the input stream.
      * @return the capabilities from the specified input stream.
      * @exception IOException is thrown when an IO error occurs.
      */
-    public static CapabilitySet load(InputStream in) throws IOException {
-        Properties p = new Properties();
-        p.load(in);
-        in.close();
-        return new CapabilitySet(p);
+    public static CapabilitySet load(InputStream input) throws IOException {
+        Properties properties = new Properties();
+        properties.load(input);
+        input.close();
+        return new CapabilitySet(properties);
     }
 
     /**
@@ -275,9 +274,9 @@ class CapabilitySet {
             return false;
         }
 
-        CapabilitySet o = (CapabilitySet) other;
-        return booleanCapabilities.equals(o.booleanCapabilities)
-            && stringCapabilities.equals(o.stringCapabilities);
+        CapabilitySet capabilitySet = (CapabilitySet) other;
+        return booleanCapabilities.equals(capabilitySet.booleanCapabilities)
+            && stringCapabilities.equals(capabilitySet.stringCapabilities);
     }
 
     /**
@@ -288,50 +287,49 @@ class CapabilitySet {
         return booleanCapabilities.hashCode();
     }
 
-    private void writeObject(ObjectOutputStream out) throws IOException {
-        doWrite(out);
+    private void writeObject(ObjectOutputStream output) throws IOException {
+        doWrite(output);
     }
 
-    private void doWrite(DataOutput out) throws IOException {
-        out.writeInt(booleanCapabilities.size());
-        for (String cap : booleanCapabilities) {
-            out.writeUTF(cap);
+    private void doWrite(DataOutput dataOutput) throws IOException {
+        dataOutput.writeInt(booleanCapabilities.size());
+        for (String capability : booleanCapabilities) {
+            dataOutput.writeUTF(capability);
         }
-        out.writeInt(stringCapabilities.size());
-        for (String cap : stringCapabilities.keySet()) {
-            out.writeUTF(cap);
-            out.writeUTF(stringCapabilities.get(cap));
+        dataOutput.writeInt(stringCapabilities.size());
+        for (String capability : stringCapabilities.keySet()) {
+            dataOutput.writeUTF(capability);
+            dataOutput.writeUTF(stringCapabilities.get(capability));
         }
     }
 
-    private void readObject(ObjectInputStream in) throws IOException {
-        doRead(in);
+    private void readObject(ObjectInputStream input) throws IOException {
+        doRead(input);
     }
 
-    private void doRead(DataInput in) throws IOException {
-        int sz = in.readInt();
-        for (int i = 0; i < sz; i++) {
-            String s = in.readUTF();
-            booleanCapabilities.add(s);
+    private void doRead(DataInput dataInput) throws IOException {
+        int size = dataInput.readInt();
+        for (int i = 0; i < size; i++) {
+            booleanCapabilities.add(dataInput.readUTF());
         }
-        sz = in.readInt();
-        for (int i = 0; i < sz; i++) {
-            String key = in.readUTF();
-            String val = in.readUTF();
+        size = dataInput.readInt();
+        for (int i = 0; i < size; i++) {
+            String key = dataInput.readUTF();
+            String val = dataInput.readUTF();
             stringCapabilities.put(key, val);
         }
         codedForm = computeCodedForm();
     }
 
     public String toString() {
-        String str = "";
-        for (String cap : booleanCapabilities) {
-            str += cap + "\n";
+        String result = "";
+        for (String capability : booleanCapabilities) {
+            result += capability + "\n";
         }
-        for (String cap : stringCapabilities.keySet()) {
-            str += cap + "=" + stringCapabilities.get(cap) + "\n";
+        for (String capability : stringCapabilities.keySet()) {
+            result += capability + "=" + stringCapabilities.get(capability) + "\n";
         }
-        return str;
+        return result;
     }
 
     /**
@@ -340,15 +338,15 @@ class CapabilitySet {
      * @return the capabilities.
      */
     public String[] getCapabilities() {
-        int sz = booleanCapabilities.size() + stringCapabilities.size();
-        String[] result = new String[sz];
+        int size = booleanCapabilities.size() + stringCapabilities.size();
+        String[] result = new String[size];
         int i = 0;
-        for (String cap : booleanCapabilities) {
-            result[i] = cap;
+        for (String capability : booleanCapabilities) {
+            result[i] = capability;
             i++;
         }
-        for (String cap : stringCapabilities.keySet()) {
-            result[i] = cap + "=" + stringCapabilities.get(cap);
+        for (String capability : stringCapabilities.keySet()) {
+            result[i] = capability + "=" + stringCapabilities.get(capability);
             i++;
         }
         return result;

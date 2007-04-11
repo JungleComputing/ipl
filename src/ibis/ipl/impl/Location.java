@@ -120,25 +120,25 @@ public final class Location implements ibis.ipl.Location {
         dos.write(codedForm);
     }
 
-    public int numLevels() {
+    public int numberOfLevels() {
         return levelNames.length;
     }
 
-    public String[] levels() {
+    public String[] getLevels() {
         return levelNames.clone();
     }
 
-    public String level(int level) {
+    public String getLevel(int level) {
         return levelNames[level];
     }
 
-    public int matchingLevels(ibis.ipl.Location o) {
-        int n = o.numLevels();
+    public int numberOfMatchingLevels(ibis.ipl.Location o) {
+        int n = o.numberOfLevels();
         for (int i = 0; i < levelNames.length; i++) {
             if (i >= n) {
                 return i;
             }
-            if (! levelNames[i].equals(o.level(i))) {
+            if (! levelNames[i].equals(o.getLevel(i))) {
                 return i;
             }
         }
@@ -153,7 +153,7 @@ public final class Location implements ibis.ipl.Location {
         if (l.levelNames.length != levelNames.length) {
             return false;
         }
-        return matchingLevels(l) == levelNames.length;
+        return numberOfMatchingLevels(l) == levelNames.length;
     }
 
     public int hashCode() {
@@ -164,7 +164,7 @@ public final class Location implements ibis.ipl.Location {
         return retval;
     }
 
-    public String cluster() {
+    public String getCluster() {
         String retval = "";
         int n = levelNames.length - 1;
         for (int i = 0; i < n; i++) {
@@ -211,12 +211,12 @@ public final class Location implements ibis.ipl.Location {
     }
 
     public int compareTo(ibis.ipl.Location o) {
-        int n = o.numLevels();
+        int n = o.numberOfLevels();
         for (int i = 0; i < levelNames.length; i++) {
             if (i >= n) {
                 return 1;
             }
-            int cmp = levelNames[i].compareTo(o.level(i));
+            int cmp = levelNames[i].compareTo(o.getLevel(i));
             if (cmp != 0) {
                 return cmp;
             }

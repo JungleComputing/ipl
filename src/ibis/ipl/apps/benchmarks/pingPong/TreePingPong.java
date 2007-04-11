@@ -114,7 +114,7 @@ static class ExplicitReceiver {
             IbisIdentifier master = registry.elect("latency");
             IbisIdentifier remote;
 
-            if (master.equals(ibis.identifier())) {
+            if (master.equals(ibis.ibisIdentifier())) {
                 rank = 0;
                 remote = registry.getElectionResult("client");
             } else {

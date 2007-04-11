@@ -429,7 +429,7 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
         }
     }
 
-    public void dead(ibis.ipl.IbisIdentifier ibis) throws IOException {
+    public void assumeDead(ibis.ipl.IbisIdentifier ibis) throws IOException {
         logger.debug("declaring " + ibis + " to be dead");
 
         Connection connection = connectionFactory.connectToServer(

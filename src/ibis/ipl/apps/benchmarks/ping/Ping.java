@@ -525,7 +525,7 @@ public final class Ping {
             registry = ibis.registry();
             IbisIdentifier master = registry.elect("ping");
 
-            if (master.equals(ibis.identifier())) {
+            if (master.equals(ibis.ibisIdentifier())) {
                 rank = 0;
                 remoteRank = 1;
             } else {

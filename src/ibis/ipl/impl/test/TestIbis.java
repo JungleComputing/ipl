@@ -47,7 +47,7 @@ public final class TestIbis extends TestCase {
 
             final IbisIdentifier masterId = registry.elect("master");
 
-            boolean master = masterId.equals(ibis.identifier());
+            boolean master = masterId.equals(ibis.ibisIdentifier());
 
             // Since there will be only one ibis instance, master must be true
             assertTrue(master);
@@ -121,7 +121,7 @@ public final class TestIbis extends TestCase {
         ReceivePort rport = ibis.createReceivePort(oneToOneType,
                 "master receive port");
         rport.enableConnections();
-        System.out.println("Master created rport: " + rport.name());
+        System.out.println("Master created rport: " + rport.receivePortName());
 
         for (int i = 0; i < COUNT; i++) {
 
@@ -134,7 +134,7 @@ public final class TestIbis extends TestCase {
 
             if (sendPort == null) {
                 sendPort = ibis.createSendPort(oneToOneType);
-                connect(sendPort, origin.ibis(), "client receive port");
+                connect(sendPort, origin.ibisIdentifier(), "client receive port");
             }
 
             WriteMessage writeMessage = sendPort.newMessage();
@@ -149,7 +149,7 @@ public final class TestIbis extends TestCase {
         ReceivePort rport = ibis.createReceivePort(oneToOneType,
                 "client receive port");
         rport.enableConnections();
-        System.out.println("Worker created rport: " + rport.name());
+        System.out.println("Worker created rport: " + rport.receivePortName());
         SendPort sport = ibis.createSendPort(oneToOneType);
 
         connect(sport, masterId, "master receive port");

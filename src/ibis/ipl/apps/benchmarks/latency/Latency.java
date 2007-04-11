@@ -411,7 +411,7 @@ class Latency {
             IbisIdentifier remote;
             logger.debug("LAT: post elect");
 
-            if (master.equals(ibis.identifier())) {
+            if (master.equals(ibis.ibisIdentifier())) {
                 logger.debug("LAT: I am master");
                 remote = registry.getElectionResult("client");
                 rank = 0;

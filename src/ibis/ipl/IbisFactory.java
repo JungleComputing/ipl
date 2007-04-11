@@ -19,7 +19,7 @@ import java.util.jar.Manifest;
 /**
  * This is the class responsible for starting an Ibis instance. During
  * initialization, this class determines which Ibis implementations are
- * available. It does so, by finding all jar files in either the class path, or
+ * available. It does so, by finding all jar files in either the class path or
  * all jar files in the directories indicated by the ibis.ipl.impl.path property.
  * All Ibis implementations should be mentioned in the main properties of the
  * manifest of the jar file containing it, in the "Ibis-Implementation" entry.
@@ -38,59 +38,6 @@ public final class IbisFactory {
     private final boolean verbose;
 
     /**
-     * Loads a native library with ibis. It might not be possible to load
-     * libraries the normal way, because Ibis applications might override the
-     * bootclasspath when the classlibraries have been rewritten. In that case,
-     * the classloader will use the sun.boot.library.path which is not portable.
-     * 
-     * @param name
-     *            the name of the library to be loaded.
-     * @param properties
-     *            properties to get a library path from.
-     * @exception SecurityException
-     *                may be thrown by loadLibrary.
-     * @exception UnsatisfiedLinkError
-     *                may be thrown by loadLibrary.
-     */
-    public static void loadLibrary(String name, Properties properties)
-            throws SecurityException, UnsatisfiedLinkError {
-        String libPath = properties.getProperty(IbisProperties.LIBRARY_PATH);
-        String sep = System.getProperty("file.separator");
-
-        if (libPath != null) {
-            String s = System.mapLibraryName(name);
-
-            // System.err.println("LOADING IBIS LIB: " + libPath + sep + s);
-
-            System.load(libPath + sep + s);
-            return;
-        }
-
-        libPath = properties.getProperty("java.library.path");
-        if (libPath != null) {
-            System.setProperty("java.library.path", libPath);
-        }
-        // Fall back to regular loading.
-        // This might not work, or it might not :-)
-        // System.err.println("LOADING NON IBIS LIB: " + name);
-
-        System.loadLibrary(name);
-    }
-
-    /** The currently loaded Ibises. */
-    private static ArrayList<Ibis> loadedIbises = new ArrayList<Ibis>();
-
-    /**
-     * Returns a list of all Ibis implementations that are currently loaded.
-     * When no Ibises are loaded, this method returns an array with no elements.
-     * 
-     * @return the list of loaded Ibis implementations.
-     */
-    public static synchronized Ibis[] loadedIbises() {
-        return loadedIbises.toArray(new Ibis[loadedIbises.size()]);
-    }
-
-    /**
      * Creates a new Ibis instance, based on the required capabilities and
      * port types, and using the specified properties.
      * @param requiredCapabilities
@@ -99,10 +46,10 @@ public final class IbisFactory {
      *            properties that can be set, for instance a class path for
      *            searching ibis implementations, or which registry to use.
      *            There is a default, so <code>null</code> may be specified.
-     * @param reventHandler
+     * @param registryEventHandler
      *            a {@link ibis.ipl.RegistryEventHandler RegistryEventHandler}
      *            instance, or <code>null</code>.
-     * @param types the list of port types required by the application.
+     * @param portTypes the list of port types required by the application.
      * @return the new Ibis instance.
      * 
      * @exception IbisCreationFailedException
@@ -111,10 +58,10 @@ public final class IbisFactory {
      */
     public static Ibis createIbis(IbisCapabilities requiredCapabilities,
             Properties properties,
-            RegistryEventHandler reventHandler,
-            PortType... types) throws IbisCreationFailedException {
+            RegistryEventHandler registryEventHandler,
+            PortType... portTypes) throws IbisCreationFailedException {
 
-        if (reventHandler != null
+        if (registryEventHandler != null
                 && !requiredCapabilities
                         .hasCapability(IbisCapabilities.REGISTRY_UPCALLS)) {
             throw new IbisConfigurationException(
@@ -125,11 +72,7 @@ public final class IbisFactory {
 
         IbisFactory factory = new IbisFactory(properties);
 
-        Ibis ibis = factory.createIbis(requiredCapabilities, types, reventHandler);
-
-        synchronized (IbisFactory.class) {
-            loadedIbises.add(ibis);
-        }
+        Ibis ibis = factory.createIbis(requiredCapabilities, portTypes, registryEventHandler);
 
         return ibis;
     }
@@ -144,7 +87,7 @@ public final class IbisFactory {
         this.properties = IbisProperties.getHardcodedProperties();
 
         // add config properties.
-        Properties configProperties = IbisProperties.getConfigProperties();
+        Properties configProperties = IbisProperties.getConfigurationProperties();
         if (configProperties != null) {
             for (Enumeration e = configProperties.propertyNames(); e
                     .hasMoreElements();) {
@@ -180,26 +123,26 @@ public final class IbisFactory {
         implList = compnts.toArray(new Class[compnts.size()]);
     }
 
-    private Ibis createIbis(Class<?> c, IbisCapabilities caps, PortType[] types,
-            RegistryEventHandler registryHandler) throws Throwable {
-        Ibis impl;
+    private Ibis createIbis(Class<?> ibisClass, IbisCapabilities ibisCapabilities, PortType[] portTypes,
+            RegistryEventHandler registryEventHandler) throws Throwable {
+        Ibis ibisInstance;
 
         try {
-            impl = (Ibis) c.getConstructor(
+            ibisInstance = (Ibis) ibisClass.getConstructor(
                     new Class[] { RegistryEventHandler.class, IbisCapabilities.class,
-                            types.getClass(),
+                            portTypes.getClass(),
                             Properties.class }).newInstance(
-                    new Object[] { registryHandler, caps, types, properties });
+                    new Object[] { registryEventHandler, ibisCapabilities, portTypes, properties });
         } catch (java.lang.reflect.InvocationTargetException e) {
             throw e.getCause();
         }
 
-        return impl;
+        return ibisInstance;
     }
 
     private Ibis createIbis(IbisCapabilities requiredCapabilities,
-            PortType[] types,
-            RegistryEventHandler reventHandler)
+            PortType[] portTypes,
+            RegistryEventHandler registryEventHandler)
             throws IbisCreationFailedException {
 
         if (verbose) {
@@ -207,22 +150,22 @@ public final class IbisFactory {
                     + requiredCapabilities);
         }
 
-        String ibisname = properties.getProperty(IbisProperties.NAME);
-        if (ibisname != null) {
-            String[] caps = requiredCapabilities.getCapabilities();
-            String[] n = new String[caps.length+1];
-            for (int i = 0; i < caps.length; i++) {
-                n[i] = caps[i];
+        String ibisName = properties.getProperty(IbisProperties.NAME);
+        if (ibisName != null) {
+            String[] capabilities = requiredCapabilities.getCapabilities();
+            String[] newCapabilities = new String[capabilities.length+1];
+            for (int i = 0; i < capabilities.length; i++) {
+                newCapabilities[i] = capabilities[i];
             }
-            n[caps.length] = "nickname." + ibisname;;
-            requiredCapabilities = new IbisCapabilities(n);
+            newCapabilities[capabilities.length] = "nickname." + ibisName;
+            requiredCapabilities = new IbisCapabilities(newCapabilities);
         }
 
-        int n = implList.length;
+        int numberOfImplementations = implList.length;
 
         if (verbose) {
             String str = "";
-            for (int i = 0; i < n; i++) {
+            for (int i = 0; i < numberOfImplementations; i++) {
                 str += " " + implList[i].getName();
             }
             System.err.println("Matching Ibis implementations:" + str);
@@ -230,25 +173,25 @@ public final class IbisFactory {
 
         IbisCreationFailedException nested = new IbisCreationFailedException("Ibis creation failed");
 
-        for (int i = 0; i < n; i++) {
-            Class cl = implList[i];
+        for (int i = 0; i < numberOfImplementations; i++) {
+            Class ibisClass = implList[i];
             if (verbose) {
-                System.err.println("Trying " + cl.getName());
+                System.err.println("Trying " + ibisClass.getName());
             }
             while (true) {
                 try {
-                    return createIbis(cl, requiredCapabilities, types, reventHandler);
+                    return createIbis(ibisClass, requiredCapabilities, portTypes, registryEventHandler);
                 } catch (ConnectionRefusedException e) {
                     // retry
                 } catch (Throwable e) {
-                    nested.add(cl.getName(), e);
-                    if (i == n - 1) {
+                    nested.add(ibisClass.getName(), e);
+                    if (i == numberOfImplementations - 1) {
                         // No more Ibis to try.
                         throw nested;
                     }
                     if (verbose) {
                         System.err.println("Could not instantiate "
-                                + cl.getName());
+                                + ibisClass.getName());
                         e.printStackTrace(System.err);
                     }
                     break;

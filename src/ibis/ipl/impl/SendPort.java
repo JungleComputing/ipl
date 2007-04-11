@@ -121,7 +121,7 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
         }
         ibis.register(this);
         if (logger.isDebugEnabled()) {
-            logger.debug(ibis.identifier() + ": Sendport '" + name
+            logger.debug(ibis.ibisIdentifier() + ": Sendport '" + name
                     + "' created");
         }
         w = createWriteMessage();
@@ -164,7 +164,7 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
         count = 0;
     }
 
-    public PortType getType() {
+    public PortType getPortType() {
         return type;
     }
 
@@ -179,11 +179,11 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
         return result;
     }
 
-    public String name() {
+    public String sendPortName() {
         return name;
     }
 
-    public ibis.ipl.SendPortIdentifier identifier() {
+    public ibis.ipl.SendPortIdentifier sendPortIdentifier() {
         return ident;
     }
 

@@ -58,9 +58,9 @@ public interface ReadMessage {
      * It implies a {@link #finish()}.
      * In a message upcall, the alternative way to do this is to have
      * the upcall throw the exception.
-     * @param e the exception that was thrown. 
+     * @param exception the exception that was thrown. 
      */
-    public void finish(IOException e);
+    public void finish(IOException exception);
 
     /**
      * Returns the number of bytes read from this message. This number

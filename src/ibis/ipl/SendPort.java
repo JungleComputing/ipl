@@ -47,7 +47,7 @@ public interface SendPort extends Managable {
      * Returns the type that was used to create this port.
      * @return the capability set representing the port type.
      */
-    public CapabilitySet getType();
+    public PortType getPortType();
 
     /**
      * Requests a new message from this sendport.
@@ -65,7 +65,7 @@ public interface SendPort extends Managable {
      * Obtains an identification for this sendport.
      * @return the identification.
      */
-    public SendPortIdentifier identifier();
+    public SendPortIdentifier sendPortIdentifier();
 
     /**
      * Returns the name of the sendport.
@@ -74,7 +74,7 @@ public interface SendPort extends Managable {
      *
      * @return the name.
      */
-    public String name();
+    public String sendPortName();
 
     /**
      * Returns the sum of the {@link ibis.ipl.WriteMessage#finish()} 
@@ -135,9 +135,9 @@ public interface SendPort extends Managable {
      * It is not allowed to set up a new connection while a message
      * is alive.
      *
-     * @param id identifies the Ibis instance on which the {@link ReceivePort}
+     * @param ibisIdentifier identifies the Ibis instance on which the {@link ReceivePort}
      *   with the specified name is supposed to live.
-     * @param name specifies the name of the {@link ReceivePort}.
+     * @param receivePortName specifies the name of the {@link ReceivePort}.
      * @exception ConnectionRefusedException is thrown
      * if the receiver denies the connection.
      * @exception AlreadyConnectedException is thrown if the port was already
@@ -148,7 +148,7 @@ public interface SendPort extends Managable {
      * @exception ConnectionFailedException is thrown in case of trouble.
      * @return the receiveport identifier.
      */
-    public ReceivePortIdentifier connect(IbisIdentifier id, String name)
+    public ReceivePortIdentifier connect(IbisIdentifier ibisIdentifier, String receivePortName)
             throws ConnectionFailedException;
 
     /**
@@ -157,9 +157,9 @@ public interface SendPort extends Managable {
      * It is not allowed to set up a new connection while a message
      * is alive.
      *
-     * @param id identifies the Ibis instance on which the {@link ReceivePort}
+     * @param ibisIdentifier identifies the Ibis instance on which the {@link ReceivePort}
      *   with the specified name is supposed to live.
-     * @param name specifies the name of the {@link ReceivePort}.
+     * @param receivePortName specifies the name of the {@link ReceivePort}.
      * @param timeoutMillis timeout in milliseconds
      * @exception ibis.ipl.ConnectionTimedOutException is thrown
      * if an accept/deny has not arrived within <code>timeoutmillis</code>.
@@ -175,32 +175,32 @@ public interface SendPort extends Managable {
      * @return the receiveport identifier.
      * @throws ConnectionFailedException in case of trouble.
      */
-    public ReceivePortIdentifier connect(IbisIdentifier id, String name,
+    public ReceivePortIdentifier connect(IbisIdentifier ibisIdentifier, String receivePortName,
             long timeoutMillis) throws ConnectionFailedException;
 
     /**
      * Attempts to set up connections with the specified receivers.
      * It is not allowed to set up a new connection while a message
      * is alive.
-     * @param ports the receivers.
+     * @param receivePortIdentifiers the receivers.
      * @exception ConnectionsFailedException is thrown when one or more
      * connections fail. This exception object also identifies which connection
      * attempts actually succeeded.
      */
-    public void connect(ibis.ipl.ReceivePortIdentifier[] ports)
+    public void connect(ibis.ipl.ReceivePortIdentifier[] receivePortIdentifiers)
             throws ConnectionsFailedException;
 
     /**
      * Attempts to set up connections with the specified receivers.
      * It is not allowed to set up a new connection while a message
      * is alive.
-     * @param ports the receivers.
+     * @param receivePortIdentifiers the receivers.
      * @param timeoutMillis timeout in milliseconds
      * @exception ConnectionsFailedException is thrown when one or more
      * connections fail. This exception object also identifies which connection
      * attempts actually succeeded.
      */
-    public void connect(ibis.ipl.ReceivePortIdentifier[] ports,
+    public void connect(ibis.ipl.ReceivePortIdentifier[] receivePortIdentifiers,
             long timeoutMillis) throws ConnectionsFailedException;
 
     /**

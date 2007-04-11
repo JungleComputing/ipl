@@ -16,35 +16,35 @@ public interface Location extends java.io.Serializable, Comparable<Location>,
      * Returns the number of levels in this location.
      * @return the number of levels.
      */
-    public int numLevels();
+    public int numberOfLevels();
 
     /**
      * Returns the name of the specified level.
-     * @param level the specified level.
+     * @param levelIndex the specified level.
      * @return the corresponding name.
      * @exception ArrayIndexOutOfBoundsException is thrown when the specified
      * level does not correspond to a level in this location.
      */
-    public String level(int level);
+    public String getLevel(int levelIndex);
 
     /**
      * Returns the location as a String array.
      * @return the location as a string array.
      */
-    public String[] levels();
+    public String[] getLevels();
 
     /**
      * Returns the number of matching levels with the specified location,
      * comparing from coarse to detailed.
-     * @param l the location to match with.
+     * @param location the location to match with.
      * @return the number of matching levels.
      */
-    public int matchingLevels(Location l);
+    public int numberOfMatchingLevels(Location location);
 
     /**
      * Returns something that could represent a cluster name. This is a
      * concatenation of all location level names but the last.
      * @return the cluster.
      */
-    public String cluster();
+    public String getCluster();
 }

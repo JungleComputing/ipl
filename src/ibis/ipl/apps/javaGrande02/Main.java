@@ -292,7 +292,7 @@ final class Main {
 
             IbisIdentifier master = registry.elect("0");
 
-	    if (master.equals(ibis.identifier())) {
+	    if (master.equals(ibis.ibisIdentifier())) {
 		rport = ibis.createReceivePort(t, "test port");
 		rport.enableConnections();
                 IbisIdentifier other = registry.getElectionResult("1");

@@ -123,8 +123,8 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
 
     IbisSocket connect(TcpSendPort sp, ibis.ipl.impl.ReceivePortIdentifier rip,
             int timeout) throws IOException {
-        IbisIdentifier id = (IbisIdentifier) rip.ibis();
-        String name = rip.name();
+        IbisIdentifier id = (IbisIdentifier) rip.ibisIdentifier();
+        String name = rip.receivePortName();
         IbisSocketAddress idAddr;
 
         synchronized(addresses) {
@@ -156,7 +156,7 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
 
                 out.writeUTF(name);
                 sp.getIdent().writeTo(out);
-                sp.getType().writeTo(out);
+                sp.getPortType().writeTo(out);
                 out.flush();
 
                 result = s.getInputStream().read();

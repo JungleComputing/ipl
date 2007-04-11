@@ -192,7 +192,7 @@ public abstract class ReceivePort extends Managable
         count = 0;
     }
 
-    public PortType getType() {
+    public PortType getPortType() {
         return type;
     }
 
@@ -218,11 +218,11 @@ public abstract class ReceivePort extends Managable
         return result;
     }
 
-    public String name() {
+    public String receivePortName() {
         return name;
     }
 
-    public ibis.ipl.ReceivePortIdentifier identifier() {
+    public ibis.ipl.ReceivePortIdentifier receivePortIdentifier() {
         return ident;
     }
 

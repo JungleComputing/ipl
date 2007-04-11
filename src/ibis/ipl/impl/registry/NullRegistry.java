@@ -61,7 +61,7 @@ public final class NullRegistry extends ibis.ipl.impl.Registry {
         // NOTHING
     }
 
-    public void dead(ibis.ipl.IbisIdentifier ibis) throws IOException {
+    public void assumeDead(ibis.ipl.IbisIdentifier ibis) throws IOException {
         // NOTHING
     }
 

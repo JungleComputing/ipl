@@ -140,49 +140,12 @@ public final class PortType extends CapabilitySet {
     }
 
     /**
-     * Constructs a port type by reading it from the specified byte array.
-     * 
-     * @param codedForm the byte array.
-     * @param offset the offset at which to start reading.
-     * @param length length to read.
-     * @throws IOException is thrown on error.
-     */
-    public PortType(byte[] codedForm, int offset, int length) throws IOException {
-        super(codedForm, offset, length);
-    }
-
-    /**
-     * Constructs a port type by reading it from the specified byte array.
-     * @param codedForm the byte array.
-     * @throws IOException is thrown in case of error.
-     */
-    public PortType(byte[] codedForm) throws IOException {
-        super(codedForm);
-    }
-
-//    /**
-//     * Constructs a port type from the specified capabilityset.
-//     * @param c the capabilityset.
-//     */
-//    public PortType(CapabilitySet c) {
-//        super(c);
-//    }
-
-    /**
      * Constructs a port type by reading it from the specified data
      * input stream.
-     * @param dis the data input stream.
+     * @param dataInput the data input stream.
      * @throws IOException is thrown in case of trouble.
      */
-    public PortType(DataInput dis) throws IOException {
-        super(dis);
+    public PortType(DataInput dataInput) throws IOException {
+        super(dataInput);
     }
-
-//    /**
-//     * Constructs a port type from the specified properties.
-//     * @param sp the properties.
-//     */
-//    protected PortType(Properties sp) {
-//        super(sp);
-//    }
 }

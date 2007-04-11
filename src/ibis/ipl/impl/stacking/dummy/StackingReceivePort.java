@@ -98,11 +98,11 @@ public class StackingReceivePort implements ibis.ipl.ReceivePort {
         return base.getCount();
     }
 
-    public PortType getType() {
+    public PortType getPortType() {
         return type;
     }
 
-    public ReceivePortIdentifier identifier() {
+    public ReceivePortIdentifier receivePortIdentifier() {
         return identifier;
     }
 
@@ -110,8 +110,8 @@ public class StackingReceivePort implements ibis.ipl.ReceivePort {
         return base.lostConnections();
     }
 
-    public String name() {
-        return base.name();
+    public String receivePortName() {
+        return base.receivePortName();
     }
 
     public SendPortIdentifier[] newConnections() {

@@ -26,21 +26,21 @@ public class ReceiveTimedOutException extends java.io.IOException {
      * Constructs a <code>ReceiveTimedOutException</code> with
      * the specified detail message.
      *
-     * @param s		the detail message
+     * @param detailMessage		the detail message
      */
-    public ReceiveTimedOutException(String s) {
-        super(s);
+    public ReceiveTimedOutException(String detailMessage) {
+        super(detailMessage);
     }
 
     /**
      * Constructs a <code>ReceiveTimedOutException</code> with
      * the specified detail message and cause.
      *
-     * @param s		the detail message
+     * @param detailMessage		the detail message
      * @param cause	the cause
      */
-    public ReceiveTimedOutException(String s, Throwable cause) {
-        super(s);
+    public ReceiveTimedOutException(String detailMessage, Throwable cause) {
+        super(detailMessage);
         initCause(cause);
     }
 

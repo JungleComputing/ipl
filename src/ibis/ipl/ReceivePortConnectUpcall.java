@@ -21,12 +21,12 @@ public interface ReceivePortConnectUpcall {
      * This upcall may run completely asynchronously, but only at most one is
      * alive at any time.
      *
-     * @param me the {@link ReceivePort} receiving a connection attempt.
+     * @param receiver the {@link ReceivePort} receiving a connection attempt.
      * @param applicant identifier for the {@link SendPort} attempting to
      * 			set up a connection.
      * @return true to accept the connection and false to refuse the connection.
      */
-    public boolean gotConnection(ReceivePort me, SendPortIdentifier applicant);
+    public boolean gotConnection(ReceivePort receiver, SendPortIdentifier applicant);
 
     /**
      * Upcall that indicates that a connection to a sendport was lost.
@@ -38,11 +38,11 @@ public interface ReceivePortConnectUpcall {
      * This upcall may run completely asynchronously,
      * but only at most one is alive at any time.
      *
-     * @param me the {@link ReceivePort} losing a connection.
-     * @param johnDoe identifier for the {@link SendPort} to which the
+     * @param receiver the {@link ReceivePort} losing a connection.
+     * @param origin identifier for the {@link SendPort} to which the
      * 		      connection is lost.
-     * @param reason the reason for this upcall.
+     * @param cause the reason for this upcall.
      */
-    public void lostConnection(ReceivePort me, SendPortIdentifier johnDoe,
-            Throwable reason);
+    public void lostConnection(ReceivePort receiver, SendPortIdentifier origin,
+            Throwable cause);
 }

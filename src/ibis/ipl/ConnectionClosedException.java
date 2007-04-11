@@ -27,21 +27,21 @@ public class ConnectionClosedException extends java.io.IOException {
      * Constructs a <code>ConnectionClosedException</code> with
      * the specified detail message.
      *
-     * @param s		the detail message
+     * @param detailMessage		the detail message
      */
-    public ConnectionClosedException(String s) {
-        super(s);
+    public ConnectionClosedException(String detailMessage) {
+        super(detailMessage);
     }
 
     /**
      * Constructs a <code>ConnectionClosedException</code> with
      * the specified detail message and cause.
      *
-     * @param s		the detail message
+     * @param detailMessage		the detail message
      * @param cause	the cause
      */
-    public ConnectionClosedException(String s, Throwable cause) {
-        super(s);
+    public ConnectionClosedException(String detailMessage, Throwable cause) {
+        super(detailMessage);
         initCause(cause);
     }
 

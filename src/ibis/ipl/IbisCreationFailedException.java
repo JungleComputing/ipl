@@ -16,9 +16,6 @@ import java.util.ArrayList;
  */
 public class IbisCreationFailedException extends Exception {
 
-    /** 
-     * Generated
-     */
     private static final long serialVersionUID = -387342205084916635L;
 
     private ArrayList<Throwable> throwables = new ArrayList<Throwable>();
@@ -29,10 +26,10 @@ public class IbisCreationFailedException extends Exception {
      * Constructs a <code>IbisCreationFailedException</code> with
      * the specified detail message.
      *
-     * @param s         the detail message
+     * @param detailMessage         the detail message
      */
-    public IbisCreationFailedException(String s) {
-        super(s);
+    public IbisCreationFailedException(String detailMessage) {
+        super(detailMessage);
     }
 
     /**
@@ -48,87 +45,87 @@ public class IbisCreationFailedException extends Exception {
      * message, and adds the specified <String, Throwable> pair to the
      * list of exceptions.
      * @param throwerID some identification of the exception thrower.
-     * @param t the exception.
+     * @param throwable the exception.
      */
-    public IbisCreationFailedException(String throwerID, Throwable t) {
+    public IbisCreationFailedException(String throwerID, Throwable throwable) {
         super();
-        add(throwerID, t);
+        add(throwerID, throwable);
     }
 
     /**
      * Adds the specified <String, Throwable> pair to the list of exceptions.
      * @param throwerID some identification of the exception thrower.
-     * @param t the exception.
+     * @param throwable the exception.
      */
-    public void add(String throwerID, Throwable t) {
-        if (t instanceof InvocationTargetException) {
-            t = t.getCause();
+    public void add(String throwerID, Throwable throwable) {
+        if (throwable instanceof InvocationTargetException) {
+            throwable = throwable.getCause();
         }
 
-        throwables.add(t);
+        throwables.add(throwable);
         throwerIDs.add(throwerID);
     }
 
     public String toString() {
-        String res = "";
+        String result = "";
 
         if (throwables.size() == 0) {
             return super.toString();
         }
 
-        res = "\n--- START OF NESTED EXCEPTION ---\n";
+        result = "\n--- START OF NESTED EXCEPTION ---\n";
         for (int i = 0; i < throwables.size(); i++) {
             if (throwerIDs.get(i) != null) {
-                res += "*** " + throwerIDs.get(i)
+                result += "*** " + throwerIDs.get(i)
                     + " failed because of: ";
             }
-            Throwable t = throwables.get(i);
-            res += t.getClass().getName();
-            res += ": ";
-            String msg = t.getMessage();
-            if (msg == null) {
-                msg = t.toString();
+            Throwable throwable = throwables.get(i);
+            result += throwable.getClass().getName();
+            result += ": ";
+            String message = throwable.getMessage();
+            if (message == null) {
+                message = throwable.toString();
             }
-            res += msg;
-            res += "\n";
+            result += message;
+            result += "\n";
         }
-        res += "--- END OF NESTED EXCEPTION ---\n";
-        return res;
+        result += "--- END OF NESTED EXCEPTION ---\n";
+        return result;
     }
 
     public void printStackTrace() {
         printStackTrace(System.err);
     }
 
-    public void printStackTrace(PrintStream s) {
+    public void printStackTrace(PrintStream printStream) {
         if (throwables.size() == 0) {
-            super.printStackTrace(s);
+            super.printStackTrace(printStream);
             return;
         }
 
-        s.println("--- START OF NESTED EXCEPTION STACK TRACE ---");
+        printStream.println("--- START OF NESTED EXCEPTION STACK TRACE ---");
         for (int i = 0; i < throwables.size(); i++) {
             if (throwerIDs.get(i) != null) {
-                s.println("*** stack trace of " + throwerIDs.get(i));
+                printStream.println("*** stack trace of " + throwerIDs.get(i));
             }
-            throwables.get(i).printStackTrace(s);
+            throwables.get(i).printStackTrace(printStream);
         }
-        s.println("--- END OF NESTED EXCEPTION STACK TRACE ---");
+        printStream.println("--- END OF NESTED EXCEPTION STACK TRACE ---");
     }
 
-    public void printStackTrace(PrintWriter s) {
+    public void printStackTrace(PrintWriter printWriter) {
         if (throwables.size() == 0) {
-            super.printStackTrace(s);
+            super.printStackTrace(printWriter);
             return;
         }
 
-        s.println("--- START OF NESTED EXCEPTION STACK TRACE ---");
+        printWriter.println("--- START OF NESTED EXCEPTION STACK TRACE ---");
         for (int i = 0; i < throwables.size(); i++) {
             if (throwerIDs.get(i) != null) {
-                s.println("*** stack trace of " + throwerIDs.get(i));
+                printWriter.println("*** stack trace of " + throwerIDs.get(i));
             }
-            throwables.get(i).printStackTrace(s);
+            throwables.get(i).printStackTrace(printWriter);
         }
-        s.println("--- END OF NESTED EXCEPTION STACK TRACE ---");
+        printWriter.println("--- END OF NESTED EXCEPTION STACK TRACE ---");
     }
 }

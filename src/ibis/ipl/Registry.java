@@ -19,40 +19,40 @@ public interface Registry {
      * a new winner will automatically be elected and returned on the next 
      * call of this function.
      *
-     * @param election the name of this election.
+     * @param electionName the name of this election.
      * @return the Ibis identifier of the elected Ibis instance.
      * @exception java.io.IOException is thrown in case of trouble.
      */
-    public IbisIdentifier elect(String election) throws IOException;
+    public IbisIdentifier elect(String electionName) throws IOException;
 
     /**
      * Gets the result of an election, without being a candidate.
      *
-     * @param election the name of this election.
+     * @param electionName the name of this election.
      * @return the Ibis identifier of the elected Ibis instance.
      * @exception java.io.IOException is thrown in case of trouble.
      */
-    public IbisIdentifier getElectionResult(String election) throws IOException;
+    public IbisIdentifier getElectionResult(String electionName) throws IOException;
 
     /**
      * Should be called when an application suspects that a particular
      * Ibis instance is dead. The registry may react by checking this.
      *
-     * @param ibis the Ibis identifier of the Ibis instance suspected
+     * @param ibisIdentifier the Ibis identifier of the Ibis instance suspected
      *   to be dead.
      * @exception java.io.IOException is thrown in case of trouble.
      */
-    public void maybeDead(IbisIdentifier ibis) throws IOException;
+    public void maybeDead(IbisIdentifier ibisIdentifier) throws IOException;
 
     /**
      * Instructs the registry to assume that the specified Ibis instance
      * is dead.
      *
-     * @param ibis the Ibis identifier of the Ibis instance that must
+     * @param ibisIdentifier the Ibis identifier of the Ibis instance that must
      *   be assumed to be dead.
      * @exception java.io.IOException is thrown in case of trouble.
      */
-    public void dead(IbisIdentifier ibis) throws IOException;
+    public void assumeDead(IbisIdentifier ibisIdentifier) throws IOException;
 
     /**
      * Send a signal to one or more Ibisses.
@@ -61,9 +61,9 @@ public interface Registry {
      * application to react accordingly.
      * @param signal the value of the signal. Useful if more than one
      * type of signal is needed.
-     * @param ibisses the ibisses to wich the signal is sent.
+     * @param ibisIdentifiers the ibisses to wich the signal is sent.
      * @exception java.io.IOException is thrown in case of trouble.
      */
-    public void signal(String signal, IbisIdentifier... ibisses)
+    public void signal(String signal, IbisIdentifier... ibisIdentifiers)
             throws IOException;
 }

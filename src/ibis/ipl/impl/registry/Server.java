@@ -81,7 +81,7 @@ public abstract class Server extends Thread {
 
         TypedProperties properties = new TypedProperties();
         properties.addProperties(RegistryProperties.getHardcodedProperties());
-        properties.addProperties(IbisProperties.getConfigProperties());
+        properties.addProperties(IbisProperties.getConfigurationProperties());
 
         for (int i = 0; i < args.length; i++) {
             if (args[i].equalsIgnoreCase("--port")) {
