@@ -1,5 +1,6 @@
 package ibis.ipl.impl.stacking.dummy;
 
+import ibis.ipl.ConnectionFailedException;
 import ibis.ipl.ConnectionsFailedException;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.PortType;
@@ -50,20 +51,20 @@ public class StackingSendPort implements ibis.ipl.SendPort {
         base.close();    
     }
 
-    public void connect(ibis.ipl.ReceivePortIdentifier receiver) throws IOException {
+    public void connect(ibis.ipl.ReceivePortIdentifier receiver) throws ConnectionFailedException {
         connect(receiver, 0L);
     }
 
-    public void connect(ibis.ipl.ReceivePortIdentifier receiver, long timeoutMillis) throws IOException {
+    public void connect(ibis.ipl.ReceivePortIdentifier receiver, long timeoutMillis) throws ConnectionFailedException {
         base.connect(receiver, timeoutMillis);
         
     }
 
-    public ibis.ipl.ReceivePortIdentifier connect(IbisIdentifier id, String name) throws IOException {
+    public ibis.ipl.ReceivePortIdentifier connect(IbisIdentifier id, String name) throws ConnectionFailedException {
         return connect(id, name, 0L);
     }
 
-    public ibis.ipl.ReceivePortIdentifier connect(IbisIdentifier id, String name, long timeoutMillis) throws IOException {
+    public ibis.ipl.ReceivePortIdentifier connect(IbisIdentifier id, String name, long timeoutMillis) throws ConnectionFailedException {
         return base.connect(id, name, timeoutMillis);
     }
 

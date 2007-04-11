@@ -102,9 +102,9 @@ public interface SendPort extends Managable {
      * Multiple connections to the same receiver are NOT allowed.
      * @exception PortMismatchException is thrown if the receiveport
      * port and the sendport are of different types.
-     * @exception IOException is thrown if a message is alive.
+     * @exception ConnectionFailedException is thrown in case of trouble.
      */
-    public void connect(ReceivePortIdentifier receiver) throws IOException;
+    public void connect(ReceivePortIdentifier receiver) throws ConnectionFailedException;
 
     /**
      * Attempts to set up a connection with receiver.
@@ -124,10 +124,10 @@ public interface SendPort extends Managable {
      * Multiple connections to the same receiver are NOT allowed.
      * @exception PortMismatchException is thrown if the receiveport
      * port and the sendport are of different types.
-     * @exception IOException is thrown if a message is alive.
+     * @exception ConnectionFailedException is thrown in case of trouble.
      */
     public void connect(ReceivePortIdentifier receiver, long timeoutMillis)
-            throws IOException;
+            throws ConnectionFailedException;
 
     /**
      * Attempts to set up a connection with a receiver at the specified
@@ -145,11 +145,11 @@ public interface SendPort extends Managable {
      * Multiple connections to the same receiver are NOT allowed.
      * @exception PortMismatchException is thrown if the receiveport
      * port and the sendport are of different types.
-     * @exception IOException is thrown if a message is alive.
+     * @exception ConnectionFailedException is thrown in case of trouble.
      * @return the receiveport identifier.
      */
     public ReceivePortIdentifier connect(IbisIdentifier id, String name)
-            throws IOException;
+            throws ConnectionFailedException;
 
     /**
      * Attempts to set up a connection with a receiver at the specified
@@ -173,10 +173,10 @@ public interface SendPort extends Managable {
      * @exception PortMismatchException is thrown if the receiveport
      * port and the sendport are of different types.
      * @return the receiveport identifier.
-     * @throws IOException in case of trouble.
+     * @throws ConnectionFailedException in case of trouble.
      */
     public ReceivePortIdentifier connect(IbisIdentifier id, String name,
-            long timeoutMillis) throws IOException;
+            long timeoutMillis) throws ConnectionFailedException;
 
     /**
      * Attempts to set up connections with the specified receivers.

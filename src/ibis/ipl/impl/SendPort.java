@@ -188,12 +188,12 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
     }
 
     public void connect(ibis.ipl.ReceivePortIdentifier receiver)
-            throws IOException {
+            throws ConnectionFailedException {
         connect(receiver, 0);
     }
 
     public ibis.ipl.ReceivePortIdentifier connect(ibis.ipl.IbisIdentifier id,
-            String name) throws IOException {
+            String name) throws ConnectionFailedException {
         if (logger.isDebugEnabled()) {
             logger.debug("Sendport '" + this.name + "' connecting to "
                     + name + " at " + id);
@@ -201,7 +201,7 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
         return connect(id, name, 0);
     }
 
-    private void checkConnect(ReceivePortIdentifier r) throws IOException {
+    private void checkConnect(ReceivePortIdentifier r) throws ConnectionFailedException {
 
         if (receivers.size() > 0
                 && ! type.hasCapability(PortType.CONNECTION_ONE_TO_MANY)
@@ -216,26 +216,32 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
     }
 
     public synchronized void connect(ibis.ipl.ReceivePortIdentifier receiver,
-            long timeout) throws IOException {
+            long timeout) throws ConnectionFailedException {
 
         if (logger.isDebugEnabled()) {
             logger.debug("Sendport '" + name + "' connecting to " + receiver);
         }
 
         if (aMessageIsAlive) {
-            throw new IOException(
-                "A message was alive while adding a new connection");
+            throw new ConnectionFailedException(
+                "A message was alive while adding a new connection", receiver);
         }
 
         if (timeout < 0) {
-            throw new IOException("connect(): timeout must be >= 0");
+            throw new ConnectionFailedException("connect(): timeout must be >= 0", receiver);
         }
 
         ReceivePortIdentifier r = (ReceivePortIdentifier) receiver;
 
         checkConnect(r);
 
-        addConnectionInfo(r, doConnect(r, timeout));
+        try {
+            addConnectionInfo(r, doConnect(r, timeout));
+        } catch(ConnectionFailedException e) {
+            throw e;
+        } catch(Throwable e1) {
+            throw new ConnectionFailedException("Got unexpected exception", r, e1);
+        }
     }
 
     public ibis.ipl.ReceivePortIdentifier[] connect(
@@ -368,7 +374,7 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
 
     public synchronized ibis.ipl.ReceivePortIdentifier connect(
             ibis.ipl.IbisIdentifier id, String name, long timeout)
-            throws IOException {
+            throws ConnectionFailedException {
         ReceivePortIdentifier r = ibis.createReceivePortIdentifier(name,
                 (IbisIdentifier) id);
 
@@ -377,8 +383,8 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
         }
 
         if (aMessageIsAlive) {
-            throw new IOException(
-                "A message was alive while adding a new connection");
+            throw new ConnectionFailedException(
+                "A message was alive while adding a new connection", id, name);
         }
 
         checkConnect(r);
@@ -394,7 +400,7 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
     }
 
     private synchronized void addConnectionInfo(ReceivePortIdentifier ri,
-            SendPortConnectionInfo connection) throws IOException {
+            SendPortConnectionInfo connection) {
         if (logger.isDebugEnabled()) {
             logger.debug("SendPort '" + name + "': added connection to " + ri);
         }
