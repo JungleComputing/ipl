@@ -39,7 +39,7 @@ public class ConnectionsFailedException extends java.io.IOException {
     /**
      * Adds a failed connection attempt.
      * 
-     * @param e the connection failure exception.
+     * @param exception the connection failure exception.
      */
     public void add(ConnectionFailedException exception) {
         failures.add(exception);
