@@ -1,21 +1,17 @@
 ibis:
 
-+ on closed world: wait in createIbis (or Ibis constructor) until everyone
-  is present??? The documentation said that we did, but we didn't...
-  No, explicit method to wait for all.
-- introduce IbisCapabilities, PortType (both extend CapabilitySet),
-  PredefinedCapabilities goes away ...
++ introduce IbisCapabilities, PortType (both extend CapabilitySet),
+  PredefinedCapabilities goes away ... (Done Ceriel)
+- layout package.html in ibis.ipl. (Niels)
+- ibis.ipl.Managable: Map strings to strings instead of strings to object?
+  (Niels).
 - split up ibis in multiple seperate subprojects
 - move applications to a real tree, use packages.
 - update docs
 - while(true) {fix eclipse warnings}
 - migrate leftover prints to log4j (should we? Performance!)
   (Ceriel: did Ibis implementation).
-- steering/monitoring interface
-+ to think about: would it be a good idea to allow an active upcall per
-  connection instead of per receiveport? This would make satin more simple:
-  no longer a receiveport per sender. We thought about it, and decided it
-  was not a good idea.
++ steering/monitoring interface (Managable).
 
 ibis registry:
 - gossip Registry
