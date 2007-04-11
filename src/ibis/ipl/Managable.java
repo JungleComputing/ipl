@@ -3,8 +3,8 @@ package ibis.ipl;
 import java.util.Map;
 
 /**
- * A Manageble class is able to read and set implementation 
- * dependant dynamic properties.
+ * A <code>Managable</code> class is able to read and set
+ * implementation-dependant dynamic properties.
  */
 public interface Managable {
     /**

@@ -3,7 +3,7 @@
 package ibis.ipl;
 
 /**
- * Disconect upcall interface for sendports. An Ibis implementation may
+ * Disconnect upcall interface for sendports. An Ibis implementation may
  * choose to block while processing this upcall.
  */
 public interface SendPortDisconnectUpcall {
