@@ -81,7 +81,7 @@ public final class Victim implements Config {
             r = Communication.connect(s, ident, "satin port",
                 Satin.CONNECT_TIMEOUT);
             if (r == null) {
-                Config.commLogger.debug("SATIN '" + s.identifier().ibis()
+                Config.commLogger.debug("SATIN '" + s.sendPortIdentifier().ibisIdentifier()
                     + "': unable to connect to " + ident
                     + ", might have crashed");
                 return null;
@@ -153,7 +153,7 @@ public final class Victim implements Config {
                 s.close();
             } catch (Exception e) {
                 // ignore
-                Config.commLogger.warn("SATIN '" + s.identifier().ibis()
+                Config.commLogger.warn("SATIN '" + s.sendPortIdentifier().ibisIdentifier()
                     + "': port.close() throws exception", e);
             }
         }

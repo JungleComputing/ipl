@@ -40,7 +40,7 @@ import colobus.Colobus;
 public final class RTS {
 
     static TypedProperties properties
-            = new TypedProperties(IbisProperties.getConfigProperties());
+            = new TypedProperties(IbisProperties.getConfigurationProperties());
 
     static final String prefix = "rmi.";
 
@@ -435,7 +435,7 @@ public final class RTS {
             stub = (Stub) stub_c.newInstance();
 
             stub.init(null, null, 0, skel.skeletonId,
-                    skeletonReceivePort.identifier(), false, r);
+                    skeletonReceivePort.receivePortIdentifier(), false, r);
 
         } catch (ClassNotFoundException e) {
             throw new StubNotFoundException("class " + get_stub_name(c)
@@ -515,13 +515,13 @@ public final class RTS {
             r = ibis.createReceivePort(replyPortType, "//" + hostname + "/rmi_stub"
                     + (new java.rmi.server.UID()).toString());
             if (logger.isDebugEnabled()) {
-                logger.debug(hostname + ": New receiveport: " + r.identifier());
+                logger.debug(hostname + ": New receiveport: " + r.receivePortIdentifier());
             }
             r.enableConnections();
         } else {
             r = a.remove(a.size() - 1);
             if (logger.isDebugEnabled()) {
-                logger.debug(hostname + ": Reuse receiveport: " + r.identifier());
+                logger.debug(hostname + ": Reuse receiveport: " + r.receivePortIdentifier());
             }
         }
         return r;
@@ -550,7 +550,7 @@ public final class RTS {
             throw new RemoteException("Could not create receive port", e);
         }
         Stub stub = (Stub) getStub(reg);
-        stub.skeletonPortId = p.identifier();
+        stub.skeletonPortId = p.receivePortIdentifier();
         p.enableConnections();
         p.enableMessageUpcalls();
         IbisIdentifier bbb;
@@ -559,7 +559,7 @@ public final class RTS {
         } catch(Exception e) {
             throw new RemoteException("Could not elect", e);
         }
-        if (! bbb.equals(ibis.identifier())) {
+        if (! bbb.equals(ibis.ibisIdentifier())) {
             throw new RemoteException(
                     "there already is a registry running on port " + port);
         }
@@ -593,11 +593,11 @@ public final class RTS {
             logger.debug(hostname + ": Got sendport");
         }
 
-        ReceivePort r = getStubReceivePort(dest.ibis());
+        ReceivePort r = getStubReceivePort(dest.ibisIdentifier());
 
         if (logger.isDebugEnabled()) {
             logger.debug(hostname + ": Created receiveport for stub  -> id = "
-                    + r.identifier());
+                    + r.receivePortIdentifier());
         }
 
         WriteMessage wm = s.newMessage();
@@ -610,7 +610,7 @@ public final class RTS {
         wm.writeString(name);           // name for skeleton
         wm.writeInt(-1);                // initialization method
         wm.writeInt(0);                 // no stubID yet
-        wm.writeObject(r.identifier()); // my receive port
+        wm.writeObject(r.receivePortIdentifier()); // my receive port
         wm.finish();
 
         s.disconnect(dest);

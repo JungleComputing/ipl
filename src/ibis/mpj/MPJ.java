@@ -248,7 +248,7 @@ public class MPJ {
             registry = ibis.registry();
 
             if (DEBUG) {
-                System.err.println("My Id is " + ibis.identifier());
+                System.err.println("My Id is " + ibis.ibisIdentifier());
                 System.err.println("MyRank is " + regEvtHandler.myRank + " of " + regEvtHandler.nInstances + "\n");
                 System.err.println("establishing communication...");
             }
@@ -290,7 +290,7 @@ public class MPJ {
 
             COMM_SELF = new Comm();
             COMM_SELF.group = new Group();
-            COMM_SELF.group().addId(ibis.identifier());
+            COMM_SELF.group().addId(ibis.ibisIdentifier());
             //COMM_SELF.contextId = 0;
 
 
@@ -362,7 +362,7 @@ public class MPJ {
      * @throws MPJException
      */
     public static String getProcessorName() throws MPJException {
-        return ibis.identifier().toString();
+        return ibis.ibisIdentifier().toString();
     }
 
     /**
@@ -465,7 +465,7 @@ public class MPJ {
 
 
     protected static IbisIdentifier getMyId() {
-        return ibis.identifier();
+        return ibis.ibisIdentifier();
     }
 
     protected static Connection getConnection(IbisIdentifier id) throws MPJException {

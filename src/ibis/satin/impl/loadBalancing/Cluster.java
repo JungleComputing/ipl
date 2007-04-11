@@ -15,7 +15,7 @@ final class Cluster {
     }
 
     protected Cluster(Victim v) {
-        this(v.getIdent().getLocation().cluster());
+        this(v.getIdent().getLocation().getCluster());
         victims.add(v);
     }
 

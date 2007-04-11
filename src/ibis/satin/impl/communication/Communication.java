@@ -68,7 +68,7 @@ public final class Communication implements Config, Protocol {
             System.exit(1); // Could not start ibis
         }
 
-        IbisIdentifier ident = ibis.identifier();
+        IbisIdentifier ident = ibis.ibisIdentifier();
 
         commLogger.debug("SATIN '" + "- " + "': init ibis DONE, "
                 + "my location is '" + ident.getLocation()
@@ -96,7 +96,7 @@ public final class Communication implements Config, Protocol {
 
     public IbisIdentifier electMaster() {
         Registry r = ibis.registry();
-        IbisIdentifier ident = ibis.identifier();
+        IbisIdentifier ident = ibis.ibisIdentifier();
         IbisIdentifier masterIdent = null;
 
         String canonicalMasterHost = null;
@@ -151,8 +151,8 @@ public final class Communication implements Config, Protocol {
     }
 
     public boolean inDifferentCluster(IbisIdentifier other) {
-        return !s.ident.getLocation().cluster().equals(
-                other.getLocation().cluster());
+        return !s.ident.getLocation().getCluster().equals(
+                other.getLocation().getCluster());
     }
 
     public IbisCapabilities createIbisProperties() {
@@ -228,8 +228,8 @@ public final class Communication implements Config, Protocol {
                 commLogger.info("the port was already connected");
                 ReceivePortIdentifier[] ports = s.connectedTo();
                 for (int i = 0; i < ports.length; i++) {
-                    if (ports[i].ibis().equals(ident)
-                            && ports[i].name().equals(name)) {
+                    if (ports[i].ibisIdentifier().equals(ident)
+                            && ports[i].receivePortName().equals(name)) {
                         commLogger
                             .info("the port was already connected, found it");
                         return ports[i];
@@ -260,7 +260,7 @@ public final class Communication implements Config, Protocol {
 
     /* Only allowed when not stealing. And with a closed world */
     private void barrier() {
-        IbisIdentifier ident = ibis.identifier();
+        IbisIdentifier ident = ibis.ibisIdentifier();
         commLogger.debug("SATIN '" + ident + "': barrier start");
 
         int size;
@@ -469,7 +469,7 @@ public final class Communication implements Config, Protocol {
         SendPortIdentifier ident = m.origin();
 
         commLogger.debug("SATIN '" + s.ident + "': got exit ACK message from "
-                + ident.ibis());
+                + ident.ibisIdentifier());
 
         if (STATS) {
             try {

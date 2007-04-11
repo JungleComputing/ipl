@@ -15,7 +15,7 @@ import org.apache.log4j.Logger;
 public interface Config {
 
     static final TypedProperties properties
-            = new TypedProperties(IbisProperties.getConfigProperties());
+            = new TypedProperties(IbisProperties.getConfigurationProperties());
 
     static final String PROPERTY_PREFIX = "satin.";
 

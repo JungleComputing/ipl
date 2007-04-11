@@ -18,7 +18,7 @@ import java.util.Hashtable;
 public class DeepCopy {
 
     static TypedProperties props
-            = new TypedProperties(IbisProperties.getConfigProperties());
+            = new TypedProperties(IbisProperties.getConfigurationProperties());
 
     private static final String serialization
             = props.getProperty("deepcopy.serialization", "ibis");

@@ -10,7 +10,7 @@ import ibis.util.TypedProperties;
  */
 class IOProperties implements Constants {
     static final TypedProperties properties = new TypedProperties(
-            IbisProperties.getConfigProperties(IbisProperties
+            IbisProperties.getConfigurationProperties(IbisProperties
                     .getHardcodedProperties()));
 
     static final String PROPERTY_PREFIX = "ibis.util.io.";

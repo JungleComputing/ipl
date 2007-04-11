@@ -43,13 +43,13 @@ final class FTCommunication implements Config, ReceivePortConnectUpcall,
 		try {
 			Registry r = s.comm.ibis.registry();
 			s.ft.clusterCoordinatorIdent = r.elect("satin "
-					+ s.comm.ibis.identifier().getLocation().cluster()
+					+ s.comm.ibis.ibisIdentifier().getLocation().getCluster()
 					+ " cluster coordinator");
-			if (s.ft.clusterCoordinatorIdent.equals(s.comm.ibis.identifier())) {
+			if (s.ft.clusterCoordinatorIdent.equals(s.comm.ibis.ibisIdentifier())) {
 				/* I am the cluster coordinator */
 				s.clusterCoordinator = true;
 				ftLogger.info("cluster coordinator for cluster "
-						+ s.comm.ibis.identifier().getLocation().cluster() + " is "
+						+ s.comm.ibis.ibisIdentifier().getLocation().getCluster() + " is "
 						+ s.ft.clusterCoordinatorIdent);
 			}
 		} catch (Exception e) {
@@ -188,21 +188,21 @@ final class FTCommunication implements Config, ReceivePortConnectUpcall,
 	public void lostConnection(ReceivePort me, SendPortIdentifier johnDoe,
 			Throwable reason) {
 		ftLogger.info("SATIN '" + s.ident + "': got lostConnection upcall: "
-				+ johnDoe.ibis() + ", reason = " + reason);
+				+ johnDoe.ibisIdentifier() + ", reason = " + reason);
 		if (connectionUpcallsDisabled) {
 			return;
 		}
-		handleLostConnection(johnDoe.ibis());
+		handleLostConnection(johnDoe.ibisIdentifier());
 	}
 
 	public void lostConnection(SendPort me, ReceivePortIdentifier johnDoe,
 			Throwable reason) {
 		ftLogger.info("SATIN '" + s.ident
-				+ "': got SENDPORT lostConnection upcall: " + johnDoe.ibis());
+				+ "': got SENDPORT lostConnection upcall: " + johnDoe.ibisIdentifier());
 		if (connectionUpcallsDisabled) {
 			return;
 		}
-		handleLostConnection(johnDoe.ibis());
+		handleLostConnection(johnDoe.ibisIdentifier());
 	}
 
 	/** The ibis upcall that is called whenever a node joins the computation */
@@ -325,7 +325,7 @@ final class FTCommunication implements Config, ReceivePortConnectUpcall,
 
 			Stamp stamp = (Stamp) m.readObject();
 
-			IbisIdentifier ident = m.origin().ibis();
+			IbisIdentifier ident = m.origin().ibisIdentifier();
 
 			m.finish();
 

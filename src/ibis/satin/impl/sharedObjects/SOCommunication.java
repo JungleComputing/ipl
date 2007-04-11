@@ -716,7 +716,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
 
     protected void handleSORequest(ReadMessage m, boolean demand) {
         String objid = null;
-        IbisIdentifier origin = m.origin().ibis();
+        IbisIdentifier origin = m.origin().ibisIdentifier();
 
         soLogger.info("SATIN '" + s.ident + "': got so request");
 

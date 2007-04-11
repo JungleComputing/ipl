@@ -25,10 +25,10 @@ public final class MessageHandler implements MessageUpcall, Protocol, Config {
 
             switch (opcode) {
             case EXIT:
-                s.comm.handleExitMessage(ident.ibis());
+                s.comm.handleExitMessage(ident.ibisIdentifier());
                 break;
             case EXIT_STAGE2:
-                s.comm.handleExitStageTwoMessage(ident.ibis());
+                s.comm.handleExitStageTwoMessage(ident.ibisIdentifier());
                 break;
             case BARRIER_REQUEST:
                 s.comm.handleBarrierRequestMessage();
@@ -87,7 +87,7 @@ public final class MessageHandler implements MessageUpcall, Protocol, Config {
                 s.so.handleSONack(m);
                 break;
             case BARRIER_REPLY:
-                s.comm.handleBarrierReply(ident.ibis());
+                s.comm.handleBarrierReply(ident.ibisIdentifier());
                 break;
             case GRT_UPDATE:
                 s.ft.handleGRTUpdate(m);
@@ -97,7 +97,7 @@ public final class MessageHandler implements MessageUpcall, Protocol, Config {
                     + opcode + " in MessageHandler");
             }
         } catch (IOException e) {
-            commLogger.warn("satin msgHandler upcall for " + ident.ibis() + ": " + e, e);
+            commLogger.warn("satin msgHandler upcall for " + ident.ibisIdentifier() + ": " + e, e);
             // Ignore.
             throw e;
         }

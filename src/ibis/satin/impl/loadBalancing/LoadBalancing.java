@@ -285,7 +285,7 @@ public class LoadBalancing implements Config {
         while (true) {
             result = s.q.getFromTail();
             if (result != null) {
-                result.setStealer(ident.ibis());
+                result.setStealer(ident.ibisIdentifier());
 
                 // store the job in the outstanding list
                 addToOutstandingJobList(result);
@@ -302,7 +302,7 @@ public class LoadBalancing implements Config {
                 // Ignore.
             }
 
-            Victim v = s.victims.getVictim(ident.ibis());
+            Victim v = s.victims.getVictim(ident.ibisIdentifier());
             if (v == null) {
                 throw new IOException("the stealing ibis died");
             }

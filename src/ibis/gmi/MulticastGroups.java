@@ -74,7 +74,7 @@ class MulticastGroups {
             
             wm.writeByte(GroupProtocol.CREATE_MULTICAST_PORT_REPLY);
             wm.writeInt(ticket);
-            wm.writeObject(rp.identifier());
+            wm.writeObject(rp.receivePortIdentifier());
             wm.finish();
 
             if (logger.isDebugEnabled()) { 

@@ -95,7 +95,7 @@ final class LBCommunication implements Config, Protocol {
         boolean gotException = false;
 
         stealLogger.info("SATIN '" + s.ident
-            + "': got job result message from " + m.origin().ibis());
+            + "': got job result message from " + m.origin().ibisIdentifier());
 
         // This upcall may run in parallel with other upcalls.
         // Therefore, we cannot directly use the timer in Satin.
@@ -222,7 +222,7 @@ final class LBCommunication implements Config, Protocol {
         s.stats.stealRequests++;
 
         stealLogger.debug("SATIN '" + s.ident + "': got steal request from "
-            + ident.ibis() + " opcode = "
+            + ident.ibisIdentifier() + " opcode = "
             + Communication.opcodeToString(opcode));
 
         InvocationRecord result = null;
@@ -230,13 +230,13 @@ final class LBCommunication implements Config, Protocol {
         Map<Stamp, GlobalResultTableValue> table = null;
 
         synchronized (s) {
-            v = s.victims.getVictim(ident.ibis());
-            if (v == null || s.deadIbises.contains(ident.ibis())) {
+            v = s.victims.getVictim(ident.ibisIdentifier());
+            if (v == null || s.deadIbises.contains(ident.ibisIdentifier())) {
                 //this message arrived after the crash of its sender was
                 // detected. Is this actually possible?
                 stealLogger.warn("SATIN '" + s.ident
                     + "': EEK!! got steal request from a dead ibis: "
-                    + ident.ibis());
+                    + ident.ibisIdentifier());
                 handleStealTimer.stop();
                 s.stats.handleStealTimer.add(handleStealTimer);
                 return;
@@ -248,7 +248,7 @@ final class LBCommunication implements Config, Protocol {
             } catch (IOException e) {
                 stealLogger.warn("SATIN '" + s.ident
                 + "': EEK!! got exception during steal request: "
-                + ident.ibis());
+                + ident.ibisIdentifier());
                 handleStealTimer.stop();
                 s.stats.handleStealTimer.add(handleStealTimer);
                 return; // the stealing ibis died
@@ -282,7 +282,7 @@ final class LBCommunication implements Config, Protocol {
         InvocationRecord tmp = null;
 
         stealLogger.debug("SATIN '" + s.ident
-            + "': got steal reply message from " + ident.ibis() + ": "
+            + "': got steal reply message from " + ident.ibisIdentifier() + ": "
             + Communication.opcodeToString(opcode));
 
         switch (opcode) {
@@ -331,7 +331,7 @@ final class LBCommunication implements Config, Protocol {
                 }
             }
 
-            s.algorithm.stealReplyHandler(tmp, ident.ibis(), opcode);
+            s.algorithm.stealReplyHandler(tmp, ident.ibisIdentifier(), opcode);
             break;
 
         case STEAL_REPLY_FAILED_TABLE:
@@ -358,7 +358,7 @@ final class LBCommunication implements Config, Protocol {
                 // Drop the connection that we kept in case the steal
                 // is succesful. It was'nt.
                 synchronized(s) {
-                    Victim v = s.victims.getVictimNonBlocking(ident.ibis());
+                    Victim v = s.victims.getVictimNonBlocking(ident.ibisIdentifier());
                     if (v != null) {
                         try {
                             v.loseConnection();
@@ -368,7 +368,7 @@ final class LBCommunication implements Config, Protocol {
                     }
                 }
             }
-            s.algorithm.stealReplyHandler(null, ident.ibis(), opcode);
+            s.algorithm.stealReplyHandler(null, ident.ibisIdentifier(), opcode);
             break;
         default:
             stealLogger.error("INTERNAL ERROR, opcode = " + opcode);
@@ -381,11 +381,11 @@ final class LBCommunication implements Config, Protocol {
         
         if (opcode == ASYNC_STEAL_REQUEST) {
             stealLogger.debug("SATIN '" + s.ident
-                + "': sending FAILED back to " + ident.ibis());
+                + "': sending FAILED back to " + ident.ibisIdentifier());
         }
         if (opcode == ASYNC_STEAL_AND_TABLE_REQUEST) {
             stealLogger.debug("SATIN '" + s.ident
-                + "': sending FAILED_TABLE back to " + ident.ibis());
+                + "': sending FAILED_TABLE back to " + ident.ibisIdentifier());
         }
 
         try {
@@ -414,7 +414,7 @@ final class LBCommunication implements Config, Protocol {
             }
 
             long cnt = v.finish(m);
-            if (s.comm.inDifferentCluster(ident.ibis())) {
+            if (s.comm.inDifferentCluster(ident.ibisIdentifier())) {
                 s.stats.interClusterMessages++;
                 s.stats.interClusterBytes += cnt;
             } else {
@@ -423,7 +423,7 @@ final class LBCommunication implements Config, Protocol {
             }
 
             stealLogger.debug("SATIN '" + s.ident
-                + "': sending FAILED back to " + ident.ibis() + " DONE");
+                + "': sending FAILED back to " + ident.ibisIdentifier() + " DONE");
         } catch (IOException e) {
             stealLogger.warn("SATIN '" + s.ident
                 + "': trying to send FAILURE back, but got exception: " + e, e);
@@ -440,7 +440,7 @@ final class LBCommunication implements Config, Protocol {
         s.stats.stolenJobs++;
 
         stealLogger.info("SATIN '" + s.ident + "': sending SUCCESS and job #"
-            + result.getStamp() + " back to " + ident.ibis());
+            + result.getStamp() + " back to " + ident.ibisIdentifier());
 
         try {
             WriteMessage m = v.newMessage();
@@ -476,7 +476,7 @@ final class LBCommunication implements Config, Protocol {
             invocationRecordWriteTimer.stop();
             long cnt = v.finish(m);
             s.stats.invocationRecordWriteTimer.add(invocationRecordWriteTimer);
-            if (s.comm.inDifferentCluster(ident.ibis())) {
+            if (s.comm.inDifferentCluster(ident.ibisIdentifier())) {
                 s.stats.interClusterMessages++;
                 s.stats.interClusterBytes += cnt;
             } else {

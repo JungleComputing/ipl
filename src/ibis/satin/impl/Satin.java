@@ -118,7 +118,7 @@ public final class Satin implements Config {
 
         ft = new FaultTolerance(this); // this must be first, it handles registry upcalls 
         comm = new Communication(this); // creates ibis
-        ident = comm.ibis.identifier();
+        ident = comm.ibis.ibisIdentifier();
         ft.electClusterCoordinator(); // need ibis for this
         victims = new VictimTable(this); // need ibis for this
 
