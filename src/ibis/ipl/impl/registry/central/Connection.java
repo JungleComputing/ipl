@@ -51,7 +51,8 @@ final class Connection {
         int tries = 0;
         boolean success = false;
         while (!success) {
-            int currentTimeout = (int) (Math.random() * maxWait);
+            // int currentTimeout = (int) (Math.random() * maxWait);
+            int currentTimeout = (int) (maxWait/2 + Math.random() * (maxWait/2));
             long deadline = System.currentTimeMillis() + currentTimeout;
             if (deadline > hardDeadline) {
                 currentTimeout = (int) (hardDeadline - System
@@ -63,6 +64,7 @@ final class Connection {
             try {
                 socket = factory.createClientSocket(address, currentTimeout,
                         new HashMap<String, Object>());
+                socket.setTcpNoDelay(true);
 
                 out = new DataOutputStream(new BufferedOutputStream(socket
                         .getOutputStream()));
@@ -132,7 +134,8 @@ final class Connection {
         int tries = 0;
         boolean success = false;
         while (!success) {
-            int currentTimeout = (int) (Math.random() * maxWait);
+            // int currentTimeout = (int) (Math.random() * maxWait);
+            int currentTimeout = (int) (maxWait/2 + Math.random() * (maxWait/2));
             long deadline = System.currentTimeMillis() + currentTimeout;
             if (deadline > hardDeadline) {
                 currentTimeout = (int) (hardDeadline - System
@@ -144,6 +147,7 @@ final class Connection {
             try {
                 socket = new Socket();
                 socket.connect(address, timeout);
+                socket.setTcpNoDelay(true);
 
                 out = new DataOutputStream(new BufferedOutputStream(socket
                         .getOutputStream()));
@@ -200,6 +204,7 @@ final class Connection {
         plainSocket = null;
         logger.debug("waiting for incomming connection...");
         virtualSocket = serverSocket.accept();
+        virtualSocket.setTcpNoDelay(true);
 
         in = new DataInputStream(new BufferedInputStream(virtualSocket
                 .getInputStream()));
@@ -213,6 +218,7 @@ final class Connection {
         virtualSocket = null;
         logger.debug("waiting for incomming connection...");
         plainSocket = plainServerSocket.accept();
+        plainSocket.setTcpNoDelay(true);
 
         in = new DataInputStream(new BufferedInputStream(plainSocket
                 .getInputStream()));
