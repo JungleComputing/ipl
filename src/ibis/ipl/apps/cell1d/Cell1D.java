@@ -186,7 +186,7 @@ class Cell1D implements Config {
             for (int i = 0; i < nProcs; i++) {
                 IbisIdentifier id = registry.elect("" + i);
                 instances[i] = id;
-                if (id.equals(ibis.ibisIdentifier())) {
+                if (id.equals(ibis.identifier())) {
                     me = i;
                     break;
                 }

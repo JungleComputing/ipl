@@ -57,7 +57,7 @@ public class ConnectionFailedException extends java.io.IOException {
         initCause(cause);
         this.receivePortIdentifier = receivePortIdentifier;
         this.ibisIdentifier = receivePortIdentifier.ibisIdentifier();
-        this.receivePortName = receivePortIdentifier.receivePortName();
+        this.receivePortName = receivePortIdentifier.name();
     }
     
     /**
@@ -70,7 +70,7 @@ public class ConnectionFailedException extends java.io.IOException {
         super(detailMessage);
         this.receivePortIdentifier = receivePortIdentifier;
         this.ibisIdentifier = receivePortIdentifier.ibisIdentifier();
-        this.receivePortName = receivePortIdentifier.receivePortName();
+        this.receivePortName = receivePortIdentifier.name();
     }
 
     /**
@@ -101,7 +101,7 @@ public class ConnectionFailedException extends java.io.IOException {
      */
     public String receivePortName() {
         if (receivePortName == null) {
-            return receivePortIdentifier.receivePortName();
+            return receivePortIdentifier.name();
         }
         return receivePortName;
     }

@@ -130,7 +130,7 @@ public class ReceivePortIdentifier implements ibis.ipl.ReceivePortIdentifier {
         return name.hashCode();
     }
 
-    public String receivePortName() {
+    public String name() {
         return name;
     }
 

@@ -130,7 +130,7 @@ public class SendPortIdentifier implements ibis.ipl.SendPortIdentifier {
         return name.hashCode();
     }
 
-    public final String sendPortName() {
+    public final String name() {
         return name;
     }
 

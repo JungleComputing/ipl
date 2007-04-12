@@ -218,11 +218,11 @@ public abstract class ReceivePort extends Managable
         return result;
     }
 
-    public String receivePortName() {
+    public String name() {
         return name;
     }
 
-    public ibis.ipl.ReceivePortIdentifier receivePortIdentifier() {
+    public ibis.ipl.ReceivePortIdentifier identifier() {
         return ident;
     }
 

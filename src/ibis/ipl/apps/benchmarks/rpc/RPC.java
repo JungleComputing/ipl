@@ -1055,18 +1055,18 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
 
             } else if (rszHandler != null) {
                 rszHandler.sync(clients + servers);
-                rank = rszHandler.idents.indexOf(myIbis.ibisIdentifier());
+                rank = rszHandler.idents.indexOf(myIbis.identifier());
 
             } else {
                 System.err.println("Going to find out my rank, my ID is "
-                        + myIbis.ibisIdentifier().toString() + " name = "
-                        + myIbis.ibisIdentifier() + "; I am "
+                        + myIbis.identifier().toString() + " name = "
+                        + myIbis.identifier() + "; I am "
                         + (i_am_client ? "client" : "server"));
 
                 IbisIdentifier master = registry.elect("RPC");
                 // System.err.println("Election master id=" + master + " name=" + master);
                 // System.err.println("Election contender = " + myIbis + " id=" + myIbis.identifier() + " name=" + myIbis.identifier());
-                if (master.equals(myIbis.ibisIdentifier())) {
+                if (master.equals(myIbis.identifier())) {
                     // System.err.println("YES--------- I'm the winner, master = " + master + "; me " + myIbis.identifier());
                     rank = 0;
                 } else {
@@ -1127,7 +1127,7 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
             if (client == null) {
                 if (rank == -1 && rszHandler != null) {
                     rszHandler.sync(clients + servers);
-                    rank = rszHandler.idents.indexOf(myIbis.ibisIdentifier());
+                    rank = rszHandler.idents.indexOf(myIbis.identifier());
                 }
                 // Timer timer = Timer.createTimer();
                 // timer.start();

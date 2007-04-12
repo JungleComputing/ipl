@@ -106,7 +106,7 @@ public class StackingSendPort implements ibis.ipl.SendPort {
         return type;
     }
 
-    public SendPortIdentifier sendPortIdentifier() {
+    public SendPortIdentifier identifier() {
             return identifier;
     }
 
@@ -114,8 +114,8 @@ public class StackingSendPort implements ibis.ipl.SendPort {
         return base.lostConnections();
     }
 
-    public String sendPortName() {
-            return base.sendPortName();
+    public String name() {
+            return base.name();
     }
 
     public ibis.ipl.WriteMessage newMessage() throws IOException {

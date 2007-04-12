@@ -109,7 +109,7 @@ public interface ReceivePort extends Managable {
      * Returns the {@link ReceivePortIdentifier} of this receiveport.
      * @return the identifier.
      */
-    public ReceivePortIdentifier receivePortIdentifier();
+    public ReceivePortIdentifier identifier();
 
     /**
      * Returns the name of the receiveport.
@@ -118,7 +118,7 @@ public interface ReceivePort extends Managable {
      *
      * @return the name.
      */
-    public String receivePortName();
+    public String name();
 
     /**
      * Enables the accepting of new connections.

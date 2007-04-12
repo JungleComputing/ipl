@@ -197,7 +197,7 @@ public final class Group implements GroupProtocol {
                 System.exit(1);
             }
             
-            name = ibis.ibisIdentifier().toString();
+            name = ibis.identifier().toString();
             ibisRegistry = ibis.registry();
 
 
@@ -212,7 +212,7 @@ public final class Group implements GroupProtocol {
                             
             IbisIdentifier master = ibisRegistry.elect("GMI MASTER ELECTION");
             
-            if (master.equals(ibis.ibisIdentifier())) { 
+            if (master.equals(ibis.identifier())) { 
                 // I am the master
             
                 if (logger.isDebugEnabled()) {
@@ -225,7 +225,7 @@ public final class Group implements GroupProtocol {
                 _rank = 0;
 
                 pool = new ReceivePortIdentifier[_size];
-                pool[0] = receivePort.receivePortIdentifier();
+                pool[0] = receivePort.identifier();
 
                 if (_size > 1) {
 
@@ -260,8 +260,8 @@ public final class Group implements GroupProtocol {
                 systemOut.connect(master, "Master");
 
                 WriteMessage w = systemOut.newMessage();
-                w.writeObject(systemIn.receivePortIdentifier());
-                w.writeObject(receivePort.receivePortIdentifier());
+                w.writeObject(systemIn.identifier());
+                w.writeObject(receivePort.identifier());
                 w.finish();
 
                 ReadMessage r = systemIn.receive();
@@ -269,7 +269,7 @@ public final class Group implements GroupProtocol {
                 r.finish();
                 
                 for (int j = 1; j < _size; j++) {
-                    if (pool[j].equals(receivePort.receivePortIdentifier())) {
+                    if (pool[j].equals(receivePort.identifier())) {
                         _rank = j;
                         break;
                     }
@@ -291,7 +291,7 @@ public final class Group implements GroupProtocol {
                 if (logger.isDebugEnabled()) {
                     logger.debug(_rank + ": <static> - " + 
                             "Connecting unicast sendport "
-                            + unicast[j].sendPortName());
+                            + unicast[j].name());
                 }
 
                 unicast[j].connect(pool[j]);
@@ -299,7 +299,7 @@ public final class Group implements GroupProtocol {
                 if (logger.isDebugEnabled()) {
                     logger.debug(_rank + ": <static> - " + 
                             "Connecting unicast sendport "
-                            + unicast[j].sendPortName() + " done");
+                            + unicast[j].name() + " done");
                 }
             }
 

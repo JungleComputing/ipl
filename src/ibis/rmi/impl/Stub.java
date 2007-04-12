@@ -76,7 +76,7 @@ public class Stub extends RemoteStub {
             WriteMessage wm = newMessage();
             wm.writeInt(-1);
             wm.writeInt(0);
-            wm.writeObject(reply.receivePortIdentifier());
+            wm.writeObject(reply.identifier());
             wm.finish();
 
             ReadMessage rm = reply.receive();

@@ -11,7 +11,7 @@ public interface SendPortIdentifier extends java.io.Serializable {
      * corresponding to this identifier.
      * @return the name of the sendport.
      */
-    public String sendPortName();
+    public String name();
 
     /**
      * Returns the {@link ibis.ipl.IbisIdentifier IbisIdentifier} of the

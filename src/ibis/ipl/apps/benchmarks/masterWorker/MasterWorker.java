@@ -60,7 +60,7 @@ final class MasterWorker {
 
             masterID = registry.elect("master");
 
-            boolean master = masterID.equals(ibis.ibisIdentifier());
+            boolean master = masterID.equals(ibis.identifier());
 
  
             if (master) {

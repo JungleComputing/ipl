@@ -65,7 +65,7 @@ public interface SendPort extends Managable {
      * Obtains an identification for this sendport.
      * @return the identification.
      */
-    public SendPortIdentifier sendPortIdentifier();
+    public SendPortIdentifier identifier();
 
     /**
      * Returns the name of the sendport.
@@ -74,7 +74,7 @@ public interface SendPort extends Managable {
      *
      * @return the name.
      */
-    public String sendPortName();
+    public String name();
 
     /**
      * Returns the sum of the {@link ibis.ipl.WriteMessage#finish()} 

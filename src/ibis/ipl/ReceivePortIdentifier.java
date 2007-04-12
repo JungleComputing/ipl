@@ -11,7 +11,7 @@ public interface ReceivePortIdentifier extends java.io.Serializable {
      * corresponding to this identifier.
      * @return the name of the receiveport.
      */
-    public String receivePortName();
+    public String name();
 
     /**
      * Returns the {@link ibis.ipl.IbisIdentifier IbisIdentifier} of the

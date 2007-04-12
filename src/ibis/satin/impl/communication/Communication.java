@@ -68,7 +68,7 @@ public final class Communication implements Config, Protocol {
             System.exit(1); // Could not start ibis
         }
 
-        IbisIdentifier ident = ibis.ibisIdentifier();
+        IbisIdentifier ident = ibis.identifier();
 
         commLogger.debug("SATIN '" + "- " + "': init ibis DONE, "
                 + "my location is '" + ident.getLocation()
@@ -96,7 +96,7 @@ public final class Communication implements Config, Protocol {
 
     public IbisIdentifier electMaster() {
         Registry r = ibis.registry();
-        IbisIdentifier ident = ibis.ibisIdentifier();
+        IbisIdentifier ident = ibis.identifier();
         IbisIdentifier masterIdent = null;
 
         String canonicalMasterHost = null;
@@ -229,7 +229,7 @@ public final class Communication implements Config, Protocol {
                 ReceivePortIdentifier[] ports = s.connectedTo();
                 for (int i = 0; i < ports.length; i++) {
                     if (ports[i].ibisIdentifier().equals(ident)
-                            && ports[i].receivePortName().equals(name)) {
+                            && ports[i].name().equals(name)) {
                         commLogger
                             .info("the port was already connected, found it");
                         return ports[i];
@@ -260,7 +260,7 @@ public final class Communication implements Config, Protocol {
 
     /* Only allowed when not stealing. And with a closed world */
     private void barrier() {
-        IbisIdentifier ident = ibis.ibisIdentifier();
+        IbisIdentifier ident = ibis.identifier();
         commLogger.debug("SATIN '" + ident + "': barrier start");
 
         int size;

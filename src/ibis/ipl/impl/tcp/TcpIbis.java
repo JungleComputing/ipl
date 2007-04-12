@@ -124,7 +124,7 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
     IbisSocket connect(TcpSendPort sp, ibis.ipl.impl.ReceivePortIdentifier rip,
             int timeout) throws IOException {
         IbisIdentifier id = (IbisIdentifier) rip.ibisIdentifier();
-        String name = rip.receivePortName();
+        String name = rip.name();
         IbisSocketAddress idAddr;
 
         synchronized(addresses) {

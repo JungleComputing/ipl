@@ -255,7 +255,7 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis,
         return registry;
     }
 
-    public ibis.ipl.IbisIdentifier ibisIdentifier() {
+    public ibis.ipl.IbisIdentifier identifier() {
         return ident;
     }
 

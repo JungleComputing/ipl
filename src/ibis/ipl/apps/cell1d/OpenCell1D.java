@@ -88,7 +88,7 @@ class RszHandler implements OpenConfig, RegistryEventHandler {
         if( traceClusterResizing ){
             System.out.println( "Machine " + id + " joins the computation" );
         }
-        if( id.equals( OpenCell1D.ibis.ibisIdentifier() ) ){
+        if( id.equals( OpenCell1D.ibis.identifier() ) ){
            // Hey! That's me. Now I know my member number and my left
            // neighbour.
            OpenCell1D.leftNeighbour = prev;
@@ -102,7 +102,7 @@ class RszHandler implements OpenConfig, RegistryEventHandler {
            }
            OpenCell1D.me = members;
         }
-        else if( prev != null && prev.equals( OpenCell1D.ibis.ibisIdentifier() ) ){
+        else if( prev != null && prev.equals( OpenCell1D.ibis.identifier() ) ){
             // The next one after me. Now I know my right neighbour.
             OpenCell1D.rightNeighbour = id;
             if( traceClusterResizing ){
@@ -866,7 +866,7 @@ class OpenCell1D implements OpenConfig {
                     PortType.COMMUNICATION_RELIABLE, PortType.RECEIVE_AUTO_UPCALLS,
                     IbisCapabilities.REGISTRY_UPCALLS);
             ibis = IbisFactory.createIbis( iprop, null, rszHandler, uprop, sprop );
-            myName = ibis.ibisIdentifier();
+            myName = ibis.identifier();
 
             registry = ibis.registry();
 

@@ -78,7 +78,7 @@ public interface Ibis extends Managable {
      * An Ibis identifier identifies an Ibis instance in the network.
      * @return the Ibis identifier of this Ibis instance.
      */
-    public IbisIdentifier ibisIdentifier();
+    public IbisIdentifier identifier();
 
     /**
      * Returns the current Ibis version.

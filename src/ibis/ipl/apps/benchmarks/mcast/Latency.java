@@ -44,11 +44,11 @@ class Latency {
             ReceivePort rport;
             SendPort sport;
             
-            if (master.equals(ibis.ibisIdentifier())) {
+            if (master.equals(ibis.identifier())) {
                 rport = ibis.createReceivePort(oneToMany, "receive port");
                 rport.enableConnections();
                 sport = ibis.createSendPort(manyToOne, "send port");
-                sport.connect(rport.receivePortIdentifier());
+                sport.connect(rport.identifier());
 
                 System.err.println("*******  connect to myself");
 
@@ -81,7 +81,7 @@ class Latency {
                 System.err.println("*******  connect done");
 
                 WriteMessage w = sport.newMessage();
-                w.writeObject(rport.receivePortIdentifier());
+                w.writeObject(rport.identifier());
                 w.finish();
             }
             sport.close();
