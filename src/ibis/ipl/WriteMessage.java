@@ -28,8 +28,8 @@ import java.io.IOException;
  * serialization stream: if the object was already written to this
  * message, a handle for this object is written instead of the object itself.
  *
- * When the port type has the ONE_TO_MANY capability set, no exceptions
- * are thrown by write methods in the write message.
+ * When the port type has the ONE_TO_MANY or MANY_TO_MANY capability set,
+ * no exceptions are thrown by write methods in the write message.
  * Instead, the exception may be passed on to the <code>lostConnection</code>
  * upcall, in case a {@link SendPortDisconnectUpcall} is registered.
  * This allows the multicast to continue to the other destinations.

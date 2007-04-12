@@ -11,9 +11,14 @@ public interface SendPortDisconnectUpcall {
      * Upcall that indicates that a connection to a receiveport was lost.
      * If a {@link SendPort} has been configured with connection upcalls,
      * an upcall is generated for each connection that is lost.
-     * This may be because the receiver just closed the connection,
-     * or it may be because there is some problem with the connection itself.
-     * <P>
+     * A receiveport can forcibly close the connection,
+     * in which case any communication from the sendport
+     * will cause a lostConnection upcall. 
+     * <strong>The user may not assume that the mere fact that a
+     * receive port forcibly closes its connections causes a lostConnection
+     * call on the send port side.
+     * The send port has to do communication to detect that there is trouble.</strong>
+     * 
      * This upcall may run completely asynchronously,
      * but only at most one is alive at any time.
      *

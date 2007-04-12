@@ -10,21 +10,19 @@ import java.util.Map;
  *
  * When creating a sendport, it is possible to pass a
  * {@link SendPortDisconnectUpcall} object.
- * When a connection is lost for some reason (normal close or 
- * link error), the 
+ * When a connection is lost for some reason, the 
  * {@link SendPortDisconnectUpcall#lostConnection(SendPort,
  * ReceivePortIdentifier, Throwable)} upcall is invoked.
  * This upcall is completely asynchronous, but Ibis ensures that 
  * at most one is alive at any given time.
- *
- * When the port type has the ONE_TO_MANY or MANY_TO_MANY capability set,
- * no exceptions are thrown by write methods in the write message.
- * Instead, the exception may be passed on to the <code>lostConnection</code>
- * upcall, in case a {@link SendPortDisconnectUpcall} is registered.
- * This allows the multicast to continue to the other destinations.
- * Ultimately, the {@link WriteMessage#finish() finish} method will
- * throw an exception.
- *
+ * A receiveport can forcibly close the connection,
+ * in which case any communication from the sendport
+ * will cause a lostConnection upcall. 
+ * <strong>The user may not assume that the mere fact that a
+ * receive port forcibly closes its connections causes a lostConnection
+ * call on the send port side.
+ * The send port has to do communication to detect that there is trouble.</strong>
+ * 
  * If no {@link SendPortDisconnectUpcall} is registered, the user is NOT
  * informed of connections that are lost.
  * If the port supports connection downcalls, the user can
@@ -45,7 +43,7 @@ public interface SendPort extends Managable {
 
     /**
      * Returns the type that was used to create this port.
-     * @return the capability set representing the port type.
+     * @return the port type.
      */
     public PortType getPortType();
 

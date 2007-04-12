@@ -70,6 +70,9 @@ public final class IbisFactory {
                             + " capability requested");
         }
 
+        // For now, just create a factory for every createIbis call.
+        // We may optimize this later on, if needed.
+        
         IbisFactory factory = new IbisFactory(properties);
 
         Ibis ibis = factory.createIbis(requiredCapabilities, portTypes, registryEventHandler);
@@ -123,23 +126,6 @@ public final class IbisFactory {
         implList = compnts.toArray(new Class[compnts.size()]);
     }
 
-    private Ibis createIbis(Class<?> ibisClass, IbisCapabilities ibisCapabilities, PortType[] portTypes,
-            RegistryEventHandler registryEventHandler) throws Throwable {
-        Ibis ibisInstance;
-
-        try {
-            ibisInstance = (Ibis) ibisClass.getConstructor(
-                    new Class[] { RegistryEventHandler.class, IbisCapabilities.class,
-                            portTypes.getClass(),
-                            Properties.class }).newInstance(
-                    new Object[] { registryEventHandler, ibisCapabilities, portTypes, properties });
-        } catch (java.lang.reflect.InvocationTargetException e) {
-            throw e.getCause();
-        }
-
-        return ibisInstance;
-    }
-
     private Ibis createIbis(IbisCapabilities requiredCapabilities,
             PortType[] portTypes,
             RegistryEventHandler registryEventHandler)
@@ -180,9 +166,12 @@ public final class IbisFactory {
             }
             while (true) {
                 try {
-                    return createIbis(ibisClass, requiredCapabilities, portTypes, registryEventHandler);
-                } catch (ConnectionRefusedException e) {
-                    // retry
+                    return (Ibis) ibisClass.getConstructor(
+                            new Class[] { RegistryEventHandler.class, IbisCapabilities.class,
+                                    portTypes.getClass(),
+                                    Properties.class }).newInstance(
+                                            new Object[] { registryEventHandler, requiredCapabilities, portTypes, properties });
+
                 } catch (Throwable e) {
                     nested.add(ibisClass.getName(), e);
                     if (i == numberOfImplementations - 1) {
@@ -200,6 +189,7 @@ public final class IbisFactory {
         }
         throw nested;
     }
+    
     /**
      * This class exports a method for searching either the classpath or a
      * specified list of directories for jar-files with a specified name in the
