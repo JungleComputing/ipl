@@ -2,10 +2,9 @@ ibis:
 
 + introduce IbisCapabilities, PortType (both extend CapabilitySet),
   PredefinedCapabilities goes away ... (Done Ceriel)
-+ steering/monitoring interface (Managable).
-- make IbisCapabilities, PortType entries simple booleans.
-- add properties to sendport/receiveport create methods.
-  (for buffer sizes, replacer, a.o.).
++ make IbisCapabilities, PortType entries simple booleans. (Done Ceriel).
++ add properties to sendport/receiveport create methods.
+  (for buffer sizes, replacer, a.o.). (Done Ceriel)
 - layout package.html in ibis.ipl. (Niels)
 - ibis.ipl.Managable: Map strings to strings instead of strings to object?
   (Niels).
@@ -13,10 +12,10 @@ ibis:
 - sendport/receiveport count methods: replace by Managable?
 - ibis printStatistics: replace by Managable?
 - ibis factory: now creates a factory for every createIbis call :-(
-- Api docs of Sendport.
+- Api docs of IPL: read, clarify, improve (Niels: SendPort).
 - registry capabilities.
 - ibis.util.io capabilities.
-- weird Location.cluster().
+- fix/remove weird Location.cluster().
 - split up ibis in multiple seperate subprojects
 - move applications to a real tree, use packages (done for extra, io, ibis).
 - update docs
