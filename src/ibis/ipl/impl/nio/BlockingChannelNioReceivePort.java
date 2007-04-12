@@ -16,6 +16,7 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
+import java.util.Properties;
 
 import org.apache.log4j.Logger;
 
@@ -33,9 +34,9 @@ final class BlockingChannelNioReceivePort extends NioReceivePort {
     private int nrOfConnections = 0;
 
     BlockingChannelNioReceivePort(Ibis ibis, PortType type, String name,
-            MessageUpcall upcall, ReceivePortConnectUpcall connUpcall)
-            throws IOException {
-        super(ibis, type, name, upcall, connUpcall);
+            MessageUpcall upcall, ReceivePortConnectUpcall connUpcall,
+            Properties properties) throws IOException {
+        super(ibis, type, name, upcall, connUpcall, properties);
     }
 
     synchronized void newConnection(SendPortIdentifier spi, Channel channel)

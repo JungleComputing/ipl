@@ -14,6 +14,7 @@ import ibis.util.Queue;
 import java.io.IOException;
 import java.nio.channels.Channel;
 import java.nio.channels.ReadableByteChannel;
+import java.util.Properties;
 
 final class ThreadNioReceivePort extends NioReceivePort {
 
@@ -24,9 +25,9 @@ final class ThreadNioReceivePort extends NioReceivePort {
     private boolean closing = false;
 
     ThreadNioReceivePort(Ibis ibis, PortType type, String name,
-            MessageUpcall upcall, ReceivePortConnectUpcall connUpcall)
-            throws IOException {
-        super(ibis, type, name, upcall, connUpcall);
+            MessageUpcall upcall, ReceivePortConnectUpcall connUpcall,
+            Properties props) throws IOException {
+        super(ibis, type, name, upcall, connUpcall, props);
 
         readyDissipators = new Queue();
     }

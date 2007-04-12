@@ -161,27 +161,27 @@ public final class NioIbis extends ibis.ipl.impl.Ibis {
     }
 
     protected ibis.ipl.SendPort doCreateSendPort(PortType tp,
-            String name, SendPortDisconnectUpcall cU) throws IOException {
-        return new NioSendPort(this, tp, name, cU);
+            String name, SendPortDisconnectUpcall cU, Properties props) throws IOException {
+        return new NioSendPort(this, tp, name, cU, props);
     }
 
     protected ibis.ipl.ReceivePort doCreateReceivePort(PortType tp,
-            String name, MessageUpcall u, ReceivePortConnectUpcall cU)
+            String name, MessageUpcall u, ReceivePortConnectUpcall cU, Properties props)
             throws IOException {
 
         if (tp.hasCapability("receiveport.blocking")) {
-            return new BlockingChannelNioReceivePort(this, tp, name, u, cU);
+            return new BlockingChannelNioReceivePort(this, tp, name, u, cU, props);
         }
         if (tp.hasCapability("receiveport.nonblocking")) {
-            return new NonBlockingChannelNioReceivePort(this, tp, name, u, cU);
+            return new NonBlockingChannelNioReceivePort(this, tp, name, u, cU, props);
         }
         if (tp.hasCapability("receiveport.thread")) {
-            return new ThreadNioReceivePort(this, tp, name, u, cU);
+            return new ThreadNioReceivePort(this, tp, name, u, cU, props);
         }
         if (tp.hasCapability(PortType.CONNECTION_ONE_TO_ONE)
                 || tp.hasCapability(PortType.CONNECTION_MANY_TO_ONE)) {
-            return new BlockingChannelNioReceivePort(this, tp, name, u, cU);
+            return new BlockingChannelNioReceivePort(this, tp, name, u, cU, props);
         }
-        return new NonBlockingChannelNioReceivePort(this, tp, name, u, cU);
+        return new NonBlockingChannelNioReceivePort(this, tp, name, u, cU, props);
     }
 }

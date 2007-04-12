@@ -16,6 +16,7 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
+import java.util.Properties;
 
 import org.apache.log4j.Logger;
 
@@ -40,9 +41,9 @@ final class NonBlockingChannelNioReceivePort extends NioReceivePort {
     Selector selector;
 
     NonBlockingChannelNioReceivePort(Ibis ibis, PortType type,
-            String name, MessageUpcall upcall, ReceivePortConnectUpcall connUpcall)
-            throws IOException {
-        super(ibis, type, name, upcall, connUpcall);
+            String name, MessageUpcall upcall, ReceivePortConnectUpcall connUpcall,
+            Properties props) throws IOException {
+        super(ibis, type, name, upcall, connUpcall, props);
 
         selector = Selector.open();
     }

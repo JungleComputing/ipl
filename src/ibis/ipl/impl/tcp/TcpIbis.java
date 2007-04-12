@@ -329,12 +329,13 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
     }
 
     protected SendPort doCreateSendPort(PortType tp, String nm,
-            SendPortDisconnectUpcall cU) throws IOException {
-        return new TcpSendPort(this, tp, nm, cU);
+            SendPortDisconnectUpcall cU, Properties props) throws IOException {
+        return new TcpSendPort(this, tp, nm, cU, props);
     }
 
     protected ReceivePort doCreateReceivePort(PortType tp, String nm,
-            MessageUpcall u, ReceivePortConnectUpcall cU) throws IOException {
-        return new TcpReceivePort(this, tp, nm, u, cU);
+            MessageUpcall u, ReceivePortConnectUpcall cU, Properties props)
+            throws IOException {
+        return new TcpReceivePort(this, tp, nm, u, cU, props);
     }
 }

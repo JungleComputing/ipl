@@ -9,6 +9,7 @@ import ibis.ipl.SendPortIdentifier;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Properties;
 
 public class StackingSendPort implements ibis.ipl.SendPort {
     
@@ -34,15 +35,15 @@ public class StackingSendPort implements ibis.ipl.SendPort {
     }
     
     public StackingSendPort(PortType type, StackingIbis ibis, String name,
-            SendPortDisconnectUpcall connectUpcall) throws IOException {
+            SendPortDisconnectUpcall connectUpcall, Properties props) throws IOException {
         this.type = type;
         this.identifier = ibis.createSendPortIdentifier(name, ibis.ident);
 
         if (connectUpcall != null) {
             connectUpcall = new DisconnectUpcaller(this, connectUpcall);
-            base = ibis.base.createSendPort(type, name, connectUpcall);
+            base = ibis.base.createSendPort(type, name, connectUpcall, props);
         } else {
-            base = ibis.base.createSendPort(type, name);
+            base = ibis.base.createSendPort(type, name, null, props);
         }
     }
 

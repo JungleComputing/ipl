@@ -16,6 +16,7 @@ import ibis.util.io.BufferedArrayInputStream;
 import ibis.util.io.Conversion;
 
 import java.io.IOException;
+import java.util.Properties;
 
 class TcpReceivePort extends ReceivePort implements TcpProtocol {
 
@@ -131,8 +132,8 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
     private boolean reader_busy = false;
 
     TcpReceivePort(Ibis ibis, PortType type, String name, MessageUpcall upcall,
-            ReceivePortConnectUpcall connUpcall) {
-        super(ibis, type, name, upcall, connUpcall);
+            ReceivePortConnectUpcall connUpcall, Properties props) {
+        super(ibis, type, name, upcall, connUpcall, props);
 
         no_connectionhandler_thread = upcall == null && connUpcall == null
                 && type.hasCapability(PortType.CONNECTION_ONE_TO_ONE)

@@ -4,7 +4,7 @@ package ibis.ipl;
 
 /**
  * Represents a location on which an Ibis instance runs. This is the
- * data type returned by {@link IbisIdentifier#getLocation()}.
+ * data type returned by {@link IbisIdentifier#location()}.
  * It represents a number of levels, for instance domain, hostname,
  * in that order, t.i., from coarse to detailed.
  * Should be comparable with <code>equals()</code>, so implementations

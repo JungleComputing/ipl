@@ -185,6 +185,7 @@ public interface Ibis extends Managable {
      * @param sendPortDisconnectUpcall object implementing the
      * {@link SendPortDisconnectUpcall#lostConnection(SendPort,
      * ReceivePortIdentifier, Throwable)} method.
+     * @param properties the properties of the port.
      * @return the new sendport.
      * @exception java.io.IOException is thrown when the port could not be
      * created.
@@ -192,7 +193,8 @@ public interface Ibis extends Managable {
      * type does not match what is required here.
      */
     public SendPort createSendPort(PortType portType, String sendPortName,
-        SendPortDisconnectUpcall sendPortDisconnectUpcall) throws IOException;
+        SendPortDisconnectUpcall sendPortDisconnectUpcall, Properties properties)
+        throws IOException;
 
     /**
      * Creates a named {@link ReceivePort} of the specified port type.
@@ -277,6 +279,7 @@ public interface Ibis extends Managable {
      * @param messageUpcall the upcall handler.
      * @param receivePortConnectUpcall object implementing <code>gotConnection</code>() and
      * <code>lostConnection</code>() upcalls.
+     * @param properties properties for the new receive port.
      * @return the new receiveport.
      * @exception java.io.IOException is thrown when the port could not be
      * created.
@@ -285,6 +288,6 @@ public interface Ibis extends Managable {
      */
     
     public ReceivePort createReceivePort(PortType portType, String receivePortName,
-            MessageUpcall messageUpcall, ReceivePortConnectUpcall receivePortConnectUpcall)
-            throws IOException;
+            MessageUpcall messageUpcall, ReceivePortConnectUpcall receivePortConnectUpcall,
+            Properties properties) throws IOException;
 }

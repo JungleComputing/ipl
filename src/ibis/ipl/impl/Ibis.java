@@ -560,12 +560,12 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis,
 
     public ibis.ipl.SendPort createSendPort(PortType tp)
             throws IOException {
-        return createSendPort(tp, null, null);
+        return createSendPort(tp, null, null, null);
     }
 
     public ibis.ipl.SendPort createSendPort(PortType tp, String name)
             throws IOException {
-        return createSendPort(tp, name, null);
+        return createSendPort(tp, name, null, null);
     }
  
     private void matchPortType(PortType tp) {
@@ -582,7 +582,7 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis,
     }
     
     public ibis.ipl.SendPort createSendPort(PortType tp, String name,
-            SendPortDisconnectUpcall cU) throws IOException {
+            SendPortDisconnectUpcall cU, Properties properties) throws IOException {
         if (cU != null) {
             if (! tp.hasCapability(PortType.CONNECTION_UPCALLS)) {
                 throw new IbisConfigurationException(
@@ -597,7 +597,7 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis,
 
         matchPortType(tp);
 
-        return doCreateSendPort(tp, name, cU);
+        return doCreateSendPort(tp, name, cU, properties);
     }
 
     /**
@@ -608,30 +608,32 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis,
      * @param cU object implementing the
      * {@link SendPortDisconnectUpcall#lostConnection(ibis.ipl.SendPort,
      * ReceivePortIdentifier, Throwable)} method.
+     * @param properties the port properties.
      * @return the new sendport.
      * @exception java.io.IOException is thrown when the port could not be
      * created.
      */
     protected abstract ibis.ipl.SendPort doCreateSendPort(PortType tp,
-            String name, SendPortDisconnectUpcall cU) throws IOException;
+            String name, SendPortDisconnectUpcall cU, Properties properties) throws IOException;
 
     public ibis.ipl.ReceivePort createReceivePort(PortType tp, String name)
             throws IOException {
-        return createReceivePort(tp, name, null, null);
+        return createReceivePort(tp, name, null, null, null);
     }
 
     public ibis.ipl.ReceivePort createReceivePort(PortType tp, String name,
             MessageUpcall u) throws IOException {
-        return createReceivePort(tp, name, u, null);
+        return createReceivePort(tp, name, u, null, null);
     }
 
     public ibis.ipl.ReceivePort createReceivePort(PortType tp, String name,
             ReceivePortConnectUpcall cU) throws IOException {
-        return createReceivePort(tp, name, null, cU);
+        return createReceivePort(tp, name, null, cU, null);
     }
 
     public ibis.ipl.ReceivePort createReceivePort(PortType tp, String name,
-            MessageUpcall u, ReceivePortConnectUpcall cU) throws IOException {
+            MessageUpcall u, ReceivePortConnectUpcall cU, Properties properties)
+            throws IOException {
         if (cU != null) {
             if (!tp.hasCapability(PortType.CONNECTION_UPCALLS)) {
                 throw new IbisConfigurationException(
@@ -656,7 +658,7 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis,
             }
         }
         matchPortType(tp);
-        return doCreateReceivePort(tp, name, u, cU);
+        return doCreateReceivePort(tp, name, u, cU, properties);
     }
 
     /** 
@@ -673,11 +675,12 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis,
      * @param u the upcall handler.
      * @param cU object implementing <code>gotConnection</code>() and
      * <code>lostConnection</code>() upcalls.
+     * @param properties the port properties.
      * @return the new receiveport.
      * @exception java.io.IOException is thrown when the port could not be
      * created.
      */
     protected abstract ibis.ipl.ReceivePort doCreateReceivePort(
             PortType tp, String name, MessageUpcall u,
-            ReceivePortConnectUpcall cU) throws IOException;
+            ReceivePortConnectUpcall cU, Properties properties) throws IOException;
 }

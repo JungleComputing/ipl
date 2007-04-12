@@ -17,6 +17,7 @@ import ibis.util.io.SplitterException;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Properties;
 
 final class TcpSendPort extends SendPort implements TcpProtocol {
 
@@ -47,8 +48,8 @@ final class TcpSendPort extends SendPort implements TcpProtocol {
     final BufferedArrayOutputStream bufferedStream;
 
     TcpSendPort(Ibis ibis, PortType type, String name,
-            SendPortDisconnectUpcall cU) throws IOException {
-        super(ibis, type, name, cU);
+            SendPortDisconnectUpcall cU, Properties props) throws IOException {
+        super(ibis, type, name, cU, props);
 
         splitter = new OutputStreamSplitter(
                 ! type.hasCapability(PortType.CONNECTION_ONE_TO_ONE) &&

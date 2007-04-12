@@ -263,7 +263,7 @@ public final class FaultTolerance implements Config {
     public void deleteCluster(String clusterName) {
         ftLogger.info("SATIN '" + s.ident + "': delete cluster " + clusterName);
 
-        if (s.ident.getLocation().getCluster().equals(clusterName)) {
+        if (s.ident.location().getCluster().equals(clusterName)) {
             gotDeleteCluster = true;
         }
     }

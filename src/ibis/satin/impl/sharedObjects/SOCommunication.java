@@ -197,7 +197,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
                         s.comm.ibis.createReceivePort(soPortType,
                             "satin so receive port for " + joiners[i],
                             soInvocationHandler, s.ft
-                                .getReceivePortConnectHandler());
+                                .getReceivePortConnectHandler(), null);
 
                 if (SO_MAX_INVOCATION_DELAY > 0) {
                     TypedProperties s = new TypedProperties();

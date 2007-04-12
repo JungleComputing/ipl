@@ -14,6 +14,7 @@ import ibis.util.io.Conversion;
 import java.io.IOException;
 import java.nio.channels.Channel;
 import java.nio.channels.GatheringByteChannel;
+import java.util.Properties;
 
 import org.apache.log4j.Logger;
 
@@ -24,8 +25,8 @@ public final class NioSendPort extends SendPort implements Protocol {
     private final NioAccumulator accumulator;
 
     NioSendPort(Ibis ibis, PortType type, String name,
-            SendPortDisconnectUpcall cU) throws IOException {
-        super(ibis, type, name, cU);
+            SendPortDisconnectUpcall cU, Properties props) throws IOException {
+        super(ibis, type, name, cU, props);
 
         if (type.hasCapability("sendport.blocking")) {
             accumulator = new BlockingChannelNioAccumulator(this);

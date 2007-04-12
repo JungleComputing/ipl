@@ -9,6 +9,7 @@ import ibis.ipl.SendPortIdentifier;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Properties;
 
 public class StackingReceivePort implements ibis.ipl.ReceivePort {
 
@@ -53,7 +54,8 @@ public class StackingReceivePort implements ibis.ipl.ReceivePort {
     }
     
     public StackingReceivePort(PortType type, StackingIbis ibis,
-            String name, MessageUpcall upcall, ReceivePortConnectUpcall connectUpcall)
+            String name, MessageUpcall upcall, ReceivePortConnectUpcall connectUpcall,
+            Properties properties)
             throws IOException {
         this.type = type;
         this.identifier = ibis.createReceivePortIdentifier(name, ibis.ident);
@@ -63,7 +65,7 @@ public class StackingReceivePort implements ibis.ipl.ReceivePort {
         if (upcall != null) {
             upcall = new Upcaller(upcall, this);
         }
-        base = ibis.base.createReceivePort(type, name, upcall, connectUpcall);
+        base = ibis.base.createReceivePort(type, name, upcall, connectUpcall, properties);
     }
 
     public void close() throws IOException {

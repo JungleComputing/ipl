@@ -16,8 +16,10 @@ import ibis.util.io.SerializationOutput;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 import org.apache.log4j.Logger;
 
@@ -87,6 +89,9 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
 
     /** Collected exceptions for multicast ports. */
     private CollectedWriteException collectedExceptions;
+    
+    /** Properties. */
+    protected final Properties properties;
 
     /**
      * Constructs a <code>SendPort</code> with the specified parameters.
@@ -96,18 +101,27 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
      * @param type the port type.
      * @param name the name of the <code>SendPort</code>.
      * @param connectUpcall the connection upcall object, or <code>null</code>.
+     * @param properties the port properties.
      * @exception IOException is thrown in case of trouble.
      */
     protected SendPort(Ibis ibis, PortType type, String name,
-            SendPortDisconnectUpcall connectUpcall) throws IOException {
+            SendPortDisconnectUpcall connectUpcall, Properties properties) throws IOException {
         this.ibis = ibis;
         this.type = type;
         this.name = name;
         this.ident = ibis.createSendPortIdentifier(name, ibis.ident);
         this.connectionDowncalls = type.hasCapability(PortType.CONNECTION_DOWNCALLS);
         this.connectUpcall = connectUpcall;
-        
-        String replacerName = type.getCapability("serialization.replacer");
+        this.properties = ibis.properties();
+        if (properties != null) {
+            for (Enumeration e = properties.propertyNames(); e.hasMoreElements();) {
+                String key = (String) e.nextElement();
+                String value = properties.getProperty(key);
+                this.properties.setProperty(key, value);
+            }
+        }
+
+        String replacerName = this.properties.getProperty("ibis.serialization.replacer");
         if (replacerName != null) {
             try {
                 Class replacerClass = Class.forName(replacerName);

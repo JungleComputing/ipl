@@ -624,7 +624,7 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
 
         if (connectUpcalls) {
             sport = myIbis.createSendPort(requestPortType, "latency-client",
-                    (SendPortDisconnectUpcall) this);
+                    (SendPortDisconnectUpcall) this, null);
         } else {
             sport = myIbis.createSendPort(requestPortType, "latency-client");
         }
@@ -701,7 +701,7 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
 
         if (connectUpcalls) {
             sport = myIbis.createSendPort(replyPortType, "latency-server",
-                    (SendPortDisconnectUpcall) this);
+                    (SendPortDisconnectUpcall) this, null);
         } else {
             sport = myIbis.createSendPort(replyPortType, "latency-server");
         }
@@ -720,7 +720,7 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
             if (connectUpcalls) {
                 rport = myIbis.createReceivePort(requestPortType, "server port",
                         this,
-                        (ReceivePortConnectUpcall) this);
+                        (ReceivePortConnectUpcall) this, null);
             } else {
                 rport = myIbis.createReceivePort(requestPortType, "server port",
                         (MessageUpcall) this);

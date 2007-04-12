@@ -151,10 +151,6 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
         dos.write(codedForm);
     }
 
-    /**
-     * Compares two Ibis identifiers.
-     * @return <code>true</code> if equal, <code>false</code> if not.
-     */
     public boolean equals(Object o) {
         if (o == this) {
             return true;
@@ -171,26 +167,23 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
         return other.myId.equals(myId) && other.pool.equals(pool);
     }
 
-    /**
-     * Computes the hashcode.
-     * @return the hashcode.
-     */
     public int hashCode() {
         return myId.hashCode();
     }
 
-    /**
-     * @return a string representation of this IbisIdentifier.
-     */
     public String toString() {
         return "(Ibis " + myId + ", location " + location + ")";
     }
 
-    public ibis.ipl.Location getLocation() {
+    public String name() {
+        return "(Ibis " + myId + ")";
+    }
+    
+    public ibis.ipl.Location location() {
         return location;
     }
 
-    public String getPool() {
+    public String poolName() {
         return pool;
     }
 

@@ -66,7 +66,7 @@ final class ServerConnectionHandler implements Runnable {
     private void handleLeave(Connection connection) throws IOException {
         IbisIdentifier identifier = new IbisIdentifier(connection.in());
 
-        Pool pool = server.getPool(identifier.getPool());
+        Pool pool = server.getPool(identifier.poolName());
 
         if (pool == null) {
             connection.closeWithError("pool not found");
@@ -94,7 +94,7 @@ final class ServerConnectionHandler implements Runnable {
         IbisIdentifier candidate = new IbisIdentifier(connection.in());
         String election = connection.in().readUTF();
 
-        Pool pool = server.getPool(candidate.getPool());
+        Pool pool = server.getPool(candidate.poolName());
 
         if (pool == null) {
             connection.closeWithError("pool not found");
@@ -129,7 +129,7 @@ final class ServerConnectionHandler implements Runnable {
     private void handleDead(Connection connection) throws IOException {
         IbisIdentifier identifier = new IbisIdentifier(connection.in());
 
-        Pool pool = server.getPool(identifier.getPool());
+        Pool pool = server.getPool(identifier.poolName());
 
         if (pool == null) {
             connection.closeWithError("pool not found");
@@ -150,7 +150,7 @@ final class ServerConnectionHandler implements Runnable {
     private void handleMaybeDead(Connection connection) throws IOException {
         IbisIdentifier identifier = new IbisIdentifier(connection.in());
 
-        Pool pool = server.getPool(identifier.getPool());
+        Pool pool = server.getPool(identifier.poolName());
 
         if (pool == null) {
             connection.closeWithError("pool not found");

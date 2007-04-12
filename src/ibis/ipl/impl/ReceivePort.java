@@ -11,7 +11,9 @@ import ibis.util.io.SerializationInput;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.Properties;
 
 import org.apache.log4j.Logger;
 
@@ -112,6 +114,9 @@ public abstract class ReceivePort extends Managable
      * explicit receive.
      */
     boolean delivered = false;
+    
+    /** Properties. */
+    protected final Properties properties;
 
     /**
      * Constructs a <code>ReceivePort</code> with the specified parameters.
@@ -122,9 +127,11 @@ public abstract class ReceivePort extends Managable
      * @param name the name of the <code>ReceivePort</code>.
      * @param upcall the message upcall object, or <code>null</code>.
      * @param connectUpcall the connection upcall object, or <code>null</code>.
+     * @param properties the port properties.
      */
     protected ReceivePort(Ibis ibis, PortType type, String name,
-            MessageUpcall upcall, ReceivePortConnectUpcall connectUpcall) {
+            MessageUpcall upcall, ReceivePortConnectUpcall connectUpcall,
+            Properties properties) {
         this.ibis = ibis;
         this.type = type;
         this.name = name;
@@ -134,6 +141,14 @@ public abstract class ReceivePort extends Managable
         this.connectionDowncalls = type.hasCapability(PortType.CONNECTION_DOWNCALLS);
         this.numbered
                 = type.hasCapability(PortType.COMMUNICATION_NUMBERED);
+        this.properties = ibis.properties();
+        if (properties != null) {
+            for (Enumeration e = properties.propertyNames(); e.hasMoreElements();) {
+                String key = (String) e.nextElement();
+                String value = properties.getProperty(key);
+                this.properties.setProperty(key, value);
+            }
+        }
         if (type.hasCapability(PortType.SERIALIZATION_DATA)) {
             serialization = "data";
         } else if (type.hasCapability(PortType.SERIALIZATION_OBJECT)) {

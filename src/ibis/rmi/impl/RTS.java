@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.Properties;
 
 import org.apache.log4j.Logger;
 
@@ -113,8 +114,14 @@ public final class RTS {
 
     private static String[] timerId;
 
-    final static boolean enableRMITimer;
-
+    final static boolean enableRMITimer;     
+    
+    final static Properties serializationProperties = new Properties();
+    
+    static {
+        serializationProperties.setProperty("ibis.serialization.replacer", "ibis.rmi.impl.RMIReplacer");
+    }
+    
     private static double r10(double d) {
         long ld = (long) (d * 10.0);
         return ld / 10.0;
@@ -273,13 +280,11 @@ public final class RTS {
 
             requestPortType = new PortType(
                     PortType.SERIALIZATION_OBJECT, PortType.CONNECTION_MANY_TO_ONE,
-                    PortType.SERIALIZATION_REPLACER + "=ibis.rmi.impl.RMIReplacer",
                     PortType.COMMUNICATION_RELIABLE, PortType.RECEIVE_AUTO_UPCALLS);
 
             replyPortType = new PortType(
-                    PortType.CONNECTION_ONE_TO_ONE,
-                    PortType.SERIALIZATION_REPLACER + "=ibis.rmi.impl.RMIReplacer",
-                    PortType.SERIALIZATION_OBJECT, PortType.COMMUNICATION_RELIABLE, PortType.RECEIVE_EXPLICIT);
+                    PortType.CONNECTION_ONE_TO_ONE, PortType.SERIALIZATION_OBJECT,
+                    PortType.COMMUNICATION_RELIABLE, PortType.RECEIVE_EXPLICIT);
 
             try {
                 ibis = IbisFactory.createIbis(reqprops, null, null, requestPortType,
@@ -295,7 +300,6 @@ public final class RTS {
             }
 
             ibisRegistry = ibis.registry();
-
 
             enableRMITimer = properties.booleanProperty(s_timer);
 
@@ -465,7 +469,7 @@ public final class RTS {
             ReceivePortIdentifier rpi) throws IOException {
         SendPort s = sendports.get(rpi);
         if (s == null) {
-            s = ibis.createSendPort(replyPortType);
+            s = ibis.createSendPort(replyPortType, null, null, serializationProperties);
             s.connect(rpi);
             sendports.put(rpi, s);
             if (logger.isDebugEnabled()) {
@@ -485,7 +489,7 @@ public final class RTS {
             ReceivePortIdentifier rpi) throws IOException {
         SendPort s = sendports.get(rpi);
         if (s == null) {
-            s = ibis.createSendPort(requestPortType);
+            s = ibis.createSendPort(requestPortType, null, null, serializationProperties);
             s.connect(rpi);
             sendports.put(rpi, s);
             if (logger.isDebugEnabled()) {
@@ -579,7 +583,7 @@ public final class RTS {
 
         String name = "__REGISTRY__" + host + ":" + port;
         Stub result;
-        SendPort s = ibis.createSendPort(requestPortType);
+        SendPort s = ibis.createSendPort(requestPortType, null, null, serializationProperties);
 
         if (logger.isDebugEnabled()) {
             logger.debug(hostname + ": Trying to lookup registry " + name);

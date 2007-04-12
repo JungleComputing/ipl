@@ -139,15 +139,15 @@ public class StackingIbis extends Ibis {
 
     @Override
     protected ibis.ipl.ReceivePort doCreateReceivePort(PortType tp,
-            String name, MessageUpcall u, ReceivePortConnectUpcall cU)
-            throws IOException {
-        return new StackingReceivePort(tp, this, name, u, cU);
+            String name, MessageUpcall u, ReceivePortConnectUpcall cU,
+            Properties props) throws IOException {
+        return new StackingReceivePort(tp, this, name, u, cU, props);
     }
 
     @Override
     protected ibis.ipl.SendPort doCreateSendPort(PortType tp, String name,
-            SendPortDisconnectUpcall cU) throws IOException {
-        return new StackingSendPort(tp, this, name, cU);
+            SendPortDisconnectUpcall cU, Properties props) throws IOException {
+        return new StackingSendPort(tp, this, name, cU, props);
     }
 
     @Override

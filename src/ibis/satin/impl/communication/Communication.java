@@ -71,14 +71,14 @@ public final class Communication implements Config, Protocol {
         IbisIdentifier ident = ibis.identifier();
 
         commLogger.debug("SATIN '" + "- " + "': init ibis DONE, "
-                + "my location is '" + ident.getLocation()
+                + "my location is '" + ident.location()
                 + "'");
 
         try {
             MessageHandler messageHandler = new MessageHandler(s);
 
             receivePort = ibis.createReceivePort(portType, "satin port",
-                    messageHandler, s.ft.getReceivePortConnectHandler());
+                    messageHandler, s.ft.getReceivePortConnectHandler(), null);
         } catch (Exception e) {
             commLogger.fatal("SATIN '" + ident + "': Could not start ibis: "
                     + e, e);
@@ -151,8 +151,8 @@ public final class Communication implements Config, Protocol {
     }
 
     public boolean inDifferentCluster(IbisIdentifier other) {
-        return !s.ident.getLocation().getCluster().equals(
-                other.getLocation().getCluster());
+        return !s.ident.location().getCluster().equals(
+                other.location().getCluster());
     }
 
     public IbisCapabilities createIbisProperties() {

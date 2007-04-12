@@ -15,6 +15,7 @@ import ibis.util.ThreadPool;
 
 import java.io.IOException;
 import java.nio.channels.Channel;
+import java.util.Properties;
 
 import org.apache.log4j.Logger;
 
@@ -40,8 +41,8 @@ abstract class NioReceivePort extends ibis.ipl.impl.ReceivePort implements
     }
 
     NioReceivePort(Ibis ibis, PortType type, String name, MessageUpcall upcall,
-            ReceivePortConnectUpcall connUpcall) throws IOException {
-        super(ibis, type, name, upcall, connUpcall);
+            ReceivePortConnectUpcall connUpcall, Properties properties) throws IOException {
+        super(ibis, type, name, upcall, connUpcall, properties);
 
         if (upcall != null) {
             ThreadPool.createNew(this, "NioReceivePort with upcall");

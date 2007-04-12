@@ -43,7 +43,7 @@ public class ClusterReducer extends TreeReducer {
 
         int clusterSize = 0;
         for (int i = 0; i < size; i++) {
-            String myCluster = ibis.identifier().getLocation().getCluster();
+            String myCluster = ibis.identifier().location().getCluster();
             int j = 0;
             for (j = 0; j < clusterSize; j++) {
                 if (clusters[i].equals(myCluster)) {
