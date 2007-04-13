@@ -193,7 +193,7 @@ public final class Group implements GroupProtocol {
             } catch (IbisCreationFailedException e) {
                 logger.warn("?: <static> - " + 
                         "Could not find an Ibis that can run this "
-                        + "GMI implementation");
+                        + "GMI implementation", e);
                 System.exit(1);
             }
             
