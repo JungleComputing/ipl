@@ -221,10 +221,13 @@ public class NameServerClient extends ibis.impl.nameServer.NameServer
         }
 
         serverAddress = InetAddress.getByName(server);
-        // serverAddress.getHostName();
 
-        if (myAddress.equals(serverAddress)) {
+        logger.debug("myAddress = " + myAddress);
+        logger.debug("serverAddress = " + serverAddress);
+
+        if (java.net.NetworkInterface.getByInetAddress(serverAddress) != null) {
             // Try and start a nameserver ...
+            logger.debug("Starting nameserver ...");
             runNameServer(port, server);
         }
 
