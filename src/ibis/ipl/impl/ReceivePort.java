@@ -305,13 +305,14 @@ public abstract class ReceivePort extends Managable
                 ! type.hasCapability(PortType.CONNECTION_MANY_TO_ONE)) {
                 return DENIED;
             }
-            if (connectionDowncalls) {
-                newConnections.add(id);
-            } else if (connectUpcall != null) {
+            if (connectUpcall != null) {
                 if (!connectUpcall.gotConnection(this, id)) {
                     return DENIED;
                 }
             }
+            if (connectionDowncalls) {
+                newConnections.add(id);
+            } 
             return ACCEPTED;
         }
         return DISABLED;
@@ -367,7 +368,8 @@ public abstract class ReceivePort extends Managable
             synchronized(this) {
                 lostConnections.add(id);
             }
-        } else if (connectUpcall != null) {
+        } 
+        if (connectUpcall != null) {
             if (e == null) {
                 e = new Exception("sender closed connection");
             }

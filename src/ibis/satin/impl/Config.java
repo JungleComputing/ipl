@@ -116,7 +116,7 @@ public interface Config {
 
     /** Timeout for waiting on a steal reply from another node. */
     public static final long STEAL_WAIT_TIMEOUT = properties.getLongProperty(
-        s_steal_wait_timeout, (CONNECT_TIMEOUT * 2) + 10) * 1000L;
+        s_steal_wait_timeout, (CONNECT_TIMEOUT / 500) + 10) * 1000L;
 
     /**
      * Maximum time that messages may be buffered for message combining.
