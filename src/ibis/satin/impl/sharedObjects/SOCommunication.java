@@ -30,6 +30,7 @@ import ibis.util.messagecombining.MessageSplitter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 
 import mcast.object.ObjectMulticaster;
 import mcast.object.SendDoneUpcaller;
@@ -177,12 +178,14 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
             synchronized (s) {
                 victims = s.victims.getIbises();
             }
-            IbisIdentifier[] destinations =
-                    new IbisIdentifier[victims.length + joiners.length];
-            System.arraycopy(victims, 0, destinations, 0, victims.length);
-            System.arraycopy(joiners, 0, destinations, victims.length,
-                joiners.length);
-            omc.setDestination(destinations);
+            HashSet<IbisIdentifier> destinations = new HashSet<IbisIdentifier>();
+            for (IbisIdentifier id : victims) {
+                destinations.add(id);
+            }
+            for (IbisIdentifier id : joiners) {
+                destinations.add(id);
+            }
+            omc.setDestination(destinations.toArray(new IbisIdentifier[destinations.size()]));
             return;
         }
 
