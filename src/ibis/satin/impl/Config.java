@@ -73,9 +73,9 @@ public interface Config {
         s_steal_wait_timeout };
 
     /** Enable or disable asserts. */
-    static final boolean ASSERTS = properties.booleanProperty(s_asserts, false);
+    static final boolean ASSERTS = properties.booleanProperty(s_asserts, true);
 
-    /** true if the node should dump its datastructures during shutdown. */
+    /** True if the node should dump its datastructures during shutdown. */
     static final boolean DUMP = properties.booleanProperty(s_dump, false);
 
     /** Enable this if Satin should print statistics at the end. */
