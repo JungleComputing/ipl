@@ -45,6 +45,8 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
     );
 
     static final PortType portCapabilities = new PortType(
+        PortType.SERIALIZATION_OBJECT_SUN,
+        PortType.SERIALIZATION_OBJECT_IBIS, 
         PortType.SERIALIZATION_OBJECT,
         PortType.SERIALIZATION_DATA,
         PortType.SERIALIZATION_BYTE,
@@ -107,6 +109,11 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
         return myAddress.toBytes();
     }
 
+    /*
+    // NOTE: this is wrong ? Even though the ibis has left, the IbisIdentifier 
+             may still be floating around in the system... We should just have
+             some timeout on the cache entries instead...
+    
     public void left(ibis.ipl.IbisIdentifier id) {
         super.left(id);
         synchronized(addresses) {
@@ -120,6 +127,7 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
             addresses.remove(id);
         }
     }
+    */
 
     IbisSocket connect(TcpSendPort sp, ibis.ipl.impl.ReceivePortIdentifier rip,
             int timeout) throws IOException {

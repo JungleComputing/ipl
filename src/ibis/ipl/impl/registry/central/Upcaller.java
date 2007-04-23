@@ -16,6 +16,12 @@ final class Upcaller implements Runnable {
 
     private Registry registry;
 
+    /** Set when registry upcalls are enabled. */
+    private boolean registryUpcallerEnabled = false;
+    
+    /** Set when processing a registry upcall. */
+    private boolean busyUpcaller = false;
+    
     Upcaller(RegistryEventHandler handler, IbisIdentifier id, Registry registry) {
         this.handler = handler;
         this.ibisId = id;
@@ -24,10 +30,50 @@ final class Upcaller implements Runnable {
         ThreadPool.createNew(this, "upcaller");
     }
 
+    synchronized void enableEvents() {
+        registryUpcallerEnabled = true;
+        notifyAll();
+    }
+
+    synchronized void disableEvents() {
+        while (busyUpcaller) {
+            try {
+                wait();
+            } catch(Exception e) {
+                // nothing
+            }
+        }
+        registryUpcallerEnabled = false;
+    }
+
+    private synchronized void setBusyUpcaller() {
+        busyUpcaller = true;
+    }
+
+    private synchronized void clearBusyUpcaller() {
+        busyUpcaller = false;
+        notifyAll();
+    }
+    
+    private synchronized void waitForEventsEnabled() {
+
+        while (!registryUpcallerEnabled) {
+            try {
+                wait();
+            } catch(Exception e) {
+                // nothing
+            }
+        }
+    }
+    
     public void run() {
         int eventNr = 0;
 
         while (true) {
+            
+            // ensure that the events are enabled
+            waitForEventsEnabled();
+            
             // wait for and retrieve event from registry
             Event event = registry.waitForEvent(eventNr);
             eventNr++;
@@ -38,7 +84,9 @@ final class Upcaller implements Runnable {
             }
 
             logger.debug("doing upcall for event: " + event);
-
+            
+            setBusyUpcaller();
+            
             try {
                 IbisIdentifier[] ibisses = event.getIbisses();
                 switch (event.getType()) {
@@ -77,6 +125,7 @@ final class Upcaller implements Runnable {
                 logger.error("error on handling event", t);
             }
 
+            clearBusyUpcaller();
         }
     }
 

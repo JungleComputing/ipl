@@ -26,6 +26,8 @@ public class StackingIbis extends Ibis {
         );
 
         static final PortType portCapabilities = new PortType(
+            PortType.SERIALIZATION_OBJECT_SUN,
+            PortType.SERIALIZATION_OBJECT_IBIS, 
             PortType.SERIALIZATION_OBJECT,
             PortType.SERIALIZATION_DATA,
             PortType.SERIALIZATION_BYTE,
@@ -60,7 +62,7 @@ public class StackingIbis extends Ibis {
     }
 
     @Override
-    protected Registry initializeRegistry(RegistryEventHandler handler) {
+    protected Registry initializeRegistry(RegistryEventHandler handler, IbisCapabilities capabilities) {
         // For a stacking Ibis that actually implements a feature,
         // remove this feature from the capabilities here.
         if (count < 5) {
@@ -90,7 +92,7 @@ public class StackingIbis extends Ibis {
     public void end() {
         base.end();
     }
-
+/*
     @Override
     public int getPoolSize() {
         return base.getPoolSize();
@@ -112,7 +114,7 @@ public class StackingIbis extends Ibis {
         super.disableRegistryEvents();
         base.disableRegistryEvents();
     }
-
+*/
     @Override
     protected void quit() {
     }

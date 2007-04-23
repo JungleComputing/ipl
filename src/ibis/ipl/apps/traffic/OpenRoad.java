@@ -919,7 +919,7 @@ class OpenCell1D implements OpenConfig {
 
             registry = ibis.registry();
 
-            ibis.enableRegistryEvents();
+            registry.enableEvents();
 
             if( me != 0 && leftNeighbour == null ){
                 System.out.println( "P" + me + ": there is no left neighbour???" );

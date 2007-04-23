@@ -1,5 +1,7 @@
 package ibis.ipl.impl.registry;
 
+import ibis.ipl.IbisIdentifier;
+
 import java.io.IOException;
 
 public final class ForwardingRegistry extends ibis.ipl.impl.Registry {
@@ -43,6 +45,38 @@ public final class ForwardingRegistry extends ibis.ipl.impl.Registry {
     @Override
     public ibis.ipl.impl.IbisIdentifier getIbisIdentifier() {
         return target.getIbisIdentifier();
+    }
+
+    public IbisIdentifier[] diedIbises() {
+        return target.diedIbises();
+    }
+
+    public IbisIdentifier[] joinedIbises() {
+        return target.joinedIbises();
+    }
+
+    public IbisIdentifier[] leftIbises() {
+        return target.leftIbises();
+    }
+
+    public String[] receivedSignals() {
+        return target.receivedSignals();
+    }
+
+    public void disableEvents() {
+        target.disableEvents();
+    }
+
+    public void enableEvents() {
+        target.enableEvents();
+    }
+
+    public int getPoolSize() {
+        return target.getPoolSize();
+    }
+
+    public void waitForAll() {
+        target.waitForAll();
     }
 
 }

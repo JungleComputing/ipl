@@ -876,7 +876,7 @@ class OpenCell1D implements OpenConfig {
             PortType stealPort = sprop;
 
             long startTime = System.currentTimeMillis();
-            ibis.enableRegistryEvents();
+            registry.enableEvents();
 
             if( me != 0 && leftNeighbour == null ){
                 System.out.println( "Error: P" + me + ": there is no left neighbour???" );

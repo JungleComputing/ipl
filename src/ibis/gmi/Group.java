@@ -208,7 +208,7 @@ public final class Group implements GroupProtocol {
                     new GroupCallHandler());            
             receivePort.enableConnections();
             
-            _size = ibis.getPoolSize();
+            _size = ibisRegistry.getPoolSize();
                             
             IbisIdentifier master = ibisRegistry.elect("GMI MASTER ELECTION");
             

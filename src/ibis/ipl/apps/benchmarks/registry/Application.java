@@ -62,7 +62,7 @@ final class Application implements Runnable, RegistryEventHandler {
             Ibis ibis = IbisFactory.createIbis(s, null, this, p);
             logger.debug("ibis created, enabling upcalls");
 
-            ibis.enableRegistryEvents();
+            ibis.registry().enableEvents();
             logger.debug("upcalls enabled");
 
             synchronized (this) {

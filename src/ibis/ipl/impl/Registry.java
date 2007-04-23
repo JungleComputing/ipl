@@ -2,6 +2,7 @@
 
 package ibis.ipl.impl;
 
+import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.RegistryEventHandler;
 
@@ -42,8 +43,9 @@ public abstract class Registry implements ibis.ipl.Registry {
      * @exception Throwable can be any exception resulting from looking up
      * the registry constructor or the invocation attempt.
      */
-    public static Registry createRegistry(RegistryEventHandler handler,
-            Properties properties, byte[] data) throws Throwable {
+    public static Registry createRegistry(IbisCapabilities caps, 
+            RegistryEventHandler handler, Properties properties, 
+            byte[] data) throws Throwable {
 
         String registryName = properties.getProperty("ibis.registry.impl");
 
@@ -56,9 +58,9 @@ public abstract class Registry implements ibis.ipl.Registry {
 
         try {
             return (Registry) c.getConstructor(new Class[] {
-                    RegistryEventHandler.class, Properties.class,
-                    byte[].class}).newInstance(
-                        new Object[] {handler, properties, data});
+                    IbisCapabilities.class, RegistryEventHandler.class, 
+                    Properties.class, byte[].class}).newInstance(
+                        new Object[] { caps, handler, properties, data });
         } catch (java.lang.reflect.InvocationTargetException e) {
             throw e.getCause();
         }

@@ -1,5 +1,6 @@
 package ibis.ipl.impl.registry;
 
+import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.impl.IbisIdentifier;
@@ -38,8 +39,9 @@ public final class NullRegistry extends ibis.ipl.impl.Registry {
      * @throws IbisConfigurationException
      *             In case invalid properties were given.
      */
-    public NullRegistry(RegistryEventHandler handler, Properties props,
-            byte[] data) throws IOException {
+    public NullRegistry(IbisCapabilities caps, RegistryEventHandler handler, 
+            Properties props, byte[] data) throws IOException {
+        
         if (handler != null) {
             throw new IbisConfigurationException(
                     "upcalls not supported by NullRegistry");
@@ -89,6 +91,44 @@ public final class NullRegistry extends ibis.ipl.impl.Registry {
     @Override
     public IbisIdentifier getIbisIdentifier() {
         return identifier;
+    }
+
+    public ibis.ipl.IbisIdentifier[] diedIbises() {
+        throw new IbisConfigurationException(
+            "died not supported by NullRegistry");
+    }
+
+    public ibis.ipl.IbisIdentifier[] joinedIbises() {
+        throw new IbisConfigurationException(
+            "joins not supported by NullRegistry");
+    }
+
+    public ibis.ipl.IbisIdentifier[] leftIbises() {
+        throw new IbisConfigurationException(
+            "leaves not supported by NullRegistry");
+    }
+
+    public String[] receivedSignals() {
+        throw new IbisConfigurationException(
+            "signals not supported by NullRegistry");
+    }
+
+    public void disableEvents() {
+        // empty ?
+    }
+
+    public void enableEvents() {
+        // empty ? 
+    }
+
+    public int getPoolSize() {
+        throw new IbisConfigurationException(
+            "pool size not supported by NullRegistry");
+    }
+
+    public void waitForAll() {
+        throw new IbisConfigurationException(
+            "waitForAll not supported by NullRegistry");
     }
 
 }

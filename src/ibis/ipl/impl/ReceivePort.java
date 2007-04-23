@@ -150,7 +150,11 @@ public abstract class ReceivePort extends Managable
             }
         }
         if (type.hasCapability(PortType.SERIALIZATION_DATA)) {
-            serialization = "data";
+            serialization = "data";    
+        } else if (type.hasCapability(PortType.SERIALIZATION_OBJECT_SUN)) {
+            serialization = "sun";            
+        } else if (type.hasCapability(PortType.SERIALIZATION_OBJECT_IBIS)) {
+            serialization = "ibis";            
         } else if (type.hasCapability(PortType.SERIALIZATION_OBJECT)) {
             serialization = "object";
         } else {

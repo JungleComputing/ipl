@@ -16,7 +16,6 @@ import ibis.util.TypedProperties;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Properties;
 
@@ -26,15 +25,11 @@ import org.apache.log4j.Logger;
  * This implementation of the {@link ibis.ipl.Ibis} interface 
  * is a base class, to be extended by specific Ibis implementations.
  */
-public abstract class Ibis extends Managable implements ibis.ipl.Ibis,
-       RegistryEventHandler {
+public abstract class Ibis extends Managable implements ibis.ipl.Ibis {
 
     /** Debugging output. */
     private static final Logger logger = Logger.getLogger("ibis.ipl.impl.Ibis");
-
-    /** A user-supplied registry handler, with join/leave upcalls. */
-    protected final RegistryEventHandler registryHandler;
-
+  
     /** The IbisCapabilities as specified by the user. */
     public final IbisCapabilities capabilities;
 
@@ -54,12 +49,6 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis,
     /** Identifies this Ibis instance in the registry. */
     public final IbisIdentifier ident;
 
-    /** Set when processing a registry upcall. */
-    private boolean busyUpcaller = false;
-
-    /** Set when registry upcalls are enabled. */
-    private boolean registryUpcallerEnabled = false;
-
     /** Set when {@link #end()} is called. */
     private boolean ended = false;
 
@@ -68,20 +57,6 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis,
 
     /** The sendports running on this Ibis instance. */
     private HashMap<String, SendPort> sendPorts;
-
-    private int nJoins;
-
-    private final boolean closedWorld;
-
-    private final int numInstances;
-
-    private final ArrayList<ibis.ipl.IbisIdentifier> joinedIbises;
-
-    private final ArrayList<ibis.ipl.IbisIdentifier> leftIbises;
-    
-    private final ArrayList<ibis.ipl.IbisIdentifier> diedIbises;
-
-    private final ArrayList<String> signals;
     
     /** Counter for allocating names for anonymous sendports. */
     private static int send_counter = 0;
@@ -105,11 +80,6 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis,
         checkIbisCapabilities(caps);
         checkPortTypes(portTypes);
         
-        closedWorld = caps.hasCapability(IbisCapabilities.WORLDMODEL_CLOSED);
-        boolean needsRegistryCalls = registryHandler != null
-                || caps.hasCapability(IbisCapabilities.REGISTRY_DOWNCALLS)
-                || closedWorld;
-        this.registryHandler = registryHandler;
         this.capabilities = caps;
         this.portTypes = portTypes.clone();
         
@@ -130,32 +100,9 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis,
         
         receivePorts = new HashMap<String, ReceivePort>();
         sendPorts = new HashMap<String, SendPort>();
-
-        registry = initializeRegistry(needsRegistryCalls ? this : null);
-
+    
+        registry = initializeRegistry(registryHandler, caps);
         ident = registry.getIbisIdentifier();
-        if (closedWorld) {
-            try {
-                numInstances = this.properties.getIntProperty(
-                        "ibis.pool.total_hosts");
-            } catch(NumberFormatException e) {
-                throw new IbisConfigurationException("Could not get number of "
-                        + "instances", e);
-            }
-        } else {
-            numInstances = -1;
-        }
-        if (caps.hasCapability(IbisCapabilities.REGISTRY_DOWNCALLS)) {
-            joinedIbises = new ArrayList<ibis.ipl.IbisIdentifier>();
-            leftIbises = new ArrayList<ibis.ipl.IbisIdentifier>();
-            diedIbises = new ArrayList<ibis.ipl.IbisIdentifier>();
-            signals = new ArrayList<String>();
-        } else {
-            joinedIbises = null;
-            leftIbises = null;
-            diedIbises = null;
-            signals = null;
-        }
     }
 
     protected void checkIbisCapabilities(IbisCapabilities caps) {
@@ -224,30 +171,15 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis,
     
     protected abstract PortType getPortCapabilities();
     
-    protected Registry initializeRegistry(RegistryEventHandler handler) {
+    protected Registry initializeRegistry(RegistryEventHandler handler, 
+            IbisCapabilities caps) {
+        
         try {
-            return Registry.createRegistry(handler, properties, getData());
+            return Registry.createRegistry(caps, handler, properties, 
+                    getData());
         } catch(Throwable e) {
             throw new IbisConfigurationException("Could not create registry",
                     e);
-        }
-    }
-
-    public synchronized void waitForAll() {
-        if (! closedWorld) {
-            throw new IbisConfigurationException("waitForAll() called but not "
-                    + "closed world");
-        }
-        if (registryHandler != null && ! registryUpcallerEnabled) {
-            throw new IbisConfigurationException("waitForAll() called but "
-                    + "registry events not enabled yet");
-        }
-        while (nJoins < numInstances) {
-            try {
-                wait();
-            } catch(Exception e) {
-                // ignored
-            }
         }
     }
 
@@ -263,74 +195,13 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis,
         return new Properties(properties);
     }
 
-    public int getPoolSize() {
-        if (! closedWorld) {
-            throw new IbisConfigurationException(
-                "totalNrOfIbisesInPool called but open world run");
-        }
-        return numInstances;
-    }
-
-    private synchronized void waitForEnabled() {
-        while (! registryUpcallerEnabled) {
-            try {
-                wait();
-            } catch(Exception e) {
-                // ignored
-            }
-        }
-        busyUpcaller = true;
-    }
-
-    public synchronized ibis.ipl.IbisIdentifier[] joinedIbises() {
-        if (joinedIbises == null) {
-            throw new IbisConfigurationException(
-                    "Resize downcalls not configured");
-        }
-        ibis.ipl.IbisIdentifier[] retval = joinedIbises.toArray(
-                new ibis.ipl.IbisIdentifier[joinedIbises.size()]);
-        joinedIbises.clear();
-        return retval;
-    }
-
-    public synchronized ibis.ipl.IbisIdentifier[] leftIbises() {
-        if (leftIbises == null) {
-            throw new IbisConfigurationException(
-                    "Resize downcalls not configured");
-        }
-        ibis.ipl.IbisIdentifier[] retval = leftIbises.toArray(
-                new ibis.ipl.IbisIdentifier[leftIbises.size()]);
-        leftIbises.clear();
-        return retval;
-    }
-    
-    public synchronized ibis.ipl.IbisIdentifier[] diedIbises() {
-        if (diedIbises == null) {
-            throw new IbisConfigurationException(
-                    "Resize downcalls not configured");
-        }
-        ibis.ipl.IbisIdentifier[] retval = diedIbises.toArray(
-                new ibis.ipl.IbisIdentifier[diedIbises.size()]);
-        diedIbises.clear();
-        return retval;
-    }
-
-    public synchronized String[] receivedSignals() {
-        if (signals == null) {
-            throw new IbisConfigurationException(
-                    "Registry downcalls not configured");
-        }
-        String[] retval = signals.toArray(new String[signals.size()]);
-        signals.clear();
-        return retval;
-    }
-
     /**
      * Notifies this Ibis instance that another Ibis instance has
      * joined the run. Called by the registry.
      * @param joinIdent the Ibis {@linkplain ibis.ipl.IbisIdentifier
      * identifier} of the Ibis instance joining the run.
      */
+/*
     public void joined(ibis.ipl.IbisIdentifier joinIdent) {
         if (closedWorld) {
             synchronized(this) {
@@ -356,13 +227,14 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis,
              }
         }
     }
-
+*/
     /**
      * Notifies this Ibis instance that another Ibis instance has
      * left the run. Called by the Registry.
      * @param leaveIdent the Ibis {@linkplain ibis.ipl.IbisIdentifier
      *  identifier} of the Ibis instance leaving the run.
      */
+/*    
     public void left(ibis.ipl.IbisIdentifier leaveIdent) {
         if (registryHandler != null) {
             waitForEnabled();
@@ -377,13 +249,14 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis,
             }
         }
     }
-
+*/
     /**
      * Notifies this Ibis instance that another Ibis instance has died.
      * Called by the registry.
      * @param corpse the Ibis {@linkplain ibis.ipl.IbisIdentifier
      *  identifier} of the Ibis instance that died.
      */
+/*    
     public void died(ibis.ipl.IbisIdentifier corpse) {
         if (registryHandler != null) {
             waitForEnabled();
@@ -398,12 +271,13 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis,
             }
         }
     }
-
+*/
     /**
      * Notifies this Ibis instance that some signal arrived.
      * Called by the registry.
      * @param signal the signal.
      */
+/*    
     public void gotSignal(String signal) {
         if (registryHandler != null) {
             waitForEnabled();
@@ -416,23 +290,7 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis,
             signals.add(signal);
         }
     }
-
-    public synchronized void enableRegistryEvents() {
-        registryUpcallerEnabled = true;
-        notifyAll();
-    }
-
-    public synchronized void disableRegistryEvents() {
-        while (busyUpcaller) {
-            try {
-                wait();
-            } catch(Exception e) {
-                // nothing
-            }
-        }
-        registryUpcallerEnabled = false;
-    }
-
+*/
     /**
      * Returns the current Ibis version.
      * @return the ibis version.

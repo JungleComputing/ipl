@@ -98,7 +98,7 @@ public final class FaultTolerance implements Config {
             getTable = false;
         }
 
-        s.comm.ibis.enableRegistryEvents();
+        s.comm.ibis.registry().enableEvents();
 
         if (CLOSED) {
             s.comm.waitForAllNodes();

@@ -635,7 +635,7 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
             sport.setDynamicProperties(dp);
         }
 
-        myIbis.enableRegistryEvents();
+        registry.enableEvents();
 
         registry.elect("client"+rank);
         if (connectUpcalls) {
@@ -713,7 +713,7 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
             sport.setDynamicProperties(dp);
         }
 
-        myIbis.enableRegistryEvents();
+        registry.enableEvents();
 
         registry.elect("server" + (rank - clients));
         if (upcall) {
@@ -1039,7 +1039,7 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
             }
         });
 
-        ncpus = myIbis.getPoolSize();
+        ncpus = myIbis.registry().getPoolSize();
         
     }
 

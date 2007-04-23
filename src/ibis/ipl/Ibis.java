@@ -10,43 +10,7 @@ import java.util.Properties;
  * The starting point of all Ibis communication, created using the {@link ibis.ipl.IbisFactory}.
  */
 public interface Ibis extends Managable {
-
-    /**
-     * When running closed-world, returns the total number of Ibis instances
-     * in the pool.
-     * @return the number of Ibis instances
-     * @exception NumberFormatException is thrown when the property
-     *   ibis.pool.total_hosts is not defined or does not represent a number.
-     * @exception IbisConfigurationException is thrown when this is not a
-     * closed-world run.
-     */
-    public int getPoolSize();
-
-    /**
-     * When running closed-world, wait for all Ibis instances
-     * in the pool.
-     * @exception IbisConfigurationException is thrown when this is not a
-     * closed-world run, or when registry events are not enabled yet.
-     */
-    public void waitForAll();
-
-    /**
-     * Allows reception of {@link ibis.ipl.RegistryEventHandler RegistryEventHandler}
-     * upcalls. Registry events are saved up until the event handler is enabled,
-     * and are then delivered, one by one. Ibis instances are always started with
-     * the registry event handler disabled, so that this method must be called to
-     * allow for the reception of registry handler upcalls.
-     */
-    public void enableRegistryEvents();
-
-    /**
-     * Disables reception of
-     * {@link ibis.ipl.RegistryEventHandler RegistryEventHandler} upcalls.
-     * Registry events will be saved until the handler is enabled again, and
-     * then be delivered, one by one.
-     */
-    public void disableRegistryEvents();
-
+    
     /**
      * Returns all Ibis recources to the system.
      * The Ibis instance also deregisters itself from the registry. As a
@@ -97,58 +61,6 @@ public interface Ibis extends Managable {
      * @return the properties.
      */
     public Properties properties();
-
-    /**
-     * Returns the Ibis instances that joined the pool.
-     * Returns the changes since the last joinedIbises call,
-     * or, if this is the first call, all Ibis instances that joined.
-     * This call only works if this Ibis is configured to support
-     * registry downcalls.
-     * If no Ibis instances joined, an array with 0 entries is returned.
-     * @exception IbisConfigurationException is thrown when the port was
-     * not configured to support registry downcalls.
-     * @return the joined Ibises.
-     */
-    public IbisIdentifier[] joinedIbises();
-
-    /**
-     * Returns the Ibis instances that left the pool.
-     * Returns the changes since the last leftIbises call,
-     * or, if this is the first call, all Ibis instances that left.
-     * This call only works if this Ibis is configured to support
-     * registry downcalls.
-     * If no Ibis instances left, an array with 0 entries is returned.
-     * @exception IbisConfigurationException is thrown when ibis was
-     * not configured to support registr downcalls.
-     * @return the left Ibises.
-     */
-    public IbisIdentifier[] leftIbises();
-    
-    /**
-     * Returns the Ibis instances that died.
-     * Returns the changes since the last diedIbises call,
-     * or, if this is the first call, all Ibis instances that died.
-     * This call only works if this Ibis is configured to support
-     * registry downcalls.
-     * If no Ibis instances died, an array with 0 entries is returned.
-     * @exception IbisConfigurationException is thrown when ibis was
-     * not configured to support registry downcalls.
-     * @return the Ibises that died.
-     */
-    public IbisIdentifier[] diedIbises();
-
-    /**
-     * Returns the signals received.
-     * Returns the changes since the last receivedSignals call,
-     * or, if this is the first call, all signals received so far.
-     * This call only works if this Ibis is configured to support
-     * registry downcalls.
-     * If no signals were received, an array with 0 entries is returned.
-     * @exception IbisConfigurationException is thrown when ibis was
-     * not configured to support registry downcalls.
-     * @return the received signals.
-     */
-    public String[] receivedSignals();
 
     /**
      * Creates a anonymous {@link SendPort} of the specified port type.

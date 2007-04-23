@@ -125,6 +125,21 @@ public final class PortType extends CapabilitySet {
     public final static String SERIALIZATION_OBJECT = SERIALIZATION + ".object";
 
     /**
+     * Boolean capability, indicating that ibis object serialization
+     * is supported. 
+     */
+    public final static String SERIALIZATION_OBJECT_IBIS = 
+        SERIALIZATION_OBJECT + ".ibis";
+    
+    /**
+     * Boolean capability, indicating that sun object serialization
+     * is supported. 
+     */
+    public final static String SERIALIZATION_OBJECT_SUN = 
+        SERIALIZATION_OBJECT + ".sun";
+    
+    
+    /**
      * String capability, indicating an object replacer for object
      * serialization.
      */

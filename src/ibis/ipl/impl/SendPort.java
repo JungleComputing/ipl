@@ -153,6 +153,10 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
         String serialization;
         if (type.hasCapability(PortType.SERIALIZATION_DATA)) {
             serialization = "data";
+        } else if (type.hasCapability(PortType.SERIALIZATION_OBJECT_SUN)) {
+            serialization = "sun";            
+        } else if (type.hasCapability(PortType.SERIALIZATION_OBJECT_IBIS)) {
+            serialization = "ibis";            
         } else if (type.hasCapability(PortType.SERIALIZATION_OBJECT)) {
             serialization = "object";
         } else {
