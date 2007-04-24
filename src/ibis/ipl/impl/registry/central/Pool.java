@@ -20,11 +20,9 @@ final class Pool implements Runnable {
 
     static final int MAX_TRIES = 5;
 
-    static final int PING_INTERVAL = 5 * 60 * 1000;
-
     static final int PING_THREADS = 5;
 
-    static final int GOSSIP_INTERVAL = 120 * 60 * 1000;
+    static final long GOSSIP_INTERVAL = 120 * 60 * 1000;
 
     static final int GOSSIP_THREADS = 10;
 
@@ -33,7 +31,7 @@ final class Pool implements Runnable {
     static final int CONNECT_TIMEOUT = 10 * 1000;
 
     private static final Logger logger = Logger.getLogger(Pool.class);
-
+    
     // list of all joins, leaves, elections, etc.
     private final ArrayList<Event> events;
 
@@ -60,7 +58,7 @@ final class Pool implements Runnable {
     private boolean ended = false;
 
     Pool(String name, ConnectionFactory connectionFactory, boolean gossip,
-            boolean keepNodeState) {
+            boolean keepNodeState, long pingInterval) {
         this.name = name;
         this.connectionFactory = connectionFactory;
         this.keepNodeState = keepNodeState;
@@ -75,7 +73,7 @@ final class Pool implements Runnable {
 
         if (gossip) {
             // ping iteratively
-            new PeriodicNodeContactor(this, false, false, PING_INTERVAL,
+            new PeriodicNodeContactor(this, false, false, pingInterval,
                     PING_THREADS);
             // gossip randomly
             new PeriodicNodeContactor(this, true, true, GOSSIP_INTERVAL,
@@ -85,7 +83,7 @@ final class Pool implements Runnable {
 
         } else { // central
             // ping iteratively
-            new PeriodicNodeContactor(this, false, false, PING_INTERVAL,
+            new PeriodicNodeContactor(this, false, false, pingInterval,
                     PING_THREADS);
 
             new EventPusher(this, PUSH_THREADS);

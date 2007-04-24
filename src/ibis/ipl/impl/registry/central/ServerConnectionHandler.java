@@ -45,8 +45,9 @@ final class ServerConnectionHandler implements Runnable {
 
         boolean gossip = connection.in().readBoolean();
         boolean keepNodeState = connection.in().readBoolean();
+        long pingInterval = connection.in().readLong();
 
-        pool = server.getAndCreatePool(poolName, gossip, keepNodeState);
+        pool = server.getAndCreatePool(poolName, gossip, keepNodeState, pingInterval);
 
         try {
             result = pool.join(implementationData, clientAddress, location);

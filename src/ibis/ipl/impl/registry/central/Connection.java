@@ -19,8 +19,6 @@ import smartsockets.virtual.VirtualSocketFactory;
 
 final class Connection {
 
-    // private static final int MAX_TRIES = 10;
-
     private static final int INITIAL_MAX_WAIT = 1000;
 
     private static final Logger logger = Logger.getLogger(Connection.class);
@@ -36,8 +34,7 @@ final class Connection {
     private final byte opcode;
 
     Connection(VirtualSocketAddress address, VirtualSocketFactory factory,
-            byte opcode, long timeout, boolean printWarning) throws IOException {
-        long hardDeadline = System.currentTimeMillis() + timeout;
+            byte opcode, int timeout, boolean printWarning) throws IOException {
         plainSocket = null;
         VirtualSocket socket = null;
         DataOutputStream out = null;
@@ -45,71 +42,18 @@ final class Connection {
 
         this.opcode = opcode;
 
-        // int maxWait = (int) (timeout / Math.pow(2, (MAX_TRIES - 1)));
-        int maxWait = INITIAL_MAX_WAIT;
+        socket = factory.createClientSocket(address, timeout,
+                new HashMap<String, Object>());
+        socket.setTcpNoDelay(true);
 
-        int tries = 0;
-        boolean success = false;
-        while (!success) {
-            // int currentTimeout = (int) (Math.random() * maxWait);
-            int currentTimeout = (int) (maxWait/2 + Math.random() * (maxWait/2));
-            long deadline = System.currentTimeMillis() + currentTimeout;
-            if (deadline > hardDeadline) {
-                currentTimeout = (int) (hardDeadline - System
-                        .currentTimeMillis());
-                deadline = hardDeadline;
-                logger.debug("last attempt, timeout = " + currentTimeout);
-            }
+        out = new DataOutputStream(new BufferedOutputStream(socket
+                .getOutputStream()));
+        in = new DataInputStream(new BufferedInputStream(socket
+                .getInputStream()));
 
-            try {
-                socket = factory.createClientSocket(address, currentTimeout,
-                        new HashMap<String, Object>());
-                socket.setTcpNoDelay(true);
-
-                out = new DataOutputStream(new BufferedOutputStream(socket
-                        .getOutputStream()));
-                in = new DataInputStream(new BufferedInputStream(socket
-                        .getInputStream()));
-
-                // write opcode
-                out.writeByte(opcode);
-                out.flush();
-
-                success = true;
-            } catch (IOException e) {
-                // failure: wait some time before trying again...
-                if (printWarning && tries == 0) {
-                    logger.warn("Registry: failed to connect to " + address
-                            + ", will keep trying");
-                }
-
-                long currentTime = System.currentTimeMillis();
-
-                if (currentTime >= hardDeadline) {
-                    throw e;
-                }
-
-                long sleepTime = deadline - currentTime;
-
-                logger.debug("failed to connect to " + address, e);
-
-                logger.debug("maxWait = " + maxWait);
-
-                logger.debug("failure, waiting " + sleepTime + " milliseconds");
-
-                if (sleepTime > 0) {
-                    try {
-                        Thread.sleep(sleepTime);
-                    } catch (InterruptedException e2) {
-                        // IGNORE
-                    }
-                }
-
-                tries++;
-                maxWait = maxWait * 2;
-            }
-
-        }
+        // write opcode
+        out.writeByte(opcode);
+        out.flush();
 
         this.virtualSocket = socket;
         this.out = out;
@@ -135,7 +79,8 @@ final class Connection {
         boolean success = false;
         while (!success) {
             // int currentTimeout = (int) (Math.random() * maxWait);
-            int currentTimeout = (int) (maxWait/2 + Math.random() * (maxWait/2));
+            int currentTimeout = (int) (maxWait / 2 + Math.random()
+                    * (maxWait / 2));
             long deadline = System.currentTimeMillis() + currentTimeout;
             if (deadline > hardDeadline) {
                 currentTimeout = (int) (hardDeadline - System

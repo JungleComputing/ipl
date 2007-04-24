@@ -68,13 +68,13 @@ public final class Server extends ibis.ipl.impl.registry.Server {
 
     // atomic get/create pool
     synchronized Pool getAndCreatePool(String poolName, boolean gossip,
-            boolean keepNodeState) throws IOException {
+            boolean keepNodeState, long pingInterval) throws IOException {
         Pool result = getPool(poolName);
 
         if (result == null || result.ended()) {
             logger.debug("creating new pool: " + poolName);
             result = new Pool(poolName, connectionFactory, gossip,
-                    keepNodeState);
+                    keepNodeState, pingInterval);
             pools.put(poolName, result);
         }
 

@@ -174,13 +174,14 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
                 .booleanProperty(RegistryProperties.CENTRAL_GOSSIP);
         keepClientState = properties
                 .booleanProperty(RegistryProperties.CENTRAL_KEEP_NODE_STATE);
+        long pingInterval = properties.getLongProperty(RegistryProperties.CENTRAL_PING_INTERVAL);
 
         Location location = Location.defaultLocation();
 
         // join at server, also sets identifier and adds a number of ibisses
         // to the "current" ibis list
         identifier = join(connectionFactory.getLocalAddress(), location, data,
-                gossip, keepClientState);
+                gossip, keepClientState, pingInterval);
 
         if (gossip) {
             // start gossiping
@@ -256,7 +257,7 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
      *             in case of trouble
      */
     private IbisIdentifier join(byte[] myAddress, Location location,
-            byte[] implementationData, boolean gossip, boolean stateFullServer)
+            byte[] implementationData, boolean gossip, boolean stateFullServer, long pingInterval)
             throws IOException {
         logger.debug("joining to " + getPoolName());
         Connection connection = connectionFactory.connectToServer(
@@ -272,6 +273,7 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
             location.writeTo(connection.out());
             connection.out().writeBoolean(gossip);
             connection.out().writeBoolean(stateFullServer);
+            connection.out().writeLong(pingInterval);
 
             connection.getAndCheckReply();
 

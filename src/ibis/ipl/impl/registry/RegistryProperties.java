@@ -44,6 +44,9 @@ public class RegistryProperties {
     public static final String CENTRAL_KEEP_NODE_STATE = CENTRAL_PREFIX
             + "keepNodeState";
     
+    public static final String CENTRAL_PING_INTERVAL = CENTRAL_PREFIX
+    + "pingInterval";
+    
     public static final String CENTRAL_SERVER_CONNECT_TIMEOUT = CENTRAL_PREFIX
     + "serverConnectTimeout";
     
@@ -73,6 +76,9 @@ public class RegistryProperties {
 
             { CENTRAL_KEEP_NODE_STATE, "false",
                     "Boolean: do we keep track of which events nodes have" },
+                    
+            { CENTRAL_PING_INTERVAL, "300000",
+                    "Long: how often do we check if a member of a pool is still alive" },
                     
             { CENTRAL_SERVER_CONNECT_TIMEOUT, "120",
                 "int(seconds): how long do we attempt to connect to the server" },
