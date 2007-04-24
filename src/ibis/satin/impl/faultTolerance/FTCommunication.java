@@ -172,18 +172,27 @@ final class FTCommunication implements Config, ReceivePortConnectUpcall,
         return true;
     }
 
+    // @@@ this is not correct --Rob
     private void handleLostConnection(IbisIdentifier dead) {
-        /*
-         * Victim v = null; synchronized (s) { if (s.deadIbises.contains(dead))
-         * return;
-         * 
-         * s.ft.crashedIbises.add(dead); s.deadIbises.add(dead); if
-         * (dead.equals(s.lb.getCurrentVictim())) { s.currentVictimCrashed =
-         * true; s.lb.setCurrentVictim(null); } s.ft.gotCrashes = true; v =
-         * s.victims.remove(dead); s.notifyAll(); }
-         * 
-         * if (v != null) { v.close(); }
-         */
+        Victim v = null;
+        synchronized (s) {
+            if (s.deadIbises.contains(dead))
+                return;
+
+            s.ft.crashedIbises.add(dead);
+            s.deadIbises.add(dead);
+            if (dead.equals(s.lb.getCurrentVictim())) {
+                s.currentVictimCrashed = true;
+                s.lb.setCurrentVictim(null);
+            }
+            s.ft.gotCrashes = true;
+            v = s.victims.remove(dead);
+            s.notifyAll();
+        }
+
+        if (v != null) {
+            v.close();
+        }
     }
 
     private void handleCrash(IbisIdentifier dead) {
