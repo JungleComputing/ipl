@@ -221,7 +221,8 @@ final class Pool implements Runnable {
      */
     synchronized void dead(IbisIdentifier identifier) {
         if (!members.remove(identifier.myId)) {
-            logger.warn("unknown ibis " + identifier + " died");
+            logger.warn(identifier + " dead, but not in pool (anymore)");
+            return;
         }
         logger.info(identifier + " left pool \"" + name + "\" now "
                 + members.size() + " members");
