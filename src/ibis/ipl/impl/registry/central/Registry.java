@@ -640,40 +640,39 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
     }
     
     private synchronized void addIbis(IbisIdentifier newIbis) {
+        if (joinedIbises != null) { 
+            joinedIbises.add(newIbis);
+        }
+        
         for (IbisIdentifier ibis : currentIbisses) {
             if (ibis.equals(newIbis)) {
                 return;
             }
         }
         currentIbisses.add(newIbis);
-        
-        if (joinedIbises != null) { 
-            joinedIbises.add(newIbis);
-        }
     }
 
     private synchronized void ibisLeft(IbisIdentifier ibis) {
+        if (leftIbises != null) { 
+            leftIbises.add(ibis);
+        }
+        
         for (int i = 0; i < currentIbisses.size(); i++) {
             if (currentIbisses.get(i).equals(ibis)) {
-                currentIbisses.remove(i);
-                
-                if (leftIbises != null) { 
-                    leftIbises.add(ibis);
-                }
+                currentIbisses.remove(i);       
                 return;
             }
         }
     }
 
     private synchronized void ibisDied(IbisIdentifier ibis) {
+        if (diedIbises != null) { 
+            diedIbises.add(ibis);
+        }
+
         for (int i = 0; i < currentIbisses.size(); i++) {
             if (currentIbisses.get(i).equals(ibis)) {
                 currentIbisses.remove(i);
-                
-                if (diedIbises != null) { 
-                    diedIbises.add(ibis);
-                }
-                
                 return;
             }
         }
