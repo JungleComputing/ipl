@@ -183,6 +183,18 @@ public final class SharedObjects implements Config {
     private void doExecuteGuard(InvocationRecord r)
             throws SOReferenceSourceCrashedException {
         // restore shared object references
+
+        if (!FT_NAIVE && r.isOrphan()) {
+            // If the owner of the invocation is dead, replace by its replacer.
+            IbisIdentifier owner = s.ft.lookupOwner(r);
+            if (ASSERTS && owner == null) {
+                grtLogger.fatal("SATIN '" + s.ident
+                        + "': orphan not locked in the table");
+                System.exit(1); // Failed assertion
+            }
+            r.setOwner(owner);
+            r.setOrphan(false);
+        }
         r.setSOReferences();
 
         if (r.guard()) return;

@@ -127,6 +127,10 @@ final class GlobalResultTable implements Config, Protocol {
                 v = s.victims.getVictim(i);
             }
 
+            if (v == null) {
+                continue;
+            }
+
             try {
                 m = v.newMessage();
             } catch (Exception e) {
