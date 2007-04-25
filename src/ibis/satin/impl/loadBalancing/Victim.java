@@ -100,7 +100,7 @@ public final class Victim implements Config {
             if (send != null) {
                 referenceCount++;
             } else {
-                throw new IOException("Could not connect");
+                throw new IOException("Could not connect to " + ident);
             }
         }
         return send.newMessage();
