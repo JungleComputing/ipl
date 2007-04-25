@@ -83,4 +83,10 @@ class JoinThread extends Thread implements Config {
             s.ft.ftComm.handleJoins(j);
         }
     }
+
+    protected synchronized void removeJoiner(IbisIdentifier leaver) {
+        if (CACHE_JOINS) {
+            joiners.remove(leaver);
+        }
+    }
 }

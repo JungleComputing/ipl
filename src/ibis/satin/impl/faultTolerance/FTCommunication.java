@@ -260,6 +260,8 @@ final class FTCommunication implements Config, ReceivePortConnectUpcall,
         if (leaver.equals(s.ident))
             return;
 
+        joinThread.removeJoiner(leaver);
+
         ftLogger.debug("SATIN '" + s.ident + "': " + leaver + " left");
 
         Victim v;
