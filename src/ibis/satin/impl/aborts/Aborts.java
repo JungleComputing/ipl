@@ -150,19 +150,21 @@ public final class Aborts implements Config {
     }
 
     public void killChildrenOf(Stamp targetStamp) {
-        s.stats.abortTimer.start();
+        try {
+            s.stats.abortTimer.start();
 
-        if (ASSERTS) {
-            Satin.assertLocked(s);
+            if (ASSERTS) {
+                Satin.assertLocked(s);
+            }
+
+            // try work queue, outstanding jobs and jobs on the stack
+            // but try stack first, many jobs in q are children of stack jobs.
+            s.onStack.killChildrenOf(targetStamp, false);
+            s.q.killChildrenOf(targetStamp);
+            s.outstandingJobs.killChildrenOf(targetStamp, false);
+        } finally {
+            s.stats.abortTimer.stop();
         }
-
-        // try work queue, outstanding jobs and jobs on the stack
-        // but try stack first, many jobs in q are children of stack jobs.
-        s.onStack.killChildrenOf(targetStamp, false);
-        s.q.killChildrenOf(targetStamp);
-        s.outstandingJobs.killChildrenOf(targetStamp, false);
-
-        s.stats.abortTimer.stop();
     }
 
     // Trace back from the exception, and execute inlets / empty imlets back to
