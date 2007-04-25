@@ -129,17 +129,17 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
         random = new Random();
 
         TypedProperties properties = new TypedProperties(props);
-        String serverString = properties
-                .getProperty(RegistryProperties.SERVER_ADDRESS);
+        String serverString = properties.getProperty(
+                RegistryProperties.SERVER_ADDRESS);
 
-        serverConnectTimeout = properties
-                .getIntProperty(RegistryProperties.CENTRAL_SERVER_CONNECT_TIMEOUT) * 1000;
+        serverConnectTimeout = properties.getIntProperty(
+                RegistryProperties.CENTRAL_SERVER_CONNECT_TIMEOUT) * 1000;
 
         boolean smart = properties.booleanProperty(
                 RegistryProperties.CENTRAL_SMARTSOCKETS, DEFAULT_SMARTSOCKETS);
 
-        int defaultServerPort = properties
-                .getIntProperty(RegistryProperties.SERVER_PORT);
+        int defaultServerPort = properties.getIntProperty(
+                RegistryProperties.SERVER_PORT);
 
         connectionFactory = new ConnectionFactory(smart, serverString,
                 defaultServerPort);
@@ -148,10 +148,13 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
         
         if (connectionFactory.serverIsLocalHost()) {
             try {
-                properties.setProperty(RegistryProperties.SERVER_PORT, Integer
-                        .toString(connectionFactory.getServerPort()));
-                properties
-                        .setProperty(RegistryProperties.SERVER_SINGLE, "true");
+                properties.setProperty(
+                        RegistryProperties.SERVER_PORT, 
+                        Integer.toString(connectionFactory.getServerPort()));
+                
+                properties.setProperty(
+                        RegistryProperties.SERVER_SINGLE, "true");
+                
                 server = new Server(properties);
                 server.setDaemon(true);
                 server.start();
