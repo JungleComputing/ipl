@@ -31,7 +31,7 @@ final class Pool implements Runnable {
     static final int CONNECT_TIMEOUT = 10 * 1000;
 
     private static final Logger logger = Logger.getLogger(Pool.class);
-    
+
     // list of all joins, leaves, elections, etc.
     private final ArrayList<Event> events;
 
@@ -422,20 +422,30 @@ final class Pool implements Runnable {
         dead(member.ibis());
     }
 
-    private synchronized IbisIdentifier getSuspectIbis() {
-        while (checkList.size() == 0 && !ended()) {
-            try {
-                wait();
-            } catch (InterruptedException e) {
-                // IGNORE
+    private synchronized IbisIdentifier getSuspectMember() {
+        while (true) {
+
+            //wait for the list to become non-empty
+            while (checkList.size() == 0 && !ended()) {
+                try {
+                    wait();
+                } catch (InterruptedException e) {
+                    // IGNORE
+                }
+            }
+
+            //return if this pool ended anyway
+            if (ended()) {
+                return null;
+            }
+
+            IbisIdentifier result = checkList.remove(0);
+
+            //return if still in pool
+            if (members.contains(result.myId)) {
+                return result;
             }
         }
-
-        if (ended()) {
-            return null;
-        }
-
-        return checkList.remove(0);
     }
 
     /**
@@ -443,7 +453,7 @@ final class Pool implements Runnable {
      */
     public void run() {
         while (!ended()) {
-            IbisIdentifier suspect = getSuspectIbis();
+            IbisIdentifier suspect = getSuspectMember();
 
             if (suspect != null) {
                 ping(suspect);

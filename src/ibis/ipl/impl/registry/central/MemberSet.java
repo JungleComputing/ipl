@@ -10,12 +10,9 @@ final class MemberSet {
 
     private final Random random;
 
-    int behindNext;
-
     MemberSet() {
         list = new ArrayList<Member>();
         random = new Random();
-        behindNext = 0;
     }
 
     int size() {
