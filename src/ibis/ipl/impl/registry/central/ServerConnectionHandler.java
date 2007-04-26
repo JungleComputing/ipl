@@ -83,6 +83,12 @@ final class ServerConnectionHandler implements Runnable {
         }
 
         connection.sendOKReply();
+
+        if (pool.ended()) {
+            // wake up the server so it can check the pools (and remove this
+            // one)
+            server.nudge();
+        }
     }
 
     private void handleElect(Connection connection) throws IOException {

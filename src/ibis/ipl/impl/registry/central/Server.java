@@ -105,6 +105,11 @@ public final class Server extends ibis.ipl.impl.registry.Server {
         logger.info(handler.getStats(false));
     }
 
+    // force the server to check the pools _now_
+    synchronized void nudge() {
+        notifyAll();
+    }
+
     // pool cleanup thread
     public synchronized void run() {
         // start handling connections
