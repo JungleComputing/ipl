@@ -160,6 +160,7 @@ final class GlobalResultTable implements Config, Protocol {
                     + s.stats.tableSerializationTimer.lastTimeVal() + " to "
                     + v);
             } catch (IOException e) {
+                m.finish(e);
                 grtLogger.info("Got exception in finish()");
                 //always happens after a crash
             }

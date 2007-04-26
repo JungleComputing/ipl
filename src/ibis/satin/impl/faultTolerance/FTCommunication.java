@@ -102,12 +102,16 @@ final class FTCommunication implements Config, ReceivePortConnectUpcall,
             }
 
             // send a request to the remote node
+            WriteMessage m = null;
             try {
-                WriteMessage m = v.newMessage();
+                m = v.newMessage();
                 m.writeByte(Protocol.RESULT_REQUEST);
                 m.writeObject(r.getStamp());
                 v.finish(m);
             } catch (IOException e) {
+                if (m != null) {
+                    m.finish(e);
+                }
                 grtLogger.warn("SATIN '" + s.ident
                         + "': trying to send RESULT_REQUEST but got "
                         + "exception: " + e, e);
@@ -142,12 +146,13 @@ final class FTCommunication implements Config, ReceivePortConnectUpcall,
             return;
         }
 
+        WriteMessage writeMessage = null;
         try {
             Victim v = s.victims.getVictim(r.getStealer());
             if (v == null)
                 return; // probably crashed
 
-            WriteMessage writeMessage = v.newMessage();
+            writeMessage = v.newMessage();
             writeMessage.writeByte(Protocol.ABORT_AND_STORE);
             writeMessage.writeObject(r.getParentStamp());
             long cnt = v.finish(writeMessage);
@@ -159,6 +164,9 @@ final class FTCommunication implements Config, ReceivePortConnectUpcall,
                 s.stats.intraClusterBytes += cnt;
             }
         } catch (IOException e) {
+            if (writeMessage != null) {
+                writeMessage.finish(e);
+            }
             ftLogger.warn("SATIN '" + s.ident
                     + "': Got Exception while sending abort message: " + e);
             // This should not be a real problem, it is just inefficient.
@@ -390,10 +398,18 @@ final class FTCommunication implements Config, ReceivePortConnectUpcall,
                 return;
             }
             value.result.setStamp(stamp);
-            WriteMessage w = v.newMessage();
-            w.writeByte(Protocol.JOB_RESULT_NORMAL);
-            w.writeObject(value.result);
-            v.finish(w);
+            WriteMessage w = null;
+            try {
+                w = v.newMessage();
+                w.writeByte(Protocol.JOB_RESULT_NORMAL);
+                w.writeObject(value.result);
+                v.finish(w);
+            } catch(IOException e) {
+                if (w != null) {
+                    w.finish(e);
+                }
+                throw e;
+            }
         } catch (Exception e) {
             grtLogger.error("SATIN '" + s.ident
                     + "': trying to send result back, but got exception: " + e,
@@ -430,14 +446,18 @@ final class FTCommunication implements Config, ReceivePortConnectUpcall,
         if (toPush.size() == 0)
             return;
 
+        WriteMessage m = null;
         try {
-            WriteMessage m = victim.newMessage();
+            m = victim.newMessage();
             m.writeByte(Protocol.RESULT_PUSH);
             m.writeObject(toPush);
             long numBytes = victim.finish(m);
             grtLogger.debug("SATIN '" + s.ident + "': " + numBytes
                     + " bytes pushed");
         } catch (IOException e) {
+            if (m != null) {
+                m.finish(e);
+            }
             grtLogger.info("SATIN '" + s.ident + "': error pushing results "
                     + e);
         }

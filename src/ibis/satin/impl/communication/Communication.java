@@ -197,15 +197,19 @@ public final class Communication implements Config, Protocol {
         }
 
         for (int i = 0; i < victims.length; i++) {
+            WriteMessage writeMessage = null;
             Victim v = victims[i];
             commLogger.debug("SATIN '" + s.ident + "': sending "
                     + opcodeToString(opcode) + " message to "
                     + v.getIdent());
             try {
-                WriteMessage writeMessage = v.newMessage();
+                writeMessage = v.newMessage();
                 writeMessage.writeByte(opcode);
                 v.finish(writeMessage);
             } catch (IOException e) {
+                if (writeMessage != null) {
+                    writeMessage.finish(e);
+                }
                 synchronized (s) {
                     ftLogger.info("SATIN '" + s.ident
                             + "': could not send bcast message to "
@@ -296,6 +300,7 @@ public final class Communication implements Config, Protocol {
 
                 for (int i = 0; i < size; i++) {
                     Victim v;
+                    WriteMessage writeMessage = null;
                     synchronized (s) {
                         v = s.victims.getVictim(i);
                     }
@@ -304,9 +309,16 @@ public final class Communication implements Config, Protocol {
                         System.exit(1);
                     }
 
-                    WriteMessage writeMessage = v.newMessage();
-                    writeMessage.writeByte(Protocol.BARRIER_REPLY);
-                    v.finish(writeMessage);
+                    try {
+                        writeMessage = v.newMessage();
+                        writeMessage.writeByte(Protocol.BARRIER_REPLY);
+                        v.finish(writeMessage);
+                    } catch(IOException e) {
+                        if (writeMessage != null) {
+                            writeMessage.finish(e);
+                        }
+                        throw e;
+                    }
                 }
             } else {
                 Victim v;
@@ -320,9 +332,17 @@ public final class Communication implements Config, Protocol {
                     System.exit(1);
                 }
 
-                WriteMessage writeMessage = v.newMessage();
-                writeMessage.writeByte(Protocol.BARRIER_REQUEST);
-                writeMessage.finish();
+                WriteMessage writeMessage = null;
+                try {
+                    writeMessage = v.newMessage();
+                    writeMessage.writeByte(Protocol.BARRIER_REQUEST);
+                    writeMessage.finish();
+                } catch(IOException e) {
+                    if (writeMessage != null) {
+                        writeMessage.finish(e);
+                    }
+                    throw e;
+                }
 
                 while (!gotBarrierReply/* && !exiting */) {
                     s.handleDelayedMessages();
@@ -362,6 +382,7 @@ public final class Communication implements Config, Protocol {
 
     public void sendExitAck() {
         Victim v = null;
+        WriteMessage writeMessage = null;
 
         synchronized (s) {
             v = s.victims.getVictim(s.getMasterIdent());
@@ -371,7 +392,6 @@ public final class Communication implements Config, Protocol {
             return; // node might have crashed
 
         try {
-            WriteMessage writeMessage;
             commLogger.debug("SATIN '" + s.ident
                     + "': sending exit ACK message to " + s.getMasterIdent());
 
@@ -383,6 +403,9 @@ public final class Communication implements Config, Protocol {
             }
             v.finish(writeMessage);
         } catch (IOException e) {
+            if (writeMessage != null) {
+                writeMessage.finish(e);
+            }
             ftLogger.info("SATIN '" + s.ident
                     + "': could not send exit message to " + s.getMasterIdent(), e);
             try {

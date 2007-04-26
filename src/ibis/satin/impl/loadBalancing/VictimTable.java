@@ -222,6 +222,16 @@ public final class VictimTable implements Config {
         v = getVictimNonBlocking(id);
         if (v != null)
             return v;
+
+        // Added test for a as yet unprocessed dead ibis. (Ceriel)
+        // It gets removed from the victim table as soon as the died
+        // upcall is received, but further processing is not done
+        // immediately. Anyway, we don't want to create a new victim
+        // for it.
+        if (satin.deadIbises.contains(id)) {
+            return null;
+        }
+
         /*
            try {
            satin.wait(250);

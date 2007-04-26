@@ -330,16 +330,19 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
                 w.writeObject(r);
                 byteCount = w.finish();
 
-                if (SO_MAX_INVOCATION_DELAY > 0) {
-                    soCurrTotalMessageSize += byteCount;
-                } else {
-                    s.stats.soRealMessageCount++;
-                }
             } catch (IOException e) {
+                if (w != null) {
+                    w.finish(e);
+                }
                 System.err
                     .println("SATIN '" + s.ident
                         + "': unable to broadcast a shared object invocation: "
                         + e);
+            }
+            if (SO_MAX_INVOCATION_DELAY > 0) {
+                soCurrTotalMessageSize += byteCount;
+            } else {
+                s.stats.soRealMessageCount++;
             }
         }
 
@@ -402,10 +405,14 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
             w.writeObject(object);
             s.stats.soBroadcastSerializationTimer.stop();
             size = w.finish();
+            w = null;
             if (SO_MAX_INVOCATION_DELAY > 0) {
                 soMessageCombiner.sendAccumulatedMessages();
             }
         } catch (IOException e) {
+            if (w != null) {
+                w.finish(e);
+            }
             System.err.println("SATIN '" + s.ident
                 + "': unable to broadcast a shared object: " + e);
         }
@@ -532,6 +539,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
     private void sendSORequest(String objectId, IbisIdentifier source,
             boolean demand) throws SOReferenceSourceCrashedException {
         // request the shared object from the source
+        WriteMessage w = null;
         try {
             s.lb.setCurrentVictim(source);
             Victim v;
@@ -546,7 +554,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
                 throw new SOReferenceSourceCrashedException();
             }
 
-            WriteMessage w = v.newMessage();
+            w = v.newMessage();
             if (demand) {
                 w.writeByte(SO_DEMAND);
             } else {
@@ -555,6 +563,9 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
             w.writeString(objectId);
             v.finish(w);
         } catch (IOException e) {
+            if (w != null) {
+                w.finish(e);
+            }
             // hm we've got a problem here
             // push the job somewhere else?
             soLogger.error("SATIN '" + s.ident + "': could not "
@@ -616,7 +627,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
     }
 
     protected void handleSORequests() {
-        WriteMessage wm;
+        WriteMessage wm = null;
         IbisIdentifier origin;
         String objid;
         boolean demand;
@@ -658,6 +669,9 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
                     wm.writeByte(SO_NACK);
                     v.finish(wm);
                 } catch (IOException e) {
+                    if (wm != null) {
+                        wm.finish(e);
+                    }
                     soLogger.error("SATIN '" + s.ident
                         + "': got exception while sending"
                         + " shared object NACK", e);
@@ -673,7 +687,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
     }
 
     private void sendObjectBack(Victim v, SharedObjectInfo info) {
-        WriteMessage wm;
+        WriteMessage wm = null;
         long size;
 
         // No need to hold the lock while writing the object.
@@ -685,6 +699,9 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
             wm = v.newMessage();
             wm.writeByte(SO_TRANSFER);
         } catch (IOException e) {
+            if (wm != null) {
+                wm.finish(e);
+            }
             soLogger.error("SATIN '" + s.ident
                 + "': got exception while sending" + " shared object", e);
             s.stats.soTransferTimer.stop();
@@ -695,6 +712,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
         try {
             wm.writeObject(so);
         } catch (IOException e) {
+            wm.finish(e);
             soLogger.error("SATIN '" + s.ident
                 + "': got exception while sending" + " shared object", e);
             s.stats.soSerializationTimer.stop();
@@ -706,6 +724,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
         try {
             size = v.finish(wm);
         } catch (IOException e) {
+            wm.finish(e);
             soLogger.error("SATIN '" + s.ident
                 + "': got exception while sending" + " shared object", e);
             s.stats.soTransferTimer.stop();

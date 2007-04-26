@@ -34,11 +34,12 @@ final class AbortsCommunication implements Config {
             return;
         }
 
+        WriteMessage writeMessage = null;
         try {
             Victim v = s.victims.getVictim(r.getStealer());
             if (v == null) return; // node might have crashed
 
-            WriteMessage writeMessage = v.newMessage();
+            writeMessage = v.newMessage();
             writeMessage.writeByte(Protocol.ABORT);
             writeMessage.writeObject(r.getParentStamp());
             long cnt = v.finish(writeMessage);
@@ -50,6 +51,9 @@ final class AbortsCommunication implements Config {
                 s.stats.intraClusterBytes += cnt;
             }
         } catch (IOException e) {
+            if (writeMessage != null) {
+                writeMessage.finish(e);
+            }
             abortLogger.info("SATIN '" + s.ident
                 + "': Got Exception while sending abort message: " + e, e);
             // This should not be a real problem, it is just inefficient.

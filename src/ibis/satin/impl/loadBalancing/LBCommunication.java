@@ -74,16 +74,21 @@ final class LBCommunication implements Config, Protocol {
             }
         }
 
-        writeMessage.writeByte(opcode);
-        // Finish the message but try to keep the connection. If the
-        // steal attempt succeeds, we need to send an answer later on.
-        long cnt = v.finishKeepConnection(writeMessage);
-        if (s.comm.inDifferentCluster(v.getIdent())) {
-            s.stats.interClusterMessages++;
-            s.stats.interClusterBytes += cnt;
-        } else {
-            s.stats.intraClusterMessages++;
-            s.stats.intraClusterBytes += cnt;
+        try {
+            writeMessage.writeByte(opcode);
+            // Finish the message but try to keep the connection. If the
+            // steal attempt succeeds, we need to send an answer later on.
+            long cnt = v.finishKeepConnection(writeMessage);
+            if (s.comm.inDifferentCluster(v.getIdent())) {
+                s.stats.interClusterMessages++;
+                s.stats.interClusterBytes += cnt;
+            } else {
+                s.stats.intraClusterMessages++;
+                s.stats.intraClusterBytes += cnt;
+            }
+        } catch(IOException e) {
+            writeMessage.finish(e);
+            throw e;
         }
     }
 
@@ -179,8 +184,9 @@ final class LBCommunication implements Config, Protocol {
         }
 
         s.stats.returnRecordWriteTimer.start();
+        WriteMessage writeMessage = null;
         try {
-            WriteMessage writeMessage = v.newMessage();
+            writeMessage = v.newMessage();
             if (r.eek == null) {
                 writeMessage.writeByte(Protocol.JOB_RESULT_NORMAL);
                 writeMessage.writeObject(rr);
@@ -203,6 +209,9 @@ final class LBCommunication implements Config, Protocol {
                 s.stats.intraClusterBytes += cnt;
             }
         } catch (IOException e) {
+            if (writeMessage != null) {
+                writeMessage.finish(e);
+            }
             ftLogger.info("SATIN '" + s.ident
                 + "': Got Exception while sending result of stolen job", e);
         } finally {
@@ -388,8 +397,9 @@ final class LBCommunication implements Config, Protocol {
                 + "': sending FAILED_TABLE back to " + ident.ibisIdentifier());
         }
 
+        WriteMessage m = null;
         try {
-            WriteMessage m = v.newMessage();
+            m = v.newMessage();
             if (opcode == STEAL_REQUEST || opcode == BLOCKING_STEAL_REQUEST) {
                 m.writeByte(STEAL_REPLY_FAILED);
             } else if (opcode == ASYNC_STEAL_REQUEST) {
@@ -425,6 +435,9 @@ final class LBCommunication implements Config, Protocol {
             stealLogger.debug("SATIN '" + s.ident
                 + "': sending FAILED back to " + ident.ibisIdentifier() + " DONE");
         } catch (IOException e) {
+            if (m != null) {
+                m.finish(e);
+            }
             stealLogger.warn("SATIN '" + s.ident
                 + "': trying to send FAILURE back, but got exception: " + e, e);
         }
@@ -442,8 +455,9 @@ final class LBCommunication implements Config, Protocol {
         stealLogger.info("SATIN '" + s.ident + "': sending SUCCESS and job #"
             + result.getStamp() + " back to " + ident.ibisIdentifier());
 
+        WriteMessage m = null;
         try {
-            WriteMessage m = v.newMessage();
+            m = v.newMessage();
             if (opcode == STEAL_REQUEST || opcode == BLOCKING_STEAL_REQUEST) {
                 m.writeByte(STEAL_REPLY_SUCCESS);
             } else if (opcode == ASYNC_STEAL_REQUEST) {
@@ -484,6 +498,9 @@ final class LBCommunication implements Config, Protocol {
                 s.stats.intraClusterBytes += cnt;
             }
         } catch (IOException e) {
+            if (m != null) {
+                m.finish(e);
+            }
             stealLogger.warn("SATIN '" + s.ident
                 + "': trying to send a job back, but got exception: " + e, e);
         }
