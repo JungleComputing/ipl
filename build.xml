@@ -16,7 +16,7 @@
 
     <property name="ibis"        location="."/>
 
-    <property name="version" value="ibis"/>
+    <property name="version" value="ibis-2.0-pre-alpha"/>
 
     <target name="make-dirs">
 	<tstamp/>
