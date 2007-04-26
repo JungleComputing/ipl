@@ -106,18 +106,6 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis {
     }
 
     protected void checkIbisCapabilities(IbisCapabilities caps) {
-        int cnt = 0;
-        if (caps.hasCapability(IbisCapabilities.WORLDMODEL_OPEN)) {
-            cnt++;
-        }
-        if (caps.hasCapability(IbisCapabilities.WORLDMODEL_CLOSED)) {
-            cnt++;
-        }
-        if (cnt != 1) {
-            throw new IbisConfigurationException("IbisCapabilities should"
-                    + " either have worldmodel.open or worldmodel.closed");
-        }
-        cnt = 0;
 
         if (! caps.matchCapabilities(getCapabilities())) {
             throw new IbisConfigurationException("unmatched IbisCapabilities: "

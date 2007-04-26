@@ -15,30 +15,38 @@ import java.util.Properties;
  */
 public final class IbisCapabilities extends CapabilitySet {
 
-    /** Prefix for worldmodel capabilities. */
-    public final static String WORLDMODEL = "worldmodel";
-
     /** Prefix for registry capabilities. */
     final static String REGISTRY = "registry";
 
+    /** Prefix for worldmodel capabilities. */
+    public final static String WORLDMODEL = REGISTRY + ".worldmodel";
+    
     /**
-     * Boolean capability, set when the Ibises that can join the pool are
+     * Capability, set when the Ibises that can join the pool are
      * determined at the start of the run. This enables the methods
      * {@link Ibis#getPoolSize()} and {@link Ibis#waitForAll()}.
      */
-    public final static String WORLDMODEL_CLOSED = WORLDMODEL + ".closed";
+    public final static String REGISTRY_WORLDMODEL_CLOSED = WORLDMODEL + ".closed";
     
-    /**
-     * Boolean capability, does not really mean anything, except that it is
-     * the complement of WORLDMODEL_CLOSED.
-     */
-    public final static String WORLDMODEL_OPEN = WORLDMODEL + ".open";
+    /** Capability, indicating that signals are supported. */
+    public final static String REGISTRY_SIGNALS = REGISTRY + ".signals";
 
-    /** Boolean capability, indicating that registry event downcalls are supported. */
-    public final static String REGISTRY_DOWNCALLS = REGISTRY + ".downcalls";
-
-    /** Boolean capability, indicating that registry event handlers are supported. */
-    public final static String REGISTRY_UPCALLS = REGISTRY + ".upcalls";
+    /** Capability, indicating that elections are supported. */
+    public final static String REGISTRY_ELECTIONS = REGISTRY + ".elections";
+    
+    /** Capability indicating that membership administration is supported. */
+    public final static String REGISTRY_MEMBERSHIPMANAGEMENT = REGISTRY + ".membershipManagement";
+    
+    /** Capability indicating that joins/leaves are totally ordered. */
+    public final static String REGISTRY_MEMBERSHIPMANAGEMENT_ORDERED
+            = REGISTRY_MEMBERSHIPMANAGEMENT + ".ordered";
+    
+    /** Capability indicating that joins/leaves are reliable. */
+    public final static String REGISTRY_MEMBERSHIPMANAGEMENT_RELIABLE
+            = REGISTRY_MEMBERSHIPMANAGEMENT + ".reliable";
+    
+    /** Capability indicating an Ibis that can deal with malleability. */
+    public final static String IBIS_MALLEABLE = "ibis.malleable";
     
     /** 
      * Constructor for an IbisCapabilities object.

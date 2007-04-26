@@ -40,7 +40,7 @@ public final class TestIbis extends TestCase {
                 PortType.RECEIVE_EXPLICIT,
                 PortType.CONNECTION_ONE_TO_ONE);
 
-            ibis = IbisFactory.createIbis(new IbisCapabilities(IbisCapabilities.WORLDMODEL_OPEN),
+            ibis = IbisFactory.createIbis(new IbisCapabilities(IbisCapabilities.REGISTRY_ELECTIONS),
                     null, null, oneToOneType);
 
             registry = ibis.registry();

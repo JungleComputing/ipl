@@ -167,7 +167,8 @@ class Cell1D implements Config {
 
         try {
             IbisCapabilities s = new IbisCapabilities(
-                    IbisCapabilities.WORLDMODEL_CLOSED);
+                    IbisCapabilities.REGISTRY_WORLDMODEL_CLOSED,
+                    IbisCapabilities.REGISTRY_ELECTIONS);
 
             PortType t = new PortType(
                     PortType.CONNECTION_ONE_TO_ONE,

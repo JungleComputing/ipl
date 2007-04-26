@@ -24,7 +24,9 @@ class Latency {
         /* Parse commandline. */
 
         try {
-            IbisCapabilities sp = new IbisCapabilities(IbisCapabilities.WORLDMODEL_CLOSED);
+            IbisCapabilities sp = new IbisCapabilities(
+                    IbisCapabilities.REGISTRY_WORLDMODEL_CLOSED,
+                    IbisCapabilities.REGISTRY_ELECTIONS);
             PortType oneToMany = new PortType(
                     PortType.SERIALIZATION_OBJECT, PortType.COMMUNICATION_RELIABLE,
                     PortType.RECEIVE_AUTO_UPCALLS,  PortType.RECEIVE_EXPLICIT,

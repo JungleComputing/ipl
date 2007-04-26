@@ -18,8 +18,6 @@
 
     <property name="version" value="ibis"/>
 
-    <property name="jar" value="${ibis}/lib/${version}.jar"/>
-
     <target name="make-dirs">
 	<tstamp/>
 	<mkdir dir="${build}"/>
@@ -114,14 +112,6 @@
 	    <manifest>
 		<attribute name="Ibis-Implementation" value="ibis.ipl.impl.tcp.TcpIbis,ibis.ipl.impl.nio.NioIbis,ibis.ipl.impl.stacking.dummy.StackingIbis"/>
 		<attribute name="Ibisc-Component" value="ibis.util.io.rewriter.IOGenerator"/>
-	    </manifest>
-	</jar>
-	<jar	destfile="${jar}"
-	    basedir="${build}"
-	    includes="ibis/**/*.class **/capabilities">
-	    <manifest>
-		<attribute name="Ibisc-Component" value="ibis.util.io.rewriter.IOGenerator,ibis.gmi.frontend.Gmic,ibis.rmi.impl.frontend.Rmic,ibis.satin.impl.rewriter.Satinc"/>
-		<attribute name="Ibis-Implementation" value="ibis.ipl.impl.tcp.TcpIbis,ibis.ipl.impl.nio.NioIbis,ibis.ipl.impl.stacking.dummy.StackingIbis"/>
 	    </manifest>
 	</jar>
 	<jar destfile="lib/satin-api.jar"

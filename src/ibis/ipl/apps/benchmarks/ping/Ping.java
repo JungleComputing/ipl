@@ -511,7 +511,8 @@ public final class Ping {
             // Local initialization
 
             IbisCapabilities props = new IbisCapabilities(
-                    IbisCapabilities.WORLDMODEL_CLOSED);
+                    IbisCapabilities.REGISTRY_WORLDMODEL_CLOSED,
+                    IbisCapabilities.REGISTRY_ELECTIONS);
             
             PortType t = new PortType(
                     PortType.SERIALIZATION_BYTE,

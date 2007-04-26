@@ -853,7 +853,11 @@ class OpenCell1D implements OpenConfig {
         try {
             // The properties of Ibis; the union of the properties below.
             IbisCapabilities iprop = new IbisCapabilities(
-                    IbisCapabilities.WORLDMODEL_OPEN);
+                    IbisCapabilities.REGISTRY_ELECTIONS,
+                    IbisCapabilities.REGISTRY_MEMBERSHIPMANAGEMENT,
+                    IbisCapabilities.REGISTRY_MEMBERSHIPMANAGEMENT_ORDERED,
+                    IbisCapabilities.REGISTRY_MEMBERSHIPMANAGEMENT_RELIABLE
+                    );
 
             // The properties of the update port.
             PortType uprop = new PortType(PortType.SERIALIZATION_DATA,
@@ -863,8 +867,7 @@ class OpenCell1D implements OpenConfig {
             // The properties of the worksteal port.
             PortType sprop = new PortType(PortType.SERIALIZATION_DATA,
                     PortType.CONNECTION_ONE_TO_ONE,
-                    PortType.COMMUNICATION_RELIABLE, PortType.RECEIVE_AUTO_UPCALLS,
-                    IbisCapabilities.REGISTRY_UPCALLS);
+                    PortType.COMMUNICATION_RELIABLE, PortType.RECEIVE_AUTO_UPCALLS);
             ibis = IbisFactory.createIbis( iprop, null, rszHandler, uprop, sprop );
             myName = ibis.identifier();
 

@@ -41,7 +41,8 @@ final class MasterWorker {
         try {
 
             IbisCapabilities s = new IbisCapabilities(
-                    IbisCapabilities.WORLDMODEL_OPEN);
+                    IbisCapabilities.REGISTRY_ELECTIONS
+                    );
             
             manyToOneType = new PortType(
                     PortType.SERIALIZATION_OBJECT,

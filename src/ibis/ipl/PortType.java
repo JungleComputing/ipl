@@ -138,14 +138,6 @@ public final class PortType extends CapabilitySet {
     public final static String SERIALIZATION_OBJECT_SUN = 
         SERIALIZATION_OBJECT + ".sun";
     
-    
-    /**
-     * String capability, indicating an object replacer for object
-     * serialization.
-     */
-    public final static String SERIALIZATION_REPLACER
-        = SERIALIZATION + ".replacer";
-
     /** 
      * Constructor for a port type.
      * @param capabilities the capabilities of this port type.

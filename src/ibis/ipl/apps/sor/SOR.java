@@ -228,7 +228,8 @@ public class SOR {
 
     private void createIbis() throws IOException {
         IbisCapabilities reqprops = new IbisCapabilities(
-                IbisCapabilities.WORLDMODEL_CLOSED);
+                IbisCapabilities.REGISTRY_WORLDMODEL_CLOSED,
+                IbisCapabilities.REGISTRY_ELECTIONS);
         
         PortType portTypeReduce = new PortType(PortType.SERIALIZATION_DATA,
                 PortType.CONNECTION_MANY_TO_ONE, PortType.COMMUNICATION_RELIABLE,

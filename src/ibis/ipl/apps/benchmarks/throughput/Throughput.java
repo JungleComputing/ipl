@@ -104,7 +104,8 @@ class Throughput extends Thread {
     public void run() {
         try {
             IbisCapabilities s = new IbisCapabilities(
-                    IbisCapabilities.WORLDMODEL_OPEN);
+                    IbisCapabilities.REGISTRY_ELECTIONS
+                    );
             PortType t = new PortType(
                     PortType.SERIALIZATION_OBJECT,
                     PortType.CONNECTION_ONE_TO_ONE,

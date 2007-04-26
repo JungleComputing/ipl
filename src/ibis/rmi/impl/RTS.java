@@ -276,7 +276,8 @@ public final class RTS {
             }
 
             IbisCapabilities reqprops = new IbisCapabilities(
-                    IbisCapabilities.WORLDMODEL_OPEN);
+                    IbisCapabilities.REGISTRY_ELECTIONS
+                    );
 
             requestPortType = new PortType(
                     PortType.SERIALIZATION_OBJECT, PortType.CONNECTION_MANY_TO_ONE,

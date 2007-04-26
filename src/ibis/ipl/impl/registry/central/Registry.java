@@ -77,6 +77,8 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
     private final Server server;
 
     private final int serverConnectTimeout;
+    
+    private final IbisCapabilities capabilities;
 
     /**
      * Creates a Central Registry.
@@ -99,8 +101,9 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
         events = new ArrayList<Event>();
         elections = new HashMap<String, IbisIdentifier>();
         currentIbisses = new ArrayList<IbisIdentifier>();
+        capabilities = caps;
 
-        closedWorld = caps.hasCapability(IbisCapabilities.WORLDMODEL_CLOSED);
+        closedWorld = caps.hasCapability(IbisCapabilities.REGISTRY_WORLDMODEL_CLOSED);
         
         if (closedWorld) {
             try {
@@ -114,7 +117,7 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
             numInstances = -1;
         }
         
-        if (caps.hasCapability(IbisCapabilities.REGISTRY_DOWNCALLS)) {
+        if (caps.hasCapability(IbisCapabilities.REGISTRY_MEMBERSHIPMANAGEMENT)) {
             joinedIbises = new ArrayList<ibis.ipl.IbisIdentifier>();
             leftIbises = new ArrayList<ibis.ipl.IbisIdentifier>();
             diedIbises = new ArrayList<ibis.ipl.IbisIdentifier>();
@@ -401,6 +404,10 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
 
     public IbisIdentifier elect(String election) throws IOException {
         logger.debug("running election: \"" + election + "\"");
+        
+        if (!capabilities.hasCapability(IbisCapabilities.REGISTRY_ELECTIONS)) {
+            throw new IbisConfigurationException("No election support requested");
+        }
 
         synchronized (this) {
             if (elections.containsKey(election)) {
@@ -446,6 +453,10 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
             throws IOException {
         logger.debug("getting election result for: \"" + election + "\"");
 
+        if (!capabilities.hasCapability(IbisCapabilities.REGISTRY_ELECTIONS)) {
+            throw new IbisConfigurationException("No election support requested");
+        }
+        
         IbisIdentifier winner = elections.get(election);
 
         while (winner == null) {
@@ -530,6 +541,11 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
             throws IOException {
         logger.debug("telling " + ibisses.length + " ibisses a signal: "
                 + signal);
+        
+        if (!capabilities.hasCapability(IbisCapabilities.REGISTRY_SIGNALS)) {
+            throw new IbisConfigurationException("No signal support requested");
+        }
+        
         Connection connection = connectionFactory.connectToServer(
                 Protocol.OPCODE_SIGNAL, serverConnectTimeout);
 

@@ -18,10 +18,12 @@ import java.util.Properties;
 public class StackingIbis extends Ibis {
     private static int count = 0;
     static final IbisCapabilities ibisCapabilities = new IbisCapabilities(
-            IbisCapabilities.WORLDMODEL_OPEN,
-            IbisCapabilities.WORLDMODEL_CLOSED,
-            IbisCapabilities.REGISTRY_DOWNCALLS,
-            IbisCapabilities.REGISTRY_UPCALLS,
+            IbisCapabilities.REGISTRY_WORLDMODEL_CLOSED,
+            IbisCapabilities.REGISTRY_MEMBERSHIPMANAGEMENT,
+            IbisCapabilities.REGISTRY_MEMBERSHIPMANAGEMENT_ORDERED,
+            IbisCapabilities.REGISTRY_MEMBERSHIPMANAGEMENT_RELIABLE,
+            IbisCapabilities.REGISTRY_SIGNALS,
+            IbisCapabilities.REGISTRY_ELECTIONS,
             "nickname.dummy"
         );
 
@@ -31,7 +33,6 @@ public class StackingIbis extends Ibis {
             PortType.SERIALIZATION_OBJECT,
             PortType.SERIALIZATION_DATA,
             PortType.SERIALIZATION_BYTE,
-            PortType.SERIALIZATION_REPLACER + "=*",
             PortType.COMMUNICATION_FIFO,
             PortType.COMMUNICATION_NUMBERED,
             PortType.COMMUNICATION_RELIABLE,

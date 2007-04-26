@@ -160,11 +160,19 @@ public final class Communication implements Config, Protocol {
     }
 
     public IbisCapabilities createIbisProperties() {
-        IbisCapabilities ibisProperties = new IbisCapabilities(
-                CLOSED ? IbisCapabilities.WORLDMODEL_CLOSED : IbisCapabilities.WORLDMODEL_OPEN,
-                IbisCapabilities.REGISTRY_UPCALLS);
-
-        return ibisProperties;
+        if (CLOSED) {
+            return new IbisCapabilities(
+                    IbisCapabilities.REGISTRY_WORLDMODEL_CLOSED,
+                    IbisCapabilities.REGISTRY_MEMBERSHIPMANAGEMENT,
+                    IbisCapabilities.REGISTRY_MEMBERSHIPMANAGEMENT_ORDERED,
+                    IbisCapabilities.REGISTRY_MEMBERSHIPMANAGEMENT_RELIABLE,
+                    IbisCapabilities.REGISTRY_ELECTIONS);
+        }
+        return new IbisCapabilities(
+                IbisCapabilities.REGISTRY_MEMBERSHIPMANAGEMENT,
+                IbisCapabilities.REGISTRY_MEMBERSHIPMANAGEMENT_ORDERED,
+                IbisCapabilities.REGISTRY_MEMBERSHIPMANAGEMENT_RELIABLE,
+                IbisCapabilities.REGISTRY_ELECTIONS);
     }
 
     public PortType createSatinPortType() {
