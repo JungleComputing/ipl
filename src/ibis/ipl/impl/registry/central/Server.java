@@ -28,6 +28,10 @@ public final class Server extends ibis.ipl.impl.registry.Server {
     // the pool has ended
     private final boolean single;
 
+    private final boolean logStats;
+
+    private final boolean logEvents;
+
     private ServerConnectionHandler handler;
 
     private boolean stopped = false;
@@ -59,6 +63,12 @@ public final class Server extends ibis.ipl.impl.registry.Server {
         single = typedProperties
                 .booleanProperty(RegistryProperties.SERVER_SINGLE);
 
+        logStats = typedProperties
+                .booleanProperty(RegistryProperties.CENTRAL_LOG_STATISTICS);
+
+        logEvents = typedProperties
+                .booleanProperty(RegistryProperties.CENTRAL_LOG_EVENTS);
+
         pools = new HashMap<String, Pool>();
     }
 
@@ -72,9 +82,9 @@ public final class Server extends ibis.ipl.impl.registry.Server {
         Pool result = getPool(poolName);
 
         if (result == null || result.ended()) {
-            logger.debug("creating new pool: " + poolName);
+            logger.info("creating new pool: " + poolName);
             result = new Pool(poolName, connectionFactory, gossip,
-                    keepNodeState, pingInterval);
+                    keepNodeState, pingInterval, logEvents);
             pools.put(poolName, result);
         }
 
@@ -95,41 +105,47 @@ public final class Server extends ibis.ipl.impl.registry.Server {
         logger.info(handler.getStats(false));
     }
 
-    // force the server to check the pools _now_
-    synchronized void nudge() {
-        notifyAll();
-    }
-
     // pool cleanup thread
     public synchronized void run() {
         // start handling connections
         handler = new ServerConnectionHandler(this, connectionFactory);
 
         while (!stopped) {
-            StringBuilder message = new StringBuilder(handler.getStats(false));
-            Formatter formatter = new Formatter(message);
-            formatter.format("\nPOOL_NAME           POOL_SIZE   EVENT_TIME\n");
-
-            Pool[] poolArray = pools.values().toArray(new Pool[0]);
-            if (poolArray.length == 0) {
-                formatter.format("%-18s %10d   %10d\n", "-", 0, 0);
+            if (logStats) {
+                logger.info(handler.getStats(false));
             }
 
-            for (int i = 0; i < poolArray.length; i++) {
-                formatter.format("%-18s %10d   %10d\n", poolArray[i].getName(),
-                        poolArray[i].getSize(), poolArray[i].getEventTime());
+            Pool[] poolArray = pools.values().toArray(new Pool[0]);
 
-                if (poolArray[i].ended()) {
-                    pools.remove(poolArray[i].getName());
-                    if (single && pools.size() == 0) {
-                        stopServer();
-                        logger.info("server exiting");
-                        return;
+            if (poolArray.length > 0) {
+
+                StringBuilder message = new StringBuilder();
+
+                Formatter formatter = new Formatter(message);
+                formatter.format("list of pools:\n");
+                formatter
+                        .format("POOL_NAME           POOL_SIZE   EVENT_TIME\n");
+
+                for (int i = 0; i < poolArray.length; i++) {
+                    formatter.format("%-18s %10d   %10d\n", poolArray[i]
+                            .getName(), poolArray[i].getSize(), poolArray[i]
+                            .getEventTime());
+
+                    if (poolArray[i].ended()) {
+                        pools.remove(poolArray[i].getName());
+                        if (single && pools.size() == 0) {
+                            stopServer();
+                            logger.info("server exiting");
+                            return;
+                        }
                     }
+
+                }
+                if (logStats) {
+                    logger.info(message);
                 }
 
             }
-            logger.info(message);
 
             try {
                 wait(POOL_CLEANUP_TIMEOUT);

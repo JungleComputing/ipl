@@ -51,6 +51,8 @@ final class Pool implements Runnable {
 
     private final ConnectionFactory connectionFactory;
 
+    private final boolean logEvents;
+
     private int nextID;
 
     private long nextSequenceNr;
@@ -58,10 +60,11 @@ final class Pool implements Runnable {
     private boolean ended = false;
 
     Pool(String name, ConnectionFactory connectionFactory, boolean gossip,
-            boolean keepNodeState, long pingInterval) {
+            boolean keepNodeState, long pingInterval, boolean logEvents) {
         this.name = name;
         this.connectionFactory = connectionFactory;
         this.keepNodeState = keepNodeState;
+        this.logEvents = logEvents;
 
         nextID = 0;
         nextSequenceNr = 0;
@@ -78,17 +81,12 @@ final class Pool implements Runnable {
             // gossip randomly
             new PeriodicNodeContactor(this, true, true, GOSSIP_INTERVAL,
                     GOSSIP_THREADS);
-
-            logger.info("created new central/gossiping pool " + name);
-
         } else { // central
             // ping iteratively
             new PeriodicNodeContactor(this, false, false, pingInterval,
                     PING_THREADS);
 
             new EventPusher(this, PUSH_THREADS);
-
-            logger.info("created new centralized pool " + name);
         }
 
         ThreadPool.createNew(this, "pool management thread");
@@ -154,8 +152,10 @@ final class Pool implements Runnable {
 
         members.add(new Member(identifier));
 
-        logger.info(identifier + " joined pool \"" + name + "\" now "
-                + members.size() + " members");
+        if (logEvents) {
+            logger.info(identifier + " joined pool \"" + name + "\" now "
+                    + members.size() + " members");
+        }
 
         events.add(new Event(events.size(), Event.JOIN, identifier, null));
         notifyAll();
@@ -184,8 +184,11 @@ final class Pool implements Runnable {
             logger.error("unknown ibis " + identifier + " tried to leave");
             throw new Exception("ibis unknown: " + identifier);
         }
-        logger.info(identifier + " left pool \"" + name + "\" now "
-                + members.size() + " members");
+        if (logEvents) {
+
+            logger.info(identifier + " left pool \"" + name + "\" now "
+                    + members.size() + " members");
+        }
 
         events.add(new Event(events.size(), Event.LEAVE, identifier, null));
         notifyAll();
@@ -222,8 +225,11 @@ final class Pool implements Runnable {
             logger.warn(identifier + " dead, but not in pool (anymore)");
             return;
         }
-        logger.info(identifier + " left pool \"" + name + "\" now "
-                + members.size() + " members");
+        if (logEvents) {
+
+            logger.info(identifier + " left pool \"" + name + "\" now "
+                    + members.size() + " members");
+        }
 
         events.add(new Event(events.size(), Event.DIED, identifier, null));
         notifyAll();
@@ -281,8 +287,11 @@ final class Pool implements Runnable {
             winner = candidate;
             elections.put(election, winner);
 
-            logger.debug(winner + " won election \"" + election
-                    + "\" in pool \"" + name + "\"");
+            if (logEvents) {
+
+                logger.info(winner + " won election \"" + election
+                        + "\" in pool \"" + name + "\"");
+            }
 
             events.add(new Event(events.size(), Event.ELECT, winner, election));
             notifyAll();
@@ -425,7 +434,7 @@ final class Pool implements Runnable {
     private synchronized IbisIdentifier getSuspectMember() {
         while (true) {
 
-            //wait for the list to become non-empty
+            // wait for the list to become non-empty
             while (checkList.size() == 0 && !ended()) {
                 try {
                     wait();
@@ -434,14 +443,14 @@ final class Pool implements Runnable {
                 }
             }
 
-            //return if this pool ended anyway
+            // return if this pool ended anyway
             if (ended()) {
                 return null;
             }
 
             IbisIdentifier result = checkList.remove(0);
 
-            //return if still in pool
+            // return if still in pool
             if (members.contains(result.myId)) {
                 return result;
             }

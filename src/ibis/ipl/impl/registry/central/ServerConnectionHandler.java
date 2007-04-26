@@ -82,12 +82,6 @@ final class ServerConnectionHandler implements Runnable {
             return;
         }
 
-        if (pool.ended()) {
-            // wake up the server so it can check the pools (and remove this
-            // one)
-            server.nudge();
-        }
-
         connection.sendOKReply();
     }
 

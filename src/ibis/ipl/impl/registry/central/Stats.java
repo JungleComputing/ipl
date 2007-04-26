@@ -43,7 +43,7 @@ final class Stats {
         StringBuilder message = new StringBuilder();
         Formatter formatter = new Formatter(message);
 
-        formatter.format("registry server statistics at %.2f seconds\n",
+        formatter.format("registry server statistics at %.2f seconds:\n",
                 (System.currentTimeMillis() - start) / 1000.0);
         formatter.format("TYPE          COUNT  TOTAL_TIME   AVG_TIME\n");
         formatter.format("                          (sec)       (ms)\n");

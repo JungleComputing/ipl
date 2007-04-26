@@ -5,7 +5,7 @@ import java.util.Properties;
 import java.util.TreeMap;
 
 public class RegistryProperties {
-    
+
     public static final int DEFAULT_SERVER_PORT = 9826;
 
     public static final String PREFIX = "ibis.registry.";
@@ -27,11 +27,11 @@ public class RegistryProperties {
     public static final String SERVER_IMPL = SERVER_PREFIX + "impl";
 
     public static final String SERVER_SINGLE = SERVER_PREFIX + "single";
-    
+
     // address of smart sockets hub
     public static final String SERVER_HUB_ADDRESS = SERVER_PREFIX
             + "hubAddress";
-  
+
     // "central" registry specific properties
 
     public static final String CENTRAL_PREFIX = PREFIX + "central.";
@@ -43,13 +43,19 @@ public class RegistryProperties {
 
     public static final String CENTRAL_KEEP_NODE_STATE = CENTRAL_PREFIX
             + "keepNodeState";
-    
+
     public static final String CENTRAL_PING_INTERVAL = CENTRAL_PREFIX
-    + "pingInterval";
-    
+            + "pingInterval";
+
     public static final String CENTRAL_SERVER_CONNECT_TIMEOUT = CENTRAL_PREFIX
-    + "serverConnectTimeout";
-    
+            + "serverConnectTimeout";
+
+    public static final String CENTRAL_LOG_EVENTS = CENTRAL_PREFIX
+            + "logEvents";
+
+    public static final String CENTRAL_LOG_STATISTICS = CENTRAL_PREFIX
+            + "logStatistics";
+
     // list of decriptions and defaults
     private static final String[][] propertiesList = new String[][] {
             { IMPL, "ibis.ipl.impl.registry.central.Registry",
@@ -76,12 +82,18 @@ public class RegistryProperties {
 
             { CENTRAL_KEEP_NODE_STATE, "false",
                     "Boolean: do we keep track of which events nodes have" },
-                    
+
             { CENTRAL_PING_INTERVAL, "300000",
                     "Long: how often do we check if a member of a pool is still alive" },
-                    
+
             { CENTRAL_SERVER_CONNECT_TIMEOUT, "120",
-                "int(seconds): how long do we attempt to connect to the server" },
+                    "int(seconds): how long do we attempt to connect to the server" },
+
+            { CENTRAL_LOG_EVENTS, "false",
+                    "Boolean: Output all events to the log" },
+
+            { CENTRAL_LOG_STATISTICS, "false",
+                    "Boolean: Periodically output statistics to the log" },
 
     };
 

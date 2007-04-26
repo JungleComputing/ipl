@@ -16,12 +16,13 @@ import smartsockets.hub.Hub;
 public abstract class Server extends Thread {
 
     // NOT the name of this class but the entire registry package instead
-    private static final Logger logger = Logger.getLogger("ibis.ipl.impl.registry");
+    private static final Logger logger = Logger
+            .getLogger("ibis.ipl.impl.registry");
 
     private static void printUsage(PrintStream stream) {
-        stream.println("Start a registry server for Ibis.");
+        stream.println("Start a server for Ibis.");
         stream.println();
-        stream.println("USAGE: ibis-registry-server [OPTIONS]");
+        stream.println("USAGE: ibis-server [OPTIONS]");
         stream.println();
 
         stream.println("--port PORT\t\tBase port used for the server.");
@@ -38,12 +39,15 @@ public abstract class Server extends Thread {
         stream.println("--pool-info\t\tAlso start a PoolInfo Server on PORT+2");
         stream.println();
 
-        stream.println("PROPERTY=VALUE\t\tSet a property, as if it was set in a configuration");
+        stream
+                .println("PROPERTY=VALUE\t\tSet a property, as if it was set in a configuration");
         stream.println("\t\t\tfile or as a System property.");
         stream.println();
-
+        stream
+                .println("--events\t\t\tPrint events such as new pools/joins/leaves/etc");
+        stream.println("--stats\t\t\tPrint statistics once in a while");
         stream.println("--warn\t\t\tOnly print warnings and errors, "
-                + "no status messages.");
+                + "no status messages or events or statistics");
         stream.println("--debug\t\t\tPrint debug output.");
         stream.println("--help | -h | /?\tThis message.");
     }
@@ -97,6 +101,12 @@ public abstract class Server extends Thread {
                 hubAddresses = args[i].split(",");
             } else if (args[i].equalsIgnoreCase("--pool-info")) {
                 startPoolInfo = true;
+            } else if (args[i].equalsIgnoreCase("--events")) {
+                properties.setProperty(RegistryProperties.CENTRAL_LOG_EVENTS,
+                        "true");
+            } else if (args[i].equalsIgnoreCase("--stats")) {
+                properties.setProperty(
+                        RegistryProperties.CENTRAL_LOG_STATISTICS, "true");
             } else if (args[i].equalsIgnoreCase("--warn")) {
                 logLevel = Level.WARN;
             } else if (args[i].equalsIgnoreCase("--debug")) {
