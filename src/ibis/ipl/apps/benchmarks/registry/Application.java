@@ -55,7 +55,7 @@ final class Application implements Runnable, RegistryEventHandler {
 
     public void run() {
         try {
-            IbisCapabilities s = new IbisCapabilities(IbisCapabilities.REGISTRY_MEMBERSHIPMANAGEMENT);
+            IbisCapabilities s = new IbisCapabilities(IbisCapabilities.MEMBERSHIP);
             PortType p = new PortType(PortType.CONNECTION_ONE_TO_ONE, PortType.SERIALIZATION_DATA);
 
             logger.debug("creating ibis");

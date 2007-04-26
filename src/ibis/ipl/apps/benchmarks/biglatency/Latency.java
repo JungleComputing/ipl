@@ -184,7 +184,7 @@ class Latency {
 
         try {
             IbisCapabilities p = new IbisCapabilities(
-                    IbisCapabilities.REGISTRY_ELECTIONS
+                    IbisCapabilities.ELECTIONS
             );
             
             PortType t = new PortType(

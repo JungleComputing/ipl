@@ -234,9 +234,9 @@ public class MPJ {
             regEvtHandler = new RegEvtHandler();
 
             IbisCapabilities s = new IbisCapabilities(
-                IbisCapabilities.REGISTRY_WORLDMODEL_CLOSED,
-                IbisCapabilities.REGISTRY_MEMBERSHIPMANAGEMENT,
-                IbisCapabilities.REGISTRY_ELECTIONS);
+                IbisCapabilities.CLOSEDWORLD,
+                IbisCapabilities.MEMBERSHIP,
+                IbisCapabilities.ELECTIONS);
 
             porttype = new PortType(
                     PortType.SERIALIZATION_OBJECT, PortType.COMMUNICATION_RELIABLE, PortType.RECEIVE_EXPLICIT,

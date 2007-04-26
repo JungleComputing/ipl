@@ -26,27 +26,27 @@ public final class IbisCapabilities extends CapabilitySet {
      * determined at the start of the run. This enables the methods
      * {@link Ibis#getPoolSize()} and {@link Ibis#waitForAll()}.
      */
-    public final static String REGISTRY_WORLDMODEL_CLOSED = WORLDMODEL + ".closed";
+    public final static String CLOSEDWORLD = WORLDMODEL + ".closed";
     
     /** Capability, indicating that signals are supported. */
-    public final static String REGISTRY_SIGNALS = REGISTRY + ".signals";
+    public final static String SIGNALS = REGISTRY + ".signals";
 
     /** Capability, indicating that elections are supported. */
-    public final static String REGISTRY_ELECTIONS = REGISTRY + ".elections";
+    public final static String ELECTIONS = REGISTRY + ".elections";
     
     /** Capability indicating that membership administration is supported. */
-    public final static String REGISTRY_MEMBERSHIPMANAGEMENT = REGISTRY + ".membershipManagement";
+    public final static String MEMBERSHIP = REGISTRY + ".membershipManagement";
     
     /** Capability indicating that joins/leaves are totally ordered. */
-    public final static String REGISTRY_MEMBERSHIPMANAGEMENT_ORDERED
-            = REGISTRY_MEMBERSHIPMANAGEMENT + ".ordered";
+    public final static String MEMBERSHIP_ORDERED
+            = MEMBERSHIP + ".ordered";
     
     /** Capability indicating that joins/leaves are reliable. */
-    public final static String REGISTRY_MEMBERSHIPMANAGEMENT_RELIABLE
-            = REGISTRY_MEMBERSHIPMANAGEMENT + ".reliable";
+    public final static String MEMBERSHIP_RELIABLE
+            = MEMBERSHIP + ".reliable";
     
     /** Capability indicating an Ibis that can deal with malleability. */
-    public final static String IBIS_MALLEABLE = "ibis.malleable";
+    public final static String MALLEABLE = "ibis.malleable";
     
     /** 
      * Constructor for an IbisCapabilities object.

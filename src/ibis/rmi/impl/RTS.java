@@ -276,7 +276,7 @@ public final class RTS {
             }
 
             IbisCapabilities reqprops = new IbisCapabilities(
-                    IbisCapabilities.REGISTRY_ELECTIONS
+                    IbisCapabilities.ELECTIONS
                     );
 
             requestPortType = new PortType(

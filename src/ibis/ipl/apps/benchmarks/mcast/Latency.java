@@ -25,8 +25,8 @@ class Latency {
 
         try {
             IbisCapabilities sp = new IbisCapabilities(
-                    IbisCapabilities.REGISTRY_WORLDMODEL_CLOSED,
-                    IbisCapabilities.REGISTRY_ELECTIONS);
+                    IbisCapabilities.CLOSEDWORLD,
+                    IbisCapabilities.ELECTIONS);
             PortType oneToMany = new PortType(
                     PortType.SERIALIZATION_OBJECT, PortType.COMMUNICATION_RELIABLE,
                     PortType.RECEIVE_AUTO_UPCALLS,  PortType.RECEIVE_EXPLICIT,

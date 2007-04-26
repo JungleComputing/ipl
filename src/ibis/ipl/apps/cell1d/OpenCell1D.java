@@ -853,10 +853,10 @@ class OpenCell1D implements OpenConfig {
         try {
             // The properties of Ibis; the union of the properties below.
             IbisCapabilities iprop = new IbisCapabilities(
-                    IbisCapabilities.REGISTRY_ELECTIONS,
-                    IbisCapabilities.REGISTRY_MEMBERSHIPMANAGEMENT,
-                    IbisCapabilities.REGISTRY_MEMBERSHIPMANAGEMENT_ORDERED,
-                    IbisCapabilities.REGISTRY_MEMBERSHIPMANAGEMENT_RELIABLE
+                    IbisCapabilities.ELECTIONS,
+                    IbisCapabilities.MEMBERSHIP,
+                    IbisCapabilities.MEMBERSHIP_ORDERED,
+                    IbisCapabilities.MEMBERSHIP_RELIABLE
                     );
 
             // The properties of the update port.

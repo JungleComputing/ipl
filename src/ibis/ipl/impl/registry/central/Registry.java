@@ -103,7 +103,7 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
         currentIbisses = new ArrayList<IbisIdentifier>();
         capabilities = caps;
 
-        closedWorld = caps.hasCapability(IbisCapabilities.REGISTRY_WORLDMODEL_CLOSED);
+        closedWorld = caps.hasCapability(IbisCapabilities.CLOSEDWORLD);
         
         if (closedWorld) {
             try {
@@ -117,7 +117,7 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
             numInstances = -1;
         }
         
-        if (caps.hasCapability(IbisCapabilities.REGISTRY_MEMBERSHIPMANAGEMENT)) {
+        if (caps.hasCapability(IbisCapabilities.MEMBERSHIP)) {
             joinedIbises = new ArrayList<ibis.ipl.IbisIdentifier>();
             leftIbises = new ArrayList<ibis.ipl.IbisIdentifier>();
             diedIbises = new ArrayList<ibis.ipl.IbisIdentifier>();
@@ -405,7 +405,7 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
     public IbisIdentifier elect(String election) throws IOException {
         logger.debug("running election: \"" + election + "\"");
         
-        if (!capabilities.hasCapability(IbisCapabilities.REGISTRY_ELECTIONS)) {
+        if (!capabilities.hasCapability(IbisCapabilities.ELECTIONS)) {
             throw new IbisConfigurationException("No election support requested");
         }
 
@@ -453,7 +453,7 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
             throws IOException {
         logger.debug("getting election result for: \"" + election + "\"");
 
-        if (!capabilities.hasCapability(IbisCapabilities.REGISTRY_ELECTIONS)) {
+        if (!capabilities.hasCapability(IbisCapabilities.ELECTIONS)) {
             throw new IbisConfigurationException("No election support requested");
         }
         
@@ -542,7 +542,7 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
         logger.debug("telling " + ibisses.length + " ibisses a signal: "
                 + signal);
         
-        if (!capabilities.hasCapability(IbisCapabilities.REGISTRY_SIGNALS)) {
+        if (!capabilities.hasCapability(IbisCapabilities.SIGNALS)) {
             throw new IbisConfigurationException("No signal support requested");
         }
         

@@ -63,10 +63,10 @@ public final class IbisFactory {
 
         if (registryEventHandler != null
                 && !requiredCapabilities
-                        .hasCapability(IbisCapabilities.REGISTRY_MEMBERSHIPMANAGEMENT)) {
+                        .hasCapability(IbisCapabilities.MEMBERSHIP)) {
             throw new IbisConfigurationException(
                     "RegistryEventHandler specified but no "
-                            + IbisCapabilities.REGISTRY_MEMBERSHIPMANAGEMENT
+                            + IbisCapabilities.MEMBERSHIP
                             + " capability requested");
         }
 

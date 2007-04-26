@@ -37,13 +37,13 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
             = Logger.getLogger("ibis.ipl.impl.tcp.TcpIbis");
 
     static final IbisCapabilities ibisCapabilities = new IbisCapabilities(
-        IbisCapabilities.REGISTRY_WORLDMODEL_CLOSED,
-        IbisCapabilities.REGISTRY_MEMBERSHIPMANAGEMENT,
-        IbisCapabilities.REGISTRY_MEMBERSHIPMANAGEMENT_ORDERED,
-        IbisCapabilities.REGISTRY_MEMBERSHIPMANAGEMENT_RELIABLE,
-        IbisCapabilities.REGISTRY_SIGNALS,
-        IbisCapabilities.REGISTRY_ELECTIONS,
-        IbisCapabilities.IBIS_MALLEABLE,
+        IbisCapabilities.CLOSEDWORLD,
+        IbisCapabilities.MEMBERSHIP,
+        IbisCapabilities.MEMBERSHIP_ORDERED,
+        IbisCapabilities.MEMBERSHIP_RELIABLE,
+        IbisCapabilities.SIGNALS,
+        IbisCapabilities.ELECTIONS,
+        IbisCapabilities.MALLEABLE,
         "nickname.tcp"
     );
 
