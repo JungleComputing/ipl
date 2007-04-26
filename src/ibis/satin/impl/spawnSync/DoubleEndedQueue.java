@@ -65,9 +65,6 @@ public final class DoubleEndedQueue implements Config {
     }
 
     public void addToHead(InvocationRecord o) {
-        if (ASSERTS && length > 10000) {
-            spawnLogger.warn("LARGE Q");
-        }
         synchronized (satin) {
             if (length == 0) {
                 head = tail = o;
@@ -81,9 +78,6 @@ public final class DoubleEndedQueue implements Config {
     }
 
     public void addToTail(InvocationRecord o) {
-        if (ASSERTS && length > 10000) {
-            spawnLogger.warn("LARGE Q");
-        }
         synchronized (satin) {
             if (length == 0) {
                 head = tail = o;
