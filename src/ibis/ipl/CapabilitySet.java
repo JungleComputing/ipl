@@ -24,7 +24,7 @@ import java.util.Properties;
  * capabilities, but Ibis implementations may add new ones.
  * A <code>CapabilitySet</code> object is immutable.
  */
-class CapabilitySet {
+public class CapabilitySet {
 
     private transient byte[] codedForm;
 
