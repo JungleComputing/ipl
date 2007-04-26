@@ -3,6 +3,7 @@
 package ibis.satin.impl.loadBalancing;
 
 import ibis.ipl.IbisIdentifier;
+import ibis.ipl.Location;
 import ibis.ipl.SendPort;
 import ibis.satin.impl.Config;
 import ibis.satin.impl.Satin;
@@ -23,7 +24,7 @@ public final class VictimTable implements Config {
 
     private Cluster thisCluster;
 
-    private HashMap<String, Cluster> clustersHash = new HashMap<String, Cluster>();
+    private HashMap<Location, Cluster> clustersHash = new HashMap<Location, Cluster>();
 
     private HashMap<IbisIdentifier, Victim> ibisHash = new HashMap<IbisIdentifier, Victim>();
 
@@ -31,9 +32,9 @@ public final class VictimTable implements Config {
 
     public VictimTable(Satin s) {
         this.satin = s;
-        thisCluster = new Cluster(s.ident.location().getCluster());
+        thisCluster = new Cluster(s.ident.location().getParent());
         clusters.add(thisCluster);
-        clustersHash.put(s.ident.location().getCluster(), thisCluster);
+        clustersHash.put(s.ident.location().getParent(), thisCluster);
     }
 
     public void add(Victim v) {
@@ -47,11 +48,11 @@ public final class VictimTable implements Config {
         victims.add(v);
         ibisHash.put(v.getIdent(), v);
 
-        Cluster c = clustersHash.get(v.getIdent().location().getCluster());
+        Cluster c = clustersHash.get(v.getIdent().location().getParent());
         if (c == null) { // new cluster
             c = new Cluster(v); // v is automagically added to this cluster
             clusters.add(c);
-            clustersHash.put(v.getIdent().location().getCluster(), c);
+            clustersHash.put(v.getIdent().location().getParent(), c);
         } else {
             c.add(v);
         }
@@ -75,7 +76,7 @@ public final class VictimTable implements Config {
 
         Victim v = victims.remove(i);
 
-        Cluster c = clustersHash.get(v.getIdent().location().getCluster());
+        Cluster c = clustersHash.get(v.getIdent().location().getParent());
         c.remove(v);
         ibisHash.remove(v.getIdent());
 

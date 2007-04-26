@@ -50,7 +50,7 @@ public final class NullRegistry extends ibis.ipl.impl.Registry {
         // FIXME: use real UUID generator (from smartsockets?)
         UUID id = UUID.randomUUID();
 
-        Location location = Location.defaultLocation();
+        Location location = Location.defaultLocation(props);
 
         String pool = props.getProperty(RegistryProperties.POOL);
 

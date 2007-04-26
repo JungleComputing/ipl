@@ -1,6 +1,8 @@
-/* $Id :$ */
+/* $Id:$ */
 
 package ibis.ipl.impl;
+
+import ibis.util.TypedProperties;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -12,19 +14,19 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.Properties;
 
 /**
  * Represents a location on which an Ibis instance runs. This is the
  * data type returned by {@link IbisIdentifier#location()}.
- * It represents a number of levels, for instance domain, hostname,
- * in that order, t.i., from coarse to detailed.
+ * It represents a number of levels, for instance hostname, domain,
+ * in that order, t.i., from detailed to coarse.
  */
 public final class Location implements ibis.ipl.Location {
+    
+    private static final Location universe = new Location("universe");
 
-    /** 
-     * Generated
-     */
-    private static final long serialVersionUID = -4383273888756018079L;
+    private static final long serialVersionUID = 1L;
 
     /** Separates level names in a string representation of the location. */
     public static final String SEPARATOR = "@";
@@ -34,6 +36,8 @@ public final class Location implements ibis.ipl.Location {
 
     /** Coded form. */
     private final transient byte[] codedForm;
+    
+    private transient Location parent = null;
 
     /**
      * Constructs a location object from the specified level names.
@@ -133,13 +137,11 @@ public final class Location implements ibis.ipl.Location {
     }
 
     public int numberOfMatchingLevels(ibis.ipl.Location o) {
-        int n = o.numberOfLevels();
-        for (int i = 0; i < levelNames.length; i++) {
-            if (i >= n) {
-                return i;
-            }
-            if (! levelNames[i].equals(o.getLevel(i))) {
-                return i;
+        int n1 = o.numberOfLevels();
+        for (int i = levelNames.length-1; i >= 0; i--) {
+            n1--;
+            if (n1 < 0 || ! levelNames[i].equals(o.getLevel(n1))) {
+                return levelNames.length-1-i;
             }
         }
         return levelNames.length;
@@ -164,37 +166,28 @@ public final class Location implements ibis.ipl.Location {
         return retval;
     }
 
-    public String getCluster() {
-        String retval = "";
-        int n = levelNames.length - 1;
-        for (int i = 0; i < n; i++) {
-            if (i != 0) {
-                retval += SEPARATOR;
-            }
-            retval += levelNames[i];
-        }
-        return retval;
-    }
-
     /**
      * Method to retreive a default location, consisting of the domain and
      * hostname of this machine.
-     * 
+     * @param props properties.
      * @return the default location of this machine.
      */
-    public static Location defaultLocation() {
+    public static Location defaultLocation(Properties props) {
+        TypedProperties p = new TypedProperties(props);
+        String s = p.getProperty("ibis.location");
+        if (s != null) {
+            return new Location(s.split("@"));
+        }
         try {
             InetAddress a = InetAddress.getLocalHost();
-            String s = a.getCanonicalHostName();
-            // What if a textual representation of an IP address is returned
-            // here ???
-            int index = s.lastIndexOf(".");
-            if (index < 0) {
-                return new Location(new String[] { s });
+            s = a.getCanonicalHostName();
+            if (p.booleanProperty("ibis.location.automatic")) {
+                if (s.length() > 0 && Character.isJavaIdentifierStart(s.charAt(0))) {
+                    return new Location(s.split("\\."));
+                }
             }
-            return new Location(new String[] {
-                s.substring(0, index), s.substring(index+1)});
-        } catch(IOException e) {
+            return new Location(s);
+         } catch(IOException e) {
             return new Location("Unknown location");
         }
     }
@@ -212,19 +205,36 @@ public final class Location implements ibis.ipl.Location {
 
     public int compareTo(ibis.ipl.Location o) {
         int n = o.numberOfLevels();
-        for (int i = 0; i < levelNames.length; i++) {
-            if (i >= n) {
+        for (int i = levelNames.length-1; i >= 0; i--) {
+            n--;
+            if (n < 0) {
                 return 1;
             }
-            int cmp = levelNames[i].compareTo(o.getLevel(i));
+
+            int cmp = levelNames[i].compareTo(o.getLevel(n));
             if (cmp != 0) {
                 return cmp;
             }
         }
-        if (n == levelNames.length) {
+        if (n == 0) {
             return 0;
         }
         return -1;
+    }
+    
+    public ibis.ipl.Location getParent() {
+        if (parent == null) {            
+            if (levelNames.length <= 1) {
+                parent = universe;
+            } else {
+                String[] names = new String[levelNames.length-1];
+                for (int i = 1; i < levelNames.length; i++) {
+                    names[i-1] = levelNames[i];
+                }
+                parent = new Location(names);
+            }
+        }
+        return parent;
     }
 
     public Iterator<String> iterator() {
@@ -232,15 +242,15 @@ public final class Location implements ibis.ipl.Location {
     }
 
     private class Iter implements Iterator<String> {
-        int index = 0;
+        int index = levelNames.length;
 
         public boolean hasNext() {
-            return index < levelNames.length;
+            return index > 0;
         }
 
         public String next() {
             if (hasNext()) {
-                return levelNames[index++];
+                return levelNames[--index];
             }
             throw new NoSuchElementException("Iterator exhausted");
         }

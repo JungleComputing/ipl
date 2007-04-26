@@ -44,13 +44,13 @@ final class FTCommunication implements Config, ReceivePortConnectUpcall,
             Registry r = s.comm.ibis.registry();
             s.ft.clusterCoordinatorIdent =
                     r.elect("satin "
-                            + s.comm.ibis.identifier().location().getCluster()
+                            + s.comm.ibis.identifier().location().getParent().toString()
                             + " cluster coordinator");
             if (s.ft.clusterCoordinatorIdent.equals(s.comm.ibis.identifier())) {
                 /* I am the cluster coordinator */
                 s.clusterCoordinator = true;
                 ftLogger.info("cluster coordinator for cluster "
-                        + s.comm.ibis.identifier().location().getCluster()
+                        + s.comm.ibis.identifier().location().getParent().toString()
                         + " is " + s.ft.clusterCoordinatorIdent);
             }
         } catch (Exception e) {

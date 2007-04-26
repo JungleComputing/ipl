@@ -5,8 +5,8 @@ package ibis.ipl;
 /**
  * Represents a location on which an Ibis instance runs. This is the
  * data type returned by {@link IbisIdentifier#location()}.
- * It represents a number of levels, for instance domain, hostname,
- * in that order, t.i., from coarse to detailed.
+ * It represents a number of levels, for instance hostname, domain,
+ * in that order, t.i., from detailed to coarse.
  * Should be comparable with <code>equals()</code>, so implementations
  * probably redefine <code>hashCode()</code> and <code>equals()</code>.
  */
@@ -42,9 +42,11 @@ public interface Location extends java.io.Serializable, Comparable<Location>,
     public int numberOfMatchingLevels(Location location);
 
     /**
-     * Returns something that could represent a cluster name. This is a
-     * concatenation of all location level names but the last.
-     * @return the cluster.
+     * Returns the parent location of this location. This is a location
+     * object that has the most detailed level stripped of.
+     * If the object one level (or less), a location with 0 levels
+     * is returned.
+     * @return the parent location.
      */
-    public String getCluster();
+    public Location getParent();
 }

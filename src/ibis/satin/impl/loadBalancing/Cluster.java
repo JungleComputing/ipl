@@ -2,20 +2,21 @@
 
 package ibis.satin.impl.loadBalancing;
 
+import ibis.ipl.Location;
 import java.util.Vector;
 
 final class Cluster {
-    private String name; //all references to a cluster's name are the same
+    private Location name; //all references to a cluster's name are the same
 
     private Vector<Victim> victims;
 
-    protected Cluster(String name) {
+    protected Cluster(Location name) {
         this.name = name;
         victims = new Vector<Victim>();
     }
 
     protected Cluster(Victim v) {
-        this(v.getIdent().location().getCluster());
+        this(v.getIdent().location().getParent());
         victims.add(v);
     }
 

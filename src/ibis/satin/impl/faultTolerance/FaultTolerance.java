@@ -4,6 +4,7 @@
 package ibis.satin.impl.faultTolerance;
 
 import ibis.ipl.IbisIdentifier;
+import ibis.ipl.Location;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.RegistryEventHandler;
@@ -260,10 +261,10 @@ public final class FaultTolerance implements Config {
         }
     }
 
-    public void deleteCluster(String clusterName) {
-        ftLogger.info("SATIN '" + s.ident + "': delete cluster " + clusterName);
+    public void deleteCluster(Location cluster) {
+        ftLogger.info("SATIN '" + s.ident + "': delete cluster " + cluster);
 
-        if (s.ident.location().getCluster().equals(clusterName)) {
+        if (s.ident.location().getParent().equals(cluster)) {
             gotDeleteCluster = true;
         }
     }

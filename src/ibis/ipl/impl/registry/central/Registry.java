@@ -179,7 +179,7 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
                 .booleanProperty(RegistryProperties.CENTRAL_KEEP_NODE_STATE);
         long pingInterval = properties.getLongProperty(RegistryProperties.CENTRAL_PING_INTERVAL);
 
-        Location location = Location.defaultLocation();
+        Location location = Location.defaultLocation(props);
 
         // join at server, also sets identifier and adds a number of ibisses
         // to the "current" ibis list
