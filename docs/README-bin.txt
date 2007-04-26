@@ -1,5 +1,10 @@
 Ibis README
 
+NOTE:
+This is a very premature release of Ibis 2.0. The code is sort of coherent,
+but documentation is lacking or not up-to-date. You are really on your own
+with this release.
+
 Ibis is an open source Java grid software project of the Computer Systems
 group of the Computer Science department of the Faculty of
 Sciences at the Vrije Universiteit, Amsterdam, The Netherlands.
@@ -42,9 +47,7 @@ compile and run your Ibis application.
 The javadoc of the API is available in "docs/api/index.html".
 
 Ibis has its own web-site: http://www.cs.vu.nl/ibis/.
-There, you can find more Ibis documentation, papers, application sources,
-including a specific version of the applications for Ibis 1.4.
-See http://www.cs.vu.nl/ibis/downloads.html.
+There, you can find more Ibis documentation, papers, application sources.
 
 The latest Ibis source repository tree is accessible through anonymous SVN
 at "https://gforge.cs.vu.nl/svn/ibis/ibis/trunk". Likewise, the latest example
