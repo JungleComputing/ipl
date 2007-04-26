@@ -239,7 +239,7 @@
 
 	<zip destfile="${version}.zip">
 	    <zipfileset dir="." prefix="${version}"
-		includes="buildfiles/**,docs/**,grun/**,lib/**,notices/**,
+		includes="build-files/**,docs/**,grun/**,lib/**,notices/**,
 		BUGS.txt,LICENSE.txt,ibis-src.zip"
 		excludes="docs/src/**,notices/OmniSourceLicense.html,
 		docs/build.xml,docs/README-bin.txt"
