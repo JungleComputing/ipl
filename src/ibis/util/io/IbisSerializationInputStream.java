@@ -979,19 +979,22 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
      *
      * @param ref		object with a final field
      * @param fieldname		name of the field
+     * @param classname         the name of the class
      * @exception IOException	is thrown when an IO error occurs.
      */
-    public void readFieldDouble(Object ref, String fieldname)
+    public void readFieldDouble(Object ref, String fieldname, String classname)
             throws IOException {
         double d = readDouble();
         if (unsafe != null) {
-            Class cl = ref.getClass();
             try {
+                Class cl = getClassFromName(classname);
                 Field f = cl.getDeclaredField(fieldname);
                 long key = unsafe.objectFieldOffset(f);
                 unsafe.putDouble(ref, key, d);
                 return;
             } catch (Exception e) {
+                System.out.println("Oops, got exception");
+                e.printStackTrace();
                 // throw new InternalError("No such field " + fieldname
                 //         + " in " cl.getName());
             }
@@ -1000,13 +1003,14 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
     }
 
     /**
-     * See {@link #readFieldDouble(Object, String)} for a description.
+     * See {@link #readFieldDouble(Object, String, String)} for a description.
      */
-    public void readFieldLong(Object ref, String fieldname) throws IOException {
+    public void readFieldLong(Object ref, String fieldname, String classname)
+            throws IOException {
         long d = readLong();
         if (unsafe != null) {
-            Class cl = ref.getClass();
             try {
+                Class cl = getClassFromName(classname);
                 Field f = cl.getDeclaredField(fieldname);
                 long key = unsafe.objectFieldOffset(f);
                 unsafe.putLong(ref, key, d);
@@ -1022,12 +1026,12 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
     /**
      * See {@link #readFieldDouble(Object, String)} for a description.
      */
-    public void readFieldFloat(Object ref, String fieldname)
+    public void readFieldFloat(Object ref, String fieldname, String classname)
             throws IOException {
         float d = readFloat();
         if (unsafe != null) {
-            Class cl = ref.getClass();
             try {
+                Class cl = getClassFromName(classname);
                 Field f = cl.getDeclaredField(fieldname);
                 long key = unsafe.objectFieldOffset(f);
                 unsafe.putFloat(ref, key, d);
@@ -1043,11 +1047,12 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
     /**
      * See {@link #readFieldDouble(Object, String)} for a description.
      */
-    public void readFieldInt(Object ref, String fieldname) throws IOException {
+    public void readFieldInt(Object ref, String fieldname, String classname)
+            throws IOException {
         int d = readInt();
         if (unsafe != null) {
-            Class cl = ref.getClass();
             try {
+                Class cl = getClassFromName(classname);
                 Field f = cl.getDeclaredField(fieldname);
                 long key = unsafe.objectFieldOffset(f);
                 unsafe.putInt(ref, key, d);
@@ -1063,12 +1068,12 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
     /**
      * See {@link #readFieldDouble(Object, String)} for a description.
      */
-    public void readFieldShort(Object ref, String fieldname)
+    public void readFieldShort(Object ref, String fieldname, String classname)
             throws IOException {
         short d = readShort();
         if (unsafe != null) {
-            Class cl = ref.getClass();
             try {
+                Class cl = getClassFromName(classname);
                 Field f = cl.getDeclaredField(fieldname);
                 long key = unsafe.objectFieldOffset(f);
                 unsafe.putShort(ref, key, d);
@@ -1082,13 +1087,14 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
     }
 
     /**
-     * See {@link #readFieldDouble(Object, String)} for a description.
+     * See {@link #readFieldDouble(Object, String, String)} for a description.
      */
-    public void readFieldChar(Object ref, String fieldname) throws IOException {
+    public void readFieldChar(Object ref, String fieldname, String classname)
+            throws IOException {
         char d = readChar();
         if (unsafe != null) {
-            Class cl = ref.getClass();
             try {
+                Class cl = getClassFromName(classname);
                 Field f = cl.getDeclaredField(fieldname);
                 long key = unsafe.objectFieldOffset(f);
                 unsafe.putChar(ref, key, d);
@@ -1102,13 +1108,14 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
     }
 
     /**
-     * See {@link #readFieldDouble(Object, String)} for a description.
+     * See {@link #readFieldDouble(Object, String, String)} for a description.
      */
-    public void readFieldByte(Object ref, String fieldname) throws IOException {
+    public void readFieldByte(Object ref, String fieldname, String classname)
+            throws IOException {
         byte d = readByte();
         if (unsafe != null) {
-            Class cl = ref.getClass();
             try {
+                Class cl = getClassFromName(classname);
                 Field f = cl.getDeclaredField(fieldname);
                 long key = unsafe.objectFieldOffset(f);
                 unsafe.putByte(ref, key, d);
@@ -1122,14 +1129,14 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
     }
 
     /**
-     * See {@link #readFieldDouble(Object, String)} for a description.
+     * See {@link #readFieldDouble(Object, String, String)} for a description.
      */
-    public void readFieldBoolean(Object ref, String fieldname)
+    public void readFieldBoolean(Object ref, String fieldname, String classname)
             throws IOException {
         boolean d = readBoolean();
         if (unsafe != null) {
-            Class cl = ref.getClass();
             try {
+                Class cl = getClassFromName(classname);
                 Field f = cl.getDeclaredField(fieldname);
                 long key = unsafe.objectFieldOffset(f);
                 unsafe.putBoolean(ref, key, d);
@@ -1143,14 +1150,14 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
     }
 
     /**
-     * See {@link #readFieldDouble(Object, String)} for a description.
+     * See {@link #readFieldDouble(Object, String, String)} for a description.
      */
-    public void readFieldString(Object ref, String fieldname)
+    public void readFieldString(Object ref, String fieldname, String classname)
             throws IOException {
         String d = readString();
         if (unsafe != null) {
-            Class cl = ref.getClass();
             try {
+                Class cl = getClassFromName(classname);
                 Field f = cl.getDeclaredField(fieldname);
                 long key = unsafe.objectFieldOffset(f);
                 unsafe.putObject(ref, key, d);
@@ -1164,15 +1171,15 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
     }
 
     /**
-     * See {@link #readFieldDouble(Object, String)} for a description.
+     * See {@link #readFieldDouble(Object, String, String)} for a description.
      * @exception ClassNotFoundException when the class could not be loaded.
      */
-    public void readFieldClass(Object ref, String fieldname)
+    public void readFieldClass(Object ref, String fieldname, String classname)
             throws IOException, ClassNotFoundException {
         Class d = readClass();
         if (unsafe != null) {
-            Class cl = ref.getClass();
             try {
+                Class cl = getClassFromName(classname);
                 Field f = cl.getDeclaredField(fieldname);
                 long key = unsafe.objectFieldOffset(f);
                 unsafe.putObject(ref, key, d);
@@ -1186,16 +1193,16 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
     }
 
     /**
-     * See {@link #readFieldDouble(Object, String)} for a description.
+     * See {@link #readFieldDouble(Object, String, String)} for a description.
      * @param fieldsig	signature of the field
      * @exception ClassNotFoundException when readObject throws it.
      */
-    public void readFieldObject(Object ref, String fieldname, String fieldsig)
-            throws IOException, ClassNotFoundException {
+    public void readFieldObject(Object ref, String fieldname, String classname,
+            String fieldsig) throws IOException, ClassNotFoundException {
         Object d = doReadObject(false);
         if (unsafe != null) {
-            Class cl = ref.getClass();
             try {
+                Class cl = getClassFromName(classname);
                 Field f = cl.getDeclaredField(fieldname);
                 if (d != null && !f.getType().isInstance(d)) {
                     throw new ClassCastException("wrong field type");
@@ -1233,7 +1240,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
         }
         for (int i = 0; i < t.double_count; i++) {
             if (t.fields_final[temp]) {
-                readFieldDouble(ref, t.serializable_fields[temp].getName());
+                readFieldDouble(ref, t.serializable_fields[temp].getName(), t.clazz.getName());
             } else {
                 t.serializable_fields[temp].setDouble(ref, readDouble());
             }
@@ -1241,7 +1248,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
         }
         for (int i = 0; i < t.long_count; i++) {
             if (t.fields_final[temp]) {
-                readFieldLong(ref, t.serializable_fields[temp].getName());
+                readFieldLong(ref, t.serializable_fields[temp].getName(), t.clazz.getName());
             } else {
                 t.serializable_fields[temp].setLong(ref, readLong());
             }
@@ -1249,7 +1256,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
         }
         for (int i = 0; i < t.float_count; i++) {
             if (t.fields_final[temp]) {
-                readFieldFloat(ref, t.serializable_fields[temp].getName());
+                readFieldFloat(ref, t.serializable_fields[temp].getName(), t.clazz.getName());
             } else {
                 t.serializable_fields[temp].setFloat(ref, readFloat());
             }
@@ -1257,7 +1264,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
         }
         for (int i = 0; i < t.int_count; i++) {
             if (t.fields_final[temp]) {
-                readFieldInt(ref, t.serializable_fields[temp].getName());
+                readFieldInt(ref, t.serializable_fields[temp].getName(), t.clazz.getName());
             } else {
                 t.serializable_fields[temp].setInt(ref, readInt());
             }
@@ -1265,7 +1272,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
         }
         for (int i = 0; i < t.short_count; i++) {
             if (t.fields_final[temp]) {
-                readFieldShort(ref, t.serializable_fields[temp].getName());
+                readFieldShort(ref, t.serializable_fields[temp].getName(), t.clazz.getName());
             } else {
                 t.serializable_fields[temp].setShort(ref, readShort());
             }
@@ -1273,7 +1280,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
         }
         for (int i = 0; i < t.char_count; i++) {
             if (t.fields_final[temp]) {
-                readFieldChar(ref, t.serializable_fields[temp].getName());
+                readFieldChar(ref, t.serializable_fields[temp].getName(), t.clazz.getName());
             } else {
                 t.serializable_fields[temp].setChar(ref, readChar());
             }
@@ -1281,7 +1288,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
         }
         for (int i = 0; i < t.byte_count; i++) {
             if (t.fields_final[temp]) {
-                readFieldByte(ref, t.serializable_fields[temp].getName());
+                readFieldByte(ref, t.serializable_fields[temp].getName(), t.clazz.getName());
             } else {
                 t.serializable_fields[temp].setByte(ref, readByte());
             }
@@ -1289,7 +1296,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
         }
         for (int i = 0; i < t.boolean_count; i++) {
             if (t.fields_final[temp]) {
-                readFieldBoolean(ref, t.serializable_fields[temp].getName());
+                readFieldBoolean(ref, t.serializable_fields[temp].getName(), t.clazz.getName());
             } else {
                 t.serializable_fields[temp].setBoolean(ref, readBoolean());
             }
@@ -1310,7 +1317,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
                 // dbPrint("fieldname = " + fieldname);
                 // dbPrint("signature = " + fieldtype);
 
-                readFieldObject(ref, fieldname, fieldtype);
+                readFieldObject(ref, fieldname, t.clazz.getName(), fieldtype);
             } else {
                 Object o = doReadObject(false);
                 if (DEBUG) {

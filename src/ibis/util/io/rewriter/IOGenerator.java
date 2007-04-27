@@ -621,6 +621,8 @@ public class IOGenerator extends ibis.frontend.IbiscComponent {
                 temp.append(new ALOAD(0));
                 int ind = constantpool.addString(field.getName());
                 temp.append(new LDC(ind));
+                ind = constantpool.addString(classname);
+                temp.append(new LDC(ind));
                 if (!info.primitive) {
                     int ind2 = constantpool.addString(field_sig);
                     temp.append(new LDC(ind2));
@@ -628,9 +630,10 @@ public class IOGenerator extends ibis.frontend.IbiscComponent {
                 temp.append(factory.createInvoke(ibis_input_stream_name,
                                     info.final_read_name, Type.VOID,
                                     info.primitive ? new Type[] {
-                                            Type.OBJECT, Type.STRING }
+                                            Type.OBJECT, Type.STRING,
+                                            Type.STRING }
                                             : new Type[] { Type.OBJECT,
-                                                    Type.STRING,
+                                                    Type.STRING, Type.STRING,
                                                     Type.STRING },
                                     Constants.INVOKEVIRTUAL));
             }
