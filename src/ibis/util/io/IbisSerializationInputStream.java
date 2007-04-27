@@ -11,8 +11,7 @@ import java.io.ObjectStreamClass;
 import java.io.Serializable;
 import java.io.StreamCorruptedException;
 import java.lang.reflect.Field;
-
-import sun.misc.Unsafe;
+import java.lang.reflect.Method;
 
 /**
  * This is the <code>SerializationInputStream</code> version that is used
@@ -34,7 +33,19 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
             = new java.util.Hashtable<Class, Integer>();
 
     // Only works as of Java 1.4, earlier versions of Java don't have Unsafe.
-    private static Unsafe unsafe = null;
+    // Use introspection, so that it at least compiles on systems that don't
+    // have unsafe.
+    private static Object unsafe = null;
+    private static Method unsafeObjectFieldOffsetMethod;
+    private static Method unsafePutDoubleMethod;
+    private static Method unsafePutLongMethod;
+    private static Method unsafePutFloatMethod;
+    private static Method unsafePutIntMethod;
+    private static Method unsafePutShortMethod;
+    private static Method unsafePutCharMethod;
+    private static Method unsafePutBooleanMethod;
+    private static Method unsafePutByteMethod;
+    private static Method unsafePutObjectMethod;
 
     static {
         try {
@@ -45,7 +56,28 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
                 = Class.forName("java.io.ObjectStreamClass$FieldReflector");
             Field uf = cl.getDeclaredField("unsafe");
             uf.setAccessible(true);
-            unsafe = (Unsafe) uf.get(null);
+            unsafe = uf.get(null);
+            cl = unsafe.getClass();
+            unsafeObjectFieldOffsetMethod = cl.getMethod(
+                    "objectFieldOffset", new Class[] {Field.class});
+            unsafePutDoubleMethod = cl.getMethod(
+                    "putDouble", new Class[] {Object.class, Long.TYPE, Double.TYPE});
+            unsafePutLongMethod = cl.getMethod(
+                    "putLong", new Class[] {Object.class, Long.TYPE, Long.TYPE});
+            unsafePutFloatMethod = cl.getMethod(
+                    "putFloat", new Class[] {Object.class, Long.TYPE, Float.TYPE});
+            unsafePutIntMethod = cl.getMethod(
+                    "putInt", new Class[] {Object.class, Long.TYPE, Integer.TYPE});
+            unsafePutShortMethod = cl.getMethod(
+                    "putShort", new Class[] {Object.class, Long.TYPE, Short.TYPE});
+            unsafePutCharMethod = cl.getMethod(
+                    "putChar", new Class[] {Object.class, Long.TYPE, Character.TYPE});
+            unsafePutByteMethod = cl.getMethod(
+                    "putByte", new Class[] {Object.class, Long.TYPE, Byte.TYPE});
+            unsafePutBooleanMethod = cl.getMethod(
+                    "putBoolean", new Class[] {Object.class, Long.TYPE, Boolean.TYPE});
+            unsafePutObjectMethod = cl.getMethod(
+                    "putObject", new Class[] {Object.class, Long.TYPE, Object.class});
         } catch (Exception e) {
             System.out.println("Got exception while getting unsafe: " + e);
             unsafe = null;
@@ -989,8 +1021,8 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
             try {
                 Class cl = getClassFromName(classname);
                 Field f = cl.getDeclaredField(fieldname);
-                long key = unsafe.objectFieldOffset(f);
-                unsafe.putDouble(ref, key, d);
+                Object key = unsafeObjectFieldOffsetMethod.invoke(unsafe, f);
+                unsafePutDoubleMethod.invoke(unsafe, ref, key, d);
                 return;
             } catch (Exception e) {
                 System.out.println("Oops, got exception");
@@ -1012,8 +1044,8 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
             try {
                 Class cl = getClassFromName(classname);
                 Field f = cl.getDeclaredField(fieldname);
-                long key = unsafe.objectFieldOffset(f);
-                unsafe.putLong(ref, key, d);
+                Object key = unsafeObjectFieldOffsetMethod.invoke(unsafe, f);
+                unsafePutLongMethod.invoke(unsafe, ref, key, d);
                 return;
             } catch (Exception e) {
                 // throw new InternalError("No such field " + fieldname
@@ -1033,8 +1065,8 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
             try {
                 Class cl = getClassFromName(classname);
                 Field f = cl.getDeclaredField(fieldname);
-                long key = unsafe.objectFieldOffset(f);
-                unsafe.putFloat(ref, key, d);
+                Object key = unsafeObjectFieldOffsetMethod.invoke(unsafe, f);
+                unsafePutFloatMethod.invoke(unsafe, ref, key, d);
                 return;
             } catch (Exception e) {
                 // throw new InternalError("No such field " + fieldname
@@ -1054,8 +1086,8 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
             try {
                 Class cl = getClassFromName(classname);
                 Field f = cl.getDeclaredField(fieldname);
-                long key = unsafe.objectFieldOffset(f);
-                unsafe.putInt(ref, key, d);
+                Object key = unsafeObjectFieldOffsetMethod.invoke(unsafe, f);
+                unsafePutIntMethod.invoke(unsafe, ref, key, d);
                 return;
             } catch (Exception e) {
                 // throw new InternalError("No such field " + fieldname
@@ -1075,8 +1107,8 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
             try {
                 Class cl = getClassFromName(classname);
                 Field f = cl.getDeclaredField(fieldname);
-                long key = unsafe.objectFieldOffset(f);
-                unsafe.putShort(ref, key, d);
+                Object key = unsafeObjectFieldOffsetMethod.invoke(unsafe, f);
+                unsafePutShortMethod.invoke(unsafe, ref, key, d);
                 return;
             } catch (Exception e) {
                 // throw new InternalError("No such field " + fieldname
@@ -1096,8 +1128,8 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
             try {
                 Class cl = getClassFromName(classname);
                 Field f = cl.getDeclaredField(fieldname);
-                long key = unsafe.objectFieldOffset(f);
-                unsafe.putChar(ref, key, d);
+                Object key = unsafeObjectFieldOffsetMethod.invoke(unsafe, f);
+                unsafePutCharMethod.invoke(unsafe, ref, key, d);
                 return;
             } catch (Exception e) {
                 // throw new InternalError("No such field " + fieldname
@@ -1117,8 +1149,8 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
             try {
                 Class cl = getClassFromName(classname);
                 Field f = cl.getDeclaredField(fieldname);
-                long key = unsafe.objectFieldOffset(f);
-                unsafe.putByte(ref, key, d);
+                Object key = unsafeObjectFieldOffsetMethod.invoke(unsafe, f);
+                unsafePutByteMethod.invoke(unsafe, ref, key, d);
                 return;
             } catch (Exception e) {
                 // throw new InternalError("No such field " + fieldname
@@ -1138,8 +1170,8 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
             try {
                 Class cl = getClassFromName(classname);
                 Field f = cl.getDeclaredField(fieldname);
-                long key = unsafe.objectFieldOffset(f);
-                unsafe.putBoolean(ref, key, d);
+                Object key = unsafeObjectFieldOffsetMethod.invoke(unsafe, f);
+                unsafePutBooleanMethod.invoke(unsafe, ref, key, d);
                 return;
             } catch (Exception e) {
                 // throw new InternalError("No such field " + fieldname
@@ -1159,8 +1191,8 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
             try {
                 Class cl = getClassFromName(classname);
                 Field f = cl.getDeclaredField(fieldname);
-                long key = unsafe.objectFieldOffset(f);
-                unsafe.putObject(ref, key, d);
+                Object key = unsafeObjectFieldOffsetMethod.invoke(unsafe, f);
+                unsafePutObjectMethod.invoke(unsafe, ref, key, d);
                 return;
             } catch (Exception e) {
                 // throw new InternalError("No such field " + fieldname
@@ -1181,8 +1213,8 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
             try {
                 Class cl = getClassFromName(classname);
                 Field f = cl.getDeclaredField(fieldname);
-                long key = unsafe.objectFieldOffset(f);
-                unsafe.putObject(ref, key, d);
+                Object key = unsafeObjectFieldOffsetMethod.invoke(unsafe, f);
+                unsafePutObjectMethod.invoke(unsafe, ref, key, d);
                 return;
             } catch (Exception e) {
                 // throw new InternalError("No such field " + fieldname
@@ -1207,8 +1239,8 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
                 if (d != null && !f.getType().isInstance(d)) {
                     throw new ClassCastException("wrong field type");
                 }
-                long key = unsafe.objectFieldOffset(f);
-                unsafe.putObject(ref, key, d);
+                Object key = unsafeObjectFieldOffsetMethod.invoke(unsafe, f);
+                unsafePutObjectMethod.invoke(unsafe, ref, key, d);
                 return;
             } catch (ClassCastException e) {
                 throw e;
