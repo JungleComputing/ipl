@@ -10,9 +10,6 @@ import ibis.util.ThreadPool;
 
 import org.apache.log4j.Logger;
 
-import sun.misc.Signal;
-import sun.misc.SignalHandler;
-
 final class Application implements Runnable, RegistryEventHandler {
 
     private static final Logger logger = Logger.getLogger(Application.class);
@@ -40,13 +37,6 @@ final class Application implements Runnable, RegistryEventHandler {
         } catch (Exception e) {
             // IGNORE
         }
-        
-        try {
-            Signal.handle(new Signal("USR2"), new Terminator(this));
-        } catch (Exception e) {
-            logger.warn("could not install handler for USR2 signal");
-        }
-
     }
 
     void start() {
@@ -122,21 +112,6 @@ final class Application implements Runnable, RegistryEventHandler {
             System.err.println("shutdown hook triggered");
 
             app.end();
-        }
-    }
-    
-    private static class Terminator implements SignalHandler {
-        private final Application app;
-
-        Terminator(Application app) {
-            this.app = app;
-        }
-
-        public void handle(Signal signal) {
-            logger.debug("SIGUSR2 catched, shutting down");
-
-            app.end();
-            System.exit(0);
         }
     }
 }
