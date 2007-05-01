@@ -25,7 +25,7 @@ class IbisSocketFactory {
 
     IbisSocketFactory(TypedProperties props) throws IOException {
         boolean useSmartsockets = props.booleanProperty(
-                "ibis.ipl.impl.tcp.smartsockets", false);
+                "ibis.ipl.impl.tcp.smartsockets", true);
         if (useSmartsockets) {
             TcpIbis.logger.info("Using smartsockets TcpIbis");
             try {
