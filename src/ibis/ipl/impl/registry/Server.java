@@ -11,7 +11,7 @@ import java.util.Properties;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
-import smartsockets.hub.Hub;
+import ibis.smartsockets.hub.Hub;
 
 public abstract class Server extends Thread {
 
@@ -136,11 +136,16 @@ public abstract class Server extends Thread {
             // FIXME: use new/improved hub constructor when/if it arrives
             try {
                 int port = basePort + 1;
-                smartsockets.util.TypedProperties smartProperties = new smartsockets.util.TypedProperties();
-                smartProperties.setProperty(smartsockets.Properties.HUB_PORT,
+                
+                ibis.smartsockets.util.TypedProperties smartProperties = 
+                    new ibis.smartsockets.util.TypedProperties();
+                
+                smartProperties.setProperty(
+                        ibis.smartsockets.Properties.HUB_PORT,
                         Integer.toString(port));
-                hub = new Hub(null, smartProperties);
-                hub.addHubs(null, hubAddresses);
+                
+                hub = new Hub(smartProperties);
+                hub.addHubs(hubAddresses);
 
                 // tell the server there is a hub
                 properties.setProperty(RegistryProperties.SERVER_HUB_ADDRESS,

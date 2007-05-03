@@ -2,7 +2,7 @@ package ibis.ipl.impl.tcp;
 
 import java.net.ServerSocket;
 
-import smartsockets.virtual.VirtualServerSocket;
+import ibis.smartsockets.virtual.VirtualServerSocket;
 
 /**
  * Either an ordinary server socket or a smartsockets server socket.

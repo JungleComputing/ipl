@@ -12,10 +12,10 @@ import java.util.HashMap;
 
 import org.apache.log4j.Logger;
 
-import smartsockets.virtual.VirtualServerSocket;
-import smartsockets.virtual.VirtualSocket;
-import smartsockets.virtual.VirtualSocketAddress;
-import smartsockets.virtual.VirtualSocketFactory;
+import ibis.smartsockets.virtual.VirtualServerSocket;
+import ibis.smartsockets.virtual.VirtualSocket;
+import ibis.smartsockets.virtual.VirtualSocketAddress;
+import ibis.smartsockets.virtual.VirtualSocketFactory;
 
 final class Connection {
 

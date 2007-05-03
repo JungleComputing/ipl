@@ -12,11 +12,11 @@ import java.util.Properties;
 
 import org.apache.log4j.Logger;
 
-import smartsockets.direct.DirectSocketAddress;
-import smartsockets.virtual.InitializationException;
-import smartsockets.virtual.VirtualServerSocket;
-import smartsockets.virtual.VirtualSocketAddress;
-import smartsockets.virtual.VirtualSocketFactory;
+import ibis.smartsockets.direct.DirectSocketAddress;
+import ibis.smartsockets.virtual.InitializationException;
+import ibis.smartsockets.virtual.VirtualServerSocket;
+import ibis.smartsockets.virtual.VirtualSocketAddress;
+import ibis.smartsockets.virtual.VirtualSocketFactory;
 
 final class ConnectionFactory {
     private static final int CONNECTION_BACKLOG = 50;
@@ -139,11 +139,12 @@ final class ConnectionFactory {
                 Properties smartProperties = new Properties();
                 if (hubAddress != null) {
                     smartProperties.setProperty(
-                            smartsockets.Properties.HUB_ADDRESS, hubAddress);
+                            ibis.smartsockets.Properties.HUB_ADDRESS, 
+                            hubAddress);
                 }
                 smartProperties.setProperty(
-                        smartsockets.Properties.DIRECT_PORT, Integer
-                                .toString(port));
+                        ibis.smartsockets.Properties.DIRECT_PORT, 
+                        Integer.toString(port));
 
                 virtualSocketFactory = VirtualSocketFactory
                         .createSocketFactory(smartProperties, true);

@@ -3,7 +3,7 @@ package ibis.ipl.impl.tcp;
 import java.io.IOException;
 import java.net.Socket;
 
-import smartsockets.virtual.VirtualSocket;
+import ibis.smartsockets.virtual.VirtualSocket;
 
 /**
  * Either an ordinary socket or a smart socket.

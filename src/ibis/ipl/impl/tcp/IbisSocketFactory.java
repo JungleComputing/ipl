@@ -11,9 +11,9 @@ import java.net.Socket;
 import java.util.Map;
 import java.util.Properties;
 
-import smartsockets.hub.servicelink.ServiceLink;
-import smartsockets.virtual.InitializationException;
-import smartsockets.virtual.VirtualSocketFactory;
+import ibis.smartsockets.hub.servicelink.ServiceLink;
+import ibis.smartsockets.virtual.InitializationException;
+import ibis.smartsockets.virtual.VirtualSocketFactory;
 
 /**
  * Provides a factory that can either produce smartsockets sockets or
