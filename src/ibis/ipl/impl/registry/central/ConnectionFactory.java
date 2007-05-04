@@ -139,11 +139,11 @@ final class ConnectionFactory {
                 Properties smartProperties = new Properties();
                 if (hubAddress != null) {
                     smartProperties.setProperty(
-                            ibis.smartsockets.Properties.HUB_ADDRESS, 
+                            ibis.smartsockets.SmartSocketsProperties.HUB_ADDRESS, 
                             hubAddress);
                 }
                 smartProperties.setProperty(
-                        ibis.smartsockets.Properties.DIRECT_PORT, 
+                        ibis.smartsockets.SmartSocketsProperties.DIRECT_PORT, 
                         Integer.toString(port));
 
                 virtualSocketFactory = VirtualSocketFactory

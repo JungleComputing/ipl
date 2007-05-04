@@ -141,7 +141,7 @@ public abstract class Server extends Thread {
                     new ibis.smartsockets.util.TypedProperties();
                 
                 smartProperties.setProperty(
-                        ibis.smartsockets.Properties.HUB_PORT,
+                        ibis.smartsockets.SmartSocketsProperties.HUB_PORT,
                         Integer.toString(port));
                 
                 hub = new Hub(smartProperties);
