@@ -139,8 +139,8 @@ final class ConnectionFactory {
                 Properties smartProperties = new Properties();
                 if (hubAddress != null) {
                     smartProperties.setProperty(
-                            ibis.smartsockets.SmartSocketsProperties.HUB_ADDRESS, 
-                            hubAddress);
+                         ibis.smartsockets.SmartSocketsProperties.HUB_ADDRESSES, 
+                         hubAddress);
                 }
                 smartProperties.setProperty(
                         ibis.smartsockets.SmartSocketsProperties.DIRECT_PORT, 
