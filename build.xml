@@ -19,14 +19,25 @@
     <!-- import environment properties -->
     <property environment="env" />
 
+    <path id="external.jars">
+        <fileset dir="${external}">
+            <include name="*.jar" />
+        </fileset>
+    </path>
+
     <path id="default.classpath">
         <fileset dir="${external}">
+            <include name="*.jar" />
+        </fileset>
+        <fileset dir="${lib}">
             <include name="*.jar" />
         </fileset>
         <pathelement path="${tmp}" />
     </path>
 
-
+    <fileset dir="${external}">
+        <include name="*.jar" />
+    </fileset>
 
     <!--
     Compile ibis
@@ -37,7 +48,7 @@
 
         <!-- Compile the java code from ${src} into ${tmp} -->
         <javac srcdir="${src}" destdir="${tmp}" debug="on">
-            <classpath refid="default.classpath" />
+            <classpath refid="external.jars" />
         </javac>
 
         <!-- Run Rmic on Ibis -->
