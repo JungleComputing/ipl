@@ -2,7 +2,6 @@
 
 package ibis.satin.impl;
 
-import ibis.ipl.IbisProperties;
 import ibis.util.TypedProperties;
 
 import org.apache.log4j.Logger;
@@ -14,9 +13,8 @@ import org.apache.log4j.Logger;
 
 public interface Config {
 
-    static final TypedProperties properties
-            = new TypedProperties(IbisProperties.getConfigurationProperties());
-
+    static final TypedProperties properties = TypedProperties.getDefaultConfigProperties();
+    
     static final String PROPERTY_PREFIX = "satin.";
 
     static final String s_asserts = PROPERTY_PREFIX + "asserts";
@@ -73,23 +71,23 @@ public interface Config {
         s_steal_wait_timeout };
 
     /** Enable or disable asserts. */
-    static final boolean ASSERTS = properties.booleanProperty(s_asserts, true);
+    static final boolean ASSERTS = properties.getBooleanProperty(s_asserts, true);
 
     /** True if the node should dump its datastructures during shutdown. */
-    static final boolean DUMP = properties.booleanProperty(s_dump, false);
+    static final boolean DUMP = properties.getBooleanProperty(s_dump, false);
 
     /** Enable this if Satin should print statistics at the end. */
-    static final boolean STATS = properties.booleanProperty(s_stats, true);
+    static final boolean STATS = properties.getBooleanProperty(s_stats, true);
 
     /** Enable this if Satin should print statistics per machine at the end. */
-    static final boolean DETAILED_STATS = properties.booleanProperty(
+    static final boolean DETAILED_STATS = properties.getBooleanProperty(
         s_detailed_stats, false);
 
     /**
      * Enable this if satin should run with a closed world: no nodes can join
      * or leave.
      */
-    static final boolean CLOSED = properties.booleanProperty(s_closed, false);
+    static final boolean CLOSED = properties.getBooleanProperty(s_closed, false);
 
     /** Determines master hostname. */
     static final String MASTER_HOST = properties.getProperty(s_masterhost);
@@ -101,10 +99,10 @@ public interface Config {
      * Fault tolerance with restarting crashed jobs, but without the global
      * result table.
      */
-    static final boolean FT_NAIVE = properties.booleanProperty(s_ft_naive, false);
+    static final boolean FT_NAIVE = properties.getBooleanProperty(s_ft_naive, false);
 
     /** Enable or disable an optimization for handling delayed messages. */
-    static final boolean HANDLE_MESSAGES_IN_LATENCY = properties.booleanProperty(
+    static final boolean HANDLE_MESSAGES_IN_LATENCY = properties.getBooleanProperty(
             s_in_latency, false);
 
     /**
@@ -133,7 +131,7 @@ public interface Config {
             64 * 1024);
 
     /** Enable or disable label routing multicast for shared objects . */
-    static final boolean LABEL_ROUTING_MCAST = properties.booleanProperty(
+    static final boolean LABEL_ROUTING_MCAST = properties.getBooleanProperty(
             s_so_lrmc, true);
 
     /** Used in automatic ft tests */
@@ -150,11 +148,11 @@ public interface Config {
      * Enable or disable using a seperate queue for work steal requests to 
      * avoid thread creation.
      */
-    static final boolean QUEUE_STEALS = properties.booleanProperty(s_queue_steals,
+    static final boolean QUEUE_STEALS = properties.getBooleanProperty(s_queue_steals,
             true);
 
     /** Close connections after use. Used for scalability. */
-    static final boolean CLOSE_CONNECTIONS = properties.booleanProperty(
+    static final boolean CLOSE_CONNECTIONS = properties.getBooleanProperty(
             s_close_connections, true); 
 
     /** When using CLOSE_CONNECTIONS, keep open MAX_CONNECTIONS connections. */

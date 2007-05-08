@@ -204,7 +204,7 @@ class Latency {
                     PortType.RECEIVE_AUTO_UPCALLS,
                     PortType.RECEIVE_POLL);
             
-            ibis = IbisFactory.createIbis(s, null, null, t);
+            ibis = IbisFactory.createIbis(s, null, true, null, t);
             registry = ibis.registry();
 
             SendPort sport = ibis.createSendPort(t);

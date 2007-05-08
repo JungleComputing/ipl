@@ -29,7 +29,7 @@ public class Reducer {
 
     static TypedProperties tp = new TypedProperties(System.getProperties());
 
-    private final static boolean TIMINGS = tp.booleanProperty(
+    private final static boolean TIMINGS = tp.getBooleanProperty(
             "timing.reduce", false);
 
     private Timer t_reduce_send = Timer.createTimer();

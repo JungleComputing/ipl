@@ -54,20 +54,20 @@ public final class Server extends ibis.ipl.impl.registry.Server {
                     "can only start registry server on a positive port");
         }
 
-        boolean smart = typedProperties.booleanProperty(
+        boolean smart = typedProperties.getBooleanProperty(
                 RegistryProperties.CENTRAL_SMARTSOCKETS, true);
 
         connectionFactory = new ConnectionFactory(port, smart, properties
                 .getProperty(RegistryProperties.SERVER_HUB_ADDRESS));
 
         single = typedProperties
-                .booleanProperty(RegistryProperties.SERVER_SINGLE);
+                .getBooleanProperty(RegistryProperties.SERVER_SINGLE);
 
         logStats = typedProperties
-                .booleanProperty(RegistryProperties.CENTRAL_LOG_STATISTICS);
+                .getBooleanProperty(RegistryProperties.CENTRAL_LOG_STATISTICS);
 
         logEvents = typedProperties
-                .booleanProperty(RegistryProperties.CENTRAL_LOG_EVENTS);
+                .getBooleanProperty(RegistryProperties.CENTRAL_LOG_EVENTS);
 
         pools = new HashMap<String, Pool>();
     }

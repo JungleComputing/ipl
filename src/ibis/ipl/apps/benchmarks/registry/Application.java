@@ -49,7 +49,7 @@ final class Application implements Runnable, RegistryEventHandler {
             PortType p = new PortType(PortType.CONNECTION_ONE_TO_ONE, PortType.SERIALIZATION_DATA);
 
             logger.debug("creating ibis");
-            Ibis ibis = IbisFactory.createIbis(s, null, this, p);
+            Ibis ibis = IbisFactory.createIbis(s, null, true, this, p);
             logger.debug("ibis created, enabling upcalls");
 
             ibis.registry().enableEvents();

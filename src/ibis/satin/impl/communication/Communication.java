@@ -52,14 +52,14 @@ public final class Communication implements Config, Protocol {
         
         try {
             ibis = IbisFactory.createIbis(ibisProperties,
-                    null, s.ft.getRegistryEventHandler(), portType, createBarrierPortType(),
+                    null, true, s.ft.getRegistryEventHandler(), portType,
+                    createBarrierPortType(),
                     // lrmc port type
                     new PortType(
                         PortType.SERIALIZATION_DATA,
                         PortType.COMMUNICATION_RELIABLE,
                         PortType.CONNECTION_MANY_TO_ONE,
-                        PortType.RECEIVE_AUTO_UPCALLS),
-                    // so port type
+                        PortType.RECEIVE_AUTO_UPCALLS), // so port type
                     new PortType(
                             PortType.CONNECTION_ONE_TO_MANY,
                             PortType.CONNECTION_UPCALLS,

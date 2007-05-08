@@ -2,6 +2,7 @@
 
 package ibis.ipl.impl;
 
+import ibis.ipl.IbisProperties;
 import ibis.util.TypedProperties;
 
 import java.io.ByteArrayInputStream;
@@ -174,14 +175,14 @@ public final class Location implements ibis.ipl.Location {
      */
     public static Location defaultLocation(Properties props) {
         TypedProperties p = new TypedProperties(props);
-        String s = p.getProperty("ibis.location");
+        String s = p.getProperty(IbisProperties.LOCATION);
         if (s != null) {
             return new Location(s.split("@"));
         }
         try {
             InetAddress a = InetAddress.getLocalHost();
             s = a.getCanonicalHostName();
-            if (p.booleanProperty("ibis.location.automatic")) {
+            if (p.getBooleanProperty(IbisProperties.LOCATION_AUTOMATIC)) {
                 if (s.length() > 0 && Character.isJavaIdentifierStart(s.charAt(0))) {
                     return new Location(s.split("\\."));
                 }

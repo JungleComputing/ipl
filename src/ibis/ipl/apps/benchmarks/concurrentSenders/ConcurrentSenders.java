@@ -238,7 +238,7 @@ class ConcurrentSenders {
                     PortType.RECEIVE_AUTO_UPCALLS, PortType.RECEIVE_EXPLICIT,
                     PortType.CONNECTION_ONE_TO_MANY);
 
-            ibis = IbisFactory.createIbis(sp, null, null, t);
+            ibis = IbisFactory.createIbis(sp, null, true, null, t);
 
             registry = ibis.registry();
 

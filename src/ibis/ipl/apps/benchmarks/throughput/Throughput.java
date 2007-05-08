@@ -112,7 +112,7 @@ class Throughput extends Thread {
                     PortType.COMMUNICATION_RELIABLE,
                     PortType.RECEIVE_EXPLICIT);
                      
-            Ibis ibis = IbisFactory.createIbis(s, null, null, t);
+            Ibis ibis = IbisFactory.createIbis(s, null, true, null, t);
 
             Registry r = ibis.registry();
 

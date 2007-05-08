@@ -55,7 +55,7 @@ final class MasterWorker {
                     PortType.COMMUNICATION_RELIABLE,
                     PortType.RECEIVE_EXPLICIT);
 
-            ibis = IbisFactory.createIbis(s, null, null, manyToOneType, oneToOneType);
+            ibis = IbisFactory.createIbis(s, null, true, null, manyToOneType, oneToOneType);
 
             registry = ibis.registry();
 

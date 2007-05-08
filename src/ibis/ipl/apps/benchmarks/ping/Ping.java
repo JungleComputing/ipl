@@ -520,7 +520,7 @@ public final class Ping {
                     PortType.CONNECTION_ONE_TO_ONE,
                     PortType.RECEIVE_EXPLICIT);
             
-            ibis = IbisFactory.createIbis(props, null, null, t);
+            ibis = IbisFactory.createIbis(props, null, true, null, t);
 
             // Configuration information
             registry = ibis.registry();

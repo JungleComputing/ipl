@@ -73,7 +73,7 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
     static final TypedProperties tp = new TypedProperties(System.getProperties());
     private final static int BUFSIZ = tp.getIntProperty("socketbuffersize", 0);
 
-    private final static boolean VARIANCE_TIMER = tp.booleanProperty(
+    private final static boolean VARIANCE_TIMER = tp.getBooleanProperty(
             "variance-timer", false);
 
     private Ibis myIbis;
@@ -1025,8 +1025,8 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
                 sequenced ? PortType.COMMUNICATION_NUMBERED : PortType.COMMUNICATION_FIFO,
                 PortType.CONNECTION_MANY_TO_ONE);
 
-        myIbis = IbisFactory.createIbis(s, null, rszHandler, requestPortType,
-                replyPortType);
+        myIbis = IbisFactory.createIbis(s, null, true, rszHandler,
+                requestPortType, replyPortType);
 
         Runtime.getRuntime().addShutdownHook(new Thread() {
             public void run() {

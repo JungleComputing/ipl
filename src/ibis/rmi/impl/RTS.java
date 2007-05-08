@@ -6,7 +6,6 @@ import ibis.ipl.Ibis;
 import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisFactory;
 import ibis.ipl.IbisIdentifier;
-import ibis.ipl.IbisProperties;
 import ibis.ipl.MessageUpcall;
 import ibis.ipl.IbisCreationFailedException;
 import ibis.ipl.PortType;
@@ -40,8 +39,12 @@ import colobus.Colobus;
 
 public final class RTS {
 
-    static TypedProperties properties
-            = new TypedProperties(IbisProperties.getConfigurationProperties());
+    static TypedProperties properties;
+
+    static {
+        properties = new TypedProperties();
+        properties.loadDefaultConfigProperties();
+    }
 
     static final String prefix = "rmi.";
 
@@ -57,19 +60,19 @@ public final class RTS {
     /** Sent when a remote invocation did not result in an exception. */
     public final static byte RESULT = 1;
 
-    //keys - impl objects, values - skeletons for those objects
+    // keys - impl objects, values - skeletons for those objects
 
     /**
-     * Maps objects to their skeletons.
-     * In fact, it maps hashcodes to skeletons. The reason for this is that some
-     * objects have strange implementations for hashCode()!
+     * Maps objects to their skeletons. In fact, it maps hashcodes to skeletons.
+     * The reason for this is that some objects have strange implementations for
+     * hashCode()!
      */
     private static HashMap<Integer, Skeleton> skeletons;
 
     /**
-     * Maps objects to their stubs.
-     * In fact, it maps hashcodes to stubs. The reason for this is that some
-     * objects have strange implementations for hashCode()!
+     * Maps objects to their stubs. In fact, it maps hashcodes to stubs. The
+     * reason for this is that some objects have strange implementations for
+     * hashCode()!
      */
     private static HashMap<Integer, Stub> stubs;
 
@@ -82,7 +85,8 @@ public final class RTS {
     /**
      * Maps a name to a skeleton. We need this for registry lookup.
      */
-    static Hashtable<String, Skeleton> nameHash; // No HashMap, this one should be synchronized.
+    static Hashtable<String, Skeleton> nameHash; // No HashMap, this one
+                                                    // should be synchronized.
 
     /**
      * This array maps skeleton ids to the corresponding skeleton.
@@ -114,14 +118,15 @@ public final class RTS {
 
     private static String[] timerId;
 
-    final static boolean enableRMITimer;     
-    
+    final static boolean enableRMITimer;
+
     final static Properties serializationProperties = new Properties();
-    
+
     static {
-        serializationProperties.setProperty("ibis.serialization.replacer", "ibis.rmi.impl.RMIReplacer");
+        serializationProperties.setProperty("ibis.serialization.replacer",
+                "ibis.rmi.impl.RMIReplacer");
     }
-    
+
     private static double r10(double d) {
         long ld = (long) (d * 10.0);
         return ld / 10.0;
@@ -207,10 +212,12 @@ public final class RTS {
     }
 
     private static class UpcallHandler implements MessageUpcall {
-        private static final Colobus colobus = Colobus.getColobus(UpcallHandler.class.getName());
+        private static final Colobus colobus =
+                Colobus.getColobus(UpcallHandler.class.getName());
 
         public void upcall(ReadMessage r) throws IOException {
-            long upcallStartHandle = colobus.fireStartEvent("ibis message upcall");
+            long upcallStartHandle =
+                    colobus.fireStartEvent("ibis message upcall");
             Skeleton skel;
             int id = r.readInt();
 
@@ -233,9 +240,10 @@ public final class RTS {
                     w.writeByte(EXCEPTION);
                     w.writeObject(e);
                     w.finish();
-                } catch(IOException e2) {
+                } catch (IOException e2) {
                     w.finish(e2);
-                    colobus.fireStopEvent(upcallStartHandle, "ibis message upcall");
+                    colobus.fireStopEvent(upcallStartHandle,
+                            "ibis message upcall");
                     throw e2;
                 }
                 // } catch (RuntimeException et) {
@@ -259,9 +267,10 @@ public final class RTS {
             stubs = new HashMap<Integer, Stub>();
             sendports = new HashMap<ReceivePortIdentifier, SendPort>();
             nameHash = new Hashtable<String, Skeleton>();
-            receiveports = new HashMap<IbisIdentifier, ArrayList<ReceivePort>>();
+            receiveports =
+                    new HashMap<IbisIdentifier, ArrayList<ReceivePort>>();
             skeletonArray = new ArrayList<Skeleton>();
-            
+
             Log.initLog4J("ibis.rmi");
 
             upcallHandler = new UpcallHandler();
@@ -275,21 +284,25 @@ public final class RTS {
                 logger.debug(hostname + ": init RMI RTS --> creating ibis");
             }
 
-            IbisCapabilities reqprops = new IbisCapabilities(
-                    IbisCapabilities.ELECTIONS
-                    );
+            IbisCapabilities reqprops =
+                    new IbisCapabilities(IbisCapabilities.ELECTIONS);
 
-            requestPortType = new PortType(
-                    PortType.SERIALIZATION_OBJECT, PortType.CONNECTION_MANY_TO_ONE,
-                    PortType.COMMUNICATION_RELIABLE, PortType.RECEIVE_AUTO_UPCALLS);
+            requestPortType =
+                    new PortType(PortType.SERIALIZATION_OBJECT,
+                            PortType.CONNECTION_MANY_TO_ONE,
+                            PortType.COMMUNICATION_RELIABLE,
+                            PortType.RECEIVE_AUTO_UPCALLS);
 
-            replyPortType = new PortType(
-                    PortType.CONNECTION_ONE_TO_ONE, PortType.SERIALIZATION_OBJECT,
-                    PortType.COMMUNICATION_RELIABLE, PortType.RECEIVE_EXPLICIT);
+            replyPortType =
+                    new PortType(PortType.CONNECTION_ONE_TO_ONE,
+                            PortType.SERIALIZATION_OBJECT,
+                            PortType.COMMUNICATION_RELIABLE,
+                            PortType.RECEIVE_EXPLICIT);
 
             try {
-                ibis = IbisFactory.createIbis(reqprops, null, null, requestPortType,
-                        replyPortType);
+                ibis =
+                        IbisFactory.createIbis(reqprops, null, true, null,
+                                requestPortType, replyPortType);
             } catch (IbisCreationFailedException e) {
                 System.err.println("Could not find an Ibis that can run this"
                         + " RMI implementation");
@@ -302,11 +315,13 @@ public final class RTS {
 
             ibisRegistry = ibis.registry();
 
-            enableRMITimer = properties.booleanProperty(s_timer);
+            enableRMITimer = properties.getBooleanProperty(s_timer);
 
-            skeletonReceivePort = ibis.createReceivePort(requestPortType, "//"
-                    + hostname + "/rmi_skeleton"
-                    + (new java.rmi.server.UID()).toString(), upcallHandler);
+            skeletonReceivePort =
+                    ibis.createReceivePort(requestPortType, "//" + hostname
+                            + "/rmi_skeleton"
+                            + (new java.rmi.server.UID()).toString(),
+                            upcallHandler);
             skeletonReceivePort.enableConnections();
             skeletonReceivePort.enableMessageUpcalls();
 
@@ -327,9 +342,9 @@ public final class RTS {
             System.err.println("Ibis: Enabled RMI timer");
         }
 
-        /****
-         * This is only supported in SDK 1.3 and upwards. Comment out
-         * if you run an older SDK.
+        /***********************************************************************
+         * This is only supported in SDK 1.3 and upwards. Comment out if you run
+         * an older SDK.
          */
         Runtime.getRuntime().addShutdownHook(
                 new Thread("Ibis RMI RTS ShutdownHook") {
@@ -419,13 +434,13 @@ public final class RTS {
             skel = skeletons.get(new Integer(System.identityHashCode(obj)));
         }
         if (skel == null) {
-            //create a skeleton
+            // create a skeleton
             skel = createSkel(obj);
         } else {
             throw new ExportException("object already exported");
         }
 
-        //create a stub
+        // create a stub
         // Use the classloader of the original class!
         // Fix is by Fabrice Huet.
         try {
@@ -439,8 +454,8 @@ public final class RTS {
             }
             stub = (Stub) stub_c.newInstance();
 
-            stub.init(null, null, 0, skel.skeletonId,
-                    skeletonReceivePort.identifier(), false, r);
+            stub.init(null, null, 0, skel.skeletonId, skeletonReceivePort
+                    .identifier(), false, r);
 
         } catch (ClassNotFoundException e) {
             throw new StubNotFoundException("class " + get_stub_name(c)
@@ -454,7 +469,8 @@ public final class RTS {
         }
 
         if (logger.isDebugEnabled()) {
-            logger.debug(hostname + ": Created stub of type rmi_stub_" + classname);
+            logger.debug(hostname + ": Created stub of type rmi_stub_"
+                    + classname);
         }
 
         stubs.put(new Integer(System.identityHashCode(obj)), stub);
@@ -466,11 +482,13 @@ public final class RTS {
         return stubs.get(new Integer(System.identityHashCode(o)));
     }
 
-    static synchronized SendPort getSkeletonSendPort(
-            ReceivePortIdentifier rpi) throws IOException {
+    static synchronized SendPort getSkeletonSendPort(ReceivePortIdentifier rpi)
+            throws IOException {
         SendPort s = sendports.get(rpi);
         if (s == null) {
-            s = ibis.createSendPort(replyPortType, null, null, serializationProperties);
+            s =
+                    ibis.createSendPort(replyPortType, null, null,
+                            serializationProperties);
             s.connect(rpi);
             sendports.put(rpi, s);
             if (logger.isDebugEnabled()) {
@@ -486,11 +504,13 @@ public final class RTS {
         return s;
     }
 
-    static synchronized SendPort getStubSendPort(
-            ReceivePortIdentifier rpi) throws IOException {
+    static synchronized SendPort getStubSendPort(ReceivePortIdentifier rpi)
+            throws IOException {
         SendPort s = sendports.get(rpi);
         if (s == null) {
-            s = ibis.createSendPort(requestPortType, null, null, serializationProperties);
+            s =
+                    ibis.createSendPort(requestPortType, null, null,
+                            serializationProperties);
             s.connect(rpi);
             sendports.put(rpi, s);
             if (logger.isDebugEnabled()) {
@@ -517,8 +537,10 @@ public final class RTS {
 
         if (a == null || a.size() == 0) {
 
-            r = ibis.createReceivePort(replyPortType, "//" + hostname + "/rmi_stub"
-                    + (new java.rmi.server.UID()).toString());
+            r =
+                    ibis.createReceivePort(replyPortType, "//" + hostname
+                            + "/rmi_stub"
+                            + (new java.rmi.server.UID()).toString());
             if (logger.isDebugEnabled()) {
                 logger.debug(hostname + ": New receiveport: " + r.identifier());
             }
@@ -526,14 +548,14 @@ public final class RTS {
         } else {
             r = a.remove(a.size() - 1);
             if (logger.isDebugEnabled()) {
-                logger.debug(hostname + ": Reuse receiveport: " + r.identifier());
+                logger.debug(hostname + ": Reuse receiveport: "
+                        + r.identifier());
             }
         }
         return r;
     }
 
-    static synchronized void putStubReceivePort(ReceivePort r,
-            IbisIdentifier id) {
+    static synchronized void putStubReceivePort(ReceivePort r, IbisIdentifier id) {
         if (logger.isDebugEnabled()) {
             logger.debug("receiveport " + r + " returned for ibis " + id);
         }
@@ -550,7 +572,7 @@ public final class RTS {
         String name = "__REGISTRY__" + hostname + ":" + port;
         ReceivePort p;
         try {
-            p =ibis.createReceivePort(requestPortType, name, upcallHandler);
+            p = ibis.createReceivePort(requestPortType, name, upcallHandler);
         } catch (IOException e) {
             throw new RemoteException("Could not create receive port", e);
         }
@@ -561,14 +583,15 @@ public final class RTS {
         IbisIdentifier bbb;
         try {
             bbb = ibisRegistry.elect(name);
-        } catch(Exception e) {
+        } catch (Exception e) {
             throw new RemoteException("Could not elect", e);
         }
-        if (! bbb.equals(ibis.identifier())) {
+        if (!bbb.equals(ibis.identifier())) {
             throw new RemoteException(
                     "there already is a registry running on port " + port);
         }
-        Skeleton skel = skeletons.get(new Integer(System.identityHashCode(reg)));
+        Skeleton skel =
+                skeletons.get(new Integer(System.identityHashCode(reg)));
         nameHash.put(name, skel);
         if (logger.isDebugEnabled()) {
             logger.debug("Created registry " + name);
@@ -584,7 +607,9 @@ public final class RTS {
 
         String name = "__REGISTRY__" + host + ":" + port;
         Stub result;
-        SendPort s = ibis.createSendPort(requestPortType, null, null, serializationProperties);
+        SendPort s =
+                ibis.createSendPort(requestPortType, null, null,
+                        serializationProperties);
 
         if (logger.isDebugEnabled()) {
             logger.debug(hostname + ": Trying to lookup registry " + name);
@@ -611,10 +636,10 @@ public final class RTS {
             logger.debug(hostname + ": Created new WriteMessage");
         }
 
-        wm.writeInt(-1);                // No skel Id known yet
-        wm.writeString(name);           // name for skeleton
-        wm.writeInt(-1);                // initialization method
-        wm.writeInt(0);                 // no stubID yet
+        wm.writeInt(-1); // No skel Id known yet
+        wm.writeString(name); // name for skeleton
+        wm.writeInt(-1); // initialization method
+        wm.writeInt(0); // no stubID yet
         wm.writeObject(r.identifier()); // my receive port
         wm.finish();
 
@@ -631,10 +656,10 @@ public final class RTS {
             logger.debug(hostname + ": Received readMessage");
         }
 
-        int stubID = rm.readInt();      // My stub id
+        int stubID = rm.readInt(); // My stub id
 
         try {
-            result = (Stub) rm.readObject();    // And the stub
+            result = (Stub) rm.readObject(); // And the stub
         } catch (ClassNotFoundException e) {
             throw new RemoteException("ClassNotFoundException ", e);
         }

@@ -400,7 +400,7 @@ class Latency {
                 p.setProperty("ibis.serialization", "sun");
             }
 
-            ibis = IbisFactory.createIbis(s, p, null, t);
+            ibis = IbisFactory.createIbis(s, p, true, null, t);
 
             registry = ibis.registry();
 

@@ -15,7 +15,7 @@ public class SerializationBase extends IOProperties {
      * Each serialization entry/exit point must start/stop the timer.
      */
     protected final static boolean TIME_SERIALIZATION
-            = properties.booleanProperty(s_timer, false);
+            = properties.getBooleanProperty(s_timer, false);
 
     /** The serialization timer. */
     protected final SerializationTimer timer

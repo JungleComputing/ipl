@@ -2,7 +2,6 @@
 
 package ibis.util;
 
-import ibis.ipl.IbisProperties;
 import ibis.util.io.SerializationBase;
 import ibis.util.io.SerializationInput;
 import ibis.util.io.SerializationOutput;
@@ -18,7 +17,7 @@ import java.util.Hashtable;
 public class DeepCopy {
 
     static TypedProperties props
-            = new TypedProperties(IbisProperties.getConfigurationProperties());
+            = new TypedProperties(TypedProperties.getDefaultConfigProperties());
 
     private static final String serialization
             = props.getProperty("deepcopy.serialization", "ibis");

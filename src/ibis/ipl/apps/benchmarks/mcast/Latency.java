@@ -36,7 +36,7 @@ class Latency {
                     PortType.RECEIVE_AUTO_UPCALLS,  PortType.RECEIVE_EXPLICIT,
                     PortType.CONNECTION_MANY_TO_ONE);
 
-            ibis = IbisFactory.createIbis(sp, null, null, oneToMany, manyToOne);
+            ibis = IbisFactory.createIbis(sp, null, true, null, oneToMany, manyToOne);
             registry = ibis.registry();
 
             IbisIdentifier master = registry.elect("0");

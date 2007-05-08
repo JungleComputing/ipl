@@ -176,7 +176,7 @@ class Cell1D implements Config {
                     PortType.RECEIVE_EXPLICIT,
                     PortType.SERIALIZATION_DATA);
 
-            ibis = IbisFactory.createIbis( s, null, null, t );
+            ibis = IbisFactory.createIbis( s, null, true, null, t );
             registry = ibis.registry();
             
             final int nProcs = registry.getPoolSize();

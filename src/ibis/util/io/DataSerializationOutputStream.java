@@ -13,7 +13,7 @@ import java.io.IOException;
 public class DataSerializationOutputStream extends ByteSerializationOutputStream {
     /** When true, no buffering in this layer. */
     private static final boolean NO_ARRAY_BUFFERS
-            = properties.booleanProperty(s_no_array_buffers);
+            = properties.getBooleanProperty(s_no_array_buffers);
 
     /** If <code>false</code>, makes all timer calls disappear. */
     private static final boolean TIME_DATA_SERIALIZATION = true;

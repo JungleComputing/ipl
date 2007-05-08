@@ -60,11 +60,6 @@
             <classpath refid="default.classpath" />
         </javac>
 
-        <!-- Copy capability files from implementations -->
-        <copy todir="${tmp}">
-            <fileset dir="${src}" includes="ibis/ipl/impl/**/capabilities" />
-        </copy>
-
         <!-- Run Ibisc -->
         <java classname="ibis.frontend.Ibisc" taskname="Ibisc" failonerror="true" dir="${tmp}" maxmemory="512m" fork="true">
             <arg line="." />

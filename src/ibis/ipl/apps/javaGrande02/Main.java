@@ -272,7 +272,7 @@ final class Main {
             attribs.setProperty("ibis.serialization",
                     ibisSer ? "ibis" : "sun");
 
-	    ibis = IbisFactory.createIbis(s, attribs, null, t);
+	    ibis = IbisFactory.createIbis(s, attribs, true, null, t);
 
 	    if (verbose) { 
 		System.out.println("Ibis created; getting registry ...");

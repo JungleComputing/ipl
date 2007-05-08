@@ -12,7 +12,7 @@ import java.util.ArrayList;
  * <code>IbisCreationFailedException</code> is thrown to indicate
  * that no matching Ibis could be found in
  * {@link ibis.ipl.IbisFactory#createIbis(IbisCapabilities,
- * java.util.Properties, RegistryEventHandler, PortType...) Ibis.createIbis}.
+ * java.util.Properties, boolean, RegistryEventHandler, PortType...) Ibis.createIbis}.
  */
 public class IbisCreationFailedException extends Exception {
 

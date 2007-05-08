@@ -26,7 +26,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
      * via the uninitialized native creator.
      */
     private static final boolean STATS_NONREWRITTEN
-            = properties.booleanProperty(s_stats_nonrewritten);
+            = properties.getBooleanProperty(s_stats_nonrewritten);
 
     // if STATS_NONREWRITTEN
     static java.util.Hashtable<Class, Integer> nonRewritten

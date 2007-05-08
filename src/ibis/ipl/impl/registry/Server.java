@@ -1,6 +1,5 @@
 package ibis.ipl.impl.registry;
 
-import ibis.ipl.IbisProperties;
 import ibis.util.Log;
 import ibis.util.PoolInfoServer;
 import ibis.util.TypedProperties;
@@ -85,7 +84,7 @@ public abstract class Server extends Thread {
 
         TypedProperties properties = new TypedProperties();
         properties.addProperties(RegistryProperties.getHardcodedProperties());
-        properties.addProperties(IbisProperties.getConfigurationProperties());
+        properties.addProperties(TypedProperties.getDefaultConfigProperties());
 
         for (int i = 0; i < args.length; i++) {
             if (args[i].equalsIgnoreCase("--port")) {

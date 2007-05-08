@@ -189,7 +189,7 @@ public final class Group implements GroupProtocol {
                     PortType.COMMUNICATION_RELIABLE, PortType.RECEIVE_AUTO_UPCALLS);
 
             try {
-                ibis = IbisFactory.createIbis(reqprops, null, null, portTypeSystemUcast,
+                ibis = IbisFactory.createIbis(reqprops, null, true, null, portTypeSystemUcast,
                         portTypeSystemMcast, portTypeManyToOne, props);
             } catch (IbisCreationFailedException e) {
                 logger.warn("?: <static> - " + 

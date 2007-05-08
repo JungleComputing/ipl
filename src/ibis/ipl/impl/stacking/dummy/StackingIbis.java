@@ -54,7 +54,7 @@ public class StackingIbis extends Ibis {
 
     public StackingIbis(RegistryEventHandler registryHandler,
             IbisCapabilities caps, PortType[] types, Properties tp) {
-        super(registryHandler, caps, types, tp, null);
+        super(registryHandler, caps, types, tp);
     }
 
     public void printStatistics(PrintStream out) {

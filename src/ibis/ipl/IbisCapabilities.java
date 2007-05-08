@@ -10,7 +10,7 @@ import java.util.Properties;
  * Combined with a list of {@link PortType} it is
  * used to select a particular Ibis implementation.
  * See the
- * {@link IbisFactory#createIbis(IbisCapabilities, Properties, RegistryEventHandler, PortType...) createIbis}
+ * {@link IbisFactory#createIbis(IbisCapabilities, Properties, boolean, RegistryEventHandler, PortType...) createIbis}
  * method from {@link IbisFactory}.       
  */
 public final class IbisCapabilities extends CapabilitySet {

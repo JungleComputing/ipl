@@ -2,16 +2,18 @@
 
 package ibis.util.io;
 
-import ibis.ipl.IbisProperties;
 import ibis.util.TypedProperties;
 
 /**
  * Collects all system properties used by the ibis.util.io package.
  */
 class IOProperties implements Constants {
-    static final TypedProperties properties = new TypedProperties(
-            IbisProperties.getConfigurationProperties(IbisProperties
-                    .getHardcodedProperties()));
+    static final TypedProperties properties;
+    
+    static {
+        properties = new TypedProperties();
+        properties.loadDefaultConfigProperties();
+    }
 
     static final String PROPERTY_PREFIX = "ibis.util.io.";
 
@@ -48,9 +50,9 @@ class IOProperties implements Constants {
 
     static final String s_hash_resize = PROPERTY_PREFIX + "hash.resize";
     
-    public static final boolean DEBUG = properties.booleanProperty(s_dbg, false);
+    public static final boolean DEBUG = properties.getBooleanProperty(s_dbg, false);
 
-    public static final boolean ASSERTS = properties.booleanProperty(s_asserts, false);
+    public static final boolean ASSERTS = properties.getBooleanProperty(s_asserts, false);
 
     public static final int SMALL_ARRAY_BOUND
             = properties.getIntProperty(s_small_array_bound, 256); // byte

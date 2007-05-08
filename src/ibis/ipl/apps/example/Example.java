@@ -183,7 +183,7 @@ public class Example {
         );
         // Create an Ibis
         try {
-            ibis = IbisFactory.createIbis(props, null, null, porttype);
+            ibis = IbisFactory.createIbis(props, null, true, null, porttype);
         } catch (Exception e) {
             System.err.println("Could not create Ibis: " + e);
             e.printStackTrace();

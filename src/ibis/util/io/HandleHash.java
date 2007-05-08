@@ -10,10 +10,10 @@ import ibis.util.Timer;
  */
 public final class HandleHash extends IOProperties {
 
-    private static final boolean STATS = properties.booleanProperty(
+    private static final boolean STATS = properties.getBooleanProperty(
             IOProperties.s_hash_stats);
 
-    private static final boolean TIMINGS = properties.booleanProperty(
+    private static final boolean TIMINGS = properties.getBooleanProperty(
             IOProperties.s_hash_timings);
 
     private static final int MIN_BUCKETS = 32;

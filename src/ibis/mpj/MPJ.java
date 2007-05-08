@@ -242,7 +242,7 @@ public class MPJ {
                     PortType.SERIALIZATION_OBJECT, PortType.COMMUNICATION_RELIABLE, PortType.RECEIVE_EXPLICIT,
                     PortType.CONNECTION_ONE_TO_ONE, PortType.RECEIVE_POLL);
             
-            ibis = IbisFactory.createIbis(s, null, regEvtHandler, porttype);
+            ibis = IbisFactory.createIbis(s, null, true, regEvtHandler, porttype);
 
             regEvtHandler.waitForEveryone(ibis);
 

@@ -868,7 +868,7 @@ class OpenCell1D implements OpenConfig {
             PortType sprop = new PortType(PortType.SERIALIZATION_DATA,
                     PortType.CONNECTION_ONE_TO_ONE,
                     PortType.COMMUNICATION_RELIABLE, PortType.RECEIVE_AUTO_UPCALLS);
-            ibis = IbisFactory.createIbis( iprop, null, rszHandler, uprop, sprop );
+            ibis = IbisFactory.createIbis( iprop, null, true, rszHandler, uprop, sprop );
             myName = ibis.identifier();
 
             registry = ibis.registry();

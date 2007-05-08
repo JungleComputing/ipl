@@ -39,7 +39,7 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis {
     /**
      * Properties, as given to
      * {@link ibis.ipl.IbisFactory#createIbis(IbisCapabilities,
-     * Properties, RegistryEventHandler, PortType...)}.
+     * Properties, boolean, RegistryEventHandler, PortType...)}.
      */
     protected TypedProperties properties;
 
@@ -67,20 +67,31 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis {
     /**
      * Constructs an <code>Ibis</code> instance with the specified parameters.
      * @param registryHandler the registryHandler.
-     * @param caps the capabilities.
+     * @param capabilities the capabilities.
      * @param portTypes the port types requested for this ibis implementation.
      * @param userProperties the properties as provided by the Ibis factory.
      * @param defaultProperties the default properties of this particular
      * ibis implementation.
      */
-    protected Ibis(RegistryEventHandler registryHandler, IbisCapabilities caps,
+    protected Ibis(RegistryEventHandler registryHandler, IbisCapabilities capabilities,
             PortType[] portTypes,
-            Properties userProperties, Properties defaultProperties) {
+            Properties userProperties) {
+
+        //This code moved here from the factory
+        //FIXME: properly check this
+        if (registryHandler != null
+                && !capabilities
+                        .hasCapability(IbisCapabilities.MEMBERSHIP)) {
+            throw new IbisConfigurationException(
+                    "RegistryEventHandler specified but no "
+                            + IbisCapabilities.MEMBERSHIP
+                            + " capability requested");
+        }
         
-        checkIbisCapabilities(caps);
+        checkIbisCapabilities(capabilities);
         checkPortTypes(portTypes);
         
-        this.capabilities = caps;
+        this.capabilities = capabilities;
         this.portTypes = portTypes.clone();
         
         Log.initLog4J("ibis");
@@ -90,8 +101,6 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis {
         //bottom up add properties, starting with hard coded ones
         properties.addProperties(IbisProperties.getHardcodedProperties());
         properties.addProperties(RegistryProperties.getHardcodedProperties());
-        properties.addProperties(defaultProperties);
-        properties.addProperties(IbisProperties.getConfigurationProperties());
         properties.addProperties(userProperties);
         
         if (logger.isDebugEnabled()) {
@@ -101,7 +110,7 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis {
         receivePorts = new HashMap<String, ReceivePort>();
         sendPorts = new HashMap<String, SendPort>();
     
-        registry = initializeRegistry(registryHandler, caps);
+        registry = initializeRegistry(registryHandler, capabilities);
         ident = registry.getIbisIdentifier();
     }
 

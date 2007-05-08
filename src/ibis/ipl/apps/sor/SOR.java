@@ -40,7 +40,7 @@ public class SOR {
     static TypedProperties tp = new TypedProperties(System.getProperties());
 
     private static final boolean USE_O_N_BROADCAST = tp
-            .booleanProperty("bcast.O_n", false);
+            .getBooleanProperty("bcast.O_n", false);
 
     private static final double TOLERANCE = 0.00001; /* termination criterion */
 
@@ -94,7 +94,7 @@ public class SOR {
 
     private Syncer rightSyncer;
 
-    final static boolean TIMINGS = tp.booleanProperty("timing",
+    final static boolean TIMINGS = tp.getBooleanProperty("timing",
             false);
 
     private Timer t_compute = Timer.createTimer();
@@ -239,8 +239,8 @@ public class SOR {
                 PortType.CONNECTION_ONE_TO_MANY, PortType.COMMUNICATION_RELIABLE,
                 PortType.RECEIVE_EXPLICIT);
         try {
-            ibis = IbisFactory.createIbis(reqprops, null, null, portTypeReduce,
-                    portTypeBroadcast);
+            ibis = IbisFactory.createIbis(reqprops, null, true, null,
+                    portTypeReduce, portTypeBroadcast);
         } catch (Exception e) {
             System.err
                     .println("Could not find an Ibis that can run this SOR implementation");

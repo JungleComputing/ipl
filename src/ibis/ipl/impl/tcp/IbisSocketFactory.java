@@ -24,7 +24,7 @@ class IbisSocketFactory {
     private final VirtualSocketFactory factory;
 
     IbisSocketFactory(TypedProperties props) throws IOException {
-        boolean useSmartsockets = props.booleanProperty(
+        boolean useSmartsockets = props.getBooleanProperty(
                 "ibis.ipl.impl.tcp.smartsockets", true);
         if (useSmartsockets) {
             TcpIbis.logger.info("Using smartsockets TcpIbis");

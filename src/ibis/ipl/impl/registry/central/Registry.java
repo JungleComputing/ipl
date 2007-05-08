@@ -138,7 +138,7 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
         serverConnectTimeout = properties.getIntProperty(
                 RegistryProperties.CENTRAL_SERVER_CONNECT_TIMEOUT) * 1000;
 
-        boolean smart = properties.booleanProperty(
+        boolean smart = properties.getBooleanProperty(
                 RegistryProperties.CENTRAL_SMARTSOCKETS, DEFAULT_SMARTSOCKETS);
 
         int defaultServerPort = properties.getIntProperty(
@@ -177,9 +177,9 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
         }
 
         boolean gossip = properties
-                .booleanProperty(RegistryProperties.CENTRAL_GOSSIP);
+                .getBooleanProperty(RegistryProperties.CENTRAL_GOSSIP);
         keepClientState = properties
-                .booleanProperty(RegistryProperties.CENTRAL_KEEP_NODE_STATE);
+                .getBooleanProperty(RegistryProperties.CENTRAL_KEEP_NODE_STATE);
         long pingInterval = properties.getLongProperty(RegistryProperties.CENTRAL_PING_INTERVAL);
 
         Location location = Location.defaultLocation(props);
