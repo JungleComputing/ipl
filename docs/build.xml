@@ -126,10 +126,7 @@
 
     <target name="clean">
 	    <ant dir="src" target="clean"/>
-    </target>
-
-    <target name="distclean"
-	    depends="clean">
+   
 	    <delete dir="api"/>
 	    <delete dir="dev-api"/>
 	    <delete dir="progman"/>
