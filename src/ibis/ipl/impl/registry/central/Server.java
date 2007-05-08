@@ -1,6 +1,11 @@
 package ibis.ipl.impl.registry.central;
 
 import ibis.ipl.impl.registry.RegistryProperties;
+import ibis.server.ServerProperties;
+import ibis.server.Service;
+import ibis.smartsockets.virtual.VirtualSocketFactory;
+import ibis.util.Log;
+import ibis.util.ThreadPool;
 import ibis.util.TypedProperties;
 
 import java.io.IOException;
@@ -8,13 +13,16 @@ import java.util.Formatter;
 import java.util.HashMap;
 import java.util.Properties;
 
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 /**
  * Server for the centralized registry implementation.
  * 
  */
-public final class Server extends ibis.ipl.impl.registry.Server {
+public final class Server implements Service, Runnable {
+
+    public static final int VIRTUAL_PORT = 300;
 
     private static final Logger logger = Logger.getLogger(Server.class);
 
@@ -37,6 +45,41 @@ public final class Server extends ibis.ipl.impl.registry.Server {
     private boolean stopped = false;
 
     /**
+     * Constructor to create a registry server which is part of a IbisServer
+     * 
+     * @param properties
+     * @param factory
+     * @throws IOException
+     */
+    public Server(TypedProperties typedProperties, VirtualSocketFactory factory)
+            throws IOException {
+
+        // Init logger
+        Logger logger = Logger.getLogger("ibis.ipl.impl.registry.central");
+        Level level =
+                Level.toLevel(typedProperties
+                        .getProperty(ServerProperties.LOG_LEVEL));
+        Log.initLog4J(logger, level);
+
+        connectionFactory = new ConnectionFactory(factory, VIRTUAL_PORT);
+
+        single =
+                typedProperties
+                        .getBooleanProperty(RegistryProperties.SERVER_SINGLE);
+
+        logStats = typedProperties.getBooleanProperty(ServerProperties.STATS);
+
+        logEvents = typedProperties.getBooleanProperty(ServerProperties.EVENTS);
+
+        pools = new HashMap<String, Pool>();
+
+        ThreadPool.createNew(this, "server");
+        
+        logger.info("Started Central Registry sever on virtual port "
+                + VIRTUAL_PORT);
+    }
+
+    /**
      * Creates a registry server with the given properties
      * 
      * @param properties
@@ -46,30 +89,33 @@ public final class Server extends ibis.ipl.impl.registry.Server {
     public Server(Properties properties) throws IOException {
         TypedProperties typedProperties = new TypedProperties(properties);
 
-        int port = typedProperties
-                .getIntProperty(RegistryProperties.SERVER_PORT);
+        int port =
+                typedProperties.getIntProperty(RegistryProperties.SERVER_PORT);
 
         if (port <= 0) {
             throw new IOException(
                     "can only start registry server on a positive port");
         }
 
-        boolean smart = typedProperties.getBooleanProperty(
-                RegistryProperties.CENTRAL_SMARTSOCKETS, true);
+        connectionFactory =
+                new ConnectionFactory(port, properties
+                        .getProperty(RegistryProperties.SERVER_HUB_ADDRESS));
 
-        connectionFactory = new ConnectionFactory(port, smart, properties
-                .getProperty(RegistryProperties.SERVER_HUB_ADDRESS));
+        single =
+                typedProperties
+                        .getBooleanProperty(RegistryProperties.SERVER_SINGLE);
 
-        single = typedProperties
-                .getBooleanProperty(RegistryProperties.SERVER_SINGLE);
+        logStats =
+                typedProperties
+                        .getBooleanProperty(RegistryProperties.CENTRAL_LOG_STATISTICS);
 
-        logStats = typedProperties
-                .getBooleanProperty(RegistryProperties.CENTRAL_LOG_STATISTICS);
-
-        logEvents = typedProperties
-                .getBooleanProperty(RegistryProperties.CENTRAL_LOG_EVENTS);
+        logEvents =
+                typedProperties
+                        .getBooleanProperty(RegistryProperties.CENTRAL_LOG_EVENTS);
 
         pools = new HashMap<String, Pool>();
+        
+        ThreadPool.createNew(this, "server");
     }
 
     synchronized Pool getPool(String poolName) {
@@ -83,8 +129,9 @@ public final class Server extends ibis.ipl.impl.registry.Server {
 
         if (result == null || result.ended()) {
             logger.info("creating new pool: " + poolName);
-            result = new Pool(poolName, connectionFactory, gossip,
-                    keepNodeState, pingInterval, logEvents);
+            result =
+                    new Pool(poolName, connectionFactory, gossip,
+                            keepNodeState, pingInterval, logEvents);
             pools.put(poolName, result);
         }
 
@@ -98,11 +145,13 @@ public final class Server extends ibis.ipl.impl.registry.Server {
     /**
      * Stop this server.
      */
-    public synchronized void stopServer() {
+    public synchronized void end() {
         stopped = true;
         notifyAll();
         connectionFactory.end();
-        logger.info(handler.getStats(false));
+        if (handler != null) {
+            logger.info(handler.getStats(false));
+        }
     }
 
     // force the server to check the pools _now_
@@ -139,7 +188,7 @@ public final class Server extends ibis.ipl.impl.registry.Server {
                     if (poolArray[i].ended()) {
                         pools.remove(poolArray[i].getName());
                         if (single && pools.size() == 0) {
-                            stopServer();
+                            end();
                             logger.info("server exiting");
                             return;
                         }
@@ -162,13 +211,4 @@ public final class Server extends ibis.ipl.impl.registry.Server {
 
     }
 
-    @Override
-    public String getLocalAddress() {
-        return connectionFactory.getAddressString();
-    }
-
-    @Override
-    public String toString() {
-        return "central server on " + getLocalAddress();
-    }
 }

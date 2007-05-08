@@ -74,6 +74,7 @@
         </jar>
         <jar destfile="lib/ipl-impl.jar" basedir="${tmp}" includes="ibis/ipl/impl/**/*.class ibis/util/**/*.class ibis/frontend/**/*.class">
             <manifest>
+                <attribute name="Ibis-Service" value="ibis.ipl.impl.registry.central.Server" />
                 <attribute name="Ibis-Implementation" value="ibis.ipl.impl.tcp.TcpIbis,ibis.ipl.impl.nio.NioIbis,ibis.ipl.impl.stacking.dummy.StackingIbis" />
                 <attribute name="Ibisc-Component" value="ibis.util.io.rewriter.IOGenerator" />
             </manifest>

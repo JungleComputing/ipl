@@ -14,13 +14,13 @@ public class RegistryProperties {
 
     public static final String IMPL = PREFIX + "impl";
 
-    public static final String SERVER_ADDRESS = PREFIX + "serverAddress";
-
     public static final String POOL = PREFIX + "pool";
 
     // server-only properties
 
     public static final String SERVER_PREFIX = PREFIX + "server.";
+
+    public static final String SERVER_ADDRESS = PREFIX + "server.address";
 
     public static final String SERVER_PORT = SERVER_PREFIX + "port";
 
@@ -61,12 +61,12 @@ public class RegistryProperties {
             { IMPL, "ibis.ipl.impl.registry.central.Registry",
                     "Implementation of registry(client)" },
 
-            { SERVER_ADDRESS, "localhost:9826",
+            { SERVER_ADDRESS, "localhost:8888",
                     "Socket Address of server to connect to" },
 
             { POOL, "DEFAULT", "Pool to join" },
 
-            { SERVER_PORT, "9826", "Int: Port which the server binds to" },
+            { SERVER_PORT, "8888", "Int: Port which the server binds to" },
 
             { SERVER_IMPL, "ibis.ipl.impl.registry.central.Server",
                     "Implementation of the registry server (must match client)" },

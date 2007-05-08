@@ -10,4 +10,4 @@ if [ -z "$IBIS_HOME" ];  then
     exit 1
 fi
 
-. $IBIS_HOME/bin/ibis-run ibis.ipl.impl.registry.Server "$@"
+. $IBIS_HOME/bin/ibis-run ibis.server.Server "$@"

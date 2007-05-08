@@ -23,8 +23,6 @@ import org.apache.log4j.Logger;
  */
 public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
 
-    static final boolean DEFAULT_SMARTSOCKETS = true;
-
     static final int MAX_GOSSIP_INTERVAL = 20 * 1000;
 
     static final int GOSSIP_ATTEMPTS = 20;
@@ -132,40 +130,31 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
         random = new Random();
 
         TypedProperties properties = new TypedProperties(props);
-        String serverString = properties.getProperty(
-                RegistryProperties.SERVER_ADDRESS);
-
         serverConnectTimeout = properties.getIntProperty(
                 RegistryProperties.CENTRAL_SERVER_CONNECT_TIMEOUT) * 1000;
 
-        boolean smart = properties.getBooleanProperty(
-                RegistryProperties.CENTRAL_SMARTSOCKETS, DEFAULT_SMARTSOCKETS);
 
-        int defaultServerPort = properties.getIntProperty(
-                RegistryProperties.SERVER_PORT);
-
-        connectionFactory = new ConnectionFactory(smart, serverString,
-                defaultServerPort);
+        connectionFactory = new ConnectionFactory(properties);
 
         Server server = null;
         
-        if (connectionFactory.serverIsLocalHost()) {
-            try {
-                properties.setProperty(
-                        RegistryProperties.SERVER_PORT, 
-                        Integer.toString(connectionFactory.getServerPort()));
-                
-                properties.setProperty(
-                        RegistryProperties.SERVER_SINGLE, "true");
-                
-                server = new Server(properties);
-                server.setDaemon(true);
-                server.start();
-                logger.warn("Automagically created " + server.toString());
-            } catch (Throwable t) {
-                logger.debug("Could not create registry server", t);
-            }
-        }
+//        if (connectionFactory.serverIsLocalHost()) {
+//            try {
+//                properties.setProperty(
+//                        RegistryProperties.SERVER_PORT, 
+//                        Integer.toString(connectionFactory.getServerPort()));
+//                
+//                properties.setProperty(
+//                        RegistryProperties.SERVER_SINGLE, "true");
+//                
+//                server = new Server(properties);
+//                server.setDaemon(true);
+//                server.start();
+//                logger.warn("Automagically created " + server.toString());
+//            } catch (Throwable t) {
+//                logger.debug("Could not create registry server", t);
+//            }
+//        }
         
         this.server = server;
 
@@ -321,23 +310,24 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
             connectionFactory.end();
             logger.debug("left");
 
-            // print a warning about waiting for the server after a few seconds
-            if (server != null) {
-                logger.debug("Waiting for central server to finish");
-                try {
-                    server.join(5000);
-                } catch (InterruptedException e) {
-                    // IGNORE
-                }
-                if (server.isAlive()) {
-                    logger.warn("Waiting for central server to finish");
-                    try {
-                        server.join();
-                    } catch (InterruptedException e) {
-                        // IGNORE
-                    }
-                }
-            }
+            //FIXME: fix autostart again
+//            // print a warning about waiting for the server after a few seconds
+//            if (server != null) {
+//                logger.debug("Waiting for central server to finish");
+//                try {
+//                    server.join(5000);
+//                } catch (InterruptedException e) {
+//                    // IGNORE
+//                }
+//                if (server.isAlive()) {
+//                    logger.warn("Waiting for central server to finish");
+//                    try {
+//                        server.join();
+//                    } catch (InterruptedException e) {
+//                        // IGNORE
+//                    }
+//                }
+//            }
         } catch (IOException e) {
             connection.close();
             synchronized (this) {
