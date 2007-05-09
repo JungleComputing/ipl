@@ -1,7 +1,7 @@
 package ibis.ipl.apps.propertyFileGenerator;
 
 import ibis.ipl.IbisProperties;
-import ibis.ipl.impl.registry.RegistryProperties;
+import ibis.ipl.impl.registry.central.RegistryProperties;
 
 import java.io.PrintStream;
 import java.util.Map;
@@ -36,7 +36,7 @@ public class PropertyFileGenerator {
             IbisProperties.getHardcodedProperties(), out);
 
             
-            out.println("#### Ibis Registry properties ####");
+            out.println("#### Ibis Central Registry properties ####");
             out.println();
             writeEntries(RegistryProperties.getDescriptions(),
             RegistryProperties.getHardcodedProperties(), out);

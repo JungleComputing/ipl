@@ -11,7 +11,7 @@ ibis:
 - ibis.ipl.Managable: throw exception on unrecognized property name.
 - sendport/receiveport count methods: replace by Managable?
 - ibis printStatistics: replace by Managable?
-- ibis factory: now creates a factory for every createIbis call :-(
++ ibis factory: now creates a factory for every createIbis call :-( (Done Niels)
 - Api docs of IPL: read, clarify, improve (Niels: SendPort).
 - registry capabilities.
 - ibis.util.io capabilities.

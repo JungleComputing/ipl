@@ -10,7 +10,7 @@ import ibis.ipl.PortType;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.SendPortDisconnectUpcall;
-import ibis.ipl.impl.registry.RegistryProperties;
+import ibis.ipl.impl.registry.central.RegistryProperties;
 import ibis.util.Log;
 import ibis.util.TypedProperties;
 

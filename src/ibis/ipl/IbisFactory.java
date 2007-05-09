@@ -206,7 +206,7 @@ public final class IbisFactory {
                 combinedProperties.setProperty(key, value);
             }
         }
-
+        
         String implPath =
                 combinedProperties.getProperty(IbisProperties.IMPL_PATH);
         IbisFactory factory = getFactory(implPath);
@@ -235,7 +235,17 @@ public final class IbisFactory {
         if (verbose) {
             System.err.println("Looking for an Ibis with capabilities: "
                     + requiredCapabilities);
+            System.err.println("(ibis) Properties:");
+            for (Enumeration e = properties.propertyNames(); e.hasMoreElements();) {
+                String key = (String) e.nextElement();
+                if (key.startsWith("ibis")) {
+                    String value = properties.getProperty(key);
+                    System.err.println(key + " = " + value);
+                }
+            }
         }
+        
+            
 
         String ibisName = properties.getProperty(IbisProperties.NAME);
         if (ibisName != null) {

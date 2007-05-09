@@ -1,7 +1,4 @@
-<project
-    name="run"
-  default="run1"
-    basedir=".">
+<project name="run" default="run1" basedir=".">
 
     <description>
 	Ibis application common build.
@@ -32,200 +29,158 @@
 	test	builds the application and runs test-seq as well as test-par.
     </description>
 
-    <property name="java-args" value=""/>
+    <property name="java-args" value="" />
 
     <target name="set-ibis-name">
 
-	<condition property="ibis-name" value="tcp">
-	    <not>
-		<isset property="ibis-name"/>
-	    </not>
-	</condition>
+        <condition property="ibis-name" value="tcp">
+            <not>
+                <isset property="ibis-name" />
+            </not>
+        </condition>
 
-	<condition property="define-ibis-name" value="&quot;-Dibis.name^=${ibis-name}&quot;">
-	    <os family="windows"/>
-	</condition>
-	<condition property="define-ibis-name" value="-Dibis.name=${ibis-name}">
-	    <not>
-		<isset property="define-ibis-name"/>
-	    </not>
-	</condition>
+        <condition property="define-ibis-name" value="&quot;-Dibis.name^=${ibis-name}&quot;">
+            <os family="windows" />
+        </condition>
+        <condition property="define-ibis-name" value="-Dibis.name=${ibis-name}">
+            <not>
+                <isset property="define-ibis-name" />
+            </not>
+        </condition>
     </target>
 
-    <target name="run2"
-	depends="set-ibis-name">
-	<exec dir="${basedir}"
-	      executable="${ibis}/bin/ibis-run"
-	      vmlauncher="false"
-	      spawn="true">
-	    <arg line="-Dibis.pool.total_hosts=2"/>
-	    <arg line="-Dibis.pool.server.host=localhost"/>
-	    <arg line="-Dibis.server.address=localhost:8888"/>
-	    <arg value="${define-ibis-name}"/>
-	    <arg line="-Dsatin.localPorts ${java-args} ibis.util.Postpone 2 -o ant-test.out ${runjob}"/>
-	</exec>
-	<exec dir="${basedir}"
-	      executable="${ibis}/bin/ibis-run"
-	      timeout="500000"
-	      failonerror="true"
-	      vmlauncher="false">
-	    <arg line="-Dibis.pool.total_hosts=2"/>
-	    <arg line="-Dibis.pool.server.host=localhost"/>
-	    <arg line="-Dibis.server.address=localhost:8888"/>
-	    <arg value="${define-ibis-name}"/>
-	    <arg line="-Dsatin.localPorts ${java-args} ${runjob}"/>
-	</exec>
+    <target name="run2" depends="set-ibis-name">
+        <exec dir="${basedir}" executable="${ibis}/bin/ibis-run" vmlauncher="false" spawn="true">
+            <arg line="-Dibis.pool.size=2" />
+            <arg line="-Dibis.pool.name=test-pool" />
+            <arg line="-Dibis.server.address=localhost:8888" />
+            <arg value="${define-ibis-name}" />
+            <arg line="-Dsatin.localPorts ${java-args} ibis.util.Postpone 2 -o ant-test.out ${runjob}" />
+        </exec>
+        <exec dir="${basedir}" executable="${ibis}/bin/ibis-run" timeout="500000" failonerror="true" vmlauncher="false">
+            <arg line="-Dibis.pool.size=2" />
+            <arg line="-Dibis.pool.name=test-pool" />
+            <arg line="-Dibis.server.address=localhost:8888" />
+            <arg value="${define-ibis-name}" />
+            <arg line="-Dsatin.localPorts ${java-args} ${runjob}" />
+        </exec>
     </target>
 
 
-    <target name="do-prun"
-	depends="set-ibis-name">
-	<condition property="prun-nprocs" value="2">
-	    <not>
-		<isset property="prun-nprocs"/>
-	    </not>
-	</condition>
-	<echo message="Running parallel test on ${prun-nprocs} nodes, ${ibis-name} Ibis"/>
-	<exec dir="${basedir}"
-	    executable="/usr/local/VU/reserve.sge/bin/prun"
-	      vmlauncher="false">
-	      <arg line="-1 ${ibis}/bin/ibis-prun ${prun-nprocs}"/>
-	    <arg value="${define-ibis-name}"/>
-	    <arg line="-Dsatin.localPorts ${java-args} ${runjob}"/>
-	</exec>
+    <target name="do-prun" depends="set-ibis-name">
+        <condition property="prun-nprocs" value="2">
+            <not>
+                <isset property="prun-nprocs" />
+            </not>
+        </condition>
+        <echo message="Running parallel test on ${prun-nprocs} nodes, ${ibis-name} Ibis" />
+        <exec dir="${basedir}" executable="/usr/local/VU/reserve.sge/bin/prun" vmlauncher="false">
+            <arg line="-1 ${ibis}/bin/ibis-prun ${prun-nprocs}" />
+            <arg value="${define-ibis-name}" />
+            <arg line="-Dsatin.localPorts ${java-args} ${runjob}" />
+        </exec>
     </target>
 
-    <target name="run1"
-	    depends="set-ibis-name">
-	<exec dir="${basedir}"
-	      executable="${ibis}/bin/ibis-run"
-	      timeout="500000"
-	      failonerror="true"
-	      vmlauncher="false">
-	    <arg line="-Dibis.pool.total_hosts=1"/>
-	    <arg line="-Dibis.pool.server.host=localhost"/>
-	    <arg line="-Dibis.server.address=localhost:8888"/>
-	    <arg value="${define-ibis-name}"/>
-	    <arg line="-Dsatin.localPorts ${java-args} ${runjob}"/>
-	</exec>
+    <target name="run1" depends="set-ibis-name">
+        <exec dir="${basedir}" executable="${ibis}/bin/ibis-run" timeout="500000" failonerror="true" vmlauncher="false">
+            <arg line="-Dibis.pool.size=1" />
+            <arg line="-Dibis.pool.name=test-pool" />
+            <arg line="-Dibis.server.address=localhost:8888" />
+            <arg value="${define-ibis-name}" />
+            <arg line="-Dsatin.localPorts ${java-args} ${runjob}" />
+        </exec>
     </target>
 
     <target name="runseq">
-	<exec dir="${basedir}"
-	      executable="${ibis}/bin/ibis-run"
-	      timeout="500000"
-	      failonerror="true"
-	      vmlauncher="false">
-	      <arg line="-Dsatin.localPorts ${java-args} ${runjob}"/>
-	</exec>
+        <exec dir="${basedir}" executable="${ibis}/bin/ibis-run" timeout="500000" failonerror="true" vmlauncher="false">
+            <arg line="-Dsatin.localPorts ${java-args} ${runjob}" />
+        </exec>
     </target>
 
     <target name="set-par-jargs-def" unless="test-par-java-args">
-	<property name="jargs" value=""/>
+        <property name="jargs" value="" />
     </target>
 
     <target name="set-par-jargs-par" if="test-par-java-args">
-	<property name="jargs" value="${test-par-java-args}"/>
+        <property name="jargs" value="${test-par-java-args}" />
     </target>
 
-    <target name="set-par-jargs"
-	depends="set-par-jargs-def,set-par-jargs-par"/>
+    <target name="set-par-jargs" depends="set-par-jargs-def,set-par-jargs-par" />
 
     <target name="set-seq-jargs-def" unless="test-seq-java-args">
-	<property name="jargs" value=""/>
+        <property name="jargs" value="" />
     </target>
 
     <target name="set-seq-jargs-seq" if="test-seq-java-args">
-	<property name="jargs" value="${test-seq-java-args}"/>
+        <property name="jargs" value="${test-seq-java-args}" />
     </target>
 
-    <target name="set-seq-jargs"
-	depends="set-seq-jargs-def,set-seq-jargs-seq"/>
+    <target name="set-seq-jargs" depends="set-seq-jargs-def,set-seq-jargs-seq" />
 
-    <target name="test-par"
-	description="Run a parallel test if the property 'test-par-run' is set"
-	depends="set-par-jargs"
-	if="test-par-run">
-	<echo message="Running parallel test on two JVM instances"/>
-	<antcall target="run2">
-	    <param name="runjob" value="${test-par-run}"/>
-	    <param name="java-args" value="${jargs}"/>
-	</antcall>
-	<echo message="Output of 2nd JVM"/>
-	<concat>
-	    <fileset dir="." includes="ant-test.out"/>
-	</concat>
+    <target name="test-par" description="Run a parallel test if the property 'test-par-run' is set" depends="set-par-jargs" if="test-par-run">
+        <echo message="Running parallel test on two JVM instances" />
+        <antcall target="run2">
+            <param name="runjob" value="${test-par-run}" />
+            <param name="java-args" value="${jargs}" />
+        </antcall>
+        <echo message="Output of 2nd JVM" />
+        <concat>
+            <fileset dir="." includes="ant-test.out" />
+        </concat>
     </target>
 
-    <target name="test-prun"
-	    description="Run a parallel test with prun if the property 'test-par-run' is set"
-	    depends="build,set-par-jargs"
-	    if="test-par-run">
-	<antcall target="do-prun">
-	    <param name="runjob" value="${test-par-run}"/>
-	    <param name="java-args" value="${jargs}"/>
-	</antcall>
+    <target name="test-prun" description="Run a parallel test with prun if the property 'test-par-run' is set" depends="build,set-par-jargs" if="test-par-run">
+        <antcall target="do-prun">
+            <param name="runjob" value="${test-par-run}" />
+            <param name="java-args" value="${jargs}" />
+        </antcall>
     </target>
 
-    <target name="test-seq"
-	if="test-seq-run"
-	depends="set-seq-jargs"
-	description="Run a sequential test if the property 'test-seq-run' is set">
-	<echo message="Running sequential test"/>
-	<antcall target="run1">
-	    <param name="runjob" value="${test-seq-run}"/>
-	    <param name="java-args" value="${jargs}"/>
-	</antcall>
+    <target name="test-seq" if="test-seq-run" depends="set-seq-jargs" description="Run a sequential test if the property 'test-seq-run' is set">
+        <echo message="Running sequential test" />
+        <antcall target="run1">
+            <param name="runjob" value="${test-seq-run}" />
+            <param name="java-args" value="${jargs}" />
+        </antcall>
     </target>
 
     <!-- Default test target, for if the application does not have one.
 	 Does test-par as well as test-seq.
     -->
-    <target name="test"
-	    description="Build, run sequential test, run parallel test, clean"
-	    depends="build,test-seq,test-par">
-	<antcall inheritRefs="true" target="clean"/>
+    <target name="test" description="Build, run sequential test, run parallel test, clean" depends="build,test-seq,test-par">
+        <antcall inheritRefs="true" target="clean" />
     </target>
 
-    <target name="jar"
-	    depends="build"
-	    description="Build a Jar file for an application">
-	<basename file="." property="application-name"/>
-	<jar destfile="${application-name}.jar"
-	     basedir="${build}"
-	     includes="**/*.class">
-	     <manifest>
-		 <attribute name="Main-Class" value="${main-class}"/>
-	     </manifest>
-	</jar>
-	<delete dir="${build}"/>
+    <target name="jar" depends="build" description="Build a Jar file for an application">
+        <basename file="." property="application-name" />
+        <jar destfile="${application-name}.jar" basedir="${build}" includes="**/*.class">
+            <manifest>
+                <attribute name="Main-Class" value="${main-class}" />
+            </manifest>
+        </jar>
+        <delete dir="${build}" />
     </target>
 
     <target name="init" depends="property-init">
-	<tstamp/>
-	<mkdir dir="${build}"/>
+        <tstamp />
+        <mkdir dir="${build}" />
     </target>
 
-    <target name="compile"
-	    depends="clean,init"
-	    description="Compile application without any bytecode rewriting">
-	<javac  destdir="${build}"
-		debug="true"
-		srcdir=".">
-	    <classpath refid="default.classpath"/>
-	    <!--
+    <target name="compile" depends="clean,init" description="Compile application without any bytecode rewriting">
+        <javac destdir="${build}" debug="true" srcdir=".">
+            <classpath refid="default.classpath" />
+            <!--
 	    <compilerarg value="-Xlint:unchecked"/>
 	    -->
-	    <include name="**/*.java"/>
-	</javac>
+            <include name="**/*.java" />
+        </javac>
     </target>
 
-    <target name="clean"
-	    description="Clean up the build">
-	<basename file="." property="application-name"/>
-	<delete dir="${build}"/>
-	<delete file="${application-name}.jar"/>
-	<delete file="ant-test.out"/>
+    <target name="clean" description="Clean up the build">
+        <basename file="." property="application-name" />
+        <delete dir="${build}" />
+        <delete file="${application-name}.jar" />
+        <delete file="ant-test.out" />
     </target>
 
 </project>

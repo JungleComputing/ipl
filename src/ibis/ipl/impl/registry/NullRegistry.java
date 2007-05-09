@@ -2,6 +2,7 @@ package ibis.ipl.impl.registry;
 
 import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisConfigurationException;
+import ibis.ipl.IbisProperties;
 import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.impl.IbisIdentifier;
 import ibis.ipl.impl.Location;
@@ -52,7 +53,7 @@ public final class NullRegistry extends ibis.ipl.impl.Registry {
 
         Location location = Location.defaultLocation(props);
 
-        String pool = props.getProperty(RegistryProperties.POOL);
+        String pool = props.getProperty(IbisProperties.POOL_NAME);
 
         identifier = new IbisIdentifier(id.toString(), data, null, location,
                 pool);

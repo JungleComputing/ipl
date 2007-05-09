@@ -38,8 +38,7 @@ public final class Main {
         int step = 1;
         boolean sync = false;
 
-	Log.initLog4J("Main", Level.INFO);
-	Log.initLog4J("Application", Level.INFO);
+	Log.initLog4J("ibis.ipl.apps", Level.INFO);
         
         for (int i = 0; i < args.length;i++) {
             if (args[i].equalsIgnoreCase("--threads")) {

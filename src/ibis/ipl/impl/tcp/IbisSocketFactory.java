@@ -11,6 +11,7 @@ import java.net.Socket;
 import java.util.Map;
 import java.util.Properties;
 
+import ibis.server.Client;
 import ibis.smartsockets.hub.servicelink.ServiceLink;
 import ibis.smartsockets.virtual.InitializationException;
 import ibis.smartsockets.virtual.VirtualSocketFactory;
@@ -31,7 +32,7 @@ class IbisSocketFactory {
             try {
 //                factory = VirtualSocketFactory.getOrCreateSocketFactory(
 //                        "ibis", props, true);
-              factory = VirtualSocketFactory.getDefaultSocketFactory();
+              factory = Client.getFactory(props);
             } catch(InitializationException e) {
                 throw new IOException("Failed to create socket factory");
             }

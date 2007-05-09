@@ -28,8 +28,6 @@ final class Pool implements Runnable {
 
     static final int PUSH_THREADS = 10;
 
-    static final int CONNECT_TIMEOUT = 10 * 1000;
-
     private static final Logger logger = Logger.getLogger(Pool.class);
 
     // list of all joins, leaves, elections, etc.
@@ -343,7 +341,7 @@ final class Pool implements Runnable {
             try {
 
                 connection = connectionFactory.connect(ibis,
-                        Protocol.OPCODE_PING, CONNECT_TIMEOUT);
+                        Protocol.OPCODE_PING);
 
                 // get reply
                 connection.getAndCheckReply();
@@ -389,7 +387,7 @@ final class Pool implements Runnable {
                 }
 
                 connection = connectionFactory.connect(member.ibis(),
-                        Protocol.OPCODE_PUSH, CONNECT_TIMEOUT);
+                        Protocol.OPCODE_PUSH);
 
                 connection.out().writeUTF(getName());
 

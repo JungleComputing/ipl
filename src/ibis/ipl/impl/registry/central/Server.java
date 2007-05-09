@@ -1,6 +1,5 @@
 package ibis.ipl.impl.registry.central;
 
-import ibis.ipl.impl.registry.RegistryProperties;
 import ibis.server.ServerProperties;
 import ibis.server.Service;
 import ibis.smartsockets.virtual.VirtualSocketFactory;
@@ -32,10 +31,6 @@ public final class Server implements Service, Runnable {
 
     private final HashMap<String, Pool> pools;
 
-    // if non-null, this server will ONLY serve this one pool, and stop after
-    // the pool has ended
-    private final boolean single;
-
     private final boolean logStats;
 
     private final boolean logEvents;
@@ -51,70 +46,70 @@ public final class Server implements Service, Runnable {
      * @param factory
      * @throws IOException
      */
-    public Server(TypedProperties typedProperties, VirtualSocketFactory factory)
+    public Server(TypedProperties properties, VirtualSocketFactory factory)
             throws IOException {
+        TypedProperties typedProperties = RegistryProperties.getHardcodedProperties();
+        typedProperties.addProperties(properties);
 
         // Init logger
         Logger logger = Logger.getLogger("ibis.ipl.impl.registry.central");
-        Level level =
-                Level.toLevel(typedProperties
-                        .getProperty(ServerProperties.LOG_LEVEL));
+        Level level = Level.toLevel(typedProperties
+                .getProperty(ServerProperties.LOG_LEVEL));
         Log.initLog4J(logger, level);
 
-        connectionFactory = new ConnectionFactory(factory, VIRTUAL_PORT);
+        int timeout = typedProperties.getIntProperty(RegistryProperties.CONNECT_TIMEOUT) * 1000;
 
-        single =
-                typedProperties
-                        .getBooleanProperty(RegistryProperties.SERVER_SINGLE);
+        connectionFactory = new ConnectionFactory(factory, VIRTUAL_PORT, timeout);
 
-        logStats = typedProperties.getBooleanProperty(ServerProperties.STATS);
+        logStats = typedProperties
+                .getBooleanProperty(RegistryProperties.SERVER_LOG_STATS)
+                || typedProperties
+                        .getBooleanProperty(ServerProperties.LOG_STATS);
 
-        logEvents = typedProperties.getBooleanProperty(ServerProperties.EVENTS);
+        logEvents = typedProperties
+                .getBooleanProperty(RegistryProperties.SERVER_LOG_EVENTS)
+                || typedProperties
+                        .getBooleanProperty(ServerProperties.LOG_EVENTS);
 
         pools = new HashMap<String, Pool>();
 
         ThreadPool.createNew(this, "server");
-        
+
         logger.info("Started Central Registry sever on virtual port "
                 + VIRTUAL_PORT);
     }
 
     /**
-     * Creates a registry server with the given properties
+     * Creates a stand-alone registry server. Uses plain tcp.
      * 
      * @param properties
      *            settings for this server.
      * @throws IOException
      */
     public Server(Properties properties) throws IOException {
-        TypedProperties typedProperties = new TypedProperties(properties);
+        TypedProperties typedProperties = RegistryProperties.getHardcodedProperties();
+        typedProperties.addProperties(properties);
 
-        int port =
-                typedProperties.getIntProperty(RegistryProperties.SERVER_PORT);
+        int port = typedProperties
+                .getIntProperty(RegistryProperties.SERVER_PORT);
 
         if (port <= 0) {
             throw new IOException(
                     "can only start registry server on a positive port");
         }
+        
+        int timeout = typedProperties.getIntProperty(RegistryProperties.CONNECT_TIMEOUT) * 1000;
 
-        connectionFactory =
-                new ConnectionFactory(port, properties
-                        .getProperty(RegistryProperties.SERVER_HUB_ADDRESS));
+        connectionFactory = new ConnectionFactory(port, timeout);
 
-        single =
-                typedProperties
-                        .getBooleanProperty(RegistryProperties.SERVER_SINGLE);
+        logStats = typedProperties
+                .getBooleanProperty(RegistryProperties.SERVER_LOG_STATS);
 
-        logStats =
-                typedProperties
-                        .getBooleanProperty(RegistryProperties.CENTRAL_LOG_STATISTICS);
-
-        logEvents =
-                typedProperties
-                        .getBooleanProperty(RegistryProperties.CENTRAL_LOG_EVENTS);
+        logEvents = typedProperties
+                .getBooleanProperty(RegistryProperties.SERVER_LOG_EVENTS);
 
         pools = new HashMap<String, Pool>();
-        
+
         ThreadPool.createNew(this, "server");
     }
 
@@ -129,9 +124,8 @@ public final class Server implements Service, Runnable {
 
         if (result == null || result.ended()) {
             logger.info("creating new pool: " + poolName);
-            result =
-                    new Pool(poolName, connectionFactory, gossip,
-                            keepNodeState, pingInterval, logEvents);
+            result = new Pool(poolName, connectionFactory, gossip,
+                    keepNodeState, pingInterval, logEvents);
             pools.put(poolName, result);
         }
 
@@ -145,11 +139,21 @@ public final class Server implements Service, Runnable {
     /**
      * Stop this server.
      */
-    public synchronized void end() {
+    public synchronized void end(boolean waitUntilIdle) {
+        if (stopped) {
+            return;
+        }
+        while (waitUntilIdle && pools.size() > 0) {
+            try {
+                wait();
+            } catch (InterruptedException e) {
+                // IGNORE
+            }
+        }
         stopped = true;
         notifyAll();
         connectionFactory.end();
-        if (handler != null) {
+        if (handler != null && logStats) {
             logger.info(handler.getStats(false));
         }
     }
@@ -187,10 +191,8 @@ public final class Server implements Service, Runnable {
 
                     if (poolArray[i].ended()) {
                         pools.remove(poolArray[i].getName());
-                        if (single && pools.size() == 0) {
-                            end();
-                            logger.info("server exiting");
-                            return;
+                        if (pools.size() == 0) {
+                            notifyAll();
                         }
                     }
 
