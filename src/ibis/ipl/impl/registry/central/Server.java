@@ -8,6 +8,7 @@ import ibis.util.ThreadPool;
 import ibis.util.TypedProperties;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.Formatter;
 import java.util.HashMap;
 import java.util.Properties;
@@ -19,7 +20,7 @@ import org.apache.log4j.Logger;
  * Server for the centralized registry implementation.
  * 
  */
-public final class Server implements Service, Runnable {
+public final class Server extends Thread implements Service {
 
     public static final int VIRTUAL_PORT = 300;
 
@@ -122,7 +123,8 @@ public final class Server implements Service, Runnable {
 
         pools = new HashMap<String, Pool>();
 
-        ThreadPool.createNew(this, "server");
+        this.setDaemon(true);
+        this.start();
     }
 
     synchronized Pool getPool(String poolName) {
@@ -237,6 +239,89 @@ public final class Server implements Service, Runnable {
 
         }
 
+    }
+    
+    private static void printUsage(PrintStream out) {
+        out.println("Start a stand alone registry server for Ibis.");
+        out.println();
+        out.println("USAGE: ibis-run ibis.ipl.impl.registry.central.Server [OPTIONS]");
+        out.println();
+        out.println("--port PORT\t\t\tPort used for the server");
+
+        out
+                .println("PROPERTY=VALUE\t\t\tSet a property, as if it was set in a configuration");
+        out.println("\t\t\t\tfile or as a System property.");
+        out.println("Output Options:");
+        out.println("--events\t\t\tPrint events");
+        out.println("--stats\t\t\t\tPrint statistics once in a while");
+        out.println("--help | -h | /?\t\tThis message.");
+    }
+
+    
+    /**
+     * Run the ibis server
+     */
+    public static void main(String[] args) {
+        Properties properties = TypedProperties.getDefaultConfigProperties();
+        
+        Log.initLog4J("ibis");
+
+        for (int i = 0; i < args.length; i++) {
+            if (args[i].equalsIgnoreCase("--port")) {
+                i++;
+                properties.put(RegistryProperties.SERVER_PORT, args[i]);
+            } else if (args[i].equalsIgnoreCase("--events")) {
+                properties.setProperty(RegistryProperties.SERVER_PRINT_EVENTS, "true");
+            } else if (args[i].equalsIgnoreCase("--stats")) {
+                properties.setProperty(RegistryProperties.SERVER_PRINT_STATS, "true");
+            } else if (args[i].equalsIgnoreCase("--help")
+                    || args[i].equalsIgnoreCase("-h")
+                    || args[i].equalsIgnoreCase("/?")) {
+                printUsage(System.out);
+                System.exit(0);
+            } else if (args[i].contains("=")) {
+                String[] parts = args[i].split("=", 2);
+                properties.setProperty(parts[0], parts[1]);
+            } else {
+                System.err.println("Unknown argument: " + args[i]);
+                printUsage(System.err);
+                System.exit(1);
+            }
+        }
+
+        Server server = null;
+        try {
+            server = new Server(properties);
+            System.out.println("stand alone central registry server on " + server.connectionFactory.getAddressString());
+        } catch (Throwable t) {
+            System.err.println("Could not start Server: " + t);
+            System.exit(1);
+        }
+
+        // register shutdown hook
+        try {
+            Runtime.getRuntime().addShutdownHook(new Shutdown(server));
+        } catch (Exception e) {
+            // IGNORE
+        }
+
+        try {
+            server.join();
+        } catch (InterruptedException e) {
+            //IGNORE
+        }
+    }
+    
+    private static class Shutdown extends Thread {
+        private final Server server;
+
+        Shutdown(Server server) {
+            this.server = server;
+        }
+
+        public void run() {
+            server.end(false);
+        }
     }
 
 }

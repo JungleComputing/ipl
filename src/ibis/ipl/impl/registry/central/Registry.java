@@ -103,11 +103,7 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
                     + IbisProperties.POOL_NAME + " is not specified");
         }
 
-        //check if the server address is set...
-        if (properties.getProperty(IbisProperties.SERVER_ADDRESS) == null) {
-            throw new IbisConfigurationException("cannot initialize registry, property "
-                    + IbisProperties.SERVER_ADDRESS + " is not specified");
-        }
+        
 
         events = new ArrayList<Event>();
         elections = new HashMap<String, IbisIdentifier>();

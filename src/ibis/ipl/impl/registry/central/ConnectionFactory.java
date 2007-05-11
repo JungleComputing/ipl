@@ -1,6 +1,7 @@
 package ibis.ipl.impl.registry.central;
 
 import ibis.ipl.IbisConfigurationException;
+import ibis.ipl.IbisProperties;
 import ibis.ipl.impl.IbisIdentifier;
 import ibis.util.IPUtils;
 import ibis.util.TypedProperties;
@@ -113,6 +114,12 @@ final class ConnectionFactory {
             plainServerSocket = null;
             plainServerAddress = null;
             plainLocalAddress = null;
+            
+            // check if the server address is set...
+            if (properties.getProperty(IbisProperties.SERVER_ADDRESS) == null) {
+                throw new IbisConfigurationException("cannot initialize registry, property "
+                        + IbisProperties.SERVER_ADDRESS + " is not specified");
+            }
 
             try {
                 virtualSocketFactory = Client.getFactory(properties);
@@ -277,5 +284,5 @@ final class ConnectionFactory {
         } else {
             return virtualServerAddress.port();
         }
-    }
+    }    
 }

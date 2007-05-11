@@ -212,7 +212,10 @@ final class Pool implements Runnable {
             if (printEvents) {
                 System.err.println("Central Registry: " + "pool \"" + name
                         + "\" ended");
-            }
+            } else {
+                logger.info("Central Registry: " + "pool \"" + name
+                        + "\" ended");
+            }                
             notifyAll();
 
         }
@@ -256,7 +259,10 @@ final class Pool implements Runnable {
             if (printEvents) {
                 System.out.println("Central Registry: " + "pool " + name
                         + " ended");
-            }
+            } else {
+                logger.info("Central Registry: " + "pool \"" + name
+                        + "\" ended");
+            }                
             notifyAll();
         }
     }
