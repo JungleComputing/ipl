@@ -337,6 +337,10 @@ public abstract class NioDissipator extends DataInputStream implements Config,
     boolean messageWaiting() throws IOException {
         byte command;
 
+        // Moved here to prevent deadlocks and timeouts when using sun 
+        // serialization -- Jason
+        info.newStream();
+        
         while (true) {
             if (info.in.available() == 0) {
                 // no data available at all

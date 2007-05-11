@@ -59,6 +59,10 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
         void reader(boolean noThread) throws IOException {
             byte opcode = -1;
 
+            // Moved here to prevent deadlocks and timeouts when using sun 
+            // serialization -- Jason
+            newStream();
+            
             while (in != null) {
                 if (logger.isDebugEnabled()) {
                     logger.debug(name + ": handler for " + origin + " woke up");

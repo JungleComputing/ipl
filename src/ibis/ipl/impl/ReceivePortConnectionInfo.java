@@ -52,7 +52,8 @@ public class ReceivePortConnectionInfo {
         this.origin = origin;
         this.port = port;
         this.dataIn = dataIn;
-        newStream();
+        // newStream(); 
+        // Moved to subtypes. Calling it here may cause deadlocks!
         port.addInfo(origin, this);
     }
 
