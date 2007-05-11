@@ -59,7 +59,7 @@ final class Application implements Runnable, RegistryEventHandler {
                 this.ibis = ibis;
             }
         } catch (Exception e) {
-            logger.error("could not initialize application", e);
+            logger.error("could not initialize application: " + e);
         }
     }
 

@@ -1,6 +1,6 @@
 package ibis.ipl;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -53,42 +53,49 @@ public final class IbisProperties {
      */
     public static final String LOCATION = PREFIX + "location";
 
-    public static final String LOCATION_AUTOMATIC = PREFIX
-            + "location.automatic";
+    public static final String LOCATION_AUTOMATIC =
+            PREFIX + "location.automatic";
 
     /** List of {NAME, DESCRIPTION, DEFAULT_VALUE} for properties. */
-    private static final String[][] propertiesList = new String[][] {
-            { POOL_NAME, null, "name of the pool this ibis belongs to" },
-            { POOL_SIZE, null, "size of the pool this ibis belongs to" },
-            { SERVER_ADDRESS, null, "address of the central ibis server" },
-            { HUB_ADDRESSES, null, "addresses of additional hubs" },
+    private static final String[][] propertiesList =
+            new String[][] {
+                { POOL_NAME, null, "name of the pool this ibis belongs to" },
+                { POOL_SIZE, null,
+                    "Integer: size of the pool this ibis belongs to" },
+                { SERVER_ADDRESS, null, "address of the central ibis server" },
+                {
+                    HUB_ADDRESSES,
+                    null,
+                    "comma seperated list of hub addresses."
+                            + " The server address is appended to this list as the default hub" },
 
-            { NAME, null, "Nickname or classname of the Ibis implementation" },
+                { NAME, null,
+                    "Nickname or classname of the Ibis implementation" },
 
-            { PROPERTIES_FILE, null,
+                { PROPERTIES_FILE, null,
                     "Name of the property file used for the configuration of Ibis" },
 
-            { IMPL_PATH, null, "Path used to find Ibis implementations" },
+                { IMPL_PATH, null, "Path used to find Ibis implementations" },
 
-            { VERBOSE, "false",
+                { VERBOSE, "false",
                     "Boolean: If true, makes Ibis more verbose, if false, does not" },
 
-            {
+                {
                     LOCATION,
                     null,
                     "Set the location of Ibis. Specified as multiple levels, "
                             + "seperated by a '@', e.g. machine@cluster@site@grid@world."
                             + "Defaults to a single level location with the hostname of the machine" },
 
-            { LOCATION_AUTOMATIC, "false",
+                { LOCATION_AUTOMATIC, "false",
                     "Boolean: If true, a multi level location is automatically created" },
 
-            {
+                {
                     REGISTRY_IMPL,
                     "ibis.ipl.impl.registry.central.Registry",
                     "implementation of the registry. Not all Ibis implementations use this property" },
 
-    };
+            };
 
     /**
      * Private constructor, to prevent construction of an IbisProperties object.
@@ -120,7 +127,7 @@ public final class IbisProperties {
      * @return the name/description map.
      */
     public static Map<String, String> getDescriptions() {
-        Map<String, String> result = new HashMap<String, String>();
+        Map<String, String> result = new LinkedHashMap<String, String>();
 
         for (String[] element : propertiesList) {
             result.put(element[0], element[2]);

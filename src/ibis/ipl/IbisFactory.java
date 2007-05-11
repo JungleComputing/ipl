@@ -184,7 +184,7 @@ public final class IbisFactory {
             RegistryEventHandler registryEventHandler, PortType... portTypes)
             throws IbisCreationFailedException {
 
-        Properties combinedProperties = IbisProperties.getHardcodedProperties();
+        Properties combinedProperties = new Properties();
 
         // add default properties, if required
         if (addDefaultConfigProperties) {

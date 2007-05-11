@@ -81,8 +81,8 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
     private HashMap<ibis.ipl.IbisIdentifier, IbisSocketAddress> addresses
         = new HashMap<ibis.ipl.IbisIdentifier, IbisSocketAddress>();
     
-    public TcpIbis(RegistryEventHandler registryEventHandler, IbisCapabilities capabilities, PortType[] types, Properties properties) {
-        super(registryEventHandler, capabilities, types, properties);
+    public TcpIbis(RegistryEventHandler registryEventHandler, IbisCapabilities capabilities, PortType[] types, Properties userProperties) {
+        super(registryEventHandler, capabilities, types, userProperties);
 
         factory.setIdent(ident);
 

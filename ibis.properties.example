@@ -1,51 +1,109 @@
 #Example ibis.properties file
 
+#This file lists properties valid for various parts of ibis
+#Also listed are a description, and the default value of this property, if any
+
 #### Generic Ibis properties ####
 
+# name of the pool this ibis belongs to
+# ibis.pool.name = 
+
+# Integer: size of the pool this ibis belongs to
+# ibis.pool.size = 
+
+# address of the central ibis server
+# ibis.server.address = 
+
+# comma seperated list of hub addresses. The server address is appended to this list as the default hub
+# ibis.hub.addresses = 
+
 # Nickname or classname of the Ibis implementation
-#ibis.name=tcp
-
-# Boolean: If true, makes Ibis more verbose, if false, does not
-#ibis.verbose=false
-
-# Path used to find Ibis implementations
-#ibis.ipl.impl.path=null
+# ibis.name = 
 
 # Name of the property file used for the configuration of Ibis
-#ibis.properties.file=null
+# ibis.properties.file = 
 
-#### Ibis Generic Registry properties ####
+# Path used to find Ibis implementations
+# ibis.impl.path = 
 
-# Pool to join
-#ibis.registry.pool=DEFAULT
+# Boolean: If true, makes Ibis more verbose, if false, does not
+# ibis.verbose = false
 
-# Implementation of the registry server (must match client)
-#ibis.registry.server.impl=ibis.ipl.impl.registry.central.Server
+# Set the location of Ibis. Specified as multiple levels, seperated by a '@', e.g. machine@cluster@site@grid@world.Defaults to a single level location with the hostname of the machine
+# ibis.location = 
 
-# Int: Port which the server binds to
-#ibis.registry.server.port=9826
+# Boolean: If true, a multi level location is automatically created
+# ibis.location.automatic = false
 
-# Boolean: Stop server after one pool has been served
-#ibis.registry.server.single=false
+# implementation of the registry. Not all Ibis implementations use this property
+# ibis.registry.impl = ibis.ipl.impl.registry.central.Registry
 
-# Socket Address of server to connect to
-#ibis.registry.serverAddress=localhost:9826
+#### Ibis Server properties ####
 
-# Implementation of registry(client)
-#ibis.registry.impl=ibis.ipl.impl.registry.central.Registry
+# Comma seperated list of hubs.
+# ibis.server.hub.addresses = 
+
+# Boolean: if true, also start a hub at the server
+# ibis.server.start.hub = true
+
+# Port which the server binds to
+# ibis.server.port = 8888
+
+# Path used to find service implementations
+# ibis.server.impl.path = 
+
+# Boolean: if true, events of services are printed to standard out.
+# ibis.server.print.events = false
+
+# Boolean: if true, statistics are printed to standard out regularly.
+# ibis.server.print.stats = false
+
+# determines level of verbosity (TRACE,DEBUG,INFO,WARN,ERROR or FATAL) of the server log
+# ibis.server.log.level = INFO
+
+# Address of the server
+# ibis.server.address = 
+
+#### Ibis PoolInfo properties ####
+
+# Name of the pool
+# ibis.pool.name = 
+
+# Int: size of the pool
+# ibis.pool.size = 
+
+# Hostname to use as identifier. Default is FQDN of this machine
+# ibis.hostname = 
+
+# Cluster of the local machine
+# ibis.cluster = unknown
 
 #### Ibis Central Registry properties ####
 
 # Boolean: do we gossip, or send events centrally
-#ibis.registry.central.gossip=false
+# ibis.registry.central.gossip = false
 
 # Boolean: do we keep track of which events nodes have
-#ibis.registry.central.keepNodeState=false
+# ibis.registry.central.keep.node.state = false
 
-# int(seconds): how long do we attempt to connect to the server
-#ibis.registry.central.serverConnectTimeout=120
+# Long: how often do we check if a member of a pool is still alive
+# ibis.registry.central.ping.interval = 300000
 
-# Boolean: if true use smartsockets, if false just plain tcp
-#ibis.registry.central.smartSockets=true
+# Boolean: if true, a stand-alone server is used/expected
+# ibis.registry.central.server.standalone = false
 
+# Socket Address of standalone server to connect to
+# ibis.registry.central.server.address = 
+
+# Int: Port which the standalone server binds to
+# ibis.registry.central.server.port = 7777
+
+# int(seconds): how long do we attempt to connect before giving up
+# ibis.registry.central.connect.timeout = 120
+
+# Boolean: if true, events are printed to standard out
+# ibis.registry.central.server.print.events = false
+
+# Boolean: if true, statistics are printed to standard out regularly
+# ibis.registry.central.server.print.stats = false
 

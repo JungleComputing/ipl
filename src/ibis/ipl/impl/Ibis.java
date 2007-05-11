@@ -10,7 +10,6 @@ import ibis.ipl.PortType;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.SendPortDisconnectUpcall;
-import ibis.ipl.impl.registry.central.RegistryProperties;
 import ibis.util.Log;
 import ibis.util.TypedProperties;
 
@@ -100,7 +99,6 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis {
         
         //bottom up add properties, starting with hard coded ones
         properties.addProperties(IbisProperties.getHardcodedProperties());
-        properties.addProperties(RegistryProperties.getHardcodedProperties());
         properties.addProperties(userProperties);
         
         if (logger.isDebugEnabled()) {
@@ -174,6 +172,8 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis {
         try {
             return Registry.createRegistry(caps, handler, properties, 
                     getData());
+        } catch (IbisConfigurationException e) {
+            throw e;
         } catch(Throwable e) {
             throw new IbisConfigurationException("Could not create registry",
                     e);

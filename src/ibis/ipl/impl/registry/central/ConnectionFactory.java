@@ -1,5 +1,6 @@
 package ibis.ipl.impl.registry.central;
 
+import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.impl.IbisIdentifier;
 import ibis.util.IPUtils;
 import ibis.util.TypedProperties;
@@ -101,7 +102,7 @@ final class ConnectionFactory {
                     plainServerAddress = new InetSocketAddress(serverHost,
                             serverPort);
                 } catch (Throwable t) {
-                    throw new IOException("illegal server address ("
+                    throw new IbisConfigurationException("illegal server address ("
                             + serverString + ") : " + t.getMessage());
                 }
             } else {

@@ -2,8 +2,8 @@ package ibis.ipl.impl.registry.central;
 
 import ibis.util.TypedProperties;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.TreeMap;
 
 public class RegistryProperties {
 
@@ -52,9 +52,9 @@ public class RegistryProperties {
             { CONNECT_TIMEOUT, "120",
                     "int(seconds): how long do we attempt to connect before giving up" },
 
-            { SERVER_PRINT_EVENTS, "false", "Boolean: if true, events are logged" },
+            { SERVER_PRINT_EVENTS, "false", "Boolean: if true, events are printed to standard out" },
             { SERVER_PRINT_STATS, "false",
-                    "Boolean: if true, statistics are printed to the log regularly" },
+                    "Boolean: if true, statistics are printed to standard out regularly" },
 
     };
 
@@ -71,7 +71,7 @@ public class RegistryProperties {
     }
 
     public static Map<String, String> getDescriptions() {
-        Map<String, String> result = new TreeMap<String, String>();
+        Map<String, String> result = new LinkedHashMap<String, String>();
 
         for (String[] element : propertiesList) {
             result.put(element[0], element[2]);

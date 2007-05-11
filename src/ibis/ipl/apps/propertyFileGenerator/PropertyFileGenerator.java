@@ -2,6 +2,8 @@ package ibis.ipl.apps.propertyFileGenerator;
 
 import ibis.ipl.IbisProperties;
 import ibis.ipl.impl.registry.central.RegistryProperties;
+import ibis.server.ServerProperties;
+import ibis.server.poolInfo.PoolInfoProperties;
 
 import java.io.PrintStream;
 import java.util.Map;
@@ -14,8 +16,12 @@ public class PropertyFileGenerator {
 
         for (Map.Entry<String, String> description : descriptions.entrySet()) {
             out.println("# " + description.getValue());
-            out.println("# " + description.getKey() + " = "
-                    + properties.getProperty(description.getKey()));
+            String value = properties.getProperty(description.getKey());
+            if (value == null) {
+                out.println("# " + description.getKey() + " = ");
+            } else {
+                out.println("# " + description.getKey() + " = " + value);
+            }
             out.println();
         }
 
@@ -29,18 +35,31 @@ public class PropertyFileGenerator {
 
             out.println("#Example ibis.properties file");
             out.println();
+            out
+                    .println("#This file lists properties valid for various parts of ibis");
+            out
+                    .println("#Also listed are a description, and the default value of this property, if any");
+            out.println();
 
             out.println("#### Generic Ibis properties ####");
             out.println();
-            writeEntries(IbisProperties.getDescriptions(),
-            IbisProperties.getHardcodedProperties(), out);
+            writeEntries(IbisProperties.getDescriptions(), IbisProperties
+                    .getHardcodedProperties(), out);
 
-            
+            out.println("#### Ibis Server properties ####");
+            out.println();
+            writeEntries(ServerProperties.getDescriptions(), ServerProperties
+                    .getHardcodedProperties(), out);
+
+            out.println("#### Ibis PoolInfo properties ####");
+            out.println();
+            writeEntries(PoolInfoProperties.getDescriptions(),
+                    PoolInfoProperties.getHardcodedProperties(), out);
+
             out.println("#### Ibis Central Registry properties ####");
             out.println();
             writeEntries(RegistryProperties.getDescriptions(),
-            RegistryProperties.getHardcodedProperties(), out);
-
+                    RegistryProperties.getHardcodedProperties(), out);
 
             out.flush();
             out.close();
