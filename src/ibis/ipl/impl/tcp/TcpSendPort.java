@@ -120,6 +120,7 @@ final class TcpSendPort extends SendPort implements TcpProtocol {
     }
 
     protected void closePort() {
+        
         try {
             out.writeByte(CLOSE_ALL_CONNECTIONS);
             out.close();

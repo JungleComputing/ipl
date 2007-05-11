@@ -457,10 +457,18 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
         if (logger.isDebugEnabled()) {
             logger.debug("SendPort '" + name + "': start close()");
         }
+        
         if (closed) {
             throw new IOException("Port already closed");
         }
+        
         try {
+            // We must create the outputstream if it doesn't exist yet, 
+            // otherwise the close message may get lost!! -- Jason
+            if (out == null) {
+                createOut();
+            }
+            
             closePort();
         } finally {
             ReceivePortIdentifier[] ports = receivers.keySet().toArray(
