@@ -67,7 +67,8 @@ public final class IbisProperties {
                     HUB_ADDRESSES,
                     null,
                     "comma seperated list of hub addresses."
-                            + " The server address is appended to this list as the default hub" },
+                            + " The server address is appended to this list,"
+                            + " and thus is the default hub if no hub is specified" },
 
                 { NAME, null,
                     "Nickname or classname of the Ibis implementation" },
@@ -85,7 +86,7 @@ public final class IbisProperties {
                     null,
                     "Set the location of Ibis. Specified as multiple levels, "
                             + "seperated by a '@', e.g. machine@cluster@site@grid@world."
-                            + "Defaults to a single level location with the hostname of the machine" },
+                            + " Defaults to a single level location with the hostname of the machine" },
 
                 { LOCATION_AUTOMATIC, "false",
                     "Boolean: If true, a multi level location is automatically created" },
