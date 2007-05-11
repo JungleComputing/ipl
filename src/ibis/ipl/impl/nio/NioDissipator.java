@@ -339,7 +339,9 @@ public abstract class NioDissipator extends DataInputStream implements Config,
 
         // Moved here to prevent deadlocks and timeouts when using sun 
         // serialization -- Jason
-        info.newStream();
+        if (info.in == null) { 
+            info.newStream();
+        }
         
         while (true) {
             if (info.in.available() == 0) {

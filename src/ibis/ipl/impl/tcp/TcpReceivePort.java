@@ -61,7 +61,9 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
 
             // Moved here to prevent deadlocks and timeouts when using sun 
             // serialization -- Jason
-            newStream();
+            if (in == null) { 
+                newStream();
+            }
             
             while (in != null) {
                 if (logger.isDebugEnabled()) {
