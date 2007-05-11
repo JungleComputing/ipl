@@ -31,9 +31,9 @@ public final class Server implements Service, Runnable {
 
     private final HashMap<String, Pool> pools;
 
-    private final boolean logStats;
+    private final boolean printStats;
 
-    private final boolean logEvents;
+    private final boolean printEvents;
 
     private ServerConnectionHandler handler;
 
@@ -48,34 +48,41 @@ public final class Server implements Service, Runnable {
      */
     public Server(TypedProperties properties, VirtualSocketFactory factory)
             throws IOException {
-        TypedProperties typedProperties = RegistryProperties.getHardcodedProperties();
+        TypedProperties typedProperties =
+                RegistryProperties.getHardcodedProperties();
         typedProperties.addProperties(properties);
 
         // Init logger
         Logger logger = Logger.getLogger("ibis.ipl.impl.registry.central");
-        Level level = Level.toLevel(typedProperties
-                .getProperty(ServerProperties.LOG_LEVEL));
+        Level level =
+                Level.toLevel(typedProperties
+                        .getProperty(ServerProperties.LOG_LEVEL));
         Log.initLog4J(logger, level);
 
-        int timeout = typedProperties.getIntProperty(RegistryProperties.CONNECT_TIMEOUT) * 1000;
+        int timeout =
+                typedProperties
+                        .getIntProperty(RegistryProperties.CONNECT_TIMEOUT) * 1000;
 
-        connectionFactory = new ConnectionFactory(factory, VIRTUAL_PORT, timeout);
+        connectionFactory =
+                new ConnectionFactory(factory, VIRTUAL_PORT, timeout);
 
-        logStats = typedProperties
-                .getBooleanProperty(RegistryProperties.SERVER_LOG_STATS)
-                || typedProperties
-                        .getBooleanProperty(ServerProperties.LOG_STATS);
+        printStats =
+                typedProperties
+                        .getBooleanProperty(RegistryProperties.SERVER_PRINT_STATS)
+                        || typedProperties
+                                .getBooleanProperty(ServerProperties.PRINT_STATS);
 
-        logEvents = typedProperties
-                .getBooleanProperty(RegistryProperties.SERVER_LOG_EVENTS)
-                || typedProperties
-                        .getBooleanProperty(ServerProperties.LOG_EVENTS);
+        printEvents =
+                typedProperties
+                        .getBooleanProperty(RegistryProperties.SERVER_PRINT_EVENTS)
+                        || typedProperties
+                                .getBooleanProperty(ServerProperties.PRINT_EVENTS);
 
         pools = new HashMap<String, Pool>();
 
         ThreadPool.createNew(this, "server");
 
-        logger.info("Started Central Registry sever on virtual port "
+        logger.debug("Started Central Registry service on virtual port "
                 + VIRTUAL_PORT);
     }
 
@@ -87,26 +94,31 @@ public final class Server implements Service, Runnable {
      * @throws IOException
      */
     public Server(Properties properties) throws IOException {
-        TypedProperties typedProperties = RegistryProperties.getHardcodedProperties();
+        TypedProperties typedProperties =
+                RegistryProperties.getHardcodedProperties();
         typedProperties.addProperties(properties);
 
-        int port = typedProperties
-                .getIntProperty(RegistryProperties.SERVER_PORT);
+        int port =
+                typedProperties.getIntProperty(RegistryProperties.SERVER_PORT);
 
         if (port <= 0) {
             throw new IOException(
                     "can only start registry server on a positive port");
         }
-        
-        int timeout = typedProperties.getIntProperty(RegistryProperties.CONNECT_TIMEOUT) * 1000;
+
+        int timeout =
+                typedProperties
+                        .getIntProperty(RegistryProperties.CONNECT_TIMEOUT) * 1000;
 
         connectionFactory = new ConnectionFactory(port, timeout);
 
-        logStats = typedProperties
-                .getBooleanProperty(RegistryProperties.SERVER_LOG_STATS);
+        printStats =
+                typedProperties
+                        .getBooleanProperty(RegistryProperties.SERVER_PRINT_STATS);
 
-        logEvents = typedProperties
-                .getBooleanProperty(RegistryProperties.SERVER_LOG_EVENTS);
+        printEvents =
+                typedProperties
+                        .getBooleanProperty(RegistryProperties.SERVER_PRINT_EVENTS);
 
         pools = new HashMap<String, Pool>();
 
@@ -123,9 +135,19 @@ public final class Server implements Service, Runnable {
         Pool result = getPool(poolName);
 
         if (result == null || result.ended()) {
-            logger.info("creating new pool: " + poolName);
-            result = new Pool(poolName, connectionFactory, gossip,
-                    keepNodeState, pingInterval, logEvents);
+            if (printEvents) {
+                //print to standard out
+                System.out.println("Central Registry: creating new pool: \""
+                        + poolName + "\"");
+            } else {
+                // print to the logger
+                logger.info("Central Registry: creating new pool: \""
+                        + poolName + "\"");
+            }
+
+            result =
+                    new Pool(poolName, connectionFactory, gossip,
+                            keepNodeState, pingInterval, printEvents);
             pools.put(poolName, result);
         }
 
@@ -153,8 +175,8 @@ public final class Server implements Service, Runnable {
         stopped = true;
         notifyAll();
         connectionFactory.end();
-        if (handler != null && logStats) {
-            logger.info(handler.getStats(false));
+        if (handler != null && printStats) {
+            System.out.println(handler.getStats(false));
         }
     }
 
@@ -163,14 +185,18 @@ public final class Server implements Service, Runnable {
         notifyAll();
     }
 
+    public String toString() {
+        return "Central Registry service on virtual port " + VIRTUAL_PORT;
+    }
+
     // pool cleanup thread
     public synchronized void run() {
         // start handling connections
         handler = new ServerConnectionHandler(this, connectionFactory);
 
         while (!stopped) {
-            if (logStats) {
-                logger.info(handler.getStats(false));
+            if (printStats) {
+                System.out.println(handler.getStats(false));
             }
 
             Pool[] poolArray = pools.values().toArray(new Pool[0]);
@@ -197,8 +223,8 @@ public final class Server implements Service, Runnable {
                     }
 
                 }
-                if (logStats) {
-                    logger.info(message);
+                if (printStats) {
+                    System.out.println(message);
                 }
 
             }

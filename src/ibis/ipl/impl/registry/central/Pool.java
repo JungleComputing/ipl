@@ -49,7 +49,7 @@ final class Pool implements Runnable {
 
     private final ConnectionFactory connectionFactory;
 
-    private final boolean logEvents;
+    private final boolean printEvents;
 
     private int nextID;
 
@@ -58,11 +58,11 @@ final class Pool implements Runnable {
     private boolean ended = false;
 
     Pool(String name, ConnectionFactory connectionFactory, boolean gossip,
-            boolean keepNodeState, long pingInterval, boolean logEvents) {
+            boolean keepNodeState, long pingInterval, boolean printEvents) {
         this.name = name;
         this.connectionFactory = connectionFactory;
         this.keepNodeState = keepNodeState;
-        this.logEvents = logEvents;
+        this.printEvents = printEvents;
 
         nextID = 0;
         nextSequenceNr = 0;
@@ -145,14 +145,16 @@ final class Pool implements Runnable {
         String id = Integer.toString(nextID);
         nextID++;
 
-        IbisIdentifier identifier = new IbisIdentifier(id, implementationData,
-                clientAddress, location, name);
+        IbisIdentifier identifier =
+                new IbisIdentifier(id, implementationData, clientAddress,
+                        location, name);
 
         members.add(new Member(identifier));
 
-        if (logEvents) {
-            logger.info(identifier + " joined pool \"" + name + "\" now "
-                    + members.size() + " members");
+        if (printEvents) {
+            System.out.println("Central Registry: " + identifier
+                    + " joined pool \"" + name + "\" now " + members.size()
+                    + " members");
         }
 
         events.add(new Event(events.size(), Event.JOIN, identifier, null));
@@ -182,17 +184,17 @@ final class Pool implements Runnable {
             logger.error("unknown ibis " + identifier + " tried to leave");
             throw new Exception("ibis unknown: " + identifier);
         }
-        if (logEvents) {
-
-            logger.info(identifier + " left pool \"" + name + "\" now "
-                    + members.size() + " members");
+        if (printEvents) {
+            System.out.println("Central Registry: " + identifier
+                    + " left pool \"" + name + "\" now " + members.size()
+                    + " members");
         }
 
         events.add(new Event(events.size(), Event.LEAVE, identifier, null));
         notifyAll();
 
-        Iterator<Entry<String, IbisIdentifier>> iterator = elections.entrySet()
-                .iterator();
+        Iterator<Entry<String, IbisIdentifier>> iterator =
+                elections.entrySet().iterator();
         while (iterator.hasNext()) {
             Entry<String, IbisIdentifier> entry = iterator.next();
             if (entry.getValue().equals(identifier)) {
@@ -207,7 +209,10 @@ final class Pool implements Runnable {
 
         if (members.size() == 0) {
             ended = true;
-            logger.info("pool " + name + " ended");
+            if (printEvents) {
+                System.err.println("Central Registry: " + "pool \"" + name
+                        + "\" ended");
+            }
             notifyAll();
 
         }
@@ -223,17 +228,17 @@ final class Pool implements Runnable {
             logger.warn(identifier + " dead, but not in pool (anymore)");
             return;
         }
-        if (logEvents) {
-
-            logger.info(identifier + " left pool \"" + name + "\" now "
-                    + members.size() + " members");
+        if (printEvents) {
+            System.out.println("Central Registry: " + identifier
+                    + " left pool \"" + name + "\" now " + members.size()
+                    + " members");
         }
 
         events.add(new Event(events.size(), Event.DIED, identifier, null));
         notifyAll();
 
-        Iterator<Map.Entry<String, IbisIdentifier>> iterator = elections
-                .entrySet().iterator();
+        Iterator<Map.Entry<String, IbisIdentifier>> iterator =
+                elections.entrySet().iterator();
         while (iterator.hasNext()) {
             Map.Entry<String, IbisIdentifier> entry = iterator.next();
             if (entry.getValue().equals(identifier)) {
@@ -248,7 +253,10 @@ final class Pool implements Runnable {
 
         if (members.size() == 0) {
             ended = true;
-            logger.info("pool " + name + " ended");
+            if (printEvents) {
+                System.out.println("Central Registry: " + "pool " + name
+                        + " ended");
+            }
             notifyAll();
         }
     }
@@ -285,10 +293,10 @@ final class Pool implements Runnable {
             winner = candidate;
             elections.put(election, winner);
 
-            if (logEvents) {
-
-                logger.info(winner + " won election \"" + election
-                        + "\" in pool \"" + name + "\"");
+            if (printEvents) {
+                System.out.println("Central Registry: " + winner
+                        + " won election \"" + election + "\" in pool \""
+                        + name + "\"");
             }
 
             events.add(new Event(events.size(), Event.ELECT, winner, election));
@@ -340,8 +348,8 @@ final class Pool implements Runnable {
             Connection connection = null;
             try {
 
-                connection = connectionFactory.connect(ibis,
-                        Protocol.OPCODE_PING);
+                connection =
+                        connectionFactory.connect(ibis, Protocol.OPCODE_PING);
 
                 // get reply
                 connection.getAndCheckReply();
@@ -386,8 +394,9 @@ final class Pool implements Runnable {
                     }
                 }
 
-                connection = connectionFactory.connect(member.ibis(),
-                        Protocol.OPCODE_PUSH);
+                connection =
+                        connectionFactory.connect(member.ibis(),
+                                Protocol.OPCODE_PUSH);
 
                 connection.out().writeUTF(getName());
 

@@ -3,7 +3,6 @@ package ibis.ipl.impl.registry.central;
 import ibis.util.TypedProperties;
 
 import java.util.Map;
-import java.util.Properties;
 import java.util.TreeMap;
 
 public class RegistryProperties {
@@ -26,9 +25,9 @@ public class RegistryProperties {
 
     public static final String SERVER_PORT = SERVER_PREFIX + "port";
 
-    public static final String SERVER_LOG_EVENTS = SERVER_PREFIX + "log.events";
+    public static final String SERVER_PRINT_EVENTS = SERVER_PREFIX + "print.events";
 
-    public static final String SERVER_LOG_STATS = SERVER_PREFIX + "log.stats";
+    public static final String SERVER_PRINT_STATS = SERVER_PREFIX + "print.stats";
 
     // list of decriptions and defaults
     private static final String[][] propertiesList = new String[][] {
@@ -53,8 +52,8 @@ public class RegistryProperties {
             { CONNECT_TIMEOUT, "120",
                     "int(seconds): how long do we attempt to connect before giving up" },
 
-            { SERVER_LOG_EVENTS, "false", "Boolean: if true, events are logged" },
-            { SERVER_LOG_STATS, "false",
+            { SERVER_PRINT_EVENTS, "false", "Boolean: if true, events are logged" },
+            { SERVER_PRINT_STATS, "false",
                     "Boolean: if true, statistics are printed to the log regularly" },
 
     };

@@ -302,7 +302,7 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
             logger.debug("left");
 
             if (server != null) {
-                logger.info("Waiting for central server to finish");
+                logger.info("Central Registry: Waiting for central server to finish");
                 server.end(true);
             }
         } catch (IOException e) {
