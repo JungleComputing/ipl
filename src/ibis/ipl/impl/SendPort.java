@@ -432,14 +432,19 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
             }
 
             if (out == null) {
-                createOut();
+                try {
+                    createOut();
+                } catch (Throwable t) {
+                    // TODO: is this correct ? -- J.
+                    throw new IOException("Lost connection!");
+                }
             }
 
             waitingForMessage++;
             while (aMessageIsAlive) {
                 try {
                     wait();
-                } catch(Exception e) {
+                } catch(InterruptedException e) {
                     // ignored
                 }
             }
@@ -466,7 +471,13 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
             // We must create the outputstream if it doesn't exist yet, 
             // otherwise the close message may get lost!! -- Jason
             if (out == null) {
-                createOut();
+                try { 
+                    createOut();
+                } catch (Throwable t) { 
+                    // TODO: Not sure how to handle this... typically occurs 
+                    // when the stream is already closed by the other side. 
+                    // Let's continue and see what happens -- J.
+                }
             }
             
             closePort();
