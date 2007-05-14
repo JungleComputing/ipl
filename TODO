@@ -24,6 +24,9 @@ ibis:
   (Ceriel: did Ibis implementation).
 - Print output like javac in ibisc
 - split ibis.compiler from ibis
+- implement "Ibis deployment application" using the GAT
+- implement GUI/Scripting/Shell/Commandline interface on Ibis deployment app
+- reimplement codmon on-top-of the GAT
 
 ibis registry:
 - gossip Registry
@@ -41,6 +44,7 @@ implementations:
 
 apps:
 - check results of the different barnes versions
+- remove old-n-useless applications (if any)
 
 ibis-util:
 + remove dependancy on Smartsockets (move PoolInfo to the rmi/shared stuff?).
