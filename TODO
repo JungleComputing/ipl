@@ -22,6 +22,8 @@ ibis:
 - while(true) {fix eclipse warnings}
 - migrate leftover prints to log4j (should we? Performance!)
   (Ceriel: did Ibis implementation).
+- Print output like javac in ibisc
+- split ibis.compiler from ibis
 
 ibis registry:
 - gossip Registry
@@ -41,7 +43,7 @@ apps:
 - check results of the different barnes versions
 
 ibis-util:
-- remove dependancy on Smartsockets (move PoolInfo to the rmi/shared stuff?).
++ remove dependancy on Smartsockets (move PoolInfo to the rmi/shared stuff?).
 
 website:
 - update "ibis" overview picture with new/changed implementations
