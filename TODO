@@ -30,6 +30,8 @@ ibis:
 - add support for stacking to the factory (don't add an Ibis to a stack twice)
 - add a flag to each Ibis to denote if it should be automatically selected or not
   the dummy stacking Ibis should never be selected, nor should NioIbis
+- fix automatic starting of Ibis-server in "ant test" and "ibis-prun" one way
+  or another
 
 ibis registry:
 - gossip Registry
