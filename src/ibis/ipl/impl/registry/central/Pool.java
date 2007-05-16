@@ -145,9 +145,8 @@ final class Pool implements Runnable {
         String id = Integer.toString(nextID);
         nextID++;
 
-        IbisIdentifier identifier =
-                new IbisIdentifier(id, implementationData, clientAddress,
-                        location, name);
+        IbisIdentifier identifier = new IbisIdentifier(id, implementationData,
+                clientAddress, location, name);
 
         members.add(new Member(identifier));
 
@@ -193,8 +192,8 @@ final class Pool implements Runnable {
         events.add(new Event(events.size(), Event.LEAVE, identifier, null));
         notifyAll();
 
-        Iterator<Entry<String, IbisIdentifier>> iterator =
-                elections.entrySet().iterator();
+        Iterator<Entry<String, IbisIdentifier>> iterator = elections.entrySet()
+                .iterator();
         while (iterator.hasNext()) {
             Entry<String, IbisIdentifier> entry = iterator.next();
             if (entry.getValue().equals(identifier)) {
@@ -215,7 +214,7 @@ final class Pool implements Runnable {
             } else {
                 logger.info("Central Registry: " + "pool \"" + name
                         + "\" ended");
-            }                
+            }
             notifyAll();
 
         }
@@ -240,8 +239,8 @@ final class Pool implements Runnable {
         events.add(new Event(events.size(), Event.DIED, identifier, null));
         notifyAll();
 
-        Iterator<Map.Entry<String, IbisIdentifier>> iterator =
-                elections.entrySet().iterator();
+        Iterator<Map.Entry<String, IbisIdentifier>> iterator = elections
+                .entrySet().iterator();
         while (iterator.hasNext()) {
             Map.Entry<String, IbisIdentifier> entry = iterator.next();
             if (entry.getValue().equals(identifier)) {
@@ -262,7 +261,7 @@ final class Pool implements Runnable {
             } else {
                 logger.info("Central Registry: " + "pool \"" + name
                         + "\" ended");
-            }                
+            }
             notifyAll();
         }
     }
@@ -354,8 +353,8 @@ final class Pool implements Runnable {
             Connection connection = null;
             try {
 
-                connection =
-                        connectionFactory.connect(ibis, Protocol.OPCODE_PING);
+                connection = connectionFactory.connect(ibis,
+                        Protocol.OPCODE_PING);
 
                 // get reply
                 connection.getAndCheckReply();
@@ -386,12 +385,13 @@ final class Pool implements Runnable {
         Connection connection = null;
         for (int tries = 0; tries < MAX_TRIES; tries++) {
             try {
-                int localTime = getEventTime();
 
                 int peerTime = 0;
 
                 if (keepNodeState) {
                     peerTime = member.getCurrentTime();
+
+                    int localTime = getEventTime();
 
                     if (peerTime >= localTime) {
                         logger.debug("NOT pushing entries to " + member
@@ -400,9 +400,8 @@ final class Pool implements Runnable {
                     }
                 }
 
-                connection =
-                        connectionFactory.connect(member.ibis(),
-                                Protocol.OPCODE_PUSH);
+                connection = connectionFactory.connect(member.ibis(),
+                        Protocol.OPCODE_PUSH);
 
                 connection.out().writeUTF(getName());
 
@@ -412,9 +411,17 @@ final class Pool implements Runnable {
                     peerTime = connection.in().readInt();
                 }
 
-                logger.debug("peer time = " + peerTime);
+                int localTime = getEventTime();
+
+                logger.debug("peer time = " + peerTime + ", localtime = "
+                        + localTime);
 
                 int sendEntries = localTime - peerTime;
+                
+                if (sendEntries < 0) {
+                    logger.debug("sendEntries " + sendEntries + " is negative, not sending events"); 
+                    sendEntries = 0;
+                }
 
                 logger.debug("sending " + sendEntries + " entries");
 
