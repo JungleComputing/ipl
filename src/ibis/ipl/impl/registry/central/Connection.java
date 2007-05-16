@@ -42,7 +42,7 @@ final class Connection {
 
         this.opcode = opcode;
 
-        socket = factory.createClientSocket(address, timeout,
+        socket = factory.createClientSocket(address, timeout, true,
                 new HashMap<String, Object>());
         socket.setTcpNoDelay(true);
 
