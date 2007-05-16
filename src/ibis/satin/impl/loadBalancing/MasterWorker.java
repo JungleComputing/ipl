@@ -28,6 +28,8 @@ public final class MasterWorker extends LoadBalancingAlgorithm implements
 
         if (v == null) return null; // node might have crashed
 
+        satin.lb.setCurrentVictim(v.getIdent());
+
         return satin.lb.stealJob(v, true); // blocks at the server side
     }
 
