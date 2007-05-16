@@ -32,8 +32,10 @@ ibis:
   the dummy stacking Ibis should never be selected, nor should NioIbis
 - fix automatic starting of Ibis-server in "ant test" and "ibis-prun" one way
   or another
+- check properties for unknown properties
 
 ibis registry:
+- forget unneeded event history
 - gossip Registry
 
 abstract implementation:
