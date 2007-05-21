@@ -1,42 +1,37 @@
-ibis:
+##### Ibis 2.0 ####
 
+ipl:
++ add properties to sendport/receiveport create methods.
+  (for buffer sizes, replacer, a.o.). (Done, Ceriel)
++ implement stacking Ibis (Done, Ceriel) 
++ refactor Ibis Factory (Done, Niels)
++ simplify build file slightly (Done, Niels)
++ refactor the set of Ibis properties (Done, Niels)
++ add a seperate smartsockets based central server subproject: ibis-server
+  (Done, Niels)
+- add support for stacking to the factory (don't add an Ibis to a stack twice)
+- add a flag to each Ibis to denote if it should be automatically selected or not.
+  The dummy stacking Ibis should never be selected, nor should NioIbis
+- fix/remove weird Location.cluster().
+- check properties for unknown properties
+- add "fillTimeout" option to sendport.connect() ?
+
+capabilities:
 + introduce IbisCapabilities, PortType (both extend CapabilitySet),
   PredefinedCapabilities goes away ... (Done Ceriel)
 + make IbisCapabilities, PortType entries simple booleans. (Done Ceriel).
-+ add properties to sendport/receiveport create methods.
-  (for buffer sizes, replacer, a.o.). (Done Ceriel)
-- layout package.html in ibis.ipl. (Niels)
+- ibis.util.io capabilities.
+- add registry capabilities.
+
+management:
 - ibis.ipl.Managable: Map strings to strings instead of strings to object?
   (Niels).
 - ibis.ipl.Managable: throw exception on unrecognized property name.
 - sendport/receiveport count methods: replace by Managable?
 - ibis printStatistics: replace by Managable?
-+ ibis factory: now creates a factory for every createIbis call :-( (Done Niels)
-- Api docs of IPL: read, clarify, improve (Niels: SendPort).
-- registry capabilities.
-- ibis.util.io capabilities.
-- fix/remove weird Location.cluster().
-- split up ibis in multiple seperate subprojects
-- move applications to a real tree, use packages (done for extra, io, ibis).
-- update docs
-- while(true) {fix eclipse warnings}
-- migrate leftover prints to log4j (should we? Performance!)
-  (Ceriel: did Ibis implementation).
-- Print output like javac in ibisc
-- split ibis.compiler from ibis
-- implement "Ibis deployment application" using the GAT
-- implement GUI/Scripting/Shell/Commandline interface on Ibis deployment app
-- reimplement codmon on-top-of the GAT
-- add support for stacking to the factory (don't add an Ibis to a stack twice)
-- add a flag to each Ibis to denote if it should be automatically selected or not
-  the dummy stacking Ibis should never be selected, nor should NioIbis
-- fix automatic starting of Ibis-server in "ant test" and "ibis-prun" one way
-  or another
-- check properties for unknown properties
 
 ibis registry:
 - forget unneeded event history
-- gossip Registry
 
 abstract implementation:
 - if closed.world is selected, check if ibis.pool.hosts is set, and ignore
@@ -44,22 +39,63 @@ abstract implementation:
 
 implementations:
 - fix/improve performance of MpiIbis
-+ implement stacking Ibis (Done Ceriel) 
 - implement multi Ibis???
 - somehow implement lrmc in Ibis (not on top of ...) or in a stacking Ibis.
   Then, this would be the way to do MANY_TO_MANY.
 
-apps:
+applications:
 - check results of the different barnes versions
 - remove old-n-useless applications (if any)
 
 ibis-util:
-+ remove dependancy on Smartsockets (move PoolInfo to the rmi/shared stuff?).
++ move PoolInfo to ibis-server (Done, Niels)
++ remove dependancy on Smartsockets.
+
+packaging/distribution:
++ layout package.html in ibis.ipl. (Niels)
+- split up ibis in multiple separate subprojects:
+	+ ipl
+	+ util
+	+ server
+	- programming models
+	- io?
+	- compile?
+- move applications to their repective sub-project.
+- update docs
+- migrate leftover prints to log4j, surround with if (DEBUG){}
+  in performance critical section
+- print output like javac in ibisc
+- while(true) {fix eclipse warnings}
+- Api docs of IPL: read, clarify, improve (Niels: SendPort).
 
 website:
 - update "ibis" overview picture with new/changed implementations
 - add overview section
 - update/create each subproject page
+
+##### Ibis 2.X ####
+
+Ibis:
+- while(true) {fix eclipse warnings}
+- more efficient clone? Maybe generate code that clones without using 
+  serialization. Could be done for objects passed as a param
+  to a spawn, for instance. If code is not there, fall back to current impl.
+
+ibis registry:
+- gossip Registry
+
+implementations:
+- fix/improve performance of MpiIbis
+- Implement multi Ibis.
+- Implement LRMC Ibis
+  
+deployment/testing/benchmarking:
+- implement "Ibis deployment application" using the GAT
+- implement GUI/Scripting/Shell/Commandline interface on Ibis deployment app
+- reimplement codmon on-top-of the GAT
+- change codmon performance measurements to "sane" benchmarks
+- fix automatic starting of Ibis-server in "ant test" and "ibis-prun" one way
+  or another
 
 satin:
 - add semantic analysis to the compiler
@@ -94,11 +130,3 @@ satin-so:
     - object-id is sent every time (long string)
     - combiner is synchronized
     - overhead of method calls, serialization
-
-Post-ibis-2.0:
-- while(true) {fix eclipse warnings}
-- change codmon performance measurements to "sane" benchmarks
-- more efficient clone? Maybe generate code that clones without using 
-  serialization. Could be done for objects passed as a param
-  to a spawn, for instance. If code is not there, fall back to current impl.
-
