@@ -92,18 +92,17 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
             Properties userProperties, byte[] data)
             throws IbisConfigurationException, IOException,
             IbisConfigurationException {
-        TypedProperties properties =
-                RegistryProperties.getHardcodedProperties();
+        TypedProperties properties = RegistryProperties
+                .getHardcodedProperties();
         properties.addProperties(userProperties);
 
         // get the pool ....
         poolName = properties.getProperty(IbisProperties.POOL_NAME);
         if (poolName == null) {
-            throw new IbisConfigurationException("cannot initialize registry, property "
-                    + IbisProperties.POOL_NAME + " is not specified");
+            throw new IbisConfigurationException(
+                    "cannot initialize registry, property "
+                            + IbisProperties.POOL_NAME + " is not specified");
         }
-
-        
 
         events = new ArrayList<Event>();
         elections = new HashMap<String, IbisIdentifier>();
@@ -114,8 +113,8 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
 
         if (closedWorld) {
             try {
-                numInstances =
-                        properties.getIntProperty(IbisProperties.POOL_SIZE);
+                numInstances = properties
+                        .getIntProperty(IbisProperties.POOL_SIZE);
             } catch (NumberFormatException e) {
                 throw new IbisConfigurationException(
                         "could not start registry for a closed world ibis, "
@@ -144,7 +143,8 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
 
         Server server = null;
 
-        if (connectionFactory.serverIsLocalHost()) {
+        if (properties.getBooleanProperty(RegistryProperties.SERVER_STANDALONE)
+                && connectionFactory.serverIsLocalHost()) {
             try {
                 properties.setProperty(RegistryProperties.SERVER_PORT, Integer
                         .toString(connectionFactory.getServerPort()));
@@ -158,21 +158,19 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
 
         this.server = server;
 
-        boolean gossip =
-                properties.getBooleanProperty(RegistryProperties.GOSSIP);
-        keepClientState =
-                properties
-                        .getBooleanProperty(RegistryProperties.KEEP_NODE_STATE);
-        long pingInterval =
-                properties.getLongProperty(RegistryProperties.PING_INTERVAL);
+        boolean gossip = properties
+                .getBooleanProperty(RegistryProperties.GOSSIP);
+        keepClientState = properties
+                .getBooleanProperty(RegistryProperties.KEEP_NODE_STATE);
+        long pingInterval = properties
+                .getLongProperty(RegistryProperties.PING_INTERVAL);
 
         Location location = Location.defaultLocation(userProperties);
 
         // join at server, also sets identifier and adds a number of ibisses
         // to the "current" ibis list
-        identifier =
-                join(connectionFactory.getLocalAddress(), location, data,
-                        gossip, keepClientState, pingInterval);
+        identifier = join(connectionFactory.getLocalAddress(), location, data,
+                gossip, keepClientState, pingInterval);
 
         if (gossip) {
             // start gossiping
@@ -251,8 +249,8 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
             byte[] implementationData, boolean gossip, boolean stateFullServer,
             long pingInterval) throws IOException {
         logger.debug("joining to " + getPoolName());
-        Connection connection =
-                connectionFactory.connectToServer(Protocol.OPCODE_JOIN);
+        Connection connection = connectionFactory
+                .connectToServer(Protocol.OPCODE_JOIN);
 
         try {
             connection.out().writeInt(myAddress.length);
@@ -289,8 +287,8 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
     public void leave() throws IOException {
         logger.debug("leaving pool");
 
-        Connection connection =
-                connectionFactory.connectToServer(Protocol.OPCODE_LEAVE);
+        Connection connection = connectionFactory
+                .connectToServer(Protocol.OPCODE_LEAVE);
 
         try {
             getIbisIdentifier().writeTo(connection.out());
@@ -329,8 +327,8 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
 
         logger.debug("gossiping with " + ibis);
 
-        Connection connection =
-                connectionFactory.connect(ibis, Protocol.OPCODE_GOSSIP);
+        Connection connection = connectionFactory.connect(ibis,
+                Protocol.OPCODE_GOSSIP);
 
         try {
             connection.out().writeUTF(getPoolName());
@@ -393,8 +391,8 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
             }
         }
 
-        Connection connection =
-                connectionFactory.connectToServer(Protocol.OPCODE_ELECT);
+        Connection connection = connectionFactory
+                .connectToServer(Protocol.OPCODE_ELECT);
 
         try {
 
@@ -451,8 +449,8 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
     @Override
     public long getSeqno(String name) throws IOException {
         logger.debug("getting sequence number");
-        Connection connection =
-                connectionFactory.connectToServer(Protocol.OPCODE_SEQUENCE_NR);
+        Connection connection = connectionFactory
+                .connectToServer(Protocol.OPCODE_SEQUENCE_NR);
 
         try {
             connection.out().writeUTF(getPoolName());
@@ -475,8 +473,8 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
     public void assumeDead(ibis.ipl.IbisIdentifier ibis) throws IOException {
         logger.debug("declaring " + ibis + " to be dead");
 
-        Connection connection =
-                connectionFactory.connectToServer(Protocol.OPCODE_DEAD);
+        Connection connection = connectionFactory
+                .connectToServer(Protocol.OPCODE_DEAD);
 
         try {
             ((IbisIdentifier) ibis).writeTo(connection.out());
@@ -495,8 +493,8 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
     public void maybeDead(ibis.ipl.IbisIdentifier ibis) throws IOException {
         logger.debug("reporting " + ibis + " to possibly be dead");
 
-        Connection connection =
-                connectionFactory.connectToServer(Protocol.OPCODE_MAYBE_DEAD);
+        Connection connection = connectionFactory
+                .connectToServer(Protocol.OPCODE_MAYBE_DEAD);
 
         try {
 
@@ -521,8 +519,8 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
             throw new IbisConfigurationException("No signal support requested");
         }
 
-        Connection connection =
-                connectionFactory.connectToServer(Protocol.OPCODE_SIGNAL);
+        Connection connection = connectionFactory
+                .connectToServer(Protocol.OPCODE_SIGNAL);
 
         try {
             connection.out().writeUTF(getPoolName());
@@ -548,9 +546,8 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
             throw new IbisConfigurationException(
                     "Resize downcalls not configured");
         }
-        ibis.ipl.IbisIdentifier[] retval =
-                joinedIbises.toArray(new ibis.ipl.IbisIdentifier[joinedIbises
-                        .size()]);
+        ibis.ipl.IbisIdentifier[] retval = joinedIbises
+                .toArray(new ibis.ipl.IbisIdentifier[joinedIbises.size()]);
         joinedIbises.clear();
         return retval;
     }
@@ -560,9 +557,8 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
             throw new IbisConfigurationException(
                     "Resize downcalls not configured");
         }
-        ibis.ipl.IbisIdentifier[] retval =
-                leftIbises.toArray(new ibis.ipl.IbisIdentifier[leftIbises
-                        .size()]);
+        ibis.ipl.IbisIdentifier[] retval = leftIbises
+                .toArray(new ibis.ipl.IbisIdentifier[leftIbises.size()]);
         leftIbises.clear();
         return retval;
     }
@@ -572,9 +568,8 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
             throw new IbisConfigurationException(
                     "Resize downcalls not configured");
         }
-        ibis.ipl.IbisIdentifier[] retval =
-                diedIbises.toArray(new ibis.ipl.IbisIdentifier[diedIbises
-                        .size()]);
+        ibis.ipl.IbisIdentifier[] retval = diedIbises
+                .toArray(new ibis.ipl.IbisIdentifier[diedIbises.size()]);
         diedIbises.clear();
         return retval;
     }

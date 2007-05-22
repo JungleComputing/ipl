@@ -9,9 +9,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
@@ -41,7 +41,7 @@ final class Pool implements Runnable {
     private final MemberSet members;
 
     // List of "suspect" ibisses we must ping
-    private final List<IbisIdentifier> checkList;
+    private final Set<IbisIdentifier> checkList;
 
     private final boolean keepNodeState;
 
@@ -70,7 +70,7 @@ final class Pool implements Runnable {
         events = new ArrayList<Event>();
         elections = new HashMap<String, IbisIdentifier>();
         members = new MemberSet();
-        checkList = new LinkedList<IbisIdentifier>();
+        checkList = new LinkedHashSet<IbisIdentifier>();
 
         if (gossip) {
             // ping iteratively
@@ -227,12 +227,11 @@ final class Pool implements Runnable {
      */
     synchronized void dead(IbisIdentifier identifier) {
         if (!members.remove(identifier.myId)) {
-            logger.warn(identifier + " dead, but not in pool (anymore)");
             return;
         }
         if (printEvents) {
             System.out.println("Central Registry: " + identifier
-                    + " left pool \"" + name + "\" now " + members.size()
+                    + " died in pool \"" + name + "\" now " + members.size()
                     + " members");
         }
 
@@ -374,7 +373,7 @@ final class Pool implements Runnable {
             }
         }
 
-        logger.error("cannot reach " + ibis + ", removing from pool");
+        logger.debug("cannot reach " + ibis + ", removing from pool");
 
         dead(ibis);
     }
@@ -449,7 +448,7 @@ final class Pool implements Runnable {
                 }
             }
         }
-        logger.error("cannot reach " + member + ", removing from pool");
+        logger.debug("cannot reach " + member + ", removing from pool");
 
         dead(member.ibis());
     }
@@ -471,7 +470,8 @@ final class Pool implements Runnable {
                 return null;
             }
 
-            IbisIdentifier result = checkList.remove(0);
+            IbisIdentifier result = checkList.iterator().next();
+            checkList.remove(result);
 
             // return if still in pool
             if (members.contains(result.myId)) {
