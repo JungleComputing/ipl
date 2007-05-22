@@ -380,6 +380,9 @@ final class Pool implements Runnable {
     }
 
     void push(Member member) {
+        if (ended()) {
+            return;
+        }
         logger.debug("pushing entries to " + member);
 
         Connection connection = null;

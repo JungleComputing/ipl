@@ -81,7 +81,7 @@ public final class Server extends Thread implements Service {
 
         pools = new HashMap<String, Pool>();
 
-        ThreadPool.createNew(this, "server");
+        ThreadPool.createNew(this, "Central Registry Service");
 
         logger.debug("Started Central Registry service on virtual port "
                 + VIRTUAL_PORT);

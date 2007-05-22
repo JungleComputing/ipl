@@ -20,22 +20,20 @@ final class EventPusher implements Runnable {
 
                 logger.debug("updating nodes in pool to event-time " + time);
 
-                start();
-
-                waitUntilDone();
+                pushEvents();
 
                 logger.debug("DONE updating nodes in pool to event-time "
                         + time);
-
-                // wait until some event has happened
-                // (which it might already have)
-                pool.waitForEventTime(time + 1);
-
+                
                 try {
                     Thread.sleep(DELAY);
                 } catch (InterruptedException e) {
                     // IGNORE
                 }
+
+                // wait until some event has happened
+                // (which it might already have)
+                pool.waitForEventTime(time + 1);
             }
         }
     }
@@ -44,50 +42,26 @@ final class EventPusher implements Runnable {
 
     private Pool pool;
 
-    int next;
+    private int next;
+
+    private int threads;
 
     EventPusher(Pool pool, int threads) {
         this.pool = pool;
-        next = -1;
+        this.threads = threads;
 
-        for (int i = 0; i < threads; i++) {
-            ThreadPool.createNew(this, "event pusher");
-        }
+        next = -1;
 
         new Scheduler();
     }
 
-    private synchronized void start() {
-        logger.debug("starting");
+    private synchronized void pushEvents() {
         next = 0;
-        notifyAll();
-    }
-
-    private synchronized Member getNext() {
-        logger.debug("getting next");
-        while (true) {
-            if (pool.ended()) {
-                return null;
-            }
-            if (next != -1) {
-                Member result = pool.getMember(next++);
-                logger.debug("next = " + next);
-                if (result == null) {
-                    next = -1;
-                    notifyAll();
-                } else {
-                    return result;
-                }
-            }
-            try {
-                wait();
-            } catch (InterruptedException e) {
-                // IGNORE
-            }
+        
+        for (int i = 0; i < threads; i++) {
+            ThreadPool.createNew(this, "event pusher");
         }
-    }
-
-    private synchronized void waitUntilDone() {
+        
         while (next != -1) {
             try {
                 wait();
@@ -98,12 +72,29 @@ final class EventPusher implements Runnable {
         logger.debug("done!");
     }
 
+    private synchronized Member getNext() {
+        logger.debug("getting next");
+        if (next == -1) {
+            return null;
+        }
+
+        Member result = pool.getMember(next++);
+        logger.debug("next = " + next);
+        if (result == null) {
+            next = -1;
+            notifyAll();
+        }
+
+        return result;
+    }
+
+
     public void run() {
         while (true) {
             Member next = getNext();
 
             if (next == null) {
-                // pool ended
+                // done pushing
                 return;
             }
 
