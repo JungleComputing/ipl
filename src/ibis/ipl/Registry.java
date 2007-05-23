@@ -25,7 +25,7 @@ public interface Registry {
      */
     public IbisIdentifier elect(String electionName) throws IOException;
 
-    /**
+    /** @@@ TODO blocking? what if election wasn't won yet, etc --Rob
      * Gets the result of an election, without being a candidate.
      *
      * @param electionName the name of this election.
