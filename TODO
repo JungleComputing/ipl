@@ -52,7 +52,7 @@ ibis-util:
 + remove dependancy on Smartsockets.
 
 packaging/distribution:
-+ layout package.html in ibis.ipl. (Niels)
++ layout package.html in ibis.ipl.
 - split up ibis in multiple separate subprojects:
 	+ ipl
 	+ util
@@ -66,12 +66,17 @@ packaging/distribution:
   in performance critical section
 - print output like javac in ibisc
 - while(true) {fix eclipse warnings}
-- Api docs of IPL: read, clarify, improve (Niels: SendPort).
+- Api docs of IPL: read, clarify, improve (Niels: Done SendPort).
+- clean-up scripts
+- fix automatic starting of Ibis-server in "ant test" and "ibis-prun" one way
+  or another
+- clean up doc building scripts
 
 website:
 - update "ibis" overview picture with new/changed implementations
 - add overview section
 - update/create each subproject page
+- add javadoc top-button where applicable
 
 ##### Ibis 2.X ####
 
@@ -94,8 +99,7 @@ deployment/testing/benchmarking:
 - implement GUI/Scripting/Shell/Commandline interface on Ibis deployment app
 - reimplement codmon on-top-of the GAT
 - change codmon performance measurements to "sane" benchmarks
-- fix automatic starting of Ibis-server in "ant test" and "ibis-prun" one way
-  or another
+
 
 satin:
 - add semantic analysis to the compiler
