@@ -1,6 +1,7 @@
 ##### Ibis 2.0 ####
 
 ipl:
+- explicit rec: m = recv(); m = recv(); (no finish) does not throw exception
 + add properties to sendport/receiveport create methods.
   (for buffer sizes, replacer, a.o.). (Done, Ceriel)
 + implement stacking Ibis (Done, Ceriel) 
