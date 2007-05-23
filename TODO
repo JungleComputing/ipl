@@ -15,6 +15,7 @@ ipl:
 - fix/remove weird Location.cluster().
 - check properties for unknown properties
 - add "fillTimeout" option to sendport.connect() ?
+- sequencing support?
 
 capabilities:
 + introduce IbisCapabilities, PortType (both extend CapabilitySet),

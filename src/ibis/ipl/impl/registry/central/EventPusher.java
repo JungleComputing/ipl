@@ -78,8 +78,10 @@ final class EventPusher implements Runnable {
             return null;
         }
 
-        Member result = pool.getMember(next++);
         logger.debug("next = " + next);
+
+        Member result = pool.getMember(next);
+        next += 1;
         if (result == null) {
             next = -1;
             notifyAll();
