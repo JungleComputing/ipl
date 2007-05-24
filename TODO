@@ -1,22 +1,28 @@
+Legend:
+- = current
++ = done
+* = new since last core meeting
+
 ##### Ibis 2.0 ####
 
 ipl:
-- explicit rec: m = recv(); m = recv(); (no finish) does not throw exception
-+ add properties to sendport/receiveport create methods.
-  (for buffer sizes, replacer, a.o.). (Done, Ceriel)
-+ implement stacking Ibis (Done, Ceriel) 
-+ refactor Ibis Factory (Done, Niels)
-+ simplify build file slightly (Done, Niels)
-+ refactor the set of Ibis properties (Done, Niels)
-+ add a seperate smartsockets based central server subproject: ibis-server
-  (Done, Niels)
+- check properties for unknown properties
+* add "fillTimeout" option to sendport.connect().
+* add sequencing support to the ipl
+
+Ibis Factory:
 - add support for stacking to the factory (don't add an Ibis to a stack twice)
 - add a flag to each Ibis to denote if it should be automatically selected or not.
   The dummy stacking Ibis should never be selected, nor should NioIbis
 - fix/remove weird Location.cluster().
-- check properties for unknown properties
-- add "fillTimeout" option to sendport.connect() ?
-- sequencing support?
+* Only select the first matching Ibis, don't try all of them.
+* Add a seperate "checker" object for each Ibis implementation to determine
+  which Ibis to use.
+
+IbisC:
+* remove rewriting of "flat list of class files"
+* catch (NullPointeR) exceptions by Bcel, if possible
+* add classes in the parameters to the classpath
 
 capabilities:
 + introduce IbisCapabilities, PortType (both extend CapabilitySet),
@@ -34,20 +40,24 @@ management:
 
 ibis registry:
 - forget unneeded event history
-
-abstract implementation:
-- if closed.world is selected, check if ibis.pool.hosts is set, and ignore
-  joins beyond total hosts, and all leaves.
+* after doing an accept, fork a new thread immediately
+* check if all Ibisses in a pool are of the same implementation, version, etc.
 
 implementations:
-- fix/improve performance of MpiIbis
-- implement multi Ibis???
-- somehow implement lrmc in Ibis (not on top of ...) or in a stacking Ibis.
-  Then, this would be the way to do MANY_TO_MANY.
+- Generic: if closed.world is selected, check if ibis.pool.hosts is set, and 
+  ignore joins beyond total hosts, and all leaves.
+* TcpIbis: fork a thread immediately after doing an "accept". Don't do a
+  handshake first.
+* Fix deadlocks due to lazily creating serialization streams in TcpIbis.
+* catch InvocationTargeExceptions, and thow the cause of this runtime exception
+  instead.
+* Add an IbisIOException (with a cause)
 
 applications:
 - check results of the different barnes versions
 - remove old-n-useless applications (if any)
+* build jars by default
+
 
 ibis-util:
 + move PoolInfo to ibis-server (Done, Niels)
@@ -72,7 +82,10 @@ packaging/distribution:
 - clean-up scripts
 - fix automatic starting of Ibis-server in "ant test" and "ibis-prun" one way
   or another
-- clean up doc building scripts
+* clean up doc building scripts
+* fix codmon
+* put each ibis in a seperate jar
+
 
 website:
 - update "ibis" overview picture with new/changed implementations
