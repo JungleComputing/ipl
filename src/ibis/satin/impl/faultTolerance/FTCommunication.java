@@ -227,6 +227,11 @@ final class FTCommunication implements Config, ReceivePortConnectUpcall,
 
     public void lostConnection(ReceivePort me, SendPortIdentifier johnDoe,
             Throwable reason) {
+        if (reason == null) {
+            ftLogger.info("SATIN '" + s.ident + "': got lostConnection upcall: "
+                    + johnDoe.ibisIdentifier() + " closed connection");
+            return;
+        }
         ftLogger.info("SATIN '" + s.ident + "': got lostConnection upcall: "
                 + johnDoe.ibisIdentifier() + ", reason = " + reason);
         if (connectionUpcallsDisabled) {

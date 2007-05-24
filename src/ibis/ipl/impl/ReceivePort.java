@@ -370,9 +370,6 @@ public abstract class ReceivePort extends Managable
             }
         } 
         if (connectUpcall != null) {
-            if (e == null) {
-                e = new Exception("sender closed connection");
-            }
             connectUpcall.lostConnection(this, id, e);
         }
         removeInfo(id);
