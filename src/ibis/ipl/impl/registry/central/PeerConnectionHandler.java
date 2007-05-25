@@ -112,7 +112,9 @@ final class PeerConnectionHandler implements Runnable {
         ThreadPool.createNew(this, "peer connection handler");
 
         try {
-            switch (connection.getOpcode()) {
+            byte opcode = connection.in().readByte();
+
+            switch (opcode) {
             case Protocol.OPCODE_GOSSIP:
                 handleGossip(connection);
                 break;
@@ -124,7 +126,7 @@ final class PeerConnectionHandler implements Runnable {
                 break;
             default:
                 logger.error("unknown opcode in request: "
-                        + connection.getOpcode());
+                        + opcode);
             }
             logger.debug("done handling request");
         } catch (IOException e) {

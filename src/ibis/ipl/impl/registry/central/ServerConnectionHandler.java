@@ -209,14 +209,16 @@ final class ServerConnectionHandler implements Runnable {
 
         long start = System.currentTimeMillis();
 
+        byte opcode = 0;
         try {
+            opcode = connection.in().readByte();
 
             if (logger.isDebugEnabled()) {
                 logger.debug("got request, opcode = "
-                        + Protocol.opcodeString(connection.getOpcode()));
+                        + Protocol.opcodeString(opcode));
             }
 
-            switch (connection.getOpcode()) {
+            switch (opcode) {
             case Protocol.OPCODE_JOIN:
                 handleJoin(connection);
                 break;
@@ -239,14 +241,16 @@ final class ServerConnectionHandler implements Runnable {
                 handleSignal(connection);
                 break;
             default:
-                logger.error("unknown opcode: " + connection.getOpcode());
+                logger.error("unknown opcode: " + opcode);
             }
         } catch (IOException e) {
             logger.error("error on handling connection", e);
+            connection.close();
+            return;
         }
         connection.close();
 
-        stats.add(connection.getOpcode(), System.currentTimeMillis() - start);
+        stats.add(opcode, System.currentTimeMillis() - start);
         logger.debug("done handling request");
     }
 }

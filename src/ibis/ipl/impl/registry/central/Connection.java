@@ -31,16 +31,12 @@ final class Connection {
 
     private final DataInputStream in;
 
-    private final byte opcode;
-
     Connection(VirtualSocketAddress address, VirtualSocketFactory factory,
             byte opcode, int timeout, boolean printWarning) throws IOException {
         plainSocket = null;
         VirtualSocket socket = null;
         DataOutputStream out = null;
         DataInputStream in = null;
-
-        this.opcode = opcode;
 
         socket = factory.createClientSocket(address, timeout, true,
                 new HashMap<String, Object>());
@@ -67,8 +63,6 @@ final class Connection {
         Socket socket = null;
         DataOutputStream out = null;
         DataInputStream in = null;
-
-        this.opcode = opcode;
 
         long hardDeadline = System.currentTimeMillis() + timeout;
 
@@ -155,8 +149,6 @@ final class Connection {
                 .getInputStream()));
         out = new DataOutputStream(new BufferedOutputStream(virtualSocket
                 .getOutputStream()));
-
-        opcode = in.readByte();
     }
 
     Connection(ServerSocket plainServerSocket) throws IOException {
@@ -170,8 +162,6 @@ final class Connection {
         out = new DataOutputStream(new BufferedOutputStream(plainSocket
                 .getOutputStream()));
 
-        opcode = in.readByte();
-
     }
 
     DataOutputStream out() {
@@ -182,10 +172,6 @@ final class Connection {
         return in;
     }
 
-    byte getOpcode() {
-        return opcode;
-    }
-
     void getAndCheckReply() throws IOException {
         // flush output, just in case...
         out.flush();
@@ -194,7 +180,7 @@ final class Connection {
         byte reply = in.readByte();
         if (reply == Protocol.REPLY_ERROR) {
             close();
-            throw new IOException(Protocol.opcodeString(opcode) + " ERROR: "
+            throw new IOException("ERROR: "
                     + in.readUTF());
         } else if (reply != Protocol.REPLY_OK) {
             close();
