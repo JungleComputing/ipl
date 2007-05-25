@@ -108,11 +108,11 @@ final class PeerConnectionHandler implements Runnable {
             if (!registry.isStopped()) {
                 logger.error("error on accepting connection", e);
             }
-            //wait a bit
+            // wait a bit
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e1) {
-                //IGNORE
+                // IGNORE
             }
         }
 
@@ -139,7 +139,8 @@ final class PeerConnectionHandler implements Runnable {
                 handlePush(connection);
                 break;
             default:
-                logger.error("unknown opcode in request: " + opcode);
+                logger.error("unknown opcode in request: " + opcode + "("
+                        + Protocol.opcodeString(opcode) + ")");
             }
             logger.debug("done handling request");
         } catch (IOException e) {
