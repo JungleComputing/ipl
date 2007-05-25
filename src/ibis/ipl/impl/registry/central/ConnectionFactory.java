@@ -192,17 +192,17 @@ final class ConnectionFactory {
         }
     }
 
-    Connection connect(IbisIdentifier ibis, byte opcode, boolean fillTimeout) throws IOException {
+    Connection connect(IbisIdentifier ibis, boolean fillTimeout) throws IOException {
         if (standalone) {
             InetSocketAddress address = plainAddressFromBytes(ibis
                     .getRegistryData());
 
-            return new Connection(address, opcode, timeout, false);
+            return new Connection(address, timeout);
 
         } else {
             VirtualSocketAddress address = VirtualSocketAddress.fromBytes(ibis
                     .getRegistryData(), 0);
-            return new Connection(address, virtualSocketFactory, opcode,
+            return new Connection(address, virtualSocketFactory,
                     timeout, fillTimeout);
 
         }
@@ -238,7 +238,7 @@ final class ConnectionFactory {
         }
     }
 
-    Connection connectToServer(byte opcode) throws IOException {
+    Connection connectToServer(boolean fillTimeout) throws IOException {
         logger.debug("connecting to server");
         Connection result;
         if (standalone) {
@@ -246,7 +246,7 @@ final class ConnectionFactory {
                 throw new IOException(
                         "could not connect to server, address not specified");
             }
-            result = new Connection(plainServerAddress, opcode, timeout, true);
+            result = new Connection(plainServerAddress, timeout);
         } else {
 
             if (virtualServerAddress == null) {
@@ -254,7 +254,7 @@ final class ConnectionFactory {
                         "could not connect to server, address not specified");
             }
             result = new Connection(virtualServerAddress, virtualSocketFactory,
-                    opcode, timeout, true);
+                    timeout, fillTimeout);
         }
         logger.debug("connection to server established");
         return result;

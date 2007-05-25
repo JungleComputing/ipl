@@ -8,7 +8,7 @@ final class PeriodicNodeContactor implements Runnable {
 
     private static final long MIN_TIMEOUT = 100;
 
-    private static final long MAX_TIMEOUT = 10 * 1000;
+    private static final long MAX_TIMEOUT = 30 * 1000;
 
     private static final Logger logger = Logger
             .getLogger(PeriodicNodeContactor.class);

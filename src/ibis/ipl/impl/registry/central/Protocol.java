@@ -42,6 +42,9 @@ final class Protocol {
 
     static final int BOOTSTRAP_LIST_SIZE = 200;
 
+    public static final byte CLIENT_MAGIC_BYTE = 66;
+    public static final byte SERVER_MAGIC_BYTE = 88;
+
     static String opcodeString(byte opcode) {
         if (opcode == OPCODE_JOIN) {
             return "JOIN";

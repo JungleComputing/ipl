@@ -37,8 +37,8 @@ public class RegistryProperties {
             { KEEP_NODE_STATE, "false",
                     "Boolean: do we keep track of which events nodes have" },
 
-            { PING_INTERVAL, "300000",
-                    "Long: how often do we check if a member of a pool is still alive" },
+            { PING_INTERVAL, "60",
+                    "Int(seconds): how often do we check if a member of a pool is still alive" },
 
             { SERVER_STANDALONE, "false",
                     "Boolean: if true, a stand-alone server is used/expected" },
@@ -50,7 +50,7 @@ public class RegistryProperties {
                     "Int: Port which the standalone server binds to" },
 
             { CONNECT_TIMEOUT, "120",
-                    "int(seconds): how long do we attempt to connect before giving up" },
+                    "Int(seconds): how long do we attempt to connect before giving up" },
 
             { SERVER_PRINT_EVENTS, "false", "Boolean: if true, events are printed to standard out" },
             { SERVER_PRINT_STATS, "false",

@@ -33,12 +33,14 @@ final class PeerConnectionHandler implements Runnable {
                     + registry.getPoolName());
             connection.closeWithError("wrong pool: " + poolName
                     + " instead of " + registry.getPoolName());
+            return;
         }
 
         int localTime = registry.currentEventTime();
 
         connection.sendOKReply();
         connection.out().writeInt(localTime);
+        connection.out().flush();
 
         if (localTime > peerTime) {
             int sendEntries = localTime - peerTime;
@@ -49,6 +51,7 @@ final class PeerConnectionHandler implements Runnable {
 
                 event.writeTo(connection.out());
             }
+            connection.out().flush();
 
         } else if (localTime < peerTime) {
             Event[] newEvents = new Event[connection.in().readInt()];
@@ -80,6 +83,13 @@ final class PeerConnectionHandler implements Runnable {
             connection.out().flush();
         }
 
+        int events = connection.in().readInt();
+
+        if (events < 0) {
+            connection.closeWithError("negative event size");
+            return;
+        }
+
         Event[] newEvents = new Event[connection.in().readInt()];
         for (int i = 0; i < newEvents.length; i++) {
             newEvents[i] = new Event(connection.in());
@@ -96,6 +106,8 @@ final class PeerConnectionHandler implements Runnable {
         logger.debug("got a ping request");
         connection.sendOKReply();
         registry.getIbisIdentifier().writeTo(connection.out());
+        connection.out().flush();
+        connection.close();
     }
 
     public void run() {
@@ -124,6 +136,13 @@ final class PeerConnectionHandler implements Runnable {
         }
 
         try {
+            byte magic = connection.in().readByte();
+
+            if (magic != Protocol.CLIENT_MAGIC_BYTE) {
+                throw new IOException(
+                        "Invalid header byte in accepting connection");
+            }
+
             byte opcode = connection.in().readByte();
 
             logger.debug("received request: " + Protocol.opcodeString(opcode));
@@ -146,6 +165,5 @@ final class PeerConnectionHandler implements Runnable {
         } catch (IOException e) {
             logger.error("error on handling request", e);
         }
-        connection.close();
     }
 }

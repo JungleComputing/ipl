@@ -93,7 +93,7 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
             throws IbisConfigurationException, IOException,
             IbisConfigurationException {
         logger.debug("creating central registry");
-        
+
         TypedProperties properties = RegistryProperties
                 .getHardcodedProperties();
         properties.addProperties(userProperties);
@@ -140,7 +140,7 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
         }
 
         random = new Random();
-        
+
         connectionFactory = new ConnectionFactory(properties);
 
         Server server = null;
@@ -166,7 +166,12 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
         keepClientState = properties
                 .getBooleanProperty(RegistryProperties.KEEP_NODE_STATE);
         long pingInterval = properties
-                .getLongProperty(RegistryProperties.PING_INTERVAL);
+                .getIntProperty(RegistryProperties.PING_INTERVAL) * 1000;
+        
+        //FIXME: remove
+        if (pingInterval > 1000000) {
+            logger.warn(RegistryProperties.PING_INTERVAL + " now in seconds!");
+        }
 
         Location location = Location.defaultLocation(userProperties);
 
@@ -252,12 +257,13 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
             byte[] implementationData, boolean gossip, boolean stateFullServer,
             long pingInterval) throws IOException {
         logger.debug("joining to " + getPoolName() + ", connecting to server");
-        Connection connection = connectionFactory
-                .connectToServer(Protocol.OPCODE_JOIN);
+        Connection connection = connectionFactory.connectToServer(true);
 
         logger.debug("sending join info to server");
-        
+
         try {
+            connection.out().writeByte(Protocol.SERVER_MAGIC_BYTE);
+            connection.out().writeByte(Protocol.OPCODE_JOIN);
             connection.out().writeInt(myAddress.length);
             connection.out().write(myAddress);
 
@@ -268,9 +274,10 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
             connection.out().writeBoolean(gossip);
             connection.out().writeBoolean(stateFullServer);
             connection.out().writeLong(pingInterval);
+            connection.out().flush();
 
             logger.debug("reading join result info from server");
-            
+
             connection.getAndCheckReply();
 
             IbisIdentifier result = new IbisIdentifier(connection.in());
@@ -294,11 +301,13 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
     public void leave() throws IOException {
         logger.debug("leaving pool");
 
-        Connection connection = connectionFactory
-                .connectToServer(Protocol.OPCODE_LEAVE);
+        Connection connection = connectionFactory.connectToServer(true);
 
         try {
+            connection.out().writeByte(Protocol.SERVER_MAGIC_BYTE);
+            connection.out().writeByte(Protocol.OPCODE_LEAVE);
             getIbisIdentifier().writeTo(connection.out());
+            connection.out().flush();
 
             connection.getAndCheckReply();
 
@@ -334,13 +343,15 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
 
         logger.debug("gossiping with " + ibis);
 
-        Connection connection = connectionFactory.connect(ibis,
-                Protocol.OPCODE_GOSSIP, false);
+        Connection connection = connectionFactory.connect(ibis, false);
 
         try {
+            connection.out().writeByte(Protocol.CLIENT_MAGIC_BYTE);
+            connection.out().writeByte(Protocol.OPCODE_GOSSIP);
             connection.out().writeUTF(getPoolName());
             int localTime = currentEventTime();
             connection.out().writeInt(currentEventTime());
+            connection.out().flush();
 
             connection.getAndCheckReply();
 
@@ -398,13 +409,14 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
             }
         }
 
-        Connection connection = connectionFactory
-                .connectToServer(Protocol.OPCODE_ELECT);
+        Connection connection = connectionFactory.connectToServer(true);
 
         try {
-
+            connection.out().writeByte(Protocol.SERVER_MAGIC_BYTE);
+            connection.out().writeByte(Protocol.OPCODE_ELECT);
             getIbisIdentifier().writeTo(connection.out());
             connection.out().writeUTF(election);
+            connection.out().flush();
 
             connection.getAndCheckReply();
 
@@ -419,7 +431,8 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
                 }
             }
 
-            logger.debug("election : \"" + election + "\" done, result = " + winner);
+            logger.debug("election : \"" + election + "\" done, result = "
+                    + winner);
             return winner;
 
         } catch (IOException e) {
@@ -456,10 +469,11 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
     @Override
     public long getSeqno(String name) throws IOException {
         logger.debug("getting sequence number");
-        Connection connection = connectionFactory
-                .connectToServer(Protocol.OPCODE_SEQUENCE_NR);
+        Connection connection = connectionFactory.connectToServer(true);
 
         try {
+            connection.out().writeByte(Protocol.SERVER_MAGIC_BYTE);
+            connection.out().writeByte(Protocol.OPCODE_SEQUENCE_NR);
             connection.out().writeUTF(getPoolName());
             connection.out().flush();
 
@@ -481,10 +495,13 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
         logger.debug("declaring " + ibis + " to be dead");
 
         Connection connection = connectionFactory
-                .connectToServer(Protocol.OPCODE_DEAD);
+                .connectToServer(true);
 
         try {
+            connection.out().writeByte(Protocol.SERVER_MAGIC_BYTE);
+            connection.out().writeByte(Protocol.OPCODE_DEAD);
             ((IbisIdentifier) ibis).writeTo(connection.out());
+            connection.out().flush();
 
             connection.getAndCheckReply();
 
@@ -501,11 +518,13 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
         logger.debug("reporting " + ibis + " to possibly be dead");
 
         Connection connection = connectionFactory
-                .connectToServer(Protocol.OPCODE_MAYBE_DEAD);
+                .connectToServer(true);
 
         try {
-
+            connection.out().writeByte(Protocol.SERVER_MAGIC_BYTE);
+            connection.out().writeByte(Protocol.OPCODE_MAYBE_DEAD);
             ((IbisIdentifier) ibis).writeTo(connection.out());
+            connection.out().flush();
 
             connection.getAndCheckReply();
             connection.close();
@@ -527,15 +546,18 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
         }
 
         Connection connection = connectionFactory
-                .connectToServer(Protocol.OPCODE_SIGNAL);
+                .connectToServer(true);
 
         try {
+            connection.out().writeByte(Protocol.SERVER_MAGIC_BYTE);
+            connection.out().writeByte(Protocol.OPCODE_SIGNAL);
             connection.out().writeUTF(getPoolName());
             connection.out().writeUTF(signal);
             connection.out().writeInt(ibisses.length);
             for (int i = 0; i < ibisses.length; i++) {
                 ((IbisIdentifier) ibisses[i]).writeTo(connection.out());
             }
+            connection.out().flush();
 
             connection.getAndCheckReply();
             connection.close();
@@ -679,7 +701,7 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
     }
 
     synchronized void handleNewEvents(Event[] newEvents) {
-        logger.debug(" handling" + newEvents.length + " new events");
+        logger.debug(" handling " + newEvents.length + " new events");
 
         if (newEvents.length == 0) {
             return;

@@ -32,8 +32,8 @@ final class Connection {
     private final DataInputStream in;
 
     Connection(VirtualSocketAddress address, VirtualSocketFactory factory,
-            byte opcode, int timeout, boolean fillTimeout) throws IOException {
-        logger.debug("connecting to " + address + " opcode = " + opcode + ", timeout = " + timeout + " , filltimeout = " + fillTimeout);
+            int timeout, boolean fillTimeout) throws IOException {
+        logger.debug("connecting to " + address + ", timeout = " + timeout + " , filltimeout = " + fillTimeout);
         plainSocket = null;
         VirtualSocket socket = null;
         DataOutputStream out = null;
@@ -50,10 +50,6 @@ final class Connection {
                 .getInputStream()));
 
         
-        // write opcode
-        out.writeByte(opcode);
-        out.flush();
-
         this.virtualSocket = socket;
         this.out = out;
         this.in = in;
@@ -62,8 +58,7 @@ final class Connection {
         
     }
 
-    Connection(InetSocketAddress address, byte opcode, int timeout,
-            boolean printWarning) throws IOException {
+    Connection(InetSocketAddress address, int timeout) throws IOException {
         virtualSocket = null;
         Socket socket = null;
         DataOutputStream out = null;
@@ -98,17 +93,9 @@ final class Connection {
                 in = new DataInputStream(new BufferedInputStream(socket
                         .getInputStream()));
 
-                // write opcode
-                out.writeByte(opcode);
-                out.flush();
 
                 success = true;
             } catch (IOException e) {
-                // failure: wait some time before trying again...
-                if (printWarning && tries == 0) {
-                    logger.warn("Registry: failed to connect to " + address
-                            + ", will keep trying");
-                }
 
                 long currentTime = System.currentTimeMillis();
 

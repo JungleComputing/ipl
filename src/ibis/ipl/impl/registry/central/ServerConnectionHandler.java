@@ -222,6 +222,12 @@ final class ServerConnectionHandler implements Runnable {
 
         byte opcode = 0;
         try {
+            byte magic = connection.in().readByte();
+            
+            if (magic != Protocol.SERVER_MAGIC_BYTE) {
+                throw new IOException("Invalid header byte in accepting connection"); 
+            }
+            
             opcode = connection.in().readByte();
 
             if (logger.isDebugEnabled()) {
