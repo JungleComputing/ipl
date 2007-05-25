@@ -99,20 +99,28 @@ final class PeerConnectionHandler implements Runnable {
     }
 
     public void run() {
-        Connection connection;
+        Connection connection = null;
         try {
+            logger.debug("accepting connection");
             connection = connectionFactory.accept();
+            logger.debug("connection accepted");
         } catch (IOException e) {
             if (!registry.isStopped()) {
                 logger.error("error on accepting connection", e);
             }
-            return;
         }
+
         // create new thread for next connection
         ThreadPool.createNew(this, "peer connection handler");
 
+        if (connection == null) {
+            return;
+        }
+
         try {
             byte opcode = connection.in().readByte();
+
+            logger.debug("received request: " + Protocol.opcodeString(opcode));
 
             switch (opcode) {
             case Protocol.OPCODE_GOSSIP:
@@ -125,12 +133,11 @@ final class PeerConnectionHandler implements Runnable {
                 handlePush(connection);
                 break;
             default:
-                logger.error("unknown opcode in request: "
-                        + opcode);
+                logger.error("unknown opcode in request: " + opcode);
             }
             logger.debug("done handling request");
         } catch (IOException e) {
-            logger.error("error on handling connection", e);
+            logger.error("error on handling request", e);
         }
         connection.close();
     }

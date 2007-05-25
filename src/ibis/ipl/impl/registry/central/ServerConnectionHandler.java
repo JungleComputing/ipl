@@ -194,7 +194,7 @@ final class ServerConnectionHandler implements Runnable {
     }
 
     public void run() {
-        Connection connection;
+        Connection connection = null;
         try {
             logger.debug("server: accepting new connection");
             connection = connectionFactory.accept();
@@ -203,11 +203,14 @@ final class ServerConnectionHandler implements Runnable {
             if (!server.isStopped()) {
                 logger.error("could not accept socket", e);
             }
-            return;
         }
 
         // new thread for next connection
         ThreadPool.createNew(this, "registry server connection handler");
+        
+        if (connection == null) {
+            return;
+        }
 
         long start = System.currentTimeMillis();
 
