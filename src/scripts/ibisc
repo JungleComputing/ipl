@@ -49,6 +49,11 @@ add_to_libclasspath () {
     done
 }
 
+for i in "$@"
+do
+    CLASSPATH="$CLASSPATH:$i"
+done
+
 # Add the following dirs to the classpath 
 add_to_libclasspath "${IBIS_HOME}"/lib
 
