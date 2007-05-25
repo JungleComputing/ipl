@@ -196,7 +196,9 @@ final class ServerConnectionHandler implements Runnable {
     public void run() {
         Connection connection;
         try {
+            logger.debug("server: accepting new connection");
             connection = connectionFactory.accept();
+            logger.debug("server: connection accepted");
         } catch (IOException e) {
             if (!server.isStopped()) {
                 logger.error("could not accept socket", e);

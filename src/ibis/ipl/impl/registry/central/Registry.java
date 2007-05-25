@@ -92,6 +92,8 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
             Properties userProperties, byte[] data)
             throws IbisConfigurationException, IOException,
             IbisConfigurationException {
+        logger.debug("creating central registry");
+        
         TypedProperties properties = RegistryProperties
                 .getHardcodedProperties();
         properties.addProperties(userProperties);
@@ -138,13 +140,14 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
         }
 
         random = new Random();
-
+        
         connectionFactory = new ConnectionFactory(properties);
 
         Server server = null;
 
         if (properties.getBooleanProperty(RegistryProperties.SERVER_STANDALONE)
                 && connectionFactory.serverIsLocalHost()) {
+            logger.debug("automagiscally creating server");
             try {
                 properties.setProperty(RegistryProperties.SERVER_PORT, Integer
                         .toString(connectionFactory.getServerPort()));
@@ -248,10 +251,12 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
     private IbisIdentifier join(byte[] myAddress, Location location,
             byte[] implementationData, boolean gossip, boolean stateFullServer,
             long pingInterval) throws IOException {
-        logger.debug("joining to " + getPoolName());
+        logger.debug("joining to " + getPoolName() + ", connecting to server");
         Connection connection = connectionFactory
                 .connectToServer(Protocol.OPCODE_JOIN);
 
+        logger.debug("sending join info to server");
+        
         try {
             connection.out().writeInt(myAddress.length);
             connection.out().write(myAddress);
@@ -264,6 +269,8 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
             connection.out().writeBoolean(stateFullServer);
             connection.out().writeLong(pingInterval);
 
+            logger.debug("reading join result info from server");
+            
             connection.getAndCheckReply();
 
             IbisIdentifier result = new IbisIdentifier(connection.in());

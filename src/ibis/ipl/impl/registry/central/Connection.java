@@ -33,6 +33,7 @@ final class Connection {
 
     Connection(VirtualSocketAddress address, VirtualSocketFactory factory,
             byte opcode, int timeout, boolean fillTimeout) throws IOException {
+        logger.debug("connecting to " + address + " opcode = " + opcode + ", timeout = " + timeout + " , filltimeout = " + fillTimeout);
         plainSocket = null;
         VirtualSocket socket = null;
         DataOutputStream out = null;
@@ -40,6 +41,7 @@ final class Connection {
 
         socket = factory.createClientSocket(address, timeout, fillTimeout,
                 new HashMap<String, Object>());
+        logger.debug("connection created, sending opcode");
         socket.setTcpNoDelay(true);
 
         out = new DataOutputStream(new BufferedOutputStream(socket
@@ -47,6 +49,7 @@ final class Connection {
         in = new DataInputStream(new BufferedInputStream(socket
                 .getInputStream()));
 
+        
         // write opcode
         out.writeByte(opcode);
         out.flush();
@@ -55,6 +58,8 @@ final class Connection {
         this.out = out;
         this.in = in;
 
+        logger.debug("connection to " + address + " established");
+        
     }
 
     Connection(InetSocketAddress address, byte opcode, int timeout,
@@ -149,6 +154,7 @@ final class Connection {
                 .getInputStream()));
         out = new DataOutputStream(new BufferedOutputStream(virtualSocket
                 .getOutputStream()));
+        logger.debug("new connection from " + virtualSocket.getRemoteSocketAddress() + " accepted");
     }
 
     Connection(ServerSocket plainServerSocket) throws IOException {

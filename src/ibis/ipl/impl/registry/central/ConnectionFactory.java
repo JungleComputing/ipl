@@ -239,22 +239,25 @@ final class ConnectionFactory {
     }
 
     Connection connectToServer(byte opcode) throws IOException {
+        logger.debug("connecting to server");
+        Connection result;
         if (standalone) {
             if (plainServerAddress == null) {
                 throw new IOException(
                         "could not connect to server, address not specified");
             }
-            return new Connection(plainServerAddress, opcode, timeout, true);
+            result = new Connection(plainServerAddress, opcode, timeout, true);
         } else {
 
             if (virtualServerAddress == null) {
                 throw new IOException(
                         "could not connect to server, address not specified");
             }
-            return new Connection(virtualServerAddress, virtualSocketFactory,
+            result = new Connection(virtualServerAddress, virtualSocketFactory,
                     opcode, timeout, true);
-
         }
+        logger.debug("connection to server established");
+        return result;
     }
 
     boolean serverIsLocalHost() {

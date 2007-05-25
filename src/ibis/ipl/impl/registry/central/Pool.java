@@ -363,9 +363,12 @@ final class Pool implements Runnable {
                 IbisIdentifier result = new IbisIdentifier(connection.in());
 
                 connection.close();
-
+                
                 if (result.equals(ibis)) {
+                    logger.debug("ping succeeded");
                     return;
+                } else {
+                    logger.debug("ping ended up at wrong ibis");
                 }
             } catch (Exception e) {
                 logger.debug("error on pinging ibis", e);
@@ -404,14 +407,18 @@ final class Pool implements Runnable {
                     }
                 }
 
+                logger.debug("creating connection to push events to " + member.ibis());
+                
                 connection = connectionFactory.connect(member.ibis(),
                         Protocol.OPCODE_PUSH, false);
+                
+                logger.debug("connection created");
 
                 connection.out().writeUTF(getName());
+                connection.out().flush();
 
                 if (!keepNodeState) {
                     logger.debug("waiting for peer time");
-                    connection.out().flush();
                     peerTime = connection.in().readInt();
                 }
 
