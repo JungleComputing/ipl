@@ -108,6 +108,12 @@ final class PeerConnectionHandler implements Runnable {
             if (!registry.isStopped()) {
                 logger.error("error on accepting connection", e);
             }
+            //wait a bit
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e1) {
+                //IGNORE
+            }
         }
 
         // create new thread for next connection

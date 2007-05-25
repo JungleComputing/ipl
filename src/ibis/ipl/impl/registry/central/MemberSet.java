@@ -2,6 +2,7 @@ package ibis.ipl.impl.registry.central;
 
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.List;
 import java.util.Random;
 
 final class MemberSet {
@@ -74,5 +75,10 @@ final class MemberSet {
         }
 
         return result.toArray(new Member[0]);
+    }
+    
+    @SuppressWarnings("unchecked")
+    List<Member> asList() {
+        return (List<Member>) list.clone();
     }
 }

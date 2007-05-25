@@ -203,6 +203,12 @@ final class ServerConnectionHandler implements Runnable {
             if (!server.isStopped()) {
                 logger.error("could not accept socket", e);
             }
+            //wait a bit
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e1) {
+                //IGNORE
+            }
         }
 
         // new thread for next connection

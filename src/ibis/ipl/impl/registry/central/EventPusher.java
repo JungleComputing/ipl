@@ -1,39 +1,54 @@
 package ibis.ipl.impl.registry.central;
 
+import java.util.List;
+
 import ibis.util.ThreadPool;
 
 import org.apache.log4j.Logger;
 
 final class EventPusher implements Runnable {
 
-    private class Scheduler implements Runnable {
-
-        private static final long DELAY = 1000;
-
-        Scheduler() {
-            ThreadPool.createNew(this, "scheduler thread");
+    private static final long DELAY = 1000;
+    
+    private class WorkQ {
+        private List<Member> q;
+        
+        WorkQ(List<Member> work) {
+            this.q = work;
         }
-
+        
+        synchronized Member next() {
+            if (q.isEmpty()) {
+                return null;
+            }
+            
+            return q.remove(0);
+        }
+    }
+            
+    
+    private class EventPusherThread implements Runnable {
+        
+        WorkQ workQ;
+        
+        EventPusherThread(WorkQ workQ) {
+            this.workQ = workQ;
+            
+            ThreadPool.createNew(this, "event pusher thread");
+        }
+        
         public void run() {
-            while (!pool.ended()) {
-                int time = pool.getEventTime();
+            while (true) {
+                Member work = workQ.next();
 
-                logger.debug("updating nodes in pool to event-time " + time);
-
-                pushEvents();
-
-                logger.debug("DONE updating nodes in pool to event-time "
-                        + time);
-                
-                try {
-                    Thread.sleep(DELAY);
-                } catch (InterruptedException e) {
-                    // IGNORE
+                if (work == null) {
+                    // done pushing
+                    return;
                 }
 
-                // wait until some event has happened
-                // (which it might already have)
-                pool.waitForEventTime(time + 1);
+                logger.debug("pushing to " + work);
+
+                pool.push(work);
             }
         }
     }
@@ -42,67 +57,49 @@ final class EventPusher implements Runnable {
 
     private Pool pool;
 
-    private int next;
-
     private int threads;
 
     EventPusher(Pool pool, int threads) {
         this.pool = pool;
         this.threads = threads;
 
-        next = -1;
-
-        new Scheduler();
+        ThreadPool.createNew(this, "event pusher scheduler thread");
     }
-
-    private synchronized void pushEvents() {
-        next = 0;
-        
-        for (int i = 0; i < threads; i++) {
-            ThreadPool.createNew(this, "event pusher");
-        }
-        
-        while (next != -1) {
-            try {
-                wait();
-            } catch (InterruptedException e) {
-                // IGNORE
-            }
-        }
-        logger.debug("done!");
-    }
-
-    private synchronized Member getNext() {
-        logger.debug("getting next");
-        if (next == -1) {
-            return null;
-        }
-
-        logger.debug("next = " + next);
-
-        Member result = pool.getMember(next);
-        next += 1;
-        if (result == null) {
-            next = -1;
-            notifyAll();
-        }
-
-        return result;
-    }
-
+    
 
     public void run() {
-        while (true) {
-            Member next = getNext();
+        while (!pool.ended()) {
+            int time = pool.getEventTime();
 
-            if (next == null) {
-                // done pushing
-                return;
+            List<Member> members = pool.getMemberList();
+
+            logger.debug("updating nodes in pool (pool size = " + members.size() + "  to event-time " + time);
+            
+            WorkQ workQ = new WorkQ(members);
+            
+            int threads = Math.min(this.threads, members.size());
+            for (int i = 0; i < threads; i++) {
+                new EventPusherThread(workQ);
             }
 
-            logger.debug("pushing to " + next);
+            synchronized(this) {
+                while(!members.isEmpty()) {
+                    try {
+                        wait(DELAY);
+                    } catch (InterruptedException e) {
+                        //IGNORE
+                    }
+                } 
+            }
 
-            pool.push(next);
+            logger.debug("DONE updating nodes in pool to event-time "
+                    + time);
+
+            // wait until some event has happened
+            // (which it might already have)
+            pool.waitForEventTime(time + 1);
         }
     }
+
+
 }

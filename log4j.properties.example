@@ -1,7 +1,7 @@
 #example log4j property file
 
 #print warnings to console...
-log4j.rootLogger=warn, SIMPLE_CONSOLE
+log4j.rootLogger=warn, CONSOLE
 
 #and all ibis info too
 log4j.logger.ibis=info

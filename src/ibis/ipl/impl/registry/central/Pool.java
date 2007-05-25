@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
@@ -17,8 +18,6 @@ import java.util.Map.Entry;
 import org.apache.log4j.Logger;
 
 final class Pool implements Runnable {
-
-    static final int MAX_TRIES = 5;
 
     static final int PING_THREADS = 5;
 
@@ -347,119 +346,118 @@ final class Pool implements Runnable {
     }
 
     void ping(IbisIdentifier ibis) {
-        logger.debug("pinging " + ibis);
-        for (int i = 0; i < MAX_TRIES; i++) {
-            Connection connection = null;
-            try {
-
-                logger.debug("creating connection");
-                connection = connectionFactory.connect(ibis,
-                        Protocol.OPCODE_PING, false);
-                logger.debug("connection created, checking for reply");
-
-                // get reply
-                connection.getAndCheckReply();
-
-                IbisIdentifier result = new IbisIdentifier(connection.in());
-
-                connection.close();
-                
-                if (result.equals(ibis)) {
-                    logger.debug("ping succeeded");
-                    return;
-                } else {
-                    logger.debug("ping ended up at wrong ibis");
-                }
-            } catch (Exception e) {
-                logger.debug("error on pinging ibis", e);
-                if (connection != null) {
-                    connection.close();
-                }
-            }
+        if (ended()) {
+            return;
         }
+        if (!isMember(ibis)) {
+            return;
+        }
+        logger.debug("pinging " + ibis);
+        Connection connection = null;
+        try {
 
-        logger.debug("cannot reach " + ibis + ", removing from pool");
+            logger.debug("creating connection");
+            connection = connectionFactory.connect(ibis, Protocol.OPCODE_PING,
+                    false);
+            logger.debug("connection created, checking for reply");
 
-        dead(ibis);
+            // get reply
+            connection.getAndCheckReply();
+
+            IbisIdentifier result = new IbisIdentifier(connection.in());
+
+            connection.close();
+
+            if (!result.equals(ibis)) {
+                throw new Exception("ping ended up at wrong ibis");
+            }
+            logger.debug("ping successfull");
+        } catch (Exception e) {
+            logger.debug("error on pinging ibis", e);
+            if (connection != null) {
+                connection.close();
+            }
+            dead(ibis);
+        }
     }
 
     void push(Member member) {
         if (ended()) {
             return;
         }
+        if (!isMember(member.ibis())) {
+            return;
+        }
         logger.debug("pushing entries to " + member);
 
         Connection connection = null;
-        for (int tries = 0; tries < MAX_TRIES; tries++) {
-            try {
+        try {
 
-                int peerTime = 0;
+            int peerTime = 0;
 
-                if (keepNodeState) {
-                    peerTime = member.getCurrentTime();
-
-                    int localTime = getEventTime();
-
-                    if (peerTime >= localTime) {
-                        logger.debug("NOT pushing entries to " + member
-                                + ", nothing to do");
-                        return;
-                    }
-                }
-
-                logger.debug("creating connection to push events to " + member.ibis());
-                
-                connection = connectionFactory.connect(member.ibis(),
-                        Protocol.OPCODE_PUSH, false);
-                
-                logger.debug("connection created");
-
-                connection.out().writeUTF(getName());
-                connection.out().flush();
-
-                if (!keepNodeState) {
-                    logger.debug("waiting for peer time");
-                    peerTime = connection.in().readInt();
-                }
+            if (keepNodeState) {
+                peerTime = member.getCurrentTime();
 
                 int localTime = getEventTime();
 
-                logger.debug("peer time = " + peerTime + ", localtime = "
-                        + localTime);
-
-                int sendEntries = localTime - peerTime;
-                
-                if (sendEntries < 0) {
-                    logger.debug("sendEntries " + sendEntries + " is negative, not sending events"); 
-                    sendEntries = 0;
-                }
-
-                logger.debug("sending " + sendEntries + " entries");
-
-                connection.out().writeInt(sendEntries);
-
-                Event[] events = getEvents(peerTime, peerTime + sendEntries);
-                for (int i = 0; i < events.length; i++) {
-
-                    events[i].writeTo(connection.out());
-                }
-
-                connection.getAndCheckReply();
-                if (keepNodeState) {
-                    member.setCurrentTime(localTime);
-                }
-                connection.close();
-                return;
-            } catch (IOException e) {
-                logger.debug("error on pushing to ibis", e);
-                if (connection != null) {
-                    connection.close();
+                if (peerTime >= localTime) {
+                    logger.debug("NOT pushing entries to " + member
+                            + ", nothing to do");
+                    return;
                 }
             }
-        }
-        logger.debug("cannot reach " + member + ", removing from pool");
 
-        dead(member.ibis());
+            logger.debug("creating connection to push events to "
+                    + member.ibis());
+
+            connection = connectionFactory.connect(member.ibis(),
+                    Protocol.OPCODE_PUSH, false);
+
+            logger.debug("connection created");
+
+            connection.out().writeUTF(getName());
+            connection.out().flush();
+
+            if (!keepNodeState) {
+                logger.debug("waiting for peer time");
+                peerTime = connection.in().readInt();
+            }
+
+            int localTime = getEventTime();
+
+            logger.debug("peer time = " + peerTime + ", localtime = "
+                    + localTime);
+
+            int sendEntries = localTime - peerTime;
+
+            if (sendEntries < 0) {
+                logger.debug("sendEntries " + sendEntries
+                        + " is negative, not sending events");
+                sendEntries = 0;
+            }
+
+            logger.debug("sending " + sendEntries + " entries");
+
+            connection.out().writeInt(sendEntries);
+
+            Event[] events = getEvents(peerTime, peerTime + sendEntries);
+            for (int i = 0; i < events.length; i++) {
+
+                events[i].writeTo(connection.out());
+            }
+
+            connection.getAndCheckReply();
+            if (keepNodeState) {
+                member.setCurrentTime(localTime);
+            }
+            connection.close();
+        } catch (IOException e) {
+            logger.debug("cannot reach " + member);
+            dead(member.ibis());
+            if (connection != null) {
+                connection.close();
+            }
+        }
     }
 
     private synchronized IbisIdentifier getSuspectMember() {
@@ -510,8 +508,16 @@ final class Pool implements Runnable {
         return members.getRandom();
     }
 
+    synchronized boolean isMember(IbisIdentifier ibis) {
+        return members.contains(ibis.myId);
+    }
+
     synchronized Member getMember(int index) {
         return members.get(index);
+    }
+
+    synchronized List<Member> getMemberList() {
+        return members.asList();
     }
 
     public String toString() {
