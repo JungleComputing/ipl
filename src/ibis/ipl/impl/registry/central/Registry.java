@@ -419,7 +419,7 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
                 }
             }
 
-            logger.debug("election: \"" + election + "\" result = " + winner);
+            logger.debug("election : \"" + election + "\" done, result = " + winner);
             return winner;
 
         } catch (IOException e) {
