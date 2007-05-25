@@ -328,7 +328,7 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
         logger.debug("gossiping with " + ibis);
 
         Connection connection = connectionFactory.connect(ibis,
-                Protocol.OPCODE_GOSSIP);
+                Protocol.OPCODE_GOSSIP, false);
 
         try {
             connection.out().writeUTF(getPoolName());

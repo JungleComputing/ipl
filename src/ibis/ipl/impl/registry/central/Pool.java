@@ -352,8 +352,10 @@ final class Pool implements Runnable {
             Connection connection = null;
             try {
 
+                logger.debug("creating connection");
                 connection = connectionFactory.connect(ibis,
-                        Protocol.OPCODE_PING);
+                        Protocol.OPCODE_PING, false);
+                logger.debug("connection created, checking for reply");
 
                 // get reply
                 connection.getAndCheckReply();
@@ -403,7 +405,7 @@ final class Pool implements Runnable {
                 }
 
                 connection = connectionFactory.connect(member.ibis(),
-                        Protocol.OPCODE_PUSH);
+                        Protocol.OPCODE_PUSH, false);
 
                 connection.out().writeUTF(getName());
 

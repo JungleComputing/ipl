@@ -192,7 +192,7 @@ final class ConnectionFactory {
         }
     }
 
-    Connection connect(IbisIdentifier ibis, byte opcode) throws IOException {
+    Connection connect(IbisIdentifier ibis, byte opcode, boolean fillTimeout) throws IOException {
         if (standalone) {
             InetSocketAddress address = plainAddressFromBytes(ibis
                     .getRegistryData());
@@ -203,7 +203,7 @@ final class ConnectionFactory {
             VirtualSocketAddress address = VirtualSocketAddress.fromBytes(ibis
                     .getRegistryData(), 0);
             return new Connection(address, virtualSocketFactory, opcode,
-                    timeout, false);
+                    timeout, fillTimeout);
 
         }
     }

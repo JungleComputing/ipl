@@ -32,13 +32,13 @@ final class Connection {
     private final DataInputStream in;
 
     Connection(VirtualSocketAddress address, VirtualSocketFactory factory,
-            byte opcode, int timeout, boolean printWarning) throws IOException {
+            byte opcode, int timeout, boolean fillTimeout) throws IOException {
         plainSocket = null;
         VirtualSocket socket = null;
         DataOutputStream out = null;
         DataInputStream in = null;
 
-        socket = factory.createClientSocket(address, timeout, true,
+        socket = factory.createClientSocket(address, timeout, fillTimeout,
                 new HashMap<String, Object>());
         socket.setTcpNoDelay(true);
 
