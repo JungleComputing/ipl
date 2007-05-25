@@ -14,35 +14,18 @@ X)
     ;;
 esac
 
-while [ $# -gt 0 ]
-do
-# echo now inspect argument $1 -- left $#
-        case "$1" in
-	-cp)
-		shift
-		CLASSPATH="$1"
-		;;
-	*)
-		break
-                ;;
-        esac
-        shift
-done
-
-for i in *
-do
-    case $i in
-    *.jar)
+case X"$1" in
+X-cp)
+    shift
+    CLASSPATH="$1"
+    ;;
+*)
+    for i in "$@"
+    do
 	CLASSPATH="$CLASSPATH:$i"
-	;;
-    *)
-	if [ -d $i ]
-	then
-	    CLASSPATH="$CLASSPATH:$i"
-	fi
-	;;
-    esac
-done
+    done
+    ;;
+esac
 
 # deal with classpath
 LIBCLASSPATH=""
