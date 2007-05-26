@@ -90,7 +90,7 @@ final class PeerConnectionHandler implements Runnable {
             return;
         }
 
-        Event[] newEvents = new Event[connection.in().readInt()];
+        Event[] newEvents = new Event[events];
         for (int i = 0; i < newEvents.length; i++) {
             newEvents[i] = new Event(connection.in());
         }

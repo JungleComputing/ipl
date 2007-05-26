@@ -94,8 +94,8 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
             IbisConfigurationException {
         logger.debug("creating central registry");
 
-        TypedProperties properties = RegistryProperties
-                .getHardcodedProperties();
+        TypedProperties properties =
+                RegistryProperties.getHardcodedProperties();
         properties.addProperties(userProperties);
 
         // get the pool ....
@@ -115,8 +115,8 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
 
         if (closedWorld) {
             try {
-                numInstances = properties
-                        .getIntProperty(IbisProperties.POOL_SIZE);
+                numInstances =
+                        properties.getIntProperty(IbisProperties.POOL_SIZE);
             } catch (NumberFormatException e) {
                 throw new IbisConfigurationException(
                         "could not start registry for a closed world ibis, "
@@ -161,14 +161,15 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
 
         this.server = server;
 
-        boolean gossip = properties
-                .getBooleanProperty(RegistryProperties.GOSSIP);
-        keepClientState = properties
-                .getBooleanProperty(RegistryProperties.KEEP_NODE_STATE);
-        long pingInterval = properties
-                .getIntProperty(RegistryProperties.PING_INTERVAL) * 1000;
-        
-        //FIXME: remove
+        boolean gossip =
+                properties.getBooleanProperty(RegistryProperties.GOSSIP);
+        keepClientState =
+                properties
+                        .getBooleanProperty(RegistryProperties.KEEP_NODE_STATE);
+        long pingInterval =
+                properties.getIntProperty(RegistryProperties.PING_INTERVAL) * 1000;
+
+        // FIXME: remove
         if (pingInterval > 1000000) {
             logger.warn(RegistryProperties.PING_INTERVAL + " now in seconds!");
         }
@@ -177,8 +178,9 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
 
         // join at server, also sets identifier and adds a number of ibisses
         // to the "current" ibis list
-        identifier = join(connectionFactory.getLocalAddress(), location, data,
-                gossip, keepClientState, pingInterval);
+        identifier =
+                join(connectionFactory.getLocalAddress(), location, data,
+                        gossip, keepClientState, pingInterval);
 
         if (gossip) {
             // start gossiping
@@ -494,8 +496,7 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
     public void assumeDead(ibis.ipl.IbisIdentifier ibis) throws IOException {
         logger.debug("declaring " + ibis + " to be dead");
 
-        Connection connection = connectionFactory
-                .connectToServer(true);
+        Connection connection = connectionFactory.connectToServer(true);
 
         try {
             connection.out().writeByte(Protocol.SERVER_MAGIC_BYTE);
@@ -517,8 +518,7 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
     public void maybeDead(ibis.ipl.IbisIdentifier ibis) throws IOException {
         logger.debug("reporting " + ibis + " to possibly be dead");
 
-        Connection connection = connectionFactory
-                .connectToServer(true);
+        Connection connection = connectionFactory.connectToServer(true);
 
         try {
             connection.out().writeByte(Protocol.SERVER_MAGIC_BYTE);
@@ -545,8 +545,7 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
             throw new IbisConfigurationException("No signal support requested");
         }
 
-        Connection connection = connectionFactory
-                .connectToServer(true);
+        Connection connection = connectionFactory.connectToServer(true);
 
         try {
             connection.out().writeByte(Protocol.SERVER_MAGIC_BYTE);
@@ -575,8 +574,9 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
             throw new IbisConfigurationException(
                     "Resize downcalls not configured");
         }
-        ibis.ipl.IbisIdentifier[] retval = joinedIbises
-                .toArray(new ibis.ipl.IbisIdentifier[joinedIbises.size()]);
+        ibis.ipl.IbisIdentifier[] retval =
+                joinedIbises.toArray(new ibis.ipl.IbisIdentifier[joinedIbises
+                        .size()]);
         joinedIbises.clear();
         return retval;
     }
@@ -586,8 +586,9 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
             throw new IbisConfigurationException(
                     "Resize downcalls not configured");
         }
-        ibis.ipl.IbisIdentifier[] retval = leftIbises
-                .toArray(new ibis.ipl.IbisIdentifier[leftIbises.size()]);
+        ibis.ipl.IbisIdentifier[] retval =
+                leftIbises.toArray(new ibis.ipl.IbisIdentifier[leftIbises
+                        .size()]);
         leftIbises.clear();
         return retval;
     }
@@ -597,8 +598,9 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
             throw new IbisConfigurationException(
                     "Resize downcalls not configured");
         }
-        ibis.ipl.IbisIdentifier[] retval = diedIbises
-                .toArray(new ibis.ipl.IbisIdentifier[diedIbises.size()]);
+        ibis.ipl.IbisIdentifier[] retval =
+                diedIbises.toArray(new ibis.ipl.IbisIdentifier[diedIbises
+                        .size()]);
         diedIbises.clear();
         return retval;
     }
@@ -662,6 +664,8 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
     }
 
     private synchronized void addIbis(IbisIdentifier newIbis) {
+        logger.debug(newIbis + " joined our pool");
+
         if (joinedIbises != null) {
             joinedIbises.add(newIbis);
         }
@@ -675,6 +679,8 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
     }
 
     private synchronized void ibisLeft(IbisIdentifier ibis) {
+        logger.debug(ibis + " left our pool");
+
         if (leftIbises != null) {
             leftIbises.add(ibis);
         }
@@ -688,6 +694,8 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
     }
 
     private synchronized void ibisDied(IbisIdentifier ibis) {
+        logger.debug(ibis + " died");
+
         if (diedIbises != null) {
             diedIbises.add(ibis);
         }
@@ -698,6 +706,24 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
                 return;
             }
         }
+    }
+
+    private synchronized void receivedSignal(String name,
+            IbisIdentifier[] destinations) {
+        for (IbisIdentifier destination : destinations) {
+            if (destination.equals(identifier)) {
+                logger.debug("received signal: \"" + name + "\"");
+                synchronized (this) {
+                    signals.add(name);
+                }
+            }
+        }
+    }
+
+    private synchronized void newElectionResult(String name, IbisIdentifier ibis) {
+        logger.debug("received winner for election \"" + name + "\" : " + ibis);
+
+        elections.put(name, ibis);
     }
 
     synchronized void handleNewEvents(Event[] newEvents) {
@@ -735,18 +761,11 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
                 }
                 break;
             case Event.SIGNAL:
-                if (signals != null) {
-                    for (IbisIdentifier identifier : newEvents[i].getIbisses()) {
-                        if (identifier.equals(identifier)) {
-                            synchronized (this) {
-                                signals.add(newEvents[i].getDescription());
-                            }
-                        }
-                    }
-                }
+                receivedSignal(newEvents[i].getDescription(), newEvents[i]
+                        .getIbisses());
                 break;
             case Event.ELECT:
-                elections.put(newEvents[i].getDescription(), newEvents[i]
+                newElectionResult(newEvents[i].getDescription(), newEvents[i]
                         .getFirstIbis());
                 break;
             case Event.UN_ELECT:
