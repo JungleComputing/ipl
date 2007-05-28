@@ -275,7 +275,7 @@ public final class RTS {
 
             upcallHandler = new UpcallHandler();
 
-            hostname = IPUtils.getLocalHostAddress().getHostName();
+            hostname = IPUtils.getLocalHostAddress().getHostAddress();
             // InetAddress adres = InetAddress.getByName(h);
             // adres = InetAddress.getByName(adres.getHostAddress());
             // hostname = adres.getHostName();
