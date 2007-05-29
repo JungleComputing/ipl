@@ -149,7 +149,7 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
         return new WriteMessage(this);
     }
 
-    private void createOut() {
+    private void createOut() throws IOException {
         String serialization;
         if (type.hasCapability(PortType.SERIALIZATION_DATA)) {
             serialization = "data";

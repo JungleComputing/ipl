@@ -30,7 +30,7 @@ public class CombiningReadMessage implements ReadMessage {
         this.ser = ser;
     }
 
-    protected void clear() {
+    protected void clear() throws IOException {
         if (in == null) {
             in = SerializationBase.createSerializationInput(ser, storeIn);
         }

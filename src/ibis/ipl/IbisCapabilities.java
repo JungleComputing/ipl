@@ -15,27 +15,21 @@ import java.util.Properties;
  */
 public final class IbisCapabilities extends CapabilitySet {
 
-    /** Prefix for registry capabilities. */
-    final static String REGISTRY = "registry";
-
-    /** Prefix for worldmodel capabilities. */
-    public final static String WORLDMODEL = REGISTRY + ".worldmodel";
-    
     /**
      * Capability, set when the Ibises that can join the pool are
      * determined at the start of the run. This enables the methods
      * {@link Ibis#getPoolSize()} and {@link Ibis#waitForAll()}.
      */
-    public final static String CLOSEDWORLD = WORLDMODEL + ".closed";
+    public final static String CLOSEDWORLD = "closedWorld";
     
     /** Capability, indicating that signals are supported. */
-    public final static String SIGNALS = REGISTRY + ".signals";
+    public final static String SIGNALS = "signals";
 
     /** Capability, indicating that elections are supported. */
-    public final static String ELECTIONS = REGISTRY + ".elections";
+    public final static String ELECTIONS = "elections";
     
     /** Capability indicating that membership administration is supported. */
-    public final static String MEMBERSHIP = REGISTRY + ".membershipManagement";
+    public final static String MEMBERSHIP = "membership";
     
     /** Capability indicating that joins/leaves are totally ordered. */
     public final static String MEMBERSHIP_ORDERED
@@ -46,7 +40,7 @@ public final class IbisCapabilities extends CapabilitySet {
             = MEMBERSHIP + ".reliable";
     
     /** Capability indicating an Ibis that can deal with malleability. */
-    public final static String MALLEABLE = "ibis.malleable";
+    public final static String MALLEABLE = "malleable";
     
     /** 
      * Constructor for an IbisCapabilities object.

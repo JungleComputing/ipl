@@ -1438,28 +1438,30 @@ public class DeepCopy {
         StoreArrayOutputStream output = new StoreArrayOutputStream(store);
 
         final Object oc = o;
-
-        final SerializationInput ser_input
-                = SerializationBase.createSerializationInput(serialization, input);
-        final SerializationOutput ser_output
-                = SerializationBase.createSerializationOutput(serialization, output);
-
-        Thread writer = new Thread("DeepCopy writer") {
-            public void run() {
-                // System.out.println("Writer started ...");
-                try {
-                    ser_output.writeObject(oc);
-                    ser_output.close();
-                } catch(Exception e) {
-                    // Should not happen
-                    // System.out.println("Got exception: " + e);
-                    // e.printStackTrace();
-                    throw new Error("Got exception: ", e);
-                }
-            }
-        };
-        writer.start();
+        
         try {
+
+            final SerializationInput ser_input = SerializationBase
+                    .createSerializationInput(serialization, input);
+            final SerializationOutput ser_output = SerializationBase
+                    .createSerializationOutput(serialization, output);
+
+            Thread writer = new Thread("DeepCopy writer") {
+                public void run() {
+                    // System.out.println("Writer started ...");
+                    try {
+                        ser_output.writeObject(oc);
+                        ser_output.close();
+                    } catch (Exception e) {
+                        // Should not happen
+                        // System.out.println("Got exception: " + e);
+                        // e.printStackTrace();
+                        throw new Error("Got exception: ", e);
+                    }
+                }
+            };
+            writer.start();
+
             return (Serializable) ser_input.readObject();
         } catch(Exception e) {
             // Should not happen

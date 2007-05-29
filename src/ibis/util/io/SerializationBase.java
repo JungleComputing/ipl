@@ -4,6 +4,7 @@ package ibis.util.io;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.io.IOException;
 
 /**
  * A base class for all Ibis serialization classes, providing some
@@ -135,7 +136,7 @@ public class SerializationBase extends IOProperties {
      * @return the serialization input stream.
      */
     public static SerializationInput createSerializationInput(String name,
-            DataInputStream in) {
+            DataInputStream in) throws IOException {
         String impl = implName(name) + "InputStream";
         try {
             Class<?> cl = Class.forName(impl);
@@ -143,21 +144,23 @@ public class SerializationBase extends IOProperties {
                     cl.getConstructor(new Class[] {DataInputStream.class});
             return (SerializationInput) cons.newInstance(new Object[] {in});
         } catch(ClassNotFoundException e) {
-            throw new SerializationError("No such class: " + impl, e);
+            throw new IbisIOException("No such class: " + impl, e);
         } catch(NoSuchMethodException e) {
-            throw new SerializationError(
+            throw new IbisIOException(
                     "No suitable constructor in class: " + impl, e);
         } catch(IllegalArgumentException e) {
-            throw new SerializationError(
+            throw new IbisIOException(
                     "No suitable constructor in class: " + impl, e);
         } catch(InstantiationException e) {
-            throw new SerializationError("class " + impl + " is abstract", e);
+            throw new IbisIOException("class " + impl + " is abstract", e);
         } catch(InvocationTargetException e) {
-            throw new SerializationError(
-                    "constructor of " + impl + " threw an exception", e);
+            throw new IbisIOException(
+                    "constructor of " + impl + " threw an exception", e.getCause());
         } catch(IllegalAccessException e) {
-            throw new SerializationError(
+            throw new IbisIOException(
                     "access to constructor of " + impl + " is denied", e);
+        } catch(Throwable e) {
+            throw new IbisIOException("got unexpected error", e);
         }
     }
 
@@ -168,7 +171,7 @@ public class SerializationBase extends IOProperties {
      * @return the serialization output stream.
      */
     public static SerializationOutput createSerializationOutput(String name,
-            DataOutputStream out) {
+            DataOutputStream out) throws IOException {
         String impl = implName(name) + "OutputStream";
         try {
             Class<?> cl = Class.forName(impl);
@@ -176,21 +179,23 @@ public class SerializationBase extends IOProperties {
                     cl.getConstructor(new Class[] {DataOutputStream.class});
             return (SerializationOutput) cons.newInstance(new Object[] {out});
         } catch(ClassNotFoundException e) {
-            throw new SerializationError("No such class: " + impl, e);
+            throw new IbisIOException("No such class: " + impl, e);
         } catch(NoSuchMethodException e) {
-            throw new SerializationError(
+            throw new IbisIOException(
                     "No suitable constructor in class: " + impl, e);
         } catch(IllegalArgumentException e) {
-            throw new SerializationError(
+            throw new IbisIOException(
                     "No suitable constructor in class: " + impl, e);
         } catch(InstantiationException e) {
-            throw new SerializationError("class " + impl + " is abstract", e);
+            throw new IbisIOException("class " + impl + " is abstract", e);
         } catch(InvocationTargetException e) {
-            throw new SerializationError(
-                    "constructor of " + impl + " threw an exception", e);
+            throw new IbisIOException(
+                    "constructor of " + impl + " threw an exception", e.getCause());
         } catch(IllegalAccessException e) {
-            throw new SerializationError(
+            throw new IbisIOException(
                     "access to constructor of " + impl + " is denied", e);
+        } catch(Throwable e) {
+            throw new IbisIOException("got unexpected error", e);
         }
     }
 }
