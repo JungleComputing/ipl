@@ -217,10 +217,9 @@ public class Ibisc {
      * Reads all classes and jars from the specified arguments.
      * @param leftArgs the arguments.
      */
-    static void readAll(ArrayList leftArgs) {
+    static void readAll(ArrayList<String> leftArgs) {
         // Convert the rest of the arguments to classes
-        for (int i = 0; i < leftArgs.size(); i++) {
-            String arg = (String) leftArgs.get(i);
+        for (String arg : leftArgs) {
             File f = new File(arg);
             if (f.isDirectory()) {
                 getClassesFromDirectory(f, "");
@@ -319,8 +318,7 @@ public class Ibisc {
         }
 
         // Check for unrecognized arguments.
-        for (int i = 0; i < leftArgs.size(); i++) {
-            String arg = (String) leftArgs.get(i);
+        for (String arg : leftArgs) {
             if (arg.startsWith("-")) {
                 System.err.println("Ibisc: unrecognized argument: " + arg);
                 System.err.println(usage());
@@ -366,7 +364,7 @@ public class Ibisc {
                 allClasses.clear();
                 wrapperKind = knd;
                 if (knd.equals("BCEL")) {
-                    w = new BCELWrapper();
+                    w = new BCELWrapper(leftArgs);
                 } else {
                     System.err.println("Ibisc: component "
                             + ic.getClass().getName()
