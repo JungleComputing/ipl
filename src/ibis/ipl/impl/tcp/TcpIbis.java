@@ -84,6 +84,9 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
     public TcpIbis(RegistryEventHandler registryEventHandler, IbisCapabilities capabilities, PortType[] types, Properties userProperties) {
         super(registryEventHandler, capabilities, types, userProperties);
 
+        this.properties.checkProperties("ibis.ipl.impl.tcp.",
+                new String[] {"smartsockets"}, null, true);
+
         factory.setIdent(ident);
 
         ThreadPool.createNew(this, "TcpIbis");
@@ -99,6 +102,7 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
     protected byte[] getData() throws IOException {
 
         factory = new IbisSocketFactory(properties);
+
 
         systemServer = factory.createServerSocket(0, 50, true, null);
         myAddress = systemServer.getLocalSocketAddress();
