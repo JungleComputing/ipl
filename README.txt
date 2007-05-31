@@ -61,6 +61,3 @@ distributed under the Common Public License Version 1.0
 This product includes software developed by the
 Ant-Contrib project (http://sourceforge.net/projects/ant-contrib).
 See "notices/LICENSE.ant-contrib.txt" for the ant-contrib copyright notice.
-
-This product includes software developed by Omni Development. See
-the Omni copyright notice in "notices/OmniSourceLicense.html".
