@@ -334,9 +334,9 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis {
         // Default has empty implementation.
     }
 
-    synchronized void register(ReceivePort p) {
+    synchronized void register(ReceivePort p) throws IOException {
         if (receivePorts.get(p.name) != null) {
-            throw new Error("Multiple instances of receiveport named "
+            throw new IOException("Multiple instances of receiveport named "
                     + p.name);
         }
         receivePorts.put(p.name, p);
@@ -344,20 +344,22 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis {
 
     synchronized void deRegister(ReceivePort p) {
         if (receivePorts.remove(p.name) == null) {
-            throw new Error("Trying to remove unknown receiveport");
+            // ignore!
+            // throw new Error("Trying to remove unknown receiveport");
         }
     }
 
-    synchronized void register(SendPort p) {
+    synchronized void register(SendPort p) throws IOException {
         if (sendPorts.get(p.name) != null) {
-            throw new Error("Multiple instances of sendport named " + p.name);
+            throw new IOException("Multiple instances of sendport named " + p.name);
         }
         sendPorts.put(p.name, p);
     }
 
     synchronized void deRegister(SendPort p) {
         if (sendPorts.remove(p.name) == null) {
-            throw new Error("Trying to remove unknown sendport");
+            // ignore!
+            // throw new Error("Trying to remove unknown sendport");
         }
     }
 

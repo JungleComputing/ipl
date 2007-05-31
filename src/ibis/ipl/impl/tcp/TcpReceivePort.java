@@ -138,7 +138,7 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
     private boolean reader_busy = false;
 
     TcpReceivePort(Ibis ibis, PortType type, String name, MessageUpcall upcall,
-            ReceivePortConnectUpcall connUpcall, Properties props) {
+            ReceivePortConnectUpcall connUpcall, Properties props) throws IOException {
         super(ibis, type, name, upcall, connUpcall, props);
 
         no_connectionhandler_thread = upcall == null && connUpcall == null

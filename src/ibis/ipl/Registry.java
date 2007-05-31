@@ -154,4 +154,14 @@ public interface Registry {
      * then be delivered, one by one.
      */
     public void disableEvents();
+
+    /**
+     * Obtains a sequence number from the registry.
+     * Each sequencer has a name, which must be provided to this call.
+     * @param name the name of this sequencer.
+     * @exception IOException may be thrown when communication with the
+     * registry fails.
+     */
+    public abstract long getSeqno(String name) throws IOException;
+
 }

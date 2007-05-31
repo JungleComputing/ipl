@@ -165,12 +165,7 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
         out = SerializationBase.createSerializationOutput(serialization,
                 dataOut);
         if (replacer != null) {
-            try {
-                out.setReplacer(replacer);
-            } catch(Exception e) {
-                throw new Error("Exception in setReplacer should not happen",
-                        e);
-            }
+            out.setReplacer(replacer);
         }
     }
 

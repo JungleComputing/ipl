@@ -131,7 +131,7 @@ public abstract class ReceivePort extends Managable
      */
     protected ReceivePort(Ibis ibis, PortType type, String name,
             MessageUpcall upcall, ReceivePortConnectUpcall connectUpcall,
-            Properties properties) {
+            Properties properties) throws IOException {
         this.ibis = ibis;
         this.type = type;
         this.name = name;
