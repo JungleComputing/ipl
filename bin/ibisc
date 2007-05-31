@@ -18,12 +18,7 @@ case X"$1" in
 X-cp)
     shift
     CLASSPATH="$1"
-    ;;
-*)
-    for i in "$@"
-    do
-	CLASSPATH="$CLASSPATH:$i"
-    done
+    shift
     ;;
 esac
 
