@@ -558,7 +558,7 @@ public final class Satin implements Config {
         String alg = SUPPLIED_ALG;
 
         if (SUPPLIED_ALG == null) {
-            alg = "RS";
+            alg = "CRS";
         }
 
         if (alg.equals("RS")) {

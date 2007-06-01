@@ -16,9 +16,7 @@ import java.util.Vector;
 public final class VictimTable implements Config {
     private Random random = new Random();
 
-    private Vector<Victim> victims = new Vector<Victim>(); // elements are of
-    // type Victim
-
+    private Vector<Victim> victims = new Vector<Victim>();
     // all victims grouped by cluster
     private Vector<Cluster> clusters = new Vector<Cluster>();
 
