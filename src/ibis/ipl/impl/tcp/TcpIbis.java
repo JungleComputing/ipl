@@ -200,7 +200,7 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
                     }
                     break;
                 default:
-                    throw new Error("Illegal opcode in TcpIbis.connect");
+                    throw new IOException("Illegal opcode in TcpIbis.connect");
                 }
             } catch(SocketTimeoutException e) {
                 throw new ConnectionTimedOutException("Could not connect", rip);
@@ -298,6 +298,8 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
                 logger.fatal("TcpIbis:run: got fatal exception in accept! ", e);
                 cleanup();
                 throw new Error("Fatal: TcpIbis could not do an accept", e);
+                // This error is thrown in the TcpIbis thread, not in a user
+                // thread. It kills the thread.
             }
 
             if (logger.isDebugEnabled()) {

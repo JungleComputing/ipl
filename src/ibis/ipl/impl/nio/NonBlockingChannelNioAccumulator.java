@@ -129,7 +129,7 @@ final class NonBlockingChannelNioAccumulator extends NioAccumulator {
                 }
             }
             if (!found) {
-                throw new Error("tried to flush non existing connection");
+                throw new IOException("tried to flush non existing connection");
             }
         }
 
@@ -189,7 +189,7 @@ final class NonBlockingChannelNioAccumulator extends NioAccumulator {
                 try {
                     if (selected.send()) {
                         if (key.interestOps() == 0) {
-                            throw new Error("selected non-active channel");
+                            throw new IOException("selected non-active channel");
                         }
                         key.interestOps(0);
                         nrOfSendingConnections--;
@@ -223,7 +223,7 @@ final class NonBlockingChannelNioAccumulator extends NioAccumulator {
                 NioAccumulatorConnection conn
                         = (NioAccumulatorConnection) connections[i];
                 if (!conn.empty()) {
-                    throw new Error("data left to send after doing flush");
+                    throw new IOException("data left to send after doing flush");
                 }
             }
         }

@@ -30,7 +30,7 @@ final class ThreadNioDissipator extends NioDissipator {
         this.sendReceiveThread = sendReceiveThread;
 
         if (!(channel instanceof SelectableChannel)) {
-            throw new Error("wrong type of channel given on creation of"
+            throw new IOException("wrong type of channel given on creation of"
                     + " ThreadNioDissipator");
         }
         key = sendReceiveThread.register((SelectableChannel) channel, this);

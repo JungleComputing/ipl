@@ -126,7 +126,7 @@ class TcpChannelFactory implements ChannelFactory, Protocol {
                 }
 
                 if (!channel.finishConnect()) {
-                    throw new Error("finish connect failed while we made sure"
+                    throw new IOException("finish connect failed while we made sure"
                                 + " it would work");
                 }
 
@@ -211,8 +211,8 @@ class TcpChannelFactory implements ChannelFactory, Protocol {
                 // and retry
                 continue;
             } else {
-                logger.error("illigal opcode in ChannelFactory.connect()");
-                throw new Error("illigal opcode in ChannelFactory.connect()");
+                logger.error("illegal opcode in ChannelFactory.connect()");
+                throw new IOException("illegal opcode in ChannelFactory.connect()");
             }
         }
     }

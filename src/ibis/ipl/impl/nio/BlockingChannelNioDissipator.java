@@ -17,7 +17,7 @@ final class BlockingChannelNioDissipator extends NioDissipator {
         super(channel);
 
         if (!(channel instanceof SelectableChannel)) {
-            throw new Error("wrong type of channel given on creation of"
+            throw new IOException("wrong type of channel given on creation of"
                     + " BlockingChannelNioDissipator");
         }
     }

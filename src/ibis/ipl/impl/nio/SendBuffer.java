@@ -91,7 +91,8 @@ final class SendBuffer implements Config {
     synchronized static void recycle(SendBuffer buffer) {
         if (buffer.parent == null) {
             if (buffer.copies != 0) {
-                throw new Error("tried to recycly buffer with children!");
+                // throw new Error("tried to recycle buffer with children!");
+                return;
             }
             if (cacheSize >= BUFFER_CACHE_SIZE) {
                 if (logger.isDebugEnabled()) {

@@ -246,7 +246,7 @@ public abstract class NioDissipator extends DataInputStream implements Config,
                         + "] s[" + shorts.remaining()
                         + "] c[" + chars.remaining()
                         + "] b[" + bytes.remaining() + "]");
-                throw new Error("tried receive() while there was data"
+                throw new IOException("tried receive() while there was data"
                         + " left in the buffer");
             }
         }
@@ -377,7 +377,7 @@ public abstract class NioDissipator extends DataInputStream implements Config,
                 }
                 break;
             default:
-                throw new Error("unknown opcode in command");
+                throw new IOException("unknown opcode in command");
             }
         }
     }

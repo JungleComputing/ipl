@@ -63,7 +63,7 @@ public final class NioSendPort extends SendPort implements Protocol {
 
         if (!(channel instanceof GatheringByteChannel)) {
             logger.error("factory returned wrong type of channel");
-            throw new Error("factory returned wrong type of channel");
+            throw new IOException("factory returned wrong type of channel");
         }
 
         // close output stream (if it exist). The new receiver needs the

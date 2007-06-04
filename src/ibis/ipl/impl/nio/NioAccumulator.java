@@ -127,7 +127,7 @@ public abstract class NioAccumulator extends DataOutputStream implements Config 
                 return;
             }
         }
-        throw new Error("tried to remove non existing connections");
+        throw new IOException("tried to remove non existing connections");
     }
 
     synchronized private void send() throws IOException {
