@@ -236,8 +236,12 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
     synchronized void connect(SendPortIdentifier origin, IbisSocket s,
             BufferedArrayInputStream in) throws IOException {
         ConnectionHandler conn = new ConnectionHandler(origin, s, this, in);
+        
         if (! no_connectionhandler_thread) {
-            ThreadPool.createNew(conn, "ConnectionHandler");
+            // ThreadPool.createNew(conn, "ConnectionHandler");
+            // We are already in a dedicated thread, so no need to create a new
+            // one!
+            conn.run();
         }
     }
 }

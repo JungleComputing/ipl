@@ -70,7 +70,7 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
         PortType.RECEIVE_POLL_UPCALLS,
         PortType.RECEIVE_TIMEOUT
     );
-
+    
     private IbisSocketFactory factory;
 
     private IbisServerSocket systemServer;
@@ -90,7 +90,8 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
 
         factory.setIdent(ident);
 
-        ThreadPool.createNew(this, "TcpIbis");
+        // Create a new accept thread
+        ThreadPool.createNew(this, "TcpIbis Accept Thread");
     }
     protected PortType getPortCapabilities() {
         return portCapabilities;
@@ -238,6 +239,7 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
     }
 
     private void handleConnectionRequest(IbisSocket s) throws IOException {
+        
         if (logger.isDebugEnabled()) {
             logger.debug("--> TcpIbis got connection request from " + s);
         }
@@ -285,12 +287,16 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
     public void run() {
         // This thread handles incoming connection request from the
         // connect(TcpSendPort) call.
-        while (true) {
+        
+        boolean stop = false;
+        
+        while (!stop) {
             IbisSocket s = null;
 
             if (logger.isDebugEnabled()) {
                 logger.debug("--> TcpIbis doing new accept()");
             }
+            
             try {
                 s = systemServer.accept();
                 s.setTcpNoDelay(true);
@@ -306,6 +312,7 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
             if (logger.isDebugEnabled()) {
                 logger.debug("--> TcpIbis through new accept()");
             }
+            
             try {
                 if (quiting) {
                     s.close();
@@ -315,6 +322,19 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
                     cleanup();
                     return;
                 }
+                
+                // This thread will now live on as a connection handler. Start                 
+                // a new accept thread here, and make sure that this thread does
+                // not do an accept again, if it ever returns to this loop.                
+                stop = true;
+                
+                try { 
+                    Thread.currentThread().setName("Connection Handler");
+                } catch (Exception e) {
+                    // ignore
+                }
+                
+                ThreadPool.createNew(this, "TcpIbis Accept Thread");                
                 handleConnectionRequest(s);
             } catch (Throwable e) {
                 try {
