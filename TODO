@@ -1,89 +1,92 @@
 Legend:
 - = current
 + = done
-* = new since last core meeting
+* = new/changed since last core meeting
 
 ##### Ibis 2.0 ####
 
-ipl:
+IPL:
 - check properties for unknown properties
-* add "fillTimeout" option to sendport.connect().
-+ add sequencing support to the ipl (Done Ceriel)
+- add "fillTimeout" option to sendport.connect().
+* add a timeout parameter to getElectionResult() 
+  (0 == forever, -1 == non-blocking)
 
 Ibis Factory:
 - add support for stacking to the factory (don't add an Ibis to a stack twice)
 - add a flag to each Ibis to denote if it should be automatically selected or not.
   The dummy stacking Ibis should never be selected, nor should NioIbis
-+ fix/remove weird Location.cluster() (Done Ceriel)
-* Only select the first matching Ibis, don't try all of them.
-* Add a seperate "checker" object for each Ibis implementation to determine
+- Only select the first matching Ibis, don't try all of them.
+- Add a seperate "checker" object for each Ibis implementation to determine
   which Ibis to use.
 
 IbisC:
-* remove rewriting of "flat list of class files"
+- remove rewriting of "flat list of class files"
 + catch (NullPointeR) exceptions by Bcel, if possible (The exceptions themselves
   were fixed already  Ceriel)
 + add classes in the parameters to the classpath (Done Ceriel)
+* print some status output in ibisc
+
+
 
 capabilities:
-- ibis.util.io capabilities.
+- add ibis.io capabilities.
 - add registry capabilities.
 
 management:
-- ibis.ipl.Managable: Map strings to strings instead of strings to object?
-  (Niels).
 - ibis.ipl.Managable: throw exception on unrecognized property name.
-- sendport/receiveport count methods: replace by Managable?
-- ibis printStatistics: replace by Managable?
+* ibis.ipl.Managable: Map strings to strings instead of strings to object.
+* ibis printStatistics: replace by Managable.
+* clarify JavaDoc of "count" methods in messages. E.g. Say we only count
+  broadcast messages once.
+* add basic network usage statistics to Ibis.
 
 ibis registry:
-- forget unneeded event history
-* after doing an accept, fork a new thread immediately
-* check if all Ibisses in a pool are of the same implementation, version, etc.
+- check if all Ibisses in a pool are of the same implementation, version, etc.
+* forget unneeded event history OR stop giving these events to the user
+* add an upcall for elections.
 
 implementations:
 - Generic: if closed.world is selected, check if ibis.pool.hosts is set, and 
   ignore joins beyond total hosts, and all leaves.
-* TcpIbis: fork a thread immediately after doing an "accept". Don't do a
+- TcpIbis: fork a thread immediately after doing an "accept". Don't do a
   handshake first.
-* Fix deadlocks due to lazily creating serialization streams in TcpIbis.
-* catch InvocationTargeExceptions, and thow the cause of this runtime exception
+- Fix deadlocks due to lazily creating serialization streams in TcpIbis.
+- catch InvocationTargeExceptions, and thow the cause of this runtime exception
   instead.
-+ Add an IbisIOException (with a cause) (Done in ibis.util.io Ceriel)
+* closing a receiveport twice returns an Error
+* _Never_ throw errors in Ibis, only Exceptions
+* remove Omnitimer, native object creation trick, and any remaining native
+  node
 
 applications:
-- check results of the different barnes versions
 - remove old-n-useless applications (if any)
-* build jars by default
-
-
-ibis-util:
-+ move PoolInfo to ibis-server (Done, Niels)
-+ remove dependancy on Smartsockets.
+- build jars by default
 
 packaging/distribution:
-+ layout package.html in ibis.ipl.
-- split up ibis in multiple separate subprojects:
-	+ ipl
-	+ util
-	+ server
-	- programming models
-	- io?
-	- compile?
-- move applications to their repective sub-project.
+* split up ibis in multiple separate subprojects:
+	- ipl
+	- ipl applications
+	- util
+	- server
+	- io
+	- compile
+	foreach(programming model) {
+		- programming model
+		- programming model applications
+	}
+	- standalone applications (DFA, SAT4Satin, Barnes)	
+* put DeepCopy in a sane place
 - update docs
 - migrate leftover prints to log4j, surround with if (DEBUG){}
   in performance critical section
-- print output like javac in ibisc
 - while(true) {fix eclipse warnings}
 - Api docs of IPL: read, clarify, improve (Niels: Done SendPort).
 - clean-up scripts
 - fix automatic starting of Ibis-server in "ant test" and "ibis-prun" one way
   or another
-* clean up doc building scripts
-* fix codmon
-* put each ibis in a seperate jar
-
+- clean up doc building scripts
+- fix codmon
+- put each ibis in a seperate jar
 
 website:
 - update "ibis" overview picture with new/changed implementations
@@ -106,7 +109,13 @@ implementations:
 - fix/improve performance of MpiIbis
 - Implement multi Ibis.
 - Implement LRMC Ibis
-  
+- benchmark serialisation. Especially focus on the performance gain when
+  rewriting the classlibs. This functionality is rather tricky, if it doesn't
+  gain us anything anymore, we might as well remove it.
+
+applications:
+- check results of the different barnes versions
+
 deployment/testing/benchmarking:
 - implement "Ibis deployment application" using the GAT
 - implement GUI/Scripting/Shell/Commandline interface on Ibis deployment app
