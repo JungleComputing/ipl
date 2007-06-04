@@ -21,7 +21,8 @@ Ibis Factory:
   which Ibis to use.
 
 IbisC:
-- remove rewriting of "flat list of class files"
++ remove rewriting of "flat list of class files" (was bug in older javac versions; happened with .java files in the jar-file, but only when rewritten???).
+  Moral: don't put .java files in your jars (Ceriel).
 + catch (NullPointeR) exceptions by Bcel, if possible (The exceptions themselves
   were fixed already  Ceriel)
 + add classes in the parameters to the classpath (Done Ceriel)
@@ -68,7 +69,7 @@ packaging/distribution:
 	- ipl
 	- ipl applications
 	- util
-	- server
+	+ server (Done Niels)
 	+ io (Done Ceriel)
 	+ compile (Done Ceriel)
 	foreach(programming model) {
