@@ -44,6 +44,7 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
         IbisCapabilities.SIGNALS,
         IbisCapabilities.ELECTIONS,
         IbisCapabilities.MALLEABLE,
+        IbisCapabilities.SELECTABLE,
         "nickname.tcp"
     );
 

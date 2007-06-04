@@ -13,8 +13,9 @@ IPL:
 
 Ibis Factory:
 - add support for stacking to the factory (don't add an Ibis to a stack twice)
-- add a flag to each Ibis to denote if it should be automatically selected or not.
++ add a flag to each Ibis to denote if it should be automatically selected or not.
   The dummy stacking Ibis should never be selected, nor should NioIbis
+  (Done Ceriel)
 - Only select the first matching Ibis, don't try all of them.
 - Add a seperate "checker" object for each Ibis implementation to determine
   which Ibis to use.
@@ -24,7 +25,7 @@ IbisC:
 + catch (NullPointeR) exceptions by Bcel, if possible (The exceptions themselves
   were fixed already  Ceriel)
 + add classes in the parameters to the classpath (Done Ceriel)
-* print some status output in ibisc
++ print some status output in ibisc (Done Ceriel)
 
 
 
@@ -68,8 +69,8 @@ packaging/distribution:
 	- ipl applications
 	- util
 	- server
-	- io
-	- compile
+	+ io (Done Ceriel)
+	+ compile (Done Ceriel)
 	foreach(programming model) {
 		- programming model
 		- programming model applications

@@ -28,6 +28,9 @@ public final class IbisCapabilities extends CapabilitySet {
     /** Capability, indicating that elections are supported. */
     public final static String ELECTIONS = "elections";
     
+    /** Capability, indicating that an Ibis can be selected by the factory. */
+    public final static String SELECTABLE = "selectable";
+
     /** Capability indicating that membership administration is supported. */
     public final static String MEMBERSHIP = "membership";
     

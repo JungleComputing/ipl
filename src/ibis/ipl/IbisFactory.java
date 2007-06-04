@@ -248,15 +248,20 @@ public final class IbisFactory {
             
 
         String ibisName = properties.getProperty(IbisProperties.NAME);
-        if (ibisName != null) {
-            String[] capabilities = requiredCapabilities.getCapabilities();
-            String[] newCapabilities = new String[capabilities.length + 1];
-            for (int i = 0; i < capabilities.length; i++) {
-                newCapabilities[i] = capabilities[i];
-            }
-            newCapabilities[capabilities.length] = "nickname." + ibisName;
-            requiredCapabilities = new IbisCapabilities(newCapabilities);
+
+        String[] capabilities = requiredCapabilities.getCapabilities();
+        String[] newCapabilities = new String[capabilities.length + 1];
+        for (int i = 0; i < capabilities.length; i++) {
+            newCapabilities[i] = capabilities[i];
         }
+
+        if (ibisName != null) {
+            newCapabilities[capabilities.length] = "nickname." + ibisName;
+        } else {
+            newCapabilities[capabilities.length] = IbisCapabilities.SELECTABLE;
+        }
+
+        requiredCapabilities = new IbisCapabilities(newCapabilities);
 
         int numberOfImplementations = implList.length;
 
