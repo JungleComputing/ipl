@@ -136,7 +136,8 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
     */
 
     IbisSocket connect(TcpSendPort sp, ibis.ipl.impl.ReceivePortIdentifier rip,
-            int timeout) throws IOException {
+            int timeout, boolean fillTimeout) throws IOException {
+        
         IbisIdentifier id = (IbisIdentifier) rip.ibisIdentifier();
         String name = rip.name();
         IbisSocketAddress idAddr;
@@ -162,7 +163,7 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
             int result = -1;
 
             try {
-                s = factory.createClientSocket(idAddr, timeout,
+                s = factory.createClientSocket(idAddr, timeout, fillTimeout, 
                         sp.dynamicProperties());
                 s.setTcpNoDelay(true);
                 out = new DataOutputStream(new BufferedArrayOutputStream(
@@ -230,7 +231,7 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
         try {
             quiting = true;
             // Connect so that the TcpIbis thread wakes up.
-            factory.createClientSocket(myAddress, 0, null);
+            factory.createClientSocket(myAddress, 0, false, null);
         } catch (Throwable e) {
             // Ignore
         }

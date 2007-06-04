@@ -55,8 +55,9 @@ public final class NioSendPort extends SendPort implements Protocol {
     protected SendPortConnectionInfo doConnect(ReceivePortIdentifier receiver,
             long timeoutMillis, boolean fillTimeout) throws IOException {
 
-        // FIXME: Retry on "receiveport not ready"
-
+        // FIXME: Retry on "receiveport not ready"        
+        // FIXME: implement fillTimeout in the lower layers!
+        
         // make the connection. Will throw an Exception if if failed
         Channel channel = ((NioIbis)ibis).factory.connect(this, receiver,
                 timeoutMillis);

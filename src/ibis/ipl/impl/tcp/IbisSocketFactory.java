@@ -70,10 +70,12 @@ class IbisSocketFactory {
     }
 
     IbisSocket createClientSocket(IbisSocketAddress addr, int timeout,
-            Map<String, Object> properties) throws IOException {
+            boolean fillTimeout, Map<String, Object> properties) 
+        throws IOException {
+        
         if (factory != null) {
             return new IbisSocket(factory.createClientSocket(
-                        addr.virtualAddress, timeout, properties));
+                        addr.virtualAddress, timeout, fillTimeout, properties));
         }
         Socket s = new Socket();
         
