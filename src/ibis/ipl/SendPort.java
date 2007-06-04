@@ -126,14 +126,14 @@ public interface SendPort extends Managable {
      * port and the sendport are of different types.
      * @exception ConnectionFailedException is thrown in case of trouble.
      */
-    public void connect(ReceivePortIdentifier receiver, long timeoutMillis)
-            throws ConnectionFailedException;
+//    public void connect(ReceivePortIdentifier receiver, long timeoutMillis)
+//            throws ConnectionFailedException;
 
     /**
      * Attempts to set up a connection with receiver. This method is guarenteed 
      * not to take longer than the specified timeout. When fillTimeout is set to
      * true, an unsuccesfull connection setup will be retried automatically 
-     * until a connection is established, or the timeout expires.
+     * until a connection is established, or the timeout expires. 
      * It is not allowed to set up a new connection while a message
      * is alive.
      * 
@@ -152,10 +152,8 @@ public interface SendPort extends Managable {
      * port and the sendport are of different types.
      * @exception ConnectionFailedException is thrown in case of trouble.
      */
-    /*
     public void connect(ReceivePortIdentifier receiver, long timeoutMillis, 
             boolean fillTimeout) throws ConnectionFailedException;    
-    */
     
     /**
      * Attempts to set up a connection with a receiver at the specified
@@ -204,9 +202,11 @@ public interface SendPort extends Managable {
      * @return the receiveport identifier.
      * @throws ConnectionFailedException in case of trouble.
      */
+    /*
     public ReceivePortIdentifier connect(IbisIdentifier ibisIdentifier, 
             String receivePortName, long timeoutMillis) 
         throws ConnectionFailedException;
+    */
     
     /**
      * Attempts to set up a connection with a receiver at the specified
@@ -235,11 +235,9 @@ public interface SendPort extends Managable {
      * @return the receiveport identifier.
      * @throws ConnectionFailedException in case of trouble.
      */
-    /*
     public ReceivePortIdentifier connect(IbisIdentifier ibisIdentifier, 
             String receivePortName, long timeoutMillis, boolean fillTimeout) 
         throws ConnectionFailedException;
-    */
 
     /**
      * Attempts to set up connections with the specified receivers.
@@ -264,9 +262,10 @@ public interface SendPort extends Managable {
      * connections fail. This exception object also identifies which connection
      * attempts actually succeeded.
      */
+    /*
     public void connect(ibis.ipl.ReceivePortIdentifier[] receivePortIdentifiers,
             long timeoutMillis) throws ConnectionsFailedException;
-
+*/
     /**
      * Attempts to set up connections with the specified receivers.
      * It is not allowed to set up a new connection while a message
@@ -281,11 +280,9 @@ public interface SendPort extends Managable {
      * connections fail. This exception object also identifies which connection
      * attempts actually succeeded.
      */
-/*
      public void connect(ibis.ipl.ReceivePortIdentifier[] receivePortIdentifiers,
             long timeoutMillis, boolean fillTimeout) 
         throws ConnectionsFailedException;
-*/
     
     /**
      * Attempts to set up connection with receivers at the specified
@@ -317,10 +314,11 @@ public interface SendPort extends Managable {
      * attempts actually succeeded.
      * @return an array of receiveport identifiers.
      */
+    /*
     public ibis.ipl.ReceivePortIdentifier[] connect(
             Map<ibis.ipl.IbisIdentifier, String> ports, long timeoutMillis)
             throws ConnectionsFailedException;
-
+*/
     /**
      * Attempts to set up connection with receivers at the specified
      * Ibis instances, with the specified names. This method is guarenteed not 
@@ -337,11 +335,9 @@ public interface SendPort extends Managable {
      * attempts actually succeeded.
      * @return an array of receiveport identifiers.
      */
-    /*
     public ibis.ipl.ReceivePortIdentifier[] connect(
             Map<ibis.ipl.IbisIdentifier, String> ports, long timeoutMillis, 
             boolean fillTimeout) throws ConnectionsFailedException;
-    */
     
     /**
      * Attempts to disconnect a connection with a receiver.

@@ -98,7 +98,7 @@ public final class TestIbis extends TestCase {
 
     public void connect(SendPort s, ReceivePortIdentifier ident) {
         try {
-            s.connect(ident, 5000);
+            s.connect(ident, 5000, false);
         } catch (Exception e) {
             System.err.println("connect caught exception: " + e);
             e.printStackTrace();
@@ -108,7 +108,7 @@ public final class TestIbis extends TestCase {
 
     public void connect(SendPort s, IbisIdentifier id, String name) {
         try {
-            s.connect(id, name, 5000);
+            s.connect(id, name, 5000, false);
         } catch (Exception e) {
             System.err.println("connect caught exception: " + e);
             e.printStackTrace();

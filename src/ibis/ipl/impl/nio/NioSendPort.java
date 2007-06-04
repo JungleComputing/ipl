@@ -53,7 +53,7 @@ public final class NioSendPort extends SendPort implements Protocol {
     }
 
     protected SendPortConnectionInfo doConnect(ReceivePortIdentifier receiver,
-            long timeoutMillis) throws IOException {
+            long timeoutMillis, boolean fillTimeout) throws IOException {
 
         // FIXME: Retry on "receiveport not ready"
 

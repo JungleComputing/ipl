@@ -239,7 +239,7 @@ public final class Communication implements Config, Protocol {
         ReceivePortIdentifier r = null;
         do {
             try {
-                r = s.connect(ident, name, timeoutMillis);
+                r = s.connect(ident, name, timeoutMillis, false);
             } catch (AlreadyConnectedException x) {
                 commLogger.info("the port was already connected");
                 ReceivePortIdentifier[] ports = s.connectedTo();

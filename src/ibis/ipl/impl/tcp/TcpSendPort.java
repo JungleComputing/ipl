@@ -65,7 +65,7 @@ final class TcpSendPort extends SendPort implements TcpProtocol {
     }
 
     protected SendPortConnectionInfo doConnect(ReceivePortIdentifier receiver,
-            long timeoutMillis) throws IOException {
+            long timeoutMillis, boolean fillTimeout) throws IOException {        
         IbisSocket s = ((TcpIbis)ibis).connect(this, receiver, (int) timeoutMillis);
         Conn c = new Conn(s, this, receiver);
         if (out != null) {

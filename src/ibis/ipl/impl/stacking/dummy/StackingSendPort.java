@@ -53,38 +53,36 @@ public class StackingSendPort implements ibis.ipl.SendPort {
     }
 
     public void connect(ibis.ipl.ReceivePortIdentifier receiver) throws ConnectionFailedException {
-        connect(receiver, 0L);
+        connect(receiver, 0L, true);
     }
 
-    public void connect(ibis.ipl.ReceivePortIdentifier receiver, long timeoutMillis) throws ConnectionFailedException {
-        base.connect(receiver, timeoutMillis);
+    public void connect(ibis.ipl.ReceivePortIdentifier receiver, long timeoutMillis, boolean fillTimeout) throws ConnectionFailedException {
+        base.connect(receiver, timeoutMillis, fillTimeout);
         
     }
 
     public ibis.ipl.ReceivePortIdentifier connect(IbisIdentifier id, String name) throws ConnectionFailedException {
-        return connect(id, name, 0L);
+        return connect(id, name, 0L, true);
     }
 
-    public ibis.ipl.ReceivePortIdentifier connect(IbisIdentifier id, String name, long timeoutMillis) throws ConnectionFailedException {
-        return base.connect(id, name, timeoutMillis);
+    public ibis.ipl.ReceivePortIdentifier connect(IbisIdentifier id, String name, long timeoutMillis, boolean fillTimeout) throws ConnectionFailedException {
+        return base.connect(id, name, timeoutMillis, fillTimeout);
     }
 
     public void connect(ibis.ipl.ReceivePortIdentifier[] ports) throws ConnectionsFailedException {
-        connect(ports, 0L);
-        
+        connect(ports, 0L, true);       
     }
 
-    public void connect(ibis.ipl.ReceivePortIdentifier[] ports, long timeoutMillis) throws ConnectionsFailedException {
-        base.connect(ports, timeoutMillis);
-        
+    public void connect(ibis.ipl.ReceivePortIdentifier[] ports, long timeoutMillis, boolean fillTimeout) throws ConnectionsFailedException {
+        base.connect(ports, timeoutMillis, fillTimeout);        
     }
 
     public ibis.ipl.ReceivePortIdentifier[] connect(Map<IbisIdentifier, String> ports) throws ConnectionsFailedException {
-        return connect(ports, 0L);
+        return connect(ports, 0L, true);
     }
 
-    public ibis.ipl.ReceivePortIdentifier[] connect(Map<IbisIdentifier, String> ports, long timeoutMillis) throws ConnectionsFailedException {
-        return connect(ports, timeoutMillis);
+    public ibis.ipl.ReceivePortIdentifier[] connect(Map<IbisIdentifier, String> ports, long timeoutMillis, boolean fillTimeout) throws ConnectionsFailedException {
+        return connect(ports, timeoutMillis, fillTimeout);
     }
 
     public ibis.ipl.ReceivePortIdentifier[] connectedTo() {
