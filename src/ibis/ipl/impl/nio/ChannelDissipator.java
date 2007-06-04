@@ -2,7 +2,7 @@
 
 package ibis.ipl.impl.nio;
 
-import ibis.util.io.DataInputStream;
+import ibis.io.DataInputStream;
 
 import java.io.EOFException;
 import java.io.IOException;

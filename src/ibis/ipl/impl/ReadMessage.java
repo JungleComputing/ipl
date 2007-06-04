@@ -2,7 +2,7 @@
 
 package ibis.ipl.impl;
 
-import ibis.util.io.SerializationInput;
+import ibis.io.SerializationInput;
 
 import java.io.IOException;
 

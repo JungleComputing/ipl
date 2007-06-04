@@ -11,8 +11,8 @@ package ibis.util.messagecombining;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.SendPortIdentifier;
-import ibis.util.io.SerializationBase;
-import ibis.util.io.SerializationInput;
+import ibis.io.SerializationBase;
+import ibis.io.SerializationInput;
 
 import java.io.IOException;
 

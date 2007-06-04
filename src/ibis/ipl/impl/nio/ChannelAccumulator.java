@@ -2,7 +2,7 @@
 
 package ibis.ipl.impl.nio;
 
-import ibis.util.io.DataOutputStream;
+import ibis.io.DataOutputStream;
 
 import java.io.IOException;
 import java.nio.BufferOverflowException;

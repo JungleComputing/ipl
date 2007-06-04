@@ -9,7 +9,7 @@ import java.io.IOException;
 /**
  * Extends InputStream with read of array of primitives and readSingleInt
  */
-public class StoreArrayInputStream extends ibis.util.io.DataInputStream {
+public class StoreArrayInputStream extends ibis.io.DataInputStream {
        
     private int boolean_count = 0;
     private boolean[] boolean_store = new boolean[0];

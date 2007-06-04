@@ -2,9 +2,9 @@
 
 package ibis.util;
 
-import ibis.util.io.SerializationBase;
-import ibis.util.io.SerializationInput;
-import ibis.util.io.SerializationOutput;
+import ibis.io.SerializationBase;
+import ibis.io.SerializationInput;
+import ibis.io.SerializationOutput;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -1206,7 +1206,7 @@ public class DeepCopy {
 
     }
 
-    static class StoreArrayInputStream extends ibis.util.io.DataInputStream {
+    static class StoreArrayInputStream extends ibis.io.DataInputStream {
         Store buf;
 
         public StoreArrayInputStream(Store buf) {
@@ -1314,7 +1314,7 @@ public class DeepCopy {
         }
     }
 
-    static class StoreArrayOutputStream extends ibis.util.io.DataOutputStream {
+    static class StoreArrayOutputStream extends ibis.io.DataOutputStream {
 
         Store buf;
 

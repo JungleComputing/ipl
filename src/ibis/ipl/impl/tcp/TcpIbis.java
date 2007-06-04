@@ -17,8 +17,8 @@ import ibis.ipl.impl.ReceivePort;
 import ibis.ipl.impl.SendPort;
 import ibis.ipl.impl.SendPortIdentifier;
 import ibis.util.ThreadPool;
-import ibis.util.io.BufferedArrayInputStream;
-import ibis.util.io.BufferedArrayOutputStream;
+import ibis.io.BufferedArrayInputStream;
+import ibis.io.BufferedArrayOutputStream;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;

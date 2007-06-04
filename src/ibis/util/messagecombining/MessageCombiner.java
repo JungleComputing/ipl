@@ -5,7 +5,7 @@ package ibis.util.messagecombining;
 import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
 import ibis.util.TypedProperties;
-import ibis.util.io.Replacer;
+import ibis.io.Replacer;
 
 import java.io.IOException;
 

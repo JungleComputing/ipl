@@ -12,7 +12,7 @@ import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.util.Log;
 import ibis.util.TypedProperties;
-import ibis.util.io.IbisIOException;
+import ibis.io.IbisIOException;
 
 import java.io.IOException;
 import java.io.InputStream;

@@ -5,7 +5,7 @@ import ibis.ipl.IbisProperties;
 import ibis.ipl.impl.IbisIdentifier;
 import ibis.util.IPUtils;
 import ibis.util.TypedProperties;
-import ibis.util.io.Conversion;
+import ibis.io.Conversion;
 
 import java.io.IOException;
 import java.net.InetAddress;

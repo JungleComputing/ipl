@@ -9,7 +9,7 @@ import ibis.ipl.impl.ReceivePortIdentifier;
 import ibis.ipl.impl.SendPort;
 import ibis.ipl.impl.SendPortConnectionInfo;
 import ibis.ipl.impl.WriteMessage;
-import ibis.util.io.Conversion;
+import ibis.io.Conversion;
 
 import java.io.IOException;
 import java.nio.channels.Channel;

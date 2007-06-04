@@ -1366,7 +1366,7 @@ public final class Satinc extends IbiscComponent {
                 // Rewrite the sync statement. 
                 if (target.getName().equals("sync")
                     && target.getSignature().equals("()V")) {
-                    if (cl != null && cl.equals(satinObjectClass)) {
+                    if (cl != null && cl.getClassName().equals("ibis.satin.SatinObject")) {
                         rewriteSync(m, il, i, maxLocals);
                         rewritten = true;
                     }
@@ -1795,7 +1795,7 @@ public final class Satinc extends IbiscComponent {
                     if (targetname.equals("abort") && sig.equals("()V")) {
                         JavaClass cl = findMethodClass((INVOKEVIRTUAL) ins);
 
-                        if (cl != null && cl.equals(satinObjectClass)) {
+                        if (cl != null && cl.getClassName().equals("ibis.satin.SatinObject")) {
                             // Rewrite the abort statement. 
                             rewriteAbort(mg, il, i, maxLocals);
                             rewritten = true;

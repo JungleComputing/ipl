@@ -6,7 +6,7 @@ import java.io.IOException;
 /**
  * Extends InputStream with read of array of primitives and readSingleInt
  */
-public class StoreArrayInputStream extends ibis.util.io.DataInputStream {
+public class StoreArrayInputStream extends ibis.io.DataInputStream {
 
     StoreBuffer buf;
 

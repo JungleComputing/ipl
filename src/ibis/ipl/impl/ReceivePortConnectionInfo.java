@@ -2,9 +2,9 @@
 
 package ibis.ipl.impl;
 
-import ibis.util.io.DataInputStream;
-import ibis.util.io.SerializationBase;
-import ibis.util.io.SerializationInput;
+import ibis.io.DataInputStream;
+import ibis.io.SerializationBase;
+import ibis.io.SerializationInput;
 
 import java.io.IOException;
 
