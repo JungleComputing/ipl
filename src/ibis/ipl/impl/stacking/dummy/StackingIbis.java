@@ -90,7 +90,7 @@ public class StackingIbis extends Ibis {
     }
 
     @Override
-    public void end() {
+    public void end() throws IOException {
         base.end();
     }
 /*

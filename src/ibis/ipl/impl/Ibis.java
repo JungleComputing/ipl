@@ -12,6 +12,7 @@ import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.util.Log;
 import ibis.util.TypedProperties;
+import ibis.util.io.IbisIOException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -315,7 +316,7 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis {
         // default is empty
     }
 
-    public void end() {
+    public void end() throws IOException {
         synchronized (this) {
             if (ended) {
                 return;
@@ -324,8 +325,8 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis {
         }
         try {
             registry.leave();
-        } catch (Exception e) {
-            throw new RuntimeException("Registry: leave failed ", e);
+        } catch (Throwable e) {
+            throw new IbisIOException("Registry: leave failed ", e);
         }
         quit();
     }

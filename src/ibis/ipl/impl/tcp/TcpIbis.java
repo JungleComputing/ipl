@@ -336,7 +336,7 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
         }
     }
 
-    public void end() {
+    public void end() throws IOException {
         super.end();
         printStatistics();
     }
