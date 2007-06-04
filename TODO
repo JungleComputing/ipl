@@ -8,26 +8,24 @@ Legend:
 ipl:
 - check properties for unknown properties
 * add "fillTimeout" option to sendport.connect().
-* add sequencing support to the ipl
++ add sequencing support to the ipl (Done Ceriel)
 
 Ibis Factory:
 - add support for stacking to the factory (don't add an Ibis to a stack twice)
 - add a flag to each Ibis to denote if it should be automatically selected or not.
   The dummy stacking Ibis should never be selected, nor should NioIbis
-- fix/remove weird Location.cluster().
++ fix/remove weird Location.cluster() (Done Ceriel)
 * Only select the first matching Ibis, don't try all of them.
 * Add a seperate "checker" object for each Ibis implementation to determine
   which Ibis to use.
 
 IbisC:
 * remove rewriting of "flat list of class files"
-* catch (NullPointeR) exceptions by Bcel, if possible
-* add classes in the parameters to the classpath
++ catch (NullPointeR) exceptions by Bcel, if possible (The exceptions themselves
+  were fixed already  Ceriel)
++ add classes in the parameters to the classpath (Done Ceriel)
 
 capabilities:
-+ introduce IbisCapabilities, PortType (both extend CapabilitySet),
-  PredefinedCapabilities goes away ... (Done Ceriel)
-+ make IbisCapabilities, PortType entries simple booleans. (Done Ceriel).
 - ibis.util.io capabilities.
 - add registry capabilities.
 
@@ -51,7 +49,7 @@ implementations:
 * Fix deadlocks due to lazily creating serialization streams in TcpIbis.
 * catch InvocationTargeExceptions, and thow the cause of this runtime exception
   instead.
-* Add an IbisIOException (with a cause)
++ Add an IbisIOException (with a cause) (Done in ibis.util.io Ceriel)
 
 applications:
 - check results of the different barnes versions
