@@ -7,7 +7,7 @@ Legend:
 
 IPL:
 - check properties for unknown properties
-- add "fillTimeout" option to sendport.connect().
++ add "fillTimeout" option to sendport.connect(). (Done someone).
 * add a timeout parameter to getElectionResult() 
   (0 == forever, -1 == non-blocking)
 
@@ -28,8 +28,6 @@ IbisC:
 + add classes in the parameters to the classpath (Done Ceriel)
 + print some status output in ibisc (Done Ceriel)
 
-
-
 capabilities:
 - add ibis.io capabilities.
 - add registry capabilities.
@@ -46,19 +44,20 @@ ibis registry:
 - check if all Ibisses in a pool are of the same implementation, version, etc.
 * forget unneeded event history OR stop giving these events to the user
 * add an upcall for elections.
+- Generic: if closed.world is selected, check if ibis.pool.size is set, and 
+  ignore joins beyond size, and all leaves. Moved to registry, since this
+  functionality should be in the registry (Ceriel).
 
 implementations:
-- Generic: if closed.world is selected, check if ibis.pool.hosts is set, and 
-  ignore joins beyond total hosts, and all leaves.
-- TcpIbis: fork a thread immediately after doing an "accept". Don't do a
-  handshake first.
++ TcpIbis: fork a thread immediately after doing an "accept". Don't do a 
+  handshake first. (Done Jason, fixed Ceriel).
 - Fix deadlocks due to lazily creating serialization streams in TcpIbis.
 - catch InvocationTargeExceptions, and thow the cause of this runtime exception
   instead.
-* closing a receiveport twice returns an Error
++ closing a receiveport twice returns an Error (fixed Ceriel)
 * _Never_ throw errors in Ibis, only Exceptions
-* remove Omnitimer, native object creation trick, and any remaining native
-  node
++ remove Omnitimer, native object creation trick, and any remaining native
+  node (done Ceriel)
 
 applications:
 - remove old-n-useless applications (if any)
