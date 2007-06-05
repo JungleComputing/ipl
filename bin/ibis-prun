@@ -103,8 +103,8 @@ done
 # Start an ibis-server on node 0.
 case X$PRUN_CPU_RANK in
 X0)
-    # $IBIS_HOME/bin/ibis-server < /dev/null > /dev/null 2>&1 &
-    $IBIS_HOME/bin/ibis-server < /dev/null > ns.out 2>&1 &
+    $IBIS_HOME/bin/ibis-server < /dev/null > /dev/null 2>&1 &
+    # $IBIS_HOME/bin/ibis-server < /dev/null > ns.out 2>&1 &
     PID=$!
 esac
 
