@@ -156,13 +156,17 @@ then
 	. $IBIS_HOME/bin/ibis-run \
 		-Dibis.pool.host_number=$PRUN_CPU_RANK \
 		-Dibis.pool.total_hosts=$NHOSTS \
+		-Dibis.pool.host_number=$PRUN_CPU_RANK \
+		-Dibis.pool.size=$NHOSTS \
 		$Dns_server \
 		-Dibis.registry.pool="$pool" \
+		-Dibis.pool.name="$pool" \
 		-Dibis.pool.host_names="$HOSTS" \
 		"$@"
 else
 	. $IBIS_HOME/bin/ibis-run \
 		-Dibis.registry.pool="$pool" \
+		-Dibis.pool.name="$pool" \
 		$Dns_server \
 		"$@"
 fi
