@@ -29,19 +29,11 @@ Usage:
     prun -no-panda ibis-prun <ibis-prun params> <jvm params> <classname> <application params>
 The first parameter that is not recognized as an option to ibis-prun
 terminates the ibis-prun parameters.
+Ibis-prun starts an ibis-server on the first host. If the user wants to use
+his own server, -Dibis.server.address=<hostname> should do the trick
+(or pass it on through an ibis.properties file).
+
 The ibis-prun parameters are:
--pool <pool>
-    use <pool> for identification with the nameserver, instead of the
-    prun-supplied one.
--no-pool
-    don't pass on any node-pool information to the application.
--ns <nameserver>[:<port>]
-    specifies the hostname and port on which the nameserver runs. If not
-    specified, ibis-prun picks the first host, unless -no-ns is specified,
-    in which case ibis-prun assumes that another way is used to pass on the
-    nameserver location (for instance an ibis.properties file).
--no-ns
-    no nameserver info is supplied by ibis-prun. See above.
 -cpdir <dir>
     add all jar files in the specified directory to the classpath.
 -?
@@ -62,18 +54,9 @@ then
 fi
 
 #
-# Some defaults ...
-#
-
-no_pool=0
-ibislib=$IBIS_HOME/lib/natives
-
-#
 # parse arguments
 #
 
-nameserver_specified=0
-no_nameserver=0
 
 # Jar-files from library.
 LIBCLASSPATH=""
@@ -93,25 +76,6 @@ while [ $# -gt 0 ]
 do
 # echo now inspect argument $1 -- left $#
         case "$1" in
-	-ibislib)
-		shift
-		ibislib="$1"
-		;;
-	-pool)
-		shift
-		pool="$1"
-		;;
-	-no-pool)
-		no_pool=1
-		;;
-	-no-ns)
-		no_nameserver=1
-		;;
-	-ns)
-		nameserver_specified=1
-		shift
-		Dns_server="-Dibis.registry.serverAddress=$1"
-		;;
 	-cpdir)
 		shift
 		add_to_libclasspath "$1"
@@ -130,19 +94,21 @@ do
         shift
 done
 
-if [ $no_nameserver -eq 0 ]
-then
-    if [ $nameserver_specified -eq 0 ]
-    then
-	for i in $HOSTS
-	do
-	    Dns_server="-Dibis.registry.serverAddress=$i"
-	    break
-	done
-    fi
-fi
+for i in $HOSTS
+do
+    serverhost=$i
+    break
+done
 
-export ibislib
+# Start an ibis-server on node 0.
+case X$PRUN_CPU_RANK in
+X0)
+    # $IBIS_HOME/bin/ibis-server < /dev/null > /dev/null 2>&1 &
+    $IBIS_HOME/bin/ibis-server < /dev/null > ns.out 2>&1 &
+    PID=$!
+esac
+
+Dns_server="-Dibis.server.address=$serverhost"
 
 # Put value of environment variable CLASSPATH in front, if present.
 if [ -z "$CLASSPATH" ] ; then
@@ -151,22 +117,25 @@ else
     CLASSPATH="$CLASSPATH:$LIBCLASSPATH"
 fi
 
-if [ $no_pool -eq 0 ]
-then
-	. $IBIS_HOME/bin/ibis-run \
-		-Dibis.pool.host_number=$PRUN_CPU_RANK \
-		-Dibis.pool.total_hosts=$NHOSTS \
-		-Dibis.pool.host_number=$PRUN_CPU_RANK \
-		-Dibis.pool.size=$NHOSTS \
-		$Dns_server \
-		-Dibis.registry.pool="$pool" \
-		-Dibis.pool.name="$pool" \
-		-Dibis.pool.host_names="$HOSTS" \
-		"$@"
-else
-	. $IBIS_HOME/bin/ibis-run \
-		-Dibis.registry.pool="$pool" \
-		-Dibis.pool.name="$pool" \
-		$Dns_server \
-		"$@"
-fi
+# Sleep for a second, to give ibis-server a chance to start.
+# Should not be needed ...
+
+sleep 1
+
+. $IBIS_HOME/bin/ibis-run \
+	-Dibis.pool.size=$NHOSTS \
+	$Dns_server \
+	-Dibis.pool.name="$pool" \
+	"$@"
+
+# Kill server 10 seconds after this ibis-run terminated.
+# Not nice, but we cannot kill the server immediately, because other
+# instances may still be active. In fact, this only works if all instances
+# finish at about the same time.
+# If this is not good enough, the user should have his own ibis-server.
+
+case X$PRUN_CPU_RANK in
+X0)
+    sleep 10
+    kill -9 $PID > /dev/null 2>&1
+esac
