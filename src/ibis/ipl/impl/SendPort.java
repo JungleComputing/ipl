@@ -361,18 +361,18 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
         
         long deadline = 0;
         
-        // Caclulate the deadline (if needed)
+        // Calculate the deadline (if needed).
         if (timeout > 0) {
             deadline = System.currentTimeMillis() + timeout;
         }
    
-        // Create a list of the connections that we need to set up
+        // Create a list of the connections that we need to set up.
         for (ibis.ipl.ReceivePortIdentifier rp : ports) {
             todo.add(rp);
         }
             
         // Keep iterating over the list of connection to set up until the list 
-        // is empty or until we reach the deadline        
+        // is empty or until we reach the deadline.
         while (todo.size() > 0) { 
             
             long time = 0;
@@ -388,15 +388,15 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
                 }
             } 
 
-            // Remove the next target from the list
+            // Remove the next target from the list,
             ibis.ipl.ReceivePortIdentifier rp = todo.removeFirst(); 
             
-            // Attempt a connection setup. If succesfull, the target adress is 
+            // Attempt a connection setup. If successful, the target adress is 
             // added to the 'succes' list and any previous exceptions are 
-            // discarded. If unsuccesfull, the exception is saved for future 
+            // discarded. If unsuccessful, the exception is saved for future 
             // reference. Depending on the value of fillTimeout, the target is 
             // put back in the list to be retried later.
-            // TODO: do we need an exp. backoff here ? 
+            // TODO: do we need an exp. backoff here? 
             try {
                 connect(rp, time, false);
                 succes.add(rp);
@@ -409,8 +409,8 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
                     // We may get another chance!
                     
                     // TODO: should we filter out some exceptions from which we 
-                    // can never recover ? (e.g. if the ibis doesn't exist 
-                    // anymore) ?                      
+                    // can never recover? (e.g. if the ibis doesn't exist 
+                    // anymore)?
                     todo.addLast(rp);                
                 }
             }
@@ -442,7 +442,7 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
                 }
             }
 
-            // Add a list of connections that were succesfull            
+            // Add a list of connections that were successful.            
             ex.setObtainedConnections(succes.toArray(
                     new ibis.ipl.ReceivePortIdentifier[succes.size()]));
 
