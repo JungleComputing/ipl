@@ -93,6 +93,7 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
         // Create a new accept thread
         ThreadPool.createNew(this, "TcpIbis Accept Thread");
     }
+
     protected PortType getPortCapabilities() {
         return portCapabilities;
     }

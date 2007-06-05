@@ -233,14 +233,19 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
         super.closePort(timeout);
     }
 
-    synchronized void connect(SendPortIdentifier origin, IbisSocket s,
+    void connect(SendPortIdentifier origin, IbisSocket s,
             BufferedArrayInputStream in) throws IOException {
-        ConnectionHandler conn = new ConnectionHandler(origin, s, this, in);
+        ConnectionHandler conn;
+
+        synchronized(this) {
+            conn = new ConnectionHandler(origin, s, this, in);
+        }
         
         if (! no_connectionhandler_thread) {
             // ThreadPool.createNew(conn, "ConnectionHandler");
             // We are already in a dedicated thread, so no need to create a new
             // one!
+            // But this method was synchronized!!! Fixed (Ceriel).
             conn.run();
         }
     }
