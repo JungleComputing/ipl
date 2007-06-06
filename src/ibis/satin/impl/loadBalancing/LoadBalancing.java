@@ -24,7 +24,7 @@ public class LoadBalancing implements Config {
     }
 
     final class StealRequestHandler extends Thread {
-    	static final boolean CONTINUOUS_STATS = true;
+    	static final boolean CONTINUOUS_STATS = false;
     	static final long CONTINUOUS_STATS_INTERVAL = 60 * 1000;
     	
         public StealRequestHandler() {
