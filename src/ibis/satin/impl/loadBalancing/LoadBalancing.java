@@ -183,7 +183,7 @@ public class LoadBalancing implements Config {
             	boolean gotTimeout = System.currentTimeMillis() - start >= STEAL_WAIT_TIMEOUT;
             	if(gotTimeout && !gotStealReply) {
             		ftLogger.warn("SATIN '" + s.ident
-                            + "': a timeout occurred while waiting for a steal reply");
+                            + "': a timeout occurred while waiting for a steal reply, timeout = " + STEAL_WAIT_TIMEOUT / 1000);
             	}
             	
                 if (gotStealReply || gotTimeout) {
