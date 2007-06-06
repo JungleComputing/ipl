@@ -55,7 +55,7 @@ implementations:
 - catch InvocationTargeExceptions, and thow the cause of this runtime exception
   instead.
 + closing a receiveport twice returns an Error (fixed Ceriel)
-* _Never_ throw errors in Ibis, only Exceptions
++ _Never_ throw errors in Ibis, only Exceptions (fixed Ceriel)
 + remove Omnitimer, native object creation trick, and any remaining native
   node (done Ceriel)
 
@@ -65,7 +65,7 @@ applications:
 
 packaging/distribution:
 * split up ibis in multiple separate subprojects:
-	- ipl
+	+ ipl
 	- ipl applications
 	- util
 	+ server (Done Niels)
