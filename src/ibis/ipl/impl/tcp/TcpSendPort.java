@@ -38,7 +38,11 @@ final class TcpSendPort extends SendPort implements TcpProtocol {
             } catch(Throwable e) {
                 // ignored
             } finally {
-                splitter.remove(out);
+                try { 
+                    splitter.remove(out);
+                } catch (IOException e) { 
+                    // ignore
+                }
             }
         }
     }
