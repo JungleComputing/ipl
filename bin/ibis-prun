@@ -8,92 +8,16 @@ if [ -z "$IBIS_HOME" ];  then
     exit 1
 fi
 
+# Check if user forgot no-panda flag. In that case, filter rank and nhosts.
 NHOSTS=`echo $PRUN_HOSTNAMES | awk '{print NF}'`
-case X$1 in
-X$PRUN_CPU_RANK)
-	case X$2 in
-	X$NHOSTS)
-		# User probably forgot to pass the -no-panda flag
-		shift
-		shift
-		;;
-	esac
-	;;
+case "X${1}X$2" in
+X${PRUN_CPU_RANK}X$NHOSTS)
+    shift
+    shift
+    ;;
 esac
 
-pool="$PRUN_ENV"
-
-function usage () {
-cat << 'EOF'
-Usage:
-    prun -no-panda ibis-prun <ibis-prun params> <jvm params> <classname> <application params>
-The first parameter that is not recognized as an option to ibis-prun
-terminates the ibis-prun parameters.
-Ibis-prun starts an ibis-server on the first host. If the user wants to use
-his own server, -Dibis.server.address=<hostname> should do the trick
-(or pass it on through an ibis.properties file).
-
-The ibis-prun parameters are:
--cpdir <dir>
-    add all jar files in the specified directory to the classpath.
--?
--h
--help
---help
-    print this message
---
-    terminates the parameters for ibis-prun; following parameters are passed
-    on to java, even if they would be acceptable to ibis-prun
-EOF
-	exit 1
-}
-
-if [ -z "$1" -o $# -le 0 ]
-then
-	usage
-fi
-
-#
-# parse arguments
-#
-
-
-# Jar-files from library.
-LIBCLASSPATH=""
-add_to_libclasspath () {
-    JARFILES=`cd "$1" && ls *.jar 2>/dev/null`
-    for i in ${JARFILES} ; do
-	if [ -z "$LIBCLASSPATH" ] ; then
-	    LIBCLASSPATH="$1/$i"
-	else
-	    LIBCLASSPATH="$LIBCLASSPATH:$1/$i"
-	fi
-    done
-}
-
-
-while [ $# -gt 0 ]
-do
-# echo now inspect argument $1 -- left $#
-        case "$1" in
-	-cpdir)
-		shift
-		add_to_libclasspath "$1"
-		;;
-	-\?|-h|-help|--help)
-		usage
-		;;
-	--)
-		shift
-		break
-		;;
-        *)      
-		break
-                ;;
-        esac
-        shift
-done
-
+# Get the first host.
 for i in $HOSTS
 do
     serverhost=$i
@@ -108,24 +32,10 @@ X0)
     PID=$!
 esac
 
-Dns_server="-Dibis.server.address=$serverhost"
-
-# Put value of environment variable CLASSPATH in front, if present.
-if [ -z "$CLASSPATH" ] ; then
-    CLASSPATH="$LIBCLASSPATH"
-else 
-    CLASSPATH="$CLASSPATH:$LIBCLASSPATH"
-fi
-
-# Sleep for a second, to give ibis-server a chance to start.
-# Should not be needed ...
-
-sleep 1
-
 . $IBIS_HOME/bin/ibis-run \
 	-Dibis.pool.size=$NHOSTS \
-	$Dns_server \
-	-Dibis.pool.name="$pool" \
+	"-Dibis.server.address=$serverhost" \
+	-Dibis.pool.name="$PRUN_ENV" \
 	"$@"
 
 # Kill server 10 seconds after this ibis-run terminated.
