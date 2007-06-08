@@ -204,7 +204,9 @@ public final class Satin implements Config {
 
         comm.end();
 
-        commLogger.debug("SATIN '" + ident + "': exited");
+        if (commLogger.isDebugEnabled()) {
+            commLogger.debug("SATIN '" + ident + "': exited");
+        }
 
         // Do a gc, and run the finalizers. Useful for printing statistics in
         // Satin applications.
@@ -285,7 +287,9 @@ public final class Satin implements Config {
      * Implements the main client loop: steal jobs and execute them.
      */
     public void client() {
-        spawnLogger.debug("SATIN '" + ident + "': starting client!");
+        if (spawnLogger.isDebugEnabled()) {
+            spawnLogger.debug("SATIN '" + ident + "': starting client!");
+        }
 
         while (!exiting) {
             // steal and run jobs
@@ -322,6 +326,12 @@ public final class Satin implements Config {
         // tables.
         stats.abortsDone++;
 
+        if (abortLogger.isDebugEnabled()) {
+            abortLogger.debug("ABORT called: outstandingSpanws = "
+                    + outstandingSpawns
+                    + ", exceptionThrower = " + exceptionThrower);
+        }
+
         if (exceptionThrower != null) { // can be null if root does an abort.
             // kill all children of the parent of the thrower.
             aborts.killChildrenOf(exceptionThrower.getParentStamp());
@@ -330,10 +340,11 @@ public final class Satin implements Config {
         // now kill mine
         if (outstandingSpawns != null) {
             Stamp stamp;
-            if (outstandingSpawns.getParent() == null) {
+            InvocationRecord parent = outstandingSpawns.getParent();
+            if (parent == null) {
                 stamp = null;
             } else {
-                stamp = outstandingSpawns.getParent().getStamp();
+                stamp = parent.getStamp();
             }
             aborts.killChildrenOf(stamp);
         }
@@ -422,11 +433,13 @@ public final class Satin implements Config {
     	
 		if (masterIdent.equals(ident)) {
 			/* I an the master. */
-			commLogger
-					.info("SATIN '" + ident + "': init ibis: I am the master");
+			commLogger.info(
+                                "SATIN '" + ident
+                                + "': init ibis: I am the master");
 			master = true;
 		} else {
-			commLogger.info("SATIN '" + ident + "': init ibis I am slave");
+			commLogger.info("SATIN '" + ident
+                                + "': init ibis I am slave");
 		}
 
 		if (STATS && master) {
@@ -531,13 +544,16 @@ public final class Satin implements Config {
     }
 
     private void callSatinRemoteFunction(InvocationRecord r) {
-        stealLogger.info("SATIN '" + ident + "': RUNNING REMOTE CODE!");
+        if (stealLogger.isInfoEnabled()) {
+            stealLogger.info("SATIN '" + ident
+                    + "': RUNNING REMOTE CODE, STAMP = " + r.getStamp() + "!");
+        }
         ReturnRecord rr = null;
         stats.jobsExecuted++;
         rr = r.runRemote();
         rr.setEek(r.eek);
 
-        if (r.eek != null) {
+        if (r.eek != null && stealLogger.isInfoEnabled()) {
             stealLogger.info("SATIN '" + ident
                 + "': RUNNING REMOTE CODE GAVE EXCEPTION: " + r.eek, r.eek);
         } else {
@@ -548,10 +564,16 @@ public final class Satin implements Config {
         // send wrapper back to the owner
         if (!r.aborted) {
             lb.sendResult(r, rr);
+            if (stealLogger.isInfoEnabled()) {
+                stealLogger.info("SATIN '" + ident
+                        + "': REMOTE CODE SEND RESULT DONE!");
+            }
+        } else {
+            if (stealLogger.isInfoEnabled()) {
+                stealLogger.info("SATIN '" + ident
+                        + "': REMOTE CODE WAS ABORTED!");
+            }
         }
-
-        stealLogger
-            .info("SATIN '" + ident + "': REMOTE CODE SEND RESULT DONE!");
     }
 
     private void createLoadBalancingAlgorithm() {

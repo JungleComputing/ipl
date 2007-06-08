@@ -89,7 +89,7 @@ public final class IRStack implements Config {
                     s.stats.abortedJobs++;
                 }
 
-                if (false && abortLogger.isDebugEnabled()) {
+                if (abortLogger.isDebugEnabled()) {
                     abortLogger.debug("found child on the stack: "
                         + curr.getStamp() + ", it depends on " + targetStamp);
                 }

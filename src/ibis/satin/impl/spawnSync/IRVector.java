@@ -100,7 +100,7 @@ public final class IRVector implements Config {
             if ((curr.getParent() != null && curr.getParent().aborted)
                 || curr.isDescendentOf(targetStamp)) {
                 curr.aborted = true;
-                if (false && abortLogger.isDebugEnabled()) {
+                if (abortLogger.isDebugEnabled()) {
                     abortLogger.debug("found stolen child: " + curr.getStamp()
                         + ", it depends on " + targetStamp);
                 }

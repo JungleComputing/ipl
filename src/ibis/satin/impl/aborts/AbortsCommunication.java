@@ -26,13 +26,14 @@ final class AbortsCommunication implements Config {
      * unlikely that one node stole more than one job from me
      */
     protected void sendAbortMessage(InvocationRecord r) {
-        abortLogger.debug("SATIN '" + s.ident + ": sending abort message to: "
-            + r.getStealer() + " for job " + r.getStamp());
 
         if (s.deadIbises.contains(r.getStealer())) {
             /* don't send abort and store messages to crashed ibises */
             return;
         }
+
+        abortLogger.debug("SATIN '" + s.ident + ": sending abort message to: "
+            + r.getStealer() + " for job " + r.getStamp() + ", parent = " + r.getParentStamp());
 
         WriteMessage writeMessage = null;
         try {

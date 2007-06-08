@@ -824,20 +824,11 @@ public final class Satinc extends IbiscComponent {
     void insertAbortedCheck(MethodGen m, InstructionList il,
         InstructionHandle pos) {
         // Generates:
-        //   if (Config.FAULT_TOLERANCE || Config.ABORTS) {
         //       if (satin.getParent() != null && satin.getParent().aborted) {
         //           throw new ibis.satin.impl.aborts.AbortException();
         //       }
-        //   }
         InstructionHandle abo = insertThrowAbort(m, il, pos);
 
-        // Fault tolerance and aborts are always on --Rob
-        //        il.insert(abo, ins_f.createFieldAccess("ibis.satin.impl.Config",
-        //                "FAULT_TOLERANCE", Type.BOOLEAN, Constants.GETSTATIC));
-        //        il.insert(abo, ins_f.createFieldAccess("ibis.satin.impl.Config",
-        //                "ABORTS", Type.BOOLEAN, Constants.GETSTATIC));
-        //        il.insert(abo, new IOR());
-        //        il.insert(abo, new IFEQ(pos));
         il.insert(abo, getSatin(ins_f));
         il.insert(abo, ins_f.createInvoke("ibis.satin.impl.Satin", "getParent",
             irType, Type.NO_ARGS, Constants.INVOKEVIRTUAL));

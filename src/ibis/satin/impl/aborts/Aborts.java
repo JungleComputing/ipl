@@ -34,7 +34,9 @@ public final class Aborts implements Config {
 
     public void addToAbortList(Stamp stamp) {
         Satin.assertLocked(s);
-        abortLogger.debug("SATIN '" + s.ident + ": got abort message");
+        if (abortLogger.isDebugEnabled()) {
+            abortLogger.debug("SATIN '" + s.ident + ": got abort message");
+        }
         abortList.add(stamp);
         gotAborts = true;
     }
@@ -53,10 +55,12 @@ public final class Aborts implements Config {
         Satin.assertLocked(s);
         exceptionList.add(r);
         gotExceptions = true;
-        inletLogger.debug("SATIN '" + s.ident + ": got remote exception!");
+        if (inletLogger.isDebugEnabled()) {
+            inletLogger.debug("SATIN '" + s.ident + ": got remote exception!");
+        }
     }
 
-    // Trace back from the exception, and execute inlets / empty imlets back to
+    // Trace back from the exception, and execute inlets / empty inlets back to
     // the root. During this, send result messages as soon as possible.
     public void handleInlet(InvocationRecord r) {
         if (r.isInletExecuted()) {
@@ -167,7 +171,7 @@ public final class Aborts implements Config {
         }
     }
 
-    // Trace back from the exception, and execute inlets / empty imlets back to
+    // Trace back from the exception, and execute inlets / empty inlets back to
     // the root. During this, send result messages as soon as possible.
     private void handleEmptyInlet(InvocationRecord r) {
         // if r does not have parentLocals, this means
@@ -231,15 +235,19 @@ public final class Aborts implements Config {
                 }
             }
 
-            inletLogger.debug("SATIN '" + s.ident
-                + ": handling remote exception: " + r.eek + ", inv = " + r);
+            if (inletLogger.isDebugEnabled()) {
+                inletLogger.debug("SATIN '" + s.ident
+                    + ": handling remote exception: " + r.eek + ", inv = " + r);
+            }
 
             //  If there is an inlet, call it.
             handleInlet(r);
             r.decrSpawnCounter();
 
-            inletLogger.debug("SATIN '" + s.ident
-                + ": handling remote exception DONE");
+            if (inletLogger.isDebugEnabled()) {
+                inletLogger.debug("SATIN '" + s.ident
+                    + ": handling remote exception DONE");
+            }
         }
     }
 
@@ -257,14 +265,19 @@ public final class Aborts implements Config {
                     return;
                 }
 
-                abortLogger.debug("SATIN '" + s.ident
-                    + ": handling abort message: stamp = " + stamp);
+                if (abortLogger.isDebugEnabled()) {
+                    abortLogger.debug("SATIN '" + s.ident
+                        + ": handling abort message: stamp = " + stamp);
+                }
 
                 s.stats.abortsDone++;
                 killChildrenOf(stamp);
 
-                abortLogger.debug("SATIN '" + s.ident
-                    + ": handling abort message: stamp = " + stamp + " DONE");
+                if (abortLogger.isDebugEnabled()) {
+                    abortLogger.debug("SATIN '" + s.ident
+                        + ": handling abort message: stamp = "
+                        + stamp + " DONE");
+                }
             }
         }
     }

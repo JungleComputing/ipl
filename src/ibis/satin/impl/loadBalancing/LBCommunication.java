@@ -32,9 +32,11 @@ final class LBCommunication implements Config, Protocol {
 
     protected void sendStealRequest(Victim v, boolean synchronous,
         boolean blocking) throws IOException {
-        stealLogger.debug("SATIN '" + s.ident + "': sending"
-            + (synchronous ? "SYNC" : "ASYNC") + "steal message to "
-            + v.getIdent());
+        if (stealLogger.isDebugEnabled()) {
+            stealLogger.debug("SATIN '" + s.ident + "': sending"
+                + (synchronous ? "SYNC" : "ASYNC") + "steal message to "
+                + v.getIdent());
+        }
 
         WriteMessage writeMessage = v.newMessage();
         byte opcode = -1;
@@ -62,9 +64,11 @@ final class LBCommunication implements Config, Protocol {
                         opcode = Protocol.ASYNC_STEAL_AND_TABLE_REQUEST;
                     } else {
                         if (s.ft.getTable) {
-                            grtLogger.info("SATIN '" + s.ident
-                                + ": EEEK sending async steal message "
-                                + "while waiting for table!!");
+                            if (grtLogger.isInfoEnabled()) {
+                                grtLogger.info("SATIN '" + s.ident
+                                    + ": EEEK sending async steal message "
+                                    + "while waiting for table!!");
+                            }
                         }
                         opcode = Protocol.ASYNC_STEAL_REQUEST;
                     }
@@ -99,8 +103,11 @@ final class LBCommunication implements Config, Protocol {
         Timer returnRecordReadTimer = null;
         boolean gotException = false;
 
-        stealLogger.info("SATIN '" + s.ident
-            + "': got job result message from " + m.origin().ibisIdentifier());
+        if (stealLogger.isInfoEnabled()) {
+            stealLogger.info("SATIN '" + s.ident
+                + "': got job result message from " 
+                + m.origin().ibisIdentifier());
+        }
 
         // This upcall may run in parallel with other upcalls.
         // Therefore, we cannot directly use the timer in Satin.
@@ -134,12 +141,13 @@ final class LBCommunication implements Config, Protocol {
             return;
         }
 
-        if (eek != null) {
+        if (stealLogger.isInfoEnabled() && eek != null) {
             stealLogger.info("SATIN '" + s.ident
-                + "': handleJobResult: exception result: " + eek, eek);
+                + "': handleJobResult: exception result: " + eek
+                + ", stamp = " + stamp, eek);
         } else {
             stealLogger.info("SATIN '" + s.ident
-                + "': handleJobResult: normal result");
+                + "': handleJobResult: normal result, stamp = " + stamp);
         }
 
         lb.addJobResult(rr, eek, stamp);
@@ -150,9 +158,12 @@ final class LBCommunication implements Config, Protocol {
             return;
         }
 
-        stealLogger.info("SATIN '" + s.ident + "': sending job result to "
-            + r.getOwner() + ", exception = "
-            + (r.eek == null ? "null" : ("" + r.eek)));
+        if (stealLogger.isInfoEnabled()) {
+            stealLogger.info("SATIN '" + s.ident + "': sending job result to "
+                + r.getOwner() + ", exception = "
+                + (r.eek == null ? "null" : ("" + r.eek))
+                + ", stamp = " + r.getStamp());
+        }
 
         Victim v = null;
 
@@ -165,7 +176,10 @@ final class LBCommunication implements Config, Protocol {
                     System.exit(1); // Failed assertion
                 }
                 r.setOwner(owner);
-                grtLogger.info("SATIN '" + s.ident + "': storing an orphan");
+                if (grtLogger.isInfoEnabled()) {
+                    grtLogger.info("SATIN '" + s.ident
+                            + "': storing an orphan");
+                }
                 s.ft.storeResult(r);
             }
             v = s.victims.getVictim(r.getOwner());
@@ -175,9 +189,11 @@ final class LBCommunication implements Config, Protocol {
             //probably crashed..
             if (!FT_NAIVE && !r.isOrphan()) {
                 synchronized (s) {
+                    s.ft.storeResult(r);
+                }
+                if (grtLogger.isInfoEnabled()) {
                     grtLogger.info("SATIN '" + s.ident
                         + "': a job became an orphan??");
-                    s.ft.storeResult(r);
                 }
             }
             return;
@@ -212,8 +228,10 @@ final class LBCommunication implements Config, Protocol {
             if (writeMessage != null) {
                 writeMessage.finish(e);
             }
-            ftLogger.info("SATIN '" + s.ident
-                + "': Got Exception while sending result of stolen job", e);
+            if (ftLogger.isInfoEnabled()) {
+                ftLogger.info("SATIN '" + s.ident
+                    + "': Got Exception while sending result of stolen job", e);
+            }
         } finally {
             s.stats.returnRecordWriteTimer.stop();
         }
@@ -230,9 +248,11 @@ final class LBCommunication implements Config, Protocol {
         handleStealTimer.start();
         s.stats.stealRequests++;
 
-        stealLogger.debug("SATIN '" + s.ident + "': got steal request from "
-            + ident.ibisIdentifier() + " opcode = "
-            + Communication.opcodeToString(opcode));
+        if (stealLogger.isDebugEnabled()) {
+            stealLogger.debug("SATIN '" + s.ident + "': got steal request from "
+                + ident.ibisIdentifier() + " opcode = "
+                + Communication.opcodeToString(opcode));
+        }
 
         InvocationRecord result = null;
         Victim v = null;
@@ -290,9 +310,11 @@ final class LBCommunication implements Config, Protocol {
         SendPortIdentifier ident = m.origin();
         InvocationRecord tmp = null;
 
-        stealLogger.debug("SATIN '" + s.ident
-            + "': got steal reply message from " + ident.ibisIdentifier() + ": "
-            + Communication.opcodeToString(opcode));
+        if (stealLogger.isDebugEnabled()) {
+            stealLogger.debug("SATIN '" + s.ident
+                + "': got steal reply message from " + ident.ibisIdentifier()
+                + ": " + Communication.opcodeToString(opcode));
+        }
 
         switch (opcode) {
         case STEAL_REPLY_SUCCESS_TABLE:
@@ -388,13 +410,16 @@ final class LBCommunication implements Config, Protocol {
     private void sendStealFailedMessage(SendPortIdentifier ident, int opcode,
         Victim v, Map<Stamp, GlobalResultTableValue> table) {
         
-        if (opcode == ASYNC_STEAL_REQUEST) {
-            stealLogger.debug("SATIN '" + s.ident
-                + "': sending FAILED back to " + ident.ibisIdentifier());
-        }
-        if (opcode == ASYNC_STEAL_AND_TABLE_REQUEST) {
-            stealLogger.debug("SATIN '" + s.ident
-                + "': sending FAILED_TABLE back to " + ident.ibisIdentifier());
+        if (stealLogger.isDebugEnabled()) {
+            if (opcode == ASYNC_STEAL_REQUEST) {
+                stealLogger.debug("SATIN '" + s.ident
+                    + "': sending FAILED back to " + ident.ibisIdentifier());
+            }
+            if (opcode == ASYNC_STEAL_AND_TABLE_REQUEST) {
+                stealLogger.debug("SATIN '" + s.ident
+                    + "': sending FAILED_TABLE back to "
+                    + ident.ibisIdentifier());
+            }
         }
 
         WriteMessage m = null;
@@ -432,8 +457,11 @@ final class LBCommunication implements Config, Protocol {
                 s.stats.intraClusterBytes += cnt;
             }
 
-            stealLogger.debug("SATIN '" + s.ident
-                + "': sending FAILED back to " + ident.ibisIdentifier() + " DONE");
+            if (stealLogger.isDebugEnabled()) {
+                stealLogger.debug("SATIN '" + s.ident
+                    + "': sending FAILED back to " + ident.ibisIdentifier()
+                    + " DONE");
+            }
         } catch (IOException e) {
             if (m != null) {
                 m.finish(e);
@@ -452,8 +480,11 @@ final class LBCommunication implements Config, Protocol {
 
         s.stats.stolenJobs++;
 
-        stealLogger.info("SATIN '" + s.ident + "': sending SUCCESS and job #"
-            + result.getStamp() + " back to " + ident.ibisIdentifier());
+        if (stealLogger.isInfoEnabled()) {
+            stealLogger.info("SATIN '" + s.ident
+                    + "': sending SUCCESS and job #" + result.getStamp()
+                    + " back to " + ident.ibisIdentifier());
+        }
 
         WriteMessage m = null;
         try {

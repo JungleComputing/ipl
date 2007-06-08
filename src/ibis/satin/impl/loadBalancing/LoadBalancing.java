@@ -186,6 +186,10 @@ public class LoadBalancing implements Config {
                             + "': a timeout occurred while waiting for a steal reply, timeout = " + STEAL_WAIT_TIMEOUT / 1000);
             	}
             	
+                // At least handle aborts! Otherwise an older abort
+                // can kill a job that was stolen later.
+                s.aborts.handleDelayedMessages();
+
                 if (gotStealReply || gotTimeout) {
                     // Immediately reset gotStealReply, a reply has arrived.
                     gotStealReply = false;

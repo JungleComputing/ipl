@@ -137,7 +137,7 @@ public final class DoubleEndedQueue implements Config {
             if ((curr.getParent() != null && curr.getParent().aborted)
                 || curr.isDescendentOf(targetStamp)) {
 
-                if (false && abortLogger.isDebugEnabled()) {
+                if (abortLogger.isDebugEnabled()) {
                     abortLogger.debug("found local child: " + curr.getStamp()
                         + ", it depends on " + targetStamp);
                 }
