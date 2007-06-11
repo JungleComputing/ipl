@@ -154,11 +154,6 @@ public final class Communication implements Config, Protocol {
         receivePort.enableConnections();
     }
 
-    public boolean inDifferentCluster(IbisIdentifier other) {
-        return !s.ident.location().getParent().equals(
-                other.location().getParent());
-    }
-
     public IbisCapabilities createIbisProperties() {
         if (CLOSED) {
             return new IbisCapabilities(

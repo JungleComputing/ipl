@@ -44,7 +44,7 @@ final class AbortsCommunication implements Config {
             writeMessage.writeByte(Protocol.ABORT);
             writeMessage.writeObject(r.getParentStamp());
             long cnt = v.finish(writeMessage);
-            if (s.comm.inDifferentCluster(r.getStealer())) {
+            if (v.inDifferentCluster(s.ident)) {
                 s.stats.interClusterMessages++;
                 s.stats.interClusterBytes += cnt;
             } else {

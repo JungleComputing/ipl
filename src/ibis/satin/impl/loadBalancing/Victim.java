@@ -162,4 +162,8 @@ public final class Victim implements Config {
     public IbisIdentifier getIdent() {
         return ident;
     }
+
+    public boolean inDifferentCluster(IbisIdentifier other) {
+        return !ident.location().equals(other.location());
+    }
 }

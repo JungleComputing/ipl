@@ -44,13 +44,13 @@ final class FTCommunication implements Config, ReceivePortConnectUpcall,
             Registry r = s.comm.ibis.registry();
             s.ft.clusterCoordinatorIdent =
                     r.elect("satin "
-                            + s.comm.ibis.identifier().location().getParent().toString()
+                            + s.comm.ibis.identifier().location().toString()
                             + " cluster coordinator");
             if (s.ft.clusterCoordinatorIdent.equals(s.comm.ibis.identifier())) {
                 /* I am the cluster coordinator */
                 s.clusterCoordinator = true;
                 ftLogger.info("cluster coordinator for cluster "
-                        + s.comm.ibis.identifier().location().getParent().toString()
+                        + s.comm.ibis.identifier().location().toString()
                         + " is " + s.ft.clusterCoordinatorIdent);
             }
         } catch (Exception e) {
@@ -156,7 +156,7 @@ final class FTCommunication implements Config, ReceivePortConnectUpcall,
             writeMessage.writeByte(Protocol.ABORT_AND_STORE);
             writeMessage.writeObject(r.getParentStamp());
             long cnt = v.finish(writeMessage);
-            if (s.comm.inDifferentCluster(r.getStealer())) {
+            if (v.inDifferentCluster(s.ident)) {
                 s.stats.interClusterMessages++;
                 s.stats.interClusterBytes += cnt;
             } else {

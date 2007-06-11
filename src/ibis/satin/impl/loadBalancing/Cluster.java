@@ -6,17 +6,17 @@ import ibis.ipl.Location;
 import java.util.Vector;
 
 final class Cluster {
-    private Location name; //all references to a cluster's name are the same
+    private Location location; //all references to a cluster's location are the same
 
     private Vector<Victim> victims;
 
     protected Cluster(Location name) {
-        this.name = name;
+        this.location = name;
         victims = new Vector<Victim>();
     }
 
     protected Cluster(Victim v) {
-        this(v.getIdent().location().getParent());
+        this(v.getIdent().location());
         victims.add(v);
     }
 
@@ -25,7 +25,7 @@ final class Cluster {
             return true;
         } else if (o instanceof Cluster) {
             Cluster other = (Cluster) o;
-            return other.name.equals(name);
+            return other.location.equals(location);
         } else {
             return false;
         }
@@ -35,11 +35,11 @@ final class Cluster {
         if (other == this) {
             return true;
         }
-        return other.name.equals(name);
+        return other.location.equals(location);
     }
 
     public int hashCode() {
-        return name.hashCode();
+        return location.hashCode();
     }
 
     protected void add(Victim v) {

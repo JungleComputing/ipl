@@ -83,7 +83,7 @@ final class LBCommunication implements Config, Protocol {
             // Finish the message but try to keep the connection. If the
             // steal attempt succeeds, we need to send an answer later on.
             long cnt = v.finishKeepConnection(writeMessage);
-            if (s.comm.inDifferentCluster(v.getIdent())) {
+            if (v.inDifferentCluster(s.ident)) {
                 s.stats.interClusterMessages++;
                 s.stats.interClusterBytes += cnt;
             } else {
@@ -217,7 +217,7 @@ final class LBCommunication implements Config, Protocol {
 
             long cnt = v.finish(writeMessage);
             s.stats.returnRecordBytes += cnt;
-            if (s.comm.inDifferentCluster(r.getOwner())) {
+            if (v.inDifferentCluster(s.ident)) {
                 s.stats.interClusterMessages++;
                 s.stats.interClusterBytes += cnt;
             } else {
@@ -449,7 +449,7 @@ final class LBCommunication implements Config, Protocol {
             }
 
             long cnt = v.finish(m);
-            if (s.comm.inDifferentCluster(ident.ibisIdentifier())) {
+            if (v.inDifferentCluster(s.ident)) {
                 s.stats.interClusterMessages++;
                 s.stats.interClusterBytes += cnt;
             } else {
@@ -521,7 +521,7 @@ final class LBCommunication implements Config, Protocol {
             invocationRecordWriteTimer.stop();
             long cnt = v.finish(m);
             s.stats.invocationRecordWriteTimer.add(invocationRecordWriteTimer);
-            if (s.comm.inDifferentCluster(ident.ibisIdentifier())) {
+            if (v.inDifferentCluster(s.ident)) {
                 s.stats.interClusterMessages++;
                 s.stats.interClusterBytes += cnt;
             } else {
