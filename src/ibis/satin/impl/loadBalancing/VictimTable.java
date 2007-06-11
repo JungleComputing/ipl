@@ -30,9 +30,9 @@ public final class VictimTable implements Config {
 
     public VictimTable(Satin s) {
         this.satin = s;
-        thisCluster = new Cluster(s.ident.location().getParent());
+        thisCluster = new Cluster(s.ident.location());
         clusters.add(thisCluster);
-        clustersHash.put(s.ident.location().getParent(), thisCluster);
+        clustersHash.put(s.ident.location(), thisCluster);
     }
 
     public void add(Victim v) {
@@ -46,11 +46,11 @@ public final class VictimTable implements Config {
         victims.add(v);
         ibisHash.put(v.getIdent(), v);
 
-        Cluster c = clustersHash.get(v.getIdent().location().getParent());
+        Cluster c = clustersHash.get(v.getIdent().location());
         if (c == null) { // new cluster
             c = new Cluster(v); // v is automagically added to this cluster
             clusters.add(c);
-            clustersHash.put(v.getIdent().location().getParent(), c);
+            clustersHash.put(v.getIdent().location(), c);
         } else {
             c.add(v);
         }
@@ -74,7 +74,7 @@ public final class VictimTable implements Config {
 
         Victim v = victims.remove(i);
 
-        Cluster c = clustersHash.get(v.getIdent().location().getParent());
+        Cluster c = clustersHash.get(v.getIdent().location());
         c.remove(v);
         ibisHash.remove(v.getIdent());
 
