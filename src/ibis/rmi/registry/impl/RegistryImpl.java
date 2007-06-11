@@ -35,14 +35,20 @@ public class RegistryImpl extends ibis.rmi.server.UnicastRemoteObject
             this.port = port;
         }
         if (logger.isDebugEnabled()) {
-            logger.debug("RegistryImpl<init>: " + " port = " + this.port);
+            logger.debug("port = " + this.port);
         }
         RTS.createRegistry(port, this);
     }
 
     public synchronized Remote lookup(String name) throws NotBoundException {
         if (! remotes.containsKey(name)) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("lookup failed " + name);
+            }
             throw new NotBoundException("lookup: " + name + " not bound");
+        }
+        if (logger.isDebugEnabled()) {
+            logger.debug("lookup succeeded " + name);
         }
         return remotes.get(name);
     }
@@ -52,16 +58,25 @@ public class RegistryImpl extends ibis.rmi.server.UnicastRemoteObject
         if (remotes.containsKey(name)) {
             throw new AlreadyBoundException("bind: " + name + " already bound");
         }
+        if (logger.isDebugEnabled()) {
+            logger.debug("binding " + name);
+        }
         remotes.put(name, obj);
     }
 
     public synchronized void rebind(String name, Remote obj) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("rebinding " + name);
+        }
         remotes.put(name, obj);
     }
 
     public synchronized void unbind(String name) throws NotBoundException {
         if (! remotes.containsKey(name)) {
             throw new NotBoundException("unbind: " + name + " not bound");
+        }
+        if (logger.isDebugEnabled()) {
+            logger.debug("unbinding " + name);
         }
         remotes.remove(name);
     }
