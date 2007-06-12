@@ -23,8 +23,6 @@
 		jargs		flags for java
 
 	jar	build a jar file for the application.
-		Set parameter:
-		main-class	main class name
 
 	test	builds the application and runs test-seq as well as test-par.
     </description>
@@ -147,17 +145,19 @@
     <!-- Default test target, for if the application does not have one.
 	 Does test-par as well as test-seq.
     -->
-    <target name="test" description="Build, run sequential test, run parallel test, clean" depends="build,test-seq,test-par">
+
+    <target name="build-and-test" depends="build,test-seq, test-par"/>
+
+    <target name="test" unless="no-test" description="Build, run sequential test, run parallel test, clean">
+        <antcall inheritRefs="true" target="build-and-test" />
         <antcall inheritRefs="true" target="clean" />
     </target>
 
     <target name="jar" depends="build" description="Build a Jar file for an application">
         <basename file="." property="application-name" />
         <jar destfile="${application-name}.jar" basedir="${build}" includes="**/*.class">
-            <manifest>
-                <attribute name="Main-Class" value="${main-class}" />
-            </manifest>
         </jar>
+        <antcall inheritRefs="true" target="clean" />
         <delete dir="${build}" />
     </target>
 
