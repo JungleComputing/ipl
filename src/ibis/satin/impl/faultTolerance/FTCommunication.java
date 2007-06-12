@@ -265,6 +265,10 @@ final class FTCommunication implements Config, ReceivePortConnectUpcall,
 
     public void died(IbisIdentifier corpse) {
         ftLogger.debug("SATIN '" + s.ident + "': " + corpse + " died");
+        if(corpse.equals(s.ident)) {
+            ftLogger.error("SATIN '" + s.ident + "': the registry thinks I have crashed! Exiting.");
+            System.exit(1);
+        }
         left(corpse);
         handleCrash(corpse);
     }
