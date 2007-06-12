@@ -29,7 +29,7 @@ case X$PRUN_CPU_RANK in
 X0)
     $IBIS_HOME/bin/ibis-server < /dev/null > /dev/null 2>&1 &
     # $IBIS_HOME/bin/ibis-server < /dev/null > ns.out 2>&1 &
-    PID=$!
+    # PID=$!
 esac
 
 . $IBIS_HOME/bin/ibis-run \
@@ -47,5 +47,6 @@ esac
 case X$PRUN_CPU_RANK in
 X0)
     sleep 10
-    kill -9 $PID > /dev/null 2>&1
+    # kill -9 $PID > /dev/null 2>&1
+    killall -9 java > /dev/null 2>&1
 esac
