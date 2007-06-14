@@ -122,6 +122,7 @@ final class PeerConnectionHandler implements Runnable {
             }
             // wait a bit
             try {
+                logger.error("Accept failed, waiting a second, will retry", e);
                 Thread.sleep(1000);
             } catch (InterruptedException e1) {
                 // IGNORE
