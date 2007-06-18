@@ -699,12 +699,12 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
             wm = v.newMessage();
             wm.writeByte(SO_TRANSFER);
         } catch (IOException e) {
+            s.stats.soTransferTimer.stop();
             if (wm != null) {
                 wm.finish(e);
             }
             soLogger.error("SATIN '" + s.ident
                 + "': got exception while sending" + " shared object", e);
-            s.stats.soTransferTimer.stop();
             return;
         }
 
@@ -712,11 +712,11 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
         try {
             wm.writeObject(so);
         } catch (IOException e) {
+            s.stats.soSerializationTimer.stop();
+            s.stats.soTransferTimer.stop();
             wm.finish(e);
             soLogger.error("SATIN '" + s.ident
                 + "': got exception while sending" + " shared object", e);
-            s.stats.soSerializationTimer.stop();
-            s.stats.soTransferTimer.stop();
             return;
         }
         s.stats.soSerializationTimer.stop();
@@ -724,10 +724,10 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
         try {
             size = v.finish(wm);
         } catch (IOException e) {
+            s.stats.soTransferTimer.stop();
             wm.finish(e);
             soLogger.error("SATIN '" + s.ident
                 + "': got exception while sending" + " shared object", e);
-            s.stats.soTransferTimer.stop();
             return;
         }
 
