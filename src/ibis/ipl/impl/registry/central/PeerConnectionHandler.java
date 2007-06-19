@@ -117,12 +117,13 @@ final class PeerConnectionHandler implements Runnable {
             connection = connectionFactory.accept();
             logger.debug("connection accepted");
         } catch (IOException e) {
-            if (!registry.isStopped()) {
-                logger.error("error on accepting connection", e);
+            if (registry.isStopped()) {
+                return;
             }
+            logger.error("Accept failed, waiting a second, will retry", e);
+
             // wait a bit
             try {
-                logger.error("Accept failed, waiting a second, will retry", e);
                 Thread.sleep(1000);
             } catch (InterruptedException e1) {
                 // IGNORE

@@ -200,12 +200,13 @@ final class ServerConnectionHandler implements Runnable {
             connection = connectionFactory.accept();
             logger.debug("server: connection accepted");
         } catch (IOException e) {
-            if (!server.isStopped()) {
-                logger.error("could not accept socket", e);
+            if (server.isStopped()) {
+                return;
             }
+            logger.error("Accept failed, waiting a second, will retry", e);
+
             //wait a bit
             try {
-                logger.error("Accept failed, waiting a second, will retry", e);
                 Thread.sleep(1000);
             } catch (InterruptedException e1) {
                 //IGNORE
