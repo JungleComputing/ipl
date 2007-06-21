@@ -8,17 +8,17 @@ Legend:
 IPL:
 - check properties for unknown properties
 + add "fillTimeout" option to sendport.connect(). (Done someone).
-* add a timeout parameter to getElectionResult() 
-  (0 == forever, -1 == non-blocking)
++ add a timeout parameter to getElectionResult() 
+  (0 == forever, -1 == non-blocking) (Done Ceriel)
 
 Ibis Factory:
 - add support for stacking to the factory (don't add an Ibis to a stack twice)
 + add a flag to each Ibis to denote if it should be automatically selected or not.
   The dummy stacking Ibis should never be selected, nor should NioIbis
   (Done Ceriel)
-- Only select the first matching Ibis, don't try all of them.
-- Add a seperate "checker" object for each Ibis implementation to determine
-  which Ibis to use.
++ Only select the first matching Ibis, don't try all of them. (Done Ceriel)
++ Add a seperate "checker" object for each Ibis implementation to determine
+  which Ibis to use. (Done Ceriel: added IbisStarter object).
 
 IbisC:
 + remove rewriting of "flat list of class files" (was bug in older javac versions; happened with .java files in the jar-file, but only when rewritten???).
@@ -83,11 +83,11 @@ packaging/distribution:
 - while(true) {fix eclipse warnings}
 - Api docs of IPL: read, clarify, improve (Niels: Done SendPort).
 - clean-up scripts
-- fix automatic starting of Ibis-server in "ant test" and "ibis-prun" one way
-  or another
+-/+ fix automatic starting of Ibis-server in "ant test" and "ibis-prun" one way
+  or another (ibis-prun done Ceriel)
 - clean up doc building scripts
-- fix codmon
-- put each ibis in a seperate jar
++ fix codmon (Done Ceriel)
++ put each ibis in a seperate jar (Done Ceriel)
 
 website:
 - update "ibis" overview picture with new/changed implementations
