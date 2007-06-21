@@ -12,7 +12,7 @@
 
     <import file="${ibis}/build-files/build-properties.xml"/>
 
-    <target name="api">
+    <target name="api" depends="set-classpath">
 	<!-- Create the javadoc directory -->
 	<delete dir="api"/>
 	<mkdir dir="api"/>
