@@ -274,8 +274,13 @@ public class CapabilitySet {
 
     public String toString() {
         String result = "";
+        boolean first = true;
         for (String capability : capabilities) {
-            result += capability + "\n";
+            if (! first) {
+                result += " ";
+            }
+            first = false;
+            result += capability;
         }
         return result;
     }

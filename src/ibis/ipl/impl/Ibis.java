@@ -73,26 +73,12 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis {
      * @param defaultProperties the default properties of this particular
      * ibis implementation.
      */
-    protected Ibis(RegistryEventHandler registryHandler, IbisCapabilities capabilities,
-            PortType[] portTypes,
+    protected Ibis(RegistryEventHandler registryHandler,
+            IbisCapabilities capabilities, PortType[] portTypes,
             Properties userProperties) {
 
-        //This code moved here from the factory
-        //FIXME: properly check this
-        if (registryHandler != null
-                && !capabilities
-                        .hasCapability(IbisCapabilities.MEMBERSHIP)) {
-            throw new IbisConfigurationException(
-                    "RegistryEventHandler specified but no "
-                            + IbisCapabilities.MEMBERSHIP
-                            + " capability requested");
-        }
-        
-        checkIbisCapabilities(capabilities);
-        checkPortTypes(portTypes);
-        
         this.capabilities = capabilities;
-        this.portTypes = portTypes.clone();
+        this.portTypes = portTypes;
         
         Log.initLog4J("ibis");
 
@@ -113,60 +99,6 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis {
         ident = registry.getIbisIdentifier();
     }
 
-    protected void checkIbisCapabilities(IbisCapabilities caps) {
-
-        if (! caps.matchCapabilities(getCapabilities())) {
-            throw new IbisConfigurationException("unmatched IbisCapabilities: "
-                    + caps.unmatchedCapabilities(getCapabilities()));
-        }
-    }
-    
-    protected void checkPortTypes(PortType[] types) {
-        for (PortType tp: types) {
-            checkPortType(tp);
-        }
-    }
-    
-    protected void checkPortType(PortType tp){
-        if (! tp.matchCapabilities(getPortCapabilities())) {
-            throw new IbisConfigurationException("unmatched capabilities in port type: "
-                    + tp.unmatchedCapabilities(getPortCapabilities()));
-        }
-        int cnt = 0;
-        if (tp.hasCapability(PortType.CONNECTION_MANY_TO_MANY)) {
-            cnt++;
-        }
-        if (tp.hasCapability(PortType.CONNECTION_ONE_TO_ONE)) {
-            cnt++;
-        }
-        if (tp.hasCapability(PortType.CONNECTION_ONE_TO_MANY)) {
-            cnt++;
-        }
-        if (tp.hasCapability(PortType.CONNECTION_MANY_TO_ONE)) {
-            cnt++;
-        }
-        if (cnt != 1) {
-            throw new IbisConfigurationException("PortType should"
-                    + "specify exactly one connection type");
-        }
-        String[] caps = tp.getCapabilities();
-        boolean ok = false;
-        for (String s : caps) {
-            if (s.startsWith(PortType.SERIALIZATION)) {
-                ok = true;
-                break;
-            }
-        }
-        if (! ok) {
-            throw new IbisConfigurationException("Port type should"
-                    + " specify serialization");
-        }
-    }
-    
-    protected abstract IbisCapabilities getCapabilities();
-    
-    protected abstract PortType getPortCapabilities();
-    
     protected Registry initializeRegistry(RegistryEventHandler handler, 
             IbisCapabilities caps) {
         

@@ -8,7 +8,7 @@ package ibis.ipl;
  * At most one of the methods in this interface will be active at any
  * time (they are serialized by ibis).
  * These upcalls must be explicitly enabled, by means of the
- * {@link ibis.ipl.Ibis#enableRegistryEvents Ibis.enableRegistryEvents()}
+ * {@link Registry#enableEvents()}
  * method.
  * The following also holds:
  * <BR>

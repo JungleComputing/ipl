@@ -36,41 +36,6 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
     static final Logger logger
             = Logger.getLogger("ibis.ipl.impl.tcp.TcpIbis");
 
-    static final IbisCapabilities ibisCapabilities = new IbisCapabilities(
-        IbisCapabilities.CLOSEDWORLD,
-        IbisCapabilities.MEMBERSHIP,
-        IbisCapabilities.MEMBERSHIP_ORDERED,
-        IbisCapabilities.MEMBERSHIP_RELIABLE,
-        IbisCapabilities.SIGNALS,
-        IbisCapabilities.ELECTIONS,
-        IbisCapabilities.MALLEABLE,
-        IbisCapabilities.SELECTABLE,
-        "nickname.tcp"
-    );
-
-    static final PortType portCapabilities = new PortType(
-        PortType.SERIALIZATION_OBJECT_SUN,
-        PortType.SERIALIZATION_OBJECT_IBIS, 
-        PortType.SERIALIZATION_OBJECT,
-        PortType.SERIALIZATION_DATA,
-        PortType.SERIALIZATION_BYTE,
-        PortType.COMMUNICATION_FIFO,
-        PortType.COMMUNICATION_NUMBERED,
-        PortType.COMMUNICATION_RELIABLE,
-        PortType.CONNECTION_DOWNCALLS,
-        PortType.CONNECTION_UPCALLS,
-        PortType.CONNECTION_TIMEOUT,
-        PortType.CONNECTION_MANY_TO_MANY,
-        PortType.CONNECTION_MANY_TO_ONE,
-        PortType.CONNECTION_ONE_TO_MANY,
-        PortType.CONNECTION_ONE_TO_ONE,
-        PortType.RECEIVE_POLL,
-        PortType.RECEIVE_AUTO_UPCALLS,
-        PortType.RECEIVE_EXPLICIT,
-        PortType.RECEIVE_POLL_UPCALLS,
-        PortType.RECEIVE_TIMEOUT
-    );
-    
     private IbisSocketFactory factory;
 
     private IbisServerSocket systemServer;
@@ -94,14 +59,6 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
         ThreadPool.createNew(this, "TcpIbis Accept Thread");
     }
 
-    protected PortType getPortCapabilities() {
-        return portCapabilities;
-    }
-    
-    protected IbisCapabilities getCapabilities() {
-        return ibisCapabilities;
-    }
-    
     protected byte[] getData() throws IOException {
 
         factory = new IbisSocketFactory(properties);

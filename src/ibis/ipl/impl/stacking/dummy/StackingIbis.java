@@ -16,39 +16,8 @@ import java.util.Map;
 import java.util.Properties;
 
 public class StackingIbis extends Ibis {
-    private static int count = 0;
-    static final IbisCapabilities ibisCapabilities = new IbisCapabilities(
-            IbisCapabilities.CLOSEDWORLD,
-            IbisCapabilities.MEMBERSHIP,
-            IbisCapabilities.MEMBERSHIP_ORDERED,
-            IbisCapabilities.MEMBERSHIP_RELIABLE,
-            IbisCapabilities.SIGNALS,
-            IbisCapabilities.ELECTIONS,
-            "nickname.dummy"
-        );
 
-        static final PortType portCapabilities = new PortType(
-            PortType.SERIALIZATION_OBJECT_SUN,
-            PortType.SERIALIZATION_OBJECT_IBIS, 
-            PortType.SERIALIZATION_OBJECT,
-            PortType.SERIALIZATION_DATA,
-            PortType.SERIALIZATION_BYTE,
-            PortType.COMMUNICATION_FIFO,
-            PortType.COMMUNICATION_NUMBERED,
-            PortType.COMMUNICATION_RELIABLE,
-            PortType.CONNECTION_DOWNCALLS,
-            PortType.CONNECTION_UPCALLS,
-            PortType.CONNECTION_TIMEOUT,
-            PortType.CONNECTION_MANY_TO_MANY,
-            PortType.CONNECTION_MANY_TO_ONE,
-            PortType.CONNECTION_ONE_TO_MANY,
-            PortType.CONNECTION_ONE_TO_ONE,
-            PortType.RECEIVE_POLL,
-            PortType.RECEIVE_AUTO_UPCALLS,
-            PortType.RECEIVE_EXPLICIT,
-            PortType.RECEIVE_POLL_UPCALLS,
-            PortType.RECEIVE_TIMEOUT
-        );
+    private static int count = 0;
 
     Ibis base;
 
@@ -152,15 +121,4 @@ public class StackingIbis extends Ibis {
             SendPortDisconnectUpcall cU, Properties props) throws IOException {
         return new StackingSendPort(tp, this, name, cU, props);
     }
-
-    @Override
-    protected IbisCapabilities getCapabilities() {
-        return ibisCapabilities;
-    }
-
-    @Override
-    protected PortType getPortCapabilities() {
-        return portCapabilities;
-    }
-
 }

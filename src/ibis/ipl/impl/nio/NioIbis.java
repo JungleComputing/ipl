@@ -29,45 +29,6 @@ public final class NioIbis extends ibis.ipl.impl.Ibis {
     static final String s_rpi = prefix + "rpi";
 
     static final String[] props = { s_spi, s_rpi };
-
-    static final IbisCapabilities ibisCapabilities = new IbisCapabilities(
-            IbisCapabilities.CLOSEDWORLD,
-            IbisCapabilities.MEMBERSHIP,
-            IbisCapabilities.MEMBERSHIP_RELIABLE,
-            IbisCapabilities.MEMBERSHIP_ORDERED,
-            IbisCapabilities.SIGNALS,
-            IbisCapabilities.ELECTIONS,
-            "nickname.nio"
-    );
-    
-    static final PortType portCapabilities = new PortType(
-            PortType.SERIALIZATION_OBJECT_SUN,
-            PortType.SERIALIZATION_OBJECT_IBIS, 
-            PortType.SERIALIZATION_OBJECT,
-            PortType.SERIALIZATION_DATA,
-            PortType.SERIALIZATION_BYTE,
-            PortType.COMMUNICATION_FIFO,
-            PortType.COMMUNICATION_NUMBERED,
-            PortType.COMMUNICATION_RELIABLE,
-            PortType.CONNECTION_DOWNCALLS,
-            PortType.CONNECTION_UPCALLS,
-            PortType.CONNECTION_TIMEOUT,
-            PortType.CONNECTION_MANY_TO_MANY,
-            PortType.CONNECTION_MANY_TO_ONE,
-            PortType.CONNECTION_ONE_TO_MANY,
-            PortType.CONNECTION_ONE_TO_ONE,
-            PortType.RECEIVE_POLL,
-            PortType.RECEIVE_AUTO_UPCALLS,
-            PortType.RECEIVE_EXPLICIT,
-            PortType.RECEIVE_POLL_UPCALLS,
-            PortType.RECEIVE_TIMEOUT,
-            "sendport.blocking",
-            "sendport.nonblocking",
-            "sendport.thread",
-            "receiveport.blocking",
-            "receivport.nonblocking",
-            "receiveport.thread"
-    );    
     
     private static final Logger logger
             = Logger.getLogger("ibis.ipl.impl.nio.NioIbis");
@@ -85,14 +46,6 @@ public final class NioIbis extends ibis.ipl.impl.Ibis {
         properties.checkProperties(prefix, props, null, true);
     }
 
-    protected PortType getPortCapabilities() {
-        return portCapabilities;
-    }
-    
-    protected IbisCapabilities getCapabilities() {
-        return ibisCapabilities;
-    }
-    
     protected byte[] getData() throws IOException {
 
         factory = new TcpChannelFactory(this);

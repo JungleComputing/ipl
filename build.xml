@@ -35,10 +35,6 @@
         <pathelement path="${tmp}" />
     </path>
 
-    <fileset dir="${external}">
-        <include name="*.jar" />
-    </fileset>
-
     <!--
     Compile ibis
     -->
@@ -70,12 +66,24 @@
 
         <jar destfile="lib/ipl.jar" basedir="${tmp}" includes="ibis/ipl/*.class">
         </jar>
-        <jar destfile="lib/ipl-apps.jar" basedir="${tmp}" includes="ibis/ipl/apps/**/*.class">
-        </jar>
-        <jar destfile="lib/ipl-impl.jar" basedir="${tmp}" includes="ibis/ipl/impl/**/*.class ibis/util/**/*.class">
+	<jar destfile="lib/ipl-impl.jar" basedir="${tmp}" includes="ibis/ipl/impl/*.class ibis/ipl/impl/registry/**/*.class ibis/ipl/impl/util/**/*.class ibis/ipl/impl/test/**/*.class ibis/util/**/*.class">
             <manifest>
                 <attribute name="Ibis-Service" value="ibis.ipl.impl.registry.central.Server" />
-                <attribute name="Ibis-Implementation" value="ibis.ipl.impl.tcp.TcpIbis,ibis.ipl.impl.nio.NioIbis" />
+            </manifest>
+	</jar>
+	<jar destfile="lib/impl-tcp.jar" basedir="${tmp}" includes="ibis/ipl/impl/tcp/**/*.class">
+            <manifest>
+                <attribute name="Ibis-Starter" value="ibis.ipl.impl.tcp.TcpIbisStarter" />
+            </manifest>
+        </jar>
+	<jar destfile="lib/impl-nio.jar" basedir="${tmp}" includes="ibis/ipl/impl/nio/**/*.class">
+            <manifest>
+                <attribute name="Ibis-Starter" value="ibis.ipl.impl.nio.NioIbisStarter" />
+            </manifest>
+        </jar>
+	<jar destfile="lib/impl-dummy.jar" basedir="${tmp}" includes="ibis/ipl/impl/stacking/dummy/**/*.class">
+            <manifest>
+                <attribute name="Ibis-Starter" value="ibis.ipl.impl.stacking.dummy.StackingIbisStarter" />
             </manifest>
         </jar>
         <jar destfile="lib/satin-api.jar" basedir="${tmp}" includes="ibis/satin/*.class">
@@ -158,7 +166,7 @@
     </target>
 
     <target name="docs" description="Build the Ibis API documentation">
-        <ant dir="${docs}" inheritAll="false" target="api" />
+        <ant dir="${docs}" inheritAll="true" target="api" />
     </target>
 
     <target name="developer-docs">
