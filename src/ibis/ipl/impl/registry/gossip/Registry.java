@@ -77,6 +77,11 @@ public class Registry extends ibis.ipl.impl.Registry {
 
     public ibis.ipl.IbisIdentifier getElectionResult(String electionName)
             throws IOException {
+        return getElectionResult(electionName, 0);
+    }
+
+    public ibis.ipl.IbisIdentifier getElectionResult(String electionName, long timeoutMillis)
+            throws IOException {
         // TODO Auto-generated method stub
         return null;
     }

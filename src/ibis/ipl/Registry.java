@@ -25,14 +25,31 @@ public interface Registry {
      */
     public IbisIdentifier elect(String electionName) throws IOException;
 
-    /** @@@ TODO blocking? what if election wasn't won yet, etc --Rob
+    /**
      * Gets the result of an election, without being a candidate.
+     * Blocks until there is a winner for the election.
      *
      * @param electionName the name of this election.
      * @return the Ibis identifier of the elected Ibis instance.
      * @exception java.io.IOException is thrown in case of trouble.
      */
-    public IbisIdentifier getElectionResult(String electionName) throws IOException;
+    public IbisIdentifier getElectionResult(String electionName)
+            throws IOException;
+
+    /**
+     * Gets the result of an election, without being a candidate.
+     * Blocks for at most the specified timeout. If there is no
+     * winner by then, <code>null</code> is returned.
+     *
+     * @param electionName the name of this election.
+     * @param timeoutMillis time to wait. 0 means: wait forever,
+     *     -1 means: return immediately.
+     *     
+     * @return the Ibis identifier of the elected Ibis instance.
+     * @exception java.io.IOException is thrown in case of trouble.
+     */
+    public IbisIdentifier getElectionResult(String electionName,
+            long timeoutMillis) throws IOException;
 
     /**
      * Should be called when an application suspects that a particular

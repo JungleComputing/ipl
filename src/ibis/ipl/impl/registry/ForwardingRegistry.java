@@ -34,6 +34,10 @@ public final class ForwardingRegistry extends ibis.ipl.impl.Registry {
         return target.getElectionResult(election);
     }
 
+    public ibis.ipl.IbisIdentifier getElectionResult(String election, long timeoutMillis) throws IOException {
+        return target.getElectionResult(election, timeoutMillis);
+    }
+
     public void maybeDead(ibis.ipl.IbisIdentifier ibis) throws IOException {
         target.maybeDead(ibis);
     }

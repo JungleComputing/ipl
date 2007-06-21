@@ -443,7 +443,11 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
         }
     }
 
-    public synchronized IbisIdentifier getElectionResult(String election)
+    public IbisIdentifier getElectionResult(String election) throws IOException {
+        return getElectionResult(election, 0);
+    }
+
+    public synchronized IbisIdentifier getElectionResult(String election, long timeoutMillis)
             throws IOException {
         logger.debug("getting election result for: \"" + election + "\"");
 
@@ -454,11 +458,26 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
 
         IbisIdentifier winner = elections.get(election);
 
+        if (timeoutMillis < 0) {
+            // Return even if null.
+            return winner;
+        }
+
+        long start = System.currentTimeMillis();
+
         while (winner == null) {
             logger.debug("waiting for election: " + election);
 
             try {
-                wait();
+                if (timeoutMillis == 0) {
+                    wait();
+                } else {
+                    long t = timeoutMillis - (System.currentTimeMillis() - start);
+                    if (t <= 0) {
+                        return null;
+                    }
+                    wait(t);
+                }
             } catch (InterruptedException e) {
                 // IGNORE
             }
