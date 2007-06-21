@@ -434,14 +434,21 @@ public abstract class ReceivePort extends Managable
      * @return the new message, or <code>null</code>.
      */
     public ReadMessage getMessage(long timeout) throws IOException {
+
+        long deadLine = System.currentTimeMillis() + timeout;
+
         synchronized(this) {
             // Wait until a new message is delivered or the port is closed.
             while ((message == null || delivered) && ! closed) {
                 try {
                     if (timeout > 0) {
-                        wait(timeout);
-                        throw new ReceiveTimedOutException(
-                                "timeout expired in receive()");
+                        long time = System.currentTimeMillis();
+                        if (time >= deadLine) {
+                            throw new ReceiveTimedOutException(
+                                    "timeout expired in receive()");
+                        }
+                        time = deadLine - time;
+                        wait(time);
                     } else {
                         wait();
                     }
