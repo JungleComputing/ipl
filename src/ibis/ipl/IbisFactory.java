@@ -7,6 +7,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
@@ -344,6 +345,16 @@ public final class IbisFactory {
                     new Class[] { IbisCapabilities.class, portTypes.getClass()})
                         .newInstance(
                             new Object[] { requiredCapabilities, portTypes});
+            } catch(InvocationTargetException e1) {
+                // Oops, could not instantiate starter.
+                nested.add(starterClass.getName(), e1.getCause());
+                faulty = true;
+                if (verbose) {
+                    System.err.println("Could not instantiate "
+                            + starterClass.getName() + ": " + e1.getCause());
+                    // e1.printStackTrace(System.err);
+                }
+                continue;
             } catch (Throwable e) {
                 // Oops, could not instantiate starter.
                 nested.add(starterClass.getName(), e);
