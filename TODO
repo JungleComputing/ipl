@@ -34,7 +34,8 @@ capabilities:
 
 management:
 - ibis.ipl.Managable: throw exception on unrecognized property name.
-* ibis.ipl.Managable: Map strings to strings instead of strings to object.
++ ibis.ipl.Managable: Map strings to strings instead of strings to object.
+  (Done Ceriel)
 * ibis printStatistics: replace by Managable.
 * clarify JavaDoc of "count" methods in messages. E.g. Say we only count
   broadcast messages once.

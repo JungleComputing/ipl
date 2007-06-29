@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -70,12 +71,14 @@ class IbisSocketFactory {
     }
 
     IbisSocket createClientSocket(IbisSocketAddress addr, int timeout,
-            boolean fillTimeout, Map<String, Object> properties) 
+            boolean fillTimeout, Map<String, String> properties) 
         throws IOException {
         
         if (factory != null) {
+            HashMap<String, Object> h = new HashMap<String, Object>();
+            h.putAll(properties);
             return new IbisSocket(factory.createClientSocket(
-                        addr.virtualAddress, timeout, fillTimeout, properties));
+                        addr.virtualAddress, timeout, fillTimeout, h));
         }
         Socket s = new Socket();
         

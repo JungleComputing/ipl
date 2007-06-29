@@ -629,9 +629,9 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
             sport = myIbis.createSendPort(requestPortType, "latency-client");
         }
         if (BUFSIZ != 0) {
-            HashMap<String, Object> dp = new HashMap<String, Object>();
-            dp.put("InputBufferSize", new Integer(BUFSIZ));
-            dp.put("OutputBufferSize", new Integer(BUFSIZ));
+            HashMap<String, String> dp = new HashMap<String, String>();
+            dp.put("InputBufferSize", "" + BUFSIZ);
+            dp.put("OutputBufferSize", "" + BUFSIZ);
             sport.setDynamicProperties(dp);
         }
 
@@ -647,9 +647,9 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
         // System.err.println(rank + ": t = " + ((ibis.impl.net.NetIbis)myIbis).now() + "  created \"client port " + rank + "\"");
 
         if (BUFSIZ != 0) {
-            HashMap<String, Object> dp = new HashMap<String, Object>();
-            dp.put("InputBufferSize", new Integer(BUFSIZ));
-            dp.put("OutputBufferSize", new Integer(BUFSIZ));
+            HashMap<String, String> dp = new HashMap<String, String>();
+            dp.put("InputBufferSize", "" + BUFSIZ);
+            dp.put("OutputBufferSize", "" + BUFSIZ);
             rport.setDynamicProperties(dp);
         }
         rport.enableConnections();
@@ -707,9 +707,9 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
         }
 
         if (BUFSIZ != 0) {
-            HashMap<String, Object> dp = new HashMap<String, Object>();
-            dp.put("InputBufferSize", new Integer(BUFSIZ));
-            dp.put("OutputBufferSize", new Integer(BUFSIZ));
+            HashMap<String, String> dp = new HashMap<String, String>();
+            dp.put("InputBufferSize", "" + BUFSIZ);
+            dp.put("OutputBufferSize", "" + BUFSIZ);
             sport.setDynamicProperties(dp);
         }
 
@@ -735,9 +735,9 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
         }
         // System.err.println(rank + ": created \"server port " + (rank - clients) + "\"");
         if (BUFSIZ != 0) {
-            HashMap<String, Object> dp = new HashMap<String, Object>();
-            dp.put("InputBufferSize", new Integer(BUFSIZ));
-            dp.put("OutputBufferSize", new Integer(BUFSIZ));
+            HashMap<String, String> dp = new HashMap<String, String>();
+            dp.put("InputBufferSize", "" + BUFSIZ);
+            dp.put("OutputBufferSize", "" + BUFSIZ);
             rport.setDynamicProperties(dp);
         }
 

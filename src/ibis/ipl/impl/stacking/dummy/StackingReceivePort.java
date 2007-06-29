@@ -140,19 +140,19 @@ public class StackingReceivePort implements ibis.ipl.ReceivePort {
         base.resetCount();
     }
 
-    public Map<String, Object> dynamicProperties() {
+    public Map<String, String> dynamicProperties() {
         return base.dynamicProperties();
     }
 
-    public Object getDynamicProperty(String key) {
+    public String getDynamicProperty(String key) {
         return base.getDynamicProperty(key);
     }
 
-    public void setDynamicProperties(Map<String, Object> properties) {
+    public void setDynamicProperties(Map<String, String> properties) {
         base.setDynamicProperties(properties);      
     }
 
-    public void setDynamicProperty(String key, Object val) {
+    public void setDynamicProperty(String key, String val) {
         base.setDynamicProperty(key, val);
     }
 }
