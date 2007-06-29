@@ -1,7 +1,0 @@
-Cell1D.java implements a closed-world version that devides the computations
-equally between all members of a fixed set of processors.
-
-OpenCell1D.java implements an open-world version where processors can join
-the computation at any time. 
-
-Always make sure that the processors with no columns are the rightmost ones.
