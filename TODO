@@ -68,7 +68,7 @@ applications:
 packaging/distribution:
 * split up ibis in multiple separate subprojects:
 	+ ipl
-	- ipl applications
+	+ ipl applications (Done Ceriel)
 	- util
 	+ server (Done Niels)
 	+ io (Done Ceriel)
