@@ -66,7 +66,7 @@
 
         <jar destfile="lib/ipl.jar" basedir="${tmp}" includes="ibis/ipl/*.class">
         </jar>
-	<jar destfile="lib/ipl-impl.jar" basedir="${tmp}" includes="ibis/ipl/impl/*.class ibis/ipl/impl/registry/**/*.class ibis/ipl/impl/util/**/*.class ibis/ipl/impl/test/**/*.class ibis/util/**/*.class">
+	<jar destfile="lib/ipl-impl.jar" basedir="${tmp}" includes="ibis/ipl/impl/*.class ibis/ipl/apps/**/*.class ibis/ipl/impl/registry/**/*.class ibis/ipl/impl/util/**/*.class ibis/ipl/impl/test/**/*.class ibis/util/**/*.class">
             <manifest>
                 <attribute name="Ibis-Service" value="ibis.ipl.impl.registry.central.Server" />
             </manifest>
@@ -178,6 +178,7 @@
     </target>
 
     <target name="test" depends="build">
+	<echo message="You need to start an ibis-server to run 'ant test'!"/>
         <ant dir="${src}/ibis/ipl/apps/example" antfile="${ibis}/build-files/apps/build-ibis-app.xml" target="test-par">
             <property name="test-par-run" value="ibis.ipl.apps.example.Example" />
         </ant>
