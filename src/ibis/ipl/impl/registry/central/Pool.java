@@ -439,7 +439,7 @@ final class Pool implements Runnable {
                 sendEntries = 0;
             }
 
-            logger.debug("sending " + sendEntries + " entries");
+            logger.debug("sending " + sendEntries + " entries to " + member.ibis());
 
             connection.out().writeInt(sendEntries);
 

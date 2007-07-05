@@ -12,9 +12,11 @@ final class EventPusher implements Runnable {
     
     private class WorkQ {
         private List<Member> q;
+        private int count;
         
         WorkQ(List<Member> work) {
             this.q = work;
+            count = this.q.size();
         }
         
         synchronized Member next() {
@@ -24,8 +26,16 @@ final class EventPusher implements Runnable {
             
             return q.remove(0);
         }
+
+        synchronized void doneJob() {
+            count--;
+        }
+
+        synchronized boolean isDone() {
+            return count == 0;
+        }
     }
-            
+
     
     private class EventPusherThread implements Runnable {
         
@@ -49,6 +59,7 @@ final class EventPusher implements Runnable {
                 logger.debug("pushing to " + work);
 
                 pool.push(work);
+                workQ.doneJob();
             }
         }
     }
@@ -83,7 +94,7 @@ final class EventPusher implements Runnable {
             }
 
             synchronized(this) {
-                while(!members.isEmpty()) {
+                while(!workQ.isDone()) {
                     try {
                         wait(DELAY);
                     } catch (InterruptedException e) {
