@@ -422,14 +422,14 @@ final class Pool implements Runnable {
             connection.out().flush();
 
             if (!keepNodeState) {
-                logger.debug("waiting for peer time");
+                logger.debug("waiting for peer time of peer " + member.ibis());
                 peerTime = connection.in().readInt();
             }
 
             int localTime = getEventTime();
 
-            logger.debug("peer time = " + peerTime + ", localtime = "
-                    + localTime);
+            logger.debug("peer " + member.ibis() + ", peer time = " + peerTime
+                    + ", localtime = " + localTime);
 
             int sendEntries = localTime - peerTime;
 
@@ -454,6 +454,9 @@ final class Pool implements Runnable {
                 member.setCurrentTime(localTime);
             }
             connection.close();
+
+            logger.debug("connection to " + member.ibis() + " closed");
+
         } catch (IOException e) {
             logger.debug("cannot reach " + member.ibis(), e);
             dead(member.ibis());
