@@ -215,6 +215,9 @@ final class ServerConnectionHandler implements Runnable {
 
         // new thread for next connection
         ThreadPool.createNew(this, "registry server connection handler");
+
+        // Try and get it into the accept call. (Ceriel)
+        Thread.currentThread().yield();
         
         if (connection == null) {
             return;

@@ -293,6 +293,9 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
                 }
                 
                 ThreadPool.createNew(this, "TcpIbis Accept Thread");                
+                // Try to get the accept thread into an accept call. (Ceriel)
+                Thread.currentThread().yield();
+
                 handleConnectionRequest(s);
             } catch (Throwable e) {
                 try {

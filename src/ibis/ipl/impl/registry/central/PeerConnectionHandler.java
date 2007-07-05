@@ -133,6 +133,9 @@ final class PeerConnectionHandler implements Runnable {
         // create new thread for next connection
         ThreadPool.createNew(this, "peer connection handler");
 
+        // Try to get it into the accept() call. (Ceriel)
+        Thread.currentThread().yield();
+
         if (connection == null) {
             return;
         }
