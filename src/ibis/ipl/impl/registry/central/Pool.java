@@ -356,9 +356,10 @@ final class Pool implements Runnable {
         Connection connection = null;
         try {
 
-            logger.debug("creating connection");
+            logger.debug("creating connection to " + ibis);
             connection = connectionFactory.connect(ibis, false);
-            logger.debug("connection created, send opcode, checking for reply");
+            logger.debug("connection created to " + ibis
+                    + ", send opcode, checking for reply");
 
             connection.out().writeByte(Protocol.CLIENT_MAGIC_BYTE);
             connection.out().writeByte(Protocol.OPCODE_PING);
@@ -373,9 +374,9 @@ final class Pool implements Runnable {
             if (!result.equals(ibis)) {
                 throw new Exception("ping ended up at wrong ibis");
             }
-            logger.debug("ping successfull");
+            logger.debug("ping to " + ibis + " successful");
         } catch (Exception e) {
-            logger.debug("error on pinging ibis", e);
+            logger.debug("error on pinging ibis " + ibis, e);
             if (connection != null) {
                 connection.close();
             }
