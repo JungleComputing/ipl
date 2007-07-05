@@ -414,7 +414,7 @@ final class Pool implements Runnable {
 
             connection = connectionFactory.connect(member.ibis(), false);
 
-            logger.debug("connection created");
+            logger.debug("connection to " + member.ibis() + " created");
 
             connection.out().writeByte(Protocol.CLIENT_MAGIC_BYTE);
             connection.out().writeByte(Protocol.OPCODE_PUSH);
@@ -455,7 +455,7 @@ final class Pool implements Runnable {
             }
             connection.close();
         } catch (IOException e) {
-            logger.debug("cannot reach " + member);
+            logger.debug("cannot reach " + member.ibis(), e);
             dead(member.ibis());
             if (connection != null) {
                 connection.close();
