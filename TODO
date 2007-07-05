@@ -48,6 +48,10 @@ ibis registry:
 - Generic: if closed.world is selected, check if ibis.pool.size is set, and 
   ignore joins beyond size, and all leaves. Moved to registry, since this
   functionality should be in the registry (Ceriel).
+* registry: avoid almost simultaneous connection attempts from multiple
+  threads to a single server socket (seems to confuse smartsockets).
+  This now happens with ping() and push(). Used to also happen with
+  push() and push(), but I think I fixed that (Ceriel).
 
 implementations:
 + TcpIbis: fork a thread immediately after doing an "accept". Don't do a 
