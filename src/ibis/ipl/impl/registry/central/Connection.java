@@ -204,6 +204,7 @@ final class Connection {
         try {
             out.flush();
         } catch (IOException e) {
+            logger.debug("Got exception in flush", e);
             // IGNORE
         }
 
@@ -211,6 +212,7 @@ final class Connection {
             try {
                 virtualSocket.close();
             } catch (IOException e) {
+                logger.debug("Got exception in close", e);
                 // IGNORE
             }
         }
@@ -219,6 +221,7 @@ final class Connection {
             try {
                 plainSocket.close();
             } catch (IOException e) {
+                logger.debug("Got exception in close", e);
                 // IGNORE
             }
         }
