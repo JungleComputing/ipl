@@ -194,34 +194,42 @@ final class ServerConnectionHandler implements Runnable {
     }
 
     public void run() {
-        Connection connection = null;
-        try {
-            logger.debug("server: accepting new connection");
-            connection = connectionFactory.accept();
-            logger.debug("server: connection accepted");
-        } catch (IOException e) {
-            if (server.isStopped()) {
-                return;
-            }
-            logger.error("Accept failed, waiting a second, will retry", e);
-
-            //wait a bit
+        for (;;) {
+            Connection connection = null;
             try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e1) {
-                //IGNORE
+                logger.debug("server: accepting new connection");
+                connection = connectionFactory.accept();
+                logger.debug("server: connection accepted");
+            } catch (IOException e) {
+                if (server.isStopped()) {
+                    return;
+                }
+                logger.error("Accept failed, waiting a second, will retry", e);
+
+                //wait a bit
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e1) {
+                    //IGNORE
+                }
+            }
+            if (connection != null) {
+                threadHandleConnection(connection);
             }
         }
+    }
 
-        // new thread for next connection
-        ThreadPool.createNew(this, "registry server connection handler");
+    private void threadHandleConnection(Connection c) {
+        final Connection connection = c;
+        Runnable r = new Runnable() {
+            public void run() {
+                handleConnection(connection);
+            }
+        };
+        ThreadPool.createNew(r, "registry server connection handler");
+    }
 
-        // Try and get it into the accept call. (Ceriel)
-        Thread.currentThread().yield();
-        
-        if (connection == null) {
-            return;
-        }
+    private void handleConnection(Connection connection) {
 
         long start = System.currentTimeMillis();
 
