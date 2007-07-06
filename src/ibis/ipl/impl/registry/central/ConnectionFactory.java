@@ -24,6 +24,11 @@ import ibis.server.Client;
 final class ConnectionFactory {
     private static final int CONNECTION_BACKLOG = 50;
 
+    // Registry server sockets should have a liberal timeout.
+    // If not set, smartsockets uses 1000 msec internally, which is often not
+    // enough.
+    private static final int SO_TIMEOUT = 10000;
+
     private static final Logger logger = Logger
             .getLogger(ConnectionFactory.class);
 
@@ -129,6 +134,8 @@ final class ConnectionFactory {
 
             virtualServerSocket = virtualSocketFactory.createServerSocket(0,
                     CONNECTION_BACKLOG, null);
+
+            virtualServerSocket.setSoTimeout(SO_TIMEOUT);
 
             virtualServerAddress = Client.getServiceAddress(
                     Server.VIRTUAL_PORT, properties);
