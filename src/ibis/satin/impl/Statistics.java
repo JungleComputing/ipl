@@ -351,7 +351,7 @@ public final class Statistics implements java.io.Serializable, Config {
         boolean haveSteals = stealAttempts > 0;
         boolean haveCrashes = tableResultUpdates > 0 || tableLookups > 0
             || restartedJobs > 0;
-        boolean haveSO = soInvocations > 0 || soTransfers > 0 || soBcasts > 0 || soGuards > 0;
+        boolean haveSO = soInvocations > 0 || soTransfers > 0 || soBcasts > 0;
 
         out.println("-------------------------------SATIN STATISTICS------"
             + "--------------------------");
