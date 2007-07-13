@@ -53,14 +53,14 @@ public final class Communication implements Config, Protocol {
         try {
             ibis = IbisFactory.createIbis(ibisProperties,
                     null, true, s.ft.getRegistryEventHandler(), portType,
-                    createBarrierPortType(),
                     // lrmc port type
+                    // FIXME ask LRMC for it's port type
                     new PortType(
                         PortType.SERIALIZATION_DATA,
                         PortType.COMMUNICATION_RELIABLE,
                         PortType.CONNECTION_MANY_TO_ONE,
                         PortType.RECEIVE_AUTO_UPCALLS), // so port type
-                    new PortType(
+                    new PortType( // FIXME ask SO for its port type
                             PortType.CONNECTION_ONE_TO_MANY,
                             PortType.CONNECTION_UPCALLS,
                             PortType.RECEIVE_EXPLICIT,
@@ -175,14 +175,6 @@ public final class Communication implements Config, Protocol {
                 PortType.SERIALIZATION_OBJECT, PortType.COMMUNICATION_RELIABLE,
                 PortType.CONNECTION_MANY_TO_ONE, PortType.CONNECTION_UPCALLS,
                 PortType.RECEIVE_EXPLICIT, PortType.RECEIVE_AUTO_UPCALLS);
-    }
-
-    // The barrier port type is different from the satin port type.
-    // It does not do multicast, and does not need serialization.
-    public PortType createBarrierPortType() throws IOException {
-        return new PortType(
-                PortType.SERIALIZATION_BYTE, PortType.COMMUNICATION_RELIABLE,
-                PortType.CONNECTION_MANY_TO_ONE, PortType.RECEIVE_EXPLICIT);
     }
 
     public void bcastMessage(byte opcode) {
@@ -300,7 +292,7 @@ public final class Communication implements Config, Protocol {
                         v = s.victims.getVictim(i);
                     }
                     if (v == null) {
-                        commLogger.fatal("a machine crashed with open world");
+                        commLogger.fatal("a machine crashed with closed world");
                         System.exit(1);
                     }
 
@@ -547,6 +539,7 @@ public final class Communication implements Config, Protocol {
     public void handleBarrierRequestMessage() {
         synchronized (s) {
             barrierRequests++;
+            System.err.println("received barrier request: " + barrierRequests);
             s.notifyAll();
         }
     }
@@ -561,6 +554,9 @@ public final class Communication implements Config, Protocol {
 
     public void handleBarrierReply(IbisIdentifier sender) {
         commLogger.debug("SATIN '" + s.ident
+                + "': got barrier reply message from " + sender);
+
+        System.out.println("SATIN '" + s.ident
                 + "': got barrier reply message from " + sender);
 
         synchronized (s) {

@@ -191,7 +191,7 @@ public class LoadBalancing implements Config {
                             .warn("SATIN '"
                                     + s.ident
                                     + "': a timeout occurred while waiting for a steal reply, timeout = "
-                                    + STEAL_WAIT_TIMEOUT / 1000);
+                                    + STEAL_WAIT_TIMEOUT / 1000 + " seconds.");
                 }
 
                 // At least handle aborts! Otherwise an older abort
