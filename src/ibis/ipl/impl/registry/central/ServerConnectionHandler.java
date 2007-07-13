@@ -275,10 +275,10 @@ final class ServerConnectionHandler implements Runnable {
             }
         } catch (IOException e) {
             logger.error("error on handling connection", e);
-            connection.close();
             return;
+        } finally { 
+            connection.close();
         }
-        connection.close();
 
         stats.add(opcode, System.currentTimeMillis() - start);
         logger.debug("done handling request");
