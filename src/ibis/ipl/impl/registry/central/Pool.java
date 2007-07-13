@@ -377,6 +377,10 @@ final class Pool implements Runnable {
             logger.debug("ping to " + ibis + " successful");
         } catch (Exception e) {
             logger.debug("error on pinging ibis " + ibis, e);
+
+            System.err.println("error pinging ibis: " + e);
+            e.printStackTrace();
+            
             if (connection != null) {
                 connection.close();
             }
