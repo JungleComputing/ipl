@@ -134,7 +134,10 @@ final class PeerConnectionHandler implements Runnable {
         ThreadPool.createNew(this, "peer connection handler");
 
         // Try to get it into the accept() call. (Ceriel)
-        Thread.yield();
+        // Thread.yield();
+        //
+        // Yield is evil. It breaks the whole concept of starting a replacement
+        // thread and handling the incoming request ourselves. -- Jason        
 
         if (connection == null) {
             return;
@@ -151,7 +154,7 @@ final class PeerConnectionHandler implements Runnable {
             byte opcode = connection.in().readByte();
 
             logger.debug("received request: " + Protocol.opcodeString(opcode));
-
+            
             switch (opcode) {
             case Protocol.OPCODE_GOSSIP:
                 handleGossip(connection);
@@ -169,6 +172,10 @@ final class PeerConnectionHandler implements Runnable {
             logger.debug("done handling request");
         } catch (IOException e) {
             logger.error("error on handling request", e);
+        } finally { 
+            // We must also close the connection if an exception has occurred!
+            // (Jason)
+            connection.close();
         }
     }
 }

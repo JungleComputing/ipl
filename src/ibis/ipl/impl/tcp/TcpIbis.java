@@ -293,8 +293,13 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
                 }
                 
                 ThreadPool.createNew(this, "TcpIbis Accept Thread");                
+
                 // Try to get the accept thread into an accept call. (Ceriel)
-                Thread.currentThread().yield();
+                // Thread.currentThread().yield();
+                //
+                // Yield is evil. It breaks the whole concept of starting a 
+                // replacement thread and handling the incoming request 
+                // ourselves. -- Jason        
 
                 handleConnectionRequest(s);
             } catch (Throwable e) {

@@ -43,6 +43,8 @@ management:
 * add basic network usage statistics to Ibis.
 
 ibis registry:
+* fixed huge bug in registry communication code (no, in.read(b) does NOT read the entire array) (done Jason)
+* clean up connections in pinger when an exception occurs (done Jason)
 - check if all Ibisses in a pool are of the same implementation, version, etc.
 * forget unneeded event history OR stop giving these events to the user
 * add an upcall for elections.
@@ -55,6 +57,7 @@ ibis registry:
   push() and push(), but I think I fixed that (Ceriel).
 
 implementations:
+* removed yields, since they break the while idea of starting your own replacement threads
 - The getVersion method in Ibis.java is buggy!
 + TcpIbis: fork a thread immediately after doing an "accept". Don't do a 
   handshake first. (Done Jason, fixed Ceriel).
