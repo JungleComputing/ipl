@@ -55,6 +55,7 @@ ibis registry:
   push() and push(), but I think I fixed that (Ceriel).
 
 implementations:
+- The getVersion method in Ibis.java is buggy!
 + TcpIbis: fork a thread immediately after doing an "accept". Don't do a 
   handshake first. (Done Jason, fixed Ceriel).
 + Fix deadlocks due to lazily creating serialization streams in TcpIbis.

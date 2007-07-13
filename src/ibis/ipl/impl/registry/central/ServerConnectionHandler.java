@@ -34,12 +34,12 @@ final class ServerConnectionHandler implements Runnable {
         Pool pool;
 
         byte[] clientAddress = new byte[connection.in().readInt()];
-        connection.in().read(clientAddress);
+        connection.in().readFully(clientAddress);
 
         String poolName = connection.in().readUTF();
 
         byte[] implementationData = new byte[connection.in().readInt()];
-        connection.in().read(implementationData);
+        connection.in().readFully(implementationData);
 
         Location location = new Location(connection.in());
 

@@ -226,6 +226,12 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis {
      * @return the ibis version.
      */
     public String getVersion() {
+        
+        // FIXME: This method is broken! There is no guarentee that in.read
+        // reads any bytes, and you're not sure if it fits in an 512 byte 
+        // array!       
+        //
+        // Hint: use BufferedReader instead to read a line of text....        
         InputStream in
             = ClassLoader.getSystemClassLoader().getResourceAsStream("VERSION");
         String version = "Unknown Ibis Version ID";
