@@ -12,8 +12,8 @@ final class ServerConnectionHandler implements Runnable {
 
     static final int THREADS = 10;
 
-    private static final Logger logger = Logger
-            .getLogger(ServerConnectionHandler.class);
+    private static final Logger logger =
+            Logger.getLogger(ServerConnectionHandler.class);
 
     private final Server server;
 
@@ -47,7 +47,9 @@ final class ServerConnectionHandler implements Runnable {
         boolean keepNodeState = connection.in().readBoolean();
         long pingInterval = connection.in().readLong();
 
-        pool = server.getAndCreatePool(poolName, gossip, keepNodeState, pingInterval);
+        pool =
+                server.getAndCreatePool(poolName, gossip, keepNodeState,
+                        pingInterval);
 
         try {
             result = pool.join(implementationData, clientAddress, location);
@@ -138,7 +140,7 @@ final class ServerConnectionHandler implements Runnable {
         }
 
         try {
-            pool.dead(identifier);
+            pool.dead(identifier, new Exception("ibis declared dead by application"));
         } catch (Exception e) {
             connection.closeWithError(e.toString());
             return;
@@ -169,8 +171,8 @@ final class ServerConnectionHandler implements Runnable {
 
         String signal = connection.in().readUTF();
 
-        IbisIdentifier[] identifiers = new IbisIdentifier[connection.in()
-                .readInt()];
+        IbisIdentifier[] identifiers =
+                new IbisIdentifier[connection.in().readInt()];
         for (int i = 0; i < identifiers.length; i++) {
             identifiers[i] = new IbisIdentifier(connection.in());
 
@@ -194,53 +196,42 @@ final class ServerConnectionHandler implements Runnable {
     }
 
     public void run() {
-        for (;;) {
-            Connection connection = null;
-            try {
-                logger.debug("server: accepting new connection");
-                connection = connectionFactory.accept();
-                logger.debug("server: connection accepted");
-            } catch (IOException e) {
-                if (server.isStopped()) {
-                    return;
-                }
-                logger.error("Accept failed, waiting a second, will retry", e);
-
-                //wait a bit
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e1) {
-                    //IGNORE
-                }
+        Connection connection = null;
+        try {
+            logger.debug("accepting connection");
+            connection = connectionFactory.accept();
+            logger.debug("connection accepted");
+        } catch (IOException e) {
+            if (server.isStopped()) {
+                return;
             }
-            if (connection != null) {
-                threadHandleConnection(connection);
+            logger.error("Accept failed, waiting a second, will retry", e);
+
+            // wait a bit
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e1) {
+                // IGNORE
             }
         }
-    }
 
-    private void threadHandleConnection(Connection c) {
-        final Connection connection = c;
-        Runnable r = new Runnable() {
-            public void run() {
-                handleConnection(connection);
-            }
-        };
-        ThreadPool.createNew(r, "registry server connection handler");
-    }
+        // create new thread for next connection
+        ThreadPool.createNew(this, "peer connection handler");
 
-    private void handleConnection(Connection connection) {
-
+        if (connection == null) {
+            return;
+        }
         long start = System.currentTimeMillis();
 
         byte opcode = 0;
         try {
             byte magic = connection.in().readByte();
-            
+
             if (magic != Protocol.SERVER_MAGIC_BYTE) {
-                throw new IOException("Invalid header byte in accepting connection"); 
+                throw new IOException(
+                        "Invalid header byte in accepting connection");
             }
-            
+
             opcode = connection.in().readByte();
 
             if (logger.isDebugEnabled()) {
@@ -276,7 +267,7 @@ final class ServerConnectionHandler implements Runnable {
         } catch (IOException e) {
             logger.error("error on handling connection", e);
             return;
-        } finally { 
+        } finally {
             connection.close();
         }
 

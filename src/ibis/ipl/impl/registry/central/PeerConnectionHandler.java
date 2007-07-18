@@ -133,12 +133,6 @@ final class PeerConnectionHandler implements Runnable {
         // create new thread for next connection
         ThreadPool.createNew(this, "peer connection handler");
 
-        // Try to get it into the accept() call. (Ceriel)
-        // Thread.yield();
-        //
-        // Yield is evil. It breaks the whole concept of starting a replacement
-        // thread and handling the incoming request ourselves. -- Jason        
-
         if (connection == null) {
             return;
         }

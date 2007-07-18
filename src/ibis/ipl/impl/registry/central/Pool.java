@@ -224,14 +224,15 @@ final class Pool implements Runnable {
      * 
      * @see ibis.ipl.impl.registry.central.SuperPool#dead(ibis.ipl.impl.IbisIdentifier)
      */
-    synchronized void dead(IbisIdentifier identifier) {
+    synchronized void dead(IbisIdentifier identifier, Exception exception) {
         if (!members.remove(identifier.myId)) {
             return;
         }
         if (printEvents) {
             System.out.println("Central Registry: " + identifier
                     + " died in pool \"" + name + "\" now " + members.size()
-                    + " members");
+                    + " members, Error:");
+            exception.printStackTrace(System.out);
         }
 
         events.add(new Event(events.size(), Event.DIED, identifier, null));
@@ -378,18 +379,14 @@ final class Pool implements Runnable {
         } catch (Exception e) {
             logger.debug("error on pinging ibis " + ibis, e);
 
-            System.err.println("error pinging ibis: " + e);
-            e.printStackTrace();
-            
             if (connection != null) {
                 connection.close();
             }
-            dead(ibis);
+            dead(ibis, e);
         }
     }
 
     void push(Member member) {
-        for (int k = 0; k < 3; k++) {
             if (ended()) {
                 return;
             }
@@ -469,11 +466,8 @@ final class Pool implements Runnable {
                 if (connection != null) {
                     connection.close();
                 }
+                dead(member.ibis(), e);
             }
-        }
-        logger.debug("assuming now that " + member.ibis() + " is dead");
-        // tried 3 times ...
-        dead(member.ibis());
     }
 
     private synchronized IbisIdentifier getSuspectMember() {
