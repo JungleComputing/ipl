@@ -539,7 +539,6 @@ public final class Communication implements Config, Protocol {
     public void handleBarrierRequestMessage() {
         synchronized (s) {
             barrierRequests++;
-            System.err.println("received barrier request: " + barrierRequests);
             s.notifyAll();
         }
     }
@@ -554,9 +553,6 @@ public final class Communication implements Config, Protocol {
 
     public void handleBarrierReply(IbisIdentifier sender) {
         commLogger.debug("SATIN '" + s.ident
-                + "': got barrier reply message from " + sender);
-
-        System.out.println("SATIN '" + s.ident
                 + "': got barrier reply message from " + sender);
 
         synchronized (s) {
