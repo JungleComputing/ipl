@@ -197,7 +197,7 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
         }
 
         // start handling incoming connections
-        new PeerConnectionHandler(connectionFactory, this);
+        new ClientConnectionHandler(connectionFactory, this);
 
         logger.debug("registry for " + identifier + " initiated");
     }

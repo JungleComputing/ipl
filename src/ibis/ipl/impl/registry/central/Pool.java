@@ -83,7 +83,7 @@ final class Pool implements Runnable {
             new PeriodicNodeContactor(this, false, false, pingInterval,
                     PING_THREADS);
 
-            new EventPusher(this, PUSH_THREADS);
+            new EventPusher(this, PUSH_THREADS, 0);
         }
 
         ThreadPool.createNew(this, "pool management thread");
@@ -534,5 +534,16 @@ final class Pool implements Runnable {
         return "Pool " + name + ": size = " + getSize() + ", event time = "
                 + getEventTime();
     }
+
+    /**
+     * Remove events up to this event from the list to make space. Also tells
+     * clients to do this.
+     * 
+     * @param eventTime the first event not to purge 
+     */
+	void purgeUpto(int eventTime) {
+		// TODO Auto-generated method stub
+		
+	}
 
 }

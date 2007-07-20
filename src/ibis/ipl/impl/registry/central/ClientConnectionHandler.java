@@ -6,20 +6,20 @@ import java.io.IOException;
 
 import org.apache.log4j.Logger;
 
-final class PeerConnectionHandler implements Runnable {
+final class ClientConnectionHandler implements Runnable {
 
     private static final Logger logger = Logger
-            .getLogger(PeerConnectionHandler.class);
+            .getLogger(ClientConnectionHandler.class);
 
     private final ConnectionFactory connectionFactory;
 
     private final Registry registry;
 
-    PeerConnectionHandler(ConnectionFactory connectionFactory, Registry registry) {
+    ClientConnectionHandler(ConnectionFactory connectionFactory, Registry registry) {
         this.connectionFactory = connectionFactory;
         this.registry = registry;
 
-        ThreadPool.createNew(this, "peer connection handler");
+        ThreadPool.createNew(this, "client connection handler");
     }
 
     private void handleGossip(Connection connection) throws IOException {
