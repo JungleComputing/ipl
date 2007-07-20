@@ -28,7 +28,7 @@ IbisC:
 + add classes in the parameters to the classpath (Done Ceriel)
 + print some status output in ibisc (Done Ceriel)
 - ant jar removes jar file :-)
-- rewrite of satin genesequencing with Java 1.6 fails:
+- rewrite of satin genesequencing fails.
 [rob@localhost ~/workspace/apps-trunk/satin/geneSequencing]$ CLASSPATH=lib/geneSequencing.jar:neobio/lib/neobio.jar ~/workspace/ibis-trunk/bin/ibis-run geneSequencing.divideAndConquer.DsearchDC testdata/input_03.txt dc
 Exception in thread "main" java.lang.ClassFormatError: LVTT entry for 'resultUnit' in class file geneSequencing/divideAndConquer/DsearchDC does not match any LVT entry
         at java.lang.ClassLoader.defineClass1(Native Method)
