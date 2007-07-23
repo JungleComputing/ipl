@@ -10,6 +10,8 @@ IPL:
 + add "fillTimeout" option to sendport.connect(). (Done someone).
 + add a timeout parameter to getElectionResult() 
   (0 == forever, -1 == non-blocking) (Done Ceriel)
+- check TcpSendPost.close: why don't we close in case of a normal exception? --Rob
+- Ibis IO is not self contained, missing bcel stuff. --Rob
 
 Ibis Factory:
 - add support for stacking to the factory (don't add an Ibis to a stack twice)

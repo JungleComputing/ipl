@@ -86,7 +86,7 @@ public final class NioSendPort extends SendPort implements Protocol {
         return c;
     }
 
-    protected void disconnectPort(ReceivePortIdentifier receiver,
+    protected void sendDisconnectMessage(ReceivePortIdentifier receiver,
             SendPortConnectionInfo c) throws IOException {
 
         // tell out peer someone is going to have to disconnect

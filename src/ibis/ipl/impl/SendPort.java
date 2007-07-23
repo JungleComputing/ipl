@@ -504,6 +504,10 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
 
     public synchronized void close() throws IOException {
         boolean alive = receivers.size() > 0 && aMessageIsAlive;
+        if (alive) {
+            throw new IOException(
+                "Closed a sendport port while a message is alive!");
+        }
         if (logger.isDebugEnabled()) {
             logger.debug("SendPort '" + name + "': start close()");
         }
@@ -535,10 +539,6 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
             }
             closed = true;
             ibis.deRegister(this);
-            if (alive) {
-                throw new IOException(
-                    "Closed a sendport port while a message is alive!");
-            }
             if (logger.isDebugEnabled()) {
                 logger.debug("SendPort '" + name + "': close() done");
             }
@@ -558,7 +558,7 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
                     + " since we are not connected with it");
         }
         try {
-            disconnectPort(r, c);
+            sendDisconnectMessage(r, c);
         } finally {
             c.closeConnection();
         }
@@ -766,7 +766,7 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
      * @param c the connection information.
      * @exception IOException is thrown in case of trouble.
      */
-    protected abstract void disconnectPort(ReceivePortIdentifier receiver,
+    protected abstract void sendDisconnectMessage(ReceivePortIdentifier receiver,
             SendPortConnectionInfo c) throws IOException;
 
     /**
