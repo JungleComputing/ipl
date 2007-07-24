@@ -154,6 +154,7 @@ deployment/testing/benchmarking:
 
 
 satin:
+- measure cost of sucessful and unsucessful steal attempts seperately
 - add semantic analysis to the compiler
 - forgotten sync statements
 - make return / throw an implicit sync again?
