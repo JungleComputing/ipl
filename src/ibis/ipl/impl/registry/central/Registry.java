@@ -817,7 +817,7 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
 
             }
 
-            logger.debug("Event time at " + identifier.myId + " now "
+            logger.debug("Event time at " + identifier.getID() + " now "
                     + currentEventTime());
             synchronized (this) {
                 try {

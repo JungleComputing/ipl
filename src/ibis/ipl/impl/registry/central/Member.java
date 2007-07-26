@@ -34,7 +34,7 @@ final class Member {
     }
 
     String getID() {
-        return ibis.myId;
+        return ibis.getID();
     }
 
     @Override

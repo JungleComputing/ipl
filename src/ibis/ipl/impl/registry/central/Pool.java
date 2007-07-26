@@ -178,7 +178,7 @@ final class Pool implements Runnable {
      * @see ibis.ipl.impl.registry.central.SuperPool#leave(ibis.ipl.impl.IbisIdentifier)
      */
     synchronized void leave(IbisIdentifier identifier) throws Exception {
-        if (!members.remove(identifier.myId)) {
+        if (!members.remove(identifier.getID())) {
             logger.error("unknown ibis " + identifier + " tried to leave");
             throw new Exception("ibis unknown: " + identifier);
         }
@@ -225,7 +225,7 @@ final class Pool implements Runnable {
      * @see ibis.ipl.impl.registry.central.SuperPool#dead(ibis.ipl.impl.IbisIdentifier)
      */
     synchronized void dead(IbisIdentifier identifier, Exception exception) {
-        if (!members.remove(identifier.myId)) {
+        if (!members.remove(identifier.getID())) {
             return;
         }
         if (printEvents) {
@@ -336,7 +336,7 @@ final class Pool implements Runnable {
         ArrayList<IbisIdentifier> result = new ArrayList<IbisIdentifier>();
 
         for (IbisIdentifier victim : victims) {
-            if (members.contains(victim.myId)) {
+            if (members.contains(victim.getID())) {
                 result.add(victim);
             }
         }
@@ -491,7 +491,7 @@ final class Pool implements Runnable {
             checkList.remove(result);
 
             // return if still in pool
-            if (members.contains(result.myId)) {
+            if (members.contains(result.getID())) {
                 return result;
             }
         }
@@ -519,7 +519,7 @@ final class Pool implements Runnable {
     }
 
     synchronized boolean isMember(IbisIdentifier ibis) {
-        return members.contains(ibis.myId);
+        return members.contains(ibis.getID());
     }
 
     synchronized Member getMember(int index) {
