@@ -148,6 +148,9 @@ class RegistryState {
 			// remove from TO-DO list :)
 			Event event = pendingEvents.first();
 			pendingEvents.remove(event);
+			
+			logger.debug("handling event " + event);
+			
 			time++;
 
 			// add to history
@@ -185,8 +188,17 @@ class RegistryState {
 			registry.handleEvent(event);
 		}
 
-		logger.debug("time now: " + time + ", first event not handled: "
-				+ pendingEvents.first());
+		if (logger.isDebugEnabled()) {
+			if (pendingEvents.isEmpty()) {
+				logger.debug("time now: " + time
+						+ ", first event not handled: null");
+			} else {
+				logger
+						.debug("time now: " + time
+								+ ", first event not handled: "
+								+ pendingEvents.first());
+			}
+		}
 
 		// wake up any threads waiting for (results of) events
 		notifyAll();

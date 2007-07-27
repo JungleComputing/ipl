@@ -72,10 +72,12 @@ final class Upcaller implements Runnable {
     
     synchronized void newEvent(Event event) {
     	pendingEvents.add(event);
+    	notifyAll();
     }
     
     synchronized void stop() {
     	pendingEvents.add(null);
+    	notifyAll();
     }
     
     public void run() {
@@ -129,6 +131,8 @@ final class Upcaller implements Runnable {
             } catch (Throwable t) {
                 logger.error("error on handling event", t);
             }
+            
+            logger.debug("upcall for event " + event + " done");
 
             clearBusyUpcaller();
         }

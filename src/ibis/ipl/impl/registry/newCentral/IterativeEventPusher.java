@@ -31,10 +31,20 @@ final class IterativeEventPusher implements Runnable {
 
 		synchronized void doneJob() {
 			count--;
+
+			if (count <= 0) {
+				notifyAll();
+			}
 		}
 
-		synchronized boolean isDone() {
-			return count == 0;
+		synchronized void waitUntilDone() {
+			while (count > 0) {
+				try {
+					wait();
+				} catch (InterruptedException e) {
+					// IGNORE
+				}
+			}
 		}
 	}
 
@@ -65,17 +75,19 @@ final class IterativeEventPusher implements Runnable {
 		}
 	}
 
-	private static final Logger logger = Logger.getLogger(IterativeEventPusher.class);
+	private static final Logger logger = Logger
+			.getLogger(IterativeEventPusher.class);
 
 	private final Pool pool;
 
 	private final int threads;
 
 	private final long interval;
-	
+
 	private final boolean newEventTriggersPush;
 
-	IterativeEventPusher(Pool pool, int threads, long interval, boolean newEventTriggersPush) {
+	IterativeEventPusher(Pool pool, int threads, long interval,
+			boolean newEventTriggersPush) {
 		this.pool = pool;
 		this.threads = threads;
 		this.interval = interval;
@@ -84,13 +96,29 @@ final class IterativeEventPusher implements Runnable {
 		ThreadPool.createNew(this, "event pusher scheduler thread");
 	}
 
+	private synchronized void waitUntil(long deadline) {
+		while (!pool.ended()) {
+			long currentTime = System.currentTimeMillis();
+
+			if (currentTime >= deadline) {
+				return;
+			}
+
+			try {
+				wait(deadline - currentTime);
+			} catch (InterruptedException e) {
+				// IGNORE
+			}
+		}
+	}
+
 	public void run() {
 		int minimum = 0;
 		int prevMinimum = 0;
 		int prevPrevMinimum = 0;
 		while (!pool.ended()) {
 			int eventTime = pool.getEventTime();
-			
+
 			long deadline = System.currentTimeMillis() + interval;
 
 			List<IbisIdentifier> members = pool.getMemberList();
@@ -105,36 +133,21 @@ final class IterativeEventPusher implements Runnable {
 				new EventPusherThread(workQ);
 			}
 
-			synchronized (this) {
-				while (!workQ.isDone()) {
-					try {
-						// wait a while before checking again
-						wait(100);
-					} catch (InterruptedException e) {
-						// IGNORE
-					}
-				}
+			workQ.waitUntilDone();
 
-				logger.debug("DONE updating nodes in pool to event-time "
-						+ eventTime);
+			logger.debug("DONE updating nodes in pool to event-time "
+					+ eventTime);
 
-				long currentTime = System.currentTimeMillis();
-				
-				
-				// wait until the minimum interval has passed
-				if (currentTime < deadline) {
-					try {
-						wait(deadline - currentTime);
-					} catch (InterruptedException e) {
-						// IGNORE
-					}
-				}
+			if (newEventTriggersPush) {
+				pool.waitForEventTime(eventTime + 1, deadline);
+			} else {
+				waitUntil(deadline);
 			}
-			
+
 			prevPrevMinimum = prevMinimum;
 			prevMinimum = minimum;
 			minimum = eventTime;
-			
+
 			pool.purgeUpto(prevPrevMinimum);
 		}
 	}

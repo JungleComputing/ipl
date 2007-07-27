@@ -86,13 +86,19 @@ final class Pool implements Runnable {
 		return events.size();
 	}
 
-	synchronized void waitForEventTime(int time) {
+	synchronized void waitForEventTime(int time, long deadline) {
 		while (getEventTime() < time) {
 			if (ended()) {
 				return;
 			}
+			
+			long currentTime = System.currentTimeMillis();
+			if (currentTime >= deadline) {
+				return;
+			}
+			
 			try {
-				wait();
+				wait(deadline - currentTime);
 			} catch (InterruptedException e) {
 				// IGNORE
 			}

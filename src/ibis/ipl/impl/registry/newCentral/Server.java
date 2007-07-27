@@ -133,7 +133,7 @@ public final class Server extends Thread implements Service {
 		if (result == null || result.ended()) {
 			if (printEvents) {
 				// print to standard out
-				System.out.println("Central Registry: creating new pool: \""
+				System.out.println("NEW Central Registry: creating new pool: \""
 						+ poolName + "\"");
 			} else {
 				// print to the logger
