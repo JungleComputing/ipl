@@ -540,6 +540,7 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
 	}
 
 	private void bootstrap() {
+		
 
 	}
 

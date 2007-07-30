@@ -32,6 +32,10 @@ final class Pool implements Runnable {
 	// list of all joins, leaves, elections, etc.
 	private final ArrayList<Event> events;
 
+	private int currentEventTime;
+
+	private int minEventTime;
+
 	// cache of election results we've seen. Optimization over searching all the
 	// events each time an election result is requested.
 	// map<election name, winner>
@@ -61,6 +65,8 @@ final class Pool implements Runnable {
 		this.connectionFactory = connectionFactory;
 		this.printEvents = printEvents;
 
+		currentEventTime = 0;
+		minEventTime = 0;
 		nextID = 0;
 		nextSequenceNr = 0;
 
@@ -83,7 +89,26 @@ final class Pool implements Runnable {
 	}
 
 	synchronized int getEventTime() {
-		return events.size();
+		return currentEventTime;
+	}
+
+	synchronized int getMinEventTime() {
+		return minEventTime;
+	}
+
+	synchronized void addEvent(int type, String description,
+			IbisIdentifier... ibisses) {
+		if (!events.isEmpty()
+				&& events.get(events.size() - 1).getTime() != (currentEventTime - 1)) {
+			throw new Error("event list inconsistent. Last event = "
+					+ events.get(events.size() - 1) + " current time = "
+					+ getEventTime());
+		}
+
+		Event event = new Event(currentEventTime, type, description, ibisses);
+		events.add(event);
+		currentEventTime++;
+		notifyAll();
 	}
 
 	synchronized void waitForEventTime(int time, long deadline) {
@@ -91,12 +116,12 @@ final class Pool implements Runnable {
 			if (ended()) {
 				return;
 			}
-			
+
 			long currentTime = System.currentTimeMillis();
 			if (currentTime >= deadline) {
 				return;
 			}
-			
+
 			try {
 				wait(deadline - currentTime);
 			} catch (InterruptedException e) {
@@ -153,8 +178,7 @@ final class Pool implements Runnable {
 					+ " members");
 		}
 
-		events.add(new Event(events.size(), Event.JOIN, identifier, null));
-		notifyAll();
+		addEvent(Event.JOIN, null, identifier);
 
 		return identifier;
 	}
@@ -186,8 +210,7 @@ final class Pool implements Runnable {
 					+ " members");
 		}
 
-		events.add(new Event(events.size(), Event.LEAVE, identifier, null));
-		notifyAll();
+		addEvent(Event.LEAVE, null, identifier);
 
 		Iterator<Entry<String, IbisIdentifier>> iterator = elections.entrySet()
 				.iterator();
@@ -196,9 +219,7 @@ final class Pool implements Runnable {
 			if (entry.getValue().equals(identifier)) {
 				iterator.remove();
 
-				events.add(new Event(events.size(), Event.UN_ELECT, identifier,
-						entry.getKey()));
-				notifyAll();
+				addEvent(Event.UN_ELECT, entry.getKey(), identifier);
 
 			}
 		}
@@ -233,8 +254,7 @@ final class Pool implements Runnable {
 			exception.printStackTrace(System.out);
 		}
 
-		events.add(new Event(events.size(), Event.DIED, identifier, null));
-		notifyAll();
+		addEvent(Event.DIED, null, identifier);
 
 		Iterator<Map.Entry<String, IbisIdentifier>> iterator = elections
 				.entrySet().iterator();
@@ -243,10 +263,7 @@ final class Pool implements Runnable {
 			if (entry.getValue().equals(identifier)) {
 				iterator.remove();
 
-				events.add(new Event(events.size(), Event.UN_ELECT, identifier,
-						entry.getKey()));
-				notifyAll();
-
+				addEvent(Event.UN_ELECT, entry.getKey(), identifier);
 			}
 		}
 
@@ -263,22 +280,30 @@ final class Pool implements Runnable {
 		}
 	}
 
-	synchronized Event[] getEvents(int startTime, int maxSize) {
-		// logger.debug("getting events, startTime = " + startTime
-		// + ", maxSize = " + maxSize +
-		// ", event time = " + events.size());
+	synchronized Event[] getEvents(int startTime) {
+		logger.debug("getting events, startTime = " + startTime
+				+ ", event time = " + getEventTime() + " min event time = "
+				+ getMinEventTime());
 
-		int resultSize = events.size() - startTime;
-
-		if (resultSize > maxSize) {
-			resultSize = maxSize;
+		if (startTime < minEventTime) {
+			logger
+					.error("trying to get events we already removed from the history!");
 		}
-		if (resultSize < 0) {
+
+		if (events.isEmpty()) {
 			return new Event[0];
 		}
 
-		return events.subList(startTime, startTime + resultSize).toArray(
-				new Event[0]);
+		int eventHistoryOffset = events.get(0).getTime();
+
+		int startIndex = startTime - eventHistoryOffset;
+
+		if (startIndex < 0) {
+			return new Event[0];
+		}
+
+		// return the requested portion of the list
+		return events.subList(startIndex, events.size()).toArray(new Event[0]);
 	}
 
 	/*
@@ -301,9 +326,7 @@ final class Pool implements Runnable {
 						+ name + "\"");
 			}
 
-			events.add(new Event(events.size(), Event.ELECT, winner, election));
-			notifyAll();
-
+			addEvent(Event.ELECT, election, winner);
 		}
 
 		return winner;
@@ -338,8 +361,8 @@ final class Pool implements Runnable {
 				result.add(victim);
 			}
 		}
-		events.add(new Event(events.size(), Event.SIGNAL, result
-				.toArray(new IbisIdentifier[result.size()]), signal));
+		addEvent(Event.SIGNAL, signal, result.toArray(new IbisIdentifier[result
+				.size()]));
 		notifyAll();
 
 	}
@@ -429,11 +452,13 @@ final class Pool implements Runnable {
 
 			connection.out().writeInt(sendEntries);
 
-			Event[] events = getEvents(peerTime, peerTime + sendEntries);
+			Event[] events = getEvents(peerTime);
 			for (int i = 0; i < events.length; i++) {
 
 				events[i].writeTo(connection.out());
 			}
+
+			connection.out().writeInt(getMinEventTime());
 
 			connection.getAndCheckReply();
 			connection.close();
@@ -522,9 +547,30 @@ final class Pool implements Runnable {
 	 * @param eventTime
 	 *            the first event not to purge
 	 */
-	void purgeUpto(int eventTime) {
-		// TODO Auto-generated method stub
+	synchronized void purgeUpto(int eventTime) {
+		if (eventTime < minEventTime) {
+			logger.warn("tried to set minimum event time backwards from "
+					+ minEventTime + " to " + eventTime);
+			return;
+		}
 
+		if (eventTime >= getEventTime()) {
+			logger
+					.warn("tried to set minimum event time to after current time. Time = "
+							+ getEventTime() + " new minimum = " + eventTime);
+			return;
+		}
+
+		logger.debug("setting minimum event time to " + eventTime);
+
+		minEventTime = eventTime;
+
+		while (!events.isEmpty() && events.get(0).getTime() < minEventTime) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("removing event: " + events.get(0));
+			}
+			events.remove(0);
+		}
 	}
 
 }

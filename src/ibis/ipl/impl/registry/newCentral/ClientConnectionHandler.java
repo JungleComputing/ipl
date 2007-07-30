@@ -93,12 +93,15 @@ final class ClientConnectionHandler implements Runnable {
 		for (int i = 0; i < newEvents.length; i++) {
 			newEvents[i] = new Event(connection.in());
 		}
+		
+		int minEventTime = connection.in().readInt();
 
 		connection.sendOKReply();
 
 		connection.close();
 
 		state.handleEvents(newEvents);
+		state.purgeHistoryUpto(minEventTime);
 	}
 
 	private void handlePing(Connection connection) throws IOException {

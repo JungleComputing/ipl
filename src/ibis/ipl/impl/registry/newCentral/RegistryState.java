@@ -70,14 +70,14 @@ class RegistryState {
 		sortedIbises.addAll(this.ibises);
 
 		for (IbisIdentifier ibis : sortedIbises) {
-			registry.handleEvent(new Event(-1, Event.JOIN, ibis, null));
+			registry.handleEvent(new Event(-1, Event.JOIN, null, ibis));
 		}
 
 		// generate events for elections
 		for (Map.Entry<String, IbisIdentifier> election : this.elections
 				.entrySet()) {
-			registry.handleEvent(new Event(-1, Event.ELECT,
-					election.getValue(), election.getKey()));
+			registry.handleEvent(new Event(-1, Event.ELECT,election.getKey(),
+					election.getValue()));
 		}
 
 		handlePendingEvents();
@@ -297,7 +297,11 @@ class RegistryState {
 	}
 
 	synchronized void purgeHistoryUpto(int time) {
+		logger.debug("purging history upto " + time);
 		while (!eventHistory.isEmpty() && eventHistory.get(0).getTime() < time) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("removing event: " + eventHistory.get(0));
+			}
 			eventHistory.remove(0);
 		}
 	}

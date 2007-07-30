@@ -33,22 +33,7 @@ final class Event implements Serializable, Comparable<Event> {
 
     private final IbisIdentifier[] ibisses;
 
-    Event(int time, int type, IbisIdentifier ibis, String description) {
-        this.time = time;
-        this.type = type;
-        if (ibis == null) {
-            this.ibisses = new IbisIdentifier[0];
-        } else {
-            this.ibisses = new IbisIdentifier[] { ibis };
-        }
-        if (description == null) {
-            this.description = "";
-        } else {
-            this.description = description;
-        }
-    }
-
-    Event(int time, int type, IbisIdentifier[] ibisses, String description) {
+    Event(int time, int type, String description, IbisIdentifier... ibisses ) {
         this.time = time;
         this.type = type;
         this.ibisses = ibisses.clone();
