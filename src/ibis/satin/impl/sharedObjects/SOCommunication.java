@@ -36,7 +36,12 @@ import mcast.object.ObjectMulticaster;
 import mcast.object.SendDoneUpcaller;
 
 class OmcInfo implements Config {
-    HashMap<Integer, Timer> map = new HashMap<Integer, Timer>();
+    static final class DataObject {
+        Timer timer;
+        long size;
+    }
+    
+    HashMap<Integer, DataObject> map = new HashMap<Integer, DataObject>();
 
     Timer total = Timer.createTimer();
 
@@ -46,24 +51,26 @@ class OmcInfo implements Config {
         this.s = s;
     }
 
-    synchronized void registerSend(int id) {
-        Timer t = Timer.createTimer();
-        map.put(id, t);
-        t.start();
+    synchronized void registerSend(int id, long size) {
+        DataObject d = new DataObject();
+        d.timer = Timer.createTimer();
+        d.size = size;
+        map.put(id, d);
+        d.timer.start();
     }
 
     public synchronized void sendDone(int id) {
-        Timer t = map.remove(id);
-        if (t == null) {
+        DataObject d = map.remove(id);
+        if (d == null) {
             soBcastLogger.info("SATIN '" + s.ident
                 + "': got upcall for unknow id: " + id);
             return;
         }
-        t.stop();
-        total.add(t);
+        d.timer.stop();
+        total.add(d.timer);
 
         soBcastLogger.info("SATIN '" + s.ident + "': broadcast " + id
-            + " took " + t.totalTime());
+            + " took " + d.timer.totalTime() + " " + ((d.size / d.timer.totalTimeVal()) / 1024 * 1024) + " MB/s");
     }
 
     void end() {
@@ -289,7 +296,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
 
         try {
             int id = omc.send(r);
-            omcInfo.registerSend(id);
+            omcInfo.registerSend(id, omc.lastSize());
         } catch (Exception e) {
             soLogger.warn("SOI mcast failed: " + e + " msg: " + e.getMessage());
         }
@@ -438,7 +445,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
         try {
             s.stats.soBroadcastSerializationTimer.start();
             int id = omc.send(object);
-            omcInfo.registerSend(id);
+            omcInfo.registerSend(id, omc.lastSize());
             s.stats.soBroadcastSerializationTimer.stop();
         } catch (Exception e) {
             System.err.println("WARNING, SO mcast failed: " + e + " msg: "
