@@ -2,6 +2,7 @@
 // @@@ TODO? LRMC echt een ring maken, zodat je weet dat de mcast klaar is ->
 // handig als een node om updates/object vraagt
 
+// FIXME: synchronous so bcast
 /*
  * Created on Apr 26, 2006 by rob
  */
