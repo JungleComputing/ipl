@@ -360,7 +360,8 @@ public final class Satin implements Config {
         if (thisSatin == null) {
             return;
         }
-        thisSatin.comm.receivePort.disableMessageUpcalls();
+//        thisSatin.comm.receivePort.disableMessageUpcalls();
+        thisSatin.comm.pause();
     }
 
     /**
@@ -371,7 +372,8 @@ public final class Satin implements Config {
         if (thisSatin == null) {
             return;
         }
-        thisSatin.comm.receivePort.enableMessageUpcalls();
+//        thisSatin.comm.receivePort.enableMessageUpcalls();
+        thisSatin.comm.resume();
     }
 
     /**

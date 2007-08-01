@@ -64,4 +64,9 @@ public interface Protocol {
     static final byte BARRIER_REQUEST = 32;
     
     static final byte GRT_UPDATE = 33;
+    
+    static final byte PAUSE = 34;
+
+    static final byte RESUME = 35;
+    
 }

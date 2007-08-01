@@ -601,7 +601,7 @@ public final class Statistics implements java.io.Serializable, Config {
             + tableLookupTimeAvg + tableHandleUpdateTimeAvg
             + tableHandleLookupTimeAvg + handleSOInvocationsTimeAvg
             + broadcastSOInvocationsTimeAvg + soTransferTimeAvg
-            + soBcastTimeAvg + soBcastDeserializationTimeAvg + stealTime)
+            + soBcastTimeAvg + soBcastDeserializationTimeAvg + stealTime + soGuardTimeAvg)
             / size;
         double totalPerc = totalOverheadAvg / totalTime * 100.0;
         double appTime = totalTime - totalOverheadAvg;

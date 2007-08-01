@@ -92,6 +92,12 @@ public final class MessageHandler implements MessageUpcall, Protocol, Config {
             case GRT_UPDATE:
                 s.ft.handleGRTUpdate(m);
                 break;
+            case PAUSE:
+                s.comm.gotPause();
+                break;
+            case RESUME:
+                s.comm.gotResume();
+                break;
             default:
                 commLogger.error("SATIN '" + s.ident + "': Illegal opcode "
                     + opcode + " in MessageHandler");

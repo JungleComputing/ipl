@@ -26,8 +26,6 @@ public final class SharedObjects implements Config {
     /* use these to avoid locking */
     protected volatile boolean gotSORequests = false;
 
-    protected boolean receivingMcast = false;
-
     /** List that stores requests for shared object transfers */
     protected SORequestList SORequestList = new SORequestList();
 

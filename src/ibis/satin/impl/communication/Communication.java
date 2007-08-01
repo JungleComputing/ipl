@@ -41,6 +41,8 @@ public final class Communication implements Config, Protocol {
 
     public Ibis ibis;
 
+    public boolean paused = false;
+    
     public Communication(Satin s) {
         this.s = s;
 
@@ -628,4 +630,57 @@ public final class Communication implements Config, Protocol {
 
         throw new Error("unknown opcode in opcodeToString");
     }
+    
+    // FIXME send a resume after a crash
+    
+    public void pause() {
+        paused = true;
+        
+        soBcastLogger.info("sending pause");
+        
+        Victim[] victims = s.victims.victims();
+        for(int i=0; i<victims.length; i++) {
+            try {
+                WriteMessage m = victims[i].newMessage();
+                m.writeByte(PAUSE);
+                victims[i].finish(m);
+            } catch (IOException e) {
+                commLogger.warn("could not send pause message: " + e);
+                // ignore
+            }
+        }
+    }
+    
+    public void resume() {
+        soBcastLogger.info("sending resume");
+
+        Victim[] victims = s.victims.victims();
+        for(int i=0; i<victims.length; i++) {
+            try {
+                WriteMessage m = victims[i].newMessage();
+                m.writeByte(RESUME);
+                victims[i].finish(m);
+            } catch (IOException e) {
+                commLogger.info("could not send pause message: " + e);
+                // ignore
+            }
+            
+        }
+        paused = false;
+    }
+
+    void gotPause() {
+        synchronized (s) {
+            paused = true;
+            s.notifyAll();
+        }
+    }
+    
+    void gotResume() {
+        synchronized (s) {
+            paused = false;
+            s.notifyAll();
+        }        
+    }
+
 }

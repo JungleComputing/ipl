@@ -44,9 +44,6 @@ final class SOInvocationHandler implements MessageUpcall, Config, Protocol {
         case SO_TRANSFER: // exportObject
             Timer tmp = Timer.createTimer();
             tmp.start();
-            synchronized (s) {
-                s.so.receivingMcast = true;
-            }
             try {
                 obj = (SharedObject) m.readObject();
             } catch (IOException e) {
@@ -67,18 +64,11 @@ final class SOInvocationHandler implements MessageUpcall, Config, Protocol {
             }
             
             // no need to finish the message
-            synchronized (s) {
-                s.so.addObject(obj);
-                s.so.receivingMcast = false;
-                s.notifyAll();
-            }
+            s.so.addObject(obj);
             break;
         case SO_INVOCATION: // normal invocation, can be message combined
             tmp = Timer.createTimer();
             tmp.start();
-            synchronized (s) {
-                s.so.receivingMcast = true;
-            }
             try {
                 soir = (SOInvocationRecord) m.readObject();
             } catch (IOException e) {
