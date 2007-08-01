@@ -143,13 +143,18 @@ public class LoadBalancing implements Config {
         if (s.exiting) return null;
 
         synchronized (s) {
-            while (s.comm.paused) {
-                try {
-                    s.wait(500);
-//                    soBcastLogger.info("currently paused, waiting");
-                } catch (Exception e) {
-                    // ignore
+            if (s.comm.paused) {
+                long start = System.currentTimeMillis();
+                while (s.comm.paused) {
+                    try {
+                        s.wait();
+                        //                    soBcastLogger.info("currently paused, waiting");
+                    } catch (Exception e) {
+                        // ignore
+                    }
                 }
+                long end = System.currentTimeMillis();
+                System.err.println("paused for " + (end - start) + " ms");
             }
         }
 
