@@ -637,8 +637,11 @@ public final class Communication implements Config, Protocol {
         paused = true;
         
         soBcastLogger.info("sending pause");
-        
-        Victim[] victims = s.victims.victims();
+        Victim[] victims;
+        synchronized (s) {
+            victims = s.victims.victims();
+            
+        }
         for(int i=0; i<victims.length; i++) {
             try {
                 WriteMessage m = victims[i].newMessage();
@@ -654,7 +657,11 @@ public final class Communication implements Config, Protocol {
     public void resume() {
         soBcastLogger.info("sending resume");
 
-        Victim[] victims = s.victims.victims();
+        Victim[] victims;
+        synchronized (s) {
+            victims = s.victims.victims();
+            
+        }
         for(int i=0; i<victims.length; i++) {
             try {
                 WriteMessage m = victims[i].newMessage();
