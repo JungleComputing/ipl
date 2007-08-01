@@ -289,7 +289,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
             tmp = s.victims.getIbises();
             if (tmp.length == 0) return;
         }
-        soLogger.debug("SATIN '" + s.ident
+        soBcastLogger.debug("SATIN '" + s.ident
             + "': broadcasting so invocation for: " + r.getObjectId());
         s.stats.broadcastSOInvocationsTimer.start();
         s.so.registerMulticast(s.so.getSOReference(r.getObjectId()), tmp);
@@ -298,7 +298,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
             int id = omc.send(r);
             omcInfo.registerSend(id, omc.lastSize());
         } catch (Exception e) {
-            soLogger.warn("SOI mcast failed: " + e + " msg: " + e.getMessage());
+            soBcastLogger.warn("SOI mcast failed: " + e + " msg: " + e.getMessage());
         }
 
         s.stats.soInvocations++;
@@ -437,7 +437,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
             if (tmp.length == 0) return;
         }
 
-        soLogger.debug("SATIN '" + s.ident + "': broadcasting object: "
+        soBcastLogger.info("SATIN '" + s.ident + "': broadcasting object: "
             + object.getObjectId());
         s.stats.soBroadcastTransferTimer.start();
         s.so.registerMulticast(object, tmp);
@@ -448,9 +448,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
             omcInfo.registerSend(id, omc.lastSize());
             s.stats.soBroadcastSerializationTimer.stop();
         } catch (Exception e) {
-            System.err.println("WARNING, SO mcast failed: " + e + " msg: "
-                + e.getMessage());
-            e.printStackTrace();
+            soBcastLogger.warn("SO mcast failed: " + e, e);
         }
         s.stats.soBcasts++;
         s.stats.soBcastBytes += omc.lastSize();
