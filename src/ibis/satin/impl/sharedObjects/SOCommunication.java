@@ -77,7 +77,7 @@ class OmcInfo implements Config {
     }
 
     public synchronized void waitForCompletion(int id) {
-        DataObject d = map.remove(id);
+        DataObject d = map.get(id);
         if (d == null) {
             soBcastLogger.info("SATIN '" + s.ident
                 + "': wait for unknow id: " + id);
@@ -91,6 +91,8 @@ class OmcInfo implements Config {
                 // ignore
             }
         }
+        
+        map.remove(id);
     }
     
     void end() {
