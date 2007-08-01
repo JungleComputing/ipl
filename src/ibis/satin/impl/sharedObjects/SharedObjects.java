@@ -301,7 +301,7 @@ public final class SharedObjects implements Config {
 
             synchronized (soInvocationList) {
                 try {
-                    soInvocationList.wait(500);
+                    soInvocationList.wait(timeout);
                 } catch (InterruptedException e) {
                     // Ignore
                 }
