@@ -41,7 +41,7 @@ final class SOInvocationReceiver extends Thread implements Config {
                         .warn("received unknown object in SOInvocation receiver");
                 }
             } catch (mcast.object.DoneException e) {
-                soLogger.info("SOI Mcast receive thread done", e);
+                soLogger.debug("SOI Mcast receive thread done");
                 return;
             } catch (Exception e2) {
                 soLogger.warn("WARNING, SOI Mcast receive failed: ", e2);

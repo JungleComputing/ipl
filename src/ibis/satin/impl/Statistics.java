@@ -288,6 +288,7 @@ public final class Statistics implements java.io.Serializable, Config {
         soBcasts += s.soBcasts;
         soBcastBytes += s.soBcastBytes;
         soGuards += s.soGuards;
+        soGuardTime += s.soGuardTime;
     }
 
     public void fillInStats() {
