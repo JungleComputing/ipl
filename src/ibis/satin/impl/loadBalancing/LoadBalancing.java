@@ -146,7 +146,7 @@ public class LoadBalancing implements Config {
             while (s.comm.paused) {
                 try {
                     s.wait(500);
-                    soBcastLogger.info("currently paused, waiting");
+//                    soBcastLogger.info("currently paused, waiting");
                 } catch (Exception e) {
                     // ignore
                 }

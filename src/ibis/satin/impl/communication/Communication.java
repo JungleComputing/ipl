@@ -677,6 +677,8 @@ public final class Communication implements Config, Protocol {
     }
 
     void gotPause() {
+        soBcastLogger.info("got pause");
+
         synchronized (s) {
             paused = true;
             s.notifyAll();
@@ -684,6 +686,8 @@ public final class Communication implements Config, Protocol {
     }
     
     void gotResume() {
+        soBcastLogger.info("got resume");
+
         synchronized (s) {
             paused = false;
             s.notifyAll();
