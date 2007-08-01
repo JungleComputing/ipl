@@ -55,6 +55,11 @@ public final class SharedObjects implements Config {
         synchronized (s) {
             sharedObjects.put(object.getObjectId(), i);
         }
+        
+        // notify waiters (see waitForObject)
+        synchronized (soInvocationList) {
+            soInvocationList.notifyAll();
+        }
 
         soLogger.debug("SATIN '" + s.ident + "': " + "object added, id = "
             + object.getObjectId());
