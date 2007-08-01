@@ -35,7 +35,10 @@ public class LoadBalancing implements Config {
         }
 
         public void run() {
-            long lastPrintTime = System.currentTimeMillis();
+            long lastPrintTime = 0;
+            if (CONTINUOUS_STATS) {
+                    lastPrintTime = System.currentTimeMillis();
+            }
 
             while (true) {
                 if (CONTINUOUS_STATS
@@ -46,12 +49,12 @@ public class LoadBalancing implements Config {
                 }
 
                 StealRequest sr = null;
-                synchronized (s) {
+                synchronized (stealQueue) {
                     if (stealQueue.size() > 0) {
                         sr = stealQueue.remove(0);
                     } else {
                         try {
-                            s.wait();
+                            stealQueue.wait();
                         } catch (Exception e) {
                             // ignore
                         }
@@ -59,6 +62,7 @@ public class LoadBalancing implements Config {
                     }
                 }
 
+                // don't hold lock while sending reply 
                 lbComm.handleStealRequest(sr.sp, sr.opcode);
             }
         }
@@ -333,9 +337,9 @@ public class LoadBalancing implements Config {
         StealRequest r = new StealRequest();
         r.opcode = opcode;
         r.sp = ident;
-        synchronized (s) {
+        synchronized (stealQueue) {
             stealQueue.add(r);
-            s.notifyAll();
+            stealQueue.notifyAll();
         }
     }
 

@@ -31,7 +31,7 @@ final class LBCommunication implements Config, Protocol {
     }
 
     protected void sendStealRequest(Victim v, boolean synchronous,
-        boolean blocking) throws IOException {
+        boolean blockUntilWorkIsAvailable) throws IOException {
         if (stealLogger.isDebugEnabled()) {
             stealLogger.debug("SATIN '" + s.ident + "': sending"
                 + (synchronous ? "SYNC" : "ASYNC") + "steal message to "
@@ -42,7 +42,7 @@ final class LBCommunication implements Config, Protocol {
         byte opcode = -1;
 
         if (synchronous) {
-            if (blocking) {
+            if (blockUntilWorkIsAvailable) {
                 opcode = Protocol.BLOCKING_STEAL_REQUEST;
             } else {
                 if (!FT_NAIVE) {
@@ -244,6 +244,8 @@ final class LBCommunication implements Config, Protocol {
         // Use our own local timer, and add the result to the global timer
         // later.
 
+        // TODO with queued steals, this is no longer true. --Rob
+        
         Timer handleStealTimer = Timer.createTimer();
         handleStealTimer.start();
         s.stats.stealRequests++;
@@ -319,22 +321,8 @@ final class LBCommunication implements Config, Protocol {
         switch (opcode) {
         case STEAL_REPLY_SUCCESS_TABLE:
         case ASYNC_STEAL_REPLY_SUCCESS_TABLE:
-            try {
-                @SuppressWarnings("unchecked")
-                Map<Stamp, GlobalResultTableValue> table
-                        = (Map<Stamp, GlobalResultTableValue>) m.readObject();
-                if (table != null) {
-                    synchronized (s) {
-                        s.ft.getTable = false;
-                        s.ft.addContents(table);
-                    }
-                }
-            } catch (Exception e) {
-                stealLogger.error("SATIN '" + s.ident
-                    + "': Got Exception while reading steal " + "reply from "
-                    + ident + ", opcode:" + +opcode + ", exception: " + e, e);
-            }
-        //fall through
+            readAndAddTable(ident, m, opcode);
+            // fall through
         case STEAL_REPLY_SUCCESS:
         case ASYNC_STEAL_REPLY_SUCCESS:
             try {
@@ -354,8 +342,8 @@ final class LBCommunication implements Config, Protocol {
 
             synchronized (s) {
                 if (s.deadIbises.contains(ident)) {
-                    //this message arrived after the crash of its sender
-                    // was detected, is it anyhow possible?
+                    // this message arrived after the crash of its sender
+                    // was detected. Is this actually possible?
                     stealLogger.error("SATIN '" + s.ident
                         + "': got reply from dead ibis??? Ignored");
                     break;
@@ -367,27 +355,13 @@ final class LBCommunication implements Config, Protocol {
 
         case STEAL_REPLY_FAILED_TABLE:
         case ASYNC_STEAL_REPLY_FAILED_TABLE:
-            try {
-                @SuppressWarnings("unchecked")
-                Map<Stamp, GlobalResultTableValue> table
-                    = (Map<Stamp, GlobalResultTableValue>) m.readObject();
-                if (table != null) {
-                    synchronized (s) {
-                        s.ft.getTable = false;
-                        s.ft.addContents(table);
-                    }
-                }
-            } catch (Exception e) {
-                stealLogger.error("SATIN '" + s.ident
-                    + "': Got Exception while reading steal " + "reply from "
-                    + ident + ", opcode:" + +opcode + ", exception: " + e, e);
-            }
+            readAndAddTable(ident, m, opcode);
         //fall through
         case STEAL_REPLY_FAILED:
         case ASYNC_STEAL_REPLY_FAILED:
             if (CLOSE_CONNECTIONS) {
                 // Drop the connection that we kept in case the steal
-                // is succesful. It was'nt.
+                // is succesful. It wasn't.
                 synchronized(s) {
                     Victim v = s.victims.getVictimNonBlocking(ident.ibisIdentifier());
                     if (v != null) {
@@ -407,6 +381,25 @@ final class LBCommunication implements Config, Protocol {
         }
     }
 
+    private void readAndAddTable(SendPortIdentifier ident, ReadMessage m, int opcode) {
+        try {
+            @SuppressWarnings("unchecked")
+            Map<Stamp, GlobalResultTableValue> table
+                    = (Map<Stamp, GlobalResultTableValue>) m.readObject();
+            if (table != null) {
+                synchronized (s) {
+                    s.ft.getTable = false;
+                    s.ft.addContents(table);
+                }
+            }
+        } catch (Exception e) {
+            stealLogger.error("SATIN '" + s.ident
+                + "': Got Exception while reading steal " + "reply from "
+                + ident + ", opcode:" + +opcode + ", exception: " + e, e);
+        }
+    }
+    
+    
     private void sendStealFailedMessage(SendPortIdentifier ident, int opcode,
         Victim v, Map<Stamp, GlobalResultTableValue> table) {
         
@@ -448,6 +441,7 @@ final class LBCommunication implements Config, Protocol {
                     + " in handleStealRequest");
             }
 
+            // TODO add counting of bytes to victim.finish
             long cnt = v.finish(m);
             if (v.inDifferentCluster(s.ident)) {
                 s.stats.interClusterMessages++;
@@ -530,7 +524,7 @@ final class LBCommunication implements Config, Protocol {
             }
         } catch (IOException e) {
             if (m != null) {
-                m.finish(e);
+                m.finish(e); // TODO always use victim.finish
             }
             stealLogger.warn("SATIN '" + s.ident
                 + "': trying to send a job back, but got exception: " + e, e);

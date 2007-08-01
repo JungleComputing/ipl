@@ -71,6 +71,7 @@ final class AbortsCommunication implements Config {
                 + r.getStealer() + " for job " + r.getStamp() + ", parent = "
                 + r.getParentStamp());
 
+        // TODO use other lock
         synchronized (s) {
             StampListElement e = new StampListElement();
             e.stamp = r.getParentStamp();
