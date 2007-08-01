@@ -55,19 +55,19 @@ class OmcInfo implements Config {
     public synchronized void sendDone(int id) {
         Timer t = map.remove(id);
         if (t == null) {
-            soLogger.info("SATIN '" + s.ident
+            soBcastLogger.info("SATIN '" + s.ident
                 + "': got upcall for unknow id: " + id);
             return;
         }
         t.stop();
         total.add(t);
 
-        soLogger.info("SATIN '" + s.ident + "': broadcast " + id
+        soBcastLogger.info("SATIN '" + s.ident + "': broadcast " + id
             + " took " + t.totalTime());
     }
 
     void end() {
-        soLogger.info("SATIN '" + s.ident
+        soBcastLogger.info("SATIN '" + s.ident
             + "': total broadcast time was: " + total.totalTime());
     }
 }

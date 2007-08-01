@@ -186,4 +186,7 @@ public interface Config {
 
     /** Logger for shared objects. */
     public static final Logger soLogger = Logger.getLogger("ibis.satin.so");
+
+    /** Logger for shared objects broadcasts. */
+    public static final Logger soBcastLogger = Logger.getLogger("ibis.satin.so.bcast");
 }
