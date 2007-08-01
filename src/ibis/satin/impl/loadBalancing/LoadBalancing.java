@@ -148,13 +148,12 @@ public class LoadBalancing implements Config {
                 while (s.comm.paused) {
                     try {
                         s.wait();
-                        //                    soBcastLogger.info("currently paused, waiting");
                     } catch (Exception e) {
                         // ignore
                     }
                 }
                 long end = System.currentTimeMillis();
-                System.err.println("paused for " + (end - start) + " ms");
+                soBcastLogger.info("SATIN '" + s.ident + "': paused for " + (end - start) + " ms");
             }
         }
 

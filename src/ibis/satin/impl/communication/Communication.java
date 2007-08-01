@@ -636,7 +636,7 @@ public final class Communication implements Config, Protocol {
     public void pause() {
         paused = true;
         
-        soBcastLogger.info("sending pause");
+        soBcastLogger.info("SATIN '" + s.ident + "': sending pause");
         Victim[] victims;
         synchronized (s) {
             victims = s.victims.victims();
@@ -648,14 +648,14 @@ public final class Communication implements Config, Protocol {
                 m.writeByte(PAUSE);
                 victims[i].finish(m);
             } catch (IOException e) {
-                commLogger.warn("could not send pause message: " + e);
+                commLogger.warn("SATIN '" + s.ident + "': could not send pause message: " + e);
                 // ignore
             }
         }
     }
     
     public void resume() {
-        soBcastLogger.info("sending resume");
+        soBcastLogger.info("SATIN '" + s.ident + "': sending resume");
 
         Victim[] victims;
         synchronized (s) {
@@ -668,7 +668,7 @@ public final class Communication implements Config, Protocol {
                 m.writeByte(RESUME);
                 victims[i].finish(m);
             } catch (IOException e) {
-                commLogger.info("could not send pause message: " + e);
+                commLogger.info("SATIN '" + s.ident + "': could not send pause message: " + e);
                 // ignore
             }
             
@@ -677,7 +677,7 @@ public final class Communication implements Config, Protocol {
     }
 
     void gotPause() {
-        soBcastLogger.info("got pause");
+        soBcastLogger.info("SATIN '" + s.ident + "': got pause");
 
         synchronized (s) {
             paused = true;
@@ -686,12 +686,11 @@ public final class Communication implements Config, Protocol {
     }
     
     void gotResume() {
-        soBcastLogger.info("got resume");
+        soBcastLogger.info("SATIN '" + s.ident + "': got resume");
 
         synchronized (s) {
             paused = false;
             s.notifyAll();
         }        
     }
-
 }

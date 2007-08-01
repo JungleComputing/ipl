@@ -448,7 +448,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
             omcInfo.registerSend(id, omc.lastSize());
             s.stats.soBroadcastSerializationTimer.stop();
         } catch (Exception e) {
-            soBcastLogger.warn("SO mcast failed: " + e, e);
+            soBcastLogger.warn("SATIN '" + s.ident + "': SO mcast failed: " + e, e);
         }
         s.stats.soBcasts++;
         s.stats.soBcastBytes += omc.lastSize();
