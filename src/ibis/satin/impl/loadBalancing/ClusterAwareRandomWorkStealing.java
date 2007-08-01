@@ -152,7 +152,7 @@ public final class ClusterAwareRandomWorkStealing extends
             synchronized (satin) {
                 while (!gotAsyncStealReply) {
                     try {
-                        satin.handleDelayedMessages();
+                        satin.handleDelayedMessages(); //TODO move outside lock --Rob
                         satin.wait(250);
                     } catch (InterruptedException e) {
                         //ignore

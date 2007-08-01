@@ -467,55 +467,9 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
      * guard might depend on more than one shared object. */
     protected void fetchObject(String objectId, IbisIdentifier source,
             InvocationRecord r) throws SOReferenceSourceCrashedException {
-        /*
-         soLogger.debug("SATIN '" + s.ident + "': sending SO request "
-         + (r == null ? "FIRST TIME" : "GUARD"));
 
-         // first, ask for the object
-         sendSORequest(objectId, source, false);
-
-         boolean gotIt = waitForSOReply();
-
-         if (gotIt) {
-         soLogger.debug("SATIN '" + s.ident
-         + "': received the object after requesting it");
-         return;
-         }
-         soLogger
-         .debug("SATIN '"
-         + s.ident
-         + "': received NACK, the object is probably already being broadcast to me, WAITING");
-         */
-        // got a nack back, the source thinks it sent it to me.
-        // wait for the object to arrive. If it doesn't, demand the object.
-        long start = System.currentTimeMillis();
-        while (true) {
-            if (System.currentTimeMillis() - start > WAIT_FOR_UPDATES_TIME)
-                break;
-
-            synchronized (s) {
-                try {
-                    s.wait(500);
-                } catch (InterruptedException e) {
-                    // Ignore
-                }
-            }
-
-            s.handleDelayedMessages();
-
-            if (r == null) {
-                if (s.so.getSOInfo(objectId) != null) {
-                    soLogger.debug("SATIN '" + s.ident
-                        + "': received new object from a bcast");
-                    return; // got it!
-                }
-            } else {
-                if (r.guard()) {
-                    soLogger.debug("SATIN '" + s.ident
-                        + "': received object, guard satisfied");
-                    return;
-                }
-            }
+        if(s.so.waitForObject(objectId, source, r, WAIT_FOR_UPDATES_TIME)) {
+            return;
         }
 
         soLogger.debug("SATIN '" + s.ident
