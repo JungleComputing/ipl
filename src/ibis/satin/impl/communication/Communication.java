@@ -20,6 +20,7 @@ import ibis.satin.impl.Config;
 import ibis.satin.impl.Satin;
 import ibis.satin.impl.Statistics;
 import ibis.satin.impl.loadBalancing.Victim;
+import ibis.satin.impl.sharedObjects.SharedObjects;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -54,20 +55,8 @@ public final class Communication implements Config, Protocol {
         
         try {
             ibis = IbisFactory.createIbis(ibisProperties,
-                    null, true, s.ft.getRegistryEventHandler(), portType,
-                    // lrmc port type
-                    // FIXME ask LRMC for it's port type
-                    new PortType(
-                        PortType.SERIALIZATION_DATA,
-                        PortType.COMMUNICATION_RELIABLE,
-                        PortType.CONNECTION_MANY_TO_ONE,
-                        PortType.RECEIVE_AUTO_UPCALLS), // so port type
-                    new PortType( // FIXME ask SO for its port type
-                            PortType.CONNECTION_ONE_TO_MANY,
-                            PortType.CONNECTION_UPCALLS,
-                            PortType.RECEIVE_EXPLICIT,
-                            PortType.RECEIVE_AUTO_UPCALLS,
-                            PortType.SERIALIZATION_OBJECT));
+                    null, true, s.ft.getRegistryEventHandler(), portType, 
+                            SharedObjects.getSOPortType());
         } catch (Exception e) {
             commLogger.fatal(
                     "SATIN '" + "- " + "': Could not start ibis: " + e, e);

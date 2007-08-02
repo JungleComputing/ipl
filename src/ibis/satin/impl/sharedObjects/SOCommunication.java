@@ -95,7 +95,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
             new SOInvocationReceiver(s, omc).start();
         } else {
             try {
-                soPortType = createSOPortType();
+                soPortType = getSOPortType();
 
                 // Create a multicast port to bcast shared object invocations.
                 // Connections are established later.
@@ -116,11 +116,15 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
         }
     }
 
-    private PortType createSOPortType() throws IOException {
+    public static PortType getSOPortType() throws IOException {
+        if(LABEL_ROUTING_MCAST) {
+            return ObjectMulticaster.getPortType();
+        } else {
         return new PortType(
                 PortType.CONNECTION_ONE_TO_MANY, PortType.CONNECTION_UPCALLS,
                 PortType.CONNECTION_DOWNCALLS, PortType.RECEIVE_EXPLICIT, PortType.RECEIVE_AUTO_UPCALLS,
                 PortType.SERIALIZATION_OBJECT);
+        }
     }
 
     /**

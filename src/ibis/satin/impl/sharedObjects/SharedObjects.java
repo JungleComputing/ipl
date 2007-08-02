@@ -5,12 +5,14 @@
 package ibis.satin.impl.sharedObjects;
 
 import ibis.ipl.IbisIdentifier;
+import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.satin.SharedObject;
 import ibis.satin.impl.Config;
 import ibis.satin.impl.Satin;
 import ibis.satin.impl.spawnSync.InvocationRecord;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Vector;
 
@@ -323,5 +325,9 @@ public final class SharedObjects implements Config {
                 }
             }
         }
+    }
+    
+    public static PortType getSOPortType() throws IOException {
+        return SOCommunication.getSOPortType();
     }
 }
