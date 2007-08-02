@@ -665,7 +665,7 @@ public final class Communication implements Config, Protocol {
     }
 
     void gotPause() {
-        soBcastLogger.info("SATIN '" + s.ident + "': got pause");
+        soBcastLogger.debug("SATIN '" + s.ident + "': got pause");
 
         synchronized (s) {
             paused = true;
@@ -674,7 +674,7 @@ public final class Communication implements Config, Protocol {
     }
     
     void gotResume() {
-        soBcastLogger.info("SATIN '" + s.ident + "': got resume");
+        soBcastLogger.debug("SATIN '" + s.ident + "': got resume");
 
         synchronized (s) {
             paused = false;
