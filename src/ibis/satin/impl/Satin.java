@@ -31,6 +31,8 @@ public final class Satin implements Config {
 
     private static final int SUGGESTED_QUEUE_SIZE = 1000;
 
+    public static final boolean GLOBAL_PAUSE_RESUME = false;
+    
     private static Satin thisSatin;
 
     public final Communication comm;
@@ -360,8 +362,12 @@ public final class Satin implements Config {
         if (thisSatin == null) {
             return;
         }
-//        thisSatin.comm.receivePort.disableMessageUpcalls();
-        thisSatin.comm.pause();
+        
+        if(GLOBAL_PAUSE_RESUME) {
+            thisSatin.comm.pause();
+        } else {
+            thisSatin.comm.receivePort.disableMessageUpcalls();
+        }
     }
 
     /**
@@ -372,8 +378,12 @@ public final class Satin implements Config {
         if (thisSatin == null) {
             return;
         }
-//        thisSatin.comm.receivePort.enableMessageUpcalls();
-        thisSatin.comm.resume();
+
+        if(GLOBAL_PAUSE_RESUME) {
+            thisSatin.comm.resume();
+        } else {
+            thisSatin.comm.receivePort.enableMessageUpcalls();    
+        }
     }
 
     /**

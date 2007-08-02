@@ -142,18 +142,21 @@ public class LoadBalancing implements Config {
 
         if (s.exiting) return null;
 
-        synchronized (s) {
-            if (s.comm.paused) {
-                long start = System.currentTimeMillis();
-                while (s.comm.paused) {
-                    try {
-                        s.wait();
-                    } catch (Exception e) {
-                        // ignore
+        if (Satin.GLOBAL_PAUSE_RESUME) {
+            synchronized (s) {
+                if (s.comm.paused) {
+                    long start = System.currentTimeMillis();
+                    while (s.comm.paused) {
+                        try {
+                            s.wait();
+                        } catch (Exception e) {
+                            // ignore
+                        }
                     }
+                    long end = System.currentTimeMillis();
+                    commLogger.info("SATIN '" + s.ident + "': paused for "
+                        + (end - start) + " ms");
                 }
-                long end = System.currentTimeMillis();
-                soBcastLogger.info("SATIN '" + s.ident + "': paused for " + (end - start) + " ms");
             }
         }
 
