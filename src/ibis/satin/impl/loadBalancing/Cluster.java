@@ -2,22 +2,20 @@
 
 package ibis.satin.impl.loadBalancing;
 
-import ibis.ipl.Location;
-
 import java.util.Vector;
 
 final class Cluster {
-    private Location location; //all references to a cluster's location are the same
+    private String clusterName; // all references to a cluster's location are the same
 
     private Vector<Victim> victims;
 
-    protected Cluster(Location name) {
-        this.location = name;
+    protected Cluster(String name) {
+        this.clusterName = name;
         victims = new Vector<Victim>();
     }
 
     protected Cluster(Victim v) {
-        this(v.getIdent().location());
+        this(Victim.clusterOf(v.getIdent()));
         victims.add(v);
     }
 
@@ -26,7 +24,7 @@ final class Cluster {
             return true;
         } else if (o instanceof Cluster) {
             Cluster other = (Cluster) o;
-            return other.location.equals(location);
+            return other.clusterName.equals(clusterName);
         } else {
             return false;
         }
@@ -36,11 +34,11 @@ final class Cluster {
         if (other == this) {
             return true;
         }
-        return other.location.equals(location);
+        return other.clusterName.equals(clusterName);
     }
 
     public int hashCode() {
-        return location.hashCode();
+        return clusterName.hashCode();
     }
 
     protected void add(Victim v) {

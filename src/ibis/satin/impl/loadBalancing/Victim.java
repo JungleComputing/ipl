@@ -164,6 +164,11 @@ public final class Victim implements Config {
     }
 
     public boolean inDifferentCluster(IbisIdentifier other) {
-        return !ident.location().equals(other.location());
+        return !clusterOf(ident).equals(clusterOf(other));
+    }
+    
+    public static String clusterOf(IbisIdentifier id) {
+        int count = id.location().numberOfLevels();
+        return id.location().getLevel(count-1);
     }
 }

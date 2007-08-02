@@ -177,22 +177,44 @@ public final class Location implements ibis.ipl.Location {
         TypedProperties p = new TypedProperties(props);
         String s = p.getProperty(IbisProperties.LOCATION);
         if (s != null) {
-            return new Location(s.split("@"));
+            return new Location(appendPostFix(p, s.split("@")));
         }
+        
         try {
             InetAddress a = InetAddress.getLocalHost();
             s = a.getCanonicalHostName();
             if (p.getBooleanProperty(IbisProperties.LOCATION_AUTOMATIC)) {
                 if (s.length() > 0 && Character.isJavaIdentifierStart(s.charAt(0))) {
-                    return new Location(s.split("\\."));
+                    return new Location(appendPostFix(p, s.split("\\.")));
                 }
             }
-            return new Location(s);
+
+            String postFix =  p.getProperty(IbisProperties.LOCATION_POSTFIX);
+            if(postFix == null) {
+                return new Location(s);
+            } else {
+                return new Location(s + postFix);
+            }
          } catch(IOException e) {
             return new Location("Unknown location");
         }
     }
 
+    private static String[] appendPostFix(TypedProperties p, String[] components) {
+        String postFix =  p.getProperty(IbisProperties.LOCATION_POSTFIX);
+        if(postFix == null) {
+            return components;
+        }
+
+        int count = components.length;
+        String[] res = new String[count+1];
+        for(int i=0;i<count; i++) {
+            res[i] = components[i];
+        }
+        res[count] = postFix;
+        return res;
+    }
+    
     public String toString() {
         String retval = "";
         for (int i = 0; i < levelNames.length; i++) {

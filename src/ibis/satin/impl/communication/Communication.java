@@ -66,8 +66,7 @@ public final class Communication implements Config, Protocol {
         IbisIdentifier ident = ibis.identifier();
 
         commLogger.debug("SATIN '" + "- " + "': init ibis DONE, "
-                + "my location is '" + ident.location()
-                + "'");
+                + "my cluster is '" + Victim.clusterOf(ident) + "'");
 
         try {
             MessageHandler messageHandler = new MessageHandler(s);

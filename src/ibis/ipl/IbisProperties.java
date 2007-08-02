@@ -56,6 +56,9 @@ public final class IbisProperties {
     public static final String LOCATION_AUTOMATIC =
             PREFIX + "location.automatic";
 
+    public static final String LOCATION_POSTFIX =
+        PREFIX + "location.postfix";
+
     /** List of {NAME, DESCRIPTION, DEFAULT_VALUE} for properties. */
     private static final String[][] propertiesList =
             new String[][] {
@@ -81,9 +84,7 @@ public final class IbisProperties {
                 { VERBOSE, "false",
                     "Boolean: If true, makes Ibis more verbose, if false, does not" },
 
-                {
-                    LOCATION,
-                    null,
+                { LOCATION, null,
                     "Set the location of Ibis. Specified as multiple levels, "
                             + "seperated by a '@', e.g. machine@cluster@site@grid@world."
                             + " Defaults to a single level location with the hostname of the machine" },
@@ -91,9 +92,10 @@ public final class IbisProperties {
                 { LOCATION_AUTOMATIC, "false",
                     "Boolean: If true, a multi level location is automatically created" },
 
-                {
-                    REGISTRY_IMPL,
-                    "ibis.ipl.impl.registry.central.Registry",
+                { LOCATION_POSTFIX, null,
+                    "Set a string that will be appended to the automatically generated location." },
+
+                { REGISTRY_IMPL, "ibis.ipl.impl.registry.central.Registry",
                     "implementation of the registry. Not all Ibis implementations use this property" },
 
             };

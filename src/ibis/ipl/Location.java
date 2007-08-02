@@ -1,5 +1,8 @@
 /* $Id$ */
 
+// FIXME docs: levels run from 0 - #levels-1 or from 1? --Rob
+// FIXME docs: what is the ordering of level numbers? domain == 0 or size-1 ?
+
 package ibis.ipl;
 
 /**

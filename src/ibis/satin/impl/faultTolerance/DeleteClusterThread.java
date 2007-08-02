@@ -3,6 +3,7 @@
 package ibis.satin.impl.faultTolerance;
 
 import ibis.satin.impl.Satin;
+import ibis.satin.impl.loadBalancing.Victim;
 
 class DeleteClusterThread extends Thread {
 
@@ -20,7 +21,7 @@ class DeleteClusterThread extends Thread {
             //ignore
         }
         Satin satin = Satin.getSatin();
-        satin.ft.deleteCluster(satin.ident.location());
+        satin.ft.deleteCluster(Victim.clusterOf(satin.ident));
     }
 
 }
