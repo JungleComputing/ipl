@@ -1,6 +1,4 @@
 // @@@ msg combining AND lrmc at the same time is not supported
-// @@@ TODO? LRMC echt een ring maken, zodat je weet dat de mcast klaar is ->
-// handig als een node om updates/object vraagt
 
 /*
  * Created on Apr 26, 2006 by rob
@@ -37,77 +35,6 @@ import mcast.object.SendDoneUpcaller;
 
 
 final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
-    static final class OmcInfo implements Config {
-        static final class DataObject {
-            Timer timer;
-            long size;
-            boolean done;
-        }
-        
-        HashMap<Integer, DataObject> map = new HashMap<Integer, DataObject>();
-
-        Timer total = Timer.createTimer();
-
-        Satin s;
-
-        public OmcInfo(Satin s) {
-            this.s = s;
-        }
-
-        synchronized void registerSend(int id, long size) {
-            DataObject d = new DataObject();
-            d.timer = Timer.createTimer();
-            d.size = size;
-            map.put(id, d);
-            d.timer.start();
-        }
-
-        public synchronized void sendDone(int id) {
-            DataObject d;
-            
-            if(BLOCKING_BCAST) {
-                d = map.get(id);
-            } else {
-                d = map.remove(id);
-            }
-            if (d == null) {
-                soBcastLogger.info("SATIN '" + s.ident
-                    + "': got upcall for unknow id: " + id);
-                return;
-            }
-            d.timer.stop();
-            d.done = true;
-            total.add(d.timer);
-            notifyAll();
-            
-            soBcastLogger.info("SATIN '" + s.ident + "': broadcast " + id
-                + " took " + d.timer.totalTime() + " " + ((d.size / d.timer.totalTimeVal()) / 1024 * 1024) + " MB/s");
-        }
-
-        public synchronized void waitForCompletion(int id) {
-            DataObject d = map.get(id);
-            if (d == null) {
-                soBcastLogger.info("SATIN '" + s.ident
-                    + "': wait for unknow id: " + id);
-                return;
-            }
-
-            while(!d.done) {
-                try {
-                    wait();
-                } catch (Exception e) {
-                    // ignore
-                }
-            }
-            
-            map.remove(id);
-        }
-        
-        void end() {
-            soBcastLogger.info("SATIN '" + s.ident
-                + "': total broadcast time was: " + total.totalTime());
-        }
-    }
     private static final boolean ASYNC_SO_BCAST = false;
 
         private static final boolean BLOCKING_BCAST = true;
@@ -156,7 +83,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
         if (LABEL_ROUTING_MCAST) {
             try {
                 omc = new ObjectMulticaster(s.comm.ibis,
-                            true /* efficient multi-cluster */, false,
+                            true /* efficient multi-cluster */, false /* no signals */,
                             "satinSO", this);
                 omcInfo = new OmcInfo(s);
             } catch (Exception e) {
@@ -326,18 +253,18 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
 
         try {
             int id = omc.send(r);
-            omcInfo.registerSend(id, omc.lastSize());
+            long size = omc.lastSize();
+            omcInfo.registerSend(id, size);
             if(BLOCKING_BCAST) {
                 omcInfo.waitForCompletion(id);
             }
+            s.stats.soInvocations++;
+            s.stats.soRealMessageCount++;
+            s.stats.soInvocationsBytes += size;
+            s.stats.broadcastSOInvocationsTimer.stop();
         } catch (Exception e) {
             soBcastLogger.warn("SOI mcast failed: " + e + " msg: " + e.getMessage());
         }
-
-        s.stats.soInvocations++;
-        s.stats.soRealMessageCount++;
-        s.stats.soInvocationsBytes += omc.lastSize();
-        s.stats.broadcastSOInvocationsTimer.stop();
     }
 
     /** Broadcast an so invocation */
@@ -478,17 +405,18 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
         try {
             s.stats.soBroadcastSerializationTimer.start();
             int id = omc.send(object);
-            omcInfo.registerSend(id, omc.lastSize());            
+            long size = omc.lastSize();
+            omcInfo.registerSend(id, size);            
             s.stats.soBroadcastSerializationTimer.stop();
             if(BLOCKING_BCAST) {
                 omcInfo.waitForCompletion(id);
             }
+            s.stats.soBcasts++;
+            s.stats.soBcastBytes += size;
+            s.stats.soBroadcastTransferTimer.stop();
         } catch (Exception e) {
             soBcastLogger.warn("SATIN '" + s.ident + "': SO mcast failed: " + e, e);
         }
-        s.stats.soBcasts++;
-        s.stats.soBcastBytes += omc.lastSize();
-        s.stats.soBroadcastTransferTimer.stop();
     }
 
     /** Remove a connection to the soSendPort */
@@ -855,6 +783,77 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
 
         public void run() {
             c.doBroadcastSOInvocation(r);
+        }
+    }
+    static final class OmcInfo implements Config {
+        static final class DataObject {
+            Timer timer;
+            long size;
+            boolean done;
+        }
+        
+        HashMap<Integer, DataObject> map = new HashMap<Integer, DataObject>();
+
+        Timer total = Timer.createTimer();
+
+        Satin s;
+
+        public OmcInfo(Satin s) {
+            this.s = s;
+        }
+
+        synchronized void registerSend(int id, long size) {
+            DataObject d = new DataObject();
+            d.timer = Timer.createTimer();
+            d.size = size;
+            map.put(id, d);
+            d.timer.start();
+        }
+
+        public synchronized void sendDone(int id) {
+            DataObject d;
+            
+            if(BLOCKING_BCAST) {
+                d = map.get(id);
+            } else {
+                d = map.remove(id);
+            }
+            if (d == null) {
+                soBcastLogger.info("SATIN '" + s.ident
+                    + "': got upcall for unknow id: " + id);
+                return;
+            }
+            d.timer.stop();
+            d.done = true;
+            total.add(d.timer);
+            notifyAll();
+            
+            soBcastLogger.info("SATIN '" + s.ident + "': broadcast " + id
+                + " took " + d.timer.totalTime() + " " + ((d.size / d.timer.totalTimeVal()) / 1024 * 1024) + " MB/s");
+        }
+
+        public synchronized void waitForCompletion(int id) {
+            DataObject d = map.get(id);
+            if (d == null) {
+                soBcastLogger.info("SATIN '" + s.ident
+                    + "': wait for unknow id: " + id);
+                return;
+            }
+
+            while(!d.done) {
+                try {
+                    wait();
+                } catch (Exception e) {
+                    // ignore
+                }
+            }
+            
+            map.remove(id);
+        }
+        
+        void end() {
+            soBcastLogger.info("SATIN '" + s.ident
+                + "': total broadcast time was: " + total.totalTime());
         }
     }
 }
