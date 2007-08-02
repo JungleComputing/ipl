@@ -110,7 +110,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
     }
     private static final boolean ASYNC_SO_BCAST = false;
 
-        private static final boolean BLOCKING_BCAST = false;
+        private static final boolean BLOCKING_BCAST = true;
     
     private final static int WAIT_FOR_UPDATES_TIME = 60000;
 
