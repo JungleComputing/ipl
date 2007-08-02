@@ -719,7 +719,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
     private void connectSOSendPort(IbisIdentifier ident) {
         ReceivePortIdentifier r =
                 Communication.connect(soSendPort, ident,
-                    "satin so receiveport for " + s.ident,
+                    "satin so receive port for " + s.ident,
                     Satin.CONNECT_TIMEOUT);
         if (r != null) {
             synchronized (s) {
