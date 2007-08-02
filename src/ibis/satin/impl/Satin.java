@@ -31,7 +31,7 @@ public final class Satin implements Config {
 
     private static final int SUGGESTED_QUEUE_SIZE = 1000;
 
-    public static final boolean GLOBAL_PAUSE_RESUME = false;
+    public static final boolean GLOBAL_PAUSE_RESUME = true;
     
     private static Satin thisSatin;
 
