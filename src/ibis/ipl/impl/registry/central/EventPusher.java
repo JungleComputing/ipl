@@ -1,8 +1,8 @@
 package ibis.ipl.impl.registry.central;
 
-import java.util.List;
-
 import ibis.util.ThreadPool;
+
+import java.util.List;
 
 import org.apache.log4j.Logger;
 

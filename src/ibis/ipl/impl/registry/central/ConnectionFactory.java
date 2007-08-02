@@ -1,11 +1,16 @@
 package ibis.ipl.impl.registry.central;
 
+import ibis.io.Conversion;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.IbisProperties;
 import ibis.ipl.impl.IbisIdentifier;
+import ibis.server.Client;
+import ibis.smartsockets.virtual.InitializationException;
+import ibis.smartsockets.virtual.VirtualServerSocket;
+import ibis.smartsockets.virtual.VirtualSocketAddress;
+import ibis.smartsockets.virtual.VirtualSocketFactory;
 import ibis.util.IPUtils;
 import ibis.util.TypedProperties;
-import ibis.io.Conversion;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -13,13 +18,6 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 
 import org.apache.log4j.Logger;
-
-import ibis.smartsockets.virtual.InitializationException;
-import ibis.smartsockets.virtual.VirtualServerSocket;
-import ibis.smartsockets.virtual.VirtualSocketAddress;
-import ibis.smartsockets.virtual.VirtualSocketFactory;
-
-import ibis.server.Client;
 
 final class ConnectionFactory {
     private static final int CONNECTION_BACKLOG = 50;

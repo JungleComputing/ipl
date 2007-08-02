@@ -2,10 +2,10 @@
 
 package ibis.ipl.impl.nio;
 
-import ibis.ipl.IbisCapabilities;
 import ibis.ipl.CapabilitySet;
-import ibis.ipl.PortType;
 import ibis.ipl.Ibis;
+import ibis.ipl.IbisCapabilities;
+import ibis.ipl.PortType;
 import ibis.ipl.RegistryEventHandler;
 
 import java.util.Properties;

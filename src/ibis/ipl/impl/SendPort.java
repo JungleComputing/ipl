@@ -2,6 +2,10 @@
 
 package ibis.ipl.impl;
 
+import ibis.io.DataOutputStream;
+import ibis.io.Replacer;
+import ibis.io.SerializationBase;
+import ibis.io.SerializationOutput;
 import ibis.ipl.AlreadyConnectedException;
 import ibis.ipl.ConnectionFailedException;
 import ibis.ipl.ConnectionTimedOutException;
@@ -9,10 +13,6 @@ import ibis.ipl.ConnectionsFailedException;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.PortType;
 import ibis.ipl.SendPortDisconnectUpcall;
-import ibis.io.DataOutputStream;
-import ibis.io.Replacer;
-import ibis.io.SerializationBase;
-import ibis.io.SerializationOutput;
 
 import java.io.IOException;
 import java.util.ArrayList;

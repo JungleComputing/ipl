@@ -4,10 +4,10 @@ package ibis.rmi.impl;
 
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisCapabilities;
+import ibis.ipl.IbisCreationFailedException;
 import ibis.ipl.IbisFactory;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.MessageUpcall;
-import ibis.ipl.IbisCreationFailedException;
 import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;

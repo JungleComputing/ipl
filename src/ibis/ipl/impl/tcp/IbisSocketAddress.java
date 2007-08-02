@@ -1,5 +1,7 @@
 package ibis.ipl.impl.tcp;
 
+import ibis.smartsockets.virtual.VirtualSocketAddress;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -8,8 +10,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.SocketAddress;
-
-import ibis.smartsockets.virtual.VirtualSocketAddress;
 
 /**
  * Either a SocketAddress or a VirtualSocketAddress.

@@ -1,6 +1,10 @@
 package ibis.ipl.impl.tcp;
 
 import ibis.ipl.impl.IbisIdentifier;
+import ibis.server.Client;
+import ibis.smartsockets.hub.servicelink.ServiceLink;
+import ibis.smartsockets.virtual.InitializationException;
+import ibis.smartsockets.virtual.VirtualSocketFactory;
 import ibis.util.IPUtils;
 import ibis.util.TypedProperties;
 
@@ -11,11 +15,6 @@ import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-
-import ibis.server.Client;
-import ibis.smartsockets.hub.servicelink.ServiceLink;
-import ibis.smartsockets.virtual.InitializationException;
-import ibis.smartsockets.virtual.VirtualSocketFactory;
 
 /**
  * Provides a factory that can either produce smartsockets sockets or

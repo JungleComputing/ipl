@@ -2,6 +2,8 @@
 
 package ibis.ipl.impl.tcp;
 
+import ibis.io.BufferedArrayInputStream;
+import ibis.io.BufferedArrayOutputStream;
 import ibis.ipl.AlreadyConnectedException;
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.ConnectionTimedOutException;
@@ -17,8 +19,6 @@ import ibis.ipl.impl.ReceivePort;
 import ibis.ipl.impl.SendPort;
 import ibis.ipl.impl.SendPortIdentifier;
 import ibis.util.ThreadPool;
-import ibis.io.BufferedArrayInputStream;
-import ibis.io.BufferedArrayOutputStream;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;

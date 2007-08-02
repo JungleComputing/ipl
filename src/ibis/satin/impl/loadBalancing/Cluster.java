@@ -3,6 +3,7 @@
 package ibis.satin.impl.loadBalancing;
 
 import ibis.ipl.Location;
+
 import java.util.Vector;
 
 final class Cluster {

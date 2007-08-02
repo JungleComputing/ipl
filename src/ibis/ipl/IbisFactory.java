@@ -216,6 +216,7 @@ public final class IbisFactory {
         return ibis;
     }
 
+    @SuppressWarnings("unchecked")
     private Ibis createIbis(RegistryEventHandler registryEventHandler,
             IbisCapabilities requiredCapabilities, Properties properties,
             PortType[] portTypes) throws IbisCreationFailedException {
@@ -474,7 +475,7 @@ public final class IbisFactory {
                 return classPathLister;
             }
 
-            ClassLister lister = (ClassLister) listers.get(dirList);
+            ClassLister lister = listers.get(dirList);
             if (lister == null) {
                 lister = new ClassLister(dirList);
                 listers.put(dirList, lister);

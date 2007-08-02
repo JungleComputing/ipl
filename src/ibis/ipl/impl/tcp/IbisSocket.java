@@ -1,9 +1,9 @@
 package ibis.ipl.impl.tcp;
 
+import ibis.smartsockets.virtual.VirtualSocket;
+
 import java.io.IOException;
 import java.net.Socket;
-
-import ibis.smartsockets.virtual.VirtualSocket;
 
 /**
  * Either an ordinary socket or a smart socket.

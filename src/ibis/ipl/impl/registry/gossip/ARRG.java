@@ -1,9 +1,8 @@
 package ibis.ipl.impl.registry.gossip;
 
-import java.util.ArrayList;
-
 import ibis.smartsockets.virtual.VirtualSocketAddress;
-import ibis.smartsockets.virtual.VirtualSocketFactory;
+
+import java.util.ArrayList;
 
 /**
  * Implementation of the ARRG algorithm

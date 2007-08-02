@@ -2,6 +2,7 @@
 
 package ibis.ipl.impl;
 
+import ibis.io.IbisIOException;
 import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.IbisProperties;
@@ -12,7 +13,6 @@ import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.util.Log;
 import ibis.util.TypedProperties;
-import ibis.io.IbisIOException;
 
 import java.io.IOException;
 import java.io.InputStream;

@@ -8,11 +8,11 @@
  */
 package ibis.util.messagecombining;
 
+import ibis.io.SerializationBase;
+import ibis.io.SerializationInput;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.SendPortIdentifier;
-import ibis.io.SerializationBase;
-import ibis.io.SerializationInput;
 
 import java.io.IOException;
 

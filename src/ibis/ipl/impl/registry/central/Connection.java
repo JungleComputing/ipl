@@ -1,5 +1,10 @@
 package ibis.ipl.impl.registry.central;
 
+import ibis.smartsockets.virtual.VirtualServerSocket;
+import ibis.smartsockets.virtual.VirtualSocket;
+import ibis.smartsockets.virtual.VirtualSocketAddress;
+import ibis.smartsockets.virtual.VirtualSocketFactory;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
@@ -11,11 +16,6 @@ import java.net.Socket;
 import java.util.HashMap;
 
 import org.apache.log4j.Logger;
-
-import ibis.smartsockets.virtual.VirtualServerSocket;
-import ibis.smartsockets.virtual.VirtualSocket;
-import ibis.smartsockets.virtual.VirtualSocketAddress;
-import ibis.smartsockets.virtual.VirtualSocketFactory;
 
 final class Connection {
 

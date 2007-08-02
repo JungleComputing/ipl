@@ -6,13 +6,13 @@
 package ibis.mpj;
 
 
-import ibis.ipl.IbisIdentifier;
 import ibis.io.BufferedArrayInputStream;
 import ibis.io.BufferedArrayOutputStream;
 import ibis.io.IbisSerializationInputStream;
 import ibis.io.IbisSerializationOutputStream;
 import ibis.io.SerializationInput;
 import ibis.io.SerializationOutput;
+import ibis.ipl.IbisIdentifier;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

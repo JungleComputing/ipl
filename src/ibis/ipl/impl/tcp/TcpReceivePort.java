@@ -2,6 +2,8 @@
 
 package ibis.ipl.impl.tcp;
 
+import ibis.io.BufferedArrayInputStream;
+import ibis.io.Conversion;
 import ibis.ipl.MessageUpcall;
 import ibis.ipl.PortType;
 import ibis.ipl.ReceivePortConnectUpcall;
@@ -12,8 +14,6 @@ import ibis.ipl.impl.ReceivePortConnectionInfo;
 import ibis.ipl.impl.ReceivePortIdentifier;
 import ibis.ipl.impl.SendPortIdentifier;
 import ibis.util.ThreadPool;
-import ibis.io.BufferedArrayInputStream;
-import ibis.io.Conversion;
 
 import java.io.IOException;
 import java.util.Properties;
