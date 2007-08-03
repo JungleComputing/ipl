@@ -83,7 +83,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
         if (LABEL_ROUTING_MCAST) {
             try {
                 omc = new ObjectMulticaster(s.comm.ibis,
-                            true /* efficient multi-cluster */, false /* no signals */,
+                            true /* efficient multi-cluster */, true /* no signals */,
                             "satinSO", this);
                 omcInfo = new OmcInfo(s);
             } catch (Exception e) {
