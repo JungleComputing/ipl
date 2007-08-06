@@ -11,7 +11,8 @@ IPL:
 + add a timeout parameter to getElectionResult() 
   (0 == forever, -1 == non-blocking) (Done Ceriel)
 - check TcpSendPost.close: why don't we close in case of a normal exception? --Rob
-- Ibis IO is not self contained, missing bcel stuff. --Rob
++ Ibis IO is not self contained, missing bcel stuff. --Rob
+  ??? no, not true --Ceriel
 
 Ibis Factory:
 - add support for stacking to the factory (don't add an Ibis to a stack twice)
@@ -29,7 +30,7 @@ IbisC:
   were fixed already  Ceriel)
 + add classes in the parameters to the classpath (Done Ceriel)
 + print some status output in ibisc (Done Ceriel)
-- ant jar removes jar file :-)
++ ant jar removes jar file :-) (fixed Ceriel)
 - rewrite of satin genesequencing fails.
 [rob@localhost ~/workspace/apps-trunk/satin/geneSequencing]$ CLASSPATH=lib/geneSequencing.jar:neobio/lib/neobio.jar ~/workspace/ibis-trunk/bin/ibis-run geneSequencing.divideAndConquer.DsearchDC testdata/input_03.txt dc
 Exception in thread "main" java.lang.ClassFormatError: LVTT entry for 'resultUnit' in class file geneSequencing/divideAndConquer/DsearchDC does not match any LVT entry

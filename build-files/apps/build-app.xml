@@ -157,7 +157,6 @@
         <basename file="." property="application-name" />
         <jar destfile="${application-name}.jar" basedir="${build}" includes="**/*.class">
         </jar>
-        <antcall inheritRefs="true" target="clean" />
         <delete dir="${build}" />
     </target>
 
