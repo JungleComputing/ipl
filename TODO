@@ -10,9 +10,11 @@ IPL:
 + add "fillTimeout" option to sendport.connect(). (Done someone).
 + add a timeout parameter to getElectionResult() 
   (0 == forever, -1 == non-blocking) (Done Ceriel)
-- check TcpSendPost.close: why don't we close in case of a normal exception? --Rob
 + Ibis IO is not self contained, missing bcel stuff. --Rob
   ??? no, not true --Ceriel
+* properties are a mess now. Both ibis.util.TypedProperties and 
+  ibis.ipl.IbisProperties now name ibis.properties and ibis.properties.file.
+  Also, ibis.ipl.IbisProperties javadocs don't work. --Ceriel
 
 Ibis Factory:
 - add support for stacking to the factory (don't add an Ibis to a stack twice)
@@ -76,8 +78,9 @@ ibis registry:
   push() and push(), but I think I fixed that (Ceriel).
 
 implementations:
-* removed yields, since they break the while idea of starting your own replacement threads
-- The getVersion method in Ibis.java is buggy!
+* check TcpSendPost.close: why don't we close in case of a normal exception? --Rob
+* removed yields, since they break the whole idea of starting your own replacement threads --Jason
++ The getVersion method in Ibis.java is buggy! (Fixed Ceriel)
 + TcpIbis: fork a thread immediately after doing an "accept". Don't do a 
   handshake first. (Done Jason, fixed Ceriel).
 + Fix deadlocks due to lazily creating serialization streams in TcpIbis.
