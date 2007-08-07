@@ -67,7 +67,7 @@ public final class IbisFactory {
     }
 
     /**
-     * Load properties from the standard configuration file locations
+     * Load properties from the standard configuration file locations.
      */
     private static synchronized Properties getDefaultProperties() {
         if (defaultConfigProperties == null) {

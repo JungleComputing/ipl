@@ -25,7 +25,7 @@ import java.util.Properties;
  */
 public final class Location implements ibis.ipl.Location {
     
-    private static final Location universe = new Location("universe");
+    private static final Location universe = new Location(new String[0]);
 
     private static final long serialVersionUID = 1L;
 
@@ -58,7 +58,11 @@ public final class Location implements ibis.ipl.Location {
      * @param s the specified string.
      */
     public Location(String s) {
-        levelNames = s.split(SEPARATOR);
+        if (s.equals("")) {
+            levelNames = new String[0];
+        } else {
+            levelNames = s.split(SEPARATOR);
+        }
         codedForm = computeCodedForm();
     }
 

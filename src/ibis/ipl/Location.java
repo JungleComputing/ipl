@@ -1,8 +1,5 @@
 /* $Id$ */
 
-// FIXME docs: levels run from 0 - #levels-1 or from 1? --Rob
-// FIXME docs: what is the ordering of level numbers? domain == 0 or size-1 ?
-
 package ibis.ipl;
 
 /**
@@ -10,6 +7,8 @@ package ibis.ipl;
  * data type returned by {@link IbisIdentifier#location()}.
  * It represents a number of levels, for instance hostname, domain,
  * in that order, t.i., from detailed to coarse.
+ * Level 0 represents the most detailed, level {@link #numberOfLevels()}-1
+ * the most coarse.
  * Should be comparable with <code>equals()</code>, so implementations
  * probably redefine <code>hashCode()</code> and <code>equals()</code>.
  */
@@ -23,6 +22,7 @@ public interface Location extends java.io.Serializable, Comparable<Location>,
 
     /**
      * Returns the name of the specified level.
+     * Levels are numbered from 0 to {@link #numberOfLevels()}-1.
      * @param levelIndex the specified level.
      * @return the corresponding name.
      * @exception ArrayIndexOutOfBoundsException is thrown when the specified
