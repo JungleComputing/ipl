@@ -14,8 +14,10 @@ import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.util.Log;
 import ibis.util.TypedProperties;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Properties;
 
@@ -226,25 +228,16 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis {
      * @return the ibis version.
      */
     public String getVersion() {
-        
-        // FIXME: This method is broken! There is no guarentee that in.read
-        // reads any bytes, and you're not sure if it fits in an 512 byte 
-        // array!       
-        //
-        // Hint: use BufferedReader instead to read a line of text....        
         InputStream in
             = ClassLoader.getSystemClassLoader().getResourceAsStream("VERSION");
         String version = "Unknown Ibis Version ID";
         if (in != null) {
-            byte[] b = new byte[512];
-            int l = 0;
+            BufferedReader bIn = new BufferedReader(new InputStreamReader(in));
             try {
-                l = in.read(b);
+                version = "Ibis Version ID " + bIn.readLine();
+                bIn.close();
             } catch (Exception e) {
                 // Ignored
-            }
-            if (l > 0) {
-                version = "Ibis Version ID " + new String(b, 0, l);
             }
         }
         return version + ", implementation = " + this.getClass().getName();
