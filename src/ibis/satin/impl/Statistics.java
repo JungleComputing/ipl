@@ -349,7 +349,7 @@ public final class Statistics implements java.io.Serializable, Config {
         pf.setGroupingUsed(false);
 
         boolean haveAborts = abortsDone > 0 || abortedJobs > 0;
-        boolean haveSteals = stealAttempts > 0;
+        boolean haveSteals = stealAttempts > 0 || asyncStealAttempts > 0;
         boolean haveCrashes = tableResultUpdates > 0 || tableLookups > 0
             || restartedJobs > 0;
         boolean haveSO = soInvocations > 0 || soTransfers > 0 || soBcasts > 0;
