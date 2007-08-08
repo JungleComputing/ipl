@@ -11,7 +11,7 @@ IPL:
 + add a timeout parameter to getElectionResult() 
   (0 == forever, -1 == non-blocking) (Done Ceriel)
 + Ibis IO is not self contained, missing bcel stuff. --Rob
-  ??? no, not true --Ceriel
+  (Fixed Ceriel)
 * properties are a mess now. Both ibis.util.TypedProperties and 
   ibis.ipl.IbisProperties now name ibis.properties and ibis.properties.file.
   Also, ibis.ipl.IbisProperties javadocs don't work. --Ceriel
@@ -33,7 +33,7 @@ IbisC:
 + add classes in the parameters to the classpath (Done Ceriel)
 + print some status output in ibisc (Done Ceriel)
 + ant jar removes jar file :-) (fixed Ceriel)
-- rewrite of satin genesequencing fails.
++ rewrite of satin genesequencing fails. --Rob (Disappeared ... Ceriel)
 [rob@localhost ~/workspace/apps-trunk/satin/geneSequencing]$ CLASSPATH=lib/geneSequencing.jar:neobio/lib/neobio.jar ~/workspace/ibis-trunk/bin/ibis-run geneSequencing.divideAndConquer.DsearchDC testdata/input_03.txt dc
 Exception in thread "main" java.lang.ClassFormatError: LVTT entry for 'resultUnit' in class file geneSequencing/divideAndConquer/DsearchDC does not match any LVT entry
         at java.lang.ClassLoader.defineClass1(Native Method)
@@ -111,8 +111,8 @@ packaging/distribution:
 	- standalone applications (DFA, SAT4Satin, Barnes)	
 * put DeepCopy in a sane place
 - update docs
-- migrate leftover prints to log4j, surround with if (DEBUG){}
-  in performance critical section
++ migrate leftover prints to log4j, surround with if (DEBUG){}
+  in performance critical section (Done Ceriel)
 - while(true) {fix eclipse warnings}
 - Api docs of IPL: read, clarify, improve (Niels: Done SendPort).
 - clean-up scripts
