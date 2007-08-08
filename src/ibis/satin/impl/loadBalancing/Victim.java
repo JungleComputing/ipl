@@ -168,7 +168,10 @@ public final class Victim implements Config {
     }
     
     public static String clusterOf(IbisIdentifier id) {
-        int count = id.location().numberOfLevels();
-        return id.location().getLevel(count-1);
+        // Not correct: considers all nodes to be in different clusters
+        // if there is only one level. --Ceriel
+        // int count = id.location().numberOfLevels();
+        // return id.location().getLevel(count-1);
+        return id.location().getParent().toString();
     }
 }
