@@ -856,7 +856,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
         }
         
         void end() {
-            soBcastLogger.info("SATIN '" + s.ident
+            soBcastLogger.debug("SATIN '" + s.ident
                 + "': total broadcast time was: " + total.totalTime());
         }
     }
