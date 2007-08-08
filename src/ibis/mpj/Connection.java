@@ -15,6 +15,8 @@ import ibis.ipl.WriteMessage;
 
 import java.io.IOException;
 
+import org.apache.log4j.Logger;
+
 /**
  * Holds all information about a connection between two nodes.
  */
@@ -23,7 +25,7 @@ public class Connection {
 
     //	private MPJObject readObj = new MPJObject();
 
-    private final boolean DEBUG = false;
+    static Logger logger = Logger.getLogger(Connection.class.getName());
 
     private ReceivePort receiver = null;
     private SendPort sender = null;
@@ -50,8 +52,8 @@ public class Connection {
     protected void setupReceivePort() {
         String portString = "_" + commPartnerRank;
 
-        if (DEBUG) {
-            System.err.println("Receive on: " + portString + "; Index: " + commPartnerRank);
+        if (logger.isDebugEnabled()) {
+            logger.debug("Receive on: " + portString + "; Index: " + commPartnerRank);
         }
         try {
             this.recvQueue = new MPJObjectQueue();
@@ -59,16 +61,15 @@ public class Connection {
             this.receiver.enableConnections();
         }
         catch (Exception e) {
-            System.err.println(e.getMessage());
-            e.printStackTrace();
+            logger.error("got exception", e);
         }
     }
 
     protected void setupSendPort() {
         String portString = "_" + myRank;
 
-        if (DEBUG) {
-            System.err.println("Send on: " + portString + "; Index: " + commPartnerRank);
+        if (logger.isDebugEnabled()) {
+            logger.debug("Send on: " + portString + "; Index: " + commPartnerRank);
         }
         try {
             sender = MPJ.ibis.createSendPort(portType);
@@ -77,8 +78,7 @@ public class Connection {
             sender.connect(rpHolder, portString);
         }
         catch (Exception e) {
-            System.err.println(e.getMessage());
-            e.printStackTrace();
+            logger.error("got exception", e);
         }
     }
 
@@ -138,8 +138,7 @@ public class Connection {
                 messageCount++;
             }
             catch (Exception e) {
-                System.err.println(e.getMessage());
-                e.printStackTrace();
+                logger.error("got exception", e);
             }
         }
     }
@@ -153,8 +152,7 @@ public class Connection {
                     messageCount = 0;
                 }
                 catch (Exception e) {
-                    System.err.println(e.getMessage());
-                    e.printStackTrace();				
+                    logger.error("got exception", e);
                 }
             }
         }
@@ -255,8 +253,7 @@ public class Connection {
 
         }
         catch (Exception e) {
-            System.err.println(e.getMessage());
-            e.printStackTrace();
+            logger.error("got exception", e);
         }
     }
 }

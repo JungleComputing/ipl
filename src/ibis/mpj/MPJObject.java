@@ -10,6 +10,7 @@ import java.io.EOFException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
 
+import org.apache.log4j.Logger;
 
 /**
  * Object which will be sent and received by the basic point-to-point modes.
@@ -19,7 +20,7 @@ public class MPJObject implements Serializable {
      * Generated
      */
     private static final long serialVersionUID = 879088312956043084L;
-    private final boolean DEBUG = false;
+    static Logger logger = Logger.getLogger(MPJObject.class.getName());
     private static final int HEADER_SIZE = 5;
 
     protected Object buffer;
@@ -27,7 +28,7 @@ public class MPJObject implements Serializable {
 
 
     MPJObject() {
-    	// nothing here
+        // nothing here
     }
 
     MPJObject(int tag, int contextId, boolean buffered, int baseType, int count) {
@@ -70,7 +71,7 @@ public class MPJObject implements Serializable {
 
 
     protected boolean isBuffered() {
-    	return this.desc[2] == 1;
+        return this.desc[2] == 1;
     }
 
     protected void setBuffered(boolean buffered) {
@@ -143,191 +144,194 @@ public class MPJObject implements Serializable {
 
 
     protected int cast2ByteArray(Object destBuf, int offset, int count) {
-    	
-    	if ((this.buffer == null) || (destBuf == null) || (count <= 0) || (offset < 0) || 
-    			(!(destBuf instanceof byte[])) || (!(this.buffer instanceof byte[]))) {
-    		return(0);
-    	}
-    	if ((offset + count) > ((byte[])destBuf).length) {
-    		count = ((byte[])destBuf).length - offset;
-    	}
-    	if (count > ((byte[])this.buffer).length) {
-    		count = ((byte[])this.buffer).length - offset;
-    	}
-    	System.arraycopy(this.buffer, 0, destBuf, offset, count);
-    	return(count);
-    	
-    	
+
+        if ((this.buffer == null) || (destBuf == null) || (count <= 0) || (offset < 0) || 
+                (!(destBuf instanceof byte[])) || (!(this.buffer instanceof byte[]))) {
+            return(0);
+                }
+        if ((offset + count) > ((byte[])destBuf).length) {
+            count = ((byte[])destBuf).length - offset;
+        }
+        if (count > ((byte[])this.buffer).length) {
+            count = ((byte[])this.buffer).length - offset;
+        }
+        System.arraycopy(this.buffer, 0, destBuf, offset, count);
+        return(count);
+
+
     }
 
     protected int cast2CharArray(Object destBuf, int offset, int count) {
 
-    	if ((this.buffer == null) || (destBuf == null) || (count <= 0) || (offset < 0) || 
-    			(!(destBuf instanceof char[])) || (!(this.buffer instanceof char[]))) {
-    		return(0);
-    	}
-    	
-    	if ((offset + count) > ((char[])destBuf).length) {
-    		count = ((char[])destBuf).length - offset;
-    	}
-    	if (count > ((char[])this.buffer).length) {
-    		count = ((char[])this.buffer).length - offset;
-    	}
-    	System.arraycopy(this.buffer, 0, destBuf, offset, count);
-    	return(count);
+        if ((this.buffer == null) || (destBuf == null) || (count <= 0) || (offset < 0) || 
+                (!(destBuf instanceof char[])) || (!(this.buffer instanceof char[]))) {
+            return(0);
+                }
+
+        if ((offset + count) > ((char[])destBuf).length) {
+            count = ((char[])destBuf).length - offset;
+        }
+        if (count > ((char[])this.buffer).length) {
+            count = ((char[])this.buffer).length - offset;
+        }
+        System.arraycopy(this.buffer, 0, destBuf, offset, count);
+        return(count);
 
     }
 
     protected int cast2ShortArray(Object destBuf, int offset, int count) {
-    	if ((this.buffer == null) || (destBuf == null) || (count <= 0) || (offset < 0) || 
-    			(!(destBuf instanceof short[])) || (!(this.buffer instanceof short[]))) {
-    		return(0);
-    	}
-    	if ((offset + count) > ((short[])destBuf).length) {
-    		count = ((short[])destBuf).length - offset;
-    	}
-    	if (count > ((short[])this.buffer).length) {
-    		count = ((short[])this.buffer).length - offset;
-    	}
-    	System.arraycopy(this.buffer, 0, destBuf, offset, count);
-    	return(count);
+        if ((this.buffer == null) || (destBuf == null) || (count <= 0) || (offset < 0) || 
+                (!(destBuf instanceof short[])) || (!(this.buffer instanceof short[]))) {
+            return(0);
+                }
+        if ((offset + count) > ((short[])destBuf).length) {
+            count = ((short[])destBuf).length - offset;
+        }
+        if (count > ((short[])this.buffer).length) {
+            count = ((short[])this.buffer).length - offset;
+        }
+        System.arraycopy(this.buffer, 0, destBuf, offset, count);
+        return(count);
     }
 
     protected int cast2BooleanArray(Object destBuf, int offset, int count) {
-    	if ((this.buffer == null) || (destBuf == null) || (count <= 0) || (offset < 0) || 
-    			(!(destBuf instanceof boolean[])) || (!(this.buffer instanceof boolean[]))) {
-    		return(0);
-    	}
-    	if ((offset + count) > ((boolean[])destBuf).length) {
-    		count = ((boolean[])destBuf).length - offset;
-    	}
-    	if (count > ((boolean[])this.buffer).length) {
-    		count = ((boolean[])this.buffer).length - offset;
-    	}
-    	
-    	System.arraycopy(this.buffer, 0, destBuf, offset, count);
-    	return(count);
+        if ((this.buffer == null) || (destBuf == null) || (count <= 0) || (offset < 0) || 
+                (!(destBuf instanceof boolean[])) || (!(this.buffer instanceof boolean[]))) {
+            return(0);
+                }
+        if ((offset + count) > ((boolean[])destBuf).length) {
+            count = ((boolean[])destBuf).length - offset;
+        }
+        if (count > ((boolean[])this.buffer).length) {
+            count = ((boolean[])this.buffer).length - offset;
+        }
+
+        System.arraycopy(this.buffer, 0, destBuf, offset, count);
+        return(count);
     }
 
 
 
     protected int cast2IntArray(Object destBuf, int offset, int count) {
-    	
-    	if ((this.buffer == null) || (destBuf == null) || (count <= 0) || (offset < 0) || 
-    			(!(destBuf instanceof int[])) || (!(this.buffer instanceof int[]))) {
-    		return(0);
-    	}
-    	if ((offset + count) > ((int[])destBuf).length) {
-    		count = ((int[])destBuf).length - offset;
-    	}
-    	if (count > ((int[])this.buffer).length) {
-    		count = ((int[])this.buffer).length - offset;
-    	}
-    	if (DEBUG) {
-    		System.out.println("offset: " + offset);
-    		System.out.println("count: " + count);
-    		System.out.println("this.buffer.length: " + ((int[])this.buffer).length);
-    		System.out.println("destBuf.length: " + ((int[])destBuf).length);
-    	}
-    	System.arraycopy(this.buffer, 0, destBuf, offset, count);
-    	return(count);
-    	
-    	
+
+        if ((this.buffer == null) || (destBuf == null) || (count <= 0) || (offset < 0) || 
+                (!(destBuf instanceof int[])) || (!(this.buffer instanceof int[]))) {
+            return(0);
+                }
+        if ((offset + count) > ((int[])destBuf).length) {
+            count = ((int[])destBuf).length - offset;
+        }
+        if (count > ((int[])this.buffer).length) {
+            count = ((int[])this.buffer).length - offset;
+        }
+        if (logger.isDebugEnabled()) {
+            logger.debug("offset: " + offset);
+            logger.debug("count: " + count);
+            logger.debug("this.buffer.length: " + ((int[])this.buffer).length);
+            logger.debug("destBuf.length: " + ((int[])destBuf).length);
+        }
+        System.arraycopy(this.buffer, 0, destBuf, offset, count);
+        return(count);
+
+
     }
 
 
     protected int cast2LongArray(Object destBuf, int offset, int count) {
-    	if ((this.buffer == null) || (destBuf == null) || (count <= 0) || (offset < 0) || 
-    			(!(destBuf instanceof long[])) || (!(this.buffer instanceof long[]))) {
-    		return(0);
-    	}
-    	if ((offset + count) > ((long[])destBuf).length) {
-    		count = ((long[])destBuf).length - offset;
-    	}
-    	if (count > ((long[])this.buffer).length) {
-    		count = ((long[])this.buffer).length - offset;
-    	}
-    	System.arraycopy(this.buffer, 0, destBuf, offset, count);
-    	return(count);
-    	
-    	
+        if ((this.buffer == null) || (destBuf == null) || (count <= 0) || (offset < 0) || 
+                (!(destBuf instanceof long[])) || (!(this.buffer instanceof long[]))) {
+            return(0);
+                }
+        if ((offset + count) > ((long[])destBuf).length) {
+            count = ((long[])destBuf).length - offset;
+        }
+        if (count > ((long[])this.buffer).length) {
+            count = ((long[])this.buffer).length - offset;
+        }
+        System.arraycopy(this.buffer, 0, destBuf, offset, count);
+        return(count);
+
+
     }
 
     protected int cast2FloatArray(Object destBuf, int offset, int count) {
-    	if ((this.buffer == null) || (destBuf == null) || (count <= 0) || (offset < 0) || 
-    			(!(destBuf instanceof float[])) || (!(this.buffer instanceof float[]))) {
-    		return(0);
-    	}
-    	
-    	if ((offset + count) > ((float[])destBuf).length) {
-    		count = ((float[])destBuf).length - offset;
-    	}
-    	if ((offset + count) > ((float[])this.buffer).length) {
-    		count = ((float[])this.buffer).length - offset;
-    	}
-    	System.arraycopy(this.buffer, 0, destBuf, offset, count);
-    	return(count);
-    	
+        if ((this.buffer == null) || (destBuf == null) || (count <= 0) || (offset < 0) || 
+                (!(destBuf instanceof float[])) || (!(this.buffer instanceof float[]))) {
+            return(0);
+                }
+
+        if ((offset + count) > ((float[])destBuf).length) {
+            count = ((float[])destBuf).length - offset;
+        }
+        if ((offset + count) > ((float[])this.buffer).length) {
+            count = ((float[])this.buffer).length - offset;
+        }
+        System.arraycopy(this.buffer, 0, destBuf, offset, count);
+        return(count);
+
     }
 
 
     protected int cast2DoubleArray(Object destBuf, int offset, int count) {
-    	if ((this.buffer == null) || (destBuf == null) || (count <= 0) || (offset < 0) || 
-    			(!(destBuf instanceof double[])) || (!(this.buffer instanceof double[]))) {
-    		
-    		return(0);
-    	}
-    	
-    	System.out.println("c: " + count);
-    	System.out.println("o: " + offset);
-    	if ((offset + count) > ((double[])destBuf).length) {
-    		count = ((double[])destBuf).length - offset;
-    	}
-    	
-    	if ((offset + count) > ((double[])this.buffer).length) {
-    		count = ((double[])this.buffer).length - offset;
-    	}
-    	System.out.println("c: " + count);
-    	System.out.println("o: " + offset);
-    	System.arraycopy(this.buffer, 0, destBuf, offset, count);
-    	
-    	return(count);
-    	
+        if ((this.buffer == null) || (destBuf == null) || (count <= 0) || (offset < 0) || 
+                (!(destBuf instanceof double[])) || (!(this.buffer instanceof double[]))) {
+
+            return(0);
+                }
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("c: " + count);
+            logger.debug("o: " + offset);
+        }
+        if ((offset + count) > ((double[])destBuf).length) {
+            count = ((double[])destBuf).length - offset;
+        }
+
+        if ((offset + count) > ((double[])this.buffer).length) {
+            count = ((double[])this.buffer).length - offset;
+        }
+        if (logger.isDebugEnabled()) {
+            logger.debug("c: " + count);
+            logger.debug("o: " + offset);
+        }
+        System.arraycopy(this.buffer, 0, destBuf, offset, count);
+
+        return(count);
+
     }
 
     protected int cast2ObjectArray(Object destBuf, int offset, int count) {
-    	if ((this.buffer == null) || (destBuf == null) || (count <= 0) || (offset < 0) || 
-    			(!(destBuf instanceof Object[])) || (!(this.buffer instanceof byte[]))) {
-    		return(0);
-    	}
-    	try {
-    		ByteArrayInputStream byteInStream = new ByteArrayInputStream((byte [])this.buffer);
-    		ObjectInputStream objectInStream = new ObjectInputStream(byteInStream);
-    		
-    		for (int i = offset; i < count+offset; i++) {
-    			try {
-    				((Object[])destBuf)[i] = objectInStream.readObject();
-    			}
-    			catch(EOFException e) {
-    				count--;
-    				if (((Object[])destBuf)[i] == null) {
-    					
-    					Class cl = ((Object[])destBuf)[offset].getClass();
-    					((Object[])destBuf)[i] = cl.newInstance();
-    				}
-    			}
-    		}
-    		
-    		return(count);	
-    	} 
-    	catch (Exception e) {
-    		System.err.println(e.getMessage());
-    		e.printStackTrace();
-    		return(0);
-    	}
-    	
+        if ((this.buffer == null) || (destBuf == null) || (count <= 0) || (offset < 0) || 
+                (!(destBuf instanceof Object[])) || (!(this.buffer instanceof byte[]))) {
+            return(0);
+                }
+        try {
+            ByteArrayInputStream byteInStream = new ByteArrayInputStream((byte [])this.buffer);
+            ObjectInputStream objectInStream = new ObjectInputStream(byteInStream);
+
+            for (int i = offset; i < count+offset; i++) {
+                try {
+                    ((Object[])destBuf)[i] = objectInStream.readObject();
+                }
+                catch(EOFException e) {
+                    count--;
+                    if (((Object[])destBuf)[i] == null) {
+
+                        Class cl = ((Object[])destBuf)[offset].getClass();
+                        ((Object[])destBuf)[i] = cl.newInstance();
+                    }
+                }
+            }
+
+            return(count);	
+        } 
+        catch (Exception e) {
+            logger.error("got exception", e);
+            return(0);
+        }
+
     }
-    
+
 
 
 

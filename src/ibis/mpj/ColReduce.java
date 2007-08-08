@@ -5,12 +5,13 @@
  */
 package ibis.mpj;
 
+import org.apache.log4j.Logger;
 
 /**
  * Implementation of the collective operation: reduce
  */
 public class ColReduce {
-    private final boolean DEBUG = false;
+    static Logger logger = Logger.getLogger(ColReduce.class.getName());
 
     private Object sendbuf = null;
     private int sendOffset = 0;
@@ -59,8 +60,8 @@ public class ColReduce {
         int size = this.comm.size();
 
 
-        if (DEBUG) {
-            System.out.println(rank + ": Reduce started. Root = " + root + " groupsize = " + size + " counter<< = " + this.tag);
+        if (logger.isDebugEnabled()) {
+            logger.debug(rank + ": Reduce started. Root = " + root + " groupsize = " + size + " counter<< = " + this.tag);
         }
 
         Object recv = null;
@@ -107,9 +108,8 @@ public class ColReduce {
                 if (peer < size) {
                     peer = (peer + root) % size;
 
-                    if (DEBUG) {
-                        System.out.println(rank + ": Reduce receive from "+ peer);
-                        System.out.flush();
+                    if (logger.isDebugEnabled()) {
+                        logger.debug(rank + ": Reduce receive from "+ peer);
                     }
 
 
@@ -120,9 +120,8 @@ public class ColReduce {
             } else { // send and terminate 
                 peer = ((relrank & (~mask)) + root) % size;
 
-                if (DEBUG) {
-                    System.out.println(rank + ": Reduce send to "+ peer);
-                    System.out.flush();
+                if (logger.isDebugEnabled()) {
+                    logger.debug(rank + ": Reduce send to "+ peer);
                 }
 
                 this.comm.send(this.recvbuf, this.recvOffset, this.count, this.datatype, peer, this.tag);
@@ -132,8 +131,8 @@ public class ColReduce {
             mask <<= 1;
         }
 
-        if (DEBUG) {
-            System.out.println(rank + ": reduce done.");
+        if (logger.isDebugEnabled()) {
+            logger.debug(rank + ": reduce done.");
         }
 
     }

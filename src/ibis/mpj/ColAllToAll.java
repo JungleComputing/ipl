@@ -5,11 +5,13 @@
  */
 package ibis.mpj;
 
+import org.apache.log4j.Logger;
+
 /**
  * Implementation of the collective operation: alltoall.
  */
 public class ColAllToAll {
-    private final boolean DEBUG = false;
+    static Logger logger = Logger.getLogger(ColAllToAll.class.getName());
 
     private Object sendbuf = null;
     private int sendoffset = 0;
@@ -68,9 +70,9 @@ public class ColAllToAll {
 
         status = Request.waitAll(request);
 
-        if (DEBUG) {
+        if (logger.isDebugEnabled()) {
             for (int i = 0; i < size; i++) {
-                System.out.println("status-counts: " + i + ": " + status[i].getCount(recvtype));
+                logger.debug("status-counts: " + i + ": " + status[i].getCount(recvtype));
             }
         }
     }

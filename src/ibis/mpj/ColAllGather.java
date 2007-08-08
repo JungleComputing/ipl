@@ -5,11 +5,13 @@
  */
 package ibis.mpj;
 
+import org.apache.log4j.Logger;
+
 /**
  * Implementation of the collective operation: allgather.
  */
 public class ColAllGather {
-    private final boolean DEBUG = false;
+    static Logger logger = Logger.getLogger(ColAllGather.class.getName());
 
     private Object sendbuf = null;
     private int sendoffset = 0;
@@ -81,9 +83,9 @@ public class ColAllGather {
                 nextPosition = this.recvoffset + (nextRank * (recvcount * recvtype.extent()));// + displs[nextRank];
                 prevPosition = this.recvoffset + (prevRank * (recvcount * recvtype.extent()));// + displs[prevRank];
 
-                if (DEBUG) {
-                    System.out.println("prevRank: "+ prevRank + "; prevPos: " + prevPosition + "; rightRank: " + rightRank);
-                    System.out.println("nextRank: "+ nextRank + "; nextPos: " + nextPosition + ";  leftRank: " + leftRank);
+                if (logger.isDebugEnabled()) {
+                    logger.debug("prevRank: "+ prevRank + "; prevPos: " + prevPosition + "; rightRank: " + rightRank);
+                    logger.debug("nextRank: "+ nextRank + "; nextPos: " + nextPosition + ";  leftRank: " + leftRank);
                 }
 
 
@@ -99,9 +101,9 @@ public class ColAllGather {
                 nextPosition = this.recvoffset + (nextRank * (recvcount * recvtype.extent()));// + displs[nextRank];
                 prevPosition = this.recvoffset + (prevRank * (recvcount * recvtype.extent()));// + displs[prevRank];
 
-                if (DEBUG) {
-                    System.out.println("prevRank: "+ prevRank + "; prevPos: " + prevPosition + "; rightRank: " + rightRank);
-                    System.out.println("nextRank: "+ nextRank + "; nextPos: " + nextPosition + ";  leftRank: " + leftRank);
+                if (logger.isDebugEnabled()) {
+                    logger.debug("prevRank: "+ prevRank + "; prevPos: " + prevPosition + "; rightRank: " + rightRank);
+                    logger.debug("nextRank: "+ nextRank + "; nextPos: " + nextPosition + ";  leftRank: " + leftRank);
                 }
 
                 this.comm.send(recvbuf, nextPosition, this.recvcount, this.recvtype, leftRank, this.tag);

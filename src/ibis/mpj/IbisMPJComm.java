@@ -9,13 +9,16 @@ package ibis.mpj;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.ReadMessage;
 
+import org.apache.log4j.Logger;
+
 
 
 /**
  * Implementation of the basic point-to-point communication modes on top of ibis.
  */
 public class IbisMPJComm extends Thread {
-    private final boolean DEBUG = false;
+
+    static Logger logger = Logger.getLogger(IbisMPJComm.class.getName());
 
     protected final static int OP_IRECV = 1;
     protected final static int OP_ISEND = 2;
@@ -89,12 +92,9 @@ public class IbisMPJComm extends Thread {
         MPJObject obj = null;
         this.status = new Status();
         ReadMessage msg = null;
-        // boolean DEBUG = true;
 
-
-
-        if (DEBUG) {
-            System.out.println("irecv: " + this.comm.rank() + ": " + MPJ.getMyId() + ": ANY_SOURCE");
+        if (logger.isDebugEnabled()) {
+            logger.debug("irecv: " + this.comm.rank() + ": " + MPJ.getMyId() + ": ANY_SOURCE");
         }
 
         int src = 0;
@@ -133,20 +133,22 @@ public class IbisMPJComm extends Thread {
                         src = nextSource(src);
 
                         queue.release();
-                        if (DEBUG) System.out.println("message was null... go to next rank");
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("message was null... go to next rank");
+                        }
                         continue;
                     }
                     // 	get message header
                     con.receiveHeader(msg, obj.desc);
 
-                    if(DEBUG) {
-                        System.out.println("recv tag:       " + obj.getTag());
-                        System.out.println("recv contextId: " + obj.getContextId());
-                        System.out.println("recv type:      " + obj.getBaseDatatype());
-                        System.out.println("recv count:     " + obj.getNumberOfElements());
-                        System.out.println("recv offset:    " + offset);
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("recv tag:       " + obj.getTag());
+                        logger.debug("recv contextId: " + obj.getContextId());
+                        logger.debug("recv type:      " + obj.getBaseDatatype());
+                        logger.debug("recv count:     " + obj.getNumberOfElements());
+                        logger.debug("recv offset:    " + offset);
 
-                        System.out.println("supposed count: " + count * datatype.extent());
+                        logger.debug("supposed count: " + count * datatype.extent());
                     }
 
 
@@ -165,7 +167,7 @@ public class IbisMPJComm extends Thread {
                             }
                             // 	if count is smaller than the array received
                             // 	and message NOT buffered -> copy buffer
-                            else if(((count*datatype.extent()) < obj.getNumberOfElements()) && (!obj.isBuffered())) {
+                            else if (((count*datatype.extent()) < obj.getNumberOfElements()) && (!obj.isBuffered())) {
 
                                 obj.initBuffer();
                                 con.receiveData(msg, obj.buffer, 0, obj.getNumberOfElements());
@@ -198,8 +200,8 @@ public class IbisMPJComm extends Thread {
                             }
                     //		the message was NOT expected -> move to queue
                     else {
-                        if(DEBUG) {
-                            System.out.println("Message was NOT expected -> move to queue");
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("Message was NOT expected -> move to queue");
                         }
                         obj.initBuffer();
                         con.receiveData(msg, obj.buffer, 0, obj.getNumberOfElements());
@@ -214,7 +216,9 @@ public class IbisMPJComm extends Thread {
                 }
                 // found the object inside the queue
                 else {
-                    if (DEBUG) System.out.println("found the object inside the queue");
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("found the object inside the queue");
+                    }
 
                     typeSize = datatype.getByteSize();
                     // 	message was NOT buffered -> normal copy
@@ -259,15 +263,14 @@ public class IbisMPJComm extends Thread {
         MPJObject obj = null;
         this.status = new Status();
         ReadMessage msg = null;
-        //boolean DEBUG = true;
 
 
         IbisIdentifier id = this.comm.group().getId(source);
         Connection con = MPJ.getConnection(id);
         MPJObjectQueue queue = con.getRecvQueue();
 
-        if (DEBUG) {
-            System.out.println("irecv: " + this.comm.rank() + ": " + MPJ.getMyId() + ": SOURCE: " + id + "; rank: " + source);
+        if (logger.isDebugEnabled()) {
+            logger.debug("irecv: " + this.comm.rank() + ": " + MPJ.getMyId() + ": SOURCE: " + id + "; rank: " + source);
         }
 
         // 	first check the object queue and hold the monitor on it
@@ -283,8 +286,8 @@ public class IbisMPJComm extends Thread {
                 obj = queue.getObject(contextId, tag);
                 // found the object inside the queue
                 if ((obj != null)) {
-                    if(DEBUG) {
-                        System.out.println("Message was found inside the queue expected -> move out of queue (mytag: " + tag + ")");
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Message was found inside the queue expected -> move out of queue (mytag: " + tag + ")");
                     }
                     typeSize = datatype.getByteSize();
                     // 	message was NOT buffered -> normal copy
@@ -296,16 +299,16 @@ public class IbisMPJComm extends Thread {
                     else {
                         realCount = BufferOps.unBuffer(obj.getObjectData(), buf, offset, count * (extent));
                     }
-                    if(DEBUG) {
-                        System.out.println("recv tag:       " + obj.getTag());
-                        System.out.println("recv contextId: " + obj.getContextId());
-                        System.out.println("recv type:      " + obj.getBaseDatatype());
-                        System.out.println("recv count:     " + obj.getNumberOfElements());
-                        System.out.println("recv offset:    " + offset);
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("recv tag:       " + obj.getTag());
+                        logger.debug("recv contextId: " + obj.getContextId());
+                        logger.debug("recv type:      " + obj.getBaseDatatype());
+                        logger.debug("recv count:     " + obj.getNumberOfElements());
+                        logger.debug("recv offset:    " + offset);
 
-                        System.out.println("supposed tag:   " + this.tag);
-                        System.out.println("supposed contID:" + this.contextId);
-                        System.out.println("supposed count: " + count * datatype.extent());
+                        logger.debug("supposed tag:   " + this.tag);
+                        logger.debug("supposed contID:" + this.contextId);
+                        logger.debug("supposed count: " + count * datatype.extent());
                     }
                     msgReceived = true;
 
@@ -316,7 +319,7 @@ public class IbisMPJComm extends Thread {
                     obj = new MPJObject();
                     msg = null;
 
-                    if(!blocking && queue.size() != 0) {
+                    if (!blocking && queue.size() != 0) {
                         // We need to give other threads
                         // the chance to obtain the
                         // message. For instance a program
@@ -336,18 +339,18 @@ public class IbisMPJComm extends Thread {
                     // 	get message header
                     con.receiveHeader(msg, obj.desc);
 
-                    if(DEBUG) {
-                        System.out.println("recv tag:       " + obj.getTag());
-                        System.out.println("recv contextId: " + obj.getContextId());
-                        System.out.println("recv type:      " + obj.getBaseDatatype());
-                        System.out.println("recv count:     " + obj.getNumberOfElements());
-                        System.out.println("recv offset:    " + offset);
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("recv tag:       " + obj.getTag());
+                        logger.debug("recv contextId: " + obj.getContextId());
+                        logger.debug("recv type:      " + obj.getBaseDatatype());
+                        logger.debug("recv count:     " + obj.getNumberOfElements());
+                        logger.debug("recv offset:    " + offset);
 
-                        System.out.println("supposed tag:   " + this.tag);
-                        System.out.println("supposed contID:" + this.contextId);
-                        System.out.println("supposed count: " + count * datatype.extent());
-                        if (obj.isBuffered()) System.out.println("BUFFERED");
-                        else System.out.println("NOT BUFFERED");
+                        logger.debug("supposed tag:   " + this.tag);
+                        logger.debug("supposed contID:" + this.contextId);
+                        logger.debug("supposed count: " + count * datatype.extent());
+                        if (obj.isBuffered()) logger.debug("BUFFERED");
+                        else logger.debug("NOT BUFFERED");
                     }
 
 
@@ -366,7 +369,7 @@ public class IbisMPJComm extends Thread {
                             }
                             // 	if count is smaller than the array received
                             // 	and message NOT buffered -> copy buffer
-                            else if((count*(datatype.extent()+1) < obj.getNumberOfElements()) && (!obj.isBuffered())) {
+                            else if ((count*(datatype.extent()+1) < obj.getNumberOfElements()) && (!obj.isBuffered())) {
                                 obj.initBuffer();
                                 con.receiveData(msg, obj.buffer, 0, obj.getNumberOfElements());
 
@@ -381,8 +384,8 @@ public class IbisMPJComm extends Thread {
                         }							
                         // else the message was buffered -> unbuffer it
                         else {
-                            if (DEBUG) {
-                                System.out.println("Message was expected and buffered -> unbuffer it");
+                            if (logger.isDebugEnabled()) {
+                                logger.debug("Message was expected and buffered -> unbuffer it");
 
                             }
                             byte[] byteBuf = new byte[obj.getNumberOfElements()];
@@ -398,8 +401,8 @@ public class IbisMPJComm extends Thread {
                             }
                     // 	the message was NOT expected -> move to queue
                     else {
-                        if(DEBUG) {
-                            System.out.println("Message was NOT expected -> move to queue");
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("Message was NOT expected -> move to queue");
                         }
                         obj.initBuffer();
                         con.receiveData(msg, obj.buffer, 0, obj.getNumberOfElements());
@@ -480,8 +483,6 @@ public class IbisMPJComm extends Thread {
 
         if (dest == MPJ.PROC_NULL) return;
 
-        //	boolean DEBUG = true;
-
         MPJObject sendObj = new MPJObject(tag, this.contextId, false, datatype.type, count * datatype.extent());
         sendObj.setBuffered(this.buffered);
 
@@ -489,19 +490,19 @@ public class IbisMPJComm extends Thread {
 
 
 
-        if(DEBUG) {
-            System.out.println("send tag:       " + sendObj.getTag());
-            System.out.println("send contextId: " + sendObj.getContextId());
-            System.out.println("send type:      " + sendObj.getBaseDatatype());
-            System.out.println("send count:     " + sendObj.getNumberOfElements());
-            System.out.println("send offset:    " + offset);
+        if (logger.isDebugEnabled()) {
+            logger.debug("send tag:       " + sendObj.getTag());
+            logger.debug("send contextId: " + sendObj.getContextId());
+            logger.debug("send type:      " + sendObj.getBaseDatatype());
+            logger.debug("send count:     " + sendObj.getNumberOfElements());
+            logger.debug("send offset:    " + offset);
         }
 
         try {
             IbisIdentifier id = this.comm.group().getId(dest);
             Connection con = MPJ.getConnection(id);
-            if (DEBUG) {
-                System.out.println("isend: " + this.comm.rank() + ": " + MPJ.getMyId() + ": DEST: " + id + "; rank: " + dest + "; tag: " + tag);
+            if (logger.isDebugEnabled()) {
+                logger.debug("isend: " + this.comm.rank() + ": " + MPJ.getMyId() + ": DEST: " + id + "; rank: " + dest + "; tag: " + tag);
             }
 
 
@@ -512,8 +513,7 @@ public class IbisMPJComm extends Thread {
 
         }
         catch (MPJException e) {
-            System.err.println(e.getMessage());
-            e.printStackTrace();
+            logger.error("got exception", e);
         }
 
     }
@@ -597,13 +597,12 @@ public class IbisMPJComm extends Thread {
     private void doProbeStandard() throws MPJException {
         //		int typeSize = 1;
         //		int realCount = 0;
-        //boolean DEBUG = true;
 
         IbisIdentifier id = this.comm.group().getId(source);
         Connection con = MPJ.getConnection(id);
 
-        if (DEBUG) {
-            System.out.println("iprobe: " + this.comm.rank() + ": " + MPJ.getMyId() + ": SOURCE: " + id + "; rank: " + source);
+        if (logger.isDebugEnabled()) {
+            logger.debug("iprobe: " + this.comm.rank() + ": " + MPJ.getMyId() + ": SOURCE: " + id + "; rank: " + source);
         }
 
 
@@ -630,12 +629,12 @@ public class IbisMPJComm extends Thread {
                         // 	get message header
                         con.receiveHeader(msg, obj.desc);
 
-                        if(DEBUG) {
-                            System.out.println("iprobe tag:       " + obj.getTag());
-                            System.out.println("iprobe contextId: " + obj.getContextId());
-                            System.out.println("iprobe type:      " + obj.getBaseDatatype());
-                            System.out.println("iprobe count:     " + obj.getNumberOfElements());
-                            System.out.println("iprobe offset:    " + offset);
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("iprobe tag:       " + obj.getTag());
+                            logger.debug("iprobe contextId: " + obj.getContextId());
+                            logger.debug("iprobe type:      " + obj.getBaseDatatype());
+                            logger.debug("iprobe count:     " + obj.getNumberOfElements());
+                            logger.debug("iprobe offset:    " + offset);
                         }
 
                         obj.initBuffer();
@@ -676,11 +675,9 @@ public class IbisMPJComm extends Thread {
     private void doProbeAnySource() throws MPJException {
         //		int typeSize = 1;
         //		int realCount = 0;
-        //boolean DEBUG = true;
 
-
-        if (DEBUG) {
-            System.out.println("iprobe: " + this.comm.rank() + ": " + MPJ.getMyId() + ": ANY_SOURCE");
+        if (logger.isDebugEnabled()) {
+            logger.debug("iprobe: " + this.comm.rank() + ": " + MPJ.getMyId() + ": ANY_SOURCE");
         }
 
 
@@ -692,7 +689,9 @@ public class IbisMPJComm extends Thread {
         boolean msgFound = false;
 
         while (!msgFound) {
-            if (DEBUG) System.out.println("msg not found");
+            if (logger.isDebugEnabled()) {
+                logger.debug("msg not found");
+            }
             IbisIdentifier id = this.comm.group().getId(src);
             Connection con = MPJ.getConnection(id);
             MPJObjectQueue queue = con.getRecvQueue();
@@ -700,7 +699,9 @@ public class IbisMPJComm extends Thread {
             if (queue.isLocked()) {
                 src = nextSource(src);
 
-                if (DEBUG) System.out.println("queue is locked! src:" + src);
+                if (logger.isDebugEnabled()) {
+                    logger.debug("queue is locked! src:" + src);
+                }
                 continue;
             }
 
@@ -713,12 +714,16 @@ public class IbisMPJComm extends Thread {
                 if (this.status == null) {
 
                     obj = new MPJObject();
-                    if (DEBUG) System.out.println("Polling on " + src);
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Polling on " + src);
+                    }
                     msg = con.pollForMessage();
 
                     if (msg == null) {
                         src = nextSource(src);
-                        if (DEBUG) System.out.println("msg was null.");	
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("msg was null.");	
+                        }
                         this.status = null;
                         queue.release();
                         continue;
@@ -726,12 +731,12 @@ public class IbisMPJComm extends Thread {
                     // 	get message header
                     con.receiveHeader(msg, obj.desc);
 
-                    if(DEBUG) {
-                        System.out.println("iprobe tag:       " + obj.getTag());
-                        System.out.println("iprobe contextId: " + obj.getContextId());
-                        System.out.println("iprobe type:      " + obj.getBaseDatatype());
-                        System.out.println("iprobe count:     " + obj.getNumberOfElements());
-                        System.out.println("iprobe offset:    " + offset);
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("iprobe tag:       " + obj.getTag());
+                        logger.debug("iprobe contextId: " + obj.getContextId());
+                        logger.debug("iprobe type:      " + obj.getBaseDatatype());
+                        logger.debug("iprobe count:     " + obj.getNumberOfElements());
+                        logger.debug("iprobe offset:    " + offset);
                     }
 
                     obj.initBuffer();
@@ -772,7 +777,7 @@ public class IbisMPJComm extends Thread {
             return;
         }
 
-        if(source == MPJ.ANY_SOURCE) {
+        if (source == MPJ.ANY_SOURCE) {
             doProbeAnySource();
         }
         else {
@@ -796,8 +801,7 @@ public class IbisMPJComm extends Thread {
                 doIrecv(false);
             }
             catch(MPJException e) {
-                System.out.println(e.getMessage());
-                e.printStackTrace();
+                logger.fatal("got exception", e);
                 System.exit(-1);
             }
         }
@@ -806,8 +810,7 @@ public class IbisMPJComm extends Thread {
                 doIsend();
             }
             catch(MPJException e) {
-                System.out.println(e.getMessage());
-                e.printStackTrace();
+                logger.fatal("got exception", e);
                 System.exit(-1);
             }
         }
@@ -816,8 +819,7 @@ public class IbisMPJComm extends Thread {
                 doIbsend();				
             }
             catch(MPJException e) {
-                System.out.println(e.getMessage());
-                e.printStackTrace();
+                logger.fatal("got exception", e);
                 System.exit(-1);
             }
         }
@@ -826,8 +828,7 @@ public class IbisMPJComm extends Thread {
                 doIssend();
             }
             catch(MPJException e) {
-                System.out.println(e.getMessage());
-                e.printStackTrace();
+                logger.fatal("got exception", e);
                 System.exit(-1);
             }
         }
@@ -836,8 +837,7 @@ public class IbisMPJComm extends Thread {
                 doIrsend();
             }
             catch(MPJException e) {
-                System.out.println(e.getMessage());
-                e.printStackTrace();
+                logger.fatal("got exception", e);
                 System.exit(-1);
             }
         }

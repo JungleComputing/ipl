@@ -10,8 +10,6 @@ package ibis.mpj;
  */
 public class ColAllGatherV {
 
-    //	private final boolean DEBUG = false;
-
     private Object sendbuf = null;
     private int sendoffset = 0;
     private int sendcount = 0;

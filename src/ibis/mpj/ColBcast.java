@@ -5,11 +5,13 @@
  */
 package ibis.mpj;
 
+import org.apache.log4j.Logger;
+
 /**
  * Implementation of the collective operation: bcast.
  */
 public class ColBcast {
-    private final boolean DEBUG = false;
+    static Logger logger = Logger.getLogger(ColBcast.class.getName());
 
     private Object sendbuf = null;
     private int offset, count, root = 0;
@@ -47,8 +49,8 @@ public class ColBcast {
 
 
 
-        if (DEBUG) {
-            System.out.println(rank + ": broadcast started, root = " +
+        if (logger.isDebugEnabled()) {
+            logger.debug(rank + ": broadcast started, root = " +
                     root + " groupsize="+ size + " counter << = " +
                     this.tag);
         }
@@ -68,15 +70,15 @@ public class ColBcast {
 
 
                     if ((mask & rank_rel) != 0) {
-                        if(DEBUG) {
-                            System.out.println(rank + ": ColBcast: receive from "+ abs_rank(rank_rel - mask, root, size));
+                        if (logger.isDebugEnabled()) {
+                            logger.debug(rank + ": ColBcast: receive from "+ abs_rank(rank_rel - mask, root, size));
                         }	
 
                         this.comm.recv(this.sendbuf, this.offset, this.count, this.datatype, abs_rank(rank_rel - mask, root, size), this.tag);	
 
                     } else if ((rank_rel + mask) < size) {
-                        if (DEBUG) {
-                            System.out.println(rank + ": ColBcast: send to " + abs_rank(rank_rel + mask, root, size));
+                        if (logger.isDebugEnabled()) {
+                            logger.debug(rank + ": ColBcast: send to " + abs_rank(rank_rel + mask, root, size));
                         }
                         this.comm.send(this.sendbuf, this.offset, this.count, this.datatype, abs_rank(rank_rel + mask, root, size), this.tag);
                     }
@@ -89,8 +91,8 @@ public class ColBcast {
             throw new MPJException(e.toString());
         }
 
-        if (DEBUG) {
-            System.out.println(rank + ": broadcast done.");
+        if (logger.isDebugEnabled()) {
+            logger.debug(rank + ": broadcast done.");
         }
 
 

@@ -5,12 +5,13 @@
  */
 package ibis.mpj;
 
+import org.apache.log4j.Logger;
+
 /**
  * Implementation of the collective operation: gather
  */
 public class ColGather {
-    //	private final boolean DEBUG = false;
-
+    static Logger logger = Logger.getLogger(ColGather.class.getName());
 
     private Object sendbuf = null;
     private int sendoffset = 0;
@@ -99,8 +100,8 @@ public class ColGather {
 
 
 
-       if (DEBUG) {
-       System.out.println(rank + ": gather started. Root = "+ root + " groupsize = " + size + " counter<< = " + this.tag);
+       if (logger.isDebugEnabled()) {
+       logger.debug(rank + ": gather started. Root = "+ root + " groupsize = " + size + " counter<< = " + this.tag);
        }
        Object tmpBuf = null; 
        int tmpLength = size * recvcount * recvtype.Extent();
@@ -145,15 +146,15 @@ public class ColGather {
        if (peer < size) {
        peer = (peer + root) % size;
 
-       if (DEBUG) {
-       System.out.println("gather: "+ rank + " waiting for data from: " + peer);
+       if (logger.isDebugEnabled()) {
+       logger.debug("gather: "+ rank + " waiting for data from: " + peer);
        }
 
 
        this.comm.recv(tmpBuf, 0, size * recvcount, this.recvtype, peer, this.tag);
 
-       if (DEBUG) {
-    System.out.println(rank + ": ColMember.gather: got "+ "resultarray from " + peer);
+       if (logger.isDebugEnabled()) {
+    logger.debug(rank + ": ColMember.gather: got "+ "resultarray from " + peer);
        }
 
 
@@ -284,8 +285,8 @@ else {
 
     int peer = ((relrank & (~mask)) + root) % size;
 
-    if (DEBUG) {
-        System.out.println("Gather: "+rank + " sending data to "+ peer);
+    if (logger.isDebugEnabled()) {
+        logger.debug("Gather: "+rank + " sending data to "+ peer);
     }
 
     if (resultArray == null) {
@@ -331,8 +332,8 @@ else {
 mask <<= 1;
        }
 
-if (DEBUG) {
-    System.out.println(rank + ": gather done.");
+if (logger.isDebugEnabled()) {
+    logger.debug(rank + ": gather done.");
 }
 
 

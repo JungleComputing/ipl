@@ -12,15 +12,33 @@ import ibis.ipl.IbisIdentifier;
 import ibis.ipl.PortType;
 import ibis.ipl.Registry;
 
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+import org.apache.log4j.PatternLayout;
+import org.apache.log4j.WriterAppender;
+
 /**
  * Main MPJ class.
  */
 public class MPJ {
+
+    static {
+        Logger ibisLogger = Logger.getLogger("ibis");
+        Logger rootLogger = Logger.getRootLogger();
+        if (! rootLogger.getAllAppenders().hasMoreElements()
+             && !ibisLogger.getAllAppenders().hasMoreElements()) {
+            // No appenders defined, print to standard err by default
+            PatternLayout layout = new PatternLayout("%d{HH:mm:ss} %-5p %m%n");
+            WriterAppender appender = new WriterAppender(layout, System.err);
+            ibisLogger.addAppender(appender);
+            ibisLogger.setLevel(Level.WARN);
+        }
+    }
+
+    private static Logger logger = Logger.getLogger(MPJ.class.getName());
+
     protected static boolean LOCALCOPYIBIS = true;
 
-
-
-    private static final boolean DEBUG = false;
     private static byte[] attachedBuffer;
     private static boolean isInitialized = false;
     private static int highestContextId = -1;
@@ -179,8 +197,7 @@ public class MPJ {
 
         }
         catch (MPJException e) {
-            System.err.println(e.getMessage());
-            e.printStackTrace();
+            logger.fatal("got exception", e);
             System.exit(-1);
         }
 
@@ -204,8 +221,7 @@ public class MPJ {
             MINLOC = new OpMinLoc(true);
         }
         catch (MPJException e) {
-            System.err.println(e.getMessage());
-            e.printStackTrace();
+            logger.error("got exception", e);
         }
 
     }
@@ -248,10 +264,10 @@ public class MPJ {
 
             registry = ibis.registry();
 
-            if (DEBUG) {
-                System.err.println("My Id is " + ibis.identifier());
-                System.err.println("MyRank is " + regEvtHandler.myRank + " of " + regEvtHandler.nInstances + "\n");
-                System.err.println("establishing communication...");
+            if (logger.isDebugEnabled()) {
+                logger.debug("My Id is " + ibis.identifier());
+                logger.debug("MyRank is " + regEvtHandler.myRank + " of " + regEvtHandler.nInstances + "\n");
+                logger.debug("establishing communication...");
             }
 
             COMM_WORLD = new Intracomm();
@@ -306,14 +322,13 @@ public class MPJ {
 
             MPJ.isInitialized = true;
 
-            if (DEBUG) {
-                System.err.println("MPJ initialized.");
+            if (logger.isDebugEnabled()) {
+                logger.debug("MPJ initialized.");
             }
 
         }
         catch( Exception e ) {
-            System.err.println(e.getMessage());
-            e.printStackTrace();
+            logger.error("got exception", e);
         }
 
 
@@ -329,8 +344,8 @@ public class MPJ {
         MPJ.isInitialized = false;
 
         try {
-            if (DEBUG) {
-                System.err.println("try to finish up...");
+            if (logger.isDebugEnabled()) {
+                logger.debug("try to finish up...");
             }
 
 
@@ -343,15 +358,14 @@ public class MPJ {
 
             ibis.end();
 
-            if (DEBUG) {
-                System.err.println("MPJ finished.");
+            if (logger.isDebugEnabled()) {
+                logger.debug("MPJ finished.");
             }
 
 
         }
         catch (Exception e) {
-            System.err.println(e.getMessage());
-            e.printStackTrace();
+            logger.error("got exception", e);
 
         }
     }

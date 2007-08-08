@@ -9,7 +9,6 @@ package ibis.mpj;
  * Implementation of the collective operation: scan.
  */
 public class ColScan {
-    //	private final boolean DEBUG = false;
 
     private Object sendbuf = null;
     private int sendoffset = 0;
