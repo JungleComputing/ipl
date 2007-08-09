@@ -388,6 +388,7 @@ final class MethodTable {
             mg.setMaxLocals();
             mg.setMaxStack();
             gen_c.removeMethod(m);
+            Satinc.removeLocalTypeTables(mg);
             m = mg.getMethod();
             gen_c.addMethod(m);
             // mg = new MethodGen(m, c.getClassName(), gen_c.getConstantPool());

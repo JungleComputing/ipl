@@ -327,7 +327,7 @@ public final class Satinc extends IbiscComponent {
             satinType, Type.NO_ARGS, Constants.INVOKESTATIC);
     }
 
-    void removeLocalTypeTables(MethodGen mg) {
+    static void removeLocalTypeTables(MethodGen mg) {
         ConstantPoolGen cpg = mg.getConstantPool();
         Attribute[] a = mg.getCodeAttributes();
         for (int i = 0; i < a.length; i++) {
