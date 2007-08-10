@@ -27,6 +27,8 @@
 	test	builds the application and runs test-seq as well as test-par.
     </description>
 
+    <property name="build"       value="build"/>
+
     <property name="java-args" value="" />
 
     <target name="set-ibis-name">
@@ -146,7 +148,7 @@
 	 Does test-par as well as test-seq.
     -->
 
-    <target name="build-and-test" depends="build,test-seq, test-par"/>
+    <target name="build-and-test" depends="jar, test-seq, test-par"/>
 
     <target name="test" unless="no-test" description="Build, run sequential test, run parallel test, clean">
         <antcall inheritRefs="true" target="build-and-test" />

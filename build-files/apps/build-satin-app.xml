@@ -1,6 +1,6 @@
 <project
     name="satin-app"
-    default="build"
+    default="jar"
     basedir=".">
 
     <description>
