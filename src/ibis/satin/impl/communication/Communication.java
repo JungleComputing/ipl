@@ -244,7 +244,7 @@ public final class Communication implements Config, Protocol {
                 && System.currentTimeMillis() - startTime < timeoutMillis);
 
         if (r == null) {
-            commLogger.info("could not connect port within given time");
+            commLogger.info("could not connect port within given time (" + timeoutMillis + " ms)");
         } else {
             commLogger.info("port connected");
         }
