@@ -154,7 +154,7 @@ public final class Victim implements Config {
             } catch (Exception e) {
                 // ignore
                 Config.commLogger.warn("SATIN '" + s.identifier().ibisIdentifier()
-                    + "': port.close() throws exception", e);
+                    + "': port.close() throws exception (ignored)", e);
             }
         }
     }
