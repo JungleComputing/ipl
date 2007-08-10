@@ -109,11 +109,11 @@ public interface Config {
      * Timeout for connecting to other nodes.
      */
     public static final long CONNECT_TIMEOUT = properties.getLongProperty(
-        s_ft_connectTimeout, 30) * 1000L;
+        s_ft_connectTimeout, 60) * 1000L;
 
     /** Timeout for waiting on a steal reply from another node. */
     public static final long STEAL_WAIT_TIMEOUT = properties.getLongProperty(
-        s_steal_wait_timeout, (CONNECT_TIMEOUT / 1000) + 10) * 2 * 1000L;
+        s_steal_wait_timeout, CONNECT_TIMEOUT * 2 + 20 * 1000L);
 
     /**
      * Maximum time that messages may be buffered for message combining.
