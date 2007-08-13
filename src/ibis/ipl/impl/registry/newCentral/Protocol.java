@@ -20,8 +20,6 @@ final class Protocol {
 
     static final byte OPCODE_SIGNAL = 8;
 
-    static final byte OPCODE_PING = 9;
-
     static final byte OPCODE_PUSH = 10;
     
     static final byte OPCODE_GET_STATE = 11;
@@ -64,8 +62,6 @@ final class Protocol {
             return "MAYBE_DEAD";
         } else if (opcode == OPCODE_SIGNAL) {
             return "SIGNAL";
-        } else if (opcode == OPCODE_PING) {
-            return "PING";
         } else if (opcode == OPCODE_PUSH) {
             return "PUSH";
         } else if (opcode == OPCODE_GET_STATE) {

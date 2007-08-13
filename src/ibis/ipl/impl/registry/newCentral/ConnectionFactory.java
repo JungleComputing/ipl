@@ -190,6 +190,22 @@ final class ConnectionFactory {
         }
     }
 
+    Connection connect(IbisIdentifier ibis, int timeout, boolean fillTimeout) throws IOException {
+        if (standalone) {
+            InetSocketAddress address = plainAddressFromBytes(ibis
+                    .getRegistryData());
+
+            return new Connection(address, timeout);
+
+        } else {
+            VirtualSocketAddress address = VirtualSocketAddress.fromBytes(ibis
+                    .getRegistryData(), 0);
+            return new Connection(address, virtualSocketFactory,
+                    timeout, fillTimeout);
+
+        }
+    }
+    
     Connection connect(IbisIdentifier ibis, boolean fillTimeout) throws IOException {
         if (standalone) {
             InetSocketAddress address = plainAddressFromBytes(ibis
@@ -205,6 +221,7 @@ final class ConnectionFactory {
 
         }
     }
+
 
     void end() {
         try {
@@ -285,5 +302,10 @@ final class ConnectionFactory {
         } else {
             return virtualServerAddress.port();
         }
-    }    
+    }   
+    
+    int getTimeout() {
+        return timeout;
+    }
+    
 }

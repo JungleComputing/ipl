@@ -108,14 +108,6 @@ final class ClientConnectionHandler implements Runnable {
 		state.purgeHistoryUpto(minEventTime);
 	}
 
-	private void handlePing(Connection connection) throws IOException {
-		logger.debug("got a ping request");
-		connection.sendOKReply();
-		registry.getIbisIdentifier().writeTo(connection.out());
-		connection.out().flush();
-		connection.close();
-	}
-        
         private void handleGetState(Connection connection) throws IOException {
                 logger.debug("got a state request");
                 connection.sendOKReply();
@@ -168,9 +160,6 @@ final class ClientConnectionHandler implements Runnable {
 			switch (opcode) {
 			case Protocol.OPCODE_GOSSIP:
 				handleGossip(connection);
-				break;
-			case Protocol.OPCODE_PING:
-				handlePing(connection);
 				break;
 			case Protocol.OPCODE_PUSH:
 				handlePush(connection);
