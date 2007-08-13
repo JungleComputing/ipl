@@ -183,7 +183,7 @@ final class Pool implements Runnable {
 		return identifier;
 	}
 
-	void writeBootstrap(DataOutputStream out) throws IOException {
+	void writeBootstrapList(DataOutputStream out) throws IOException {
 
 		IbisIdentifier[] peers = getRandomMembers(Protocol.BOOTSTRAP_LIST_SIZE);
 
@@ -193,7 +193,7 @@ final class Pool implements Runnable {
 		}
 
 	}
-
+        
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -435,24 +435,14 @@ final class Pool implements Runnable {
 			logger.debug("waiting for peer time of peer " + member);
 			peerTime = connection.in().readInt();
 
-			int localTime = getEventTime();
-
-			logger.debug("peer " + member + ", peer time = " + peerTime
-					+ ", localtime = " + localTime);
-
-			int sendEntries = localTime - peerTime;
-
-			if (sendEntries < 0) {
-				logger.debug("sendEntries " + sendEntries
-						+ " is negative, not sending events");
-				sendEntries = 0;
-			}
-
-			logger.debug("sending " + sendEntries + " entries to " + member);
-
-			connection.out().writeInt(sendEntries);
 
 			Event[] events = getEvents(peerTime);
+                        
+                        
+                        logger.debug("sending " + events.length + " entries to " + member);
+
+                        connection.out().writeInt(events.length);
+                        
 			for (int i = 0; i < events.length; i++) {
 
 				events[i].writeTo(connection.out());

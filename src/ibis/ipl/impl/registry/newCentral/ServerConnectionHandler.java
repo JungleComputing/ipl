@@ -70,7 +70,7 @@ final class ServerConnectionHandler implements Runnable {
         connection.sendOKReply();
         result.writeTo(connection.out());
 
-        pool.writeBootstrap(connection.out());
+        pool.writeBootstrapList(connection.out());
 
         connection.out().flush();
     }
@@ -199,6 +199,21 @@ final class ServerConnectionHandler implements Runnable {
         connection.sendOKReply();
 
     }
+    
+    private void handleGetState(Connection connection) throws IOException {
+        String poolName = connection.in().readUTF();
+        
+        Pool pool = server.getPool(poolName);
+
+        if (pool == null) {
+            connection.closeWithError("pool not found");
+            return;
+        }
+        
+        connection.sendOKReply();
+        pool.writeBootstrapList(connection.out());
+        connection.out().flush();
+    }
 
     String getStats(boolean clear) {
         return stats.getStats(clear);
@@ -269,6 +284,9 @@ final class ServerConnectionHandler implements Runnable {
                 break;
             case Protocol.OPCODE_SIGNAL:
                 handleSignal(connection);
+                break;
+            case Protocol.OPCODE_GET_STATE:
+                handleGetState(connection);
                 break;
             default:
                 logger.error("unknown opcode: " + opcode);

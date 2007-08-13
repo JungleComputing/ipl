@@ -1,8 +1,12 @@
 package ibis.ipl.impl.registry.newCentral;
 
+import ibis.ipl.impl.IbisIdentifier;
 import ibis.util.ThreadPool;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 
@@ -111,6 +115,16 @@ final class ClientConnectionHandler implements Runnable {
 		connection.out().flush();
 		connection.close();
 	}
+        
+        private void handleGetState(Connection connection) throws IOException {
+                logger.debug("got a state request");
+                connection.sendOKReply();
+
+                state.writeTo(connection.out());
+                
+                connection.out().flush();
+                connection.close();
+        }
 
 	public void run() {
 		Connection connection = null;
@@ -161,6 +175,9 @@ final class ClientConnectionHandler implements Runnable {
 			case Protocol.OPCODE_PUSH:
 				handlePush(connection);
 				break;
+                        case Protocol.OPCODE_GET_STATE:
+                                handleGetState(connection);
+                                break;
 			default:
 				logger.error("unknown opcode in request: " + opcode + "("
 						+ Protocol.opcodeString(opcode) + ")");
@@ -169,8 +186,6 @@ final class ClientConnectionHandler implements Runnable {
 		} catch (IOException e) {
 			logger.error("error on handling request", e);
 		} finally {
-			// We must also close the connection if an exception has occurred!
-			// (Jason)
 			connection.close();
 		}
 	}

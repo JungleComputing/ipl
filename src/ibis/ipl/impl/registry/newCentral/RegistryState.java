@@ -2,6 +2,9 @@ package ibis.ipl.impl.registry.newCentral;
 
 import ibis.ipl.impl.IbisIdentifier;
 
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -44,30 +47,53 @@ class RegistryState {
 
 		random = new Random();
 
-		time = 0;
+		time = -1;
 		initialized = false;
 	}
+        
+        synchronized void writeTo(DataOutput out) throws IOException {
+            out.writeInt(ibises.size());
+            for (IbisIdentifier ibis: ibises) {
+                ibis.writeTo(out);
+            }
+            
+            out.writeInt(elections.size());
+            for(Map.Entry<String, IbisIdentifier> entry: elections.entrySet()) {
+                out.writeUTF(entry.getKey());
+                entry.getValue().writeTo(out);
+            }
+            
+            out.writeInt(time);
+        }
+        
+        synchronized void readFrom(DataInput in) throws IOException {
+                if (initialized) {
+                        logger.error("Tried to initialize registry state twice");
+                        return;
+                }
 
-	synchronized void bootstrap(ArrayList<IbisIdentifier> ibises,
-			Map<String, IbisIdentifier> elections, int time) {
-		if (initialized) {
-			logger.error("Tried to initialize registry state twice");
-			return;
-		}
+                logger.debug("reading bootstrap state");
+                
 
-		// copy over state
+                int nrOfIbises = in.readInt();
+                ibises.clear();
+                for (int i = 0; i < nrOfIbises; i++) {
+                    ibises.add(new IbisIdentifier(in));
+                }
 
-		this.time = time;
+                int nrOfElections = in.readInt();
 
-		this.ibises.clear();
-		this.ibises.addAll(ibises);
+                elections.clear();
+                for (int i = 0; i < nrOfElections; i++) {
+                    elections.put(in.readUTF(), new IbisIdentifier(
+                            in));
+                }
 
-		this.elections.clear();
-		this.elections.putAll(elections);
+                time = in.readInt();
 
 		// generate events for already joined Ibises (in order)
 		SortedSet<IbisIdentifier> sortedIbises = new TreeSet<IbisIdentifier>();
-		sortedIbises.addAll(this.ibises);
+		sortedIbises.addAll(ibises);
 
 		for (IbisIdentifier ibis : sortedIbises) {
 			registry.handleEvent(new Event(-1, Event.JOIN, null, ibis));
@@ -79,6 +105,8 @@ class RegistryState {
 			registry.handleEvent(new Event(-1, Event.ELECT,election.getKey(),
 					election.getValue()));
 		}
+                
+                initialized = true;
 
 		handlePendingEvents();
 	}
@@ -137,6 +165,10 @@ class RegistryState {
 	}
 
 	private synchronized void handlePendingEvents() {
+                if (!initialized) {
+                    return;
+                }
+                
 		// remove head of list until we have gotten rid of all "old" events
 		while (!pendingEvents.isEmpty()
 				&& pendingEvents.first().getTime() < time) {
