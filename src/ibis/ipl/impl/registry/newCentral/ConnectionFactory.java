@@ -303,9 +303,4 @@ final class ConnectionFactory {
             return virtualServerAddress.port();
         }
     }   
-    
-    int getTimeout() {
-        return timeout;
-    }
-    
 }

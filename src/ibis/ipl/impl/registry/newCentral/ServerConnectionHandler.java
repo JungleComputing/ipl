@@ -211,7 +211,7 @@ final class ServerConnectionHandler implements Runnable {
         }
         
         connection.sendOKReply();
-        pool.writeBootstrapList(connection.out());
+        pool.writeState(connection.out());
         connection.out().flush();
     }
 

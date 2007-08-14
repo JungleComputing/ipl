@@ -50,48 +50,53 @@ class RegistryState {
 		time = -1;
 		initialized = false;
 	}
-        
-        synchronized void writeTo(DataOutput out) throws IOException {
-            out.writeInt(ibises.size());
-            for (IbisIdentifier ibis: ibises) {
-                ibis.writeTo(out);
-            }
-            
-            out.writeInt(elections.size());
-            for(Map.Entry<String, IbisIdentifier> entry: elections.entrySet()) {
-                out.writeUTF(entry.getKey());
-                entry.getValue().writeTo(out);
-            }
-            
-            out.writeInt(time);
-        }
-        
-        synchronized void readFrom(DataInput in) throws IOException {
-                if (initialized) {
-                        logger.error("Tried to initialize registry state twice");
-                        return;
-                }
 
-                logger.debug("reading bootstrap state");
-                
+	synchronized void writeTo(DataOutput out) throws IOException {
+		if (!initialized) {
+			throw new IOException("state not initialized yet");
+		}
+		
+		out.writeInt(ibises.size());
+		for (IbisIdentifier ibis : ibises) {
+			ibis.writeTo(out);
+		}
 
-                int nrOfIbises = in.readInt();
-                ibises.clear();
-                for (int i = 0; i < nrOfIbises; i++) {
-                    ibises.add(new IbisIdentifier(in));
-                }
+		out.writeInt(elections.size());
+		for (Map.Entry<String, IbisIdentifier> entry : elections.entrySet()) {
+			out.writeUTF(entry.getKey());
+			entry.getValue().writeTo(out);
+		}
 
-                int nrOfElections = in.readInt();
+		out.writeInt(time);
+	}
 
-                elections.clear();
-                for (int i = 0; i < nrOfElections; i++) {
-                    elections.put(in.readUTF(), new IbisIdentifier(
-                            in));
-                }
+	synchronized void readFrom(DataInput in) throws IOException {
+		if (initialized) {
+			logger.error("Tried to initialize registry state twice");
+			return;
+		}
 
-                time = in.readInt();
+		logger.debug("reading bootstrap state");
 
-		// generate events for already joined Ibises (in order)
+		int nrOfIbises = in.readInt();
+		ibises.clear();
+		for (int i = 0; i < nrOfIbises; i++) {
+			ibises.add(new IbisIdentifier(in));
+		}
+
+		int nrOfElections = in.readInt();
+
+		elections.clear();
+		for (int i = 0; i < nrOfElections; i++) {
+			elections.put(in.readUTF(), new IbisIdentifier(in));
+		}
+
+		time = in.readInt();
+		
+		logger.debug("read bootstrap state of time " + time);
+
+
+		logger.debug("generating events for already joined Ibises (in order)");
 		SortedSet<IbisIdentifier> sortedIbises = new TreeSet<IbisIdentifier>();
 		sortedIbises.addAll(ibises);
 
@@ -99,14 +104,16 @@ class RegistryState {
 			registry.handleEvent(new Event(-1, Event.JOIN, null, ibis));
 		}
 
-		// generate events for elections
+		logger.debug("generating events for elections");
 		for (Map.Entry<String, IbisIdentifier> election : this.elections
 				.entrySet()) {
-			registry.handleEvent(new Event(-1, Event.ELECT,election.getKey(),
+			registry.handleEvent(new Event(-1, Event.ELECT, election.getKey(),
 					election.getValue()));
 		}
-                
-                initialized = true;
+
+		initialized = true;
+		
+		logger.debug("bootstrap complete");
 
 		handlePendingEvents();
 	}
@@ -165,10 +172,10 @@ class RegistryState {
 	}
 
 	private synchronized void handlePendingEvents() {
-                if (!initialized) {
-                    return;
-                }
-                
+		if (!initialized) {
+			return;
+		}
+
 		// remove head of list until we have gotten rid of all "old" events
 		while (!pendingEvents.isEmpty()
 				&& pendingEvents.first().getTime() < time) {
@@ -180,9 +187,9 @@ class RegistryState {
 			// remove from TO-DO list :)
 			Event event = pendingEvents.first();
 			pendingEvents.remove(event);
-			
+
 			logger.debug("handling event " + event);
-			
+
 			time++;
 
 			// add to history
@@ -336,5 +343,9 @@ class RegistryState {
 			}
 			eventHistory.remove(0);
 		}
+	}
+
+	synchronized boolean isInitialized() {
+		return initialized;
 	}
 }

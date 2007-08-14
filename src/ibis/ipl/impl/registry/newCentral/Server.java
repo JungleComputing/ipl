@@ -54,7 +54,7 @@ public final class Server extends Thread implements Service {
 		typedProperties.addProperties(properties);
 
 		// Init logger
-		Logger logger = Logger.getLogger("ibis.ipl.impl.registry.central");
+		Logger logger = Logger.getLogger("ibis.ipl.impl.registry.newCentral");
 		Level level = Level.toLevel(typedProperties
 				.getProperty(ServerProperties.LOG_LEVEL));
 		Log.initLog4J(logger, level);

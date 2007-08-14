@@ -85,6 +85,8 @@ final class ClientConnectionHandler implements Runnable {
 
 		connection.out().writeInt(state.getTime());
 		connection.out().flush();
+		
+		connection.getAndCheckReply();
 
 		int events = connection.in().readInt();
 
@@ -110,6 +112,12 @@ final class ClientConnectionHandler implements Runnable {
 
         private void handleGetState(Connection connection) throws IOException {
                 logger.debug("got a state request");
+                
+                if (!state.isInitialized()) {
+                	connection.closeWithError("state not available");
+                	return;
+                }
+                
                 connection.sendOKReply();
 
                 state.writeTo(connection.out());
