@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
@@ -19,7 +18,10 @@ import org.apache.log4j.Logger;
 
 final class Pool implements Runnable {
 
-	static final int PUSH_THREADS = 10;
+	private static final int PUSH_THREADS = 10;
+	
+	//10 seconds connect timeout
+	private static final int CONNECT_TIMEOUT = 10000; 
 
 	private static final Logger logger = Logger.getLogger(Pool.class);
 
@@ -109,19 +111,14 @@ final class Pool implements Runnable {
 		notifyAll();
 	}
 
-	synchronized void waitForEventTime(int time, long deadline) {
+	synchronized void waitForEventTime(int time) {
 		while (getEventTime() < time) {
 			if (ended()) {
 				return;
 			}
 
-			long currentTime = System.currentTimeMillis();
-			if (currentTime >= deadline) {
-				return;
-			}
-
 			try {
-				wait(deadline - currentTime);
+				wait();
 			} catch (InterruptedException e) {
 				// IGNORE
 			}
@@ -168,7 +165,7 @@ final class Pool implements Runnable {
 		IbisIdentifier identifier = new IbisIdentifier(id, implementationData,
 				clientAddress, location, name);
 
-		members.add(identifier);
+		members.add(new Member(identifier));
 
 		if (printEvents) {
 			System.out.println("Central Registry: " + identifier
@@ -183,25 +180,25 @@ final class Pool implements Runnable {
 
 	void writeBootstrapList(DataOutputStream out) throws IOException {
 
-		IbisIdentifier[] peers = getRandomMembers(Protocol.BOOTSTRAP_LIST_SIZE);
+		Member[] peers = getRandomMembers(Protocol.BOOTSTRAP_LIST_SIZE);
 
 		out.writeInt(peers.length);
-		for (IbisIdentifier member : peers) {
-			member.writeTo(out);
+		for (Member member : peers) {
+			member.getIbis().writeTo(out);
 		}
 
 	}
 
 	public void writeState(DataOutputStream out) throws IOException {
 		int time;
-		List<IbisIdentifier> membersList;
+		Member[] memberArray;
 		ArrayList<String> electionKeys = new ArrayList<String>();
 		ArrayList<IbisIdentifier> electionValues = new ArrayList<IbisIdentifier>();
 
 		// copy state
 		synchronized (this) {
 			time = getEventTime();
-			membersList = members.asList();
+			memberArray = members.asArray();
 
 			for (Map.Entry<String, IbisIdentifier> entry : elections.entrySet()) {
 				electionKeys.add(entry.getKey());
@@ -211,9 +208,9 @@ final class Pool implements Runnable {
 
 		// write state
 
-		out.writeInt(membersList.size());
-		for (IbisIdentifier ibis : membersList) {
-			ibis.writeTo(out);
+		out.writeInt(memberArray.length);
+		for (Member member : memberArray) {
+			member.getIbis().writeTo(out);
 		}
 
 		out.writeInt(electionKeys.size());
@@ -405,23 +402,57 @@ final class Pool implements Runnable {
 		notifyAll();
 
 	}
+	
+	 void ping(IbisIdentifier ibis) {
+	        if (ended()) {
+	            return;
+	        }
+	        if (!isMember(ibis)) {
+	            return;
+	        }
+	        logger.debug("pinging " + ibis);
+	        Connection connection = null;
+	        try {
 
-	void push(IbisIdentifier member) {
+	            logger.debug("creating connection to " + ibis);
+	            connection = connectionFactory.connect(ibis, false);
+	            logger.debug("connection created to " + ibis
+	                    + ", send opcode, checking for reply");
+
+	            connection.out().writeByte(Protocol.CLIENT_MAGIC_BYTE);
+	            connection.out().writeByte(Protocol.OPCODE_PING);
+	            connection.out().flush();
+	            // get reply
+	            connection.getAndCheckReply();
+
+	            IbisIdentifier result = new IbisIdentifier(connection.in());
+
+	            connection.close();
+
+	            if (!result.equals(ibis)) {
+	                throw new Exception("ping ended up at wrong ibis");
+	            }
+	            logger.debug("ping to " + ibis + " successful");
+	        } catch (Exception e) {
+	            logger.debug("error on pinging ibis " + ibis, e);
+
+	            if (connection != null) {
+	                connection.close();
+	            }
+	            dead(ibis, e);
+	        }
+	    }
+
+
+	void push(Member member) {
 		if (ended()) {
 			return;
 		}
-		if (!isMember(member)) {
+		if (!isMember(member.getIbis())) {
 			return;
 		}
 		logger.debug("pushing entries to " + member);
 
-		long currentTime = System.currentTimeMillis();
-		
-		//don't wait any longer than the checkup interval
-		long deadline = currentTime + checkupInterval;
-
-		Exception exception = null;
-		while (currentTime < deadline) {
 			Connection connection = null;
 			try {
 
@@ -429,15 +460,8 @@ final class Pool implements Runnable {
 
 				logger.debug("creating connection to push events to " + member);
 
-				int timeout = (int) (deadline - currentTime);
-				
-				if (timeout <= 0) {
-					throw new IOException("timeout negative value");
-				}
-				logger.debug("timeout = " + timeout);
-				
-				connection = connectionFactory.connect(member,
-						timeout , true);
+				connection = connectionFactory.connect(member.getIbis(),
+						CONNECT_TIMEOUT , true);
 
 				logger.debug("connection to " + member + " created");
 
@@ -476,18 +500,13 @@ final class Pool implements Runnable {
 				return;
 
 			} catch (IOException e) {
-				logger.debug("cannot reach " + member, e);
-				exception = e;
+				logger.warn("cannot reach " + member + " to push events to", e);
 			} finally {
 				if (connection != null) {
 					connection.close();
 				}
 			}
-			currentTime = System.currentTimeMillis();
 		}
-		// deadline expired, declare member dead (with last exception)
-		dead(member, exception);
-	}
 
 	private synchronized IbisIdentifier getSuspectMember() {
 		while (true) {
@@ -524,16 +543,16 @@ final class Pool implements Runnable {
 			IbisIdentifier suspect = getSuspectMember();
 
 			if (suspect != null) {
-				push(suspect);
+				ping(suspect);
 			}
 		}
 	}
 
-	synchronized IbisIdentifier[] getRandomMembers(int size) {
+	synchronized Member[] getRandomMembers(int size) {
 		return members.getRandom(size);
 	}
 
-	synchronized IbisIdentifier getRandomMember() {
+	synchronized Member getRandomMember() {
 		return members.getRandom();
 	}
 
@@ -541,12 +560,8 @@ final class Pool implements Runnable {
 		return members.contains(ibis.getID());
 	}
 
-	synchronized IbisIdentifier getMember(int index) {
-		return members.get(index);
-	}
-
-	synchronized List<IbisIdentifier> getMemberList() {
-		return members.asList();
+	synchronized Member[] getMembers() {
+		return members.asArray();
 	}
 
 	public String toString() {

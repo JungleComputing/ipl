@@ -93,7 +93,7 @@ final class RandomEventPusher implements Runnable {
 	}
 
 	public void run() {
-		IbisIdentifier member = pool.getRandomMember();
+		Member member = pool.getRandomMember();
 
 		if (member == null) {
 			logger.debug("no member to contact");

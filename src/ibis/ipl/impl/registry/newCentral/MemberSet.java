@@ -9,12 +9,12 @@ import java.util.Random;
 
 final class MemberSet {
 
-    private final ArrayList<IbisIdentifier> list;
+    private final ArrayList<Member> list;
 
     private final Random random;
 
     MemberSet() {
-        list = new ArrayList<IbisIdentifier>();
+        list = new ArrayList<Member>();
         random = new Random();
     }
 
@@ -22,8 +22,8 @@ final class MemberSet {
         return list.size();
     }
 
-    void add(IbisIdentifier ibis) {
-        list.add(ibis);
+    void add(Member member) {
+        list.add(member);
     }
 
     boolean remove(String ID) {
@@ -35,10 +35,6 @@ final class MemberSet {
         }
         return false;
     }
-    
-    boolean contains(IbisIdentifier ibis) {
-    	return contains(ibis.getID());
-    }
 
     boolean contains(String ID) {
         for (int i = 0; i < list.size(); i++) {
@@ -49,19 +45,19 @@ final class MemberSet {
         return false;
     }
 
-    IbisIdentifier get(int index) {
+    Member get(int index) {
         if (index >= list.size()) {
             return null;
         }
         return list.get(index);
     }
 
-    IbisIdentifier getRandom() {
+    Member getRandom() {
         return list.get(random.nextInt(size()));
     }
 
-    IbisIdentifier[] getRandom(int size) {
-        ArrayList<IbisIdentifier> result = new ArrayList<IbisIdentifier>();
+    Member[] getRandom(int size) {
+        ArrayList<Member> result = new ArrayList<Member>();
         BitSet added = new BitSet();
 
         if (size > list.size()) {
@@ -80,11 +76,12 @@ final class MemberSet {
             }
         }
 
-        return result.toArray(new IbisIdentifier[0]);
+        return result.toArray(new Member[0]);
     }
     
-    @SuppressWarnings("unchecked")
-    List<IbisIdentifier> asList() {
-        return (List<IbisIdentifier>) list.clone();
+    Member[] asArray() {
+        return list.toArray(new Member[0]);
     }
 }
+
+

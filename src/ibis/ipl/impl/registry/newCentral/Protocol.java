@@ -20,6 +20,8 @@ final class Protocol {
 
     static final byte OPCODE_SIGNAL = 8;
 
+    static final byte OPCODE_PING = 9;
+    
     static final byte OPCODE_PUSH = 10;
     
     static final byte OPCODE_GET_STATE = 11;

@@ -60,7 +60,7 @@ public final class Server extends Thread implements Service {
 		Log.initLog4J(logger, level);
 
 		int timeout = typedProperties
-				.getIntProperty(RegistryProperties.CONNECT_TIMEOUT) * 1000;
+				.getIntProperty(RegistryProperties.CLIENT_CONNECT_TIMEOUT) * 1000;
 
 		connectionFactory = new ConnectionFactory(factory, VIRTUAL_PORT,
 				timeout);
@@ -104,7 +104,7 @@ public final class Server extends Thread implements Service {
 		}
 
 		int timeout = typedProperties
-				.getIntProperty(RegistryProperties.CONNECT_TIMEOUT) * 1000;
+				.getIntProperty(RegistryProperties.CLIENT_CONNECT_TIMEOUT) * 1000;
 
 		connectionFactory = new ConnectionFactory(port, timeout);
 

@@ -1,12 +1,8 @@
 package ibis.ipl.impl.registry.newCentral;
 
-import ibis.ipl.impl.IbisIdentifier;
 import ibis.util.ThreadPool;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.apache.log4j.Logger;
 
@@ -85,7 +81,7 @@ final class ClientConnectionHandler implements Runnable {
 
 		connection.out().writeInt(state.getTime());
 		connection.out().flush();
-		
+
 		connection.getAndCheckReply();
 
 		int events = connection.in().readInt();
@@ -99,7 +95,7 @@ final class ClientConnectionHandler implements Runnable {
 		for (int i = 0; i < newEvents.length; i++) {
 			newEvents[i] = new Event(connection.in());
 		}
-		
+
 		int minEventTime = connection.in().readInt();
 
 		connection.sendOKReply();
@@ -110,21 +106,29 @@ final class ClientConnectionHandler implements Runnable {
 		state.purgeHistoryUpto(minEventTime);
 	}
 
-        private void handleGetState(Connection connection) throws IOException {
-                logger.debug("got a state request");
-                
-                if (!state.isInitialized()) {
-                	connection.closeWithError("state not available");
-                	return;
-                }
-                
-                connection.sendOKReply();
+	private void handlePing(Connection connection) throws IOException {
+		logger.debug("got a ping request");
+		connection.sendOKReply();
+		registry.getIbisIdentifier().writeTo(connection.out());
+		connection.out().flush();
+		connection.close();
+	}
 
-                state.writeTo(connection.out());
-                
-                connection.out().flush();
-                connection.close();
-        }
+	private void handleGetState(Connection connection) throws IOException {
+		logger.debug("got a state request");
+
+		if (!state.isInitialized()) {
+			connection.closeWithError("state not available");
+			return;
+		}
+
+		connection.sendOKReply();
+
+		state.writeTo(connection.out());
+
+		connection.out().flush();
+		connection.close();
+	}
 
 	public void run() {
 		Connection connection = null;
@@ -172,9 +176,12 @@ final class ClientConnectionHandler implements Runnable {
 			case Protocol.OPCODE_PUSH:
 				handlePush(connection);
 				break;
-                        case Protocol.OPCODE_GET_STATE:
-                                handleGetState(connection);
-                                break;
+			case Protocol.OPCODE_PING:
+				handlePing(connection);
+				break;
+			case Protocol.OPCODE_GET_STATE:
+				handleGetState(connection);
+				break;
 			default:
 				logger.error("unknown opcode in request: " + opcode + "("
 						+ Protocol.opcodeString(opcode) + ")");

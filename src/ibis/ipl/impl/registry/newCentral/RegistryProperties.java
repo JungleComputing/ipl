@@ -19,10 +19,14 @@ public class RegistryProperties {
 			+ "adapt.gossip.interval";
 
 	public static final String TREE = PREFIX + "tree";
-	
-	public static final String CONNECT_TIMEOUT = PREFIX + "connect.timeout";
+
+	public static final String CLIENT_CONNECT_TIMEOUT = PREFIX
+			+ "connect.timeout";
 
 	public static final String SERVER_PREFIX = PREFIX + "server.";
+
+	public static final String SERVER_CONNECT_TIMEOUT = SERVER_PREFIX
+			+ "connect.timeout";
 
 	public static final String SERVER_STANDALONE = SERVER_PREFIX + "standalone";
 
@@ -39,7 +43,9 @@ public class RegistryProperties {
 	// list of decriptions and defaults
 	private static final String[][] propertiesList = new String[][] {
 
-			{ CHECKUP_INTERVAL, "10",
+			{
+					CHECKUP_INTERVAL,
+					"10",
 					"Int(seconds): how often do we check if a member "
 							+ "of a pool is still alive, and"
 							+ " send it any events it missed" },
@@ -49,11 +55,16 @@ public class RegistryProperties {
 
 			{ GOSSIP_INTERVAL, "1", "Int(seconds): how often do we gossip" },
 
-			{ ADAPT_GOSSIP_INTERVAL, "false",
+			{
+					ADAPT_GOSSIP_INTERVAL,
+					"false",
 					"Boolean: if true, the server gossips more often if there are"
 							+ "more nodes in a pool" },
 
-			{ TREE, "false", "Boolean: use a broadcast tree instead of "
+			{
+					TREE,
+					"false",
+					"Boolean: use a broadcast tree instead of "
 							+ "serial send or gossiping" },
 
 			{ SERVER_STANDALONE, "false",
@@ -65,8 +76,15 @@ public class RegistryProperties {
 			{ SERVER_PORT, "7777",
 					"Int: Port which the standalone server binds to" },
 
-			{ CONNECT_TIMEOUT, "120",
+			{
+					CLIENT_CONNECT_TIMEOUT,
+					"120",
 					"Int(seconds): how long do clients attempt to connect to the server and peers before giving up" },
+
+			{
+					SERVER_CONNECT_TIMEOUT,
+					"10",
+					"Int(seconds): how long does the server attempt to connect to a client before giving up" },
 
 			{ SERVER_PRINT_EVENTS, "false",
 					"Boolean: if true, events are printed to standard out" },

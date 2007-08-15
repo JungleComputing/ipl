@@ -68,7 +68,7 @@ final class ConnectionFactory {
 
         standalone = properties
                 .getBooleanProperty(RegistryProperties.SERVER_STANDALONE);
-        timeout = properties.getIntProperty(RegistryProperties.CONNECT_TIMEOUT) * 1000;
+        timeout = properties.getIntProperty(RegistryProperties.CLIENT_CONNECT_TIMEOUT) * 1000;
 
         if (standalone) {
 

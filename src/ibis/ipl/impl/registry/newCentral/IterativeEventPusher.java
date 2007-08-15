@@ -1,8 +1,8 @@
 package ibis.ipl.impl.registry.newCentral;
 
-import ibis.ipl.impl.IbisIdentifier;
 import ibis.util.ThreadPool;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -13,15 +13,15 @@ import org.apache.log4j.Logger;
 final class IterativeEventPusher implements Runnable {
 
 	private class WorkQ {
-		private List<IbisIdentifier> q;
+		private List<Member> q;
 		private int count;
 
-		WorkQ(List<IbisIdentifier> work) {
-			this.q = work;
+		WorkQ(Member[] work) {
+			this.q = Arrays.asList(work);
 			count = this.q.size();
 		}
 
-		synchronized IbisIdentifier next() {
+		synchronized Member next() {
 			if (q.isEmpty()) {
 				return null;
 			}
@@ -60,7 +60,7 @@ final class IterativeEventPusher implements Runnable {
 
 		public void run() {
 			while (true) {
-				IbisIdentifier work = workQ.next();
+				Member work = workQ.next();
 
 				if (work == null) {
 					// done pushing
@@ -82,17 +82,11 @@ final class IterativeEventPusher implements Runnable {
 
 	private final int threads;
 
-	private final long interval;
-
-	private final boolean newEventTriggersPush;
-
 	IterativeEventPusher(Pool pool, int threads, long interval,
 			boolean newEventTriggersPush) {
 		this.pool = pool;
 		this.threads = threads;
-		this.interval = interval;
-		this.newEventTriggersPush = newEventTriggersPush;
-
+		
 		ThreadPool.createNew(this, "event pusher scheduler thread");
 	}
 
@@ -113,22 +107,17 @@ final class IterativeEventPusher implements Runnable {
 	}
 
 	public void run() {
-		int minimum = 0;
-		int prevMinimum = 0;
-		int prevPrevMinimum = 0;
 		while (!pool.ended()) {
 			int eventTime = pool.getEventTime();
 
-			long deadline = System.currentTimeMillis() + interval;
-
-			List<IbisIdentifier> members = pool.getMemberList();
+			Member[] members = pool.getMembers();
 
 			logger.debug("updating nodes in pool (pool size = "
-					+ members.size() + "  to event-time " + eventTime);
+					+ members.length + "  to event-time " + eventTime);
 
 			WorkQ workQ = new WorkQ(members);
 
-			int threads = Math.min(this.threads, members.size());
+			int threads = Math.min(this.threads, members.length);
 			for (int i = 0; i < threads; i++) {
 				new EventPusherThread(workQ);
 			}
@@ -138,17 +127,7 @@ final class IterativeEventPusher implements Runnable {
 			logger.debug("DONE updating nodes in pool to event-time "
 					+ eventTime);
 
-			if (newEventTriggersPush) {
-				pool.waitForEventTime(eventTime + 1, deadline);
-			} else {
-				waitUntil(deadline);
-			}
-
-			prevPrevMinimum = prevMinimum;
-			prevMinimum = minimum;
-			minimum = eventTime;
-
-			pool.purgeUpto(prevPrevMinimum);
+			pool.waitForEventTime(eventTime + 1);
 		}
 	}
 
