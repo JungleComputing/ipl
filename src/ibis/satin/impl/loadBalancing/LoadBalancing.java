@@ -110,7 +110,7 @@ public class LoadBalancing implements Config {
             // it is not the result of the current steal request.
             if (!sender.equals(currentVictim)) {
                 ftLogger.warn("SATIN '" + s.ident + "': received a job from "
-                    + sender + " who caused a timeout before.");
+                    + sender + " who caused a timeout before. I am stealing from " + currentVictim);
                 if (ir != null) {
                     s.q.addToTail(ir);
                 }
