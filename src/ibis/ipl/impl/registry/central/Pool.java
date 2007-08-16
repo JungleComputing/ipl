@@ -358,7 +358,7 @@ final class Pool implements Runnable {
         try {
 
             logger.debug("creating connection to " + ibis);
-            connection = connectionFactory.connect(ibis, false);
+            connection = connectionFactory.connect(ibis, true); // @@@ should be false
             logger.debug("connection created to " + ibis
                     + ", send opcode, checking for reply");
 
