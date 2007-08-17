@@ -39,8 +39,6 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
 
     private static final boolean BLOCKING_BCAST = false;
     
-    private final static int WAIT_FOR_UPDATES_TIME = 60000;
-
     public static final boolean DISABLE_SO_BCAST = false;
     
     private Satin s;
@@ -441,7 +439,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
     protected void fetchObject(String objectId, IbisIdentifier source,
             InvocationRecord r) throws SOReferenceSourceCrashedException {
 
-        if(s.so.waitForObject(objectId, source, r, WAIT_FOR_UPDATES_TIME)) {
+        if(s.so.waitForObject(objectId, source, r, SO_WAIT_FOR_UPDATES_TIME)) {
             return;
         }
 
@@ -542,7 +540,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
     }
 
     boolean broadcastInProgress(SharedObjectInfo info, IbisIdentifier dest) {
-        if (System.currentTimeMillis() - info.lastBroadcastTime > WAIT_FOR_UPDATES_TIME) {
+        if (System.currentTimeMillis() - info.lastBroadcastTime > SO_WAIT_FOR_UPDATES_TIME) {
             return false;
         }
 

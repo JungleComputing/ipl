@@ -165,7 +165,7 @@ public class LoadBalancing implements Config {
 
         try {
             lbComm.sendStealRequest(v, true, blockOnServer);
-            return waitForStealReply();
+            return waitForStealReply(v);
         } catch (IOException e) {
             ftLogger.info("SATIN '" + s.ident
                 + "': got exception during steal request", e);
@@ -200,7 +200,7 @@ public class LoadBalancing implements Config {
         }
     }
 
-    private void waitForStealReplyMessage() {
+    private void waitForStealReplyMessage(Victim v) {
         long start = System.currentTimeMillis();
         while (true) {
             synchronized (s) {
@@ -209,7 +209,7 @@ public class LoadBalancing implements Config {
                     ftLogger
                         .warn("SATIN '"
                             + s.ident
-                            + "': a timeout occurred while waiting for a steal reply, timeout = "
+                            + "': a timeout occurred while waiting for a steal reply from victim " + v.getIdent() + ", timeout = "
                             + STEAL_WAIT_TIMEOUT / 1000 + " seconds.");
                 }
 
@@ -251,8 +251,8 @@ public class LoadBalancing implements Config {
         }
     }
 
-    private InvocationRecord waitForStealReply() {
-        waitForStealReplyMessage();
+    private InvocationRecord waitForStealReply(Victim v) {
+        waitForStealReplyMessage(v);
 
         /* If successfull, we now have a job in stolenJob. */
         if (stolenJob == null) {

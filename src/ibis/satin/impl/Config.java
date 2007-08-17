@@ -46,6 +46,8 @@ public interface Config {
 
     static final String s_so_lrmc = PROPERTY_PREFIX + "so.lrmc";
 
+    static final String s_so_wait_time = PROPERTY_PREFIX + "so.waitTime";
+
     static final String s_ft_naive = PROPERTY_PREFIX + "ft.naive";
 
     static final String s_ft_connectTimeout
@@ -68,7 +70,7 @@ public interface Config {
         s_ft_naive, s_ft_connectTimeout, s_masterhost, s_in_latency,
         s_delete_time, s_delete_cluster_time, s_kill_time, s_dump, s_so_delay,
         s_so_size, s_alg, s_so_lrmc, s_close_connections, s_max_connections,
-        s_steal_wait_timeout };
+        s_so_wait_time, s_steal_wait_timeout };
 
     /** Enable or disable asserts. */
     static final boolean ASSERTS = properties.getBooleanProperty(s_asserts, true);
@@ -128,6 +130,10 @@ public interface Config {
      */
     static final int SO_MAX_MESSAGE_SIZE = properties.getIntProperty(s_so_size,
             64 * 1024);
+
+    /** Wait time before requesting a shared object. */
+    static final int SO_WAIT_FOR_UPDATES_TIME
+            = properties.getIntProperty(s_so_wait_time, 60) * 1000;
 
     /** Enable or disable label routing multicast for shared objects . */
     static final boolean LABEL_ROUTING_MCAST = properties.getBooleanProperty(
