@@ -294,28 +294,29 @@ public abstract class ReceivePort extends Managable
 
     public synchronized byte connectionAllowed(SendPortIdentifier id,
             PortType sp) {
+        byte retval = ACCEPTED;
+
         if (isConnectedTo(id)) {
-            return ALREADY_CONNECTED;
+            retval = ALREADY_CONNECTED;
+        } else if (! sp.equals(type)) {
+            retval = TYPE_MISMATCH;
+        } else if (! connectionsEnabled) {
+            retval = DISABLED;
+        } else if (connections.size() != 0 &&
+            ! type.hasCapability(PortType.CONNECTION_MANY_TO_ONE)) {
+            retval = NO_MANYTOONE;
+        } else if (connectUpcall != null
+                && !connectUpcall.gotConnection(this, id)) {
+            retval = DENIED;
         }
-        if (! sp.equals(type)) {
-            return TYPE_MISMATCH;
+        if (retval == ACCEPTED && connectionDowncalls) {
+            newConnections.add(id);
+        } 
+        if (logger.isDebugEnabled()) {
+            logger.debug("Connection attempt from " + id + ": "
+                    + getString(retval));
         }
-        if (connectionsEnabled) {
-            if (connections.size() != 0 &&
-                ! type.hasCapability(PortType.CONNECTION_MANY_TO_ONE)) {
-                return NO_MANYTOONE;
-            }
-            if (connectUpcall != null) {
-                if (!connectUpcall.gotConnection(this, id)) {
-                    return DENIED;
-                }
-            }
-            if (connectionDowncalls) {
-                newConnections.add(id);
-            } 
-            return ACCEPTED;
-        }
-        return DISABLED;
+        return retval;
     }
 
     public int hashCode() {
