@@ -78,6 +78,9 @@ ibis registry:
   push() and push(), but I think I fixed that (Ceriel).
 
 implementations:
+* SendPort.disconnect() followed by connect() may cause an AlreadyConnected
+  exception, because the receiveport does not know yet that it has been
+  disconnected ... (separate thread). Happens in Satin.
 * check TcpSendPost.close: why don't we close in case of a normal exception? --Rob
 * removed yields, since they break the whole idea of starting your own replacement threads --Jason
 + The getVersion method in Ibis.java is buggy! (Fixed Ceriel)
