@@ -218,9 +218,10 @@ public final class Communication implements Config, Protocol {
             try {
                 r = s.connect(ident, name, timeoutMillis, false);
             } catch (AlreadyConnectedException x) {
-                commLogger.info("the port was already connected");
+                commLogger.info("already connected to " + name + " at " + ident, x);
                 ReceivePortIdentifier[] ports = s.connectedTo();
                 for (int i = 0; i < ports.length; i++) {
+                    commLogger.info("port " + i + " --> " + ports[i]);
                     if (ports[i].ibisIdentifier().equals(ident)
                             && ports[i].name().equals(name)) {
                         commLogger
@@ -245,8 +246,6 @@ public final class Communication implements Config, Protocol {
 
         if (r == null) {
             commLogger.info("could not connect port within given time (" + timeoutMillis + " ms)");
-        } else {
-            commLogger.info("port connected");
         }
         return r;
     }
