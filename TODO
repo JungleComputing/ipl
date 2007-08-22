@@ -49,6 +49,16 @@ Exception in thread "main" java.lang.ClassFormatError: LVTT entry for 'resultUni
         at java.lang.ClassLoader.loadClass(ClassLoader.java:251)
         at java.lang.ClassLoader.loadClassInternal(ClassLoader.java:319)
 
+- SO invocations cannot be void (satinc crashes):
+    [Ibisc] Ibisc: applying rewriter ibis.satin.impl.rewriter.Satinc to 17 classes.
+    [Ibisc] Exception in thread "main" java.lang.ArrayIndexOutOfBoundsException: 0
+    [Ibisc]     at ibis.satin.impl.rewriter.Satinc.writeSOInvocationRecord(Satinc.java:2718)
+    [Ibisc]     at ibis.satin.impl.rewriter.Satinc.doSORewrite(Satinc.java:2929)
+    [Ibisc]     at ibis.satin.impl.rewriter.Satinc.start(Satinc.java:3008)
+    [Ibisc]     at ibis.satin.impl.rewriter.Satinc.process(Satinc.java:3169)
+    [Ibisc]     at ibis.frontend.IbiscComponent.processClasses(IbiscComponent.java:98)
+    [Ibisc]     at ibis.frontend.Ibisc.main(Ibisc.java:373)
+
 
 capabilities:
 - add ibis.io capabilities.

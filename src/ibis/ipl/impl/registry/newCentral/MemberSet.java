@@ -1,10 +1,8 @@
 package ibis.ipl.impl.registry.newCentral;
 
-import ibis.ipl.impl.IbisIdentifier;
 
 import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.List;
 import java.util.Random;
 
 final class MemberSet {

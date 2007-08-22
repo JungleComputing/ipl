@@ -1,6 +1,5 @@
 package ibis.ipl.impl.registry.newCentral;
 
-import ibis.ipl.impl.IbisIdentifier;
 import ibis.util.ThreadPool;
 
 import org.apache.log4j.Logger;
