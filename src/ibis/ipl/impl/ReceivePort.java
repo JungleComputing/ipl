@@ -303,7 +303,7 @@ public abstract class ReceivePort extends Managable
         if (connectionsEnabled) {
             if (connections.size() != 0 &&
                 ! type.hasCapability(PortType.CONNECTION_MANY_TO_ONE)) {
-                return DENIED;
+                return NO_MANYTOONE;
             }
             if (connectUpcall != null) {
                 if (!connectUpcall.gotConnection(this, id)) {

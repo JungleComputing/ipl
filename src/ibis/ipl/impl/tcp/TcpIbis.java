@@ -159,6 +159,8 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
                                 "Could not connect", rip);
                     }
                     break;
+                case -1:
+                    throw new IOException("Encountered EOF in TcpIbis.connect");
                 default:
                     throw new IOException("Illegal opcode in TcpIbis.connect");
                 }

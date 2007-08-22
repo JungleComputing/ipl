@@ -547,6 +547,10 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
 
     public synchronized void disconnect(ibis.ipl.ReceivePortIdentifier receiver)
             throws IOException {
+        if (logger.isDebugEnabled()) {
+            logger.debug("Sendport '" + this.name + "' disconnecting from "
+                    + receiver.name() + " at " + receiver.ibisIdentifier());
+        }
         ReceivePortIdentifier r = (ReceivePortIdentifier) receiver;
         if (aMessageIsAlive) {
             throw new IOException(
@@ -695,6 +699,9 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
      * the connection.
      */
     public void lostConnection(ReceivePortIdentifier id, Throwable cause) {
+        if (logger.isDebugEnabled() && cause != null) {
+            logger.debug("lostConnection to " + id + ", cause " + cause, cause);
+        }
         if (connectionDowncalls) {
             synchronized(this) {
                 lostConnections.add(id);
