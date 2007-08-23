@@ -1,5 +1,7 @@
 package ibis.ipl.impl.registry.newCentral;
 
+import ibis.ipl.IbisCapabilities;
+import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.impl.IbisIdentifier;
 
 import java.io.DataInput;
@@ -31,13 +33,23 @@ class RegistryState {
 
 	private final ArrayList<Event> eventHistory;
 
+	// date structures that the user can poll
+
+	private final ArrayList<ibis.ipl.IbisIdentifier> joinedIbises;
+
+	private final ArrayList<ibis.ipl.IbisIdentifier> leftIbises;
+
+	private final ArrayList<ibis.ipl.IbisIdentifier> diedIbises;
+
+	private final ArrayList<String> signals;
+
 	private boolean initialized;
 
 	private int time;
 
 	private final Random random;
 
-	RegistryState(Registry registry) {
+	RegistryState(Registry registry, boolean membership, boolean supportSignals) {
 		this.registry = registry;
 
 		ibises = new ArrayList<IbisIdentifier>();
@@ -49,13 +61,30 @@ class RegistryState {
 
 		time = -1;
 		initialized = false;
+
+		if (membership) {
+			joinedIbises = new ArrayList<ibis.ipl.IbisIdentifier>();
+			leftIbises = new ArrayList<ibis.ipl.IbisIdentifier>();
+			diedIbises = new ArrayList<ibis.ipl.IbisIdentifier>();
+		} else {
+			joinedIbises = null;
+			leftIbises = null;
+			diedIbises = null;
+		}
+
+		if (supportSignals) {
+			signals = new ArrayList<String>();
+		} else {
+			signals = null;
+		}
+
 	}
 
 	synchronized void writeTo(DataOutput out) throws IOException {
 		if (!initialized) {
 			throw new IOException("state not initialized yet");
 		}
-		
+
 		out.writeInt(ibises.size());
 		for (IbisIdentifier ibis : ibises) {
 			ibis.writeTo(out);
@@ -79,40 +108,37 @@ class RegistryState {
 		logger.debug("reading bootstrap state");
 
 		int nrOfIbises = in.readInt();
-		ibises.clear();
+		SortedSet<IbisIdentifier> sortedIbises = new TreeSet<IbisIdentifier>();
+
 		for (int i = 0; i < nrOfIbises; i++) {
-			ibises.add(new IbisIdentifier(in));
+			sortedIbises.add(new IbisIdentifier(in));
 		}
 
 		int nrOfElections = in.readInt();
 
-		elections.clear();
+		Map<String, IbisIdentifier> elections = new HashMap<String, IbisIdentifier>();
 		for (int i = 0; i < nrOfElections; i++) {
 			elections.put(in.readUTF(), new IbisIdentifier(in));
 		}
 
 		time = in.readInt();
-		
+
 		logger.debug("read bootstrap state of time " + time);
 
-
 		logger.debug("generating events for already joined Ibises (in order)");
-		SortedSet<IbisIdentifier> sortedIbises = new TreeSet<IbisIdentifier>();
-		sortedIbises.addAll(ibises);
-
 		for (IbisIdentifier ibis : sortedIbises) {
-			registry.handleEvent(new Event(-1, Event.JOIN, null, ibis));
+			handleEvent(new Event(-1, Event.JOIN, null, ibis));
 		}
 
 		logger.debug("generating events for elections");
 		for (Map.Entry<String, IbisIdentifier> election : this.elections
 				.entrySet()) {
-			registry.handleEvent(new Event(-1, Event.ELECT, election.getKey(),
+			handleEvent(new Event(-1, Event.ELECT, election.getKey(),
 					election.getValue()));
 		}
 
 		initialized = true;
-		
+
 		logger.debug("bootstrap complete");
 
 		handlePendingEvents();
@@ -135,6 +161,10 @@ class RegistryState {
 			}
 		}
 		ibises.add(newIbis);
+
+		if (joinedIbises != null) {
+			joinedIbises.add(newIbis);
+		}
 	}
 
 	private synchronized void ibisLeft(IbisIdentifier ibis) {
@@ -146,6 +176,11 @@ class RegistryState {
 				return;
 			}
 		}
+
+		if (leftIbises != null) {
+			leftIbises.add(ibis);
+		}
+
 	}
 
 	private synchronized void ibisDied(IbisIdentifier ibis) {
@@ -157,6 +192,11 @@ class RegistryState {
 				return;
 			}
 		}
+
+		if (diedIbises != null) {
+			diedIbises.add(ibis);
+		}
+
 	}
 
 	private synchronized void newElectionResult(String name, IbisIdentifier ibis) {
@@ -195,36 +235,7 @@ class RegistryState {
 			// add to history
 			eventHistory.add(event);
 
-			switch (event.getType()) {
-			case Event.JOIN:
-				for (IbisIdentifier ibis : event.getIbises()) {
-					addIbis(ibis);
-				}
-				break;
-			case Event.LEAVE:
-				for (IbisIdentifier ibis : event.getIbises()) {
-					ibisLeft(ibis);
-				}
-				break;
-			case Event.DIED:
-				for (IbisIdentifier ibis : event.getIbises()) {
-					ibisDied(ibis);
-				}
-				break;
-			case Event.SIGNAL:
-				// NOT HANDLED HERE
-				break;
-			case Event.ELECT:
-				newElectionResult(event.getDescription(), event.getFirstIbis());
-			case Event.UN_ELECT:
-				unElect(event.getDescription());
-				break;
-			default:
-				logger.error("unknown event type: " + event.getType());
-			}
-
-			// also push event to registry
-			registry.handleEvent(event);
+			handleEvent(event);
 		}
 
 		if (logger.isDebugEnabled()) {
@@ -244,6 +255,47 @@ class RegistryState {
 
 		// assert consistency of event history
 		checkConsistency();
+	}
+
+	private synchronized void handleEvent(Event event) {
+
+		switch (event.getType()) {
+		case Event.JOIN:
+			for (IbisIdentifier ibis : event.getIbises()) {
+				addIbis(ibis);
+			}
+			break;
+		case Event.LEAVE:
+			for (IbisIdentifier ibis : event.getIbises()) {
+				ibisLeft(ibis);
+			}
+			break;
+		case Event.DIED:
+			for (IbisIdentifier ibis : event.getIbises()) {
+				ibisDied(ibis);
+			}
+			break;
+		case Event.SIGNAL:
+			for (IbisIdentifier destination : event.getIbises()) {
+				if (destination.equals(registry.getIbisIdentifier())) {
+					logger.debug("received signal: \"" + event.getDescription()
+							+ "\"");
+					signals.add(event.getDescription());
+				}
+			}
+			break;
+		case Event.ELECT:
+			newElectionResult(event.getDescription(), event.getFirstIbis());
+		case Event.UN_ELECT:
+			unElect(event.getDescription());
+			break;
+		default:
+			logger.error("unknown event type: " + event.getType());
+		}
+
+		// also push event to user
+		registry.doUpcall(event);
+
 	}
 
 	private synchronized void checkConsistency() {
@@ -298,17 +350,20 @@ class RegistryState {
 			long timeRemaining = deadline - System.currentTimeMillis();
 
 			if (timeRemaining <= 0) {
-				// deadline expired
+				logger.debug("getElectionResullt deadline expired");
 				return null;
 			}
 
 			try {
+				logger.debug("waiting " + timeRemaining);
 				wait(timeRemaining);
+				logger.debug("DONE waiting " + timeRemaining);
 			} catch (InterruptedException e) {
 				// IGNORE
 			}
 			result = elections.get(election);
 		}
+		logger.debug("getElection result = " + result);
 		return result;
 	}
 
@@ -347,5 +402,48 @@ class RegistryState {
 
 	synchronized boolean isInitialized() {
 		return initialized;
+	}
+
+	public synchronized ibis.ipl.IbisIdentifier[] joinedIbises() {
+		if (joinedIbises == null) {
+			throw new IbisConfigurationException(
+					"Resize downcalls not configured");
+		}
+		ibis.ipl.IbisIdentifier[] retval = joinedIbises
+				.toArray(new ibis.ipl.IbisIdentifier[joinedIbises.size()]);
+		joinedIbises.clear();
+		return retval;
+	}
+
+	public synchronized ibis.ipl.IbisIdentifier[] leftIbises() {
+		if (leftIbises == null) {
+			throw new IbisConfigurationException(
+					"Resize downcalls not configured");
+		}
+		ibis.ipl.IbisIdentifier[] retval = leftIbises
+				.toArray(new ibis.ipl.IbisIdentifier[leftIbises.size()]);
+		leftIbises.clear();
+		return retval;
+	}
+
+	public synchronized ibis.ipl.IbisIdentifier[] diedIbises() {
+		if (diedIbises == null) {
+			throw new IbisConfigurationException(
+					"Resize downcalls not configured");
+		}
+		ibis.ipl.IbisIdentifier[] retval = diedIbises
+				.toArray(new ibis.ipl.IbisIdentifier[diedIbises.size()]);
+		diedIbises.clear();
+		return retval;
+	}
+
+	public synchronized String[] receivedSignals() {
+		if (signals == null) {
+			throw new IbisConfigurationException(
+					"Registry downcalls not configured");
+		}
+		String[] retval = signals.toArray(new String[signals.size()]);
+		signals.clear();
+		return retval;
 	}
 }

@@ -3,6 +3,7 @@ package ibis.ipl.impl.registry.newCentral;
 import ibis.util.ThreadPool;
 
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -17,7 +18,10 @@ final class IterativeEventPusher implements Runnable {
 		private int count;
 
 		WorkQ(Member[] work) {
-			this.q = Arrays.asList(work);
+			//Arrays.asList list does not support remove, so do this "trick"
+			q = new LinkedList<Member>();
+			q.addAll(Arrays.asList(work));
+			
 			count = this.q.size();
 		}
 

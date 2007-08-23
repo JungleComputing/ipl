@@ -26,14 +26,6 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
 
 	private final RegistryState state;
 
-	private final ArrayList<ibis.ipl.IbisIdentifier> joinedIbises;
-
-	private final ArrayList<ibis.ipl.IbisIdentifier> leftIbises;
-
-	private final ArrayList<ibis.ipl.IbisIdentifier> diedIbises;
-
-	private final ArrayList<String> signals;
-
 	// A user-supplied registry handler, with join/leave upcalls.
 	private final RegistryEventHandler registryHandler;
 
@@ -92,19 +84,9 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
 							+ IbisProperties.POOL_NAME + " is not specified");
 		}
 
-		if (capabilities.hasCapability(IbisCapabilities.MEMBERSHIP)) {
-			joinedIbises = new ArrayList<ibis.ipl.IbisIdentifier>();
-			leftIbises = new ArrayList<ibis.ipl.IbisIdentifier>();
-			diedIbises = new ArrayList<ibis.ipl.IbisIdentifier>();
-			signals = new ArrayList<String>();
-		} else {
-			joinedIbises = null;
-			leftIbises = null;
-			diedIbises = null;
-			signals = null;
-		}
-
-		state = new RegistryState(this);
+		state = new RegistryState(this, capabilities
+				.hasCapability(IbisCapabilities.MEMBERSHIP), capabilities
+				.hasCapability(IbisCapabilities.SIGNALS));
 
 		closedWorld = capabilities.hasCapability(IbisCapabilities.CLOSEDWORLD);
 
@@ -161,8 +143,7 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
 				tree, bootstrapList);
 
 		registryHandler = handler;
-
-		// start sending events to the ibis instance we belong to
+		
 		if (registryHandler != null) {
 			upcaller = new Upcaller(registryHandler, identifier);
 		} else {
@@ -542,6 +523,12 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
 		upcaller.disableEvents();
 	}
 
+	void doUpcall(Event event) {
+		if (upcaller != null) {
+			upcaller.newEvent(event);
+		}
+	}
+
 	private void bootstrap(ArrayList<IbisIdentifier> bootstrapList)
 			throws IOException {
 		for (IbisIdentifier ibis : bootstrapList) {
@@ -580,7 +567,7 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
 			connection.out().writeByte(Protocol.OPCODE_GET_STATE);
 			connection.out().writeUTF(getPoolName());
 			connection.out().flush();
-			
+
 			connection.getAndCheckReply();
 
 			state.readFrom(connection.in());
@@ -589,100 +576,20 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
 		}
 	}
 
-	public synchronized ibis.ipl.IbisIdentifier[] joinedIbises() {
-		if (joinedIbises == null) {
-			throw new IbisConfigurationException(
-					"Resize downcalls not configured");
-		}
-		ibis.ipl.IbisIdentifier[] retval = joinedIbises
-				.toArray(new ibis.ipl.IbisIdentifier[joinedIbises.size()]);
-		joinedIbises.clear();
-		return retval;
+	public ibis.ipl.IbisIdentifier[] joinedIbises() {
+		return state.joinedIbises();
 	}
 
-	public synchronized ibis.ipl.IbisIdentifier[] leftIbises() {
-		if (leftIbises == null) {
-			throw new IbisConfigurationException(
-					"Resize downcalls not configured");
-		}
-		ibis.ipl.IbisIdentifier[] retval = leftIbises
-				.toArray(new ibis.ipl.IbisIdentifier[leftIbises.size()]);
-		leftIbises.clear();
-		return retval;
+	public ibis.ipl.IbisIdentifier[] leftIbises() {
+		return state.leftIbises();
 	}
 
-	public synchronized ibis.ipl.IbisIdentifier[] diedIbises() {
-		if (diedIbises == null) {
-			throw new IbisConfigurationException(
-					"Resize downcalls not configured");
-		}
-		ibis.ipl.IbisIdentifier[] retval = diedIbises
-				.toArray(new ibis.ipl.IbisIdentifier[diedIbises.size()]);
-		diedIbises.clear();
-		return retval;
+	public ibis.ipl.IbisIdentifier[] diedIbises() {
+		return state.diedIbises();
 	}
 
 	public synchronized String[] receivedSignals() {
-		if (signals == null) {
-			throw new IbisConfigurationException(
-					"Registry downcalls not configured");
-		}
-		String[] retval = signals.toArray(new String[signals.size()]);
-		signals.clear();
-		return retval;
-	}
-
-	/**
-	 * Called by the "RegistryState" object to tell the registry a new event has
-	 * arrived
-	 * 
-	 * @param event
-	 *            The new event
-	 */
-	synchronized void handleEvent(Event event) {
-		// give event to upcaller too
-		upcaller.newEvent(event);
-
-		switch (event.getType()) {
-		case Event.JOIN:
-			if (joinedIbises != null) {
-				for (IbisIdentifier ibis : event.getIbises()) {
-					joinedIbises.add(ibis);
-				}
-			}
-			break;
-		case Event.LEAVE:
-			if (leftIbises != null) {
-
-				for (IbisIdentifier ibis : event.getIbises()) {
-					leftIbises.add(ibis);
-				}
-			}
-			break;
-		case Event.DIED:
-			if (diedIbises != null) {
-				for (IbisIdentifier ibis : event.getIbises()) {
-					diedIbises.add(ibis);
-				}
-			}
-			break;
-		case Event.SIGNAL:
-			for (IbisIdentifier destination : event.getIbises()) {
-				if (destination.equals(identifier)) {
-					logger.debug("received signal: \"" + event.getDescription()
-							+ "\"");
-					signals.add(event.getDescription());
-				}
-			}
-			break;
-		case Event.ELECT:
-		case Event.UN_ELECT:
-			// NOT HANDLED HERE
-			break;
-		default:
-			logger.error("unknown event type: " + event.getType());
-		}
-
+		return state.receivedSignals();
 	}
 
 	public void run() {

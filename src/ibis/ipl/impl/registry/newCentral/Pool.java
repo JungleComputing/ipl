@@ -500,7 +500,9 @@ final class Pool implements Runnable {
 				return;
 
 			} catch (IOException e) {
-				logger.warn("cannot reach " + member + " to push events to", e);
+				if (isMember(member.getIbis())) {
+					logger.warn("cannot reach " + member + " to push events to", e);
+				}
 			} finally {
 				if (connection != null) {
 					connection.close();
