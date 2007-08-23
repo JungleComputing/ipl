@@ -2711,11 +2711,11 @@ public final class Satinc extends IbiscComponent {
         out.println();
 
         //constructor
-        out.print("\tpublic " + name + "(String objectId, ");
-        for (i = 0; i < params_types_as_names.length - 1; i++) {
-            out.print(params_types_as_names[i] + " param" + i + ", ");
+        out.print("\tpublic " + name + "(String objectId");
+        for (i = 0; i < params_types_as_names.length; i++) {
+            out.print(", " + params_types_as_names[i] + " param" + i);
         }
-        out.println(params_types_as_names[i] + " param" + i + ") {");
+        out.println(") {");
         out.println("\t\tsuper(objectId);");
         for (i = 0; i < params_types_as_names.length; i++) {
             //		if (params[i] instanceof BasicType) {
@@ -2733,10 +2733,13 @@ public final class Satinc extends IbiscComponent {
         out.println("\t\t" + clname + " obj = (" + clname + ") object;");
         out.println("\t\ttry{");
         out.print("\t\t\tobj.so_local_" + m.getName() + "(");
-        for (i = 0; i < params_types_as_names.length - 1; i++) {
-            out.print("param" + i + ", ");
+        for (i = 0; i < params_types_as_names.length; i++) {
+            if (i > 0) {
+                out.print(", ");
+            }
+            out.print("param" + i);
         }
-        out.println("param" + i + ");");
+        out.println(");");
         out.println("\t\t} catch (Throwable t) {");
         out
             .println("\t\t\t/* exceptions will be only thrown at the originating node*/");
