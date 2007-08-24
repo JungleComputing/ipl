@@ -64,6 +64,8 @@ final class Protocol {
             return "MAYBE_DEAD";
         } else if (opcode == OPCODE_SIGNAL) {
             return "SIGNAL";
+        } else if (opcode == OPCODE_PING) {
+            return "PING";
         } else if (opcode == OPCODE_PUSH) {
             return "PUSH";
         } else if (opcode == OPCODE_GET_STATE) {

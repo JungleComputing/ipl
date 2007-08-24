@@ -14,13 +14,10 @@ final class ClientConnectionHandler implements Runnable {
 	private final ConnectionFactory connectionFactory;
 
 	private final Registry registry;
-	private final RegistryState state;
-
 	ClientConnectionHandler(ConnectionFactory connectionFactory,
-			Registry registry, RegistryState state) {
+			Registry registry) {
 		this.connectionFactory = connectionFactory;
 		this.registry = registry;
-		this.state = state;
 
 		ThreadPool.createNew(this, "client connection handler");
 	}
@@ -39,14 +36,14 @@ final class ClientConnectionHandler implements Runnable {
 			return;
 		}
 
-		int localTime = state.getTime();
+		int localTime = registry.getTime();
 
 		connection.sendOKReply();
 		connection.out().writeInt(localTime);
 		connection.out().flush();
 
 		if (localTime > peerTime) {
-			Event[] sendEvents = state.getEventsFrom(peerTime);
+			Event[] sendEvents = registry.getEventsFrom(peerTime);
 
 			connection.out().writeInt(sendEvents.length);
 			for (Event event : sendEvents) {
@@ -62,7 +59,7 @@ final class ClientConnectionHandler implements Runnable {
 
 			connection.close();
 
-			state.handleEvents(newEvents);
+			registry.newEventsReceived(newEvents);
 		}
 		connection.close();
 	}
@@ -79,7 +76,7 @@ final class ClientConnectionHandler implements Runnable {
 					+ " instead of " + registry.getPoolName());
 		}
 
-		connection.out().writeInt(state.getTime());
+		connection.out().writeInt(registry.getTime());
 		connection.out().flush();
 
 		connection.getAndCheckReply();
@@ -102,8 +99,8 @@ final class ClientConnectionHandler implements Runnable {
 
 		connection.close();
 
-		state.handleEvents(newEvents);
-		state.purgeHistoryUpto(minEventTime);
+		registry.newEventsReceived(newEvents);
+		registry.purgeHistoryUpto(minEventTime);
 	}
 
 	private void handlePing(Connection connection) throws IOException {
@@ -117,14 +114,14 @@ final class ClientConnectionHandler implements Runnable {
 	private void handleGetState(Connection connection) throws IOException {
 		logger.debug("got a state request");
 
-		if (!state.isInitialized()) {
+		if (!registry.isInitialized()) {
 			connection.closeWithError("state not available");
 			return;
 		}
 
 		connection.sendOKReply();
 
-		state.writeTo(connection.out());
+		registry.writeTo(connection.out());
 
 		connection.out().flush();
 		connection.close();

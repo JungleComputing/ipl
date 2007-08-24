@@ -21,10 +21,10 @@ final class Upcaller implements Runnable {
 
     /** Set when registry upcalls are enabled. */
     private boolean registryUpcallerEnabled = false;
-    
+
     /** Set when processing a registry upcall. */
     private boolean busyUpcaller = false;
-    
+
     Upcaller(RegistryEventHandler handler, IbisIdentifier id) {
         this.handler = handler;
         this.ibisId = id;
@@ -40,16 +40,16 @@ final class Upcaller implements Runnable {
     }
 
     synchronized void disableEvents() {
-    	registryUpcallerEnabled = false;
+        registryUpcallerEnabled = false;
         while (busyUpcaller) {
             try {
                 wait();
-            } catch(Exception e) {
+            } catch (Exception e) {
                 // nothing
             }
         }
     }
-    
+
     private synchronized void setBusyUpcaller() {
         busyUpcaller = true;
     }
@@ -58,32 +58,32 @@ final class Upcaller implements Runnable {
         busyUpcaller = false;
         notifyAll();
     }
-    
+
     private synchronized Event waitForEvent() {
         while (!(registryUpcallerEnabled && !pendingEvents.isEmpty())) {
             try {
                 wait();
-            } catch(Exception e) {
+            } catch (Exception e) {
                 // nothing
             }
         }
         return pendingEvents.remove(0);
     }
-    
+
     synchronized void newEvent(Event event) {
-    	pendingEvents.add(event);
-    	notifyAll();
+        pendingEvents.add(event);
+        notifyAll();
     }
-    
+
     synchronized void stop() {
-    	pendingEvents.add(null);
-    	notifyAll();
+        pendingEvents.add(null);
+        notifyAll();
     }
-    
+
     public void run() {
         while (true) {
 
-        	Event event = waitForEvent();
+            Event event = waitForEvent();
 
             if (event == null) {
                 // registry stopped
@@ -91,9 +91,9 @@ final class Upcaller implements Runnable {
             }
 
             logger.debug("doing upcall for event: " + event);
-            
+
             setBusyUpcaller();
-            
+
             try {
                 IbisIdentifier[] ibisses = event.getIbises();
                 switch (event.getType()) {
@@ -131,7 +131,7 @@ final class Upcaller implements Runnable {
             } catch (Throwable t) {
                 logger.error("error on handling event", t);
             }
-            
+
             logger.debug("upcall for event " + event + " done");
 
             clearBusyUpcaller();
