@@ -256,6 +256,13 @@ public class LoadBalancing implements Config {
 
         /* If successfull, we now have a job in stolenJob. */
         if (stolenJob == null) {
+            // TODO remove. Test: throttle steal requests. After a failed one,
+            // we wait a while.
+            try {
+                Thread.sleep(500);
+            } catch (Exception e) {
+                // ignore
+            }
             return null;
         }
 
