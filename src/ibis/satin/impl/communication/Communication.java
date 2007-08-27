@@ -212,7 +212,7 @@ public final class Communication implements Config, Protocol {
 
     public static ReceivePortIdentifier connect(SendPort s,
             IbisIdentifier ident, String name, long timeoutMillis) {
-        System.err.println("SATIN '" + ident + "': connecting to " + ident);
+        System.out.println("SATIN '" + ident + "': connecting to " + ident);
         long startTime = System.currentTimeMillis();
         ReceivePortIdentifier r = null;
         do {
