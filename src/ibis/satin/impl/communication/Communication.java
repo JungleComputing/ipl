@@ -212,30 +212,30 @@ public final class Communication implements Config, Protocol {
 
     public static ReceivePortIdentifier connect(SendPort s,
             IbisIdentifier ident, String name, long timeoutMillis) {
-        System.out.println("SATIN '" + ident + "': connecting to " + ident);
+
         long startTime = System.currentTimeMillis();
         ReceivePortIdentifier r = null;
         do {
             try {
                 r = s.connect(ident, name, timeoutMillis, false);
             } catch (AlreadyConnectedException x) {
-                commLogger.info("SATIN '" + ident + "': already connected to " + name + " at " + ident, x);
+                commLogger.info("already connected to " + name + " at " + ident, x);
                 ReceivePortIdentifier[] ports = s.connectedTo();
                 for (int i = 0; i < ports.length; i++) {
                     commLogger.info("port " + i + " --> " + ports[i]);
                     if (ports[i].ibisIdentifier().equals(ident)
                             && ports[i].name().equals(name)) {
                         commLogger
-                            .info("SATIN '" + ident + "': the port was already connected, found it");
+                            .info("the port was already connected, found it");
                         return ports[i];
                             }
                 }
                 commLogger
-                    .info("SATIN '" + ident + "': the port was already connected, but could not find it, retry!");
+                    .info("the port was already connected, but could not find it, retry!");
                 // return null;
             } catch (IOException e) {
                 commLogger.info(
-                    "SATIN '" + ident + "': IOException in connect to " + ident + ": " + e, e);
+                        "IOException in connect to " + ident + ": " + e, e);
                 try {
                     Thread.sleep(500);
                 } catch (InterruptedException e2) {
@@ -246,7 +246,7 @@ public final class Communication implements Config, Protocol {
                 && System.currentTimeMillis() - startTime < timeoutMillis);
 
         if (r == null) {
-            commLogger.info("SATIN '" + ident + "': could not connect port within given time (" + timeoutMillis + " ms)");
+            commLogger.info("could not connect port within given time (" + timeoutMillis + " ms)");
         }
         return r;
     }

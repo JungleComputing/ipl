@@ -27,7 +27,7 @@ public final class Victim implements Config {
 
     private IbisIdentifier ident;
 
-    private SendPort s;
+    private SendPort sendPort;
 
     private ReceivePortIdentifier r;
 
@@ -39,7 +39,7 @@ public final class Victim implements Config {
     
     public Victim(IbisIdentifier ident, SendPort s) {
         this.ident = ident;
-        this.s = s;
+        this.sendPort = s;
     }
 
     public boolean equals(Object o) {
@@ -68,13 +68,13 @@ public final class Victim implements Config {
         if (connected) {
             connected = false;
             connectionCount--;
-            s.disconnect(r);
+            sendPort.disconnect(r);
         }
     }
 
     public void connect() {
-        synchronized (this) {
-            getSendPort();            
+        synchronized (sendPort) {
+            getSendPort();
         }
     }
     
@@ -84,10 +84,10 @@ public final class Victim implements Config {
         }
 
         if (!connected) {
-            r = Communication.connect(s, ident, "satin port",
+            r = Communication.connect(sendPort, ident, "satin port",
                 Satin.CONNECT_TIMEOUT);
             if (r == null) {
-                Config.commLogger.debug("SATIN '" + s.identifier().ibisIdentifier()
+                Config.commLogger.debug("SATIN '" + sendPort.identifier().ibisIdentifier()
                     + "': unable to connect to " + ident
                     + ", might have crashed");
                 return null;
@@ -96,12 +96,12 @@ public final class Victim implements Config {
             connectionCount++;
         }
         
-        return s;
+        return sendPort;
     }
 
     public WriteMessage newMessage() throws IOException {
         SendPort send;
-        synchronized (this) {
+        synchronized (sendPort) {
             send = getSendPort();
             if (send != null) {
                 referenceCount++;
@@ -116,7 +116,7 @@ public final class Victim implements Config {
         try {
             return m.finish();
         }  finally {
-            synchronized (this) {
+            synchronized (sendPort) {
                 referenceCount--;
 
                 if (CLOSE_CONNECTIONS) {
@@ -132,7 +132,7 @@ public final class Victim implements Config {
         try {
             return m.finish();
         } finally {
-            synchronized (this) {
+            synchronized (sendPort) {
                 referenceCount--;
             }
         }
@@ -140,7 +140,7 @@ public final class Victim implements Config {
 
     public void loseConnection() throws IOException {
         if (CLOSE_CONNECTIONS) {
-            synchronized(this) {
+            synchronized(sendPort) {
                 if (connectionCount >= MAX_CONNECTIONS && referenceCount == 0) {
                     disconnect();
                 }
@@ -149,17 +149,17 @@ public final class Victim implements Config {
     }
 
     public void close() {
-        synchronized (this) {
+        synchronized (sendPort) {
             if (connected) {
                 connected = false;
                 connectionCount--;
             }
             closed = true;
             try {
-                s.close();
+                sendPort.close();
             } catch (Exception e) {
                 // ignore
-                Config.commLogger.warn("SATIN '" + s.identifier().ibisIdentifier()
+                Config.commLogger.warn("SATIN '" + sendPort.identifier().ibisIdentifier()
                     + "': port.close() throws exception (ignored)", e);
             }
         }
