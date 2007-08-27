@@ -48,7 +48,8 @@ public final class ClusterAwareRandomWorkStealing extends
             	boolean gotTimeout = System.currentTimeMillis() - asyncStealStart >= STEAL_WAIT_TIMEOUT;
             	if(gotTimeout && !gotAsyncStealReply) {
             		ftLogger.warn("SATIN '" + s.ident
-                            + "': a timeout occurred while waiting for a wide-area steal reply from " + asyncCurrentVictim);
+                            + "': a timeout occurred while waiting for a wide-area steal reply from " + asyncCurrentVictim  + ", timeout = "
+                            + STEAL_WAIT_TIMEOUT / 1000 + " seconds.");
             	}
 
             	if (gotAsyncStealReply || gotTimeout) {
@@ -98,7 +99,8 @@ public final class ClusterAwareRandomWorkStealing extends
                 	asyncStealStart = System.currentTimeMillis();
                 	satin.lb.sendStealRequest(remoteVictim, false, false);
                 } catch (IOException e) {
-                    satin.commLogger.warn("Got exception during wa steal request: " + e);
+                    satin.commLogger.warn("SATIN '" + s.ident
+                        + "': Got exception during wa steal request: " + e);
                     // Ignore this?
                 }
             }

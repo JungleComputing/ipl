@@ -240,7 +240,7 @@ public final class VictimTable implements Config {
            */
 
         // @@@ TODO: this only works with SOBCAST disabled!
-        ftLogger.info("SATIN '" + satin.ident + "': could not get victim for "
+        ftLogger.warn("SATIN '" + satin.ident + "': could not get victim for "
                 + id + " creating victim on demand");
 
         SendPort p = null;
