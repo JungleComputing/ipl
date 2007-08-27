@@ -64,7 +64,7 @@ public final class ClusterAwareRandomWorkStealing extends
                         // TODO remove. Test: throttle steal requests. After a failed one,
                         // we wait a while.
                         try {
-                            Thread.sleep(500);
+                            satin.wait(500);
                         } catch (Exception e) {
                             // ignore
                         }                        
