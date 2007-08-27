@@ -73,7 +73,7 @@ public final class Victim implements Config {
     }
 
     public void connect() {
-        synchronized (s) {
+        synchronized (this) {
             getSendPort();            
         }
     }
@@ -101,7 +101,7 @@ public final class Victim implements Config {
 
     public WriteMessage newMessage() throws IOException {
         SendPort send;
-        synchronized (s) {
+        synchronized (this) {
             send = getSendPort();
             if (send != null) {
                 referenceCount++;
@@ -116,7 +116,7 @@ public final class Victim implements Config {
         try {
             return m.finish();
         }  finally {
-            synchronized (s) {
+            synchronized (this) {
                 referenceCount--;
 
                 if (CLOSE_CONNECTIONS) {
@@ -132,7 +132,7 @@ public final class Victim implements Config {
         try {
             return m.finish();
         } finally {
-            synchronized (s) {
+            synchronized (this) {
                 referenceCount--;
             }
         }
@@ -140,7 +140,7 @@ public final class Victim implements Config {
 
     public void loseConnection() throws IOException {
         if (CLOSE_CONNECTIONS) {
-            synchronized(s) {
+            synchronized(this) {
                 if (connectionCount >= MAX_CONNECTIONS && referenceCount == 0) {
                     disconnect();
                 }
@@ -149,7 +149,7 @@ public final class Victim implements Config {
     }
 
     public void close() {
-        synchronized (s) {
+        synchronized (this) {
             if (connected) {
                 connected = false;
                 connectionCount--;
