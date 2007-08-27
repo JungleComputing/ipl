@@ -59,6 +59,16 @@ public final class ClusterAwareRandomWorkStealing extends
                     remoteJob = asyncStolenJob;
                     asyncStolenJob = null;
                     asyncStealStart = 0;
+                    
+                    if(remoteJob == null) { // steal failed
+                        // TODO remove. Test: throttle steal requests. After a failed one,
+                        // we wait a while.
+                        try {
+                            Thread.sleep(500);
+                        } catch (Exception e) {
+                            // ignore
+                        }                        
+                    }
                 }
             }
 
