@@ -73,7 +73,9 @@ public final class Victim implements Config {
     }
 
     public void connect() {
-        getSendPort();
+        synchronized (s) {
+            getSendPort();            
+        }
     }
     
     private SendPort getSendPort() {
