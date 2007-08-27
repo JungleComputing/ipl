@@ -72,6 +72,10 @@ public final class Victim implements Config {
         }
     }
 
+    public void connect() {
+        getSendPort();
+    }
+    
     private SendPort getSendPort() {
         if (closed) {
             return null;

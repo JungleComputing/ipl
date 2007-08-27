@@ -30,6 +30,8 @@ public interface Config {
 
     static final String s_max_connections = PROPERTY_PREFIX + "maxConnections";
 
+    static final String s_connections_on_demand = PROPERTY_PREFIX + "connectionsOnDemand";
+
     static final String s_stats = PROPERTY_PREFIX + "stats";
 
     static final String s_detailed_stats = PROPERTY_PREFIX + "detailedStats";
@@ -70,7 +72,7 @@ public interface Config {
         s_ft_naive, s_ft_connectTimeout, s_masterhost, s_in_latency,
         s_delete_time, s_delete_cluster_time, s_kill_time, s_dump, s_so_delay,
         s_so_size, s_alg, s_so_lrmc, s_close_connections, s_max_connections,
-        s_so_wait_time, s_steal_wait_timeout };
+        s_so_wait_time, s_steal_wait_timeout, s_connections_on_demand };
 
     /** Enable or disable asserts. */
     static final boolean ASSERTS = properties.getBooleanProperty(s_asserts, true);
@@ -163,6 +165,10 @@ public interface Config {
     /** When using CLOSE_CONNECTIONS, keep open MAX_CONNECTIONS connections. */
     static final int MAX_CONNECTIONS = properties.getIntProperty(s_max_connections,
             64); 
+
+    /** Setup connections as we need them. Used for scalability. */
+    static final boolean CONNECTIONS_ON_DEMAND = properties.getBooleanProperty(
+            s_connections_on_demand, true); 
 
     /** Logger for communication. */
     public static final Logger commLogger = Logger.getLogger("ibis.satin.comm");

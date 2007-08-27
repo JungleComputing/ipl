@@ -338,13 +338,19 @@ final class FTCommunication implements Config, ReceivePortConnectUpcall,
             }
             ftLogger.debug("SATIN '" + s.ident + "': creating sendport done");
 
+            Victim v;
             synchronized (s) {
                 ftLogger.debug("SATIN '" + s.ident + "': adding victim");
-                s.victims.add(new Victim(joiner, p));
+                v = new Victim(joiner, p);
+                s.victims.add(v);
                 s.notifyAll();
                 ftLogger.debug("SATIN '" + s.ident + "': adding victim done");
             }
 
+            if(!CONNECTIONS_ON_DEMAND) {
+                v.connect();
+            }
+            
             ftLogger.debug("SATIN '" + s.ident + "': " + joiner + " JOINED");
         }
     }
