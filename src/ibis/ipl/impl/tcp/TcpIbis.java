@@ -67,8 +67,8 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
         systemServer = factory.createServerSocket(0, 50, true, null);
         myAddress = systemServer.getLocalSocketAddress();
 
-        if (logger.isDebugEnabled()) {
-            logger.debug("--> TcpIbis: address = " + myAddress);
+        if (logger.isInfoEnabled()) {
+            logger.info("--> TcpIbis: address = " + myAddress);
         }
 
         return myAddress.toBytes();
