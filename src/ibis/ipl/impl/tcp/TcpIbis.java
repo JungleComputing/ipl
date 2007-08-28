@@ -51,7 +51,7 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
         super(registryEventHandler, capabilities, types, userProperties);
 
         this.properties.checkProperties("ibis.ipl.impl.tcp.",
-                new String[] {"smartsockets"}, null, true);
+                new String[] {"ibis.ipl.impl.tcp.smartsockets"}, null, true);
 
         factory.setIdent(ident);
 
