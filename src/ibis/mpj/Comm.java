@@ -187,16 +187,16 @@ public class Comm {
      */
     public Object attrGet(int keyval) throws MPJException {
         if (keyval == MPJ.TAG_UB) {
-            return(new Integer(Integer.MAX_VALUE));
+            return(Integer.valueOf(Integer.MAX_VALUE));
         }
         else if (keyval == MPJ.HOST) {
             return(MPJ.getMyId().toString());
         }
         else if (keyval == MPJ.IO) {
-            return(new Integer(MPJ.ANY_SOURCE));
+            return(Integer.valueOf(MPJ.ANY_SOURCE));
         }
         else if (keyval == MPJ.WTIME_IS_GLOBAL) {
-            return(new Integer(0));
+            return(Integer.valueOf(0));
         }
         else {
             throw new MPJException("unknown key value.");
@@ -732,7 +732,7 @@ public class Comm {
             System.arraycopy(buf, offset, tempBuf, offset, count * datatype.extent());
         }
         else if (buf instanceof float[]) {
-            tempBuf = new float[((float[])tempBuf).length];		
+            tempBuf = new float[((float[])buf).length];		
             System.arraycopy(buf, offset, tempBuf, offset, count * datatype.extent());
         }
         else if (buf instanceof double[]) {
@@ -1023,7 +1023,6 @@ public class Comm {
                         ((Object[])outbuf)[i+outoffset] = oin.readObject();
                     }
 
-                    System.gc();
                 } catch (Exception e) {
                     throw new MPJException(e.getMessage());
                 }
@@ -1296,7 +1295,6 @@ public class Comm {
                         ((Object[])outbuf)[i+outoffset] = oin.readObject();
                     }
 
-                    System.gc();
                 } catch (Exception e) {
                     e.printStackTrace();
                     throw new MPJException(e.getMessage());

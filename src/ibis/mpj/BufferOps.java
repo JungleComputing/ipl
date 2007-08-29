@@ -486,14 +486,14 @@ public class BufferOps {
 
         for (int i = offset; i < count+offset; i++) {
 
-            ((long[])destBuf)[i] = (((srcBuf[position]  & 0xff) << 56)
-                                    + ((srcBuf[position+1] & 0xff) << 48)
-                                    + ((srcBuf[position+2] & 0xff) << 40)
-                                    + ((srcBuf[position+3] & 0xff) << 32)
-                                    + ((srcBuf[position+4] & 0xff) << 24)
-                                    + ((srcBuf[position+5] & 0xff) << 16)
-                                    + ((srcBuf[position+6] & 0xff) << 8)
-                                    + ((srcBuf[position+7] & 0xff)));
+            ((long[])destBuf)[i] = (((srcBuf[position]  & 0xffL) << 56)
+                                    + ((srcBuf[position+1] & 0xffL) << 48)
+                                    + ((srcBuf[position+2] & 0xffL) << 40)
+                                    + ((srcBuf[position+3] & 0xffL) << 32)
+                                    + ((srcBuf[position+4] & 0xffL) << 24)
+                                    + ((srcBuf[position+5] & 0xffL) << 16)
+                                    + ((srcBuf[position+6] & 0xffL) << 8)
+                                    + ((srcBuf[position+7] & 0xffL)));
 
             position += MPJ.LONG.getByteSize();
         }

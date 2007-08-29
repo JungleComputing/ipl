@@ -60,9 +60,8 @@ public class Datatype implements Serializable {
      * Construct new datatype representing replication of old datatype into contiguous locations.
      * @param count  replication count
      * @return new datatype
-     * @throws MPJException
      */
-    public Datatype contiguous(int count) throws MPJException {
+    public Datatype contiguous(int count) {
 
         Datatype contDatatype = new Datatype();
         contDatatype.byteSize = this.byteSize;
@@ -215,9 +214,8 @@ public class Datatype implements Serializable {
      * Returns the extent of a datatype - the difference between upper and lower bound.
      * 
      * @return datatype extent
-     * @throws MPJException
      */
-    public int extent() throws MPJException { 
+    public int extent() { 
 
         return(this.ub - this.lb +1);
     }
@@ -245,9 +243,8 @@ public class Datatype implements Serializable {
     /**
      * Returns the total size of a datatype - the number of buffer elements it represents.
      * @return datatype size
-     * @throws MPJException
      */
-    public int size() throws MPJException { 
+    public int size() { 
         return(this.displacements.length);
     }
 
@@ -259,11 +256,6 @@ public class Datatype implements Serializable {
      * @throws MPJException
      */
     public void commit() throws MPJException {
-    	// not implemented yet
-    }
-
-
-    public void finalize() throws MPJException {
     	// not implemented yet
     }
 

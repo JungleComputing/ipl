@@ -14,7 +14,7 @@ package ibis.mpj;
 public abstract class Op {
     protected boolean commute;
 
-    public Op(boolean commute) throws MPJException {
+    public Op(boolean commute) {
         this.commute = commute;
     }
 
@@ -24,9 +24,4 @@ public abstract class Op {
     public boolean isCommute() {
         return commute;
     }
-
-    void Finalize() throws MPJException {
-    	// nothing here
-    }
-
 }

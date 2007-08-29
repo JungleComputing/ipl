@@ -10,7 +10,7 @@ package ibis.mpj;
  * Only available for these datatypes: MPJ.SHORT, MPJ.INT, MPJ.LONG, MPJ.FLOAT, MPJ.DOUBLE.
  */
 public class OpProd extends Op {
-    OpProd(boolean commute) throws MPJException {
+    OpProd(boolean commute) {
         super(commute);
     }
 

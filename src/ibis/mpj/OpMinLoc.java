@@ -10,7 +10,7 @@ package ibis.mpj;
  * Only available for these datatypes: MPJ.SHORT2, MPJ.INT2, MPJ.LONG2, MPJ.FLOAT2, MPJ.DOUBLE2.
  */
 public class OpMinLoc extends Op {
-    OpMinLoc(boolean commute) throws MPJException {
+    OpMinLoc(boolean commute) {
         super(commute);
     }
 

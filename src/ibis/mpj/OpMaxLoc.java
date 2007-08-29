@@ -10,7 +10,7 @@ package ibis.mpj;
  * Only available for these datatypes: MPJ.SHORT2, MPJ.INT2, MPJ.LONG2, MPJ.FLOAT2, MPJ.DOUBLE2.
  */
 public class OpMaxLoc extends Op {
-    OpMaxLoc(boolean commute) throws MPJException {
+    OpMaxLoc(boolean commute) {
         super(commute);
     }
 

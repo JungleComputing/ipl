@@ -19,7 +19,7 @@ public class Cartcomm extends Intracomm{
      * @see java.lang.Object#clone()
      */
     public Object clone() {
-        return(null);
+        return super.clone();
     }
 
 

@@ -21,7 +21,7 @@ import org.apache.log4j.Logger;
  * Holds all information about a connection between two nodes.
  */
 public class Connection {
-    private static Integer SENDLOCK = new Integer(0);
+    private static Integer SENDLOCK = Integer.valueOf(0);
 
     //	private MPJObject readObj = new MPJObject();
 

@@ -442,7 +442,7 @@ public class Group {
         	int j = min;
         	
         	while (j <= max) {
-        		exc.add(new Integer(j));
+        		exc.add(Integer.valueOf(j));
         		
         		j += step;
         	}
@@ -467,12 +467,6 @@ public class Group {
         }
       	return (eGroup);
               
-    }
-
-
-
-    public void finalize() throws MPJException {
-    	// nothing here
     }
 
 }

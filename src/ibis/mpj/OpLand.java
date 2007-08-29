@@ -10,7 +10,7 @@ package ibis.mpj;
  * Only available for these datatypes: MPJ.SHORT, MPJ.BOOLEAN, MPJ.INT and MPJ.LONG.
  */
 public class OpLand extends Op {
-    OpLand(boolean commute) throws MPJException {
+    OpLand(boolean commute) {
         super(commute);
     }
 

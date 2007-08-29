@@ -10,7 +10,7 @@ package ibis.mpj;
  * Only available for these datatypes: MPJ.BYTE, MPJ.CHAR, MPJ.SHORT, MPJ.BOOLEAN, MPJ.INT, MPJ.LONG, MPJ.FLOAT, MPJ.DOUBLE.
  */
 public class OpMax extends Op {
-    OpMax(boolean commute) throws MPJException {
+    OpMax(boolean commute) {
         super(commute);
     }
 

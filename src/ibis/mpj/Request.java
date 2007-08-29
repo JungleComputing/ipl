@@ -87,10 +87,6 @@ public class Request {
         return(null);
     }
 
-    public void finalize() {
-    	// nothing here
-    }
-
     public boolean isVoid() throws MPJException {
     	return this.ibisMPJCommThread == null;
     }

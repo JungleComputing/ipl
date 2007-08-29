@@ -11,7 +11,7 @@ package ibis.mpj;
  */
 
 public class OpSum extends Op {
-    OpSum(boolean commute) throws MPJException {
+    OpSum(boolean commute) {
         super(commute);
     }
 

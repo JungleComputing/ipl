@@ -37,7 +37,7 @@ public class MPJ {
 
     private static Logger logger = Logger.getLogger(MPJ.class.getName());
 
-    protected static boolean LOCALCOPYIBIS = true;
+    static boolean LOCALCOPYIBIS = true;
 
     private static byte[] attachedBuffer;
     private static boolean isInitialized = false;
@@ -45,17 +45,17 @@ public class MPJ {
     private static PortType porttype = null;
     private static ConnectionTable connectionTable = null;
 
-    protected static Ibis ibis;
-    protected static Registry registry;
+    static Ibis ibis;
+    static Registry registry;
     private static RegEvtHandler regEvtHandler;
 
 
-    public static Datatype BYTE, CHAR, SHORT, BOOLEAN, INT, LONG, FLOAT, DOUBLE, OBJECT, PACKED, LB, UB;
-    public static Datatype SHORT2, INT2, LONG2, FLOAT2, DOUBLE2;
-    public static Op MAX, MIN, SUM, PROD, LAND, BAND, LOR, BOR, LXOR, BXOR, MAXLOC, MINLOC;
+    public static final Datatype BYTE, CHAR, SHORT, BOOLEAN, INT, LONG, FLOAT, DOUBLE, OBJECT, PACKED, LB, UB;
+    public static final Datatype SHORT2, INT2, LONG2, FLOAT2, DOUBLE2;
+    public static final Op MAX, MIN, SUM, PROD, LAND, BAND, LOR, BOR, LXOR, BXOR, MAXLOC, MINLOC;
 
 
-    public static Group GROUP_EMPTY;
+    public static final Group GROUP_EMPTY = null;
     public static Intracomm COMM_WORLD;
     public static Comm COMM_SELF;
 
@@ -77,8 +77,7 @@ public class MPJ {
     public static final int IO = -3;
     public static final int WTIME_IS_GLOBAL = -4;
 
-    private static void initDatatypes() {
-
+    static {
         BYTE    = new Datatype();
         BYTE.byteSize = 1;
         BYTE.type = Datatype.BASE_TYPE_BYTE;
@@ -188,42 +187,24 @@ public class MPJ {
         UB.hasMPJLB = false;
         UB.hasMPJUB = true;
 
-        try {
-            SHORT2 = SHORT.contiguous(2);
-            INT2 = INT.contiguous(2);
-            LONG2 = LONG.contiguous(2);
-            FLOAT2 = FLOAT.contiguous(2);
-            DOUBLE2 = DOUBLE.contiguous(2);
+        SHORT2 = SHORT.contiguous(2);
+        INT2 = INT.contiguous(2);
+        LONG2 = LONG.contiguous(2);
+        FLOAT2 = FLOAT.contiguous(2);
+        DOUBLE2 = DOUBLE.contiguous(2);
 
-        }
-        catch (MPJException e) {
-            logger.fatal("got exception", e);
-            System.exit(-1);
-        }
-
-
-    }
-
-    private static void initOps() {
-        try {
-
-            MAX  = new OpMax(true);
-            MIN  = new OpMin(true);
-            SUM  = new OpSum(true);
-            PROD = new OpProd(true);
-            LAND = new OpLand(true);
-            BAND = new OpBand(true);
-            LOR  = new OpLor(true);
-            BOR  = new OpBor(true);
-            LXOR = new OpLxor(true);
-            BXOR = new OpBxor(true);
-            MAXLOC = new OpMaxLoc(true);
-            MINLOC = new OpMinLoc(true);
-        }
-        catch (MPJException e) {
-            logger.error("got exception", e);
-        }
-
+        MAX  = new OpMax(true);
+        MIN  = new OpMin(true);
+        SUM  = new OpSum(true);
+        PROD = new OpProd(true);
+        LAND = new OpLand(true);
+        BAND = new OpBand(true);
+        LOR  = new OpLor(true);
+        BOR  = new OpBor(true);
+        LXOR = new OpLxor(true);
+        BXOR = new OpBxor(true);
+        MAXLOC = new OpMaxLoc(true);
+        MINLOC = new OpMinLoc(true);
     }
 
 
@@ -309,16 +290,6 @@ public class MPJ {
             COMM_SELF.group = new Group();
             COMM_SELF.group().addId(ibis.identifier());
             //COMM_SELF.contextId = 0;
-
-
-            initDatatypes();
-            initOps();
-
-
-
-
-
-
 
             MPJ.isInitialized = true;
 
@@ -445,7 +416,8 @@ public class MPJ {
         attachedBuffer = buffer;
     }
 
-    protected static BsendCount bsendCount = new BsendCount();
+    static final BsendCount bsendCount = new BsendCount();
+
     /**
      * Detach the buffer currently associated with MPJ.
      * @return buffer array
@@ -474,24 +446,24 @@ public class MPJ {
 
 
 
-    protected static byte[] getAttachedBuffer() {
+    static byte[] getAttachedBuffer() {
         return(attachedBuffer);
     }
 
 
-    protected static IbisIdentifier getMyId() {
+    static IbisIdentifier getMyId() {
         return ibis.identifier();
     }
 
-    protected static Connection getConnection(IbisIdentifier id) throws MPJException {
+    static Connection getConnection(IbisIdentifier id) throws MPJException {
         return(MPJ.connectionTable.getConnection(id));
     }
 
-    protected static int getNewContextId() {
+    static int getNewContextId() {
         return (MPJ.highestContextId+1);
     }
 
-    protected static void setNewContextId(int contextId) throws MPJException {
+    static void setNewContextId(int contextId) throws MPJException {
         if (contextId > MPJ.highestContextId) {
             MPJ.highestContextId = contextId;
         }
@@ -501,5 +473,5 @@ public class MPJ {
     }
 }
 class BsendCount {
-    protected int bsends = 0;
+    int bsends = 0;
 }

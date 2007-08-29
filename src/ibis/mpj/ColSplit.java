@@ -104,16 +104,14 @@ class SplitItem implements Serializable {
     }
 }
 
-class SplitComp implements Comparator<SplitItem> {
+class SplitComp implements Comparator<SplitItem>, java.io.Serializable {
     public int compare(SplitItem o1, SplitItem o2) {
         if (o1.key < o2.key) {
             return(-1);
         }
-        else if (o1.key == o2.key) {
+        if (o1.key == o2.key) {
             return(0);
         }
-        else {
-            return(1);
-        }
+        return(1);
     }
 }

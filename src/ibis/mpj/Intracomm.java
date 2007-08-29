@@ -13,22 +13,22 @@ import java.util.Vector;
  * Communicator for the collective operations.
  */
 public class Intracomm extends Comm {
-    private final int TAG_BARRIER = -1;
-    private final int TAG_BCAST   = -2;
-    private final int TAG_REDUCE  = -3;
-    private final int TAG_ALLREDUCE_1 = -4;
-    private final int TAG_GATHER = -5;
-    private final int TAG_GATHERV = -6;
-    private final int TAG_ALLGATHER = -7;
-    //	private final int TAG_ALLGATHERV = -8;
-    private final int TAG_SCATTER = -9;
-    private final int TAG_SCATTERV = -10;
-    private final int TAG_ALLTOALL = -11;
-    private final int TAG_ALLTOALLV = -12;
-    private final int TAG_REDUCESCATTER = -13;
-    private final int TAG_SCAN = -14;
-    private final int TAG_SPLIT = -15;
-    //	private static int TAG_MINVALUE = -15;
+    private static final int TAG_BARRIER = -1;
+    private static final int TAG_BCAST   = -2;
+    private static final int TAG_REDUCE  = -3;
+    private static final int TAG_ALLREDUCE_1 = -4;
+    private static final int TAG_GATHER = -5;
+    private static final int TAG_GATHERV = -6;
+    private static final int TAG_ALLGATHER = -7;
+    //	private static final int TAG_ALLGATHERV = -8;
+    private static final int TAG_SCATTER = -9;
+    private static final int TAG_SCATTERV = -10;
+    private static final int TAG_ALLTOALL = -11;
+    private static final int TAG_ALLTOALLV = -12;
+    private static final int TAG_REDUCESCATTER = -13;
+    private static final int TAG_SCAN = -14;
+    private static final int TAG_SPLIT = -15;
+    //	private static final int TAG_MINVALUE = -15;
 
 
     public Intracomm() throws MPJException {

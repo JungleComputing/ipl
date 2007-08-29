@@ -10,7 +10,7 @@ package ibis.mpj;
  * Only available for these datatypes: MPJ.BYTE, MPJ.SHORT, MPJ.BOOLEAN, MPJ.INT and MPJ.LONG.
  */
 public class OpBand extends Op {
-    OpBand(boolean commute) throws MPJException {
+    OpBand(boolean commute) {
         super(commute);
     }
 

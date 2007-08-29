@@ -10,7 +10,7 @@ package ibis.mpj;
  * Only available for these datatypes: MPJ.BYTE, MPJ.SHORT, MPJ.BOOLEAN, MPJ.INT and MPJ.LONG.
  */
 public class OpBor extends Op {
-    OpBor(boolean commute) throws MPJException {
+    OpBor(boolean commute) {
         super(commute);
     }
 

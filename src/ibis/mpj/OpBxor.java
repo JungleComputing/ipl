@@ -10,7 +10,7 @@ package ibis.mpj;
  * Only available for these datatypes: MPJ.BYTE, MPJ.SHORT, MPJ.BOOLEAN, MPJ.INT and MPJ.LONG.
  */
 public class OpBxor extends Op {
-    OpBxor(boolean commute) throws MPJException {
+    OpBxor(boolean commute) {
         super(commute);
     }
 
