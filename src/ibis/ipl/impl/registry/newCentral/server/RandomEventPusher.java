@@ -1,4 +1,4 @@
-package ibis.ipl.impl.registry.newCentral;
+package ibis.ipl.impl.registry.newCentral.server;
 
 import ibis.util.ThreadPool;
 
@@ -97,7 +97,7 @@ final class RandomEventPusher implements Runnable {
 		if (member == null) {
 			logger.debug("no member to contact");
 		} else {
-			pool.push(member);
+			pool.push(member, false);
 		}
 		threadDone();
 	}

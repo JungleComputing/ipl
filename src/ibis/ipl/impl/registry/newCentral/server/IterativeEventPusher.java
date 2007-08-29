@@ -1,4 +1,4 @@
-package ibis.ipl.impl.registry.newCentral;
+package ibis.ipl.impl.registry.newCentral.server;
 
 import ibis.util.ThreadPool;
 
@@ -73,7 +73,7 @@ final class IterativeEventPusher implements Runnable {
 
 				logger.debug("pushing to " + work);
 
-				pool.push(work);
+				pool.push(work, false);
 				workQ.doneJob();
 			}
 		}
@@ -86,28 +86,11 @@ final class IterativeEventPusher implements Runnable {
 
 	private final int threads;
 
-	IterativeEventPusher(Pool pool, int threads, long interval,
-			boolean newEventTriggersPush) {
+	IterativeEventPusher(Pool pool, int threads) {
 		this.pool = pool;
 		this.threads = threads;
 		
 		ThreadPool.createNew(this, "event pusher scheduler thread");
-	}
-
-	private synchronized void waitUntil(long deadline) {
-		while (!pool.ended()) {
-			long currentTime = System.currentTimeMillis();
-
-			if (currentTime >= deadline) {
-				return;
-			}
-
-			try {
-				wait(deadline - currentTime);
-			} catch (InterruptedException e) {
-				// IGNORE
-			}
-		}
 	}
 
 	public void run() {

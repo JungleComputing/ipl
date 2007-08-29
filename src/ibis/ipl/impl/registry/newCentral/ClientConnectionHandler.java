@@ -1,5 +1,6 @@
 package ibis.ipl.impl.registry.newCentral;
 
+import ibis.ipl.impl.IbisIdentifier;
 import ibis.util.ThreadPool;
 
 import java.io.IOException;
@@ -25,7 +26,8 @@ final class ClientConnectionHandler implements Runnable {
 	private void handleGossip(Connection connection) throws IOException {
 		logger.debug("got a gossip request");
 
-		String poolName = connection.in().readUTF();
+                IbisIdentifier identifier = new IbisIdentifier(connection.in());
+                String poolName = identifier.poolName();
 		int peerTime = connection.in().readInt();
 
 		if (!poolName.equals(registry.getPoolName())) {
@@ -113,6 +115,16 @@ final class ClientConnectionHandler implements Runnable {
 
 	private void handleGetState(Connection connection) throws IOException {
 		logger.debug("got a state request");
+                
+                IbisIdentifier identifier = new IbisIdentifier(connection.in());
+                String poolName = identifier.poolName();
+                
+                if (!poolName.equals(registry.getPoolName())) {
+                        logger.error("wrong pool: " + poolName + " instead of "
+                                        + registry.getPoolName());
+                        connection.closeWithError("wrong pool: " + poolName
+                                        + " instead of " + registry.getPoolName());
+                }
 
 		if (!registry.isInitialized()) {
 			connection.closeWithError("state not available");
@@ -121,7 +133,7 @@ final class ClientConnectionHandler implements Runnable {
 
 		connection.sendOKReply();
 
-		registry.writeTo(connection.out());
+		registry.writeState(connection.out());
 
 		connection.out().flush();
 		connection.close();

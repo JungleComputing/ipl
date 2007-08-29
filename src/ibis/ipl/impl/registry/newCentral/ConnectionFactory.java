@@ -4,6 +4,7 @@ import ibis.io.Conversion;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.IbisProperties;
 import ibis.ipl.impl.IbisIdentifier;
+import ibis.ipl.impl.registry.newCentral.server.Server;
 import ibis.server.Client;
 import ibis.smartsockets.virtual.InitializationException;
 import ibis.smartsockets.virtual.VirtualServerSocket;
@@ -19,7 +20,7 @@ import java.net.ServerSocket;
 
 import org.apache.log4j.Logger;
 
-final class ConnectionFactory {
+public final class ConnectionFactory {
     private static final int CONNECTION_BACKLOG = 50;
 
     private static final Logger logger = Logger
@@ -140,7 +141,7 @@ final class ConnectionFactory {
     /**
      * Create a standalone server connection factory
      */
-    ConnectionFactory(int port, int timeout) throws IOException {
+    public ConnectionFactory(int port, int timeout) throws IOException {
         this.standalone = true;
         this.timeout = timeout;
 
@@ -161,7 +162,7 @@ final class ConnectionFactory {
     /**
      * Create a connectionfactory for a registry which is part of an IbisServer
      */
-    ConnectionFactory(VirtualSocketFactory factory, int virtualPort, int timeout)
+    public ConnectionFactory(VirtualSocketFactory factory, int virtualPort, int timeout)
             throws IOException {
         this.standalone = false;
         this.timeout = timeout;
@@ -182,7 +183,7 @@ final class ConnectionFactory {
         logger.debug("server address = " + virtualServerAddress);
     }
 
-    Connection accept() throws IOException {
+    public Connection accept() throws IOException {
         if (standalone) {
             return new Connection(plainServerSocket);
         } else {
@@ -190,7 +191,7 @@ final class ConnectionFactory {
         }
     }
 
-    Connection connect(IbisIdentifier ibis, int timeout, boolean fillTimeout) throws IOException {
+    public Connection connect(IbisIdentifier ibis, int timeout, boolean fillTimeout) throws IOException {
         if (standalone) {
             InetSocketAddress address = plainAddressFromBytes(ibis
                     .getRegistryData());
@@ -206,7 +207,7 @@ final class ConnectionFactory {
         }
     }
     
-    Connection connect(IbisIdentifier ibis, boolean fillTimeout) throws IOException {
+    public Connection connect(IbisIdentifier ibis, boolean fillTimeout) throws IOException {
         if (standalone) {
             InetSocketAddress address = plainAddressFromBytes(ibis
                     .getRegistryData());
@@ -223,7 +224,7 @@ final class ConnectionFactory {
     }
 
 
-    void end() {
+    public void end() {
         try {
             if (standalone) {
                 plainServerSocket.close();
@@ -244,7 +245,7 @@ final class ConnectionFactory {
         }
     }
 
-    String getAddressString() {
+    public String getAddressString() {
         if (standalone) {
             return plainLocalAddress.getHostAddress() + ":"
                     + plainServerSocket.getLocalPort();

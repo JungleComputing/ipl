@@ -1,5 +1,8 @@
-package ibis.ipl.impl.registry.newCentral;
+package ibis.ipl.impl.registry.newCentral.server;
 
+
+
+import ibis.ipl.impl.IbisIdentifier;
 
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -24,17 +27,19 @@ final class MemberSet {
         list.add(member);
     }
 
-    boolean remove(String ID) {
+    Member remove(IbisIdentifier identifier) {
+        String ID = identifier.getID();
         for (int i = 0; i < list.size(); i++) {
             if (list.get(i).getID().equals(ID)) {
-                list.remove(i);
-                return true;
+                Member result = list.remove(i);
+                return result;
             }
         }
-        return false;
+        return null;
     }
 
-    boolean contains(String ID) {
+    boolean contains(IbisIdentifier identifier) {
+        String ID = identifier.getID();
         for (int i = 0; i < list.size(); i++) {
             if (list.get(i).getID().equals(ID)) {
                 return true;
@@ -42,6 +47,37 @@ final class MemberSet {
         }
         return false;
     }
+    
+    boolean contains(Member member) {
+        return contains(member.getIbis());
+    }
+    
+    Member get(IbisIdentifier identifier) {
+        String ID = identifier.getID();
+        for (int i = 0; i < list.size(); i++) {
+            if (list.get(i).getID().equals(ID)) {
+                return list.get(i);
+            }
+        }
+        return null;
+    }
+    
+    Member getLeastRecentlySeen() {
+        if (list.isEmpty()) {
+            return null;
+        }
+        
+        Member oldest = list.get(0);
+        
+        for (int i = 1; i < list.size(); i++) {
+            if (list.get(i).getLastSeen() < oldest.getLastSeen()) {
+                oldest = list.get(i);
+            }
+        }
+        
+        return oldest;
+    }
+            
 
     Member get(int index) {
         if (index >= list.size()) {
@@ -80,6 +116,7 @@ final class MemberSet {
     Member[] asArray() {
         return list.toArray(new Member[0]);
     }
+
 }
 
 

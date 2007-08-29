@@ -1,4 +1,4 @@
-package ibis.ipl.impl.registry.newCentral;
+package ibis.ipl.impl.registry.newCentral.server;
 
 import ibis.ipl.impl.IbisIdentifier;
 
@@ -11,10 +11,14 @@ final class Member {
     private final IbisIdentifier ibis;
 
     private int currentTime;
+    
+    //time at which this member was last seen
+    private long lastSeen;
 
     Member(IbisIdentifier ibis) {
         this.ibis = ibis;
         currentTime = 0;
+        lastSeen = 0;
     }
 
     IbisIdentifier getIbis() {
@@ -32,6 +36,18 @@ final class Member {
         }
         this.currentTime = currentTime;
     }
+    
+    synchronized void updateLastSeenTime() {
+        lastSeen = System.currentTimeMillis();
+    }
+    
+    synchronized void clearLastSeenTime() {
+        lastSeen = 0;
+    }
+    
+    synchronized long getLastSeen() {
+        return lastSeen;
+    }
 
     String getID() {
         return ibis.getID();
@@ -41,4 +57,5 @@ final class Member {
     public String toString() {
         return ibis.toString() + "@T" + getCurrentTime();
     }
+
 }

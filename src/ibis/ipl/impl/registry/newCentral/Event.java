@@ -7,23 +7,23 @@ import java.io.DataOutput;
 import java.io.IOException;
 import java.io.Serializable;
 
-final class Event implements Serializable, Comparable<Event> {
+public final class Event implements Serializable, Comparable<Event> {
 
     private static final long serialVersionUID = 1L;
 
     // event types
 
-    static final int JOIN = 1;
+    public static final int JOIN = 1;
 
-    static final int LEAVE = 2;
+    public static final int LEAVE = 2;
 
-    static final int DIED = 3;
+    public static final int DIED = 3;
 
-    static final int SIGNAL = 4;
+    public static final int SIGNAL = 4;
 
-    static final int ELECT = 5;
+    public static final int ELECT = 5;
 
-    static final int UN_ELECT = 6;
+    public static final int UN_ELECT = 6;
 
     private final int time;
 
@@ -33,7 +33,8 @@ final class Event implements Serializable, Comparable<Event> {
 
     private final IbisIdentifier[] ibisses;
 
-    Event(int time, int type, String description, IbisIdentifier... ibisses ) {
+    public Event(int time, int type, String description,
+            IbisIdentifier... ibisses) {
         this.time = time;
         this.type = type;
         this.ibisses = ibisses.clone();
@@ -54,7 +55,7 @@ final class Event implements Serializable, Comparable<Event> {
         }
     }
 
-    void writeTo(DataOutput out) throws IOException {
+    public void writeTo(DataOutput out) throws IOException {
         out.writeInt(time);
         out.writeInt(type);
         out.writeUTF(description);
@@ -65,7 +66,7 @@ final class Event implements Serializable, Comparable<Event> {
 
     }
 
-    int getTime() {
+    public int getTime() {
         return time;
     }
 
@@ -111,8 +112,8 @@ final class Event implements Serializable, Comparable<Event> {
         return typeString() + "@" + time;
     }
 
-	public int compareTo(Event other) {
-		return time - other.time;
-	}
+    public int compareTo(Event other) {
+        return time - other.time;
+    }
 
 }

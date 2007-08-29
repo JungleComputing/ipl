@@ -9,7 +9,7 @@ public class RegistryProperties {
 
 	public static final String PREFIX = "ibis.registry.newCentral.";
 
-	public static final String CHECKUP_INTERVAL = PREFIX + "checkup.interval";
+	public static final String HEARTBEAT_INTERVAL = PREFIX + "checkup.interval";
 
 	public static final String GOSSIP = PREFIX + "gossip";
 
@@ -44,11 +44,10 @@ public class RegistryProperties {
 	private static final String[][] propertiesList = new String[][] {
 
 			{
-					CHECKUP_INTERVAL,
+					HEARTBEAT_INTERVAL,
 					"10",
-					"Int(seconds): how often do we check if a member "
-							+ "of a pool is still alive, and"
-							+ " send it any events it missed" },
+					"Int(seconds): how often is a member "
+							+ "of a pool expected to report it is still alive" },
 
 			{ GOSSIP, "false",
 					"Boolean: do we gossip, or send events centrally" },

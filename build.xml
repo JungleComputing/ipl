@@ -68,7 +68,7 @@
         </jar>
 	<jar destfile="lib/ipl-impl.jar" basedir="${tmp}" includes="ibis/ipl/impl/*.class ibis/ipl/apps/**/*.class ibis/ipl/impl/registry/**/*.class ibis/ipl/impl/util/**/*.class ibis/ipl/impl/test/**/*.class ibis/util/**/*.class">
             <manifest>
-                <attribute name="Ibis-Service" value="ibis.ipl.impl.registry.central.Server,ibis.ipl.impl.registry.newCentral.Server" />
+                <attribute name="Ibis-Service" value="ibis.ipl.impl.registry.central.Server,ibis.ipl.impl.registry.newCentral.server.Server" />
             </manifest>
 	</jar>
 	<jar destfile="lib/impl-tcp.jar" basedir="${tmp}" includes="ibis/ipl/impl/tcp/**/*.class">

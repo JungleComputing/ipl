@@ -1,7 +1,10 @@
-package ibis.ipl.impl.registry.newCentral;
+package ibis.ipl.impl.registry.newCentral.server;
 
 import ibis.ipl.impl.IbisIdentifier;
 import ibis.ipl.impl.Location;
+import ibis.ipl.impl.registry.newCentral.Connection;
+import ibis.ipl.impl.registry.newCentral.ConnectionFactory;
+import ibis.ipl.impl.registry.newCentral.Protocol;
 import ibis.util.ThreadPool;
 
 import java.io.IOException;
@@ -30,7 +33,7 @@ final class ServerConnectionHandler implements Runnable {
     }
 
     private void handleJoin(Connection connection) throws IOException {
-        IbisIdentifier result;
+        IbisIdentifier identifier;
         Pool pool;
 
         int length = connection.in().readInt();
@@ -61,18 +64,19 @@ final class ServerConnectionHandler implements Runnable {
                 server.getAndCreatePool(poolName, checkupInterval, gossip, gossipInterval, adaptGossipInterval, tree);
 
         try {
-            result = pool.join(implementationData, clientAddress, location);
+            identifier = pool.join(implementationData, clientAddress, location);
         } catch (Exception e) {
             connection.closeWithError(e.toString());
             return;
         }
 
         connection.sendOKReply();
-        result.writeTo(connection.out());
+        identifier.writeTo(connection.out());
 
         pool.writeBootstrapList(connection.out());
 
         connection.out().flush();
+        pool.gotHeartbeat(identifier);
     }
 
     private void handleLeave(Connection connection) throws IOException {
@@ -100,6 +104,7 @@ final class ServerConnectionHandler implements Runnable {
             // one)
             server.nudge();
         }
+        pool.gotHeartbeat(identifier);
     }
 
     private void handleElect(Connection connection) throws IOException {
@@ -118,13 +123,14 @@ final class ServerConnectionHandler implements Runnable {
         connection.sendOKReply();
 
         winner.writeTo(connection.out());
+        pool.gotHeartbeat(candidate);
     }
 
     private void handleGetSequenceNumber(Connection connection)
             throws IOException {
-        String poolName = connection.in().readUTF();
+        IbisIdentifier identifier = new IbisIdentifier(connection.in());
 
-        Pool pool = server.getPool(poolName);
+        Pool pool = server.getPool(identifier.poolName());
 
         if (pool == null) {
             connection.closeWithError("pool not found");
@@ -136,10 +142,12 @@ final class ServerConnectionHandler implements Runnable {
         connection.sendOKReply();
 
         connection.out().writeLong(number);
+        pool.gotHeartbeat(identifier);
     }
 
     private void handleDead(Connection connection) throws IOException {
         IbisIdentifier identifier = new IbisIdentifier(connection.in());
+        IbisIdentifier corpse = new IbisIdentifier(connection.in());
 
         Pool pool = server.getPool(identifier.poolName());
 
@@ -149,18 +157,19 @@ final class ServerConnectionHandler implements Runnable {
         }
 
         try {
-            pool.dead(identifier, new Exception("ibis declared dead by application"));
+            pool.dead(corpse, new Exception("ibis declared dead by " + identifier));
         } catch (Exception e) {
             connection.closeWithError(e.toString());
             return;
         }
 
         connection.sendOKReply();
-
+        pool.gotHeartbeat(identifier);
     }
 
     private void handleMaybeDead(Connection connection) throws IOException {
         IbisIdentifier identifier = new IbisIdentifier(connection.in());
+        IbisIdentifier suspect = new IbisIdentifier(connection.in());
 
         Pool pool = server.getPool(identifier.poolName());
 
@@ -169,41 +178,41 @@ final class ServerConnectionHandler implements Runnable {
             return;
         }
 
-        pool.maybeDead(identifier);
+        pool.maybeDead(suspect);
 
         connection.sendOKReply();
-
+        pool.gotHeartbeat(identifier);
     }
 
     private void handleSignal(Connection connection) throws IOException {
-        String poolName = connection.in().readUTF();
+        IbisIdentifier identifier = new IbisIdentifier(connection.in());
 
         String signal = connection.in().readUTF();
 
-        IbisIdentifier[] identifiers =
+        IbisIdentifier[] receivers =
                 new IbisIdentifier[connection.in().readInt()];
-        for (int i = 0; i < identifiers.length; i++) {
-            identifiers[i] = new IbisIdentifier(connection.in());
+        for (int i = 0; i < receivers.length; i++) {
+            receivers[i] = new IbisIdentifier(connection.in());
 
         }
 
-        Pool pool = server.getPool(poolName);
+        Pool pool = server.getPool(identifier.poolName());
 
         if (pool == null) {
             connection.closeWithError("pool not found");
             return;
         }
 
-        pool.signal(signal, identifiers);
+        pool.signal(signal, receivers);
 
         connection.sendOKReply();
-
+        pool.gotHeartbeat(identifier);
     }
     
     private void handleGetState(Connection connection) throws IOException {
-        String poolName = connection.in().readUTF();
+        IbisIdentifier identifier = new IbisIdentifier(connection.in());
         
-        Pool pool = server.getPool(poolName);
+        Pool pool = server.getPool(identifier.poolName());
 
         if (pool == null) {
             connection.closeWithError("pool not found");
@@ -213,6 +222,21 @@ final class ServerConnectionHandler implements Runnable {
         connection.sendOKReply();
         pool.writeState(connection.out());
         connection.out().flush();
+        pool.gotHeartbeat(identifier);
+    }
+    
+    private void handleHeartbeat(Connection connection) throws IOException {
+        IbisIdentifier identifier = new IbisIdentifier(connection.in());
+        
+        Pool pool = server.getPool(identifier.poolName());
+
+        if (pool == null) {
+            connection.closeWithError("pool not found");
+            return;
+        }
+        
+        connection.sendOKReply();
+        pool.gotHeartbeat(identifier);
     }
 
     String getStats(boolean clear) {
@@ -287,6 +311,9 @@ final class ServerConnectionHandler implements Runnable {
                 break;
             case Protocol.OPCODE_GET_STATE:
                 handleGetState(connection);
+                break;
+            case Protocol.OPCODE_HEARTBEAT:
+                handleHeartbeat(connection);
                 break;
             default:
                 logger.error("unknown opcode: " + opcode);

@@ -17,7 +17,7 @@ import java.util.HashMap;
 
 import org.apache.log4j.Logger;
 
-final class Connection {
+public final class Connection {
 
     private static final int INITIAL_MAX_WAIT = 1000;
 
@@ -157,15 +157,15 @@ final class Connection {
 
     }
 
-    DataOutputStream out() {
+    public DataOutputStream out() {
         return out;
     }
 
-    DataInputStream in() {
+    public DataInputStream in() {
         return in;
     }
 
-    void getAndCheckReply() throws IOException {
+    public void getAndCheckReply() throws IOException {
         // flush output, just in case...
         out.flush();
 
@@ -182,11 +182,11 @@ final class Connection {
 
     }
 
-    void sendOKReply() throws IOException {
+    public void sendOKReply() throws IOException {
         out.writeByte(Protocol.REPLY_OK);
     }
 
-    void closeWithError(String message) {
+    public void closeWithError(String message) {
         if (message == null) {
             message = "";
         }
@@ -200,7 +200,7 @@ final class Connection {
         }
     }
 
-    void close() {
+    public void close() {
         try {
             out.flush();
         } catch (IOException e) {

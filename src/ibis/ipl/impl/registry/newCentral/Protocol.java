@@ -1,32 +1,34 @@
 package ibis.ipl.impl.registry.newCentral;
 
-final class Protocol {
+public final class Protocol {
 
     // opcodes
 
-    static final byte OPCODE_JOIN = 1;
+    public static final byte OPCODE_JOIN = 1;
 
-    static final byte OPCODE_LEAVE = 2;
+    public static final byte OPCODE_LEAVE = 2;
 
-    static final byte OPCODE_GOSSIP = 3;
+    public static final byte OPCODE_GOSSIP = 3;
 
-    static final byte OPCODE_ELECT = 4;
+    public static final byte OPCODE_ELECT = 4;
 
-    static final byte OPCODE_SEQUENCE_NR = 5;
+    public static final byte OPCODE_SEQUENCE_NR = 5;
 
-    static final byte OPCODE_DEAD = 6;
+    public static final byte OPCODE_DEAD = 6;
 
-    static final byte OPCODE_MAYBE_DEAD = 7;
+    public static final byte OPCODE_MAYBE_DEAD = 7;
 
-    static final byte OPCODE_SIGNAL = 8;
+    public static final byte OPCODE_SIGNAL = 8;
 
-    static final byte OPCODE_PING = 9;
+    public static final byte OPCODE_PING = 9;
     
-    static final byte OPCODE_PUSH = 10;
+    public static final byte OPCODE_PUSH = 10;
     
-    static final byte OPCODE_GET_STATE = 11;
+    public static final byte OPCODE_GET_STATE = 11;
 
-    static final int NR_OF_OPCODES = 12;
+    public static final byte OPCODE_HEARTBEAT = 12;
+    
+    public static final int NR_OF_OPCODES = 13;
 
     // replies
 
@@ -42,12 +44,12 @@ final class Protocol {
 
     static final int MAX_EVENT_LIST_SEND_SIZE = 10000;
 
-    static final int BOOTSTRAP_LIST_SIZE = 200;
+    public static final int BOOTSTRAP_LIST_SIZE = 200;
 
     public static final byte CLIENT_MAGIC_BYTE = 66;
     public static final byte SERVER_MAGIC_BYTE = 88;
 
-    static String opcodeString(byte opcode) {
+    public static String opcodeString(byte opcode) {
         if (opcode == OPCODE_JOIN) {
             return "JOIN";
         } else if (opcode == OPCODE_LEAVE) {
@@ -70,6 +72,8 @@ final class Protocol {
             return "PUSH";
         } else if (opcode == OPCODE_GET_STATE) {
             return "GET_STATE";
+        } else if (opcode == OPCODE_HEARTBEAT) {
+            return "HEARTBEAT";
         } else {
             return "UNKNOWN";
         }
