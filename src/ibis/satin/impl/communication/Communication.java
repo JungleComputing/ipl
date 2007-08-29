@@ -215,27 +215,29 @@ public final class Communication implements Config, Protocol {
 
         long startTime = System.currentTimeMillis();
         ReceivePortIdentifier r = null;
-        connLogger.info("connecting to " + name + " at " + ident);
+        IbisIdentifier id = s.identifier().ibisIdentifier();
+        connLogger.info("SATIN '" + id + "': connecting to " + name + " at " + ident);
         do {
             try {
                 r = s.connect(ident, name, timeoutMillis, false);
             } catch (AlreadyConnectedException x) {
-                connLogger.info("already connected to " + name + " at " + ident, x);
+                connLogger.info("SATIN '" + id
+                        + "': already connected to " + name + " at " + ident, x);
                 ReceivePortIdentifier[] ports = s.connectedTo();
                 for (int i = 0; i < ports.length; i++) {
                     if (ports[i].ibisIdentifier().equals(ident)
                             && ports[i].name().equals(name)) {
-                        connLogger
-                            .info("the port was already connected, found it");
+                        connLogger.info("SATIN '" + id
+                                + "': the port was already connected, found it");
                         return ports[i];
                             }
                 }
-                connLogger
-                    .info("the port was already connected, but could not find it, retry!");
+                connLogger.info("SATIN '" + id
+                        + "': the port was already connected, but could not find it, retry!");
                 // return null;
             } catch (IOException e) {
-                connLogger.info(
-                        "IOException in connect to " + ident + ": " + e, e);
+                connLogger.info( "SATIN '" + id
+                        + "': IOException in connect to " + ident + ": " + e, e);
                 try {
                     Thread.sleep(500);
                 } catch (InterruptedException e2) {
