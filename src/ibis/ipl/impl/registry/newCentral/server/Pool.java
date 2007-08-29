@@ -13,9 +13,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
@@ -65,7 +63,7 @@ final class Pool implements Runnable {
     private long staleTime;
 
     Pool(String name, ConnectionFactory connectionFactory,
-            long heartbeatInterval, boolean gossip, long gossipInterval,
+            long heartbeatInterval, long eventPushInterval, boolean gossip, long gossipInterval,
             boolean adaptGossipInterval, boolean tree, boolean printEvents) {
         this.name = name;
         this.connectionFactory = connectionFactory;
@@ -87,12 +85,12 @@ final class Pool implements Runnable {
         } else if (tree) {
             throw new Error("tree not implemented");
         } else { // central
-            new IterativeEventPusher(this, PUSH_THREADS);
+            new IterativeEventPusher(this, PUSH_THREADS, eventPushInterval);
         }
 
         pusher = new OndemandEventPusher(this);
 
-        ThreadPool.createNew(this, "pool management thread");
+        ThreadPool.createNew(this, "pool pinger thread");
 
     }
 
@@ -119,14 +117,22 @@ final class Pool implements Runnable {
         notifyAll();
     }
 
-    synchronized void waitForEventTime(int time) {
+    synchronized void waitForEventTime(int time, long timeout) {
+        long deadline = System.currentTimeMillis() + timeout;
+        
         while (getEventTime() < time) {
             if (ended()) {
                 return;
             }
+            
+            long currentTime = System.currentTimeMillis();
+            
+            if (currentTime >= deadline) {
+                return;
+            } 
 
             try {
-                wait();
+                wait(deadline - currentTime);
             } catch (InterruptedException e) {
                 // IGNORE
             }
@@ -495,8 +501,12 @@ final class Pool implements Runnable {
                 return;
             }
         }
-        logger.debug("pushing entries to " + member);
-
+        if (force) {
+            logger.debug("forced pushing entries to " + member);
+        } else {            
+            logger.debug("pushing entries to " + member);
+        }
+        
         Connection connection = null;
         try {
 
@@ -568,7 +578,8 @@ final class Pool implements Runnable {
                 timeout = 1000;
             } else {
                 timeout =
-                        (oldest.getLastSeen() + heartbeatInterval) - currentTime;
+                        (oldest.getLastSeen() + heartbeatInterval)
+                                - currentTime;
             }
 
             if (timeout <= 0) {
@@ -656,14 +667,24 @@ final class Pool implements Runnable {
      * contacts any suspect nodes when asked
      */
     public void run() {
-        while (!ended()) {
-
-            Member suspect = getSuspectMember();
-
-            if (suspect != null) {
-                ping(suspect);
-            }
+        logger.debug("new pinger thread started");
+        Member suspect = getSuspectMember();
+        //fake we saw this member so noone else tries to ping it too
+        if (suspect != null) {
+            suspect.updateLastSeenTime();
         }
+        
+        if (ended()) {
+            return;
+        }
+
+        //start a new thread for pining another suspect
+        ThreadPool.createNew(this, "pool pinger thread");
+
+        if (suspect != null) {
+            ping(suspect);
+        }
+
     }
 
 }

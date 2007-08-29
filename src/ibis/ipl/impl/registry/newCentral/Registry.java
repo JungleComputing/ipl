@@ -184,6 +184,9 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
         heartbeatInterval =
                 properties
                         .getIntProperty(RegistryProperties.HEARTBEAT_INTERVAL) * 1000;
+        long eventPushInterval =
+                properties
+                        .getIntProperty(RegistryProperties.EVENT_PUSH_INTERVAL) * 1000;
         gossip = properties.getBooleanProperty(RegistryProperties.GOSSIP);
         gossipInterval =
                 properties.getIntProperty(RegistryProperties.GOSSIP_INTERVAL) * 1000;
@@ -200,8 +203,9 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
         // join at server
         identifier =
                 join(connectionFactory.getLocalAddress(), location, data,
-                        heartbeatInterval, gossip, gossipInterval,
-                        adaptGossipInterval, tree, bootstrapList);
+                        heartbeatInterval, eventPushInterval, gossip,
+                        gossipInterval, adaptGossipInterval, tree,
+                        bootstrapList);
 
         registryHandler = handler;
 
@@ -227,26 +231,28 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
 
     synchronized void updateHeartbeatDeadline() {
         heartbeatDeadline =
-                System.currentTimeMillis() + (long) (heartbeatInterval * 0.9 * Math.random());
-        
+                System.currentTimeMillis()
+                        + (long) (heartbeatInterval * 0.9 * Math.random());
+
         logger.debug("heartbeat deadline updated");
-        
-        //no need to wake up heartbeat thread, deadline will only be later
+
+        // no need to wake up heartbeat thread, deadline will only be later
     }
 
     synchronized void waitForHeartbeatDeadline() {
         while (true) {
-            int timeout = (int) (heartbeatDeadline - System.currentTimeMillis());
+            int timeout =
+                    (int) (heartbeatDeadline - System.currentTimeMillis());
 
             if (timeout <= 0) {
                 return;
             }
-            
+
             try {
                 logger.debug("waiting " + timeout + " for heartbeat");
                 wait(timeout);
-            } catch(InterruptedException e) {
-                //IGNORE
+            } catch (InterruptedException e) {
+                // IGNORE
             }
         }
     }
@@ -269,8 +275,12 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
 
     private synchronized void stop() {
         stopped = true;
-        upcaller.stop();
-        connectionFactory.end();
+        if (upcaller != null) {
+            upcaller.stop();
+        }
+        if (connectionFactory != null) {
+            connectionFactory.end();
+        }
         notifyAll();
     }
 
@@ -351,7 +361,7 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
 
                     connection.out().writeByte(Protocol.CLIENT_MAGIC_BYTE);
                     connection.out().writeByte(Protocol.OPCODE_GET_STATE);
-                    
+
                     getIbisIdentifier().writeTo(connection.out());
                     connection.out().flush();
 
@@ -384,7 +394,7 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
 
             readState(connection.in());
             connection.close();
-            
+
             updateHeartbeatDeadline();
         } catch (IOException e) {
             connection.close();
@@ -410,8 +420,9 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
      *             in case of trouble
      */
     private IbisIdentifier join(byte[] myAddress, Location location,
-            byte[] implementationData, long checkupInterval, boolean gossip,
-            long gossipInterval, boolean adaptGossipInterval, boolean tree,
+            byte[] implementationData, long heartbeatInterval,
+            long eventPushInterval, boolean gossip, long gossipInterval,
+            boolean adaptGossipInterval, boolean tree,
             ArrayList<IbisIdentifier> bootstrapList) throws IOException {
 
         logger.debug("joining to " + getPoolName() + ", connecting to server");
@@ -429,7 +440,8 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
             connection.out().writeInt(implementationData.length);
             connection.out().write(implementationData);
             location.writeTo(connection.out());
-            connection.out().writeLong(checkupInterval);
+            connection.out().writeLong(heartbeatInterval);
+            connection.out().writeLong(eventPushInterval);
             connection.out().writeBoolean(gossip);
             connection.out().writeLong(gossipInterval);
             connection.out().writeBoolean(adaptGossipInterval);
@@ -447,9 +459,9 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
             }
 
             logger.debug("join done");
-            
+
             connection.close();
-            
+
             updateHeartbeatDeadline();
 
             return result;
@@ -521,7 +533,7 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
             connection.close();
 
             logger.debug("left");
-            
+
             updateHeartbeatDeadline();
 
             if (server != null) {
@@ -625,7 +637,7 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
 
             logger.debug("election : \"" + election + "\" done, result = "
                     + winner);
-            
+
             updateHeartbeatDeadline();
 
             return winner;
@@ -704,9 +716,9 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
             long result = connection.in().readLong();
 
             connection.close();
-            
+
             logger.debug("sequence number = " + result);
-            
+
             updateHeartbeatDeadline();
 
             return result;
@@ -738,7 +750,7 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
             connection.close();
 
             logger.debug("done declaring " + ibis + " dead ");
-            
+
             updateHeartbeatDeadline();
         } catch (IOException e) {
             connection.close();
@@ -767,7 +779,7 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
             connection.close();
 
             logger.debug("done reporting " + ibis + " to possibly be dead");
-            
+
             updateHeartbeatDeadline();
         } catch (IOException e) {
             connection.close();
@@ -807,7 +819,7 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
 
             logger.debug("done telling " + ibisses.length
                     + " ibisses a signal: " + signal);
-            
+
             updateHeartbeatDeadline();
         } catch (IOException e) {
             connection.close();

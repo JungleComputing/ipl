@@ -54,14 +54,15 @@ final class ServerConnectionHandler implements Runnable {
 
         Location location = new Location(connection.in());
 
-        long checkupInterval = connection.in().readLong();
+        long heartbeatInterval = connection.in().readLong();
+        long eventPushInterval = connection.in().readLong();
         boolean gossip = connection.in().readBoolean();
         long gossipInterval = connection.in().readLong();
         boolean adaptGossipInterval = connection.in().readBoolean();
         boolean tree = connection.in().readBoolean();
 
         pool =
-                server.getAndCreatePool(poolName, checkupInterval, gossip, gossipInterval, adaptGossipInterval, tree);
+                server.getAndCreatePool(poolName, heartbeatInterval, eventPushInterval, gossip, gossipInterval, adaptGossipInterval, tree);
 
         try {
             identifier = pool.join(implementationData, clientAddress, location);
@@ -157,7 +158,8 @@ final class ServerConnectionHandler implements Runnable {
         }
 
         try {
-            pool.dead(corpse, new Exception("ibis declared dead by " + identifier));
+            pool.dead(corpse, new Exception("ibis declared dead by "
+                    + identifier));
         } catch (Exception e) {
             connection.closeWithError(e.toString());
             return;
@@ -208,33 +210,33 @@ final class ServerConnectionHandler implements Runnable {
         connection.sendOKReply();
         pool.gotHeartbeat(identifier);
     }
-    
+
     private void handleGetState(Connection connection) throws IOException {
         IbisIdentifier identifier = new IbisIdentifier(connection.in());
-        
+
         Pool pool = server.getPool(identifier.poolName());
 
         if (pool == null) {
             connection.closeWithError("pool not found");
             return;
         }
-        
+
         connection.sendOKReply();
         pool.writeState(connection.out());
         connection.out().flush();
         pool.gotHeartbeat(identifier);
     }
-    
+
     private void handleHeartbeat(Connection connection) throws IOException {
         IbisIdentifier identifier = new IbisIdentifier(connection.in());
-        
+
         Pool pool = server.getPool(identifier.poolName());
 
         if (pool == null) {
             connection.closeWithError("pool not found");
             return;
         }
-        
+
         connection.sendOKReply();
         pool.gotHeartbeat(identifier);
     }

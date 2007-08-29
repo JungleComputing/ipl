@@ -1,7 +1,6 @@
 package ibis.ipl.impl.registry.newCentral.server;
 
 
-
 import ibis.ipl.impl.IbisIdentifier;
 
 import java.util.ArrayList;

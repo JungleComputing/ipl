@@ -12,7 +12,7 @@ import org.apache.log4j.Logger;
  * Sends events to clients from the server.
  */
 final class IterativeEventPusher implements Runnable {
-
+    
 	private class WorkQ {
 		private List<Member> q;
 		private int count;
@@ -85,10 +85,13 @@ final class IterativeEventPusher implements Runnable {
 	private final Pool pool;
 
 	private final int threads;
+        
+        private final long timeout;
 
-	IterativeEventPusher(Pool pool, int threads) {
+	IterativeEventPusher(Pool pool, int threads, long timeout) {
 		this.pool = pool;
 		this.threads = threads;
+                this.timeout = timeout;
 		
 		ThreadPool.createNew(this, "event pusher scheduler thread");
 	}
@@ -114,7 +117,7 @@ final class IterativeEventPusher implements Runnable {
 			logger.debug("DONE updating nodes in pool to event-time "
 					+ eventTime);
 
-			pool.waitForEventTime(eventTime + 1);
+			pool.waitForEventTime(eventTime + 1, timeout);
 		}
 	}
 

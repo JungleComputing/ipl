@@ -134,9 +134,9 @@ public final class Server extends Thread implements Service {
     }
 
     // atomic get/create pool
-    synchronized Pool getAndCreatePool(String poolName, long checkupInterval,
-            boolean gossip, long gossipInterval, boolean adaptGossipInterval,
-            boolean tree) throws IOException {
+    synchronized Pool getAndCreatePool(String poolName, long heartbeatInterval,
+            long eventPushInterval, boolean gossip, long gossipInterval,
+            boolean adaptGossipInterval, boolean tree) throws IOException {
         Pool result = getPool(poolName);
 
         if (result == null || result.ended()) {
@@ -152,9 +152,9 @@ public final class Server extends Thread implements Service {
             }
 
             result =
-                    new Pool(poolName, connectionFactory, checkupInterval,
-                            gossip, gossipInterval, adaptGossipInterval, tree,
-                            printEvents);
+                    new Pool(poolName, connectionFactory, heartbeatInterval,
+                            eventPushInterval, gossip, gossipInterval,
+                            adaptGossipInterval, tree, printEvents);
             pools.put(poolName, result);
         }
 
