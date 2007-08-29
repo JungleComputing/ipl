@@ -78,7 +78,7 @@ public final class VictimTable implements Config {
         ibisHash.remove(v.getIdent());
 
         if (c.size() == 0) {
-            clustersHash.remove(c);
+            clustersHash.remove(Victim.clusterOf(v.getIdent()));
         }
 
         return v;

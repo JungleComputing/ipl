@@ -18,7 +18,7 @@ import java.util.ArrayList;
 
 final class AbortsCommunication implements Config {
 
-    final class StampListElement {
+    static final class StampListElement {
         Stamp stamp;
 
         IbisIdentifier stealer;

@@ -50,7 +50,7 @@ public class ConnectionsFailedException extends java.io.IOException {
      * @param receivePortIdentifiers the obtained connections.
      */
     public void setObtainedConnections(ReceivePortIdentifier[] receivePortIdentifiers) {
-        obtainedConnections = receivePortIdentifiers;
+        obtainedConnections = receivePortIdentifiers.clone();
     }
 
     /**
@@ -58,7 +58,7 @@ public class ConnectionsFailedException extends java.io.IOException {
      * @return the obtained connections.
      */
     public ReceivePortIdentifier[] getObtainedConnections() {
-        return obtainedConnections;
+        return obtainedConnections.clone();
     }
 
     /**

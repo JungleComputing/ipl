@@ -16,7 +16,7 @@ import ibis.satin.impl.spawnSync.Stamp;
 import java.io.IOException;
 import java.util.ArrayList;
 
-public class LoadBalancing implements Config {
+public final class LoadBalancing implements Config {
 
     static final class StealRequest {
         int opcode;

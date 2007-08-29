@@ -22,7 +22,7 @@ public final class ClusterAwareRandomWorkStealing extends
     private IbisIdentifier asyncCurrentVictim = null;
 
     private long asyncStealStart;
-    
+
     /**
      * This means we have sent an ASYNC request, and are waiting for the reply.
      * These are/should only (be) used in clientIteration.
@@ -34,51 +34,63 @@ public final class ClusterAwareRandomWorkStealing extends
         this.s = s;
     }
 
+    public InvocationRecord checkForAsyncReply() {
+        if (!asyncStealInProgress) {
+            return null;
+        }
+
+        synchronized (satin) {
+            boolean gotTimeout =
+                    System.currentTimeMillis() - asyncStealStart >= STEAL_WAIT_TIMEOUT;
+            if (gotTimeout && !gotAsyncStealReply) {
+                ftLogger.warn("SATIN '" + s.ident
+                                + "': a timeout occurred while waiting for a wide-area steal reply from "
+                                + asyncCurrentVictim + ", timeout = "
+                                + STEAL_WAIT_TIMEOUT / 1000 + " seconds.");
+            }
+
+            if (gotAsyncStealReply || gotTimeout) {
+                gotAsyncStealReply = false;
+                asyncStealInProgress = false;
+                asyncCurrentVictim = null;
+                InvocationRecord remoteJob = asyncStolenJob;
+                asyncStolenJob = null;
+                asyncStealStart = 0;
+
+                if (remoteJob != null) {
+                    s.stats.asyncStealSuccess++;
+                    return remoteJob;
+                }
+
+                /*                    
+                 if(remoteJob == null) { // steal failed
+                 // TODO remove. Test: throttle steal requests. After a failed one,
+                 // we wait a while.
+                 try {
+                 satin.wait(500);
+                 } catch (Exception e) {
+                 // ignore
+                 }                        
+                 }
+                 */
+            }
+        }
+
+        return null;
+    }
+
     public InvocationRecord clientIteration() {
         Victim localVictim;
         Victim remoteVictim = null;
         boolean canDoAsync = true;
-        InvocationRecord remoteJob = null;
 
         // First look if there was an outstanding WAN steal request that resulted
         // in a job.
-        // check asyncStealInProgress, taking a lock is quite expensive..
-        if (asyncStealInProgress) {
-            synchronized (satin) {
-            	boolean gotTimeout = System.currentTimeMillis() - asyncStealStart >= STEAL_WAIT_TIMEOUT;
-            	if(gotTimeout && !gotAsyncStealReply) {
-            		ftLogger.warn("SATIN '" + s.ident
-                            + "': a timeout occurred while waiting for a wide-area steal reply from " + asyncCurrentVictim  + ", timeout = "
-                            + STEAL_WAIT_TIMEOUT / 1000 + " seconds.");
-            	}
-
-            	if (gotAsyncStealReply || gotTimeout) {
-                    gotAsyncStealReply = false;
-                    asyncStealInProgress = false;
-                    asyncCurrentVictim = null;
-                    remoteJob = asyncStolenJob;
-                    asyncStolenJob = null;
-                    asyncStealStart = 0;
-/*                    
-                    if(remoteJob == null) { // steal failed
-                        // TODO remove. Test: throttle steal requests. After a failed one,
-                        // we wait a while.
-                        try {
-                            satin.wait(500);
-                        } catch (Exception e) {
-                            // ignore
-                        }                        
-                    }
-*/
-                }
-            }
-
-            if (remoteJob != null) { // try a saved async job
-                s.stats.asyncStealSuccess++;
-                return remoteJob;
-            }
+        InvocationRecord remoteJob = checkForAsyncReply();
+        if(remoteJob != null) {
+            return remoteJob;
         }
-
+        
         // Else .. we are idle, try to steal a job.
         synchronized (satin) {
             localVictim = satin.victims.getRandomLocalVictim();
@@ -107,11 +119,11 @@ public final class ClusterAwareRandomWorkStealing extends
                 asyncStealInProgress = true;
                 s.stats.asyncStealAttempts++;
                 try {
-                	asyncStealStart = System.currentTimeMillis();
-                	satin.lb.sendStealRequest(remoteVictim, false, false);
+                    asyncStealStart = System.currentTimeMillis();
+                    satin.lb.sendStealRequest(remoteVictim, false, false);
                 } catch (IOException e) {
                     satin.commLogger.warn("SATIN '" + s.ident
-                        + "': Got exception during wa steal request: " + e);
+                            + "': Got exception during wa steal request: " + e);
                     // Ignore this?
                 }
             }
@@ -126,7 +138,8 @@ public final class ClusterAwareRandomWorkStealing extends
         return null;
     }
 
-    public void stealReplyHandler(InvocationRecord ir, IbisIdentifier sender, int opcode) {
+    public void stealReplyHandler(InvocationRecord ir, IbisIdentifier sender,
+            int opcode) {
         switch (opcode) {
         case STEAL_REPLY_SUCCESS:
         case STEAL_REPLY_FAILED:
@@ -139,30 +152,32 @@ public final class ClusterAwareRandomWorkStealing extends
         case ASYNC_STEAL_REPLY_SUCCESS_TABLE:
         case ASYNC_STEAL_REPLY_FAILED_TABLE:
             synchronized (satin) {
-            	if(sender.equals(asyncCurrentVictim)) {
-            		gotAsyncStealReply = true;
-            		asyncStolenJob = ir;
-            		satin.notifyAll();
-            	} else {
-            		ftLogger.warn("SATIN '" + s.ident
-                            + "': received an async job from a node that caused a timeout before.");
-            		if(ir != null) {
-            			s.q.addToTail(ir);
-            		}
-            	}
+                if (sender.equals(asyncCurrentVictim)) {
+                    gotAsyncStealReply = true;
+                    asyncStolenJob = ir;
+                    //            		satin.notifyAll(); // not needed I think, we naver wait for the async job.
+                } else {
+                    ftLogger
+                            .warn("SATIN '"
+                                    + s.ident
+                                    + "': received an async job from a node that caused a timeout before.");
+                    if (ir != null) {
+                        s.q.addToTail(ir);
+                    }
+                }
             }
             break;
         default:
-            System.err.println("illigal opcode in CRS stealReplyHandler");
+            System.err.println("illegal opcode in CRS stealReplyHandler");
             System.exit(1);
         }
     }
 
     public void exit() {
-        //wait for a pending async steal reply
+        // wait for a pending async steal reply
         if (asyncStealInProgress) {
             stealLogger.info("waiting for a pending async steal reply from "
-                + asyncCurrentVictim);
+                    + asyncCurrentVictim);
             synchronized (satin) {
                 while (!gotAsyncStealReply) {
                     try {
@@ -175,7 +190,7 @@ public final class ClusterAwareRandomWorkStealing extends
             }
             if (ASSERTS && asyncStolenJob != null) {
                 stealLogger.warn("Satin: CRS: EEK, stole async job "
-                    + "after exiting!");
+                        + "after exiting!");
             }
         }
     }

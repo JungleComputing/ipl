@@ -335,7 +335,7 @@ final class MethodTable {
                             newLocals.add(null);
                         }
                         if (newLocals.get(local) == null) {
-                            newLocals.set(local, new Integer(maxpos));
+                            newLocals.set(local, Integer.valueOf(maxpos));
                             maxpos++;
                             if (tp.equals(Type.LONG) || tp.equals(Type.DOUBLE)) {
                                 maxpos++;

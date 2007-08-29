@@ -380,14 +380,12 @@ final class FTCommunication implements Config, ReceivePortConnectUpcall,
 
             synchronized (s) {
                 value = s.ft.globalResultTable.lookup(stamp);
-                if (value == null && ASSERTS) {
+                if (ASSERTS && value == null) {
                     grtLogger.fatal("SATIN '" + s.ident
                             + "': EEK!!! no requested result in the table: "
                             + stamp);
                     System.exit(1); // Failed assertion
-                }
-                if (value.type == GlobalResultTableValue.TYPE_POINTER
-                        && ASSERTS) {
+                } else if (ASSERTS && value.type == GlobalResultTableValue.TYPE_POINTER) {
                     grtLogger.fatal("SATIN '" + s.ident + "': EEK!!! " + ident
                             + " requested a result: " + stamp
                             + " which is stored on another node: " + value);

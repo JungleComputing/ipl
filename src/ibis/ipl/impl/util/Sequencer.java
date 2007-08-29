@@ -97,7 +97,7 @@ public final class Sequencer {
                 w = s.newMessage();
                 w.writeInt(clients.size() - 1);
             } else {
-                rid = clients.get(index);
+//                rid = clients.get(index);  // unused --Rob
                 name = m.readString();
                 m.finish();
                 s = (SendPort) sendports.get(index);

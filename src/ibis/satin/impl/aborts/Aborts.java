@@ -258,7 +258,7 @@ public final class Aborts implements Config {
 
             while (true) {
                 if (abortList.getCount() > 0) {
-                    stamp = abortList.getStamps()[0];
+                    stamp = abortList.getStamp(0);
                     abortList.removeIndex(0);
                 } else {
                     gotAborts = false;

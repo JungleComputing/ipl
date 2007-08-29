@@ -470,7 +470,7 @@ public final class IbisFactory {
         private static synchronized ClassLister getClassLister(String dirList) {
             if (dirList == null) {
                 if (classPathLister == null) {
-                    classPathLister = new ClassLister(dirList);
+                    classPathLister = new ClassLister(null);
                 }
                 return classPathLister;
             }

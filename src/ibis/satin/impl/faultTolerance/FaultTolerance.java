@@ -248,7 +248,7 @@ public final class FaultTolerance implements Config {
 
             while (true) {
                 if (abortAndStoreList.getCount() > 0) {
-                    stamp = abortAndStoreList.getStamps()[0];
+                    stamp = abortAndStoreList.getStamp(0);
                     abortAndStoreList.removeIndex(0);
                 } else {
                     gotAbortsAndStores = false;

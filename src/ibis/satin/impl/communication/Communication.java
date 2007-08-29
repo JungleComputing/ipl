@@ -422,12 +422,11 @@ public final class Communication implements Config, Protocol {
                     }
 
                     v = s.victims.remove(0);
-
-                    commLogger.debug("SATIN '" + s.ident
-                            + "': closing sendport to " + v.getIdent());
                 }
 
                 if (v != null) {
+                    commLogger.debug("SATIN '" + s.ident
+                            + "': closing sendport to " + v.getIdent());
                     v.close();
                 }
 

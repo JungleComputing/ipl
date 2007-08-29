@@ -205,7 +205,7 @@ final class StoreArrayOutputStream extends DataOutputStream {
         
         System.arraycopy(a, off, short_store, short_count, len);
         short_count += len;
-        count += 2*len;
+        count += 2L*len;
     }
     
     public void writeArray(char[] a, int off, int len) {
@@ -216,7 +216,7 @@ final class StoreArrayOutputStream extends DataOutputStream {
         
         System.arraycopy(a, off, char_store, char_count, len);
         char_count += len;
-        count += 2*len;
+        count += 2L*len;
     }
     
     public void writeArray(int[] a, int off, int len) {
@@ -227,7 +227,7 @@ final class StoreArrayOutputStream extends DataOutputStream {
         
         System.arraycopy(a, off, int_store, int_count, len);
         int_count += len;
-        count += 4*len;
+        count += 4L*len;
     }
     
     public void writeArray(long[] a, int off, int len) {
@@ -238,7 +238,7 @@ final class StoreArrayOutputStream extends DataOutputStream {
         
         System.arraycopy(a, off, long_store, long_count, len);
         long_count += len;
-        count += 8*len;
+        count += 8L*len;
     }
     
     public void writeArray(float[] a, int off, int len) {
@@ -249,7 +249,7 @@ final class StoreArrayOutputStream extends DataOutputStream {
         
         System.arraycopy(a, off, float_store, float_count, len);
         float_count += len;
-        count += 4*len;
+        count += 4L*len;
     }
     
     public void writeArray(double[] a, int off, int len) {
@@ -260,7 +260,7 @@ final class StoreArrayOutputStream extends DataOutputStream {
         
         System.arraycopy(a, off, double_store, double_count, len);
         double_count += len;
-        count += 8*len;
+        count += 8L*len;
     }
     
     public void write(byte[] a, int off, int len) {

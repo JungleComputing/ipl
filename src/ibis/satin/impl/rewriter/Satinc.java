@@ -2689,6 +2689,7 @@ public final class Satinc extends IbiscComponent {
                     System.err.println(clname
                         + ": all parameters of a write method"
                         + " must be serializable.");
+                    out.close();
                     System.exit(1);
                 }
             }

@@ -532,7 +532,7 @@ final class SOCommunication implements Config, Protocol, SendDoneUpcaller {
 
                 try {
                     s.wait();
-                } catch (Exception e) {
+                } catch (InterruptedException e) {
                     // ignore
                 }
             }

@@ -43,8 +43,8 @@ public final class StampVector implements Config {
         stamps[i] = stamps[count];
     }
 
-    public Stamp[] getStamps() {
-        return stamps;
+    public Stamp getStamp(int index) {
+        return stamps[index];
     }
 
     public int getCount() {

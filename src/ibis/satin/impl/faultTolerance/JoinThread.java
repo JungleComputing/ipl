@@ -42,8 +42,8 @@ class JoinThread extends Thread implements Config {
             // we can aggregate the port lookups for all those joiners.
             try {
                 Thread.sleep(1000);
-            } catch (Exception e) {
-                // ignored
+            } catch (InterruptedException e) {
+                ; // ignored
             }
         }
     }
