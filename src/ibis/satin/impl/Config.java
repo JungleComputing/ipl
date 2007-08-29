@@ -32,6 +32,8 @@ public interface Config {
 
     static final String s_connections_on_demand = PROPERTY_PREFIX + "connectionsOnDemand";
 
+    static final String s_keep_intra_connections = PROPERTY_PREFIX + "keepIntraConnections";
+
     static final String s_stats = PROPERTY_PREFIX + "stats";
 
     static final String s_detailed_stats = PROPERTY_PREFIX + "detailedStats";
@@ -72,7 +74,8 @@ public interface Config {
         s_ft_naive, s_ft_connectTimeout, s_masterhost, s_in_latency,
         s_delete_time, s_delete_cluster_time, s_kill_time, s_dump, s_so_delay,
         s_so_size, s_alg, s_so_lrmc, s_close_connections, s_max_connections,
-        s_so_wait_time, s_steal_wait_timeout, s_connections_on_demand };
+        s_so_wait_time, s_steal_wait_timeout, s_connections_on_demand,
+        s_keep_intra_connections};
 
     /** Enable or disable asserts. */
     static final boolean ASSERTS = properties.getBooleanProperty(s_asserts, true);
@@ -170,8 +173,18 @@ public interface Config {
     static final boolean CONNECTIONS_ON_DEMAND = properties.getBooleanProperty(
             s_connections_on_demand, true); 
 
+    /**
+     * When CLOSE_CONNECTIONS is set, keep intra-cluster connections.
+     * When set, MAX_CONNECTIONS is ignored.
+     */
+    static final boolean KEEP_INTRA_CONNECTIONS = properties.getBooleanProperty(
+            s_keep_intra_connections, false); 
+
     /** Logger for communication. */
     public static final Logger commLogger = Logger.getLogger("ibis.satin.comm");
+
+    /** Logger for connections. */
+    public static final Logger connLogger = Logger.getLogger("ibis.satin.conn");
 
     /** Logger for job stealing. */
     public static final Logger stealLogger = Logger.getLogger(

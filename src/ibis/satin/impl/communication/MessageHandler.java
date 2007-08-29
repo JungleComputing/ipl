@@ -41,7 +41,7 @@ public final class MessageHandler implements MessageUpcall, Protocol, Config {
             case STEAL_REQUEST:
             case ASYNC_STEAL_REQUEST:
             case BLOCKING_STEAL_REQUEST:
-                if(QUEUE_STEALS) {
+                if (QUEUE_STEALS) {
                     s.lb.queueStealRequest(ident, opcode);
                 } else {
                     m.finish(); // must finish, we will send back a reply.

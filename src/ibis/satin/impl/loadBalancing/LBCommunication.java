@@ -82,14 +82,7 @@ final class LBCommunication implements Config, Protocol {
             writeMessage.writeByte(opcode);
             // Finish the message but try to keep the connection. If the
             // steal attempt succeeds, we need to send an answer later on.
-            long cnt = v.finishKeepConnection(writeMessage);
-            if (v.inDifferentCluster(s.ident)) {
-                s.stats.interClusterMessages++;
-                s.stats.interClusterBytes += cnt;
-            } else {
-                s.stats.intraClusterMessages++;
-                s.stats.intraClusterBytes += cnt;
-            }
+            v.finishKeepConnection(writeMessage);
         } catch(IOException e) {
             writeMessage.finish(e);
             throw e;
@@ -217,13 +210,6 @@ final class LBCommunication implements Config, Protocol {
 
             long cnt = v.finish(writeMessage);
             s.stats.returnRecordBytes += cnt;
-            if (v.inDifferentCluster(s.ident)) {
-                s.stats.interClusterMessages++;
-                s.stats.interClusterBytes += cnt;
-            } else {
-                s.stats.intraClusterMessages++;
-                s.stats.intraClusterBytes += cnt;
-            }
         } catch (IOException e) {
             if (writeMessage != null) {
                 writeMessage.finish(e);
@@ -243,67 +229,73 @@ final class LBCommunication implements Config, Protocol {
         // Therefore, we cannot directly use the handleSteal timer in Satin.
         // Use our own local timer, and add the result to the global timer
         // later.
+        // Not needed when steals are queued.
 
-        // TODO with queued steals, this is no longer true. --Rob
-        
-        Timer handleStealTimer = Timer.createTimer();
-        handleStealTimer.start();
+        Timer handleStealTimer = null;
+        if (QUEUE_STEALS) {
+            s.stats.handleStealTimer.start();
+        } else {
+            handleStealTimer = Timer.createTimer();
+            handleStealTimer.start();
+        }
         s.stats.stealRequests++;
 
-        if (stealLogger.isDebugEnabled()) {
-            stealLogger.debug("SATIN '" + s.ident + "': got steal request from "
-                + ident.ibisIdentifier() + " opcode = "
-                + Communication.opcodeToString(opcode));
-        }
+        try {
 
-        InvocationRecord result = null;
-        Victim v = null;
-        Map<Stamp, GlobalResultTableValue> table = null;
+            if (stealLogger.isDebugEnabled()) {
+                stealLogger.debug("SATIN '" + s.ident + "': got steal request from "
+                    + ident.ibisIdentifier() + " opcode = "
+                    + Communication.opcodeToString(opcode));
+            }
 
-        synchronized (s) {
-            v = s.victims.getVictim(ident.ibisIdentifier());
-            if (v == null || s.deadIbises.contains(ident.ibisIdentifier())) {
-                //this message arrived after the crash of its sender was
-                // detected. Is this actually possible?
-                stealLogger.warn("SATIN '" + s.ident
-                    + "': EEK!! got steal request from a dead ibis: "
+            InvocationRecord result = null;
+            Victim v = null;
+            Map<Stamp, GlobalResultTableValue> table = null;
+
+            synchronized (s) {
+                v = s.victims.getVictim(ident.ibisIdentifier());
+                if (v == null || s.deadIbises.contains(ident.ibisIdentifier())) {
+                    //this message arrived after the crash of its sender was
+                    // detected. Is this actually possible?
+                    stealLogger.warn("SATIN '" + s.ident
+                        + "': EEK!! got steal request from a dead ibis: "
+                        + ident.ibisIdentifier());
+                    return;
+                }
+
+                try {
+                    result = lb.stealJobFromLocalQueue(ident,
+                        opcode == BLOCKING_STEAL_REQUEST);
+                } catch (IOException e) {
+                    stealLogger.warn("SATIN '" + s.ident
+                    + "': EEK!! got exception during steal request: "
                     + ident.ibisIdentifier());
-                handleStealTimer.stop();
-                s.stats.handleStealTimer.add(handleStealTimer);
+                    return; // the stealing ibis died
+                }
+
+                if (!FT_NAIVE
+                    && (opcode == STEAL_AND_TABLE_REQUEST || opcode == ASYNC_STEAL_AND_TABLE_REQUEST)) {
+                    if (!s.ft.getTable) {
+                        table = s.ft.getContents();
+                    }
+                }
+            }
+
+            if (result == null) {
+                sendStealFailedMessage(ident, opcode, v, table);
                 return;
             }
 
-            try {
-                result = lb.stealJobFromLocalQueue(ident,
-                    opcode == BLOCKING_STEAL_REQUEST);
-            } catch (IOException e) {
-                stealLogger.warn("SATIN '" + s.ident
-                + "': EEK!! got exception during steal request: "
-                + ident.ibisIdentifier());
+            // we stole a job
+            sendStolenJobMessage(ident, opcode, v, result, table);
+        } finally {
+            if (QUEUE_STEALS) {
+                s.stats.handleStealTimer.stop();
+            } else {
                 handleStealTimer.stop();
                 s.stats.handleStealTimer.add(handleStealTimer);
-                return; // the stealing ibis died
-            }
-
-            if (!FT_NAIVE
-                && (opcode == STEAL_AND_TABLE_REQUEST || opcode == ASYNC_STEAL_AND_TABLE_REQUEST)) {
-                if (!s.ft.getTable) {
-                    table = s.ft.getContents();
-                }
             }
         }
-
-        if (result == null) {
-            sendStealFailedMessage(ident, opcode, v, table);
-            handleStealTimer.stop();
-            s.stats.handleStealTimer.add(handleStealTimer);
-            return;
-        }
-
-        // we stole a job
-        sendStolenJobMessage(ident, opcode, v, result, table);
-        handleStealTimer.stop();
-        s.stats.handleStealTimer.add(handleStealTimer);
     }
 
     // Here, the timing code is OK, the upcall cannot run in parallel
@@ -441,15 +433,7 @@ final class LBCommunication implements Config, Protocol {
                     + " in handleStealRequest");
             }
 
-            // TODO add counting of bytes to victim.finish
-            long cnt = v.finish(m);
-            if (v.inDifferentCluster(s.ident)) {
-                s.stats.interClusterMessages++;
-                s.stats.interClusterBytes += cnt;
-            } else {
-                s.stats.intraClusterMessages++;
-                s.stats.intraClusterBytes += cnt;
-            }
+            v.finish(m);
 
             if (stealLogger.isDebugEnabled()) {
                 stealLogger.debug("SATIN '" + s.ident
@@ -513,15 +497,8 @@ final class LBCommunication implements Config, Protocol {
             invocationRecordWriteTimer.start();
             m.writeObject(result);
             invocationRecordWriteTimer.stop();
-            long cnt = v.finish(m);
+            v.finish(m);
             s.stats.invocationRecordWriteTimer.add(invocationRecordWriteTimer);
-            if (v.inDifferentCluster(s.ident)) {
-                s.stats.interClusterMessages++;
-                s.stats.interClusterBytes += cnt;
-            } else {
-                s.stats.intraClusterMessages++;
-                s.stats.intraClusterBytes += cnt;
-            }
         } catch (IOException e) {
             if (m != null) {
                 m.finish(e); // TODO always use victim.finish

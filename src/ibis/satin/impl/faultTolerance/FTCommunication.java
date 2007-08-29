@@ -155,14 +155,7 @@ final class FTCommunication implements Config, ReceivePortConnectUpcall,
             writeMessage = v.newMessage();
             writeMessage.writeByte(Protocol.ABORT_AND_STORE);
             writeMessage.writeObject(r.getParentStamp());
-            long cnt = v.finish(writeMessage);
-            if (v.inDifferentCluster(s.ident)) {
-                s.stats.interClusterMessages++;
-                s.stats.interClusterBytes += cnt;
-            } else {
-                s.stats.intraClusterMessages++;
-                s.stats.intraClusterBytes += cnt;
-            }
+            v.finish(writeMessage);
         } catch (IOException e) {
             if (writeMessage != null) {
                 writeMessage.finish(e);

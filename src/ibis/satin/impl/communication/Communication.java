@@ -215,26 +215,26 @@ public final class Communication implements Config, Protocol {
 
         long startTime = System.currentTimeMillis();
         ReceivePortIdentifier r = null;
+        connLogger.info("connecting to " + name + " at " + ident);
         do {
             try {
                 r = s.connect(ident, name, timeoutMillis, false);
             } catch (AlreadyConnectedException x) {
-                commLogger.info("already connected to " + name + " at " + ident, x);
+                connLogger.info("already connected to " + name + " at " + ident, x);
                 ReceivePortIdentifier[] ports = s.connectedTo();
                 for (int i = 0; i < ports.length; i++) {
-                    commLogger.info("port " + i + " --> " + ports[i]);
                     if (ports[i].ibisIdentifier().equals(ident)
                             && ports[i].name().equals(name)) {
-                        commLogger
+                        connLogger
                             .info("the port was already connected, found it");
                         return ports[i];
                             }
                 }
-                commLogger
+                connLogger
                     .info("the port was already connected, but could not find it, retry!");
                 // return null;
             } catch (IOException e) {
-                commLogger.info(
+                connLogger.info(
                         "IOException in connect to " + ident + ": " + e, e);
                 try {
                     Thread.sleep(500);
@@ -246,7 +246,7 @@ public final class Communication implements Config, Protocol {
                 && System.currentTimeMillis() - startTime < timeoutMillis);
 
         if (r == null) {
-            commLogger.info("could not connect port within given time (" + timeoutMillis + " ms)");
+            connLogger.info("could not connect port within given time (" + timeoutMillis + " ms)");
         }
         return r;
     }

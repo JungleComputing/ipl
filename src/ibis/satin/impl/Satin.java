@@ -621,6 +621,16 @@ public final class Satin implements Config {
         return true;
     }
 
+    public static void addInterClusterStats(long cnt) {
+        thisSatin.stats.interClusterMessages++;
+        thisSatin.stats.interClusterBytes += cnt;
+    }
+
+    public static void addIntraClusterStats(long cnt) {
+        thisSatin.stats.intraClusterMessages++;
+        thisSatin.stats.intraClusterBytes += cnt;
+    }
+
     /**
      * @return Returns the current Satin instance.
      */

@@ -36,11 +36,18 @@ public final class Victim implements Config {
 
     private boolean closed = false;
 
+    private final boolean inDifferentCluster;
+
     private int referenceCount = 0;
     
     public Victim(IbisIdentifier ident, SendPort s) {
         this.ident = ident;
         this.sendPort = s;
+        if (s != null) {
+            inDifferentCluster = !clusterOf(ident).equals(clusterOf(s.identifier().ibisIdentifier()));
+        } else {
+            inDifferentCluster = false;
+        }
     }
 
     public boolean equals(Object o) {
@@ -115,23 +122,30 @@ public final class Victim implements Config {
 
     public long finish(WriteMessage m) throws IOException {
         try {
-            return m.finish();
+            long cnt = m.finish();
+            if (inDifferentCluster) {
+                Satin.addInterClusterStats(cnt);
+            } else {
+                Satin.addIntraClusterStats(cnt);
+            }
+            return cnt;
         }  finally {
             synchronized (sendPort) {
                 referenceCount--;
-
-                if (CLOSE_CONNECTIONS) {
-                    if (connectionCount >= MAX_CONNECTIONS && referenceCount == 0) {
-                        disconnect();
-                    }
-                }
+                optionallyDropConnection();
             }
         }
     }
 
     public long finishKeepConnection(WriteMessage m) throws IOException {
         try {
-            return m.finish();
+            long cnt = m.finish();
+            if (inDifferentCluster) {
+                Satin.addInterClusterStats(cnt);
+            } else {
+                Satin.addIntraClusterStats(cnt);
+            }
+            return cnt;
         } finally {
             synchronized (sendPort) {
                 referenceCount--;
@@ -140,9 +154,21 @@ public final class Victim implements Config {
     }
 
     public void loseConnection() throws IOException {
+        synchronized(sendPort) {
+            optionallyDropConnection();
+        }
+    }
+
+    private void optionallyDropConnection() throws IOException {
         if (CLOSE_CONNECTIONS) {
-            synchronized(sendPort) {
-                if (connectionCount >= MAX_CONNECTIONS && referenceCount == 0) {
+            if (referenceCount == 0) {
+                if (KEEP_INTRA_CONNECTIONS) {
+                    if (inDifferentCluster) {
+                        disconnect();
+                    }
+                    return;
+                } 
+                if (connectionCount >= MAX_CONNECTIONS) {
                     disconnect();
                 }
             }
@@ -170,10 +196,6 @@ public final class Victim implements Config {
         return ident;
     }
 
-    public boolean inDifferentCluster(IbisIdentifier other) {
-        return !clusterOf(ident).equals(clusterOf(other));
-    }
-    
     public static String clusterOf(IbisIdentifier id) {
         // Not correct: considers all nodes to be in different clusters
         // if there is only one level. --Ceriel
