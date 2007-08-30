@@ -108,6 +108,12 @@ public final class LoadBalancing implements Config {
             // If this is the case, this job has to be added to the queue,
             // it is not the result of the current steal request.
             if (!sender.equals(currentVictim)) {
+                if (s.deadIbises.contains(sender)) {
+                    // A dead Ibis is alive after all. Ignore it.
+                    ftLogger.warn("SATIN '" + s.ident + "': received a reply from "
+                        + sender + " which is supposed to be dead");
+                    return;
+                }
                 ftLogger.warn("SATIN '" + s.ident + "': received a reply from "
                     + sender + " who caused a timeout before. I am stealing from " + currentVictim);
                 if (ir != null) {

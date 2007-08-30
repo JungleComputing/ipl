@@ -241,7 +241,7 @@ public final class VictimTable implements Config {
 
         // @@@ TODO: this only works with SOBCAST disabled!
         ftLogger.warn("SATIN '" + satin.ident + "': could not get victim for "
-                + id + " creating victim on demand");
+                + id + " creating victim on demand", new Throwable());
 
         SendPort p = null;
         try {

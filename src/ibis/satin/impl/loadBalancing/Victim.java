@@ -24,7 +24,7 @@ import java.io.IOException;
 public final class Victim implements Config {
 
     // @@@ TODO should be synchronized on static object, not sendport! 
-    private static int connectionCount = 0;
+    private static volatile int connectionCount = 0;
 
     private IbisIdentifier ident;
 
