@@ -355,23 +355,16 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
 
         try {
             out.reset();
-        } catch (IOException e2) {
-            try {
-                port.gotSendException(this, e2);
-            } catch(Exception e4) {
-                // ignored
-            }
+        } catch (Throwable e2) {
+            // ignored
         }
 
         try {
             out.flush();
-        } catch (IOException e2) {
-            try {
-                port.gotSendException(this, e2);
-            } catch(Exception e4) {
-                // ignored
-            }
+        } catch (Throwable e2) {
+            // ignored
         }
+
         isFinished = true;
         port.finishMessage(this, e);
     }
