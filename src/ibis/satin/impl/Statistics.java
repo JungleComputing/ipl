@@ -549,6 +549,7 @@ public final class Statistics implements java.io.Serializable, Config {
         out.println("SATIN: TOTAL_RUN_TIME:                              "
             + Timer.format(totalTime));
 
+        
         double lbTime = (stealTime + throttleStealTime - invocationRecordReadTime
             - invocationRecordWriteTime - returnRecordReadTime - returnRecordWriteTime)
             / size;
@@ -556,6 +557,7 @@ public final class Statistics implements java.io.Serializable, Config {
             lbTime = 0.0;
         }
         double lbPerc = lbTime / totalTime * 100.0;
+        double stealTimeAvg = stealTime / size;
         double throttleTimeAvg = throttleStealTime / size;        
         double throttlePerc = throttleTimeAvg / totalTime * 100.0;
         double serTimeAvg = (invocationRecordWriteTime
@@ -615,12 +617,11 @@ public final class Statistics implements java.io.Serializable, Config {
         double soGuardTimeAvg = soGuardTime / size;
         double soGuardPerc = soGuardTimeAvg / totalTime * 100;
         
-        double totalOverheadAvg = (abortTimeAvg + tableUpdateTimeAvg
+        double totalOverheadAvg = abortTimeAvg + tableUpdateTimeAvg
             + tableLookupTimeAvg + tableHandleUpdateTimeAvg
             + tableHandleLookupTimeAvg + handleSOInvocationsTimeAvg
             + broadcastSOInvocationsTimeAvg + soTransferTimeAvg
-            + soBcastTimeAvg + soBcastDeserializationTimeAvg + stealTime + soGuardTimeAvg)
-            / size;
+            + soBcastTimeAvg + soBcastDeserializationTimeAvg + stealTimeAvg + soGuardTimeAvg;
         double totalPerc = totalOverheadAvg / totalTime * 100.0;
         double appTime = totalTime - totalOverheadAvg;
         if (appTime < 0.0) {
@@ -629,15 +630,15 @@ public final class Statistics implements java.io.Serializable, Config {
         double appPerc = appTime / totalTime * 100.0;
 
         if (haveSteals) {
-            out.println("SATIN: LOAD_BALANCING_TIME:        agv. per machine "
-                + Timer.format(lbTime) + " (" + (lbPerc < 10 ? " " : "")
-                + pf.format(lbPerc) + " %)");
             out.println("SATIN: STEAL_THROTTLE_TIME:        agv. per machine "
                     + Timer.format(throttleTimeAvg) + " (" + (throttlePerc < 10 ? " " : "")
                     + pf.format(throttlePerc) + " %)");
             out.println("SATIN: (DE)SERIALIZATION_TIME:     agv. per machine "
                 + Timer.format(serTimeAvg) + " (" + (serPerc < 10 ? " " : "")
                 + pf.format(serPerc) + " %)");
+            out.println("SATIN: LOAD_BALANCING_TIME:        agv. per machine "
+                    + Timer.format(lbTime) + " (" + (lbPerc < 10 ? " " : "")
+                    + pf.format(lbPerc) + " %)");
         }
 
         if (haveAborts) {
