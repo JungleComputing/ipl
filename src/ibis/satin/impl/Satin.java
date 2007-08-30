@@ -468,9 +468,7 @@ public final class Satin implements Config {
         if (!ASSERTS) return;
 
         if (!trylock(o)) {
-            System.err.println("AssertLocked failed!: ");
-            new Exception().printStackTrace();
-            System.exit(1); // Failed assertion
+            assertFailedStatic("AssertLocked failed", new Exception());
         }
     }
 
@@ -510,22 +508,16 @@ public final class Satin implements Config {
 
     private void callSatinFunctionPreAsserts(InvocationRecord r) {
         if (r == null) {
-            spawnLogger.fatal("SATIN '" + ident
-                + ": EEK, r = null in callSatinFunc", new Throwable());
-            System.exit(1); // Failed assertion
+            assertFailed("r == null in callSatinFunc", new Exception());
         }
 
         if (r.aborted) {
-            spawnLogger.fatal("SATIN '" + ident + ": spawning aborted job!",
-                new Throwable());
-            System.exit(1); // Failed assertion
+            assertFailed("spawning aborted job!", new Exception());
         }
 
         if (r.getOwner() == null) {
-            spawnLogger.fatal("SATIN '" + ident
-                + ": EEK, r.owner = null in callSatinFunc, r = " + r,
-                new Throwable());
-            System.exit(1); // Failed assertion
+            assertFailed("r.owner = null in callSatinFunc, r = " + r,
+                new Exception());
         }
     }
 
@@ -602,10 +594,7 @@ public final class Satin implements Config {
         } else if (alg.equals("MW")) {
             algorithm = new MasterWorker(this);
         } else {
-            System.err.println("SATIN '" + "- " + "': satin_algorithm '" + alg
-                + "' unknown");
-            algorithm = null;
-            System.exit(1); // Wrong option
+            assertFailed("satin_algorithm " + alg + "' unknown", new Exception());
         }
 
         commLogger.info("SATIN '" + "- " + "': using algorithm '" + alg);
@@ -621,6 +610,28 @@ public final class Satin implements Config {
         return true;
     }
 
+    public static void assertFailedStatic(String reason, Throwable t) {
+        if(reason != null) {
+            mainLogger.fatal("ASSERT FAILED: " + reason, t);
+        } else {
+            mainLogger.fatal("ASSERT FAILED: ", t);
+        }
+
+        throw new Error(reason, t);        
+    }
+    
+    public void assertFailed(String reason, Throwable t) {
+        if(reason != null) {
+            mainLogger.fatal("SATIN '" + ident
+                    + "': ASSERT FAILED: " + reason, t);
+        } else {
+            mainLogger.fatal("SATIN '" + ident
+                    + "': ASSERT FAILED: ", t);
+        }
+
+        throw new Error(reason, t);
+    }
+    
     public static void addInterClusterStats(long cnt) {
         thisSatin.stats.interClusterMessages++;
         thisSatin.stats.interClusterBytes += cnt;

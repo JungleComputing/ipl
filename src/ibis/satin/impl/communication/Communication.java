@@ -58,9 +58,7 @@ public final class Communication implements Config, Protocol {
                     null, true, s.ft.getRegistryEventHandler(), portType, 
                             SharedObjects.getSOPortType());
         } catch (Exception e) {
-            commLogger.fatal(
-                    "SATIN '" + "- " + "': Could not start ibis: " + e, e);
-            System.exit(1); // Could not start ibis
+            s.assertFailed("Could not start ibis: ", e);
         }
 
         IbisIdentifier ident = ibis.identifier();
@@ -74,9 +72,7 @@ public final class Communication implements Config, Protocol {
             receivePort = ibis.createReceivePort(portType, "satin port",
                     messageHandler, s.ft.getReceivePortConnectHandler(), null);
         } catch (Exception e) {
-            commLogger.fatal("SATIN '" + ident + "': Could not start ibis: "
-                    + e, e);
-            System.exit(1); // Could not start ibis
+            s.assertFailed("Could not start ibis: ", e);
         }
 
         if (CLOSED) {
@@ -90,7 +86,6 @@ public final class Communication implements Config, Protocol {
 
     public IbisIdentifier electMaster() {
         Registry r = ibis.registry();
-        IbisIdentifier ident = ibis.identifier();
         IbisIdentifier masterIdent = null;
 
         String canonicalMasterHost = null;
@@ -121,18 +116,13 @@ public final class Communication implements Config, Protocol {
                     masterIdent = r.elect("satin master");
                 }
             } catch (Exception e) {
-                commLogger.fatal("SATIN '" + ident
-                        + "': Could not do an election for the master: "
-                        + e, e);
-                System.exit(1); // Could not start ibis
+                s.assertFailed("Could not do an election for the master: ", e);
             }
         } else {
             try {
                 masterIdent = r.elect("satin master");
             } catch (Exception e) {
-                commLogger.fatal("SATIN '" + ident
-                        + "': Could not do an election for the master: " + e, e);
-                System.exit(1); // Could not start ibis
+                s.assertFailed("Could not do an election for the master: ", e);
             }
         }
 
@@ -284,8 +274,7 @@ public final class Communication implements Config, Protocol {
                         v = s.victims.getVictim(i);
                     }
                     if (v == null) {
-                        commLogger.fatal("a machine crashed with closed world");
-                        System.exit(1);
+                        s.assertFailed("a machine crashed with closed world", new Exception());
                     }
 
                     try {
@@ -307,8 +296,7 @@ public final class Communication implements Config, Protocol {
                 }
 
                 if (v == null) {
-                    commLogger.fatal("could not get master victim.");
-                    System.exit(1);
+                    s.assertFailed("could not get master victim.",new Exception());
                 }
 
                 WriteMessage writeMessage = null;
@@ -491,7 +479,6 @@ public final class Communication implements Config, Protocol {
             } catch (Exception e) {
                 commLogger.warn("SATIN '" + s.ident
                         + "': Got Exception while reading stats: " + e, e);
-                // System.exit(1);
             }
         }
 
@@ -548,9 +535,8 @@ public final class Communication implements Config, Protocol {
 
         synchronized (s) {
             if (ASSERTS && gotBarrierReply) {
-                commLogger.fatal("Got barrier reply while I already got "
-                        + "one.");
-                System.exit(1); // Failed assertion
+                s.assertFailed("Got barrier reply while I already got "
+                        + "one.", new Exception());
             }
             gotBarrierReply = true;
             s.notifyAll();

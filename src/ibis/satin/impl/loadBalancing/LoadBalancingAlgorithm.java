@@ -3,10 +3,11 @@
 package ibis.satin.impl.loadBalancing;
 
 import ibis.ipl.IbisIdentifier;
+import ibis.satin.impl.Config;
 import ibis.satin.impl.Satin;
 import ibis.satin.impl.spawnSync.InvocationRecord;
 
-public abstract class LoadBalancingAlgorithm {
+public abstract class LoadBalancingAlgorithm implements Config {
 
     protected Satin satin;
 
@@ -51,5 +52,25 @@ public abstract class LoadBalancingAlgorithm {
 
     public void handleCrash(IbisIdentifier ident) {
         // by default, do nothing
+    }
+    
+    protected void throttle(long count) {
+        if(!THROTTLE_STEALS) {
+            return;
+        }
+        int maxTime = 500;
+        int time = 1;
+        if (count >= 9) {
+            time = maxTime;
+        } else {
+            time <<= count;
+        }
+
+        System.err.println("throttle: sleep " + time);
+        try {
+            Thread.sleep(time);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 }

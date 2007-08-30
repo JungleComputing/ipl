@@ -186,8 +186,7 @@ public final class Aborts implements Config {
             throw new Error("Spawned job threw exception: ", r.eek);
         }
         if (ASSERTS && r.getParentLocals() != null) {
-            System.err.println("parenlocals is not null in empty inlet");
-            System.exit(1); // Failed assertion
+            s.assertFailed("parenlocals is not null in empty inlet", new Exception());
         }
 
         if (inletLogger.isDebugEnabled()) {

@@ -29,54 +29,12 @@ public final class ClusterAwareRandomWorkStealing extends
      */
     private boolean asyncStealInProgress = false;
 
+    private long failedLocalAttempts;
+    private long failedRemoteAttempts;
+
     public ClusterAwareRandomWorkStealing(Satin s) {
         super(s);
         this.s = s;
-    }
-
-    public InvocationRecord checkForAsyncReply() {
-        if (!asyncStealInProgress) {
-            return null;
-        }
-
-        synchronized (satin) {
-            boolean gotTimeout =
-                    System.currentTimeMillis() - asyncStealStart >= STEAL_WAIT_TIMEOUT;
-            if (gotTimeout && !gotAsyncStealReply) {
-                ftLogger.warn("SATIN '" + s.ident
-                                + "': a timeout occurred while waiting for a wide-area steal reply from "
-                                + asyncCurrentVictim + ", timeout = "
-                                + STEAL_WAIT_TIMEOUT / 1000 + " seconds.");
-            }
-
-            if (gotAsyncStealReply || gotTimeout) {
-                gotAsyncStealReply = false;
-                asyncStealInProgress = false;
-                asyncCurrentVictim = null;
-                InvocationRecord remoteJob = asyncStolenJob;
-                asyncStolenJob = null;
-                asyncStealStart = 0;
-
-                if (remoteJob != null) {
-                    s.stats.asyncStealSuccess++;
-                    return remoteJob;
-                }
-
-                /*                    
-                 if(remoteJob == null) { // steal failed
-                 // TODO remove. Test: throttle steal requests. After a failed one,
-                 // we wait a while.
-                 try {
-                 satin.wait(500);
-                 } catch (Exception e) {
-                 // ignore
-                 }                        
-                 }
-                 */
-            }
-        }
-
-        return null;
     }
 
     public InvocationRecord clientIteration() {
@@ -86,11 +44,11 @@ public final class ClusterAwareRandomWorkStealing extends
 
         // First look if there was an outstanding WAN steal request that resulted
         // in a job.
-        InvocationRecord remoteJob = checkForAsyncReply();
-        if(remoteJob != null) {
-            return remoteJob;
+        InvocationRecord job = checkForAsyncReply();
+        if (job != null) {
+            return job;
         }
-        
+
         // Else .. we are idle, try to steal a job.
         synchronized (satin) {
             localVictim = satin.victims.getRandomLocalVictim();
@@ -132,7 +90,57 @@ public final class ClusterAwareRandomWorkStealing extends
         // do a local steal, if possible (we might be the only node in this
         // cluster)
         if (localVictim != null) {
-            return satin.lb.stealJob(localVictim, false);
+            job = satin.lb.stealJob(localVictim, false);
+            if (job != null) {
+                failedLocalAttempts = 0;
+                return job;
+            } else {
+                failedLocalAttempts++;
+                throttle(failedLocalAttempts);
+            }
+        }
+
+        return null;
+    }
+
+    public InvocationRecord checkForAsyncReply() {
+        if (!asyncStealInProgress) {
+            return null;
+        }
+
+        boolean failedAttempt = false;
+        synchronized (satin) {
+            boolean gotTimeout =
+                    System.currentTimeMillis() - asyncStealStart >= STEAL_WAIT_TIMEOUT;
+            if (gotTimeout && !gotAsyncStealReply) {
+                ftLogger
+                        .warn("SATIN '"
+                                + s.ident
+                                + "': a timeout occurred while waiting for a wide-area steal reply from "
+                                + asyncCurrentVictim + ", timeout = "
+                                + STEAL_WAIT_TIMEOUT / 1000 + " seconds.");
+            }
+
+            if (gotAsyncStealReply || gotTimeout) {
+                failedAttempt = true;
+                gotAsyncStealReply = false;
+                asyncStealInProgress = false;
+                asyncCurrentVictim = null;
+                InvocationRecord remoteJob = asyncStolenJob;
+                asyncStolenJob = null;
+                asyncStealStart = 0;
+
+                if (remoteJob != null) {
+                    s.stats.asyncStealSuccess++;
+                    failedRemoteAttempts = 0;
+                    return remoteJob;
+                }
+            }
+        }
+
+        if (failedAttempt) {
+            failedRemoteAttempts++;
+            throttle(failedRemoteAttempts);
         }
 
         return null;
@@ -168,8 +176,8 @@ public final class ClusterAwareRandomWorkStealing extends
             }
             break;
         default:
-            System.err.println("illegal opcode in CRS stealReplyHandler");
-            System.exit(1);
+            s.assertFailed("illegal opcode in CRS stealReplyHandler",
+                    new Exception());
         }
     }
 

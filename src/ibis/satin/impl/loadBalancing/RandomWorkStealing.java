@@ -2,15 +2,15 @@
 
 package ibis.satin.impl.loadBalancing;
 
-import ibis.satin.impl.Config;
 import ibis.satin.impl.Satin;
 import ibis.satin.impl.spawnSync.InvocationRecord;
 
 /** The random work-stealing distributed computing algorithm. */
 
-public final class RandomWorkStealing extends LoadBalancingAlgorithm implements
-        Config {
+public final class RandomWorkStealing extends LoadBalancingAlgorithm {
 
+    long failedAttempts;
+    
     public RandomWorkStealing(Satin s) {
         super(s);
     }
@@ -32,6 +32,15 @@ public final class RandomWorkStealing extends LoadBalancingAlgorithm implements
             return null; //can happen with open world if nobody joined.
         }
 
-        return satin.lb.stealJob(v, false);
+        InvocationRecord job = satin.lb.stealJob(v, false);
+        if(job != null) {
+            failedAttempts = 0;
+            return job;
+        } else {
+            failedAttempts++;
+            throttle(failedAttempts);
+        }
+        
+        return null;
     }
 }

@@ -34,6 +34,8 @@ public interface Config {
 
     static final String s_keep_intra_connections = PROPERTY_PREFIX + "keepIntraConnections";
 
+    static final String s_throttle_steals = PROPERTY_PREFIX + "throttleSteals";
+
     static final String s_stats = PROPERTY_PREFIX + "stats";
 
     static final String s_detailed_stats = PROPERTY_PREFIX + "detailedStats";
@@ -75,7 +77,7 @@ public interface Config {
         s_delete_time, s_delete_cluster_time, s_kill_time, s_dump, s_so_delay,
         s_so_size, s_alg, s_so_lrmc, s_close_connections, s_max_connections,
         s_so_wait_time, s_steal_wait_timeout, s_connections_on_demand,
-        s_keep_intra_connections};
+        s_keep_intra_connections, s_throttle_steals};
 
     /** Enable or disable asserts. */
     static final boolean ASSERTS = properties.getBooleanProperty(s_asserts, true);
@@ -173,6 +175,10 @@ public interface Config {
     static final boolean CONNECTIONS_ON_DEMAND = properties.getBooleanProperty(
             s_connections_on_demand, true); 
 
+    /** Do not steal as fast as we can, but use exponential backoff. */
+    static final boolean THROTTLE_STEALS = properties.getBooleanProperty(
+            s_throttle_steals, false); 
+
     /**
      * When CLOSE_CONNECTIONS is set, keep intra-cluster connections.
      * When set, MAX_CONNECTIONS is ignored.
@@ -214,4 +220,7 @@ public interface Config {
 
     /** Logger for shared objects broadcasts. */
     public static final Logger soBcastLogger = Logger.getLogger("ibis.satin.so.bcast");
+
+    /** Generic logger. */
+    public static final Logger mainLogger = Logger.getLogger("ibis.satin");
 }

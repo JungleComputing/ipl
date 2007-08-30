@@ -75,7 +75,7 @@ public final class LoadBalancing implements Config {
     private volatile boolean receivedResults = false;
 
     /** Used to store reply messages. */
-    private volatile boolean gotStealReply = false;
+    private boolean gotStealReply = false;
 
     private InvocationRecord stolenJob = null;
 
@@ -103,13 +103,12 @@ public final class LoadBalancing implements Config {
         lbComm = new LBCommunication(s, this);
     }
 
-    public void gotJobResult(InvocationRecord ir, IbisIdentifier sender) {
-        synchronized (s) {
+    public synchronized void gotJobResult(InvocationRecord ir, IbisIdentifier sender) {
             // This might be a job that came in after a STEAL_WAIT_TIMEOUT.
             // If this is the case, this job has to be added to the queue,
             // it is not the result of the current steal request.
             if (!sender.equals(currentVictim)) {
-                ftLogger.warn("SATIN '" + s.ident + "': received a job from "
+                ftLogger.warn("SATIN '" + s.ident + "': received a reply from "
                     + sender + " who caused a timeout before. I am stealing from " + currentVictim);
                 if (ir != null) {
                     s.q.addToTail(ir);
@@ -120,8 +119,7 @@ public final class LoadBalancing implements Config {
             gotStealReply = true;
             stolenJob = ir;
             currentVictim = null;
-            s.notifyAll();
-        }
+            notifyAll();
     }
 
     public void addToOutstandingJobList(InvocationRecord r) {
@@ -203,7 +201,7 @@ public final class LoadBalancing implements Config {
     private void waitForStealReplyMessage(Victim v) {
         long start = System.currentTimeMillis();
         while (true) {
-            synchronized (s) {
+            synchronized (this) {
                 boolean gotTimeout = System.currentTimeMillis() - start >= STEAL_WAIT_TIMEOUT;
                 if (gotTimeout && !gotStealReply) {
                     ftLogger
@@ -237,7 +235,7 @@ public final class LoadBalancing implements Config {
 
                 if (!HANDLE_MESSAGES_IN_LATENCY) { // a normal blocking steal
                     try {
-                        s.wait(500);
+                        wait(1000);
                     } catch (InterruptedException e) {
                         // ignore
                     }
@@ -246,7 +244,6 @@ public final class LoadBalancing implements Config {
 
             if (HANDLE_MESSAGES_IN_LATENCY) {
                 s.handleDelayedMessages();
-                // Thread.yield();
             }
         }
     }
