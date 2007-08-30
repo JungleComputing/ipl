@@ -538,6 +538,10 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
                 c.closeConnection();
             }
             closed = true;
+            if (out != null) {
+                out.close();
+                out = null;
+            }
             ibis.deRegister(this);
             if (logger.isDebugEnabled()) {
                 logger.debug("SendPort '" + name + "': close() done");
