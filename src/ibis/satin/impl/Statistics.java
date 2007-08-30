@@ -35,6 +35,8 @@ public final class Statistics implements java.io.Serializable, Config {
 
     public long stealRequests;
 
+    public long stealThrottles;
+
     public long interClusterMessages;
 
     public long intraClusterMessages;
@@ -44,6 +46,8 @@ public final class Statistics implements java.io.Serializable, Config {
     public long intraClusterBytes;
 
     public double stealTime;
+
+    public double throttleStealTime;
 
     public double handleStealTime;
 
@@ -211,6 +215,8 @@ public final class Statistics implements java.io.Serializable, Config {
 
     public Timer soGuardTimer = Timer.createTimer();
 
+    public Timer stealThrottleTimer = Timer.createTimer();
+
     public void add(Statistics s) {
         spawns += s.spawns;
         jobsExecuted += s.jobsExecuted;
@@ -231,6 +237,9 @@ public final class Statistics implements java.io.Serializable, Config {
         intraClusterBytes += s.intraClusterBytes;
 
         stealTime += s.stealTime;
+        throttleStealTime += s.throttleStealTime;
+        stealThrottles+= s.stealThrottles;
+        
         handleStealTime += s.handleStealTime;
         abortTime += s.abortTime;
         idleTime += s.idleTime;
@@ -298,7 +307,9 @@ public final class Statistics implements java.io.Serializable, Config {
         idleTime = idleTimer.totalTimeVal();
         idleCount = idleTimer.nrTimes();
         pollCount = pollTimer.nrTimes();
-
+        throttleStealTime = stealThrottleTimer.totalTimeVal();
+        stealThrottles = stealThrottleTimer.nrTimes();
+        
         invocationRecordWriteTime = invocationRecordWriteTimer.totalTimeVal();
         invocationRecordWriteCount = invocationRecordWriteTimer.nrTimes();
         invocationRecordReadTime = invocationRecordReadTimer.totalTimeVal();
@@ -427,6 +438,10 @@ public final class Statistics implements java.io.Serializable, Config {
                 + Timer.format(handleStealTime) + " time/handle "
                 + Timer.format(perStats(handleStealTime, stealAttempts)));
 
+            out.println("SATIN: THROTTLE_STEAL_TIME:        total "
+                    + Timer.format(throttleStealTime) + " time/req    "
+                    + Timer.format(perStats(throttleStealTime, stealThrottles)));
+
             out.println("SATIN: INV SERIALIZATION_TIME:     total "
                 + Timer.format(invocationRecordWriteTime)
                 + " time/write  "
@@ -534,16 +549,19 @@ public final class Statistics implements java.io.Serializable, Config {
         out.println("SATIN: TOTAL_RUN_TIME:                              "
             + Timer.format(totalTime));
 
-        double lbTime = (stealTime - invocationRecordReadTime
+        double lbTime = (stealTime + throttleStealTime - invocationRecordReadTime
             - invocationRecordWriteTime - returnRecordReadTime - returnRecordWriteTime)
             / size;
         if (lbTime < 0.0) {
             lbTime = 0.0;
         }
         double lbPerc = lbTime / totalTime * 100.0;
+        double throttleTimeAvg = throttleStealTime / size;        
+        double throttlePerc = throttleTimeAvg / totalTime * 100.0;
         double serTimeAvg = (invocationRecordWriteTime
             + invocationRecordReadTime + returnRecordWriteTime + returnRecordReadTime)
             / size;
+        
         double serPerc = serTimeAvg / totalTime * 100.0;
         double abortTimeAvg = abortTime / size;
         double abortPerc = abortTimeAvg / totalTime * 100.0;
@@ -614,6 +632,9 @@ public final class Statistics implements java.io.Serializable, Config {
             out.println("SATIN: LOAD_BALANCING_TIME:        agv. per machine "
                 + Timer.format(lbTime) + " (" + (lbPerc < 10 ? " " : "")
                 + pf.format(lbPerc) + " %)");
+            out.println("SATIN: STEAL_THROTTLE_TIME:        agv. per machine "
+                    + Timer.format(throttleTimeAvg) + " (" + (throttlePerc < 10 ? " " : "")
+                    + pf.format(throttlePerc) + " %)");
             out.println("SATIN: (DE)SERIALIZATION_TIME:     agv. per machine "
                 + Timer.format(serTimeAvg) + " (" + (serPerc < 10 ? " " : "")
                 + pf.format(serPerc) + " %)");
