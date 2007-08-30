@@ -65,11 +65,12 @@ public abstract class LoadBalancingAlgorithm implements Config {
             participants = satin.victims.size();
         }
 
-        int time = 0;
-
-        for (int i = 0; i < (count / participants); i++) {
+        long time = 0;
+        long throttleSteps = count / participants;
+        
+        for (long i = 0; i < throttleSteps; i++) {
             time *= 2;
-            if (time > MAX_STEAL_THROTTLE) {
+            if (time >= MAX_STEAL_THROTTLE) {
                 time = MAX_STEAL_THROTTLE;
                 break;
             }
