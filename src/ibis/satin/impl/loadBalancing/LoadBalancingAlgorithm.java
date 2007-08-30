@@ -66,10 +66,14 @@ public abstract class LoadBalancingAlgorithm implements Config {
             time <<= count;
         }
 
+        satin.stats.stealThrottleTimer.start();
+        
         try {
             Thread.sleep(time);
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            // ignore
         }
+
+        satin.stats.stealThrottleTimer.stop();
     }
 }
