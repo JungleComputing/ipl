@@ -138,13 +138,13 @@ public final class Satin implements Config {
             Runtime.getRuntime().addShutdownHook(dumpThread);
         }
 
-        stats.totalTimer.start();
-
         comm.enableConnections();
         
         // this opens the world, other ibises might join from this point
         // we need the master to be set before this call
         ft.init(); 
+
+        stats.totalTimer.start();
     }
 
     /**
