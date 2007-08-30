@@ -736,6 +736,10 @@ public final class Statistics implements java.io.Serializable, Config {
             + " time = "
             + handleStealTimer.totalTime());
         
+        out.println("SATIN '" + ident + "': STEAL_THROTTLE_STATS: throttles = "
+                + stealThrottles  
+                + " time = " + stealThrottleTimer.totalTime());
+
         out.println("SATIN '" + ident
             + "': SERIALIZATION_STATS: invocationRecordWrites = "
             + invocationRecordWriteTimer.nrTimes() + " total time = "
