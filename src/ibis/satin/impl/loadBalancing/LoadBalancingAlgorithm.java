@@ -35,7 +35,8 @@ public abstract class LoadBalancingAlgorithm implements Config {
      * algorithm knows about the reply (this is needed with asynchronous
      * communication)
      */
-    public void stealReplyHandler(InvocationRecord ir, IbisIdentifier sender, int opcode) {
+    public void stealReplyHandler(InvocationRecord ir, IbisIdentifier sender,
+            int opcode) {
         satin.lb.gotJobResult(ir, sender);
     }
 
@@ -53,30 +54,37 @@ public abstract class LoadBalancingAlgorithm implements Config {
     public void handleCrash(IbisIdentifier ident) {
         // by default, do nothing
     }
-    
+
     protected void throttle(long count) {
-        if(!THROTTLE_STEALS) {
+        if (!THROTTLE_STEALS) {
             return;
         }
 
-        int time = 1;
-        
-        for(int i=0;i<count; i++) {
+        int participants;
+        synchronized (satin) {
+            participants = satin.victims.size();
+        }
+
+        int time = 0;
+
+        for (int i = 0; i < (count / participants); i++) {
             time *= 2;
-            if(time > MAX_STEAL_THROTTLE) {
+            if (time > MAX_STEAL_THROTTLE) {
                 time = MAX_STEAL_THROTTLE;
                 break;
             }
         }
-        
-        satin.stats.stealThrottleTimer.start();
-        
-        try {
-            Thread.sleep(time);
-        } catch (InterruptedException e) {
-            // ignore
-        }
 
-        satin.stats.stealThrottleTimer.stop();
+        if (time > 0) {
+            satin.stats.stealThrottleTimer.start();
+
+            try {
+                Thread.sleep(time);
+            } catch (InterruptedException e) {
+                // ignore
+            }
+
+            satin.stats.stealThrottleTimer.stop();
+        }
     }
 }
