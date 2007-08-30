@@ -66,7 +66,6 @@ public abstract class LoadBalancingAlgorithm implements Config {
             time <<= count;
         }
 
-        System.err.println("throttle: sleep " + time);
         try {
             Thread.sleep(time);
         } catch (InterruptedException e) {
