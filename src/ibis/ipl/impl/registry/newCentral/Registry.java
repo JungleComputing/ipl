@@ -337,7 +337,7 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
         }
 
         logger.debug("generating events for elections");
-        for (Map.Entry<String, IbisIdentifier> election : this.elections
+        for (Map.Entry<String, IbisIdentifier> election : elections
                 .entrySet()) {
             handleEvent(new Event(-1, Event.ELECT, election.getKey(), election
                     .getValue()));
@@ -683,9 +683,9 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
             }
 
             try {
-                logger.debug("waiting " + timeRemaining);
+                logger.debug("waiting " + timeRemaining + " for election");
                 wait(timeRemaining);
-                logger.debug("DONE waiting " + timeRemaining);
+                logger.debug("DONE waiting " + timeRemaining + " for election");
             } catch (InterruptedException e) {
                 // IGNORE
             }
@@ -1008,6 +1008,8 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
         logger.debug("received winner for election \"" + name + "\" : " + ibis);
 
         elections.put(name, ibis);
+        //wake up any waiting threads
+        notifyAll();
     }
 
     private synchronized void handleUnElectionEvent(Event event) {

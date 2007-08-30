@@ -50,7 +50,7 @@ public class RegistryProperties {
 
                 {
                     HEARTBEAT_INTERVAL,
-                    "10",
+                    "120",
                     "Int(seconds): how often is a member "
                             + "of a pool expected to report it is still alive" },
 
