@@ -58,14 +58,17 @@ public abstract class LoadBalancingAlgorithm implements Config {
         if(!THROTTLE_STEALS) {
             return;
         }
-        int maxTime = 500;
-        int time = 1;
-        if (count >= 9) {
-            time = maxTime;
-        } else {
-            time <<= count;
-        }
 
+        int time = 1;
+        
+        for(int i=0;i<count; i++) {
+            time *= 2;
+            if(time > MAX_STEAL_THROTTLE) {
+                time = MAX_STEAL_THROTTLE;
+                break;
+            }
+        }
+        
         satin.stats.stealThrottleTimer.start();
         
         try {

@@ -35,7 +35,7 @@ public interface Config {
     static final String s_keep_intra_connections = PROPERTY_PREFIX + "keepIntraConnections";
 
     static final String s_throttle_steals = PROPERTY_PREFIX + "throttleSteals";
-
+    static final String s_max_steal_throttle = PROPERTY_PREFIX + "maxStealThrottle";
     static final String s_stats = PROPERTY_PREFIX + "stats";
 
     static final String s_detailed_stats = PROPERTY_PREFIX + "detailedStats";
@@ -77,7 +77,7 @@ public interface Config {
         s_delete_time, s_delete_cluster_time, s_kill_time, s_dump, s_so_delay,
         s_so_size, s_alg, s_so_lrmc, s_close_connections, s_max_connections,
         s_so_wait_time, s_steal_wait_timeout, s_connections_on_demand,
-        s_keep_intra_connections, s_throttle_steals};
+        s_keep_intra_connections, s_throttle_steals, s_max_steal_throttle};
 
     /** Enable or disable asserts. */
     static final boolean ASSERTS = properties.getBooleanProperty(s_asserts, true);
@@ -178,7 +178,11 @@ public interface Config {
     /** Do not steal as fast as we can, but use exponential backoff. */
     static final boolean THROTTLE_STEALS = properties.getBooleanProperty(
             s_throttle_steals, false); 
-
+    
+    /** the maximal time to sleep after a failed steal attempt in milliseconds */
+    static final int MAX_STEAL_THROTTLE = properties.getIntProperty(s_max_steal_throttle,
+            256);  
+    
     /**
      * When CLOSE_CONNECTIONS is set, keep intra-cluster connections.
      * When set, MAX_CONNECTIONS is ignored.
