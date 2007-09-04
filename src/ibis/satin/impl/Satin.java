@@ -364,9 +364,9 @@ public final class Satin implements Config {
 
         if (needsNewBase) {
             baseStamp = Stamp.createStamp(null);
-            if (spawnLogger.isDebugEnabled()) {
-                spawnLogger.debug("SATIN '" + ident
-                        + "': generated new baseStampc: " + baseStamp);
+            if (abortLogger.isDebugEnabled()) {
+                abortLogger.debug("SATIN '" + ident
+                        + "': generated new baseStamp: " + baseStamp);
             }
         }
     }
