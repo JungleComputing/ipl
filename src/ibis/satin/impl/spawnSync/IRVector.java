@@ -58,9 +58,9 @@ public final class IRVector implements Config {
             }
         }
 
-        // Somethimes (in case of crashes), we try to remove non-existent elements.
-        // This is not a problem, just return null.
-        spawnLogger.debug("EEK, IRVector: removing non-existant elt: " + stamp);
+        // Sometimes (in case of crashes or aborts), we try to remove
+        // non-existent elements. This is not a problem, just return null.
+        spawnLogger.debug("IRVector: removing non-existent elt: " + stamp);
         return null;
     }
 
@@ -79,9 +79,9 @@ public final class IRVector implements Config {
             }
         }
 
-        // Somethimes (in case of crashes), we try to remove non-existent elements.
-        // This is not a problem, just return null.
-        spawnLogger.debug("EEK, IRVector: removing non-existant elt: "
+        // Sometimes (in case of crashes or aborts), we try to remove
+        // non-existent elements. This is not a problem, just return null.
+        spawnLogger.debug("IRVector: removing non-existent elt: "
             + r.getStamp());
         return null;
     }

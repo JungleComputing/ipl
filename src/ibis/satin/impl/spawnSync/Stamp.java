@@ -159,13 +159,13 @@ public final class Stamp implements java.io.Serializable {
      * @return the String representation.
      */
     public String toString() {
-        String str = "";
+        StringBuffer str = new StringBuffer();
         for (int i = 0; i < stampLength; i++) {
-            str = str + stamps[i];
+            str.append(stamps[i]);
             if (i < stampLength - 1) {
-                str += ".";
+                str.append(".");
             }
         }
-        return str;
+        return str.toString();
     }
 }
