@@ -195,6 +195,10 @@ public final class LoadBalancing implements Config {
 
                 r.decrSpawnCounter();
 
+                if (stealLogger.isInfoEnabled()) {
+                    stealLogger.info("Got result for job " + r.getStamp());
+                }
+
                 if (!FT_NAIVE) {
                     r.jobFinished();
                 }

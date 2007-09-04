@@ -204,12 +204,14 @@ public final class Communication implements Config, Protocol {
             IbisIdentifier ident, String name, long timeoutMillis) {
 
         long startTime = System.currentTimeMillis();
+        long deadLine = startTime + timeoutMillis;
+        long timeLeft = deadLine - System.currentTimeMillis();
         ReceivePortIdentifier r = null;
         IbisIdentifier id = s.identifier().ibisIdentifier();
         connLogger.info("SATIN '" + id + "': connecting to " + name + " at " + ident);
-        do {
+        while (r == null && timeLeft > 0) {
             try {
-                r = s.connect(ident, name, timeoutMillis, false);
+                r = s.connect(ident, name, timeLeft, false);
             } catch (AlreadyConnectedException x) {
                 connLogger.info("SATIN '" + id
                         + "': already connected to " + name + " at " + ident, x);
@@ -234,8 +236,8 @@ public final class Communication implements Config, Protocol {
                     // ignore
                 }
             }
-        } while (r == null
-                && System.currentTimeMillis() - startTime < timeoutMillis);
+            timeLeft = deadLine - System.currentTimeMillis();
+        }
 
         if (r == null) {
             connLogger.info("could not connect port within given time (" + timeoutMillis + " ms)");

@@ -72,6 +72,10 @@ public final class Victim implements Config {
         return ident.hashCode();
     }
 
+    public boolean isConnected() {
+        return connected;
+    }
+
     private void disconnect() throws IOException {
         if (connected) {
             connected = false;

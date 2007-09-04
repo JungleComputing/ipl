@@ -42,8 +42,10 @@ public final class Aborts implements Config {
     }
 
     public void handleDelayedMessages() {
-        if (gotAborts) {
-            handleAborts();
+        synchronized(s) {
+            if (gotAborts) {
+                handleAborts();
+            }
         }
 
         if (gotExceptions) {
@@ -251,32 +253,32 @@ public final class Aborts implements Config {
     }
 
     private void handleAborts() {
-        synchronized (s) {
 
-            Stamp stamp;
+        Stamp stamp;
 
-            while (true) {
-                if (abortList.getCount() > 0) {
-                    stamp = abortList.getStamp(0);
-                    abortList.removeIndex(0);
-                } else {
-                    gotAborts = false;
-                    return;
-                }
+        Satin.assertLocked(s);
 
-                if (abortLogger.isDebugEnabled()) {
-                    abortLogger.debug("SATIN '" + s.ident
-                        + ": handling abort message: stamp = " + stamp);
-                }
+        while (true) {
+            if (abortList.getCount() > 0) {
+                stamp = abortList.getStamp(0);
+                abortList.removeIndex(0);
+            } else {
+                gotAborts = false;
+                return;
+            }
 
-                s.stats.abortsDone++;
-                killChildrenOf(stamp);
+            if (abortLogger.isDebugEnabled()) {
+                abortLogger.debug("SATIN '" + s.ident
+                    + ": handling abort message: stamp = " + stamp);
+            }
 
-                if (abortLogger.isDebugEnabled()) {
-                    abortLogger.debug("SATIN '" + s.ident
-                        + ": handling abort message: stamp = "
-                        + stamp + " DONE");
-                }
+            s.stats.abortsDone++;
+            killChildrenOf(stamp);
+
+            if (abortLogger.isDebugEnabled()) {
+                abortLogger.debug("SATIN '" + s.ident
+                    + ": handling abort message: stamp = "
+                    + stamp + " DONE");
             }
         }
     }

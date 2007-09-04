@@ -197,24 +197,14 @@ final class FTCommunication implements Config, ReceivePortConnectUpcall,
     }
 
     private void handleCrash(IbisIdentifier dead) {
-        Victim v = null;
         synchronized (s) {
-            if (s.deadIbises.contains(dead))
-                return;
-
             s.ft.crashedIbises.add(dead);
-            s.deadIbises.add(dead);
             if (dead.equals(s.lb.getCurrentVictim())) {
                 s.currentVictimCrashed = true;
                 s.lb.setCurrentVictim(null);
             }
             s.ft.gotCrashes = true;
-            v = s.victims.remove(dead);
             s.notifyAll();
-        }
-
-        if (v != null) {
-            v.close();
         }
     }
 
@@ -289,7 +279,7 @@ final class FTCommunication implements Config, ReceivePortConnectUpcall,
             }
 
             s.so.removeSOConnection(leaver);
-
+            s.deadIbises.add(leaver);
             v = s.victims.remove(leaver);
             s.notifyAll();
         }

@@ -4,6 +4,7 @@ package ibis.satin.impl.spawnSync;
 
 import ibis.ipl.IbisIdentifier;
 import ibis.satin.impl.Config;
+import ibis.satin.impl.Satin;
 import ibis.satin.impl.aborts.LocalRecord;
 import ibis.satin.impl.sharedObjects.SOReferenceSourceCrashedException;
 
@@ -419,14 +420,13 @@ public abstract class InvocationRecord implements java.io.Serializable, Config {
         owner = ident;
         this.parent = parent;
         if (parent == null) {
-            parentStamp = null;
+            parentStamp = Satin.baseStamp;
             parentOwner = null;
-            stamp = Stamp.createStamp(null);
         } else {
             parentStamp = parent.stamp;
             parentOwner = parent.owner;
-            stamp = Stamp.createStamp(parent.stamp);
         }
+        stamp = Stamp.createStamp(parentStamp);
         spawnCounter.incr(this);
     }
 

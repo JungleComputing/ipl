@@ -98,6 +98,8 @@ public final class Satin implements Config {
         properties.checkProperties(PROPERTY_PREFIX, sysprops, null, true);
     }
 
+    public static Stamp baseStamp = Stamp.createStamp(null);
+
     /**
      * Creates a Satin instance and also an Ibis instance to run Satin on. This
      * constructor gets called by the rewritten main() from the application, and
@@ -333,9 +335,15 @@ public final class Satin implements Config {
                     + outstandingSpawns
                     + ", exceptionThrower = " + exceptionThrower);
         }
+        
+        boolean needsNewBase = false;
 
         if (exceptionThrower != null) { // can be null if root does an abort.
             // kill all children of the parent of the thrower.
+            Stamp stamp = exceptionThrower.getParentStamp();
+            if (stamp.stampEquals(baseStamp)) {
+                needsNewBase = true;
+            }
             aborts.killChildrenOf(exceptionThrower.getParentStamp());
         }
 
@@ -344,11 +352,22 @@ public final class Satin implements Config {
             Stamp stamp;
             InvocationRecord parent = outstandingSpawns.getParent();
             if (parent == null) {
-                stamp = null;
+                stamp = baseStamp;
             } else {
                 stamp = parent.getStamp();
             }
+            if (stamp.stampEquals(baseStamp)) {
+                needsNewBase = true;
+            }
             aborts.killChildrenOf(stamp);
+        }
+
+        if (needsNewBase) {
+            baseStamp = Stamp.createStamp(null);
+            if (spawnLogger.isDebugEnabled()) {
+                spawnLogger.debug("SATIN '" + ident
+                        + "': generated new baseStampc: " + baseStamp);
+            }
         }
     }
 
