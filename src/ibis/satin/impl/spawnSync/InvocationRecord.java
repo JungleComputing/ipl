@@ -420,7 +420,7 @@ public abstract class InvocationRecord implements java.io.Serializable, Config {
         owner = ident;
         this.parent = parent;
         if (parent == null) {
-            parentStamp = Satin.baseStamp;
+            parentStamp = Satin.getSatin().getBaseStamp();
             parentOwner = null;
         } else {
             parentStamp = parent.stamp;

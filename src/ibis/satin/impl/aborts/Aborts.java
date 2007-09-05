@@ -274,13 +274,6 @@ public final class Aborts implements Config {
 
             s.stats.abortsDone++;
             killChildrenOf(stamp);
-            if (stamp.equals(Satin.baseStamp)) {
-                Satin.baseStamp = Stamp.createStamp(null);
-                if (abortLogger.isDebugEnabled()) {
-                    abortLogger.debug("SATIN '" + s.ident
-                            + "': generated new baseStamp: " + Satin.baseStamp);
-                }
-            }
 
             if (abortLogger.isDebugEnabled()) {
                 abortLogger.debug("SATIN '" + s.ident

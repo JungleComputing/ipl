@@ -98,7 +98,9 @@ public final class Satin implements Config {
         properties.checkProperties(PROPERTY_PREFIX, sysprops, null, true);
     }
 
-    public static Stamp baseStamp = Stamp.createStamp(null);
+    private Stamp baseStamp = Stamp.createStamp(null);
+
+    private int syncLevel = 0;
 
     /**
      * Creates a Satin instance and also an Ibis instance to run Satin on. This
@@ -268,6 +270,7 @@ public final class Satin implements Config {
             return;
         }
 
+        syncLevel++;
         while (s.getValue() > 0) {
             InvocationRecord r = q.getFromHead(); // Try the local queue
             if (r != null) {
@@ -276,6 +279,21 @@ public final class Satin implements Config {
                 noWorkInQueue();
             }
         }
+        syncLevel--;
+        if (master && syncLevel == 0) {
+            baseStamp = Stamp.createStamp(null);
+            if (spawnLogger.isDebugEnabled()) {
+                spawnLogger.debug("SATIN '" + ident
+                        + "': generated new baseStamp: " + baseStamp);
+            }
+        }
+    }
+
+    public Stamp getBaseStamp() {
+        if (ASSERTS && ! isMaster()) {
+            throw new Error("baseStamp requested on client ...");
+        }
+        return baseStamp;
     }
 
     private void noWorkInQueue() {
@@ -336,39 +354,16 @@ public final class Satin implements Config {
                     + ", exceptionThrower = " + exceptionThrower);
         }
         
-        boolean needsNewBase = false;
-
         if (exceptionThrower != null) { // can be null if root does an abort.
             // kill all children of the parent of the thrower.
-            Stamp stamp = exceptionThrower.getParentStamp();
-            if (stamp.stampEquals(baseStamp)) {
-                needsNewBase = true;
-            }
             aborts.killChildrenOf(exceptionThrower.getParentStamp());
         }
 
         // now kill mine
         if (outstandingSpawns != null) {
-            Stamp stamp;
-            InvocationRecord parent = outstandingSpawns.getParent();
-            if (parent == null) {
-                stamp = baseStamp;
-            } else {
-                stamp = parent.getStamp();
-            }
-            if (stamp.stampEquals(baseStamp)) {
-                needsNewBase = true;
-            }
-            aborts.killChildrenOf(stamp);
+            aborts.killChildrenOf(outstandingSpawns.getParentStamp());
         }
 
-        if (needsNewBase) {
-            baseStamp = Stamp.createStamp(null);
-            if (abortLogger.isDebugEnabled()) {
-                abortLogger.debug("SATIN '" + ident
-                        + "': generated new baseStamp: " + baseStamp);
-            }
-        }
     }
 
     /**
