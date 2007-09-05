@@ -8,7 +8,7 @@ import java.util.Properties;
  * Every Ibis implementation must provide an <code>IbisStarter</code>
  * which is used by the Ibis factory to check capabilities, port types,
  * and to start an Ibis instance.
- * This interface is not to be used by Ibis applications. Ibis applications
+ * This class is not to be used by Ibis applications. Ibis applications
  * should use {@link IbisFactory} to create Ibis instances.
  */
 
@@ -34,6 +34,14 @@ public abstract class IbisStarter {
      * @return <code>true</code> if it can.
      */
     public abstract boolean matches();
+
+    /**
+     * Decides if this Ibis instance is a stacking Ibis.
+     * @return <code>true</code> if it is stacking.
+     */
+    public boolean isStacking() {
+        return false;
+    }
 
     /**
      * Returns <code>true</code> if this starter can be used to automatically
@@ -66,4 +74,15 @@ public abstract class IbisStarter {
      */
     public abstract Ibis startIbis(RegistryEventHandler handler,
             Properties userProperties);
+
+    /**
+     * Actually creates a stacking-ibis instance from this starter.
+     * @param ibis the underlying ibis.
+     * @param handler a registry event handler.
+     * @param userProperties the user properties.
+     */
+    public Ibis startStackingIbis(Ibis base, RegistryEventHandler handler,
+            Properties userProperties) {
+        throw new Error("Not a stacking Ibis");
+    }
 }

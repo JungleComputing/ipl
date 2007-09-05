@@ -1,4 +1,4 @@
-/* $Id: Protocol.java 2844 2004-11-24 10:52:27Z ceriel $ */
+/* $Id$ */
 
 package ibis.ipl.impl.nio;
 

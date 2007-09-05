@@ -1,4 +1,4 @@
-/* $Id: NioSendPort.java 4360 2006-09-29 12:00:16Z ceriel $ */
+/* $Id$ */
 
 package ibis.ipl.impl.nio;
 

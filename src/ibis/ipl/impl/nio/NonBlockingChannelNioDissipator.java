@@ -1,4 +1,4 @@
-/* $Id: NonBlockingChannelNioDissipator.java 2974 2005-04-29 15:30:11Z ceriel $ */
+/* $Id$ */
 
 package ibis.ipl.impl.nio;
 

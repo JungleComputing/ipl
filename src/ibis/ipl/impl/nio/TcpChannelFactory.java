@@ -1,4 +1,4 @@
-/* $Id: TcpChannelFactory.java 3282 2005-11-07 14:40:11Z rob $ */
+/* $Id$ */
 
 package ibis.ipl.impl.nio;
 

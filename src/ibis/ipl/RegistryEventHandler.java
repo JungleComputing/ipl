@@ -1,4 +1,4 @@
-/* $Id: RegistryEventHandler.java 5028 2007-02-12 11:43:36Z ceriel $ */
+/* $Id$ */
 
 package ibis.ipl;
 

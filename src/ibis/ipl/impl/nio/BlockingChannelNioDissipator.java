@@ -1,4 +1,4 @@
-/* $Id: BlockingChannelNioDissipator.java 2944 2005-03-15 17:00:32Z ndrost $ */
+/* $Id$ */
 
 package ibis.ipl.impl.nio;
 

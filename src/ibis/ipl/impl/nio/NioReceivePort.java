@@ -1,4 +1,4 @@
-/* $Id: NioReceivePort.java 3522 2006-02-10 11:02:38Z ceriel $ */
+/* $Id$ */
 
 package ibis.ipl.impl.nio;
 

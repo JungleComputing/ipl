@@ -1,4 +1,4 @@
-/* $Id: NioIbis.java 5175 2007-03-07 13:06:34Z ndrost $ */
+/* $Id$ */
 
 package ibis.ipl.impl.nio;
 

@@ -1,4 +1,4 @@
-/* $Id: NioDissipator.java 3492 2006-02-03 10:09:21Z ceriel $ */
+/* $Id$ */
 
 package ibis.ipl.impl.nio;
 

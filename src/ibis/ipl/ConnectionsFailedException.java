@@ -1,4 +1,4 @@
-/* $Id: ConnectionsFailedException.java 5236 2007-03-21 10:05:37Z jason $ */
+/* $Id$ */
 
 package ibis.ipl;
 

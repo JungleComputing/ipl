@@ -139,6 +139,7 @@ public final class IbisFactory {
     }
 
     private Class[] implList;
+    private IbisStarter[] starters;
 
     /**
      * Constructs an Ibis factory, with the specified properties.
@@ -152,6 +153,7 @@ public final class IbisFactory {
         List<Class> compnts =
                 clstr.getClassList("Ibis-Starter", IbisStarter.class);
         implList = compnts.toArray(new Class[compnts.size()]);
+        starters = new IbisStarter[implList.length];
     }
 
     /**
@@ -258,14 +260,14 @@ public final class IbisFactory {
         }
 
 
-        int numberOfImplementations = implList.length;
-
         if (verbose) {
-            String str = "";
-            for (int i = 0; i < numberOfImplementations; i++) {
-                str += " " + implList[i].getName();
+            StringBuffer str = new StringBuffer();
+            str.append("Ibis implementations:");
+            for (int i = 0; i < implList.length; i++) {
+                str.append(" ");
+                str.append(implList[i].getName());
             }
-            System.err.println("Ibis implementations:" + str);
+            System.err.println(str.toString());
         }
 
         IbisCreationFailedException nested =
@@ -331,18 +333,16 @@ public final class IbisFactory {
             throw nested;
         }
 
-        for (int i = 0; i < numberOfImplementations; i++) {
+        for (int i = 0; i < implList.length; i++) {
 
             Class starterClass = implList[i];
             if (verbose) {
                 System.err.println("Trying " + starterClass.getName());
             }
 
-            IbisStarter starter;
-
             // Try to instantiate the starter.
             try {
-                starter = (IbisStarter) starterClass.getConstructor(
+                starters[i] = (IbisStarter) starterClass.getConstructor(
                     new Class[] { IbisCapabilities.class, portTypes.getClass()})
                         .newInstance(
                             new Object[] { requiredCapabilities, portTypes});
@@ -367,7 +367,14 @@ public final class IbisFactory {
                 }
                 continue;
             }
+        }
 
+        if (faulty) {
+            throw nested;
+        }
+
+        for (int i = 0; i < starters.length; i++) {
+            IbisStarter starter = starters[i];
             // If it is selectable, or an Ibis name was specified,
             // try it.
             if (starter.isSelectable() || ibisName != null) {
@@ -378,34 +385,36 @@ public final class IbisFactory {
                                 properties);
                     } catch(Throwable e) {
                         // Starting it failed. Throw exception.
-                        nested.add(starterClass.getName(), e);
+                        nested.add(implList[i].getName(), e);
                         throw nested;
                     }
-                } else {
-                    // Find out why it did not match.
+                }
+                // Find out why it did not match.
+                if (verbose) {
                     String unmatchedCapabilities
                         = starter.unmatchedIbisCapabilities().toString();
                     PortType[] unmatchedTypes
                         = starter.unmatchedPortTypes();
-                    String str = "Unmatched IbisCapabilities: " +
-                        unmatchedCapabilities + "\nUnmatched PortTypes: ";
+                    StringBuffer str = new StringBuffer();
+                    str.append("Unmatched IbisCapabilities: ");
+                    str.append(unmatchedCapabilities);
+                    str.append("\nUnmatched PortTypes: ");
                     for (PortType tp: unmatchedTypes) {
-                        str += "    " + tp.toString() + "\n";
+                        str.append("    ");
+                        str.append(tp.toString());
+                        str.append("\n");
                     }
-                    faulty = true;
-                    nested.add(starterClass.getName(), 
-                            new IbisConfigurationException(str));
+                    System.err.println("Class " + implList[i]
+                            + " does not match:\n" + str.toString());
                 }
-            } else {
-                nested.add(starterClass.getName(),
-                        new IbisConfigurationException("not selectable"));
-                faulty = true;
+            } else if (verbose) {
+                System.err.println("Class " + implList[i]
+                            + " is not selectable.");
             }
         }
-        if (! faulty) {
-            nested.add("Ibis factory",
-                    new IbisConfigurationException("No IbisStarter found"));
-        }
+
+        nested.add("Ibis factory",
+                new IbisConfigurationException("No matching Ibis found"));
         throw nested;
     }
 

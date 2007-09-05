@@ -108,14 +108,15 @@ final class TcpSendPort extends SendPort implements TcpProtocol {
     }
 
     protected void handleSendException(WriteMessage w, IOException x) {
+        ReceivePortIdentifier[] ports = null;
+        synchronized (this) {
+            ports = receivers.keySet()
+                            .toArray(new ReceivePortIdentifier[0]);
+        }
+
         if (x instanceof SplitterException) {
             SplitterException e = (SplitterException) x;
 
-            ReceivePortIdentifier[] ports = null;
-            synchronized (this) {
-                ports = receivers.keySet()
-                                .toArray(new ReceivePortIdentifier[0]);
-            }
             Exception[] exceptions = e.getExceptions();
             OutputStream[] streams = e.getStreams();
 
@@ -128,9 +129,13 @@ final class TcpSendPort extends SendPort implements TcpProtocol {
                     }
                 }
             }
+        } else {
+            // Just close all connections. ???
+            for (int i = 0; i < ports.length; i++) {
+                Conn c = (Conn) getInfo(ports[i]);
+                lostConnection(ports[i], x);
+            }
         }
-
-        // TODO why don't we close in case of a normal exception? --Rob
     }
 
     protected void closePort() {

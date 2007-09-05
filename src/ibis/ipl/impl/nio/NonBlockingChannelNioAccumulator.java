@@ -1,4 +1,4 @@
-/* $Id: NonBlockingChannelNioAccumulator.java 3146 2005-08-29 11:58:55Z ceriel $ */
+/* $Id$ */
 
 package ibis.ipl.impl.nio;
 
