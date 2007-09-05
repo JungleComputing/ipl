@@ -6,6 +6,7 @@ import ibis.ipl.ReadMessage;
 import ibis.ipl.WriteMessage;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Hashtable;
 
 import org.apache.log4j.Logger;
@@ -331,8 +332,8 @@ final class GroupRegistry implements GroupProtocol {
         if (logger.isDebugEnabled()) {
             logger.debug(Group._rank + ": GroupRegistry.joinGroup(" + 
                     groupName +", " + memberSkel + ", " + machineRank + ", " + 
-                    requestedRank + ", " + ticket + ", " + interfaces + ", " + 
-                    timeout +")");                      
+                    requestedRank + ", " + ticket + ", "
+                    + Arrays.toString(interfaces) + ", " + timeout +")");                      
         }
         
         GroupRegistryData e = groups.get(groupName);
