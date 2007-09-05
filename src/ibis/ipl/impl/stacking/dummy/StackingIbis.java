@@ -2,6 +2,7 @@ package ibis.ipl.impl.stacking.dummy;
 
 import ibis.ipl.IbisCapabilities;
 import ibis.ipl.MessageUpcall;
+import ibis.ipl.NoSuchPropertyException;
 import ibis.ipl.PortType;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.RegistryEventHandler;
@@ -26,9 +27,9 @@ public class StackingIbis extends Ibis {
         super(registryHandler, caps, types, tp);
     }
 
-    public void printStatistics(PrintStream out) {
-        super.printStatistics(out);
-        base.printStatistics(out);
+    public void printStatistics() {
+        super.printStatistics();
+        base.printStatistics();
     }
 
     @Override
@@ -93,15 +94,18 @@ public class StackingIbis extends Ibis {
         return base.dynamicProperties();
     }
 
-    public String getDynamicProperty(String key) {
+    public String getDynamicProperty(String key)
+            throws NoSuchPropertyException {
         return base.getDynamicProperty(key);
     }
 
-    public void setDynamicProperties(Map<String, String> properties) {
+    public void setDynamicProperties(Map<String, String> properties)
+            throws NoSuchPropertyException {
         base.setDynamicProperties(properties);      
     }
 
-    public void setDynamicProperty(String key, String val) {
+    public void setDynamicProperty(String key, String val)
+            throws NoSuchPropertyException {
         base.setDynamicProperty(key, val);
     }
 

@@ -32,6 +32,10 @@ public final class Aborts implements Config {
         exceptionList = new IRVector(s);
     }
 
+    public void waitForAborts() {
+        abortsComm.waitForAborts();
+    }
+
     public void addToAbortList(Stamp stamp) {
         Satin.assertLocked(s);
         if (abortLogger.isDebugEnabled()) {

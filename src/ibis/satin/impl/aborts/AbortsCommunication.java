@@ -31,22 +31,24 @@ final class AbortsCommunication implements Config {
         }
 
         public void run() {
-            while (true) {
-                StampListElement e = null;
-                synchronized (s) {
-                    if (stampsToAbortList.size() > 0) {
-                        e = stampsToAbortList.remove(0);
-                    } else {
+            for (;;) {
+                StampListElement e;
+                synchronized(stampsToAbortList) {
+                    while (stampsToAbortList.size() == 0) {
                         try {
-                            s.wait();
+                            stampsToAbortList.wait();
                         } catch (Exception x) {
                             // ignore
                         }
-                        continue;
+                    }
+                    e = stampsToAbortList.remove(0);
+                }
+                soRealSendAbortMessage(e);
+                synchronized(stampsToAbortList) {
+                    if (stampsToAbortList.size() == 0) {
+                        stampsToAbortList.notifyAll();
                     }
                 }
-
-                soRealSendAbortMessage(e);
             }
         }
     }
@@ -71,13 +73,25 @@ final class AbortsCommunication implements Config {
                 + r.getStealer() + " for job " + r.getStamp() + ", parent = "
                 + r.getParentStamp());
 
-        // TODO use other lock
-        synchronized (s) {
-            StampListElement e = new StampListElement();
-            e.stamp = r.getParentStamp();
-            e.stealer = r.getStealer();
+        StampListElement e = new StampListElement();
+        e.stamp = r.getParentStamp();
+        e.stealer = r.getStealer();
+
+        synchronized (stampsToAbortList) {
             stampsToAbortList.add(e);
-            s.notifyAll();
+            stampsToAbortList.notifyAll();
+        }
+    }
+
+    protected void waitForAborts() {
+        synchronized (stampsToAbortList) {
+            while (stampsToAbortList.size() != 0) {
+                try {
+                    stampsToAbortList.wait();
+                } catch(Exception e) {
+                    // ignored
+                }
+            }
         }
     }
 

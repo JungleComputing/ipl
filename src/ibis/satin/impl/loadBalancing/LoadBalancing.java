@@ -45,7 +45,6 @@ public final class LoadBalancing implements Config {
                     && System.currentTimeMillis() - lastPrintTime > CONTINUOUS_STATS_INTERVAL) {
                     lastPrintTime = System.currentTimeMillis();
                     s.stats.printDetailedStats(s.ident);
-                    s.comm.ibis.printStatistics(System.out);
                 }
 
                 StealRequest sr = null;

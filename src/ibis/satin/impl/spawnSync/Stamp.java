@@ -17,7 +17,7 @@ public final class Stamp implements java.io.Serializable {
     /** I found that there actually is no need to start with larger stamps arrays.
      * This is thanks to the order divide-and-conquer jobs are executed.  
      */
-    private static final int DEFAULT_STAMPS_SIZE = 2;
+    private static final int DEFAULT_STAMPS_SIZE = 1;
 
     private static Stamp stampCache;
 

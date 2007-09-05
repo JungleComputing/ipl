@@ -79,6 +79,10 @@ public final class SpawnCounter {
         } else {
             value++;
         }
+        if (Satin.spawnLogger.isDebugEnabled()) {
+            Satin.spawnLogger.debug("Incremented spawnCounter for " + r.getStamp()
+                    + ", value = " + value);
+        }
     }
 
     private synchronized void debugIncr(InvocationRecord r) {
@@ -121,6 +125,10 @@ public final class SpawnCounter {
             decrDebug(r);
         } else {
             value--;
+        }
+        if (Satin.spawnLogger.isDebugEnabled()) {
+            Satin.spawnLogger.debug("Decremented spawnCounter for " + r.getStamp()
+                    + ", value = " + value);
         }
         if (Satin.ASSERTS && value < 0) {
             System.err.println("Just made spawncounter < 0");

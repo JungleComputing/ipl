@@ -7,7 +7,8 @@ import java.io.PrintStream;
 import java.util.Properties;
 
 /**
- * The starting point of all Ibis communication, created using the {@link ibis.ipl.IbisFactory}.
+ * The starting point of all Ibis communication, created using the
+ * {@link ibis.ipl.IbisFactory}.
  */
 public interface Ibis extends Managable {
     
@@ -49,12 +50,6 @@ public interface Ibis extends Managable {
      * @return the ibis version.
      */
     public String getVersion();
-
-    /**
-     * May print Ibis-implementation-specific statistics.
-     * @param out the stream to print to.
-     */
-    public void printStatistics(PrintStream out);
 
     /**
      * Returns the properties as provided when instantiating Ibis.

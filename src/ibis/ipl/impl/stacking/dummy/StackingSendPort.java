@@ -3,6 +3,7 @@ package ibis.ipl.impl.stacking.dummy;
 import ibis.ipl.ConnectionFailedException;
 import ibis.ipl.ConnectionsFailedException;
 import ibis.ipl.IbisIdentifier;
+import ibis.ipl.NoSuchPropertyException;
 import ibis.ipl.PortType;
 import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.ipl.SendPortIdentifier;
@@ -125,15 +126,18 @@ public class StackingSendPort implements ibis.ipl.SendPort {
         return base.dynamicProperties();
     }
 
-    public String getDynamicProperty(String key) {
+    public String getDynamicProperty(String key)
+            throws NoSuchPropertyException {
         return base.getDynamicProperty(key);
     }
 
-    public void setDynamicProperties(Map<String, String> properties) {
+    public void setDynamicProperties(Map<String, String> properties)
+            throws NoSuchPropertyException {
         base.setDynamicProperties(properties);      
     }
 
-    public void setDynamicProperty(String key, String val) {
+    public void setDynamicProperty(String key, String val)
+            throws NoSuchPropertyException {
         base.setDynamicProperty(key, val);
     }
 }

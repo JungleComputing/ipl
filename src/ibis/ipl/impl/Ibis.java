@@ -127,102 +127,10 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis {
         return new Properties(properties);
     }
 
-    /**
-     * Notifies this Ibis instance that another Ibis instance has
-     * joined the run. Called by the registry.
-     * @param joinIdent the Ibis {@linkplain ibis.ipl.IbisIdentifier
-     * identifier} of the Ibis instance joining the run.
-     */
-/*
-    public void joined(ibis.ipl.IbisIdentifier joinIdent) {
-        if (closedWorld) {
-            synchronized(this) {
-                nJoins++;
-                if (nJoins > numInstances) {
-                    return;
-                }
-                if (nJoins == numInstances) {
-                    notifyAll();
-                }
-            }
-        }
-        if (registryHandler != null) {
-            waitForEnabled();
-            registryHandler.joined(joinIdent);
-            synchronized(this) {
-                busyUpcaller = false;
-            }
-        }
-        if (joinedIbises != null) {
-            synchronized(this) {
-                joinedIbises.add(joinIdent);
-             }
-        }
+    public void printStatistics() {
+        // default is empty.
     }
-*/
-    /**
-     * Notifies this Ibis instance that another Ibis instance has
-     * left the run. Called by the Registry.
-     * @param leaveIdent the Ibis {@linkplain ibis.ipl.IbisIdentifier
-     *  identifier} of the Ibis instance leaving the run.
-     */
-/*    
-    public void left(ibis.ipl.IbisIdentifier leaveIdent) {
-        if (registryHandler != null) {
-            waitForEnabled();
-            registryHandler.left(leaveIdent);
-            synchronized(this) {
-                busyUpcaller = false;
-            }
-        }
-        if (leftIbises != null) {
-            synchronized(this) {
-                leftIbises.add(leaveIdent);
-            }
-        }
-    }
-*/
-    /**
-     * Notifies this Ibis instance that another Ibis instance has died.
-     * Called by the registry.
-     * @param corpse the Ibis {@linkplain ibis.ipl.IbisIdentifier
-     *  identifier} of the Ibis instance that died.
-     */
-/*    
-    public void died(ibis.ipl.IbisIdentifier corpse) {
-        if (registryHandler != null) {
-            waitForEnabled();
-            registryHandler.died(corpse);
-            synchronized(this) {
-                busyUpcaller = false;
-            }
-        }
-        if (diedIbises != null) {
-            synchronized(this) {
-                diedIbises.add(corpse);
-            }
-        }
-    }
-*/
-    /**
-     * Notifies this Ibis instance that some signal arrived.
-     * Called by the registry.
-     * @param signal the signal.
-     */
-/*    
-    public void gotSignal(String signal) {
-        if (registryHandler != null) {
-            waitForEnabled();
-            registryHandler.gotSignal(signal);
-            synchronized(this) {
-                busyUpcaller = false;
-            }
-        }
-        if (signals != null) {
-            signals.add(signal);
-        }
-    }
-*/
+
     /**
      * Returns the current Ibis version.
      * @return the ibis version.
@@ -243,10 +151,6 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis {
         return version + ", implementation = " + this.getClass().getName();
     }
 
-    public void printStatistics(java.io.PrintStream out) { 
-        // default is empty
-    }
-
     public void end() throws IOException {
         synchronized (this) {
             if (ended) {
@@ -260,6 +164,13 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis {
             throw new IbisIOException("Registry: leave failed ", e);
         }
         quit();
+        try {
+            if (getDynamicProperty("statistics") != null) {
+                printStatistics();
+            }
+        } catch(Throwable e) {
+            // ignored
+        }
     }
 
     public void poll() {

@@ -317,6 +317,7 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
     }
 
     public void printStatistics() {
+        super.printStatistics();
         factory.printStatistics(ident.toString());
     }
 
@@ -326,11 +327,6 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
         } catch (Throwable e) {
             // Ignore
         }
-    }
-
-    public void end() throws IOException {
-        super.end();
-        printStatistics();
     }
 
     protected SendPort doCreateSendPort(PortType tp, String nm,

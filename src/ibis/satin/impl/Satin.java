@@ -32,7 +32,7 @@ public final class Satin implements Config {
     private static final int SUGGESTED_QUEUE_SIZE = 1000;
 
     public static final boolean GLOBAL_PAUSE_RESUME = false;
-    
+
     private static Satin thisSatin;
 
     public final Communication comm;
@@ -98,10 +98,6 @@ public final class Satin implements Config {
         properties.checkProperties(PROPERTY_PREFIX, sysprops, null, true);
     }
 
-    private Stamp baseStamp = Stamp.createStamp(null);
-
-    private int syncLevel = 0;
-
     /**
      * Creates a Satin instance and also an Ibis instance to run Satin on. This
      * constructor gets called by the rewritten main() from the application, and
@@ -111,10 +107,10 @@ public final class Satin implements Config {
     public Satin() {
         if (thisSatin != null) {
             throw new Error(
-                "multiple satin instances are currently not supported");
+                    "multiple satin instances are currently not supported");
         }
         thisSatin = this;
-        
+
         Log.initLog4J("ibis.satin");
 
         q = new DoubleEndedQueue(this);
@@ -131,19 +127,19 @@ public final class Satin implements Config {
         lb = new LoadBalancing(this);
         so = new SharedObjects(this);
         aborts = new Aborts(this);
-        
+
         // elect the master
         setMaster(comm.electMaster());
 
         createLoadBalancingAlgorithm();
-        
+
         if (DUMP) {
             DumpThread dumpThread = new DumpThread(this);
             Runtime.getRuntime().addShutdownHook(dumpThread);
         }
 
         comm.enableConnections();
-        
+
         // this opens the world, other ibises might join from this point
         // we need the master to be set before this call
         ft.init(); 
@@ -164,7 +160,11 @@ public final class Satin implements Config {
 
         if (STATS && DETAILED_STATS) {
             stats.printDetailedStats(ident);
-            comm.ibis.printStatistics(System.out);
+            try {
+                comm.ibis.setDynamicProperty("statistics", "");
+            } catch(Throwable e) {
+                // ignored
+            }
         }
 
         // Do not accept new connections and joins.
@@ -267,33 +267,18 @@ public final class Satin implements Config {
 
         if (s.getValue() == 0) { // A sync without spawns is a poll.
             handleDelayedMessages();
-            return;
-        }
-
-        syncLevel++;
-        while (s.getValue() > 0) {
+        } else while (s.getValue() > 0) {
             InvocationRecord r = q.getFromHead(); // Try the local queue
             if (r != null) {
                 callSatinFunction(r);
             } else {
                 noWorkInQueue();
             }
+            // Wait for abort sender. Otherwise, if the current job starts
+            // spawning again, jobs may be aborted that are spawned after
+            // this sync!
+            aborts.waitForAborts();
         }
-        syncLevel--;
-        if (master && syncLevel == 0) {
-            baseStamp = Stamp.createStamp(null);
-            if (spawnLogger.isDebugEnabled()) {
-                spawnLogger.debug("SATIN '" + ident
-                        + "': generated new baseStamp: " + baseStamp);
-            }
-        }
-    }
-
-    public Stamp getBaseStamp() {
-        if (ASSERTS && ! isMaster()) {
-            throw new Error("baseStamp requested on client ...");
-        }
-        return baseStamp;
     }
 
     private void noWorkInQueue() {
@@ -341,7 +326,7 @@ public final class Satin implements Config {
      *            invocation throwing the exception.
      */
     public synchronized void abort(InvocationRecord outstandingSpawns,
-        InvocationRecord exceptionThrower) {
+            InvocationRecord exceptionThrower) {
         // We do not need to set outstanding Jobs in the parent frame to null,
         // it is just used for assigning results.
         // get the lock, so no-one can steal jobs now, and no-one can change my
@@ -353,7 +338,7 @@ public final class Satin implements Config {
                     + outstandingSpawns
                     + ", exceptionThrower = " + exceptionThrower);
         }
-        
+
         if (exceptionThrower != null) { // can be null if root does an abort.
             // kill all children of the parent of the thrower.
             aborts.killChildrenOf(exceptionThrower.getParentStamp());
@@ -376,7 +361,7 @@ public final class Satin implements Config {
         if (thisSatin == null) {
             return;
         }
-        
+
         if(GLOBAL_PAUSE_RESUME) {
             thisSatin.comm.pause();
         } else {
@@ -448,27 +433,27 @@ public final class Satin implements Config {
      * @return <code>true</code> if this is the instance running main().
      */
     public boolean isMaster() {
-    	if(ASSERTS && masterIdent == null) {
-    		throw new Error("asked for master before he was elected");
-    	}
+        if(ASSERTS && masterIdent == null) {
+            throw new Error("asked for master before he was elected");
+        }
         return master;
     }
 
     public void setMaster(IbisIdentifier newMaster) {
-    	masterIdent = newMaster;
-    	
-		if (masterIdent.equals(ident)) {
-			/* I an the master. */
-			commLogger.info(
-                                "SATIN '" + ident
-                                + "': init ibis: I am the master");
-			master = true;
-		} else {
-			commLogger.info("SATIN '" + ident
-                                + "': init ibis I am slave");
-		}
+        masterIdent = newMaster;
 
-		if (STATS && master) {
+        if (masterIdent.equals(ident)) {
+            /* I an the master. */
+            commLogger.info(
+                    "SATIN '" + ident
+                    + "': init ibis: I am the master");
+            master = true;
+        } else {
+            commLogger.info("SATIN '" + ident
+                    + "': init ibis I am slave");
+        }
+
+        if (STATS && master) {
             totalStats = new Statistics();
         }
     }
@@ -487,9 +472,9 @@ public final class Satin implements Config {
     }
 
     public IbisIdentifier getMasterIdent() {
-    	if(ASSERTS && masterIdent == null) {
-    		throw new Error("asked for master before he was elected");
-    	}
+        if(ASSERTS && masterIdent == null) {
+            throw new Error("asked for master before he was elected");
+        }
         return masterIdent;
     }
 
@@ -531,7 +516,7 @@ public final class Satin implements Config {
 
         if (r.getOwner() == null) {
             assertFailed("r.owner = null in callSatinFunc, r = " + r,
-                new Exception());
+                    new Exception());
         }
     }
 
@@ -573,7 +558,7 @@ public final class Satin implements Config {
 
         if (r.eek != null && stealLogger.isInfoEnabled()) {
             stealLogger.info("SATIN '" + ident
-                + "': RUNNING REMOTE CODE GAVE EXCEPTION: " + r.eek, r.eek);
+                    + "': RUNNING REMOTE CODE GAVE EXCEPTION: " + r.eek, r.eek);
         } else {
             stealLogger
                 .info("SATIN '" + ident + "': RUNNING REMOTE CODE DONE!");
@@ -633,7 +618,7 @@ public final class Satin implements Config {
 
         throw new Error(reason, t);        
     }
-    
+
     public void assertFailed(String reason, Throwable t) {
         if(reason != null) {
             mainLogger.fatal("SATIN '" + ident
@@ -645,7 +630,7 @@ public final class Satin implements Config {
 
         throw new Error(reason, t);
     }
-    
+
     public static void addInterClusterStats(long cnt) {
         thisSatin.stats.interClusterMessages++;
         thisSatin.stats.interClusterBytes += cnt;
