@@ -273,16 +273,16 @@ public class CapabilitySet {
     }
 
     public String toString() {
-        String result = "";
+        StringBuffer result = new StringBuffer();
         boolean first = true;
         for (String capability : capabilities) {
             if (! first) {
-                result += " ";
+                result.append(" ");
             }
             first = false;
-            result += capability;
+            result.append(capability);
         }
-        return result;
+        return result.toString();
     }
 
     /**

@@ -71,36 +71,39 @@ public class ConnectionsFailedException extends java.io.IOException {
     }
 
     public String toString() {
-        String result = "";
-
         if (failures.size() == 0) {
             return super.toString();
         }
 
-        result = "\n--- START OF CONNECTIONS FAILED EXCEPTION ---\n";
+        StringBuffer result = new StringBuffer();
+
+        result.append("\n--- START OF CONNECTIONS FAILED EXCEPTION ---\n");
         for (ConnectionFailedException failure : failures) {
+            result.append("Connection to <");
             if (failure.receivePortIdentifier() != null) {
-                result += "Connection to <" + failure.receivePortIdentifier()
-                        + "> failed: ";
+                result.append(failure.receivePortIdentifier().toString());
             } else {
-                result += "Connection to <" + failure.ibisIdentifier() + ", " + failure.receivePortName()
-                        + "> failed: ";
+                result.append(failure.ibisIdentifier().toString());
+                result.append(", ");
+                result.append(failure.receivePortName());
             }
-            result += failure.getMessage() + "\n";
+            result.append("> failed: ");
+            result.append(failure.getMessage());
+            result.append("\n");
             Throwable throwable = failure.getCause();
             if (throwable != null) {
-                result += throwable.getClass().getName();
-                result += ": ";
+                result.append(throwable.getClass().getName());
+                result.append(": ");
                 String message = throwable.getMessage();
                 if (message == null) {
                     message = throwable.toString();
                 }
-                result += message;
-                result += "\n";
+                result.append(message);
+                result.append("\n");
             }
         }
-        result += "--- END OF CONNECTIONS FAILED EXCEPTION ---\n";
-        return result;
+        result.append("--- END OF CONNECTIONS FAILED EXCEPTION ---\n");
+        return result.toString();
     }
 
     public void printStackTrace() {

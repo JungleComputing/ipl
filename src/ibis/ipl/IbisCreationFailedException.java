@@ -67,30 +67,31 @@ public class IbisCreationFailedException extends Exception {
     }
 
     public String toString() {
-        String result = "";
-
         if (throwables.size() == 0) {
             return super.toString();
         }
 
-        result = "\n--- START OF NESTED EXCEPTION ---\n";
+        StringBuffer result = new StringBuffer();
+
+        result.append("\n--- START OF NESTED EXCEPTION ---\n");
         for (int i = 0; i < throwables.size(); i++) {
             if (throwerIDs.get(i) != null) {
-                result += "*** " + throwerIDs.get(i)
-                    + " failed because of: ";
+                result.append("*** ");
+                result.append(throwerIDs.get(i));
+                result.append(" failed because of: ");
             }
             Throwable throwable = throwables.get(i);
-            result += throwable.getClass().getName();
-            result += ": ";
+            result.append(throwable.getClass().getName());
+            result.append(": ");
             String message = throwable.getMessage();
             if (message == null) {
                 message = throwable.toString();
             }
-            result += message;
-            result += "\n";
+            result.append(message);
+            result.append("\n");
         }
-        result += "--- END OF NESTED EXCEPTION ---\n";
-        return result;
+        result.append("--- END OF NESTED EXCEPTION ---\n");
+        return result.toString();
     }
 
     public void printStackTrace() {
