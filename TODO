@@ -1,6 +1,6 @@
 Legend:
 - = current
-+ = done
++ = done since last core meeting (or not removed ...)
 * = new/changed since last core meeting
 
 ##### Ibis 2.0 ####
@@ -48,6 +48,7 @@ Exception in thread "main" java.lang.ClassFormatError: LVTT entry for 'resultUni
         at sun.misc.Launcher$AppClassLoader.loadClass(Launcher.java:276)
         at java.lang.ClassLoader.loadClass(ClassLoader.java:251)
         at java.lang.ClassLoader.loadClassInternal(ClassLoader.java:319)
+  Re-appeared, fixed now (Ceriel)
 
 + SO invocations cannot be void (satinc crashes):
     [Ibisc] Ibisc: applying rewriter ibis.satin.impl.rewriter.Satinc to 17 classes.
@@ -66,17 +67,19 @@ capabilities:
 - add registry capabilities.
 
 management:
-- ibis.ipl.Managable: throw exception on unrecognized property name.
++ ibis.ipl.Managable: throw exception on unrecognized property name.
+  (Done in ipl. --Ceriel).
 + ibis.ipl.Managable: Map strings to strings instead of strings to object.
   (Done Ceriel)
-* ibis printStatistics: replace by Managable.
++ ibis printStatistics: replace by Managable.
+  (Done: printStatistics is only called if the property "statistics" is set. --Ceriel)
 * clarify JavaDoc of "count" methods in messages. E.g. Say we only count
   broadcast messages once.
 * add basic network usage statistics to Ibis.
 
 ibis registry:
-* fixed huge bug in registry communication code (no, in.read(b) does NOT read the entire array) (done Jason)
-* clean up connections in pinger when an exception occurs (done Jason)
++ fixed huge bug in registry communication code (no, in.read(b) does NOT read the entire array) (done Jason)
++ clean up connections in pinger when an exception occurs (done Jason)
 - check if all Ibisses in a pool are of the same implementation, version, etc.
 * forget unneeded event history OR stop giving these events to the user
 * add an upcall for elections.
@@ -89,11 +92,11 @@ ibis registry:
   push() and push(), but I think I fixed that (Ceriel).
 
 implementations:
++ check TcpSendPost.close: why don't we close in case of a normal exception? --Rob (Done Ceriel)
++ removed yields, since they break the whole idea of starting your own replacement threads --Jason
 * SendPort.disconnect() followed by connect() may cause an AlreadyConnected
   exception, because the receiveport does not know yet that it has been
   disconnected ... (separate thread). Happens in Satin.
-* check TcpSendPost.close: why don't we close in case of a normal exception? --Rob
-* removed yields, since they break the whole idea of starting your own replacement threads --Jason
 + The getVersion method in Ibis.java is buggy! (Fixed Ceriel)
 + TcpIbis: fork a thread immediately after doing an "accept". Don't do a 
   handshake first. (Done Jason, fixed Ceriel).
@@ -108,13 +111,13 @@ implementations:
 
 applications:
 - remove old-n-useless applications (if any)
-- build jars by default
++ build jars by default (Done Ceriel)
 
 packaging/distribution:
 * split up ibis in multiple separate subprojects:
 	+ ipl
 	+ ipl applications (Done Ceriel)
-	- util
+	+ util
 	+ server (Done Niels)
 	+ io (Done Ceriel)
 	+ compile (Done Ceriel)
