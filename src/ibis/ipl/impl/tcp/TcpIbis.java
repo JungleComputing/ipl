@@ -48,7 +48,7 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
         = new HashMap<ibis.ipl.IbisIdentifier, IbisSocketAddress>();
     
     public TcpIbis(RegistryEventHandler registryEventHandler, IbisCapabilities capabilities, PortType[] types, Properties userProperties) {
-        super(registryEventHandler, capabilities, types, userProperties);
+        super(registryEventHandler, capabilities, types, userProperties, null);
 
         this.properties.checkProperties("ibis.ipl.impl.tcp.",
                 new String[] {"ibis.ipl.impl.tcp.smartsockets"}, null, true);

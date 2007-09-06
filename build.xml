@@ -74,16 +74,19 @@
 	<jar destfile="lib/impl-tcp.jar" basedir="${tmp}" includes="ibis/ipl/impl/tcp/**/*.class">
             <manifest>
                 <attribute name="Ibis-Starter" value="ibis.ipl.impl.tcp.TcpIbisStarter" />
+                <attribute name="Ibis-Version" value="2.0" />
             </manifest>
         </jar>
 	<jar destfile="lib/impl-nio.jar" basedir="${tmp}" includes="ibis/ipl/impl/nio/**/*.class">
             <manifest>
                 <attribute name="Ibis-Starter" value="ibis.ipl.impl.nio.NioIbisStarter" />
+                <attribute name="Ibis-Version" value="2.0" />
             </manifest>
         </jar>
 	<jar destfile="lib/impl-dummy.jar" basedir="${tmp}" includes="ibis/ipl/impl/stacking/dummy/**/*.class">
             <manifest>
                 <attribute name="Ibis-Starter" value="ibis.ipl.impl.stacking.dummy.StackingIbisStarter" />
+                <attribute name="Ibis-Version" value="2.0" />
             </manifest>
         </jar>
         <jar destfile="lib/satin-api.jar" basedir="${tmp}" includes="ibis/satin/*.class">

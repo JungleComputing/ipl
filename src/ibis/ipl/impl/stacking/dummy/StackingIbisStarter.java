@@ -1,13 +1,15 @@
-/* $Id:$ */
+/* $Id$ */
 
 package ibis.ipl.impl.stacking.dummy;
 
 import ibis.ipl.CapabilitySet;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisCapabilities;
+import ibis.ipl.IbisStarter;
 import ibis.ipl.PortType;
 import ibis.ipl.RegistryEventHandler;
 
+import java.util.ArrayList;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
@@ -18,54 +20,16 @@ public final class StackingIbisStarter extends ibis.ipl.IbisStarter {
             = Logger.getLogger("ibis.ipl.impl.stacking.dummy.StackingIbisStarter");
 
     static final IbisCapabilities ibisCapabilities = new IbisCapabilities(
-        IbisCapabilities.CLOSEDWORLD,
-        IbisCapabilities.MEMBERSHIP,
-        IbisCapabilities.MEMBERSHIP_ORDERED,
-        IbisCapabilities.MEMBERSHIP_RELIABLE,
-        IbisCapabilities.SIGNALS,
-        IbisCapabilities.ELECTIONS,
-        IbisCapabilities.MALLEABLE,
         "nickname.dummy"
     );
 
-    static final PortType portCapabilities = new PortType(
-        PortType.SERIALIZATION_OBJECT_SUN,
-        PortType.SERIALIZATION_OBJECT_IBIS, 
-        PortType.SERIALIZATION_OBJECT,
-        PortType.SERIALIZATION_DATA,
-        PortType.SERIALIZATION_BYTE,
-        PortType.COMMUNICATION_FIFO,
-        PortType.COMMUNICATION_NUMBERED,
-        PortType.COMMUNICATION_RELIABLE,
-        PortType.CONNECTION_DOWNCALLS,
-        PortType.CONNECTION_UPCALLS,
-        PortType.CONNECTION_TIMEOUT,
-        PortType.CONNECTION_MANY_TO_MANY,
-        PortType.CONNECTION_MANY_TO_ONE,
-        PortType.CONNECTION_ONE_TO_MANY,
-        PortType.CONNECTION_ONE_TO_ONE,
-        PortType.RECEIVE_POLL,
-        PortType.RECEIVE_AUTO_UPCALLS,
-        PortType.RECEIVE_EXPLICIT,
-        PortType.RECEIVE_POLL_UPCALLS,
-        PortType.RECEIVE_TIMEOUT
-    );
-
     private boolean matching;
-    private int unmatchedPortTypes;
 
     public StackingIbisStarter(IbisCapabilities capabilities, PortType[] types) {
         super(capabilities, types);
-        matching = true;
-        if (! capabilities.matchCapabilities(ibisCapabilities)) {
-            matching = false;
-        }
-        for (PortType pt : portTypes) {
-            if (! pt.matchCapabilities(portCapabilities)) {
-                unmatchedPortTypes++;
-                matching = false;
-            }
-        }
+        // See if the nickname is specified. Otherwise this Ibis is not
+        // selected.
+        matching = ibisCapabilities.matchCapabilities(capabilities);
     }
 
     public boolean matches() {
@@ -73,7 +37,11 @@ public final class StackingIbisStarter extends ibis.ipl.IbisStarter {
     }
 
     public boolean isSelectable() {
-        return false;
+        return true;
+    }
+
+    public boolean isStacking() {
+        return true;
     }
 
     public CapabilitySet unmatchedIbisCapabilities() {
@@ -81,19 +49,16 @@ public final class StackingIbisStarter extends ibis.ipl.IbisStarter {
     }
 
     public PortType[] unmatchedPortTypes() {
-        PortType[] unmatched = new PortType[unmatchedPortTypes];
-        int i = 0;
-        for (PortType pt : portTypes) {
-            if (! pt.matchCapabilities(portCapabilities)) {
-                unmatched[i++] = pt;
-            }
-        }
-        return unmatched;
+        return portTypes.clone();
     }
 
-    public Ibis startIbis(RegistryEventHandler registryEventHandler,
+    public Ibis startIbis(ArrayList<IbisStarter> stack,
+            RegistryEventHandler registryEventHandler,
             Properties userProperties) {
-        return new StackingIbis(registryEventHandler, capabilities, portTypes,
-                userProperties);
+        IbisStarter s = stack.remove(0);
+        ibis.ipl.impl.Ibis base = (ibis.ipl.impl.Ibis)
+                s.startIbis(registryEventHandler, userProperties);
+        return new StackingIbis(base, registryEventHandler, capabilities,
+                portTypes, userProperties);
     }
 }

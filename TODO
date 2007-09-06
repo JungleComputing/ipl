@@ -24,6 +24,8 @@ Ibis Factory:
 + Only select the first matching Ibis, don't try all of them. (Done Ceriel)
 + Add a seperate "checker" object for each Ibis implementation to determine
   which Ibis to use. (Done Ceriel: added IbisStarter object).
++ Add version checking: only use jars with the proper version number in the
+  manifest (Done Ceriel)
 
 IbisC:
 + remove rewriting of "flat list of class files" (was bug in older javac versions; happened with .java files in the jar-file, but only when rewritten???).

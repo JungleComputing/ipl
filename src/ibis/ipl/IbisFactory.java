@@ -41,6 +41,8 @@ public final class IbisFactory {
             new HashMap<String, IbisFactory>();
     private static IbisFactory defaultFactory;
 
+    static final String VERSION = "2.0";
+
     /**
      * Adds the properties as loaded from the specified stream to the specified
      * properties.
@@ -151,7 +153,7 @@ public final class IbisFactory {
         // Obtain a list of Ibis implementations
         ClassLister clstr = ClassLister.getClassLister(implPath);
         List<Class> compnts =
-                clstr.getClassList("Ibis-Starter", IbisStarter.class);
+                clstr.getClassList("Ibis-Starter", IbisStarter.class, VERSION);
         implList = compnts.toArray(new Class[compnts.size()]);
         starters = new IbisStarter[implList.length];
     }
@@ -573,9 +575,11 @@ public final class IbisFactory {
          * 
          * @param attribName
          *            the manifest attribute name.
+         * @param version
+         *            required version, or null.
          * @return the list of classes.
          */
-        private List<Class> getClassList(String attribName) {
+        private List<Class> getClassList(String attribName, String version) {
             ArrayList<Class> list = new ArrayList<Class>();
 
             for (int i = 0; i < jarFiles.length; i++) {
@@ -588,6 +592,13 @@ public final class IbisFactory {
                 }
                 if (mf != null) {
                     Attributes ab = mf.getMainAttributes();
+                    if (version != null) {
+                        String jarVersion = ab.getValue("Ibis-Version");
+                        if (jarVersion == null
+                                || ! jarVersion.startsWith(version)) {
+                            continue;
+                        }
+                    }
                     String classNames = ab.getValue(attribName);
                     if (classNames != null) {
                         StringTokenizer st =
@@ -624,10 +635,13 @@ public final class IbisFactory {
          * @param clazz
          *            the class of which the returned classes are
          *            implementations or extensions.
+         * @param version
+         *            required version, or null.
          * @return the list of classes.
          */
-        private List<Class> getClassList(String attribName, Class<?> clazz) {
-            List<Class> list = getClassList(attribName);
+        private List<Class> getClassList(String attribName, Class<?> clazz,
+                String version) {
+            List<Class> list = getClassList(attribName, version);
 
             for (Class<?> cl : list) {
                 if (!clazz.isAssignableFrom(cl)) {

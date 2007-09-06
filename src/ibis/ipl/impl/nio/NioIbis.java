@@ -42,7 +42,7 @@ public final class NioIbis extends ibis.ipl.impl.Ibis {
 
     public NioIbis(RegistryEventHandler r, IbisCapabilities p, PortType[] types, Properties tp) {
 
-        super(r, p, types, tp);
+        super(r, p, types, tp, null);
         properties.checkProperties(prefix, props, null, true);
     }
 

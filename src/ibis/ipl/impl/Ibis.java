@@ -72,12 +72,12 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis {
      * @param capabilities the capabilities.
      * @param portTypes the port types requested for this ibis implementation.
      * @param userProperties the properties as provided by the Ibis factory.
-     * @param defaultProperties the default properties of this particular
-     * ibis implementation.
+     * @param base the underlying Ibis or <code>null</code>. Used for stacking
+     * ibisses.
      */
     protected Ibis(RegistryEventHandler registryHandler,
             IbisCapabilities capabilities, PortType[] portTypes,
-            Properties userProperties) {
+            Properties userProperties, Ibis base) {
 
         this.capabilities = capabilities;
         this.portTypes = portTypes;
@@ -99,12 +99,12 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis {
         receivePorts = new HashMap<String, ReceivePort>();
         sendPorts = new HashMap<String, SendPort>();
     
-        registry = initializeRegistry(registryHandler, capabilities);
+        registry = initializeRegistry(registryHandler, capabilities, base);
         ident = registry.getIbisIdentifier();
     }
 
     protected Registry initializeRegistry(RegistryEventHandler handler, 
-            IbisCapabilities caps) {
+            IbisCapabilities caps, Ibis base) {
         
         try {
             return Registry.createRegistry(caps, handler, properties, 

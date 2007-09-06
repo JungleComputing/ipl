@@ -22,9 +22,9 @@ public class StackingIbis extends Ibis {
 
     Ibis base;
 
-    public StackingIbis(RegistryEventHandler registryHandler,
+    public StackingIbis(Ibis base, RegistryEventHandler registryHandler,
             IbisCapabilities caps, PortType[] types, Properties tp) {
-        super(registryHandler, caps, types, tp);
+        super(registryHandler, caps, types, tp, base);
     }
 
     public void printStatistics() {
@@ -33,23 +33,8 @@ public class StackingIbis extends Ibis {
     }
 
     @Override
-    protected Registry initializeRegistry(RegistryEventHandler handler, IbisCapabilities capabilities) {
-        // For a stacking Ibis that actually implements a feature,
-        // remove this feature from the capabilities here.
-        if (count < 5) {
-            count++;
-            if (handler != null) {
-                base = new StackingIbis(handler, capabilities, portTypes,  properties);
-            } else {
-                base = new StackingIbis(null, capabilities, portTypes, properties);
-            }
-        } else {
-            if (handler != null) {
-                base = new TcpIbis(handler, capabilities, portTypes, properties);
-            } else {
-                base = new TcpIbis(null, capabilities, portTypes, properties);
-            }
-        }
+    protected Registry initializeRegistry(RegistryEventHandler handler, IbisCapabilities capabilities, Ibis base) {
+        this.base = base;
         // return new ibis.ipl.impl.registry.ForwardingRegistry(base.registry());
         return base.registry();
     }

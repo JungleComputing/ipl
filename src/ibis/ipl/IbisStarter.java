@@ -1,7 +1,8 @@
-/* $Id:$ */
+/* $Id$ */
 
 package ibis.ipl;
 
+import java.util.ArrayList;
 import java.util.Properties;
 
 /**
@@ -55,6 +56,8 @@ public abstract class IbisStarter {
 
     /**
      * Returns the required capabilities that are not matched by this starter.
+     * Note: a stacking Ibis returns the capabilities that are required of the
+     * underlying Ibis implementation.
      * @return the unmatched ibis capabilities.
      */
     public abstract CapabilitySet unmatchedIbisCapabilities();
@@ -63,6 +66,8 @@ public abstract class IbisStarter {
      * Returns the list of port types that are not matched by this starter.
      * If all required port types match, this method returns an array with
      * 0 elements.
+     * Note: a stacking Ibis returns the porttypes that are required of the
+     * underlying Ibis implementation.
      * @return the unmatched port types.
      */
     public abstract PortType[] unmatchedPortTypes();
@@ -72,17 +77,20 @@ public abstract class IbisStarter {
      * @param handler a registry event handler.
      * @param userProperties the user properties.
      */
-    public abstract Ibis startIbis(RegistryEventHandler handler,
-            Properties userProperties);
+    public Ibis startIbis(RegistryEventHandler handler,
+            Properties userProperties) {
+        throw new Error("startIbis(RegistryEventHandler, Properties) not implemented");
+    }
 
     /**
      * Actually creates a stacking-ibis instance from this starter.
-     * @param ibis the underlying ibis.
+     * @param stack the starters for the underlying ibis implementations.
+     *    Element 0 is the base Ibis, the others are stacking Ibisses.
      * @param handler a registry event handler.
      * @param userProperties the user properties.
      */
-    public Ibis startStackingIbis(Ibis base, RegistryEventHandler handler,
-            Properties userProperties) {
-        throw new Error("Not a stacking Ibis");
+    public Ibis startStackingIbis(ArrayList<IbisStarter> stack,
+            RegistryEventHandler handler, Properties userProperties) {
+        throw new Error("startIbis(ArrayList<IbisStarter>, RegistryEventHandler, Properties) not implemented");
     }
 }
