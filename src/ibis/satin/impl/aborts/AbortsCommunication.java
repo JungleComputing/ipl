@@ -41,10 +41,14 @@ final class AbortsCommunication implements Config {
                             // ignore
                         }
                     }
-                    e = stampsToAbortList.remove(0);
+                    e = stampsToAbortList.get(0);
+                    // Don't remove it yet! Remove it after the send,
+                    // otherwise a steal reply message may overtake
+                    // an abort message.
                 }
                 soRealSendAbortMessage(e);
                 synchronized(stampsToAbortList) {
+                    stampsToAbortList.remove(0);
                     if (stampsToAbortList.size() == 0) {
                         stampsToAbortList.notifyAll();
                     }
