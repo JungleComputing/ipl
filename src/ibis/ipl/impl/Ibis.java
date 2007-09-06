@@ -81,6 +81,8 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis {
 
         this.capabilities = capabilities;
         this.portTypes = portTypes;
+
+        addValidKey("statistics");
         
         Log.initLog4J("ibis");
 
