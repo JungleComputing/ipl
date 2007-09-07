@@ -238,6 +238,10 @@ public final class IbisFactory {
                 }
                 if (starter.matches(caps, types)) {
                     selected.add(starter);
+                    if (verbose) {
+                        System.err.println("Class " + implList[i]
+                                + " selected");
+                    }
                     return selected;
                 }
                 // Find out why it did not match.
@@ -412,7 +416,7 @@ public final class IbisFactory {
         for (int i = 0; i < implList.length; i++) {
             Class starterClass = implList[i];
             if (verbose) {
-                System.err.println("Trying " + starterClass.getName());
+                System.err.println("Instantiating " + starterClass.getName());
             }
 
             // Try to instantiate the starter.
