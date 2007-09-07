@@ -221,7 +221,7 @@ public final class IbisFactory {
     }
 
     private List<IbisStarter> findIbisStack(IbisCapabilities capabilities,
-            PortType[] portTypes, List<IbisStarter> selected) {
+            PortType[] portTypes, List<IbisStarter> selected, String ibisName) {
 
         IbisCapabilities caps = capabilities;
         PortType[] types = portTypes;
@@ -277,7 +277,8 @@ public final class IbisFactory {
                 List<IbisStarter> newList = findIbisStack(
                         new IbisCapabilities(starter.unmatchedIbisCapabilities()),
                         starter.unmatchedPortTypes(),
-                        new ArrayList<IbisStarter>(selected));
+                        new ArrayList<IbisStarter>(selected),
+                        null);
                 if (newList != null) {
                     return newList;
                 }
@@ -432,7 +433,7 @@ public final class IbisFactory {
         }
         
         List<IbisStarter> stack = findIbisStack(requiredCapabilities,
-                portTypes, new ArrayList<IbisStarter>());
+                portTypes, new ArrayList<IbisStarter>(), ibisName);
         
         if (stack != null) {
             IbisStarter starter = stack.remove(0);
