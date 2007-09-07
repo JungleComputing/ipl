@@ -1,4 +1,4 @@
-/* $Id:$ */
+/* $Id$ */
 
 package ibis.ipl.impl.nio;
 
@@ -59,8 +59,12 @@ public final class NioIbisStarter extends ibis.ipl.IbisStarter {
     private boolean matching;
     private int unmatchedPortTypes;
 
-    public NioIbisStarter(IbisCapabilities capabilities, PortType[] types) {
-        super(capabilities, types);
+    public NioIbisStarter() {
+    }
+    
+    public boolean matches(IbisCapabilities capabilities, PortType[] portTypes) { 
+        this.capabilities = capabilities;
+        this.portTypes = portTypes;
         matching = true;
         if (! capabilities.matchCapabilities(ibisCapabilities)) {
             matching = false;
@@ -71,9 +75,6 @@ public final class NioIbisStarter extends ibis.ipl.IbisStarter {
                 matching = false;
             }
         }
-    }
-
-    public boolean matches() {
         return matching;
     }
 

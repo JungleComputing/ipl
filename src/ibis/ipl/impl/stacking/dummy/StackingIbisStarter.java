@@ -25,14 +25,15 @@ public final class StackingIbisStarter extends ibis.ipl.IbisStarter {
 
     private boolean matching;
 
-    public StackingIbisStarter(IbisCapabilities capabilities, PortType[] types) {
-        super(capabilities, types);
+    public StackingIbisStarter() {
+    }
+    
+    public boolean matches(IbisCapabilities capabilities, PortType[] portTypes) {
+        this.capabilities = capabilities;
+        this.portTypes = portTypes.clone();
         // See if the nickname is specified. Otherwise this Ibis is not
         // selected.
         matching = ibisCapabilities.matchCapabilities(capabilities);
-    }
-
-    public boolean matches() {
         return matching;
     }
 

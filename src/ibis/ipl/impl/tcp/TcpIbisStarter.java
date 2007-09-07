@@ -1,4 +1,4 @@
-/* $Id:$ */
+/* $Id$ */
 
 package ibis.ipl.impl.tcp;
 
@@ -53,9 +53,13 @@ public final class TcpIbisStarter extends ibis.ipl.IbisStarter {
 
     private boolean matching;
     private int unmatchedPortTypes;
+    
+    public TcpIbisStarter() {
+    }
 
-    public TcpIbisStarter(IbisCapabilities capabilities, PortType[] types) {
-        super(capabilities, types);
+    public boolean matches(IbisCapabilities capabilities, PortType[] types) {
+        this.capabilities = capabilities;
+        this.portTypes = types.clone();
         matching = true;
         if (! capabilities.matchCapabilities(ibisCapabilities)) {
             matching = false;
@@ -66,9 +70,6 @@ public final class TcpIbisStarter extends ibis.ipl.IbisStarter {
                 matching = false;
             }
         }
-    }
-
-    public boolean matches() {
         return matching;
     }
 

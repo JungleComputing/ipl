@@ -19,22 +19,20 @@ public abstract class IbisStarter {
     protected PortType[] portTypes;
 
     /**
-     * Constructs an <code>IbisStarter</code> with the specified capabilities
-     * and port types.
-     * @param capabilities the required ibis capabilities.
-     * @param portTypes the required port types.
+     * Constructs an <code>IbisStarter</code>.
      */
-    public IbisStarter(IbisCapabilities capabilities, PortType[] portTypes) {
-        this.capabilities = capabilities;
-        this.portTypes = portTypes.clone();
+    public IbisStarter() {
     }
 
     /**
      * Decides if this <code>IbisStarter</code> can start an Ibis instance
      * with the desired capabilities and port types.
+     * @param capabilities the required capabilities.
+     * @param portTypes the required port types.
      * @return <code>true</code> if it can.
      */
-    public abstract boolean matches();
+    public abstract boolean matches(IbisCapabilities capabilities,
+            PortType[] portTypes);
 
     /**
      * Decides if this Ibis instance is a stacking Ibis.
@@ -58,6 +56,7 @@ public abstract class IbisStarter {
      * Returns the required capabilities that are not matched by this starter.
      * Note: a stacking Ibis returns the capabilities that are required of the
      * underlying Ibis implementation.
+     * This call must be preceded by a call to {@link #matches(IbisCapabilities, PortType[])}.
      * @return the unmatched ibis capabilities.
      */
     public abstract CapabilitySet unmatchedIbisCapabilities();
@@ -68,6 +67,7 @@ public abstract class IbisStarter {
      * 0 elements.
      * Note: a stacking Ibis returns the porttypes that are required of the
      * underlying Ibis implementation.
+     * This call must be preceded by a call to {@link #matches(IbisCapabilities, PortType[])}.
      * @return the unmatched port types.
      */
     public abstract PortType[] unmatchedPortTypes();
@@ -85,7 +85,8 @@ public abstract class IbisStarter {
     /**
      * Actually creates a stacking-ibis instance from this starter.
      * @param stack the starters for the underlying ibis implementations.
-     *    Element 0 is the base Ibis, the others are stacking Ibisses.
+     *    The last element of the list should be a starter for a non-stacking
+     *    ibis.
      * @param handler a registry event handler.
      * @param userProperties the user properties.
      */

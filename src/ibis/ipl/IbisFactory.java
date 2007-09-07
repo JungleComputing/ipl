@@ -7,7 +7,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
@@ -30,6 +29,8 @@ import java.util.jar.Manifest;
  * of the manifest of the jar file containing it, in the "Ibis-Starter"
  * entry. This entry should contain a comma- or space-separated list of class
  * names, where each class named provides an {@link IbisStarter} implementation.
+ * In addition, a property "Ibis-Version" should be defined in the manifest,
+ * containing a version number starting with 2.0.
  */
 public final class IbisFactory {
 
@@ -142,12 +143,14 @@ public final class IbisFactory {
 
     private Class[] implList;
     private IbisStarter[] starters;
+    private boolean verbose = false;
+    private String ibisName = null;
 
     /**
-     * Constructs an Ibis factory, with the specified properties.
+     * Constructs an Ibis factory, with the specified search path.
      * 
-     * @param userProperties
-     *            the specified properties.
+     * @param implPath
+     *            the path to search for implementations.
      */
     private IbisFactory(String implPath) {
         // Obtain a list of Ibis implementations
@@ -213,11 +216,75 @@ public final class IbisFactory {
                 combinedProperties.getProperty(IbisProperties.IMPL_PATH);
         IbisFactory factory = getFactory(implPath);
 
-        Ibis ibis =
-                factory.createIbis(registryEventHandler, requiredCapabilities,
+        return factory.createIbis(registryEventHandler, requiredCapabilities,
                         combinedProperties, portTypes);
+    }
 
-        return ibis;
+    private List<IbisStarter> findIbisStack(IbisCapabilities capabilities,
+            PortType[] portTypes, List<IbisStarter> selected) {
+
+        IbisCapabilities caps = capabilities;
+        PortType[] types = portTypes;
+
+        // First try non-stacking Ibis implementations.
+        for (int i = 0; i < starters.length; i++) {
+            IbisStarter starter = starters[i];
+            // If it is selectable, or an Ibis name was specified,
+            // try it.
+            if ((starter.isSelectable() || ibisName != null) &&
+                    ! starter.isStacking()) {
+                if (verbose) {
+                    System.err.println("Matching with " + implList[i]);
+                }
+                if (starter.matches(caps, types)) {
+                    selected.add(starter);
+                    return selected;
+                }
+                // Find out why it did not match.
+                if (verbose) {
+                    String unmatchedCapabilities
+                        = starter.unmatchedIbisCapabilities().toString();
+                    PortType[] unmatchedTypes
+                        = starter.unmatchedPortTypes();
+                    StringBuffer str = new StringBuffer();
+                    str.append("Unmatched IbisCapabilities: ");
+                    str.append(unmatchedCapabilities);
+                    if (unmatchedTypes.length > 0) {
+                        str.append("\nUnmatched PortTypes: ");
+                        for (PortType tp: unmatchedTypes) {
+                            str.append("    ");
+                            str.append(tp.toString());
+                            str.append("\n");
+                        }
+                    } else {
+                        str.append("\n");
+                    }
+                    System.err.println("Class " + implList[i]
+                            + " does not match:\n" + str.toString());
+                }
+            } else if (verbose) {
+                System.err.println("Class " + implList[i]
+                            + " is stacking or not selectable.");
+            }
+        }
+
+        // Now try stacking Ibis implementations.
+        for (int i = 0; i < starters.length; i++) {
+            IbisStarter starter = starters[i];
+            if ((starter.isSelectable() || ibisName != null)
+                    && starter.isStacking() && ! selected.contains(starter)
+                    && starter.matches(caps, types)) {
+                List<IbisStarter> newList = findIbisStack(
+                        new IbisCapabilities(starter.unmatchedIbisCapabilities()),
+                        starter.unmatchedPortTypes(),
+                        new ArrayList<IbisStarter>(selected));
+                if (newList != null) {
+                    return newList;
+                }
+            }
+        }
+
+        return null;
     }
 
     @SuppressWarnings("unchecked")
@@ -227,7 +294,7 @@ public final class IbisFactory {
 
         String verboseValue = properties.getProperty(IbisProperties.VERBOSE);
         // see if the user specified "verbose"
-        boolean verbose =
+        verbose =
                 verboseValue != null
                         && (verboseValue.equals("1")
                                 || verboseValue.equals("on")
@@ -248,7 +315,7 @@ public final class IbisFactory {
             }
         }
 
-        String ibisName = properties.getProperty(IbisProperties.NAME);
+        ibisName = properties.getProperty(IbisProperties.NAME);
 
         if (ibisName != null) {
             String[] capabilities = requiredCapabilities.getCapabilities();
@@ -332,11 +399,12 @@ public final class IbisFactory {
         }
 
         if (faulty) {
+            // There is some error in the user-specified capabilities or
+            // port types.
             throw nested;
         }
 
         for (int i = 0; i < implList.length; i++) {
-
             Class starterClass = implList[i];
             if (verbose) {
                 System.err.println("Trying " + starterClass.getName());
@@ -344,20 +412,7 @@ public final class IbisFactory {
 
             // Try to instantiate the starter.
             try {
-                starters[i] = (IbisStarter) starterClass.getConstructor(
-                    new Class[] { IbisCapabilities.class, portTypes.getClass()})
-                        .newInstance(
-                            new Object[] { requiredCapabilities, portTypes});
-            } catch(InvocationTargetException e1) {
-                // Oops, could not instantiate starter.
-                nested.add(starterClass.getName(), e1.getCause());
-                faulty = true;
-                if (verbose) {
-                    System.err.println("Could not instantiate "
-                            + starterClass.getName() + ": " + e1.getCause());
-                    // e1.printStackTrace(System.err);
-                }
-                continue;
+                starters[i] = (IbisStarter) starterClass.newInstance();
             } catch (Throwable e) {
                 // Oops, could not instantiate starter.
                 nested.add(starterClass.getName(), e);
@@ -365,54 +420,23 @@ public final class IbisFactory {
                 if (verbose) {
                     System.err.println("Could not instantiate "
                             + starterClass.getName() + ": " + e);
-                    // e.printStackTrace(System.err);
                 }
                 continue;
             }
         }
 
         if (faulty) {
+            // There is some error in the configuration: one or more of
+            // the starter classes could not be instantiated.
             throw nested;
         }
-
-        for (int i = 0; i < starters.length; i++) {
-            IbisStarter starter = starters[i];
-            // If it is selectable, or an Ibis name was specified,
-            // try it.
-            if (starter.isSelectable() || ibisName != null) {
-                if (starter.matches()) {
-                    // We have a match. Try to start it.
-                    try {
-                        return starter.startIbis(registryEventHandler,
-                                properties);
-                    } catch(Throwable e) {
-                        // Starting it failed. Throw exception.
-                        nested.add(implList[i].getName(), e);
-                        throw nested;
-                    }
-                }
-                // Find out why it did not match.
-                if (verbose) {
-                    String unmatchedCapabilities
-                        = starter.unmatchedIbisCapabilities().toString();
-                    PortType[] unmatchedTypes
-                        = starter.unmatchedPortTypes();
-                    StringBuffer str = new StringBuffer();
-                    str.append("Unmatched IbisCapabilities: ");
-                    str.append(unmatchedCapabilities);
-                    str.append("\nUnmatched PortTypes: ");
-                    for (PortType tp: unmatchedTypes) {
-                        str.append("    ");
-                        str.append(tp.toString());
-                        str.append("\n");
-                    }
-                    System.err.println("Class " + implList[i]
-                            + " does not match:\n" + str.toString());
-                }
-            } else if (verbose) {
-                System.err.println("Class " + implList[i]
-                            + " is not selectable.");
-            }
+        
+        List<IbisStarter> stack = findIbisStack(requiredCapabilities,
+                portTypes, new ArrayList<IbisStarter>());
+        
+        if (stack != null) {
+            IbisStarter starter = stack.remove(0);
+            return starter.startIbis(stack, registryEventHandler, properties);
         }
 
         nested.add("Ibis factory",
