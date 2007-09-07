@@ -274,6 +274,10 @@ public final class IbisFactory {
             if ((starter.isSelectable() || ibisName != null)
                     && starter.isStacking() && ! selected.contains(starter)
                     && starter.matches(caps, types)) {
+                if (verbose) {
+                    System.err.println("Class " + implList[i]
+                            + " selected");
+                }
                 List<IbisStarter> newList = findIbisStack(
                         new IbisCapabilities(starter.unmatchedIbisCapabilities()),
                         starter.unmatchedPortTypes(),
