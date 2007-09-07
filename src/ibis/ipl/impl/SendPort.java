@@ -501,7 +501,9 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
         return w;
     }
 
-
+// TODO dataOut is never closed here I think.
+// The ibis serialization framewrok overwrites close, so it never closes the
+// underlying stream.
     public synchronized void close() throws IOException {
         boolean alive = receivers.size() > 0 && aMessageIsAlive;
         if (alive) {
@@ -531,6 +533,8 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
             
             closePort();
         } finally {
+            // TODO shouldn't the close and the closeConnections be reversed?
+            // The close might flush data! -- Rob & Jason
             ReceivePortIdentifier[] ports = receivers.keySet().toArray(
                     new ReceivePortIdentifier[receivers.size()]);
             for (int i = 0; i < ports.length; i++) {
