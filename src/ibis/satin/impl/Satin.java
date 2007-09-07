@@ -22,7 +22,6 @@ import ibis.satin.impl.spawnSync.IRVector;
 import ibis.satin.impl.spawnSync.InvocationRecord;
 import ibis.satin.impl.spawnSync.ReturnRecord;
 import ibis.satin.impl.spawnSync.SpawnCounter;
-import ibis.satin.impl.spawnSync.Stamp;
 import ibis.util.Log;
 
 import java.util.Vector;

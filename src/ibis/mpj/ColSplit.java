@@ -105,6 +105,9 @@ class SplitItem implements Serializable {
 }
 
 class SplitComp implements Comparator<SplitItem>, java.io.Serializable {
+
+    private static final long serialVersionUID = 1L;
+
     public int compare(SplitItem o1, SplitItem o2) {
         if (o1.key < o2.key) {
             return(-1);

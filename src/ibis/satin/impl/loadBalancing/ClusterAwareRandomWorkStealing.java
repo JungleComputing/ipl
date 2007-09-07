@@ -80,7 +80,7 @@ public final class ClusterAwareRandomWorkStealing extends
                     asyncStealStart = System.currentTimeMillis();
                     satin.lb.sendStealRequest(remoteVictim, false, false);
                 } catch (IOException e) {
-                    satin.commLogger.warn("SATIN '" + s.ident
+                    commLogger.warn("SATIN '" + s.ident
                             + "': Got exception during wa steal request: " + e);
                     // Ignore this?
                 }

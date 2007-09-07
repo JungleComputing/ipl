@@ -2,7 +2,7 @@
 
 package ibis.ipl;
 
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -89,8 +89,11 @@ public abstract class IbisStarter {
      * @param handler a registry event handler.
      * @param userProperties the user properties.
      */
-    public Ibis startStackingIbis(ArrayList<IbisStarter> stack,
+    public Ibis startIbis(List<IbisStarter> stack,
             RegistryEventHandler handler, Properties userProperties) {
-        throw new Error("startIbis(ArrayList<IbisStarter>, RegistryEventHandler, Properties) not implemented");
+        if (stack.size() == 0) {
+            return startIbis(handler, userProperties);
+        }
+        throw new Error("startIbis(List<IbisStarter>, RegistryEventHandler, Properties) not implemented");
     }
 }

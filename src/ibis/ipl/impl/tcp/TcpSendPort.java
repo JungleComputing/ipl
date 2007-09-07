@@ -132,7 +132,6 @@ final class TcpSendPort extends SendPort implements TcpProtocol {
         } else {
             // Just close all connections. ???
             for (int i = 0; i < ports.length; i++) {
-                Conn c = (Conn) getInfo(ports[i]);
                 lostConnection(ports[i], x);
             }
         }

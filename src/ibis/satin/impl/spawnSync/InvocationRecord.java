@@ -4,7 +4,6 @@ package ibis.satin.impl.spawnSync;
 
 import ibis.ipl.IbisIdentifier;
 import ibis.satin.impl.Config;
-import ibis.satin.impl.Satin;
 import ibis.satin.impl.aborts.LocalRecord;
 import ibis.satin.impl.sharedObjects.SOReferenceSourceCrashedException;
 

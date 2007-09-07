@@ -226,7 +226,7 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
         return this.getClass().getName().compareTo(c.getClass().getName());
     }
 
-	public String getID() {
-		return id;
-	}
+    public String getID() {
+        return id;
+    }
 }

@@ -27,7 +27,7 @@ public final class Stamp implements java.io.Serializable {
 
     private int stampLength;
 
-    private transient int counter = 0;
+    private transient int counter;
 
     private static int rootCounter = 0;
 
@@ -62,6 +62,7 @@ public final class Stamp implements java.io.Serializable {
      * is no parent.
      */
     private Stamp(Stamp parentStamp) {
+        counter = 0;
         if (parentStamp == null) {
             stampLength = 1;
             stamps = new int[DEFAULT_STAMPS_SIZE];

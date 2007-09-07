@@ -82,7 +82,7 @@ public class Intracomm extends Comm {
      * @throws MPJException
      */
     public Intracomm split(int colour, int key) throws MPJException {
-        ColSplit split = new ColSplit(colour, key, this, this.TAG_SPLIT);
+        ColSplit split = new ColSplit(colour, key, this, TAG_SPLIT);
 
         return(split.call());
     }
@@ -94,7 +94,7 @@ public class Intracomm extends Comm {
      * @throws MPJException
      */
     public void barrier() throws MPJException {
-        ColBarrier barrier = new ColBarrier(this, this.TAG_BARRIER);
+        ColBarrier barrier = new ColBarrier(this, TAG_BARRIER);
 
         barrier.call();
 
@@ -113,7 +113,7 @@ public class Intracomm extends Comm {
      */
     public void bcast(Object sendbuf, int offset, int count, Datatype datatype, int root) throws MPJException {
 
-        ColBcast bcast = new ColBcast(sendbuf, offset, count, datatype, root, this, this.TAG_BCAST);
+        ColBcast bcast = new ColBcast(sendbuf, offset, count, datatype, root, this, TAG_BCAST);
 
         bcast.call();
 
@@ -141,7 +141,7 @@ public class Intracomm extends Comm {
 
         ColGather gather = new ColGather(sendbuf, sendoffset, sendcount, sendtype,
                 recvbuf, recvoffset, recvcount,
-                recvtype, root, this, this.TAG_GATHER);
+                recvtype, root, this, TAG_GATHER);
 
         gather.call();
 
@@ -173,7 +173,7 @@ public class Intracomm extends Comm {
 
         ColGatherV gatherv = new ColGatherV(sendbuf, sendoffset, sendcount, sendtype,
                 recvbuf, recvoffset, recvcount, displs,
-                recvtype, root, this, this.TAG_GATHERV);
+                recvtype, root, this, TAG_GATHERV);
 
         gatherv.call();
 
@@ -201,7 +201,7 @@ public class Intracomm extends Comm {
 
         ColScatter scatter = new ColScatter(sendbuf, sendoffset, sendcount, sendtype,
                 recvbuf, recvoffset, recvcount, recvtype, root, 
-                this, this.TAG_SCATTER);
+                this, TAG_SCATTER);
 
         scatter.call();
 
@@ -231,7 +231,7 @@ public class Intracomm extends Comm {
 
         ColScatterV scatterv = new ColScatterV(sendbuf, sendoffset, sendcount, displs, sendtype, 
                 recvbuf, recvoffset, recvcount, recvtype, root, 
-                this, this.TAG_SCATTERV);
+                this, TAG_SCATTERV);
         scatterv.call();
 
     }
@@ -258,7 +258,7 @@ public class Intracomm extends Comm {
 
 
         ColAllGather allGather = new ColAllGather(sendbuf, sendoffset, sendcount, sendtype,
-                recvbuf, recvoffset, recvcount, recvtype, this, this.TAG_ALLGATHER);
+                recvbuf, recvoffset, recvcount, recvtype, this, TAG_ALLGATHER);
 
 
         allGather.call();
@@ -285,7 +285,7 @@ public class Intracomm extends Comm {
             Datatype recvtype) throws MPJException {
 
         ColAllGatherV allGatherV = new ColAllGatherV(sendbuf, sendoffset, sendcount, sendtype,
-                recvbuf, recvoffset, recvcount, displs, recvtype, this, this.TAG_GATHERV);
+                recvbuf, recvoffset, recvcount, displs, recvtype, this, TAG_GATHERV);
         allGatherV.call();
     }
 
@@ -311,7 +311,7 @@ public class Intracomm extends Comm {
 
         ColAllToAll allToAll = new ColAllToAll(sendbuf, sendoffset, sendcount, sendtype,
                 recvbuf, recvoffset, recvcount, recvtype, 
-                this, this.TAG_ALLTOALL);
+                this, TAG_ALLTOALL);
 
         allToAll.call();
 
@@ -341,7 +341,7 @@ public class Intracomm extends Comm {
             Datatype recvtype) throws MPJException {
         ColAllToAllV allToAllV = new ColAllToAllV(sendbuf, sendoffset, sendcount, sdispls, sendtype,
                 recvbuf, recvoffset, recvcount, rdispls, recvtype, 
-                this, this.TAG_ALLTOALLV);
+                this, TAG_ALLTOALLV);
 
         allToAllV.call();
     }
@@ -364,7 +364,7 @@ public class Intracomm extends Comm {
      */
     public void reduce(Object sendBuf, int sendOffset, Object recvBuf, int recvOffset,  int count, Datatype datatype, Op op, int root) throws MPJException {
 
-        ColReduce reduce = new ColReduce(sendBuf, sendOffset, recvBuf, recvOffset, count, datatype, op, root, this, this.TAG_REDUCE);
+        ColReduce reduce = new ColReduce(sendBuf, sendOffset, recvBuf, recvOffset, count, datatype, op, root, this, TAG_REDUCE);
         reduce.call();
 
 
@@ -388,7 +388,7 @@ public class Intracomm extends Comm {
      */
     public void allreduce(Object sendbuf, int sendoffset, Object recvbuf, int recvoffset, int count, Datatype datatype, Op op) throws MPJException {
 
-        ColAllreduce allreduce = new ColAllreduce(sendbuf, sendoffset, recvbuf, recvoffset, count, datatype, op, this, this.TAG_ALLREDUCE_1);
+        ColAllreduce allreduce = new ColAllreduce(sendbuf, sendoffset, recvbuf, recvoffset, count, datatype, op, this, TAG_ALLREDUCE_1);
         allreduce.call();
 
         /*		ColReduce reduce = new ColReduce(sendbuf, sendoffset, recvbuf, recvoffset, count, datatype, op, 0, this, this.TAG_ALLREDUCE_1);
@@ -424,7 +424,7 @@ public class Intracomm extends Comm {
 
         ColReduceScatter reduceScatter = new ColReduceScatter(sendbuf, sendoffset, 
                 recvbuf, recvoffset, recvcounts, 
-                datatype, op, this, this.TAG_REDUCESCATTER);
+                datatype, op, this, TAG_REDUCESCATTER);
 
         reduceScatter.call();
 
@@ -448,7 +448,7 @@ public class Intracomm extends Comm {
             int count, Datatype datatype, Op op) throws MPJException { 
 
         ColScan scan = new ColScan(sendbuf, sendoffset, recvbuf, 
-                recvoffset, count, datatype, op, this, this.TAG_SCAN);
+                recvoffset, count, datatype, op, this, TAG_SCAN);
 
         scan.call();
 

@@ -9,16 +9,12 @@ import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.ipl.impl.Ibis;
 import ibis.ipl.impl.Registry;
-import ibis.ipl.impl.tcp.TcpIbis;
 
 import java.io.IOException;
-import java.io.PrintStream;
 import java.util.Map;
 import java.util.Properties;
 
 public class StackingIbis extends Ibis {
-
-    private static int count = 0;
 
     Ibis base;
 

@@ -14,12 +14,12 @@ public class Managable implements ibis.ipl.Managable {
     private HashMap<String, String> properties = new HashMap<String, String>();
 
     public synchronized Map<String, String> dynamicProperties() {
-        return new HashMap(properties);
+        return new HashMap<String,String>(properties);
     }
 
     public synchronized void setDynamicProperties(
             Map<String, String> properties) throws NoSuchPropertyException {
-        HashSet<String> keys = new HashSet(properties.keySet());
+        HashSet<String> keys = new HashSet<String>(properties.keySet());
 
         for (String key : keys) {
             if (! validKeys.contains(key)) {

@@ -3,13 +3,13 @@
 package ibis.ipl.impl.stacking.dummy;
 
 import ibis.ipl.CapabilitySet;
-import ibis.ipl.Ibis;
+import ibis.ipl.impl.Ibis;
 import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisStarter;
 import ibis.ipl.PortType;
 import ibis.ipl.RegistryEventHandler;
 
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
@@ -52,12 +52,12 @@ public final class StackingIbisStarter extends ibis.ipl.IbisStarter {
         return portTypes.clone();
     }
 
-    public Ibis startIbis(ArrayList<IbisStarter> stack,
+    public ibis.ipl.Ibis startIbis(List<IbisStarter> stack,
             RegistryEventHandler registryEventHandler,
             Properties userProperties) {
         IbisStarter s = stack.remove(0);
-        ibis.ipl.impl.Ibis base = (ibis.ipl.impl.Ibis)
-                s.startIbis(registryEventHandler, userProperties);
+        Ibis base = (Ibis)
+                s.startIbis(stack, registryEventHandler, userProperties);
         return new StackingIbis(base, registryEventHandler, capabilities,
                 portTypes, userProperties);
     }
