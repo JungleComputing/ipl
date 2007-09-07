@@ -38,6 +38,8 @@ public final class Server extends Thread implements Service {
 
     private final boolean printEvents;
 
+    private final boolean printErrors;
+
     private ServerConnectionHandler handler;
 
     private boolean stopped = false;
@@ -81,6 +83,12 @@ public final class Server extends Thread implements Service {
                         || typedProperties
                                 .getBooleanProperty(ServerProperties.PRINT_EVENTS);
 
+        printErrors =
+                typedProperties
+                        .getBooleanProperty(RegistryProperties.SERVER_PRINT_ERRORS)
+                        || typedProperties
+                                .getBooleanProperty(ServerProperties.PRINT_ERRORS);
+
         pools = new HashMap<String, Pool>();
 
         ThreadPool.createNew(this, "NEW Central Registry Service");
@@ -123,6 +131,10 @@ public final class Server extends Thread implements Service {
                 typedProperties
                         .getBooleanProperty(RegistryProperties.SERVER_PRINT_EVENTS);
 
+        printErrors =
+                typedProperties
+                        .getBooleanProperty(RegistryProperties.SERVER_PRINT_ERRORS);
+
         pools = new HashMap<String, Pool>();
 
         this.setDaemon(true);
@@ -154,7 +166,7 @@ public final class Server extends Thread implements Service {
             result =
                     new Pool(poolName, connectionFactory, heartbeatInterval,
                             eventPushInterval, gossip, gossipInterval,
-                            adaptGossipInterval, tree, printEvents);
+                            adaptGossipInterval, tree, printEvents, printErrors);
             pools.put(poolName, result);
         }
 

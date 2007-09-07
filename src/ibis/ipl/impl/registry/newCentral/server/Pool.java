@@ -54,6 +54,8 @@ final class Pool implements Runnable {
 
     private final boolean printEvents;
 
+    private final boolean printErrors;
+
     private int nextID;
 
     private long nextSequenceNr;
@@ -63,12 +65,14 @@ final class Pool implements Runnable {
     private long staleTime;
 
     Pool(String name, ConnectionFactory connectionFactory,
-            long heartbeatInterval, long eventPushInterval, boolean gossip, long gossipInterval,
-            boolean adaptGossipInterval, boolean tree, boolean printEvents) {
+            long heartbeatInterval, long eventPushInterval, boolean gossip,
+            long gossipInterval, boolean adaptGossipInterval, boolean tree,
+            boolean printEvents, boolean printErrors) {
         this.name = name;
         this.connectionFactory = connectionFactory;
         this.heartbeatInterval = heartbeatInterval;
         this.printEvents = printEvents;
+        this.printErrors = printErrors;
 
         currentEventTime = 0;
         minEventTime = 0;
@@ -119,17 +123,17 @@ final class Pool implements Runnable {
 
     synchronized void waitForEventTime(int time, long timeout) {
         long deadline = System.currentTimeMillis() + timeout;
-        
+
         while (getEventTime() < time) {
             if (ended()) {
                 return;
             }
-            
+
             long currentTime = System.currentTimeMillis();
-            
+
             if (currentTime >= deadline) {
                 return;
-            } 
+            }
 
             try {
                 wait(deadline - currentTime);
@@ -176,7 +180,7 @@ final class Pool implements Runnable {
      * @see ibis.ipl.impl.registry.central.SuperPool#join(byte[], byte[],
      *      ibis.ipl.impl.Location)
      */
-    synchronized IbisIdentifier join(byte[] implementationData,
+    synchronized Member join(byte[] implementationData,
             byte[] clientAddress, Location location) throws Exception {
         if (ended()) {
             throw new Exception("Pool already ended");
@@ -188,8 +192,11 @@ final class Pool implements Runnable {
         IbisIdentifier identifier =
                 new IbisIdentifier(id, implementationData, clientAddress,
                         location, name);
-
-        members.add(new Member(identifier));
+        
+        Member member = new Member(identifier);
+        member.setCurrentTime(getMinEventTime());
+ 
+        members.add(member);
 
         if (printEvents) {
             System.out.println("Central Registry: " + identifier
@@ -199,11 +206,10 @@ final class Pool implements Runnable {
 
         addEvent(Event.JOIN, null, identifier);
 
-        return identifier;
+        return member;
     }
 
     void writeBootstrapList(DataOutputStream out) throws IOException {
-
         Member[] peers = getRandomMembers(Protocol.BOOTSTRAP_LIST_SIZE);
 
         out.writeInt(peers.length);
@@ -305,10 +311,16 @@ final class Pool implements Runnable {
         }
 
         if (printEvents) {
-            System.out.println("Central Registry: " + identifier
-                    + " died in pool \"" + name + "\" now " + members.size()
-                    + " members, caused by:");
-            exception.printStackTrace(System.out);
+            if (printErrors) {
+                System.out.println("Central Registry: " + identifier
+                        + " died in pool \"" + name + "\" now "
+                        + members.size() + " members, caused by:");
+                exception.printStackTrace(System.out);
+            } else {
+                System.out.println("Central Registry: " + identifier
+                        + " died in pool \"" + name + "\" now "
+                        + members.size() + " members");
+            }
         }
 
         addEvent(Event.DIED, null, identifier);
@@ -503,10 +515,10 @@ final class Pool implements Runnable {
         }
         if (force) {
             logger.debug("forced pushing entries to " + member);
-        } else {            
+        } else {
             logger.debug("pushing entries to " + member);
         }
-        
+
         Connection connection = null;
         try {
 
@@ -527,6 +539,8 @@ final class Pool implements Runnable {
 
             logger.debug("waiting for peer time of peer " + member);
             peerTime = connection.in().readInt();
+            
+            member.setCurrentTime(peerTime);
 
             Event[] events = getEvents(peerTime);
 
@@ -554,8 +568,12 @@ final class Pool implements Runnable {
             member.updateLastSeenTime();
         } catch (IOException e) {
             if (isMember(member)) {
-                logger.warn("cannot reach " + member + " to push events to", e);
+                if (!printErrors) {
+                    logger.error("cannot reach " + member 
+                                    + " to push events to", e);
+                }
             }
+
         } finally {
             if (connection != null) {
                 connection.close();
@@ -602,7 +620,7 @@ final class Pool implements Runnable {
     synchronized void gotHeartbeat(IbisIdentifier identifier) {
         Member member = members.get(identifier);
 
-        logger.debug("got hearbeart for " + member);
+        logger.debug("updating last seen time for " + member);
 
         if (member != null) {
             member.updateLastSeenTime();
@@ -631,29 +649,33 @@ final class Pool implements Runnable {
     }
 
     /**
-     * Remove events up to this event from the list to make space. Also tells
-     * clients to do this.
+     * Remove events from the event history to make space.
      * 
-     * @param eventTime
-     *            the first event not to purge
      */
-    synchronized void purgeUpto(int eventTime) {
-        if (eventTime < minEventTime) {
+    synchronized void purgeHistory() {
+        int newMinimum = members.getMinimumTime();
+        
+        if(newMinimum == -1) {
+            //pool is empty, clear out all events
+            newMinimum = getEventTime();
+        }
+        
+        if (newMinimum < minEventTime) {
             logger.warn("tried to set minimum event time backwards from "
-                    + minEventTime + " to " + eventTime);
+                    + minEventTime + " to " + newMinimum);
             return;
         }
 
-        if (eventTime >= getEventTime()) {
+        if (newMinimum > getEventTime()) {
             logger
                     .warn("tried to set minimum event time to after current time. Time = "
-                            + getEventTime() + " new minimum = " + eventTime);
+                            + getEventTime() + " new minimum = " + newMinimum);
             return;
         }
 
-        logger.debug("setting minimum event time to " + eventTime);
+        logger.debug("setting minimum event time to " + newMinimum);
 
-        minEventTime = eventTime;
+        minEventTime = newMinimum;
 
         while (!events.isEmpty() && events.get(0).getTime() < minEventTime) {
             if (logger.isDebugEnabled()) {
@@ -669,16 +691,16 @@ final class Pool implements Runnable {
     public void run() {
         logger.debug("new pinger thread started");
         Member suspect = getSuspectMember();
-        //fake we saw this member so noone else tries to ping it too
+        // fake we saw this member so noone else tries to ping it too
         if (suspect != null) {
             suspect.updateLastSeenTime();
         }
-        
+
         if (ended()) {
             return;
         }
 
-        //start a new thread for pining another suspect
+        // start a new thread for pining another suspect
         ThreadPool.createNew(this, "pool pinger thread");
 
         if (suspect != null) {

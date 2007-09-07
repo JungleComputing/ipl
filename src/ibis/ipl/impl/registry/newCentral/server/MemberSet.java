@@ -61,6 +61,21 @@ final class MemberSet {
         return null;
     }
     
+    int getMinimumTime() {
+        if (list.isEmpty()) {
+            return -1;
+        }
+        
+        int minimum = list.get(0).getCurrentTime();
+
+        for (int i = 0; i < list.size(); i++) {
+            if (list.get(i).getCurrentTime() < minimum ) {
+                minimum = list.get(i).getCurrentTime();
+            }
+        }
+        return minimum;
+    }
+    
     Member getLeastRecentlySeen() {
         if (list.isEmpty()) {
             return null;

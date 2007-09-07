@@ -95,7 +95,7 @@ final class IterativeEventPusher implements Runnable {
 		
 		ThreadPool.createNew(this, "event pusher scheduler thread");
 	}
-
+        
 	public void run() {
 		while (!pool.ended()) {
 			int eventTime = pool.getEventTime();
@@ -116,6 +116,8 @@ final class IterativeEventPusher implements Runnable {
 
 			logger.debug("DONE updating nodes in pool to event-time "
 					+ eventTime);
+
+                        pool.purgeHistory(); 
 
 			pool.waitForEventTime(eventTime + 1, timeout);
 		}

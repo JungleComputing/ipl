@@ -363,6 +363,7 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
                     connection.out().writeByte(Protocol.OPCODE_GET_STATE);
 
                     getIbisIdentifier().writeTo(connection.out());
+                    connection.out().writeInt(getTime());
                     connection.out().flush();
 
                     connection.getAndCheckReply();
@@ -456,6 +457,12 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
             int listLength = connection.in().readInt();
             for (int i = 0; i < listLength; i++) {
                 bootstrapList.add(new IbisIdentifier(connection.in()));
+            }
+            
+            //mimimum event time we need as a bootstrap
+            int time = connection.in().readInt();
+            synchronized(this) {
+                this.time = time;
             }
 
             logger.debug("join done");

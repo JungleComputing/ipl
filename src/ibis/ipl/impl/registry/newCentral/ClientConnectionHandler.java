@@ -117,6 +117,8 @@ final class ClientConnectionHandler implements Runnable {
 		logger.debug("got a state request");
                 
                 IbisIdentifier identifier = new IbisIdentifier(connection.in());
+                int minTime = connection.in().readInt();
+                
                 String poolName = identifier.poolName();
                 
                 if (!poolName.equals(registry.getPoolName())) {
@@ -130,6 +132,12 @@ final class ClientConnectionHandler implements Runnable {
 			connection.closeWithError("state not available");
 			return;
 		}
+                
+                int time = registry.getTime();
+                if (time < minTime) {
+                    connection.closeWithError("minimum time requirement not met: " + minTime + " vs " + time);
+                    return;
+                }                
 
 		connection.sendOKReply();
 

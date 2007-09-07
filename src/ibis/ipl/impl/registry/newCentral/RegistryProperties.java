@@ -41,6 +41,9 @@ public class RegistryProperties {
     public static final String SERVER_PRINT_EVENTS =
             SERVER_PREFIX + "print.events";
 
+    public static final String SERVER_PRINT_ERRORS =
+            SERVER_PREFIX + "print.errors";
+
     public static final String SERVER_PRINT_STATS =
             SERVER_PREFIX + "print.stats";
 
@@ -98,6 +101,9 @@ public class RegistryProperties {
 
                 { SERVER_PRINT_EVENTS, "false",
                     "Boolean: if true, events are printed to standard out" },
+                { SERVER_PRINT_ERRORS, "false",
+                    "Boolean: if true, details of errors are printed to standard out" },
+
                 { SERVER_PRINT_STATS, "false",
                     "Boolean: if true, statistics are printed to standard out regularly" },
 

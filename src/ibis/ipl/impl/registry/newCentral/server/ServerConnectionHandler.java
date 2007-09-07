@@ -33,7 +33,7 @@ final class ServerConnectionHandler implements Runnable {
     }
 
     private void handleJoin(Connection connection) throws IOException {
-        IbisIdentifier identifier;
+        Member member;
         Pool pool;
 
         int length = connection.in().readInt();
@@ -65,19 +65,20 @@ final class ServerConnectionHandler implements Runnable {
                 server.getAndCreatePool(poolName, heartbeatInterval, eventPushInterval, gossip, gossipInterval, adaptGossipInterval, tree);
 
         try {
-            identifier = pool.join(implementationData, clientAddress, location);
+            member = pool.join(implementationData, clientAddress, location);
         } catch (Exception e) {
             connection.closeWithError(e.toString());
             return;
         }
 
         connection.sendOKReply();
-        identifier.writeTo(connection.out());
-
+        member.getIbis().writeTo(connection.out());
+        connection.out().writeInt(member.getCurrentTime());
+        
         pool.writeBootstrapList(connection.out());
 
         connection.out().flush();
-        pool.gotHeartbeat(identifier);
+        pool.gotHeartbeat(member.getIbis());
     }
 
     private void handleLeave(Connection connection) throws IOException {
