@@ -17,7 +17,8 @@ IPL:
   Also, ibis.ipl.IbisProperties javadocs don't work. --Ceriel
 
 Ibis Factory:
-- add support for stacking to the factory (don't add an Ibis to a stack twice)
++ add support for stacking to the factory (don't add an Ibis to a stack twice)
+  (Done Ceriel)
 + add a flag to each Ibis to denote if it should be automatically selected or not.
   The dummy stacking Ibis should never be selected, nor should NioIbis
   (Done Ceriel)
