@@ -170,6 +170,23 @@ public class CapabilitySet {
     }
 
     /**
+     * Returns the subset of capabilities that start with the specified
+     * prefix.
+     * @param prefix the specified prefix.
+     * @return the capabilities that start with the specified prefix.
+     */
+    public CapabilitySet getCapabilitiesWithPrefix(String prefix) {
+        CapabilitySet result = new CapabilitySet();
+        for (String capability : capabilities) {
+            if (capability.startsWith(prefix)) {
+                result.capabilities.add(capability);
+            }
+        }
+        result.codedForm = computeCodedForm();
+        return result;
+    }
+
+    /**
      * Matches the current capabilities with the capabilities
      * supplied. Returns a capability set with the unmatched capabilities.
      * @param capabilitySet the capabilities to be matched with.
