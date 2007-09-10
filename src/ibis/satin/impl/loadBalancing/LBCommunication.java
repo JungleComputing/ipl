@@ -80,9 +80,7 @@ final class LBCommunication implements Config, Protocol {
 
         try {
             writeMessage.writeByte(opcode);
-            // Finish the message but try to keep the connection. If the
-            // steal attempt succeeds, we need to send an answer later on.
-            v.finishKeepConnection(writeMessage);
+            v.finish(writeMessage);
         } catch(IOException e) {
             writeMessage.finish(e);
             throw e;
@@ -351,20 +349,6 @@ final class LBCommunication implements Config, Protocol {
         //fall through
         case STEAL_REPLY_FAILED:
         case ASYNC_STEAL_REPLY_FAILED:
-            if (CLOSE_CONNECTIONS) {
-                // Drop the connection that we kept in case the steal
-                // is succesful. It wasn't.
-                synchronized(s) {
-                    Victim v = s.victims.getVictimNonBlocking(ident.ibisIdentifier());
-                    if (v != null) {
-                        try {
-                            v.loseConnection();
-                        } catch(Exception e) {
-                            // ignored
-                        }
-                    }
-                }
-            }
             s.algorithm.stealReplyHandler(null, ident.ibisIdentifier(), opcode);
             break;
         default:

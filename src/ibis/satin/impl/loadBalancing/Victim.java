@@ -141,28 +141,6 @@ public final class Victim implements Config {
         }
     }
 
-    public long finishKeepConnection(WriteMessage m) throws IOException {
-        try {
-            long cnt = m.finish();
-            if (inDifferentCluster) {
-                Satin.addInterClusterStats(cnt);
-            } else {
-                Satin.addIntraClusterStats(cnt);
-            }
-            return cnt;
-        } finally {
-            synchronized (sendPort) {
-                referenceCount--;
-            }
-        }
-    }
-
-    public void loseConnection() throws IOException {
-        synchronized(sendPort) {
-            optionallyDropConnection();
-        }
-    }
-
     private void optionallyDropConnection() throws IOException {
         if (CLOSE_CONNECTIONS) {
             if (referenceCount == 0) {
