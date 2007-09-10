@@ -10,9 +10,13 @@ import ibis.util.ThreadPool;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -96,6 +100,13 @@ final class Pool implements Runnable {
 
         ThreadPool.createNew(this, "pool pinger thread");
 
+    }
+    
+    private static void print(String message) {
+    	DateFormat format = DateFormat.getTimeInstance(DateFormat.MEDIUM, Locale.FRANCE); 
+
+    	System.out.println(format.format(new Date(System.currentTimeMillis())) + " NEW Central Registry: " + message);
+    	
     }
 
     synchronized int getEventTime() {
@@ -199,7 +210,7 @@ final class Pool implements Runnable {
         members.add(member);
 
         if (printEvents) {
-            System.out.println("Central Registry: " + identifier
+            print(identifier
                     + " joined pool \"" + name + "\" now " + members.size()
                     + " members");
         }
@@ -265,7 +276,7 @@ final class Pool implements Runnable {
             throw new Exception("ibis unknown: " + identifier);
         }
         if (printEvents) {
-            System.out.println("Central Registry: " + identifier
+            print(identifier
                     + " left pool \"" + name + "\" now " + members.size()
                     + " members");
         }
@@ -287,7 +298,7 @@ final class Pool implements Runnable {
         if (members.size() == 0) {
             ended = true;
             if (printEvents) {
-                System.err.println("Central Registry: " + "pool \"" + name
+                print("pool \"" + name
                         + "\" ended");
             } else {
                 logger.info("Central Registry: " + "pool \"" + name
@@ -312,12 +323,12 @@ final class Pool implements Runnable {
 
         if (printEvents) {
             if (printErrors) {
-                System.out.println("Central Registry: " + identifier
+                print(identifier
                         + " died in pool \"" + name + "\" now "
                         + members.size() + " members, caused by:");
                 exception.printStackTrace(System.out);
             } else {
-                System.out.println("Central Registry: " + identifier
+                print(identifier
                         + " died in pool \"" + name + "\" now "
                         + members.size() + " members");
             }
@@ -339,7 +350,7 @@ final class Pool implements Runnable {
         if (members.size() == 0) {
             ended = true;
             if (printEvents) {
-                System.out.println("Central Registry: " + "pool " + name
+                print("pool " + name
                         + " ended");
             } else {
                 logger.info("Central Registry: " + "pool \"" + name
@@ -400,7 +411,7 @@ final class Pool implements Runnable {
             elections.put(election, winner);
 
             if (printEvents) {
-                System.out.println("Central Registry: " + winner
+                print(winner
                         + " won election \"" + election + "\" in pool \""
                         + name + "\"");
             }
@@ -568,7 +579,7 @@ final class Pool implements Runnable {
             member.updateLastSeenTime();
         } catch (IOException e) {
             if (isMember(member)) {
-                if (!printErrors) {
+                if (printErrors) {
                     logger.error("cannot reach " + member 
                                     + " to push events to", e);
                 }

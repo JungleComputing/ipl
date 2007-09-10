@@ -454,13 +454,15 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
             connection.getAndCheckReply();
 
             IbisIdentifier result = new IbisIdentifier(connection.in());
+            
+            //mimimum event time we need as a bootstrap
+            int time = connection.in().readInt();
+            
             int listLength = connection.in().readInt();
             for (int i = 0; i < listLength; i++) {
                 bootstrapList.add(new IbisIdentifier(connection.in()));
             }
-            
-            //mimimum event time we need as a bootstrap
-            int time = connection.in().readInt();
+           
             synchronized(this) {
                 this.time = time;
             }
