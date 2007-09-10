@@ -15,6 +15,7 @@ IPL:
 * properties are a mess now. Both ibis.util.TypedProperties and 
   ibis.ipl.IbisProperties now name ibis.properties and ibis.properties.file.
   Also, ibis.ipl.IbisProperties javadocs don't work. --Ceriel
+  Some properties are specified in several places, ... (ibis.pool.name for instance)
 
 Ibis Factory:
 + add support for stacking to the factory (don't add an Ibis to a stack twice)
@@ -66,8 +67,8 @@ Exception in thread "main" java.lang.ClassFormatError: LVTT entry for 'resultUni
 
 
 capabilities:
-- add ibis.io capabilities.
-- add registry capabilities.
+- add ibis.io capabilities. (Should we? I think Ibis.io is fine as it is ... --Ceriel)
+- add registry capabilities. (What exactly do we want here? --Ceriel)
 
 management:
 + ibis.ipl.Managable: throw exception on unrecognized property name.
@@ -78,7 +79,7 @@ management:
   (Done: printStatistics is only called if the property "statistics" is set. --Ceriel)
 * clarify JavaDoc of "count" methods in messages. E.g. Say we only count
   broadcast messages once.
-* add basic network usage statistics to Ibis.
+* add basic network usage statistics to Ibis. (Which ones? --Ceriel)
 
 ibis registry:
 + fixed huge bug in registry communication code (no, in.read(b) does NOT read the entire array) (done Jason)
@@ -97,9 +98,9 @@ ibis registry:
 implementations:
 + check TcpSendPost.close: why don't we close in case of a normal exception? --Rob (Done Ceriel)
 + removed yields, since they break the whole idea of starting your own replacement threads --Jason
-* SendPort.disconnect() followed by connect() may cause an AlreadyConnected
++ SendPort.disconnect() followed by connect() may cause an AlreadyConnected
   exception, because the receiveport does not know yet that it has been
-  disconnected ... (separate thread). Happens in Satin.
+  disconnected ... (separate thread). Happens in Satin. (Fixed Ceriel)
 + The getVersion method in Ibis.java is buggy! (Fixed Ceriel)
 + TcpIbis: fork a thread immediately after doing an "accept". Don't do a 
   handshake first. (Done Jason, fixed Ceriel).
