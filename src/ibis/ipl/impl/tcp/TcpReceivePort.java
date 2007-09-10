@@ -122,6 +122,7 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
                         if (logger.isDebugEnabled()) {
                             logger.debug(name + ": disconnect from " + origin);
                         }
+                        s.getOutputStream().write(0);
                         close(null);
                     }
                     break;

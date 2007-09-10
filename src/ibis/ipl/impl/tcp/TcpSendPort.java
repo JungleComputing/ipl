@@ -98,6 +98,8 @@ final class TcpSendPort extends SendPort implements TcpProtocol {
         out.writeArray(receiverLength);
         out.writeArray(receiverBytes);
         out.flush();
+        Conn c = (Conn) conn;
+        c.s.getInputStream().read();
     }
 
     protected void announceNewMessage() throws IOException {
