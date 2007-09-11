@@ -21,13 +21,13 @@ public final class Protocol {
     public static final byte OPCODE_SIGNAL = 8;
 
     public static final byte OPCODE_PING = 9;
-    
+
     public static final byte OPCODE_PUSH = 10;
-    
+
     public static final byte OPCODE_GET_STATE = 11;
 
     public static final byte OPCODE_HEARTBEAT = 12;
-    
+
     public static final int NR_OF_OPCODES = 13;
 
     // replies

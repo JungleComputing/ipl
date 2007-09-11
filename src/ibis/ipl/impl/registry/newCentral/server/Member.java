@@ -11,8 +11,8 @@ final class Member {
     private final IbisIdentifier ibis;
 
     private int currentTime;
-    
-    //time at which this member was last seen
+
+    // time at which this member was last seen
     private long lastSeen;
 
     Member(IbisIdentifier ibis) {
@@ -36,15 +36,15 @@ final class Member {
         }
         this.currentTime = currentTime;
     }
-    
+
     synchronized void updateLastSeenTime() {
         lastSeen = System.currentTimeMillis();
     }
-    
+
     synchronized void clearLastSeenTime() {
         lastSeen = 0;
     }
-    
+
     synchronized long getLastSeen() {
         return lastSeen;
     }

@@ -1,6 +1,5 @@
 package ibis.ipl.impl.registry.newCentral.server;
 
-
 import ibis.ipl.impl.IbisIdentifier;
 
 import java.util.ArrayList;
@@ -46,11 +45,11 @@ final class MemberSet {
         }
         return false;
     }
-    
+
     boolean contains(Member member) {
         return contains(member.getIbis());
     }
-    
+
     Member get(IbisIdentifier identifier) {
         String ID = identifier.getID();
         for (int i = 0; i < list.size(); i++) {
@@ -60,38 +59,37 @@ final class MemberSet {
         }
         return null;
     }
-    
+
     int getMinimumTime() {
         if (list.isEmpty()) {
             return -1;
         }
-        
+
         int minimum = list.get(0).getCurrentTime();
 
         for (int i = 0; i < list.size(); i++) {
-            if (list.get(i).getCurrentTime() < minimum ) {
+            if (list.get(i).getCurrentTime() < minimum) {
                 minimum = list.get(i).getCurrentTime();
             }
         }
         return minimum;
     }
-    
+
     Member getLeastRecentlySeen() {
         if (list.isEmpty()) {
             return null;
         }
-        
+
         Member oldest = list.get(0);
-        
+
         for (int i = 1; i < list.size(); i++) {
             if (list.get(i).getLastSeen() < oldest.getLastSeen()) {
                 oldest = list.get(i);
             }
         }
-        
+
         return oldest;
     }
-            
 
     Member get(int index) {
         if (index >= list.size()) {
@@ -126,11 +124,9 @@ final class MemberSet {
 
         return result.toArray(new Member[0]);
     }
-    
+
     Member[] asArray() {
         return list.toArray(new Member[0]);
     }
 
 }
-
-

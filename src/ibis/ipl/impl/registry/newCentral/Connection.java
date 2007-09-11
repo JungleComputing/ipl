@@ -33,7 +33,8 @@ public final class Connection {
 
     Connection(VirtualSocketAddress address, VirtualSocketFactory factory,
             int timeout, boolean fillTimeout) throws IOException {
-        logger.debug("connecting to " + address + ", timeout = " + timeout + " , filltimeout = " + fillTimeout);
+        logger.debug("connecting to " + address + ", timeout = " + timeout
+                + " , filltimeout = " + fillTimeout);
         plainSocket = null;
         VirtualSocket socket = null;
         DataOutputStream out = null;
@@ -49,13 +50,12 @@ public final class Connection {
         in = new DataInputStream(new BufferedInputStream(socket
                 .getInputStream()));
 
-        
         this.virtualSocket = socket;
         this.out = out;
         this.in = in;
 
         logger.debug("connection to " + address + " established");
-        
+
     }
 
     Connection(InetSocketAddress address, int timeout) throws IOException {
@@ -92,7 +92,6 @@ public final class Connection {
                         .getOutputStream()));
                 in = new DataInputStream(new BufferedInputStream(socket
                         .getInputStream()));
-
 
                 success = true;
             } catch (IOException e) {
@@ -141,7 +140,8 @@ public final class Connection {
                 .getInputStream()));
         out = new DataOutputStream(new BufferedOutputStream(virtualSocket
                 .getOutputStream()));
-        logger.debug("new connection from " + virtualSocket.getRemoteSocketAddress() + " accepted");
+        logger.debug("new connection from "
+                + virtualSocket.getRemoteSocketAddress() + " accepted");
     }
 
     Connection(ServerSocket plainServerSocket) throws IOException {
@@ -173,8 +173,7 @@ public final class Connection {
         byte reply = in.readByte();
         if (reply == Protocol.REPLY_ERROR) {
             close();
-            throw new IOException("ERROR: "
-                    + in.readUTF());
+            throw new IOException("ERROR: " + in.readUTF());
         } else if (reply != Protocol.REPLY_OK) {
             close();
             throw new IOException("Unknown reply (" + reply + ")");

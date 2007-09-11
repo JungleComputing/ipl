@@ -8,21 +8,20 @@ import java.io.IOException;
 import org.apache.log4j.Logger;
 
 public class Gossiper implements Runnable {
-    
+
     private static final Logger logger = Logger.getLogger(Gossiper.class);
-    
+
     private final Registry registry;
-    
+
     private final long gossipInterval;
-    
+
     Gossiper(Registry registry, long gossipInterval) {
         this.registry = registry;
         this.gossipInterval = gossipInterval;
-        
+
         ThreadPool.createNew(this, "gossiper");
     }
-    
-    
+
     public void run() {
         while (!registry.isStopped()) {
             IbisIdentifier ibis = null;
@@ -35,7 +34,8 @@ public class Gossiper implements Runnable {
 
             }
 
-            logger.debug("Event time at " + registry.getIbisIdentifier().getID() + " now "
+            logger.debug("Event time at "
+                    + registry.getIbisIdentifier().getID() + " now "
                     + registry.getTime());
             synchronized (this) {
                 try {

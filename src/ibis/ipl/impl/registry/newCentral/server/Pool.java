@@ -27,8 +27,6 @@ final class Pool implements Runnable {
     // time until the pool data is removed after the pool has ended (2 minutes)
     private static final int STALE_TIMEOUT = 120000;
 
-    private static final int PUSH_THREADS = 10;
-
     // 10 seconds connect timeout
     private static final int CONNECT_TIMEOUT = 10000;
 
@@ -88,12 +86,13 @@ final class Pool implements Runnable {
         members = new MemberSet();
 
         if (gossip) {
-            // TODO: do something :)
-            throw new Error("gossip not working");
+            new IterativeEventPusher(this, eventPushInterval);
+            new RandomEventPusher(this, gossipInterval, adaptGossipInterval);
+
         } else if (tree) {
             throw new Error("tree not implemented");
         } else { // central
-            new IterativeEventPusher(this, PUSH_THREADS, eventPushInterval);
+            new IterativeEventPusher(this, eventPushInterval);
         }
 
         pusher = new OndemandEventPusher(this);
@@ -101,12 +100,14 @@ final class Pool implements Runnable {
         ThreadPool.createNew(this, "pool pinger thread");
 
     }
-    
-    private static void print(String message) {
-    	DateFormat format = DateFormat.getTimeInstance(DateFormat.MEDIUM, Locale.FRANCE); 
 
-    	System.out.println(format.format(new Date(System.currentTimeMillis())) + " NEW Central Registry: " + message);
-    	
+    private static void print(String message) {
+        DateFormat format = DateFormat.getTimeInstance(DateFormat.MEDIUM,
+                Locale.FRANCE);
+
+        System.out.println(format.format(new Date(System.currentTimeMillis()))
+                + " NEW Central Registry: " + message);
+
     }
 
     synchronized int getEventTime() {
@@ -191,8 +192,8 @@ final class Pool implements Runnable {
      * @see ibis.ipl.impl.registry.central.SuperPool#join(byte[], byte[],
      *      ibis.ipl.impl.Location)
      */
-    synchronized Member join(byte[] implementationData,
-            byte[] clientAddress, Location location) throws Exception {
+    synchronized Member join(byte[] implementationData, byte[] clientAddress,
+            Location location) throws Exception {
         if (ended()) {
             throw new Exception("Pool already ended");
         }
@@ -200,19 +201,17 @@ final class Pool implements Runnable {
         String id = Integer.toString(nextID);
         nextID++;
 
-        IbisIdentifier identifier =
-                new IbisIdentifier(id, implementationData, clientAddress,
-                        location, name);
-        
+        IbisIdentifier identifier = new IbisIdentifier(id, implementationData,
+                clientAddress, location, name);
+
         Member member = new Member(identifier);
         member.setCurrentTime(getMinEventTime());
- 
+
         members.add(member);
 
         if (printEvents) {
-            print(identifier
-                    + " joined pool \"" + name + "\" now " + members.size()
-                    + " members");
+            print(identifier + " joined pool \"" + name + "\" now "
+                    + members.size() + " members");
         }
 
         addEvent(Event.JOIN, null, identifier);
@@ -234,8 +233,7 @@ final class Pool implements Runnable {
         int time;
         Member[] memberArray;
         ArrayList<String> electionKeys = new ArrayList<String>();
-        ArrayList<IbisIdentifier> electionValues =
-                new ArrayList<IbisIdentifier>();
+        ArrayList<IbisIdentifier> electionValues = new ArrayList<IbisIdentifier>();
 
         // copy state
         synchronized (this) {
@@ -276,15 +274,14 @@ final class Pool implements Runnable {
             throw new Exception("ibis unknown: " + identifier);
         }
         if (printEvents) {
-            print(identifier
-                    + " left pool \"" + name + "\" now " + members.size()
-                    + " members");
+            print(identifier + " left pool \"" + name + "\" now "
+                    + members.size() + " members");
         }
 
         addEvent(Event.LEAVE, null, identifier);
 
-        Iterator<Entry<String, IbisIdentifier>> iterator =
-                elections.entrySet().iterator();
+        Iterator<Entry<String, IbisIdentifier>> iterator = elections.entrySet()
+                .iterator();
         while (iterator.hasNext()) {
             Entry<String, IbisIdentifier> entry = iterator.next();
             if (entry.getValue().equals(identifier)) {
@@ -298,8 +295,7 @@ final class Pool implements Runnable {
         if (members.size() == 0) {
             ended = true;
             if (printEvents) {
-                print("pool \"" + name
-                        + "\" ended");
+                print("pool \"" + name + "\" ended");
             } else {
                 logger.info("Central Registry: " + "pool \"" + name
                         + "\" ended");
@@ -323,21 +319,19 @@ final class Pool implements Runnable {
 
         if (printEvents) {
             if (printErrors) {
-                print(identifier
-                        + " died in pool \"" + name + "\" now "
+                print(identifier + " died in pool \"" + name + "\" now "
                         + members.size() + " members, caused by:");
                 exception.printStackTrace(System.out);
             } else {
-                print(identifier
-                        + " died in pool \"" + name + "\" now "
+                print(identifier + " died in pool \"" + name + "\" now "
                         + members.size() + " members");
             }
         }
 
         addEvent(Event.DIED, null, identifier);
 
-        Iterator<Map.Entry<String, IbisIdentifier>> iterator =
-                elections.entrySet().iterator();
+        Iterator<Map.Entry<String, IbisIdentifier>> iterator = elections
+                .entrySet().iterator();
         while (iterator.hasNext()) {
             Map.Entry<String, IbisIdentifier> entry = iterator.next();
             if (entry.getValue().equals(identifier)) {
@@ -350,8 +344,7 @@ final class Pool implements Runnable {
         if (members.size() == 0) {
             ended = true;
             if (printEvents) {
-                print("pool " + name
-                        + " ended");
+                print("pool " + name + " ended");
             } else {
                 logger.info("Central Registry: " + "pool \"" + name
                         + "\" ended");
@@ -411,8 +404,7 @@ final class Pool implements Runnable {
             elections.put(election, winner);
 
             if (printEvents) {
-                print(winner
-                        + " won election \"" + election + "\" in pool \""
+                print(winner + " won election \"" + election + "\" in pool \""
                         + name + "\"");
             }
 
@@ -508,10 +500,10 @@ final class Pool implements Runnable {
      * the peer is still a current member of this pool.
      * 
      * @param member
-     *            The member to push events to
+     *                The member to push events to
      * @param force
-     *            if true, events are always pushed, even if the pool has ended
-     *            or the peer is no longer a member.
+     *                if true, events are always pushed, even if the pool has
+     *                ended or the peer is no longer a member.
      */
     void push(Member member, boolean force) {
         if (ended()) {
@@ -537,9 +529,8 @@ final class Pool implements Runnable {
 
             logger.debug("creating connection to push events to " + member);
 
-            connection =
-                    connectionFactory.connect(member.getIbis(),
-                            CONNECT_TIMEOUT, true);
+            connection = connectionFactory.connect(member.getIbis(),
+                    CONNECT_TIMEOUT, true);
 
             logger.debug("connection to " + member + " created");
 
@@ -550,7 +541,7 @@ final class Pool implements Runnable {
 
             logger.debug("waiting for peer time of peer " + member);
             peerTime = connection.in().readInt();
-            
+
             member.setCurrentTime(peerTime);
 
             Event[] events = getEvents(peerTime);
@@ -580,8 +571,8 @@ final class Pool implements Runnable {
         } catch (IOException e) {
             if (isMember(member)) {
                 if (printErrors) {
-                    logger.error("cannot reach " + member 
-                                    + " to push events to", e);
+                    logger.error("cannot reach " + member
+                            + " to push events to", e);
                 }
             }
 
@@ -606,9 +597,8 @@ final class Pool implements Runnable {
             if (oldest == null) {
                 timeout = 1000;
             } else {
-                timeout =
-                        (oldest.getLastSeen() + heartbeatInterval)
-                                - currentTime;
+                timeout = (oldest.getLastSeen() + heartbeatInterval)
+                        - currentTime;
             }
 
             if (timeout <= 0) {
@@ -665,12 +655,12 @@ final class Pool implements Runnable {
      */
     synchronized void purgeHistory() {
         int newMinimum = members.getMinimumTime();
-        
-        if(newMinimum == -1) {
-            //pool is empty, clear out all events
+
+        if (newMinimum == -1) {
+            // pool is empty, clear out all events
             newMinimum = getEventTime();
         }
-        
+
         if (newMinimum < minEventTime) {
             logger.warn("tried to set minimum event time backwards from "
                     + minEventTime + " to " + newMinimum);

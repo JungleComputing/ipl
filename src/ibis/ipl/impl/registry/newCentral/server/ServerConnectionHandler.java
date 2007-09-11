@@ -15,8 +15,8 @@ final class ServerConnectionHandler implements Runnable {
 
     static final int THREADS = 10;
 
-    private static final Logger logger =
-            Logger.getLogger(ServerConnectionHandler.class);
+    private static final Logger logger = Logger
+            .getLogger(ServerConnectionHandler.class);
 
     private final Server server;
 
@@ -37,8 +37,8 @@ final class ServerConnectionHandler implements Runnable {
         Pool pool;
 
         int length = connection.in().readInt();
-        if (length < 0 ) {
-        	throw new IOException("unexpected end of data on join");
+        if (length < 0) {
+            throw new IOException("unexpected end of data on join");
         }
         byte[] clientAddress = new byte[length];
         connection.in().readFully(clientAddress);
@@ -46,8 +46,8 @@ final class ServerConnectionHandler implements Runnable {
         String poolName = connection.in().readUTF();
 
         length = connection.in().readInt();
-        if (length < 0 ) {
-        	throw new IOException("unexpected end of data on join");
+        if (length < 0) {
+            throw new IOException("unexpected end of data on join");
         }
         byte[] implementationData = new byte[length];
         connection.in().readFully(implementationData);
@@ -61,8 +61,9 @@ final class ServerConnectionHandler implements Runnable {
         boolean adaptGossipInterval = connection.in().readBoolean();
         boolean tree = connection.in().readBoolean();
 
-        pool =
-                server.getAndCreatePool(poolName, heartbeatInterval, eventPushInterval, gossip, gossipInterval, adaptGossipInterval, tree);
+        pool = server.getAndCreatePool(poolName, heartbeatInterval,
+                eventPushInterval, gossip, gossipInterval, adaptGossipInterval,
+                tree);
 
         try {
             member = pool.join(implementationData, clientAddress, location);
@@ -74,7 +75,7 @@ final class ServerConnectionHandler implements Runnable {
         connection.sendOKReply();
         member.getIbis().writeTo(connection.out());
         connection.out().writeInt(member.getCurrentTime());
-        
+
         pool.writeBootstrapList(connection.out());
 
         connection.out().flush();
@@ -192,8 +193,8 @@ final class ServerConnectionHandler implements Runnable {
 
         String signal = connection.in().readUTF();
 
-        IbisIdentifier[] receivers =
-                new IbisIdentifier[connection.in().readInt()];
+        IbisIdentifier[] receivers = new IbisIdentifier[connection.in()
+                .readInt()];
         for (int i = 0; i < receivers.length; i++) {
             receivers[i] = new IbisIdentifier(connection.in());
 

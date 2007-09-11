@@ -9,205 +9,207 @@ import org.apache.log4j.Logger;
 
 final class ClientConnectionHandler implements Runnable {
 
-	private static final Logger logger = Logger
-			.getLogger(ClientConnectionHandler.class);
+    private static final Logger logger = Logger
+            .getLogger(ClientConnectionHandler.class);
 
-	private final ConnectionFactory connectionFactory;
+    private final ConnectionFactory connectionFactory;
 
-	private final Registry registry;
-	ClientConnectionHandler(ConnectionFactory connectionFactory,
-			Registry registry) {
-		this.connectionFactory = connectionFactory;
-		this.registry = registry;
+    private final Registry registry;
 
-		ThreadPool.createNew(this, "client connection handler");
-	}
+    ClientConnectionHandler(ConnectionFactory connectionFactory,
+            Registry registry) {
+        this.connectionFactory = connectionFactory;
+        this.registry = registry;
 
-	private void handleGossip(Connection connection) throws IOException {
-		logger.debug("got a gossip request");
+        ThreadPool.createNew(this, "client connection handler");
+    }
 
-                IbisIdentifier identifier = new IbisIdentifier(connection.in());
-                String poolName = identifier.poolName();
-		int peerTime = connection.in().readInt();
+    private void handleGossip(Connection connection) throws IOException {
+        logger.debug("got a gossip request");
 
-		if (!poolName.equals(registry.getPoolName())) {
-			logger.error("wrong pool: " + poolName + " instead of "
-					+ registry.getPoolName());
-			connection.closeWithError("wrong pool: " + poolName
-					+ " instead of " + registry.getPoolName());
-			return;
-		}
+        IbisIdentifier identifier = new IbisIdentifier(connection.in());
+        String poolName = identifier.poolName();
+        int peerTime = connection.in().readInt();
 
-		int localTime = registry.getTime();
+        if (!poolName.equals(registry.getPoolName())) {
+            logger.error("wrong pool: " + poolName + " instead of "
+                    + registry.getPoolName());
+            connection.closeWithError("wrong pool: " + poolName
+                    + " instead of " + registry.getPoolName());
+            return;
+        }
 
-		connection.sendOKReply();
-		connection.out().writeInt(localTime);
-		connection.out().flush();
+        int localTime = registry.getTime();
 
-		if (localTime > peerTime) {
-			Event[] sendEvents = registry.getEventsFrom(peerTime);
+        connection.sendOKReply();
+        connection.out().writeInt(localTime);
+        connection.out().flush();
 
-			connection.out().writeInt(sendEvents.length);
-			for (Event event : sendEvents) {
-				event.writeTo(connection.out());
-			}
-			connection.out().flush();
+        if (localTime > peerTime) {
+            Event[] sendEvents = registry.getEventsFrom(peerTime);
 
-		} else if (localTime < peerTime) {
-			Event[] newEvents = new Event[connection.in().readInt()];
-			for (int i = 0; i < newEvents.length; i++) {
-				newEvents[i] = new Event(connection.in());
-			}
+            connection.out().writeInt(sendEvents.length);
+            for (Event event : sendEvents) {
+                event.writeTo(connection.out());
+            }
+            connection.out().flush();
 
-			connection.close();
+        } else if (localTime < peerTime) {
+            Event[] newEvents = new Event[connection.in().readInt()];
+            for (int i = 0; i < newEvents.length; i++) {
+                newEvents[i] = new Event(connection.in());
+            }
 
-			registry.newEventsReceived(newEvents);
-		}
-		connection.close();
-	}
+            connection.close();
 
-	private void handlePush(Connection connection) throws IOException {
-		logger.debug("got a push from the server");
+            registry.newEventsReceived(newEvents);
+        }
+        connection.close();
+    }
 
-		String poolName = connection.in().readUTF();
+    private void handlePush(Connection connection) throws IOException {
+        logger.debug("got a push from the server");
 
-		if (!poolName.equals(registry.getPoolName())) {
-			logger.error("wrong pool: " + poolName + " instead of "
-					+ registry.getPoolName());
-			connection.closeWithError("wrong pool: " + poolName
-					+ " instead of " + registry.getPoolName());
-		}
+        String poolName = connection.in().readUTF();
 
-		connection.out().writeInt(registry.getTime());
-		connection.out().flush();
+        if (!poolName.equals(registry.getPoolName())) {
+            logger.error("wrong pool: " + poolName + " instead of "
+                    + registry.getPoolName());
+            connection.closeWithError("wrong pool: " + poolName
+                    + " instead of " + registry.getPoolName());
+        }
 
-		connection.getAndCheckReply();
+        connection.out().writeInt(registry.getTime());
+        connection.out().flush();
 
-		int events = connection.in().readInt();
+        connection.getAndCheckReply();
 
-		if (events < 0) {
-			connection.closeWithError("negative event size");
-			return;
-		}
+        int events = connection.in().readInt();
 
-		Event[] newEvents = new Event[events];
-		for (int i = 0; i < newEvents.length; i++) {
-			newEvents[i] = new Event(connection.in());
-		}
+        if (events < 0) {
+            connection.closeWithError("negative event size");
+            return;
+        }
 
-		int minEventTime = connection.in().readInt();
+        Event[] newEvents = new Event[events];
+        for (int i = 0; i < newEvents.length; i++) {
+            newEvents[i] = new Event(connection.in());
+        }
 
-		connection.sendOKReply();
+        int minEventTime = connection.in().readInt();
 
-		connection.close();
+        connection.sendOKReply();
 
-		registry.newEventsReceived(newEvents);
-		registry.purgeHistoryUpto(minEventTime);
-	}
+        connection.close();
 
-	private void handlePing(Connection connection) throws IOException {
-		logger.debug("got a ping request");
-		connection.sendOKReply();
-		registry.getIbisIdentifier().writeTo(connection.out());
-		connection.out().flush();
-		connection.close();
-	}
+        registry.newEventsReceived(newEvents);
+        registry.purgeHistoryUpto(minEventTime);
+    }
 
-	private void handleGetState(Connection connection) throws IOException {
-		logger.debug("got a state request");
-                
-                IbisIdentifier identifier = new IbisIdentifier(connection.in());
-                int minTime = connection.in().readInt();
-                
-                String poolName = identifier.poolName();
-                
-                if (!poolName.equals(registry.getPoolName())) {
-                        logger.error("wrong pool: " + poolName + " instead of "
-                                        + registry.getPoolName());
-                        connection.closeWithError("wrong pool: " + poolName
-                                        + " instead of " + registry.getPoolName());
-                }
+    private void handlePing(Connection connection) throws IOException {
+        logger.debug("got a ping request");
+        connection.sendOKReply();
+        registry.getIbisIdentifier().writeTo(connection.out());
+        connection.out().flush();
+        connection.close();
+    }
 
-		if (!registry.isInitialized()) {
-			connection.closeWithError("state not available");
-			return;
-		}
-                
-                int time = registry.getTime();
-                if (time < minTime) {
-                    connection.closeWithError("minimum time requirement not met: " + minTime + " vs " + time);
-                    return;
-                }                
+    private void handleGetState(Connection connection) throws IOException {
+        logger.debug("got a state request");
 
-		connection.sendOKReply();
+        IbisIdentifier identifier = new IbisIdentifier(connection.in());
+        int minTime = connection.in().readInt();
 
-		registry.writeState(connection.out());
+        String poolName = identifier.poolName();
 
-		connection.out().flush();
-		connection.close();
-	}
+        if (!poolName.equals(registry.getPoolName())) {
+            logger.error("wrong pool: " + poolName + " instead of "
+                    + registry.getPoolName());
+            connection.closeWithError("wrong pool: " + poolName
+                    + " instead of " + registry.getPoolName());
+        }
 
-	public void run() {
-		Connection connection = null;
-		try {
-			logger.debug("accepting connection");
-			connection = connectionFactory.accept();
-			logger.debug("connection accepted");
-		} catch (IOException e) {
-			if (registry.isStopped()) {
-				return;
-			}
-			logger.error("Accept failed, waiting a second, will retry", e);
+        if (!registry.isInitialized()) {
+            connection.closeWithError("state not available");
+            return;
+        }
 
-			// wait a bit
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e1) {
-				// IGNORE
-			}
-		}
+        int time = registry.getTime();
+        if (time < minTime) {
+            connection.closeWithError("minimum time requirement not met: "
+                    + minTime + " vs " + time);
+            return;
+        }
 
-		// create new thread for next connection
-		ThreadPool.createNew(this, "peer connection handler");
+        connection.sendOKReply();
 
-		if (connection == null) {
-			return;
-		}
+        registry.writeState(connection.out());
 
-		try {
-			byte magic = connection.in().readByte();
+        connection.out().flush();
+        connection.close();
+    }
 
-			if (magic != Protocol.CLIENT_MAGIC_BYTE) {
-				throw new IOException(
-						"Invalid header byte in accepting connection");
-			}
+    public void run() {
+        Connection connection = null;
+        try {
+            logger.debug("accepting connection");
+            connection = connectionFactory.accept();
+            logger.debug("connection accepted");
+        } catch (IOException e) {
+            if (registry.isStopped()) {
+                return;
+            }
+            logger.error("Accept failed, waiting a second, will retry", e);
 
-			byte opcode = connection.in().readByte();
+            // wait a bit
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e1) {
+                // IGNORE
+            }
+        }
 
-			logger.debug("received request: " + Protocol.opcodeString(opcode));
+        // create new thread for next connection
+        ThreadPool.createNew(this, "peer connection handler");
 
-			switch (opcode) {
-			case Protocol.OPCODE_GOSSIP:
-				handleGossip(connection);
-				break;
-			case Protocol.OPCODE_PUSH:
-				handlePush(connection);
-				break;
-			case Protocol.OPCODE_PING:
-				handlePing(connection);
-				break;
-			case Protocol.OPCODE_GET_STATE:
-				handleGetState(connection);
-				break;
-			default:
-				logger.error("unknown opcode in request: " + opcode + "("
-						+ Protocol.opcodeString(opcode) + ")");
-			}
-			logger.debug("done handling request");
-		} catch (IOException e) {
-			logger.error("error on handling request", e);
-		} finally {
-			connection.close();
-		}
-	}
+        if (connection == null) {
+            return;
+        }
+
+        try {
+            byte magic = connection.in().readByte();
+
+            if (magic != Protocol.CLIENT_MAGIC_BYTE) {
+                throw new IOException(
+                        "Invalid header byte in accepting connection");
+            }
+
+            byte opcode = connection.in().readByte();
+
+            logger.debug("received request: " + Protocol.opcodeString(opcode));
+
+            switch (opcode) {
+            case Protocol.OPCODE_GOSSIP:
+                handleGossip(connection);
+                break;
+            case Protocol.OPCODE_PUSH:
+                handlePush(connection);
+                break;
+            case Protocol.OPCODE_PING:
+                handlePing(connection);
+                break;
+            case Protocol.OPCODE_GET_STATE:
+                handleGetState(connection);
+                break;
+            default:
+                logger.error("unknown opcode in request: " + opcode + "("
+                        + Protocol.opcodeString(opcode) + ")");
+            }
+            logger.debug("done handling request");
+        } catch (IOException e) {
+            logger.error("error on handling request", e);
+        } finally {
+            connection.close();
+        }
+    }
 }

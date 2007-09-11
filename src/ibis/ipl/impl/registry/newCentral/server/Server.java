@@ -53,41 +53,36 @@ public final class Server extends Thread implements Service {
      */
     public Server(TypedProperties properties, VirtualSocketFactory factory)
             throws IOException {
-        TypedProperties typedProperties =
-                RegistryProperties.getHardcodedProperties();
+        TypedProperties typedProperties = RegistryProperties
+                .getHardcodedProperties();
         typedProperties.addProperties(properties);
 
         // Init logger
         Logger logger = Logger.getLogger("ibis.ipl.impl.registry.newCentral");
-        Level level =
-                Level.toLevel(typedProperties
-                        .getProperty(ServerProperties.LOG_LEVEL));
+        Level level = Level.toLevel(typedProperties
+                .getProperty(ServerProperties.LOG_LEVEL));
         Log.initLog4J(logger, level);
 
-        int timeout =
-                typedProperties
-                        .getIntProperty(RegistryProperties.CLIENT_CONNECT_TIMEOUT) * 1000;
+        int timeout = typedProperties
+                .getIntProperty(RegistryProperties.CLIENT_CONNECT_TIMEOUT) * 1000;
 
-        connectionFactory =
-                new ConnectionFactory(factory, VIRTUAL_PORT, timeout);
+        connectionFactory = new ConnectionFactory(factory, VIRTUAL_PORT,
+                timeout);
 
-        printStats =
-                typedProperties
-                        .getBooleanProperty(RegistryProperties.SERVER_PRINT_STATS)
-                        || typedProperties
-                                .getBooleanProperty(ServerProperties.PRINT_STATS);
+        printStats = typedProperties
+                .getBooleanProperty(RegistryProperties.SERVER_PRINT_STATS)
+                || typedProperties
+                        .getBooleanProperty(ServerProperties.PRINT_STATS);
 
-        printEvents =
-                typedProperties
-                        .getBooleanProperty(RegistryProperties.SERVER_PRINT_EVENTS)
-                        || typedProperties
-                                .getBooleanProperty(ServerProperties.PRINT_EVENTS);
+        printEvents = typedProperties
+                .getBooleanProperty(RegistryProperties.SERVER_PRINT_EVENTS)
+                || typedProperties
+                        .getBooleanProperty(ServerProperties.PRINT_EVENTS);
 
-        printErrors =
-                typedProperties
-                        .getBooleanProperty(RegistryProperties.SERVER_PRINT_ERRORS)
-                        || typedProperties
-                                .getBooleanProperty(ServerProperties.PRINT_ERRORS);
+        printErrors = typedProperties
+                .getBooleanProperty(RegistryProperties.SERVER_PRINT_ERRORS)
+                || typedProperties
+                        .getBooleanProperty(ServerProperties.PRINT_ERRORS);
 
         pools = new HashMap<String, Pool>();
 
@@ -101,39 +96,35 @@ public final class Server extends Thread implements Service {
      * Creates a stand-alone registry server. Uses plain tcp.
      * 
      * @param properties
-     *            settings for this server.
+     *                settings for this server.
      * @throws IOException
      */
     public Server(Properties properties) throws IOException {
-        TypedProperties typedProperties =
-                RegistryProperties.getHardcodedProperties();
+        TypedProperties typedProperties = RegistryProperties
+                .getHardcodedProperties();
         typedProperties.addProperties(properties);
 
-        int port =
-                typedProperties.getIntProperty(RegistryProperties.SERVER_PORT);
+        int port = typedProperties
+                .getIntProperty(RegistryProperties.SERVER_PORT);
 
         if (port <= 0) {
             throw new IOException(
                     "can only start registry server on a positive port");
         }
 
-        int timeout =
-                typedProperties
-                        .getIntProperty(RegistryProperties.CLIENT_CONNECT_TIMEOUT) * 1000;
+        int timeout = typedProperties
+                .getIntProperty(RegistryProperties.CLIENT_CONNECT_TIMEOUT) * 1000;
 
         connectionFactory = new ConnectionFactory(port, timeout);
 
-        printStats =
-                typedProperties
-                        .getBooleanProperty(RegistryProperties.SERVER_PRINT_STATS);
+        printStats = typedProperties
+                .getBooleanProperty(RegistryProperties.SERVER_PRINT_STATS);
 
-        printEvents =
-                typedProperties
-                        .getBooleanProperty(RegistryProperties.SERVER_PRINT_EVENTS);
+        printEvents = typedProperties
+                .getBooleanProperty(RegistryProperties.SERVER_PRINT_EVENTS);
 
-        printErrors =
-                typedProperties
-                        .getBooleanProperty(RegistryProperties.SERVER_PRINT_ERRORS);
+        printErrors = typedProperties
+                .getBooleanProperty(RegistryProperties.SERVER_PRINT_ERRORS);
 
         pools = new HashMap<String, Pool>();
 
@@ -163,10 +154,9 @@ public final class Server extends Thread implements Service {
                         + poolName + "\"");
             }
 
-            result =
-                    new Pool(poolName, connectionFactory, heartbeatInterval,
-                            eventPushInterval, gossip, gossipInterval,
-                            adaptGossipInterval, tree, printEvents, printErrors);
+            result = new Pool(poolName, connectionFactory, heartbeatInterval,
+                    eventPushInterval, gossip, gossipInterval,
+                    adaptGossipInterval, tree, printEvents, printErrors);
             pools.put(poolName, result);
         }
 

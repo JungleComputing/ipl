@@ -89,15 +89,15 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
      * Creates a Central Registry.
      * 
      * @param handler
-     *            registry handler to pass events to.
+     *                registry handler to pass events to.
      * @param userProperties
-     *            properties of this registry.
+     *                properties of this registry.
      * @param data
-     *            Ibis implementation data to attach to the IbisIdentifier.
+     *                Ibis implementation data to attach to the IbisIdentifier.
      * @throws IOException
-     *             in case of trouble.
+     *                 in case of trouble.
      * @throws IbisConfigurationException
-     *             In case invalid properties were given.
+     *                 In case invalid properties were given.
      */
     public Registry(IbisCapabilities capabilities,
             RegistryEventHandler handler, Properties userProperties, byte[] data)
@@ -107,8 +107,8 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
 
         this.capabilities = capabilities;
 
-        TypedProperties properties =
-                RegistryProperties.getHardcodedProperties();
+        TypedProperties properties = RegistryProperties
+                .getHardcodedProperties();
         properties.addProperties(userProperties);
 
         // get the pool ....
@@ -149,8 +149,8 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
 
         if (closedWorld) {
             try {
-                numInstances =
-                        properties.getIntProperty(IbisProperties.POOL_SIZE);
+                numInstances = properties
+                        .getIntProperty(IbisProperties.POOL_SIZE);
             } catch (NumberFormatException e) {
                 throw new IbisConfigurationException(
                         "could not start registry for a closed world ibis, "
@@ -181,31 +181,25 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
 
         this.server = server;
 
-        heartbeatInterval =
-                properties
-                        .getIntProperty(RegistryProperties.HEARTBEAT_INTERVAL) * 1000;
-        long eventPushInterval =
-                properties
-                        .getIntProperty(RegistryProperties.EVENT_PUSH_INTERVAL) * 1000;
+        heartbeatInterval = properties
+                .getIntProperty(RegistryProperties.HEARTBEAT_INTERVAL) * 1000;
+        long eventPushInterval = properties
+                .getIntProperty(RegistryProperties.EVENT_PUSH_INTERVAL) * 1000;
         gossip = properties.getBooleanProperty(RegistryProperties.GOSSIP);
-        gossipInterval =
-                properties.getIntProperty(RegistryProperties.GOSSIP_INTERVAL) * 1000;
-        boolean adaptGossipInterval =
-                properties
-                        .getBooleanProperty(RegistryProperties.ADAPT_GOSSIP_INTERVAL);
+        gossipInterval = properties
+                .getIntProperty(RegistryProperties.GOSSIP_INTERVAL) * 1000;
+        boolean adaptGossipInterval = properties
+                .getBooleanProperty(RegistryProperties.ADAPT_GOSSIP_INTERVAL);
         boolean tree = properties.getBooleanProperty(RegistryProperties.TREE);
 
         Location location = Location.defaultLocation(userProperties);
 
-        ArrayList<IbisIdentifier> bootstrapList =
-                new ArrayList<IbisIdentifier>();
+        ArrayList<IbisIdentifier> bootstrapList = new ArrayList<IbisIdentifier>();
 
         // join at server
-        identifier =
-                join(connectionFactory.getLocalAddress(), location, data,
-                        heartbeatInterval, eventPushInterval, gossip,
-                        gossipInterval, adaptGossipInterval, tree,
-                        bootstrapList);
+        identifier = join(connectionFactory.getLocalAddress(), location, data,
+                heartbeatInterval, eventPushInterval, gossip, gossipInterval,
+                adaptGossipInterval, tree, bootstrapList);
 
         registryHandler = handler;
 
@@ -230,9 +224,8 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
     }
 
     synchronized void updateHeartbeatDeadline() {
-        heartbeatDeadline =
-                System.currentTimeMillis()
-                        + (long) (heartbeatInterval * 0.9 * Math.random());
+        heartbeatDeadline = System.currentTimeMillis()
+                + (long) (heartbeatInterval * 0.9 * Math.random());
 
         logger.debug("heartbeat deadline updated");
 
@@ -241,8 +234,7 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
 
     synchronized void waitForHeartbeatDeadline() {
         while (true) {
-            int timeout =
-                    (int) (heartbeatDeadline - System.currentTimeMillis());
+            int timeout = (int) (heartbeatDeadline - System.currentTimeMillis());
 
             if (timeout <= 0) {
                 return;
@@ -312,8 +304,8 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
         logger.debug("reading bootstrap state");
 
         int nrOfIbises = in.readInt();
-        SortedSet<IbisIdentifier> sortedIbises =
-                new TreeSet<IbisIdentifier>(new IbisComparator());
+        SortedSet<IbisIdentifier> sortedIbises = new TreeSet<IbisIdentifier>(
+                new IbisComparator());
 
         for (int i = 0; i < nrOfIbises; i++) {
             sortedIbises.add(new IbisIdentifier(in));
@@ -321,8 +313,7 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
 
         int nrOfElections = in.readInt();
 
-        Map<String, IbisIdentifier> elections =
-                new HashMap<String, IbisIdentifier>();
+        Map<String, IbisIdentifier> elections = new HashMap<String, IbisIdentifier>();
         for (int i = 0; i < nrOfElections; i++) {
             elections.put(in.readUTF(), new IbisIdentifier(in));
         }
@@ -337,8 +328,7 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
         }
 
         logger.debug("generating events for elections");
-        for (Map.Entry<String, IbisIdentifier> election : elections
-                .entrySet()) {
+        for (Map.Entry<String, IbisIdentifier> election : elections.entrySet()) {
             handleEvent(new Event(-1, Event.ELECT, election.getKey(), election
                     .getValue()));
         }
@@ -418,7 +408,7 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
      * some peers
      * 
      * @throws IOException
-     *             in case of trouble
+     *                 in case of trouble
      */
     private IbisIdentifier join(byte[] myAddress, Location location,
             byte[] implementationData, long heartbeatInterval,
@@ -454,16 +444,16 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
             connection.getAndCheckReply();
 
             IbisIdentifier result = new IbisIdentifier(connection.in());
-            
-            //mimimum event time we need as a bootstrap
+
+            // mimimum event time we need as a bootstrap
             int time = connection.in().readInt();
-            
+
             int listLength = connection.in().readInt();
             for (int i = 0; i < listLength; i++) {
                 bootstrapList.add(new IbisIdentifier(connection.in()));
             }
-           
-            synchronized(this) {
+
+            synchronized (this) {
                 this.time = time;
             }
 
@@ -487,7 +477,7 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
      * still alive
      * 
      * @throws IOException
-     *             in case of trouble
+     *                 in case of trouble
      */
     private void sendHeartBeat() {
         logger.debug("sending heartbeat to server");
@@ -1017,7 +1007,7 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
         logger.debug("received winner for election \"" + name + "\" : " + ibis);
 
         elections.put(name, ibis);
-        //wake up any waiting threads
+        // wake up any waiting threads
         notifyAll();
     }
 
@@ -1126,9 +1116,8 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
             throw new IbisConfigurationException(
                     "Resize downcalls not configured");
         }
-        ibis.ipl.IbisIdentifier[] retval =
-                joinedIbises.toArray(new ibis.ipl.IbisIdentifier[joinedIbises
-                        .size()]);
+        ibis.ipl.IbisIdentifier[] retval = joinedIbises
+                .toArray(new ibis.ipl.IbisIdentifier[joinedIbises.size()]);
         joinedIbises.clear();
         return retval;
     }
@@ -1138,9 +1127,8 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
             throw new IbisConfigurationException(
                     "Resize downcalls not configured");
         }
-        ibis.ipl.IbisIdentifier[] retval =
-                leftIbises.toArray(new ibis.ipl.IbisIdentifier[leftIbises
-                        .size()]);
+        ibis.ipl.IbisIdentifier[] retval = leftIbises
+                .toArray(new ibis.ipl.IbisIdentifier[leftIbises.size()]);
         leftIbises.clear();
         return retval;
     }
@@ -1150,9 +1138,8 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
             throw new IbisConfigurationException(
                     "Resize downcalls not configured");
         }
-        ibis.ipl.IbisIdentifier[] retval =
-                diedIbises.toArray(new ibis.ipl.IbisIdentifier[diedIbises
-                        .size()]);
+        ibis.ipl.IbisIdentifier[] retval = diedIbises
+                .toArray(new ibis.ipl.IbisIdentifier[diedIbises.size()]);
         diedIbises.clear();
         return retval;
     }

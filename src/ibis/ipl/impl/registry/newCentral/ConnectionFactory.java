@@ -69,7 +69,8 @@ public final class ConnectionFactory {
 
         standalone = properties
                 .getBooleanProperty(RegistryProperties.SERVER_STANDALONE);
-        timeout = properties.getIntProperty(RegistryProperties.CLIENT_CONNECT_TIMEOUT) * 1000;
+        timeout = properties
+                .getIntProperty(RegistryProperties.CLIENT_CONNECT_TIMEOUT) * 1000;
 
         if (standalone) {
 
@@ -102,8 +103,9 @@ public final class ConnectionFactory {
                     plainServerAddress = new InetSocketAddress(serverHost,
                             serverPort);
                 } catch (Throwable t) {
-                    throw new IbisConfigurationException("illegal server address ("
-                            + serverString + ") : " + t.getMessage());
+                    throw new IbisConfigurationException(
+                            "illegal server address (" + serverString + ") : "
+                                    + t.getMessage());
                 }
             } else {
                 plainServerAddress = null;
@@ -113,11 +115,13 @@ public final class ConnectionFactory {
             plainServerSocket = null;
             plainServerAddress = null;
             plainLocalAddress = null;
-            
+
             // check if the server address is set...
             if (properties.getProperty(IbisProperties.SERVER_ADDRESS) == null) {
-                throw new IbisConfigurationException("cannot initialize registry, property "
-                        + IbisProperties.SERVER_ADDRESS + " is not specified");
+                throw new IbisConfigurationException(
+                        "cannot initialize registry, property "
+                                + IbisProperties.SERVER_ADDRESS
+                                + " is not specified");
             }
 
             try {
@@ -162,8 +166,8 @@ public final class ConnectionFactory {
     /**
      * Create a connectionfactory for a registry which is part of an IbisServer
      */
-    public ConnectionFactory(VirtualSocketFactory factory, int virtualPort, int timeout)
-            throws IOException {
+    public ConnectionFactory(VirtualSocketFactory factory, int virtualPort,
+            int timeout) throws IOException {
         this.standalone = false;
         this.timeout = timeout;
 
@@ -191,7 +195,8 @@ public final class ConnectionFactory {
         }
     }
 
-    public Connection connect(IbisIdentifier ibis, int timeout, boolean fillTimeout) throws IOException {
+    public Connection connect(IbisIdentifier ibis, int timeout,
+            boolean fillTimeout) throws IOException {
         if (standalone) {
             InetSocketAddress address = plainAddressFromBytes(ibis
                     .getRegistryData());
@@ -201,13 +206,14 @@ public final class ConnectionFactory {
         } else {
             VirtualSocketAddress address = VirtualSocketAddress.fromBytes(ibis
                     .getRegistryData(), 0);
-            return new Connection(address, virtualSocketFactory,
-                    timeout, fillTimeout);
+            return new Connection(address, virtualSocketFactory, timeout,
+                    fillTimeout);
 
         }
     }
-    
-    public Connection connect(IbisIdentifier ibis, boolean fillTimeout) throws IOException {
+
+    public Connection connect(IbisIdentifier ibis, boolean fillTimeout)
+            throws IOException {
         if (standalone) {
             InetSocketAddress address = plainAddressFromBytes(ibis
                     .getRegistryData());
@@ -217,12 +223,11 @@ public final class ConnectionFactory {
         } else {
             VirtualSocketAddress address = VirtualSocketAddress.fromBytes(ibis
                     .getRegistryData(), 0);
-            return new Connection(address, virtualSocketFactory,
-                    timeout, fillTimeout);
+            return new Connection(address, virtualSocketFactory, timeout,
+                    fillTimeout);
 
         }
     }
-
 
     public void end() {
         try {
@@ -303,5 +308,5 @@ public final class ConnectionFactory {
         } else {
             return virtualServerAddress.port();
         }
-    }   
+    }
 }

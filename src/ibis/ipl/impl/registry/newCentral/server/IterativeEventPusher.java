@@ -12,115 +12,114 @@ import org.apache.log4j.Logger;
  * Sends events to clients from the server.
  */
 final class IterativeEventPusher implements Runnable {
-    
-	private class WorkQ {
-		private List<Member> q;
-		private int count;
 
-		WorkQ(Member[] work) {
-			//Arrays.asList list does not support remove, so do this "trick"
-			q = new LinkedList<Member>();
-			q.addAll(Arrays.asList(work));
-			
-			count = this.q.size();
-		}
+    private static final int THREADS = 10;
 
-		synchronized Member next() {
-			if (q.isEmpty()) {
-				return null;
-			}
+    private class WorkQ {
+        private List<Member> q;
+        private int count;
 
-			return q.remove(0);
-		}
+        WorkQ(Member[] work) {
+            // Arrays.asList list does not support remove, so do this "trick"
+            q = new LinkedList<Member>();
+            q.addAll(Arrays.asList(work));
 
-		synchronized void doneJob() {
-			count--;
+            count = this.q.size();
+        }
 
-			if (count <= 0) {
-				notifyAll();
-			}
-		}
+        synchronized Member next() {
+            if (q.isEmpty()) {
+                return null;
+            }
 
-		synchronized void waitUntilDone() {
-			while (count > 0) {
-				try {
-					wait();
-				} catch (InterruptedException e) {
-					// IGNORE
-				}
-			}
-		}
-	}
+            return q.remove(0);
+        }
 
-	private class EventPusherThread implements Runnable {
+        synchronized void doneJob() {
+            count--;
 
-		WorkQ workQ;
+            if (count <= 0) {
+                notifyAll();
+            }
+        }
 
-		EventPusherThread(WorkQ workQ) {
-			this.workQ = workQ;
+        synchronized void waitUntilDone() {
+            while (count > 0) {
+                try {
+                    wait();
+                } catch (InterruptedException e) {
+                    // IGNORE
+                }
+            }
+        }
+    }
 
-			ThreadPool.createNew(this, "event pusher thread");
-		}
+    private class EventPusherThread implements Runnable {
 
-		public void run() {
-			while (true) {
-				Member work = workQ.next();
+        WorkQ workQ;
 
-				if (work == null) {
-					// done pushing
-					return;
-				}
+        EventPusherThread(WorkQ workQ) {
+            this.workQ = workQ;
 
-				logger.debug("pushing to " + work);
+            ThreadPool.createNew(this, "event pusher thread");
+        }
 
-				pool.push(work, false);
-				workQ.doneJob();
-			}
-		}
-	}
+        public void run() {
+            while (true) {
+                Member work = workQ.next();
 
-	private static final Logger logger = Logger
-			.getLogger(IterativeEventPusher.class);
+                if (work == null) {
+                    // done pushing
+                    return;
+                }
 
-	private final Pool pool;
+                logger.debug("pushing to " + work);
 
-	private final int threads;
-        
-        private final long timeout;
+                pool.push(work, false);
+                workQ.doneJob();
+            }
+        }
+    }
 
-	IterativeEventPusher(Pool pool, int threads, long timeout) {
-		this.pool = pool;
-		this.threads = threads;
-                this.timeout = timeout;
-		
-		ThreadPool.createNew(this, "event pusher scheduler thread");
-	}
-        
-	public void run() {
-		while (!pool.ended()) {
-			int eventTime = pool.getEventTime();
+    private static final Logger logger = Logger
+            .getLogger(IterativeEventPusher.class);
 
-			Member[] members = pool.getMembers();
+    private final Pool pool;
 
-			logger.debug("updating nodes in pool (pool size = "
-					+ members.length + "  to event-time " + eventTime);
+    private final long timeout;
 
-			WorkQ workQ = new WorkQ(members);
+    IterativeEventPusher(Pool pool, long timeout) {
+        this.pool = pool;
+        this.timeout = timeout;
 
-			int threads = Math.min(this.threads, members.length);
-			for (int i = 0; i < threads; i++) {
-				new EventPusherThread(workQ);
-			}
+        ThreadPool.createNew(this, "event pusher scheduler thread");
+    }
 
-			workQ.waitUntilDone();
+    public void run() {
+        while (!pool.ended()) {
+            int eventTime = pool.getEventTime();
 
-			logger.debug("DONE updating nodes in pool to event-time "
-					+ eventTime);
+            Member[] members = pool.getMembers();
 
-                        pool.purgeHistory(); 
+            logger.debug("updating nodes in pool (pool size = "
+                    + members.length + "  to event-time " + eventTime);
 
-			pool.waitForEventTime(eventTime + 1, timeout);
-		}
-	}
+            WorkQ workQ = new WorkQ(members);
+
+            int threads = Math.min(THREADS, members.length);
+            for (int i = 0; i < threads; i++) {
+                new EventPusherThread(workQ);
+            }
+
+            workQ.waitUntilDone();
+
+            logger.debug("DONE updating nodes in pool to event-time "
+                    + eventTime);
+
+            pool.purgeHistory();
+
+            pool.waitForEventTime(eventTime + 1, timeout);
+        }
+    }
 
 }
