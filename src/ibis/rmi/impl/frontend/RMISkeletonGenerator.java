@@ -27,6 +27,7 @@ class RMISkeletonGenerator extends RMIGenerator {
     String dest_name;
 
     RMISkeletonGenerator(BT_Analyzer data, PrintWriter output) {
+        super(data.packagename);
         this.data = data;
         this.output = output;
     }
@@ -126,8 +127,8 @@ class RMISkeletonGenerator extends RMIGenerator {
 
         for (int i = 0; i < methods.size(); i++) {
             Method m = (Method) methods.get(i);
-            Type ret = getReturnType(m);
-            Type[] params = getParameterTypes(m);
+            Type ret = m.getReturnType();
+            Type[] params = m.getArgumentTypes();
             boolean has_object_params = false;
             boolean is_simple_method = simpleMethod(m);
 
@@ -143,7 +144,7 @@ class RMISkeletonGenerator extends RMIGenerator {
             if (params.length > 0 || !is_simple_method) {
                 for (int j = 0; j < params.length; j++) {
                     Type temp = params[j];
-                    output.println("\t\t\t" + temp + " p" + j + ";");
+                    output.println("\t\t\t" + getType(temp) + " p" + j + ";");
                     if (!(temp instanceof BasicType)) {
                         has_object_params = true;
                     }

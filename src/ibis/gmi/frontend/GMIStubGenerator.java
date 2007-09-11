@@ -19,6 +19,7 @@ class GMIStubGenerator extends GMIGenerator {
     PrintWriter output;
 
     GMIStubGenerator(BT_Analyzer data, PrintWriter output) {
+        super(data.packagename);
         this.data = data;
         this.output = output;
     }
@@ -202,7 +203,7 @@ class GMIStubGenerator extends GMIGenerator {
 
         output.println(spacing
                 + "\tParameterVector params = new group_parametervector_"
-                + data.classname + "_" + GMIGenerator.getUniqueName(m) + "();");
+                + data.classname + "_" + getUniqueName(m) + "();");
 
         // Fill in our own parameters.
         for (int i = 0; i < params.length; i++) {
@@ -490,7 +491,7 @@ class GMIStubGenerator extends GMIGenerator {
                     + ";");
         }
         
-        String methodName = GMIGenerator.getUniqueName(m);
+        String methodName = getUniqueName(m);
 
         output.println(spacing + "\tgroup_parametervector_" + data.classname
                 + "_" + methodName + "[] pv = new group_parametervector_"
@@ -666,7 +667,12 @@ class GMIStubGenerator extends GMIGenerator {
 
         output.print("public final class group_stub_" + data.classname
                 + " extends ibis.gmi.GroupStub implements ");
-        output.print(data.subject.getClassName());
+        String name = data.subject.getClassName();
+        if (data.packagename != null && name.startsWith(data.packagename + ".")) {
+            output.print(name.substring(data.packagename.length() + 1));
+        } else {
+            output.print(name);
+        } 
 
         //for (int i=0;i<interfaces.length;i++) { 
         //	output.print(interfaces[i].getName());
@@ -695,7 +701,7 @@ class GMIStubGenerator extends GMIGenerator {
 
             output.print("\t\tmethods[" + i + "] = new GroupMethod(this, " + i
                     + ", new group_parametervector_" + data.classname + "_"
-                    + GMIGenerator.getUniqueName(m) + "(), \"");
+                    + getUniqueName(m) + "(), \"");
             output.print(getType(ret) + " " + m.getName() + "(");
             for (int j = 0; j < params.length; j++) {
                 output.print(getType(params[j]));

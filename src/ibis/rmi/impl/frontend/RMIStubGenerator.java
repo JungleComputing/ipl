@@ -20,19 +20,20 @@ class RMIStubGenerator extends RMIGenerator {
     PrintWriter output;
 
     RMIStubGenerator(BT_Analyzer data, PrintWriter output) {
+        super(data.packagename);
         this.data = data;
         this.output = output;
     }
 
     void methodHeader(Method m) {
 
-        Type ret = getReturnType(m);
-        Type[] params = getParameterTypes(m);
+        Type ret = m.getReturnType();
+        Type[] params = m.getArgumentTypes();
 
-        output.print("\tpublic final " + ret + " " + m.getName() + "(");
+        output.print("\tpublic final " + getType(ret) + " " + m.getName() + "(");
 
         for (int j = 0; j < params.length; j++) {
-            output.print(params[j] + " p" + j);
+            output.print(getType(params[j]) + " p" + j);
 
             if (j < params.length - 1) {
                 output.print(", ");
@@ -67,8 +68,8 @@ class RMIStubGenerator extends RMIGenerator {
     }
 
     void methodBody(Method m, int number) {
-        Type ret = getReturnType(m);
-        Type[] params = getParameterTypes(m);
+        Type ret = m.getReturnType();
+        Type[] params = m.getArgumentTypes();
 
         if (!ret.equals(Type.VOID)) {
             output.println("\t\t" + getInitedLocal(ret, "result") + ";");
@@ -184,7 +185,7 @@ class RMIStubGenerator extends RMIGenerator {
 
     void methodTrailer(Method m) {
 
-        Type ret = getReturnType(m);
+        Type ret = m.getReturnType();
 
         if (!ret.equals(Type.VOID)) {
             output.println("\t\treturn result;");
@@ -211,7 +212,12 @@ class RMIStubGenerator extends RMIGenerator {
                 + " extends ibis.rmi.impl.Stub implements ");
 
         for (int i = 0; i < interfaces.size(); i++) {
-            output.print(((JavaClass) interfaces.get(i)).getClassName());
+            String name = ((JavaClass) interfaces.get(i)).getClassName();
+            if (data.packagename != null && name.startsWith(data.packagename + ".")) {
+                output.print(name.substring(data.packagename.length() + 1));
+            } else {
+                output.print(name);
+            }
 
             if (i < interfaces.size() - 1) {
                 output.print(", ");

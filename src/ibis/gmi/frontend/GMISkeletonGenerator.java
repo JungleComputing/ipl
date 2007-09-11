@@ -21,6 +21,7 @@ class GMISkeletonGenerator extends GMIGenerator {
     String dest_name;
 
     GMISkeletonGenerator(BT_Analyzer data, PrintWriter output) {
+        super(data.packagename);
         this.data = data;
         this.output = output;
     }
@@ -182,7 +183,7 @@ class GMISkeletonGenerator extends GMIGenerator {
     void handleMethodInvocation(String spacing, Method m, Type ret,
             Type[] params) {
 
-        String methodName = GMIGenerator.getUniqueMethodName(m);
+        String methodName = getUniqueMethodName(m);
         
         output.println(spacing
                 + "\tif (logger.isDebugEnabled()) logger.debug(Group.rank() + " + 
@@ -248,7 +249,7 @@ class GMISkeletonGenerator extends GMIGenerator {
 
         Type ret = m.getReturnType();
         Type[] params = m.getArgumentTypes();
-        String methodName = GMIGenerator.getUniqueMethodName(m);        
+        String methodName = getUniqueMethodName(m);        
         
         output.print(spacing + "private final void " + methodName 
                 + "(int invocationMode, int resultMode, ReadMessage r) "
@@ -435,7 +436,7 @@ class GMISkeletonGenerator extends GMIGenerator {
         for (int i = 0; i < methods.size(); i++) {
             Method m = (Method) methods.get(i);
             
-            String methodName = GMIGenerator.getUniqueMethodName(m);
+            String methodName = getUniqueMethodName(m);
             
             output.println(spacing + "\tcase " + i + ":");
             output.println(spacing + "\t\t" + methodName

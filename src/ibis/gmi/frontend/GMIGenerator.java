@@ -9,7 +9,13 @@ import org.apache.bcel.generic.Type;
 
 class GMIGenerator {
 
-    public static String getInitedLocal(Type c, String name) {
+    String packageName;
+
+    GMIGenerator(String packageName) {
+        this.packageName = packageName;
+    }
+
+    public String getInitedLocal(Type c, String name) {
 
         String result = null;
 
@@ -40,7 +46,7 @@ class GMIGenerator {
         return result;
     }
 
-    public static String containerType(Type c) {
+    public String containerType(Type c) {
 
         if (!c.equals(Type.VOID)) {
 
@@ -69,7 +75,7 @@ class GMIGenerator {
         return "Object";
     }
 
-    public static String getType(Type c) {
+    public String getType(Type c) {
 
         if (c instanceof ArrayType) {
             return getType(((ArrayType) c).getElementType()) + "[]";
@@ -96,12 +102,16 @@ class GMIGenerator {
                     return "boolean";
                 }
             }
-            return c.toString();
+            String name = c.toString();
+            if (packageName != null && name.startsWith(packageName + ".")) {
+                return name.substring(packageName.length() + 1);
+            }
+            return name;
         }
         return "void";
     }
 
-    public static String getArrayType(ArrayType c, String s) {
+    public String getArrayType(ArrayType c, String s) {
         Type e = c.getElementType();
         if (e instanceof ArrayType) {
             return getArrayType((ArrayType) e, s) + "[]";
@@ -109,7 +119,7 @@ class GMIGenerator {
         return getType(e) + "[" + s + "]";
     }
 
-    public static String printType(Type c) {
+    public String printType(Type c) {
 
         if (!c.equals(Type.VOID)) {
 
@@ -139,12 +149,12 @@ class GMIGenerator {
         return null;
     }
 
-    public static String writeMessageType(String pre, String message, Type c,
+    public String writeMessageType(String pre, String message, Type c,
             String param) {
         return (pre + message + ".write" + printType(c) + "(" + param + ");");
     }
 
-    public static String readMessageType(String pre, String dest,
+    public String readMessageType(String pre, String dest,
             String message, Type c, boolean cast) {
         String temp = pre + dest + " = ";
 
@@ -157,7 +167,7 @@ class GMIGenerator {
         return temp;
     }
 
-    static String do_mangle(StringBuffer s) {
+    String do_mangle(StringBuffer s) {
         // OK, now sanitize parameters
         int i = 0;
         while (i < s.length()) {
@@ -188,7 +198,7 @@ class GMIGenerator {
         return s.toString();
     }
 
-    static String do_mangle(String name, String sig) {
+    String do_mangle(String name, String sig) {
         StringBuffer s = new StringBuffer(sig);
         name = do_mangle(new StringBuffer(name));
 
@@ -209,11 +219,11 @@ class GMIGenerator {
         return name + "__" + do_mangle(s);
     }
 
-    public static String getUniqueName(Method m) {                 
+    public String getUniqueName(Method m) {                 
         return do_mangle(m.getName(), m.getSignature());
     }
     
-    public static String getUniqueMethodName(Method m) {
+    public String getUniqueMethodName(Method m) {
         return "GMI_" + getUniqueName(m);
     }
 }
