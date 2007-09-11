@@ -31,12 +31,9 @@ final class RandomEventPusher implements Runnable {
 
         public void run() {
             while (!pool.ended()) {
-                logger.debug("scheduling node contactor");
                 long timeout = interval;
 
                 createNewThread();
-
-                logger.debug("scheduled node contactor");
 
                 if (adaptInterval) {
                     int poolSize = pool.getSize();
@@ -96,6 +93,7 @@ final class RandomEventPusher implements Runnable {
         if (member == null) {
             logger.debug("no member to contact");
         } else {
+            logger.debug("gossiping/pushing to " + member);
             pool.push(member, false);
         }
         threadDone();

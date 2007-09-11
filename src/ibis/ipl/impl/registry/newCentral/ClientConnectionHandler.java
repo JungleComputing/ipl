@@ -55,14 +55,18 @@ final class ClientConnectionHandler implements Runnable {
             connection.out().flush();
 
         } else if (localTime < peerTime) {
-            Event[] newEvents = new Event[connection.in().readInt()];
-            for (int i = 0; i < newEvents.length; i++) {
-                newEvents[i] = new Event(connection.in());
+            int nrOfEvents = connection.in().readInt();
+
+            if (nrOfEvents > 0) {
+                Event[] newEvents = new Event[nrOfEvents];
+                for (int i = 0; i < newEvents.length; i++) {
+                    newEvents[i] = new Event(connection.in());
+                }
+
+                connection.close();
+
+                registry.newEventsReceived(newEvents);
             }
-
-            connection.close();
-
-            registry.newEventsReceived(newEvents);
         }
         connection.close();
     }
@@ -170,7 +174,7 @@ final class ClientConnectionHandler implements Runnable {
         }
 
         // create new thread for next connection
-        ThreadPool.createNew(this, "peer connection handler");
+        ThreadPool.createNew(this, "client connection handler");
 
         if (connection == null) {
             return;

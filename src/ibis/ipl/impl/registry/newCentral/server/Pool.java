@@ -86,13 +86,12 @@ final class Pool implements Runnable {
         members = new MemberSet();
 
         if (gossip) {
-            new IterativeEventPusher(this, eventPushInterval);
+            new IterativeEventPusher(this, eventPushInterval, false);
             new RandomEventPusher(this, gossipInterval, adaptGossipInterval);
-
         } else if (tree) {
             throw new Error("tree not implemented");
         } else { // central
-            new IterativeEventPusher(this, eventPushInterval);
+            new IterativeEventPusher(this, eventPushInterval, true);
         }
 
         pusher = new OndemandEventPusher(this);
@@ -232,18 +231,27 @@ final class Pool implements Runnable {
     public void writeState(DataOutputStream out) throws IOException {
         int time;
         Member[] memberArray;
-        ArrayList<String> electionKeys = new ArrayList<String>();
-        ArrayList<IbisIdentifier> electionValues = new ArrayList<IbisIdentifier>();
+        int nrOfElections;
+        String [] electionNames;
+        IbisIdentifier[] electionResults;
 
         // copy state
         synchronized (this) {
-            time = getEventTime();
             memberArray = members.asArray();
 
-            for (Map.Entry<String, IbisIdentifier> entry : elections.entrySet()) {
-                electionKeys.add(entry.getKey());
-                electionValues.add(entry.getValue());
+            nrOfElections = elections.size();
+            electionNames = new String[nrOfElections];
+            electionResults = new IbisIdentifier[nrOfElections];
+            
+            int i = 0;
+            for (Map.Entry<String, IbisIdentifier> entry: elections.entrySet()) {
+                electionNames[i] = entry.getKey();
+                electionResults[i] = entry.getValue();
+                i++;
             }
+            
+            time = getEventTime();
+
         }
 
         // write state
@@ -253,14 +261,17 @@ final class Pool implements Runnable {
             member.getIbis().writeTo(out);
         }
 
-        out.writeInt(electionKeys.size());
-        for (int i = 0; i < electionKeys.size(); i++) {
-            electionKeys.get(0);
-            electionValues.get(0);
+        out.writeInt(nrOfElections);
+        for (String electionName: electionNames) {
+            out.writeUTF(electionName);
+        }
+        for (IbisIdentifier ibis: electionResults) {
+            ibis.writeTo(out);
         }
 
         out.writeInt(time);
 
+        out.flush();
     }
 
     /*

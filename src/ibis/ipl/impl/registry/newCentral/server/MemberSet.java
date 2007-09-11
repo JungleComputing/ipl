@@ -99,6 +99,9 @@ final class MemberSet {
     }
 
     Member getRandom() {
+        if (list.isEmpty()) {
+            return null;
+        }
         return list.get(random.nextInt(size()));
     }
 

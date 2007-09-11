@@ -24,6 +24,8 @@ public class RegistryProperties {
 
     public static final String TREE = PREFIX + "tree";
 
+    public static final String PEER_BOOTSTRAP = PREFIX + "peer.bootstrap";
+
     public static final String CLIENT_CONNECT_TIMEOUT = PREFIX
             + "connect.timeout";
 
@@ -78,6 +80,9 @@ public class RegistryProperties {
                     "false",
                     "Boolean: use a broadcast tree instead of "
                             + "serial send or gossiping" },
+
+            { PEER_BOOTSTRAP, "true",
+                    "Boolean: bootstrap with peers, not just with the server" },
 
             { SERVER_STANDALONE, "false",
                     "Boolean: if true, a stand-alone server is used/expected" },

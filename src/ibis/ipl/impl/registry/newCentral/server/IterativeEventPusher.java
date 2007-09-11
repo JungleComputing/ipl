@@ -88,9 +88,12 @@ final class IterativeEventPusher implements Runnable {
 
     private final long timeout;
 
-    IterativeEventPusher(Pool pool, long timeout) {
+    private final boolean eventTriggersPush;
+
+    IterativeEventPusher(Pool pool, long timeout, boolean eventTriggersPush) {
         this.pool = pool;
         this.timeout = timeout;
+        this.eventTriggersPush = eventTriggersPush;
 
         ThreadPool.createNew(this, "event pusher scheduler thread");
     }
@@ -118,7 +121,12 @@ final class IterativeEventPusher implements Runnable {
 
             pool.purgeHistory();
 
-            pool.waitForEventTime(eventTime + 1, timeout);
+            if (eventTriggersPush) {
+                pool.waitForEventTime(eventTime + 1, timeout);
+            } else {
+                //wait for the timeout, or until the pool ends
+                pool.waitForEventTime(Integer.MAX_VALUE, timeout);
+            }
         }
     }
 

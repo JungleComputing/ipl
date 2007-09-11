@@ -28,7 +28,10 @@ public class Gossiper implements Runnable {
             try {
                 ibis = registry.getRandomMember();
 
+                logger.debug("gossiping with " + ibis);
+
                 registry.gossip(ibis);
+                
             } catch (IOException e) {
                 logger.error("could not gossip with " + ibis + ": " + e);
 

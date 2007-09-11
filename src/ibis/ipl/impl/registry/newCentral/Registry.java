@@ -46,6 +46,8 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
     private final boolean closedWorld;
 
     private final boolean gossip;
+    
+    private final boolean peerBootstrap;
 
     private final long gossipInterval;
 
@@ -186,6 +188,7 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
         long eventPushInterval = properties
                 .getIntProperty(RegistryProperties.EVENT_PUSH_INTERVAL) * 1000;
         gossip = properties.getBooleanProperty(RegistryProperties.GOSSIP);
+        peerBootstrap = properties.getBooleanProperty(RegistryProperties.PEER_BOOTSTRAP);
         gossipInterval = properties
                 .getIntProperty(RegistryProperties.GOSSIP_INTERVAL) * 1000;
         boolean adaptGossipInterval = properties
@@ -289,9 +292,11 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
         out.writeInt(elections.size());
         for (Map.Entry<String, IbisIdentifier> entry : elections.entrySet()) {
             out.writeUTF(entry.getKey());
+        }
+        for (Map.Entry<String, IbisIdentifier> entry : elections.entrySet()) {
             entry.getValue().writeTo(out);
         }
-
+        
         out.writeInt(time);
     }
 
@@ -312,10 +317,19 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
         }
 
         int nrOfElections = in.readInt();
+        String[] electionNames = new String[nrOfElections];
+        for (int i = 0; i < electionNames.length; i++) {
+            electionNames[i] = in.readUTF();
+        }
+        IbisIdentifier[] electionResults = new IbisIdentifier[nrOfElections];
+        for (int i = 0; i < electionResults.length; i++) {
+            electionResults[i] = new IbisIdentifier(in);
+        }
+        
 
         Map<String, IbisIdentifier> elections = new HashMap<String, IbisIdentifier>();
         for (int i = 0; i < nrOfElections; i++) {
-            elections.put(in.readUTF(), new IbisIdentifier(in));
+            elections.put(electionNames[i], electionResults[i]);
         }
 
         time = in.readInt();
@@ -342,38 +356,40 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
 
     private void bootstrap(ArrayList<IbisIdentifier> bootstrapList)
             throws IOException {
-        for (IbisIdentifier ibis : bootstrapList) {
-            if (!ibis.equals(identifier)) {
-                logger.debug("trying to bootstrap with data from " + ibis);
-                Connection connection = null;
-                try {
-                    connection = connectionFactory.connect(ibis, false);
+        if (peerBootstrap) {
+            for (IbisIdentifier ibis : bootstrapList) {
+                if (!ibis.equals(identifier)) {
+                    logger.debug("trying to bootstrap with data from " + ibis);
+                    Connection connection = null;
+                    try {
+                        connection = connectionFactory.connect(ibis, false);
 
-                    connection.out().writeByte(Protocol.CLIENT_MAGIC_BYTE);
-                    connection.out().writeByte(Protocol.OPCODE_GET_STATE);
+                        connection.out().writeByte(Protocol.CLIENT_MAGIC_BYTE);
+                        connection.out().writeByte(Protocol.OPCODE_GET_STATE);
 
-                    getIbisIdentifier().writeTo(connection.out());
-                    connection.out().writeInt(getTime());
-                    connection.out().flush();
+                        getIbisIdentifier().writeTo(connection.out());
+                        connection.out().writeInt(getTime());
+                        connection.out().flush();
 
-                    connection.getAndCheckReply();
+                        connection.getAndCheckReply();
 
-                    readState(connection.in());
-                    return;
+                        readState(connection.in());
+                        return;
 
-                } catch (Exception e) {
-                    logger.error("bootstrap with " + ibis
-                            + " failed, trying next one");
-                } finally {
-                    if (connection != null) {
-                        connection.close();
+                    } catch (Exception e) {
+                        logger.error("bootstrap with " + ibis
+                                + " failed, trying next one");
+                    } finally {
+                        if (connection != null) {
+                            connection.close();
+                        }
                     }
                 }
             }
+            logger
+                    .debug("could not bootstrap registry with any peer, trying server");
         }
-        logger
-                .debug("could not bootstrap registry with any peer, trying server");
-
+        logger.debug("bootstrapping wit server");
         Connection connection = connectionFactory.connectToServer(true);
         try {
             connection.out().writeByte(Protocol.SERVER_MAGIC_BYTE);
@@ -570,10 +586,12 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
 
             Event[] newEvents;
             if (peerTime > localTime) {
+                logger.debug("localtime = " + localTime + ", peerTime = "
+                        + peerTime + ", receiving events");
 
                 int nrOfEvents = connection.in().readInt();
                 if (nrOfEvents > 0) {
-                    newEvents = new Event[connection.in().readInt()];
+                    newEvents = new Event[nrOfEvents];
                     for (int i = 0; i < newEvents.length; i++) {
                         newEvents[i] = new Event(connection.in());
                     }
@@ -581,6 +599,9 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
                 }
                 connection.close();
             } else if (peerTime < localTime) {
+                logger.debug("localtime = " + localTime + ", peerTime = "
+                        + peerTime + ", pushing events");
+
                 Event[] sendEvents = getEventsFrom(peerTime);
 
                 connection.out().writeInt(sendEvents.length);
