@@ -11,7 +11,9 @@ final class Stats {
 
     private double[] totalTimes;
 
-    private long[] requestCounter;
+    private long[] incomingRequestCounter;
+
+    private long[] outgoingRequestCounter;
 
     private int opcodes;
 
@@ -20,24 +22,30 @@ final class Stats {
     Stats(int opcodes) {
         this.opcodes = opcodes;
         totalTimes = new double[opcodes];
-        requestCounter = new long[opcodes];
+        incomingRequestCounter = new long[opcodes];
+        outgoingRequestCounter = new long[opcodes];
 
         start = System.currentTimeMillis();
     }
 
-    synchronized void add(byte opcode, long time) {
+    synchronized void add(byte opcode, long time, boolean incoming) {
         if (opcode >= opcodes) {
             logger.error("unknown opcode in handling stats: " + opcode);
         }
 
         totalTimes[opcode] = totalTimes[opcode] + time;
-        requestCounter[opcode]++;
+        if (incoming) {
+            incomingRequestCounter[opcode]++;
+        } else {
+            outgoingRequestCounter[opcode]++;
+        }
     }
 
     synchronized void clear() {
         for (int i = 0; i < opcodes; i++) {
             totalTimes[i] = 0;
-            requestCounter[i] = 0;
+            incomingRequestCounter[i] = 0;
+            outgoingRequestCounter[i] = 0;
         }
     }
 
@@ -47,16 +55,16 @@ final class Stats {
 
         formatter.format("registry server statistics at %.2f seconds:\n",
                 (System.currentTimeMillis() - start) / 1000.0);
-        formatter.format("TYPE          COUNT  TOTAL_TIME   AVG_TIME\n");
-        formatter.format("                          (sec)       (ms)\n");
+        formatter.format("TYPE          IN_COUNT OUT_COUNT  TOTAL_TIME   AVG_TIME\n");
+        formatter.format("                                       (sec)       (ms)\n");
         for (byte i = 0; i < opcodes; i++) {
-            double average = totalTimes[i] / requestCounter[i];
-            if (requestCounter[i] == 0) {
+            double average = totalTimes[i] / (incomingRequestCounter[i] + outgoingRequestCounter[i]);
+            if (incomingRequestCounter[i] == 0 && outgoingRequestCounter[i] == 0) {
                 average = 0;
             }
 
-            formatter.format("%-12s %6d  %10.2f %10.2f\n", Protocol
-                    .opcodeString(i), requestCounter[i],
+            formatter.format("%-12s %9d %9d  %10.2f %10.2f\n", Protocol
+                    .opcodeString(i), incomingRequestCounter[i], outgoingRequestCounter[i],
                     totalTimes[i] / 1000.0, average);
         }
 

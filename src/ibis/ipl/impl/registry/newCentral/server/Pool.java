@@ -12,7 +12,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -57,6 +56,9 @@ final class Pool implements Runnable {
     private final boolean printEvents;
 
     private final boolean printErrors;
+    
+    //statistics for the server
+    private final Stats serverStats;
 
     private int nextID;
 
@@ -69,12 +71,13 @@ final class Pool implements Runnable {
     Pool(String name, ConnectionFactory connectionFactory,
             long heartbeatInterval, long eventPushInterval, boolean gossip,
             long gossipInterval, boolean adaptGossipInterval, boolean tree,
-            boolean printEvents, boolean printErrors) {
+            boolean printEvents, boolean printErrors, Stats serverStats) {
         this.name = name;
         this.connectionFactory = connectionFactory;
         this.heartbeatInterval = heartbeatInterval;
         this.printEvents = printEvents;
         this.printErrors = printErrors;
+        this.serverStats = serverStats;
 
         currentEventTime = 0;
         minEventTime = 0;
@@ -466,6 +469,8 @@ final class Pool implements Runnable {
     }
 
     void ping(Member member) {
+        long start = System.currentTimeMillis();
+        
         if (ended()) {
             return;
         }
@@ -496,6 +501,7 @@ final class Pool implements Runnable {
             }
             logger.debug("ping to " + member + " successful");
             member.updateLastSeenTime();
+            serverStats.add(Protocol.OPCODE_PING, System.currentTimeMillis() - start, false);
         } catch (Exception e) {
             logger.debug("error on pinging ibis " + member, e);
 
@@ -517,6 +523,7 @@ final class Pool implements Runnable {
      *                ended or the peer is no longer a member.
      */
     void push(Member member, boolean force) {
+        long start = System.currentTimeMillis();
         if (ended()) {
             if (!force) {
                 return;
@@ -579,6 +586,7 @@ final class Pool implements Runnable {
 
             logger.debug("connection to " + member + " closed");
             member.updateLastSeenTime();
+            serverStats.add(Protocol.OPCODE_PUSH, System.currentTimeMillis() - start, false);
         } catch (IOException e) {
             if (isMember(member)) {
                 if (printErrors) {

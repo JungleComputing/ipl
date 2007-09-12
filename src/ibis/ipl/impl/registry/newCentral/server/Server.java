@@ -1,6 +1,7 @@
 package ibis.ipl.impl.registry.newCentral.server;
 
 import ibis.ipl.impl.registry.newCentral.ConnectionFactory;
+import ibis.ipl.impl.registry.newCentral.Protocol;
 import ibis.ipl.impl.registry.newCentral.RegistryProperties;
 import ibis.server.ServerProperties;
 import ibis.server.Service;
@@ -33,6 +34,8 @@ public final class Server extends Thread implements Service {
     private final ConnectionFactory connectionFactory;
 
     private final HashMap<String, Pool> pools;
+    
+    private final Stats stats;
 
     private final boolean printStats;
 
@@ -85,6 +88,8 @@ public final class Server extends Thread implements Service {
                         .getBooleanProperty(ServerProperties.PRINT_ERRORS);
 
         pools = new HashMap<String, Pool>();
+        
+        stats = new Stats(Protocol.NR_OF_OPCODES);
 
         ThreadPool.createNew(this, "NEW Central Registry Service");
 
@@ -127,6 +132,8 @@ public final class Server extends Thread implements Service {
                 .getBooleanProperty(RegistryProperties.SERVER_PRINT_ERRORS);
 
         pools = new HashMap<String, Pool>();
+        
+        stats = new Stats(Protocol.NR_OF_OPCODES);
 
         this.setDaemon(true);
         this.start();
@@ -134,6 +141,10 @@ public final class Server extends Thread implements Service {
 
     synchronized Pool getPool(String poolName) {
         return pools.get(poolName);
+    }
+    
+    Stats getStats() {
+        return stats;
     }
 
     // atomic get/create pool
@@ -156,7 +167,7 @@ public final class Server extends Thread implements Service {
 
             result = new Pool(poolName, connectionFactory, heartbeatInterval,
                     eventPushInterval, gossip, gossipInterval,
-                    adaptGossipInterval, tree, printEvents, printErrors);
+                    adaptGossipInterval, tree, printEvents, printErrors, stats);
             pools.put(poolName, result);
         }
 
@@ -185,7 +196,7 @@ public final class Server extends Thread implements Service {
         notifyAll();
         connectionFactory.end();
         if (handler != null && printStats) {
-            System.out.println(handler.getStats(false));
+            System.out.println(stats.getStats(false));
         }
     }
 
@@ -205,7 +216,7 @@ public final class Server extends Thread implements Service {
 
         while (!stopped) {
             if (printStats) {
-                System.out.println(handler.getStats(false));
+                System.out.println(stats.getStats(false));
             }
 
             Pool[] poolArray = pools.values().toArray(new Pool[0]);

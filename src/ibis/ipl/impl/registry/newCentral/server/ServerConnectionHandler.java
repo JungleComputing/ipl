@@ -22,12 +22,9 @@ final class ServerConnectionHandler implements Runnable {
 
     private final ConnectionFactory connectionFactory;
 
-    private final Stats stats;
-
     ServerConnectionHandler(Server server, ConnectionFactory connectionFactory) {
         this.server = server;
         this.connectionFactory = connectionFactory;
-        stats = new Stats(Protocol.NR_OF_OPCODES);
 
         ThreadPool.createNew(this, "registry server connection handler");
     }
@@ -243,10 +240,6 @@ final class ServerConnectionHandler implements Runnable {
         pool.gotHeartbeat(identifier);
     }
 
-    String getStats(boolean clear) {
-        return stats.getStats(clear);
-    }
-
     public void run() {
         Connection connection = null;
         try {
@@ -329,7 +322,7 @@ final class ServerConnectionHandler implements Runnable {
             connection.close();
         }
 
-        stats.add(opcode, System.currentTimeMillis() - start);
+        server.getStats().add(opcode, System.currentTimeMillis() - start, true);
         logger.debug("done handling request");
     }
 }
