@@ -82,18 +82,20 @@ management:
 - add basic network usage statistics to Ibis. (Which ones? --Ceriel)
 
 ibis registry:
-+ fixed huge bug in registry communication code (no, in.read(b) does NOT read the entire array) (done Jason)
++ fixed huge bug in registry communication code (no, in.read(b) does NOT read 
+  the entire array) (done Jason)
 + clean up connections in pinger when an exception occurs (done Jason)
 - check if all Ibisses in a pool are of the same implementation, version, etc.
 + forget unneeded event history OR stop giving these events to the user
+  (Done, Niels)
 + add an upcall for elections.
+  (Done, Niels)
 + Generic: if closed.world is selected, check if ibis.pool.size is set, and 
-  ignore joins beyond size, and all leaves. Moved to registry, since this
-  functionality should be in the registry (Ceriel).
+  ignore joins beyond size, and all leaves. (Done, Niels).
 + registry: avoid almost simultaneous connection attempts from multiple
   threads to a single server socket (seems to confuse smartsockets).
   This now happens with ping() and push(). Used to also happen with
-  push() and push(), but I think I fixed that (Ceriel).
+  push() and push(), but I think I fixed that (Ceriel). (Done, Niels)
 
 implementations:
 + check TcpSendPost.close: why don't we close in case of a normal exception? --Rob (Done Ceriel)
