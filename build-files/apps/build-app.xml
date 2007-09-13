@@ -55,14 +55,14 @@
             <arg line="-Dibis.pool.name=test-pool" />
             <arg line="-Dibis.server.address=localhost:8888" />
             <arg value="${define-ibis-name}" />
-            <arg line="-Dsatin.localPorts ${java-args} ibis.util.Postpone 2 -o ant-test.out ${runjob}" />
+            <arg line="${java-args} ibis.util.Postpone 2 -o ant-test.out ${runjob}" />
         </exec>
         <exec dir="${basedir}" executable="${ibis}/bin/ibis-run" timeout="500000" failonerror="true" vmlauncher="false">
             <arg line="-Dibis.pool.size=2" />
             <arg line="-Dibis.pool.name=test-pool" />
             <arg line="-Dibis.server.address=localhost:8888" />
             <arg value="${define-ibis-name}" />
-            <arg line="-Dsatin.localPorts ${java-args} ${runjob}" />
+            <arg line="${java-args} ${runjob}" />
         </exec>
     </target>
 
@@ -77,7 +77,7 @@
         <exec dir="${basedir}" executable="/usr/local/VU/reserve.sge/bin/prun" vmlauncher="false">
             <arg line="-1 ${ibis}/bin/ibis-prun ${prun-nprocs}" />
             <arg value="${define-ibis-name}" />
-            <arg line="-Dsatin.localPorts ${java-args} ${runjob}" />
+            <arg line="${java-args} ${runjob}" />
         </exec>
     </target>
 
@@ -87,13 +87,13 @@
             <arg line="-Dibis.pool.name=test-pool" />
             <arg line="-Dibis.server.address=localhost:8888" />
             <arg value="${define-ibis-name}" />
-            <arg line="-Dsatin.localPorts ${java-args} ${runjob}" />
+            <arg line="${java-args} ${runjob}" />
         </exec>
     </target>
 
     <target name="runseq">
         <exec dir="${basedir}" executable="${ibis}/bin/ibis-run" timeout="500000" failonerror="true" vmlauncher="false">
-            <arg line="-Dsatin.localPorts ${java-args} ${runjob}" />
+            <arg line="${java-args} ${runjob}" />
         </exec>
     </target>
 
