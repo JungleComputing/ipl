@@ -7,7 +7,7 @@ import java.util.Map;
 
 public class RegistryProperties {
 
-    public static final String PREFIX = "ibis.registry.newCentral.";
+    public static final String PREFIX = "ibis.registry.central.";
 
     public static final String HEARTBEAT_INTERVAL = PREFIX
             + "heartbeat.interval";
@@ -72,7 +72,7 @@ public class RegistryProperties {
             {
                     ADAPT_GOSSIP_INTERVAL,
                     "false",
-                    "Boolean: if true, the server gossips more often if there are"
+                    "Boolean: if true, the server gossips more often if there are "
                             + "more nodes in a pool" },
 
             {

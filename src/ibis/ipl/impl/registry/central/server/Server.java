@@ -34,7 +34,7 @@ public final class Server extends Thread implements Service {
     private final ConnectionFactory connectionFactory;
 
     private final HashMap<String, Pool> pools;
-    
+
     private final Stats stats;
 
     private final boolean printStats;
@@ -88,12 +88,12 @@ public final class Server extends Thread implements Service {
                         .getBooleanProperty(ServerProperties.PRINT_ERRORS);
 
         pools = new HashMap<String, Pool>();
-        
+
         stats = new Stats(Protocol.NR_OF_OPCODES);
 
-        ThreadPool.createNew(this, "NEW Central Registry Service");
+        ThreadPool.createNew(this, "Central Registry Service");
 
-        logger.debug("Started NEW Central Registry service on virtual port "
+        logger.debug("Started Central Registry service on virtual port "
                 + VIRTUAL_PORT);
     }
 
@@ -132,7 +132,7 @@ public final class Server extends Thread implements Service {
                 .getBooleanProperty(RegistryProperties.SERVER_PRINT_ERRORS);
 
         pools = new HashMap<String, Pool>();
-        
+
         stats = new Stats(Protocol.NR_OF_OPCODES);
 
         this.setDaemon(true);
@@ -142,7 +142,7 @@ public final class Server extends Thread implements Service {
     synchronized Pool getPool(String poolName) {
         return pools.get(poolName);
     }
-    
+
     Stats getStats() {
         return stats;
     }
@@ -154,17 +154,10 @@ public final class Server extends Thread implements Service {
         Pool result = getPool(poolName);
 
         if (result == null || result.ended()) {
-            if (printEvents) {
-                // print to standard out
-                System.out
-                        .println("NEW Central Registry: creating new pool: \""
-                                + poolName + "\"");
-            } else {
-                // print to the logger
-                logger.info("Central Registry: creating new pool: \""
-                        + poolName + "\"");
-            }
-
+            //print message
+            System.out.println("Central Registry: creating new pool: \""
+                    + poolName + "\"");
+            
             result = new Pool(poolName, connectionFactory, heartbeatInterval,
                     eventPushInterval, gossip, gossipInterval,
                     adaptGossipInterval, tree, printEvents, printErrors, stats);

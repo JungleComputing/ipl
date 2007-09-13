@@ -62,7 +62,7 @@ public final class IbisProperties {
     /** List of {NAME, DESCRIPTION, DEFAULT_VALUE} for properties. */
     private static final String[][] propertiesList =
             new String[][] {
-                { POOL_NAME, null, "name of the pool this ibis belongs to" },
+                { POOL_NAME, null, "String: name of the pool this ibis belongs to" },
                 { POOL_SIZE, null,
                     "Integer: size of the pool this ibis belongs to" },
                 { SERVER_ADDRESS, null, "address of the central ibis server" },
