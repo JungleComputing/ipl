@@ -457,7 +457,6 @@ final class FTCommunication implements Config, ReceivePortConnectUpcall,
         }
     }
 
-    @Override
     public void electionResult(String electionName, IbisIdentifier winner) {
         // TODO Use this result?
     }
