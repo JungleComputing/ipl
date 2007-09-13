@@ -57,15 +57,17 @@ final class ServerConnectionHandler implements Runnable {
         long gossipInterval = connection.in().readLong();
         boolean adaptGossipInterval = connection.in().readBoolean();
         boolean tree = connection.in().readBoolean();
+        boolean closedWorld = connection.in().readBoolean();
+        int poolSize = connection.in().readInt();
 
         pool = server.getAndCreatePool(poolName, heartbeatInterval,
                 eventPushInterval, gossip, gossipInterval, adaptGossipInterval,
-                tree);
+                tree, closedWorld, poolSize);
 
         try {
             member = pool.join(implementationData, clientAddress, location);
         } catch (Exception e) {
-            connection.closeWithError(e.toString());
+            connection.closeWithError(e.getMessage());
             return;
         }
 
@@ -160,7 +162,7 @@ final class ServerConnectionHandler implements Runnable {
             pool.dead(corpse, new Exception("ibis declared dead by "
                     + identifier));
         } catch (Exception e) {
-            connection.closeWithError(e.toString());
+            connection.closeWithError(e.getMessage());
             return;
         }
 

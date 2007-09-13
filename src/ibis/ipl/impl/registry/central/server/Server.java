@@ -61,7 +61,7 @@ public final class Server extends Thread implements Service {
         typedProperties.addProperties(properties);
 
         // Init logger
-        Logger logger = Logger.getLogger("ibis.ipl.impl.registry.newCentral");
+        Logger logger = Logger.getLogger("ibis.ipl.impl.registry.central");
         Level level = Level.toLevel(typedProperties
                 .getProperty(ServerProperties.LOG_LEVEL));
         Log.initLog4J(logger, level);
@@ -150,7 +150,7 @@ public final class Server extends Thread implements Service {
     // atomic get/create pool
     synchronized Pool getAndCreatePool(String poolName, long heartbeatInterval,
             long eventPushInterval, boolean gossip, long gossipInterval,
-            boolean adaptGossipInterval, boolean tree) throws IOException {
+            boolean adaptGossipInterval, boolean tree, boolean closedWorld, int poolSize) throws IOException {
         Pool result = getPool(poolName);
 
         if (result == null || result.ended()) {
@@ -160,7 +160,7 @@ public final class Server extends Thread implements Service {
             
             result = new Pool(poolName, connectionFactory, heartbeatInterval,
                     eventPushInterval, gossip, gossipInterval,
-                    adaptGossipInterval, tree, printEvents, printErrors, stats);
+                    adaptGossipInterval, tree, closedWorld, poolSize, printEvents, printErrors, stats);
             pools.put(poolName, result);
         }
 

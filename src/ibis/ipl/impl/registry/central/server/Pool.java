@@ -50,6 +50,11 @@ final class Pool implements Runnable {
     private final OndemandEventPusher pusher;
 
     private final String name;
+    
+    private final boolean closedWorld;
+    
+    //size of this pool (if closed world)
+    private final int fixedSize;
 
     private final ConnectionFactory connectionFactory;
 
@@ -70,11 +75,13 @@ final class Pool implements Runnable {
 
     Pool(String name, ConnectionFactory connectionFactory,
             long heartbeatInterval, long eventPushInterval, boolean gossip,
-            long gossipInterval, boolean adaptGossipInterval, boolean tree,
+            long gossipInterval, boolean adaptGossipInterval, boolean tree, boolean closedWorld, int poolSize,
             boolean printEvents, boolean printErrors, Stats serverStats) {
         this.name = name;
         this.connectionFactory = connectionFactory;
         this.heartbeatInterval = heartbeatInterval;
+        this.closedWorld = closedWorld;
+        this.fixedSize = poolSize;
         this.printEvents = printEvents;
         this.printErrors = printErrors;
         this.serverStats = serverStats;
@@ -199,7 +206,11 @@ final class Pool implements Runnable {
         if (ended()) {
             throw new Exception("Pool already ended");
         }
-
+        
+        if (closedWorld && nextID >= fixedSize) {
+            throw new Exception("\"closed world\" pool of size " + fixedSize + " already full");
+        }
+        
         String id = Integer.toString(nextID);
         nextID++;
 
@@ -214,6 +225,9 @@ final class Pool implements Runnable {
         if (printEvents) {
             print(identifier + " joined pool \"" + name + "\" now "
                     + members.size() + " members");
+            if (closedWorld && nextID >= fixedSize) {
+                print("pool \"" + name + "\" now closed");
+            }
         }
 
         addEvent(Event.JOIN, null, identifier);

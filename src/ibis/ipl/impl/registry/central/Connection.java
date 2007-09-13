@@ -173,7 +173,7 @@ public final class Connection {
         byte reply = in.readByte();
         if (reply == Protocol.REPLY_ERROR) {
             close();
-            throw new IOException("ERROR: " + in.readUTF());
+            throw new IOException(in.readUTF());
         } else if (reply != Protocol.REPLY_OK) {
             close();
             throw new IOException("Unknown reply (" + reply + ")");

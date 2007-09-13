@@ -53,7 +53,7 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
 
     private final long heartbeatInterval;
 
-    private final int numInstances;
+    private final int poolSize;
 
     private boolean stopped = false;
 
@@ -69,7 +69,9 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
 
     private final ArrayList<Event> eventHistory;
 
-    // date structures that the user can poll
+    private final Random random;
+    
+    // data structures that the user can poll
 
     private final ArrayList<ibis.ipl.IbisIdentifier> joinedIbises;
 
@@ -83,7 +85,7 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
 
     private int time;
 
-    private final Random random;
+    private int nrOfIbissesJoined;
 
     private long heartbeatDeadline;
 
@@ -129,6 +131,7 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
         random = new Random();
 
         time = -1;
+        nrOfIbissesJoined = 0;
         initialized = false;
 
         if (capabilities.hasCapability(IbisCapabilities.MEMBERSHIP)) {
@@ -151,7 +154,7 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
 
         if (closedWorld) {
             try {
-                numInstances = properties
+                poolSize = properties
                         .getIntProperty(IbisProperties.POOL_SIZE);
             } catch (NumberFormatException e) {
                 throw new IbisConfigurationException(
@@ -160,7 +163,7 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
                                 + IbisProperties.POOL_SIZE + " undefined", e);
             }
         } else {
-            numInstances = -1;
+            poolSize = -1;
         }
 
         connectionFactory = new ConnectionFactory(properties);
@@ -169,7 +172,7 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
 
         if (properties.getBooleanProperty(RegistryProperties.SERVER_STANDALONE)
                 && connectionFactory.serverIsLocalHost()) {
-            logger.debug("automagiscally creating server");
+            logger.debug("automagically creating server");
             try {
                 properties.setProperty(RegistryProperties.SERVER_PORT, Integer
                         .toString(connectionFactory.getServerPort()));
@@ -202,7 +205,7 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
         // join at server
         identifier = join(connectionFactory.getLocalAddress(), location, data,
                 heartbeatInterval, eventPushInterval, gossip, gossipInterval,
-                adaptGossipInterval, tree, bootstrapList);
+                adaptGossipInterval, tree, closedWorld, poolSize, bootstrapList);
 
         registryHandler = handler;
 
@@ -429,7 +432,7 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
     private IbisIdentifier join(byte[] myAddress, Location location,
             byte[] implementationData, long heartbeatInterval,
             long eventPushInterval, boolean gossip, long gossipInterval,
-            boolean adaptGossipInterval, boolean tree,
+            boolean adaptGossipInterval, boolean tree, boolean closedWorld, int poolSize,
             ArrayList<IbisIdentifier> bootstrapList) throws IOException {
 
         logger.debug("joining to " + getPoolName() + ", connecting to server");
@@ -453,6 +456,8 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
             connection.out().writeLong(gossipInterval);
             connection.out().writeBoolean(adaptGossipInterval);
             connection.out().writeBoolean(tree);
+            connection.out().writeBoolean(closedWorld);
+            connection.out().writeInt(poolSize);
             connection.out().flush();
 
             logger.debug("reading join result info from server");
@@ -852,23 +857,17 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
             throw new IbisConfigurationException(
                     "totalNrOfIbisesInPool called but open world run");
         }
-        return numInstances;
+        return poolSize;
     }
 
-    public void waitForAll() {
+    public synchronized void waitForAll() {
 
         if (!closedWorld) {
             throw new IbisConfigurationException("waitForAll() called but not "
                     + "closed world");
         }
 
-        /*
-         * if (registryHandler != null && ! registryUpcallerEnabled) { throw new
-         * IbisConfigurationException("waitForAll() called but " + "registry
-         * events not enabled yet"); }
-         */
-
-        while (nrOfIbisses() < numInstances) {
+        while (nrOfIbissesJoined < poolSize) {
             try {
                 wait();
             } catch (InterruptedException e) {
@@ -953,12 +952,11 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
 
             logger.debug(newIbis + " joined our pool");
 
-            for (IbisIdentifier ibis : ibises) {
-                if (ibis.equals(newIbis)) {
-                    return;
-                }
-            }
             ibises.add(newIbis);
+            
+            nrOfIbissesJoined++;
+            //wake up waitForAll() function...
+            notifyAll();
 
             if (joinedIbises != null) {
                 joinedIbises.add(newIbis);
@@ -1108,10 +1106,6 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
         // return the requested portion of the list
         return eventHistory.subList(startIndex, eventHistory.size()).toArray(
                 new Event[0]);
-    }
-
-    synchronized void waitForNrOfIbisses(int numInstances) {
-
     }
 
     synchronized IbisIdentifier getRandomMember() {
