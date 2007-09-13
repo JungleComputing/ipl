@@ -14,7 +14,7 @@
     <property name="docs" location="docs" />
     <property name="rewritten-classlibs" location="classlibs" />
 
-    <property name="version" value="ibis-2.0-pre" />
+    <property name="version" value="ibis-2.0-rc1" />
 
     <!-- import environment properties -->
     <property environment="env" />
@@ -105,8 +105,6 @@
             <manifest>
                 <attribute name="Ibisc-Component" value="ibis.rmi.impl.frontend.Rmic" />
             </manifest>
-        </jar>
-        <jar destfile="lib/mpj.jar" basedir="${tmp}" includes="ibis/mpj/**/*.class">
         </jar>
 
         <!-- Copy external libraries to lib directory -->
