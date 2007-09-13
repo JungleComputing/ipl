@@ -10,17 +10,14 @@ import java.util.Properties;
 
 /**
  * Utility methods for setting and getting configuration properties. The
- * {@link #getConfigurationProperties()} method obtains the properties in the
+ * {@link #getDefaultProperties()} method obtains the properties in the
  * following order: first, some hardcoded properties are set. Next, a file
- * <code>ibis.properties</code> is obtained from the classpath, if present. If
- * so, it is read as a properties file, and the properties contained in it are
- * set, possibly overriding already set properties. Next, the same is done for
- * the property file <code>ibis.properties</code> in the user home directory,
- * if present. And finally, the same is done for the property file
- * <code>ibis.properties</code> in the current directory. This allows the user
- * to set some properties that he/she wants for all his/her applications in a
- * property file in his/her home directory, and to also set some
- * application-specific properties in the current directory.
+ * <code>ibis.properties</code> is searched for in the current directory,
+ * the classpath, or the user home directory, in that order.
+ * If found, it is read as a properties file, and the properties contained in
+ * it are set, possibly overriding the hardcoded properties.
+ * Finally, the system properties are obtained. These, too, may override
+ * the properties set so far.
  */
 public final class IbisProperties {
 
@@ -114,7 +111,7 @@ public final class IbisProperties {
     }
 
     /**
-     * Returns the built-in properties of Ibis.
+     * Returns the hard-coded properties of Ibis.
      * 
      * @return the resulting properties.
      */
@@ -156,11 +153,8 @@ public final class IbisProperties {
         }
 
         if (in == null) {
-
             ClassLoader loader = ClassLoader.getSystemClassLoader();
-
             in = loader.getResourceAsStream(file);
-
             if (in == null) {
                 return null;
             }
@@ -180,9 +174,21 @@ public final class IbisProperties {
         return null;
     }
 
+    /**
+     * Utility method for obtaining configuration properties. The
+     * method obtains the properties in the following order:
+     * first, some hardcoded properties are set. Next, a file
+     * <code>ibis.properties</code> is searched for in the current directory,
+     * the classpath, or the user home directory, in that order.
+     * If found, it is read as a properties file, and the properties contained
+     * in it are set, possibly overriding the hardcoded properties.
+     * Finally, the system properties are obtained. These, too, may override
+     * the properties set so far.
+     * @return the properties.
+     */
     public static Properties getDefaultProperties() {
         
-        if (defaultProperties == null) { 
+        if (defaultProperties == null) {
             defaultProperties = getHardcodedProperties();
 
             // Get the properties from the commandline. 
@@ -220,13 +226,13 @@ public final class IbisProperties {
                     }
                 }
             }
-            
+
             // Finally, add the system properties (also from the command line)
             // to the result, possibly overriding entries from file or the 
             // defaults.            
             defaultProperties.putAll(system);
         } 
-        
+
         return new Properties(defaultProperties);        
     }
 }
