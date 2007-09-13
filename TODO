@@ -87,7 +87,7 @@ ibis registry:
 - check if all Ibisses in a pool are of the same implementation, version, etc.
 + forget unneeded event history OR stop giving these events to the user
 + add an upcall for elections.
-- Generic: if closed.world is selected, check if ibis.pool.size is set, and 
++ Generic: if closed.world is selected, check if ibis.pool.size is set, and 
   ignore joins beyond size, and all leaves. Moved to registry, since this
   functionality should be in the registry (Ceriel).
 + registry: avoid almost simultaneous connection attempts from multiple
