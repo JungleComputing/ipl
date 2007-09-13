@@ -108,7 +108,7 @@ final class Pool implements Runnable {
                 Locale.FRANCE);
 
         System.out.println(format.format(new Date(System.currentTimeMillis()))
-                + " NEW Central Registry: " + message);
+                + " Central Registry: " + message);
 
     }
 
