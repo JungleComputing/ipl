@@ -38,12 +38,6 @@ add_to_libclasspath "${IBIS_HOME}"/lib
 # Add the jar files in the current dir to the classpath.
 add_to_libclasspath .
 
-# Add the jar files in the current ./lib to the classpath.
-if [ -d lib ]
-then
-    add_to_libclasspath lib
-fi
-
 # Set classpath and determine wether to set bootclasspath.
 JAVACLASSPATH="build/:$LIBCLASSPATH:.:"
 if [ -d "$IBIS_HOME"/classlibs ]
