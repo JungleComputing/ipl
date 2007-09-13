@@ -1,4 +1,4 @@
-package ibis.ipl.impl.registry.central;
+package ibis.ipl.impl.registry.old;
 
 import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisConfigurationException;

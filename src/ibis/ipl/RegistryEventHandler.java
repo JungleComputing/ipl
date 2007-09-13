@@ -56,4 +56,14 @@ public interface RegistryEventHandler {
      * @param signal the value of the signal supplied by the user.
      */
     public void gotSignal(String signal);
+    
+    /**
+     * Upcall generated when a new result for an election is available.
+     *
+     * @param electionName the name of the election.
+     * @param winner the winner of the election. This parameter may be null if
+     * the previous winner of an election died or left.
+     */
+    public void electionResult(String electionName, IbisIdentifier winner);
+        
 }

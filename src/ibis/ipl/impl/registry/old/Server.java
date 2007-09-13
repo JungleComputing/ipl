@@ -1,4 +1,4 @@
-package ibis.ipl.impl.registry.central;
+package ibis.ipl.impl.registry.old;
 
 import ibis.server.ServerProperties;
 import ibis.server.Service;
@@ -54,7 +54,7 @@ public final class Server extends Thread implements Service {
         typedProperties.addProperties(properties);
 
         // Init logger
-        Logger logger = Logger.getLogger("ibis.ipl.impl.registry.central");
+        Logger logger = Logger.getLogger("ibis.ipl.impl.registry.old");
         Level level =
                 Level.toLevel(typedProperties
                         .getProperty(ServerProperties.LOG_LEVEL));
@@ -188,7 +188,7 @@ public final class Server extends Thread implements Service {
     }
 
     public String toString() {
-        return "Central Registry service on virtual port " + VIRTUAL_PORT;
+        return "Old Registry service on virtual port " + VIRTUAL_PORT;
     }
 
     // pool cleanup thread

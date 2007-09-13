@@ -1,4 +1,4 @@
-package ibis.ipl.impl.registry.central;
+package ibis.ipl.impl.registry.old;
 
 import ibis.smartsockets.virtual.VirtualServerSocket;
 import ibis.smartsockets.virtual.VirtualSocket;

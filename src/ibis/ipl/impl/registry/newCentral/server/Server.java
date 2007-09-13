@@ -206,7 +206,7 @@ public final class Server extends Thread implements Service {
     }
 
     public String toString() {
-        return "NEW Central Registry service on virtual port " + VIRTUAL_PORT;
+        return "Central Registry service on virtual port " + VIRTUAL_PORT;
     }
 
     // pool cleanup thread
