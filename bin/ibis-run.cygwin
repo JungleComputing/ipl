@@ -11,6 +11,10 @@ if [ -z "$IBIS_HOME" ];  then
     exit 1
 fi
 
+# convert paths to unix format before dealing with them.
+IBIS_HOME=`cygpath --unix "$IBIS_HOME"`
+CLASSPATH=`cygpath --unix --path "$CLASSPATH"`
+
 # Jar-files from library.
 LIBCLASSPATH=""
 add_to_libclasspath () {
@@ -26,9 +30,17 @@ add_to_libclasspath () {
 
 # Add the jar files in the Ibis lib dir to the classpath.
 add_to_libclasspath "${IBIS_HOME}"/lib
-
-# and . for now ...
 add_to_libclasspath .
 
+# Put value of environment variable CLASSPATH in front, if present.
+if [ -z "$CLASSPATH" ] ; then
+    :
+else 
+    LIBCLASSPATH="$CLASSPATH:$LIBCLASSPATH"
+fi
+
+# Convert paths back.
+LIBCLASSPATH=`cygpath --path --windows "$LIBCLASSPATH"`
+
 # And finally, run ...
-java -classpath "$CLASSPATH:$LIBCLASSPATH" -Dlog4j.configuration=file:$IBIS_HOME/log4j.properties "$@"
+java -classpath "$LIBCLASSPATH" -Dlog4j.configuration="$IBIS_HOME"/log4j.properties "$@"
