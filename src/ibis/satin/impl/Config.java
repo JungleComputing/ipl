@@ -2,6 +2,7 @@
 
 package ibis.satin.impl;
 
+import ibis.ipl.IbisProperties;
 import ibis.util.TypedProperties;
 
 import org.apache.log4j.Logger;
@@ -13,7 +14,8 @@ import org.apache.log4j.Logger;
 
 public interface Config {
 
-    static final TypedProperties properties = TypedProperties.getDefaultConfigProperties();
+    static final TypedProperties properties
+            = new TypedProperties(IbisProperties.getDefaultProperties());
     
     static final String PROPERTY_PREFIX = "satin.";
 

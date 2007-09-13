@@ -1,5 +1,9 @@
 package ibis.ipl;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -100,6 +104,8 @@ public final class IbisProperties {
 
             };
 
+    private static Properties defaultProperties;
+
     /**
      * Private constructor, to prevent construction of an IbisProperties object.
      */
@@ -137,5 +143,90 @@ public final class IbisProperties {
         }
 
         return result;
+    }
+
+    private static Properties getPropertyFile(String file) {
+
+        InputStream in = null;
+
+        try {
+            in = new FileInputStream(file);
+        } catch (FileNotFoundException e) {
+            // ignored
+        }
+
+        if (in == null) {
+
+            ClassLoader loader = ClassLoader.getSystemClassLoader();
+
+            in = loader.getResourceAsStream(file);
+
+            if (in == null) {
+                return null;
+            }
+        }
+
+        try {
+            Properties p = new Properties();
+            p.load(in);
+            return p;
+        } catch (IOException e) {
+            try {
+                in.close();
+            } catch (Exception x) {
+                // ignore
+            }
+        }
+        return null;
+    }
+
+    public static Properties getDefaultProperties() {
+        
+        if (defaultProperties == null) { 
+            defaultProperties = getHardcodedProperties();
+
+            // Get the properties from the commandline. 
+            Properties system = System.getProperties();
+
+            // Check what property file we should load.
+            String file = system.getProperty(PROPERTIES_FILE,
+                    PROPERTIES_FILENAME);
+
+            // If the file is not explicitly set to null, we try to load it.
+            // First try the filename as is, if this fails try with the
+            // user home directory prepended.
+            if (file != null) {
+                Properties fromFile = getPropertyFile(file);
+                if (fromFile != null) {
+                    defaultProperties.putAll(fromFile);
+                } else {
+                    String homeFn = System.getProperty("user.home")
+                        + System.getProperty("file.separator") + file;
+                    fromFile = getPropertyFile(homeFn);
+                    
+                    if (fromFile == null) { 
+                        if (! file.equals(PROPERTIES_FILENAME)) { 
+                            // If we fail to load the user specified file,
+                            // we give an error, since only the default file
+                            // may fail silently.                     
+                            System.err.println("User specified preferences \""
+                                    + file + "\" not found!");
+                        }                                            
+                    } else {                  
+                        // If we managed to load the file, we add the
+                        // properties to the 'defaultProperties' possibly
+                        // overwriting defaults.
+                        defaultProperties.putAll(fromFile);
+                    }
+                }
+            }
+            
+            // Finally, add the system properties (also from the command line)
+            // to the result, possibly overriding entries from file or the 
+            // defaults.            
+            defaultProperties.putAll(system);
+        } 
+        
+        return new Properties(defaultProperties);        
     }
 }

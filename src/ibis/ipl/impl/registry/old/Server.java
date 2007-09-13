@@ -1,5 +1,6 @@
 package ibis.ipl.impl.registry.old;
 
+import ibis.ipl.IbisProperties;
 import ibis.server.ServerProperties;
 import ibis.server.Service;
 import ibis.smartsockets.virtual.VirtualSocketFactory;
@@ -265,7 +266,7 @@ public final class Server extends Thread implements Service {
      * Run the ibis server
      */
     public static void main(String[] args) {
-        Properties properties = TypedProperties.getDefaultConfigProperties();
+        Properties properties = IbisProperties.getDefaultProperties();
         
         Log.initLog4J("ibis");
 

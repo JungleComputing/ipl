@@ -7,6 +7,7 @@ import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisCreationFailedException;
 import ibis.ipl.IbisFactory;
 import ibis.ipl.IbisIdentifier;
+import ibis.ipl.IbisProperties;
 import ibis.ipl.MessageUpcall;
 import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
@@ -42,8 +43,7 @@ public final class RTS {
     static TypedProperties properties;
 
     static {
-        properties = new TypedProperties();
-        properties.loadDefaultConfigProperties();
+        properties = new TypedProperties(IbisProperties.getDefaultProperties());
     }
 
     static final String prefix = "rmi.";

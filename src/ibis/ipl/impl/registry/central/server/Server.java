@@ -1,5 +1,6 @@
 package ibis.ipl.impl.registry.central.server;
 
+import ibis.ipl.IbisProperties;
 import ibis.ipl.impl.registry.central.ConnectionFactory;
 import ibis.ipl.impl.registry.central.Protocol;
 import ibis.ipl.impl.registry.central.RegistryProperties;
@@ -273,7 +274,8 @@ public final class Server extends Thread implements Service {
      * Run the ibis server
      */
     public static void main(String[] args) {
-        Properties properties = TypedProperties.getDefaultConfigProperties();
+
+        Properties properties = IbisProperties.getDefaultProperties();
 
         Log.initLog4J("ibis");
 
