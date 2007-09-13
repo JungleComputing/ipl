@@ -77,20 +77,20 @@ management:
   (Done Ceriel)
 + ibis printStatistics: replace by Managable.
   (Done: printStatistics is only called if the property "statistics" is set. --Ceriel)
-* clarify JavaDoc of "count" methods in messages. E.g. Say we only count
+- clarify JavaDoc of "count" methods in messages. E.g. Say we only count
   broadcast messages once.
-* add basic network usage statistics to Ibis. (Which ones? --Ceriel)
+- add basic network usage statistics to Ibis. (Which ones? --Ceriel)
 
 ibis registry:
 + fixed huge bug in registry communication code (no, in.read(b) does NOT read the entire array) (done Jason)
 + clean up connections in pinger when an exception occurs (done Jason)
 - check if all Ibisses in a pool are of the same implementation, version, etc.
-* forget unneeded event history OR stop giving these events to the user
-* add an upcall for elections.
++ forget unneeded event history OR stop giving these events to the user
++ add an upcall for elections.
 - Generic: if closed.world is selected, check if ibis.pool.size is set, and 
   ignore joins beyond size, and all leaves. Moved to registry, since this
   functionality should be in the registry (Ceriel).
-* registry: avoid almost simultaneous connection attempts from multiple
++ registry: avoid almost simultaneous connection attempts from multiple
   threads to a single server socket (seems to confuse smartsockets).
   This now happens with ping() and push(). Used to also happen with
   push() and push(), but I think I fixed that (Ceriel).
@@ -118,7 +118,7 @@ applications:
 + build jars by default (Done Ceriel)
 
 packaging/distribution:
-* split up ibis in multiple separate subprojects:
+- split up ibis in multiple separate subprojects:
 	+ ipl
 	+ ipl applications (Done Ceriel)
 	+ util
@@ -130,7 +130,7 @@ packaging/distribution:
 		- programming model applications
 	}
 	- standalone applications (DFA, SAT4Satin, Barnes)	
-* put DeepCopy in a sane place
+- put DeepCopy in a sane place
 - update docs
 + migrate leftover prints to log4j, surround with if (DEBUG){}
   in performance critical section (Done Ceriel)

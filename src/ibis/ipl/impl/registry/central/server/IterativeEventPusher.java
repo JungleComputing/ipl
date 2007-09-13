@@ -1,4 +1,4 @@
-package ibis.ipl.impl.registry.newCentral.server;
+package ibis.ipl.impl.registry.central.server;
 
 import ibis.util.ThreadPool;
 

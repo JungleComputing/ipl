@@ -1,6 +1,6 @@
-package ibis.ipl.impl.registry.newCentral.server;
+package ibis.ipl.impl.registry.central.server;
 
-import ibis.ipl.impl.registry.newCentral.Protocol;
+import ibis.ipl.impl.registry.central.Protocol;
 
 import java.util.Formatter;
 

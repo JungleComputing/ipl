@@ -1,4 +1,4 @@
-package ibis.ipl.impl.registry.newCentral;
+package ibis.ipl.impl.registry.central;
 
 public final class Protocol {
 

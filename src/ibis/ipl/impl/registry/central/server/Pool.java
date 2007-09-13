@@ -1,11 +1,11 @@
-package ibis.ipl.impl.registry.newCentral.server;
+package ibis.ipl.impl.registry.central.server;
 
 import ibis.ipl.impl.IbisIdentifier;
 import ibis.ipl.impl.Location;
-import ibis.ipl.impl.registry.newCentral.Connection;
-import ibis.ipl.impl.registry.newCentral.ConnectionFactory;
-import ibis.ipl.impl.registry.newCentral.Event;
-import ibis.ipl.impl.registry.newCentral.Protocol;
+import ibis.ipl.impl.registry.central.Connection;
+import ibis.ipl.impl.registry.central.ConnectionFactory;
+import ibis.ipl.impl.registry.central.Event;
+import ibis.ipl.impl.registry.central.Protocol;
 import ibis.util.ThreadPool;
 
 import java.io.DataOutputStream;

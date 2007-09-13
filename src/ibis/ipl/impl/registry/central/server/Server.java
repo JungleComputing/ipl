@@ -1,8 +1,8 @@
-package ibis.ipl.impl.registry.newCentral.server;
+package ibis.ipl.impl.registry.central.server;
 
-import ibis.ipl.impl.registry.newCentral.ConnectionFactory;
-import ibis.ipl.impl.registry.newCentral.Protocol;
-import ibis.ipl.impl.registry.newCentral.RegistryProperties;
+import ibis.ipl.impl.registry.central.ConnectionFactory;
+import ibis.ipl.impl.registry.central.Protocol;
+import ibis.ipl.impl.registry.central.RegistryProperties;
 import ibis.server.ServerProperties;
 import ibis.server.Service;
 import ibis.smartsockets.virtual.VirtualSocketFactory;

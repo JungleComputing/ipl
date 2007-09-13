@@ -1,10 +1,10 @@
-package ibis.ipl.impl.registry.newCentral;
+package ibis.ipl.impl.registry.central;
 
 import ibis.io.Conversion;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.IbisProperties;
 import ibis.ipl.impl.IbisIdentifier;
-import ibis.ipl.impl.registry.newCentral.server.Server;
+import ibis.ipl.impl.registry.central.server.Server;
 import ibis.server.Client;
 import ibis.smartsockets.virtual.InitializationException;
 import ibis.smartsockets.virtual.VirtualServerSocket;
