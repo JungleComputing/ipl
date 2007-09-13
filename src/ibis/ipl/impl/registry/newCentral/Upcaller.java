@@ -120,10 +120,10 @@ final class Upcaller implements Runnable {
                     }
                     break;
                 case Event.ELECT:
-                    // Only handled in registry
+                    handler.electionResult(event.getDescription(), event.getFirstIbis());
                     break;
                 case Event.UN_ELECT:
-                    // Only handled in registry
+                    handler.electionResult(event.getDescription(), null);
                     break;
                 default:
                     logger.error("unknown event type: " + event.getType());

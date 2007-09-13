@@ -377,8 +377,8 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
                         return;
 
                     } catch (Exception e) {
-                        logger.error("bootstrap with " + ibis
-                                + " failed, trying next one");
+                        logger.info("bootstrap with " + ibis
+                                + " failed, trying next one", e);
                     } finally {
                         if (connection != null) {
                             connection.close();
