@@ -23,8 +23,6 @@ public interface Config {
     
     static final String s_closed = PROPERTY_PREFIX + "closed";
 
-    static final String s_localports = PROPERTY_PREFIX + "localPorts";
-
     static final String s_close_connections
             = PROPERTY_PREFIX + "closeConnections";
 
@@ -72,7 +70,7 @@ public interface Config {
     static final String s_kill_time = PROPERTY_PREFIX + "killTime";
 
     static final String[] sysprops = { s_stats, s_queue_steals,
-        s_detailed_stats, s_closed, s_localports, s_asserts,
+        s_detailed_stats, s_closed, s_asserts,
         s_ft_naive, s_ft_connectTimeout, s_masterhost, s_in_latency,
         s_delete_time, s_delete_cluster_time, s_kill_time, s_dump, s_so_delay,
         s_so_size, s_alg, s_so_lrmc, s_close_connections, s_max_connections,
