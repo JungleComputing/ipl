@@ -38,6 +38,15 @@ final class Stats {
             requestCounter[i] = 0;
         }
     }
+    
+    synchronized boolean empty() {
+        for (byte i = 0; i < opcodes; i++) {
+            if (totalTimes[i] != 0) {
+                return false;
+            }
+        }
+        return true;
+    }
 
     synchronized String getStats(boolean clear) {
         StringBuilder message = new StringBuilder();

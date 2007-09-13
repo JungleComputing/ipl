@@ -49,23 +49,37 @@ final class Stats {
         }
     }
 
+    synchronized boolean empty() {
+        for (byte i = 0; i < opcodes; i++) {
+            if (totalTimes[i] != 0) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     synchronized String getStats(boolean clear) {
+
         StringBuilder message = new StringBuilder();
         Formatter formatter = new Formatter(message);
 
         formatter.format("registry server statistics at %.2f seconds:\n",
                 (System.currentTimeMillis() - start) / 1000.0);
-        formatter.format("TYPE          IN_COUNT OUT_COUNT  TOTAL_TIME   AVG_TIME\n");
-        formatter.format("                                       (sec)       (ms)\n");
+        formatter
+                .format("TYPE          IN_COUNT OUT_COUNT  TOTAL_TIME   AVG_TIME\n");
+        formatter
+                .format("                                       (sec)       (ms)\n");
         for (byte i = 0; i < opcodes; i++) {
-            double average = totalTimes[i] / (incomingRequestCounter[i] + outgoingRequestCounter[i]);
-            if (incomingRequestCounter[i] == 0 && outgoingRequestCounter[i] == 0) {
+            double average = totalTimes[i]
+                    / (incomingRequestCounter[i] + outgoingRequestCounter[i]);
+            if (incomingRequestCounter[i] == 0
+                    && outgoingRequestCounter[i] == 0) {
                 average = 0;
             }
 
             formatter.format("%-12s %9d %9d  %10.2f %10.2f\n", Protocol
-                    .opcodeString(i), incomingRequestCounter[i], outgoingRequestCounter[i],
-                    totalTimes[i] / 1000.0, average);
+                    .opcodeString(i), incomingRequestCounter[i],
+                    outgoingRequestCounter[i], totalTimes[i] / 1000.0, average);
         }
 
         if (clear) {

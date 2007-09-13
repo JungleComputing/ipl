@@ -188,7 +188,7 @@ public final class Server extends Thread implements Service {
         stopped = true;
         notifyAll();
         connectionFactory.end();
-        if (handler != null && printStats) {
+        if (handler != null && printStats && !stats.empty()) {
             System.out.println(stats.getStats(false));
         }
     }
@@ -208,7 +208,7 @@ public final class Server extends Thread implements Service {
         handler = new ServerConnectionHandler(this, connectionFactory);
 
         while (!stopped) {
-            if (printStats) {
+            if (printStats && !stats.empty()) {
                 System.out.println(stats.getStats(false));
             }
 

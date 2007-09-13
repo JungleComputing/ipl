@@ -178,7 +178,7 @@ public final class Server extends Thread implements Service {
         notifyAll();
         connectionFactory.end();
         if (handler != null && printStats) {
-            System.out.println(handler.getStats(false));
+            System.out.println(handler.getStats().getStats(false));
         }
     }
 
@@ -198,7 +198,10 @@ public final class Server extends Thread implements Service {
 
         while (!stopped) {
             if (printStats) {
-                System.out.println(handler.getStats(false));
+                Stats stats = handler.getStats();
+                if (!stats.empty()) {
+                    System.out.println(stats.getStats(false));
+                }
             }
 
             Pool[] poolArray = pools.values().toArray(new Pool[0]);

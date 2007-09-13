@@ -191,8 +191,8 @@ final class ServerConnectionHandler implements Runnable {
 
     }
 
-    String getStats(boolean clear) {
-        return stats.getStats(clear);
+    Stats getStats() {
+        return stats;
     }
 
     public void run() {
