@@ -95,7 +95,7 @@ public final class IbisProperties {
                 { LOCATION_POSTFIX, null,
                     "Set a string that will be appended to the automatically generated location." },
 
-                { REGISTRY_IMPL, "ibis.ipl.impl.registry.newCentral.Registry",
+                { REGISTRY_IMPL, "ibis.ipl.impl.registry.central.Registry",
                     "implementation of the registry. Not all Ibis implementations use this property" },
 
             };
