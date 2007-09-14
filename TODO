@@ -144,6 +144,8 @@ packaging/distribution:
 - clean up doc building scripts
 + fix codmon (Done Ceriel)
 + put each ibis in a seperate jar (Done Ceriel)
+* move ibis.server.poolInfo code to ibis.poolInfo 
+  (already in ibis-poolinfo project)
 
 website:
 - update "ibis" overview picture with new/changed implementations
