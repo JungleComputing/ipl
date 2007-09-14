@@ -4,6 +4,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.IOException;
+import java.util.Enumeration;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -174,6 +175,14 @@ public final class IbisProperties {
         return null;
     }
 
+    private static void addProperties(Properties p) {
+        for (Enumeration e = p.propertyNames(); e.hasMoreElements();) {
+            String key = (String) e.nextElement();
+            String value = p.getProperty(key);
+            defaultProperties.setProperty(key, value);
+        }
+    }
+
     /**
      * Utility method for obtaining configuration properties. The
      * method obtains the properties in the following order:
@@ -204,7 +213,7 @@ public final class IbisProperties {
             if (file != null) {
                 Properties fromFile = getPropertyFile(file);
                 if (fromFile != null) {
-                    defaultProperties.putAll(fromFile);
+                    addProperties(fromFile);
                 } else {
                     String homeFn = System.getProperty("user.home")
                         + System.getProperty("file.separator") + file;
@@ -222,7 +231,7 @@ public final class IbisProperties {
                         // If we managed to load the file, we add the
                         // properties to the 'defaultProperties' possibly
                         // overwriting defaults.
-                        defaultProperties.putAll(fromFile);
+                        addProperties(fromFile);
                     }
                 }
             }
@@ -230,7 +239,7 @@ public final class IbisProperties {
             // Finally, add the system properties (also from the command line)
             // to the result, possibly overriding entries from file or the 
             // defaults.            
-            defaultProperties.putAll(system);
+            addProperties(system);
         } 
 
         return new Properties(defaultProperties);        
