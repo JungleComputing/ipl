@@ -47,15 +47,6 @@
             <classpath refid="external.jars" />
         </javac>
 
-        <!-- Run Rmic on Ibis -->
-        <java classname="ibis.rmi.impl.frontend.Rmic" taskname="Rmic" failonerror="true" dir="${tmp}" maxmemory="512m" fork="true">
-            <arg line="-dir ibis.rmi.registry.impl.RegistryImpl" />
-            <classpath refid="default.classpath" />
-        </java>
-        <javac destdir="${tmp}" debug="true" srcdir="${tmp}" includes="ibis/rmi/registry/impl/*.java">
-            <classpath refid="default.classpath" />
-        </javac>
-
         <!-- Run Ibisc -->
         <java classname="ibis.frontend.Ibisc" taskname="Ibisc" failonerror="true" dir="${tmp}" maxmemory="512m" fork="true">
             <arg line="." />
@@ -99,11 +90,6 @@
         <jar destfile="lib/gmi.jar" basedir="${tmp}" includes="ibis/gmi/**/*.class">
             <manifest>
                 <attribute name="Ibisc-Component" value="ibis.gmi.frontend.Gmic" />
-            </manifest>
-        </jar>
-        <jar destfile="lib/rmi.jar" basedir="${tmp}" includes="ibis/rmi/**/*.class">
-            <manifest>
-                <attribute name="Ibisc-Component" value="ibis.rmi.impl.frontend.Rmic" />
             </manifest>
         </jar>
 
