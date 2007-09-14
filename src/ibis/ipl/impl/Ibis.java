@@ -11,7 +11,6 @@ import ibis.ipl.PortType;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.SendPortDisconnectUpcall;
-import ibis.util.Log;
 import ibis.util.TypedProperties;
 
 import java.io.BufferedReader;
@@ -84,8 +83,6 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis {
 
         addValidKey("statistics");
         
-        Log.initLog4J("ibis");
-
         this.properties = new TypedProperties();
         
         //bottom up add properties, starting with hard coded ones

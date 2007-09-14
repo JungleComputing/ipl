@@ -263,10 +263,6 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
         return initialized;
     }
 
-    private synchronized int nrOfIbisses() {
-        return ibises.size();
-    }
-
     synchronized boolean isStopped() {
         return stopped;
     }

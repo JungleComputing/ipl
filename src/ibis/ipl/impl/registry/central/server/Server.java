@@ -7,7 +7,6 @@ import ibis.ipl.impl.registry.central.RegistryProperties;
 import ibis.server.ServerProperties;
 import ibis.server.Service;
 import ibis.smartsockets.virtual.VirtualSocketFactory;
-import ibis.util.Log;
 import ibis.util.ThreadPool;
 import ibis.util.TypedProperties;
 
@@ -17,7 +16,6 @@ import java.util.Formatter;
 import java.util.HashMap;
 import java.util.Properties;
 
-import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 /**
@@ -60,12 +58,6 @@ public final class Server extends Thread implements Service {
         TypedProperties typedProperties = RegistryProperties
                 .getHardcodedProperties();
         typedProperties.addProperties(properties);
-
-        // Init logger
-        Logger logger = Logger.getLogger("ibis.ipl.impl.registry.central");
-        Level level = Level.toLevel(typedProperties
-                .getProperty(ServerProperties.LOG_LEVEL));
-        Log.initLog4J(logger, level);
 
         int timeout = typedProperties
                 .getIntProperty(RegistryProperties.CLIENT_CONNECT_TIMEOUT) * 1000;
@@ -276,8 +268,6 @@ public final class Server extends Thread implements Service {
     public static void main(String[] args) {
 
         Properties properties = IbisProperties.getDefaultProperties();
-
-        Log.initLog4J("ibis");
 
         for (int i = 0; i < args.length; i++) {
             if (args[i].equalsIgnoreCase("--port")) {
