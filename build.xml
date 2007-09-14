@@ -87,11 +87,6 @@
                 <attribute name="Ibisc-Component" value="ibis.satin.impl.rewriter.Satinc" />
             </manifest>
         </jar>
-        <jar destfile="lib/gmi.jar" basedir="${tmp}" includes="ibis/gmi/**/*.class">
-            <manifest>
-                <attribute name="Ibisc-Component" value="ibis.gmi.frontend.Gmic" />
-            </manifest>
-        </jar>
 
         <!-- Copy external libraries to lib directory -->
         <copy todir="${lib}">
