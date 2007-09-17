@@ -8,6 +8,10 @@ if [ -z "$IBIS_HOME" ];  then
     exit 1
 fi
 
+if [ -z "$COMMAND" ]; then
+    COMMAND="$IBIS_HOME/bin/ibis-run"
+fi
+
 # Check if user forgot no-panda flag. In that case, filter rank and nhosts.
 NHOSTS=`echo $PRUN_HOSTNAMES | awk '{print NF}'`
 case "X${1}X$2" in
@@ -32,7 +36,7 @@ X0)
     # PID=$!
 esac
 
-. $IBIS_HOME/bin/ibis-run \
+. "$COMMAND" \
 	-Dibis.pool.size=$NHOSTS \
 	"-Dibis.server.address=$serverhost" \
 	-Dibis.pool.name="$PRUN_ENV" \
