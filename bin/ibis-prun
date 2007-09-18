@@ -12,6 +12,12 @@ if [ -z "$COMMAND" ]; then
     COMMAND="$IBIS_HOME/bin/ibis-run"
 fi
 
+# SGE destroys path, but saves it in SGE_O_PATH. Reset it.
+if [ -z "$SGE_O_PATH" ]
+then	:
+else    export PATH="$SGE_O_PATH"
+fi
+
 # Check if user forgot no-panda flag. In that case, filter rank and nhosts.
 NHOSTS=`echo $PRUN_HOSTNAMES | awk '{print NF}'`
 case "X${1}X$2" in
