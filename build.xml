@@ -80,13 +80,6 @@
                 <attribute name="Ibis-Version" value="2.0" />
             </manifest>
         </jar>
-        <jar destfile="lib/satin-api.jar" basedir="${tmp}" includes="ibis/satin/*.class">
-        </jar>
-        <jar destfile="lib/satin-impl.jar" basedir="${tmp}" includes="ibis/satin/impl/**/*.class">
-            <manifest>
-                <attribute name="Ibisc-Component" value="ibis.satin.impl.rewriter.Satinc" />
-            </manifest>
-        </jar>
 
         <!-- Copy external libraries to lib directory -->
         <copy todir="${lib}">
