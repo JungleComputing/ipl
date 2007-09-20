@@ -12,10 +12,10 @@ IPL:
   (0 == forever, -1 == non-blocking) (Done Ceriel)
 + Ibis IO is not self contained, missing bcel stuff. --Rob
   (Fixed Ceriel)
-* properties are a mess now. Both ibis.util.TypedProperties and 
++ properties are a mess now. Both ibis.util.TypedProperties and 
   ibis.ipl.IbisProperties now name ibis.properties and ibis.properties.file.
   Also, ibis.ipl.IbisProperties javadocs don't work. --Ceriel
-  Some properties are specified in several places, ... (ibis.pool.name for instance)
+  (Fixed Ceriel)
 
 Ibis Factory:
 + add support for stacking to the factory (don't add an Ibis to a stack twice)
@@ -65,6 +65,9 @@ Exception in thread "main" java.lang.ClassFormatError: LVTT entry for 'resultUni
     [Ibisc]     at ibis.frontend.Ibisc.main(Ibisc.java:373)
     (Fixed Ceriel: crash on parameter-less write method).
 
+ibis-io:
+* Should have properties as parameter, instead of getting them from
+  ibis.properties (and thus depend on ipl.jar). --Ceriel
 
 capabilities:
 - add ibis.io capabilities. (Should we? I think Ibis.io is fine as it is ... --Ceriel)
@@ -77,6 +80,7 @@ management:
   (Done Ceriel)
 + ibis printStatistics: replace by Managable.
   (Done: printStatistics is only called if the property "statistics" is set. --Ceriel)
+* or should we print statistics everytime the property is set? --Ceriel
 - clarify JavaDoc of "count" methods in messages. E.g. Say we only count
   broadcast messages once.
 - add basic network usage statistics to Ibis. (Which ones? --Ceriel)
@@ -130,7 +134,7 @@ packaging/distribution:
 	foreach(programming model) {
 		- programming model
 		- programming model applications
-	}
+	} (Done programming models --Ceriel)
 	- standalone applications (DFA, SAT4Satin, Barnes)	
 - put DeepCopy in a sane place
 - update docs
