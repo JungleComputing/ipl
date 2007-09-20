@@ -7,121 +7,26 @@ Legend:
 
 IPL:
 - check properties for unknown properties
-+ add "fillTimeout" option to sendport.connect(). (Done someone).
-+ add a timeout parameter to getElectionResult() 
-  (0 == forever, -1 == non-blocking) (Done Ceriel)
-+ Ibis IO is not self contained, missing bcel stuff. --Rob
-  (Fixed Ceriel)
-+ properties are a mess now. Both ibis.util.TypedProperties and 
-  ibis.ipl.IbisProperties now name ibis.properties and ibis.properties.file.
-  Also, ibis.ipl.IbisProperties javadocs don't work. --Ceriel
-  (Fixed Ceriel)
-
-Ibis Factory:
-+ add support for stacking to the factory (don't add an Ibis to a stack twice)
-  (Done Ceriel)
-+ add a flag to each Ibis to denote if it should be automatically selected or not.
-  The dummy stacking Ibis should never be selected, nor should NioIbis
-  (Done Ceriel)
-+ Only select the first matching Ibis, don't try all of them. (Done Ceriel)
-+ Add a seperate "checker" object for each Ibis implementation to determine
-  which Ibis to use. (Done Ceriel: added IbisStarter object).
-+ Add version checking: only use jars with the proper version number in the
-  manifest (Done Ceriel)
-
-IbisC:
-+ remove rewriting of "flat list of class files" (was bug in older javac versions; happened with .java files in the jar-file, but only when rewritten???).
-  Moral: don't put .java files in your jars (Ceriel).
-+ catch (NullPointeR) exceptions by Bcel, if possible (The exceptions themselves
-  were fixed already  Ceriel)
-+ add classes in the parameters to the classpath (Done Ceriel)
-+ print some status output in ibisc (Done Ceriel)
-+ ant jar removes jar file :-) (fixed Ceriel)
-+ rewrite of satin genesequencing fails. --Rob (Disappeared ... Ceriel)
-[rob@localhost ~/workspace/apps-trunk/satin/geneSequencing]$ CLASSPATH=lib/geneSequencing.jar:neobio/lib/neobio.jar ~/workspace/ibis-trunk/bin/ibis-run geneSequencing.divideAndConquer.DsearchDC testdata/input_03.txt dc
-Exception in thread "main" java.lang.ClassFormatError: LVTT entry for 'resultUnit' in class file geneSequencing/divideAndConquer/DsearchDC does not match any LVT entry
-        at java.lang.ClassLoader.defineClass1(Native Method)
-        at java.lang.ClassLoader.defineClass(ClassLoader.java:620)
-        at java.security.SecureClassLoader.defineClass(SecureClassLoader.java:124)
-        at java.net.URLClassLoader.defineClass(URLClassLoader.java:260)
-        at java.net.URLClassLoader.access$000(URLClassLoader.java:56)
-        at java.net.URLClassLoader$1.run(URLClassLoader.java:195)
-        at java.security.AccessController.doPrivileged(Native Method)
-        at java.net.URLClassLoader.findClass(URLClassLoader.java:188)
-        at java.lang.ClassLoader.loadClass(ClassLoader.java:306)
-        at sun.misc.Launcher$AppClassLoader.loadClass(Launcher.java:276)
-        at java.lang.ClassLoader.loadClass(ClassLoader.java:251)
-        at java.lang.ClassLoader.loadClassInternal(ClassLoader.java:319)
-  Re-appeared, fixed now (Ceriel)
-
-+ SO invocations cannot be void (satinc crashes):
-    [Ibisc] Ibisc: applying rewriter ibis.satin.impl.rewriter.Satinc to 17 classes.
-    [Ibisc] Exception in thread "main" java.lang.ArrayIndexOutOfBoundsException: 0
-    [Ibisc]     at ibis.satin.impl.rewriter.Satinc.writeSOInvocationRecord(Satinc.java:2718)
-    [Ibisc]     at ibis.satin.impl.rewriter.Satinc.doSORewrite(Satinc.java:2929)
-    [Ibisc]     at ibis.satin.impl.rewriter.Satinc.start(Satinc.java:3008)
-    [Ibisc]     at ibis.satin.impl.rewriter.Satinc.process(Satinc.java:3169)
-    [Ibisc]     at ibis.frontend.IbiscComponent.processClasses(IbiscComponent.java:98)
-    [Ibisc]     at ibis.frontend.Ibisc.main(Ibisc.java:373)
-    (Fixed Ceriel: crash on parameter-less write method).
+- add registry capability for consistency
+- version number check: check prefix
 
 ibis-io:
-* Should have properties as parameter, instead of getting them from
-  ibis.properties (and thus depend on ipl.jar). --Ceriel
+- remove dependency on ipl.
 
 capabilities:
-- add ibis.io capabilities. (Should we? I think Ibis.io is fine as it is ... --Ceriel)
 - add registry capabilities. (What exactly do we want here? --Ceriel)
 
 management:
-+ ibis.ipl.Managable: throw exception on unrecognized property name.
-  (Done in ipl. --Ceriel).
-+ ibis.ipl.Managable: Map strings to strings instead of strings to object.
-  (Done Ceriel)
-+ ibis printStatistics: replace by Managable.
-  (Done: printStatistics is only called if the property "statistics" is set. --Ceriel)
-* or should we print statistics everytime the property is set? --Ceriel
 - clarify JavaDoc of "count" methods in messages. E.g. Say we only count
   broadcast messages once.
 - add basic network usage statistics to Ibis. (Which ones? --Ceriel)
 
 ibis registry:
-+ fixed huge bug in registry communication code (no, in.read(b) does NOT read 
-  the entire array) (done Jason)
-+ clean up connections in pinger when an exception occurs (done Jason)
 - check if all Ibisses in a pool are of the same implementation, version, etc.
-+ forget unneeded event history OR stop giving these events to the user
-  (Done, Niels)
-+ add an upcall for elections.
-  (Done, Niels)
-+ Generic: if closed.world is selected, check if ibis.pool.size is set, and 
-  ignore joins beyond size, and all leaves. (Done, Niels).
-+ registry: avoid almost simultaneous connection attempts from multiple
-  threads to a single server socket (seems to confuse smartsockets).
-  This now happens with ping() and push(). Used to also happen with
-  push() and push(), but I think I fixed that (Ceriel). (Done, Niels)
-
-implementations:
-+ check TcpSendPost.close: why don't we close in case of a normal exception? --Rob (Done Ceriel)
-+ removed yields, since they break the whole idea of starting your own replacement threads --Jason
-+ SendPort.disconnect() followed by connect() may cause an AlreadyConnected
-  exception, because the receiveport does not know yet that it has been
-  disconnected ... (separate thread). Happens in Satin. (Fixed Ceriel)
-+ The getVersion method in Ibis.java is buggy! (Fixed Ceriel)
-+ TcpIbis: fork a thread immediately after doing an "accept". Don't do a 
-  handshake first. (Done Jason, fixed Ceriel).
-+ Fix deadlocks due to lazily creating serialization streams in TcpIbis.
-  (Done Jason).
-+ catch InvocationTargeExceptions, and thow the cause of this runtime exception
-  instead. (Done Ceriel)
-+ closing a receiveport twice returns an Error (fixed Ceriel)
-+ _Never_ throw errors in Ibis, only Exceptions (fixed Ceriel)
-+ remove Omnitimer, native object creation trick, and any remaining native
-  node (done Ceriel)
 
 applications:
 - remove old-n-useless applications (if any)
-+ build jars by default (Done Ceriel)
+- put jars in lib dir
 
 packaging/distribution:
 - split up ibis in multiple separate subprojects:
@@ -136,18 +41,14 @@ packaging/distribution:
 		- programming model applications
 	} (Done programming models --Ceriel)
 	- standalone applications (DFA, SAT4Satin, Barnes)	
+	- make external dir in every subproject so that each subproject
+	  is self-contained.
 - put DeepCopy in a sane place
 - update docs
-+ migrate leftover prints to log4j, surround with if (DEBUG){}
-  in performance critical section (Done Ceriel)
 - while(true) {fix eclipse warnings}
 - Api docs of IPL: read, clarify, improve (Niels: Done SendPort).
 - clean-up scripts
--/+ fix automatic starting of Ibis-server in "ant test" and "ibis-prun" one way
-  or another (ibis-prun done Ceriel)
 - clean up doc building scripts
-+ fix codmon (Done Ceriel)
-+ put each ibis in a seperate jar (Done Ceriel)
 * move ibis.server.poolInfo code to ibis.poolInfo 
   (already in ibis-poolinfo project)
 
