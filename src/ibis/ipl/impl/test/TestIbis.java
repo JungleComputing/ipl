@@ -1,4 +1,4 @@
-/* $Id:$ */
+/* $Id$ */
 
 package ibis.ipl.impl.test;
 
@@ -40,7 +40,8 @@ public final class TestIbis extends TestCase {
                 PortType.RECEIVE_EXPLICIT,
                 PortType.CONNECTION_ONE_TO_ONE);
 
-            ibis = IbisFactory.createIbis(new IbisCapabilities(IbisCapabilities.ELECTIONS),
+            ibis = IbisFactory.createIbis(
+                    new IbisCapabilities(IbisCapabilities.ELECTIONS_STRICT),
                     null, true, null, oneToOneType);
 
             registry = ibis.registry();

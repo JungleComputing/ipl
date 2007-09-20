@@ -174,7 +174,7 @@ public class Example {
         // Create properties for the Ibis to be created.
         IbisCapabilities props = new IbisCapabilities(
                 IbisCapabilities.CLOSEDWORLD,
-                IbisCapabilities.ELECTIONS);
+                IbisCapabilities.ELECTIONS_STRICT);
 
         // Create properties for the port type
         porttype = new PortType(

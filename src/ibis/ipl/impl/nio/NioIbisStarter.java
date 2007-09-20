@@ -19,11 +19,11 @@ public final class NioIbisStarter extends ibis.ipl.IbisStarter {
 
     static final IbisCapabilities ibisCapabilities = new IbisCapabilities(
             IbisCapabilities.CLOSEDWORLD,
-            IbisCapabilities.MEMBERSHIP,
-            IbisCapabilities.MEMBERSHIP_RELIABLE,
-            IbisCapabilities.MEMBERSHIP_ORDERED,
+            IbisCapabilities.MEMBERSHIP_UNRELIABLE,
+            IbisCapabilities.MEMBERSHIP_TOTALLY_ORDERED,
             IbisCapabilities.SIGNALS,
-            IbisCapabilities.ELECTIONS,
+            IbisCapabilities.ELECTIONS_UNRELIABLE,
+            IbisCapabilities.ELECTIONS_STRICT,
             "nickname.nio"
     );
     

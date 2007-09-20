@@ -399,11 +399,12 @@ public final class IbisFactory {
 
         if (registryEventHandler != null
                 && !requiredCapabilities.hasCapability(
-                    IbisCapabilities.MEMBERSHIP)) {
+                    IbisCapabilities.MEMBERSHIP_UNRELIABLE)
+                && !requiredCapabilities.hasCapability(
+                    IbisCapabilities.MEMBERSHIP_TOTALLY_ORDERED)) {
             nested.add("Ibis factory", new IbisConfigurationException(
                     "RegistryEventHandler specified but no "
-                            + IbisCapabilities.MEMBERSHIP
-                            + " capability requested"));
+                            + " membership capability requested"));
             faulty = true;
         }
 

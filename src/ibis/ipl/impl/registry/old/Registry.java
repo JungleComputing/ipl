@@ -127,7 +127,8 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
             numInstances = -1;
         }
 
-        if (caps.hasCapability(IbisCapabilities.MEMBERSHIP)) {
+        if (caps.hasCapability(IbisCapabilities.MEMBERSHIP_UNRELIABLE)
+                || caps.hasCapability(IbisCapabilities.MEMBERSHIP_TOTALLY_ORDERED)) {
             joinedIbises = new ArrayList<ibis.ipl.IbisIdentifier>();
             leftIbises = new ArrayList<ibis.ipl.IbisIdentifier>();
             diedIbises = new ArrayList<ibis.ipl.IbisIdentifier>();
@@ -396,7 +397,8 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
     public IbisIdentifier elect(String election) throws IOException {
         logger.debug("running election: \"" + election + "\"");
 
-        if (!capabilities.hasCapability(IbisCapabilities.ELECTIONS)) {
+        if (!capabilities.hasCapability(IbisCapabilities.ELECTIONS_UNRELIABLE)
+                && !capabilities.hasCapability(IbisCapabilities.ELECTIONS_STRICT)) {
             throw new IbisConfigurationException(
                     "No election support requested");
         }
@@ -451,7 +453,8 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
             throws IOException {
         logger.debug("getting election result for: \"" + election + "\"");
 
-        if (!capabilities.hasCapability(IbisCapabilities.ELECTIONS)) {
+        if (!capabilities.hasCapability(IbisCapabilities.ELECTIONS_UNRELIABLE)
+                && !capabilities.hasCapability(IbisCapabilities.ELECTIONS_STRICT)) {
             throw new IbisConfigurationException(
                     "No election support requested");
         }

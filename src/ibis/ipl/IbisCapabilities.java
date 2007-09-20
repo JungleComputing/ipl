@@ -25,19 +25,31 @@ public final class IbisCapabilities extends CapabilitySet {
     /** Capability, indicating that signals are supported. */
     public final static String SIGNALS = "signals";
 
-    /** Capability, indicating that elections are supported. */
-    public final static String ELECTIONS = "elections";
+    /**
+     * Capability, indicating that elections are supported
+     * but don't have to be reliable, always give the same result, etc.
+     */
+    public final static String ELECTIONS_UNRELIABLE = "elections.unreliable";
+
+    /**
+     * Capability, indicating that elections are supported, reliable,
+     * and give consistent results.
+     */
+    public final static String ELECTIONS_STRICT = "elections.strict";
     
-    /** Capability indicating that membership administration is supported. */
-    public final static String MEMBERSHIP = "membership";
+    /**
+     * Capability indicating that joins/leaves don't have to be reliable,
+     * in order, etc.
+     */
+    public final static String MEMBERSHIP_UNRELIABLE
+            = "membership.unreliable";
     
-    /** Capability indicating that joins/leaves are totally ordered. */
-    public final static String MEMBERSHIP_ORDERED
-            = MEMBERSHIP + ".ordered";
-    
-    /** Capability indicating that joins/leaves are reliable. */
-    public final static String MEMBERSHIP_RELIABLE
-            = MEMBERSHIP + ".reliable";
+    /**
+     * Capability indicating that joins/leaves are totally ordered.
+     * Implies reliability.
+     */
+    public final static String MEMBERSHIP_TOTALLY_ORDERED
+            = "membership.totally.ordered";
     
     /** Capability indicating an Ibis that can deal with malleability. */
     public final static String MALLEABLE = "malleable";
