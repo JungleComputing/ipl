@@ -124,8 +124,6 @@
         </java>
     </target>
 
-
-
     <target name="rewritten-clean" description="Clean up rewritten classlibs (except under sym links)">
         <!--
 	If ${rewritten-classlibs} is a sym-link, we let the directory
@@ -154,7 +152,7 @@
 
     <target name="test" depends="build">
 	<echo message="You need to start an ibis-server to run 'ant test'!"/>
-        <ant dir="${src}/ibis/ipl/apps/example" antfile="${ibis}/build-files/apps/build-ibis-app.xml" target="test-par">
+        <ant dir="${src}/ibis/ipl/apps/example" antfile="build.xml" target="test-par">
             <property name="test-par-run" value="ibis.ipl.apps.example.Example" />
         </ant>
     </target>
@@ -167,7 +165,7 @@
         </zip>
 
         <zip destfile="${version}.zip">
-            <zipfileset dir="." prefix="${version}" includes="build-files/**,docs/**,grun/**,lib/**,notices/**,
+            <zipfileset dir="." prefix="${version}" includes="docs/**,grun/**,lib/**,notices/**,
 		BUGS.txt,LICENSE.txt,ibis-src.zip" excludes="docs/src/**,notices/OmniSourceLicense.html,
 		docs/build.xml,docs/README-bin.txt" />
             <zipfileset dir="." prefix="${version}" filemode="755" includes="bin/**" />

@@ -10,9 +10,7 @@
     <property name="ibis"        location=".."/>
     <property name="src"         location="${ibis}/src"/>
 
-    <import file="${ibis}/build-files/build-properties.xml"/>
-
-    <target name="api" depends="set-classpath">
+    <target name="api">
 	<!-- Create the javadoc directory -->
 	<delete dir="api"/>
 	<mkdir dir="api"/>
@@ -30,9 +28,7 @@
 	    <classpath refid="default.classpath"/>
 	    <link href="http://java.sun.com/j2se/1.5.0/docs/api/"/>
 	    <package name="ibis.ipl"/>
-	    <package name="ibis.util"/>
 	    <group title="Ibis IPL" packages="ibis.ipl"/>
-	    <group title="Ibis Utilities" packages="ibis.util"/>
 	</javadoc>
     </target>
 
@@ -48,7 +44,6 @@
 		overview="src/overview.html">
 	    <classpath refid="default.classpath"/>
 	    <package name="ibis.ipl"/>
-	    <package name="ibis.util"/>
 	</javadoc>
     </target>
 
@@ -71,9 +66,7 @@
 	    <link href="http://java.sun.com/j2se/1.5.0/docs/api/"/>
 	    <package name="ibis.ipl"/>
 	    <package name="ibis.ipl.*"/>
-	    <package name="ibis.util"/>
 	    <group title="Ibis IPL" packages="ibis.ipl"/>
-	    <group title="Ibis Utilities" packages="ibis.util"/>
 	    <!--
 	    <arg value="-verbose"/>
 	    <arg value="-notree"/>

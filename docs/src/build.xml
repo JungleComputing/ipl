@@ -10,10 +10,7 @@
     <property name="ibis"        location="../.."/>
     <property name="build"       location="build"/>
 
-    <import file="${ibis}/build-files/build-properties.xml"/>
-
-    <target name="init"
-	    depends="property-init">
+    <target name="init">
 	    <tstamp/>
 	    <mkdir dir="${build}"/>
     </target>
