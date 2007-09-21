@@ -96,7 +96,6 @@
         <delete dir="${tmp}" />
         <delete dir="${lib}" />
 
-        <delete dir="ant-tasks/tasks" />
         <delete file="${version}.zip" />
         <delete file="ibis-src.zip" />
         <ant dir="${docs}" inheritAll="false" target="clean" />
