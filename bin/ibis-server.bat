@@ -25,11 +25,6 @@ rem and for NT handling to skip to.
 
 :doneArgs
 
-set JAVA=java
-if not "%JAVA_HOME%"=="" (
-    set JAVA=%JAVA_HOME\bin\java
-)
-
-"%JAVA%" -classpath "%JAVACLASSPATH%" ibis.ipl.impl.registry.Server %SERVER_ARGS%
+java -classpath "%JAVACLASSPATH%" ibis.server.Server %SERVER_ARGS%
 
 if "%OS%"=="Windows_NT" @endlocal

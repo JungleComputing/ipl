@@ -5,15 +5,6 @@ if [ -z "$IBIS_HOME" ];  then
     exit 1
 fi
 
-case "X$JAVA_HOME" in
-X)
-    JAVA=java
-    ;;
-*)
-    JAVA="$JAVA_HOME/bin/java"
-    ;;
-esac
-
 case X"$1" in
 X-cp)
     shift
@@ -40,4 +31,4 @@ add_to_libclasspath "${IBIS_HOME}"/lib
 
 JAVACLASSPATH="$CLASSPATH:$LIBCLASSPATH"
 
-"$JAVA" -classpath "$JAVACLASSPATH" ibis.frontend.Ibisc "$@"
+java -classpath "$JAVACLASSPATH" ibis.frontend.Ibisc "$@"

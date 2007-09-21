@@ -23,17 +23,11 @@ add_to_libclasspath () {
 # Add the following dirs to the classpath 
 add_to_libclasspath "${IBIS_HOME}"/lib
 
+# and lib ...
+if [ -d lib ] ; then add_to_libclasspath lib ; fi
+
 # javap with classpath
 
-JAVACLASSPATH="$CLASSPATH:$LIBCLASSPATH:build:.:"
+JAVACLASSPATH="$CLASSPATH:$LIBCLASSPATH"
 
-case X$JAVA_HOME in
-X)
-    JAVAP=javap
-    ;;
-*)
-    JAVAP="$JAVA_HOME/bin/javap"
-    ;;
-esac
-
-"$JAVAP" -classpath "$JAVACLASSPATH" "$@"
+javap -classpath "$JAVACLASSPATH" "$@"
