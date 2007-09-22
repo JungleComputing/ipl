@@ -10,6 +10,7 @@
     <property name="src" location="src" />
     <property name="tmp" location="tmp" />
     <property name="lib" location="lib" />
+    <property name="javadoc" location="javadoc" />
     <property name="external" location="external" />
     <property name="docs" location="docs" />
     <property name="rewritten-classlibs" location="classlibs" />
@@ -41,6 +42,7 @@
     <target name="compile">
         <mkdir dir="${tmp}" />
         <mkdir dir="${lib}" />
+        <mkdir dir="${javadoc}" />
 
         <!-- Compile the java code from ${src} into ${tmp} -->
         <javac srcdir="${src}" destdir="${tmp}" debug="on">
@@ -95,6 +97,7 @@
     <target name="clean" description="Clean up (leaves rewritten classlibs)">
         <delete dir="${tmp}" />
         <delete dir="${lib}" />
+        <delete dir="${javadoc}" />
 
         <delete file="${version}.zip" />
         <delete file="ibis-src.zip" />
@@ -137,16 +140,21 @@
         </delete>
     </target>
 
-    <target name="docs" description="Build the Ibis API documentation">
-        <ant dir="${docs}" inheritAll="true" target="api" />
-    </target>
-
-    <target name="developer-docs">
-        <ant dir="${docs}" inheritAll="false" target="developer-api" />
-    </target>
-
-    <target name="progman" description="Build the Ibis programmers manual">
-        <ant dir="${docs}" inheritAll="false" target="progman" />
+    <target name="javadoc" description="Create javadocs">
+	<!-- Create the javadoc directory -->
+	<delete dir="${javadoc}"/>
+	<mkdir dir="${javadoc}"/>
+	<javadoc
+		destdir="${javadoc}"
+		access="public"
+		sourcepath="${src}"
+		windowtitle="Ibis IPL Documentation"
+		packagenames="ibis.ipl"
+		overview="src/overview.html"
+		doctitle="Ibis IPL Documentation"
+		bottom="The Ibis project">
+	    <link href="http://java.sun.com/j2se/1.5.0/docs/api/"/>
+	</javadoc>
     </target>
 
     <target name="test" depends="build">
