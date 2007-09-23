@@ -57,8 +57,7 @@
 	    <ant dir="src" target="build"/>
     </target>
 
-    <target name="build"
-	    depends="api, progman">
+    <target name="build" depends="progman">
     </target>
 
     <target name="dev-build"
@@ -68,7 +67,6 @@
     <target name="clean">
 	    <ant dir="src" target="clean"/>
    
-	    <delete dir="api"/>
 	    <delete dir="dev-api"/>
 	    <delete dir="progman"/>
 	    <delete file="progman.pdf"/>
