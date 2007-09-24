@@ -7,14 +7,15 @@ Legend:
 
 IPL:
 - check properties for unknown properties
-- add registry capability for consistency
-- version number check: check prefix
++ add registry capability for consistency (Done Ceriel, according to Niels' plan)
++ version number check in factory: check prefix (was already done in this way).
 
 ibis-io:
-- remove dependency on ipl.
++ remove dependency on ipl. (Done Ceriel)
 
 capabilities:
-- add registry capabilities. (What exactly do we want here? --Ceriel)
++ add registry capabilities. (What exactly do we want here? --Ceriel)
+  (Done, according to Niels' plan).
 
 management:
 - clarify JavaDoc of "count" methods in messages. E.g. Say we only count
@@ -26,7 +27,7 @@ ibis registry:
 
 applications:
 - remove old-n-useless applications (if any)
-- put jars in lib dir
++ put jars in lib dir (Done Ceriel)
 
 packaging/distribution:
 - split up ibis in multiple separate subprojects:
@@ -37,20 +38,20 @@ packaging/distribution:
 	+ io (Done Ceriel)
 	+ compile (Done Ceriel)
 	foreach(programming model) {
-		- programming model
+		+ programming model
 		- programming model applications
 	} (Done programming models --Ceriel)
 	- standalone applications (DFA, SAT4Satin, Barnes)	
 	- make external dir in every subproject so that each subproject
 	  is self-contained.
-- put DeepCopy in a sane place
++ put DeepCopy in a sane place (Done Ceriel; moved to ibis.io)
 - update docs
 - while(true) {fix eclipse warnings}
 - Api docs of IPL: read, clarify, improve (Niels: Done SendPort).
-- clean-up scripts
++ clean-up scripts (Done Ceriel)
 - clean up doc building scripts
-* move ibis.server.poolInfo code to ibis.poolInfo 
-  (already in ibis-poolinfo project)
++ move ibis.server.poolInfo code to ibis.poolInfo 
+  (already in ibis-poolinfo project) (Done Ceriel)
 
 website:
 - update "ibis" overview picture with new/changed implementations
