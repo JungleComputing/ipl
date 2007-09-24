@@ -5,7 +5,8 @@ package ibis.ipl;
 import java.io.IOException;
 
 /**
- * A <code>Registry</code> coordinates the Pool which an Ibis instance is part of.
+ * A <code>Registry</code> coordinates the Pool which an Ibis instance is part
+ * of.
  */
 public interface Registry {
 
@@ -19,9 +20,12 @@ public interface Registry {
      * a new winner will automatically be elected and returned on the next 
      * call of this function.
      *
-     * @param electionName the name of this election.
-     * @return the Ibis identifier of the elected Ibis instance.
-     * @exception java.io.IOException is thrown in case of trouble.
+     * @param electionName
+     *          the name of this election.
+     * @return
+     *          the Ibis identifier of the elected Ibis instance.
+     * @exception IOException
+     *          is thrown in case of trouble.
      */
     public IbisIdentifier elect(String electionName) throws IOException;
 
@@ -29,9 +33,12 @@ public interface Registry {
      * Gets the result of an election, without being a candidate.
      * Blocks until there is a winner for the election.
      *
-     * @param electionName the name of this election.
-     * @return the Ibis identifier of the elected Ibis instance.
-     * @exception java.io.IOException is thrown in case of trouble.
+     * @param electionName
+     *          the name of this election.
+     * @return
+     *          the Ibis identifier of the elected Ibis instance.
+     * @exception IOException
+     *          is thrown in case of trouble.
      */
     public IbisIdentifier getElectionResult(String electionName)
             throws IOException;
@@ -41,12 +48,15 @@ public interface Registry {
      * Blocks for at most the specified timeout. If there is no
      * winner by then, <code>null</code> is returned.
      *
-     * @param electionName the name of this election.
-     * @param timeoutMillis time to wait. 0 means: wait forever,
-     *     -1 means: return immediately.
-     *     
-     * @return the Ibis identifier of the elected Ibis instance.
-     * @exception java.io.IOException is thrown in case of trouble.
+     * @param electionName
+     *          the name of this election.
+     * @param timeoutMillis
+     *          time to wait. 0 means: wait forever, -1 means: return
+     *          immediately.
+     * @return
+     *          the Ibis identifier of the elected Ibis instance.
+     * @exception IOException
+     *          is thrown in case of trouble.
      */
     public IbisIdentifier getElectionResult(String electionName,
             long timeoutMillis) throws IOException;
@@ -57,7 +67,8 @@ public interface Registry {
      *
      * @param ibisIdentifier the Ibis identifier of the Ibis instance suspected
      *   to be dead.
-     * @exception java.io.IOException is thrown in case of trouble.
+     * @exception IOException
+     *          is thrown in case of trouble.
      */
     public void maybeDead(IbisIdentifier ibisIdentifier) throws IOException;
 
@@ -65,9 +76,11 @@ public interface Registry {
      * Instructs the registry to assume that the specified Ibis instance
      * is dead.
      *
-     * @param ibisIdentifier the Ibis identifier of the Ibis instance that must
-     *   be assumed to be dead.
-     * @exception java.io.IOException is thrown in case of trouble.
+     * @param ibisIdentifier
+     *          the Ibis identifier of the Ibis instance that must be assumed
+     *          to be dead.
+     * @exception IOException
+     *          is thrown in case of trouble.
      */
     public void assumeDead(IbisIdentifier ibisIdentifier) throws IOException;
 
@@ -76,10 +89,13 @@ public interface Registry {
      * This results in a {@link RegistryEventHandler#gotSignal(String)}
      * upcall on all Ibis instances in the given list. It is up to the
      * application to react accordingly.
-     * @param signal the value of the signal. Useful if more than one
-     * type of signal is needed.
-     * @param ibisIdentifiers the ibisses to wich the signal is sent.
-     * @exception java.io.IOException is thrown in case of trouble.
+     * @param signal
+     *          the value of the signal. Useful if more than one type of signal
+     *          is needed.
+     * @param ibisIdentifiers
+     *          the ibisses to wich the signal is sent.
+     * @exception IOException
+     *          is thrown in case of trouble.
      */
     public void signal(String signal, IbisIdentifier... ibisIdentifiers)
             throws IOException;
@@ -91,9 +107,11 @@ public interface Registry {
      * This call only works if this Ibis is configured to support
      * registry downcalls.
      * If no Ibis instances joined, an array with 0 entries is returned.
-     * @exception IbisConfigurationException is thrown when the port was
-     * not configured to support registry downcalls.
-     * @return the joined Ibises.
+     * @exception IbisConfigurationException
+     *          is thrown when the port was not configured to support
+     *          membership administration.
+     * @return
+     *          the joined Ibises.
      */
     public IbisIdentifier[] joinedIbises();
 
@@ -104,9 +122,11 @@ public interface Registry {
      * This call only works if this Ibis is configured to support
      * registry downcalls.
      * If no Ibis instances left, an array with 0 entries is returned.
-     * @exception IbisConfigurationException is thrown when ibis was
-     * not configured to support registr downcalls.
-     * @return the left Ibises.
+     * @exception IbisConfigurationException
+     *          is thrown when ibis was not configured to support
+     *          membership administration.
+     * @return
+     *          the left Ibises.
      */
     public IbisIdentifier[] leftIbises();
     
@@ -117,9 +137,11 @@ public interface Registry {
      * This call only works if this Ibis is configured to support
      * registry downcalls.
      * If no Ibis instances died, an array with 0 entries is returned.
-     * @exception IbisConfigurationException is thrown when ibis was
-     * not configured to support registry downcalls.
-     * @return the Ibises that died.
+     * @exception IbisConfigurationException
+     *          is thrown when ibis was not configured to support
+     *          membership administration.
+     * @return
+     *          the Ibises that died.
      */
     public IbisIdentifier[] diedIbises();
 
@@ -130,37 +152,44 @@ public interface Registry {
      * This call only works if this Ibis is configured to support
      * registry downcalls.
      * If no signals were received, an array with 0 entries is returned.
-     * @exception IbisConfigurationException is thrown when ibis was
-     * not configured to support registry downcalls.
-     * @return the received signals.
+     * @exception IbisConfigurationException
+     *          is thrown when ibis was not configured to support
+     *          signals.
+     * @return
+     *          the received signals.
      */
     public String[] receivedSignals();    
     
     /**
      * When running closed-world, returns the total number of Ibis instances
      * in the pool.
-     * @return the number of Ibis instances
-     * @exception NumberFormatException is thrown when the property
-     *   ibis.pool.total_hosts is not defined or does not represent a number.
-     * @exception IbisConfigurationException is thrown when this is not a
-     * closed-world run.
+     * @return
+     *          the number of Ibis instances
+     * @exception NumberFormatException
+     *          is thrown when the property <code>ibis.pool.total_hosts</code>
+     *          is not defined or does not represent a number.
+     * @exception IbisConfigurationException
+     *          is thrown when this is not a closed-world run.
      */
     public int getPoolSize();
 
     /**
      * When running closed-world, wait for all Ibis instances
      * in the pool.
-     * @exception IbisConfigurationException is thrown when this is not a
-     * closed-world run, or when registry events are not enabled yet.
+     * @exception IbisConfigurationException
+     *          is thrown when this is not a closed-world run, or when
+     *          registry events are not enabled yet.
      */
     public void waitForAll();
 
     /**
-     * Allows reception of {@link ibis.ipl.RegistryEventHandler RegistryEventHandler}
-     * upcalls. Registry events are saved until the event handler is enabled,
-     * and are then delivered, one by one. Ibis instances are always started with
-     * the registry event handler disabled, so that this method must be called to
-     * allow for the reception of registry handler upcalls.
+     * Allows reception of
+     * {@link ibis.ipl.RegistryEventHandler RegistryEventHandler} upcalls.
+     * Registry events are saved until the event handler is enabled,
+     * and are then delivered, one by one.
+     * Ibis instances are always started with
+     * the registry event handler disabled. This method must be
+     * called to allow for the reception of registry handler upcalls.
      */
     public void enableEvents();
 
@@ -175,10 +204,10 @@ public interface Registry {
     /**
      * Obtains a sequence number from the registry.
      * Each sequencer has a name, which must be provided to this call.
-     * @param name the name of this sequencer.
-     * @exception IOException may be thrown when communication with the
-     * registry fails.
+     * @param name
+     *          the name of this sequencer.
+     * @exception IOException
+     *          may be thrown when communication with the registry fails.
      */
     public abstract long getSeqno(String name) throws IOException;
-
 }

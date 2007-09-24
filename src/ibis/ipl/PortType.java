@@ -5,81 +5,86 @@ import java.io.IOException;
 
 /**
  * This class represents the type of a receive or send port.
- * It consists of a capability set and some
- * predefined capability strings.
+ * A PortType is a capability set. The possible values in this set are
+ * included here. Note that Ibis implementations may define additional
+ * capabilities.
  */
 public final class PortType extends CapabilitySet {
     
     /** Prefix for connection capabilities. */
-    public final static String CONNECTION = "connection";
+    final static String CONNECTION = "connection";
 
     /** Prefix for receive capabilities. */
-    public final static String RECEIVE = "receive";
+    final static String RECEIVE = "receive";
 
     /** Prefix for serialization capabilities. */
-    public final static String SERIALIZATION = "serialization";
+    final static String SERIALIZATION = "serialization";
 
     /** Prefix for communication capabilities. */
-    public final static String COMMUNICATION = "communication";
+    final static String COMMUNICATION = "communication";
+
     /**
-     * Boolean capability, set when a sendport can connect to a single
-     * receiveport, that can accept at most one connection.
+     * This capability describes that a sendport can have at most onw
+     * outgoing connection, and a receiveport can have at most one incoming
+     * connection.
      */
     public final static String CONNECTION_ONE_TO_ONE = CONNECTION + ".onetoone";
 
     /**
-     * Boolean capability, set when a sendport can connect to more than
-     * one receiveport, which, in turn can accept at most one connection.
+     * This capability describes that a sendport can have more than one
+     * outgoing connection, but receiveports can only have one
+     * incoming connection.
      */
     public final static String CONNECTION_ONE_TO_MANY
             = CONNECTION + ".onetomany";
 
     /**
-     * Boolean capability, set when multiple sendports, which each can at most
-     * have one outgoing connection, can connect to a single receiveport.
+     * This capability describes that a sendport can have at most one
+     * outgoing connection, but receiveports can have multiple incoming
+     * connections.
      */
     public final static String CONNECTION_MANY_TO_ONE
             = CONNECTION + ".manytoone";
 
     /**
-     * Boolean capability, set when multiple sendports can connect to
-     * multiple receiveports.
+     * This capability describes that a sendport can have multiple outgoing
+     * connections, and receiveports can have multiple incoming connections.
      */
     public final static String CONNECTION_MANY_TO_MANY
             = CONNECTION + ".manytomany";
 
-    /** Boolean capability, set when connection downcalls are supported. */
+    /** This capability describes that connection downcalls are supported. */
     public final static String CONNECTION_DOWNCALLS = CONNECTION + ".downcalls";
 
-    /** Boolean capability, set when connection upcalls are supported. */
+    /** This capability describes that connection upcalls are supported. */
     public final static String CONNECTION_UPCALLS = CONNECTION + ".upcalls";
 
     /**
-     * Boolean capability, set when timeouts on connection attempts are
+     * This capability describes that timeouts on connection attempts are
      * supported.
      */
     public final static String CONNECTION_TIMEOUT = CONNECTION + ".timeout";
 
-    /** Boolean capability, set when explicit receive is supported. */
+    /** This capability describes that explicit receive is supported. */
     public final static String RECEIVE_EXPLICIT = RECEIVE + ".explicit";
 
     /**
-     * Boolean capability, set when explicit receive with a timeout
-     * is supported.
+     * This capability describes that explicit receive with a timeout is
+     * supported.
      */
     public final static String RECEIVE_TIMEOUT = RECEIVE + ".timeout";
 
-    /** Boolean capability, set when poll is supported. */
+    /** This capability describes that polls are supported. */
     public final static String RECEIVE_POLL = RECEIVE + ".poll";
 
     /**
-     * Boolean capability, set when message upcalls are supported without
+     * This capability describes that message upcalls are supported without
      * the need to poll for them.
      */
     public final static String RECEIVE_AUTO_UPCALLS = RECEIVE + ".autoupcalls";
 
     /**
-     * Boolean capability, set when message upcalls are supported but the
+     * This capability describes that message upcalls are supported but the
      * user must to poll for them. An implementation that claims that it
      * has this, may also do autoupcalls, but polling does no harm.
      * When an application asks for this (and not autoupcalls), it must poll.
@@ -88,59 +93,58 @@ public final class PortType extends CapabilitySet {
     public final static String RECEIVE_POLL_UPCALLS = RECEIVE + ".pollupcalls";
 
     /**
-     * Boolean capability, set when messages from a sendport are delivered
+     * This capability describes that messages from a sendport are delivered
      * to the receiveport(s) in the order in which they were sent.
      */
     public final static String COMMUNICATION_FIFO = COMMUNICATION + ".fifo";
 
     /**
-     * Messages from sendports of a port type with this property are
-     * given global sequence numbers so that the application can order
-     * them. The numbering is per port type.
+     * This capability describes that messages are given global sequence
+     * numbers so that the application can order them.
+     * The numbering is per port type.
      */
     public final static String COMMUNICATION_NUMBERED
             = COMMUNICATION + ".numbered";
 
-    /** Boolean capability, set when reliable communication is supported. */
+    /** This capability describes that communication is reliable. */
     public final static String COMMUNICATION_RELIABLE
             = COMMUNICATION + ".reliable";
     
     /**
-     * Boolean capability, indicating that readByte/writeByte and
+     * This capability describes that readByte/writeByte and
      * readArray/writeArray(byte[]) are supported.
      */
     public final static String SERIALIZATION_BYTE = SERIALIZATION + ".byte";
 
     /**
-     * Boolean capability, indicating that read/write and readArray/writeArray
+     * This capability describes that read/write and readArray/writeArray
      * of primitive types are supported.
      */
     public final static String SERIALIZATION_DATA = SERIALIZATION + ".data";
 
     /**
-     * Boolean capability, indicating that some sort of object serialization
-     * is supported. Applications may ask for a specific implementation by
+     * This capability describes that some sort of object serialization is
+     * supported. Applications may ask for a specific implementation by
      * specifying, for instance, serialization.object.sun.
      */
     public final static String SERIALIZATION_OBJECT = SERIALIZATION + ".object";
 
     /**
-     * Boolean capability, indicating that ibis object serialization
-     * is supported. 
+     * This capability describes that ibis object serialization is supported.
      */
     public final static String SERIALIZATION_OBJECT_IBIS = 
         SERIALIZATION_OBJECT + ".ibis";
     
     /**
-     * Boolean capability, indicating that sun object serialization
-     * is supported. 
+     * This capability describes that sun object serialization is supported.
      */
     public final static String SERIALIZATION_OBJECT_SUN = 
         SERIALIZATION_OBJECT + ".sun";
     
     /** 
      * Constructor for a port type.
-     * @param capabilities the capabilities of this port type.
+     * @param capabilities
+     *          the capabilities of this port type.
      */
     public PortType(String... capabilities) {
         super(capabilities);
@@ -149,8 +153,10 @@ public final class PortType extends CapabilitySet {
     /**
      * Constructs a port type by reading it from the specified data
      * input stream.
-     * @param dataInput the data input stream.
-     * @throws IOException is thrown in case of trouble.
+     * @param dataInput
+     *          the data input stream.
+     * @throws IOException
+     *          is thrown in case of trouble.
      */
     public PortType(DataInput dataInput) throws IOException {
         super(dataInput);

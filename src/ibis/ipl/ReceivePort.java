@@ -5,7 +5,7 @@ package ibis.ipl;
 import java.io.IOException;
 
 /**
- * A receiveport maintains connections to one or more sendports.
+ * A receiveport accepts and maintains connections from one or more sendports.
  *
  * When creating a receiveport, it is possible to pass a
  * {@link ReceivePortConnectUpcall} object. Ibis will call the
@@ -28,7 +28,7 @@ import java.io.IOException;
  * connections.
  *
  * Only one upcall is alive at any one time, this includes BOTH
- * normal (message) upcalls AND ConnectUpcalls.
+ * message upcalls AND ConnectUpcalls.
  *
  * Only one message is alive at any time for a given
  * receiveport. This is done to prevent flow control problems.
@@ -40,7 +40,8 @@ public interface ReceivePort extends Managable {
 
     /**
      * Returns the type that was used to create this port.
-     * @return the type that was used to create this port.
+     * @return
+     *          the type that was used to create this port.
      */
     public PortType getPortType();
     
@@ -50,11 +51,12 @@ public interface ReceivePort extends Managable {
      * When a receiveport is configured to generate upcalls, 
      * using this method is NOT allowed; in that case an
      * {@link IbisConfigurationException} is thrown.
-     *
-     * @return the message received.
-     * @exception IbisConfigurationException is thrown when the receiveport
-     * is configured to use upcalls.
-     * @exception IOException is thrown in case of other trouble.
+     * @return
+     *          the message received.
+     * @exception IbisConfigurationException
+     *          is thrown when the receiveport is configured to use upcalls.
+     * @exception IOException
+     *          is thrown in case of other trouble.
      */
     public ReadMessage receive() throws IOException;
 
@@ -66,14 +68,16 @@ public interface ReceivePort extends Managable {
      * using this method is NOT allowed.
      * The receive blocks at most timeoutMillis, but it might be shorter!
      * A timeoutMillis less than or equal to 0 means just do a blocking receive.
-     *
-     * @param timeoutMillis timeout in milliseconds.
-     * @return the message received.
-     * @exception ReceiveTimedOutException is thrown when the timeout
-     * expires and no message arrives.
-     * @exception IbisConfigurationException is thrown when the receiveport
-     * is configured to use upcalls.
-     * @exception IOException is thrown in case of other trouble.
+     * @param timeoutMillis
+     *          timeout in milliseconds.
+     * @return
+     *          the message received.
+     * @exception ReceiveTimedOutException
+     *          is thrown when the timeout expires and no message arrives.
+     * @exception IbisConfigurationException
+     *          is thrown when the receiveport is configured to use upcalls.
+     * @exception IOException
+     *          is thrown in case of other trouble.
      **/
     public ReadMessage receive(long timeoutMillis) throws IOException;
 
@@ -82,20 +86,23 @@ public interface ReceivePort extends Managable {
      * Returns immediately, wether or not a message is available. 
      * Also works for ports configured for upcalls, in which case it is a
      * normal poll: it will always return null, but it might generate an upcall.
-     * @return the message received, or <code>null</code>.
-     * @exception IbisConfigurationException is thrown when the receiveport
-     * is not configured to support polls.
-     * @exception IOException on IO error.
+     * @return
+     *          the message received, or <code>null</code>.
+     * @exception IbisConfigurationException
+     *          is thrown when the receiveport is not configured to support
+     *          polls.
+     * @exception IOException
+     *          is thrown on IO errors.
      */
     public ReadMessage poll() throws IOException;
 
     /**
      * Returns the number of bytes read from this receiveport.
      * A receiveport maintains a counter of how many bytes are used for
-     * messages.
-     * Each time a message is being finished, this counter is updated.
-     *
-     * @return the number of bytes read.
+     * messages. Each time a message is being finished, this counter is
+     * updated. It can be reset with the {@link #resetCount()} method.
+     * @return
+     *          the number of bytes read.
      **/
     public long getCount();
 
@@ -107,7 +114,8 @@ public interface ReceivePort extends Managable {
 
     /**
      * Returns the {@link ReceivePortIdentifier} of this receiveport.
-     * @return the identifier.
+     * @return
+     *          the identifier.
      */
     public ReceivePortIdentifier identifier();
 
@@ -115,8 +123,8 @@ public interface ReceivePort extends Managable {
      * Returns the name of the receiveport.
      * When the receiveport was created anonymously, a system-invented
      * name will be returned.
-     *
-     * @return the name.
+     * @return
+     *          the name.
      */
     public String name();
 
@@ -150,13 +158,16 @@ public interface ReceivePort extends Managable {
      * Prohibits message upcalls.
      * After this call, no message upcalls will occur until
      * {@link #enableMessageUpcalls()} is called.
-     * The <code>disableMessageUpcalls</code>/<code>enableMessageUpcalls</code> mechanism
-     * allows the user to selectively allow or disallow message upcalls during
-     * runtime.
-     * <strong>Note: the
+     * The <code>disableMessageUpcalls</code>/<code>enableMessageUpcalls</code>
+     * mechanism allows the user to selectively allow or disallow message
+     * upcalls during runtime.
+     * <strong>
+     * Note: the
      * <code>disableMessageUpcalls</code>/<code>enableMessageUpcalls</code>
      * mechanism is not necessary to enforce serialization of Upcalls for
-     * this port.</strong> Ibis already guarantees that only one message
+     * this port.
+     * </strong>
+     * Ibis already guarantees that only one message
      * per port is active at any time.
      */
     public void disableMessageUpcalls();
@@ -165,7 +176,8 @@ public interface ReceivePort extends Managable {
      * Frees the resources held by the receiveport. 
      * Important: this method blocks until all sendports that are
      * connected to it have been closed. 
-     * @throws IOException in case of trouble.
+     * @throws IOException
+     *          in case of trouble.
      */
     public void close() throws IOException;
 
@@ -181,17 +193,20 @@ public interface ReceivePort extends Managable {
      * connection administration, it updates the administration and thus
      * may generate lostConnection upcalls.
      *
-     * @param timeoutMillis timeout in milliseconds. When zero, the call is
-     * equivalent to a {@link #close()}; when less than zero, the port is
-     * closed immediately.
-     * @throws IOException in case of trouble.
+     * @param timeoutMillis
+     *          timeout in milliseconds. When zero, the call is equivalent to
+     *          a {@link #close()}; when less than zero, the port is closed
+     *          immediately.
+     * @throws IOException
+     *          in case of trouble.
      */
     public void close(long timeoutMillis) throws IOException;
 
     /**
      * Returns the set of sendports this receiveport is connected to.
      * When there are no connections, an array with 0 entries is returned.
-     * @return the sendport identifiers.
+     * @return
+     *          the sendport identifiers.
      */
     public SendPortIdentifier[] connectedTo();
 
@@ -205,9 +220,11 @@ public interface ReceivePort extends Managable {
      * This call only works if this port is configured to maintain
      * connection administration.
      * If no connections were lost, an array with 0 entries is returned.
-     * @exception IbisConfigurationException is thrown when the port was
-     * not configured to support connection downcalls.
-     * @return the lost connections.
+     * @return
+     *          the lost connections.
+     * @exception IbisConfigurationException
+     *          is thrown when the port was not configured to support
+     *          connection downcalls.
      */
     public SendPortIdentifier[] lostConnections();
 
@@ -219,9 +236,11 @@ public interface ReceivePort extends Managable {
      * This call only works if this port is configured to maintain 
      * connection administration.
      * If there are no new connections, an array with 0 entries is returned.
-     * @exception IbisConfigurationException is thrown when the port was
-     * not configured to support connection downcalls.
-     * @return the new connections.
+     * @return
+     *          the new connections.
+     * @exception IbisConfigurationException
+     *          is thrown when the port was not configured to support
+     *          connection downcalls.
      */
     public SendPortIdentifier[] newConnections();
 }

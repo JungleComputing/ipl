@@ -8,11 +8,7 @@ package ibis.ipl;
  * receive() variants with a timeout, the timeout expires.
  */
 public class ReceiveTimedOutException extends java.io.IOException {
-
-    /** 
-     * Generated
-     */
-    private static final long serialVersionUID = 2363906632233361366L;
+    private static final long serialVersionUID = 1L;
 
     /**
      * Constructs a <code>ReceiveTimedOutException</code> with
@@ -26,7 +22,8 @@ public class ReceiveTimedOutException extends java.io.IOException {
      * Constructs a <code>ReceiveTimedOutException</code> with
      * the specified detail message.
      *
-     * @param detailMessage		the detail message
+     * @param detailMessage
+     *          the detail message
      */
     public ReceiveTimedOutException(String detailMessage) {
         super(detailMessage);
@@ -36,8 +33,10 @@ public class ReceiveTimedOutException extends java.io.IOException {
      * Constructs a <code>ReceiveTimedOutException</code> with
      * the specified detail message and cause.
      *
-     * @param detailMessage		the detail message
-     * @param cause	the cause
+     * @param detailMessage
+     *          the detail message
+     * @param cause
+     *          the cause
      */
     public ReceiveTimedOutException(String detailMessage, Throwable cause) {
         super(detailMessage);
@@ -48,7 +47,8 @@ public class ReceiveTimedOutException extends java.io.IOException {
      * Constructs a <code>ReceiveTimedOutException</code> with
      * the specified cause.
      *
-     * @param cause	the cause
+     * @param cause
+     *          the cause
      */
     public ReceiveTimedOutException(Throwable cause) {
         super();

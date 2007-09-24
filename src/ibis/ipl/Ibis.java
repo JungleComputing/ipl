@@ -16,13 +16,15 @@ public interface Ibis extends Managable {
      * The Ibis instance also deregisters itself from the registry. As a
      * result, other Ibis instances may receive a 
      * {@link RegistryEventHandler#left(IbisIdentifier)} upcall.
-     * @exception IOException is thrown when an error occurs.
+     * @exception IOException
+     *          is thrown when an error occurs.
      */
     public void end() throws IOException;
 
     /** 
      * Returns the Ibis {@linkplain ibis.ipl.Registry Registry}.
-     * @return the Ibis registry.
+     * @return
+     *          the Ibis registry.
      */
     public Registry registry();
 
@@ -32,7 +34,8 @@ public interface Ibis extends Managable {
      * There is one poll for the entire Ibis, as this
      * can sometimes be implemented more efficiently than polling per
      * port. Polling per port is provided in the receiveport itself.
-     * @exception IOException is thrown when a communication error occurs.
+     * @exception IOException
+     *          is thrown when a communication error occurs.
      */
     public void poll() throws IOException;
 
@@ -40,29 +43,33 @@ public interface Ibis extends Managable {
      * Returns an Ibis {@linkplain ibis.ipl.IbisIdentifier identifier} for
      * this Ibis instance.
      * An Ibis identifier identifies an Ibis instance in the network.
-     * @return the Ibis identifier of this Ibis instance.
+     * @return
+     *          the Ibis identifier of this Ibis instance.
      */
     public IbisIdentifier identifier();
 
     /**
      * Returns the current Ibis version.
-     * @return the ibis version.
+     * @return
+     *          the ibis version.
      */
     public String getVersion();
 
     /**
      * Returns the properties as provided when instantiating Ibis.
-     * @return the properties.
+     * @return
+     *          the properties.
      */
     public Properties properties();
 
     /**
-     * Creates a anonymous {@link SendPort} of the specified port type.
-     * 
-     * @param portType the port type.
-     * @return the new sendport.
-     * @exception java.io.IOException is thrown when the port could not be
-     * created.
+     * Creates an anonymous {@link SendPort} of the specified port type.
+     * @param portType
+     *          the port type.
+     * @return
+     *          the new sendport.
+     * @exception IOException
+     *          is thrown when the port could not be created.
      */
     public SendPort createSendPort(PortType portType) throws IOException;
 
@@ -70,13 +77,17 @@ public interface Ibis extends Managable {
      * Creates a named {@link SendPort} of the specified port type.
      * The name does not have to be unique.
      *
-     * @param portType the port type.
-     * @param sendPortName the name of this sendport.
-     * @return the new sendport.
-     * @exception java.io.IOException is thrown when the port could not be
-     * created.
-     * @exception ibis.ipl.IbisConfigurationException is thrown when the port
-     * type does not match what is required here.
+     * @param portType
+     *          the port type.
+     * @param sendPortName
+     *          the name of this sendport.
+     * @return
+     *          the new sendport.
+     * @exception IOException
+     *          is thrown when the port could not be created.
+     * @exception IbisConfigurationException
+     *          is thrown when the port type does not match the capabilities
+     *          that are required to create this sendport.
      */
     public SendPort createSendPort(PortType portType, String sendPortName)
             throws IOException;
@@ -84,42 +95,51 @@ public interface Ibis extends Managable {
     /** 
      * Creates a named {@link SendPort} of the specified port type.
      * The name does not have to be unique.
-     * When a connection is lost, a ConnectUpcall is performed.
      *
-     * @param portType the port type.
-     * @param sendPortName the name of this sendport.
-     * @param sendPortDisconnectUpcall object implementing the
-     * {@link SendPortDisconnectUpcall#lostConnection(SendPort,
-     * ReceivePortIdentifier, Throwable)} method.
-     * @param properties the properties of the port.
-     * @return the new sendport.
-     * @exception java.io.IOException is thrown when the port could not be
-     * created.
-     * @exception ibis.ipl.IbisConfigurationException is thrown when the port
-     * type does not match what is required here.
+     * @param portType
+     *          the port type.
+     * @param sendPortName
+     *          the name of this sendport.
+     * @param sendPortDisconnectUpcall
+     *          object implementing the {@link
+     *          SendPortDisconnectUpcall#lostConnection(SendPort,
+     *          ReceivePortIdentifier, Throwable)} method.
+     * @param properties
+     *          the properties of the port.
+     * @return
+     *          the new sendport.
+     * @exception IOException
+     *          is thrown when the port could not be created.
+     * @exception IbisConfigurationException
+     *          is thrown when the port type does not match the capabilities
+     *          that are required to create this sendport.
      */
     public SendPort createSendPort(PortType portType, String sendPortName,
-        SendPortDisconnectUpcall sendPortDisconnectUpcall, Properties properties)
-        throws IOException;
+            SendPortDisconnectUpcall sendPortDisconnectUpcall,
+            Properties properties) throws IOException;
 
     /**
      * Creates a named {@link ReceivePort} of the specified port type.
      * with explicit receipt communication.
      * New connections will not be accepted until
-     * {@link ReceivePort#enableConnections()} is invoked.
+     * {@link ReceivePort#enableConnections()} is invoked on this port.
      * This is done to avoid connection upcalls during initialization.
      *
-     * @param portType the port type.
-     * @param receivePortName the unique name of this receiveport (or <code>null</code>,
-     *    in which case the port is created anonymously).
-     * @return the new receiveport.
-     * @exception java.io.IOException is thrown when the port could not be
-     * created.
-     * @exception ibis.ipl.IbisConfigurationException is thrown when the port
-     * type does not match what is required here.
+     * @param portType
+     *          the port type.
+     * @param receivePortName
+     *          the unique name of this receiveport (or <code>null</code>,
+     *          in which case the port is created anonymously).
+     * @return
+     *          the new receiveport.
+     * @exception IOException
+     *          is thrown when the port could not be created.
+     * @exception IbisConfigurationException
+     *          is thrown when the port type does not match the capabilities
+     *          that are required to create this receiveport.
      */
-    public ReceivePort createReceivePort(PortType portType, String receivePortName)
-        throws IOException;
+    public ReceivePort createReceivePort(PortType portType,
+            String receivePortName) throws IOException;
 
     /** 
      * Creates a named {@link ReceivePort} of the specified port type.
@@ -131,18 +151,24 @@ public interface Ibis extends Managable {
      * {@link ReceivePort#enableMessageUpcalls()} has been called.
      * This is done to avoid message upcalls during initialization.
      *
-     * @param portType the port type.
-     * @param receivePortName the unique name of this receiveport (or <code>null</code>,
-     *    in which case the port is created anonymously).
-     * @param messageUpcall the upcall handler.
-     * @return the new receiveport.
-     * @exception java.io.IOException is thrown when the port could not be
-     * created.
-     * @exception ibis.ipl.IbisConfigurationException is thrown when the port
-     * type does not match what is required here.
+     * @param portType
+     *          the port type.
+     * @param receivePortName
+     *          the unique name of this receiveport (or <code>null</code>,
+     *          in which case the port is created anonymously).
+     * @param messageUpcall
+     *          the upcall handler.
+     * @return
+     *          the new receiveport.
+     * @exception IOException
+     *          is thrown when the port could not be created.
+     * @exception IbisConfigurationException
+     *          is thrown when the port type does not match the capabilities
+     *          that are required to create this receiveport.
      */
-    public ReceivePort createReceivePort(PortType portType, String receivePortName,
-            MessageUpcall messageUpcall) throws IOException;
+    public ReceivePort createReceivePort(PortType portType,
+            String receivePortName, MessageUpcall messageUpcall) 
+            throws IOException;
 
     /** 
      * Creates a named {@link ReceivePort} of the specified port type.
@@ -153,19 +179,26 @@ public interface Ibis extends Managable {
      * When a new connection request arrives, or when a connection is lost,
      * a ConnectUpcall is performed.
      *
-     * @param portType the port type.
-     * @param receivePortName the unique name of this receiveport (or <code>null</code>,
-     *    in which case the port is created anonymously).
-     * @param receivePortConnectUpcall object implementing <code>gotConnection</code>() and
-     * <code>lostConnection</code>() upcalls.
-     * @return the new receiveport.
-     * @exception java.io.IOException is thrown when the port could not be
-     * created.
-     * @exception ibis.ipl.IbisConfigurationException is thrown when the port
-     * type does not match what is required here.
+     * @param portType
+     *          the port type.
+     * @param receivePortName
+     *          the unique name of this receiveport (or <code>null</code>,
+     *          in which case the port is created anonymously).
+     * @param receivePortConnectUpcall
+     *          object implementing <code>gotConnection</code>() and
+     *          <code>lostConnection</code>() upcalls.
+     * @return
+     *          the new receiveport.
+     * @exception IOException
+     *          is thrown when the port could not be created.
+     * @exception IbisConfigurationException
+     *          is thrown when the port type does not match the capabilities
+     *          that are required to create this receiveport.
      */
-    public ReceivePort createReceivePort(PortType portType, String receivePortName,
-            ReceivePortConnectUpcall receivePortConnectUpcall) throws IOException;
+    public ReceivePort createReceivePort(PortType portType,
+            String receivePortName,
+            ReceivePortConnectUpcall receivePortConnectUpcall)
+            throws IOException;
 
     /** 
      * Creates a named {@link ReceivePort} of the specified port type.
@@ -179,21 +212,29 @@ public interface Ibis extends Managable {
      * {@link ReceivePort#enableMessageUpcalls()} has been called.
      * This is done to avoid message upcalls during initialization.
      *
-     * @param portType the port type.
-     * @param receivePortName the unique name of this receiveport (or <code>null</code>,
-     *    in which case the port is created anonymously).
-     * @param messageUpcall the upcall handler.
-     * @param receivePortConnectUpcall object implementing <code>gotConnection</code>() and
-     * <code>lostConnection</code>() upcalls.
-     * @param properties properties for the new receive port.
-     * @return the new receiveport.
-     * @exception java.io.IOException is thrown when the port could not be
-     * created.
-     * @exception ibis.ipl.IbisConfigurationException is thrown when the port
-     * type does not match what is required here.
+     * @param portType
+     *          the port type.
+     * @param receivePortName
+     *          the unique name of this receiveport (or <code>null</code>,
+     *          in which case the port is created anonymously).
+     * @param messageUpcall
+     *          the upcall handler.
+     * @param receivePortConnectUpcall
+     *          object implementing <code>gotConnection</code>() and
+     *          <code>lostConnection</code>() upcalls.
+     * @param properties
+     *          properties for the new receive port.
+     * @return
+     *          the new receiveport.
+     * @exception IOException
+     *          is thrown when the port could not be created.
+     * @exception IbisConfigurationException
+     *          is thrown when the port type does not match the capabilities
+     *          that are required to create this receiveport.
      */
     
-    public ReceivePort createReceivePort(PortType portType, String receivePortName,
-            MessageUpcall messageUpcall, ReceivePortConnectUpcall receivePortConnectUpcall,
+    public ReceivePort createReceivePort(PortType portType,
+            String receivePortName, MessageUpcall messageUpcall,
+            ReceivePortConnectUpcall receivePortConnectUpcall,
             Properties properties) throws IOException;
 }

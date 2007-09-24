@@ -24,7 +24,8 @@ public class NoSuchPropertyException extends Exception {
      * Constructs a <code>NoSuchPropertyException</code> with
      * the specified detail message.
      *
-     * @param detailMessage		the detail message
+     * @param detailMessage
+     *          the detail message
      */
     public NoSuchPropertyException(String detailMessage) {
         super(detailMessage);
@@ -34,8 +35,10 @@ public class NoSuchPropertyException extends Exception {
      * Constructs a <code>NoSuchPropertyException</code> with
      * the specified detail message and cause.
      *
-     * @param detailMessage		the detail message
-     * @param cause	the cause
+     * @param detailMessage
+     *          the detail message
+     * @param cause
+     *          the cause
      */
     public NoSuchPropertyException(String detailMessage, Throwable cause) {
         super(detailMessage);
@@ -46,7 +49,8 @@ public class NoSuchPropertyException extends Exception {
      * Constructs a <code>NoSuchPropertyException</code> with
      * the specified cause.
      *
-     * @param cause	the cause
+     * @param cause
+     *          the cause
      */
     public NoSuchPropertyException(Throwable cause) {
         super();

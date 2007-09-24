@@ -12,11 +12,11 @@ import java.util.ArrayList;
  * <code>IbisCreationFailedException</code> is thrown to indicate
  * that no matching Ibis could be found in
  * {@link ibis.ipl.IbisFactory#createIbis(IbisCapabilities,
- * java.util.Properties, boolean, RegistryEventHandler, PortType...) Ibis.createIbis}.
+ * java.util.Properties, boolean, RegistryEventHandler, PortType...)
+ * Ibis.createIbis}.
  */
 public class IbisCreationFailedException extends Exception {
-
-    private static final long serialVersionUID = -387342205084916635L;
+    private static final long serialVersionUID = 1L;
 
     private ArrayList<Throwable> throwables = new ArrayList<Throwable>();
 
@@ -26,26 +26,29 @@ public class IbisCreationFailedException extends Exception {
      * Constructs a <code>IbisCreationFailedException</code> with
      * the specified detail message.
      *
-     * @param detailMessage         the detail message
+     * @param detailMessage
+     *          the detail message
      */
     public IbisCreationFailedException(String detailMessage) {
         super(detailMessage);
     }
 
     /**
-     * Constructs a <code>IbisCreationFailedException</code> with no specified detail
-     * message.
+     * Constructs a <code>IbisCreationFailedException</code> with no specified
+     * detail message.
      */
     public IbisCreationFailedException() {
         super();
     }
 
     /**
-     * Constructs a <code>IbisCreationFailedException</code> with no specified detail
-     * message, and adds the specified <String, Throwable> pair to the
+     * Constructs a <code>IbisCreationFailedException</code> with no specified
+     * detail message, and adds the specified <String, Throwable> pair to the
      * list of exceptions.
-     * @param throwerID some identification of the exception thrower.
-     * @param throwable the exception.
+     * @param throwerID
+     *          some identification of the exception thrower.
+     * @param throwable
+     *          the exception.
      */
     public IbisCreationFailedException(String throwerID, Throwable throwable) {
         super();
@@ -54,8 +57,10 @@ public class IbisCreationFailedException extends Exception {
 
     /**
      * Adds the specified <String, Throwable> pair to the list of exceptions.
-     * @param throwerID some identification of the exception thrower.
-     * @param throwable the exception.
+     * @param throwerID
+     *          some identification of the exception thrower.
+     * @param throwable
+     *          the exception.
      */
     public void add(String throwerID, Throwable throwable) {
         if (throwable instanceof InvocationTargetException) {

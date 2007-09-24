@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.Properties;
 
 /**
- * Utility methods for setting and getting configuration properties. The
+ * Properties management for Ibis. The
  * {@link #getDefaultProperties()} method obtains the properties in the
  * following order: first, some hardcoded properties are set. Next, a file
  * <code>ibis.properties</code> is searched for in the current directory,
@@ -114,7 +114,8 @@ public final class IbisProperties {
     /**
      * Returns the hard-coded properties of Ibis.
      * 
-     * @return the resulting properties.
+     * @return
+     *          the resulting properties.
      */
     public static Properties getHardcodedProperties() {
         Properties properties = new Properties();
@@ -131,7 +132,8 @@ public final class IbisProperties {
     /**
      * Returns a map mapping hard-coded property names to their descriptions.
      * 
-     * @return the name/description map.
+     * @return
+     *          the name/description map.
      */
     public static Map<String, String> getDescriptions() {
         Map<String, String> result = new LinkedHashMap<String, String>();
@@ -193,7 +195,8 @@ public final class IbisProperties {
      * in it are set, possibly overriding the hardcoded properties.
      * Finally, the system properties are obtained. These, too, may override
      * the properties set so far.
-     * @return the properties.
+     * @return
+     *          the properties.
      */
     public static Properties getDefaultProperties() {
         

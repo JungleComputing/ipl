@@ -9,11 +9,7 @@ package ibis.ipl;
  * the connection was broken.
  */
 public class ConnectionClosedException extends java.io.IOException {
-
-    /** 
-     * Generated
-     */
-    private static final long serialVersionUID = 9097069370016270215L;
+    private static final long serialVersionUID = 1L;
 
     /**
      * Constructs a <code>ConnectionClosedException</code> with
@@ -27,7 +23,8 @@ public class ConnectionClosedException extends java.io.IOException {
      * Constructs a <code>ConnectionClosedException</code> with
      * the specified detail message.
      *
-     * @param detailMessage		the detail message
+     * @param detailMessage
+     *          the detail message
      */
     public ConnectionClosedException(String detailMessage) {
         super(detailMessage);
@@ -37,8 +34,10 @@ public class ConnectionClosedException extends java.io.IOException {
      * Constructs a <code>ConnectionClosedException</code> with
      * the specified detail message and cause.
      *
-     * @param detailMessage		the detail message
-     * @param cause	the cause
+     * @param detailMessage
+     *          the detail message
+     * @param cause
+     *          the cause
      */
     public ConnectionClosedException(String detailMessage, Throwable cause) {
         super(detailMessage);
@@ -49,7 +48,8 @@ public class ConnectionClosedException extends java.io.IOException {
      * Constructs a <code>ConnectionClosedException</code> with
      * the specified cause.
      *
-     * @param cause	the cause
+     * @param cause
+     *          the cause
      */
     public ConnectionClosedException(Throwable cause) {
         super();

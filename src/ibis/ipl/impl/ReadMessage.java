@@ -3,6 +3,8 @@
 package ibis.ipl.impl;
 
 import ibis.io.SerializationInput;
+import ibis.ipl.IbisConfigurationException;
+import ibis.ipl.PortType;
 
 import java.io.IOException;
 
@@ -234,6 +236,10 @@ public class ReadMessage implements ibis.ipl.ReadMessage {
     }
 
     public long sequenceNumber() {
+        if (! info.port.type.hasCapability(PortType.COMMUNICATION_NUMBERED)) {
+            throw new IbisConfigurationException("No COMMUNICATION_NUMBERED "
+                    + "specified in port type");
+        }
         return sequenceNr;
     }
 

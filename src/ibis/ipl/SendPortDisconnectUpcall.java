@@ -14,18 +14,23 @@ public interface SendPortDisconnectUpcall {
      * A receiveport can forcibly close the connection,
      * in which case any communication from the sendport
      * will cause a lostConnection upcall. 
-     * <strong>The user may not assume that the mere fact that a
+     * <strong>
+     * The user may not assume that the mere fact that a
      * receive port forcibly closes its connections causes a lostConnection
      * call on the send port side.
-     * The send port has to do communication to detect that there is trouble.</strong>
+     * The send port has to do communication to detect that there is trouble.
+     * </strong>
      * 
      * This upcall may run completely asynchronously,
      * but only at most one is alive at any time.
      *
-     * @param origin the {@link SendPort} losing a connection.
-     * @param receiver identifier for the {@link ReceivePort} to which the
-     *  connection is lost.
-     * @param cause the reason for this upcall.
+     * @param origin
+     *          the {@link SendPort} losing a connection.
+     * @param receiver
+     *          identifier for the {@link ReceivePort} to which the connection
+     *          is lost.
+     * @param cause
+     *          the reason for this upcall.
      */
     public void lostConnection(SendPort origin, ReceivePortIdentifier receiver,
             Throwable cause);

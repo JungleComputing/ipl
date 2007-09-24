@@ -4,16 +4,13 @@ package ibis.ipl;
 
 /**
  * Signals that there was an error in the Ibis configuration.
- * <code>IbisConfigurationException</code> is thrown to indicate
+ * An <code>IbisConfigurationException</code> is thrown to indicate
  * that there is something wrong in the way Ibis was configured,
  * for instance because a method was invoked that requires capabilities
  * that were not configured.
  */
 public class IbisConfigurationException extends RuntimeException {
-    /** 
-     * Generated
-     */
-    private static final long serialVersionUID = 7493122222434074451L;
+    private static final long serialVersionUID = 1L;
 
     /**
      * Constructs a <code>IbisConfigurationException</code> with
@@ -27,7 +24,8 @@ public class IbisConfigurationException extends RuntimeException {
      * Constructs a <code>IbisConfigurationException</code> with
      * the specified detail message.
      *
-     * @param detailMessage		the detail message
+     * @param detailMessage
+     *          the detail message
      */
     public IbisConfigurationException(String detailMessage) {
         super(detailMessage);
@@ -37,8 +35,10 @@ public class IbisConfigurationException extends RuntimeException {
      * Constructs a <code>IbisConfigurationException</code> with
      * the specified detail message and cause.
      *
-     * @param detailMessage		the detail message
-     * @param cause	the cause
+     * @param detailMessage
+     *          the detail message
+     * @param cause
+     *          the cause
      */
     public IbisConfigurationException(String detailMessage, Throwable cause) {
         super(detailMessage, cause);
@@ -48,7 +48,8 @@ public class IbisConfigurationException extends RuntimeException {
      * Constructs a <code>IbisConfigurationException</code> with
      * the specified cause.
      *
-     * @param cause	the cause
+     * @param cause
+     *          the cause
      */
     public IbisConfigurationException(Throwable cause) {
         super(cause);

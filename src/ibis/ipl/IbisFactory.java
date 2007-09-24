@@ -23,7 +23,7 @@ import java.util.jar.Manifest;
 /**
  * This is the class responsible for starting an Ibis instance. During
  * initialization, this class determines which Ibis implementations are
- * available. It does so, by finding all jar files in either the class path or
+ * available. It does so by finding all jar files in either the class path or
  * all jar files in the directories indicated by the ibis.ipl.impl.path
  * property. All Ibis implementations should be mentioned in the main properties
  * of the manifest of the jar file containing it, in the "Ibis-Starter"
@@ -49,9 +49,9 @@ public final class IbisFactory {
      * properties.
      * 
      * @param inputStream
-     *            the input stream.
+     *          the input stream.
      * @param properties
-     *            the properties.
+     *          the properties.
      */
     private static void load(InputStream inputStream, Properties properties) {
         if (inputStream != null) {
@@ -70,7 +70,7 @@ public final class IbisFactory {
     }
 
     /**
-     * Load properties from the standard configuration file locations.
+     * Loads properties from the standard configuration file locations.
      */
     private static synchronized Properties getDefaultProperties() {
         if (defaultConfigProperties == null) {
@@ -78,16 +78,15 @@ public final class IbisFactory {
 
             // Load properties from the classpath
             ClassLoader classLoader = ClassLoader.getSystemClassLoader();
-            InputStream inputStream =
-                    classLoader
-                            .getResourceAsStream(IbisProperties.PROPERTIES_FILENAME);
+            InputStream inputStream = classLoader.getResourceAsStream(
+                    IbisProperties.PROPERTIES_FILENAME);
             load(inputStream, defaultConfigProperties);
 
             // See if there is an ibis.properties file in the current
             // directory.
             try {
-                inputStream =
-                        new FileInputStream(IbisProperties.PROPERTIES_FILENAME);
+                inputStream = new FileInputStream(
+                        IbisProperties.PROPERTIES_FILENAME);
                 load(inputStream, defaultConfigProperties);
             } catch (FileNotFoundException e) {
                 // ignored
@@ -150,7 +149,7 @@ public final class IbisFactory {
      * Constructs an Ibis factory, with the specified search path.
      * 
      * @param implPath
-     *            the path to search for implementations.
+     *          the path to search for implementations.
      */
     private IbisFactory(String implPath) {
         // Obtain a list of Ibis implementations
@@ -166,23 +165,25 @@ public final class IbisFactory {
      * types, and using the specified properties.
      * 
      * @param requiredCapabilities
-     *            ibis capabilities required by the application.
+     *          ibis capabilities required by the application.
      * @param properties
-     *            properties that can be set, for instance a class path for
-     *            searching ibis implementations, or which registry to use.
-     *            There is a default, so <code>null</code> may be specified.
+     *          properties that can be set, for instance a class path for
+     *          searching ibis implementations, or which registry to use.
+     *          There is a default, so <code>null</code> may be specified.
      * @param addDefaultConfigProperties
-     *            TODO
+     *          adds the default hard-wired properties, for as far as these
+     *          are not set in the <code>properties</code> parameter.
      * @param registryEventHandler
-     *            a {@link ibis.ipl.RegistryEventHandler RegistryEventHandler}
-     *            instance, or <code>null</code>.
+     *          a {@link ibis.ipl.RegistryEventHandler RegistryEventHandler}
+     *          instance, or <code>null</code>.
      * @param portTypes
-     *            the list of port types required by the application.
-     * @return the new Ibis instance.
+     *          the list of port types required by the application.
+     * @return
+     *          the new Ibis instance.
      * 
      * @exception IbisCreationFailedException
-     *                is thrown when no Ibis was found that matches the
-     *                capabilities required.
+     *           is thrown when no Ibis was found that matches the
+     *           capabilities required.
      */
     public static Ibis createIbis(IbisCapabilities requiredCapabilities,
             Properties properties, boolean addDefaultConfigProperties,
@@ -195,7 +196,8 @@ public final class IbisFactory {
         if (addDefaultConfigProperties) {
             Properties defaults = getDefaultProperties();
 
-            for (Enumeration e = defaults.propertyNames(); e.hasMoreElements();) {
+            for (Enumeration e = defaults.propertyNames();
+                    e.hasMoreElements();) {
                 String key = (String) e.nextElement();
                 String value = defaults.getProperty(key);
                 combinedProperties.setProperty(key, value);
@@ -283,7 +285,8 @@ public final class IbisFactory {
                             + " selected");
                 }
                 List<IbisStarter> newList = findIbisStack(
-                        new IbisCapabilities(starter.unmatchedIbisCapabilities()),
+                        new IbisCapabilities(
+                                starter.unmatchedIbisCapabilities()),
                         starter.unmatchedPortTypes(),
                         new ArrayList<IbisStarter>(selected),
                         null);
@@ -315,7 +318,8 @@ public final class IbisFactory {
             System.err.println("Looking for an Ibis with capabilities: "
                     + requiredCapabilities);
             System.err.println("(ibis) Properties:");
-            for (Enumeration e = properties.propertyNames(); e.hasMoreElements();) {
+            for (Enumeration e = properties.propertyNames();
+                    e.hasMoreElements();) {
                 String key = (String) e.nextElement();
                 if (key.startsWith("ibis")) {
                     String value = properties.getProperty(key);
@@ -477,8 +481,8 @@ public final class IbisFactory {
          * the classpath are used instead.
          * 
          * @param dirList
-         *            a list of directories, or <code>null</code>, in which
-         *            the classpath is used to find jar files.
+         *      a list of directories, or <code>null</code>, in which
+         *      the classpath is used to find jar files.
          */
         private ClassLister(String dirList) {
             if (dirList != null) {
@@ -508,9 +512,10 @@ public final class IbisFactory {
          * the classpath are used instead.
          * 
          * @param dirList
-         *            a list of directories, or <code>null</code>, in which
-         *            the classpath is used to find jar files.
-         * @return the required <code>ClassLister</code>.
+         *      a list of directories, or <code>null</code>, in which
+         *      the classpath is used to find jar files.
+         * @return
+         *      the required <code>ClassLister</code>.
          */
         private static synchronized ClassLister getClassLister(String dirList) {
             if (dirList == null) {
@@ -584,8 +589,8 @@ public final class IbisFactory {
          * later on.
          * 
          * @param dirList
-         *            list of directories to search, separator is
-         *            <code>java.io.File.pathSeparator</code>.
+         *      list of directories to search, separator is
+         *      <code>java.io.File.pathSeparator</code>.
          */
         protected void readJarFiles(String dirList) {
             ArrayList<JarFile> jarList = new ArrayList<JarFile>();
@@ -608,10 +613,11 @@ public final class IbisFactory {
          * attribute values are loaded.
          * 
          * @param attribName
-         *            the manifest attribute name.
+         *      the manifest attribute name.
          * @param version
-         *            required version, or null.
-         * @return the list of classes.
+         *      required version, or null.
+         * @return
+         *      the list of classes.
          */
         private List<Class> getClassList(String attribName, String version) {
             ArrayList<Class> list = new ArrayList<Class>();
@@ -665,13 +671,14 @@ public final class IbisFactory {
          * implementations of it.
          * 
          * @param attribName
-         *            the manifest attribute name.
+         *      the manifest attribute name.
          * @param clazz
-         *            the class of which the returned classes are
-         *            implementations or extensions.
+         *      the class of which the returned classes are
+         *      implementations or extensions.
          * @param version
-         *            required version, or null.
-         * @return the list of classes.
+         *      required version, or null.
+         * @return
+         *      the list of classes.
          */
         private List<Class> getClassList(String attribName, Class<?> clazz,
                 String version) {
@@ -680,7 +687,8 @@ public final class IbisFactory {
             for (Class<?> cl : list) {
                 if (!clazz.isAssignableFrom(cl)) {
                     throw new Error("Class " + cl.getName()
-                            + " cannot be assigned to class " + clazz.getName());
+                            + " cannot be assigned to class "
+                            + clazz.getName());
                 }
             }
             return list;

@@ -47,8 +47,10 @@ public interface ReadMessage {
      * the upcall terminates. This is much more efficient, because in this way,
      * the runtime system can reuse the upcall thread!
      *
-     * @return the number of bytes read from this message.
-     * @exception java.io.IOException	an error occurred.
+     * @return
+     *          the number of bytes read from this message.
+     * @exception IOException
+     *          an error occurred.
      **/
     public long finish() throws IOException;
 
@@ -58,15 +60,18 @@ public interface ReadMessage {
      * It implies a {@link #finish()}.
      * In a message upcall, the alternative way to do this is to have
      * the upcall throw the exception.
-     * @param exception the exception that was thrown. 
+     * @param exception
+     *          the exception that was thrown. 
      */
     public void finish(IOException exception);
 
     /**
      * Returns the number of bytes read from this message. This number
      * is not exact, because of buffering in underlying input streams.
-     * @return the number of bytes read sofar from this message.
-     * @exception java.io.IOException	an error occurred.
+     * @return
+     *          the number of bytes read sofar from this message.
+     * @exception IOException
+     *          an error occurred.
      */
     public long bytesRead() throws IOException;
 
@@ -74,16 +79,19 @@ public interface ReadMessage {
      * Returns the {@link ibis.ipl.ReceivePort receiveport} of this
      * <code>ReadMessage</code>.
      *
-     * @return the {@link ibis.ipl.ReceivePort receiveport} of this
-     * <code>ReadMessage</code>.
+     * @return
+     *          the {@link ibis.ipl.ReceivePort receiveport} of this
+     *          <code>ReadMessage</code>.
      */
     public ReceivePort localPort();
 
     /**
      * Returns the sequence number of this message.
-     * An Ibis implementation may choose to just return -1, in case it does not
-     * promise a specific ordering of the messages.
-     * @return a sequence number, or -1.
+     * @return
+     *          the sequence number for this message.
+     * @exception IbisConfigurationException
+     *          is thrown if the port type of the receive port does not have
+     *          the {@link PortType#COMMUNICATION_NUMBERED} capability.
      */
     public long sequenceNumber();
 
@@ -91,7 +99,8 @@ public interface ReadMessage {
      * Returns the {@link ibis.ipl.SendPortIdentifier sendport identifier}
      * of the sender of this message.
      *
-     * @return the id of the sender of this message.
+     * @return
+     *          the id of the sender of this message.
      */
     public SendPortIdentifier origin();
 
@@ -101,16 +110,20 @@ public interface ReadMessage {
      * stream can only do byte serialization.
      * (See {@link PortType#SERIALIZATION_BYTE}).
      *
-     * @return the value read.
-     * @exception java.io.IOException	an error occurred 
+     * @return
+     *          the value read.
+     * @exception IOException
+     *          an error occurred 
      */
     public boolean readBoolean() throws IOException;
 
     /**
      * Reads a byte value from the message.
      *
-     * @return the value read.
-     * @exception java.io.IOException	an error occurred 
+     * @return
+     *          the value read.
+     * @exception IOException
+     *          an error occurred 
      */
     public byte readByte() throws IOException;
 
@@ -120,8 +133,10 @@ public interface ReadMessage {
      * stream can only do byte serialization.
      * (See {@link PortType#SERIALIZATION_BYTE}).
      *
-     * @return the value read.
-     * @exception java.io.IOException	an error occurred 
+     * @return
+     *          the value read.
+     * @exception IOException
+     *          an error occurred 
      */
     public char readChar() throws IOException;
 
@@ -131,8 +146,10 @@ public interface ReadMessage {
      * stream can only do byte serialization.
      * (See {@link PortType#SERIALIZATION_BYTE}).
      *
-     * @return the value read.
-     * @exception java.io.IOException	an error occurred 
+     * @return
+     *          the value read.
+     * @exception IOException
+     *          an error occurred 
      */
     public short readShort() throws IOException;
 
@@ -142,8 +159,10 @@ public interface ReadMessage {
      * stream can only do byte serialization.
      * (See {@link PortType#SERIALIZATION_BYTE}).
      *
-     * @return the value read.
-     * @exception java.io.IOException	an error occurred 
+     * @return
+     *          the value read.
+     * @exception IOException
+     *          an error occurred 
      */
     public int readInt() throws IOException;
 
@@ -153,8 +172,10 @@ public interface ReadMessage {
      * stream can only do byte serialization.
      * (See {@link PortType#SERIALIZATION_BYTE}).
      *
-     * @return the value read.
-     * @exception java.io.IOException	an error occurred 
+     * @return
+     *          the value read.
+     * @exception IOException
+     *          an error occurred 
      */
     public long readLong() throws IOException;
 
@@ -164,8 +185,10 @@ public interface ReadMessage {
      * stream can only do byte serialization.
      * (See {@link PortType#SERIALIZATION_BYTE}).
      *
-     * @return the value read.
-     * @exception java.io.IOException	an error occurred 
+     * @return
+     *          the value read.
+     * @exception IOException
+     *          an error occurred 
      */
     public float readFloat() throws IOException;
 
@@ -175,8 +198,10 @@ public interface ReadMessage {
      * stream can only do byte serialization.
      * (See {@link PortType#SERIALIZATION_BYTE}).
      *
-     * @return the value read.
-     * @exception java.io.IOException	an error occurred 
+     * @return
+     *          the value read.
+     * @exception IOException
+     *          an error occurred 
      */
     public double readDouble() throws IOException;
 
@@ -186,8 +211,10 @@ public interface ReadMessage {
      * stream can only do byte serialization.
      * (See {@link PortType#SERIALIZATION_BYTE}).
      *
-     * @return the value read.
-     * @exception java.io.IOException	an error occurred 
+     * @return
+     *          the value read.
+     * @exception IOException
+     *          an error occurred 
      */
     public String readString() throws IOException;
 
@@ -199,10 +226,13 @@ public interface ReadMessage {
      * stream cannot do object serialization.
      * (See {@link PortType#SERIALIZATION_OBJECT}).
      *
-     * @return the value read.
-     * @exception java.io.IOException	an error occurred 
-     * @exception ClassNotFoundException is thrown when an object arrives
-     *	of a class that cannot be loaded locally.
+     * @return
+     *          the value read.
+     * @exception IOException
+     *          an error occurred 
+     * @exception ClassNotFoundException
+     *          is thrown when an object arrives of a class that cannot be
+     *          loaded locally.
      */
     public Object readObject() throws IOException, ClassNotFoundException;
 
@@ -213,8 +243,10 @@ public interface ReadMessage {
      * stream can only do byte serialization.
      * (See {@link PortType#SERIALIZATION_BYTE}).
      *
-     * @param destination where the received array is stored.
-     * @exception IOException is thrown when an IO error occurs.
+     * @param destination
+     *          where the received array is stored.
+     * @exception IOException
+     *          is thrown when an IO error occurs.
      */
     public void readArray(boolean[] destination) throws IOException;
 
@@ -222,8 +254,10 @@ public interface ReadMessage {
      * Receives an array in place. This method is a shortcut for
      * <code>readArray(destination, 0, destination.length);</code>
      *
-     * @param destination where the received array is stored.
-     * @exception IOException is thrown when an IO error occurs.
+     * @param destination
+     *          where the received array is stored.
+     * @exception IOException
+     *          is thrown when an IO error occurs.
      */
     public void readArray(byte[] destination) throws IOException;
 
@@ -234,8 +268,10 @@ public interface ReadMessage {
      * stream can only do byte serialization.
      * (See {@link PortType#SERIALIZATION_BYTE}).
      *
-     * @param destination where the received array is stored.
-     * @exception IOException is thrown when an IO error occurs.
+     * @param destination
+     *          where the received array is stored.
+     * @exception IOException
+     *          is thrown when an IO error occurs.
      */
     public void readArray(char[] destination) throws IOException;
 
@@ -246,8 +282,10 @@ public interface ReadMessage {
      * stream can only do byte serialization.
      * (See {@link PortType#SERIALIZATION_BYTE}).
      *
-     * @param destination where the received array is stored.
-     * @exception IOException is thrown when an IO error occurs.
+     * @param destination
+     *          where the received array is stored.
+     * @exception IOException
+     *          is thrown when an IO error occurs.
      */
     public void readArray(short[] destination) throws IOException;
 
@@ -258,8 +296,10 @@ public interface ReadMessage {
      * stream can only do byte serialization.
      * (See {@link PortType#SERIALIZATION_BYTE}).
      *
-     * @param destination where the received array is stored.
-     * @exception IOException is thrown when an IO error occurs.
+     * @param destination
+     *          where the received array is stored.
+     * @exception IOException
+     *          is thrown when an IO error occurs.
      */
     public void readArray(int[] destination) throws IOException;
 
@@ -270,8 +310,10 @@ public interface ReadMessage {
      * stream can only do byte serialization.
      * (See {@link PortType#SERIALIZATION_BYTE}).
      *
-     * @param destination where the received array is stored.
-     * @exception IOException is thrown when an IO error occurs.
+     * @param destination
+     *          where the received array is stored.
+     * @exception IOException
+     *          is thrown when an IO error occurs.
      */
     public void readArray(long[] destination) throws IOException;
 
@@ -282,8 +324,10 @@ public interface ReadMessage {
      * stream can only do byte serialization.
      * (See {@link PortType#SERIALIZATION_BYTE}).
      *
-     * @param destination where the received array is stored.
-     * @exception IOException is thrown when an IO error occurs.
+     * @param destination
+     *          where the received array is stored.
+     * @exception IOException
+     *          is thrown when an IO error occurs.
      */
     public void readArray(float[] destination) throws IOException;
 
@@ -294,8 +338,10 @@ public interface ReadMessage {
      * stream can only do byte serialization.
      * (See {@link PortType#SERIALIZATION_BYTE}).
      *
-     * @param destination where the received array is stored.
-     * @exception IOException is thrown when an IO error occurs.
+     * @param destination
+     *          where the received array is stored.
+     * @exception IOException
+     *          is thrown when an IO error occurs.
      */
 
     public void readArray(double[] destination) throws IOException;
@@ -307,10 +353,12 @@ public interface ReadMessage {
      * stream cannot do object serialization.
      * (See {@link PortType#SERIALIZATION_OBJECT}).
      *
-     * @param destination where the received array is stored.
-     * @exception IOException is thrown when an IO error occurs.
-     * @exception ClassNotFoundException when an object arrives
-     * of a class that cannot be loaded locally.
+     * @param destination
+     *          where the received array is stored.
+     * @exception IOException
+     *          is thrown when an IO error occurs.
+     * @exception ClassNotFoundException
+     *          when an object arrives of a class that cannot be loaded locally.
      */
     public void readArray(Object[] destination) throws IOException,
             ClassNotFoundException;
@@ -321,10 +369,14 @@ public interface ReadMessage {
      * stream can only do byte serialization.
      * (See {@link PortType#SERIALIZATION_BYTE}).
      *
-     * @param destination array in which the slice is stored
-     * @param offset      offset where the slice starts
-     * @param size        length of the slice (the number of elements)
-     * @exception IOException is thrown on an IO error.
+     * @param destination
+     *          array in which the slice is stored
+     * @param offset      
+     *          offset where the slice starts
+     * @param size        
+     *          length of the slice (the number of elements)
+     * @exception IOException
+     *          is thrown on an IO error.
      */
     public void readArray(boolean[] destination, int offset, int size)
             throws IOException;
@@ -332,10 +384,14 @@ public interface ReadMessage {
     /**
      * Reads a slice of an array in place.
      *
-     * @param destination array in which the slice is stored
-     * @param offset      offset where the slice starts
-     * @param size        length of the slice (the number of elements)
-     * @exception IOException is thrown on an IO error.
+     * @param destination
+     *          array in which the slice is stored
+     * @param offset
+     *          offset where the slice starts
+     * @param size
+     *          length of the slice (the number of elements)
+     * @exception IOException
+     *          is thrown on an IO error.
      */
     public void readArray(byte[] destination, int offset, int size)
             throws IOException;
@@ -346,10 +402,14 @@ public interface ReadMessage {
      * stream can only do byte serialization.
      * (See {@link PortType#SERIALIZATION_BYTE}).
      *
-     * @param destination array in which the slice is stored
-     * @param offset      offset where the slice starts
-     * @param size        length of the slice (the number of elements)
-     * @exception IOException is thrown on an IO error.
+     * @param destination
+     *          array in which the slice is stored
+     * @param offset
+     *          offset where the slice starts
+     * @param size
+     *          length of the slice (the number of elements)
+     * @exception IOException
+     *          is thrown on an IO error.
      */
     public void readArray(char[] destination, int offset, int size)
             throws IOException;
@@ -360,10 +420,14 @@ public interface ReadMessage {
      * stream can only do byte serialization.
      * (See {@link PortType#SERIALIZATION_BYTE}).
      *
-     * @param destination array in which the slice is stored
-     * @param offset      offset where the slice starts
-     * @param size        length of the slice (the number of elements)
-     * @exception IOException is thrown on an IO error.
+     * @param destination
+     *          array in which the slice is stored
+     * @param offset
+     *          offset where the slice starts
+     * @param size
+     *          length of the slice (the number of elements)
+     * @exception IOException
+     *          is thrown on an IO error.
      */
     public void readArray(short[] destination, int offset, int size)
             throws IOException;
@@ -374,10 +438,14 @@ public interface ReadMessage {
      * stream can only do byte serialization.
      * (See {@link PortType#SERIALIZATION_BYTE}).
      *
-     * @param destination array in which the slice is stored
-     * @param offset      offset where the slice starts
-     * @param size        length of the slice (the number of elements)
-     * @exception IOException is thrown on an IO error.
+     * @param destination
+     *          array in which the slice is stored
+     * @param offset
+     *          offset where the slice starts
+     * @param size
+     *          length of the slice (the number of elements)
+     * @exception IOException
+     *          is thrown on an IO error.
      */
     public void readArray(int[] destination, int offset, int size)
             throws IOException;
@@ -388,10 +456,14 @@ public interface ReadMessage {
      * stream can only do byte serialization.
      * (See {@link PortType#SERIALIZATION_BYTE}).
      *
-     * @param destination array in which the slice is stored
-     * @param offset      offset where the slice starts
-     * @param size        length of the slice (the number of elements)
-     * @exception IOException is thrown on an IO error.
+     * @param destination
+     *          array in which the slice is stored
+     * @param offset
+     *          offset where the slice starts
+     * @param size
+     *          length of the slice (the number of elements)
+     * @exception IOException
+     *          is thrown on an IO error.
      */
     public void readArray(long[] destination, int offset, int size)
             throws IOException;
@@ -402,10 +474,14 @@ public interface ReadMessage {
      * stream can only do byte serialization.
      * (See {@link PortType#SERIALIZATION_BYTE}).
      *
-     * @param destination array in which the slice is stored
-     * @param offset      offset where the slice starts
-     * @param size        length of the slice (the number of elements)
-     * @exception IOException is thrown on an IO error.
+     * @param destination
+     *          array in which the slice is stored
+     * @param offset
+     *          offset where the slice starts
+     * @param size
+     *          length of the slice (the number of elements)
+     * @exception IOException
+     *          is thrown on an IO error.
      */
     public void readArray(float[] destination, int offset, int size)
             throws IOException;
@@ -416,10 +492,14 @@ public interface ReadMessage {
      * stream can only do byte serialization.
      * (See {@link PortType#SERIALIZATION_BYTE}).
      *
-     * @param destination array in which the slice is stored
-     * @param offset      offset where the slice starts
-     * @param size        length of the slice (the number of elements)
-     * @exception IOException is thrown on an IO error.
+     * @param destination
+     *          array in which the slice is stored
+     * @param offset
+     *          offset where the slice starts
+     * @param size
+     *          length of the slice (the number of elements)
+     * @exception IOException
+     *          is thrown on an IO error.
      */
     public void readArray(double[] destination, int offset, int size)
             throws IOException;
@@ -430,12 +510,16 @@ public interface ReadMessage {
      * stream cannot do object serialization.
      * (See {@link PortType#SERIALIZATION_OBJECT}).
      *
-     * @param destination array in which the slice is stored
-     * @param offset      offset where the slice starts
-     * @param size        length of the slice (the number of elements)
-     * @exception IOException is thrown on an IO error.
-     * @exception ClassNotFoundException when an object arrives
-     * of a class that cannot be loaded locally.
+     * @param destination
+     *          array in which the slice is stored
+     * @param offset
+     *          offset where the slice starts
+     * @param size
+     *          length of the slice (the number of elements)
+     * @exception IOException
+     *          is thrown on an IO error.
+     * @exception ClassNotFoundException
+     *          when an object arrives of a class that cannot be loaded locally.
      */
     public void readArray(Object[] destination, int offset, int size)
             throws IOException, ClassNotFoundException;

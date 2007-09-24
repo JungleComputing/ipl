@@ -9,9 +9,9 @@ import java.util.Properties;
  * This class describes the capabilities of an ibis instance.
  * Combined with a list of {@link PortType} it is
  * used to select a particular Ibis implementation.
- * See the
- * {@link IbisFactory#createIbis(IbisCapabilities, Properties, boolean, RegistryEventHandler, PortType...) createIbis}
- * method from {@link IbisFactory}.       
+ * See the {@link IbisFactory#createIbis(IbisCapabilities, Properties, boolean,
+ * RegistryEventHandler, PortType...) createIbis} method from
+ * {@link IbisFactory}.       
  */
 public final class IbisCapabilities extends CapabilitySet {
 
@@ -46,7 +46,8 @@ public final class IbisCapabilities extends CapabilitySet {
     
     /**
      * Capability indicating that joins/leaves are totally ordered.
-     * Implies reliability.
+     * This means that all Ibis instances receive the joins/leaves upcalls
+     * in the same order.
      */
     public final static String MEMBERSHIP_TOTALLY_ORDERED
             = "membership.totally.ordered";
@@ -56,7 +57,8 @@ public final class IbisCapabilities extends CapabilitySet {
     
     /** 
      * Constructor for an IbisCapabilities object.
-     * @param capabilities the capabilities.
+     * @param capabilities
+     *          the capabilities.
      */
     public IbisCapabilities(String... capabilities) {
         super(capabilities);
@@ -64,7 +66,8 @@ public final class IbisCapabilities extends CapabilitySet {
     
     /**
      * Constructs an IbisCapabilities object from the specified properties.
-     * @param properties the properties.
+     * @param properties
+     *          the properties.
      */
     protected IbisCapabilities(Properties properties) {
         super(properties);
@@ -72,7 +75,8 @@ public final class IbisCapabilities extends CapabilitySet {
 
     /**
      * Constructs an IbisCapabilities from the specified capabilityset.
-     * @param capabilitySet the capabilityset.
+     * @param capabilitySet
+     *          the capabilityset.
      */
     protected IbisCapabilities(CapabilitySet capabilitySet) {
          super(capabilitySet);
@@ -81,12 +85,15 @@ public final class IbisCapabilities extends CapabilitySet {
     /**
      * Reads and returns the capabilities from the specified file name, which is
      * searched for in the classpath.
-     * @param capabilityFileName the file name.
-     * @exception IOException is thrown when an IO error occurs.
+     * @param capabilityFileName
+     *          the file name.
+     * @exception IOException
+     *          is thrown when an IO error occurs.
      */
-    public static IbisCapabilities load(String capabilityFileName) throws IOException {
-        InputStream input
-            = ClassLoader.getSystemClassLoader().getResourceAsStream(capabilityFileName);
+    public static IbisCapabilities load(String capabilityFileName)
+            throws IOException {
+        InputStream input = ClassLoader.getSystemClassLoader()
+                .getResourceAsStream(capabilityFileName);
         if (input == null) {
             throw new IOException("Could not open " + capabilityFileName);
         }
@@ -95,8 +102,10 @@ public final class IbisCapabilities extends CapabilitySet {
 
     /**
      * Reads and returns the capabilities from the specified input stream.
-     * @param input the input stream.
-     * @exception IOException is thrown when an IO error occurs.
+     * @param input
+     *          the input stream.
+     * @exception IOException
+     *          is thrown when an IO error occurs.
      */
     public static IbisCapabilities load(InputStream input) throws IOException {
         Properties properties = new Properties();
