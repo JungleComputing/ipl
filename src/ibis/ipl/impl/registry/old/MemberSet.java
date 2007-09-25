@@ -77,8 +77,7 @@ final class MemberSet {
         return result.toArray(new Member[0]);
     }
     
-    @SuppressWarnings("unchecked")
     List<Member> asList() {
-        return (List<Member>) list.clone();
+        return new ArrayList<Member>(list);
     }
 }
