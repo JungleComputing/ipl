@@ -14,12 +14,11 @@ ibis-io:
 + remove dependency on ipl. (Done Ceriel)
 
 capabilities:
-+ add registry capabilities. (What exactly do we want here? --Ceriel)
-  (Done, according to Niels' plan).
++ add registry capabilities. (Done, according to Niels' plan --Ceriel).
 
 management:
-- clarify JavaDoc of "count" methods in messages. E.g. Say we only count
-  broadcast messages once.
++ clarify JavaDoc of "count" methods in messages. E.g. Say we only count
+  broadcast messages once. (Done Ceriel)
 - add basic network usage statistics to Ibis. (Which ones? --Ceriel)
 
 ibis registry:
@@ -47,11 +46,13 @@ packaging/distribution:
 + put DeepCopy in a sane place (Done Ceriel; moved to ibis.io)
 - update docs
 - while(true) {fix eclipse warnings}
-- Api docs of IPL: read, clarify, improve (Niels: Done SendPort).
++ Api docs of IPL: read, clarify, improve (Niels: Done SendPort).
+  (Done Ceriel. Please check!)
 + clean-up scripts (Done Ceriel)
 - clean up doc building scripts
 + move ibis.server.poolInfo code to ibis.poolInfo 
   (already in ibis-poolinfo project) (Done Ceriel)
++ rename bcel-5.1-fixes.jar to bcel-5.1-fixed.jar (Done Ceriel)
 
 website:
 - update "ibis" overview picture with new/changed implementations
