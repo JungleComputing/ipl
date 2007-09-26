@@ -47,6 +47,7 @@
         <!-- Compile the java code from ${src} into ${tmp} -->
         <javac srcdir="${src}" destdir="${tmp}" debug="on">
             <classpath refid="external.jars" />
+	    <compilerarg value="-Xlint:unchecked"/>
         </javac>
 
         <!-- Run Ibisc -->
