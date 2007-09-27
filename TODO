@@ -8,18 +8,10 @@ Legend:
 
 IPL:
 - check properties for unknown properties
-+ add registry capability for consistency (Done Ceriel, according to Niels' plan)
-+ version number check in factory: check prefix (was already done in this way).
-
-ibis-io:
-+ remove dependency on ipl. (Done Ceriel)
-
-capabilities:
-+ add registry capabilities. (Done, according to Niels' plan --Ceriel).
++ MessageUpcall.upcall: may also cause ClassNotFoundException? --Ceriel
+  (Done Ceriel)
 
 management:
-+ clarify JavaDoc of "count" methods in messages. E.g. Say we only count
-  broadcast messages once. (Done Ceriel)
 - add basic network usage statistics to Ibis. (Which ones? --Ceriel)
 
 ibis registry:
@@ -31,7 +23,6 @@ ibis registry:
 
 applications:
 - remove old-n-useless applications (if any)
-+ put jars in lib dir (Done Ceriel)
 
 packaging/distribution:
 - split up ibis in multiple separate subprojects:
@@ -48,16 +39,9 @@ packaging/distribution:
 	- standalone applications (DFA, SAT4Satin, Barnes)	
 	- make external dir in every subproject so that each subproject
 	  is self-contained.
-+ put DeepCopy in a sane place (Done Ceriel; moved to ibis.io)
-- update docs
+- update/rewrite programmers manuals
 - while(true) {fix eclipse warnings}
-+ Api docs of IPL: read, clarify, improve (Niels: Done SendPort).
-  (Done Ceriel. Please check!)
-+ clean-up scripts (Done Ceriel)
 - clean up doc building scripts
-+ move ibis.server.poolInfo code to ibis.poolInfo 
-  (already in ibis-poolinfo project) (Done Ceriel)
-+ rename bcel-5.1-fixes.jar to bcel-5.1-fixed.jar (Done Ceriel)
 
 website:
 - update "ibis" overview picture with new/changed implementations
