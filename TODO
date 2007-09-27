@@ -2,6 +2,7 @@ Legend:
 - = current
 + = done since last core meeting (or not removed ...)
 * = new/changed since last core meeting
+? = suggestion, still needs to be discussed
 
 ##### Ibis 2.0 ####
 
@@ -23,6 +24,10 @@ management:
 
 ibis registry:
 - check if all Ibisses in a pool are of the same implementation, version, etc.
+- rename registry.waitForAll() to waitUntilPoolClosed() (Niels)
+- make registry implement Management class
+- add some more pool related prints to the registry server
+- add precise definition of "closed world pool" somewhere
 
 applications:
 - remove old-n-useless applications (if any)
