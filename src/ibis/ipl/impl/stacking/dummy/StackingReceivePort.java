@@ -49,7 +49,7 @@ public class StackingReceivePort implements ibis.ipl.ReceivePort {
             this.port = port;
         }
 
-        public void upcall(ReadMessage m) throws IOException {
+        public void upcall(ReadMessage m) throws IOException, ClassNotFoundException {
             upcaller.upcall(new StackingReadMessage(m, port));
         }
     }

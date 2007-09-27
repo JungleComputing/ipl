@@ -35,10 +35,18 @@ public interface MessageUpcall {
 
     /**
      * This is the upcall announcing the receipt of a {@link ReadMessage}.
+     * If the upcall throws an exception, the message is to be
+     * considered finished. In this case, implementations should call
+     * {@link ReadMessage#finish()} or, in case of an <code>IOException</code>,
+     * {@link ReadMessage#finish(IOException)}.
+     *
      * @param readMessage
      *          the message received.
      * @exception IOException
      *          may be thrown by any of the methods invoked on the message.
+     * @exception ClassNotFoundException
+     *          may be thrown by a {@link ReadMessage$readObject()} call.
      */
-    public void upcall(ReadMessage readMessage) throws IOException;
+    public void upcall(ReadMessage readMessage) throws IOException,
+           ClassNotFoundException;
 }
