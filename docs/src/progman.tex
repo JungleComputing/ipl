@@ -169,7 +169,8 @@ be ended.
 The next few subsections will discuss each of these steps in turn,
 illustrating them with parts of an RPC-style Ibis application.
 This application will have a server and one or more clients. This is a toy
-application: the server will have to compute the length of a string.
+application: the server will receive strings, compute the length of each string,
+and send this length back to the client.
 The clients will send strings, and receive the length of these strings.
 The server will have to do some other work as well, just to make
 things a little more interesting.
@@ -194,6 +195,29 @@ import ibis.ipl.*;
 Of course it is also possible to import only the needed classes, but
 this tends to result in a list of 10 or more \texttt{import}s.
 
+Before creating an Ibis instance, we must determine what we want from it.
+This is determined by two objects: the required Ibis capabilities, and
+the list of port types that are going to be used.
+
+\mysubsubsection{Ibis Capabilities}
+
+Below is a snippet from the RPC example, constructing the required capabilities:
+{\small
+\begin{quote}
+\begin{verbatim}
+IbisCapabilities capabilities = new IbisCapabilities(
+    IbisCapabilities.ELECTIONS_STRICT,
+    IbisCapabilities.WORLDMODEL_CLOSED);
+\end{verbatim}
+\end{quote}
+}
+
+This states that the selected Ibis must support reliable elections
+(the toy example will use this to determine who will be the server and
+who will be the client). The selected Ibis
+must also support the ``closed'' worldmodel, which means
+that all participating Ibises join at the start of the run.
+
 \mysubsection{Creating an Ibis Instance}
 
 All instances of a program that want to participate in an Ibis run
@@ -204,30 +228,33 @@ The specification of this method is:
 {\small
 \begin{quote}
 \begin{verbatim}
-static Ibis createIbis(CapabilitySet requiredCapabilities,
-                       CapabilitySet optionalCapabilities,
+static Ibis createIbis(IbisCapabilities requiredCapabilities,
 		       java.util.Properties properties,
-                       RegistryEventHandler handler)
-        throws NoMatchingIbisException, NestedException;
+		       boolean addDefaults,
+                       RegistryEventHandler handler,
+		       PortType... portTypes)
+        throws IbisCreationFailedException;
 \end{verbatim}
 \end{quote}
 }
+
 There may be several Ibis implementations available, and
 the factory selects the best one for you, based on the
-specified required capabilities and optional capabilities.
-These the factory what features must be supported by the selected Ibis.
-They are summarized in objects of the
-\texttt{ibis.ipl.CapabiliySet} class, as discussed in Section
-\ref{Capabilities}. In short, the \texttt{requiredCapabilities} describe
-the capabilities that are actually required, and the
-\texttt{optionalCapabilities} describe which capabilities might come in
-handy.
+specified required capabilities and port types.
+These required capabilities and port types in fact determine what
+the user wants the chosen Ibis to be able to do.
+The Ibis factory will select an Ibis implementation that can at least
+do what is required, and if no such implementation is found, throw an exception.
+The possible Ibis capabilities are specified in
+\texttt{ibis.ipl.IbisCapabilities} class, as discussed in Section
+\ref{Ibis Capabilities}.
 
 The \texttt{properties} can be used to pass some implementation-specific
-values on to the implementation. 
+values on to the implementation.  Optionally, some hard-wired defaults
+can be added to the properties.
 
-The last parameter of \texttt{createIbis()} specifies a registry event
-handler with a.o. \texttt{joined()} and \texttt{left()} upcalls that get
+A registry event handler may be specified,
+with a.o. \texttt{joined()} and \texttt{left()} upcalls that get
 called when an Ibis instance joins or leaves the run.
 In our RPC example, we will not use this, so we
 specify \texttt{null} instead.
@@ -244,13 +271,14 @@ The \texttt{enableResizeUpcalls()} method blocks until the
 have joined the run, and how many there are, is often useful in dividing
 the work. See also section \ref{Which Instance Does What?}.
 
-All parameters except the first one (the required capabilities) can be
-\texttt{null}.
+The last parameters specify the port types that are going to be used
+in the application. We will discuss these in more detail in Section
+\ref{Ibis Port Types}. For now, we will assume the existence
 
-Now back to our example. In Secion \ref{Capabilities} we will
-discuss the creation of a variable \texttt{capabilities} describing the
-required capabilities. For the moment we will just assume its
-existence, and create an Ibis instance as follows:
+Now back to our example. In Secion \ref{Ibis Capabilities} we will
+discuss the creation of an \texttt{IbisCapabilities} object describing the
+required capabilities. For the moment we will just assume it
+exists, and create an Ibis instance as follows:
 {\small
 \begin{quote}
 \begin{verbatim}
@@ -275,7 +303,7 @@ that it tried to create one or more matching Ibises, but could not.
 In this case, the exceptions contained inside the \texttt{NestedException}
 describe these failures.
 
-\mysubsection{Capabilities}
+\mysubsection{Ibis Capabilities}
 
 Below is a snippet from the RPC example, constructing the required capabilities:
 {\small
