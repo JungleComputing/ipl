@@ -1,7 +1,5 @@
 package ibis.ipl.impl.registry.central.server;
 
-import ibis.ipl.IbisProperties;
-import ibis.ipl.impl.registry.central.ConnectionFactory;
 import ibis.ipl.impl.registry.central.Protocol;
 import ibis.ipl.impl.registry.central.RegistryProperties;
 import ibis.server.ServerProperties;
@@ -11,10 +9,8 @@ import ibis.util.ThreadPool;
 import ibis.util.TypedProperties;
 
 import java.io.IOException;
-import java.io.PrintStream;
 import java.util.Formatter;
 import java.util.HashMap;
-import java.util.Properties;
 
 import org.apache.log4j.Logger;
 
@@ -30,7 +26,7 @@ public final class Server extends Thread implements Service {
 
     private static final long POOL_CLEANUP_TIMEOUT = 60 * 1000;
 
-    private final ConnectionFactory connectionFactory;
+    private final VirtualSocketFactory socketFactory;
 
     private final HashMap<String, Pool> pools;
 
@@ -53,83 +49,34 @@ public final class Server extends Thread implements Service {
      * @param factory
      * @throws IOException
      */
-    public Server(TypedProperties properties, VirtualSocketFactory factory)
+    public Server(TypedProperties properties, VirtualSocketFactory socketFactory)
             throws IOException {
+        this.socketFactory = socketFactory;
+
         TypedProperties typedProperties = RegistryProperties
                 .getHardcodedProperties();
         typedProperties.addProperties(properties);
 
-        int timeout = typedProperties
-                .getIntProperty(RegistryProperties.CLIENT_CONNECT_TIMEOUT) * 1000;
-
-        connectionFactory = new ConnectionFactory(factory, VIRTUAL_PORT,
-                timeout);
-
         printStats = typedProperties
-                .getBooleanProperty(RegistryProperties.SERVER_PRINT_STATS)
-                || typedProperties
                         .getBooleanProperty(ServerProperties.PRINT_STATS);
 
-        printEvents = typedProperties
-                .getBooleanProperty(RegistryProperties.SERVER_PRINT_EVENTS)
-                || typedProperties
+        printEvents =  typedProperties
                         .getBooleanProperty(ServerProperties.PRINT_EVENTS);
 
         printErrors = typedProperties
-                .getBooleanProperty(RegistryProperties.SERVER_PRINT_ERRORS)
-                || typedProperties
                         .getBooleanProperty(ServerProperties.PRINT_ERRORS);
 
         pools = new HashMap<String, Pool>();
 
         stats = new Stats(Protocol.NR_OF_OPCODES);
 
+        // start handling connections
+        handler = new ServerConnectionHandler(this, socketFactory);
+        
         ThreadPool.createNew(this, "Central Registry Service");
 
         logger.debug("Started Central Registry service on virtual port "
                 + VIRTUAL_PORT);
-    }
-
-    /**
-     * Creates a stand-alone registry server. Uses plain tcp.
-     * 
-     * @param properties
-     *                settings for this server.
-     * @throws IOException
-     */
-    public Server(Properties properties) throws IOException {
-        TypedProperties typedProperties = RegistryProperties
-                .getHardcodedProperties();
-        typedProperties.addProperties(properties);
-
-        int port = typedProperties
-                .getIntProperty(RegistryProperties.SERVER_PORT);
-
-        if (port <= 0) {
-            throw new IOException(
-                    "can only start registry server on a positive port");
-        }
-
-        int timeout = typedProperties
-                .getIntProperty(RegistryProperties.CLIENT_CONNECT_TIMEOUT) * 1000;
-
-        connectionFactory = new ConnectionFactory(port, timeout);
-
-        printStats = typedProperties
-                .getBooleanProperty(RegistryProperties.SERVER_PRINT_STATS);
-
-        printEvents = typedProperties
-                .getBooleanProperty(RegistryProperties.SERVER_PRINT_EVENTS);
-
-        printErrors = typedProperties
-                .getBooleanProperty(RegistryProperties.SERVER_PRINT_ERRORS);
-
-        pools = new HashMap<String, Pool>();
-
-        stats = new Stats(Protocol.NR_OF_OPCODES);
-
-        this.setDaemon(true);
-        this.start();
     }
 
     synchronized Pool getPool(String poolName) {
@@ -143,17 +90,19 @@ public final class Server extends Thread implements Service {
     // atomic get/create pool
     synchronized Pool getAndCreatePool(String poolName, long heartbeatInterval,
             long eventPushInterval, boolean gossip, long gossipInterval,
-            boolean adaptGossipInterval, boolean tree, boolean closedWorld, int poolSize) throws IOException {
+            boolean adaptGossipInterval, boolean tree, boolean closedWorld,
+            int poolSize) throws IOException {
         Pool result = getPool(poolName);
 
-        if (result == null || result.ended()) {
-            //print message
+        if (result == null || result.hasEnded()) {
+            // print message
             System.out.println("Central Registry: creating new pool: \""
                     + poolName + "\"");
-            
-            result = new Pool(poolName, connectionFactory, heartbeatInterval,
+
+            result = new Pool(poolName, socketFactory, heartbeatInterval,
                     eventPushInterval, gossip, gossipInterval,
-                    adaptGossipInterval, tree, closedWorld, poolSize, printEvents, printErrors, stats);
+                    adaptGossipInterval, tree, closedWorld, poolSize,
+                    printEvents, printErrors, stats);
             pools.put(poolName, result);
         }
 
@@ -180,8 +129,8 @@ public final class Server extends Thread implements Service {
         }
         stopped = true;
         notifyAll();
-        connectionFactory.end();
-        if (handler != null && printStats && !stats.empty()) {
+        handler.end();
+        if (printStats && !stats.empty()) {
             System.out.println(stats.getStats(false));
         }
     }
@@ -197,8 +146,7 @@ public final class Server extends Thread implements Service {
 
     // pool cleanup thread
     public synchronized void run() {
-        // start handling connections
-        handler = new ServerConnectionHandler(this, connectionFactory);
+        
 
         while (!stopped) {
             if (printStats && !stats.empty()) {
@@ -244,90 +192,4 @@ public final class Server extends Thread implements Service {
         }
 
     }
-
-    private static void printUsage(PrintStream out) {
-        out.println("Start a stand alone registry server for Ibis.");
-        out.println();
-        out
-                .println("USAGE: ibis-run ibis.ipl.impl.registry.central.Server [OPTIONS]");
-        out.println();
-        out.println("--port PORT\t\t\tPort used for the server");
-
-        out
-                .println("PROPERTY=VALUE\t\t\tSet a property, as if it was set in a configuration");
-        out.println("\t\t\t\tfile or as a System property.");
-        out.println("Output Options:");
-        out.println("--events\t\t\tPrint events");
-        out.println("--stats\t\t\t\tPrint statistics once in a while");
-        out.println("--help | -h | /?\t\tThis message.");
-    }
-
-    /**
-     * Run the ibis server
-     */
-    public static void main(String[] args) {
-
-        Properties properties = IbisProperties.getDefaultProperties();
-
-        for (int i = 0; i < args.length; i++) {
-            if (args[i].equalsIgnoreCase("--port")) {
-                i++;
-                properties.put(RegistryProperties.SERVER_PORT, args[i]);
-            } else if (args[i].equalsIgnoreCase("--events")) {
-                properties.setProperty(RegistryProperties.SERVER_PRINT_EVENTS,
-                        "true");
-            } else if (args[i].equalsIgnoreCase("--stats")) {
-                properties.setProperty(RegistryProperties.SERVER_PRINT_STATS,
-                        "true");
-            } else if (args[i].equalsIgnoreCase("--help")
-                    || args[i].equalsIgnoreCase("-h")
-                    || args[i].equalsIgnoreCase("/?")) {
-                printUsage(System.out);
-                System.exit(0);
-            } else if (args[i].contains("=")) {
-                String[] parts = args[i].split("=", 2);
-                properties.setProperty(parts[0], parts[1]);
-            } else {
-                System.err.println("Unknown argument: " + args[i]);
-                printUsage(System.err);
-                System.exit(1);
-            }
-        }
-
-        Server server = null;
-        try {
-            server = new Server(properties);
-            System.out.println("stand alone central registry server on "
-                    + server.connectionFactory.getAddressString());
-        } catch (Throwable t) {
-            System.err.println("Could not start Server: " + t);
-            System.exit(1);
-        }
-
-        // register shutdown hook
-        try {
-            Runtime.getRuntime().addShutdownHook(new Shutdown(server));
-        } catch (Exception e) {
-            // IGNORE
-        }
-
-        try {
-            server.join();
-        } catch (InterruptedException e) {
-            // IGNORE
-        }
-    }
-
-    private static class Shutdown extends Thread {
-        private final Server server;
-
-        Shutdown(Server server) {
-            this.server = server;
-        }
-
-        public void run() {
-            server.end(false);
-        }
-    }
-
 }

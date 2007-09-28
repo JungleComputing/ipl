@@ -1,5 +1,6 @@
 package ibis.ipl.impl.registry.central.server;
 
+import ibis.ipl.impl.registry.central.Member;
 import ibis.util.ThreadPool;
 
 import java.util.LinkedHashSet;
@@ -24,7 +25,7 @@ public class OndemandEventPusher implements Runnable {
 
     public synchronized Member dequeue() {
         while (q.isEmpty()) {
-            if (pool.ended()) {
+            if (pool.hasEnded()) {
                 return null;
             }
 

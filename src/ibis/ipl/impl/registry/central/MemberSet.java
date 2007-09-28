@@ -1,31 +1,35 @@
-package ibis.ipl.impl.registry.central.server;
+package ibis.ipl.impl.registry.central;
 
 import ibis.ipl.impl.IbisIdentifier;
 
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.List;
 import java.util.Random;
 
-final class MemberSet {
+public final class MemberSet {
 
     private final ArrayList<Member> list;
 
     private final Random random;
 
-    MemberSet() {
+    public MemberSet() {
         list = new ArrayList<Member>();
         random = new Random();
     }
 
-    int size() {
+    public int size() {
         return list.size();
     }
 
-    void add(Member member) {
+    public void add(Member member) {
         list.add(member);
     }
 
-    Member remove(IbisIdentifier identifier) {
+    public Member remove(IbisIdentifier identifier) {
         String ID = identifier.getID();
         for (int i = 0; i < list.size(); i++) {
             if (list.get(i).getID().equals(ID)) {
@@ -36,7 +40,7 @@ final class MemberSet {
         return null;
     }
 
-    boolean contains(IbisIdentifier identifier) {
+    public boolean contains(IbisIdentifier identifier) {
         String ID = identifier.getID();
         for (int i = 0; i < list.size(); i++) {
             if (list.get(i).getID().equals(ID)) {
@@ -46,11 +50,11 @@ final class MemberSet {
         return false;
     }
 
-    boolean contains(Member member) {
+    public boolean contains(Member member) {
         return contains(member.getIbis());
     }
 
-    Member get(IbisIdentifier identifier) {
+    public Member get(IbisIdentifier identifier) {
         String ID = identifier.getID();
         for (int i = 0; i < list.size(); i++) {
             if (list.get(i).getID().equals(ID)) {
@@ -60,7 +64,7 @@ final class MemberSet {
         return null;
     }
 
-    int getMinimumTime() {
+    public int getMinimumTime() {
         if (list.isEmpty()) {
             return -1;
         }
@@ -75,7 +79,7 @@ final class MemberSet {
         return minimum;
     }
 
-    Member getLeastRecentlySeen() {
+    public Member getLeastRecentlySeen() {
         if (list.isEmpty()) {
             return null;
         }
@@ -91,21 +95,21 @@ final class MemberSet {
         return oldest;
     }
 
-    Member get(int index) {
+    public Member get(int index) {
         if (index >= list.size()) {
             return null;
         }
         return list.get(index);
     }
 
-    Member getRandom() {
+    public Member getRandom() {
         if (list.isEmpty()) {
             return null;
         }
         return list.get(random.nextInt(size()));
     }
 
-    Member[] getRandom(int size) {
+    public Member[] getRandom(int size) {
         ArrayList<Member> result = new ArrayList<Member>();
         BitSet added = new BitSet();
 
@@ -128,8 +132,38 @@ final class MemberSet {
         return result.toArray(new Member[0]);
     }
 
-    Member[] asArray() {
+    public Member[] asArray() {
         return list.toArray(new Member[0]);
+    }
+
+    public void init(DataInput in) throws IOException {
+        int nrOfMembers = in.readInt();
+        
+        if (nrOfMembers < 0) {
+            throw new IOException("negative list size recieved" + nrOfMembers);
+        }
+        
+        for (int i = 0; i < nrOfMembers; i++) {
+            list.add(new Member(in));
+        }
+    }
+
+    public void writeTo(DataOutput out) throws IOException {
+        out.writeInt(list.size());
+        for (Member member: list) {
+            member.writeTo(out);
+        }
+    }
+
+    public List<Event> getJoinEvents() {
+        ArrayList<Event> result = new ArrayList<Event>();
+        
+        for(Member member: list) {
+            result.add(member.getEvent());
+        }
+        
+        return result;
+        
     }
 
 }

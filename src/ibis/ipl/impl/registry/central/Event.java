@@ -25,6 +25,8 @@ public final class Event implements Serializable, Comparable<Event> {
 
     public static final int UN_ELECT = 6;
 
+    public static final int POOL_CLOSED = 7;
+    
     private final int time;
 
     private final int type;
@@ -43,9 +45,13 @@ public final class Event implements Serializable, Comparable<Event> {
         } else {
             this.description = description;
         }
+        
+        if (type != SIGNAL && ibisses.length > 1) {
+            throw new Error("only the signal type event can have multiple ibisses");
+        }
     }
 
-    Event(DataInput in) throws IOException {
+    public Event(DataInput in) throws IOException {
         time = in.readInt();
         type = in.readInt();
         description = in.readUTF();
@@ -63,29 +69,28 @@ public final class Event implements Serializable, Comparable<Event> {
         for (int i = 0; i < ibisses.length; i++) {
             ibisses[i].writeTo(out);
         }
-
     }
 
     public int getTime() {
         return time;
     }
 
-    String getDescription() {
+    public String getDescription() {
         return description;
     }
 
-    IbisIdentifier getFirstIbis() {
+    public IbisIdentifier getFirstIbis() {
         if (ibisses.length == 0) {
             return null;
         }
         return ibisses[0];
     }
 
-    IbisIdentifier[] getIbises() {
+    public IbisIdentifier[] getIbises() {
         return ibisses.clone();
     }
 
-    int getType() {
+    public int getType() {
         return type;
     }
 
@@ -102,6 +107,8 @@ public final class Event implements Serializable, Comparable<Event> {
         case ELECT:
             return "ELECT";
         case UN_ELECT:
+            return "UN_ELECT";
+        case POOL_CLOSED:
             return "UN_ELECT";
         default:
             return "UNKNOWN";

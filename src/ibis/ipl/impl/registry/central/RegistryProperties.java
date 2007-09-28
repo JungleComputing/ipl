@@ -27,29 +27,14 @@ public class RegistryProperties {
     public static final String PEER_BOOTSTRAP = PREFIX + "peer.bootstrap";
 
     public static final String CLIENT_CONNECT_TIMEOUT = PREFIX
-            + "connect.timeout";
+            + "client.connect.timeout";
 
-    public static final String SERVER_PREFIX = PREFIX + "server.";
+    public static final String SERVER_CONNECT_TIMEOUT = PREFIX
+            + "server.connect.timeout";
 
-    public static final String SERVER_CONNECT_TIMEOUT = SERVER_PREFIX
-            + "connect.timeout";
+    public static final String LOG = PREFIX + "log";
 
-    public static final String SERVER_STANDALONE = SERVER_PREFIX + "standalone";
-
-    public static final String SERVER_ADDRESS = SERVER_PREFIX + "address";
-
-    public static final String SERVER_PORT = SERVER_PREFIX + "port";
-
-    public static final String SERVER_PRINT_EVENTS = SERVER_PREFIX
-            + "print.events";
-
-    public static final String SERVER_PRINT_ERRORS = SERVER_PREFIX
-            + "print.errors";
-
-    public static final String SERVER_PRINT_STATS = SERVER_PREFIX
-            + "print.stats";
-
-    // list of decriptions and defaults
+    // list of descriptions and defaults
     private static final String[][] propertiesList = new String[][] {
 
             {
@@ -84,15 +69,6 @@ public class RegistryProperties {
             { PEER_BOOTSTRAP, "true",
                     "Boolean: bootstrap with peers, not just with the server" },
 
-            { SERVER_STANDALONE, "false",
-                    "Boolean: if true, a stand-alone server is used/expected" },
-
-            { SERVER_ADDRESS, null,
-                    "Socket Address of standalone server to connect to" },
-
-            { SERVER_PORT, "7777",
-                    "Int: Port which the standalone server binds to" },
-
             {
                     CLIENT_CONNECT_TIMEOUT,
                     "120",
@@ -103,13 +79,8 @@ public class RegistryProperties {
                     "10",
                     "Int(seconds): how long does the server attempt to connect to a client before giving up" },
 
-            { SERVER_PRINT_EVENTS, "false",
-                    "Boolean: if true, events are printed to standard out" },
-            { SERVER_PRINT_ERRORS, "false",
-                    "Boolean: if true, details of errors are printed to standard out" },
-
-            { SERVER_PRINT_STATS, "false",
-                    "Boolean: if true, statistics are printed to standard out regularly" },
+            { LOG, "false",
+                    "Boolean: if true, a log will be kept by the registry and saved to a file" },
 
     };
 

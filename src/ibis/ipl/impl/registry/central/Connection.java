@@ -1,5 +1,6 @@
 package ibis.ipl.impl.registry.central;
 
+import ibis.ipl.impl.IbisIdentifier;
 import ibis.smartsockets.virtual.VirtualServerSocket;
 import ibis.smartsockets.virtual.VirtualSocket;
 import ibis.smartsockets.virtual.VirtualSocketAddress;
@@ -10,39 +11,34 @@ import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.util.HashMap;
 
 import org.apache.log4j.Logger;
 
 public final class Connection {
 
-    private static final int INITIAL_MAX_WAIT = 1000;
-
     private static final Logger logger = Logger.getLogger(Connection.class);
 
-    private final VirtualSocket virtualSocket;
-
-    private final Socket plainSocket;
+    private final VirtualSocket socket;
 
     private final DataOutputStream out;
 
     private final DataInputStream in;
+    
+    public Connection(IbisIdentifier ibis, int timeout, boolean fillTimeout,
+            VirtualSocketFactory factory) throws IOException {
+        this(VirtualSocketAddress.fromBytes(ibis
+                .getRegistryData(), 0), timeout, fillTimeout, factory);
+    }
+    
 
-    Connection(VirtualSocketAddress address, VirtualSocketFactory factory,
-            int timeout, boolean fillTimeout) throws IOException {
+    public Connection(VirtualSocketAddress address, int timeout, boolean fillTimeout,
+            VirtualSocketFactory factory) throws IOException {
         logger.debug("connecting to " + address + ", timeout = " + timeout
                 + " , filltimeout = " + fillTimeout);
-        plainSocket = null;
-        VirtualSocket socket = null;
-        DataOutputStream out = null;
-        DataInputStream in = null;
 
-        socket = factory.createClientSocket(address, timeout, fillTimeout,
-                new HashMap<String, Object>());
-        logger.debug("connection created, sending opcode");
+        socket = factory.createClientSocket(address, timeout,
+                fillTimeout, new HashMap<String, Object>());
         socket.setTcpNoDelay(true);
 
         out = new DataOutputStream(new BufferedOutputStream(socket
@@ -50,111 +46,24 @@ public final class Connection {
         in = new DataInputStream(new BufferedInputStream(socket
                 .getInputStream()));
 
-        this.virtualSocket = socket;
-        this.out = out;
-        this.in = in;
-
         logger.debug("connection to " + address + " established");
 
     }
 
-    Connection(InetSocketAddress address, int timeout) throws IOException {
-        virtualSocket = null;
-        Socket socket = null;
-        DataOutputStream out = null;
-        DataInputStream in = null;
-
-        long hardDeadline = System.currentTimeMillis() + timeout;
-
-        // int maxWait = (int) (timeout / Math.pow(2, (MAX_TRIES - 1)));
-        int maxWait = INITIAL_MAX_WAIT;
-
-        int tries = 0;
-        boolean success = false;
-        while (!success) {
-            // int currentTimeout = (int) (Math.random() * maxWait);
-            int currentTimeout = (int) (maxWait / 2 + Math.random()
-                    * (maxWait / 2));
-            long deadline = System.currentTimeMillis() + currentTimeout;
-            if (deadline > hardDeadline) {
-                currentTimeout = (int) (hardDeadline - System
-                        .currentTimeMillis());
-                logger.debug("last attempt, timeout = " + currentTimeout);
-                deadline = hardDeadline;
-            }
-
-            try {
-                socket = new Socket();
-                socket.connect(address, timeout);
-                socket.setTcpNoDelay(true);
-
-                out = new DataOutputStream(new BufferedOutputStream(socket
-                        .getOutputStream()));
-                in = new DataInputStream(new BufferedInputStream(socket
-                        .getInputStream()));
-
-                success = true;
-            } catch (IOException e) {
-
-                long currentTime = System.currentTimeMillis();
-
-                if (currentTime >= hardDeadline) {
-                    throw e;
-                }
-
-                long sleepTime = deadline - currentTime;
-
-                logger.debug("failed to connect to " + address, e);
-
-                logger.debug("maxWait = " + maxWait);
-
-                logger.debug("failure, waiting " + sleepTime + " milliseconds");
-
-                if (sleepTime > 0) {
-                    try {
-                        Thread.sleep(sleepTime);
-                    } catch (InterruptedException e2) {
-                        // IGNORE
-                    }
-                }
-
-                tries++;
-                maxWait = maxWait * 2;
-            }
-
-        }
-
-        this.plainSocket = socket;
-        this.out = out;
-        this.in = in;
-
-    }
-
-    Connection(VirtualServerSocket serverSocket) throws IOException {
-        plainSocket = null;
+    /**
+     * Accept incoming connection on given serverSocket.
+     */
+    public Connection(VirtualServerSocket serverSocket) throws IOException {
         logger.debug("waiting for incomming connection...");
-        virtualSocket = serverSocket.accept();
-        virtualSocket.setTcpNoDelay(true);
+        socket = serverSocket.accept();
+        socket.setTcpNoDelay(true);
 
-        in = new DataInputStream(new BufferedInputStream(virtualSocket
+        in = new DataInputStream(new BufferedInputStream(socket
                 .getInputStream()));
-        out = new DataOutputStream(new BufferedOutputStream(virtualSocket
+        out = new DataOutputStream(new BufferedOutputStream(socket
                 .getOutputStream()));
         logger.debug("new connection from "
-                + virtualSocket.getRemoteSocketAddress() + " accepted");
-    }
-
-    Connection(ServerSocket plainServerSocket) throws IOException {
-        virtualSocket = null;
-        logger.debug("waiting for incomming connection...");
-        plainSocket = plainServerSocket.accept();
-        plainSocket.setTcpNoDelay(true);
-
-        in = new DataInputStream(new BufferedInputStream(plainSocket
-                .getInputStream()));
-        out = new DataOutputStream(new BufferedOutputStream(plainSocket
-                .getOutputStream()));
-
+                + socket.getRemoteSocketAddress() + " accepted");
     }
 
     public DataOutputStream out() {
@@ -207,18 +116,9 @@ public final class Connection {
             // IGNORE
         }
 
-        if (virtualSocket != null) {
+        if (socket != null) {
             try {
-                virtualSocket.close();
-            } catch (IOException e) {
-                logger.error("Got exception in close", e);
-                // IGNORE
-            }
-        }
-
-        if (plainSocket != null) {
-            try {
-                plainSocket.close();
+                socket.close();
             } catch (IOException e) {
                 logger.error("Got exception in close", e);
                 // IGNORE

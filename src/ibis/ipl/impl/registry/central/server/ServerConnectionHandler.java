@@ -3,8 +3,10 @@ package ibis.ipl.impl.registry.central.server;
 import ibis.ipl.impl.IbisIdentifier;
 import ibis.ipl.impl.Location;
 import ibis.ipl.impl.registry.central.Connection;
-import ibis.ipl.impl.registry.central.ConnectionFactory;
+import ibis.ipl.impl.registry.central.Member;
 import ibis.ipl.impl.registry.central.Protocol;
+import ibis.smartsockets.virtual.VirtualServerSocket;
+import ibis.smartsockets.virtual.VirtualSocketFactory;
 import ibis.util.ThreadPool;
 
 import java.io.IOException;
@@ -13,6 +15,8 @@ import org.apache.log4j.Logger;
 
 final class ServerConnectionHandler implements Runnable {
 
+    private static final int CONNECTION_BACKLOG = 50;
+
     static final int THREADS = 10;
 
     private static final Logger logger = Logger
@@ -20,11 +24,17 @@ final class ServerConnectionHandler implements Runnable {
 
     private final Server server;
 
-    private final ConnectionFactory connectionFactory;
+    private final VirtualSocketFactory socketFactory;
 
-    ServerConnectionHandler(Server server, ConnectionFactory connectionFactory) {
+    private final VirtualServerSocket serverSocket;
+
+    ServerConnectionHandler(Server server,
+            VirtualSocketFactory connectionFactory) throws IOException {
         this.server = server;
-        this.connectionFactory = connectionFactory;
+        this.socketFactory = connectionFactory;
+
+        serverSocket = socketFactory.createServerSocket(Server.VIRTUAL_PORT,
+                CONNECTION_BACKLOG, null);
 
         ThreadPool.createNew(this, "registry server connection handler");
     }
@@ -101,7 +111,7 @@ final class ServerConnectionHandler implements Runnable {
 
         connection.sendOKReply();
 
-        if (pool.ended()) {
+        if (pool.hasEnded()) {
             // wake up the server so it can check the pools (and remove this
             // one)
             server.nudge();
@@ -196,7 +206,6 @@ final class ServerConnectionHandler implements Runnable {
                 .readInt()];
         for (int i = 0; i < receivers.length; i++) {
             receivers[i] = new IbisIdentifier(connection.in());
-
         }
 
         Pool pool = server.getPool(identifier.poolName());
@@ -214,8 +223,10 @@ final class ServerConnectionHandler implements Runnable {
 
     private void handleGetState(Connection connection) throws IOException {
         IbisIdentifier identifier = new IbisIdentifier(connection.in());
+        int joinTime = connection.in().readInt();
 
         Pool pool = server.getPool(identifier.poolName());
+        
 
         if (pool == null) {
             connection.closeWithError("pool not found");
@@ -223,7 +234,7 @@ final class ServerConnectionHandler implements Runnable {
         }
 
         connection.sendOKReply();
-        pool.writeState(connection.out());
+        pool.writeState(connection.out(), joinTime);
         connection.out().flush();
         pool.gotHeartbeat(identifier);
     }
@@ -246,7 +257,7 @@ final class ServerConnectionHandler implements Runnable {
         Connection connection = null;
         try {
             logger.debug("accepting connection");
-            connection = connectionFactory.accept();
+            connection = new Connection(serverSocket);
             logger.debug("connection accepted");
         } catch (IOException e) {
             if (server.isStopped()) {
@@ -326,5 +337,13 @@ final class ServerConnectionHandler implements Runnable {
 
         server.getStats().add(opcode, System.currentTimeMillis() - start, true);
         logger.debug("done handling request");
+    }
+
+    public void end() {
+        try {
+            serverSocket.close();
+        } catch (Exception e) {
+            // IGNORE
+        }
     }
 }

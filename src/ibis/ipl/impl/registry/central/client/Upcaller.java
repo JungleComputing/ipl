@@ -1,7 +1,8 @@
-package ibis.ipl.impl.registry.central;
+package ibis.ipl.impl.registry.central.client;
 
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.RegistryEventHandler;
+import ibis.ipl.impl.registry.central.Event;
 import ibis.util.ThreadPool;
 
 import java.util.LinkedList;
@@ -15,8 +16,6 @@ final class Upcaller implements Runnable {
 
     private RegistryEventHandler handler;
 
-    private IbisIdentifier ibisId;
-
     private final List<Event> pendingEvents;
 
     /** Set when registry upcalls are enabled. */
@@ -25,9 +24,8 @@ final class Upcaller implements Runnable {
     /** Set when processing a registry upcall. */
     private boolean busyUpcaller = false;
 
-    Upcaller(RegistryEventHandler handler, IbisIdentifier id) {
+    Upcaller(RegistryEventHandler handler) {
         this.handler = handler;
-        this.ibisId = id;
 
         pendingEvents = new LinkedList<Event>();
 
@@ -113,17 +111,17 @@ final class Upcaller implements Runnable {
                     }
                     break;
                 case Event.SIGNAL:
-                    for (IbisIdentifier identifier : ibisses) {
-                        if (identifier.equals(ibisId)) {
-                            handler.gotSignal(event.getDescription());
-                        }
-                    }
+                    handler.gotSignal(event.getDescription());
                     break;
                 case Event.ELECT:
-                    handler.electionResult(event.getDescription(), event.getFirstIbis());
+                    handler.electionResult(event.getDescription(), event
+                            .getFirstIbis());
                     break;
                 case Event.UN_ELECT:
                     handler.electionResult(event.getDescription(), null);
+                    break;
+                case Event.POOL_CLOSED:
+                    //Not handled here
                     break;
                 default:
                     logger.error("unknown event type: " + event.getType());

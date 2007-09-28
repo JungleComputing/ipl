@@ -1,5 +1,6 @@
 package ibis.ipl.impl.registry.central.server;
 
+import ibis.ipl.impl.registry.central.Member;
 import ibis.util.ThreadPool;
 
 import org.apache.log4j.Logger;
@@ -30,7 +31,7 @@ final class RandomEventPusher implements Runnable {
         }
 
         public void run() {
-            while (!pool.ended()) {
+            while (!pool.hasEnded()) {
                 long timeout = interval;
 
                 createNewThread();
