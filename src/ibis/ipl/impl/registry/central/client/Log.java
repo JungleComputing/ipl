@@ -1,9 +1,6 @@
 package ibis.ipl.impl.registry.central.client;
 
-import ibis.ipl.impl.IbisIdentifier;
-import ibis.ipl.impl.registry.central.Election;
 import ibis.ipl.impl.registry.central.Event;
-import ibis.ipl.impl.registry.central.Member;
 import ibis.util.ThreadPool;
 
 import java.io.File;

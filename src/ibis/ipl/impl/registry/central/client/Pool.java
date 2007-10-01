@@ -16,7 +16,6 @@ import ibis.util.TypedProperties;
 
 import java.io.DataInput;
 import java.io.DataOutput;
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.SortedSet;
