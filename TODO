@@ -16,7 +16,7 @@ management:
 
 ibis registry:
 - check if all Ibisses in a pool are of the same implementation, version, etc.
-- rename registry.waitForAll() to waitUntilPoolClosed() (Niels)
++ rename registry.waitForAll() to waitUntilPoolClosed() (Niels)
 - make registry implement Management class
 - add some more pool related prints to the registry server
 - add precise definition of "closed world pool" somewhere

@@ -53,17 +53,20 @@ public final class Server extends Thread implements Service {
             throws IOException {
         this.socketFactory = socketFactory;
 
-        TypedProperties typedProperties = RegistryProperties
-                .getHardcodedProperties();
+        TypedProperties typedProperties =
+                RegistryProperties.getHardcodedProperties();
         typedProperties.addProperties(properties);
 
-        printStats = typedProperties
+        printStats =
+                typedProperties
                         .getBooleanProperty(ServerProperties.PRINT_STATS);
 
-        printEvents =  typedProperties
+        printEvents =
+                typedProperties
                         .getBooleanProperty(ServerProperties.PRINT_EVENTS);
 
-        printErrors = typedProperties
+        printErrors =
+                typedProperties
                         .getBooleanProperty(ServerProperties.PRINT_ERRORS);
 
         pools = new HashMap<String, Pool>();
@@ -72,7 +75,7 @@ public final class Server extends Thread implements Service {
 
         // start handling connections
         handler = new ServerConnectionHandler(this, socketFactory);
-        
+
         ThreadPool.createNew(this, "Central Registry Service");
 
         logger.debug("Started Central Registry service on virtual port "
@@ -99,10 +102,11 @@ public final class Server extends Thread implements Service {
             System.out.println("Central Registry: creating new pool: \""
                     + poolName + "\"");
 
-            result = new Pool(poolName, socketFactory, heartbeatInterval,
-                    eventPushInterval, gossip, gossipInterval,
-                    adaptGossipInterval, tree, closedWorld, poolSize,
-                    printEvents, printErrors, stats);
+            result =
+                    new Pool(poolName, socketFactory, heartbeatInterval,
+                            eventPushInterval, gossip, gossipInterval,
+                            adaptGossipInterval, tree, closedWorld, poolSize,
+                            printEvents, printErrors, stats);
             pools.put(poolName, result);
         }
 
@@ -146,7 +150,6 @@ public final class Server extends Thread implements Service {
 
     // pool cleanup thread
     public synchronized void run() {
-        
 
         while (!stopped) {
             if (printStats && !stats.empty()) {
@@ -162,12 +165,16 @@ public final class Server extends Thread implements Service {
                 Formatter formatter = new Formatter(message);
                 formatter.format("list of pools:\n");
                 formatter
-                        .format("POOL_NAME           POOL_SIZE   EVENT_TIME\n");
+                        .format("POOL_NAME          POOL_CLOSED   POOL_SIZE   CURRENT_POOL_SIZE EVENT_TIME\n");
 
                 for (int i = 0; i < poolArray.length; i++) {
-                    formatter.format("%-18s %10d   %10d\n", poolArray[i]
-                            .getName(), poolArray[i].getSize(), poolArray[i]
-                            .getEventTime());
+                    formatter
+                            .format("%-18s %b %10d %10d         %10d\n",
+                                    poolArray[i].getName(), poolArray[i]
+                                            .isClosed(), poolArray[i]
+                                            .getFixedSize(), poolArray[i]
+                                            .getSize(), poolArray[i]
+                                            .getEventTime());
 
                     if (poolArray[i].stale()) {
                         pools.remove(poolArray[i].getName());

@@ -170,6 +170,10 @@ final class Pool implements Runnable {
     synchronized int getSize() {
         return members.size();
     }
+    
+    int getFixedSize() {
+        return fixedSize;
+    }
 
     /*
      * (non-Javadoc)
