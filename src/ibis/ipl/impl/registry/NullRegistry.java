@@ -133,7 +133,7 @@ public final class NullRegistry extends ibis.ipl.impl.Registry {
             "pool size not supported by NullRegistry");
     }
 
-    public void waitForAll() {
+    public void waitUntilPoolClosed() {
         throw new IbisConfigurationException(
             "waitForAll not supported by NullRegistry");
     }

@@ -118,7 +118,7 @@ public class Registry extends ibis.ipl.impl.Registry {
 
     }
 
-    public void waitForAll() {
+    public void waitUntilPoolClosed() {
         // TODO Auto-generated method stub
 
     }

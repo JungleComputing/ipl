@@ -249,7 +249,7 @@ public final class Registry extends ibis.ipl.impl.Registry {
         return pool.getSize();
     }
 
-    public synchronized void waitForAll() {
+    public synchronized void waitUntilPoolClosed() {
         if (!pool.isClosedWorld()) {
             throw new IbisConfigurationException(
                     "waitForAll called but open world run");

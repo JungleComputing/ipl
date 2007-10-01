@@ -18,7 +18,7 @@ public final class IbisCapabilities extends CapabilitySet {
     /**
      * Capability, set when the Ibises that can join the pool are
      * determined at the start of the run. This enables the methods
-     * {@link Registry#getPoolSize()} and {@link Registry#waitForAll()}.
+     * {@link Registry#getPoolSize()} and {@link Registry#waitUntilPoolClosed()}.
      */
     public final static String CLOSEDWORLD = "closedWorld";
     

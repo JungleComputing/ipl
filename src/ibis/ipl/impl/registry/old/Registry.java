@@ -645,7 +645,7 @@ public final class Registry extends ibis.ipl.impl.Registry implements Runnable {
         return numInstances;
     }
 
-    public synchronized void waitForAll() {
+    public synchronized void waitUntilPoolClosed() {
 
         if (!closedWorld) {
             throw new IbisConfigurationException("waitForAll() called but not "

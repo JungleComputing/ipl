@@ -174,13 +174,13 @@ public interface Registry {
     public int getPoolSize();
 
     /**
-     * When running closed-world, wait for all Ibis instances
-     * in the pool.
+     * When running closed-world, wait for the pool to close. A pool 
+     * closes after all Ibisses have joined.
      * @exception IbisConfigurationException
      *          is thrown when this is not a closed-world run, or when
      *          registry events are not enabled yet.
      */
-    public void waitForAll();
+    public void waitUntilPoolClosed();
 
     /**
      * Allows reception of

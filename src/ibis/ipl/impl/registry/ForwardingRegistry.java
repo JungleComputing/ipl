@@ -79,8 +79,8 @@ public final class ForwardingRegistry extends ibis.ipl.impl.Registry {
         return target.getPoolSize();
     }
 
-    public void waitForAll() {
-        target.waitForAll();
+    public void waitUntilPoolClosed() {
+        target.waitUntilPoolClosed();
     }
 
 }
