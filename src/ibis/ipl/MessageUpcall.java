@@ -45,7 +45,7 @@ public interface MessageUpcall {
      * @exception IOException
      *          may be thrown by any of the methods invoked on the message.
      * @exception ClassNotFoundException
-     *          may be thrown by a {@link ReadMessage$readObject()} call.
+     *          may be thrown by a {@link ReadMessage#readObject()} call.
      */
     public void upcall(ReadMessage readMessage) throws IOException,
            ClassNotFoundException;
