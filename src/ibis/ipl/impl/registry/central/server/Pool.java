@@ -174,6 +174,11 @@ final class Pool implements Runnable {
     int getFixedSize() {
         return fixedSize;
     }
+    
+    public boolean isClosedWorld() {
+        return closedWorld;
+    }
+
 
     /*
      * (non-Javadoc)
@@ -774,5 +779,6 @@ final class Pool implements Runnable {
         }
 
     }
+
 
 }

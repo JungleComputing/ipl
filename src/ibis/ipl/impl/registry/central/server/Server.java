@@ -53,21 +53,18 @@ public final class Server extends Thread implements Service {
             throws IOException {
         this.socketFactory = socketFactory;
 
-        TypedProperties typedProperties =
-                RegistryProperties.getHardcodedProperties();
+        TypedProperties typedProperties = RegistryProperties
+                .getHardcodedProperties();
         typedProperties.addProperties(properties);
 
-        printStats =
-                typedProperties
-                        .getBooleanProperty(ServerProperties.PRINT_STATS);
+        printStats = typedProperties
+                .getBooleanProperty(ServerProperties.PRINT_STATS);
 
-        printEvents =
-                typedProperties
-                        .getBooleanProperty(ServerProperties.PRINT_EVENTS);
+        printEvents = typedProperties
+                .getBooleanProperty(ServerProperties.PRINT_EVENTS);
 
-        printErrors =
-                typedProperties
-                        .getBooleanProperty(ServerProperties.PRINT_ERRORS);
+        printErrors = typedProperties
+                .getBooleanProperty(ServerProperties.PRINT_ERRORS);
 
         pools = new HashMap<String, Pool>();
 
@@ -102,11 +99,10 @@ public final class Server extends Thread implements Service {
             System.out.println("Central Registry: creating new pool: \""
                     + poolName + "\"");
 
-            result =
-                    new Pool(poolName, socketFactory, heartbeatInterval,
-                            eventPushInterval, gossip, gossipInterval,
-                            adaptGossipInterval, tree, closedWorld, poolSize,
-                            printEvents, printErrors, stats);
+            result = new Pool(poolName, socketFactory, heartbeatInterval,
+                    eventPushInterval, gossip, gossipInterval,
+                    adaptGossipInterval, tree, closedWorld, poolSize,
+                    printEvents, printErrors, stats);
             pools.put(poolName, result);
         }
 
@@ -156,28 +152,29 @@ public final class Server extends Thread implements Service {
                 System.out.println(stats.getStats(false));
             }
 
-            Pool[] poolArray = pools.values().toArray(new Pool[0]);
-
-            if (poolArray.length > 0) {
+            if (pools.size() > 0) {
 
                 StringBuilder message = new StringBuilder();
 
                 Formatter formatter = new Formatter(message);
                 formatter.format("list of pools:\n");
                 formatter
-                        .format("POOL_NAME          POOL_CLOSED   POOL_SIZE   CURRENT_POOL_SIZE EVENT_TIME\n");
+                        .format("NAME               CLOSED  FIXED_SIZE  CURRENT_SIZE  EVENT_TIME\n");
 
-                for (int i = 0; i < poolArray.length; i++) {
-                    formatter
-                            .format("%-18s %b %10d %10d         %10d\n",
-                                    poolArray[i].getName(), poolArray[i]
-                                            .isClosed(), poolArray[i]
-                                            .getFixedSize(), poolArray[i]
-                                            .getSize(), poolArray[i]
-                                            .getEventTime());
+                //copy values to new array so we can do "remove" on original
+                for (Pool pool : pools.values().toArray(new Pool[0])) {
+                    if (pool.isClosedWorld()) {
+                    formatter.format("%-17s  %6b  %10d  %12d  %10d\n", pool
+                            .getName(), pool.isClosed(), pool.getFixedSize(),
+                            pool.getSize(), pool.getEventTime());
+                    } else {
+                        formatter.format("%-17s  %6s  %10s  %12d  %10d\n", pool
+                                .getName(), "N.A.", "N.A.",
+                                pool.getSize(), pool.getEventTime());
+                    }
 
-                    if (poolArray[i].stale()) {
-                        pools.remove(poolArray[i].getName());
+                    if (pool.stale()) {
+                        pools.remove(pool.getName());
                         if (pools.size() == 0) {
                             notifyAll();
                         }
