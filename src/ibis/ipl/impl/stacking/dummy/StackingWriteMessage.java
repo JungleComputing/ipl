@@ -5,7 +5,7 @@ import ibis.ipl.WriteMessage;
 
 import java.io.IOException;
 
-public class StackingWriteMessage implements ibis.ipl.WriteMessage {
+public class StackingWriteMessage implements WriteMessage {
     
     final WriteMessage base;
     final StackingSendPort port;

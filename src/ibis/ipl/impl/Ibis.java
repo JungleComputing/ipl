@@ -76,13 +76,10 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis {
      *                the port types requested for this ibis implementation.
      * @param userProperties
      *                the properties as provided by the Ibis factory.
-     * @param base
-     *                the underlying Ibis or <code>null</code>. Used for
-     *                stacking ibisses.
      */
     protected Ibis(RegistryEventHandler registryHandler,
             IbisCapabilities capabilities, PortType[] portTypes,
-            Properties userProperties, Ibis base) {
+            Properties userProperties) {
 
         this.capabilities = capabilities;
         this.portTypes = portTypes;
@@ -102,27 +99,22 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis {
         receivePorts = new HashMap<String, ReceivePort>();
         sendPorts = new HashMap<String, SendPort>();
 
-        registry = initializeRegistry(registryHandler, capabilities, base);
-        ident = registry.getIbisIdentifier();
-    }
-
-    protected Registry initializeRegistry(RegistryEventHandler handler,
-            IbisCapabilities caps, Ibis base) {
-
         Class<? extends Ibis> thisClass = this.getClass();
         Package thisPackage = thisClass.getPackage();
         String implementationVersionString = "Class: " + thisClass.getName()
                 + "." + thisPackage.getName() + " Build: "
                 + thisPackage.getImplementationVersion();
-
         try {
-            return Registry.createRegistry(caps, handler, properties,
-                    getData(), implementationVersionString);
+            registry = Registry.createRegistry(capabilities, registryHandler,
+                    properties, getData(), implementationVersionString);
         } catch (IbisConfigurationException e) {
             throw e;
         } catch (Throwable e) {
-            throw new IbisConfigurationException("Could not create registry", e);
+            throw new IbisConfigurationException("Could not create registry",
+                    e);
         }
+
+        ident = registry.getIbisIdentifier();
     }
 
     public Registry registry() {

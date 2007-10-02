@@ -1,74 +1,37 @@
 package ibis.ipl.impl.stacking.dummy;
 
+import ibis.ipl.Ibis;
 import ibis.ipl.IbisCapabilities;
+import ibis.ipl.IbisIdentifier;
 import ibis.ipl.MessageUpcall;
 import ibis.ipl.NoSuchPropertyException;
 import ibis.ipl.PortType;
+import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.RegistryEventHandler;
+import ibis.ipl.SendPort;
 import ibis.ipl.SendPortDisconnectUpcall;
-import ibis.ipl.impl.Ibis;
-import ibis.ipl.impl.Registry;
+import ibis.ipl.Registry;
 
 import java.io.IOException;
 import java.util.Map;
 import java.util.Properties;
 
-public class StackingIbis extends Ibis {
+public class StackingIbis implements Ibis {
 
     Ibis base;
 
-    public StackingIbis(Ibis base, RegistryEventHandler registryHandler,
-            IbisCapabilities caps, PortType[] types, Properties tp) {
-        super(registryHandler, caps, types, tp, base);
-    }
-
-    public void printStatistics() {
-        super.printStatistics();
-        base.printStatistics();
-    }
-
-    @Override
-    protected Registry initializeRegistry(RegistryEventHandler handler, IbisCapabilities capabilities, Ibis base) {
+    StackingIbis(Ibis base) {
         this.base = base;
-        // return new ibis.ipl.impl.registry.ForwardingRegistry(base.registry());
-        return base.registry();
     }
 
-    @Override
-    protected byte[] getData() throws IOException {
-        return null;
-    }
-
-    @Override
     public void end() throws IOException {
         base.end();
     }
-/*
-    @Override
-    public int getPoolSize() {
-        return base.getPoolSize();
-    }
 
-    @Override
-    public void waitForAll() {
-        base.waitForAll();
-    }
-
-    @Override
-    public void enableRegistryEvents() {
-        super.enableRegistryEvents();
-        base.enableRegistryEvents();
-    }
-
-    @Override
-    public void disableRegistryEvents() {
-        super.disableRegistryEvents();
-        base.disableRegistryEvents();
-    }
-*/
-    @Override
-    protected void quit() {
+    public Registry registry() {
+        // return new ibis.ipl.impl.registry.ForwardingRegistry(base.registry());
+        return base.registry();
     }
 
     public Map<String, String> dynamicProperties() {
@@ -90,20 +53,55 @@ public class StackingIbis extends Ibis {
         base.setDynamicProperty(key, val);
     }
 
-    public void poll() {
+    public void poll() throws IOException {
         base.poll();
     }
 
-    @Override
-    protected ibis.ipl.ReceivePort doCreateReceivePort(PortType tp,
-            String name, MessageUpcall u, ReceivePortConnectUpcall cU,
-            Properties props) throws IOException {
-        return new StackingReceivePort(tp, this, name, u, cU, props);
+    public IbisIdentifier identifier() {
+        return base.identifier();
     }
 
-    @Override
-    protected ibis.ipl.SendPort doCreateSendPort(PortType tp, String name,
-            SendPortDisconnectUpcall cU, Properties props) throws IOException {
-        return new StackingSendPort(tp, this, name, cU, props);
+    public String getVersion() {
+        return "StackingIbis on top of " + base.getVersion();
     }
+
+    public Properties properties() {
+        return base.properties();
+    }
+
+    public SendPort createSendPort(PortType portType) throws IOException {
+        return createSendPort(portType, null, null, null);
+    }
+
+    public SendPort createSendPort(PortType portType, String name) 
+            throws IOException {
+        return createSendPort(portType, name, null, null);
+    }
+
+    public SendPort createSendPort(PortType portType, String name,
+            SendPortDisconnectUpcall cU, Properties props) throws IOException {
+        return new StackingSendPort(portType, this, name, cU, props);
+    }
+
+    public ReceivePort createReceivePort(PortType portType, String name)
+            throws IOException {
+        return createReceivePort(portType, name, null, null, null);
+    }
+
+    public ReceivePort createReceivePort(PortType portType, String name,
+            MessageUpcall u) throws IOException {
+        return createReceivePort(portType, name, u, null, null);
+    }
+
+    public ReceivePort createReceivePort(PortType portType, String name,
+            ReceivePortConnectUpcall cU) throws IOException {
+        return createReceivePort(portType, name, null, cU, null);
+    }
+
+    public ReceivePort createReceivePort(PortType portType, String name,
+            MessageUpcall u, ReceivePortConnectUpcall cU, Properties props)
+            throws IOException {
+        return new StackingReceivePort(portType, this, name, u, cU, props);
+    }
+
 }

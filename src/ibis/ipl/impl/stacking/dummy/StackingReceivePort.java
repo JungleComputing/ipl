@@ -4,6 +4,7 @@ import ibis.ipl.MessageUpcall;
 import ibis.ipl.NoSuchPropertyException;
 import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
+import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPortIdentifier;
@@ -12,12 +13,13 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Properties;
 
-public class StackingReceivePort implements ibis.ipl.ReceivePort {
+public class StackingReceivePort implements ReceivePort {
 
-    final ibis.ipl.ReceivePort base;
-    final PortType type;
-    final ibis.ipl.impl.ReceivePortIdentifier identifier;
+    final ReceivePort base;
 
+    /**
+     * This class forwards upcalls with the proper receive port.
+     */
     private static final class ConnectUpcaller
             implements ReceivePortConnectUpcall {
         StackingReceivePort port;
@@ -29,17 +31,20 @@ public class StackingReceivePort implements ibis.ipl.ReceivePort {
             this.upcaller = upcaller;
         }
 
-        public boolean gotConnection(ibis.ipl.ReceivePort me,
+        public boolean gotConnection(ReceivePort me,
                 SendPortIdentifier applicant) {
             return upcaller.gotConnection(port, applicant);
         }
 
-        public void lostConnection(ibis.ipl.ReceivePort me,
+        public void lostConnection(ReceivePort me,
                 SendPortIdentifier johnDoe, Throwable reason) {
             upcaller.lostConnection(port, johnDoe, reason);
         }
     }
     
+    /**
+     * This class forwards message upcalls with the proper message.
+     */
     private static final class Upcaller implements MessageUpcall {
         MessageUpcall upcaller;
         StackingReceivePort port;
@@ -58,8 +63,6 @@ public class StackingReceivePort implements ibis.ipl.ReceivePort {
             String name, MessageUpcall upcall, ReceivePortConnectUpcall connectUpcall,
             Properties properties)
             throws IOException {
-        this.type = type;
-        this.identifier = ibis.createReceivePortIdentifier(name, ibis.ident);
         if (connectUpcall != null) {
             connectUpcall = new ConnectUpcaller(this, connectUpcall);
         }
@@ -98,11 +101,11 @@ public class StackingReceivePort implements ibis.ipl.ReceivePort {
     }
 
     public PortType getPortType() {
-        return type;
+        return base.getPortType();
     }
 
     public ReceivePortIdentifier identifier() {
-        return identifier;
+        return base.identifier();
     }
 
     public SendPortIdentifier[] lostConnections() {
