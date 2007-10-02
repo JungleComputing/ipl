@@ -168,6 +168,14 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
         return new WriteMessage(this);
     }
 
+    protected long totalWritten() {
+        return dataOut.bytesWritten();
+    }
+
+    protected void resetWritten() {
+        dataOut.resetBytesWritten();
+    }
+
     private void createOut() throws IOException {
         String serialization;
         if (type.hasCapability(PortType.SERIALIZATION_DATA)) {
@@ -593,7 +601,7 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
         }
         nMessages++;
         messageBytes += cnt;
-        bytes = prevBytes + dataOut.bytesWritten();
+        bytes = prevBytes + totalWritten();
         setProperty("Messages", "" + nMessages);
         setProperty("MessageBytes", "" + messageBytes);
         setProperty("Bytes", "" + bytes);
@@ -696,8 +704,8 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
      */
     public void initStream(DataOutputStream dataOut) {
         this.dataOut = dataOut;
-        prevBytes += dataOut.bytesWritten();
-        dataOut.resetBytesWritten();
+        prevBytes += totalWritten();
+        resetWritten();
         // Close the serialization stream. A new one will be created when
         // needed.
         if (out != null) {
