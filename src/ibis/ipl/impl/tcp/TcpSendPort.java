@@ -73,7 +73,7 @@ final class TcpSendPort extends SendPort implements TcpProtocol {
     }
 
     protected void resetWritten() {
-        return splitter.resetBytesWritten();
+        splitter.resetBytesWritten();
     }
 
     SendPortIdentifier getIdent() {
