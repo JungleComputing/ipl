@@ -42,6 +42,23 @@ import java.util.Map;
  * This is done to prevent flow control problems.  When a
  * message is alive, and a new message is requested, the request
  * blocks until the live message is finished.
+ *
+ * The following {@link Managable} items are recognized:
+ * <br>
+ * "Messages"  the number of messages sent;
+ * <br>
+ * "MessageBytes" the number of bytes sent in messages (multicasts are counted
+ * once);
+ * <br>
+ * "Bytes" the total number of bytes sent;
+ * <br>
+ * "Connections" the total number of connections made with this port;
+ * <br>
+ * "LostConnections" the number of lost connections;
+ * <br>
+ * "ClosedConnections" the number of closed or disconnected connections;
+ *
+ * Other items may be recognized, depending on the Ibis implementation.
  */
 public interface SendPort extends Managable {
 
@@ -82,21 +99,6 @@ public interface SendPort extends Managable {
      *          the name.
      */
     public String name();
-
-    /**
-     * Returns the sum of the {@link ibis.ipl.WriteMessage#finish()} 
-     * results for all write messages created with this port, or for
-     * all write messages created after the last call to {@link #resetCount()}.
-     * @return
-     *          the number of bytes written.
-     */
-    public long getCount();
-
-    /**
-     * Sets the counter for the number of bytes that have been written to this
-     * sendport to zero.
-     */
-    public void resetCount();
 
     /**
      * Attempts to set up a connection with a receiver. 

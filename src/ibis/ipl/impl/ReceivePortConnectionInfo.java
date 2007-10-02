@@ -38,6 +38,8 @@ public class ReceivePortConnectionInfo {
      */
     public DataInputStream dataIn;
 
+    private long cnt = 0;
+
     /**
      * Constructs a new <code>ReceivePortConnectionInfo</code> with the
      * specified parameters.
@@ -62,7 +64,13 @@ public class ReceivePortConnectionInfo {
      * @return the number of bytes.
      */
     public long bytesRead() {
-        return dataIn.bytesRead();
+        long rd = dataIn.bytesRead();
+        if (rd != 0) {
+            dataIn.resetBytesRead();
+            port.addDataIn(rd);
+            cnt += rd;
+        }
+        return cnt;
     }
 
     /**
@@ -73,6 +81,7 @@ public class ReceivePortConnectionInfo {
      * @exception IOException is thrown in case of trouble.
      */
     public void newStream() throws IOException {
+        bytesRead();
         if (in != null) {
             in.close();
         }

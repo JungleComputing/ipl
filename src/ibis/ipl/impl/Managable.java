@@ -48,4 +48,8 @@ public class Managable implements ibis.ipl.Managable {
     protected void addValidKey(String key) {
         validKeys.add(key);
     }
+
+    protected synchronized void setProperty(String key, String val) {
+        properties.put(key, val);
+    }
 }

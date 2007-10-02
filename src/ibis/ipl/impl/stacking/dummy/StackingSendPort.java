@@ -94,14 +94,6 @@ public class StackingSendPort implements ibis.ipl.SendPort {
        base.disconnect(receiver);
     }
 
-    public long getCount() {
-        return base.getCount();
-    }
-
-    public void resetCount() {
-        base.resetCount();   
-    }
-
     public PortType getPortType() {
         return type;
     }

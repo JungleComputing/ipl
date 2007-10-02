@@ -35,6 +35,22 @@ import java.io.IOException;
  * A receiveport can be configured to generate upcalls or to 
  * support blocking receive, but NOT both!  The message object
  * is always destroyed when it is finished.
+ *
+ * The following {@link Managable} items are recognized:
+ * <br>
+ * "Messages"  the number of messages received;
+ * <br>
+ * "MessageBytes" the number of bytes received in messages;
+ * <br>
+ * "Bytes" the total number of bytes received;
+ * <br>
+ * "Connections" the total number of connections received with this port;
+ * <br>
+ * "LostConnections" the number of lost connections;
+ * <br>
+ * "ClosedConnections" the number of closed connections.
+ *
+ * Other items may be recognized, depending on the Ibis implementation.
  */
 public interface ReceivePort extends Managable {
 
@@ -95,22 +111,6 @@ public interface ReceivePort extends Managable {
      *          is thrown on IO errors.
      */
     public ReadMessage poll() throws IOException;
-
-    /**
-     * Returns the number of bytes read from this receiveport.
-     * A receiveport maintains a counter of how many bytes are used for
-     * messages. Each time a message is being finished, this counter is
-     * updated. It can be reset with the {@link #resetCount()} method.
-     * @return
-     *          the number of bytes read.
-     **/
-    public long getCount();
-
-    /**
-     * Resets the counter for the number of bytes read from this receive port
-     * to zero.
-     */
-    public void resetCount();
 
     /**
      * Returns the {@link ReceivePortIdentifier} of this receiveport.

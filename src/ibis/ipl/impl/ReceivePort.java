@@ -57,9 +57,6 @@ public abstract class ReceivePort extends Managable
     /** The name of this port. */
     public final String name;
 
-    /** Number of bytes read from messages of this port. */
-    private long count = 0;
-
     /** Set when connections are enabled. */
     private boolean connectionsEnabled = false;
 
@@ -118,6 +115,13 @@ public abstract class ReceivePort extends Managable
     /** Properties. */
     protected final Properties properties;
 
+    private long nMessages = 0;
+    private long messageBytes = 0;
+    private long bytes = 0;
+    private long nConnections = 0;
+    private long nLostConnections = 0;
+    private long nClosedConnections = 0;
+
     /**
      * Constructs a <code>ReceivePort</code> with the specified parameters.
      * Note that all property checks are already performed in the
@@ -164,6 +168,18 @@ public abstract class ReceivePort extends Managable
         if (logger.isDebugEnabled()) {
             logger.debug(ibis.ident + ": ReceivePort '" + name + "' created");
         }
+        addValidKey("Messages");
+        setProperty("Messages", "0");
+        addValidKey("MessageBytes");
+        setProperty("MessageBytes", "0");
+        addValidKey("Bytes");
+        setProperty("Bytes", "0");
+        addValidKey("Connections");
+        setProperty("Connections", "0");
+        addValidKey("LostConnections");
+        setProperty("LostConnections", "0");
+        addValidKey("ClosedConnections");
+        setProperty("ClosedConnections", "0");
     }
 
     protected ReadMessage createReadMessage(SerializationInput in, ReceivePortConnectionInfo info) {
@@ -201,14 +217,6 @@ public abstract class ReceivePort extends Managable
 
     public synchronized ibis.ipl.SendPortIdentifier[] connectedTo() {
         return connections.keySet().toArray(new ibis.ipl.SendPortIdentifier[0]);
-    }
-
-    public synchronized long getCount() {
-        return count;
-    }
-
-    public synchronized void resetCount() {
-        count = 0;
     }
 
     public PortType getPortType() {
@@ -347,10 +355,6 @@ public abstract class ReceivePort extends Managable
         return doPoll();
     }
 
-    synchronized void addCount(long cnt) {
-        count += cnt;
-    }
-
     // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     // Public methods, may be called or redefined by implementations.
     // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -363,8 +367,7 @@ public abstract class ReceivePort extends Managable
      * @param id the identification of the sendport.
      * @param e the cause of the lost connection.
      */
-    public void lostConnection(SendPortIdentifier id,
-            Throwable e) {
+    public void lostConnection(SendPortIdentifier id, Throwable e) {
         if (connectionDowncalls) {
             synchronized(this) {
                 lostConnections.add(id);
@@ -372,6 +375,13 @@ public abstract class ReceivePort extends Managable
         } 
         if (connectUpcall != null) {
             connectUpcall.lostConnection(this, id, e);
+        }
+        if (e != null) {
+            nLostConnections++;
+            setProperty("LostConnections", "" + nLostConnections);
+        } else {
+            nClosedConnections++;
+            setProperty("ClosedConnections", "" + nClosedConnections);
         }
         removeInfo(id);
     }
@@ -395,6 +405,8 @@ public abstract class ReceivePort extends Managable
      */
     public synchronized void addInfo(SendPortIdentifier id,
             ReceivePortConnectionInfo info) {
+        nConnections++;
+        setProperty("Connections", "" + nConnections);
         connections.put(id, info);
         notifyAll();
     }
@@ -532,8 +544,13 @@ public abstract class ReceivePort extends Managable
      * Notifies the port that {@link ReadMessage#finish()} was called on the
      * specified message. The port should prepare for a new message.
      * @param r the message.
+     * @param cnt the byte count of this message.
      */
-    public synchronized void finishMessage(ReadMessage r) {
+    public synchronized void finishMessage(ReadMessage r, long cnt) {
+        nMessages++;
+        messageBytes += cnt;
+        setProperty("Messages", "" + nMessages);
+        setProperty("MessageBytes", "" + messageBytes);
         message = null;
         notifyAll();
     }
@@ -581,10 +598,17 @@ public abstract class ReceivePort extends Managable
                 conns[i].close(new IOException(
                             "receiver forcibly closed connection"));
             }
+            nClosedConnections += conns.length;
+            setProperty("ClosedConnections", "" + nClosedConnections);
         }
         if (logger.isDebugEnabled()) {
             logger.debug(name + ":done receiveport.close");
         }
+    }
+
+    void addDataIn(long cnt) {
+        bytes += cnt;
+        setProperty("Bytes", "" + bytes);
     }
 
     /**

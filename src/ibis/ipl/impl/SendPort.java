@@ -33,9 +33,6 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
     /** Debugging output. */
     private static final Logger logger = Logger.getLogger("ibis.ipl.impl.SendPort");
 
-    /** Number of bytes written to messages of this port. */
-    private long count = 0;
-
     /** The type of this port. */
     public final PortType type;
 
@@ -94,6 +91,14 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
     /** Properties. */
     protected final Properties properties;
 
+    private long nMessages = 0;
+    private long messageBytes = 0;
+    private long bytes = 0;
+    private long prevBytes = 0;
+    private long nConnections = 0;
+    private long nLostConnections = 0;
+    private long nClosedConnections = 0;
+
     /**
      * Constructs a <code>SendPort</code> with the specified parameters.
      * Note that all property checks are already performed in the
@@ -140,6 +145,19 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
                     + "' created");
         }
         w = createWriteMessage();
+
+        addValidKey("Messages");
+        setProperty("Messages", "0");
+        addValidKey("MessageBytes");
+        setProperty("MessageBytes", "0");
+        addValidKey("Bytes");
+        setProperty("Bytes", "0");
+        addValidKey("Connections");
+        setProperty("Connections", "0");
+        addValidKey("LostConnections");
+        setProperty("LostConnections", "0");
+        addValidKey("ClosedConnections");
+        setProperty("ClosedConnections", "0");
     }
 
     /**
@@ -168,14 +186,6 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
         if (replacer != null) {
             out.setReplacer(replacer);
         }
-    }
-
-    public synchronized long getCount() {
-        return count;
-    }
-
-    public synchronized void resetCount() {
-        count = 0;
     }
 
     public PortType getPortType() {
@@ -257,6 +267,8 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
         } catch(Throwable e1) {
             throw new ConnectionFailedException("Got unexpected exception", r, e1);
         }
+        nConnections++;
+        setProperty("Connections", "" + nConnections);
     }
 
     public ibis.ipl.ReceivePortIdentifier[] connect(
@@ -268,65 +280,7 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
     public synchronized ibis.ipl.ReceivePortIdentifier[] connect(
             Map<ibis.ipl.IbisIdentifier, String> ports, long timeout, 
             boolean fillTimeout) throws ConnectionsFailedException {
-        /*
-        ConnectionsFailedException ex = null;
-        ArrayList<ibis.ipl.ReceivePortIdentifier> portIds
-                = new ArrayList<ibis.ipl.ReceivePortIdentifier>();
 
-        int count = ports.size();
-        long endTime = 0;
-        
-        if (timeout > 0) {
-            endTime = System.currentTimeMillis() + timeout;
-        }
-
-        for (Map.Entry<ibis.ipl.IbisIdentifier, String> entry : ports.entrySet()) {
-            long t = 0;
-            if (endTime != 0) {
-                long now = System.currentTimeMillis();
-                if (endTime < now) {
-                    ConnectionFailedException e = 
-                            new ConnectionTimedOutException(
-                            "Out of time, connection not even tried", entry.getKey(), entry.getValue());
-                    if (ex == null) {
-                        ex = new ConnectionsFailedException();
-                    }
-                    ex.add(e);
-                    continue;
-                }              
-                t = (endTime - now) / count;
-                if (t <= 0) {
-                    t = 1;
-                }
-            }
-            count--;
-            try {
-                portIds.add(connect(entry.getKey(), entry.getValue(), t));
-            } catch(ConnectionFailedException e1) {
-                if (ex == null) {
-                    ex = new ConnectionsFailedException();
-                }
-                ex.add(e1);
-            } catch(Throwable e) {
-                if (ex == null) {
-                    ex = new ConnectionsFailedException();
-                }
-                ex.add(new ConnectionFailedException("Failed connection",
-                        entry.getKey(), entry.getValue(), e));
-            }
-        }
-
-        ibis.ipl.ReceivePortIdentifier[] result = portIds.toArray(
-                new ibis.ipl.ReceivePortIdentifier[portIds.size()]);
-
-        if (ex != null) {
-            ex.setObtainedConnections(result);
-            throw ex;
-        }
-
-        return result;
-        */
-        
         ibis.ipl.ReceivePortIdentifier [] ids = 
             new ibis.ipl.ReceivePortIdentifier[ports.size()];
         
@@ -536,6 +490,8 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
             for (int i = 0; i < ports.length; i++) {
                 SendPortConnectionInfo c = removeInfo(ports[i]);
                 c.closeConnection();
+                nClosedConnections++;
+                setProperty("ClosedConnections", "" + nClosedConnections);
             }
             closed = true;
             ibis.deRegister(this);
@@ -566,6 +522,8 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
         } finally {
             c.closeConnection();
         }
+        nClosedConnections++;
+        setProperty("ClosedConnections", "" + nClosedConnections);
     }
 
     public synchronized ibis.ipl.ReceivePortIdentifier[] connectedTo() {
@@ -633,7 +591,12 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
             // NotifyAll, because we don't know who is waiting, and what for.
             notifyAll();
         }
-        count += cnt;
+        nMessages++;
+        messageBytes += cnt;
+        bytes = prevBytes + dataOut.bytesWritten();
+        setProperty("Messages", "" + nMessages);
+        setProperty("MessageBytes", "" + messageBytes);
+        setProperty("Bytes", "" + bytes);
         if (collectedExceptions != null) {
             IOException e = collectedExceptions;
             collectedExceptions = null;
@@ -713,6 +676,8 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
         SendPortConnectionInfo c = removeInfo(id);
         if (c != null) {
             try {
+                nLostConnections++;
+                setProperty("LostConnections", "" + nLostConnections);
                 c.closeConnection();
             } catch(Throwable e) {
                 // ignored
@@ -731,6 +696,8 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
      */
     public void initStream(DataOutputStream dataOut) {
         this.dataOut = dataOut;
+        prevBytes += dataOut.bytesWritten();
+        dataOut.resetBytesWritten();
         // Close the serialization stream. A new one will be created when
         // needed.
         if (out != null) {

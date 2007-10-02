@@ -97,10 +97,6 @@ public class StackingReceivePort implements ibis.ipl.ReceivePort {
         base.enableMessageUpcalls();
     }
 
-    public long getCount() {
-        return base.getCount();
-    }
-
     public PortType getPortType() {
         return type;
     }
@@ -135,10 +131,6 @@ public class StackingReceivePort implements ibis.ipl.ReceivePort {
 
     public ReadMessage receive(long timeoutMillis) throws IOException {
         return new StackingReadMessage(base.receive(timeoutMillis), this);
-    }
-
-    public void resetCount() {
-        base.resetCount();
     }
 
     public Map<String, String> dynamicProperties() {

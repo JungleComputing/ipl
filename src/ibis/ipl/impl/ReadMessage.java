@@ -254,8 +254,7 @@ public class ReadMessage implements ibis.ipl.ReadMessage {
         long after = info.bytesRead();
         long retval = after - before;
         before = after;
-        info.port.addCount(retval);
-        info.port.finishMessage(this);
+        info.port.finishMessage(this, retval);
         return retval;
     }
 
