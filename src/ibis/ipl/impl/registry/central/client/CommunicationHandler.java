@@ -114,7 +114,7 @@ final class CommunicationHandler implements Runnable {
      * @throws IOException
      *                 in case of trouble
      */
-    IbisIdentifier join(byte[] implementationData) throws IOException {
+    IbisIdentifier join(byte[] implementationData, String ibisImplementationIdentifier) throws IOException {
 
         long heartbeatInterval = properties
                 .getIntProperty(RegistryProperties.HEARTBEAT_INTERVAL) * 1000;
@@ -148,6 +148,7 @@ final class CommunicationHandler implements Runnable {
             connection.out().writeUTF(pool.getName());
             connection.out().writeInt(implementationData.length);
             connection.out().write(implementationData);
+            connection.out().writeUTF(ibisImplementationIdentifier);
             location.writeTo(connection.out());
             connection.out().writeLong(heartbeatInterval);
             connection.out().writeLong(eventPushInterval);

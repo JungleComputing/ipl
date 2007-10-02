@@ -91,7 +91,7 @@ public final class Server extends Thread implements Service {
     synchronized Pool getAndCreatePool(String poolName, long heartbeatInterval,
             long eventPushInterval, boolean gossip, long gossipInterval,
             boolean adaptGossipInterval, boolean tree, boolean closedWorld,
-            int poolSize) throws IOException {
+            int poolSize, String ibisImplementationIdentifier) throws IOException {
         Pool result = getPool(poolName);
 
         if (result == null || result.hasEnded()) {
@@ -101,7 +101,7 @@ public final class Server extends Thread implements Service {
 
             result = new Pool(poolName, socketFactory, heartbeatInterval,
                     eventPushInterval, gossip, gossipInterval,
-                    adaptGossipInterval, tree, closedWorld, poolSize,
+                    adaptGossipInterval, tree, closedWorld, poolSize,ibisImplementationIdentifier,
                     printEvents, printErrors, stats);
             pools.put(poolName, result);
         }

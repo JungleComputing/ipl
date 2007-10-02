@@ -56,31 +56,40 @@
             <classpath refid="default.classpath" />
         </java>
 
+       	<!-- set the "TIMESTAMP" variable -->    	
+    	<tstamp>
+    	      <format property="TIMESTAMP" pattern="yyyy-MM-dd HH:mm:ss:SSS "/>
+  	</tstamp>
+    	
         <!-- Create jar files -->
+    	
 
         <jar destfile="lib/ipl.jar" basedir="${tmp}" includes="ibis/ipl/*.class">
         </jar>
 	<jar destfile="lib/ipl-impl.jar" basedir="${tmp}" includes="ibis/ipl/impl/*.class ibis/ipl/apps/**/*.class ibis/ipl/impl/registry/**/*.class ibis/ipl/impl/util/**/*.class ibis/ipl/impl/test/**/*.class ibis/util/**/*.class">
             <manifest>
-                <attribute name="Ibis-Service" value="ibis.ipl.impl.registry.old.Server,ibis.ipl.impl.registry.central.server.Server" />
+                <attribute name="Ibis-Service" value="ibis.ipl.impl.registry.central.server.Server" />
             </manifest>
 	</jar>
 	<jar destfile="lib/impl-tcp.jar" basedir="${tmp}" includes="ibis/ipl/impl/tcp/**/*.class">
             <manifest>
                 <attribute name="Ibis-Starter" value="ibis.ipl.impl.tcp.TcpIbisStarter" />
-                <attribute name="Ibis-Version" value="2.0" />
+                <attribute name="Ibis-Version" value="2.0"/> 
+    		<attribute name="Implementation-Version" value="${TIMESTAMP}"/>
             </manifest>
         </jar>
 	<jar destfile="lib/impl-nio.jar" basedir="${tmp}" includes="ibis/ipl/impl/nio/**/*.class">
             <manifest>
                 <attribute name="Ibis-Starter" value="ibis.ipl.impl.nio.NioIbisStarter" />
-                <attribute name="Ibis-Version" value="2.0" />
+                <attribute name="Ibis-Version" value="2.0"/>
+		<attribute name="Implementation-Version" value="${TIMESTAMP}"/>
             </manifest>
         </jar>
 	<jar destfile="lib/impl-dummy.jar" basedir="${tmp}" includes="ibis/ipl/impl/stacking/dummy/**/*.class">
             <manifest>
                 <attribute name="Ibis-Starter" value="ibis.ipl.impl.stacking.dummy.StackingIbisStarter" />
                 <attribute name="Ibis-Version" value="2.0" />
+		<attribute name="Implementation-Version" value="${TSTAMP}"/>
             </manifest>
         </jar>
 

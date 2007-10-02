@@ -52,6 +52,8 @@ final class Pool implements Runnable {
 
     private final String name;
 
+    private final String ibisImplementationIdentifier;
+
     private final boolean closedWorld;
 
     // size of this pool (if closed world)
@@ -77,13 +79,15 @@ final class Pool implements Runnable {
     Pool(String name, VirtualSocketFactory socketFactory,
             long heartbeatInterval, long eventPushInterval, boolean gossip,
             long gossipInterval, boolean adaptGossipInterval, boolean tree,
-            boolean closedWorld, int poolSize, boolean printEvents,
+            boolean closedWorld, int poolSize,
+            String ibisImplementationIdentifier, boolean printEvents,
             boolean printErrors, Stats serverStats) {
         this.name = name;
         this.socketFactory = socketFactory;
         this.heartbeatInterval = heartbeatInterval;
         this.closedWorld = closedWorld;
         this.fixedSize = poolSize;
+        this.ibisImplementationIdentifier = ibisImplementationIdentifier;
         this.printEvents = printEvents;
         this.printErrors = printErrors;
         this.serverStats = serverStats;
@@ -170,15 +174,14 @@ final class Pool implements Runnable {
     synchronized int getSize() {
         return members.size();
     }
-    
+
     int getFixedSize() {
         return fixedSize;
     }
-    
+
     public boolean isClosedWorld() {
         return closedWorld;
     }
-
 
     /*
      * (non-Javadoc)
@@ -218,7 +221,8 @@ final class Pool implements Runnable {
      *      ibis.ipl.impl.Location)
      */
     synchronized Member join(byte[] implementationData, byte[] clientAddress,
-            Location location) throws Exception {
+            Location location, String ibisImplementationIdentifier)
+            throws Exception {
         if (hasEnded()) {
             throw new Exception("Pool already ended");
         }
@@ -226,6 +230,15 @@ final class Pool implements Runnable {
         if (isClosed()) {
             throw new Exception("Closed-World Pool already closed");
         }
+
+        if (!ibisImplementationIdentifier
+                .equals(this.ibisImplementationIdentifier)) {
+            throw new Exception("Ibis implementation "
+                    + ibisImplementationIdentifier
+                    + " does not match pool's Ibis implementation: "
+                    + this.ibisImplementationIdentifier);
+        }
+        logger.debug("ibis version: " + ibisImplementationIdentifier);
 
         String id = Integer.toString(nextID);
         nextID++;
@@ -290,7 +303,7 @@ final class Pool implements Runnable {
 
             dataOut.writeBoolean(closed);
             dataOut.writeInt(currentEventTime);
-            
+
         }
 
         dataOut.flush();
@@ -390,21 +403,22 @@ final class Pool implements Runnable {
      * @see ibis.ipl.impl.registry.central.SuperPool#elect(java.lang.String,
      *      ibis.ipl.impl.IbisIdentifier)
      */
-    synchronized IbisIdentifier elect(String electionName, IbisIdentifier candidate) {
+    synchronized IbisIdentifier elect(String electionName,
+            IbisIdentifier candidate) {
         Election election = elections.get(electionName);
 
         if (election == null) {
             // Do the election now. The caller WINS! :)
-            
+
             Event event = addEvent(Event.ELECT, electionName, candidate);
-            
+
             election = new Election(event);
 
             elections.put(election);
 
             if (printEvents) {
-                print(candidate + " won election \"" + electionName + "\" in pool \""
-                        + name + "\"");
+                print(candidate + " won election \"" + electionName
+                        + "\" in pool \"" + name + "\"");
             }
 
         }
@@ -548,10 +562,10 @@ final class Pool implements Runnable {
 
             Event[] events;
             if (peerTime == -1) {
-                //peer not finished join yet.
+                // peer not finished join yet.
                 events = new Event[0];
-                
-            } else {            
+
+            } else {
                 member.setCurrentTime(peerTime);
                 events = getEvents(peerTime);
             }
@@ -745,15 +759,15 @@ final class Pool implements Runnable {
             // pool is empty, clear out all events
             newMinimum = getEventTime();
         }
-        
+
         if (newMinimum < minEventTime) {
             logger.error("tried to set minimum event time backwards");
             return;
         }
 
-       events.purgeUpto(newMinimum);
-       
-       minEventTime = newMinimum;
+        events.purgeUpto(newMinimum);
+
+        minEventTime = newMinimum;
     }
 
     /**
@@ -779,6 +793,5 @@ final class Pool implements Runnable {
         }
 
     }
-
 
 }

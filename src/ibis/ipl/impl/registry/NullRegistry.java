@@ -30,19 +30,24 @@ public final class NullRegistry extends ibis.ipl.impl.Registry {
      * Creates a Null Registry.
      * 
      * @param handler
-     *            registry handler to pass events to.
+     *                registry handler to pass events to.
      * @param props
-     *            properties of this registry.
+     *                properties of this registry.
      * @param data
-     *            Ibis implementation data to attach to the IbisIdentifier.
+     *                Ibis implementation data to attach to the IbisIdentifier.
+     * @param ibisImplemenentationIdentifier
+     *                the identification of this ibis implementation, including
+     *                version, class and such. Must be identical for all ibisses
+     *                in a single pool.
      * @throws IOException
-     *             in case of trouble.
+     *                 in case of trouble.
      * @throws IbisConfigurationException
-     *             In case invalid properties were given.
+     *                 In case invalid properties were given.
      */
-    public NullRegistry(IbisCapabilities caps, RegistryEventHandler handler, 
-            Properties props, byte[] data) throws IOException {
-        
+    public NullRegistry(IbisCapabilities caps, RegistryEventHandler handler,
+            Properties props, byte[] data, String ibisImplementationIdentifier)
+            throws IOException {
+
         if (handler != null) {
             throw new IbisConfigurationException(
                     "upcalls not supported by NullRegistry");
@@ -79,8 +84,8 @@ public final class NullRegistry extends ibis.ipl.impl.Registry {
                 "elections not supported by NullRegistry");
     }
 
-    public ibis.ipl.IbisIdentifier getElectionResult(String election, long timeoutMillis)
-            throws IOException {
+    public ibis.ipl.IbisIdentifier getElectionResult(String election,
+            long timeoutMillis) throws IOException {
         throw new IbisConfigurationException(
                 "elections not supported by NullRegistry");
     }
@@ -102,22 +107,22 @@ public final class NullRegistry extends ibis.ipl.impl.Registry {
 
     public ibis.ipl.IbisIdentifier[] diedIbises() {
         throw new IbisConfigurationException(
-            "died not supported by NullRegistry");
+                "died not supported by NullRegistry");
     }
 
     public ibis.ipl.IbisIdentifier[] joinedIbises() {
         throw new IbisConfigurationException(
-            "joins not supported by NullRegistry");
+                "joins not supported by NullRegistry");
     }
 
     public ibis.ipl.IbisIdentifier[] leftIbises() {
         throw new IbisConfigurationException(
-            "leaves not supported by NullRegistry");
+                "leaves not supported by NullRegistry");
     }
 
     public String[] receivedSignals() {
         throw new IbisConfigurationException(
-            "signals not supported by NullRegistry");
+                "signals not supported by NullRegistry");
     }
 
     public void disableEvents() {
@@ -125,17 +130,17 @@ public final class NullRegistry extends ibis.ipl.impl.Registry {
     }
 
     public void enableEvents() {
-        // empty ? 
+        // empty ?
     }
 
     public int getPoolSize() {
         throw new IbisConfigurationException(
-            "pool size not supported by NullRegistry");
+                "pool size not supported by NullRegistry");
     }
 
     public void waitUntilPoolClosed() {
         throw new IbisConfigurationException(
-            "waitForAll not supported by NullRegistry");
+                "waitForAll not supported by NullRegistry");
     }
 
 }

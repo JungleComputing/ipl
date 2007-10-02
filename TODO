@@ -15,10 +15,10 @@ management:
 - add basic network usage statistics to Ibis. (Which ones? --Ceriel)
 
 ibis registry:
-- check if all Ibisses in a pool are of the same implementation, version, etc.
-+ rename registry.waitForAll() to waitUntilPoolClosed() (Niels)
++ check if all Ibisses in a pool are of the same implementation, version, etc. (Done, Niels)
++ rename registry.waitForAll() to waitUntilPoolClosed() (Done, Niels)
 - make registry implement Management class
-- add some more pool related prints to the registry server
++ add some more pool related prints to the registry server (Done, Niels)
 - add precise definition of "closed world pool" somewhere
 
 applications:

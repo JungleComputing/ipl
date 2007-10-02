@@ -41,12 +41,15 @@ public abstract class Registry implements ibis.ipl.Registry {
      * @param properties to get some properties from, and to pass on
      * to the registry.
      * @param data the implementation dependent data in the IbisIdentifier.
+     * @param ibisImplemenentationIdentifier the identification of this ibis 
+     * implementation, including version, class and such. Must be identical
+     * for all ibisses in a single pool.
      * @exception Throwable can be any exception resulting from looking up
      * the registry constructor or the invocation attempt.
      */
     public static Registry createRegistry(IbisCapabilities caps, 
             RegistryEventHandler handler, Properties properties, 
-            byte[] data) throws Throwable {
+            byte[] data, String ibisImplemenentationIdentifier) throws Throwable {
 
         String registryName = properties.getProperty(IbisProperties.REGISTRY_IMPL);
 
@@ -60,8 +63,8 @@ public abstract class Registry implements ibis.ipl.Registry {
         try {
             return (Registry) c.getConstructor(new Class[] {
                     IbisCapabilities.class, RegistryEventHandler.class, 
-                    Properties.class, byte[].class}).newInstance(
-                        new Object[] { caps, handler, properties, data });
+                    Properties.class, byte[].class, String.class}).newInstance(
+                        new Object[] { caps, handler, properties, data, ibisImplemenentationIdentifier });
         } catch (java.lang.reflect.InvocationTargetException e) {
             throw e.getCause();
         }

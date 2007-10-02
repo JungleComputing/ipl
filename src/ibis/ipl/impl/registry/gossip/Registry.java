@@ -16,21 +16,25 @@ public class Registry extends ibis.ipl.impl.Registry {
     /**
      * Creates a Gossip Registry.
      * 
-     * @param handler
-     *            registry handler to pass events to.
+     * @param eventHandler
+     *                Registry handler to pass events to.
      * @param userProperties
-     *            properties of this registry.
+     *                properties of this registry.
      * @param data
-     *            Ibis implementation data to attach to the IbisIdentifier.
+     *                Ibis implementation data to attach to the IbisIdentifier.
+     * @param ibisImplemenentationIdentifier the identification of this ibis 
+     * implementation, including version, class and such. Must be identical
+     * for all Ibisses in a single pool.
      * @throws IOException
-     *             in case of trouble.
+     *                 in case of trouble.
      * @throws IbisConfigurationException
-     *             In case invalid properties were given.
+     *                 In case invalid properties were given.
      */
-    public Registry(IbisCapabilities caps, RegistryEventHandler handler,
-            Properties userProperties, byte[] data) {
+    public Registry(IbisCapabilities capabilities,
+            RegistryEventHandler eventHandler, Properties userProperties,
+            byte[] data, String ibisImplementationIdentifier) throws IbisConfigurationException, IOException,
+            IbisConfigurationException {
         identifier = null;
-        
         
     }
     

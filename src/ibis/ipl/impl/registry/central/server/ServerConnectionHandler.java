@@ -58,6 +58,8 @@ final class ServerConnectionHandler implements Runnable {
         }
         byte[] implementationData = new byte[length];
         connection.in().readFully(implementationData);
+        
+        String ibisImplementationIdentifier = connection.in().readUTF();
 
         Location location = new Location(connection.in());
 
@@ -72,10 +74,10 @@ final class ServerConnectionHandler implements Runnable {
 
         pool = server.getAndCreatePool(poolName, heartbeatInterval,
                 eventPushInterval, gossip, gossipInterval, adaptGossipInterval,
-                tree, closedWorld, poolSize);
+                tree, closedWorld, poolSize, ibisImplementationIdentifier);
 
         try {
-            member = pool.join(implementationData, clientAddress, location);
+            member = pool.join(implementationData, clientAddress, location, ibisImplementationIdentifier);
         } catch (Exception e) {
             connection.closeWithError(e.getMessage());
             return;

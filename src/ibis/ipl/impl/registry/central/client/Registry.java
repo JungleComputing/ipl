@@ -54,6 +54,9 @@ public final class Registry extends ibis.ipl.impl.Registry {
      *                properties of this registry.
      * @param data
      *                Ibis implementation data to attach to the IbisIdentifier.
+     * @param ibisImplemenentationIdentifier the identification of this ibis 
+     * implementation, including version, class and such. Must be identical
+     * for all ibisses in a single pool.
      * @throws IOException
      *                 in case of trouble.
      * @throws IbisConfigurationException
@@ -61,7 +64,7 @@ public final class Registry extends ibis.ipl.impl.Registry {
      */
     public Registry(IbisCapabilities capabilities,
             RegistryEventHandler eventHandler, Properties userProperties,
-            byte[] data) throws IbisConfigurationException, IOException,
+            byte[] data, String ibisImplementationIdentifier) throws IbisConfigurationException, IOException,
             IbisConfigurationException {
         logger.debug("creating central registry");
 
@@ -100,7 +103,7 @@ public final class Registry extends ibis.ipl.impl.Registry {
 
         communicationHandler = new CommunicationHandler(properties, pool);
 
-        identifier = communicationHandler.join(data);
+        identifier = communicationHandler.join(data, ibisImplementationIdentifier);
 
         communicationHandler.bootstrap();
 

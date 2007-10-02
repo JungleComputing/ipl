@@ -23,24 +23,24 @@ import java.util.Properties;
 import org.apache.log4j.Logger;
 
 /**
- * This implementation of the {@link ibis.ipl.Ibis} interface 
- * is a base class, to be extended by specific Ibis implementations.
+ * This implementation of the {@link ibis.ipl.Ibis} interface is a base class,
+ * to be extended by specific Ibis implementations.
  */
 public abstract class Ibis extends Managable implements ibis.ipl.Ibis {
 
     /** Debugging output. */
     private static final Logger logger = Logger.getLogger("ibis.ipl.impl.Ibis");
-  
+
     /** The IbisCapabilities as specified by the user. */
     public final IbisCapabilities capabilities;
 
     /** List of port types given by the user */
     public final PortType[] portTypes;
-    
+
     /**
      * Properties, as given to
-     * {@link ibis.ipl.IbisFactory#createIbis(IbisCapabilities,
-     * Properties, boolean, RegistryEventHandler, PortType...)}.
+     * {@link ibis.ipl.IbisFactory#createIbis(IbisCapabilities, Properties,
+     * boolean, RegistryEventHandler, PortType...)}.
      */
     protected TypedProperties properties;
 
@@ -58,7 +58,7 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis {
 
     /** The sendports running on this Ibis instance. */
     private HashMap<String, SendPort> sendPorts;
-    
+
     /** Counter for allocating names for anonymous sendports. */
     private static int send_counter = 0;
 
@@ -67,12 +67,18 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis {
 
     /**
      * Constructs an <code>Ibis</code> instance with the specified parameters.
-     * @param registryHandler the registryHandler.
-     * @param capabilities the capabilities.
-     * @param portTypes the port types requested for this ibis implementation.
-     * @param userProperties the properties as provided by the Ibis factory.
-     * @param base the underlying Ibis or <code>null</code>. Used for stacking
-     * ibisses.
+     * 
+     * @param registryHandler
+     *                the registryHandler.
+     * @param capabilities
+     *                the capabilities.
+     * @param portTypes
+     *                the port types requested for this ibis implementation.
+     * @param userProperties
+     *                the properties as provided by the Ibis factory.
+     * @param base
+     *                the underlying Ibis or <code>null</code>. Used for
+     *                stacking ibisses.
      */
     protected Ibis(RegistryEventHandler registryHandler,
             IbisCapabilities capabilities, PortType[] portTypes,
@@ -82,35 +88,40 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis {
         this.portTypes = portTypes;
 
         addValidKey("statistics");
-        
+
         this.properties = new TypedProperties();
-        
-        //bottom up add properties, starting with hard coded ones
+
+        // bottom up add properties, starting with hard coded ones
         properties.addProperties(IbisProperties.getHardcodedProperties());
         properties.addProperties(userProperties);
-        
+
         if (logger.isDebugEnabled()) {
             logger.debug("Ibis constructor: properties = " + properties);
         }
-        
+
         receivePorts = new HashMap<String, ReceivePort>();
         sendPorts = new HashMap<String, SendPort>();
-    
+
         registry = initializeRegistry(registryHandler, capabilities, base);
         ident = registry.getIbisIdentifier();
     }
 
-    protected Registry initializeRegistry(RegistryEventHandler handler, 
+    protected Registry initializeRegistry(RegistryEventHandler handler,
             IbisCapabilities caps, Ibis base) {
-        
+
+        Class<? extends Ibis> thisClass = this.getClass();
+        Package thisPackage = thisClass.getPackage();
+        String implementationVersionString = "Class: " + thisClass.getName()
+                + "." + thisPackage.getName() + " Build: "
+                + thisPackage.getImplementationVersion();
+
         try {
-            return Registry.createRegistry(caps, handler, properties, 
-                    getData());
+            return Registry.createRegistry(caps, handler, properties,
+                    getData(), implementationVersionString);
         } catch (IbisConfigurationException e) {
             throw e;
-        } catch(Throwable e) {
-            throw new IbisConfigurationException("Could not create registry",
-                    e);
+        } catch (Throwable e) {
+            throw new IbisConfigurationException("Could not create registry", e);
         }
     }
 
@@ -132,11 +143,12 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis {
 
     /**
      * Returns the current Ibis version.
+     * 
      * @return the ibis version.
      */
     public String getVersion() {
-        InputStream in
-            = ClassLoader.getSystemClassLoader().getResourceAsStream("VERSION");
+        InputStream in = ClassLoader.getSystemClassLoader()
+                .getResourceAsStream("VERSION");
         String version = "Unknown Ibis Version ID";
         if (in != null) {
             BufferedReader bIn = new BufferedReader(new InputStreamReader(in));
@@ -167,7 +179,7 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis {
             if (getDynamicProperty("statistics") != null) {
                 printStatistics();
             }
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             // ignored
         }
     }
@@ -193,7 +205,8 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis {
 
     synchronized void register(SendPort p) throws IOException {
         if (sendPorts.get(p.name) != null) {
-            throw new IOException("Multiple instances of sendport named " + p.name);
+            throw new IOException("Multiple instances of sendport named "
+                    + p.name);
         }
         sendPorts.put(p.name, p);
     }
@@ -212,7 +225,9 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis {
     /**
      * Returns the receiveport with the specified name, or <code>null</code>
      * if not present.
-     * @param name the name of the receiveport.
+     * 
+     * @param name
+     *                the name of the receiveport.
      * @return the receiveport.
      */
     public synchronized ReceivePort findReceivePort(String name) {
@@ -220,9 +235,11 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis {
     }
 
     /**
-     * Returns the sendport with the specified name, or <code>null</code>
-     * if not present.
-     * @param name the name of the sendport.
+     * Returns the sendport with the specified name, or <code>null</code> if
+     * not present.
+     * 
+     * @param name
+     *                the name of the sendport.
      * @return the sendport.
      */
     public synchronized SendPort findSendPort(String name) {
@@ -249,16 +266,17 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis {
     protected abstract void quit();
 
     /**
-     * This method should provide the implementation-dependent data of
-     * the Ibis identifier for this Ibis instance. This method gets called
-     * from the Ibis constructor.
-     * @exception IOException may be thrown in case of trouble.
+     * This method should provide the implementation-dependent data of the Ibis
+     * identifier for this Ibis instance. This method gets called from the Ibis
+     * constructor.
+     * 
+     * @exception IOException
+     *                    may be thrown in case of trouble.
      * @return the implementation-dependent data, as a byte array.
      */
     protected abstract byte[] getData() throws IOException;
 
-    public ibis.ipl.SendPort createSendPort(PortType tp)
-            throws IOException {
+    public ibis.ipl.SendPort createSendPort(PortType tp) throws IOException {
         return createSendPort(tp, null, null, null);
     }
 
@@ -266,7 +284,7 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis {
             throws IOException {
         return createSendPort(tp, name, null, null);
     }
- 
+
     private void matchPortType(PortType tp) {
         boolean matched = false;
         for (PortType p : portTypes) {
@@ -274,22 +292,23 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis {
                 matched = true;
             }
         }
-        if (! matched) {
+        if (!matched) {
             throw new IbisConfigurationException("PortType " + tp
                     + " not specified when creating this Ibis instance");
         }
     }
-    
+
     public ibis.ipl.SendPort createSendPort(PortType tp, String name,
-            SendPortDisconnectUpcall cU, Properties properties) throws IOException {
+            SendPortDisconnectUpcall cU, Properties properties)
+            throws IOException {
         if (cU != null) {
-            if (! tp.hasCapability(PortType.CONNECTION_UPCALLS)) {
+            if (!tp.hasCapability(PortType.CONNECTION_UPCALLS)) {
                 throw new IbisConfigurationException(
                         "no connection upcalls requested for this port type");
             }
         }
         if (name == null) {
-            synchronized(this.getClass()) {
+            synchronized (this.getClass()) {
                 name = "anonymous send port " + send_counter++;
             }
         }
@@ -301,19 +320,24 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis {
 
     /**
      * Creates a {@link ibis.ipl.SendPort} of the specified port type.
-     *
-     * @param tp the port type.
-     * @param name the name of this sendport.
-     * @param cU object implementing the
-     * {@link SendPortDisconnectUpcall#lostConnection(ibis.ipl.SendPort,
-     * ReceivePortIdentifier, Throwable)} method.
-     * @param properties the port properties.
+     * 
+     * @param tp
+     *                the port type.
+     * @param name
+     *                the name of this sendport.
+     * @param cU
+     *                object implementing the
+     *                {@link SendPortDisconnectUpcall#lostConnection(ibis.ipl.SendPort,
+     *                ReceivePortIdentifier, Throwable)} method.
+     * @param properties
+     *                the port properties.
      * @return the new sendport.
-     * @exception java.io.IOException is thrown when the port could not be
-     * created.
+     * @exception java.io.IOException
+     *                    is thrown when the port could not be created.
      */
     protected abstract ibis.ipl.SendPort doCreateSendPort(PortType tp,
-            String name, SendPortDisconnectUpcall cU, Properties properties) throws IOException;
+            String name, SendPortDisconnectUpcall cU, Properties properties)
+            throws IOException;
 
     public ibis.ipl.ReceivePort createReceivePort(PortType tp, String name)
             throws IOException {
@@ -340,8 +364,8 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis {
             }
         }
         if (u != null) {
-            if (! tp.hasCapability(PortType.RECEIVE_AUTO_UPCALLS)
-                   && !tp.hasCapability(PortType.RECEIVE_POLL_UPCALLS)) {
+            if (!tp.hasCapability(PortType.RECEIVE_AUTO_UPCALLS)
+                    && !tp.hasCapability(PortType.RECEIVE_POLL_UPCALLS)) {
                 throw new IbisConfigurationException(
                         "no message upcalls requested for this port type");
             }
@@ -352,7 +376,7 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis {
             }
         }
         if (name == null) {
-            synchronized(this.getClass()) {
+            synchronized (this.getClass()) {
                 name = "anonymous receive port " + receive_counter++;
             }
         }
@@ -360,26 +384,30 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis {
         return doCreateReceivePort(tp, name, u, cU, properties);
     }
 
-    /** 
+    /**
      * Creates a named {@link ibis.ipl.ReceivePort} of the specified port type,
-     * with upcall based communication.
-     * New connections will not be accepted until
-     * {@link ibis.ipl.ReceivePort#enableConnections()} is invoked.
-     * This is done to avoid upcalls during initialization.
-     * When a new connection request arrives, or when a connection is lost,
-     * a ConnectUpcall is performed.
-     *
-     * @param tp the port type.
-     * @param name the name of this receiveport.
-     * @param u the upcall handler.
-     * @param cU object implementing <code>gotConnection</code>() and
-     * <code>lostConnection</code>() upcalls.
-     * @param properties the port properties.
+     * with upcall based communication. New connections will not be accepted
+     * until {@link ibis.ipl.ReceivePort#enableConnections()} is invoked. This
+     * is done to avoid upcalls during initialization. When a new connection
+     * request arrives, or when a connection is lost, a ConnectUpcall is
+     * performed.
+     * 
+     * @param tp
+     *                the port type.
+     * @param name
+     *                the name of this receiveport.
+     * @param u
+     *                the upcall handler.
+     * @param cU
+     *                object implementing <code>gotConnection</code>() and
+     *                <code>lostConnection</code>() upcalls.
+     * @param properties
+     *                the port properties.
      * @return the new receiveport.
-     * @exception java.io.IOException is thrown when the port could not be
-     * created.
+     * @exception java.io.IOException
+     *                    is thrown when the port could not be created.
      */
-    protected abstract ibis.ipl.ReceivePort doCreateReceivePort(
-            PortType tp, String name, MessageUpcall u,
-            ReceivePortConnectUpcall cU, Properties properties) throws IOException;
+    protected abstract ibis.ipl.ReceivePort doCreateReceivePort(PortType tp,
+            String name, MessageUpcall u, ReceivePortConnectUpcall cU,
+            Properties properties) throws IOException;
 }
