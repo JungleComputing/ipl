@@ -162,6 +162,31 @@ public final class IbisFactory {
 
     /**
      * Creates a new Ibis instance, based on the required capabilities and port
+     * types.
+     * 
+     * @param requiredCapabilities
+     *          ibis capabilities required by the application.
+     * @param registryEventHandler
+     *          a {@link ibis.ipl.RegistryEventHandler RegistryEventHandler}
+     *          instance, or <code>null</code>.
+     * @param portTypes
+     *          the list of port types required by the application.
+     * @return
+     *          the new Ibis instance.
+     * 
+     * @exception IbisCreationFailedException
+     *           is thrown when no Ibis was found that matches the
+     *           capabilities required.
+     */
+    public static Ibis createIbis(IbisCapabilities requiredCapabilities,
+            RegistryEventHandler registryEventHandler, PortType... portTypes)
+            throws IbisCreationFailedException {
+        return createIbis(requiredCapabilities, null, true,
+                registryEventHandler, portTypes);
+    }
+
+    /**
+     * Creates a new Ibis instance, based on the required capabilities and port
      * types, and using the specified properties.
      * 
      * @param requiredCapabilities
