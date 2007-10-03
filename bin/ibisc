@@ -1,5 +1,7 @@
 #!/bin/sh
 
+# Utility script to run the Ibis frontend on the specified arguments.
+
 if [ -z "$IBIS_HOME" ];  then
     echo "please set IBIS_HOME to the location of your Ibis installation" 1>&2
     exit 1

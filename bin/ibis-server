@@ -1,6 +1,5 @@
 #!/bin/sh
 
-# ibis-registry-server script.
 # This script is a convenience script to start the ibis registry server from the
 # Ibis installation, specified in the $IBIS_HOME environment variable.
 

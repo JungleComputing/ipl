@@ -1,6 +1,5 @@
 #!/bin/sh
 
-# ibis-poolserver script.
 # This script is a convenience script to start a poolserver.
 
 # Check IBIS_HOME.

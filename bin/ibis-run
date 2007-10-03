@@ -1,9 +1,8 @@
 #!/bin/sh
 
-#ibis_run script.
-#This script is a convenience script to automatically set the correct
-#classpath and bootclasspath for Ibis given the location of a Ibis
-#installation, specified in the $IBIS_HOME environment variable.
+# This script is a convenience script to automatically set the correct
+# classpath for Ibis given the location of a Ibis installation,
+# specified in the $IBIS_HOME environment variable.
 
 # Check setting of IBIS_HOME
 if [ -z "$IBIS_HOME" ];  then
@@ -31,4 +30,7 @@ add_to_libclasspath "${IBIS_HOME}"/lib
 if [ -d lib ] ; then add_to_libclasspath lib ; fi
 
 # And finally, run ...
-java -classpath "$CLASSPATH:$LIBCLASSPATH" -Dlog4j.configuration=file:$IBIS_HOME/log4j.properties "$@"
+java \
+    -classpath "$CLASSPATH:$LIBCLASSPATH" \
+    -Dlog4j.configuration=file:$IBIS_HOME/log4j.properties \
+    "$@"
