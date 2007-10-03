@@ -43,7 +43,7 @@ public class IbisCreationFailedException extends Exception {
 
     /**
      * Constructs a <code>IbisCreationFailedException</code> with no specified
-     * detail message, and adds the specified <String, Throwable> pair to the
+     * detail message, and adds the specified (String, Throwable) pair to the
      * list of exceptions.
      * @param throwerID
      *          some identification of the exception thrower.
@@ -56,7 +56,7 @@ public class IbisCreationFailedException extends Exception {
     }
 
     /**
-     * Adds the specified <String, Throwable> pair to the list of exceptions.
+     * Adds the specified (String, Throwable) pair to the list of exceptions.
      * @param throwerID
      *          some identification of the exception thrower.
      * @param throwable
