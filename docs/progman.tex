@@ -17,6 +17,8 @@
 
 \section{Introduction}
 
+NOTE: THIS DOCUMENT IS OUT OF DATE AND MUST BE REWRITTEN.
+
 Ibis is an efficient and flexible Java-based programming environment for Grid
 computing, in particular for distributed supercomputing applications.
 This manual describes the Ibis Portability Layer (IPL). It also describes
@@ -172,7 +174,7 @@ things a little more interesting.
 Ibis applications need to import classes from the IPL (Ibis
 Portability Layer) package, which lives in
 \texttt{ibis.ipl}.
-We recommend that you simply import all \texttt{ibis.ipl} classes with
+The easiest is probably to simply import all \texttt{ibis.ipl} classes with
 one import line:
 
 {\small
@@ -184,33 +186,13 @@ import ibis.ipl.*;
 }
 
 \noindent
-Of course it is also possible to import only the needed classes, but
-this tends to result in a list of 10 or more \texttt{import}s.
+Of course it is also possible to import only the needed classes.
 
 Before creating an Ibis instance, we must determine what we want from it.
 This is determined by two objects: the required Ibis capabilities, and
 the list of port types that are going to be used.
 
-\mysubsubsection{Ibis Capabilities}
-
-Below is a snippet from the RPC example, constructing the required capabilities:
-{\small
-\begin{quote}
-\begin{verbatim}
-IbisCapabilities capabilities = new IbisCapabilities(
-    IbisCapabilities.ELECTIONS_STRICT,
-    IbisCapabilities.WORLDMODEL_CLOSED);
-\end{verbatim}
-\end{quote}
-}
-
-This states that the selected Ibis must support reliable elections
-(the toy example will use this to determine who will be the server and
-who will be the client). The selected Ibis
-must also support the ``closed'' worldmodel, which means
-that all participating Ibises join at the start of the run.
-
-\mysubsection{Creating an Ibis Instance}
+\mysubsubsection{Creating an Ibis Instance}
 
 All instances of a program that want to participate in an Ibis run
 must create an Ibis instance.
@@ -221,8 +203,6 @@ The specification of this method is:
 \begin{quote}
 \begin{verbatim}
 static Ibis createIbis(IbisCapabilities requiredCapabilities,
-		       java.util.Properties properties,
-		       boolean addDefaults,
                        RegistryEventHandler handler,
 		       PortType... portTypes)
         throws IbisCreationFailedException;
@@ -240,10 +220,6 @@ do what is required, and if no such implementation is found, throw an exception.
 The possible Ibis capabilities are specified in
 \texttt{ibis.ipl.IbisCapabilities} class, as discussed in Section
 \ref{Ibis Capabilities}.
-
-The \texttt{properties} can be used to pass some implementation-specific
-values on to the implementation.  Optionally, some hard-wired defaults
-can be added to the properties.
 
 A registry event handler may be specified,
 with a.o. \texttt{joined()} and \texttt{left()} upcalls that get
@@ -265,52 +241,47 @@ the work. See also section \ref{Which Instance Does What?}.
 
 The last parameters specify the port types that are going to be used
 in the application. We will discuss these in more detail in Section
-\ref{Ibis Port Types}. For now, we will assume the existence
+\ref{Ibis Port Types}.
 
 Now back to our example. In Secion \ref{Ibis Capabilities} we will
 discuss the creation of an \texttt{IbisCapabilities} object describing the
 required capabilities. For the moment we will just assume it
-exists, and create an Ibis instance as follows:
+exists. Likewise, in Section \ref{PortTypes} we will discuss the
+creation of a port type, and for now we will just assume that it exists,
+and is referred to by a variable \texttt{porttype}.
 {\small
 \begin{quote}
 \begin{verbatim}
 Ibis ibis = null;
 try {
-    ibis = Ibis.createIbis(capabilities, null, null, null);
-} catch(NoMatchingIbisException e) {
-    System.err.println("Could not find a matching Ibis");
-    ...
-} catch(NestedException e2) {
-    System.err.println("Could not create Ibis: " + e2);
+    ibis = Ibis.createIbis(capabilities, null, porttype);
+} catch(IbisCreationFailedException e) {
+    System.err.println("Could not create Ibis: " + e);
     ...
 }
 \end{verbatim}
 \end{quote}
 }
-Note that the capabilities can be so specific that no matching Ibis
-can be found, and therefore \texttt{createIbis()} may throw an exception
-indicating this.
-\texttt{createIbis()} may also throw a \texttt{NestedException}, indicating
-that it tried to create one or more matching Ibises, but could not.
-In this case, the exceptions contained inside the \texttt{NestedException}
-describe these failures.
+The method \texttt{createIbis()} throws an exception when no
+matching Ibis implementation can be found, or a matching Ibis
+cannot be instantiated for some reason.
 
-\mysubsection{Ibis Capabilities}
+\mysubsubsection{Ibis Capabilities}
 
 Below is a snippet from the RPC example, constructing the required capabilities:
 {\small
 \begin{quote}
 \begin{verbatim}
-CapabilitySet capabilities = new CapabilitySet(
-    PredefinedCapabilities.CONNECTION_ONE_TO_ONE,
-    PredefinedCapabilities.COMMUNICATION_RELIABLE,
-    PredefinedCapabilities.SERIALIZATION_OBJECT,
-    PredefinedCapabilities.RECEIVE_EXPLICIT,
-    PredefinedCapabilities.RECEIVE_AUTO_UPCALLS,
-    PredefinedCapabilities.WORLDMODEL_CLOSED);
+IbisCapabilities capabilities = new IbisCapabilities(
+    IbisCapabilities.ELECTIONS_STRICT);
 \end{verbatim}
 \end{quote}
 }
+
+This states that the selected Ibis must support reliable elections
+(the toy example will use this to determine who will be the server and
+who will be the client).
+
 This states that the selected Ibis must support reliable one-to-one
 communication, must support upcalls at the receiver side without the
 receiver having to poll for messages, and must also support explicit
@@ -886,8 +857,6 @@ Runtime.getRuntime().addShutdownHook(new Thread() {
 This shutdown hook gets invoked when the program terminates, and
 forcibly closes all ports.
 
-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-
 \mysubsection{Ibis utilities}
 
 The \texttt{ibis.util} package contains several utilities that may be
@@ -920,8 +889,7 @@ implement a functioning flow-control for these cases.
 Before running an Ibis application it must be compiled.  Using
 \emph{ant}, this is quite easy. Assuming that the environment variable
 \texttt{IBIS\_HOME} reflects the location of your Ibis installation,
-here is a \texttt{build.xml} file
-for our example program:
+here is a \texttt{build.xml} file for our example program:
 
 {\small
 \begin{quote}
@@ -1001,64 +969,30 @@ script is called as follows:
 The \texttt{ibis-run} script is just a small script that adds the jar files
 from the Ibis lib directory to your classpath and then starts Java.
 
-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-
-The \texttt{ibis-run} script uses these parameters to set the following
-system properties (see also Section \ref{PoolInfo}):
-\begin{description}
-\item{\texttt{ibis.pool.host\_number}}
-the rank number of this Ibis instance.
-\item{\texttt{ibis.pool.total\_hosts}}
-the total number of Ibis instances.
-\item{\texttt{ibis.name\_server.pool}}
-identifies the run to the nameserver.
-\item{\texttt{ibis.name\_server.port}}
-the nameserver port.
-\item{\texttt{ibis.name\_server.host}}
-the nameserver hostname.
-\end{description}
-
-In addition, the following system properties can be specified
-(as \emph{javaflags}):
-\begin{description}
-\item{ibis.pool.cluster}
-specifies a cluster name. If not specified,
-``unknown'' is used.
-\item{ibis.pool.server.port}
-specifies the port number on which the
-\texttt{PoolInfoServer} is listening.
-\end{description}
-
-The Ibis distribution also provides \emph{grun}, which is a tool for
-running Ibis applications on a Globus-based grid. See the
-\texttt{grun/doc} subdirectory for more information.
-
 \mysubsection{Running the example}
-In order to run the example, we first have to compile it.
-Please go to the \emph{ibis-example} directory and type:
-
+You can run the example both with and without the \texttt{ibis-run} script.
+To run the application, we first need an ibis-server. Start a shell and
+run the \texttt{ibis-server} script:
 \noindent
 {\small
 \begin{verbatim}
-$ ant
+$ $IBIS_HOME/bin/ibis-server
 \end{verbatim}
 }
 \noindent
-After a couple of seconds, the example should be compiled.
-You can run the example both with and without the \texttt{ibis-run} script.
-Because we run the example on a single machine, we do not need to start a seperate nameserver.
-To run the application, we first need to start two shells.
-Then, in both shells type:
+
+Then, you need to start two shells. In both shells type:
 
 \noindent
 {\small
 \begin{verbatim}
 $ $IBIS_HOME/bin/ibis-run \
-    -nhosts 2 -ns localhost ibis.ipl.apps.example.Example
+    -Dibis.server.address=localhost -Dibis.pool.name=bla \
+    ibis.ipl.apps.example.Example
 \end{verbatim}
 }
 \noindent
-Now, it should run and print:
+Now, two instances of your application should run. One of them should print:
 
 \noindent
 {\small
@@ -1067,33 +1001,35 @@ Test succeeded!
 \end{verbatim}
 }
 \noindent
-If you don't use the \texttt{ibis-run} script, you have to set several properties.
-In both shells, type:
+The \texttt{ibis.pool.name} value can be any random string.
+It identifies your run.
+This is done because a single Ibis registry server can serve multiple
+runs.
+The \texttt{ibis.server.address} property should
+be set to the machine you run the Ibis server on. In this case, we use
+\texttt{localhost}.
+
+If you don't use the \texttt{ibis-run} script, you have to set the classpath
+and some additional properties. In both shells, type:
 
 \noindent
 {\small
 \begin{verbatim}
 $ java \
-    -cp $IBIS_HOME/lib/ibis.jar:$IBIS_HOME/3rdparty/log4j-1.2.9.jar:build \
-    -Dibis.pool.total_hosts=2 -Dibis.server.address=localhost \
-    -Dibis.registry.pool=bla \
+    -cp $IBIS_HOME/lib/ipl.jar:$IBIS_HOME/lib/ipl-app.jar \
+    -Dibis.impl.path=$IBIS_HOME/lib \
+    -Dibis.server.address=localhost \
+    -Dibis.pool.name=bla \
+    -Dlog4j.configuration=file:$IBIS_HOME/log4j.properties \
     ibis.ipl.apps.example.Example
 \end{verbatim}
 }
 \noindent
-The \texttt{ibis.name\_server.pool} value can be any random string.
-It identifies your run.
-This is done because one nameserver can serve multiple
-runs. For this test, we need to provide Ibis with the total number of
-CPUs in the run, because it is a closed-world test. Ibis waits until
-both processors have joined the computation.
-The \texttt{ibis.name\_server.host} property should
-be set to the machine you run the nameserver on.  In this case, we use
-\texttt{localhost}.
-Because we also run the application on \texttt{localhost}, Ibis will
-automatically start a nameserver. If you provide a hostname where the
-Ibis application does not run, you will have to start a nameserver
-yourself.
+The classpath specified here specifies the jar-files that are explicitly used:
+\texttt{ipl-app.jar} contains the example code, and \texttt{ipl.jar} contains
+the Ibis IPL. All other jar-files are loaded by the ibis classloader, which
+looks in the directory specified by the \texttt{ibis.impl.path} property,
+and its sub-directory, for any jar-file that could be needed.
 
 \mysection{Further Reading}
 

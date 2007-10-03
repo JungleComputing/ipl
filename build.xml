@@ -37,9 +37,7 @@
         <pathelement path="${tmp}" />
     </path>
 
-    <!--
-    Compile ibis
-    -->
+    <!-- Compile ibis -->
     <target name="compile">
         <mkdir dir="${tmp}" />
         <mkdir dir="${lib}" />
@@ -51,9 +49,15 @@
 	    <compilerarg value="-Xlint:unchecked"/>
         </javac>
 
+	<!--
+	    Build jar of IPL before rewriting. Otherwise a dependency of
+	    IPL on ibis-io is introduced.
+	-->
+	<jar destfile="lib/ipl.jar" basedir="${tmp}" includes="ibis/ipl/*.class"/>
+
         <!-- Run Ibisc -->
         <java classname="ibis.frontend.Ibisc" taskname="Ibisc" failonerror="true" dir="${tmp}" maxmemory="512m" fork="true">
-            <arg line="." />
+	    <arg line="." />
             <classpath refid="default.classpath" />
         </java>
 
@@ -65,13 +69,12 @@
         <!-- Create jar files -->
     	
 
-        <jar destfile="lib/ipl.jar" basedir="${tmp}" includes="ibis/ipl/*.class">
-        </jar>
-	<jar destfile="lib/ipl-impl.jar" basedir="${tmp}" includes="ibis/ipl/impl/*.class ibis/ipl/apps/**/*.class ibis/ipl/impl/registry/**/*.class ibis/ipl/impl/util/**/*.class ibis/ipl/impl/test/**/*.class ibis/util/**/*.class">
+	<jar destfile="lib/ipl-impl.jar" basedir="${tmp}" includes="ibis/ipl/impl/*.class ibis/ipl/impl/registry/**/*.class ibis/ipl/impl/util/**/*.class ibis/ipl/impl/test/**/*.class ibis/util/**/*.class">
             <manifest>
                 <attribute name="Ibis-Service" value="ibis.ipl.impl.registry.central.server.Server" />
             </manifest>
 	</jar>
+	<jar destfile="lib/ipl-app.jar" basedir="${tmp}" includes="ibis/ipl/apps/**/*.class"/>
 	<jar destfile="lib/impl-tcp.jar" basedir="${tmp}" includes="ibis/ipl/impl/tcp/**/*.class">
             <manifest>
                 <attribute name="Ibis-Starter" value="ibis.ipl.impl.tcp.TcpIbisStarter" />

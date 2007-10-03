@@ -22,10 +22,12 @@ ibis registry:
 + rename registry.waitForAll() to waitUntilPoolClosed() (Done, Niels)
 + make registry implement Management class (Done, Niels)
 + add some more pool related prints to the registry server (Done, Niels)
-- add precise definition of "closed world pool" somewhere
++ add precise definition of "closed world pool" somewhere
+  (Done Ceriel: added clarification in IbisCapabilities.java)
 
 applications:
-- remove old-n-useless applications (if any)
+-/+ remove old-n-useless applications (if any)
+    (Done ipl-apps Ceriel)
 
 packaging/distribution:
 - split up ibis in multiple separate subprojects:
