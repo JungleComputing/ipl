@@ -175,8 +175,9 @@ public final class IbisFactory {
      *          the new Ibis instance.
      * 
      * @exception IbisCreationFailedException
-     *           is thrown when no Ibis was found that matches the
-     *           capabilities required.
+     *          is thrown when no Ibis was found that matches the
+     *          capabilities required, or a matching Ibis could not be
+     *          instantiated for some reason.
      */
     public static Ibis createIbis(IbisCapabilities requiredCapabilities,
             RegistryEventHandler registryEventHandler, PortType... portTypes)
@@ -207,8 +208,9 @@ public final class IbisFactory {
      *          the new Ibis instance.
      * 
      * @exception IbisCreationFailedException
-     *           is thrown when no Ibis was found that matches the
-     *           capabilities required.
+     *          is thrown when no Ibis was found that matches the
+     *          capabilities required, or a matching Ibis could not be
+     *          instantiated for some reason.
      */
     public static Ibis createIbis(IbisCapabilities requiredCapabilities,
             Properties properties, boolean addDefaultConfigProperties,
