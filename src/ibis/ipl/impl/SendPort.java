@@ -698,7 +698,7 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
      * closes the serialization stream if there was one.
      * This method should be called from the implementation-specific
      * constructor, and from each
-     * {@link #doConnect(ReceivePortIdentifier, long)} call.
+     * {@link #doConnect(ReceivePortIdentifier, long,boolean)} call.
      * @param dataOut the {@link ibis.io.DataOutputStream} to be used when
      * creating a new serialization stream is created.
      */

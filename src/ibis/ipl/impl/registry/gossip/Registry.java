@@ -22,7 +22,7 @@ public class Registry extends ibis.ipl.impl.Registry {
      *                properties of this registry.
      * @param data
      *                Ibis implementation data to attach to the IbisIdentifier.
-     * @param ibisImplemenentationIdentifier the identification of this ibis 
+     * @param ibisImplementationIdentifier the identification of this ibis 
      * implementation, including version, class and such. Must be identical
      * for all Ibisses in a single pool.
      * @throws IOException

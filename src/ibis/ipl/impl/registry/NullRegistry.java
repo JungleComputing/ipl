@@ -35,7 +35,7 @@ public final class NullRegistry extends ibis.ipl.impl.Registry {
      *                properties of this registry.
      * @param data
      *                Ibis implementation data to attach to the IbisIdentifier.
-     * @param ibisImplemenentationIdentifier
+     * @param ibisImplementationIdentifier
      *                the identification of this ibis implementation, including
      *                version, class and such. Must be identical for all ibisses
      *                in a single pool.

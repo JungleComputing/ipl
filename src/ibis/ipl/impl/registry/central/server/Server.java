@@ -46,7 +46,7 @@ public final class Server extends Thread implements Service {
      * Constructor to create a registry server which is part of a IbisServer
      * 
      * @param properties
-     * @param factory
+     * @param socketFactory
      * @throws IOException
      */
     public Server(TypedProperties properties, VirtualSocketFactory socketFactory)
