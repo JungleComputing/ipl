@@ -94,8 +94,7 @@ public class HelloUpcall {
 
     private void run() throws Exception {
         // Create an ibis instance.
-        Ibis ibis = IbisFactory.createIbis(ibisCapabilities, null, true,
-                null, portType);
+        Ibis ibis = IbisFactory.createIbis(ibisCapabilities, null, portType);
 
         // Elect a server
         IbisIdentifier server = ibis.registry().elect("Server");

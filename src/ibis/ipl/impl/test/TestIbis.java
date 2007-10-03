@@ -42,7 +42,7 @@ public final class TestIbis extends TestCase {
 
             ibis = IbisFactory.createIbis(
                     new IbisCapabilities(IbisCapabilities.ELECTIONS_STRICT),
-                    null, true, null, oneToOneType);
+                    null, oneToOneType);
 
             registry = ibis.registry();
 
