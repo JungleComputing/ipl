@@ -1,8 +1,10 @@
 package ibis.ipl.impl.registry;
 
 import ibis.ipl.IbisIdentifier;
+import ibis.ipl.NoSuchPropertyException;
 
 import java.io.IOException;
+import java.util.Map;
 
 public final class ForwardingRegistry extends ibis.ipl.impl.Registry {
     
@@ -81,6 +83,22 @@ public final class ForwardingRegistry extends ibis.ipl.impl.Registry {
 
     public void waitUntilPoolClosed() {
         target.waitUntilPoolClosed();
+    }
+
+    public Map<String, String> dynamicProperties() {
+        return target.dynamicProperties();
+    }
+
+    public String getDynamicProperty(String key) throws NoSuchPropertyException {
+        return target.getDynamicProperty(key);
+    }
+
+    public void setDynamicProperties(Map<String, String> properties) throws NoSuchPropertyException {
+        target.setDynamicProperties(properties);
+    }
+
+    public void setDynamicProperty(String key, String value) throws NoSuchPropertyException {
+        target.setDynamicProperty(key, value);
     }
 
 }

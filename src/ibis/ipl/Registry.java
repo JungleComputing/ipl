@@ -8,7 +8,7 @@ import java.io.IOException;
  * A <code>Registry</code> coordinates the Pool which an Ibis instance is part
  * of.
  */
-public interface Registry {
+public interface Registry extends Managable {
 
     /**
      * Elects a single candidate from a number of candidates calling this

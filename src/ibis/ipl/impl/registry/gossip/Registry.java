@@ -2,10 +2,12 @@ package ibis.ipl.impl.registry.gossip;
 
 import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisConfigurationException;
+import ibis.ipl.NoSuchPropertyException;
 import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.impl.IbisIdentifier;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.Properties;
 
 public class Registry extends ibis.ipl.impl.Registry {
@@ -125,6 +127,26 @@ public class Registry extends ibis.ipl.impl.Registry {
     public void waitUntilPoolClosed() {
         // TODO Auto-generated method stub
 
+    }
+
+    public Map<String, String> dynamicProperties() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public String getDynamicProperty(String key) throws NoSuchPropertyException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public void setDynamicProperties(Map<String, String> properties) throws NoSuchPropertyException {
+        // TODO Auto-generated method stub
+        
+    }
+
+    public void setDynamicProperty(String key, String value) throws NoSuchPropertyException {
+        // TODO Auto-generated method stub
+        
     }
 
 }

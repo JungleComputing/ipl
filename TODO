@@ -14,11 +14,13 @@ IPL:
 management:
 + add basic network usage statistics to Ibis. (Which ones? --Ceriel)
   (Done Ceriel)
+? think if we can improve on the name "dynamic property" it isn't very clear
+  (Niels)
 
 ibis registry:
 + check if all Ibisses in a pool are of the same implementation, version, etc. (Done, Niels)
 + rename registry.waitForAll() to waitUntilPoolClosed() (Done, Niels)
-- make registry implement Management class
++ make registry implement Management class (Done, Niels)
 + add some more pool related prints to the registry server (Done, Niels)
 - add precise definition of "closed world pool" somewhere
 

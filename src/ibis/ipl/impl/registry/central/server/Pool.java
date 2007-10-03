@@ -10,6 +10,7 @@ import ibis.ipl.impl.registry.central.EventList;
 import ibis.ipl.impl.registry.central.Member;
 import ibis.ipl.impl.registry.central.MemberSet;
 import ibis.ipl.impl.registry.central.Protocol;
+import ibis.ipl.impl.registry.central.Stats;
 import ibis.smartsockets.virtual.VirtualSocketFactory;
 import ibis.util.ThreadPool;
 

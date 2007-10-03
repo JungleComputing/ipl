@@ -2,6 +2,7 @@ package ibis.ipl.impl.registry.central.client;
 
 import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisConfigurationException;
+import ibis.ipl.NoSuchPropertyException;
 import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.impl.IbisIdentifier;
 import ibis.ipl.impl.registry.central.Event;
@@ -10,6 +11,8 @@ import ibis.util.TypedProperties;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
@@ -344,5 +347,26 @@ public final class Registry extends ibis.ipl.impl.Registry {
         default:
             logger.error("unknown event type in registry: " + event);
         }
+    }
+
+    public Map<String, String> dynamicProperties() {
+        return communicationHandler.getStats();
+    }
+
+    public String getDynamicProperty(String key) throws NoSuchPropertyException {
+        String result = dynamicProperties().get(key);
+        
+        if (result == null) {
+            throw new NoSuchPropertyException(key + " is not a valid property");
+        }
+        return result;
+    }
+
+    public void setDynamicProperties(Map<String, String> properties) throws NoSuchPropertyException {
+        throw new NoSuchPropertyException("central registry does not have any properties that can be set");
+    }
+
+    public void setDynamicProperty(String key, String value) throws NoSuchPropertyException {
+        throw new NoSuchPropertyException("central registry does not have any properties that can be set");
     }
 }

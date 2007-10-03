@@ -3,11 +3,14 @@ package ibis.ipl.impl.registry;
 import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.IbisProperties;
+import ibis.ipl.NoSuchPropertyException;
 import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.impl.IbisIdentifier;
 import ibis.ipl.impl.Location;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -141,6 +144,22 @@ public final class NullRegistry extends ibis.ipl.impl.Registry {
     public void waitUntilPoolClosed() {
         throw new IbisConfigurationException(
                 "waitForAll not supported by NullRegistry");
+    }
+
+    public Map<String, String> dynamicProperties() {
+        return new HashMap<String, String>();
+    }
+
+    public String getDynamicProperty(String key) throws NoSuchPropertyException {
+        throw new NoSuchPropertyException("no properties supported by null registry");
+    }
+
+    public void setDynamicProperties(Map<String, String> properties) throws NoSuchPropertyException {
+        throw new NoSuchPropertyException("no properties supported by null registry");
+    }
+
+    public void setDynamicProperty(String key, String value) throws NoSuchPropertyException {
+        throw new NoSuchPropertyException("no properties supported by null registry");
     }
 
 }

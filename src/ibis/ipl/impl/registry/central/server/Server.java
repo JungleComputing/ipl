@@ -2,6 +2,7 @@ package ibis.ipl.impl.registry.central.server;
 
 import ibis.ipl.impl.registry.central.Protocol;
 import ibis.ipl.impl.registry.central.RegistryProperties;
+import ibis.ipl.impl.registry.central.Stats;
 import ibis.server.ServerProperties;
 import ibis.server.Service;
 import ibis.smartsockets.virtual.VirtualSocketFactory;
@@ -131,7 +132,7 @@ public final class Server extends Thread implements Service {
         notifyAll();
         handler.end();
         if (printStats && !stats.empty()) {
-            System.out.println(stats.getStats(false));
+            System.out.println(stats.toString());
         }
     }
 
@@ -149,7 +150,7 @@ public final class Server extends Thread implements Service {
 
         while (!stopped) {
             if (printStats && !stats.empty()) {
-                System.out.println(stats.getStats(false));
+                System.out.println(stats.toString());
             }
 
             if (pools.size() > 0) {
