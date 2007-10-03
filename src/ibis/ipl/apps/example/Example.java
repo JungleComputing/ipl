@@ -58,11 +58,7 @@ public class Example {
         public void upcall(ReadMessage m) throws IOException {
             String s;
 
-            try {
-                s = (String) m.readObject();
-            } catch (ClassNotFoundException e) {
-                s = null;
-            }
+            s = m.readString();
             m.finish();
 
             if (s == null) {
@@ -140,7 +136,7 @@ public class Example {
             do {
                 s = bf.readLine();
                 WriteMessage w = clientSender.newMessage();
-                w.writeObject(s);
+                w.writeString(s);
                 w.finish();
                 if (s != null) {
                     ReadMessage r = clientReceiver.receive();
@@ -171,19 +167,19 @@ public class Example {
     }
 
     private void run() {
-        // Create properties for the Ibis to be created.
+        // Create capabilities for the Ibis to be created.
         IbisCapabilities props = new IbisCapabilities(
-                IbisCapabilities.CLOSEDWORLD,
                 IbisCapabilities.ELECTIONS_STRICT);
 
-        // Create properties for the port type
+        // Create the port type
         porttype = new PortType(
-            PortType.COMMUNICATION_RELIABLE, PortType.SERIALIZATION_OBJECT,
-            PortType.RECEIVE_EXPLICIT, PortType.RECEIVE_AUTO_UPCALLS, PortType.CONNECTION_ONE_TO_ONE
+            PortType.COMMUNICATION_RELIABLE, PortType.SERIALIZATION_DATA,
+            PortType.RECEIVE_EXPLICIT, PortType.RECEIVE_AUTO_UPCALLS,
+            PortType.CONNECTION_ONE_TO_ONE
         );
         // Create an Ibis
         try {
-            ibis = IbisFactory.createIbis(props, null, true, null, porttype);
+            ibis = IbisFactory.createIbis(props, null, porttype);
         } catch (Exception e) {
             System.err.println("Could not create Ibis: " + e);
             e.printStackTrace();
