@@ -33,6 +33,15 @@ X)
     ;;
 esac
 
+case X"$1" in
+    X-cp)
+        shift
+	CLASSPATH="$1"
+	shift
+	;;
+esac
+
+
 export IBIS_HOME
 
 LIBCLASSPATH=""
@@ -48,11 +57,6 @@ add_to_libclasspath () {
 	fi
     done
 }
-
-for i in "$@"
-do
-    CLASSPATH="$CLASSPATH:$i"
-done
 
 # Add the following dirs to the classpath 
 add_to_libclasspath "${IBIS_HOME}"/lib

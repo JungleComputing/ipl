@@ -380,7 +380,7 @@ public class Ibisc {
                 allClasses.clear();
                 wrapperKind = knd;
                 if (knd.equals("BCEL")) {
-                    w = new BCELWrapper();
+                    w = new BCELWrapper(leftArgs);
                 } else {
                     System.err.println("Ibisc: component "
                             + ic.getClass().getName()
