@@ -14,39 +14,8 @@ Ibis installation
 
     The Ibis build process requires `ant', a software building tool similar to
     `make', but written in Java, and well-suited for building Java software.
-    At least version 1.6.1 is required. Ant is available from
+    At least version 1.6.5 is required. Ant is available from
     http://ant.apache.org.
-
-Configuration
-
-Configuration without high-speed LAN
-
-    If you don't have a high-speed LAN for which you require an Ibis
-    module (like GM (Myrinet), MPI, or Panda) you have to do no configuration.
-
-Configuration with high-speed LAN
-
-    If you do have a high-speed LAN for which you require an Ibis
-    module (like GM (Myrinet), MPI, or Panda), you must configure
-    Ibis by typing "ant configure".
-
-    You will be asked for the path to a number of support libraries. If you
-    don't have one or more of these libraries, just hit "ENTER".
-    The configuration setup figures out which of the support libraries
-    actually exists. The Ibis build does not attempt to build the native
-    code for absent modules.
-
-Changes to your configuration
-
-    If you want to change your configuration or want to set
-    parameters for the build process, the preferred way is to
-    change the generated file "build-properties" in the build-files
-    directory.
-    Changes are currently:
-    - paths to support libraries;
-    - switching on/off of native compiler optimization or debug symbol
-      generation;
-    - native code compiler selection.
 
 Build
 
@@ -61,9 +30,9 @@ Build
     application.
 
 API
-    The Ibis API documentation can be built by typing "ant docs".
-    This will build an "api" directory within the "docs" directory.
-    Point your favorite HTML viewer to "docs/api/index.html" to view
+    The Ibis API documentation can be built by typing "ant javadoc".
+    This will build a "javadoc" directory.
+    Point your favorite HTML viewer to "javadoc/index.html" to view
     the API documentation.
 
 System-specific notes
@@ -79,6 +48,7 @@ Linux, Solaris, other Unix systems
     It is probably best to add this to your .bash_profile, .profile,
     or .cshrc file (whichever gets executed when you log in to your
     system).
+    Also make sure that this Java is in your PATH.
 
 Mac OS X
     Set the environment variable JAVA_HOME to "/Library/Java/Home".
@@ -95,3 +65,5 @@ Windows 2000, Windows XP
 
 Cygwin
     See the notes on Windows 2000, Windows XP.
+    Note: there is a separate ibis-run script for Cygwin in the bin-directory,
+    called ibis-run.cygwin. It is wise to move that to ibis-run.

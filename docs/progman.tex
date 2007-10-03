@@ -1,6 +1,5 @@
 \documentclass[10pt]{article}
 
-\usepackage{html}
 \usepackage{graphicx}
 
 \newcommand{\mysection}[1]{\section{#1}\label{#1}}
@@ -10,10 +9,7 @@
 
 \begin{document}
 
-\title{
-{\html {\htmladdnormallink{Ibis} {http://www.cs.vu.nl/ibis/}}}
-{\latex {Ibis}}
-Portability Layer (IPL) Programmer's Manual}
+\title{Ibis Portability Layer (IPL) Programmer's Manual}
 
 \author{The Ibis Group}
 
@@ -25,10 +21,7 @@ Ibis is an efficient and flexible Java-based programming environment for Grid
 computing, in particular for distributed supercomputing applications.
 This manual describes the Ibis Portability Layer (IPL). It also describes
 how to run an Ibis application.
-\html{
-It is also available in
-\htmladdnormallink{postscript}{http://www.cs.vu.nl/ibis/progman.ps.gz}.}
-\latex{It is available on-line at http://www.cs.vu.nl/ibis/progman.}
+It is available on-line at http://www.cs.vu.nl/ibis/progman.
 Ibis is described in several publications (see Section \ref{Further Reading}).
 Rather than giving a detailed overview of what each class and method does,
 the aim of this document is to describe how to actually use these classes
@@ -37,8 +30,7 @@ The \emph{javadoc} subdirectory of the Ibis installation provides
 documentation for each class and method (point your favorite browser
 to javadoc/index.html file of the Ibis installation).
 The Ibis API is also available
-\html{\htmladdnormallink{on-line}{http://www.cs.vu.nl/ibis/javadoc}.}
-\latex{on-line at http://www.cs.vu.nl/ibis/javadoc}.
+on-line at http://www.cs.vu.nl/ibis/javadoc.
 In this manual, fragments of an actual Ibis application will be used for
 illustration purposes.
 Section \ref{An Ibis Application} will discuss a typical Ibis application,
@@ -334,64 +326,64 @@ The complete list of predefined capabilities is given in the
 \texttt{PredefinedCapabilities} class. The most important ones
 are:
 \begin{description}
-\item[CONNECTION_ONE_TO_ONE]
+\item[CONNECTION\_ONE\_TO\_ONE]
 One-to-one (unicast) communication is supported (if an Ibis implementation
 does not support this, you may wonder what it \emph{does} support).
-\item[CONNECTION_ONE_TO_MANY]
+\item[CONNECTION\_ONE\_TO\_MANY]
 one-to-many (multicast) communication is supported
 (in Ibis terms: a sendport
 may connect to multiple receiveports).
-\item[CONNECTION_MANY_TO_ONE]
+\item[CONNECTION\_MANY\_TO\_ONE]
 many-to-one communication is supported (in Ibis terms: multiple
 sendports may connect to a single receiveport).
-\item[COMMUNICATION_FIFO]
+\item[COMMUNICATION\_FIFO]
 messages from a send port are delivered to the receive ports it is
 connected to in the order in which they were sent.
-\item[CONNECTION_DOWNCALLS]
+\item[CONNECTION\_DOWNCALLS]
 connection downcalls are supported. This means that the user can
 invoke methods to see which connections were lost or created.
-\item[CONNECTION_DOWNCALLS]
+\item[CONNECTION\_DOWNCALLS]
 connection upcalls are supported. This means that an upcall
 handler can be installed that is invoked whenever a new connection arrives
 or a connection is lost.
-\item[COMMUNICATION_NUMBERED]
+\item[COMMUNICATION\_NUMBERED]
 all messages originating from any send port of a specific port type have
 a sequence number. This allows the application to do its own sequencing.
-\item[COMMUNICATION_RELIABLE]
+\item[COMMUNICATION\_RELIABLE]
 reliable communication is supported, that is,
 a reliable communication protocol is used.
 When not specified, an Ibis implementation may be chosen that does not explicitly
 support reliable communication.
-\item[RECEIVE_AUTO_UPCALLS]
+\item[RECEIVE\_AUTO\_UPCALLS]
 upcalls are supported and polling for them is not required.
 This means that when the user creates a receiveport with an upcall
 handler installed, when a message arrives at that receive port, 
 this upcall handler is invoked automatically.
-\item[RECEIVE_POLL_UPCALLS]
+\item[RECEIVE\_POLL\_UPCALLS]
 upcalls are supported but polling for them may be needed. When an
 Ibis implementation claims that it supports this, it may also do
-RECEIVE_AUTO_UPCALLS, but polling does no harm. When an application asks for
-this (and not RECEIVE_AUTO_UPCALLS), it must poll.
-\item[RECEIVE_EXPLICIT]
+RECEIVE\_AUTO\_UPCALLS, but polling does no harm. When an application asks for
+this (and not RECEIVE\_AUTO\_UPCALLS), it must poll.
+\item[RECEIVE\_EXPLICIT]
 explicit receive is supported.
 This is the alternative to upcalls for receiving messages.
-\item[SERIALIZATION_BYTE]
+\item[SERIALIZATION\_BYTE]
 Only the methods \texttt{readByte()}, \texttt{writeByte()}, \texttt{readArray(byte[])} and \texttt{writeArray(byte[])} are supported.
-\item[SERIALIZATION_DATA]
+\item[SERIALIZATION\_DATA]
 Only \texttt{read()}/\texttt{write()} and \texttt{readArray()}/\texttt{writeArray()} of primitive types are supported.
-\item[SERIALIZATION_OBJECT]
+\item[SERIALIZATION\_OBJECT]
 Some sort of object serialization is supported.
 This requires user-defined
 \texttt{writeObject()}/\texttt{readObject()} methods to be symmetrical, that is,
 each write in \texttt{writeObject()} must have a corresponding read
 in \texttt{readObject()} (and vice versa).
-\item[SERIALIZATION_STRICTOBJECT]
+\item[SERIALIZATION\_STRICTOBJECT]
 Sun serialization (through \texttt{java.io.ObjectOutputStream/InputStream}) is
 supported. In some regards, this object serialization implementation is more
-forgiving than SERIALIZATION_OBJECT.
-\item[WORLDMODEL_OPEN]
+forgiving than SERIALIZATION\_OBJECT.
+\item[WORLDMODEL\_OPEN]
 Ibises can join and leave the run at any time during the run.
-\item[WORLDMODEL_CLOSED]
+\item[WORLDMODEL\_CLOSED]
 The number of nodes involved in the run is known in advance and
 available from the \texttt{Ibis.totalNrOfIbisesInPool()} method.
 \end{description}
@@ -644,10 +636,10 @@ try {
 This completes the connection setup.
 
 Note that a send port can set up connections to more than one
-receive port (if the port type supports the \texttt{CONNECTION_ONE_TO_MANY}
+receive port (if the port type supports the \texttt{CONNECTION\_ONE\_TO\_MANY}
 capability). Also, multiple send ports can set up
 connections to the same receive port (if the port type supports
-the \texttt{CONNECTION_MANY_TO_ONE} capability).
+the \texttt{CONNECTION\_MANY\_TO\_ONE} capability).
 
 \mysubsection{Connection upcalls, connection downcalls}
 
@@ -656,7 +648,7 @@ are connected to a receive port, and vice versa, or which connections
 are being closed.
 Ibis implementations may support two different mechanisms for obtaining
 this type of information: connection upcalls and connection downcalls.
-See Section \ref{Capabilities} for the corresponding capabilities.
+See Section \ref{Ibis Capabilities} for the corresponding capabilities.
 
 When a port type is configured for using connection upcalls,
 a receive port may be instantiated with a \texttt{ReceivePortConnectUpcall}
@@ -917,8 +909,8 @@ Such a deadlock can be avoided by having a separate reader thread,
 or by installing an upcall handler for the incoming message.
 
 Another common source of deadlocks is if you have a port type that
-specifies the \texttt{CONNECTION_MANY_TO_ONE} as well as the
-\texttt{CONNECTION_ONE_TO_MANY} capability.
+specifies the \texttt{CONNECTION\_MANY\_TO\_ONE} as well as the
+\texttt{CONNECTION\_ONE\_TO\_MANY} capability.
 Multiple hosts doing simultaneous multicasts
 is a well-known source of deadlocks, because most systems do not
 implement a functioning flow-control for these cases.
@@ -988,7 +980,7 @@ If you want to run the registry server on a seperate host, one that is not
 behind a firewall, for instance, you have to start the registry server by
 hand.
 
-The Ibis registry server is started with the \texttt{ibis-registry-server}
+The Ibis registry server is started with the \texttt{ibis-server}
 script which lives in the Ibis \texttt{bin} directory.
 Before starting an Ibis application,
 you need to have a registry server running on a machine that is accessible
@@ -996,7 +988,7 @@ from all nodes participating in the Ibis run.
 The registry server expects the Ibis instances to connect to a
 socket that it creates when it starts up.
 The port number of this socket can be specified using the
-\texttt{-port} command line option to the \texttt{ibis-registry-server} script.
+\texttt{--port} command line option to the \texttt{ibis-server} script.
 
 \mysubsection{Running an Ibis Application}
 
@@ -1032,8 +1024,6 @@ In addition, the following system properties can be specified
 \item{ibis.pool.cluster}
 specifies a cluster name. If not specified,
 ``unknown'' is used.
-See Section \ref{Satin job scheduling} for a possible need for cluster
-names.
 \item{ibis.pool.server.port}
 specifies the port number on which the
 \texttt{PoolInfoServer} is listening.
@@ -1085,7 +1075,7 @@ In both shells, type:
 \begin{verbatim}
 $ java \
     -cp $IBIS_HOME/lib/ibis.jar:$IBIS_HOME/3rdparty/log4j-1.2.9.jar:build \
-    -Dibis.pool.total_hosts=2 -Dibis.registry.host=localhost \
+    -Dibis.pool.total_hosts=2 -Dibis.server.address=localhost \
     -Dibis.registry.pool=bla \
     ibis.ipl.apps.example.Example
 \end{verbatim}
@@ -1107,20 +1097,16 @@ yourself.
 
 \mysection{Further Reading}
 
-The Ibis web page
-{\html {\htmladdnormallink{http://www.cs.vu.nl/ibis/publications.html} {http://www.cs.vu.nl/ibis/publications.html}}}
-{\latex {http://www.cs.vu.nl/ibis/publications.html}}
+The Ibis web page http://www.cs.vu.nl/ibis/publications.html
 contains links to various Ibis papers.
 The best starting point might be \\
-{\html {\htmladdnormallink{http://www.cs.vu.nl/ibis/papers/nieuwpoort_cpe_05.pdf} {http://www.cs.vu.nl/ibis/papers/nieuwpoort\_cpe\_05.pdf}}}
-{\latex {http://www.cs.vu.nl/ibis/papers/nieuwpoort\_cpe\_05.pdf}}, which gives a high-level description of the stucture of the Ibis system.
+http://www.cs.vu.nl/ibis/papers/nieuwpoort\_cpe\_05.pdf,
+which gives a high-level description of the stucture of the Ibis system.
 It also gives some low-level and high-level benchmarks of the different Ibis implementations.
 
-The \emph{docs/api} subdirectory of the Ibis installation provides
+The \emph{javadoc} subdirectory of the Ibis installation provides
 documentation for each class and method in the Ibis API (point your favorite
-HTML viewer to docs/api/index.html in the Ibis installation).
-The Ibis API is also available
-\html{\htmladdnormallink{on-line}{http://www.cs.vu.nl/ibis/api/index.html}.}
-\latex{on-line at http://www.cs.vu.nl/ibis/api/index.html.}
+HTML viewer to javadoc/index.html in the Ibis installation).
+The Ibis API is also available on-line at http://www.cs.vu.nl/ibis/api/index.html.
 
 \end{document}

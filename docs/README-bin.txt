@@ -2,7 +2,7 @@ Ibis README
 
 NOTE:
 This is a very premature release of Ibis 2.0. The code is sort of coherent,
-but documentation is lacking or not up-to-date. You are really on your own
+but manuals are lacking or not up-to-date. You are really on your own
 with this release.
 
 Ibis is an open source Java grid software project of the Computer Systems
@@ -11,14 +11,8 @@ Sciences at the Vrije Universiteit, Amsterdam, The Netherlands.
 The main goal of the Ibis project is to create an efficient Java-based
 platform for grid computing.
 
-This Ibis distribution contains the following:
-
-- The Ibis communication library (defined by the Ibis Portability Layer (IPL))
-  and several implementations of this IPL.
-- Satin, a package for running divide-and-conquer applications.
-- RMI (Remote Method Invocation), an implementation of the Java RMI for Ibis.
-- GMI (Group Method Invocation), a flexible group communication package.
-- MPJ, a pure Java implementation of the Java versino of MPI.
+This Ibis distribution contains the Ibis communication library (defined by the
+Ibis Portability Layer (IPL)) and several implementations of this IPL.
 
 Ibis is free software. See the file "LICENSE.txt" for copying permissions.
 
@@ -33,25 +27,30 @@ This package does not require special installation. Just place this directory
 wherever you want it. You can then try a simple test which creates a single
 Ibis instance, and a client and a server thread that send messages to each
 other. To do so you first need to set a couple of environment variables.
-See below at the system-specific notes. You need to set JAVA_HOME to the
-root of your Java installation, and IBIS_HOME to the root of your Ibis
-installation. Then you can go to the Ibis bin directory and run
+See below at the system-specific notes. You need to set IBIS_HOME to the root
+of your Ibis installation. Now, you can go to the Ibis bin directory and run
 
-    ibis-run junit.textui.TestRunner ibis.ipl.impl.test.TestIbis
+    ibis-server --events
 
-The programmer's manual in the docs directory ("docs/progman.pdf" or
-"docs/progman/progman.html" for a HTML version) contains a detailed
-description of the Ibis Application Programmer's interface (API),
-illustrated with example code fragments.  It also explains how to
-compile and run your Ibis application.
-The javadoc of the API is available in "docs/api/index.html".
+to start an Ibis server that will print events as they occur.
+Next (in another window) you can run
+
+    ibis-run -Dibis.pool.name=blabla -Dibis.server.address=localhost junit.textui.TestRunner ibis.ipl.impl.test.TestIbis
+
+The output should say "OK (1 test)" at the end.
+
+The programmer's manual in the docs directory ("docs/progman.pdf")
+contains a detailed description of the Ibis Application Programmer's
+interface (API), illustrated with example code fragments.
+It also explains how to compile and run your Ibis application.
+The javadoc of the API is available in "javadoc/index.html".
 
 Ibis has its own web-site: http://www.cs.vu.nl/ibis/.
 There, you can find more Ibis documentation, papers, application sources.
 
 The latest Ibis source repository tree is accessible through anonymous SVN
 at "https://gforge.cs.vu.nl/svn/ibis/ibis/trunk". Likewise, the latest example
-applications are available at "https://gforge.cs.vu.nl/svn/ibis/apps/trunk".
+applications are available at "https://gforge.cs.vu.nl/svn/ibis/ipl-apps/trunk".
 You need an account on https://gforge.cs.vu.nl/ to access the repositories
 there. You can create an account by clicking the 'New Account' button
 on the https://gforge.cs.vu.nl/ page.
@@ -74,36 +73,20 @@ This product includes Junit (http://www.junit.org), which is
 distributed under the Common Public License Version 1.0
 (http://www.opensource.org/licenses/cpl.php).
 
-This product includes software developed by the
-Ant-Contrib project (http://sourceforge.net/projects/ant-contrib).
-See "notices/LICENSE.ant-contrib.txt" for the ant-contrib copyright notice.
+There is some dispute about the pronounciation of the word "Ibis". The
+file "docs/rob.mp3" shows how one of the Ibis designers feels about this
+issue.
 
 System-specific notes
 
-Linux, Solaris, other Unix systems
-    Install a recent Java SDK, at least 1.5, and set the JAVA_HOME
-    environment variable to the location where it is installed,
-    for example
-        export JAVA_HOME=/usr/local/java/jdk1.5
-    or
-        set JAVA_HOME=/usr/local/java/jdk1.5
-    for CSH users.
-    It is probably best to add this to your .bash_profile, .profile,
-    or .cshrc file (whichever gets executed when you log in to your
-    system).
-
-Mac OS X
-    Set the environment variable JAVA_HOME to "/Library/Java/Home".
-    You are required to install the Java SDK. See the Linux notes on
-    how to set environment variables.
-
 Windows 2000, Windows XP
-    Install a recent Java SDK, at least 1.5.  This will get installed in
-    for instance "c:\Program Files\Java\jdk1.5.0". You can set the
-    JAVA_HOME environment variable to this path by going to the
+    Install and use a recent Java SDK, at least 1.5.  This will get installed
+    in for instance "c:\Program Files\Java\jdk1.5.0".
+    You can set the IBIS_HOME environment variable going to the
     Control Panel, System, the "Advanced" tab, Environment variables,
-    add it there and reboot your system. IBIS_HOME can be set
-    similarly.
+    add it there and reboot your system.
 
 Cygwin
     See the notes on Windows 2000, Windows XP.
+    Note: there is a separate ibis-run script for Cygwin in the bin-directory,
+    called ibis-run.cygwin. It is wise to move that to ibis-run.

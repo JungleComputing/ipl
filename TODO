@@ -12,7 +12,8 @@ IPL:
   (Done Ceriel)
 
 management:
-- add basic network usage statistics to Ibis. (Which ones? --Ceriel)
++ add basic network usage statistics to Ibis. (Which ones? --Ceriel)
+  (Done Ceriel)
 
 ibis registry:
 + check if all Ibisses in a pool are of the same implementation, version, etc. (Done, Niels)
@@ -41,7 +42,7 @@ packaging/distribution:
 	  is self-contained.
 - update/rewrite programmers manuals
 - while(true) {fix eclipse warnings}
-- clean up doc building scripts
++ clean up doc building scripts (Done Ceriel)
 
 website:
 - update "ibis" overview picture with new/changed implementations

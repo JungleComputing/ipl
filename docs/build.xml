@@ -1,6 +1,6 @@
 <project
     name="Ibis documentation build"
-    default="build"
+    default="progman.pdf"
     basedir=".">
 
     <description>
@@ -9,21 +9,13 @@
 
     <property name="ibis"        location=".."/>
     <property name="src"         location="${ibis}/src"/>
+    <property name="tmp"         location="tmp"/>
 
-    <target name="api-pdf">
-	<javadoc
-		sourcepath="${src}"
-		doclet="com.aurigalogic.doclet.core.Doclet"
-		docletpath="/home2/ceriel/aurigadoclet/bin/AurigaDoclet.jar"
-		additionalparam="-format pdf -out api.pdf"
-		author="true"
-		version="true"
-		public="true"
-		overview="src/overview.html">
-	    <classpath refid="default.classpath"/>
-	    <package name="ibis.ipl"/>
-	</javadoc>
-    </target>
+    <path id="external.jars">
+	<fileset dir="${ibis}/external">
+            <include name="*.jar" />
+        </fileset>
+    </path>
 
     <target name="developer-api">
 	<!-- Create the javadoc directory -->
@@ -32,44 +24,52 @@
 	<javadoc
 		sourcepath="${src}"
 		destdir="dev-api"
-		author="true"
-		version="true"
-		use="true"
 		private="true"
 		windowtitle="Ibis Documentation"
 		overview="src/overview.html"
 		doctitle="Ibis Documentation"
 		bottom="The Ibis project">
-	    <classpath refid="default.classpath"/>
+	    <classpath refid="external.jars"/>
 	    <link href="http://java.sun.com/j2se/1.5.0/docs/api/"/>
-	    <package name="ibis.ipl"/>
-	    <package name="ibis.ipl.*"/>
-	    <group title="Ibis IPL" packages="ibis.ipl"/>
-	    <!--
-	    <arg value="-verbose"/>
-	    <arg value="-notree"/>
-	    <arg value="-noindex"/>
-	    -->
 	</javadoc>
     </target>
 
-    <target name="progman">
-	    <ant dir="src" target="build"/>
+    <target name="init">
+	<tstamp/>
+	<mkdir dir="${tmp}"/>
     </target>
 
-    <target name="build" depends="progman">
-    </target>
-
-    <target name="dev-build"
-	    depends="build, developer-api">
+    <target name="progman.pdf" depends="init">
+	<copy
+	    file="progman.tex"
+	    tofile="${tmp}/progman.tex">
+	</copy>
+	<exec   dir="${tmp}"
+	    executable="latex"
+	    vmlauncher="false">
+	    <arg line="progman.tex"/>
+	</exec>
+	<exec   dir="${tmp}"
+	    executable="latex"
+	    vmlauncher="false">
+	    <arg line="progman.tex"/>
+	</exec>
+	<exec   dir="${tmp}"
+	    executable="dvipdf"
+	    vmlauncher="false">
+	    <arg line="progman.dvi progman.pdf"/>
+	</exec>
+	<copy
+	    file="${tmp}/progman.pdf"
+	    tofile="progman.pdf">
+	</copy>
+	<delete dir="${tmp}"/>
     </target>
 
     <target name="clean">
-	    <ant dir="src" target="clean"/>
-   
-	    <delete dir="dev-api"/>
-	    <delete dir="progman"/>
-	    <delete file="progman.pdf"/>
+	<delete dir="${tmp}"/>
+	<delete dir="dev-api"/>
+	<delete file="progman.pdf"/>
     </target>
 
 </project>
