@@ -18,11 +18,21 @@ public final class IbisCapabilities extends CapabilitySet {
     /**
      * Capability, set when the Ibises that can join the pool are
      * determined at the start of the run. This enables the methods
-     * {@link Registry#getPoolSize()} and {@link Registry#waitUntilPoolClosed()}.
+     * {@link Registry#getPoolSize()} and
+     * {@link Registry#waitUntilPoolClosed()}.
+     * When this capability is requested, the Ibis property 
+     * <code>ibis.pool.size</code> must be set to the number of Ibis instances
+     * that can join the run. When <code>ibis.pool.size</code> instances have
+     * joined, the pool is closed: no more instances are allowed to join the
+     * run.
      */
     public final static String CLOSEDWORLD = "closedWorld";
     
-    /** Capability, indicating that signals are supported. */
+    /**
+     * Capability, indicating that signals are supported,
+     * see {@link RegistryEventHandler#gotSignal(String)} and
+     * {@link Registry#signal(String, IbisIdentifier...)}.
+     */
     public final static String SIGNALS = "signals";
 
     /**
@@ -38,21 +48,26 @@ public final class IbisCapabilities extends CapabilitySet {
     public final static String ELECTIONS_STRICT = "elections.strict";
     
     /**
-     * Capability indicating that joins/leaves don't have to be reliable,
-     * in order, etc.
+     * Capability indicating membership administration, but joins/leaves don't
+     * have to be reliable, in order, etc.
      */
     public final static String MEMBERSHIP_UNRELIABLE
             = "membership.unreliable";
     
     /**
-     * Capability indicating that joins/leaves are totally ordered.
+     * Capability indicating membership administration, and joins/leaves are
+     * totally ordered.
      * This means that all Ibis instances receive the joins/leaves upcalls
      * in the same order.
      */
     public final static String MEMBERSHIP_TOTALLY_ORDERED
             = "membership.totally.ordered";
     
-    /** Capability indicating an Ibis that can deal with malleability. */
+    /**
+     * Capability indicating an Ibis that can deal with malleability.
+     * This means that Ibis instances can join and/or leave a run at any
+     * time.
+     */
     public final static String MALLEABLE = "malleable";
     
     /** 
