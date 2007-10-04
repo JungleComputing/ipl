@@ -101,7 +101,7 @@ public final class PortType extends CapabilitySet {
     /**
      * This capability describes that messages are given global sequence
      * numbers so that the application can order them.
-     * The numbering is per port type.
+     * The numbering is per send port name.
      */
     public final static String COMMUNICATION_NUMBERED
             = COMMUNICATION + ".numbered";
