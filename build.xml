@@ -53,7 +53,10 @@
 	    Build jar of IPL before rewriting. Otherwise a dependency of
 	    IPL on ibis-io is introduced.
 	-->
-	<jar destfile="lib/ipl.jar" basedir="${tmp}" includes="ibis/ipl/*.class"/>
+	<jar destfile="lib/ipl.jar">
+	    <fileset dir="${tmp}" includes="ibis/ipl/*.class"/>
+	    <fileset dir="." includes="LICENSE.txt"/>
+	</jar>
 
         <!-- Run Ibisc -->
         <java classname="ibis.frontend.Ibisc" taskname="Ibisc" failonerror="true" dir="${tmp}" maxmemory="512m" fork="true">
@@ -69,27 +72,38 @@
         <!-- Create jar files -->
     	
 
-	<jar destfile="lib/ipl-impl.jar" basedir="${tmp}" includes="ibis/ipl/impl/*.class ibis/ipl/impl/registry/**/*.class ibis/ipl/impl/util/**/*.class ibis/ipl/impl/test/**/*.class ibis/util/**/*.class">
+	<jar destfile="lib/ipl-impl.jar">
+	    <fileset dir="${tmp}" includes="ibis/ipl/impl/*.class ibis/ipl/impl/registry/**/*.class ibis/ipl/impl/test/**/*.class ibis/ipl/util/**/*.class"/>
+	    <fileset dir="." includes="LICENSE.txt"/>
             <manifest>
                 <attribute name="Ibis-Service" value="ibis.ipl.impl.registry.central.server.Server" />
             </manifest>
 	</jar>
-	<jar destfile="lib/ipl-app.jar" basedir="${tmp}" includes="ibis/ipl/apps/**/*.class"/>
-	<jar destfile="lib/impl-tcp.jar" basedir="${tmp}" includes="ibis/ipl/impl/tcp/**/*.class">
+	<jar destfile="lib/ipl-app.jar">
+	    <fileset dir="${tmp}" includes="ibis/ipl/apps/**/*.class"/>
+	    <fileset dir="." includes="LICENSE.txt"/>
+	</jar>
+	<jar destfile="lib/impl-tcp.jar">
+	    <fileset dir="${tmp}" includes="ibis/ipl/impl/tcp/**/*.class"/>
+	    <fileset dir="." includes="LICENSE.txt"/>
             <manifest>
                 <attribute name="Ibis-Starter" value="ibis.ipl.impl.tcp.TcpIbisStarter" />
                 <attribute name="Ibis-Version" value="2.0"/> 
     		<attribute name="Implementation-Version" value="${TIMESTAMP}"/>
             </manifest>
         </jar>
-	<jar destfile="lib/impl-nio.jar" basedir="${tmp}" includes="ibis/ipl/impl/nio/**/*.class">
+	<jar destfile="lib/impl-nio.jar">
+	    <fileset dir="${tmp}" includes="ibis/ipl/impl/nio/**/*.class"/>
+	    <fileset dir="." includes="LICENSE.txt"/>
             <manifest>
                 <attribute name="Ibis-Starter" value="ibis.ipl.impl.nio.NioIbisStarter" />
                 <attribute name="Ibis-Version" value="2.0"/>
 		<attribute name="Implementation-Version" value="${TIMESTAMP}"/>
             </manifest>
         </jar>
-	<jar destfile="lib/impl-dummy.jar" basedir="${tmp}" includes="ibis/ipl/impl/stacking/dummy/**/*.class">
+	<jar destfile="lib/impl-dummy.jar">
+	    <fileset dir="${tmp}" includes="ibis/ipl/impl/stacking/dummy/**/*.class"/>
+	    <fileset dir="." includes="LICENSE.txt"/>
             <manifest>
                 <attribute name="Ibis-Starter" value="ibis.ipl.impl.stacking.dummy.StackingIbisStarter" />
                 <attribute name="Ibis-Version" value="2.0" />
@@ -187,6 +201,7 @@
 
         <zip destfile="ibis-src.zip">
             <zipfileset dir="src" includes="**/*.java" prefix="ibis-src" />
+            <fileset dir="." includes="LICENSE.txt"/>
         </zip>
 
         <zip destfile="${version}.zip">

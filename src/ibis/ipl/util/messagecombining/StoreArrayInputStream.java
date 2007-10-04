@@ -1,6 +1,6 @@
-/* $Id$ */
+/* $Id: StoreArrayInputStream.java 5764 2007-06-04 10:19:39Z ceriel $ */
 
-package ibis.util.messagecombining;
+package ibis.ipl.util.messagecombining;
 
 import ibis.ipl.ReadMessage;
 

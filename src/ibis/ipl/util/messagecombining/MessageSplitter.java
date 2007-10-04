@@ -1,6 +1,6 @@
-/* $Id$ */
+/* $Id: MessageSplitter.java 5080 2007-02-23 10:52:43Z ceriel $ */
 
-package ibis.util.messagecombining;
+package ibis.ipl.util.messagecombining;
 
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;

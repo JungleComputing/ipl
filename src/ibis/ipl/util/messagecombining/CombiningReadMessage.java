@@ -1,4 +1,4 @@
-/* $Id$ */
+/* $Id: CombiningReadMessage.java 6010 2007-08-02 11:58:36Z rob $ */
 
 /*
  * Created on Jun 28, 2005
@@ -6,7 +6,7 @@
  * TODO To change the template for this generated file go to
  * Window - Preferences - Java - Code Style - Code Templates
  */
-package ibis.util.messagecombining;
+package ibis.ipl.util.messagecombining;
 
 import ibis.io.SerializationBase;
 import ibis.io.SerializationInput;

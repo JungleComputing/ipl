@@ -1,6 +1,6 @@
-/* $Id$ */
+/* $Id: CombiningWriteMessage.java 6010 2007-08-02 11:58:36Z rob $ */
 
-package ibis.util.messagecombining;
+package ibis.ipl.util.messagecombining;
 
 import ibis.io.Replacer;
 import ibis.io.SerializationBase;

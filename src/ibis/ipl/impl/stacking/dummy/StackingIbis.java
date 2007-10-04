@@ -1,14 +1,12 @@
 package ibis.ipl.impl.stacking.dummy;
 
 import ibis.ipl.Ibis;
-import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.MessageUpcall;
 import ibis.ipl.NoSuchPropertyException;
 import ibis.ipl.PortType;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortConnectUpcall;
-import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.SendPort;
 import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.ipl.Registry;

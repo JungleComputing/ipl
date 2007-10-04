@@ -1,6 +1,6 @@
-/* $Id$ */
+/* $Id: StoreArrayOutputStream.java 6186 2007-08-29 14:16:26Z rob $ */
 
-package ibis.util.messagecombining;
+package ibis.ipl.util.messagecombining;
 
 import ibis.io.DataOutputStream;
 import ibis.ipl.WriteMessage;
