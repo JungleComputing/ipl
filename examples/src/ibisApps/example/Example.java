@@ -1,6 +1,6 @@
 /* $Id$ */
 
-package ibis.ipl.apps.example;
+package ibisApps.example;
 
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisCapabilities;

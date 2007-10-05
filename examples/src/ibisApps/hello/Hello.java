@@ -1,12 +1,11 @@
 /* $Id: Hello.java 6430 2007-09-20 16:37:59Z ceriel $ */
 
-package ibis.ipl.apps.hello;
+package ibisApps.hello;
 
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisFactory;
 import ibis.ipl.IbisIdentifier;
-import ibis.ipl.MessageUpcall;
 import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
@@ -18,60 +17,30 @@ import java.io.IOException;
 /**
  * This program is to be run as two instances. One is a server, the other
  * a client. The client sends a hello message to the server. The server
- * prints it. This version uses an upcall.
+ * prints it. This version uses explicit receive.
  */
 
-public class HelloUpcall {
+public class Hello {
 
     PortType portType = new PortType(
             PortType.COMMUNICATION_RELIABLE, PortType.SERIALIZATION_DATA,
-            PortType.RECEIVE_AUTO_UPCALLS, PortType.CONNECTION_ONE_TO_ONE);
+            PortType.RECEIVE_EXPLICIT, PortType.CONNECTION_ONE_TO_ONE);
 
     IbisCapabilities ibisCapabilities = new IbisCapabilities(
             IbisCapabilities.CLOSEDWORLD,
             IbisCapabilities.ELECTIONS_STRICT);
 
-    /** Set to true when server received message. */
-    boolean finished = false;
-
-    /** Upcall handler class for the server. */
-    private static class Upcall implements MessageUpcall {
-
-        HelloUpcall hello;
-
-        public Upcall(HelloUpcall hello) {
-            this.hello = hello;
-        }
-
-        public void upcall(ReadMessage m) throws IOException {
-            String s = m.readString();
-            System.out.println("Received string: " + s);
-            hello.setFinished();
-        }
-    }
-
-    synchronized void setFinished() {
-        finished = true;
-        notifyAll();
-    }
-
     private void server(Ibis myIbis) throws IOException {
 
         // Create a receive port and enable connections.
-        ReceivePort receiver = myIbis.createReceivePort(portType, "server",
-                new Upcall(this));
+        ReceivePort receiver = myIbis.createReceivePort(portType, "server");
         receiver.enableConnections();
-        receiver.enableMessageUpcalls();
 
-        synchronized(this) {
-            while (! finished) {
-                try {
-                    wait();
-                } catch(Exception e) {
-                    // ignored
-                }
-            }
-        }
+        // Read the message.
+        ReadMessage r = receiver.receive();
+        String s = r.readString();
+        r.finish();
+        System.out.println("Server received: " + s);
 
         // Close receive port.
         receiver.close();
@@ -112,7 +81,7 @@ public class HelloUpcall {
 
     public static void main(String args[]) {
         try {
-            new HelloUpcall().run();
+            new Hello().run();
         } catch (Exception e) {
             System.err.println("Got exception: " + e);
         }
