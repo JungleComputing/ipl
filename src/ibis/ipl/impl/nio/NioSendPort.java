@@ -107,7 +107,7 @@ public final class NioSendPort extends SendPort implements Protocol {
         out.writeByte(NEW_MESSAGE);
 
         if (type.hasCapability(PortType.COMMUNICATION_NUMBERED)) {
-            out.writeLong(ibis.registry().getSeqno(name));
+            out.writeLong(ibis.registry().getSequenceNumber(name));
         }
     }
 

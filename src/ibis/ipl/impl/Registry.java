@@ -32,7 +32,7 @@ public abstract class Registry implements ibis.ipl.Registry {
      * @exception IOException may be thrown when communication with the
      * registry fails.
      */
-    public abstract long getSeqno(String name) throws IOException;
+    public abstract long getSequenceNumber(String name) throws IOException;
 
     /**
      * Creates a registry for the specified Ibis instance.

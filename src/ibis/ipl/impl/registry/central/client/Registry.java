@@ -283,7 +283,7 @@ public final class Registry extends ibis.ipl.impl.Registry {
     }
 
     @Override
-    public long getSeqno(String name) throws IOException {
+    public long getSequenceNumber(String name) throws IOException {
         if (pool.isStopped()) {
             throw new IOException(
                     "cannot send signals, registry already stopped");
@@ -349,12 +349,12 @@ public final class Registry extends ibis.ipl.impl.Registry {
         }
     }
 
-    public Map<String, String> dynamicProperties() {
+    public Map<String, String> managementProperties() {
         return communicationHandler.getStats();
     }
 
-    public String getDynamicProperty(String key) throws NoSuchPropertyException {
-        String result = dynamicProperties().get(key);
+    public String getManagementProperty(String key) throws NoSuchPropertyException {
+        String result = managementProperties().get(key);
         
         if (result == null) {
             throw new NoSuchPropertyException(key + " is not a valid property");
@@ -362,11 +362,11 @@ public final class Registry extends ibis.ipl.impl.Registry {
         return result;
     }
 
-    public void setDynamicProperties(Map<String, String> properties) throws NoSuchPropertyException {
+    public void setManagementProperties(Map<String, String> properties) throws NoSuchPropertyException {
         throw new NoSuchPropertyException("central registry does not have any properties that can be set");
     }
 
-    public void setDynamicProperty(String key, String value) throws NoSuchPropertyException {
+    public void setManagementProperty(String key, String value) throws NoSuchPropertyException {
         throw new NoSuchPropertyException("central registry does not have any properties that can be set");
     }
 }

@@ -15,8 +15,8 @@ public final class ForwardingRegistry extends ibis.ipl.impl.Registry {
     }
 
     @Override
-    public long getSeqno(String name) throws IOException {
-        return target.getSeqno(name);
+    public long getSequenceNumber(String name) throws IOException {
+        return target.getSequenceNumber(name);
     }
 
     @Override
@@ -85,20 +85,20 @@ public final class ForwardingRegistry extends ibis.ipl.impl.Registry {
         target.waitUntilPoolClosed();
     }
 
-    public Map<String, String> dynamicProperties() {
-        return target.dynamicProperties();
+    public Map<String, String> managementProperties() {
+        return target.managementProperties();
     }
 
-    public String getDynamicProperty(String key) throws NoSuchPropertyException {
-        return target.getDynamicProperty(key);
+    public String getManagementProperty(String key) throws NoSuchPropertyException {
+        return target.getManagementProperty(key);
     }
 
-    public void setDynamicProperties(Map<String, String> properties) throws NoSuchPropertyException {
-        target.setDynamicProperties(properties);
+    public void setManagementProperties(Map<String, String> properties) throws NoSuchPropertyException {
+        target.setManagementProperties(properties);
     }
 
-    public void setDynamicProperty(String key, String value) throws NoSuchPropertyException {
-        target.setDynamicProperty(key, value);
+    public void setManagementProperty(String key, String value) throws NoSuchPropertyException {
+        target.setManagementProperty(key, value);
     }
 
 }

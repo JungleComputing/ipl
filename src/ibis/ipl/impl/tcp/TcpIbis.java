@@ -123,7 +123,7 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
 
             try {
                 s = factory.createClientSocket(idAddr, timeout, fillTimeout, 
-                        sp.dynamicProperties());
+                        sp.managementProperties());
                 s.setTcpNoDelay(true);
                 out = new DataOutputStream(new BufferedArrayOutputStream(
                             s.getOutputStream(), 4096));

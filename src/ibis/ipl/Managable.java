@@ -4,29 +4,29 @@ import java.util.Map;
 
 /**
  * A <code>Managable</code> class is able to read and set
- * implementation-dependant dynamic properties.
+ * implementation-dependant management properties.
  */
 public interface Managable {
     /**
-     * Returns the dynamic properties.
+     * Returns the managemen properties.
      * @return
-     *          the dynamic properties.
+     *          the management properties.
      */
-    public Map<String, String> dynamicProperties();
+    public Map<String, String> managementProperties();
 
     /**
-     * Sets the specified dynamic properties.
+     * Sets the specified management properties.
      * @param properties
-     *          the dynamic properties to set.
+     *          the management properties to set.
      * @exception NoSuchPropertyException
      *          is thrown if one or more of the
      *          specified property keys are not recognized.
      */
-    public void setDynamicProperties(Map<String, String> properties)
+    public void setManagementProperties(Map<String, String> properties)
         throws NoSuchPropertyException; 
     
     /**
-     * Returns the value of the specified dynamic property.
+     * Returns the value of the specified management property.
      * @param key
      *          the key for the requested property.
      * @return
@@ -34,11 +34,11 @@ public interface Managable {
      * @exception NoSuchPropertyException
      *          is thrown if the specified property key is not recognized.
      */
-    public String getDynamicProperty(String key)
+    public String getManagementProperty(String key)
         throws NoSuchPropertyException;
     
     /**
-     * Sets a specified dynamic property to a specified value.
+     * Sets a specified management property to a specified value.
      * @param key
      *          the key for the property.
      * @param value
@@ -46,6 +46,6 @@ public interface Managable {
      * @exception NoSuchPropertyException
      *          is thrown if the specified property key is not recognized.
      */
-    public void setDynamicProperty(String key, String value)
+    public void setManagementProperty(String key, String value)
         throws NoSuchPropertyException;
 }

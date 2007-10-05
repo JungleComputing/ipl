@@ -46,7 +46,7 @@ public class Registry extends ibis.ipl.impl.Registry {
     }
 
     @Override
-    public long getSeqno(String name) throws IOException {
+    public long getSequenceNumber(String name) throws IOException {
         throw new IOException("Gossip registry does not support sequence numbers");
     }
 
@@ -129,22 +129,22 @@ public class Registry extends ibis.ipl.impl.Registry {
 
     }
 
-    public Map<String, String> dynamicProperties() {
+    public Map<String, String> managementProperties() {
         // TODO Auto-generated method stub
         return null;
     }
 
-    public String getDynamicProperty(String key) throws NoSuchPropertyException {
+    public String getManagementProperty(String key) throws NoSuchPropertyException {
         // TODO Auto-generated method stub
         return null;
     }
 
-    public void setDynamicProperties(Map<String, String> properties) throws NoSuchPropertyException {
+    public void setManagementProperties(Map<String, String> properties) throws NoSuchPropertyException {
         // TODO Auto-generated method stub
         
     }
 
-    public void setDynamicProperty(String key, String value) throws NoSuchPropertyException {
+    public void setManagementProperty(String key, String value) throws NoSuchPropertyException {
         // TODO Auto-generated method stub
         
     }

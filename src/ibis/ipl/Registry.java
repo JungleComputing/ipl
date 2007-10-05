@@ -209,5 +209,5 @@ public interface Registry extends Managable {
      * @exception IOException
      *          may be thrown when communication with the registry fails.
      */
-    public abstract long getSeqno(String name) throws IOException;
+    public long getSequenceNumber(String name) throws IOException;
 }

@@ -168,7 +168,7 @@ public abstract class Ibis extends Managable implements ibis.ipl.Ibis {
         }
         quit();
         try {
-            if (getDynamicProperty("statistics") != null) {
+            if (getManagementProperty("statistics") != null) {
                 printStatistics();
             }
         } catch (Throwable e) {

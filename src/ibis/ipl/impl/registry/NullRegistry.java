@@ -24,7 +24,7 @@ public final class NullRegistry extends ibis.ipl.impl.Registry {
     private final IbisIdentifier identifier;
 
     @Override
-    public long getSeqno(String name) throws IOException {
+    public long getSequenceNumber(String name) throws IOException {
         throw new IbisConfigurationException(
                 "sequence numbers not supported by NullRegistry");
     }
@@ -146,19 +146,19 @@ public final class NullRegistry extends ibis.ipl.impl.Registry {
                 "waitForAll not supported by NullRegistry");
     }
 
-    public Map<String, String> dynamicProperties() {
+    public Map<String, String> managementProperties() {
         return new HashMap<String, String>();
     }
 
-    public String getDynamicProperty(String key) throws NoSuchPropertyException {
+    public String getManagementProperty(String key) throws NoSuchPropertyException {
         throw new NoSuchPropertyException("no properties supported by null registry");
     }
 
-    public void setDynamicProperties(Map<String, String> properties) throws NoSuchPropertyException {
+    public void setManagementProperties(Map<String, String> properties) throws NoSuchPropertyException {
         throw new NoSuchPropertyException("no properties supported by null registry");
     }
 
-    public void setDynamicProperty(String key, String value) throws NoSuchPropertyException {
+    public void setManagementProperty(String key, String value) throws NoSuchPropertyException {
         throw new NoSuchPropertyException("no properties supported by null registry");
     }
 

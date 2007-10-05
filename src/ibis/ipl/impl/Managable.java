@@ -13,11 +13,11 @@ public class Managable implements ibis.ipl.Managable {
     /** Map for implementing the dynamic properties. */
     private HashMap<String, String> properties = new HashMap<String, String>();
 
-    public synchronized Map<String, String> dynamicProperties() {
+    public synchronized Map<String, String> managementProperties() {
         return new HashMap<String,String>(properties);
     }
 
-    public synchronized void setDynamicProperties(
+    public synchronized void setManagementProperties(
             Map<String, String> properties) throws NoSuchPropertyException {
         HashSet<String> keys = new HashSet<String>(properties.keySet());
 
@@ -29,7 +29,7 @@ public class Managable implements ibis.ipl.Managable {
         properties.putAll(properties);
     }
     
-    public synchronized String getDynamicProperty(String key)
+    public synchronized String getManagementProperty(String key)
             throws NoSuchPropertyException {
         if (! validKeys.contains(key)) {
             throw new NoSuchPropertyException("Invalid key: " + key);
@@ -37,7 +37,7 @@ public class Managable implements ibis.ipl.Managable {
         return properties.get(key);
     }
     
-    public synchronized void setDynamicProperty(String key, String val)
+    public synchronized void setManagementProperty(String key, String val)
             throws NoSuchPropertyException {
         if (! validKeys.contains(key)) {
             throw new NoSuchPropertyException("Invalid key: " + key);

@@ -136,22 +136,22 @@ public class StackingReceivePort implements ReceivePort {
         return new StackingReadMessage(base.receive(timeoutMillis), this);
     }
 
-    public Map<String, String> dynamicProperties() {
-        return base.dynamicProperties();
+    public Map<String, String> managementProperties() {
+        return base.managementProperties();
     }
 
-    public String getDynamicProperty(String key)
+    public String getManagementProperty(String key)
             throws NoSuchPropertyException {
-        return base.getDynamicProperty(key);
+        return base.getManagementProperty(key);
     }
 
-    public void setDynamicProperties(Map<String, String> properties)
+    public void setManagementProperties(Map<String, String> properties)
             throws NoSuchPropertyException {
-        base.setDynamicProperties(properties);      
+        base.setManagementProperties(properties);      
     }
 
-    public void setDynamicProperty(String key, String val)
+    public void setManagementProperty(String key, String val)
             throws NoSuchPropertyException {
-        base.setDynamicProperty(key, val);
+        base.setManagementProperty(key, val);
     }
 }
