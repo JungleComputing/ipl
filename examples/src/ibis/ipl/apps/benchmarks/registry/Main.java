@@ -1,9 +1,7 @@
 package ibis.ipl.apps.benchmarks.registry;
 
-import java.io.IOException;
 import java.text.DateFormat;
 import java.util.Date;
-import java.util.Random;
 
 import org.apache.log4j.Logger;
 
@@ -52,7 +50,7 @@ public final class Main {
             }
         }
 
-        Main main = new Main(threads, generateEvents);
+        new Main(threads, generateEvents);
 
         logger.debug("created ibisses, running main loop");
 

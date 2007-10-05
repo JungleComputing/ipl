@@ -6,8 +6,7 @@
 
     <!-- Global properties -->
 
-    <property environment="env"/>
-    <property name="ibis"        location="${env.IBIS_HOME}"/>
+    <property name="ibis"        location=".."/>
 
     <property name="src" location="src" />
     <property name="tmp" location="tmp" />

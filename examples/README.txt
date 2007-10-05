@@ -5,23 +5,23 @@ details on the application.
 
 Some low-level benchmarks and tests:
 
-tp-JavaGrande02
+ibis/ipl/apps/tp-JavaGrande02
     This benchmark program can be used to measure latency and throughput
     for several data types.
-benchmarks
+ibis/ipl/apps/benchmarks
     Directory containing some lowlevel benchmarks.
 
 Some applications:
 
-cell1d
+ibis/ipl/apps/cell1d
     A simple implementation of cellular automata (CA).
     It uses the Ibis communication classes immediately.
-traffic
+ibis/ipl/apps/traffic
     A simple traffic simulator, where cars and trucks
     with individual prefered speeds travel along a 3-lane road. They overtake
     when they are blocked too much by preceding cars (and when it is
     safe).
-apps/sor/explicit
+ibis/ipl/apps/sor/explicit
     Red/black Successive Over Relaxation (SOR) is an iterative method for
     solving discretized Laplace equations on a grid.
     This implementation is an Ibis version. It distributes the grid

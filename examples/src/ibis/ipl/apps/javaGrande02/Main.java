@@ -14,8 +14,6 @@ import ibis.ipl.Registry;
 import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
 
-import java.util.Properties;
-
 final class Receiver implements MessageUpcall { 
 
     SendPort sport;

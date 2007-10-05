@@ -638,7 +638,7 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
             dp.put("InputBufferSize", "" + BUFSIZ);
             dp.put("OutputBufferSize", "" + BUFSIZ);
             try {
-                sport.setDynamicProperties(dp);
+                sport.setManagementProperties(dp);
             } catch(Throwable e) {
                 // ignored
             }
@@ -660,7 +660,7 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
             dp.put("InputBufferSize", "" + BUFSIZ);
             dp.put("OutputBufferSize", "" + BUFSIZ);
             try {
-                rport.setDynamicProperties(dp);
+                rport.setManagementProperties(dp);
             } catch(Throwable e) {
                 // ignored
             }
@@ -724,7 +724,7 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
             dp.put("InputBufferSize", "" + BUFSIZ);
             dp.put("OutputBufferSize", "" + BUFSIZ);
             try {
-                sport.setDynamicProperties(dp);
+                sport.setManagementProperties(dp);
             } catch(Throwable e) {
                 // ignored
             }
@@ -756,7 +756,7 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
             dp.put("InputBufferSize", "" + BUFSIZ);
             dp.put("OutputBufferSize", "" + BUFSIZ);
             try {
-                rport.setDynamicProperties(dp);
+                rport.setManagementProperties(dp);
             } catch(Throwable e) {
                 // ignored
             }

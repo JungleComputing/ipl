@@ -19,11 +19,22 @@ Ibis installation
 
 Build
 
-    Build by typing "ant".  Afterwards, you can run a simple test by
-    running "ant test". Before running tests, however, you need to set the
-    IBIS_HOME environment variable to the path where Ibis is installed.
-    See the system-specific notes on how to set environment variables
-    on Windows.
+    Build by typing "ant". You can then try a simple test which creates a single
+    Ibis instance, and a client and a server thread that send messages to each
+    other. To do so you first need to set a an environment variable.
+    See below at the system-specific notes. You need to set IBIS_HOME to the
+    root of your Ibis installation. Now, you can go to the Ibis bin directory
+    and run
+
+        ibis-server --events
+
+    to start an Ibis server that will print events as they occur.
+    Next (in another window) you can run
+
+        ibis-run -Dibis.pool.name=blabla -Dibis.server.address=localhost junit.textui.TestRunner ibis.ipl.impl.test.TestIbis
+
+    The output should say "OK (1 test)" at the end.
+
     You can also build a binary release by typing "ant ibis.zip". This
     will create an ibis.zip file that can be unpacked on another system
     and that contains everything needed to compile and run an Ibis

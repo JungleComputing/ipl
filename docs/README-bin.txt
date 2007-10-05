@@ -13,6 +13,7 @@ platform for grid computing.
 
 This Ibis distribution contains the Ibis communication library (defined by the
 Ibis Portability Layer (IPL)) and several implementations of this IPL.
+Some example applications are provided in the "examples" directory.
 
 Ibis is free software. See the file "LICENSE.txt" for copying permissions.
 

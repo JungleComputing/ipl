@@ -1,10 +1,5 @@
 package ibis.ipl.apps.benchmarks.registry;
 
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.Random;
-import java.util.Set;
-
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisCreationFailedException;
@@ -13,6 +8,11 @@ import ibis.ipl.IbisIdentifier;
 import ibis.ipl.PortType;
 import ibis.ipl.RegistryEventHandler;
 import ibis.util.ThreadPool;
+
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Random;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 
