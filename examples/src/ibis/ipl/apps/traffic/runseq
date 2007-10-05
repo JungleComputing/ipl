@@ -1,0 +1,4 @@
+#!/bin/sh
+IBIS_HOME=$HOME/ibis
+
+java -cp $IBIS_HOME/3rdparty/junit.jar:$IBIS_HOME/build:build -Dibis.property.file=$IBIS_HOME/properties $*
