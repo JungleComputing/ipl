@@ -7,10 +7,12 @@ import ibis.ipl.impl.registry.central.Election;
 import ibis.ipl.impl.registry.central.ElectionSet;
 import ibis.ipl.impl.registry.central.Event;
 import ibis.ipl.impl.registry.central.EventList;
+import ibis.ipl.impl.registry.central.ListMemberSet;
 import ibis.ipl.impl.registry.central.Member;
 import ibis.ipl.impl.registry.central.MemberSet;
 import ibis.ipl.impl.registry.central.Protocol;
 import ibis.ipl.impl.registry.central.Stats;
+import ibis.ipl.impl.registry.central.TreeMemberSet;
 import ibis.smartsockets.virtual.VirtualSocketFactory;
 import ibis.util.ThreadPool;
 
@@ -20,7 +22,9 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 
@@ -67,9 +71,9 @@ final class Pool implements Runnable {
     // statistics for the server
     private final Stats serverStats;
 
+    private final Map<String, Integer> sequencers;
+    
     private int nextID;
-
-    private long nextSequenceNr;
 
     private boolean ended = false;
 
@@ -96,19 +100,21 @@ final class Pool implements Runnable {
         currentEventTime = 0;
         minEventTime = 0;
         nextID = 0;
-        nextSequenceNr = 0;
+        sequencers = new HashMap<String, Integer>();
 
         events = new EventList();
         elections = new ElectionSet();
-        members = new MemberSet();
 
         if (gossip) {
+            members = new ListMemberSet();
             new IterativeEventPusher(this, eventPushInterval, false);
             new RandomEventPusher(this, gossipInterval, adaptGossipInterval);
         } else if (tree) {
+            members = new TreeMemberSet();
             new IterativeEventPusher(this, eventPushInterval, false);
             new EventBroadcaster(this);
         } else { // central
+            members = new ListMemberSet();
             new IterativeEventPusher(this, eventPushInterval, true);
         }
 
@@ -427,8 +433,18 @@ final class Pool implements Runnable {
         return election.getWinner();
     }
 
-    synchronized long getSequenceNumber() {
-        return nextSequenceNr++;
+    synchronized long getSequenceNumber(String name) {
+        Integer currentValue = sequencers.get(name);
+        
+        if (currentValue == null) {
+            currentValue = new Integer(0);
+        }
+        
+        int result = currentValue;
+        
+        sequencers.put(name, currentValue + 1);
+        
+        return result;
     }
 
     /*

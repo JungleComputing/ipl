@@ -353,6 +353,7 @@ final class CommunicationHandler implements Runnable {
             connection.out().writeByte(Protocol.SERVER_MAGIC_BYTE);
             connection.out().writeByte(Protocol.OPCODE_SEQUENCE_NR);
             getIdentifier().writeTo(connection.out());
+            connection.out().writeUTF(name);
             connection.out().flush();
 
             connection.getAndCheckReply();
@@ -810,7 +811,6 @@ final class CommunicationHandler implements Runnable {
         connection.close();
 
         pool.newEventsReceived(newEvents);
-        broadcaster.eventsReceived(newEvents);
     }
 
     public void run() {

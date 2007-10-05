@@ -11,7 +11,6 @@ import ibis.util.TypedProperties;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -304,7 +303,7 @@ public final class Registry extends ibis.ipl.impl.Registry {
     /**
      * Handles incoming user events.
      */
-    void handleEvent(Event event) {
+    synchronized void handleEvent(Event event) {
         logger.info("new event passed to user: " + event);
         
         // generate an upcall for this event

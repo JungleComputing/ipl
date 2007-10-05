@@ -143,6 +143,7 @@ final class ServerConnectionHandler implements Runnable {
     private void handleGetSequenceNumber(Connection connection)
             throws IOException {
         IbisIdentifier identifier = new IbisIdentifier(connection.in());
+        String name = connection.in().readUTF();
 
         Pool pool = server.getPool(identifier.poolName());
 
@@ -151,7 +152,7 @@ final class ServerConnectionHandler implements Runnable {
             return;
         }
 
-        long number = pool.getSequenceNumber();
+        long number = pool.getSequenceNumber(name);
 
         connection.sendOKReply();
 

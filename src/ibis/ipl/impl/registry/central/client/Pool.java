@@ -8,6 +8,7 @@ import ibis.ipl.impl.registry.central.Election;
 import ibis.ipl.impl.registry.central.ElectionSet;
 import ibis.ipl.impl.registry.central.Event;
 import ibis.ipl.impl.registry.central.EventList;
+import ibis.ipl.impl.registry.central.ListMemberSet;
 import ibis.ipl.impl.registry.central.Member;
 import ibis.ipl.impl.registry.central.MemberSet;
 import ibis.ipl.impl.registry.central.RegistryProperties;
@@ -61,7 +62,7 @@ final class Pool implements Runnable {
             log = null;
         }
 
-        members = new MemberSet();
+        members = new ListMemberSet();
         elections = new ElectionSet();
         eventList = new EventList();
 
