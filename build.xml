@@ -5,7 +5,7 @@
 
     <target name="build"
 	    description="Build Ibis"
-	    depends="clean,compile,javadoc"/>
+	    depends="clean,compile,javadoc,examples"/>
 
     <property name="ibis" location="." />
     <property name="src" location="src" />
@@ -13,7 +13,6 @@
     <property name="lib" location="lib" />
     <property name="javadoc" location="javadoc" />
     <property name="external" location="external" />
-    <property name="docs" location="docs" />
     <property name="rewritten-classlibs" location="classlibs" />
 
     <property name="version" value="-2.0rc1" />
@@ -79,10 +78,6 @@
                 <attribute name="Ibis-Service" value="ibis.ipl.impl.registry.central.server.Server" />
             </manifest>
 	</jar>
-	<jar destfile="lib/ipl-app${version}.jar">
-	    <fileset dir="${tmp}" includes="ibis/ipl/apps/**/*.class"/>
-	    <fileset dir="." includes="LICENSE.txt"/>
-	</jar>
 	<jar destfile="lib/impl-tcp${version}.jar">
 	    <fileset dir="${tmp}" includes="ibis/ipl/impl/tcp/**/*.class"/>
 	    <fileset dir="." includes="LICENSE.txt"/>
@@ -129,7 +124,12 @@
 
         <delete file="ibis${version}.zip" />
         <delete file="ibis-src.zip" />
-        <ant dir="${docs}" inheritAll="false" target="clean" />
+        <ant dir="docs" inheritAll="false" target="clean" />
+        <ant dir="examples" inheritAll="false" target="clean" />
+    </target>
+
+    <target name="examples" description="Build examples">
+        <ant dir="examples" inheritAll="false" target="build" />
     </target>
 
     <target name="rewrite" depends="build" description="Preprocess all serializable classes of standard Java">
@@ -198,7 +198,7 @@
         </zip>
 
         <zip destfile="ibis${version}.zip">
-	    <zipfileset dir="." prefix="ibis${version}" includes="javadoc/**,docs/progman.pdf,lib/**,notices/**,BUGS.txt,LICENSE.txt,ibis-src.zip,ibis.properties.example,log4j.properties,smartsockets.properties.example,examples/**"/>
+	    <zipfileset dir="." prefix="ibis${version}" includes="${javadoc}/**,docs/progman.pdf,lib/**,notices/**,BUGS.txt,LICENSE.txt,ibis-src.zip,ibis.properties.example,log4j.properties,smartsockets.properties.example,examples/**" excludes="examples/.*,examples/.*/**"/>
             <zipfileset dir="." prefix="ibis${version}" filemode="755" includes="bin/**" />
             <zipfileset dir="." includes="docs/README-bin.txt" fullpath="ibis${version}/README.txt" />
         </zip>
