@@ -46,7 +46,7 @@ There is some dispute about the pronounciation of the word "Ibis". The
 file "docs/rob.mp3" shows how one of the Ibis designers feels about this
 issue.
 
-Dependencies
+Third party libraries included with Ibis
 
 This product includes software developed by the Apache Software Foundation
 (http://www.apache.org/).

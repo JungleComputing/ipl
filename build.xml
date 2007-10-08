@@ -78,7 +78,7 @@
                 <attribute name="Ibis-Service" value="ibis.ipl.impl.registry.central.server.Server" />
             </manifest>
 	</jar>
-	<jar destfile="lib/impl-tcp${version}.jar">
+	<jar destfile="lib/ibis-impl-tcp${version}.jar">
 	    <fileset dir="${tmp}" includes="ibis/ipl/impl/tcp/**/*.class"/>
 	    <fileset dir="." includes="LICENSE.txt"/>
             <manifest>
@@ -87,7 +87,7 @@
     		<attribute name="Implementation-Version" value="${TIMESTAMP}"/>
             </manifest>
         </jar>
-	<jar destfile="lib/impl-nio${version}.jar">
+	<jar destfile="lib/ibis-impl-nio${version}.jar">
 	    <fileset dir="${tmp}" includes="ibis/ipl/impl/nio/**/*.class"/>
 	    <fileset dir="." includes="LICENSE.txt"/>
             <manifest>
@@ -96,7 +96,7 @@
 		<attribute name="Implementation-Version" value="${TIMESTAMP}"/>
             </manifest>
         </jar>
-	<jar destfile="lib/impl-dummy${version}.jar">
+	<jar destfile="lib/ibis-impl-dummy${version}.jar">
 	    <fileset dir="${tmp}" includes="ibis/ipl/impl/stacking/dummy/**/*.class"/>
 	    <fileset dir="." includes="LICENSE.txt"/>
             <manifest>

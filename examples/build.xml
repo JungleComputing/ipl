@@ -11,7 +11,7 @@
     <property name="src" location="src" />
     <property name="tmp" location="tmp" />
     <property name="lib" location="lib" />
-    <property name="jar" location="${lib}/ipl-apps.jar" />
+    <property name="jar" location="${lib}/ipl-examples.jar" />
 
     <target name="init">
 	<!-- Create the time stamp -->
