@@ -7,7 +7,7 @@ Ibis distribution (check with the Ibis website). Also check with
 the known bugs section in the Ibis website that it has not been reported
 before (see the bugtracking page).
 Please supply the output, and also supply the reason why you think
-that it represents a bug. Don't make us guess.
+that it represents a bug.
 Give the complete command line that triggers the bug, and supply
 everything we need to try and reproduce the bug. Also please specify
 which Java engine you used.

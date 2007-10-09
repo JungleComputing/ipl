@@ -7,13 +7,12 @@
 	    description="Build Ibis"
 	    depends="clean,compile,javadoc,examples"/>
 
-    <property name="ibis" location="." />
-    <property name="src" location="src" />
+    <!-- Names for generated directories. -->
     <property name="tmp" location="tmp" />
     <property name="lib" location="lib" />
-    <property name="javadoc" location="javadoc" />
-    <property name="external" location="external" />
     <property name="rewritten-classlibs" location="classlibs" />
+    <property name="generated-sources" value="sources" />
+    <property name="javadoc" value="javadoc" />
 
     <property name="version" value="-2.0rc1" />
 
@@ -21,13 +20,13 @@
     <property environment="env" />
 
     <path id="external.jars">
-        <fileset dir="${external}">
+        <fileset dir="external">
             <include name="*.jar" />
         </fileset>
     </path>
 
     <path id="default.classpath">
-        <fileset dir="${external}">
+        <fileset dir="external">
             <include name="*.jar" />
         </fileset>
         <fileset dir="${lib}">
@@ -42,8 +41,8 @@
         <mkdir dir="${lib}" />
         <mkdir dir="${javadoc}" />
 
-        <!-- Compile the java code from ${src} into ${tmp} -->
-        <javac srcdir="${src}" destdir="${tmp}" debug="on">
+        <!-- Compile the java code from src into ${tmp} -->
+        <javac srcdir="src" destdir="${tmp}" debug="on">
             <classpath refid="external.jars" />
 	    <compilerarg value="-Xlint:unchecked"/>
         </javac>
@@ -108,7 +107,7 @@
 
         <!-- Copy external libraries to lib directory -->
         <copy todir="${lib}">
-            <fileset dir="${external}" />
+            <fileset dir="external" />
         </copy>
 
         <delete dir="${tmp}" />
@@ -121,9 +120,9 @@
         <delete dir="${tmp}" />
         <delete dir="${lib}" />
         <delete dir="${javadoc}" />
+        <delete dir="${generated-sources}" />
 
         <delete file="ibis${version}.zip" />
-        <delete file="ibis-src.zip" />
         <ant dir="docs" inheritAll="false" target="clean" />
         <ant dir="examples" inheritAll="false" target="clean" />
     </target>
@@ -162,7 +161,7 @@
 	throw away all your rewritten stuff.	RFHH
 	-->
         <delete includeEmptyDirs="true">
-            <fileset dir="${ibis}" followsymlinks="false">
+            <fileset dir="." followsymlinks="false">
                 <include name="classlibs/**" />
             </fileset>
         </delete>
@@ -175,7 +174,7 @@
 	<javadoc
 		destdir="${javadoc}"
 		access="public"
-		sourcepath="${src}"
+		sourcepath="src"
 		windowtitle="Ibis IPL Documentation"
 		packagenames="ibis.ipl"
 		overview="src/overview.html"
@@ -191,14 +190,16 @@
 
     <target name="ibis.zip" depends="build, progman">
         <delete file="ibis${version}.zip" />
+	<delete dir="${generated-sources}"/>
+	<mkdir dir="${generated-sources}"/>
 
-        <zip destfile="ibis-src.zip">
+	<zip destfile="${generated-sources}/ibis-src.zip">
             <zipfileset dir="src" includes="**/*.java" prefix="ibis-src" />
             <fileset dir="." includes="LICENSE.txt"/>
         </zip>
 
         <zip destfile="ibis${version}.zip">
-	    <zipfileset dir="." prefix="ibis${version}" includes="${javadoc}/**,docs/progman.pdf,lib/**,notices/**,BUGS.txt,LICENSE.txt,ibis-src.zip,ibis.properties.example,log4j.properties,smartsockets.properties.example,examples/**" excludes="examples/.*,examples/.*/**"/>
+	    <zipfileset dir="." prefix="ibis${version}" includes="${javadoc}/**,docs/progman.pdf,lib/**,notices/**,BUGS.txt,LICENSE.txt,${generated-sources}/ibis-src.zip,ibis.properties.example,log4j.properties,smartsockets.properties.example,examples/**" excludes="examples/.*,examples/.*/**"/>
             <zipfileset dir="." prefix="ibis${version}" filemode="755" includes="bin/**" />
             <zipfileset dir="." includes="docs/README-bin.txt" fullpath="ibis${version}/README.txt" />
         </zip>

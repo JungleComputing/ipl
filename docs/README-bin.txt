@@ -60,11 +60,6 @@ variables. See the README.txt file that accompanies the Ibis applications.
 
 The file BUGS.txt contains information for filing bug reports.
 
-This Ibis release includes grun, a tool to start jobs on a
-Globus-based Grid. See "grun/docs/README" for more details.
-The grun program itself lives in "grun/bin".
-NOTE: grun is not supplied with this early, premature, release.
-
 There is some dispute about the pronounciation of the word "Ibis". The
 file "docs/rob.mp3" shows how one of the Ibis designers feels about this
 issue.
