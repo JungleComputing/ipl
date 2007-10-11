@@ -47,6 +47,8 @@ packaging/distribution:
 - update/rewrite programmers manuals
 - while(true) {fix eclipse warnings}
 + clean up doc building scripts (Done Ceriel)
+- add some more text explaining the usage of the property 
+  files to the top of each file
 
 website:
 - update "ibis" overview picture with new/changed implementations
