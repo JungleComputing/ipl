@@ -2,8 +2,8 @@ package ibis.ipl.impl.registry.central;
 
 import ibis.ipl.impl.IbisIdentifier;
 
-import java.io.DataInput;
-import java.io.DataOutput;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -124,7 +124,7 @@ public final class ListMemberSet implements MemberSet {
 
                 result.add(list.get(next));
 
-                // remember we already added this memeber.
+                // remember we already added this member.
                 added.set(next);
             }
         }
@@ -136,7 +136,7 @@ public final class ListMemberSet implements MemberSet {
         return list.toArray(new Member[0]);
     }
 
-    public void init(DataInput in) throws IOException {
+    public void init(DataInputStream in) throws IOException {
         int nrOfMembers = in.readInt();
         
         if (nrOfMembers < 0) {
@@ -148,7 +148,7 @@ public final class ListMemberSet implements MemberSet {
         }
     }
 
-    public void writeTo(DataOutput out) throws IOException {
+    public void writeTo(DataOutputStream out) throws IOException {
         out.writeInt(list.size());
         for (Member member: list) {
             member.writeTo(out);
@@ -165,5 +165,18 @@ public final class ListMemberSet implements MemberSet {
         return result;
         
     }
+
+    /**
+     * List does not have parents/children
+     */
+    public Member[] getChildren(IbisIdentifier ibis) {
+        return new Member[0];
+    }
+
+    public Member[] getRootChildren() {
+        return asArray();
+    }
+    
+    
 
 }

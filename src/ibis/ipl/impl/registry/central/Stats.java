@@ -14,6 +14,10 @@ public final class Stats {
     private long[] incomingRequestCounter;
 
     private long[] outgoingRequestCounter;
+    
+    private long[] bytesIn;
+    
+    private long[] bytesOut;
 
     private int opcodes;
 
@@ -24,11 +28,13 @@ public final class Stats {
         totalTimes = new double[opcodes];
         incomingRequestCounter = new long[opcodes];
         outgoingRequestCounter = new long[opcodes];
+        bytesIn = new long[opcodes];
+        bytesOut = new long[opcodes];
 
         start = System.currentTimeMillis();
     }
 
-    public synchronized void add(byte opcode, long time, boolean incoming) {
+    public synchronized void add(byte opcode, long time, long bytesReceived, long bytesSend, boolean incoming) {
         if (opcode >= opcodes) {
             logger.error("unknown opcode in handling stats: " + opcode);
         }
@@ -39,6 +45,8 @@ public final class Stats {
         } else {
             outgoingRequestCounter[opcode]++;
         }
+        bytesIn[opcode] += bytesReceived;
+        bytesOut[opcode] += bytesSend;
     }
 
     synchronized void clear() {
@@ -61,12 +69,17 @@ public final class Stats {
     public synchronized Map<String, String> getMap() {
         Map<String, String> result = new TreeMap<String, String>();
 
+        long totalTraffic = 0;
         for (byte i = 0; i < opcodes; i++) {
             String name = Protocol.opcodeString(i);
             result.put(name + " in count", "" + incomingRequestCounter[i]);
             result.put(name + " out count", "" + outgoingRequestCounter[i]);
+            result.put(name + " bytes in", "" + bytesIn[i]);
+            result.put(name + " bytes out", "" + bytesOut[i]);
             result.put(name + " time spend", "" + totalTimes[i]);
 
+            totalTraffic += bytesIn[i] + bytesOut[i];
+            
             double average =
                     totalTimes[i]
                             / (incomingRequestCounter[i] + outgoingRequestCounter[i]);
@@ -76,11 +89,13 @@ public final class Stats {
             }
             result.put(name + " average time spend", "" + average);
         }
+        result.put("total traffic " , "" + totalTraffic);
 
         return result;
     }
 
     public synchronized String toString() {
+        long totalTraffic = 0;
 
         StringBuilder message = new StringBuilder();
         Formatter formatter = new Formatter(message);
@@ -88,10 +103,12 @@ public final class Stats {
         formatter.format("registry statistics at %.2f seconds:\n", (System
                 .currentTimeMillis() - start) / 1000.0);
         formatter
-                .format("TYPE          IN_COUNT OUT_COUNT  TOTAL_TIME   AVG_TIME\n");
+                .format("TYPE          IN_COUNT OUT_COUNT BYTES_IN BYTES_OUT TOTAL_TIME   AVG_TIME\n");
         formatter
-                .format("                                       (sec)       (ms)\n");
+                .format("                                                        (sec)       (ms)\n");
         for (byte i = 0; i < opcodes; i++) {
+            totalTraffic += bytesIn[i] + bytesOut[i];
+
             double average =
                     totalTimes[i]
                             / (incomingRequestCounter[i] + outgoingRequestCounter[i]);
@@ -100,10 +117,11 @@ public final class Stats {
                 average = 0;
             }
 
-            formatter.format("%-12s %9d %9d  %10.2f %10.2f\n", Protocol
+            formatter.format("%-12s %9d %9d %8d %9d %10.2f %10.2f\n", Protocol
                     .opcodeString(i), incomingRequestCounter[i],
-                    outgoingRequestCounter[i], totalTimes[i] / 1000.0, average);
+                    outgoingRequestCounter[i], bytesIn[i], bytesOut[i], totalTimes[i] / 1000.0, average);
         }
+        formatter.format("total traffic (MB): %.2f", ((double) totalTraffic / 1024.0 / 1024.0));
 
         return message.toString();
     }

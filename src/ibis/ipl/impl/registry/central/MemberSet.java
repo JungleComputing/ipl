@@ -2,8 +2,8 @@ package ibis.ipl.impl.registry.central;
 
 import ibis.ipl.impl.IbisIdentifier;
 
-import java.io.DataInput;
-import java.io.DataOutput;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.List;
 
@@ -33,9 +33,13 @@ public interface MemberSet {
 
     public Member[] asArray();
 
-    public void init(DataInput in) throws IOException;
+    public void init(DataInputStream in) throws IOException;
 
-    public void writeTo(DataOutput out) throws IOException;
+    public void writeTo(DataOutputStream out) throws IOException;
 
     public List<Event> getJoinEvents();
+    
+    public Member[] getChildren(IbisIdentifier ibis);
+
+    public Member[] getRootChildren();
 }

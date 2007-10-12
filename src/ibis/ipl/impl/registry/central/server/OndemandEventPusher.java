@@ -22,13 +22,9 @@ public class OndemandEventPusher implements Runnable {
     public synchronized void enqueue(Member member) {
         q.add(member);
     }
-
+    
     public synchronized Member dequeue() {
         while (q.isEmpty()) {
-            if (pool.hasEnded()) {
-                return null;
-            }
-
             try {
                 wait(1000);
             } catch (InterruptedException e) {

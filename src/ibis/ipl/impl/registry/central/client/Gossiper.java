@@ -1,6 +1,6 @@
 package ibis.ipl.impl.registry.central.client;
 
-import ibis.ipl.impl.IbisIdentifier;
+import ibis.ipl.impl.registry.central.Member;
 import ibis.util.ThreadPool;
 
 import java.io.IOException;
@@ -26,23 +26,24 @@ public class Gossiper implements Runnable {
 
     public void run() {
         while (!pool.isStopped()) {
-            IbisIdentifier ibis = null;
-            try {
-                ibis = pool.getRandomMember().getIbis();
+            Member member = pool.getRandomMember();
 
-                if (ibis != null) {
-                    logger.debug("gossiping with " + ibis);
+            if (member != null) {
+                logger.debug("gossiping with " + member);
 
-                    commHandler.gossip(ibis);
+                try {
+                    commHandler.gossip(member.getIbis());
+                } catch (IOException e) {
+                    logger.warn("could not gossip with " + member);
                 }
 
-            } catch (IOException e) {
-                logger.error("could not gossip with " + ibis + ": " + e);
-
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Event time at "
+                            + commHandler.getIdentifier().getID() + " now "
+                            + pool.getTime());
+                }
             }
 
-            logger.debug("Event time at " + commHandler.getIdentifier().getID()
-                    + " now " + pool.getTime());
             synchronized (this) {
                 try {
                     wait((int) (Math.random() * gossipInterval * 2));
@@ -53,5 +54,4 @@ public class Gossiper implements Runnable {
         }
 
     }
-
 }

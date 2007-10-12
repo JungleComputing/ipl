@@ -33,10 +33,12 @@ public final class Main {
         System.out.printf(date + " average seen members = %.2f\n", average,
                 apps.length);
     }
-
+    
     public static void main(String[] args) throws Exception {
         int threads = 1;
         boolean generateEvents = false;
+        long start = System.currentTimeMillis();
+        long runtime = Long.MAX_VALUE;
 
         for (int i = 0; i < args.length; i++) {
             if (args[i].equalsIgnoreCase("--threads")) {
@@ -44,6 +46,9 @@ public final class Main {
                 threads = new Integer(args[i]);
             } else if (args[i].equalsIgnoreCase("--events")) {
                 generateEvents = true;
+            } else if (args[i].equalsIgnoreCase("--runtime")) {
+                i++;
+                runtime = new Integer(args[i]) * 1000;
             } else {
                 System.err.println("unknown option: " + args[i]);
                 System.exit(1);
@@ -54,8 +59,10 @@ public final class Main {
 
         logger.debug("created ibisses, running main loop");
 
-        while (true) {
-            Thread.sleep(10000);
+        long sleep = runtime - (System.currentTimeMillis() - start);
+        System.err.println("sleeping : " + sleep);
+        if (sleep > 0) {
+            Thread.sleep(sleep);
         }
     }
 

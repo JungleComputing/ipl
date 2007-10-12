@@ -72,7 +72,12 @@ final class IbisApplication implements Runnable, RegistryEventHandler {
     synchronized void end() {
         stopped = true;
         notifyAll();
-
+        
+        try {
+            ibis.end();
+        } catch (IOException e) {
+            logger.error("cannot end ibis: " + e);
+        }
     }
 
     public synchronized void joined(IbisIdentifier ident) {
@@ -107,7 +112,7 @@ final class IbisApplication implements Runnable, RegistryEventHandler {
         }
 
         public void run() {
-            System.err.println("shutdown hook triggered");
+//            System.err.println("shutdown hook triggered");
 
             app.end();
         }
@@ -164,20 +169,6 @@ final class IbisApplication implements Runnable, RegistryEventHandler {
             try {
                 while (true) {
                     if (stopped()) {
-                        ibis.end();
-                        return;
-                    }
-
-                    synchronized (this) {
-                        try {
-                            wait(10000);
-                        } catch (InterruptedException e) {
-                            // IGNORE
-                        }
-                    }
-
-                    if (stopped()) {
-                        ibis.end();
                         return;
                     }
 
@@ -231,7 +222,13 @@ final class IbisApplication implements Runnable, RegistryEventHandler {
 
                         logger.info("done");
                     }
-
+                    synchronized (this) {
+                        try {
+                            wait(10000);
+                        } catch (InterruptedException e) {
+                            // IGNORE
+                        }
+                    }
                 }
             } catch (Exception e) {
                 logger.error("error in  application", e);

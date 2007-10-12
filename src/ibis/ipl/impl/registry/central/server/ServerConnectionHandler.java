@@ -333,12 +333,11 @@ final class ServerConnectionHandler implements Runnable {
             }
         } catch (IOException e) {
             logger.error("error on handling connection", e);
-            return;
         } finally {
             connection.close();
         }
 
-        server.getStats().add(opcode, System.currentTimeMillis() - start, true);
+        server.getStats().add(opcode, System.currentTimeMillis() - start,connection.read(), connection.written(), true);
         logger.debug("done handling request");
     }
 

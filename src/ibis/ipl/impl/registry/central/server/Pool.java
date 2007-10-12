@@ -107,15 +107,18 @@ final class Pool implements Runnable {
 
         if (gossip) {
             members = new ListMemberSet();
-            new IterativeEventPusher(this, eventPushInterval, false);
+            new IterativeEventPusher(this, eventPushInterval, false, false);
             new RandomEventPusher(this, gossipInterval, adaptGossipInterval);
         } else if (tree) {
             members = new TreeMemberSet();
-            new IterativeEventPusher(this, eventPushInterval, false);
-            new EventBroadcaster(this);
+            //on new event send to children in tree
+            new IterativeEventPusher(this, 0, true, true);
+
+            //once in a while forward to everyone
+            new IterativeEventPusher(this, eventPushInterval, false, false);
         } else { // central
             members = new ListMemberSet();
-            new IterativeEventPusher(this, eventPushInterval, true);
+            new IterativeEventPusher(this, eventPushInterval, true, false);
         }
 
         pusher = new OndemandEventPusher(this);
@@ -206,6 +209,7 @@ final class Pool implements Runnable {
     synchronized void end() {
         ended = true;
         staleTime = System.currentTimeMillis() + STALE_TIMEOUT;
+        pusher.enqueue(null);
     }
 
     public synchronized boolean stale() {
@@ -518,7 +522,7 @@ final class Pool implements Runnable {
             logger.debug("ping to " + member + " successful");
             member.updateLastSeenTime();
             serverStats.add(Protocol.OPCODE_PING, System.currentTimeMillis()
-                    - start, false);
+                    - start, connection.read(), connection.written(),false);
         } catch (Exception e) {
             logger.debug("error on pinging ibis " + member, e);
 
@@ -610,12 +614,13 @@ final class Pool implements Runnable {
             logger.debug("connection to " + member + " closed");
             member.updateLastSeenTime();
             serverStats.add(Protocol.OPCODE_PUSH, System.currentTimeMillis()
-                    - start, false);
+                    - start, connection.read(), connection.written(),false);
         } catch (IOException e) {
             if (isMember(member)) {
                 if (printErrors) {
-                    logger.error("cannot reach " + member
-                            + " to push events to", e);
+                    print("cannot reach " + member
+                            + " to push events to");
+                    e.printStackTrace(System.out);
                 }
             }
 
@@ -625,64 +630,7 @@ final class Pool implements Runnable {
             }
         }
     }
-
-    /**
-     * Push events to the given member. Checks if the pool has not ended, and
-     * the peer is still a current member of this pool.
-     * 
-     * @param member
-     *                The member to broadcast events to
-     */
-    void forward(Member member, Event[] events) {
-        long start = System.currentTimeMillis();
-        if (hasEnded()) {
-            return;
-        }
-        if (!isMember(member)) {
-            return;
-        }
-        logger.debug("forwarding entries to " + member);
-
-        Connection connection = null;
-        try {
-            logger.debug("creating connection to forward events to " + member);
-
-            connection = new Connection(member.getIbis(), CONNECT_TIMEOUT,
-                    true, socketFactory);
-
-            logger.debug("connection to " + member + " created");
-
-            connection.out().writeByte(Protocol.CLIENT_MAGIC_BYTE);
-            connection.out().writeByte(Protocol.OPCODE_BROADCAST);
-            connection.out().writeInt(events.length);
-            for (Event event : events) {
-                event.writeTo(connection.out());
-            }
-            connection.out().flush();
-
-            connection.getAndCheckReply();
-            connection.close();
-
-            logger.debug("connection to " + member + " closed");
-            member.updateLastSeenTime();
-            serverStats.add(Protocol.OPCODE_BROADCAST, System
-                    .currentTimeMillis()
-                    - start, false);
-        } catch (IOException e) {
-            if (isMember(member)) {
-                if (printErrors) {
-                    logger.error("cannot reach " + member
-                            + " to push events to", e);
-                }
-            }
-
-        } finally {
-            if (connection != null) {
-                connection.close();
-            }
-        }
-    }
-
+   
     private synchronized Member getSuspectMember() {
         while (!hasEnded()) {
 
@@ -745,19 +693,10 @@ final class Pool implements Runnable {
     }
 
     /**
-     * Returns the children of the root node, in a binomial tree. The indexes of
-     * the children are 1, 2, 4, 8, etc...
+     * Returns the children of the root node
      */
     synchronized Member[] getChildren() {
-        ArrayList<Member> result = new ArrayList<Member>();
-        int next = 1;
-
-        while (next <= members.size()) {
-            result.add(0, members.get(next - 1));
-
-            next = next * 2;
-        }
-        return result.toArray(new Member[0]);
+        return members.getRootChildren();
     }
 
     public String toString() {

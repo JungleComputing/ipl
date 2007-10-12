@@ -3,12 +3,15 @@ package ibis.ipl.impl.registry.central;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.io.Serializable;
 
 import ibis.ipl.impl.IbisIdentifier;
 
 import org.apache.log4j.Logger;
 
-public final class Member {
+public final class Member implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private static final Logger logger = Logger.getLogger(Member.class);
 

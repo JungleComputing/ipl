@@ -260,7 +260,7 @@ public final class Registry extends ibis.ipl.impl.Registry {
                     "waitForAll called but open world run");
         }
 
-        pool.waitForAll();
+        pool.waitUntilPoolClosed();
     }
 
     public void enableEvents() {

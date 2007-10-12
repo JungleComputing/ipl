@@ -38,10 +38,10 @@ final class RandomEventPusher implements Runnable {
 
                 if (adaptInterval) {
                     int poolSize = pool.getSize();
-                    if (poolSize > 0) {
+                    if (poolSize > 1) {
                         // divide by log2(poolSize)
-                        timeout = (long) (timeout / (Math.log(poolSize) / Math
-                                .log(2)));
+                        timeout = (long) (timeout / ((Math.log(poolSize) / Math
+                                .log(2))));
                     }
 
                 }

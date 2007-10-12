@@ -12,11 +12,12 @@ import ibis.ipl.impl.registry.central.ListMemberSet;
 import ibis.ipl.impl.registry.central.Member;
 import ibis.ipl.impl.registry.central.MemberSet;
 import ibis.ipl.impl.registry.central.RegistryProperties;
+import ibis.ipl.impl.registry.central.TreeMemberSet;
 import ibis.util.ThreadPool;
 import ibis.util.TypedProperties;
 
-import java.io.DataInput;
-import java.io.DataOutput;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.SortedSet;
@@ -62,7 +63,12 @@ final class Pool implements Runnable {
             log = null;
         }
 
-        members = new ListMemberSet();
+        if (properties.getBooleanProperty(RegistryProperties.TREE)) {
+            members = new TreeMemberSet();
+        } else {
+            members = new ListMemberSet();
+        }
+
         elections = new ElectionSet();
         eventList = new EventList();
 
@@ -132,6 +138,10 @@ final class Pool implements Runnable {
         return stopped;
     }
 
+    synchronized boolean isMember(IbisIdentifier ibis) {
+        return members.contains(ibis);
+    }
+
     // new incoming events
     synchronized void newEventsReceived(Event[] events) {
         eventList.add(events);
@@ -142,14 +152,14 @@ final class Pool implements Runnable {
         eventList.purgeUpto(time);
     }
 
-    synchronized void init(DataInput in) throws IOException {
+    synchronized void init(DataInputStream in) throws IOException {
         if (initialized) {
             logger.error("Tried to initialize registry state twice");
             return;
         }
 
         logger.debug("reading bootstrap state");
-
+        
         members.init(in);
         elections.init(in);
         int nrOfSignals = in.readInt();
@@ -195,7 +205,7 @@ final class Pool implements Runnable {
         ThreadPool.createNew(this, "pool event generator");
     }
 
-    synchronized void writeState(DataOutput out, int joinTime)
+    synchronized void writeState(DataOutputStream out, int joinTime)
             throws IOException {
         if (!initialized) {
             throw new IOException("state not initialized yet");
@@ -286,13 +296,23 @@ final class Pool implements Runnable {
         notifyAll();
     }
 
-    synchronized void waitForAll() {
+    synchronized void waitUntilPoolClosed() {
         if (!closedWorld) {
             throw new IbisConfigurationException("waitForAll() called but not "
                     + "closed world");
         }
 
         while (!(closed || stopped)) {
+            try {
+                wait();
+            } catch (final InterruptedException e) {
+                // IGNORE
+            }
+        }
+    }
+
+    public synchronized void waitForEventTime(int time) {
+        while (!(getTime() >= time || stopped)) {
             try {
                 wait();
             } catch (final InterruptedException e) {
@@ -348,4 +368,9 @@ final class Pool implements Runnable {
             time++;
         }
     }
+
+    public synchronized Member[] getChildren() {
+        return members.getChildren(registry.getIbisIdentifier());
+    }
+
 }

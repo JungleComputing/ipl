@@ -28,9 +28,7 @@ public final class Protocol {
 
     public static final byte OPCODE_HEARTBEAT = 12;
 
-    public static final byte OPCODE_BROADCAST = 13;
-    
-    public static final int NR_OF_OPCODES = 14;
+    public static final int NR_OF_OPCODES = 13;
 
     // replies
 
@@ -76,8 +74,6 @@ public final class Protocol {
             return "GET_STATE";
         } else if (opcode == OPCODE_HEARTBEAT) {
             return "HEARTBEAT";
-        } else if (opcode == OPCODE_BROADCAST) {
-            return "BROADCAST";
         } else {
             return "UNKNOWN";
         }

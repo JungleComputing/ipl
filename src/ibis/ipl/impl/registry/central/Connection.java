@@ -24,6 +24,7 @@ public final class Connection {
     private final DataOutputStream out;
 
     private final DataInputStream in;
+    private final CountInputStream counter;
     
     public Connection(IbisIdentifier ibis, int timeout, boolean fillTimeout,
             VirtualSocketFactory factory) throws IOException {
@@ -43,8 +44,9 @@ public final class Connection {
 
         out = new DataOutputStream(new BufferedOutputStream(socket
                 .getOutputStream()));
-        in = new DataInputStream(new BufferedInputStream(socket
+        counter = new CountInputStream(new BufferedInputStream(socket
                 .getInputStream()));
+        in = new DataInputStream(counter);
 
         logger.debug("connection to " + address + " established");
 
@@ -58,8 +60,9 @@ public final class Connection {
         socket = serverSocket.accept();
         socket.setTcpNoDelay(true);
 
-        in = new DataInputStream(new BufferedInputStream(socket
+        counter = new CountInputStream(new BufferedInputStream(socket
                 .getInputStream()));
+        in = new DataInputStream(counter);
         out = new DataOutputStream(new BufferedOutputStream(socket
                 .getOutputStream()));
         logger.debug("new connection from "
@@ -72,6 +75,14 @@ public final class Connection {
 
     public DataInputStream in() {
         return in;
+    }
+    
+    public int written() {
+        return out.size();
+    }
+    
+    public int read() {
+        return counter.getCount();
     }
 
     public void getAndCheckReply() throws IOException {
@@ -112,7 +123,12 @@ public final class Connection {
         try {
             out.flush();
         } catch (IOException e) {
-            logger.error("Got exception in flush", e);
+            // IGNORE
+        }
+        
+        try {
+            out.close();
+        } catch (IOException e) {
             // IGNORE
         }
 
@@ -120,7 +136,6 @@ public final class Connection {
             try {
                 socket.close();
             } catch (IOException e) {
-                logger.error("Got exception in close", e);
                 // IGNORE
             }
         }

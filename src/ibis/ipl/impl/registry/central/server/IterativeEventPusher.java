@@ -91,10 +91,14 @@ final class IterativeEventPusher implements Runnable {
 
     private final boolean eventTriggersPush;
 
-    IterativeEventPusher(Pool pool, long timeout, boolean eventTriggersPush) {
+    private final boolean useTree;
+
+    IterativeEventPusher(Pool pool, long timeout, boolean eventTriggersPush,
+            boolean useTree) {
         this.pool = pool;
         this.timeout = timeout;
         this.eventTriggersPush = eventTriggersPush;
+        this.useTree = useTree;
 
         ThreadPool.createNew(this, "event pusher scheduler thread");
     }
@@ -103,14 +107,22 @@ final class IterativeEventPusher implements Runnable {
         while (!pool.hasEnded()) {
             int eventTime = pool.getEventTime();
 
-            Member[] members = pool.getMembers();
+            Member[] children;
 
-            logger.debug("updating nodes in pool (pool size = "
-                    + members.length + "  to event-time " + eventTime);
+            if (useTree) {
+                children = pool.getChildren();
+            } else {
+                children = pool.getMembers();
+            }
 
-            WorkQ workQ = new WorkQ(members);
+            logger.debug("updating " + children.length
+                    + " nodes in pool (pool size = " + pool.getSize()
+                    + ") to event-time " + eventTime + " using tree: "
+                    + useTree);
 
-            int threads = Math.min(THREADS, members.length);
+            WorkQ workQ = new WorkQ(children);
+
+            int threads = Math.min(THREADS, children.length);
             for (int i = 0; i < threads; i++) {
                 new EventPusherThread(workQ);
             }
@@ -125,7 +137,7 @@ final class IterativeEventPusher implements Runnable {
             if (eventTriggersPush) {
                 pool.waitForEventTime(eventTime + 1, timeout);
             } else {
-                //wait for the timeout, or until the pool ends
+                // wait for the timeout, or until the pool ends
                 pool.waitForEventTime(Integer.MAX_VALUE, timeout);
             }
         }

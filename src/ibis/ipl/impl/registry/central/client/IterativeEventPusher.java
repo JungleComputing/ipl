@@ -1,6 +1,5 @@
-package ibis.ipl.impl.registry.central.server;
+package ibis.ipl.impl.registry.central.client;
 
-import ibis.ipl.impl.registry.central.Event;
 import ibis.ipl.impl.registry.central.Member;
 import ibis.util.ThreadPool;
 
@@ -13,7 +12,7 @@ import org.apache.log4j.Logger;
 /**
  * Sends events to clients from the server.
  */
-final class EventBroadcaster implements Runnable {
+final class IterativeEventPusher implements Runnable {
 
     private static final int THREADS = 10;
 
@@ -58,88 +57,66 @@ final class EventBroadcaster implements Runnable {
 
     private class EventPusherThread implements Runnable {
 
-        private final WorkQ workQ;
-        private final Event[] events;
+        WorkQ workQ;
 
-        EventPusherThread(WorkQ workQ, Event[] events) {
+        EventPusherThread(WorkQ workQ) {
             this.workQ = workQ;
-            this.events = events;
 
             ThreadPool.createNew(this, "event pusher thread");
         }
 
         public void run() {
             while (true) {
-                Member member = workQ.next();
+                Member work = workQ.next();
 
-                if (member == null) {
+                if (work == null) {
                     // done pushing
                     return;
                 }
 
-                logger.debug("broadcasting to " + member);
+                logger.debug("pushing to " + work);
 
-                pool.forward(member, events);
+                commHandler.push(work.getIbis());
                 workQ.doneJob();
             }
         }
     }
 
     private static final Logger logger = Logger
-            .getLogger(EventBroadcaster.class);
+            .getLogger(IterativeEventPusher.class);
 
     private final Pool pool;
+    private final CommunicationHandler commHandler;
 
-    EventBroadcaster(Pool pool) {
+    IterativeEventPusher(Pool pool, CommunicationHandler commHandler) {
         this.pool = pool;
+        this.commHandler = commHandler;
 
         ThreadPool.createNew(this, "event pusher scheduler thread");
     }
 
     public void run() {
-        int currentTime = 0;
-        
-        while (!pool.hasEnded()) {
-            //wait until there is some event to send
-            pool.waitForEventTime(currentTime + 1, 0);
+        while (!pool.isStopped()) {
+            int eventTime = pool.getTime();
 
-            Event[] events = pool.getEvents(currentTime);
-            
-            if (pool.hasEnded()) {
-                return;
-            }
-            
-            if (events.length == 0) {
-                logger.error("pool did not return anything");
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    //IGNORE
-                }
-                continue;
-            }
-            
-            //update current time to after last event given
-            currentTime = events[events.length - 1].getTime() + 1;
-            logger.debug("current time now : " + currentTime);
+            Member[] members = pool.getChildren();
 
-            Member[] children = pool.getChildren();
-            
-            logger.debug("broadcasting events up to "
-                    + currentTime);
+            logger.debug("updating " + members.length +
+                    " children in pool to event-time " + eventTime);
 
-            WorkQ workQ = new WorkQ(children);
+            WorkQ workQ = new WorkQ(members);
 
-            int threads = Math.min(THREADS, children.length);
+            int threads = Math.min(THREADS, members.length);
             for (int i = 0; i < threads; i++) {
-                new EventPusherThread(workQ, events);
+                new EventPusherThread(workQ);
             }
 
             workQ.waitUntilDone();
 
-            logger.debug("DONE broadcasting events up to "
-                    + currentTime);
+            logger.debug("DONE updating nodes in pool to event-time "
+                    + eventTime);
+
+            pool.waitForEventTime(eventTime + 1);
         }
     }
-
 }
