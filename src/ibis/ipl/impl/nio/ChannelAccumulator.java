@@ -46,10 +46,6 @@ public final class ChannelAccumulator extends DataOutputStream {
         return BUFFER_SIZE;
     }
     
-    private ChannelAccumulator() {
-        // DONT USE THIS
-    }
-
     public void flush() throws IOException {
         buffer.flip();
         while (buffer.hasRemaining()) {
