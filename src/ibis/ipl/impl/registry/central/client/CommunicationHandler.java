@@ -310,7 +310,7 @@ final class CommunicationHandler implements Runnable {
             connection.close();
 
             logger.debug("done telling " + ibisses.length
-                    + " ibisses a signal: " + signal);
+                    + " ibisses a string: " + signal);
 
             heartbeat.updateHeartbeatDeadline();
             long end = System.currentTimeMillis();

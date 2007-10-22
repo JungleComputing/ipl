@@ -49,6 +49,8 @@ packaging/distribution:
 + clean up doc building scripts (Done Ceriel)
 - add some more text explaining the usage of the property 
   files to the top of each file
+? the example application have ibisApps as the package name. Why not
+  ibis.ipl.examples or something?
 
 website:
 - update "ibis" overview picture with new/changed implementations

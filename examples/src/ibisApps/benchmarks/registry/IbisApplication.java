@@ -96,7 +96,7 @@ final class IbisApplication implements Runnable, RegistryEventHandler {
     }
 
     public synchronized void gotSignal(String signal) {
-        logger.info("got signal: " + signal);
+        logger.info("got string: " + signal);
     }
 
     public void electionResult(String electionName, IbisIdentifier winner) {

@@ -4,149 +4,322 @@ import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.NoSuchPropertyException;
 import ibis.ipl.RegistryEventHandler;
-import ibis.ipl.impl.IbisIdentifier;
+
+import ibis.ipl.IbisIdentifier;
+
+import ibis.util.TypedProperties;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import org.apache.log4j.Logger;
+
 public class Registry extends ibis.ipl.impl.Registry {
-    
-    
-    private final IbisIdentifier identifier;
+
+    private final Logger logger = Logger.getLogger(Registry.class);
+
+    private final IbisCapabilities capabilities;
+
+    private final Pool pool;
+
+    private final Upcaller upcaller;
+
+    // data structures the user can poll
+
+    private final ArrayList<IbisIdentifier> joinedIbises;
+
+    private final ArrayList<IbisIdentifier> leftIbises;
+
+    private final ArrayList<IbisIdentifier> diedIbises;
+
+    private final ArrayList<String> signals;
 
     /**
      * Creates a Gossip Registry.
      * 
      * @param eventHandler
-     *                Registry handler to pass events to.
+     *            Registry handler to pass events to.
      * @param userProperties
-     *                properties of this registry.
+     *            properties of this registry.
      * @param data
-     *                Ibis implementation data to attach to the IbisIdentifier.
-     * @param ibisImplementationIdentifier the identification of this ibis 
-     * implementation, including version, class and such. Must be identical
-     * for all Ibisses in a single pool.
+     *            Ibis implementation data to attach to the IbisIdentifier.
+     * @param ibisImplementationIdentifier
+     *            the identification of this ibis implementation, including
+     *            version, class and such. Must be identical for all Ibisses in
+     *            a single poolName.
      * @throws IOException
-     *                 in case of trouble.
+     *             in case of trouble.
      * @throws IbisConfigurationException
-     *                 In case invalid properties were given.
+     *             In case invalid properties were given.
      */
     public Registry(IbisCapabilities capabilities,
             RegistryEventHandler eventHandler, Properties userProperties,
-            byte[] data, String ibisImplementationIdentifier) throws IbisConfigurationException, IOException,
+            byte[] ibisData, String ibisImplementationIdentifier)
+            throws IbisConfigurationException, IOException,
             IbisConfigurationException {
-        identifier = null;
-        
+        this.capabilities = capabilities;
+
+        if (capabilities
+                .hasCapability(IbisCapabilities.MEMBERSHIP_TOTALLY_ORDERED)) {
+            throw new IbisConfigurationException(
+                    "gossip registry does not support totally ordered membership");
+        }
+
+        if (capabilities.hasCapability(IbisCapabilities.CLOSEDWORLD)) {
+            throw new IbisConfigurationException(
+                    "gossip registry does not support closed world");
+        }
+
+        if (capabilities.hasCapability(IbisCapabilities.ELECTIONS_STRICT)) {
+            throw new IbisConfigurationException(
+                    "gossip registry does not support strict elections");
+        }
+
+        TypedProperties properties =
+                RegistryProperties.getHardcodedProperties();
+        properties.addProperties(userProperties);
+
+        if ((capabilities.hasCapability(IbisCapabilities.MEMBERSHIP_UNRELIABLE))
+                && eventHandler == null) {
+            joinedIbises = new ArrayList<ibis.ipl.IbisIdentifier>();
+            leftIbises = new ArrayList<ibis.ipl.IbisIdentifier>();
+            diedIbises = new ArrayList<ibis.ipl.IbisIdentifier>();
+        } else {
+            joinedIbises = null;
+            leftIbises = null;
+            diedIbises = null;
+        }
+
+        if (capabilities.hasCapability(IbisCapabilities.SIGNALS)
+                && eventHandler == null) {
+            signals = new ArrayList<String>();
+        } else {
+            signals = null;
+        }
+
+        if (eventHandler != null) {
+            upcaller = new Upcaller(eventHandler);
+        } else {
+            upcaller = null;
+        }
+
+        pool = new Pool(capabilities, properties, ibisData, this);
+
+        pool.start();
+
+        logger.debug("registry for " + pool.getIbisIdentifier() + " initiated");
     }
-    
+
     @Override
-    public IbisIdentifier getIbisIdentifier() {
-        return identifier;
+    public ibis.ipl.impl.IbisIdentifier getIbisIdentifier() {
+        return pool.getIbisIdentifier();
     }
 
-    @Override
-    public long getSequenceNumber(String name) throws IOException {
-        throw new IOException("Gossip registry does not support sequence numbers");
+    public IbisIdentifier elect(String electionName) throws IOException {
+        if (!capabilities.hasCapability(IbisCapabilities.ELECTIONS_UNRELIABLE)) {
+            throw new IbisConfigurationException(
+                    "No election support requested");
+        }
+
+        return pool.elect(electionName);
     }
 
-    @Override
-    public void leave() throws IOException {
-        //TODO: send leave to all nodes we know
+    public IbisIdentifier getElectionResult(String election) throws IOException {
+        return getElectionResult(election, 0);
     }
 
-    public void assumeDead(ibis.ipl.IbisIdentifier ibisIdentifier)
-            throws IOException {
-        //TODO: create "dead" event for this ibis
-    }
+    public IbisIdentifier getElectionResult(String electionName,
+            long timeoutMillis) throws IOException {
+        if (!capabilities.hasCapability(IbisCapabilities.ELECTIONS_UNRELIABLE)) {
+            throw new IbisConfigurationException(
+                    "No election support requested");
+        }
 
-    public ibis.ipl.IbisIdentifier[] diedIbises() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    public void disableEvents() {
-        // TODO Auto-generated method stub
-
-    }
-
-    public ibis.ipl.IbisIdentifier elect(String electionName)
-            throws IOException {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    public void enableEvents() {
-        // TODO Auto-generated method stub
-
-    }
-
-    public ibis.ipl.IbisIdentifier getElectionResult(String electionName)
-            throws IOException {
-        return getElectionResult(electionName, 0);
-    }
-
-    public ibis.ipl.IbisIdentifier getElectionResult(String electionName, long timeoutMillis)
-            throws IOException {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    public int getPoolSize() {
-        // TODO Auto-generated method stub
-        return 0;
-    }
-
-    public ibis.ipl.IbisIdentifier[] joinedIbises() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    public ibis.ipl.IbisIdentifier[] leftIbises() {
-        // TODO Auto-generated method stub
-        return null;
+        return pool.getElectionResult(electionName, timeoutMillis);
     }
 
     public void maybeDead(ibis.ipl.IbisIdentifier ibisIdentifier)
             throws IOException {
-        // TODO Auto-generated method stub
-
+        pool.maybeDead(ibisIdentifier);
     }
 
-    public String[] receivedSignals() {
-        // TODO Auto-generated method stub
-        return null;
+    public void assumeDead(ibis.ipl.IbisIdentifier ibisIdentifier)
+            throws IOException {
+        pool.assumeDead(ibisIdentifier);
     }
 
     public void signal(String signal,
             ibis.ipl.IbisIdentifier... ibisIdentifiers) throws IOException {
-        // TODO Auto-generated method stub
+        if (!capabilities.hasCapability(IbisCapabilities.SIGNALS)) {
+            throw new IbisConfigurationException("No string support requested");
+        }
+
+        pool.signal(signal, ibisIdentifiers);
+    }
+
+    public synchronized ibis.ipl.IbisIdentifier[] joinedIbises() {
+        if (joinedIbises == null) {
+            throw new IbisConfigurationException(
+                    "Resize downcalls not configured");
+        }
+
+        ibis.ipl.IbisIdentifier[] result =
+                joinedIbises.toArray(new ibis.ipl.IbisIdentifier[0]);
+        joinedIbises.clear();
+        return result;
+    }
+
+    public synchronized ibis.ipl.IbisIdentifier[] leftIbises() {
+        if (leftIbises == null) {
+            throw new IbisConfigurationException(
+                    "Resize downcalls not configured");
+        }
+        ibis.ipl.IbisIdentifier[] result =
+                leftIbises.toArray(new ibis.ipl.IbisIdentifier[0]);
+        leftIbises.clear();
+        return result;
+    }
+
+    public synchronized ibis.ipl.IbisIdentifier[] diedIbises() {
+        if (diedIbises == null) {
+            throw new IbisConfigurationException(
+                    "Resize downcalls not configured");
+        }
+
+        ibis.ipl.IbisIdentifier[] result =
+                diedIbises.toArray(new ibis.ipl.IbisIdentifier[0]);
+        diedIbises.clear();
+        return result;
+    }
+
+    public synchronized String[] receivedSignals() {
+        if (signals == null) {
+            throw new IbisConfigurationException(
+                    "Registry downcalls not configured");
+        }
+
+        String[] result = signals.toArray(new String[0]);
+        signals.clear();
+        return result;
+    }
+
+    public int getPoolSize() {
+        throw new IbisConfigurationException(
+                "getPoolSize not supported by gossip registry");
+    }
+
+    public synchronized void waitUntilPoolClosed() {
+        throw new IbisConfigurationException(
+                "waitForAll not supported by gossip registry");
 
     }
 
-    public void waitUntilPoolClosed() {
-        // TODO Auto-generated method stub
+    public void enableEvents() {
+        if (upcaller == null) {
+            throw new IbisConfigurationException("Registry not configured to "
+                    + "produce events");
+        }
 
+        upcaller.enableEvents();
+    }
+
+    public void disableEvents() {
+        if (upcaller == null) {
+            throw new IbisConfigurationException("Registry not configured to "
+                    + "produce events");
+        }
+
+        upcaller.disableEvents();
+    }
+
+    @Override
+    public long getSequenceNumber(String name) throws IOException {
+        throw new IbisConfigurationException(
+                "Sequence numbers not supported by" + "gossip registry");
+    }
+
+    @Override
+    public void leave() throws IOException {
+        pool.leave();
+        upcaller.stop();
     }
 
     public Map<String, String> managementProperties() {
-        // TODO Auto-generated method stub
-        return null;
+        // no properties (as of yet)
+        return new HashMap<String, String>();
     }
 
-    public String getManagementProperty(String key) throws NoSuchPropertyException {
-        // TODO Auto-generated method stub
-        return null;
+    public String getManagementProperty(String key)
+            throws NoSuchPropertyException {
+        String result = managementProperties().get(key);
+
+        if (result == null) {
+            throw new NoSuchPropertyException(key + " is not a valid property");
+        }
+        return result;
     }
 
-    public void setManagementProperties(Map<String, String> properties) throws NoSuchPropertyException {
-        // TODO Auto-generated method stub
-        
+    public void setManagementProperties(Map<String, String> properties)
+            throws NoSuchPropertyException {
+        throw new NoSuchPropertyException(
+                "central registry does not have any properties that can be set");
     }
 
-    public void setManagementProperty(String key, String value) throws NoSuchPropertyException {
-        // TODO Auto-generated method stub
-        
+    public void setManagementProperty(String key, String value)
+            throws NoSuchPropertyException {
+        throw new NoSuchPropertyException(
+                "central registry does not have any properties that can be set");
+    }
+
+    // functions called by pool to tell the registry an event has occured
+
+    synchronized void ibisJoined(IbisIdentifier ibis) {
+        if (joinedIbises != null) {
+            joinedIbises.add(ibis);
+        }
+
+        if (upcaller != null) {
+            upcaller.ibisJoined(ibis);
+        }
+    }
+
+    synchronized void ibisLeft(IbisIdentifier ibis) {
+        if (leftIbises != null) {
+            leftIbises.add(ibis);
+        }
+
+        if (upcaller != null) {
+            upcaller.ibisLeft(ibis);
+        }
+    }
+
+    synchronized void ibisDied(IbisIdentifier ibis) {
+        if (diedIbises != null) {
+            diedIbises.add(ibis);
+        }
+
+        if (upcaller != null) {
+            upcaller.ibisDied(ibis);
+        }
+    }
+
+    synchronized void signal(String signal) {
+        if (signals != null) {
+            signals.add(signal);
+        }
+
+        if (upcaller != null) {
+            upcaller.signal(signal);
+        }
+    }
+
+    synchronized void electionResult(String name, IbisIdentifier winner) {
+        if (upcaller != null) {
+            upcaller.electionResult(name, winner);
+        }
     }
 
 }

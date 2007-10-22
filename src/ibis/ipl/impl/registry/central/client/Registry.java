@@ -190,11 +190,11 @@ public final class Registry extends ibis.ipl.impl.Registry {
         }
 
         if (!capabilities.hasCapability(IbisCapabilities.SIGNALS)) {
-            throw new IbisConfigurationException("No signal support requested");
+            throw new IbisConfigurationException("No string support requested");
         }
 
         logger.debug("telling " + ibisIdentifiers.length
-                + " ibisses a signal: " + signal);
+                + " ibisses a string: " + signal);
 
         communicationHandler.signal(signal, ibisIdentifiers);
     }
@@ -329,7 +329,7 @@ public final class Registry extends ibis.ipl.impl.Registry {
             break;
         case Event.SIGNAL:
             if (signals != null) {
-                //see if this signal is send to us.
+                //see if this string is send to us.
                 for (IbisIdentifier ibis: event.getIbises()) {
                     if (ibis.equals(identifier)) {
                         signals.add(event.getDescription());

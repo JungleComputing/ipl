@@ -47,7 +47,7 @@ public final class Event implements Serializable, Comparable<Event> {
         }
         
         if (type != SIGNAL && ibisses.length > 1) {
-            throw new Error("only the signal type event can have multiple ibisses");
+            throw new Error("only the string type event can have multiple ibisses");
         }
     }
 
