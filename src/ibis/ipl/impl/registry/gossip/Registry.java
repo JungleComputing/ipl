@@ -2,11 +2,14 @@ package ibis.ipl.impl.registry.gossip;
 
 import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisConfigurationException;
+import ibis.ipl.IbisProperties;
 import ibis.ipl.NoSuchPropertyException;
 import ibis.ipl.RegistryEventHandler;
 
-import ibis.ipl.IbisIdentifier;
+import ibis.ipl.impl.IbisIdentifier;
+import ibis.ipl.impl.Location;
 
+import ibis.util.ThreadPool;
 import ibis.util.TypedProperties;
 
 import java.io.IOException;
@@ -14,17 +17,24 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.UUID;
 
 import org.apache.log4j.Logger;
 
-public class Registry extends ibis.ipl.impl.Registry {
+public class Registry extends ibis.ipl.impl.Registry implements Runnable {
 
     private final Logger logger = Logger.getLogger(Registry.class);
 
     private final IbisCapabilities capabilities;
 
-    private final Pool pool;
+    private final String poolName;
 
+    private final IbisIdentifier identifier;
+    
+    private final MemberSet members;
+    
+    private final CommunicationHandler commHandler;
+    
     private final Upcaller upcaller;
 
     // data structures the user can poll
@@ -84,9 +94,9 @@ public class Registry extends ibis.ipl.impl.Registry {
 
         if ((capabilities.hasCapability(IbisCapabilities.MEMBERSHIP_UNRELIABLE))
                 && eventHandler == null) {
-            joinedIbises = new ArrayList<ibis.ipl.IbisIdentifier>();
-            leftIbises = new ArrayList<ibis.ipl.IbisIdentifier>();
-            diedIbises = new ArrayList<ibis.ipl.IbisIdentifier>();
+            joinedIbises = new ArrayList<IbisIdentifier>();
+            leftIbises = new ArrayList<IbisIdentifier>();
+            diedIbises = new ArrayList<IbisIdentifier>();
         } else {
             joinedIbises = null;
             leftIbises = null;
@@ -106,16 +116,34 @@ public class Registry extends ibis.ipl.impl.Registry {
             upcaller = null;
         }
 
-        pool = new Pool(capabilities, properties, ibisData, this);
+        UUID id = UUID.randomUUID();
 
-        pool.start();
+        poolName = properties.getProperty(IbisProperties.POOL_NAME);
 
-        logger.debug("registry for " + pool.getIbisIdentifier() + " initiated");
+        if (poolName == null) {
+            throw new IbisConfigurationException(
+                    "cannot initialize registry, property "
+                            + IbisProperties.POOL_NAME + " is not specified");
+        }
+       
+        members = new MemberSet(properties);
+        
+        commHandler = new CommunicationHandler(properties, this);
+
+        Location location = Location.defaultLocation(properties);
+
+        identifier =
+                new IbisIdentifier(id.toString(), ibisData, commHandler
+                        .getAddress().toBytes(), location, poolName);
+
+        ThreadPool.createNew(this, "pool management thread");
+        
+        logger.debug("registry for " + identifier + " initiated");
     }
 
     @Override
-    public ibis.ipl.impl.IbisIdentifier getIbisIdentifier() {
-        return pool.getIbisIdentifier();
+    public IbisIdentifier getIbisIdentifier() {
+        return identifier;
     }
 
     public IbisIdentifier elect(String electionName) throws IOException {
@@ -124,7 +152,8 @@ public class Registry extends ibis.ipl.impl.Registry {
                     "No election support requested");
         }
 
-        return pool.elect(electionName);
+        //TODO: implement
+        return null;
     }
 
     public IbisIdentifier getElectionResult(String election) throws IOException {
@@ -138,17 +167,18 @@ public class Registry extends ibis.ipl.impl.Registry {
                     "No election support requested");
         }
 
-        return pool.getElectionResult(electionName, timeoutMillis);
+        //TODO: implement
+        return null;
     }
 
-    public void maybeDead(ibis.ipl.IbisIdentifier ibisIdentifier)
+    public void maybeDead(ibis.ipl.IbisIdentifier suspect)
             throws IOException {
-        pool.maybeDead(ibisIdentifier);
+        members.maybeDead(suspect);
     }
 
-    public void assumeDead(ibis.ipl.IbisIdentifier ibisIdentifier)
+    public void assumeDead(ibis.ipl.IbisIdentifier deceased)
             throws IOException {
-        pool.assumeDead(ibisIdentifier);
+        members.assumeDead(deceased);
     }
 
     public void signal(String signal,
@@ -157,7 +187,7 @@ public class Registry extends ibis.ipl.impl.Registry {
             throw new IbisConfigurationException("No string support requested");
         }
 
-        pool.signal(signal, ibisIdentifiers);
+        //TODO: implement
     }
 
     public synchronized ibis.ipl.IbisIdentifier[] joinedIbises() {
@@ -243,7 +273,7 @@ public class Registry extends ibis.ipl.impl.Registry {
 
     @Override
     public void leave() throws IOException {
-        pool.leave();
+        //TODO: implement
         upcaller.stop();
     }
 
@@ -320,6 +350,20 @@ public class Registry extends ibis.ipl.impl.Registry {
         if (upcaller != null) {
             upcaller.electionResult(name, winner);
         }
+    }
+
+    public boolean isStopped() {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    public String getPoolName() {
+        return poolName;
+    }
+
+    public void run() {
+        // TODO Auto-generated method stub
+        
     }
 
 }

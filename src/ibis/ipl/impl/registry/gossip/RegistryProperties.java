@@ -13,10 +13,22 @@ public class RegistryProperties {
 
     public static final String BOOTSTRAP_LIST = PREFIX + "bootstrap.list";
 
-    // list of descriptions and defaults
-    private static final String[][] propertiesList = new String[][] {
+    public static final String WITNESSES_REQUIRED =
+            PREFIX + "witnesses.required";
 
-    };
+    public static final String PEER_DEAD_TIMEOUT = PREFIX + "peer.dead.timeout";
+
+    // list of descriptions and defaults
+    private static final String[][] propertiesList =
+            new String[][] {
+                { GOSSIP_INTERVAL, "1", "How often do we gossip (in seconds)" },
+                { BOOTSTRAP_LIST, null, "List of peers to bootstrap of off" },
+                { WITNESSES_REQUIRED, "5",
+                    "Int: how many peers need to agree before a node is declared dead" },
+                { PEER_DEAD_TIMEOUT, "120",
+                    "Number of seconds until a peer can be declared dead" },
+
+            };
 
     public static TypedProperties getHardcodedProperties() {
         TypedProperties properties = new TypedProperties();

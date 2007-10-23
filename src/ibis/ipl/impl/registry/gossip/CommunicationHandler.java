@@ -19,7 +19,7 @@ class CommunicationHandler extends Thread {
     private static final Logger logger =
             Logger.getLogger(CommunicationHandler.class);
 
-    private final Pool pool;
+    private final Registry registry;
 
     private final VirtualSocketFactory socketFactory;
 
@@ -27,10 +27,10 @@ class CommunicationHandler extends Thread {
 
     private final ARRG arrg;
 
-    CommunicationHandler(TypedProperties properties, Pool pool)
+    CommunicationHandler(TypedProperties properties, Registry registry)
             throws IOException {
-        this.pool = pool;
-
+        this.registry = registry;
+        
         try {
             socketFactory = Client.getFactory(properties);
         } catch (InitializationException e) {
@@ -64,7 +64,7 @@ class CommunicationHandler extends Thread {
 
         arrg =
                 new ARRG(serverSocket.getLocalSocketAddress(), false,
-                        bootstrapList, serverAddress, pool.getName(),
+                        bootstrapList, serverAddress, registry.getPoolName(),
                         socketFactory);
 
     }
@@ -85,7 +85,7 @@ class CommunicationHandler extends Thread {
     private void handleArrgGossip(Connection connection) throws IOException {
         String poolName = connection.in().readUTF();
 
-        if (!poolName.equals(pool.getName())) {
+        if (!poolName.equals(registry.getPoolName())) {
             connection.closeWithError("wrong pool name");
             return;
         }
@@ -100,7 +100,7 @@ class CommunicationHandler extends Thread {
             connection = new Connection(serverSocket);
             logger.debug("connection accepted");
         } catch (IOException e) {
-            if (pool.isStopped()) {
+            if (registry.isStopped()) {
                 return;
             }
             logger.error("Accept failed, waiting a second, will retry", e);
