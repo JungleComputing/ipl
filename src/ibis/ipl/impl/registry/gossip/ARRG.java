@@ -1,6 +1,7 @@
 package ibis.ipl.impl.registry.gossip;
 
 import java.io.IOException;
+import java.util.HashSet;
 
 import org.apache.log4j.Logger;
 
@@ -33,11 +34,11 @@ class ARRG extends Thread {
 
     private final String poolName;
 
-    private final CacheEntry self;
+    private final ARRGCacheEntry self;
 
-    private final Cache cache;
+    private final ARRGCache cache;
 
-    private final Cache fallbackCache;
+    private final ARRGCache fallbackCache;
 
     private boolean ended;
 
@@ -51,14 +52,14 @@ class ARRG extends Thread {
         this.poolName = poolName;
         this.bootstrapAddress = bootstrapAddress;
 
-        self = new CacheEntry(address, arrgOnly);
+        self = new ARRGCacheEntry(address, arrgOnly);
 
-        cache = new Cache(CACHE_SIZE);
-        fallbackCache = new Cache(CACHE_SIZE);
+        cache = new ARRGCache(CACHE_SIZE);
+        fallbackCache = new ARRGCache(CACHE_SIZE);
 
         // add all bootstrap addresses to both caches
         for (VirtualSocketAddress bootstrapEntry : bootstrapList) {
-            CacheEntry entry = new CacheEntry(bootstrapEntry, true);
+            ARRGCacheEntry entry = new ARRGCacheEntry(bootstrapEntry, true);
             cache.add(entry);
             fallbackCache.add(entry);
         }
@@ -107,23 +108,23 @@ class ARRG extends Thread {
     }
 
     void handleGossip(Connection connection) throws IOException {
-        CacheEntry peerEntry = new CacheEntry(connection.in());
+        ARRGCacheEntry peerEntry = new ARRGCacheEntry(connection.in());
 
         int receiveCount = connection.in().readInt();
 
-        CacheEntry[] receivedEntries = new CacheEntry[receiveCount];
+        ARRGCacheEntry[] receivedEntries = new ARRGCacheEntry[receiveCount];
 
         for (int i = 0; i < receiveCount; i++) {
-            receivedEntries[i] = new CacheEntry(connection.in());
+            receivedEntries[i] = new ARRGCacheEntry(connection.in());
         }
 
         connection.sendOKReply();
 
         self.writeTo(connection.out());
 
-        CacheEntry[] sendEntries = cache.getRandomEntries(GOSSIP_SIZE);
+        ARRGCacheEntry[] sendEntries = cache.getRandomEntries(GOSSIP_SIZE, true);
         connection.out().writeInt(sendEntries.length);
-        for (CacheEntry entry : sendEntries) {
+        for (ARRGCacheEntry entry : sendEntries) {
             entry.writeTo(connection.out());
         }
 
@@ -148,7 +149,7 @@ class ARRG extends Thread {
 
         logger.debug("gossiping with " + victim);
 
-        CacheEntry[] sendEntries = cache.getRandomEntries(GOSSIP_SIZE);
+        ARRGCacheEntry[] sendEntries = cache.getRandomEntries(GOSSIP_SIZE, true);
 
         Connection connection =
                 new Connection(victim, CONNECT_TIMEOUT, false, socketFactory);
@@ -164,20 +165,20 @@ class ARRG extends Thread {
         self.writeTo(connection.out());
 
         connection.out().writeInt(sendEntries.length);
-        for (CacheEntry entry : sendEntries) {
+        for (ARRGCacheEntry entry : sendEntries) {
             entry.writeTo(connection.out());
         }
 
         connection.getAndCheckReply();
 
-        CacheEntry peerEntry = new CacheEntry(connection.in());
+        ARRGCacheEntry peerEntry = new ARRGCacheEntry(connection.in());
 
         int receiveCount = connection.in().readInt();
 
-        CacheEntry[] receivedEntries = new CacheEntry[receiveCount];
+        ARRGCacheEntry[] receivedEntries = new ARRGCacheEntry[receiveCount];
 
         for (int i = 0; i < receiveCount; i++) {
-            receivedEntries[i] = new CacheEntry(connection.in());
+            receivedEntries[i] = new ARRGCacheEntry(connection.in());
         }
 
         connection.close();
@@ -187,10 +188,44 @@ class ARRG extends Thread {
 
         resetLastGossip();
     }
+    
+    VirtualSocketAddress getRandomMember() {
+        ARRGCacheEntry result = cache.getRandomEntry(false);
+        
+        if (result == null) {
+            return null;
+        }
+        
+        return result.getAddress();
+    }
+    
+    VirtualSocketAddress[] getMembers() {
+        //use a set to get rid of duplicates
+        HashSet<VirtualSocketAddress> result = new HashSet<VirtualSocketAddress>();
+        
+        ARRGCacheEntry[] entries = cache.getEntries(false);
+        
+        for (ARRGCacheEntry entry: entries) {
+            if (!entry.isArrgOnly()) {
+                result.add(entry.getAddress());
+            }
+        }
+        
+        entries = fallbackCache.getEntries(false);
+
+        for (ARRGCacheEntry entry: entries) {
+            if (!entry.isArrgOnly()) {
+                result.add(entry.getAddress());
+            }
+        }
+
+        return result.toArray(new VirtualSocketAddress[0]);
+    }
+        
 
     public void run() {
         while (!ended()) {
-            CacheEntry victim = cache.getRandomEntry();
+            ARRGCacheEntry victim = cache.getRandomEntry(true);
 
             boolean success = false;
 
@@ -208,7 +243,7 @@ class ARRG extends Thread {
 
             //then try fallback cache
             if (success == false) {
-                victim = fallbackCache.getRandomEntry();
+                victim = fallbackCache.getRandomEntry(true);
                 if (victim != null) {
                     try {
                         gossip(victim.getAddress());

@@ -9,17 +9,17 @@ import java.io.IOException;
 
 import ibis.smartsockets.virtual.VirtualSocketAddress;
 
-class CacheEntry {
+class ARRGCacheEntry {
     private final VirtualSocketAddress address;
 
     private final boolean arrgOnly;
 
-    CacheEntry(VirtualSocketAddress address, boolean arrgOnly) {
+    ARRGCacheEntry(VirtualSocketAddress address, boolean arrgOnly) {
         this.address = address;
         this.arrgOnly = arrgOnly;
     }
 
-    CacheEntry(DataInputStream in) throws IOException {
+    ARRGCacheEntry(DataInputStream in) throws IOException {
         address = new VirtualSocketAddress(in);
         arrgOnly = in.readBoolean();
     }
@@ -29,10 +29,6 @@ class CacheEntry {
         out.writeBoolean(arrgOnly);
     }
 
-    public String toString() {
-        return "address: " + address + ", arrg only: " + arrgOnly;
-
-    }
 
     /**
      * @return the address
@@ -49,8 +45,12 @@ class CacheEntry {
         return arrgOnly;
     }
 
-    public boolean sameAddressAs(CacheEntry entry) {
+    public boolean sameAddressAs(ARRGCacheEntry entry) {
         return address.equals(entry.address);
+    }
+    
+    public String toString() {
+        return "address: " + address + ", arrg only: " + arrgOnly;
     }
 
 }

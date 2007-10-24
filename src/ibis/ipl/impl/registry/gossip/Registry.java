@@ -27,14 +27,18 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
 
     private final IbisCapabilities capabilities;
 
+    private final TypedProperties properties;
+
     private final String poolName;
 
     private final IbisIdentifier identifier;
-    
+
     private final MemberSet members;
-    
+
+    private final ElectionSet elections;
+
     private final CommunicationHandler commHandler;
-    
+
     private final Upcaller upcaller;
 
     // data structures the user can poll
@@ -46,6 +50,8 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
     private final ArrayList<IbisIdentifier> diedIbises;
 
     private final ArrayList<String> signals;
+
+    private boolean stopped;
 
     /**
      * Creates a Gossip Registry.
@@ -88,8 +94,7 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
                     "gossip registry does not support strict elections");
         }
 
-        TypedProperties properties =
-                RegistryProperties.getHardcodedProperties();
+        properties = RegistryProperties.getHardcodedProperties();
         properties.addProperties(userProperties);
 
         if ((capabilities.hasCapability(IbisCapabilities.MEMBERSHIP_UNRELIABLE))
@@ -125,10 +130,12 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
                     "cannot initialize registry, property "
                             + IbisProperties.POOL_NAME + " is not specified");
         }
-       
-        members = new MemberSet(properties);
-        
-        commHandler = new CommunicationHandler(properties, this);
+
+        members = new MemberSet(properties, this);
+        elections = new ElectionSet(properties, this);
+
+        commHandler =
+                new CommunicationHandler(properties, this, members, elections);
 
         Location location = Location.defaultLocation(properties);
 
@@ -137,7 +144,7 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
                         .getAddress().toBytes(), location, poolName);
 
         ThreadPool.createNew(this, "pool management thread");
-        
+
         logger.debug("registry for " + identifier + " initiated");
     }
 
@@ -152,8 +159,7 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
                     "No election support requested");
         }
 
-        //TODO: implement
-        return null;
+        return elections.elect(electionName);
     }
 
     public IbisIdentifier getElectionResult(String election) throws IOException {
@@ -167,18 +173,24 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
                     "No election support requested");
         }
 
-        //TODO: implement
-        return null;
+        return elections.getElectionResult(timeoutMillis);
     }
 
-    public void maybeDead(ibis.ipl.IbisIdentifier suspect)
-            throws IOException {
-        members.maybeDead(suspect);
+    public void maybeDead(ibis.ipl.IbisIdentifier suspect) throws IOException {
+        try {
+            members.maybeDead((IbisIdentifier) suspect);
+        } catch (ClassCastException e) {
+            logger.error("illegal ibis identifier given: " + e);
+        }
     }
 
-    public void assumeDead(ibis.ipl.IbisIdentifier deceased)
-            throws IOException {
-        members.assumeDead(deceased);
+    public void assumeDead(ibis.ipl.IbisIdentifier deceased) throws IOException {
+        try {
+            members.assumeDead((IbisIdentifier) deceased);
+        } catch (ClassCastException e) {
+            logger.error("illegal ibis identifier given: " + e);
+        }
+
     }
 
     public void signal(String signal,
@@ -187,7 +199,15 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
             throw new IbisConfigurationException("No string support requested");
         }
 
-        //TODO: implement
+        try {
+            IbisIdentifier[] implIdentifiers =
+                    (IbisIdentifier[]) ibisIdentifiers;
+
+            commHandler.sendSignals(signal, implIdentifiers);
+
+        } catch (ClassCastException e) {
+            throw new IOException("wrong type of identifiers given: " + e);
+        }
     }
 
     public synchronized ibis.ipl.IbisIdentifier[] joinedIbises() {
@@ -271,12 +291,6 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
                 "Sequence numbers not supported by" + "gossip registry");
     }
 
-    @Override
-    public void leave() throws IOException {
-        //TODO: implement
-        upcaller.stop();
-    }
-
     public Map<String, String> managementProperties() {
         // no properties (as of yet)
         return new HashMap<String, String>();
@@ -353,17 +367,37 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
     }
 
     public boolean isStopped() {
-        // TODO Auto-generated method stub
-        return false;
+        return stopped;
     }
 
     public String getPoolName() {
         return poolName;
     }
 
+    @Override
+    public void leave() throws IOException {
+        synchronized (this) {
+            stopped = true;
+        }
+        members.leave(identifier);
+        commHandler.broadcastLeave();
+    }
+
     public void run() {
-        // TODO Auto-generated method stub
-        
+        long interval =
+                properties.getIntProperty(RegistryProperties.GOSSIP_INTERVAL) * 1000;
+
+        while (!isStopped()) {
+            commHandler.gossip();
+
+            int timeout = (int) (Math.random() * interval);
+            try {
+                wait(timeout);
+            } catch (InterruptedException e) {
+                // IGNORE
+            }
+        }
+
     }
 
 }

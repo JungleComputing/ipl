@@ -33,7 +33,7 @@ final class Connection {
                 timeout, fillTimeout, factory);
     }
 
-    public Connection(CacheEntry entry, int timeout, boolean fillTimeout,
+    public Connection(ARRGCacheEntry entry, int timeout, boolean fillTimeout,
             VirtualSocketFactory factory) throws IOException {
         this(entry.getAddress(), timeout, fillTimeout, factory);
     }

@@ -1,11 +1,14 @@
 package ibis.ipl.impl.registry.gossip;
 
-import ibis.ipl.IbisIdentifier;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+
+import ibis.ipl.impl.IbisIdentifier;
 import ibis.util.TypedProperties;
 
 class MemberSet {
 
-    MemberSet(TypedProperties properties) {
+    MemberSet(TypedProperties properties, Registry registry) {
 
     }
 
@@ -23,5 +26,20 @@ class MemberSet {
         // TODO Auto-generated method stub
         
     }
+
+    public void leave(IbisIdentifier ibis) {
+        
+    }
+
+    public void writeGossipData(DataOutputStream stream) {
+        // TODO Auto-generated method stub
+        
+    }
+    
+    public void readGossipData(DataInputStream stream) {
+        // TODO Auto-generated method stub
+        
+    }
+
 
 }

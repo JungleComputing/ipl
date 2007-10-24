@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import org.apache.log4j.Logger;
 
+import ibis.ipl.impl.IbisIdentifier;
 import ibis.server.Client;
 import ibis.smartsockets.virtual.InitializationException;
 import ibis.smartsockets.virtual.VirtualServerSocket;
@@ -16,10 +17,16 @@ class CommunicationHandler extends Thread {
 
     private static final int CONNECTION_BACKLOG = 50;
 
+    private static final int CONNECTION_TIMEOUT = 5000;
+
     private static final Logger logger =
             Logger.getLogger(CommunicationHandler.class);
 
     private final Registry registry;
+    
+    private final MemberSet members;
+    
+    private final ElectionSet elections;
 
     private final VirtualSocketFactory socketFactory;
 
@@ -27,10 +34,12 @@ class CommunicationHandler extends Thread {
 
     private final ARRG arrg;
 
-    CommunicationHandler(TypedProperties properties, Registry registry)
-            throws IOException {
+    CommunicationHandler(TypedProperties properties, Registry registry,
+            MemberSet members, ElectionSet elections) throws IOException {
         this.registry = registry;
-        
+        this.members = members;
+        this.elections = elections;
+
         try {
             socketFactory = Client.getFactory(properties);
         } catch (InitializationException e) {
@@ -68,20 +77,147 @@ class CommunicationHandler extends Thread {
                         socketFactory);
 
     }
-    
-    
 
     @Override
     public synchronized void start() {
         this.setDaemon(true);
-        
+
         super.start();
-        
+
         arrg.start();
     }
 
+    public void sendSignals(String signal, IbisIdentifier[] ibises)
+            throws IOException {
+        String errorMessage = null;
 
+        for (IbisIdentifier ibis : ibises) {
+            try {
+                Connection connection =
+                        new Connection(ibis, CONNECTION_TIMEOUT, true,
+                                socketFactory);
 
+                connection.out().writeByte(Protocol.MAGIC_BYTE);
+                connection.out().writeByte(Protocol.OPCODE_SIGNAL);
+                registry.getIbisIdentifier().writeTo(connection.out());
+                connection.out().writeUTF(signal);
+
+                connection.getAndCheckReply();
+
+                connection.close();
+
+            } catch (IOException e) {
+                logger.error("could not send signal to " + ibis);
+                if (errorMessage == null) {
+                    errorMessage = "could not send signal to: " + ibis;
+                } else {
+                    errorMessage += ", " + ibis;
+                }
+            }
+        }
+        if (errorMessage != null) {
+            throw new IOException(errorMessage);
+        }
+    }
+
+    private void handleSignal(Connection connection) throws IOException {
+        IbisIdentifier target = new IbisIdentifier(connection.in());
+        String signal = connection.in().readUTF();
+
+        if (!target.equals(registry.getIbisIdentifier())) {
+            connection
+                    .closeWithError("signal target not equal to local identifier");
+            return;
+        }
+
+        connection.sendOKReply();
+
+        registry.signal(signal);
+
+        connection.close();
+    }
+
+    public void gossip() {
+        VirtualSocketAddress address = arrg.getRandomMember();
+        
+        try {
+            Connection connection =
+                    new Connection(address, CONNECTION_TIMEOUT, true,
+                            socketFactory);
+
+            connection.out().writeByte(Protocol.MAGIC_BYTE);
+            connection.out().writeByte(Protocol.OPCODE_GOSSIP);
+            registry.getIbisIdentifier().writeTo(connection.out());
+            
+            members.writeGossipData(connection.out());
+            elections.writeGossipData(connection.out());
+            
+            connection.getAndCheckReply();
+            
+            members.readGossipData(connection.in());
+            elections.readGossipData(connection.in());
+            
+            connection.close();
+        } catch (IOException e) {
+            logger.error("could not gossip with " + address);
+        }
+    }
+    
+    private void handleGossip(Connection connection) throws IOException {
+        IbisIdentifier peer = new IbisIdentifier(connection.in());
+        
+        if (!peer.poolName().equals(registry.getIbisIdentifier().poolName())) {
+            connection.closeWithError("wrong pool");
+        }
+        
+        members.readGossipData(connection.in());
+        elections.readGossipData(connection.in());
+        
+        connection.sendOKReply();
+        
+        members.writeGossipData(connection.out());
+        elections.writeGossipData(connection.out());
+        
+        connection.close();
+    }
+
+    /**
+     * Sends leave message to everyone ARRG knows :)
+     */
+    public void broadcastLeave() {
+        VirtualSocketAddress[] addresses = arrg.getMembers();
+
+        for (VirtualSocketAddress address : addresses) {
+            try {
+                Connection connection =
+                        new Connection(address, CONNECTION_TIMEOUT, true,
+                                socketFactory);
+
+                connection.out().writeByte(Protocol.MAGIC_BYTE);
+                connection.out().writeByte(Protocol.OPCODE_LEAVE);
+                registry.getIbisIdentifier().writeTo(connection.out());
+
+                connection.getAndCheckReply();
+
+                connection.close();
+
+            } catch (IOException e) {
+                logger.error("could not send leave to " + address);
+            }
+        }
+    }
+    
+    private void handleLeave(Connection connection) throws IOException {
+        IbisIdentifier ibis = new IbisIdentifier(connection.in());
+
+        connection.sendOKReply();
+
+        members.leave(ibis);
+
+        connection.close();
+    }
+
+    // ARRG gossip send and handled in ARRG class
     private void handleArrgGossip(Connection connection) throws IOException {
         String poolName = connection.in().readUTF();
 
@@ -140,6 +276,15 @@ class CommunicationHandler extends Thread {
             case Protocol.OPCODE_ARRG_GOSSIP:
                 handleArrgGossip(connection);
                 break;
+            case Protocol.OPCODE_SIGNAL:
+                handleSignal(connection);
+                break;
+            case Protocol.OPCODE_LEAVE:
+                handleLeave(connection);
+                break;
+            case Protocol.OPCODE_GOSSIP:
+                handleGossip(connection);
+                break;
             default:
                 logger.error("unknown opcode: " + opcode);
             }
@@ -153,7 +298,7 @@ class CommunicationHandler extends Thread {
 
     }
 
-    public VirtualSocketAddress getAddress() {
+    VirtualSocketAddress getAddress() {
         return serverSocket.getLocalSocketAddress();
     }
 
