@@ -1,6 +1,6 @@
 <project
     name="Ibis documentation build"
-    default="progman.pdf"
+    default="manuals"
     basedir=".">
 
     <description>
@@ -10,6 +10,8 @@
     <property name="ibis"        location=".."/>
     <property name="src"         location="${ibis}/src"/>
     <property name="tmp"         location="tmp"/>
+
+    <target name="manuals" depends="progman.pdf, usersguide.pdf"/>
 
     <path id="external.jars">
 	<fileset dir="${ibis}/external">
@@ -34,12 +36,9 @@
 	</javadoc>
     </target>
 
-    <target name="init">
+    <target name="progman.pdf">
 	<tstamp/>
 	<mkdir dir="${tmp}"/>
-    </target>
-
-    <target name="progman.pdf" depends="init">
 	<copy
 	    file="progman.tex"
 	    tofile="${tmp}/progman.tex">
@@ -66,10 +65,40 @@
 	<delete dir="${tmp}"/>
     </target>
 
+    <target name="usersguide.pdf">
+	<tstamp/>
+	<mkdir dir="${tmp}"/>
+	<copy
+	    file="usersguide.tex"
+	    tofile="${tmp}/usersguide.tex">
+	</copy>
+	<exec   dir="${tmp}"
+	    executable="latex"
+	    vmlauncher="false">
+	    <arg line="usersguide.tex"/>
+	</exec>
+	<exec   dir="${tmp}"
+	    executable="latex"
+	    vmlauncher="false">
+	    <arg line="usersguide.tex"/>
+	</exec>
+	<exec   dir="${tmp}"
+	    executable="dvipdf"
+	    vmlauncher="false">
+	    <arg line="usersguide.dvi usersguide.pdf"/>
+	</exec>
+	<copy
+	    file="${tmp}/usersguide.pdf"
+	    tofile="usersguide.pdf">
+	</copy>
+	<delete dir="${tmp}"/>
+    </target>
+
     <target name="clean">
 	<delete dir="${tmp}"/>
 	<delete dir="dev-api"/>
 	<delete file="progman.pdf"/>
+	<delete file="usersguide.pdf"/>
     </target>
 
 </project>

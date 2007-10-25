@@ -1,0 +1,168 @@
+\documentclass[10pt]{article}
+
+\usepackage{graphicx}
+
+\newcommand{\mysection}[1]{\section{#1}\label{#1}}
+\newcommand{\mysubsection}[1]{\subsection{#1}\label{#1}}
+\newcommand{\mysubsubsection}[1]{\subsubsection{#1}\label{#1}}
+\newcommand{\remark}[1]{[\emph{#1}]}
+
+\begin{document}
+
+\title{Ibis Users Guide}
+
+\author{The Ibis Group}
+
+\maketitle
+
+\section{Introduction}
+
+This manual describes the steps required to run an application which makes
+use of the Ibis communication library. How to create such an application
+is described in the IPL Programmers manual.
+
+A central concept in Ibis is the \emph{Pool}. A Pool consists of one or
+more Ibis instances, usually running on different machines. Each pool is
+generally made up of Ibisses running a single distributed applications.
+Ibisses in a pool can communicate with each other, and, using the
+registry mechanism present in Ibis, can search for other Ibisses in the,
+same pool, get notified of Ibisses joining the pool, etc. To
+coordinate Ibis pools a so called \emph{Ibis Server} is used.
+
+\section{The Ibis Server}
+
+The Ibis Server is the swiss-army-knife server of the Ibis project.
+Services can be dynamically added to the server. By default, the Ibis
+communication library comes with several services. The registry service
+keeps track of pools, and can track multiple pools at the same time.
+The server also allows Ibisses to route traffic over the server if no
+direct connection is possible between two instances due to firewalls or
+NAT boxes.
+
+The Ibis server is started with the \texttt{ibis-server} script which is
+located in the Ibis \texttt{bin} directory.  Before starting an Ibis
+application, an Ibis server needs to be running on a machine that is
+accessible from all nodes participating in the Ibis run. The server
+listens to a TCP port. The port number can be specified using the
+\texttt{--port} command line option to the \texttt{ibis-server} script.
+
+To work properly, the Ibis Server needs to be reachable from every Ibis
+instance. Since sometimes this is not possible due to Firewalls,
+additional \emph{hubs} can be started, creating a routing infrastructure
+for the Ibis instances. These hubs can be started by using ibis-server
+script with the \texttt{--hub-only} option. See the \texttt{--help}
+option of the ibis-server script for more information. The Ibis
+instances then need to be given the address of a reachable hub, as well
+as the address of the Ibis server.
+
+\mysubsection{Running an Ibis Application}
+
+To illustrate running an Ibis application we will use a simple Hello
+world application. This application is started on a single machine.
+
+An Ibis instance is started with the \texttt{ibis-run} script which
+is located in the Ibis \texttt{bin} directory.  This \texttt{ibis-run}
+script is called as follows:
+\begin{center}
+\texttt{ibis-run} \emph{java-flags class params}
+\end{center}
+
+The \texttt{ibis-run} script adds the jar files
+from the Ibis lib directory to your classpath and then starts Java. The
+scripts needs the IBIS\_HOME environment variable to be set to the
+location of the Ibis distribution.
+
+\mysubsection{Running the example}
+To run the application an ibis-server is needed. Start a shell and
+run the \texttt{ibis-server} script:
+\noindent
+{\small
+\begin{verbatim}
+$ $IBIS_HOME/bin/ibis-server --events
+\end{verbatim}
+}
+\noindent
+
+The \texttt{--events} option will make the server print events (such as
+Ibisses joining and leaving the pool). Run the script with the
+\texttt{--help} option for a complete list of options.
+
+Next, we will start the application twice. One instance will act as a  
+"server", and one a "client". The application will determine who is
+the server and who is the client automatically. Therefore we can simply start the application using
+the same command line. In two different shells type:
+
+\noindent
+{\small
+\begin{verbatim}
+$ $IBIS_HOME/bin/ibis-run \
+    -Dibis.server.address=localhost -Dibis.pool.name=foo \
+    ibisApps.hello.Hello
+\end{verbatim}
+}
+\noindent
+Now, you should have the two running instances of your application. One of them should print:
+
+\noindent {\small \begin{verbatim} Server received: Hi there
+\end{verbatim} } \noindent 
+
+The \texttt{ibis.pool.name} value can be any random string.  It
+identifies your run. The \texttt{ibis.server.address} property should be
+set to the machine the Ibis server is running on. In this case, we use
+\texttt{localhost}.
+
+If you don't use the \texttt{ibis-run} script, you have to set the classpath
+and some additional properties. In both shells, type:
+
+\noindent
+{\small
+\begin{verbatim}
+$ java \
+    -cp $IBIS_HOME/lib/ipl.jar:$IBIS_HOME/lib/ipl-app.jar \
+    -Dibis.impl.path=$IBIS_HOME/lib \
+    -Dibis.server.address=localhost \
+    -Dibis.pool.name=bla \
+    -Dlog4j.configuration=file:$IBIS_HOME/log4j.properties \
+    ibisApps.hello.Hello
+\end{verbatim}
+}
+\noindent
+The classpath specifies the jar-files that are explicitly used:
+\texttt{ipl-app.jar} contains the example code, and \texttt{ipl.jar} contains
+the Ibis IPL. All other jar-files are loaded by the Ibis classloader, which
+searches the directory specified by the \texttt{ibis.impl.path} property
+(and its sub-directories) for any needed jar-file.
+Additionally, a log4j configuration file is specified, which determines the
+amount of status messages Ibis prints. The provided file will make Ibis print
+warnings and errors to standard output.
+
+\mysection{Properties}
+
+Ibis can be configured using several java system properties. The
+ibis.properties.example file in the Ibis distribution has a complete
+list, but the most commonly used properties are:
+
+\begin{description}
+
+\item[ibis.pool.name] String: name of the pool this Ibis belongs to
+\item[ibis.server.address] Address of the central Ibis server
+\item[ibis.impl.path] Path used to find Ibis implementations
+\item[ibis.hub.addresses] Comma seperated list of hub addresses. The
+server address is appended to this list, and thus is the default hub if
+no hub is specified.
+\item[ibis.pool.size] Integer: size of the pool this Ibis belongs to.
+Only used in a so called closed world setting.
+
+\end{description}
+
+\mysection{Further Reading}
+
+The Ibis web page http://www.cs.vu.nl/ibis/publications.html lists all
+the documentation and software available for Ibis, including papers, and
+slides of presentations.
+
+For detailed information on developing an Ibis application see the
+Programmers Manual, available in the docs directory of the Ibis
+distribution
+
+\end{document}
