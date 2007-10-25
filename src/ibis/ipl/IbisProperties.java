@@ -40,14 +40,19 @@ public final class IbisProperties {
     /** Property name for verbosity. */
     public static final String VERBOSE = PREFIX + "verbose";
 
+    /** Property name for setting the name of the pool. */
     public static final String POOL_NAME = PREFIX + "pool.name";
 
+    /** Property name for setting the size of the pool. */
     public static final String POOL_SIZE = PREFIX + "pool.size";
 
+    /** Property name for setting the address of the ibis-server. */
     public static final String SERVER_ADDRESS = PREFIX + "server.address";
 
+    /** Property name for specifying a comma seperated list of hubs. */
     public static final String HUB_ADDRESSES = PREFIX + "hub.addresses";
 
+    /** Property name for specifying the implementation of the registry. */
     public static final String REGISTRY_IMPL = PREFIX + "registry.impl";
 
     /**
@@ -55,9 +60,15 @@ public final class IbisProperties {
      */
     public static final String LOCATION = PREFIX + "location";
 
+    /**
+     * Property name for automatically setting the location
+     */
     public static final String LOCATION_AUTOMATIC =
             PREFIX + "location.automatic";
 
+    /**
+     * Property name for specifying a postfix for an automatically generated location
+     */
     public static final String LOCATION_POSTFIX =
         PREFIX + "location.postfix";
 
@@ -67,16 +78,18 @@ public final class IbisProperties {
                 { POOL_NAME, null, "String: name of the pool this ibis belongs to" },
                 { POOL_SIZE, null,
                     "Integer: size of the pool this ibis belongs to" },
-                { SERVER_ADDRESS, null, "address of the central ibis server" },
+                { SERVER_ADDRESS, null, "Address of the central ibis server" },
                 {
                     HUB_ADDRESSES,
                     null,
-                    "comma seperated list of hub addresses."
+                    "Comma seperated list of hub addresses."
                             + " The server address is appended to this list,"
                             + " and thus is the default hub if no hub is specified" },
 
                 { NAME, null,
-                    "Nickname or classname of the Ibis implementation" },
+                    "Nickname or classname of an Ibis implementation. " +
+                    "The specified implementation is used, bypassing the automatic" +
+                    " selection mechanism of Ibis."},
 
                 { PROPERTIES_FILE, null,
                     "Name of the property file used for the configuration of Ibis" },
