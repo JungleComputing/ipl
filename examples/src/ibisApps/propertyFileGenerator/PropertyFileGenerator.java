@@ -2,8 +2,6 @@ package ibisApps.propertyFileGenerator;
 
 import ibis.ipl.IbisProperties;
 import ibis.ipl.impl.registry.central.RegistryProperties;
-import ibis.poolInfo.PoolInfoProperties;
-import ibis.server.ServerProperties;
 
 import java.io.PrintStream;
 import java.util.Map;
@@ -35,6 +33,12 @@ public class PropertyFileGenerator {
             PrintStream out = new PrintStream("ibis.properties.example");
 
             out.println("#Example ibis.properties file");
+
+            out
+                    .println("An ibis property file can be used to change settings of ibis.");
+            out
+                    .println("Alternatively, these settings can also set on the command line using the -D option of java");
+
             out.println();
             out
                     .println("#This file lists properties valid for various parts of ibis");
@@ -46,17 +50,9 @@ public class PropertyFileGenerator {
             out.println();
             writeEntries(IbisProperties.getDescriptions(), IbisProperties
                     .getHardcodedProperties(), out);
-
-            out.println("#### Ibis Server properties ####");
             out.println();
-            writeEntries(ServerProperties.getDescriptions(), ServerProperties
-                    .getHardcodedProperties(), out);
-
-            out.println("#### Ibis PoolInfo properties ####");
             out.println();
-            writeEntries(PoolInfoProperties.getDescriptions(),
-                    PoolInfoProperties.getHardcodedProperties(), out);
-
+            
             out.println("#### Ibis Central Registry properties ####");
             out.println();
             writeEntries(RegistryProperties.getDescriptions(),
