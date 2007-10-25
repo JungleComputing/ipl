@@ -34,10 +34,10 @@ public class PropertyFileGenerator {
 
             out.println("#Example ibis.properties file");
 
-            out
-                    .println("An ibis property file can be used to change settings of ibis.");
-            out
-                    .println("Alternatively, these settings can also set on the command line using the -D option of java");
+            out.println("An ibis property file can be used"
+                    + " to change settings of ibis.");
+            out.println("Alternatively, these settings can "
+                            + "also set on the command line using the -D option of java");
 
             out.println();
             out
@@ -52,7 +52,7 @@ public class PropertyFileGenerator {
                     .getHardcodedProperties(), out);
             out.println();
             out.println();
-            
+
             out.println("#### Ibis Central Registry properties ####");
             out.println();
             writeEntries(RegistryProperties.getDescriptions(),
