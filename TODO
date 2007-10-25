@@ -10,6 +10,8 @@ IPL:
 - check properties for unknown properties
 + MessageUpcall.upcall: may also cause ClassNotFoundException? --Ceriel
   (Done Ceriel)
+? rename ibis.name to ibis.impl. The current property kinda sounds like
+  we are naming our ibis :(
 
 management:
 + add basic network usage statistics to Ibis. (Which ones? --Ceriel)
