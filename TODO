@@ -53,6 +53,7 @@ packaging/distribution:
   files to the top of each file
 ? the example application have ibisApps as the package name. Why not
   ibis.ipl.examples or something?
+? don't add $PWD/lib to classpath in ibis-run?
 
 website:
 - update "ibis" overview picture with new/changed implementations
