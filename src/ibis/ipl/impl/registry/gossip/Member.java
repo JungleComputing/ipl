@@ -89,9 +89,11 @@ class Member {
         out.writeBoolean(left);
     }
     
-    
+    IbisIdentifier getIdentifier() {
+        return identifier;
+    }
 
-    synchronized void left() {
+    synchronized void setLeft() {
         left = true;
     }
 
