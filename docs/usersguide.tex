@@ -1,6 +1,7 @@
 \documentclass[10pt]{article}
 
 \usepackage{graphicx}
+\usepackage{url}
 
 \newcommand{\mysection}[1]{\section{#1}\label{#1}}
 \newcommand{\mysubsection}[1]{\subsection{#1}\label{#1}}
@@ -17,21 +18,21 @@
 
 \section{Introduction}
 
-This manual describes the steps required to run an application which makes
-use of the Ibis communication library. How to create such an application
+This manual describes the steps required to run an application that uses
+ the Ibis communication library. How to create such an application
 is described in the IPL Programmers manual.
 
 A central concept in Ibis is the \emph{Pool}. A Pool consists of one or
 more Ibis instances, usually running on different machines. Each pool is
 generally made up of Ibisses running a single distributed applications.
 Ibisses in a pool can communicate with each other, and, using the
-registry mechanism present in Ibis, can search for other Ibisses in the,
+registry mechanism present in Ibis, can search for other Ibisses in the
 same pool, get notified of Ibisses joining the pool, etc. To
-coordinate Ibis pools a so called \emph{Ibis Server} is used.
+coordinate Ibis pools a so-called \emph{Ibis Server} is used.
 
 \section{The Ibis Server}
 
-The Ibis Server is the swiss-army-knife server of the Ibis project.
+The Ibis Server is the Swiss-army-knife server of the Ibis project.
 Services can be dynamically added to the server. By default, the Ibis
 communication library comes with several services. The registry service
 keeps track of pools, and can track multiple pools at the same time.
@@ -46,14 +47,16 @@ accessible from all nodes participating in the Ibis run. The server
 listens to a TCP port. The port number can be specified using the
 \texttt{--port} command line option to the \texttt{ibis-server} script.
 
-To work properly, the Ibis Server needs to be reachable from every Ibis
-instance. Since sometimes this is not possible due to Firewalls,
+The Ibis Server needs to be reachable from every Ibis
+instance. Since sometimes this is not possible due to firewalls,
 additional \emph{hubs} can be started, creating a routing infrastructure
 for the Ibis instances. These hubs can be started by using ibis-server
 script with the \texttt{--hub-only} option. See the \texttt{--help}
 option of the ibis-server script for more information. The Ibis
 instances then need to be given the address of a reachable hub, as well
 as the address of the Ibis server.
+
+TODO:Explain about hubs and the server
 
 \mysubsection{Running an Ibis Application}
 
@@ -133,13 +136,16 @@ the Ibis IPL. All other jar-files are loaded by the Ibis classloader, which
 searches the directory specified by the \texttt{ibis.impl.path} property
 (and its sub-directories) for any needed jar-file.
 Additionally, a log4j configuration file is specified, which determines the
-amount of status messages Ibis prints. The provided file will make Ibis print
+number of status messages Ibis prints. The file provided in the Ibis
+distribution will make Ibis print
 warnings and errors to standard output.
+
+TODO:Explain about ibis.impl.path classloader some more
 
 \mysection{Properties}
 
-Ibis can be configured using several java system properties. The
-ibis.properties.example file in the Ibis distribution has a complete
+Ibis can be configured using several Java system properties. The
+\texttt{ibis.properties.example} file in the Ibis distribution has a complete
 list, but the most commonly used properties are:
 
 \begin{description}
@@ -157,7 +163,7 @@ Only used in a so called closed world setting.
 
 \mysection{Further Reading}
 
-The Ibis web page http://www.cs.vu.nl/ibis/publications.html lists all
+The Ibis web page \url{http://www.cs.vu.nl/ibis} lists all
 the documentation and software available for Ibis, including papers, and
 slides of presentations.
 
