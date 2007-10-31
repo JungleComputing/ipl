@@ -32,31 +32,30 @@ public class PropertyFileGenerator {
 
             PrintStream out = new PrintStream("ibis.properties.example");
 
-            out.println("#Example ibis.properties file");
-
-            out.println("An ibis property file can be used"
-                    + " to change settings of ibis.");
-            out.println("Alternatively, these settings can "
-                            + "also set on the command line using the -D option of java");
+            out.println("# Example ibis.properties file\n"
+                    + "\n"
+                    + "# An ibis property file can be used to change settings of ibis. Ibis will look\n"
+                    + "# for a file named \"ibis.properties\" on the classpath, the current directory,\n"
+                    + "# and in the location set in the \"ibis.properties.file\" system property.\n"
+                    + "# Alternatively, a user can specify these properties directly as system\n"
+                    + "# properties using the -D option of java.");
 
             out.println();
-            out
-                    .println("#This file lists properties valid for various parts of ibis");
-            out
-                    .println("#Also listed are a description, and the default value of this property, if any");
+            out.println("#This file lists properties valid for various parts of ibis");
+            out.println("#Also listed are a description, and the default value of this property, if any");
             out.println();
 
             out.println("#### Generic Ibis properties ####");
             out.println();
-            writeEntries(IbisProperties.getDescriptions(), IbisProperties
-                    .getHardcodedProperties(), out);
+            writeEntries(IbisProperties.getDescriptions(),
+                IbisProperties.getHardcodedProperties(), out);
             out.println();
             out.println();
 
             out.println("#### Ibis Central Registry properties ####");
             out.println();
             writeEntries(RegistryProperties.getDescriptions(),
-                    RegistryProperties.getHardcodedProperties(), out);
+                RegistryProperties.getHardcodedProperties(), out);
 
             out.flush();
             out.close();

@@ -1,6 +1,10 @@
-#Example ibis.properties file
-An ibis property file can be used to change settings of ibis.
-Alternatively, these settings can also set on the command line using the -D option of java
+# Example ibis.properties file
+
+# An ibis property file can be used to change settings of ibis. Ibis will look
+# for a file named "ibis.properties" on the classpath, the current directory,
+# and in the location set in the "ibis.properties.file" system property.
+# Alternatively, a user can specify these properties directly as system
+# properties using the -D option of java.
 
 #This file lists properties valid for various parts of ibis
 #Also listed are a description, and the default value of this property, if any

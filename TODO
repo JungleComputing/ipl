@@ -52,11 +52,12 @@ packaging/distribution:
 - while(true) {fix eclipse warnings}
 + clean up doc building scripts (Done Ceriel)
 - add some more text explaining the usage of the property 
-  files to the top of each file
+  files to the top of each file (Done log4j and ibis.properties, Niels)
 ? the example application have ibisApps as the package name. Why not
   ibis.ipl.examples or something?
 ? don't add $PWD/lib to classpath in ibis-run?
 ? only include "nice clean example" applications, remove the rest?
+? move ibis.ipl.impl.test to the example applications
 
 website:
 - update "ibis" overview picture with new/changed implementations

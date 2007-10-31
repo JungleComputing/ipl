@@ -71,7 +71,7 @@
     	
 
 	<jar destfile="lib/ipl-impl${version}.jar">
-	    <fileset dir="${tmp}" includes="ibis/ipl/impl/*.class ibis/ipl/impl/registry/**/*.class ibis/ipl/impl/test/**/*.class ibis/ipl/util/**/*.class"/>
+	    <fileset dir="${tmp}" includes="ibis/ipl/impl/*.class ibis/ipl/impl/registry/**/*.class ibis/ipl/impl/util/**/*.class ibis/ipl/impl/test/**/*.class ibis/ipl/util/**/*.class"/>
 	    <fileset dir="." includes="LICENSE.txt"/>
             <manifest>
                 <attribute name="Ibis-Service" value="ibis.ipl.impl.registry.central.server.Server, ibis.ipl.impl.registry.gossip.BootstrapService" />
