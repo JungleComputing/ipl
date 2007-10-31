@@ -32,6 +32,12 @@ ibis registry:
 applications:
 -/+ remove old-n-useless applications (if any)
     (Done ipl-apps Ceriel)
+? the example application have ibisApps as the package name. Why not
+  ibis.ipl.examples or something?
+? don't add $PWD/lib to classpath in ibis-run?
+? only include "nice clean example" applications, remove the rest?
+? move ibis.ipl.impl.test to the example applications
+
 
 packaging/distribution:
 - split up ibis in multiple separate subprojects:
@@ -51,14 +57,12 @@ packaging/distribution:
 - update/rewrite programmers manuals
 - while(true) {fix eclipse warnings}
 + clean up doc building scripts (Done Ceriel)
-- add some more text explaining the usage of the property 
-  files to the top of each file (Done log4j and ibis.properties, Niels)
-? the example application have ibisApps as the package name. Why not
-  ibis.ipl.examples or something?
-? don't add $PWD/lib to classpath in ibis-run?
-? only include "nice clean example" applications, remove the rest?
-? move ibis.ipl.impl.test to the example applications
-
+- add some more text explaining the usage of the property files to the top 
+  of each file, update default settings
+    + log4j.properties (Done, Niels)
+    + ibis.properties.example (Done, Niels)
+    - smartsockets.properties
+  
 website:
 - update "ibis" overview picture with new/changed implementations
 - add overview section
