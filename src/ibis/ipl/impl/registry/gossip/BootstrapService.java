@@ -29,7 +29,7 @@ public class BootstrapService implements Service, Runnable {
 
     private final Map<String, ARRG> arrgs;
 
-    private final boolean printStats;
+//    private final boolean printStats;
 
     private final boolean printErrors;
 
@@ -39,9 +39,9 @@ public class BootstrapService implements Service, Runnable {
             VirtualSocketFactory socketFactory) throws IOException {
         this.socketFactory = socketFactory;
 
-        printStats =
-                properties
-                        .getBooleanProperty(ServerProperties.PRINT_STATS);
+//        printStats =
+//                properties
+//                        .getBooleanProperty(ServerProperties.PRINT_STATS);
 
         printErrors =
                 properties
