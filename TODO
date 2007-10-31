@@ -10,7 +10,7 @@ IPL:
 - check properties for unknown properties
 + MessageUpcall.upcall: may also cause ClassNotFoundException? --Ceriel
   (Done Ceriel)
-- clarify error message when a capability is unmatched
++ clarify error message when a capability is unmatched (Done, Niels)
 ? rename ibis.name to ibis.implementation. The current property kinda sounds like
   we are naming our ibis :(
 ? add timeout version of registry.elect()
