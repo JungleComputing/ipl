@@ -8,7 +8,7 @@ import ibis.ipl.impl.registry.central.Connection;
 import ibis.ipl.impl.registry.central.Event;
 import ibis.ipl.impl.registry.central.Protocol;
 import ibis.ipl.impl.registry.central.RegistryProperties;
-import ibis.ipl.impl.registry.central.Stats;
+import ibis.ipl.impl.registry.central.RequestStats;
 import ibis.ipl.impl.registry.central.server.Server;
 import ibis.server.Client;
 import ibis.smartsockets.virtual.InitializationException;
@@ -44,7 +44,7 @@ final class CommunicationHandler implements Runnable {
 
     private final int timeout;
 
-    private final Stats stats;
+    private final RequestStats stats;
 
     // bootstrap data
 
@@ -69,7 +69,7 @@ final class CommunicationHandler implements Runnable {
         timeout = properties
                 .getIntProperty(RegistryProperties.CLIENT_CONNECT_TIMEOUT) * 1000;
 
-        stats = new Stats(Protocol.NR_OF_OPCODES);
+        stats = new RequestStats(Protocol.NR_OF_OPCODES);
 
         try {
             virtualSocketFactory = Client.getFactory(properties);

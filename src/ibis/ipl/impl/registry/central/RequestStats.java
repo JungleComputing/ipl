@@ -6,8 +6,8 @@ import java.util.TreeMap;
 
 import org.apache.log4j.Logger;
 
-public final class Stats {
-    private static Logger logger = Logger.getLogger(Stats.class);
+public final class RequestStats {
+    private static Logger logger = Logger.getLogger(RequestStats.class);
 
     private double[] totalTimes;
 
@@ -23,7 +23,7 @@ public final class Stats {
 
     long start;
 
-    public Stats(int opcodes) {
+    public RequestStats(int opcodes) {
         this.opcodes = opcodes;
         totalTimes = new double[opcodes];
         incomingRequestCounter = new long[opcodes];

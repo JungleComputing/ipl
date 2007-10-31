@@ -98,7 +98,6 @@ public final class Connection {
             close();
             throw new IOException("Unknown reply (" + reply + ")");
         }
-
     }
 
     public void sendOKReply() throws IOException {

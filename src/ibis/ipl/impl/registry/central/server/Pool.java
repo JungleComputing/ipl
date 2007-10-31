@@ -11,7 +11,7 @@ import ibis.ipl.impl.registry.central.ListMemberSet;
 import ibis.ipl.impl.registry.central.Member;
 import ibis.ipl.impl.registry.central.MemberSet;
 import ibis.ipl.impl.registry.central.Protocol;
-import ibis.ipl.impl.registry.central.Stats;
+import ibis.ipl.impl.registry.central.RequestStats;
 import ibis.ipl.impl.registry.central.TreeMemberSet;
 import ibis.smartsockets.virtual.VirtualSocketFactory;
 import ibis.util.ThreadPool;
@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Formatter;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -42,6 +43,8 @@ final class Pool implements Runnable {
 
     // list of all joins, leaves, elections, etc.
     private final EventList events;
+
+    private final int[] eventStats;
 
     private final long heartbeatInterval;
 
@@ -69,10 +72,10 @@ final class Pool implements Runnable {
     private final boolean printErrors;
 
     // statistics for the server
-    private final Stats serverStats;
+    private final RequestStats serverStats;
 
     private final Map<String, Integer> sequencers;
-    
+
     private int nextID;
 
     private boolean ended = false;
@@ -86,7 +89,7 @@ final class Pool implements Runnable {
             long gossipInterval, boolean adaptGossipInterval, boolean tree,
             boolean closedWorld, int poolSize,
             String ibisImplementationIdentifier, boolean printEvents,
-            boolean printErrors, Stats serverStats) {
+            boolean printErrors, RequestStats serverStats) {
         this.name = name;
         this.socketFactory = socketFactory;
         this.heartbeatInterval = heartbeatInterval;
@@ -103,6 +106,7 @@ final class Pool implements Runnable {
         sequencers = new HashMap<String, Integer>();
 
         events = new EventList();
+        eventStats = new int[Event.NR_OF_TYPES];
         elections = new ElectionSet();
 
         if (gossip) {
@@ -111,10 +115,10 @@ final class Pool implements Runnable {
             new RandomEventPusher(this, gossipInterval, adaptGossipInterval);
         } else if (tree) {
             members = new TreeMemberSet();
-            //on new event send to children in tree
+            // on new event send to children in tree
             new IterativeEventPusher(this, 0, true, true);
 
-            //once in a while forward to everyone
+            // once in a while forward to everyone
             new IterativeEventPusher(this, eventPushInterval, false, false);
         } else { // central
             members = new ListMemberSet();
@@ -128,8 +132,8 @@ final class Pool implements Runnable {
     }
 
     private static void print(String message) {
-        DateFormat format = DateFormat.getTimeInstance(DateFormat.MEDIUM,
-                Locale.FRANCE);
+        DateFormat format =
+            DateFormat.getTimeInstance(DateFormat.MEDIUM, Locale.FRANCE);
 
         System.out.println(format.format(new Date(System.currentTimeMillis()))
                 + " Central Registry: " + message);
@@ -149,6 +153,8 @@ final class Pool implements Runnable {
         Event event = new Event(currentEventTime, type, description, ibisses);
         logger.debug("adding new event: " + event);
         events.add(event);
+        eventStats[type]++;
+
         currentEventTime++;
         notifyAll();
 
@@ -242,8 +248,7 @@ final class Pool implements Runnable {
             throw new Exception("Closed-World Pool already closed");
         }
 
-        if (!ibisImplementationIdentifier
-                .equals(this.ibisImplementationIdentifier)) {
+        if (!ibisImplementationIdentifier.equals(this.ibisImplementationIdentifier)) {
             throw new Exception("Ibis implementation "
                     + ibisImplementationIdentifier
                     + " does not match pool's Ibis implementation: "
@@ -254,8 +259,9 @@ final class Pool implements Runnable {
         String id = Integer.toString(nextID);
         nextID++;
 
-        IbisIdentifier identifier = new IbisIdentifier(id, implementationData,
-                clientAddress, location, name);
+        IbisIdentifier identifier =
+            new IbisIdentifier(id, implementationData, clientAddress, location,
+                    name);
 
         Event event = addEvent(Event.JOIN, null, identifier);
 
@@ -268,9 +274,6 @@ final class Pool implements Runnable {
         if (printEvents) {
             print(identifier + " joined pool \"" + name + "\" now "
                     + members.size() + " members");
-            if (closedWorld && nextID >= fixedSize) {
-                print("pool \"" + name + "\" now closed");
-            }
         }
 
         if (closedWorld && nextID >= fixedSize) {
@@ -305,8 +308,8 @@ final class Pool implements Runnable {
             members.writeTo(dataOut);
             elections.writeTo(dataOut);
 
-            Event[] signals = events
-                    .getSignalEvents(joinTime, currentEventTime);
+            Event[] signals =
+                events.getSignalEvents(joinTime, currentEventTime);
             dataOut.writeInt(signals.length);
             for (Event event : signals) {
                 event.writeTo(dataOut);
@@ -388,6 +391,7 @@ final class Pool implements Runnable {
         for (Election election : deadElections) {
             addEvent(Event.UN_ELECT, election.getName(), election.getWinner());
 
+            elections.remove(election.getName());
         }
 
         if (members.size() == 0) {
@@ -439,15 +443,15 @@ final class Pool implements Runnable {
 
     synchronized long getSequenceNumber(String name) {
         Integer currentValue = sequencers.get(name);
-        
+
         if (currentValue == null) {
             currentValue = new Integer(0);
         }
-        
+
         int result = currentValue;
-        
+
         sequencers.put(name, currentValue + 1);
-        
+
         return result;
     }
 
@@ -481,8 +485,8 @@ final class Pool implements Runnable {
                 result.add(victim);
             }
         }
-        addEvent(Event.SIGNAL, signal, result.toArray(new IbisIdentifier[result
-                .size()]));
+        addEvent(Event.SIGNAL, signal,
+            result.toArray(new IbisIdentifier[result.size()]));
         notifyAll();
 
     }
@@ -501,8 +505,9 @@ final class Pool implements Runnable {
         try {
 
             logger.debug("creating connection to " + member);
-            connection = new Connection(member.getIbis(), CONNECT_TIMEOUT,
-                    false, socketFactory);
+            connection =
+                new Connection(member.getIbis(), CONNECT_TIMEOUT, false,
+                        socketFactory);
             logger.debug("connection created to " + member
                     + ", send opcode, checking for reply");
 
@@ -522,7 +527,7 @@ final class Pool implements Runnable {
             logger.debug("ping to " + member + " successful");
             member.updateLastSeenTime();
             serverStats.add(Protocol.OPCODE_PING, System.currentTimeMillis()
-                    - start, connection.read(), connection.written(),false);
+                    - start, connection.read(), connection.written(), false);
         } catch (Exception e) {
             logger.debug("error on pinging ibis " + member, e);
 
@@ -538,10 +543,10 @@ final class Pool implements Runnable {
      * the peer is still a current member of this pool.
      * 
      * @param member
-     *                The member to push events to
+     *            The member to push events to
      * @param force
-     *                if true, events are always pushed, even if the pool has
-     *                ended or the peer is no longer a member.
+     *            if true, events are always pushed, even if the pool has ended
+     *            or the peer is no longer a member.
      */
     void push(Member member, boolean force) {
         long start = System.currentTimeMillis();
@@ -568,8 +573,9 @@ final class Pool implements Runnable {
 
             logger.debug("creating connection to push events to " + member);
 
-            connection = new Connection(member.getIbis(), CONNECT_TIMEOUT,
-                    true, socketFactory);
+            connection =
+                new Connection(member.getIbis(), CONNECT_TIMEOUT, true,
+                        socketFactory);
 
             logger.debug("connection to " + member + " created");
 
@@ -614,12 +620,11 @@ final class Pool implements Runnable {
             logger.debug("connection to " + member + " closed");
             member.updateLastSeenTime();
             serverStats.add(Protocol.OPCODE_PUSH, System.currentTimeMillis()
-                    - start, connection.read(), connection.written(),false);
+                    - start, connection.read(), connection.written(), false);
         } catch (IOException e) {
             if (isMember(member)) {
                 if (printErrors) {
-                    print("cannot reach " + member
-                            + " to push events to");
+                    print("cannot reach " + member + " to push events to");
                     e.printStackTrace(System.out);
                 }
             }
@@ -630,7 +635,7 @@ final class Pool implements Runnable {
             }
         }
     }
-   
+
     private synchronized Member getSuspectMember() {
         while (!hasEnded()) {
 
@@ -645,8 +650,8 @@ final class Pool implements Runnable {
             if (oldest == null) {
                 timeout = 1000;
             } else {
-                timeout = (oldest.getLastSeen() + heartbeatInterval)
-                        - currentTime;
+                timeout =
+                    (oldest.getLastSeen() + heartbeatInterval) - currentTime;
             }
 
             if (timeout <= 0) {
@@ -702,6 +707,28 @@ final class Pool implements Runnable {
     public String toString() {
         return "Pool " + name + ": size = " + getSize() + ", event time = "
                 + getEventTime();
+    }
+
+    public synchronized String getStats() {
+        StringBuilder message = new StringBuilder();
+
+        Formatter formatter = new Formatter(message);
+
+        if (isClosedWorld()) {
+            formatter.format("%-18s %12d %10d %5d %6d %5d %9d %7d %10d %6b %5b\n",
+                getName(),  getSize(),
+                getEventTime(), eventStats[Event.JOIN],
+                eventStats[Event.LEAVE], eventStats[Event.DIED],
+                eventStats[Event.ELECT], eventStats[Event.SIGNAL], getFixedSize(), isClosed(), ended);
+        } else {
+            formatter.format("%-18s %12d %10d %5d %6d %5d %9d %7d %10s %6b %5b\n",
+                getName(),  getSize(), getEventTime(),
+                eventStats[Event.JOIN], eventStats[Event.LEAVE],
+                eventStats[Event.DIED], eventStats[Event.ELECT],
+                eventStats[Event.SIGNAL], "N.A.", isClosed(), ended);
+        }
+
+        return message.toString();
     }
 
     /**

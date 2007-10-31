@@ -13,19 +13,21 @@ public final class Event implements Serializable, Comparable<Event> {
 
     // event types
 
-    public static final int JOIN = 1;
+    public static final int JOIN = 0;
 
-    public static final int LEAVE = 2;
+    public static final int LEAVE = 1;
 
-    public static final int DIED = 3;
+    public static final int DIED = 2;
 
-    public static final int SIGNAL = 4;
+    public static final int SIGNAL = 3;
 
-    public static final int ELECT = 5;
+    public static final int ELECT = 4;
 
-    public static final int UN_ELECT = 6;
+    public static final int UN_ELECT = 5;
 
-    public static final int POOL_CLOSED = 7;
+    public static final int POOL_CLOSED = 6;
+
+    public static final int NR_OF_TYPES = 7;
     
     private final int time;
 

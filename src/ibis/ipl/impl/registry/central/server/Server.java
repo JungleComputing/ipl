@@ -2,7 +2,7 @@ package ibis.ipl.impl.registry.central.server;
 
 import ibis.ipl.impl.registry.central.Protocol;
 import ibis.ipl.impl.registry.central.RegistryProperties;
-import ibis.ipl.impl.registry.central.Stats;
+import ibis.ipl.impl.registry.central.RequestStats;
 import ibis.server.ServerProperties;
 import ibis.server.Service;
 import ibis.smartsockets.virtual.VirtualSocketFactory;
@@ -10,7 +10,6 @@ import ibis.util.ThreadPool;
 import ibis.util.TypedProperties;
 
 import java.io.IOException;
-import java.util.Formatter;
 import java.util.HashMap;
 
 import org.apache.log4j.Logger;
@@ -31,7 +30,7 @@ public final class Server extends Thread implements Service {
 
     private final HashMap<String, Pool> pools;
 
-    private final Stats stats;
+    private final RequestStats stats;
 
     private final boolean printStats;
 
@@ -54,22 +53,22 @@ public final class Server extends Thread implements Service {
             throws IOException {
         this.socketFactory = socketFactory;
 
-        TypedProperties typedProperties = RegistryProperties
-                .getHardcodedProperties();
+        TypedProperties typedProperties =
+            RegistryProperties.getHardcodedProperties();
         typedProperties.addProperties(properties);
 
-        printStats = typedProperties
-                .getBooleanProperty(ServerProperties.PRINT_STATS);
+        printStats =
+            typedProperties.getBooleanProperty(ServerProperties.PRINT_STATS);
 
-        printEvents = typedProperties
-                .getBooleanProperty(ServerProperties.PRINT_EVENTS);
+        printEvents =
+            typedProperties.getBooleanProperty(ServerProperties.PRINT_EVENTS);
 
-        printErrors = typedProperties
-                .getBooleanProperty(ServerProperties.PRINT_ERRORS);
+        printErrors =
+            typedProperties.getBooleanProperty(ServerProperties.PRINT_ERRORS);
 
         pools = new HashMap<String, Pool>();
 
-        stats = new Stats(Protocol.NR_OF_OPCODES);
+        stats = new RequestStats(Protocol.NR_OF_OPCODES);
 
         // start handling connections
         handler = new ServerConnectionHandler(this, socketFactory);
@@ -84,7 +83,7 @@ public final class Server extends Thread implements Service {
         return pools.get(poolName);
     }
 
-    Stats getStats() {
+    RequestStats getStats() {
         return stats;
     }
 
@@ -92,7 +91,8 @@ public final class Server extends Thread implements Service {
     synchronized Pool getAndCreatePool(String poolName, long heartbeatInterval,
             long eventPushInterval, boolean gossip, long gossipInterval,
             boolean adaptGossipInterval, boolean tree, boolean closedWorld,
-            int poolSize, String ibisImplementationIdentifier) throws IOException {
+            int poolSize, String ibisImplementationIdentifier)
+            throws IOException {
         Pool result = getPool(poolName);
 
         if (result == null || result.hasEnded()) {
@@ -100,10 +100,12 @@ public final class Server extends Thread implements Service {
             System.out.println("Central Registry: creating new pool: \""
                     + poolName + "\"");
 
-            result = new Pool(poolName, socketFactory, heartbeatInterval,
-                    eventPushInterval, gossip, gossipInterval,
-                    adaptGossipInterval, tree, closedWorld, poolSize,ibisImplementationIdentifier,
-                    printEvents, printErrors, stats);
+            result =
+                new Pool(poolName, socketFactory, heartbeatInterval,
+                        eventPushInterval, gossip, gossipInterval,
+                        adaptGossipInterval, tree, closedWorld, poolSize,
+                        ibisImplementationIdentifier, printEvents, printErrors,
+                        stats);
             pools.put(poolName, result);
         }
 
@@ -154,24 +156,15 @@ public final class Server extends Thread implements Service {
             }
 
             if (pools.size() > 0) {
+                if (printStats) {
+                    System.out.println("list of pools:\n");
+                    System.out.println("NAME               CURRENT_SIZE EVENT_TIME JOINS LEAVES DIEDS ELECTIONS SIGNALS FIXED_SIZE CLOSED ENDED\n");
+                }
 
-                StringBuilder message = new StringBuilder();
-
-                Formatter formatter = new Formatter(message);
-                formatter.format("list of pools:\n");
-                formatter
-                        .format("NAME               CLOSED  FIXED_SIZE  CURRENT_SIZE  EVENT_TIME\n");
-
-                //copy values to new array so we can do "remove" on original
+                // copy values to new array so we can do "remove" on original
                 for (Pool pool : pools.values().toArray(new Pool[0])) {
-                    if (pool.isClosedWorld()) {
-                    formatter.format("%-17s  %6b  %10d  %12d  %10d\n", pool
-                            .getName(), pool.isClosed(), pool.getFixedSize(),
-                            pool.getSize(), pool.getEventTime());
-                    } else {
-                        formatter.format("%-17s  %6s  %10s  %12d  %10d\n", pool
-                                .getName(), "N.A.", "N.A.",
-                                pool.getSize(), pool.getEventTime());
+                    if (printStats) {
+                        System.out.println(pool.getStats());
                     }
 
                     if (pool.stale()) {
@@ -181,9 +174,6 @@ public final class Server extends Thread implements Service {
                         }
                     }
 
-                }
-                if (printStats) {
-                    System.out.println(message);
                 }
 
             }

@@ -15,6 +15,7 @@ IPL:
   we are naming our ibis :(
 ? add timeout version of registry.elect()
 ? throw nested exception ending with failed ibis instead of just the failed Ibis?
+? rename CLOSEDWORLD capability to CLOSED_WORLD
 
 management:
 + add basic network usage statistics to Ibis. (Which ones? --Ceriel)
@@ -29,6 +30,7 @@ ibis registry:
 + add some more pool related prints to the registry server (Done, Niels)
 + add precise definition of "closed world pool" somewhere
   (Done Ceriel: added clarification in IbisCapabilities.java)
++ keep per-pool statistics at server (Done, Niels)
 
 applications:
 -/+ remove old-n-useless applications (if any)
@@ -63,6 +65,7 @@ packaging/distribution:
     + log4j.properties (Done, Niels)
     + ibis.properties.example (Done, Niels)
     - smartsockets.properties
+? do we want ibis-run to use ibis.impl.path or add everything to the classpath?
   
 website:
 - update "ibis" overview picture with new/changed implementations
