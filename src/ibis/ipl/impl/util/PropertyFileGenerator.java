@@ -1,4 +1,4 @@
-package ibisApps.propertyFileGenerator;
+package ibis.ipl.impl.util;
 
 import ibis.ipl.IbisProperties;
 import ibis.ipl.impl.registry.central.RegistryProperties;
