@@ -26,10 +26,10 @@ import java.util.jar.Manifest;
  * available. It does so by finding all jar files in either the class path or
  * all jar files in the directories indicated by the ibis.ipl.impl.path
  * property. All Ibis implementations should be mentioned in the main properties
- * of the manifest of the jar file containing it, in the "Ibis-Starter"
- * entry. This entry should contain a comma- or space-separated list of class
- * names, where each class named provides an {@link IbisStarter} implementation.
- * In addition, a property "Ibis-Version" should be defined in the manifest,
+ * of the manifest of the jar file containing it, in the "Ibis-Starter" entry.
+ * This entry should contain a comma- or space-separated list of class names,
+ * where each class named provides an {@link IbisStarter} implementation. In
+ * addition, a property "Ibis-Version" should be defined in the manifest,
  * containing a version number starting with 2.0.
  */
 public final class IbisFactory {
@@ -39,7 +39,8 @@ public final class IbisFactory {
 
     // Map of factories. One for each implementation path
     private static final Map<String, IbisFactory> factories =
-            new HashMap<String, IbisFactory>();
+        new HashMap<String, IbisFactory>();
+
     private static IbisFactory defaultFactory;
 
     static final String VERSION = "2.0";
@@ -49,9 +50,9 @@ public final class IbisFactory {
      * properties.
      * 
      * @param inputStream
-     *          the input stream.
+     *            the input stream.
      * @param properties
-     *          the properties.
+     *            the properties.
      */
     private static void load(InputStream inputStream, Properties properties) {
         if (inputStream != null) {
@@ -78,15 +79,15 @@ public final class IbisFactory {
 
             // Load properties from the classpath
             ClassLoader classLoader = ClassLoader.getSystemClassLoader();
-            InputStream inputStream = classLoader.getResourceAsStream(
-                    IbisProperties.PROPERTIES_FILENAME);
+            InputStream inputStream =
+                classLoader.getResourceAsStream(IbisProperties.PROPERTIES_FILENAME);
             load(inputStream, defaultConfigProperties);
 
             // See if there is an ibis.properties file in the current
             // directory.
             try {
-                inputStream = new FileInputStream(
-                        IbisProperties.PROPERTIES_FILENAME);
+                inputStream =
+                    new FileInputStream(IbisProperties.PROPERTIES_FILENAME);
                 load(inputStream, defaultConfigProperties);
             } catch (FileNotFoundException e) {
                 // ignored
@@ -96,8 +97,7 @@ public final class IbisFactory {
 
             // Then see if the user specified an properties file.
             String file =
-                    systemProperties
-                            .getProperty(IbisProperties.PROPERTIES_FILE);
+                systemProperties.getProperty(IbisProperties.PROPERTIES_FILE);
             if (file != null) {
                 try {
                     inputStream = new FileInputStream(file);
@@ -110,8 +110,7 @@ public final class IbisFactory {
 
             // Finally, add the properties from the command line to the result,
             // possibly overriding entries from file or the defaults.
-            for (Enumeration e = systemProperties.propertyNames(); e
-                    .hasMoreElements();) {
+            for (Enumeration e = systemProperties.propertyNames(); e.hasMoreElements();) {
                 String key = (String) e.nextElement();
                 String value = systemProperties.getProperty(key);
                 defaultConfigProperties.setProperty(key, value);
@@ -126,7 +125,7 @@ public final class IbisFactory {
             if (defaultFactory == null) {
                 defaultFactory = new IbisFactory(null);
             }
-            
+
             return defaultFactory;
         } else {
             IbisFactory factory = factories.get(implPath);
@@ -135,27 +134,30 @@ public final class IbisFactory {
                 factory = new IbisFactory(implPath);
                 factories.put(implPath, factory);
             }
-            
+
             return factory;
         }
     }
 
     private Class[] implList;
+
     private IbisStarter[] starters;
+
     private boolean verbose = false;
+
     private String ibisName = null;
 
     /**
      * Constructs an Ibis factory, with the specified search path.
      * 
      * @param implPath
-     *          the path to search for implementations.
+     *            the path to search for implementations.
      */
     private IbisFactory(String implPath) {
         // Obtain a list of Ibis implementations
         ClassLister clstr = ClassLister.getClassLister(implPath);
         List<Class> compnts =
-                clstr.getClassList("Ibis-Starter", IbisStarter.class, VERSION);
+            clstr.getClassList("Ibis-Starter", IbisStarter.class, VERSION);
         implList = compnts.toArray(new Class[compnts.size()]);
         starters = new IbisStarter[implList.length];
     }
@@ -165,25 +167,24 @@ public final class IbisFactory {
      * types.
      * 
      * @param requiredCapabilities
-     *          ibis capabilities required by the application.
+     *            ibis capabilities required by the application.
      * @param registryEventHandler
-     *          a {@link ibis.ipl.RegistryEventHandler RegistryEventHandler}
-     *          instance, or <code>null</code>.
+     *            a {@link ibis.ipl.RegistryEventHandler RegistryEventHandler}
+     *            instance, or <code>null</code>.
      * @param portTypes
-     *          the list of port types required by the application.
-     * @return
-     *          the new Ibis instance.
+     *            the list of port types required by the application.
+     * @return the new Ibis instance.
      * 
      * @exception IbisCreationFailedException
-     *          is thrown when no Ibis was found that matches the
-     *          capabilities required, or a matching Ibis could not be
-     *          instantiated for some reason.
+     *                is thrown when no Ibis was found that matches the
+     *                capabilities required, or a matching Ibis could not be
+     *                instantiated for some reason.
      */
     public static Ibis createIbis(IbisCapabilities requiredCapabilities,
             RegistryEventHandler registryEventHandler, PortType... portTypes)
             throws IbisCreationFailedException {
         return createIbis(requiredCapabilities, null, true,
-                registryEventHandler, portTypes);
+            registryEventHandler, portTypes);
     }
 
     /**
@@ -191,26 +192,25 @@ public final class IbisFactory {
      * types, and using the specified properties.
      * 
      * @param requiredCapabilities
-     *          ibis capabilities required by the application.
+     *            ibis capabilities required by the application.
      * @param properties
-     *          properties that can be set, for instance a class path for
-     *          searching ibis implementations, or which registry to use.
-     *          There is a default, so <code>null</code> may be specified.
+     *            properties that can be set, for instance a class path for
+     *            searching ibis implementations, or which registry to use.
+     *            There is a default, so <code>null</code> may be specified.
      * @param addDefaultConfigProperties
-     *          adds the default hard-wired properties, for as far as these
-     *          are not set in the <code>properties</code> parameter.
+     *            adds the default hard-wired properties, for as far as these
+     *            are not set in the <code>properties</code> parameter.
      * @param registryEventHandler
-     *          a {@link ibis.ipl.RegistryEventHandler RegistryEventHandler}
-     *          instance, or <code>null</code>.
+     *            a {@link ibis.ipl.RegistryEventHandler RegistryEventHandler}
+     *            instance, or <code>null</code>.
      * @param portTypes
-     *          the list of port types required by the application.
-     * @return
-     *          the new Ibis instance.
+     *            the list of port types required by the application.
+     * @return the new Ibis instance.
      * 
      * @exception IbisCreationFailedException
-     *          is thrown when no Ibis was found that matches the
-     *          capabilities required, or a matching Ibis could not be
-     *          instantiated for some reason.
+     *                is thrown when no Ibis was found that matches the
+     *                capabilities required, or a matching Ibis could not be
+     *                instantiated for some reason.
      */
     public static Ibis createIbis(IbisCapabilities requiredCapabilities,
             Properties properties, boolean addDefaultConfigProperties,
@@ -223,8 +223,7 @@ public final class IbisFactory {
         if (addDefaultConfigProperties) {
             Properties defaults = getDefaultProperties();
 
-            for (Enumeration e = defaults.propertyNames();
-                    e.hasMoreElements();) {
+            for (Enumeration e = defaults.propertyNames(); e.hasMoreElements();) {
                 String key = (String) e.nextElement();
                 String value = defaults.getProperty(key);
                 combinedProperties.setProperty(key, value);
@@ -233,24 +232,24 @@ public final class IbisFactory {
 
         // add user properties
         if (properties != null) {
-            for (Enumeration e = properties.propertyNames(); e
-                    .hasMoreElements();) {
+            for (Enumeration e = properties.propertyNames(); e.hasMoreElements();) {
                 String key = (String) e.nextElement();
                 String value = properties.getProperty(key);
                 combinedProperties.setProperty(key, value);
             }
         }
-        
+
         String implPath =
-                combinedProperties.getProperty(IbisProperties.IMPL_PATH);
+            combinedProperties.getProperty(IbisProperties.IMPL_PATH);
         IbisFactory factory = getFactory(implPath);
 
         return factory.createIbis(registryEventHandler, requiredCapabilities,
-                        combinedProperties, portTypes);
+            combinedProperties, portTypes);
     }
 
     private List<IbisStarter> findIbisStack(IbisCapabilities capabilities,
-            PortType[] portTypes, List<IbisStarter> selected, String ibisName) {
+            PortType[] portTypes, List<IbisStarter> selected, String ibisName,
+            IbisCreationFailedException creationException) {
 
         IbisCapabilities caps = capabilities;
         PortType[] types = portTypes;
@@ -260,44 +259,47 @@ public final class IbisFactory {
             IbisStarter starter = starters[i];
             // If it is selectable, or an Ibis name was specified,
             // try it.
-            if ((starter.isSelectable() || ibisName != null) &&
-                    ! starter.isStacking()) {
+            if ((starter.isSelectable() || ibisName != null)
+                    && !starter.isStacking()) {
                 if (verbose) {
                     System.err.println("Matching with " + implList[i]);
                 }
                 if (starter.matches(caps, types)) {
                     selected.add(starter);
                     if (verbose) {
-                        System.err.println("Class " + implList[i]
-                                + " selected");
+                        System.err.println("Class " + implList[i] + " selected");
                     }
                     return selected;
                 }
                 // Find out why it did not match.
-                if (verbose) {
-                    String unmatchedCapabilities
-                        = starter.unmatchedIbisCapabilities().toString();
-                    PortType[] unmatchedTypes
-                        = starter.unmatchedPortTypes();
-                    StringBuffer str = new StringBuffer();
-                    str.append("Unmatched IbisCapabilities: ");
-                    str.append(unmatchedCapabilities);
-                    if (unmatchedTypes.length > 0) {
-                        str.append("\nUnmatched PortTypes: ");
-                        for (PortType tp: unmatchedTypes) {
-                            str.append("    ");
-                            str.append(tp.toString());
-                            str.append("\n");
-                        }
-                    } else {
+                String unmatchedCapabilities =
+                    starter.unmatchedIbisCapabilities().toString();
+                PortType[] unmatchedTypes = starter.unmatchedPortTypes();
+                StringBuffer str = new StringBuffer();
+                str.append("Unmatched IbisCapabilities: ");
+                str.append(unmatchedCapabilities);
+                if (unmatchedTypes.length > 0) {
+                    str.append("\nUnmatched PortTypes: ");
+                    for (PortType tp : unmatchedTypes) {
+                        str.append("    ");
+                        str.append(tp.toString());
                         str.append("\n");
                     }
+                } else {
+                    str.append("\n");
+                }
+                creationException.add(implList[i].toString(),
+                    new IbisConfigurationException(str.toString()));
+                
+                if (verbose) {
                     System.err.println("Class " + implList[i]
                             + " does not match:\n" + str.toString());
                 }
-            } else if (verbose) {
-                System.err.println("Class " + implList[i]
+            } else {
+                if (verbose) {
+                    System.err.println("Class " + implList[i]
                             + " is stacking or not selectable.");
+                }
             }
         }
 
@@ -305,21 +307,21 @@ public final class IbisFactory {
         for (int i = 0; i < starters.length; i++) {
             IbisStarter starter = starters[i];
             if ((starter.isSelectable() || ibisName != null)
-                    && starter.isStacking() && ! selected.contains(starter)
+                    && starter.isStacking() && !selected.contains(starter)
                     && starter.matches(caps, types)) {
                 if (verbose) {
-                    System.err.println("Class " + implList[i]
-                            + " selected");
+                    System.err.println("Class " + implList[i] + " selected");
                 }
-                List<IbisStarter> newList = findIbisStack(
-                        new IbisCapabilities(
-                                starter.unmatchedIbisCapabilities()),
+                List<IbisStarter> newList =
+                    findIbisStack(new IbisCapabilities(
+                            starter.unmatchedIbisCapabilities()),
                         starter.unmatchedPortTypes(),
-                        new ArrayList<IbisStarter>(selected),
-                        null);
+                        new ArrayList<IbisStarter>(selected), null, null);
                 if (newList != null) {
                     return newList;
                 }
+                creationException.add(implList[i].toString(),
+                    new IbisConfigurationException("Could not create valid stack with this ibis on top"));
             }
         }
 
@@ -334,19 +336,16 @@ public final class IbisFactory {
         String verboseValue = properties.getProperty(IbisProperties.VERBOSE);
         // see if the user specified "verbose"
         verbose =
-                verboseValue != null
-                        && (verboseValue.equals("1")
-                                || verboseValue.equals("on")
-                                || verboseValue.equals("")
-                                || verboseValue.equals("true") || verboseValue
-                                .equals("yes"));
+            verboseValue != null
+                    && (verboseValue.equals("1") || verboseValue.equals("on")
+                            || verboseValue.equals("")
+                            || verboseValue.equals("true") || verboseValue.equals("yes"));
 
         if (verbose) {
             System.err.println("Looking for an Ibis with capabilities: "
                     + requiredCapabilities);
             System.err.println("(ibis) Properties:");
-            for (Enumeration e = properties.propertyNames();
-                    e.hasMoreElements();) {
+            for (Enumeration e = properties.propertyNames(); e.hasMoreElements();) {
                 String key = (String) e.nextElement();
                 if (key.startsWith("ibis")) {
                     String value = properties.getProperty(key);
@@ -368,7 +367,6 @@ public final class IbisFactory {
             requiredCapabilities = new IbisCapabilities(newCapabilities);
         }
 
-
         if (verbose) {
             StringBuffer str = new StringBuffer();
             str.append("Ibis implementations:");
@@ -379,16 +377,16 @@ public final class IbisFactory {
             System.err.println(str.toString());
         }
 
-        IbisCreationFailedException nested =
-                new IbisCreationFailedException("Ibis creation failed");
+        IbisCreationFailedException creationException =
+            new IbisCreationFailedException("Ibis creation failed");
 
         //
         // Factory does some initial sanity checks.
         // Port types can only specify a single connection capability,
         // and must specify a serialization.
-        
+
         boolean faulty = false;
-        for (PortType tp: portTypes) {
+        for (PortType tp : portTypes) {
             // Check sanity of port types.
             int cnt = 0;
             if (tp.hasCapability(PortType.CONNECTION_MANY_TO_MANY)) {
@@ -404,8 +402,8 @@ public final class IbisFactory {
                 cnt++;
             }
             if (cnt != 1) {
-                nested.add("Ibis factory",
-                        new IbisConfigurationException("PortType " + tp
+                creationException.add("Ibis factory",
+                    new IbisConfigurationException("PortType " + tp
                             + " should specify exactly one connection type"));
                 faulty = true;
             }
@@ -417,10 +415,10 @@ public final class IbisFactory {
                     break;
                 }
             }
-            if (! ok) {
-                nested.add("Ibis factory",
+            if (!ok) {
+                creationException.add("Ibis factory",
                     new IbisConfigurationException("Port type " + tp
-                        + " should specify serialization"));
+                            + " should specify serialization"));
                 faulty = true;
             }
         }
@@ -429,20 +427,19 @@ public final class IbisFactory {
         // must be requested as well.
 
         if (registryEventHandler != null
-                && !requiredCapabilities.hasCapability(
-                    IbisCapabilities.MEMBERSHIP_UNRELIABLE)
-                && !requiredCapabilities.hasCapability(
-                    IbisCapabilities.MEMBERSHIP_TOTALLY_ORDERED)) {
-            nested.add("Ibis factory", new IbisConfigurationException(
-                    "RegistryEventHandler specified but no "
-                            + " membership capability requested"));
+                && !requiredCapabilities.hasCapability(IbisCapabilities.MEMBERSHIP_UNRELIABLE)
+                && !requiredCapabilities.hasCapability(IbisCapabilities.MEMBERSHIP_TOTALLY_ORDERED)) {
+            creationException.add("Ibis factory",
+                new IbisConfigurationException(
+                        "RegistryEventHandler specified but no "
+                                + " membership capability requested"));
             faulty = true;
         }
 
         if (faulty) {
             // There is some error in the user-specified capabilities or
             // port types.
-            throw nested;
+            throw creationException;
         }
 
         for (int i = 0; i < implList.length; i++) {
@@ -456,7 +453,7 @@ public final class IbisFactory {
                 starters[i] = (IbisStarter) starterClass.newInstance();
             } catch (Throwable e) {
                 // Oops, could not instantiate starter.
-                nested.add(starterClass.getName(), e);
+                creationException.add(starterClass.getName(), e);
                 faulty = true;
                 if (verbose) {
                     System.err.println("Could not instantiate "
@@ -469,20 +466,22 @@ public final class IbisFactory {
         if (faulty) {
             // There is some error in the configuration: one or more of
             // the starter classes could not be instantiated.
-            throw nested;
-        }
-        
-        List<IbisStarter> stack = findIbisStack(requiredCapabilities,
-                portTypes, new ArrayList<IbisStarter>(), ibisName);
-        
-        if (stack != null) {
-            IbisStarter starter = stack.remove(0);
-            return starter.startIbis(stack, registryEventHandler, properties);
+            throw creationException;
         }
 
-        nested.add("Ibis factory",
+        List<IbisStarter> stack =
+            findIbisStack(requiredCapabilities, portTypes,
+                new ArrayList<IbisStarter>(), ibisName, creationException);
+
+        if (stack == null) {
+            creationException.add("Ibis factory",
                 new IbisConfigurationException("No matching Ibis found"));
-        throw nested;
+            throw creationException;
+        }
+
+        IbisStarter starter = stack.remove(0);
+
+        return starter.startIbis(stack, registryEventHandler, properties);
     }
 
     /**
@@ -497,7 +496,7 @@ public final class IbisFactory {
         private ClassLoader ld = null;
 
         private static HashMap<String, ClassLister> listers =
-                new HashMap<String, ClassLister>();
+            new HashMap<String, ClassLister>();
 
         private static ClassLister classPathLister = null;
 
@@ -508,8 +507,8 @@ public final class IbisFactory {
          * the classpath are used instead.
          * 
          * @param dirList
-         *      a list of directories, or <code>null</code>, in which
-         *      the classpath is used to find jar files.
+         *            a list of directories, or <code>null</code>, in which
+         *            the classpath is used to find jar files.
          */
         private ClassLister(String dirList) {
             if (dirList != null) {
@@ -539,10 +538,9 @@ public final class IbisFactory {
          * the classpath are used instead.
          * 
          * @param dirList
-         *      a list of directories, or <code>null</code>, in which
-         *      the classpath is used to find jar files.
-         * @return
-         *      the required <code>ClassLister</code>.
+         *            a list of directories, or <code>null</code>, in which
+         *            the classpath is used to find jar files.
+         * @return the required <code>ClassLister</code>.
          */
         private static synchronized ClassLister getClassLister(String dirList) {
             if (dirList == null) {
@@ -569,7 +567,7 @@ public final class IbisFactory {
             String classPath = System.getProperty("java.class.path");
             if (classPath != null) {
                 StringTokenizer st =
-                        new StringTokenizer(classPath, File.pathSeparator);
+                    new StringTokenizer(classPath, File.pathSeparator);
                 while (st.hasMoreTokens()) {
                     String jar = st.nextToken();
                     File f = new File(jar);
@@ -616,14 +614,14 @@ public final class IbisFactory {
          * later on.
          * 
          * @param dirList
-         *      list of directories to search, separator is
-         *      <code>java.io.File.pathSeparator</code>.
+         *            list of directories to search, separator is
+         *            <code>java.io.File.pathSeparator</code>.
          */
         protected void readJarFiles(String dirList) {
             ArrayList<JarFile> jarList = new ArrayList<JarFile>();
 
             StringTokenizer st =
-                    new StringTokenizer(dirList, File.pathSeparator);
+                new StringTokenizer(dirList, File.pathSeparator);
 
             while (st.hasMoreTokens()) {
                 String dir = st.nextToken();
@@ -640,11 +638,10 @@ public final class IbisFactory {
          * attribute values are loaded.
          * 
          * @param attribName
-         *      the manifest attribute name.
+         *            the manifest attribute name.
          * @param version
-         *      required version, or null.
-         * @return
-         *      the list of classes.
+         *            required version, or null.
+         * @return the list of classes.
          */
         private List<Class> getClassList(String attribName, String version) {
             ArrayList<Class> list = new ArrayList<Class>();
@@ -662,14 +659,14 @@ public final class IbisFactory {
                     if (version != null) {
                         String jarVersion = ab.getValue("Ibis-Version");
                         if (jarVersion == null
-                                || ! jarVersion.startsWith(version)) {
+                                || !jarVersion.startsWith(version)) {
                             continue;
                         }
                     }
                     String classNames = ab.getValue(attribName);
                     if (classNames != null) {
                         StringTokenizer st =
-                                new StringTokenizer(classNames, ", ");
+                            new StringTokenizer(classNames, ", ");
                         while (st.hasMoreTokens()) {
                             String className = st.nextToken();
                             try {
@@ -698,14 +695,13 @@ public final class IbisFactory {
          * implementations of it.
          * 
          * @param attribName
-         *      the manifest attribute name.
+         *            the manifest attribute name.
          * @param clazz
-         *      the class of which the returned classes are
-         *      implementations or extensions.
+         *            the class of which the returned classes are
+         *            implementations or extensions.
          * @param version
-         *      required version, or null.
-         * @return
-         *      the list of classes.
+         *            required version, or null.
+         * @return the list of classes.
          */
         private List<Class> getClassList(String attribName, Class<?> clazz,
                 String version) {
@@ -714,8 +710,7 @@ public final class IbisFactory {
             for (Class<?> cl : list) {
                 if (!clazz.isAssignableFrom(cl)) {
                     throw new Error("Class " + cl.getName()
-                            + " cannot be assigned to class "
-                            + clazz.getName());
+                            + " cannot be assigned to class " + clazz.getName());
                 }
             }
             return list;
