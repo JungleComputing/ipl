@@ -85,6 +85,16 @@ implementations:
 - fix/improve performance of MpiIbis
 - Implement multi Ibis.
 - Implement LRMC Ibis
+    opmerking over cluster aware LRMC:
+       Ik heb er nu even een compare van de toString van de location van
+       gemaakt. Lijkt te werken. Maar eigenlijk moet het misschien maar een
+       soort for loop over alle levels in de location worden denk ik.
+
+       Yup. Iets als 'van groot naar klein' en eruit breaken als er een verschil
+       is. Net als bij DNS zal ik maar zeggen. Voor elk van de levels kan je dan
+       gewoon die compare van toString doen...
+
+
 - benchmark serialisation. Especially focus on the performance gain when
   rewriting the classlibs. This functionality is rather tricky, if it doesn't
   gain us anything anymore, we might as well remove it.
