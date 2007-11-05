@@ -1,68 +1,63 @@
 <project name="Ibis IPL benchmarks" default="build" basedir=".">
 
-    <description>
-	Build file for the Ibis IPL benchmark applications.
+        <description>
+	Build file for the Ibis IPL benchmarks.
     </description>
 
-    <!-- Global properties -->
+        <!-- Global properties -->
 
-    <property name="ibis"        location=".."/>
+        <property name="ibis" location=".." />
 
-    <property name="src" location="src" />
-    <property name="tmp" location="tmp" />
-    <property name="lib" location="lib" />
-    <property name="jar" location="${lib}/ipl-benchmarks.jar" />
+        <property name="src" location="src" />
+        <property name="tmp" location="tmp" />
+        <property name="lib" location="lib" />
+        <property name="jar" location="lib/ipl-benchmarks${version}.jar" />
 
-    <target name="init">
-	<!-- Create the time stamp -->
-	<tstamp />
+        <target name="build" description="build the benchmarks">
+                <!-- Clean up -->
+                <delete dir="${tmp}" />
+                <delete dir="${lib}" />
 
-	<!-- Create the build directory structure used by compile -->
-	<mkdir dir="${tmp}" />
-	<mkdir dir="${lib}" />
-    </target>
 
-    <target name="set-classpath">
-	<path id="default.classpath">
-	    <fileset dir="${ibis}/lib">
-		<include name="*.jar"/>
-	    </fileset>
-	</path>
-    </target>
+                <!-- Create the time stamp -->
+                <tstamp />
 
-    <target name="compile" depends="clean,init,set-classpath"
-	description="Compile the application sources">
-	<!-- Compile the java code from ${src} into ${tmp} -->
-	<javac srcdir="${src}" destdir="${tmp}" debug="on" >
-            <classpath refid="default.classpath" />
-	    <compilerarg value="-Xlint:unchecked"/>
-	</javac>
+                <!-- Create the build directory structure used by compile -->
+                <mkdir dir="${tmp}" />
+                <mkdir dir="${lib}" />
 
-    </target>
+                <path id="default.classpath">
+                        <fileset dir="${ibis}/lib">
+                                <include name="*.jar" />
+                        </fileset>
+                </path>
 
-    <target name="ibisc" depends="compile">
-	<java   classname="ibis.frontend.Ibisc"
-		taskname="Ibisc"
-		failonerror="true"
-		dir="${tmp}"
-		fork="true">
-		<arg line="."/>
-	    <classpath refid="default.classpath"/>
-	</java>
-    </target>
+                <!-- Compile the java code from ${src} into ${tmp} -->
+                <javac srcdir="${src}" destdir="${tmp}" debug="on">
+                        <classpath refid="default.classpath" />
+                        <compilerarg value="-Xlint:unchecked" />
+                </javac>
 
-    <target name="build" depends="ibisc" description="build the JAR file">
+                <java classname="ibis.frontend.Ibisc"
+                      taskname="Ibisc"
+                      failonerror="true"
+                      dir="${tmp}"
+                      fork="true">
+                        <arg line="." />
+                        <classpath refid="default.classpath" />
+                </java>
 
-	<!-- Put everything in ${tmp} into the jar file -->
-	<jar jarfile="${jar}" basedir="${tmp}" />
 
-	<!-- And delete the build dir -->
-	<delete dir="${tmp}" />
-    </target>
+                <!-- Put everything in ${tmp} into the jar file -->
+                <jar jarfile="${jar}" basedir="${tmp}" />
 
-    <target name="clean" description="clean up">
-	<delete dir="${tmp}" />
-	<delete dir="${lib}" />
-    </target>
+                <!-- And delete the build dir -->
+                <delete dir="${tmp}" />
+        </target>
+
+        <target name="clean" description="clean up">
+                <delete dir="${tmp}" />
+                <delete dir="${lib}" />
+        </target>
 
 </project>

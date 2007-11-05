@@ -30,8 +30,6 @@ add_to_libclasspath () {
 # Add the jar files in the Ibis lib dir to the classpath.
 add_to_libclasspath "${IBIS_HOME}"/lib
 
-# and lib ...
-if [ -d lib ] ; then add_to_libclasspath lib ; fi
 
 # Put value of environment variable CLASSPATH in front, if present.
 if [ -z "$CLASSPATH" ] ; then

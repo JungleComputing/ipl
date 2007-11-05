@@ -26,9 +26,6 @@ add_to_libclasspath () {
 # Add the jar files in the Ibis lib dir to the classpath.
 add_to_libclasspath "${IBIS_HOME}"/lib
 
-# and lib ...
-if [ -d lib ] ; then add_to_libclasspath lib ; fi
-
 # And finally, run ...
 java \
     -classpath "$CLASSPATH:$LIBCLASSPATH" \

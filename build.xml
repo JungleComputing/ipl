@@ -1,209 +1,254 @@
 <project name="Ibis" default="build" basedir=".">
-    <description>
+        <description>
 	Build file for Ibis
     </description>
 
-    <target name="build"
-	    description="Build Ibis"
-	    depends="clean,compile,javadoc,examples"/>
+        <target name="build"
+                description="Build Ibis"
+                depends="clean,compile,javadoc,examples,benchmarks" />
 
-    <!-- Names for generated directories. -->
-    <property name="tmp" location="tmp" />
-    <property name="lib" location="lib" />
-    <property name="rewritten-classlibs" location="classlibs" />
-    <property name="generated-sources" value="sources" />
-    <property name="javadoc" value="javadoc" />
+        <!-- Names for generated directories. -->
+        <property name="tmp" location="tmp" />
+        <property name="lib" location="lib" />
+        <property name="rewritten-classlibs" location="classlibs" />
+        <property name="generated-sources" value="sources" />
+        <property name="javadoc" value="javadoc" />
 
-    <property name="version" value="-2.0rc1" />
+        <property name="version" value="-2.0rc1" />
 
-    <!-- import environment properties -->
-    <property environment="env" />
+        <!-- import environment properties -->
+        <property environment="env" />
 
-    <path id="external.jars">
-        <fileset dir="external">
-            <include name="*.jar" />
-        </fileset>
-    </path>
+        <path id="external.jars">
+                <fileset dir="external">
+                        <include name="*.jar" />
+                </fileset>
+        </path>
 
-    <path id="default.classpath">
-        <fileset dir="external">
-            <include name="*.jar" />
-        </fileset>
-        <fileset dir="${lib}">
-            <include name="*.jar" />
-        </fileset>
-        <pathelement path="${tmp}" />
-    </path>
+        <path id="default.classpath">
+                <fileset dir="external">
+                        <include name="*.jar" />
+                </fileset>
+                <fileset dir="${lib}">
+                        <include name="*.jar" />
+                </fileset>
+                <pathelement path="${tmp}" />
+        </path>
 
-    <!-- Compile ibis -->
-    <target name="compile">
-        <mkdir dir="${tmp}" />
-        <mkdir dir="${lib}" />
-        <mkdir dir="${javadoc}" />
+        <!-- Compile ibis -->
+        <target name="compile">
+                <mkdir dir="${tmp}" />
+                <mkdir dir="${lib}" />
+                <mkdir dir="${javadoc}" />
 
-        <!-- Compile the java code from src into ${tmp} -->
-        <javac srcdir="src" destdir="${tmp}" debug="on">
-            <classpath refid="external.jars" />
-	    <compilerarg value="-Xlint:unchecked"/>
-        </javac>
+                <!-- Compile the java code from src into ${tmp} -->
+                <javac srcdir="src" destdir="${tmp}" debug="on">
+                        <classpath refid="external.jars" />
+                        <compilerarg value="-Xlint:unchecked" />
+                </javac>
 
-	<!--
-	    Build jar of IPL before rewriting. Otherwise a dependency of
-	    IPL on ibis-io is introduced.
-	-->
-	<jar destfile="lib/ipl${version}.jar">
-	    <fileset dir="${tmp}" includes="ibis/ipl/*.class"/>
-	    <fileset dir="." includes="LICENSE.txt"/>
-	</jar>
+                <!--
+	    	Build jar of IPL before rewriting. Otherwise a dependency of
+	    	IPL on ibis-io is introduced.
+		-->
+                <jar destfile="lib/ipl${version}.jar">
+                        <fileset dir="${tmp}" includes="ibis/ipl/*.class" />
+                        <fileset dir="." includes="LICENSE.txt" />
+                </jar>
 
-        <!-- Run Ibisc -->
-        <java classname="ibis.frontend.Ibisc" taskname="Ibisc" failonerror="true" dir="${tmp}" maxmemory="512m" fork="true">
-	    <arg line="." />
-            <classpath refid="default.classpath" />
-        </java>
+                <!-- Run Ibisc -->
+                <java classname="ibis.frontend.Ibisc"
+                      taskname="Ibisc"
+                      failonerror="true"
+                      dir="${tmp}"
+                      maxmemory="512m"
+                      fork="true">
+                        <arg line="." />
+                        <classpath refid="default.classpath" />
+                </java>
 
-       	<!-- set the "TIMESTAMP" variable -->    	
-    	<tstamp>
-    	      <format property="TIMESTAMP" pattern="yyyy-MM-dd HH:mm:ss:SSS "/>
-  	</tstamp>
-    	
-        <!-- Create jar files -->
-    	
+                <!-- set the "TIMESTAMP" variable -->
+                <tstamp>
+                        <format property="TIMESTAMP"
+                                pattern="yyyy-MM-dd HH:mm:ss:SSS " />
+                </tstamp>
 
-	<jar destfile="lib/ipl-impl${version}.jar">
-	    <fileset dir="${tmp}" includes="ibis/ipl/impl/*.class ibis/ipl/impl/registry/**/*.class ibis/ipl/impl/util/**/*.class ibis/ipl/util/**/*.class"/>
-	    <fileset dir="." includes="LICENSE.txt"/>
-            <manifest>
-                <attribute name="Ibis-Service" value="ibis.ipl.impl.registry.central.server.Server, ibis.ipl.impl.registry.gossip.BootstrapService" />
-            </manifest>
-	</jar>
-	<jar destfile="lib/ibis-impl-tcp${version}.jar">
-	    <fileset dir="${tmp}" includes="ibis/ipl/impl/tcp/**/*.class"/>
-	    <fileset dir="." includes="LICENSE.txt"/>
-            <manifest>
-                <attribute name="Ibis-Starter" value="ibis.ipl.impl.tcp.TcpIbisStarter" />
-                <attribute name="Ibis-Version" value="2.0"/> 
-    		<attribute name="Implementation-Version" value="${TIMESTAMP}"/>
-            </manifest>
-        </jar>
-	<jar destfile="lib/ibis-impl-nio${version}.jar">
-	    <fileset dir="${tmp}" includes="ibis/ipl/impl/nio/**/*.class"/>
-	    <fileset dir="." includes="LICENSE.txt"/>
-            <manifest>
-                <attribute name="Ibis-Starter" value="ibis.ipl.impl.nio.NioIbisStarter" />
-                <attribute name="Ibis-Version" value="2.0"/>
-		<attribute name="Implementation-Version" value="${TIMESTAMP}"/>
-            </manifest>
-        </jar>
-	<jar destfile="lib/ibis-impl-dummy${version}.jar">
-	    <fileset dir="${tmp}" includes="ibis/ipl/impl/stacking/dummy/**/*.class"/>
-	    <fileset dir="." includes="LICENSE.txt"/>
-            <manifest>
-                <attribute name="Ibis-Starter" value="ibis.ipl.impl.stacking.dummy.StackingIbisStarter" />
-                <attribute name="Ibis-Version" value="2.0" />
-		<attribute name="Implementation-Version" value="${TSTAMP}"/>
-            </manifest>
-        </jar>
+                <!-- Create jar files -->
 
-        <!-- Copy external libraries to lib directory -->
-        <copy todir="${lib}">
-            <fileset dir="external" />
-        </copy>
 
-        <delete dir="${tmp}" />
-    </target>
+                <jar destfile="lib/ipl-impl${version}.jar">
+                        <fileset dir="${tmp}"
+                                 includes="ibis/ipl/impl/*.class ibis/ipl/impl/registry/**/*.class ibis/ipl/impl/util/**/*.class ibis/ipl/util/**/*.class" />
+                        <fileset dir="." includes="LICENSE.txt" />
+                        <manifest>
+                                <attribute name="Ibis-Service"
+                                           value="ibis.ipl.impl.registry.central.server.Server, ibis.ipl.impl.registry.gossip.BootstrapService" />
+                        </manifest>
+                </jar>
+                <jar destfile="lib/ibis-impl-tcp${version}.jar">
+                        <fileset dir="${tmp}"
+                                 includes="ibis/ipl/impl/tcp/**/*.class" />
+                        <fileset dir="." includes="LICENSE.txt" />
+                        <manifest>
+                                <attribute name="Ibis-Starter"
+                                           value="ibis.ipl.impl.tcp.TcpIbisStarter" />
+                                <attribute name="Ibis-Version" value="2.0" />
+                                <attribute name="Implementation-Version"
+                                           value="${TIMESTAMP}" />
+                        </manifest>
+                </jar>
+                <jar destfile="lib/ibis-impl-nio${version}.jar">
+                        <fileset dir="${tmp}"
+                                 includes="ibis/ipl/impl/nio/**/*.class" />
+                        <fileset dir="." includes="LICENSE.txt" />
+                        <manifest>
+                                <attribute name="Ibis-Starter"
+                                           value="ibis.ipl.impl.nio.NioIbisStarter" />
+                                <attribute name="Ibis-Version" value="2.0" />
+                                <attribute name="Implementation-Version"
+                                           value="${TIMESTAMP}" />
+                        </manifest>
+                </jar>
+                <jar destfile="lib/ibis-impl-dummy${version}.jar">
+                        <fileset dir="${tmp}"
+                                 includes="ibis/ipl/impl/stacking/dummy/**/*.class" />
+                        <fileset dir="." includes="LICENSE.txt" />
+                        <manifest>
+                                <attribute name="Ibis-Starter"
+                                           value="ibis.ipl.impl.stacking.dummy.StackingIbisStarter" />
+                                <attribute name="Ibis-Version" value="2.0" />
+                                <attribute name="Implementation-Version"
+                                           value="${TSTAMP}" />
+                        </manifest>
+                </jar>
 
-    <!--
-       Clean up everything except the rewritten classlibs
-    -->
-    <target name="clean" description="Clean up (leaves rewritten classlibs)">
-        <delete dir="${tmp}" />
-        <delete dir="${lib}" />
-        <delete dir="${javadoc}" />
-        <delete dir="${generated-sources}" />
+                <!-- Copy external libraries to lib directory -->
+                <copy todir="${lib}">
+                        <fileset dir="external" />
+                </copy>
 
-        <delete file="ibis${version}.zip" />
-        <ant dir="docs" inheritAll="false" target="clean" />
-        <ant dir="examples" inheritAll="false" target="clean" />
-    </target>
+                <delete dir="${tmp}" />
+        </target>
 
-    <target name="examples" description="Build examples">
-        <ant dir="examples" inheritAll="false" target="build" />
-    </target>
-
-    <target name="rewrite" depends="build" description="Preprocess all serializable classes of standard Java">
-        <!-- Create a directory for the rewritten classes -->
-
-        <mkdir dir="${rewritten-classlibs}" />
-
-        <!-- Then, find and extract jars.  -->
-        <unjar dest="${rewritten-classlibs}">
-            <patternset>
-                <include name="**/*.class" />
-            </patternset>
-            <fileset dir="${env.JAVA_HOME}/jre/lib">
-                <include name="**/*.jar" />
-            </fileset>
-        </unjar>
-
-        <!-- Then, rewrite.  -->
-        <java classname="ibis.frontend.Ibisc" taskname="Ibisc" failonerror="true" maxmemory="512m" dir="${rewritten-classlibs}" fork="true">
-            <arg line="." />
-            <classpath refid="default.classpath" />
-        </java>
-    </target>
-
-    <target name="rewritten-clean" description="Clean up rewritten classlibs (except under sym links)">
         <!--
-	If ${rewritten-classlibs} is a sym-link, we let the directory
-	live on. In this case, I suppose the user knows what he is up to.
-	If it isn't a symlink (which is the normal case) go ahead and
-	throw away all your rewritten stuff.	RFHH
-	-->
-        <delete includeEmptyDirs="true">
-            <fileset dir="." followsymlinks="false">
-                <include name="classlibs/**" />
-            </fileset>
-        </delete>
-    </target>
+       	Clean up everything except the rewritten classlibs
+ 	-->
+        <target name="clean"
+                description="Clean up (leaves rewritten classlibs)">
+                <delete dir="${tmp}" />
+                <delete dir="${lib}" />
+                <delete dir="${javadoc}" />
+                <delete dir="${generated-sources}" />
 
-    <target name="javadoc" description="Create javadocs">
-	<!-- Create the javadoc directory -->
-	<delete dir="${javadoc}"/>
-	<mkdir dir="${javadoc}"/>
-	<javadoc
-		destdir="${javadoc}"
-		access="public"
-		sourcepath="src"
-		windowtitle="Ibis IPL Documentation"
-		packagenames="ibis.ipl"
-		overview="src/overview.html"
-		doctitle="Ibis IPL Documentation"
-		bottom="The Ibis project">
-	    <link href="http://java.sun.com/j2se/1.5.0/docs/api/"/>
-	</javadoc>
-    </target>
+                <delete file="ibis${version}.zip" />
+                <ant dir="docs" inheritAll="false" target="clean" />
+                <ant dir="examples" inheritAll="false" target="clean" />
+                <ant dir="benchmarks" inheritAll="false" target="clean" />
+        </target>
 
-    <target name="progman" description="Create progman.pdf">
-	<ant dir="docs" antfile="build.xml"/>
-    </target>
+        <target name="examples" description="Build examples">
+                <ant dir="examples" inheritAll="false" target="build">
+                        <property name="version" value="${version}" />
+                </ant>
 
-    <target name="ibis.zip" depends="build, progman">
-        <delete file="ibis${version}.zip" />
-	<delete dir="${generated-sources}"/>
-	<mkdir dir="${generated-sources}"/>
+        </target>
 
-	<zip destfile="${generated-sources}/ibis-src.zip">
-            <zipfileset dir="src" includes="**/*.java" prefix="ibis-src" />
-            <fileset dir="." includes="LICENSE.txt"/>
-        </zip>
+        <target name="benchmarks" description="Build examples">
+                <ant dir="benchmarks" inheritAll="false" target="build">
+                        <property name="version" value="${version}" />
+                </ant>
+        </target>
 
-        <zip destfile="ibis${version}.zip">
-	    <zipfileset dir="." prefix="ibis${version}" includes="${javadoc}/**,docs/progman.pdf,lib/**,notices/**,BUGS.txt,LICENSE.txt,${generated-sources}/ibis-src.zip,ibis.properties.example,log4j.properties,smartsockets.properties.example,examples/**" excludes="examples/.*,examples/.*/**"/>
-            <zipfileset dir="." prefix="ibis${version}" filemode="755" includes="bin/**" />
-            <zipfileset dir="." includes="docs/README-bin.txt" fullpath="ibis${version}/README.txt" />
-        </zip>
+        <target name="rewrite"
+                depends="build"
+                description="Preprocess all serializable classes of standard Java">
+                <!-- Create a directory for the rewritten classes -->
 
-    </target>
+                <mkdir dir="${rewritten-classlibs}" />
+
+                <!-- Then, find and extract jars.  -->
+                <unjar dest="${rewritten-classlibs}">
+                        <patternset>
+                                <include name="**/*.class" />
+                        </patternset>
+                        <fileset dir="${env.JAVA_HOME}/jre/lib">
+                                <include name="**/*.jar" />
+                        </fileset>
+                </unjar>
+
+                <!-- Then, rewrite.  -->
+                <java classname="ibis.frontend.Ibisc"
+                      taskname="Ibisc"
+                      failonerror="true"
+                      maxmemory="512m"
+                      dir="${rewritten-classlibs}"
+                      fork="true">
+                        <arg line="." />
+                        <classpath refid="default.classpath" />
+                </java>
+        </target>
+
+        <target name="rewritten-clean"
+                description="Clean up rewritten classlibs (except under sym links)">
+                <!--
+		If ${rewritten-classlibs} is a sym-link, we let the directory
+		live on. In this case, I suppose the user knows what he is up to.
+		If it isn't a symlink (which is the normal case) go ahead and
+		throw away all your rewritten stuff.	RFHH
+		-->
+                <delete includeEmptyDirs="true">
+                        <fileset dir="." followsymlinks="false">
+                                <include name="classlibs/**" />
+                        </fileset>
+                </delete>
+        </target>
+
+        <target name="javadoc" description="Create javadocs">
+                <!-- Create the javadoc directory -->
+                <delete dir="${javadoc}" />
+                <mkdir dir="${javadoc}" />
+                <javadoc destdir="${javadoc}"
+                         access="public"
+                         sourcepath="src"
+                         windowtitle="Ibis IPL Documentation"
+                         packagenames="ibis.ipl"
+                         overview="src/overview.html"
+                         doctitle="Ibis IPL Documentation"
+                         bottom="The Ibis project">
+                        <link href="http://java.sun.com/j2se/1.5.0/docs/api/" />
+                </javadoc>
+        </target>
+
+        <target name="progman" description="Create progman.pdf">
+                <ant dir="docs" antfile="build.xml" />
+        </target>
+
+        <target name="ibis.zip" depends="build, progman">
+                <delete file="ibis${version}.zip" />
+                <delete dir="${generated-sources}" />
+                <mkdir dir="${generated-sources}" />
+
+                <zip destfile="${generated-sources}/ibis-src.zip">
+                        <zipfileset dir="src"
+                                    includes="**/*.java"
+                                    prefix="ibis-src" />
+                        <fileset dir="." includes="LICENSE.txt" />
+                </zip>
+
+                <zip destfile="ibis${version}.zip">
+                        <zipfileset dir="."
+                                    prefix="ibis${version}"
+                                    includes="${javadoc}/**,docs/progman.pdf,lib/**,notices/**,BUGS.txt,LICENSE.txt,${generated-sources}/ibis-src.zip,ibis.properties.example,log4j.properties,smartsockets.properties.example,examples/**"
+                                    excludes="examples/.*,examples/.*/**" />
+                        <zipfileset dir="."
+                                    prefix="ibis${version}"
+                                    filemode="755"
+                                    includes="bin/**" />
+                        <zipfileset dir="."
+                                    includes="docs/README-bin.txt"
+                                    fullpath="ibis${version}/README.txt" />
+                </zip>
+
+        </target>
 
 </project>

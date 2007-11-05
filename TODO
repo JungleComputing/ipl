@@ -12,10 +12,10 @@ IPL:
   (Done Ceriel)
 + clarify error message when a capability is unmatched (Done, Niels)
 ?+ rename ibis.name to ibis.implementation. The current property kinda sounds like
-  we are naming our ibis :( (Done, Niels)
-?+ add timeout version of registry.elect()
+   we are naming our ibis :( (Done, Niels)
+?+ add timeout version of registry.elect() (Done, Niels)
 ? throw nested exception ending with failed ibis instead of just the failed Ibis?
-?+ rename CLOSEDWORLD capability to CLOSED_WORLD
+?+ rename CLOSEDWORLD capability to CLOSED_WORLD (Done, Niels)
 
 management:
 + add basic network usage statistics to Ibis. (Which ones? --Ceriel)
@@ -35,11 +35,11 @@ ibis registry:
 applications:
 -/+ remove old-n-useless applications (if any)
     (Done ipl-apps Ceriel)
-? the example application have ibisApps as the package name. Why not
-  ibis.ipl.examples or something?
-? don't add $PWD/lib to classpath in ibis-run?
-? only include "nice clean example" applications, remove the rest?
-? move ibis.ipl.impl.test to the example applications
+?+ the example application have ibisApps as the package name. Why not
+  ibis.ipl.examples or something? (Done, Niels)
+?+ don't add $PWD/lib to classpath in ibis-run? (Done, Niels)
+?+ only include "nice clean example" applications, remove the rest? (Done, Niels)
+?+ move ibis.ipl.impl.test to the example applications (Done, Niels)
 
 
 packaging/distribution:
