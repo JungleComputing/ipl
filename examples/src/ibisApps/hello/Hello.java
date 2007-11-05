@@ -83,6 +83,7 @@ public class Hello {
             new Hello().run();
         } catch (Exception e) {
             System.err.println("Got exception: " + e);
+            e.printStackTrace(System.err);
         }
     }
 }
