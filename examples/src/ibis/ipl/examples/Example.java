@@ -1,6 +1,6 @@
 /* $Id: Example.java 6548 2007-10-05 13:43:48Z ceriel $ */
 
-package ibisApps.example;
+package ibis.ipl.examples;
 
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisCapabilities;

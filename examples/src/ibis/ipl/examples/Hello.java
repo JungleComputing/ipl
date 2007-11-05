@@ -1,6 +1,6 @@
 /* $Id: Hello.java 6430 2007-09-20 16:37:59Z ceriel $ */
 
-package ibisApps.hello;
+package ibis.ipl.examples;
 
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisCapabilities;

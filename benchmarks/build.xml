@@ -1,7 +1,7 @@
-<project name="Ibis IPL examples" default="build" basedir=".">
+<project name="Ibis IPL benchmarks" default="build" basedir=".">
 
     <description>
-	Build file for the Ibis IPL applications.
+	Build file for the Ibis IPL benchmark applications.
     </description>
 
     <!-- Global properties -->
@@ -11,7 +11,7 @@
     <property name="src" location="src" />
     <property name="tmp" location="tmp" />
     <property name="lib" location="lib" />
-    <property name="jar" location="${lib}/ipl-examples.jar" />
+    <property name="jar" location="${lib}/ipl-benchmarks.jar" />
 
     <target name="init">
 	<!-- Create the time stamp -->
