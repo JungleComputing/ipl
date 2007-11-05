@@ -3,11 +3,6 @@
 \usepackage{graphicx}
 \usepackage{url}
 
-\newcommand{\mysection}[1]{\section{#1}\label{#1}}
-\newcommand{\mysubsection}[1]{\subsection{#1}\label{#1}}
-\newcommand{\mysubsubsection}[1]{\subsubsection{#1}\label{#1}}
-\newcommand{\remark}[1]{[\emph{#1}]}
-
 \begin{document}
 
 \title{Ibis Users Guide}
@@ -47,22 +42,34 @@ accessible from all nodes participating in the Ibis run. The server
 listens to a TCP port. The port number can be specified using the
 \texttt{--port} command line option to the \texttt{ibis-server} script.
 
-The Ibis Server needs to be reachable from every Ibis
-instance. Since sometimes this is not possible due to firewalls,
-additional \emph{hubs} can be started, creating a routing infrastructure
-for the Ibis instances. These hubs can be started by using ibis-server
-script with the \texttt{--hub-only} option. See the \texttt{--help}
-option of the ibis-server script for more information. The Ibis
-instances then need to be given the address of a reachable hub, as well
-as the address of the Ibis server.
+When an Ibis instance connects to the Ibis server, it needs the address of the server. 
 
-TODO:Explain about hubs and the server
 
-TODO:Explain semantics and syntax of properties 
+\section{Running an Ibis Application}
+
 
 TODO:Explain script is simply an example
 
-\mysubsection{Running an Ibis Application}
+Ibis can be configured using several Java system properties. The
+\texttt{ibis.properties.example} file in the Ibis distribution has a complete
+list, but the most commonly used properties are:
+
+\begin{description}
+
+\item[ibis.pool.name] String: name of the pool this Ibis belongs to
+\item[ibis.server.address] Address of the central Ibis server
+\item[ibis.impl.path] Path used to find Ibis implementations
+\item[ibis.hub.addresses] Comma seperated list of hub addresses. The
+server address is appended to this list, and thus is the default hub if
+no hub is specified.
+\item[ibis.pool.size] Integer: size of the pool this Ibis belongs to.
+Only used in a so called closed world setting.
+
+\end{description}
+
+
+
+\section{Example}
 
 To illustrate running an Ibis application we will use a simple Hello
 world application. This application is started on a single machine.
@@ -146,26 +153,23 @@ warnings and errors to standard output.
 
 TODO:Explain about ibis.impl.path classloader some more
 
-\mysection{Properties}
+\section{Advanced communication settings}
 
-Ibis can be configured using several Java system properties. The
-\texttt{ibis.properties.example} file in the Ibis distribution has a complete
-list, but the most commonly used properties are:
 
-\begin{description}
+The Ibis Server needs to be reachable from every Ibis
+instance. Since sometimes this is not possible due to firewalls,
+additional \emph{hubs} can be started, creating a routing infrastructure
+for the Ibis instances. These hubs can be started by using ibis-server
+script with the \texttt{--hub-only} option. See the \texttt{--help}
+option of the ibis-server script for more information. The Ibis
+instances then need to be given the address of a reachable hub, as well
+as the address of the Ibis server.
 
-\item[ibis.pool.name] String: name of the pool this Ibis belongs to
-\item[ibis.server.address] Address of the central Ibis server
-\item[ibis.impl.path] Path used to find Ibis implementations
-\item[ibis.hub.addresses] Comma seperated list of hub addresses. The
-server address is appended to this list, and thus is the default hub if
-no hub is specified.
-\item[ibis.pool.size] Integer: size of the pool this Ibis belongs to.
-Only used in a so called closed world setting.
 
-\end{description}
+TODO:Explain about hubs and the server
 
-\mysection{Further Reading}
+
+\section{Further Reading}
 
 The Ibis web page \url{http://www.cs.vu.nl/ibis} lists all
 the documentation and software available for Ibis, including papers, and

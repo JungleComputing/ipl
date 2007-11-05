@@ -24,26 +24,11 @@ IBM has versions for AIX (at http://www.ibm.com/developerworks/java),
 SUN has versions for Solaris, Linux, and Windows (at http://java.sun.com),
 and Apple has a version for Mac OS X (at http://developer.apple.com/java).
 
-This package does not require special installation. Just place this directory
-wherever you want it. You can then try a simple test which creates a single
-Ibis instance, and a client and a server thread that send messages to each
-other. To do so you first need to set a couple of environment variables.
-See below at the system-specific notes. You need to set IBIS_HOME to the root
-of your Ibis installation. Now, you can go to the Ibis bin directory and run
-
-    ibis-server --events
-
-to start an Ibis server that will print events as they occur.
-Next (in another window) you can run
-
-    ibis-run -Dibis.pool.name=blabla -Dibis.server.address=localhost junit.textui.TestRunner ibis.ipl.impl.test.TestIbis
-
-The output should say "OK (1 test)" at the end.
-
-The programmer's manual in the docs directory ("docs/progman.pdf")
-contains a detailed description of the Ibis Application Programmer's
-interface (API), illustrated with example code fragments.
-It also explains how to compile and run your Ibis application.
+The users's guide in the docs directory ("docs/usersguide.pdf") explains 
+how to compile and run your Ibis application. 
+The programmer's manual ("docs/progman.pdf") contains a detailed description 
+of the Ibis Application Programmer's interface (API), illustrated with example 
+code fragments. 
 The javadoc of the API is available in "javadoc/index.html".
 
 Ibis has its own web-site: http://www.cs.vu.nl/ibis/.
