@@ -507,9 +507,19 @@ final class CommunicationHandler implements Runnable {
         }
     }
 
-    public IbisIdentifier elect(String election) throws IOException {
+    public IbisIdentifier elect(String election, long timeout) throws IOException {
         long start = System.currentTimeMillis();
-        Connection connection = new Connection(serverAddress, timeout, true,
+        
+        if (timeout > Integer.MAX_VALUE) {
+            timeout = Integer.MAX_VALUE;
+        }
+        if (timeout == 0) {
+            //we are allowed to wait forever, but no need to wait more than
+            //until we are sure we should have connected with the server
+            timeout = this.timeout;
+         }
+        
+        Connection connection = new Connection(serverAddress, (int) timeout, true,
                 virtualSocketFactory);
 
         try {

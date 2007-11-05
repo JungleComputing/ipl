@@ -29,13 +29,13 @@ public final class IbisProperties {
     public static final String PREFIX = "ibis.";
 
     /** Property name for selecting an Ibis. */
-    public static final String NAME = PREFIX + "name";
+    public static final String IMPLEMENTATION = PREFIX + "implementation";
 
     /** Property name of the property file. */
     public static final String PROPERTIES_FILE = PREFIX + "properties.file";
 
     /** Property name for the path used to find Ibis implementations. */
-    public static final String IMPL_PATH = PREFIX + "impl.path";
+    public static final String IMPLEMENTATION_PATH = PREFIX + "implementation.path";
 
     /** Property name for verbosity. */
     public static final String VERBOSE = PREFIX + "verbose";
@@ -53,7 +53,7 @@ public final class IbisProperties {
     public static final String HUB_ADDRESSES = PREFIX + "hub.addresses";
 
     /** Property name for specifying the implementation of the registry. */
-    public static final String REGISTRY_IMPL = PREFIX + "registry.impl";
+    public static final String REGISTRY_IMPLEMENTATION = PREFIX + "registry.implementation";
 
     /**
      * Property name for location.
@@ -86,7 +86,7 @@ public final class IbisProperties {
                             + " The server address is appended to this list,"
                             + " and thus is the default hub if no hub is specified" },
 
-                { NAME, null,
+                { IMPLEMENTATION, null,
                     "Nickname or classname of an Ibis implementation. " +
                     "The specified implementation is used, bypassing the automatic" +
                     " selection mechanism of Ibis."},
@@ -94,7 +94,7 @@ public final class IbisProperties {
                 { PROPERTIES_FILE, null,
                     "Name of the property file used for the configuration of Ibis" },
 
-                { IMPL_PATH, null, "Path used to find Ibis implementations" },
+                { IMPLEMENTATION_PATH, null, "Path used to find Ibis implementations" },
 
                 { VERBOSE, "false",
                     "Boolean: If true, makes Ibis more verbose, if false, does not" },
@@ -110,7 +110,7 @@ public final class IbisProperties {
                 { LOCATION_POSTFIX, null,
                     "Set a string that will be appended to the automatically generated location." },
 
-                { REGISTRY_IMPL, "ibis.ipl.impl.registry.central.client.Registry",
+                { REGISTRY_IMPLEMENTATION, "ibis.ipl.impl.registry.central.client.Registry",
                     "implementation of the registry. Not all Ibis implementations use this property" },
 
             };

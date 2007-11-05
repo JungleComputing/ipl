@@ -1032,7 +1032,7 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
         rszHandler = new RszHandler();
 
         IbisCapabilities s = new IbisCapabilities(
-                IbisCapabilities.CLOSEDWORLD,
+                IbisCapabilities.CLOSED_WORLD,
                 IbisCapabilities.MEMBERSHIP_TOTALLY_ORDERED,
                 IbisCapabilities.ELECTIONS_STRICT);
         requestPortType = new PortType(PortType.SERIALIZATION_OBJECT,

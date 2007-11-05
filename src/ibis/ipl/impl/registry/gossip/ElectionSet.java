@@ -32,4 +32,9 @@ public class ElectionSet {
         return null;
     }
 
+    public IbisIdentifier elect(String electionName, long timeoutMillis) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
 }

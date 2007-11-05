@@ -28,10 +28,14 @@ public final class ForwardingRegistry extends ibis.ipl.impl.Registry {
         target.assumeDead(ibis);
     }
 
+    public ibis.ipl.IbisIdentifier elect(String election, long timeoutMillis) throws IOException {
+        return target.elect(election, timeoutMillis);
+    }
+
     public ibis.ipl.IbisIdentifier elect(String election) throws IOException {
         return target.elect(election);
     }
-
+    
     public ibis.ipl.IbisIdentifier getElectionResult(String election) throws IOException {
         return target.getElectionResult(election);
     }

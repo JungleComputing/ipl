@@ -230,7 +230,7 @@ class ConcurrentSenders {
 
         try {
             IbisCapabilities sp = new IbisCapabilities(
-                    IbisCapabilities.CLOSEDWORLD,
+                    IbisCapabilities.CLOSED_WORLD,
                     IbisCapabilities.ELECTIONS_STRICT);
 
             PortType t = new PortType(PortType.SERIALIZATION_OBJECT,

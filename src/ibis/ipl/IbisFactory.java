@@ -240,7 +240,7 @@ public final class IbisFactory {
         }
 
         String implPath =
-            combinedProperties.getProperty(IbisProperties.IMPL_PATH);
+            combinedProperties.getProperty(IbisProperties.IMPLEMENTATION_PATH);
         IbisFactory factory = getFactory(implPath);
 
         return factory.createIbis(registryEventHandler, requiredCapabilities,
@@ -354,7 +354,7 @@ public final class IbisFactory {
             }
         }
 
-        ibisName = properties.getProperty(IbisProperties.NAME);
+        ibisName = properties.getProperty(IbisProperties.IMPLEMENTATION);
 
         if (ibisName != null) {
             String[] capabilities = requiredCapabilities.getCapabilities();

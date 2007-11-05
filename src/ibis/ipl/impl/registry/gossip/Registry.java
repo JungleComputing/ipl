@@ -84,7 +84,7 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
                     "gossip registry does not support totally ordered membership");
         }
 
-        if (capabilities.hasCapability(IbisCapabilities.CLOSEDWORLD)) {
+        if (capabilities.hasCapability(IbisCapabilities.CLOSED_WORLD)) {
             throw new IbisConfigurationException(
                     "gossip registry does not support closed world");
         }
@@ -162,6 +162,16 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
         return elections.elect(electionName);
     }
 
+    public IbisIdentifier elect(String electionName, long timeoutMillis) throws IOException {
+        if (!capabilities.hasCapability(IbisCapabilities.ELECTIONS_UNRELIABLE)) {
+            throw new IbisConfigurationException(
+                    "No election support requested");
+        }
+
+        return elections.elect(electionName, timeoutMillis);
+    }
+
+    
     public IbisIdentifier getElectionResult(String election) throws IOException {
         return getElectionResult(election, 0);
     }

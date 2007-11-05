@@ -51,11 +51,11 @@ public abstract class Registry implements ibis.ipl.Registry {
             RegistryEventHandler handler, Properties properties, 
             byte[] data, String ibisImplemenentationIdentifier) throws Throwable {
 
-        String registryName = properties.getProperty(IbisProperties.REGISTRY_IMPL);
+        String registryName = properties.getProperty(IbisProperties.REGISTRY_IMPLEMENTATION);
 
         if (registryName == null) {
             throw new IbisConfigurationException("Could not create registry: "
-                    + "property " + IbisProperties.REGISTRY_IMPL + "  is not set.");
+                    + "property " + IbisProperties.REGISTRY_IMPLEMENTATION + "  is not set.");
         }
 
         Class<?> c = Class.forName(registryName);

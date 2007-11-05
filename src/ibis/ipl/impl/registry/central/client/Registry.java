@@ -7,6 +7,7 @@ import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.impl.IbisIdentifier;
 import ibis.ipl.impl.registry.central.Event;
 import ibis.ipl.impl.registry.central.RegistryProperties;
+import ibis.ipl.impl.registry.central.RemoteException;
 import ibis.util.TypedProperties;
 
 import java.io.IOException;
@@ -51,33 +52,33 @@ public final class Registry extends ibis.ipl.impl.Registry {
      * Creates a Central Registry.
      * 
      * @param eventHandler
-     *                Registry handler to pass events to.
+     *            Registry handler to pass events to.
      * @param userProperties
-     *                properties of this registry.
+     *            properties of this registry.
      * @param data
-     *                Ibis implementation data to attach to the IbisIdentifier.
-     * @param ibisImplementationIdentifier the identification of this ibis 
-     * implementation, including version, class and such. Must be identical
-     * for all ibisses in a single pool.
+     *            Ibis implementation data to attach to the IbisIdentifier.
+     * @param ibisImplementationIdentifier
+     *            the identification of this ibis implementation, including
+     *            version, class and such. Must be identical for all ibisses in
+     *            a single pool.
      * @throws IOException
-     *                 in case of trouble.
+     *             in case of trouble.
      * @throws IbisConfigurationException
-     *                 In case invalid properties were given.
+     *             In case invalid properties were given.
      */
     public Registry(IbisCapabilities capabilities,
             RegistryEventHandler eventHandler, Properties userProperties,
-            byte[] data, String ibisImplementationIdentifier) throws IbisConfigurationException, IOException,
-            IbisConfigurationException {
+            byte[] data, String ibisImplementationIdentifier)
+            throws IbisConfigurationException, IOException {
         logger.debug("creating central registry");
 
         this.capabilities = capabilities;
 
-        TypedProperties properties = RegistryProperties
-                .getHardcodedProperties();
+        TypedProperties properties =
+            RegistryProperties.getHardcodedProperties();
         properties.addProperties(userProperties);
 
-        if ((capabilities.hasCapability(IbisCapabilities.MEMBERSHIP_UNRELIABLE) || capabilities
-                .hasCapability(IbisCapabilities.MEMBERSHIP_TOTALLY_ORDERED))
+        if ((capabilities.hasCapability(IbisCapabilities.MEMBERSHIP_UNRELIABLE) || capabilities.hasCapability(IbisCapabilities.MEMBERSHIP_TOTALLY_ORDERED))
                 && eventHandler == null) {
             joinedIbises = new ArrayList<ibis.ipl.IbisIdentifier>();
             leftIbises = new ArrayList<ibis.ipl.IbisIdentifier>();
@@ -103,11 +104,19 @@ public final class Registry extends ibis.ipl.impl.Registry {
 
         pool = new Pool(capabilities, properties, this);
 
-        communicationHandler = new CommunicationHandler(properties, pool);
+        try {
 
-        identifier = communicationHandler.join(data, ibisImplementationIdentifier);
+            communicationHandler = new CommunicationHandler(properties, pool);
 
-        communicationHandler.bootstrap();
+            identifier =
+                communicationHandler.join(data, ibisImplementationIdentifier);
+
+            communicationHandler.bootstrap();
+
+        } catch (RemoteException e) {
+            // error caused by server "complaining"
+            throw new IbisConfigurationException(e.getMessage());
+        }
 
         logger.debug("registry for " + identifier + " initiated");
     }
@@ -118,14 +127,19 @@ public final class Registry extends ibis.ipl.impl.Registry {
     }
 
     public IbisIdentifier elect(String electionName) throws IOException {
+        return elect(electionName, 0);
+
+    }
+
+    public IbisIdentifier elect(String electionName, long timeoutMillis)
+            throws IOException {
         if (pool.isStopped()) {
             throw new IOException(
                     "cannot do election, registry already stopped");
         }
 
         if (!capabilities.hasCapability(IbisCapabilities.ELECTIONS_UNRELIABLE)
-                && !capabilities
-                        .hasCapability(IbisCapabilities.ELECTIONS_STRICT)) {
+                && !capabilities.hasCapability(IbisCapabilities.ELECTIONS_STRICT)) {
             throw new IbisConfigurationException(
                     "No election support requested");
         }
@@ -133,7 +147,7 @@ public final class Registry extends ibis.ipl.impl.Registry {
         IbisIdentifier result = pool.getElectionResult(electionName, -1);
 
         if (result == null) {
-            result = communicationHandler.elect(electionName);
+            result = communicationHandler.elect(electionName, timeoutMillis);
         }
 
         return result;
@@ -151,8 +165,7 @@ public final class Registry extends ibis.ipl.impl.Registry {
         }
 
         if (!capabilities.hasCapability(IbisCapabilities.ELECTIONS_UNRELIABLE)
-                && !capabilities
-                        .hasCapability(IbisCapabilities.ELECTIONS_STRICT)) {
+                && !capabilities.hasCapability(IbisCapabilities.ELECTIONS_STRICT)) {
             throw new IbisConfigurationException(
                     "No election support requested");
         }
@@ -205,8 +218,8 @@ public final class Registry extends ibis.ipl.impl.Registry {
                     "Resize downcalls not configured");
         }
 
-        ibis.ipl.IbisIdentifier[] retval = joinedIbises
-                .toArray(new ibis.ipl.IbisIdentifier[joinedIbises.size()]);
+        ibis.ipl.IbisIdentifier[] retval =
+            joinedIbises.toArray(new ibis.ipl.IbisIdentifier[joinedIbises.size()]);
         joinedIbises.clear();
         return retval;
     }
@@ -216,8 +229,8 @@ public final class Registry extends ibis.ipl.impl.Registry {
             throw new IbisConfigurationException(
                     "Resize downcalls not configured");
         }
-        ibis.ipl.IbisIdentifier[] retval = leftIbises
-                .toArray(new ibis.ipl.IbisIdentifier[leftIbises.size()]);
+        ibis.ipl.IbisIdentifier[] retval =
+            leftIbises.toArray(new ibis.ipl.IbisIdentifier[leftIbises.size()]);
         leftIbises.clear();
         return retval;
     }
@@ -228,8 +241,8 @@ public final class Registry extends ibis.ipl.impl.Registry {
                     "Resize downcalls not configured");
         }
 
-        ibis.ipl.IbisIdentifier[] retval = diedIbises
-                .toArray(new ibis.ipl.IbisIdentifier[diedIbises.size()]);
+        ibis.ipl.IbisIdentifier[] retval =
+            diedIbises.toArray(new ibis.ipl.IbisIdentifier[diedIbises.size()]);
         diedIbises.clear();
         return retval;
     }
@@ -305,7 +318,7 @@ public final class Registry extends ibis.ipl.impl.Registry {
      */
     synchronized void handleEvent(Event event) {
         logger.info("new event passed to user: " + event);
-        
+
         // generate an upcall for this event
         if (upcaller != null) {
             upcaller.newEvent(event);
@@ -329,8 +342,8 @@ public final class Registry extends ibis.ipl.impl.Registry {
             break;
         case Event.SIGNAL:
             if (signals != null) {
-                //see if this string is send to us.
-                for (IbisIdentifier ibis: event.getIbises()) {
+                // see if this string is send to us.
+                for (IbisIdentifier ibis : event.getIbises()) {
                     if (ibis.equals(identifier)) {
                         signals.add(event.getDescription());
                         break;
@@ -352,20 +365,25 @@ public final class Registry extends ibis.ipl.impl.Registry {
         return communicationHandler.getStats();
     }
 
-    public String getManagementProperty(String key) throws NoSuchPropertyException {
+    public String getManagementProperty(String key)
+            throws NoSuchPropertyException {
         String result = managementProperties().get(key);
-        
+
         if (result == null) {
             throw new NoSuchPropertyException(key + " is not a valid property");
         }
         return result;
     }
 
-    public void setManagementProperties(Map<String, String> properties) throws NoSuchPropertyException {
-        throw new NoSuchPropertyException("central registry does not have any properties that can be set");
+    public void setManagementProperties(Map<String, String> properties)
+            throws NoSuchPropertyException {
+        throw new NoSuchPropertyException(
+                "central registry does not have any properties that can be set");
     }
 
-    public void setManagementProperty(String key, String value) throws NoSuchPropertyException {
-        throw new NoSuchPropertyException("central registry does not have any properties that can be set");
+    public void setManagementProperty(String key, String value)
+            throws NoSuchPropertyException {
+        throw new NoSuchPropertyException(
+                "central registry does not have any properties that can be set");
     }
 }

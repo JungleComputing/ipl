@@ -26,7 +26,7 @@ public final class IbisCapabilities extends CapabilitySet {
      * joined, the pool is closed: no more instances are allowed to join the
      * run.
      */
-    public final static String CLOSEDWORLD = "closedWorld";
+    public final static String CLOSED_WORLD = "closed.world";
     
     /**
      * Capability, indicating that signals are supported,

@@ -112,7 +112,7 @@ public class SOR {
     private Reducer reducer;
 
     IbisCapabilities reqprops = new IbisCapabilities(
-            IbisCapabilities.CLOSEDWORLD,
+            IbisCapabilities.CLOSED_WORLD,
             IbisCapabilities.ELECTIONS_STRICT);
         
     PortType portTypeReduce = new PortType(PortType.SERIALIZATION_DATA,

@@ -239,17 +239,17 @@ final class Pool implements Runnable {
      */
     synchronized Member join(byte[] implementationData, byte[] clientAddress,
             Location location, String ibisImplementationIdentifier)
-            throws Exception {
+            throws IOException {
         if (hasEnded()) {
-            throw new Exception("Pool already ended");
+            throw new IOException("Pool already ended");
         }
 
         if (isClosed()) {
-            throw new Exception("Closed-World Pool already closed");
+            throw new IOException("Closed-World Pool already closed");
         }
 
         if (!ibisImplementationIdentifier.equals(this.ibisImplementationIdentifier)) {
-            throw new Exception("Ibis implementation "
+            throw new IOException("Ibis implementation "
                     + ibisImplementationIdentifier
                     + " does not match pool's Ibis implementation: "
                     + this.ibisImplementationIdentifier);

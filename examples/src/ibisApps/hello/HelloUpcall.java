@@ -28,7 +28,7 @@ public class HelloUpcall {
             PortType.RECEIVE_AUTO_UPCALLS, PortType.CONNECTION_ONE_TO_ONE);
 
     IbisCapabilities ibisCapabilities = new IbisCapabilities(
-            IbisCapabilities.CLOSEDWORLD,
+            IbisCapabilities.CLOSED_WORLD,
             IbisCapabilities.ELECTIONS_STRICT);
 
     /** Set to true when server received message. */
@@ -114,7 +114,7 @@ public class HelloUpcall {
         try {
             new HelloUpcall().run();
         } catch (Exception e) {
-            System.err.println("Got exception: " + e);
+            e.printStackTrace(System.err);
         }
     }
 }

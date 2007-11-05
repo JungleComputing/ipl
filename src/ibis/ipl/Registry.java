@@ -30,6 +30,30 @@ public interface Registry extends Managable {
     public IbisIdentifier elect(String electionName) throws IOException;
 
     /**
+     * Elects a single candidate from a number of candidates calling this
+     * method with a specified election name.
+     * Note that this has nothing to do with a real election: it is not like
+     * "most votes count". It is more like: "the first one in gets it".
+     *
+     * When it is detected the winner of the election has left or has died
+     * a new winner will automatically be elected and returned on the next 
+     * call of this function.
+     * 
+     * Blocks for at most the specified timeout. If no
+     * winner can be determinted by then, <code>null</code> is returned.
+     *
+     * @param electionName
+     *          the name of this election.
+     * @param timeoutMillis time to wait. 0 means: wait forever.
+     * @return
+     *          the Ibis identifier of the elected Ibis instance.
+     * @exception IOException
+     *          is thrown in case of trouble.
+     */
+    public IbisIdentifier elect(String electionName, long timeoutMillis) throws IOException;
+
+    
+    /**
      * Gets the result of an election, without being a candidate.
      * Blocks until there is a winner for the election.
      *

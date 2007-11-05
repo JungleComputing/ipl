@@ -81,6 +81,11 @@ public final class NullRegistry extends ibis.ipl.impl.Registry {
                 "elections not supported by NullRegistry");
     }
 
+    public ibis.ipl.IbisIdentifier elect(String election, long timeoutMillis) throws IOException {
+        throw new IbisConfigurationException(
+                "elections not supported by NullRegistry");
+    }
+    
     public ibis.ipl.IbisIdentifier getElectionResult(String election)
             throws IOException {
         throw new IbisConfigurationException(

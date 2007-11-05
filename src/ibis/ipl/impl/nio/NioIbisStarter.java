@@ -18,7 +18,7 @@ public final class NioIbisStarter extends ibis.ipl.IbisStarter {
             = Logger.getLogger("ibis.ipl.impl.nio.NioIbisStarter");
 
     static final IbisCapabilities ibisCapabilities = new IbisCapabilities(
-            IbisCapabilities.CLOSEDWORLD,
+            IbisCapabilities.CLOSED_WORLD,
             IbisCapabilities.MEMBERSHIP_UNRELIABLE,
             IbisCapabilities.MEMBERSHIP_TOTALLY_ORDERED,
             IbisCapabilities.SIGNALS,

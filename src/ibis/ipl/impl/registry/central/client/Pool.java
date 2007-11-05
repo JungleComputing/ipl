@@ -85,7 +85,7 @@ final class Pool implements Runnable {
                             + IbisProperties.POOL_NAME + " is not specified");
         }
 
-        closedWorld = capabilities.hasCapability(IbisCapabilities.CLOSEDWORLD);
+        closedWorld = capabilities.hasCapability(IbisCapabilities.CLOSED_WORLD);
 
         if (closedWorld) {
             try {

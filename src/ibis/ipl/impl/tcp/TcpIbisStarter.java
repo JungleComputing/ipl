@@ -18,7 +18,7 @@ public final class TcpIbisStarter extends ibis.ipl.IbisStarter {
             = Logger.getLogger("ibis.ipl.impl.tcp.TcpIbisStarter");
 
     static final IbisCapabilities ibisCapabilities = new IbisCapabilities(
-        IbisCapabilities.CLOSEDWORLD,
+        IbisCapabilities.CLOSED_WORLD,
         IbisCapabilities.MEMBERSHIP_TOTALLY_ORDERED,
         IbisCapabilities.MEMBERSHIP_UNRELIABLE,
         IbisCapabilities.SIGNALS,
