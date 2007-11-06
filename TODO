@@ -11,11 +11,11 @@ IPL:
 + MessageUpcall.upcall: may also cause ClassNotFoundException? --Ceriel
   (Done Ceriel)
 + clarify error message when a capability is unmatched (Done, Niels)
-?+ rename ibis.name to ibis.implementation. The current property kinda sounds like
++ rename ibis.name to ibis.implementation. The current property kinda sounds like
    we are naming our ibis :( (Done, Niels)
-?+ add timeout version of registry.elect() (Done, Niels)
++ add timeout version of registry.elect() (Done, Niels)
 ? throw nested exception ending with failed ibis instead of just the failed Ibis?
-?+ rename CLOSEDWORLD capability to CLOSED_WORLD (Done, Niels)
++ rename CLOSEDWORLD capability to CLOSED_WORLD (Done, Niels)
 
 management:
 + add basic network usage statistics to Ibis. (Which ones? --Ceriel)
@@ -33,13 +33,12 @@ ibis registry:
 + keep per-pool statistics at server (Done, Niels)
 
 applications:
--/+ remove old-n-useless applications (if any)
-    (Done ipl-apps Ceriel)
-?+ the example application have ibisApps as the package name. Why not
++ remove old-n-useless applications (if any) (Done, Ceriel)
++ the example application have ibisApps as the package name. Why not
   ibis.ipl.examples or something? (Done, Niels)
-?+ don't add $PWD/lib to classpath in ibis-run? (Done, Niels)
-?+ only include "nice clean example" applications, remove the rest? (Done, Niels)
-?+ move ibis.ipl.impl.test to the example applications (Done, Niels)
++ don't add $PWD/lib to classpath in ibis-run? (Done, Niels)
++ only include "nice clean example" applications, remove the rest? (Done, Niels)
++ move ibis.ipl.impl.test to the example applications (Done, Niels)
 
 
 packaging/distribution:
@@ -66,11 +65,21 @@ packaging/distribution:
     + ibis.properties.example (Done, Niels)
     - smartsockets.properties
 ? do we want ibis-run to use ibis.impl.path or add everything to the classpath?
+- update HISTORY.txt to show precise date of release
   
 website:
 - update "ibis" overview picture with new/changed implementations
-- add overview section
-- update/create each subproject page
++ add overview section
+- update each subproject page
+    - Satin
+    - Mpj
+    - Gmi
+    - Rmi
+    - JavaGAT
+    + Zorilla (Done, Niels)
+    - IPL
+    - SmartSockets
+    - SAT4Satin
 - add javadoc top-button where applicable
 
 ##### Ibis 2.X ####
