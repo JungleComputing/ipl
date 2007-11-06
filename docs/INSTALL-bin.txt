@@ -1,0 +1,30 @@
+The binary release of Ibis does not need any special installation.
+Simply unzip the distribution where you want. You might want to set the
+IBIS_HOME environment variable to this location.
+
+The Ibis software requires at least a 1.5 JDK version of Java. With a
+1.4 or older version of Java, this Ibis release will not run.  Suitable
+versions of Java can be obtained from the web.  IBM has versions for AIX
+(at http://www.ibm.com/developerworks/java), SUN has versions for
+Solaris, Linux, and Windows (at http://java.sun.com), and Apple has a
+version for Mac OS X (at http://developer.apple.com/java).
+
+Building the provided example and benchmarks applications requires
+`ant', a software building tool similar to `make', but written in Java,
+and well-suited for building Java software.  At least version 1.6.5 is
+required. Ant is available from http://ant.apache.org.
+
+System-specific notes
+
+Windows 2000, Windows XP
+    Install a recent Java SDK, at least 1.5. This will get installed in
+    for instance "c:\Program Files\Java\jdk1.5.0". 
+
+    You can set the IBIS_HOME environment variable to this path by going to
+    the Control Panel, System, the "Advanced" tab, Environment variables,
+    add it there and reboot your system.
+
+Cygwin
+    There is a separate ibis-run script for Cygwin in the bin directory, 
+    called ibis-run.cygwin. It is wise to move that to ibis-run.
+

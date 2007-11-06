@@ -1,4 +1,4 @@
-Ibis installation
+Ibis source release installation
 
     Before you try to configure Ibis, you must set the environment
     variable JAVA_HOME; see also the system-specific notes at the end
@@ -19,21 +19,7 @@ Ibis installation
 
 Build
 
-    Build by typing "ant". You can then try a simple test which creates a single
-    Ibis instance, and a client and a server thread that send messages to each
-    other. To do so you first need to set a an environment variable.
-    See below at the system-specific notes. You need to set IBIS_HOME to the
-    root of your Ibis installation. Now, you can go to the Ibis bin directory
-    and run
-
-        ibis-server --events
-
-    to start an Ibis server that will print events as they occur.
-    Next (in another window) you can run
-
-        ibis-run -Dibis.pool.name=blabla -Dibis.server.address=localhost junit.textui.TestRunner ibis.ipl.impl.test.TestIbis
-
-    The output should say "OK (1 test)" at the end.
+    Build by typing "ant".
 
     You can also build a binary release by typing "ant ibis.zip". This
     will create an ibis.zip file that can be unpacked on another system
@@ -43,7 +29,7 @@ Build
 API
     The Ibis API documentation can be built by typing "ant javadoc".
     This will build a "javadoc" directory.
-    Point your favorite HTML viewer to "javadoc/index.html" to view
+    Point your favorite HTML viewer to "javadoc/ipl/index.html" to view
     the API documentation.
 
 System-specific notes

@@ -12,7 +12,7 @@
         <property name="lib" location="lib" />
         <property name="rewritten-classlibs" location="classlibs" />
         <property name="generated-sources" value="sources" />
-        <property name="javadoc" value="javadoc" />
+        <property name="javadoc" value="javadoc/ipl" />
 
         <property name="version" value="-2.0rc1" />
 
@@ -39,7 +39,6 @@
         <target name="compile">
                 <mkdir dir="${tmp}" />
                 <mkdir dir="${lib}" />
-                <mkdir dir="${javadoc}" />
 
                 <!-- Compile the java code from src into ${tmp} -->
                 <javac srcdir="src" destdir="${tmp}" debug="on">

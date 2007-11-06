@@ -1,5 +1,26 @@
 Here is a list of Ibis releases.
 
+2.0 (November 2008)
+   This is the first release of Ibis in four years that changes the IPL.
+   Significant changes to the IPL include:
+   - The StaticProperties mechanism is now split up into "properties"
+     and "capabilities".
+   - A IbisFactory is now used to create ibisses.
+   - Port types are now create before, not after an ibis is created.
+   - ReceivePorts no longer have a single global namespace.
+     Instead each ibis instance has a local namespace for its receive
+     ports.
+   - The registry no longer has functionality for "looking up" or
+     "listing" IbisIdentifiers and ReceivePortIdentifiers. This makes
+     implementations of the registry much more scalable and stable.
+
+   Other changes to Ibis include:
+   - The distribution of Ibis now only includes The IPL and TCP based
+     implementations. The programming models, and any additional
+     implementations are all released separately.
+   - Support for the Smartsockets library. This allows Ibisses to
+     traverse firewalls and NATS more reliable than before.
+
 1.4 (Sep 15, 2006)
    This is the first release that is also available as a binary release.
    It contains an almost completely rewritten version of Satin, and lots
