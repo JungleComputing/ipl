@@ -320,7 +320,9 @@ public abstract class ReceivePort extends Managable
                     retval = ACCEPTED;
                 }
             } catch(Throwable e) {
-                logger.error("Unexpected exception in gotConnection()", e);
+                logger.fatal("Unexpected exception in gotConnection(), "
+                        + "this Java instance will be terminated" , e);
+                System.exit(1);
             }
         }
         if (retval == ACCEPTED && connectionDowncalls) {
@@ -380,7 +382,13 @@ public abstract class ReceivePort extends Managable
             }
         } 
         if (connectUpcall != null) {
-            connectUpcall.lostConnection(this, id, e);
+            try {
+                connectUpcall.lostConnection(this, id, e);
+            } catch(Throwable e2) {
+                logger.fatal("Unexpected exception in lostConnection(), "
+                        + "this Java instance will be terminated" , e2);
+                System.exit(1);
+            }
         }
         if (e != null) {
             nLostConnections++;

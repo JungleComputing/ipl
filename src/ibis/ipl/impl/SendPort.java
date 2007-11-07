@@ -682,7 +682,9 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
             try {
                 connectUpcall.lostConnection(this, id, cause);
             } catch(Throwable e) {
-                logger.error("Unexpected exception in lostConnection()", e);
+                logger.fatal("Unexpected exception in lostConnection(), "
+                        + "this Java instance will be terminated" , e);
+                System.exit(1);
             }
         }
         SendPortConnectionInfo c = removeInfo(id);
