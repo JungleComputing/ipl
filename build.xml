@@ -229,7 +229,7 @@
         <zip destfile="ibis${version}.zip">
             <zipfileset dir="."
                         prefix="ibis${version}"
-                        includes="${javadoc}/**,docs/*.pdf,lib/**,notices/**,BUGS.txt,LICENSE.txt,HISTORY.TXT,${generated-sources}/ibis-src.zip,ibis.properties.example,log4j.properties,smartsockets.properties.example,examples/**,benchmarks/**"
+                        includes="javadoc/**,docs/*.pdf,lib/**,notices/**,BUGS.txt,LICENSE.txt,HISTORY.TXT,sources/**,ibis.properties.example,log4j.properties,smartsockets.properties.example,examples/**,benchmarks/**"
                         excludes="examples/.*,examples/.*/**" />
             <zipfileset dir="."
                         prefix="ibis${version}"
