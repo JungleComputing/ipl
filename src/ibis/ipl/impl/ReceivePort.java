@@ -313,9 +313,15 @@ public abstract class ReceivePort extends Managable
         } else if (connections.size() != 0 &&
             ! type.hasCapability(PortType.CONNECTION_MANY_TO_ONE)) {
             retval = NO_MANYTOONE;
-        } else if (connectUpcall != null
-                && !connectUpcall.gotConnection(this, id)) {
+        } else if (connectUpcall != null) {
             retval = DENIED;
+            try {
+                if (connectUpcall.gotConnection(this, id)) {
+                    retval = ACCEPTED;
+                }
+            } catch(Throwable e) {
+                logger.error("Unexpected exception in gotConnection()", e);
+            }
         }
         if (retval == ACCEPTED && connectionDowncalls) {
             newConnections.add(id);
@@ -503,15 +509,29 @@ public abstract class ReceivePort extends Managable
             // so that finish() calls can be detected.
             msg.setInUpcall(true);
             upcall.upcall(msg);
-            msg.setInUpcall(false);
         } catch(IOException e) {
             if (! msg.isFinished()) {
                 msg.finish(e);
                 return;
             }
-        } catch(Throwable e1) {
-            logger.error("Got Exception in upcall()", e1);
+        } catch(ClassNotFoundException e) {
+            if (! msg.isFinished()) {
+                IOException ioex =
+                    new IOException("Got ClassNotFoundException: "
+                        + e.getMessage());
+                ioex.initCause(e);
+                msg.finish(ioex);
+            }
+            return;
+        } catch(Throwable e) {
+            logger.fatal("Got unexpected throwable in upcall(), "
+                    + "this Java instance will be terminated", e);
+            System.exit(1);
+
+        } finally {
+            msg.setInUpcall(false);
         }
+
         if (! msg.isFinished()) {
             try {
                 msg.finish();
