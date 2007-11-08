@@ -2,10 +2,11 @@
 
 \usepackage{graphicx}
 \usepackage{url}
+\usepackage{times}
 
 \begin{document}
 
-\title{Ibis Users Guide}
+\title{Ibis Communication Library Users Guide}
 
 \author{The Ibis Group}
 
@@ -13,69 +14,95 @@
 
 \section{Introduction}
 
-This manual describes the steps required to run an application that uses
- the Ibis communication library. How to create such an application
+This manual describes the steps required to run an application that 
+uses the Ibis communication library. How to create such an application
 is described in the IPL Programmers manual.
 
 A central concept in Ibis is the \emph{Pool}. A Pool consists of one or
 more Ibis instances, usually running on different machines. Each pool is
-generally made up of Ibisses running a single distributed applications.
-Ibisses in a pool can communicate with each other, and, using the
-registry mechanism present in Ibis, can search for other Ibisses in the
-same pool, get notified of Ibisses joining the pool, etc. To
-coordinate Ibis pools a so-called \emph{Ibis Server} is used.
+generally made up of Ibises running a single distributed applications.
+Ibises in a pool can communicate with each other, and, using the
+registry mechanism present in Ibis, can search for other Ibises in the
+same pool, get notified of Ibises joining the pool, etc. To
+coordinate Ibis pools a so-called \emph{Ibis server} is used.
 
 \section{The Ibis Server}
 
-The Ibis Server is the Swiss-army-knife server of the Ibis project.
+The Ibis server is the Swiss-army-knife server of the Ibis project.
 Services can be dynamically added to the server. By default, the Ibis
 communication library comes with a registry service. This registry
-service keeps track of pools, and can track multiple pools at the same
-time.  The server also allows Ibisses to route traffic over the server
-if no direct connection is possible between two instances due to
-firewalls or NAT boxes.
+service manages pools, possibly multiple pools at the same time.  
+
+In addition to the registry service, the server also allows
+Ibises to route traffic over the server if no direct connection is
+possible between two instances due to firewalls or NAT boxes. This is
+done using the Smartsockets library of the Ibis project.
 
 The Ibis server is started with the \texttt{ibis-server} script which is
-located in the Ibis \texttt{bin} directory.  Before starting an Ibis
-application, an Ibis server needs to be running on a machine that is
-accessible from all nodes participating in the Ibis run. The server
-listens to a TCP port. The port number can be specified using the
-\texttt{--port} command line option to the \texttt{ibis-server} script.
-For a complete list of all options, use the \texttt{--help} option of
-the script. One usefull options is the  \texttt{--event} option, which
-makes the registry print out events (such as ibisses joining a pool).
+located in the \texttt{bin} directory of the Ibis distribution.  Before
+starting an Ibis application, an Ibis server needs to be running on a
+machine that is accessible from all nodes participating in the Ibis run.
+The server listens to a TCP port. The port number can be specified using
+the \texttt{--port} command line option to the \texttt{ibis-server}
+script.  For a complete list of all options, use the \texttt{--help}
+option of the script. One useful option is the  \texttt{--event}
+option, which makes the registry print out events (such as ibises
+joining a pool).
+
+\subsection{Hubs}
+\label{hubs}
+
+The Ibis server is a single point which needs to be reachable from every
+Ibis instance. Since sometimes this is not possible due to firewalls,
+additional \emph{hubs} can be started to route traffic, creating a
+routing infrastructure for the Ibis instances. These hubs can be started
+by using ibis-server script with the \texttt{--hub-only} option. See the
+\texttt{--help} option of the ibis-server script for more information.
 
 \section{Running an Ibis Application}
 
-When the Ibis Server is running, the Ibis application can now be
+When the Ibis server is running, the application itself can now be
 started. There are a number of requirements if Ibis is to function
-correctly. We will discuss these in detail below.
+correctly. In this section we will discuss these in detail.
 
-\subsection{Add ipl.jar to the classpath}
+Several of the steps below require the usage of so called system
+properties. System properties can be set in Java using the \texttt{-D}
+option of the \texttt{java} command. 
+
+As an alternative to using system properties, it is also possible to use
+a standard java properties file
+\footnote{\url{http://java.sun.com/j2se/1.5.0/docs/api/java/util/Properties.html}}.
+A properties file is a file containing one property per line, usually of
+the format \texttt{property = value}. Properties of Ibis can be set in
+such a file as if they were set on the command line directly.
+
+Ibis will look for a file named \texttt{ibis.properties} in the current working
+directory, on the class path, and at a location specified with the
+\texttt{ibis.properties.file} system property.
+
+\subsection{Add ipl.jar to the class path}
 
 An application interfaces to Ibis using the Ibis Portability Layer, or
 \emph{IPL}. The code for this package is provided in a single jar file:
-ipl.jar (appended with the version of ibis, for instance \texttt{ipl-2.0.jar}.
-This jar file needs to be added to the classpath of the application.
+ipl.jar, appended with the version of ibis, for instance \texttt{ipl-2.0.jar}.
+This jar file needs to be added to the class path of the application.
 
 \subsection{Provide the Ibis implementations}
 
 The IPL loads the Ibis implementation used to actually communicate
-dynamically. These implementations (and their dependancies) can be
+dynamically. These implementations (and their dependencies) can be
 provided in two alternative ways:
 
 \begin{enumerate} 
-\item add the jar files of the implementations and their dependancies to
-      the classpath 
-\item set the \texttt{ibis.implementation.path} system property to the
-      location of the Ibis implementations and dependancies.  
+\item Add the jar files of the implementations and their dependencies to
+      the class path 
+\item Set the \texttt{ibis.implementation.path} system property to the
+      location of the Ibis implementations and dependencies.  
 \end{enumerate}
 
-System properties can be set in Java using the \texttt{-D} option of the
-\texttt{java} command. The ibis.implementation.path property is a list
-of directories, seperated by the default path seperator of your
-operating system. In Unix, this is the \emph{;} character, in Windows it
-is a \emph{:}.
+The \texttt{ibis.implementation.path} property is a list of directories,
+separated by the default path separator of your operating system. In
+Unix, this is the \emph{;} character, in Windows it is a \emph{:}.
 
 \subsection{Configure Log4j}
 
@@ -83,40 +110,38 @@ Ibis uses the Log4J library of the Apache project to print debugging
 information, warnings, and error messages. This library must be
 initialized. A configuration file can be specified using the
 \texttt{log4j.configuration} system property. For example, to use a file
-named \texttt{log4j.properties} in the current directory, set
-\texttt{log4j.configuration} to \texttt{file:log4j.properties}
+named \texttt{log4j.properties} in the current directory, use the
+following command line option:
+\texttt{-Dlog4j.configuration=file:log4j.properties} . For more info,
+see the log4j website \footnote{\url{http://logging.apache.org/log4j}}.
 
-\subsection{Set the location of the Server}
+\subsection{Set the location of the server and hubs}
 
 To communicate with the registry service, the address of the Ibis server
 is needed. It must be specified using the \texttt{ibis.server.address}
-system property. The full address needed is printed on startup of the Ibis
+system property. The full address needed is printed on start up of the Ibis
 server. 
 
-For convenience, it is also possible to only provide a adress,
+For convenience, it is also possible to only provide a address,
 port number pair, e.g. \texttt{machine.domain.com:5435} or even simply a
 host, e.g. \texttt{localhost}. In this case, the port number is implied
 (the default is 8888). The port number provided must match the one given
-to ibis-server on startup using the \texttt{--port} option.
+to ibis-server on start up using the \texttt{--port} option.
 
-The Ibis Server is a single point which needs to be reachable from every
-Ibis instance. Since sometimes this is not possible due to firewalls,
-additional \emph{hubs} can be started, creating a routing infrastructure
-for the Ibis instances. These hubs can be started by using ibis-server
-script with the \texttt{--hub-only} option. See the \texttt{--help}
-option of the ibis-server script for more information. 
-
-When additional hubs are started, these must also be given to the ibis
+When additional hubs are started (see Section \ref{hubs}), these must also be given to the ibis
 instances. This can be done using the using the
-\texttt{ibis.hub.addresses} property. Ibis expects a comma seperated
-list of addresses of hubs.
+\texttt{ibis.hub.addresses} property. Ibis expects a comma separated
+list of addresses of hubs. Ibis will use the first reachable hub on the
+list. The address of the Ibis server is appended to this list
+automatically. Thus, by default, the Ibis server itself is used as the
+hub.
 
-\subsection{Set the properties of the pool}
+\subsection{Set the name and size of the pool}
 
 Each pool in Ibis has a unique name. A server can service multiple
 concurrent pools, and this name is used to determine which ibis
-instances belong to which pool at the server. The pool name can be set
-using the \texttt{ibis.pool.name} system property.
+instances belong to which pool at the server. The pool name must be set
+using the \texttt{ibis.pool.name} property.
 
 Sometimes, pools have a fixed size. In these so-called \emph{closed
 world} pools, the number of ibises in the pool is also needed for ibis
@@ -126,23 +151,23 @@ and Ibis will print an error when it requires this property.
 
 \section{The ibis-run script}
 
-To make it slightly easier to run a Ibis application, a
-\texttt{ibis-run} script is provided with the ibis distribution. The
-\texttt{ibis-run} script can be used as follows
+To simplify running a Ibis application, a \texttt{ibis-run} script is
+provided with the ibis distribution. The \texttt{ibis-run} script can be
+used as follows
 
 \begin{center}
-\texttt{ibis-run} \emph{java-flags class params}
+\texttt{ibis-run} \emph{java-flags class parameters}
 \end{center}
 
 This script performs the first three steps needed to run an application
 using Ibis. It adds the ipl.jar and all Ibis implementations to the
-classpath, and configures log4j. It then runs \texttt{java} with any
+class path, and configures log4j. It then runs \texttt{java} with any
 command line options given to it. So, any additional options for Java,
 the main class and any application parameters can be provided as if
 \texttt{java} was called directly.
 
 The \texttt{ibis-run} script needs the location of the Ibis
-distrobution. This must be provided using the IBIS\_HOME environment
+distribution. This must be provided using the IBIS\_HOME environment
 variable.
 
 \section{Example}
@@ -156,14 +181,16 @@ print it.
 
 Some example applications for the Ibis communication library are
 provided with the Ibis distribution, in the \texttt{examples} directory.
-They can be compiled using \texttt{ant}, the make-like system for Java.
-Running \texttt{ant} in the examples directory should compile these
-applications. 
+For convenience, these applications are already pre-compiled in the
+distribution, but they can be re-compiled, for instance if you make
+changes to them, using \texttt{ant}\footnote{\url{http://ant.apache.org}}, the
+make-like system for Java. Running \texttt{ant} in the examples
+directory should compile these applications. 
 
-Alternatively, they can be compiled using only javac. The sources are
+Alternatively, they can be compiled using only \texttt{javac}. The sources are
 located in the \texttt{src} directory of the examples. Be sure to add
 \texttt{ipl.jar} from the \texttt{lib} directory of the distribution to
-the classpath.
+the class path.
 
 \subsection{Running the example}
 
@@ -186,13 +213,14 @@ extra information on when ibises join and leave the pool.
 Next, we will start the application twice. One instance will act as the
 "server", and one the "client". The application will determine who is
 the server and who is the client automatically. Therefore we can simply
-start the application using the same command line. In two different
-shells type:
+start the application using the same command line. Run the following
+command in two different shells:
 
 \noindent
 {\small
 \begin{verbatim}
-$ CLASSPATH=$IBIS_HOME/examples/lib/ipl-examples-2.0.jar $IBIS_HOME/bin/ibis-run \
+$ CLASSPATH=$IBIS_HOME/examples/lib/ipl-examples-2.0.jar \
+    $IBIS_HOME/bin/ibis-run \
     -Dibis.server.address=localhost -Dibis.pool.name=test \
     ibis.ipl.examples.Hello
 \end{verbatim}
@@ -200,13 +228,13 @@ $ CLASSPATH=$IBIS_HOME/examples/lib/ipl-examples-2.0.jar $IBIS_HOME/bin/ibis-run
 \noindent
 
 This sets the CLASSPATH environment variable to the jar file of the
-application, and called ibis-run. Now, you should have the two running
+application, and calls ibis-run. You should now have the two running
 instances of your application. One of them should print:
 
 \noindent {\small \begin{verbatim} Server received: Hi there
 \end{verbatim} } \noindent 
 
-As said, the ibis-run script is mearly provided for convenience. To run
+As said, the ibis-run script is only provided for convenience. To run
 the application without ibis-run, the following command can be used:
 
 \noindent
@@ -217,16 +245,16 @@ $ java \
     $IBIS_HOME/lib/ipl-2.0.jar:$IBIS_HOME/examples/lib/ipl-examples-2.0.jar \
     -Dibis.impl.path=$IBIS_HOME/lib \
     -Dibis.server.address=localhost \
-    -Dibis.pool.name=text \
+    -Dibis.pool.name=test \
     -Dlog4j.configuration=file:$IBIS_HOME/log4j.properties \
-    ibis.ipl.examples.hello.Hello
+    ibis.ipl.examples.Hello
 \end{verbatim}
 }
 \noindent
 
 In this case, we use the \texttt{ibis.impl.path} property to supply Ibis
 with the jar files of the Ibis implementations. Alternatively, they
-could also all be added to the classpath.
+could also all be added to the class path.
 
 \section{Further Reading}
 
@@ -236,6 +264,6 @@ slides of presentations.
 
 For detailed information on developing an Ibis application see the
 Programmers Manual, available in the docs directory of the Ibis
-distribution
+distribution.
 
 \end{document}
