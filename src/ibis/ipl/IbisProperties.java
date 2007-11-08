@@ -158,106 +158,79 @@ public final class IbisProperties {
         return result;
     }
 
-    private static Properties getPropertyFile(String file) {
-
-        InputStream in = null;
-
-        try {
-            in = new FileInputStream(file);
-        } catch (FileNotFoundException e) {
-            // ignored
-        }
-
-        if (in == null) {
-            ClassLoader loader = ClassLoader.getSystemClassLoader();
-            in = loader.getResourceAsStream(file);
-            if (in == null) {
-                return null;
-            }
-        }
-
-        try {
-            Properties p = new Properties();
-            p.load(in);
-            return p;
-        } catch (IOException e) {
+    /**
+     * Adds the properties as loaded from the specified stream to the specified
+     * properties.
+     * 
+     * @param inputStream
+     *            the input stream.
+     * @param properties
+     *            the properties.
+     */
+    private static void load(InputStream inputStream, Properties properties) {
+        if (inputStream != null) {
             try {
-                in.close();
-            } catch (Exception x) {
-                // ignore
+                properties.load(inputStream);
+            } catch (IOException e) {
+                // ignored
+            } finally {
+                try {
+                    inputStream.close();
+                } catch (Throwable e1) {
+                    // ignored
+                }
             }
-        }
-        return null;
-    }
-
-    private static void addProperties(Properties p) {
-        for (Enumeration e = p.propertyNames(); e.hasMoreElements();) {
-            String key = (String) e.nextElement();
-            String value = p.getProperty(key);
-            defaultProperties.setProperty(key, value);
         }
     }
 
     /**
-     * Utility method for obtaining configuration properties. The
-     * method obtains the properties in the following order:
-     * first, some hardcoded properties are set. Next, a file
-     * <code>ibis.properties</code> is searched for in the current directory,
-     * the classpath, or the user home directory, in that order.
-     * If found, it is read as a properties file, and the properties contained
-     * in it are set, possibly overriding the hardcoded properties.
-     * Finally, the system properties are obtained. These, too, may override
-     * the properties set so far.
-     * @return
-     *          the properties.
+     * Loads properties from the standard configuration file locations.
      */
-    public static Properties getDefaultProperties() {
-        
+    public static synchronized Properties getDefaultProperties() {
         if (defaultProperties == null) {
             defaultProperties = getHardcodedProperties();
 
-            // Get the properties from the commandline. 
-            Properties system = System.getProperties();
+            // Load properties from the classpath
+            ClassLoader classLoader = ClassLoader.getSystemClassLoader();
+            InputStream inputStream =
+                classLoader.getResourceAsStream(PROPERTIES_FILENAME);
+            load(inputStream, defaultProperties);
 
-            // Check what property file we should load.
-            String file = system.getProperty(PROPERTIES_FILE,
-                    PROPERTIES_FILENAME);
+            // See if there is an ibis.properties file in the current
+            // directory.
+            try {
+                inputStream =
+                    new FileInputStream(PROPERTIES_FILENAME);
+                load(inputStream, defaultProperties);
+            } catch (FileNotFoundException e) {
+                // ignored
+            }
 
-            // If the file is not explicitly set to null, we try to load it.
-            // First try the filename as is, if this fails try with the
-            // user home directory prepended.
+            Properties systemProperties = System.getProperties();
+
+            // Then see if the user specified an properties file.
+            String file =
+                systemProperties.getProperty(PROPERTIES_FILE);
             if (file != null) {
-                Properties fromFile = getPropertyFile(file);
-                if (fromFile != null) {
-                    addProperties(fromFile);
-                } else {
-                    String homeFn = System.getProperty("user.home")
-                        + System.getProperty("file.separator") + file;
-                    fromFile = getPropertyFile(homeFn);
-                    
-                    if (fromFile == null) { 
-                        if (! file.equals(PROPERTIES_FILENAME)) { 
-                            // If we fail to load the user specified file,
-                            // we give an error, since only the default file
-                            // may fail silently.                     
-                            System.err.println("User specified preferences \""
-                                    + file + "\" not found!");
-                        }                                            
-                    } else {                  
-                        // If we managed to load the file, we add the
-                        // properties to the 'defaultProperties' possibly
-                        // overwriting defaults.
-                        addProperties(fromFile);
-                    }
+                try {
+                    inputStream = new FileInputStream(file);
+                    load(inputStream, defaultProperties);
+                } catch (FileNotFoundException e) {
+                    System.err.println("User specified preferences \"" + file
+                            + "\" not found!");
                 }
             }
 
-            // Finally, add the system properties (also from the command line)
-            // to the result, possibly overriding entries from file or the 
-            // defaults.            
-            addProperties(system);
-        } 
+            // Finally, add the properties from the command line to the result,
+            // possibly overriding entries from file or the defaults.
+            for (Enumeration e = systemProperties.propertyNames(); e.hasMoreElements();) {
+                String key = (String) e.nextElement();
+                String value = systemProperties.getProperty(key);
+                defaultProperties.setProperty(key, value);
+            }
+        }
 
-        return new Properties(defaultProperties);        
+        return new Properties(defaultProperties);
     }
+
 }

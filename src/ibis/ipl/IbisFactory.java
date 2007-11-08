@@ -34,9 +34,6 @@ import java.util.jar.Manifest;
  */
 public final class IbisFactory {
 
-    // Default configuration properties, from ibis.properties file et al.
-    private static Properties defaultConfigProperties;
-
     // Map of factories. One for each implementation path
     private static final Map<String, IbisFactory> factories =
         new HashMap<String, IbisFactory>();
@@ -45,81 +42,7 @@ public final class IbisFactory {
 
     static final String VERSION = "2.0";
 
-    /**
-     * Adds the properties as loaded from the specified stream to the specified
-     * properties.
-     * 
-     * @param inputStream
-     *            the input stream.
-     * @param properties
-     *            the properties.
-     */
-    private static void load(InputStream inputStream, Properties properties) {
-        if (inputStream != null) {
-            try {
-                properties.load(inputStream);
-            } catch (IOException e) {
-                // ignored
-            } finally {
-                try {
-                    inputStream.close();
-                } catch (Throwable e1) {
-                    // ignored
-                }
-            }
-        }
-    }
-
-    /**
-     * Loads properties from the standard configuration file locations.
-     */
-    private static synchronized Properties getDefaultProperties() {
-        if (defaultConfigProperties == null) {
-            defaultConfigProperties = new Properties();
-
-            // Load properties from the classpath
-            ClassLoader classLoader = ClassLoader.getSystemClassLoader();
-            InputStream inputStream =
-                classLoader.getResourceAsStream(IbisProperties.PROPERTIES_FILENAME);
-            load(inputStream, defaultConfigProperties);
-
-            // See if there is an ibis.properties file in the current
-            // directory.
-            try {
-                inputStream =
-                    new FileInputStream(IbisProperties.PROPERTIES_FILENAME);
-                load(inputStream, defaultConfigProperties);
-            } catch (FileNotFoundException e) {
-                // ignored
-            }
-
-            Properties systemProperties = System.getProperties();
-
-            // Then see if the user specified an properties file.
-            String file =
-                systemProperties.getProperty(IbisProperties.PROPERTIES_FILE);
-            if (file != null) {
-                try {
-                    inputStream = new FileInputStream(file);
-                    load(inputStream, defaultConfigProperties);
-                } catch (FileNotFoundException e) {
-                    System.err.println("User specified preferences \"" + file
-                            + "\" not found!");
-                }
-            }
-
-            // Finally, add the properties from the command line to the result,
-            // possibly overriding entries from file or the defaults.
-            for (Enumeration e = systemProperties.propertyNames(); e.hasMoreElements();) {
-                String key = (String) e.nextElement();
-                String value = systemProperties.getProperty(key);
-                defaultConfigProperties.setProperty(key, value);
-            }
-        }
-
-        return defaultConfigProperties;
-    }
-
+    
     private static synchronized IbisFactory getFactory(String implPath) {
         if (implPath == null) {
             if (defaultFactory == null) {
@@ -221,7 +144,7 @@ public final class IbisFactory {
 
         // add default properties, if required
         if (addDefaultConfigProperties) {
-            Properties defaults = getDefaultProperties();
+            Properties defaults = IbisProperties.getDefaultProperties();
 
             for (Enumeration e = defaults.propertyNames(); e.hasMoreElements();) {
                 String key = (String) e.nextElement();
