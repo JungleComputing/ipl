@@ -18,7 +18,7 @@ goto setupArgs
 
 :doneStart
 
-java -classpath "%JAVACLASSPATH%" ibis.frontend.Ibisc %IBISC_ARGS%
+java -classpath "%JAVACLASSPATH%" ibis.compile.Ibisc %IBISC_ARGS%
 
 if "%OS%"=="Windows_NT" @endlocal
 
