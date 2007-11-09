@@ -43,6 +43,10 @@
 	    file="progman.tex"
 	    tofile="${tmp}/progman.tex">
 	</copy>
+	<copy
+	    file="tutorial.tex"
+	    tofile="${tmp}/tutorial.tex">
+	</copy>
 	<exec   dir="${tmp}"
 	    executable="latex"
 	    vmlauncher="false">
