@@ -15,13 +15,13 @@
 \section{Introduction}
 
 This manual explains how to program applications using the Ibis
-communucation library. Ibis is a portable, high performance, Java based
+communication library. Ibis is a portable, high performance, Java based
 library. For information on how to run applications using this library,
 see the Ibis user's manual, available in the Ibis distribution in the
 \texttt{doc} directory, or on the Ibis
 website\footnote{\url{http://www.cs.vu.nl/ibis}}.
 
-In this manual, we will focus on concepts and methodsm rather than
+In this manual, we will focus on concepts and methods rather than
 details like exact parameters of functions. For this type of
 information, see the Javadoc for Ibis. This is available in the
 \texttt{javadoc} directory of the distribution, and on the website.
@@ -29,8 +29,8 @@ information, see the Javadoc for Ibis. This is available in the
 This manual is split up into several different sections. First, we will
 explain the different parts of the IPL, the interface to the Ibis
 communication library. Second, we explain how to compile applications
-which use Ibis. Last, we will give some examples of applications which
-use Ibis, to show how to use Ibis in practice.
+which use Ibis. Last, we will give some examples 
+to show how to use Ibis in practice.
 
 \section{IPL Overview}
 
@@ -44,8 +44,8 @@ use Ibis, to show how to use Ibis in practice.
 This section will give a high level overview of the different parts of
 the IPL.  For an overview of the design of Ibis, see
 Figure~\ref{design}. The Ibis communication library is build up around
-the \emph{Ibis Portability Layer(IPL)}. This layer offers applications a
-grid aware communication library, independant of the actual network
+the \emph{Ibis Portability Layer (IPL)}. This layer offers applications a
+grid aware communication library, independent of the actual network
 used. Ibis can dynamically select a suitable implementation at run-time.
 The Ibis communication library ships with several different TCP based
 implementation, but implementations based on native platforms such as
@@ -57,18 +57,18 @@ Invocation(GMI) model. A discussion of these models lies outside the
 scope of this manual. For more information on the programming models,
 see the Ibis website. As an alternative to using a intermediate
 programming model, applications can also be written directly on top of
-the IPL. The main target audiance of this manual are programmers using
+the IPL. The main target audience of this manual are programmers using
 the IPL in an application and programming model writers.
 
 A central concept in the IPL is the \emph{Ibis instance}. In general,
 one Ibis instance is created on each machine participating in a
 particular distributed application. Each of these instances has a unique
-\emph{Ibis Identifier}, used thoughout the library to denote this
+\emph{Ibis Identifier}, used throughout the library to denote this
 instance.
 
 Another often used concept is the \emph{upcall}. Upcalls can be used
 instead of downcalls(explicit receipt, polling) in a number of cases.
-These cases include receiving messages, getting noticications of new
+These cases include receiving messages, getting notifications of new
 connections, and updates on new Ibis instances joining a computation.
 
 \subsection{Send and Receive Ports}
@@ -97,11 +97,11 @@ standard TCP based implementation of Ibis.
 \end{figure}
 
 Ports in Ibis are typed (see Figure~\ref{port_types}). Types are
-determined by the communication patterrn (one-to-one, one-to-many,
+determined by the communication pattern (one-to-one, one-to-many,
 many-to-one, many-to-many), the type of data that can be send,
 reliability, and others. Sendports can only be connected to receive
 ports of the same type. This allows for some sanity checks on the
-application, and allows Ibis to select the most apropriate
+application, and allows Ibis to select the most appropriate
 implementation of the communication channel.
 
 \subsection{Messages and Serialization}
@@ -109,7 +109,7 @@ implementation of the communication channel.
 %--messages, serialization, bytecode rewriting
 
 Once a connection is established between send and receive ports, data
-can now be send. Send and receiveports in Ibis communicate using
+can now be send. Send and receive ports in Ibis communicate using
 messages. A so called \emph{write message} is created at the send port,
 and can be filled with all primitive data types of Java such as bytes, integers
 and strings, as well as more complex data structures in the form of
@@ -123,7 +123,7 @@ the data can be read again using functions equivalent to the ones in
 write message. Data must be read from the read message in the same order
 as it was written in the write message.
 
-The size of a message is unlimited in Ibis. However, at any point in
+In Ibis, the size of a message is unlimited. However, at any point in
 time, only a single message can be active at a port. This allows Ibis to
 start sending data to the receiver as soon as it is written in the
 message. So, while data is still being written to a message at the
@@ -137,8 +137,8 @@ differ in the types of data they support. Some only support sending
 bytes, some only primitive types, and some also allow sending objects.
 
 Two different object serialization versions are present in Ibis.  One is
-the standard Java object serialization, the other a high performance
-implementation of object serialization. For this high performance
+the standard Java object serialization, the other a high-performance
+implementation of object serialization. For this high-performance
 \emph{Ibis Serialization} implementation to work, an extra step is needed
 when compiling the application. Some extra code is generated to
 facilitate sending objects efficiently. See Section\ref{compiling} for
@@ -211,7 +211,7 @@ may connect to multiple receiveports).
 
 \item[CONNECTION\_MANY\_TO\_ONE]
 many-to-one communication is supported (in Ibis terms: multiple
-sendports may connect to a single receiveport).
+send ports may connect to a single receive port).
 
 \item[COMMUNICATION\_FIFO]
 messages from a send port are delivered to the receive ports it is
@@ -240,7 +240,7 @@ support reliable communication.
 
 \item[RECEIVE\_AUTO\_UPCALLS]
 upcalls are supported and polling for them is not required.
-This means that when the user creates a receiveport with an upcall
+This means that when the user creates a receive port with an upcall
 handler installed, when a message arrives at that receive port, 
 this upcall handler is invoked automatically.
 
