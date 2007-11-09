@@ -6,7 +6,6 @@ import ibis.ipl.Ibis;
 import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisFactory;
 import ibis.ipl.IbisIdentifier;
-import ibis.ipl.RegistryEventHandler;
 
 /**
  * This program shows how to handle events from the registry using downcalls. It
