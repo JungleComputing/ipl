@@ -3,6 +3,8 @@
 \usepackage{url}
 \usepackage{graphicx}
 \usepackage{times}
+\usepackage{color}
+\newcommand{\todo}[1]{\textbf{\textcolor{red}{[TODO: #1]}}}
 \usepackage{listings}
 
 
@@ -50,12 +52,13 @@ the \emph{Ibis Portability Layer (IPL)}. This layer offers applications a
 grid aware communication library, independent of the actual network
 used. Ibis dynamically selects a suitable implementation at run-time.
 The Ibis communication library ships with several different TCP based
-implementation, but implementations based on native platforms such as
+implementation, but implementations based on native \todo{Platforms?
+Perhaps better: `communication library'} platforms such as
 MPI and Myrinet are also possible.
 
 Using the IPL, we implemented several different programming models, such
 as the divide-and-conquer Satin model, and the Group Method
-Invocation(GMI) model. A discussion of these models lies outside the
+Invocation (GMI) model. A discussion of these models lies outside the
 scope of this manual. For more information on the programming models,
 see the Ibis website. As an alternative to using an intermediate
 programming model, applications can also be written directly on top of
@@ -68,10 +71,12 @@ particular distributed application. Each of these instances has a unique
 \emph{Ibis Identifier}, used throughout the library to denote this
 instance.
 
-Another often used concept is the \emph{upcall}. Upcalls can be used
-instead of downcalls(explicit receipt, polling) in a number of cases.
-These cases include receiving messages, getting notifications of new
-connections, and updates on new Ibis instances joining a computation.
+Another often-used concept is the \emph{upcall}: a method invocation upon
+an event such as the arrival of a message \todo{I explained 'upcall', but
+you may want to change this.}. Upcalls can be used instead of downcalls
+(explicit receipt, polling) in a number of cases.  These cases include
+receiving messages, getting notifications of new connections, and updates
+on new Ibis instances joining a computation.
 
 \subsection{Send and Receive Ports}
 
@@ -101,7 +106,7 @@ standard TCP based implementation of Ibis.
 Ports in Ibis are typed (see Figure~\ref{port_types}). Types are
 determined by the communication pattern (one-to-one, one-to-many,
 many-to-one, many-to-many), the type of data that can be send,
-reliability, and others. Send ports can only be connected to receive
+reliability, and other aspects. Send ports can only be connected to receive
 ports of the same type. This allows for some sanity checks on the
 application, and allows Ibis to select the most appropriate
 implementation of the communication channel.
@@ -111,18 +116,20 @@ implementation of the communication channel.
 %--messages, serialization, bytecode rewriting
 
 Once a connection is established between send and receive ports, data
-can now be send. Send and receive ports in Ibis communicate using
+can now be sent. Send and receive ports in Ibis communicate using
 messages. A so called \emph{write message} is created at the send port,
 and can be filled with all primitive data types of Java such as bytes, integers
 and strings, as well as more complex data structures in the form of
 Java \texttt{Objects}. Also, arrays of primitive types and object can be
-send. When the user is done writing data to a message a \texttt{finish}
+send. When the user is done writing data to a message, a \texttt{finish}
 method must be called to denote the message has been completed.
 
+\todo{This is a strange sentence. '... written using a write message'?? How
+about `Once the send message has been constructed ...'?}
 Once data is written using a write message at the send port, this
-message will arrive at the receive port as a \emph{read message}. There,
+message will arrive at the receive port as a \emph{read message}. \todo{Next sentence is strange. Methods in the write message?? How about '.. to construct the write message'? or even '.. methods of the write message'?} There,
 the data can be read again using methods equivalent to the ones in
-write message. Data must be read from the read message in the same order
+the write message. Data must be read from the read message in the same order
 as it was written in the write message.
 
 In Ibis, the size of a message is unlimited. However, at any point in
@@ -132,19 +139,21 @@ message. So, while data is still being written to a message at the
 sender, it may already be read at the receiver. This streaming behavior
 makes communication in Ibis much more efficient.
 
+\todo{Mention \texttt{java.io.Serializable} somewhere in one
+of these paragraphs.}
 Serialization is the translation of data objects into bytes suitable for
 sending across a network. Ibis is capable of several different versions
 of serialization, depending on the needs of the user. These versions
 differ in the types of data they support. Some only support sending
 bytes, some only primitive types, and some also allow sending objects.
 
-Two different object serialization versions are present in Ibis.  One is
+Two different object serialization versions are available in Ibis.  One is
 the standard Java object serialization, the other a high-performance
 implementation of object serialization. For this high-performance
 \emph{Ibis Serialization} implementation to work, an extra step is needed
 when compiling the application, where some extra code is generated to
-facilitate sending objects efficiently. See Section~\ref{compiling} for
-more info.
+efficiently send objects. See Section~\ref{compiling} for
+more information.
 
 \subsection{Pools and the Registry}
 
@@ -159,8 +168,9 @@ registry mechanism to get notified of any changes to the pool.
 The Ibis registry also supports \emph{elections}, which can be used to
 select Ibis instances which are special such as servers.  Each election
 has a unique name in the form of a String, and will elect a winner from
-the candidates for this election. Elections are not democratic though,
-and usually the first candidate is elected as the winner. It is also
+the candidates for this election. However, elections are not by
+majority:
+usually the first candidate is elected as the winner. It is also
 possible to request the outcome of an election without being a
 candidate. When the winner of an election leaves the pool, or dies, a
 new winner is automatically selected if any new candidate enters the
@@ -189,12 +199,21 @@ Peer-to-Peer techniques.
 
 \subsection{Capabilities}
 
+\todo{
+Why not
+say that for each port the user must specify its capabilities,
+and \emph{then} say that to make it easy to create similar ports
+there is such a thing as a 'port type'. Makes it much easier to
+understand why you need the notion of port type. Also,
+you have introduced port types earlier in the document. Refer to
+that? Put the motivation for port types (also) there?
+}
 To facilitate the selection of the best implementation for all the
 functionality required of Ibis from a user, Ibis uses a
-\emph{capability} based selection mechanism. For each Ibis instance, and
+\emph{capability} based selection mechanism. For each Ibis instance and
 each port type, the user can specify which capabilities are needed. Each
 capability enables a certain part of the API. For instance, sending
-objects in message is only possible if the "object serialization"
+objects in a message is only possible if the "object serialization"
 capability is enabled in the port type. Likewise, elections can only be
 done if either the "unreliable election" or the "strict election"
 capability is enabled. The difference between the two being the
@@ -227,7 +246,8 @@ globally unique, order.
 \item[ELECTIONS\_UNRELIABLE] Enables unreliable elections. With
 unreliable elections it is possible that some election results are not
 available, and if the same election is done at two different Ibises, the
-result may be different.
+result may be different. \todo{Do you mean two different Ibises
+in the same run??}
 
 \item[ELECTIONS\_STRICT]
 Indicates elections are supported, and they adhere to the following 
@@ -255,10 +275,10 @@ after it has initially been created.
 \subsubsection{Port Type Capabilities}
 
 This is a list of capabilities for port types. These capabilities are
-defined in in the \texttt{PortType} class of the IPL.  For each port
+defined in the \texttt{PortType} class of the IPL.  For each port
 types, a single capability for the allowed connection types (one-to-one,
 multicast, etc) must be selected, as well as a type of
-serialization(bytes only, primitive types, objects, etc). 
+serialization (bytes only, primitive types, objects, etc). 
 
 \begin{description}
 \item[CONNECTION\_ONE\_TO\_ONE]
