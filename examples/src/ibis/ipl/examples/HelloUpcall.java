@@ -16,38 +16,33 @@ import ibis.ipl.WriteMessage;
 import java.io.IOException;
 
 /**
- * This program is to be run as two instances. One is a server, the other
- * a client. The client sends a hello message to the server. The server
- * prints it. This version uses an upcall.
+ * This program is to be run as two instances. One is a server, the other a
+ * client. The client sends a hello message to the server. The server prints it.
+ * This version uses upcalls to receive messages.
  */
 
-public class HelloUpcall {
+public class HelloUpcall implements MessageUpcall {
 
-    PortType portType = new PortType(
-            PortType.COMMUNICATION_RELIABLE, PortType.SERIALIZATION_DATA,
-            PortType.RECEIVE_AUTO_UPCALLS, PortType.CONNECTION_ONE_TO_ONE);
+    PortType portType =
+        new PortType(PortType.COMMUNICATION_RELIABLE,
+                PortType.SERIALIZATION_DATA, PortType.RECEIVE_AUTO_UPCALLS,
+                PortType.CONNECTION_ONE_TO_ONE);
 
-    IbisCapabilities ibisCapabilities = new IbisCapabilities(
-            IbisCapabilities.CLOSED_WORLD,
-            IbisCapabilities.ELECTIONS_STRICT);
+    IbisCapabilities ibisCapabilities =
+        new IbisCapabilities(IbisCapabilities.CLOSED_WORLD,
+                IbisCapabilities.ELECTIONS_STRICT);
 
     /** Set to true when server received message. */
     boolean finished = false;
 
-    /** Upcall handler class for the server. */
-    private static class Upcall implements MessageUpcall {
-
-        HelloUpcall hello;
-
-        public Upcall(HelloUpcall hello) {
-            this.hello = hello;
-        }
-
-        public void upcall(ReadMessage m) throws IOException {
-            String s = m.readString();
-            System.out.println("Received string: " + s);
-            hello.setFinished();
-        }
+    /** Function called by Ibis to give us a newly arrived message
+     * @param message the message 
+     * @throws IOException when the message cannot be read
+     */
+    public void upcall(ReadMessage message) throws IOException {
+        String s = message.readString();
+        System.out.println("Received string: " + s);
+        setFinished();
     }
 
     synchronized void setFinished() {
@@ -57,17 +52,20 @@ public class HelloUpcall {
 
     private void server(Ibis myIbis) throws IOException {
 
-        // Create a receive port and enable connections.
-        ReceivePort receiver = myIbis.createReceivePort(portType, "server",
-                new Upcall(this));
+        // Create a receive port, pass ourselves as the message upcall
+        // handler
+        ReceivePort receiver =
+            myIbis.createReceivePort(portType, "server", this);
+        // enable connections
         receiver.enableConnections();
+        // enable upcalls
         receiver.enableMessageUpcalls();
 
-        synchronized(this) {
-            while (! finished) {
+        synchronized (this) {
+            while (!finished) {
                 try {
                     wait();
-                } catch(Exception e) {
+                } catch (Exception e) {
                     // ignored
                 }
             }
