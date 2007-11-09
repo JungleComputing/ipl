@@ -1,11 +1,12 @@
 After giving a high level overview of the functionality of Ibis, we will
 now give some examples of applications which use the IPL. All the
 examples used here can also be found in the \texttt{examples} directory
-of the distribution.
+of the distribution. This directory also contains some examples not
+shown here.
 
 \subsection{Hello}
 
-\begin{figure}[t]
+\begin{figure}[p]
 \lstset{language=Java,basicstyle=\footnotesize,breaklines=false}
 \begin{lstlisting}[numbers=left, numbersep=3pt]
 package Ibis.ipl.examples;
@@ -88,8 +89,8 @@ see what it is supposed to do. See Figure~\ref{hello_source} for the
 complete source of the Hello application. It is under a hundred lines of
 code. This application is meant to be started twice. One instance will
 act as a server and one as a client. The client sends a message to the
-server.  Which instance is the server and which is the client is done
-using an election.
+server. Which instance is the server and which is the client is
+determined using an election.
 
 The application is split up into several parts. First, the capabilities
 needed from Ibis are defined in two global variables. At the very bottom
@@ -193,13 +194,181 @@ instances leave the pool, ending with a empty pool.
 
 \subsection{Upcalls}
 
+\begin{figure}[ht]
+\lstset{language=Java,basicstyle=\footnotesize,breaklines=false}
+\begin{lstlisting}[numbers=left, numbersep=3pt]
+public class HelloUpcall implements MessageUpcall {
+
+    PortType portType =
+        new PortType(PortType.COMMUNICATION_RELIABLE,
+                PortType.SERIALIZATION_DATA, PortType.RECEIVE_AUTO_UPCALLS,
+                PortType.CONNECTION_ONE_TO_ONE);
+
+    ...
+
+    /**
+     * Function called by Ibis to give us a newly arrived message
+     */
+    public void upcall(ReadMessage message) throws IOException {
+        String s = message.readString();
+        System.out.println("Received string: " + s);
+    }
+
+    private void server(Ibis myIbis) throws IOException {
+        // Create a receive port, pass ourselves as the message upcall
+        // handler
+        ReceivePort receiver =
+            myIbis.createReceivePort(portType, "server", this);
+        // enable connections
+        receiver.enableConnections();
+        // enable upcalls
+        receiver.enableMessageUpcalls();
+    }
+...
+\end{lstlisting}
+\caption{Excerpt from application that uses upcalls}
+\label{hello_upcall_source}
+\end{figure}
+
+The next example we will look at is basically the same application as
+the first, except this application uses upcalls instead of explicit
+receive. Instead of listing the entire application, we only list the
+parts that need to be changed to use upcalls in Ibis in
+Figure~\ref{hello_upcall_source}. For the complete source, see the
+\texttt{examples} directory of the distribution.
+
+On line 1, the first change is visible. The application extends the
+\texttt{MessageUpcall} interface from the IPL. This class contains a
+single method (\texttt{upcall}) which is called whenever a message is
+received by Ibis. If upcalls are used it is not necessary to call the
+\texttt{receive} method on a receive port. Instead, Ibis will wait for a
+message continually and pass any new messages received to the user, one
+by one.
+
+Next, the port type needs to be changed slightly. We no longer include
+the RECEIVE\_EXPLICIT capability. Instead we use the
+RECEIVE\_AUTO\_UPCALLS capability. The "auto" in this capability means
+Ibis can receive messages automatically, without any user intervention.
+The RECEIVE\_POLL\_UPCALLS capability would require us to signal the
+ibis implementation that a new message might be available.
+
+Lines 13-16 show the upcall method as it is implemented by this
+application. Again, we read a string from the message and print it.
+Notice there is no call to \texttt{finish} on this message. Whenever the
+upcall ends the message is automatically finished. It is possible to
+call \texttt{finish} though, signaling Ibis the next message can now be
+received. This might be a good idea if a lot of calculations are done in
+the upcall method. If \texttt{finish} is not called Ibis will wait with
+receiving the next message until this upcall exits.
+
+Finally, lines 18 to 27 show the server method of this application. One
+difference with the previous application can be seen on line 21, when
+the receive port is created. Now, we pass the object which will be
+called whenever a message is received  to Ibis. In this case, this is
+simply ourselves (the third parameter with a \texttt{this} value). Also,
+we now need to no only enable connections to this message in line 24,
+but must also enable upcalls in line 26.
+
 \subsection{Registry}
 
-\subsection{One-to-Many}
+\begin{figure}[p]
+\lstset{language=Java,basicstyle=\footnotesize,breaklines=false}
+\begin{lstlisting}[numbers=left, numbersep=3pt]
+package ibis.ipl.examples;
 
-\subsection{Many-to-One}
+import ibis.ipl.*;
 
-\subsection{Client-Server}
+public class RegistryUpcalls implements RegistryEventHandler {
 
-\subsection{Client-Server with Objects}
+    IbisCapabilities ibisCapabilities =
+        new IbisCapabilities(IbisCapabilities.MEMBERSHIP_TOTALLY_ORDERED);
+    
+    // Methods of the registry event handler. We only implement the 
+    // join/leave/died methods, as signals and elections are disabled
+    
+    public void joined(IbisIdentifier joinedIbis) {
+        System.err.println("Got event from registry: " + joinedIbis
+                + " joined pool");
+    }
+
+    public void died(IbisIdentifier corpse) {
+        System.err.println("Got event from registry: " + corpse + " died!");
+    }
+
+    public void left(IbisIdentifier leftIbis) {
+        System.err.println("Got event from registry: " + leftIbis + " left");
+    }
+
+    public void gotSignal(String signal) {
+        // NOTHING
+    }
+
+    public void electionResult(String electionName, IbisIdentifier winner) {
+        // NOTHING
+    }
+    
+    private void run() throws Exception {
+        // Create an ibis instance, pass ourselves as the event handler
+        Ibis ibis = IbisFactory.createIbis(ibisCapabilities, this);
+        ibis.registry().enableEvents();
+
+        // sleep for 30 seconds
+        Thread.sleep(30000);
+
+        // End ibis.
+        ibis.end();
+    }
+
+    public static void main(String args[]) {
+        try {
+            new RegistryUpcalls().run();
+        } catch (Exception e) {
+            e.printStackTrace(System.err);
+        }
+    }
+}
+\end{lstlisting}
+\caption{Complete source of registry example application}
+\label{registry_source}
+\end{figure}
+
+After examples of how to send and receive messages, we will not give an
+example of an application which uses the registry. This application,
+for which the source is listed in Figure~\ref{registry_source}, prints
+out whenever an Ibis joins the pool, an Ibis leaves the pool, or an Ibis
+dies.
+
+Since this application does not actually send any messages, no port type
+is defined. Instead, only the \texttt{MEMBERSHIP\_TOTALLY\_ORDERED}
+capability is specified (lines 7-8). This enables the membership
+management features of Ibis.
+
+The \texttt{main} method of this application creates an object for this
+application, and calls the \texttt{run} method defined on lines 34-44.
+This method creates an Ibis on line 36. In this call, two things are
+passed. First, the capabilities of this Ibis, in this case only the
+single capability. Second, a \texttt{RegistryEventHandler} needs to be
+passed to automatically receive registry events such as joins and leaves
+of Ibis instances. We pass ourselves as the event handler. The class
+implements the \texttt{RegistryEventHandler} interface defined in the
+IPL. This interface consists of 5 methods. These methods are implemented
+on lines 13 to 32 in this example. Wherever a new Ibis joins the pool,
+the \texttt{joined} method is called by the registry. Likewise, when a
+Ibis leaves the pool, or when it crashes the \texttt{left} or
+\texttt{died} methods are called. In this example, all these events are
+handled by simply printing out the event that occurred.
+
+The last two methods, \texttt{gotSignal} and \texttt{electionResult} are
+not implemented here, since we have not enabled signals or elections.
+However, if we added signals and election to our capabilities, these
+methods would be called whenever a signal was received or a new election
+result was available.
+
+This application uses upcalls to receive the events of the registry.
+However, it is also possible to poll the registry. By enabling a
+membership capability, but not passing an event handler, a user can call
+the \texttt{joinedIbisis}, \texttt{leftIbisis} and \texttt{diedIbisis}
+methods in the \texttt{Registry} class, which return any changes to the
+pool since the methods were last called. For an example of such an
+application, see the \texttt{RegistryDowncalls} example application.
 
