@@ -8,7 +8,7 @@ of the distribution.
 \begin{figure}[t]
 \lstset{language=Java,basicstyle=\footnotesize,breaklines=false}
 \begin{lstlisting}[numbers=left, numbersep=3pt]
-package ibis.ipl.examples;
+package Ibis.ipl.examples;
 
 import ibis.ipl.*;
 
@@ -82,37 +82,114 @@ public class Hello {
 \label{hello_source}
 \end{figure}
 
-The first example is a very simple Hello World type application. See
-Figure~\ref{hello_source} for the complete source. As you can see it is
-under a hundred lines of code. This application is meant to be started
-twice. One instance will act as a server and one as a client. The client
-sends a message to the server. Which instance is the server and which is
-the client is done using an election.
+The first example is a very simple Hello World type application. This is
+also the example used in the user's guide. So, try to get it to run to
+see what it is supposed to do. See Figure~\ref{hello_source} for the
+complete source of the Hello application. It is under a hundred lines of
+code. This application is meant to be started twice. One instance will
+act as a server and one as a client. The client sends a message to the
+server.  Which instance is the server and which is the client is done
+using an election.
 
 The application is split up into several parts. First, the capabilities
 needed from Ibis are defined in two global variables. At the very bottom
-of the file is the \texttt{main} function. Main creates a object of this
+of the file is the \texttt{main} method. Main creates a object of this
 type, and calls \texttt{run} on this object. Run initialized Ibis, and
 determines if this is the client or the server. It then calls either the
 \texttt{server} or the \texttt{client} method.
 
 We will now explain this application line-by-line. The example starts
 with declaring the package on line 1. It then imports all classes from
-the IPL on line 3, and start the \texttt{Hello} class on line 5. Since
+the IPL on line 3, and declares the \texttt{Hello} class on line 5. Since
 this application will send messages, it will need to create ports, and
 thus a port type. The declaration on line 6-8 creates a port type
-suitable for this application. We select
-\texttt{COMMUNICATION\_RELIABLE} so we are sure the message will arrive,
-\texttt{SERIALIZATION\_DATA} so we are able to send primitive types, not
-only bytes (we want to send a String). \texttt{RECEIVE\_EXPLICIT}
+suitable for this application. 
+
+The constructor of the \texttt{PortType} class requires us to specify
+which capabilities we want to set. We select
+\texttt{COMMUNICATION\_RELIABLE} so we are sure the message will arrive
+and \texttt{SERIALIZATION\_DATA} so we are able to send primitive types,
+not only bytes, since we want to send a string. \texttt{RECEIVE\_EXPLICIT}
 denotes we are going to explicitly call the \texttt{receive()} method of
 the receive port, and finally \texttt{CONNECTION\_ONE\_TO\_ONE} selects
-the simplest communication pattern, where a single sendport is connected
+the simplest communication pattern, where a single send port is connected
 to a single receive port.
-
 Next, we also need a list of all the capabilities we need from our Ibis
 itself. Since we would like to use reliable elections, we include
 \texttt{ELECTIONS\_STRICT}.
+
+The main entry point of this class is the \texttt{main} method, defined
+on lines 62-67. It simply creates a object of the Hello type and calls
+the \texttt{run} method, defined on lines 44-60. The Ibis instance used
+by the applications is created using the \texttt{IbisFactory} class on
+line 46. Ibises cannot be created directly, but must be made using a
+call to this factory. The \texttt{createIbis} method takes several
+parameters. First is the \texttt{capabilities} object of this Ibis.
+Next, a \texttt{RegistryEventHandler} must be passed if needed. This
+example does not, see the Registry example below for this functionality.
+Lastly, the \texttt{createIbis} method requires a list of all the port
+types needed by the application. We only have one, which we defined
+previously.
+
+When the Ibis instance is created, it is automatically added to the pool
+specified with the properties set at the command line (see the
+user's guide). So, we can now start using the registry, make
+connections, etc. This application starts by determining which instance
+will be the server. This is done via an election on line 49. Each
+election in Ibis has a name, denoted by a string. So, as each instance
+of this application calls the \texttt{elect} method of the registry with
+the same parameter ("Server" in this case), one of these Ibises will
+"win" this election. The election returns the winner. On line 52 we
+compare the winner with our own identifier. If we won the election, the
+\texttt{server} method is called on line 53, if we didn't win we are the
+client and we call the \texttt{client} method on line 55.
+
+The \texttt{server} method, starting on line 13, waits for a message
+from the client and prints it. So, to receive a message we first have to
+create a receive port(line 16). Both send and receive ports are created
+by calling one of the \texttt{create} methods of the Ibis instance. In
+this case, we use the \texttt{createReceivePort} method which has two
+parameters. One for the port type, and one for the name of this
+receive port. This name must be unique for this Ibis instance, and can
+be used to connect to this port. We name our port "server".
+
+After a receive port has been created, it does not automatically start
+handling new connections. This allows an application to initialize
+itself properly before any connections come in from other Ibises. Since
+we don't have anything else to initialize we simple enable incoming
+connections immediately using the \texttt{enableConnections} method on
+line 17.
+
+Next, we will receive the message. We specified we were going to use
+explicit receive in the capabilities of our port type, so we call the
+\texttt{receive} method on our receive port(line 20) to wait for a message. Once
+a message has been received we read the data from the message (we know
+it is a string) by calling the \texttt{readString} method on the read
+message. Afterwards, we signal Ibis we are now done with this message by
+calling \texttt{finish} on the message. Finally, we print the message on
+line 23. Since we are only receiving a single message our server is now
+done, and closes the receive port on line 26.
+
+On the client side, we will have to connect to the server, and send it a
+message containing a string. So, we first create a send port on line 32
+by calling one of the create methods of our Ibis instance. The method we
+call expects a port type (this must be equal to the port type of the receive
+port we want to connect to). After creating the port we connect our send
+port to the receive port. We use the identifier of the server we acquired
+at the election, and the name of the port at the serer which we know to
+be "server".
+
+After the port has been connected, we can now send a message. We ask the
+send port for a new write message on line 36, and write a string to it
+on line 37. Since we are only writing this one string we finalize the
+message on line 38. This completes the work of the client. So, we close
+our send port on line 41.
+
+If everything worked as planned, the server should now print the message
+it received from the client. Both the server and the client exit their
+respective methods and return to the \texttt{run} method on line 57. On
+line 58 they both end their Ibis instance. This will make these two
+instances leave the pool, ending with a empty pool.
 
 \subsection{Upcalls}
 
