@@ -1,47 +1,32 @@
-This directory contains some Ibis example programs, organized
-into a number of sub-directories (some of which may not be present in your
-Ibis installation). See the README files in each sub-directory for more
-details on the application.
+This directory contains some Ibis example programs. They can be compiled by 
+using "ant". These examples are also used in the user's guide and programmer's 
+manual (located in the docs/ directory)
 
-Some simple examples:
+Hello:
 
-ibisApps/hello
-    actually two programs, just sending a single message from one Ibis instance
-    to another.
+A simple application that sends a single message from one Ibis to another
 
-ibisApps/example
-    a server computes the length of strings sent to it and sends these lengths
-    back.
+HelloUpcall:
 
-Some low-level benchmarks and tests:
+Same as above, but uses the ibis upcall mechanism to receive the message
 
-ibisApps/tp-JavaGrande02
-    This benchmark program can be used to measure latency and throughput
-    for several data types.
-ibisApps/benchmarks
-    Directory containing some lowlevel benchmarks.
+Registry:
 
-Some applications:
+A simple demo of the capabilities of the Ibis registry. Prints out any events
+it received from the registry (uses upcalls)
 
-ibisApps/cell1d
-    A simple implementation of cellular automata (CA).
-    It uses the Ibis communication classes immediately.
-ibisApps/traffic
-    A simple traffic simulator, where cars and trucks
-    with individual prefered speeds travel along a 3-lane road. They overtake
-    when they are blocked too much by preceding cars (and when it is
-    safe).
-ibisApps/sor/explicit
-    Red/black Successive Over Relaxation (SOR) is an iterative method for
-    solving discretized Laplace equations on a grid.
-    This implementation is an Ibis version. It distributes the grid
-    row-wise among the CPUs. Each CPU exchanges one row of the matrix with
-    its neighbours at the beginning of each iteration.
+OneToMany:
 
-Other files in this directory are:
+Shows how to multicast data to multiple receivers
 
-build.xml
-    Ant build file for building Ibis applications.
-    "ant build" (or simply: "ant") will build all applications that
-    are present in this directory. "ant clean" will remove
-    what "ant build" made.
+ManyToOne:
+
+How to connect multiple senders to a single receiver
+
+ClientServer:
+
+Implementation of a small client-server application, using data serialization
+
+ClientServerObject:
+
+Same a above, but using object serialization
