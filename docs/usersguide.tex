@@ -1,6 +1,6 @@
-\documentclass[10pt]{article}
+\documentclass[a4paper,10pt]{article}
 
-\usepackage{graphicx}
+%\usepackage{graphicx}
 \usepackage{url}
 \usepackage{times}
 
@@ -46,31 +46,33 @@ The server listens to a TCP port. The port number can be specified using
 the \texttt{--port} command line option to the \texttt{ibis-server}
 script.  For a complete list of all options, use the \texttt{--help}
 option of the script. One useful option is the  \texttt{--event}
-option, which makes the registry print out events (such as ibises
+option, which makes the registry print out events (such as Ibises
 joining a pool).
 
 \subsection{Hubs}
 \label{hubs}
 
 The Ibis server is a single point which needs to be reachable from every
-Ibis instance. Since sometimes this is not possible due to firewalls,
-additional \emph{hubs} can be started to route traffic, creating a
-routing infrastructure for the Ibis instances. These hubs can be started
-by using ibis-server script with the \texttt{--hub-only} option. See the
+Ibis instance. Sometimes this is not possible due to firewalls, additional 
+\emph{hubs} can be started to route traffic, creating a routing infrastructure 
+for the Ibis instances. These hubs can be started by using ibis-server script 
+with the \texttt{--hub-only} option. In addition, each hub needs to know the 
+location of as many of the other hubs as possible. This information can be 
+provided by using the \texttt{--hub-addresses} option. See the
 \texttt{--help} option of the ibis-server script for more information.
 
 \section{Running an Ibis Application}
 
-When the Ibis server is running, the application itself can now be
-started. There are a number of requirements if Ibis is to function
-correctly. In this section we will discuss these in detail.
+When the Ibis server is running, the application itself can be
+started. There are a number of requirements that need to be met before 
+Ibis can be started correctly. In this section we will discuss these in detail.
 
-Several of the steps below require the usage of so called system
-properties. System properties can be set in Java using the \texttt{-D}
-option of the \texttt{java} command. 
+Several of the steps below require the usage of \emph{system properties}. 
+System properties can be set in Java using the \texttt{-D} option of the 
+\texttt{java} command. 
 
 As an alternative to using system properties, it is also possible to use
-a standard java properties file
+a java properties file
 \footnote{\url{http://java.sun.com/j2se/1.5.0/docs/api/java/util/Properties.html}}.
 A properties file is a file containing one property per line, usually of
 the format \texttt{property = value}. Properties of Ibis can be set in
@@ -89,9 +91,9 @@ This jar file needs to be added to the class path of the application.
 
 \subsection{Provide the Ibis implementations}
 
-The IPL loads the Ibis implementation used to actually communicate
-dynamically. These implementations (and their dependencies) can be
-provided in two alternative ways:
+The IPL loads the actual Ibis implementation dynamically. 
+These implementations (and their dependencies) can be provided in two 
+ways:
 
 \begin{enumerate} 
 \item Add the jar files of the implementations and their dependencies to
@@ -102,7 +104,7 @@ provided in two alternative ways:
 
 The \texttt{ibis.implementation.path} property is a list of directories,
 separated by the default path separator of your operating system. In
-Unix, this is the \emph{;} character, in Windows it is a \emph{:}.
+Unix, this is the \emph{:} character, in Windows it is a \emph{;}.
 
 \subsection{Configure Log4j}
 
@@ -117,20 +119,20 @@ see the log4j website \footnote{\url{http://logging.apache.org/log4j}}.
 
 \subsection{Set the location of the server and hubs}
 
-To communicate with the registry service, the address of the Ibis server
-is needed. It must be specified using the \texttt{ibis.server.address}
-system property. The full address needed is printed on start up of the Ibis
-server. 
+To communicate with the registry service, each Ibis instance needs the address 
+of the Ibis server. This address must be specified by using the 
+\texttt{ibis.server.address} system property. The full address needed is 
+printed on start up of the Ibis server. 
 
-For convenience, it is also possible to only provide a address,
-port number pair, e.g. \texttt{machine.domain.com:5435} or even simply a
-host, e.g. \texttt{localhost}. In this case, the port number is implied
-(the default is 8888). The port number provided must match the one given
-to ibis-server on start up using the \texttt{--port} option.
+For convenience, it is also possible to only provide an address, port number 
+pair, e.g. \texttt{machine.domain.com:5435} or even simply a host, e.g. 
+\texttt{localhost}. In this case, the default port number (8888) is implied. 
+The port number provided must match the one given to ibis-server on start up 
+using the \texttt{--port} option.
 
-When additional hubs are started (see Section \ref{hubs}), these must also be given to the ibis
-instances. This can be done using the using the
-\texttt{ibis.hub.addresses} property. Ibis expects a comma separated
+When additional hubs are started (see Section \ref{hubs}), their locations 
+must also be provided to the ibis instances. This can be done using the using 
+the \texttt{ibis.hub.addresses} property. Ibis expects a comma separated
 list of addresses of hubs. Ibis will use the first reachable hub on the
 list. The address of the Ibis server is appended to this list
 automatically. Thus, by default, the Ibis server itself is used as the
@@ -138,33 +140,34 @@ hub.
 
 \subsection{Set the name and size of the pool}
 
-Each pool in Ibis has a unique name. A server can service multiple
-concurrent pools, and this name is used to determine which ibis
-instances belong to which pool at the server. The pool name must be set
-using the \texttt{ibis.pool.name} property.
+Each Ibis instance belongs to a pool. The name of this pool must be provided 
+using the \texttt{ibis.pool.name} property. With the help of the Ibis server, 
+this name is then used to locate other Ibis instances which belong to the
+same pool. Since the Ibis server can service multiple pools simultaneously, 
+each pool must have a unique name.
 
-Sometimes, pools have a fixed size. In these so-called \emph{closed
-world} pools, the number of ibises in the pool is also needed for ibis
-to function correctly. The size must be set using the
-\texttt{ibis.pool.size} property. This property is normally not needed,
-and Ibis will print an error when it requires this property.
+It is possible for pools to have a fixed size. In these so-called \emph{closed
+world} pools, the number of Ibises in the pool is also needed to function 
+correctly. This size must be set using the \texttt{ibis.pool.size} property. 
+This property is normally not needed. When it is needed, but not provided, Ibis 
+will print an error.
 
 \section{The ibis-run script}
 
 To simplify running a Ibis application, a \texttt{ibis-run} script is
-provided with the ibis distribution. The \texttt{ibis-run} script can be
+provided with the distribution. This script can be
 used as follows
 
 \begin{center}
 \texttt{ibis-run} \emph{java-flags class parameters}
 \end{center}
 
-This script performs the first three steps needed to run an application
-using Ibis. It adds the ipl.jar and all Ibis implementations to the
+The script performs the first three steps needed to run an application
+using Ibis. It adds the ipl.jar and all Ibis implementation jars to the
 class path, and configures log4j. It then runs \texttt{java} with any
-command line options given to it. So, any additional options for Java,
-the main class and any application parameters can be provided as if
-\texttt{java} was called directly.
+command line options given to it. Therefore, any additional options for 
+Java, the main class and any application parameters must be provided as 
+if \texttt{java} was called directly.
 
 The \texttt{ibis-run} script needs the location of the Ibis
 distribution. This must be provided using the IBIS\_HOME environment
@@ -172,32 +175,31 @@ variable.
 
 \section{Example}
 
-To illustrate running an Ibis application we will use a simple Hello
-world application. This application is started twice on a single
+To illustrate running an Ibis application we will use a simple "Hello
+World" application. This application is started twice on a single
 machine. One instance will send a small message to the other, which will
 print it.
 
 \subsection{Compiling the example}
 
-Some example applications for the Ibis communication library are
+The example applications for the Ibis communication library are
 provided with the Ibis distribution, in the \texttt{examples} directory.
-For convenience, these applications are already pre-compiled in the
-distribution, but they can be re-compiled, for instance if you make
-changes to them, using \texttt{ant}\footnote{\url{http://ant.apache.org}}, the
-make-like system for Java. Running \texttt{ant} in the examples
-directory should compile these applications. 
+For convenience, these applications are already compiled. 
+
+If you change any of the example, you will need to recompile them. This 
+requires the build system \texttt{ant}\footnote{\url{http://ant.apache.org}}. 
+Running \texttt{ant} in the examples directory compiles the examples.
 
 Alternatively, they can be compiled using only \texttt{javac}. The sources are
-located in the \texttt{src} directory of the examples. Be sure to add
-\texttt{ipl.jar} from the \texttt{lib} directory of the distribution to
-the class path.
+located in the \texttt{src} directory of examples. Be sure to add \texttt{ipl.jar} 
+from the \texttt{lib} directory of the distribution to the class path.
 
 \subsection{Running the example}
 
 We will now run the example. All code below assumes the IBIS\_HOME
 environment variable is set to the location of the Ibis distribution.
 
-First, we need a ibis-server. Start a shell and
+First, we will need a ibis-server. Start a shell and
 run the \texttt{ibis-server} script:
 \noindent
 {\small
@@ -207,14 +209,13 @@ $ $IBIS_HOME/bin/ibis-server --events
 }
 \noindent
 
-As you can see, we provided the \texttt{--events} option to get some
-extra information on when ibises join and leave the pool.
+By providing the \texttt{--events} option the server 
+prints information on when Ibis instances join and leave the pool.
 
-Next, we will start the application twice. One instance will act as the
-"server", and one the "client". The application will determine who is
-the server and who is the client automatically. Therefore we can simply
-start the application using the same command line. Run the following
-command in two different shells:
+Next, we will start the application two times. One instance will act as the
+"server", and one the "client". The application will determine who is who
+automatically. Therefore we can using the same command line for both client 
+and server. Run the following command in two different shells:
 
 \noindent
 {\small
@@ -228,7 +229,7 @@ $ CLASSPATH=$IBIS_HOME/examples/lib/ipl-examples-2.0.jar \
 \noindent
 
 This sets the CLASSPATH environment variable to the jar file of the
-application, and calls ibis-run. You should now have the two running
+application, and calls ibis-run. You should now have two running
 instances of your application. One of them should print:
 
 \noindent {\small \begin{verbatim} Server received: Hi there
