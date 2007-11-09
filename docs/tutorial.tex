@@ -1,6 +1,118 @@
-\include{tutorial.tex}
+After giving a high level overview of the functionality of Ibis, we will
+now give some examples of applications which use the IPL. All the
+examples used here can also be found in the \texttt{examples} directory
+of the distribution.
 
 \subsection{Hello}
+
+\begin{figure}[t]
+\lstset{language=Java,basicstyle=\footnotesize,breaklines=false}
+\begin{lstlisting}[numbers=left, numbersep=3pt]
+package ibis.ipl.examples;
+
+import ibis.ipl.*;
+
+public class Hello {
+    PortType portType = new PortType(PortType.COMMUNICATION_RELIABLE,
+            PortType.SERIALIZATION_DATA, PortType.RECEIVE_EXPLICIT,
+            PortType.CONNECTION_ONE_TO_ONE);
+
+    IbisCapabilities ibisCapabilities = new IbisCapabilities(
+            IbisCapabilities.ELECTIONS_STRICT);
+
+    private void server(Ibis myIbis) throws IOException {
+
+        // Create a receive port and enable connections.
+        ReceivePort receiver = myIbis.createReceivePort(portType, "server");
+        receiver.enableConnections();
+
+        // Read the message.
+        ReadMessage r = receiver.receive();
+        String s = r.readString();
+        r.finish();
+        System.out.println("Server received: " + s);
+
+        // Close receive port.
+        receiver.close();
+    }
+
+    private void client(Ibis myIbis, IbisIdentifier server) throws IOException {
+
+        // Create a send port for sending requests and connect.
+        SendPort sender = myIbis.createSendPort(portType);
+        sender.connect(server, "server");
+
+        // Send the message.
+        WriteMessage w = sender.newMessage();
+        w.writeString("Hi there");
+        w.finish();
+
+        // Close ports.
+        sender.close();
+    }
+
+    private void run() throws Exception {
+        // Create an ibis instance.
+        Ibis ibis = IbisFactory.createIbis(ibisCapabilities, null, portType);
+
+        // Elect a server
+        IbisIdentifier server = ibis.registry().elect("Server");
+
+        // If I am the server, run server, else run client.
+        if (server.equals(ibis.identifier())) {
+            server(ibis);
+        } else {
+            client(ibis, server);
+        }
+
+        // End ibis.
+        ibis.end();
+    }
+
+    public static void main(String args[]) {
+        try {
+            new Hello().run();
+        } catch (Exception e) {
+            e.printStackTrace(System.err);
+        }
+    }
+}
+\end{lstlisting}
+\caption{Complete source of the Hello program}
+\label{hello_source}
+\end{figure}
+
+The first example is a very simple Hello World type application. See
+Figure~\ref{hello_source} for the complete source. As you can see it is
+under a hundred lines of code. This application is meant to be started
+twice. One instance will act as a server and one as a client. The client
+sends a message to the server. Which instance is the server and which is
+the client is done using an election.
+
+The application is split up into several parts. First, the capabilities
+needed from Ibis are defined in two global variables. At the very bottom
+of the file is the \texttt{main} function. Main creates a object of this
+type, and calls \texttt{run} on this object. Run initialized Ibis, and
+determines if this is the client or the server. It then calls either the
+\texttt{server} or the \texttt{client} method.
+
+We will now explain this application line-by-line. The example starts
+with declaring the package on line 1. It then imports all classes from
+the IPL on line 3, and start the \texttt{Hello} class on line 5. Since
+this application will send messages, it will need to create ports, and
+thus a port type. The declaration on line 6-8 creates a port type
+suitable for this application. We select
+\texttt{COMMUNICATION\_RELIABLE} so we are sure the message will arrive,
+\texttt{SERIALIZATION\_DATA} so we are able to send primitive types, not
+only bytes (we want to send a String). \texttt{RECEIVE\_EXPLICIT}
+denotes we are going to explicitly call the \texttt{receive()} method of
+the receive port, and finally \texttt{CONNECTION\_ONE\_TO\_ONE} selects
+the simplest communication pattern, where a single sendport is connected
+to a single receive port.
+
+Next, we also need a list of all the capabilities we need from our Ibis
+itself. Since we would like to use reliable elections, we include
+\texttt{ELECTIONS\_STRICT}.
 
 \subsection{Upcalls}
 
