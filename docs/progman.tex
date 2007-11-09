@@ -116,7 +116,7 @@ implementation of the communication channel.
 %--messages, serialization, bytecode rewriting
 
 Once a connection is established between send and receive ports, data
-can now be sent. Send and receive ports in Ibis communicate using
+can be sent. Send and receive ports in Ibis communicate using
 messages. A so called \emph{write message} is created at the send port,
 and can be filled with all primitive data types of Java such as bytes, integers
 and strings, as well as more complex data structures in the form of
@@ -167,8 +167,8 @@ registry mechanism to get notified of any changes to the pool.
 The Ibis registry also supports \emph{elections}, which can be used to
 select Ibis instances which are special such as servers.  Each election
 has a unique name in the form of a String, and will elect a winner from
-the candidates for this election. However, elections are not by
-majority:
+the candidates for this election. However, elections results are not determined 
+by majority vote:
 usually the first candidate is elected as the winner. It is also
 possible to request the outcome of an election without being a
 candidate. When the winner of an election leaves the pool, or dies, a
@@ -186,7 +186,7 @@ central coordination point is used to implement this reliably.
 
 The normal implementation of the Registry is a central registry service.
 This allows for a reliable system, with a good consistency model.
-Election are guaranteed to yield the same winner at each Ibis, and any
+Elections are guaranteed to yield the same winner at each Ibis, and any
 changes to the membership list of the pool are reported in the same
 order at each Ibis. In this model, joins and leaves are guaranteed to be
 totally ordered. This implementation does rely on a central server
@@ -367,8 +367,8 @@ of objects is not supported.
 \label{properties}
 
 Properties are used in Ibis for setting configuration options at
-run-time. These include where to find the Ibis Implementations and the name
-of the pool to join. Properties can be passed to a Ibis when it is
+run-time. Where to find the Ibis Implementations, for example, or the name
+of the pool the Ibis must join. Properties can be passed to a Ibis when it is
 created, but Ibis can also add properties specified on the command line
 by default. See the user's guide for more information on the various
 properties of Ibis and their usage.
@@ -379,7 +379,7 @@ properties of Ibis and their usage.
 %-- add ipl.jar to classpath, rewrite using ibisc, example ant build file.
 
 Applications that use Ibis can be compiled as any normal Java
-application. The \texttt{ipl.jar} needs to be added to the
+application. The file \texttt{ipl.jar} needs to be added to the
 classpath when compiling (and running) an Ibis application. For the
 serialization of Ibis to function correctly, one additional step is
 required after compiling: the code for writing and reading objects must
