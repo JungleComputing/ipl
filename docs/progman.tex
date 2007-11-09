@@ -1,1048 +1,331 @@
 \documentclass[10pt]{article}
 
+\usepackage{url}
 \usepackage{graphicx}
-
-\newcommand{\mysection}[1]{\section{#1}\label{#1}}
-\newcommand{\mysubsection}[1]{\subsection{#1}\label{#1}}
-\newcommand{\mysubsubsection}[1]{\subsubsection{#1}\label{#1}}
-\newcommand{\remark}[1]{[\emph{#1}]}
+\usepackage{times}
 
 \begin{document}
 
-\title{Ibis Portability Layer (IPL) Programmer's Manual}
+\title{Ibis Communication Library Programmer's Manual}
 
-\author{The Ibis Group}
+\author{http://www.cs.vu.nl/ibis}
 
 \maketitle
 
 \section{Introduction}
 
-NOTE: THIS DOCUMENT IS COMPLETELY OUT OF DATE AND MUST BE REWRITTEN.
+This manual explains how to program applications using the Ibis
+communucation library. Ibis is a portable, high performance, Java based
+library. For information on how to run applications using this library,
+see the Ibis user's manual, available in the Ibis distribution in the
+\texttt{doc} directory, or on the Ibis
+website\footnote{\url{http://www.cs.vu.nl/ibis}}.
 
-Ibis is an efficient and flexible Java-based programming environment for Grid
-computing, in particular for distributed supercomputing applications.
-This manual describes the Ibis Portability Layer (IPL). It also describes
-how to run an Ibis application.
-It is available on-line at http://www.cs.vu.nl/ibis/progman.
-Ibis is described in several publications (see Section \ref{Further Reading}).
-Rather than giving a detailed overview of what each class and method does,
-the aim of this document is to describe how to actually use these classes
-and methods.
-The \emph{javadoc} subdirectory of the Ibis installation provides
-documentation for each class and method (point your favorite browser
-to javadoc/index.html file of the Ibis installation).
-The Ibis API is also available
-on-line at http://www.cs.vu.nl/ibis/javadoc.
-In this manual, fragments of an actual Ibis application will be used for
-illustration purposes.
-Section \ref{An Ibis Application} will discuss a typical Ibis application,
-with subsections on each phase of the program.
-Section \ref{Compiling and Running an Ibis Application} will discuss how to
-actually compile and run this program.
+In this manual, we will focus on concepts and methodsm rather than
+details like exact parameters of functions. For this type of
+information, see the Javadoc for Ibis. This is available in the
+\texttt{javadoc} directory of the distribution, and on the website.
 
-\mysection{Some Ibis concepts}
+This manual is split up into several different sections. First, we will
+explain the different parts of the IPL, the interface to the Ibis
+communication library. Second, we explain how to compile applications
+which use Ibis. Last, we will give some examples of applications which
+use Ibis, to show how to use Ibis in practice.
 
-\mysubsection{The Ibis Portability Layer}
+\section{IPL Overview}
 
-The Ibis Portability Layer (IPL) consists of a set of Java interfaces and
-classes that define how an Ibis application can make use of the Ibis components.
-The Ibis application does not need to know which specific Ibis implementations
-are available.
-It just specifies some capabilities that it requires, and the Ibis system
-selects the best available Ibis implementation that meets these requirements.
- 
-\mysubsection{An Ibis Instance}
+%-- ipl picture, implementations, upcalls, identifiers, instances
 
-A loaded IPL implementation is called an \emph{Ibis instantiation}, or 
-\emph{Ibis instance}.
-An Ibis instance is identified by a so-called
-\emph{Ibis identifier}.
-An application can find out which Ibis instances are present in the run
-by supplying a so-called \emph{RegistryEventHandler}.
-This RegistryEventHandler is an object with, among others, a \texttt{joined()}
-method which gets called by the Ibis system when a new Ibis instance
-joins the run.  The Ibis identifier of this new Ibis is a parameter
-to the \texttt{joined()} method.
+\begin{figure} \centering
+\includegraphics[width=0.9\textwidth]{../images/old-ibis-design.eps}
+\caption{Ibis design overview} \label{design}
+\end{figure}
 
-\mysubsection{Send Ports and Receive Ports}
+This section will give a high level overview of the different parts of
+the IPL.  For an overview of the design of Ibis, see
+Figure~\ref{design}. The Ibis communication library is build up around
+the \emph{Ibis Portability Layer(IPL)}. This layer offers applications a
+grid aware communication library, independant of the actual network
+used. Ibis can dynamically select a suitable implementation at run-time.
+The Ibis communication library ships with several different TCP based
+implementation, but implementations based on native platforms such as
+MPI and Myrinet are also possible.
 
-The IPL provides primitives to set up connections between send and receive
-ports.
-In general, a sendport can have connections to multiple receive ports,
-and a receive port can have multiple incoming connections.
-However, the user may specify that a sendport will have only one
-outgoing connection, or that a receive port will only have one
-incoming connection, allowing Ibis to choose a more efficient
-implementation.  A connection is always \emph{unidirectional}, from
-a send port to a receive port.
+Using the IPL, we implemented several different programming models, such
+as the divide-and-conquer Satin model, and the Group Based Method
+Invocation(GMI) model. A discussion of these models lies outside the
+scope of this manual. For more information on the programming models,
+see the Ibis website. As an alternative to using a intermediate
+programming model, applications can also be written directly on top of
+the IPL. The main target audiance of this manual are programmers using
+the IPL in an application and programming model writers.
 
-All send and receive ports have a \emph{type} which is represented by an
-instance of \texttt{ibis.ipl.PortType}.
-To create a connection, an Ibis application must create a send port,
-and the instance at the receiving side must create a receive port.
-The send port can then be connected to the receive port, provided
-that the ports are of the same port type.
+A central concept in the IPL is the \emph{Ibis instance}. In general,
+one Ibis instance is created on each machine participating in a
+particular distributed application. Each of these instances has a unique
+\emph{Ibis Identifier}, used thoughout the library to denote this
+instance.
 
-To send a message, the Ibis application requests a new write message from
-a send port. The write message object has methods to put data in this write
-message. Finally, the message is finished by invoking its \texttt{finish()}
-method.
+Another often used concept is the \emph{upcall}. Upcalls can be used
+instead of downcalls(explicit receipt, polling) in a number of cases.
+These cases include receiving messages, getting noticications of new
+connections, and updates on new Ibis instances joining a computation.
 
-To receive a message, the IPL provides two mechanisms:
+\subsection{Send and Receive Ports}
+
+%-- send port, receive port, connections, porttypes
+
+\begin{figure} \centering
+\includegraphics[width=0.5\textwidth]{../images/ports.eps}
+\caption{Ibis send and receive port configurations} \label{ports}
+\end{figure}
+
+The IPL is based on uni-directional connection oriented pipes. In the
+model, \emph{send ports} are connected to \emph{receive ports}. See
+Figure~\ref{ports} for some examples. Connecting a single send port to a
+single receive port leads to a simple one-to-one connection. But, it is
+also possible to connect a send port to multiple receive ports for a
+one-to-many multicast, or multiple send ports to a single receive port
+for many-to-one client server type communication. Even connecting
+multiple send ports to multiple receive ports is possible, although this
+many-to-many communication model is currently not supported by the
+standard TCP based implementation of Ibis.
+
+\begin{figure} \centering
+\includegraphics[width=0.5\textwidth]{../images/port_types.eps}
+\caption{Port types} \label{port_types}
+\end{figure}
+
+Ports in Ibis are typed (see Figure~\ref{port_types}). Types are
+determined by the communication patterrn (one-to-one, one-to-many,
+many-to-one, many-to-many), the type of data that can be send,
+reliability, and others. Sendports can only be connected to receive
+ports of the same type. This allows for some sanity checks on the
+application, and allows Ibis to select the most apropriate
+implementation of the communication channel.
+
+\subsection{Messages and Serialization}
+
+%--messages, serialization, bytecode rewriting
+
+Once a connection is established between send and receive ports, data
+can now be send. Send and receiveports in Ibis communicate using
+messages. A so called \emph{write message} is created at the send port,
+and can be filled with all primitive data types of Java such as bytes, integers
+and strings, as well as more complex data structures in the form of
+Java \texttt{Objects}. Also, arrays of primitive types and object can be
+send. When the user is done writing data to a message a \texttt{finish}
+message must be called to denote the message has been completed.
+
+Once data is written using a write message at the send port, this
+message will arrive at the receive port as a \emph{read message}. There,
+the data can be read again using functions equivalent to the ones in
+write message. Data must be read from the read message in the same order
+as it was written in the write message.
+
+The size of a message is unlimited in Ibis. However, at any point in
+time, only a single message can be active at a port. This allows Ibis to
+start sending data to the receiver as soon as it is written in the
+message. So, while data is still being written to a message at the
+sender, it may already be read at the receiver. This streaming behaviour
+makes communication in Ibis much more efficient.
+
+Serialization of Objects is the translation of data into bytes suitable for
+sending across a network. Ibis is capable of several different versions
+of serialization, depending on the needs of the user. These versions
+differ in the types of data they support. Some only support sending
+bytes, some only primitive types, and some also allow sending objects.
+
+Two different object serialization versions are present in Ibis.  One is
+the standard Java object serialization, the other a high performance
+implementation of object serialization. For this high performance
+\emph{Ibis Serialization} implementation to work, an extra step is needed
+when compiling the application. Some extra code is generated to
+facilitate sending objects efficiently. See Section\ref{compiling} for
+more info.
+
+\subsection{Pools and the Registry}
+
+%-- pools, registry, join, leave, died, election, location
+
+Each Ibis instance is a member of a \emph{Pool}. The Ibis
+\emph{Registry} keeps track of all the members of the pool, and notifies
+all Ibises whenever a new Ibis instance joins this pool, leaves the
+pool, or even when a Ibis dies unexpectedly.
+
+Applications can use the registry mechanism to get notified of any
+changes to the pool. Also, it is possible to do a \emph{election}, which
+can be used to select Ibis instances which are special such as servers.
+Each election has a unique name in the form of a String, and will elect
+a winner from the candidates for this election. Elections are not
+democratic though, and usually the first candidate is elected as the
+winner. It is also possible to request the outcome of an election
+without being a candidate. 
+
+\subsection{Capabilities}
+
+To facilitate the selection of the best implementation for all the
+functionality required of Ibis from a user, Ibis uses a
+\emph{capability} based selection mechanism. For each Ibis instance, and
+each port type, the user can specify which capabilities are needed. Each
+capability enables a certain part of the API. For instance, sending
+objects in message is only possible if the "object serialization"
+capability is enabled in the port type. Likewise, elections can only be
+done if either the "unreliable election" or the "strict election"
+capability is enabled. The difference between the two being the
+consistency model of the elections. 
+
+We list the most important capabilities below. The complete list of
+predefined capabilities can be found in the (Javadoc of the)
+\texttt{PredefinedCapabilities} class.
+
+Capabilities of an Ibis instance:
+
 \begin{description}
-\item[explicit receipt]
-when a receive port is configured for explicit receipt, a message can be
-received with the receive port's blocking \emph{receive} method,
-or with its non-blocking \emph{poll} method.
-These methods return a \emph{read message} object, from which data can
-be extracted using its read methods. The \emph{poll} method may also
-return \emph{null}, in case no message is available.
-\item[upcalls]
-when a receive port is configured for upcalls, the Ibis application provides
-an \emph{upcall} method, which is to be called when a message arrives.
-The upcall provides the message received as a parameter.
-The message contents will be lost when the upcall returns, so the data
-in the message must be read in the upcall.
-Upcalls are either automatic, or must be polled for explicitly, see Section
-\ref{Creating an Ibis Instance}.
+
+\item[CLOSED_WORLD]
+The Ibises in the pool are determined at the start of the
+run. After these Ibises have joined, any further requests to join the
+pool will be denied.
+
+\item[ELECTIONS_STRICT]
+Indicates elections are supported, and they adhere to the following 
+consistency model: Each election has a single, unique winner at any
+given point in time, and
+
+
 \end{description}
-\noindent
 
-\mysubsection{Port Types}
+Capabilities of a Port type:
 
-Send and receive ports are \emph{typed} by means of a \emph{port type}.
-A port type is defined by capabilities.
-Port type capabilities that can be configured are, for instance, the
-serialization method used, reliability, whether a send port can connect
-to more than one receive port, whether more than one send port can connect
-to a single receive port, et cetera.
-Only ports of the same type can be connected.
-
-\mysubsection{Serialization}
-
-Serialization is a mechanism for converting Java objects
-into portable data that can be stored or transferred.
-Java has input
-(\texttt{java.io.ObjectInputStream})
-and output
-(\texttt{java.io.ObjectOutputStream})
-streams for reading and writing
-objects.
-Ibis has \texttt{writeObject} and \texttt{readObject} methods in
-its messages to accomplish the same effect. 
-
-Sometimes, object serialization is not needed. For that case,
-two simpler serialization mechanisms are available: \emph{data
-serialization} which allows for sending/receiving data of basic types
-and arrays of basic types (similar to \texttt{java.io.DataInputStream}
-and \texttt{java.io.DataOutputStream}), and \emph{byte serialization}
-which only allows sending/receiving bytes and arrays of bytes.
-
-\mysection{An Ibis Application}
-
-An Ibis application consists of several parts:
-\begin{itemize}
-\item
-Creating an Ibis instance in each instance of the application.
-An Ibis application can run on multiple hosts.
-On each of these hosts, an Ibis instance must be created.
-\item
-Setting up communication. Communication setup in Ibis
-consists of creating one or more \emph{send ports}, through which messages
-can be sent, and creating one or more \emph{receive ports},
-through which messages can be received, and creating connections between them.
-\item
-Actually communicating. A send port is used to create a 
-\emph{write message}, which is sent to the receive ports that this send port
-is connected to.
-\item
-Finishing up. Connections must be closed, and each Ibis instance must
-be ended.
-\end{itemize}
-\noindent
-The next few subsections will discuss each of these steps in turn,
-illustrating them with parts of an RPC-style Ibis application.
-This application will have a server and one or more clients. This is a toy
-application: the server will receive strings, compute the length of each string,
-and send this length back to the client.
-The clients will send strings, and receive the length of these strings.
-The server will have to do some other work as well, just to make
-things a little more interesting.
-
-\subsection{Program Preamble}
-
-Ibis applications need to import classes from the IPL (Ibis
-Portability Layer) package, which lives in
-\texttt{ibis.ipl}.
-The easiest is probably to simply import all \texttt{ibis.ipl} classes with
-one import line:
-
-{\small
-\begin{quote}
-\begin{verbatim}
-import ibis.ipl.*;
-\end{verbatim}
-\end{quote}
-}
-
-\noindent
-Of course it is also possible to import only the needed classes.
-
-Before creating an Ibis instance, we must determine what we want from it.
-This is determined by two objects: the required Ibis capabilities, and
-the list of port types that are going to be used.
-
-\mysubsubsection{Creating an Ibis Instance}
-
-All instances of a program that want to participate in an Ibis run
-must create an Ibis instance.
-To create an Ibis instance, the static \texttt{createIbis()} method of the
-\texttt{ibis.ipl.IbisFactory} class must be used.
-The specification of this method is:
-{\small
-\begin{quote}
-\begin{verbatim}
-static Ibis createIbis(IbisCapabilities requiredCapabilities,
-                       RegistryEventHandler handler,
-		       PortType... portTypes)
-        throws IbisCreationFailedException;
-\end{verbatim}
-\end{quote}
-}
-
-There may be several Ibis implementations available, and
-the factory selects the best one for you, based on the
-specified required capabilities and port types.
-These required capabilities and port types in fact determine what
-the user wants the chosen Ibis to be able to do.
-The Ibis factory will select an Ibis implementation that can at least
-do what is required, and if no such implementation is found, throw an exception.
-The possible Ibis capabilities are specified in
-\texttt{ibis.ipl.IbisCapabilities} class, as discussed in Section
-\ref{Ibis Capabilities}.
-
-A registry event handler may be specified,
-with a.o. \texttt{joined()} and \texttt{left()} upcalls that get
-called when an Ibis instance joins or leaves the run.
-In our RPC example, we will not use this, so we
-specify \texttt{null} instead.
-However, when such a \texttt{RegistryEventHandler}
-is used, its \texttt{joined()} upcall is called for every Ibis that joins the
-run, including the Ibis being created itself.
-Upcalls to the \texttt{RegistryEventHandler} must be explicitly enabled by
-invoking the \texttt{enableRegistryEvents()} method of the Ibis
-just created. This ensures that the \texttt{RegistryEventHandler} has been
-able to do the necessary initializations.
-
-The \texttt{enableResizeUpcalls()} method blocks until the
-\texttt{joined()} upcall for this Ibis has been invoked.  Knowing which Ibises
-have joined the run, and how many there are, is often useful in dividing
-the work. See also section \ref{Which Instance Does What?}.
-
-The last parameters specify the port types that are going to be used
-in the application. We will discuss these in more detail in Section
-\ref{Ibis Port Types}.
-
-Now back to our example. In Secion \ref{Ibis Capabilities} we will
-discuss the creation of an \texttt{IbisCapabilities} object describing the
-required capabilities. For the moment we will just assume it
-exists. Likewise, in Section \ref{PortTypes} we will discuss the
-creation of a port type, and for now we will just assume that it exists,
-and is referred to by a variable \texttt{porttype}.
-{\small
-\begin{quote}
-\begin{verbatim}
-Ibis ibis = null;
-try {
-    ibis = Ibis.createIbis(capabilities, null, porttype);
-} catch(IbisCreationFailedException e) {
-    System.err.println("Could not create Ibis: " + e);
-    ...
-}
-\end{verbatim}
-\end{quote}
-}
-The method \texttt{createIbis()} throws an exception when no
-matching Ibis implementation can be found, or a matching Ibis
-cannot be instantiated for some reason.
-
-\mysubsubsection{Ibis Capabilities}
-
-Below is a snippet from the RPC example, constructing the required capabilities:
-{\small
-\begin{quote}
-\begin{verbatim}
-IbisCapabilities capabilities = new IbisCapabilities(
-    IbisCapabilities.ELECTIONS_STRICT);
-\end{verbatim}
-\end{quote}
-}
-
-This states that the selected Ibis must support reliable elections
-(the toy example will use this to determine who will be the server and
-who will be the client).
-
-This states that the selected Ibis must support reliable one-to-one
-communication, must support upcalls at the receiver side without the
-receiver having to poll for messages, and must also support explicit
-receipt of messages at the receiver side.
-(We want upcalls so that the server can do other work, and we want
-explicit receipt for the client side).
-In addition, the selected Ibis must support some form of object
-serialization (a string must be sent),
-and must support the ``closed'' worldmodel, which means
-that all participating Ibises join at the start of the run.
-
-The complete list of predefined capabilities is given in the
-\texttt{PredefinedCapabilities} class. The most important ones
-are:
 \begin{description}
 \item[CONNECTION\_ONE\_TO\_ONE]
-One-to-one (unicast) communication is supported (if an Ibis implementation
+One-to-one (unicast) communication is supported (if an Ibis
+implementation
 does not support this, you may wonder what it \emph{does} support).
+
 \item[CONNECTION\_ONE\_TO\_MANY]
 one-to-many (multicast) communication is supported
 (in Ibis terms: a sendport
 may connect to multiple receiveports).
+
 \item[CONNECTION\_MANY\_TO\_ONE]
 many-to-one communication is supported (in Ibis terms: multiple
 sendports may connect to a single receiveport).
+
 \item[COMMUNICATION\_FIFO]
 messages from a send port are delivered to the receive ports it is
 connected to in the order in which they were sent.
+
 \item[CONNECTION\_DOWNCALLS]
 connection downcalls are supported. This means that the user can
 invoke methods to see which connections were lost or created.
+
 \item[CONNECTION\_DOWNCALLS]
 connection upcalls are supported. This means that an upcall
-handler can be installed that is invoked whenever a new connection arrives
+handler can be installed that is invoked whenever a new connection
+arrives
 or a connection is lost.
+
 \item[COMMUNICATION\_NUMBERED]
 all messages originating from any send port of a specific port type have
 a sequence number. This allows the application to do its own sequencing.
+
 \item[COMMUNICATION\_RELIABLE]
 reliable communication is supported, that is,
 a reliable communication protocol is used.
-When not specified, an Ibis implementation may be chosen that does not explicitly
+When not specified, an Ibis implementation may be chosen that does not
+explicitly
 support reliable communication.
+
 \item[RECEIVE\_AUTO\_UPCALLS]
 upcalls are supported and polling for them is not required.
 This means that when the user creates a receiveport with an upcall
 handler installed, when a message arrives at that receive port, 
 this upcall handler is invoked automatically.
+
 \item[RECEIVE\_POLL\_UPCALLS]
 upcalls are supported but polling for them may be needed. When an
 Ibis implementation claims that it supports this, it may also do
-RECEIVE\_AUTO\_UPCALLS, but polling does no harm. When an application asks for
+
+RECEIVE\_AUTO\_UPCALLS, but polling does no harm. When an application
+asks for
 this (and not RECEIVE\_AUTO\_UPCALLS), it must poll.
+
 \item[RECEIVE\_EXPLICIT]
 explicit receive is supported.
 This is the alternative to upcalls for receiving messages.
+
 \item[SERIALIZATION\_BYTE]
-Only the methods \texttt{readByte()}, \texttt{writeByte()}, \texttt{readArray(byte[])} and \texttt{writeArray(byte[])} are supported.
+Only the methods \texttt{readByte()}, \texttt{writeByte()},
+\texttt{readArray(byte[])} and \texttt{writeArray(byte[])} are
+supported.
+
 \item[SERIALIZATION\_DATA]
-Only \texttt{read()}/\texttt{write()} and \texttt{readArray()}/\texttt{writeArray()} of primitive types are supported.
+Only \texttt{read()}/\texttt{write()} and
+\texttt{readArray()}/\texttt{writeArray()} of primitive types are
+supported.
+
 \item[SERIALIZATION\_OBJECT]
 Some sort of object serialization is supported.
 This requires user-defined
-\texttt{writeObject()}/\texttt{readObject()} methods to be symmetrical, that is,
+\texttt{writeObject()}/\texttt{readObject()} methods to be symmetrical,
+that is,
 each write in \texttt{writeObject()} must have a corresponding read
 in \texttt{readObject()} (and vice versa).
+
 \item[SERIALIZATION\_STRICTOBJECT]
-Sun serialization (through \texttt{java.io.ObjectOutputStream/InputStream}) is
-supported. In some regards, this object serialization implementation is more
+Sun serialization (through
+\texttt{java.io.ObjectOutputStream/InputStream}) is
+supported. In some regards, this object serialization implementation is
+more
 forgiving than SERIALIZATION\_OBJECT.
+
 \item[WORLDMODEL\_OPEN]
 Ibises can join and leave the run at any time during the run.
-\item[WORLDMODEL\_CLOSED]
-The number of nodes involved in the run is known in advance and
-available from the \texttt{Ibis.totalNrOfIbisesInPool()} method.
+
 \end{description}
 
-\noindent
-If a specific implementation of Ibis is required, that can be dealt with too.
-There is a property called \texttt{ibis.name}, which can be used to supply the
-classname of the required Ibis implementation.
+\subsection{Properties}
 
-\subsection{Setting up Communication}
+Properties are used in Ibis for setting configuration options at
+run-time. These include where to find the ibis Implementations and the name
+of the pool to join. Properties can be passed to a Ibis when it is
+created, but Ibis can also add properties specified on the command line
+by default. See the user's guide for more information on the various
+properties of ibis and their usage.
 
-Setting up communication consists of several steps:
-\begin{itemize}
-\item
-create a port type;
-\item
-create a send and a receive port;
-\item
-set up connections between them.
-\end{itemize}
+\section{Compiling applications}\
 
-\noindent
-The next few subsections discuss each of these steps in turn, but
-first we will discuss how to decide which Ibis instance does what.
+%-- add ipl.jar to classpath, rewrite using ibisc, example ant build file.
 
-\mysubsubsection{Which Instance Does What?}
+\section{Tutorial}
 
-Up until now, we have discussed only matters that all instances of
-the Ibis application should do, but now things become different.
-One instance of the application may want to send messages, while
-another instance may want to receive them.
-It may not even be clear which instance is going to do what.
-This can of course be solved with program parameters, but Ibis
-also provides a so-called registry (of type
-\texttt{ibis.ipl.Registry}), which is obtained through the
-\texttt{ibis.registry()} method.
-Ibis also provides the \texttt{ibis.ipl.IbisIdentifier} class.
-The \texttt{ibis.ipl.Ibis.identifier()} method returns such an
-Ibis identifier, which identifies this specific Ibis instance.
+\subsection{Hello}
 
-Using these methods it is possible to decide, in the RPC example,
-who is going to be the server by means of an ``election'': the Ibis
-registry provides a method \texttt{elect()} which (globally) selects
-one of a number of invokers.  For our RPC example this could be done as
-follows:
+\subsection{Upcalls}
 
-{\small
-\begin{quote}
-\begin{verbatim}
-IbisIdentifier me = ibis.identifier();
-Registry registry = ibis.registry();
-IbisIdentifier server = registry.elect("Server");
-boolean iAmServer = server.equals(me);
-IbisIdentifier client = null;
-if (iAmServer) {
-    client = registry.getElectionResult("Client");
-} else {
-    client = registry.elect("Client");
-}
-\end{verbatim}
-\end{quote}
-}
+\subsection{Registry}
 
-In our example, one instance of the program is the server and the
-other instance is a client.  Of course, the client and the server can also
-be different programs altogether.
-Note that the server finds out who is the client by looking at an election
-result without being a candidate.
+\subsection{One-to-Many}
 
-The \texttt{RegistryEventHandler}, as discussed in Section
-\ref{Creating an Ibis Instance}, can be used to keep track of the number
-of Ibis instances currently involved in the run.
+\subsection{Many-to-One}
 
-\subsubsection{Creating a Port Type}
+\subsection{Client-Server}
 
-To be able to create send and receive ports, it is first necessary
-to create one or more \emph{port types}.
-A port type is an object
-of type \texttt{ibis.ipl.PortType}.
-Within an Ibis instance,
-multiple port types, with different properties, can be created.
-The capabilities of a port type are, like the required capabilities
-of an Ibis implementation, specified by a \texttt{CapabilitySet} object.
-A port type is identified by these capabilities.
-The \texttt{Ibis} class contains a method to create a port type,
-specified as follows:
-{\small
-\begin{quote}
-\begin{verbatim}
-PortType createPortType(CapabilitySet portCapabilities);
-\end{verbatim}
-\end{quote}
-}
+\subsection{Client-Server with Objects}
 
-\noindent
-For our RPC example program, we would create a port type with capabilities
-as discussed in Section \ref{Creating an Ibis Instance}:
+\section{Further Reading}
 
-{\small
-\begin{quote}
-\begin{verbatim}
-CapabilitySet portCapabilities = new CapabilitySet(
-    PredefinedCapabilities.CONNECTION_ONE_TO_ONE,
-    PredefinedCapabilities.COMMUNICATION_RELIABLE,
-    PredefinedCapabilities.SERIALIZATION_OBJECT,
-    PredefinedCapabilities.RECEIVE_EXPLICIT,
-    PredefinedCapabilities.RECEIVE_AUTO_UPCALLS);
-PortType porttype = ibis.createPortType(portCapabilities);
-\end{verbatim}
-\end{quote}
-}
-\noindent
-In general, the port capabilities should be a subset of the capabilities
-specified when creating the Ibis instance. If a capability
-is specified that was not specified when creating the Ibis instance,
-this may result in an \texttt{IbisConfigurationException}.
+The Javadoc included in the \texttt{javadoc} directory has detailed
+information on all classes and their functions.
 
-\subsubsection{Creating Send and Receive Ports}
+The Ibis web page \url{http://www.cs.vu.nl/ibis} lists all
+the documentation and software available for Ibis, including papers, and
+slides of presentations.
 
-The \texttt{PortType} class contains several variants of a method
-\texttt{createSendPort()} that creates a send port (of type
-\texttt{ibis.ipl.SendPort}) and
-also several variants of a method \texttt{createReceivePort()} that
-creates a receive port (of type \texttt{ibis.ipl.ReceivePort}).
-See the API for an exhaustive list of variants.
-
-In Ibis, receive ports usually have specific names, so that
-a send port can set up a connection to a receive port. In contrast,
-send ports usually are anonymous, because a receive port cannot
-initiate a connection.
-
-For our RPC example, the server will have to create a receive port
-to receive a request and a send port to send an answer.
-The server is not allowed to block waiting for a request, so it will
-want a receive port that enables upcalls.
-To do that, the server must first define a class that implements
-the \texttt{ibis.ipl.MessageUpcall} interface. This interface contains one
-method:
-
-{\small
-\begin{quote}
-\begin{verbatim}
-void upcall(ReadMessage m) throws java.io.IOException;
-\end{verbatim}
-\end{quote}
-}
-
-We will go into the details of a \texttt{ReadMessage} in Section
-\ref{Communicating}. For now, we will assume that there is a
-class \texttt{RpcUpcall} that implements this interface, and
-that the application has a field \texttt{rpcUpcall} of this type.
-
-{\small
-\begin{quote}
-\begin{verbatim}
-try {
-    SendPort serverSender = porttype.createSendPort();
-    ReceivePort serverReceiver =
-        porttype.createReceivePort("server", rpcUpcall);
-} catch(java.io.IOException e) {
-    ....
-}
-\end{verbatim}
-\end{quote}
-}
-
-\noindent
-The client will have to create a send port
-to send a request and a receive port to receive an answer.
-The client is allowed to block waiting for an answer, so it will
-want a receive port that enables explicit receipt.
-So, the client will create an anonymous server port, and a named
-receive port that enables explicit receipt (no upcall handler is supplied):
-{\small
-\begin{quote}
-\begin{verbatim}
-try {
-    SendPort clientSender = porttype.createSendPort();
-    ReceivePort clientReceiver =
-        porttype.createReceivePort("client");
-} catch(java.io.IOException e) {
-    ....
-}
-\end{verbatim}
-\end{quote}
-}
-
-\noindent
-When a receive port is created, it will not immediately accept connections.
-This must be explicitly enabled by
-invoking the \texttt{enableConnections()} method.
-Incoming connection attempts are kept pending until connections are enabled.
-So, the creator of
-the receive port can determine when he is ready to accept connections.
-If the receive port is configured for upcalls, these must
-explicitly be enabled by invoking the \texttt{enableMessageUpcalls()} method.
-Again, incoming messages are kept pending until upcalls are enabled.
-
-\subsubsection{Setting Up a Connection}
-
-Now that we have send ports and receive ports, it is time to set up
-connections between them.
-A connection is initiated by the \texttt{connect()} method of
-\texttt{ibis.ipl.SendPort}.
-Here is its specification:
-
-{\small
-\begin{quote}
-\begin{verbatim}
-void connect (IbisIdentifier ibis, String name) throws IOException;
-\end{verbatim}
-\end{quote}
-}
-
-\noindent
-This version blocks until an accept or deny is received.
-An \texttt{IOException} is thrown when the connection could not be established.
-There also is a \texttt{connect()} version with a time-out.
-So, we need a \texttt{IbisIdentifier} and a name to set up the
-connection.
-Here is the connection setup code for the server:
-
-{\small
-\begin{quote}
-\begin{verbatim}
-try {
-    serverSender.connect(client, "client");
-} catch(IOException e) {
-    ...
-}
-\end{verbatim}
-\end{quote}
-}
-
-\noindent
-Our RPC client would set up the following connection:
-
-{\small
-\begin{quote}
-\begin{verbatim}
-try {
-    clientSender.connect(server, "server");
-} catch(IOException e) {
-    ...
-}
-\end{verbatim}
-\end{quote}
-}
-
-This completes the connection setup.
-
-Note that a send port can set up connections to more than one
-receive port (if the port type supports the \texttt{CONNECTION\_ONE\_TO\_MANY}
-capability). Also, multiple send ports can set up
-connections to the same receive port (if the port type supports
-the \texttt{CONNECTION\_MANY\_TO\_ONE} capability).
-
-\mysubsection{Connection upcalls, connection downcalls}
-
-Sometimes it is useful for an application to know which send ports
-are connected to a receive port, and vice versa, or which connections
-are being closed.
-Ibis implementations may support two different mechanisms for obtaining
-this type of information: connection upcalls and connection downcalls.
-See Section \ref{Ibis Capabilities} for the corresponding capabilities.
-
-When a port type is configured for using connection upcalls,
-a receive port may be instantiated with a \texttt{ReceivePortConnectUpcall}
-object. This is an interface with two methods:
-
-{\small
-\begin{quote}
-\begin{verbatim}
-boolean gotConnection(ReceivePort me,
-                      SendPortIdentifier applicant);
-void lostConnection(ReceivePort me,
-                    SendPortIdentifier johndoe,
-                    Exception reason);
-\end{verbatim}
-\end{quote}
-}
-\noindent 
-The \texttt{gotConnection()} method gets called when a send port attempts
-to connect to the receive port at hand.
-An implementation of this method can decide whether
-to allow this connection or not by returning \texttt{true} or \texttt{false}.
-The \texttt{lostConnection()} method gets called when an existing connection
-to the receive port at hand gets lost for some reason.
-
-A send port can be instantiated with a
-\texttt{SendPortDisconnectUpcall} object.
-This is an interface with a single method:
-
-{\small
-\begin{quote}
-\begin{verbatim}
-void lostConnection(SendPort me,
-                    ReceivePortIdentifier johndoe,
-                    Exception reason);
-\end{verbatim}
-\end{quote}
-}
-\noindent 
-This method is called when an existing connection from the send port at
-hand gets lost for some reason. Note that there is no \texttt{gotConnection()}
-counterpart, because it is always the send port that initiates a connection.
-
-When a port type is configured for using connection downcalls, receive ports
-and send ports of this type maintain connection information, and support
-methods that allow the user to obtain this information.
-A receive port has the following methods:
-
-{\small
-\begin{quote}
-\begin{verbatim}
-SendPortIdentifier[] newConnections();
-SendPortIdentifier[] lostConnections();
-SendPortIdentifier[] connectedTo();
-\end{verbatim}
-\end{quote}
-}
-
-\texttt{newConnections()} returns the send port identifiers of the connections
-that are new since the last call or the start of the program.
-\texttt{lostConnections()} returns the send port identifiers of the connections
-that were lost since the last call or the start of the program.
-\texttt{connectedTo()} returns the send port identifiers of all connections
-to this receive port.
-A send port has the following methods:
-
-{\small
-\begin{quote}
-\begin{verbatim}
-ReceivePortIdentifier[] newConnections();
-ReceivePortIdentifier[] lostConnections();
-ReceivePortIdentifier[] connectedTo();
-\end{verbatim}
-\end{quote}
-}
-\noindent
-which do exactly the same as their receive port counterparts.
-
-\mysubsection{Communicating}
-
-Communication in Ibis
-consists of messages, sent from a send port, and received at a
-receive port. When a sender wants to send a message, it will first
-have to obtain one from the send port. Such a message is of
-type \texttt{ibis.ipl.WriteMessage} and is obtained by means of
-the \texttt{newMessage()} method of \texttt{SendPort}, which is specified
-as follows:
-
-{\small
-\begin{quote}
-\begin{verbatim}
-WriteMessage newMessage() throws IOException;
-\end{verbatim}
-\end{quote}
-}
-
-\noindent
-For a given send port, only one message can be alive at any time.
-When a new message is requested while a message is alive, the request
-is blocked until the live message is finished.
-
-Once a write message is obtained, data can be written to it.
-A write message has various methods for the different types of
-data that can be written to it. For instance, the
-\texttt{writeInt()} method can be used to write an integer value,
-and the \texttt{writeObject()} method can be used to write an object.
-The kind of data that can be written to the message depends on the
-serialization capability specified when the port type was created.
-The most general form is object serialization, which supports 
-all write methods in a write message.
-The \texttt{data} serialization capability does not allow use of the
-\texttt{writeObject()} method, but does allow the use of all other write
-methods. The \texttt{byte} serialization capability only allows use
-of the \texttt{writeByte()} method and the \texttt{writeArray(byte[])}
-method.
-
-Once there is a considerable amount of data in the message, Ibis
-can be given a hint to start sending, using the \texttt{send()}
-method. This hint is not required, however. When the message is
-complete, the message can be sent out by invoking the
-\texttt{finish()} method.
-
-Our client in the RPC example could have the following:
-{\small
-\begin{quote}
-\begin{verbatim}
-int obtainLength(String s) throws IOException {
-    WriteMessage w = clientSender.newMessage();
-    w.writeObject(s);
-    w.finish();
-    ...
-}
-\end{verbatim}
-\end{quote}
-}
-
-\noindent
-At the receiving side, a message can be received in two ways,
-depending on how the receive port was created: either by means of an
-upcall, or by means of an explicit receive. For each write method
-in the \texttt{WriteMessage} type, there is a corresponding read method in
-the \texttt{ReadMessage} type. For a given receive port, only one message can
-be alive at any time. A read message is alive until it is
-finished (by a \texttt{finish()} call), or the upcall returns.
-
-Now, let us present some more code of our RPC example, this time
-from the server:
-
-{\small
-\begin{quote}
-\begin{verbatim}
-public void upcall(ReadMessage m) throws IOException {
-    String s = "";
-    try {
-	s = (String) m.readObject();
-    } catch(ClassNotFoundException e) {
-        ...
-    }
-    int len = s.length();
-    m.finish();
-    WriteMessage w = serverSender.newMessage();
-    w.writeInt(len);
-    w.finish();
-}
-\end{verbatim}
-\end{quote}
-}
-
-\noindent
-Note that the read message is finished before replying to the
-request. To prevent deadlocks, upcalls are not allowed to block
-(call \texttt{Thread.wait()}) or access the network (write a message or
-read another message) as long as a read message is active.
-
-Now, we can also finish the \texttt{obtainLength()} method of the client:
-{\small
-\begin{quote}
-\begin{verbatim}
-    ...
-    ReadMessage r = clientReceiver.receive();
-    int len = r.readInt();
-    r.finish();
-    return len;
-}
-\end{verbatim}
-\end{quote}
-}
-
-\subsection{Finishing up}
-
-Closing of a connection is initiated by closing a send port
-by means of the \texttt{close()} method. The \texttt{ReceivePort}
-class also has a \texttt{close()} method, but this method blocks
-until all send ports that have a connection to it are closed.
-So, send ports have to be closed first.
-
-Our RPC client will do the following:
-
-{\small
-\begin{quote}
-\begin{verbatim}
-clientSender.close();
-clientReceiver.close();
-\end{verbatim}
-\end{quote}
-}
-and the code of the server should be clear by now.
-
-Ibis itself must also be ended. Both our client and our server
-should invoke the \texttt{Ibis.end()} method:
-{\small
-\begin{quote}
-\begin{verbatim}
-ibis.end();
-\end{verbatim}
-\end{quote}
-}
-
-As of Java 1.3, it is also possible to add a so-called shutdown hook.
-This could be done right after the Ibis instance is created:
-{\small
-\begin{quote}
-\begin{verbatim}
-Runtime.getRuntime().addShutdownHook(new Thread() {
-    public void run() {
-        try {
-            ibis.end();
-        } catch (IOException e) {
-        }
-    }
-});
-\end{verbatim}
-\end{quote}
-}
-\noindent
-This shutdown hook gets invoked when the program terminates, and
-forcibly closes all ports.
-
-\mysubsection{Ibis utilities}
-
-The \texttt{ibis.util} package contains several utilities that may be
-useful for Ibis applications.
-The \texttt{ibis.util.Stats} utility contains methods for computing
-the mean and standard deviation of an array of numbers.
-A timer utility is provided in \texttt{ibis.util.Timer}.
-See the Ibis API for other utilities. Most of these are used in
-Ibis implementations, but may have other uses.
-
-\mysubsection{Avoiding deadlocks}
-
-As with most communication layers, it is quite easy to write code that
-deadlocks with Ibis. For example, if you have two Ibis instances that
-are writing large amounts of data to each other, and there are no
-readers for this data active, this will almost certainly result in a deadlock,
-because network buffers will fill up, causing the senders to block.
-Such a deadlock can be avoided by having a separate reader thread,
-or by installing an upcall handler for the incoming message.
-
-Another common source of deadlocks is if you have a port type that
-specifies the \texttt{CONNECTION\_MANY\_TO\_ONE} as well as the
-\texttt{CONNECTION\_ONE\_TO\_MANY} capability.
-Multiple hosts doing simultaneous multicasts
-is a well-known source of deadlocks, because most systems do not
-implement a functioning flow-control for these cases.
-
-\mysection{Compiling and Running an Ibis Application}
-
-Before running an Ibis application it must be compiled.  Using
-\emph{ant}, this is quite easy. Assuming that the environment variable
-\texttt{IBIS\_HOME} reflects the location of your Ibis installation,
-here is a \texttt{build.xml} file for our example program:
-
-{\small
-\begin{quote}
-\begin{verbatim}
-<project
-    name="client-server"
-    default="build"
-    basedir=".">
-
-    <description>
-    Ibis application build.
-    </description>
-
-    <property environment="env" />
-    <property name="ibis"   value="${env.IBIS_HOME}" />
-
-    <property name="build"  location="build"/>
-
-    <import file="${ibis}/build-files/apps/build-ibis-app.xml"/>
-</project>
-\end{verbatim}
-\end{quote}
-}
-
-Now, invoking \emph{ant} compiles the application, leaving the class files
-in a directory called \texttt{build}.
-
-If, for some reason, it is not convenient to use \emph{ant} to compile
-your application, or you have only class files or jar files available
-for parts of your application, it is also possible to first compile
-your application to class files or jar files, and then process those
-using the \emph{ibisc} script. This script can be found in the Ibis
-bin directory. It takes either directories, class files, or jar files
-as parameter, and processes those, possibly rewriting them. In case
-of a directory, all class files and jar files in that directory or
-its subdirectories are processed.
-
-\mysubsection{The Ibis Registry}
-
-Most Ibis implementations depend on a registry server for providing
-information about a particular run, such as finding Ibis instances
-participating in the run, elections, et cetera.
-The Ibis registry server collects this information for multiple Ibis
-runs, even simultaneous ones. It does so by associating a user-supplied
-identifier with each Ibis run. Each Ibis instance announces its
-presence to the registry server, using this identifier, so that the
-registry server can determine to which Ibis run this Ibis instance belongs.
-The registry server then notifies the other Ibis instances of this run that
-a new instance has joined the run, including some identification of
-this instance.
-
-If you tell Ibis that the registry server location is a machine that also
-participates in the run itself, Ibis will automatically try to start
-a registry server. How you can specify this is explained in the next section.
-If you want to run the registry server on a seperate host, one that is not
-behind a firewall, for instance, you have to start the registry server by
-hand.
-
-The Ibis registry server is started with the \texttt{ibis-server}
-script which lives in the Ibis \texttt{bin} directory.
-Before starting an Ibis application,
-you need to have a registry server running on a machine that is accessible
-from all nodes participating in the Ibis run.
-The registry server expects the Ibis instances to connect to a
-socket that it creates when it starts up.
-The port number of this socket can be specified using the
-\texttt{--port} command line option to the \texttt{ibis-server} script.
-
-\mysubsection{Running an Ibis Application}
-
-An Ibis instance is started with the \texttt{ibis-run} script which
-lives in the Ibis \texttt{bin} directory.  This \texttt{ibis-run}
-script is called as follows:
-\begin{center}
-\texttt{ibis-run} \emph{java-flags class params}
-\end{center}
-The \texttt{ibis-run} script is just a small script that adds the jar files
-from the Ibis lib directory to your classpath and then starts Java.
-
-\mysubsection{Running the example}
-You can run the example both with and without the \texttt{ibis-run} script.
-To run the application, we first need an ibis-server. Start a shell and
-run the \texttt{ibis-server} script:
-\noindent
-{\small
-\begin{verbatim}
-$ $IBIS_HOME/bin/ibis-server
-\end{verbatim}
-}
-\noindent
-
-Then, you need to start two shells. In both shells type:
-
-\noindent
-{\small
-\begin{verbatim}
-$ $IBIS_HOME/bin/ibis-run \
-    -Dibis.server.address=localhost -Dibis.pool.name=bla \
-    ibisApps.example.Example
-\end{verbatim}
-}
-\noindent
-Now, two instances of your application should run. One of them should print:
-
-\noindent
-{\small
-\begin{verbatim}
-Test succeeded!
-\end{verbatim}
-}
-\noindent
-The \texttt{ibis.pool.name} value can be any random string.
-It identifies your run.
-This is done because a single Ibis registry server can serve multiple
-runs.
-The \texttt{ibis.server.address} property should
-be set to the machine you run the Ibis server on. In this case, we use
-\texttt{localhost}.
-
-If you don't use the \texttt{ibis-run} script, you have to set the classpath
-and some additional properties. In both shells, type:
-
-\noindent
-{\small
-\begin{verbatim}
-$ java \
-    -cp $IBIS_HOME/lib/ipl.jar:$IBIS_HOME/lib/ipl-app.jar \
-    -Dibis.impl.path=$IBIS_HOME/lib \
-    -Dibis.server.address=localhost \
-    -Dibis.pool.name=bla \
-    -Dlog4j.configuration=file:$IBIS_HOME/log4j.properties \
-    ibisApps.example.Example
-\end{verbatim}
-}
-\noindent
-The classpath specified here specifies the jar-files that are explicitly used:
-\texttt{ipl-app.jar} contains the example code, and \texttt{ipl.jar} contains
-the Ibis IPL. All other jar-files are loaded by the ibis classloader, which
-looks in the directory specified by the \texttt{ibis.impl.path} property,
-and its sub-directory, for any jar-file that could be needed.
-
-\mysection{Further Reading}
-
-The Ibis web page http://www.cs.vu.nl/ibis/publications.html
-contains links to various Ibis papers.
-The best starting point might be \\
-http://www.cs.vu.nl/ibis/papers/nieuwpoort\_cpe\_05.pdf,
-which gives a high-level description of the stucture of the Ibis system.
-It also gives some low-level and high-level benchmarks of the different Ibis implementations.
-
-The \emph{javadoc} subdirectory of the Ibis installation provides
-documentation for each class and method in the Ibis API (point your favorite
-HTML viewer to javadoc/index.html in the Ibis installation).
-The Ibis API is also available on-line at http://www.cs.vu.nl/ibis/api/index.html.
+For detailed information on running an Ibis application see the
+User's Manual, available in the docs directory of the Ibis
+distribution.
 
 \end{document}
