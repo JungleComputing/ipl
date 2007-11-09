@@ -48,12 +48,11 @@ to show how to use Ibis in practice.
 This section will give a high level overview of the different parts of
 the IPL.  For an overview of the design of Ibis, see
 Figure~\ref{design}. The Ibis communication library is build up around
-the \emph{Ibis Portability Layer (IPL)}. This layer offers applications a
-grid aware communication library, independent of the actual network
+the \emph{Ibis Portability Layer (IPL)}. This layer offers applications
+a grid aware communication library, independent of the actual network
 used. Ibis dynamically selects a suitable implementation at run-time.
 The Ibis communication library ships with several different TCP based
-implementation, but implementations based on native \todo{Platforms?
-Perhaps better: `communication library'} platforms such as
+implementation, but implementations based on native platforms such as
 MPI and Myrinet are also possible.
 
 Using the IPL, we implemented several different programming models, such
@@ -71,12 +70,11 @@ particular distributed application. Each of these instances has a unique
 \emph{Ibis Identifier}, used throughout the library to denote this
 instance.
 
-Another often-used concept is the \emph{upcall}: a method invocation upon
-an event such as the arrival of a message \todo{I explained 'upcall', but
-you may want to change this.}. Upcalls can be used instead of downcalls
-(explicit receipt, polling) in a number of cases.  These cases include
-receiving messages, getting notifications of new connections, and updates
-on new Ibis instances joining a computation.
+Another often-used concept is the \emph{upcall}: a method invocation
+upon an event such as the arrival of a message. Upcalls can be used
+instead of downcalls (explicit receipt, polling) in a number of cases.
+These cases include receiving messages, getting notifications of new
+connections, and updates on new Ibis instances joining a computation.
 
 \subsection{Send and Receive Ports}
 
@@ -124,13 +122,11 @@ Java \texttt{Objects}. Also, arrays of primitive types and object can be
 send. When the user is done writing data to a message, a \texttt{finish}
 method must be called to denote the message has been completed.
 
-\todo{This is a strange sentence. '... written using a write message'?? How
-about `Once the send message has been constructed ...'?}
-Once data is written using a write message at the send port, this
-message will arrive at the receive port as a \emph{read message}. \todo{Next sentence is strange. Methods in the write message?? How about '.. to construct the write message'? or even '.. methods of the write message'?} There,
-the data can be read again using methods equivalent to the ones in
-the write message. Data must be read from the read message in the same order
-as it was written in the write message.
+Once data is written to a write message at the send port, this message
+will arrive at the receive port as a \emph{read message}. There, the
+data can be read again using methods equivalent to the ones in the write
+message. Data must be read from the read message in the same order as it
+was written in the write message.
 
 In Ibis, the size of a message is unlimited. However, at any point in
 time, only a single message can be active at a port. This allows Ibis to
@@ -139,15 +135,16 @@ message. So, while data is still being written to a message at the
 sender, it may already be read at the receiver. This streaming behavior
 makes communication in Ibis much more efficient.
 
-\todo{Mention \texttt{java.io.Serializable} somewhere in one
-of these paragraphs.}
 Serialization is the translation of data objects into bytes suitable for
 sending across a network. Ibis is capable of several different versions
 of serialization, depending on the needs of the user. These versions
 differ in the types of data they support. Some only support sending
 bytes, some only primitive types, and some also allow sending objects.
+To be able send an Object, this object must implement the
+\texttt{java.io.Serializable} interface. See the documentation of Java
+for more information on serialization.
 
-Two different object serialization versions are available in Ibis.  One is
+Two different object serialization versions are available in Ibis. One is
 the standard Java object serialization, the other a high-performance
 implementation of object serialization. For this high-performance
 \emph{Ibis Serialization} implementation to work, an extra step is needed
@@ -199,15 +196,6 @@ Peer-to-Peer techniques.
 
 \subsection{Capabilities}
 
-\todo{
-Why not
-say that for each port the user must specify its capabilities,
-and \emph{then} say that to make it easy to create similar ports
-there is such a thing as a 'port type'. Makes it much easier to
-understand why you need the notion of port type. Also,
-you have introduced port types earlier in the document. Refer to
-that? Put the motivation for port types (also) there?
-}
 To facilitate the selection of the best implementation for all the
 functionality required of Ibis from a user, Ibis uses a
 \emph{capability} based selection mechanism. For each Ibis instance and
@@ -246,8 +234,7 @@ globally unique, order.
 \item[ELECTIONS\_UNRELIABLE] Enables unreliable elections. With
 unreliable elections it is possible that some election results are not
 available, and if the same election is done at two different Ibises, the
-result may be different. \todo{Do you mean two different Ibises
-in the same run??}
+result may be different at one instance than at the other instance.
 
 \item[ELECTIONS\_STRICT]
 Indicates elections are supported, and they adhere to the following 
