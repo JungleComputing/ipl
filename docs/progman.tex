@@ -22,7 +22,7 @@ see the Ibis user's manual, available in the Ibis distribution in the
 website\footnote{\url{http://www.cs.vu.nl/ibis}}.
 
 In this manual, we will focus on concepts and methods rather than
-details like exact parameters of functions. For this type of
+details like exact parameters of methods. For this type of
 information, see the Javadoc for Ibis. This is available in the
 \texttt{javadoc} directory of the distribution, and on the website.
 
@@ -46,16 +46,16 @@ the IPL.  For an overview of the design of Ibis, see
 Figure~\ref{design}. The Ibis communication library is build up around
 the \emph{Ibis Portability Layer (IPL)}. This layer offers applications a
 grid aware communication library, independent of the actual network
-used. Ibis can dynamically select a suitable implementation at run-time.
+used. Ibis dynamically selects a suitable implementation at run-time.
 The Ibis communication library ships with several different TCP based
 implementation, but implementations based on native platforms such as
 MPI and Myrinet are also possible.
 
 Using the IPL, we implemented several different programming models, such
-as the divide-and-conquer Satin model, and the Group Based Method
+as the divide-and-conquer Satin model, and the Group Method
 Invocation(GMI) model. A discussion of these models lies outside the
 scope of this manual. For more information on the programming models,
-see the Ibis website. As an alternative to using a intermediate
+see the Ibis website. As an alternative to using an intermediate
 programming model, applications can also be written directly on top of
 the IPL. The main target audience of this manual are programmers using
 the IPL in an application and programming model writers.
@@ -83,7 +83,7 @@ connections, and updates on new Ibis instances joining a computation.
 The IPL is based on uni-directional connection oriented pipes. In the
 model, \emph{send ports} are connected to \emph{receive ports}. See
 Figure~\ref{ports} for some examples. Connecting a single send port to a
-single receive port leads to a simple one-to-one connection. But, it is
+single receive port leads to a simple one-to-one connection. However, it is
 also possible to connect a send port to multiple receive ports for a
 one-to-many multicast, or multiple send ports to a single receive port
 for many-to-one client server type communication. Even connecting
@@ -115,11 +115,11 @@ and can be filled with all primitive data types of Java such as bytes, integers
 and strings, as well as more complex data structures in the form of
 Java \texttt{Objects}. Also, arrays of primitive types and object can be
 send. When the user is done writing data to a message a \texttt{finish}
-message must be called to denote the message has been completed.
+method must be called to denote the message has been completed.
 
 Once data is written using a write message at the send port, this
 message will arrive at the receive port as a \emph{read message}. There,
-the data can be read again using functions equivalent to the ones in
+the data can be read again using methods equivalent to the ones in
 write message. Data must be read from the read message in the same order
 as it was written in the write message.
 
@@ -130,7 +130,7 @@ message. So, while data is still being written to a message at the
 sender, it may already be read at the receiver. This streaming behavior
 makes communication in Ibis much more efficient.
 
-Serialization of Objects is the translation of data into bytes suitable for
+Serialization is the translation of data objects into bytes suitable for
 sending across a network. Ibis is capable of several different versions
 of serialization, depending on the needs of the user. These versions
 differ in the types of data they support. Some only support sending
@@ -140,8 +140,8 @@ Two different object serialization versions are present in Ibis.  One is
 the standard Java object serialization, the other a high-performance
 implementation of object serialization. For this high-performance
 \emph{Ibis Serialization} implementation to work, an extra step is needed
-when compiling the application. Some extra code is generated to
-facilitate sending objects efficiently. See Section\ref{compiling} for
+when compiling the application, where some extra code is generated to
+facilitate sending objects efficiently. See Section~\ref{compiling} for
 more info.
 
 \subsection{Pools and the Registry}
@@ -166,10 +166,10 @@ election.
 
 The registry has a few other features useful for coordinating
 distributed computations. One is a \emph{signal} system, where the
-registry can send simple string to ibises. This can be used to signal
+registry can send simple strings to Ibises. This can be used to signal
 special events, such as the application terminating. Another feature is
 the \emph{sequencer}. The sequencer can be used to get unique sequence
-numbers in a distributed fashion. Each call to this function, at
+numbers in a distributed fashion. Each call to this method, at
 whatever Ibis instance, will yield the next number in the sequence. A
 central coordination point is used to implement this reliably.
 
@@ -181,7 +181,9 @@ order at each Ibis. In this model, joins and leaves are guaranteed to be
 totally ordered. This implementation does rely on a central server
 for coordination. This may lead to inefficiencies, and is also a single
 point of failure. So, as an alternative, other, less strict, consistency
-models can also be offered.
+models are also offered. When these are used, Ibis is able to select an
+alternative implementation of the registry, for instance one based on
+Peer-to-Peer techniques.
 
 \subsection{Capabilities}
 
@@ -198,8 +200,8 @@ consistency model of the elections.
 
 \subsubsection{Global Ibis Capabilities}
 
-This is a list of the capabilities for an Ibis. These capabilities
-are defined in the \texttt{IbisCapabilities} class of the IPL. See the
+This is a list of the capabilities for an Ibis. These capabilities are
+defined in the \texttt{IbisCapabilities} class of the IPL. Also see the
 Javadoc.  
 
 \begin{description}
@@ -209,21 +211,21 @@ Enables the signal sending and receiving functionality of the registry.
 
 \item[MEMBERSHIP\_UNRELIABLE] 
 Enables the membership information functionality of the registry. The
-registry can notify the user whenever a new ibis joins the pool or a
-ibis leaves the pool, or dies. This is not reliable though, and some
+registry can notify the user whenever a new Ibis joins the pool or a
+Ibis leaves the pool, or dies. This is not reliable though, and some
 changes to the pool may not be reported. Also, the order in which
 changes are reported is not fixed.
 
 \item[MEMBERSHIP\_TOTALLY\_ORDERED]
 As above, but with a better consistency model. Each and every change to
 the pool will be reliably reported, and the order of these changes is
-fixed for the entire pool. All ibises get the changes in the same,
+fixed for the entire pool. All Ibises get the changes in the same,
 globally unique, order.
 
-\item[ELECTIONS\_UNRELIABLE]
-Enables elections. When doing elections it is possible that some
-election results are not available, and if the same election is done at
-two different ibises, the result may be different.
+\item[ELECTIONS\_UNRELIABLE] Enables unreliable elections. With
+unreliable elections it is possible that some election results are not
+available, and if the same election is done at two different Ibises, the
+result may be different.
 
 \item[ELECTIONS\_STRICT]
 Indicates elections are supported, and they adhere to the following 
@@ -231,12 +233,15 @@ consistency model: Each election has a single, unique winner at any
 given point in time, and all Ibis instances in a pool get all updates
 to the election result, and in the same order.
 
-\item[CLOSED\_WORLD]
-The Ibises in the pool are determined at the start of the
-run. After these Ibises have joined, any further requests to join the
-pool will be denied. Requires the number of Ibises in the pool to be
-known in advance. This can be set using a property (see
-Section~\ref{properties}).
+\item[CLOSED\_WORLD] The Ibises in the pool are determined at the start
+of the run. After these Ibises have joined, any further requests to join
+the pool will be denied. This capability also enables the usages of the
+\texttt{getPoolSize()} and \texttt{waitUntilPoolClosed()} methods in the
+\texttt{Registry} class. 
+
+This capability requires the number of Ibises
+in the pool to be known in advance. This can be set using a property
+(see Section~\ref{properties}).
 
 \item[MALLEABLE]
 Requests malleability support from Ibis. Some implementations of Ibis
@@ -247,11 +252,11 @@ after it has initially been created.
 
 \subsubsection{Port Type Capabilities}
 
-This is a list of capabilities for port types. For each port types,
-a single capability for the allowed connection types (one-to-one,
+This is a list of capabilities for port types. These capabilities are
+defined in in the \texttt{PortType} class of the IPL.  For each port
+types, a single capability for the allowed connection types (one-to-one,
 multicast, etc) must be selected, as well as a type of
-serialization(bytes only, primitive types, objects, etc). These
-capabilities are defined in in the \texttt{PortType} class of the IPL.
+serialization(bytes only, primitive types, objects, etc). 
 
 \begin{description}
 \item[CONNECTION\_ONE\_TO\_ONE]
@@ -300,7 +305,7 @@ this upcall handler is invoked automatically.
 
 \item[RECEIVE\_POLL\_UPCALLS]
 Upcalls are supported but polling for them is required. So, a user must
-call the \texttt{poll} function in the receive port to reliably receive
+call the \texttt{poll} method in the receive port to reliably receive
 messages, but these messages will be delivered using an upcall.
 
 \item[COMMUNICATION\_FIFO]
@@ -322,7 +327,7 @@ Only the methods \texttt{readByte()}, \texttt{writeByte()}, \\
 supported in read and write messages.
 
 \item[SERIALIZATION\_DATA]
-Only \texttt{read()}/\texttt{write()} and
+Only \texttt{read()}, \texttt{write()}, 
 \texttt{readArray()} and \\
  \texttt{writeArray()} of primitive types are
 supported in read an write messages.
@@ -338,7 +343,7 @@ in \texttt{readObject()} (and vice versa).
 \item[SERIALIZATION\_OBJECT\_SUN]
 Sun serialization is supported through \\
 \texttt{java.io.ObjectOutputStream} and
-\texttt{java.io.ObjectInputStream}).
+\texttt{java.io.ObjectInputStream}.
 
 \item[SERIALIZATION\_OBJECT\_IBIS]
 Ibis serialization is supported. This is more efficient than sun
@@ -367,16 +372,16 @@ application. The \texttt{ipl.jar} needs to be added to the
 classpath when compiling (and running) an Ibis application. For the
 serialization of Ibis to function correctly, one additional step is
 required after compiling: the code for writing and reading objects must
-be generated. A Ibis compiler application is available for
+be generated. The \emph{Ibis compiler} application is available for
 this purpose. It can be run by using the \texttt{ibisc}
-script in the \texttt{bin} directory of the distribution. The ibis
+script in the \texttt{bin} directory of the distribution. The Ibis
 compiler needs to be passed the class files of the application, either
 as a directory containing classes, or as a jar file.
 
 Ibisc can also be called from \texttt{ant}, the make-like build system
 for Java\footnote{\url{http://ant.apache.org}}. An example of a build
-file which calls the ibis compiler is available in the \texttt{examples}
-directory of the distribution. The relevant piece of script is this:
+file which calls the Ibis compiler is available in the \texttt{examples}
+directory of the distribution. The relevant piece of the script is this:
 
 \begin{quote}
 \begin{verbatim}
@@ -390,9 +395,9 @@ directory of the distribution. The relevant piece of script is this:
 \end{verbatim}
 \end{quote}
 
-It runs the ibis compiler on the jar file that has just been created
-from the compiled classes. It sets the classpath to the same classpath
-used to compile the application.
+It runs the Ibis compiler on the jar file that has just been created
+from the compiled classes of the application. It sets the classpath to
+the same classpath used to compile the application.
 
 \section{Tutorial}
 
@@ -402,7 +407,7 @@ used to compile the application.
 \section{Further Reading}
 
 The Javadoc included in the \texttt{javadoc} directory has detailed
-information on all classes and their functions.
+information on all classes and their methods.
 
 The Ibis web page \url{http://www.cs.vu.nl/ibis} lists all
 the documentation and software available for Ibis, including papers, and
