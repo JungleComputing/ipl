@@ -8,6 +8,8 @@
 
         <property name="ibis" location=".." />
 
+        <property name="version" value="-2.0rc2" />
+
         <property name="src" location="src" />
         <property name="tmp" location="tmp" />
         <property name="lib" location="lib" />
