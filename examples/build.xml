@@ -8,6 +8,8 @@
 
         <property name="ibis" location=".." />
 
+	<property name="version" value="2.0rc2"/>
+
         <property name="src" location="src" />
         <property name="tmp" location="tmp" />
         <property name="lib" location="lib" />
@@ -38,18 +40,18 @@
                         <compilerarg value="-Xlint:unchecked" />
                 </javac>
 
+                <!-- Put everything in ${tmp} into the jar file -->
+                <jar jarfile="${jar}" basedir="${tmp}" />
+
+		<!-- rewrite applications using IbisC -->
                 <java classname="ibis.compile.Ibisc"
                       taskname="Ibisc"
                       failonerror="true"
-                      dir="${tmp}"
                       fork="true">
-                        <arg line="." />
+                        <arg line="${jar}" />
                         <classpath refid="default.classpath" />
                 </java>
 
-
-                <!-- Put everything in ${tmp} into the jar file -->
-                <jar jarfile="${jar}" basedir="${tmp}" />
 
                 <!-- And delete the build dir -->
                 <delete dir="${tmp}" />
