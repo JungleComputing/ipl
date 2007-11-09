@@ -1,20 +1,47 @@
 ################################################################################
-#               This is the configuration file for smartsockets.               # 
+#           This is an example configuration file for smartsockets.            # 
+#                                                                              #
+# This file consist of three parts. The first part contains settings that may  #
+# need to be changed when you use smartsockets in a different environment. The # 
+# second part contains settings that should work fine by default. However, you #
+# can change them to tweak the behaviour of smartsockets. The last part        # 
+# contains advanced configuration features which allow you to define network   #
+# specific connectivity rules, virtual clusters, firewall simulations, etc.    #
+#                                                                              #
+# Please note that all of these settings can also be provided as command line  #
+# "-D..." options to the Java Virtual Machine. Please refer to the Java        #
+# documentation for more information.                                          # 
+#                                                                              #
 ################################################################################
 
+
 ################################################################################
-# This section defines the default low-level connection setup behavior of the 
-# smartsockets library. 
+# Part 1: General Options                                                      #
+################################################################################
+
 
 ###
-# Should the sockets be capable of NIO ? Default is true
-# smartsockets.networks.nio=true
+# Required setting: Hub location
+# 
+# Most connections setup schemes in smartsockets require out-of-band control 
+# messages. These control messages are send to a 'hub' who will forward them 
+# (possibly via several other hubs) to the destination machine. 
+#
+# This setting provides the location of one of more hubs to smartsockets. Note 
+# that although it is is not strictly required to set this property, not doing 
+# so may serverely restrict the usefullnes of smartsockets. More information 
+# about setting up hub networks can be found in the smartsockets documentation. 
+#
 
-###
-# Should server sockets be created in a specific port range ? By default no 
-# port range is used. As a result serversockets will be created on any free 
-# port, unless the user explicitly specifies a port number. The port range must 
-# have the following format:
+smartsockets.hub.addresses=<comma seperated list>
+
+# Optional setting: incoming connection port
+#
+# Smartsockets uses a single server socket to accept incoming connections. By 
+# default, smartsockets will use an arbitrary free port number for this server 
+# socket. In some cases, however, it may be convenient to use a fixed port 
+# number, or a port number in a certain range. These can be set using the 
+# following property. Th given port range must have the following format:
 #
 #   RANGE(,RANGE)* 
 # 
@@ -26,9 +53,67 @@
 # For example the range '1000,5000-5999,6001' specifies that a port should be 
 # used between 5000 and 5999 or with the value 1000 or 6001.
 #
-# smartsockets.networks.port_range=
+# smartsockets.port.range=<not set>
+
+# Optional setting: NIO sockets
+#
+# By default smartsockets only creates traditional stream-based Java sockets, 
+# which cannot be used for NIO-style communication. By setting this value to 
+# true, smartsockets will create NIO sockets instead.
+#
+# smartsockets.nio=false
+
+# Optional setting: Detailed exceptions
+#
+# When something goes wrong, smartsockets will throw expections that contain
+# information similar to the exceptions thrown by the standard Java sockets 
+# implementation. However, smartsockets is also capable of providing more 
+# detailed information in its expections, such as which connection setup 
+# schemes it has tried, and why they failed. This may help when resolving 
+# problems.
+#
+# smartsockets.detailed.exceptions=false
+
+
+
+
+################################################################################
+# Part 2: Misc. default settings                                               #
+#                                                                              #
+# Please note that the default values shown below should work fine (although   #
+# they may not always give you the most efficient connection possible between  #
+# machines). Changing these options should only be necessary if you want to    #
+# restrict connectivity, provide per-network connectivity rules, or generally  #
+# tweak the default low-level connection setup settings.                       #
+#                                                                              #
+################################################################################
+                                       
+                                       
+###
+# Misc. low-level socket settings:
+#
+# Like regular sockets, smartsockets allows the user to provide many different
+# options when a (server) socket is created. Many of these options have default 
+# values. These default values can be changed here.
+#
+# This sets the default backlog of a VirtualServerSocket. This determines the
+# maximum number of pending connection allowed. 
+#
+# smartsockets.backlog=50
+
+# This sets the default accept timeout of a VirtualServerSocket (in milliseconds)
+#
+# smartsockets.timeout.accept=60000
+
+# This sets the default connect timeout for the connection setup in 
+# milliseconds. By default, this value is not set.
+#
+# smartsockets.timeout.connect=<not set>
+
 
 ###
+# Address discovery and port forwarding settings:
+#
 # When a machine only has site-local or link-local addresses (e.g., when the 
 # machine is behind a NAT-box), smartsockets can try to discover the global 
 # address of the machine using several mechanisms, such as STUN or UPnP.
@@ -37,35 +122,263 @@
 # protocol sends a UDP packet to an external server which returns a UDP packet 
 # containing the global address of the sending machine. This mechanism is 
 # usually quite fast, but may take longer if is encounters a stubborn firewall 
-# on its path. The default value is false. A list of STUN servers can also be 
-# specified.
+# on its path. The default value is false. A comma seperated list of STUN servers 
+# may also be specified.
 #
-# smartsockets.networks.external.stun=false
-# smartsockets.networks.external.stun.servers=iphone-stun.freenet.de,stun.xten.net,stun.fwdnet.net,stun.fwd.org
+# smartsockets.external.stun=false
+# smartsockets.external.stun.servers=iphone-stun.freenet.de,stun.xten.net,stun.fwdnet.net,stun.fwd.org
 
 # Should UPnP be used to discover the external address of a machine ? The UPnP 
 # protocol attempts to communicate with the NAT box itself to retrieve the 
 # external address of the machine. This may take a couple of seconds. It does 
-# recuire UPnP to be switched on in the NAT box, which is not always the case.
+# require UPnP to be switched on in the NAT box, which is not always the case.
 # This mechanism is typically only supported in 'consumer hardware', like ADSL 
 # or Cable modems. The default value is false
 #
-# smartsockets.networks.external.upnp=false
+# smartsockets.external.upnp=false
 #
-# If UPnP is used, it is possible to enable 'port forwarding' which,  
-# upon creation of a serversocket, will signal the UPnP device to allocate an 
-# external port number and automatically forward all incoming connections to the 
-# serversocket. The default value is false. Note that this may not work on all 
+# If UPnP is used, it is possible to enable 'port forwarding' which, upon 
+# creation of a server socket, will signal the UPnP device to allocate an external 
+# port number and automatically forward all incoming connections to the 
+# server socket. The default value is false. Note that this may not work on all 
 # UPnP devices.
 #
-# smartsockets.networks.external.upnp.forwarding=false
+# smartsockets.external.upnp.forwarding=false
 
 # If required, the user can also explicitly set the global network address of 
 # the machine. Note that this is not necessary, since smartsockets will usually 
-# also work if no 'global' addresses are known.  
-# smartsockets.networks.external.manual=
+# work fine, even if no 'global' addresses are known.
+#  
+# smartsockets.external.manual=<not defined>
+
+
+### 
+# Hub discovery settings:
+#
+# If the 'smartsockets.hub.addresses' property is not set, smartsockets can 
+# attempt to find a hub in its local network by using a UDP multicast. The 
+# port and timeout values related to this discovery are shown below. Note that 
+# if this multicast fails, some of the connection modules will not work. 
+
+# This setting determines if hub discovery is allowed. None of the other discovery
+# related settings will be used if this property is set to false. 
+#
+# smartsockets.discovery.allowed=false
+
+# This setting determines if hub discovery is preferred over the manual 
+# configuration, and if the discovered hubs may only be used if they are also 
+# listed manually. This may be useful when you provide the same list of hubs to 
+# a set of smartsockets applications running on different sites. By setting 
+# both 'discovery.preferred' and 'discovery.forcelisted' smartsockets will 
+# attempt to discover the 'local' hub on each of the sites.
+#
+# smartsockets.discovery.preferred=false
+# smartsockets.discovery.forcelisted=true
+
+# These properties determine the port at which the hub is listening to lookup 
+# requests of the clients. Both hub and clients need to know this value. The 
+# timeout (in milliseconds) is used on the client side to determine how long 
+# it should wait for a reply. 
+#
+# smartsockets.discovery.port=24545
+# smartsockets.discovery.timeout=5000
+
 
 ###
+# Hub settings:
+#
+# The Hubs themselves can also be configured using properties. It is possible to 
+# change the port the hub accepts connections on, give it a name, and restrict 
+# the set of machines to which it is willing to offer its services. 
+
+# This setting determines the port the hub is listening to
+#
+# smartsockets.hub.port=17878
+
+# This setting provides the hub with a human readable name. This is mainly useful 
+# for debugging purposes. By default the hubs will use the host name of the machine
+# they are running on.
+#
+# smartsockets.hub.name=
+
+# This setting defines a list of 'virtual clusters' to which the hub should limit 
+# its services. These 'virtual clusters' are explained is more detail below.
+#
+# smartsockets.hub.clusters=
+
+# This setting determines if hubs are allowed to use SSH tunneling to connect to 
+# other hubs. This option is switched on by default, since it improves the 
+# connectivity of the hubs. Note that SSH tunneling will only work is the machines 
+# on which the hubs are running have a suitable SSH configuration. 
+#
+# smartsockets.hub.ssh=true
+
+# These settings determine if the hub should print statisics and at what interval.
+#
+# smartsockets.hub.statistics=false
+# smartsockets.hub.statistics.interval=60000
+
+# These settings determine the send and receive buffer sizes used by the 
+# connections created by the hub. Normally, the system defaults are used.
+#
+# smartsockets.hub.sendbuffer=<not set>
+# smartsockets.hub.receivebuffer=<not set>
+
+###
+# Servicelink settings:
+#
+# When a smartsockets application is started, it will attempt to create a connection 
+# to a hub. This connection is known as the servicelink. During its lifetime, the 
+# application will try to keep this link open at all times. This is required because 
+# the servicelink is used to forward requests and data from remote machines that can 
+# not otherwise reach the local machine.
+
+# These settings determine the send and receivebuffer sizes used when creating the 
+# servicelink. By default, the system default is used.
+#
+# smartsockets.servicelink.sendbuffer=<not set>
+# smartsockets.servicelink.receivebuffer=<not set>
+
+
+###
+# Connection setup module settings:
+#
+# Smartsockets can use several different connection setup schemes. Each scheme 
+# is implemented in a seperate module. The following settings control which 
+# modules are used, and how they are used. In additions, each of the modules 
+# may also has it's own set of configuration options. 
+#
+# This property specifies which modules smartsockets should use. The names 
+# defined here are used below to specify module details. Note that the 
+# 'splice' module is turned off by default. 
+#
+# smartsockets.modules.define=direct,reverse,hubrouted
+
+# Instead of defining which modules to use, it is also possible to use the 
+# default list and skip some of the modules. This is normally used on the 
+# command line to temporarily switch off one or more modules. 
+#
+# smartsockets.modules.skip=<not set>
+
+# For each of the modules defined, we can now specify the name of the class 
+# implementing the module. This allows the modules to be loaded dynamically. 
+# If no class names are specified, the default values are based on the module 
+# names:
+#
+# 'smartsockets.modules.<name>=smartsockets.virtual.modules.<name>.<Name>
+#
+# where <name> is the module name in lower-case and <Name> is the module name 
+# starting with an upper-case letter.
+#
+# smartsockets.modules.direct=smartsockets.virtual.modules.direct.Direct
+# smartsockets.modules.reverse=smartsockets.virtual.modules.reverse.Reverse
+# smartsockets.modules.splice=smartsockets.virtual.modules.splice.Splice
+# smartsockets.modules.hubrouted=smartsockets.virtual.modules.hubrouted.Hubrouted
+
+# We now define in which order the modules should be tried when a connection is   
+# created. Each of these modules should be defined above, but it is not 
+# necessary to name all of the modules here. The default order is the order in 
+# which the modules are defined. 
+#
+# smartsockets.modules.order=
+
+###
+# Direct module options:
+#
+# These are the options of the direct connection module. This module is 
+# responsible for all connection setup schemes that do not require the 
+# assistance of a hub.
+
+# This setting detemines the default backlog for DirectServerSockets. This
+# value will be passed on directly to the underlying socket implementation.
+#
+# smartsockets.modules.direct.backlog=255
+
+# The default connection setup timeout
+#
+# smartsockets.modules.direct.timeout=5000
+
+# The default connection setup timeout for connections within a local area 
+# network using IP-addresses in the private range. The reason for setting 
+# this timeout seperately, is that these connection setups usually succeed 
+# immediately, or take a long (very) time to fail, due to the lack of a 
+# response if the machine does not exist. We therefore use a shorter 
+# timeout by default.
+#
+# smartsockets.modules.direct.timeout.local=1000
+
+# Is the direct module allowed to use SSH tunneling for outgoing and/or 
+# incoming connections ? The direct module can also be forced to use SSH
+# for outgoing connections. This is usefull is a machine is known to be 
+# behind a two-way firewall.
+#
+# smartsockets.modules.direct.ssh.in=false
+# smartsockets.modules.direct.ssh.out=false
+# smartsockets.modules.direct.ssh.out.force=false
+
+# These settings determine the default send and receive buffer sizes used by 
+# the connections created by the direct module. Normally, the system defaults 
+# are used.
+#
+# smartsockets.modules.direct.sendbuffer=<not set>
+# smartsockets.modules.direct.receivebuffer=<not set>
+
+
+###
+# Reverse module options:
+#
+# These are the options of the reverse connection module. This module performs 
+# a connection setup by sending a request to the target machine to create a 
+# connection in the opposite direction. This is useful when connecting from an 
+# 'open' machine to a machine behind a firewall or NAT-box.
+
+# This option determines if the reverse module may be used to create 
+# connections to the same machine. Normally, this is not allowed, but may be 
+# enabled for testing purposes.
+#
+# smartsockets.modules.reverse.selfconnect=false
+
+
+###
+# Hubrouted module options:
+#
+# These are the options of the hubrouted connection module. This module can be 
+# used to link two machine which cannot create a socket connection. When using
+# this module,a virtual connection is created which routes all application data 
+# through one or more hubs. 
+
+# This option determines the size of the buffer used for each virtual connection.
+#
+# smartsockets.modules.hubrouted.size.buffer=65536
+
+# This option determines the size of the fragments send to the hubs
+#
+# smartsockets.modules.hubrouted.size.fragment=8176
+
+# This option determines the amount of data the receiver must have received 
+# before sending an acknowledgement. By default, this is a quarter of the 
+# 'size.buffer' defined above.
+#
+# smartsockets.modules.hubrouted.size.ack=<not set>
+
+
+
+
+
+################################################################################
+# Part 3: Advanced Settings                                                    #
+#                                                                              #
+# This section contains advanced configuration options for smartsockets. These #
+# options can be used to provide network specific connectivity information, or # 
+# to define 'virtual clusters' of machines with (simulated) limited            #  
+# connectivity between them.                                                   #
+#                                                                              #
+################################################################################
+
+
+###
+# Low-level network configuration: 
+#
 # When a connection is created to a remote machine that has multiple addresses, 
 # smartsockets tries each of the addresses one-by-one until a connection is 
 # established or the operation times out. The order in which the addresses are 
@@ -85,135 +398,64 @@
 # and global addresses.
 #
 # The default setting is 'auto'.
-#130.37.199.2
+#
 # smartsockets.networks.default=auto
 
-###
-# Smartsockets also allows you define rules which specify the connection order 
-# on a per network basis. We will give an example that configures smartsockets 
-# to recognise the five clusters of the DAS-2 system and use the site-local 
-# addresses inside each cluster and the global addresses between clusters. 
+# It is also possible to define rules which specify the connection order on a per 
+# network basis. We will give an example that configures smartsockets to recognise 
+# the networks of two sites of the DAS-2 system and use the site-local addresses 
+# inside each site and the global addresses between sites. 
 
-# Start by defining the five networks (one for each cluster).
+# Start by defining the two networks:
 #
-# smartsockets.networks.define=fs0,fs1,fs2,fs3,fs4
+# smartsockets.networks.define=fs0,fs1
  
-# Next, we specify which machines belong to each network, and how they should 
-# setup connections inside the network cluster and between 
-# networks
-
-# The network of the fs0 (VU) cluster
+# Next, we specify which rules apply to each of the networks.
+#
+# For the 'fs0' site, we will automatically detect if a machine is part of the 
+# site by looking at it's IP addresses. If it has an address that matches 
+# the IP/NETMASK of 130.37.199.0/255.255.255.0 it will be part of the site.
+# 
+# Next, we define that connections within the site should use the network device 
+# that matches the IP/NETMASK of 192.168.0.0/255.255.255.0. For all other 
+# connections we use the 'global' network device:
 #
 # smartsockets.networks.fs0.range=130.37.199.0/255.255.255.0
 # smartsockets.networks.fs0.preference.internal=192.168.0.0/255.255.255.0
 # smartsockets.networks.fs0.preference.default=global
-130.37.199.2
-# The network of the fs1 (Leiden) cluster
 #
-# smartsockets.networks.fs1.range=132.229.24.0/255.255.255.0
+# For the 'fs1' site we do not automatically detect the membership. The 
+# connection rules are the same however:
+#
 # smartsockets.networks.fs1.preference.internal=192.168.0.0/255.255.255.0
 # smartsockets.networks.fs1.preference.default=global
-
-# The network of the fs2 (UvA) cluster
 #
-# smartsockets.networks.fs2.range=192.16.186.0/255.255.255.0
-# smartsockets.networks.fs2.preference.internal=192.168.0.0/255.255.255.0
-# smartsockets.networks.fs2.preference.default=global
-
-# The network of the fs3 (Delft) cluster
+# To be part of the 'fs1' site, a smartsockets application must be started 
+# with the following property:
 #
-# smartsockets.networks.fs3.range=130.161.211.0/255.255.255.0
-# smartsockets.networks.fs3.preference.internal=192.168.0.0/255.255.255.0
-# smartsockets.networks.fs3.preference.default=global
+# smartsockets.networks.name=fs1
 
-# The network of the fs4 (Utrecht) cluster
-#
-# smartsockets.networks.fs4.range=131.211.38.0/255.255.255.0
-# smartsockets.networks.fs4.preference.internal=192.168.0.0/255.255.255.0
-# smartsockets.networks.fs4.preference.default=global
-
-# End of the low-level network section. 
-################################################################################
-
-
-
-################################################################################
-# This sections defines the high-level modules and connection setup behavior of 
-# the smartsockets library. The different modules available to the library will 
-# be described first. 
-
-###
-# These are the available high-level modules. The default value is 
-# 'direct,reverse,splice,routed'
-#
-smartsockets.modules.define=direct,hubrouted
-
-# For each of the modules used, we specify the name of the class implementing 
-# the module. This allows the modules to be loaded dynamically. If no class 
-# names are specified, the default values are based on the module names:
-#
-# 'smartsockets.modules.<name>=smartsockets.virtual.modules.<name>.<Name>
-#
-# where <name> is the module name in lower-case and <Name> is the module name 
-# starting with an upper-case letter.
-#
-smartsockets.modules.direct=smartsockets.virtual.modules.direct.Direct
-#smartsockets.modules.reverse=smartsockets.virtual.modules.reverse.Reverse
-# smartsockets.modules.splice=smartsockets.virtual.modules.splice.Splice
-# smartsockets.modules.routed=smartsockets.virtual.modules.routed.Routed
-smartsockets.modules.hubrouted=smartsockets.virtual.modules.hubrouted.Hubrouted
-
-###
-# We now define in which order the modules should be tried when a connection is   
-# created. Each of these modules should be defined above, but it is not 
-# necessary to use all of the modules here. The default order is: 
-# 'direct,reverse,splice,routed' 
-#
-smartsockets.modules.order=direct,hubrouted
-
-###
-# Most of the modules require out-of-band control messages to set up a  
-# connection to other machines. These control messages are send to a 'hub' 
-# who will forward them (possibly via several other hubs) to the destination 
-# machine. Using this property a default hub location can be specified. If 
-# this property is not set, smartsockets will try to locate a hub on the 
-# local network using UDP multicast. Port and timeout values related to this 
-# multicast are shown below. If the multicast fails, some of the modules will 
-# not work. Note that this property can also be set on the command line during 
-# application startup.     
-#
-# smartsockets.hub.address=
-#
-# The Hub itself can also be configured using the following poperties. It is 
-# possible to change the port the hub accepts connections on, define a list of 
-# 'virtual clusters' (explained below) to which it should limit is services, and 
-# define a simple human-readable name which makes is easier to read the 
-# debugging output.
-#
-smartsockets.hub.port=23456
-# smartsockets.hub.clusters=
-# smartsockets.hub.simple_name=
+# In addition to defining connection setup rules, the network settings can also 
+# be used for firewall simulation. The following properties apply:
+# 
+# smartsockets.networks.<name>.firewall.accept=<network names>
+# smartsockets.networks.<name>.firewall.deny=<network names>
+# smartsockets.networks.<name>.firewall.default=<accept | deny>
+# 
+# The first two properties (accept or deny) accept a list of names of the networks 
+# they should allow or deny access. The third rule can be used to specify the 
+# default behaviour.  
 
 
 ###
-# These properties determine the port at which the hubs listnens to lookup 
-# requests of the clients. The timeout is used on the client side to determine 
-# how long the client should wait for a reply. The default values are port 
-# 24545, and a timeout of 5 seconds.
-#
-smartsockets.discovery.port=23458
-# smartsockets.discovery.sleep=
-
-
-###
-# Smartsockets can define 'virtual clusters'; sets of machines which have  
+# Smartsockets can also define 'virtual clusters'; sets of machines which have  
 # specific rules for connecting inside and outside of their set. Below, we will 
 # show an example of how these 'virtual clusters' can be defined, and how their 
 # connection rules are specified. 
 
-# Start by defining the three 'virtual clusters'.
+# Start by defining the two 'virtual clusters'.
 #
-# smartsockets.cluster.define=routers,cluster1,cluster2
+# smartsockets.cluster.define=cluster1,cluster2
 
 # Next, we specify for each of the clusters how we can determine if a machine is
 # part of the cluster, and how connection setup works inside and between the 
@@ -228,34 +470,27 @@ smartsockets.discovery.port=23458
 #
 # smartsockets.cluster.member=
 
-# The setup for virtual cluster 'routers'
-#
-#smartsockets.cluster.routers.preference.membership=manual
-#smartsockets.cluster.routers.preference.inside=direct,reverse,splice
-#smartsockets.cluster.routers.preference.default=direct,reverse,splice
-
 # The setup for virtual cluster 'cluster1'
 # 
-smartsockets.cluster.cluster1.preference.membership=manual
-smartsockets.cluster.cluster1.preference.inside=direct
-smartsockets.cluster.cluster1.preference.routers=direct
-smartsockets.cluster.cluster1.preference.cluster2=hubrouted
-smartsockets.cluster.cluster1.preference.default=none
+# smartsockets.cluster.cluster1.preference.membership=manual
+# smartsockets.cluster.cluster1.preference.inside=direct
+# smartsockets.cluster.cluster1.preference.cluster2=hubrouted
+# smartsockets.cluster.cluster1.preference.default=none
 
 # The setup for virtual cluster 'cluster2'
 #
-smartsockets.cluster.cluster2.preference.membership=manual
-smartsockets.cluster.cluster2.preference.inside=direct
-smartsockets.cluster.cluster2.preference.routers=direct
-smartsockets.cluster.cluster2.preference.cluster1=hubrouted
-smartsockets.cluster.cluster2.preference.default=none
-
-###
-# Several properties which normally not need to be changed. The default values 
-# are shown below. 
+# smartsockets.cluster.cluster2.preference.membership=manual
+# smartsockets.cluster.cluster2.preference.inside=direct
+# smartsockets.cluster.cluster2.preference.cluster1=hubrouted
+# smartsockets.cluster.cluster2.preference.default=none
 #
-# smartsockets.default.backlog=20
-# smartsockets.default.timeout=1000
+# In this example, 'cluster1' and 'cluster2' are allowed to create a direct 
+# connection within their own cluster. Between the two clusters, only 'hubrouted' 
+# connections may be used. No connections to other machines are allowed. 
+# Therefore, this setup simulates two two-way firewalled clusters. 
 
-# End of high-level section.
+
+
+################################################################################
+# End of configuration file example                                            #
 ################################################################################
