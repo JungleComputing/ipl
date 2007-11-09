@@ -10,10 +10,14 @@ HelloUpcall:
 
 Same as above, but uses the ibis upcall mechanism to receive the message
 
-Registry:
+RegistryUpcalls:
 
 A simple demo of the capabilities of the Ibis registry. Prints out any events
 it received from the registry (uses upcalls)
+
+RegistryDowncalls:
+
+Same as above, but with downcalls.
 
 OneToMany:
 
