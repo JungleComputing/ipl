@@ -29,15 +29,18 @@ public class HelloUpcall implements MessageUpcall {
                 PortType.CONNECTION_ONE_TO_ONE);
 
     IbisCapabilities ibisCapabilities =
-        new IbisCapabilities(IbisCapabilities.CLOSED_WORLD,
-                IbisCapabilities.ELECTIONS_STRICT);
+        new IbisCapabilities(IbisCapabilities.ELECTIONS_STRICT);
 
     /** Set to true when server received message. */
     boolean finished = false;
 
-    /** Function called by Ibis to give us a newly arrived message
-     * @param message the message 
-     * @throws IOException when the message cannot be read
+    /**
+     * Function called by Ibis to give us a newly arrived message
+     * 
+     * @param message
+     *            the message
+     * @throws IOException
+     *             when the message cannot be read
      */
     public void upcall(ReadMessage message) throws IOException {
         String s = message.readString();
