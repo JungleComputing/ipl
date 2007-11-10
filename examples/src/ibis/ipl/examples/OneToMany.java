@@ -10,7 +10,6 @@ import ibis.ipl.MessageUpcall;
 import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
-import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
 

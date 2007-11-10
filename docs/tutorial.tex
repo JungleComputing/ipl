@@ -94,7 +94,7 @@ determined using an election.
 The application is split up into several parts. First, the capabilities
 needed from Ibis are defined in two global variables. At the very bottom
 of the file is the \texttt{main} method. Main creates a object of this
-type, and calls \texttt{run} on this object. Run initialized Ibis, and
+type, and calls \texttt{run} on this object. Run initializes Ibis, and
 determines if this is the client or the server. It then calls either the
 \texttt{server} or the \texttt{client} method.
 
@@ -102,7 +102,7 @@ We will now explain this application line-by-line. The example starts
 with declaring the package on line 1. It then imports all classes from
 the IPL on line 3, and declares the \texttt{Hello} class on line 5. Since
 this application will send messages, it will need to create ports, and
-thus a port type. The declaration on line 6-8 creates a port type
+thus a port type. The declaration on lines 6-8 creates a port type
 suitable for this application. 
 
 The constructor of the \texttt{PortType} class requires us to specify
@@ -176,7 +176,7 @@ by calling one of the create methods of our Ibis instance. The method we
 call expects a port type (this must be equal to the port type of the receive
 port we want to connect to). After creating the port we connect our send
 port to the receive port. We use the identifier of the server we acquired
-at the election, and the name of the port at the serer which we know to
+at the election, and the name of the port at the server which we know to
 be "server".
 
 After the port has been connected, we can now send a message. We ask the
@@ -241,8 +241,8 @@ On line 1, the first change is visible. The application extends the
 single method (\texttt{upcall}) which is called whenever a message is
 received by Ibis. If upcalls are used it is not necessary to call the
 \texttt{receive} method on a receive port. Instead, Ibis will wait for a
-message continually and pass any new messages received to the user, one
-by one.
+message continually and pass any new messages received to the upcall
+handler provided by the user, one by one.
 
 Next, the port type needs to be changed slightly. We no longer include
 the RECEIVE\_EXPLICIT capability. Instead we use the

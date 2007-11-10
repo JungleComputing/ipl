@@ -210,6 +210,11 @@ done if either the "unreliable election" or the "strict election"
 capability is enabled. The difference between the two being the
 consistency model of the elections. 
 
+Two different types of capabilities are present in Ibis. Some are global
+capapabilities of an Ibis instance, and some are capabilities of port
+types. Since different port types can be used in a single application, a
+user can specify different requirements for different ports.
+
 \subsubsection{Global Ibis Capabilities}
 
 This is a list of the capabilities for an Ibis. These capabilities are
@@ -237,7 +242,7 @@ globally unique, order.
 \item[ELECTIONS\_UNRELIABLE] Enables unreliable elections. With
 unreliable elections it is possible that some election results are not
 available, and if the same election is done at two different Ibises, the
-result may be different at one instance than at the other instance.
+result may be different at one instance from the result at another instance.
 
 \item[ELECTIONS\_STRICT]
 Indicates elections are supported, and they adhere to the following 
@@ -291,7 +296,7 @@ send ports may connect to multiple receive ports).
 connection downcalls are supported. This means that the user can
 invoke methods to see which connections were lost or created.
 
-\item[CONNECTION\_DOWNCALLS]
+\item[CONNECTION\_UPCALLS]
 connection upcalls are supported. This means that an upcall handler can
 be installed that is invoked whenever a new connection arrives or a
 connection is lost.
@@ -306,7 +311,7 @@ requesting the reception of a message from the receive port.
 \item[RECEIVE\_TIMEOUT]
 Explicit receive with a timeout is supported.
 
-\item[RECEIVE\_POOL]
+\item[RECEIVE\_POLL]
 Non-blocking version of explicit receipt is supported.
 
 \item[RECEIVE\_AUTO\_UPCALLS]
@@ -390,10 +395,11 @@ script in the \texttt{bin} directory of the distribution. The Ibis
 compiler needs to be passed the class files of the application, either
 as a directory containing classes, or as a jar file.
 
-Ibisc can also be called from \texttt{ant}, the make-like build system
-for Java\footnote{\url{http://ant.apache.org}}. An example of a build
-file which calls the Ibis compiler is available in the \texttt{examples}
-directory of the distribution. The relevant piece of the script is this:
+Ibisc can also be called from
+\texttt{ant}\footnote{\url{http://ant.apache.org}}, the make-like build
+system for Java. An example of a build file which calls the Ibis
+compiler is available in the \texttt{examples} directory of the
+distribution. The relevant piece of the script is this:
 
 \begin{quote}
 \begin{verbatim}
@@ -409,7 +415,7 @@ directory of the distribution. The relevant piece of the script is this:
 
 It runs the Ibis compiler on the jar file that has just been created
 from the compiled classes of the application. It sets the classpath to
-the same classpath used to compile the application.
+the \texttt{lib} directory of the Ibis distribution.
 
 \section{Tutorial}
 

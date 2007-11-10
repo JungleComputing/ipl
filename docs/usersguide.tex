@@ -53,13 +53,14 @@ joining a pool).
 \label{hubs}
 
 The Ibis server is a single point which needs to be reachable from every
-Ibis instance. Sometimes this is not possible due to firewalls, additional 
-\emph{hubs} can be started to route traffic, creating a routing infrastructure 
-for the Ibis instances. These hubs can be started by using ibis-server script 
-with the \texttt{--hub-only} option. In addition, each hub needs to know the 
-location of as many of the other hubs as possible. This information can be 
-provided by using the \texttt{--hub-addresses} option. See the
-\texttt{--help} option of the ibis-server script for more information.
+Ibis instance. Since sometimes this is not possible due to firewalls,
+additional \emph{hubs} can be started to route traffic, creating a
+routing infrastructure for the Ibis instances. These hubs can be started
+by using ibis-server script with the \texttt{--hub-only} option. In
+addition, each hub needs to know the location of as many of the other
+hubs as possible. This information can be provided by using the
+\texttt{--hub-addresses} option. See the \texttt{--help} option of the
+ibis-server script for more information.
 
 \section{Running an Ibis Application}
 
