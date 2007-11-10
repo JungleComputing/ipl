@@ -18,9 +18,9 @@ This manual describes the steps required to run an application that
 uses the Ibis communication library. How to create such an application
 is described in the IPL Programmers manual.
 
-A central concept in Ibis is the \emph{Pool}. A Pool consists of one or
+A central concept in Ibis is the \emph{Pool}. A pool consists of one or
 more Ibis instances, usually running on different machines. Each pool is
-generally made up of Ibises running a single distributed applications.
+generally made up of Ibises running a single distributed application.
 Ibises in a pool can communicate with each other, and, using the
 registry mechanism present in Ibis, can search for other Ibises in the
 same pool, get notified of Ibises joining the pool, etc. To
@@ -45,7 +45,7 @@ machine that is accessible from all nodes participating in the Ibis run.
 The server listens to a TCP port. The port number can be specified using
 the \texttt{--port} command line option to the \texttt{ibis-server}
 script.  For a complete list of all options, use the \texttt{--help}
-option of the script. One useful option is the  \texttt{--event}
+option of the script. One useful option is the  \texttt{--events}
 option, which makes the registry print out events (such as Ibises
 joining a pool).
 
@@ -104,7 +104,7 @@ ways:
 
 The \texttt{ibis.implementation.path} property is a list of directories,
 separated by the default path separator of your operating system. In
-Unix, this is the \emph{:} character, in Windows it is a \emph{;}.
+Unix, this is the \texttt{:} character, in Windows it is a \texttt{;}.
 
 \subsection{Configure Log4j}
 
@@ -127,12 +127,12 @@ printed on start up of the Ibis server.
 For convenience, it is also possible to only provide an address, port number 
 pair, e.g. \texttt{machine.domain.com:5435} or even simply a host, e.g. 
 \texttt{localhost}. In this case, the default port number (8888) is implied. 
-The port number provided must match the one given to ibis-server on start up 
-using the \texttt{--port} option.
+The port number provided must match the one given to the Ibis server
+with the \texttt{--port} option.
 
 When additional hubs are started (see Section \ref{hubs}), their locations 
-must be provided to the Ibis instances. This can be done using the using 
-the \texttt{ibis.hub.addresses} property. Ibis expects a comma separated
+must be provided to the Ibis instances. This can be done using 
+the \texttt{ibis.hub.addresses} property. Ibis expects a comma-separated
 list of addresses of hubs. Ibis will use the first reachable hub on the
 list. The address of the Ibis server is appended to this list
 automatically. Thus, by default, the Ibis server itself is used as the
@@ -242,7 +242,7 @@ the application without ibis-run, the following command can be used:
 {\small
 \begin{verbatim}
 $ java \
-    -cp
+    -cp \
     $IBIS_HOME/lib/ipl-2.0.jar:$IBIS_HOME/examples/lib/ipl-examples-2.0.jar \
     -Dibis.impl.path=$IBIS_HOME/lib \
     -Dibis.server.address=localhost \
