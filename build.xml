@@ -214,7 +214,7 @@
     </target>
 
     <target name="progman" description="Create progman.pdf">
-        <ant dir="docs" antfile="build.xml" />
+        <ant dir="docs" inheritAll="false" />
     </target>
 
     <target name="ibis.zip" depends="build, progman">
