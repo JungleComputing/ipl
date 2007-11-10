@@ -14,23 +14,20 @@ import ibis.ipl.WriteMessage;
 import java.io.IOException;
 
 /**
- * This program is to be run as two instances. One is a server, the other a
- * client. The client sends a hello message to the server. The server prints it.
- * This version uses upcalls to receive messages.
+ * Exampel of a many-to-one application. The server just waits until messages a
+ * received and prints them, clients send a single message to the server and
+ * exit.
  */
 
-public class HelloUpcall implements MessageUpcall {
+public class ManyToOne implements MessageUpcall {
 
     PortType portType =
         new PortType(PortType.COMMUNICATION_RELIABLE,
                 PortType.SERIALIZATION_DATA, PortType.RECEIVE_AUTO_UPCALLS,
-                PortType.CONNECTION_ONE_TO_ONE);
+                PortType.CONNECTION_MANY_TO_ONE);
 
     IbisCapabilities ibisCapabilities =
         new IbisCapabilities(IbisCapabilities.ELECTIONS_STRICT);
-
-    /** Set to true when server received message. */
-    boolean finished = false;
 
     /**
      * Function called by Ibis to give us a newly arrived message
@@ -42,16 +39,10 @@ public class HelloUpcall implements MessageUpcall {
      */
     public void upcall(ReadMessage message) throws IOException {
         String s = message.readString();
-        System.out.println("Received string: " + s);
-        setFinished();
+        System.out.println(message.origin() + " says: " + s);
     }
 
-    synchronized void setFinished() {
-        finished = true;
-        notifyAll();
-    }
-
-    private void server(Ibis myIbis) throws IOException {
+    private void server(Ibis myIbis) throws Exception {
 
         // Create a receive port, pass ourselves as the message upcall
         // handler
@@ -62,15 +53,8 @@ public class HelloUpcall implements MessageUpcall {
         // enable upcalls
         receiver.enableMessageUpcalls();
 
-        synchronized (this) {
-            while (!finished) {
-                try {
-                    wait();
-                } catch (Exception e) {
-                    // ignored
-                }
-            }
-        }
+        // do nothing for a minute (will get upcalls for messages
+        Thread.sleep(60000);
 
         // Close receive port.
         receiver.close();
@@ -111,7 +95,7 @@ public class HelloUpcall implements MessageUpcall {
 
     public static void main(String args[]) {
         try {
-            new HelloUpcall().run();
+            new ManyToOne().run();
         } catch (Exception e) {
             e.printStackTrace(System.err);
         }

@@ -1,5 +1,3 @@
-/* $Id: Hello.java 6430 2007-09-20 16:37:59Z ceriel $ */
-
 package ibis.ipl.examples;
 
 import ibis.ipl.Ibis;
@@ -10,6 +8,7 @@ import ibis.ipl.MessageUpcall;
 import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
+import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
 
@@ -27,43 +26,57 @@ public class OneToMany implements MessageUpcall {
     PortType portType =
         new PortType(PortType.COMMUNICATION_RELIABLE,
                 PortType.SERIALIZATION_DATA, PortType.RECEIVE_AUTO_UPCALLS,
-                PortType.CONNECTION_ONE_TO_MANY);
+                PortType.CONNECTION_ONE_TO_MANY, PortType.CONNECTION_DOWNCALLS);
 
     IbisCapabilities ibisCapabilities =
         new IbisCapabilities(IbisCapabilities.ELECTIONS_STRICT,
                 IbisCapabilities.MEMBERSHIP_TOTALLY_ORDERED);
 
     private void server(Ibis myIbis) throws Exception {
-        //create a sendport to send messages with
+        // create a sendport to send messages with
         SendPort sendPort = myIbis.createSendPort(portType);
-        
-        //ones every second, send the time to all the members in the pool
-        //including ourselves
-        for (int i = 0; i < 30; i++) {
+
+        // ones every second, send the time to all the members in the pool
+        // including ourselves
+        for (int i = 0; i < 12; i++) {
             IbisIdentifier[] joinedIbises = myIbis.registry().joinedIbises();
-            for (IbisIdentifier joinedIbis: joinedIbises) {
+            for (IbisIdentifier joinedIbis : joinedIbises) {
                 sendPort.connect(joinedIbis, "receive port");
             }
 
-            WriteMessage message = sendPort.newMessage();
-            message.writeString("The time is now: " + new Date());
-            message.finish();
-            
-            Thread.sleep(1000);
+            // if a connection is lost because a Ibis leave while we are
+            // sending, print the error. The message will still be send to all
+            // the remaining ibises.
+            try {
+                System.err.println("broadcasting time message");
+                WriteMessage message = sendPort.newMessage();
+                message.writeString("The current time is: " + new Date());
+                message.finish();
+            } catch (IOException e) {
+                System.err.println("error when sending message: " + e);
+            }
+
+            // poll the sendport for any connections that have been lost
+            ReceivePortIdentifier[] lostConnections =
+                sendPort.lostConnections();
+            for (ReceivePortIdentifier receiver : lostConnections) {
+                System.err.println("lost connection to: " + receiver);
+            }
+
+            Thread.sleep(10000);
         }
-        
+
         sendPort.close();
     }
 
-  
     /**
-     * Client function. Pretends to be busy for 30 seconds, and exits.
+     * Client function. Pretends to be busy for a while, and exits.
      */
     private void client(Ibis myIbis, IbisIdentifier server) throws Exception {
         // no nothing for a while
-        Thread.sleep(30000);
+        Thread.sleep(120000);
     }
-    
+
     /**
      * Function called by ibis whenever a message is received.
      */
@@ -74,15 +87,14 @@ public class OneToMany implements MessageUpcall {
         System.err.println("Received message: " + message);
     }
 
-
     private void run() throws Exception {
         // Create an ibis instance.
         Ibis ibis = IbisFactory.createIbis(ibisCapabilities, null, portType);
-        
-        //create a receive port to receive messages with
+
+        // create a receive port to receive messages with
         ReceivePort receiver =
             ibis.createReceivePort(portType, "receive port", this);
-        //enable connection to our receive port
+        // enable connection to our receive port
         receiver.enableConnections();
 
         // enable upcalls for messages
@@ -98,9 +110,9 @@ public class OneToMany implements MessageUpcall {
             client(ibis, server);
         }
 
-        //close receive port
+        // close receive port
         receiver.close();
-        
+
         // End ibis.
         ibis.end();
     }

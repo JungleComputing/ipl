@@ -43,7 +43,7 @@ to show how to use Ibis in practice.
 
 %-- ipl picture, implementations, upcalls, identifiers, instances
 
-\begin{figure} \centering
+\begin{figure}[t] \centering
 \includegraphics[width=0.9\textwidth]{../images/ibis-design.eps}
 \caption{Ibis design overview} \label{design}
 \end{figure}
@@ -83,7 +83,7 @@ connections, and updates on new Ibis instances joining a computation.
 
 %-- send port, receive port, connections, porttypes
 
-\begin{figure} \centering
+\begin{figure}[t] \centering
 \includegraphics[width=0.9\textwidth]{../images/communication_patterns.eps}
 \caption{\label{ports}Ibis send and receive port configurations: one to one (a), one to many (b), many to one (c), and many to many (d)}
 \end{figure}
@@ -95,9 +95,10 @@ single receive port leads to a simple one-to-one connection. However, it is
 also possible to connect a send port to multiple receive ports for a
 one-to-many multicast, or multiple send ports to a single receive port
 for many-to-one client server type communication. Even connecting
-multiple send ports to multiple receive ports is possible, although this
-many-to-many communication model is currently not supported by the
-standard TCP based implementation of Ibis.
+multiple send ports to multiple receive ports is possible.
+% although this
+%many-to-many communication model is currently not supported by the
+%standard TCP based implementation of Ibis.
 
 \begin{figure} \centering
 \includegraphics[width=0.5\textwidth]{../images/port_types.eps}

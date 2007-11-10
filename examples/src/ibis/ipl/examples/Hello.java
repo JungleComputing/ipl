@@ -1,5 +1,3 @@
-/* $Id: Hello.java 6430 2007-09-20 16:37:59Z ceriel $ */
-
 package ibis.ipl.examples;
 
 import ibis.ipl.Ibis;
@@ -22,12 +20,13 @@ import java.io.IOException;
 
 public class Hello {
 
-    PortType portType = new PortType(PortType.COMMUNICATION_RELIABLE,
-            PortType.SERIALIZATION_DATA, PortType.RECEIVE_EXPLICIT,
-            PortType.CONNECTION_ONE_TO_ONE);
+    PortType portType =
+        new PortType(PortType.COMMUNICATION_RELIABLE,
+                PortType.SERIALIZATION_DATA, PortType.RECEIVE_EXPLICIT,
+                PortType.CONNECTION_ONE_TO_ONE);
 
-    IbisCapabilities ibisCapabilities = new IbisCapabilities(
-            IbisCapabilities.ELECTIONS_STRICT);
+    IbisCapabilities ibisCapabilities =
+        new IbisCapabilities(IbisCapabilities.ELECTIONS_STRICT);
 
     private void server(Ibis myIbis) throws IOException {
 

@@ -1,12 +1,10 @@
 After giving a high level overview of the functionality of Ibis, we will
 now give some examples of applications which use the IPL. All the
 examples used here can also be found in the \texttt{examples} directory
-of the distribution. This directory also contains some examples not
-shown here.
+of the distribution. 
 
 \subsection{Hello}
 \begin{figure}[p]
-\thisfloatpagestyle{empty}
 \begin{lstlisting}[language=Java,numbers=left, numbersep=3pt]
 package Ibis.ipl.examples;
 
@@ -258,7 +256,10 @@ upcall ends the message is automatically finished. It is possible to
 call \texttt{finish} though, signaling Ibis the next message can now be
 received. This might be a good idea if a lot of calculations are done in
 the upcall method. If \texttt{finish} is not called Ibis will wait with
-receiving the next message until this upcall exits.
+receiving the next message until this upcall exits. Also, when you want
+to make calls into Ibis, like create a new send message, new
+connections, etc, you \emph{must} finish the read message first, to
+prevent deadlocks in Ibis.
 
 Finally, lines 18 to 27 show the server method of this application. One
 difference with the previous application can be seen on line 21, when
@@ -371,3 +372,16 @@ methods in the \texttt{Registry} class, which return any changes to the
 pool since the methods were last called. For an example of such an
 application, see the \texttt{RegistryDowncalls} example application.
 
+\subsection{Other Examples}
+
+The Ibis distribution also contains some other examples. These include
+a \texttt{OneToMany} example showing a simple broadcast application, a
+\texttt{ManyToOne} example which resembles the HelloUpcall application,
+but with multiple client.
+
+The last, application in the \texttt{example} directory is
+the \texttt{ClientServer} application. This application uses object
+serialization and multiple port types to implement a time server demo.
+It also shows the usage of an \emph{ReceivePortIdentifier}. Instead of
+passing the Ibis and name of a receive port when connection, a user can
+also pass the unique identifier of a receiver port directly.

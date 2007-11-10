@@ -1,6 +1,6 @@
 This directory contains some Ibis example programs. They can be compiled by 
-using "ant". These examples are also used in the user's guide and programmer's 
-manual (located in the docs/ directory)
+using "ant". Some of these examples are also used in the user's guide and 
+programmer's manual (located in the docs/ directory)
 
 Hello:
 
@@ -29,8 +29,4 @@ How to connect multiple senders to a single receiver
 
 ClientServer:
 
-Implementation of a small client-server application, using data serialization
-
-ClientServerObject:
-
-Same a above, but using object serialization
+Implementation of a small client-server application.
