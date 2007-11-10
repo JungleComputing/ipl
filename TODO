@@ -7,14 +7,12 @@ Legend:
 ##### Ibis 2.0 ####
 
 IPL:
-- check properties for unknown properties
 + MessageUpcall.upcall: may also cause ClassNotFoundException? --Ceriel
   (Done Ceriel)
 + clarify error message when a capability is unmatched (Done, Niels)
 + rename ibis.name to ibis.implementation. The current property kinda sounds like
    we are naming our ibis :( (Done, Niels)
 + add timeout version of registry.elect() (Done, Niels)
-? throw nested exception ending with failed ibis instead of just the failed Ibis?
 + rename CLOSEDWORLD capability to CLOSED_WORLD (Done, Niels)
 
 management:
@@ -42,7 +40,7 @@ applications:
 
 
 packaging/distribution:
-- split up ibis in multiple separate subprojects:
++ split up ibis in multiple separate subprojects:
 	+ ipl
 	+ ipl applications (Done Ceriel)
 	+ util
@@ -51,21 +49,16 @@ packaging/distribution:
 	+ compile (Done Ceriel)
 	foreach(programming model) {
 		+ programming model
-		- programming model applications
 	} (Done programming models --Ceriel)
-	- standalone applications (DFA, SAT4Satin, Barnes)	
-	- make external dir in every subproject so that each subproject
-	  is self-contained.
-- update/rewrite programmers manuals
++ update/rewrite programmers manuals
 - while(true) {fix eclipse warnings}
 + clean up doc building scripts (Done Ceriel)
-- add some more text explaining the usage of the property files to the top 
++ add some more text explaining the usage of the property files to the top 
   of each file, update default settings
     + log4j.properties (Done, Niels)
     + ibis.properties.example (Done, Niels)
-    - smartsockets.properties
-? do we want ibis-run to use ibis.impl.path or add everything to the classpath?
-- update HISTORY.txt to show precise date of release
+    + smartsockets.properties (Done, Jason)
++ update HISTORY.txt to show precise date of release
   
 website:
 - update "ibis" overview picture with new/changed implementations
@@ -81,15 +74,25 @@ website:
     - SmartSockets
     - SAT4Satin
 - add javadoc top-button where applicable
+- add bugtracker, or reference to it
 
 ##### Ibis 2.X ####
 
 Ibis:
+- check properties for unknown properties
 - while(true) {fix eclipse warnings}
 - more efficient clone? Maybe generate code that clones without using 
   serialization. Could be done for objects passed as a param
   to a spawn, for instance. If code is not there, fall back to current impl.
+? throw nested exception ending with failed ibis instead of just the failed Ibis?
 
+packaging/distribution
+- clean-up project (names) in subversion repository
+- split up ibis in multiple separate subprojects:
+	- standalone applications (DFA, SAT4Satin, Barnes)	
+	- make external dir in every subproject so that each subproject
+	  is self-contained.
+	- programming model applications
 ibis registry:
 - gossip Registry
 
