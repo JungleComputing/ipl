@@ -51,7 +51,7 @@ packaging/distribution:
 		+ programming model
 	} (Done programming models --Ceriel)
 + update/rewrite programmers manuals
-- while(true) {fix eclipse warnings}
++ while(!released) {fix eclipse warnings}
 + clean up doc building scripts (Done Ceriel)
 + add some more text explaining the usage of the property files to the top 
   of each file, update default settings
@@ -61,20 +61,14 @@ packaging/distribution:
 + update HISTORY.txt to show precise date of release
   
 website:
-- update "ibis" overview picture with new/changed implementations
++ update "ibis" overview picture with new/changed implementations
 + add overview section
-- update each subproject page
-    - Satin
-    - Mpj
-    - Gmi
-    - Rmi
-    - JavaGAT
++ update subproject pages
     + Zorilla (Done, Niels)
-    - IPL
-    - SmartSockets
-    - SAT4Satin
-- add javadoc top-button where applicable
-- add bugtracker, or reference to it
+    + IPL (Done, Niels)
+    + SAT4Satin
++ add javadoc top-button where applicable
++ add bugtracker, or reference to it
 
 ##### Ibis 2.X ####
 
@@ -86,15 +80,25 @@ Ibis:
   to a spawn, for instance. If code is not there, fall back to current impl.
 ? throw nested exception ending with failed ibis instead of just the failed Ibis?
 
-packaging/distribution
+packaging/distribution:
 - clean-up project (names) in subversion repository
 - split up ibis in multiple separate subprojects:
 	- standalone applications (DFA, SAT4Satin, Barnes)	
 	- make external dir in every subproject so that each subproject
 	  is self-contained.
 	- programming model applications
+	
 ibis registry:
 - gossip Registry
+
+website:
+- update subproject pages:
+    - Satin
+    - Mpj
+    - Gmi
+    - Rmi
+    - JavaGAT
+    - SmartSockets
 
 implementations:
 - fix/improve performance of MpiIbis
