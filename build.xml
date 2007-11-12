@@ -135,7 +135,6 @@
 
         <delete file="${sources-zip}" />
         <delete file="ibis${version}.zip" />
-        <ant dir="docs" inheritAll="false" target="clean" />
         <ant dir="examples" inheritAll="false" target="clean" />
         <ant dir="benchmarks" inheritAll="false" target="clean" />
     </target>
@@ -213,11 +212,11 @@
         </javadoc>
     </target>
 
-    <target name="progman" description="Create progman.pdf">
+    <target name="docs" description="Create manuals">
         <ant dir="docs" inheritAll="false" />
     </target>
 
-    <target name="ibis.zip" depends="build, progman">
+    <target name="ibis.zip" depends="build, docs">
         <delete file="ibis${version}.zip" />
         <delete dir="${sources-zip}" />
 
