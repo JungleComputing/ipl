@@ -87,6 +87,8 @@ packaging/distribution:
 	- make external dir in every subproject so that each subproject
 	  is self-contained.
 	- programming model applications
+- change Satin to "new" build method for programming models
+- rename satin-ibis, barnes* and ibis-io in repository
 	
 ibis registry:
 - gossip Registry
