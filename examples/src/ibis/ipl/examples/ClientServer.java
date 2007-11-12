@@ -2,7 +2,6 @@ package ibis.ipl.examples;
 
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisCapabilities;
-import ibis.ipl.IbisCreationFailedException;
 import ibis.ipl.IbisFactory;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.MessageUpcall;
