@@ -8,6 +8,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 import org.apache.log4j.Logger;
 
@@ -23,8 +24,7 @@ class Member {
 
     // ibisses who claim this member is no more
     // cleared upon succesful contact
-    private Set<IbisIdentifier> witnesses;
-
+    private Set<UUID> witnesses;
     
     // member can be declared dead after the timeout has expired AND at least
     // N witnesses have not been able to contact the peer.
@@ -40,7 +40,7 @@ class Member {
 
         lastSeen = System.currentTimeMillis();
 
-        witnesses = new HashSet<IbisIdentifier>();
+        witnesses = new HashSet<UUID>();
 
         dead = false;
         left = false;
@@ -62,10 +62,10 @@ class Member {
             throw new IOException("negative list size");
         }
         
-        witnesses = new HashSet<IbisIdentifier>();
+        witnesses = new HashSet<UUID>();
         
         for (int i = 0; i < nrOfWittnesses; i++) {
-            witnesses.add(new IbisIdentifier(in));
+            witnesses.add(new UUID(in.readLong(), in.readLong()));
         }
         
         dead = in.readBoolean();
@@ -81,18 +81,56 @@ class Member {
         out.writeLong(notSeenFor);
         
         out.writeInt(witnesses.size());
-        for(IbisIdentifier witness: witnesses) {
-            witness.writeTo(out);
+        for(UUID witness: witnesses) {
+            out.writeLong(witness.getMostSignificantBits());
+            out.writeLong(witness.getLeastSignificantBits());
         }
         
         out.writeBoolean(dead);
         out.writeBoolean(left);
     }
     
+    public void merge(Member other) {
+        if (other.lastSeen > lastSeen) {
+            lastSeen = other.lastSeen;
+        }
+        
+        for(UUID witness: other.witnesses) {
+            witnesses.add(witness);
+        }
+        
+        if (other.dead) {
+            dead = true;
+        }
+        
+        if (other.left) {
+            left = true;
+        }
+        
+        if (dead || left) {
+            witnesses.clear();
+        }
+        
+        //check if this member is now dead
+        int witnessesRequired = properties.getIntProperty(RegistryProperties.WITNESSES_REQUIRED);
+        
+        
+        
+        if (timedout() && witnesses.size() > witnessesRequired) {
+            dead = true;
+            witnesses.clear();
+        }
+    }
+    
     IbisIdentifier getIdentifier() {
         return identifier;
     }
 
+    UUID getUUID() {
+        return UUID.fromString(identifier.getID());
+    }
+
+    
     synchronized void setLeft() {
         left = true;
     }
@@ -128,13 +166,13 @@ class Member {
         witnesses.clear();
     }
 
-    synchronized void addWitness(IbisIdentifier witness) {
+    synchronized void suspectDead(IbisIdentifier witness) {
         if (dead) {
             // already dead
             return;
         }
 
-        witnesses.add(witness);
+        witnesses.add(UUID.fromString(witness.getID()));
 
         int witnessesRequired = properties.getIntProperty(RegistryProperties.WITNESSES_REQUIRED);
         
@@ -144,6 +182,14 @@ class Member {
         }
 
     }
+    
+    synchronized boolean isSuspect() {
+        if (dead || left) {
+            return false;
+        }
+        
+        return timedout();
+    }
 
     public synchronized String toString() {
         double age = (double) (System.currentTimeMillis() - lastSeen) / 1000.0;
@@ -151,5 +197,10 @@ class Member {
         return String.format("%s last seen %.2f seconds ago, witnesses: %d",
                 identifier, age, witnesses.size());
     }
+
+    public synchronized int nrOfWitnesses() {
+        return witnesses.size();
+    }
+
 
 }

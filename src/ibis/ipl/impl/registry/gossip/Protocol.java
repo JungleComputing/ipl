@@ -4,15 +4,17 @@ final class Protocol {
 
     // opcodes
 
-    public static final byte OPCODE_ARRG_GOSSIP = 1;
+    public static final byte OPCODE_ARRG_GOSSIP = 0;
 
-    public static final byte OPCODE_SIGNAL = 2;
+    public static final byte OPCODE_SIGNAL = 1;
 
-    public static final byte OPCODE_LEAVE = 3;
+    public static final byte OPCODE_LEAVE = 2;
 
-    public static final byte OPCODE_GOSSIP = 4;
+    public static final byte OPCODE_GOSSIP = 3;
     
-    public static final int NR_OF_OPCODES = 4;
+    public static final byte OPCODE_PING = 4;
+    
+    public static final int NR_OF_OPCODES = 5;
 
     // replies
 

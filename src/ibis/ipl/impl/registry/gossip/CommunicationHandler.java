@@ -216,6 +216,29 @@ class CommunicationHandler extends Thread {
 
         connection.close();
     }
+    
+    public void ping(IbisIdentifier ibis) throws IOException {
+        Connection connection =
+            new Connection(ibis, CONNECTION_TIMEOUT, true,
+                    socketFactory);
+
+        connection.out().writeByte(Protocol.MAGIC_BYTE);
+        connection.out().writeByte(Protocol.OPCODE_PING);
+
+        connection.getAndCheckReply();
+        IbisIdentifier result = new IbisIdentifier(connection.in());
+        
+        connection.close();
+        
+        if (!result.equals(ibis)) {
+            throw new IOException("tried to ping " + ibis + ", reached " + result + " instead");
+        }
+    }
+    
+    private void handlePing(Connection connection) throws IOException {
+        connection.sendOKReply();
+        registry.getIbisIdentifier().writeTo(connection.out());
+    }
 
     // ARRG gossip send and handled in ARRG class
     private void handleArrgGossip(Connection connection) throws IOException {
@@ -283,6 +306,9 @@ class CommunicationHandler extends Thread {
                 handleLeave(connection);
                 break;
             case Protocol.OPCODE_GOSSIP:
+                handleGossip(connection);
+                break;
+            case Protocol.OPCODE_PING:
                 handleGossip(connection);
                 break;
             default:

@@ -78,8 +78,7 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
             IbisConfigurationException {
         this.capabilities = capabilities;
 
-        if (capabilities
-                .hasCapability(IbisCapabilities.MEMBERSHIP_TOTALLY_ORDERED)) {
+        if (capabilities.hasCapability(IbisCapabilities.MEMBERSHIP_TOTALLY_ORDERED)) {
             throw new IbisConfigurationException(
                     "gossip registry does not support totally ordered membership");
         }
@@ -135,13 +134,13 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
         elections = new ElectionSet(properties, this);
 
         commHandler =
-                new CommunicationHandler(properties, this, members, elections);
+            new CommunicationHandler(properties, this, members, elections);
 
         Location location = Location.defaultLocation(properties);
 
         identifier =
-                new IbisIdentifier(id.toString(), ibisData, commHandler
-                        .getAddress().toBytes(), location, poolName);
+            new IbisIdentifier(id.toString(), ibisData,
+                    commHandler.getAddress().toBytes(), location, poolName);
 
         ThreadPool.createNew(this, "pool management thread");
 
@@ -151,6 +150,10 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
     @Override
     public IbisIdentifier getIbisIdentifier() {
         return identifier;
+    }
+    
+    CommunicationHandler getCommHandler() {
+        return commHandler;
     }
 
     public IbisIdentifier elect(String electionName) throws IOException {
@@ -162,7 +165,8 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
         return elections.elect(electionName);
     }
 
-    public IbisIdentifier elect(String electionName, long timeoutMillis) throws IOException {
+    public IbisIdentifier elect(String electionName, long timeoutMillis)
+            throws IOException {
         if (!capabilities.hasCapability(IbisCapabilities.ELECTIONS_UNRELIABLE)) {
             throw new IbisConfigurationException(
                     "No election support requested");
@@ -171,7 +175,6 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
         return elections.elect(electionName, timeoutMillis);
     }
 
-    
     public IbisIdentifier getElectionResult(String election) throws IOException {
         return getElectionResult(election, 0);
     }
@@ -183,7 +186,7 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
                     "No election support requested");
         }
 
-        return elections.getElectionResult(timeoutMillis);
+        return elections.getElectionResult(electionName, timeoutMillis);
     }
 
     public void maybeDead(ibis.ipl.IbisIdentifier suspect) throws IOException {
@@ -211,7 +214,7 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
 
         try {
             IbisIdentifier[] implIdentifiers =
-                    (IbisIdentifier[]) ibisIdentifiers;
+                (IbisIdentifier[]) ibisIdentifiers;
 
             commHandler.sendSignals(signal, implIdentifiers);
 
@@ -227,7 +230,7 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
         }
 
         ibis.ipl.IbisIdentifier[] result =
-                joinedIbises.toArray(new ibis.ipl.IbisIdentifier[0]);
+            joinedIbises.toArray(new ibis.ipl.IbisIdentifier[0]);
         joinedIbises.clear();
         return result;
     }
@@ -238,7 +241,7 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
                     "Resize downcalls not configured");
         }
         ibis.ipl.IbisIdentifier[] result =
-                leftIbises.toArray(new ibis.ipl.IbisIdentifier[0]);
+            leftIbises.toArray(new ibis.ipl.IbisIdentifier[0]);
         leftIbises.clear();
         return result;
     }
@@ -250,7 +253,7 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
         }
 
         ibis.ipl.IbisIdentifier[] result =
-                diedIbises.toArray(new ibis.ipl.IbisIdentifier[0]);
+            diedIbises.toArray(new ibis.ipl.IbisIdentifier[0]);
         diedIbises.clear();
         return result;
     }
@@ -395,16 +398,18 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
 
     public void run() {
         long interval =
-                properties.getIntProperty(RegistryProperties.GOSSIP_INTERVAL) * 1000;
+            properties.getIntProperty(RegistryProperties.GOSSIP_INTERVAL) * 1000;
 
         while (!isStopped()) {
             commHandler.gossip();
 
             int timeout = (int) (Math.random() * interval);
-            try {
-                wait(timeout);
-            } catch (InterruptedException e) {
-                // IGNORE
+            synchronized (this) {
+                try {
+                    wait(timeout);
+                } catch (InterruptedException e) {
+                    // IGNORE
+                }
             }
         }
 
