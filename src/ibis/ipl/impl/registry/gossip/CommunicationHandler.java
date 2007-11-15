@@ -24,7 +24,7 @@ class CommunicationHandler extends Thread {
 
     private final Registry registry;
     
-    private final MemberSet members;
+    private final Pool pool;
     
     private final ElectionSet elections;
 
@@ -35,9 +35,9 @@ class CommunicationHandler extends Thread {
     private final ARRG arrg;
 
     CommunicationHandler(TypedProperties properties, Registry registry,
-            MemberSet members, ElectionSet elections) throws IOException {
+            Pool members, ElectionSet elections) throws IOException {
         this.registry = registry;
-        this.members = members;
+        this.pool = members;
         this.elections = elections;
 
         try {
@@ -140,6 +140,11 @@ class CommunicationHandler extends Thread {
     public void gossip() {
         VirtualSocketAddress address = arrg.getRandomMember();
         
+        if (address == null || address.equals(serverSocket.getLocalSocketAddress())) {
+            logger.debug("noone to gossip with, or (not) gossiping with self");
+            return;
+        }
+        
         try {
             Connection connection =
                     new Connection(address, CONNECTION_TIMEOUT, true,
@@ -149,12 +154,12 @@ class CommunicationHandler extends Thread {
             connection.out().writeByte(Protocol.OPCODE_GOSSIP);
             registry.getIbisIdentifier().writeTo(connection.out());
             
-            members.writeGossipData(connection.out());
+            pool.writeGossipData(connection.out());
             elections.writeGossipData(connection.out());
             
             connection.getAndCheckReply();
             
-            members.readGossipData(connection.in());
+            pool.readGossipData(connection.in());
             elections.readGossipData(connection.in());
             
             connection.close();
@@ -170,12 +175,12 @@ class CommunicationHandler extends Thread {
             connection.closeWithError("wrong pool");
         }
         
-        members.readGossipData(connection.in());
+        pool.readGossipData(connection.in());
         elections.readGossipData(connection.in());
         
         connection.sendOKReply();
         
-        members.writeGossipData(connection.out());
+        pool.writeGossipData(connection.out());
         elections.writeGossipData(connection.out());
         
         connection.close();
@@ -212,7 +217,7 @@ class CommunicationHandler extends Thread {
 
         connection.sendOKReply();
 
-        members.leave(ibis);
+        pool.leave(ibis);
 
         connection.close();
     }
@@ -249,7 +254,7 @@ class CommunicationHandler extends Thread {
             return;
         }
 
-        arrg.handleGossip(connection);
+        arrg.handleGossip(connection, false);
     }
 
     public void run() {
@@ -309,7 +314,7 @@ class CommunicationHandler extends Thread {
                 handleGossip(connection);
                 break;
             case Protocol.OPCODE_PING:
-                handleGossip(connection);
+                handlePing(connection);
                 break;
             default:
                 logger.error("unknown opcode: " + opcode);

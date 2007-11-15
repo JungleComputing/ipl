@@ -33,6 +33,8 @@ public class BootstrapService implements Service, Runnable {
 
     private final boolean printErrors;
 
+    private final boolean printEvents;
+    
     private boolean ended = false;
 
     public BootstrapService(TypedProperties properties,
@@ -47,6 +49,10 @@ public class BootstrapService implements Service, Runnable {
                 properties
                         .getBooleanProperty(ServerProperties.PRINT_ERRORS);
 
+        printEvents =
+            properties
+                    .getBooleanProperty(ServerProperties.PRINT_EVENTS);
+        
         arrgs = new HashMap<String, ARRG>();
 
         serverSocket =
@@ -153,7 +159,8 @@ public class BootstrapService implements Service, Runnable {
 
                 ARRG arrg = getOrCreateARRG(poolName);
 
-                arrg.handleGossip(connection);
+                arrg.handleGossip(connection, printEvents);
+                
                 break;
             default:
                 logger.error("unknown opcode: " + opcode);

@@ -107,7 +107,7 @@ class ARRG extends Thread {
         return System.currentTimeMillis() > lastGossip + DEAD_TIMEOUT;
     }
 
-    void handleGossip(Connection connection) throws IOException {
+    void handleGossip(Connection connection, boolean printMessage) throws IOException {
         ARRGCacheEntry peerEntry = new ARRGCacheEntry(connection.in());
 
         int receiveCount = connection.in().readInt();
@@ -134,6 +134,10 @@ class ARRG extends Thread {
         cache.add(receivedEntries);
 
         resetLastGossip();
+        
+        if (printMessage) {
+            System.out.println("bootstrap service for " + poolName + " received request from " + peerEntry);
+        }
     }
 
     private void gossip(VirtualSocketAddress victim) throws IOException {

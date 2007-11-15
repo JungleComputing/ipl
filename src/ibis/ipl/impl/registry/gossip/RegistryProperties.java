@@ -20,6 +20,8 @@ public class RegistryProperties {
 
     public static final String PING_INTERVAL = PREFIX + "ping.interval";
 
+    public static final String ELECTION_TIMEOUT = PREFIX + "eleciton.timeout";
+    
     // list of descriptions and defaults
     private static final String[][] propertiesList =
         new String[][] {
@@ -31,6 +33,9 @@ public class RegistryProperties {
                         "Number of seconds until a peer can be declared dead" },
                 { PING_INTERVAL, "1",
                         "How often do we try to reach a suspect member (in seconds)" },
+                        { ELECTION_TIMEOUT, "5",
+                        "Number of seconds until we return the value of an election" },
+
         };
 
     public static TypedProperties getHardcodedProperties() {

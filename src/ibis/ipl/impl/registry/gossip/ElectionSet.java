@@ -65,14 +65,38 @@ public class ElectionSet {
         return election.getWinner();
     }
 
-    public synchronized IbisIdentifier elect(String electionName) {
-        // TODO Auto-generated method stub
-        return null;
+    public synchronized IbisIdentifier elect(String electionName, long timeoutMillis) {
+        Election election = elections.get(electionName);
+        
+        if (election == null) {
+            election = new Election(electionName);
+        }
+        
+        if (election.nrOfCandidates() == 0) {
+            election.addCandidate(registry.getIbisIdentifier());
+        }
+
+        try {
+            wait(timeoutMillis);
+        } catch (InterruptedException e) {
+            //IGNORE
+        }
+
+        //re-fetch election (just in case it got removed while we were waiting)
+        election = elections.get(electionName);
+        
+        if (election == null) {
+            election = new Election(electionName);
+        }
+        
+        if (election.nrOfCandidates() == 0) {
+            election.addCandidate(registry.getIbisIdentifier());
+        }        
+        return election.getWinner();
     }
 
-    public IbisIdentifier elect(String electionName, long timeoutMillis) {
-        // TODO Auto-generated method stub
-        return null;
+    public IbisIdentifier elect(String electionName) {
+        return elect(electionName, properties.getIntProperty(RegistryProperties.ELECTION_TIMEOUT) * 1000);
     }
 
 }

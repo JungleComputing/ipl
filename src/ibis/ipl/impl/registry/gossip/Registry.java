@@ -33,7 +33,7 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
 
     private final IbisIdentifier identifier;
 
-    private final MemberSet members;
+    private final Pool pool;
 
     private final ElectionSet elections;
 
@@ -130,18 +130,22 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
                             + IbisProperties.POOL_NAME + " is not specified");
         }
 
-        members = new MemberSet(properties, this);
+        pool = new Pool(properties, this);
         elections = new ElectionSet(properties, this);
-
+       
         commHandler =
-            new CommunicationHandler(properties, this, members, elections);
+            new CommunicationHandler(properties, this, pool, elections);
 
         Location location = Location.defaultLocation(properties);
 
         identifier =
             new IbisIdentifier(id.toString(), ibisData,
                     commHandler.getAddress().toBytes(), location, poolName);
+        
 
+        commHandler.start();
+        pool.start();
+        
         ThreadPool.createNew(this, "pool management thread");
 
         logger.debug("registry for " + identifier + " initiated");
@@ -191,7 +195,7 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
 
     public void maybeDead(ibis.ipl.IbisIdentifier suspect) throws IOException {
         try {
-            members.maybeDead((IbisIdentifier) suspect);
+            pool.maybeDead((IbisIdentifier) suspect);
         } catch (ClassCastException e) {
             logger.error("illegal ibis identifier given: " + e);
         }
@@ -199,7 +203,7 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
 
     public void assumeDead(ibis.ipl.IbisIdentifier deceased) throws IOException {
         try {
-            members.assumeDead((IbisIdentifier) deceased);
+            pool.assumeDead((IbisIdentifier) deceased);
         } catch (ClassCastException e) {
             logger.error("illegal ibis identifier given: " + e);
         }
@@ -392,7 +396,7 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
         synchronized (this) {
             stopped = true;
         }
-        members.leave(identifier);
+        pool.leave(identifier);
         commHandler.broadcastLeave();
     }
 

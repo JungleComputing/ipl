@@ -13,7 +13,7 @@ public class Election {
     private final String name;
     private SortedSet<IbisIdentifier> candidates;
     
-    Election(String name, IbisIdentifier winner) {
+    Election(String name) {
         this.name = name;
         
         candidates = new TreeSet<IbisIdentifier>(new IbisComparator());
@@ -51,11 +51,20 @@ public class Election {
         return name;
     }
 
+    public synchronized int nrOfCandidates() {
+        return candidates.size();
+    }
+    
     public synchronized IbisIdentifier getWinner() {
+        if (candidates.isEmpty()) {
+            return null;
+        }
         //use sorting function of set to determine winner
         return candidates.first();
     }
     
-    
+    public synchronized void addCandidate(IbisIdentifier candidate) {
+        candidates.add(candidate);
+    }
     
 }

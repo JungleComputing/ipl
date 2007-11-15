@@ -12,12 +12,11 @@ import java.util.UUID;
 import org.apache.log4j.Logger;
 
 import ibis.ipl.impl.IbisIdentifier;
-import ibis.util.ThreadPool;
 import ibis.util.TypedProperties;
 
-class MemberSet implements Runnable {
+class Pool extends Thread {
 
-    private static final Logger logger = Logger.getLogger(MemberSet.class);
+    private static final Logger logger = Logger.getLogger(Pool.class);
 
     private final TypedProperties properties;
 
@@ -29,7 +28,7 @@ class MemberSet implements Runnable {
 
     private final HashMap<UUID, Member> members;
 
-    private final Member thisMember;
+    private Member self;
 
     private final Random random;
 
@@ -38,7 +37,7 @@ class MemberSet implements Runnable {
      */
     private int liveMembers;
 
-    MemberSet(TypedProperties properties, Registry registry) {
+    Pool(TypedProperties properties, Registry registry) {
         this.properties = properties;
         this.registry = registry;
 
@@ -47,15 +46,20 @@ class MemberSet implements Runnable {
         members = new HashMap<UUID, Member>();
 
         // add ourselves to the list of members
-        thisMember = new Member(registry.getIbisIdentifier(), properties);
-        members.put(thisMember.getUUID(), thisMember);
-        registry.ibisJoined(thisMember.getIdentifier());
 
         random = new Random();
 
-        ThreadPool.createNew(this, "pinger thread");
+    }
+    
+    @Override
+    public synchronized void start() {
+        this.setDaemon(true);
+
+        super.start();
+
     }
 
+    
     private synchronized Member getMember(IbisIdentifier ibis) {
         Member result;
 
@@ -204,20 +208,37 @@ class MemberSet implements Runnable {
             members.remove(id);
         }
     }
+   
+
+    /**
+     * Update number of "alive" members
+     */
+    private synchronized void updateLiveMembers() {
+        int result = 0;
+        for (Member member : members.values()) {
+            if (!member.isDead() && !member.hasLeft() && !member.isSuspect()) {
+                result++;
+            }
+        }
+        liveMembers = result;
+    }
 
     /**
      * Clean up the list of members.
      */
     private synchronized void cleanup() {
         // notice ourselves ;)
-        thisMember.seen();
+        self.seen();
+        
+        //update live member count
+        updateLiveMembers();
 
         // iterate over copy of values, so we can remove them if we need to
         for (Member member : members.values().toArray(new Member[0])) {
             cleanup(member);
         }
     }
-
+    
     private synchronized Member getSuspect() {
         ArrayList<Member> suspects = new ArrayList<Member>();
 
@@ -233,22 +254,14 @@ class MemberSet implements Runnable {
 
         return suspects.get(random.nextInt(suspects.size()));
     }
-
-    /**
-     * Update number of "alive" members
-     */
-    private synchronized void updateLiveMembers() {
-        int result = 0;
-        for (Member member : members.values()) {
-            if (!member.isDead() && !member.hasLeft() && !member.isSuspect()) {
-                result++;
-            }
-        }
-        liveMembers = result;
-    }
-
+    
     // ping suspect members once a second
     public void run() {
+        //add ourselves to the member list
+        self = new Member(registry.getIbisIdentifier(), properties);
+        members.put(self.getUUID(), self);
+        registry.ibisJoined(self.getIdentifier());
+        
         long interval =
             properties.getIntProperty(RegistryProperties.PING_INTERVAL) * 1000;
 
