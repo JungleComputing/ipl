@@ -181,7 +181,7 @@ public class BootstrapService implements Service, Runnable {
     }
 
     public String toString() {
-        return "Bootstrap Service on virtual port " + VIRTUAL_PORT;
+        return "Bootstrap service on virtual port " + VIRTUAL_PORT;
     }
 
 }
