@@ -55,7 +55,7 @@ the \emph{Ibis Portability Layer (IPL)}. This layer offers applications
 a grid aware communication library, independent of the actual network
 used. Ibis dynamically selects a suitable implementation at run-time.
 The Ibis communication library ships with several different TCP based
-implementation, but implementations based on native platforms such as
+implementations, but implementations based on native platforms such as
 MPI and Myrinet are also possible.
 
 Using the IPL, we implemented several different programming models, such
@@ -64,8 +64,8 @@ Invocation (GMI) model. A discussion of these models lies outside the
 scope of this manual. For more information on the programming models,
 see the Ibis website. As an alternative to using an intermediate
 programming model, applications can also be written directly on top of
-the IPL. The main target audience of this manual are programmers using
-the IPL in an application and programming model writers.
+the IPL. This manual is mostly intended for programmers using
+the IPL in an application and for programming model writers.
 
 A central concept in the IPL is the \emph{Ibis instance}. In general,
 one Ibis instance is created on each machine participating in a
@@ -73,7 +73,7 @@ particular distributed application. Each of these instances has a unique
 \emph{Ibis Identifier}, used throughout the library to denote this
 instance.
 
-Another often-used concept is the \emph{upcall}: a method invocation
+Another often-used concept is the \emph{upcall}: a method that gets invoked
 upon an event such as the arrival of a message. Upcalls can be used
 instead of downcalls (explicit receipt, polling) in a number of cases.
 These cases include receiving messages, getting notifications of new
@@ -88,7 +88,7 @@ connections, and updates on new Ibis instances joining a computation.
 \caption{\label{ports}Ibis send and receive port configurations: one to one (a), one to many (b), many to one (c), and many to many (d)}
 \end{figure}
 
-The IPL is based on uni-directional connection oriented pipes. In the
+The IPL is based on uni-directional connection-oriented pipes. In the
 model, \emph{send ports} are connected to \emph{receive ports}. See
 Figure~\ref{ports} for some examples. Connecting a single send port to a
 single receive port leads to a simple one-to-one connection. However, it is
@@ -122,9 +122,9 @@ can be sent. Send and receive ports in Ibis communicate using
 messages. A so called \emph{write message} is created at the send port,
 and can be filled with all primitive data types of Java such as bytes, integers
 and strings, as well as more complex data structures in the form of
-Java \texttt{Objects}. Also, arrays of primitive types and object can be
-send. When the user is done writing data to a message, a \texttt{finish}
-method must be called to denote the message has been completed.
+Java \texttt{Objects}. Also, arrays of primitive types and objects can be
+sent. When the user is done writing data to a message, a \texttt{finish}
+method must be called to denote that the message has been completed.
 
 Once data is written to a write message at the send port, this message
 will arrive at the receive port as a \emph{read message}. There, the
@@ -272,7 +272,7 @@ after it has initially been created.
 
 This is a list of capabilities for port types. These capabilities are
 defined in the \texttt{PortType} class of the IPL.  For each port
-types, a single capability for the allowed connection types (one-to-one,
+type, a single capability for the allowed connection types (one-to-one,
 multicast, etc) must be selected, as well as a type of
 serialization (bytes only, primitive types, objects, etc). 
 
@@ -375,7 +375,7 @@ of objects is not supported.
 
 Properties are used in Ibis for setting configuration options at
 run-time. Where to find the Ibis Implementations, for example, or the name
-of the pool the Ibis must join. Properties can be passed to a Ibis when it is
+of the pool the Ibis must join. Properties can be passed to an Ibis when it is
 created, but Ibis can also add properties specified on the command line
 by default. See the user's guide for more information on the various
 properties of Ibis and their usage.

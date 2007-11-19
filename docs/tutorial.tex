@@ -147,7 +147,7 @@ from the client and prints it. So, to receive a message we first have to
 create a receive port(line 16). Both send and receive ports are created
 by calling one of the \texttt{create} methods of the Ibis instance. In
 this case, we use the \texttt{createReceivePort} method which has two
-parameters. One for the port type, and one for the name of this
+parameters: one for the port type, and one for the name of this
 receive port. This name must be unique for this Ibis instance, and can
 be used to connect to this port. We name our port "server".
 
@@ -253,11 +253,11 @@ Lines 13-16 show the upcall method as it is implemented by this
 application. Again, we read a string from the message and print it.
 Notice there is no call to \texttt{finish} on this message. Whenever the
 upcall ends the message is automatically finished. It is possible to
-call \texttt{finish} though, signaling Ibis the next message can now be
+call \texttt{finish} though, signaling Ibis that the next message can now be
 received. This might be a good idea if a lot of calculations are done in
-the upcall method. If \texttt{finish} is not called Ibis will wait with
-receiving the next message until this upcall exits. Also, when you want
-to make calls into Ibis, like create a new send message, new
+the upcall method. If \texttt{finish} is not called, Ibis will not
+receive the next message until this upcall exits. Also, when you want
+to make calls into Ibis, like creating a new send message, setting up new
 connections, etc, you \emph{must} finish the read message first, to
 prevent deadlocks in Ibis.
 
