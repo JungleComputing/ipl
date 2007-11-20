@@ -25,7 +25,7 @@ public class Election {
         int nrOfCandidates = in.readInt();
         
         if (nrOfCandidates < 0) {
-            throw new IOException("negative candidate list size");
+            throw new IOException("negative candidate list value");
         }
         
         for(int i = 0; i < nrOfCandidates; i++) {

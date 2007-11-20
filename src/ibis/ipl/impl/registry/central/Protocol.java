@@ -30,14 +30,6 @@ public final class Protocol {
 
     public static final int NR_OF_OPCODES = 13;
 
-    // replies
-
-    static final byte REPLY_OK = 1;
-
-    static final byte REPLY_ERROR = 2;
-
-    // misc "options"
-
     static final int MIN_EVENT_LIST_SEND_SIZE = 100;
 
     static final int START_EVENT_LIST_SEND_SIZE = 1000;

@@ -17,7 +17,7 @@ final class RandomEventPusher implements Runnable {
     private final long interval;
 
     /**
-     * If true, the interval of the event pushing is adapted to the pool size
+     * If true, the interval of the event pushing is adapted to the pool value
      */
     private final boolean adaptInterval;
 

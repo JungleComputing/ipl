@@ -1,40 +1,83 @@
-package ibis.ipl.impl.registry.central;
+package ibis.ipl.impl.registry;
 
+import ibis.ipl.impl.registry.central.Protocol;
+
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.util.Formatter;
 import java.util.Map;
 import java.util.TreeMap;
 
 import org.apache.log4j.Logger;
 
-public final class RequestStats {
-    private static Logger logger = Logger.getLogger(RequestStats.class);
+public final class CommunicationStatistics {
+    private static final Logger logger = Logger
+            .getLogger(CommunicationStatistics.class);
 
-    private double[] totalTimes;
+    private final long start;
 
-    private long[] incomingRequestCounter;
+    private final int opcodes;
 
-    private long[] outgoingRequestCounter;
-    
-    private long[] bytesIn;
-    
-    private long[] bytesOut;
+    private final double[] totalTimes;
 
-    private int opcodes;
+    private final long[] incomingRequestCounter;
 
-    long start;
+    private final long[] outgoingRequestCounter;
 
-    public RequestStats(int opcodes) {
+    private final long[] bytesIn;
+
+    private final long[] bytesOut;
+
+    public CommunicationStatistics(int opcodes) {
         this.opcodes = opcodes;
+        
+        start = System.currentTimeMillis();
+
         totalTimes = new double[opcodes];
         incomingRequestCounter = new long[opcodes];
         outgoingRequestCounter = new long[opcodes];
         bytesIn = new long[opcodes];
         bytesOut = new long[opcodes];
 
-        start = System.currentTimeMillis();
     }
 
-    public synchronized void add(byte opcode, long time, long bytesReceived, long bytesSend, boolean incoming) {
+    public CommunicationStatistics(DataInputStream in) throws IOException {
+        opcodes = in.readInt();
+        
+        start = in.readLong();
+
+        totalTimes = new double[opcodes];
+        incomingRequestCounter = new long[opcodes];
+        outgoingRequestCounter = new long[opcodes];
+        bytesIn = new long[opcodes];
+        bytesOut = new long[opcodes];
+
+        for (int i = 0; i < opcodes; i++) {
+            totalTimes[i] = in.readDouble();
+            incomingRequestCounter[i] = in.readLong();
+            outgoingRequestCounter[i] = in.readLong();
+            bytesIn[i] = in.readLong();
+            bytesOut[i] = in.readLong();
+        }
+    }
+
+    public void writeTo(DataOutputStream out) throws IOException {
+        out.writeInt(opcodes);
+        
+        out.writeLong(start);
+        
+        for (int i = 0; i < opcodes; i++) {
+            out.writeDouble(totalTimes[i]);
+            out.writeLong(incomingRequestCounter[i]);
+            out.writeLong(outgoingRequestCounter[i]);
+            out.writeLong(bytesIn[i]);
+            out.writeLong(bytesOut[i]);
+        }
+    }
+
+    public synchronized void add(byte opcode, long time, long bytesReceived,
+            long bytesSend, boolean incoming) {
         if (opcode >= opcodes) {
             logger.error("unknown opcode in handling stats: " + opcode);
         }
@@ -79,17 +122,16 @@ public final class RequestStats {
             result.put(name + " time spend", "" + totalTimes[i]);
 
             totalTraffic += bytesIn[i] + bytesOut[i];
-            
-            double average =
-                    totalTimes[i]
-                            / (incomingRequestCounter[i] + outgoingRequestCounter[i]);
+
+            double average = totalTimes[i]
+                    / (incomingRequestCounter[i] + outgoingRequestCounter[i]);
             if (incomingRequestCounter[i] == 0
                     && outgoingRequestCounter[i] == 0) {
                 average = 0;
             }
             result.put(name + " average time spend", "" + average);
         }
-        result.put("total traffic " , "" + totalTraffic);
+        result.put("total traffic ", "" + totalTraffic);
 
         return result;
     }
@@ -109,9 +151,8 @@ public final class RequestStats {
         for (byte i = 0; i < opcodes; i++) {
             totalTraffic += bytesIn[i] + bytesOut[i];
 
-            double average =
-                    totalTimes[i]
-                            / (incomingRequestCounter[i] + outgoingRequestCounter[i]);
+            double average = totalTimes[i]
+                    / (incomingRequestCounter[i] + outgoingRequestCounter[i]);
             if (incomingRequestCounter[i] == 0
                     && outgoingRequestCounter[i] == 0) {
                 average = 0;
@@ -119,9 +160,11 @@ public final class RequestStats {
 
             formatter.format("%-12s %9d %9d %8d %9d %10.2f %10.2f\n", Protocol
                     .opcodeString(i), incomingRequestCounter[i],
-                    outgoingRequestCounter[i], bytesIn[i], bytesOut[i], totalTimes[i] / 1000.0, average);
+                    outgoingRequestCounter[i], bytesIn[i], bytesOut[i],
+                    totalTimes[i] / 1000.0, average);
         }
-        formatter.format("total traffic (MB): %.2f", ((double) totalTraffic / 1024.0 / 1024.0));
+        formatter.format("total traffic (MB): %.2f",
+                ((double) totalTraffic / 1024.0 / 1024.0));
 
         return message.toString();
     }

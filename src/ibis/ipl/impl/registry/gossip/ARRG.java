@@ -5,6 +5,7 @@ import java.util.HashSet;
 
 import org.apache.log4j.Logger;
 
+import ibis.ipl.impl.registry.Connection;
 import ibis.smartsockets.virtual.VirtualSocketAddress;
 import ibis.smartsockets.virtual.VirtualSocketFactory;
 

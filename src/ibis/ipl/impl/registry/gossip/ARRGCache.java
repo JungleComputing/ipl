@@ -71,12 +71,12 @@ class ARRGCache {
             }
         }
         
-        //remove random entries if cache outgrew maximum size
+        //remove random entries if cache outgrew maximum value
         while(cache.size() > cacheSize) {
             cache.remove(random.nextInt(cache.size()));
         }
         
-        logger.debug("cache size now: " + cache.size());
+        logger.debug("cache value now: " + cache.size());
     }
 
     public ARRGCacheEntry[] getEntries(boolean includeArrgOnly) {

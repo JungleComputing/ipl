@@ -32,7 +32,7 @@ public class RegistryProperties {
     public static final String SERVER_CONNECT_TIMEOUT = PREFIX
             + "server.connect.timeout";
 
-    public static final String LOG = PREFIX + "log";
+    public static final String STATISTICS = PREFIX + "statistics";
 
     // list of descriptions and defaults
     private static final String[][] propertiesList = new String[][] {
@@ -79,8 +79,8 @@ public class RegistryProperties {
                     "10",
                     "Int(seconds): how long does the server attempt to connect to a client before giving up" },
 
-            { LOG, "false",
-                    "Boolean: if true, a log will be kept by the registry and saved to a file" },
+            { STATISTICS, "false",
+                    "Boolean: gather per-pool statistics at the server and save them to a file" },
 
     };
 

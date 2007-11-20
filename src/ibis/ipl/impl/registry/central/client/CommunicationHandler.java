@@ -4,11 +4,11 @@ import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.IbisProperties;
 import ibis.ipl.impl.IbisIdentifier;
 import ibis.ipl.impl.Location;
-import ibis.ipl.impl.registry.central.Connection;
+import ibis.ipl.impl.registry.Connection;
+import ibis.ipl.impl.registry.CommunicationStatistics;
 import ibis.ipl.impl.registry.central.Event;
 import ibis.ipl.impl.registry.central.Protocol;
 import ibis.ipl.impl.registry.central.RegistryProperties;
-import ibis.ipl.impl.registry.central.RequestStats;
 import ibis.ipl.impl.registry.central.server.Server;
 import ibis.server.Client;
 import ibis.smartsockets.virtual.InitializationException;
@@ -44,7 +44,7 @@ final class CommunicationHandler implements Runnable {
 
     private final int timeout;
 
-    private final RequestStats stats;
+    private final CommunicationStatistics stats;
 
     // bootstrap data
 
@@ -69,7 +69,7 @@ final class CommunicationHandler implements Runnable {
         timeout = properties
                 .getIntProperty(RegistryProperties.CLIENT_CONNECT_TIMEOUT) * 1000;
 
-        stats = new RequestStats(Protocol.NR_OF_OPCODES);
+        stats = new CommunicationStatistics(Protocol.NR_OF_OPCODES);
 
         try {
             virtualSocketFactory = Client.getFactory(properties);
@@ -785,7 +785,7 @@ final class CommunicationHandler implements Runnable {
         int events = connection.in().readInt();
 
         if (events < 0) {
-            connection.closeWithError("negative event size");
+            connection.closeWithError("negative event value");
             return;
         }
 

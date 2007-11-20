@@ -1,4 +1,4 @@
-package ibis.ipl.impl.registry.gossip;
+package ibis.ipl.impl.registry;
 
 import ibis.ipl.impl.IbisIdentifier;
 import ibis.smartsockets.virtual.VirtualServerSocket;
@@ -15,7 +15,7 @@ import java.util.HashMap;
 
 import org.apache.log4j.Logger;
 
-final class Connection {
+public final class Connection {
 
     private static final Logger logger = Logger.getLogger(Connection.class);
 
@@ -24,37 +24,32 @@ final class Connection {
     private final DataOutputStream out;
 
     private final DataInputStream in;
-
     private final CountInputStream counter;
 
+    static final byte REPLY_ERROR = 2;
+
+    static final byte REPLY_OK = 1;
+    
     public Connection(IbisIdentifier ibis, int timeout, boolean fillTimeout,
             VirtualSocketFactory factory) throws IOException {
-        this(VirtualSocketAddress.fromBytes(ibis.getRegistryData(), 0),
-                timeout, fillTimeout, factory);
+        this(VirtualSocketAddress.fromBytes(ibis
+                .getRegistryData(), 0), timeout, fillTimeout, factory);
     }
+    
 
-    public Connection(ARRGCacheEntry entry, int timeout, boolean fillTimeout,
+    public Connection(VirtualSocketAddress address, int timeout, boolean fillTimeout,
             VirtualSocketFactory factory) throws IOException {
-        this(entry.getAddress(), timeout, fillTimeout, factory);
-    }
-
-    public Connection(VirtualSocketAddress address, int timeout,
-            boolean fillTimeout, VirtualSocketFactory factory)
-            throws IOException {
         logger.debug("connecting to " + address + ", timeout = " + timeout
                 + " , filltimeout = " + fillTimeout);
 
-        socket =
-                factory.createClientSocket(address, timeout, fillTimeout,
-                        new HashMap<String, Object>());
+        socket = factory.createClientSocket(address, timeout,
+                fillTimeout, new HashMap<String, Object>());
         socket.setTcpNoDelay(true);
 
-        out =
-                new DataOutputStream(new BufferedOutputStream(socket
-                        .getOutputStream()));
-        counter =
-                new CountInputStream(new BufferedInputStream(socket
-                        .getInputStream()));
+        out = new DataOutputStream(new BufferedOutputStream(socket
+                .getOutputStream()));
+        counter = new CountInputStream(new BufferedInputStream(socket
+                .getInputStream()));
         in = new DataInputStream(counter);
 
         logger.debug("connection to " + address + " established");
@@ -69,15 +64,13 @@ final class Connection {
         socket = serverSocket.accept();
         socket.setTcpNoDelay(true);
 
-        counter =
-                new CountInputStream(new BufferedInputStream(socket
-                        .getInputStream()));
+        counter = new CountInputStream(new BufferedInputStream(socket
+                .getInputStream()));
         in = new DataInputStream(counter);
-        out =
-                new DataOutputStream(new BufferedOutputStream(socket
-                        .getOutputStream()));
-        logger.debug("new connection from " + socket.getRemoteSocketAddress()
-                + " accepted");
+        out = new DataOutputStream(new BufferedOutputStream(socket
+                .getOutputStream()));
+        logger.debug("new connection from "
+                + socket.getRemoteSocketAddress() + " accepted");
     }
 
     public DataOutputStream out() {
@@ -87,11 +80,11 @@ final class Connection {
     public DataInputStream in() {
         return in;
     }
-
+    
     public int written() {
         return out.size();
     }
-
+    
     public int read() {
         return counter.getCount();
     }
@@ -102,18 +95,17 @@ final class Connection {
 
         // get reply
         byte reply = in.readByte();
-        if (reply == Protocol.REPLY_ERROR) {
+        if (reply == Connection.REPLY_ERROR) {
             close();
-            throw new IOException(in.readUTF());
-        } else if (reply != Protocol.REPLY_OK) {
+            throw new RemoteException(in.readUTF());
+        } else if (reply != Connection.REPLY_OK) {
             close();
             throw new IOException("Unknown reply (" + reply + ")");
         }
-
     }
 
     public void sendOKReply() throws IOException {
-        out.writeByte(Protocol.REPLY_OK);
+        out.writeByte(Connection.REPLY_OK);
     }
 
     public void closeWithError(String message) {
@@ -121,7 +113,7 @@ final class Connection {
             message = "";
         }
         try {
-            out.writeByte(Protocol.REPLY_ERROR);
+            out.writeByte(Connection.REPLY_ERROR);
             out.writeUTF(message);
 
             close();
@@ -136,7 +128,7 @@ final class Connection {
         } catch (IOException e) {
             // IGNORE
         }
-
+        
         try {
             out.close();
         } catch (IOException e) {

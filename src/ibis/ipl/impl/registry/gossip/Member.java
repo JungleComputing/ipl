@@ -59,7 +59,7 @@ class Member {
         int nrOfWittnesses = in.readInt();
         
         if (nrOfWittnesses < 0) {
-            throw new IOException("negative list size");
+            throw new IOException("negative list value");
         }
         
         witnesses = new HashSet<UUID>();

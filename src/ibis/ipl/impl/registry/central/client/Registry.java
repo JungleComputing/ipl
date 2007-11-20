@@ -5,9 +5,9 @@ import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.NoSuchPropertyException;
 import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.impl.IbisIdentifier;
+import ibis.ipl.impl.registry.RemoteException;
 import ibis.ipl.impl.registry.central.Event;
 import ibis.ipl.impl.registry.central.RegistryProperties;
-import ibis.ipl.impl.registry.central.RemoteException;
 import ibis.util.TypedProperties;
 
 import java.io.IOException;

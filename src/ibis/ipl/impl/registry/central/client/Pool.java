@@ -43,8 +43,6 @@ final class Pool implements Runnable {
 
     private final Registry registry;
 
-    private final Log log;
-
     private boolean initialized;
 
     private boolean closed;
@@ -56,12 +54,6 @@ final class Pool implements Runnable {
     Pool(IbisCapabilities capabilities, TypedProperties properties,
             Registry registry) {
         this.registry = registry;
-
-        if (properties.getBooleanProperty(RegistryProperties.LOG)) {
-            log = new Log(this);
-        } else {
-            log = null;
-        }
 
         if (properties.getBooleanProperty(RegistryProperties.TREE)) {
             members = new TreeMemberSet();
@@ -187,16 +179,6 @@ final class Pool implements Runnable {
             registry.handleEvent(event);
         }
 
-        // add info to the log
-        if (log != null) {
-            // start log
-            log.start("Ibis-" + registry.getIbisIdentifier().getID() + ".log");
-
-            for (Event event : events) {
-                log.log(event, members.size());
-            }
-        }
-
         initialized = true;
         notifyAll();
 
@@ -288,10 +270,6 @@ final class Pool implements Runnable {
             logger.error("unknown event type: " + event.getType());
         }
 
-        if (log != null) {
-            log.log(event, members.size());
-        }
-
         // wake up threads waiting for events
         notifyAll();
     }
@@ -325,9 +303,6 @@ final class Pool implements Runnable {
         stopped = true;
         notifyAll();
 
-        if (log != null) {
-            log.save();
-        }
     }
 
     /**

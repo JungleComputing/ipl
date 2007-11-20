@@ -2,7 +2,9 @@ package ibis.ipl.impl.registry.central.server;
 
 import ibis.ipl.impl.IbisIdentifier;
 import ibis.ipl.impl.Location;
-import ibis.ipl.impl.registry.central.Connection;
+import ibis.ipl.impl.registry.Connection;
+import ibis.ipl.impl.registry.CommunicationStatistics;
+import ibis.ipl.impl.registry.PoolStatistics;
 import ibis.ipl.impl.registry.central.Election;
 import ibis.ipl.impl.registry.central.ElectionSet;
 import ibis.ipl.impl.registry.central.Event;
@@ -11,7 +13,6 @@ import ibis.ipl.impl.registry.central.ListMemberSet;
 import ibis.ipl.impl.registry.central.Member;
 import ibis.ipl.impl.registry.central.MemberSet;
 import ibis.ipl.impl.registry.central.Protocol;
-import ibis.ipl.impl.registry.central.RequestStats;
 import ibis.ipl.impl.registry.central.TreeMemberSet;
 import ibis.smartsockets.virtual.VirtualSocketFactory;
 import ibis.util.ThreadPool;
@@ -45,6 +46,8 @@ final class Pool implements Runnable {
     private final EventList events;
 
     private final int[] eventStats;
+    
+    private final PoolStatistics statistics;
 
     private final long heartbeatInterval;
 
@@ -64,7 +67,7 @@ final class Pool implements Runnable {
 
     private final boolean closedWorld;
 
-    // size of this pool (if closed world)
+    // value of this pool (if closed world)
     private final int fixedSize;
 
     private final boolean printEvents;
@@ -72,7 +75,7 @@ final class Pool implements Runnable {
     private final boolean printErrors;
 
     // statistics for the server
-    private final RequestStats serverStats;
+    private final CommunicationStatistics serverStats;
 
     private final Map<String, Integer> sequencers;
 
@@ -89,7 +92,7 @@ final class Pool implements Runnable {
             long gossipInterval, boolean adaptGossipInterval, boolean tree,
             boolean closedWorld, int poolSize,
             String ibisImplementationIdentifier, boolean printEvents,
-            boolean printErrors, RequestStats serverStats) {
+            boolean printErrors, CommunicationStatistics serverStats) {
         this.name = name;
         this.socketFactory = socketFactory;
         this.heartbeatInterval = heartbeatInterval;
@@ -99,6 +102,8 @@ final class Pool implements Runnable {
         this.printEvents = printEvents;
         this.printErrors = printErrors;
         this.serverStats = serverStats;
+        
+        statistics = new PoolStatistics();
 
         currentEventTime = 0;
         minEventTime = 0;
@@ -264,6 +269,7 @@ final class Pool implements Runnable {
                     name);
 
         Event event = addEvent(Event.JOIN, null, identifier);
+        statistics.ibisJoined();
 
         Member member = new Member(identifier, event);
         member.setCurrentTime(getMinEventTime());
@@ -340,12 +346,13 @@ final class Pool implements Runnable {
         }
 
         addEvent(Event.LEAVE, null, identifier);
+        statistics.ibisLeft();
 
         Election[] deadElections = elections.getElectionsWonBy(identifier);
 
         for (Election election : deadElections) {
             addEvent(Event.UN_ELECT, election.getName(), election.getWinner());
-
+            statistics.unElect();
         }
 
         if (members.size() == 0) {
@@ -385,11 +392,13 @@ final class Pool implements Runnable {
         }
 
         addEvent(Event.DIED, null, identifier);
+        statistics.ibisDied();
 
         Election[] deadElections = elections.getElectionsWonBy(identifier);
 
         for (Election election : deadElections) {
             addEvent(Event.UN_ELECT, election.getName(), election.getWinner());
+            statistics.unElect();
 
             elections.remove(election.getName());
         }
@@ -426,6 +435,7 @@ final class Pool implements Runnable {
             // Do the election now. The caller WINS! :)
 
             Event event = addEvent(Event.ELECT, electionName, candidate);
+            statistics.newElection();
 
             election = new Election(event);
 
@@ -705,7 +715,7 @@ final class Pool implements Runnable {
     }
 
     public String toString() {
-        return "Pool " + name + ": size = " + getSize() + ", event time = "
+        return "Pool " + name + ": value = " + getSize() + ", event time = "
                 + getEventTime();
     }
 

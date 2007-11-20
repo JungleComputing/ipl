@@ -34,7 +34,7 @@ public class ElectionSet {
         int nrOfElections = in.readInt();
         
         if (nrOfElections < 0) {
-            throw new IOException("negative election list size");
+            throw new IOException("negative election list value");
         }
         
         for (int i = 0; i < nrOfElections; i++) {

@@ -141,7 +141,7 @@ class Pool extends Thread {
         int nrOfDeceased = in.readInt();
 
         if (nrOfDeceased < 0) {
-            throw new IOException("negative deceased list size");
+            throw new IOException("negative deceased list value");
         }
 
         for (int i = 0; i < nrOfDeceased; i++) {
@@ -152,7 +152,7 @@ class Pool extends Thread {
         int nrOfLeft = in.readInt();
 
         if (nrOfLeft < 0) {
-            throw new IOException("negative left list size");
+            throw new IOException("negative left list value");
         }
 
         for (int i = 0; i < nrOfLeft; i++) {
@@ -163,7 +163,7 @@ class Pool extends Thread {
         int nrOfMembers = in.readInt();
 
         if (nrOfMembers < 0) {
-            throw new IOException("negative member list size");
+            throw new IOException("negative member list value");
         }
 
         for (int i = 0; i < nrOfMembers; i++) {

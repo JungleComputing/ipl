@@ -1,8 +1,8 @@
 package ibis.ipl.impl.registry.central.server;
 
+import ibis.ipl.impl.registry.CommunicationStatistics;
 import ibis.ipl.impl.registry.central.Protocol;
 import ibis.ipl.impl.registry.central.RegistryProperties;
-import ibis.ipl.impl.registry.central.RequestStats;
 import ibis.server.ServerProperties;
 import ibis.server.Service;
 import ibis.smartsockets.virtual.VirtualSocketFactory;
@@ -30,7 +30,7 @@ public final class Server extends Thread implements Service {
 
     private final HashMap<String, Pool> pools;
 
-    private final RequestStats stats;
+    private final CommunicationStatistics stats;
 
     private final boolean printStats;
 
@@ -68,7 +68,7 @@ public final class Server extends Thread implements Service {
 
         pools = new HashMap<String, Pool>();
 
-        stats = new RequestStats(Protocol.NR_OF_OPCODES);
+        stats = new CommunicationStatistics(Protocol.NR_OF_OPCODES);
 
         // start handling connections
         handler = new ServerConnectionHandler(this, socketFactory);
@@ -83,7 +83,7 @@ public final class Server extends Thread implements Service {
         return pools.get(poolName);
     }
 
-    RequestStats getStats() {
+    CommunicationStatistics getStats() {
         return stats;
     }
 
