@@ -12,6 +12,7 @@ import ibis.util.TypedProperties;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -362,7 +363,8 @@ public final class Registry extends ibis.ipl.impl.Registry {
     }
 
     public Map<String, String> managementProperties() {
-        return communicationHandler.getStats();
+        //TODO: add some statistics
+        return new HashMap<String, String>();
     }
 
     public String getManagementProperty(String key)

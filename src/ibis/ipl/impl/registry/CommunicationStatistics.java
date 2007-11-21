@@ -1,7 +1,5 @@
 package ibis.ipl.impl.registry;
 
-import ibis.ipl.impl.registry.central.Protocol;
-
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -62,7 +60,7 @@ public final class CommunicationStatistics {
         }
     }
 
-    public void writeTo(DataOutputStream out) throws IOException {
+    public synchronized void writeTo(DataOutputStream out) throws IOException {
         out.writeInt(opcodes);
         
         out.writeLong(start);
@@ -109,12 +107,12 @@ public final class CommunicationStatistics {
         return true;
     }
 
-    public synchronized Map<String, String> getMap() {
+    public synchronized Map<String, String> getMap(String[] opcodeNames) {
         Map<String, String> result = new TreeMap<String, String>();
 
         long totalTraffic = 0;
         for (byte i = 0; i < opcodes; i++) {
-            String name = Protocol.opcodeString(i);
+            String name = opcodeNames[i];
             result.put(name + " in count", "" + incomingRequestCounter[i]);
             result.put(name + " out count", "" + outgoingRequestCounter[i]);
             result.put(name + " bytes in", "" + bytesIn[i]);
@@ -136,7 +134,7 @@ public final class CommunicationStatistics {
         return result;
     }
 
-    public synchronized String toString() {
+    public synchronized String toString(String[] opcodeNames) {
         long totalTraffic = 0;
 
         StringBuilder message = new StringBuilder();
@@ -158,8 +156,8 @@ public final class CommunicationStatistics {
                 average = 0;
             }
 
-            formatter.format("%-12s %9d %9d %8d %9d %10.2f %10.2f\n", Protocol
-                    .opcodeString(i), incomingRequestCounter[i],
+            formatter.format("%-12s %9d %9d %8d %9d %10.2f %10.2f\n", opcodeNames[i]
+                    , incomingRequestCounter[i],
                     outgoingRequestCounter[i], bytesIn[i], bytesOut[i],
                     totalTimes[i] / 1000.0, average);
         }

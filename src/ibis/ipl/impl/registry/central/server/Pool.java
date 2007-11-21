@@ -5,6 +5,7 @@ import ibis.ipl.impl.Location;
 import ibis.ipl.impl.registry.Connection;
 import ibis.ipl.impl.registry.CommunicationStatistics;
 import ibis.ipl.impl.registry.PoolStatistics;
+import ibis.ipl.impl.registry.StatisticsWriter;
 import ibis.ipl.impl.registry.central.Election;
 import ibis.ipl.impl.registry.central.ElectionSet;
 import ibis.ipl.impl.registry.central.Event;
@@ -45,10 +46,6 @@ final class Pool implements Runnable {
     // list of all joins, leaves, elections, etc.
     private final EventList events;
 
-    private final int[] eventStats;
-    
-    private final PoolStatistics statistics;
-
     private final long heartbeatInterval;
 
     private int currentEventTime;
@@ -74,8 +71,17 @@ final class Pool implements Runnable {
 
     private final boolean printErrors;
 
-    // statistics for the server
-    private final CommunicationStatistics serverStats;
+    // statistics which are only kept on the request of the user
+
+    private final CommunicationStatistics commStatistics;
+
+    private final PoolStatistics poolStatistics;
+
+    private final StatisticsWriter statisticsWriter;
+    
+    // simple statistics which are always kept, so the server can print them
+    // if so requested
+    private final int[] eventStats;
 
     private final Map<String, Integer> sequencers;
 
@@ -90,9 +96,9 @@ final class Pool implements Runnable {
     Pool(String name, VirtualSocketFactory socketFactory,
             long heartbeatInterval, long eventPushInterval, boolean gossip,
             long gossipInterval, boolean adaptGossipInterval, boolean tree,
-            boolean closedWorld, int poolSize,
+            boolean closedWorld, int poolSize, boolean keepStatistics, long statisticsInterval,
             String ibisImplementationIdentifier, boolean printEvents,
-            boolean printErrors, CommunicationStatistics serverStats) {
+            boolean printErrors) {
         this.name = name;
         this.socketFactory = socketFactory;
         this.heartbeatInterval = heartbeatInterval;
@@ -101,9 +107,19 @@ final class Pool implements Runnable {
         this.ibisImplementationIdentifier = ibisImplementationIdentifier;
         this.printEvents = printEvents;
         this.printErrors = printErrors;
-        this.serverStats = serverStats;
-        
-        statistics = new PoolStatistics();
+
+        if (keepStatistics) {
+            commStatistics =
+                new CommunicationStatistics(Protocol.NR_OF_OPCODES);
+            poolStatistics = new PoolStatistics();
+            statisticsWriter = new StatisticsWriter(name, statisticsInterval, commStatistics, poolStatistics, Protocol.OPCODE_NAMES);
+            statisticsWriter.setDaemon(true);
+            statisticsWriter.start();
+        } else {
+            commStatistics = null;
+            poolStatistics = null;
+            statisticsWriter = null;
+        }
 
         currentEventTime = 0;
         minEventTime = 0;
@@ -221,19 +237,21 @@ final class Pool implements Runnable {
         ended = true;
         staleTime = System.currentTimeMillis() + STALE_TIMEOUT;
         pusher.enqueue(null);
+        statisticsWriter.end();
     }
 
     public synchronized boolean stale() {
+        logger.debug("pool stale at " + staleTime + " now " + System.currentTimeMillis() + " ended = " + ended);
+        
         return ended && (System.currentTimeMillis() > staleTime);
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see ibis.ipl.impl.registry.central.SuperPool#getName()
-     */
     String getName() {
         return name;
+    }
+
+    public CommunicationStatistics getCommStats() {
+        return commStatistics;
     }
 
     /*
@@ -269,7 +287,9 @@ final class Pool implements Runnable {
                     name);
 
         Event event = addEvent(Event.JOIN, null, identifier);
-        statistics.ibisJoined();
+        if (poolStatistics != null) {
+            poolStatistics.ibisJoined();
+        }
 
         Member member = new Member(identifier, event);
         member.setCurrentTime(getMinEventTime());
@@ -346,17 +366,21 @@ final class Pool implements Runnable {
         }
 
         addEvent(Event.LEAVE, null, identifier);
-        statistics.ibisLeft();
+        if (poolStatistics != null) {
+            poolStatistics.ibisLeft();
+        }
 
         Election[] deadElections = elections.getElectionsWonBy(identifier);
 
         for (Election election : deadElections) {
             addEvent(Event.UN_ELECT, election.getName(), election.getWinner());
-            statistics.unElect();
+            if (poolStatistics != null) {
+                poolStatistics.unElect();
+            }
         }
 
         if (members.size() == 0) {
-            ended = true;
+            end();
             if (printEvents) {
                 print("pool \"" + name + "\" ended");
             } else {
@@ -392,19 +416,23 @@ final class Pool implements Runnable {
         }
 
         addEvent(Event.DIED, null, identifier);
-        statistics.ibisDied();
+        if (poolStatistics != null) {
+            poolStatistics.ibisDied();
+        }
 
         Election[] deadElections = elections.getElectionsWonBy(identifier);
 
         for (Election election : deadElections) {
             addEvent(Event.UN_ELECT, election.getName(), election.getWinner());
-            statistics.unElect();
+            if (poolStatistics != null) {
+                poolStatistics.unElect();
+            }
 
             elections.remove(election.getName());
         }
 
         if (members.size() == 0) {
-            ended = true;
+            end();
             if (printEvents) {
                 print("pool " + name + " ended");
             } else {
@@ -435,7 +463,9 @@ final class Pool implements Runnable {
             // Do the election now. The caller WINS! :)
 
             Event event = addEvent(Event.ELECT, electionName, candidate);
-            statistics.newElection();
+            if (poolStatistics != null) {
+                poolStatistics.newElection();
+            }
 
             election = new Election(event);
 
@@ -536,8 +566,11 @@ final class Pool implements Runnable {
             }
             logger.debug("ping to " + member + " successful");
             member.updateLastSeenTime();
-            serverStats.add(Protocol.OPCODE_PING, System.currentTimeMillis()
-                    - start, connection.read(), connection.written(), false);
+            if (commStatistics != null) {
+                commStatistics.add(Protocol.OPCODE_PING,
+                    System.currentTimeMillis() - start, connection.read(),
+                    connection.written(), false);
+            }
         } catch (Exception e) {
             logger.debug("error on pinging ibis " + member, e);
 
@@ -629,8 +662,11 @@ final class Pool implements Runnable {
 
             logger.debug("connection to " + member + " closed");
             member.updateLastSeenTime();
-            serverStats.add(Protocol.OPCODE_PUSH, System.currentTimeMillis()
-                    - start, connection.read(), connection.written(), false);
+            if (commStatistics != null) {
+                commStatistics.add(Protocol.OPCODE_PUSH,
+                    System.currentTimeMillis() - start, connection.read(),
+                    connection.written(), false);
+            }
         } catch (IOException e) {
             if (isMember(member)) {
                 if (printErrors) {
@@ -691,6 +727,11 @@ final class Pool implements Runnable {
         }
     }
 
+    public void gotStatistics(IbisIdentifier identifier,
+            CommunicationStatistics commStats, PoolStatistics poolStats, long timeOffset) {
+        statisticsWriter.addStatistics(commStats, poolStats, identifier, timeOffset);
+    }
+
     synchronized Member[] getRandomMembers(int size) {
         return members.getRandom(size);
     }
@@ -725,17 +766,19 @@ final class Pool implements Runnable {
         Formatter formatter = new Formatter(message);
 
         if (isClosedWorld()) {
-            formatter.format("%-18s %12d %10d %5d %6d %5d %9d %7d %10d %6b %5b\n",
-                getName(),  getSize(),
-                getEventTime(), eventStats[Event.JOIN],
+            formatter.format(
+                "%-18s %12d %10d %5d %6d %5d %9d %7d %10d %6b %5b\n",
+                getName(), getSize(), getEventTime(), eventStats[Event.JOIN],
                 eventStats[Event.LEAVE], eventStats[Event.DIED],
-                eventStats[Event.ELECT], eventStats[Event.SIGNAL], getFixedSize(), isClosed(), ended);
+                eventStats[Event.ELECT], eventStats[Event.SIGNAL],
+                getFixedSize(), isClosed(), ended);
         } else {
-            formatter.format("%-18s %12d %10d %5d %6d %5d %9d %7d %10s %6b %5b\n",
-                getName(),  getSize(), getEventTime(),
-                eventStats[Event.JOIN], eventStats[Event.LEAVE],
-                eventStats[Event.DIED], eventStats[Event.ELECT],
-                eventStats[Event.SIGNAL], "N.A.", isClosed(), ended);
+            formatter.format(
+                "%-18s %12d %10d %5d %6d %5d %9d %7d %10s %6b %5b\n",
+                getName(), getSize(), getEventTime(), eventStats[Event.JOIN],
+                eventStats[Event.LEAVE], eventStats[Event.DIED],
+                eventStats[Event.ELECT], eventStats[Event.SIGNAL], "N.A.",
+                isClosed(), ended);
         }
 
         return message.toString();

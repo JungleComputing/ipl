@@ -12,7 +12,7 @@ import org.apache.log4j.Logger;
 /**
  * Sends events to clients from the server.
  */
-final class IterativeEventPusher implements Runnable {
+final class IterativeEventPusher extends Thread {
 
     private static final int THREADS = 10;
 
@@ -91,8 +91,6 @@ final class IterativeEventPusher implements Runnable {
     IterativeEventPusher(Pool pool, CommunicationHandler commHandler) {
         this.pool = pool;
         this.commHandler = commHandler;
-
-        ThreadPool.createNew(this, "event pusher scheduler thread");
     }
 
     public void run() {

@@ -30,8 +30,6 @@ public final class Server extends Thread implements Service {
 
     private final HashMap<String, Pool> pools;
 
-    private final CommunicationStatistics stats;
-
     private final boolean printStats;
 
     private final boolean printEvents;
@@ -68,8 +66,6 @@ public final class Server extends Thread implements Service {
 
         pools = new HashMap<String, Pool>();
 
-        stats = new CommunicationStatistics(Protocol.NR_OF_OPCODES);
-
         // start handling connections
         handler = new ServerConnectionHandler(this, socketFactory);
 
@@ -83,15 +79,11 @@ public final class Server extends Thread implements Service {
         return pools.get(poolName);
     }
 
-    CommunicationStatistics getStats() {
-        return stats;
-    }
-
     // atomic get/create pool
     synchronized Pool getAndCreatePool(String poolName, long heartbeatInterval,
             long eventPushInterval, boolean gossip, long gossipInterval,
             boolean adaptGossipInterval, boolean tree, boolean closedWorld,
-            int poolSize, String ibisImplementationIdentifier)
+            int poolSize, boolean keepStatistics, long statisticsInterval, String ibisImplementationIdentifier)
             throws IOException {
         Pool result = getPool(poolName);
 
@@ -103,9 +95,9 @@ public final class Server extends Thread implements Service {
             result =
                 new Pool(poolName, socketFactory, heartbeatInterval,
                         eventPushInterval, gossip, gossipInterval,
-                        adaptGossipInterval, tree, closedWorld, poolSize,
-                        ibisImplementationIdentifier, printEvents, printErrors,
-                        stats);
+                        adaptGossipInterval, tree, closedWorld, poolSize, keepStatistics, statisticsInterval,
+                        ibisImplementationIdentifier, printEvents, printErrors
+                        );
             pools.put(poolName, result);
         }
 
@@ -133,9 +125,6 @@ public final class Server extends Thread implements Service {
         stopped = true;
         notifyAll();
         handler.end();
-        if (printStats && !stats.empty()) {
-            System.out.println(stats.toString());
-        }
     }
 
     // force the server to check the pools _now_
@@ -151,10 +140,6 @@ public final class Server extends Thread implements Service {
     public synchronized void run() {
 
         while (!stopped) {
-            if (printStats && !stats.empty()) {
-                System.out.println(stats.toString());
-            }
-
             if (pools.size() > 0) {
                 if (printStats) {
                     System.out.println("list of pools:\n");
@@ -168,6 +153,7 @@ public final class Server extends Thread implements Service {
                     }
 
                     if (pool.stale()) {
+                        logger.debug("pool " + pool.getName() + " now stale");
                         pools.remove(pool.getName());
                         if (pools.size() == 0) {
                             notifyAll();

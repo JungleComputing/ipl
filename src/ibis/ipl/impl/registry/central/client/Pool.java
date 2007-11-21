@@ -4,6 +4,7 @@ import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.IbisProperties;
 import ibis.ipl.impl.IbisIdentifier;
+import ibis.ipl.impl.registry.PoolStatistics;
 import ibis.ipl.impl.registry.central.Election;
 import ibis.ipl.impl.registry.central.ElectionSet;
 import ibis.ipl.impl.registry.central.Event;
@@ -43,6 +44,8 @@ final class Pool implements Runnable {
 
     private final Registry registry;
 
+    private final PoolStatistics statistics;
+
     private boolean initialized;
 
     private boolean closed;
@@ -54,6 +57,12 @@ final class Pool implements Runnable {
     Pool(IbisCapabilities capabilities, TypedProperties properties,
             Registry registry) {
         this.registry = registry;
+
+        if (properties.getBooleanProperty(RegistryProperties.STATISTICS)) {
+            statistics = new PoolStatistics();
+        } else {
+            statistics = null;
+        }
 
         if (properties.getBooleanProperty(RegistryProperties.TREE)) {
             members = new TreeMemberSet();
@@ -144,6 +153,10 @@ final class Pool implements Runnable {
         eventList.purgeUpto(time);
     }
 
+    public PoolStatistics getStatistics() {
+        return statistics;
+    }
+
     synchronized void init(DataInputStream in) throws IOException {
         if (initialized) {
             logger.error("Tried to initialize registry state twice");
@@ -151,7 +164,7 @@ final class Pool implements Runnable {
         }
 
         logger.debug("reading bootstrap state");
-        
+
         members.init(in);
         elections.init(in);
         int nrOfSignals = in.readInt();
@@ -242,13 +255,22 @@ final class Pool implements Runnable {
         switch (event.getType()) {
         case Event.JOIN:
             members.add(new Member(event.getFirstIbis(), event));
+            if (statistics != null) {
+            statistics.ibisJoined();
+            }
             break;
         case Event.LEAVE:
             members.remove(event.getFirstIbis());
+            if (statistics != null) {
+            statistics.ibisLeft();
+            }
             break;
         case Event.DIED:
             IbisIdentifier died = event.getFirstIbis();
             members.remove(died);
+            if (statistics != null) {
+            statistics.ibisDied();
+            }
             if (died.equals(registry.getIbisIdentifier())) {
                 logger.debug("we were declared dead");
                 stop();
@@ -259,9 +281,15 @@ final class Pool implements Runnable {
             break;
         case Event.ELECT:
             elections.put(new Election(event));
+            if (statistics != null) {
+            statistics.newElection();
+            }
             break;
         case Event.UN_ELECT:
             elections.remove(event.getDescription());
+            if (statistics != null) {
+            statistics.unElect();
+            }
             break;
         case Event.POOL_CLOSED:
             closed = true;
@@ -302,7 +330,6 @@ final class Pool implements Runnable {
     synchronized void stop() {
         stopped = true;
         notifyAll();
-
     }
 
     /**
