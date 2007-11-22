@@ -19,6 +19,6 @@ goto setupArgs
 
 :doneStart
 
-java -classpath "%JAVACLASSPATH%" %IBIS_APP_ARGS%
+java -classpath "%JAVACLASSPATH%" -Dlog4j.configuration=file:"%IBIS_HOME%"\log4j.properties %IBIS_APP_ARGS%
 
 if "%OS%"=="Windows_NT" @endlocal
