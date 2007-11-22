@@ -1,6 +1,8 @@
 package ibis.ipl.impl.registry.central;
 
 public final class Protocol {
+    
+    public static final byte VERSION = 1;
 
     // opcodes
 
@@ -45,8 +47,8 @@ public final class Protocol {
 
     public static final int BOOTSTRAP_LIST_SIZE = 200;
 
-    public static final byte CLIENT_MAGIC_BYTE = 66;
+    public static final byte CLIENT_MAGIC_BYTE = 23;
 
-    public static final byte SERVER_MAGIC_BYTE = 88;
+    public static final byte SERVER_MAGIC_BYTE = 98;
 
 }

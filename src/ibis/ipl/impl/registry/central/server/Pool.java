@@ -237,7 +237,9 @@ final class Pool implements Runnable {
         ended = true;
         staleTime = System.currentTimeMillis() + STALE_TIMEOUT;
         pusher.enqueue(null);
-        statisticsWriter.end();
+        if (statisticsWriter != null) {
+            statisticsWriter.end();
+        }
     }
 
     public synchronized boolean stale() {
@@ -552,6 +554,7 @@ final class Pool implements Runnable {
                     + ", send opcode, checking for reply");
 
             connection.out().writeByte(Protocol.CLIENT_MAGIC_BYTE);
+            connection.out().writeByte(Protocol.VERSION);
             connection.out().writeByte(Protocol.OPCODE_PING);
             connection.out().flush();
             // get reply
@@ -623,6 +626,7 @@ final class Pool implements Runnable {
             logger.debug("connection to " + member + " created");
 
             connection.out().writeByte(Protocol.CLIENT_MAGIC_BYTE);
+            connection.out().writeByte(Protocol.VERSION);
             connection.out().writeByte(Protocol.OPCODE_PUSH);
             connection.out().writeUTF(getName());
             connection.out().flush();
@@ -729,7 +733,9 @@ final class Pool implements Runnable {
 
     public void gotStatistics(IbisIdentifier identifier,
             CommunicationStatistics commStats, PoolStatistics poolStats, long timeOffset) {
-        statisticsWriter.addStatistics(commStats, poolStats, identifier, timeOffset);
+        if (statisticsWriter != null) {
+            statisticsWriter.addStatistics(commStats, poolStats, identifier, timeOffset);
+        }
     }
 
     synchronized Member[] getRandomMembers(int size) {

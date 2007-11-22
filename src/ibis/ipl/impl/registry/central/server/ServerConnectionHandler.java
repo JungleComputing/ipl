@@ -342,6 +342,13 @@ final class ServerConnectionHandler implements Runnable {
                 throw new IOException(
                         "Invalid header byte in accepting connection");
             }
+            
+            byte protocolVersion = connection.in().readByte();
+
+            if (protocolVersion != Protocol.VERSION) {
+                throw new IOException(
+                        "Wrong protocol version in incoming connection: " + protocolVersion + ", should be " + Protocol.VERSION);
+            }
 
             opcode = connection.in().readByte();
 
