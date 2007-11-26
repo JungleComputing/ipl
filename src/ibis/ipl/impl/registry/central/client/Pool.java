@@ -4,7 +4,7 @@ import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.IbisProperties;
 import ibis.ipl.impl.IbisIdentifier;
-import ibis.ipl.impl.registry.PoolStatistics;
+import ibis.ipl.impl.registry.Statistics;
 import ibis.ipl.impl.registry.central.Election;
 import ibis.ipl.impl.registry.central.ElectionSet;
 import ibis.ipl.impl.registry.central.Event;
@@ -44,7 +44,7 @@ final class Pool implements Runnable {
 
     private final Registry registry;
 
-    private final PoolStatistics statistics;
+    private final Statistics statistics;
 
     private boolean initialized;
 
@@ -55,14 +55,10 @@ final class Pool implements Runnable {
     private int time;
 
     Pool(IbisCapabilities capabilities, TypedProperties properties,
-            Registry registry) {
+            Registry registry, Statistics statistics) {
         this.registry = registry;
 
-        if (properties.getBooleanProperty(RegistryProperties.STATISTICS)) {
-            statistics = new PoolStatistics();
-        } else {
-            statistics = null;
-        }
+        this.statistics = statistics;
 
         if (properties.getBooleanProperty(RegistryProperties.TREE)) {
             members = new TreeMemberSet();
@@ -151,10 +147,6 @@ final class Pool implements Runnable {
 
     synchronized void purgeHistoryUpto(int time) {
         eventList.purgeUpto(time);
-    }
-
-    public PoolStatistics getStatistics() {
-        return statistics;
     }
 
     synchronized void init(DataInputStream in) throws IOException {

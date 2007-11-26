@@ -3,8 +3,7 @@ package ibis.ipl.impl.registry.central.server;
 import ibis.ipl.impl.IbisIdentifier;
 import ibis.ipl.impl.Location;
 import ibis.ipl.impl.registry.Connection;
-import ibis.ipl.impl.registry.CommunicationStatistics;
-import ibis.ipl.impl.registry.PoolStatistics;
+import ibis.ipl.impl.registry.Statistics;
 import ibis.ipl.impl.registry.StatisticsWriter;
 import ibis.ipl.impl.registry.central.Election;
 import ibis.ipl.impl.registry.central.ElectionSet;
@@ -71,16 +70,14 @@ final class Pool implements Runnable {
 
     private final boolean printErrors;
 
-    // statistics which are only kept on the request of the user
+    // statistics are only kept on the request of the user
 
-    private final CommunicationStatistics commStatistics;
-
-    private final PoolStatistics poolStatistics;
+    private final Statistics statistics;
 
     private final StatisticsWriter statisticsWriter;
     
-    // simple statistics which are always kept, so the server can print them
-    // if so requested
+    // simple statistics which are always kept, 
+    // so the server can print them if so requested
     private final int[] eventStats;
 
     private final Map<String, Integer> sequencers;
@@ -109,15 +106,13 @@ final class Pool implements Runnable {
         this.printErrors = printErrors;
 
         if (keepStatistics) {
-            commStatistics =
-                new CommunicationStatistics(Protocol.NR_OF_OPCODES);
-            poolStatistics = new PoolStatistics();
-            statisticsWriter = new StatisticsWriter(name, statisticsInterval, commStatistics, poolStatistics, Protocol.OPCODE_NAMES);
+            statistics =
+                new Statistics(Protocol.NR_OF_OPCODES);
+            statisticsWriter = new StatisticsWriter(name, statisticsInterval, statistics, Protocol.OPCODE_NAMES);
             statisticsWriter.setDaemon(true);
             statisticsWriter.start();
         } else {
-            commStatistics = null;
-            poolStatistics = null;
+            statistics = null;
             statisticsWriter = null;
         }
 
@@ -252,8 +247,8 @@ final class Pool implements Runnable {
         return name;
     }
 
-    public CommunicationStatistics getCommStats() {
-        return commStatistics;
+    public Statistics getCommStats() {
+        return statistics;
     }
 
     /*
@@ -289,8 +284,8 @@ final class Pool implements Runnable {
                     name);
 
         Event event = addEvent(Event.JOIN, null, identifier);
-        if (poolStatistics != null) {
-            poolStatistics.ibisJoined();
+        if (statistics != null) {
+            statistics.ibisJoined();
         }
 
         Member member = new Member(identifier, event);
@@ -368,16 +363,16 @@ final class Pool implements Runnable {
         }
 
         addEvent(Event.LEAVE, null, identifier);
-        if (poolStatistics != null) {
-            poolStatistics.ibisLeft();
+        if (statistics != null) {
+            statistics.ibisLeft();
         }
 
         Election[] deadElections = elections.getElectionsWonBy(identifier);
 
         for (Election election : deadElections) {
             addEvent(Event.UN_ELECT, election.getName(), election.getWinner());
-            if (poolStatistics != null) {
-                poolStatistics.unElect();
+            if (statistics != null) {
+                statistics.unElect();
             }
         }
 
@@ -418,16 +413,16 @@ final class Pool implements Runnable {
         }
 
         addEvent(Event.DIED, null, identifier);
-        if (poolStatistics != null) {
-            poolStatistics.ibisDied();
+        if (statistics != null) {
+            statistics.ibisDied();
         }
 
         Election[] deadElections = elections.getElectionsWonBy(identifier);
 
         for (Election election : deadElections) {
             addEvent(Event.UN_ELECT, election.getName(), election.getWinner());
-            if (poolStatistics != null) {
-                poolStatistics.unElect();
+            if (statistics != null) {
+                statistics.unElect();
             }
 
             elections.remove(election.getName());
@@ -465,8 +460,8 @@ final class Pool implements Runnable {
             // Do the election now. The caller WINS! :)
 
             Event event = addEvent(Event.ELECT, electionName, candidate);
-            if (poolStatistics != null) {
-                poolStatistics.newElection();
+            if (statistics != null) {
+                statistics.newElection();
             }
 
             election = new Election(event);
@@ -569,8 +564,8 @@ final class Pool implements Runnable {
             }
             logger.debug("ping to " + member + " successful");
             member.updateLastSeenTime();
-            if (commStatistics != null) {
-                commStatistics.add(Protocol.OPCODE_PING,
+            if (statistics != null) {
+                statistics.add(Protocol.OPCODE_PING,
                     System.currentTimeMillis() - start, connection.read(),
                     connection.written(), false);
             }
@@ -666,8 +661,8 @@ final class Pool implements Runnable {
 
             logger.debug("connection to " + member + " closed");
             member.updateLastSeenTime();
-            if (commStatistics != null) {
-                commStatistics.add(Protocol.OPCODE_PUSH,
+            if (statistics != null) {
+                statistics.add(Protocol.OPCODE_PUSH,
                     System.currentTimeMillis() - start, connection.read(),
                     connection.written(), false);
             }
@@ -732,9 +727,9 @@ final class Pool implements Runnable {
     }
 
     public void gotStatistics(IbisIdentifier identifier,
-            CommunicationStatistics commStats, PoolStatistics poolStats, long timeOffset) {
+            Statistics statistics) {
         if (statisticsWriter != null) {
-            statisticsWriter.addStatistics(commStats, poolStats, identifier, timeOffset);
+            statisticsWriter.addStatistics(statistics, identifier);
         }
     }
 

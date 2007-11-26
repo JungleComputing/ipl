@@ -1,10 +1,14 @@
 package ibis.ipl.impl.registry;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Formatter;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.apache.log4j.Logger;
 
 import ibis.ipl.impl.IbisIdentifier;
 
@@ -13,71 +17,161 @@ import ibis.ipl.impl.IbisIdentifier;
  */
 public class StatisticsWriter extends Thread {
 
+    private static final Logger logger =
+        Logger.getLogger(StatisticsWriter.class);
+
     private final String poolName;
 
     private final Long timeout;
 
-    private final Map<IbisIdentifier, CommunicationStatistics> commStats;
+    private final Map<IbisIdentifier, Statistics> clientStatistics;
 
-    private final Map<IbisIdentifier, PoolStatistics> poolStats;
+    private final Statistics serverStatistics;
 
-    private final CommunicationStatistics serverCommStats;
-
-    private final PoolStatistics serverPoolStats;
-    
     private final String[] opcodeNames;
 
     private boolean ended = false;
 
     public StatisticsWriter(String poolName, long timeout,
-            CommunicationStatistics serverCommStats,
-            PoolStatistics serverPoolStats, String[] opcodeNames) {
+            Statistics serverCommStats, String[] opcodeNames) {
         this.poolName = poolName;
         this.timeout = timeout;
-        this.serverCommStats = serverCommStats;
-        this.serverPoolStats = serverPoolStats;
+        this.serverStatistics = serverCommStats;
         this.opcodeNames = opcodeNames;
 
-        commStats = new HashMap<IbisIdentifier, CommunicationStatistics>();
-        poolStats = new HashMap<IbisIdentifier, PoolStatistics>();
+        clientStatistics = new HashMap<IbisIdentifier, Statistics>();
     }
 
-    public synchronized void addStatistics(
-            CommunicationStatistics clientCommStatistics,
-            PoolStatistics clientPoolStatistics, IbisIdentifier clientIdentifier,
-            long timeOffset) {
-        commStats.put(clientIdentifier, clientCommStatistics);
-        poolStats.put(clientIdentifier, clientPoolStatistics);
+    public synchronized void addStatistics(Statistics statistics,
+            IbisIdentifier clientIdentifier) {
+        clientStatistics.put(clientIdentifier, statistics);
+    }
+
+    private synchronized long getStartTime() {
+        long result = serverStatistics.getStartTime();
+
+        for (Statistics statistics : clientStatistics.values()) {
+            if (statistics.getStartTime() < result) {
+                result = statistics.getStartTime();
+            }
+        }
+
+        return result;
+    }
+
+    private synchronized long getEndTime() {
+        long result = serverStatistics.getEndTime();
+
+        for (Statistics statistics : clientStatistics.values()) {
+            if (statistics.getEndTime() > result) {
+                result = statistics.getEndTime();
+            }
+        }
+
+        return result;
+    }
+
+    private synchronized long calculateInterval(long start, long end) {
+        long result = (end - start) / 100;
+
+        if (result < 1) {
+            result = 1;
+        }
+
+        logger.debug("interval = " + result);
+
+        return result;
+    }
+
+    private synchronized void writePoolHistory(long start, long end,
+            long interval, Formatter out, Statistics... allStatistics) {
+        if (allStatistics.length == 0) {
+            return;
+        }
+
+        // always write at lease one value past the "end" time
+        for (long time = start; time <= (end + interval); time += interval) {
+            long total = 0;
+
+            for (Statistics statistics : allStatistics) {
+                total = total + statistics.poolSizeAt(time);
+            }
+
+            double average = ((double) total) / ((double) allStatistics.length);
+
+            out.format("%d %d %d %f\n", time - start, total,
+                allStatistics.length, average);
+        }
+
+    }
+
+    private synchronized double averageClientTraffic() {
+        if (clientStatistics.size() == 0) {
+            return 0;
+        }
+
+        double total = 0;
+
+        for (Statistics statistics : clientStatistics.values()) {
+            total = total + statistics.totalTraffic();
+        }
+
+        return total / clientStatistics.size();
     }
 
     /**
      * Write statistics to a file
      */
-    private void write() {
+    private synchronized void write() {
+        long start = getStartTime();
+        long end = getEndTime();
+        long interval = calculateInterval(start, end);
+
+        File file = null;
         try {
-            File file = new File(poolName + ".stats");
+            file = new File(poolName + ".stats.server");
+            logger.debug("writing statistic file " + file);
             if (file.exists()) {
-                file.renameTo(new File(poolName + ".stats.old"));
-            }
-            
-            PrintWriter out = new PrintWriter(poolName + ".stats");
-            
-            out.println(serverCommStats.toString(opcodeNames));
-            out.println(serverPoolStats.toString());
-
-            for(CommunicationStatistics stats: commStats.values()) {
-                out.println(stats);
+                file.renameTo(new File("old." + file.getName()));
             }
 
-            for(PoolStatistics stats: poolStats.values()) {
-                out.println(stats);
-            }
-            
+            Formatter out = new Formatter(file);
+
+            out.format("#server stats:\n");
+            serverStatistics.printCommStats(out, opcodeNames);
+
+            out.format("#pool size\n");
+            out.format("#server total data transfer = %.2f\n",
+                serverStatistics.totalTraffic());
+
+            writePoolHistory(start, end, interval, out, serverStatistics);
+
             out.flush();
             out.close();
+
+            // client stats
+
+            file = new File(poolName + ".stats.clients");
+            logger.debug("writing statistic file " + file);
+            if (file.exists()) {
+                file.renameTo(new File("old." + file.getName()));
+            }
+
+            out = new Formatter(file);
+
+            out.format("#average #total data transfer = %.2f\n",
+                averageClientTraffic());
+
+            out.format("#average pool size\n");
+            writePoolHistory(start, end, interval, out,
+                clientStatistics.values().toArray(new Statistics[0]));
+
+            out.flush();
+            out.close();
+
+            logger.debug("done writing statistic file " + file);
         } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            logger.error("could not write statistics file: " + file, e);
         }
 
     }
@@ -85,11 +179,11 @@ public class StatisticsWriter extends Thread {
     public synchronized void end() {
         ended = true;
         notifyAll();
-
-        write();
     }
 
     public synchronized void run() {
+        logger.debug("starting statistics writer");
+
         while (!ended) {
 
             write();
@@ -105,9 +199,18 @@ public class StatisticsWriter extends Thread {
                 // IGNORE
             }
         }
-        //delay two minutes, write on more time
+
+        // delay 2 seconds, write second to last time
         try {
-                wait(120000);
+            wait(2000);
+        } catch (InterruptedException e) {
+            // IGNORE
+        }
+        write();
+
+        // delay two minutes, write on more time
+        try {
+            wait(120000);
         } catch (InterruptedException e) {
             // IGNORE
         }

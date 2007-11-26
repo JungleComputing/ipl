@@ -1,7 +1,5 @@
 package ibis.ipl.impl.registry.central.server;
 
-import ibis.ipl.impl.registry.CommunicationStatistics;
-import ibis.ipl.impl.registry.central.Protocol;
 import ibis.ipl.impl.registry.central.RegistryProperties;
 import ibis.server.ServerProperties;
 import ibis.server.Service;

@@ -5,8 +5,10 @@ import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.NoSuchPropertyException;
 import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.impl.IbisIdentifier;
+import ibis.ipl.impl.registry.Statistics;
 import ibis.ipl.impl.registry.RemoteException;
 import ibis.ipl.impl.registry.central.Event;
+import ibis.ipl.impl.registry.central.Protocol;
 import ibis.ipl.impl.registry.central.RegistryProperties;
 import ibis.util.TypedProperties;
 
@@ -27,6 +29,8 @@ public final class Registry extends ibis.ipl.impl.Registry {
 
     // A thread that forwards the events to the user event handler
     private final Upcaller upcaller;
+
+    private final Statistics statistics;
 
     // Handles incoming and outgoing communication with other registries and
     // the server.
@@ -103,11 +107,18 @@ public final class Registry extends ibis.ipl.impl.Registry {
             upcaller = null;
         }
 
-        pool = new Pool(capabilities, properties, this);
+        if (properties.getBooleanProperty(RegistryProperties.STATISTICS)) {
+            statistics = new Statistics(Protocol.NR_OF_OPCODES);
+        } else {
+            statistics = null;
+        }
+
+        pool = new Pool(capabilities, properties, this, statistics);
 
         try {
 
-            communicationHandler = new CommunicationHandler(properties, pool);
+            communicationHandler =
+                new CommunicationHandler(properties, pool, statistics);
 
             identifier =
                 communicationHandler.join(data, ibisImplementationIdentifier);
@@ -363,7 +374,7 @@ public final class Registry extends ibis.ipl.impl.Registry {
     }
 
     public Map<String, String> managementProperties() {
-        //TODO: add some statistics
+        // TODO: add some statistics
         return new HashMap<String, String>();
     }
 

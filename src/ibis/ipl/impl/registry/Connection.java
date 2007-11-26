@@ -106,6 +106,7 @@ public final class Connection {
 
     public void sendOKReply() throws IOException {
         out.writeByte(Connection.REPLY_OK);
+        out.flush();
     }
 
     public void closeWithError(String message) {

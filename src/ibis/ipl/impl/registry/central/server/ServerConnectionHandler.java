@@ -2,9 +2,8 @@ package ibis.ipl.impl.registry.central.server;
 
 import ibis.ipl.impl.IbisIdentifier;
 import ibis.ipl.impl.Location;
-import ibis.ipl.impl.registry.CommunicationStatistics;
+import ibis.ipl.impl.registry.Statistics;
 import ibis.ipl.impl.registry.Connection;
-import ibis.ipl.impl.registry.PoolStatistics;
 import ibis.ipl.impl.registry.central.Member;
 import ibis.ipl.impl.registry.central.Protocol;
 import ibis.smartsockets.virtual.VirtualServerSocket;
@@ -281,17 +280,15 @@ final class ServerConnectionHandler implements Runnable {
     }
 
     private Pool handleStatistics(Connection connection) throws Exception {
-        IbisIdentifier identifier = new IbisIdentifier(connection.in());
-        CommunicationStatistics commStats =
-            new CommunicationStatistics(connection.in());
-        PoolStatistics poolStats = new PoolStatistics(connection.in());
-        connection.out().flush();
         connection.sendOKReply();
-        connection.out().flush();
         long remoteTime = connection.in().readLong();
         long localTime = System.currentTimeMillis();
         connection.sendOKReply();
-
+        IbisIdentifier identifier = new IbisIdentifier(connection.in());
+        Statistics statistics =
+            new Statistics(connection.in(), localTime - remoteTime);
+        connection.sendOKReply();
+        
         Pool pool = server.getPool(identifier.poolName());
 
         if (pool == null) {
@@ -300,7 +297,7 @@ final class ServerConnectionHandler implements Runnable {
         }
 
         connection.sendOKReply();
-        pool.gotStatistics(identifier, commStats, poolStats, localTime - remoteTime);
+        pool.gotStatistics(identifier, statistics);
         return pool;
 
     }
