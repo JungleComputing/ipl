@@ -300,8 +300,10 @@ final class CommunicationHandler implements Runnable {
 
             heartbeat.updateHeartbeatDeadline();
             long end = System.currentTimeMillis();
+            if (statistics != null) {
             statistics.add(Protocol.OPCODE_GET_STATE, end - start,
                 connection.read(), connection.written(), false);
+            }
         } catch (IOException e) {
             connection.close();
             throw e;
@@ -335,8 +337,10 @@ final class CommunicationHandler implements Runnable {
 
             heartbeat.updateHeartbeatDeadline();
             long end = System.currentTimeMillis();
+            if (statistics != null) {
             statistics.add(Protocol.OPCODE_SIGNAL, end - start,
                 connection.read(), connection.written(), false);
+            }
         } catch (IOException e) {
             connection.close();
             throw e;
