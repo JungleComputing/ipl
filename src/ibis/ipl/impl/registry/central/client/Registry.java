@@ -109,8 +109,10 @@ public final class Registry extends ibis.ipl.impl.Registry {
 
         if (properties.getBooleanProperty(RegistryProperties.STATISTICS)) {
             statistics = new Statistics(Protocol.NR_OF_OPCODES);
+            logger.debug("statistics: on");
         } else {
             statistics = null;
+            logger.debug("statistics: off");
         }
 
         pool = new Pool(capabilities, properties, this, statistics);

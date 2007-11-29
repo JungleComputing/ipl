@@ -3,7 +3,7 @@
  */
 package ibis.ipl.impl.registry;
 
-class DataPoint implements Comparable<DataPoint> {
+class DataPoint {
     private long time;
 
     private long value;
@@ -16,10 +16,6 @@ class DataPoint implements Comparable<DataPoint> {
     DataPoint(long value) {
         time = System.currentTimeMillis();
         this.value = value;
-    }
-
-    public int compareTo(DataPoint other) {
-        return (int) (time - other.time);
     }
 
     public String toString() {

@@ -244,24 +244,26 @@ final class Pool implements Runnable {
     }
 
     private synchronized void handleEvent(Event event) {
+        logger.debug("handling event: " + event);
+        
         switch (event.getType()) {
         case Event.JOIN:
             members.add(new Member(event.getFirstIbis(), event));
             if (statistics != null) {
-            statistics.ibisJoined();
+                statistics.ibisJoined();
             }
             break;
         case Event.LEAVE:
             members.remove(event.getFirstIbis());
             if (statistics != null) {
-            statistics.ibisLeft();
+                statistics.ibisLeft();
             }
             break;
         case Event.DIED:
             IbisIdentifier died = event.getFirstIbis();
             members.remove(died);
             if (statistics != null) {
-            statistics.ibisDied();
+                statistics.ibisDied();
             }
             if (died.equals(registry.getIbisIdentifier())) {
                 logger.debug("we were declared dead");
@@ -274,13 +276,13 @@ final class Pool implements Runnable {
         case Event.ELECT:
             elections.put(new Election(event));
             if (statistics != null) {
-            statistics.newElection();
+                statistics.newElection();
             }
             break;
         case Event.UN_ELECT:
             elections.remove(event.getDescription());
             if (statistics != null) {
-            statistics.unElect();
+                statistics.unElect();
             }
             break;
         case Event.POOL_CLOSED:

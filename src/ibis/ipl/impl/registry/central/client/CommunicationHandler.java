@@ -19,7 +19,6 @@ import ibis.util.ThreadPool;
 import ibis.util.TypedProperties;
 
 import java.io.IOException;
-import java.util.Map;
 
 import org.apache.log4j.Logger;
 
@@ -541,6 +540,7 @@ statistics.add(Protocol.OPCODE_SEQUENCE_NR, end - start,
                 connection.read(), connection.written(), false);
             }
             logger.debug("left");
+            
         } finally {
             connection.close();
             pool.stop();
@@ -745,6 +745,8 @@ statistics.add(Protocol.OPCODE_SEQUENCE_NR, end - start,
     }
 
     public void sendStatistics() {
+        logger.debug("sending statistics");
+        
         long start = System.currentTimeMillis();
 
         if (getIdentifier() == null) {
@@ -779,9 +781,9 @@ statistics.add(Protocol.OPCODE_SEQUENCE_NR, end - start,
             connection.close();
 
             long end = System.currentTimeMillis();
-            statistics.add(Protocol.OPCODE_HEARTBEAT, end - start,
+            statistics.add(Protocol.OPCODE_STATISTICS, end - start,
                 connection.read(), connection.written(), false);
-            logger.debug("send heartbeat");
+            logger.debug("send statistics");
         } catch (Exception e) {
             if (connection != null) {
                 connection.close();

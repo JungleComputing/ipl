@@ -4,6 +4,8 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Formatter;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -27,11 +29,11 @@ public final class Statistics {
 
     private final long[] bytesOut;
 
-    SortedSet<DataPoint> poolSizeHistory;
+    List<DataPoint> poolSizeHistory;
 
     int currentPoolSize;
 
-    SortedSet<DataPoint> electionEventHistory;
+    List<DataPoint> electionEventHistory;
     
     public Statistics(int opcodes) {
         this.opcodes = opcodes;
@@ -44,8 +46,8 @@ public final class Statistics {
         bytesIn = new long[opcodes];
         bytesOut = new long[opcodes];
 
-        poolSizeHistory = new TreeSet<DataPoint>();
-        electionEventHistory = new TreeSet<DataPoint>();
+        poolSizeHistory = new LinkedList<DataPoint>();
+        electionEventHistory = new LinkedList<DataPoint>();
 
         currentPoolSize = 0;
 
@@ -70,8 +72,8 @@ public final class Statistics {
             bytesOut[i] = in.readLong();
         }
         
-        poolSizeHistory = new TreeSet<DataPoint>();
-        electionEventHistory = new TreeSet<DataPoint>();
+        poolSizeHistory = new LinkedList<DataPoint>();
+        electionEventHistory = new LinkedList<DataPoint>();
         
         int nrOfSizeDataPoints = in.readInt();
         if (nrOfSizeDataPoints < 0) {
@@ -185,18 +187,24 @@ public final class Statistics {
         currentPoolSize++;
         
         poolSizeHistory.add(new DataPoint(currentPoolSize));
+        
+        logger.debug("ibis joined, size now: " + currentPoolSize);
     }
 
     public synchronized void ibisLeft() {
         currentPoolSize--;
 
         poolSizeHistory.add(new DataPoint(currentPoolSize));
+        
+        logger.debug("ibis left, size now: " + currentPoolSize);
     }
 
     public synchronized void ibisDied() {
         currentPoolSize--;
 
         poolSizeHistory.add(new DataPoint(currentPoolSize));
+        
+        logger.debug("ibis died, size now: " + currentPoolSize);
     }
 
     public synchronized void unElect() {
@@ -215,7 +223,7 @@ public final class Statistics {
         long result = start;
         
         if (poolSizeHistory.size() > 0) {
-            long time = poolSizeHistory.last().getTime();
+            long time = poolSizeHistory.get(poolSizeHistory.size() - 1).getTime();
             
             if (time > result) {
                 result = time;
@@ -223,7 +231,7 @@ public final class Statistics {
         }
 
         if (electionEventHistory.size() > 0) {
-            long time = electionEventHistory.last().getTime();
+            long time = electionEventHistory.get(electionEventHistory.size() - 1).getTime();
             
             if (time > result) {
                 result = time;
@@ -250,6 +258,10 @@ public final class Statistics {
         }
         //return value of last point
         return result;
+    }
+    
+    public synchronized DataPoint[] getPoolSizeData() {
+        return poolSizeHistory.toArray(new DataPoint[0]);
     }
     
     public synchronized double totalTraffic() {

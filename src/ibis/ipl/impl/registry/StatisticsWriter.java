@@ -44,6 +44,7 @@ public class StatisticsWriter extends Thread {
 
     public synchronized void addStatistics(Statistics statistics,
             IbisIdentifier clientIdentifier) {
+        logger.debug("new statistics from: " + clientIdentifier);
         clientStatistics.put(clientIdentifier, statistics);
     }
 
@@ -72,7 +73,7 @@ public class StatisticsWriter extends Thread {
     }
 
     private synchronized long calculateInterval(long start, long end) {
-        long result = (end - start) / 100;
+        long result = (end - start) / 10;
 
         if (result < 1) {
             result = 1;
@@ -163,8 +164,23 @@ public class StatisticsWriter extends Thread {
                 averageClientTraffic());
 
             out.format("#average pool size\n");
-            writePoolHistory(start, end, interval, out,
-                clientStatistics.values().toArray(new Statistics[0]));
+            for (Statistics statistics : clientStatistics.values()) {
+                    out.format("@@@@@@@@@@@@@@@@@@@@\n");
+
+                writePoolHistory(start, end, interval, out,
+                    statistics);
+
+                out.format("$$$$$$$\n");
+
+                
+                for(DataPoint point: statistics.getPoolSizeData()) {
+                    out.format("%d %d\n", point.getTime(), point.getValue());
+                }
+
+                // writePoolHistory(start, end, interval, out,
+                // clientStatistics.values().toArray(new Statistics[0]));
+
+            }
 
             out.flush();
             out.close();
@@ -200,7 +216,7 @@ public class StatisticsWriter extends Thread {
             }
         }
 
-        // delay 2 seconds, write second to last time
+        // delay 2 seconds, write second to last times
         try {
             wait(2000);
         } catch (InterruptedException e) {
@@ -208,6 +224,15 @@ public class StatisticsWriter extends Thread {
         }
         write();
 
+        // delay 10 seconds, write second to last time
+        try {
+            wait(10000);
+        } catch (InterruptedException e) {
+            // IGNORE
+        }
+        write();
+
+        
         // delay two minutes, write on more time
         try {
             wait(120000);
