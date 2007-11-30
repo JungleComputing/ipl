@@ -59,7 +59,10 @@ final class Pool implements Runnable {
         this.registry = registry;
 
         this.statistics = statistics;
-
+        if (statistics != null) {
+            statistics.newPoolSize(0);
+        }
+        
         if (properties.getBooleanProperty(RegistryProperties.TREE)) {
             members = new TreeMemberSet();
         } else {
@@ -186,6 +189,10 @@ final class Pool implements Runnable {
 
         initialized = true;
         notifyAll();
+        
+        if (statistics != null) {
+            statistics.newPoolSize(members.size());
+        }
 
         logger.debug("bootstrap complete");
 
@@ -250,20 +257,20 @@ final class Pool implements Runnable {
         case Event.JOIN:
             members.add(new Member(event.getFirstIbis(), event));
             if (statistics != null) {
-                statistics.ibisJoined();
+                statistics.newPoolSize(members.size());
             }
             break;
         case Event.LEAVE:
             members.remove(event.getFirstIbis());
             if (statistics != null) {
-                statistics.ibisLeft();
+                statistics.newPoolSize(members.size());
             }
             break;
         case Event.DIED:
             IbisIdentifier died = event.getFirstIbis();
             members.remove(died);
             if (statistics != null) {
-                statistics.ibisDied();
+                statistics.newPoolSize(members.size());
             }
             if (died.equals(registry.getIbisIdentifier())) {
                 logger.debug("we were declared dead");
@@ -276,13 +283,13 @@ final class Pool implements Runnable {
         case Event.ELECT:
             elections.put(new Election(event));
             if (statistics != null) {
-                statistics.newElection();
+                statistics.electionEvent();
             }
             break;
         case Event.UN_ELECT:
             elections.remove(event.getDescription());
             if (statistics != null) {
-                statistics.unElect();
+                statistics.electionEvent();
             }
             break;
         case Event.POOL_CLOSED:
@@ -324,6 +331,10 @@ final class Pool implements Runnable {
     synchronized void stop() {
         stopped = true;
         notifyAll();
+        
+        if (statistics != null) {
+            statistics.newPoolSize(0);
+        }
     }
 
     /**

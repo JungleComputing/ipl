@@ -1,65 +1,70 @@
 <project name="Ibis IPL examples" default="build" basedir=".">
 
-        <description>
+    <description>
 	Build file for the Ibis IPL applications.
     </description>
 
-        <!-- Global properties -->
+    <!-- Global properties -->
 
-        <property name="ibis" location=".." />
+    <property name="ibis" location=".." />
 
-	<property name="version" value="-2.0"/>
+    <property name="version" value="-2.0" />
 
-        <property name="src" location="src" />
-        <property name="tmp" location="tmp" />
-        <property name="lib" location="lib" />
-        <property name="jar" location="lib/ipl-examples${version}.jar" />
+    <property name="src" location="src" />
+    <property name="tmp" location="tmp" />
+    <property name="lib" location="lib" />
+    <property name="jar" location="lib/ipl-examples${version}.jar" />
 
-        <target name="build" description="build the examples">
-                <!-- Clean up -->
-                <delete dir="${tmp}" />
-                <delete dir="${lib}" />
-
-
-                <!-- Create the time stamp -->
-                <tstamp />
-
-                <!-- Create the build directory structure used by compile -->
-                <mkdir dir="${tmp}" />
-                <mkdir dir="${lib}" />
-
-                <path id="default.classpath">
-                        <fileset dir="${ibis}/lib">
-                                <include name="*.jar" />
-                        </fileset>
-                </path>
-
-                <!-- Compile the java code from ${src} into ${tmp} -->
-                <javac srcdir="${src}" destdir="${tmp}" debug="on">
-                        <classpath refid="default.classpath" />
-                        <compilerarg value="-Xlint:unchecked" />
-                </javac>
-
-                <!-- Put everything in ${tmp} into the jar file -->
-                <jar jarfile="${jar}" basedir="${tmp}" />
-
-		<!-- rewrite applications using IbisC -->
-                <java classname="ibis.compile.Ibisc"
-                      taskname="Ibisc"
-                      failonerror="true"
-                      fork="true">
-                        <arg line="${jar}" />
-                        <classpath refid="default.classpath" />
-                </java>
+    <target name="build" description="build the examples">
+        <!-- Clean up -->
+        <delete dir="${tmp}" />
+        <delete dir="${lib}" />
 
 
-                <!-- And delete the build dir -->
-                <delete dir="${tmp}" />
-        </target>
+        <!-- Create the time stamp -->
+        <tstamp />
 
-        <target name="clean" description="clean up">
-                <delete dir="${tmp}" />
-                <delete dir="${lib}" />
-        </target>
+        <!-- Create the build directory structure used by compile -->
+        <mkdir dir="${tmp}" />
+        <mkdir dir="${lib}" />
+
+        <path id="default.classpath">
+            <fileset dir="${ibis}/lib">
+                <include name="*.jar" />
+            </fileset>
+        </path>
+
+        <!-- Compile the java code from ${src} into ${tmp} -->
+        <javac srcdir="${src}"
+               destdir="${tmp}"
+               debug="on"
+               source="1.5"
+               target="1.5"
+               classpathref="default.classpath">
+            <compilerarg value="-Xlint:unchecked" />
+        </javac>
+
+
+        <!-- Put everything in ${tmp} into the jar file -->
+        <jar jarfile="${jar}" basedir="${tmp}" />
+
+        <!-- rewrite applications using IbisC -->
+        <java classname="ibis.compile.Ibisc"
+              taskname="Ibisc"
+              failonerror="true"
+              fork="true">
+            <arg line="${jar}" />
+            <classpath refid="default.classpath" />
+        </java>
+
+
+        <!-- And delete the build dir -->
+        <delete dir="${tmp}" />
+    </target>
+
+    <target name="clean" description="clean up">
+        <delete dir="${tmp}" />
+        <delete dir="${lib}" />
+    </target>
 
 </project>

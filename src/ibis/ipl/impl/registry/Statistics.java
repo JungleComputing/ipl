@@ -6,8 +6,6 @@ import java.io.IOException;
 import java.util.Formatter;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 import org.apache.log4j.Logger;
 
@@ -29,16 +27,20 @@ public final class Statistics {
 
     private final long[] bytesOut;
 
+    private final long offset;
+    
     List<DataPoint> poolSizeHistory;
 
     int currentPoolSize;
 
     List<DataPoint> electionEventHistory;
     
+    
     public Statistics(int opcodes) {
         this.opcodes = opcodes;
-
+        
         start = System.currentTimeMillis();
+        offset = 0;
 
         totalTimes = new double[opcodes];
         incomingRequestCounter = new long[opcodes];
@@ -54,6 +56,8 @@ public final class Statistics {
     }
 
     public Statistics(DataInputStream in, long timeOffset) throws IOException {
+        this.offset = timeOffset;
+        
         opcodes = in.readInt();
 
         start = in.readLong();
@@ -181,37 +185,16 @@ public final class Statistics {
                 outgoingRequestCounter[i], bytesIn[i], bytesOut[i],
                 totalTimes[i] / 1000.0, average);
         }
+        formatter.format("distance from server: %d Ms" , offset);
     }
 
-    public synchronized void ibisJoined() {
-        currentPoolSize++;
+    public synchronized void newPoolSize(int poolSize) {
+        poolSizeHistory.add(new DataPoint(poolSize));
         
-        poolSizeHistory.add(new DataPoint(currentPoolSize));
-        
-        logger.debug("ibis joined, size now: " + currentPoolSize);
+        logger.debug("reported pool size now: " + poolSize);
     }
 
-    public synchronized void ibisLeft() {
-        currentPoolSize--;
-
-        poolSizeHistory.add(new DataPoint(currentPoolSize));
-        
-        logger.debug("ibis left, size now: " + currentPoolSize);
-    }
-
-    public synchronized void ibisDied() {
-        currentPoolSize--;
-
-        poolSizeHistory.add(new DataPoint(currentPoolSize));
-        
-        logger.debug("ibis died, size now: " + currentPoolSize);
-    }
-
-    public synchronized void unElect() {
-        electionEventHistory.add(new DataPoint(electionEventHistory.size() + 1));
-    }
-
-    public synchronized void newElection() {
+    public synchronized void electionEvent() {
         electionEventHistory.add(new DataPoint(electionEventHistory.size() + 1));
     }
 
@@ -256,8 +239,8 @@ public final class Statistics {
                 result = point.getValue();
             }
         }
-        //return value of last point
-        return result;
+        //return -1 (we don't know)
+        return -1;
     }
     
     public synchronized DataPoint[] getPoolSizeData() {
@@ -273,5 +256,9 @@ public final class Statistics {
         
         return totalTraffic / 1024.0 / 1024.0;
     }
-        
+
+    public long getOffset() {
+        return offset;
+    }
+    
 }

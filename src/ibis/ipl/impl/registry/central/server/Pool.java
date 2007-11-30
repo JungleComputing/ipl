@@ -233,7 +233,7 @@ final class Pool implements Runnable {
         staleTime = System.currentTimeMillis() + STALE_TIMEOUT;
         pusher.enqueue(null);
         if (statisticsWriter != null) {
-            statisticsWriter.end();
+            statisticsWriter.nudge();
         }
     }
 
@@ -284,15 +284,17 @@ final class Pool implements Runnable {
                     name);
 
         Event event = addEvent(Event.JOIN, null, identifier);
-        if (statistics != null) {
-            statistics.ibisJoined();
-        }
 
         Member member = new Member(identifier, event);
         member.setCurrentTime(getMinEventTime());
         member.updateLastSeenTime();
 
         members.add(member);
+        
+        if (statistics != null) {
+            statistics.newPoolSize(members.size());
+        }
+
 
         if (printEvents) {
             print(identifier + " joined pool \"" + name + "\" now "
@@ -363,8 +365,9 @@ final class Pool implements Runnable {
         }
 
         addEvent(Event.LEAVE, null, identifier);
+        
         if (statistics != null) {
-            statistics.ibisLeft();
+            statistics.newPoolSize(members.size());
         }
 
         Election[] deadElections = elections.getElectionsWonBy(identifier);
@@ -372,7 +375,7 @@ final class Pool implements Runnable {
         for (Election election : deadElections) {
             addEvent(Event.UN_ELECT, election.getName(), election.getWinner());
             if (statistics != null) {
-                statistics.unElect();
+                statistics.electionEvent();
             }
         }
 
@@ -413,8 +416,9 @@ final class Pool implements Runnable {
         }
 
         addEvent(Event.DIED, null, identifier);
+        
         if (statistics != null) {
-            statistics.ibisDied();
+            statistics.newPoolSize(members.size());
         }
 
         Election[] deadElections = elections.getElectionsWonBy(identifier);
@@ -422,7 +426,7 @@ final class Pool implements Runnable {
         for (Election election : deadElections) {
             addEvent(Event.UN_ELECT, election.getName(), election.getWinner());
             if (statistics != null) {
-                statistics.unElect();
+                statistics.electionEvent();
             }
 
             elections.remove(election.getName());
@@ -461,7 +465,7 @@ final class Pool implements Runnable {
 
             Event event = addEvent(Event.ELECT, electionName, candidate);
             if (statistics != null) {
-                statistics.newElection();
+                statistics.electionEvent();
             }
 
             election = new Election(event);

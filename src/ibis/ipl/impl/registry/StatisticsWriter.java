@@ -1,9 +1,7 @@
 package ibis.ipl.impl.registry;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.Formatter;
 import java.util.HashMap;
 import java.util.Map;
@@ -17,8 +15,8 @@ import ibis.ipl.impl.IbisIdentifier;
  */
 public class StatisticsWriter extends Thread {
 
-    private static final Logger logger =
-        Logger.getLogger(StatisticsWriter.class);
+    private static final Logger logger = Logger
+            .getLogger(StatisticsWriter.class);
 
     private final String poolName;
 
@@ -29,8 +27,6 @@ public class StatisticsWriter extends Thread {
     private final Statistics serverStatistics;
 
     private final String[] opcodeNames;
-
-    private boolean ended = false;
 
     public StatisticsWriter(String poolName, long timeout,
             Statistics serverCommStats, String[] opcodeNames) {
@@ -46,6 +42,7 @@ public class StatisticsWriter extends Thread {
             IbisIdentifier clientIdentifier) {
         logger.debug("new statistics from: " + clientIdentifier);
         clientStatistics.put(clientIdentifier, statistics);
+        write();
     }
 
     private synchronized long getStartTime() {
@@ -72,8 +69,8 @@ public class StatisticsWriter extends Thread {
         return result;
     }
 
-    private synchronized long calculateInterval(long start, long end) {
-        long result = (end - start) / 10;
+    private static long calculateInterval(long start, long end) {
+        long result = (end - start) / 100;
 
         if (result < 1) {
             result = 1;
@@ -84,7 +81,12 @@ public class StatisticsWriter extends Thread {
         return result;
     }
 
-    private synchronized void writePoolHistory(long start, long end,
+    private synchronized Statistics[] getClientStatistics() {
+        return clientStatistics.values().toArray(new Statistics[0]);
+    }
+        
+    
+    private static void writePoolHistory(long start, long end,
             long interval, Formatter out, Statistics... allStatistics) {
         if (allStatistics.length == 0) {
             return;
@@ -92,16 +94,26 @@ public class StatisticsWriter extends Thread {
 
         // always write at lease one value past the "end" time
         for (long time = start; time <= (end + interval); time += interval) {
+            int participants = 0;
             long total = 0;
 
             for (Statistics statistics : allStatistics) {
-                total = total + statistics.poolSizeAt(time);
+                long value = statistics.poolSizeAt(time);
+
+                if (value >= 0) {
+                    total = total + value;
+                    participants++;
+                }
             }
 
-            double average = ((double) total) / ((double) allStatistics.length);
+            double average = ((double) total) / ((double) participants);
+            
+            if (participants == 0) {
+                average = 0;
+            }
 
-            out.format("%d %d %d %f\n", time - start, total,
-                allStatistics.length, average);
+            out.format("%d %d %d %f\n", time - start, total, participants,
+                    average);
         }
 
     }
@@ -123,7 +135,7 @@ public class StatisticsWriter extends Thread {
     /**
      * Write statistics to a file
      */
-    private synchronized void write() {
+    private void write() {
         long start = getStartTime();
         long end = getEndTime();
         long interval = calculateInterval(start, end);
@@ -142,8 +154,8 @@ public class StatisticsWriter extends Thread {
             serverStatistics.printCommStats(out, opcodeNames);
 
             out.format("#pool size\n");
-            out.format("#server total data transfer = %.2f\n",
-                serverStatistics.totalTraffic());
+            out.format("#server total data transfer = %.2f\n", serverStatistics
+                    .totalTraffic());
 
             writePoolHistory(start, end, interval, out, serverStatistics);
 
@@ -161,25 +173,20 @@ public class StatisticsWriter extends Thread {
             out = new Formatter(file);
 
             out.format("#average #total data transfer = %.2f\n",
-                averageClientTraffic());
+                    averageClientTraffic());
 
             out.format("#average pool size\n");
+            writePoolHistory(start, end, interval, out, getClientStatistics());
+
+            out.format("#raw data:\n");
+
             for (Statistics statistics : clientStatistics.values()) {
-                    out.format("@@@@@@@@@@@@@@@@@@@@\n");
-
-                writePoolHistory(start, end, interval, out,
-                    statistics);
-
-                out.format("$$$$$$$\n");
-
-                
-                for(DataPoint point: statistics.getPoolSizeData()) {
-                    out.format("%d %d\n", point.getTime(), point.getValue());
+                out.format("offset = %d\n", statistics.getOffset());
+                for (DataPoint point : statistics.getPoolSizeData()) {
+                    out.format("%d %d\n", point.getTime() - start, point
+                            .getValue());
                 }
-
-                // writePoolHistory(start, end, interval, out,
-                // clientStatistics.values().toArray(new Statistics[0]));
-
+                out.format("##############\n");
             }
 
             out.flush();
@@ -192,16 +199,10 @@ public class StatisticsWriter extends Thread {
 
     }
 
-    public synchronized void end() {
-        ended = true;
-        notifyAll();
-    }
-
     public synchronized void run() {
         logger.debug("starting statistics writer");
 
-        while (!ended) {
-
+        while (true) {
             write();
 
             // randomize delay (average still the given timeout)
@@ -215,31 +216,10 @@ public class StatisticsWriter extends Thread {
                 // IGNORE
             }
         }
+    }
 
-        // delay 2 seconds, write second to last times
-        try {
-            wait(2000);
-        } catch (InterruptedException e) {
-            // IGNORE
-        }
-        write();
-
-        // delay 10 seconds, write second to last time
-        try {
-            wait(10000);
-        } catch (InterruptedException e) {
-            // IGNORE
-        }
-        write();
-
-        
-        // delay two minutes, write on more time
-        try {
-            wait(120000);
-        } catch (InterruptedException e) {
-            // IGNORE
-        }
-        write();
+    public synchronized void nudge() {
+        notifyAll();
     }
 
 }
