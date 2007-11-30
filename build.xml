@@ -8,6 +8,7 @@
             depends="clean,compile,javadoc,examples,benchmarks" />
 
     <!-- Names for generated directories. -->
+    <property name="src" location="src" />
     <property name="tmp" location="tmp" />
     <property name="lib" location="lib" />
     <property name="rewritten-classlibs" location="classlibs" />
@@ -43,10 +44,15 @@
         <mkdir dir="${lib}" />
 
         <!-- Compile the java code from src into ${tmp} -->
-        <javac srcdir="src" destdir="${tmp}" debug="on">
-            <classpath refid="external.jars" />
-            <compilerarg value="-Xlint:unchecked" />
-        </javac>
+        <javac srcdir="${src}" 
+               destdir="${tmp}" 
+               debug="on"
+               source="1.5"
+               target="1.5"
+               classpathref="external.jars">
+		<compilerarg value="-Xlint:unchecked" />
+	</javac>
+
 
         <!--
 	    	Build jar of IPL before rewriting. Otherwise a dependency of
