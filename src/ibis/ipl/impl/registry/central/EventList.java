@@ -84,11 +84,13 @@ public class EventList {
     public void add(Event... newEvents) {
         for(Event event: newEvents) {
             events.add(event);
-            logger.debug("adding event to list: " + event + ", list now " + toString());
+            if (logger.isDebugEnabled()) {
+                logger.debug("adding event to list: " + event + ", list now " + toString());
+            }
         }
     }
     
-    public synchronized void purgeUpto(int time) {
+    public void purgeUpto(int time) {
         logger.debug("purging upto " + time);
         while(!events.isEmpty() && events.first().getTime() < time) {
             Event first = events.first();

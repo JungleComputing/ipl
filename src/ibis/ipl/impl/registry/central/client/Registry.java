@@ -281,7 +281,7 @@ public final class Registry extends ibis.ipl.impl.Registry {
         return pool.getSize();
     }
 
-    public synchronized void waitUntilPoolClosed() {
+    public void waitUntilPoolClosed() {
         if (!pool.isClosedWorld()) {
             throw new IbisConfigurationException(
                     "waitForAll called but open world run");
@@ -331,7 +331,7 @@ public final class Registry extends ibis.ipl.impl.Registry {
      * Handles incoming user events.
      */
     synchronized void handleEvent(Event event) {
-        logger.info("new event passed to user: " + event);
+        logger.debug("new event passed to user: " + event);
 
         // generate an upcall for this event
         if (upcaller != null) {

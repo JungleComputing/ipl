@@ -133,6 +133,12 @@ final class IterativeEventPusher implements Runnable {
                     + eventTime);
 
             pool.purgeHistory();
+            
+//            try {
+//                Thread.sleep(100);
+//            } catch (InterruptedException e) {
+//                //IGNORE
+//            }
 
             if (eventTriggersPush) {
                 pool.waitForEventTime(eventTime + 1, timeout);

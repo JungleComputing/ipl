@@ -14,7 +14,6 @@ import ibis.ipl.impl.registry.central.Member;
 import ibis.ipl.impl.registry.central.MemberSet;
 import ibis.ipl.impl.registry.central.RegistryProperties;
 import ibis.ipl.impl.registry.central.TreeMemberSet;
-import ibis.util.ThreadPool;
 import ibis.util.TypedProperties;
 
 import java.io.DataInputStream;
@@ -26,7 +25,7 @@ import java.util.TreeSet;
 
 import org.apache.log4j.Logger;
 
-final class Pool implements Runnable {
+final class Pool {
 
     private static final Logger logger = Logger.getLogger(Pool.class);
 
@@ -145,7 +144,7 @@ final class Pool implements Runnable {
     // new incoming events
     synchronized void newEventsReceived(Event[] events) {
         eventList.add(events);
-        notifyAll();
+        handleEvents();
     }
 
     synchronized void purgeHistoryUpto(int time) {
@@ -194,9 +193,8 @@ final class Pool implements Runnable {
             statistics.newPoolSize(members.size());
         }
 
+        handleEvents();
         logger.debug("bootstrap complete");
-
-        ThreadPool.createNew(this, "pool event generator");
     }
 
     synchronized void writeState(DataOutputStream out, int joinTime)
@@ -340,34 +338,16 @@ final class Pool implements Runnable {
     /**
      * Handles incoming events, passes events to the registry
      */
-    public synchronized void run() {
-        while (!(initialized || stopped)) {
-            try {
-                wait();
-            } catch (InterruptedException e) {
-                // IGNORE
-            }
+    private synchronized void handleEvents() {
+        if (!initialized) {
+            return;
         }
 
         while (true) {
             Event event = eventList.get(time);
 
-            while (event == null && !stopped) {
-                try {
-                    wait();
-                } catch (InterruptedException e) {
-                    // IGNORE
-                }
-                event = eventList.get(time);
-            }
-
-            if (stopped) {
-                return;
-            }
-
             if (event == null) {
-                logger.error("could not get event!");
-                continue;
+                return;
             }
 
             handleEvent(event);

@@ -92,6 +92,8 @@ public class StatisticsWriter extends Thread {
             return;
         }
 
+        out.format("time total_size participants average");
+        
         // always write at lease one value past the "end" time
         for (long time = start; time <= (end + interval); time += interval) {
             int participants = 0;
@@ -153,10 +155,10 @@ public class StatisticsWriter extends Thread {
             out.format("#server stats:\n");
             serverStatistics.printCommStats(out, opcodeNames);
 
-            out.format("#pool size\n");
             out.format("#server total data transfer = %.2f\n", serverStatistics
                     .totalTraffic());
 
+            out.format("#pool size\n");
             writePoolHistory(start, end, interval, out, serverStatistics);
 
             out.flush();

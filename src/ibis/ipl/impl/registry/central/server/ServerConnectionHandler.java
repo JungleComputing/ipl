@@ -16,12 +16,12 @@ import org.apache.log4j.Logger;
 
 final class ServerConnectionHandler implements Runnable {
 
-    private static final int CONNECTION_BACKLOG = 50;
+    private static final int CONNECTION_BACKLOG = 25;
 
-    static final int THREADS = 10;
+    static final int MAX_THREADS = 25;
 
-    private static final Logger logger =
-        Logger.getLogger(ServerConnectionHandler.class);
+    private static final Logger logger = Logger
+            .getLogger(ServerConnectionHandler.class);
 
     private final Server server;
 
@@ -29,16 +29,18 @@ final class ServerConnectionHandler implements Runnable {
 
     private final VirtualServerSocket serverSocket;
 
+    private int currentNrOfThreads = 0;
+    private int maxNrOfThreads = 0;
+
     ServerConnectionHandler(Server server,
             VirtualSocketFactory connectionFactory) throws IOException {
         this.server = server;
         this.socketFactory = connectionFactory;
 
-        serverSocket =
-            socketFactory.createServerSocket(Server.VIRTUAL_PORT,
+        serverSocket = socketFactory.createServerSocket(Server.VIRTUAL_PORT,
                 CONNECTION_BACKLOG, null);
 
-        ThreadPool.createNew(this, "registry server connection handler");
+        createThread();
     }
 
     private Pool handleJoin(Connection connection) throws Exception {
@@ -76,14 +78,13 @@ final class ServerConnectionHandler implements Runnable {
         boolean keepStatistics = connection.in().readBoolean();
         long statisticsInterval = connection.in().readLong();
 
-        pool =
-            server.getAndCreatePool(poolName, heartbeatInterval,
+        pool = server.getAndCreatePool(poolName, heartbeatInterval,
                 eventPushInterval, gossip, gossipInterval, adaptGossipInterval,
-                tree, closedWorld, poolSize, keepStatistics, statisticsInterval, ibisImplementationIdentifier);
+                tree, closedWorld, poolSize, keepStatistics,
+                statisticsInterval, ibisImplementationIdentifier);
 
         try {
-            member =
-                pool.join(implementationData, clientAddress, location,
+            member = pool.join(implementationData, clientAddress, location,
                     ibisImplementationIdentifier);
         } catch (IOException e) {
             connection.closeWithError(e.getMessage());
@@ -98,7 +99,7 @@ final class ServerConnectionHandler implements Runnable {
 
         connection.out().flush();
         pool.gotHeartbeat(member.getIbis());
-        
+
         return pool;
     }
 
@@ -131,7 +132,7 @@ final class ServerConnectionHandler implements Runnable {
 
     }
 
-    private Pool  handleElect(Connection connection) throws Exception {
+    private Pool handleElect(Connection connection) throws Exception {
         IbisIdentifier candidate = new IbisIdentifier(connection.in());
         String election = connection.in().readUTF();
 
@@ -152,7 +153,7 @@ final class ServerConnectionHandler implements Runnable {
 
     }
 
-    private Pool  handleGetSequenceNumber(Connection connection)
+    private Pool handleGetSequenceNumber(Connection connection)
             throws Exception {
         IbisIdentifier identifier = new IbisIdentifier(connection.in());
         String name = connection.in().readUTF();
@@ -174,7 +175,7 @@ final class ServerConnectionHandler implements Runnable {
 
     }
 
-    private Pool  handleDead(Connection connection) throws Exception {
+    private Pool handleDead(Connection connection) throws Exception {
         IbisIdentifier identifier = new IbisIdentifier(connection.in());
         IbisIdentifier corpse = new IbisIdentifier(connection.in());
 
@@ -199,7 +200,7 @@ final class ServerConnectionHandler implements Runnable {
 
     }
 
-    private Pool  handleMaybeDead(Connection connection) throws Exception {
+    private Pool handleMaybeDead(Connection connection) throws Exception {
         IbisIdentifier identifier = new IbisIdentifier(connection.in());
         IbisIdentifier suspect = new IbisIdentifier(connection.in());
 
@@ -218,13 +219,13 @@ final class ServerConnectionHandler implements Runnable {
 
     }
 
-    private Pool  handleSignal(Connection connection) throws Exception {
+    private Pool handleSignal(Connection connection) throws Exception {
         IbisIdentifier identifier = new IbisIdentifier(connection.in());
 
         String signal = connection.in().readUTF();
 
-        IbisIdentifier[] receivers =
-            new IbisIdentifier[connection.in().readInt()];
+        IbisIdentifier[] receivers = new IbisIdentifier[connection.in()
+                .readInt()];
         for (int i = 0; i < receivers.length; i++) {
             receivers[i] = new IbisIdentifier(connection.in());
         }
@@ -285,10 +286,10 @@ final class ServerConnectionHandler implements Runnable {
         long localTime = System.currentTimeMillis();
         connection.sendOKReply();
         IbisIdentifier identifier = new IbisIdentifier(connection.in());
-        Statistics statistics =
-            new Statistics(connection.in(), localTime - remoteTime);
+        Statistics statistics = new Statistics(connection.in(), localTime
+                - remoteTime);
         connection.sendOKReply();
-        
+
         Pool pool = server.getPool(identifier.poolName());
 
         if (pool == null) {
@@ -302,6 +303,30 @@ final class ServerConnectionHandler implements Runnable {
 
     }
 
+    private synchronized void createThread() {
+        while (currentNrOfThreads >= MAX_THREADS) {
+            try {
+                wait();
+            } catch (InterruptedException e) {
+                // IGNORE
+            }
+        }
+
+        // create new thread for next connection
+        ThreadPool.createNew(this, "server connection handler");
+        currentNrOfThreads++;
+
+        if (currentNrOfThreads > maxNrOfThreads) {
+            maxNrOfThreads = currentNrOfThreads;
+        }
+    }
+
+    private synchronized void threadEnded() {
+        currentNrOfThreads--;
+
+        notifyAll();
+    }
+
     public void run() {
         Connection connection = null;
         try {
@@ -310,6 +335,7 @@ final class ServerConnectionHandler implements Runnable {
             logger.debug("connection accepted");
         } catch (IOException e) {
             if (server.isStopped()) {
+                threadEnded();
                 return;
             }
             logger.error("Accept failed, waiting a second, will retry", e);
@@ -322,10 +348,10 @@ final class ServerConnectionHandler implements Runnable {
             }
         }
 
-        // create new thread for next connection
-        ThreadPool.createNew(this, "peer connection handler");
+        createThread();
 
         if (connection == null) {
+            threadEnded();
             return;
         }
         long start = System.currentTimeMillis();
@@ -339,12 +365,14 @@ final class ServerConnectionHandler implements Runnable {
                 throw new IOException(
                         "Invalid header byte in accepting connection");
             }
-            
+
             byte protocolVersion = connection.in().readByte();
 
             if (protocolVersion != Protocol.VERSION) {
                 throw new IOException(
-                        "Wrong protocol version in incoming connection: " + protocolVersion + ", should be " + Protocol.VERSION);
+                        "Wrong protocol version in incoming connection: "
+                                + protocolVersion + ", should be "
+                                + Protocol.VERSION);
             }
 
             opcode = connection.in().readByte();
@@ -396,9 +424,10 @@ final class ServerConnectionHandler implements Runnable {
 
         if (pool != null && pool.getCommStats() != null) {
             pool.getCommStats().add(opcode, System.currentTimeMillis() - start,
-                connection.read(), connection.written(), true);
+                    connection.read(), connection.written(), true);
             logger.debug("done handling request");
         }
+        threadEnded();
     }
 
     public void end() {
@@ -406,6 +435,12 @@ final class ServerConnectionHandler implements Runnable {
             serverSocket.close();
         } catch (Exception e) {
             // IGNORE
+        }
+        if (logger.isInfoEnabled()) {
+            synchronized (this) {
+                logger.info("max simultanious connections was: "
+                        + maxNrOfThreads);
+            }
         }
     }
 }

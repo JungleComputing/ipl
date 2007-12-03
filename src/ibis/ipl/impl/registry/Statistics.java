@@ -185,7 +185,7 @@ public final class Statistics {
                 outgoingRequestCounter[i], bytesIn[i], bytesOut[i],
                 totalTimes[i] / 1000.0, average);
         }
-        formatter.format("distance from server: %d Ms" , offset);
+        formatter.format("distance from server: %d Ms\n" , offset);
     }
 
     public synchronized void newPoolSize(int poolSize) {

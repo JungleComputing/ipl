@@ -24,7 +24,9 @@ import org.apache.log4j.Logger;
 
 final class CommunicationHandler implements Runnable {
 
-    private static final int CONNECTION_BACKLOG = 50;
+    private static final int CONNECTION_BACKLOG = 25;
+
+    private static final int MAX_THREADS = 25;
 
     private static final Logger logger = Logger
             .getLogger(CommunicationHandler.class);
@@ -52,6 +54,9 @@ final class CommunicationHandler implements Runnable {
     private int bootstrapTime;
 
     private IbisIdentifier[] bootstrapList;
+
+    private int currentNrOfThreads = 0;
+    private int maxNrOfThreads = 0;
 
     CommunicationHandler(TypedProperties properties, Pool pool,
             Statistics statistics) throws IOException {
@@ -106,18 +111,7 @@ final class CommunicationHandler implements Runnable {
             eventPusher.start();
         }
 
-        // send statistics if needed
-        if (properties.getBooleanProperty(RegistryProperties.STATISTICS)) {
-            long statisticsSendInterval = properties
-                    .getIntProperty(RegistryProperties.STATISTICS_INTERVAL) * 1000;
-
-            Thread statSender = new StatisticsSender(this,
-                    statisticsSendInterval);
-            statSender.setDaemon(true);
-            statSender.start();
-        }
-
-        ThreadPool.createNew(this, "client connection handler");
+        createThread();
     }
 
     synchronized IbisIdentifier getIdentifier() {
@@ -745,7 +739,7 @@ final class CommunicationHandler implements Runnable {
 
     }
 
-    public void sendStatistics() {
+    public void sendStatistics() throws Exception {
         logger.debug("sending statistics");
 
         long start = System.currentTimeMillis();
@@ -788,7 +782,7 @@ final class CommunicationHandler implements Runnable {
             if (connection != null) {
                 connection.close();
             }
-            logger.error("could not send statistics", e);
+            throw e;
         }
 
     }
@@ -930,6 +924,30 @@ final class CommunicationHandler implements Runnable {
         connection.close();
     }
 
+    private synchronized void createThread() {
+        while (currentNrOfThreads >= MAX_THREADS) {
+            try {
+                wait();
+            } catch (InterruptedException e) {
+                // IGNORE
+            }
+        }
+
+        // create new thread for next connection
+        ThreadPool.createNew(this, "client connection handler");
+        currentNrOfThreads++;
+
+        if (currentNrOfThreads > maxNrOfThreads) {
+            maxNrOfThreads = currentNrOfThreads;
+        }
+    }
+
+    private synchronized void threadEnded() {
+        currentNrOfThreads--;
+
+        notifyAll();
+    }
+
     public void run() {
         Connection connection = null;
         try {
@@ -938,6 +956,7 @@ final class CommunicationHandler implements Runnable {
             logger.debug("connection accepted");
         } catch (IOException e) {
             if (pool.isStopped()) {
+                threadEnded();
                 return;
             }
             logger.error("Accept failed, waiting a second, will retry", e);
@@ -951,9 +970,10 @@ final class CommunicationHandler implements Runnable {
         }
 
         // create new thread for next connection
-        ThreadPool.createNew(this, "client connection handler");
+        createThread();
 
         if (connection == null) {
+            threadEnded();
             return;
         }
 
@@ -1011,11 +1031,26 @@ final class CommunicationHandler implements Runnable {
         } finally {
             connection.close();
         }
+        threadEnded();
     }
 
     void end() {
         if (properties.getBooleanProperty(RegistryProperties.STATISTICS)) {
-            sendStatistics();
+            // wait for two minutes
+            try {
+                logger.warn("waiting 2 minutes before sending statistics");
+                Thread.sleep(120000);
+            } catch (InterruptedException e) {
+                // IGNORE
+            }
+            for (int i = 0; i < 10; i++) {
+                try {
+                    sendStatistics();
+                    break;
+                } catch (Exception e) {
+                    logger.warn("could not send statistics (possibly trying again)");
+                }
+            }
         }
 
         try {
