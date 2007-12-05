@@ -4,7 +4,6 @@ import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.IbisProperties;
 import ibis.ipl.impl.IbisIdentifier;
-import ibis.ipl.impl.registry.Statistics;
 import ibis.ipl.impl.registry.central.Election;
 import ibis.ipl.impl.registry.central.ElectionSet;
 import ibis.ipl.impl.registry.central.Event;
@@ -14,6 +13,7 @@ import ibis.ipl.impl.registry.central.Member;
 import ibis.ipl.impl.registry.central.MemberSet;
 import ibis.ipl.impl.registry.central.RegistryProperties;
 import ibis.ipl.impl.registry.central.TreeMemberSet;
+import ibis.ipl.impl.registry.statistics.Statistics;
 import ibis.util.TypedProperties;
 
 import java.io.DataInputStream;

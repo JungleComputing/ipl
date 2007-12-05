@@ -30,8 +30,6 @@ public final class Protocol {
 
     public static final byte OPCODE_HEARTBEAT = 11;
 
-    public static final byte OPCODE_STATISTICS = 12;
-
     public static final int NR_OF_OPCODES = 13;
 
     public static final String[] OPCODE_NAMES =

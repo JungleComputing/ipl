@@ -1,7 +1,7 @@
 /**
  * 
  */
-package ibis.ipl.impl.registry;
+package ibis.ipl.impl.registry.statistics;
 
 class DataPoint {
     private long time;

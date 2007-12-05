@@ -3,8 +3,6 @@ package ibis.ipl.impl.registry.central.server;
 import ibis.ipl.impl.IbisIdentifier;
 import ibis.ipl.impl.Location;
 import ibis.ipl.impl.registry.Connection;
-import ibis.ipl.impl.registry.Statistics;
-import ibis.ipl.impl.registry.StatisticsWriter;
 import ibis.ipl.impl.registry.central.Election;
 import ibis.ipl.impl.registry.central.ElectionSet;
 import ibis.ipl.impl.registry.central.Event;
@@ -14,6 +12,7 @@ import ibis.ipl.impl.registry.central.Member;
 import ibis.ipl.impl.registry.central.MemberSet;
 import ibis.ipl.impl.registry.central.Protocol;
 import ibis.ipl.impl.registry.central.TreeMemberSet;
+import ibis.ipl.impl.registry.statistics.Statistics;
 import ibis.smartsockets.virtual.VirtualSocketFactory;
 import ibis.util.ThreadPool;
 
@@ -74,8 +73,6 @@ final class Pool implements Runnable {
 
     private final Statistics statistics;
 
-    private final StatisticsWriter statisticsWriter;
-    
     // simple statistics which are always kept, 
     // so the server can print them if so requested
     private final int[] eventStats;
@@ -107,13 +104,9 @@ final class Pool implements Runnable {
 
         if (keepStatistics) {
             statistics =
-                new Statistics(Protocol.NR_OF_OPCODES);
-            statisticsWriter = new StatisticsWriter(name, statisticsInterval, statistics, Protocol.OPCODE_NAMES);
-            statisticsWriter.setDaemon(true);
-            statisticsWriter.start();
+                new Statistics(Protocol.OPCODE_NAMES);
         } else {
             statistics = null;
-            statisticsWriter = null;
         }
 
         currentEventTime = 0;
@@ -232,9 +225,6 @@ final class Pool implements Runnable {
         ended = true;
         staleTime = System.currentTimeMillis() + STALE_TIMEOUT;
         pusher.enqueue(null);
-        if (statisticsWriter != null) {
-            statisticsWriter.nudge();
-        }
     }
 
     public synchronized boolean stale() {
@@ -727,13 +717,6 @@ final class Pool implements Runnable {
 
         if (member != null) {
             member.updateLastSeenTime();
-        }
-    }
-
-    public void gotStatistics(IbisIdentifier identifier,
-            Statistics statistics) {
-        if (statisticsWriter != null) {
-            statisticsWriter.addStatistics(statistics, identifier);
         }
     }
 

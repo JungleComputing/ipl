@@ -1,7 +1,11 @@
-package ibis.ipl.impl.registry;
+package ibis.ipl.impl.registry.statistics;
+
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Formatter;
 import java.util.LinkedList;
@@ -10,13 +14,18 @@ import java.util.List;
 import org.apache.log4j.Logger;
 
 public final class Statistics {
+    
+    public static final int VERSION = 1;
+    
     private static final Logger logger =
         Logger.getLogger(Statistics.class);
-
+    
     private final long start;
 
-    private final int opcodes;
-
+    private long offset;
+    
+    private final String[] opcodes;
+    
     private final double[] totalTimes;
 
     private final long[] incomingRequestCounter;
@@ -27,26 +36,26 @@ public final class Statistics {
 
     private final long[] bytesOut;
 
-    private final long offset;
-    
+    private String id;
+
     List<DataPoint> poolSizeHistory;
 
     int currentPoolSize;
 
     List<DataPoint> electionEventHistory;
     
-    
-    public Statistics(int opcodes) {
+    public Statistics(String[] opcodes) {
         this.opcodes = opcodes;
+        this.id = "unknown";
         
         start = System.currentTimeMillis();
         offset = 0;
 
-        totalTimes = new double[opcodes];
-        incomingRequestCounter = new long[opcodes];
-        outgoingRequestCounter = new long[opcodes];
-        bytesIn = new long[opcodes];
-        bytesOut = new long[opcodes];
+        totalTimes = new double[opcodes.length];
+        incomingRequestCounter = new long[opcodes.length];
+        outgoingRequestCounter = new long[opcodes.length];
+        bytesIn = new long[opcodes.length];
+        bytesOut = new long[opcodes.length];
 
         poolSizeHistory = new LinkedList<DataPoint>();
         electionEventHistory = new LinkedList<DataPoint>();
@@ -54,21 +63,36 @@ public final class Statistics {
         currentPoolSize = 0;
 
     }
+    
+    public Statistics(File file) throws IOException {
+        DataInputStream in = new DataInputStream(new FileInputStream(file));
 
-    public Statistics(DataInputStream in, long timeOffset) throws IOException {
-        this.offset = timeOffset;
+        int version = in.readInt();
         
-        opcodes = in.readInt();
-
+        if (version != VERSION) {
+            throw new IOException("cannot read statistics file version: " + version);
+        }
+        
         start = in.readLong();
+        offset = in.readLong();
+        
+        id = in.readUTF();
+        
+        int nrOfOpcodes = in.readInt();
+        
+        if (nrOfOpcodes < 0) {
+            throw new IOException("negative number of opcodes");
+        }
 
-        totalTimes = new double[opcodes];
-        incomingRequestCounter = new long[opcodes];
-        outgoingRequestCounter = new long[opcodes];
-        bytesIn = new long[opcodes];
-        bytesOut = new long[opcodes];
+        opcodes = new String[nrOfOpcodes];
+        totalTimes = new double[nrOfOpcodes];
+        incomingRequestCounter = new long[nrOfOpcodes];
+        outgoingRequestCounter = new long[nrOfOpcodes];
+        bytesIn = new long[nrOfOpcodes];
+        bytesOut = new long[nrOfOpcodes];
 
-        for (int i = 0; i < opcodes; i++) {
+        for (int i = 0; i < nrOfOpcodes; i++) {
+            opcodes[i] = in.readUTF();
             totalTimes[i] = in.readDouble();
             incomingRequestCounter[i] = in.readLong();
             outgoingRequestCounter[i] = in.readLong();
@@ -84,7 +108,7 @@ public final class Statistics {
             throw new IOException("negative list size");
         }
         for(int i = 0; i < nrOfSizeDataPoints; i++) {
-            poolSizeHistory.add(new DataPoint(in.readLong() + timeOffset, in.readLong()));
+            poolSizeHistory.add(new DataPoint(in.readLong(), in.readLong()));
         }
 
         int nrOfElectionDataPoints = in.readInt();
@@ -93,18 +117,27 @@ public final class Statistics {
         }
         
         for(int i = 0; i < nrOfElectionDataPoints; i++) {
-            electionEventHistory.add(new DataPoint(in.readLong() + timeOffset, in.readLong()));
+            electionEventHistory.add(new DataPoint(in.readLong(), in.readLong()));
         }
         
         currentPoolSize = in.readInt();
+        
+        in.close();
     }
 
-    public synchronized void writeTo(DataOutputStream out) throws IOException {
-        out.writeInt(opcodes);
-
+    public synchronized void writeTo(File file) throws IOException {
+        DataOutputStream out = new DataOutputStream(new FileOutputStream(file));
+        
+        out.writeInt(VERSION);
+        
         out.writeLong(start);
-
-        for (int i = 0; i < opcodes; i++) {
+        out.writeLong(offset);
+        out.writeUTF(id);
+        
+        out.writeInt(opcodes.length);
+        
+        for (int i = 0; i < opcodes.length; i++) {
+            out.writeUTF(opcodes[i]);
             out.writeDouble(totalTimes[i]);
             out.writeLong(incomingRequestCounter[i]);
             out.writeLong(outgoingRequestCounter[i]);
@@ -127,11 +160,13 @@ public final class Statistics {
         }
         
         out.writeInt(currentPoolSize);
+        
+        out.close();
     }
 
     public synchronized void add(byte opcode, long time, long bytesReceived,
             long bytesSend, boolean incoming) {
-        if (opcode >= opcodes) {
+        if (opcode >= opcodes.length) {
             logger.error("unknown opcode in handling stats: " + opcode);
         }
 
@@ -146,7 +181,7 @@ public final class Statistics {
     }
 
     synchronized void clear() {
-        for (int i = 0; i < opcodes; i++) {
+        for (int i = 0; i < opcodes.length; i++) {
             totalTimes[i] = 0;
             incomingRequestCounter[i] = 0;
             outgoingRequestCounter[i] = 0;
@@ -154,11 +189,20 @@ public final class Statistics {
     }
 
     public synchronized boolean empty() {
-        for (byte i = 0; i < opcodes; i++) {
+        for (byte i = 0; i < opcodes.length; i++) {
             if (totalTimes[i] != 0) {
                 return false;
             }
         }
+        
+        if (poolSizeHistory.size() > 0) {
+            return false;
+        }
+        
+        if (electionEventHistory.size() > 0) {
+            return false;
+        }
+        
         return true;
     }
 
@@ -169,7 +213,7 @@ public final class Statistics {
             (System.currentTimeMillis() - start) / 1000.0);
         formatter.format("#TYPE          IN_COUNT OUT_COUNT BYTES_IN BYTES_OUT TOTAL_TIME   AVG_TIME\n");
         formatter.format("#                                                        (sec)       (ms)\n");
-        for (byte i = 0; i < opcodes; i++) {
+        for (byte i = 0; i < opcodes.length; i++) {
             totalTraffic += bytesIn[i] + bytesOut[i];
 
             double average =
@@ -225,6 +269,8 @@ public final class Statistics {
     }
     
     public synchronized long poolSizeAt(long time) {
+        time += offset;
+        
         if (poolSizeHistory.size() == 0) {
             return 0;
         }
@@ -250,15 +296,27 @@ public final class Statistics {
     public synchronized double totalTraffic() {
         double totalTraffic = 0;
         
-        for (byte i = 0; i < opcodes; i++) {
+        for (byte i = 0; i < opcodes.length; i++) {
             totalTraffic = totalTraffic + bytesIn[i] + bytesOut[i];
         }
         
         return totalTraffic / 1024.0 / 1024.0;
     }
 
-    public long getOffset() {
+    public synchronized String getID() {
+        return id;
+    }
+    
+    public synchronized void setID(String id) {
+        this.id = id;
+    }
+    
+    public synchronized long getOffset() {
         return offset;
     }
     
+    public synchronized void setOffset(long offset) {
+        this.offset = offset;
+    }
+
 }

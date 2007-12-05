@@ -5,11 +5,11 @@ import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.NoSuchPropertyException;
 import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.impl.IbisIdentifier;
-import ibis.ipl.impl.registry.Statistics;
 import ibis.ipl.impl.registry.RemoteException;
 import ibis.ipl.impl.registry.central.Event;
 import ibis.ipl.impl.registry.central.Protocol;
 import ibis.ipl.impl.registry.central.RegistryProperties;
+import ibis.ipl.impl.registry.statistics.Statistics;
 import ibis.util.TypedProperties;
 
 import java.io.IOException;
@@ -108,7 +108,7 @@ public final class Registry extends ibis.ipl.impl.Registry {
         }
 
         if (properties.getBooleanProperty(RegistryProperties.STATISTICS)) {
-            statistics = new Statistics(Protocol.NR_OF_OPCODES);
+            statistics = new Statistics(Protocol.OPCODE_NAMES);
             logger.debug("statistics: on");
         } else {
             statistics = null;

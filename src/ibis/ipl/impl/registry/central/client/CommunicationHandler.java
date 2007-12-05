@@ -5,11 +5,11 @@ import ibis.ipl.IbisProperties;
 import ibis.ipl.impl.IbisIdentifier;
 import ibis.ipl.impl.Location;
 import ibis.ipl.impl.registry.Connection;
-import ibis.ipl.impl.registry.Statistics;
 import ibis.ipl.impl.registry.central.Event;
 import ibis.ipl.impl.registry.central.Protocol;
 import ibis.ipl.impl.registry.central.RegistryProperties;
 import ibis.ipl.impl.registry.central.server.Server;
+import ibis.ipl.impl.registry.statistics.Statistics;
 import ibis.server.Client;
 import ibis.smartsockets.virtual.InitializationException;
 import ibis.smartsockets.virtual.VirtualServerSocket;
@@ -739,54 +739,6 @@ final class CommunicationHandler implements Runnable {
 
     }
 
-    public void sendStatistics() throws Exception {
-        logger.debug("sending statistics");
-
-        long start = System.currentTimeMillis();
-
-        if (getIdentifier() == null) {
-            // not joined yet
-            return;
-        }
-
-        if (statistics == null) {
-            logger
-                    .warn("trying to send statistics, but statistics are disabled");
-            return;
-        }
-
-        logger.debug("sending statistics to server");
-
-        Connection connection = null;
-        try {
-            connection = new Connection(serverAddress, timeout, true,
-                    virtualSocketFactory);
-
-            connection.out().writeByte(Protocol.SERVER_MAGIC_BYTE);
-            connection.out().writeByte(Protocol.VERSION);
-            connection.out().writeByte(Protocol.OPCODE_STATISTICS);
-            connection.getAndCheckReply();
-            connection.out().writeLong(System.currentTimeMillis());
-            connection.getAndCheckReply();
-            getIdentifier().writeTo(connection.out());
-            statistics.writeTo(connection.out());
-            connection.getAndCheckReply();
-
-            connection.close();
-
-            long end = System.currentTimeMillis();
-            statistics.add(Protocol.OPCODE_STATISTICS, end - start, connection
-                    .read(), connection.written(), false);
-            logger.debug("send statistics");
-        } catch (Exception e) {
-            if (connection != null) {
-                connection.close();
-            }
-            throw e;
-        }
-
-    }
-
     private void handleGossip(Connection connection) throws IOException {
         logger.debug("got a gossip request");
 
@@ -1035,24 +987,6 @@ final class CommunicationHandler implements Runnable {
     }
 
     void end() {
-        if (properties.getBooleanProperty(RegistryProperties.STATISTICS)) {
-            // wait for two minutes
-            try {
-                logger.warn("waiting 2 minutes before sending statistics");
-                Thread.sleep(120000);
-            } catch (InterruptedException e) {
-                // IGNORE
-            }
-            for (int i = 0; i < 10; i++) {
-                try {
-                    sendStatistics();
-                    break;
-                } catch (Exception e) {
-                    logger.warn("could not send statistics (possibly trying again)");
-                }
-            }
-        }
-
         try {
             serverSocket.close();
         } catch (Exception e) {

@@ -2,10 +2,10 @@ package ibis.ipl.impl.registry.central.server;
 
 import ibis.ipl.impl.IbisIdentifier;
 import ibis.ipl.impl.Location;
-import ibis.ipl.impl.registry.Statistics;
 import ibis.ipl.impl.registry.Connection;
 import ibis.ipl.impl.registry.central.Member;
 import ibis.ipl.impl.registry.central.Protocol;
+import ibis.ipl.impl.registry.statistics.Statistics;
 import ibis.smartsockets.virtual.VirtualServerSocket;
 import ibis.smartsockets.virtual.VirtualSocketFactory;
 import ibis.util.ThreadPool;
@@ -280,29 +280,6 @@ final class ServerConnectionHandler implements Runnable {
 
     }
 
-    private Pool handleStatistics(Connection connection) throws Exception {
-        connection.sendOKReply();
-        long remoteTime = connection.in().readLong();
-        long localTime = System.currentTimeMillis();
-        connection.sendOKReply();
-        IbisIdentifier identifier = new IbisIdentifier(connection.in());
-        Statistics statistics = new Statistics(connection.in(), localTime
-                - remoteTime);
-        connection.sendOKReply();
-
-        Pool pool = server.getPool(identifier.poolName());
-
-        if (pool == null) {
-            connection.closeWithError("pool not found");
-            throw new Exception("pool " + identifier.poolName() + " not found");
-        }
-
-        connection.sendOKReply();
-        pool.gotStatistics(identifier, statistics);
-        return pool;
-
-    }
-
     private synchronized void createThread() {
         while (currentNrOfThreads >= MAX_THREADS) {
             try {
@@ -409,9 +386,6 @@ final class ServerConnectionHandler implements Runnable {
                 break;
             case Protocol.OPCODE_HEARTBEAT:
                 pool = handleHeartbeat(connection);
-                break;
-            case Protocol.OPCODE_STATISTICS:
-                pool = handleStatistics(connection);
                 break;
             default:
                 logger.error("unknown opcode: " + opcode);
