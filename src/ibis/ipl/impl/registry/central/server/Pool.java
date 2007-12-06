@@ -18,6 +18,7 @@ import ibis.util.ThreadPool;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.util.ArrayList;
@@ -105,7 +106,10 @@ final class Pool implements Runnable {
         if (keepStatistics) {
             statistics =
                 new Statistics(Protocol.OPCODE_NAMES);
-        } else {
+            statistics.setID("server");
+            File file = new File(name + ".statistics" + File.separator + "server");
+            statistics.write(file, statisticsInterval);
+        } else {;
             statistics = null;
         }
 
@@ -225,12 +229,21 @@ final class Pool implements Runnable {
         ended = true;
         staleTime = System.currentTimeMillis() + STALE_TIMEOUT;
         pusher.enqueue(null);
+        if (statistics != null) {
+            statistics.write();
+        }
     }
 
     public synchronized boolean stale() {
         logger.debug("pool stale at " + staleTime + " now " + System.currentTimeMillis() + " ended = " + ended);
         
         return ended && (System.currentTimeMillis() > staleTime);
+    }
+    
+    public void saveStatistics() {
+        if (statistics != null) {
+            statistics.write();
+        }
     }
 
     String getName() {

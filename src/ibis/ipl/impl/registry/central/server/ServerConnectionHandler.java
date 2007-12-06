@@ -5,7 +5,6 @@ import ibis.ipl.impl.Location;
 import ibis.ipl.impl.registry.Connection;
 import ibis.ipl.impl.registry.central.Member;
 import ibis.ipl.impl.registry.central.Protocol;
-import ibis.ipl.impl.registry.statistics.Statistics;
 import ibis.smartsockets.virtual.VirtualServerSocket;
 import ibis.smartsockets.virtual.VirtualSocketFactory;
 import ibis.util.ThreadPool;

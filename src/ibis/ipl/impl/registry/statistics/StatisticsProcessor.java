@@ -49,6 +49,28 @@ public class StatisticsProcessor {
         return result;
     }
     
+    //write pool history for all experiments
+    private void writePoolHistory(Formatter out) {
+
+        out.format("experiments:\n");
+        for (Experiment experiment: experiments) {
+            out.format("%s\n", experiment.getName());
+        }
+        
+        
+        for(long time = 0; time <= (duration + 2 * interval) ; time += interval) {
+            out.format("%d", time);
+            
+            for (Experiment experiment: experiments) {
+                out.format(" %.2f", experiment.averagePoolSize(time));
+                out.format(" %.2f", experiment.serverPoolSize(time));
+            }
+            
+            out.format("\n");
+        }
+        out.flush();
+    }
+    
 //    /**
 //     * Write statistics to a file
 //     */
@@ -136,8 +158,12 @@ public class StatisticsProcessor {
             System.exit(1);
         }
         
-        new StatisticsProcessor(directories.toArray(new File[0]), interval);
+        StatisticsProcessor processor = new StatisticsProcessor(directories.toArray(new File[0]), interval);
         
+        Formatter out = new Formatter("statistics");
+        
+        processor.writePoolHistory(out);
+        out.close();
     }
 
 

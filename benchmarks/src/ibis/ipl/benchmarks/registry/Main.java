@@ -60,7 +60,7 @@ public final class Main {
         logger.debug("created ibisses, running main loop");
 
         long sleep = runtime - (System.currentTimeMillis() - start);
-        System.err.println("sleeping : " + sleep);
+        System.err.println("Benchmark app sleeping : " + sleep);
         if (sleep > 0) {
             Thread.sleep(sleep);
         }

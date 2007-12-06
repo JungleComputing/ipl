@@ -12,6 +12,7 @@ import ibis.ipl.impl.registry.central.RegistryProperties;
 import ibis.ipl.impl.registry.statistics.Statistics;
 import ibis.util.TypedProperties;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -130,6 +131,17 @@ public final class Registry extends ibis.ipl.impl.Registry {
         } catch (RemoteException e) {
             // error caused by server "complaining"
             throw new IbisConfigurationException(e.getMessage());
+        }
+
+        //start writing statistics
+        if (statistics != null) {
+            statistics.setID(identifier.toString());
+            File file =
+                new File(pool.getName() + ".statistics" + File.separator
+                        + identifier.toString());
+            statistics.write(
+                file,
+                properties.getIntProperty(RegistryProperties.STATISTICS_INTERVAL) * 1000);
         }
 
         logger.debug("registry for " + identifier + " initiated");
@@ -325,6 +337,10 @@ public final class Registry extends ibis.ipl.impl.Registry {
         }
 
         communicationHandler.leave();
+        
+        if (statistics != null) {
+            statistics.write();
+        }
     }
 
     /**

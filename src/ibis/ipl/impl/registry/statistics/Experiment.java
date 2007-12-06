@@ -17,7 +17,7 @@ import ibis.ipl.impl.IbisIdentifier;
 /**
  * Gathers statistics for a single experiment from a directory of files
  */
-public class Experiment extends Thread {
+public class Experiment {
 
     private static final Logger logger = Logger.getLogger(Experiment.class);
 
@@ -41,14 +41,16 @@ public class Experiment extends Thread {
             serverStatistics = new Statistics(serverFile);
         } else {
             serverStatistics = null;
+            logger.debug("no server file found");
         }
 
         clientStatistics = new ArrayList<Statistics>();
 
         for (File file : directory.listFiles()) {
-            if (!file.getName().equals("server")) {
-                clientStatistics.add(new Statistics(file));
+            if (file.getName().equals("server") || file.getName().endsWith(".old")) {
+                continue;
             }
+            clientStatistics.add(new Statistics(file));
         }
 
         startTime = getStartTime();
@@ -87,45 +89,60 @@ public class Experiment extends Thread {
         return result;
     }
     
+    String getName() {
+        return poolName;
+    }
+    
     long duration() {
+        logger.debug("duration = " + (endTime - startTime));
+
         return endTime - startTime;
     }
+    
+    
+    double serverPoolSize(long time) {
+        long realtime = time + startTime;
+        
+        if (serverStatistics != null) {
+            double result = serverStatistics.poolSizeAt(realtime);
 
-    private static void writePoolHistory(long start, long end, long interval,
-            Formatter out, Statistics... allStatistics) {
-        if (allStatistics.length == 0) {
-            return;
-        }
+            logger.debug("SERVER statistics: value at " + time + " (" + realtime + ") = " + result);
 
-        out.format("time total_size participants average");
-
-        // always write at lease one value past the "end" time
-        for (long time = start; time <= (end + interval); time += interval) {
-            int participants = 0;
-            long total = 0;
-
-            for (Statistics statistics : allStatistics) {
-                long value = statistics.poolSizeAt(time);
-
-                if (value >= 0) {
-                    total = total + value;
-                    participants++;
-                }
+            if (result == -1) {
+                return 0;
             }
-
-            double average = ((double) total) / ((double) participants);
-
-            if (participants == 0) {
-                average = 0;
-            }
-
-            out.format("%d %d %d %f\n", time - start, total, participants,
-                average);
+            
+            return result;
         }
-
+        
+        return 0;
+    }
+    
+    double averagePoolSize(long time) {
+        long realtime = time + startTime;
+        
+        double active = 0;
+        double total = 0;
+        
+        for(Statistics statistics: clientStatistics) {
+            double value = statistics.poolSizeAt(realtime);
+            
+            logger.debug("statistics: " + statistics + " value at " + time + " (" + realtime + ") = " + value);
+            
+            if (value != -1) {
+                active = active + 1;
+                total = total + value;
+            }
+        }
+        
+        if (active == 0) {
+            return 0;
+        }
+        
+        return total / active;
     }
 
-    private double averageClientTraffic() {
+    double averageClientTraffic() {
         if (clientStatistics.size() == 0) {
             return 0;
         }

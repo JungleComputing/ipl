@@ -1,5 +1,6 @@
 package ibis.ipl.impl.registry.statistics;
 
+import ibis.util.ThreadPool;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -13,19 +14,18 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-public final class Statistics {
-    
+public final class Statistics implements Runnable {
+
     public static final int VERSION = 1;
-    
-    private static final Logger logger =
-        Logger.getLogger(Statistics.class);
-    
+
+    private static final Logger logger = Logger.getLogger(Statistics.class);
+
     private final long start;
 
     private long offset;
-    
+
     private final String[] opcodes;
-    
+
     private final double[] totalTimes;
 
     private final long[] incomingRequestCounter;
@@ -38,16 +38,20 @@ public final class Statistics {
 
     private String id;
 
+    private File file;
+
+    private long writeInterval;
+
     List<DataPoint> poolSizeHistory;
 
     int currentPoolSize;
 
     List<DataPoint> electionEventHistory;
-    
+
     public Statistics(String[] opcodes) {
         this.opcodes = opcodes;
         this.id = "unknown";
-        
+
         start = System.currentTimeMillis();
         offset = 0;
 
@@ -61,25 +65,25 @@ public final class Statistics {
         electionEventHistory = new LinkedList<DataPoint>();
 
         currentPoolSize = 0;
-
     }
-    
+
     public Statistics(File file) throws IOException {
         DataInputStream in = new DataInputStream(new FileInputStream(file));
 
         int version = in.readInt();
-        
+
         if (version != VERSION) {
-            throw new IOException("cannot read statistics file version: " + version);
+            throw new IOException("cannot read statistics file version: "
+                    + version);
         }
-        
+
         start = in.readLong();
         offset = in.readLong();
-        
+
         id = in.readUTF();
-        
+
         int nrOfOpcodes = in.readInt();
-        
+
         if (nrOfOpcodes < 0) {
             throw new IOException("negative number of opcodes");
         }
@@ -99,15 +103,15 @@ public final class Statistics {
             bytesIn[i] = in.readLong();
             bytesOut[i] = in.readLong();
         }
-        
+
         poolSizeHistory = new LinkedList<DataPoint>();
         electionEventHistory = new LinkedList<DataPoint>();
-        
+
         int nrOfSizeDataPoints = in.readInt();
         if (nrOfSizeDataPoints < 0) {
             throw new IOException("negative list size");
         }
-        for(int i = 0; i < nrOfSizeDataPoints; i++) {
+        for (int i = 0; i < nrOfSizeDataPoints; i++) {
             poolSizeHistory.add(new DataPoint(in.readLong(), in.readLong()));
         }
 
@@ -115,53 +119,71 @@ public final class Statistics {
         if (nrOfElectionDataPoints < 0) {
             throw new IOException("negative list size");
         }
-        
-        for(int i = 0; i < nrOfElectionDataPoints; i++) {
+
+        for (int i = 0; i < nrOfElectionDataPoints; i++) {
             electionEventHistory.add(new DataPoint(in.readLong(), in.readLong()));
         }
-        
+
         currentPoolSize = in.readInt();
-        
+
         in.close();
     }
 
-    public synchronized void writeTo(File file) throws IOException {
-        DataOutputStream out = new DataOutputStream(new FileOutputStream(file));
-        
-        out.writeInt(VERSION);
-        
-        out.writeLong(start);
-        out.writeLong(offset);
-        out.writeUTF(id);
-        
-        out.writeInt(opcodes.length);
-        
-        for (int i = 0; i < opcodes.length; i++) {
-            out.writeUTF(opcodes[i]);
-            out.writeDouble(totalTimes[i]);
-            out.writeLong(incomingRequestCounter[i]);
-            out.writeLong(outgoingRequestCounter[i]);
-            out.writeLong(bytesIn[i]);
-            out.writeLong(bytesOut[i]);
-        }
-        
-        out.writeInt(poolSizeHistory.size());
-        
-        for(DataPoint point: poolSizeHistory) {
-            out.writeLong(point.getTime());
-            out.writeLong(point.getValue());
-        }
+    public synchronized void write() {
+        try {
 
-        out.writeInt(electionEventHistory.size());
-        
-        for(DataPoint point: electionEventHistory) {
-            out.writeLong(point.getTime());
-            out.writeLong(point.getValue());
+            if (file == null) {
+                logger.error("cannot write statistics, file unset");
+                return;
+            }
+
+            if (file.exists()) {
+                file.renameTo(new File(file.getPath() + ".old"));
+            }
+
+            file.getParentFile().mkdirs();
+
+            DataOutputStream out =
+                new DataOutputStream(new FileOutputStream(file));
+
+            out.writeInt(VERSION);
+
+            out.writeLong(start);
+            out.writeLong(offset);
+            out.writeUTF(id);
+
+            out.writeInt(opcodes.length);
+
+            for (int i = 0; i < opcodes.length; i++) {
+                out.writeUTF(opcodes[i]);
+                out.writeDouble(totalTimes[i]);
+                out.writeLong(incomingRequestCounter[i]);
+                out.writeLong(outgoingRequestCounter[i]);
+                out.writeLong(bytesIn[i]);
+                out.writeLong(bytesOut[i]);
+            }
+
+            out.writeInt(poolSizeHistory.size());
+
+            for (DataPoint point : poolSizeHistory) {
+                out.writeLong(point.getTime());
+                out.writeLong(point.getValue());
+            }
+
+            out.writeInt(electionEventHistory.size());
+
+            for (DataPoint point : electionEventHistory) {
+                out.writeLong(point.getTime());
+                out.writeLong(point.getValue());
+            }
+
+            out.writeInt(currentPoolSize);
+
+            out.close();
+
+        } catch (IOException e) {
+            logger.error("cannot write statistics to " + file, e);
         }
-        
-        out.writeInt(currentPoolSize);
-        
-        out.close();
     }
 
     public synchronized void add(byte opcode, long time, long bytesReceived,
@@ -194,19 +216,20 @@ public final class Statistics {
                 return false;
             }
         }
-        
+
         if (poolSizeHistory.size() > 0) {
             return false;
         }
-        
+
         if (electionEventHistory.size() > 0) {
             return false;
         }
-        
+
         return true;
     }
 
-    public synchronized void printCommStats(Formatter formatter, String[] opcodeNames) {
+    public synchronized void printCommStats(Formatter formatter,
+            String[] opcodeNames) {
         long totalTraffic = 0;
 
         formatter.format("#statistics at %.2f seconds:\n",
@@ -229,12 +252,12 @@ public final class Statistics {
                 outgoingRequestCounter[i], bytesIn[i], bytesOut[i],
                 totalTimes[i] / 1000.0, average);
         }
-        formatter.format("distance from server: %d Ms\n" , offset);
+        formatter.format("distance from server: %d Ms\n", offset);
     }
 
     public synchronized void newPoolSize(int poolSize) {
         poolSizeHistory.add(new DataPoint(poolSize));
-        
+
         logger.debug("reported pool size now: " + poolSize);
     }
 
@@ -245,78 +268,103 @@ public final class Statistics {
     public synchronized long getStartTime() {
         return start;
     }
-    
+
     public synchronized long getEndTime() {
         long result = start;
-        
+
         if (poolSizeHistory.size() > 0) {
-            long time = poolSizeHistory.get(poolSizeHistory.size() - 1).getTime();
-            
+            long time =
+                poolSizeHistory.get(poolSizeHistory.size() - 1).getTime();
+
             if (time > result) {
                 result = time;
             }
         }
 
         if (electionEventHistory.size() > 0) {
-            long time = electionEventHistory.get(electionEventHistory.size() - 1).getTime();
-            
+            long time =
+                electionEventHistory.get(electionEventHistory.size() - 1).getTime();
+
             if (time > result) {
                 result = time;
             }
         }
-        
+
         return result;
     }
-    
+
     public synchronized long poolSizeAt(long time) {
         time += offset;
-        
+
         if (poolSizeHistory.size() == 0) {
             return 0;
         }
-        
+
         long result = 0;
 
-        for(DataPoint point: poolSizeHistory) {
+        for (DataPoint point : poolSizeHistory) {
             if (point.getTime() > time) {
-                //previous point is result
+                // previous point is result
                 return result;
             } else {
                 result = point.getValue();
             }
         }
-        //return -1 (we don't know)
+        // return -1 (we don't know)
         return -1;
     }
-    
+
     public synchronized DataPoint[] getPoolSizeData() {
         return poolSizeHistory.toArray(new DataPoint[0]);
     }
-    
+
     public synchronized double totalTraffic() {
         double totalTraffic = 0;
-        
+
         for (byte i = 0; i < opcodes.length; i++) {
             totalTraffic = totalTraffic + bytesIn[i] + bytesOut[i];
         }
-        
+
         return totalTraffic / 1024.0 / 1024.0;
     }
 
     public synchronized String getID() {
         return id;
     }
-    
+
     public synchronized void setID(String id) {
         this.id = id;
     }
-    
+
     public synchronized long getOffset() {
         return offset;
     }
-    
+
     public synchronized void setOffset(long offset) {
         this.offset = offset;
+    }
+
+    public void write(File file, long writeInterval) {
+        this.file = file;
+        this.writeInterval = writeInterval;
+
+        ThreadPool.createNew(this, "statistics writer");
+    }
+
+    public synchronized void run() {
+        while (true) {
+            write();
+
+            try {
+                wait(writeInterval);
+            } catch (InterruptedException e) {
+                // IGNORE
+            }
+        }
+    }
+    
+    public String toString() {
+        return id;
     }
 
 }

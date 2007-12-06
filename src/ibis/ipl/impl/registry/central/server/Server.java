@@ -152,6 +152,7 @@ public final class Server extends Thread implements Service {
 
                     if (pool.stale()) {
                         logger.debug("pool " + pool.getName() + " now stale");
+                        pool.saveStatistics();
                         pools.remove(pool.getName());
                         if (pools.size() == 0) {
                             notifyAll();
