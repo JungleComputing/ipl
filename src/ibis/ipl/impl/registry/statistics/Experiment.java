@@ -47,10 +47,22 @@ public class Experiment {
         clientStatistics = new ArrayList<Statistics>();
 
         for (File file : directory.listFiles()) {
-            if (file.getName().equals("server") || file.getName().endsWith(".old")) {
+            if (file.getName().equals("server")
+                    || file.getName().endsWith(".old")) {
                 continue;
             }
-            clientStatistics.add(new Statistics(file));
+            try {
+                clientStatistics.add(new Statistics(file));
+            } catch (IOException e) {
+                logger.error("cannot load statistics file: " + file
+                        + " (trying .old version)", e);
+                try {
+                    File oldFile = new File(file.getPath() + ".old");
+                    clientStatistics.add(new Statistics(oldFile));
+                } catch (IOException e2) {
+                    logger.error("cannot load OLD statistics file: " + file, e2);
+                }
+            }
         }
 
         startTime = getStartTime();
@@ -88,57 +100,58 @@ public class Experiment {
 
         return result;
     }
-    
+
     String getName() {
         return poolName;
     }
-    
+
     long duration() {
         logger.debug("duration = " + (endTime - startTime));
 
         return endTime - startTime;
     }
-    
-    
+
     double serverPoolSize(long time) {
         long realtime = time + startTime;
-        
+
         if (serverStatistics != null) {
             double result = serverStatistics.poolSizeAt(realtime);
 
-            logger.debug("SERVER statistics: value at " + time + " (" + realtime + ") = " + result);
+            logger.debug("SERVER statistics: value at " + time + " ("
+                    + realtime + ") = " + result);
 
             if (result == -1) {
                 return 0;
             }
-            
+
             return result;
         }
-        
+
         return 0;
     }
-    
+
     double averagePoolSize(long time) {
         long realtime = time + startTime;
-        
+
         double active = 0;
         double total = 0;
-        
-        for(Statistics statistics: clientStatistics) {
+
+        for (Statistics statistics : clientStatistics) {
             double value = statistics.poolSizeAt(realtime);
-            
-            logger.debug("statistics: " + statistics + " value at " + time + " (" + realtime + ") = " + value);
-            
+
+            logger.debug("statistics: " + statistics + " value at " + time
+                    + " (" + realtime + ") = " + value);
+
             if (value != -1) {
                 active = active + 1;
                 total = total + value;
             }
         }
-        
+
         if (active == 0) {
             return 0;
         }
-        
+
         return total / active;
     }
 
@@ -156,5 +169,4 @@ public class Experiment {
         return total / clientStatistics.size();
     }
 
-    
 }
