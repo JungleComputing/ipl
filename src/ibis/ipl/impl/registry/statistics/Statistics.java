@@ -38,6 +38,8 @@ public final class Statistics implements Runnable {
 
     private String id;
 
+    private String poolName;
+    
     private File file;
 
     private long writeInterval;
@@ -51,6 +53,7 @@ public final class Statistics implements Runnable {
     public Statistics(String[] opcodes) {
         this.opcodes = opcodes;
         this.id = "unknown";
+        this.poolName = "unknown";
 
         start = System.currentTimeMillis();
         offset = 0;
@@ -131,11 +134,7 @@ public final class Statistics implements Runnable {
 
     public synchronized void write() {
         try {
-
-            if (file == null) {
-                logger.error("cannot write statistics, file unset");
-                return;
-            }
+            File file = new File("statistics" + File.separator + poolName + File.separator + id);
 
             if (file.exists()) {
                 file.renameTo(new File(file.getPath() + ".old"));
@@ -228,8 +227,7 @@ public final class Statistics implements Runnable {
         return true;
     }
 
-    public synchronized void printCommStats(Formatter formatter,
-            String[] opcodeNames) {
+    public synchronized void printCommStats(Formatter formatter) {
         long totalTraffic = 0;
 
         formatter.format("#statistics at %.2f seconds:\n",
@@ -248,7 +246,7 @@ public final class Statistics implements Runnable {
             }
 
             formatter.format("#%-12s %9d %9d %8d %9d %10.2f %10.2f\n",
-                opcodeNames[i], incomingRequestCounter[i],
+                opcodes[i], incomingRequestCounter[i],
                 outgoingRequestCounter[i], bytesIn[i], bytesOut[i],
                 totalTimes[i] / 1000.0, average);
         }
@@ -332,8 +330,9 @@ public final class Statistics implements Runnable {
         return id;
     }
 
-    public synchronized void setID(String id) {
+    public synchronized void setID(String id, String poolName) {
         this.id = id;
+        this.poolName = poolName;
     }
 
     public synchronized long getOffset() {
@@ -344,8 +343,7 @@ public final class Statistics implements Runnable {
         this.offset = offset;
     }
 
-    public void write(File file, long writeInterval) {
-        this.file = file;
+    public void startWriting(long writeInterval) {
         this.writeInterval = writeInterval;
 
         ThreadPool.createNew(this, "statistics writer");
@@ -362,7 +360,7 @@ public final class Statistics implements Runnable {
             }
         }
     }
-    
+
     public String toString() {
         return id;
     }

@@ -135,13 +135,8 @@ public final class Registry extends ibis.ipl.impl.Registry {
 
         //start writing statistics
         if (statistics != null) {
-            statistics.setID(identifier.toString());
-            File file =
-                new File(pool.getName() + ".statistics" + File.separator
-                        + identifier.toString());
-            statistics.write(
-                file,
-                properties.getIntProperty(RegistryProperties.STATISTICS_INTERVAL) * 1000);
+            statistics.setID(identifier.toString(), pool.getName());
+            statistics.startWriting(properties.getIntProperty(RegistryProperties.STATISTICS_INTERVAL) * 1000);
         }
 
         logger.debug("registry for " + identifier + " initiated");

@@ -27,7 +27,7 @@ add_to_libclasspath () {
 add_to_libclasspath "${IBIS_HOME}"/lib
 
 # And finally, run ...
-java \
+exec java \
     -classpath "$CLASSPATH:$LIBCLASSPATH" \
     -Dlog4j.configuration=file:$IBIS_HOME/log4j.properties \
     "$@"

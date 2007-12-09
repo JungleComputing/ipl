@@ -32,7 +32,7 @@ public class Experiment {
     private final long endTime;
 
     Experiment(File directory) throws IOException {
-
+        
         poolName = directory.getName();
 
         File serverFile = new File(directory, "server");
@@ -46,6 +46,11 @@ public class Experiment {
 
         clientStatistics = new ArrayList<Statistics>();
 
+        if (!directory.isDirectory()) {
+            throw new IOException(directory + " not a directory");
+        }
+
+        int loadErrors = 0;
         for (File file : directory.listFiles()) {
             if (file.getName().equals("server")
                     || file.getName().endsWith(".old")) {
@@ -54,8 +59,9 @@ public class Experiment {
             try {
                 clientStatistics.add(new Statistics(file));
             } catch (IOException e) {
-                logger.error("cannot load statistics file: " + file
+                logger.debug("cannot load statistics file: " + file
                         + " (trying .old version)", e);
+                loadErrors++;
                 try {
                     File oldFile = new File(file.getPath() + ".old");
                     clientStatistics.add(new Statistics(oldFile));
@@ -64,6 +70,7 @@ public class Experiment {
                 }
             }
         }
+        logger.warn(poolName + ": " + loadErrors + " files could not be read (used .old version instead)");
 
         startTime = getStartTime();
         endTime = getEndTime();
@@ -167,6 +174,22 @@ public class Experiment {
         }
 
         return total / clientStatistics.size();
+    }
+    
+    double serverTraffic() {
+        if (serverStatistics == null) {
+            return 0;
+        }
+        
+        return serverStatistics.totalTraffic();
+    }
+
+    public void serverCommStats(Formatter out) {
+        if (serverStatistics == null) {
+            return;
+        }
+        
+        serverStatistics.printCommStats(out);
     }
 
 }

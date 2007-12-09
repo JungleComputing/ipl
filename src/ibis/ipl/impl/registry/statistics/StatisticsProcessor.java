@@ -70,6 +70,27 @@ public class StatisticsProcessor {
         }
         out.flush();
     }
+
+    //write pool history for all experiments
+    private void writeDataTransferSize(Formatter out) {
+
+        out.format("experiments:\n");
+        for (Experiment experiment: experiments) {
+            out.format("%s %.2f %.2f\n", experiment.getName(), experiment.serverTraffic(), experiment.averageClientTraffic());
+        }
+        
+        out.flush();
+    }
+
+    private void writeServerStats(Formatter out) {
+        for (Experiment experiment: experiments) {
+            out.format("####### %s #######\n", experiment.getName()); 
+            
+            experiment.serverCommStats(out);
+            
+        }
+    }
+        
     
 //    /**
 //     * Write statistics to a file
@@ -160,10 +181,18 @@ public class StatisticsProcessor {
         
         StatisticsProcessor processor = new StatisticsProcessor(directories.toArray(new File[0]), interval);
         
-        Formatter out = new Formatter("statistics");
-        
+        Formatter out = new Formatter("poolsize.statistics");
         processor.writePoolHistory(out);
         out.close();
+        
+        out = new Formatter("traffic.statistics");
+        processor.writeDataTransferSize(out);
+        out.close();
+
+        out = new Formatter("server.statistics");
+        processor.writeServerStats(out);
+        out.close();
+
     }
 
 

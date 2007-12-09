@@ -92,7 +92,7 @@ final class ServerConnectionHandler implements Runnable {
 
         connection.sendOKReply();
         member.getIbis().writeTo(connection.out());
-        connection.out().writeInt(member.getCurrentTime());
+        connection.out().writeInt(pool.getMinEventTime());
 
         pool.writeBootstrapList(connection.out());
 

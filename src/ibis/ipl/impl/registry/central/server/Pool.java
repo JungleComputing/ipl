@@ -106,9 +106,8 @@ final class Pool implements Runnable {
         if (keepStatistics) {
             statistics =
                 new Statistics(Protocol.OPCODE_NAMES);
-            statistics.setID("server");
-            File file = new File(name + ".statistics" + File.separator + "server");
-            statistics.write(file, statisticsInterval);
+            statistics.setID("server", name);
+            statistics.startWriting(statisticsInterval);
         } else {;
             statistics = null;
         }
