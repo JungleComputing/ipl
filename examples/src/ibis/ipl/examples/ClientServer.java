@@ -16,7 +16,7 @@ import java.io.IOException;
 import java.util.Date;
 
 /**
- * Exampel of a client application. The server waits until a request comes in,
+ * Example of a client application. The server waits until a request comes in,
  * and sends a reply (in this case the current time). This application shows a
  * combination of two port types. One is a many-to-one port with upcalls, the
  * other a one-to-one port with explicit receive.

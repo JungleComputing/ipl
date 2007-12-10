@@ -47,7 +47,9 @@ class IbisSocketFactory {
             try {
                 ServiceLink sl = factory.getServiceLink();
                 if (sl != null) {
-                    sl.registerProperty("ibis", id.toString());
+                    sl.registerProperty("smartsockets.viz", "I^"
+                            + id.name() + "," + id.location().toString());
+                    // sl.registerProperty("ibis", id.toString());
                 }
             } catch(Throwable e) {
                 // ignored
