@@ -254,6 +254,15 @@ public final class Statistics implements Runnable {
     }
 
     public synchronized void newPoolSize(int poolSize) {
+        if (!poolSizeHistory.isEmpty()) {
+            long lastPoolSize = poolSizeHistory.get(poolSizeHistory.size() - 1).getValue();
+            
+            if (poolSize == lastPoolSize) {
+                //ignore this update, value equal to last
+                return;
+            }
+        }
+        
         poolSizeHistory.add(new DataPoint(poolSize));
 
         logger.debug("reported pool size now: " + poolSize);

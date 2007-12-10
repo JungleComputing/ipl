@@ -95,7 +95,7 @@ final class RandomEventPusher implements Runnable {
             logger.debug("no member to contact");
         } else {
             logger.debug("gossiping/pushing to " + member);
-            pool.push(member, false);
+            pool.push(member, false, false);
         }
         threadDone();
     }

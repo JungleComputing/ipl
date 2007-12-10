@@ -8,6 +8,7 @@ import ibis.ipl.RegistryEventHandler;
 
 import ibis.ipl.impl.IbisIdentifier;
 import ibis.ipl.impl.Location;
+import ibis.ipl.impl.registry.statistics.Statistics;
 
 import ibis.util.ThreadPool;
 import ibis.util.TypedProperties;
@@ -32,6 +33,8 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
     private final String poolName;
 
     private final IbisIdentifier identifier;
+    
+    private final Statistics statistics;
 
     private final Pool pool;
 
@@ -95,7 +98,8 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
 
         properties = RegistryProperties.getHardcodedProperties();
         properties.addProperties(userProperties);
-
+        
+        
         if ((capabilities.hasCapability(IbisCapabilities.MEMBERSHIP_UNRELIABLE))
                 && eventHandler == null) {
             joinedIbises = new ArrayList<IbisIdentifier>();
@@ -123,18 +127,29 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
         UUID id = UUID.randomUUID();
 
         poolName = properties.getProperty(IbisProperties.POOL_NAME);
-
+        
         if (poolName == null) {
             throw new IbisConfigurationException(
                     "cannot initialize registry, property "
                             + IbisProperties.POOL_NAME + " is not specified");
         }
+        
+        if (properties.getBooleanProperty(RegistryProperties.STATISTICS)) {
+            statistics = new Statistics(Protocol.OPCODE_NAMES);
+            statistics.setID(id.toString(), poolName);
+            
+            long interval = properties.getIntProperty(RegistryProperties.STATISTICS_INTERVAL) * 1000;
+            
+            statistics.startWriting(interval);
+        } else {
+            statistics = null;
+        }
 
-        pool = new Pool(properties, this);
+        pool = new Pool(properties, this, statistics);
         elections = new ElectionSet(properties, this);
        
         commHandler =
-            new CommunicationHandler(properties, this, pool, elections);
+            new CommunicationHandler(properties, this, pool, elections, statistics);
 
         Location location = Location.defaultLocation(properties);
 
@@ -398,6 +413,7 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
         }
         pool.leave(identifier);
         commHandler.broadcastLeave();
+        statistics.write();
     }
 
     public void run() {

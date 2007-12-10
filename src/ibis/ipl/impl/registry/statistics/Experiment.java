@@ -1,18 +1,12 @@
 package ibis.ipl.impl.registry.statistics;
 
 import java.io.File;
-import java.io.FileFilter;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Formatter;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.log4j.Logger;
-
-import ibis.ipl.impl.IbisIdentifier;
 
 /**
  * Gathers statistics for a single experiment from a directory of files
@@ -70,7 +64,9 @@ public class Experiment {
                 }
             }
         }
-        logger.warn(poolName + ": " + loadErrors + " files could not be read (used .old version instead)");
+        if (loadErrors > 0) {
+            logger.warn(poolName + ": " + loadErrors + " files could not be read (used .old version instead)");
+        }
 
         startTime = getStartTime();
         endTime = getEndTime();

@@ -12,7 +12,6 @@ import ibis.ipl.impl.registry.central.RegistryProperties;
 import ibis.ipl.impl.registry.statistics.Statistics;
 import ibis.util.TypedProperties;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;

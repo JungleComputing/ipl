@@ -6,6 +6,7 @@ import java.util.HashSet;
 import org.apache.log4j.Logger;
 
 import ibis.ipl.impl.registry.Connection;
+import ibis.ipl.impl.registry.statistics.Statistics;
 import ibis.smartsockets.virtual.VirtualSocketAddress;
 import ibis.smartsockets.virtual.VirtualSocketFactory;
 
@@ -35,6 +36,8 @@ class ARRG extends Thread {
 
     private final String poolName;
 
+    private final Statistics statistics;
+
     private final ARRGCacheEntry self;
 
     private final ARRGCache cache;
@@ -48,10 +51,18 @@ class ARRG extends Thread {
     ARRG(VirtualSocketAddress address, boolean arrgOnly,
             VirtualSocketAddress[] bootstrapList,
             VirtualSocketAddress bootstrapAddress, String poolName,
-            VirtualSocketFactory socketFactory) {
+            VirtualSocketFactory socketFactory, Statistics statistics) {
         this.socketFactory = socketFactory;
         this.poolName = poolName;
         this.bootstrapAddress = bootstrapAddress;
+
+        if (statistics == null) {
+            statistics = new Statistics(Protocol.OPCODE_NAMES);
+            statistics.setID("server", poolName);
+            statistics.startWriting(60000);
+        }
+
+        this.statistics = statistics;
 
         self = new ARRGCacheEntry(address, arrgOnly);
 
@@ -69,7 +80,9 @@ class ARRG extends Thread {
 
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see java.lang.Thread#start()
      */
     @Override
@@ -77,8 +90,6 @@ class ARRG extends Thread {
         super.setDaemon(true);
         super.start();
     }
-
-
 
     public String getPoolName() {
         return poolName;
@@ -108,7 +119,7 @@ class ARRG extends Thread {
         return System.currentTimeMillis() > lastGossip + DEAD_TIMEOUT;
     }
 
-    void handleGossip(Connection connection, boolean printMessage) throws IOException {
+    void handleGossip(Connection connection) throws IOException {
         ARRGCacheEntry peerEntry = new ARRGCacheEntry(connection.in());
 
         int receiveCount = connection.in().readInt();
@@ -123,7 +134,8 @@ class ARRG extends Thread {
 
         self.writeTo(connection.out());
 
-        ARRGCacheEntry[] sendEntries = cache.getRandomEntries(GOSSIP_SIZE, true);
+        ARRGCacheEntry[] sendEntries =
+            cache.getRandomEntries(GOSSIP_SIZE, true);
         connection.out().writeInt(sendEntries.length);
         for (ARRGCacheEntry entry : sendEntries) {
             entry.writeTo(connection.out());
@@ -135,18 +147,19 @@ class ARRG extends Thread {
         cache.add(receivedEntries);
 
         resetLastGossip();
-        
-        if (printMessage) {
-            System.out.println("bootstrap service for " + poolName + " received request from " + peerEntry);
-        }
+
+        logger.debug("bootstrap service for " + poolName
+                + " received request from " + peerEntry);
     }
 
     private void gossip(VirtualSocketAddress victim) throws IOException {
+        long start = System.currentTimeMillis();
+
         if (victim == null) {
             logger.debug("no victim specified");
             return;
         }
-        
+
         if (victim.equals(self.getAddress())) {
             logger.debug("not gossiping with outselves");
             return;
@@ -154,71 +167,85 @@ class ARRG extends Thread {
 
         logger.debug("gossiping with " + victim);
 
-        ARRGCacheEntry[] sendEntries = cache.getRandomEntries(GOSSIP_SIZE, true);
+        ARRGCacheEntry[] sendEntries =
+            cache.getRandomEntries(GOSSIP_SIZE, true);
 
-        Connection connection =
+        Connection connection = null;
+        try {
+
+            connection =
                 new Connection(victim, CONNECT_TIMEOUT, false, socketFactory);
 
-        // header
+            // header
 
-        connection.out().writeByte(Protocol.MAGIC_BYTE);
-        connection.out().writeByte(Protocol.OPCODE_ARRG_GOSSIP);
-        connection.out().writeUTF(poolName);
+            connection.out().writeByte(Protocol.MAGIC_BYTE);
+            connection.out().writeByte(Protocol.OPCODE_ARRG_GOSSIP);
+            connection.out().writeUTF(poolName);
 
-        // data
+            // data
 
-        self.writeTo(connection.out());
+            self.writeTo(connection.out());
 
-        connection.out().writeInt(sendEntries.length);
-        for (ARRGCacheEntry entry : sendEntries) {
-            entry.writeTo(connection.out());
+            connection.out().writeInt(sendEntries.length);
+            for (ARRGCacheEntry entry : sendEntries) {
+                entry.writeTo(connection.out());
+            }
+
+            connection.getAndCheckReply();
+
+            ARRGCacheEntry peerEntry = new ARRGCacheEntry(connection.in());
+
+            int receiveCount = connection.in().readInt();
+
+            ARRGCacheEntry[] receivedEntries = new ARRGCacheEntry[receiveCount];
+
+            for (int i = 0; i < receiveCount; i++) {
+                receivedEntries[i] = new ARRGCacheEntry(connection.in());
+            }
+
+            connection.close();
+
+            cache.add(peerEntry);
+            cache.add(receivedEntries);
+
+            resetLastGossip();
+
+            if (statistics != null) {
+                statistics.add(Protocol.OPCODE_ARRG_GOSSIP,
+                    System.currentTimeMillis() - start, connection.read(),
+                    connection.written(), false);
+            }
+        } finally {
+            connection.close();
         }
-
-        connection.getAndCheckReply();
-
-        ARRGCacheEntry peerEntry = new ARRGCacheEntry(connection.in());
-
-        int receiveCount = connection.in().readInt();
-
-        ARRGCacheEntry[] receivedEntries = new ARRGCacheEntry[receiveCount];
-
-        for (int i = 0; i < receiveCount; i++) {
-            receivedEntries[i] = new ARRGCacheEntry(connection.in());
-        }
-
-        connection.close();
-
-        cache.add(peerEntry);
-        cache.add(receivedEntries);
-
-        resetLastGossip();
     }
-    
+
     VirtualSocketAddress getRandomMember() {
         ARRGCacheEntry result = cache.getRandomEntry(false);
-        
+
         if (result == null) {
             return null;
         }
-        
+
         return result.getAddress();
     }
-    
+
     VirtualSocketAddress[] getMembers() {
-        //use a set to get rid of duplicates
-        HashSet<VirtualSocketAddress> result = new HashSet<VirtualSocketAddress>();
-        
+        // use a set to get rid of duplicates
+        HashSet<VirtualSocketAddress> result =
+            new HashSet<VirtualSocketAddress>();
+
         ARRGCacheEntry[] entries = cache.getEntries(false);
-        
-        for (ARRGCacheEntry entry: entries) {
+
+        for (ARRGCacheEntry entry : entries) {
             if (!entry.isArrgOnly()) {
                 result.add(entry.getAddress());
             }
         }
-        
+
         entries = fallbackCache.getEntries(false);
 
-        for (ARRGCacheEntry entry: entries) {
+        for (ARRGCacheEntry entry : entries) {
             if (!entry.isArrgOnly()) {
                 result.add(entry.getAddress());
             }
@@ -226,7 +253,6 @@ class ARRG extends Thread {
 
         return result.toArray(new VirtualSocketAddress[0]);
     }
-        
 
     public void run() {
         while (!ended()) {
@@ -234,19 +260,19 @@ class ARRG extends Thread {
 
             boolean success = false;
 
-            //first try normal cache
+            // first try normal cache
             if (victim != null) {
                 try {
                     gossip(victim.getAddress());
                     fallbackCache.add(victim);
                     success = true;
                 } catch (IOException e) {
-                    logger.error("could not gossip with " + victim, e);
+                    logger.debug("could not gossip with " + victim, e);
                 }
 
             }
 
-            //then try fallback cache
+            // then try fallback cache
             if (success == false) {
                 victim = fallbackCache.getRandomEntry(true);
                 if (victim != null) {
@@ -254,21 +280,22 @@ class ARRG extends Thread {
                         gossip(victim.getAddress());
                         success = true;
                     } catch (IOException e) {
-                        logger.error("could not gossip with fallback entry: "
+                        logger.debug("could not gossip with fallback entry: "
                                 + victim, e);
                     }
                 }
             }
 
-            //lastly, use bootstrap service
+            // lastly, use bootstrap service
             if (success == false) {
                 if (bootstrapAddress != null) {
                     try {
                         gossip(bootstrapAddress);
                         success = true;
                     } catch (IOException e) {
-                        logger.error("could not gossip with bootstrap server at "
-                                + bootstrapAddress, e);
+                        logger.error(
+                            "could not gossip with bootstrap server at "
+                                    + bootstrapAddress, e);
                     }
                 }
             }
@@ -284,6 +311,10 @@ class ARRG extends Thread {
                 }
             }
         }
+    }
+
+    public Statistics getStatistics() {
+        return statistics;
     }
 
 }

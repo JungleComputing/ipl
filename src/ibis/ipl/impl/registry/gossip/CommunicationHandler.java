@@ -6,6 +6,7 @@ import org.apache.log4j.Logger;
 
 import ibis.ipl.impl.IbisIdentifier;
 import ibis.ipl.impl.registry.Connection;
+import ibis.ipl.impl.registry.statistics.Statistics;
 import ibis.server.Client;
 import ibis.smartsockets.virtual.InitializationException;
 import ibis.smartsockets.virtual.VirtualServerSocket;
@@ -21,12 +22,14 @@ class CommunicationHandler extends Thread {
     private static final int CONNECTION_TIMEOUT = 5000;
 
     private static final Logger logger =
-            Logger.getLogger(CommunicationHandler.class);
+        Logger.getLogger(CommunicationHandler.class);
 
     private final Registry registry;
-    
+
+    private final Statistics statistics;
+
     private final Pool pool;
-    
+
     private final ElectionSet elections;
 
     private final VirtualSocketFactory socketFactory;
@@ -36,10 +39,12 @@ class CommunicationHandler extends Thread {
     private final ARRG arrg;
 
     CommunicationHandler(TypedProperties properties, Registry registry,
-            Pool members, ElectionSet elections) throws IOException {
+            Pool members, ElectionSet elections, Statistics statistics)
+            throws IOException {
         this.registry = registry;
         this.pool = members;
         this.elections = elections;
+        this.statistics = statistics;
 
         try {
             socketFactory = Client.getFactory(properties);
@@ -48,22 +53,22 @@ class CommunicationHandler extends Thread {
         }
 
         serverSocket =
-                socketFactory.createServerSocket(0, CONNECTION_BACKLOG, null);
+            socketFactory.createServerSocket(0, CONNECTION_BACKLOG, null);
 
         VirtualSocketAddress serverAddress = null;
         try {
             serverAddress =
-                    Client.getServiceAddress(BootstrapService.VIRTUAL_PORT,
+                Client.getServiceAddress(BootstrapService.VIRTUAL_PORT,
 
-                    properties);
+                properties);
         } catch (IOException e) {
             logger.warn("No valid bootstrap service address", e);
         }
 
         String[] bootstrapStringList =
-                properties.getStringList(RegistryProperties.BOOTSTRAP_LIST);
+            properties.getStringList(RegistryProperties.BOOTSTRAP_LIST);
         VirtualSocketAddress[] bootstrapList =
-                new VirtualSocketAddress[bootstrapStringList.length];
+            new VirtualSocketAddress[bootstrapStringList.length];
 
         for (int i = 0; i < bootstrapList.length; i++) {
             bootstrapList[i] = new VirtualSocketAddress(bootstrapStringList[i]);
@@ -73,9 +78,9 @@ class CommunicationHandler extends Thread {
         logger.debug("server address = " + serverAddress);
 
         arrg =
-                new ARRG(serverSocket.getLocalSocketAddress(), false,
-                        bootstrapList, serverAddress, registry.getPoolName(),
-                        socketFactory);
+            new ARRG(serverSocket.getLocalSocketAddress(), false,
+                    bootstrapList, serverAddress, registry.getPoolName(),
+                    socketFactory, statistics);
 
     }
 
@@ -94,9 +99,10 @@ class CommunicationHandler extends Thread {
 
         for (IbisIdentifier ibis : ibises) {
             try {
+                long start = System.currentTimeMillis();
                 Connection connection =
-                        new Connection(ibis, CONNECTION_TIMEOUT, true,
-                                socketFactory);
+                    new Connection(ibis, CONNECTION_TIMEOUT, true,
+                            socketFactory);
 
                 connection.out().writeByte(Protocol.MAGIC_BYTE);
                 connection.out().writeByte(Protocol.OPCODE_SIGNAL);
@@ -106,7 +112,9 @@ class CommunicationHandler extends Thread {
                 connection.getAndCheckReply();
 
                 connection.close();
-
+                if (statistics != null) {
+                    statistics.add(Protocol.OPCODE_SIGNAL, System.currentTimeMillis() - start, connection.read(), connection.written(), false);
+                }
             } catch (IOException e) {
                 logger.error("could not send signal to " + ibis);
                 if (errorMessage == null) {
@@ -126,8 +134,7 @@ class CommunicationHandler extends Thread {
         String signal = connection.in().readUTF();
 
         if (!target.equals(registry.getIbisIdentifier())) {
-            connection
-                    .closeWithError("signal target not equal to local identifier");
+            connection.closeWithError("signal target not equal to local identifier");
             return;
         }
 
@@ -140,50 +147,54 @@ class CommunicationHandler extends Thread {
 
     public void gossip() {
         VirtualSocketAddress address = arrg.getRandomMember();
-        
-        if (address == null || address.equals(serverSocket.getLocalSocketAddress())) {
+
+        if (address == null
+                || address.equals(serverSocket.getLocalSocketAddress())) {
             logger.debug("noone to gossip with, or (not) gossiping with self");
             return;
         }
-        
+
         try {
+            long start = System.currentTimeMillis();
             Connection connection =
-                    new Connection(address, CONNECTION_TIMEOUT, true,
-                            socketFactory);
+                new Connection(address, CONNECTION_TIMEOUT, true, socketFactory);
 
             connection.out().writeByte(Protocol.MAGIC_BYTE);
             connection.out().writeByte(Protocol.OPCODE_GOSSIP);
             registry.getIbisIdentifier().writeTo(connection.out());
-            
+
             pool.writeGossipData(connection.out());
             elections.writeGossipData(connection.out());
-            
+
             connection.getAndCheckReply();
-            
+
             pool.readGossipData(connection.in());
             elections.readGossipData(connection.in());
-            
+
             connection.close();
+            if (statistics != null) {
+                statistics.add(Protocol.OPCODE_GOSSIP, System.currentTimeMillis() - start, connection.read(), connection.written(), false);
+            }
         } catch (IOException e) {
-            logger.error("could not gossip with " + address);
+            logger.debug("could not gossip with " + address);
         }
     }
-    
+
     private void handleGossip(Connection connection) throws IOException {
         IbisIdentifier peer = new IbisIdentifier(connection.in());
-        
+
         if (!peer.poolName().equals(registry.getIbisIdentifier().poolName())) {
             connection.closeWithError("wrong pool");
         }
-        
+
         pool.readGossipData(connection.in());
         elections.readGossipData(connection.in());
-        
+
         connection.sendOKReply();
-        
+
         pool.writeGossipData(connection.out());
         elections.writeGossipData(connection.out());
-        
+
         connection.close();
     }
 
@@ -194,10 +205,16 @@ class CommunicationHandler extends Thread {
         VirtualSocketAddress[] addresses = arrg.getMembers();
 
         for (VirtualSocketAddress address : addresses) {
+            if (address.equals(serverSocket.getLocalSocketAddress())) {
+                //do not connect to self
+                continue;
+            }
+            
             try {
+                long start = System.currentTimeMillis();
                 Connection connection =
-                        new Connection(address, CONNECTION_TIMEOUT, true,
-                                socketFactory);
+                    new Connection(address, CONNECTION_TIMEOUT, true,
+                            socketFactory);
 
                 connection.out().writeByte(Protocol.MAGIC_BYTE);
                 connection.out().writeByte(Protocol.OPCODE_LEAVE);
@@ -206,13 +223,15 @@ class CommunicationHandler extends Thread {
                 connection.getAndCheckReply();
 
                 connection.close();
-
+                if (statistics != null) {
+                    statistics.add(Protocol.OPCODE_LEAVE, System.currentTimeMillis() - start, connection.read(), connection.written(), false);
+                }
             } catch (IOException e) {
-                logger.error("could not send leave to " + address);
+                logger.debug(serverSocket.getLocalSocketAddress() + " could not send leave to " + address);
             }
         }
     }
-    
+
     private void handleLeave(Connection connection) throws IOException {
         IbisIdentifier ibis = new IbisIdentifier(connection.in());
 
@@ -222,25 +241,29 @@ class CommunicationHandler extends Thread {
 
         connection.close();
     }
-    
+
     public void ping(IbisIdentifier ibis) throws IOException {
+        long start = System.currentTimeMillis();
         Connection connection =
-            new Connection(ibis, CONNECTION_TIMEOUT, true,
-                    socketFactory);
+            new Connection(ibis, CONNECTION_TIMEOUT, true, socketFactory);
 
         connection.out().writeByte(Protocol.MAGIC_BYTE);
         connection.out().writeByte(Protocol.OPCODE_PING);
 
         connection.getAndCheckReply();
         IbisIdentifier result = new IbisIdentifier(connection.in());
-        
+
         connection.close();
-        
+
         if (!result.equals(ibis)) {
-            throw new IOException("tried to ping " + ibis + ", reached " + result + " instead");
+            throw new IOException("tried to ping " + ibis + ", reached "
+                    + result + " instead");
+        }
+        if (statistics != null) {
+            statistics.add(Protocol.OPCODE_PING, System.currentTimeMillis() - start, connection.read(), connection.written(), false);
         }
     }
-    
+
     private void handlePing(Connection connection) throws IOException {
         connection.sendOKReply();
         registry.getIbisIdentifier().writeTo(connection.out());
@@ -255,7 +278,7 @@ class CommunicationHandler extends Thread {
             return;
         }
 
-        arrg.handleGossip(connection, false);
+        arrg.handleGossip(connection);
     }
 
     public void run() {
@@ -285,6 +308,7 @@ class CommunicationHandler extends Thread {
             return;
         }
 
+        long start = System.currentTimeMillis();
         byte opcode = 0;
         try {
             byte magic = connection.in().readByte();
@@ -327,7 +351,10 @@ class CommunicationHandler extends Thread {
         }
 
         logger.debug("done handling request");
-
+        
+        if (statistics != null) {
+            statistics.add(opcode, System.currentTimeMillis() - start, connection.read(), connection.written(), true);
+        }
     }
 
     VirtualSocketAddress getAddress() {

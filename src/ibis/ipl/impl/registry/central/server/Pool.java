@@ -18,7 +18,6 @@ import ibis.util.ThreadPool;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.util.ArrayList;
@@ -74,7 +73,7 @@ final class Pool implements Runnable {
 
     private final Statistics statistics;
 
-    // simple statistics which are always kept, 
+    // simple statistics which are always kept,
     // so the server can print them if so requested
     private final int[] eventStats;
 
@@ -91,9 +90,9 @@ final class Pool implements Runnable {
     Pool(String name, VirtualSocketFactory socketFactory,
             long heartbeatInterval, long eventPushInterval, boolean gossip,
             long gossipInterval, boolean adaptGossipInterval, boolean tree,
-            boolean closedWorld, int poolSize, boolean keepStatistics, long statisticsInterval,
-            String ibisImplementationIdentifier, boolean printEvents,
-            boolean printErrors) {
+            boolean closedWorld, int poolSize, boolean keepStatistics,
+            long statisticsInterval, String ibisImplementationIdentifier,
+            boolean printEvents, boolean printErrors) {
         this.name = name;
         this.socketFactory = socketFactory;
         this.heartbeatInterval = heartbeatInterval;
@@ -104,11 +103,11 @@ final class Pool implements Runnable {
         this.printErrors = printErrors;
 
         if (keepStatistics) {
-            statistics =
-                new Statistics(Protocol.OPCODE_NAMES);
+            statistics = new Statistics(Protocol.OPCODE_NAMES);
             statistics.setID("server", name);
             statistics.startWriting(statisticsInterval);
-        } else {;
+        } else {
+            ;
             statistics = null;
         }
 
@@ -234,11 +233,12 @@ final class Pool implements Runnable {
     }
 
     public synchronized boolean stale() {
-        logger.debug("pool stale at " + staleTime + " now " + System.currentTimeMillis() + " ended = " + ended);
-        
+        logger.debug("pool stale at " + staleTime + " now "
+                + System.currentTimeMillis() + " ended = " + ended);
+
         return ended && (System.currentTimeMillis() > staleTime);
     }
-    
+
     public void saveStatistics() {
         if (statistics != null) {
             statistics.write();
@@ -292,11 +292,10 @@ final class Pool implements Runnable {
         member.updateLastSeenTime();
 
         members.add(member);
-        
+
         if (statistics != null) {
             statistics.newPoolSize(members.size());
         }
-
 
         if (printEvents) {
             print(identifier + " joined pool \"" + name + "\" now "
@@ -367,7 +366,7 @@ final class Pool implements Runnable {
         }
 
         addEvent(Event.LEAVE, null, identifier);
-        
+
         if (statistics != null) {
             statistics.newPoolSize(members.size());
         }
@@ -418,7 +417,7 @@ final class Pool implements Runnable {
         }
 
         addEvent(Event.DIED, null, identifier);
-        
+
         if (statistics != null) {
             statistics.newPoolSize(members.size());
         }
@@ -571,9 +570,8 @@ final class Pool implements Runnable {
             logger.debug("ping to " + member + " successful");
             member.updateLastSeenTime();
             if (statistics != null) {
-                statistics.add(Protocol.OPCODE_PING,
-                    System.currentTimeMillis() - start, connection.read(),
-                    connection.written(), false);
+                statistics.add(Protocol.OPCODE_PING, System.currentTimeMillis()
+                        - start, connection.read(), connection.written(), false);
             }
         } catch (Exception e) {
             logger.debug("error on pinging ibis " + member, e);
@@ -595,7 +593,7 @@ final class Pool implements Runnable {
      *            if true, events are always pushed, even if the pool has ended
      *            or the peer is no longer a member.
      */
-    void push(Member member, boolean force) {
+    void push(Member member, boolean force, boolean isBroadcast) {
         long start = System.currentTimeMillis();
         if (hasEnded()) {
             if (!force) {
@@ -628,7 +626,11 @@ final class Pool implements Runnable {
 
             connection.out().writeByte(Protocol.CLIENT_MAGIC_BYTE);
             connection.out().writeByte(Protocol.VERSION);
-            connection.out().writeByte(Protocol.OPCODE_PUSH);
+            if (isBroadcast) {
+                connection.out().writeByte(Protocol.OPCODE_PUSH);
+            } else {
+                connection.out().writeByte(Protocol.OPCODE_BROADCAST);
+            }
             connection.out().writeUTF(getName());
             connection.out().flush();
 
@@ -668,9 +670,8 @@ final class Pool implements Runnable {
             logger.debug("connection to " + member + " closed");
             member.updateLastSeenTime();
             if (statistics != null) {
-                statistics.add(Protocol.OPCODE_PUSH,
-                    System.currentTimeMillis() - start, connection.read(),
-                    connection.written(), false);
+                statistics.add(Protocol.OPCODE_PUSH, System.currentTimeMillis()
+                        - start, connection.read(), connection.written(), false);
             }
         } catch (IOException e) {
             if (isMember(member)) {

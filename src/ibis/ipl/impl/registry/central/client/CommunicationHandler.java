@@ -660,7 +660,7 @@ final class CommunicationHandler implements Runnable {
         }
     }
 
-    void push(IbisIdentifier ibis) {
+    void forward(IbisIdentifier ibis) {
         long start = System.currentTimeMillis();
 
         if (ibis.equals(getIdentifier())) {
@@ -684,7 +684,7 @@ final class CommunicationHandler implements Runnable {
 
             connection.out().writeByte(Protocol.CLIENT_MAGIC_BYTE);
             connection.out().writeByte(Protocol.VERSION);
-            connection.out().writeByte(Protocol.OPCODE_PUSH);
+            connection.out().writeByte(Protocol.OPCODE_FORWARD);
             connection.out().writeUTF(pool.getName());
             connection.out().flush();
 
@@ -960,6 +960,8 @@ final class CommunicationHandler implements Runnable {
                 handleGossip(connection);
                 break;
             case Protocol.OPCODE_PUSH:
+            case Protocol.OPCODE_BROADCAST:
+            case Protocol.OPCODE_FORWARD:
                 handlePush(connection);
                 break;
             case Protocol.OPCODE_PING:

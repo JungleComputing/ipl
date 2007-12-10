@@ -7,6 +7,7 @@ import java.util.Map;
 import org.apache.log4j.Logger;
 
 import ibis.ipl.impl.registry.Connection;
+import ibis.ipl.impl.registry.statistics.Statistics;
 import ibis.server.ServerProperties;
 import ibis.server.Service;
 import ibis.smartsockets.virtual.VirtualServerSocket;
@@ -22,7 +23,7 @@ public class BootstrapService implements Service, Runnable {
     private static final int CONNECTION_BACKLOG = 50;
 
     private static final Logger logger =
-            Logger.getLogger(BootstrapService.class);
+        Logger.getLogger(BootstrapService.class);
 
     private final VirtualServerSocket serverSocket;
 
@@ -30,38 +31,27 @@ public class BootstrapService implements Service, Runnable {
 
     private final Map<String, ARRG> arrgs;
 
-//    private final boolean printStats;
+    // private final boolean printStats;
 
     private final boolean printErrors;
 
-    private final boolean printEvents;
-    
     private boolean ended = false;
 
     public BootstrapService(TypedProperties properties,
             VirtualSocketFactory socketFactory) throws IOException {
         this.socketFactory = socketFactory;
 
-//        printStats =
-//                properties
-//                        .getBooleanProperty(ServerProperties.PRINT_STATS);
-
         printErrors =
-                properties
-                        .getBooleanProperty(ServerProperties.PRINT_ERRORS);
+            properties.getBooleanProperty(ServerProperties.PRINT_ERRORS);
 
-        printEvents =
-            properties
-                    .getBooleanProperty(ServerProperties.PRINT_EVENTS);
-        
         arrgs = new HashMap<String, ARRG>();
 
         serverSocket =
-                socketFactory.createServerSocket(VIRTUAL_PORT,
-                        CONNECTION_BACKLOG, null);
+            socketFactory.createServerSocket(VIRTUAL_PORT, CONNECTION_BACKLOG,
+                null);
 
         ThreadPool.createNew((Runnable) this,
-                "bootstrap service connection handler");
+            "bootstrap service connection handler");
 
     }
 
@@ -90,9 +80,9 @@ public class BootstrapService implements Service, Runnable {
 
         if (result == null) {
             result =
-                    new ARRG(serverSocket.getLocalSocketAddress(), true,
-                            new VirtualSocketAddress[0], null, poolName,
-                            socketFactory);
+                new ARRG(serverSocket.getLocalSocketAddress(), true,
+                        new VirtualSocketAddress[0], null, poolName,
+                        socketFactory, null);
             arrgs.put(poolName, result);
 
             System.out.println("Bootstrap service for new pool: " + poolName);
@@ -138,6 +128,7 @@ public class BootstrapService implements Service, Runnable {
             return;
         }
 
+        long start = System.currentTimeMillis();
         byte opcode = 0;
         try {
             byte magic = connection.in().readByte();
@@ -160,8 +151,15 @@ public class BootstrapService implements Service, Runnable {
 
                 ARRG arrg = getOrCreateARRG(poolName);
 
-                arrg.handleGossip(connection, printEvents);
-                
+                arrg.handleGossip(connection);
+
+                connection.close();
+
+                Statistics statistics = arrg.getStatistics();
+                if (statistics != null) {
+                    statistics.add(opcode, System.currentTimeMillis() - start,
+                        connection.read(), connection.written(), true);
+                }
                 break;
             default:
                 logger.error("unknown opcode: " + opcode);
@@ -171,7 +169,6 @@ public class BootstrapService implements Service, Runnable {
                 System.out.println("error on handling connection");
                 e.printStackTrace(System.out);
             }
-        } finally {
             connection.close();
         }
 

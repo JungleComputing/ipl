@@ -56,6 +56,12 @@ public abstract class Registry implements ibis.ipl.Registry {
         if (registryName == null) {
             throw new IbisConfigurationException("Could not create registry: "
                     + "property " + IbisProperties.REGISTRY_IMPLEMENTATION + "  is not set.");
+        } else if (registryName.equalsIgnoreCase("central")) {
+            //shorthand for central registry
+            registryName = "ibis.ipl.impl.registry.central.client.Registry";
+        } else if (registryName.equalsIgnoreCase("gossip")) {
+            //shorthand for gossip registry
+            registryName = "ibis.ipl.impl.registry.gossip.Registry";
         }
 
         Class<?> c = Class.forName(registryName);

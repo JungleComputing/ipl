@@ -76,7 +76,7 @@ final class IterativeEventPusher implements Runnable {
 
                 logger.debug("pushing to " + work);
 
-                pool.push(work, false);
+                pool.push(work, false, useTree);
                 workQ.doneJob();
             }
         }

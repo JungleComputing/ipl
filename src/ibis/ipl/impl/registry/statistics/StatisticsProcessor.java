@@ -59,7 +59,7 @@ public class StatisticsProcessor {
         
         
         for(long time = 0; time <= (duration + 2 * interval) ; time += interval) {
-            out.format("%d", time);
+            out.format("%.2f", (time / 1000.0) );
             
             for (Experiment experiment: experiments) {
                 out.format(" %.2f", experiment.averagePoolSize(time));

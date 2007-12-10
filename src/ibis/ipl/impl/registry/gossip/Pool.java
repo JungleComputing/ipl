@@ -12,6 +12,7 @@ import java.util.UUID;
 import org.apache.log4j.Logger;
 
 import ibis.ipl.impl.IbisIdentifier;
+import ibis.ipl.impl.registry.statistics.Statistics;
 import ibis.util.TypedProperties;
 
 class Pool extends Thread {
@@ -21,6 +22,8 @@ class Pool extends Thread {
     private final TypedProperties properties;
 
     private final Registry registry;
+
+    private final Statistics statistics;
 
     private final HashSet<UUID> deceased;
 
@@ -37,9 +40,10 @@ class Pool extends Thread {
      */
     private int liveMembers;
 
-    Pool(TypedProperties properties, Registry registry) {
+    Pool(TypedProperties properties, Registry registry, Statistics statistics) {
         this.properties = properties;
         this.registry = registry;
+        this.statistics = statistics;
 
         deceased = new HashSet<UUID>();
         left = new HashSet<UUID>();
@@ -50,7 +54,7 @@ class Pool extends Thread {
         random = new Random();
 
     }
-    
+
     @Override
     public synchronized void start() {
         this.setDaemon(true);
@@ -59,7 +63,6 @@ class Pool extends Thread {
 
     }
 
-    
     private synchronized Member getMember(IbisIdentifier ibis) {
         Member result;
 
@@ -75,6 +78,7 @@ class Pool extends Thread {
             result = new Member(ibis, properties);
             members.put(id, result);
             registry.ibisJoined(ibis);
+            statistics.newPoolSize(members.size());
         }
 
         return result;
@@ -178,6 +182,7 @@ class Pool extends Thread {
                 members.put(id, member);
                 // tell registry about his new member
                 registry.ibisJoined(member.getIdentifier());
+                statistics.newPoolSize(members.size());
             }
         }
     }
@@ -201,14 +206,16 @@ class Pool extends Thread {
             left.add(member.getUUID());
             registry.ibisLeft(member.getIdentifier());
             members.remove(member.getUUID());
+            statistics.newPoolSize(members.size());
             logger.debug("purged " + member + " from list");
         } else if (member.isDead()) {
             String id = member.getIdentifier().getID();
             deceased.add(member.getUUID());
             members.remove(id);
+            statistics.newPoolSize(members.size());
+            registry.ibisDied(member.getIdentifier());
         }
     }
-   
 
     /**
      * Update number of "alive" members
@@ -229,8 +236,8 @@ class Pool extends Thread {
     private synchronized void cleanup() {
         // notice ourselves ;)
         self.seen();
-        
-        //update live member count
+
+        // update live member count
         updateLiveMembers();
 
         // iterate over copy of values, so we can remove them if we need to
@@ -238,7 +245,7 @@ class Pool extends Thread {
             cleanup(member);
         }
     }
-    
+
     private synchronized Member getSuspect() {
         ArrayList<Member> suspects = new ArrayList<Member>();
 
@@ -254,14 +261,17 @@ class Pool extends Thread {
 
         return suspects.get(random.nextInt(suspects.size()));
     }
-    
+
     // ping suspect members once a second
     public void run() {
-        //add ourselves to the member list
-        self = new Member(registry.getIbisIdentifier(), properties);
-        members.put(self.getUUID(), self);
-        registry.ibisJoined(self.getIdentifier());
-        
+        synchronized (this) {
+            // add ourselves to the member list
+            self = new Member(registry.getIbisIdentifier(), properties);
+            members.put(self.getUUID(), self);
+            statistics.newPoolSize(members.size());
+            registry.ibisJoined(self.getIdentifier());
+        }
+
         long interval =
             properties.getIntProperty(RegistryProperties.PING_INTERVAL) * 1000;
 
