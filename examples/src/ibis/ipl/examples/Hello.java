@@ -11,6 +11,7 @@ import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
 
 import java.io.IOException;
+import java.util.*;
 
 /**
  * This program is to be run as two instances. One is a server, the other a
@@ -66,6 +67,8 @@ public class Hello {
         // Elect a server
         IbisIdentifier server = ibis.registry().elect("Server");
 
+        System.out.println("Server : " + Arrays.deepToString(server.location().getLevels()));
+        
         // If I am the server, run server, else run client.
         if (server.equals(ibis.identifier())) {
             server(ibis);
