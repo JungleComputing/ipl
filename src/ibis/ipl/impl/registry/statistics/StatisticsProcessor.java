@@ -52,11 +52,12 @@ public class StatisticsProcessor {
     //write pool history for all experiments
     private void writePoolHistory(Formatter out) {
 
-        out.format("experiments:\n");
+        out.format("//experiments:\n");
+        //field names
         for (Experiment experiment: experiments) {
-            out.format("%s\n", experiment.getName());
+            out.format("%s_client %s_server", experiment.getName(), experiment.getName());
         }
-        
+        out.format("\n");
         
         for(long time = 0; time <= (duration + 2 * interval) ; time += interval) {
             out.format("%.2f", (time / 1000.0) );
