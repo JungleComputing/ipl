@@ -216,7 +216,9 @@ class ARRG extends Thread {
                     connection.written(), false);
             }
         } finally {
-            connection.close();
+            if (connection != null) {
+                connection.close();
+            }
         }
     }
 

@@ -627,9 +627,9 @@ final class Pool implements Runnable {
             connection.out().writeByte(Protocol.CLIENT_MAGIC_BYTE);
             connection.out().writeByte(Protocol.VERSION);
             if (isBroadcast) {
-                connection.out().writeByte(Protocol.OPCODE_PUSH);
-            } else {
                 connection.out().writeByte(Protocol.OPCODE_BROADCAST);
+            } else {
+                connection.out().writeByte(Protocol.OPCODE_PUSH);
             }
             connection.out().writeUTF(getName());
             connection.out().flush();
@@ -669,9 +669,15 @@ final class Pool implements Runnable {
 
             logger.debug("connection to " + member + " closed");
             member.updateLastSeenTime();
+            
             if (statistics != null) {
-                statistics.add(Protocol.OPCODE_PUSH, System.currentTimeMillis()
+                if (isBroadcast) {
+                statistics.add(Protocol.OPCODE_BROADCAST, System.currentTimeMillis()
                         - start, connection.read(), connection.written(), false);
+                } else {
+                    statistics.add(Protocol.OPCODE_PUSH, System.currentTimeMillis()
+                        - start, connection.read(), connection.written(), false);
+                }
             }
         } catch (IOException e) {
             if (isMember(member)) {

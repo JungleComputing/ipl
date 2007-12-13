@@ -20,15 +20,20 @@ class ARRGCacheEntry {
     }
 
     ARRGCacheEntry(DataInputStream in) throws IOException {
-        address = new VirtualSocketAddress(in);
-        arrgOnly = in.readBoolean();
+        try {
+            address = new VirtualSocketAddress(in);
+            arrgOnly = in.readBoolean();
+        } catch (IOException e) {
+            throw e;
+        } catch (Throwable e) {
+            throw new IOException("could not read entry: " + e);
+        }
     }
 
     void writeTo(DataOutputStream out) throws IOException {
         address.write(out);
         out.writeBoolean(arrgOnly);
     }
-
 
     /**
      * @return the address
@@ -48,7 +53,7 @@ class ARRGCacheEntry {
     public boolean sameAddressAs(ARRGCacheEntry entry) {
         return address.equals(entry.address);
     }
-    
+
     public String toString() {
         return "address: " + address + ", arrg only: " + arrgOnly;
     }
