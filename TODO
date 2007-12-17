@@ -79,6 +79,7 @@ Ibis:
   serialization. Could be done for objects passed as a param
   to a spawn, for instance. If code is not there, fall back to current impl.
 ? throw nested exception ending with failed ibis instead of just the failed Ibis?
+? add "new ReceivePortIdentifier(Ibis, name)" ?
 
 packaging/distribution:
 - clean-up project (names) in subversion repository
