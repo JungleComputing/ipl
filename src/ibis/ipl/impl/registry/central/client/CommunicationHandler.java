@@ -85,6 +85,10 @@ final class CommunicationHandler implements Runnable {
 
         serverAddress = Client.getServiceAddress(Server.VIRTUAL_PORT,
                 properties);
+        
+        if (serverAddress == null) {
+            throw new IOException("could not get address of server");
+        }
 
         logger.debug("local address = " + serverSocket.getLocalSocketAddress());
         logger.debug("server address = " + serverAddress);
