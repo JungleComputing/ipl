@@ -12,7 +12,6 @@ import ibis.ipl.impl.registry.central.server.Server;
 import ibis.ipl.impl.registry.statistics.Statistics;
 import ibis.server.Client;
 import ibis.server.ConfigurationException;
-import ibis.smartsockets.virtual.InitializationException;
 import ibis.smartsockets.virtual.VirtualServerSocket;
 import ibis.smartsockets.virtual.VirtualSocketAddress;
 import ibis.smartsockets.virtual.VirtualSocketFactory;

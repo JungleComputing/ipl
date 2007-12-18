@@ -332,6 +332,7 @@ final class Pool {
         
         if (statistics != null) {
             statistics.newPoolSize(0);
+            statistics.write();
         }
     }
 

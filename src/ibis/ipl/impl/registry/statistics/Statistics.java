@@ -133,6 +133,7 @@ public final class Statistics implements Runnable {
     }
 
     public synchronized void write() {
+        logger.debug("writing statistics for: " + id);
         try {
             File file = new File("statistics" + File.separator + poolName + File.separator + id);
 
@@ -183,6 +184,7 @@ public final class Statistics implements Runnable {
         } catch (IOException e) {
             logger.error("cannot write statistics to " + file, e);
         }
+        logger.debug("DONE writing statistics for: " + id);
     }
 
     public synchronized void add(byte opcode, long time, long bytesReceived,
@@ -265,7 +267,7 @@ public final class Statistics implements Runnable {
         
         poolSizeHistory.add(new DataPoint(poolSize));
 
-        logger.debug("reported pool size now: " + poolSize);
+        logger.trace("reported pool size now: " + poolSize);
     }
 
     public synchronized void electionEvent() {
