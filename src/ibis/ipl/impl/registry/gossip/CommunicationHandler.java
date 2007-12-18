@@ -4,10 +4,12 @@ import java.io.IOException;
 
 import org.apache.log4j.Logger;
 
+import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.impl.IbisIdentifier;
 import ibis.ipl.impl.registry.Connection;
 import ibis.ipl.impl.registry.statistics.Statistics;
 import ibis.server.Client;
+import ibis.server.ConfigurationException;
 import ibis.smartsockets.virtual.InitializationException;
 import ibis.smartsockets.virtual.VirtualServerSocket;
 import ibis.smartsockets.virtual.VirtualSocketAddress;
@@ -40,7 +42,7 @@ class CommunicationHandler extends Thread {
 
     CommunicationHandler(TypedProperties properties, Registry registry,
             Pool members, ElectionSet elections, Statistics statistics)
-            throws IOException {
+            throws IbisConfigurationException,IOException {
         this.registry = registry;
         this.pool = members;
         this.elections = elections;
@@ -48,7 +50,9 @@ class CommunicationHandler extends Thread {
 
         try {
             socketFactory = Client.getFactory(properties);
-        } catch (InitializationException e) {
+        } catch (ConfigurationException e) {
+            throw new IbisConfigurationException("Could not create socket factory: " + e);
+        } catch (Exception e) {
             throw new IOException("Could not create socket factory: " + e);
         }
 
@@ -61,7 +65,7 @@ class CommunicationHandler extends Thread {
                 Client.getServiceAddress(BootstrapService.VIRTUAL_PORT,
 
                 properties);
-        } catch (IOException e) {
+        } catch (ConfigurationException e) {
             logger.warn("No valid bootstrap service address", e);
         }
 

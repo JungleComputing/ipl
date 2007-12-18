@@ -11,6 +11,7 @@ import ibis.ipl.impl.registry.central.RegistryProperties;
 import ibis.ipl.impl.registry.central.server.Server;
 import ibis.ipl.impl.registry.statistics.Statistics;
 import ibis.server.Client;
+import ibis.server.ConfigurationException;
 import ibis.smartsockets.virtual.InitializationException;
 import ibis.smartsockets.virtual.VirtualServerSocket;
 import ibis.smartsockets.virtual.VirtualSocketAddress;
@@ -59,7 +60,8 @@ final class CommunicationHandler implements Runnable {
     private int maxNrOfThreads = 0;
 
     CommunicationHandler(TypedProperties properties, Pool pool,
-            Statistics statistics) throws IOException {
+            Statistics statistics) throws IOException,
+            IbisConfigurationException {
         this.properties = properties;
         this.pool = pool;
         this.statistics = statistics;
@@ -76,16 +78,21 @@ final class CommunicationHandler implements Runnable {
 
         try {
             virtualSocketFactory = Client.getFactory(properties);
-        } catch (InitializationException e) {
-            throw new IOException("Could not create socket factory: " + e);
+        } catch (ConfigurationException e) {
+            throw new IbisConfigurationException(
+                    e.getMessage());
         }
 
         serverSocket = virtualSocketFactory.createServerSocket(0,
                 CONNECTION_BACKLOG, null);
 
-        serverAddress = Client.getServiceAddress(Server.VIRTUAL_PORT,
-                properties);
-        
+        try {
+            serverAddress = Client.getServiceAddress(Server.VIRTUAL_PORT,
+                    properties);
+        } catch (ConfigurationException e) {
+            throw new IbisConfigurationException(e.getMessage());
+        }
+
         if (serverAddress == null) {
             throw new IOException("could not get address of server");
         }
