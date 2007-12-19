@@ -231,6 +231,23 @@ class ARRG extends Thread {
 
         return result.getAddress();
     }
+    
+    VirtualSocketAddress[] getRandomMembers(int size) {
+        // use a set to get rid of duplicates
+        HashSet<VirtualSocketAddress> result =
+            new HashSet<VirtualSocketAddress>();
+
+        ARRGCacheEntry[] entries = cache.getRandomEntries(size, false);
+        
+        for (ARRGCacheEntry entry : entries) {
+            if (!entry.isArrgOnly()) {
+                result.add(entry.getAddress());
+            }
+        }
+
+        return result.toArray(new VirtualSocketAddress[0]);
+    }
+
 
     VirtualSocketAddress[] getMembers() {
         // use a set to get rid of duplicates

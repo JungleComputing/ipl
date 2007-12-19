@@ -281,12 +281,20 @@ class Pool extends Thread {
             Member suspect = getSuspect();
 
             if (suspect != null) {
-                try {
-                    registry.getCommHandler().ping(suspect.getIdentifier());
-                } catch (Exception e) {
-                    logger.debug("could not reach " + suspect
-                            + ", adding ourselves as witness");
-                    suspect.suspectDead(registry.getIbisIdentifier());
+                if (suspect.equals(self)) {
+                    logger.error("we are a suspect ourselves");
+                    suspect.seen();
+                } else {
+
+                    logger.debug("suspecting " + suspect + " is dead, checking");
+                    try {
+                        registry.getCommHandler().ping(suspect.getIdentifier());
+                        suspect.seen();
+                    } catch (Exception e) {
+                        logger.debug("could not reach " + suspect
+                                + ", adding ourselves as witness");
+                        suspect.suspectDead(registry.getIbisIdentifier());
+                    }
                 }
             }
 

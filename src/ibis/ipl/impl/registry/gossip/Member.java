@@ -38,7 +38,7 @@ class Member {
 
         this.identifier = identifier;
 
-        lastSeen = System.currentTimeMillis();
+        lastSeen = 0;
 
         witnesses = new HashSet<UUID>();
 
@@ -91,6 +91,8 @@ class Member {
     }
     
     public void merge(Member other) {
+        logger.debug("merging " + this + " with " + other);
+        
         if (other.lastSeen > lastSeen) {
             lastSeen = other.lastSeen;
         }
@@ -117,9 +119,13 @@ class Member {
         
         
         if (timedout() && witnesses.size() > witnessesRequired) {
+            logger.debug("member dead after merge: " + witnesses.size());
+            
             dead = true;
             witnesses.clear();
         }
+        
+        logger.debug("merge result = " + this);
     }
     
     IbisIdentifier getIdentifier() {
@@ -150,7 +156,7 @@ class Member {
     }
 
     synchronized boolean timedout() {
-        long timeout = properties.getLongProperty(RegistryProperties.PEER_DEAD_TIMEOUT);
+        long timeout = properties.getIntProperty(RegistryProperties.PEER_DEAD_TIMEOUT) * 1000;
         
         return System.currentTimeMillis() > (lastSeen + timeout);
     }
@@ -192,10 +198,10 @@ class Member {
     }
 
     public synchronized String toString() {
-        double age = (double) (System.currentTimeMillis() - lastSeen) / 1000.0;
+        long age = System.currentTimeMillis() - lastSeen;
 
-        return String.format("%s last seen %.2f seconds ago, witnesses: %d",
-                identifier, age, witnesses.size());
+        return String.format("%s last seen %d milliseconds ago, witnesses: %d, timeout = %b, left = %b, dead = %b",
+                identifier, age, witnesses.size(), timedout(), isDead(), hasLeft());
     }
 
     public synchronized int nrOfWitnesses() {

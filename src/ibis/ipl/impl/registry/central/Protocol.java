@@ -38,8 +38,8 @@ public final class Protocol {
 
     public static final String[] OPCODE_NAMES =
         { "JOIN", "LEAVE", "GOSSIP", "ELECT", "SEQUENCE_NR", "DEAD",
-                "MAYBE_DEAD", "SIGNAL", "PING", "PUSH", "BCAST_PUSH", "GET_STATE",
-                "HEARTBEAT", "STATISTICS" };
+                "MAYBE_DEAD", "SIGNAL", "PING", "PUSH", "BROADCAST", "FORWARD", "GET_STATE",
+                "HEARTBEAT", };
 
     static final int MIN_EVENT_LIST_SEND_SIZE = 100;
 

@@ -40,18 +40,24 @@ class CommunicationHandler extends Thread {
 
     private final ARRG arrg;
 
+    private final int nrOfLeavesSend;
+
     CommunicationHandler(TypedProperties properties, Registry registry,
             Pool members, ElectionSet elections, Statistics statistics)
-            throws IbisConfigurationException,IOException {
+            throws IbisConfigurationException, IOException {
         this.registry = registry;
         this.pool = members;
         this.elections = elections;
         this.statistics = statistics;
 
+        nrOfLeavesSend =
+            properties.getIntProperty(RegistryProperties.LEAVES_SEND);
+
         try {
             socketFactory = Client.getFactory(properties);
         } catch (ConfigurationException e) {
-            throw new IbisConfigurationException("Could not create socket factory: " + e);
+            throw new IbisConfigurationException(
+                    "Could not create socket factory: " + e);
         } catch (Exception e) {
             throw new IOException("Could not create socket factory: " + e);
         }
@@ -117,7 +123,9 @@ class CommunicationHandler extends Thread {
 
                 connection.close();
                 if (statistics != null) {
-                    statistics.add(Protocol.OPCODE_SIGNAL, System.currentTimeMillis() - start, connection.read(), connection.written(), false);
+                    statistics.add(Protocol.OPCODE_SIGNAL,
+                        System.currentTimeMillis() - start, connection.read(),
+                        connection.written(), false);
                 }
             } catch (IOException e) {
                 logger.error("could not send signal to " + ibis);
@@ -177,15 +185,22 @@ class CommunicationHandler extends Thread {
 
             connection.close();
             if (statistics != null) {
-                statistics.add(Protocol.OPCODE_GOSSIP, System.currentTimeMillis() - start, connection.read(), connection.written(), false);
+                statistics.add(Protocol.OPCODE_GOSSIP,
+                    System.currentTimeMillis() - start, connection.read(),
+                    connection.written(), false);
             }
         } catch (IOException e) {
-            logger.debug("could not gossip with " + address);
+            logger.error("could not gossip with " + address, e);
         }
     }
 
     private void handleGossip(Connection connection) throws IOException {
         IbisIdentifier peer = new IbisIdentifier(connection.in());
+
+        if (peer.equals(registry.getIbisIdentifier())) {
+            logger.error("eep! talking to ourselves");
+            connection.closeWithError("talking to self");
+        }
 
         if (!peer.poolName().equals(registry.getIbisIdentifier().poolName())) {
             connection.closeWithError("wrong pool");
@@ -206,14 +221,15 @@ class CommunicationHandler extends Thread {
      * Sends leave message to everyone ARRG knows :)
      */
     public void broadcastLeave() {
-        VirtualSocketAddress[] addresses = arrg.getMembers();
+        VirtualSocketAddress[] addresses =
+            arrg.getRandomMembers(nrOfLeavesSend);
 
         for (VirtualSocketAddress address : addresses) {
             if (address.equals(serverSocket.getLocalSocketAddress())) {
-                //do not connect to self
+                // do not connect to self
                 continue;
             }
-            
+
             try {
                 long start = System.currentTimeMillis();
                 Connection connection =
@@ -228,10 +244,13 @@ class CommunicationHandler extends Thread {
 
                 connection.close();
                 if (statistics != null) {
-                    statistics.add(Protocol.OPCODE_LEAVE, System.currentTimeMillis() - start, connection.read(), connection.written(), false);
+                    statistics.add(Protocol.OPCODE_LEAVE,
+                        System.currentTimeMillis() - start, connection.read(),
+                        connection.written(), false);
                 }
             } catch (IOException e) {
-                logger.debug(serverSocket.getLocalSocketAddress() + " could not send leave to " + address);
+                logger.debug(serverSocket.getLocalSocketAddress()
+                        + " could not send leave to " + address);
             }
         }
     }
@@ -264,7 +283,8 @@ class CommunicationHandler extends Thread {
                     + result + " instead");
         }
         if (statistics != null) {
-            statistics.add(Protocol.OPCODE_PING, System.currentTimeMillis() - start, connection.read(), connection.written(), false);
+            statistics.add(Protocol.OPCODE_PING, System.currentTimeMillis()
+                    - start, connection.read(), connection.written(), false);
         }
     }
 
@@ -355,9 +375,10 @@ class CommunicationHandler extends Thread {
         }
 
         logger.debug("done handling request");
-        
+
         if (statistics != null) {
-            statistics.add(opcode, System.currentTimeMillis() - start, connection.read(), connection.written(), true);
+            statistics.add(opcode, System.currentTimeMillis() - start,
+                connection.read(), connection.written(), true);
         }
     }
 
