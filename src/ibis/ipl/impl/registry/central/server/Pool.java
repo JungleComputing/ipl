@@ -30,10 +30,7 @@ import java.util.Map;
 import org.apache.log4j.Logger;
 
 final class Pool implements Runnable {
-
-    // time until the pool data is removed after the pool has ended (10 minutes)
-    private static final int STALE_TIMEOUT = 600000;
-
+    
     // 10 seconds connect timeout
     private static final int CONNECT_TIMEOUT = 10000;
 
@@ -84,8 +81,6 @@ final class Pool implements Runnable {
     private boolean ended = false;
 
     private boolean closed = false;
-
-    private long staleTime;
 
     Pool(String name, VirtualSocketFactory socketFactory,
             long heartbeatInterval, long eventPushInterval, boolean gossip,
@@ -225,18 +220,10 @@ final class Pool implements Runnable {
 
     synchronized void end() {
         ended = true;
-        staleTime = System.currentTimeMillis() + STALE_TIMEOUT;
         pusher.enqueue(null);
         if (statistics != null) {
             statistics.write();
         }
-    }
-
-    public synchronized boolean stale() {
-        logger.debug("pool stale at " + staleTime + " now "
-                + System.currentTimeMillis() + " ended = " + ended);
-
-        return ended && (System.currentTimeMillis() > staleTime);
     }
 
     public void saveStatistics() {

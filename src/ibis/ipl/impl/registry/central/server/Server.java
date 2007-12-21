@@ -150,8 +150,8 @@ public final class Server extends Thread implements Service {
                         System.out.println(pool.getStats());
                     }
 
-                    if (pool.stale()) {
-                        logger.debug("pool " + pool.getName() + " now stale");
+                    if (pool.hasEnded()) {
+                        logger.debug("pool " + pool.getName() + " ended");
                         pool.saveStatistics();
                         pools.remove(pool.getName());
                         if (pools.size() == 0) {

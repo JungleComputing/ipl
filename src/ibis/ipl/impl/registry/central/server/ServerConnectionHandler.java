@@ -121,11 +121,6 @@ final class ServerConnectionHandler implements Runnable {
 
         connection.sendOKReply();
 
-        if (pool.hasEnded()) {
-            // wake up the server so it can check the pools (and remove this
-            // one)
-            server.nudge();
-        }
         pool.gotHeartbeat(identifier);
         return pool;
 
@@ -395,10 +390,17 @@ final class ServerConnectionHandler implements Runnable {
             connection.close();
         }
 
-        if (pool != null && pool.getCommStats() != null) {
-            pool.getCommStats().add(opcode, System.currentTimeMillis() - start,
-                    connection.read(), connection.written(), true);
-            logger.debug("done handling request");
+        if (pool != null) {
+            if (pool.getCommStats() != null) {
+                pool.getCommStats().add(opcode,
+                        System.currentTimeMillis() - start, connection.read(),
+                        connection.written(), true);
+                logger.debug("done handling request");
+            }
+            if (pool.hasEnded()) {
+                //wake up the server so it can remove this pool
+                server.nudge();
+            }
         }
         threadEnded();
     }
