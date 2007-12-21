@@ -161,6 +161,12 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
         commHandler.start();
         pool.start();
         
+        boolean printMembers = properties.getBooleanProperty(RegistryProperties.PRINT_MEMBERS);
+
+        if (printMembers) {
+            new MemberPrinter(pool);
+        }
+        
         ThreadPool.createNew(this, "pool management thread");
 
         logger.debug("registry for " + identifier + " initiated");

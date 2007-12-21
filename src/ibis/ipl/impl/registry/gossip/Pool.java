@@ -49,10 +49,7 @@ class Pool extends Thread {
         left = new HashSet<UUID>();
         members = new HashMap<UUID, Member>();
 
-        // add ourselves to the list of members
-
         random = new Random();
-
     }
 
     @Override
@@ -261,6 +258,22 @@ class Pool extends Thread {
 
         return suspects.get(random.nextInt(suspects.size()));
     }
+    
+    synchronized void printMembers() {
+        System.out.println("pool at " + registry.getIbisIdentifier());
+        System.out.println("dead:");
+        for(UUID dead: deceased) {
+            System.out.println(dead);
+        }
+        System.out.println("left:");
+        for(UUID dead: deceased) {
+            System.out.println(dead);
+        }
+        System.out.println("current:");
+        for(Member member: members.values()) {
+            System.out.println(member);
+        }
+    }
 
     // ping suspect members once a second
     public void run() {
@@ -274,10 +287,13 @@ class Pool extends Thread {
 
         long interval =
             properties.getIntProperty(RegistryProperties.PING_INTERVAL) * 1000;
-
+        
+      
+        
         while (!registry.isStopped()) {
             cleanup();
 
+            
             Member suspect = getSuspect();
 
             if (suspect != null) {
