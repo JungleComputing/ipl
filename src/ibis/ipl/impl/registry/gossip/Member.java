@@ -73,7 +73,7 @@ class Member {
         
     }
     
-    void writeTo(DataOutputStream out) throws IOException {
+    synchronized void writeTo(DataOutputStream out) throws IOException {
         identifier.writeTo(out);
 
         //send value independant of our clock
@@ -90,7 +90,7 @@ class Member {
         out.writeBoolean(left);
     }
     
-    public void merge(Member other) {
+    synchronized public void merge(Member other) {
         logger.debug("merging " + this + " with " + other);
         
         if (other.lastSeen > lastSeen) {
@@ -128,11 +128,11 @@ class Member {
         logger.debug("merge result = " + this);
     }
     
-    IbisIdentifier getIdentifier() {
+    synchronized IbisIdentifier getIdentifier() {
         return identifier;
     }
 
-    UUID getUUID() {
+    synchronized UUID getUUID() {
         return UUID.fromString(identifier.getID());
     }
 
@@ -201,7 +201,7 @@ class Member {
         long age = System.currentTimeMillis() - lastSeen;
 
         return String.format("%s last seen %d milliseconds ago, witnesses: %d, timeout = %b, left = %b, dead = %b",
-                identifier, age, witnesses.size(), timedout(), isDead(), hasLeft());
+                identifier, age, witnesses.size(), timedout(), hasLeft(), isDead());
     }
 
     public synchronized int nrOfWitnesses() {

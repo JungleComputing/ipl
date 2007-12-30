@@ -24,6 +24,8 @@ class ARRG extends Thread {
 
     private static final int CONNECT_TIMEOUT = 5000;
 
+    private static final int SERVER_CONNECT_TIMEOUT = 120000;
+    
     private static final int CACHE_SIZE = 100;
 
     private static final int GOSSIP_SIZE = 30;
@@ -152,7 +154,7 @@ class ARRG extends Thread {
                 + " received request from " + peerEntry);
     }
 
-    private void gossip(VirtualSocketAddress victim) throws IOException {
+    private void gossip(VirtualSocketAddress victim, int timeout, boolean fillTimeout) throws IOException {
         long start = System.currentTimeMillis();
 
         if (victim == null) {
@@ -174,7 +176,7 @@ class ARRG extends Thread {
         try {
 
             connection =
-                new Connection(victim, CONNECT_TIMEOUT, false, socketFactory);
+                new Connection(victim, timeout, fillTimeout, socketFactory);
 
             // header
 
@@ -282,7 +284,7 @@ class ARRG extends Thread {
             // first try normal cache
             if (victim != null) {
                 try {
-                    gossip(victim.getAddress());
+                    gossip(victim.getAddress(), CONNECT_TIMEOUT, false);
                     fallbackCache.add(victim);
                     success = true;
                 } catch (IOException e) {
@@ -296,7 +298,7 @@ class ARRG extends Thread {
                 victim = fallbackCache.getRandomEntry(true);
                 if (victim != null) {
                     try {
-                        gossip(victim.getAddress());
+                        gossip(victim.getAddress(), CONNECT_TIMEOUT, false);
                         success = true;
                     } catch (IOException e) {
                         logger.debug("could not gossip with fallback entry: "
@@ -305,11 +307,11 @@ class ARRG extends Thread {
                 }
             }
 
-            // lastly, use bootstrap service
+            // lastly, use bootstrap service (also wait longer on connecting)
             if (success == false) {
                 if (bootstrapAddress != null) {
                     try {
-                        gossip(bootstrapAddress);
+                        gossip(bootstrapAddress, SERVER_CONNECT_TIMEOUT, true);
                         success = true;
                     } catch (IOException e) {
                         logger.error(

@@ -33,7 +33,7 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
     private final String poolName;
 
     private final IbisIdentifier identifier;
-    
+
     private final Statistics statistics;
 
     private final Pool pool;
@@ -98,8 +98,7 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
 
         properties = RegistryProperties.getHardcodedProperties();
         properties.addProperties(userProperties);
-        
-        
+
         if ((capabilities.hasCapability(IbisCapabilities.MEMBERSHIP_UNRELIABLE))
                 && eventHandler == null) {
             joinedIbises = new ArrayList<IbisIdentifier>();
@@ -127,19 +126,20 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
         UUID id = UUID.randomUUID();
 
         poolName = properties.getProperty(IbisProperties.POOL_NAME);
-        
+
         if (poolName == null) {
             throw new IbisConfigurationException(
                     "cannot initialize registry, property "
                             + IbisProperties.POOL_NAME + " is not specified");
         }
-        
+
         if (properties.getBooleanProperty(RegistryProperties.STATISTICS)) {
             statistics = new Statistics(Protocol.OPCODE_NAMES);
             statistics.setID(id.toString(), poolName);
-            
-            long interval = properties.getIntProperty(RegistryProperties.STATISTICS_INTERVAL) * 1000;
-            
+
+            long interval =
+                properties.getIntProperty(RegistryProperties.STATISTICS_INTERVAL) * 1000;
+
             statistics.startWriting(interval);
         } else {
             statistics = null;
@@ -147,26 +147,27 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
 
         pool = new Pool(properties, this, statistics);
         elections = new ElectionSet(properties, this);
-       
+
         commHandler =
-            new CommunicationHandler(properties, this, pool, elections, statistics);
+            new CommunicationHandler(properties, this, pool, elections,
+                    statistics);
 
         Location location = Location.defaultLocation(properties);
 
         identifier =
             new IbisIdentifier(id.toString(), ibisData,
                     commHandler.getAddress().toBytes(), location, poolName);
-        
 
         commHandler.start();
         pool.start();
-        
-        boolean printMembers = properties.getBooleanProperty(RegistryProperties.PRINT_MEMBERS);
+
+        boolean printMembers =
+            properties.getBooleanProperty(RegistryProperties.PRINT_MEMBERS);
 
         if (printMembers) {
             new MemberPrinter(pool);
         }
-        
+
         ThreadPool.createNew(this, "pool management thread");
 
         logger.debug("registry for " + identifier + " initiated");
@@ -176,7 +177,7 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
     public IbisIdentifier getIbisIdentifier() {
         return identifier;
     }
-    
+
     CommunicationHandler getCommHandler() {
         return commHandler;
     }
@@ -414,12 +415,20 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
 
     @Override
     public void leave() throws IOException {
+        logger.debug("leaving: setting stopped state");
         synchronized (this) {
             stopped = true;
+            notifyAll();
         }
+        logger.debug("leaving: telling pool we are leaving");
         pool.leave(identifier);
+        logger.debug("leaving: broadcasting leave");
         commHandler.broadcastLeave();
-        statistics.write();
+        logger.debug("leaving: writing statistics");
+        if (statistics != null) {
+            statistics.write();
+        }
+        logger.debug("leaving: done!");
     }
 
     public void run() {

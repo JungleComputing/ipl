@@ -75,7 +75,9 @@ class Pool extends Thread {
             result = new Member(ibis, properties);
             members.put(id, result);
             registry.ibisJoined(ibis);
-            statistics.newPoolSize(members.size());
+            if (statistics != null) {
+                statistics.newPoolSize(members.size());
+            }
         }
 
         return result;
@@ -117,37 +119,46 @@ class Pool extends Thread {
         cleanup(member);
     }
 
-    public synchronized void writeGossipData(DataOutputStream out)
-            throws IOException {
-        out.writeInt(deceased.size());
-        for (UUID id : deceased) {
-            out.writeLong(id.getLeastSignificantBits());
-            out.writeLong(id.getMostSignificantBits());
+    public void writeGossipData(DataOutputStream out) throws IOException {
+        UUID[] deceased;
+        UUID[] left;
+        Member[] members;
+
+        synchronized (this) {
+            deceased = this.deceased.toArray(new UUID[0]);
+            left = this.left.toArray(new UUID[0]);
+            members = this.members.values().toArray(new Member[0]);
         }
 
-        out.writeInt(left.size());
+        out.writeInt(deceased.length);
+        for (UUID id : deceased) {
+            out.writeLong(id.getMostSignificantBits());
+            out.writeLong(id.getLeastSignificantBits());
+        }
+
+        out.writeInt(left.length);
         for (UUID id : left) {
             out.writeLong(id.getMostSignificantBits());
             out.writeLong(id.getLeastSignificantBits());
         }
 
-        out.writeInt(members.size());
-        for (Member member : members.values()) {
+        out.writeInt(members.length);
+        for (Member member : members) {
             member.writeTo(out);
         }
     }
 
-    public synchronized void readGossipData(DataInputStream in)
-            throws IOException {
+    public void readGossipData(DataInputStream in) throws IOException {
         int nrOfDeceased = in.readInt();
 
         if (nrOfDeceased < 0) {
             throw new IOException("negative deceased list value");
         }
 
+        ArrayList<UUID> newDeceased = new ArrayList<UUID>();
         for (int i = 0; i < nrOfDeceased; i++) {
             UUID id = new UUID(in.readLong(), in.readLong());
-            deceased.add(id);
+            newDeceased.add(id);
         }
 
         int nrOfLeft = in.readInt();
@@ -156,9 +167,10 @@ class Pool extends Thread {
             throw new IOException("negative left list value");
         }
 
+        ArrayList<UUID> newLeft = new ArrayList<UUID>();
         for (int i = 0; i < nrOfLeft; i++) {
             UUID id = new UUID(in.readLong(), in.readLong());
-            left.add(id);
+            newLeft.add(id);
         }
 
         int nrOfMembers = in.readInt();
@@ -167,19 +179,44 @@ class Pool extends Thread {
             throw new IOException("negative member list value");
         }
 
+        ArrayList<Member> newMembers = new ArrayList<Member>();
         for (int i = 0; i < nrOfMembers; i++) {
             Member member = new Member(in, properties);
-            UUID id = member.getUUID();
+            newMembers.add(member);
+        }
 
-            if (members.containsKey(id)) {
-                // merge state of know and received member
-                members.get(id).merge(member);
-            } else if (!deceased.contains(id) && !left.contains(id)) {
-                // add new member
-                members.put(id, member);
-                // tell registry about his new member
-                registry.ibisJoined(member.getIdentifier());
-                statistics.newPoolSize(members.size());
+        synchronized (this) {
+            for (Member member : newMembers) {
+                UUID id = member.getUUID();
+
+                if (members.containsKey(id)) {
+                    // merge state of know and received member
+                    members.get(id).merge(member);
+                } else if (!deceased.contains(id) && !left.contains(id)) {
+                    // add new member
+                    members.put(id, member);
+                    // tell registry about his new member
+                    registry.ibisJoined(member.getIdentifier());
+                    if (statistics != null) {
+                        statistics.newPoolSize(members.size());
+                    }
+                }
+            }
+
+            for (UUID id : newDeceased) {
+                if (members.containsKey(id)) {
+                    members.get(id).declareDead();
+                } else if (!left.contains(id)) {
+                    deceased.add(id);
+                }
+            }
+
+            for (UUID id : newLeft) {
+                if (members.containsKey(id)) {
+                    members.get(id).setLeft();
+                } else {
+                    left.add(id);
+                }
             }
         }
     }
@@ -189,10 +226,18 @@ class Pool extends Thread {
      * registry.
      */
     private synchronized void cleanup(Member member) {
+        if (deceased.contains(member.getUUID())) {
+            member.declareDead();
+        }
+
+        if (left.contains(member.getUUID())) {
+            member.setLeft();
+        }
+
         // if there are not enough live members in a pool to reach the
-        // minimum needed to
+        // minimum needed to otherwise declare a member dead, do it now
         if (member.isSuspect() && member.nrOfWitnesses() >= liveMembers) {
-            logger.debug("declared " + member + " with "
+            logger.warn("declared " + member + " with "
                     + member.nrOfWitnesses()
                     + " witnesses dead due to a low number of live members ("
                     + liveMembers + ").");
@@ -201,16 +246,20 @@ class Pool extends Thread {
 
         if (member.hasLeft()) {
             left.add(member.getUUID());
-            registry.ibisLeft(member.getIdentifier());
             members.remove(member.getUUID());
-            statistics.newPoolSize(members.size());
+            if (statistics != null) {
+                statistics.newPoolSize(members.size());
+            }
+            registry.ibisLeft(member.getIdentifier());
             logger.debug("purged " + member + " from list");
         } else if (member.isDead()) {
-            String id = member.getIdentifier().getID();
             deceased.add(member.getUUID());
-            members.remove(id);
-            statistics.newPoolSize(members.size());
+            members.remove(member.getUUID());
+            if (statistics != null) {
+                statistics.newPoolSize(members.size());
+            }
             registry.ibisDied(member.getIdentifier());
+            logger.debug("purged " + member + " from list");
         }
     }
 
@@ -220,7 +269,7 @@ class Pool extends Thread {
     private synchronized void updateLiveMembers() {
         int result = 0;
         for (Member member : members.values()) {
-            if (!member.isDead() && !member.hasLeft() && !member.isSuspect()) {
+            if (!member.isDead() && !member.hasLeft() && !member.timedout()) {
                 result++;
             }
         }
@@ -258,19 +307,19 @@ class Pool extends Thread {
 
         return suspects.get(random.nextInt(suspects.size()));
     }
-    
+
     synchronized void printMembers() {
         System.out.println("pool at " + registry.getIbisIdentifier());
         System.out.println("dead:");
-        for(UUID dead: deceased) {
-            System.out.println(dead);
+        for (UUID member : deceased) {
+            System.out.println(member);
         }
         System.out.println("left:");
-        for(UUID dead: deceased) {
-            System.out.println(dead);
+        for (UUID member : left) {
+            System.out.println(member);
         }
         System.out.println("current:");
-        for(Member member: members.values()) {
+        for (Member member : members.values()) {
             System.out.println(member);
         }
     }
@@ -281,19 +330,18 @@ class Pool extends Thread {
             // add ourselves to the member list
             self = new Member(registry.getIbisIdentifier(), properties);
             members.put(self.getUUID(), self);
-            statistics.newPoolSize(members.size());
+            if (statistics != null) {
+                statistics.newPoolSize(members.size());
+            }
             registry.ibisJoined(self.getIdentifier());
         }
 
         long interval =
             properties.getIntProperty(RegistryProperties.PING_INTERVAL) * 1000;
-        
-      
-        
+
         while (!registry.isStopped()) {
             cleanup();
 
-            
             Member suspect = getSuspect();
 
             if (suspect != null) {

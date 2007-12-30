@@ -33,6 +33,10 @@ public class Heartbeat implements Runnable {
 
         // no need to wake up heartbeat thread, deadline will only be later
     }
+    
+    synchronized void nudge() {
+        notifyAll();
+    }
 
     synchronized void waitForHeartbeatDeadline() {
         while (true) {

@@ -97,14 +97,14 @@ final class IterativeEventPusher extends Thread {
         while (!pool.isStopped()) {
             int eventTime = pool.getTime();
 
-            Member[] members = pool.getChildren();
+            Member[] children = pool.getChildren();
 
-            logger.debug("updating " + members.length +
+            logger.debug("updating " + children.length +
                     " children in pool to event-time " + eventTime);
 
-            WorkQ workQ = new WorkQ(members);
+            WorkQ workQ = new WorkQ(children);
 
-            int threads = Math.min(THREADS, members.length);
+            int threads = Math.min(THREADS, children.length);
             for (int i = 0; i < threads; i++) {
                 new EventPusherThread(workQ);
             }
@@ -114,7 +114,8 @@ final class IterativeEventPusher extends Thread {
             logger.debug("DONE updating nodes in pool to event-time "
                     + eventTime);
 
-            pool.waitForEventTime(eventTime + 1);
+            //FIXME: hack? also check once a second
+            pool.waitForEventTime(eventTime + 1, 1000);
         }
     }
 }

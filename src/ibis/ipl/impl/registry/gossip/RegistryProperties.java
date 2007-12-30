@@ -37,7 +37,7 @@ public class RegistryProperties {
             { BOOTSTRAP_LIST, null, "List of peers to bootstrap of off" },
             { WITNESSES_REQUIRED, "5",
                     "Int: how many peers need to agree before a node is declared dead" },
-            { PEER_DEAD_TIMEOUT, "10",
+            { PEER_DEAD_TIMEOUT, "120",
                     "Number of seconds until a peer can be declared dead" },
             { PING_INTERVAL, "1",
                     "How often do we try to reach a suspect member (in seconds)" },

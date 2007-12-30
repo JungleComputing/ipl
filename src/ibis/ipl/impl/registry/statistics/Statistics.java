@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Formatter;
 import java.util.LinkedList;
 import java.util.List;
@@ -228,14 +229,24 @@ public final class Statistics implements Runnable {
 
         return true;
     }
+    
+    public synchronized void print(Formatter out) {
+        out.format("#statistics for %s\n", id);
+        
+        printCommStats(out);
+        
+        out.format("#total traffic = %.2f MB\n",totalTraffic());
+        
+        printPoolSizeHistory(out);
+    }
+        
 
-    public synchronized void printCommStats(Formatter formatter) {
+    public synchronized void printCommStats(Formatter out) {
         long totalTraffic = 0;
 
-        formatter.format("#statistics at %.2f seconds:\n",
-            (System.currentTimeMillis() - start) / 1000.0);
-        formatter.format("#TYPE          IN_COUNT OUT_COUNT BYTES_IN BYTES_OUT TOTAL_TIME   AVG_TIME\n");
-        formatter.format("#                                                        (sec)       (ms)\n");
+        out.format("#communication statistics\n");
+        out.format("#TYPE          IN_COUNT OUT_COUNT BYTES_IN BYTES_OUT TOTAL_TIME   AVG_TIME\n");
+        out.format("#                                                        (sec)       (ms)\n");
         for (byte i = 0; i < opcodes.length; i++) {
             totalTraffic += bytesIn[i] + bytesOut[i];
 
@@ -247,14 +258,23 @@ public final class Statistics implements Runnable {
                 average = 0;
             }
 
-            formatter.format("#%-12s %9d %9d %8d %9d %10.2f %10.2f\n",
+            out.format("#%-12s %9d %9d %8d %9d %10.2f %10.2f\n",
                 opcodes[i], incomingRequestCounter[i],
                 outgoingRequestCounter[i], bytesIn[i], bytesOut[i],
                 totalTimes[i] / 1000.0, average);
         }
-        formatter.format("distance from server: %d Ms\n", offset);
+        out.format("#distance from server: %d Ms\n", offset);
     }
 
+    public synchronized void printPoolSizeHistory(Formatter out) {
+        out.format("#pool size history\n");
+        out.format("#TIME POOL_SIZE\n");
+        for(DataPoint point: poolSizeHistory) {
+            double time  = ((double) point.getTime() - start + offset) / 1000.0;
+            out.format("%.2f %d\n", time, point.getValue());
+        }
+    }
+    
     public synchronized void newPoolSize(int poolSize) {
         if (!poolSizeHistory.isEmpty()) {
             long lastPoolSize = poolSizeHistory.get(poolSizeHistory.size() - 1).getValue();
@@ -327,6 +347,9 @@ public final class Statistics implements Runnable {
         return poolSizeHistory.toArray(new DataPoint[0]);
     }
 
+    /**
+     * Total data send/received by the registry (in Mib)
+     */
     public synchronized double totalTraffic() {
         double totalTraffic = 0;
 
@@ -375,5 +398,24 @@ public final class Statistics implements Runnable {
     public String toString() {
         return id;
     }
+    
+    public static void main(String[] args) throws IOException {
+        Formatter formatter = new Formatter(System.out);
+
+        for (int i = 0; i < args.length; i++) {
+            File file = new File(args[i]);
+            
+            Statistics statistics = new Statistics(file);
+            
+            statistics.print(formatter);
+        }
+        
+        formatter.flush();
+
+        
+    }
+
+    
+    
 
 }

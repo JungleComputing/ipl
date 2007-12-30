@@ -28,8 +28,8 @@ final class CommunicationHandler implements Runnable {
 
     private static final int MAX_THREADS = 25;
 
-    private static final Logger logger = Logger
-            .getLogger(CommunicationHandler.class);
+    private static final Logger logger =
+        Logger.getLogger(CommunicationHandler.class);
 
     private final Heartbeat heartbeat;
 
@@ -47,15 +47,22 @@ final class CommunicationHandler implements Runnable {
 
     private final Statistics statistics;
 
+    // communication settings
+
+    private final boolean peerBootstrap;
+
+    private final boolean gossip;
+
+    private final boolean tree;
+
     // bootstrap data
 
     private IbisIdentifier identifier;
 
-    private int bootstrapTime;
-
     private IbisIdentifier[] bootstrapList;
 
     private int currentNrOfThreads = 0;
+
     private int maxNrOfThreads = 0;
 
     CommunicationHandler(TypedProperties properties, Pool pool,
@@ -72,22 +79,42 @@ final class CommunicationHandler implements Runnable {
                             + " is not specified");
         }
 
-        timeout = properties
-                .getIntProperty(RegistryProperties.CLIENT_CONNECT_TIMEOUT) * 1000;
+        gossip = properties.getBooleanProperty(RegistryProperties.GOSSIP);
+        tree = properties.getBooleanProperty(RegistryProperties.TREE);
+
+        if (gossip && tree) {
+            throw new IbisConfigurationException(
+                    "enabling both gossip and tree communication not allowed");
+        }
+
+        if (gossip) {
+            peerBootstrap = true;
+        } else if (tree) {
+            peerBootstrap = false;
+            if (properties.getBooleanProperty(RegistryProperties.PEER_BOOTSTRAP)) {
+                throw new IbisConfigurationException(
+                        "peer bootstrap not possible in combination with tree");
+            }
+        } else {
+            peerBootstrap =
+                properties.getBooleanProperty(RegistryProperties.PEER_BOOTSTRAP);
+        }
+
+        timeout =
+            properties.getIntProperty(RegistryProperties.CLIENT_CONNECT_TIMEOUT) * 1000;
 
         try {
             virtualSocketFactory = Client.getFactory(properties);
         } catch (ConfigurationException e) {
-            throw new IbisConfigurationException(
-                    e.getMessage());
+            throw new IbisConfigurationException(e.getMessage());
         }
 
-        serverSocket = virtualSocketFactory.createServerSocket(0,
-                CONNECTION_BACKLOG, null);
+        serverSocket =
+            virtualSocketFactory.createServerSocket(0, CONNECTION_BACKLOG, null);
 
         try {
-            serverAddress = Client.getServiceAddress(Server.VIRTUAL_PORT,
-                    properties);
+            serverAddress =
+                Client.getServiceAddress(Server.VIRTUAL_PORT, properties);
         } catch (ConfigurationException e) {
             throw new IbisConfigurationException(e.getMessage());
         }
@@ -101,21 +128,21 @@ final class CommunicationHandler implements Runnable {
 
         // init heartbeat
 
-        long heartbeatInterval = properties
-                .getIntProperty(RegistryProperties.HEARTBEAT_INTERVAL) * 1000;
+        long heartbeatInterval =
+            properties.getIntProperty(RegistryProperties.HEARTBEAT_INTERVAL) * 1000;
 
         heartbeat = new Heartbeat(this, pool, heartbeatInterval);
 
         // init gossiper (if needed)
-        if (properties.getBooleanProperty(RegistryProperties.GOSSIP)) {
-            long gossipInterval = properties
-                    .getIntProperty(RegistryProperties.GOSSIP_INTERVAL) * 1000;
+        if (gossip) {
+            long gossipInterval =
+                properties.getIntProperty(RegistryProperties.GOSSIP_INTERVAL) * 1000;
 
             new Gossiper(this, pool, gossipInterval);
         }
 
         // init broadcaster (if needed)
-        if (properties.getBooleanProperty(RegistryProperties.TREE)) {
+        if (tree) {
             Thread eventPusher = new IterativeEventPusher(pool, this);
             eventPusher.setDaemon(true);
             eventPusher.start();
@@ -139,29 +166,26 @@ final class CommunicationHandler implements Runnable {
             String ibisImplementationIdentifier) throws IOException {
         long start = System.currentTimeMillis();
 
-        long heartbeatInterval = properties
-                .getIntProperty(RegistryProperties.HEARTBEAT_INTERVAL) * 1000;
-        long eventPushInterval = properties
-                .getIntProperty(RegistryProperties.EVENT_PUSH_INTERVAL) * 1000;
-        boolean gossip = properties
-                .getBooleanProperty(RegistryProperties.GOSSIP);
-        long gossipInterval = properties
-                .getIntProperty(RegistryProperties.GOSSIP_INTERVAL) * 1000;
-        boolean adaptGossipInterval = properties
-                .getBooleanProperty(RegistryProperties.ADAPT_GOSSIP_INTERVAL);
-        boolean tree = properties.getBooleanProperty(RegistryProperties.TREE);
-        boolean keepStatistics = properties
-                .getBooleanProperty(RegistryProperties.STATISTICS);
-        long statisticsInterval = properties
-                .getIntProperty(RegistryProperties.STATISTICS_INTERVAL) * 1000;
+        long heartbeatInterval =
+            properties.getIntProperty(RegistryProperties.HEARTBEAT_INTERVAL) * 1000;
+        long eventPushInterval =
+            properties.getIntProperty(RegistryProperties.EVENT_PUSH_INTERVAL) * 1000;
+        long gossipInterval =
+            properties.getIntProperty(RegistryProperties.GOSSIP_INTERVAL) * 1000;
+        boolean adaptGossipInterval =
+            properties.getBooleanProperty(RegistryProperties.ADAPT_GOSSIP_INTERVAL);
+        boolean keepStatistics =
+            properties.getBooleanProperty(RegistryProperties.STATISTICS);
+        long statisticsInterval =
+            properties.getIntProperty(RegistryProperties.STATISTICS_INTERVAL) * 1000;
 
         Location location = Location.defaultLocation(properties);
 
         byte[] myAddress = serverSocket.getLocalSocketAddress().toBytes();
 
         logger.debug("joining to " + pool.getName() + ", connecting to server");
-        Connection connection = new Connection(serverAddress, timeout, true,
-                virtualSocketFactory);
+        Connection connection =
+            new Connection(serverAddress, timeout, true, virtualSocketFactory);
 
         logger.debug("sending join info to server");
 
@@ -177,6 +201,7 @@ final class CommunicationHandler implements Runnable {
             connection.out().write(implementationData);
             connection.out().writeUTF(ibisImplementationIdentifier);
             location.writeTo(connection.out());
+            connection.out().writeBoolean(peerBootstrap);
             connection.out().writeLong(heartbeatInterval);
             connection.out().writeLong(eventPushInterval);
             connection.out().writeBoolean(gossip);
@@ -196,7 +221,8 @@ final class CommunicationHandler implements Runnable {
             IbisIdentifier identifier = new IbisIdentifier(connection.in());
 
             // mimimum event time we need as a bootstrap
-            int time = connection.in().readInt();
+            int joinTime = connection.in().readInt();
+            pool.setJoinTime(joinTime);
 
             int listLength = connection.in().readInt();
             IbisIdentifier[] bootstrapList = new IbisIdentifier[listLength];
@@ -208,19 +234,18 @@ final class CommunicationHandler implements Runnable {
 
             synchronized (this) {
                 this.identifier = identifier;
-                this.bootstrapTime = time;
                 this.bootstrapList = bootstrapList;
             }
 
             logger.debug("join done");
 
             // if anyone asks, report we have all events upto our join time
-            pool.setTime(bootstrapTime);
+            // pool.setTime(bootstrapTime);
 
             long end = System.currentTimeMillis();
             if (statistics != null) {
-                statistics.add(Protocol.OPCODE_JOIN, end - start, connection
-                        .read(), connection.written(), false);
+                statistics.add(Protocol.OPCODE_JOIN, end - start,
+                    connection.read(), connection.written(), false);
             }
             return identifier;
         } catch (IOException e) {
@@ -231,20 +256,24 @@ final class CommunicationHandler implements Runnable {
     }
 
     void bootstrap() throws IOException {
+        if (!peerBootstrap) {
+            //we will receive bootstrap data from a push/forward/broadcast
+            return;
+        }
+        
         long start = System.currentTimeMillis();
 
         IbisIdentifier identifier;
         IbisIdentifier[] bootstrapList;
-        int bootstrapTime;
+        int joinTime = pool.getJoinTime();
 
         synchronized (this) {
             identifier = this.identifier;
             bootstrapList = this.bootstrapList;
-            bootstrapTime = this.bootstrapTime;
         }
 
-        boolean peerBootstrap = properties
-                .getBooleanProperty(RegistryProperties.PEER_BOOTSTRAP);
+        boolean peerBootstrap =
+            properties.getBooleanProperty(RegistryProperties.PEER_BOOTSTRAP);
 
         if (peerBootstrap) {
             for (IbisIdentifier ibis : bootstrapList) {
@@ -252,15 +281,16 @@ final class CommunicationHandler implements Runnable {
                     logger.debug("trying to bootstrap with data from " + ibis);
                     Connection connection = null;
                     try {
-                        connection = new Connection(ibis, timeout, false,
-                                virtualSocketFactory);
+                        connection =
+                            new Connection(ibis, timeout, false,
+                                    virtualSocketFactory);
 
                         connection.out().writeByte(Protocol.CLIENT_MAGIC_BYTE);
                         connection.out().writeByte(Protocol.VERSION);
                         connection.out().writeByte(Protocol.OPCODE_GET_STATE);
 
                         identifier.writeTo(connection.out());
-                        connection.out().writeInt(bootstrapTime);
+                        connection.out().writeInt(joinTime);
                         connection.out().flush();
 
                         connection.getAndCheckReply();
@@ -269,8 +299,8 @@ final class CommunicationHandler implements Runnable {
                         long end = System.currentTimeMillis();
                         if (statistics != null) {
                             statistics.add(Protocol.OPCODE_GET_STATE, end
-                                    - start, connection.read(), connection
-                                    .written(), false);
+                                    - start, connection.read(),
+                                connection.written(), false);
                         }
                         return;
                     } catch (Exception e) {
@@ -283,18 +313,17 @@ final class CommunicationHandler implements Runnable {
                     }
                 }
             }
-            logger
-                    .debug("could not bootstrap registry with any peer, trying server");
+            logger.debug("could not bootstrap registry with any peer, trying server");
         }
         logger.debug("bootstrapping with server");
-        Connection connection = new Connection(serverAddress, timeout, true,
-                virtualSocketFactory);
+        Connection connection =
+            new Connection(serverAddress, timeout, true, virtualSocketFactory);
         try {
             connection.out().writeByte(Protocol.SERVER_MAGIC_BYTE);
             connection.out().writeByte(Protocol.VERSION);
             connection.out().writeByte(Protocol.OPCODE_GET_STATE);
             identifier.writeTo(connection.out());
-            connection.out().writeInt(bootstrapTime);
+            connection.out().writeInt(joinTime);
             connection.out().flush();
 
             connection.getAndCheckReply();
@@ -306,7 +335,7 @@ final class CommunicationHandler implements Runnable {
             long end = System.currentTimeMillis();
             if (statistics != null) {
                 statistics.add(Protocol.OPCODE_GET_STATE, end - start,
-                        connection.read(), connection.written(), false);
+                    connection.read(), connection.written(), false);
             }
         } catch (IOException e) {
             connection.close();
@@ -318,8 +347,8 @@ final class CommunicationHandler implements Runnable {
             throws IOException {
         long start = System.currentTimeMillis();
 
-        Connection connection = new Connection(serverAddress, timeout, true,
-                virtualSocketFactory);
+        Connection connection =
+            new Connection(serverAddress, timeout, true, virtualSocketFactory);
 
         try {
             connection.out().writeByte(Protocol.SERVER_MAGIC_BYTE);
@@ -342,8 +371,8 @@ final class CommunicationHandler implements Runnable {
             heartbeat.updateHeartbeatDeadline();
             long end = System.currentTimeMillis();
             if (statistics != null) {
-                statistics.add(Protocol.OPCODE_SIGNAL, end - start, connection
-                        .read(), connection.written(), false);
+                statistics.add(Protocol.OPCODE_SIGNAL, end - start,
+                    connection.read(), connection.written(), false);
             }
         } catch (IOException e) {
             connection.close();
@@ -360,8 +389,8 @@ final class CommunicationHandler implements Runnable {
         }
 
         logger.debug("getting sequence number");
-        Connection connection = new Connection(serverAddress, timeout, true,
-                virtualSocketFactory);
+        Connection connection =
+            new Connection(serverAddress, timeout, true, virtualSocketFactory);
 
         try {
             connection.out().writeByte(Protocol.SERVER_MAGIC_BYTE);
@@ -383,7 +412,7 @@ final class CommunicationHandler implements Runnable {
             long end = System.currentTimeMillis();
             if (statistics != null) {
                 statistics.add(Protocol.OPCODE_SEQUENCE_NR, end - start,
-                        connection.read(), connection.written(), false);
+                    connection.read(), connection.written(), false);
             }
 
             return result;
@@ -403,8 +432,8 @@ final class CommunicationHandler implements Runnable {
 
         logger.debug("declaring " + ibis + " to be dead");
 
-        Connection connection = new Connection(serverAddress, timeout, true,
-                virtualSocketFactory);
+        Connection connection =
+            new Connection(serverAddress, timeout, true, virtualSocketFactory);
 
         try {
             connection.out().writeByte(Protocol.SERVER_MAGIC_BYTE);
@@ -423,8 +452,8 @@ final class CommunicationHandler implements Runnable {
             heartbeat.updateHeartbeatDeadline();
             long end = System.currentTimeMillis();
             if (statistics != null) {
-                statistics.add(Protocol.OPCODE_DEAD, end - start, connection
-                        .read(), connection.written(), false);
+                statistics.add(Protocol.OPCODE_DEAD, end - start,
+                    connection.read(), connection.written(), false);
             }
         } catch (IOException e) {
             connection.close();
@@ -442,8 +471,8 @@ final class CommunicationHandler implements Runnable {
 
         logger.debug("reporting " + ibis + " to possibly be dead");
 
-        Connection connection = new Connection(serverAddress, timeout, true,
-                virtualSocketFactory);
+        Connection connection =
+            new Connection(serverAddress, timeout, true, virtualSocketFactory);
 
         try {
             connection.out().writeByte(Protocol.SERVER_MAGIC_BYTE);
@@ -462,7 +491,7 @@ final class CommunicationHandler implements Runnable {
             long end = System.currentTimeMillis();
             if (statistics != null) {
                 statistics.add(Protocol.OPCODE_MAYBE_DEAD, end - start,
-                        connection.read(), connection.written(), false);
+                    connection.read(), connection.written(), false);
             }
         } catch (IOException e) {
             connection.close();
@@ -485,12 +514,18 @@ final class CommunicationHandler implements Runnable {
             return;
         }
 
+        if (pool.isStopped()) {
+            // pool already stopped
+            return;
+        }
+
         logger.debug("sending heartbeat to server");
 
         Connection connection = null;
         try {
-            connection = new Connection(serverAddress, timeout, true,
-                    virtualSocketFactory);
+            connection =
+                new Connection(serverAddress, timeout, true,
+                        virtualSocketFactory);
 
             connection.out().writeByte(Protocol.SERVER_MAGIC_BYTE);
             connection.out().writeByte(Protocol.VERSION);
@@ -504,16 +539,15 @@ final class CommunicationHandler implements Runnable {
 
             long end = System.currentTimeMillis();
             if (statistics != null) {
-
                 statistics.add(Protocol.OPCODE_HEARTBEAT, end - start,
-                        connection.read(), connection.written(), false);
+                    connection.read(), connection.written(), false);
             }
             logger.debug("send heartbeat");
         } catch (Exception e) {
             if (connection != null) {
                 connection.close();
             }
-            logger.error("could not send heartbeat", e);
+            logger.debug("could not send heartbeat", e);
         }
     }
 
@@ -522,8 +556,8 @@ final class CommunicationHandler implements Runnable {
 
         long start = System.currentTimeMillis();
 
-        Connection connection = new Connection(serverAddress, timeout, true,
-                virtualSocketFactory);
+        Connection connection =
+            new Connection(serverAddress, timeout, true, virtualSocketFactory);
 
         try {
             connection.out().writeByte(Protocol.SERVER_MAGIC_BYTE);
@@ -540,8 +574,8 @@ final class CommunicationHandler implements Runnable {
 
             long end = System.currentTimeMillis();
             if (statistics != null) {
-                statistics.add(Protocol.OPCODE_LEAVE, end - start, connection
-                        .read(), connection.written(), false);
+                statistics.add(Protocol.OPCODE_LEAVE, end - start,
+                    connection.read(), connection.written(), false);
             }
             logger.debug("left");
 
@@ -549,6 +583,7 @@ final class CommunicationHandler implements Runnable {
             connection.close();
             pool.stop();
             end();
+            heartbeat.nudge();
         }
     }
 
@@ -565,8 +600,9 @@ final class CommunicationHandler implements Runnable {
             timeout = this.timeout;
         }
 
-        Connection connection = new Connection(serverAddress, (int) timeout,
-                true, virtualSocketFactory);
+        Connection connection =
+            new Connection(serverAddress, (int) timeout, true,
+                    virtualSocketFactory);
 
         try {
             connection.out().writeByte(Protocol.SERVER_MAGIC_BYTE);
@@ -589,8 +625,8 @@ final class CommunicationHandler implements Runnable {
 
             long end = System.currentTimeMillis();
             if (statistics != null) {
-                statistics.add(Protocol.OPCODE_ELECT, end - start, connection
-                        .read(), connection.written(), false);
+                statistics.add(Protocol.OPCODE_ELECT, end - start,
+                    connection.read(), connection.written(), false);
             }
 
             return winner;
@@ -611,8 +647,8 @@ final class CommunicationHandler implements Runnable {
 
         logger.debug("gossiping with " + ibis);
 
-        Connection connection = new Connection(ibis, timeout, false,
-                virtualSocketFactory);
+        Connection connection =
+            new Connection(ibis, timeout, false, virtualSocketFactory);
 
         try {
             connection.out().writeByte(Protocol.CLIENT_MAGIC_BYTE);
@@ -661,8 +697,8 @@ final class CommunicationHandler implements Runnable {
             long end = System.currentTimeMillis();
             if (statistics != null) {
 
-                statistics.add(Protocol.OPCODE_GOSSIP, end - start, connection
-                        .read(), connection.written(), false);
+                statistics.add(Protocol.OPCODE_GOSSIP, end - start,
+                    connection.read(), connection.written(), false);
             }
         } catch (IOException e) {
             connection.close();
@@ -683,12 +719,10 @@ final class CommunicationHandler implements Runnable {
         Connection connection = null;
         try {
 
-            int peerTime = 0;
-
             logger.debug("creating connection to push events to " + ibis);
 
-            connection = new Connection(ibis, timeout, false,
-                    virtualSocketFactory);
+            connection =
+                new Connection(ibis, timeout, false, virtualSocketFactory);
 
             logger.debug("connection to " + ibis + " created");
 
@@ -699,30 +733,34 @@ final class CommunicationHandler implements Runnable {
             connection.out().flush();
 
             logger.debug("waiting for peer time of peer " + ibis);
-            peerTime = connection.in().readInt();
+            int peerTime = connection.in().readInt();
+            int peerJoinTime = connection.in().readInt();
 
-            Event[] events;
             if (peerTime == -1) {
-                // peer not finished join yet.
-                events = new Event[0];
+                connection.sendOKReply();
+
+                if (!peerBootstrap) {
+                    logger.debug("sending state");
+                    pool.writeState(connection.out(), peerJoinTime);
+                }
 
             } else {
-                events = pool.getEventsFrom(peerTime);
-            }
 
-            if (events == null) {
-                connection.closeWithError("could not get events");
-                return;
-            }
-            connection.sendOKReply();
+                Event[] events = pool.getEventsFrom(peerTime);
 
-            logger.debug("sending " + events.length + " entries to " + ibis);
+                if (events == null) {
+                    connection.closeWithError("could not get events");
+                    return;
+                }
+                connection.sendOKReply();
 
-            connection.out().writeInt(events.length);
+                logger.debug("sending " + events.length + " entries to " + ibis);
 
-            for (int i = 0; i < events.length; i++) {
+                connection.out().writeInt(events.length);
+                for (int i = 0; i < events.length; i++) {
+                    events[i].writeTo(connection.out());
+                }
 
-                events[i].writeTo(connection.out());
             }
 
             connection.out().writeInt(-1);
@@ -732,10 +770,8 @@ final class CommunicationHandler implements Runnable {
 
             logger.debug("connection to " + ibis + " closed");
             if (statistics != null) {
-                statistics
-                        .add(Protocol.OPCODE_PUSH, System.currentTimeMillis()
-                                - start, connection.read(), connection
-                                .written(), false);
+                statistics.add(Protocol.OPCODE_FORWARD, System.currentTimeMillis()
+                        - start, connection.read(), connection.written(), false);
             }
         } catch (IOException e) {
             if (pool.isMember(ibis)) {
@@ -797,7 +833,8 @@ final class CommunicationHandler implements Runnable {
     }
 
     private void handlePush(Connection connection) throws IOException {
-        logger.debug("got a push from the server");
+        Event[] newEvents = null;
+        logger.debug("got a push/forward/broadcast");
 
         String poolName = connection.in().readUTF();
 
@@ -808,21 +845,33 @@ final class CommunicationHandler implements Runnable {
                     + " instead of " + pool.getName());
         }
 
+        int time = pool.getTime();
         connection.out().writeInt(pool.getTime());
-        connection.out().flush();
+        connection.out().writeInt(pool.getJoinTime());
 
+        connection.out().flush();
         connection.getAndCheckReply();
 
-        int events = connection.in().readInt();
+        if (time == -1) {
+            if (!peerBootstrap) {
+                logger.debug("recieving bootstrap in push");
+                // we should receive the bootstrap data next
+                pool.init(connection.in());
+            }
+        } else {
+            int events = connection.in().readInt();
+            
+            logger.debug("receiving " + events + " events");
 
-        if (events < 0) {
-            connection.closeWithError("negative event value");
-            return;
-        }
+            if (events < 0) {
+                connection.closeWithError("negative event value");
+                return;
+            }
 
-        Event[] newEvents = new Event[events];
-        for (int i = 0; i < newEvents.length; i++) {
-            newEvents[i] = new Event(connection.in());
+            newEvents = new Event[events];
+            for (int i = 0; i < newEvents.length; i++) {
+                newEvents[i] = new Event(connection.in());
+            }
         }
 
         int minEventTime = connection.in().readInt();
@@ -831,11 +880,15 @@ final class CommunicationHandler implements Runnable {
 
         connection.close();
 
-        pool.newEventsReceived(newEvents);
+        if (newEvents != null) {
+            pool.newEventsReceived(newEvents);
+        }
 
         if (minEventTime != -1) {
             pool.purgeHistoryUpto(minEventTime);
         }
+        
+        logger.debug("push handled");
     }
 
     private void handlePing(Connection connection) throws IOException {
@@ -988,7 +1041,7 @@ final class CommunicationHandler implements Runnable {
             if (statistics != null) {
 
                 statistics.add(opcode, end - start, connection.read(),
-                        connection.written(), true);
+                    connection.written(), true);
             }
         } catch (IOException e) {
             logger.error("error on handling request", e);

@@ -10,16 +10,19 @@ import ibis.ipl.impl.registry.Connection;
 import ibis.ipl.impl.registry.statistics.Statistics;
 import ibis.server.Client;
 import ibis.server.ConfigurationException;
-import ibis.smartsockets.virtual.InitializationException;
 import ibis.smartsockets.virtual.VirtualServerSocket;
 import ibis.smartsockets.virtual.VirtualSocketAddress;
 import ibis.smartsockets.virtual.VirtualSocketFactory;
 import ibis.util.ThreadPool;
 import ibis.util.TypedProperties;
 
-class CommunicationHandler extends Thread {
+class CommunicationHandler implements Runnable {
 
     private static final int CONNECTION_BACKLOG = 50;
+
+    static final int MAX_THREADS = 25;
+
+    private static final int LEAVE_CONNECTION_TIMEOUT = 1000;
 
     private static final int CONNECTION_TIMEOUT = 5000;
 
@@ -41,6 +44,10 @@ class CommunicationHandler extends Thread {
     private final ARRG arrg;
 
     private final int nrOfLeavesSend;
+
+    private int currentNrOfThreads = 0;
+
+    private int maxNrOfThreads = 0;
 
     CommunicationHandler(TypedProperties properties, Registry registry,
             Pool members, ElectionSet elections, Statistics statistics)
@@ -94,13 +101,9 @@ class CommunicationHandler extends Thread {
 
     }
 
-    @Override
-    public synchronized void start() {
-        this.setDaemon(true);
-
-        super.start();
-
+    public void start() {
         arrg.start();
+        createThread();
     }
 
     public void sendSignals(String signal, IbisIdentifier[] ibises)
@@ -190,7 +193,7 @@ class CommunicationHandler extends Thread {
                     connection.written(), false);
             }
         } catch (IOException e) {
-            logger.error("could not gossip with " + address, e);
+            logger.debug("could not gossip with " + address, e);
         }
     }
 
@@ -224,34 +227,39 @@ class CommunicationHandler extends Thread {
         VirtualSocketAddress[] addresses =
             arrg.getRandomMembers(nrOfLeavesSend);
 
-        for (VirtualSocketAddress address : addresses) {
-            if (address.equals(serverSocket.getLocalSocketAddress())) {
-                // do not connect to self
-                continue;
+        Broadcaster broadcaster = new Broadcaster(this, addresses);
+
+        // wait for all the broadcasts to be finished
+        broadcaster.waitUntilDone();
+    }
+
+    void sendLeave(VirtualSocketAddress address) {
+        if (address.equals(serverSocket.getLocalSocketAddress())) {
+            // do not connect to self
+            return;
+        }
+
+        try {
+            long start = System.currentTimeMillis();
+            Connection connection =
+                new Connection(address, LEAVE_CONNECTION_TIMEOUT, true,
+                        socketFactory);
+
+            connection.out().writeByte(Protocol.MAGIC_BYTE);
+            connection.out().writeByte(Protocol.OPCODE_LEAVE);
+            registry.getIbisIdentifier().writeTo(connection.out());
+
+            connection.getAndCheckReply();
+
+            connection.close();
+            if (statistics != null) {
+                statistics.add(Protocol.OPCODE_LEAVE,
+                    System.currentTimeMillis() - start, connection.read(),
+                    connection.written(), false);
             }
-
-            try {
-                long start = System.currentTimeMillis();
-                Connection connection =
-                    new Connection(address, CONNECTION_TIMEOUT, true,
-                            socketFactory);
-
-                connection.out().writeByte(Protocol.MAGIC_BYTE);
-                connection.out().writeByte(Protocol.OPCODE_LEAVE);
-                registry.getIbisIdentifier().writeTo(connection.out());
-
-                connection.getAndCheckReply();
-
-                connection.close();
-                if (statistics != null) {
-                    statistics.add(Protocol.OPCODE_LEAVE,
-                        System.currentTimeMillis() - start, connection.read(),
-                        connection.written(), false);
-                }
-            } catch (IOException e) {
-                logger.debug(serverSocket.getLocalSocketAddress()
-                        + " could not send leave to " + address);
-            }
+        } catch (IOException e) {
+            logger.debug(serverSocket.getLocalSocketAddress()
+                    + " could not send leave to " + address);
         }
     }
 
@@ -305,6 +313,30 @@ class CommunicationHandler extends Thread {
         arrg.handleGossip(connection);
     }
 
+    private synchronized void createThread() {
+        while (currentNrOfThreads >= MAX_THREADS) {
+            try {
+                wait();
+            } catch (InterruptedException e) {
+                // IGNORE
+            }
+        }
+
+        // create new thread for next connection
+        ThreadPool.createNew(this, "connection handler");
+        currentNrOfThreads++;
+
+        if (currentNrOfThreads > maxNrOfThreads) {
+            maxNrOfThreads = currentNrOfThreads;
+        }
+    }
+
+    private synchronized void threadEnded() {
+        currentNrOfThreads--;
+
+        notifyAll();
+    }
+
     public void run() {
         Connection connection = null;
         try {
@@ -313,6 +345,7 @@ class CommunicationHandler extends Thread {
             logger.debug("connection accepted");
         } catch (IOException e) {
             if (registry.isStopped()) {
+                threadEnded();
                 return;
             }
             logger.error("Accept failed, waiting a second, will retry", e);
@@ -326,9 +359,10 @@ class CommunicationHandler extends Thread {
         }
 
         // create new thread for next connection
-        ThreadPool.createNew(this, "peer connection handler");
+        createThread();
 
         if (connection == null) {
+            threadEnded();
             return;
         }
 
@@ -380,6 +414,7 @@ class CommunicationHandler extends Thread {
             statistics.add(opcode, System.currentTimeMillis() - start,
                 connection.read(), connection.written(), true);
         }
+        threadEnded();
     }
 
     VirtualSocketAddress getAddress() {

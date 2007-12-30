@@ -20,7 +20,9 @@ public class MemberPrinter implements Runnable {
     
     public synchronized void run() {
         while (pool.isAlive()) {
+            System.out.println("*************************************");
             pool.printMembers();
+            System.out.println("*************************************");
             
             try {
                 Thread.sleep(INTERVAL);

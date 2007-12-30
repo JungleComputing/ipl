@@ -30,7 +30,7 @@ import java.util.Map;
 import org.apache.log4j.Logger;
 
 final class Pool implements Runnable {
-    
+
     // 10 seconds connect timeout
     private static final int CONNECT_TIMEOUT = 10000;
 
@@ -40,6 +40,8 @@ final class Pool implements Runnable {
 
     // list of all joins, leaves, elections, etc.
     private final EventList events;
+
+    private final boolean peerBootstrap;
 
     private final long heartbeatInterval;
 
@@ -59,7 +61,7 @@ final class Pool implements Runnable {
 
     private final boolean closedWorld;
 
-    // value of this pool (if closed world)
+    // size of this pool (if closed world)
     private final int fixedSize;
 
     private final boolean printEvents;
@@ -83,13 +85,15 @@ final class Pool implements Runnable {
     private boolean closed = false;
 
     Pool(String name, VirtualSocketFactory socketFactory,
-            long heartbeatInterval, long eventPushInterval, boolean gossip,
-            long gossipInterval, boolean adaptGossipInterval, boolean tree,
-            boolean closedWorld, int poolSize, boolean keepStatistics,
-            long statisticsInterval, String ibisImplementationIdentifier,
-            boolean printEvents, boolean printErrors) {
+            boolean peerBootstrap, long heartbeatInterval,
+            long eventPushInterval, boolean gossip, long gossipInterval,
+            boolean adaptGossipInterval, boolean tree, boolean closedWorld,
+            int poolSize, boolean keepStatistics, long statisticsInterval,
+            String ibisImplementationIdentifier, boolean printEvents,
+            boolean printErrors) {
         this.name = name;
         this.socketFactory = socketFactory;
+        this.peerBootstrap = peerBootstrap;
         this.heartbeatInterval = heartbeatInterval;
         this.closedWorld = closedWorld;
         this.fixedSize = poolSize;
@@ -122,7 +126,8 @@ final class Pool implements Runnable {
         } else if (tree) {
             members = new TreeMemberSet();
             // on new event send to children in tree
-            new IterativeEventPusher(this, 0, true, true);
+            // FIXME: hack? also check for needed updates every second
+            new IterativeEventPusher(this, 1000, true, true);
 
             // once in a while forward to everyone
             new IterativeEventPusher(this, eventPushInterval, false, false);
@@ -601,8 +606,6 @@ final class Pool implements Runnable {
         Connection connection = null;
         try {
 
-            int peerTime = 0;
-
             logger.debug("creating connection to push events to " + member);
 
             connection =
@@ -622,31 +625,37 @@ final class Pool implements Runnable {
             connection.out().flush();
 
             logger.debug("waiting for peer time of peer " + member);
-            peerTime = connection.in().readInt();
+            int peerTime = connection.in().readInt();
+            int peerJoinTime = connection.in().readInt();
 
             Event[] events;
             if (peerTime == -1) {
-                // peer not finished join yet.
-                events = new Event[0];
+                connection.sendOKReply();
 
+                if (!peerBootstrap) {
+                    logger.debug("sending state to client");
+                    writeState(connection.out(), peerJoinTime);
+                }
             } else {
                 member.setCurrentTime(peerTime);
                 events = getEvents(peerTime);
-            }
 
-            if (events == null) {
-                connection.closeWithError("could not get events");
-                return;
-            }
-            connection.sendOKReply();
+                if (events == null) {
+                    connection.closeWithError("could not get events");
+                    return;
+                }
+                connection.sendOKReply();
 
-            logger.debug("sending " + events.length + " entries to " + member);
+                logger.debug("sending " + events.length + " entries to "
+                        + member);
 
-            connection.out().writeInt(events.length);
+                connection.out().writeInt(events.length);
 
-            for (int i = 0; i < events.length; i++) {
+                for (int i = 0; i < events.length; i++) {
 
-                events[i].writeTo(connection.out());
+                    events[i].writeTo(connection.out());
+                }
+
             }
 
             connection.out().writeInt(getMinEventTime());
@@ -656,14 +665,16 @@ final class Pool implements Runnable {
 
             logger.debug("connection to " + member + " closed");
             member.updateLastSeenTime();
-            
+
             if (statistics != null) {
                 if (isBroadcast) {
-                statistics.add(Protocol.OPCODE_BROADCAST, System.currentTimeMillis()
-                        - start, connection.read(), connection.written(), false);
+                    statistics.add(Protocol.OPCODE_BROADCAST,
+                        System.currentTimeMillis() - start, connection.read(),
+                        connection.written(), false);
                 } else {
-                    statistics.add(Protocol.OPCODE_PUSH, System.currentTimeMillis()
-                        - start, connection.read(), connection.written(), false);
+                    statistics.add(Protocol.OPCODE_PUSH,
+                        System.currentTimeMillis() - start, connection.read(),
+                        connection.written(), false);
                 }
             }
         } catch (IOException e) {

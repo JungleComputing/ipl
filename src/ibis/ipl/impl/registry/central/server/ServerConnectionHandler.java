@@ -66,6 +66,7 @@ final class ServerConnectionHandler implements Runnable {
 
         Location location = new Location(connection.in());
 
+        boolean peerBootstrap = connection.in().readBoolean();
         long heartbeatInterval = connection.in().readLong();
         long eventPushInterval = connection.in().readLong();
         boolean gossip = connection.in().readBoolean();
@@ -77,7 +78,7 @@ final class ServerConnectionHandler implements Runnable {
         boolean keepStatistics = connection.in().readBoolean();
         long statisticsInterval = connection.in().readLong();
 
-        pool = server.getAndCreatePool(poolName, heartbeatInterval,
+        pool = server.getAndCreatePool(poolName, peerBootstrap, heartbeatInterval,
                 eventPushInterval, gossip, gossipInterval, adaptGossipInterval,
                 tree, closedWorld, poolSize, keepStatistics,
                 statisticsInterval, ibisImplementationIdentifier);

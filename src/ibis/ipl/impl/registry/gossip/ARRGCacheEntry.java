@@ -26,7 +26,9 @@ class ARRGCacheEntry {
         } catch (IOException e) {
             throw e;
         } catch (Throwable e) {
-            throw new IOException("could not read entry: " + e);
+            IOException exception = new IOException("could not read entry"); 
+            exception.initCause(e);
+            throw exception;
         }
     }
 

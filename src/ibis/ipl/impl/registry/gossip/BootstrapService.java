@@ -20,7 +20,9 @@ public class BootstrapService implements Service, Runnable {
 
     public static final int VIRTUAL_PORT = 303;
 
-    private static final int CONNECTION_BACKLOG = 50;
+    private static final int CONNECTION_BACKLOG = 25;
+    
+    static final int MAX_THREADS = 25;
 
     private static final Logger logger =
         Logger.getLogger(BootstrapService.class);
@@ -33,9 +35,14 @@ public class BootstrapService implements Service, Runnable {
 
     // private final boolean printStats;
 
+    // private final boolean printEvents;
+
     private final boolean printErrors;
 
     private boolean ended = false;
+    
+    private int currentNrOfThreads = 0;
+    private int maxNrOfThreads = 0;
 
     public BootstrapService(TypedProperties properties,
             VirtualSocketFactory socketFactory) throws IOException {
@@ -44,15 +51,16 @@ public class BootstrapService implements Service, Runnable {
         printErrors =
             properties.getBooleanProperty(ServerProperties.PRINT_ERRORS);
 
+//        printEvents =
+//            properties.getBooleanProperty(ServerProperties.PRINT_EVENTS);
+        
         arrgs = new HashMap<String, ARRG>();
 
         serverSocket =
             socketFactory.createServerSocket(VIRTUAL_PORT, CONNECTION_BACKLOG,
                 null);
 
-        ThreadPool.createNew((Runnable) this,
-            "bootstrap service connection handler");
-
+        createThread();
     }
 
     public synchronized void end(boolean waitUntilIdle) {
@@ -83,6 +91,7 @@ public class BootstrapService implements Service, Runnable {
                 new ARRG(serverSocket.getLocalSocketAddress(), true,
                         new VirtualSocketAddress[0], null, poolName,
                         socketFactory, null);
+            result.start();
             arrgs.put(poolName, result);
 
             System.out.println("Bootstrap service for new pool: " + poolName);
@@ -100,6 +109,33 @@ public class BootstrapService implements Service, Runnable {
             }
         }
     }
+    
+    private synchronized void createThread() {
+        while (currentNrOfThreads >= MAX_THREADS) {
+            try {
+                wait();
+            } catch (InterruptedException e) {
+                // IGNORE
+            }
+        }
+
+        // create new thread for next connection
+        ThreadPool.createNew(this, "bootstrap service connection handler");
+        currentNrOfThreads++;
+        
+        logger.trace("now " + currentNrOfThreads + " threads");
+
+        if (currentNrOfThreads > maxNrOfThreads) {
+            maxNrOfThreads = currentNrOfThreads;
+        }
+    }
+
+    private synchronized void threadEnded() {
+        currentNrOfThreads--;
+
+        notifyAll();
+    }
+
 
     public void run() {
         Connection connection = null;
@@ -109,6 +145,7 @@ public class BootstrapService implements Service, Runnable {
             logger.debug("connection accepted");
         } catch (IOException e) {
             if (hasEnded()) {
+                threadEnded();
                 return;
             }
             logger.error("Accept failed, waiting a second, will retry", e);
@@ -122,9 +159,10 @@ public class BootstrapService implements Service, Runnable {
         }
 
         // create new thread for next connection
-        ThreadPool.createNew(this, "bootstrap service connection handler");
+        createThread();
 
         if (connection == null) {
+            threadEnded();
             return;
         }
 
@@ -176,6 +214,7 @@ public class BootstrapService implements Service, Runnable {
 
         // delete any dead ARRG's
         cleanup();
+        threadEnded();
     }
 
     public String toString() {

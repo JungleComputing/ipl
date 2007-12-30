@@ -53,6 +53,8 @@ final class Pool {
 
     private int time;
 
+    private int joinTime;
+    
     Pool(IbisCapabilities capabilities, TypedProperties properties,
             Registry registry, Statistics statistics) {
         this.registry = registry;
@@ -72,6 +74,7 @@ final class Pool {
         eventList = new EventList();
 
         time = -1;
+        joinTime = -1;
         initialized = false;
         closed = false;
         stopped = false;
@@ -125,10 +128,14 @@ final class Pool {
         return time;
     }
 
-    synchronized void setTime(int time) {
-        this.time = time;
+    synchronized int getJoinTime() {
+        return joinTime;
     }
 
+    synchronized void setJoinTime(int joinTime) {
+        this.joinTime = joinTime;
+    }
+    
     synchronized boolean isInitialized() {
         return initialized;
     }
@@ -153,8 +160,7 @@ final class Pool {
 
     synchronized void init(DataInputStream in) throws IOException {
         if (initialized) {
-            logger.error("Tried to initialize registry state twice");
-            return;
+            throw new IOException("Tried to initialize registry state twice");
         }
 
         logger.debug("reading bootstrap state");
@@ -316,16 +322,32 @@ final class Pool {
         }
     }
 
-    public synchronized void waitForEventTime(int time) {
-        while (!(getTime() >= time || stopped)) {
+    synchronized void waitForEventTime(int time, long timeout) {
+        long deadline = System.currentTimeMillis() + timeout;
+
+        if (timeout == 0) {
+            deadline = Long.MAX_VALUE;
+        }
+
+        while (getTime() < time) {
+            if (stopped) {
+                return;
+            }
+
+            long currentTime = System.currentTimeMillis();
+
+            if (currentTime >= deadline) {
+                return;
+            }
+
             try {
-                wait();
-            } catch (final InterruptedException e) {
+                wait(deadline - currentTime);
+            } catch (InterruptedException e) {
                 // IGNORE
             }
         }
     }
-
+    
     synchronized void stop() {
         stopped = true;
         notifyAll();

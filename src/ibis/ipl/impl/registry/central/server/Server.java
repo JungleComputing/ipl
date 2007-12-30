@@ -78,10 +78,11 @@ public final class Server extends Thread implements Service {
     }
 
     // atomic get/create pool
-    synchronized Pool getAndCreatePool(String poolName, long heartbeatInterval,
-            long eventPushInterval, boolean gossip, long gossipInterval,
-            boolean adaptGossipInterval, boolean tree, boolean closedWorld,
-            int poolSize, boolean keepStatistics, long statisticsInterval, String ibisImplementationIdentifier)
+    synchronized Pool getAndCreatePool(String poolName, boolean peerBootstrap,
+            long heartbeatInterval, long eventPushInterval, boolean gossip,
+            long gossipInterval, boolean adaptGossipInterval, boolean tree,
+            boolean closedWorld, int poolSize, boolean keepStatistics,
+            long statisticsInterval, String ibisImplementationIdentifier)
             throws IOException {
         Pool result = getPool(poolName);
 
@@ -91,11 +92,11 @@ public final class Server extends Thread implements Service {
                     + poolName + "\"");
 
             result =
-                new Pool(poolName, socketFactory, heartbeatInterval,
-                        eventPushInterval, gossip, gossipInterval,
-                        adaptGossipInterval, tree, closedWorld, poolSize, keepStatistics, statisticsInterval,
-                        ibisImplementationIdentifier, printEvents, printErrors
-                        );
+                new Pool(poolName, socketFactory, peerBootstrap,
+                        heartbeatInterval, eventPushInterval, gossip,
+                        gossipInterval, adaptGossipInterval, tree, closedWorld,
+                        poolSize, keepStatistics, statisticsInterval,
+                        ibisImplementationIdentifier, printEvents, printErrors);
             pools.put(poolName, result);
         }
 
