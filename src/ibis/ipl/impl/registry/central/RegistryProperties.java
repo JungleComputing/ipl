@@ -49,7 +49,7 @@ public class RegistryProperties {
 
                 {
                         EVENT_PUSH_INTERVAL,
-                        "60",
+                        "300",
                         "Int(seconds): how often does the server "
                                 + "send out events any member may have missed" },
 

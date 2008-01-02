@@ -201,6 +201,7 @@ public class BootstrapService implements Service, Runnable {
                 break;
             default:
                 logger.error("unknown opcode: " + opcode);
+                connection.close();
             }
         } catch (IOException e) {
             if (printErrors) {

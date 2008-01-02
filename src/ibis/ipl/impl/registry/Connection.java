@@ -29,21 +29,21 @@ public final class Connection {
     static final byte REPLY_ERROR = 2;
 
     static final byte REPLY_OK = 1;
-    
+
     public Connection(IbisIdentifier ibis, int timeout, boolean fillTimeout,
             VirtualSocketFactory factory) throws IOException {
-        this(VirtualSocketAddress.fromBytes(ibis
-                .getRegistryData(), 0), timeout, fillTimeout, factory);
+        this(VirtualSocketAddress.fromBytes(ibis.getRegistryData(), 0),
+                timeout, fillTimeout, factory);
     }
-    
 
-    public Connection(VirtualSocketAddress address, int timeout, boolean fillTimeout,
-            VirtualSocketFactory factory) throws IOException {
+    public Connection(VirtualSocketAddress address, int timeout,
+            boolean fillTimeout, VirtualSocketFactory factory)
+            throws IOException {
         logger.debug("connecting to " + address + ", timeout = " + timeout
                 + " , filltimeout = " + fillTimeout);
 
-        socket = factory.createClientSocket(address, timeout,
-                fillTimeout, new HashMap<String, Object>());
+        socket = factory.createClientSocket(address, timeout, fillTimeout,
+                new HashMap<String, Object>());
         socket.setTcpNoDelay(true);
 
         out = new DataOutputStream(new BufferedOutputStream(socket
@@ -69,8 +69,8 @@ public final class Connection {
         in = new DataInputStream(counter);
         out = new DataOutputStream(new BufferedOutputStream(socket
                 .getOutputStream()));
-        logger.debug("new connection from "
-                + socket.getRemoteSocketAddress() + " accepted");
+        logger.debug("new connection from " + socket.getRemoteSocketAddress()
+                + " accepted");
     }
 
     public DataOutputStream out() {
@@ -80,11 +80,11 @@ public final class Connection {
     public DataInputStream in() {
         return in;
     }
-    
+
     public int written() {
         return out.size();
     }
-    
+
     public int read() {
         return counter.getCount();
     }
@@ -129,19 +129,23 @@ public final class Connection {
         } catch (IOException e) {
             // IGNORE
         }
-        
+
         try {
             out.close();
         } catch (IOException e) {
             // IGNORE
         }
 
-        if (socket != null) {
-            try {
-                socket.close();
-            } catch (IOException e) {
-                // IGNORE
-            }
+        try {
+            in.close();
+        } catch (IOException e) {
+            // IGNORE
+        }
+
+        try {
+            socket.close();
+        } catch (IOException e) {
+            // IGNORE
         }
     }
 

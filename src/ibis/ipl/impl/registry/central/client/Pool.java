@@ -16,6 +16,7 @@ import ibis.ipl.impl.registry.central.TreeMemberSet;
 import ibis.ipl.impl.registry.statistics.Statistics;
 import ibis.util.TypedProperties;
 
+import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -54,7 +55,7 @@ final class Pool {
     private int time;
 
     private int joinTime;
-    
+
     Pool(IbisCapabilities capabilities, TypedProperties properties,
             Registry registry, Statistics statistics) {
         this.registry = registry;
@@ -63,7 +64,7 @@ final class Pool {
         if (statistics != null) {
             statistics.newPoolSize(0);
         }
-        
+
         if (properties.getBooleanProperty(RegistryProperties.TREE)) {
             members = new TreeMemberSet();
         } else {
@@ -135,7 +136,7 @@ final class Pool {
     synchronized void setJoinTime(int joinTime) {
         this.joinTime = joinTime;
     }
-    
+
     synchronized boolean isInitialized() {
         return initialized;
     }
@@ -194,7 +195,7 @@ final class Pool {
 
         initialized = true;
         notifyAll();
-        
+
         if (statistics != null) {
             statistics.newPoolSize(members.size());
         }
@@ -203,24 +204,31 @@ final class Pool {
         logger.debug("bootstrap complete");
     }
 
-    synchronized void writeState(DataOutputStream out, int joinTime)
-            throws IOException {
-        if (!initialized) {
-            throw new IOException("state not initialized yet");
+    void writeState(DataOutputStream out, int joinTime) throws IOException {
+        ByteArrayOutputStream arrayOut = new ByteArrayOutputStream();
+        DataOutputStream dataOut = new DataOutputStream(arrayOut);
+
+        synchronized (this) {
+            if (!initialized) {
+                throw new IOException("state not initialized yet");
+            }
+
+            members.writeTo(dataOut);
+            elections.writeTo(dataOut);
+
+            Event[] signals = eventList.getSignalEvents(joinTime, time);
+            dataOut.writeInt(signals.length);
+            for (Event event : signals) {
+                event.writeTo(dataOut);
+            }
+
+            dataOut.writeBoolean(closed);
+            dataOut.writeInt(time);
+
         }
 
-        members.writeTo(out);
-        elections.writeTo(out);
-
-        Event[] signals = eventList.getSignalEvents(joinTime, time);
-        out.writeInt(signals.length);
-        for (Event event : signals) {
-            event.writeTo(out);
-        }
-
-        out.writeBoolean(closed);
-        out.writeInt(time);
-
+        dataOut.flush();
+        arrayOut.writeTo(out);
     }
 
     synchronized IbisIdentifier getElectionResult(String election, long timeout)
@@ -256,7 +264,7 @@ final class Pool {
 
     private synchronized void handleEvent(Event event) {
         logger.debug("handling event: " + event);
-        
+
         switch (event.getType()) {
         case Event.JOIN:
             members.add(new Member(event.getFirstIbis(), event));
@@ -347,11 +355,11 @@ final class Pool {
             }
         }
     }
-    
+
     synchronized void stop() {
         stopped = true;
         notifyAll();
-        
+
         if (statistics != null) {
             statistics.newPoolSize(0);
             statistics.write();
