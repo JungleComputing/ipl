@@ -141,7 +141,7 @@ final class Pool {
         return initialized;
     }
 
-    boolean isStopped() {
+    synchronized boolean isStopped() {
         return stopped;
     }
 

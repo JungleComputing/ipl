@@ -8,7 +8,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Formatter;
 import java.util.LinkedList;
 import java.util.List;
@@ -245,8 +244,8 @@ public final class Statistics implements Runnable {
         long totalTraffic = 0;
 
         out.format("#communication statistics\n");
-        out.format("#TYPE          IN_COUNT OUT_COUNT BYTES_IN BYTES_OUT TOTAL_TIME   AVG_TIME\n");
-        out.format("#                                                        (sec)       (ms)\n");
+        out.format("#TYPE                  IN_COUNT OUT_COUNT BYTES_IN BYTES_OUT TOTAL_TIME   AVG_TIME\n");
+        out.format("#                                                                (sec)       (ms)\n");
         for (byte i = 0; i < opcodes.length; i++) {
             totalTraffic += bytesIn[i] + bytesOut[i];
 
@@ -258,7 +257,7 @@ public final class Statistics implements Runnable {
                 average = 0;
             }
 
-            out.format("#%-12s %9d %9d %8d %9d %10.2f %10.2f\n",
+            out.format("#%-20s %9d %9d %8d %9d %10.2f %10.2f\n",
                 opcodes[i], incomingRequestCounter[i],
                 outgoingRequestCounter[i], bytesIn[i], bytesOut[i],
                 totalTimes[i] / 1000.0, average);

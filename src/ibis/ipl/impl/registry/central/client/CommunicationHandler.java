@@ -644,6 +644,10 @@ final class CommunicationHandler implements Runnable {
             logger.debug("not gossiping with self");
             return;
         }
+        
+        if (pool.isStopped()) {
+            return;
+        }
 
         logger.debug("gossiping with " + ibis);
 
@@ -713,6 +717,10 @@ final class CommunicationHandler implements Runnable {
             logger.debug("not forwarding events to self");
             return;
         }
+        
+        if (pool.isStopped()) {
+            return;
+        }
 
         logger.debug(identifier + ": forwarding to: " + ibis);
 
@@ -736,10 +744,12 @@ final class CommunicationHandler implements Runnable {
             int peerTime = connection.in().readInt();
             int peerJoinTime = connection.in().readInt();
 
+            boolean sendBootstrap = false;
             if (peerTime == -1) {
                 connection.sendOKReply();
 
                 if (!peerBootstrap) {
+                    sendBootstrap = true;
                     logger.debug("sending state");
                     pool.writeState(connection.out(), peerJoinTime);
                 }
@@ -763,6 +773,7 @@ final class CommunicationHandler implements Runnable {
 
             }
 
+            //no updated of minimum time
             connection.out().writeInt(-1);
 
             connection.getAndCheckReply();
@@ -770,7 +781,15 @@ final class CommunicationHandler implements Runnable {
 
             logger.debug("connection to " + ibis + " closed");
             if (statistics != null) {
-                statistics.add(Protocol.OPCODE_FORWARD, System.currentTimeMillis()
+                byte opcode;
+                
+                if (sendBootstrap) {
+                    opcode = Protocol.OPCODE_FORWARD_BOOTSTRAP;
+                } else {
+                    opcode = Protocol.OPCODE_FORWARD;
+                }
+                
+                statistics.add(opcode, System.currentTimeMillis()
                         - start, connection.read(), connection.written(), false);
             }
         } catch (IOException e) {

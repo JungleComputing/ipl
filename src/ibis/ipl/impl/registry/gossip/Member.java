@@ -38,7 +38,7 @@ class Member {
 
         this.identifier = identifier;
 
-        lastSeen = 0;
+        lastSeen = System.currentTimeMillis();
 
         witnesses = new HashSet<UUID>();
 

@@ -142,6 +142,9 @@ class Pool extends Thread {
             out.writeLong(id.getLeastSignificantBits());
         }
 
+        //make sure we send out ourselves as "just seen"
+        self.seen();
+        
         out.writeInt(members.length);
         for (Member member : members) {
             member.writeTo(out);

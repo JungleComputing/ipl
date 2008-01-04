@@ -608,9 +608,13 @@ final class Pool implements Runnable {
 
             logger.debug("creating connection to push events to " + member);
 
+            // long endInit = System.currentTimeMillis();
+
             connection =
                 new Connection(member.getIbis(), CONNECT_TIMEOUT, true,
                         socketFactory);
+
+            // long endConnect = System.currentTimeMillis();
 
             logger.debug("connection to " + member + " created");
 
@@ -624,18 +628,25 @@ final class Pool implements Runnable {
             connection.out().writeUTF(getName());
             connection.out().flush();
 
+            // long endOpcode = System.currentTimeMillis();
+
             logger.debug("waiting for peer time of peer " + member);
             int peerTime = connection.in().readInt();
             int peerJoinTime = connection.in().readInt();
 
+            // long endPeerTime = System.currentTimeMillis();
+
+            boolean bootstrap = false;
             Event[] events;
             if (peerTime == -1) {
                 connection.sendOKReply();
 
                 if (!peerBootstrap) {
+                    bootstrap = true;
                     logger.debug("sending state to client");
                     writeState(connection.out(), peerJoinTime);
                 }
+                connection.out().flush();
             } else {
                 member.setCurrentTime(peerTime);
                 events = getEvents(peerTime);
@@ -655,8 +666,10 @@ final class Pool implements Runnable {
 
                     events[i].writeTo(connection.out());
                 }
-
+                connection.out().flush();
             }
+
+            // long endEvents = System.currentTimeMillis();
 
             connection.out().writeInt(getMinEventTime());
 
@@ -667,15 +680,47 @@ final class Pool implements Runnable {
             member.updateLastSeenTime();
 
             if (statistics != null) {
-                if (isBroadcast) {
-                    statistics.add(Protocol.OPCODE_BROADCAST,
-                        System.currentTimeMillis() - start, connection.read(),
-                        connection.written(), false);
+                long end = System.currentTimeMillis();
+
+                byte statOpcode;
+
+                if (isBroadcast && bootstrap) {
+                    statOpcode = Protocol.OPCODE_BROADCAST_BOOTSTRAP;
+                } else if (isBroadcast) {
+                    statOpcode = Protocol.OPCODE_BROADCAST;
+                } else if (bootstrap) {
+                    statOpcode = Protocol.OPCODE_PUSH_BOOTSTRAP;
                 } else {
-                    statistics.add(Protocol.OPCODE_PUSH,
-                        System.currentTimeMillis() - start, connection.read(),
-                        connection.written(), false);
+                    statOpcode = Protocol.OPCODE_PUSH;
                 }
+
+                statistics.add(statOpcode, end - start, connection.read(),
+                    connection.written(), false);
+
+                // //init
+                // statistics.add(Protocol.OPCODE_GOSSIP,
+                // endInit - start, 0,
+                // 0, false);
+                // //connect
+                // statistics.add(Protocol.OPCODE_ELECT,
+                // endConnect - endInit, 0,
+                // 0, false);
+                // //opcode
+                // statistics.add(Protocol.OPCODE_SEQUENCE_NR,
+                // endOpcode - endConnect, 0,
+                // 0, false);
+                // //peer time
+                // statistics.add(Protocol.OPCODE_DEAD,
+                // endPeerTime - endOpcode, 0,
+                // 0, false);
+                // //events
+                // statistics.add(Protocol.OPCODE_MAYBE_DEAD,
+                // endEvents - endPeerTime, 0,
+                // 0, false);
+                // statistics.add(Protocol.OPCODE_SIGNAL,
+                // end - endEvents, 0,
+                // 0, false);
+
             }
         } catch (IOException e) {
             if (isMember(member)) {
