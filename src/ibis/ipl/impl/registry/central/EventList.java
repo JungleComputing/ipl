@@ -12,8 +12,11 @@ public class EventList {
     
     private final SortedSet<Event> events;
     
+    private int minimum;
+    
     public EventList() {
         events = new TreeSet<Event>();
+        minimum = 0;
     }
 
     /**
@@ -90,7 +93,8 @@ public class EventList {
         }
     }
     
-    public void purgeUpto(int time) {
+    public void setMinimum(int time) {
+        minimum = time;
         logger.debug("purging upto " + time);
         while(!events.isEmpty() && events.first().getTime() < time) {
             Event first = events.first();
@@ -98,6 +102,21 @@ public class EventList {
             events.remove(first);
         }
     }
+    
+    public int getNextRequiredEvent() {
+        int result = minimum;
+        
+        for (Event event: events) {
+            if (event.getTime() == result + 1) {
+                result = result + 1;
+            }
+        }
+  
+        logger.debug("next required event: " + result);
+        
+        return result;
+    }
+
     
     public String toString() {
         String message = "eventList: ";
@@ -107,6 +126,5 @@ public class EventList {
         
         return message;
     }
-        
-
+    
 }

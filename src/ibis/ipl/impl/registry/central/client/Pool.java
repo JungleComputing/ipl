@@ -54,8 +54,6 @@ final class Pool {
 
     private int time;
 
-    private int joinTime;
-
     Pool(IbisCapabilities capabilities, TypedProperties properties,
             Registry registry, Statistics statistics) {
         this.registry = registry;
@@ -75,7 +73,6 @@ final class Pool {
         eventList = new EventList();
 
         time = -1;
-        joinTime = -1;
         initialized = false;
         closed = false;
         stopped = false;
@@ -124,17 +121,13 @@ final class Pool {
     synchronized Member getRandomMember() {
         return members.getRandom();
     }
+    
+    synchronized int getNextRequiredEvent() {
+        return eventList.getNextRequiredEvent();
+    }
 
     synchronized int getTime() {
         return time;
-    }
-
-    synchronized int getJoinTime() {
-        return joinTime;
-    }
-
-    synchronized void setJoinTime(int joinTime) {
-        this.joinTime = joinTime;
     }
 
     synchronized boolean isInitialized() {
@@ -156,7 +149,12 @@ final class Pool {
     }
 
     synchronized void purgeHistoryUpto(int time) {
-        eventList.purgeUpto(time);
+        if (this.time != -1 && this.time < time) {
+            logger.error("EEP! we are asked to purge the history of events we still need. Our time =  " + this.time + " purge time = " + time);
+            return;
+        }
+        
+        eventList.setMinimum(time);
     }
 
     synchronized void init(DataInputStream in) throws IOException {
@@ -166,6 +164,8 @@ final class Pool {
 
         logger.debug("reading bootstrap state");
 
+        time = in.readInt();
+        
         members.init(in);
         elections.init(in);
         int nrOfSignals = in.readInt();
@@ -179,7 +179,6 @@ final class Pool {
         }
 
         closed = in.readBoolean();
-        time = in.readInt();
 
         // Create list of "old" events
 
@@ -213,6 +212,8 @@ final class Pool {
                 throw new IOException("state not initialized yet");
             }
 
+            dataOut.writeInt(time);
+            
             members.writeTo(dataOut);
             elections.writeTo(dataOut);
 
@@ -223,12 +224,12 @@ final class Pool {
             }
 
             dataOut.writeBoolean(closed);
-            dataOut.writeInt(time);
-
         }
 
         dataOut.flush();
+        dataOut.close();
         arrayOut.writeTo(out);
+        logger.debug("pool state size = " + arrayOut.size());
     }
 
     synchronized IbisIdentifier getElectionResult(String election, long timeout)
@@ -313,6 +314,10 @@ final class Pool {
 
         // wake up threads waiting for events
         notifyAll();
+        
+        if (logger.isDebugEnabled()) {
+            logger.debug("member list now: " + members);
+        }
     }
 
     synchronized void waitUntilPoolClosed() {

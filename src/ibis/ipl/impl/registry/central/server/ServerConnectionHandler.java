@@ -78,7 +78,7 @@ final class ServerConnectionHandler implements Runnable {
         boolean keepStatistics = connection.in().readBoolean();
         long statisticsInterval = connection.in().readLong();
 
-        pool = server.getAndCreatePool(poolName, peerBootstrap, heartbeatInterval,
+        pool = server.getOrCreatePool(poolName, peerBootstrap, heartbeatInterval,
                 eventPushInterval, gossip, gossipInterval, adaptGossipInterval,
                 tree, closedWorld, poolSize, keepStatistics,
                 statisticsInterval, ibisImplementationIdentifier);
@@ -92,9 +92,10 @@ final class ServerConnectionHandler implements Runnable {
         }
 
         connection.sendOKReply();
-        member.getIbis().writeTo(connection.out());
-        connection.out().writeInt(pool.getMinEventTime());
-
+        //write info on new member (including identifier, join time and
+        //current minimum time of pool
+        member.writeTo(connection.out());
+        
         pool.writeBootstrapList(connection.out());
 
         connection.out().flush();
@@ -243,12 +244,18 @@ final class ServerConnectionHandler implements Runnable {
     private Pool handleGetState(Connection connection) throws Exception {
         IbisIdentifier identifier = new IbisIdentifier(connection.in());
         int joinTime = connection.in().readInt();
+        int mininimumBootstrapTime = connection.in().readInt();
 
         Pool pool = server.getPool(identifier.poolName());
 
         if (pool == null) {
             connection.closeWithError("pool not found");
             throw new Exception("pool " + identifier.poolName() + " not found");
+        }
+        
+        if (pool.getEventTime() < mininimumBootstrapTime) {
+            connection.closeWithError("tried to bootstrap from time in the future!");
+            return pool;
         }
 
         connection.sendOKReply();
@@ -399,8 +406,8 @@ final class ServerConnectionHandler implements Runnable {
                 logger.debug("done handling request");
             }
             if (pool.hasEnded()) {
-                //wake up the server so it can remove this pool
-                server.nudge();
+                //save statistics
+                pool.saveStatistics();
             }
         }
         threadEnded();

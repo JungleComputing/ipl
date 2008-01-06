@@ -12,6 +12,8 @@ import java.util.HashMap;
 
 import org.apache.log4j.Logger;
 
+import sun.misc.Cleaner;
+
 /**
  * Server for the centralized registry implementation.
  * 
@@ -78,7 +80,7 @@ public final class Server extends Thread implements Service {
     }
 
     // atomic get/create pool
-    synchronized Pool getAndCreatePool(String poolName, boolean peerBootstrap,
+    synchronized Pool getOrCreatePool(String poolName, boolean peerBootstrap,
             long heartbeatInterval, long eventPushInterval, boolean gossip,
             long gossipInterval, boolean adaptGossipInterval, boolean tree,
             boolean closedWorld, int poolSize, boolean keepStatistics,
@@ -116,7 +118,9 @@ public final class Server extends Thread implements Service {
         }
         while (waitUntilIdle && pools.size() > 0) {
             try {
-                wait();
+                //wake up cleanup thread, wait for a second
+                notifyAll();
+                wait(1000);
             } catch (InterruptedException e) {
                 // IGNORE
             }
@@ -124,11 +128,6 @@ public final class Server extends Thread implements Service {
         stopped = true;
         notifyAll();
         handler.end();
-    }
-
-    // force the server to check the pools _now_
-    synchronized void nudge() {
-        notifyAll();
     }
 
     public String toString() {
