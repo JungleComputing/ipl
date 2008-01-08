@@ -9,4 +9,4 @@ if [ -z "$IBIS_HOME" ];  then
     exit 1
 fi
 
-exec "$IBIS_HOME"/bin/ibis-run -Xmx1000M -XX:+HeapDumpOnOutOfMemoryError ibis.server.Server "$@"
+exec "$IBIS_HOME"/bin/ibis-run -Xmx256M ibis.server.Server "$@"
