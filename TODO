@@ -4,73 +4,7 @@ Legend:
 * = new/changed since last core meeting
 ? = suggestion, still needs to be discussed
 
-##### Ibis 2.0 ####
-
-IPL:
-+ MessageUpcall.upcall: may also cause ClassNotFoundException? --Ceriel
-  (Done Ceriel)
-+ clarify error message when a capability is unmatched (Done, Niels)
-+ rename ibis.name to ibis.implementation. The current property kinda sounds like
-   we are naming our ibis :( (Done, Niels)
-+ add timeout version of registry.elect() (Done, Niels)
-+ rename CLOSEDWORLD capability to CLOSED_WORLD (Done, Niels)
-
-management:
-+ add basic network usage statistics to Ibis. (Which ones? --Ceriel)
-  (Done Ceriel)
-+ think if we can improve on the name "dynamic property" it isn't very clear
-  (Done, Ceriel)
-
-ibis registry:
-+ check if all Ibisses in a pool are of the same implementation, version, etc. (Done, Niels)
-+ rename registry.waitForAll() to waitUntilPoolClosed() (Done, Niels)
-+ make registry implement Management class (Done, Niels)
-+ add some more pool related prints to the registry server (Done, Niels)
-+ add precise definition of "closed world pool" somewhere
-  (Done Ceriel: added clarification in IbisCapabilities.java)
-+ keep per-pool statistics at server (Done, Niels)
-
-applications:
-+ remove old-n-useless applications (if any) (Done, Ceriel)
-+ the example application have ibisApps as the package name. Why not
-  ibis.ipl.examples or something? (Done, Niels)
-+ don't add $PWD/lib to classpath in ibis-run? (Done, Niels)
-+ only include "nice clean example" applications, remove the rest? (Done, Niels)
-+ move ibis.ipl.impl.test to the example applications (Done, Niels)
-
-
-packaging/distribution:
-+ split up ibis in multiple separate subprojects:
-	+ ipl
-	+ ipl applications (Done Ceriel)
-	+ util
-	+ server (Done Niels)
-	+ io (Done Ceriel)
-	+ compile (Done Ceriel)
-	foreach(programming model) {
-		+ programming model
-	} (Done programming models --Ceriel)
-+ update/rewrite programmers manuals
-+ while(!released) {fix eclipse warnings}
-+ clean up doc building scripts (Done Ceriel)
-+ add some more text explaining the usage of the property files to the top 
-  of each file, update default settings
-    + log4j.properties (Done, Niels)
-    + ibis.properties.example (Done, Niels)
-    + smartsockets.properties (Done, Jason)
-+ update HISTORY.txt to show precise date of release
-  
-website:
-+ update "ibis" overview picture with new/changed implementations
-+ add overview section
-+ update subproject pages
-    + Zorilla (Done, Niels)
-    + IPL (Done, Niels)
-    + SAT4Satin
-+ add javadoc top-button where applicable
-+ add bugtracker, or reference to it
-
-##### Ibis 2.X ####
+TODO: Update TODO (my bad, Niels)
 
 Ibis:
 - check properties for unknown properties
@@ -79,7 +13,6 @@ Ibis:
   serialization. Could be done for objects passed as a param
   to a spawn, for instance. If code is not there, fall back to current impl.
 ? throw nested exception ending with failed ibis instead of just the failed Ibis?
-? add "new ReceivePortIdentifier(Ibis, name)" ?
 
 packaging/distribution:
 - clean-up project (names) in subversion repository
@@ -93,6 +26,8 @@ packaging/distribution:
 	
 ibis registry:
 - gossip Registry
+- print better error messages when the registry cannot be reached or the
+  server is not started
 
 website:
 - update subproject pages:
