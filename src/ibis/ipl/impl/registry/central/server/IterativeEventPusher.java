@@ -14,10 +14,11 @@ import org.apache.log4j.Logger;
  */
 final class IterativeEventPusher implements Runnable {
 
-    private static final int THREADS = 10;
+    private static final int THREADS = 25;
 
     private class WorkQ {
         private List<Member> q;
+
         private int count;
 
         WorkQ(Member[] work) {
@@ -82,8 +83,8 @@ final class IterativeEventPusher implements Runnable {
         }
     }
 
-    private static final Logger logger = Logger
-            .getLogger(IterativeEventPusher.class);
+    private static final Logger logger =
+        Logger.getLogger(IterativeEventPusher.class);
 
     private final Pool pool;
 
@@ -111,6 +112,13 @@ final class IterativeEventPusher implements Runnable {
 
             if (useTree) {
                 children = pool.getChildren();
+                if (logger.isInfoEnabled()) {
+                    String message = "broadcasting to " + children.length + " children:";
+                    for (Member member : children) {
+                        message += "\n" + member;
+                    }
+                    logger.info(message);
+                }
             } else {
                 children = pool.getMembers();
             }
@@ -129,16 +137,16 @@ final class IterativeEventPusher implements Runnable {
 
             workQ.waitUntilDone();
 
-            logger.debug("DONE updating nodes in pool to event-time "
+            logger.info("DONE updating nodes in pool to event-time "
                     + eventTime);
 
             pool.purgeHistory();
-            
-//            try {
-//                Thread.sleep(100);
-//            } catch (InterruptedException e) {
-//                //IGNORE
-//            }
+
+            // try {
+            // Thread.sleep(100);
+            // } catch (InterruptedException e) {
+            // //IGNORE
+            // }
 
             if (eventTriggersPush) {
                 pool.waitForEventTime(eventTime + 1, timeout);

@@ -22,7 +22,7 @@ class ARRG extends Thread {
 
     private static final int GOSSIP_TIMEOUT = 1000;
 
-    private static final int CONNECT_TIMEOUT = 5000;
+    private static final int CONNECT_TIMEOUT = 30000;
 
     private static final int SERVER_CONNECT_TIMEOUT = 120000;
     
@@ -142,6 +142,8 @@ class ARRG extends Thread {
         for (ARRGCacheEntry entry : sendEntries) {
             entry.writeTo(connection.out());
         }
+        
+        connection.out().flush();
 
         connection.close();
 

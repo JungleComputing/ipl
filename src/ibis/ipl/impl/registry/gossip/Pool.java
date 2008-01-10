@@ -118,6 +118,10 @@ class Pool extends Thread {
 
         cleanup(member);
     }
+    
+    public synchronized void leave() {
+        self.setLeft();
+    }
 
     public void writeGossipData(DataOutputStream out) throws IOException {
         UUID[] deceased;

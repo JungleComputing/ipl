@@ -12,8 +12,6 @@ import java.util.HashMap;
 
 import org.apache.log4j.Logger;
 
-import sun.misc.Cleaner;
-
 /**
  * Server for the centralized registry implementation.
  * 
@@ -147,7 +145,7 @@ public final class Server extends Thread implements Service {
                 // copy values to new array so we can do "remove" on original
                 for (Pool pool : pools.values().toArray(new Pool[0])) {
                     if (printStats) {
-                        System.out.println(pool.getStats());
+                        System.out.println(pool.getStatsString());
                     }
 
                     if (pool.hasEnded()) {

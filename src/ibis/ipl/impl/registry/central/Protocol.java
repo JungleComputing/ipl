@@ -26,35 +26,20 @@ public final class Protocol {
 
     public static final byte OPCODE_PUSH = 9;
 
-    public static final byte OPCODE_PUSH_BOOTSTRAP = 10;
+    public static final byte OPCODE_BROADCAST = 10;
 
-    public static final byte OPCODE_BROADCAST = 11;
+    public static final byte OPCODE_FORWARD = 11;
 
-    public static final byte OPCODE_BROADCAST_BOOTSTRAP = 12;
+    public static final byte OPCODE_GET_STATE = 12;
 
-    public static final byte OPCODE_FORWARD = 13;
+    public static final byte OPCODE_HEARTBEAT = 13;
 
-    public static final byte OPCODE_FORWARD_BOOTSTRAP = 14;
-
-    public static final byte OPCODE_GET_STATE = 15;
-
-    public static final byte OPCODE_HEARTBEAT = 16;
-
-    public static final int NR_OF_OPCODES = 17;
+    public static final int NR_OF_OPCODES = 14;
 
     public static final String[] OPCODE_NAMES =
         { "JOIN", "LEAVE", "GOSSIP", "ELECT", "SEQUENCE_NR", "DEAD",
-                "MAYBE_DEAD", "SIGNAL", "PING", "PUSH", "PUSH_BOOTSTRAP",
-                "BROADCAST", "BROADCAST_BOOTSTRAP", "FORWARD",
-                "FORWARD_BOOTSTRAP", "GET_STATE", "HEARTBEAT", };
-
-    static final int MIN_EVENT_LIST_SEND_SIZE = 100;
-
-    static final int START_EVENT_LIST_SEND_SIZE = 1000;
-
-    static final int MAX_EVENT_LIST_SEND_SIZE = 10000;
-
-    public static final int BOOTSTRAP_LIST_SIZE = 200;
+                "MAYBE_DEAD", "SIGNAL", "PING", "PUSH", "BROADCAST", "FORWARD",
+                "GET_STATE", "HEARTBEAT", };
 
     public static final byte CLIENT_MAGIC_BYTE = 23;
 

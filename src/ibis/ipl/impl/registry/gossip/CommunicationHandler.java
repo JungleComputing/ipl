@@ -18,7 +18,7 @@ import ibis.util.TypedProperties;
 
 class CommunicationHandler implements Runnable {
 
-    private static final int CONNECTION_BACKLOG = 50;
+    private static final int CONNECTION_BACKLOG = 25;
 
     static final int MAX_THREADS = 25;
 
@@ -390,9 +390,9 @@ class CommunicationHandler implements Runnable {
             case Protocol.OPCODE_SIGNAL:
                 handleSignal(connection);
                 break;
-            case Protocol.OPCODE_LEAVE:
-                handleLeave(connection);
-                break;
+//            case Protocol.OPCODE_LEAVE:
+//                handleLeave(connection);
+//                break;
             case Protocol.OPCODE_GOSSIP:
                 handleGossip(connection);
                 break;

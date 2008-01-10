@@ -31,6 +31,8 @@ import org.apache.log4j.Logger;
 
 final class Pool implements Runnable {
 
+    public static final int BOOTSTRAP_LIST_SIZE = 25;
+
     // 10 seconds connect timeout
     private static final int CONNECT_TIMEOUT = 10000;
 
@@ -132,8 +134,8 @@ final class Pool implements Runnable {
         } else if (tree) {
             members = new TreeMemberSet();
             // on new event send to children in tree
-            // FIXME: hack? also check for needed updates every second
-            new IterativeEventPusher(this, 1000, true, true);
+            // FIXME: hack? also check for needed updates every second?
+            new IterativeEventPusher(this, 0, true, true);
 
             // once in a while forward to everyone
             new IterativeEventPusher(this, eventPushInterval, false, false);
@@ -234,6 +236,7 @@ final class Pool implements Runnable {
         pusher.enqueue(null);
         if (statistics != null) {
             statistics.write();
+            statistics.end();
         }
     }
 
@@ -245,10 +248,6 @@ final class Pool implements Runnable {
 
     String getName() {
         return name;
-    }
-
-    public Statistics getCommStats() {
-        return statistics;
     }
 
     /*
@@ -291,10 +290,10 @@ final class Pool implements Runnable {
 
         members.add(member);
 
-        if(logger.isInfoEnabled()) {
-            logger.info("members now: " + members);
+        if (logger.isDebugEnabled()) {
+            logger.debug("members now: " + members);
         }
-        
+
         if (statistics != null) {
             statistics.newPoolSize(members.size());
         }
@@ -316,7 +315,13 @@ final class Pool implements Runnable {
     }
 
     void writeBootstrapList(DataOutputStream out) throws IOException {
-        Member[] peers = getRandomMembers(Protocol.BOOTSTRAP_LIST_SIZE);
+        if (!peerBootstrap) {
+            // send a list containing 0 members. It is not used anyway
+            out.writeInt(0);
+            return;
+        }
+
+        Member[] peers = getRandomMembers(BOOTSTRAP_LIST_SIZE);
 
         out.writeInt(peers.length);
         for (Member member : peers) {
@@ -334,7 +339,7 @@ final class Pool implements Runnable {
         // create byte array of data
         synchronized (this) {
             dataOut.writeInt(currentEventTime);
-            
+
             members.writeTo(dataOut);
             elections.writeTo(dataOut);
 
@@ -349,9 +354,12 @@ final class Pool implements Runnable {
         }
 
         dataOut.flush();
-        arrayOut.writeTo(out);
+        byte[] bytes = arrayOut.toByteArray();
         
-        logger.debug("pool state size = " + arrayOut.size());
+        out.writeInt(bytes.length);
+        out.write(bytes);
+
+        logger.debug("pool state size = " + bytes.length);
     }
 
     /*
@@ -625,12 +633,15 @@ final class Pool implements Runnable {
 
         Connection connection = null;
         try {
+            long connecting = System.currentTimeMillis();
 
             logger.debug("creating connection to push events to " + member);
 
             connection =
                 new Connection(member.getIbis(), CONNECT_TIMEOUT, true,
                         socketFactory);
+
+            long connected = System.currentTimeMillis();
 
             logger.debug("connection to " + member + " created");
 
@@ -640,27 +651,30 @@ final class Pool implements Runnable {
             connection.out().writeUTF(getName());
             connection.out().flush();
 
+            long writtenOpcode = System.currentTimeMillis();
+
             logger.debug("waiting for info of peer " + member);
 
             boolean requestBootstrap = connection.in().readBoolean();
             int joinTime = connection.in().readInt();
-            int minimumBootstrapTime = connection.in().readInt();
             int requestedEventTime = connection.in().readInt();
 
-            if (minimumBootstrapTime > getEventTime()) {
-                connection.closeWithError("cannot bootstrap with time in the future");
-                return;
-            }
-            
+            long readInfo = System.currentTimeMillis();
+
             connection.sendOKReply();
+
+            long sendOk = System.currentTimeMillis();
 
             if (requestBootstrap) {
                 // peer requests bootstrap data
                 writeState(connection.out(), joinTime);
             }
+            long writtenState = System.currentTimeMillis();
 
             member.setCurrentTime(requestedEventTime);
             Event[] events = getEvents(requestedEventTime);
+
+            long gotEvents = System.currentTimeMillis();
 
             logger.debug("sending " + events.length + " entries to " + member);
 
@@ -670,13 +684,22 @@ final class Pool implements Runnable {
                 events[i].writeTo(connection.out());
             }
 
+            long writtenEvents = System.currentTimeMillis();
+
             connection.out().writeInt(getMinEventTime());
 
-            connection.getAndCheckReply();
+            connection.out().flush();
+
+            long writtenAll = System.currentTimeMillis();
+
             connection.close();
+
+            long closedConnection = System.currentTimeMillis();
 
             logger.debug("connection to " + member + " closed");
             member.updateLastSeenTime();
+
+            long done = System.currentTimeMillis();
 
             if (statistics != null) {
                 long end = System.currentTimeMillis();
@@ -684,6 +707,25 @@ final class Pool implements Runnable {
                 statistics.add(opcode, end - start, connection.read(),
                     connection.written(), false);
             }
+
+            if (logger.isInfoEnabled()) {
+                logger.info("connecting = " + (connecting - start)
+                        + ", connected = " + (connected - connecting)
+                        + ", writtenOpcode = " + (writtenOpcode - connected)
+                        + ", readInfo = " + (readInfo - writtenOpcode)
+                        + ", sendOk = " + (sendOk - readInfo)
+                        + ", writtenState (" + requestBootstrap + ") = "
+                        + (writtenState - sendOk) + "\n\t\t\t" +
+
+                        "gotEvents = " + (gotEvents - writtenState)
+                        + ", writtenEvents = " + (writtenEvents - gotEvents)
+                        + ", writtenAll = " + (writtenAll - writtenEvents)
+                        + ", closedConnection = "
+                        + (closedConnection - writtenAll) + ", done = "
+                        + (done - closedConnection));
+
+            }
+
         } catch (IOException e) {
             if (isMember(member)) {
                 if (printErrors) {
@@ -772,7 +814,7 @@ final class Pool implements Runnable {
                 + getEventTime();
     }
 
-    public synchronized String getStats() {
+    public synchronized String getStatsString() {
         StringBuilder message = new StringBuilder();
 
         Formatter formatter = new Formatter(message);
@@ -840,6 +882,10 @@ final class Pool implements Runnable {
             ping(suspect);
         }
 
+    }
+
+    Statistics getStatistics() {
+        return statistics;
     }
 
 }

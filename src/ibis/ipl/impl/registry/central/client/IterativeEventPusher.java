@@ -115,7 +115,7 @@ final class IterativeEventPusher extends Thread {
                     + eventTime);
 
             //FIXME: hack? also check once a second
-            pool.waitForEventTime(eventTime + 1, 1000);
+            pool.waitForEventTime(eventTime + 1, 0);
         }
     }
 }

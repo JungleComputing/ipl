@@ -2,6 +2,7 @@ package ibis.ipl.impl.registry.statistics;
 
 import ibis.util.ThreadPool;
 
+import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -39,7 +40,7 @@ public final class Statistics implements Runnable {
     private String id;
 
     private String poolName;
-    
+
     private File file;
 
     private long writeInterval;
@@ -49,6 +50,8 @@ public final class Statistics implements Runnable {
     int currentPoolSize;
 
     List<DataPoint> electionEventHistory;
+
+    private boolean ended = false;
 
     public Statistics(String[] opcodes) {
         this.opcodes = opcodes;
@@ -68,6 +71,8 @@ public final class Statistics implements Runnable {
         electionEventHistory = new LinkedList<DataPoint>();
 
         currentPoolSize = 0;
+        
+        newPoolSize(0);
     }
 
     public Statistics(File file) throws IOException {
@@ -132,10 +137,64 @@ public final class Statistics implements Runnable {
         in.close();
     }
 
-    public synchronized void write() {
+    public synchronized void end() {
+        ended = true;
+        notifyAll();
+    }
+
+    public void write() {
         logger.debug("writing statistics for: " + id);
+
         try {
-            File file = new File("statistics" + File.separator + poolName + File.separator + id);
+
+            ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
+
+            DataOutputStream out = new DataOutputStream(byteOut);
+
+            // write data to array
+            synchronized (this) {
+                out.writeInt(VERSION);
+
+                out.writeLong(start);
+                out.writeLong(offset);
+                out.writeUTF(id);
+
+                out.writeInt(opcodes.length);
+
+                for (int i = 0; i < opcodes.length; i++) {
+                    out.writeUTF(opcodes[i]);
+                    out.writeDouble(totalTimes[i]);
+                    out.writeLong(incomingRequestCounter[i]);
+                    out.writeLong(outgoingRequestCounter[i]);
+                    out.writeLong(bytesIn[i]);
+                    out.writeLong(bytesOut[i]);
+                }
+
+                out.writeInt(poolSizeHistory.size());
+
+                for (DataPoint point : poolSizeHistory) {
+                    out.writeLong(point.getTime());
+                    out.writeLong(point.getValue());
+                }
+
+                out.writeInt(electionEventHistory.size());
+
+                for (DataPoint point : electionEventHistory) {
+                    out.writeLong(point.getTime());
+                    out.writeLong(point.getValue());
+                }
+
+                out.writeInt(currentPoolSize);
+
+                out.flush();
+                out.close();
+            }
+
+            // write data to file
+
+            File file =
+                new File("statistics" + File.separator + poolName
+                        + File.separator + id);
 
             if (file.exists()) {
                 file.renameTo(new File(file.getPath() + ".old"));
@@ -143,44 +202,11 @@ public final class Statistics implements Runnable {
 
             file.getParentFile().mkdirs();
 
-            DataOutputStream out =
-                new DataOutputStream(new FileOutputStream(file));
+            FileOutputStream fileOut = new FileOutputStream(file);
 
-            out.writeInt(VERSION);
-
-            out.writeLong(start);
-            out.writeLong(offset);
-            out.writeUTF(id);
-
-            out.writeInt(opcodes.length);
-
-            for (int i = 0; i < opcodes.length; i++) {
-                out.writeUTF(opcodes[i]);
-                out.writeDouble(totalTimes[i]);
-                out.writeLong(incomingRequestCounter[i]);
-                out.writeLong(outgoingRequestCounter[i]);
-                out.writeLong(bytesIn[i]);
-                out.writeLong(bytesOut[i]);
-            }
-
-            out.writeInt(poolSizeHistory.size());
-
-            for (DataPoint point : poolSizeHistory) {
-                out.writeLong(point.getTime());
-                out.writeLong(point.getValue());
-            }
-
-            out.writeInt(electionEventHistory.size());
-
-            for (DataPoint point : electionEventHistory) {
-                out.writeLong(point.getTime());
-                out.writeLong(point.getValue());
-            }
-
-            out.writeInt(currentPoolSize);
-
-            out.close();
-
+            byteOut.writeTo(fileOut);
+            fileOut.flush();
+            fileOut.close();
         } catch (IOException e) {
             logger.error("cannot write statistics to " + file, e);
         }
@@ -228,17 +254,16 @@ public final class Statistics implements Runnable {
 
         return true;
     }
-    
+
     public synchronized void print(Formatter out) {
         out.format("#statistics for %s\n", id);
-        
+
         printCommStats(out);
-        
-        out.format("#total traffic = %.2f MB\n",totalTraffic());
-        
+
+        out.format("#total traffic = %.2f MB\n", totalTraffic());
+
         printPoolSizeHistory(out);
     }
-        
 
     public synchronized void printCommStats(Formatter out) {
         long totalTraffic = 0;
@@ -257,10 +282,9 @@ public final class Statistics implements Runnable {
                 average = 0;
             }
 
-            out.format("#%-20s %9d %9d %8d %9d %10.2f %10.2f\n",
-                opcodes[i], incomingRequestCounter[i],
-                outgoingRequestCounter[i], bytesIn[i], bytesOut[i],
-                totalTimes[i] / 1000.0, average);
+            out.format("#%-20s %9d %9d %8d %9d %10.2f %10.2f\n", opcodes[i],
+                incomingRequestCounter[i], outgoingRequestCounter[i],
+                bytesIn[i], bytesOut[i], totalTimes[i] / 1000.0, average);
         }
         out.format("#distance from server: %d Ms\n", offset);
     }
@@ -268,22 +292,23 @@ public final class Statistics implements Runnable {
     public synchronized void printPoolSizeHistory(Formatter out) {
         out.format("#pool size history\n");
         out.format("#TIME POOL_SIZE\n");
-        for(DataPoint point: poolSizeHistory) {
-            double time  = ((double) point.getTime() - start + offset) / 1000.0;
+        for (DataPoint point : poolSizeHistory) {
+            double time = ((double) point.getTime() - start + offset) / 1000.0;
             out.format("%.2f %d\n", time, point.getValue());
         }
     }
-    
+
     public synchronized void newPoolSize(int poolSize) {
         if (!poolSizeHistory.isEmpty()) {
-            long lastPoolSize = poolSizeHistory.get(poolSizeHistory.size() - 1).getValue();
-            
+            long lastPoolSize =
+                poolSizeHistory.get(poolSizeHistory.size() - 1).getValue();
+
             if (poolSize == lastPoolSize) {
-                //ignore this update, value equal to last
+                // ignore this update, value equal to last
                 return;
             }
         }
-        
+
         poolSizeHistory.add(new DataPoint(poolSize));
 
         logger.trace("reported pool size now: " + poolSize);
@@ -325,10 +350,10 @@ public final class Statistics implements Runnable {
         time += offset;
 
         if (poolSizeHistory.size() == 0) {
-            return 0;
+            return -1;
         }
 
-        long result = 0;
+        long result = -1;
 
         for (DataPoint point : poolSizeHistory) {
             if (point.getTime() > time) {
@@ -382,14 +407,19 @@ public final class Statistics implements Runnable {
         ThreadPool.createNew(this, "statistics writer");
     }
 
-    public synchronized void run() {
+    public void run() {
         while (true) {
             write();
 
-            try {
-                wait(writeInterval);
-            } catch (InterruptedException e) {
-                // IGNORE
+            synchronized (this) {
+                try {
+                    wait(writeInterval);
+                } catch (InterruptedException e) {
+                    // IGNORE
+                }
+                if (ended) {
+                    return;
+                }
             }
         }
     }
@@ -397,24 +427,20 @@ public final class Statistics implements Runnable {
     public String toString() {
         return id;
     }
-    
+
     public static void main(String[] args) throws IOException {
         Formatter formatter = new Formatter(System.out);
 
         for (int i = 0; i < args.length; i++) {
             File file = new File(args[i]);
-            
+
             Statistics statistics = new Statistics(file);
-            
+
             statistics.print(formatter);
         }
-        
+
         formatter.flush();
 
-        
     }
-
-    
-    
 
 }

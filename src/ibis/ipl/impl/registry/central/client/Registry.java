@@ -334,6 +334,7 @@ public final class Registry extends ibis.ipl.impl.Registry {
         
         if (statistics != null) {
             statistics.write();
+            statistics.end();
         }
     }
 

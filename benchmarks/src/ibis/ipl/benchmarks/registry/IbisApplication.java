@@ -18,8 +18,8 @@ import org.apache.log4j.Logger;
 
 final class IbisApplication implements Runnable, RegistryEventHandler {
 
-    private static final Logger logger = Logger
-            .getLogger(IbisApplication.class);
+    private static final Logger logger =
+        Logger.getLogger(IbisApplication.class);
 
     private final boolean generateEvents;
 
@@ -33,19 +33,21 @@ final class IbisApplication implements Runnable, RegistryEventHandler {
 
     private final PortType portType;
 
-    IbisApplication(boolean generateEvents)
+    IbisApplication(boolean generateEvents, boolean fail)
             throws IbisCreationFailedException, IOException {
         this.generateEvents = generateEvents;
 
         ibisses = new HashSet<IbisIdentifier>();
         random = new Random();
 
-        portType = new PortType(PortType.CONNECTION_ONE_TO_ONE,
-                PortType.SERIALIZATION_OBJECT);
+        portType =
+            new PortType(PortType.CONNECTION_ONE_TO_ONE,
+                    PortType.SERIALIZATION_OBJECT);
 
-        IbisCapabilities s = new IbisCapabilities(
-                IbisCapabilities.MEMBERSHIP_UNRELIABLE,
-                IbisCapabilities.ELECTIONS_UNRELIABLE, IbisCapabilities.SIGNALS);
+        IbisCapabilities s =
+            new IbisCapabilities(IbisCapabilities.MEMBERSHIP_UNRELIABLE,
+                    IbisCapabilities.ELECTIONS_UNRELIABLE,
+                    IbisCapabilities.SIGNALS);
 
         logger.debug("creating ibis");
         ibis = IbisFactory.createIbis(s, this, portType);
@@ -55,11 +57,13 @@ final class IbisApplication implements Runnable, RegistryEventHandler {
         ibis.registry().enableEvents();
         logger.debug("upcalls enabled");
 
-        // register shutdown hook
-        try {
-            Runtime.getRuntime().addShutdownHook(new Shutdown(this));
-        } catch (Exception e) {
-            // IGNORE
+        if (!fail) {
+            // register shutdown hook
+            try {
+                Runtime.getRuntime().addShutdownHook(new Shutdown(this));
+            } catch (Exception e) {
+                // IGNORE
+            }
         }
 
         ThreadPool.createNew(this, "application");
@@ -72,7 +76,7 @@ final class IbisApplication implements Runnable, RegistryEventHandler {
     synchronized void end() {
         stopped = true;
         notifyAll();
-        
+
         try {
             ibis.end();
         } catch (IOException e) {
@@ -112,7 +116,7 @@ final class IbisApplication implements Runnable, RegistryEventHandler {
         }
 
         public void run() {
-//            System.err.println("shutdown hook triggered");
+            // System.err.println("shutdown hook triggered");
 
             app.end();
         }
@@ -145,8 +149,8 @@ final class IbisApplication implements Runnable, RegistryEventHandler {
             return new IbisIdentifier[0];
         }
 
-        IbisIdentifier[] result = new IbisIdentifier[random
-                .nextInt(nrOfIbisses())];
+        IbisIdentifier[] result =
+            new IbisIdentifier[random.nextInt(nrOfIbisses())];
 
         for (int i = 0; i < result.length; i++) {
             result[i] = getRandomIbis();
@@ -182,7 +186,7 @@ final class IbisApplication implements Runnable, RegistryEventHandler {
                             IbisIdentifier[] signalList = getRandomIbisses();
 
                             ibis.registry().signal("ARRG to you all!",
-                                    signalList);
+                                signalList);
                             break;
                         case 1:
                             logger.debug("doing elect");
@@ -196,8 +200,7 @@ final class IbisApplication implements Runnable, RegistryEventHandler {
                             ibis.registry().getElectionResult("bla");
                             break;
                         case 3:
-                            logger
-                                    .debug("doing getElectionResult with timeout");
+                            logger.debug("doing getElectionResult with timeout");
                             ibis.registry().getElectionResult("bla", 100);
                             logger.debug("done getElectionResult with timeout");
                             break;

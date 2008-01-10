@@ -7,7 +7,7 @@ import org.apache.log4j.Logger;
 
 final class RandomEventPusher implements Runnable {
     
-    private static final int THREADS = 10;
+    private static final int THREADS = 25;
 
     private static final Logger logger = Logger
             .getLogger(RandomEventPusher.class);

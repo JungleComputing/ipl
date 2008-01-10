@@ -50,7 +50,7 @@ public class RegistryProperties {
             { STATISTICS_INTERVAL, "60",
                     "Int: how often statistics are written to disk (in seconds)" },
 
-            { LEAVES_SEND, "100",
+            { LEAVES_SEND, "10",
                     "Int: how many nodes do we send a message to saying we are leaving" },
             { PRINT_MEMBERS, "false",
                     "Boolean: if true, the list of members is printed periodically" },

@@ -422,11 +422,23 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
         }
         logger.debug("leaving: telling pool we are leaving");
         pool.leave(identifier);
-        logger.debug("leaving: broadcasting leave");
-        commHandler.broadcastLeave();
+        pool.leave();
+        
+        
+        //wait for our "left" to spread
+        try {
+            Thread.sleep(10000);
+        } catch (InterruptedException e) {
+            //IGNORE
+        }        
+        
+        
+//        logger.debug("leaving: broadcasting leave");
+//        commHandler.broadcastLeave();
         logger.debug("leaving: writing statistics");
         if (statistics != null) {
             statistics.write();
+            statistics.end();
         }
         logger.debug("leaving: done!");
     }

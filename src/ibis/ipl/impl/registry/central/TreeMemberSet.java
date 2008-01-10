@@ -80,6 +80,8 @@ public final class TreeMemberSet implements MemberSet, Serializable {
 
     @SuppressWarnings("unchecked")
     public void init(DataInputStream in) throws IOException {
+        long start = System.currentTimeMillis();
+
         logger.debug("initializing tree member set");
 
         int size = in.readInt();
@@ -88,8 +90,12 @@ public final class TreeMemberSet implements MemberSet, Serializable {
         byte[] data = new byte[size];
         in.readFully(data);
 
+        long read = System.currentTimeMillis();
+
         ObjectInputStream objectInput =
             new ObjectInputStream(new ByteArrayInputStream(data));
+
+        long stream = System.currentTimeMillis();
 
         try {
             root = (ArrayList<Node>) objectInput.readObject();
@@ -101,7 +107,15 @@ public final class TreeMemberSet implements MemberSet, Serializable {
         }
         objectInput.close();
 
-        logger.debug("initialized tree member set, content:" + toString());
+        long done = System.currentTimeMillis();
+
+        logger.info("TreeMemberSet.init(): read = " + (read - start)
+                + ", stream = " + (stream - read) + ", done = "
+                + (done - stream));
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("initialized tree member set, content:" + toString());
+        }
 
     }
 
@@ -122,7 +136,7 @@ public final class TreeMemberSet implements MemberSet, Serializable {
         logger.debug("writing " + byteStream.size() + " bytes");
 
         byte[] bytes = byteStream.toByteArray();
-        
+
         out.writeInt(bytes.length);
         out.write(bytes);
     }
@@ -302,7 +316,10 @@ public final class TreeMemberSet implements MemberSet, Serializable {
         BitSet added = new BitSet();
 
         if (size > list.size()) {
-            size = list.size();
+            for (Node node : list) {
+                result.add(node.member);
+            }
+            return result.toArray(new Member[0]);
         }
 
         while (result.size() < size) {
