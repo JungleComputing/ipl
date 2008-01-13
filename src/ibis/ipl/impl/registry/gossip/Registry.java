@@ -202,7 +202,12 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
     }
 
     public IbisIdentifier getElectionResult(String election) throws IOException {
-        return getElectionResult(election, 0);
+        if (!capabilities.hasCapability(IbisCapabilities.ELECTIONS_UNRELIABLE)) {
+            throw new IbisConfigurationException(
+                    "No election support requested");
+        }
+
+        return elections.getElectionResult(election);
     }
 
     public IbisIdentifier getElectionResult(String electionName,

@@ -21,6 +21,7 @@ public class Election {
     
     Election(DataInputStream in) throws IOException {
         name = in.readUTF();
+        candidates = new TreeSet<IbisIdentifier>(new IbisComparator());
         
         int nrOfCandidates = in.readInt();
         
@@ -59,6 +60,7 @@ public class Election {
         if (candidates.isEmpty()) {
             return null;
         }
+        
         //use sorting function of set to determine winner
         return candidates.first();
     }
@@ -66,5 +68,17 @@ public class Election {
     public synchronized void addCandidate(IbisIdentifier candidate) {
         candidates.add(candidate);
     }
+    
+    public synchronized String toString() {
+        String result = name + " candidates: ";
+        
+        for(IbisIdentifier candidate: candidates) {
+            result += candidate;
+        }
+        
+        return result;
+    }
+    
+    
     
 }
