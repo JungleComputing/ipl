@@ -33,7 +33,7 @@ class CommunicationHandler implements Runnable {
 
     private final Statistics statistics;
 
-    private final Pool pool;
+    private final MemberSet pool;
 
     private final ElectionSet elections;
 
@@ -50,7 +50,7 @@ class CommunicationHandler implements Runnable {
     private int maxNrOfThreads = 0;
 
     CommunicationHandler(TypedProperties properties, Registry registry,
-            Pool members, ElectionSet elections, Statistics statistics)
+            MemberSet members, ElectionSet elections, Statistics statistics)
             throws IbisConfigurationException, IOException {
         this.registry = registry;
         this.pool = members;

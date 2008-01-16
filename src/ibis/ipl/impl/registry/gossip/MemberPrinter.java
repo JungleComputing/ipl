@@ -10,9 +10,9 @@ public class MemberPrinter implements Runnable {
     
     private static final Logger logger = Logger.getLogger(MemberPrinter.class);
 
-    private final Pool pool;
+    private final MemberSet pool;
     
-    MemberPrinter(Pool pool) {
+    MemberPrinter(MemberSet pool) {
         this.pool = pool;
         
         ThreadPool.createNew(this, "member printer");

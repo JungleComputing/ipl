@@ -36,7 +36,7 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
 
     private final Statistics statistics;
 
-    private final Pool pool;
+    private final MemberSet members;
 
     private final ElectionSet elections;
 
@@ -145,11 +145,11 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
             statistics = null;
         }
 
-        pool = new Pool(properties, this, statistics);
+        members = new MemberSet(properties, this, statistics);
         elections = new ElectionSet(properties, this);
 
         commHandler =
-            new CommunicationHandler(properties, this, pool, elections,
+            new CommunicationHandler(properties, this, members, elections,
                     statistics);
 
         Location location = Location.defaultLocation(properties);
@@ -159,13 +159,13 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
                     commHandler.getAddress().toBytes(), location, poolName);
 
         commHandler.start();
-        pool.start();
+        members.start();
 
         boolean printMembers =
             properties.getBooleanProperty(RegistryProperties.PRINT_MEMBERS);
 
         if (printMembers) {
-            new MemberPrinter(pool);
+            new MemberPrinter(members);
         }
 
         ThreadPool.createNew(this, "pool management thread");
@@ -181,6 +181,8 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
     CommunicationHandler getCommHandler() {
         return commHandler;
     }
+    
+    
 
     public IbisIdentifier elect(String electionName) throws IOException {
         if (!capabilities.hasCapability(IbisCapabilities.ELECTIONS_UNRELIABLE)) {
@@ -188,7 +190,9 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
                     "No election support requested");
         }
 
-        return elections.elect(electionName);
+        IbisIdentifier[] candidates = elections.elect(electionName);
+        
+        return members.getFirstLiving(candidates);
     }
 
     public IbisIdentifier elect(String electionName, long timeoutMillis)
@@ -198,7 +202,10 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
                     "No election support requested");
         }
 
-        return elections.elect(electionName, timeoutMillis);
+        IbisIdentifier[] candidates = elections.elect(electionName, timeoutMillis);
+        
+        return members.getFirstLiving(candidates);
+        
     }
 
     public IbisIdentifier getElectionResult(String election) throws IOException {
@@ -207,7 +214,10 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
                     "No election support requested");
         }
 
-        return elections.getElectionResult(election);
+        IbisIdentifier[] candidates = elections.getElectionResult(election);
+        
+        return members.getFirstLiving(candidates);
+
     }
 
     public IbisIdentifier getElectionResult(String electionName,
@@ -217,12 +227,15 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
                     "No election support requested");
         }
 
-        return elections.getElectionResult(electionName, timeoutMillis);
+        IbisIdentifier[] candidates = elections.getElectionResult(electionName, timeoutMillis);
+        
+        return members.getFirstLiving(candidates);
+
     }
 
     public void maybeDead(ibis.ipl.IbisIdentifier suspect) throws IOException {
         try {
-            pool.maybeDead((IbisIdentifier) suspect);
+            members.maybeDead((IbisIdentifier) suspect);
         } catch (ClassCastException e) {
             logger.error("illegal ibis identifier given: " + e);
         }
@@ -230,7 +243,7 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
 
     public void assumeDead(ibis.ipl.IbisIdentifier deceased) throws IOException {
         try {
-            pool.assumeDead((IbisIdentifier) deceased);
+            members.assumeDead((IbisIdentifier) deceased);
         } catch (ClassCastException e) {
             logger.error("illegal ibis identifier given: " + e);
         }
@@ -426,8 +439,8 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
             notifyAll();
         }
         logger.debug("leaving: telling pool we are leaving");
-        pool.leave(identifier);
-        pool.leave();
+        members.leave(identifier);
+        members.leave();
         
         
         //wait for our "left" to spread

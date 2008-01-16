@@ -65,6 +65,15 @@ public class Election {
         return candidates.first();
     }
     
+    public synchronized IbisIdentifier[] getCandidates() {
+        if (candidates.isEmpty()) {
+            return new IbisIdentifier[0];
+        }
+        
+        //use sorting function of set to determine winner
+        return candidates.toArray(new IbisIdentifier[0]);
+    }
+    
     public synchronized void addCandidate(IbisIdentifier candidate) {
         candidates.add(candidate);
     }

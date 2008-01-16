@@ -65,7 +65,7 @@ public class ElectionSet {
         }
     }
 
-    public synchronized IbisIdentifier getElectionResult(String electionName,
+    public synchronized IbisIdentifier[] getElectionResult(String electionName,
             long timeoutMillis) {
         logger.debug("trying to get election result for: " + electionName
                 + ", waiting " + timeoutMillis);
@@ -88,16 +88,16 @@ public class ElectionSet {
             return null;
         }
 
-        return election.getWinner();
+        return election.getCandidates();
     }
     
-    public IbisIdentifier getElectionResult(String electionName) {
+    public IbisIdentifier[] getElectionResult(String electionName) {
         return getElectionResult(
             electionName,
             properties.getIntProperty(RegistryProperties.ELECTION_TIMEOUT) * 1000);
     }
 
-    public synchronized IbisIdentifier elect(String electionName,
+    public synchronized IbisIdentifier[] elect(String electionName,
             long timeoutMillis) {
         logger.debug("electing result for: " + electionName + ", waiting "
                 + timeoutMillis);
@@ -137,10 +137,10 @@ public class ElectionSet {
             logger.debug("result for " + electionName + " is " + election);
         }
 
-        return election.getWinner();
+        return election.getCandidates();
     }
 
-    public IbisIdentifier elect(String electionName) {
+    public IbisIdentifier[] elect(String electionName) {
         return elect(
             electionName,
             properties.getIntProperty(RegistryProperties.ELECTION_TIMEOUT) * 1000);

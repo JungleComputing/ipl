@@ -15,9 +15,9 @@ import ibis.ipl.impl.IbisIdentifier;
 import ibis.ipl.impl.registry.statistics.Statistics;
 import ibis.util.TypedProperties;
 
-class Pool extends Thread {
+class MemberSet extends Thread {
 
-    private static final Logger logger = Logger.getLogger(Pool.class);
+    private static final Logger logger = Logger.getLogger(MemberSet.class);
 
     private final TypedProperties properties;
 
@@ -40,7 +40,7 @@ class Pool extends Thread {
      */
     private int liveMembers;
 
-    Pool(TypedProperties properties, Registry registry, Statistics statistics) {
+    MemberSet(TypedProperties properties, Registry registry, Statistics statistics) {
         this.properties = properties;
         this.registry = registry;
         this.statistics = statistics;
@@ -121,6 +121,10 @@ class Pool extends Thread {
     
     public synchronized void leave() {
         self.setLeft();
+    }
+    
+    public synchronized IbisIdentifier getFirstLiving(IbisIdentifier[] candidates) {
+        return null;
     }
 
     public void writeGossipData(DataOutputStream out) throws IOException {
