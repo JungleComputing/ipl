@@ -41,8 +41,6 @@ public final class Statistics implements Runnable {
 
     private String poolName;
 
-    private File file;
-
     private long writeInterval;
 
     List<DataPoint> poolSizeHistory;
@@ -73,6 +71,8 @@ public final class Statistics implements Runnable {
         currentPoolSize = 0;
         
         newPoolSize(0);
+        
+        logger.debug("created statistics");
     }
 
     public Statistics(File file) throws IOException {
@@ -143,7 +143,7 @@ public final class Statistics implements Runnable {
     }
 
     public void write() {
-        logger.debug("writing statistics for: " + id);
+        File file = null;
 
         try {
 
@@ -192,10 +192,12 @@ public final class Statistics implements Runnable {
 
             // write data to file
 
-            File file =
+            file =
                 new File("statistics" + File.separator + poolName
                         + File.separator + id);
 
+            logger.debug("writing statistics to: " + file);
+            
             if (file.exists()) {
                 file.renameTo(new File(file.getPath() + ".old"));
             }
