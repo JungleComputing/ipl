@@ -120,7 +120,9 @@ class MemberSet extends Thread {
     }
     
     public synchronized void leave() {
-        self.setLeft();
+        if (self != null) {
+            self.setLeft();
+        }
     }
     
     public synchronized IbisIdentifier getFirstLiving(IbisIdentifier[] candidates) {
@@ -144,11 +146,15 @@ class MemberSet extends Thread {
         UUID[] deceased;
         UUID[] left;
         Member[] members;
-
+        
         synchronized (this) {
             deceased = this.deceased.toArray(new UUID[0]);
             left = this.left.toArray(new UUID[0]);
             members = this.members.values().toArray(new Member[0]);
+            if (self != null) {
+                //make sure we send out ourselves as "just seen"
+                self.seen();
+            }
         }
 
         out.writeInt(deceased.length);
@@ -163,9 +169,6 @@ class MemberSet extends Thread {
             out.writeLong(id.getLeastSignificantBits());
         }
 
-        //make sure we send out ourselves as "just seen"
-        self.seen();
-        
         out.writeInt(members.length);
         for (Member member : members) {
             member.writeTo(out);
@@ -305,7 +308,9 @@ class MemberSet extends Thread {
      */
     private synchronized void cleanup() {
         // notice ourselves ;)
-        self.seen();
+        if (self != null) {
+            self.seen();
+        }
 
         // update live member count
         updateLiveMembers();
@@ -350,9 +355,11 @@ class MemberSet extends Thread {
 
     // ping suspect members once a second
     public void run() {
+        Member self;
         synchronized (this) {
             // add ourselves to the member list
             self = new Member(registry.getIbisIdentifier(), properties);
+            this.self = self;
             members.put(self.getUUID(), self);
             if (statistics != null) {
                 statistics.newPoolSize(members.size());
