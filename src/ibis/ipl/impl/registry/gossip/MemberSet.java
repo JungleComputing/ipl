@@ -60,7 +60,7 @@ class MemberSet extends Thread {
 
     }
 
-    private synchronized Member getMember(IbisIdentifier ibis) {
+    private synchronized Member getMember(IbisIdentifier ibis, boolean create) {
         Member result;
 
         UUID id = UUID.fromString(ibis.getID());
@@ -71,7 +71,7 @@ class MemberSet extends Thread {
 
         result = members.get(id);
 
-        if (result == null) {
+        if (result == null && create) {
             result = new Member(ibis, properties);
             members.put(id, result);
             registry.ibisJoined(ibis);
@@ -84,7 +84,7 @@ class MemberSet extends Thread {
     }
 
     public synchronized void maybeDead(IbisIdentifier ibis) {
-        Member member = getMember(ibis);
+        Member member = getMember(ibis, false);
 
         if (member == null) {
             return;
@@ -96,7 +96,7 @@ class MemberSet extends Thread {
     }
 
     public synchronized void assumeDead(IbisIdentifier ibis) {
-        Member member = getMember(ibis);
+        Member member = getMember(ibis, false);
 
         if (member == null) {
             return;
@@ -108,7 +108,7 @@ class MemberSet extends Thread {
     }
 
     public synchronized void leave(IbisIdentifier ibis) {
-        Member member = getMember(ibis);
+        Member member = getMember(ibis, true);
 
         if (member == null) {
             return;
@@ -124,7 +124,20 @@ class MemberSet extends Thread {
     }
     
     public synchronized IbisIdentifier getFirstLiving(IbisIdentifier[] candidates) {
-        return null;
+        if (candidates.length == 0) {
+            return null;
+        }
+        
+        for (IbisIdentifier candidate: candidates) {
+            Member member = getMember(candidate, false);
+            
+            if (member != null && !member.hasLeft() && !member.isDead()) {
+                return candidate;
+            }
+        }
+        
+        //no alive canidates found, return first candidate
+        return candidates[0];
     }
 
     public void writeGossipData(DataOutputStream out) throws IOException {

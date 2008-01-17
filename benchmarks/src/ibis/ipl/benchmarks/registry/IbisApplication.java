@@ -29,7 +29,7 @@ final class IbisApplication implements Runnable, RegistryEventHandler {
 
     private final Random random;
 
-    private final Ibis ibis;
+    private Ibis ibis;
 
     private final PortType portType;
 
@@ -43,19 +43,6 @@ final class IbisApplication implements Runnable, RegistryEventHandler {
         portType =
             new PortType(PortType.CONNECTION_ONE_TO_ONE,
                     PortType.SERIALIZATION_OBJECT);
-
-        IbisCapabilities s =
-            new IbisCapabilities(IbisCapabilities.MEMBERSHIP_UNRELIABLE,
-                    IbisCapabilities.ELECTIONS_UNRELIABLE,
-                    IbisCapabilities.SIGNALS);
-
-        logger.debug("creating ibis");
-        ibis = IbisFactory.createIbis(s, this, portType);
-
-        logger.debug("ibis created, enabling upcalls");
-
-        ibis.registry().enableEvents();
-        logger.debug("upcalls enabled");
 
         if (!fail) {
             // register shutdown hook
@@ -103,7 +90,7 @@ final class IbisApplication implements Runnable, RegistryEventHandler {
         logger.info("got string: " + signal);
     }
 
-    public void electionResult(String electionName, IbisIdentifier winner) {
+    public  synchronized void electionResult(String electionName, IbisIdentifier winner) {
         logger.info("got election result for :\"" + electionName + "\" : "
                 + winner);
     }
@@ -159,15 +146,37 @@ final class IbisApplication implements Runnable, RegistryEventHandler {
         return result;
     }
 
-    void doElect(String id) throws IOException {
+    synchronized void  doElect(String id) throws IOException {
         ibis.registry().elect(id);
     }
 
-    void getElectionResult(String id) throws IOException {
+    synchronized void getElectionResult(String id) throws IOException {
         ibis.registry().getElectionResult(id);
     }
 
     public void run() {
+        logger.debug("creating ibis");
+        try {
+            synchronized(this) {
+        
+        IbisCapabilities s =
+            new IbisCapabilities(IbisCapabilities.MEMBERSHIP_UNRELIABLE,
+                    IbisCapabilities.ELECTIONS_UNRELIABLE,
+                    IbisCapabilities.SIGNALS);
+
+        ibis = IbisFactory.createIbis(s, this, portType);
+
+        logger.debug("ibis created, enabling upcalls");
+
+        ibis.registry().enableEvents();
+        logger.debug("upcalls enabled");
+            }        
+        
+        } catch (Exception e) {
+            logger.error("cannot start ibis", e);
+        }
+                        
+        
         // start Ibis, generate events, stop Ibis, repeat
         while (true) {
             try {

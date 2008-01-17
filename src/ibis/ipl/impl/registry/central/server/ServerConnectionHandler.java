@@ -260,7 +260,6 @@ final class ServerConnectionHandler implements Runnable {
     private Pool handleGetState(Connection connection) throws Exception {
         IbisIdentifier identifier = new IbisIdentifier(connection.in());
         int joinTime = connection.in().readInt();
-        int mininimumBootstrapTime = connection.in().readInt();
 
         Pool pool = server.getPool(identifier.poolName());
 
@@ -269,11 +268,6 @@ final class ServerConnectionHandler implements Runnable {
             throw new Exception("pool " + identifier.poolName() + " not found");
         }
         
-        if (pool.getEventTime() < mininimumBootstrapTime) {
-            connection.closeWithError("tried to bootstrap from time in the future!");
-            return pool;
-        }
-
         connection.sendOKReply();
         pool.writeState(connection.out(), joinTime);
         connection.out().flush();

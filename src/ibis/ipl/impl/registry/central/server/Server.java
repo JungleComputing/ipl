@@ -139,7 +139,7 @@ public final class Server extends Thread implements Service {
             if (pools.size() > 0) {
                 if (printStats) {
                     System.out.println("list of pools:\n");
-                    System.out.println("NAME               CURRENT_SIZE EVENT_TIME JOINS LEAVES DIEDS ELECTIONS SIGNALS FIXED_SIZE CLOSED ENDED\n");
+                    System.out.println("NAME                                   CURRENT_SIZE EVENT_TIME JOINS LEAVES DIEDS ELECTIONS SIGNALS FIXED_SIZE CLOSED ENDED\n");
                 }
 
                 // copy values to new array so we can do "remove" on original

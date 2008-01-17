@@ -268,7 +268,6 @@ final class CommunicationHandler implements Runnable {
         IbisIdentifier identifier;
         IbisIdentifier[] bootstrapList;
         int joinTime;
-        int mininumBootstrapTime;
 
         synchronized (this) {
             identifier = this.identifier;
@@ -955,7 +954,6 @@ final class CommunicationHandler implements Runnable {
 
         IbisIdentifier identifier = new IbisIdentifier(connection.in());
         int joinTime = connection.in().readInt();
-        int minimumTime = connection.in().readInt();
 
         String poolName = identifier.poolName();
 
@@ -968,13 +966,6 @@ final class CommunicationHandler implements Runnable {
 
         if (!pool.isInitialized()) {
             connection.closeWithError("state not available");
-            return;
-        }
-
-        int time = pool.getTime();
-        if (time < minimumTime) {
-            connection.closeWithError("minimum time requirement not met: "
-                    + joinTime + " vs " + time);
             return;
         }
 
