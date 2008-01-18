@@ -126,7 +126,7 @@ class MemberSet extends Thread {
     }
     
     public synchronized IbisIdentifier getFirstLiving(IbisIdentifier[] candidates) {
-        if (candidates.length == 0) {
+        if (candidates == null || candidates.length == 0) {
             return null;
         }
         
