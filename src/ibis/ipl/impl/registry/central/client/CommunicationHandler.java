@@ -25,9 +25,9 @@ import org.apache.log4j.Logger;
 
 final class CommunicationHandler implements Runnable {
 
-    private static final int CONNECTION_BACKLOG = 50;
+    private static final int CONNECTION_BACKLOG = 10;
 
-    private static final int MAX_THREADS = 50;
+    private static final int MAX_THREADS = 10;
 
     private static final Logger logger =
         Logger.getLogger(CommunicationHandler.class);
@@ -664,7 +664,7 @@ final class CommunicationHandler implements Runnable {
 
             int peerTime = connection.in().readInt();
 
-            Event[] newEvents;
+            Event[] newEvents = null;
             if (peerTime > localTime) {
                 logger.debug("localtime = " + localTime + ", peerTime = "
                         + peerTime + ", receiving events");
@@ -675,9 +675,7 @@ final class CommunicationHandler implements Runnable {
                     for (int i = 0; i < newEvents.length; i++) {
                         newEvents[i] = new Event(connection.in());
                     }
-                    pool.newEventsReceived(newEvents);
                 }
-                connection.close();
             } else if (peerTime < localTime) {
                 logger.debug("localtime = " + localTime + ", peerTime = "
                         + peerTime + ", pushing events");
@@ -695,6 +693,10 @@ final class CommunicationHandler implements Runnable {
             logger.debug("gossiping with " + ibis + " done, time now: "
                     + pool.getTime());
             connection.close();
+            
+            if (newEvents != null) {
+                pool.newEventsReceived(newEvents);
+            }
             long end = System.currentTimeMillis();
             if (statistics != null) {
 
@@ -855,10 +857,8 @@ final class CommunicationHandler implements Runnable {
         boolean requestBootstrap = !peerBootstrap && !pool.isInitialized();
         int nextRequiredEvent = pool.getNextRequiredEvent();
         int joinTime;
-        int minimumBootstrapTime;
 
         long gatheredPoolData = System.currentTimeMillis();
-
         
         synchronized (this) {
             joinTime = this.joinTime;

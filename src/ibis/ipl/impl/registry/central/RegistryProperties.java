@@ -56,7 +56,7 @@ public class RegistryProperties {
                 { GOSSIP, "false",
                         "Boolean: do we gossip, or send events centrally" },
 
-                { GOSSIP_INTERVAL, "1", "Int(seconds): how often do we gossip" },
+                { GOSSIP_INTERVAL, "10", "Int(seconds): how often do we gossip" },
 
                 {
                         ADAPT_GOSSIP_INTERVAL,
@@ -75,7 +75,7 @@ public class RegistryProperties {
 
                 {
                         CLIENT_CONNECT_TIMEOUT,
-                        "120",
+                        "300",
                         "Int(seconds): how long do clients attempt to connect to the server and peers before giving up" },
 
                 {
