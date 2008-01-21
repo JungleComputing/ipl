@@ -49,14 +49,14 @@ public class RegistryProperties {
 
                 {
                         EVENT_PUSH_INTERVAL,
-                        "300",
+                        "30",
                         "Int(seconds): how often does the server "
                                 + "send out events any member may have missed" },
 
                 { GOSSIP, "false",
                         "Boolean: do we gossip, or send events centrally" },
 
-                { GOSSIP_INTERVAL, "10", "Int(seconds): how often do we gossip" },
+                { GOSSIP_INTERVAL, "1", "Int(seconds): how often do we gossip" },
 
                 {
                         ADAPT_GOSSIP_INTERVAL,

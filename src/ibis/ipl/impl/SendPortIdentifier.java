@@ -28,7 +28,7 @@ public class SendPortIdentifier implements ibis.ipl.SendPortIdentifier {
     public final IbisIdentifier ibis;
 
     /** Coded form, computed only once. */    
-    private final transient byte[] codedForm;
+    private final byte[] codedForm;
 
     /**
      * Constructor, initializing the fields with the specified parameters.

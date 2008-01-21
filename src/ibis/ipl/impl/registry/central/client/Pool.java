@@ -281,7 +281,7 @@ final class Pool {
         Election result = elections.get(election);
 
         while (result == null) {
-            final long timeRemaining = deadline - System.currentTimeMillis();
+            long timeRemaining = deadline - System.currentTimeMillis();
 
             if (timeRemaining <= 0) {
                 logger.debug("getElectionResullt deadline expired");
@@ -289,6 +289,9 @@ final class Pool {
             }
 
             try {
+                if (timeRemaining > 1000) {
+                    timeRemaining = 1000;
+                }
                 logger.debug("waiting " + timeRemaining + " for election");
                 wait(timeRemaining);
                 logger.debug("DONE waiting " + timeRemaining + " for election");
@@ -417,7 +420,9 @@ final class Pool {
      * Handles incoming events, passes events to the registry
      */
     private void handleEvents() {
-        if (!initialized) {
+        logger.info("handling events");
+        if (!isInitialized()) {
+            logger.info("handle events: not initialized yet");
             return;
         }
 
@@ -425,6 +430,7 @@ final class Pool {
             Event event = getEvent(time);
 
             if (event == null) {
+                logger.info("done handling events, event time now: " + time);
                 return;
             }
 

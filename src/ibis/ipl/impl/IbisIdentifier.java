@@ -37,7 +37,7 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
     private final String id;
 
     /** An Ibis identifier coded as a byte array. Computed once. */
-    private final transient byte[] codedForm;
+    private final byte[] codedForm;
 
     /**
      * Constructs an <code>IbisIdentifier</code> with the specified parameters.

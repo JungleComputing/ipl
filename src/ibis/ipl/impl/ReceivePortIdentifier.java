@@ -28,7 +28,7 @@ public class ReceivePortIdentifier implements ibis.ipl.ReceivePortIdentifier {
     public final IbisIdentifier ibis;
 
     /** A receiveport identifier coded as a byte array. Computed once. */
-    private final transient byte[] codedForm;
+    private final byte[] codedForm;
 
     /**
      * Constructor, initializing the fields with the specified parameters.
