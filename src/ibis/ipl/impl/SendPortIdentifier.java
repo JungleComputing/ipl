@@ -8,6 +8,7 @@ import java.io.DataInput;
 import java.io.DataInputStream;
 import java.io.DataOutput;
 import java.io.DataOutputStream;
+import java.io.ObjectInputStream;
 import java.io.IOException;
 
 /**
@@ -28,7 +29,7 @@ public class SendPortIdentifier implements ibis.ipl.SendPortIdentifier {
     public final IbisIdentifier ibis;
 
     /** Coded form, computed only once. */    
-    private final byte[] codedForm;
+    private transient byte[] codedForm;
 
     /**
      * Constructor, initializing the fields with the specified parameters.
@@ -136,6 +137,12 @@ public class SendPortIdentifier implements ibis.ipl.SendPortIdentifier {
 
     public ibis.ipl.IbisIdentifier ibisIdentifier() {
         return ibis;
+    }
+
+    private void readObject(ObjectInputStream input)
+        throws ClassNotFoundException, IOException {
+        input.defaultReadObject();
+        codedForm = computeCodedForm();
     }
 
     public String toString() {

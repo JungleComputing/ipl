@@ -12,6 +12,7 @@ import java.io.DataInputStream;
 import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.net.InetAddress;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -36,7 +37,7 @@ public final class Location implements ibis.ipl.Location {
     private String levelNames[];
 
     /** Coded form. */
-    private final transient byte[] codedForm;
+    private transient byte[] codedForm;
     
     private transient Location parent = null;
 
@@ -262,6 +263,12 @@ public final class Location implements ibis.ipl.Location {
             }
         }
         return parent;
+    }
+
+    private void readObject(ObjectInputStream input)
+        throws ClassNotFoundException, IOException {
+        input.defaultReadObject();
+        codedForm = computeCodedForm();
     }
 
     public Iterator<String> iterator() {
