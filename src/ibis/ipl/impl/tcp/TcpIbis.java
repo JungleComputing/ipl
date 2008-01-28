@@ -146,10 +146,10 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
                 case ReceivePort.DENIED:
                     throw new ConnectionRefusedException(
                             "Receiver denied connection", rip);
-                case ReceivePort.NO_MANYTOONE:
+                case ReceivePort.NO_MANY_TO_X:
                     throw new ConnectionRefusedException(
-                            "Receiver already has a connection and ManyToOne "
-                            + "is not set", rip);
+                            "Receiver already has a connection and neither ManyToOne not ManyToMany "
+                            + "is set", rip);
                 case ReceivePort.NOT_PRESENT:
                 case ReceivePort.DISABLED:
                     // and try again if we did not reach the timeout...

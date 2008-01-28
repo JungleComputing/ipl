@@ -49,7 +49,7 @@ public abstract class ReceivePort extends Managable
     public static final byte NOT_PRESENT = 5;
 
     /** Receiveport already has a connection, and ManyToOne is not specified. */
-    public static final byte NO_MANYTOONE = 6;
+    public static final byte NO_MANY_TO_X = 6;
 
     /** The type of this port. */
     public final PortType type;
@@ -197,7 +197,7 @@ public abstract class ReceivePort extends Managable
             return "ACCEPTED";
         case DENIED:
             return "DENIED";
-        case NO_MANYTOONE:
+        case NO_MANY_TO_X:
             return "NO_MANYTOONE";
         case DISABLED:
             return "DISABLED";
@@ -311,8 +311,8 @@ public abstract class ReceivePort extends Managable
         } else if (! connectionsEnabled) {
             retval = DISABLED;
         } else if (connections.size() != 0 &&
-            ! type.hasCapability(PortType.CONNECTION_MANY_TO_ONE)) {
-            retval = NO_MANYTOONE;
+            ! (type.hasCapability(PortType.CONNECTION_MANY_TO_ONE) || type.hasCapability(PortType.CONNECTION_MANY_TO_MANY))) {
+            retval = NO_MANY_TO_X;
         } else if (connectUpcall != null) {
             retval = DENIED;
             try {
