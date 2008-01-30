@@ -91,12 +91,44 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
     /** Properties. */
     protected final Properties properties;
 
+    /**
+     * The number of messages sent with this sendport. Actually counts the
+     * number of finish() calls.
+     */
     private long nMessages = 0;
+
+    /**
+     * The number of bytes in these messages. Counted once, even for
+     * one-to-many sendports.
+     */
     private long messageBytes = 0;
+
+    /**
+     * The total number of bytes written for these messages. In contrast
+     * to messageBytes, this one counts the number of bytes actually
+     * put on the network. If the message goes through an N-way output
+     * stream splitter, the message is counted N times. See the counting
+     * in ibis.io.
+     */
     private long bytes = 0;
+
+    /**
+     * Cumulative value of totalWritten(), including in-between calls of
+     * resetWritten(). Note that totalWritten() and resetWritten() can be
+     * redefined by subclasses.
+     */
     private long prevBytes = 0;
+
+    /** Counts the number of connections set up with this sendport. */
     private long nConnections = 0;
+
+    /**
+     * Counts the number of times a connection was lost (as opposed to
+     * closed).
+     */
     private long nLostConnections = 0;
+
+    /** Counts the number of connections that were explicitly closed. */
     private long nClosedConnections = 0;
 
     /**
