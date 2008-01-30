@@ -10,6 +10,7 @@ import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPortIdentifier;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.Map;
 import java.util.Properties;
 
@@ -153,5 +154,9 @@ public class StackingReceivePort implements ReceivePort {
     public void setManagementProperty(String key, String val)
             throws NoSuchPropertyException {
         base.setManagementProperty(key, val);
+    }
+
+    public void printManagementProperties(PrintStream stream) {
+        base.printManagementProperties(stream);
     }
 }

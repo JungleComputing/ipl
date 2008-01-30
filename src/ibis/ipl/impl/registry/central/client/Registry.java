@@ -13,6 +13,7 @@ import ibis.ipl.impl.registry.statistics.Statistics;
 import ibis.util.TypedProperties;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -411,5 +412,9 @@ public final class Registry extends ibis.ipl.impl.Registry {
             throws NoSuchPropertyException {
         throw new NoSuchPropertyException(
                 "central registry does not have any properties that can be set");
+    }
+    
+    public void printManagementProperties(PrintStream stream) {
+        //NOTHING
     }
 }

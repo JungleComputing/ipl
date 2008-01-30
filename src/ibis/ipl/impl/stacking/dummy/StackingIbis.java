@@ -12,6 +12,7 @@ import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.ipl.Registry;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.Map;
 import java.util.Properties;
 
@@ -49,6 +50,10 @@ public class StackingIbis implements Ibis {
     public void setManagementProperty(String key, String val)
             throws NoSuchPropertyException {
         base.setManagementProperty(key, val);
+    }
+    
+    public void printManagementProperties(PrintStream stream) {
+        base.printManagementProperties(stream);
     }
 
     public void poll() throws IOException {
@@ -101,5 +106,7 @@ public class StackingIbis implements Ibis {
             throws IOException {
         return new StackingReceivePort(portType, this, name, u, cU, props);
     }
+
+ 
 
 }

@@ -263,15 +263,15 @@ class CommunicationHandler implements Runnable {
         }
     }
 
-    private void handleLeave(Connection connection) throws IOException {
-        IbisIdentifier ibis = new IbisIdentifier(connection.in());
-
-        connection.sendOKReply();
-
-        pool.leave(ibis);
-
-        connection.close();
-    }
+//    private void handleLeave(Connection connection) throws IOException {
+//        IbisIdentifier ibis = new IbisIdentifier(connection.in());
+//
+//        connection.sendOKReply();
+//
+//        pool.leave(ibis);
+//
+//        connection.close();
+//    }
 
     public void ping(IbisIdentifier ibis) throws IOException {
         long start = System.currentTimeMillis();

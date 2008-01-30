@@ -45,9 +45,9 @@ final class Pool implements Runnable {
 
     private final boolean peerBootstrap;
 
-    private final boolean gossip;
-
-    private final boolean tree;
+//    private final boolean gossip;
+//
+//    private final boolean tree;
 
     private final long heartbeatInterval;
 
@@ -101,8 +101,8 @@ final class Pool implements Runnable {
         this.socketFactory = socketFactory;
         this.peerBootstrap = peerBootstrap;
         this.heartbeatInterval = heartbeatInterval;
-        this.gossip = gossip;
-        this.tree = tree;
+//        this.gossip = gossip;
+//        this.tree = tree;
         this.closedWorld = closedWorld;
         this.fixedSize = poolSize;
         this.ibisImplementationIdentifier = ibisImplementationIdentifier;

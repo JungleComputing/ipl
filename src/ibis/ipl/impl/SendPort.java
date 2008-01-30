@@ -775,4 +775,12 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
      * @param e the exception that was thrown.
      */
     protected abstract void handleSendException(WriteMessage w, IOException e);
+    
+    synchronized long getMessageCount() {
+        return nMessages;
+    }
+    
+    synchronized long getBytesSend() {
+        return messageBytes;
+    }
 }

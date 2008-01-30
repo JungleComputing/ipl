@@ -6,7 +6,6 @@ import ibis.ipl.impl.IbisIdentifier;
 import ibis.ipl.impl.Location;
 import ibis.ipl.impl.registry.Connection;
 import ibis.ipl.impl.registry.central.Event;
-import ibis.ipl.impl.registry.central.Member;
 import ibis.ipl.impl.registry.central.Protocol;
 import ibis.ipl.impl.registry.central.RegistryProperties;
 import ibis.ipl.impl.registry.central.server.Server;

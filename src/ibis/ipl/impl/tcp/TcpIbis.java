@@ -316,11 +316,6 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
         }
     }
 
-    public void printStatistics() {
-        super.printStatistics();
-        factory.printStatistics(ident.toString());
-    }
-
     private void cleanup() {
         try {
             systemServer.close();
@@ -339,4 +334,6 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
             throws IOException {
         return new TcpReceivePort(this, tp, nm, u, cU, props);
     }
+
+   
 }

@@ -14,6 +14,7 @@ import ibis.util.ThreadPool;
 import ibis.util.TypedProperties;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -366,13 +367,17 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
     public void setManagementProperties(Map<String, String> properties)
             throws NoSuchPropertyException {
         throw new NoSuchPropertyException(
-                "central registry does not have any properties that can be set");
+                "gossip registry does not have any properties that can be set");
     }
 
     public void setManagementProperty(String key, String value)
             throws NoSuchPropertyException {
         throw new NoSuchPropertyException(
-                "central registry does not have any properties that can be set");
+                "gossip registry does not have any properties that can be set");
+    }
+    
+    public void printManagementProperties(PrintStream stream) {
+        //NOTHING
     }
 
     // functions called by pool to tell the registry an event has occured

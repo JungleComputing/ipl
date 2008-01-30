@@ -663,4 +663,13 @@ public abstract class ReceivePort extends Managable
             return message;
         }
     }
+
+    synchronized long getMessageCount() {
+        return nMessages;
+    }
+    
+    synchronized long getBytesReceived() {
+        return messageBytes;
+    }
+
 }
