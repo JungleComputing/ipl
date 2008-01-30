@@ -781,6 +781,6 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
     }
     
     synchronized long getBytesSend() {
-        return messageBytes;
+        return prevBytes + totalWritten();
     }
 }
