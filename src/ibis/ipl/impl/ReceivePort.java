@@ -311,7 +311,8 @@ public abstract class ReceivePort extends Managable
         } else if (! connectionsEnabled) {
             retval = DISABLED;
         } else if (connections.size() != 0 &&
-            ! (type.hasCapability(PortType.CONNECTION_MANY_TO_ONE) || type.hasCapability(PortType.CONNECTION_MANY_TO_MANY))) {
+            ! (type.hasCapability(PortType.CONNECTION_MANY_TO_ONE)
+                || type.hasCapability(PortType.CONNECTION_MANY_TO_MANY))) {
             retval = NO_MANY_TO_X;
         } else if (connectUpcall != null) {
             retval = DENIED;
@@ -522,6 +523,7 @@ public abstract class ReceivePort extends Managable
                 msg.finish(e);
                 return;
             }
+            logger.error("Got unexpected exception in upcall, continuing ...", e);
         } catch(ClassNotFoundException e) {
             if (! msg.isFinished()) {
                 IOException ioex =
