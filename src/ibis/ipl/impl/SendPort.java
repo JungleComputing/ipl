@@ -813,11 +813,25 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
      */
     protected abstract void handleSendException(WriteMessage w, IOException e);
     
+    /**
+     * Number of messages send
+     */
     synchronized long getMessageCount() {
         return nMessages;
     }
+
+    /**
+     * Number of bytes written by the user in messages.
+     */
+    synchronized long getBytesWritten() {
+        return messageBytes;
+    }
     
+    /**
+     * Number of bytes send out on the network. Includes extra traffic send
+     * if a message is broadcasted.
+     */
     synchronized long getBytesSend() {
-        return prevBytes + totalWritten();
+        return bytes;
     }
 }

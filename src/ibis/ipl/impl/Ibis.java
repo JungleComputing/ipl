@@ -74,12 +74,19 @@ public abstract class Ibis implements ibis.ipl.Ibis {
     /** Total number of messages received by closed receive ports */
     private long incomingMessageCount = 0;
 
+    /** Total number of bytes written to messages closed send ports */
+    private long bytesWritten = 0;
+    
     /** Total number of bytes send by closed send ports */
     private long bytesSend = 0;
 
-    /** Total number of bytes received by closed receive ports */
+    /** Total number of bytes read by closed receive ports */
     private long bytesReceived = 0;
-
+    
+    /** Total number of bytes read from messages (for closed received ports) */
+    private long bytesRead = 0;
+    
+    
     /**
      * Constructs an <code>Ibis</code> instance with the specified parameters.
      * 
@@ -195,6 +202,7 @@ public abstract class Ibis implements ibis.ipl.Ibis {
             // add statistics for this receive port to "total" statistics
             incomingMessageCount += p.getMessageCount();
             bytesReceived += p.getBytesReceived();
+            bytesRead += p.getBytesRead();
         }
     }
 
@@ -211,6 +219,7 @@ public abstract class Ibis implements ibis.ipl.Ibis {
             // add statistics for this sendport to "total" statistics
             outgoingMessageCount += p.getMessageCount();
             bytesSend += p.getBytesSend();
+            bytesWritten += p.getBytesWritten();
         }
     }
 
@@ -444,6 +453,17 @@ public abstract class Ibis implements ibis.ipl.Ibis {
 
         return bytesSend;
     }
+    
+    private synchronized long bytesWritten() {
+        long bytesWritten = this.bytesWritten;
+
+        // also add numbers for current send ports
+        for (SendPort sendPort : sendPorts.values()) {
+            bytesWritten += sendPort.getBytesWritten();
+        }
+
+        return bytesWritten;
+    }
 
     private synchronized long incomingMessageCount() {
         long incomingMessageCount = this.incomingMessageCount;
@@ -464,15 +484,27 @@ public abstract class Ibis implements ibis.ipl.Ibis {
 
         return bytesReceived;
     }
+    
+    private synchronized long bytesRead() {
+        long bytesRead = this.bytesRead;
+        // also add numbers for current receive ports
+        for (ReceivePort receivePort : receivePorts.values()) {
+            bytesRead += receivePort.getBytesReceived();
+        }
+
+        return bytesRead;
+    }
 
     public synchronized Map<String, String> managementProperties() {
         Map<String, String> result = new HashMap<String, String>();
 
         // put gathered statistics in the map
         result.put("outgoingMessageCount", "" + outgoingMessageCount());
+        result.put("bytesWritten", "" + bytesWritten());
         result.put("bytesSend", "" + bytesSend());
         result.put("incomingMessageCount", "" + incomingMessageCount());
         result.put("bytesReceived", "" + bytesReceived());
+        result.put("bytesRead", "" + bytesRead());
 
         return result;
     }
@@ -480,14 +512,20 @@ public abstract class Ibis implements ibis.ipl.Ibis {
     public void printManagementProperties(PrintStream stream) {
         stream.format("Messages Send: %d\n", outgoingMessageCount());
 
+        double mbWritten = (double) bytesWritten() / 1024.0 / 1024.0;
+        stream.format("Data written to messages: %.2f Mb\n", mbWritten);
+        
         double mbSend = (double) bytesSend() / 1024.0 / 1024.0;
-        stream.format("Data Send: %.2f Mb\n", mbSend);
+        stream.format("Data send out on network: %.2f Mb\n", mbSend);
 
         stream.format("Messages Received: %d\n", incomingMessageCount());
 
         double mbReceived = (double) bytesReceived() / 1024.0 / 1024.0;
-        stream.format("Data Received: %.2f Mb\n", mbReceived);
+        stream.format("Data received from network: %.2f Mb\n", mbReceived);
 
+        double mbRead = (double) bytesRead() / 1024.0 / 1024.0;
+        stream.format("Data read from messages: %.2f Mb\n", mbRead);
+        
         stream.flush();
     }
 
