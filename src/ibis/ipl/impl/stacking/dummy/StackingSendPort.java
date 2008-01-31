@@ -94,6 +94,10 @@ public class StackingSendPort implements SendPort {
        base.disconnect(receiver);
     }
 
+    public void disconnect(IbisIdentifier id, String name) throws IOException {
+        base.disconnect(id, name);
+    }
+
     public PortType getPortType() {
         return base.getPortType();
     }

@@ -541,6 +541,11 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
         }
     }
 
+    public void disconnect(ibis.ipl.IbisIdentifier id, String name)
+            throws IOException {
+        disconnect(ibis.createReceivePortIdentifier(name, (IbisIdentifier) id));
+    }
+
     public synchronized void disconnect(ibis.ipl.ReceivePortIdentifier receiver)
             throws IOException {
         if (logger.isDebugEnabled()) {
