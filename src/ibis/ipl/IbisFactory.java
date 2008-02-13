@@ -400,8 +400,14 @@ public final class IbisFactory {
         }
 
         IbisStarter starter = stack.remove(0);
-
-        return starter.startIbis(stack, registryEventHandler, properties);
+        
+        try {
+            return starter.startIbis(stack, registryEventHandler, properties);
+        } catch(Throwable e) {
+            creationException.add("" + starter.getClass().getName()
+                    + " gave exception ", e);
+            throw creationException;
+        }
     }
 
     /**
