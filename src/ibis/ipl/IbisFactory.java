@@ -26,7 +26,7 @@ import java.util.jar.Manifest;
  * of the manifest of the jar file containing it, in the "Ibis-Starter" entry.
  * This entry should contain a comma- or space-separated list of class names,
  * where each class named provides an {@link IbisStarter} implementation. In
- * addition, a property "Ibis-Version" should be defined in the manifest,
+ * addition, a property "IPL-Version" should be defined in the manifest,
  * containing a version number starting with 2.0.
  */
 public final class IbisFactory {
@@ -583,7 +583,7 @@ public final class IbisFactory {
                 if (mf != null) {
                     Attributes ab = mf.getMainAttributes();
                     if (version != null) {
-                        String jarVersion = ab.getValue("Ibis-Version");
+                        String jarVersion = ab.getValue("IPL-Version");
                         if (jarVersion == null
                                 || !jarVersion.startsWith(version)) {
                             continue;

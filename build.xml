@@ -1,10 +1,10 @@
-<project name="Ibis" default="build" basedir=".">
+<project name="IPL" default="build" basedir=".">
     <description>
 	Build file for Ibis
     </description>
 
     <target name="build"
-            description="Build Ibis"
+            description="Build the IPL and its implementations"
             depends="clean,compile,javadoc,examples,benchmarks" />
 
     <!-- Names for generated directories. -->
@@ -91,34 +91,34 @@
                            value="ibis.ipl.impl.registry.central.server.Server, ibis.ipl.impl.registry.gossip.BootstrapService" />
             </manifest>
         </jar>
-        <jar destfile="lib/ibis-impl-tcp${version}.jar">
+        <jar destfile="lib/ipl-impl-tcp${version}.jar">
             <fileset dir="${tmp}" includes="ibis/ipl/impl/tcp/**/*.class" />
             <fileset dir="." includes="LICENSE.txt" />
             <manifest>
                 <attribute name="Ibis-Starter"
                            value="ibis.ipl.impl.tcp.TcpIbisStarter" />
-                <attribute name="Ibis-Version" value="2.0" />
+                <attribute name="IPL-Version" value="2.0" />
                 <attribute name="Implementation-Version" value="${TIMESTAMP}" />
             </manifest>
         </jar>
-        <jar destfile="lib/ibis-impl-nio${version}.jar">
+        <jar destfile="lib/ipl-impl-nio${version}.jar">
             <fileset dir="${tmp}" includes="ibis/ipl/impl/nio/**/*.class" />
             <fileset dir="." includes="LICENSE.txt" />
             <manifest>
                 <attribute name="Ibis-Starter"
                            value="ibis.ipl.impl.nio.NioIbisStarter" />
-                <attribute name="Ibis-Version" value="2.0" />
+                <attribute name="IPL-Version" value="2.0" />
                 <attribute name="Implementation-Version" value="${TIMESTAMP}" />
             </manifest>
         </jar>
-        <jar destfile="lib/ibis-impl-dummy${version}.jar">
+        <jar destfile="lib/ipl-impl-dummy${version}.jar">
             <fileset dir="${tmp}"
                      includes="ibis/ipl/impl/stacking/dummy/**/*.class" />
             <fileset dir="." includes="LICENSE.txt" />
             <manifest>
                 <attribute name="Ibis-Starter"
                            value="ibis.ipl.impl.stacking.dummy.StackingIbisStarter" />
-                <attribute name="Ibis-Version" value="2.0" />
+                <attribute name="IPL-Version" value="2.0" />
                 <attribute name="Implementation-Version" value="${TSTAMP}" />
             </manifest>
         </jar>
@@ -140,7 +140,7 @@
         <delete dir="${javadoc}" />
 
         <delete file="${sources-zip}" />
-        <delete file="ibis${version}.zip" />
+        <delete file="ipl${version}.zip" />
         <ant dir="examples" inheritAll="false" target="clean" />
         <ant dir="benchmarks" inheritAll="false" target="clean" />
     </target>
@@ -222,8 +222,8 @@
         <ant dir="docs" inheritAll="false" />
     </target>
 
-    <target name="ibis.zip" depends="build, docs">
-        <delete file="ibis${version}.zip" />
+    <target name="ipl.zip" depends="build, docs">
+        <delete file="ipl${version}.zip" />
         <delete dir="${sources-zip}" />
 
         <zip destfile="${sources}/${sources-filename}.zip">
@@ -231,18 +231,18 @@
             <zipfileset dir="." includes="LICENSE.txt" prefix="${sources-filename}" />
         </zip>
 
-        <zip destfile="ibis${version}.zip">
+        <zip destfile="ipl${version}.zip">
             <zipfileset dir="."
                         prefix="ibis${version}"
                         includes="javadoc/**,docs/*.pdf,lib/**,notices/**,BUGS.txt,LICENSE.txt,HISTORY.txt,README.txt,sources/**,ibis.properties.example,log4j.properties,smartsockets.properties.example,examples/**,benchmarks/**"
                         excludes="examples/.*,examples/.*/**" />
             <zipfileset dir="."
-                        prefix="ibis${version}"
+                        prefix="ipl${version}"
                         filemode="755"
                         includes="bin/**" />
             <zipfileset dir="."
                         includes="docs/INSTALL-bin.txt"
-                        fullpath="ibis${version}/INSTALL.txt" />
+                        fullpath="ipl${version}/INSTALL.txt" />
         </zip>
 
     </target>
