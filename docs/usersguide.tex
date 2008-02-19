@@ -205,7 +205,7 @@ run the \texttt{ipl-server} script:
 \noindent
 {\small
 \begin{verbatim}
-$ $IBIS_HOME/bin/ipl-server --events
+$ $IPL_HOME/bin/ipl-server --events
 \end{verbatim}
 }
 \noindent
@@ -221,8 +221,8 @@ and server. Run the following command in two different shells:
 \noindent
 {\small
 \begin{verbatim}
-$ CLASSPATH=$IBIS_HOME/examples/lib/ipl-examples-2.0.jar \
-    $IBIS_HOME/bin/ipl-run \
+$ CLASSPATH=$IPL_HOME/examples/lib/ipl-examples-2.0.jar \
+    $IPL_HOME/bin/ipl-run \
     -Dibis.server.address=localhost -Dibis.pool.name=test \
     ibis.ipl.examples.Hello
 \end{verbatim}
@@ -244,11 +244,11 @@ the application without ipl-run, the following command can be used:
 \begin{verbatim}
 $ java \
     -cp \
-    $IBIS_HOME/lib/ipl-2.0.jar:$IBIS_HOME/examples/lib/ipl-examples-2.0.jar \
-    -Dibis.impl.path=$IBIS_HOME/lib \
+    $IPL_HOME/lib/ipl-2.0.jar:$IPL_HOME/examples/lib/ipl-examples-2.0.jar \
+    -Dibis.impl.path=$IPL_HOME/lib \
     -Dibis.server.address=localhost \
     -Dibis.pool.name=test \
-    -Dlog4j.configuration=file:$IBIS_HOME/log4j.properties \
+    -Dlog4j.configuration=file:$IPL_HOME/log4j.properties \
     ibis.ipl.examples.Hello
 \end{verbatim}
 }
