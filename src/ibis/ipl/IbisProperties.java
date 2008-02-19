@@ -46,7 +46,7 @@ public final class IbisProperties {
     /** Property name for setting the size of the pool. */
     public static final String POOL_SIZE = PREFIX + "pool.size";
 
-    /** Property name for setting the address of the ibis-server. */
+    /** Property name for setting the address of the ipl-server. */
     public static final String SERVER_ADDRESS = PREFIX + "server.address";
 
     /** Property name for specifying a comma seperated list of hubs. */

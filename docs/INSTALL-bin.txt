@@ -25,6 +25,6 @@ Windows 2000, Windows XP
     add it there and reboot your system.
 
 Cygwin
-    There is a separate ibis-run script for Cygwin in the bin directory, 
-    called ibis-run.cygwin. It is wise to move that to ibis-run.
+    There is a separate ipl-run script for Cygwin in the bin directory, 
+    called ipl-run.cygwin. It is wise to move that to ipl-run.
 

@@ -17,7 +17,7 @@
 
     <property name="version" value="" />
 
-    <property name="sources-filename" value="ibis-ipl" />
+    <property name="sources-filename" value="ipl" />
 
     <!-- import environment properties -->
     <property environment="env" />
@@ -38,7 +38,7 @@
         <pathelement path="${tmp}" />
     </path>
 
-    <!-- Compile ibis -->
+    <!-- Compile IPL -->
     <target name="compile">
         <mkdir dir="${tmp}" />
         <mkdir dir="${lib}" />
@@ -233,7 +233,7 @@
 
         <zip destfile="ipl${version}.zip">
             <zipfileset dir="."
-                        prefix="ibis${version}"
+                        prefix="ipl${version}"
                         includes="javadoc/**,docs/*.pdf,lib/**,notices/**,BUGS.txt,LICENSE.txt,HISTORY.txt,README.txt,sources/**,ibis.properties.example,log4j.properties,smartsockets.properties.example,examples/**,benchmarks/**"
                         excludes="examples/.*,examples/.*/**" />
             <zipfileset dir="."

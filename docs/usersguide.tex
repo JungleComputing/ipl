@@ -38,12 +38,12 @@ Ibises to route traffic over the server if no direct connection is
 possible between two instances due to firewalls or NAT boxes. This is
 done using the Smartsockets library of the Ibis project.
 
-The Ibis server is started with the \texttt{ibis-server} script which is
+The Ibis server is started with the \texttt{ipl-server} script which is
 located in the \texttt{bin} directory of the Ibis distribution.  Before
 starting an Ibis application, an Ibis server needs to be running on a
 machine that is accessible from all nodes participating in the Ibis run.
 The server listens to a TCP port. The port number can be specified using
-the \texttt{--port} command line option to the \texttt{ibis-server}
+the \texttt{--port} command line option to the \texttt{ipl-server}
 script.  For a complete list of all options, use the \texttt{--help}
 option of the script. One useful option is the  \texttt{--events}
 option, which makes the registry print out events (such as Ibises
@@ -56,11 +56,11 @@ The Ibis server is a single point which needs to be reachable from every
 Ibis instance. Since sometimes this is not possible due to firewalls,
 additional \emph{hubs} can be started to route traffic, creating a
 routing infrastructure for the Ibis instances. These hubs can be started
-by using ibis-server script with the \texttt{--hub-only} option. In
+by using ipl-server script with the \texttt{--hub-only} option. In
 addition, each hub needs to know the location of as many of the other
 hubs as possible. This information can be provided by using the
 \texttt{--hub-addresses} option. See the \texttt{--help} option of the
-ibis-server script for more information.
+ipl-server script for more information.
 
 \section{Running an Ibis Application}
 
@@ -153,14 +153,14 @@ correctly. This size must be set using the \texttt{ibis.pool.size} property.
 This property is normally not needed. When it is needed, but not provided, Ibis 
 will print an error.
 
-\section{The ibis-run script}
+\section{The ipl-run script}
 
-To simplify running a Ibis application, a \texttt{ibis-run} script is
+To simplify running a Ibis application, a \texttt{ipl-run} script is
 provided with the distribution. This script can be
 used as follows
 
 \begin{center}
-\texttt{ibis-run} \emph{java-flags class parameters}
+\texttt{ipl-run} \emph{java-flags class parameters}
 \end{center}
 
 The script performs the first three steps needed to run an application
@@ -170,7 +170,7 @@ command line options given to it. Therefore, any additional options for
 Java, the main class and any application parameters must be provided as 
 if \texttt{java} was called directly.
 
-The \texttt{ibis-run} script needs the location of the Ibis
+The \texttt{ipl-run} script needs the location of the Ibis
 distribution. This must be provided using the IBIS\_HOME environment
 variable.
 
@@ -200,12 +200,12 @@ from the \texttt{lib} directory of the distribution to the class path.
 We will now run the example. All code below assumes the IBIS\_HOME
 environment variable is set to the location of the Ibis distribution.
 
-First, we will need a ibis-server. Start a shell and
-run the \texttt{ibis-server} script:
+First, we will need a ipl-server. Start a shell and
+run the \texttt{ipl-server} script:
 \noindent
 {\small
 \begin{verbatim}
-$ $IBIS_HOME/bin/ibis-server --events
+$ $IBIS_HOME/bin/ipl-server --events
 \end{verbatim}
 }
 \noindent
@@ -222,7 +222,7 @@ and server. Run the following command in two different shells:
 {\small
 \begin{verbatim}
 $ CLASSPATH=$IBIS_HOME/examples/lib/ipl-examples-2.0.jar \
-    $IBIS_HOME/bin/ibis-run \
+    $IBIS_HOME/bin/ipl-run \
     -Dibis.server.address=localhost -Dibis.pool.name=test \
     ibis.ipl.examples.Hello
 \end{verbatim}
@@ -230,14 +230,14 @@ $ CLASSPATH=$IBIS_HOME/examples/lib/ipl-examples-2.0.jar \
 \noindent
 
 This sets the CLASSPATH environment variable to the jar file of the
-application, and calls ibis-run. You should now have two running
+application, and calls ipl-run. You should now have two running
 instances of your application. One of them should print:
 
 \noindent {\small \begin{verbatim} Server received: Hi there
 \end{verbatim} } \noindent 
 
-As said, the ibis-run script is only provided for convenience. To run
-the application without ibis-run, the following command can be used:
+As said, the ipl-run script is only provided for convenience. To run
+the application without ipl-run, the following command can be used:
 
 \noindent
 {\small

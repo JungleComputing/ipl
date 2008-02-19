@@ -22,7 +22,8 @@
 \section{Introduction}
 
 This manual explains how to program applications using the Ibis
-communication library. Ibis is a portable, high performance, Java based
+communication library. The Ibis communication library is a portable,
+high performance, Java based
 library. For information on how to run applications using this library,
 see the Ibis user's manual, available in the Ibis distribution in the
 \texttt{doc} directory, or on the Ibis
@@ -36,7 +37,7 @@ information, see the Javadoc for Ibis. This is available in the
 This manual is split up into several different sections. First, we will
 explain the different parts of the IPL, the interface to the Ibis
 communication library. Second, we explain how to compile applications
-which use Ibis. Last, we will give some examples 
+which use the IPL. Last, we will give some examples 
 to show how to use Ibis in practice.
 
 \section{IPL Overview}
@@ -390,7 +391,7 @@ properties of Ibis and their usage.
 \section{Compiling applications}
 \label{compiling}
 
-%-- add ipl.jar to classpath, rewrite using ibisc, example ant build file.
+%-- add ipl.jar to classpath, rewrite using iplc, example ant build file.
 
 Applications that use Ibis can be compiled as any normal Java
 application. The file \texttt{ipl.jar} needs to be added to the
@@ -398,7 +399,7 @@ classpath when compiling (and running) an Ibis application. For the
 serialization of Ibis to function correctly, one additional step is
 required after compiling: the code for writing and reading objects must
 be generated. The \emph{Ibis compiler} application is available for
-this purpose. It can be run by using the \texttt{ibisc}
+this purpose. It can be run by using the \texttt{iplc}
 script in the \texttt{bin} directory of the distribution. The Ibis
 compiler needs to be passed the class files of the application, either
 as a directory containing classes, or as a jar file.
