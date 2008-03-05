@@ -412,7 +412,7 @@ final class Pool {
         }
     }
 
-    private synchronized Event getEvent(int time) {
+    private synchronized Event getEvent() {
         return eventList.get(time);
     }
 
@@ -427,18 +427,27 @@ final class Pool {
         }
 
         while (true) {
-            Event event = getEvent(time);
+            // Modified the code below to do getEvent and time++ within
+            // one synchronized block, otherwise race condition.
 
-            if (event == null) {
-                logger.info("done handling events, event time now: " + time);
-                return;
-            }
+            Event event;
 
             synchronized (this) {
+                event = getEvent();
+
+                if (event == null) {
+                    logger.info("done handling events, event time now: "
+                            + time);
+                    return;
+                }
                 handleEvent(event);
                 time++;
                 notifyAll();
             }
+            // Niels: does having this outside the synchronized block not
+            // allow for a change in the order in which the user sees the
+            // events? (Ceriel)
+            // TODO: check this!!!
             registry.handleEvent(event);
         }
     }
