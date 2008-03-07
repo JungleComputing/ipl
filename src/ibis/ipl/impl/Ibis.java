@@ -121,9 +121,15 @@ public abstract class Ibis implements ibis.ipl.Ibis {
 
         Class<? extends Ibis> thisClass = this.getClass();
         Package thisPackage = thisClass.getPackage();
-        String implementationVersionString =
-            "Class: " + thisClass.getName() + "." + thisPackage.getName()
+        String implementationVersionString;
+        // Did we manage to get a package?
+        if (null != thisPackage) {
+            implementationVersionString = "Class: " + thisClass.getName() + "." + thisPackage.getName()
                     + " Build: " + thisPackage.getImplementationVersion();
+        }
+        else {
+        	 implementationVersionString = "Class: " + thisClass.getName();	
+        }
         try {
             registry =
                 Registry.createRegistry(capabilities, registryHandler,
