@@ -128,7 +128,7 @@ public abstract class Ibis implements ibis.ipl.Ibis {
                     + " Build: " + thisPackage.getImplementationVersion();
         }
         else {
-        	 implementationVersionString = "Class: " + thisClass.getName();	
+            implementationVersionString = "Class: " + thisClass.getName();
         }
         try {
             registry =
