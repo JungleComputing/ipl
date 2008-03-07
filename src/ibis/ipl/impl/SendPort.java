@@ -142,7 +142,8 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
      * @param properties the port properties.
      * @exception IOException is thrown in case of trouble.
      */
-    protected SendPort(Ibis ibis, PortType type, String name,
+    @SuppressWarnings("unchecked")
+	protected SendPort(Ibis ibis, PortType type, String name,
             SendPortDisconnectUpcall connectUpcall, Properties properties) throws IOException {
         this.ibis = ibis;
         this.type = type;
@@ -152,8 +153,8 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
         this.connectUpcall = connectUpcall;
         this.properties = ibis.properties();
         if (properties != null) {
-            for (Enumeration e = properties.propertyNames(); e.hasMoreElements();) {
-                String key = (String) e.nextElement();
+            for (Enumeration<String> e = (Enumeration<String>)properties.propertyNames(); e.hasMoreElements();) {
+                String key = e.nextElement();
                 String value = properties.getProperty(key);
                 this.properties.setProperty(key, value);
             }
@@ -162,8 +163,8 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
         String replacerName = this.properties.getProperty("ibis.serialization.replacer");
         if (replacerName != null) {
             try {
-                Class replacerClass = Class.forName(replacerName);
-                this.replacer = (Replacer) replacerClass.newInstance();
+                Class<? extends Replacer> replacerClass = (Class<? extends Replacer>) Class.forName(replacerName);
+                this.replacer = replacerClass.newInstance();
             } catch(Throwable e) {
                 throw new IOException("Could not instantiate replacer class "
                         + replacerName);

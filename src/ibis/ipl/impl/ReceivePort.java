@@ -133,7 +133,8 @@ public abstract class ReceivePort extends Managable
      * @param connectUpcall the connection upcall object, or <code>null</code>.
      * @param properties the port properties.
      */
-    protected ReceivePort(Ibis ibis, PortType type, String name,
+    @SuppressWarnings("unchecked")
+	protected ReceivePort(Ibis ibis, PortType type, String name,
             MessageUpcall upcall, ReceivePortConnectUpcall connectUpcall,
             Properties properties) throws IOException {
         this.ibis = ibis;
@@ -147,8 +148,8 @@ public abstract class ReceivePort extends Managable
                 = type.hasCapability(PortType.COMMUNICATION_NUMBERED);
         this.properties = ibis.properties();
         if (properties != null) {
-            for (Enumeration e = properties.propertyNames(); e.hasMoreElements();) {
-                String key = (String) e.nextElement();
+            for (Enumeration<String> e = (Enumeration<String>)properties.propertyNames(); e.hasMoreElements();) {
+                String key = e.nextElement();
                 String value = properties.getProperty(key);
                 this.properties.setProperty(key, value);
             }
