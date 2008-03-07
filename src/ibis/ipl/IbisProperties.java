@@ -31,6 +31,9 @@ public final class IbisProperties {
     /** Property name for selecting an Ibis. */
     public static final String IMPLEMENTATION = PREFIX + "implementation";
 
+    /** Last resort Ibis starters that are loaded with Class.forName if others fail */
+    public static final String STARTER = PREFIX + "starter";
+    
     /** Property name of the property file. */
     public static final String PROPERTIES_FILE = PREFIX + "properties.file";
 
@@ -186,7 +189,8 @@ public final class IbisProperties {
     /**
      * Loads properties from the standard configuration file locations.
      */
-    public static synchronized Properties getDefaultProperties() {
+    @SuppressWarnings("unchecked")
+	public static synchronized Properties getDefaultProperties() {
         if (defaultProperties == null) {
             defaultProperties = getHardcodedProperties();
 
@@ -223,8 +227,8 @@ public final class IbisProperties {
 
             // Finally, add the properties from the command line to the result,
             // possibly overriding entries from file or the defaults.
-            for (Enumeration e = systemProperties.propertyNames(); e.hasMoreElements();) {
-                String key = (String) e.nextElement();
+            for (Enumeration<String> e = (Enumeration<String>)systemProperties.propertyNames(); e.hasMoreElements();) {
+                String key = e.nextElement();
                 String value = systemProperties.getProperty(key);
                 defaultProperties.setProperty(key, value);
             }
