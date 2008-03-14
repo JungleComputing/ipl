@@ -730,7 +730,7 @@ final class Pool implements Runnable {
             if (isMember(member)) {
                 if (printErrors) {
                     print("cannot reach " + member + " to push events to");
-                    e.printStackTrace(System.out);
+//                    e.printStackTrace(System.out);
                 }
             }
 
