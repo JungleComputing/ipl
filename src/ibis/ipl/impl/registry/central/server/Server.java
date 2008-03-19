@@ -149,7 +149,7 @@ public final class Server extends Thread implements Service {
                     }
 
                     if (pool.hasEnded()) {
-                        logger.debug("pool " + pool.getName() + " ended");
+                        System.out.println("Central Registry: pool " + pool.getName() + " ended");
                         pool.saveStatistics();
                         pools.remove(pool.getName());
                         if (pools.size() == 0) {
