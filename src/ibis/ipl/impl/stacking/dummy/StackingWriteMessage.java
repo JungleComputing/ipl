@@ -38,6 +38,10 @@ public class StackingWriteMessage implements WriteMessage {
     public int send() throws IOException {
         return base.send();
     }
+    
+    public void flush() throws IOException {
+        base.flush();
+    }
 
     public void sync(int ticket) throws IOException {
         base.sync(ticket);
