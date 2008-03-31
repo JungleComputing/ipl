@@ -560,7 +560,7 @@ final class Pool implements Runnable {
 
             logger.debug("creating connection to " + member);
             connection =
-                new Connection(member.getIbis(), CONNECT_TIMEOUT, false,
+                new Connection(member.getIbis(), CONNECT_TIMEOUT, true,
                         socketFactory);
             logger.debug("connection created to " + member
                     + ", send opcode, checking for reply");
