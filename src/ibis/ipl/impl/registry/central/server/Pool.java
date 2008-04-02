@@ -821,15 +821,15 @@ final class Pool implements Runnable {
 
         if (isClosedWorld()) {
             formatter.format(
-                "%-38s %12d %10d %5d %6d %5d %9d %7d %10d %6b %5b\n",
+                "%s\n        %12d %5d %6d %5d %9d %7d %10d %6b %5b\n",
                 getName(), getSize(), getEventTime(), eventStats[Event.JOIN],
                 eventStats[Event.LEAVE], eventStats[Event.DIED],
                 eventStats[Event.ELECT], eventStats[Event.SIGNAL],
                 getFixedSize(), isClosed(), ended);
         } else {
             formatter.format(
-                "%-38s %12d %10d %5d %6d %5d %9d %7d %10s %6b %5b\n",
-                getName(), getSize(), getEventTime(), eventStats[Event.JOIN],
+                "%s\n        %12d %5d %6d %5d %9d %7d %10s %6b %5b\n",
+                getName(), getSize(), eventStats[Event.JOIN],
                 eventStats[Event.LEAVE], eventStats[Event.DIED],
                 eventStats[Event.ELECT], eventStats[Event.SIGNAL], "N.A.",
                 isClosed(), ended);
