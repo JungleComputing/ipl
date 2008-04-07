@@ -15,7 +15,7 @@
     <property name="sources" value="sources" />
     <property name="javadoc" value="javadoc/ipl" />
 
-    <property name="version" value="" />
+    <property name="version" value="-2.1" />
 
     <property name="sources-filename" value="ipl" />
 
