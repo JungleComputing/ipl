@@ -64,12 +64,6 @@ public final class IbisProperties {
     public static final String LOCATION = PREFIX + "location";
 
     /**
-     * Property name for automatically setting the location
-     */
-    public static final String LOCATION_AUTOMATIC =
-            PREFIX + "location.automatic";
-
-    /**
      * Property name for specifying a postfix for an automatically generated location
      */
     public static final String LOCATION_POSTFIX =
@@ -106,9 +100,6 @@ public final class IbisProperties {
                     "Set the location of Ibis. Specified as multiple levels, "
                             + "seperated by a '@', e.g. machine@cluster@site@grid@world."
                             + " Defaults to a single level location with the hostname of the machine" },
-
-                { LOCATION_AUTOMATIC, "false",
-                    "Boolean: If true, a multi level location is automatically created" },
 
                 { LOCATION_POSTFIX, null,
                     "Set a string that will be appended to the automatically generated location." },

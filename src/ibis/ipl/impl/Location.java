@@ -188,10 +188,8 @@ public final class Location implements ibis.ipl.Location {
         try {
             InetAddress a = InetAddress.getLocalHost();
             s = a.getCanonicalHostName();
-            if (p.getBooleanProperty(IbisProperties.LOCATION_AUTOMATIC)) {
-                if (s.length() > 0 && Character.isJavaIdentifierStart(s.charAt(0))) {
-                    return new Location(appendPostFix(p, s.split("\\.")));
-                }
+            if (s.length() > 0 && Character.isJavaIdentifierStart(s.charAt(0))) {
+                return new Location(appendPostFix(p, s.split("\\.")));
             }
 
             String postFix =  p.getProperty(IbisProperties.LOCATION_POSTFIX);
