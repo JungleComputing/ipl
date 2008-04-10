@@ -247,7 +247,7 @@ the application without ipl-run, the following command can be used:
 $ java \
     -cp \
     $IPL_HOME/lib/ipl-2.1.jar:$IPL_HOME/examples/lib/ipl-examples-2.1.jar \
-    -Dibis.impl.path=$IPL_HOME/lib \
+    -Dibis.implementation.path=$IPL_HOME/lib \
     -Dibis.server.address=localhost \
     -Dibis.pool.name=test \
     -Dlog4j.configuration=file:$IPL_HOME/log4j.properties \
@@ -256,7 +256,7 @@ $ java \
 }
 \noindent
 
-In this case, we use the \texttt{ibis.impl.path} property to supply Ibis
+In this case, we use the \texttt{ibis.implementation.path} property to supply Ibis
 with the jar files of the Ibis implementations. Alternatively, they
 could also all be added to the class path.
 
@@ -317,7 +317,7 @@ This should just be a single line.
 \begin{verbatim}
 C:\DOCUME~1\Temp> java
     -cp "%IPL_HOME%"\lib\ipl-2.1.jar;"%IPL_HOME%"\examples\lib\ipl-examples-2.1.jar
-    -Dibis.impl.path="%IPL_HOME%"\lib
+    -Dibis.implementation.path="%IPL_HOME%"\lib
     -Dlog4j.configuration=file:"%IPL_HOME%"\log4j.properties
     -Dibis.server.address=localhost -Dibis.pool.name=test
     ibis.ipl.examples.Hello
@@ -325,7 +325,7 @@ C:\DOCUME~1\Temp> java
 }
 \noindent
 
-In this case, we use the \texttt{ibis.impl.path} property to supply Ibis
+In this case, we use the \texttt{ibis.implementation.path} property to supply Ibis
 with the jar files of the Ibis implementations. Alternatively, they
 could also all be added to the class path.
 
