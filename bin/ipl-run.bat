@@ -6,7 +6,7 @@ rem %~dp0 is expanded pathname of the current script under NT
 
 if "%IPL_HOME%X"=="X" set IPL_HOME=%~dp0..
 
-set JAVACLASSPATH=%CLASSPATH%;build;
+set JAVACLASSPATH=%CLASSPATH%;
 for %%i in ("%IPL_HOME%\lib\*.jar") do call "%IPL_HOME%\bin\AddToClassPath.bat" %%i
 
 set IPL_APP_ARGS=

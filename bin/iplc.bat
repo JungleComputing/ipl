@@ -1,4 +1,3 @@
-
 @echo off
 
 if "%OS%"=="Windows_NT" @setlocal
@@ -18,7 +17,7 @@ goto setupArgs
 
 :doneStart
 
-java -classpath "%JAVACLASSPATH%" -Dlog4j.configuration=file:"%IPL_HOME%"\log4j.properties    ibis.compile.Ibisc %IBISC_ARGS%
+java -classpath "%JAVACLASSPATH%" -Dlog4j.configuration=file:"%IPL_HOME%"\log4j.properties ibis.compile.Ibisc %IBISC_ARGS%
 
 if "%OS%"=="Windows_NT" @endlocal
 

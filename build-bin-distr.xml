@@ -1,6 +1,6 @@
 <project
-    name="ibis-bin-release-builder"
-    default="ibis-zip"
+    name="ipl-bin-release-builder"
+    default="ipl-zip"
     basedir=".">
 
     <!--
@@ -14,23 +14,23 @@
     the "normal" build.xml file (example: "-2.0rc").
 
     the path of this release within the repository must also be
-    specified with -Dpath=path, and is prepended with /svn/ibis/ibis/ automatically -->
+    specified with -Dpath=path, and is prepended with /svn/ibis/ipl/ automatically -->
 
     <property name="version" value="non-existent"/>
     <property name="path" value="invalid"/>
 
-    <target name="ibis-zip"
+    <target name="ipl-zip"
 	description="Create a binary release, in a file ${version}.zip">
 
 	<exec executable="svn">
-	    <arg line="checkout https://gforge.cs.vu.nl/svn/ibis/ibis/${path} ibis${version}"/>
+	    <arg line="checkout https://gforge.cs.vu.nl/svn/ibis/ipl/${path} ipl${version}"/>
 	</exec>
 
-	<ant dir="ibis${version}" inheritAll="false" target="ibis.zip"/>
+	<ant dir="ipl${version}" inheritAll="false" target="ipl.zip"/>
 
-	<move file="ibis${version}/ibis${version}.zip" tofile="ibis${version}.zip"/>
+	<move file="ipl${version}/ipl${version}.zip" tofile="ipl${version}.zip"/>
 
-	<delete dir="ibis${version}"/>
+	<delete dir="ipl${version}"/>
     </target>
 
 </project>

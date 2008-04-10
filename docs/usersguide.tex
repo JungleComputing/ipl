@@ -87,7 +87,7 @@ directory, on the class path, and at a location specified with the
 
 An application interfaces to Ibis using the Ibis Portability Layer, or
 \emph{IPL}. The code for this package is provided in a single jar file:
-ipl.jar, appended with the version of ibis, for instance \texttt{ipl-2.0.jar}.
+ipl.jar, appended with the version of ibis, for instance \texttt{ipl-2.1.jar}.
 This jar file needs to be added to the class path of the application.
 
 \subsection{Provide the Ibis implementations}
@@ -171,7 +171,7 @@ Java, the main class and any application parameters must be provided as
 if \texttt{java} was called directly.
 
 The \texttt{ipl-run} script needs the location of the Ibis
-distribution. This must be provided using the IBIS\_HOME environment
+distribution. This must be provided using the IPL\_HOME environment
 variable.
 
 \section{Example}
@@ -192,12 +192,13 @@ requires the build system \texttt{ant}\footnote{\url{http://ant.apache.org}}.
 Running \texttt{ant} in the examples directory compiles the examples.
 
 Alternatively, they can be compiled using only \texttt{javac}. The sources are
-located in the \texttt{src} directory of examples. Be sure to add \texttt{ipl.jar} 
+located in the \texttt{src} directory of examples. Be sure to add
+\texttt{ipl.jar} 
 from the \texttt{lib} directory of the distribution to the class path.
 
 \subsection{Running the example}
 
-We will now run the example. All code below assumes the IBIS\_HOME
+We will now run the example. All code below assumes the IPL\_HOME
 environment variable is set to the location of the Ibis distribution.
 
 First, we will need a ipl-server. Start a shell and
@@ -221,7 +222,7 @@ and server. Run the following command in two different shells:
 \noindent
 {\small
 \begin{verbatim}
-$ CLASSPATH=$IPL_HOME/examples/lib/ipl-examples-2.0.jar \
+$ CLASSPATH=$IPL_HOME/examples/lib/ipl-examples-2.1.jar \
     $IPL_HOME/bin/ipl-run \
     -Dibis.server.address=localhost -Dibis.pool.name=test \
     ibis.ipl.examples.Hello
@@ -244,7 +245,7 @@ the application without ipl-run, the following command can be used:
 \begin{verbatim}
 $ java \
     -cp \
-    $IPL_HOME/lib/ipl-2.0.jar:$IPL_HOME/examples/lib/ipl-examples-2.0.jar \
+    $IPL_HOME/lib/ipl-2.1.jar:$IPL_HOME/examples/lib/ipl-examples-2.1.jar \
     -Dibis.impl.path=$IPL_HOME/lib \
     -Dibis.server.address=localhost \
     -Dibis.pool.name=test \
