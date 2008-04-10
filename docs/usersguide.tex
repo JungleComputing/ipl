@@ -70,7 +70,8 @@ Ibis can be started correctly. In this section we will discuss these in detail.
 
 Several of the steps below require the usage of \emph{system properties}. 
 System properties can be set in Java using the \texttt{-D} option of the 
-\texttt{java} command. 
+\texttt{java} command. Be sure to use appropriate quoting for your
+command interpreter.
 
 As an alternative to using system properties, it is also possible to use
 a java properties file
@@ -196,7 +197,7 @@ located in the \texttt{src} directory of examples. Be sure to add
 \texttt{ipl.jar} 
 from the \texttt{lib} directory of the distribution to the class path.
 
-\subsection{Running the example}
+\subsection{Running the example on Unix-like systems}
 
 We will now run the example. All code below assumes the IPL\_HOME
 environment variable is set to the location of the Ibis distribution.
@@ -250,6 +251,75 @@ $ java \
     -Dibis.server.address=localhost \
     -Dibis.pool.name=test \
     -Dlog4j.configuration=file:$IPL_HOME/log4j.properties \
+    ibis.ipl.examples.Hello
+\end{verbatim}
+}
+\noindent
+
+In this case, we use the \texttt{ibis.impl.path} property to supply Ibis
+with the jar files of the Ibis implementations. Alternatively, they
+could also all be added to the class path.
+
+\subsection{Running the example on Windows systems}
+
+We will now run the example on a Windows XP system.
+All code below assumes the IPL\_HOME
+environment variable is set to the location of the Ibis distribution.
+
+First, we will need a ipl-server. Start a command prompt window and
+run the \texttt{ipl-server} script:
+\noindent
+{\small
+\begin{verbatim}
+C:\DOCUME~1\Temp> "%IPL_HOME%"\bin\ipl-server --events
+\end{verbatim}
+}
+\noindent
+
+Note the quoting, which is needed when IPL\_HOME contains spaces.
+
+By providing the \texttt{--events} option the server 
+prints information on when Ibis instances join and leave the pool.
+
+Next, we will start the application two times. One instance will act as the
+"server", and one the "client". The application will determine who is who
+automatically. Therefore we can using the same command line for both client 
+and server. Run the following command in two different command prompt windows.
+Again, note the absence as well as presence of quoting! Also, the ipl-run
+command is split into multiple lines for readability. This should be just a single
+line.
+
+\noindent
+{\small
+\begin{verbatim}
+C:\DOCUME~1\Temp> set CLASSPATH=%IPL_HOME%\examples\lib\ipl-examples-2.1.jar
+C:\DOCUME~1\Temp> "%IPL_HOME%"\bin\ipl-run
+    "-Dibis.server.address=localhost" "-Dibis.pool.name=test"
+    ibis.ipl.examples.Hello
+\end{verbatim}
+}
+\noindent
+
+This sets the CLASSPATH environment variable to the jar file of the
+application, and calls ipl-run. You should now have two running
+instances of your application. One of them should print:
+
+\noindent {\small \begin{verbatim} Server received: Hi there
+\end{verbatim} } \noindent 
+
+As said, the ipl-run script is only provided for convenience. To run
+the application without ipl-run, the following command can be used.
+Again, the java command line is split into multiple lines for readability.
+This should just be a single line.
+
+\noindent
+{\small
+\begin{verbatim}
+C:\DOCUME~1\Temp> java
+    -cp "%IPL_HOME%"\lib\ipl-2.1.jar;"%IPL_HOME%"\examples\lib\ipl-examples-2.1.jar
+    -Dibis.impl.path="%IPL_HOME%"\lib
+    -Dlog4j.configuration=file:"%IPL_HOME%"\log4j.properties
+    -Dibis.server.address=localhost -Dibis.pool.name=test
     ibis.ipl.examples.Hello
 \end{verbatim}
 }
