@@ -2,8 +2,8 @@
 
 # Utility script to run the Ibis frontend on the specified arguments.
 
-if [ -z "$IBIS_HOME" ];  then
-    echo "please set IBIS_HOME to the location of your Ibis installation" 1>&2
+if [ -z "$IPL_HOME" ];  then
+    echo "please set IPL_HOME to the location of your Ibis installation" 1>&2
     exit 1
 fi
 
@@ -29,7 +29,7 @@ add_to_libclasspath () {
 }
 
 # Add the following dirs to the classpath 
-add_to_libclasspath "${IBIS_HOME}"/lib
+add_to_libclasspath "${IPL_HOME}"/lib
 
 JAVACLASSPATH="$CLASSPATH:$LIBCLASSPATH"
 

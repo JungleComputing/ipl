@@ -2,6 +2,7 @@ package ibis.ipl.impl;
 
 import ibis.ipl.NoSuchPropertyException;
 
+import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -51,5 +52,11 @@ public class Managable implements ibis.ipl.Managable {
 
     protected synchronized void setProperty(String key, String val) {
         properties.put(key, val);
+    }
+
+    public void printManagementProperties(PrintStream stream) {
+        for(Map.Entry<String, String> entry: properties.entrySet()) {
+            stream.println(entry.getKey() + " " + entry.getValue());
+        }
     }
 }

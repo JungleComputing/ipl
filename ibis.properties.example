@@ -24,28 +24,25 @@
 # ibis.hub.addresses = 
 
 ## Nickname or classname of an Ibis implementation. The specified implementation is used, bypassing the automatic selection mechanism of Ibis.
-# ibis.name = 
+# ibis.implementation = 
 
 ## Name of the property file used for the configuration of Ibis
 # ibis.properties.file = 
 
 ## Path used to find Ibis implementations
-# ibis.impl.path = 
+# ibis.implementation.path = 
 
 ## Boolean: If true, makes Ibis more verbose, if false, does not
 # ibis.verbose = false
 
-## Set the location of Ibis. Specified as multiple levels, seperated by a '@', e.g. machine@cluster@site@grid@world. Defaults to a single level location with the hostname of the machine
+## Set the location of Ibis. Specified as multiple levels, seperated by a '@', e.g. machine@cluster@site@grid@world. Defaults to a multilevel location with the hostname of the machine
 # ibis.location = 
-
-## Boolean: If true, a multi level location is automatically created
-# ibis.location.automatic = false
 
 ## Set a string that will be appended to the automatically generated location.
 # ibis.location.postfix = 
 
 ## implementation of the registry. Not all Ibis implementations use this property
-# ibis.registry.impl = ibis.ipl.impl.registry.central.client.Registry
+# ibis.registry.implementation = ibis.ipl.impl.registry.central.client.Registry
 
 
 

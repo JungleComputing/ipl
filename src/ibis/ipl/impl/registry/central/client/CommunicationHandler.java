@@ -24,9 +24,9 @@ import org.apache.log4j.Logger;
 
 final class CommunicationHandler implements Runnable {
 
-    private static final int CONNECTION_BACKLOG = 25;
+    private static final int CONNECTION_BACKLOG = 10;
 
-    private static final int MAX_THREADS = 25;
+    private static final int MAX_THREADS = 10;
 
     private static final Logger logger =
         Logger.getLogger(CommunicationHandler.class);
@@ -60,6 +60,8 @@ final class CommunicationHandler implements Runnable {
     private IbisIdentifier identifier;
 
     private IbisIdentifier[] bootstrapList;
+
+    private int joinTime;
 
     private int currentNrOfThreads = 0;
 
@@ -219,11 +221,9 @@ final class CommunicationHandler implements Runnable {
             connection.getAndCheckReply();
 
             IbisIdentifier identifier = new IbisIdentifier(connection.in());
-
-            // mimimum event time we need as a bootstrap
             int joinTime = connection.in().readInt();
-            pool.setJoinTime(joinTime);
-
+            int startOfEventListTime = connection.in().readInt();
+            
             int listLength = connection.in().readInt();
             IbisIdentifier[] bootstrapList = new IbisIdentifier[listLength];
             for (int i = 0; i < listLength; i++) {
@@ -235,12 +235,13 @@ final class CommunicationHandler implements Runnable {
             synchronized (this) {
                 this.identifier = identifier;
                 this.bootstrapList = bootstrapList;
+                this.joinTime = joinTime;
             }
 
-            logger.debug("join done");
+            //start saving event from the time the server expects
+            pool.purgeHistoryUpto(startOfEventListTime);
 
-            // if anyone asks, report we have all events upto our join time
-            // pool.setTime(bootstrapTime);
+            logger.debug("join done, identifier = " + identifier);
 
             long end = System.currentTimeMillis();
             if (statistics != null) {
@@ -257,65 +258,60 @@ final class CommunicationHandler implements Runnable {
 
     void bootstrap() throws IOException {
         if (!peerBootstrap) {
-            //we will receive bootstrap data from a push/forward/broadcast
+            // we will receive bootstrap data from a push/forward/broadcast
             return;
         }
-        
+
         long start = System.currentTimeMillis();
 
         IbisIdentifier identifier;
         IbisIdentifier[] bootstrapList;
-        int joinTime = pool.getJoinTime();
+        int joinTime;
 
         synchronized (this) {
             identifier = this.identifier;
             bootstrapList = this.bootstrapList;
+            joinTime = this.joinTime;
         }
 
-        boolean peerBootstrap =
-            properties.getBooleanProperty(RegistryProperties.PEER_BOOTSTRAP);
+        for (IbisIdentifier ibis : bootstrapList) {
+            if (!ibis.equals(identifier)) {
+                logger.debug("trying to bootstrap with data from " + ibis);
+                Connection connection = null;
+                try {
+                    connection =
+                        new Connection(ibis, timeout, false,
+                                virtualSocketFactory);
 
-        if (peerBootstrap) {
-            for (IbisIdentifier ibis : bootstrapList) {
-                if (!ibis.equals(identifier)) {
-                    logger.debug("trying to bootstrap with data from " + ibis);
-                    Connection connection = null;
-                    try {
-                        connection =
-                            new Connection(ibis, timeout, false,
-                                    virtualSocketFactory);
+                    connection.out().writeByte(Protocol.CLIENT_MAGIC_BYTE);
+                    connection.out().writeByte(Protocol.VERSION);
+                    connection.out().writeByte(Protocol.OPCODE_GET_STATE);
 
-                        connection.out().writeByte(Protocol.CLIENT_MAGIC_BYTE);
-                        connection.out().writeByte(Protocol.VERSION);
-                        connection.out().writeByte(Protocol.OPCODE_GET_STATE);
+                    identifier.writeTo(connection.out());
+                    connection.out().writeInt(joinTime);
+                    connection.out().flush();
 
-                        identifier.writeTo(connection.out());
-                        connection.out().writeInt(joinTime);
-                        connection.out().flush();
+                    connection.getAndCheckReply();
 
-                        connection.getAndCheckReply();
-
-                        pool.init(connection.in());
-                        long end = System.currentTimeMillis();
-                        if (statistics != null) {
-                            statistics.add(Protocol.OPCODE_GET_STATE, end
-                                    - start, connection.read(),
-                                connection.written(), false);
-                        }
-                        return;
-                    } catch (Exception e) {
-                        logger.info("bootstrap with " + ibis
-                                + " failed, trying next one", e);
-                    } finally {
-                        if (connection != null) {
-                            connection.close();
-                        }
+                    pool.init(connection.in());
+                    long end = System.currentTimeMillis();
+                    if (statistics != null) {
+                        statistics.add(Protocol.OPCODE_GET_STATE, end - start,
+                            connection.read(), connection.written(), false);
+                    }
+                    return;
+                } catch (Exception e) {
+                    logger.info("bootstrap with " + ibis
+                            + " failed, trying next one", e);
+                } finally {
+                    if (connection != null) {
+                        connection.close();
                     }
                 }
             }
-            logger.debug("could not bootstrap registry with any peer, trying server");
         }
-        logger.debug("bootstrapping with server");
+        logger.debug("could not bootstrap registry with any peer, trying server");
+
         Connection connection =
             new Connection(serverAddress, timeout, true, virtualSocketFactory);
         try {
@@ -645,6 +641,10 @@ final class CommunicationHandler implements Runnable {
             return;
         }
 
+        if (pool.isStopped()) {
+            return;
+        }
+
         logger.debug("gossiping with " + ibis);
 
         Connection connection =
@@ -663,7 +663,7 @@ final class CommunicationHandler implements Runnable {
 
             int peerTime = connection.in().readInt();
 
-            Event[] newEvents;
+            Event[] newEvents = null;
             if (peerTime > localTime) {
                 logger.debug("localtime = " + localTime + ", peerTime = "
                         + peerTime + ", receiving events");
@@ -674,9 +674,7 @@ final class CommunicationHandler implements Runnable {
                     for (int i = 0; i < newEvents.length; i++) {
                         newEvents[i] = new Event(connection.in());
                     }
-                    pool.newEventsReceived(newEvents);
                 }
-                connection.close();
             } else if (peerTime < localTime) {
                 logger.debug("localtime = " + localTime + ", peerTime = "
                         + peerTime + ", pushing events");
@@ -694,6 +692,10 @@ final class CommunicationHandler implements Runnable {
             logger.debug("gossiping with " + ibis + " done, time now: "
                     + pool.getTime());
             connection.close();
+            
+            if (newEvents != null) {
+                pool.newEventsReceived(newEvents);
+            }
             long end = System.currentTimeMillis();
             if (statistics != null) {
 
@@ -707,10 +709,15 @@ final class CommunicationHandler implements Runnable {
     }
 
     void forward(IbisIdentifier ibis) {
+        byte opcode = Protocol.OPCODE_FORWARD;
         long start = System.currentTimeMillis();
 
         if (ibis.equals(getIdentifier())) {
             logger.debug("not forwarding events to self");
+            return;
+        }
+
+        if (pool.isStopped()) {
             return;
         }
 
@@ -728,50 +735,46 @@ final class CommunicationHandler implements Runnable {
 
             connection.out().writeByte(Protocol.CLIENT_MAGIC_BYTE);
             connection.out().writeByte(Protocol.VERSION);
-            connection.out().writeByte(Protocol.OPCODE_FORWARD);
+            connection.out().writeByte(opcode);
             connection.out().writeUTF(pool.getName());
             connection.out().flush();
 
             logger.debug("waiting for peer time of peer " + ibis);
-            int peerTime = connection.in().readInt();
+            boolean requestBootstrap = connection.in().readBoolean();
             int peerJoinTime = connection.in().readInt();
+            int requestedEventTime = connection.in().readInt();
 
-            if (peerTime == -1) {
-                connection.sendOKReply();
+            logger.debug("request bootstrap = " + requestBootstrap
+                    + ", peerJoinTime = " + peerJoinTime
+                    + ", requested event time = " + requestedEventTime);
 
-                if (!peerBootstrap) {
-                    logger.debug("sending state");
-                    pool.writeState(connection.out(), peerJoinTime);
-                }
+            connection.sendOKReply();
 
-            } else {
-
-                Event[] events = pool.getEventsFrom(peerTime);
-
-                if (events == null) {
-                    connection.closeWithError("could not get events");
-                    return;
-                }
-                connection.sendOKReply();
-
-                logger.debug("sending " + events.length + " entries to " + ibis);
-
-                connection.out().writeInt(events.length);
-                for (int i = 0; i < events.length; i++) {
-                    events[i].writeTo(connection.out());
-                }
+            // send bootstrap (if needed)
+            if (requestBootstrap) {
+                logger.debug("sending state");
+                pool.writeState(connection.out(), peerJoinTime);
 
             }
 
+            Event[] events = pool.getEventsFrom(requestedEventTime);
+
+            logger.debug("sending " + events.length + " entries to " + ibis);
+
+            connection.out().writeInt(events.length);
+            for (int i = 0; i < events.length; i++) {
+                events[i].writeTo(connection.out());
+            }
+
+            // no updated of minimum time
             connection.out().writeInt(-1);
 
-            connection.getAndCheckReply();
             connection.close();
 
             logger.debug("connection to " + ibis + " closed");
             if (statistics != null) {
-                statistics.add(Protocol.OPCODE_FORWARD, System.currentTimeMillis()
-                        - start, connection.read(), connection.written(), false);
+                statistics.add(opcode, System.currentTimeMillis() - start,
+                    connection.read(), connection.written(), false);
             }
         } catch (IOException e) {
             if (pool.isMember(ibis)) {
@@ -832,11 +835,16 @@ final class CommunicationHandler implements Runnable {
         connection.close();
     }
 
-    private void handlePush(Connection connection) throws IOException {
+    private void handlePush(Connection connection, byte opcode)
+            throws IOException {
         Event[] newEvents = null;
         logger.debug("got a push/forward/broadcast");
 
+        long start = System.currentTimeMillis();
+
         String poolName = connection.in().readUTF();
+
+        long readPoolName = System.currentTimeMillis();
 
         if (!poolName.equals(pool.getName())) {
             logger.error("wrong pool: " + poolName + " instead of "
@@ -845,40 +853,62 @@ final class CommunicationHandler implements Runnable {
                     + " instead of " + pool.getName());
         }
 
-        int time = pool.getTime();
-        connection.out().writeInt(pool.getTime());
-        connection.out().writeInt(pool.getJoinTime());
+        boolean requestBootstrap = !peerBootstrap && !pool.isInitialized();
+        int nextRequiredEvent = pool.getNextRequiredEvent();
+        int joinTime;
+
+        long gatheredPoolData = System.currentTimeMillis();
+        
+        synchronized (this) {
+            joinTime = this.joinTime;
+        }
+
+        long gatheredData = System.currentTimeMillis();
+
+        connection.out().writeBoolean(requestBootstrap);
+        connection.out().writeInt(joinTime);
+        connection.out().writeInt(nextRequiredEvent);
 
         connection.out().flush();
+
+        long sendData = System.currentTimeMillis();
+
         connection.getAndCheckReply();
 
-        if (time == -1) {
-            if (!peerBootstrap) {
-                logger.debug("recieving bootstrap in push");
-                // we should receive the bootstrap data next
-                pool.init(connection.in());
-            }
-        } else {
-            int events = connection.in().readInt();
-            
-            logger.debug("receiving " + events + " events");
+        long gotReply = System.currentTimeMillis();
 
-            if (events < 0) {
-                connection.closeWithError("negative event value");
-                return;
-            }
+        if (requestBootstrap) {
+            logger.debug("recieving bootstrap in push");
+            // we should receive the bootstrap data next
+            pool.init(connection.in());
+        }
 
-            newEvents = new Event[events];
-            for (int i = 0; i < newEvents.length; i++) {
-                newEvents[i] = new Event(connection.in());
+        long readBootstrap = System.currentTimeMillis();
+
+        int events = connection.in().readInt();
+
+        logger.debug("receiving " + events + " events");
+
+        if (events < 0) {
+            connection.closeWithError("negative event value");
+            return;
+        }
+
+        newEvents = new Event[events];
+        for (int i = 0; i < newEvents.length; i++) {
+            newEvents[i] = new Event(connection.in());
+            if (logger.isDebugEnabled()) {
+                logger.debug("received event " + newEvents[i]);
             }
         }
 
         int minEventTime = connection.in().readInt();
 
-        connection.sendOKReply();
+        long readEvents = System.currentTimeMillis();
 
         connection.close();
+
+        long closedConnection = System.currentTimeMillis();
 
         if (newEvents != null) {
             pool.newEventsReceived(newEvents);
@@ -887,7 +917,21 @@ final class CommunicationHandler implements Runnable {
         if (minEventTime != -1) {
             pool.purgeHistoryUpto(minEventTime);
         }
-        
+
+        long done = System.currentTimeMillis();
+
+        if (opcode == Protocol.OPCODE_BROADCAST) {
+            logger.info("readPoolName = " + (readPoolName - start)
+                + ", gatheredPoolData = " + (gatheredPoolData - readPoolName)
+                    + ", gatheredData = " + (gatheredData - gatheredPoolData)
+                    + ", sendData = " + (sendData - gatheredData)
+                    + ", gotReply = " + (gotReply - sendData)
+                    + ", readBootstrap = " + (readBootstrap - gotReply)
+                    + ", readEvents = " + (readEvents - readBootstrap)
+                    + ", closedConnection = " + (closedConnection - readEvents)
+                    + ", done = " + (done - closedConnection));
+        }
+
         logger.debug("push handled");
     }
 
@@ -921,13 +965,6 @@ final class CommunicationHandler implements Runnable {
 
         if (!pool.isInitialized()) {
             connection.closeWithError("state not available");
-            return;
-        }
-
-        int time = pool.getTime();
-        if (time < joinTime) {
-            connection.closeWithError("minimum time requirement not met: "
-                    + joinTime + " vs " + time);
             return;
         }
 
@@ -1025,7 +1062,7 @@ final class CommunicationHandler implements Runnable {
             case Protocol.OPCODE_PUSH:
             case Protocol.OPCODE_BROADCAST:
             case Protocol.OPCODE_FORWARD:
-                handlePush(connection);
+                handlePush(connection, opcode);
                 break;
             case Protocol.OPCODE_PING:
                 handlePing(connection);

@@ -91,12 +91,44 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
     /** Properties. */
     protected final Properties properties;
 
+    /**
+     * The number of messages sent with this sendport. Actually counts the
+     * number of finish() calls.
+     */
     private long nMessages = 0;
+
+    /**
+     * The number of bytes in these messages. Counted once, even for
+     * one-to-many sendports.
+     */
     private long messageBytes = 0;
+
+    /**
+     * The total number of bytes written for these messages. In contrast
+     * to messageBytes, this one counts the number of bytes actually
+     * put on the network. If the message goes through an N-way output
+     * stream splitter, the message is counted N times. See the counting
+     * in ibis.io.
+     */
     private long bytes = 0;
+
+    /**
+     * Cumulative value of totalWritten(), including in-between calls of
+     * resetWritten(). Note that totalWritten() and resetWritten() can be
+     * redefined by subclasses.
+     */
     private long prevBytes = 0;
+
+    /** Counts the number of connections set up with this sendport. */
     private long nConnections = 0;
+
+    /**
+     * Counts the number of times a connection was lost (as opposed to
+     * closed).
+     */
     private long nLostConnections = 0;
+
+    /** Counts the number of connections that were explicitly closed. */
     private long nClosedConnections = 0;
 
     /**
@@ -110,7 +142,8 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
      * @param properties the port properties.
      * @exception IOException is thrown in case of trouble.
      */
-    protected SendPort(Ibis ibis, PortType type, String name,
+    @SuppressWarnings("unchecked")
+	protected SendPort(Ibis ibis, PortType type, String name,
             SendPortDisconnectUpcall connectUpcall, Properties properties) throws IOException {
         this.ibis = ibis;
         this.type = type;
@@ -120,8 +153,8 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
         this.connectUpcall = connectUpcall;
         this.properties = ibis.properties();
         if (properties != null) {
-            for (Enumeration e = properties.propertyNames(); e.hasMoreElements();) {
-                String key = (String) e.nextElement();
+            for (Enumeration<String> e = (Enumeration<String>)properties.propertyNames(); e.hasMoreElements();) {
+                String key = e.nextElement();
                 String value = properties.getProperty(key);
                 this.properties.setProperty(key, value);
             }
@@ -130,8 +163,8 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
         String replacerName = this.properties.getProperty("ibis.serialization.replacer");
         if (replacerName != null) {
             try {
-                Class replacerClass = Class.forName(replacerName);
-                this.replacer = (Replacer) replacerClass.newInstance();
+                Class<? extends Replacer> replacerClass = (Class<? extends Replacer>) Class.forName(replacerName);
+                this.replacer = replacerClass.newInstance();
             } catch(Throwable e) {
                 throw new IOException("Could not instantiate replacer class "
                         + replacerName);
@@ -509,6 +542,11 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
         }
     }
 
+    public void disconnect(ibis.ipl.IbisIdentifier id, String name)
+            throws IOException {
+        disconnect(ibis.createReceivePortIdentifier(name, (IbisIdentifier) id));
+    }
+
     public synchronized void disconnect(ibis.ipl.ReceivePortIdentifier receiver)
             throws IOException {
         if (logger.isDebugEnabled()) {
@@ -775,4 +813,26 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
      * @param e the exception that was thrown.
      */
     protected abstract void handleSendException(WriteMessage w, IOException e);
+    
+    /**
+     * Number of messages send
+     */
+    synchronized long getMessageCount() {
+        return nMessages;
+    }
+
+    /**
+     * Number of bytes written by the user in messages.
+     */
+    synchronized long getBytesWritten() {
+        return messageBytes;
+    }
+    
+    /**
+     * Number of bytes send out on the network. Includes extra traffic send
+     * if a message is broadcasted.
+     */
+    synchronized long getBytesSend() {
+        return bytes;
+    }
 }

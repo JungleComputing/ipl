@@ -8,6 +8,7 @@ import java.io.DataInput;
 import java.io.DataInputStream;
 import java.io.DataOutput;
 import java.io.DataOutputStream;
+import java.io.ObjectInputStream;
 import java.io.IOException;
 
 /**
@@ -37,7 +38,7 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
     private final String id;
 
     /** An Ibis identifier coded as a byte array. Computed once. */
-    private final transient byte[] codedForm;
+    private transient byte[] codedForm;
 
     /**
      * Constructs an <code>IbisIdentifier</code> with the specified parameters.
@@ -224,6 +225,12 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
             return cmp;
         }
         return this.getClass().getName().compareTo(c.getClass().getName());
+    }
+
+    private void readObject(ObjectInputStream input)
+        throws ClassNotFoundException, IOException {
+        input.defaultReadObject();
+        codedForm = computeCodedForm();
     }
 
     public String getID() {

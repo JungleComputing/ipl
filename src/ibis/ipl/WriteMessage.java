@@ -37,6 +37,13 @@ import java.io.IOException;
  * This allows a multicast to continue to the other destinations.
  * Ultimately, the {@link WriteMessage#finish() finish} method will
  * throw an exception.
+ * 
+ * Data may be streamed, so the user is not allowed to change the data
+ * pushed into this message.
+ * It is only safe to touch the data after it has actually been
+ * sent, which can be ensured by either calling {@link #flush},
+ * {@link #finish} or {@link #reset},
+ * or a {@link #send} followed by a corresponding {@link #sync}.
  */
 
 public interface WriteMessage {
@@ -71,6 +78,14 @@ public interface WriteMessage {
      *          an error occurred 
      */
     public void sync(int ticket) throws IOException;
+    
+    /**
+     * Blocks until all objects written to this message can be
+     * used again.
+     * @exception IOException
+     *          an error occurred 
+     */
+    public void flush() throws IOException;
 
     /**
      * Resets the state of any objects already written to the stream.

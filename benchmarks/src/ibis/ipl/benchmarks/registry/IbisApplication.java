@@ -18,8 +18,8 @@ import org.apache.log4j.Logger;
 
 final class IbisApplication implements Runnable, RegistryEventHandler {
 
-    private static final Logger logger = Logger
-            .getLogger(IbisApplication.class);
+    private static final Logger logger =
+        Logger.getLogger(IbisApplication.class);
 
     private final boolean generateEvents;
 
@@ -29,37 +29,28 @@ final class IbisApplication implements Runnable, RegistryEventHandler {
 
     private final Random random;
 
-    private final Ibis ibis;
+    private Ibis ibis;
 
     private final PortType portType;
 
-    IbisApplication(boolean generateEvents)
+    IbisApplication(boolean generateEvents, boolean fail)
             throws IbisCreationFailedException, IOException {
         this.generateEvents = generateEvents;
 
         ibisses = new HashSet<IbisIdentifier>();
         random = new Random();
 
-        portType = new PortType(PortType.CONNECTION_ONE_TO_ONE,
-                PortType.SERIALIZATION_OBJECT);
+        portType =
+            new PortType(PortType.CONNECTION_ONE_TO_ONE,
+                    PortType.SERIALIZATION_OBJECT);
 
-        IbisCapabilities s = new IbisCapabilities(
-                IbisCapabilities.MEMBERSHIP_UNRELIABLE,
-                IbisCapabilities.ELECTIONS_UNRELIABLE, IbisCapabilities.SIGNALS);
-
-        logger.debug("creating ibis");
-        ibis = IbisFactory.createIbis(s, this, portType);
-
-        logger.debug("ibis created, enabling upcalls");
-
-        ibis.registry().enableEvents();
-        logger.debug("upcalls enabled");
-
-        // register shutdown hook
-        try {
-            Runtime.getRuntime().addShutdownHook(new Shutdown(this));
-        } catch (Exception e) {
-            // IGNORE
+        if (!fail) {
+            // register shutdown hook
+            try {
+                Runtime.getRuntime().addShutdownHook(new Shutdown(this));
+            } catch (Exception e) {
+                // IGNORE
+            }
         }
 
         ThreadPool.createNew(this, "application");
@@ -72,11 +63,13 @@ final class IbisApplication implements Runnable, RegistryEventHandler {
     synchronized void end() {
         stopped = true;
         notifyAll();
-        
-        try {
-            ibis.end();
-        } catch (IOException e) {
-            logger.error("cannot end ibis: " + e);
+
+        if (ibis != null) {
+            try {
+                ibis.end();
+            } catch (IOException e) {
+                logger.error("cannot end ibis: " + e);
+            }
         }
     }
 
@@ -99,7 +92,8 @@ final class IbisApplication implements Runnable, RegistryEventHandler {
         logger.info("got string: " + signal);
     }
 
-    public void electionResult(String electionName, IbisIdentifier winner) {
+    public synchronized void electionResult(String electionName,
+            IbisIdentifier winner) {
         logger.info("got election result for :\"" + electionName + "\" : "
                 + winner);
     }
@@ -112,7 +106,7 @@ final class IbisApplication implements Runnable, RegistryEventHandler {
         }
 
         public void run() {
-//            System.err.println("shutdown hook triggered");
+            // System.err.println("shutdown hook triggered");
 
             app.end();
         }
@@ -145,8 +139,8 @@ final class IbisApplication implements Runnable, RegistryEventHandler {
             return new IbisIdentifier[0];
         }
 
-        IbisIdentifier[] result = new IbisIdentifier[random
-                .nextInt(nrOfIbisses())];
+        IbisIdentifier[] result =
+            new IbisIdentifier[random.nextInt(nrOfIbisses())];
 
         for (int i = 0; i < result.length; i++) {
             result[i] = getRandomIbis();
@@ -155,15 +149,37 @@ final class IbisApplication implements Runnable, RegistryEventHandler {
         return result;
     }
 
-    void doElect(String id) throws IOException {
+    synchronized void doElect(String id) throws IOException {
         ibis.registry().elect(id);
     }
 
-    void getElectionResult(String id) throws IOException {
+    synchronized void getElectionResult(String id) throws IOException {
         ibis.registry().getElectionResult(id);
     }
 
     public void run() {
+        logger.debug("creating ibis");
+        try {
+            synchronized (this) {
+
+                IbisCapabilities s =
+                    new IbisCapabilities(
+                            IbisCapabilities.MEMBERSHIP_UNRELIABLE,
+                            IbisCapabilities.ELECTIONS_UNRELIABLE,
+                            IbisCapabilities.SIGNALS);
+
+                ibis = IbisFactory.createIbis(s, this, portType);
+
+                logger.debug("ibis created, enabling upcalls");
+
+                ibis.registry().enableEvents();
+                logger.debug("upcalls enabled");
+            }
+
+        } catch (Exception e) {
+            logger.error("cannot start ibis", e);
+        }
+
         // start Ibis, generate events, stop Ibis, repeat
         while (true) {
             try {
@@ -182,7 +198,7 @@ final class IbisApplication implements Runnable, RegistryEventHandler {
                             IbisIdentifier[] signalList = getRandomIbisses();
 
                             ibis.registry().signal("ARRG to you all!",
-                                    signalList);
+                                signalList);
                             break;
                         case 1:
                             logger.debug("doing elect");
@@ -196,8 +212,7 @@ final class IbisApplication implements Runnable, RegistryEventHandler {
                             ibis.registry().getElectionResult("bla");
                             break;
                         case 3:
-                            logger
-                                    .debug("doing getElectionResult with timeout");
+                            logger.debug("doing getElectionResult with timeout");
                             ibis.registry().getElectionResult("bla", 100);
                             logger.debug("done getElectionResult with timeout");
                             break;

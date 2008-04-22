@@ -1,6 +1,11 @@
 Here is a list of Ibis releases.
 
-2.0 (10 November 2008)
+2.1 (?? April 2008)
+   This release mostly fixes some problems in the 2.0 release.
+   Also, there are a few (upwards compatible) additions to the IPL,
+   and the internals of the registry have changed considerably.
+
+2.0 (10 November 2007)
    This is the first release of Ibis in four years that changes the IPL.
    Significant changes to the IPL include:
    - The StaticProperties mechanism is now split up into "properties"

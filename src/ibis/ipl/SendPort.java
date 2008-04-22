@@ -312,6 +312,22 @@ public interface SendPort extends Managable {
     public void disconnect(ReceivePortIdentifier receiver) throws IOException;
 
     /**
+     * Attempts to disconnect a connection with a receiver at the specified
+     * Ibis instance, with the specified name.
+     *
+     * @param ibisIdentifier
+     *          identifies the Ibis instance on which the {@link ReceivePort}
+     *          with the specified name is supposed to live.
+     * @param receivePortName
+     *          specifies the name of the {@link ReceivePort}.
+     * @exception IOException
+     *          is thrown if there was no connection to the receiveport
+     *          specified or in case of other trouble.
+     */
+    public void disconnect(IbisIdentifier ibisIdentifier,
+            String receivePortName) throws IOException;
+
+    /**
      * Frees the resources held by the sendport.
      * If a close is attempted when a message is still alive, an exception
      * will be thrown. Even if this call throws an exception, the sendport

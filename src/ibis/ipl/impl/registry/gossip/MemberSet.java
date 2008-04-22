@@ -15,9 +15,9 @@ import ibis.ipl.impl.IbisIdentifier;
 import ibis.ipl.impl.registry.statistics.Statistics;
 import ibis.util.TypedProperties;
 
-class Pool extends Thread {
+class MemberSet extends Thread {
 
-    private static final Logger logger = Logger.getLogger(Pool.class);
+    private static final Logger logger = Logger.getLogger(MemberSet.class);
 
     private final TypedProperties properties;
 
@@ -40,7 +40,7 @@ class Pool extends Thread {
      */
     private int liveMembers;
 
-    Pool(TypedProperties properties, Registry registry, Statistics statistics) {
+    MemberSet(TypedProperties properties, Registry registry, Statistics statistics) {
         this.properties = properties;
         this.registry = registry;
         this.statistics = statistics;
@@ -60,7 +60,7 @@ class Pool extends Thread {
 
     }
 
-    private synchronized Member getMember(IbisIdentifier ibis) {
+    private synchronized Member getMember(IbisIdentifier ibis, boolean create) {
         Member result;
 
         UUID id = UUID.fromString(ibis.getID());
@@ -71,7 +71,7 @@ class Pool extends Thread {
 
         result = members.get(id);
 
-        if (result == null) {
+        if (result == null && create) {
             result = new Member(ibis, properties);
             members.put(id, result);
             registry.ibisJoined(ibis);
@@ -84,7 +84,7 @@ class Pool extends Thread {
     }
 
     public synchronized void maybeDead(IbisIdentifier ibis) {
-        Member member = getMember(ibis);
+        Member member = getMember(ibis, false);
 
         if (member == null) {
             return;
@@ -96,7 +96,7 @@ class Pool extends Thread {
     }
 
     public synchronized void assumeDead(IbisIdentifier ibis) {
-        Member member = getMember(ibis);
+        Member member = getMember(ibis, false);
 
         if (member == null) {
             return;
@@ -108,7 +108,7 @@ class Pool extends Thread {
     }
 
     public synchronized void leave(IbisIdentifier ibis) {
-        Member member = getMember(ibis);
+        Member member = getMember(ibis, true);
 
         if (member == null) {
             return;
@@ -118,16 +118,43 @@ class Pool extends Thread {
 
         cleanup(member);
     }
+    
+    public synchronized void leave() {
+        if (self != null) {
+            self.setLeft();
+        }
+    }
+    
+    public synchronized IbisIdentifier getFirstLiving(IbisIdentifier[] candidates) {
+        if (candidates == null || candidates.length == 0) {
+            return null;
+        }
+        
+        for (IbisIdentifier candidate: candidates) {
+            Member member = getMember(candidate, false);
+            
+            if (member != null && !member.hasLeft() && !member.isDead()) {
+                return candidate;
+            }
+        }
+        
+        //no alive canidates found, return first candidate
+        return candidates[0];
+    }
 
     public void writeGossipData(DataOutputStream out) throws IOException {
         UUID[] deceased;
         UUID[] left;
         Member[] members;
-
+        
         synchronized (this) {
             deceased = this.deceased.toArray(new UUID[0]);
             left = this.left.toArray(new UUID[0]);
             members = this.members.values().toArray(new Member[0]);
+            if (self != null) {
+                //make sure we send out ourselves as "just seen"
+                self.seen();
+            }
         }
 
         out.writeInt(deceased.length);
@@ -281,7 +308,9 @@ class Pool extends Thread {
      */
     private synchronized void cleanup() {
         // notice ourselves ;)
-        self.seen();
+        if (self != null) {
+            self.seen();
+        }
 
         // update live member count
         updateLiveMembers();
@@ -326,9 +355,11 @@ class Pool extends Thread {
 
     // ping suspect members once a second
     public void run() {
+        Member self;
         synchronized (this) {
             // add ourselves to the member list
             self = new Member(registry.getIbisIdentifier(), properties);
+            this.self = self;
             members.put(self.getUUID(), self);
             if (statistics != null) {
                 statistics.newPoolSize(members.size());

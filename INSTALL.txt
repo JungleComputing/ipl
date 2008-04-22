@@ -57,10 +57,10 @@ Windows 2000, Windows XP
     for instance "c:\Program Files\Java\jdk1.5.0". You can set the
     JAVA_HOME environment variable to this path by going to the
     Control Panel, System, the "Advanced" tab, Environment variables,
-    add it there and reboot your system. IBIS_HOME can be set
+    add it there and reboot your system. IPL_HOME can be set
     similarly.
 
 Cygwin
     See the notes on Windows 2000, Windows XP.
-    Note: there is a separate ibis-run script for Cygwin in the bin-directory,
-    called ibis-run.cygwin. It is wise to move that to ibis-run.
+    Note: there is a separate ipl-run script for Cygwin in the bin-directory,
+    called ipl-run.cygwin. It is wise to move that to ipl-run.

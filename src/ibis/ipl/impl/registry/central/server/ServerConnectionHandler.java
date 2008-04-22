@@ -15,9 +15,9 @@ import org.apache.log4j.Logger;
 
 final class ServerConnectionHandler implements Runnable {
 
-    private static final int CONNECTION_BACKLOG = 25;
+    private static final int CONNECTION_BACKLOG = 50;
 
-    static final int MAX_THREADS = 25;
+    static final int MAX_THREADS = 50;
 
     private static final Logger logger = Logger
             .getLogger(ServerConnectionHandler.class);
@@ -45,6 +45,8 @@ final class ServerConnectionHandler implements Runnable {
     private Pool handleJoin(Connection connection) throws Exception {
         Member member;
         Pool pool;
+        
+//        long start = System.currentTimeMillis();
 
         int length = connection.in().readInt();
         if (length < 0) {
@@ -77,11 +79,15 @@ final class ServerConnectionHandler implements Runnable {
         int poolSize = connection.in().readInt();
         boolean keepStatistics = connection.in().readBoolean();
         long statisticsInterval = connection.in().readLong();
+        
+//        long dataRead = System.currentTimeMillis();
 
-        pool = server.getAndCreatePool(poolName, peerBootstrap, heartbeatInterval,
+        pool = server.getOrCreatePool(poolName, peerBootstrap, heartbeatInterval,
                 eventPushInterval, gossip, gossipInterval, adaptGossipInterval,
                 tree, closedWorld, poolSize, keepStatistics,
                 statisticsInterval, ibisImplementationIdentifier);
+        
+//        long poolRetrieved = System.currentTimeMillis();
 
         try {
             member = pool.join(implementationData, clientAddress, location,
@@ -91,15 +97,26 @@ final class ServerConnectionHandler implements Runnable {
             throw e;
         }
 
+//        long joinDone = System.currentTimeMillis();
+        
         connection.sendOKReply();
+        //write info on new member (including identifier, join time and
+        //current minimum time of pool
         member.getIbis().writeTo(connection.out());
-        connection.out().writeInt(pool.getMinEventTime());
-
+        connection.out().writeInt(member.getEvent().getTime());
+        connection.out().writeInt(member.getCurrentTime());
+        
+        
         pool.writeBootstrapList(connection.out());
 
         connection.out().flush();
+        
+//        long dataWritten = System.currentTimeMillis();
+
         pool.gotHeartbeat(member.getIbis());
 
+//        logger.info("dataRead = " + (start - dataRead) + ", poolRetrieved = " + (poolRetrieved - dataRead) + ", joinDone = " + (joinDone - poolRetrieved) + ", datawritten = " + (dataWritten - joinDone));
+        
         return pool;
     }
 
@@ -250,7 +267,7 @@ final class ServerConnectionHandler implements Runnable {
             connection.closeWithError("pool not found");
             throw new Exception("pool " + identifier.poolName() + " not found");
         }
-
+        
         connection.sendOKReply();
         pool.writeState(connection.out(), joinTime);
         connection.out().flush();
@@ -392,15 +409,15 @@ final class ServerConnectionHandler implements Runnable {
         }
 
         if (pool != null) {
-            if (pool.getCommStats() != null) {
-                pool.getCommStats().add(opcode,
+            if (pool.getStatistics() != null) {
+                pool.getStatistics().add(opcode,
                         System.currentTimeMillis() - start, connection.read(),
                         connection.written(), true);
                 logger.debug("done handling request");
             }
             if (pool.hasEnded()) {
-                //wake up the server so it can remove this pool
-                server.nudge();
+                //save statistics
+                pool.saveStatistics();
             }
         }
         threadEnded();

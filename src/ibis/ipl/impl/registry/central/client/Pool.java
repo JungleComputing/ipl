@@ -16,6 +16,7 @@ import ibis.ipl.impl.registry.central.TreeMemberSet;
 import ibis.ipl.impl.registry.statistics.Statistics;
 import ibis.util.TypedProperties;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -54,8 +55,6 @@ final class Pool {
 
     private int time;
 
-    private int joinTime;
-
     Pool(IbisCapabilities capabilities, TypedProperties properties,
             Registry registry, Statistics statistics) {
         this.registry = registry;
@@ -75,7 +74,6 @@ final class Pool {
         eventList = new EventList();
 
         time = -1;
-        joinTime = -1;
         initialized = false;
         closed = false;
         stopped = false;
@@ -125,23 +123,19 @@ final class Pool {
         return members.getRandom();
     }
 
+    synchronized int getNextRequiredEvent() {
+        return eventList.getNextRequiredEvent();
+    }
+
     synchronized int getTime() {
         return time;
-    }
-
-    synchronized int getJoinTime() {
-        return joinTime;
-    }
-
-    synchronized void setJoinTime(int joinTime) {
-        this.joinTime = joinTime;
     }
 
     synchronized boolean isInitialized() {
         return initialized;
     }
 
-    boolean isStopped() {
+    synchronized boolean isStopped() {
         return stopped;
     }
 
@@ -150,58 +144,99 @@ final class Pool {
     }
 
     // new incoming events
-    synchronized void newEventsReceived(Event[] events) {
-        eventList.add(events);
+    void newEventsReceived(Event[] events) {
+        synchronized (this) {
+            eventList.add(events);
+        }
         handleEvents();
     }
 
     synchronized void purgeHistoryUpto(int time) {
-        eventList.purgeUpto(time);
+        if (this.time != -1 && this.time < time) {
+            logger.error("EEP! we are asked to purge the history of events we still need. Our time =  "
+                    + this.time + " purge time = " + time);
+            return;
+        }
+
+        eventList.setMinimum(time);
     }
 
-    synchronized void init(DataInputStream in) throws IOException {
-        if (initialized) {
-            throw new IOException("Tried to initialize registry state twice");
-        }
+    void init(DataInputStream stream) throws IOException {
+        long start = System.currentTimeMillis();
+        // copy over data first so we are not blocked while reading data
+        byte[] bytes = new byte[stream.readInt()];
+        stream.readFully(bytes);
 
-        logger.debug("reading bootstrap state");
+        DataInputStream in =
+            new DataInputStream(new ByteArrayInputStream(bytes));
 
-        members.init(in);
-        elections.init(in);
-        int nrOfSignals = in.readInt();
-        if (nrOfSignals < 0) {
-            throw new IOException("negative number of signals");
-        }
+        long read = System.currentTimeMillis();
 
-        ArrayList<Event> signals = new ArrayList<Event>();
-        for (int i = 0; i < nrOfSignals; i++) {
-            signals.add(new Event(in));
-        }
+        // we have all the data in the array now, read from that...
+        synchronized (this) {
+            long locked = System.currentTimeMillis();
 
-        closed = in.readBoolean();
-        time = in.readInt();
+            if (initialized) {
+                //already initialized, ignore
+                return;
+            }
 
-        // Create list of "old" events
+            logger.debug("reading bootstrap state");
 
-        SortedSet<Event> events = new TreeSet<Event>();
-        events.addAll(members.getJoinEvents());
-        events.addAll(elections.getEvents());
-        events.addAll(signals);
+            time = in.readInt();
 
-        // pass old events to the registry
-        for (Event event : events) {
-            registry.handleEvent(event);
-        }
+            members.init(in);
 
-        initialized = true;
-        notifyAll();
+            long membersDone = System.currentTimeMillis();
 
-        if (statistics != null) {
-            statistics.newPoolSize(members.size());
+            elections.init(in);
+            int nrOfSignals = in.readInt();
+            if (nrOfSignals < 0) {
+                throw new IOException("negative number of signals");
+            }
+
+            ArrayList<Event> signals = new ArrayList<Event>();
+            for (int i = 0; i < nrOfSignals; i++) {
+                signals.add(new Event(in));
+            }
+
+            closed = in.readBoolean();
+
+            // Create list of "old" events
+
+            SortedSet<Event> events = new TreeSet<Event>();
+            events.addAll(members.getJoinEvents());
+            events.addAll(elections.getEvents());
+            events.addAll(signals);
+
+            long used = System.currentTimeMillis();
+
+            // pass old events to the registry
+            // CALLS REGISTRY WHILE POOL IS LOCKED!
+            for (Event event : events) {
+                registry.handleEvent(event);
+            }
+
+            long handled = System.currentTimeMillis();
+
+            initialized = true;
+            notifyAll();
+
+            if (statistics != null) {
+                statistics.newPoolSize(members.size());
+            }
+            long statted = System.currentTimeMillis();
+
+            logger.info("pool init, read = " + (read - start) + ", locked = "
+                    + (locked - read) + ", membersDone = "
+                    + (membersDone - locked) + ", used = "
+                    + (used - membersDone) + ", handled = " + (handled - used)
+                    + ", statted = " + (statted - handled));
         }
 
         handleEvents();
         logger.debug("bootstrap complete");
+
     }
 
     void writeState(DataOutputStream out, int joinTime) throws IOException {
@@ -213,6 +248,8 @@ final class Pool {
                 throw new IOException("state not initialized yet");
             }
 
+            dataOut.writeInt(time);
+
             members.writeTo(dataOut);
             elections.writeTo(dataOut);
 
@@ -223,12 +260,14 @@ final class Pool {
             }
 
             dataOut.writeBoolean(closed);
-            dataOut.writeInt(time);
-
         }
 
         dataOut.flush();
-        arrayOut.writeTo(out);
+        dataOut.close();
+        byte[] bytes = arrayOut.toByteArray();
+        out.writeInt(bytes.length);
+        out.write(bytes);
+        logger.debug("pool state size = " + bytes.length);
     }
 
     synchronized IbisIdentifier getElectionResult(String election, long timeout)
@@ -242,7 +281,7 @@ final class Pool {
         Election result = elections.get(election);
 
         while (result == null) {
-            final long timeRemaining = deadline - System.currentTimeMillis();
+            long timeRemaining = deadline - System.currentTimeMillis();
 
             if (timeRemaining <= 0) {
                 logger.debug("getElectionResullt deadline expired");
@@ -250,6 +289,9 @@ final class Pool {
             }
 
             try {
+                if (timeRemaining > 1000) {
+                    timeRemaining = 1000;
+                }
                 logger.debug("waiting " + timeRemaining + " for election");
                 wait(timeRemaining);
                 logger.debug("DONE waiting " + timeRemaining + " for election");
@@ -313,6 +355,10 @@ final class Pool {
 
         // wake up threads waiting for events
         notifyAll();
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("member list now: " + members);
+        }
     }
 
     synchronized void waitUntilPoolClosed() {
@@ -366,24 +412,43 @@ final class Pool {
         }
     }
 
+    private synchronized Event getEvent() {
+        return eventList.get(time);
+    }
+
     /**
      * Handles incoming events, passes events to the registry
      */
-    private synchronized void handleEvents() {
-        if (!initialized) {
+    private void handleEvents() {
+        logger.info("handling events");
+        if (!isInitialized()) {
+            logger.info("handle events: not initialized yet");
             return;
         }
 
         while (true) {
-            Event event = eventList.get(time);
+            // Modified the code below to do getEvent and time++ within
+            // one synchronized block, otherwise race condition.
 
-            if (event == null) {
-                return;
+            Event event;
+
+            synchronized (this) {
+                event = getEvent();
+
+                if (event == null) {
+                    logger.info("done handling events, event time now: "
+                            + time);
+                    return;
+                }
+                handleEvent(event);
+                time++;
+                notifyAll();
+                // Niels: does having this outside the synchronized block not
+                // allow for a change in the order in which the user sees the
+                // events? (Ceriel)
+                // TODO: check this!!!
+                registry.handleEvent(event);
             }
-
-            handleEvent(event);
-            registry.handleEvent(event);
-            time++;
         }
     }
 

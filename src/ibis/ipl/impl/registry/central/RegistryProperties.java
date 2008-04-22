@@ -49,7 +49,7 @@ public class RegistryProperties {
 
                 {
                         EVENT_PUSH_INTERVAL,
-                        "300",
+                        "30",
                         "Int(seconds): how often does the server "
                                 + "send out events any member may have missed" },
 
@@ -70,12 +70,12 @@ public class RegistryProperties {
                         "Boolean: use a broadcast tree instead of "
                                 + "serial send or gossiping" },
 
-                { PEER_BOOTSTRAP, "true",
+                { PEER_BOOTSTRAP, "false",
                         "Boolean: bootstrap with peers, not just with the server" },
 
                 {
                         CLIENT_CONNECT_TIMEOUT,
-                        "120",
+                        "300",
                         "Int(seconds): how long do clients attempt to connect to the server and peers before giving up" },
 
                 {

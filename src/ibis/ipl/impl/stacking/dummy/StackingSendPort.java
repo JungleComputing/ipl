@@ -12,6 +12,7 @@ import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.WriteMessage;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.Map;
 import java.util.Properties;
 
@@ -93,6 +94,10 @@ public class StackingSendPort implements SendPort {
        base.disconnect(receiver);
     }
 
+    public void disconnect(IbisIdentifier id, String name) throws IOException {
+        base.disconnect(id, name);
+    }
+
     public PortType getPortType() {
         return base.getPortType();
     }
@@ -130,5 +135,9 @@ public class StackingSendPort implements SendPort {
     public void setManagementProperty(String key, String val)
             throws NoSuchPropertyException {
         base.setManagementProperty(key, val);
+    }
+    
+    public void printManagementProperties(PrintStream stream) {
+        base.printManagementProperties(stream);
     }
 }

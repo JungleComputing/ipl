@@ -49,7 +49,7 @@ public abstract class ReceivePort extends Managable
     public static final byte NOT_PRESENT = 5;
 
     /** Receiveport already has a connection, and ManyToOne is not specified. */
-    public static final byte NO_MANYTOONE = 6;
+    public static final byte NO_MANY_TO_X = 6;
 
     /** The type of this port. */
     public final PortType type;
@@ -133,7 +133,8 @@ public abstract class ReceivePort extends Managable
      * @param connectUpcall the connection upcall object, or <code>null</code>.
      * @param properties the port properties.
      */
-    protected ReceivePort(Ibis ibis, PortType type, String name,
+    @SuppressWarnings("unchecked")
+	protected ReceivePort(Ibis ibis, PortType type, String name,
             MessageUpcall upcall, ReceivePortConnectUpcall connectUpcall,
             Properties properties) throws IOException {
         this.ibis = ibis;
@@ -147,8 +148,8 @@ public abstract class ReceivePort extends Managable
                 = type.hasCapability(PortType.COMMUNICATION_NUMBERED);
         this.properties = ibis.properties();
         if (properties != null) {
-            for (Enumeration e = properties.propertyNames(); e.hasMoreElements();) {
-                String key = (String) e.nextElement();
+            for (Enumeration<String> e = (Enumeration<String>)properties.propertyNames(); e.hasMoreElements();) {
+                String key = e.nextElement();
                 String value = properties.getProperty(key);
                 this.properties.setProperty(key, value);
             }
@@ -197,7 +198,7 @@ public abstract class ReceivePort extends Managable
             return "ACCEPTED";
         case DENIED:
             return "DENIED";
-        case NO_MANYTOONE:
+        case NO_MANY_TO_X:
             return "NO_MANYTOONE";
         case DISABLED:
             return "DISABLED";
@@ -311,8 +312,9 @@ public abstract class ReceivePort extends Managable
         } else if (! connectionsEnabled) {
             retval = DISABLED;
         } else if (connections.size() != 0 &&
-            ! type.hasCapability(PortType.CONNECTION_MANY_TO_ONE)) {
-            retval = NO_MANYTOONE;
+            ! (type.hasCapability(PortType.CONNECTION_MANY_TO_ONE)
+                || type.hasCapability(PortType.CONNECTION_MANY_TO_MANY))) {
+            retval = NO_MANY_TO_X;
         } else if (connectUpcall != null) {
             retval = DENIED;
             try {
@@ -522,6 +524,7 @@ public abstract class ReceivePort extends Managable
                 msg.finish(e);
                 return;
             }
+            logger.error("Got unexpected exception in upcall, continuing ...", e);
         } catch(ClassNotFoundException e) {
             if (! msg.isFinished()) {
                 IOException ioex =
@@ -663,4 +666,17 @@ public abstract class ReceivePort extends Managable
             return message;
         }
     }
+
+    synchronized long getMessageCount() {
+        return nMessages;
+    }
+    
+    synchronized long getBytesReceived() {
+        return bytes;
+    }
+    
+    synchronized long getBytesRead() {
+        return messageBytes;
+    }
+
 }

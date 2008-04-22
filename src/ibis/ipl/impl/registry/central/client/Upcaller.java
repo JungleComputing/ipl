@@ -69,6 +69,7 @@ final class Upcaller implements Runnable {
     }
 
     synchronized void newEvent(Event event) {
+        logger.debug("newEvent: " + event);
         pendingEvents.add(event);
         notifyAll();
     }

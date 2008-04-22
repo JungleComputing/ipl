@@ -1,12 +1,12 @@
 #!/bin/sh
 
 # This script is a convenience script to automatically set the correct
-# classpath for Ibis given the location of a Ibis installation,
-# specified in the $IBIS_HOME environment variable.
+# classpath for the IPL given the location of a IPL installation,
+# specified in the $IPL_HOME environment variable.
 
-# Check setting of IBIS_HOME
-if [ -z "$IBIS_HOME" ];  then
-    echo "please set IBIS_HOME to the location of your Ibis installation" 1>&2
+# Check setting of IPL_HOME
+if [ -z "$IPL_HOME" ];  then
+    echo "please set IPL_HOME to the location of your Ibis installation" 1>&2
     exit 1
 fi
 
@@ -24,10 +24,10 @@ add_to_libclasspath () {
 }
 
 # Add the jar files in the Ibis lib dir to the classpath.
-add_to_libclasspath "${IBIS_HOME}"/lib
+add_to_libclasspath "${IPL_HOME}"/lib
 
 # And finally, run ...
 exec java \
     -classpath "$CLASSPATH:$LIBCLASSPATH" \
-    -Dlog4j.configuration=file:$IBIS_HOME/log4j.properties \
+    -Dlog4j.configuration=file:$IPL_HOME/log4j.properties \
     "$@"

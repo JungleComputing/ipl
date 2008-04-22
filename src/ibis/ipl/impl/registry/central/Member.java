@@ -53,7 +53,10 @@ public final class Member implements Serializable {
 
     public synchronized void setCurrentTime(int currentTime) {
         if (currentTime < this.currentTime) {
-            logger.error("tried to set time backwards on member", new Exception());
+            logger.error(
+                "tried to set time backwards on member. Current time = "
+                        + this.currentTime + " new time = " + currentTime,
+                new Exception());
             return;
         }
         this.currentTime = currentTime;

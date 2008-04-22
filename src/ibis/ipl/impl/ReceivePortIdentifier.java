@@ -8,6 +8,7 @@ import java.io.DataInput;
 import java.io.DataInputStream;
 import java.io.DataOutput;
 import java.io.DataOutputStream;
+import java.io.ObjectInputStream;
 import java.io.IOException;
 
 /**
@@ -28,7 +29,7 @@ public class ReceivePortIdentifier implements ibis.ipl.ReceivePortIdentifier {
     public final IbisIdentifier ibis;
 
     /** A receiveport identifier coded as a byte array. Computed once. */
-    private final transient byte[] codedForm;
+    private transient byte[] codedForm;
 
     /**
      * Constructor, initializing the fields with the specified parameters.
@@ -127,7 +128,7 @@ public class ReceivePortIdentifier implements ibis.ipl.ReceivePortIdentifier {
     }
 
     public int hashCode() {
-        return name.hashCode();
+        return name.hashCode() ^ ibis.hashCode();
     }
 
     public String name() {
@@ -136,6 +137,12 @@ public class ReceivePortIdentifier implements ibis.ipl.ReceivePortIdentifier {
 
     public ibis.ipl.IbisIdentifier ibisIdentifier() {
         return ibis;
+    }
+
+    private void readObject(ObjectInputStream input)
+        throws ClassNotFoundException, IOException {
+        input.defaultReadObject();
+        codedForm = computeCodedForm();
     }
 
     public String toString() {

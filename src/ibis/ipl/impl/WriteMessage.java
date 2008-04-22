@@ -64,6 +64,15 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
             port.gotSendException(this, e);
         }
     }
+    
+    public void flush() throws IOException {
+        checkNotFinished();
+        try {
+            out.flush();
+        } catch (IOException e) {
+            port.gotSendException(this, e);
+        }
+    }
 
     public void writeBoolean(boolean value) throws IOException {
         checkNotFinished();

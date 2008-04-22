@@ -54,18 +54,18 @@ public class StatisticsProcessor {
 
         out.format("//experiments:\n");
         //field names
-        out.format("%8s |", "");
+        out.format("//%6s |", "");
         for (Experiment experiment: experiments) {
             out.format("%-16s  |", experiment.getName());
         }
         out.format("\n");
 
         for(long time = 0; time <= (duration + 2 * interval) ; time += interval) {
-            out.format("%8.2f |", (time / 1000.0) );
+            out.format("%8.2f  ", (time / 1000.0) );
             
             for (Experiment experiment: experiments) {
                 out.format("%8.2f ", experiment.averagePoolSize(time));
-                out.format("%8.2f |", experiment.serverPoolSize(time));
+                out.format("%8.2f  ", experiment.serverPoolSize(time));
             }
             
             out.format("\n");

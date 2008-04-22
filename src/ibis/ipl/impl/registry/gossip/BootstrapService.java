@@ -20,9 +20,9 @@ public class BootstrapService implements Service, Runnable {
 
     public static final int VIRTUAL_PORT = 303;
 
-    private static final int CONNECTION_BACKLOG = 25;
+    private static final int CONNECTION_BACKLOG = 50;
     
-    static final int MAX_THREADS = 25;
+    static final int MAX_THREADS = 50;
 
     private static final Logger logger =
         Logger.getLogger(BootstrapService.class);

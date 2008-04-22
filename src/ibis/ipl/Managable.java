@@ -1,5 +1,6 @@
 package ibis.ipl;
 
+import java.io.PrintStream;
 import java.util.Map;
 
 /**
@@ -9,43 +10,53 @@ import java.util.Map;
 public interface Managable {
     /**
      * Returns the managemen properties.
-     * @return
-     *          the management properties.
+     * 
+     * @return the management properties.
      */
     public Map<String, String> managementProperties();
 
     /**
      * Sets the specified management properties.
+     * 
      * @param properties
-     *          the management properties to set.
+     *            the management properties to set.
      * @exception NoSuchPropertyException
-     *          is thrown if one or more of the
-     *          specified property keys are not recognized.
+     *                is thrown if one or more of the specified property keys
+     *                are not recognized.
      */
     public void setManagementProperties(Map<String, String> properties)
-        throws NoSuchPropertyException; 
-    
+            throws NoSuchPropertyException;
+
     /**
      * Returns the value of the specified management property.
+     * 
      * @param key
-     *          the key for the requested property.
-     * @return
-     *          the value associated with the property, or <code>null</code>.
+     *            the key for the requested property.
+     * @return the value associated with the property, or <code>null</code>.
      * @exception NoSuchPropertyException
-     *          is thrown if the specified property key is not recognized.
+     *                is thrown if the specified property key is not recognized.
      */
     public String getManagementProperty(String key)
-        throws NoSuchPropertyException;
-    
+            throws NoSuchPropertyException;
+
     /**
      * Sets a specified management property to a specified value.
+     * 
      * @param key
-     *          the key for the property.
+     *            the key for the property.
      * @param value
-     *          the value associated with the property.
+     *            the value associated with the property.
      * @exception NoSuchPropertyException
-     *          is thrown if the specified property key is not recognized.
+     *                is thrown if the specified property key is not recognized.
      */
     public void setManagementProperty(String key, String value)
-        throws NoSuchPropertyException;
+            throws NoSuchPropertyException;
+
+    /**
+     * Prints the management properties to the specified output stream
+     * 
+     * @param stream
+     *            the stream used to print the management properties.
+     */
+    public void printManagementProperties(PrintStream stream);
 }

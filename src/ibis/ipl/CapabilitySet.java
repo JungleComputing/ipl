@@ -65,9 +65,10 @@ public class CapabilitySet {
      * @param properties
      *          the specified values.
      */
-    protected CapabilitySet(Properties properties) {
-        for (Enumeration e = properties.propertyNames(); e.hasMoreElements();) {
-            String name = (String) e.nextElement();
+    @SuppressWarnings("unchecked")
+	protected CapabilitySet(Properties properties) {
+        for (Enumeration<String> e = (Enumeration<String>)properties.propertyNames(); e.hasMoreElements();) {
+            String name = e.nextElement();
             String value = properties.getProperty(name);
             if (value != null
                     && (value.equals("1") || value.equals("on")

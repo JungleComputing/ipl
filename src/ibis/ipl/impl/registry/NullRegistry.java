@@ -9,6 +9,7 @@ import ibis.ipl.impl.IbisIdentifier;
 import ibis.ipl.impl.Location;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -165,6 +166,10 @@ public final class NullRegistry extends ibis.ipl.impl.Registry {
 
     public void setManagementProperty(String key, String value) throws NoSuchPropertyException {
         throw new NoSuchPropertyException("no properties supported by null registry");
+    }
+
+    public void printManagementProperties(PrintStream stream) {
+        //NOTHING
     }
 
 }

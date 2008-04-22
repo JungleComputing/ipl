@@ -18,7 +18,7 @@ import ibis.util.TypedProperties;
 
 class CommunicationHandler implements Runnable {
 
-    private static final int CONNECTION_BACKLOG = 50;
+    private static final int CONNECTION_BACKLOG = 25;
 
     static final int MAX_THREADS = 25;
 
@@ -33,7 +33,7 @@ class CommunicationHandler implements Runnable {
 
     private final Statistics statistics;
 
-    private final Pool pool;
+    private final MemberSet pool;
 
     private final ElectionSet elections;
 
@@ -50,7 +50,7 @@ class CommunicationHandler implements Runnable {
     private int maxNrOfThreads = 0;
 
     CommunicationHandler(TypedProperties properties, Registry registry,
-            Pool members, ElectionSet elections, Statistics statistics)
+            MemberSet members, ElectionSet elections, Statistics statistics)
             throws IbisConfigurationException, IOException {
         this.registry = registry;
         this.pool = members;
@@ -263,15 +263,15 @@ class CommunicationHandler implements Runnable {
         }
     }
 
-    private void handleLeave(Connection connection) throws IOException {
-        IbisIdentifier ibis = new IbisIdentifier(connection.in());
-
-        connection.sendOKReply();
-
-        pool.leave(ibis);
-
-        connection.close();
-    }
+//    private void handleLeave(Connection connection) throws IOException {
+//        IbisIdentifier ibis = new IbisIdentifier(connection.in());
+//
+//        connection.sendOKReply();
+//
+//        pool.leave(ibis);
+//
+//        connection.close();
+//    }
 
     public void ping(IbisIdentifier ibis) throws IOException {
         long start = System.currentTimeMillis();
@@ -390,9 +390,9 @@ class CommunicationHandler implements Runnable {
             case Protocol.OPCODE_SIGNAL:
                 handleSignal(connection);
                 break;
-            case Protocol.OPCODE_LEAVE:
-                handleLeave(connection);
-                break;
+//            case Protocol.OPCODE_LEAVE:
+//                handleLeave(connection);
+//                break;
             case Protocol.OPCODE_GOSSIP:
                 handleGossip(connection);
                 break;

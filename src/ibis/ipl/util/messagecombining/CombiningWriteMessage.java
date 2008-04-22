@@ -290,4 +290,8 @@ public class CombiningWriteMessage implements WriteMessage {
     public void writeArray(Object[] arg0, int arg1, int arg2) throws IOException {
         out.writeArray(arg0, arg1, arg2);
     }
+
+    public void flush() throws IOException {
+        out.flush();
+    }
 }

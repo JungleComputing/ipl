@@ -4,10 +4,10 @@ if "%OS%"=="Windows_NT" @setlocal
 
 rem %~dp0 is expanded pathname of the current script under NT
 
-if "%IBIS_HOME%X"=="X" set IBIS_HOME=%~dp0..
+if "%IPL_HOME%X"=="X" set IPL_HOME=%~dp0..
 
 set JAVACLASSPATH=%CLASSPATH%;
-for %%i in ("%IBIS_HOME%\lib\*.jar") do call "%IBIS_HOME%\bin\AddToIbisClassPath.bat" %%i
+for %%i in ("%IPL_HOME%\lib\*.jar") do call "%IPL_HOME%\bin\AddToClassPath.bat" %%i
 
 set SERVER_ARGS=
 
@@ -25,6 +25,6 @@ rem and for NT handling to skip to.
 
 :doneArgs
 
-java -classpath "%JAVACLASSPATH%" -Dlog4j.configuration=file:"%GAT_LOCATION%"\log4j.properties ibis.server.Server %SERVER_ARGS%
+java -classpath "%JAVACLASSPATH%" -Dlog4j.configuration=file:"%IPL_HOME%"\log4j.properties ibis.server.Server %SERVER_ARGS%
 
 if "%OS%"=="Windows_NT" @endlocal

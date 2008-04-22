@@ -78,7 +78,7 @@ public final class Server extends Thread implements Service {
     }
 
     // atomic get/create pool
-    synchronized Pool getAndCreatePool(String poolName, boolean peerBootstrap,
+    synchronized Pool getOrCreatePool(String poolName, boolean peerBootstrap,
             long heartbeatInterval, long eventPushInterval, boolean gossip,
             long gossipInterval, boolean adaptGossipInterval, boolean tree,
             boolean closedWorld, int poolSize, boolean keepStatistics,
@@ -116,7 +116,9 @@ public final class Server extends Thread implements Service {
         }
         while (waitUntilIdle && pools.size() > 0) {
             try {
-                wait();
+                //wake up cleanup thread, wait for a second
+                notifyAll();
+                wait(1000);
             } catch (InterruptedException e) {
                 // IGNORE
             }
@@ -124,11 +126,6 @@ public final class Server extends Thread implements Service {
         stopped = true;
         notifyAll();
         handler.end();
-    }
-
-    // force the server to check the pools _now_
-    synchronized void nudge() {
-        notifyAll();
     }
 
     public String toString() {
@@ -141,18 +138,18 @@ public final class Server extends Thread implements Service {
         while (!stopped) {
             if (pools.size() > 0) {
                 if (printStats) {
-                    System.out.println("list of pools:\n");
-                    System.out.println("NAME               CURRENT_SIZE EVENT_TIME JOINS LEAVES DIEDS ELECTIONS SIGNALS FIXED_SIZE CLOSED ENDED\n");
+                    System.out.println("list of pools:");
+                    System.out.println("        CURRENT_SIZE JOINS LEAVES DIEDS ELECTIONS SIGNALS FIXED_SIZE CLOSED ENDED");
                 }
 
                 // copy values to new array so we can do "remove" on original
                 for (Pool pool : pools.values().toArray(new Pool[0])) {
                     if (printStats) {
-                        System.out.println(pool.getStats());
+                        System.out.println(pool.getStatsString());
                     }
 
                     if (pool.hasEnded()) {
-                        logger.debug("pool " + pool.getName() + " ended");
+                        System.out.println("Central Registry: pool \"" + pool.getName() + "\" ended");
                         pool.saveStatistics();
                         pools.remove(pool.getName());
                         if (pools.size() == 0) {

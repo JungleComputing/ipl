@@ -80,6 +80,8 @@ public final class TreeMemberSet implements MemberSet, Serializable {
 
     @SuppressWarnings("unchecked")
     public void init(DataInputStream in) throws IOException {
+        long start = System.currentTimeMillis();
+
         logger.debug("initializing tree member set");
 
         int size = in.readInt();
@@ -88,8 +90,12 @@ public final class TreeMemberSet implements MemberSet, Serializable {
         byte[] data = new byte[size];
         in.readFully(data);
 
-        ObjectInputStream objectInput = new ObjectInputStream(
-                new ByteArrayInputStream(data));
+        long read = System.currentTimeMillis();
+
+        ObjectInputStream objectInput =
+            new ObjectInputStream(new ByteArrayInputStream(data));
+
+        long stream = System.currentTimeMillis();
 
         try {
             root = (ArrayList<Node>) objectInput.readObject();
@@ -101,7 +107,15 @@ public final class TreeMemberSet implements MemberSet, Serializable {
         }
         objectInput.close();
 
-        logger.debug("initialized tree member set, content:" + toString());
+        long done = System.currentTimeMillis();
+
+        logger.info("TreeMemberSet.init(): read = " + (read - start)
+                + ", stream = " + (stream - read) + ", done = "
+                + (done - stream));
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("initialized tree member set, content:" + toString());
+        }
 
     }
 
@@ -121,8 +135,10 @@ public final class TreeMemberSet implements MemberSet, Serializable {
 
         logger.debug("writing " + byteStream.size() + " bytes");
 
-        out.writeInt(byteStream.size());
-        out.write(byteStream.toByteArray());
+        byte[] bytes = byteStream.toByteArray();
+
+        out.writeInt(bytes.length);
+        out.write(bytes);
     }
 
     private Node createTree(int order, SortedSet<Node> spares) {
@@ -169,7 +185,7 @@ public final class TreeMemberSet implements MemberSet, Serializable {
         list.add(node);
 
         if (logger.isDebugEnabled()) {
-        logger.debug(this);
+            logger.debug(this);
         }
     }
 
@@ -185,9 +201,8 @@ public final class TreeMemberSet implements MemberSet, Serializable {
                 spares.add(node);
 
                 if (logger.isDebugEnabled()) {
-                logger
-                        .debug("removed " + result + " from tree, result "
-                                + this);
+                    logger.debug("removed " + result + " from tree, result "
+                            + this);
                 }
 
                 return result;
@@ -301,7 +316,10 @@ public final class TreeMemberSet implements MemberSet, Serializable {
         BitSet added = new BitSet();
 
         if (size > list.size()) {
-            size = list.size();
+            for (Node node : list) {
+                result.add(node.member);
+            }
+            return result.toArray(new Member[0]);
         }
 
         while (result.size() < size) {
@@ -406,18 +424,18 @@ public final class TreeMemberSet implements MemberSet, Serializable {
     }
 
     public String toString() {
-        String result = "\nROOT: \n";
+        String result = "\nROOT:\n";
 
         for (Node node : root) {
             result += printTree(node, 1);
         }
 
-        result += "LIST: ";
+        result += "LIST:\n";
         for (Node node : list) {
             result += node + "\n";
         }
 
-        result += "SPARES: \n";
+        result += "SPARES:\n";
         for (Node node : spares) {
             result += node + "\n";
         }

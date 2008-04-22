@@ -22,7 +22,8 @@
 \section{Introduction}
 
 This manual explains how to program applications using the Ibis
-communication library. Ibis is a portable, high performance, Java based
+communication library. The Ibis communication library is a portable,
+high performance, Java based
 library. For information on how to run applications using this library,
 see the Ibis user's manual, available in the Ibis distribution in the
 \texttt{doc} directory, or on the Ibis
@@ -36,7 +37,7 @@ information, see the Javadoc for Ibis. This is available in the
 This manual is split up into several different sections. First, we will
 explain the different parts of the IPL, the interface to the Ibis
 communication library. Second, we explain how to compile applications
-which use Ibis. Last, we will give some examples 
+which use the IPL. Last, we will give some examples 
 to show how to use Ibis in practice.
 
 \section{IPL Overview}
@@ -112,6 +113,12 @@ reliability, and other aspects. Send ports can only be connected to receive
 ports of the same type. This allows for some sanity checks on the
 application, and allows Ibis to select the most appropriate
 implementation of the communication channel.
+
+The port type is determined by a set of capabilities as listed in  
+Section~\ref{portcapabilities}.
+Note that even the configuration of the receive port as  
+specified in the RECEIVE\_XXX capabilities is part of the port type,  
+and therefore must be specified in the capabilities of the send port.
 
 \subsection{Messages and Serialization}
 
@@ -269,6 +276,7 @@ after it has initially been created.
 \end{description}
 
 \subsubsection{Port Type Capabilities}
+\label{portcapabilities}
 
 This is a list of capabilities for port types. These capabilities are
 defined in the \texttt{PortType} class of the IPL.  For each port
@@ -383,15 +391,15 @@ properties of Ibis and their usage.
 \section{Compiling applications}
 \label{compiling}
 
-%-- add ipl.jar to classpath, rewrite using ibisc, example ant build file.
+%-- add ipl.jar to classpath, rewrite using iplc, example ant build file.
 
 Applications that use Ibis can be compiled as any normal Java
-application. The file \texttt{ipl.jar} needs to be added to the
+application. The file \texttt{ipl-2.1.jar} needs to be added to the
 classpath when compiling (and running) an Ibis application. For the
 serialization of Ibis to function correctly, one additional step is
 required after compiling: the code for writing and reading objects must
 be generated. The \emph{Ibis compiler} application is available for
-this purpose. It can be run by using the \texttt{ibisc}
+this purpose. It can be run by using the \texttt{iplc}
 script in the \texttt{bin} directory of the distribution. The Ibis
 compiler needs to be passed the class files of the application, either
 as a directory containing classes, or as a jar file.
@@ -408,7 +416,7 @@ distribution. The relevant piece of the script is this:
       taskname="Ibisc"
       failonerror="true"
       fork="true">
-          <arg line="ipl-examples2.0rc2.jar" />
+          <arg line="ipl-examples-2.1.jar" />
           <classpath refid="default.classpath" />
 </java>
 \end{verbatim}

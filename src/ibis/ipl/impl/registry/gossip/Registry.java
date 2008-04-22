@@ -14,6 +14,7 @@ import ibis.util.ThreadPool;
 import ibis.util.TypedProperties;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -36,7 +37,7 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
 
     private final Statistics statistics;
 
-    private final Pool pool;
+    private final MemberSet members;
 
     private final ElectionSet elections;
 
@@ -145,11 +146,11 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
             statistics = null;
         }
 
-        pool = new Pool(properties, this, statistics);
+        members = new MemberSet(properties, this, statistics);
         elections = new ElectionSet(properties, this);
 
         commHandler =
-            new CommunicationHandler(properties, this, pool, elections,
+            new CommunicationHandler(properties, this, members, elections,
                     statistics);
 
         Location location = Location.defaultLocation(properties);
@@ -159,13 +160,13 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
                     commHandler.getAddress().toBytes(), location, poolName);
 
         commHandler.start();
-        pool.start();
+        members.start();
 
         boolean printMembers =
             properties.getBooleanProperty(RegistryProperties.PRINT_MEMBERS);
 
         if (printMembers) {
-            new MemberPrinter(pool);
+            new MemberPrinter(members);
         }
 
         ThreadPool.createNew(this, "pool management thread");
@@ -181,6 +182,8 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
     CommunicationHandler getCommHandler() {
         return commHandler;
     }
+    
+    
 
     public IbisIdentifier elect(String electionName) throws IOException {
         if (!capabilities.hasCapability(IbisCapabilities.ELECTIONS_UNRELIABLE)) {
@@ -188,7 +191,9 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
                     "No election support requested");
         }
 
-        return elections.elect(electionName);
+        IbisIdentifier[] candidates = elections.elect(electionName);
+        
+        return members.getFirstLiving(candidates);
     }
 
     public IbisIdentifier elect(String electionName, long timeoutMillis)
@@ -198,11 +203,22 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
                     "No election support requested");
         }
 
-        return elections.elect(electionName, timeoutMillis);
+        IbisIdentifier[] candidates = elections.elect(electionName, timeoutMillis);
+        
+        return members.getFirstLiving(candidates);
+        
     }
 
     public IbisIdentifier getElectionResult(String election) throws IOException {
-        return getElectionResult(election, 0);
+        if (!capabilities.hasCapability(IbisCapabilities.ELECTIONS_UNRELIABLE)) {
+            throw new IbisConfigurationException(
+                    "No election support requested");
+        }
+
+        IbisIdentifier[] candidates = elections.getElectionResult(election);
+        
+        return members.getFirstLiving(candidates);
+
     }
 
     public IbisIdentifier getElectionResult(String electionName,
@@ -212,12 +228,15 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
                     "No election support requested");
         }
 
-        return elections.getElectionResult(electionName, timeoutMillis);
+        IbisIdentifier[] candidates = elections.getElectionResult(electionName, timeoutMillis);
+        
+        return members.getFirstLiving(candidates);
+
     }
 
     public void maybeDead(ibis.ipl.IbisIdentifier suspect) throws IOException {
         try {
-            pool.maybeDead((IbisIdentifier) suspect);
+            members.maybeDead((IbisIdentifier) suspect);
         } catch (ClassCastException e) {
             logger.error("illegal ibis identifier given: " + e);
         }
@@ -225,7 +244,7 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
 
     public void assumeDead(ibis.ipl.IbisIdentifier deceased) throws IOException {
         try {
-            pool.assumeDead((IbisIdentifier) deceased);
+            members.assumeDead((IbisIdentifier) deceased);
         } catch (ClassCastException e) {
             logger.error("illegal ibis identifier given: " + e);
         }
@@ -348,13 +367,17 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
     public void setManagementProperties(Map<String, String> properties)
             throws NoSuchPropertyException {
         throw new NoSuchPropertyException(
-                "central registry does not have any properties that can be set");
+                "gossip registry does not have any properties that can be set");
     }
 
     public void setManagementProperty(String key, String value)
             throws NoSuchPropertyException {
         throw new NoSuchPropertyException(
-                "central registry does not have any properties that can be set");
+                "gossip registry does not have any properties that can be set");
+    }
+    
+    public void printManagementProperties(PrintStream stream) {
+        //NOTHING
     }
 
     // functions called by pool to tell the registry an event has occured
@@ -421,12 +444,24 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
             notifyAll();
         }
         logger.debug("leaving: telling pool we are leaving");
-        pool.leave(identifier);
-        logger.debug("leaving: broadcasting leave");
-        commHandler.broadcastLeave();
+        members.leave(identifier);
+        members.leave();
+        
+        
+        //wait for our "left" to spread
+        try {
+            Thread.sleep(10000);
+        } catch (InterruptedException e) {
+            //IGNORE
+        }        
+        
+        
+//        logger.debug("leaving: broadcasting leave");
+//        commHandler.broadcastLeave();
         logger.debug("leaving: writing statistics");
         if (statistics != null) {
             statistics.write();
+            statistics.end();
         }
         logger.debug("leaving: done!");
     }

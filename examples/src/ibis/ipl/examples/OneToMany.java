@@ -115,6 +115,8 @@ public class OneToMany implements MessageUpcall {
 
         // End ibis.
         ibis.end();
+        
+        ibis.printManagementProperties(System.err);
     }
 
     public static void main(String args[]) {

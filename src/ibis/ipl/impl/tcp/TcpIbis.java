@@ -5,6 +5,7 @@ package ibis.ipl.impl.tcp;
 import ibis.io.BufferedArrayInputStream;
 import ibis.io.BufferedArrayOutputStream;
 import ibis.ipl.AlreadyConnectedException;
+import ibis.ipl.CapabilitySet;
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.IbisCapabilities;
@@ -116,6 +117,8 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
                     + " at " + idAddr);
         }
 
+        PortType sendPortType = sp.getPortType();
+
         do {
             DataOutputStream out = null;
             IbisSocket s = null;
@@ -130,7 +133,7 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
 
                 out.writeUTF(name);
                 sp.getIdent().writeTo(out);
-                sp.getPortType().writeTo(out);
+                sendPortType.writeTo(out);
                 out.flush();
 
                 result = s.getInputStream().read();
@@ -141,15 +144,33 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
                 case ReceivePort.ALREADY_CONNECTED:
                     throw new AlreadyConnectedException("Already connected", rip);
                 case ReceivePort.TYPE_MISMATCH:
+                    // Read receiveport type from input, to produce a
+                    // better error message.
+                    DataInputStream in = new DataInputStream(s.getInputStream());
+                    PortType rtp = new PortType(in);
+                    CapabilitySet s1 = rtp.unmatchedCapabilities(sendPortType);
+                    CapabilitySet s2 = sendPortType.unmatchedCapabilities(rtp);
+                    String message = "";
+                    if (s1.size() != 0) {
+                        message = message
+                            + "\nUnmatched receiveport capabilities: "
+                            + s1.toString() + ".";
+                    }
+                    if (s2.size() != 0) {
+                        message = message
+                            + "\nUnmatched sendport capabilities: "
+                            + s2.toString() + ".";
+                    }
                     throw new PortMismatchException(
-                            "Cannot connect ports of different port types", rip);
+                            "Cannot connect ports of different port types."
+                            + message, rip);
                 case ReceivePort.DENIED:
                     throw new ConnectionRefusedException(
                             "Receiver denied connection", rip);
-                case ReceivePort.NO_MANYTOONE:
+                case ReceivePort.NO_MANY_TO_X:
                     throw new ConnectionRefusedException(
-                            "Receiver already has a connection and ManyToOne "
-                            + "is not set", rip);
+                            "Receiver already has a connection and neither ManyToOne not ManyToMany "
+                            + "is set", rip);
                 case ReceivePort.NOT_PRESENT:
                 case ReceivePort.DISABLED:
                     // and try again if we did not reach the timeout...
@@ -230,6 +251,11 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
         }
 
         out.write(result);
+        if (result == ReceivePort.TYPE_MISMATCH) {
+            DataOutputStream dout = new DataOutputStream(out);
+            rp.getPortType().writeTo(dout);
+            dout.flush();
+        }
         out.flush();
         if (result == ReceivePort.ACCEPTED) {
             // add the connection to the receiveport.
@@ -316,11 +342,6 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
         }
     }
 
-    public void printStatistics() {
-        super.printStatistics();
-        factory.printStatistics(ident.toString());
-    }
-
     private void cleanup() {
         try {
             systemServer.close();
@@ -339,4 +360,6 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
             throws IOException {
         return new TcpReceivePort(this, tp, nm, u, cU, props);
     }
+
+   
 }
