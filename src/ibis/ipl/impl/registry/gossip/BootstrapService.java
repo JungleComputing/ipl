@@ -62,8 +62,13 @@ public class BootstrapService implements Service, Runnable {
 
         createThread();
     }
+    
+    public String getServiceName() {
+        return "bootstrap";
+    }
 
-    public synchronized void end(boolean waitUntilIdle) {
+
+    public synchronized void end(long deadline) {
         ended = true;
 
         try {
@@ -220,6 +225,11 @@ public class BootstrapService implements Service, Runnable {
 
     public String toString() {
         return "Bootstrap service on virtual port " + VIRTUAL_PORT;
+    }
+
+    public Map<String, String> getStats() {
+        //no statistics
+        return new HashMap<String, String>();
     }
 
 }
