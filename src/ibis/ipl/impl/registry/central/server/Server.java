@@ -9,6 +9,7 @@ import ibis.util.TypedProperties;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 
@@ -49,18 +50,18 @@ public final class Server extends Thread implements Service {
             throws IOException {
         this.socketFactory = socketFactory;
 
-        TypedProperties typedProperties =
-            RegistryProperties.getHardcodedProperties();
+        TypedProperties typedProperties = RegistryProperties
+                .getHardcodedProperties();
         typedProperties.addProperties(properties);
 
-        printStats =
-            typedProperties.getBooleanProperty(ServerProperties.PRINT_STATS);
+        printStats = typedProperties
+                .getBooleanProperty(ServerProperties.PRINT_STATS);
 
-        printEvents =
-            typedProperties.getBooleanProperty(ServerProperties.PRINT_EVENTS);
+        printEvents = typedProperties
+                .getBooleanProperty(ServerProperties.PRINT_EVENTS);
 
-        printErrors =
-            typedProperties.getBooleanProperty(ServerProperties.PRINT_ERRORS);
+        printErrors = typedProperties
+                .getBooleanProperty(ServerProperties.PRINT_ERRORS);
 
         pools = new HashMap<String, Pool>();
 
@@ -75,6 +76,10 @@ public final class Server extends Thread implements Service {
 
     synchronized Pool getPool(String poolName) {
         return pools.get(poolName);
+    }
+    
+    public String getServiceName() {
+        return "registry";
     }
 
     // atomic get/create pool
@@ -91,12 +96,11 @@ public final class Server extends Thread implements Service {
             System.out.println("Central Registry: creating new pool: \""
                     + poolName + "\"");
 
-            result =
-                new Pool(poolName, socketFactory, peerBootstrap,
-                        heartbeatInterval, eventPushInterval, gossip,
-                        gossipInterval, adaptGossipInterval, tree, closedWorld,
-                        poolSize, keepStatistics, statisticsInterval,
-                        ibisImplementationIdentifier, printEvents, printErrors);
+            result = new Pool(poolName, socketFactory, peerBootstrap,
+                    heartbeatInterval, eventPushInterval, gossip,
+                    gossipInterval, adaptGossipInterval, tree, closedWorld,
+                    poolSize, keepStatistics, statisticsInterval,
+                    ibisImplementationIdentifier, printEvents, printErrors);
             pools.put(poolName, result);
         }
 
@@ -110,18 +114,21 @@ public final class Server extends Thread implements Service {
     /**
      * Stop this server.
      */
-    public synchronized void end(boolean waitUntilIdle) {
+    public synchronized void end(long deadline) {
         if (stopped) {
             return;
         }
-        while (waitUntilIdle && pools.size() > 0) {
+        long timeLeft = deadline = System.currentTimeMillis();
+
+        while (timeLeft > 0 && pools.size() > 0) {
             try {
-                //wake up cleanup thread, wait for a second
+                // wake up cleanup thread, wait for a second
                 notifyAll();
-                wait(1000);
+                wait(Math.min(1000, timeLeft));
             } catch (InterruptedException e) {
                 // IGNORE
             }
+            timeLeft = deadline = System.currentTimeMillis();
         }
         stopped = true;
         notifyAll();
@@ -139,7 +146,8 @@ public final class Server extends Thread implements Service {
             if (pools.size() > 0) {
                 if (printStats) {
                     System.out.println("list of pools:");
-                    System.out.println("        CURRENT_SIZE JOINS LEAVES DIEDS ELECTIONS SIGNALS FIXED_SIZE CLOSED ENDED");
+                    System.out
+                            .println("        CURRENT_SIZE JOINS LEAVES DIEDS ELECTIONS SIGNALS FIXED_SIZE CLOSED ENDED");
                 }
 
                 // copy values to new array so we can do "remove" on original
@@ -149,7 +157,8 @@ public final class Server extends Thread implements Service {
                     }
 
                     if (pool.hasEnded()) {
-                        System.out.println("Central Registry: pool \"" + pool.getName() + "\" ended");
+                        System.out.println("Central Registry: pool \""
+                                + pool.getName() + "\" ended");
                         pool.saveStatistics();
                         pools.remove(pool.getName());
                         if (pools.size() == 0) {
@@ -170,4 +179,25 @@ public final class Server extends Thread implements Service {
         }
 
     }
+
+    public synchronized Map<String, String> getStats() {
+        Map<String, String> result = new HashMap<String, String>();
+        
+        String poolNames = null;
+        
+        for(Pool pool: pools.values()) {
+            if (poolNames == null) {
+                poolNames = pool.getName();
+            } else {
+                poolNames = poolNames + "," + pool.getName();
+            }
+            
+            result.putAll(pool.getStatsMap());
+        }        
+        
+        result.put("pool.names", poolNames);
+            
+        return result;
+    }
+
 }

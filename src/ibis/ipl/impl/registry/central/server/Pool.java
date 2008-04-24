@@ -837,6 +837,23 @@ final class Pool implements Runnable {
 
         return message.toString();
     }
+    
+    public synchronized Map<String, String> getStatsMap() {
+        Map<String, String> result = new HashMap<String, String>();
+
+        result.put(name + ".size", "" + getSize());
+        result.put(name + ".joins", "" + eventStats[Event.JOIN]);
+        result.put(name + ".leaves", "" + eventStats[Event.LEAVE]);
+        result.put(name + ".dieds", "" + eventStats[Event.DIED]);
+        result.put(name + ".elections", "" + eventStats[Event.ELECT]);
+        result.put(name + ".signals", "" + eventStats[Event.SIGNAL]);
+        result.put(name + ".fixed.size", "" + getFixedSize());
+        result.put(name + ".closed", "" + "" + isClosed());
+        result.put(name + ".ended", "" + "" + ended);
+        
+        return result;
+    }
+
 
     /**
      * Remove events from the event history to make space.
@@ -891,5 +908,6 @@ final class Pool implements Runnable {
     Statistics getStatistics() {
         return statistics;
     }
+    
 
 }
