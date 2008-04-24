@@ -123,6 +123,29 @@
             </manifest>
         </jar>
 
+    	<!-- mxibis -->
+    	<!-- Create jni headers -->
+    	<exec executable="javah" dir="${tmp}">
+    		<arg value="-jni"/>
+    		<arg value="-d"/>
+    		<arg value="${src}/ibis/ipl/impl/mx/io"/>
+    		<arg value="ibis.ipl.impl.mx.io.NioMx"/>
+    	</exec>
+    	<!-- compile c library -->
+    	<exec executable="make" dir="${src}/ibis/ipl/impl/mx/io"/>
+    	<!-- Create mxibis jar -->
+    	<jar destfile="lib/ipl-impl-mx${version}.jar">
+            <fileset dir="${tmp}"
+                     includes="ibis/ipl/impl/mx/**/*.class" />
+            <fileset dir="." includes="LICENSE.txt" />
+            <manifest>
+                <attribute name="Ibis-Starter"
+                           value="ibis.ipl.impl.mx.MxIbisStarter" />
+                <attribute name="IPL-Version" value="2.0" />
+                <attribute name="Implementation-Version" value="${TSTAMP}" />
+			</manifest>
+        </jar>
+    	
         <!-- Copy external libraries to lib directory -->
         <copy todir="${lib}">
             <fileset dir="external" />
