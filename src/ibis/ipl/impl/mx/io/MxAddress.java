@@ -20,7 +20,7 @@ public class MxAddress implements Serializable {
 
 	public MxAddress(String hostname, int endpoint_id) {
 		this.hostname = hostname;
-		this.nic_id = NioMx.jmx_getNicID(hostname);
+		this.nic_id = JavaMx.jmx_getNicID(hostname);
 		this.endpoint_id = endpoint_id;
 	}
 	

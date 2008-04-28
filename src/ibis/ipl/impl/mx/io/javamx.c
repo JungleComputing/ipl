@@ -1,7 +1,7 @@
 
 /* javamx.c */
 
-#include "mx_Lib.h"
+#include "ibis_ipl_impl_mx_io_JavaMx.h"
 #include "myriexpress.h"
 
 uint64_t match_mask = MX_MATCH_MASK_NONE;
@@ -65,13 +65,13 @@ void releasehandle(jint handle) {
 	handles_in_use--;
 }
 
-
+/* JNI methods */
 /*
- * Class:     mx_Lib
+ * Class:     ibis_ipl_impl_mx_io_JavaMx
  * Method:    jmx_init
  * Signature: ()Z
  */
-JNIEXPORT jboolean JNICALL Java_mx_Lib_jmx_1init
+JNIEXPORT jboolean JNICALL Java_ibis_ipl_impl_mx_io_JavaMx_jmx_1init
   (JNIEnv *env, jclass jcl) {
 	/* Initialize the MX library */
 	mx_return_t rc;
@@ -87,12 +87,6 @@ JNIEXPORT jboolean JNICALL Java_mx_Lib_jmx_1init
 		return JNI_FALSE;
 	}
 	
-	/* open an endpoint */
-	rc = mx_open_endpoint(MX_ANY_NIC, 0, filter, 0, 0, &my_endpoint);
-	if(rc != MX_SUCCESS) {
-		fprintf(stderr, "error: %s\n", mx_strerror(rc));
-		return JNI_FALSE;
-	}
 	/* setup links data structure */
 	sendlinks_in_use = 0; /* no links in use */
 	free_sendlinks_list = 0; /* link 0 is the first free link */
@@ -113,11 +107,51 @@ JNIEXPORT jboolean JNICALL Java_mx_Lib_jmx_1init
 }
 
 /*
- * Class:     mx_Lib
- * Method:    jmx_getMyNicID
+ * Class:     ibis_ipl_impl_mx_io_JavaMx
+ * Method:    jmx_finalize
+ * Signature: ()Z
+ */
+JNIEXPORT jboolean JNICALL Java_ibis_ipl_impl_mx_io_JavaMx_jmx_1finalize
+  (JNIEnv *env, jclass jcl) {
+	mx_return_t rc;
+	/* close endpoint */
+	rc = mx_close_endpoint(my_endpoint);
+	if(rc != MX_SUCCESS) {
+		fprintf(stderr, "error: %s\n", mx_strerror(rc));
+		return JNI_FALSE;
+	}
+	/* Finalize the MX library */
+	rc = mx_finalize();
+	if(rc != MX_SUCCESS) {
+		fprintf(stderr, "error: %s\n", mx_strerror(rc));
+		return JNI_FALSE;
+	}
+	return JNI_TRUE;
+}
+
+
+/*
+ * Class:     ibis_ipl_impl_mx_io_JavaMx
+ * Method:    jmx_openEndpoint
+ * Signature: ()Z
+ */
+JNIEXPORT jboolean JNICALL Java_ibis_ipl_impl_mx_io_JavaMx_jmx_1openEndpoint
+  (JNIEnv *env, jclass jcl) {
+	/* open an endpoint */
+	rc = mx_open_endpoint(MX_ANY_NIC, MX_ANY_ENDPOINT, filter, 0, 0, &my_endpoint);
+	if(rc != MX_SUCCESS) {
+		fprintf(stderr, "error: %s\n", mx_strerror(rc));
+		return JNI_FALSE;
+	}
+}
+
+
+/*
+ * Class:     ibis_ipl_impl_mx_io_JavaMx
+ * Method:    jmx_getMyNicId
  * Signature: ()J
  */
-JNIEXPORT jlong JNICALL Java_mx_Lib_jmx_1getMyNicID
+JNIEXPORT jlong JNICALL Java_ibis_ipl_impl_mx_io_JavaMx_jmx_1getMyNicId
   (JNIEnv *env, jclass jcl) {
 	mx_return_t rc;
 	mx_endpoint_addr_t my_addr;
@@ -137,11 +171,11 @@ JNIEXPORT jlong JNICALL Java_mx_Lib_jmx_1getMyNicID
 }
 
 /*
- * Class:     mx_Lib
+ * Class:     ibis_ipl_impl_mx_io_JavaMx
  * Method:    jmx_getMyEndpointId
  * Signature: ()I
  */
-JNIEXPORT jint JNICALL Java_mx_Lib_jmx_1getMyEndpointId
+JNIEXPORT jint JNICALL Java_ibis_ipl_impl_mx_io_JavaMx_jmx_1getMyEndpointId
   (JNIEnv *env, jclass jcl) {
 	mx_return_t rc;
 	mx_endpoint_addr_t my_addr;
@@ -161,11 +195,11 @@ JNIEXPORT jint JNICALL Java_mx_Lib_jmx_1getMyEndpointId
 }
 
 /*
- * Class:     mx_Lib
- * Method:    jmx_getNicID
+ * Class:     ibis_ipl_impl_mx_io_JavaMx
+ * Method:    jmx_getNicId
  * Signature: (Ljava/lang/String;)J
  */
-JNIEXPORT jlong JNICALL Java_mx_Lib_jmx_1getNicID
+JNIEXPORT jlong JNICALL Java_ibis_ipl_impl_mx_io_JavaMx_jmx_1getNicId
   (JNIEnv *env, jclass jcl , jstring name) {
 	mx_return_t rc;
 	uint64_t nic_id;
@@ -185,11 +219,11 @@ JNIEXPORT jlong JNICALL Java_mx_Lib_jmx_1getNicID
 }
 
 /*
- * Class:     mx_Lib
+ * Class:     ibis_ipl_impl_mx_io_JavaMx
  * Method:    jmx_connect
  * Signature: (JI)I
  */
-JNIEXPORT jint JNICALL Java_mx_Lib_jmx_1connect
+JNIEXPORT jint JNICALL Java_ibis_ipl_impl_mx_io_JavaMx_jmx_1connect
   (JNIEnv *env, jclass jcl, jlong nic_id, jint endpoint_id) {
 	jint link;
 	mx_return_t rc;
@@ -214,11 +248,11 @@ JNIEXPORT jint JNICALL Java_mx_Lib_jmx_1connect
 }
 
 /*
- * Class:     mx_Lib
+ * Class:     ibis_ipl_impl_mx_io_JavaMx
  * Method:    jmx_disconnect
  * Signature: (I)Z
  */
-JNIEXPORT jboolean JNICALL Java_mx_Lib_jmx_1disconnect
+JNIEXPORT jboolean JNICALL Java_ibis_ipl_impl_mx_io_JavaMx_jmx_1disconnect
   (JNIEnv *env, jclass jcl, jint link) {
 	/* TODO: check if link is indeed in use */	
 	sendlink[link].next_free = free_sendlinks_list;
@@ -228,35 +262,13 @@ JNIEXPORT jboolean JNICALL Java_mx_Lib_jmx_1disconnect
 	return JNI_TRUE;
 }
 
-/*
- * Class:     mx_Lib
- * Method:    jmx_finalize
- * Signature: ()Z
- */
-JNIEXPORT jboolean JNICALL Java_mx_Lib_jmx_1finalize
-  (JNIEnv *env, jclass jcl) {
-	mx_return_t rc;
-	/* close endpoint */
-	rc = mx_close_endpoint(my_endpoint);
-	if(rc != MX_SUCCESS) {
-		fprintf(stderr, "error: %s\n", mx_strerror(rc));
-		return JNI_FALSE;
-	}
-	/* Finalize the MX library */
-	rc = mx_finalize();
-	if(rc != MX_SUCCESS) {
-		fprintf(stderr, "error: %s\n", mx_strerror(rc));
-		return JNI_FALSE;
-	}
-	return JNI_TRUE;
-}
 
 /*
- * Class:     mx_Lib
+ * Class:     ibis_ipl_impl_mx_io_JavaMx
  * Method:    jmx_send
  * Signature: (Ljava/nio/ByteBuffer;IJ)Z
  */
-JNIEXPORT jboolean JNICALL Java_mx_Lib_jmx_1send__Ljava_nio_ByteBuffer_2IJ
+JNIEXPORT jboolean JNICALL Java_ibis_ipl_impl_mx_io_JavaMx_jmx_1send__Ljava_nio_ByteBuffer_2IJ
   (JNIEnv *env, jclass jcl, jobject buffer, jint target, jlong match_send) {
 	mx_return_t rc;
 	mx_segment_t buffer_desc[1];
@@ -289,11 +301,11 @@ JNIEXPORT jboolean JNICALL Java_mx_Lib_jmx_1send__Ljava_nio_ByteBuffer_2IJ
 }
 
 /*
- * Class:     mx_Lib
+ * Class:     ibis_ipl_impl_mx_io_JavaMx
  * Method:    jmx_send
  * Signature: ([BIJ)Z
  */
-JNIEXPORT jboolean JNICALL Java_mx_Lib_jmx_1send___3BIJ
+JNIEXPORT jboolean JNICALL Java_ibis_ipl_impl_mx_io_JavaMx_jmx_1send___3BIJ
   (JNIEnv *env, jclass jcl, jbyteArray data, jint target, jlong match_send) {
 	mx_return_t rc;
 	mx_segment_t buffer_desc[1];
@@ -333,11 +345,11 @@ JNIEXPORT jboolean JNICALL Java_mx_Lib_jmx_1send___3BIJ
 }
 
 /*
- * Class:     mx_Lib
+ * Class:     ibis_ipl_impl_mx_io_JavaMx
  * Method:    jmx_asend
  * Signature: (Ljava/nio/ByteBuffer;IJ)I
  */
-JNIEXPORT jint JNICALL Java_mx_Lib_jmx_1asend__Ljava_nio_ByteBuffer_2IJ
+JNIEXPORT jint JNICALL Java_ibis_ipl_impl_mx_io_JavaMx_jmx_1asend
   (JNIEnv *env, jclass jcl, jobject buffer, jint target, jlong match_send) {
 	mx_return_t rc;
 	mx_segment_t buffer_desc[1];
@@ -366,11 +378,11 @@ JNIEXPORT jint JNICALL Java_mx_Lib_jmx_1asend__Ljava_nio_ByteBuffer_2IJ
 }
 
 /*
- * Class:     mx_Lib
+ * Class:     ibis_ipl_impl_mx_io_JavaMx
  * Method:    jmx_recv
  * Signature: (Ljava/nio/ByteBuffer;J)I
  */
-JNIEXPORT jint JNICALL Java_mx_Lib_jmx_1recv__Ljava_nio_ByteBuffer_2J
+JNIEXPORT jint JNICALL Java_ibis_ipl_impl_mx_io_JavaMx_jmx_1recv__Ljava_nio_ByteBuffer_2J
   (JNIEnv *env, jclass jcl, jobject buffer, jlong match_recv) {
 	mx_return_t rc;
 	mx_segment_t buffer_desc[1];
@@ -411,11 +423,11 @@ JNIEXPORT jint JNICALL Java_mx_Lib_jmx_1recv__Ljava_nio_ByteBuffer_2J
 }
 
 /*
- * Class:     mx_Lib
+ * Class:     ibis_ipl_impl_mx_io_JavaMx
  * Method:    jmx_recv
  * Signature: (J)[B
  */
-JNIEXPORT jbyteArray JNICALL Java_mx_Lib_jmx_1recv__J
+JNIEXPORT jbyteArray JNICALL Java_ibis_ipl_impl_mx_io_JavaMx_jmx_1recv__J
   (JNIEnv *env, jclass jcl, jlong match_recv) {
 	mx_return_t rc;
 	mx_segment_t buffer_desc[1];
@@ -470,11 +482,11 @@ JNIEXPORT jbyteArray JNICALL Java_mx_Lib_jmx_1recv__J
 }
 
 /*
- * Class:     mx_Lib
+ * Class:     ibis_ipl_impl_mx_io_JavaMx
  * Method:    jmx_arecv
  * Signature: (Ljava/nio/ByteBuffer;J)I
  */
-JNIEXPORT jint JNICALL Java_mx_Lib_jmx_1arecv__Ljava_nio_ByteBuffer_2J
+JNIEXPORT jint JNICALL Java_ibis_ipl_impl_mx_io_JavaMx_jmx_1arecv
   (JNIEnv *env, jclass jcl, jobject buffer, jlong match_recv) {
 	mx_return_t rc;
 	mx_segment_t buffer_desc[1];
@@ -521,11 +533,11 @@ JNIEXPORT jint JNICALL Java_mx_Lib_jmx_1arecv__Ljava_nio_ByteBuffer_2J
 }
 
 /*
- * Class:     mx_Lib
+ * Class:     ibis_ipl_impl_mx_io_JavaMx
  * Method:    jmx_wait
  * Signature: (I)Z
  */
-JNIEXPORT jboolean JNICALL Java_mx_Lib_jmx_1wait
+JNIEXPORT jboolean JNICALL Java_ibis_ipl_impl_mx_io_JavaMx_jmx_1wait
   (JNIEnv *env, jclass jcl, jint handle) {
 	mx_return_t rc;
 	mx_status_t status;
@@ -548,11 +560,11 @@ JNIEXPORT jboolean JNICALL Java_mx_Lib_jmx_1wait
 
 
 /*
- * Class:     mx_Lib
+ * Class:     ibis_ipl_impl_mx_io_JavaMx
  * Method:    jmx_test
  * Signature: (I)Z
  */
-JNIEXPORT jboolean JNICALL Java_mx_Lib_jmx_1test
+JNIEXPORT jboolean JNICALL Java_ibis_ipl_impl_mx_io_JavaMx_jmx_1test
   (JNIEnv *env, jclass jcl, jint handle) {
 	mx_return_t rc;
 	mx_status_t status;

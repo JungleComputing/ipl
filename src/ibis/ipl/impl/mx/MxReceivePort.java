@@ -16,7 +16,7 @@ import ibis.ipl.impl.ReceivePort;
  * @author Timo van Kessel
  *
  */
-public class MxReceivePort extends ReceivePort {
+class MxReceivePort extends ReceivePort {
 
 	/**
 	 * @param ibis
@@ -27,7 +27,7 @@ public class MxReceivePort extends ReceivePort {
 	 * @param properties
 	 * @throws IOException
 	 */
-	public MxReceivePort(Ibis ibis, PortType type, String name,
+	MxReceivePort(Ibis ibis, PortType type, String name,
 			MessageUpcall upcall, ReceivePortConnectUpcall connectUpcall,
 			Properties properties) throws IOException {
 		super(ibis, type, name, upcall, connectUpcall, properties);

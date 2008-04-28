@@ -1,6 +1,3 @@
-/**
- * 
- */
 package ibis.ipl.impl.mx;
 
 import java.io.IOException;
@@ -14,21 +11,10 @@ import ibis.ipl.impl.SendPort;
 import ibis.ipl.impl.SendPortConnectionInfo;
 import ibis.ipl.impl.WriteMessage;
 
-/**
- * @author Timo van Kessel
- *
- */
-public class MxSendPort extends SendPort {
 
-	/**
-	 * @param ibis
-	 * @param type
-	 * @param name
-	 * @param connectUpcall
-	 * @param properties
-	 * @throws IOException
-	 */
-	public MxSendPort(Ibis ibis, PortType type, String name,
+class MxSendPort extends SendPort {
+
+	MxSendPort(Ibis ibis, PortType type, String name,
 			SendPortDisconnectUpcall connectUpcall, Properties properties)
 			throws IOException {
 		super(ibis, type, name, connectUpcall, properties);
