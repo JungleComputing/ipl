@@ -118,7 +118,7 @@ public final class Server extends Thread implements Service {
         if (stopped) {
             return;
         }
-        long timeLeft = deadline = System.currentTimeMillis();
+        long timeLeft = deadline - System.currentTimeMillis();
 
         while (timeLeft > 0 && pools.size() > 0) {
             try {
