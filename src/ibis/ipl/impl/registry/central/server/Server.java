@@ -128,7 +128,7 @@ public final class Server extends Thread implements Service {
             } catch (InterruptedException e) {
                 // IGNORE
             }
-            timeLeft = deadline = System.currentTimeMillis();
+            timeLeft = deadline - System.currentTimeMillis();
         }
         stopped = true;
         notifyAll();
