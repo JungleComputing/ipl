@@ -5,67 +5,76 @@ import java.util.Properties;
 
 import ibis.ipl.PortType;
 import ibis.ipl.SendPortDisconnectUpcall;
-import ibis.ipl.impl.Ibis;
 import ibis.ipl.impl.ReceivePortIdentifier;
 import ibis.ipl.impl.SendPort;
 import ibis.ipl.impl.SendPortConnectionInfo;
 import ibis.ipl.impl.WriteMessage;
 
 
-class MxSendPort extends SendPort {
+public class MxSendPort extends SendPort {
 
-	MxSendPort(Ibis ibis, PortType type, String name,
+	protected MxChannelFactory factory;
+	
+	MxSendPort(MxIbis ibis, PortType type, String name,
 			SendPortDisconnectUpcall connectUpcall, Properties properties)
 			throws IOException {
 		super(ibis, type, name, connectUpcall, properties);
+		factory = ibis.getFactory();
 		// TODO Auto-generated constructor stub
+		
+		initStream(new MxDataOutputStream(null)); // or something like this
 	}
 
-	/* (non-Javadoc)
-	 * @see ibis.ipl.impl.SendPort#announceNewMessage()
-	 */
 	@Override
 	protected void announceNewMessage() throws IOException {
 		// TODO Auto-generated method stub
-
+		/* 
+		 * deal with sequencing
+		 * Don't think it is needed to announce a message
+		 */
+        if (type.hasCapability(PortType.COMMUNICATION_NUMBERED)) {
+            out.writeLong(ibis.registry().getSequenceNumber(name));
+        }
 	}
 
-	/* (non-Javadoc)
-	 * @see ibis.ipl.impl.SendPort#closePort()
-	 */
 	@Override
 	protected void closePort() throws IOException {
-		// TODO Auto-generated method stub
-
+		// TODO
+		/* 
+		 * Send a msg with DISCONNECT to all connected receiveports
+		 * Close out and dataOut streams
+		 */
+		// for all receiveports: disconnect(ReceivePortIdentifier)
+		// TODO: maybe do something smarter to improve performance later
+		
 	}
 
-	/* (non-Javadoc)
-	 * @see ibis.ipl.impl.SendPort#doConnect(ibis.ipl.impl.ReceivePortIdentifier, long, boolean)
-	 */
 	@Override
-	protected SendPortConnectionInfo doConnect(ReceivePortIdentifier receiver,
+	protected MxSendPortConnectionInfo doConnect(ReceivePortIdentifier receiver,
 			long timeout, boolean fillTimeout) throws IOException {
-		// TODO Auto-generated method stub
-		return null;
+		/* 
+		 * send CONNECT to receiveport
+		 * negotiate port number
+		 * construct the SendPortConnectionInfo
+		 */
+		MxSendPortConnectionInfo connectionInfo = new MxSendPortConnectionInfo(this, receiver);
+		connectionInfo.connect();
+		return connectionInfo;
 	}
 
-	/* (non-Javadoc)
-	 * @see ibis.ipl.impl.SendPort#handleSendException(ibis.ipl.impl.WriteMessage, java.io.IOException)
-	 */
 	@Override
 	protected void handleSendException(WriteMessage w, IOException e) {
 		// TODO Auto-generated method stub
 
 	}
 
-	/* (non-Javadoc)
-	 * @see ibis.ipl.impl.SendPort#sendDisconnectMessage(ibis.ipl.impl.ReceivePortIdentifier, ibis.ipl.impl.SendPortConnectionInfo)
-	 */
 	@Override
 	protected void sendDisconnectMessage(ReceivePortIdentifier receiver,
 			SendPortConnectionInfo c) throws IOException {
 		// TODO Auto-generated method stub
-
+		/*
+		 * send a DISCONNECT message
+		 */
+		
 	}
-
 }

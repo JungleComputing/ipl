@@ -12,7 +12,6 @@ import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.SendPort;
 import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.ipl.impl.Ibis;
-import ibis.ipl.impl.mx.io.*;
 
 /**
  * @author Timo van Kessel
@@ -20,18 +19,29 @@ import ibis.ipl.impl.mx.io.*;
  */
 public class MxIbis extends Ibis {
 
-	protected MxEndpoint endpoint;
+	protected MxChannelFactory factory;
 	
 	public MxIbis(RegistryEventHandler registryHandler,
 			IbisCapabilities capabilities, PortType[] portTypes,
 			Properties userProperties) {
 		super(registryHandler, capabilities, portTypes, userProperties);
-		// TODO Auto-generated constructor stub
-		
-		// TODO open endpoint
-		endpoint = new MxEndpoint();
-		
+						
 		// TODO check properties
+		
+	}
+
+	@Override
+	protected byte[] getData() throws IOException {
+		factory = new MxChannelFactory();
+
+		factory.getMyAddress().toBytes();
+		return null;
+	}
+
+	@Override
+	protected void quit() {
+		// TODO Auto-generated method stub
+
 	}
 
 	@Override
@@ -50,17 +60,12 @@ public class MxIbis extends Ibis {
 		return new MxSendPort(this, tp, name, cu, properties);
 	}
 
-	@Override
-	protected byte[] getData() throws IOException {
-		// TODO Auto-generated method stub
-		endpoint.getMyAddress().toString().getBytes();
-		return null;
+	protected MxChannelFactory getFactory() {
+		return factory;
 	}
 
-	@Override
-	protected void quit() {
-		// TODO Auto-generated method stub
-
+/*	protected MxChannelFactory getChannelFactory() {
+		return factory;
 	}
-
+*/
 }

@@ -128,11 +128,11 @@
     	<exec executable="javah" dir="${tmp}">
     		<arg value="-jni"/>
     		<arg value="-d"/>
-    		<arg value="${src}/ibis/ipl/impl/mx/io"/>
-    		<arg value="ibis.ipl.impl.mx.io.NioMx"/>
+    		<arg value="${src}/ibis/ipl/impl/mx"/>
+    		<arg value="ibis.ipl.impl.mx.JavaMx"/>
     	</exec>
     	<!-- compile c library -->
-    	<exec executable="make" dir="${src}/ibis/ipl/impl/mx/io"/>
+    	<exec executable="make" dir="${src}/ibis/ipl/impl/mx"/>
     	<!-- Create mxibis jar -->
     	<jar destfile="lib/ipl-impl-mx${version}.jar">
             <fileset dir="${tmp}"

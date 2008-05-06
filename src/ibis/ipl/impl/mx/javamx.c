@@ -12,58 +12,12 @@ uint32_t filter = 0xdada0123;
 
 mx_endpoint_t my_endpoint;
 
-typedef union connectionlistnode_type {
-	mx_endpoint_addr_t address;
-	jint next_free;
-} connectionlistnode_t;
+jint tidBlockSize;
+mx_endpoint_addr_t **targetIds;
 
-connectionlistnode_t sendlink[MAX_LINKS];
-jint sendlinks_in_use;
-jint free_sendlinks_list;
+jint tidBlockSize;
+mx_endpoint_addr_t **handles;
 
-
-typedef union handlelistnode_type {
-	mx_request_t request;
-	jint next_free;
-} handlelistnode_t;
-
-handlelistnode_t handle_list[MAX_HANDLES];
-jint handles_in_use;
-jint free_handle_list;
-
-jint getsendlink() {
-	jint link = free_sendlinks_list;
-	if (link < 0) {
-		// no free link available
-		return -1;
-	}
-	free_sendlinks_list = sendlink[link].next_free;
-	sendlinks_in_use++; 
-	return link;
-}
-
-void releasesendlink(jint link) {
-	sendlink[link].next_free = free_sendlinks_list;
-	free_sendlinks_list = link;
-	sendlinks_in_use--;
-}
-
-jint gethandle() {
-	jint handle = free_handle_list;
-	if (handle < 0) {
-		// no free handle available
-		return -1;
-	}
-	free_handle_list = handle_list[handle].next_free;
-	handles_in_use++; 
-	return handle;
-}
-
-void releasehandle(jint handle) {
-	handle_list[handle].next_free = free_handle_list;
-	free_handle_list = handle;
-	handles_in_use--;
-}
 
 /* JNI methods */
 /*
@@ -86,22 +40,6 @@ JNIEXPORT jboolean JNICALL Java_ibis_ipl_impl_mx_io_JavaMx_jmx_1init
 		fprintf(stderr, "error: %s\n", mx_strerror(rc));
 		return JNI_FALSE;
 	}
-	
-	/* setup links data structure */
-	sendlinks_in_use = 0; /* no links in use */
-	free_sendlinks_list = 0; /* link 0 is the first free link */
-	for (i = 0; i < MAX_LINKS -1; i++) { /* setup free link list */
-		sendlink[i].next_free = i+1; 
-	}
-	sendlink[MAX_LINKS -1].next_free = -1;
-	
-	/* setup handles data structure */
-	handles_in_use = 0; /* no handles in use */
-	free_handle_list = 0; /* handle 0 is the first free handle */
-	for (i = 0; i < MAX_HANDLES -1; i++) { /* setup free handle list */
-		handle_list[i].next_free = i+1; 
-	}
-	handle_list[MAX_HANDLES -1].next_free = -1;
 	
 	return JNI_TRUE;
 }
@@ -262,94 +200,12 @@ JNIEXPORT jboolean JNICALL Java_ibis_ipl_impl_mx_io_JavaMx_jmx_1disconnect
 	return JNI_TRUE;
 }
 
-
 /*
  * Class:     ibis_ipl_impl_mx_io_JavaMx
  * Method:    jmx_send
- * Signature: (Ljava/nio/ByteBuffer;IJ)Z
- */
-JNIEXPORT jboolean JNICALL Java_ibis_ipl_impl_mx_io_JavaMx_jmx_1send__Ljava_nio_ByteBuffer_2IJ
-  (JNIEnv *env, jclass jcl, jobject buffer, jint target, jlong match_send) {
-	mx_return_t rc;
-	mx_segment_t buffer_desc[1];
-	mx_request_t req_handle;
-	mx_status_t status;
-	uint32_t result;
-	
-	void* GetDirectBufferAddress(JNIEnv* env, jobject buf);
-	jlong GetDirectBufferCapacity(JNIEnv* env, jobject buf);
-	/* TODO: check if target is valid */
-	buffer_desc[0].segment_ptr = (*env)->GetDirectBufferAddress(env, buffer);
-	buffer_desc[0].segment_length = (*env)->GetDirectBufferCapacity(env, buffer);
-	
-	rc = mx_isend(my_endpoint, buffer_desc, 1, sendlink[target].address, match_send, NULL, &req_handle);
-	if(rc != MX_SUCCESS) {
-		fprintf(stderr, "error: %s\n", mx_strerror(rc));
-		return JNI_FALSE;
-	}
-	rc = mx_wait(my_endpoint, &req_handle, MX_INFINITE, &status, &result);
-	if(rc != MX_SUCCESS) {
-		fprintf(stderr, "error: %s\n", mx_strerror(rc));
-		return JNI_FALSE;
-	}
-	if (result == 0) {
-		/* recv error */
-		printf("recv error\n");
-		return JNI_FALSE;
-	}
-	return JNI_TRUE;
-}
-
-/*
- * Class:     ibis_ipl_impl_mx_io_JavaMx
- * Method:    jmx_send
- * Signature: ([BIJ)Z
- */
-JNIEXPORT jboolean JNICALL Java_ibis_ipl_impl_mx_io_JavaMx_jmx_1send___3BIJ
-  (JNIEnv *env, jclass jcl, jbyteArray data, jint target, jlong match_send) {
-	mx_return_t rc;
-	mx_segment_t buffer_desc[1];
-	mx_request_t req_handle;
-	mx_status_t status;
-	uint32_t result;	
-	
-	/* TODO: check if target is valid */
-	//buffer_desc[0].segment_ptr = (*env)->GetByteArrayElements(env, data, NULL);
-	buffer_desc[0].segment_ptr = (*env)->GetPrimitiveArrayCritical(env, data, NULL);
-	buffer_desc[0].segment_length = (*env)->GetArrayLength(env, data) * sizeof(jbyte);
-	
-	rc = mx_isend(my_endpoint, buffer_desc, 1, sendlink[target].address, match_send, NULL, &req_handle);
-	if(rc != MX_SUCCESS) {
-		fprintf(stderr, "error: %s\n", mx_strerror(rc));
-		//(*env)->ReleaseByteArrayElements(env, data, buffer_desc[0].segment_ptr, 0);
-		(*env)->ReleasePrimitiveArrayCritical(env, data, buffer_desc[0].segment_ptr, 0);
-		return JNI_FALSE;
-	}
-	rc = mx_wait(my_endpoint, &req_handle, MX_INFINITE, &status, &result);
-	if(rc != MX_SUCCESS) {
-		fprintf(stderr, "error: %s\n", mx_strerror(rc));
-		//(*env)->ReleaseByteArrayElements(env, data, buffer_desc[0].segment_ptr, 0);
-		(*env)->ReleasePrimitiveArrayCritical(env, data, buffer_desc[0].segment_ptr, 0);
-		return JNI_FALSE;
-	}
-	if (result == 0) {
-		/* recv error */
-		printf("recv error\n");
-		//(*env)->ReleaseByteArrayElements(env, data, buffer_desc[0].segment_ptr, 0);
-		(*env)->ReleasePrimitiveArrayCritical(env, data, buffer_desc[0].segment_ptr, 0);
-		return JNI_FALSE;
-	}
-	//(*env)->ReleaseByteArrayElements(env, data, buffer_desc[0].segment_ptr, 0);
-	(*env)->ReleasePrimitiveArrayCritical(env, data, buffer_desc[0].segment_ptr, 0);
-	return JNI_TRUE;
-}
-
-/*
- * Class:     ibis_ipl_impl_mx_io_JavaMx
- * Method:    jmx_asend
  * Signature: (Ljava/nio/ByteBuffer;IJ)I
  */
-JNIEXPORT jint JNICALL Java_ibis_ipl_impl_mx_io_JavaMx_jmx_1asend
+JNIEXPORT jint JNICALL Java_ibis_ipl_impl_mx_io_JavaMx_jmx_1send
   (JNIEnv *env, jclass jcl, jobject buffer, jint target, jlong match_send) {
 	mx_return_t rc;
 	mx_segment_t buffer_desc[1];
@@ -376,6 +232,41 @@ JNIEXPORT jint JNICALL Java_ibis_ipl_impl_mx_io_JavaMx_jmx_1asend
 	}
 	return handle;
 }
+
+/*
+ * Class:     ibis_ipl_impl_mx_io_JavaMx
+ * Method:    jmx_sendSynchronous
+ * Signature: (Ljava/nio/ByteBuffer;IJ)I
+ */
+JNIEXPORT jint JNICALL Java_ibis_ipl_impl_mx_io_JavaMx_jmx_1sendSynchronous
+  (JNIEnv *env, jclass jcl, jobject buffer, jint target, jlong match_send) {
+	mx_return_t rc;
+	mx_segment_t buffer_desc[1];
+	jint handle;
+	mx_request_t *req_handle;
+	
+	handle = gethandle();
+	if (handle < 0) {
+		// no free link available
+		fprintf(stderr, "error: out of handles\n");
+		return -1;
+	}
+	req_handle = &(handle_list[handle].request);
+	
+	/* TODO: check if target is valid */
+	buffer_desc[0].segment_ptr = (*env)->GetDirectBufferAddress(env, buffer);
+	buffer_desc[0].segment_length = (*env)->GetDirectBufferCapacity(env, buffer);
+	
+	rc = mx_issend(my_endpoint, buffer_desc, 1, sendlink[target].address, match_send, NULL, req_handle);
+	if(rc != MX_SUCCESS) {
+		fprintf(stderr, "error: %s\n", mx_strerror(rc));
+		releasehandle(handle);
+		return -1;
+	}
+	return handle;
+}
+
+
 
 /*
  * Class:     ibis_ipl_impl_mx_io_JavaMx
@@ -420,65 +311,6 @@ JNIEXPORT jint JNICALL Java_ibis_ipl_impl_mx_io_JavaMx_jmx_1recv__Ljava_nio_Byte
 		return -1;
 	}
 	return buffer_desc[0].segment_length;
-}
-
-/*
- * Class:     ibis_ipl_impl_mx_io_JavaMx
- * Method:    jmx_recv
- * Signature: (J)[B
- */
-JNIEXPORT jbyteArray JNICALL Java_ibis_ipl_impl_mx_io_JavaMx_jmx_1recv__J
-  (JNIEnv *env, jclass jcl, jlong match_recv) {
-	mx_return_t rc;
-	mx_segment_t buffer_desc[1];
-	mx_request_t req_handle;
-	mx_status_t status;
-	uint32_t result;
-	
-	jbyteArray data;
-	
-	rc = mx_probe(my_endpoint, MX_INFINITE, match_recv, match_mask, &status, &result);
-	if(rc != MX_SUCCESS) {
-		fprintf(stderr, "error: %s\n", mx_strerror(rc));
-		return NULL;
-	}
-	if (result == 0) {
-		/* recv error */
-		fprintf(stderr, "recv error\n");
-		return NULL;
-	}
-
-	buffer_desc[0].segment_length =	status.msg_length;
-	data = (*env)->NewByteArray(env, buffer_desc[0].segment_length/sizeof(jbyte));
-	
-	//buffer_desc[0].segment_ptr = (*env)->GetByteArrayElements(env, data, NULL);
-	buffer_desc[0].segment_ptr = (*env)->GetPrimitiveArrayCritical(env, data, NULL);
-		
-	rc = mx_irecv(my_endpoint, buffer_desc, 1, match_recv, match_mask, NULL, &req_handle);
-	if(rc != MX_SUCCESS) {
-		fprintf(stderr, "error: %s\n", mx_strerror(rc));
-		//(*env)->ReleaseByteArrayElements(env, data, buffer_desc[0].segment_ptr, 0);
-		(*env)->ReleasePrimitiveArrayCritical(env, data, buffer_desc[0].segment_ptr, 0);
-		return NULL;
-	}
-	rc = mx_wait(my_endpoint, &req_handle, MX_INFINITE, &status, &result);
-	if(rc != MX_SUCCESS) {
-		fprintf(stderr, "error: %s\n", mx_strerror(rc));
-		//(*env)->ReleaseByteArrayElements(env, data, buffer_desc[0].segment_ptr, 0);
-		(*env)->ReleasePrimitiveArrayCritical(env, data, buffer_desc[0].segment_ptr, 0);
-		return NULL;
-	}
-	if (result == 0) {
-		/* recv error */
-		printf("recv error\n");
-		//(*env)->ReleaseByteArrayElements(env, data, buffer_desc[0].segment_ptr, 0);
-		(*env)->ReleasePrimitiveArrayCritical(env, data, buffer_desc[0].segment_ptr, 0);
-		return NULL;
-	}
-	
-	//(*env)->ReleaseByteArrayElements(env, data, buffer_desc[0].segment_ptr, 0);
-	(*env)->ReleasePrimitiveArrayCritical(env, data, buffer_desc[0].segment_ptr, 0);
-	return data;
 }
 
 /*

@@ -1,19 +1,19 @@
-package ibis.ipl.impl.mx.io;
+package ibis.ipl.impl.mx;
 
 public class MxException extends Exception {
+
+	
 
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = -8695500420649312554L;
 
 	public MxException() {
 		super();
-		// TODO Auto-generated constructor stub
 	}
 
 	public MxException(String message) {
 		super(message);
-		// TODO Auto-generated constructor stub
 	}
 }
