@@ -16,16 +16,19 @@ import org.apache.log4j.Logger;
 
 public class MxChannelFactory implements Runnable {
 
+	static final int IBIS_FILTER = 0xdada0001;
+	
 	private static Logger logger = Logger.getLogger(MxChannelFactory.class);
 
 	MxAddress address;
-	private int handlerId;
+	int handlerId;
+	
 	private MxIbis ibis;
 	private boolean listening = false;
 
 	public MxChannelFactory() {
-		this.handlerId = JavaMx.jmx_NewHandler();
-		this.address = new MxAddress(JavaMx.jmx_getMyNicId(handlerId), JavaMx.jmx_getMyEndpointId(handlerId));
+		this.handlerId = JavaMx.newHandler(IBIS_FILTER);
+		this.address = new MxAddress(JavaMx.getMyNicId(handlerId), JavaMx.getMyEndpointId(handlerId));
 		ThreadPool.createNew(this, "MxChannelFactory");
 	}
 
@@ -33,10 +36,6 @@ public class MxChannelFactory implements Runnable {
 		return new MxAddress(hostname, endpointId);
 	}
 	 */
-
-	public MxAddress getMyAddress() {
-		return address;
-	}
 
 	public MxWriteChannel connect(MxSendPort sp,
 			ReceivePortIdentifier rpi, long timeoutMillis) throws IOException  {
@@ -46,7 +45,6 @@ public class MxChannelFactory implements Runnable {
 		 * - make a writechannel if connection succesful
 		 */
 
-		int link = JavaMx.links.getLink();
 		IbisIdentifier id = (ibis.ipl.impl.IbisIdentifier) rpi.ibisIdentifier();
 		MxAddress target;
 		try {
@@ -54,10 +52,8 @@ public class MxChannelFactory implements Runnable {
 		} catch (Exception e) {
 			throw new PortMismatchException("Could not create MxAddress from ReceivePortIdentifier.", rpi, e);
 		}
-		MxWriteChannel channel = new MxUnreliableWriteChannel(target);
+		MxWriteChannel channel = new MxUnreliableWriteChannel(this, target, IBIS_FILTER);
 		MxDataOutputStream mxdos = new MxDataOutputStream(channel);
-
-		DataOutputStream dos = new DataOutputStream(mxdos);
 
 		channel.setPort(0);
 		channel.setProtocol(Matching.CONNECT);
@@ -77,7 +73,7 @@ public class MxChannelFactory implements Runnable {
 		// TODO: close all channels
 		// and stop listen thread
 		listening = false;
-		return JavaMx.jmx_closeHandler(handlerId);
+		return JavaMx.closeHandler(handlerId);
 	}
 
 	/* interface benodigd voor send/receiveports */
@@ -94,7 +90,6 @@ public class MxChannelFactory implements Runnable {
 	public void run() {
 		// a "Listen" thread
 		listening = true;
-		int msg_size;
 		MxReadChannel channel;
 		SendPortIdentifier spi = null;
 		ReceivePortIdentifier rpi = null;
@@ -112,7 +107,7 @@ public class MxChannelFactory implements Runnable {
 			 * create a channel and the ReceiveportConnectionInfo
 			 * Attach to the ReceivePort
 			 */
-			channel = new MxReadChannel();
+			channel = new MxReadChannel(this);
 			channel.setPort(0);
 			channel.setProtocol(Matching.CONNECT);
 			// FIXME When multiple connection requests arrive at the same time, message can be mixed up for requests consisting of multiple MX messages

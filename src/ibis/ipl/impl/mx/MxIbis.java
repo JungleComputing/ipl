@@ -34,7 +34,7 @@ public class MxIbis extends Ibis {
 	protected byte[] getData() throws IOException {
 		factory = new MxChannelFactory();
 
-		factory.getMyAddress().toBytes();
+		factory.address.toBytes();
 		return null;
 	}
 

@@ -11,27 +11,31 @@ public abstract class MxWriteChannel extends Matching {
 	protected boolean sending = false;
 	protected MxAddress target;
 	protected long matchData;
+	protected int msgSize;
 
-	protected MxWriteChannel(MxAddress target) throws IOException {
+	protected MxWriteChannel(MxChannelFactory factory, MxAddress target, int filter) throws IOException {
+		this.factory = factory;
 		this.link = JavaMx.links.getLink();
-		if(JavaMx.jmx_connect(target.nic_id, target.endpoint_id, link) == false) {
+		//TODO timeouts?
+		if(JavaMx.connect(factory.handlerId, link, target.nicId, target.endpointId, filter) == false) {
 			throw new IOException("Could not connect to target");
 		}
-		handle = JavaMx.handles.getHandle();
+		this.handle = JavaMx.handles.getHandle();
 		
 		//TODO: get a handle
 	}
 
-	void close() {
+	synchronized void close() {
 		//TODO release handles, link and buffer(s)
 		
 	}
 
-	public boolean send(ByteBuffer buffer) {
+	public synchronized boolean send(ByteBuffer buffer) {
 		if(!sending) {
 			//send_handle = JavaMx.jmx_send(buffer, buffer.remaining(), link, match);
 			doSend(buffer);
 			sending = true;
+			msgSize = buffer.remaining();
 			return true;
 		} else {
 			// exception?
@@ -41,31 +45,55 @@ public abstract class MxWriteChannel extends Matching {
 	
 	protected abstract void doSend(ByteBuffer buffer);
 
-	public int finish() {
+	public synchronized boolean finish() {
 		if(sending) {
-			int written = JavaMx.jmx_wait(handle);
-			sending = false;
-			return written;
-		} else {
-			// exception?
-			return -1;
-		}
-	}
-
-	public int poll() {
-		if(sending) {
-			int written = JavaMx.jmx_test(handle);
-			if(written >= 0) { 
-				sending = false;
+			int msgSize;
+			try {
+				msgSize = JavaMx.wait(factory.handlerId, handle);
+			} catch (MxException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				return false;
 			}
-			return written;
+			if(msgSize == -1) {
+				// TODO do something
+			}
+			sending = false;
+			if(msgSize != this.msgSize) {
+				//message truncated. Why?
+				// TODO throw exception
+				return false;
+			}
+			return true;
 		} else {
-			// exception?
-			return -1;
+			// TODO not sending, throw exception?
+			return false;
 		}
 	}
 
-	public boolean isSending() {
+	public synchronized boolean poll() {
+		if(sending) {
+			int msgSize;
+			try {
+				msgSize = JavaMx.test(factory.handlerId, handle);
+			} catch (MxException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				return false;
+			}
+			if(msgSize == -1) {
+				// TODO do something
+				return false;
+			}
+			sending = false;
+			return true;
+		} else {
+			// TODO not sending, throw exception?
+			return false;
+		}
+	}
+
+	public synchronized boolean isSending() {
 		return sending;
 	}
 	

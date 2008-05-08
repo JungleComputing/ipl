@@ -56,6 +56,7 @@ public class ReceivePortConnectionInfo {
         this.dataIn = dataIn;
         // newStream(); 
         // Moved to subtypes. Calling it here may cause deadlocks!
+        // FIXME: then this class should be abstract
         port.addInfo(origin, this);
     }
 

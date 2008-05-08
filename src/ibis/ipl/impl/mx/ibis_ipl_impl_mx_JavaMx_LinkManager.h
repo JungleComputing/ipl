@@ -9,11 +9,19 @@ extern "C" {
 #endif
 /*
  * Class:     ibis_ipl_impl_mx_JavaMx_LinkManager
- * Method:    addLinks
- * Signature: (I)Z
+ * Method:    init
+ * Signature: (II)Z
  */
-JNIEXPORT jboolean JNICALL Java_ibis_ipl_impl_mx_JavaMx_00024LinkManager_addLinks
-  (JNIEnv *, jobject, jint);
+JNIEXPORT jboolean JNICALL Java_ibis_ipl_impl_mx_JavaMx_00024LinkManager_init
+  (JNIEnv *, jobject, jint, jint);
+
+/*
+ * Class:     ibis_ipl_impl_mx_JavaMx_LinkManager
+ * Method:    addBlock
+ * Signature: ()Z
+ */
+JNIEXPORT jboolean JNICALL Java_ibis_ipl_impl_mx_JavaMx_00024LinkManager_addBlock
+  (JNIEnv *, jobject);
 
 #ifdef __cplusplus
 }

@@ -6,12 +6,12 @@ import java.nio.ByteBuffer;
 
 public class MxReliableWriteChannel extends MxWriteChannel {
 
-	MxReliableWriteChannel(MxAddress target) throws IOException {
-		super(target);
+	MxReliableWriteChannel(MxChannelFactory factory, MxAddress target, int filter) throws IOException {
+		super(factory, target, filter);
 	}
 
 	public void doSend(ByteBuffer buffer) {
-		JavaMx.jmx_sendSynchronous(buffer, buffer.remaining(), link, matchData, handle); 
+		JavaMx.sendSynchronous(buffer, buffer.remaining(), factory.handlerId, link, handle, matchData); 
 	}
 
 }

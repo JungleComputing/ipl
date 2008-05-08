@@ -9,11 +9,19 @@ extern "C" {
 #endif
 /*
  * Class:     ibis_ipl_impl_mx_JavaMx_HandleManager
- * Method:    addHandles
- * Signature: (I)Z
+ * Method:    init
+ * Signature: (II)Z
  */
-JNIEXPORT jboolean JNICALL Java_ibis_ipl_impl_mx_JavaMx_00024HandleManager_addHandles
-  (JNIEnv *, jobject, jint);
+JNIEXPORT jboolean JNICALL Java_ibis_ipl_impl_mx_JavaMx_00024HandleManager_init
+  (JNIEnv *, jobject, jint, jint);
+
+/*
+ * Class:     ibis_ipl_impl_mx_JavaMx_HandleManager
+ * Method:    addBlock
+ * Signature: ()Z
+ */
+JNIEXPORT jboolean JNICALL Java_ibis_ipl_impl_mx_JavaMx_00024HandleManager_addBlock
+  (JNIEnv *, jobject);
 
 #ifdef __cplusplus
 }

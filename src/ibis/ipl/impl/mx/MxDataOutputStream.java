@@ -54,9 +54,10 @@ public class MxDataOutputStream extends DataOutputStream {
 		// TODO Auto-generated method stub
 		if(!finished) {
 			//TODO: wait for send operation to complete
-			int bytesWritten = channel.finish();
-			//TODO: check the number of bytes written
-			finished = true;
+			finished = channel.finish();
+			if(finished != true) {
+				//TODO:some error, throw exception?
+			}
 		}
 	}
 

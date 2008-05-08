@@ -4,13 +4,11 @@
 package ibis.ipl.impl.mx;
 
 import java.io.IOException;
-import java.nio.channels.Channel;
 import java.util.Properties;
 
 import ibis.ipl.MessageUpcall;
 import ibis.ipl.PortType;
 import ibis.ipl.ReceivePortConnectUpcall;
-import ibis.ipl.ReceiveTimedOutException;
 import ibis.ipl.impl.Ibis;
 import ibis.ipl.impl.ReadMessage;
 import ibis.ipl.impl.ReceivePort;

@@ -9,122 +9,154 @@ extern "C" {
 #endif
 /*
  * Class:     ibis_ipl_impl_mx_JavaMx
- * Method:    jmx_init
+ * Method:    init
  * Signature: ()Z
  */
-JNIEXPORT jboolean JNICALL Java_ibis_ipl_impl_mx_JavaMx_jmx_1init
+JNIEXPORT jboolean JNICALL Java_ibis_ipl_impl_mx_JavaMx_init
   (JNIEnv *, jclass);
 
 /*
  * Class:     ibis_ipl_impl_mx_JavaMx
- * Method:    jmx_finalize
+ * Method:    deInit
  * Signature: ()Z
  */
-JNIEXPORT jboolean JNICALL Java_ibis_ipl_impl_mx_JavaMx_jmx_1finalize
+JNIEXPORT jboolean JNICALL Java_ibis_ipl_impl_mx_JavaMx_deInit
   (JNIEnv *, jclass);
 
 /*
  * Class:     ibis_ipl_impl_mx_JavaMx
- * Method:    jmx_NewHandler
- * Signature: ()I
- */
-JNIEXPORT jint JNICALL Java_ibis_ipl_impl_mx_JavaMx_jmx_1NewHandler
-  (JNIEnv *, jclass);
-
-/*
- * Class:     ibis_ipl_impl_mx_JavaMx
- * Method:    jmx_closeHandler
- * Signature: (I)Z
- */
-JNIEXPORT jboolean JNICALL Java_ibis_ipl_impl_mx_JavaMx_jmx_1closeHandler
-  (JNIEnv *, jclass, jint);
-
-/*
- * Class:     ibis_ipl_impl_mx_JavaMx
- * Method:    jmx_getMyNicId
- * Signature: (I)J
- */
-JNIEXPORT jlong JNICALL Java_ibis_ipl_impl_mx_JavaMx_jmx_1getMyNicId
-  (JNIEnv *, jclass, jint);
-
-/*
- * Class:     ibis_ipl_impl_mx_JavaMx
- * Method:    jmx_getMyEndpointId
+ * Method:    newHandler
  * Signature: (I)I
  */
-JNIEXPORT jint JNICALL Java_ibis_ipl_impl_mx_JavaMx_jmx_1getMyEndpointId
+JNIEXPORT jint JNICALL Java_ibis_ipl_impl_mx_JavaMx_newHandler
   (JNIEnv *, jclass, jint);
 
 /*
  * Class:     ibis_ipl_impl_mx_JavaMx
- * Method:    jmx_getNicId
+ * Method:    closeHandler
+ * Signature: (I)Z
+ */
+JNIEXPORT jboolean JNICALL Java_ibis_ipl_impl_mx_JavaMx_closeHandler
+  (JNIEnv *, jclass, jint);
+
+/*
+ * Class:     ibis_ipl_impl_mx_JavaMx
+ * Method:    getMyNicId
+ * Signature: (I)J
+ */
+JNIEXPORT jlong JNICALL Java_ibis_ipl_impl_mx_JavaMx_getMyNicId
+  (JNIEnv *, jclass, jint);
+
+/*
+ * Class:     ibis_ipl_impl_mx_JavaMx
+ * Method:    getMyEndpointId
+ * Signature: (I)I
+ */
+JNIEXPORT jint JNICALL Java_ibis_ipl_impl_mx_JavaMx_getMyEndpointId
+  (JNIEnv *, jclass, jint);
+
+/*
+ * Class:     ibis_ipl_impl_mx_JavaMx
+ * Method:    getNicId
  * Signature: (Ljava/lang/String;)J
  */
-JNIEXPORT jlong JNICALL Java_ibis_ipl_impl_mx_JavaMx_jmx_1getNicId
+JNIEXPORT jlong JNICALL Java_ibis_ipl_impl_mx_JavaMx_getNicId
   (JNIEnv *, jclass, jstring);
 
 /*
  * Class:     ibis_ipl_impl_mx_JavaMx
- * Method:    jmx_connect
- * Signature: (JII)Z
+ * Method:    connect
+ * Signature: (IIJII)Z
  */
-JNIEXPORT jboolean JNICALL Java_ibis_ipl_impl_mx_JavaMx_jmx_1connect
-  (JNIEnv *, jclass, jlong, jint, jint);
+JNIEXPORT jboolean JNICALL Java_ibis_ipl_impl_mx_JavaMx_connect__IIJII
+  (JNIEnv *, jclass, jint, jint, jlong, jint, jint);
 
 /*
  * Class:     ibis_ipl_impl_mx_JavaMx
- * Method:    jmx_disconnect
+ * Method:    connect
+ * Signature: (IIJIIJ)Z
+ */
+JNIEXPORT jboolean JNICALL Java_ibis_ipl_impl_mx_JavaMx_connect__IIJIIJ
+  (JNIEnv *, jclass, jint, jint, jlong, jint, jint, jlong);
+
+/*
+ * Class:     ibis_ipl_impl_mx_JavaMx
+ * Method:    disconnect
  * Signature: (I)Z
  */
-JNIEXPORT jboolean JNICALL Java_ibis_ipl_impl_mx_JavaMx_jmx_1disconnect
+JNIEXPORT jboolean JNICALL Java_ibis_ipl_impl_mx_JavaMx_disconnect
   (JNIEnv *, jclass, jint);
 
 /*
  * Class:     ibis_ipl_impl_mx_JavaMx
- * Method:    jmx_send
- * Signature: (Ljava/nio/ByteBuffer;IIJI)V
+ * Method:    send
+ * Signature: (Ljava/nio/ByteBuffer;IIIIJ)V
  */
-JNIEXPORT void JNICALL Java_ibis_ipl_impl_mx_JavaMx_jmx_1send
-  (JNIEnv *, jclass, jobject, jint, jint, jlong, jint);
+JNIEXPORT void JNICALL Java_ibis_ipl_impl_mx_JavaMx_send
+  (JNIEnv *, jclass, jobject, jint, jint, jint, jint, jlong);
 
 /*
  * Class:     ibis_ipl_impl_mx_JavaMx
- * Method:    jmx_sendSynchronous
- * Signature: (Ljava/nio/ByteBuffer;IIJI)V
+ * Method:    sendSynchronous
+ * Signature: (Ljava/nio/ByteBuffer;IIIIJ)V
  */
-JNIEXPORT void JNICALL Java_ibis_ipl_impl_mx_JavaMx_jmx_1sendSynchronous
-  (JNIEnv *, jclass, jobject, jint, jint, jlong, jint);
+JNIEXPORT void JNICALL Java_ibis_ipl_impl_mx_JavaMx_sendSynchronous
+  (JNIEnv *, jclass, jobject, jint, jint, jint, jint, jlong);
 
 /*
  * Class:     ibis_ipl_impl_mx_JavaMx
- * Method:    jmx_recv
- * Signature: (Ljava/nio/ByteBuffer;IJI)V
+ * Method:    recv
+ * Signature: (Ljava/nio/ByteBuffer;IIIJ)V
  */
-JNIEXPORT void JNICALL Java_ibis_ipl_impl_mx_JavaMx_jmx_1recv__Ljava_nio_ByteBuffer_2IJI
-  (JNIEnv *, jclass, jobject, jint, jlong, jint);
+JNIEXPORT void JNICALL Java_ibis_ipl_impl_mx_JavaMx_recv__Ljava_nio_ByteBuffer_2IIIJ
+  (JNIEnv *, jclass, jobject, jint, jint, jint, jlong);
 
 /*
  * Class:     ibis_ipl_impl_mx_JavaMx
- * Method:    jmx_recv
- * Signature: (Ljava/nio/ByteBuffer;IJJI)V
+ * Method:    recv
+ * Signature: (Ljava/nio/ByteBuffer;IIIJJ)V
  */
-JNIEXPORT void JNICALL Java_ibis_ipl_impl_mx_JavaMx_jmx_1recv__Ljava_nio_ByteBuffer_2IJJI
-  (JNIEnv *, jclass, jobject, jint, jlong, jlong, jint);
+JNIEXPORT void JNICALL Java_ibis_ipl_impl_mx_JavaMx_recv__Ljava_nio_ByteBuffer_2IIIJJ
+  (JNIEnv *, jclass, jobject, jint, jint, jint, jlong, jlong);
 
 /*
  * Class:     ibis_ipl_impl_mx_JavaMx
- * Method:    jmx_wait
- * Signature: (I)I
+ * Method:    wait
+ * Signature: (II)I
  */
-JNIEXPORT jint JNICALL Java_ibis_ipl_impl_mx_JavaMx_jmx_1wait
-  (JNIEnv *, jclass, jint);
+JNIEXPORT jint JNICALL Java_ibis_ipl_impl_mx_JavaMx_wait__II
+  (JNIEnv *, jclass, jint, jint);
 
 /*
  * Class:     ibis_ipl_impl_mx_JavaMx
- * Method:    jmx_test
- * Signature: (I)I
+ * Method:    wait
+ * Signature: (IIJ)I
  */
-JNIEXPORT jint JNICALL Java_ibis_ipl_impl_mx_JavaMx_jmx_1test
+JNIEXPORT jint JNICALL Java_ibis_ipl_impl_mx_JavaMx_wait__IIJ
+  (JNIEnv *, jclass, jint, jint, jlong);
+
+/*
+ * Class:     ibis_ipl_impl_mx_JavaMx
+ * Method:    test
+ * Signature: (II)I
+ */
+JNIEXPORT jint JNICALL Java_ibis_ipl_impl_mx_JavaMx_test
+  (JNIEnv *, jclass, jint, jint);
+
+/*
+ * Class:     ibis_ipl_impl_mx_JavaMx
+ * Method:    cancel
+ * Signature: (II)Z
+ */
+JNIEXPORT jboolean JNICALL Java_ibis_ipl_impl_mx_JavaMx_cancel
+  (JNIEnv *, jclass, jint, jint);
+
+/*
+ * Class:     ibis_ipl_impl_mx_JavaMx
+ * Method:    wakeup
+ * Signature: (I)V
+ */
+JNIEXPORT void JNICALL Java_ibis_ipl_impl_mx_JavaMx_wakeup
   (JNIEnv *, jclass, jint);
 
 #ifdef __cplusplus

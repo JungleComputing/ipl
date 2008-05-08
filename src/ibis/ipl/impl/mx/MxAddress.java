@@ -1,7 +1,4 @@
 package ibis.ipl.impl.mx;
-import ibis.ipl.impl.IbisIdentifier;
-import ibis.ipl.impl.ReceivePortIdentifier;
-
 import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -22,22 +19,22 @@ class MxAddress implements Serializable {
 		return new MxAddress(buf.getLong(), buf.getInt());
 	}
 	
-	final long nic_id;
-	final int endpoint_id;
+	final long nicId;
+	final int endpointId;
 
 	protected MxAddress(String hostname, int endpoint_id) {
-		this.nic_id = JavaMx.jmx_getNicId(hostname);
-		this.endpoint_id = endpoint_id;
+		this.nicId = JavaMx.getNicId(hostname);
+		this.endpointId = endpoint_id;
 	}
 	
 	protected MxAddress(long nic_id, int endpoint_id) {
-		this.nic_id = nic_id;
-		this.endpoint_id = endpoint_id;
+		this.nicId = nic_id;
+		this.endpointId = endpoint_id;
 	}
 
 //	@Override
 	public String toString() {
-		return "mx::" + Long.toHexString(nic_id) + "<" + endpoint_id + ">";
+		return "mx::" + Long.toHexString(nicId) + "<" + endpointId + ">";
 	}
 
 	public byte[] toBytes() {
@@ -48,8 +45,8 @@ class MxAddress implements Serializable {
 		//FIXME Maybe we shouldn't use characters directly (UTF problems?)
 		buf.putChar('m');
 		buf.putChar('x');
-		buf.putLong(nic_id);
-		buf.putLong(endpoint_id);
+		buf.putLong(nicId);
+		buf.putLong(endpointId);
 		
 		return bytes;
 	}
