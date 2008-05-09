@@ -17,7 +17,7 @@ public class MxReadChannel extends Matching implements ReadableByteChannel {
 
 	public void close() {
 		//TODO release handles and buffer(s)
-		JavaMx.cancel(factory.handlerId, handle);
+		JavaMx.cancel(factory.endpointId, handle);
 		
 		JavaMx.handles.releaseHandle(handle);
 		closed = true;
@@ -33,7 +33,7 @@ public class MxReadChannel extends Matching implements ReadableByteChannel {
 	public synchronized int read(ByteBuffer buffer) throws IOException {
 		int msgSize;
 		try {
-			msgSize = JavaMx.wait(factory.handlerId, handle);
+			msgSize = JavaMx.wait(factory.endpointId, handle);
 		} catch (MxException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -45,7 +45,7 @@ public class MxReadChannel extends Matching implements ReadableByteChannel {
 			return -1;
 		}
 		try {
-			JavaMx.recv(buffer, buffer.remaining(), factory.handlerId, handle, matchData);
+			JavaMx.recv(buffer, buffer.remaining(), factory.endpointId, handle, matchData);
 		} catch (MxException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

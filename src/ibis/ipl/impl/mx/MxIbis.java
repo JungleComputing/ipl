@@ -59,13 +59,4 @@ public class MxIbis extends Ibis {
 		// TODO maybe some portType-specific stuff later
 		return new MxSendPort(this, tp, name, cu, properties);
 	}
-
-	protected MxChannelFactory getFactory() {
-		return factory;
-	}
-
-/*	protected MxChannelFactory getChannelFactory() {
-		return factory;
-	}
-*/
 }

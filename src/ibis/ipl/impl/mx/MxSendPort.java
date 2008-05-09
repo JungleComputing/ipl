@@ -19,7 +19,7 @@ public class MxSendPort extends SendPort {
 			SendPortDisconnectUpcall connectUpcall, Properties properties)
 			throws IOException {
 		super(ibis, type, name, connectUpcall, properties);
-		factory = ibis.getFactory();
+		factory = ibis.factory;
 		// TODO Auto-generated constructor stub
 		
 		initStream(new MxDataOutputStream(null)); // or something like this

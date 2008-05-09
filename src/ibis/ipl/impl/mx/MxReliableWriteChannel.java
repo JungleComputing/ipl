@@ -11,7 +11,7 @@ public class MxReliableWriteChannel extends MxWriteChannel {
 	}
 
 	public void doSend(ByteBuffer buffer) {
-		JavaMx.sendSynchronous(buffer, buffer.remaining(), factory.handlerId, link, handle, matchData); 
+		JavaMx.sendSynchronous(buffer, buffer.remaining(), factory.endpointId, link, handle, matchData); 
 	}
 
 }

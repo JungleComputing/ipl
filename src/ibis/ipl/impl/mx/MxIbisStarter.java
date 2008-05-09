@@ -39,6 +39,7 @@ static final IbisCapabilities ibisCapabilities = new IbisCapabilities(
 
 static final PortType portCapabilities = new PortType(
 	PortType.SERIALIZATION_BYTE,
+	PortType.COMMUNICATION_FIFO,
     PortType.CONNECTION_ONE_TO_ONE,
     PortType.RECEIVE_EXPLICIT
 ); 
@@ -49,7 +50,6 @@ static final PortType portCapabilities = new PortType(
     PortType.SERIALIZATION_OBJECT,
     PortType.SERIALIZATION_DATA,
     PortType.COMMUNICATION_RELIABLE,
-    PortType.COMMUNICATION_FIFO,
     PortType.COMMUNICATION_NUMBERED,
     PortType.CONNECTION_DOWNCALLS,
     PortType.CONNECTION_UPCALLS,

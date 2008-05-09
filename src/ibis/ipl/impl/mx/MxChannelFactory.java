@@ -21,14 +21,14 @@ public class MxChannelFactory implements Runnable {
 	private static Logger logger = Logger.getLogger(MxChannelFactory.class);
 
 	MxAddress address;
-	int handlerId;
+	int endpointId;
 	
 	private MxIbis ibis;
 	private boolean listening = false;
 
 	public MxChannelFactory() {
-		this.handlerId = JavaMx.newHandler(IBIS_FILTER);
-		this.address = new MxAddress(JavaMx.getMyNicId(handlerId), JavaMx.getMyEndpointId(handlerId));
+		this.endpointId = JavaMx.newEndpoint(IBIS_FILTER);
+		this.address = new MxAddress(JavaMx.getMyNicId(endpointId), JavaMx.getMyEndpointId(endpointId));
 		ThreadPool.createNew(this, "MxChannelFactory");
 	}
 
@@ -73,13 +73,12 @@ public class MxChannelFactory implements Runnable {
 		// TODO: close all channels
 		// and stop listen thread
 		listening = false;
-		return JavaMx.closeHandler(handlerId);
+		return JavaMx.closeEndpoint(endpointId);
 	}
-
-	/* interface benodigd voor send/receiveports */
 
 	public void listen() {
 		//TODO do listening in a thread?
+		
 	}
 
 	public boolean close(MxWriteChannel conn) {
@@ -147,12 +146,12 @@ public class MxChannelFactory implements Runnable {
 					mxdis.resetBytesRead();
 					try {
 						info = new MxReceivePortConnectionInfo(spi, port, mxdis);
+						// channel is now connected to the ReceivePort
 					} catch (IOException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 						reply = ReceivePort.DENIED;
 						// TODO clean up mess
-					} // channel is now connected to the ReceivePort	
+					} 
 				}
 				// TODO send reply
 				//accumulator.writeByte(reply);

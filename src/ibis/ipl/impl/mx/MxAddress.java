@@ -27,9 +27,9 @@ class MxAddress implements Serializable {
 		this.endpointId = endpoint_id;
 	}
 	
-	protected MxAddress(long nic_id, int endpoint_id) {
-		this.nicId = nic_id;
-		this.endpointId = endpoint_id;
+	protected MxAddress(long nicId, int endpointId) {
+		this.nicId = nicId;
+		this.endpointId = endpointId;
 	}
 
 //	@Override

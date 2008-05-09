@@ -17,7 +17,7 @@ public abstract class MxWriteChannel extends Matching {
 		this.factory = factory;
 		this.link = JavaMx.links.getLink();
 		//TODO timeouts?
-		if(JavaMx.connect(factory.handlerId, link, target.nicId, target.endpointId, filter) == false) {
+		if(JavaMx.connect(factory.endpointId, link, target.nicId, target.endpointId, filter) == false) {
 			throw new IOException("Could not connect to target");
 		}
 		this.handle = JavaMx.handles.getHandle();
@@ -49,7 +49,7 @@ public abstract class MxWriteChannel extends Matching {
 		if(sending) {
 			int msgSize;
 			try {
-				msgSize = JavaMx.wait(factory.handlerId, handle);
+				msgSize = JavaMx.wait(factory.endpointId, handle);
 			} catch (MxException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -75,7 +75,7 @@ public abstract class MxWriteChannel extends Matching {
 		if(sending) {
 			int msgSize;
 			try {
-				msgSize = JavaMx.test(factory.handlerId, handle);
+				msgSize = JavaMx.test(factory.endpointId, handle);
 			} catch (MxException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

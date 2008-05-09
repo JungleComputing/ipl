@@ -15,6 +15,7 @@ final class JavaMx {
 			this.activeHandles = 0;
 			this.inUse = new boolean[size];
 			if (init(blockSize, maxBlocks) == false) {
+				//TODO MxException should only be thrown by native code?
 				throw new MxException("HandleManager: could not initialize Handles.");
 			}
 			// init calls to C library
@@ -56,6 +57,7 @@ final class JavaMx {
 			this.activeTargets = 0;
 			inUse = new boolean[size];
 			if (init(blockSize, maxBlocks) == false) {
+				//TODO MxException should only be thrown by native code?
 				throw new MxException("LinkManager: could not initialize Links.");
 			}
 			// init calls to C library
@@ -87,7 +89,6 @@ final class JavaMx {
 		
 	}
 	
-	static int endpointsInUse = 0;
 	static boolean initialized = false;
 	static HandleManager handles;
 	static LinkManager links;
@@ -117,29 +118,29 @@ final class JavaMx {
 	static native boolean init();
 	static native boolean deInit();
 	
-	static native int newHandler(int filter); 
-	static native boolean closeHandler(int handlerId);
+	static native int newEndpoint(int filter); 
+	static native boolean closeEndpoint(int endpointId);
 	
-	static native long getMyNicId(int handlerId);
-	static native int getMyEndpointId(int handlerId);
+	static native long getMyNicId(int endpointId);
+	static native int getMyEndpointId(int endpointId);
 	static native long getNicId(String name);
 	
-	static native boolean connect(int handlerId, int link, long nicId, int endpointId, int filter);
-	static native boolean connect(int handlerId, int link, long nicId, int endpointId, int filter, long timeout);
+	static native boolean connect(int endpointId, int link, long targetNicId, int targetEndpoint, int filter);
+	static native boolean connect(int endpointId, int link, long targetNicId, int targetEndpoint, int filter, long timeout);
 	static native boolean disconnect(int link);
 
-	static native void send(ByteBuffer buffer, int bufsize, int handlerId, int link, int handle, long matchData);
-	static native void sendSynchronous(ByteBuffer buffer, int bufsize, int handlerId, int link, int handle, long matchData); // returns a handle
+	static native void send(ByteBuffer buffer, int bufsize, int endpointId, int link, int handle, long matchData);
+	static native void sendSynchronous(ByteBuffer buffer, int bufsize, int endpointId, int link, int handle, long matchData); // returns a handle
 	
-	static native void recv(ByteBuffer buffer, int bufsize, int handlerId, int handle, long matchData) throws MxException; // returns a handle
-	static native void recv(ByteBuffer buffer, int bufsize, int handlerId, int handle, long matchData, long matchMask) throws MxException; // returns a handle
+	static native void recv(ByteBuffer buffer, int bufsize, int endpointId, int handle, long matchData) throws MxException; // returns a handle
+	static native void recv(ByteBuffer buffer, int bufsize, int endpointId, int handle, long matchData, long matchMask) throws MxException; // returns a handle
 	
-	static native int wait(int handlerId, int handle) throws MxException; // return message size by success, -1, when unsuccesful
-	static native int wait(int handlerId, int handle, long timeout) throws MxException; // return message size by success, -1, when unsuccesful
-	static native int test(int handlerId, int handle) throws MxException; // return message size by success, -1, when unsuccesful
+	static native int wait(int endpointId, int handle) throws MxException; // return message size by success, -1, when unsuccesful
+	static native int wait(int endpointId, int handle, long timeout) throws MxException; // return message size by success, -1, when unsuccesful
+	static native int test(int endpointId, int handle) throws MxException; // return message size by success, -1, when unsuccesful
 	
-	static native boolean cancel(int handlerId, int handle);
-	static native void wakeup(int handlerId);
+	static native boolean cancel(int endpointId, int handle);
+	static native void wakeup(int endpointId);
 	
 	/*
 	static native boolean jmx_probe();

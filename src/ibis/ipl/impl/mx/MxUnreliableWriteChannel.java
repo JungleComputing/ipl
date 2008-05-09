@@ -11,7 +11,7 @@ public class MxUnreliableWriteChannel extends MxWriteChannel {
 	}
 
 	public void doSend(ByteBuffer buffer) {
-		JavaMx.send(buffer, buffer.remaining(), factory.handlerId, link, handle, matchData); 
+		JavaMx.send(buffer, buffer.remaining(), factory.endpointId, link, handle, matchData); 
 	}
 
 }
