@@ -55,8 +55,8 @@ one of which is version 2.0 of the Apache license. It lives in
 This product includes the UPNP library from SuperBonBon Industries. Its
 license lives in "notices/LICENSE.apache-2.0.txt".
 
-This product includes the Ganymed SSH-2 library from ETHZ. Its license
-lives in "notices/LICENSE.ganymed.txt".
+This product includes the trilead SSH-2 library. Its license
+lives in "notices/LICENSE.trilead.txt".
 
 This product includes software developed by TouchGraph LLC
 (http://www.touchgraph.com/). Its license lives in
