@@ -62,36 +62,34 @@ final class ThreadNioDissipator extends NioDissipator {
     synchronized void doRead() {
         boolean bufferWasEmpty;
 
-        synchronized (this) {
-            try {
-                if (!reading) {
-                    return;
-                }
-
-                bufferWasEmpty = (unUsedLength() == 0);
-
-                readFromChannel();
-
-                // no use reading anymore, it's already full
-                if (!buffer.hasRemaining()) {
-                    key.interestOps(0);
-                    reading = false;
-                }
-
-                if (minimum != 0 && unUsedLength() >= minimum) {
-                    notifyAll();
-                }
-            } catch (IOException e) {
-                error = e;
-                key.interestOps(0);
-                reading = false;
-                try {
-                    channel.close();
-                } catch (IOException e2) {
-                    // IGNORE
-                }
+        try {
+            if (!reading) {
                 return;
             }
+
+            bufferWasEmpty = (unUsedLength() == 0);
+
+            readFromChannel();
+
+            // no use reading anymore, it's already full
+            if (!buffer.hasRemaining()) {
+                key.interestOps(0);
+                reading = false;
+            }
+
+            if (minimum != 0 && unUsedLength() >= minimum) {
+                notifyAll();
+            }
+        } catch (IOException e) {
+            error = e;
+            key.interestOps(0);
+            reading = false;
+            try {
+                channel.close();
+            } catch (IOException e2) {
+                // IGNORE
+            }
+            return;
         }
         // signal the port data is available in this dissipator now
         if (bufferWasEmpty) {
