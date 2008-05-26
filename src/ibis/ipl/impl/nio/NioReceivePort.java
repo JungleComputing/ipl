@@ -91,6 +91,8 @@ abstract class NioReceivePort extends ibis.ipl.impl.ReceivePort implements
      * until System.getTimeMillis >= deadline if deadline > 0 - for(ever) if
      * deadline == 0
      * 
+     * This method assumes that the caller holds the monitor on this instance.
+     * 
      * @return true we (might have been) notified, or false if the deadline
      *         passed
      */
