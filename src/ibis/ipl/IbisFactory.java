@@ -27,7 +27,7 @@ import java.util.jar.Manifest;
  * This entry should contain a comma- or space-separated list of class names,
  * where each class named provides an {@link IbisStarter} implementation. In
  * addition, a property "IPL-Version" should be defined in the manifest,
- * containing a version number starting with 2.0.
+ * containing a version number (e.g. 2.1).
  */
 public final class IbisFactory {
 
@@ -109,7 +109,7 @@ public final class IbisFactory {
 
     /**
      * Creates a new Ibis instance, based on the required capabilities and port
-     * types.
+     * types. As the set of properties, the default properties are used.
      * 
      * @param requiredCapabilities
      *            ibis capabilities required by the application.
@@ -143,7 +143,8 @@ public final class IbisFactory {
      *            searching ibis implementations, or which registry to use.
      *            There is a default, so <code>null</code> may be specified.
      * @param addDefaultConfigProperties
-     *            adds the default hard-wired properties, for as far as these
+     *            adds the default properties, loaded from the system 
+     *            properties, a "ibis.properties" file, etc, for as far as these
      *            are not set in the <code>properties</code> parameter.
      * @param registryEventHandler
      *            a {@link ibis.ipl.RegistryEventHandler RegistryEventHandler}
