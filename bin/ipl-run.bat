@@ -13,7 +13,7 @@ set IPL_APP_ARGS=
 
 :setupArgs
 if ""%1""=="""" goto doneStart
-set IPL_APP_ARGS=%IPL_APP_ARGS% "%1"
+set IPL_APP_ARGS=%IPL_APP_ARGS% %1
 shift
 goto setupArgs
 
