@@ -83,10 +83,10 @@ public final class IbisFactory {
         // If we found no starters then see if we have starters of last resort
         if (compnts.size() == 0) {
             String startersOfLastResort = properties.getProperty("ibis.starters");
+            ArrayList<Class<? extends IbisStarter>> foundStarters = new ArrayList<Class<? extends IbisStarter>>();
             if (startersOfLastResort != null) {
                 StringTokenizer st =
                     new StringTokenizer(startersOfLastResort, ",");
-                ArrayList<Class<? extends IbisStarter>> foundStarters = new ArrayList<Class<? extends IbisStarter>>();
                 while (st.hasMoreTokens()) {
                     String starterClassName = st.nextToken();
                         try {
@@ -98,10 +98,9 @@ public final class IbisFactory {
                         }
                 }
                 // Finish the setup based on these found starters
-                implList = (Class<? extends IbisStarter>[]) foundStarters.toArray(new Class[foundStarters.size()]);
             }
-        }
-        else {
+            implList = (Class<? extends IbisStarter>[]) foundStarters.toArray(new Class[foundStarters.size()]);
+        } else {
             implList = (Class<? extends IbisStarter>[]) compnts.toArray(new Class[compnts.size()]);
         }
         starters = new IbisStarter[implList.length];
