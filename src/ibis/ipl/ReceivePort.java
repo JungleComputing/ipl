@@ -36,7 +36,7 @@ import java.io.IOException;
  * support blocking receive, but NOT both!  The message object
  * is always destroyed when it is finished.
  *
- * The following {@link Managable} items are recognized:
+ * The following {@link Manageable} items are recognized:
  * <br>
  * "Messages"  the number of messages received;
  * <br>
@@ -52,7 +52,7 @@ import java.io.IOException;
  *
  * Other items may be recognized, depending on the Ibis implementation.
  */
-public interface ReceivePort extends Managable {
+public interface ReceivePort extends Manageable {
 
     /**
      * Returns the type that was used to create this port.

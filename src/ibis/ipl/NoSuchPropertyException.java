@@ -6,7 +6,7 @@ package ibis.ipl;
  * Signals an illegal property name. A
  * <code>NoSuchPropertyException</code> is thrown to indicate
  * that an illegal property name was used in one of the methods from
- * the {@link Managable} interface.
+ * the {@link Manageable} interface.
  */
 public class NoSuchPropertyException extends Exception {
 

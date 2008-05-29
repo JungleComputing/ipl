@@ -4,10 +4,10 @@ import java.io.PrintStream;
 import java.util.Map;
 
 /**
- * A <code>Managable</code> class is able to read and set
+ * A <code>Manageable</code> class is able to read and set
  * implementation-dependant management properties.
  */
-public interface Managable {
+public interface Manageable {
     /**
      * Returns the managemen properties.
      * 

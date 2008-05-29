@@ -21,7 +21,7 @@ import org.apache.log4j.Logger;
  * Implementation of the {@link ibis.ipl.ReceivePort} interface, to be extended
  * by specific Ibis implementations.
  */
-public abstract class ReceivePort extends Managable
+public abstract class ReceivePort extends Manageable
         implements ibis.ipl.ReceivePort {
 
     /** Debugging output. */

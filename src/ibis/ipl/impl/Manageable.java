@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
-public class Managable implements ibis.ipl.Managable {
+public class Manageable implements ibis.ipl.Manageable {
 
     private HashSet<String> validKeys = new HashSet<String>();
 

@@ -28,7 +28,7 @@ import org.apache.log4j.Logger;
  * Implementation of the {@link ibis.ipl.SendPort} interface, to be extended
  * by specific Ibis implementations.
  */
-public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
+public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
 
     /** Debugging output. */
     private static final Logger logger = Logger.getLogger("ibis.ipl.impl.SendPort");
