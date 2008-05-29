@@ -9,7 +9,7 @@ import java.util.Map;
  */
 public interface Manageable {
     /**
-     * Returns the managemen properties.
+     * Returns the management properties.
      * 
      * @return the management properties.
      */
