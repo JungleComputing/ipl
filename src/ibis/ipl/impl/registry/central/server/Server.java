@@ -93,7 +93,7 @@ public final class Server extends Thread implements Service {
 
         if (result == null || result.hasEnded()) {
             // print message
-            System.out.println("Central Registry: creating new pool: \""
+            System.err.println("Central Registry: creating new pool: \""
                     + poolName + "\"");
 
             result = new Pool(poolName, socketFactory, peerBootstrap,
@@ -145,19 +145,19 @@ public final class Server extends Thread implements Service {
         while (!stopped) {
             if (pools.size() > 0) {
                 if (printStats) {
-                    System.out.println("list of pools:");
-                    System.out
+                    System.err.println("list of pools:");
+                    System.err
                             .println("        CURRENT_SIZE JOINS LEAVES DIEDS ELECTIONS SIGNALS FIXED_SIZE CLOSED ENDED");
                 }
 
                 // copy values to new array so we can do "remove" on original
                 for (Pool pool : pools.values().toArray(new Pool[0])) {
                     if (printStats) {
-                        System.out.println(pool.getStatsString());
+                        System.err.println(pool.getStatsString());
                     }
 
                     if (pool.hasEnded()) {
-                        System.out.println("Central Registry: pool \""
+                        System.err.println("Central Registry: pool \""
                                 + pool.getName() + "\" ended");
                         pool.saveStatistics();
                         pools.remove(pool.getName());

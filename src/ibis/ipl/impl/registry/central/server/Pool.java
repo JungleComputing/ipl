@@ -154,7 +154,7 @@ final class Pool implements Runnable {
         DateFormat format =
             DateFormat.getTimeInstance(DateFormat.MEDIUM, Locale.FRANCE);
 
-        System.out.println(format.format(new Date(System.currentTimeMillis()))
+        System.err.println(format.format(new Date(System.currentTimeMillis()))
                 + " Central Registry: " + message);
 
     }
@@ -421,7 +421,7 @@ final class Pool implements Runnable {
             if (printErrors) {
                 print(identifier + " died in pool \"" + name + "\" now "
                         + members.size() + " members, caused by:");
-                exception.printStackTrace(System.out);
+                exception.printStackTrace(System.err);
             } else {
                 print(identifier + " died in pool \"" + name + "\" now "
                         + members.size() + " members");
@@ -730,7 +730,7 @@ final class Pool implements Runnable {
             if (isMember(member)) {
                 if (printErrors) {
                     print("cannot reach " + member + " to push events to");
-//                    e.printStackTrace(System.out);
+//                    e.printStackTrace(System.err);
                 }
             }
 
