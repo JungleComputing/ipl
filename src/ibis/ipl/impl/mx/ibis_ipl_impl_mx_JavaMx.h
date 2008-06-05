@@ -146,10 +146,10 @@ JNIEXPORT jint JNICALL Java_ibis_ipl_impl_mx_JavaMx_test
 /*
  * Class:     ibis_ipl_impl_mx_JavaMx
  * Method:    iprobe
- * Signature: (IJJJ)I
+ * Signature: (IJJ)I
  */
 JNIEXPORT jint JNICALL Java_ibis_ipl_impl_mx_JavaMx_iprobe
-  (JNIEnv *, jclass, jint, jlong, jlong, jlong);
+  (JNIEnv *, jclass, jint, jlong, jlong);
 
 /*
  * Class:     ibis_ipl_impl_mx_JavaMx
