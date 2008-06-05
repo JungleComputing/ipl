@@ -1,55 +1,74 @@
 package ibis.ipl.impl.mx;
 
+import ibis.ipl.ConnectionClosedException;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.ReadableByteChannel;
 
-public class MxReadChannel extends Matching implements ReadableByteChannel {
-	int handle;
-	boolean closed;
+public class MxReadChannel extends Matching {
+	protected int handle;
+	protected int endpointId;
+	protected boolean closed, receiving;
 	protected MxChannelFactory factory;
 	
+	/**
+	 * @param factory
+	 */
 	MxReadChannel(MxChannelFactory factory) {
 		this.factory = factory;
 		handle = JavaMx.handles.getHandle();
-		closed = false;
+		this.endpointId = factory.endpointId;
+		closed = receiving = false;
 	}
 
 	public void close() {
-		//TODO release handles and buffer(s)
-		JavaMx.cancel(factory.endpointId, handle);
-		
-		JavaMx.handles.releaseHandle(handle);
+		if(closed) {
+			return;
+		}
 		closed = true;
+		while(receiving) {
+			JavaMx.cancel(factory.endpointId, handle); //really stop current reception, or wait for it?
+		}
+		JavaMx.handles.releaseHandle(handle);
 	}
 	
 	@Override
 	protected void finalize() throws Throwable {
-		// TODO Auto-generated method stub
 		close();
 		super.finalize();
 	}
 
-	public synchronized int read(ByteBuffer buffer) throws IOException {
+	
+	public int read(ByteBuffer buffer) throws IOException {
 		int msgSize;
+		
+		synchronized(this) {
+			while(receiving == true) {
+				try {
+					wait();
+				} catch (InterruptedException e) {
+					// ignore
+				}
+			}
+			if(closed) {
+				throw new ConnectionClosedException();
+			}
+			receiving = true;
+		}
 		try {
+			JavaMx.recv(buffer, buffer.position(), buffer.remaining(), endpointId, handle, matchData);
 			msgSize = JavaMx.wait(factory.endpointId, handle);
+			buffer.position(buffer.limit());
 		} catch (MxException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return -1;
+			receiving = false;
+			notifyAll();
+			throw(e);
 		}
-
+		receiving = false;
+		notifyAll();
+		
 		if(msgSize == -1) { //error
-			// TODO throw exception
-			return -1;
-		}
-		try {
-			JavaMx.recv(buffer, buffer.remaining(), factory.endpointId, handle, matchData);
-		} catch (MxException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return -1;
+			throw new MxException("Message not arrived");
 		}
 		return msgSize;
 	}
@@ -57,7 +76,14 @@ public class MxReadChannel extends Matching implements ReadableByteChannel {
 	public boolean isOpen() {
 		return !closed;
 	}
-	
-	
-	
+
+	public synchronized int poll() {
+		if(closed) {
+			return 0;
+		}
+		if(receiving) {
+			return 0;
+		}
+		return = JavaMx.iprobe(endpointId, matchData, MASK_NONE); //-1 when no message available
+	}
 }

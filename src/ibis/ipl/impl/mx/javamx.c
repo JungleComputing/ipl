@@ -175,7 +175,7 @@ JNIEXPORT jint JNICALL Java_ibis_ipl_impl_mx_JavaMx_newEndpoint
 }
 
 /* closeEndpoint() */
-JNIEXPORT jboolean JNICALL Java_ibis_ipl_impl_mx_JavaMx_closeEndpoint
+JNIEXPORT void JNICALL Java_ibis_ipl_impl_mx_JavaMx_closeEndpoint
   (JNIEnv *env, jclass jcl, jint endpointId) {
 	//TODO is a boolean, make it a void function?
 	if(endpointId != 1) {
@@ -308,7 +308,7 @@ JNIEXPORT jboolean JNICALL Java_ibis_ipl_impl_mx_JavaMx_disconnect
 
 /* send() */
 JNIEXPORT void JNICALL Java_ibis_ipl_impl_mx_JavaMx_send
-  (JNIEnv *env, jclass jcl, jobject buffer, jint bufferSize, jint endpointId, jint link, jint handle, jlong matchData) {
+  (JNIEnv *env, jclass jcl, jobject buffer, jint offset, jint bufferSize, jint endpointId, jint link, jint handle, jlong matchData) {
 	mx_return_t rc;
 	mx_segment_t bufferDesc[1];
 	mx_request_t *request;
@@ -338,7 +338,7 @@ JNIEXPORT void JNICALL Java_ibis_ipl_impl_mx_JavaMx_send
 		return;
 	}
 	
-	bufferDesc[0].segment_ptr = (*env)->GetDirectBufferAddress(env, buffer);
+	bufferDesc[0].segment_ptr = (*env)->GetDirectBufferAddress(env, buffer) + offset;
 	bufferDesc[0].segment_length = (uint32_t)bufferSize;
 	
 	rc = mx_isend(myEndpoint, bufferDesc, 1, *target, matchData, NULL, request);
@@ -351,7 +351,7 @@ JNIEXPORT void JNICALL Java_ibis_ipl_impl_mx_JavaMx_send
 
 /* sendSynchronous() */
 JNIEXPORT void JNICALL Java_ibis_ipl_impl_mx_JavaMx_sendSynchronous
-  (JNIEnv *env, jclass jcl, jobject buffer, jint bufferSize, jint endpointId, jint link, jint handle, jlong matchData) {
+  (JNIEnv *env, jclass jcl, jobject buffer, jint offset, jint bufferSize, jint endpointId, jint link, jint handle, jlong matchData) {
 	mx_return_t rc;
 	mx_segment_t bufferDesc[1];
 	mx_request_t *request;
@@ -382,7 +382,7 @@ JNIEXPORT void JNICALL Java_ibis_ipl_impl_mx_JavaMx_sendSynchronous
 	}
 	
 	/* TODO: check if target is valid */
-	bufferDesc[0].segment_ptr = (*env)->GetDirectBufferAddress(env, buffer);
+	bufferDesc[0].segment_ptr = (*env)->GetDirectBufferAddress(env, buffer) + offset;
 	bufferDesc[0].segment_length = (uint32_t)bufferSize;
 	
 	rc = mx_issend(myEndpoint, bufferDesc, 1, *target, matchData, NULL, request);
@@ -395,13 +395,13 @@ JNIEXPORT void JNICALL Java_ibis_ipl_impl_mx_JavaMx_sendSynchronous
 
 /* recv() without mask */
 JNIEXPORT void JNICALL Java_ibis_ipl_impl_mx_JavaMx_recv__Ljava_nio_ByteBuffer_2IIIJ
-  (JNIEnv *env, jclass jcl, jobject buffer, jint bufferSize, jint endpointId, jint handle, jlong matchData) {
-	Java_ibis_ipl_impl_mx_JavaMx_recv__Ljava_nio_ByteBuffer_2IIIJJ(env, jcl, buffer, bufferSize, endpointId, handle, matchData, MX_MATCH_MASK_NONE);
+  (JNIEnv *env, jclass jcl, jobject buffer, jint offset, jint bufferSize, jint endpointId, jint handle, jlong matchData) {
+	Java_ibis_ipl_impl_mx_JavaMx_recv__Ljava_nio_ByteBuffer_2IIIJJ(env, jcl, buffer, offset, bufferSize, endpointId, handle, matchData, MX_MATCH_MASK_NONE);
 }
 
 /* recv() with mask */
 JNIEXPORT void JNICALL Java_ibis_ipl_impl_mx_JavaMx_recv__Ljava_nio_ByteBuffer_2IIIJJ
-  (JNIEnv *env, jclass jcl, jobject buffer, jint bufferSize, jint endpointId, jint handle, jlong matchData, jlong matchMask) {
+  (JNIEnv *env, jclass jcl, jobject buffer, jint offset, jint bufferSize, jint endpointId, jint handle, jlong matchData, jlong matchMask) {
 	mx_return_t rc;
 	mx_segment_t buffer_desc[1];
 
@@ -421,7 +421,7 @@ JNIEXPORT void JNICALL Java_ibis_ipl_impl_mx_JavaMx_recv__Ljava_nio_ByteBuffer_2
 		return;
 	}
 	
-	buffer_desc[0].segment_ptr = (*env)->GetDirectBufferAddress(env, buffer);
+	buffer_desc[0].segment_ptr = (*env)->GetDirectBufferAddress(env, buffer) + offset;
 	buffer_desc[0].segment_length = (uint32_t)bufferSize;
 
 	rc = mx_irecv(myEndpoint, buffer_desc, 1, matchData, matchMask, NULL, request);
@@ -467,14 +467,13 @@ JNIEXPORT jint JNICALL Java_ibis_ipl_impl_mx_JavaMx_wait__IIJ
 		return -1;
 	}
 	if (result == 0) {
-		/* recv error */
-		fprintf(stderr, "wait error\n");
+		// Request is not finished yet
 		return -1;
 	}
 	
 	if(status.code != MX_STATUS_SUCCESS) {
-		//TODO: check status code for timeout
-		//TODO throw exception
+		// some kind of error occured
+		throwException(env, mx_strstatus(rc));
 		return -1;
 	}
 	
@@ -510,20 +509,42 @@ JNIEXPORT jint JNICALL Java_ibis_ipl_impl_mx_JavaMx_test
 		return -1;
 	}
 	if (result == 0) {
-		/* recv error */
-		fprintf(stderr, "wait error\n");
-		//TODO throw Exception
+		// Request is not finished yet
 		return -1;
 	}
-	
 	if(status.code != MX_STATUS_SUCCESS) {
-		//TODO: check status code for timeout
-		//TODO throw exception
+		throwException(env, mx_strstatus(rc));
 		return -1;
 	}
 	
 	return (jint)(status.xfer_length); // Note: MX documentation incorrect about status structure field names, see header files instead
 }
+
+/* iprobe() */
+/*
+ * Class:     ibis_ipl_impl_mx_JavaMx
+ * Method:    iprobe
+ * Signature: (IJJJ)I
+ */
+JNIEXPORT jint JNICALL Java_ibis_ipl_impl_mx_JavaMx_iprobe
+  (JNIEnv *env, jclass jcl, jint endpointId, jlong matchData, jlong matchMask) {
+	mx_status_t status;
+	uint32_t result;
+	if(endpointId != 1) {
+		// not a valid endpoint
+		// TODO multiple endpoint support 
+		throwException(env, "Invalid Endpoint");
+		return 0;
+	}
+	/* retrieve the request handle */
+	mx_iprobe(myEndpoint, matchData, matchMask, request, &status);
+	if(result == 0) {
+		// no message available
+		return -1;
+	}
+	return (jint)(status.xfer_length);
+}
+
 
 /* cancel() */
 JNIEXPORT jboolean JNICALL Java_ibis_ipl_impl_mx_JavaMx_cancel

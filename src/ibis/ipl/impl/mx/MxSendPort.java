@@ -1,7 +1,10 @@
 package ibis.ipl.impl.mx;
 
 import java.io.IOException;
+import java.nio.ByteOrder;
 import java.util.Properties;
+
+import org.apache.log4j.Logger;
 
 import ibis.ipl.PortType;
 import ibis.ipl.SendPortDisconnectUpcall;
@@ -13,6 +16,8 @@ import ibis.ipl.impl.WriteMessage;
 
 public class MxSendPort extends SendPort {
 
+	private static Logger logger = Logger.getLogger(MxSendPort.class);
+	
 	protected MxChannelFactory factory;
 	
 	MxSendPort(MxIbis ibis, PortType type, String name,
@@ -20,18 +25,14 @@ public class MxSendPort extends SendPort {
 			throws IOException {
 		super(ibis, type, name, connectUpcall, properties);
 		factory = ibis.factory;
-		// TODO Auto-generated constructor stub
+		// TODO Choose endianness dynamically
 		
-		initStream(new MxDataOutputStream(null)); // or something like this
+		initStream(new MxSimpleDataOutputStream(null, ByteOrder.BIG_ENDIAN)); // or something like this
 	}
 
 	@Override
 	protected void announceNewMessage() throws IOException {
-		// TODO Auto-generated method stub
-		/* 
-		 * deal with sequencing
-		 * Don't think it is needed to announce a message
-		 */
+		/* TODO deal with sequencing */
         if (type.hasCapability(PortType.COMMUNICATION_NUMBERED)) {
             out.writeLong(ibis.registry().getSequenceNumber(name));
         }
@@ -39,14 +40,21 @@ public class MxSendPort extends SendPort {
 
 	@Override
 	protected void closePort() throws IOException {
-		// TODO
 		/* 
 		 * Send a msg with DISCONNECT to all connected receiveports
 		 * Close out and dataOut streams
 		 */
 		// for all receiveports: disconnect(ReceivePortIdentifier)
-		// TODO: maybe do something smarter to improve performance later
-		
+		for(SendPortConnectionInfo spci: connections()) {
+			try {
+				spci.closeConnection();
+			} catch(IOException e) {
+				// TODO ignore for now
+				// when an exception occurs at some connection, we still want to close the other connections
+			}
+		}
+		dataOut.close();
+		out.close();
 	}
 
 	@Override
@@ -57,6 +65,7 @@ public class MxSendPort extends SendPort {
 		 * negotiate port number
 		 * construct the SendPortConnectionInfo
 		 */
+		// TODO timeouts
 		MxSendPortConnectionInfo connectionInfo = new MxSendPortConnectionInfo(this, receiver);
 		connectionInfo.connect();
 		return connectionInfo;
@@ -64,17 +73,15 @@ public class MxSendPort extends SendPort {
 
 	@Override
 	protected void handleSendException(WriteMessage w, IOException e) {
-		// TODO Auto-generated method stub
-
+		logger.debug("handleSendException", e);
 	}
 
 	@Override
 	protected void sendDisconnectMessage(ReceivePortIdentifier receiver,
 			SendPortConnectionInfo c) throws IOException {
-		// TODO Auto-generated method stub
 		/*
 		 * send a DISCONNECT message
 		 */
-		
+		// don't have one yet
 	}
 }

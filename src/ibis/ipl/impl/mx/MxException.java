@@ -1,6 +1,8 @@
 package ibis.ipl.impl.mx;
 
-public class MxException extends Exception {
+import ibis.io.IbisIOException;
+
+public class MxException extends IbisIOException {
 
 	
 

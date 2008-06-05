@@ -15,12 +15,19 @@ import ibis.ipl.impl.ReceivePort;
 import ibis.ipl.impl.ReceivePortConnectionInfo;
 import ibis.ipl.impl.SendPortIdentifier;
 
+
 /**
  * @author Timo van Kessel
  *
  */
 class MxReceivePort extends ReceivePort {
 
+	protected MxId<MxReceivePort> portId;
+	protected IdManager<MxReceivePortConnectionInfo> connectionManager;
+	
+	private boolean reader_busy = false;
+
+	
 	/**
 	 * @param ibis
 	 * @param type
@@ -32,9 +39,10 @@ class MxReceivePort extends ReceivePort {
 	 */
 	MxReceivePort(Ibis ibis, PortType type, String name,
 			MessageUpcall upcall, ReceivePortConnectUpcall connectUpcall,
-			Properties properties) throws IOException {
+			Properties properties, MxId<MxReceivePort> portId) throws IOException {
 		super(ibis, type, name, upcall, connectUpcall, properties);
-		// TODO Auto-generated constructor stub
+		this.portId = portId;
+		portId.owner = this;
 	}
 		
 	/* ********************************************
@@ -68,8 +76,59 @@ class MxReceivePort extends ReceivePort {
 
 	@Override
 	public ReadMessage getMessage(long timeout) throws IOException {
-		// TODO Auto-generated method stub
-		return super.getMessage(timeout);
+		// Allow only one reader in.
+        synchronized(this) {
+            while (reader_busy && ! closed) {
+                try {
+                    wait();
+                } catch(Exception e) {
+                    // ignored
+                }
+            }
+            if (closed) {
+                throw new IOException("receive() on closed port");
+            }
+            reader_busy = true;
+        }
+        // Since we don't have any threads or timeout here, this 'reader' 
+        // call directly handles the receive.              
+        for (;;) {
+            // Wait until there is a connection            
+            synchronized(this) {
+                while (connections.size() == 0 && ! closed) {
+                    try {
+                        wait();
+                    } catch (Exception e) {
+                        /* ignore */
+                    }
+                }
+
+                // Wait until the current message is done
+                while (message != null && ! closed) {
+                    try {
+                        wait();
+                    } catch (Exception e) {
+                        /* ignore */
+                    }
+                }
+                if (closed) {
+                    reader_busy = false;
+                    notifyAll();
+                    throw new IOException("receive() on closed port");
+                }
+            }
+
+            ReceivePortConnectionInfo conns[] = connections();
+            // Note: This call does NOT always result in a message!
+            ((MxReceivePortConnectionInfo)conns[0]).receive(); // why 'conns[0]'?
+            synchronized(this) {
+                if (message != null) {
+                    reader_busy = false;
+                    notifyAll();
+                    return message;
+                }
+            }
+        }
 	}
 
 	@Override
@@ -83,12 +142,6 @@ class MxReceivePort extends ReceivePort {
 			SendPortIdentifier id) {
 		// TODO Auto-generated method stub
 		return super.removeInfo(id);
-	}
-
-	@Override
-	public synchronized void closePort(long timeout) {
-		// TODO Auto-generated method stub
-		super.closePort(timeout);
 	}
 
 	@Override
@@ -114,4 +167,11 @@ class MxReceivePort extends ReceivePort {
 		// TODO Auto-generated method stub
 		super.messageArrived(msg);
 	}
+	
+	@Override
+	public synchronized void closePort(long timeout) {
+		super.closePort(timeout);
+		portId.remove();
+	}
+
 }

@@ -1,0 +1,262 @@
+package ibis.ipl.impl.mx;
+
+import java.io.EOFException;
+import java.io.IOException;
+import java.nio.BufferUnderflowException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+
+import org.apache.log4j.Logger;
+
+import ibis.io.DataInputStream;
+
+public class MxSimpleDataInputStream extends DataInputStream implements Config {
+
+	private static Logger logger = Logger.getLogger(MxSimpleDataInputStream.class);
+	
+	MxReadChannel channel;
+	long count;
+	boolean closed;
+
+	private ByteBuffer buffer;
+	
+	/**
+	 * @param channel the data source
+	 */
+	public MxSimpleDataInputStream(MxReadChannel channel, ByteOrder order) {
+		this.channel = channel;
+		count = 0;
+		buffer = ByteBuffer.allocateDirect(BYTE_BUFFER_SIZE).order(order);
+		closed = false;
+	}
+
+	@Override
+	public int bufferSize() {
+		return buffer.capacity();
+	}
+
+	@Override
+	public long bytesRead() {
+		return count;
+	}
+
+	@Override
+	public void close() throws IOException {
+		// also closes the associated channel
+		if(!closed) {
+			channel.close();
+		}
+		closed = true;
+	}
+
+	@Override
+	public void resetBytesRead() {
+		count = 0;
+	}
+
+	@Override
+	public boolean readBoolean() throws IOException {
+		return (readByte() == ((byte) 1));
+	}
+	
+	@Override
+    public int read() throws IOException {
+        try {
+            return readByte() & 0377;
+        } catch (EOFException e) {
+            return -1;
+        }
+    }
+
+    public byte readByte() throws IOException {
+    	if(closed) {
+			throw new IOException("Stream is closed");
+		}
+    	
+        byte result;
+
+        try {
+            result = buffer.get();
+        } catch (BufferUnderflowException e) {
+            receive();
+            result = buffer.get();
+        }
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("received byte: " + result);
+        }
+
+        return result;
+    }
+
+	public char readChar() throws IOException {
+		if(closed) {
+			throw new IOException("Stream is closed");
+		}
+        try {
+            return buffer.getChar();
+        } catch (BufferUnderflowException e) {
+            receive();
+            return buffer.getChar();
+        }
+	}
+
+    public double readDouble() throws IOException {
+    	if(closed) {
+			throw new IOException("Stream is closed");
+		}
+        try {
+            return buffer.getDouble();
+        } catch (BufferUnderflowException e) {
+            receive();
+            return buffer.getDouble();
+        }
+    }
+
+    public float readFloat() throws IOException {
+    	if(closed) {
+			throw new IOException("Stream is closed");
+		}
+        try {
+            return buffer.getFloat();
+        } catch (BufferUnderflowException e) {
+            receive();
+            return buffer.getFloat();
+        }
+    }
+
+    public int readInt() throws IOException {
+    	if(closed) {
+			throw new IOException("Stream is closed");
+		}
+        try {
+            return buffer.getInt();
+        } catch (BufferUnderflowException e) {
+            receive();
+            return buffer.getInt();
+        }
+    }
+
+    public long readLong() throws IOException {
+    	if(closed) {
+			throw new IOException("Stream is closed");
+		}
+        try {
+            return buffer.getLong();
+        } catch (BufferUnderflowException e) {
+            receive();
+            return buffer.getLong();
+        }
+    }
+
+    public short readShort() throws IOException {
+    	if(closed) {
+			throw new IOException("Stream is closed");
+		}
+        try {
+            return buffer.getShort();
+        } catch (BufferUnderflowException e) {
+            receive();
+            return buffer.getShort();
+        }
+    }
+
+	
+	public void readArray(boolean[] destination, int offset, int length)
+			throws IOException {
+        for (int i = offset; i < (offset + length); i++) {
+        	destination[i] = readBoolean();
+        }
+	}
+
+	public void readArray(byte[] destination, int offset, int length)
+			throws IOException {
+        for (int i = offset; i < (offset + length); i++) {
+        	destination[i] = readByte();
+        }
+	}
+
+	public void readArray(char[] destination, int offset, int length)
+			throws IOException {
+        for (int i = offset; i < (offset + length); i++) {
+        	destination[i] = readChar();
+        }
+	}
+
+	public void readArray(short[] destination, int offset, int length)
+			throws IOException {
+        for (int i = offset; i < (offset + length); i++) {
+        	destination[i] = readShort();
+        }
+	}
+
+	public void readArray(int[] destination, int offset, int length)
+			throws IOException {
+        for (int i = offset; i < (offset + length); i++) {
+        	destination[i] = readInt();
+        }
+	}
+
+	public void readArray(long[] destination, int offset, int length)
+			throws IOException {
+        for (int i = offset; i < (offset + length); i++) {
+        	destination[i] = readLong();
+        }
+	}
+
+	public void readArray(float[] destination, int offset, int length)
+			throws IOException {
+        for (int i = offset; i < (offset + length); i++) {
+        	destination[i] = readFloat();
+        }
+	}
+
+	public void readArray(double[] destination, int offset, int length)
+			throws IOException {
+        for (int i = offset; i < (offset + length); i++) {
+        	destination[i] = readDouble();
+        }
+	}
+
+	/**
+	 * receives a packet from the channel in the buffer.
+	 * @throws IOException 
+	 */
+	private void receive() throws IOException {
+		if(buffer.hasRemaining()) {
+			// ERROR still data left in buffers
+			// throw exception
+            throw new IOException("tried receive() while there was data"
+                    + " left in the buffer");
+		}
+		// receive the next message
+		buffer.clear();
+		int count = 0;
+		while (count == 0) {
+			count = channel.read(buffer);
+			// TODO change this when the read op stops returning -1
+		}
+		if (count < 0) {
+			throw new IOException("error receiving message");
+		}
+		this.count += count;
+		buffer.flip();	
+	}
+
+	@Override
+	public int available() throws IOException {
+		if(closed) {
+			throw new IOException("Stream is closed");
+		}
+		int result = buffer.remaining();
+		if (result == 0) {
+			// check whether a MX message is on its way
+			result = channel.poll();
+			if (result <0) {
+				return 0;
+			}
+		}
+		return result;
+	}
+	
+}

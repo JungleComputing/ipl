@@ -20,9 +20,7 @@ class MxSendPortConnectionInfo extends SendPortConnectionInfo {
 
 	@Override
 	public void closeConnection() throws IOException {
-		// TODO Auto-generated method stub
-
-		//Do not send disconnect message: already done at MxSendPort
+		// TODO Do not send disconnect message: already done at MxSendPort?
 		connected = false;
 		connection = null;
 	}
@@ -30,8 +28,6 @@ class MxSendPortConnectionInfo extends SendPortConnectionInfo {
 	boolean connect() throws IOException {
 		// get MxAddress and connect
 		connection = ((MxSendPort)port).factory.connect((MxSendPort)port, target, 0);
-		
-		//TODO the rest
 		connected = true;
 		return connected;
 	}	

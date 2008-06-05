@@ -11,7 +11,16 @@ public class MxUnreliableWriteChannel extends MxWriteChannel {
 	}
 
 	public void doSend(ByteBuffer buffer) {
-		JavaMx.send(buffer, buffer.remaining(), factory.endpointId, link, handle, matchData); 
+		JavaMx.send(buffer, buffer.position(), buffer.remaining(), factory.endpointId, link, handle, matchData);
+	}
+
+	/* (non-Javadoc)
+	 * @see ibis.ipl.impl.mx.MxWriteChannel#doSend(java.nio.ByteBuffer[])
+	 */
+	@Override
+	protected void doSend(ByteBuffer[] buffers) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

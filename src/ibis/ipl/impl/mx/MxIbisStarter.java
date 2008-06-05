@@ -24,7 +24,8 @@ public class MxIbisStarter extends ibis.ipl.IbisStarter {
     = Logger.getLogger("ibis.ipl.impl.mx.MxIbisStarter");
 
 static final IbisCapabilities ibisCapabilities = new IbisCapabilities( 
-    "nickname.mx"
+	IbisCapabilities.ELECTIONS_STRICT,
+	"nickname.mx"
 );
 
 /* unimplemented capabilities:
@@ -33,12 +34,13 @@ static final IbisCapabilities ibisCapabilities = new IbisCapabilities(
     IbisCapabilities.MEMBERSHIP_TOTALLY_ORDERED,
     IbisCapabilities.SIGNALS,
     IbisCapabilities.ELECTIONS_UNRELIABLE,
-    IbisCapabilities.ELECTIONS_STRICT,
+    
  */
 
 
 static final PortType portCapabilities = new PortType(
 	PortType.SERIALIZATION_BYTE,
+	PortType.SERIALIZATION_DATA,
 	PortType.COMMUNICATION_FIFO,
     PortType.CONNECTION_ONE_TO_ONE,
     PortType.RECEIVE_EXPLICIT
@@ -48,7 +50,6 @@ static final PortType portCapabilities = new PortType(
     PortType.SERIALIZATION_OBJECT_SUN,
     PortType.SERIALIZATION_OBJECT_IBIS, 
     PortType.SERIALIZATION_OBJECT,
-    PortType.SERIALIZATION_DATA,
     PortType.COMMUNICATION_RELIABLE,
     PortType.COMMUNICATION_NUMBERED,
     PortType.CONNECTION_DOWNCALLS,
@@ -112,7 +113,6 @@ private int unmatchedPortTypes;
 	@Override
 	public Ibis startIbis(RegistryEventHandler handler,
 			Properties userProperties) {
-		// TODO Auto-generated method stub
 		return new MxIbis(handler, capabilities, portTypes,
                 userProperties);
 	}

@@ -2,6 +2,7 @@ package ibis.ipl.impl.mx;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.ClosedChannelException;
 
 public abstract class MxWriteChannel extends Matching {
 
@@ -9,6 +10,7 @@ public abstract class MxWriteChannel extends Matching {
 	protected int link;
 	protected int handle;
 	protected boolean sending = false;
+	protected boolean closed = false;
 	protected MxAddress target;
 	protected long matchData;
 	protected int msgSize;
@@ -21,76 +23,113 @@ public abstract class MxWriteChannel extends Matching {
 			throw new IOException("Could not connect to target");
 		}
 		this.handle = JavaMx.handles.getHandle();
-		
-		//TODO: get a handle
+
 	}
 
-	synchronized void close() {
-		//TODO release handles, link and buffer(s)
-		
+	void close() {
+		if(closed) {
+			return;
+		}
+		closed = true;
+		while(sending) {
+			JavaMx.cancel(factory.endpointId, handle); //really stop current send operation, or wait for it?
+		}
+		JavaMx.handles.releaseHandle(handle);
+		JavaMx.links.releaseLink(link);
 	}
 
-	public synchronized boolean send(ByteBuffer buffer) {
+	
+	/**
+	 * @param buffer The data buffer that is sent. The data between the position and the limit will be sent. Upon completion the position will be equal to the limit.
+	 * @throws IOException An exception when sending went wrong. When an exception occurs, the message is not sent and the buffer is unharmed.
+	 */
+	public synchronized void write(ByteBuffer buffer) throws IOException {
+		if(closed) {
+			throw new ClosedChannelException();
+		}
+		if(sending) {
+			finish();
+		}
 		if(!sending) {
-			//send_handle = JavaMx.jmx_send(buffer, buffer.remaining(), link, match);
-			doSend(buffer);
 			sending = true;
+			doSend(buffer);
 			msgSize = buffer.remaining();
-			return true;
+			buffer.position(buffer.limit());
 		} else {
-			// exception?
-			return false;
+			throw new IOException("Already sending a message. finish that one first");
 		}
 	}
 	
+	public synchronized void write(ByteBuffer[] buffers) throws IOException {
+		if(closed) {
+			throw new ClosedChannelException();
+		}
+		if(sending) {
+			finish();
+		}
+		if(!sending) {
+			sending = true;
+			doSend(buffers);
+			msgSize = 0;
+			for(ByteBuffer b: buffers) {
+				msgSize += b.remaining();
+				b.position(b.limit());
+			}
+			
+		} else {
+			throw new IOException("Already sending a message. finish that one first");
+		}
+	}
+	
+	/**
+	 * @param buffers
+	 */
+	protected abstract void doSend(ByteBuffer[] buffers);
+
 	protected abstract void doSend(ByteBuffer buffer);
 
-	public synchronized boolean finish() {
-		if(sending) {
-			int msgSize;
-			try {
-				msgSize = JavaMx.wait(factory.endpointId, handle);
-			} catch (MxException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-				return false;
-			}
-			if(msgSize == -1) {
-				// TODO do something
-			}
-			sending = false;
-			if(msgSize != this.msgSize) {
-				//message truncated. Why?
-				// TODO throw exception
-				return false;
-			}
-			return true;
-		} else {
-			// TODO not sending, throw exception?
-			return false;
+	public synchronized void finish() throws IOException {
+		if(!sending) {
+			// well, we are finished in that case!
+			return;
+		}
+
+		int msgSize;
+		try {
+			msgSize = JavaMx.wait(factory.endpointId, handle);
+		} catch (MxException e) {
+			// TODO Maybe handle this some of them in the future
+			throw(e); 
+		}
+		if(msgSize == -1) {
+			throw new MxException("error waiting for the message completion");
+		}
+		sending = false;
+		if(msgSize != this.msgSize) {
+			// message truncated
+			throw new MxException("Message truncated from "+ this.msgSize + " to " + msgSize + "bytes");
 		}
 	}
 
-	public synchronized boolean poll() {
-		if(sending) {
-			int msgSize;
-			try {
-				msgSize = JavaMx.test(factory.endpointId, handle);
-			} catch (MxException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-				return false;
-			}
-			if(msgSize == -1) {
-				// TODO do something
-				return false;
-			}
-			sending = false;
+	public synchronized boolean poll() throws IOException {
+		if(!sending) {
+			// well, we are finished in that case!
 			return true;
-		} else {
-			// TODO not sending, throw exception?
+		}
+
+		int msgSize;
+		try {
+			msgSize = JavaMx.test(factory.endpointId, handle);
+		} catch (MxException e) {
+			// TODO Maybe handle this some of them in the future
+			throw(e); 
+		}
+		if(msgSize == -1) {
+			// request still pending
 			return false;
 		}
+		sending = false;
+		return true;
 	}
 
 	public synchronized boolean isSending() {
@@ -99,8 +138,9 @@ public abstract class MxWriteChannel extends Matching {
 	
 	@Override
 	protected void finalize() throws Throwable {
-		// TODO Auto-generated method stub
-		close();
+		if(!closed) {
+			close();
+		}
 		super.finalize();
 	}
 }

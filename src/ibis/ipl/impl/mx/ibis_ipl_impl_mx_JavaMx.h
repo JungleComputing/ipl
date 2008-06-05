@@ -25,18 +25,18 @@ JNIEXPORT jboolean JNICALL Java_ibis_ipl_impl_mx_JavaMx_deInit
 
 /*
  * Class:     ibis_ipl_impl_mx_JavaMx
- * Method:    newHandler
+ * Method:    newEndpoint
  * Signature: (I)I
  */
-JNIEXPORT jint JNICALL Java_ibis_ipl_impl_mx_JavaMx_newHandler
+JNIEXPORT jint JNICALL Java_ibis_ipl_impl_mx_JavaMx_newEndpoint
   (JNIEnv *, jclass, jint);
 
 /*
  * Class:     ibis_ipl_impl_mx_JavaMx
- * Method:    closeHandler
- * Signature: (I)Z
+ * Method:    closeEndpoint
+ * Signature: (I)V
  */
-JNIEXPORT jboolean JNICALL Java_ibis_ipl_impl_mx_JavaMx_closeHandler
+JNIEXPORT void JNICALL Java_ibis_ipl_impl_mx_JavaMx_closeEndpoint
   (JNIEnv *, jclass, jint);
 
 /*
@@ -90,34 +90,34 @@ JNIEXPORT jboolean JNICALL Java_ibis_ipl_impl_mx_JavaMx_disconnect
 /*
  * Class:     ibis_ipl_impl_mx_JavaMx
  * Method:    send
- * Signature: (Ljava/nio/ByteBuffer;IIIIJ)V
+ * Signature: (Ljava/nio/ByteBuffer;IIIIIJ)V
  */
 JNIEXPORT void JNICALL Java_ibis_ipl_impl_mx_JavaMx_send
-  (JNIEnv *, jclass, jobject, jint, jint, jint, jint, jlong);
+  (JNIEnv *, jclass, jobject, jint, jint, jint, jint, jint, jlong);
 
 /*
  * Class:     ibis_ipl_impl_mx_JavaMx
  * Method:    sendSynchronous
- * Signature: (Ljava/nio/ByteBuffer;IIIIJ)V
+ * Signature: (Ljava/nio/ByteBuffer;IIIIIJ)V
  */
 JNIEXPORT void JNICALL Java_ibis_ipl_impl_mx_JavaMx_sendSynchronous
+  (JNIEnv *, jclass, jobject, jint, jint, jint, jint, jint, jlong);
+
+/*
+ * Class:     ibis_ipl_impl_mx_JavaMx
+ * Method:    recv
+ * Signature: (Ljava/nio/ByteBuffer;IIIIJ)V
+ */
+JNIEXPORT void JNICALL Java_ibis_ipl_impl_mx_JavaMx_recv__Ljava_nio_ByteBuffer_2IIIIJ
   (JNIEnv *, jclass, jobject, jint, jint, jint, jint, jlong);
 
 /*
  * Class:     ibis_ipl_impl_mx_JavaMx
  * Method:    recv
- * Signature: (Ljava/nio/ByteBuffer;IIIJ)V
+ * Signature: (Ljava/nio/ByteBuffer;IIIIJJ)V
  */
-JNIEXPORT void JNICALL Java_ibis_ipl_impl_mx_JavaMx_recv__Ljava_nio_ByteBuffer_2IIIJ
-  (JNIEnv *, jclass, jobject, jint, jint, jint, jlong);
-
-/*
- * Class:     ibis_ipl_impl_mx_JavaMx
- * Method:    recv
- * Signature: (Ljava/nio/ByteBuffer;IIIJJ)V
- */
-JNIEXPORT void JNICALL Java_ibis_ipl_impl_mx_JavaMx_recv__Ljava_nio_ByteBuffer_2IIIJJ
-  (JNIEnv *, jclass, jobject, jint, jint, jint, jlong, jlong);
+JNIEXPORT void JNICALL Java_ibis_ipl_impl_mx_JavaMx_recv__Ljava_nio_ByteBuffer_2IIIIJJ
+  (JNIEnv *, jclass, jobject, jint, jint, jint, jint, jlong, jlong);
 
 /*
  * Class:     ibis_ipl_impl_mx_JavaMx
@@ -142,6 +142,14 @@ JNIEXPORT jint JNICALL Java_ibis_ipl_impl_mx_JavaMx_wait__IIJ
  */
 JNIEXPORT jint JNICALL Java_ibis_ipl_impl_mx_JavaMx_test
   (JNIEnv *, jclass, jint, jint);
+
+/*
+ * Class:     ibis_ipl_impl_mx_JavaMx
+ * Method:    iprobe
+ * Signature: (IJJJ)I
+ */
+JNIEXPORT jint JNICALL Java_ibis_ipl_impl_mx_JavaMx_iprobe
+  (JNIEnv *, jclass, jint, jlong, jlong, jlong);
 
 /*
  * Class:     ibis_ipl_impl_mx_JavaMx

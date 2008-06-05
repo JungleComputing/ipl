@@ -7,14 +7,11 @@ class MxAddress implements Serializable {
 
 	private static final long serialVersionUID = 5057056202239491976L;
 
-	static MxAddress fromBytes(byte[] bytes) throws Exception {
-		//TODO generate an address from the implementation data of an ibis identifier
-		ByteBuffer buf = ByteBuffer.wrap(bytes);
-		buf.order(ByteOrder.BIG_ENDIAN);
+	static MxAddress fromBytes(byte[] bytes) {
+		ByteBuffer buf = ByteBuffer.wrap(bytes).order(ByteOrder.BIG_ENDIAN);
 		
-		//FIXME Maybe we shouldn't use characters directly (UTF problems?)
 		if(buf.getChar() != 'm' || buf.getChar() != 'x') {
-			throw new Exception("Not an Mx Address");
+			return null;
 		}
 		return new MxAddress(buf.getLong(), buf.getInt());
 	}
@@ -32,7 +29,7 @@ class MxAddress implements Serializable {
 		this.endpointId = endpointId;
 	}
 
-//	@Override
+	@Override
 	public String toString() {
 		return "mx::" + Long.toHexString(nicId) + "<" + endpointId + ">";
 	}
@@ -40,9 +37,7 @@ class MxAddress implements Serializable {
 	public byte[] toBytes() {
 		byte[] bytes = new byte[2 * Character.SIZE + Long.SIZE + Integer.SIZE];
 		
-		ByteBuffer buf = ByteBuffer.wrap(bytes);
-		buf.order(ByteOrder.BIG_ENDIAN);
-		//FIXME Maybe we shouldn't use characters directly (UTF problems?)
+		ByteBuffer buf = ByteBuffer.wrap(bytes).order(ByteOrder.BIG_ENDIAN);
 		buf.putChar('m');
 		buf.putChar('x');
 		buf.putLong(nicId);
