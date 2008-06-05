@@ -14,10 +14,6 @@ import ibis.ipl.PortType;
 import ibis.ipl.RegistryEventHandler;
 
 
-/**
- * @author Timo van Kessel
- *
- */
 public class MxIbisStarter extends ibis.ipl.IbisStarter {
 
     static final Logger logger

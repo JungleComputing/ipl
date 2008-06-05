@@ -84,6 +84,6 @@ public class MxReadChannel extends Matching {
 		if(receiving) {
 			return 0;
 		}
-		return = JavaMx.iprobe(endpointId, matchData, MASK_NONE); //-1 when no message available
+		return JavaMx.iprobe(endpointId, matchData, MASK_NONE); //-1 when no message available
 	}
 }
