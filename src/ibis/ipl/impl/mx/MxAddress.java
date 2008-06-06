@@ -8,7 +8,7 @@ class MxAddress implements Serializable {
 	private static final long serialVersionUID = 5057056202239491976L;
 
 	static MxAddress fromBytes(byte[] bytes) {
-		ByteBuffer buf = ByteBuffer.wrap(bytes).order(ByteOrder.BIG_ENDIAN);
+		ByteBuffer buf = ByteBuffer.wrap(bytes).order(ByteOrder.nativeOrder());
 		
 		if(buf.getChar() != 'm' || buf.getChar() != 'x') {
 			return null;
@@ -37,7 +37,7 @@ class MxAddress implements Serializable {
 	public byte[] toBytes() {
 		byte[] bytes = new byte[2 * Character.SIZE + Long.SIZE + Integer.SIZE];
 		
-		ByteBuffer buf = ByteBuffer.wrap(bytes).order(ByteOrder.BIG_ENDIAN);
+		ByteBuffer buf = ByteBuffer.wrap(bytes).order(ByteOrder.nativeOrder());
 		buf.putChar('m');
 		buf.putChar('x');
 		buf.putLong(nicId);

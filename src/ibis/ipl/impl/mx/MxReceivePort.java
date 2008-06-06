@@ -6,6 +6,8 @@ package ibis.ipl.impl.mx;
 import java.io.IOException;
 import java.util.Properties;
 
+import org.apache.log4j.Logger;
+
 import ibis.ipl.MessageUpcall;
 import ibis.ipl.PortType;
 import ibis.ipl.ReceivePortConnectUpcall;
@@ -15,13 +17,10 @@ import ibis.ipl.impl.ReceivePort;
 import ibis.ipl.impl.ReceivePortConnectionInfo;
 import ibis.ipl.impl.SendPortIdentifier;
 
-
-/**
- * @author Timo van Kessel
- *
- */
 class MxReceivePort extends ReceivePort {
-
+	private static Logger logger = Logger.getLogger(MxReceivePort.class);
+	
+	
 	protected MxId<MxReceivePort> portId;
 	protected IdManager<MxReceivePortConnectionInfo> connectionManager;
 	
@@ -43,6 +42,7 @@ class MxReceivePort extends ReceivePort {
 		super(ibis, type, name, upcall, connectUpcall, properties);
 		this.portId = portId;
 		portId.owner = this;
+		connectionManager = new IdManager<MxReceivePortConnectionInfo>();
 	}
 		
 	/* ********************************************
@@ -76,6 +76,9 @@ class MxReceivePort extends ReceivePort {
 
 	@Override
 	public ReadMessage getMessage(long timeout) throws IOException {
+		if (logger.isDebugEnabled()) {
+			logger.debug("GetMessage()");
+		}
 		// Allow only one reader in.
         synchronized(this) {
             while (reader_busy && ! closed) {
@@ -123,6 +126,9 @@ class MxReceivePort extends ReceivePort {
             ((MxReceivePortConnectionInfo)conns[0]).receive(); // why 'conns[0]'?
             synchronized(this) {
                 if (message != null) {
+            		if (logger.isDebugEnabled()) {
+            			logger.debug("GetMessage() finished");
+            		}
                     reader_busy = false;
                     notifyAll();
                     return message;
@@ -164,12 +170,26 @@ class MxReceivePort extends ReceivePort {
 
 	@Override
 	public void messageArrived(ReadMessage msg) {
-		// TODO Auto-generated method stub
+		if (numbered) {
+			try {
+				msg.setSequenceNumber(msg.readLong());
+			} catch (IOException e) {
+				// TODO ignore now, needs a solution
+			}
+        }
 		super.messageArrived(msg);
+
 	}
 	
 	@Override
 	public synchronized void closePort(long timeout) {
+		if (logger.isDebugEnabled()) {
+			logger.debug("closing port...");
+		}
+		if(timeout == 0) {
+			//TODO hack: timeout is broken otherwise
+			timeout = 1;
+		}
 		super.closePort(timeout);
 		portId.remove();
 	}

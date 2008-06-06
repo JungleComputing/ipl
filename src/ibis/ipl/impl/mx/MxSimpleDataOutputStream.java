@@ -20,6 +20,7 @@ public class MxSimpleDataOutputStream extends DataOutputStream implements Config
 	private long count;
 	
 	public MxSimpleDataOutputStream(MxWriteChannel channel, ByteOrder order) {
+		//TODO multi channel support
 		this.channel = channel;
 		buffer = ByteBuffer.allocateDirect(BYTE_BUFFER_SIZE).order(order);
 		count = 0;
@@ -54,15 +55,25 @@ public class MxSimpleDataOutputStream extends DataOutputStream implements Config
     	if(closed) {
 			throw new IOException("Stream is closed");
 		}
-    	if(buffer.position() != 0) {
-    		// buffer is already flipped (i.e. already in transit), or no data in buffer, so we don't have to send it.
-    		return;
-    	}
+		if(buffer.position() == 0) {
+			// buffer is empty, don't send it
+			return;
+		}
+		
 		// post send for this buffer
 		if(!sending) { //prevent sending the same buffer twice
 			sending = true;
 			buffer.flip();
 			long size = buffer.remaining();
+			if(size == 0) {
+				//empty buffer, don't send, and we are ready
+				buffer.clear();
+				sending = false;
+				return;
+			}
+			if (logger.isDebugEnabled()) {
+				logger.debug("sending message...");
+			}
 			channel.write(buffer); 
 			// TODO throws IOexceptions, catch them?
 			count += size;
@@ -265,7 +276,6 @@ public class MxSimpleDataOutputStream extends DataOutputStream implements Config
 
 	public void writeArray(float[] source, int offset, int length)
 			throws IOException {
-		//FIXME I think that asFloatBuffer() is expensive...
         for (int i = offset; i < (offset + length); i++) {
             writeFloat(source[i]);
         }

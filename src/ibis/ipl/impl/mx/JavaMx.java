@@ -7,6 +7,8 @@ import org.apache.log4j.Logger;
 final class JavaMx {
 	
 	static final class HandleManager {
+		private static Logger logger = Logger.getLogger(HandleManager.class);
+		
 		int size, blockSize, maxBlocks, activeHandles;
 		boolean[] inUse;
 		
@@ -15,8 +17,8 @@ final class JavaMx {
 		 * @param maxBlocks The maximum number of blocks
 		 * @throws MxException
 		 */
-		private HandleManager(int blockSize, int maxBlocks) throws MxException {
-			this.size = 0;
+		private HandleManager(int blockSize, int maxBlocks) throws MxException {			
+			this.size = size;
 			this.blockSize = blockSize;
 			this.maxBlocks = maxBlocks;
 			this.activeHandles = 0;
@@ -37,15 +39,30 @@ final class JavaMx {
 		protected synchronized int getHandle() {
 			if(activeHandles == size) {
 				//Size up handle array, also in C code
-				addBlock();
+				if(addBlock() == false) {
+					//TODO exception
+				}
+				if (logger.isDebugEnabled()) {
+					logger.debug("Block added");
+				}
+				size += blockSize;
+				boolean[] temp = new boolean[size];
+				for(int i = 0; i < inUse.length; i++) {
+					temp[i] = inUse[i];
+				}
+				inUse = temp;
 			}
 			
 			int handle = 0;
 			while(inUse[handle] ) {
+				// TODO bound check
 				handle++;
 			}
 			inUse[handle] = true;
 			activeHandles++;
+			if (logger.isDebugEnabled()) {
+				logger.debug("Handle " + handle + " distributed");
+			}
 			return handle;
 		}
 		
@@ -53,9 +70,12 @@ final class JavaMx {
 		 * release a handle that is not in use anymore
 		 * @param handle the handle 
 		 */
-		protected synchronized void releaseHandle(int handle) {
+		protected synchronized void releaseHandle(int handle) {	
 			inUse[handle] = false;
 			activeHandles--;
+			if (logger.isDebugEnabled()) {
+				logger.debug("Handle " + handle + " freed");
+			}
 		}
 		
 	}
@@ -91,7 +111,15 @@ final class JavaMx {
 		protected synchronized int getLink() {
 			if(activeTargets == size) {
 				//Size up target array, also in C code
-				addBlock();
+				if(addBlock() == false) {
+					//TODO exception
+				}
+				size += blockSize;
+				boolean[] temp = new boolean[size];
+				for(int i = 0; i < inUse.length; i++) {
+					temp[i] = inUse[i];
+				}
+				inUse = temp;
 			}
 			
 			int target = 0;
@@ -111,8 +139,6 @@ final class JavaMx {
 			inUse[target] = false;
 			activeTargets--;
 		}
-		
-		
 	}
 	
 	private static Logger logger = Logger.getLogger(JavaMx.class);

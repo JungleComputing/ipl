@@ -9,12 +9,10 @@ public abstract class Matching {
 	static final long PORT_MASK =       0x00000000FFFF0000L;
 	static final long CHANNEL_MASK =    0x000000000000FFFFL;
 	static final long CONNECTION_MASK = 0x00000000FFFFFFFFL;
-	
-	
 	static final long PROTOCOL_MASK =   0xFF00000000000000L;
 	static final long MASK_NONE =       0x0000000000000000L;
 	
-	protected long matchData = 0;
+	protected long matchData = MASK_NONE;
 		
 	long getProtocol() {
 		return matchData & PROTOCOL_MASK;

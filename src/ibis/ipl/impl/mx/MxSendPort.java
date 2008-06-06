@@ -27,7 +27,7 @@ public class MxSendPort extends SendPort {
 		factory = ibis.factory;
 		// TODO Choose endianness dynamically
 		
-		initStream(new MxSimpleDataOutputStream(null, ByteOrder.BIG_ENDIAN)); // or something like this
+		initStream(new MxSimpleDataOutputStream(null, ByteOrder.nativeOrder())); // or something like this
 	}
 
 	@Override
@@ -53,7 +53,7 @@ public class MxSendPort extends SendPort {
 				// when an exception occurs at some connection, we still want to close the other connections
 			}
 		}
-		dataOut.close();
+		//dataOut.close(); //throws an exception at MxSimpleDataOutputstream
 		out.close();
 	}
 
@@ -68,6 +68,8 @@ public class MxSendPort extends SendPort {
 		// TODO timeouts
 		MxSendPortConnectionInfo connectionInfo = new MxSendPortConnectionInfo(this, receiver);
 		connectionInfo.connect();
+		initStream(new MxSimpleDataOutputStream(connectionInfo.connection, ByteOrder.nativeOrder())); // or something like this
+		// TODO mulit channel support
 		return connectionInfo;
 	}
 

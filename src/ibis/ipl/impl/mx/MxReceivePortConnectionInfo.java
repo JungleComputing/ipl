@@ -1,11 +1,15 @@
 package ibis.ipl.impl.mx;
 
+import ibis.ipl.impl.ReadMessage;
 import ibis.ipl.impl.SendPortIdentifier;
 
 import java.io.IOException;
 
+import org.apache.log4j.Logger;
+
 class MxReceivePortConnectionInfo extends
 		ibis.ipl.impl.ReceivePortConnectionInfo {
+	private static Logger logger = Logger.getLogger(MxReceivePortConnectionInfo.class);
 	
 	protected MxId<MxReceivePortConnectionInfo> channelId;
 	
@@ -17,7 +21,6 @@ class MxReceivePortConnectionInfo extends
 			throw new IOException("Could not get a connection ID");
 		}
 		//TODO: find a better place for this, and call it when new connections are formed
-		newStream();
 	}
 	
 	boolean poll() throws IOException {
@@ -25,7 +28,20 @@ class MxReceivePortConnectionInfo extends
 	}	
 	
 	void receive() throws IOException {
-		dataIn.readByte();
+		if (logger.isDebugEnabled()) {
+			logger.debug("receiving");
+		}
+		if (in == null) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("newstream");
+			}
+            newStream();
+        }
+		// TODO implement
+		if(poll()) { // message available
+            message.setFinished(false);
+            ((MxReceivePort)port).messageArrived(message);
+		}
 	}
 
 	@Override

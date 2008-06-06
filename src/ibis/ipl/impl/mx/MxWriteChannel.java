@@ -4,15 +4,18 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
 
+import org.apache.log4j.Logger;
+
 public abstract class MxWriteChannel extends Matching {
 
+	private static Logger logger = Logger.getLogger(MxWriteChannel.class);
+	
 	protected MxChannelFactory factory;
 	protected int link;
 	protected int handle;
 	protected boolean sending = false;
 	protected boolean closed = false;
 	protected MxAddress target;
-	protected long matchData;
 	protected int msgSize;
 
 	protected MxWriteChannel(MxChannelFactory factory, MxAddress target, int filter) throws IOException {
@@ -21,6 +24,9 @@ public abstract class MxWriteChannel extends Matching {
 		//TODO timeouts?
 		if(JavaMx.connect(factory.endpointId, link, target.nicId, target.endpointId, filter) == false) {
 			throw new IOException("Could not connect to target");
+		}
+		if (logger.isDebugEnabled()) {
+			logger.debug("Connected to " + target.toString());
 		}
 		this.handle = JavaMx.handles.getHandle();
 
@@ -96,7 +102,13 @@ public abstract class MxWriteChannel extends Matching {
 
 		int msgSize;
 		try {
+			if (logger.isDebugEnabled()) {
+				logger.debug("finishing message...");
+			}
 			msgSize = JavaMx.wait(factory.endpointId, handle);
+			if (logger.isDebugEnabled()) {
+				logger.debug("message of " + msgSize + " bytes sent!");
+			}
 		} catch (MxException e) {
 			// TODO Maybe handle this some of them in the future
 			throw(e); 

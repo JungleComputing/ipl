@@ -27,6 +27,7 @@ public class MxSimpleDataInputStream extends DataInputStream implements Config {
 		this.channel = channel;
 		count = 0;
 		buffer = ByteBuffer.allocateDirect(BYTE_BUFFER_SIZE).order(order);
+		buffer.flip(); // start with an empty buffer
 		closed = false;
 	}
 
@@ -90,75 +91,129 @@ public class MxSimpleDataInputStream extends DataInputStream implements Config {
     }
 
 	public char readChar() throws IOException {
-		if(closed) {
+    	if(closed) {
 			throw new IOException("Stream is closed");
 		}
+    	
+        char result;
+
         try {
-            return buffer.getChar();
+            result = buffer.getChar();
         } catch (BufferUnderflowException e) {
             receive();
-            return buffer.getChar();
+            result = buffer.getChar();
         }
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("received char: " + result);
+        }
+        
+        return result;
 	}
 
     public double readDouble() throws IOException {
     	if(closed) {
 			throw new IOException("Stream is closed");
 		}
+    	
+        double result;
+
         try {
-            return buffer.getDouble();
+            result = buffer.getDouble();
         } catch (BufferUnderflowException e) {
             receive();
-            return buffer.getDouble();
+            result = buffer.getDouble();
         }
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("received double: " + result);
+        }
+        
+        return result;
     }
 
     public float readFloat() throws IOException {
     	if(closed) {
 			throw new IOException("Stream is closed");
 		}
+    	
+        float result;
+
         try {
-            return buffer.getFloat();
+            result = buffer.getFloat();
         } catch (BufferUnderflowException e) {
             receive();
-            return buffer.getFloat();
+            result = buffer.getFloat();
         }
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("received float: " + result);
+        }
+        
+        return result;
     }
 
     public int readInt() throws IOException {
     	if(closed) {
 			throw new IOException("Stream is closed");
 		}
+    	
+        int result;
+
         try {
-            return buffer.getInt();
+            result = buffer.getInt();
         } catch (BufferUnderflowException e) {
             receive();
-            return buffer.getInt();
+            result = buffer.getInt();
         }
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("received int: " + result);
+        }
+        
+        return result;
     }
 
     public long readLong() throws IOException {
     	if(closed) {
 			throw new IOException("Stream is closed");
 		}
+    	
+        long result;
+
         try {
-            return buffer.getLong();
+            result = buffer.getLong();
         } catch (BufferUnderflowException e) {
             receive();
-            return buffer.getLong();
+            result = buffer.getLong();
         }
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("received long: " + result);
+        }
+
+        return result;
     }
 
     public short readShort() throws IOException {
     	if(closed) {
 			throw new IOException("Stream is closed");
 		}
+    	
+        short result;
+
         try {
-            return buffer.getShort();
+            result = buffer.getShort();
         } catch (BufferUnderflowException e) {
             receive();
-            return buffer.getShort();
+            result = buffer.getShort();
         }
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("received short: " + result);
+        }
+
+        return result;
     }
 
 	
@@ -228,6 +283,9 @@ public class MxSimpleDataInputStream extends DataInputStream implements Config {
 			// throw exception
             throw new IOException("tried receive() while there was data"
                     + " left in the buffer");
+		}
+		if (logger.isDebugEnabled()) {
+			logger.debug("Receiving message...");
 		}
 		// receive the next message
 		buffer.clear();

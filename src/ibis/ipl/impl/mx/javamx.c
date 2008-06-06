@@ -100,7 +100,7 @@ mx_endpoint_addr_t *getAddress(jint link) {
 
 /********************* JavaMx ***************************/
 
-mx_endpoint_t endpoints[MX_MAX_ENDPOINTS];  //TODO use this
+mx_endpoint_t endpoints[4];   //[MX_MAX_ENDPOINTS];  //TODO use this
 mx_endpoint_t myEndpoint = NULL;
 int initialized = 0;
 jclass MxException;
@@ -108,6 +108,15 @@ jclass MxException;
 void throwException(JNIEnv *env, const char *message) {
 	(*env)->ThrowNew(env, MxException, message);
 }
+
+void printAddress(const mx_endpoint_addr_t* addr) {
+	uint64_t nic;
+	uint32_t endpoint;
+	
+	mx_decompose_endpoint_addr(*addr, &nic, &endpoint);
+	//fprintf(stderr, "nic: %0" PRIx64 ", endpoint: %0" PRIx32 "\n", nic, endpoint);
+}
+
 
 /* init() */
 JNIEXPORT jboolean JNICALL Java_ibis_ipl_impl_mx_JavaMx_init
@@ -153,7 +162,7 @@ JNIEXPORT jboolean JNICALL Java_ibis_ipl_impl_mx_JavaMx_deInit
 	
 	/* Finalize the MX library */
 	mx_finalize();
-	DeleteGlobalRef(env, MxException);
+	(*env)->DeleteGlobalRef(env, MxException);
 	initialized = 0;
 	return JNI_TRUE;
 }
@@ -181,18 +190,18 @@ JNIEXPORT void JNICALL Java_ibis_ipl_impl_mx_JavaMx_closeEndpoint
 	if(endpointId != 1) {
 		//unknown endpointId, so this one is not open...
 		// TODO throwException(env, "Unknown endpoint");?
-		return JNI_TRUE;
+		return;
 	}
 	
 	if(myEndpoint == NULL) {
 		//endpoint already closed
-		return JNI_TRUE;
+		return;
 	}
 	
 	/* close endpoint */
 	mx_wakeup(myEndpoint); // notify all threads that are blocked on this endpoint
 	mx_close_endpoint(myEndpoint);
-	return JNI_TRUE;
+	return;
 }
 
 /* getMyNicId() */
@@ -279,13 +288,15 @@ JNIEXPORT jboolean JNICALL Java_ibis_ipl_impl_mx_JavaMx_connect__IIJIIJ
 		throwException(env, "Invalid Link");
 		return JNI_FALSE;
 	}
-	
+	//fprintf(stderr, "connecting to nic: %0" PRIx64 ", endpoint: %0" PRIx32 "\n", targetNicId, targetEndpointId);
 	/* now connect to the client */
 	rc = mx_connect(myEndpoint, targetNicId, targetEndpointId, filter, (uint32_t)timeout, address); 
 	if(rc != MX_SUCCESS) {
 		throwException(env, mx_strerror(rc));
 		return JNI_FALSE;
-	}	
+	}
+	//fprintf(stderr, "connected to:\n");
+	//printAddress(address);
 	return JNI_TRUE;
 }
 
@@ -330,6 +341,10 @@ JNIEXPORT void JNICALL Java_ibis_ipl_impl_mx_JavaMx_send
 		throwException(env, "Invalid Link");
 		return;
 	}
+	//fprintf(stderr, "send() to:\n");
+	//printAddress(target);
+	//fprintf(stderr, "MatchData: %0" PRIx64 "\n", matchData);
+	
 	/* retrieve the request handle */
 	request = getRequest(handle);
 	if(request == NULL) {
@@ -373,6 +388,11 @@ JNIEXPORT void JNICALL Java_ibis_ipl_impl_mx_JavaMx_sendSynchronous
 		throwException(env, "Invalid Link");
 		return;
 	}
+	
+	//fprintf(stderr, "sendSync() to:\n");
+	//printAddress(target);
+	//fprintf(stderr, "MatchData: %0" PRIx64 "\n", matchData);
+	
 	/* retrieve the request handle */
 	request = getRequest(handle);
 	if(request == NULL) {
@@ -380,7 +400,7 @@ JNIEXPORT void JNICALL Java_ibis_ipl_impl_mx_JavaMx_sendSynchronous
 		throwException(env, "Invalid Handle");
 		return;
 	}
-	
+	//fprintf(stderr, "JavaMx::sendSynchronous: to handle %d\n", handle);
 	/* TODO: check if target is valid */
 	bufferDesc[0].segment_ptr = (*env)->GetDirectBufferAddress(env, buffer) + offset;
 	bufferDesc[0].segment_length = (uint32_t)bufferSize;
@@ -394,13 +414,13 @@ JNIEXPORT void JNICALL Java_ibis_ipl_impl_mx_JavaMx_sendSynchronous
 }
 
 /* recv() without mask */
-JNIEXPORT void JNICALL Java_ibis_ipl_impl_mx_JavaMx_recv__Ljava_nio_ByteBuffer_2IIIJ
+JNIEXPORT void JNICALL Java_ibis_ipl_impl_mx_JavaMx_recv__Ljava_nio_ByteBuffer_2IIIIJ
   (JNIEnv *env, jclass jcl, jobject buffer, jint offset, jint bufferSize, jint endpointId, jint handle, jlong matchData) {
-	Java_ibis_ipl_impl_mx_JavaMx_recv__Ljava_nio_ByteBuffer_2IIIJJ(env, jcl, buffer, offset, bufferSize, endpointId, handle, matchData, MX_MATCH_MASK_NONE);
+	Java_ibis_ipl_impl_mx_JavaMx_recv__Ljava_nio_ByteBuffer_2IIIIJJ(env, jcl, buffer, offset, bufferSize, endpointId, handle, matchData, MX_MATCH_MASK_NONE);
 }
 
 /* recv() with mask */
-JNIEXPORT void JNICALL Java_ibis_ipl_impl_mx_JavaMx_recv__Ljava_nio_ByteBuffer_2IIIJJ
+JNIEXPORT void JNICALL Java_ibis_ipl_impl_mx_JavaMx_recv__Ljava_nio_ByteBuffer_2IIIIJJ
   (JNIEnv *env, jclass jcl, jobject buffer, jint offset, jint bufferSize, jint endpointId, jint handle, jlong matchData, jlong matchMask) {
 	mx_return_t rc;
 	mx_segment_t buffer_desc[1];
@@ -424,6 +444,7 @@ JNIEXPORT void JNICALL Java_ibis_ipl_impl_mx_JavaMx_recv__Ljava_nio_ByteBuffer_2
 	buffer_desc[0].segment_ptr = (*env)->GetDirectBufferAddress(env, buffer) + offset;
 	buffer_desc[0].segment_length = (uint32_t)bufferSize;
 
+	//fprintf(stderr, "Recv:: MatchData: %0" PRIx64 ", MatchMask: %0" PRIx64 "\n", matchData, matchMask);
 	rc = mx_irecv(myEndpoint, buffer_desc, 1, matchData, matchMask, NULL, request);
 	if(rc != MX_SUCCESS) {
 		throwException(env, mx_strerror(rc));
@@ -461,6 +482,7 @@ JNIEXPORT jint JNICALL Java_ibis_ipl_impl_mx_JavaMx_wait__IIJ
 		return -1;
 	}
 	
+	//fprintf(stderr, "JavaMx::wait: waiting for handle %d\n", handle);
 	rc = mx_wait(myEndpoint, request, (uint32_t)timeout, &status, &result);
 	if(rc != MX_SUCCESS) {
 		throwException(env, mx_strerror(rc));
@@ -537,7 +559,7 @@ JNIEXPORT jint JNICALL Java_ibis_ipl_impl_mx_JavaMx_iprobe
 		return 0;
 	}
 	/* retrieve the request handle */
-	mx_iprobe(myEndpoint, matchData, matchMask, request, &status);
+	mx_iprobe(myEndpoint, matchData, matchMask, &status, &result);
 	if(result == 0) {
 		// no message available
 		return -1;

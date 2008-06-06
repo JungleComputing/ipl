@@ -38,6 +38,7 @@ static final PortType portCapabilities = new PortType(
 	PortType.SERIALIZATION_BYTE,
 	PortType.SERIALIZATION_DATA,
 	PortType.COMMUNICATION_FIFO,
+	PortType.COMMUNICATION_RELIABLE,
     PortType.CONNECTION_ONE_TO_ONE,
     PortType.RECEIVE_EXPLICIT
 ); 
@@ -69,7 +70,7 @@ private int unmatchedPortTypes;
 	@Override
 	public boolean matches(IbisCapabilities capabilities, PortType[] portTypes) {
 		this.capabilities = capabilities;
-        this.portTypes = portTypes;
+        this.portTypes = portTypes.clone();
         matching = true;
         if (! capabilities.matchCapabilities(ibisCapabilities)) {
             matching = false;
@@ -95,8 +96,8 @@ private int unmatchedPortTypes;
 	}
 
 	@Override
-	public PortType[] unmatchedPortTypes() {
-		PortType[] unmatched = new PortType[unmatchedPortTypes];
+	public PortType[] unmatchedPortTypes() {    
+        PortType[] unmatched = new PortType[unmatchedPortTypes];
         int i = 0;
         for (PortType pt : portTypes) {
             if (! pt.matchCapabilities(portCapabilities)) {
@@ -104,6 +105,7 @@ private int unmatchedPortTypes;
             }
         }
         return unmatched;
+        
 	}
 
 	@Override

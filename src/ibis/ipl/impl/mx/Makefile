@@ -10,7 +10,7 @@ all: libjavamx.so
 
 libjavamx.so: javamx.o
 	$(CC) -shared -fPIC -Wl,-soname,libjavamx.so -o "libjavamx.so" $(LDFLAGS) javamx.o
-	mv libjavamx.so ../../.../../../lib/.
+	mv libjavamx.so ../../../../../lib/.
 	
 clean:
 	rm -f *.o *core *~ *.so

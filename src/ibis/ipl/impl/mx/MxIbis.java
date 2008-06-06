@@ -27,7 +27,7 @@ public class MxIbis extends Ibis {
 			IbisCapabilities capabilities, PortType[] portTypes,
 			Properties userProperties) {
 		super(registryHandler, capabilities, portTypes, userProperties);
-
+		receivePortManager = new IdManager<MxReceivePort>();
 		this.properties.checkProperties("ibis.ipl.impl.mx",
                 new String[] {"ibis.ipl.impl.mx.mx"}, null, true);
 		
@@ -35,10 +35,9 @@ public class MxIbis extends Ibis {
 
 	@Override
 	protected byte[] getData() throws IOException {
-		factory = new MxChannelFactory();
+		factory = new MxChannelFactory(this);
 
-		factory.address.toBytes();
-		return null;
+		return factory.address.toBytes();
 	}
 
 	@Override
