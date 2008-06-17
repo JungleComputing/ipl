@@ -8,6 +8,8 @@ import ibis.util.ThreadPool;
 import ibis.util.TypedProperties;
 
 import java.io.IOException;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -77,7 +79,7 @@ public final class Server extends Thread implements Service {
     synchronized Pool getPool(String poolName) {
         return pools.get(poolName);
     }
-    
+
     public String getServiceName() {
         return "registry";
     }
@@ -145,7 +147,9 @@ public final class Server extends Thread implements Service {
         while (!stopped) {
             if (pools.size() > 0) {
                 if (printStats) {
-                    System.err.println("list of pools:");
+                    Calendar calandar = Calendar.getInstance();
+                    System.err.println(calandar.get(Calendar.HOUR_OF_DAY) + ":"
+                            + calandar.get(Calendar.MINUTE) + ":" + calandar.get(Calendar.SECOND) + " list of pools:");
                     System.err
                             .println("        CURRENT_SIZE JOINS LEAVES DIEDS ELECTIONS SIGNALS FIXED_SIZE CLOSED ENDED");
                 }
@@ -182,21 +186,21 @@ public final class Server extends Thread implements Service {
 
     public synchronized Map<String, String> getStats() {
         Map<String, String> result = new HashMap<String, String>();
-        
+
         String poolNames = null;
-        
-        for(Pool pool: pools.values()) {
+
+        for (Pool pool : pools.values()) {
             if (poolNames == null) {
                 poolNames = pool.getName();
             } else {
                 poolNames = poolNames + "," + pool.getName();
             }
-            
+
             result.putAll(pool.getStatsMap());
-        }        
-        
+        }
+
         result.put("pool.names", poolNames);
-            
+
         return result;
     }
 
