@@ -1,0 +1,718 @@
+diff -r -b /home2/ceriel/bcel-5.1/src/java/org/apache/bcel/classfile/JavaClass.java org/apache/bcel/classfile/JavaClass.java
+771a812,813
+>         int cnt = 0;
+>         int j = 0;
+772a815
+>         for (int i = 0; i < interfaces.length; i++) {
+774,777c817,819
+<       for(int i = 0; i < interfaces.length; i++) {
+< 	classes[i] = repository.loadClass(interfaces[i]);
+<       }
+<     } catch(ClassNotFoundException e) {
+---
+>                 classes[j] = repository.loadClass(interfaces[i]);
+>                 j++;
+>             } catch (ClassNotFoundException e) {
+779c821,822
+<       return null;
+---
+>                 cnt++;
+>             }
+781a825
+>         if (cnt == 0)
+782a827,834
+> 
+>         JavaClass retval[] = new JavaClass[interfaces.length - cnt];
+> 
+>         for (int i = 0; i < interfaces.length - cnt; i++) {
+>             retval[i] = classes[i];
+>         }
+> 
+>         return retval;
+diff -r -b /home2/ceriel/bcel-5.1/src/java/org/apache/bcel/classfile/Signature.java org/apache/bcel/classfile/Signature.java
+97c97
+<    * @param Signature_index Index in constant pool to CONSTANT_Utf8
+---
+>    * @param signature_index Index in constant pool to CONSTANT_Utf8
+114c114
+<      System.err.println("Visiting non-standard Signature object");
+---
+>      // System.err.println("Visiting non-standard Signature object");
+136c136
+<    * @param Signature_index.
+---
+>    * @param signature_index.
+166,169d165
+<   private static boolean identPart(int ch) {
+<     return ch == '/' || ch == ';';
+<   }
+< 
+diff -r -b /home2/ceriel/bcel-5.1/src/java/org/apache/bcel/generic/FieldOrMethod.java org/apache/bcel/generic/FieldOrMethod.java
+114a117,122
+>     // return getClassType(cpg);
+>     // FIXED: Type can be an array! (Ceriel)
+>     String name = getClassName(cpg);
+>     if (name.startsWith("[")) {
+>         return Type.OBJECT;
+>     }
+diff -r -b /home2/ceriel/bcel-5.1/src/java/org/apache/bcel/generic/LDC_W.java org/apache/bcel/generic/LDC_W.java
+86a89,90
+>     // but in this case, override length as well! (Ceriel)
+>     length = 3;
+diff -r -b /home2/ceriel/bcel-5.1/src/java/org/apache/bcel/generic/LocalVariableGen.java org/apache/bcel/generic/LocalVariableGen.java
+114d114
+<    * @param il instruction list (byte code) which this variable belongs to
+121c121,125
+<     if(length > 0)
+---
+>         // This is not correct. Gives one instruction too many in range.(Ceriel)
+>         //    if(length > 0)
+>         //      length += end.getInstruction().getLength();
+> 
+>         if (length > 0 && end.getNext() == null) {
+122a127
+>         }
+diff -r -b /home2/ceriel/bcel-5.1/src/java/org/apache/bcel/Repository.java org/apache/bcel/Repository.java
+2a3,13
+> /* Actually, this is the BCEL Repository, with an added facility to
+>  * let an application know which classes are actually in the Repository.
+>  * A class that wants this, should implement the interface "RepositoryObserver"
+>  * (which contains one method: void notify(String classname); ).
+>  * In addition, it should register itself with the Repository through the
+>  * void registerObserver(RepositoryObserver n); method.
+>  *
+>  * Another fix: the ClassQueue object in BCEL is buggy. Don't use it.
+>  * (Don't know about BCEL 5.1. It was so in BCEL 5.0).
+>  */
+> 
+73,74c87,113
+<   private static org.apache.bcel.util.Repository _repository =
+<     SyntheticRepository.getInstance();
+---
+>     private static org.apache.bcel.util.Repository _repository = SyntheticRepository
+>             .getInstance();
+> 
+>     private static Vector observers = new Vector();
+> 
+>     /** Register a RepositoryObserver.
+>      */
+>     public static void registerObserver(RepositoryObserver n) {
+>         for (int i = 0; i < observers.size(); i++) {
+>             if ((RepositoryObserver) (observers.elementAt(i)) == n)
+>                 return;
+>         }
+>         observers.addElement(n);
+>     }
+> 
+>     /** Unregister a RepositoryObserver.
+>      */
+>     public static void unregisterObserver(RepositoryObserver n) {
+>         observers.removeElement(n);
+>     }
+> 
+>     private static void notifyObserver(String n) {
+>         for (int i = 0; i < observers.size(); i++) {
+>             RepositoryObserver w = (RepositoryObserver) (observers.elementAt(i));
+>             w.notify(n);
+>         }
+>     }
+98,100c137,140
+<       if(clazz == null) {
+< 	return _repository.loadClass(class_name);
+<       } else {
+---
+>             if (clazz == null) {
+>                 clazz = _repository.loadClass(class_name);
+>                 notifyObserver(class_name);
+>             }
+101a142,143
+>         } catch (ClassNotFoundException ex) {
+>             return null;
+103d144
+<     } catch(ClassNotFoundException ex) { return null; }
+113,114c154,159
+<       return _repository.loadClass(clazz);
+<     } catch(ClassNotFoundException ex) { return null; }
+---
+>             JavaClass cl = _repository.loadClass(clazz);
+>             notifyObserver(cl.getClassName());
+>             return cl;
+>         } catch (ClassNotFoundException ex) {
+>             return null;
+>         }
+223a271,272
+>         if (clazz == null || inter == null)
+>             return false;
+diff -r -b /home2/ceriel/bcel-5.1/src/java/org/apache/bcel/util/SyntheticRepository.java org/apache/bcel/util/SyntheticRepository.java
+86c86
+<   private static final String DEFAULT_PATH = ClassPath.getClassPath();
+---
+> //    private static final String DEFAULT_PATH = ClassPath.getClassPath();
+177c178,185
+<     if(clazz != null) { 
+---
+>         if (clazz != null) {
+>             if (is != null) {
+>                 try {
+>                     is.close();
+>                 } catch (IOException e) {
+>                 	// ignored
+>                 }
+>             }
+187c195
+< 	
+---
+>                 is.close();
+diff -r -b /home2/ceriel/bcel-5.1/src/java/org/apache/bcel/verifier/statics/Pass3aVerifier.java org/apache/bcel/verifier/statics/Pass3aVerifier.java
+77c151
+< 	private Verifier myOwner;
+---
+>     Verifier myOwner;
+84c158
+< 	private int method_no;
+---
+>     int method_no;
+167c245
+< 		else{ //did not pass Pass 2.
+---
+>         //did not pass Pass 2.
+170d247
+< 	}
+452,455c595,602
+< 			if (! ( (c instanceof ConstantInteger)	||
+< 							(c instanceof ConstantFloat) 		||
+< 							(c instanceof ConstantString) ) ){
+< 				constraintViolated(o, "Operand of LDC or LDC_W must be one of CONSTANT_Integer, CONSTANT_Float or CONSTANT_String, but is '"+c+"'.");
+---
+>             if (!((c instanceof ConstantInteger)
+>                     || (c instanceof ConstantFloat)
+>                     || (c instanceof ConstantClass) // Apparently allowed in Java 1.5. (Ceriel)
+>                     || (c instanceof ConstantString))) {
+>                 constraintViolated(
+>                         o,
+>                         "Operand of LDC or LDC_W must be one of CONSTANT_Integer, CONSTANT_Float or CONSTANT_String, but is '"
+>                                 + c + "'.");
+468,469c616,620
+< 			try{
+< 				indexValid(o, o.getIndex()+1);
+---
+>             try {
+>                 indexValid(o, o.getIndex() + 1);
+>             } catch (StaticCodeInstructionOperandConstraintException e) {
+>                 throw new AssertionViolatedException(
+>                         "OOPS: Does not BCEL handle that? LDC2_W operand has a problem.");
+471,472d621
+< 			catch(StaticCodeInstructionOperandConstraintException e){
+< 				throw new AssertionViolatedException("OOPS: Does not BCEL handle that? LDC2_W operand has a problem.");
+473a623,668
+> 
+>         private Field findFieldinClass(String fieldname, Type fieldtype,
+>                 JavaClass jc) {
+>             Field f = null;
+>             Field[] fields = jc.getFields();
+>             for (int i = 0; i < fields.length; i++) {
+>                 if (fields[i].getName().equals(fieldname)
+>                         && fields[i].getSignature().equals(
+>                                 fieldtype.getSignature())) {
+>                     f = fields[i];
+>                     break;
+>                 }
+>             }
+>             return f;
+>         }
+> 
+>         private Field findField(String fieldname, Type fieldtype, JavaClass jc) {
+>             Field f = findFieldinClass(fieldname, fieldtype, jc);
+>             if (f != null)
+>                 return f;
+> 
+>             String[] interface_names = jc.getInterfaceNames();
+>             for (int i = 0; i < interface_names.length; i++) {
+>                 f = findField(fieldname, fieldtype, Repository
+>                         .lookupClass(interface_names[i]));
+>                 if (f != null)
+>                     return f;
+>             }
+>             String superclass = jc.getSuperclassName();
+>             if (superclass != null && !superclass.equals(jc.getClassName())) {
+>                 f = findField(fieldname, fieldtype, Repository
+>                         .lookupClass(superclass));
+>             }
+>             return f;
+>         }
+> 
+>         private Field findField(FieldInstruction o) {
+>             JavaClass jc = Repository.lookupClass(o.getClassType(cpg)
+>                     .getClassName());
+>             Field f = findField(o.getFieldName(cpg), o.getFieldType(cpg), jc);
+>             if (f == null) {
+>                 constraintViolated(o, "Referenced field '"
+>                         + o.getFieldName(cpg) + "' does not exist in class '"
+>                         + jc.getClassName() + "'.");
+>             }
+>             return f;
+485c682
+< 			String field_name = o.getFieldName(cpg);
+---
+>             Field f = findField(o);
+487,500c684
+< 			JavaClass jc = Repository.lookupClass(o.getClassType(cpg).getClassName());
+< 			Field[] fields = jc.getFields();
+< 			Field f = null;
+< 			for (int i=0; i<fields.length; i++){
+< 				if (fields[i].getName().equals(field_name)){
+< 					f = fields[i];
+< 					break;
+< 				}
+< 			}
+< 			if (f == null){
+< 				/* TODO: also look up if the field is inherited! */
+< 				constraintViolated(o, "Referenced field '"+field_name+"' does not exist in class '"+jc.getClassName()+"'.");
+< 			}
+< 			else{
+---
+>             if (f != null) {
+933a1206,1264
+>         private Method findMethodinClass(String name, Type ret, Type[] args,
+>                 JavaClass jc) {
+>             Method[] ms = jc.getMethods();
+>             Method m = null;
+>             for (int i = 0; i < ms.length; i++) {
+>                 if ((ms[i].getName().equals(name))
+>                         && (Type.getReturnType(ms[i].getSignature())
+>                                 .equals(ret))
+>                         && (objarrayequals(Type.getArgumentTypes(ms[i]
+>                                 .getSignature()), args))) {
+>                     m = ms[i];
+>                     break;
+>                 }
+>             }
+>             return m;
+>         }
+> 
+>         private Method findMethod(String name, Type ret, Type[] args,
+>                 JavaClass jc) {
+>             Method m = findMethodinClass(name, ret, args, jc);
+>             if (m != null)
+>                 return m;
+>             String supername = jc.getSuperclassName();
+>             JavaClass j = jc;
+>             while (supername != null && !supername.equals(j.getClassName())) {
+>                 j = Repository.lookupClass(supername);
+>                 m = findMethodinClass(name, ret, args, j);
+>                 if (m != null)
+>                     return m;
+>                 supername = j.getSuperclassName();
+>             }
+>             String[] intfs = jc.getInterfaceNames();
+>             for (int i = 0; i < intfs.length; i++) {
+>                 m = findMethodinClass(name, ret, args, Repository
+>                         .lookupClass(intfs[i]));
+>                 if (m != null)
+>                     return m;
+>             }
+>             return m;
+>         }
+> 
+>         private Method findMethod(InvokeInstruction o) {
+>             String classname = o.getClassName(cpg);
+>             JavaClass jc = Repository.lookupClass(classname);
+>             String methodname = o.getMethodName(cpg);
+>             Type returntype = o.getReturnType(cpg);
+>             Type[] argumenttypes = o.getArgumentTypes(cpg);
+> 
+>             Method m = findMethod(methodname, returntype, argumenttypes, jc);
+> 
+>             if (m == null) {
+>                 constraintViolated(o, "Referenced method '"
+>                         + o.getMethodName(cpg)
+>                         + "' with expected signature not found in class '"
+>                         + jc.getClassName() + "'.");
+>             }
+> 
+>             return m;
+>         }
+940a1272
+> //            Method m = findMethod(o);
+943,957c1275,1278
+< 			Method[] ms = jc.getMethods();
+< 			Method m = null;
+< 			for (int i=0; i<ms.length; i++){
+< 				if ( (ms[i].getName().equals(o.getMethodName(cpg))) &&
+< 				     (Type.getReturnType(ms[i].getSignature()).equals(o.getReturnType(cpg))) &&
+< 				     (objarrayequals(Type.getArgumentTypes(ms[i].getSignature()), o.getArgumentTypes(cpg))) ){
+< 					m = ms[i];
+< 					break;
+< 				}
+< 			}
+< 			if (m == null){
+< 				constraintViolated(o, "Referenced method '"+o.getMethodName(cpg)+"' with expected signature not found in class '"+jc.getClassName()+"'. The native verfier does allow the method to be declared in some superinterface, which the Java Virtual Machine Specification, Second Edition does not.");
+< 			}
+< 			if (jc.isClass()){
+< 				constraintViolated(o, "Referenced class '"+jc.getClassName()+"' is a class, but not an interface as expected.");
+---
+> 
+>             if (jc.isClass()) {
+>                 constraintViolated(o, "Referenced class '" + jc.getClassName()
+>                         + "' is a class, but not an interface as expected.");
+966a1288
+> //            Method m = findMethod(o);
+969,981d1290
+< 			Method[] ms = jc.getMethods();
+< 			Method m = null;
+< 			for (int i=0; i<ms.length; i++){
+< 				if ( (ms[i].getName().equals(o.getMethodName(cpg))) &&
+< 				     (Type.getReturnType(ms[i].getSignature()).equals(o.getReturnType(cpg))) &&
+< 				     (objarrayequals(Type.getArgumentTypes(ms[i].getSignature()), o.getArgumentTypes(cpg))) ){
+< 					m = ms[i];
+< 					break;
+< 				}
+< 			}
+< 			if (m == null){
+< 				constraintViolated(o, "Referenced method '"+o.getMethodName(cpg)+"' with expected signature not found in class '"+jc.getClassName()+"'. The native verfier does allow the method to be declared in some superclass or implemented interface, which the Java Virtual Machine Specification, Second Edition does not.");
+< 			}
+1025,1039c1347
+< 			String classname = o.getClassName(cpg);
+< 			JavaClass jc = Repository.lookupClass(classname);
+< 			Method[] ms = jc.getMethods();
+< 			Method m = null;
+< 			for (int i=0; i<ms.length; i++){
+< 				if ( (ms[i].getName().equals(o.getMethodName(cpg))) &&
+< 				     (Type.getReturnType(ms[i].getSignature()).equals(o.getReturnType(cpg))) &&
+< 				     (objarrayequals(Type.getArgumentTypes(ms[i].getSignature()), o.getArgumentTypes(cpg))) ){
+< 					m = ms[i];
+< 					break;
+< 				}
+< 			}
+< 			if (m == null){
+< 				constraintViolated(o, "Referenced method '"+o.getMethodName(cpg)+"' with expected signature not found in class '"+jc.getClassName()+"'. The native verifier possibly allows the method to be declared in some superclass or implemented interface, which the Java Virtual Machine Specification, Second Edition does not.");
+< 			}
+---
+>             Method m = findMethod(o);
+1054a1363
+>             if (! (classname.startsWith("["))) {
+1056,1067c1365,1369
+< 			Method[] ms = jc.getMethods();
+< 			Method m = null;
+< 			for (int i=0; i<ms.length; i++){
+< 				if ( (ms[i].getName().equals(o.getMethodName(cpg))) &&
+< 				     (Type.getReturnType(ms[i].getSignature()).equals(o.getReturnType(cpg))) &&
+< 				     (objarrayequals(Type.getArgumentTypes(ms[i].getSignature()), o.getArgumentTypes(cpg))) ){
+< 					m = ms[i];
+< 					break;
+< 				}
+< 			}
+< 			if (m == null){
+< 				constraintViolated(o, "Referenced method '"+o.getMethodName(cpg)+"' with expected signature not found in class '"+jc.getClassName()+"'. The native verfier does allow the method to be declared in some superclass or implemented interface, which the Java Virtual Machine Specification, Second Edition does not.");
+---
+> //            Method m = findMethod(o);
+> 
+>                 if (!(jc.isClass())) {
+>                     constraintViolated(o, "Referenced class '" + jc.getClassName()
+>                             + "' is an interface, but not a class as expected.");
+1069,1070d1370
+< 			if (! (jc.isClass())){
+< 				constraintViolated(o, "Referenced class '"+jc.getClassName()+"' is an interface, but not a class as expected.");
+diff -r -b /home2/ceriel/bcel-5.1/src/java/org/apache/bcel/verifier/structurals/ExecutionVisitor.java org/apache/bcel/verifier/structurals/ExecutionVisitor.java
+58d57
+< import org.apache.bcel.Repository;
+60d58
+< import org.apache.bcel.classfile.JavaClass;
+67,70c65
+< import org.apache.bcel.verifier.Verifier;
+< import org.apache.bcel.verifier.exc.*;
+< import java.util.ArrayList;
+< import java.util.Hashtable;
+---
+> import org.apache.bcel.classfile.ConstantClass;
+942a940,942
+>         if (c instanceof ConstantClass){
+>             stack().push(new ObjectType("java.lang.Class"));
+>         }
+955a956,958
+>         if (c instanceof ConstantClass){
+>             stack().push(new ObjectType("java.lang.Class"));
+>         }
+diff -r -b /home2/ceriel/bcel-5.1/src/java/org/apache/bcel/verifier/structurals/InstConstraintVisitor.java org/apache/bcel/verifier/structurals/InstConstraintVisitor.java
+425,427c480,483
+< 			else{
+< 				if (! (stack().peek() instanceof ReferenceType)){
+< 					constraintViolated(o, "Reference type expected on top of stack, but is: '"+stack().peek()+"'.");
+---
+>             if (!(stack().peek() instanceof ReferenceType)) {
+>             	constraintViolated(o,
+>             			"Reference type expected on top of stack, but is: '"
+>             			+ stack().peek() + "'.");
+436,438c492,493
+< 			}
+< 		}
+< 		else{
+---
+>             
+>         } else {
+899,902c1059,1066
+< 		else{   //stack().peek(1).getSize == 1.
+< 			if (stack().peek(2).getSize() != 1){
+< 				constraintViolated(o, "If stack top's size is 1 and stack next-to-top's size is 1, stack next-to-next-to-top's size must also be 1, but is: '"+stack().peek(2)+"' of size '"+stack().peek(2).getSize()+"'.");
+< 			}
+---
+>         //stack().peek(1).getSize == 1.
+>         if (stack().peek(2).getSize() != 1) {
+>         	constraintViolated(
+>         			o,
+> 					"If stack top's size is 1 and stack next-to-top's size is 1, stack next-to-next-to-top's size must also be 1, but is: '"
+> 					+ stack().peek(2)
+> 					+ "' of size '"
+> 					+ stack().peek(2).getSize() + "'.");
+913,916c1077,1084
+< 		else{ //stack().peek().getSize() == 1.
+< 			if (stack().peek(1).getSize() != 1){
+< 				constraintViolated(o, "If stack top's size is 1, then stack next-to-top's size must also be 1. But it is '"+stack().peek(1)+"' of size '"+stack().peek(1).getSize()+"'.");
+< 			}
+---
+>         //stack().peek().getSize() == 1.
+>         if (stack().peek(1).getSize() != 1) {
+>         	constraintViolated(
+>         			o,
+> 					"If stack top's size is 1, then stack next-to-top's size must also be 1. But it is '"
+> 					+ stack().peek(1)
+> 					+ "' of size '"
+> 					+ stack().peek(1).getSize() + "'.");
+930a1103,1110
+>         } else { // stack top is of size 1
+>             if (stack().peek(1).getSize() != 1) {
+>                 constraintViolated(
+>                         o,
+>                         "If stack top's size is 1, then stack next-to-top's size must also be 1. But it is '"
+>                                 + stack().peek(1)
+>                                 + "' of size '"
+>                                 + stack().peek(1).getSize() + "'.");
+932,937c1112,1118
+< 		else{ // stack top is of size 1
+< 			if ( stack().peek(1).getSize() != 1 ){
+< 				constraintViolated(o, "If stack top's size is 1, then stack next-to-top's size must also be 1. But it is '"+stack().peek(1)+"' of size '"+stack().peek(1).getSize()+"'.");
+< 			}
+< 			if ( stack().peek(2).getSize() != 1 ){
+< 				constraintViolated(o, "If stack top's size is 1, then stack next-to-next-to-top's size must also be 1. But it is '"+stack().peek(2)+"' of size '"+stack().peek(2).getSize()+"'.");
+---
+>             if (stack().peek(2).getSize() != 1) {
+>                 constraintViolated(
+>                         o,
+>                         "If stack top's size is 1, then stack next-to-next-to-top's size must also be 1. But it is '"
+>                                 + stack().peek(2)
+>                                 + "' of size '"
+>                                 + stack().peek(2).getSize() + "'.");
+951,955c1132,1140
+< 			else{// stack top size is 2, next-to-top's size is 1
+< 				if ( stack().peek(2).getSize() != 1 ){
+< 					constraintViolated(o, "If stack top's size is 2 and stack-next-to-top's size is 1, then stack next-to-next-to-top's size must also be 1. But it is '"+stack().peek(2)+"' of size '"+stack().peek(2).getSize()+"'.");
+< 				}
+< 				else{
+---
+>             // stack top size is 2, next-to-top's size is 1
+>             if (stack().peek(2).getSize() != 1) {
+>             	constraintViolated(
+>             			o,
+> 						"If stack top's size is 2 and stack-next-to-top's size is 1, then stack next-to-next-to-top's size must also be 1. But it is '"
+> 						+ stack().peek(2)
+> 						+ "' of size '"
+> 						+ stack().peek(2).getSize() + "'.");
+>             } else {
+958,962c1143,1145
+< 			}
+< 		}
+< 		else{// stack top is of size 1
+< 			if (stack().peek(1).getSize() == 1){
+< 				if ( stack().peek(2).getSize() == 2 ){
+---
+>         } else {// stack top is of size 1
+>             if (stack().peek(1).getSize() == 1) {
+>                 if (stack().peek(2).getSize() == 2) {
+965,966c1148
+< 				else{
+< 					if ( stack().peek(3).getSize() == 1){
+---
+>                 if (stack().peek(3).getSize() == 1) {
+971,972c1153,1155
+< 		}
+< 		constraintViolated(o, "The operand sizes on the stack do not match any of the four forms of usage of this instruction.");
+---
+>         constraintViolated(
+>                 o,
+>                 "The operand sizes on the stack do not match any of the four forms of usage of this instruction.");
+1165,1172d1394
+< 
+< 	/**
+< 	 * Ensures the specific preconditions of the said instruction.
+< 	 */
+< 	public void visitGETFIELD(GETFIELD o){
+< 		Type objectref = stack().peek();
+< 		if (! ( (objectref instanceof ObjectType) || (objectref == Type.NULL) ) ){
+< 			constraintViolated(o, "Stack top should be an object reference that's not an array reference, but is '"+objectref+"'.");
+1175,1178c1397,1398
+< 		String field_name = o.getFieldName(cpg);
+< 		
+< 		JavaClass jc = Repository.lookupClass(o.getClassType(cpg).getClassName());
+< 		Field[] fields = jc.getFields();
+---
+>     private Field findFieldinClass(String fieldname, Type fieldtype,
+>             JavaClass jc) {
+1180,1181c1400,1404
+< 		for (int i=0; i<fields.length; i++){
+< 			if (fields[i].getName().equals(field_name)){
+---
+>         Field[] fields = jc.getFields();
+>         for (int i = 0; i < fields.length; i++) {
+>             if (fields[i].getName().equals(fieldname)
+>                     && fields[i].getSignature()
+>                             .equals(fieldtype.getSignature())) {
+1186c1409,1435
+< 		if (f == null){
+---
+>         return f;
+>     }
+> 
+>     private Field findField(String fieldname, Type fieldtype, JavaClass jc) {
+>         Field f = findFieldinClass(fieldname, fieldtype, jc);
+>         if (f != null)
+>             return f;
+> 
+>         String[] interface_names = jc.getInterfaceNames();
+>         for (int i = 0; i < interface_names.length; i++) {
+>             f = findField(fieldname, fieldtype, Repository
+>                     .lookupClass(interface_names[i]));
+>             if (f != null)
+>                 return f;
+>         }
+>         String superclass = jc.getSuperclassName();
+>         if (superclass != null && !superclass.equals(jc.getClassName())) {
+>             f = findField(fieldname, fieldtype, Repository
+>                     .lookupClass(superclass));
+>         }
+>         return f;
+>     }
+> 
+>     private Field findField(FieldInstruction o) {
+>         Field f = findField(o.getFieldName(cpg), o.getFieldType(cpg),
+>                 Repository.lookupClass(o.getClassType(cpg).getClassName()));
+>         if (f == null) {
+1188a1438,1453
+>         return f;
+>     }
+> 
+>     /**
+>      * Ensures the specific preconditions of the said instruction.
+>      */
+>     public void visitGETFIELD(GETFIELD o) {
+>         Type objectref = stack().peek();
+>         if (!((objectref instanceof ObjectType) || (objectref == Type.NULL))) {
+>             constraintViolated(
+>                     o,
+>                     "Stack top should be an object reference that's not an array reference, but is '"
+>                             + objectref + "'.");
+>         }
+> 
+>         Field f = findField(o);
+1223c1489,1490
+< 	public void visitGETSTATIC(GETSTATIC o){
+---
+>     public void visitGETSTATIC(GETSTATIC o) {
+>         /*Field f =*/ findField(o);
+1784a2169,2175
+>         } else {
+>             if (!(objref instanceof UninitializedObjectType)) {
+>                 constraintViolated(
+>                         o,
+>                         "Expecting an UninitializedObjectType as 'objectref' on the stack, not a '"
+>                                 + objref
+>                                 + "'. Otherwise, you couldn't invoke a method since an array has no methods (not to speak of a return address).");
+1786,1788c2177,2178
+< 		else{
+< 			if (!(objref instanceof UninitializedObjectType)){
+< 				constraintViolated(o, "Expecting an UninitializedObjectType as 'objectref' on the stack, not a '"+objref+"'. Otherwise, you couldn't invoke a method since an array has no methods (not to speak of a return address).");
+---
+>             objref_classname = ((UninitializedObjectType) objref)
+>                     .getInitialized().getClassName();
+1790,1792d2179
+< 			objref_classname = ((UninitializedObjectType) objref).getInitialized().getClassName();
+< 		}
+< 		
+1910a2321,2323
+>         if (theClass.startsWith("[")) {
+>             theClass = "java.lang.Object";
+>         }
+2147,2150c2619,2626
+< 		if 	(!	(	( c instanceof ConstantInteger) ||
+< 							( c instanceof ConstantFloat	)	||
+< 							( c instanceof ConstantString )	)	){
+< 			constraintViolated(o, "Referenced constant should be a CONSTANT_Integer, a CONSTANT_Float or a CONSTANT_String, but is '"+c+"'.");
+---
+>         if (!((c instanceof ConstantInteger)
+>                     || (c instanceof ConstantFloat)
+>                     || (c instanceof ConstantClass)
+>                     || (c instanceof ConstantString))) {
+>             constraintViolated(
+>                     o,
+>                     "Referenced constant should be a CONSTANT_Integer, a CONSTANT_Float or a CONSTANT_String, but is '"
+>                             + c + "'.");
+2161,2164c2637,2644
+< 		if 	(!	(	( c instanceof ConstantInteger) ||
+< 							( c instanceof ConstantFloat	)	||
+< 							( c instanceof ConstantString )	)	){
+< 			constraintViolated(o, "Referenced constant should be a CONSTANT_Integer, a CONSTANT_Float or a CONSTANT_String, but is '"+c+"'.");
+---
+>         if (!((c instanceof ConstantInteger)
+>                     || (c instanceof ConstantFloat)
+>                     || (c instanceof ConstantClass)
+>                     || (c instanceof ConstantString))) {
+>             constraintViolated(
+>                     o,
+>                     "Referenced constant should be a CONSTANT_Integer, a CONSTANT_Float or a CONSTANT_String, but is '"
+>                             + c + "'.");
+2432,2436d2973
+< 		if (! ( (objectref instanceof ObjectType) || (objectref == Type.NULL) ) ){
+< 			constraintViolated(o, "Stack next-to-top should be an object reference that's not an array reference, but is '"+objectref+"'.");
+< 		}
+< 		
+< 		String field_name = o.getFieldName(cpg);
+2438,2448c2975,2982
+< 		JavaClass jc = Repository.lookupClass(o.getClassType(cpg).getClassName());
+< 		Field[] fields = jc.getFields();
+< 		Field f = null;
+< 		for (int i=0; i<fields.length; i++){
+< 			if (fields[i].getName().equals(field_name)){
+< 				f = fields[i];
+< 				break;
+< 			}
+< 		}
+< 		if (f == null){
+< 			throw new AssertionViolatedException("Field not found?!?");
+---
+>         if (mg.getName().equals(Constants.CONSTRUCTOR_NAME)
+>                 && (objectref instanceof UninitializedObjectType)) {
+>             // Not quite correct, but it will have to do.
+>         } else if (!((objectref instanceof ObjectType) || (objectref == Type.NULL))) {
+>             constraintViolated(
+>                     o,
+>                     "Stack next-to-top should be an object reference that's not an array reference, but is '"
+>                             + objectref + "'.");
+2450a2985
+>         Field f = findField(o);
+2512,2525c3052,3053
+< 	public void visitPUTSTATIC(PUTSTATIC o){
+< 		String field_name = o.getFieldName(cpg);
+< 		JavaClass jc = Repository.lookupClass(o.getClassType(cpg).getClassName());
+< 		Field[] fields = jc.getFields();
+< 		Field f = null;
+< 		for (int i=0; i<fields.length; i++){
+< 			if (fields[i].getName().equals(field_name)){
+< 				f = fields[i];
+< 				break;
+< 			}
+< 		}
+< 		if (f == null){
+< 			throw new AssertionViolatedException("Field not found?!?");
+< 		}
+---
+>     public void visitPUTSTATIC(PUTSTATIC o) {
+>         Field f = findField(o);

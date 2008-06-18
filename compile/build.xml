@@ -25,6 +25,9 @@
         <!-- Create the time stamp -->
         <tstamp />
 
+	<!-- build bcel-fixed first -->
+	<ant dir="bcel-5.1-fixed" inheritAll="false" target="build"/>
+
         <!-- Create the build directory structure used by compile -->
         <delete dir="${tmp}" />
         <delete dir="${javadoc}" />
@@ -65,6 +68,7 @@
     <target name="clean" description="clean up">
         <delete dir="${tmp}" />
         <delete dir="${javadoc}" />
+	<ant dir="bcel-5.1-fixed" inheritAll="false" target="clean"/>
     </target>
 
 </project>
