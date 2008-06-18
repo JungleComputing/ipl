@@ -44,7 +44,7 @@
     </target>
 
     <!-- Compile sub-projects -->
-    <target name="sub-projects" depends="util,server,compile">
+    <target name="sub-projects" depends="util,server,compile,io">
     </target>
 
     <!-- Compile IPL -->
@@ -167,6 +167,12 @@
 
     <target name="util" description="Build util subproject">
         <ant dir="util" inheritAll="false" target="build">
+            <property name="version" value="${version}" />
+        </ant>
+    </target>
+
+    <target name="io" description="Build io subproject">
+        <ant dir="io" inheritAll="false" target="build">
             <property name="version" value="${version}" />
         </ant>
     </target>
