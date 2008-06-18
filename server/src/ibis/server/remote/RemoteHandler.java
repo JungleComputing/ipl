@@ -6,8 +6,6 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
-
 import ibis.server.Server;
 
 public class RemoteHandler implements Runnable {
