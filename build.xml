@@ -142,6 +142,7 @@
         <ant dir="util" inheritAll="false" target="clean" />
         <ant dir="server" inheritAll="false" target="clean" />
         <ant dir="compile" inheritAll="false" target="clean" />
+        <ant dir="io" inheritAll="false" target="clean" />
         <ant dir="examples" inheritAll="false" target="clean" />
         <ant dir="benchmarks" inheritAll="false" target="clean" />
     </target>
