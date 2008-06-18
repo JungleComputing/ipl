@@ -1,13 +1,13 @@
-<project name="ibis-compile" default="build" basedir=".">
+<project name="ibis-util" default="build" basedir=".">
     <description>
-	Build file for ibis-compile
+	Build file for ibis-util
     </description>
 
     <!-- Global properties -->
     <property name="src" location="src" />
     <property name="tmp" location="tmp" />
     <property name="lib" location="../lib" />
-    <property name="javadoc" location="../javadoc/compile" />
+    <property name="javadoc" location="../javadoc/util" />
     <property name="sources" value="../sources" />
 
     <property name="version" value="-2.1" />
@@ -25,7 +25,7 @@
         <!-- Create the time stamp -->
         <tstamp />
 
-        <!-- Create the build directory structure used by compile -->
+        <!-- Create the build directory structure used by util -->
         <delete dir="${tmp}" />
         <delete dir="${javadoc}" />
 
