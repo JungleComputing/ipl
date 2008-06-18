@@ -5,7 +5,7 @@
 
     <target name="build"
             description="Build the IPL and its implementations"
-            depends="clean,compile,javadoc,examples,benchmarks" />
+            depends="clean,compile-ipl,javadoc,examples,benchmarks" />
 
     <!-- Names for generated directories. -->
     <property name="src" location="src" />
@@ -29,19 +29,27 @@
     </path>
 
     <path id="default.classpath">
-        <fileset dir="external">
-            <include name="*.jar" />
-        </fileset>
         <fileset dir="${lib}">
             <include name="*.jar" />
         </fileset>
         <pathelement path="${tmp}" />
     </path>
 
-    <!-- Compile IPL -->
-    <target name="compile">
-        <mkdir dir="${tmp}" />
+    <target name="copy-external">
         <mkdir dir="${lib}" />
+        <!-- Copy external libraries to lib directory -->
+        <copy todir="${lib}">
+            <fileset dir="external" />
+        </copy>
+    </target>
+
+    <!-- Compile sub-projects -->
+    <target name="subs" depends="compile">
+    </target>
+
+    <!-- Compile IPL -->
+    <target name="compile-ipl" depends="copy-external,subs">
+        <mkdir dir="${tmp}" />
 
         <!-- Compile the java code from src into ${tmp} -->
         <javac srcdir="${src}" 
@@ -50,14 +58,13 @@
                source="1.5"
                target="1.5"
                classpathref="external.jars">
-		<compilerarg value="-Xlint:unchecked" />
+	    <compilerarg value="-Xlint:unchecked" />
 	</javac>
 
-
-        <!--
-	    	Build jar of IPL before rewriting. Otherwise a dependency of
-	    	IPL on ibis-io is introduced.
-		-->
+	<!--
+	    Build jar of IPL before rewriting. Otherwise a dependency of
+	    IPL on ibis-io is introduced.
+	-->
         <jar destfile="lib/ipl${version}.jar">
             <fileset dir="${tmp}" includes="ibis/ipl/*.class" />
             <fileset dir="." includes="LICENSE.txt" />
@@ -80,8 +87,6 @@
         </tstamp>
 
         <!-- Create jar files -->
-
-
         <jar destfile="lib/ipl-impl${version}.jar">
             <fileset dir="${tmp}"
                      includes="ibis/ipl/impl/*.class ibis/ipl/impl/registry/**/*.class ibis/ipl/impl/util/**/*.class ibis/ipl/util/**/*.class" />
@@ -123,17 +128,10 @@
             </manifest>
         </jar>
 
-        <!-- Copy external libraries to lib directory -->
-        <copy todir="${lib}">
-            <fileset dir="external" />
-        </copy>
-
         <delete dir="${tmp}" />
     </target>
 
-    <!--
-       	Clean up everything except the rewritten classlibs
- 	-->
+    <!-- Clean up everything except the rewritten classlibs -->
     <target name="clean" description="Clean up (leaves rewritten classlibs)">
         <delete dir="${tmp}" />
         <delete dir="${lib}" />
@@ -141,6 +139,7 @@
 
         <delete file="${sources-zip}" />
         <delete file="ipl${version}.zip" />
+        <ant dir="compile" inheritAll="false" target="clean" />
         <ant dir="examples" inheritAll="false" target="clean" />
         <ant dir="benchmarks" inheritAll="false" target="clean" />
     </target>
@@ -154,6 +153,12 @@
 
     <target name="benchmarks" description="Build examples">
         <ant dir="benchmarks" inheritAll="false" target="build">
+            <property name="version" value="${version}" />
+        </ant>
+    </target>
+
+    <target name="compile" description="Build compile subproject">
+        <ant dir="compile" inheritAll="false" target="build">
             <property name="version" value="${version}" />
         </ant>
     </target>
