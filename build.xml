@@ -44,11 +44,11 @@
     </target>
 
     <!-- Compile sub-projects -->
-    <target name="subs" depends="util,compile">
+    <target name="sub-projects" depends="util,server,compile">
     </target>
 
     <!-- Compile IPL -->
-    <target name="compile-ipl" depends="copy-external,subs">
+    <target name="compile-ipl" depends="copy-external,sub-projects">
         <mkdir dir="${tmp}" />
 
         <!-- Compile the java code from src into ${tmp} -->
@@ -139,8 +139,9 @@
 
         <delete file="${sources-zip}" />
         <delete file="ipl${version}.zip" />
-        <ant dir="compile" inheritAll="false" target="clean" />
         <ant dir="util" inheritAll="false" target="clean" />
+        <ant dir="server" inheritAll="false" target="clean" />
+        <ant dir="compile" inheritAll="false" target="clean" />
         <ant dir="examples" inheritAll="false" target="clean" />
         <ant dir="benchmarks" inheritAll="false" target="clean" />
     </target>
@@ -166,6 +167,12 @@
 
     <target name="util" description="Build util subproject">
         <ant dir="util" inheritAll="false" target="build">
+            <property name="version" value="${version}" />
+        </ant>
+    </target>
+
+    <target name="server" description="Build server subproject">
+        <ant dir="server" inheritAll="false" target="build">
             <property name="version" value="${version}" />
         </ant>
     </target>
