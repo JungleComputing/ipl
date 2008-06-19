@@ -18,7 +18,7 @@ final class JavaMx {
 		 * @throws MxException
 		 */
 		private HandleManager(int blockSize, int maxBlocks) throws MxException {			
-			this.size = size;
+			this.size = 0;
 			this.blockSize = blockSize;
 			this.maxBlocks = maxBlocks;
 			this.activeHandles = 0;
@@ -26,7 +26,6 @@ final class JavaMx {
 			if (init(blockSize, maxBlocks) == false) {
 				throw new MxException("HandleManager: could not initialize Handles.");
 			}
-			// init calls to C library
 		}
 		
 		private native boolean init(int blockSize, int maxBlocks);
@@ -55,7 +54,7 @@ final class JavaMx {
 			
 			int handle = 0;
 			while(inUse[handle] ) {
-				// TODO bound check
+				// TODO bound check?
 				handle++;
 			}
 			inUse[handle] = true;
@@ -343,9 +342,12 @@ final class JavaMx {
 	 */
 	static native void wakeup(int endpointId);
 	
+	/**
+	 * @param endpointId the endpoint to work on
+	 * @return the matching information of the next control message
+	 */
+	static native long waitForMessage(int endpointId, long matchData, long matchMask);
 	
-	
-			
 	
 	//TODO do not use filters in Java, but move them away to the native code completely ?
 	//TODO add endpoint info to links in LinkManager?

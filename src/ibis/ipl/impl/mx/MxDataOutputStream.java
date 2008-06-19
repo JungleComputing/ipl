@@ -13,7 +13,8 @@ import java.nio.ShortBuffer;
 import ibis.io.DataOutputStream;
 
 public class MxDataOutputStream extends DataOutputStream implements Config {
-
+	// FIXME not threadsafe, do we want to?
+	
     // primitives are send in order of size, largest first
     private static final int HEADER = 0;
     private static final int LONGS = 1;
@@ -97,12 +98,14 @@ public class MxDataOutputStream extends DataOutputStream implements Config {
 	public void flush() throws IOException {
 		// TODO Auto-generated method stub
 		// post send for this buffer
-		if(finished) {		
-			flipBuffers();
-			finished = false;
-			channel.write(buffers);
-			//TODO: catch exceptions?
-		}		
+		if(!finished) {
+			return;
+		}
+
+		finished = false;
+		flipBuffers();
+		channel.write(buffers);
+		//TODO: catch exceptions?	
 	}
 	
 	/**
@@ -118,12 +121,10 @@ public class MxDataOutputStream extends DataOutputStream implements Config {
 	public void finish() throws IOException {
 		// TODO Auto-generated method stub
 		if(!finished) {
-			//TODO: wait for send operation to complete
 			try {
 				channel.finish();
 			} catch (IOException e) {
 				// TODO what to do with the status?
-				finished = true;
 				throw(e);
 			}
 			finished = true;

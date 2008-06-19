@@ -17,12 +17,13 @@ import ibis.ipl.impl.ReceivePort;
 import ibis.ipl.impl.ReceivePortConnectionInfo;
 import ibis.ipl.impl.SendPortIdentifier;
 
-class MxReceivePort extends ReceivePort {
+class MxReceivePort extends ReceivePort implements Identifiable<MxReceivePort> {
 	private static Logger logger = Logger.getLogger(MxReceivePort.class);
 	
 	
-	protected MxId<MxReceivePort> portId;
-	protected IdManager<MxReceivePortConnectionInfo> connectionManager;
+	protected short portId = 0;
+	protected IdManager<MxReceivePortConnectionInfo> channelManager;
+	protected IdManager<MxReceivePort> portManager = null;
 	
 	private boolean reader_busy = false;
 
@@ -38,11 +39,11 @@ class MxReceivePort extends ReceivePort {
 	 */
 	MxReceivePort(Ibis ibis, PortType type, String name,
 			MessageUpcall upcall, ReceivePortConnectUpcall connectUpcall,
-			Properties properties, MxId<MxReceivePort> portId) throws IOException {
+			Properties properties) throws IOException {
 		super(ibis, type, name, upcall, connectUpcall, properties);
-		this.portId = portId;
-		portId.owner = this;
-		connectionManager = new IdManager<MxReceivePortConnectionInfo>();
+		//TODO portMAnager setup
+
+		channelManager = new IdManager<MxReceivePortConnectionInfo>();
 	}
 		
 	/* ********************************************
@@ -188,10 +189,26 @@ class MxReceivePort extends ReceivePort {
 		}
 		if(timeout == 0) {
 			//TODO hack: timeout is broken otherwise
-			timeout = 1;
+			//timeout = 1;
 		}
 		super.closePort(timeout);
-		portId.remove();
+		portManager.remove(portId);
+	}
+
+	public IdManager<MxReceivePort> getIdManager() {
+		return portManager;
+	}
+
+	public short getIdentifier() {
+		return portId;
+	}
+
+	public void setIdManager(IdManager<MxReceivePort> manager) {
+		portManager = manager;
+	}
+
+	public void setIdentifier(short id) {
+		portId = id;
 	}
 
 }

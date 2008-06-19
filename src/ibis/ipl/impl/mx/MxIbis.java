@@ -51,12 +51,13 @@ public class MxIbis extends Ibis {
 			MessageUpcall u, ReceivePortConnectUpcall cu, Properties properties)
 			throws IOException {
 		// TODO maybe some portType-specific stuff later
-		MxId<MxReceivePort> id = receivePortManager.get();
-		if(id == null) {
-			//error
-			throw new IOException("Could net get a port number");
+		MxReceivePort result = new MxReceivePort(this, tp, name, u, cu, properties);
+		try {
+			receivePortManager.insert(result);
+		} catch (Exception e) {
+			// TODO Error: out of ReceivePortIdentifiers
+			e.printStackTrace();
 		}
-		MxReceivePort result = new MxReceivePort(this, tp, name, u, cu, properties, id);
 		return result;
 	}
 

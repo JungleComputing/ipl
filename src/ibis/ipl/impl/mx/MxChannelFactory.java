@@ -14,6 +14,7 @@ import ibis.util.ThreadPool;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 import org.apache.log4j.Logger;
@@ -21,6 +22,7 @@ import org.apache.log4j.Logger;
 public class MxChannelFactory implements Runnable {
 
 	static final int IBIS_FILTER = 0xdada0001;
+	static final short CONNECT_REPLY_PORT = 0;
 	static final int CONNECT_CONNECTION = 0;
 
 	private static Logger logger = Logger.getLogger(MxChannelFactory.class);
@@ -28,7 +30,7 @@ public class MxChannelFactory implements Runnable {
 	MxAddress address;
 	int endpointId;
 
-	IdManager<MxReadChannel> idm;
+	IdManager<Identifier> idm;
 	private MxIbis ibis;
 	private boolean listening = false;
 	private boolean closed = false;
@@ -38,7 +40,7 @@ public class MxChannelFactory implements Runnable {
 		this.endpointId = JavaMx.newEndpoint(IBIS_FILTER);
 		this.address = new MxAddress(JavaMx.getMyNicId(endpointId), JavaMx.getMyEndpointId(endpointId));
 		ThreadPool.createNew(this, "MxChannelFactory");
-		idm = new IdManager<MxReadChannel>();
+		idm = new IdManager<Identifier>();
 	}
 
 	/*	protected MxAddress getAddress(String hostname, int endpointId) {
@@ -50,12 +52,12 @@ public class MxChannelFactory implements Runnable {
 			ReceivePortIdentifier rpi, long timeoutMillis) throws IOException {
 		
 		MxReadChannel rc = null;
-		MxId<MxReadChannel> channelId = null;
 		MxSimpleDataInputStream mxdis = null;
 		MxWriteChannel wc = null;
 		MxSimpleDataOutputStream mxdos = null;
 		DataOutputStream dos = null;
 		byte reply = 0;
+		Identifier channelId = new Identifier();
 		
 		if(closed) {
 			throw new IOException("Endpoint is closed");
@@ -78,12 +80,22 @@ public class MxChannelFactory implements Runnable {
 			//set up a channel to receive the response
 			rc = new MxReadChannel(this);
 	
-			channelId = idm.get();
-			channelId.owner = rc;		// TODO Do we need this?
-			rc.setReceivePort((short) 0);
-			rc.setConnection(CONNECT_CONNECTION);
-			rc.setProtocol(Matching.CONNECT_REPLY);
-			mxdis = new MxSimpleDataInputStream(rc, ByteOrder.nativeOrder());
+			try {
+				idm.insert(channelId);
+			} catch (Exception e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			
+			rc.matchData = Matching.construct(Matching.PROTOCOL_CONNECT_REPLY, CONNECT_REPLY_PORT, channelId.getIdentifier());
+			
+			/* old calls:
+			rc.matchData = Matching.setReceivePort(rc.matchData, (short)0);
+			rc.matchData = Matching.setConnection(rc.matchData, CONNECT_CONNECTION);
+			rc.matchData = Matching.setProtocol(rc.matchData, Matching.PROTOCOL_CONNECT_REPLY);
+			 */
+
+			mxdis = new MxSimpleDataInputStream(rc, ByteOrder.nativeOrder()); //TODO change nativeOrder()
 	
 			//setup the channel to send the request
 			
@@ -93,12 +105,11 @@ public class MxChannelFactory implements Runnable {
 			} catch (IOException e) {
 				mxdis.close();
 				logger.error(e.getMessage());
-				channelId.remove();
-				return null;
+				idm.remove(channelId.getIdentifier());
+				throw(e);
 			}
 			
-			wc.setConnection(CONNECT_CONNECTION);
-			wc.setProtocol(Matching.CONNECT);
+			wc.matchData = Matching.construct(Matching.PROTOCOL_CONNECT, CONNECT_CONNECTION);
 			if (logger.isDebugEnabled()) {
 				logger.debug("MatchData is for connection request is " + Long.toHexString(wc.matchData));
 			}
@@ -111,14 +122,14 @@ public class MxChannelFactory implements Runnable {
 				sp.ident.writeTo(dos);
 				sp.type.writeTo(dos);
 	
-				dos.writeInt(rc.getConnection());
+				dos.writeInt(Matching.getConnection(rc.matchData)); // the connection to write the answer to
 				if (logger.isDebugEnabled()) {
 					logger.debug("request created...");
 				}
 				dos.flush();
 				mxdos.finish();
 			} catch (IOException e) {
-				channelId.remove();
+				idm.remove(channelId.getIdentifier());
 				//TODO Do I really need to close them explicitly? Garbage collection could also be suffice.
 				rc.close();
 				wc.close();
@@ -133,10 +144,10 @@ public class MxChannelFactory implements Runnable {
 				// failure
 				switch (reply) {
 					case ReceivePort.ALREADY_CONNECTED:
-						channelId.remove();
+						idm.remove(channelId.getIdentifier());
 						throw new AlreadyConnectedException("Already connected to ReceivePort", rpi);
 					case ReceivePort.TYPE_MISMATCH:
-						channelId.remove();
+						idm.remove(channelId.getIdentifier());
 						throw new PortMismatchException("PortTypes do not match", rpi);
 					case ReceivePort.DISABLED:
 					case ReceivePort.NOT_PRESENT:
@@ -148,19 +159,19 @@ public class MxChannelFactory implements Runnable {
 		                }
 		                
 		                rc.close();
-		                channelId.remove();
+		                idm.remove(channelId.getIdentifier());
 		                
 		                continue;
-						//channelId.remove();
+						//idm.remove(channelId.getIdentifier());
 						//throw new ConnectionRefusedException("ReceivePort not active", rpi);
 					case ReceivePort.NO_MANY_TO_X:
-						channelId.remove();
+						idm.remove(channelId.getIdentifier());
 						throw new ConnectionRefusedException("ReceivePort already occupied", rpi);
 					case ReceivePort.DENIED:
-						channelId.remove();
+						idm.remove(channelId.getIdentifier());
 						throw new ConnectionRefusedException("Receiver denied connection", rpi);
 					default:
-						channelId.remove();
+						idm.remove(channelId.getIdentifier());
 						throw new ConnectionFailedException("Unknown response received", rpi);
 				}
 			}
@@ -169,18 +180,20 @@ public class MxChannelFactory implements Runnable {
 			if (logger.isInfoEnabled()) {
 				logger.info("connection created");
 			}
-			// get the port number
-			wc.setConnection(mxdis.readInt());
-			wc.setProtocol(Matching.DATA);
+			// get the connection
+			wc.matchData = Matching.setConnection(wc.matchData, mxdis.readInt());
+			wc.matchData = Matching.setProtocol(wc.matchData, Matching.PROTOCOL_DATA);
 			rc.close();
-			channelId.remove();
+			idm.remove(channelId.getIdentifier());
 			
 			return wc;
 		}
 	}
 
 	public void close() {
-		listening = false;
+		synchronized(this) {
+			listening = false;
+		}
 		JavaMx.closeEndpoint(endpointId);
 		closed = true;
 	}
@@ -211,8 +224,8 @@ public class MxChannelFactory implements Runnable {
 		
 		//setup the channel to read the request
 		rc = new MxReadChannel(this);
-		rc.setConnection(CONNECT_CONNECTION);
-		rc.setProtocol(Matching.CONNECT);
+		rc.matchData = Matching.setConnection(rc.matchData, CONNECT_CONNECTION);
+		rc.matchData = Matching.setProtocol(rc.matchData, Matching.PROTOCOL_CONNECT);
 		// FIXME When multiple connection requests arrive at the same time, message can be mixed up for requests consisting of multiple MX messages
 		mxdis = new MxSimpleDataInputStream(rc, ByteOrder.nativeOrder());
 		dis = new DataInputStream(mxdis);
@@ -254,11 +267,13 @@ public class MxChannelFactory implements Runnable {
 				if (reply == ReceivePort.ACCEPTED) {
 					try {
 						info = new MxReceivePortConnectionInfo(spi, port, mxdis);
-
 						// setup the Matching properties of the ReadChannel
+						/* old:
 						rc.setReceivePort(port.portId.value);
 						rc.setChannel(info.channelId.value);
 						rc.setProtocol(Matching.DATA);
+						*/
+						rc.matchData = Matching.construct(Matching.PROTOCOL_DATA, port.getIdentifier(), info.getIdentifier());
 						// channel is now connected to the ReceivePort
 
 					} catch (IOException e) {
@@ -279,8 +294,11 @@ public class MxChannelFactory implements Runnable {
 			// setup the channel to send the reply
 			try {
 				wc = new MxUnreliableWriteChannel(this, replyAddress, IBIS_FILTER);
+				/* old:
 				wc.setConnection(dis.readInt()); // set the port to send the reply to
 				wc.setProtocol(Matching.CONNECT_REPLY);
+				*/
+				wc.matchData = Matching.construct(Matching.PROTOCOL_CONNECT_REPLY, dis.readInt());
 			} catch (IOException e) {
 				logger.error(e.getMessage());
 				//Throw an exception? No, we don't want to 'kill' the listening thread?
@@ -297,7 +315,7 @@ public class MxChannelFactory implements Runnable {
 				// also write port number					
 
 				mxdis.resetBytesRead();
-				mxdos.writeInt(rc.getConnection());
+				mxdos.writeInt(Matching.getConnection(rc.matchData));
 			}
 			mxdos.flush();
 			mxdos.finish();
@@ -319,7 +337,9 @@ public class MxChannelFactory implements Runnable {
 			if(port != null) {
 				port.close(10); // release resources
 			}
-			logger.debug(e1.getMessage());
+			if (logger.isDebugEnabled()) {
+				logger.debug(e1.getMessage());
+			}
 			return false;
 		}
 	}
@@ -327,6 +347,66 @@ public class MxChannelFactory implements Runnable {
 	public void run() {
 		// a "Listen" thread
 		listening = true;
+		long matching = Matching.NONE;
+		long protocol = Matching.NONE;
+		//TODO modify listen() and enable this:
+		
+		
+		// 'new' version is still unused
+		while(true) {
+			if(!listening) {
+				return;
+			}
+			
+			matching = JavaMx.waitForMessage(endpointId, Matching.PROTOCOL_CONTROL_BIT, Matching.PROTOCOL_CONTROL_BIT);
+			if (logger.isDebugEnabled()) {
+				logger.debug("New control message arrived:" + Long.toHexString(matching));
+			}
+			
+			if(matching == Matching.NONE) {
+				//no message arrived
+
+				/* DEBUG
+				try {
+					ibis.end();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				System.exit(1);*/
+				continue;
+			}
+			protocol = Matching.getProtocol(matching);
+
+			if(protocol == Matching.PROTOCOL_DISCONNECT) {
+				closeConnection(matching);
+			} else if(protocol == Matching.PROTOCOL_CLOSE) {
+					closeConnection(matching);
+			} else if(protocol == Matching.PROTOCOL_CONNECT) {
+				try {
+					listen();
+				} catch (IOException e) {
+					// Endpoint is closed, so stop listening
+					listening = false;
+				}
+			} else {
+				//we should not handle these messages here, do nothing
+				
+				// TODO DEBUG
+				if(matching == ~Matching.NONE) {
+					try {
+						ibis.end();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					System.exit(1);
+				}
+				
+			}
+		}		
+		
+		/* old version
 		while(listening) {	
 			try {
 				listen();
@@ -335,6 +415,42 @@ public class MxChannelFactory implements Runnable {
 				listening = false;
 			}
 		}
+		*/
+	}
+
+	private void closeConnection(long matchData) {
+		//receive the message
+		//FIXME avoid buffer creation and handle use?
+		int handle = JavaMx.handles.getHandle();
+		ByteBuffer buffer = ByteBuffer.allocateDirect(8192);
+		
+		try {
+			JavaMx.recv(buffer, 0, 8192, endpointId, handle, matchData);
+			JavaMx.wait(endpointId, handle);
+		} catch (MxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		JavaMx.handles.releaseHandle(handle);
+
+		// lookup the corresponding channel
+		MxReceivePortConnectionInfo rpci = findConnection(matchData);
+		
+		if(rpci != null) {
+			rpci.close(null);
+			return;
+		}
+	}
+
+	private MxReceivePortConnectionInfo findConnection(long matchData) {
+		MxReceivePort rp = ibis.receivePortManager.find(Matching.getReceivePort(matchData));
+		if(rp == null) {
+			// unknown rp
+			return null;
+		}
+		return rp.channelManager.find(Matching.getChannel(matchData));
+		
+		
 	}
 
 }

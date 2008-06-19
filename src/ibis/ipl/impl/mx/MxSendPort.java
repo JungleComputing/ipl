@@ -19,6 +19,7 @@ public class MxSendPort extends SendPort {
 	private static Logger logger = Logger.getLogger(MxSendPort.class);
 	
 	protected MxChannelFactory factory;
+	private MxSimpleDataOutputStream simpleStream;
 	
 	MxSendPort(MxIbis ibis, PortType type, String name,
 			SendPortDisconnectUpcall connectUpcall, Properties properties)
@@ -27,7 +28,9 @@ public class MxSendPort extends SendPort {
 		factory = ibis.factory;
 		// TODO Choose endianness dynamically
 		
-		initStream(new MxSimpleDataOutputStream(null, ByteOrder.nativeOrder())); // or something like this
+		simpleStream = new MxSimpleDataOutputStream(null, ByteOrder.nativeOrder());
+		initStream(simpleStream); 
+		// or something like this?
 	}
 
 	@Override
@@ -45,6 +48,8 @@ public class MxSendPort extends SendPort {
 		 * Close out and dataOut streams
 		 */
 		// for all receiveports: disconnect(ReceivePortIdentifier)
+		out.close();
+		dataOut.close(); //throws an exception at MxSimpleDataOutputstream
 		for(SendPortConnectionInfo spci: connections()) {
 			try {
 				spci.closeConnection();
@@ -53,8 +58,6 @@ public class MxSendPort extends SendPort {
 				// when an exception occurs at some connection, we still want to close the other connections
 			}
 		}
-		//dataOut.close(); //throws an exception at MxSimpleDataOutputstream
-		out.close();
 	}
 
 	@Override
@@ -66,8 +69,7 @@ public class MxSendPort extends SendPort {
 		 * construct the SendPortConnectionInfo
 		 */
 		// TODO timeouts
-		MxSendPortConnectionInfo connectionInfo = new MxSendPortConnectionInfo(this, receiver);
-		connectionInfo.connect();
+		MxSendPortConnectionInfo connectionInfo = new MxSendPortConnectionInfo(this, receiver, factory.connect(this, receiver, timeout));
 		initStream(new MxSimpleDataOutputStream(connectionInfo.connection, ByteOrder.nativeOrder())); // or something like this
 		// TODO mulit channel support
 		return connectionInfo;
@@ -75,12 +77,14 @@ public class MxSendPort extends SendPort {
 
 	@Override
 	protected void handleSendException(WriteMessage w, IOException e) {
+		//TODO
 		logger.debug("handleSendException", e);
 	}
 
 	@Override
 	protected void sendDisconnectMessage(ReceivePortIdentifier receiver,
 			SendPortConnectionInfo c) throws IOException {
+		
 		/*
 		 * send a DISCONNECT message
 		 */

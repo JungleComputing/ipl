@@ -6,7 +6,7 @@ import java.nio.channels.ClosedChannelException;
 
 import org.apache.log4j.Logger;
 
-public abstract class MxWriteChannel extends Matching {
+public abstract class MxWriteChannel {
 
 	private static Logger logger = Logger.getLogger(MxWriteChannel.class);
 	
@@ -17,6 +17,7 @@ public abstract class MxWriteChannel extends Matching {
 	protected boolean closed = false;
 	protected MxAddress target;
 	protected int msgSize;
+	protected long matchData = Matching.NONE;
 
 	protected MxWriteChannel(MxChannelFactory factory, MxAddress target, int filter) throws IOException {
 		this.factory = factory;
@@ -33,13 +34,51 @@ public abstract class MxWriteChannel extends Matching {
 	}
 
 	void close() {
-		if(closed) {
-			return;
+		synchronized(this) {
+			// send a CLOSE signal to the reader
+			closed = true;
+			long closeMatchData = Matching.setProtocol(matchData, Matching.PROTOCOL_DISCONNECT);
+			int closeHandle = JavaMx.handles.getHandle();
+			//FIXME buffer allocation
+			ByteBuffer bb = ByteBuffer.allocateDirect(0);
+			JavaMx.send(bb, 0, 0, factory.endpointId, link, closeHandle, closeMatchData);
+			try {
+				int msgSize = JavaMx.wait(factory.endpointId, closeHandle);
+			} catch (MxException e1) {
+				//stop trying to receive the message
+				logger.warn("Error sending the close signal.");
+			}
+			JavaMx.handles.releaseHandle(closeHandle);
+			
+			
+			// wait for the pending messages to finish
+			if(sending) {
+				try {
+					if(poll() == false) {
+						JavaMx.cancel(factory.endpointId, handle); //really stop current send operation, or wait for it?
+						/*try {
+							wait();
+						} catch (InterruptedException e) {
+							// ignore
+						}*/	
+					}
+					
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			if(closed) {
+				return;
+			}
+			closed = true;
 		}
-		closed = true;
+		/* TODO remove this?
 		while(sending) {
 			JavaMx.cancel(factory.endpointId, handle); //really stop current send operation, or wait for it?
 		}
+		*/
+
 		JavaMx.handles.releaseHandle(handle);
 		JavaMx.links.releaseLink(link);
 	}
@@ -55,15 +94,12 @@ public abstract class MxWriteChannel extends Matching {
 		}
 		if(sending) {
 			finish();
-		}
-		if(!sending) {
-			sending = true;
-			doSend(buffer);
-			msgSize = buffer.remaining();
-			buffer.position(buffer.limit());
-		} else {
-			throw new IOException("Already sending a message. finish that one first");
-		}
+			//sending will be false now
+		}	
+		sending = true;
+		doSend(buffer);
+		msgSize = buffer.remaining();
+		buffer.position(buffer.limit());
 	}
 	
 	public synchronized void write(ByteBuffer[] buffers) throws IOException {
@@ -72,18 +108,14 @@ public abstract class MxWriteChannel extends Matching {
 		}
 		if(sending) {
 			finish();
+			//sending will be false now
 		}
-		if(!sending) {
-			sending = true;
-			doSend(buffers);
-			msgSize = 0;
-			for(ByteBuffer b: buffers) {
-				msgSize += b.remaining();
-				b.position(b.limit());
-			}
-			
-		} else {
-			throw new IOException("Already sending a message. finish that one first");
+		sending = true;
+		doSend(buffers);
+		msgSize = 0;
+		for(ByteBuffer b: buffers) {
+			msgSize += b.remaining();
+			b.position(b.limit());
 		}
 	}
 	
@@ -117,6 +149,7 @@ public abstract class MxWriteChannel extends Matching {
 			throw new MxException("error waiting for the message completion");
 		}
 		sending = false;
+		notifyAll();
 		if(msgSize != this.msgSize) {
 			// message truncated
 			throw new MxException("Message truncated from "+ this.msgSize + " to " + msgSize + "bytes");
@@ -141,10 +174,12 @@ public abstract class MxWriteChannel extends Matching {
 			return false;
 		}
 		sending = false;
+		notifyAll();
 		return true;
 	}
 
 	public synchronized boolean isSending() {
+		//TODO unused method?
 		return sending;
 	}
 	

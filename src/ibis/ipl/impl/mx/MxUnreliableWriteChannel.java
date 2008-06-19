@@ -27,6 +27,8 @@ public class MxUnreliableWriteChannel extends MxWriteChannel {
 			logger.debug(data + ">>");
 		}
 		JavaMx.send(buffer, buffer.position(), buffer.remaining(), factory.endpointId, link, handle, matchData);
+		// FIXME buffer cannot be reused yet (ibuffered must be checked first)
+		// At the moment, this is not a bug!!
 	}
 
 	/* (non-Javadoc)

@@ -1,6 +1,5 @@
 package ibis.ipl.impl.mx;
 
-import ibis.ipl.impl.ReadMessage;
 import ibis.ipl.impl.SendPortIdentifier;
 
 import java.io.IOException;
@@ -8,19 +7,22 @@ import java.io.IOException;
 import org.apache.log4j.Logger;
 
 class MxReceivePortConnectionInfo extends
-		ibis.ipl.impl.ReceivePortConnectionInfo {
+		ibis.ipl.impl.ReceivePortConnectionInfo implements 
+		Identifiable<MxReceivePortConnectionInfo> {
 	private static Logger logger = Logger.getLogger(MxReceivePortConnectionInfo.class);
 	
-	protected MxId<MxReceivePortConnectionInfo> channelId;
+	protected short channelId = 0;
+	protected IdManager<MxReceivePortConnectionInfo> idm = null;
 	
 	MxReceivePortConnectionInfo(SendPortIdentifier origin,
 			MxReceivePort rp, MxSimpleDataInputStream dataIn) throws IOException {
 		super(origin, rp, dataIn);
-		this.channelId = rp.connectionManager.get();
-		if(channelId == null) {
-			throw new IOException("Could not get a connection ID");
+		try {
+			rp.channelManager.insert(this);
+		} catch (Exception e) {
+			// TODO error: out of IDs
+			e.printStackTrace();
 		}
-		//TODO: find a better place for this, and call it when new connections are formed
 	}
 	
 	boolean poll() throws IOException {
@@ -47,7 +49,24 @@ class MxReceivePortConnectionInfo extends
 	@Override
 	public void close(Throwable e) {
 		super.close(e);
-		channelId.remove();
+		idm.remove(channelId);
+	}
+
+	public IdManager<MxReceivePortConnectionInfo> getIdManager() {
+		return idm;
+	}
+
+	public short getIdentifier() {
+		return channelId;
+	}
+
+	public void setIdManager(IdManager<MxReceivePortConnectionInfo> manager) {
+		idm = manager;
+		
+	}
+
+	public void setIdentifier(short id) {
+		channelId = id;
 	}
 
 	

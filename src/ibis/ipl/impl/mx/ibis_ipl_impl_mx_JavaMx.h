@@ -167,6 +167,14 @@ JNIEXPORT jboolean JNICALL Java_ibis_ipl_impl_mx_JavaMx_cancel
 JNIEXPORT void JNICALL Java_ibis_ipl_impl_mx_JavaMx_wakeup
   (JNIEnv *, jclass, jint);
 
+/*
+ * Class:     ibis_ipl_impl_mx_JavaMx
+ * Method:    waitForMessage
+ * Signature: (IJJ)J
+ */
+JNIEXPORT jlong JNICALL Java_ibis_ipl_impl_mx_JavaMx_waitForMessage
+  (JNIEnv *, jclass, jint, jlong, jlong);
+
 #ifdef __cplusplus
 }
 #endif

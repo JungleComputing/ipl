@@ -3,7 +3,6 @@ package ibis.ipl.impl.mx;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
 import java.nio.ShortBuffer;
 
 import org.apache.log4j.Logger;
@@ -29,7 +28,9 @@ public class MxReliableWriteChannel extends MxWriteChannel {
 			}	
 			logger.debug(data + ">>");
 		}
-		JavaMx.sendSynchronous(buffer, buffer.position(), buffer.remaining(), factory.endpointId, link, handle, matchData); 
+		JavaMx.sendSynchronous(buffer, buffer.position(), buffer.remaining(), factory.endpointId, link, handle, matchData);
+		// FIXME buffer cannot be reused yet (ibuffered must be checked first for that)
+		// At the moment, this is not a bug!!
 	}
 
 	/* (non-Javadoc)

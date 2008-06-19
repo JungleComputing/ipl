@@ -605,3 +605,23 @@ JNIEXPORT void JNICALL Java_ibis_ipl_impl_mx_JavaMx_wakeup
 	}
 	mx_wakeup(myEndpoint);
 }
+
+/* getControlMessage() */
+JNIEXPORT jlong JNICALL Java_ibis_ipl_impl_mx_JavaMx_waitForMessage
+  (JNIEnv *env, jclass jcl, jint endpoitId, jlong matchData, jlong matchMask) {
+	mx_status_t status;
+	uint32_t result;
+	uint32_t timeout = 10000; // no timeout
+	//TODO multiple endpoint support
+	/* retrieve the request handle */
+	mx_probe(myEndpoint, timeout, matchData, matchMask, &status, &result);
+	if(result == 0) {
+		// no message available
+		return 0;
+	}
+	return status.match_info;
+	
+}
+
+
+

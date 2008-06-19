@@ -1,102 +1,110 @@
 package ibis.ipl.impl.mx;
 
-import java.util.TreeSet;
+import java.util.Iterator;
+import java.util.TreeMap;
 
 // ID 0 will be kept free
-class IdManager<T> {
+class IdManager<T extends Identifiable<T>> {
 
-	private TreeSet<MxId<T>> set;
-	short min, max, last;
+	private TreeMap<Short, T> map;
+	short last;
 	
 	IdManager () {
-		set = new TreeSet<MxId<T>>();
-		min = max = 0;
+		map = new TreeMap<Short, T>();
 		last = 0;
 	}
 
-	MxId<T> get() {
-		MxId<T> id = new MxId<T>(this);
-		
-		synchronized(this) {
-			int size = set.size();
-			if(size >= Short.MAX_VALUE) {
-				// no ID left
-				return null;				
-			}
-					
-			//find an id:
-			if(size == 0) {
-				// set is empty, this is the first element
-				min = max = id.value = 1;
-				if(set.add(id) == true) {
-					return id;
-				} else {
-					// not possible?
-					min = max = 0;
-					return null;
-				}
-			}
-			if(min > 1) {
-				// add at the low end
-				id.value = --min;
-				if(set.add(id) == true) {
-					// success
-					return id;
-				} else {
-					// undo the changes to min
-					min++;
-				}
-			}
-			if(last > 0) {
-				// try the id that was freed recently
-				id.value = last;
-				if(set.add(id) == true) {
-					// success!
-					if (last < min) {
-						min = last;
-					}
-					if (last > max) {
-						max = last;
-					}
-					last = 0;
-					return id;
-				}
-			}
-			if(max > 1) {
-				// add at the high end
-				id.value = ++max;
-				if(set.add(id) == true) {
-					// success
-					max++;
-					return id;
-				} else {
-					// undo the changes to max
-					max++;
-				}
-			}
-			// we didn't succeed...
-			return null;
+	synchronized short insert(T t) throws Exception {
+		short id;
+		int size = map.size();
+		if (size >= Short.MAX_VALUE) {
+			// no ID left
+			throw new Exception("ID Manager is out of ID's");
+			//return 0;
 		}
-	}
-	
-	synchronized boolean free(MxId<T> id) {
-		if(id.myManager == this) {
-			if(set.remove(id)) {
-				// success
-				last = id.value;
-				id.myManager = null;
-				return true;
-			} else {
-				//error, should not be possible to happen
-				return false;
+
+		//find an id:
+		if (size == 0) {
+			// set is empty, this is the first element
+			id = 1;
+			map.put(Short.valueOf(id), t);
+			t.setIdentifier(id);
+			t.setIdManager(this);
+			return id;
+		}
+		
+		// try to add t at the low end
+		id = (short)(map.firstKey().shortValue() - 1);
+		if (id > 0) {
+			map.put(Short.valueOf(id), t);
+			t.setIdentifier(id);
+			t.setIdManager(this);
+			return id;
+		}
+
+		// try the id that was freed recently
+		if (last > 0) {
+			id = last;
+			if (!map.containsKey(Short.valueOf(id))) {
+				map.put(Short.valueOf(id), t);
+				// modify the supporting variables
+				last = 0;
+				t.setIdentifier(id);
+				t.setIdManager(this);
+				return id;
 			}
+		}
+
+		// try to add t at the high end
+		id = (short)(map.lastKey().shortValue() + 1);
+		if (id <= Short.MAX_VALUE) {
+			map.put(Short.valueOf(id), t);
+			t.setIdentifier(id);
+			t.setIdManager(this);
+			return id;
+		}
+		// well, we really have to iterate over all the ids...
+		Iterator<Short> iter = map.keySet().iterator();
+		short key;
+		id =  1;
+		while(iter.hasNext()) {
+			key = iter.next();
+			if(id < key) {
+				//found!
+				map.put(Short.valueOf(id), t);
+				t.setIdentifier(id);
+				t.setIdManager(this);
+				return id;
+			}
+			id = ++key;
+		}
+				
+		// we didn't succeed...
+		throw new Exception("ID Manager could not find an ID");
+		//return 0;
+	}
+
+	
+	synchronized void remove(short key) {
+		T removedItem = map.remove(key);
+		if (removedItem == null) {
+			// key was not present in map
+			//TODO maybe throw an exception here?
+			return;
 		} else {
-			// id is not managed by me, so do nothing
-			return false;
+			// success
+			last = key;
+			removedItem.setIdManager(null);
+			removedItem.setIdentifier((short)0);
+			return;
 		}
 	}
 	
 	synchronized int size() {
-		return set.size();
+		return map.size();
+	}
+
+	synchronized T find(short id) {
+		return map.get(id);
 	}
 }

@@ -4,17 +4,17 @@ import ibis.ipl.ConnectionClosedException;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.ShortBuffer;
 
 import org.apache.log4j.Logger;
 
-public class MxReadChannel extends Matching {
+public class MxReadChannel {
 	private static Logger logger = Logger.getLogger(MxReadChannel.class);
 	
 	protected int handle;
 	protected int endpointId;
 	protected boolean closed, receiving;
 	protected MxChannelFactory factory;
+	protected long matchData = Matching.NONE;
 	
 	/**
 	 * @param factory
@@ -36,19 +36,22 @@ public class MxReadChannel extends Matching {
 			}
 			closed = true;
 			while(receiving) {
-				JavaMx.cancel(factory.endpointId, handle); //really stop current reception, or wait for it?
-				try {
+				//JavaMx.cancel(factory.endpointId, handle); //really stop current reception, or wait for it?
+				if (logger.isDebugEnabled()) {
+					logger.debug("close() is waiting...");
+				}
+				try {	
 					wait();
 				} catch (InterruptedException e) {
 					// Ignore
-				}
-				if (logger.isDebugEnabled()) {
-					logger.debug("closing");
 				}
 			}
 			notifyAll();
 		}
 		JavaMx.handles.releaseHandle(handle);
+		if (logger.isDebugEnabled()) {
+			logger.debug("closed!");
+		}
 	}
 	
 	@Override
@@ -92,6 +95,7 @@ public class MxReadChannel extends Matching {
 							logger.debug("read() notices that the connection got closed, aborting");
 						}
 						receiving = false;
+						notifyAll();
 						throw new ConnectionClosedException();
 					}
 				}
@@ -136,6 +140,6 @@ public class MxReadChannel extends Matching {
 		if(receiving) {
 			return 0;
 		}
-		return JavaMx.iprobe(endpointId, matchData, MASK_NONE); //-1 when no message available
+		return JavaMx.iprobe(endpointId, matchData, Matching.MASK_NONE); //-1 when no message available
 	}
 }
