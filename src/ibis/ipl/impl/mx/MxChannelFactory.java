@@ -3,11 +3,14 @@ package ibis.ipl.impl.mx;
 import ibis.ipl.AlreadyConnectedException;
 import ibis.ipl.ConnectionFailedException;
 import ibis.ipl.ConnectionRefusedException;
+import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.PortMismatchException;
 import ibis.ipl.PortType;
+import ibis.ipl.impl.SendPort;
 import ibis.ipl.impl.IbisIdentifier;
 import ibis.ipl.impl.ReceivePort;
 import ibis.ipl.impl.ReceivePortIdentifier;
+import ibis.ipl.impl.SendPortConnectionInfo;
 import ibis.ipl.impl.SendPortIdentifier;
 import ibis.util.ThreadPool;
 
@@ -43,14 +46,8 @@ public class MxChannelFactory implements Runnable {
 		idm = new IdManager<Identifier>();
 	}
 
-	/*	protected MxAddress getAddress(String hostname, int endpointId) {
-		return new MxAddress(hostname, endpointId);
-	}
-	 */
-
 	public MxWriteChannel connect(MxSendPort sp,
-			ReceivePortIdentifier rpi, long timeoutMillis) throws IOException {
-		
+			ReceivePortIdentifier rpi, long timeoutMillis, boolean fillTimeout, boolean reliable) throws IOException {		
 		MxReadChannel rc = null;
 		MxSimpleDataInputStream mxdis = null;
 		MxWriteChannel wc = null;
@@ -58,7 +55,8 @@ public class MxChannelFactory implements Runnable {
 		DataOutputStream dos = null;
 		byte reply = 0;
 		Identifier channelId = new Identifier();
-		
+		long deadline = 0;
+
 		if(closed) {
 			throw new IOException("Endpoint is closed");
 		}
@@ -67,6 +65,9 @@ public class MxChannelFactory implements Runnable {
 			logger.debug("Connecting...");
 		}
 		// TODO timeouts
+		if(timeoutMillis > 0) {
+			deadline = System.currentTimeMillis() + timeoutMillis;
+		}
 
 		IbisIdentifier id = (ibis.ipl.impl.IbisIdentifier) rpi.ibisIdentifier();
 		MxAddress target;
@@ -76,7 +77,7 @@ public class MxChannelFactory implements Runnable {
 			throw new PortMismatchException("Could not create MxAddress from ReceivePortIdentifier.", rpi, e);
 		}
 		
-		while(true) {
+		while(deadline == 0 || System.currentTimeMillis() < deadline) {
 			//set up a channel to receive the response
 			rc = new MxReadChannel(this);
 	
@@ -89,19 +90,17 @@ public class MxChannelFactory implements Runnable {
 			
 			rc.matchData = Matching.construct(Matching.PROTOCOL_CONNECT_REPLY, CONNECT_REPLY_PORT, channelId.getIdentifier());
 			
-			/* old calls:
-			rc.matchData = Matching.setReceivePort(rc.matchData, (short)0);
-			rc.matchData = Matching.setConnection(rc.matchData, CONNECT_CONNECTION);
-			rc.matchData = Matching.setProtocol(rc.matchData, Matching.PROTOCOL_CONNECT_REPLY);
-			 */
-
-			mxdis = new MxSimpleDataInputStream(rc, ByteOrder.nativeOrder()); //TODO change nativeOrder()
+			mxdis = new MxSimpleDataInputStream(rc, ByteOrder.BIG_ENDIAN);
 	
 			//setup the channel to send the request
 			
 			try {
 				//TODO support multiple channels
-				wc = new MxReliableWriteChannel(this, target, IBIS_FILTER);
+				if(reliable) {
+					wc = new MxReliableWriteChannel(this, target, IBIS_FILTER);
+				} else {
+					wc = new MxUnreliableWriteChannel(this, target, IBIS_FILTER);
+				}
 			} catch (IOException e) {
 				mxdis.close();
 				logger.error(e.getMessage());
@@ -113,7 +112,7 @@ public class MxChannelFactory implements Runnable {
 			if (logger.isDebugEnabled()) {
 				logger.debug("MatchData is for connection request is " + Long.toHexString(wc.matchData));
 			}
-			mxdos = new MxSimpleDataOutputStream(wc, ByteOrder.nativeOrder());
+			mxdos = new MxSimpleDataOutputStream(wc); //wc is big endian here
 			dos = new DataOutputStream(mxdos);
 	
 			//send the request
@@ -137,11 +136,34 @@ public class MxChannelFactory implements Runnable {
 			}
 	
 			//read the reply
+			//FIXME timeout occurs when no timeouts are set!
+			if(deadline > 0) {			
+				//if(rc.poll(System.currentTimeMillis() -  deadline) < 0) {
+				if(mxdis.WaitUntilAvailable(System.currentTimeMillis() -  deadline) < 0) {
+					//FIXME breaks the handshake when the other side is just plain slow
+					//	no message arrived in time;
+					rc.close();
+					wc.close();
+					idm.remove(channelId.getIdentifier());
+					throw new ConnectionTimedOutException("Connection request timed out",rpi);
+				}
+			} else { //no timeouts
+				//if(rc.poll(0) < 0) {
+				if(mxdis.WaitUntilAvailable(0) < 0) {
+					//FIXME breaks the handshake when the other side is just plain slow
+					//	no message arrived in time;
+					rc.close();
+					wc.close();
+					idm.remove(channelId.getIdentifier());
+					// what happened, no data?
+					throw new ConnectionTimedOutException("Connection request timed out",rpi);
+				}
+			}
 			reply = mxdis.readByte();
 			if (reply != ReceivePort.ACCEPTED) {
+				// failure
 				wc.close();
 				rc.close();
-				// failure
 				switch (reply) {
 					case ReceivePort.ALREADY_CONNECTED:
 						idm.remove(channelId.getIdentifier());
@@ -151,19 +173,20 @@ public class MxChannelFactory implements Runnable {
 						throw new PortMismatchException("PortTypes do not match", rpi);
 					case ReceivePort.DISABLED:
 					case ReceivePort.NOT_PRESENT:
-						// port not enabled, wait a while and try again
-		                try {
-		                    Thread.sleep(100);
-		                } catch (Exception e) {
-		                    // IGNORE
-		                }
-		                
-		                rc.close();
-		                idm.remove(channelId.getIdentifier());
-		                
-		                continue;
-						//idm.remove(channelId.getIdentifier());
-						//throw new ConnectionRefusedException("ReceivePort not active", rpi);
+						if (fillTimeout) {
+							// port not enabled, wait a while and try again
+							try {
+								Thread.sleep(100);
+							} catch (Exception e) {
+		                    // 	IGNORE
+							}
+			                rc.close();
+			                idm.remove(channelId.getIdentifier());               
+			                continue;
+						} else { // !fillTimeout
+							idm.remove(channelId.getIdentifier());
+							throw new ConnectionRefusedException("ReceivePort not active", rpi);
+						}
 					case ReceivePort.NO_MANY_TO_X:
 						idm.remove(channelId.getIdentifier());
 						throw new ConnectionRefusedException("ReceivePort already occupied", rpi);
@@ -183,16 +206,23 @@ public class MxChannelFactory implements Runnable {
 			// get the connection
 			wc.matchData = Matching.setConnection(wc.matchData, mxdis.readInt());
 			wc.matchData = Matching.setProtocol(wc.matchData, Matching.PROTOCOL_DATA);
+			//get the endianness of the ReceivePort
+			if(!mxdis.readBoolean()) {
+				wc.order = ByteOrder.LITTLE_ENDIAN;
+			} //true: big endian, which is the default byte order
+
 			rc.close();
 			idm.remove(channelId.getIdentifier());
 			
 			return wc;
 		}
+		throw new ConnectionTimedOutException("Connection request timed out",rpi);
 	}
 
 	public void close() {
 		synchronized(this) {
 			listening = false;
+			JavaMx.wakeup(endpointId);
 		}
 		JavaMx.closeEndpoint(endpointId);
 		closed = true;
@@ -227,7 +257,7 @@ public class MxChannelFactory implements Runnable {
 		rc.matchData = Matching.setConnection(rc.matchData, CONNECT_CONNECTION);
 		rc.matchData = Matching.setProtocol(rc.matchData, Matching.PROTOCOL_CONNECT);
 		// FIXME When multiple connection requests arrive at the same time, message can be mixed up for requests consisting of multiple MX messages
-		mxdis = new MxSimpleDataInputStream(rc, ByteOrder.nativeOrder());
+		mxdis = new MxSimpleDataInputStream(rc, ByteOrder.BIG_ENDIAN);
 		dis = new DataInputStream(mxdis);
 		MxAddress replyAddress;
 		byte reply;
@@ -266,6 +296,7 @@ public class MxChannelFactory implements Runnable {
 
 				if (reply == ReceivePort.ACCEPTED) {
 					try {
+						mxdis = new MxSimpleDataInputStream(rc, ByteOrder.nativeOrder()); // we want a new DIS with native byte order
 						info = new MxReceivePortConnectionInfo(spi, port, mxdis);
 						// setup the Matching properties of the ReadChannel
 						/* old:
@@ -277,6 +308,7 @@ public class MxChannelFactory implements Runnable {
 						// channel is now connected to the ReceivePort
 
 					} catch (IOException e) {
+						//TODO proper handling
 						e.printStackTrace();
 						reply = ReceivePort.DENIED;
 					}
@@ -303,26 +335,29 @@ public class MxChannelFactory implements Runnable {
 				logger.error(e.getMessage());
 				//Throw an exception? No, we don't want to 'kill' the listening thread?
 				dis.close();
+				mxdis.close();
 				rc.close();
 				return false;
 			}
 			
-			mxdos = new MxSimpleDataOutputStream(wc, ByteOrder.nativeOrder());
+			mxdos = new MxSimpleDataOutputStream(wc);
 			//write the reply
 			mxdos.writeByte(reply);
 
 			if (reply == ReceivePort.ACCEPTED) {
-				// also write port number					
+				// also write port number and endianness
 
-				mxdis.resetBytesRead();
+				//mxdis.resetBytesRead(); //not needed anymore. A new DIS is already made for the ReceivePort
 				mxdos.writeInt(Matching.getConnection(rc.matchData));
+				mxdos.writeBoolean(ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN); //true when order is big endian
 			}
 			mxdos.flush();
 			mxdos.finish();
 
 			if (reply != ReceivePort.ACCEPTED) {
-				rc.close();
 				dis.close();
+				mxdis.close();
+				rc.close();
 				if (logger.isInfoEnabled()) {
 					logger.info("receiveport rejected connection");
 				}
@@ -354,11 +389,13 @@ public class MxChannelFactory implements Runnable {
 		
 		// 'new' version is still unused
 		while(true) {
-			if(!listening) {
-				return;
+			synchronized(this) {
+				if(!listening) {
+					return;
+				}
 			}
 			
-			matching = JavaMx.waitForMessage(endpointId, Matching.PROTOCOL_CONTROL_BIT, Matching.PROTOCOL_CONTROL_BIT);
+			matching = JavaMx.waitForMessage(endpointId, 0, Matching.PROTOCOL_CONTROL_BIT, Matching.PROTOCOL_CONTROL_BIT);
 			if (logger.isDebugEnabled()) {
 				logger.debug("New control message arrived:" + Long.toHexString(matching));
 			}
@@ -379,9 +416,11 @@ public class MxChannelFactory implements Runnable {
 			protocol = Matching.getProtocol(matching);
 
 			if(protocol == Matching.PROTOCOL_DISCONNECT) {
-				closeConnection(matching);
+				// remote SendPort closes
+				closeReceiveConnection(matching);
 			} else if(protocol == Matching.PROTOCOL_CLOSE) {
-					closeConnection(matching);
+				//remote ReceivePort closes
+				closeSendConnection(matching);
 			} else if(protocol == Matching.PROTOCOL_CONNECT) {
 				try {
 					listen();
@@ -418,7 +457,7 @@ public class MxChannelFactory implements Runnable {
 		*/
 	}
 
-	private void closeConnection(long matchData) {
+	private void closeReceiveConnection(long matchData) {
 		//receive the message
 		//FIXME avoid buffer creation and handle use?
 		int handle = JavaMx.handles.getHandle();
@@ -434,23 +473,50 @@ public class MxChannelFactory implements Runnable {
 		JavaMx.handles.releaseHandle(handle);
 
 		// lookup the corresponding channel
-		MxReceivePortConnectionInfo rpci = findConnection(matchData);
+		MxReceivePortConnectionInfo rpci = findReceiveConnection(matchData);
 		
 		if(rpci != null) {
-			rpci.close(null);
-			return;
+			rpci.senderClose();
 		}
 	}
 
-	private MxReceivePortConnectionInfo findConnection(long matchData) {
+	private MxReceivePortConnectionInfo findReceiveConnection(long matchData) {
 		MxReceivePort rp = ibis.receivePortManager.find(Matching.getReceivePort(matchData));
 		if(rp == null) {
 			// unknown rp
 			return null;
 		}
-		return rp.channelManager.find(Matching.getChannel(matchData));
-		
-		
+		return rp.channelManager.find(Matching.getChannel(matchData));	
 	}
 
+	private void closeSendConnection(long matchData) {
+		//receive the message
+		//FIXME avoid ReadChannel (and mxdis and dis) creation
+		MxReadChannel rc = new MxReadChannel(this);
+		rc.matchData = matchData;
+		MxSimpleDataInputStream mxdis = new MxSimpleDataInputStream(rc, ByteOrder.BIG_ENDIAN);
+		DataInputStream dis = new DataInputStream(mxdis);
+		SendPortIdentifier spi = null;
+		ReceivePortIdentifier rpi = null;
+		try {
+			spi = new SendPortIdentifier(dis);		 //TODO read from disconnect msg
+			rpi = new ReceivePortIdentifier(dis); //TODO read from disconnect msg
+		} catch (IOException e) {
+			// TODO Should not happen, lets crash here
+			e.printStackTrace();
+			System.exit(1);
+		}
+		SendPort sp = ibis.findSendPort(spi.name());
+		if(sp == null) {
+			//no such SendPort, ignore the request 
+			return;
+		}
+		
+		sp.lostConnection(rpi, null);
+		if(sp == null) {
+			//no such SendPort, ignore the request 
+			return;
+		}
+	}
+	
 }

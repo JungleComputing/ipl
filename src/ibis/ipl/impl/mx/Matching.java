@@ -15,7 +15,7 @@ class Matching {
 	static final long PROTOCOL_CONTROL_MASK =    0x0F00000000000000L;
 	static final long PROTOCOL_DATA_MASK =       0xF000000000000000L;
 	
-	static final long MASK_NONE =                0x0000000000000000L; // see definition in myriexpress.h
+	static final long MASK_ALL =                 0xFFFFFFFFFFFFFFFFL;
 	static final long NONE =                     0x0000000000000000L;
 
 	

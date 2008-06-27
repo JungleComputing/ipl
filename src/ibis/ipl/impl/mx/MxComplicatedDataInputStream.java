@@ -25,7 +25,7 @@ import ibis.io.DataInputStream;
  * @author Timo van Kessel
  *
  */
-public class MxDataInputStream extends DataInputStream implements Config {
+public class MxComplicatedDataInputStream extends DataInputStream implements Config {
 
     public static final int SIZEOF_BYTE = 1;
     public static final int SIZEOF_CHAR = 2;
@@ -44,7 +44,7 @@ public class MxDataInputStream extends DataInputStream implements Config {
 	private static final int BYTES = 7;
 	protected static final int SIZEOF_HEADER = 16; // in bytes
 
-	private static Logger logger = Logger.getLogger(MxDataInputStream.class);
+	private static Logger logger = Logger.getLogger(MxComplicatedDataInputStream.class);
 	
 	MxReadChannel channel;
 	long count;
@@ -65,7 +65,7 @@ public class MxDataInputStream extends DataInputStream implements Config {
 	/**
 	 * @param channel the data source
 	 */
-	public MxDataInputStream(MxReadChannel channel, ByteOrder order) {
+	public MxComplicatedDataInputStream(MxReadChannel channel, ByteOrder order) {
 		this.channel = channel;
 		count = 0;
 		buffer = ByteBuffer.allocateDirect(BYTE_BUFFER_SIZE).order(order);
@@ -412,7 +412,7 @@ public class MxDataInputStream extends DataInputStream implements Config {
 		}
 		// receive the next message
 		buffer.clear();
-		int count = channel.read(buffer);
+		int count = channel.read(buffer, 0); //TODO timeout?
 		if (count <= 0) {
 			// TODO error
 		}
@@ -438,7 +438,7 @@ public class MxDataInputStream extends DataInputStream implements Config {
 		if(start != buffer.limit()) {
 			// TODO error handling
 			// throw an IOException?
-			System.err.println("error in MxDataInputStream.receive()");
+			System.err.println("error in MxComplicatedDataInputStream.receive()");
 			System.exit(1);
 		}
 	}

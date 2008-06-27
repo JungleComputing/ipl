@@ -153,6 +153,14 @@ JNIEXPORT jint JNICALL Java_ibis_ipl_impl_mx_JavaMx_iprobe
 
 /*
  * Class:     ibis_ipl_impl_mx_JavaMx
+ * Method:    probe
+ * Signature: (IJJJ)I
+ */
+JNIEXPORT jint JNICALL Java_ibis_ipl_impl_mx_JavaMx_probe
+  (JNIEnv *, jclass, jint, jlong, jlong, jlong);
+
+/*
+ * Class:     ibis_ipl_impl_mx_JavaMx
  * Method:    cancel
  * Signature: (II)Z
  */
@@ -170,9 +178,17 @@ JNIEXPORT void JNICALL Java_ibis_ipl_impl_mx_JavaMx_wakeup
 /*
  * Class:     ibis_ipl_impl_mx_JavaMx
  * Method:    waitForMessage
- * Signature: (IJJ)J
+ * Signature: (IJJJ)J
  */
 JNIEXPORT jlong JNICALL Java_ibis_ipl_impl_mx_JavaMx_waitForMessage
+  (JNIEnv *, jclass, jint, jlong, jlong, jlong);
+
+/*
+ * Class:     ibis_ipl_impl_mx_JavaMx
+ * Method:    pollForMessage
+ * Signature: (IJJ)J
+ */
+JNIEXPORT jlong JNICALL Java_ibis_ipl_impl_mx_JavaMx_pollForMessage
   (JNIEnv *, jclass, jint, jlong, jlong);
 
 #ifdef __cplusplus

@@ -21,10 +21,15 @@ public class MxSimpleDataOutputStream extends DataOutputStream implements Config
 	private boolean closing = false;
 	private long count;
 	
-	public MxSimpleDataOutputStream(MxWriteChannel channel, ByteOrder order) {
+	public MxSimpleDataOutputStream(MxWriteChannel channel) {
 		//TODO multi channel support
 		this.channel = channel;
-		buffer = ByteBuffer.allocateDirect(BYTE_BUFFER_SIZE).order(order);
+		if (channel != null) {
+			buffer = ByteBuffer.allocateDirect(BYTE_BUFFER_SIZE).order(channel.order);
+		} else { //TODO come up with a reasonable solution
+			// (in near future, this may be obsolete)
+			buffer = ByteBuffer.allocateDirect(BYTE_BUFFER_SIZE).order(ByteOrder.BIG_ENDIAN); 
+		}
 		count = 0;
 		closed = false;
 	}
@@ -84,9 +89,9 @@ public class MxSimpleDataOutputStream extends DataOutputStream implements Config
 				sending = false;
 				return;
 			}
-			if (logger.isDebugEnabled()) {
+			/*if (logger.isDebugEnabled()) {
 				logger.debug("sending message...");
-			}
+			}*/
 			channel.write(buffer); 
 			// TODO throws IOexceptions, catch them?
 			count += size;
@@ -147,9 +152,9 @@ public class MxSimpleDataOutputStream extends DataOutputStream implements Config
 	}
 
 	public void writeByte(byte value) throws IOException {
-        if (logger.isDebugEnabled()) {
+        /*if (logger.isDebugEnabled()) {
             logger.debug("writeByte(" + value + ")");
-        }
+        }*/
         if(closing) {
         	throw new IOException("Stream is closed");
         }
@@ -165,9 +170,9 @@ public class MxSimpleDataOutputStream extends DataOutputStream implements Config
 	}
 
 	public void writeChar(char value) throws IOException {
-        if (logger.isDebugEnabled()) {
+        /*if (logger.isDebugEnabled()) {
             logger.debug("writeChar(" + value + ")");
-        }
+        }*/
         if(closing) {
         	throw new IOException("Stream is closed");
         }
@@ -183,9 +188,9 @@ public class MxSimpleDataOutputStream extends DataOutputStream implements Config
 	}
 
 	public void writeDouble(double value) throws IOException {
-        if (logger.isDebugEnabled()) {
+        /*if (logger.isDebugEnabled()) {
             logger.debug("writeDouble(" + value + ")");
-        }
+        }*/
         if(closing) {
         	throw new IOException("Stream is closed");
         }
@@ -201,9 +206,9 @@ public class MxSimpleDataOutputStream extends DataOutputStream implements Config
 	}
 
 	public void writeFloat(float value) throws IOException {
-        if (logger.isDebugEnabled()) {
+        /*if (logger.isDebugEnabled()) {
             logger.debug("writeFloat(" + value + ")");
-        }
+        }*/
         if(closing) {
         	throw new IOException("Stream is closed");
         }
@@ -219,9 +224,9 @@ public class MxSimpleDataOutputStream extends DataOutputStream implements Config
 	}
 
 	public void writeInt(int value) throws IOException {
-        if (logger.isDebugEnabled()) {
+        /*if (logger.isDebugEnabled()) {
             logger.debug("writeInt(" + value + ")");
-        }
+        }*/
         if(closing) {
         	throw new IOException("Stream is closed");
         }
@@ -240,9 +245,9 @@ public class MxSimpleDataOutputStream extends DataOutputStream implements Config
         if(closing) {
         	throw new IOException("Stream is closed");
         }
-        if (logger.isDebugEnabled()) {
+        /*if (logger.isDebugEnabled()) {
             logger.debug("writeLong(" + value + ")");
-        }
+        }*/
         try {
             buffer.putLong(value);
         } catch (BufferOverflowException e) {
@@ -258,9 +263,9 @@ public class MxSimpleDataOutputStream extends DataOutputStream implements Config
         if(closing) {
         	throw new IOException("Stream is closed");
         }
-        if (logger.isDebugEnabled()) {
+        /*if (logger.isDebugEnabled()) {
             logger.debug("writeShort(" + value + ")");
-        }
+        }*/
         try {
             buffer.putShort(value);
         } catch (BufferOverflowException e) {

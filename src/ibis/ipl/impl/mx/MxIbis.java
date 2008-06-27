@@ -17,8 +17,7 @@ import ibis.ipl.impl.Ibis;
 
 public class MxIbis extends Ibis {
     
-	private static final Logger logger
-    = Logger.getLogger("ibis.ipl.impl.nio.NioIbis");
+	private static Logger logger = Logger.getLogger(MxIbis.class);
 	
 	protected MxChannelFactory factory;
 	protected IdManager<MxReceivePort> receivePortManager;
@@ -66,6 +65,23 @@ public class MxIbis extends Ibis {
 			SendPortDisconnectUpcall cu, Properties properties)
 			throws IOException {
 		// TODO maybe some portType-specific stuff later
-		return new MxSendPort(this, tp, name, cu, properties);
+		if (tp.hasCapability(PortType.COMMUNICATION_RELIABLE)) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("creating reliable channel");
+			}
+			return new MxSendPort(this, tp, name, cu, properties, true);
+		} else {
+			if (logger.isDebugEnabled()) {
+				logger.debug("creating unreliable channel");
+			}
+			return new MxSendPort(this, tp, name, cu, properties, false);
+		}
 	}
+
+	@Override
+	public void poll() {
+		// TODO empty implementation (just like the default)
+		// Maybe we can come up with something smarts
+	}
+	
 }

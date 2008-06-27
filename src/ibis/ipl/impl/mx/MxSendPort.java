@@ -6,6 +6,7 @@ import java.util.Properties;
 
 import org.apache.log4j.Logger;
 
+import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.PortType;
 import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.ipl.impl.ReceivePortIdentifier;
@@ -13,22 +14,23 @@ import ibis.ipl.impl.SendPort;
 import ibis.ipl.impl.SendPortConnectionInfo;
 import ibis.ipl.impl.WriteMessage;
 
-
 public class MxSendPort extends SendPort {
 
 	private static Logger logger = Logger.getLogger(MxSendPort.class);
 	
 	protected MxChannelFactory factory;
 	private MxSimpleDataOutputStream simpleStream;
+	private boolean reliable;
 	
 	MxSendPort(MxIbis ibis, PortType type, String name,
-			SendPortDisconnectUpcall connectUpcall, Properties properties)
+			SendPortDisconnectUpcall connectUpcall, Properties properties, boolean reliable)
 			throws IOException {
 		super(ibis, type, name, connectUpcall, properties);
 		factory = ibis.factory;
 		// TODO Choose endianness dynamically
 		
-		simpleStream = new MxSimpleDataOutputStream(null, ByteOrder.nativeOrder());
+		simpleStream = new MxSimpleDataOutputStream(null);
+		this.reliable = reliable;
 		initStream(simpleStream); 
 		// or something like this?
 	}
@@ -68,10 +70,9 @@ public class MxSendPort extends SendPort {
 		 * negotiate port number
 		 * construct the SendPortConnectionInfo
 		 */
-		// TODO timeouts
-		MxSendPortConnectionInfo connectionInfo = new MxSendPortConnectionInfo(this, receiver, factory.connect(this, receiver, timeout));
-		initStream(new MxSimpleDataOutputStream(connectionInfo.connection, ByteOrder.nativeOrder())); // or something like this
-		// TODO mulit channel support
+		MxSendPortConnectionInfo connectionInfo = new MxSendPortConnectionInfo(this, receiver, factory.connect(this, receiver, timeout, fillTimeout, reliable));
+		initStream(new MxSimpleDataOutputStream(connectionInfo.connection)); // or something like this
+		// TODO multi channel support. call above will go wrong in that case. MXSDOS should support multiple channels?
 		return connectionInfo;
 	}
 

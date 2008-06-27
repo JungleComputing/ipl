@@ -12,7 +12,7 @@ import java.nio.ShortBuffer;
 
 import ibis.io.DataOutputStream;
 
-public class MxDataOutputStream extends DataOutputStream implements Config {
+public class MxComplicatedDataOutputStream extends DataOutputStream implements Config {
 	// FIXME not threadsafe, do we want to?
 	
     // primitives are send in order of size, largest first
@@ -57,7 +57,7 @@ public class MxDataOutputStream extends DataOutputStream implements Config {
 	
 	private long count = 0;
 	
-	public MxDataOutputStream(MxWriteChannel channel, ByteOrder order) {
+	public MxComplicatedDataOutputStream(MxWriteChannel channel, ByteOrder order) {
 		this.channel = channel;
 		buffers = new ByteBuffer[NR_OF_BUFFERS];
 		buffers[HEADER] = ByteBuffer.allocateDirect(SIZEOF_HEADER).order(order);

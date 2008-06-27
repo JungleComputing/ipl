@@ -9,6 +9,10 @@
 #This file lists properties valid for various parts of ibis
 #Also listed are a description, and the default value of this property, if any
 
+
+## Ibis.io property need for MxIbis to function correctly
+ibis.io.noarraybuffers = true
+
 #### Generic Ibis properties ####
 
 ## String: name of the pool this ibis belongs to

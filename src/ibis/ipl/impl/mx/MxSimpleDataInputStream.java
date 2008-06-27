@@ -83,9 +83,9 @@ public class MxSimpleDataInputStream extends DataInputStream implements Config {
             result = buffer.get();
         }
 
-        if (logger.isDebugEnabled()) {
+        /*if (logger.isDebugEnabled()) {
             logger.debug("received byte: " + result);
-        }
+        }*/
 
         return result;
     }
@@ -104,9 +104,9 @@ public class MxSimpleDataInputStream extends DataInputStream implements Config {
             result = buffer.getChar();
         }
 
-        if (logger.isDebugEnabled()) {
+        /*if (logger.isDebugEnabled()) {
             logger.debug("received char: " + result);
-        }
+        }*/
         
         return result;
 	}
@@ -125,9 +125,9 @@ public class MxSimpleDataInputStream extends DataInputStream implements Config {
             result = buffer.getDouble();
         }
 
-        if (logger.isDebugEnabled()) {
+        /*if (logger.isDebugEnabled()) {
             logger.debug("received double: " + result);
-        }
+        }*/
         
         return result;
     }
@@ -146,9 +146,9 @@ public class MxSimpleDataInputStream extends DataInputStream implements Config {
             result = buffer.getFloat();
         }
 
-        if (logger.isDebugEnabled()) {
+        /*if (logger.isDebugEnabled()) {
             logger.debug("received float: " + result);
-        }
+        }*/
         
         return result;
     }
@@ -167,9 +167,9 @@ public class MxSimpleDataInputStream extends DataInputStream implements Config {
             result = buffer.getInt();
         }
 
-        if (logger.isDebugEnabled()) {
+        /*if (logger.isDebugEnabled()) {
             logger.debug("received int: " + result);
-        }
+        }*/
         
         return result;
     }
@@ -188,9 +188,9 @@ public class MxSimpleDataInputStream extends DataInputStream implements Config {
             result = buffer.getLong();
         }
 
-        if (logger.isDebugEnabled()) {
+        /*if (logger.isDebugEnabled()) {
             logger.debug("received long: " + result);
-        }
+        }*/
 
         return result;
     }
@@ -209,9 +209,9 @@ public class MxSimpleDataInputStream extends DataInputStream implements Config {
             result = buffer.getShort();
         }
 
-        if (logger.isDebugEnabled()) {
+        /*if (logger.isDebugEnabled()) {
             logger.debug("received short: " + result);
-        }
+        }*/
 
         return result;
     }
@@ -284,15 +284,16 @@ public class MxSimpleDataInputStream extends DataInputStream implements Config {
             throw new IOException("tried receive() while there was data"
                     + " left in the buffer");
 		}
-		if (logger.isDebugEnabled()) {
+		/*if (logger.isDebugEnabled()) {
 			logger.debug("Receiving message...");
-		}
+		}*/
 		// receive the next message
 		buffer.clear();
 		int count = 0;
 		while (count == 0) {
-			count = channel.read(buffer);
+			count = channel.read(buffer, 0);
 			// TODO change this when the read op stops returning -1
+			//TODO catch ConnClosedException?
 		}
 		if (count < 0) {
 			throw new IOException("error receiving message");
@@ -310,9 +311,28 @@ public class MxSimpleDataInputStream extends DataInputStream implements Config {
 		if (result == 0) {
 			// check whether a MX message is on its way
 			result = channel.poll();
-			if (result <0) {
-				return 0;
+		}
+		return result;
+	}
+	
+
+	public int WaitUntilAvailable(long timeout) throws IOException {
+		long deadline = System.currentTimeMillis() + timeout;
+		int result = buffer.remaining();
+		while (result == -1 && !closed) {
+			// check whether a MX message is on its way
+			//FIXME empty messages)
+			if(timeout <= 0) {
+				result = channel.poll(0);
+			} else {
+				result = channel.poll(System.currentTimeMillis() - deadline);
+				if(System.currentTimeMillis() > deadline) {
+					return -1;
+				}
 			}
+		}
+		if(closed) {
+			throw new IOException("Stream is closed");
 		}
 		return result;
 	}

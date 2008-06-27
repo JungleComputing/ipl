@@ -15,17 +15,17 @@ public class MxUnreliableWriteChannel extends MxWriteChannel {
 	}
 
 	public void doSend(ByteBuffer buffer) {
-		if (logger.isDebugEnabled()) {
+		/*if (logger.isDebugEnabled()) {
 			logger.debug("sending message...");
-		}
-		if (logger.isDebugEnabled()) {
+		}*/
+		/*if (logger.isDebugEnabled()) {
 			String data = "message contents: <<";
 			ShortBuffer b = buffer.asShortBuffer();
 			while(b.hasRemaining()) {
 				data += Short.toString(b.get()) + " ";
 			}	
 			logger.debug(data + ">>");
-		}
+		}*/
 		JavaMx.send(buffer, buffer.position(), buffer.remaining(), factory.endpointId, link, handle, matchData);
 		// FIXME buffer cannot be reused yet (ibuffered must be checked first)
 		// At the moment, this is not a bug!!

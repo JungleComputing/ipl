@@ -543,15 +543,11 @@ JNIEXPORT jint JNICALL Java_ibis_ipl_impl_mx_JavaMx_test
 }
 
 /* iprobe() */
-/*
- * Class:     ibis_ipl_impl_mx_JavaMx
- * Method:    iprobe
- * Signature: (IJJJ)I
- */
 JNIEXPORT jint JNICALL Java_ibis_ipl_impl_mx_JavaMx_iprobe
   (JNIEnv *env, jclass jcl, jint endpointId, jlong matchData, jlong matchMask) {
 	mx_status_t status;
 	uint32_t result;
+	mx_return_t ret;
 	if(endpointId != 1) {
 		// not a valid endpoint
 		// TODO multiple endpoint support 
@@ -559,11 +555,49 @@ JNIEXPORT jint JNICALL Java_ibis_ipl_impl_mx_JavaMx_iprobe
 		return 0;
 	}
 	/* retrieve the request handle */
-	mx_iprobe(myEndpoint, matchData, matchMask, &status, &result);
+	ret = mx_iprobe(myEndpoint, matchData, matchMask, &status, &result);
+	if(ret != MX_SUCCESS) {
+			//fprintf(stderr, "JavaMx::iprobe: failed!: %s\n", mx_strerror(ret));
+			throwException(env, mx_strerror(ret));
+			return 0;
+		}
 	if(result == 0) {
 		// no message available
+		//fprintf(stderr, "JavaMx::iprobe: no message: %s\n", mx_strstatus(status.code));
 		return -1;
 	}
+	//fprintf(stderr, "JavaMx::iprobe: message: %s\n", mx_strstatus(status.code));
+	//fprintf(stderr, "JavaMx::iprobe: retval: %" PRId32 "\n", status.xfer_length);
+	return (jint)(status.xfer_length);
+}
+
+/* probe() */
+JNIEXPORT jint JNICALL Java_ibis_ipl_impl_mx_JavaMx_probe
+  (JNIEnv *env, jclass jcl, jint endpointId, jlong timeout, jlong matchData, jlong matchMask) {
+	
+	mx_status_t status;
+	uint32_t result;
+	mx_return_t ret;
+	if(endpointId != 1) {
+		// not a valid endpoint
+		// TODO multiple endpoint support 
+		throwException(env, "Invalid Endpoint");
+		return 0;
+	}
+
+	/* retrieve the request handle */
+	ret = mx_probe(myEndpoint, (uint32_t)timeout, matchData, matchMask, &status, &result);
+	if(ret != MX_SUCCESS) {
+		//fprintf(stderr, "JavaMx::probe: failed!: %s\n", mx_strerror(ret));
+		throwException(env, mx_strerror(ret));
+	}
+	if(result == 0) {
+		// no message available
+		fprintf(stderr, "JavaMx::probe: no message: %s\n", mx_strstatus(status.code));
+		return -1;
+	}
+	//fprintf(stderr, "JavaMx::probe: message: %s\n", mx_strstatus(status.code));
+	//fprintf(stderr, "JavaMx::probe: retval: %" PRId32 "\n", status.xfer_length);
 	return (jint)(status.xfer_length);
 }
 
@@ -606,22 +640,35 @@ JNIEXPORT void JNICALL Java_ibis_ipl_impl_mx_JavaMx_wakeup
 	mx_wakeup(myEndpoint);
 }
 
-/* getControlMessage() */
+/* waitForMessage() */
 JNIEXPORT jlong JNICALL Java_ibis_ipl_impl_mx_JavaMx_waitForMessage
-  (JNIEnv *env, jclass jcl, jint endpoitId, jlong matchData, jlong matchMask) {
+  (JNIEnv *env, jclass jcl, jint endpoitId, jlong timeout, jlong matchData, jlong matchMask) {
 	mx_status_t status;
 	uint32_t result;
-	uint32_t timeout = 10000; // no timeout
+	//uint32_t timeout = MX_INFINITE; // no timeout
 	//TODO multiple endpoint support
 	/* retrieve the request handle */
-	mx_probe(myEndpoint, timeout, matchData, matchMask, &status, &result);
+	mx_probe(myEndpoint, (uint32_t)timeout, matchData, matchMask, &status, &result);
 	if(result == 0) {
 		// no message available
 		return 0;
 	}
 	return status.match_info;
-	
 }
 
-
+/* pollForMessage() */
+JNIEXPORT jlong JNICALL Java_ibis_ipl_impl_mx_JavaMx_pollForMessage
+  (JNIEnv *env, jclass jcl, jint endpoitId, jlong matchData, jlong matchMask) {
+	mx_status_t status;
+	uint32_t result;
+	// uint32_t timeout = 10000; // no timeout
+	//TODO multiple endpoint support
+	/* retrieve the request handle */
+	mx_iprobe(myEndpoint, matchData, matchMask, &status, &result);
+	if(result == 0) {
+		// no message available
+		return 0;
+	}
+	return status.match_info;
+}
 

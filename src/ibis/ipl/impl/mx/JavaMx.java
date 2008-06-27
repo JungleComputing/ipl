@@ -232,7 +232,7 @@ final class JavaMx {
 	 * @param targetEndpoint The (native) endpoint id of the receiver side.
 	 * @param filter The filter which should be used for this connection.
 	 * @param timeout The timeout in milliseconds.
-	 * @return true when succesful, false when a timeout occurs, or on any other error.
+	 * @return true when successful, false when a timeout occurs, or on any other error.
 	 */
 	static native boolean connect(int endpointId, int link, long targetNicId, int targetEndpoint, int filter, long timeout);
 	
@@ -320,13 +320,23 @@ final class JavaMx {
 	static native int test(int endpointId, int handle) throws MxException; // return message size by success, -1, when unsuccessful
 	
 	/**
-	 * Probes for a new message that is ready to be received
+	 * Probes for a new message that is ready to be received. This call returns immediately.
 	 * @param endpointId The local endpoint ID.
 	 * @param matchData The matching data. Only messages with matching data that equals this field after masking with the mask will be probed for by this request.
 	 * @param matchMask The mask applied to the matching data of the message. 
-	 * @return the size of the message that can be received, -1 when there is no message
+	 * @return the size of the message that can be received, or 0 bytes when there is no message
 	 */
 	static native int iprobe(int endpointId, long matchData, long matchMask);
+	
+	/**
+	 * Probes for a new message that is ready to be received. Blocks until the timeout expires.
+	 * @param endpointId The local endpoint ID.
+	 * @param timeout The timeout in milliseconds, 0 means no timeout.
+	 * @param matchData The matching data. Only messages with matching data that equals this field after masking with the mask will be probed for by this request.
+	 * @param matchMask The mask applied to the matching data of the message. 
+	 * @return the size of the message that can be received, or 0 bytes when there is no message
+	 */
+	static native int probe(int endpointId, long timeout, long matchData, long matchMask);
 	
 	/**
 	 * Cancels a pending request
@@ -343,10 +353,17 @@ final class JavaMx {
 	static native void wakeup(int endpointId);
 	
 	/**
+	 * Waits for a message to arrive
 	 * @param endpointId the endpoint to work on
-	 * @return the matching information of the next control message
+	 * @return the matching information of the next message
 	 */
-	static native long waitForMessage(int endpointId, long matchData, long matchMask);
+	static native long waitForMessage(int endpointId, long timeout, long matchData, long matchMask);
+	
+	/**
+	 * @param endpointId the endpoint to work on
+	 * @return the matching information of the next message
+	 */
+	static native long pollForMessage(int endpointId, long matchData, long matchMask);
 	
 	
 	//TODO do not use filters in Java, but move them away to the native code completely ?

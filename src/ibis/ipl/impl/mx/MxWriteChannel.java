@@ -2,6 +2,7 @@ package ibis.ipl.impl.mx;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.channels.ClosedChannelException;
 
 import org.apache.log4j.Logger;
@@ -19,6 +20,8 @@ public abstract class MxWriteChannel {
 	protected int msgSize;
 	protected long matchData = Matching.NONE;
 
+	protected ByteOrder order = ByteOrder.BIG_ENDIAN;
+
 	protected MxWriteChannel(MxChannelFactory factory, MxAddress target, int filter) throws IOException {
 		this.factory = factory;
 		this.link = JavaMx.links.getLink();
@@ -30,13 +33,14 @@ public abstract class MxWriteChannel {
 			logger.debug("Connected to " + target.toString());
 		}
 		this.handle = JavaMx.handles.getHandle();
-
 	}
 
 	void close() {
 		synchronized(this) {
+			if(closed) {
+				return;
+			}
 			// send a CLOSE signal to the reader
-			closed = true;
 			long closeMatchData = Matching.setProtocol(matchData, Matching.PROTOCOL_DISCONNECT);
 			int closeHandle = JavaMx.handles.getHandle();
 			//FIXME buffer allocation
@@ -55,7 +59,7 @@ public abstract class MxWriteChannel {
 			if(sending) {
 				try {
 					if(poll() == false) {
-						JavaMx.cancel(factory.endpointId, handle); //really stop current send operation, or wait for it?
+						JavaMx.cancel(factory.endpointId, handle); //TODO really stop current send operation, or wait for it?
 						/*try {
 							wait();
 						} catch (InterruptedException e) {
@@ -68,17 +72,8 @@ public abstract class MxWriteChannel {
 					e.printStackTrace();
 				}
 			}
-			if(closed) {
-				return;
-			}
 			closed = true;
 		}
-		/* TODO remove this?
-		while(sending) {
-			JavaMx.cancel(factory.endpointId, handle); //really stop current send operation, or wait for it?
-		}
-		*/
-
 		JavaMx.handles.releaseHandle(handle);
 		JavaMx.links.releaseLink(link);
 	}
@@ -134,13 +129,13 @@ public abstract class MxWriteChannel {
 
 		int msgSize;
 		try {
-			if (logger.isDebugEnabled()) {
+			/*if (logger.isDebugEnabled()) {
 				logger.debug("finishing message...");
-			}
+			}*/
 			msgSize = JavaMx.wait(factory.endpointId, handle);
-			if (logger.isDebugEnabled()) {
+			/*if (logger.isDebugEnabled()) {
 				logger.debug("message of " + msgSize + " bytes sent!");
-			}
+			}*/
 		} catch (MxException e) {
 			// TODO Maybe handle this some of them in the future
 			throw(e); 
