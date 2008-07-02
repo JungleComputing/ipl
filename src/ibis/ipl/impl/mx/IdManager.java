@@ -33,6 +33,15 @@ class IdManager<T extends Identifiable<T>> {
 			return id;
 		}
 		
+		// try to add t at the high end
+		id = (short)(map.lastKey().shortValue() + 1);
+		if (id <= Short.MAX_VALUE) {
+			map.put(Short.valueOf(id), t);
+			t.setIdentifier(id);
+			t.setIdManager(this);
+			return id;
+		}
+		
 		// try to add t at the low end
 		id = (short)(map.firstKey().shortValue() - 1);
 		if (id > 0) {
@@ -43,6 +52,8 @@ class IdManager<T extends Identifiable<T>> {
 		}
 
 		// try the id that was freed recently
+		
+		/* NO, don't do this to lower chance to get a lost message from a previous connection
 		if (last > 0) {
 			id = last;
 			if (!map.containsKey(Short.valueOf(id))) {
@@ -54,15 +65,8 @@ class IdManager<T extends Identifiable<T>> {
 				return id;
 			}
 		}
-
-		// try to add t at the high end
-		id = (short)(map.lastKey().shortValue() + 1);
-		if (id <= Short.MAX_VALUE) {
-			map.put(Short.valueOf(id), t);
-			t.setIdentifier(id);
-			t.setIdManager(this);
-			return id;
-		}
+		*/
+		
 		// well, we really have to iterate over all the ids...
 		Iterator<Short> iter = map.keySet().iterator();
 		short key;

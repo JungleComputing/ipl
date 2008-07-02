@@ -19,7 +19,7 @@ public class MxSendPort extends SendPort {
 	private static Logger logger = Logger.getLogger(MxSendPort.class);
 	
 	protected MxChannelFactory factory;
-	private MxSimpleDataOutputStream simpleStream;
+	protected MxScatteringDataOutputStream scatteringStream;
 	private boolean reliable;
 	
 	MxSendPort(MxIbis ibis, PortType type, String name,
@@ -29,15 +29,16 @@ public class MxSendPort extends SendPort {
 		factory = ibis.factory;
 		// TODO Choose endianness dynamically
 		
-		simpleStream = new MxSimpleDataOutputStream(null);
+		scatteringStream = new MxScatteringDataOutputStream();
 		this.reliable = reliable;
-		initStream(simpleStream); 
+		initStream(scatteringStream); 
 		// or something like this?
 	}
 
 	@Override
 	protected void announceNewMessage() throws IOException {
 		/* TODO deal with sequencing */
+		logger.debug("announcing message");
         if (type.hasCapability(PortType.COMMUNICATION_NUMBERED)) {
             out.writeLong(ibis.registry().getSequenceNumber(name));
         }
@@ -52,14 +53,6 @@ public class MxSendPort extends SendPort {
 		// for all receiveports: disconnect(ReceivePortIdentifier)
 		out.close();
 		dataOut.close(); //throws an exception at MxSimpleDataOutputstream
-		for(SendPortConnectionInfo spci: connections()) {
-			try {
-				spci.closeConnection();
-			} catch(IOException e) {
-				// TODO ignore for now
-				// when an exception occurs at some connection, we still want to close the other connections
-			}
-		}
 	}
 
 	@Override
@@ -70,8 +63,11 @@ public class MxSendPort extends SendPort {
 		 * negotiate port number
 		 * construct the SendPortConnectionInfo
 		 */
+		logger.debug("connecting...");
 		MxSendPortConnectionInfo connectionInfo = new MxSendPortConnectionInfo(this, receiver, factory.connect(this, receiver, timeout, fillTimeout, reliable));
-		initStream(new MxSimpleDataOutputStream(connectionInfo.connection)); // or something like this
+		logger.debug("connected!");
+		initStream(scatteringStream); // or something like this
+		logger.debug("new stream initialized");
 		// TODO multi channel support. call above will go wrong in that case. MXSDOS should support multiple channels?
 		return connectionInfo;
 	}

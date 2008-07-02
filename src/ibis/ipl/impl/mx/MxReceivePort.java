@@ -15,6 +15,7 @@ import ibis.ipl.impl.Ibis;
 import ibis.ipl.impl.ReadMessage;
 import ibis.ipl.impl.ReceivePort;
 import ibis.ipl.impl.ReceivePortConnectionInfo;
+import ibis.ipl.impl.SendPortIdentifier;
 import ibis.util.ThreadPool;
 
 class MxReceivePort extends ReceivePort implements Identifiable<MxReceivePort>, Runnable {
@@ -29,7 +30,7 @@ class MxReceivePort extends ReceivePort implements Identifiable<MxReceivePort>, 
 	private long channelFindTime = 0;
 	protected short portId = 0;
 	protected IdManager<MxReceivePortConnectionInfo> channelManager;
-	protected IdManager<MxReceivePort> portManager = null;
+	private IdManager<MxReceivePort> portManager = null;
 	
 	private boolean reader_busy = false;
     /**
@@ -62,18 +63,19 @@ class MxReceivePort extends ReceivePort implements Identifiable<MxReceivePort>, 
 
 	@Override
 	public ReadMessage getMessage(long timeout) throws IOException {
+		long gMStartTime = 0;
 		if (logger.isDebugEnabled()) {
 			logger.debug("GetMessage()");
-			//getMessageTime -= System.currentTimeMillis();			
+			gMStartTime = System.currentTimeMillis();			
 		}
 		
 		if(timeout == 0) { // no timeouts
 	       	synchronized(this) {
             	while(reader_busy) {
             		// another reader is busy. Wait for it
-            		/*if (logger.isDebugEnabled()) {
+            		if (logger.isDebugEnabled()) {
             			getMessageSleepTime -= System.currentTimeMillis();			
-            		}*/
+            		}
             		try {
             			if (logger.isDebugEnabled()) {
             				logger.debug("Waiting for another reader to finish");
@@ -82,9 +84,9 @@ class MxReceivePort extends ReceivePort implements Identifiable<MxReceivePort>, 
 					} catch (InterruptedException e) {
 						// ignore
 					}
-            		/*if (logger.isDebugEnabled()) {
+            		if (logger.isDebugEnabled()) {
             			getMessageSleepTime += System.currentTimeMillis();			
-            		}*/
+            		}
 					if (logger.isDebugEnabled()) {
         				logger.debug("other reader is finished");
         			}
@@ -93,9 +95,9 @@ class MxReceivePort extends ReceivePort implements Identifiable<MxReceivePort>, 
             }
         	// wait until a the current message is finished
         	while (message != null && !closed) {
-        		/*if (logger.isDebugEnabled()) {
+        		if (logger.isDebugEnabled()) {
         			getMessageSleepTime -= System.currentTimeMillis();			
-        		}*/
+        		}
                 try {
                 	if (logger.isDebugEnabled()) {
         				logger.debug("Waiting for current message to finish");
@@ -117,7 +119,7 @@ class MxReceivePort extends ReceivePort implements Identifiable<MxReceivePort>, 
             		notifyAll();
             	}
         		if (logger.isDebugEnabled()) {
-        			getMessageTime += System.currentTimeMillis();			
+        			getMessageTime += System.currentTimeMillis() - gMStartTime;			
         		}
         		throw new IOException("receive() on closed port");
         	}
@@ -137,8 +139,9 @@ class MxReceivePort extends ReceivePort implements Identifiable<MxReceivePort>, 
             		notifyAll();
             	}
         		if (logger.isDebugEnabled()) {
-        			getMessageTime += System.currentTimeMillis();			
+        			getMessageTime += System.currentTimeMillis() - gMStartTime;			
         		}
+        		//FIXME cannot deliver a null message. come up with a timeout
         		return null;
         	}
     		if (logger.isDebugEnabled()) {
@@ -159,7 +162,7 @@ class MxReceivePort extends ReceivePort implements Identifiable<MxReceivePort>, 
             		notifyAll();
             	}
         		if (logger.isDebugEnabled()) {
-        			getMessageTime += System.currentTimeMillis();			
+        			getMessageTime += System.currentTimeMillis() - gMStartTime;			
         		}
         		throw new IOException("Non-existent connection is ready");
         	}
@@ -179,7 +182,7 @@ class MxReceivePort extends ReceivePort implements Identifiable<MxReceivePort>, 
 				}
 			}*/
     		if (logger.isDebugEnabled()) {
-    			getMessageTime += System.currentTimeMillis();			
+    			getMessageTime += System.currentTimeMillis() - gMStartTime;			
     		}
             return message;
             
@@ -193,7 +196,7 @@ class MxReceivePort extends ReceivePort implements Identifiable<MxReceivePort>, 
 	        	if(reader_busy) {
 	        		// another reader is busy. We don't wait for it when polling
 	        		if (logger.isDebugEnabled()) {
-	        			getMessageTime += System.currentTimeMillis();			
+	        			getMessageTime += System.currentTimeMillis() - gMStartTime;			
 	        		}
 	        		return null;
 	        	}
@@ -208,7 +211,7 @@ class MxReceivePort extends ReceivePort implements Identifiable<MxReceivePort>, 
 	                		reader_busy = false;
 	                		notifyAll();
 	                		if (logger.isDebugEnabled()) {
-	                			getMessageTime += System.currentTimeMillis();			
+	                			getMessageTime += System.currentTimeMillis() - gMStartTime;			
 	                		}
 		            		return null;
 		            	}
@@ -221,7 +224,7 @@ class MxReceivePort extends ReceivePort implements Identifiable<MxReceivePort>, 
 	        		reader_busy = false;
 	        		notifyAll();
 	        		if (logger.isDebugEnabled()) {
-	        			getMessageTime += System.currentTimeMillis();			
+	        			getMessageTime += System.currentTimeMillis() - gMStartTime;			
 	        		}
 		    		throw new IOException("receive() on closed port");
 		    	}
@@ -233,7 +236,7 @@ class MxReceivePort extends ReceivePort implements Identifiable<MxReceivePort>, 
             		notifyAll();
             	}
         		if (logger.isDebugEnabled()) {
-        			getMessageTime += System.currentTimeMillis();			
+        			getMessageTime += System.currentTimeMillis() - gMStartTime;			
         		}
         		return null;
         	}
@@ -245,7 +248,7 @@ class MxReceivePort extends ReceivePort implements Identifiable<MxReceivePort>, 
             		notifyAll();
             	}
         		if (logger.isDebugEnabled()) {
-        			getMessageTime += System.currentTimeMillis();			
+        			getMessageTime += System.currentTimeMillis() - gMStartTime;			
         		}
         		return null;
         	}
@@ -259,7 +262,7 @@ class MxReceivePort extends ReceivePort implements Identifiable<MxReceivePort>, 
             		notifyAll();
             	}
         		if (logger.isDebugEnabled()) {
-        			getMessageTime += System.currentTimeMillis();			
+        			getMessageTime += System.currentTimeMillis() - gMStartTime;			
         		}
         		throw new IOException("Non-existent connection is ready");
         	}
@@ -270,7 +273,7 @@ class MxReceivePort extends ReceivePort implements Identifiable<MxReceivePort>, 
         		notifyAll();
         	}
     		if (logger.isDebugEnabled()) {
-    			getMessageTime += System.currentTimeMillis();			
+    			getMessageTime += System.currentTimeMillis() - gMStartTime;			
     		}
             return message;
         }
@@ -285,13 +288,13 @@ class MxReceivePort extends ReceivePort implements Identifiable<MxReceivePort>, 
 				// TODO ignore now, needs a solution
 			}
         }
-		if (logger.isDebugEnabled()) {
+		/*if (logger.isDebugEnabled()) {
 			logger.debug("A Message has arrived...");
-		}
+		}*/
 		super.messageArrived(msg);
-		if (logger.isDebugEnabled()) {
+		/*if (logger.isDebugEnabled()) {
 			logger.debug("A Message has arrived!");
-		}
+		}*/
 	}
 	
 	@Override
@@ -309,7 +312,7 @@ class MxReceivePort extends ReceivePort implements Identifiable<MxReceivePort>, 
         	}
         	reader_busy = true;
         }
-
+        
     	ReadMessage msg = super.doPoll();
     	if (msg != null) { //super.doPoll() found a new message
         	synchronized(this) {
@@ -367,15 +370,15 @@ class MxReceivePort extends ReceivePort implements Identifiable<MxReceivePort>, 
 			logger.debug("Total time spent in getReadyConnection(long): " + getConnTime + " ms");
 			logger.debug("Channel lookup time: " + channelFindTime + " ms");
 		}
-		//TODO hack: timeout is broken otherwise
-		/*if(timeout == 0) {
-			timeout = 1;
-		}*/
+		// TODO when doing a hard close, come up with something like this
 		ReceivePortConnectionInfo[] conns = connections();
 		for(ReceivePortConnectionInfo rpci: conns) {
-			((MxReceivePortConnectionInfo)rpci).receiverClose();
+			((MxReceivePortConnectionInfo)rpci).receivePortcloses();
 		}
-		super.closePort(timeout);
+		
+		//super.closePort(timeout);
+		// FIXME broken without timeout
+		super.closePort(10000);
 		portManager.remove(portId);
 	}
 
@@ -420,8 +423,40 @@ class MxReceivePort extends ReceivePort implements Identifiable<MxReceivePort>, 
     	return result;
     }
 
+    
+    
 	/* IdManager methods */
 	
+	/* (non-Javadoc)
+	 * @see ibis.ipl.impl.ReceivePort#addInfo(ibis.ipl.impl.SendPortIdentifier, ibis.ipl.impl.ReceivePortConnectionInfo)
+	 */
+	@Override
+	public synchronized void addInfo(SendPortIdentifier id,
+			ReceivePortConnectionInfo info) {
+		super.addInfo(id, info);
+		try {
+			channelManager.insert((MxReceivePortConnectionInfo)info);
+		} catch (Exception e) {
+			e.printStackTrace();
+			//Wow, we have a lot of connection here!
+			//TODO something nice?
+			System.exit(1);
+		}
+	}
+
+	/* (non-Javadoc)
+	 * @see ibis.ipl.impl.ReceivePort#removeInfo(ibis.ipl.impl.SendPortIdentifier)
+	 */
+	@Override
+	public synchronized MxReceivePortConnectionInfo removeInfo(
+			SendPortIdentifier id) {
+		MxReceivePortConnectionInfo info = (MxReceivePortConnectionInfo)(super.removeInfo(id));
+		if (info != null) {
+			channelManager.remove(info.getIdentifier());
+		}
+		return info;
+	}
+
 	public IdManager<MxReceivePort> getIdManager() {
 		return portManager;
 	}
@@ -455,8 +490,10 @@ class MxReceivePort extends ReceivePort implements Identifiable<MxReceivePort>, 
 				}
 				getMessage(0);
 			} catch (IOException e) {
-			// 	TODO most likely an IOException telling us that the connection is closed.
-			// we just ignore it for now 	
+				// 	TODO most likely an IOException telling us that the connection is closed.
+				// 	we just ignore it for now 	
+				// FIXME catch connectionclosedException
+				// or even portclosedException or something
 			}
 		}
 	}

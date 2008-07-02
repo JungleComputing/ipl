@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.channels.ClosedChannelException;
 
 import org.apache.log4j.Logger;
 
@@ -291,12 +292,18 @@ public class MxSimpleDataInputStream extends DataInputStream implements Config {
 		buffer.clear();
 		int count = 0;
 		while (count == 0) {
-			count = channel.read(buffer, 0);
-			// TODO change this when the read op stops returning -1
-			//TODO catch ConnClosedException?
+		try {
+				count = channel.read(buffer, 0);
+		} catch (ClosedChannelException e) {
+			close();
+			// actually, we can throw it now
+			throw e;
+		}
+
 		}
 		if (count < 0) {
-			throw new IOException("error receiving message");
+			close();
+			throw new EOFException("End of Stream received from channel");
 		}
 		this.count += count;
 		buffer.flip();	
@@ -331,6 +338,7 @@ public class MxSimpleDataInputStream extends DataInputStream implements Config {
 				}
 			}
 		}
+		// FIXME synchronize this check on 'closed'?
 		if(closed) {
 			throw new IOException("Stream is closed");
 		}

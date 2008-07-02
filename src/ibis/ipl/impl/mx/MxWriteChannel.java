@@ -47,7 +47,7 @@ public abstract class MxWriteChannel {
 			ByteBuffer bb = ByteBuffer.allocateDirect(0);
 			JavaMx.send(bb, 0, 0, factory.endpointId, link, closeHandle, closeMatchData);
 			try {
-				int msgSize = JavaMx.wait(factory.endpointId, closeHandle);
+				int msgSize = JavaMx.wait(factory.endpointId, closeHandle, 1000);
 			} catch (MxException e1) {
 				//stop trying to receive the message
 				logger.warn("Error sending the close signal.");

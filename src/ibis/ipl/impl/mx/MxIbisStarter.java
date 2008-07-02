@@ -42,7 +42,7 @@ static final PortType portCapabilities = new PortType(
     PortType.CONNECTION_UPCALLS,
     PortType.CONNECTION_TIMEOUT,
     PortType.CONNECTION_ONE_TO_ONE,
-//    PortType.CONNECTION_ONE_TO_MANY,   
+    PortType.CONNECTION_ONE_TO_MANY,   
     PortType.CONNECTION_MANY_TO_ONE,
 //    PortType.CONNECTION_MANY_TO_MANY,
     PortType.RECEIVE_EXPLICIT,
