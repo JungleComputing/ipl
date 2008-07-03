@@ -1,18 +1,16 @@
 package ibis.ipl.impl.mx;
 
-import java.io.IOException;
-import java.nio.ByteOrder;
-import java.util.Properties;
-
-import org.apache.log4j.Logger;
-
-import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.PortType;
 import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.ipl.impl.ReceivePortIdentifier;
 import ibis.ipl.impl.SendPort;
 import ibis.ipl.impl.SendPortConnectionInfo;
 import ibis.ipl.impl.WriteMessage;
+
+import java.io.IOException;
+import java.util.Properties;
+
+import org.apache.log4j.Logger;
 
 public class MxSendPort extends SendPort {
 
@@ -27,7 +25,6 @@ public class MxSendPort extends SendPort {
 			throws IOException {
 		super(ibis, type, name, connectUpcall, properties);
 		factory = ibis.factory;
-		// TODO Choose endianness dynamically
 		
 		scatteringStream = new MxScatteringDataOutputStream();
 		this.reliable = reliable;
@@ -37,7 +34,6 @@ public class MxSendPort extends SendPort {
 
 	@Override
 	protected void announceNewMessage() throws IOException {
-		/* TODO deal with sequencing */
 		logger.debug("announcing message");
         if (type.hasCapability(PortType.COMMUNICATION_NUMBERED)) {
             out.writeLong(ibis.registry().getSequenceNumber(name));

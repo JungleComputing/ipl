@@ -1,15 +1,12 @@
 package ibis.ipl.impl.mx;
 
-import ibis.ipl.ConnectionClosedException;
-import ibis.ipl.impl.SendPortIdentifier;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
 
 import org.apache.log4j.Logger;
 
-public class MxReadChannel {
+public class MxReadChannel implements ReadChannel {
 	private static Logger logger = Logger.getLogger(MxReadChannel.class);
 	
 	protected int handle;
@@ -28,6 +25,9 @@ public class MxReadChannel {
 		closed = receiving = senderClosed = false;
 	}
 
+	/* (non-Javadoc)
+	 * @see ibis.ipl.impl.mx.ReadChannel#close()
+	 */
 	public void close() {
 		if (logger.isDebugEnabled()) {
 			logger.debug("closing");
@@ -40,19 +40,21 @@ public class MxReadChannel {
 			if(!senderClosed) {
 				// inform the senders about closing this channel
 				//FIXME doing this here breaks the channelfactory, because it throws a nullpointerexception there
+				// Note: Maybe I fixed it, but I am not sure yet.
+				if(receiving) {
+					if (logger.isDebugEnabled()) {
+						logger.debug("close() while...");
+					}
+					// FIXME can result in a SIGSEGV, in libmyriexpress
+					JavaMx.cancel(factory.endpointId, handle); //really stop current reception, or wait for it?
+					//JavaMx.wakeup(endpointId);
+					/*if (logger.isDebugEnabled()) {
+						logger.debug("close() is waiting...");
+					}*/
+				}
 				factory.sendCloseMessage(this);
 			}
-			if(receiving) {
-				if (logger.isDebugEnabled()) {
-					logger.debug("close() while...");
-				}
-				JavaMx.cancel(factory.endpointId, handle); //really stop current reception, or wait for it?
-				/*if (logger.isDebugEnabled()) {
-					logger.debug("close() is waiting...");
-				}*/
-				notifyAll(); //TODO do we need this here? In any case, it is not wrong...
-			}
-			realClose();
+			notifyAll(); //TODO do we need this here? In any case, it is not wrong...
 		}
 	}
 		
@@ -125,15 +127,15 @@ public class MxReadChannel {
 				logger.debug("Collecting native garbage (Channel not closed correctly).");
 			}
 			closed = true;
-			if(receiving) {
-				JavaMx.cancel(factory.endpointId, handle);
-			}
 			realClose();
 		}
 		super.finalize();
 	}
 
 	
+	/* (non-Javadoc)
+	 * @see ibis.ipl.impl.mx.ReadChannel#read(java.nio.ByteBuffer, long)
+	 */
 	public int read(ByteBuffer buffer, long timeout) throws IOException {
 		int msgSize = -1;
 		
@@ -181,15 +183,17 @@ public class MxReadChannel {
 					}*/ 
 				}
 				if(timeout <= 0) {
+					//FIXME causes an SIGSEGV when closing a the channel in some circumstances: needs investigation
 					msgSize = JavaMx.wait(endpointId, handle);
 				} else {
 					msgSize = JavaMx.wait(endpointId, handle, timeout);
 				}
-				//FIXME timeouts, message return codes
 			}
 
-			// set the position to after the first empty position of the buffer (standard NIO Channel behavior) 
-			buffer.position(buffer.position() + msgSize);
+			// set the position to after the first empty position of the buffer (standard NIO Channel behavior)
+			if(msgSize > 0) {
+				buffer.position(buffer.position() + msgSize);
+			}
 
 			
 			/*if (logger.isDebugEnabled()) {
@@ -207,17 +211,19 @@ public class MxReadChannel {
 			receiving = false;
 			notifyAll();
 		}
-		
-		if(msgSize == -1) { //error
-			throw new MxException("Message not arrived");
-		}
 		return msgSize;
 	}
 
+	/* (non-Javadoc)
+	 * @see ibis.ipl.impl.mx.ReadChannel#isOpen()
+	 */
 	public boolean isOpen() {
 		return !closed;
 	}
 
+	/* (non-Javadoc)
+	 * @see ibis.ipl.impl.mx.ReadChannel#poll()
+	 */
 	public synchronized int poll() throws ClosedChannelException {
 		if(closed) {
 			/*if (logger.isDebugEnabled()) {
@@ -243,6 +249,9 @@ public class MxReadChannel {
 		return doPoll();
 	}
 	
+	/* (non-Javadoc)
+	 * @see ibis.ipl.impl.mx.ReadChannel#poll(long)
+	 */
 	public synchronized int poll(long timeout) throws ClosedChannelException {
 		if(closed) {
 			/*if (logger.isDebugEnabled()) {

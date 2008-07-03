@@ -3,7 +3,7 @@ package ibis.ipl.impl.mx;
 class Matching {
 	static final long PROTOCOL_DATA =            0x8000000000000000L;
 	static final long PROTOCOL_CONNECT =         0x4100000000000000L;
-	static final long PROTOCOL_CONNECT_REPLY =   0x4200000000000000L;
+	static final long PROTOCOL_CONNECT_REPLY =   0x4800000000000000L;
 	static final long PROTOCOL_DISCONNECT =      0x4300000000000000L;
 	static final long PROTOCOL_CLOSE =           0x4400000000000000L;
 	static final long PROTOCOL_CONTROL_BIT =     0x4000000000000000L;
@@ -14,6 +14,8 @@ class Matching {
 	static final long PROTOCOL_MASK =            0xFF00000000000000L;
 	static final long PROTOCOL_CONTROL_MASK =    0x0F00000000000000L;
 	static final long PROTOCOL_DATA_MASK =       0xF000000000000000L;
+	static final long FACTORY_THREAD_MATCH =     0x4000000000000000L;
+	static final long FACTORY_THREAD_MASK =      0xF800000000000000L;
 	
 	static final long MASK_ALL =                 0xFFFFFFFFFFFFFFFFL;
 	static final long NONE =                     0x0000000000000000L;

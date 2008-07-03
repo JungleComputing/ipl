@@ -50,7 +50,7 @@ mx_request_t *getRequest(jint handle) {
 	if(block > hmBlocksInUse) {
 		return NULL;
 	}
-	return &(handles[block][offset]);
+	return &(handles[(int)block][(int)offset]);
 }
 
 /****************** Link Manager ************************/
@@ -95,7 +95,7 @@ mx_endpoint_addr_t *getAddress(jint link) {
 	if(block > lmBlocksInUse) {
 		return NULL;
 	}
-	return &(links[block][offset]);
+	return &(links[(int)block][(int)offset]);
 }
 
 /********************* JavaMx ***************************/
@@ -316,9 +316,8 @@ JNIEXPORT jboolean JNICALL Java_ibis_ipl_impl_mx_JavaMx_disconnect
 	return JNI_TRUE;
 }
 
-
 /* send() */
-JNIEXPORT void JNICALL Java_ibis_ipl_impl_mx_JavaMx_send
+JNIEXPORT void JNICALL Java_ibis_ipl_impl_mx_JavaMx_send__Ljava_nio_ByteBuffer_2IIIIIJ
   (JNIEnv *env, jclass jcl, jobject buffer, jint offset, jint bufferSize, jint endpointId, jint link, jint handle, jlong matchData) {
 	mx_return_t rc;
 	mx_segment_t bufferDesc[1];
@@ -365,7 +364,7 @@ JNIEXPORT void JNICALL Java_ibis_ipl_impl_mx_JavaMx_send
 }
 
 /* sendSynchronous() */
-JNIEXPORT void JNICALL Java_ibis_ipl_impl_mx_JavaMx_sendSynchronous
+JNIEXPORT void JNICALL Java_ibis_ipl_impl_mx_JavaMx_sendSynchronous__Ljava_nio_ByteBuffer_2IIIIIJ
   (JNIEnv *env, jclass jcl, jobject buffer, jint offset, jint bufferSize, jint endpointId, jint link, jint handle, jlong matchData) {
 	mx_return_t rc;
 	mx_segment_t bufferDesc[1];
@@ -406,6 +405,148 @@ JNIEXPORT void JNICALL Java_ibis_ipl_impl_mx_JavaMx_sendSynchronous
 	bufferDesc[0].segment_length = (uint32_t)bufferSize;
 	
 	rc = mx_issend(myEndpoint, bufferDesc, 1, *target, matchData, NULL, request);
+	if(rc != MX_SUCCESS) {
+		throwException(env, mx_strerror(rc));
+		return;
+	}
+	return;
+}
+
+
+
+/* send() for SendBuffers */
+JNIEXPORT void JNICALL Java_ibis_ipl_impl_mx_JavaMx_send__Ljava_nio_ByteBuffer_2ILjava_nio_ByteBuffer_2ILjava_nio_ByteBuffer_2ILjava_nio_ByteBuffer_2ILjava_nio_ByteBuffer_2ILjava_nio_ByteBuffer_2ILjava_nio_ByteBuffer_2ILjava_nio_ByteBuffer_2ILjava_nio_ByteBuffer_2IIIIJ
+  (JNIEnv *env, jclass jcl, 
+		  jobject buffer1, jint bufferSize1,
+		  jobject buffer2, jint bufferSize2,
+		  jobject buffer3, jint bufferSize3,
+		  jobject buffer4, jint bufferSize4,
+		  jobject buffer5, jint bufferSize5,
+		  jobject buffer6, jint bufferSize6,
+		  jobject buffer7, jint bufferSize7,
+		  jobject buffer8, jint bufferSize8,
+		  jobject buffer9, jint bufferSize9,
+		  jint endpointId, jint link, jint handle, jlong matchData
+		  ) {
+	mx_return_t rc;
+	mx_segment_t bufferDesc[9];
+	mx_request_t *request;
+	mx_endpoint_addr_t *target;
+	
+	//TODO: multiple endpoint support
+	
+	if(endpointId != 1) {
+		// not a valid endpoint
+		// TODO multiple endpoint support
+		throwException(env, "Invalid Endpoint");
+		return;
+	}
+	/* retrieve the target address */
+	target = getAddress(link);
+	if(target == NULL) {
+		//no valid link
+		throwException(env, "Invalid Link");
+		return;
+	}
+	
+	/* retrieve the request handle */
+	request = getRequest(handle);
+	if(request == NULL) {
+		//no valid handle
+		throwException(env, "Invalid Handle");
+		return;
+	}
+	
+	bufferDesc[0].segment_ptr = (*env)->GetDirectBufferAddress(env, buffer1);
+	bufferDesc[0].segment_length = (uint32_t)bufferSize1;
+	bufferDesc[1].segment_ptr = (*env)->GetDirectBufferAddress(env, buffer2);
+	bufferDesc[1].segment_length = (uint32_t)bufferSize2;
+	bufferDesc[2].segment_ptr = (*env)->GetDirectBufferAddress(env, buffer3);
+	bufferDesc[2].segment_length = (uint32_t)bufferSize3;
+	bufferDesc[3].segment_ptr = (*env)->GetDirectBufferAddress(env, buffer4);
+	bufferDesc[3].segment_length = (uint32_t)bufferSize4;
+	bufferDesc[4].segment_ptr = (*env)->GetDirectBufferAddress(env, buffer5);
+	bufferDesc[4].segment_length = (uint32_t)bufferSize5;
+	bufferDesc[5].segment_ptr = (*env)->GetDirectBufferAddress(env, buffer6);
+	bufferDesc[5].segment_length = (uint32_t)bufferSize6;
+	bufferDesc[6].segment_ptr = (*env)->GetDirectBufferAddress(env, buffer7);
+	bufferDesc[6].segment_length = (uint32_t)bufferSize7;
+	bufferDesc[7].segment_ptr = (*env)->GetDirectBufferAddress(env, buffer8);
+	bufferDesc[7].segment_length = (uint32_t)bufferSize8;
+	bufferDesc[8].segment_ptr = (*env)->GetDirectBufferAddress(env, buffer9);
+	bufferDesc[8].segment_length = (uint32_t)bufferSize9;
+	
+	rc = mx_isend(myEndpoint, bufferDesc, 9, *target, matchData, NULL, request);
+	if(rc != MX_SUCCESS) {
+		throwException(env, mx_strerror(rc));
+		return;
+	}
+	return;
+}
+ 
+/* sendSynchronous() for SendBuffers */
+JNIEXPORT void JNICALL Java_ibis_ipl_impl_mx_JavaMx_sendSynchronous__Ljava_nio_ByteBuffer_2ILjava_nio_ByteBuffer_2ILjava_nio_ByteBuffer_2ILjava_nio_ByteBuffer_2ILjava_nio_ByteBuffer_2ILjava_nio_ByteBuffer_2ILjava_nio_ByteBuffer_2ILjava_nio_ByteBuffer_2ILjava_nio_ByteBuffer_2IIIIJ
+  (JNIEnv *env, jclass jcl, 
+		  jobject buffer1, jint bufferSize1,
+		  jobject buffer2, jint bufferSize2,
+		  jobject buffer3, jint bufferSize3,
+		  jobject buffer4, jint bufferSize4,
+		  jobject buffer5, jint bufferSize5,
+		  jobject buffer6, jint bufferSize6,
+		  jobject buffer7, jint bufferSize7,
+		  jobject buffer8, jint bufferSize8,
+		  jobject buffer9, jint bufferSize9,
+		  jint endpointId, jint link, jint handle, jlong matchData
+		  ) {
+	mx_return_t rc;
+	mx_segment_t bufferDesc[9];
+	mx_request_t *request;
+	mx_endpoint_addr_t *target;
+	
+	//TODO: multiple endpoint support
+	
+	if(endpointId != 1) {
+		// not a valid endpoint
+		// TODO multiple endpoint support
+		throwException(env, "Invalid Endpoint");
+		return;
+	}
+	/* retrieve the target address */
+	target = getAddress(link);
+	if(target == NULL) {
+		//no valid link
+		throwException(env, "Invalid Link");
+		return;
+	}
+	
+	/* retrieve the request handle */
+	request = getRequest(handle);
+	if(request == NULL) {
+		//no valid handle
+		throwException(env, "Invalid Handle");
+		return;
+	}
+	
+	bufferDesc[0].segment_ptr = (*env)->GetDirectBufferAddress(env, buffer1);
+	bufferDesc[0].segment_length = (uint32_t)bufferSize1;
+	bufferDesc[1].segment_ptr = (*env)->GetDirectBufferAddress(env, buffer2);
+	bufferDesc[1].segment_length = (uint32_t)bufferSize2;
+	bufferDesc[2].segment_ptr = (*env)->GetDirectBufferAddress(env, buffer3);
+	bufferDesc[2].segment_length = (uint32_t)bufferSize3;
+	bufferDesc[3].segment_ptr = (*env)->GetDirectBufferAddress(env, buffer4);
+	bufferDesc[3].segment_length = (uint32_t)bufferSize4;
+	bufferDesc[4].segment_ptr = (*env)->GetDirectBufferAddress(env, buffer5);
+	bufferDesc[4].segment_length = (uint32_t)bufferSize5;
+	bufferDesc[5].segment_ptr = (*env)->GetDirectBufferAddress(env, buffer6);
+	bufferDesc[5].segment_length = (uint32_t)bufferSize6;
+	bufferDesc[6].segment_ptr = (*env)->GetDirectBufferAddress(env, buffer7);
+	bufferDesc[6].segment_length = (uint32_t)bufferSize7;
+	bufferDesc[7].segment_ptr = (*env)->GetDirectBufferAddress(env, buffer8);
+	bufferDesc[7].segment_length = (uint32_t)bufferSize8;
+	bufferDesc[8].segment_ptr = (*env)->GetDirectBufferAddress(env, buffer9);
+	bufferDesc[8].segment_length = (uint32_t)bufferSize9;
+	
+	rc = mx_isend(myEndpoint, bufferDesc, 9, *target, matchData, NULL, request);
 	if(rc != MX_SUCCESS) {
 		throwException(env, mx_strerror(rc));
 		return;
@@ -620,6 +761,7 @@ JNIEXPORT jboolean JNICALL Java_ibis_ipl_impl_mx_JavaMx_cancel
 		throwException(env, "Invalid Handle");
 		return JNI_FALSE;
 	}
+	//fprintf(stderr, "invoking mx_cancel()...\n");
 	mx_cancel(myEndpoint, request, &result);
 	if(result == 0) {
 		// request not canceled, but already delivered

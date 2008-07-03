@@ -6,16 +6,16 @@ import java.nio.ByteOrder;
 
 import org.apache.log4j.Logger;
 
-public class MxScatteringDataOutputStream extends MxDataOutputStream {
+public class MxScatteringBufferedDataOutputStream extends MxBufferedDataOutputStream {
 
 	static final int INITIAL_CONNECTIONS_SIZE = 8;
-	private static Logger logger = Logger.getLogger(MxScatteringDataOutputStream.class);
+	private static Logger logger = Logger.getLogger(MxScatteringBufferedDataOutputStream.class);
 	
 	private WriteChannel[] connections = new WriteChannel[INITIAL_CONNECTIONS_SIZE];
 	int nrOfConnections = 0;
 	
-	public MxScatteringDataOutputStream() {
-		super(ByteOrder.nativeOrder());
+	public MxScatteringBufferedDataOutputStream() {
+		super();
 	}
 	
 	@Override
@@ -49,13 +49,10 @@ public class MxScatteringDataOutputStream extends MxDataOutputStream {
 	}
 
 	@Override
-	protected void doWrite(ByteBuffer buffer) throws IOException {
-		buffer.mark();
+	protected void doWrite(SendBuffer buffer) throws IOException {
 		for(int i = 0; i< nrOfConnections; i++) {
 			//FIXME catch exceptions
-			
 			logger.debug("flush " + i);
-			buffer.reset();
 			connections[i].write(buffer);
 		}
 	}

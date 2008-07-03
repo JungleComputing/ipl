@@ -7,7 +7,7 @@ import java.nio.channels.ClosedChannelException;
 
 import org.apache.log4j.Logger;
 
-public abstract class MxWriteChannel {
+public abstract class MxWriteChannel implements WriteChannel {
 
 	private static Logger logger = Logger.getLogger(MxWriteChannel.class);
 	
@@ -20,7 +20,7 @@ public abstract class MxWriteChannel {
 	protected int msgSize;
 	protected long matchData = Matching.NONE;
 
-	protected ByteOrder order = ByteOrder.BIG_ENDIAN;
+	//protected ByteOrder order = ByteOrder.BIG_ENDIAN;
 
 	protected MxWriteChannel(MxChannelFactory factory, MxAddress target, int filter) throws IOException {
 		this.factory = factory;
@@ -35,7 +35,7 @@ public abstract class MxWriteChannel {
 		this.handle = JavaMx.handles.getHandle();
 	}
 
-	void close() {
+	public void close() {
 		synchronized(this) {
 			if(closed) {
 				return;
@@ -58,7 +58,7 @@ public abstract class MxWriteChannel {
 			// wait for the pending messages to finish
 			if(sending) {
 				try {
-					if(poll() == false) {
+					if(isFinished() == false) {
 						JavaMx.cancel(factory.endpointId, handle); //TODO really stop current send operation, or wait for it?
 						/*try {
 							wait();
@@ -75,13 +75,13 @@ public abstract class MxWriteChannel {
 			closed = true;
 		}
 		JavaMx.handles.releaseHandle(handle);
+		JavaMx.disconnect(link);
 		JavaMx.links.releaseLink(link);
 	}
 
 	
-	/**
-	 * @param buffer The data buffer that is sent. The data between the position and the limit will be sent. Upon completion the position will be equal to the limit.
-	 * @throws IOException An exception when sending went wrong. When an exception occurs, the message is not sent and the buffer is unharmed.
+	/* (non-Javadoc)
+	 * @see ibis.ipl.impl.mx.WriteChannel#write(java.nio.ByteBuffer)
 	 */
 	public synchronized void write(ByteBuffer buffer) throws IOException {
 		if(closed) {
@@ -94,10 +94,16 @@ public abstract class MxWriteChannel {
 		sending = true;
 		doSend(buffer);
 		msgSize = buffer.remaining();
-		buffer.position(buffer.limit());
+		
+		// Nope, we don't do this, can cause problems with offering buffers to several writechannels concurrently
+		// Without this, we can do that safely
+		// buffer.position(buffer.limit());
 	}
 	
-	public synchronized void write(ByteBuffer[] buffers) throws IOException {
+	/* (non-Javadoc)
+	 * @see ibis.ipl.impl.mx.WriteChannel#write(java.nio.ByteBuffer[])
+	 */
+	public synchronized void write(SendBuffer buffer) throws IOException {
 		if(closed) {
 			throw new ClosedChannelException();
 		}
@@ -106,21 +112,20 @@ public abstract class MxWriteChannel {
 			//sending will be false now
 		}
 		sending = true;
-		doSend(buffers);
-		msgSize = 0;
-		for(ByteBuffer b: buffers) {
-			msgSize += b.remaining();
-			b.position(b.limit());
-		}
+		doSend(buffer);
+		msgSize = (int)(buffer.remaining()); // cast will go well as long as the messages are smaller than 2 GB
 	}
 	
 	/**
-	 * @param buffers
+	 * @param buffer
 	 */
-	protected abstract void doSend(ByteBuffer[] buffers);
+	protected abstract void doSend(SendBuffer buffer);
 
 	protected abstract void doSend(ByteBuffer buffer);
 
+	/* (non-Javadoc)
+	 * @see ibis.ipl.impl.mx.WriteChannel#finish()
+	 */
 	public synchronized void finish() throws IOException {
 		if(!sending) {
 			// well, we are finished in that case!
@@ -151,7 +156,10 @@ public abstract class MxWriteChannel {
 		}
 	}
 
-	public synchronized boolean poll() throws IOException {
+	/* (non-Javadoc)
+	 * @see ibis.ipl.impl.mx.WriteChannel#poll()
+	 */
+	public synchronized boolean isFinished() throws IOException {
 		if(!sending) {
 			// well, we are finished in that case!
 			return true;

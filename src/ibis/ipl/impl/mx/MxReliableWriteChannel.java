@@ -37,8 +37,20 @@ public class MxReliableWriteChannel extends MxWriteChannel {
 	 * @see ibis.ipl.impl.mx.MxWriteChannel#doSend(java.nio.ByteBuffer[])
 	 */
 	@Override
-	protected void doSend(ByteBuffer[] buffers) {
-		// TODO Auto-generated method stub
+	protected void doSend(SendBuffer buffer) {
+		ByteBuffer[] bufs = buffer.byteBuffers;
+		JavaMx.sendSynchronous(
+				bufs[SendBuffer.HEADER], bufs[SendBuffer.HEADER].remaining(),
+				bufs[SendBuffer.LONGS], bufs[SendBuffer.LONGS].remaining(),
+				bufs[SendBuffer.DOUBLES], bufs[SendBuffer.DOUBLES].remaining(),
+				bufs[SendBuffer.INTS], bufs[SendBuffer.INTS].remaining(),
+				bufs[SendBuffer.FLOATS], bufs[SendBuffer.FLOATS].remaining(),
+				bufs[SendBuffer.SHORTS], bufs[SendBuffer.SHORTS].remaining(),
+				bufs[SendBuffer.CHARS], bufs[SendBuffer.CHARS].remaining(),
+				bufs[SendBuffer.BYTES], bufs[SendBuffer.BYTES].remaining(),
+				bufs[SendBuffer.PADDING], bufs[SendBuffer.PADDING].remaining(),
+				factory.endpointId, link, handle, matchData
+				);
 		
 	}
 

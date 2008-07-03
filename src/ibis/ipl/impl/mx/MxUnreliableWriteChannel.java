@@ -35,7 +35,7 @@ public class MxUnreliableWriteChannel extends MxWriteChannel {
 	 * @see ibis.ipl.impl.mx.MxWriteChannel#doSend(java.nio.ByteBuffer[])
 	 */
 	@Override
-	protected void doSend(ByteBuffer[] buffers) {
+	protected void doSend(SendBuffer buffer) {
 		// TODO Auto-generated method stub
 		
 	}

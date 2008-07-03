@@ -92,7 +92,7 @@ JNIEXPORT jboolean JNICALL Java_ibis_ipl_impl_mx_JavaMx_disconnect
  * Method:    send
  * Signature: (Ljava/nio/ByteBuffer;IIIIIJ)V
  */
-JNIEXPORT void JNICALL Java_ibis_ipl_impl_mx_JavaMx_send
+JNIEXPORT void JNICALL Java_ibis_ipl_impl_mx_JavaMx_send__Ljava_nio_ByteBuffer_2IIIIIJ
   (JNIEnv *, jclass, jobject, jint, jint, jint, jint, jint, jlong);
 
 /*
@@ -100,8 +100,24 @@ JNIEXPORT void JNICALL Java_ibis_ipl_impl_mx_JavaMx_send
  * Method:    sendSynchronous
  * Signature: (Ljava/nio/ByteBuffer;IIIIIJ)V
  */
-JNIEXPORT void JNICALL Java_ibis_ipl_impl_mx_JavaMx_sendSynchronous
+JNIEXPORT void JNICALL Java_ibis_ipl_impl_mx_JavaMx_sendSynchronous__Ljava_nio_ByteBuffer_2IIIIIJ
   (JNIEnv *, jclass, jobject, jint, jint, jint, jint, jint, jlong);
+
+/*
+ * Class:     ibis_ipl_impl_mx_JavaMx
+ * Method:    send
+ * Signature: (Ljava/nio/ByteBuffer;ILjava/nio/ByteBuffer;ILjava/nio/ByteBuffer;ILjava/nio/ByteBuffer;ILjava/nio/ByteBuffer;ILjava/nio/ByteBuffer;ILjava/nio/ByteBuffer;ILjava/nio/ByteBuffer;ILjava/nio/ByteBuffer;IIIIJ)V
+ */
+JNIEXPORT void JNICALL Java_ibis_ipl_impl_mx_JavaMx_send__Ljava_nio_ByteBuffer_2ILjava_nio_ByteBuffer_2ILjava_nio_ByteBuffer_2ILjava_nio_ByteBuffer_2ILjava_nio_ByteBuffer_2ILjava_nio_ByteBuffer_2ILjava_nio_ByteBuffer_2ILjava_nio_ByteBuffer_2ILjava_nio_ByteBuffer_2IIIIJ
+  (JNIEnv *, jclass, jobject, jint, jobject, jint, jobject, jint, jobject, jint, jobject, jint, jobject, jint, jobject, jint, jobject, jint, jobject, jint, jint, jint, jint, jlong);
+
+/*
+ * Class:     ibis_ipl_impl_mx_JavaMx
+ * Method:    sendSynchronous
+ * Signature: (Ljava/nio/ByteBuffer;ILjava/nio/ByteBuffer;ILjava/nio/ByteBuffer;ILjava/nio/ByteBuffer;ILjava/nio/ByteBuffer;ILjava/nio/ByteBuffer;ILjava/nio/ByteBuffer;ILjava/nio/ByteBuffer;ILjava/nio/ByteBuffer;IIIIJ)V
+ */
+JNIEXPORT void JNICALL Java_ibis_ipl_impl_mx_JavaMx_sendSynchronous__Ljava_nio_ByteBuffer_2ILjava_nio_ByteBuffer_2ILjava_nio_ByteBuffer_2ILjava_nio_ByteBuffer_2ILjava_nio_ByteBuffer_2ILjava_nio_ByteBuffer_2ILjava_nio_ByteBuffer_2ILjava_nio_ByteBuffer_2ILjava_nio_ByteBuffer_2IIIIJ
+  (JNIEnv *, jclass, jobject, jint, jobject, jint, jobject, jint, jobject, jint, jobject, jint, jobject, jint, jobject, jint, jobject, jint, jobject, jint, jint, jint, jint, jlong);
 
 /*
  * Class:     ibis_ipl_impl_mx_JavaMx

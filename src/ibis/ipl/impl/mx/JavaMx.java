@@ -254,6 +254,7 @@ final class JavaMx {
 	 * @param matchData The matching data.
 	 */
 	static native void send(ByteBuffer buffer, int offset, int msgSize, int endpointId, int link, int handle, long matchData);
+		
 	/**
 	 * Initiates a reliable message transfer over a link. This request is succesful when the message is received correctly.
 	 * @param buffer A buffer containing the message.
@@ -264,7 +265,33 @@ final class JavaMx {
 	 * @param handle The handle that can be used for this request.
 	 * @param matchData The matching data.
 	 */
-	static native void sendSynchronous(ByteBuffer buffer, int offset, int msgSize, int endpointId, int link, int handle, long matchData); // returns a handle
+	static native void sendSynchronous(ByteBuffer buffer, int offset, int msgSize, int endpointId, int link, int handle, long matchData);
+	
+	/* the same, but with 9 buffers */
+	static native void send(
+			ByteBuffer header, int headerSize,
+			ByteBuffer longs, int longsSize,
+			ByteBuffer doubles, int doublesSize,
+			ByteBuffer ints, int intsSize,
+			ByteBuffer floats, int floatsSize,
+			ByteBuffer shorts, int shortsSize,
+			ByteBuffer chars, int charsSize,
+			ByteBuffer bytes, int bytesSize,
+			ByteBuffer padding, int paddingSize,			
+			int endpointId, int link, int handle, long matchData
+			);
+	static native void sendSynchronous(
+			ByteBuffer header, int headerSize,
+			ByteBuffer longs, int longsSize,
+			ByteBuffer doubles, int doublesSize,
+			ByteBuffer ints, int intsSize,
+			ByteBuffer floats, int floatsSize,
+			ByteBuffer shorts, int shortsSize,
+			ByteBuffer chars, int charsSize,
+			ByteBuffer bytes, int bytesSize,
+			ByteBuffer padding, int paddingSize,			
+			int endpointId, int link, int handle, long matchData
+			);
 	
 	/**
 	 * Receives a message from an endpoint. Only message with correct matching data will be received.
@@ -355,13 +382,13 @@ final class JavaMx {
 	/**
 	 * Waits for a message to arrive
 	 * @param endpointId the endpoint to work on
-	 * @return the matching information of the next message
+	 * @return the matching information of the next message, or 0 (Matching.MATCH_NONE) when no message has arrived
 	 */
 	static native long waitForMessage(int endpointId, long timeout, long matchData, long matchMask);
 	
 	/**
 	 * @param endpointId the endpoint to work on
-	 * @return the matching information of the next message
+	 * @return the matching information of the next message, or 0 (Matching.MATCH_NONE) when no message has arrived
 	 */
 	static native long pollForMessage(int endpointId, long matchData, long matchMask);
 	

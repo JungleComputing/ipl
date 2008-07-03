@@ -17,12 +17,12 @@ class MxReceivePortConnectionInfo extends
 	protected IdManager<MxReceivePortConnectionInfo> channelManager;
 	
 	MxReceivePortConnectionInfo(SendPortIdentifier origin,
-			MxReceivePort rp, MxSimpleDataInputStream dataIn) throws IOException {
+			MxReceivePort rp, MxDataInputStream dataIn) throws IOException {
 		super(origin, rp, dataIn);
 	}
 	
 	boolean poll() throws IOException {
-		return ((MxSimpleDataInputStream)dataIn).available() > 0;
+		return ((MxDataInputStream)dataIn).available() > 0;
 	}	
 	
 	//blocking
@@ -36,8 +36,7 @@ class MxReceivePortConnectionInfo extends
 			}
             newStream();
         }
-		// TODO implement
-		if	(((MxSimpleDataInputStream)dataIn).WaitUntilAvailable(0) >= 0) { // message available
+		if	(((MxDataInputStream)dataIn).waitUntilAvailable(0) >= 0) { // message available
 			if (logger.isDebugEnabled()) {
 				logger.debug("message found!");
 			}
@@ -69,9 +68,17 @@ class MxReceivePortConnectionInfo extends
 	}
 
 	public void senderClose() {
-		if(((MxSimpleDataInputStream)dataIn).channel.senderClose()) {
-			//no data left in channel
+		//FIXME hack
+		ReadChannel channel = ((MxSimpleDataInputStream)dataIn).channel; 
+		
+		if( channel instanceof MxLocalChannel) {
 			close(null);
+			return;
+		} else {
+			if(((MxReadChannel)channel).senderClose()) {
+				//	no data left in channel
+				close(null);
+			}
 		}
 	}
 		
