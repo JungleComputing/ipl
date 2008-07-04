@@ -22,8 +22,9 @@ public class IbisSerializationOutputStream
     private static final boolean DEBUG = IOProperties.DEBUG;
     
     /** If <code>false</code>, makes all timer calls disappear. */
-    private static final boolean TIME_IBIS_SERIALIZATION = false;
-
+    private static final boolean TIME_IBIS_SERIALIZATION
+            = IOProperties.properties.getBooleanProperty(IOProperties.s_timer_ibis);
+    
     /** Record how many objects of any class are sent. */
     private static final boolean STATS_OBJECTS
             = IOProperties.properties.getBooleanProperty(IOProperties.s_stats_written);

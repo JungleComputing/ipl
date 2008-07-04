@@ -28,7 +28,8 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
     private static final boolean ASSERTS = IOProperties.ASSERTS;
     
     /** If <code>false</code>, makes all timer calls disappear. */
-    private static final boolean TIME_IBIS_SERIALIZATION = false;
+    private static final boolean TIME_IBIS_SERIALIZATION
+            = IOProperties.properties.getBooleanProperty(IOProperties.s_timer_ibis);
 
     /**
      * Record how many objects of any class are sent the expensive way:
