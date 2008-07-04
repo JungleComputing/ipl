@@ -253,7 +253,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
 
     public void readArray(boolean[] ref, int off, int len) throws IOException {
         if (TIME_IBIS_SERIALIZATION) {
-            startTimer();
+            timer.start();
         }
         try {
             readArrayHeader(Constants.classBooleanArray, len);
@@ -266,13 +266,13 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
         }
         readBooleanArray(ref, off, len);
         if (TIME_IBIS_SERIALIZATION) {
-            stopTimer();
+            timer.stop();
         }
     }
 
     public void readArray(byte[] ref, int off, int len) throws IOException {
         if (TIME_IBIS_SERIALIZATION) {
-            startTimer();
+            timer.start();
         }
         try {
             readArrayHeader(Constants.classByteArray, len);
@@ -285,13 +285,13 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
         }
         readByteArray(ref, off, len);
         if (TIME_IBIS_SERIALIZATION) {
-            stopTimer();
+            timer.stop();
         }
     }
 
     public void readArray(char[] ref, int off, int len) throws IOException {
         if (TIME_IBIS_SERIALIZATION) {
-            startTimer();
+            timer.start();
         }
         try {
             readArrayHeader(Constants.classCharArray, len);
@@ -304,13 +304,13 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
         }
         readCharArray(ref, off, len);
         if (TIME_IBIS_SERIALIZATION) {
-            stopTimer();
+            timer.stop();
         }
     }
 
     public void readArray(short[] ref, int off, int len) throws IOException {
         if (TIME_IBIS_SERIALIZATION) {
-            startTimer();
+            timer.start();
         }
         try {
             readArrayHeader(Constants.classShortArray, len);
@@ -323,13 +323,13 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
         }
         readShortArray(ref, off, len);
         if (TIME_IBIS_SERIALIZATION) {
-            stopTimer();
+            timer.stop();
         }
     }
 
     public void readArray(int[] ref, int off, int len) throws IOException {
         if (TIME_IBIS_SERIALIZATION) {
-            startTimer();
+            timer.start();
         }
         try {
             readArrayHeader(Constants.classIntArray, len);
@@ -342,13 +342,13 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
         }
         readIntArray(ref, off, len);
         if (TIME_IBIS_SERIALIZATION) {
-            stopTimer();
+            timer.stop();
         }
     }
 
     public void readArray(long[] ref, int off, int len) throws IOException {
         if (TIME_IBIS_SERIALIZATION) {
-            startTimer();
+            timer.start();
         }
         try {
             readArrayHeader(Constants.classLongArray, len);
@@ -361,13 +361,13 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
         }
         readLongArray(ref, off, len);
         if (TIME_IBIS_SERIALIZATION) {
-            stopTimer();
+            timer.stop();
         }
     }
 
     public void readArray(float[] ref, int off, int len) throws IOException {
         if (TIME_IBIS_SERIALIZATION) {
-            startTimer();
+            timer.start();
         }
         try {
             readArrayHeader(Constants.classFloatArray, len);
@@ -380,13 +380,13 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
         }
         readFloatArray(ref, off, len);
         if (TIME_IBIS_SERIALIZATION) {
-            stopTimer();
+            timer.stop();
         }
     }
 
     public void readArray(double[] ref, int off, int len) throws IOException {
         if (TIME_IBIS_SERIALIZATION) {
-            startTimer();
+            timer.start();
         }
         try {
             readArrayHeader(Constants.classDoubleArray, len);
@@ -399,21 +399,21 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
         }
         readDoubleArray(ref, off, len);
         if (TIME_IBIS_SERIALIZATION) {
-            stopTimer();
+            timer.stop();
         }
     }
 
     public void readArray(Object[] ref, int off, int len) throws IOException,
             ClassNotFoundException {
         if (TIME_IBIS_SERIALIZATION) {
-            startTimer();
+            timer.start();
         }
         readArrayHeader(ref.getClass(), len);
         for (int i = off; i < off + len; i++) {
             ref[i] = doReadObject(false);
         }
         if (TIME_IBIS_SERIALIZATION) {
-            stopTimer();
+            timer.stop();
         }
     }
 
@@ -425,14 +425,14 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
      */
     public byte[] readArrayByte() throws IOException {
         if (TIME_IBIS_SERIALIZATION) {
-            startTimer();
+            timer.start();
         }
         int len = readInt();
         byte[] b = new byte[len];
         addObjectToCycleCheck(b);
         readByteArray(b, 0, len);
         if (TIME_IBIS_SERIALIZATION) {
-            stopTimer();
+            timer.stop();
         }
         return b;
     }
@@ -442,14 +442,14 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
      */
     public boolean[] readArrayBoolean() throws IOException {
         if (TIME_IBIS_SERIALIZATION) {
-            startTimer();
+            timer.start();
         }
         int len = readInt();
         boolean[] b = new boolean[len];
         addObjectToCycleCheck(b);
         readBooleanArray(b, 0, len);
         if (TIME_IBIS_SERIALIZATION) {
-            stopTimer();
+            timer.stop();
         }
         return b;
     }
@@ -459,14 +459,14 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
      */
     public char[] readArrayChar() throws IOException {
         if (TIME_IBIS_SERIALIZATION) {
-            startTimer();
+            timer.start();
         }
         int len = readInt();
         char[] b = new char[len];
         addObjectToCycleCheck(b);
         readCharArray(b, 0, len);
         if (TIME_IBIS_SERIALIZATION) {
-            stopTimer();
+            timer.stop();
         }
         return b;
     }
@@ -476,14 +476,14 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
      */
     public short[] readArrayShort() throws IOException {
         if (TIME_IBIS_SERIALIZATION) {
-            startTimer();
+            timer.start();
         }
         int len = readInt();
         short[] b = new short[len];
         addObjectToCycleCheck(b);
         readShortArray(b, 0, len);
         if (TIME_IBIS_SERIALIZATION) {
-            stopTimer();
+            timer.stop();
         }
         return b;
     }
@@ -493,14 +493,14 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
      */
     public int[] readArrayInt() throws IOException {
         if (TIME_IBIS_SERIALIZATION) {
-            startTimer();
+            timer.start();
         }
         int len = readInt();
         int[] b = new int[len];
         addObjectToCycleCheck(b);
         readIntArray(b, 0, len);
         if (TIME_IBIS_SERIALIZATION) {
-            stopTimer();
+            timer.stop();
         }
         return b;
     }
@@ -510,14 +510,14 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
      */
     public long[] readArrayLong() throws IOException {
         if (TIME_IBIS_SERIALIZATION) {
-            startTimer();
+            timer.start();
         }
         int len = readInt();
         long[] b = new long[len];
         addObjectToCycleCheck(b);
         readLongArray(b, 0, len);
         if (TIME_IBIS_SERIALIZATION) {
-            stopTimer();
+            timer.stop();
         }
         return b;
     }
@@ -527,14 +527,14 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
      */
     public float[] readArrayFloat() throws IOException {
         if (TIME_IBIS_SERIALIZATION) {
-            startTimer();
+            timer.start();
         }
         int len = readInt();
         float[] b = new float[len];
         addObjectToCycleCheck(b);
         readFloatArray(b, 0, len);
         if (TIME_IBIS_SERIALIZATION) {
-            stopTimer();
+            timer.stop();
         }
         return b;
     }
@@ -544,14 +544,14 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
      */
     public double[] readArrayDouble() throws IOException {
         if (TIME_IBIS_SERIALIZATION) {
-            startTimer();
+            timer.start();
         }
         int len = readInt();
         double[] b = new double[len];
         addObjectToCycleCheck(b);
         readDoubleArray(b, 0, len);
         if (TIME_IBIS_SERIALIZATION) {
-            stopTimer();
+            timer.stop();
         }
         return b;
     }
@@ -651,13 +651,13 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
      */
     public Class<?> readClass() throws IOException, ClassNotFoundException {
         if (TIME_IBIS_SERIALIZATION) {
-            startTimer();
+            timer.start();
         }
         int handle = readHandle();
 
         if (handle == Constants.NUL_HANDLE) {
             if (TIME_IBIS_SERIALIZATION) {
-                stopTimer();
+                timer.stop();
             }
             return null;
         }
@@ -680,7 +680,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
 
         addObjectToCycleCheck(c);
         if (TIME_IBIS_SERIALIZATION) {
-            stopTimer();
+            timer.stop();
         }
         return c;
     }
@@ -1538,7 +1538,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
      */
     public String readString() throws IOException {
         if (TIME_IBIS_SERIALIZATION) {
-            startTimer();
+            timer.start();
         }
         int handle = readHandle();
 
@@ -1547,7 +1547,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
                 logger.debug("readString: --> null");
             }
             if (TIME_IBIS_SERIALIZATION) {
-                stopTimer();
+                timer.stop();
             }
             return null;
         }
@@ -1561,7 +1561,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
                         + " string = " + o);
             }
             if (TIME_IBIS_SERIALIZATION) {
-                stopTimer();
+                timer.stop();
             }
             return o;
         }
@@ -1581,7 +1581,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
         }
         addObjectToCycleCheck(s);
         if (TIME_IBIS_SERIALIZATION) {
-            stopTimer();
+            timer.stop();
         }
         return s;
     }
@@ -1599,13 +1599,13 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
          */
 
         if (TIME_IBIS_SERIALIZATION) {
-            startTimer();
+            timer.start();
         }
         int handle_or_type = readHandle();
 
         if (handle_or_type == Constants.NUL_HANDLE) {
             if (TIME_IBIS_SERIALIZATION) {
-                stopTimer();
+                timer.stop();
             }
             return null;
         }
@@ -1615,7 +1615,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
             // unless it should be unshared.
             if (unshared) {
                 if (TIME_IBIS_SERIALIZATION) {
-                    stopTimer();
+                    timer.stop();
                 }
                 throw new InvalidObjectException(
                         "readUnshared got a handle instead of an object");
@@ -1627,7 +1627,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
                         + " class = " + o.getClass());
             }
             if (TIME_IBIS_SERIALIZATION) {
-                stopTimer();
+                timer.stop();
             }
 
             if (o == null) {
@@ -1652,7 +1652,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
         Object obj = t.reader.readObject(this, t, type);
 
         if (TIME_IBIS_SERIALIZATION) {
-            stopTimer();
+            timer.stop();
         }
 
         if (DEBUG && logger.isDebugEnabled()) {

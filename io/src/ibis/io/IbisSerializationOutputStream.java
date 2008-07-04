@@ -323,12 +323,12 @@ public class IbisSerializationOutputStream
      */
     public void writeClass(Class<?> ref) throws IOException {
         if (TIME_IBIS_SERIALIZATION) {
-            startTimer();
+            timer.start();
         }
         if (ref == null) {
             writeHandle(Constants.NUL_HANDLE);
             if (TIME_IBIS_SERIALIZATION) {
-                stopTimer();
+                timer.stop();
             }
             return;
         }
@@ -342,7 +342,7 @@ public class IbisSerializationOutputStream
             writeHandle(handle);
         }
         if (TIME_IBIS_SERIALIZATION) {
-            stopTimer();
+            timer.stop();
         }
     }
 
@@ -378,103 +378,103 @@ public class IbisSerializationOutputStream
 
     public void writeArray(boolean[] ref, int off, int len) throws IOException {
         if (TIME_IBIS_SERIALIZATION) {
-            startTimer();
+            timer.start();
         }
         if (writeArrayHeader(ref, Constants.classBooleanArray, len, false)) {
             writeArrayBoolean(ref, off, len);
         }
         if (TIME_IBIS_SERIALIZATION) {
-            stopTimer();
+            timer.stop();
         }
     }
 
     public void writeArray(byte[] ref, int off, int len) throws IOException {
         if (TIME_IBIS_SERIALIZATION) {
-            startTimer();
+            timer.start();
         }
         if (writeArrayHeader(ref, Constants.classByteArray, len, false)) {
             writeArrayByte(ref, off, len);
         }
         if (TIME_IBIS_SERIALIZATION) {
-            stopTimer();
+            timer.stop();
         }
     }
 
     public void writeArray(short[] ref, int off, int len) throws IOException {
         if (TIME_IBIS_SERIALIZATION) {
-            startTimer();
+            timer.start();
         }
         if (writeArrayHeader(ref, Constants.classShortArray, len, false)) {
             writeArrayShort(ref, off, len);
         }
         if (TIME_IBIS_SERIALIZATION) {
-            stopTimer();
+            timer.stop();
         }
     }
 
     public void writeArray(char[] ref, int off, int len) throws IOException {
         if (TIME_IBIS_SERIALIZATION) {
-            startTimer();
+            timer.start();
         }
         if (writeArrayHeader(ref, Constants.classCharArray, len, false)) {
             writeArrayChar(ref, off, len);
         }
         if (TIME_IBIS_SERIALIZATION) {
-            stopTimer();
+            timer.stop();
         }
     }
 
     public void writeArray(int[] ref, int off, int len) throws IOException {
         if (TIME_IBIS_SERIALIZATION) {
-            startTimer();
+            timer.start();
         }
         if (writeArrayHeader(ref, Constants.classIntArray, len, false)) {
             writeArrayInt(ref, off, len);
         }
         if (TIME_IBIS_SERIALIZATION) {
-            stopTimer();
+            timer.stop();
         }
     }
 
     public void writeArray(long[] ref, int off, int len) throws IOException {
         if (TIME_IBIS_SERIALIZATION) {
-            startTimer();
+            timer.start();
         }
         if (writeArrayHeader(ref, Constants.classLongArray, len, false)) {
             writeArrayLong(ref, off, len);
         }
         if (TIME_IBIS_SERIALIZATION) {
-            stopTimer();
+            timer.stop();
         }
     }
 
     public void writeArray(float[] ref, int off, int len) throws IOException {
         if (TIME_IBIS_SERIALIZATION) {
-            startTimer();
+            timer.start();
         }
         if (writeArrayHeader(ref, Constants.classFloatArray, len, false)) {
             writeArrayFloat(ref, off, len);
         }
         if (TIME_IBIS_SERIALIZATION) {
-            stopTimer();
+            timer.stop();
         }
     }
 
     public void writeArray(double[] ref, int off, int len) throws IOException {
         if (TIME_IBIS_SERIALIZATION) {
-            startTimer();
+            timer.start();
         }
         if (writeArrayHeader(ref, Constants.classDoubleArray, len, false)) {
             writeArrayDouble(ref, off, len);
         }
         if (TIME_IBIS_SERIALIZATION) {
-            stopTimer();
+            timer.stop();
         }
     }
 
     public void writeArray(Object[] ref, int off, int len) throws IOException {
         if (TIME_IBIS_SERIALIZATION) {
-            startTimer();
+            timer.start();
         }
         Class<?> clazz = ref.getClass();
         if (writeArrayHeader(ref, clazz, len, false)) {
@@ -483,7 +483,7 @@ public class IbisSerializationOutputStream
             }
         }
         if (TIME_IBIS_SERIALIZATION) {
-            stopTimer();
+            timer.stop();
         }
     }
 
@@ -953,7 +953,7 @@ public class IbisSerializationOutputStream
      */
     public void writeString(String ref) throws IOException {
         if (TIME_IBIS_SERIALIZATION) {
-            startTimer();
+            timer.start();
         }
         if (ref == null) {
             if (DEBUG && logger.isDebugEnabled()) {
@@ -961,7 +961,7 @@ public class IbisSerializationOutputStream
             }
             writeHandle(Constants.NUL_HANDLE);
             if (TIME_IBIS_SERIALIZATION) {
-                stopTimer();
+                timer.stop();
             }
             return;
         }
@@ -982,7 +982,7 @@ public class IbisSerializationOutputStream
             writeHandle(handle);
         }
         if (TIME_IBIS_SERIALIZATION) {
-            stopTimer();
+            timer.stop();
         }
     }
 
@@ -1066,12 +1066,12 @@ public class IbisSerializationOutputStream
          */
 
         if (TIME_IBIS_SERIALIZATION) {
-            startTimer();
+            timer.start();
         }
         if (ref == null) {
             writeHandle(Constants.NUL_HANDLE);
             if (TIME_IBIS_SERIALIZATION) {
-                stopTimer();
+                timer.stop();
             }
             return;
         }
@@ -1112,7 +1112,7 @@ public class IbisSerializationOutputStream
             addStatSendObjectHandle(ref);
         }
         if (TIME_IBIS_SERIALIZATION) {
-            stopTimer();
+            timer.stop();
         }
     }
 
@@ -1436,7 +1436,7 @@ public class IbisSerializationOutputStream
         public void writeBytes(String s) throws IOException {
 
             if (TIME_IBIS_SERIALIZATION) {
-                startTimer();
+                timer.start();
             }
             if (s != null) {
                 byte[] bytes = s.getBytes();
@@ -1447,14 +1447,14 @@ public class IbisSerializationOutputStream
                 }
             }
             if (TIME_IBIS_SERIALIZATION) {
-                stopTimer();
+                timer.stop();
             }
         }
 
         public void writeChars(String s) throws IOException {
 
             if (TIME_IBIS_SERIALIZATION) {
-                startTimer();
+                timer.start();
             }
             if (s != null) {
                 int len = s.length();
@@ -1464,7 +1464,7 @@ public class IbisSerializationOutputStream
                 }
             }
             if (TIME_IBIS_SERIALIZATION) {
-                stopTimer();
+                timer.stop();
             }
         }
 

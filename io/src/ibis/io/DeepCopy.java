@@ -1434,9 +1434,9 @@ public class DeepCopy {
         
         try {
 
-            final SerializationInput ser_input = SerializationBase
+            final SerializationInput ser_input = SerializationFactory
                     .createSerializationInput(serialization, input);
-            final SerializationOutput ser_output = SerializationBase
+            final SerializationOutput ser_output = SerializationFactory
                     .createSerializationOutput(serialization, output);
 
             Thread writer = new Thread("DeepCopy writer") {

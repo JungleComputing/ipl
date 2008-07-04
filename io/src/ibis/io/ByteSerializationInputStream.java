@@ -15,9 +15,8 @@ import java.io.IOException;
  * It also provides a base class for "data" serialization and "ibis"
  * serialization.
  */
-public class ByteSerializationInputStream extends SerializationBase
-        implements SerializationInput {
-
+public class ByteSerializationInputStream implements SerializationInput {
+    
     /** The underlying stream. */
     DataInputStream in;
 

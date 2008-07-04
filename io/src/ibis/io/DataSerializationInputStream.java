@@ -21,7 +21,9 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
             = IOProperties.properties.getBooleanProperty(IOProperties.s_no_array_buffers);
 
     /** If <code>false</code>, makes all timer calls disappear. */
-    private static final boolean TIME_DATA_SERIALIZATION = true;
+    private static final boolean TIME_DATA_SERIALIZATION
+            = IOProperties.properties.getBooleanProperty(IOProperties.s_timer_data)
+                || IOProperties.properties.getBooleanProperty(IOProperties.s_timer_ibis);
 
     /** Boolean count is not used, use it for arrays. */
     static final int TYPE_ARRAY = Constants.TYPE_BOOLEAN;
@@ -119,6 +121,9 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
     
     private final int DOUBLE_BUFFER_SIZE;
     
+    /** Timer. */
+    final SerializationTimer timer;
+    
     static int typedBufferSize(int bufferSize, int elSize) {
         return (bufferSize -(Constants.PRIMITIVE_TYPES - Constants.BEGIN_TYPES) * Constants.SIZEOF_SHORT) / elSize;    
     }
@@ -145,6 +150,12 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
         if (! NO_ARRAY_BUFFERS) {
             initArrays();
         }
+        
+        if (TIME_DATA_SERIALIZATION) {
+            timer = new SerializationTimer(toString());
+        } else {
+            timer = null;
+        }
     }
 
     /**
@@ -159,6 +170,12 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
         LONG_BUFFER_SIZE = 0;
         FLOAT_BUFFER_SIZE = 0;
         DOUBLE_BUFFER_SIZE = 0;
+       
+        if (TIME_DATA_SERIALIZATION) {
+            timer = new SerializationTimer(toString());
+        } else {
+            timer = null;
+        }
     }
 
     public String serializationImplName() {
@@ -169,7 +186,7 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
         boolean a;
 
         if (TIME_DATA_SERIALIZATION) {
-            startTimer();
+            timer.start();
         }
         if (NO_ARRAY_BUFFERS) {
             a = in.readBoolean();
@@ -183,7 +200,7 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
             logger.debug("read boolean: " + a);
         }
         if (TIME_DATA_SERIALIZATION) {
-            stopTimer();
+            timer.stop();
         }
         return a;
     }
@@ -192,7 +209,7 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
         byte a;
 
         if (TIME_DATA_SERIALIZATION) {
-            startTimer();
+            timer.start();
         }
         if (NO_ARRAY_BUFFERS) {
             a = in.readByte();
@@ -206,7 +223,7 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
             logger.debug("read byte: " + a);
         }
         if (TIME_DATA_SERIALIZATION) {
-            stopTimer();
+            timer.stop();
         }
         return a;
     }
@@ -215,7 +232,7 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
         char a;
 
         if (TIME_DATA_SERIALIZATION) {
-            startTimer();
+            timer.start();
         }
         if (NO_ARRAY_BUFFERS) {
             a = in.readChar();
@@ -229,7 +246,7 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
             logger.debug("read char: " + a);
         }
         if (TIME_DATA_SERIALIZATION) {
-            stopTimer();
+            timer.stop();
         }
         return a;
     }
@@ -238,7 +255,7 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
         short a;
 
         if (TIME_DATA_SERIALIZATION) {
-            startTimer();
+            timer.start();
         }
         if (NO_ARRAY_BUFFERS) {
             a = in.readShort();
@@ -252,7 +269,7 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
             logger.debug("read short: " + a);
         }
         if (TIME_DATA_SERIALIZATION) {
-            stopTimer();
+            timer.stop();
         }
         return a;
     }
@@ -261,7 +278,7 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
         int a;
 
         if (TIME_DATA_SERIALIZATION) {
-            startTimer();
+            timer.start();
         }
         if (NO_ARRAY_BUFFERS) {
             a = in.readInt();
@@ -276,7 +293,7 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
                     + "]");
         }
         if (TIME_DATA_SERIALIZATION) {
-            stopTimer();
+            timer.stop();
         }
         return a;
     }
@@ -285,7 +302,7 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
         long a;
 
         if (TIME_DATA_SERIALIZATION) {
-            startTimer();
+            timer.start();
         }
         if (NO_ARRAY_BUFFERS) {
             a = in.readLong();
@@ -299,7 +316,7 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
             logger.debug("read long: " + a);
         }
         if (TIME_DATA_SERIALIZATION) {
-            stopTimer();
+            timer.stop();
         }
         return a;
     }
@@ -308,7 +325,7 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
         float a;
 
         if (TIME_DATA_SERIALIZATION) {
-            startTimer();
+            timer.start();
         }
         if (NO_ARRAY_BUFFERS) {
             a = in.readFloat();
@@ -322,7 +339,7 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
             logger.debug("read float: " + a);
         }
         if (TIME_DATA_SERIALIZATION) {
-            stopTimer();
+            timer.stop();
         }
         return a;
     }
@@ -331,7 +348,7 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
         double a;
 
         if (TIME_DATA_SERIALIZATION) {
-            startTimer();
+            timer.start();
         }
         if (NO_ARRAY_BUFFERS) {
             a = in.readDouble();
@@ -345,7 +362,7 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
             logger.debug("read double: " + a);
         }
         if (TIME_DATA_SERIALIZATION) {
-            stopTimer();
+            timer.stop();
         }
         return a;
     }
@@ -552,81 +569,82 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
 
     public void readArray(boolean[] ref, int off, int len) throws IOException {
         if (TIME_DATA_SERIALIZATION) {
-            startTimer();
+            timer.start();
         }
         readBooleanArray(ref, off, len);
         if (TIME_DATA_SERIALIZATION) {
-            stopTimer();
+            timer.stop();
         }
     }
 
     public void readArray(byte[] ref, int off, int len) throws IOException {
         if (TIME_DATA_SERIALIZATION) {
-            startTimer();
+            timer.start();
         }
         readByteArray(ref, off, len);
         if (TIME_DATA_SERIALIZATION) {
-            stopTimer();
+            timer.stop();
         }
+        
     }
 
     public void readArray(char[] ref, int off, int len) throws IOException {
         if (TIME_DATA_SERIALIZATION) {
-            startTimer();
+            timer.start();
         }
         readCharArray(ref, off, len);
         if (TIME_DATA_SERIALIZATION) {
-            stopTimer();
+            timer.stop();
         }
     }
 
     public void readArray(short[] ref, int off, int len) throws IOException {
         if (TIME_DATA_SERIALIZATION) {
-            startTimer();
+            timer.start();
         }
         readShortArray(ref, off, len);
         if (TIME_DATA_SERIALIZATION) {
-            stopTimer();
+            timer.stop();
         }
     }
 
     public void readArray(int[] ref, int off, int len) throws IOException {
         if (TIME_DATA_SERIALIZATION) {
-            startTimer();
+            timer.start();
         }
         readIntArray(ref, off, len);
         if (TIME_DATA_SERIALIZATION) {
-            stopTimer();
+            timer.stop();
         }
     }
 
     public void readArray(long[] ref, int off, int len) throws IOException {
         if (TIME_DATA_SERIALIZATION) {
-            startTimer();
+            timer.start();
         }
         readLongArray(ref, off, len);
         if (TIME_DATA_SERIALIZATION) {
-            stopTimer();
+            timer.stop();
         }
     }
 
     public void readArray(float[] ref, int off, int len) throws IOException {
         if (TIME_DATA_SERIALIZATION) {
-            startTimer();
+            timer.start();
         }
         readFloatArray(ref, off, len);
         if (TIME_DATA_SERIALIZATION) {
-            stopTimer();
+            timer.stop();
         }
     }
 
     public void readArray(double[] ref, int off, int len) throws IOException {
         if (TIME_DATA_SERIALIZATION) {
-            startTimer();
+            timer.start();
         }
         readDoubleArray(ref, off, len);
         if (TIME_DATA_SERIALIZATION) {
-            stopTimer();
+            timer.stop();
         }
     }
 
@@ -678,7 +696,7 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
         }
 
         if (TIME_DATA_SERIALIZATION) {
-            suspendTimer();
+            timer.suspend();
         }
 
         in.readArray(indices_short, Constants.BEGIN_TYPES, Constants.PRIMITIVE_TYPES - Constants.BEGIN_TYPES);
@@ -756,7 +774,7 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
         }
 
         if (TIME_DATA_SERIALIZATION) {
-            resumeTimer();
+            timer.resume();
         }
     }
 
@@ -772,7 +790,7 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
 
     public String readUTF() throws IOException {
         if (TIME_DATA_SERIALIZATION) {
-            startTimer();
+            timer.start();
         }
         int bn = readInt();
 
@@ -782,7 +800,7 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
 
         if (bn == -1) {
             if (TIME_DATA_SERIALIZATION) {
-                stopTimer();
+                timer.stop();
             }
             return null;
         }
@@ -819,7 +837,7 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
         String s = new String(c, 0, len);
         // logger.debug("readUTF: " + s);
         if (TIME_DATA_SERIALIZATION) {
-            stopTimer();
+            timer.stop();
         }
 
         if (DEBUG && logger.isDebugEnabled()) {

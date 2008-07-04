@@ -4,7 +4,7 @@ package ibis.ipl.impl;
 
 import ibis.io.DataOutputStream;
 import ibis.io.Replacer;
-import ibis.io.SerializationBase;
+import ibis.io.SerializationFactory;
 import ibis.io.SerializationOutput;
 import ibis.ipl.AlreadyConnectedException;
 import ibis.ipl.ConnectionFailedException;
@@ -222,7 +222,7 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
         } else {
             serialization = "byte";
         }
-        out = SerializationBase.createSerializationOutput(serialization,
+        out = SerializationFactory.createSerializationOutput(serialization,
                 dataOut);
         if (replacer != null) {
             out.setReplacer(replacer);

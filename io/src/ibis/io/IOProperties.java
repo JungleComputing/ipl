@@ -35,7 +35,9 @@ public final class IOProperties {
 
     static final String s_classloader = PREFIX + "serialization.classloader";
 
-    static final String s_timer = PREFIX + "serialization.timer";
+    static final String s_timer_data = PREFIX + "serialization.timer.data";
+    
+    static final String s_timer_ibis = PREFIX + "serialization.timer.ibis";
 
     static final String s_no_array_buffers = PREFIX + "noarraybuffers";
 
@@ -76,8 +78,10 @@ public final class IOProperties {
                     null,
                     "String: the name of a classloader to be used when a class "
                             + "cannot be found" },
-            { s_timer, "false",
-                    "Boolean: if true, enables various serialization timers" },
+            { s_timer_data, "false",
+                    "Boolean: if true, enables data serialization timers" },                  
+            { s_timer_ibis, "false",
+                    "Boolean: if true, enables ibis serialization timers" },       
             {
                     s_no_array_buffers,
                     "false",

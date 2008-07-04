@@ -2,20 +2,39 @@
 
 package ibis.io;
 
+import java.util.Vector;
+
 import ibis.util.Timer;
 
 public class SerializationTimer {
+
+    private static Vector<SerializationTimer> timerList
+    = new Vector<SerializationTimer>();
+
+    static {
+        Runtime.getRuntime().addShutdownHook(
+                new Thread("SerializationStreams ShutdownHook") {
+                    public void run() {
+                        printAllTimers();
+                    }
+                });
+    }
 
     private final String name;
 
     private int starts;
 
-    private Timer timer = Timer.createTimer();
+    private final Timer timer;
 
-    private Timer suspend = Timer.createTimer();
+    private final Timer suspend;
 
     public SerializationTimer(String name) {
         this.name = name;
+        suspend = Timer.createTimer();
+        timer = Timer.createTimer();
+        synchronized (SerializationTimer.class) {
+            timerList.add(this);
+        }
     }
 
     public void start() {
@@ -62,4 +81,19 @@ public class SerializationTimer {
         report(System.out);
     }
 
+    public static void resetAllTimers() {
+        synchronized (SerializationTimer.class) {
+            for (SerializationTimer t : timerList) {
+                t.reset();
+            }
+        }
+    }
+
+    public static void printAllTimers() {
+        synchronized (SerializationTimer.class) {
+            for (SerializationTimer t : timerList) {
+                t.report();
+            }
+        }
+    }
 }

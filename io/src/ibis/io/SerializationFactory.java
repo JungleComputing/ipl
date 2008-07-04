@@ -5,91 +5,11 @@ package ibis.io;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.io.IOException;
-import java.util.Vector;
 
 /**
- * A base class for all Ibis serialization classes, providing some
- * method implementations that they share.
+ * A factory for creating serialization streams.
  */
-public class SerializationBase {
-    /** 
-     * Enable this to measure the time spent in serialization.
-     * Each serialization entry/exit point must start/stop the timer.
-     */
-    protected final static boolean TIME_SERIALIZATION
-            = IOProperties.properties.getBooleanProperty(IOProperties.s_timer, false);
-
-    /** The serialization timer. */
-    protected final SerializationTimer timer
-        = TIME_SERIALIZATION ? new SerializationTimer(toString()) : null;
-
-    private static Vector<SerializationTimer> timerList
-            = new Vector<SerializationTimer>();
-
-    static {
-        if (TIME_SERIALIZATION) {
-            System.out.println("SerializationOutputStream.TIME_SERIALIZATION "
-                    + "enabled");
-            Runtime.getRuntime().addShutdownHook(
-                    new Thread("SerializationOutputStream ShutdownHook") {
-                        public void run() {
-                            printAllTimers();
-                        }
-                    });
-        }
-    }
-
-    SerializationBase() {
-        initTimer();
-    }
-
-    public static void resetAllTimers() {
-        synchronized (SerializationBase.class) {
-            for (SerializationTimer t : timerList) {
-                t.reset();
-            }
-        }
-    }
-
-    public static void printAllTimers() {
-        synchronized (SerializationBase.class) {
-            for (SerializationTimer t : timerList) {
-                t.report();
-            }
-        }
-    }
-
-    private void initTimer() {
-        if (TIME_SERIALIZATION) {
-            synchronized (SerializationBase.class) {
-                timerList.add(timer);
-            }
-        }
-    }
-
-    protected final void startTimer() {
-        if (TIME_SERIALIZATION) {
-            timer.start();
-        }
-    }
-
-    protected final void stopTimer() {
-        if (TIME_SERIALIZATION) {
-            timer.stop();
-        }
-    }
-
-    protected final void suspendTimer() {
-        if (TIME_SERIALIZATION) {
-            timer.suspend();
-        }
-    }
-
-    protected final void resumeTimer() {
-        if (TIME_SERIALIZATION) {
-            timer.resume();
-        }
-    }
+public class SerializationFactory {
 
     /**
      * Returns the implementation name for the specified nickname.
