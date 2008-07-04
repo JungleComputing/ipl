@@ -15,22 +15,6 @@ X-cp)
     ;;
 esac
 
-# deal with classpath
-LIBCLASSPATH=""
-add_to_libclasspath () {
-    JARFILES=`cd "$1" && ls *.jar 2>/dev/null`
-    for i in ${JARFILES} ; do
-	if [ -z "$LIBCLASSPATH" ] ; then
-	    LIBCLASSPATH="$1/$i"
-	else
-	    LIBCLASSPATH="$LIBCLASSPATH:$1/$i"
-	fi
-    done
-}
+JAVACLASSPATH="$CLASSPATH:${IPL_HOME}/lib/"'*'
 
-# Add the following dirs to the classpath 
-add_to_libclasspath "${IPL_HOME}"/lib
-
-JAVACLASSPATH="$CLASSPATH:$LIBCLASSPATH"
-
-java -classpath "$JAVACLASSPATH" ibis.compile.Ibisc "$@"
+java -classpath "$CLASSPATH:$IPL_HOME/lib/"'*' ibis.compile.Ibisc "$@"
