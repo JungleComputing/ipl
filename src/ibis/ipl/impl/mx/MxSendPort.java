@@ -17,7 +17,7 @@ public class MxSendPort extends SendPort {
 	private static Logger logger = Logger.getLogger(MxSendPort.class);
 	
 	protected MxChannelFactory factory;
-	protected MxScatteringDataOutputStream scatteringStream;
+	protected MxScatteringBufferedDataOutputStream scatteringStream;
 	private boolean reliable;
 	
 	MxSendPort(MxIbis ibis, PortType type, String name,
@@ -26,7 +26,7 @@ public class MxSendPort extends SendPort {
 		super(ibis, type, name, connectUpcall, properties);
 		factory = ibis.factory;
 		
-		scatteringStream = new MxScatteringDataOutputStream();
+		scatteringStream = new MxScatteringBufferedDataOutputStream();
 		this.reliable = reliable;
 		initStream(scatteringStream); 
 		// or something like this?

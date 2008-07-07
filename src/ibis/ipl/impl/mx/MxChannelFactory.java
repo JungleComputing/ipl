@@ -247,7 +247,8 @@ public class MxChannelFactory implements Runnable {
 			byte reply = rp.connectionAllowed(sp.ident, sp.type);
 			if(reply == ReceivePort.ACCEPTED) {
 				channel = new MxLocalChannel();
-				mxdis = new MxSimpleDataInputStream(channel, ByteOrder.nativeOrder()); 
+				//mxdis = new MxSimpleDataInputStream(channel, ByteOrder.nativeOrder()); 
+				mxdis = new MxBufferedDataInputStreamImpl(channel, ByteOrder.nativeOrder());
 				info = new MxReceivePortConnectionInfo(sp.ident, rp, mxdis);
 				return channel;
 			} else {
@@ -377,7 +378,7 @@ public class MxChannelFactory implements Runnable {
 
 				if (reply == ReceivePort.ACCEPTED) {
 					try {
-						mxdis = new MxSimpleDataInputStream(rc, senderOrder); 
+						mxdis = new MxBufferedDataInputStreamImpl(rc, senderOrder); 
 						
 						info = new MxReceivePortConnectionInfo(spi, port, mxdis);
 						// setup the Matching properties of the ReadChannel

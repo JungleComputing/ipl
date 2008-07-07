@@ -18,14 +18,14 @@ public abstract class MxDataInputStream extends DataInputStream implements Confi
 	
 	private long count = 0;
 	private boolean closed = false;
-	private ByteBuffer buffer;
+	protected ByteBuffer buffer;
 	
 	public MxDataInputStream(ByteOrder order) {
 		buffer = ByteBuffer.allocateDirect(BYTE_BUFFER_SIZE).order(order);
 		buffer.flip(); // start with an empty buffer
 	}
 
-	private void receive() throws IOException {
+	protected void receive() throws IOException {
 		//FIXME buffer.size() < bytes errors
 		//TODO make this one beautiful ;-)
 		if(buffer.hasRemaining()) {

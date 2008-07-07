@@ -2,11 +2,9 @@ package ibis.ipl.impl.mx;
 
 import ibis.io.DataOutputStream;
 
-
 import java.io.IOException;
 import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.CharBuffer;
 import java.nio.DoubleBuffer;
 import java.nio.FloatBuffer;
@@ -16,7 +14,7 @@ import java.nio.ShortBuffer;
 
 import org.apache.log4j.Logger;
 
-/* write methods are taken from NioAccumulator, some others are based on it */
+/* Write methods are taken from NioAccumulator, some others are based on it */
 
 
 public abstract class MxBufferedDataOutputStream extends DataOutputStream implements Config {
