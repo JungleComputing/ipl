@@ -16,7 +16,7 @@ public class MxLocalChannel implements ReadChannel, WriteChannel {
 	private ByteBuffer buffer;
 	
 	MxLocalChannel() {
-		//logger.debug("Local channel created");
+		logger.debug("Local channel created");
 		buffer = ByteBuffer.allocate(Config.BYTE_BUFFER_SIZE); //We don't need a direct buffer here
 	}
 	
@@ -25,6 +25,7 @@ public class MxLocalChannel implements ReadChannel, WriteChannel {
 	public synchronized void close() {
 		//logger.debug("Local channel closed");
 		closed = true;
+		notifyAll();
 	}
 
 	/* ReadChannel methods: */
@@ -34,6 +35,7 @@ public class MxLocalChannel implements ReadChannel, WriteChannel {
 	}
 
 	public synchronized int poll() throws ClosedChannelException {
+		logger.debug("poll(timeout)");
 		int result = buffer.position();
 		if(closed && result == 0) {
 			return -1;
@@ -42,6 +44,7 @@ public class MxLocalChannel implements ReadChannel, WriteChannel {
 	}
 
 	public synchronized int poll(long timeout) throws ClosedChannelException {
+		logger.debug("poll(timeout)");
 		long deadline = System.currentTimeMillis() + timeout;
 		long time;
 		int result = buffer.position();
@@ -63,15 +66,17 @@ public class MxLocalChannel implements ReadChannel, WriteChannel {
 		return result;
 	}
 
-	public synchronized int read(ByteBuffer dest, long timeout) throws IOException {
-		//logger.debug("read");
+	public int read(ByteBuffer dest, long timeout) throws IOException {
+		logger.debug("read");
 		int size = poll(timeout);
-		if (size > 0) {
+		if (size >= 0) {
 			buffer.flip();
 			dest.put(buffer);
 			// empty buffer and notify blocked write methods
 			buffer.clear();
-			notifyAll();
+			synchronized(this) {
+				notifyAll();
+			}
 			return size;
 		}
 		return size;
@@ -79,7 +84,7 @@ public class MxLocalChannel implements ReadChannel, WriteChannel {
 
 	/* WriteChannel methods */
 	
-	public  void finish() throws IOException {
+	public void finish() throws IOException {
 		//empty implementation
 	}
 
@@ -89,7 +94,7 @@ public class MxLocalChannel implements ReadChannel, WriteChannel {
 	}
 
 	public synchronized void write(ByteBuffer src) throws IOException {
-		//logger.debug("write");
+		logger.debug("write");
 		while(buffer.remaining() < src.remaining()) {
 			try {
 				wait();
@@ -98,10 +103,11 @@ public class MxLocalChannel implements ReadChannel, WriteChannel {
 			}
 		}
 		buffer.put(src);
+		notifyAll();
 	}
 
 	public synchronized void write(SendBuffer src) throws IOException {
-		//logger.debug("write SendBuffer");
+		logger.debug("write SendBuffer");
 		while(buffer.remaining() < src.remaining()) {
 			try {
 				wait();
@@ -109,11 +115,14 @@ public class MxLocalChannel implements ReadChannel, WriteChannel {
 				// ignore
 			}
 		}
+		logger.debug("Space free in buffer");
 		src.mark();
 		for(ByteBuffer buf : src.byteBuffers) {
 			buffer.put(buf);
 		}
 		src.reset();
+		notifyAll();
+		logger.debug("Write finished");
 	}
 
 

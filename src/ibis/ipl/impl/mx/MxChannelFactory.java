@@ -25,7 +25,7 @@ public class MxChannelFactory implements Runnable {
 
 	static final int IBIS_FILTER = 0xdada0001;
 	static final short CONNECT_REPLY_PORT = 0;
-	static final int CONNECT_CONNECTION = 0;
+	static final int FACTORY_CONNECTION = 0;
 
 	private static Logger logger = Logger.getLogger(MxChannelFactory.class);
 
@@ -61,7 +61,7 @@ public class MxChannelFactory implements Runnable {
 		}
 
 
-		//logger.debug("Connecting...");
+		logger.debug("Connecting...");
 
 		
 		IbisIdentifier id = (ibis.ipl.impl.IbisIdentifier) rpi.ibisIdentifier();
@@ -114,7 +114,7 @@ public class MxChannelFactory implements Runnable {
 				throw(e);
 			}
 			
-			wc.matchData = Matching.construct(Matching.PROTOCOL_CONNECT, CONNECT_CONNECTION);
+			wc.matchData = Matching.construct(Matching.PROTOCOL_CONNECT, FACTORY_CONNECTION);
 			//logger.debug("MatchData is for connection request is " + Long.toHexString(wc.matchData));
 			mxdos = new MxSimpleDataOutputStream(wc, ByteOrder.BIG_ENDIAN); //wc is big endian here
 			dos = new DataOutputStream(mxdos);
@@ -222,7 +222,7 @@ public class MxChannelFactory implements Runnable {
 		MxLocalChannel channel = null;
 		MxDataInputStream mxdis;
 		
-		//logger.debug("creating local channel");
+		logger.debug("creating local channel");
 		
 		long deadline = 0;
 		if(timeoutMillis > 0) {
@@ -235,10 +235,10 @@ public class MxChannelFactory implements Runnable {
 				channel = new MxLocalChannel();
 				//mxdis = new MxSimpleDataInputStream(channel, ByteOrder.nativeOrder()); 
 				mxdis = new MxBufferedDataInputStreamImpl(channel, ByteOrder.nativeOrder());
-				info = new MxReceivePortConnectionInfo(sp.ident, rp, mxdis);
+				info = new MxReceivePortConnectionInfo(sp.ident, rp, mxdis, this);
 				return channel;
 			} else {
-				//logger.debug("connection creation failed");
+				logger.debug("connection creation failed");
 				switch (reply) {
 					case ReceivePort.ALREADY_CONNECTED:
 						throw new AlreadyConnectedException("Already connected to ReceivePort " + rp.name(), rp.ident);
@@ -314,7 +314,7 @@ public class MxChannelFactory implements Runnable {
 		
 		//setup the channel to read the request
 		rc = new MxReadChannel(this);
-		rc.matchData = Matching.setConnection(rc.matchData, CONNECT_CONNECTION);
+		rc.matchData = Matching.setConnection(rc.matchData, FACTORY_CONNECTION);
 		rc.matchData = Matching.setProtocol(rc.matchData, Matching.PROTOCOL_CONNECT);
 		// TODO When multiple connection requests arrive at the same time, message can be mixed up for requests consisting of multiple MX messages
 		mxdis = new MxSimpleDataInputStream(rc, ByteOrder.BIG_ENDIAN);
@@ -363,7 +363,7 @@ public class MxChannelFactory implements Runnable {
 					try {
 						mxdis = new MxBufferedDataInputStreamImpl(rc, senderOrder); 
 						
-						info = new MxReceivePortConnectionInfo(spi, port, mxdis);
+						info = new MxReceivePortConnectionInfo(spi, port, mxdis, this);
 						// setup the Matching properties of the ReadChannel
 						/* old:
 						rc.setReceivePort(port.portId.value);
@@ -534,32 +534,111 @@ public class MxChannelFactory implements Runnable {
 		rc.matchData = matchData;
 		MxDataInputStream mxdis = new MxSimpleDataInputStream(rc, ByteOrder.BIG_ENDIAN);
 		DataInputStream dis = new DataInputStream(mxdis);
-		SendPortIdentifier spi = null;
+		//SendPortIdentifier spi = null;
 		ReceivePortIdentifier rpi = null;
+		String sendPortName = null;
+		//String receivePortName = null;
 		try {
-			spi = new SendPortIdentifier(dis);		
+			sendPortName = dis.readUTF();
+			//receivePortName = dis.readUTF();
+			//spi = new SendPortIdentifier(dis);		
 			rpi = new ReceivePortIdentifier(dis);
 		} catch (IOException e) {
-			// TODO Should not happen, lets crash here
-			e.printStackTrace();
-			System.exit(1);
+			// TODO Should not happen, discard message and continue
+			logger.debug("Error receiving a CLOSE message, message discarded");
+			try {
+				dis.close();
+				mxdis.close();
+			} catch (IOException e2) {
+				// ignore
+			}
+			rc.close();
+			return;
 		}
-		SendPort sp = ibis.findSendPort(spi.name());
+		try {
+			dis.close();
+			mxdis.close();
+		} catch (IOException e) {
+			// ignore
+		}
+		rc.close();
+		
+		SendPort sp = ibis.findSendPort(sendPortName);
 		if(sp == null) {
 			//no such SendPort, ignore the request 
+			return;
+		}
+		sp.lostConnection(rpi, null);
+		logger.debug("Outbound connection closed by receiver");
+	}
+
+	protected void sendCloseMessage(MxReceivePortConnectionInfo rpci) {		
+		MxWriteChannel wc = null;
+		MxDataOutputStream mxdos = null;
+		DataOutputStream dos = null;
+
+		
+		//IbisIdentifier sender = (ibis.ipl.impl.IbisIdentifier)rpci.origin.ibisIdentifier();		
+		IbisIdentifier id = (ibis.ipl.impl.IbisIdentifier) rpci.port.ident.ibisIdentifier();
+		//if(id.equals(sender)) {
+		if(rpci.origin.ibisIdentifier().equals(id)) {
+			// we are dealing with a local port
+			MxSendPort sp = (MxSendPort) ibis.findSendPort(rpci.origin.name());
+			if (sp == null) {
+				//sp not found, presumably it closed already.
+				return;
+			}
+			try {
+				sp.disconnect(rpci.port.identifier());
+			} catch (IOException e) {
+				// do nothing
+			}
 			return;
 		}
 		
-		sp.lostConnection(rpi, null);
-		if(sp == null) {
-			//no such SendPort, ignore the request 
+		if(closed) {
+			// TODO throw new IOException("Endpoint is closed"); ??
+			return;
+		}
+		
+		// now locate the remote sendport
+		MxAddress target;
+		try {
+			target = MxAddress.fromBytes(id.getImplementationData());
+		} catch (Exception e) {
+			//throw new PortMismatchException("Could not create MxAddress from ReceivePortIdentifier.", rpi, e);
+			// TODO just stop here, do not crash on failing to close a connection
+			return;
+		}
+	
+		//setup the channel to send the close message
+		
+		try {
+			wc = new MxUnreliableWriteChannel(this, target, IBIS_FILTER);
+		} catch (IOException e) {
+			logger.error(e.getMessage());
+			// TODO just stop here, do not crash on failing to close a connection
+			return;
+		}
+		
+		wc.matchData = Matching.construct(Matching.PROTOCOL_CLOSE, FACTORY_CONNECTION);
+		//logger.debug("MatchData is for connection request is " + Long.toHexString(wc.matchData));
+		mxdos = new MxSimpleDataOutputStream(wc, ByteOrder.BIG_ENDIAN); //wc is big endian here
+		dos = new DataOutputStream(mxdos);
+	
+		//send the message
+		try {
+			dos.writeUTF(rpci.origin.name());
+			rpci.port.ident.writeTo(dos);
+			//dos.writeUTF(rpci.port.name());
+			dos.flush();
+			mxdos.finish();
+			dos.close();
+			mxdos.close();
+			wc.close();
+		} catch (IOException e) {
+			// TODO just stop here, do not crash on failing to close a connection
 			return;
 		}
 	}
-
-	protected void sendCloseMessage(MxReadChannel rc) {
-
-		//TODO send message
-	}
-	
 }

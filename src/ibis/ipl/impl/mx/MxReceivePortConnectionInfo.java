@@ -15,10 +15,14 @@ class MxReceivePortConnectionInfo extends
 	
 	protected short channelId;
 	protected IdManager<MxReceivePortConnectionInfo> channelManager;
+	boolean portClosed = false;
+
+	private MxChannelFactory factory;
 	
 	MxReceivePortConnectionInfo(SendPortIdentifier origin,
-			MxReceivePort rp, MxDataInputStream dataIn) throws IOException {
+			MxReceivePort rp, MxDataInputStream dataIn, MxChannelFactory factory) throws IOException {
 		super(origin, rp, dataIn);
+		this.factory = factory;
 	}
 	
 	boolean poll() throws IOException {
@@ -27,7 +31,7 @@ class MxReceivePortConnectionInfo extends
 	
 	//blocking
 	void receive() throws IOException {
-		//logger.debug("receiving");
+		logger.debug("receiving");
 		if (in == null) {
             newStream();
         }
@@ -51,6 +55,7 @@ class MxReceivePortConnectionInfo extends
 
 	@Override
 	public void close(Throwable e) {
+		logger.debug("close()");
 		// note: dataIn closes the channel
 		super.close(e);
 	}
@@ -58,16 +63,27 @@ class MxReceivePortConnectionInfo extends
 	public void senderClose() {
 		//FIXME hack
 		ReadChannel channel = ((MxBufferedDataInputStreamImpl)dataIn).channel; 
-		
-		if( channel instanceof MxLocalChannel) {
+		if(channel instanceof MxLocalChannel) {
+			logger.debug("sender closes local channel at receiver");
 			close(null);
 			return;
 		} else {
+			logger.debug("sender closes remote channel at receiver");
 			if(((MxReadChannel)channel).senderClose()) {
 				//	no data left in channel
 				close(null);
+				return;
 			}
 		}
+		
+		/*
+		//TODO I suppose this will work, but it is not nice
+		synchronized(this) {
+			if(portClosed) {
+				// receiveport also closed
+				close(null);
+			}
+		}*/		
 	}
 		
 	public IdManager<MxReceivePortConnectionInfo> getIdManager() {
@@ -88,9 +104,19 @@ class MxReceivePortConnectionInfo extends
 	}
 
 	protected void receivePortcloses() {
+		logger.debug("receivePortcloses()");
 		// TODO maybe can be regarded as a hack?
 		//((MxSimpleDataInputStream)dataIn).channel.close();
-		((MxBufferedDataInputStreamImpl)dataIn).channel.close();
+		synchronized(this) {
+			portClosed = true;
+		}
+		if(((MxBufferedDataInputStreamImpl)dataIn).channel instanceof MxLocalChannel) {
+			logger.debug("Receiver closes local channel at receiver");
+			close(null);
+		} else {
+			factory.sendCloseMessage(this);
+			//	((MxBufferedDataInputStreamImpl)dataIn).channel.close();
+		}
 	}
 	
 }

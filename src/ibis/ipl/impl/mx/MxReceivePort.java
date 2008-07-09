@@ -236,9 +236,9 @@ class MxReceivePort extends ReceivePort implements Identifiable<MxReceivePort>, 
 			((MxReceivePortConnectionInfo)rpci).receivePortcloses();
 		}
 		
-		//super.closePort(timeout);
+		super.closePort(timeout);
 		// FIXME broken without timeout
-		super.closePort(10000);
+		//super.closePort(10000);
 		portManager.remove(portId);
 	}
 
@@ -248,27 +248,59 @@ class MxReceivePort extends ReceivePort implements Identifiable<MxReceivePort>, 
     private short getReadyConnection() throws IOException {
     	MxReceivePortConnectionInfo conn2;
     	ReceivePortConnectionInfo[] connections = connections();
+    	logger.debug("getReadyConnection()");
+    	
+    	
     	for(ReceivePortConnectionInfo conn: connections) {
     		conn2 = (MxReceivePortConnectionInfo)conn;
     		if(conn2.poll()) {
+    			logger.debug("getReadyConnection() found channel");
     			return conn2.channelId;
     		}
     	}
+    	logger.debug("getReadyConnection() did not find channel");
     	return 0;
     }
 
     // poll for a connection that has some data available
     private short getReadyConnection(long timeout) throws IOException {
     	short result = 0;
-    	// poll whether a channel is ready
-    	result = getReadyConnection();
-    	if (result == 0) {
-    		// no one is ready, wait until someone is (or the timeout expired)
-			result = Matching.getChannel(
-					JavaMx.waitForMessage(((MxIbis)ibis).factory.endpointId, timeout, Matching.construct(Matching.PROTOCOL_DATA, portId, (short)0), ~Matching.CHANNEL_MASK)
-				);
+    	
+    	logger.debug("getReadyConnection(timeout)");
+    	
+    	if(timeout == 0) {
+			while (result == 0) {
+				synchronized(this) {
+					if(closed) {
+						return 0;
+					}
+				}
+				//keep polling for the local channels every 40 millis
+				result = getReadyConnection();
+				if(result != 0) {
+					logger.debug("getReadyConnection(timeout) found channel");
+					return result;
+				}
+				result = Matching.getChannel(
+    					JavaMx.waitForMessage(((MxIbis)ibis).factory.endpointId, 40, Matching.construct(Matching.PROTOCOL_DATA, portId, (short)0), ~Matching.CHANNEL_MASK)
+					);
+			}
+			logger.debug("getReadyConnection(timeout) found channel");
+	    	return result;	
+    	} else {
+    		// we have a timeout
+	    	// poll whether a channel is ready
+	    	result = getReadyConnection();
+	    	if (result == 0) {
+	    		// no one is ready, wait until someone is (or the timeout expired)    			
+	    		result = Matching.getChannel(
+	    				JavaMx.waitForMessage(((MxIbis)ibis).factory.endpointId, timeout, Matching.construct(Matching.PROTOCOL_DATA, portId, (short)0), ~Matching.CHANNEL_MASK)
+					);
+	    		// we do not bother to check for the local channels again
+	    	}
+	    	return result;
 		}
-    	return result;
+    	
     }
     
 	/* IdManager methods */
@@ -345,6 +377,7 @@ class MxReceivePort extends ReceivePort implements Identifiable<MxReceivePort>, 
 	}
 	
 	public void getMessageForUpcall() throws IOException {
+		logger.debug("getMessageForUpcall()");
     	// wait until a the current message is finished
     	while (message != null) { // probably never when upcalls are used	
             try {

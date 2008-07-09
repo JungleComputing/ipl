@@ -45,7 +45,8 @@ public class MxReadChannel implements ReadChannel {
 						logger.debug("close() is waiting...");
 					}*/
 				}
-				factory.sendCloseMessage(this);
+				//TODO old, remove now?
+				//factory.sendCloseMessage(this); 
 			}
 			notifyAll(); //TODO do we need this here? In any case, it is not wrong...
 		}
