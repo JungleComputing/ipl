@@ -34,7 +34,7 @@ public class MxSendPort extends SendPort {
 
 	@Override
 	protected void announceNewMessage() throws IOException {
-		logger.debug("announcing message");
+		//logger.debug("announcing message");
         if (type.hasCapability(PortType.COMMUNICATION_NUMBERED)) {
             out.writeLong(ibis.registry().getSequenceNumber(name));
         }
@@ -63,8 +63,6 @@ public class MxSendPort extends SendPort {
 		MxSendPortConnectionInfo connectionInfo = new MxSendPortConnectionInfo(this, receiver, factory.connect(this, receiver, timeout, fillTimeout, reliable));
 		logger.debug("connected!");
 		initStream(scatteringStream); // or something like this
-		logger.debug("new stream initialized");
-		// TODO multi channel support. call above will go wrong in that case. MXSDOS should support multiple channels?
 		return connectionInfo;
 	}
 

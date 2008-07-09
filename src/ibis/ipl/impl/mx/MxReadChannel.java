@@ -29,9 +29,7 @@ public class MxReadChannel implements ReadChannel {
 	 * @see ibis.ipl.impl.mx.ReadChannel#close()
 	 */
 	public void close() {
-		if (logger.isDebugEnabled()) {
-			logger.debug("closing");
-		}
+		//logger.debug("closing");
 		synchronized(this) {
 			if(closed) {
 				return;
@@ -39,12 +37,7 @@ public class MxReadChannel implements ReadChannel {
 			closed = true;
 			if(!senderClosed) {
 				// inform the senders about closing this channel
-				//FIXME doing this here breaks the channelfactory, because it throws a nullpointerexception there
-				// Note: Maybe I fixed it, but I am not sure yet.
 				if(receiving) {
-					if (logger.isDebugEnabled()) {
-						logger.debug("close() while...");
-					}
 					// FIXME can result in a SIGSEGV, in libmyriexpress
 					JavaMx.cancel(factory.endpointId, handle); //really stop current reception, or wait for it?
 					//JavaMx.wakeup(endpointId);
@@ -62,59 +55,37 @@ public class MxReadChannel implements ReadChannel {
 	private synchronized void realClose() {
 		closed = true;
 		JavaMx.handles.releaseHandle(handle);
-		if (logger.isDebugEnabled()) {
-			logger.debug("closed!");
-		}
+		//logger.debug("closed!");
+
 	}
 		
 	/**
 	 * @return true when the connection is closed, false when the connection is not closed completely and there may be still is some data left in the channel
 	 */
-	protected boolean senderClose() {
-		if (logger.isDebugEnabled()) {
-			logger.debug("Sender closing");
+	protected synchronized boolean senderClose() {
+		//logger.debug("Sender closing");
+		if (closed) {
+			return true;
 		}
-		synchronized(this) {			
-			if (closed) {
+		if(senderClosed) {
+			//sender already closed, but receiver is not
+			return false;
+		}
+		if(receiving) {
+			// someone is receiving, let him detect whether the channel is already closed completetely 
+			JavaMx.cancel(factory.endpointId, handle); //really stop current reception, or wait for it?
+			notifyAll(); //TODO do we need this here? In any case, it is not wrong...
+			return false;	
+		} else { 
+			// nobody is waiting for a message, check whether there is no message on its way yourself
+			if(doPoll() == -1) {
+				// no message in channel, so we can close it
+				realClose();
+				notifyAll();
 				return true;
-			}
-			if(senderClosed) {
-				//sender already closed, but receiver is not
+			} else {
+				notifyAll();
 				return false;
-			}
-
-			if(receiving) {
-				// someone is receiving, let him detect whether the channel is already closed completetely 
-				if (logger.isDebugEnabled()) {
-					logger.debug("senderClose(): channel is wating for a message...");
-				}
-				JavaMx.cancel(factory.endpointId, handle); //really stop current reception, or wait for it?
-				/*if (logger.isDebugEnabled()) {
-					logger.debug("close() is waiting...");
-				}*/
-				notifyAll(); //TODO do we need this here? In any case, it is not wrong...
-				if (logger.isDebugEnabled()) {
-					logger.debug("leaving senderClose() 1...");
-				}
-				return false;
-				
-			} else { 
-				// nobody is waiting for a message, check whether there is no message on its way yourself
-				if(doPoll() == -1) {
-					// no message in channel, so we can close it
-					realClose();
-					if (logger.isDebugEnabled()) {
-						logger.debug("leaving senderClose() 4...");
-					}
-					notifyAll();
-					return true;
-				} else {
-					if (logger.isDebugEnabled()) {
-						logger.debug("leaving senderClose() 2...");
-					}
-					notifyAll();
-					return false;
-				}
 			}
 		}
 	}
@@ -123,9 +94,7 @@ public class MxReadChannel implements ReadChannel {
 	protected void finalize() throws Throwable {
 		// release native resources when the channel is not closed completely
 		if(!closed) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("Collecting native garbage (Channel not closed correctly).");
-			}
+			logger.debug("Collecting native garbage (Channel not closed correctly).");
 			closed = true;
 			realClose();
 		}
@@ -160,9 +129,7 @@ public class MxReadChannel implements ReadChannel {
 				// ignore messages of 0 bytes
 				synchronized(this) {
 					if(closed) {
-						if (logger.isDebugEnabled()) {
-							logger.debug("read() notices that the connection got closed, aborting");
-						}
+						//logger.debug("read() notices that the connection got closed, aborting");
 						receiving = false;
 						notifyAll();
 						return -1;
@@ -178,9 +145,6 @@ public class MxReadChannel implements ReadChannel {
 						} // else: pick up the message 
 					}
 					JavaMx.recv(buffer, buffer.position(), buffer.remaining(), endpointId, handle, matchData);
-					/*if (logger.isDebugEnabled()) {
-						logger.debug("recv() posted");
-					}*/ 
 				}
 				if(timeout <= 0) {
 					//FIXME causes an SIGSEGV when closing a the channel in some circumstances: needs investigation
@@ -194,11 +158,7 @@ public class MxReadChannel implements ReadChannel {
 			if(msgSize > 0) {
 				buffer.position(buffer.position() + msgSize);
 			}
-
-			
-			/*if (logger.isDebugEnabled()) {
-				logger.debug("message of " + msgSize + " bytes arrived.");
-			}*/
+			//logger.debug("message of " + msgSize + " bytes arrived.");
 		} catch (MxException e) {
 			synchronized(this) {
 				receiving = false;
@@ -226,16 +186,9 @@ public class MxReadChannel implements ReadChannel {
 	 */
 	public synchronized int poll() throws ClosedChannelException {
 		if(closed) {
-			/*if (logger.isDebugEnabled()) {
-				logger.debug("polling on closed channel");
-			}*/
 			throw new ClosedChannelException();
 		}
-		if(receiving) {
-			/*if (logger.isDebugEnabled()) {
-				logger.debug("polling on receiving channel");
-			}*/
-			
+		if(receiving) {		
 			return 0;
 		}
 		if(senderClosed) {
@@ -254,15 +207,9 @@ public class MxReadChannel implements ReadChannel {
 	 */
 	public synchronized int poll(long timeout) throws ClosedChannelException {
 		if(closed) {
-			/*if (logger.isDebugEnabled()) {
-				logger.debug("polling on closed channel");
-			}*/
 			throw new ClosedChannelException();
 		}
 		if(receiving) {
-			/*if (logger.isDebugEnabled()) {
-				logger.debug("polling on receiving channel");
-			}*/
 			return 0;
 		}
 		if(senderClosed) {

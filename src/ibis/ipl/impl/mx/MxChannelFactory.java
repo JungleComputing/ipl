@@ -60,9 +60,9 @@ public class MxChannelFactory implements Runnable {
 			throw new IOException("Endpoint is closed");
 		}
 
-		if (logger.isDebugEnabled()) {
-			logger.debug("Connecting...");
-		}
+
+		//logger.debug("Connecting...");
+
 		
 		IbisIdentifier id = (ibis.ipl.impl.IbisIdentifier) rpi.ibisIdentifier();
 		if(id.equals(ibis.ident)) {
@@ -73,11 +73,9 @@ public class MxChannelFactory implements Runnable {
 			return createLocalChannel(sp, (MxReceivePort)(ibis.findReceivePort(rpi.name())), timeoutMillis, fillTimeout);		
 		}
 		
-		// TODO timeouts
 		if(timeoutMillis > 0) {
 			deadline = System.currentTimeMillis() + timeoutMillis;
 		}
-
 
 		MxAddress target;
 		try {
@@ -117,9 +115,7 @@ public class MxChannelFactory implements Runnable {
 			}
 			
 			wc.matchData = Matching.construct(Matching.PROTOCOL_CONNECT, CONNECT_CONNECTION);
-			if (logger.isDebugEnabled()) {
-				logger.debug("MatchData is for connection request is " + Long.toHexString(wc.matchData));
-			}
+			//logger.debug("MatchData is for connection request is " + Long.toHexString(wc.matchData));
 			mxdos = new MxSimpleDataOutputStream(wc, ByteOrder.BIG_ENDIAN); //wc is big endian here
 			dos = new DataOutputStream(mxdos);
 	
@@ -132,27 +128,18 @@ public class MxChannelFactory implements Runnable {
 				dos.writeBoolean(ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN); // request native byteOrder
 				dos.writeInt(Matching.getConnection(rc.matchData)); // the connection to write the answer to
 				
-				if (logger.isDebugEnabled()) {
-					logger.debug("request created...");
-				}
+				//logger.debug("request created...");
+
 				dos.flush();
-				if (logger.isDebugEnabled()) {
-					logger.debug("request flushed()");
-				}
 				mxdos.finish();
-				if (logger.isDebugEnabled()) {
-					logger.debug("request finished()");
-				}
 			} catch (IOException e) {
 				idm.remove(channelId.getIdentifier());
-				//TODO Do I really need to close them explicitly? Garbage collection could also be suffice.
 				rc.close();
 				wc.close();
 				throw(e);
 			}
 	
 			//read the reply
-			//FIXME timeout occurs when no timeouts are set!
 			if(deadline > 0) {			
 				if(mxdis.waitUntilAvailable(System.currentTimeMillis() -  deadline) < 0) {
 					//FIXME breaks the handshake when the other side is just plain slow
@@ -164,7 +151,6 @@ public class MxChannelFactory implements Runnable {
 				}
 			} else { //no timeouts
 				if(mxdis.waitUntilAvailable(0) < 0) {
-					//FIXME track down the source of the error: is a wakup() called on the endpoint?
 					rc.close();
 					wc.close();
 					idm.remove(channelId.getIdentifier());
@@ -174,7 +160,7 @@ public class MxChannelFactory implements Runnable {
 			}
 			reply = mxdis.readByte();
 			if (reply != ReceivePort.ACCEPTED) {
-				logger.debug("connection creation failed");
+				//logger.debug("connection creation failed");
 				// failure
 				wc.close();
 				rc.close();
@@ -236,7 +222,7 @@ public class MxChannelFactory implements Runnable {
 		MxLocalChannel channel = null;
 		MxDataInputStream mxdis;
 		
-		logger.debug("creating local channel");
+		//logger.debug("creating local channel");
 		
 		long deadline = 0;
 		if(timeoutMillis > 0) {
@@ -252,7 +238,7 @@ public class MxChannelFactory implements Runnable {
 				info = new MxReceivePortConnectionInfo(sp.ident, rp, mxdis);
 				return channel;
 			} else {
-				logger.debug("connection creation failed");
+				//logger.debug("connection creation failed");
 				switch (reply) {
 					case ReceivePort.ALREADY_CONNECTED:
 						throw new AlreadyConnectedException("Already connected to ReceivePort " + rp.name(), rp.ident);
@@ -322,15 +308,15 @@ public class MxChannelFactory implements Runnable {
 		String name;
 		PortType capabilities = null;	
 
-		if (logger.isDebugEnabled()) {
+/*		if (logger.isDebugEnabled()) {
 			logger.debug("Listening at " + address.toString());
-		}
+		}*/
 		
 		//setup the channel to read the request
 		rc = new MxReadChannel(this);
 		rc.matchData = Matching.setConnection(rc.matchData, CONNECT_CONNECTION);
 		rc.matchData = Matching.setProtocol(rc.matchData, Matching.PROTOCOL_CONNECT);
-		// FIXME When multiple connection requests arrive at the same time, message can be mixed up for requests consisting of multiple MX messages
+		// TODO When multiple connection requests arrive at the same time, message can be mixed up for requests consisting of multiple MX messages
 		mxdis = new MxSimpleDataInputStream(rc, ByteOrder.BIG_ENDIAN);
 		dis = new DataInputStream(mxdis);
 		ByteOrder senderOrder;
@@ -343,13 +329,10 @@ public class MxChannelFactory implements Runnable {
 		
 		try {
 			//read the request
-			if (logger.isDebugEnabled()) {
-				logger.debug("reading request");
-			}
+
+			//logger.debug("reading request");
+
 			name = dis.readUTF();
-			if (logger.isDebugEnabled()) {
-				logger.debug("name arrived");
-			}
 			
 			spi = new SendPortIdentifier(dis);
 			capabilities = new PortType(dis);
@@ -468,10 +451,7 @@ public class MxChannelFactory implements Runnable {
 		listening = true;
 		long matching = Matching.NONE;
 		long protocol = Matching.NONE;
-		//TODO modify listen() and enable this:
 		
-		
-		// 'new' version is still unused
 		while(true) {
 			synchronized(this) {
 				if(!listening) {
@@ -489,15 +469,6 @@ public class MxChannelFactory implements Runnable {
 			if(matching == Matching.NONE) {
 				logger.debug("waitForMessage() did not deliver a message!");
 				//no message arrived
-
-				/* DEBUG
-				try {
-					ibis.end();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				System.exit(1);*/
 				continue;
 			}
 			protocol = Matching.getProtocol(matching);
@@ -520,35 +491,13 @@ public class MxChannelFactory implements Runnable {
 				//FIXME read it to prevent a deadlock?
 				logger.info("Unknown control message arrived!");
 				//System.exit(1);
-				// TODO DEBUG
-				if(matching == ~Matching.NONE) {
-					try {
-						ibis.end();
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-					System.exit(1);
-				}
-				
 			}
 		}		
-		
-		/* old version
-		while(listening) {	
-			try {
-				listen();
-			} catch (IOException e) {
-				// Endpoint is closed, so stop listening
-				listening = false;
-			}
-		}
-		*/
 	}
 
 	private void senderClosedConnection(long matchData) {
 		//receive the message
-		//FIXME avoid buffer creation and handle use?
+		//TODO avoid buffer creation and handle use?
 		int handle = JavaMx.handles.getHandle();
 		ByteBuffer buffer = ByteBuffer.allocateDirect(8192);
 		
@@ -580,7 +529,7 @@ public class MxChannelFactory implements Runnable {
 
 	private void receiverClosedConnection(long matchData) {
 		//receive the message
-		//FIXME avoid ReadChannel (and mxdis and dis) creation
+		//TODO avoid ReadChannel (and mxdis and dis) creation
 		MxReadChannel rc = new MxReadChannel(this);
 		rc.matchData = matchData;
 		MxDataInputStream mxdis = new MxSimpleDataInputStream(rc, ByteOrder.BIG_ENDIAN);
@@ -588,8 +537,8 @@ public class MxChannelFactory implements Runnable {
 		SendPortIdentifier spi = null;
 		ReceivePortIdentifier rpi = null;
 		try {
-			spi = new SendPortIdentifier(dis);		 //TODO read from disconnect msg
-			rpi = new ReceivePortIdentifier(dis); //TODO read from disconnect msg
+			spi = new SendPortIdentifier(dis);		
+			rpi = new ReceivePortIdentifier(dis);
 		} catch (IOException e) {
 			// TODO Should not happen, lets crash here
 			e.printStackTrace();

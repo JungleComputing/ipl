@@ -14,10 +14,7 @@ public class MxUnreliableWriteChannel extends MxWriteChannel {
 		super(factory, target, filter);
 	}
 
-	public void doSend(ByteBuffer buffer) {
-		/*if (logger.isDebugEnabled()) {
-			logger.debug("sending message...");
-		}*/
+	protected void doSend(ByteBuffer buffer) {
 		/*if (logger.isDebugEnabled()) {
 			String data = "message contents: <<";
 			ShortBuffer b = buffer.asShortBuffer();
@@ -36,8 +33,19 @@ public class MxUnreliableWriteChannel extends MxWriteChannel {
 	 */
 	@Override
 	protected void doSend(SendBuffer buffer) {
-		// TODO Auto-generated method stub
-		
+		ByteBuffer[] bufs = buffer.byteBuffers;
+		JavaMx.send(
+				bufs[SendBuffer.HEADER], bufs[SendBuffer.HEADER].remaining(),
+				bufs[SendBuffer.LONGS], bufs[SendBuffer.LONGS].remaining(),
+				bufs[SendBuffer.DOUBLES], bufs[SendBuffer.DOUBLES].remaining(),
+				bufs[SendBuffer.INTS], bufs[SendBuffer.INTS].remaining(),
+				bufs[SendBuffer.FLOATS], bufs[SendBuffer.FLOATS].remaining(),
+				bufs[SendBuffer.SHORTS], bufs[SendBuffer.SHORTS].remaining(),
+				bufs[SendBuffer.CHARS], bufs[SendBuffer.CHARS].remaining(),
+				bufs[SendBuffer.BYTES], bufs[SendBuffer.BYTES].remaining(),
+				bufs[SendBuffer.PADDING], bufs[SendBuffer.PADDING].remaining(),
+				factory.endpointId, link, handle, matchData
+				);		
 	}
 
 }

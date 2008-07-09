@@ -16,14 +16,14 @@ public class MxLocalChannel implements ReadChannel, WriteChannel {
 	private ByteBuffer buffer;
 	
 	MxLocalChannel() {
-		logger.debug("Local channel created");
+		//logger.debug("Local channel created");
 		buffer = ByteBuffer.allocate(Config.BYTE_BUFFER_SIZE); //We don't need a direct buffer here
 	}
 	
 	/* Common: */
 	
 	public synchronized void close() {
-		logger.debug("Local channel closed");
+		//logger.debug("Local channel closed");
 		closed = true;
 	}
 
@@ -37,7 +37,6 @@ public class MxLocalChannel implements ReadChannel, WriteChannel {
 		int result = buffer.position();
 		if(closed && result == 0) {
 			return -1;
-			//TODO EXCEPTION?
 		}
 		return result = buffer.position();
 	}
@@ -49,11 +48,10 @@ public class MxLocalChannel implements ReadChannel, WriteChannel {
 		while (result == 0) {
 			if(closed) {
 				return -1;
-				//TODO Exception?
 			}
 			time = System.currentTimeMillis();
 			if(timeout != 0 && time > deadline) {
-				return 0; //TODO or 0?
+				return 0;
 			}
 			try {
 				wait(deadline - time);
@@ -66,13 +64,11 @@ public class MxLocalChannel implements ReadChannel, WriteChannel {
 	}
 
 	public synchronized int read(ByteBuffer dest, long timeout) throws IOException {
-		logger.debug("read");
+		//logger.debug("read");
 		int size = poll(timeout);
 		if (size > 0) {
-			//TODO check for buffer sizes?
 			buffer.flip();
 			dest.put(buffer);
-			
 			// empty buffer and notify blocked write methods
 			buffer.clear();
 			notifyAll();
@@ -93,7 +89,7 @@ public class MxLocalChannel implements ReadChannel, WriteChannel {
 	}
 
 	public synchronized void write(ByteBuffer src) throws IOException {
-		logger.debug("write");
+		//logger.debug("write");
 		while(buffer.remaining() < src.remaining()) {
 			try {
 				wait();
@@ -105,7 +101,7 @@ public class MxLocalChannel implements ReadChannel, WriteChannel {
 	}
 
 	public synchronized void write(SendBuffer src) throws IOException {
-		logger.debug("write SendBuffer");
+		//logger.debug("write SendBuffer");
 		while(buffer.remaining() < src.remaining()) {
 			try {
 				wait();
@@ -113,9 +109,11 @@ public class MxLocalChannel implements ReadChannel, WriteChannel {
 				// ignore
 			}
 		}
+		src.mark();
 		for(ByteBuffer buf : src.byteBuffers) {
 			buffer.put(buf);
 		}
+		src.reset();
 	}
 
 

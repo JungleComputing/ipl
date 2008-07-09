@@ -40,10 +40,9 @@ final class JavaMx {
 				//Size up handle array, also in C code
 				if(addBlock() == false) {
 					//TODO exception
+					System.exit(1);
 				}
-				if (logger.isDebugEnabled()) {
-					logger.debug("Block added");
-				}
+				//logger.debug("Block added");
 				size += blockSize;
 				boolean[] temp = new boolean[size];
 				for(int i = 0; i < inUse.length; i++) {
@@ -54,14 +53,12 @@ final class JavaMx {
 			
 			int handle = 0;
 			while(inUse[handle] ) {
-				// TODO bound check?
 				handle++;
 			}
 			inUse[handle] = true;
 			activeHandles++;
-			if (logger.isDebugEnabled()) {
-				logger.debug("Handle " + handle + " distributed");
-			}
+			//logger.debug("Handle " + handle + " distributed");
+
 			return handle;
 		}
 		
@@ -72,9 +69,7 @@ final class JavaMx {
 		protected synchronized void releaseHandle(int handle) {	
 			inUse[handle] = false;
 			activeHandles--;
-			if (logger.isDebugEnabled()) {
-				logger.debug("Handle " + handle + " freed");
-			}
+			//logger.debug("Handle " + handle + " freed");
 		}
 		
 	}
@@ -112,6 +107,7 @@ final class JavaMx {
 				//Size up target array, also in C code
 				if(addBlock() == false) {
 					//TODO exception
+					System.exit(1);
 				}
 				size += blockSize;
 				boolean[] temp = new boolean[size];
@@ -153,18 +149,14 @@ final class JavaMx {
 			
 			initialized = init();
 			if(!initialized) {
-				if (logger.isDebugEnabled()) {
-					logger.debug("Initializing JavaMX library failed.");
-				}
+				logger.debug("Initializing JavaMX library failed.");
 			} else {
 				//TODO choose nice values here
 				handles = new HandleManager(128, 128*1024);
 				links = new LinkManager(128, 128*1024);
 			}
-		} catch (Exception e) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("error initializing JavaMx: " + e.getMessage());
-			}
+		} catch (Throwable e) {
+			// logger.debug("error initializing JavaMx: " + e.getMessage());
 			initialized = false;
 		}	
 	}

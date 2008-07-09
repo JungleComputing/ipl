@@ -27,25 +27,14 @@ class MxReceivePortConnectionInfo extends
 	
 	//blocking
 	void receive() throws IOException {
-		if (logger.isDebugEnabled()) {
-			logger.debug("receiving");
-		}
+		//logger.debug("receiving");
 		if (in == null) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("newstream");
-			}
             newStream();
         }
 		if	(((MxDataInputStream)dataIn).waitUntilAvailable(0) >= 0) { // message available
-			if (logger.isDebugEnabled()) {
-				logger.debug("message found!");
-			}
             message.setFinished(false);
             ((MxReceivePort)port).messageArrived(message);
 		} else {
-			if (logger.isDebugEnabled()) {
-				logger.debug("no message found!");
-			}
 			throw new IOException("Error polling for message");
 		}
 	}
@@ -62,14 +51,13 @@ class MxReceivePortConnectionInfo extends
 
 	@Override
 	public void close(Throwable e) {
-		//TODO really synchronize this one?
 		// note: dataIn closes the channel
 		super.close(e);
 	}
 
 	public void senderClose() {
 		//FIXME hack
-		ReadChannel channel = ((MxSimpleDataInputStream)dataIn).channel; 
+		ReadChannel channel = ((MxBufferedDataInputStreamImpl)dataIn).channel; 
 		
 		if( channel instanceof MxLocalChannel) {
 			close(null);
@@ -101,7 +89,8 @@ class MxReceivePortConnectionInfo extends
 
 	protected void receivePortcloses() {
 		// TODO maybe can be regarded as a hack?
-		((MxSimpleDataInputStream)dataIn).channel.close();
+		//((MxSimpleDataInputStream)dataIn).channel.close();
+		((MxBufferedDataInputStreamImpl)dataIn).channel.close();
 	}
 	
 }

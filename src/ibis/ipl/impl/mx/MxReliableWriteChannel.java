@@ -17,10 +17,6 @@ public class MxReliableWriteChannel extends MxWriteChannel {
 
 	public void doSend(ByteBuffer buffer) {
 		/*if (logger.isDebugEnabled()) {
-			logger.debug("sending message...");
-		}*/
-
-		/*if (logger.isDebugEnabled()) {
 			String data = "message contents: <<";
 			ShortBuffer b = buffer.asShortBuffer();
 			while(b.hasRemaining()) {
@@ -29,7 +25,7 @@ public class MxReliableWriteChannel extends MxWriteChannel {
 			logger.debug(data + ">>");
 		}*/
 		JavaMx.sendSynchronous(buffer, buffer.position(), buffer.remaining(), factory.endpointId, link, handle, matchData);
-		// FIXME buffer cannot be reused yet (ibuffered must be checked first for that)
+		// buffer cannot be reused yet!
 		// At the moment, this is not a bug!!
 	}
 

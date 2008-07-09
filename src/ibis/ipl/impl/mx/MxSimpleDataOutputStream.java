@@ -9,7 +9,7 @@ import org.apache.log4j.Logger;
 
 import ibis.io.DataOutputStream;
 
-public class MxSimpleDataOutputStream extends MxDataOutputStream implements Config {
+public class MxSimpleDataOutputStream extends MxUnbufferedDataOutputStream implements Config {
 	//FIXME not threadsafe
 
 	private static Logger logger = Logger.getLogger(MxSimpleDataOutputStream.class);
@@ -31,17 +31,25 @@ public class MxSimpleDataOutputStream extends MxDataOutputStream implements Conf
 	@Override
 	protected void doFinish() throws IOException {
 		channel.finish();
+		buffer.clear();
 	}
 
 
 	@Override
 	protected boolean doFinished() throws IOException {
-		return channel.isFinished();
+		if (channel.isFinished()) {
+			//finished
+			buffer.clear();
+			return true;
+		}
+		return false;
 	}
 
 
 	@Override
-	protected void doWrite(ByteBuffer buffer) throws IOException {
+	protected long doWrite() throws IOException {
+		buffer.flip();
 		channel.write(buffer);
+		return buffer.remaining();
 	}
 }

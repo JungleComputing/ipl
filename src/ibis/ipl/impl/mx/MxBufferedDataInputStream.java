@@ -16,10 +16,8 @@ import java.nio.channels.ClosedChannelException;
 
 import org.apache.log4j.Logger;
 
-import ibis.io.DataInputStream;
 
 public abstract class MxBufferedDataInputStream extends MxDataInputStream implements Config {
-	//FIXME receiving message that are too small for the read operations
 	
 	private static Logger logger = Logger.getLogger(MxBufferedDataInputStream.class);
 	
@@ -82,9 +80,8 @@ public abstract class MxBufferedDataInputStream extends MxDataInputStream implem
         int position;
         int limit;
 
-        if (logger.isDebugEnabled()) {
-            logger.debug("initializing views in " + order + " byte order");
-        }
+        //logger.debug("initializing views in " + order + " byte order");
+
 
         // remember position and limit;
         position = buffer.position();
@@ -119,17 +116,11 @@ public abstract class MxBufferedDataInputStream extends MxDataInputStream implem
     
     @Override
     protected void receive() throws IOException {
-		//FIXME buffer.size() < bytes errors
-		//TODO make this one beautiful ;-)
 		if(remaining() > 0) {
 			// ERROR still data left in buffers
-			// throw exception
             throw new IOException("tried receive() while there was data"
                     + " left in the buffer");
 		}
-		/*if (logger.isDebugEnabled()) {
-			logger.debug("Receiving message...");
-		}*/
 		// receive the next message
 		buffer.clear();
 		int count = 0;
@@ -166,12 +157,11 @@ public abstract class MxBufferedDataInputStream extends MxDataInputStream implem
         next = setView(chars, next, headerArray[CHARS], SIZEOF_CHAR);
         next = setView(bytes, next, headerArray[BYTES], SIZEOF_BYTE);
         
-        if (logger.isDebugEnabled()) {
-            logger.debug("received: l[" + longs.remaining() + "] d["
+        /*logger.debug("received: l[" + longs.remaining() + "] d["
                     + doubles.remaining() + "] i[" + ints.remaining() + "] f["
                     + floats.remaining() + "] s[" + shorts.remaining() + "] c["
                     + chars.remaining() + "] b[" + bytes.remaining() + "]");
-        }
+         */
 	}
 	
     /**
@@ -187,12 +177,12 @@ public abstract class MxBufferedDataInputStream extends MxDataInputStream implem
         view.limit((start + bytes) / dataSize);
         view.position(start / dataSize);
 
-        if (logger.isDebugEnabled()) {
+        /*
             logger.debug("setView: set view: position(" + view.position()
                     + ") limit(" + view.limit() + "), in bytes: position("
                     + (view.position() * dataSize) + ") limit("
                     + (view.limit() * dataSize) + ")");
-        }
+        */
         return result;
     }
 	
@@ -238,9 +228,10 @@ public abstract class MxBufferedDataInputStream extends MxDataInputStream implem
 			return result;
 		}
 		result = doWaitUntilAvailable(timeout);
-		// FIXME synchronize this check on 'closed'?
-		if(closed) {
+		synchronized(this) {
+			if(closed) {
 			throw new IOException("Stream is closed");
+			}
 		}
 		return result;
 	}
@@ -278,11 +269,7 @@ public abstract class MxBufferedDataInputStream extends MxDataInputStream implem
             receive();
             result = bytes.get();
         }
-
-        if (logger.isDebugEnabled()) {
-            logger.debug("received byte: " + result);
-        }
-
+        //logger.debug("received byte: " + result);
         return result;
     }
 
@@ -377,7 +364,7 @@ public abstract class MxBufferedDataInputStream extends MxDataInputStream implem
                 }
             }
         }
-
+        /*
         if (logger.isDebugEnabled()) {
             String message = "received byte[], Contents: ";
             for (int i = off; i < (off + len); i++) {
@@ -386,6 +373,7 @@ public abstract class MxBufferedDataInputStream extends MxDataInputStream implem
 
             logger.debug(message);
         }
+        */
     }
 
     public int read(byte[] ref) throws IOException {
@@ -422,7 +410,7 @@ public abstract class MxBufferedDataInputStream extends MxDataInputStream implem
                 }
             }
         }
-
+/*
         if (logger.isDebugEnabled()) {
             String message = "received byte[], Contents: ";
             for (int i = off; i < (off + len); i++) {
@@ -430,7 +418,7 @@ public abstract class MxBufferedDataInputStream extends MxDataInputStream implem
             }
 
             logger.debug(message);
-        }
+        }*/
         return len;
     }
 

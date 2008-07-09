@@ -49,13 +49,12 @@ public class MxIbis extends Ibis {
 	protected ReceivePort doCreateReceivePort(PortType tp, String name,
 			MessageUpcall u, ReceivePortConnectUpcall cu, Properties properties)
 			throws IOException {
-		// TODO maybe some portType-specific stuff later
 		MxReceivePort result = new MxReceivePort(this, tp, name, u, cu, properties);
 		try {
 			receivePortManager.insert(result);
 		} catch (Exception e) {
-			// TODO Error: out of ReceivePortIdentifiers
 			e.printStackTrace();
+			System.exit(1);
 		}
 		return result;
 	}
@@ -64,16 +63,13 @@ public class MxIbis extends Ibis {
 	protected SendPort doCreateSendPort(PortType tp, String name,
 			SendPortDisconnectUpcall cu, Properties properties)
 			throws IOException {
-		// TODO maybe some portType-specific stuff later
 		if (tp.hasCapability(PortType.COMMUNICATION_RELIABLE)) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("creating reliable channel");
-			}
+			//logger.debug("creating reliable channel");
+
 			return new MxSendPort(this, tp, name, cu, properties, true);
 		} else {
-			if (logger.isDebugEnabled()) {
-				logger.debug("creating unreliable channel");
-			}
+			//logger.debug("creating unreliable channel");
+
 			return new MxSendPort(this, tp, name, cu, properties, false);
 		}
 	}

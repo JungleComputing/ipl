@@ -21,45 +21,46 @@ public class MxScatteringBufferedDataOutputStream extends MxBufferedDataOutputSt
 	@Override
 	protected void doClose() throws IOException {
 		for(int i = 0; i< nrOfConnections; i++) {
-			logger.debug("close " + i);
+			//logger.debug("close " + i);
 			connections[i].close();	
 		}
 	}
 
 	@Override
 	protected void doFinish() throws IOException {
-		// TODO Auto-generated method stub
 		for(int i = 0; i< nrOfConnections; i++) {
-			logger.debug("finish " + i);
+			//logger.debug("finish " + i);
 			connections[i].finish();
-			//FIXME catch exceptions
+			//FIXME catch and stack exceptions
 		}
-
+		buffer.clear();
 	}
 
 	@Override
 	protected boolean doFinished() throws IOException {
 		for(int i = 0; i< nrOfConnections; i++) {
-			logger.debug("poll " + i);
+			//logger.debug("poll " + i);
 			if( !connections[i].isFinished()) { //FIXME catch exceptions
 				return false;
 			}
 		}
+		buffer.clear();
 		return true;
 	}
 
 	@Override
-	protected void doWrite(SendBuffer buffer) throws IOException {
+	protected long doWrite() throws IOException {
+		buffer.flip();
 		for(int i = 0; i< nrOfConnections; i++) {
 			//FIXME catch exceptions
-			logger.debug("flush " + i);
+			//logger.debug("flush " + i);
 			connections[i].write(buffer);
 		}
+		return buffer.remaining();
 	}
 
 	protected synchronized void add(WriteChannel connection) {
 		// end all current transfers
-		// TODO flush first?
 		try {
 			finish();
 		} catch (IOException e) {
@@ -76,14 +77,13 @@ public class MxScatteringBufferedDataOutputStream extends MxBufferedDataOutputSt
             connections = newConnections;
         }
         connections[nrOfConnections] = connection;
-        logger.debug("Connection added at position " + nrOfConnections);
+        //logger.debug("Connection added at position " + nrOfConnections);
         nrOfConnections++;	
 	}
 
 	protected synchronized void remove(WriteChannel connection) throws IOException {
-		logger.debug("remove");
+		//logger.debug("remove");
 		// end all current transfers
-		// TODO flush first?
 		try {
 			finish();
 		} catch (IOException e) {

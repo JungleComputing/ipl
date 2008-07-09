@@ -19,9 +19,8 @@ class MxSendPortConnectionInfo extends SendPortConnectionInfo {
 		super(port, target);
 		mxsdos = port.scatteringStream;
 		this.connection = connection;
-		logger.debug("adding connection...");
 		mxsdos.add(connection);
-		logger.debug("connection added");
+		//logger.debug("connection added");
 	}
 
 	@Override

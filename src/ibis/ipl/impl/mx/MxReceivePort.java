@@ -11,6 +11,7 @@ import org.apache.log4j.Logger;
 import ibis.ipl.MessageUpcall;
 import ibis.ipl.PortType;
 import ibis.ipl.ReceivePortConnectUpcall;
+import ibis.ipl.ReceiveTimedOutException;
 import ibis.ipl.impl.Ibis;
 import ibis.ipl.impl.ReadMessage;
 import ibis.ipl.impl.ReceivePort;
@@ -54,172 +55,101 @@ class MxReceivePort extends ReceivePort implements Identifiable<MxReceivePort>, 
 	 * Methods that can be overridden optionally:
 	 *********************************************/
 
-	@Override
+	@Override	
 	public ReadMessage getMessage(long timeout) throws IOException {
-
-		if (logger.isDebugEnabled()) {
-			logger.debug("GetMessage()");			
+		long deadline = 0;
+		long remainingTime = 0;
+		if(timeout > 0) {
+			deadline = System.currentTimeMillis() + timeout;
 		}
+		//logger.debug("GetMessage()");			
 		
-		if(timeout == 0) { // no timeouts
-	       	synchronized(this) {
-            	while(reader_busy) {
-            		// another reader is busy. Wait for it
-            		try {
-            			if (logger.isDebugEnabled()) {
-            				logger.debug("Waiting for another reader to finish");
-            			}
-						wait();
-					} catch (InterruptedException e) {
-						// ignore
-					}
-					if (logger.isDebugEnabled()) {
-        				logger.debug("other reader is finished");
+       	synchronized(this) {
+       		if(closed) {
+           		reader_busy = false;
+           		notifyAll();
+	       		throw new IOException("receive() on closed port");
+    		}       		
+        	while(reader_busy) {
+        		// another reader is busy. Wait for it
+        		try {
+        			//	logger.debug("Waiting for another reader to finish");
+        			if(deadline > 0) {
+        				wait(deadline - System.currentTimeMillis());
+        			} else {
+        				wait();
         			}
-            	}
-            	reader_busy = true;
-            }
-        	// wait until a the current message is finished
-        	while (message != null) {
-        		synchronized(this) {
-        			if(closed) {
-            			if (logger.isDebugEnabled()) {
-            				logger.debug("Connection closed");
-            			}
-                		reader_busy = false;
-                		notifyAll();
-    	        		throw new IOException("receive() on closed port");
-        			}
-        		}
-                try {
-                	if (logger.isDebugEnabled()) {
-        				logger.debug("Waiting for current message to finish");
-        			}
-                	wait();
-                } catch (InterruptedException e) {
-                    /* ignore */
-                }
-            }
-  	
-        	short channelId = getReadyConnection(0);
-    		if (logger.isDebugEnabled()) {
-				logger.debug("channel " + channelId + " is ready");
-			}
-        	if (channelId == 0) {
-        		if (logger.isDebugEnabled()) {
-    				logger.debug("Warning: channel ID is 0, returning null");
-    			}
-        		//no channel is ready
-        		//TODO huh, how can that happen? Maybe the Port closed?
-            	synchronized(this) {
-            		reader_busy = false;
-            		notifyAll();
-            	}
-        		//FIXME cannot deliver a null message. come up with a timeout
-        		return null;
+				} catch (InterruptedException e) {
+					// ignore
+				}
+				if(deadline > 0 && System.currentTimeMillis() > deadline) {
+					//timeout expired
+					throw new ReceiveTimedOutException("Timed out while waiting for previous reader to finish");
+				}
         	}
-        	MxReceivePortConnectionInfo rpi =  channelManager.find(channelId);
-        	if (rpi == null) {
-        		/*if (logger.isDebugEnabled()) {
-    				logger.debug("Channel not found: " + channelId);
-    			}*/
-        		//TODO handle this nice and gently and just throw the message away?
-        		// Note: that needs a reception request here...
-        		synchronized(this) {
-            		reader_busy = false;
-            		notifyAll();
-            	}
-        		throw new IOException("Non-existent connection is ready");
-        	}
-        	/*if (logger.isDebugEnabled()) {
-				logger.debug("Receiving message...");
-			}*/
-        	rpi.receive();
-        	//FIXME when in message upcall thread
-        	// rpi calls this.messageArrived() when the message is arrived, so message will contain the message.
-        	synchronized(this) {
+        	reader_busy = true;        	
+	        	
+	    	// wait until a the current message is finished
+	    	while (message != null && !closed) {
+	            try {
+	            	if(deadline > 0 && remainingTime <= 0) {
+	            		remainingTime = System.currentTimeMillis() - deadline;
+	            		if(remainingTime <= 0) {
+	            			// timeout expired
+	            			reader_busy = false;
+	            			notifyAll();
+	            			throw new ReceiveTimedOutException("Timed out while waiting for previous message to finish");
+	            		}
+	            	}
+	                wait(remainingTime);
+	            } catch (InterruptedException e) {
+	                /* ignore */
+	            }
+	        }
+	    	if(closed) {
         		reader_busy = false;
         		notifyAll();
-        	}
-        	/*if (logger.isDebugEnabled()) {
-				logger.debug("Returning message that is delivered by the rpi");
-				if(message == null) {
-					logger.debug("rpi delivered 'null'");
-				}
-			}*/
-            return message;
-            
-            
-            
-		} else { // timeouts enabled
-			long deadline = System.currentTimeMillis() + timeout;
-			long remainingTime;
-			// Allow only one reader in.
-	        synchronized(this) {
-	        	if(reader_busy) {
-	        		// another reader is busy. We don't wait for it when polling
-	        		return null;
-	        	}
-	        	reader_busy = true;
-	        	
-		    	// wait until a the current message is finished
-		    	while (message != null && !closed) {
-		            try {
-		            	remainingTime = System.currentTimeMillis() - deadline;
-		            	if(remainingTime <= 0) {
-		            		// timeout expired
-	                		reader_busy = false;
-	                		notifyAll();
-		            		return null;
-		            	}
-		                wait(remainingTime);
-		            } catch (InterruptedException e) {
-		                /* ignore */
-		            }
-		        }
-		    	if(closed) {
+	    		throw new IOException("receive() on closed port");
+	    	}
+		}
+
+        if (deadline > 0) {
+	    	remainingTime = System.currentTimeMillis() - deadline;
+	    	if(remainingTime <= 0) {
+	        	synchronized(this) {
 	        		reader_busy = false;
 	        		notifyAll();
-		    		throw new IOException("receive() on closed port");
-		    	}
-			}
-        	remainingTime = System.currentTimeMillis() - deadline;
-        	if(remainingTime <= 0) {
-            	synchronized(this) {
-            		reader_busy = false;
-            		notifyAll();
-            	}
-        		return null;
-        	}
-        	short channelId = getReadyConnection(remainingTime);
-        	if (channelId == 0) {
-        		//no channel is ready
-            	synchronized(this) {
-            		reader_busy = false;
-            		notifyAll();
-            	}
-        		return null;
-        	}
-        	
-        	MxReceivePortConnectionInfo rpi =  channelManager.find(channelId);
-        	if (rpi == null) {
-        		//TODO handle this nice and gently and just throw the message away?
-        		// Note: that needs a reception request here...
-            	synchronized(this) {
-            		reader_busy = false;
-            		notifyAll();
-            	}
-        		throw new IOException("Non-existent connection is ready");
-        	}
-        	rpi.receive();
-        	//FIXME when in message upcall thread
-        	// rpi calls this.messageArrived() when the message is arrived, so message will contain the message.
+	        	}
+	        	throw new ReceiveTimedOutException("Timed out while waiting for previous message to finish");
+	    	}
+        }
+    	short channelId = getReadyConnection(remainingTime);
+    	//logger.debug("channel " + channelId + " is ready");
+    	if (channelId == 0) {
+    		//no channel is ready
         	synchronized(this) {
         		reader_busy = false;
         		notifyAll();
         	}
-            return message;
-        }
+        	throw new ReceiveTimedOutException("Timed out while waiting for a connection to get ready");
+    	}
+        
+    	MxReceivePortConnectionInfo rpi =  channelManager.find(channelId);
+    	if (rpi == null) {
+			//logger.debug("Channel not found: " + channelId);
+    		synchronized(this) {
+        		reader_busy = false;
+        		notifyAll();
+        	}
+    		throw new IOException("Non-existent connection is ready");
+    	}
+    	rpi.receive();
+    	// rpi calls this.messageArrived() when the message is arrived, so message will contain the message.
+    	synchronized(this) {
+    		reader_busy = false;
+    		notifyAll();
+    	}
+        return message;
 	}
 	
 	@Override
@@ -231,13 +161,7 @@ class MxReceivePort extends ReceivePort implements Identifiable<MxReceivePort>, 
 				// TODO ignore now, needs a solution
 			}
         }
-		/*if (logger.isDebugEnabled()) {
-			logger.debug("A Message has arrived...");
-		}*/
 		super.messageArrived(msg);
-		/*if (logger.isDebugEnabled()) {
-			logger.debug("A Message has arrived!");
-		}*/
 	}
 	
 	@Override
@@ -305,9 +229,7 @@ class MxReceivePort extends ReceivePort implements Identifiable<MxReceivePort>, 
 	
 	@Override
 	public synchronized void closePort(long timeout) {
-		if (logger.isDebugEnabled()) {
-			logger.debug("closing port...");
-		}
+		//logger.debug("closing port...");
 		// TODO when doing a hard close, come up with something like this
 		ReceivePortConnectionInfo[] conns = connections();
 		for(ReceivePortConnectionInfo rpci: conns) {
@@ -337,31 +259,17 @@ class MxReceivePort extends ReceivePort implements Identifiable<MxReceivePort>, 
 
     // poll for a connection that has some data available
     private short getReadyConnection(long timeout) throws IOException {
-    	long deadline = 0;
     	short result = 0;
-    	if(timeout > 0) {
-    		deadline = System.currentTimeMillis() + timeout;
-    	}
-    	
-		while (result == 0 && (deadline == 0 || System.currentTimeMillis() < deadline)) {
-			/*
-			if (logger.isDebugEnabled()) {
-				logger.debug("getReadyConnection(long): probing channels");
-			}
-			*/
-			result = getReadyConnection();
-			if (result == 0) {
-				//	FIXME take deadline in account when waiting for message
-				// FIXME perfromance degradation because of the local loop?
-				result = Matching.getChannel(
-						JavaMx.waitForMessage(((MxIbis)ibis).factory.endpointId, 100, Matching.construct(Matching.PROTOCOL_DATA, portId, (short)0), ~Matching.CHANNEL_MASK)
-					);
-			}
+    	// poll whether a channel is ready
+    	result = getReadyConnection();
+    	if (result == 0) {
+    		// no one is ready, wait until someone is (or the timeout expired)
+			result = Matching.getChannel(
+					JavaMx.waitForMessage(((MxIbis)ibis).factory.endpointId, timeout, Matching.construct(Matching.PROTOCOL_DATA, portId, (short)0), ~Matching.CHANNEL_MASK)
+				);
 		}
     	return result;
     }
-
-    
     
 	/* IdManager methods */
 	
@@ -427,16 +335,11 @@ class MxReceivePort extends ReceivePort implements Identifiable<MxReceivePort>, 
 					}
 				}
 			}
-			if (logger.isDebugEnabled()) {
-				logger.debug("getting message for upcall...");
-			}
 			try {	
 				getMessageForUpcall();
 			} catch (IOException e) {
 				// 	TODO most likely an IOException telling us that the connection is closed.
 				// 	we just ignore it for now 	
-				// FIXME catch connectionclosedException
-				// or even portclosedException or something
 			}
 		}
 	}
@@ -445,9 +348,7 @@ class MxReceivePort extends ReceivePort implements Identifiable<MxReceivePort>, 
     	// wait until a the current message is finished
     	while (message != null) { // probably never when upcalls are used	
             try {
-            	if (logger.isDebugEnabled()) {
-    				logger.debug("Waiting for current message to finish");
-    			}
+    			//logger.debug("Waiting for current message to finish");
             	wait();
             } catch (InterruptedException e) {
                 /* ignore */
@@ -455,20 +356,14 @@ class MxReceivePort extends ReceivePort implements Identifiable<MxReceivePort>, 
         }
     	synchronized(this) {
 			if(closed) {
-    			if (logger.isDebugEnabled()) {
-    				logger.debug("Connection closed");
-    			}
+    			//logger.debug("Connection closed");
         		return;
 			}
 		}
     	short channelId = getReadyConnection(0);
-		if (logger.isDebugEnabled()) {
-			logger.debug("channel " + channelId + " is ready");
-		}
     	if (channelId == 0) {
-    		if (logger.isDebugEnabled()) {
-				logger.debug("Warning: channel ID is 0, no message delivery");
-			}
+			//logger.debug("Warning: channel ID is 0, no message delivery");
+
     		//no channel is ready
     		//TODO huh, how can this happen? Maybe the Port closed?
     		return;

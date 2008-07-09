@@ -2,7 +2,6 @@ package ibis.ipl.impl.mx;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.channels.ClosedChannelException;
 
 import org.apache.log4j.Logger;
@@ -25,13 +24,10 @@ public abstract class MxWriteChannel implements WriteChannel {
 	protected MxWriteChannel(MxChannelFactory factory, MxAddress target, int filter) throws IOException {
 		this.factory = factory;
 		this.link = JavaMx.links.getLink();
-		//TODO timeouts?
 		if(JavaMx.connect(factory.endpointId, link, target.nicId, target.endpointId, filter) == false) {
 			throw new IOException("Could not connect to target");
 		}
-		if (logger.isDebugEnabled()) {
-			logger.debug("Connected to " + target.toString());
-		}
+		//logger.debug("Connected to " + target.toString());
 		this.handle = JavaMx.handles.getHandle();
 	}
 
@@ -43,7 +39,7 @@ public abstract class MxWriteChannel implements WriteChannel {
 			// send a CLOSE signal to the reader
 			long closeMatchData = Matching.setProtocol(matchData, Matching.PROTOCOL_DISCONNECT);
 			int closeHandle = JavaMx.handles.getHandle();
-			//FIXME buffer allocation
+			//FIXME prevent buffer allocation
 			ByteBuffer bb = ByteBuffer.allocateDirect(0);
 			JavaMx.send(bb, 0, 0, factory.endpointId, link, closeHandle, closeMatchData);
 			try {
@@ -134,13 +130,8 @@ public abstract class MxWriteChannel implements WriteChannel {
 
 		int msgSize;
 		try {
-			/*if (logger.isDebugEnabled()) {
-				logger.debug("finishing message...");
-			}*/
 			msgSize = JavaMx.wait(factory.endpointId, handle);
-			/*if (logger.isDebugEnabled()) {
-				logger.debug("message of " + msgSize + " bytes sent!");
-			}*/
+			//logger.debug("finish(): message of " + msgSize + " bytes sent!");
 		} catch (MxException e) {
 			// TODO Maybe handle this some of them in the future
 			throw(e); 
@@ -177,11 +168,12 @@ public abstract class MxWriteChannel implements WriteChannel {
 			return false;
 		}
 		sending = false;
+		//logger.debug("isFinished(): message of " + msgSize + " bytes sent!");
 		notifyAll();
 		return true;
 	}
 
-	public synchronized boolean isSending() {
+	protected synchronized boolean isSending() {
 		//TODO unused method?
 		return sending;
 	}

@@ -1,7 +1,5 @@
 package ibis.ipl.impl.mx;
 
-import ibis.io.DataOutputStream;
-
 import java.io.IOException;
 import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
@@ -17,50 +15,35 @@ import org.apache.log4j.Logger;
 /* Write methods are taken from NioAccumulator, some others are based on it */
 
 
-public abstract class MxBufferedDataOutputStream extends DataOutputStream implements Config {
+public abstract class MxBufferedDataOutputStream extends MxDataOutputStream implements Config {
 
 	//FIXME not threadsafe
 
-	private static Logger logger = Logger.getLogger(MxDataOutputStream.class);
+	private static Logger logger = Logger.getLogger(MxBufferedDataOutputStream.class);
 	
     public static final int SIZEOF_BYTE = 1;
-
     public static final int SIZEOF_CHAR = 2;
-
     public static final int SIZEOF_SHORT = 2;
-
     public static final int SIZEOF_INT = 4;
-
-    public static final int SIZEOF_LONG = 8;
-
     public static final int SIZEOF_FLOAT = 4;
-
+    public static final int SIZEOF_LONG = 8;
     public static final int SIZEOF_DOUBLE = 8;
 
     static final int INITIAL_CONNECTIONS_SIZE = 8;
 
-    private SendBuffer buffer;
+    SendBuffer buffer;
 
     private ByteBuffer bytes;
-
     private CharBuffer chars;
-
     private ShortBuffer shorts;
-
     private IntBuffer ints;
-
     private LongBuffer longs;
-
     private FloatBuffer floats;
-
     private DoubleBuffer doubles;
-	
-	private boolean sending = false;
-	private boolean closed = false;
-	private long count = 0;
+
 	
 	protected MxBufferedDataOutputStream() {
-		
+		super();
         buffer = SendBuffer.get();
 
         bytes = buffer.bytes;
@@ -77,127 +60,15 @@ public abstract class MxBufferedDataOutputStream extends DataOutputStream implem
 		return PRIMITIVE_BUFFER_SIZE;
 	}
 
-	@Override
-	public long bytesWritten() {
-		return count;
-	}
-
-	@Override
-	public synchronized void close() throws IOException {
-		// Also closes the associated channel
-		if (logger.isDebugEnabled()) {
-			logger.debug("closing...");
-		}
-		if(closed) {
-			return;
-		}
-		flush();
-		if(sending) {
-			finish();
-		}
-		closed = true;
-		doClose();
-		if (logger.isDebugEnabled()) {
-			logger.debug("closed!");
-		}
-	}
 
 	protected abstract void doClose() throws IOException;
 
 	/* (non-Javadoc)
-	 * @see ibis.io.DataOutputStream#flush()
+	 * @see ibis.ipl.impl.mx.MxDataOutputStream#isEmpty()
 	 */
 	@Override
-	public synchronized void flush() throws IOException {
-    	if(closed) {
-			throw new IOException("Stream is closed");
-		}
-		if(buffer.isEmpty()) {
-			// buffer is empty, don't send it
-			return;
-		}
-
-		// post send for this buffer
-		if(!sending) { //prevent sending the same buffer twice
-			sending = true;
-			buffer.flip();
-	        count += buffer.remaining();
-
-			/*if (logger.isDebugEnabled()) {
-				logger.debug("sending message...");
-			}*/
-			doWrite(buffer); 			// TODO throws IOexceptions, catch them?
-			
-			//TODO do this smarter
-			finish();
-			buffer.clear();
-			/* original nio sending
-	        if (doSend(buffer)) {
-	            // buffer was completely send, just clear it and use it again
-	            buffer.clear();
-	        } else {
-	            // get a new buffer
-	            buffer = SendBuffer.get();
-	            bytes = buffer.bytes;
-	            chars = buffer.chars;
-	            shorts = buffer.shorts;
-	            ints = buffer.ints;
-	            longs = buffer.longs;
-	            floats = buffer.floats;
-	            doubles = buffer.doubles;
-	        }
-			*/
-		}
-	}
-	
-	synchronized private void send() throws IOException {
-		flush();
-	}
-	
-	/**
-	 * doWrite should take the buffer and send it out over the network
-	 * @param buffer 
-	 * @throws IOException
-	 */
-	protected abstract void doWrite(SendBuffer buffer) throws IOException;
-
-	@Override
-	public synchronized void finish() throws IOException {
-    	if(closed) {
-			throw new IOException("Stream is closed");
-		}
-		if(sending) {
-			doFinish();
-			buffer.clear();
-			sending = false;
-		}
-	}
-
-	
-	protected abstract void doFinish() throws IOException;
-
-	@Override
-	public synchronized boolean finished() throws IOException {
-    	if(closed) {
-			throw new IOException("Stream is closed");
-		}
-		if(!sending) {
-			// we are not sending, so we are finished
-			return true;
-		}
-		boolean finished = doFinished();
-		if(finished) {
-			sending = false;
-			buffer.clear();
-		}
-		return finished;
-	}
-
-	protected abstract boolean doFinished() throws IOException;
-
-	@Override
-	public void resetBytesWritten() {
-		count = 0;
+	protected boolean isEmpty() {
+		return buffer.isEmpty();
 	}
 
 	public void writeBoolean(boolean value) throws IOException {
@@ -209,14 +80,14 @@ public abstract class MxBufferedDataOutputStream extends DataOutputStream implem
     }
 
     public void writeByte(byte value) throws IOException {
-        if (logger.isDebugEnabled()) {
-            logger.debug("writeByte(" + value + ")");
-        }
+        //logger.debug("writeByte(" + value + ")");
+
         try {
             bytes.put(value);
         } catch (BufferOverflowException e) {
             // buffer was full, send
-            send();
+        	flush();
+        	finish();
             // and try again
             bytes.put(value);
         }
@@ -230,7 +101,8 @@ public abstract class MxBufferedDataOutputStream extends DataOutputStream implem
         try {
         	chars.put(value);
         } catch (BufferOverflowException e) {
-            send();
+        	flush();
+        	finish();
             chars.put(value);
         }
     }
@@ -239,7 +111,8 @@ public abstract class MxBufferedDataOutputStream extends DataOutputStream implem
         try {
         	shorts.put(value);
         } catch (BufferOverflowException e) {
-            send();
+        	flush();
+        	finish();
             shorts.put(value);
         }
     }
@@ -248,7 +121,8 @@ public abstract class MxBufferedDataOutputStream extends DataOutputStream implem
         try {
             ints.put(value);
         } catch (BufferOverflowException e) {
-            send();
+        	flush();
+        	finish();
             ints.put(value);
         }
     }
@@ -257,7 +131,8 @@ public abstract class MxBufferedDataOutputStream extends DataOutputStream implem
         try {
         	longs.put(value);
         } catch (BufferOverflowException e) {
-            send();
+        	flush();
+        	finish();
             longs.put(value);
         }
     }
@@ -266,7 +141,7 @@ public abstract class MxBufferedDataOutputStream extends DataOutputStream implem
         try {
         	floats.put(value);
         } catch (BufferOverflowException e) {
-            send();
+        	flush();
             floats.put(value);
         }
     }
@@ -275,7 +150,8 @@ public abstract class MxBufferedDataOutputStream extends DataOutputStream implem
         try {
         	doubles.put(value);
         } catch (BufferOverflowException e) {
-            send();
+        	flush();
+        	finish();
             doubles.put(value);
         }
     }
@@ -292,8 +168,8 @@ public abstract class MxBufferedDataOutputStream extends DataOutputStream implem
     }
 
     public void writeArray(byte[] array, int off, int len) throws IOException {
-        if (logger.isDebugEnabled()) {
-            String message = "NioAccumulator.writeArray(byte[], off = " + off
+        /*if (logger.isDebugEnabled()) {
+            String message = "MxBufferedDataOutputStream.writeArray(byte[], off = " + off
                     + " len = " + len + ") Contents: ";
 
             for (int i = off; i < (off + len); i++) {
@@ -302,7 +178,7 @@ public abstract class MxBufferedDataOutputStream extends DataOutputStream implem
             if (logger.isDebugEnabled()) {
                 logger.debug(message);
             }
-        }
+        }*/
 
         try {
         	bytes.put(array, off, len);
@@ -311,7 +187,8 @@ public abstract class MxBufferedDataOutputStream extends DataOutputStream implem
 
             while (len > 0) {
                 if (!bytes.hasRemaining()) {
-                    send();
+                	flush();
+                	finish();
                 }
 
                 int size = Math.min(len, bytes.remaining());
@@ -338,7 +215,8 @@ public abstract class MxBufferedDataOutputStream extends DataOutputStream implem
 
             while (len > 0) {
                 if (!chars.hasRemaining()) {
-                    send();
+                	flush();
+                	finish();
                 }
 
                 int size = Math.min(len, chars.remaining());
@@ -357,7 +235,8 @@ public abstract class MxBufferedDataOutputStream extends DataOutputStream implem
 
             while (len > 0) {
                 if (!shorts.hasRemaining()) {
-                    send();
+                	flush();
+                	finish();
                 }
 
                 int size = Math.min(len, shorts.remaining());
@@ -376,7 +255,8 @@ public abstract class MxBufferedDataOutputStream extends DataOutputStream implem
 
             while (len > 0) {
                 if (!ints.hasRemaining()) {
-                    send();
+                	flush();
+                	finish();
                 }
 
                 int size = Math.min(len, ints.remaining());
@@ -395,7 +275,8 @@ public abstract class MxBufferedDataOutputStream extends DataOutputStream implem
 
             while (len > 0) {
                 if (!longs.hasRemaining()) {
-                    send();
+                	flush();
+                	finish();
                 }
 
                 int size = Math.min(len, longs.remaining());
@@ -414,7 +295,8 @@ public abstract class MxBufferedDataOutputStream extends DataOutputStream implem
 
             while (len > 0) {
                 if (!floats.hasRemaining()) {
-                    send();
+                	flush();
+                	finish();
                 }
 
                 int size = Math.min(len, floats.remaining());
@@ -433,7 +315,8 @@ public abstract class MxBufferedDataOutputStream extends DataOutputStream implem
 
             while (len > 0) {
                 if (!doubles.hasRemaining()) {
-                    send();
+                	flush();
+                	finish();
                 }
 
                 int size = Math.min(len, doubles.remaining());

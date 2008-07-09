@@ -1,12 +1,11 @@
 package ibis.ipl.impl.mx;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 import org.apache.log4j.Logger;
 
-public class MxScatteringDataOutputStream extends MxDataOutputStream {
+public class MxScatteringDataOutputStream extends MxUnbufferedDataOutputStream {
 
 	static final int INITIAL_CONNECTIONS_SIZE = 8;
 	private static Logger logger = Logger.getLogger(MxScatteringDataOutputStream.class);
@@ -21,7 +20,7 @@ public class MxScatteringDataOutputStream extends MxDataOutputStream {
 	@Override
 	protected void doClose() throws IOException {
 		for(int i = 0; i< nrOfConnections; i++) {
-			logger.debug("close " + i);
+			//logger.debug("close " + i);
 			connections[i].close();	
 		}
 	}
@@ -30,39 +29,38 @@ public class MxScatteringDataOutputStream extends MxDataOutputStream {
 	protected void doFinish() throws IOException {
 		// TODO Auto-generated method stub
 		for(int i = 0; i< nrOfConnections; i++) {
-			logger.debug("finish " + i);
+			//logger.debug("finish " + i);
 			connections[i].finish();
-			//FIXME catch exceptions
+			//FIXME catch exceptions		
 		}
-
+		buffer.clear();
 	}
 
 	@Override
 	protected boolean doFinished() throws IOException {
 		for(int i = 0; i< nrOfConnections; i++) {
-			logger.debug("poll " + i);
+			//logger.debug("poll " + i);
 			if( !connections[i].isFinished()) { //FIXME catch exceptions
 				return false;
 			}
 		}
+		buffer.clear();
 		return true;
 	}
 
 	@Override
-	protected void doWrite(ByteBuffer buffer) throws IOException {
-		buffer.mark();
+	protected long doWrite() throws IOException {
+		buffer.flip();
 		for(int i = 0; i< nrOfConnections; i++) {
 			//FIXME catch exceptions
-			
-			logger.debug("flush " + i);
-			buffer.reset();
+			//logger.debug("flush " + i);
 			connections[i].write(buffer);
 		}
+		return buffer.remaining();
 	}
 
 	protected synchronized void add(WriteChannel connection) {
 		// end all current transfers
-		// TODO flush first?
 		try {
 			finish();
 		} catch (IOException e) {
@@ -79,14 +77,13 @@ public class MxScatteringDataOutputStream extends MxDataOutputStream {
             connections = newConnections;
         }
         connections[nrOfConnections] = connection;
-        logger.debug("Connection added at position " + nrOfConnections);
+        //logger.debug("Connection added at position " + nrOfConnections);
         nrOfConnections++;	
 	}
 
 	protected synchronized void remove(WriteChannel connection) throws IOException {
-		logger.debug("remove");
+		//logger.debug("remove");
 		// end all current transfers
-		// TODO flush first?
 		try {
 			finish();
 		} catch (IOException e) {
