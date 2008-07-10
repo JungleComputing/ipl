@@ -151,12 +151,7 @@ final class Pool implements Runnable {
     }
 
     private static void print(String message) {
-        DateFormat format =
-            DateFormat.getTimeInstance(DateFormat.MEDIUM, Locale.FRANCE);
-
-        System.err.println(format.format(new Date(System.currentTimeMillis()))
-                + " Central Registry: " + message);
-
+        System.err.printf("%tT Central Registry: %s\n", System.currentTimeMillis(), message);
     }
 
     synchronized int getEventTime() {

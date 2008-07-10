@@ -146,9 +146,7 @@ public final class Server extends Thread implements Service {
         while (!stopped) {
             if (pools.size() > 0) {
                 if (printStats) {
-                    Calendar calandar = Calendar.getInstance();
-                    System.err.println(calandar.get(Calendar.HOUR_OF_DAY) + ":"
-                            + calandar.get(Calendar.MINUTE) + ":" + calandar.get(Calendar.SECOND) + " list of pools:");
+                    System.err.printf("%tT list of pools:\n", System.currentTimeMillis());
                     System.err
                             .println("        CURRENT_SIZE JOINS LEAVES DIEDS ELECTIONS SIGNALS FIXED_SIZE CLOSED ENDED");
                 }
