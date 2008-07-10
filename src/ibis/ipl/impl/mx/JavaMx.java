@@ -146,7 +146,7 @@ final class JavaMx {
 		try {
 			System.loadLibrary("myriexpress");
 			System.loadLibrary("javamx");
-			
+			logger.debug("init: libraries found");
 			initialized = init();
 			if(!initialized) {
 				logger.debug("Initializing JavaMX library failed.");
@@ -156,7 +156,7 @@ final class JavaMx {
 				links = new LinkManager(128, 128*1024);
 			}
 		} catch (Throwable e) {
-			// logger.debug("error initializing JavaMx: " + e.getMessage());
+			logger.debug("error initializing JavaMx: " + e.getMessage());
 			initialized = false;
 		}	
 	}

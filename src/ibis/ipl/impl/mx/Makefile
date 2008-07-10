@@ -8,8 +8,8 @@ LDFLAGS = -l myriexpress -L /usr/local/Cluster-Apps/mx/mx-current/lib
 
 all: libjavamx.so
 
-libjavamx.so: javamx.o
-	$(CC) -shared -fPIC -Wl,-soname,libjavamx.so -o "libjavamx.so" $(LDFLAGS) javamx.o
+libjavamx.so: javamx.o linkmanager.o handlemanager.o
+	$(CC) -shared -fPIC -Wl,-soname,libjavamx.so -o "libjavamx.so" $(LDFLAGS) javamx.o linkmanager.o handlemanager.o
 	mv libjavamx.so ../../../../../lib/.
 	
 clean:

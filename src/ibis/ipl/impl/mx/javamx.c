@@ -1,104 +1,10 @@
 /* javamx.c */
+#include "linkmanager.h"
+#include "handlemanager.h"
+#include "ibis_ipl_impl_mx_JavaMx.h"
+
 #include <stdlib.h>
 #include "myriexpress.h"
-
-#include "ibis_ipl_impl_mx_JavaMx.h"
-#include "ibis_ipl_impl_mx_JavaMx_LinkManager.h"
-#include "ibis_ipl_impl_mx_JavaMx_HandleManager.h"
-
-//TODO store endpointId in link information?
-
-/****************** Handle Manager **********************/
-
-jint hmBlocks;
-jint hmBlockSize;
-jint hmBlocksInUse;
-mx_request_t **handles;
-
-/* HandleManager.init() */
-JNIEXPORT jboolean JNICALL Java_ibis_ipl_impl_mx_JavaMx_00024HandleManager_init
-  (JNIEnv *env, jobject jobj, jint blockSize, jint maxBlocks) {
-	hmBlocks = maxBlocks;
-	hmBlockSize = blockSize;
-	hmBlocksInUse = 0;
-	handles = (mx_request_t **) calloc(hmBlocks, sizeof(mx_request_t *));
-	if (handles == NULL) {
-		return JNI_FALSE;
-	}
-	return JNI_TRUE;
-}
-
-/* HandleManager.addBlock() */
-JNIEXPORT jboolean JNICALL Java_ibis_ipl_impl_mx_JavaMx_00024HandleManager_addBlock
-  (JNIEnv *env, jobject jobj) {
-	if(hmBlocksInUse >= hmBlocks) {
-		return JNI_FALSE;
-	}
-	handles[hmBlocksInUse] = (mx_request_t *) malloc(hmBlockSize * sizeof(mx_request_t));
-	if (handles[hmBlocksInUse] == NULL) {
-		return JNI_FALSE;
-	}
-	hmBlocksInUse++;
-	return JNI_TRUE;
-}
-
-mx_request_t *getRequest(jint handle) {
-	/* gets the mx_request_t corresponding to "handle" */
-	jint block, offset;
-	block = handle / hmBlockSize;
-	offset = handle % hmBlockSize;
-	if(block > hmBlocksInUse) {
-		return NULL;
-	}
-	return &(handles[(int)block][(int)offset]);
-}
-
-/****************** Link Manager ************************/
-
-jint lmBlocks;
-jint lmBlockSize;
-jint lmBlocksInUse;
-mx_endpoint_addr_t **links;
-
-/* LinkManager.init() */
-JNIEXPORT jboolean JNICALL Java_ibis_ipl_impl_mx_JavaMx_00024LinkManager_init
-  (JNIEnv *env, jobject jobj, jint blockSize, jint maxBlocks) {
-	lmBlocks = maxBlocks;
-	lmBlockSize = blockSize;
-	lmBlocksInUse = 0;
-	links = (mx_endpoint_addr_t **) calloc(lmBlocks, sizeof(mx_request_t *));
-	if (links == NULL) {
-		return JNI_FALSE;
-	}
-	return JNI_TRUE;	
-}
-
-/* LinkManager.addBlock() */
-JNIEXPORT jboolean JNICALL Java_ibis_ipl_impl_mx_JavaMx_00024LinkManager_addBlock
-  (JNIEnv *env, jobject jobj) {
-	if(lmBlocksInUse >= lmBlocks) {
-		return JNI_FALSE;
-	}
-	links[lmBlocksInUse] = (mx_endpoint_addr_t *) malloc(lmBlockSize * sizeof(mx_request_t));
-	if (links[lmBlocksInUse] == NULL) {
-		return JNI_FALSE;
-	}
-	lmBlocksInUse++;
-	return JNI_TRUE;
-}
-
-mx_endpoint_addr_t *getAddress(jint link) {
-	/* gets the mx_endpoint_addr_t corresponding to "link" */
-	jint block, offset;
-	block = link / lmBlockSize;
-	offset = link % lmBlockSize;
-	if(block > lmBlocksInUse) {
-		return NULL;
-	}
-	return &(links[(int)block][(int)offset]);
-}
-
-/********************* JavaMx ***************************/
 
 mx_endpoint_t endpoints[4];   //[MX_MAX_ENDPOINTS];  //TODO use this
 mx_endpoint_t myEndpoint = NULL;

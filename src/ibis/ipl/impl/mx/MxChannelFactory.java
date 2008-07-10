@@ -37,7 +37,10 @@ public class MxChannelFactory implements Runnable {
 	private boolean listening = false;
 	private boolean closed = false;
 
-	public MxChannelFactory(MxIbis ibis) {
+	public MxChannelFactory(MxIbis ibis) throws MxException {
+		if(JavaMx.initialized == false) {
+			throw new MxException("could not initialize JavaMX");
+		}
 		this.ibis = ibis;
 		this.endpointId = JavaMx.newEndpoint(IBIS_FILTER);
 		this.address = new MxAddress(JavaMx.getMyNicId(endpointId), JavaMx.getMyEndpointId(endpointId));
