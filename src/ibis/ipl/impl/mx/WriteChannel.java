@@ -13,7 +13,7 @@ public interface WriteChannel {
 
 	void write(SendBuffer buffer) throws IOException;
 
-	void finish() throws IOException;
+	void flush() throws IOException;
 
 	boolean isFinished() throws IOException;
 	

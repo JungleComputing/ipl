@@ -55,11 +55,11 @@ public abstract class MxBufferedDataInputStream extends MxDataInputStream implem
     private long count = 0;
 	private boolean closed = false;
     
-	public MxBufferedDataInputStream(ByteOrder order) {
-		super(order);
-		this.order = order;
+	public MxBufferedDataInputStream() {
+		super(ByteOrder.BIG_ENDIAN);
+		this.order = ByteOrder.BIG_ENDIAN;
 		
-        initViews();
+        initViews(order);
 
         // make the views appear empty
         header.limit(0);
@@ -75,7 +75,7 @@ public abstract class MxBufferedDataInputStream extends MxDataInputStream implem
     /**
      * (re) Initialize buffers in the right byte order.
      */
-    protected void initViews() {
+    protected void initViews(ByteOrder order) {
     	/* taken from NioDissipator */
         int position;
         int limit;
@@ -87,6 +87,8 @@ public abstract class MxBufferedDataInputStream extends MxDataInputStream implem
         position = buffer.position();
         limit = buffer.limit();
 
+        buffer.order(order);
+        
         // clear so views will be set correctly
         buffer.clear();
 
@@ -116,10 +118,11 @@ public abstract class MxBufferedDataInputStream extends MxDataInputStream implem
     
     @Override
     protected void receive() throws IOException {
+    	ByteOrder receivedOrder;
 		if(remaining() > 0) {
 			// ERROR still data left in buffers
             throw new IOException("tried receive() while there was data"
-                    + " left in the buffer");
+                    + " left in the buffer: " + remaining());
 		}
 		// receive the next message
 		buffer.clear();
@@ -144,6 +147,18 @@ public abstract class MxBufferedDataInputStream extends MxDataInputStream implem
 		this.count += count;
 		buffer.flip();		
 		
+		bytes.clear();
+        if (bytes.get(0) == ((byte) 1)) {
+            receivedOrder = ByteOrder.BIG_ENDIAN;
+        } else {
+            receivedOrder = ByteOrder.LITTLE_ENDIAN;
+        }
+        if (order != receivedOrder) {
+            // our buffers are in the wrong order, re-initialize
+            order = receivedOrder;
+            initViews(order);
+        }
+        
 		int next;
 		short[] headerArray = new short[SIZEOF_HEADER / SIZEOF_SHORT];
 		next = setView(header, 0, SIZEOF_HEADER, SIZEOF_SHORT);
@@ -157,11 +172,11 @@ public abstract class MxBufferedDataInputStream extends MxDataInputStream implem
         next = setView(chars, next, headerArray[CHARS], SIZEOF_CHAR);
         next = setView(bytes, next, headerArray[BYTES], SIZEOF_BYTE);
         
-        /*logger.debug("received: l[" + longs.remaining() + "] d["
+        logger.debug("received: l[" + longs.remaining() + "] d["
                     + doubles.remaining() + "] i[" + ints.remaining() + "] f["
                     + floats.remaining() + "] s[" + shorts.remaining() + "] c["
                     + chars.remaining() + "] b[" + bytes.remaining() + "]");
-         */
+         
 	}
 	
     /**

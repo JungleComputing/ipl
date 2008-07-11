@@ -17,8 +17,8 @@ public class MxBufferedDataInputStreamImpl extends MxBufferedDataInputStream {
 	/**
 	 * @param channel the data source
 	 */
-	public MxBufferedDataInputStreamImpl(ReadChannel channel, ByteOrder order) {
-		super(order);
+	public MxBufferedDataInputStreamImpl(ReadChannel channel) {
+		super();
 		this.channel = channel;		
 	}
 

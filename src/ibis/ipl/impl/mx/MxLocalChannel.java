@@ -1,6 +1,7 @@
 package ibis.ipl.impl.mx;
 
 import java.io.IOException;
+import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
 
@@ -35,7 +36,7 @@ public class MxLocalChannel implements ReadChannel, WriteChannel {
 	}
 
 	public synchronized int poll() throws ClosedChannelException {
-		logger.debug("poll(timeout)");
+		//logger.debug("poll");
 		int result = buffer.position();
 		if(closed && result == 0) {
 			return -1;
@@ -44,7 +45,7 @@ public class MxLocalChannel implements ReadChannel, WriteChannel {
 	}
 
 	public synchronized int poll(long timeout) throws ClosedChannelException {
-		logger.debug("poll(timeout)");
+		//logger.debug("poll(timeout)");
 		long deadline = System.currentTimeMillis() + timeout;
 		long time;
 		int result = buffer.position();
@@ -84,7 +85,8 @@ public class MxLocalChannel implements ReadChannel, WriteChannel {
 
 	/* WriteChannel methods */
 	
-	public void finish() throws IOException {
+	public void flush() throws IOException {
+		logger.debug("flush");
 		//empty implementation
 	}
 
@@ -95,14 +97,18 @@ public class MxLocalChannel implements ReadChannel, WriteChannel {
 
 	public synchronized void write(ByteBuffer src) throws IOException {
 		logger.debug("write");
-		while(buffer.remaining() < src.remaining()) {
-			try {
-				wait();
-			} catch (InterruptedException e) {
-				// ignore
-			}
+		SendBuffer sb = SendBuffer.get();
+		
+		src.mark();
+		try {
+			sb.bytes.put(src);
+		} catch (BufferOverflowException e) {
+			throw new IOException("ByteBuffer too large to send");
 		}
-		buffer.put(src);
+		write(sb);
+		
+		src.reset();
+		SendBuffer.recycle(sb);
 		notifyAll();
 	}
 

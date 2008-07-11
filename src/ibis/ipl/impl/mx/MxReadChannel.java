@@ -159,7 +159,7 @@ public class MxReadChannel implements ReadChannel {
 			if(msgSize > 0) {
 				buffer.position(buffer.position() + msgSize);
 			}
-			//logger.debug("message of " + msgSize + " bytes arrived.");
+			logger.debug("message of " + msgSize + " bytes arrived.");
 		} catch (MxException e) {
 			synchronized(this) {
 				receiving = false;

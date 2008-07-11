@@ -16,21 +16,13 @@ final class SendBuffer implements Config {
 
     // primitives are send in order of size, largest first
     static final int HEADER = 0;
-
     static final int LONGS = 1;
-
     static final int DOUBLES = 2;
-
     static final int INTS = 3;
-
     static final int FLOATS = 4;
-
     static final int SHORTS = 5;
-
     static final int CHARS = 6;
-
     static final int BYTES = 7;
-
     static final int PADDING = 8;
 
     static final int NR_OF_BUFFERS = 9;
@@ -41,21 +33,13 @@ final class SendBuffer implements Config {
      * (14 bytes) for the number of each primitive send (in bytes!)
      */
     private static final int SIZEOF_HEADER = 16;
-
     private static final int SIZEOF_PADDING = 8;
-
     public static final int SIZEOF_BYTE = 1;
-
     public static final int SIZEOF_CHAR = 2;
-
     public static final int SIZEOF_SHORT = 2;
-
     public static final int SIZEOF_INT = 4;
-
     public static final int SIZEOF_LONG = 8;
-
     public static final int SIZEOF_FLOAT = 4;
-
     public static final int SIZEOF_DOUBLE = 8;
 
     static final int BUFFER_CACHE_SIZE = 128;
@@ -103,23 +87,16 @@ final class SendBuffer implements Config {
     }
 
     ShortBuffer header;
-
     LongBuffer longs;
-
     DoubleBuffer doubles;
-
     IntBuffer ints;
-
     FloatBuffer floats;
-
     ShortBuffer shorts;
-
     CharBuffer chars;
-
     ByteBuffer bytes;
 
-    ByteBuffer[] byteBuffers;
-    
+    ByteBuffer[] byteBuffers; 
+        
     SendBuffer() {
         ByteOrder order = ByteOrder.nativeOrder();
 
@@ -130,7 +107,6 @@ final class SendBuffer implements Config {
                 order);
 
         // put the byte order in the first byte of the header
-        //FIXME I don't need this
         if (order == ByteOrder.BIG_ENDIAN) {
             byteBuffers[HEADER].put(0, (byte) 1);
         } else {
@@ -171,7 +147,7 @@ final class SendBuffer implements Config {
         bytes.clear();
     }
 
-    /**
+	/**
      * Make a (partially) filled buffer ready for sending
      */
     void flip() {

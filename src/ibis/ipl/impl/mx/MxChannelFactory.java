@@ -100,7 +100,7 @@ public class MxChannelFactory implements Runnable {
 			
 			rc.matchData = Matching.construct(Matching.PROTOCOL_CONNECT_REPLY, CONNECT_REPLY_PORT, channelId.getIdentifier());
 			
-			mxdis = new MxSimpleDataInputStream(rc, ByteOrder.BIG_ENDIAN);
+			mxdis = new MxBufferedDataInputStreamImpl(rc);
 	
 			//setup the channel to send the request
 			
@@ -119,7 +119,7 @@ public class MxChannelFactory implements Runnable {
 			
 			wc.matchData = Matching.construct(Matching.PROTOCOL_CONNECT, FACTORY_CONNECTION);
 			//logger.debug("MatchData is for connection request is " + Long.toHexString(wc.matchData));
-			mxdos = new MxSimpleDataOutputStream(wc, ByteOrder.BIG_ENDIAN); //wc is big endian here
+			mxdos = new MxScatteringBufferedDataOutputStream(wc); //wc is big endian here
 			dos = new DataOutputStream(mxdos);
 	
 			//send the request
@@ -128,7 +128,7 @@ public class MxChannelFactory implements Runnable {
 				sp.ident.writeTo(dos);
 				sp.type.writeTo(dos);
 				// The sender chooses the byte order, because the sender may want to send the same buffer to multiple receivers
-				dos.writeBoolean(ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN); // request native byteOrder
+
 				dos.writeInt(Matching.getConnection(rc.matchData)); // the connection to write the answer to
 				
 				//logger.debug("request created...");
@@ -237,7 +237,7 @@ public class MxChannelFactory implements Runnable {
 			if(reply == ReceivePort.ACCEPTED) {
 				channel = new MxLocalChannel();
 				//mxdis = new MxSimpleDataInputStream(channel, ByteOrder.nativeOrder()); 
-				mxdis = new MxBufferedDataInputStreamImpl(channel, ByteOrder.nativeOrder());
+				mxdis = new MxBufferedDataInputStreamImpl(channel);
 				info = new MxReceivePortConnectionInfo(sp.ident, rp, mxdis, this);
 				return channel;
 			} else {
@@ -320,9 +320,8 @@ public class MxChannelFactory implements Runnable {
 		rc.matchData = Matching.setConnection(rc.matchData, FACTORY_CONNECTION);
 		rc.matchData = Matching.setProtocol(rc.matchData, Matching.PROTOCOL_CONNECT);
 		// TODO When multiple connection requests arrive at the same time, message can be mixed up for requests consisting of multiple MX messages
-		mxdis = new MxSimpleDataInputStream(rc, ByteOrder.BIG_ENDIAN);
+		mxdis = new MxBufferedDataInputStreamImpl(rc);
 		dis = new DataInputStream(mxdis);
-		ByteOrder senderOrder;
 		MxAddress replyAddress;
 		byte reply;
 
@@ -339,13 +338,7 @@ public class MxChannelFactory implements Runnable {
 			
 			spi = new SendPortIdentifier(dis);
 			capabilities = new PortType(dis);
-			if(dis.readBoolean()) {
-				// sender uses a big endian byte order
-				senderOrder = ByteOrder.BIG_ENDIAN; 
-			} else {
-				// little endian
-				senderOrder = ByteOrder.LITTLE_ENDIAN;
-			}
+
 			// Check whether connection is allowed
 			rpi = new ReceivePortIdentifier(name, ibis.ident);
 			port = (MxReceivePort) ibis.findReceivePort(name);
@@ -364,7 +357,7 @@ public class MxChannelFactory implements Runnable {
 
 				if (reply == ReceivePort.ACCEPTED) {
 					try {
-						mxdis = new MxBufferedDataInputStreamImpl(rc, senderOrder); 
+						mxdis = new MxBufferedDataInputStreamImpl(rc); 
 						
 						info = new MxReceivePortConnectionInfo(spi, port, mxdis, this);
 						// setup the Matching properties of the ReadChannel
@@ -409,7 +402,7 @@ public class MxChannelFactory implements Runnable {
 				return false;
 			}
 			
-			mxdos = new MxSimpleDataOutputStream(wc, ByteOrder.BIG_ENDIAN);
+			mxdos = new MxScatteringBufferedDataOutputStream(wc);
 			//write the reply
 			mxdos.writeByte(reply);
 
@@ -418,8 +411,6 @@ public class MxChannelFactory implements Runnable {
 
 				//mxdis.resetBytesRead(); //not needed anymore. A new DIS is already made for the ReceivePort
 				mxdos.writeInt(Matching.getConnection(rc.matchData));
-				
-				mxdos.writeBoolean(ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN); //true when order is big endian
 			}
 			mxdos.flush();
 			mxdos.finish();
@@ -431,11 +422,13 @@ public class MxChannelFactory implements Runnable {
 				if (logger.isInfoEnabled()) {
 					logger.info("receiveport rejected connection");
 				}
+				wc.close();
 				return false;
 			}	
 			if (logger.isInfoEnabled()) {
 				logger.info("connection created");
 			}
+			wc.close();
 			return true;
 		} catch (IOException e1) {
 			// General Java IO and MX errors, they should not happen. We ignore them for now
@@ -535,7 +528,7 @@ public class MxChannelFactory implements Runnable {
 		//TODO avoid ReadChannel (and mxdis and dis) creation
 		MxReadChannel rc = new MxReadChannel(this);
 		rc.matchData = matchData;
-		MxDataInputStream mxdis = new MxSimpleDataInputStream(rc, ByteOrder.BIG_ENDIAN);
+		MxDataInputStream mxdis = new MxBufferedDataInputStreamImpl(rc);
 		DataInputStream dis = new DataInputStream(mxdis);
 		//SendPortIdentifier spi = null;
 		ReceivePortIdentifier rpi = null;
@@ -575,6 +568,44 @@ public class MxChannelFactory implements Runnable {
 		logger.debug("Outbound connection closed by receiver");
 	}
 
+	protected void sendDisconnectMessage(MxWriteChannel channel) {
+		// uses the send link of the requesting channel
+		long closeMatchData = Matching.setProtocol(channel.matchData, Matching.PROTOCOL_DISCONNECT);
+		int closeHandle = JavaMx.handles.getHandle();
+		//FIXME prevent buffer allocation
+		ByteBuffer bb = ByteBuffer.allocateDirect(0);
+		JavaMx.send(bb, 0, 0, endpointId, channel.link, closeHandle, closeMatchData);
+		try {
+			JavaMx.wait(endpointId, closeHandle, 1000);
+		} catch (MxException e1) {
+			//stop trying to receive the message
+			logger.warn("Error sending the close signal: " + e1.getMessage());
+		}
+		/*if(msgSize == -1) {
+			// error waiting for the message completion, ignore here
+		}*/
+		JavaMx.handles.releaseHandle(closeHandle);
+	}
+	
+	protected void sendDisconnectMessage(MxSimpleWriteChannel channel) {
+		// uses the send link of the requesting channel
+		long closeMatchData = Matching.setProtocol(channel.matchData, Matching.PROTOCOL_DISCONNECT);
+		int closeHandle = JavaMx.handles.getHandle();
+		//FIXME prevent buffer allocation
+		ByteBuffer bb = ByteBuffer.allocateDirect(0);
+		JavaMx.send(bb, 0, 0, endpointId, channel.link, closeHandle, closeMatchData);
+		try {
+			JavaMx.wait(endpointId, closeHandle, 1000);
+		} catch (MxException e1) {
+			//stop trying to receive the message
+			logger.warn("Error sending the close signal.");
+		}
+		/*if(msgSize == -1) {
+			// error waiting for the message completion, ignore here
+		}*/
+		JavaMx.handles.releaseHandle(closeHandle);
+	}
+	
 	protected void sendCloseMessage(MxReceivePortConnectionInfo rpci) {		
 		MxWriteChannel wc = null;
 		MxDataOutputStream mxdos = null;
@@ -626,7 +657,7 @@ public class MxChannelFactory implements Runnable {
 		
 		wc.matchData = Matching.construct(Matching.PROTOCOL_CLOSE, FACTORY_CONNECTION);
 		//logger.debug("MatchData is for connection request is " + Long.toHexString(wc.matchData));
-		mxdos = new MxSimpleDataOutputStream(wc, ByteOrder.BIG_ENDIAN); //wc is big endian here
+		mxdos = new MxScatteringBufferedDataOutputStream(wc); //wc is big endian here
 		dos = new DataOutputStream(mxdos);
 	
 		//send the message

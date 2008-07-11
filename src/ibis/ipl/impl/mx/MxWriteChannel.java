@@ -1,22 +1,27 @@
 package ibis.ipl.impl.mx;
 
 import java.io.IOException;
+import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
+import java.util.concurrent.ArrayBlockingQueue;
 
 import org.apache.log4j.Logger;
 
-public abstract class MxWriteChannel implements WriteChannel {
+public abstract class MxWriteChannel implements WriteChannel, Config {
 
 	private static Logger logger = Logger.getLogger(MxWriteChannel.class);
 	
+	//private ArrayBlockingQueue<SendBuffer> queue;
+	
+	private SendBuffer[] buffers = new SendBuffer[FLUSH_QUEUE_SIZE];
+	private int[] handles = new int[FLUSH_QUEUE_SIZE];
+	private int first, queuedBuffers;
+	
 	protected MxChannelFactory factory;
 	protected int link;
-	protected int handle;
-	protected boolean sending = false;
 	protected boolean closed = false;
 	protected MxAddress target;
-	protected int msgSize;
 	protected long matchData = Matching.NONE;
 
 	//protected ByteOrder order = ByteOrder.BIG_ENDIAN;
@@ -28,7 +33,12 @@ public abstract class MxWriteChannel implements WriteChannel {
 			throw new IOException("Could not connect to target");
 		}
 		//logger.debug("Connected to " + target.toString());
-		this.handle = JavaMx.handles.getHandle();
+		//queue = new ArrayBlockingQueue<SendBuffer>(FLUSH_QUEUE_SIZE);
+		
+		for (int i = 0; i < FLUSH_QUEUE_SIZE; i++) {
+			handles[i] = JavaMx.handles.getHandle();
+		}
+		first = queuedBuffers = 0;
 	}
 
 	public void close() {
@@ -36,66 +46,35 @@ public abstract class MxWriteChannel implements WriteChannel {
 			if(closed) {
 				return;
 			}
-			// send a CLOSE signal to the reader
-			long closeMatchData = Matching.setProtocol(matchData, Matching.PROTOCOL_DISCONNECT);
-			int closeHandle = JavaMx.handles.getHandle();
-			//FIXME prevent buffer allocation
-			ByteBuffer bb = ByteBuffer.allocateDirect(0);
-			JavaMx.send(bb, 0, 0, factory.endpointId, link, closeHandle, closeMatchData);
 			try {
-				int msgSize = JavaMx.wait(factory.endpointId, closeHandle, 1000);
-			} catch (MxException e1) {
-				//stop trying to receive the message
-				logger.warn("Error sending the close signal.");
+				flush();
+			} catch (IOException e) {
+				// TODO ignore, just close when flushing goes wrong?
 			}
-			JavaMx.handles.releaseHandle(closeHandle);
-			
-			
-			// wait for the pending messages to finish
-			if(sending) {
-				try {
-					if(isFinished() == false) {
-						JavaMx.cancel(factory.endpointId, handle); //TODO really stop current send operation, or wait for it?
-						/*try {
-							wait();
-						} catch (InterruptedException e) {
-							// ignore
-						}*/	
-					}
-					
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
+			factory.sendDisconnectMessage(this);
 			closed = true;
 		}
-		JavaMx.handles.releaseHandle(handle);
 		JavaMx.disconnect(link);
 		JavaMx.links.releaseLink(link);
 	}
 
 	
+	
 	/* (non-Javadoc)
 	 * @see ibis.ipl.impl.mx.WriteChannel#write(java.nio.ByteBuffer)
 	 */
-	public synchronized void write(ByteBuffer buffer) throws IOException {
-		if(closed) {
-			throw new ClosedChannelException();
+	public void write(ByteBuffer buffer) throws IOException {
+		SendBuffer sb = SendBuffer.get();
+		buffer.mark();
+		try {
+			sb.bytes.put(buffer);
+		} catch (BufferOverflowException e) {
+			throw new IOException("ByteBuffer too large to send");
 		}
-		if(sending) {
-			finish();
-			//sending will be false now
-		}	
-		sending = true;
-		doSend(buffer);
-		msgSize = buffer.remaining();
-		
-		// Nope, we don't do this, can cause problems with offering buffers to several writechannels concurrently
-		// Without this, we can do that safely
-		// buffer.position(buffer.limit());
+		write(sb);
+		buffer.reset();
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see ibis.ipl.impl.mx.WriteChannel#write(java.nio.ByteBuffer[])
 	 */
@@ -103,35 +82,34 @@ public abstract class MxWriteChannel implements WriteChannel {
 		if(closed) {
 			throw new ClosedChannelException();
 		}
-		if(sending) {
-			finish();
-			//sending will be false now
-		}
-		sending = true;
-		doSend(buffer);
-		msgSize = (int)(buffer.remaining()); // cast will go well as long as the messages are smaller than 2 GB
+		if (queuedBuffers == FLUSH_QUEUE_SIZE) {
+			// damn, the queue is full, wait for the head to finish()
+			logger.info("queue full while sending, waiting for the head message to be transfered succesfully");
+			flushBuffer();
+		} 
+		int queuePos = (first+queuedBuffers)%FLUSH_QUEUE_SIZE;
+		buffers[queuePos] = buffer;
+		logger.debug("sending buffer with handle no: " + queuePos);
+		doSend(buffer, handles[queuePos]);
+		queuedBuffers++;
+
+		logger.debug("message added to queue");
 	}
 	
 	/**
 	 * @param buffer
 	 */
-	protected abstract void doSend(SendBuffer buffer);
+	protected abstract void doSend(SendBuffer buffer, int handle);
 
-	protected abstract void doSend(ByteBuffer buffer);
-
-	/* (non-Javadoc)
-	 * @see ibis.ipl.impl.mx.WriteChannel#finish()
+	/**
+	 * flushed a the head buffer from the buffer queue
+	 * @throws IOException
 	 */
-	public synchronized void finish() throws IOException {
-		if(!sending) {
-			// well, we are finished in that case!
-			return;
-		}
-
+	private void flushBuffer() throws IOException {
 		int msgSize;
 		try {
-			msgSize = JavaMx.wait(factory.endpointId, handle);
-			//logger.debug("finish(): message of " + msgSize + " bytes sent!");
+			logger.debug("waiting for handle " + first);
+			msgSize = JavaMx.wait(factory.endpointId, handles[first]);
 		} catch (MxException e) {
 			// TODO Maybe handle this some of them in the future
 			throw(e); 
@@ -139,49 +117,46 @@ public abstract class MxWriteChannel implements WriteChannel {
 		if(msgSize == -1) {
 			throw new MxException("error waiting for the message completion");
 		}
-		sending = false;
-		notifyAll();
-		if(msgSize != this.msgSize) {
+		if(msgSize != buffers[first].remaining()) {
 			// message truncated
-			throw new MxException("Message truncated from "+ this.msgSize + " to " + msgSize + "bytes");
+			throw new MxException("Message truncated from "+ buffers[first].remaining() + " to " + msgSize + "bytes");
+		}
+		first = (first+1)%FLUSH_QUEUE_SIZE;
+		queuedBuffers--;	
+	}
+	
+	/* (non-Javadoc)
+	 * @see ibis.ipl.impl.mx.WriteChannel#finish()
+	 */
+	public synchronized void flush() throws IOException {
+		while(queuedBuffers > 0) {			
+			flushBuffer();
 		}
 	}
 
 	/* (non-Javadoc)
-	 * @see ibis.ipl.impl.mx.WriteChannel#poll()
+	 * @see ibis.ipl.impl.mx.WriteChannel#isFinished()
 	 */
 	public synchronized boolean isFinished() throws IOException {
-		if(!sending) {
-			// well, we are finished in that case!
-			return true;
-		}
-
-		int msgSize;
-		try {
-			msgSize = JavaMx.test(factory.endpointId, handle);
-		} catch (MxException e) {
-			// TODO Maybe handle this some of them in the future
-			throw(e); 
-		}
-		if(msgSize == -1) {
-			// request still pending
-			return false;
-		}
-		sending = false;
-		//logger.debug("isFinished(): message of " + msgSize + " bytes sent!");
-		notifyAll();
-		return true;
+		return queuedBuffers == 0;
+		//TODO when the queue is not empty, test for buffer completion for all buffers in the queue
 	}
 
 	protected synchronized boolean isSending() {
+		return queuedBuffers != 0;
 		//TODO unused method?
-		return sending;
 	}
 	
 	@Override
 	protected void finalize() throws Throwable {
+		logger.debug("finalizer called");
 		if(!closed) {
-			close();
+			// TODO close(); maybe?
+			JavaMx.disconnect(link);
+			JavaMx.links.releaseLink(link);
+			for(int handle: handles) {
+				JavaMx.handles.releaseHandle(handle);
+			}
 		}
 		super.finalize();
 	}

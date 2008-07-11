@@ -22,7 +22,8 @@ import ibis.util.ThreadPool;
 class MxReceivePort extends ReceivePort implements Identifiable<MxReceivePort>, Runnable {
 	private static Logger logger = Logger.getLogger(MxReceivePort.class);
 	
-		protected short portId = 0;
+	private int localChannels = 0;
+	protected short portId = 0;
 	protected IdManager<MxReceivePortConnectionInfo> channelManager;
 	private IdManager<MxReceivePort> portManager = null;
 	
@@ -282,7 +283,7 @@ class MxReceivePort extends ReceivePort implements Identifiable<MxReceivePort>, 
 					return result;
 				}
 				result = Matching.getChannel(
-    					JavaMx.waitForMessage(((MxIbis)ibis).factory.endpointId, 40, Matching.construct(Matching.PROTOCOL_DATA, portId, (short)0), ~Matching.CHANNEL_MASK)
+    					JavaMx.waitForMessage(((MxIbis)ibis).factory.endpointId, 100, Matching.construct(Matching.PROTOCOL_DATA, portId, (short)0), ~Matching.CHANNEL_MASK)
 					);
 			}
 			logger.debug("getReadyConnection(timeout) found channel");

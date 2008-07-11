@@ -14,4 +14,9 @@ interface Config {
      */
     static final int PRIMITIVE_BUFFER_SIZE = 6 * 1024;
     
+    /**
+     * Maximum number of buffers in the flush queue at the MxDataOutputStreams and MxWriteChannels 
+     */
+    static final int FLUSH_QUEUE_SIZE = 8;
+    
 }

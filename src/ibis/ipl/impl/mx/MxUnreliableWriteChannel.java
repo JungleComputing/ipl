@@ -8,13 +8,13 @@ import java.nio.ShortBuffer;
 import org.apache.log4j.Logger;
 
 public class MxUnreliableWriteChannel extends MxWriteChannel {
-	private static Logger logger = Logger.getLogger(MxReliableWriteChannel.class);
+	private static Logger logger = Logger.getLogger(MxUnreliableWriteChannel.class);
 	
 	MxUnreliableWriteChannel(MxChannelFactory factory, MxAddress target, int filter) throws IOException {
 		super(factory, target, filter);
 	}
 
-	protected void doSend(ByteBuffer buffer) {
+//	protected void doSend(ByteBuffer buffer) {
 		/*if (logger.isDebugEnabled()) {
 			String data = "message contents: <<";
 			ShortBuffer b = buffer.asShortBuffer();
@@ -23,16 +23,16 @@ public class MxUnreliableWriteChannel extends MxWriteChannel {
 			}	
 			logger.debug(data + ">>");
 		}*/
-		JavaMx.send(buffer, buffer.position(), buffer.remaining(), factory.endpointId, link, handle, matchData);
+//		JavaMx.send(buffer, buffer.position(), buffer.remaining(), factory.endpointId, link, handle, matchData);
 		// FIXME buffer cannot be reused yet (ibuffered must be checked first)
 		// At the moment, this is not a bug!!
-	}
+//	}
 
 	/* (non-Javadoc)
 	 * @see ibis.ipl.impl.mx.MxWriteChannel#doSend(java.nio.ByteBuffer[])
 	 */
 	@Override
-	protected void doSend(SendBuffer buffer) {
+	protected void doSend(SendBuffer buffer, int handle) {
 		ByteBuffer[] bufs = buffer.byteBuffers;
 		JavaMx.send(
 				bufs[SendBuffer.HEADER], bufs[SendBuffer.HEADER].remaining(),
@@ -45,7 +45,8 @@ public class MxUnreliableWriteChannel extends MxWriteChannel {
 				bufs[SendBuffer.BYTES], bufs[SendBuffer.BYTES].remaining(),
 				bufs[SendBuffer.PADDING], bufs[SendBuffer.PADDING].remaining(),
 				factory.endpointId, link, handle, matchData
-				);		
+				);
+		logger.debug("" + buffer.remaining() + " bytes sent");
 	}
 
 }
