@@ -247,6 +247,10 @@ public abstract class MxBufferedDataInputStream extends MxDataInputStream implem
 			if(closed) {
 			throw new IOException("Stream is closed");
 			}
+		} 
+		if (result > 0) {
+			//TODO This is very good for the performance (latency), now do this in a nicer way
+			receive();
 		}
 		return result;
 	}

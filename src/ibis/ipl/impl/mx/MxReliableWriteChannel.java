@@ -15,19 +15,6 @@ public class MxReliableWriteChannel extends MxWriteChannel {
 		super(factory, target, filter);
 	}
 
-	//public void doSend(ByteBuffer buffer) {
-		/*if (logger.isDebugEnabled()) {
-			String data = "message contents: <<";
-			ShortBuffer b = buffer.asShortBuffer();
-			while(b.hasRemaining()) {
-				data += Short.toString(b.get()) + " ";
-			}	
-			logger.debug(data + ">>");
-		}*/
-//		JavaMx.sendSynchronous(buffer, buffer.position(), buffer.remaining(), factory.endpointId, link, handle, matchData);
-		// buffer cannot be reused yet!
-		// At the moment, this is not a bug!!
-//	}
 
 	/* (non-Javadoc)
 	 * @see ibis.ipl.impl.mx.MxWriteChannel#doSend(java.nio.ByteBuffer[])
@@ -46,8 +33,7 @@ public class MxReliableWriteChannel extends MxWriteChannel {
 				bufs[SendBuffer.BYTES], bufs[SendBuffer.BYTES].remaining(),
 				bufs[SendBuffer.PADDING], bufs[SendBuffer.PADDING].remaining(),
 				factory.endpointId, link, handle, matchData
-				);
-		
+				);		
 	}
 
 }
