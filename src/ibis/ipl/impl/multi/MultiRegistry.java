@@ -119,14 +119,15 @@ public class MultiRegistry implements Registry{
                     Registry subRegistry = subRegistries.get(ibisName);
                     ThreadPool.createNew(new ElectionRunner(ibisName, subRegistry, elected, electionName, timeoutMillis), "Election: " + electionName);
                 }
-                int count = 0;
-                while (count < subRegistries.size()) {
+                while (elected.size() < subRegistries.size()) {
                     try {
                         // Wait for the timeout
-                        elected.wait(timeoutMillis);
-                        count++;
                         if (logger.isDebugEnabled()) {
-                            logger.debug("Woke up election: " + electionName + " count:" + count + " of: " + subRegistries.size());
+                            logger.debug("Waiting for election: " + electionName + " count: " + elected.size()+ " of: " + subRegistries.size() + " for: " + timeoutMillis);
+                        }
+                        elected.wait(timeoutMillis);
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("Woke up election: " + electionName + " count:" + elected.size() + " of: " + subRegistries.size());
                         }
                     }
                     catch (InterruptedException e) {

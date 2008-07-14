@@ -28,22 +28,9 @@ public class MultiReceivePort implements ReceivePort {
 
     private Logger logger = Logger.getLogger(MultiReceivePort.class);
 
-    static void quit() {
-        // Close all ports
-        for (MultiReceivePort port:portMap.values()) {
-            try {
-                port.close(100);
-            } catch (IOException e) {
-                // Ignore
-            }
-        }
-    }
-
     private final Map<String, ReceivePort>subPortMap = Collections.synchronizedMap(new HashMap<String, ReceivePort>());
 
     private final MultiReceivePortIdentifier id;
-
-    private static final HashMap<ReceivePort, MultiReceivePort>portMap = new HashMap<ReceivePort, MultiReceivePort>();
 
     private final ManageableMapper ManageableMapper;
 
@@ -98,7 +85,7 @@ public class MultiReceivePort implements ReceivePort {
                 if (message != null || exception != null) {
                     synchronized (messageQueue) {
                         if (message != null) {
-                            messageQueue.add(new MultiReadMessage(message, portMap.get(subPort)));
+                            messageQueue.add(new MultiReadMessage(message, ibis.receivePortMap.get(subPort)));
                             messageQueue.notify();
                         }
                         else if (exception != null) {
@@ -185,7 +172,7 @@ public class MultiReceivePort implements ReceivePort {
             }
             ReceivePort subPort = subIbis.createReceivePort(type, name, upcall, upcaller, properties);
             subPortMap.put(ibisName, subPort);
-            portMap.put(subPort, this);
+            ibis.receivePortMap.put(subPort, this);
             id.addSubId(ibisName, subPort.identifier());
             DowncallHandler handler = new DowncallHandler(subPort);
             handlers.add(handler);

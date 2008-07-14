@@ -26,6 +26,7 @@ import ibis.util.TypedProperties;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -53,6 +54,15 @@ public class MultiIbis implements Ibis {
     private final MultiRegistry registry;
 
     private final ManageableMapper ManageableMapper;
+
+    // TODO Wrap with getter and setter
+    final HashMap<ReceivePort, MultiReceivePort>receivePortMap = new HashMap<ReceivePort, MultiReceivePort>();
+
+    // TODO Wrap with getter and setter
+    final Map<SendPort, MultiSendPort>sendPortMap = Collections.synchronizedMap(new HashMap<SendPort, MultiSendPort>());
+
+    // TODO Wrap with getter and setter
+    final HashMap<String, MultiNameResolver>resolverMap = new HashMap<String, MultiNameResolver>();
 
     final PortType resolvePortType;
 
@@ -95,11 +105,13 @@ public class MultiIbis implements Ibis {
         PortType[] ourPortTypes = new PortType[portTypes.length + 1];
         System.arraycopy(portTypes, 0, ourPortTypes, 1, portTypes.length);
         resolvePortType = new PortType(PortType.COMMUNICATION_RELIABLE,
-                                       PortType.CONNECTION_ONE_TO_ONE,
+                                       PortType.CONNECTION_MANY_TO_ONE,
                                        PortType.RECEIVE_EXPLICIT,
                                        PortType.SERIALIZATION_OBJECT);
         ourPortTypes[0] = resolvePortType;
-
+        if (logger.isDebugEnabled()) {
+            logger.debug("Got " + starters.length + " starters.");
+        }
         for (String starter:starters) {
             try {
                 String ibisName = null;
@@ -110,8 +122,11 @@ public class MultiIbis implements Ibis {
                     starterClassName = starter.substring(split+1);
                     logger.debug("Found starter: " + ibisName + ":" + starterClassName);
                 }
+                else {
+                    starterClassName = starter;
+                }
 
-                if (starter.equals("tcp")) {
+                if (starterClassName.equals("tcp")) {
                     starterClassName = "ibis.ipl.impl.tcp.TcpIbisStarter";
                 }
 
@@ -203,24 +218,42 @@ public class MultiIbis implements Ibis {
         Location location = Location.defaultLocation(userProperties);
         id = new MultiIbisIdentifier(UUID.randomUUID().toString(), subIdMap, null, location, poolName);
 
-        if (logger.isInfoEnabled()) {
-            logger.info("MultiIbis Started with ID: " + id);
-        }
-
         for (String ibisName:subIdMap.keySet()) {
             IbisIdentifier subId = subIdMap.get(ibisName);
             idMap.put(subId, id);
         }
+
+        // Now let the resolvers go!
+        for (String ibisName:resolverMap.keySet()) {
+            MultiNameResolver resolver = resolverMap.get(ibisName);
+            synchronized (resolver) {
+                resolver.notify();
+            }
+        }
+
         ManageableMapper = new ManageableMapper((Map)subIbisMap);
         registry = new MultiRegistry(this);
+
+        if (logger.isInfoEnabled()) {
+            logger.info("MultiIbis Started with ID: " + id);
+        }
     }
 
     public synchronized void end() throws IOException {
         for (Ibis ibis:subIbisMap.values()) {
             ibis.end();
         }
-        MultiReceivePort.quit();
-        MultiSendPort.quit();
+        // Kill all the receive ports
+        for (MultiReceivePort port:receivePortMap.values()) {
+            try {
+                port.close(100);
+            } catch (IOException e) {
+                // Ignore
+            }
+        }
+        for (MultiSendPort port:sendPortMap.values()) {
+            port.quit(port);
+        }
         MultiNameResolver.quit();
     }
 
@@ -296,7 +329,8 @@ public class MultiIbis implements Ibis {
             if (logger.isDebugEnabled()) {
                 logger.debug("Attempting to resolve: " + ibisId);
             }
-            MultiNameResolver.resolve(ibisId, ibisName);
+            MultiNameResolver resolver = resolverMap.get(ibisName);
+            resolver.resolve(ibisId, ibisName);
             id = idMap.get(ibisId);
         }
         return id;

@@ -18,7 +18,6 @@ import ibis.util.ThreadPool;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -29,8 +28,6 @@ public class MultiSendPort implements SendPort {
 
     /** Debugging output. */
     private static final Logger logger = Logger.getLogger(MultiSendPort.class);
-
-    private static final Map<SendPort, MultiSendPort>portMap = Collections.synchronizedMap(new HashMap<SendPort, MultiSendPort>());
 
     private final ManageableMapper ManageableMapper;
 
@@ -240,7 +237,7 @@ public class MultiSendPort implements SendPort {
                 logger.debug("Passing lost connection along: " + me + " : " + johnDoe + " : " + reason.getMessage());
             }
             try {
-                upcaller.lostConnection(portMap.get(me), ibis.mapReceivePortIdentifier(johnDoe, ibisName), reason);
+                upcaller.lostConnection(ibis.sendPortMap.get(me), ibis.mapReceivePortIdentifier(johnDoe, ibisName), reason);
             }
             catch (IOException e) {
                 // TODO What the hell to do here?
@@ -267,7 +264,7 @@ public class MultiSendPort implements SendPort {
             handlers .add(handler);
             ThreadPool.createNew(handler, "Connect Handler: " + ibisName);
             subPortMap.put(ibisName, subPort);
-            portMap.put(subPort, this);
+            ibis.sendPortMap.put(subPort, this);
         }
         ManageableMapper = new ManageableMapper((Map)subPortMap);
         this.portType = type;
@@ -400,7 +397,8 @@ public class MultiSendPort implements SendPort {
                 logger.debug("Using active send port to connect.");
                 // TODO catch and map exception
                 try {
-                    return ibis.mapReceivePortIdentifier(activeSendPort.connect(id, name, timeoutMillis, fillTimeout), activeIbisName);
+                    MultiIbisIdentifier ident = (MultiIbisIdentifier)id;
+                    return ibis.mapReceivePortIdentifier(activeSendPort.connect(ident.subIdForIbis(activeIbisName), name, timeoutMillis, fillTimeout), activeIbisName);
                 } catch (IOException e) {
                     throw new ConnectionFailedException("Unable to map identifier.", null, name, e);
                 }
@@ -609,13 +607,11 @@ public class MultiSendPort implements SendPort {
         ManageableMapper.setManagementProperty(key, value);
     }
 
-    public static void quit() {
-        for (MultiSendPort port:portMap.values()) {
-            for(DowncallHandler handler:port.handlers) {
-                handler.opcode = DowncallHandler.OPP_QUIT;
-                synchronized (handler) {
-                    handler.notify();
-                }
+    public void quit(MultiSendPort port) {
+        for(DowncallHandler handler:port.handlers) {
+            handler.opcode = DowncallHandler.OPP_QUIT;
+            synchronized (handler) {
+                handler.notify();
             }
         }
     }

@@ -30,12 +30,10 @@ public  class MultiNameResolver implements Runnable {
     private static final byte OPP_REQUEST = 2;
     private static final byte OPP_QUIT = 0;
 
-    private static HashMap<String, MultiNameResolver> resolverMap = new HashMap<String, MultiNameResolver>();
-
     public MultiNameResolver(MultiIbis multiIbis, String ibisName) throws IOException {
         this.ibis = multiIbis;
         this.ibisName = ibisName;
-        resolverMap.put(ibisName, this);
+        ibis.resolverMap.put(ibisName, this);
         Ibis subIbis = ibis.subIbisMap.get(ibisName);
         receivePort = subIbis.createReceivePort(ibis.resolvePortType, resolvePortName);
         receivePort.enableConnections();
@@ -47,6 +45,16 @@ public  class MultiNameResolver implements Runnable {
     }
 
     public void run() {
+    	// Wait until we have an id set to share
+        while (ibis.id == null) {
+            synchronized (this) {
+                try {
+                    wait();
+                } catch (InterruptedException e) {
+                    // Ignored
+                }
+            }
+        }
         do {
             try {
                 if (logger.isDebugEnabled()) {
@@ -63,7 +71,7 @@ public  class MultiNameResolver implements Runnable {
                     IbisIdentifier requestor = readMessage.origin().ibisIdentifier();
                     readMessage.finish();
                     if (logger.isDebugEnabled()) {
-                        logger.debug("Sending Reply For: " + ibisName + " from: " + requestor);
+                        logger.debug("Sending Reply For: " + ibisName + " from: " + requestor + " id:" + ibis.id);
                     }
                     replyPort.connect(requestor, resolvePortName);
                     WriteMessage sendMessage = replyPort.newMessage();
@@ -123,29 +131,28 @@ public  class MultiNameResolver implements Runnable {
         // TODO Wake up all threads.
     }
 
-    public static void resolve(IbisIdentifier toResolve, String ibisName) throws IOException {
-        MultiNameResolver resolver = resolverMap.get(ibisName);
+    public void resolve(IbisIdentifier toResolve, String ibisName) throws IOException {
         if (logger.isDebugEnabled()) {
             logger.debug("Making Resolve Request for: " + ibisName);
         }
-        synchronized(resolver) {
-            resolver.toResolve = toResolve;
-            resolver.requestPort.connect(toResolve, resolvePortName);
+        synchronized(this) {
+            this.toResolve = toResolve;
+            this.requestPort.connect(toResolve, resolvePortName);
             if (logger.isDebugEnabled()) {
                 logger.debug("Sending Request for: " + ibisName);
             }
-            WriteMessage writeMessage = resolver.requestPort.newMessage();
+            WriteMessage writeMessage = this.requestPort.newMessage();
             writeMessage.writeByte(OPP_REQUEST);
             if (logger.isDebugEnabled()) {
                 logger.debug("Finishing Request for: " + ibisName);
             }
             writeMessage.finish();
-            while (resolver.toResolve != null) {
+            while (this.toResolve != null) {
                 try {
                     if (logger.isDebugEnabled()) {
-                        logger.debug("Waiting For Resolution For: " + ibisName + " on: " + resolver);
+                        logger.debug("Waiting For Resolution For: " + ibisName + " on: " + this);
                     }
-                    resolver.wait();
+                    this.wait();
                     if (logger.isDebugEnabled()) {
                         logger.debug("Resolution Complete for: " + ibisName);
                     }
@@ -158,7 +165,7 @@ public  class MultiNameResolver implements Runnable {
             if (logger.isDebugEnabled()) {
                 logger.debug("Disconnecting Request for: " + ibisName);
             }
-            resolver.requestPort.disconnect(toResolve, resolvePortName);
+            this.requestPort.disconnect(toResolve, resolvePortName);
         }
     }
 }
