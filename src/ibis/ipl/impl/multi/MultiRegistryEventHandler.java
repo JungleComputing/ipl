@@ -11,6 +11,7 @@ public class MultiRegistryEventHandler implements RegistryEventHandler {
     private final RegistryEventHandler subHandler;
 
     private final MultiIbis ibis;
+    private MultiRegistry registry;
     private String ibisName;
 
     public MultiRegistryEventHandler(MultiIbis ibis, RegistryEventHandler subHandler) {
@@ -19,7 +20,7 @@ public class MultiRegistryEventHandler implements RegistryEventHandler {
     }
 
     public synchronized void died(IbisIdentifier corpse) {
-        while (ibisName == null) {
+        while (registry == null) {
             try {
                 wait();
             } catch (InterruptedException e) {
@@ -27,14 +28,18 @@ public class MultiRegistryEventHandler implements RegistryEventHandler {
             }
         }
         try {
-            subHandler.died(ibis.mapIdentifier(corpse, ibisName));
+            MultiIbisIdentifier id = ibis.mapIdentifier(corpse, ibisName);
+            if (!registry.died.containsKey(id)) {
+                registry.died.put(id, id);
+                subHandler.died(id);
+            }
         } catch (IOException e) {
             // TODO What the hell to do.
         }
     }
 
     public synchronized void electionResult(String electionName, IbisIdentifier winner) {
-        while (ibisName == null) {
+        while (registry == null) {
             try {
                 wait();
             } catch (InterruptedException e) {
@@ -42,7 +47,18 @@ public class MultiRegistryEventHandler implements RegistryEventHandler {
             }
         }
         try {
-            subHandler.electionResult(electionName, ibis.mapIdentifier(winner, ibisName));
+            MultiIbisIdentifier id = ibis.mapIdentifier(winner, ibisName);
+            if (!registry.elected.containsKey(electionName)) {
+                registry.elected.put(electionName, id);
+                subHandler.electionResult(electionName, id);
+            }
+            else {
+                MultiIbisIdentifier oldWinner = registry.elected.get(electionName);
+                if (!oldWinner.equals(id)) {
+                    registry.elected.put(electionName, id);
+                    subHandler.electionResult(electionName, id);
+                }
+            }
         } catch (IOException e) {
             // TODO What the hell to do
         }
@@ -53,7 +69,7 @@ public class MultiRegistryEventHandler implements RegistryEventHandler {
     }
 
     public synchronized void joined(IbisIdentifier joinedIbis) {
-        while (ibisName == null) {
+        while (registry == null) {
             try {
                 wait();
             } catch (InterruptedException e) {
@@ -61,14 +77,18 @@ public class MultiRegistryEventHandler implements RegistryEventHandler {
             }
         }
         try {
-            subHandler.joined(ibis.mapIdentifier(joinedIbis, ibisName));
+            MultiIbisIdentifier id = ibis.mapIdentifier(joinedIbis, ibisName);
+            if (!registry.joined.containsKey(id)) {
+                registry.joined.put(id, id);
+                subHandler.joined(id);
+            }
         } catch (IOException e) {
             // TODO What the hell to do here?
         }
     }
 
     public synchronized void left(IbisIdentifier leftIbis) {
-        while (ibisName == null) {
+        while (registry == null) {
             try {
                 wait();
             } catch (InterruptedException e) {
@@ -76,7 +96,11 @@ public class MultiRegistryEventHandler implements RegistryEventHandler {
             }
         }
         try {
-            subHandler.left(ibis.mapIdentifier(leftIbis, ibisName));
+            MultiIbisIdentifier id = ibis.mapIdentifier(leftIbis, ibisName);
+            if (!registry.left.containsKey(id)) {
+                registry.left.put(id, id);
+                subHandler.left(id);
+            }
         } catch (IOException e) {
             // TODO What the hell to do here?
         }
@@ -84,6 +108,10 @@ public class MultiRegistryEventHandler implements RegistryEventHandler {
 
     public synchronized void setName(String ibisName) {
         this.ibisName = ibisName;
+    }
+
+    public synchronized void setRegistry(MultiRegistry registry) {
+        this.registry = (MultiRegistry)ibis.registry();
         notifyAll();
     }
 

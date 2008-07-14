@@ -26,6 +26,11 @@ public class MultiRegistry implements Registry{
 
     private final HashMap<String, Registry>subRegistries;
 
+    final HashMap<MultiIbisIdentifier, MultiIbisIdentifier>joined = new HashMap<MultiIbisIdentifier, MultiIbisIdentifier>();
+    final HashMap<MultiIbisIdentifier, MultiIbisIdentifier>left = new HashMap<MultiIbisIdentifier, MultiIbisIdentifier>();
+    final HashMap<MultiIbisIdentifier, MultiIbisIdentifier>died = new HashMap<MultiIbisIdentifier, MultiIbisIdentifier>();
+    final HashMap<String, MultiIbisIdentifier>elected = new HashMap<String, MultiIbisIdentifier>();
+
     @SuppressWarnings("unchecked")
     public MultiRegistry(MultiIbis multiIbis) {
         this.ibis = multiIbis;

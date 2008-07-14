@@ -64,6 +64,8 @@ public class MultiIbis implements Ibis {
     // TODO Wrap with getter and setter
     final HashMap<String, MultiNameResolver>resolverMap = new HashMap<String, MultiNameResolver>();
 
+    final HashMap<String, MultiRegistryEventHandler>registryHandlerMap = new HashMap<String, MultiRegistryEventHandler>();
+
     final PortType resolvePortType;
 
     @SuppressWarnings("unchecked")
@@ -156,6 +158,7 @@ public class MultiIbis implements Ibis {
 
                     if (handler != null) {
                         handler.setName(ibisName);
+                        registryHandlerMap.put(ibisName, handler);
                     }
 
                     if (logger.isDebugEnabled()) {
@@ -231,8 +234,15 @@ public class MultiIbis implements Ibis {
             }
         }
 
-        ManageableMapper = new ManageableMapper((Map)subIbisMap);
+        // Now create the registry and let the event handlers go
         registry = new MultiRegistry(this);
+        for (String ibisName:registryHandlerMap.keySet()) {
+            MultiRegistryEventHandler handler = registryHandlerMap.get(ibisName);
+            handler.setRegistry(registry);
+        }
+
+        // Setup management stuff
+        ManageableMapper = new ManageableMapper((Map)subIbisMap);
 
         if (logger.isInfoEnabled()) {
             logger.info("MultiIbis Started with ID: " + id);
