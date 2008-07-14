@@ -510,12 +510,17 @@ final class Pool implements Runnable {
      * @see ibis.ipl.impl.registry.central.SuperPool#maybeDead(ibis.ipl.impl.IbisIdentifier)
      */
     synchronized void maybeDead(IbisIdentifier identifier) {
+        
         Member member = members.get(identifier);
 
         if (member != null) {
+            logger.debug("got maybeDead for member of pool: " + identifier);
+            
             member.clearLastSeenTime();
             // wake up checker thread, this suspect now (among) the oldest
             notifyAll();
+        } else {
+            logger.debug("got maybeDead for " + identifier + " which is not in pool");
         }
 
     }
