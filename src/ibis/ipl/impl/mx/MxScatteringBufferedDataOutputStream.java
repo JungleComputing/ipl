@@ -18,7 +18,7 @@ public class MxScatteringBufferedDataOutputStream extends MxDataOutputStream {
 	
 	public MxScatteringBufferedDataOutputStream() {
 		super();
-		queue = new ArrayBlockingQueue<SendBuffer>(Config.FLUSH_QUEUE_SIZE);
+		queue = new ArrayBlockingQueue<SendBuffer>(Config.FLUSH_QUEUE_SIZE * 1024);
 	}
 	
 	public MxScatteringBufferedDataOutputStream(WriteChannel channel) {
@@ -47,7 +47,10 @@ public class MxScatteringBufferedDataOutputStream extends MxDataOutputStream {
                     + buffer.floats.position() + "] s[" + buffer.shorts.position() + "] c["
                     + buffer.chars.position() + "] b[" + buffer.bytes.position() + "]");
 		}
-		queue.add(buffer);
+		//FIXME queue full. Eliminate the queue?
+		while(queue.offer(buffer) == false) {
+			flush();
+		}
 		return buffer.remaining();
 	}
 	
