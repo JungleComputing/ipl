@@ -11,7 +11,7 @@ class MxSendPortConnectionInfo extends SendPortConnectionInfo {
 
 	private static Logger logger = Logger.getLogger(MxSendPortConnectionInfo.class);
 	
-	MxScatteringBufferedDataOutputStream mxsdos;
+	MxScatteringDataOutputStream mxsdos;
 	WriteChannel connection;
 //	private MxAddress address;
 	

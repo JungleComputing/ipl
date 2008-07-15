@@ -197,6 +197,7 @@ public class MxReadChannel implements ReadChannel {
 			if (result == -1) {
 				// channel is empty, so close it
 				realClose();
+				throw new ClosedChannelException();
 			}
 			return result;
 		}
@@ -218,6 +219,7 @@ public class MxReadChannel implements ReadChannel {
 			if (result == -1) {
 				// channel is empty, so close it
 				realClose();
+				throw new ClosedChannelException();
 			}
 			return result;
 		}

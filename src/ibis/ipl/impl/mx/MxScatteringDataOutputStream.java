@@ -7,21 +7,21 @@ import java.util.concurrent.ArrayBlockingQueue;
 
 import org.apache.log4j.Logger;
 
-public class MxScatteringBufferedDataOutputStream extends MxDataOutputStream {
+public class MxScatteringDataOutputStream extends MxDataOutputStream {
 
 	static final int INITIAL_CONNECTIONS_SIZE = 8;
 	private ArrayBlockingQueue<SendBuffer> queue;
-	private static Logger logger = Logger.getLogger(MxScatteringBufferedDataOutputStream.class);
+	private static Logger logger = Logger.getLogger(MxScatteringDataOutputStream.class);
 	
 	private WriteChannel[] connections = new WriteChannel[INITIAL_CONNECTIONS_SIZE];
 	int nrOfConnections = 0;
 	
-	public MxScatteringBufferedDataOutputStream() {
+	public MxScatteringDataOutputStream() {
 		super();
 		queue = new ArrayBlockingQueue<SendBuffer>(Config.FLUSH_QUEUE_SIZE * 1024);
 	}
 	
-	public MxScatteringBufferedDataOutputStream(WriteChannel channel) {
+	public MxScatteringDataOutputStream(WriteChannel channel) {
 		this();
 		logger.debug("writechannelconstructor");
 		add(channel);

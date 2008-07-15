@@ -32,8 +32,8 @@ final class SendBuffer implements Config {
      * length of the padding at the end of the packet (in bytes), and 7 shorts
      * (14 bytes) for the number of each primitive send (in bytes!)
      */
-    private static final int SIZEOF_HEADER = 16;
-    private static final int SIZEOF_PADDING = 8;
+    protected static final int SIZEOF_HEADER = 16;
+    protected static final int SIZEOF_PADDING = 8;
     public static final int SIZEOF_BYTE = 1;
     public static final int SIZEOF_CHAR = 2;
     public static final int SIZEOF_SHORT = 2;
@@ -112,7 +112,6 @@ final class SendBuffer implements Config {
         } else {
             byteBuffers[HEADER].put(0, (byte) 0);
         }
-
         for (int i = 1; i < (NR_OF_BUFFERS - 1); i++) {
             byteBuffers[i] = ByteBuffer.allocateDirect(PRIMITIVE_BUFFER_SIZE)
                     .order(order);

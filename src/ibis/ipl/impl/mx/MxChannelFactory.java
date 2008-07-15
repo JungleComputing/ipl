@@ -100,7 +100,7 @@ public class MxChannelFactory implements Runnable {
 			
 			rc.matchData = Matching.construct(Matching.PROTOCOL_CONNECT_REPLY, CONNECT_REPLY_PORT, channelId.getIdentifier());
 			
-			mxdis = new MxBufferedDataInputStreamImpl(rc);
+			mxdis = new MxDataInputStreamImpl(rc);
 	
 			//setup the channel to send the request
 			
@@ -119,7 +119,7 @@ public class MxChannelFactory implements Runnable {
 			
 			wc.matchData = Matching.construct(Matching.PROTOCOL_CONNECT, FACTORY_CONNECTION);
 			//logger.debug("MatchData is for connection request is " + Long.toHexString(wc.matchData));
-			mxdos = new MxScatteringBufferedDataOutputStream(wc); //wc is big endian here
+			mxdos = new MxScatteringDataOutputStream(wc); //wc is big endian here
 			dos = new DataOutputStream(mxdos);
 	
 			//send the request
@@ -237,7 +237,7 @@ public class MxChannelFactory implements Runnable {
 			if(reply == ReceivePort.ACCEPTED) {
 				channel = new MxLocalChannel();
 				//mxdis = new MxSimpleDataInputStream(channel, ByteOrder.nativeOrder()); 
-				mxdis = new MxBufferedDataInputStreamImpl(channel);
+				mxdis = new MxDataInputStreamImpl(channel);
 				info = new MxReceivePortConnectionInfo(sp.ident, rp, mxdis, this);
 				return channel;
 			} else {
@@ -320,7 +320,7 @@ public class MxChannelFactory implements Runnable {
 		rc.matchData = Matching.setConnection(rc.matchData, FACTORY_CONNECTION);
 		rc.matchData = Matching.setProtocol(rc.matchData, Matching.PROTOCOL_CONNECT);
 		// TODO When multiple connection requests arrive at the same time, message can be mixed up for requests consisting of multiple MX messages
-		mxdis = new MxBufferedDataInputStreamImpl(rc);
+		mxdis = new MxDataInputStreamImpl(rc);
 		dis = new DataInputStream(mxdis);
 		MxAddress replyAddress;
 		byte reply;
@@ -357,7 +357,7 @@ public class MxChannelFactory implements Runnable {
 
 				if (reply == ReceivePort.ACCEPTED) {
 					try {
-						mxdis = new MxBufferedDataInputStreamImpl(rc); 
+						mxdis = new MxDataInputStreamImpl(rc); 
 						
 						info = new MxReceivePortConnectionInfo(spi, port, mxdis, this);
 						// setup the Matching properties of the ReadChannel
@@ -402,7 +402,7 @@ public class MxChannelFactory implements Runnable {
 				return false;
 			}
 			
-			mxdos = new MxScatteringBufferedDataOutputStream(wc);
+			mxdos = new MxScatteringDataOutputStream(wc);
 			//write the reply
 			mxdos.writeByte(reply);
 
@@ -528,7 +528,7 @@ public class MxChannelFactory implements Runnable {
 		//TODO avoid ReadChannel (and mxdis and dis) creation
 		MxReadChannel rc = new MxReadChannel(this);
 		rc.matchData = matchData;
-		MxDataInputStream mxdis = new MxBufferedDataInputStreamImpl(rc);
+		MxDataInputStream mxdis = new MxDataInputStreamImpl(rc);
 		DataInputStream dis = new DataInputStream(mxdis);
 		//SendPortIdentifier spi = null;
 		ReceivePortIdentifier rpi = null;
@@ -586,25 +586,7 @@ public class MxChannelFactory implements Runnable {
 		}*/
 		JavaMx.handles.releaseHandle(closeHandle);
 	}
-	
-	protected void sendDisconnectMessage(MxSimpleWriteChannel channel) {
-		// uses the send link of the requesting channel
-		long closeMatchData = Matching.setProtocol(channel.matchData, Matching.PROTOCOL_DISCONNECT);
-		int closeHandle = JavaMx.handles.getHandle();
-		//FIXME prevent buffer allocation
-		ByteBuffer bb = ByteBuffer.allocateDirect(0);
-		JavaMx.send(bb, 0, 0, endpointId, channel.link, closeHandle, closeMatchData);
-		try {
-			JavaMx.wait(endpointId, closeHandle, 1000);
-		} catch (MxException e1) {
-			//stop trying to receive the message
-			logger.warn("Error sending the close signal.");
-		}
-		/*if(msgSize == -1) {
-			// error waiting for the message completion, ignore here
-		}*/
-		JavaMx.handles.releaseHandle(closeHandle);
-	}
+
 	
 	protected void sendCloseMessage(MxReceivePortConnectionInfo rpci) {		
 		MxWriteChannel wc = null;
@@ -657,7 +639,7 @@ public class MxChannelFactory implements Runnable {
 		
 		wc.matchData = Matching.construct(Matching.PROTOCOL_CLOSE, FACTORY_CONNECTION);
 		//logger.debug("MatchData is for connection request is " + Long.toHexString(wc.matchData));
-		mxdos = new MxScatteringBufferedDataOutputStream(wc); //wc is big endian here
+		mxdos = new MxScatteringDataOutputStream(wc); //wc is big endian here
 		dos = new DataOutputStream(mxdos);
 	
 		//send the message

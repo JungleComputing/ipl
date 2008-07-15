@@ -6,10 +6,9 @@ import java.nio.ByteOrder;
 
 import org.apache.log4j.Logger;
 
-public class MxBufferedDataInputStreamImpl extends MxBufferedDataInputStream {
-	/* Actually, this class is the same as MxSimpleDataInputStream */
+public class MxDataInputStreamImpl extends MxDataInputStream {
 	
-	private static Logger logger = Logger.getLogger(MxBufferedDataInputStreamImpl.class);
+	private static Logger logger = Logger.getLogger(MxDataInputStreamImpl.class);
 	
 	protected ReadChannel channel;
 
@@ -17,7 +16,7 @@ public class MxBufferedDataInputStreamImpl extends MxBufferedDataInputStream {
 	/**
 	 * @param channel the data source
 	 */
-	public MxBufferedDataInputStreamImpl(ReadChannel channel) {
+	public MxDataInputStreamImpl(ReadChannel channel) {
 		super();
 		this.channel = channel;		
 	}
@@ -35,7 +34,11 @@ public class MxBufferedDataInputStreamImpl extends MxBufferedDataInputStream {
 	@Override
 	protected int doAvailable() throws IOException {
 		//FIXME empty messages
-		return channel.poll();
+		//TODO for now, we do not check the channel, but just say we have nothing, unless it is a local channel
+		if(channel instanceof MxLocalChannel) {
+			return channel.poll();
+		}
+		return 0;
 	}
 	
 	protected int doWaitUntilAvailable(long timeout) throws IOException {

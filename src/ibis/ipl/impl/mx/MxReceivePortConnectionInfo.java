@@ -1,5 +1,6 @@
 package ibis.ipl.impl.mx;
 
+import ibis.ipl.impl.ReceivePort;
 import ibis.ipl.impl.ReceivePortConnectionInfo;
 import ibis.ipl.impl.SendPortIdentifier;
 import ibis.util.ThreadPool;
@@ -62,7 +63,7 @@ class MxReceivePortConnectionInfo extends
 
 	public void senderClose() {
 		//FIXME hack
-		ReadChannel channel = ((MxBufferedDataInputStreamImpl)dataIn).channel; 
+		ReadChannel channel = ((MxDataInputStreamImpl)dataIn).channel; 
 		if(channel instanceof MxLocalChannel) {
 			logger.debug("sender closes local channel at receiver");
 			close(null);
@@ -110,7 +111,7 @@ class MxReceivePortConnectionInfo extends
 		synchronized(this) {
 			portClosed = true;
 		}
-		if(((MxBufferedDataInputStreamImpl)dataIn).channel instanceof MxLocalChannel) {
+		if(((MxDataInputStreamImpl)dataIn).channel instanceof MxLocalChannel) {
 			logger.debug("Receiver closes local channel at receiver");
 			close(null);
 		} else {

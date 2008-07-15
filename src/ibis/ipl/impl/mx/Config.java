@@ -7,12 +7,13 @@ package ibis.ipl.impl.mx;
 interface Config {
 
     /** Byte buffer size used. Must be a multiple of eight.  */
-    static final int BYTE_BUFFER_SIZE = 60 * 1024;
+    static final int BYTE_BUFFER_SIZE = 80 * 1024;
 
     /**
      * Buffer sized used for primitive buffers. Must be a multiple of eight.
      */
-    static final int PRIMITIVE_BUFFER_SIZE = 6 * 1024;
+    static final int PRIMITIVE_BUFFER_SIZE = 8 * 1024; 
+    //TODO must be smaller than 32767 due to short use in sendbuffer header
     
     /**
      * Maximum number of buffers in the flush queue at the MxDataOutputStreams and MxWriteChannels 
