@@ -519,17 +519,16 @@ final class Pool implements Runnable {
 		Member member = members.get(identifier);
 
 		if (member != null) {
-
-			if (member.getTime() < System.currentTimeMillis()
-					+ RECENTLY_SEEN_THRESHOLD) {
+			if (member.getTime() > (System.currentTimeMillis()
+					- RECENTLY_SEEN_THRESHOLD)) {
+				logger.debug("got maybeDead for member of pool " + identifier
+						+ ", but recently contacted it, ignoring report");
+			} else {
 				logger.debug("got maybeDead for member of pool: " + identifier);
 
 				member.clearTime();
 				// wake up checker thread, this suspect now (among) the oldest
 				notifyAll();
-			} else {
-				logger.debug("got maybeDead for member of pool " + identifier
-						+ ", but recently contacted it, ignoring report");
 			}
 		} else {
 			logger.debug("got maybeDead for " + identifier
