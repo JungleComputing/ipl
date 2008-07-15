@@ -19,12 +19,9 @@ import ibis.util.ThreadPool;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.text.DateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Formatter;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
