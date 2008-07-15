@@ -202,8 +202,12 @@ public final class Registry extends ibis.ipl.impl.Registry {
             throw new IOException(
                     "cannot do maybeDead, registry already stopped");
         }
+        
+        if (pool.mustReportMaybeDead(ibisIdentifier)) {
+            communicationHandler.maybeDead(ibisIdentifier);
+        }
+        
 
-        communicationHandler.maybeDead(ibisIdentifier);
     }
 
     public void assumeDead(ibis.ipl.IbisIdentifier ibisIdentifier)
@@ -224,7 +228,7 @@ public final class Registry extends ibis.ipl.impl.Registry {
         }
 
         if (!capabilities.hasCapability(IbisCapabilities.SIGNALS)) {
-            throw new IbisConfigurationException("No string support requested");
+            throw new IbisConfigurationException("No signal support requested");
         }
 
         logger.debug("telling " + ibisIdentifiers.length

@@ -63,6 +63,17 @@ public final class ListMemberSet implements MemberSet {
         }
         return null;
     }
+    
+    public Member get(String name) {
+        for (int i = 0; i < list.size(); i++) {
+            if (list.get(i).getIbis().name().equals(name)) {
+                return list.get(i);
+            }
+        }
+        return null;
+    }
+
+    
 
     public int getMinimumTime() {
         if (list.isEmpty()) {
@@ -87,7 +98,7 @@ public final class ListMemberSet implements MemberSet {
         Member oldest = list.get(0);
 
         for (int i = 1; i < list.size(); i++) {
-            if (list.get(i).getLastSeen() < oldest.getLastSeen()) {
+            if (list.get(i).getTime() < oldest.getTime()) {
                 oldest = list.get(i);
             }
         }

@@ -21,6 +21,9 @@ public interface MemberSet {
 
     public Member get(IbisIdentifier identifier);
 
+    //return a member from what identifier.name() returns (!= identifier.getID())
+    public Member get(String name);
+    
     public int getMinimumTime();
 
     public Member getLeastRecentlySeen();

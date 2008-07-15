@@ -10,7 +10,7 @@ import ibis.ipl.impl.IbisIdentifier;
 import org.apache.log4j.Logger;
 
 public final class Member implements Serializable {
-
+	
     private static final long serialVersionUID = 1L;
 
     private static final Logger logger = Logger.getLogger(Member.class);
@@ -19,23 +19,24 @@ public final class Member implements Serializable {
 
     private final Event event;
 
-    private int currentTime;
+    private int currentEventTime;
 
-    // time at which this member was last seen
-    private long lastSeen;
+    // field used to keep track of when this member was last seen (server),
+    // or when it was last reported to be dead (client) 
+    private long time;
 
     public Member(IbisIdentifier ibis, Event event) {
         this.ibis = ibis;
         this.event = event;
-        currentTime = 0;
-        lastSeen = 0;
+        currentEventTime = 0;
+        time = 0;
     }
 
     public Member(DataInput in) throws IOException {
         ibis = new IbisIdentifier(in);
         event = new Event(in);
-        currentTime = 0;
-        lastSeen = 0;
+        currentEventTime = 0;
+        time = 0;
     }
 
     public void writeTo(DataOutput out) throws IOException {
@@ -48,30 +49,30 @@ public final class Member implements Serializable {
     }
 
     public synchronized int getCurrentTime() {
-        return currentTime;
+        return currentEventTime;
     }
 
     public synchronized void setCurrentTime(int currentTime) {
-        if (currentTime < this.currentTime) {
+        if (currentTime < this.currentEventTime) {
             logger.error(
                 "tried to set time backwards on member. Current time = "
-                        + this.currentTime + " new time = " + currentTime,
+                        + this.currentEventTime + " new time = " + currentTime,
                 new Exception());
             return;
         }
-        this.currentTime = currentTime;
+        this.currentEventTime = currentTime;
     }
 
-    public synchronized void updateLastSeenTime() {
-        lastSeen = System.currentTimeMillis();
+    public synchronized void updateTime() {
+        time = System.currentTimeMillis();
     }
 
-    public synchronized void clearLastSeenTime() {
-        lastSeen = 0;
+    public synchronized void clearTime() {
+    	time = 0;
     }
 
-    public synchronized long getLastSeen() {
-        return lastSeen;
+    public synchronized long getTime() {
+        return time;
     }
 
     String getID() {
