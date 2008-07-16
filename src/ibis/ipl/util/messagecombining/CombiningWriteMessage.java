@@ -3,7 +3,7 @@
 package ibis.ipl.util.messagecombining;
 
 import ibis.io.Replacer;
-import ibis.io.SerializationBase;
+import ibis.io.SerializationFactory;
 import ibis.io.SerializationOutput;
 import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
@@ -28,7 +28,7 @@ public class CombiningWriteMessage implements WriteMessage {
 
     protected void clear() throws IOException {
         if (out == null) {
-            out = SerializationBase.createSerializationOutput(ser, storeOut);
+            out = SerializationFactory.createSerializationOutput(ser, storeOut);
             if (replacer != null) {
                 out.setReplacer(replacer);
             }

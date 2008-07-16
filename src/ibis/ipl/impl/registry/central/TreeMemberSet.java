@@ -249,6 +249,15 @@ public final class TreeMemberSet implements MemberSet, Serializable {
         }
         return null;
     }
+    
+    public Member get(String name) {
+        for (Node node : list) {
+            if (node.member.getIbis().name().equals(name)) {
+                return node.member;
+            }
+        }
+        return null;
+    }
 
     private Node getNode(IbisIdentifier identifier) {
         for (Node node : list) {
@@ -281,7 +290,7 @@ public final class TreeMemberSet implements MemberSet, Serializable {
         Member oldest = list.get(0).member;
 
         for (int i = 1; i < list.size(); i++) {
-            if (list.get(i).member.getLastSeen() < oldest.getLastSeen()) {
+            if (list.get(i).member.getTime() < oldest.getTime()) {
                 oldest = list.get(i).member;
             }
         }

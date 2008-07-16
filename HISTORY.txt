@@ -1,5 +1,9 @@
 Here is a list of Ibis releases.
 
+2.1.1 (16 May 2008)
+   Fixes a couple of bugs in release 2.1, and ibis-server now supports
+   getting statistics from services.
+
 2.1 (14 April 2008)
    This release mostly fixes some problems in the 2.0 release.
    Also, there are a few (upwards compatible) additions to the IPL,

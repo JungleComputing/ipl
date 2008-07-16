@@ -1,0 +1,74 @@
+<project name="ibis-compile" default="build" basedir=".">
+    <description>
+	Build file for ibis-compile
+    </description>
+
+    <!-- Global properties -->
+    <property name="src" location="src" />
+    <property name="tmp" location="tmp" />
+    <property name="lib" location="../lib" />
+    <property name="javadoc" location="../javadoc/compile" />
+    <property name="sources" value="../sources" />
+
+    <property name="version" value="-2.1" />
+
+    <property name="jar" location="${lib}/${ant.project.name}${version}.jar" />
+    <property name="sources-filename" value="${ant.project.name}${version}" />
+
+    <path id="external_jars">
+	<fileset dir="${lib}">
+            <include name="*.jar" />
+        </fileset>
+    </path>
+
+    <target name="build">
+        <!-- Create the time stamp -->
+        <tstamp />
+
+	<!-- build bcel-fixed first -->
+	<ant dir="bcel-5.1-fixed" inheritAll="false" target="build"/>
+
+        <!-- Create the build directory structure used by compile -->
+        <delete dir="${tmp}" />
+        <delete dir="${javadoc}" />
+
+        <mkdir dir="${tmp}" />
+        <mkdir dir="${javadoc}" />
+
+        <!-- Compile the java code from ${src} into ${tmp} -->
+        <javac srcdir="${src}" destdir="${tmp}" debug="on">
+            <classpath refid="external_jars" />
+            <compilerarg value="-Xlint:unchecked" />
+        </javac>
+
+        <!-- create the javadoc -->
+	<javadoc destdir="${javadoc}" access="public" sourcepath="${src}" packagenames="ibis.compile">
+            <classpath refid="external_jars" />
+            <link href="http://logging.apache.org/log4j/docs/api/" />
+            <link href="http://java.sun.com/j2se/1.5.0/docs/api/" />
+        </javadoc>
+
+        <!-- Put everything in ${tmp} into the jar file -->
+        <jar jarfile="${jar}" basedir="${tmp}" />
+
+        <!-- create a zip file with the sources -->
+        <zip destfile="${sources}/${sources-filename}.zip">
+            <zipfileset dir="src"
+                        includes="**/*.java"
+                        prefix="${sources-filename}" />
+            <zipfileset dir="."
+			includes="../LICENSE.txt"
+                        prefix="${sources-filename}" />
+        </zip>
+
+        <!-- And delete the build dir -->
+        <delete dir="${tmp}" />
+    </target>
+
+    <target name="clean" description="clean up">
+        <delete dir="${tmp}" />
+        <delete dir="${javadoc}" />
+	<ant dir="bcel-5.1-fixed" inheritAll="false" target="clean"/>
+    </target>
+
+</project>

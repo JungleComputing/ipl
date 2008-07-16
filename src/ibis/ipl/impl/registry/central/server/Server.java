@@ -77,7 +77,7 @@ public final class Server extends Thread implements Service {
     synchronized Pool getPool(String poolName) {
         return pools.get(poolName);
     }
-    
+
     public String getServiceName() {
         return "registry";
     }
@@ -93,7 +93,7 @@ public final class Server extends Thread implements Service {
 
         if (result == null || result.hasEnded()) {
             // print message
-            System.out.println("Central Registry: creating new pool: \""
+            System.err.println("Central Registry: creating new pool: \""
                     + poolName + "\"");
 
             result = new Pool(poolName, socketFactory, peerBootstrap,
@@ -118,7 +118,7 @@ public final class Server extends Thread implements Service {
         if (stopped) {
             return;
         }
-        long timeLeft = deadline = System.currentTimeMillis();
+        long timeLeft = deadline - System.currentTimeMillis();
 
         while (timeLeft > 0 && pools.size() > 0) {
             try {
@@ -128,7 +128,7 @@ public final class Server extends Thread implements Service {
             } catch (InterruptedException e) {
                 // IGNORE
             }
-            timeLeft = deadline = System.currentTimeMillis();
+            timeLeft = deadline - System.currentTimeMillis();
         }
         stopped = true;
         notifyAll();
@@ -145,19 +145,19 @@ public final class Server extends Thread implements Service {
         while (!stopped) {
             if (pools.size() > 0) {
                 if (printStats) {
-                    System.out.println("list of pools:");
-                    System.out
+                    System.err.printf("%tT list of pools:\n", System.currentTimeMillis());
+                    System.err
                             .println("        CURRENT_SIZE JOINS LEAVES DIEDS ELECTIONS SIGNALS FIXED_SIZE CLOSED ENDED");
                 }
 
                 // copy values to new array so we can do "remove" on original
                 for (Pool pool : pools.values().toArray(new Pool[0])) {
                     if (printStats) {
-                        System.out.println(pool.getStatsString());
+                        System.err.println(pool.getStatsString());
                     }
 
                     if (pool.hasEnded()) {
-                        System.out.println("Central Registry: pool \""
+                        System.err.println("Central Registry: pool \""
                                 + pool.getName() + "\" ended");
                         pool.saveStatistics();
                         pools.remove(pool.getName());
@@ -182,21 +182,21 @@ public final class Server extends Thread implements Service {
 
     public synchronized Map<String, String> getStats() {
         Map<String, String> result = new HashMap<String, String>();
-        
+
         String poolNames = null;
-        
-        for(Pool pool: pools.values()) {
+
+        for (Pool pool : pools.values()) {
             if (poolNames == null) {
                 poolNames = pool.getName();
             } else {
                 poolNames = poolNames + "," + pool.getName();
             }
-            
+
             result.putAll(pool.getStatsMap());
-        }        
-        
+        }
+
         result.put("pool.names", poolNames);
-            
+
         return result;
     }
 

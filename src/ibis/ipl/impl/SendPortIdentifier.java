@@ -37,6 +37,12 @@ public class SendPortIdentifier implements ibis.ipl.SendPortIdentifier {
      * @param ibis the Ibis instance that created the sendport.
      */
     public SendPortIdentifier(String name, IbisIdentifier ibis) {
+        if (name == null) {
+            throw new NullPointerException("name is null in SendPortIdentifier");
+        }
+        if (ibis == null) {
+            throw new NullPointerException("Ibis identifier is null in SendPortIdentifier");
+        }
         this.name = name;
         this.ibis = ibis;
         codedForm = computeCodedForm();

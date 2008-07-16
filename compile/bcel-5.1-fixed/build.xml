@@ -1,0 +1,49 @@
+<project name="bcel-5.1-fixed" default="build" basedir=".">
+    <description>
+	Build file for BCEL fixes
+    </description>
+    <property name="src" location="src" />
+    <property name="tmp" location="tmp" />
+    <property name="lib" location="../../lib" />
+    <property name="external" location="external" />
+    <property name="jar" location="${lib}/${ant.project.name}.jar" />
+
+    <path id="external_jars">
+	<fileset dir="${external}">
+	    <include name="*.jar" />
+	</fileset>
+    </path>
+
+    <target name="init">
+	<!-- Create the time stamp -->
+	<tstamp />
+
+	<!-- Create the build directory structure used by compile -->
+	<mkdir dir="${tmp}" />
+    </target>
+
+    <target name="compile" depends="init, clean" description="compile the source ">
+	<!-- Compile the java code from ${src} into ${tmp} -->
+	<javac srcdir="${src}" destdir="${tmp}" debug="on" >
+	    <classpath refid="external_jars" />
+	</javac>
+    </target>
+
+    <target name="build" depends="compile" description="build the JAR file">
+	<!-- Create the distribution directory -->
+	<mkdir dir="${lib}" />
+
+	<!-- copy original bcel jar. -->
+	<copy file="external/bcel-5.1.jar" tofile="${jar}"/>
+
+	<!-- Put everything in ${tmp} into the jar file -->
+	<jar jarfile="${jar}" update="yes" basedir="${tmp}" includes="**/*.class"/>
+
+	<!-- And delete the build dir -->
+	<delete dir="${tmp}" />
+    </target>
+
+    <target name="clean" description="clean up">
+	<delete file="${jar}" />
+    </target>
+</project>

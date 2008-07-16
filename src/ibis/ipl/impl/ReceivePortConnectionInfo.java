@@ -3,7 +3,7 @@
 package ibis.ipl.impl;
 
 import ibis.io.DataInputStream;
-import ibis.io.SerializationBase;
+import ibis.io.SerializationFactory;
 import ibis.io.SerializationInput;
 
 import java.io.IOException;
@@ -86,7 +86,7 @@ public class ReceivePortConnectionInfo {
         if (in != null) {
             in.close();
         }
-        in = SerializationBase.createSerializationInput(port.serialization,
+        in = SerializationFactory.createSerializationInput(port.serialization,
                 dataIn);
         message = port.createReadMessage(in, this);
     }

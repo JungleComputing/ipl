@@ -9,7 +9,7 @@ import java.util.Properties;
  * The starting point of all Ibis communication, created using the
  * {@link ibis.ipl.IbisFactory}.
  */
-public interface Ibis extends Managable {
+public interface Ibis extends Manageable {
     
     /**
      * Returns all Ibis recources to the system.

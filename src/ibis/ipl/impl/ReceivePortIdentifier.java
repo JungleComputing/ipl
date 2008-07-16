@@ -37,6 +37,12 @@ public class ReceivePortIdentifier implements ibis.ipl.ReceivePortIdentifier {
      * @param ibis the Ibis instance that created the receiveport.
      */
     public ReceivePortIdentifier(String name, IbisIdentifier ibis) {
+        if (name == null) {
+            throw new NullPointerException("name is null in ReceivePortIdentifier");
+        }
+        if (ibis == null) {
+            throw new NullPointerException("Ibis identifier is null in ReceivePortIdentifier");
+        }
         this.name = name;
         this.ibis = ibis;
         codedForm = computeCodedForm();

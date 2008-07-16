@@ -8,7 +8,7 @@
  */
 package ibis.ipl.util.messagecombining;
 
-import ibis.io.SerializationBase;
+import ibis.io.SerializationFactory;
 import ibis.io.SerializationInput;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
@@ -32,7 +32,7 @@ public class CombiningReadMessage implements ReadMessage {
 
     protected void clear() throws IOException {
         if (in == null) {
-            in = SerializationBase.createSerializationInput(ser, storeIn);
+            in = SerializationFactory.createSerializationInput(ser, storeIn);
         }
         in.clear();
     }

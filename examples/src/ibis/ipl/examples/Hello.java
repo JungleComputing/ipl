@@ -67,7 +67,7 @@ public class Hello {
         // Elect a server
         IbisIdentifier server = ibis.registry().elect("Server");
 
-        System.out.println("Server : " + Arrays.deepToString(server.location().getLevels()));
+        System.out.println("Server is " + server);
         
         // If I am the server, run server, else run client.
         if (server.equals(ibis.identifier())) {

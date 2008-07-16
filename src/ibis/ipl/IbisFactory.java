@@ -27,7 +27,7 @@ import java.util.jar.Manifest;
  * This entry should contain a comma- or space-separated list of class names,
  * where each class named provides an {@link IbisStarter} implementation. In
  * addition, a property "IPL-Version" should be defined in the manifest,
- * containing a version number starting with 2.0.
+ * containing a version number (e.g. 2.1).
  */
 public final class IbisFactory {
 
@@ -83,10 +83,10 @@ public final class IbisFactory {
         // If we found no starters then see if we have starters of last resort
         if (compnts.size() == 0) {
             String startersOfLastResort = properties.getProperty("ibis.starters");
+            ArrayList<Class<? extends IbisStarter>> foundStarters = new ArrayList<Class<? extends IbisStarter>>();
             if (startersOfLastResort != null) {
                 StringTokenizer st =
                     new StringTokenizer(startersOfLastResort, ",");
-                ArrayList<Class<? extends IbisStarter>> foundStarters = new ArrayList<Class<? extends IbisStarter>>();
                 while (st.hasMoreTokens()) {
                     String starterClassName = st.nextToken();
                         try {
@@ -98,10 +98,9 @@ public final class IbisFactory {
                         }
                 }
                 // Finish the setup based on these found starters
-                implList = (Class<? extends IbisStarter>[]) foundStarters.toArray(new Class[foundStarters.size()]);
             }
-        }
-        else {
+            implList = (Class<? extends IbisStarter>[]) foundStarters.toArray(new Class[foundStarters.size()]);
+        } else {
             implList = (Class<? extends IbisStarter>[]) compnts.toArray(new Class[compnts.size()]);
         }
         starters = new IbisStarter[implList.length];
@@ -109,7 +108,7 @@ public final class IbisFactory {
 
     /**
      * Creates a new Ibis instance, based on the required capabilities and port
-     * types.
+     * types. As the set of properties, the default properties are used.
      * 
      * @param requiredCapabilities
      *            ibis capabilities required by the application.
@@ -143,7 +142,8 @@ public final class IbisFactory {
      *            searching ibis implementations, or which registry to use.
      *            There is a default, so <code>null</code> may be specified.
      * @param addDefaultConfigProperties
-     *            adds the default hard-wired properties, for as far as these
+     *            adds the default properties, loaded from the system 
+     *            properties, a "ibis.properties" file, etc, for as far as these
      *            are not set in the <code>properties</code> parameter.
      * @param registryEventHandler
      *            a {@link ibis.ipl.RegistryEventHandler RegistryEventHandler}

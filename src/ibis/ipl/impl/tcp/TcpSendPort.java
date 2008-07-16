@@ -60,9 +60,12 @@ final class TcpSendPort extends SendPort implements TcpProtocol {
         splitter =
                 new OutputStreamSplitter(
                         !type.hasCapability(PortType.CONNECTION_ONE_TO_ONE)
-                                && !type
-                                        .hasCapability(PortType.CONNECTION_MANY_TO_ONE),
-                        false);
+                                && !type.hasCapability(
+                                    PortType.CONNECTION_MANY_TO_ONE),
+                        type.hasCapability(PortType.CONNECTION_ONE_TO_MANY) 
+                                || type.hasCapability(
+                                    PortType.CONNECTION_MANY_TO_MANY));
+            
 
         bufferedStream = new BufferedArrayOutputStream(splitter, 4096);
         initStream(bufferedStream);
@@ -115,6 +118,20 @@ final class TcpSendPort extends SendPort implements TcpProtocol {
         if (type.hasCapability(PortType.COMMUNICATION_NUMBERED)) {
             out.writeLong(ibis.registry().getSequenceNumber(name));
         }
+    }
+
+    protected synchronized void finishMessage(WriteMessage w, long cnt)
+            throws IOException {
+        if (type.hasCapability(PortType.CONNECTION_ONE_TO_MANY)
+                || type.hasCapability(PortType.CONNECTION_MANY_TO_MANY)) {
+            // exception may have been saved by the splitter. Get them
+            // now.
+            SplitterException e = splitter.getExceptions();
+            if (e != null) {
+                gotSendException(w, e);
+            }
+        }
+        super.finishMessage(w, cnt);
     }
 
     protected void handleSendException(WriteMessage w, IOException x) {

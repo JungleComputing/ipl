@@ -43,7 +43,7 @@ import java.util.Map;
  * message is alive, and a new message is requested, the request
  * blocks until the live message is finished.
  *
- * The following {@link Managable} items are recognized:
+ * The following {@link Manageable} items are recognized:
  * <br>
  * "Messages"  the number of messages sent;
  * <br>
@@ -60,7 +60,7 @@ import java.util.Map;
  *
  * Other items may be recognized, depending on the Ibis implementation.
  */
-public interface SendPort extends Managable {
+public interface SendPort extends Manageable {
 
     /**
      * Returns the type that was used to create this port.

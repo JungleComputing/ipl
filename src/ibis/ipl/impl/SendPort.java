@@ -4,7 +4,7 @@ package ibis.ipl.impl;
 
 import ibis.io.DataOutputStream;
 import ibis.io.Replacer;
-import ibis.io.SerializationBase;
+import ibis.io.SerializationFactory;
 import ibis.io.SerializationOutput;
 import ibis.ipl.AlreadyConnectedException;
 import ibis.ipl.ConnectionFailedException;
@@ -28,7 +28,7 @@ import org.apache.log4j.Logger;
  * Implementation of the {@link ibis.ipl.SendPort} interface, to be extended
  * by specific Ibis implementations.
  */
-public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
+public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
 
     /** Debugging output. */
     private static final Logger logger = Logger.getLogger("ibis.ipl.impl.SendPort");
@@ -222,7 +222,7 @@ public abstract class SendPort extends Managable implements ibis.ipl.SendPort {
         } else {
             serialization = "byte";
         }
-        out = SerializationBase.createSerializationOutput(serialization,
+        out = SerializationFactory.createSerializationOutput(serialization,
                 dataOut);
         if (replacer != null) {
             out.setReplacer(replacer);
