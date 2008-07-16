@@ -7,7 +7,7 @@ package ibis.ipl.impl.mx;
 interface Config {
 
     /** Byte buffer size used. Must be a multiple of eight.  */
-    static final int BYTE_BUFFER_SIZE = 80 * 1024;
+//    static final int BYTE_BUFFER_SIZE = 80 * 1024;
 
     /**
      * Buffer sized used for primitive buffers. Must be a multiple of eight.

@@ -4,16 +4,13 @@ import java.io.IOException;
 import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
-import java.util.concurrent.ArrayBlockingQueue;
 
 import org.apache.log4j.Logger;
 
 public abstract class MxWriteChannel implements WriteChannel, Config {
 
 	private static Logger logger = Logger.getLogger(MxWriteChannel.class);
-	
-	//private ArrayBlockingQueue<SendBuffer> queue;
-	
+		
 	private SendBuffer[] buffers = new SendBuffer[FLUSH_QUEUE_SIZE];
 	private int[] handles = new int[FLUSH_QUEUE_SIZE];
 	private int first, queuedBuffers;
@@ -24,16 +21,12 @@ public abstract class MxWriteChannel implements WriteChannel, Config {
 	protected MxAddress target;
 	protected long matchData = Matching.NONE;
 
-	//protected ByteOrder order = ByteOrder.BIG_ENDIAN;
-
 	protected MxWriteChannel(MxChannelFactory factory, MxAddress target, int filter) throws IOException {
 		this.factory = factory;
 		this.link = JavaMx.links.getLink();
 		if(JavaMx.connect(factory.endpointId, link, target.nicId, target.endpointId, filter) == false) {
 			throw new IOException("Could not connect to target");
 		}
-		//logger.debug("Connected to " + target.toString());
-		//queue = new ArrayBlockingQueue<SendBuffer>(FLUSH_QUEUE_SIZE);
 		
 		for (int i = 0; i < FLUSH_QUEUE_SIZE; i++) {
 			handles[i] = JavaMx.handles.getHandle();

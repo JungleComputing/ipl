@@ -1,6 +1,5 @@
 package ibis.ipl.impl.mx;
 
-import ibis.ipl.impl.ReceivePort;
 import ibis.ipl.impl.ReceivePortConnectionInfo;
 import ibis.ipl.impl.SendPortIdentifier;
 import ibis.util.ThreadPool;

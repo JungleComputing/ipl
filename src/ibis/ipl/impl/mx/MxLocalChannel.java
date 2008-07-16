@@ -10,7 +10,7 @@ import org.apache.log4j.Logger;
 public class MxLocalChannel implements ReadChannel, WriteChannel {
 
 	private static Logger logger = Logger.getLogger(MxLocalChannel.class);
-	private static final int BYTE_BUFFER_SIZE2 = 7 * Config.PRIMITIVE_BUFFER_SIZE + SendBuffer.SIZEOF_HEADER + SendBuffer.SIZEOF_PADDING;
+	private static final int BYTE_BUFFER_SIZE = 7 * Config.PRIMITIVE_BUFFER_SIZE + SendBuffer.SIZEOF_HEADER + SendBuffer.SIZEOF_PADDING;
 	
 	private boolean closed = false;
 	
@@ -19,7 +19,7 @@ public class MxLocalChannel implements ReadChannel, WriteChannel {
 	
 	MxLocalChannel() {
 		logger.debug("Local channel created");
-		buffer = ByteBuffer.allocate(BYTE_BUFFER_SIZE2); //We don't need a direct buffer here
+		buffer = ByteBuffer.allocate(BYTE_BUFFER_SIZE); //We don't need a direct buffer here
 	}
 	
 	/* Common: */

@@ -3,12 +3,8 @@ package ibis.ipl.impl.mx;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.ShortBuffer;
-
-import org.apache.log4j.Logger;
 
 public class MxUnreliableWriteChannel extends MxWriteChannel {
-	private static Logger logger = Logger.getLogger(MxUnreliableWriteChannel.class);
 	
 	MxUnreliableWriteChannel(MxChannelFactory factory, MxAddress target, int filter) throws IOException {
 		super(factory, target, filter);
@@ -32,7 +28,6 @@ public class MxUnreliableWriteChannel extends MxWriteChannel {
 				bufs[SendBuffer.PADDING], bufs[SendBuffer.PADDING].remaining(),
 				factory.endpointId, link, handle, matchData
 				);
-		logger.debug("" + buffer.remaining() + " bytes sent");
 	}
 
 }

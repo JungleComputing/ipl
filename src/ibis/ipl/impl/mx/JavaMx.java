@@ -57,7 +57,7 @@ final class JavaMx {
 			}
 			inUse[handle] = true;
 			activeHandles++;
-			//logger.debug("Handle " + handle + " distributed");
+			logger.debug("Handle " + handle + " distributed");
 
 			return handle;
 		}
@@ -69,12 +69,14 @@ final class JavaMx {
 		protected synchronized void releaseHandle(int handle) {	
 			inUse[handle] = false;
 			activeHandles--;
-			//logger.debug("Handle " + handle + " freed");
+			logger.debug("Handle " + handle + " released");
 		}
 		
 	}
 	
 	static final class LinkManager {
+		private static Logger logger = Logger.getLogger(LinkManager.class);
+		
 		int size, blockSize, maxBlocks, activeTargets;
 		boolean[] inUse;
 		
@@ -123,6 +125,8 @@ final class JavaMx {
 			}
 			inUse[target] = true;
 			activeTargets++;
+			
+			logger.debug("Link " + target + " distributed");
 			return target;
 		}
 		
@@ -133,6 +137,7 @@ final class JavaMx {
 		protected synchronized void releaseLink(int target) {
 			inUse[target] = false;
 			activeTargets--;
+			logger.debug("Link " + target + " released");
 		}
 	}
 	

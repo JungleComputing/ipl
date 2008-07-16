@@ -1,6 +1,3 @@
-/**
- * 
- */
 package ibis.ipl.impl.mx;
 
 import java.io.IOException;
@@ -50,10 +47,6 @@ class MxReceivePort extends ReceivePort implements Identifiable<MxReceivePort>, 
 			ThreadPool.createNew(this, "MxReceivePort Upcall Thread");
 		}
 	}
-		
-	/* ********************************************
-	 * Methods that can be overridden optionally:
-	 *********************************************/
 
 	@Override
 	public synchronized void closePort(long timeout) {
@@ -63,10 +56,7 @@ class MxReceivePort extends ReceivePort implements Identifiable<MxReceivePort>, 
 		for(ReceivePortConnectionInfo rpci: conns) {
 			((MxReceivePortConnectionInfo)rpci).receivePortcloses();
 		}
-		
 		super.closePort(timeout);
-		// FIXME broken without timeout
-		//super.closePort(10000);
 		portManager.remove(portId);
 	}
 
@@ -388,7 +378,7 @@ class MxReceivePort extends ReceivePort implements Identifiable<MxReceivePort>, 
 					return result;
 				}
 				result = Matching.getChannel(
-    					JavaMx.waitForMessage(((MxIbis)ibis).factory.endpointId, 100, Matching.construct(Matching.PROTOCOL_DATA, portId, (short)0), ~Matching.CHANNEL_MASK)
+    					JavaMx.waitForMessage(((MxIbis)ibis).factory.endpointId, 50, Matching.construct(Matching.PROTOCOL_DATA, portId, (short)0), ~Matching.CHANNEL_MASK)
 					);
 			}
 			logger.debug("getReadyConnection(timeout) found channel");

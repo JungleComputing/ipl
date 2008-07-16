@@ -3,13 +3,8 @@ package ibis.ipl.impl.mx;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.ShortBuffer;
-
-import org.apache.log4j.Logger;
 
 public class MxReliableWriteChannel extends MxWriteChannel {
-
-	private static Logger logger = Logger.getLogger(MxReliableWriteChannel.class);
 	
 	MxReliableWriteChannel(MxChannelFactory factory, MxAddress target, int filter) throws IOException {
 		super(factory, target, filter);

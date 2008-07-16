@@ -64,11 +64,11 @@ public class MxIbis extends Ibis {
 			SendPortDisconnectUpcall cu, Properties properties)
 			throws IOException {
 		if (tp.hasCapability(PortType.COMMUNICATION_RELIABLE)) {
-			//logger.debug("creating reliable channel");
+			logger.debug("creating reliable channel");
 
 			return new MxSendPort(this, tp, name, cu, properties, true);
 		} else {
-			//logger.debug("creating unreliable channel");
+			logger.debug("creating unreliable channel");
 
 			return new MxSendPort(this, tp, name, cu, properties, false);
 		}

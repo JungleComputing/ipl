@@ -77,10 +77,8 @@ private int unmatchedPortTypes;
 	}
 
 	@Override
-	public boolean isSelectable() {
-		// TODO: decide later whether it should be selectable
-		//return false;		
-		return JavaMx.initialized; //true when myriexpress C library is found
+	public boolean isSelectable() {		
+		return JavaMx.initialized; //true when myriexpress C library is found and JavaMx is initialized successfully 
 	}
 	
 	@Override

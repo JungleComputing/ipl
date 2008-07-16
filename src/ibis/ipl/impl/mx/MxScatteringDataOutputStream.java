@@ -1,8 +1,6 @@
 package ibis.ipl.impl.mx;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.concurrent.ArrayBlockingQueue;
 
 import org.apache.log4j.Logger;
@@ -80,13 +78,12 @@ public class MxScatteringDataOutputStream extends MxDataOutputStream {
 
 	protected synchronized void add(WriteChannel connection) {
 		// end all current transfers
-		/*try {
+		try {
 			flush();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			System.exit(1);
-		}*/
+			// well, stream is already closed, I think
+			// TODO filter for ClosedConnectionException or something
+		}
 	
 		if (nrOfConnections == connections.length) {
             WriteChannel[] newConnections = new MxWriteChannel[connections.length * 2];

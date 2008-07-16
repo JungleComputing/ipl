@@ -8,19 +8,15 @@ import ibis.ipl.impl.ReceivePortIdentifier;
 import ibis.ipl.impl.SendPortConnectionInfo;
 
 class MxSendPortConnectionInfo extends SendPortConnectionInfo {
-
-	private static Logger logger = Logger.getLogger(MxSendPortConnectionInfo.class);
 	
 	MxScatteringDataOutputStream mxsdos;
 	WriteChannel connection;
-//	private MxAddress address;
 	
 	MxSendPortConnectionInfo(MxSendPort port, ReceivePortIdentifier target, WriteChannel connection) {
 		super(port, target);
 		mxsdos = port.scatteringStream;
 		this.connection = connection;
 		mxsdos.add(connection);
-		//logger.debug("connection added");
 	}
 
 	@Override

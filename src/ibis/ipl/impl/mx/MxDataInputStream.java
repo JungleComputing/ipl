@@ -40,9 +40,8 @@ public abstract class MxDataInputStream extends DataInputStream implements Confi
     private static final int BYTES = 7;
     private static final int SIZEOF_HEADER = 16;
     
-    /** the size of the primitve buffers + header and padding sizes */
-    //TODO remove BYTE_BUFFER_SIZE from Config
-    private static final int BYTE_BUFFER_SIZE2 = 7 * PRIMITIVE_BUFFER_SIZE + SIZEOF_HEADER + SendBuffer.SIZEOF_PADDING;
+    /** the size of the primitive buffers + header and padding sizes */
+    private static final int BYTE_BUFFER_SIZE = 7 * PRIMITIVE_BUFFER_SIZE + SIZEOF_HEADER + SendBuffer.SIZEOF_PADDING;
     
 	private ByteBuffer buffer;
 	
@@ -62,7 +61,7 @@ public abstract class MxDataInputStream extends DataInputStream implements Confi
     
 	public MxDataInputStream() {
 		
-		buffer = ByteBuffer.allocateDirect(BYTE_BUFFER_SIZE2).order(order);
+		buffer = ByteBuffer.allocateDirect(BYTE_BUFFER_SIZE).order(order);
 		buffer.flip(); // start with an empty buffer
 		
 		this.order = ByteOrder.BIG_ENDIAN;

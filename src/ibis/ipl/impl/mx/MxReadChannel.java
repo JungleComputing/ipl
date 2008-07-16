@@ -38,7 +38,6 @@ public class MxReadChannel implements ReadChannel {
 			if(!senderClosed) {
 				// inform the senders about closing this channel
 				if(receiving) {
-					// FIXME can result in a SIGSEGV, in libmyriexpress
 					JavaMx.cancel(factory.endpointId, handle); //really stop current reception, or wait for it?
 					//JavaMx.wakeup(endpointId);
 					/*if (logger.isDebugEnabled()) {
@@ -75,7 +74,7 @@ public class MxReadChannel implements ReadChannel {
 		if(receiving) {
 			// someone is receiving, let him detect whether the channel is already closed completetely 
 			JavaMx.cancel(factory.endpointId, handle); //really stop current reception, or wait for it?
-			notifyAll(); //TODO do we need this here? In any case, it is not wrong...
+			notifyAll();
 			return false;	
 		} else { 
 			// nobody is waiting for a message, check whether there is no message on its way yourself
@@ -127,7 +126,7 @@ public class MxReadChannel implements ReadChannel {
 				logger.debug("Receiving...");
 			}*/
 			while(msgSize <= 0) {
-				// ignore messages of 0 bytes
+				// TODO ignore messages of 0 bytes
 				synchronized(this) {
 					if(closed) {
 						//logger.debug("read() notices that the connection got closed, aborting");
@@ -148,7 +147,6 @@ public class MxReadChannel implements ReadChannel {
 					JavaMx.recv(buffer, buffer.position(), buffer.remaining(), endpointId, handle, matchData);
 				}
 				if(timeout <= 0) {
-					//FIXME causes an SIGSEGV when closing a the channel in some circumstances: needs investigation
 					msgSize = JavaMx.wait(endpointId, handle);
 				} else {
 					msgSize = JavaMx.wait(endpointId, handle, timeout);

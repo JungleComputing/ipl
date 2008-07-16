@@ -43,42 +43,34 @@ public class MxSendPort extends SendPort {
 	@Override
 	protected void closePort() throws IOException {
 		/* 
-		 * Send a msg with DISCONNECT to all connected receiveports
 		 * Close out and dataOut streams
 		 */
-		// for all receiveports: disconnect(ReceivePortIdentifier)
 		out.close();
-		dataOut.close(); //throws an exception at MxSimpleDataOutputstream
+		dataOut.close(); // sends a disconnect message to the Channelfactory of the receiver at the channel level
 	}
 
 	@Override
 	protected MxSendPortConnectionInfo doConnect(ReceivePortIdentifier receiver,
 			long timeout, boolean fillTimeout) throws IOException {
-		/* 
-		 * send CONNECT to receiveport
-		 * negotiate port number
-		 * construct the SendPortConnectionInfo
-		 */
 		logger.debug("connecting...");
 		MxSendPortConnectionInfo connectionInfo = new MxSendPortConnectionInfo(this, receiver, factory.connect(this, receiver, timeout, fillTimeout, reliable));
 		logger.debug("connected!");
-		initStream(scatteringStream); // or something like this
+		initStream(scatteringStream);
 		return connectionInfo;
 	}
 
 	@Override
 	protected void handleSendException(WriteMessage w, IOException e) {
-		//TODO
+		//TODO something?
 		logger.debug("handleSendException", e);
 	}
 
 	@Override
 	protected void sendDisconnectMessage(ReceivePortIdentifier receiver,
 			SendPortConnectionInfo c) throws IOException {
-		
 		/*
 		 * send a DISCONNECT message
 		 */
-		// don't have one yet
+		// TODO don't have one (yet)
 	}
 }

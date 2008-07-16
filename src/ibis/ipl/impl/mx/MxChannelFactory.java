@@ -17,7 +17,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 
 import org.apache.log4j.Logger;
 
@@ -63,9 +62,7 @@ public class MxChannelFactory implements Runnable {
 			throw new IOException("Endpoint is closed");
 		}
 
-
 		logger.debug("Connecting...");
-
 		
 		IbisIdentifier id = (ibis.ipl.impl.IbisIdentifier) rpi.ibisIdentifier();
 		if(id.equals(ibis.ident)) {
@@ -235,8 +232,7 @@ public class MxChannelFactory implements Runnable {
 		while(deadline == 0 || System.currentTimeMillis() < deadline) {
 			byte reply = rp.connectionAllowed(sp.ident, sp.type);
 			if(reply == ReceivePort.ACCEPTED) {
-				channel = new MxLocalChannel();
-				//mxdis = new MxSimpleDataInputStream(channel, ByteOrder.nativeOrder()); 
+				channel = new MxLocalChannel(); 
 				mxdis = new MxDataInputStreamImpl(channel);
 				info = new MxReceivePortConnectionInfo(sp.ident, rp, mxdis, this);
 				return channel;
@@ -361,11 +357,6 @@ public class MxChannelFactory implements Runnable {
 						
 						info = new MxReceivePortConnectionInfo(spi, port, mxdis, this);
 						// setup the Matching properties of the ReadChannel
-						/* old:
-						rc.setReceivePort(port.portId.value);
-						rc.setChannel(info.channelId.value);
-						rc.setProtocol(Matching.DATA);
-						*/
 						rc.matchData = Matching.construct(Matching.PROTOCOL_DATA, port.getIdentifier(), info.getIdentifier());
 						// channel is now connected to the ReceivePort
 
@@ -388,10 +379,6 @@ public class MxChannelFactory implements Runnable {
 			// setup the channel to send the reply
 			try {
 				wc = new MxUnreliableWriteChannel(this, replyAddress, IBIS_FILTER);
-				/* old:
-				wc.setConnection(dis.readInt()); // set the port to send the reply to
-				wc.setProtocol(Matching.CONNECT_REPLY);
-				*/
 				wc.matchData = Matching.construct(Matching.PROTOCOL_CONNECT_REPLY, dis.readInt());
 			} catch (IOException e) {
 				logger.error(e.getMessage());
@@ -407,9 +394,7 @@ public class MxChannelFactory implements Runnable {
 			mxdos.writeByte(reply);
 
 			if (reply == ReceivePort.ACCEPTED) {
-				// also write port number and endianness
-
-				//mxdis.resetBytesRead(); //not needed anymore. A new DIS is already made for the ReceivePort
+				// also write port number
 				mxdos.writeInt(Matching.getConnection(rc.matchData));
 			}
 			mxdos.flush();
@@ -530,14 +515,10 @@ public class MxChannelFactory implements Runnable {
 		rc.matchData = matchData;
 		MxDataInputStream mxdis = new MxDataInputStreamImpl(rc);
 		DataInputStream dis = new DataInputStream(mxdis);
-		//SendPortIdentifier spi = null;
 		ReceivePortIdentifier rpi = null;
 		String sendPortName = null;
-		//String receivePortName = null;
 		try {
-			sendPortName = dis.readUTF();
-			//receivePortName = dis.readUTF();
-			//spi = new SendPortIdentifier(dis);		
+			sendPortName = dis.readUTF();		
 			rpi = new ReceivePortIdentifier(dis);
 		} catch (IOException e) {
 			// TODO Should not happen, discard message and continue
@@ -646,7 +627,6 @@ public class MxChannelFactory implements Runnable {
 		try {
 			dos.writeUTF(rpci.origin.name());
 			rpci.port.ident.writeTo(dos);
-			//dos.writeUTF(rpci.port.name());
 			dos.flush();
 			mxdos.finish();
 			dos.close();
