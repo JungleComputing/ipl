@@ -74,8 +74,10 @@ public class MultiIbis implements Ibis {
             logger.debug("Constructing MultiIbis!");
         }
         HashMap<String, IbisIdentifier>subIdMap = new HashMap<String, IbisIdentifier>();
+
         if (! (userProperties instanceof TypedProperties) ) {
-            properties = new TypedProperties(userProperties);
+            properties = new TypedProperties();
+            properties.addProperties(userProperties);
         }
         else {
             properties = (TypedProperties)userProperties;
@@ -132,12 +134,6 @@ public class MultiIbis implements Ibis {
                     starterClassName = "ibis.ipl.impl.tcp.TcpIbisStarter";
                 }
 
-                // Load this in a new class loader.
-//                MultiClassLoader loader = new MultiClassLoader(ibisName, properties);
-//                ClassLoader defaultLoader = Thread.currentThread().getContextClassLoader();
-//                Thread.currentThread().setContextClassLoader(loader);
-
-
                 Class<IbisStarter> starterClass = (Class<IbisStarter>)Class.forName(starterClassName);
                 IbisStarter starterInstance = starterClass.newInstance();
                 logger.debug("Created starter instance: " + starterInstance);
@@ -150,7 +146,44 @@ public class MultiIbis implements Ibis {
                         handler = new MultiRegistryEventHandler(this, registryEventHandler);
                     }
 
-                    Ibis ibis = starterInstance.startIbis(handler, properties);
+                    // Override properties for this type
+                    TypedProperties props;
+                    if (ibisName != null && !ibisName.equals(starterClassName)) {
+                        props = (TypedProperties)properties.clone();
+
+                        // Check for properties file
+                        String file = MultiIbisProperties.PROPERTIES_FILE + ibisName;
+                        if(props.containsKey(file)) {
+                            if (logger.isDebugEnabled()) {
+                                logger.debug("Loading Properties File: " + props.get(file));
+                            }
+                            props.loadFromFile(props.getProperty(file));
+                        }
+
+                        // Now check for individual properties
+                        String prefix = MultiIbisProperties.PROPERTIES + ibisName + ".";
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("Checking for property overrides using: " + prefix + " : " + properties.size() + ":" + props.size());
+                        }
+                        for (Object propObj:properties.keySet()) {
+                            String property = (String)propObj;
+                            if (property.startsWith(prefix)) {
+                                String propName = property.substring(prefix.length());
+                                String value = props.getProperty(property);
+                                props.remove(propName);
+                                props.put(propName, value);
+                                if (logger.isDebugEnabled()) {
+                                    logger.debug("Override of property: " + propName + " : " + value + " now: " + props.get(propName));
+                                }
+                            }
+                        }
+                    }
+                    else {
+                        props = properties;
+                    }
+
+                    // Start up the ibis
+                    Ibis ibis = starterInstance.startIbis(handler, props);
 
                     if (ibisName == null) {
                         ibisName = ibis.getClass().getName();
@@ -193,29 +226,6 @@ public class MultiIbis implements Ibis {
         if (subIbisMap.size() == 0) {
             throw new RuntimeException("Unable to find any starters!");
         }
-
-//        for (IbisStarter starter : stack) {
-//            if (logger.isDebugEnabled()) {
-//                logger.debug("Starting ibis: " + starter.getClass().getName());
-//            }
-//            MultiRegistryEventHandler handler = new MultiRegistryEventHandler(this, registryEventHandler);
-//            Ibis ibis = starter.startIbis(handler, properties);
-//            String ibisName = ibis.getClass().getName();
-//            handler.setName(ibisName);
-//            if (logger.isDebugEnabled()) {
-//                logger.debug("Started ibis: " + ibisName);
-//            }
-//            subIbisMap.put(ibisName, ibis);
-//            subIdMap.put(ibisName, ibis.identifier());
-//
-//            // Start the name resolution service for this ibis
-//            try {
-//                ThreadPool.createNew(new MultiNameResolver(this, ibisName), "Name Resolution");
-//            }
-//            catch (IOException e) {
-//                throw new IbisCreationFailedException("Unable to create resolver.", e);
-//            }
-//        }
 
         String poolName = userProperties.getProperty(IbisProperties.POOL_NAME);
         Location location = Location.defaultLocation(userProperties);
