@@ -10,6 +10,7 @@ import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.ReceivePortIdentifier;
+import ibis.ipl.ReceiveTimedOutException;
 import ibis.ipl.SendPortIdentifier;
 import ibis.util.ThreadPool;
 
@@ -18,7 +19,6 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -43,66 +43,51 @@ public class MultiReceivePort implements ReceivePort {
 
     private final MultiIbis ibis;
 
+    private boolean handlersStarted;
+
     private final class DowncallHandler implements Runnable {
 
         private final ReceivePort subPort;
+        private final String ibisName;
 
-        boolean poll = false;
-        boolean receive = false;
-        long timeout = 0;
-        boolean quit = false;
+        boolean running = false;
 
-        public DowncallHandler(ReceivePort subPort) {
+        public DowncallHandler(ReceivePort subPort, String ibisName) {
             this.subPort = subPort;
+            this.ibisName = ibisName;
         }
 
         public void run() {
-            while (!quit) {
+            running = true;
+            while (running) {
+//                logger.debug("Reading message");
                 ReadMessage message = null;
                 IOException exception = null;
-                if (poll) {
-                    try {
-                        message = subPort.poll();
-                    }
-                    catch (IOException e) {
-                        exception = e;
-                    }
-                    poll = false;
+
+                try {
+                    message = subPort.receive();
+                } catch (IOException e) {
+                    exception = e;
                 }
-                else if (receive) {
-                    try {
-                        if (timeout > 0) {
-                            message = subPort.receive(timeout);
-                        }
-                        else {
-                            message = subPort.receive();
-                        }
-                    } catch (IOException e) {
-                        exception = e;
-                    }
-                    receive = false;
-                }
-                if (message != null || exception != null) {
-                    synchronized (messageQueue) {
+//                logger.debug("Run Locking Message Queue");
+                synchronized (messageQueue) {
+//                    logger.debug("Run setting result: " + message + " : " + exception);
+                    if (message != null || exception != null) {
                         if (message != null) {
                             messageQueue.add(new MultiReadMessage(message, ibis.receivePortMap.get(subPort)));
-                            messageQueue.notify();
                         }
                         else if (exception != null) {
                             exceptionQueue.add(exception);
-                            messageQueue.notify();
                         }
-                    }
-                }
-                synchronized (this) {
-                    try {
-                        this.wait();
-                    }
-                    catch (InterruptedException e) {
-                        // Ignored
+                        else {
+                            exceptionQueue.add(new ReceiveTimedOutException("Timeout waiting for message."));
+                        }
+//                        logger.debug("Run notifying");
+                        messageQueue.notifyAll();
                     }
                 }
             }
+//            logger.debug("Handler exiting");
         }
     }
 
@@ -159,10 +144,13 @@ public class MultiReceivePort implements ReceivePort {
             String name, MessageUpcall upcall, ReceivePortConnectUpcall connectUpcall,
             Properties properties)
             throws IOException {
+
+        this.id = new MultiReceivePortIdentifier(ibis.identifier(), name);
+
+        // Wrap the upcaller if there is one
         if (upcall != null) {
             upcall = new Upcaller(upcall, this);
         }
-        this.id = new MultiReceivePortIdentifier(ibis.identifier(), name);
 
         for (String ibisName:ibis.subIbisMap.keySet()) {
             Ibis subIbis = ibis.subIbisMap.get(ibisName);
@@ -174,9 +162,13 @@ public class MultiReceivePort implements ReceivePort {
             subPortMap.put(ibisName, subPort);
             ibis.receivePortMap.put(subPort, this);
             id.addSubId(ibisName, subPort.identifier());
-            DowncallHandler handler = new DowncallHandler(subPort);
-            handlers.add(handler);
-            ThreadPool.createNew(handler, "ReceivePort: " + ibisName + ":" + name);
+            if (type.hasCapability(PortType.RECEIVE_EXPLICIT) ||
+                type.hasCapability(PortType.RECEIVE_POLL) ||
+                type.hasCapability(PortType.RECEIVE_POLL_UPCALLS) ||
+                type.hasCapability(PortType.RECEIVE_TIMEOUT)) {
+                DowncallHandler handler = new DowncallHandler(subPort, ibisName);
+                handlers.add(handler);
+            }
         }
 
         this.ManageableMapper = new ManageableMapper((Map)subPortMap);
@@ -184,16 +176,11 @@ public class MultiReceivePort implements ReceivePort {
         this.ibis = ibis;
     }
 
-    private void quit(List<DowncallHandler> handlers) {
-        for (DowncallHandler handler: handlers) {
-            synchronized(handler) {
-                handler.quit = true;
-                handler.notify();
-            }
-        }
-    }
-
     public synchronized void close() throws IOException {
+        for(DowncallHandler handler:handlers) {
+            handler.running = false;
+            // TODO connect to wake? Or will close wake?
+        }
         for(ReceivePort port:subPortMap.values()) {
             try {
                 port.close();
@@ -202,7 +189,7 @@ public class MultiReceivePort implements ReceivePort {
                 // TODO Bundle up exceptions
             }
         }
-        quit(handlers);
+        ibis.closeReceivePort(this);
     }
 
     public synchronized void close(long timeoutMillis) throws IOException {
@@ -216,7 +203,6 @@ public class MultiReceivePort implements ReceivePort {
                 // TODO Bundle up exceptions
             }
         }
-        quit(handlers);
     }
 
     public synchronized SendPortIdentifier[] connectedTo() {
@@ -305,29 +291,22 @@ public class MultiReceivePort implements ReceivePort {
     }
 
     public synchronized ReadMessage poll() throws IOException {
+        ReadMessage result = null;
         synchronized (messageQueue) {
             if (messageQueue.size() == 0) {
-                for (DowncallHandler handler:handlers) {
-                    synchronized(handler) {
-                        handler.poll = true;
-                        handler.notify();
+                // Poll all subports for fairness
+                for (ReceivePort port:subPortMap.values()) {
+                    ReadMessage message = port.poll();
+                    if (message != null) {
+                        messageQueue.add(new MultiReadMessage(message, this));
                     }
-                }
-                do {
-                    try {
-                        messageQueue.wait();
-                    }
-                    catch (InterruptedException e) {
-                        // Ignore
-                    }
-                }
-                while (messageQueue.size() == 0 && exceptionQueue.size() == 0);
-                if (messageQueue.size() == 0) {
-                    throw exceptionQueue.get(0);
                 }
             }
-            return messageQueue.remove(0);
+            if (messageQueue.size() > 0) {
+                result = messageQueue.remove(0);
+            }
         }
+        return result;
     }
 
     public ReadMessage receive() throws IOException {
@@ -335,18 +314,32 @@ public class MultiReceivePort implements ReceivePort {
     }
 
     public synchronized ReadMessage receive(long timeoutMillis) throws IOException {
+        if (handlers.size() == 0) {
+            throw new IOException("Downcalls Not Configured!");
+        }
+//        logger.debug("> receive");
+        // TODO: What is the cost of this lazy init?
+        if (!handlersStarted) {
+//            logger.debug("Starting handlers.");
+            for (DowncallHandler handler:handlers) {
+                    ThreadPool.createNew(handler, "Handler Thread: "+handler.ibisName);
+            }
+            handlersStarted = true;
+        }
+        ReadMessage ret = null;
         synchronized (messageQueue) {
+//            logger.debug(">> messageQueue locked");
             if (messageQueue.size() == 0) {
-                for (DowncallHandler handler:handlers) {
-                    synchronized(handler) {
-                        handler.receive = true;
-                        handler.timeout = timeoutMillis;
-                        handler.notify();
-                    }
-                }
                 do {
                     try {
-                        messageQueue.wait();
+//                        logger.debug("Waiting for message.");
+                        if (timeoutMillis > 0) {
+                            messageQueue.wait(timeoutMillis);
+                        }
+                        else {
+                            messageQueue.wait();
+                        }
+//                        logger.debug("Woke from wait.");
                     }
                     catch (InterruptedException e) {
                         // Ignore
@@ -354,11 +347,15 @@ public class MultiReceivePort implements ReceivePort {
                 }
                 while (messageQueue.size() == 0 && exceptionQueue.size() == 0);
                 if (messageQueue.size() == 0) {
-                    throw exceptionQueue.get(0);
+//                    logger.debug("Throwing exception!");
+                    Exception e = exceptionQueue.remove(0);
+                    exceptionQueue.clear();
                 }
             }
-            return messageQueue.remove(0);
+            ret = messageQueue.remove(0);
         }
+//        logger.debug("< receive");
+        return ret;
     }
 
     public String getManagementProperty(String key)

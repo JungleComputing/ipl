@@ -26,10 +26,10 @@ public class MultiRegistry implements Registry{
 
     private final HashMap<String, Registry>subRegistries;
 
-    final HashMap<MultiIbisIdentifier, MultiIbisIdentifier>joined = new HashMap<MultiIbisIdentifier, MultiIbisIdentifier>();
-    final HashMap<MultiIbisIdentifier, MultiIbisIdentifier>left = new HashMap<MultiIbisIdentifier, MultiIbisIdentifier>();
-    final HashMap<MultiIbisIdentifier, MultiIbisIdentifier>died = new HashMap<MultiIbisIdentifier, MultiIbisIdentifier>();
-    final HashMap<String, MultiIbisIdentifier>elected = new HashMap<String, MultiIbisIdentifier>();
+    final Map<MultiIbisIdentifier, MultiIbisIdentifier>joined = Collections.synchronizedMap(new HashMap<MultiIbisIdentifier, MultiIbisIdentifier>());
+    final Map<MultiIbisIdentifier, MultiIbisIdentifier>left = Collections.synchronizedMap(new HashMap<MultiIbisIdentifier, MultiIbisIdentifier>());
+    final Map<MultiIbisIdentifier, MultiIbisIdentifier>died = Collections.synchronizedMap(new HashMap<MultiIbisIdentifier, MultiIbisIdentifier>());
+    final Map<String, MultiIbisIdentifier>elected = Collections.synchronizedMap(new HashMap<String, MultiIbisIdentifier>());
 
     @SuppressWarnings("unchecked")
     public MultiRegistry(MultiIbis multiIbis) {
@@ -142,7 +142,7 @@ public class MultiRegistry implements Registry{
                 if (!elected.isEmpty()) {
                     Collections.sort(elected);
                     if (logger.isDebugEnabled()) {
-                        logger.debug("Elected: " + ibis.mapIdentifier(elected.get(0).id, elected.get(0).ibisName));
+                        logger.debug("Elected: " + elected.get(0));
                     }
                     return ibis.mapIdentifier(elected.get(0).id, elected.get(0).ibisName);
                 }
@@ -169,20 +169,29 @@ public class MultiRegistry implements Registry{
 
     public IbisIdentifier getElectionResult(String electionName,
             long timeoutMillis) throws IOException {
+        IbisIdentifier results = null;
+        if (logger.isDebugEnabled()) {
+            logger.debug("Getting Election Results for: " + electionName + " timeout: " + timeoutMillis);
+        }
         timeoutMillis = timeoutMillis / subRegistries.size();
         // TODO This is dumb stupid election management that wont work a lot of the time
         ArrayList<IbisIdentifier>elected = new ArrayList<IbisIdentifier>();
-        for (Registry subRegistry: subRegistries.values()) {
+        for (String ibisName: subRegistries.keySet()) {
+            Registry subRegistry = subRegistries.get(ibisName);
+            // TODO: This expands the timeout.
             IbisIdentifier winner = subRegistry.getElectionResult(electionName, timeoutMillis);
             if (winner != null) {
-
+                elected.add(ibis.mapIdentifier(winner, ibisName));
             }
         }
         if (!elected.isEmpty()) {
             Collections.sort(elected);
-            return elected.get(0);
+            results =  elected.get(0);
         }
-        return null;
+        if (logger.isDebugEnabled()) {
+            logger.debug("ElectionResult : " + electionName + " : "+ results);
+        }
+        return results;
     }
 
     public int getPoolSize() {

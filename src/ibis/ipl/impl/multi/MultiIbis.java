@@ -20,7 +20,6 @@ import ibis.ipl.SendPort;
 import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.ipl.Registry;
 import ibis.ipl.SendPortIdentifier;
-import ibis.util.ThreadPool;
 import ibis.util.TypedProperties;
 
 import java.io.IOException;
@@ -30,8 +29,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Random;
 import java.util.UUID;
-import java.util.WeakHashMap;
 
 import org.apache.log4j.Logger;
 
@@ -74,7 +73,9 @@ public class MultiIbis implements Ibis {
             logger.debug("Constructing MultiIbis!");
         }
         HashMap<String, IbisIdentifier>subIdMap = new HashMap<String, IbisIdentifier>();
-
+        if (logger.isDebugEnabled()) {
+                org.apache.log4j.MDC.put("UID", String.valueOf(new Random().nextInt()));
+        }
         if (! (userProperties instanceof TypedProperties) ) {
             properties = new TypedProperties();
             properties.addProperties(userProperties);
@@ -203,7 +204,7 @@ public class MultiIbis implements Ibis {
 
                     // Start the name resolution service for this ibis
                     try {
-                        ThreadPool.createNew(new MultiNameResolver(this, ibisName), "Name Resolution: " + ibisName);
+                        new MultiNameResolver(this, ibisName);
                     }
                     catch (IOException e) {
                         throw new IbisCreationFailedException("Unable to create resolver.", e);
@@ -240,7 +241,7 @@ public class MultiIbis implements Ibis {
         for (String ibisName:resolverMap.keySet()) {
             MultiNameResolver resolver = resolverMap.get(ibisName);
             synchronized (resolver) {
-                resolver.notify();
+                resolver.notifyAll();
             }
         }
 
@@ -320,6 +321,14 @@ public class MultiIbis implements Ibis {
         return port;
     }
 
+    public synchronized void closeSendPort(MultiSendPort port) {
+        sendPorts.remove(port);
+    }
+
+    public synchronized void closeReceivePort(MultiReceivePort port) {
+        receivePorts.remove(port);
+    }
+
     public ReceivePort createReceivePort(PortType portType, String name)
             throws IOException {
         return createReceivePort(portType, name, null, null, null);
@@ -353,6 +362,8 @@ public class MultiIbis implements Ibis {
             resolver.resolve(ibisId, ibisName);
             id = idMap.get(ibisId);
         }
+        if (logger.isDebugEnabled())
+            logger.debug("Mapped Identifier: " + ibisId + " to:" + id);
         return id;
     }
 
@@ -379,7 +390,7 @@ public class MultiIbis implements Ibis {
         ManageableMapper.setManagementProperty(key, value);
     }
 
-    private final WeakHashMap<SendPortIdentifier, MultiSendPortIdentifier>sendPortIdMap = new WeakHashMap<SendPortIdentifier, MultiSendPortIdentifier>();
+    private final HashMap<SendPortIdentifier, MultiSendPortIdentifier>sendPortIdMap = new HashMap<SendPortIdentifier, MultiSendPortIdentifier>();
 
     public SendPortIdentifier mapSendPortIdentifier(
             SendPortIdentifier johnDoe, String ibisName) throws IOException {
@@ -392,7 +403,7 @@ public class MultiIbis implements Ibis {
         return id;
     }
 
-    private final WeakHashMap<ReceivePortIdentifier, MultiReceivePortIdentifier>receivePortIdMap = new WeakHashMap<ReceivePortIdentifier, MultiReceivePortIdentifier>();
+    private final HashMap<ReceivePortIdentifier, MultiReceivePortIdentifier>receivePortIdMap = new HashMap<ReceivePortIdentifier, MultiReceivePortIdentifier>();
 
     public ReceivePortIdentifier mapReceivePortIdentifier(
             ReceivePortIdentifier johnDoe, String ibisName) throws IOException {
@@ -409,9 +420,16 @@ public class MultiIbis implements Ibis {
         for (String subIbisName:subIbisMap.keySet()) {
             IbisIdentifier subId = id.subIdForIbis(subIbisName);
             if (subId != null) {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Resolved: " + subId + " to: " + id);
+                }
                 idMap.put(subId, id);
             }
         }
+    }
+
+    public boolean isResolved(IbisIdentifier toResolve) {
+        return idMap.get(toResolve) != null;
     }
 
 }

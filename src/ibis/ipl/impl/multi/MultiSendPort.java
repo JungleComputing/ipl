@@ -78,7 +78,8 @@ public class MultiSendPort implements SendPort {
             this.ibisName = ibisName;
         }
 
-        private void setActive() {
+        private boolean setActive() {
+            boolean set = false;
             synchronized (idQueue) {
                 if (activeSendPort == null) {
                     if (logger.isDebugEnabled()) {
@@ -86,7 +87,8 @@ public class MultiSendPort implements SendPort {
                     }
                     activeSendPort = subPort;
                     activeIbisName = ibisName;
-                    idQueue.notify();
+                    idQueue.notifyAll();
+                    set = true;
                 }
                 else {
                     try {
@@ -100,30 +102,16 @@ public class MultiSendPort implements SendPort {
                 }
                 opcode = OPP_NOOP;
             }
+            return set;
         }
 
-        private void setActive(ReceivePortIdentifier portId) {
+        private boolean setActive(ReceivePortIdentifier portId) {
             synchronized (idQueue) {
-                if (activeSendPort == null) {
-                    if (logger.isDebugEnabled()) {
-                        logger.debug("Setting active SendPort port: " + subPort);
-                    }
-                    activeSendPort = subPort;
-                    activeIbisName = ibisName;
+                boolean ret = setActive();
+                if (ret) {
                     idQueue.add(portId);
-                    idQueue.notify();
                 }
-                else {
-                    try {
-                        if (logger.isDebugEnabled()) {
-                            logger.debug("Closing Inactive SendPort port: " + subPort);
-                        }
-                        subPort.close();
-                    } catch (IOException e) {
-                        // Ignored
-                    }
-                }
-                opcode = OPP_NOOP;
+                return ret;
             }
         }
 
@@ -139,7 +127,7 @@ public class MultiSendPort implements SendPort {
                         if (logger.isDebugEnabled()) {
                             logger.debug("Notifying due to all handlers being done.");
                         }
-                        idQueue.notify();
+                        idQueue.notifyAll();
                     }
                 }
                 opcode = OPP_NOOP;
@@ -164,6 +152,10 @@ public class MultiSendPort implements SendPort {
                             catch (InterruptedException e) {
                                 // Ignored
                             }
+                        }
+                        if (activeSendPort != null) {
+                            logger.debug("We got beat to connect!");
+                            opcode = OPP_NOOP;
                         }
                     }
                     break;
@@ -262,9 +254,9 @@ public class MultiSendPort implements SendPort {
             SendPort subPort = subIbis.createSendPort(type, name, upcaller, props);
             DowncallHandler handler = new DowncallHandler(subPort, ibisName);
             handlers .add(handler);
-            ThreadPool.createNew(handler, "Connect Handler: " + ibisName);
             subPortMap.put(ibisName, subPort);
             ibis.sendPortMap.put(subPort, this);
+            ThreadPool.createNew(handler, "Connect Handler: " + ibisName);
         }
         ManageableMapper = new ManageableMapper((Map)subPortMap);
         this.portType = type;
@@ -286,6 +278,7 @@ public class MultiSendPort implements SendPort {
                 // TODO Bundle up exceptions
             }
         }
+        ibis.closeSendPort(this);
     }
 
     public void connect(ReceivePortIdentifier receiver) throws ConnectionFailedException {
@@ -349,7 +342,12 @@ public class MultiSendPort implements SendPort {
 
     public synchronized ReceivePortIdentifier connect(IbisIdentifier id, String name, long timeoutMillis, boolean fillTimeout) throws ConnectionFailedException {
         synchronized (idQueue) {
-            logger.debug("Connecting...");
+            if (id == null) {
+                throw new IllegalArgumentException("Null ibis identifier!");
+            }
+            if (logger.isDebugEnabled()) {
+                        logger.debug("Connecting to: " + id + ":" + name + " timeout: " + timeoutMillis + " fill: " + fillTimeout);
+            }
             errorQueue.clear();
             idQueue.clear();
             handlerCount = 0;
@@ -581,6 +579,7 @@ public class MultiSendPort implements SendPort {
     }
 
     public WriteMessage newMessage() throws IOException {
+        // TODO: Throw error if activeSendPort is null?
         return new MultiWriteMessage(activeSendPort.newMessage(), this);
     }
 
@@ -611,7 +610,7 @@ public class MultiSendPort implements SendPort {
         for(DowncallHandler handler:port.handlers) {
             handler.opcode = DowncallHandler.OPP_QUIT;
             synchronized (handler) {
-                handler.notify();
+                handler.notifyAll();
             }
         }
     }
