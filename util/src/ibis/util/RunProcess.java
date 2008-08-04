@@ -2,6 +2,7 @@
 
 package ibis.util;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -125,7 +126,7 @@ public final class RunProcess {
         try {
             p = builder.start();
         } catch (Exception e) {
-            proc_err = new buf(("Could not execute cmd: " + builder.toString()).getBytes());
+            proc_err = new buf(("Could not execute cmd: " + builder.command().toString() + " " + e).getBytes());
             return;
         }
 
@@ -173,8 +174,27 @@ public final class RunProcess {
                 }
             }
         }
+        
+        // We must close the streams and destroy the process here, 
+        // otherwise we'll leak file descriptors!! -- Jason
+        if (p != null) {
+            close(p.getOutputStream());
+            close(p.getInputStream());
+            close(p.getErrorStream());
+            p.destroy();
+        }
     }
 
+    private static void close(Closeable c) {
+        if (c != null) {
+          try {
+            c.close();
+          } catch (IOException e) {
+            // ignored
+          }
+        }
+      }
+    
     /**
      * Returns the output buffer of the process.
      * @return the output buffer.
