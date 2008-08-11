@@ -78,7 +78,9 @@ class IbisSocketFactory {
 
         if (factory != null) {
             HashMap<String, Object> h = new HashMap<String, Object>();
-            h.putAll(properties);
+            if (properties != null) {
+                h.putAll(properties);
+            }
             return new IbisSocket(factory.createClientSocket(
                     addr.virtualAddress, timeout, fillTimeout, h));
         }
