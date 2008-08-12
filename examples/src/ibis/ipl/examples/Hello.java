@@ -11,7 +11,6 @@ import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
 
 import java.io.IOException;
-import java.util.*;
 
 /**
  * This program is to be run as two instances. One is a server, the other a
