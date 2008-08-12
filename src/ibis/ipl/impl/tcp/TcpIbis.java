@@ -190,7 +190,9 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
             } finally {
                 if (result != ReceivePort.ACCEPTED) {
                     try {
-                        out.close();
+                        if (out != null) {
+                            out.close();
+                        }
                     } catch(Throwable e) {
                         // ignored
                     }
