@@ -42,7 +42,7 @@
         </javac>
 
         <!-- create the javadoc -->
-	<javadoc destdir="${javadoc}" access="public" sourcepath="${src}">
+	<javadoc packagenames="ibis.**" destdir="${javadoc}" access="public" sourcepath="${src}">
             <classpath refid="external_jars" />
             <link href="http://logging.apache.org/log4j/docs/api/" />
             <link href="http://java.sun.com/j2se/1.5.0/docs/api/" />
