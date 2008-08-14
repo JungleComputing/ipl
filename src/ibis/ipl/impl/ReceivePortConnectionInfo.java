@@ -34,7 +34,7 @@ public class ReceivePortConnectionInfo {
 
     /**
      * The underlying data stream for this connection.
-     * The serialization steam lies on top of this.
+     * The serialization stream lies on top of this.
      */
     public DataInputStream dataIn;
 
