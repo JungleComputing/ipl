@@ -539,9 +539,10 @@ JNIEXPORT jint JNICALL Java_ibis_ipl_impl_mx_JavaMx_wait__IIJ
 		return -1;
 	}
 	
+	// TODO this block of code doesn't look coorrect to me
 	if(status.code != MX_STATUS_SUCCESS) {
 		// some kind of error occured
-		throwException(env, mx_strstatus(rc));
+		throwException(env, mx_strstatus(status.code));
 		return -1;
 	}
 	
@@ -638,7 +639,7 @@ JNIEXPORT jint JNICALL Java_ibis_ipl_impl_mx_JavaMx_probe
 	}
 	if(result == 0) {
 		// no message available
-		fprintf(stderr, "JavaMx::probe: no message: %s\n", mx_strstatus(status.code));
+		//fprintf(stderr, "JavaMx::probe: no message: %s\n", mx_strstatus(status.code));
 		return -1;
 	}
 	//fprintf(stderr, "JavaMx::probe: message: %s\n", mx_strstatus(status.code));

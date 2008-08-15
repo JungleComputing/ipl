@@ -25,7 +25,7 @@ public class MxLocalChannel implements ReadChannel, WriteChannel {
 	/* Common: */
 	
 	public synchronized void close() {
-		//logger.debug("Local channel closed");
+		logger.debug("Local channel closed");
 		closed = true;
 		notifyAll();
 	}
@@ -37,16 +37,16 @@ public class MxLocalChannel implements ReadChannel, WriteChannel {
 	}
 
 	public synchronized int poll() throws ClosedChannelException {
-		//logger.debug("poll");
+		logger.debug("poll");
 		int result = buffer.position();
 		if(closed && result == 0) {
 			return -1;
 		}
-		return result = buffer.position();
+		return result;
 	}
 
 	public synchronized int poll(long timeout) throws ClosedChannelException {
-		//logger.debug("poll(timeout)");
+		logger.debug("poll(timeout)");
 		long deadline = System.currentTimeMillis() + timeout;
 		long time;
 		int result = buffer.position();
@@ -59,7 +59,11 @@ public class MxLocalChannel implements ReadChannel, WriteChannel {
 				return 0;
 			}
 			try {
-				wait(deadline - time);
+				if(timeout > 0) {
+					wait(deadline - time);
+				} else {
+					wait();
+				}
 			} catch (InterruptedException e) {
 				// ignore
 			}
@@ -68,19 +72,18 @@ public class MxLocalChannel implements ReadChannel, WriteChannel {
 		return result;
 	}
 
-	public int read(ByteBuffer dest, long timeout) throws IOException {
+	public synchronized int read(ByteBuffer dest) throws IOException {
+		
+		//TODO dead I break this when I removed the timeouts?
 		logger.debug("read");
-		int size = poll(timeout);
-		if (size >= 0) {
+		int size = poll(0);
+		if (size > 0) {
 			buffer.flip();
 			dest.put(buffer);
 			// empty buffer and notify blocked write methods
 			buffer.clear();
-			synchronized(this) {
-				notifyAll();
-			}
-			return size;
 		}
+		notifyAll();
 		return size;
 	}
 
@@ -92,6 +95,7 @@ public class MxLocalChannel implements ReadChannel, WriteChannel {
 	}
 
 	public boolean isFinished() throws IOException {
+		logger.debug("isFinished");
 		//empty implementation
 		return true;
 	}

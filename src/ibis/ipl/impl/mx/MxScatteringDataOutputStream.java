@@ -16,7 +16,7 @@ public class MxScatteringDataOutputStream extends MxDataOutputStream {
 	
 	public MxScatteringDataOutputStream() {
 		super();
-		queue = new ArrayBlockingQueue<SendBuffer>(Config.FLUSH_QUEUE_SIZE * 1024);
+		queue = new ArrayBlockingQueue<SendBuffer>(Config.FLUSH_QUEUE_SIZE + 1);
 	}
 	
 	public MxScatteringDataOutputStream(WriteChannel channel) {
@@ -26,10 +26,11 @@ public class MxScatteringDataOutputStream extends MxDataOutputStream {
 	}
 	
 	@Override
-	protected synchronized void doClose() throws IOException {
+	protected synchronized void doClose() throws IOException {	
 		for(int i = 0; i< nrOfConnections; i++) {
+			// Do not remove connections here, that is up to the object that added the connection
 			//logger.debug("close " + i);
-			connections[i].close();	
+			connections[i].close();
 		}
 	}
 
@@ -45,9 +46,14 @@ public class MxScatteringDataOutputStream extends MxDataOutputStream {
                     + buffer.floats.position() + "] s[" + buffer.shorts.position() + "] c["
                     + buffer.chars.position() + "] b[" + buffer.bytes.position() + "]");
 		}
-		//FIXME queue full. Eliminate the queue?
+		//FIXME queue full. Empty the queue?
 		while(queue.offer(buffer) == false) {
-			flush();
+			/* TODO due to the size of the flush buffer at the channel level, 
+			 * the channels will have flushed the first buffer of the queue when this queue is full.
+			 * Use this information
+			 */
+			//flush(); testing this solution
+			SendBuffer.recycle(queue.remove());
 		}
 		return buffer.remaining();
 	}
@@ -57,7 +63,7 @@ public class MxScatteringDataOutputStream extends MxDataOutputStream {
 		for(int i = 0; i< nrOfConnections; i++) {
 			logger.debug("finish " + i);
 			connections[i].flush();
-			//FIXME catch and stack exceptions
+			//FIXME catch and stack exceptions, and recycle buffers
 		}
 		for(SendBuffer buf : queue) {
 			SendBuffer.recycle(buf);
@@ -111,6 +117,7 @@ public class MxScatteringDataOutputStream extends MxDataOutputStream {
 		}
         for (int i = 0; i < nrOfConnections; i++) {
             if (connections[i] == connection) {
+            	logger.debug("Connection removed at position " + i);
                 nrOfConnections--;
                 connections[i] = connections[nrOfConnections];
                 connections[nrOfConnections] = null;

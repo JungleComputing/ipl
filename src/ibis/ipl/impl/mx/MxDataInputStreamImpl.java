@@ -23,11 +23,12 @@ public class MxDataInputStreamImpl extends MxDataInputStream {
 
 	@Override
 	protected void doClose() throws IOException {
+		// FIXME DEBUG: fixing closing channels
 		channel.close();
 	}
 
 	protected int doReceive(ByteBuffer buffer) throws IOException {
-		return channel.read(buffer, 0);	
+		return channel.read(buffer);	
 	}
 
 	@Override

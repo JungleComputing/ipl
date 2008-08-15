@@ -11,9 +11,10 @@ public class MxReadChannel implements ReadChannel {
 	
 	protected int handle;
 	protected int endpointId;
-	protected boolean closed, senderClosed, receiving;
+	protected boolean closed, realClosed, senderClosed, receiving;
 	protected MxChannelFactory factory;
 	protected long matchData = Matching.NONE;
+	private MxAddress sender = null;
 	
 	/**
 	 * @param factory
@@ -22,38 +23,45 @@ public class MxReadChannel implements ReadChannel {
 		this.factory = factory;
 		handle = JavaMx.handles.getHandle();
 		this.endpointId = factory.endpointId;
-		closed = receiving = senderClosed = false;
+		closed = realClosed = receiving = senderClosed = false;
 	}
 
 	/* (non-Javadoc)
 	 * @see ibis.ipl.impl.mx.ReadChannel#close()
 	 */
-	public void close() {
-		//logger.debug("closing");
-		synchronized(this) {
-			if(closed) {
-				return;
-			}
-			closed = true;
-			if(!senderClosed) {
-				// inform the senders about closing this channel
-				if(receiving) {
-					JavaMx.cancel(factory.endpointId, handle); //really stop current reception, or wait for it?
-					//JavaMx.wakeup(endpointId);
-					/*if (logger.isDebugEnabled()) {
-						logger.debug("close() is waiting...");
-					}*/
-				}
-				//TODO old, remove now?
-				//factory.sendCloseMessage(this); 
-			}
-			notifyAll(); //TODO do we need this here? In any case, it is not wrong...
+	public synchronized void close() {
+		logger.debug("close()");
+		if(closed) {
+			return;
 		}
+		closed = true;
+		if(!senderClosed) {
+			// inform the senders about closing this channel
+			factory.sendCloseMessage(this);
+		}
+		while(receiving) {
+			//JavaMx.wakeup(endpointId);
+			/*if (logger.isDebugEnabled()) {
+				logger.debug("close() is waiting...");
+			}*/
+			try {
+				wait();
+			} catch (InterruptedException e) {
+				// ignore
+			}
+		}
+			
+		realClose();
+		notifyAll(); //TODO do we need this here? In any case, it is not wrong...
 	}
 		
 	
 	private synchronized void realClose() {
-		closed = true;
+		logger.debug("realClose()");
+		if(realClosed) {
+			return;
+		}
+		closed = realClosed = true;
 		JavaMx.handles.releaseHandle(handle);
 		//logger.debug("closed!");
 
@@ -62,40 +70,43 @@ public class MxReadChannel implements ReadChannel {
 	/**
 	 * @return true when the connection is closed, false when the connection is not closed completely and there may be still is some data left in the channel
 	 */
-	protected synchronized boolean senderClose() {
-		//logger.debug("Sender closing");
+	protected synchronized void senderClose() {
+		logger.debug("senderClose()");
 		if (closed) {
-			return true;
+			return;
 		}
 		if(senderClosed) {
 			//sender already closed, but receiver is not
-			return false;
+			return;
 		}
-		if(receiving) {
-			// someone is receiving, let him detect whether the channel is already closed completetely 
-			JavaMx.cancel(factory.endpointId, handle); //really stop current reception, or wait for it?
+		senderClosed = true;
+		while(receiving) {
+			// someone is receiving, let him detect whether the channel is already closed completely 
+			//FIXME this 'cancel' can cause a SIGSEGV
+			//JavaMx.cancel(factory.endpointId, handle); //really stop current reception, or wait for it?
+			try {
+				wait();
+			} catch (InterruptedException e) {
+				// ignore
+			}	
+		} 
+		// nobody is waiting for a message, check whether there is no message on its way yourself
+		if(doPoll() == -1) {
+			// no message in channel, so we can close it
+			realClose();
 			notifyAll();
-			return false;	
-		} else { 
-			// nobody is waiting for a message, check whether there is no message on its way yourself
-			if(doPoll() == -1) {
-				// no message in channel, so we can close it
-				realClose();
-				notifyAll();
-				return true;
-			} else {
-				notifyAll();
-				return false;
-			}
+			return;
+		} else {
+			notifyAll();
+			return;
 		}
 	}
 	
 	@Override
 	protected void finalize() throws Throwable {
 		// release native resources when the channel is not closed completely
-		if(!closed) {
+		if(!realClosed) {
 			logger.debug("Collecting native garbage (Channel not closed correctly).");
-			closed = true;
 			realClose();
 		}
 		super.finalize();
@@ -105,7 +116,8 @@ public class MxReadChannel implements ReadChannel {
 	/* (non-Javadoc)
 	 * @see ibis.ipl.impl.mx.ReadChannel#read(java.nio.ByteBuffer, long)
 	 */
-	public int read(ByteBuffer buffer, long timeout) throws IOException {
+	public int read(ByteBuffer buffer) throws IOException {
+		//logger.debug("read()");
 		int msgSize = -1;
 		
 		synchronized(this) {
@@ -146,10 +158,19 @@ public class MxReadChannel implements ReadChannel {
 					}
 					JavaMx.recv(buffer, buffer.position(), buffer.remaining(), endpointId, handle, matchData);
 				}
-				if(timeout <= 0) {
-					msgSize = JavaMx.wait(endpointId, handle);
-				} else {
-					msgSize = JavaMx.wait(endpointId, handle, timeout);
+				while(msgSize < 0) {
+					synchronized(this) {
+						if(senderClosed || closed) {
+							if(JavaMx.cancel(factory.endpointId, handle) == true) {
+								receiving = false;
+								notifyAll();
+								return -1;
+							} else {
+								// We were too late, so we still have to complete the receive request
+							}
+						}
+					}
+					msgSize = JavaMx.wait(endpointId, handle, 100);
 				}
 			}
 
@@ -177,6 +198,7 @@ public class MxReadChannel implements ReadChannel {
 	 * @see ibis.ipl.impl.mx.ReadChannel#isOpen()
 	 */
 	public boolean isOpen() {
+		logger.debug("isOpen()");
 		return !closed;
 	}
 
@@ -184,6 +206,7 @@ public class MxReadChannel implements ReadChannel {
 	 * @see ibis.ipl.impl.mx.ReadChannel#poll()
 	 */
 	public synchronized int poll() throws ClosedChannelException {
+		//logger.debug("poll()");
 		if(closed) {
 			throw new ClosedChannelException();
 		}
@@ -195,7 +218,7 @@ public class MxReadChannel implements ReadChannel {
 			if (result == -1) {
 				// channel is empty, so close it
 				realClose();
-				throw new ClosedChannelException();
+				throw new ClosedChannelException(); //FIXME just return an EOF?
 			}
 			return result;
 		}
@@ -205,29 +228,76 @@ public class MxReadChannel implements ReadChannel {
 	/* (non-Javadoc)
 	 * @see ibis.ipl.impl.mx.ReadChannel#poll(long)
 	 */
-	public synchronized int poll(long timeout) throws ClosedChannelException {
-		if(closed) {
-			throw new ClosedChannelException();
-		}
-		if(receiving) {
-			return 0;
-		}
-		if(senderClosed) {
-			int result = doPoll();
-			if (result == -1) {
-				// channel is empty, so close it
-				realClose();
+	public int poll(long timeout) throws ClosedChannelException {
+		//logger.debug("poll(timeout)");
+		synchronized(this) {
+			//logger.debug("poll(timeout) got access");
+			if(closed) {
 				throw new ClosedChannelException();
+			}
+			if(receiving) {
+				return 0;
+			}
+			if(senderClosed) {
+				int result = doPoll();
+				if (result == -1) {
+					// channel is empty, so close it
+					realClose();
+					throw new ClosedChannelException(); //FIXME, no exception, but EOF?
+				}
+				return result;
+			}
+			receiving = true;
+		}
+		int result = -1;
+		if(timeout == 0) {
+			//logger.debug("poll(timeout): no-timeout loop");
+			while (result < 0) {
+				/* FIXME when timeout is infinite and the channel closes, we will be blocked forever here
+				 * Fix this by 'polling' for a closed channel or calling mx_wakeup when closing (last one can have many side-effects!)
+				 */
+				// this is the first suggestion
+				if(closed) {
+					synchronized(this) {
+						receiving = false;
+						notifyAll();
+					}
+					return result;
+				}
+				;
+				result = JavaMx.probe(endpointId, 100, matchData, Matching.MASK_ALL); //-1 when no message available
+			}
+			synchronized(this) {
+				receiving = false;
+				notifyAll();
+			}
+			return result;
+		} else {
+			result = JavaMx.probe(endpointId, timeout, matchData, Matching.MASK_ALL); //-1 when no message available
+			synchronized(this) {
+				receiving = false;
+				notifyAll();
 			}
 			return result;
 		}
-		if (logger.isDebugEnabled()) {
-			logger.debug("polling");
-		}
-		return JavaMx.probe(endpointId, timeout, matchData, Matching.MASK_ALL); //-1 when no message available
 	}
 	
 	private int doPoll() {
+		//logger.debug("doPoll()");
 		return JavaMx.iprobe(endpointId, matchData, Matching.MASK_ALL); //-1 when no message available
+	}
+
+	/**
+	 * @return the sender
+	 */
+	protected MxAddress getSender() {
+		return sender;
+	}
+
+	/**
+	 * @param sender the sender to set
+	 */
+	protected void setSender(MxAddress sender) {
+		this.sender = sender;
 	}
 }

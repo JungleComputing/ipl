@@ -2,8 +2,6 @@ package ibis.ipl.impl.mx;
 
 import java.io.IOException;
 
-import org.apache.log4j.Logger;
-
 import ibis.ipl.impl.ReceivePortIdentifier;
 import ibis.ipl.impl.SendPortConnectionInfo;
 
@@ -22,6 +20,7 @@ class MxSendPortConnectionInfo extends SendPortConnectionInfo {
 	@Override
 	public void closeConnection() throws IOException {
 		mxsdos.remove(connection);
+		// FIXME DEBUG: fixing closing channels
 		connection.close();
 	}
 }

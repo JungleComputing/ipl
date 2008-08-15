@@ -41,6 +41,7 @@ public class MxIbis extends Ibis {
 
 	@Override
 	protected void quit() {
+		// FIXME endpoints that aren't closed yet will not be closed
        	factory.close();
         logger.info("MxIbis " + ident + " DE-initialized");
 	}
@@ -76,8 +77,7 @@ public class MxIbis extends Ibis {
 
 	@Override
 	public void poll() {
-		// TODO empty implementation (just like the default)
-		// Maybe we can come up with something smarts
+		// No need to do anything, upcalls are generated automatically anyway
 	}
 	
 }

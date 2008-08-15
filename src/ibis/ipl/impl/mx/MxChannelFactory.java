@@ -21,7 +21,11 @@ import java.nio.ByteBuffer;
 import org.apache.log4j.Logger;
 
 public class MxChannelFactory implements Runnable {
-
+	/* TODO maybe we should have some collection with all active ReadChannels 
+	 * and WriteChannels here, instead of using the SendPorts to locate them, 
+	 * or make a separate ChannelManager for that.
+	 */ 
+	
 	static final int IBIS_FILTER = 0xdada0001;
 	static final short CONNECT_REPLY_PORT = 0;
 	static final int FACTORY_CONNECTION = 0;
@@ -35,6 +39,9 @@ public class MxChannelFactory implements Runnable {
 	private MxIbis ibis;
 	private boolean listening = false;
 	private boolean closed = false;
+	
+	private int disconnectMessageSize = 0;
+	private ByteBuffer disconnectMessageBuffer = ByteBuffer.allocateDirect(disconnectMessageSize);
 
 	public MxChannelFactory(MxIbis ibis) throws MxException {
 		if(JavaMx.initialized == false) {
@@ -115,7 +122,7 @@ public class MxChannelFactory implements Runnable {
 			}
 			
 			wc.matchData = Matching.construct(Matching.PROTOCOL_CONNECT, FACTORY_CONNECTION);
-			//logger.debug("MatchData is for connection request is " + Long.toHexString(wc.matchData));
+			logger.debug("MatchData is for connection request is " + Long.toHexString(wc.matchData));
 			mxdos = new MxScatteringDataOutputStream(wc); //wc is big endian here
 			dos = new DataOutputStream(mxdos);
 	
@@ -128,10 +135,11 @@ public class MxChannelFactory implements Runnable {
 
 				dos.writeInt(Matching.getConnection(rc.matchData)); // the connection to write the answer to
 				
-				//logger.debug("request created...");
+				logger.debug("request created...");
 
 				dos.flush();
 				mxdos.finish();
+				logger.debug("request sent!");
 			} catch (IOException e) {
 				idm.remove(channelId.getIdentifier());
 				rc.close();
@@ -140,7 +148,8 @@ public class MxChannelFactory implements Runnable {
 			}
 	
 			//read the reply
-			if(deadline > 0) {			
+			if(deadline > 0) {
+				logger.debug("waiting for reply with timeout...");
 				if(mxdis.waitUntilAvailable(System.currentTimeMillis() -  deadline) < 0) {
 					//FIXME breaks the handshake when the other side is just plain slow
 					//	no message arrived in time;
@@ -150,6 +159,7 @@ public class MxChannelFactory implements Runnable {
 					throw new ConnectionTimedOutException("Connection request timed out",rpi);
 				}
 			} else { //no timeouts
+				logger.debug("waiting for reply...");
 				if(mxdis.waitUntilAvailable(0) < 0) {
 					rc.close();
 					wc.close();
@@ -158,21 +168,26 @@ public class MxChannelFactory implements Runnable {
 					throw new ConnectionTimedOutException("Connection request timed out",rpi);
 				}
 			}
+			logger.debug("reading reply...");
 			reply = mxdis.readByte();
 			if (reply != ReceivePort.ACCEPTED) {
-				//logger.debug("connection creation failed");
+				logger.debug("connection creation failed");
 				// failure
 				wc.close();
 				rc.close();
 				switch (reply) {
 					case ReceivePort.ALREADY_CONNECTED:
 						idm.remove(channelId.getIdentifier());
+						logger.debug("Connection rejected: ALREADY_CONNECTED");
 						throw new AlreadyConnectedException("Already connected to ReceivePort", rpi);
 					case ReceivePort.TYPE_MISMATCH:
 						idm.remove(channelId.getIdentifier());
+						logger.debug("Connection rejected: TYPE_MISMATCH");
 						throw new PortMismatchException("PortTypes do not match", rpi);
 					case ReceivePort.DISABLED:
+						logger.debug("Connection rejected: DISABLED");
 					case ReceivePort.NOT_PRESENT:
+						logger.debug("Connection rejected: NOT_PRESENT");
 						if (fillTimeout) {
 							// port not enabled, wait a while and try again
 							try {
@@ -185,15 +200,19 @@ public class MxChannelFactory implements Runnable {
 			                continue;
 						} else { // !fillTimeout
 							idm.remove(channelId.getIdentifier());
+							logger.debug("Connection rejected: timeout occured");
 							throw new ConnectionRefusedException("ReceivePort not active", rpi);
 						}
 					case ReceivePort.NO_MANY_TO_X:
+						logger.debug("Connection rejected: NO_MANY_TO_X");
 						idm.remove(channelId.getIdentifier());
 						throw new ConnectionRefusedException("ReceivePort already occupied", rpi);
 					case ReceivePort.DENIED:
+						logger.debug("Connection rejected: DENIED");
 						idm.remove(channelId.getIdentifier());
 						throw new ConnectionRefusedException("Receiver denied connection", rpi);
 					default:
+						logger.debug("Connection rejected: Unknown reason");
 						idm.remove(channelId.getIdentifier());
 						throw new ConnectionFailedException("Unknown response received", rpi);
 				}
@@ -209,7 +228,7 @@ public class MxChannelFactory implements Runnable {
 			
 			rc.close();
 			idm.remove(channelId.getIdentifier());
-			
+			logger.debug("connect finished successfully");
 			return wc;
 		}
 		throw new ConnectionTimedOutException("Connection request timed out",rpi);
@@ -301,7 +320,7 @@ public class MxChannelFactory implements Runnable {
 		DataInputStream dis;
 		MxReceivePort port = null;
 
-		MxWriteChannel wc;
+		MxWriteChannel wc = null;
 		MxDataOutputStream mxdos;
 
 		String name;
@@ -315,6 +334,8 @@ public class MxChannelFactory implements Runnable {
 		rc = new MxReadChannel(this);
 		rc.matchData = Matching.setConnection(rc.matchData, FACTORY_CONNECTION);
 		rc.matchData = Matching.setProtocol(rc.matchData, Matching.PROTOCOL_CONNECT);
+
+		
 		// TODO When multiple connection requests arrive at the same time, message can be mixed up for requests consisting of multiple MX messages
 		mxdis = new MxDataInputStreamImpl(rc);
 		dis = new DataInputStream(mxdis);
@@ -375,7 +396,7 @@ public class MxChannelFactory implements Runnable {
 				rc.close();
 				return false;
 			}
-
+			rc.setSender(replyAddress);
 			// setup the channel to send the reply
 			try {
 				wc = new MxUnreliableWriteChannel(this, replyAddress, IBIS_FILTER);
@@ -405,7 +426,7 @@ public class MxChannelFactory implements Runnable {
 				mxdis.close();
 				rc.close();
 				if (logger.isInfoEnabled()) {
-					logger.info("receiveport rejected connection");
+					logger.info("receiveport rejected connection: " + reply);
 				}
 				wc.close();
 				return false;
@@ -422,6 +443,9 @@ public class MxChannelFactory implements Runnable {
 			}
 			if (logger.isDebugEnabled()) {
 				logger.debug(e1.getMessage());
+			}
+			if(wc != null) {
+				wc.close();
 			}
 			return false;
 		}
@@ -476,14 +500,44 @@ public class MxChannelFactory implements Runnable {
 		}		
 	}
 
+	protected void sendDisconnectMessage(MxWriteChannel channel) {
+		logger.debug("sendDisconnectMessage()");
+		// uses the send link of the requesting channel
+		long closeMatchData = Matching.setProtocol(channel.matchData, Matching.PROTOCOL_DISCONNECT);
+		int closeHandle = JavaMx.handles.getHandle();
+		//FIXME prevent buffer allocation
+		JavaMx.send(disconnectMessageBuffer, 0, disconnectMessageSize, endpointId, channel.link, closeHandle, closeMatchData);
+		int result = -1;
+		try {
+			result = JavaMx.wait(endpointId, closeHandle, 1000);
+		} catch (MxException e1) {
+			//stop trying to receive the message
+			logger.warn("Error sending the disconnect signal: " + e1.getMessage());
+		}
+		if(result == -1) {
+			// error waiting for the message completion, ignore here
+			//TODO can we also cancel a send operation? Research this
+			if(JavaMx.cancel(endpointId, closeHandle) == false) {
+				// cancel failed, because request is already finished
+				// we have to complete the request by calling 'test' or 'wait'
+				try {
+					JavaMx.test(endpointId, closeHandle);
+				} catch (MxException e) {
+					// TODO ignore it for now
+				}
+			}
+		}
+		JavaMx.handles.releaseHandle(closeHandle);
+	}
+	
 	private void senderClosedConnection(long matchData) {
+		logger.debug("senderClosedConnection()");
 		//receive the message
 		//TODO avoid buffer creation and handle use?
 		int handle = JavaMx.handles.getHandle();
-		ByteBuffer buffer = ByteBuffer.allocateDirect(8192);
 		
 		try {
-			JavaMx.recv(buffer, 0, 8192, endpointId, handle, matchData);
+			JavaMx.recv(disconnectMessageBuffer, 0, disconnectMessageSize, endpointId, handle, matchData);
 			JavaMx.wait(endpointId, handle);
 		} catch (MxException e) {
 			// TODO Auto-generated catch block
@@ -492,149 +546,108 @@ public class MxChannelFactory implements Runnable {
 		JavaMx.handles.releaseHandle(handle);
 
 		// lookup the corresponding channel
-		MxReceivePortConnectionInfo rpci = findReceiveConnection(matchData);
+		ReadChannel rc = findReceiveConnection(matchData);
 		
-		if(rpci != null) {
-			rpci.senderClose();
-		}
-	}
-
-	private MxReceivePortConnectionInfo findReceiveConnection(long matchData) {
-		MxReceivePort rp = ibis.receivePortManager.find(Matching.getReceivePort(matchData));
-		if(rp == null) {
-			// unknown rp
-			return null;
-		}
-		return rp.channelManager.find(Matching.getChannel(matchData));	
-	}
-
-	private void receiverClosedConnection(long matchData) {
-		//receive the message
-		//TODO avoid ReadChannel (and mxdis and dis) creation
-		MxReadChannel rc = new MxReadChannel(this);
-		rc.matchData = matchData;
-		MxDataInputStream mxdis = new MxDataInputStreamImpl(rc);
-		DataInputStream dis = new DataInputStream(mxdis);
-		ReceivePortIdentifier rpi = null;
-		String sendPortName = null;
-		try {
-			sendPortName = dis.readUTF();		
-			rpi = new ReceivePortIdentifier(dis);
-		} catch (IOException e) {
-			// TODO Should not happen, discard message and continue
-			logger.debug("Error receiving a CLOSE message, message discarded");
-			try {
-				dis.close();
-				mxdis.close();
-			} catch (IOException e2) {
-				// ignore
+		if(rc != null) {
+			if (rc instanceof MxReadChannel) {
+				// FIXME DEBUG: fixing closing channels
+				((MxReadChannel)rc).senderClose();
+			} else { // we have a local channel
+				// FIXME DEBUG: fixing closing channels
+				rc.close();
 			}
-			rc.close();
-			return;
 		}
-		try {
-			dis.close();
-			mxdis.close();
-		} catch (IOException e) {
-			// ignore
-		}
-		rc.close();
-		
-		SendPort sp = ibis.findSendPort(sendPortName);
-		if(sp == null) {
-			//no such SendPort, ignore the request 
-			return;
-		}
-		sp.lostConnection(rpi, null);
-		logger.debug("Outbound connection closed by receiver");
+		logger.debug("senderClosedConnection() finished");
 	}
-
-	protected void sendDisconnectMessage(MxWriteChannel channel) {
-		// uses the send link of the requesting channel
-		long closeMatchData = Matching.setProtocol(channel.matchData, Matching.PROTOCOL_DISCONNECT);
-		int closeHandle = JavaMx.handles.getHandle();
-		//FIXME prevent buffer allocation
-		ByteBuffer bb = ByteBuffer.allocateDirect(0);
-		JavaMx.send(bb, 0, 0, endpointId, channel.link, closeHandle, closeMatchData);
-		try {
-			JavaMx.wait(endpointId, closeHandle, 1000);
-		} catch (MxException e1) {
-			//stop trying to receive the message
-			logger.warn("Error sending the close signal: " + e1.getMessage());
-		}
-		/*if(msgSize == -1) {
-			// error waiting for the message completion, ignore here
-		}*/
-		JavaMx.handles.releaseHandle(closeHandle);
-	}
-
 	
-	protected void sendCloseMessage(MxReceivePortConnectionInfo rpci) {		
+	protected void sendCloseMessage(MxReadChannel rc) {
 		MxWriteChannel wc = null;
-		MxDataOutputStream mxdos = null;
-		DataOutputStream dos = null;
 
-		
-		//IbisIdentifier sender = (ibis.ipl.impl.IbisIdentifier)rpci.origin.ibisIdentifier();		
-		IbisIdentifier id = (ibis.ipl.impl.IbisIdentifier) rpci.port.ident.ibisIdentifier();
-		//if(id.equals(sender)) {
-		if(rpci.origin.ibisIdentifier().equals(id)) {
-			// we are dealing with a local port
-			MxSendPort sp = (MxSendPort) ibis.findSendPort(rpci.origin.name());
-			if (sp == null) {
-				//sp not found, presumably it closed already.
-				return;
-			}
-			try {
-				sp.disconnect(rpci.port.identifier());
-			} catch (IOException e) {
-				// do nothing
-			}
-			return;
-		}
-		
 		if(closed) {
 			// TODO throw new IOException("Endpoint is closed"); ??
 			return;
 		}
 		
 		// now locate the remote sendport
-		MxAddress target;
-		try {
-			target = MxAddress.fromBytes(id.getImplementationData());
-		} catch (Exception e) {
-			//throw new PortMismatchException("Could not create MxAddress from ReceivePortIdentifier.", rpi, e);
-			// TODO just stop here, do not crash on failing to close a connection
+		MxAddress target= rc.getSender();
+		if (target == null) {
+			// we don't know to who we need to send the message
 			return;
 		}
-	
-		//setup the channel to send the close message
 		
+		//setup the channel to send the close message		
 		try {
+			//TODO prevent channel creation, do communication myself
 			wc = new MxUnreliableWriteChannel(this, target, IBIS_FILTER);
 		} catch (IOException e) {
 			logger.error(e.getMessage());
 			// TODO just stop here, do not crash on failing to close a connection
 			return;
-		}
-		
-		wc.matchData = Matching.construct(Matching.PROTOCOL_CLOSE, FACTORY_CONNECTION);
-		//logger.debug("MatchData is for connection request is " + Long.toHexString(wc.matchData));
-		mxdos = new MxScatteringDataOutputStream(wc); //wc is big endian here
-		dos = new DataOutputStream(mxdos);
-	
+		}		
+		long matchData = Matching.construct(Matching.PROTOCOL_CLOSE, Matching.getConnection(rc.matchData));
+			
 		//send the message
+		int closeHandle = JavaMx.handles.getHandle();
+		JavaMx.send(disconnectMessageBuffer, 0, disconnectMessageSize, endpointId, wc.link, closeHandle, matchData);
+		int result = -1;
 		try {
-			dos.writeUTF(rpci.origin.name());
-			rpci.port.ident.writeTo(dos);
-			dos.flush();
-			mxdos.finish();
-			dos.close();
-			mxdos.close();
-			wc.close();
-		} catch (IOException e) {
-			// TODO just stop here, do not crash on failing to close a connection
-			return;
+			result = JavaMx.wait(endpointId, closeHandle, 1000);
+		} catch (MxException e1) {
+			//stop trying to receive the message
+			logger.warn("Error sending the close signal: " + e1.getMessage());
+		}
+		if(result == -1) {
+			// error waiting for the message completion, ignore here
+			//TODO can we also cancel a send operation? Research this
+			if(JavaMx.cancel(endpointId, closeHandle) == false) {
+				// cancel failed, because request is already finished
+				// we have to complete the request by calling 'test' or 'wait'
+				try {
+					JavaMx.test(endpointId, closeHandle);
+				} catch (MxException e) {
+					// TODO ignore it for now
+				}
+			}
+		}
+		JavaMx.handles.releaseHandle(closeHandle);
+		// FIXME DEBUG: fixing closing channels
+		wc.close();
+	}
+	
+	private void receiverClosedConnection(long matchData) {
+		int handle = JavaMx.handles.getHandle();
+		
+		try {
+			JavaMx.recv(disconnectMessageBuffer, 0, disconnectMessageSize, endpointId, handle, matchData);
+			JavaMx.wait(endpointId, handle);
+		} catch (MxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		JavaMx.handles.releaseHandle(handle);
+
+		MxWriteChannel wc = null;
+		// FIXME find the associated writeChannel and close it
+		if (wc != null) {
+			wc.receiverClosed();
 		}
 	}
+	
+	private ReadChannel findReceiveConnection(long matchData) {
+		if(Matching.getReceivePort(matchData) == 0) {
+			//it is a connection to the factory
+			return null;
+		}
+		MxReceivePort rp = ibis.receivePortManager.find(Matching.getReceivePort(matchData));
+		if(rp == null) {
+			// unknown rp
+			return null;
+		}
+		MxReceivePortConnectionInfo info = rp.channelManager.find(Matching.getChannel(matchData));
+		if (info == null) {
+			return null;
+		}
+		return ((MxDataInputStreamImpl)info.dataIn).channel;	
+	}
+
 }

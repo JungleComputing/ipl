@@ -52,7 +52,7 @@ final class JavaMx {
 			}
 			
 			int handle = 0;
-			while(inUse[handle] ) {
+			while(inUse[handle]) {
 				handle++;
 			}
 			inUse[handle] = true;
@@ -66,7 +66,11 @@ final class JavaMx {
 		 * release a handle that is not in use anymore
 		 * @param handle the handle 
 		 */
-		protected synchronized void releaseHandle(int handle) {	
+		protected synchronized void releaseHandle(int handle) {
+			if(!inUse[handle]) {
+				//FIXME exception
+				throw new Error("handle already released!");
+			}
 			inUse[handle] = false;
 			activeHandles--;
 			logger.debug("Handle " + handle + " released");

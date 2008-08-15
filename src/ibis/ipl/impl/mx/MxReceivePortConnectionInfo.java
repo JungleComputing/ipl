@@ -1,6 +1,8 @@
 package ibis.ipl.impl.mx;
 
+import ibis.io.Conversion;
 import ibis.ipl.impl.ReceivePortConnectionInfo;
+import ibis.ipl.impl.ReceivePortIdentifier;
 import ibis.ipl.impl.SendPortIdentifier;
 import ibis.util.ThreadPool;
 
@@ -10,7 +12,8 @@ import org.apache.log4j.Logger;
 
 class MxReceivePortConnectionInfo extends
 		ReceivePortConnectionInfo implements 
-		Identifiable<MxReceivePortConnectionInfo> {
+		Identifiable<MxReceivePortConnectionInfo>, 
+		MxProtocol {
 	private static Logger logger = Logger.getLogger(MxReceivePortConnectionInfo.class);
 	
 	protected short channelId;
@@ -25,22 +28,77 @@ class MxReceivePortConnectionInfo extends
 		this.factory = factory;
 	}
 	
-	boolean poll() throws IOException {
-		return ((MxDataInputStream)dataIn).available() > 0;
+	boolean available() throws IOException {
+		if(in == null) {
+			newStream();
+		}
+		logger.debug("available(): " + in.available());
+		return in.available() > 0;
 	}	
+
 	
-	//blocking
-	void receive() throws IOException {
+	/**
+	 * receives an Mx Message and checks whether it contains a new data message
+	 * @return true when a message is delivered, false when no message is delivered
+	 * @throws IOException
+	 */
+	boolean receive() throws IOException {
 		logger.debug("receiving");
 		if (in == null) {
             newStream();
         }
-		if	(((MxDataInputStream)dataIn).waitUntilAvailable(0) >= 0) { // message available
-            message.setFinished(false);
-            ((MxReceivePort)port).messageArrived(message);
+		/* OLD code
+		 * TODO remove this
+		if (((MxDataInputStream)dataIn).waitUntilAvailable(0) >= 0) { 
+			// MX message available
 		} else {
 			throw new IOException("Error polling for message");
 		}
+		*/
+		
+		short opcode = in.readByte();
+        switch (opcode) {
+        	case NEW_MESSAGE:
+        		message.setFinished(false);
+                ((MxReceivePort)port).messageArrived(message);
+        		return true;
+        	case NEW_RECEIVER:
+        		newStream();
+        		return false;
+        	case CLOSE_ALL_CONNECTIONS:
+                if (logger.isDebugEnabled()) {
+                    logger.debug(port.name 
+                            + ": Got a CLOSE_ALL_CONNECTIONS from "
+                            + origin);
+                }
+                close(null);
+                return false;
+            case CLOSE_ONE_CONNECTION:
+                if (logger.isDebugEnabled()) {
+                    logger.debug(port.name + ": Got a CLOSE_ONE_CONNECTION from "
+                            + origin);
+                }
+                // read the receiveport identifier from which the sendport
+                // disconnects.
+                byte[] length = new byte[Conversion.INT_SIZE];
+                in.readArray(length);
+                byte[] bytes = new byte[Conversion.defaultConversion
+                        .byte2int(length, 0)];
+                in.readArray(bytes);
+                ReceivePortIdentifier identifier
+                        = new ReceivePortIdentifier(bytes);
+                if (port.ident.equals(identifier)) {
+                    // Sendport is disconnecting from me.
+                    if (logger.isDebugEnabled()) {
+                        logger.debug(port.name + ": disconnect from " + origin);
+                    }
+                    close(null);
+                }
+                return false;
+    		default:
+    			throw new IOException(port.name + ": Got illegal opcode "
+                        + opcode + " from " + origin);
+        }
 	}
 
 	
@@ -55,35 +113,13 @@ class MxReceivePortConnectionInfo extends
 
 	@Override
 	public void close(Throwable e) {
-		logger.debug("close()");
-		// note: dataIn closes the channel
-		super.close(e);
-	}
-
-	public void senderClose() {
-		//FIXME hack
-		ReadChannel channel = ((MxDataInputStreamImpl)dataIn).channel; 
-		if(channel instanceof MxLocalChannel) {
-			logger.debug("sender closes local channel at receiver");
-			close(null);
-			return;
-		} else {
-			logger.debug("sender closes remote channel at receiver");
-			if(((MxReadChannel)channel).senderClose()) {
-				//	no data left in channel
-				close(null);
-				return;
-			}
-		}
-		
-		/*
-		//TODO I suppose this will work, but it is not nice
-		synchronized(this) {
-			if(portClosed) {
-				// receiveport also closed
-				close(null);
-			}
-		}*/		
+		in = null;
+        if (logger.isDebugEnabled()) {
+            logger.debug(port.name + ": connection with " + origin
+                    + " closing", e);
+        }
+        port.lostConnection(origin, e);
+        logger.debug("closed!");
 	}
 		
 	public IdManager<MxReceivePortConnectionInfo> getIdManager() {
@@ -102,21 +138,4 @@ class MxReceivePortConnectionInfo extends
 	public void setIdentifier(short id) {
 		channelId = id;
 	}
-
-	protected void receivePortcloses() {
-		logger.debug("receivePortcloses()");
-		// TODO maybe can be regarded as a hack?
-		//((MxSimpleDataInputStream)dataIn).channel.close();
-		synchronized(this) {
-			portClosed = true;
-		}
-		if(((MxDataInputStreamImpl)dataIn).channel instanceof MxLocalChannel) {
-			logger.debug("Receiver closes local channel at receiver");
-			close(null);
-		} else {
-			factory.sendCloseMessage(this);
-			//	((MxBufferedDataInputStreamImpl)dataIn).channel.close();
-		}
-	}
-	
 }

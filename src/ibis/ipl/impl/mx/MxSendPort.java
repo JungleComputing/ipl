@@ -1,5 +1,6 @@
 package ibis.ipl.impl.mx;
 
+import ibis.io.Conversion;
 import ibis.ipl.PortType;
 import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.ipl.impl.ReceivePortIdentifier;
@@ -12,7 +13,7 @@ import java.util.Properties;
 
 import org.apache.log4j.Logger;
 
-public class MxSendPort extends SendPort {
+public class MxSendPort extends SendPort implements MxProtocol {
 
 	private static Logger logger = Logger.getLogger(MxSendPort.class);
 	
@@ -35,6 +36,7 @@ public class MxSendPort extends SendPort {
 	@Override
 	protected void announceNewMessage() throws IOException {
 		//logger.debug("announcing message");
+		out.writeByte(NEW_MESSAGE);
         if (type.hasCapability(PortType.COMMUNICATION_NUMBERED)) {
             out.writeLong(ibis.registry().getSequenceNumber(name));
         }
@@ -42,11 +44,17 @@ public class MxSendPort extends SendPort {
 
 	@Override
 	protected void closePort() throws IOException {
-		/* 
-		 * Close out and dataOut streams
-		 */
-		out.close();
-		dataOut.close(); // sends a disconnect message to the Channelfactory of the receiver at the channel level
+		// taken from TcpIbis
+		logger.debug("Closing SendPort...");
+		try {
+            out.writeByte(CLOSE_ALL_CONNECTIONS);
+    		out.close();
+    		dataOut.close();
+    	} catch (Throwable e) {
+            // ignored
+        }
+        out = null;
+        logger.debug("SendPort Closed!");
 	}
 
 	@Override
@@ -55,6 +63,9 @@ public class MxSendPort extends SendPort {
 		logger.debug("connecting...");
 		MxSendPortConnectionInfo connectionInfo = new MxSendPortConnectionInfo(this, receiver, factory.connect(this, receiver, timeout, fillTimeout, reliable));
 		logger.debug("connected!");
+		if (out != null) {
+            out.writeByte(NEW_RECEIVER);
+        }
 		initStream(scatteringStream);
 		return connectionInfo;
 	}
@@ -67,10 +78,15 @@ public class MxSendPort extends SendPort {
 
 	@Override
 	protected void sendDisconnectMessage(ReceivePortIdentifier receiver,
-			SendPortConnectionInfo c) throws IOException {
-		/*
-		 * send a DISCONNECT message
-		 */
-		// TODO don't have one (yet)
+			SendPortConnectionInfo c) throws IOException {		
+		// taken from TcpIbis
+		out.writeByte(CLOSE_ONE_CONNECTION);
+        byte[] receiverBytes = receiver.toBytes();
+        byte[] receiverLength = new byte[Conversion.INT_SIZE];
+        Conversion.defaultConversion.int2byte(receiverBytes.length,
+                receiverLength, 0);
+        out.writeArray(receiverLength);
+        out.writeArray(receiverBytes);
+        out.flush();
 	}
 }

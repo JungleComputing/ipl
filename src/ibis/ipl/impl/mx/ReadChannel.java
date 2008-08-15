@@ -8,7 +8,7 @@ public interface ReadChannel {
 
 	public void close();
 
-	public int read(ByteBuffer buffer, long timeout) throws IOException;
+	public int read(ByteBuffer buffer) throws IOException;
 
 	public boolean isOpen();
 
