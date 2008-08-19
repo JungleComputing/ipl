@@ -98,6 +98,10 @@ public class ReceivePortConnectionInfo {
     public void close(Throwable e) {
         try {
             in.close();
+        } catch(Throwable z) {
+            // ignore
+        }
+        try {
             dataIn.close();
         } catch(Throwable z) {
             // ignore
