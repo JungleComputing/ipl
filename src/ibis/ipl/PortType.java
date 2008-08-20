@@ -65,6 +65,22 @@ public final class PortType extends CapabilitySet {
      */
     public final static String CONNECTION_TIMEOUT = CONNECTION + ".timeout";
 
+    /**
+     * This capability describes that lightweight connection setup is used.  
+     * Lightweight connections are cheaper to create and often uses less kernel 
+     * resources. On the downside, they are likely to have a higher latency and 
+     * lower throughput.  
+     */
+    public final static String CONNECTION_LIGHT = CONNECTION + ".light";
+
+    /**
+     * This capability describes that ultra-lightweight connection setup is used.  
+     * These connections are even cheaper to create and maintain than lightweight 
+     * connections. They are not reliable, however, and can not be combined with 
+     * connection ip/downcalls. In addition, a maximum message size may be imposed.  
+     */
+    public final static String CONNECTION_ULTRALIGHT = CONNECTION + ".ultralight";
+       
     /** This capability describes that explicit receive is supported. */
     public final static String RECEIVE_EXPLICIT = RECEIVE + ".explicit";
 

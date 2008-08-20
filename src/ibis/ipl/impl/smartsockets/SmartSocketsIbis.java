@@ -1,6 +1,6 @@
-/* $Id$ */
+/* $Id: TcpIbis.java 9255 2008-08-12 12:17:37Z ceriel $ */
 
-package ibis.ipl.impl.tcp;
+package ibis.ipl.impl.smartsockets;
 
 import ibis.io.BufferedArrayInputStream;
 import ibis.io.BufferedArrayOutputStream;
@@ -9,6 +9,7 @@ import ibis.ipl.CapabilitySet;
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.IbisCapabilities;
+import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.MessageUpcall;
 import ibis.ipl.PortMismatchException;
 import ibis.ipl.PortType;
@@ -19,6 +20,13 @@ import ibis.ipl.impl.IbisIdentifier;
 import ibis.ipl.impl.ReceivePort;
 import ibis.ipl.impl.SendPort;
 import ibis.ipl.impl.SendPortIdentifier;
+import ibis.server.Client;
+import ibis.server.ConfigurationException;
+import ibis.smartsockets.hub.servicelink.ServiceLink;
+import ibis.smartsockets.virtual.VirtualServerSocket;
+import ibis.smartsockets.virtual.VirtualSocket;
+import ibis.smartsockets.virtual.VirtualSocketAddress;
+import ibis.smartsockets.virtual.VirtualSocketFactory;
 import ibis.util.ThreadPool;
 
 import java.io.DataInputStream;
@@ -31,39 +39,51 @@ import java.util.Properties;
 
 import org.apache.log4j.Logger;
 
-public final class TcpIbis extends ibis.ipl.impl.Ibis
-        implements Runnable, TcpProtocol {
+public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis
+        implements Runnable, SmartSocketsProtocol {
 
     static final Logger logger
             = Logger.getLogger("ibis.ipl.impl.tcp.TcpIbis");
 
-    private IbisSocketFactory factory;
+    private VirtualSocketFactory factory;
 
-    private IbisServerSocket systemServer;
+    private VirtualServerSocket systemServer;
 
-    private IbisSocketAddress myAddress;
+    private VirtualSocketAddress myAddress;
 
     private boolean quiting = false;
 
-    private HashMap<ibis.ipl.IbisIdentifier, IbisSocketAddress> addresses
-        = new HashMap<ibis.ipl.IbisIdentifier, IbisSocketAddress>();
+    private HashMap<ibis.ipl.IbisIdentifier, VirtualSocketAddress> addresses
+        = new HashMap<ibis.ipl.IbisIdentifier, VirtualSocketAddress>();
     
-    public TcpIbis(RegistryEventHandler registryEventHandler, IbisCapabilities capabilities, PortType[] types, Properties userProperties) {
+    public SmartSocketsIbis(RegistryEventHandler registryEventHandler, IbisCapabilities capabilities, PortType[] types, Properties userProperties) {
         super(registryEventHandler, capabilities, types, userProperties);
 
         this.properties.checkProperties("ibis.ipl.impl.tcp.",
                 new String[] {"ibis.ipl.impl.tcp.smartsockets"}, null, true);
 
-        factory.setIdent(ident);
-
+        try {
+            ServiceLink sl = factory.getServiceLink();
+            if (sl != null) {
+                sl.registerProperty("smartsockets.viz", "I^" + ident.name()
+                        + "," + ident.location().toString());
+                // sl.registerProperty("ibis", id.toString());
+            }
+        } catch (Throwable e) {
+            // ignored
+        }
+        
         // Create a new accept thread
         ThreadPool.createNew(this, "TcpIbis Accept Thread");
     }
 
     protected byte[] getData() throws IOException {
 
-        factory = new IbisSocketFactory(properties);
-
+    	try {
+            factory = Client.getFactory(properties);
+        } catch (ConfigurationException e) {
+            throw new IbisConfigurationException(e.getMessage());
+        }
 
         systemServer = factory.createServerSocket(0, 50, true, null);
         myAddress = systemServer.getLocalSocketAddress();
@@ -95,17 +115,17 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
     }
     */
 
-    IbisSocket connect(TcpSendPort sp, ibis.ipl.impl.ReceivePortIdentifier rip,
+    VirtualSocket connect(SmartSocketsSendPort sp, ibis.ipl.impl.ReceivePortIdentifier rip,
             int timeout, boolean fillTimeout) throws IOException {
         
         IbisIdentifier id = (IbisIdentifier) rip.ibisIdentifier();
         String name = rip.name();
-        IbisSocketAddress idAddr;
+        VirtualSocketAddress idAddr;
 
         synchronized(addresses) {
             idAddr = addresses.get(id);
             if (idAddr == null) {
-                idAddr = new IbisSocketAddress(id.getImplementationData());
+            	idAddr = VirtualSocketAddress.fromBytes(id.getImplementationData(), 0);
                 addresses.put(id, idAddr);
             }
         }
@@ -238,7 +258,7 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
         PortType sp = new PortType(in);
 
         // First, lookup receiveport.
-        TcpReceivePort rp = (TcpReceivePort) findReceivePort(name);
+        SmartSocketsReceivePort rp = (SmartSocketsReceivePort) findReceivePort(name);
 
         int result;
         if (rp == null) {
@@ -354,13 +374,18 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
 
     protected SendPort doCreateSendPort(PortType tp, String nm,
             SendPortDisconnectUpcall cU, Properties props) throws IOException {
-         return new TcpSendPort(this, tp, nm, cU, props);
+    	
+    	if (tp.hasCapability(PortType.CONNECTION_ULTRALIGHT)) { 
+    		return new SmartSocketsUltraLightSendPort(this, tp, nm, props);
+    	}
+    	
+        return new SmartSocketsSendPort(this, tp, nm, cU, props);
     }
 
     protected ReceivePort doCreateReceivePort(PortType tp, String nm,
             MessageUpcall u, ReceivePortConnectUpcall cU, Properties props)
             throws IOException {
-        return new TcpReceivePort(this, tp, nm, u, cU, props);
+        return new SmartSocketsReceivePort(this, tp, nm, u, cU, props);
     }
 
    
