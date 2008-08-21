@@ -18,11 +18,13 @@ import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.ipl.impl.IbisIdentifier;
 import ibis.ipl.impl.ReceivePort;
+import ibis.ipl.impl.ReceivePortIdentifier;
 import ibis.ipl.impl.SendPort;
 import ibis.ipl.impl.SendPortIdentifier;
 import ibis.server.Client;
 import ibis.server.ConfigurationException;
 import ibis.smartsockets.hub.servicelink.ServiceLink;
+import ibis.smartsockets.util.MalformedAddressException;
 import ibis.smartsockets.virtual.VirtualServerSocket;
 import ibis.smartsockets.virtual.VirtualSocket;
 import ibis.smartsockets.virtual.VirtualSocketAddress;
@@ -34,7 +36,9 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
@@ -115,6 +119,11 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis
     }
     */
 
+    ServiceLink getServiceLink() { 
+    	return factory.getServiceLink();
+    }
+    
+    
     VirtualSocket connect(SmartSocketsSendPort sp, ibis.ipl.impl.ReceivePortIdentifier rip,
             int timeout, boolean fillTimeout) throws IOException {
         
@@ -141,13 +150,24 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis
 
         do {
             DataOutputStream out = null;
-            IbisSocket s = null;
+            VirtualSocket s = null;
             int result = -1;
 
             try {
-                s = factory.createClientSocket(idAddr, timeout, fillTimeout, 
-                        sp.managementProperties());
+
+                HashMap<String, Object> h = null;
+                
+                Map<String, String> properties = sp.managementProperties();
+                
+                if (properties != null) {
+                	h = new HashMap<String, Object>();
+                	h.putAll(properties);
+                }
+                
+                s = factory.createClientSocket(idAddr, timeout, fillTimeout, h);
+            	
                 s.setTcpNoDelay(true);
+                
                 out = new DataOutputStream(new BufferedArrayOutputStream(
                             s.getOutputStream(), 4096));
 
@@ -241,7 +261,7 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis
         }
     }
 
-    private void handleConnectionRequest(IbisSocket s) throws IOException {
+    private void handleConnectionRequest(VirtualSocket s) throws IOException {
         
         if (logger.isDebugEnabled()) {
             logger.debug("--> TcpIbis got connection request from " + s);
@@ -299,7 +319,7 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis
         boolean stop = false;
         
         while (!stop) {
-            IbisSocket s = null;
+            VirtualSocket s = null;
 
             if (logger.isDebugEnabled()) {
                 logger.debug("--> TcpIbis doing new accept()");
@@ -387,6 +407,11 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis
             throws IOException {
         return new SmartSocketsReceivePort(this, tp, nm, u, cU, props);
     }
+
+	public byte[] identifierInBytes() {
+		// TODO implement!
+		return null;
+	}
 
    
 }

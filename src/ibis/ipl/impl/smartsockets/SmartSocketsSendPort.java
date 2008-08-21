@@ -14,6 +14,7 @@ import ibis.ipl.impl.SendPort;
 import ibis.ipl.impl.SendPortConnectionInfo;
 import ibis.ipl.impl.SendPortIdentifier;
 import ibis.ipl.impl.WriteMessage;
+import ibis.smartsockets.virtual.VirtualSocket;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -22,11 +23,11 @@ import java.util.Properties;
 final class SmartSocketsSendPort extends SendPort implements SmartSocketsProtocol {
 
     private class Conn extends SendPortConnectionInfo {
-        IbisSocket s;
+        VirtualSocket s;
 
         OutputStream out;
 
-        Conn(IbisSocket s, SmartSocketsSendPort port, ReceivePortIdentifier target)
+        Conn(VirtualSocket s, SmartSocketsSendPort port, ReceivePortIdentifier target)
                 throws IOException {
             super(port, target);
             this.s = s;
@@ -86,8 +87,7 @@ final class SmartSocketsSendPort extends SendPort implements SmartSocketsProtoco
     protected SendPortConnectionInfo doConnect(ReceivePortIdentifier receiver,
             long timeoutMillis, boolean fillTimeout) throws IOException {
 
-        IbisSocket s =
-                ((SmartSocketsIbis) ibis).connect(this, receiver, (int) timeoutMillis,
+        VirtualSocket s = ((SmartSocketsIbis) ibis).connect(this, receiver, (int) timeoutMillis,
                         fillTimeout);
         Conn c = new Conn(s, this, receiver);
         if (out != null) {

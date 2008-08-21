@@ -13,6 +13,7 @@ import ibis.ipl.impl.ReceivePort;
 import ibis.ipl.impl.ReceivePortConnectionInfo;
 import ibis.ipl.impl.ReceivePortIdentifier;
 import ibis.ipl.impl.SendPortIdentifier;
+import ibis.smartsockets.virtual.VirtualSocket;
 import ibis.util.ThreadPool;
 
 import java.io.IOException;
@@ -23,9 +24,9 @@ class SmartSocketsReceivePort extends ReceivePort implements SmartSocketsProtoco
     class ConnectionHandler extends ReceivePortConnectionInfo 
             implements Runnable, SmartSocketsProtocol {
 
-        private final IbisSocket s;
+        private final VirtualSocket s;
 
-        ConnectionHandler(SendPortIdentifier origin, IbisSocket s,
+        ConnectionHandler(SendPortIdentifier origin, VirtualSocket s,
                 ReceivePort port, BufferedArrayInputStream in)
                 throws IOException {
             super(origin, port, in);
@@ -234,7 +235,7 @@ class SmartSocketsReceivePort extends ReceivePort implements SmartSocketsProtoco
         super.closePort(timeout);
     }
 
-    void connect(SendPortIdentifier origin, IbisSocket s,
+    void connect(SendPortIdentifier origin, VirtualSocket s,
             BufferedArrayInputStream in) throws IOException {
         ConnectionHandler conn;
 

@@ -15,7 +15,7 @@ import org.apache.log4j.Logger;
 public final class SmartSocketsIbisStarter extends ibis.ipl.IbisStarter {
 
     static final Logger logger
-            = Logger.getLogger("ibis.ipl.impl.tcp.TcpIbisStarter");
+            = Logger.getLogger("ibis.ipl.impl.smartsockets.SmartSocketsIbisStarter");
 
     static final IbisCapabilities ibisCapabilities = new IbisCapabilities(
         IbisCapabilities.CLOSED_WORLD,
@@ -25,7 +25,7 @@ public final class SmartSocketsIbisStarter extends ibis.ipl.IbisStarter {
         IbisCapabilities.ELECTIONS_UNRELIABLE,
         IbisCapabilities.ELECTIONS_STRICT,
         IbisCapabilities.MALLEABLE,
-        "nickname.tcp"
+        "nickname.smartsockets"
     );
 
     static final PortType portCapabilities = new PortType(
@@ -44,6 +44,8 @@ public final class SmartSocketsIbisStarter extends ibis.ipl.IbisStarter {
         PortType.CONNECTION_MANY_TO_ONE,
         PortType.CONNECTION_ONE_TO_MANY,
         PortType.CONNECTION_ONE_TO_ONE,
+        PortType.CONNECTION_LIGHT,
+        PortType.CONNECTION_ULTRALIGHT,
         PortType.RECEIVE_POLL,
         PortType.RECEIVE_AUTO_UPCALLS,
         PortType.RECEIVE_EXPLICIT,
