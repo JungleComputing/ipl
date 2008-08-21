@@ -176,5 +176,4 @@ final class SmartSocketsSendPort extends SendPort implements SmartSocketsProtoco
 
         out = null;
     }
-
 }

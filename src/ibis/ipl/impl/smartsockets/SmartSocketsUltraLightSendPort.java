@@ -1,108 +1,253 @@
 package ibis.ipl.impl.smartsockets;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.net.UnknownHostException;
-import java.util.Properties;
-
-import ibis.io.BufferedArrayOutputStream;
+import ibis.ipl.ConnectionFailedException;
+import ibis.ipl.ConnectionsFailedException;
+import ibis.ipl.IbisIdentifier;
+import ibis.ipl.NoSuchPropertyException;
 import ibis.ipl.PortType;
+import ibis.ipl.ReadMessage;
+import ibis.ipl.ReceivePortIdentifier;
+import ibis.ipl.SendPort;
+import ibis.ipl.SendPortIdentifier;
+import ibis.ipl.WriteMessage;
 
 import ibis.ipl.impl.Ibis;
-import ibis.ipl.impl.IbisIdentifier;
-import ibis.ipl.impl.ReceivePortIdentifier;
-import ibis.ipl.impl.SendPort;
-import ibis.ipl.impl.SendPortConnectionInfo;
-import ibis.ipl.impl.WriteMessage;
 import ibis.smartsockets.hub.servicelink.ServiceLink;
 import ibis.smartsockets.util.MalformedAddressException;
 import ibis.smartsockets.virtual.VirtualSocketAddress;
 
-public class SmartSocketsUltraLightSendPort extends SendPort {
+import java.io.IOException;
+import java.io.PrintStream;
+import java.net.UnknownHostException;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+import java.util.Map.Entry;
 
-	private class ConnectionInfo extends SendPortConnectionInfo {
-		ConnectionInfo(SendPort port, ReceivePortIdentifier target) 
-			throws IOException {			
-			super(port, target);
+import org.apache.log4j.Logger;
+
+public class SmartSocketsUltraLightSendPort implements SendPort {
+
+	private static final int DEFAULT_BUFFER_SIZE = 4096;
+	
+	protected static final Logger logger = Logger.getLogger("ibis.ipl.impl.smartsockets.SendPort");
+
+	private final PortType type;
+	private final String name;
+	private final Properties properties;	
+	private final SmartSocketsIbis ibis;
+
+	private final SendPortIdentifier sid;
+	
+	private boolean closed = false;
+
+	private final SmartSocketsUltraLightWriteMessage message; 
+	private final byte [] buffer;
+
+	private boolean messageInUse = false;
+
+	private final Set<ReceivePortIdentifier> connections = new HashSet<ReceivePortIdentifier>();
+	
+	SmartSocketsUltraLightSendPort(SmartSocketsIbis ibis, PortType type, String name, 
+			Properties props) throws IOException {
+		
+		this.ibis = ibis;
+		this.type = type;
+		this.name = name;
+		this.properties = props;
+		
+		sid = new ibis.ipl.impl.SendPortIdentifier(name, ibis.ident);
+		
+		buffer = new byte[DEFAULT_BUFFER_SIZE];		
+		message = new SmartSocketsUltraLightWriteMessage(this, buffer);		
+	}	
+		
+	public synchronized void close() throws IOException {
+		closed = true;
+		notifyAll();		
+	}
+
+	public synchronized void connect(ReceivePortIdentifier receiver) throws ConnectionFailedException {
+		connections.add(receiver);
+	}
+
+	public void connect(ReceivePortIdentifier receiver, long timeoutMillis, boolean fillTimeout) throws ConnectionFailedException {
+		connect(receiver);
+	}
+
+	public ReceivePortIdentifier connect(IbisIdentifier ibisIdentifier, String receivePortName) throws ConnectionFailedException {
+		ReceivePortIdentifier id = new ibis.ipl.impl.ReceivePortIdentifier(receivePortName, (ibis.ipl.impl.IbisIdentifier) ibisIdentifier);
+		connect(id);
+		return id; 
+	}
+
+	public ReceivePortIdentifier connect(IbisIdentifier ibisIdentifier, String receivePortName, long timeoutMillis, boolean fillTimeout) throws ConnectionFailedException {
+		return connect(ibisIdentifier, receivePortName);
+	}
+
+	public void connect(ReceivePortIdentifier[] receivePortIdentifiers) throws ConnectionsFailedException {
+		
+		LinkedList<ConnectionFailedException> tmp = null;
+		LinkedList<ReceivePortIdentifier> success = new LinkedList<ReceivePortIdentifier>();
+		
+		for (ReceivePortIdentifier id : receivePortIdentifiers) {
+			try { 
+				connect(id);
+				success.add(id);
+			} catch (ConnectionFailedException e) {
+
+				if (tmp == null) { 
+					tmp = new LinkedList<ConnectionFailedException>();
+				}
+				
+				tmp.add(e);
+			}
+		}		
+
+		if (tmp != null && tmp.size() > 0) { 
+			ConnectionsFailedException c = new ConnectionsFailedException("Failed to connect");
+			
+			for (ConnectionFailedException ex : tmp) { 
+				c.add(ex);
+			}			
+	
+			c.setObtainedConnections(success.toArray(new ReceivePortIdentifier[success.size()]));
+			throw c;
+		}
+	}
+
+	public void connect(ReceivePortIdentifier[] receivePortIdentifiers, long timeoutMillis, boolean fillTimeout) throws ConnectionsFailedException {
+		connect(receivePortIdentifiers);
+	}
+
+	public ReceivePortIdentifier[] connect(Map<IbisIdentifier, String> ports) throws ConnectionsFailedException {
+
+		ReceivePortIdentifier [] tmp = new ReceivePortIdentifier[ports.size()];
+		
+		int index = 0;
+		
+		for (Entry<IbisIdentifier, String> e : ports.entrySet()) { 
+			tmp[index++] = new ibis.ipl.impl.ReceivePortIdentifier(e.getValue(), (ibis.ipl.impl.IbisIdentifier) e.getKey());
+		}
+		
+		connect(tmp);
+		return tmp;
+	}
+
+	public ReceivePortIdentifier[] connect(Map<IbisIdentifier, String> ports, long timeoutMillis, boolean fillTimeout) throws ConnectionsFailedException {
+		return connect(ports);
+	}
+
+	public ReceivePortIdentifier[] connectedTo() {
+		return connections.toArray(new ReceivePortIdentifier[0]);
+	}
+
+	public synchronized void disconnect(ReceivePortIdentifier receiver) throws IOException {
+		if (!connections.remove(receiver)) { 
+			throw new IOException("Not connected to " + receiver);
+		}
+	}
+
+	public void disconnect(IbisIdentifier ibisIdentifier, String receivePortName) throws IOException {
+		disconnect(new ibis.ipl.impl.ReceivePortIdentifier(receivePortName, (ibis.ipl.impl.IbisIdentifier) ibisIdentifier));
+	}
+
+	public PortType getPortType() {
+		return type;
+	}
+
+	public SendPortIdentifier identifier() {
+		return sid;
+	}
+
+	public ReceivePortIdentifier[] lostConnections() {
+		return new ReceivePortIdentifier[0];
+	}
+
+	public String name() {
+		return name;
+	}
+
+	public synchronized WriteMessage newMessage() throws IOException {
+		
+		while (!closed && messageInUse) { 
+			try { 
+				wait();
+			} catch (InterruptedException e) {
+				// ignore
+			}			
 		}
 
-		public void closeConnection() { /* empty */ } 
-	}
+		if (closed) { 
+			throw new IOException("Sendport is closed");
+		}
 		
-	private final ByteArrayOutputStream bout;
-	private final BufferedArrayOutputStream bufferedStream;
-
-	private ServiceLink sl = null;
-	
-	SmartSocketsUltraLightSendPort(Ibis ibis, PortType type, String name, 
-			Properties props) throws IOException {
-        super(ibis, type, name, null, props);
-        
-        // TODO: This seems a bit inefficient, since it adds a copy...
-        bout = new ByteArrayOutputStream();        
-        bufferedStream = new BufferedArrayOutputStream(bout, 4096);
-        initStream(bufferedStream);
-	}	
-	
-	@Override
-	protected void announceNewMessage() throws IOException {
-		// empty ? 
+		messageInUse = false;		
+		return message;
 	}
 
-	@Override
-	protected void closePort() throws IOException {		
-		bufferedStream.close();
-		bout.close();		
+	public String getManagementProperty(String key) throws NoSuchPropertyException {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
-	@Override
-	protected SendPortConnectionInfo doConnect(ReceivePortIdentifier receiver, 
-			long timeout, boolean fillTimeout) throws IOException {
-		return new ConnectionInfo(this, receiver);
+	public Map<String, String> managementProperties() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
-	@Override
-	protected void handleSendException(WriteMessage w, IOException e) {
-		// empty
+	public void printManagementProperties(PrintStream stream) {
+		// TODO Auto-generated method stub
+		
 	}
 
-	@Override
-	protected void sendDisconnectMessage(ReceivePortIdentifier receiver, 
-			SendPortConnectionInfo c) throws IOException {		
-		// empty
+	public void setManagementProperties(Map<String, String> properties) throws NoSuchPropertyException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void setManagementProperty(String key, String value) throws NoSuchPropertyException {
+		// TODO Auto-generated method stub
+		
 	}
 	
-    void sendMessage(ReceivePortIdentifier id, int opcode, byte [][] message) 
-    	throws UnknownHostException, MalformedAddressException { 
-    	
-    	if (sl == null) { 
-    		sl = ((SmartSocketsIbis) ibis).getServiceLink();
-    	}
-    		
-    	if (sl != null) { 
-    		IbisIdentifier tmp = (IbisIdentifier) id.ibisIdentifier();
-    		VirtualSocketAddress a = VirtualSocketAddress.fromBytes(tmp.getImplementationData(), 0);	
-    		sl.send(a.machine(), a.hub(), id.name(), opcode, message);	
-    	}
-    }
-   
-    protected synchronized void finishMessage(WriteMessage w, long cnt)
-    	throws IOException {
+	private void send(ReceivePortIdentifier id, byte [] data) throws UnknownHostException, MalformedAddressException { 
+		
+		ServiceLink link = ibis.getServiceLink();
+		
+		if (link != null) {
+			ibis.ipl.impl.IbisIdentifier tmp = (ibis.ipl.impl.IbisIdentifier) id.ibisIdentifier();			
+			VirtualSocketAddress a = VirtualSocketAddress.fromBytes(tmp.getImplementationData(), 0);
 
-    	final int opcode = 0xDEADBEEF;
-        final byte [][] message = new byte[2][];
+			byte [][] message = new byte[2][];
+			
+			message[0] = tmp.toBytes();
+			message[1] = buffer;
+			
+			link.send(a.machine(), a.hub(), id.name(), 0xDEADBEEF,message);  
+		}
+	}
 
-    	message[0] = ((SmartSocketsIbis) ibis).identifierInBytes();
-    	message[1] = bout.toByteArray();
+	public synchronized void finishedMessage() throws IOException {
 
-    	for (ReceivePortIdentifier r : receivers.keySet().toArray(new ReceivePortIdentifier[0])) { 
-    		try { 
-    			sendMessage(r, opcode, message);
-    		} catch (Exception e) {
-    			// TODO: print to logger ?
-    		}
-    	} 
+		for (ReceivePortIdentifier id : connections) { 
+			try { 
+				send(id, buffer);
+			} catch (Exception e) {
+				logger.debug("Failed to send message to " + id, e);
+			}
+		}
+		
+		message.reset();	
+		messageInUse = false;
+		notifyAll();
+	}
 
-    	super.finishMessage(w, cnt);
-    }
+	public synchronized void finishedMessage(IOException exception) throws IOException {
+		message.reset();	
+		messageInUse = false;
+		notifyAll();
+	} 	
 }

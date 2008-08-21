@@ -392,7 +392,7 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis
         }
     }
 
-    protected SendPort doCreateSendPort(PortType tp, String nm,
+    protected ibis.ipl.SendPort doCreateSendPort(PortType tp, String nm,
             SendPortDisconnectUpcall cU, Properties props) throws IOException {
     	
     	if (tp.hasCapability(PortType.CONNECTION_ULTRALIGHT)) { 
@@ -402,9 +402,14 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis
         return new SmartSocketsSendPort(this, tp, nm, cU, props);
     }
 
-    protected ReceivePort doCreateReceivePort(PortType tp, String nm,
+    protected ibis.ipl.ReceivePort doCreateReceivePort(PortType tp, String nm,
             MessageUpcall u, ReceivePortConnectUpcall cU, Properties props)
             throws IOException {
+    	
+    	if (tp.hasCapability(PortType.CONNECTION_ULTRALIGHT)) { 
+    		return new SmartSocketsUltraLightReceivePort(ident, tp, nm, u, props);
+    	}
+    	
         return new SmartSocketsReceivePort(this, tp, nm, u, cU, props);
     }
 
