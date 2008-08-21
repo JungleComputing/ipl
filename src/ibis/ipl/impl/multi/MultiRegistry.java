@@ -1,6 +1,7 @@
 package ibis.ipl.impl.multi;
 
 import ibis.ipl.Ibis;
+import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.NoSuchPropertyException;
 import ibis.ipl.Registry;
@@ -268,6 +269,16 @@ public class MultiRegistry implements Registry{
             subRegistry.signal(signal, ids);
         }
     }
+    
+    public boolean isClosed() {
+        //FIXME: is this correct? - Niels
+        for (Registry subRegistry:subRegistries.values()) {
+            if (!subRegistry.isClosed()) {
+                return false;
+            }
+        }
+        return true;
+    }
 
     public void waitUntilPoolClosed() {
         for (Registry subRegistry:subRegistries.values()) {
@@ -296,6 +307,22 @@ public class MultiRegistry implements Registry{
     public void setManagementProperty(String key, String value)
     throws NoSuchPropertyException {
         ManageableMapper.setManagementProperty(key, value);
+    }
+
+    public boolean hasTerminated() {
+        //FIXME: implement termination for this registry
+        throw new IbisConfigurationException(
+        "termination not supported by MultiRegistry");
+    }
+
+    public void terminate() throws IOException {
+        throw new IbisConfigurationException(
+        "termination not supported by MultiRegistry");
+    }
+
+    public IbisIdentifier waitUntilTerminated() {
+        throw new IbisConfigurationException(
+        "termination not supported by MultiRegistry");
     }
 
 }

@@ -26,30 +26,38 @@ public final class Event implements Serializable, Comparable<Event> {
     public static final int UN_ELECT = 5;
 
     public static final int POOL_CLOSED = 6;
-
-    public static final int NR_OF_TYPES = 7;
     
+    public static final int POOL_TERMINATED = 7;
+
+    public static final int NR_OF_TYPES = 8;
+
     private final int time;
 
     private final int type;
 
     private final String description;
 
+    // single ibis field
+    private final IbisIdentifier ibis;
+
+    // multiple ibisses field (only used in signals)
     private final IbisIdentifier[] ibisses;
 
-    public Event(int time, int type, String description,
+    public Event(int time, int type, String description, IbisIdentifier ibis,
             IbisIdentifier... ibisses) {
         this.time = time;
         this.type = type;
+        this.ibis = ibis;
         this.ibisses = ibisses.clone();
         if (description == null) {
             this.description = "";
         } else {
             this.description = description;
         }
-        
+
         if (type != SIGNAL && ibisses.length > 1) {
-            throw new Error("only the string type event can have multiple ibisses");
+            throw new Error(
+                    "only the string type event can have multiple ibisses");
         }
     }
 
@@ -57,6 +65,12 @@ public final class Event implements Serializable, Comparable<Event> {
         time = in.readInt();
         type = in.readInt();
         description = in.readUTF();
+        if (in.readBoolean()) {
+            ibis = new IbisIdentifier(in);
+        } else {
+            ibis = null;
+        }
+
         ibisses = new IbisIdentifier[in.readInt()];
         for (int i = 0; i < ibisses.length; i++) {
             ibisses[i] = new IbisIdentifier(in);
@@ -67,6 +81,13 @@ public final class Event implements Serializable, Comparable<Event> {
         out.writeInt(time);
         out.writeInt(type);
         out.writeUTF(description);
+
+        if (ibis != null) {
+            out.writeBoolean(true);
+            ibis.writeTo(out);
+        } else {
+            out.writeBoolean(false);
+        }
         out.writeInt(ibisses.length);
         for (int i = 0; i < ibisses.length; i++) {
             ibisses[i].writeTo(out);
@@ -81,11 +102,8 @@ public final class Event implements Serializable, Comparable<Event> {
         return description;
     }
 
-    public IbisIdentifier getFirstIbis() {
-        if (ibisses.length == 0) {
-            return null;
-        }
-        return ibisses[0];
+    public IbisIdentifier getIbis() {
+        return ibis;
     }
 
     public IbisIdentifier[] getIbises() {
@@ -111,7 +129,9 @@ public final class Event implements Serializable, Comparable<Event> {
         case UN_ELECT:
             return "UN_ELECT";
         case POOL_CLOSED:
-            return "UN_ELECT";
+            return "POOL_CLOSED";
+        case POOL_TERMINATED:
+            return "POOL_TERMINATED";
         default:
             return "UNKNOWN";
         }

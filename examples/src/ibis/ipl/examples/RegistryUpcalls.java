@@ -14,8 +14,8 @@ import ibis.ipl.RegistryEventHandler;
 
 public class RegistryUpcalls implements RegistryEventHandler {
 
-    IbisCapabilities ibisCapabilities =
-        new IbisCapabilities(IbisCapabilities.MEMBERSHIP_TOTALLY_ORDERED);
+    IbisCapabilities ibisCapabilities = new IbisCapabilities(
+            IbisCapabilities.MEMBERSHIP_TOTALLY_ORDERED);
 
     // Methods of the registry event handler. We only implement the
     // join/leave/died methods, as signals and elections are disabled
@@ -59,5 +59,17 @@ public class RegistryUpcalls implements RegistryEventHandler {
         } catch (Exception e) {
             e.printStackTrace(System.err);
         }
+    }
+
+    public void gotSignal(String signal, IbisIdentifier source) {
+        // NOTHING
+    }
+
+    public void poolClosed() {
+        // NOTHING
+    }
+
+    public void poolTerminated(IbisIdentifier source) {
+        // NOTHING
     }
 }

@@ -112,17 +112,17 @@ final class Upcaller implements Runnable {
                     }
                     break;
                 case Event.SIGNAL:
-                    handler.gotSignal(event.getDescription());
+                    handler.gotSignal(event.getDescription(), event.getIbis());
                     break;
                 case Event.ELECT:
                     handler.electionResult(event.getDescription(), event
-                            .getFirstIbis());
+                            .getIbis());
                     break;
                 case Event.UN_ELECT:
                     handler.electionResult(event.getDescription(), null);
                     break;
                 case Event.POOL_CLOSED:
-                    //Not handled here
+                    // Not handled here
                     break;
                 default:
                     logger.error("unknown event type: " + event.getType());

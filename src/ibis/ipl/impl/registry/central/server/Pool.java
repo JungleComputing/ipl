@@ -91,6 +91,10 @@ final class Pool implements Runnable {
 
     private boolean closed = false;
 
+    private boolean terminated = false;
+
+    private IbisIdentifier terminator = null;
+
     Pool(String name, VirtualSocketFactory socketFactory,
             boolean peerBootstrap, long heartbeatInterval,
             long eventPushInterval, boolean gossip, long gossipInterval,
@@ -165,8 +169,9 @@ final class Pool implements Runnable {
     }
 
     synchronized Event addEvent(int type, String description,
-            IbisIdentifier... ibisses) {
-        Event event = new Event(currentEventTime, type, description, ibisses);
+            IbisIdentifier ibis, IbisIdentifier... ibisses) {
+        Event event = new Event(currentEventTime, type, description, ibis,
+                ibisses);
         logger.debug("adding new event: " + event);
         events.add(event);
         eventStats[type]++;
@@ -305,7 +310,7 @@ final class Pool implements Runnable {
             if (printEvents) {
                 print("pool \"" + name + "\" now closed");
             }
-            addEvent(Event.POOL_CLOSED, null, new IbisIdentifier[0]);
+            addEvent(Event.POOL_CLOSED, null, null, new IbisIdentifier[0]);
         }
 
         return member;
@@ -348,6 +353,10 @@ final class Pool implements Runnable {
             }
 
             dataOut.writeBoolean(closed);
+            dataOut.writeBoolean(terminated);
+            if (terminated) {
+                terminator.writeTo(dataOut);
+            }
         }
 
         dataOut.flush();
@@ -366,7 +375,8 @@ final class Pool implements Runnable {
      */
     synchronized void leave(IbisIdentifier identifier) throws Exception {
         if (members.remove(identifier) == null) {
-            // May happen if it was declared dead before. So, no exception. --Ceriel
+            // May happen if it was declared dead before. So, no exception.
+            // --Ceriel
             // logger.error("unknown ibis " + identifier + " tried to leave");
             // throw new Exception("ibis unknown: " + identifier);
             logger.debug("unknown ibis " + identifier + " tried to leave");
@@ -542,18 +552,31 @@ final class Pool implements Runnable {
      * @see ibis.ipl.impl.registry.central.SuperPool#signal(java.lang.String,
      *      ibis.ipl.impl.IbisIdentifier[])
      */
-    synchronized void signal(String signal, IbisIdentifier[] victims) {
+    synchronized void signal(String signal, IbisIdentifier source,
+            IbisIdentifier[] targets) {
         ArrayList<IbisIdentifier> result = new ArrayList<IbisIdentifier>();
 
-        for (IbisIdentifier victim : victims) {
-            if (members.contains(victim)) {
-                result.add(victim);
+        for (IbisIdentifier target : targets) {
+            if (members.contains(target)) {
+                result.add(target);
             }
         }
-        addEvent(Event.SIGNAL, signal, result.toArray(new IbisIdentifier[result
-                .size()]));
+        addEvent(Event.SIGNAL, signal, source, result
+                .toArray(new IbisIdentifier[result.size()]));
         notifyAll();
 
+    }
+
+    synchronized void terminate(IbisIdentifier source) {
+        if (terminated) {
+            return;
+        }
+
+        terminated = true;
+        terminator = source;
+
+        addEvent(Event.POOL_TERMINATED, null, source);
+        notifyAll();
     }
 
     void ping(Member member) {

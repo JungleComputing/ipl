@@ -145,17 +145,12 @@ class CommunicationHandler implements Runnable {
     }
 
     private void handleSignal(Connection connection) throws IOException {
-        IbisIdentifier target = new IbisIdentifier(connection.in());
+        IbisIdentifier source = new IbisIdentifier(connection.in());
         String signal = connection.in().readUTF();
-
-        if (!target.equals(registry.getIbisIdentifier())) {
-            connection.closeWithError("signal target not equal to local identifier");
-            return;
-        }
 
         connection.sendOKReply();
 
-        registry.signal(signal);
+        registry.signal(signal, source);
 
         connection.close();
     }

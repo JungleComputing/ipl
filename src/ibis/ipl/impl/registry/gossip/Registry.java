@@ -82,7 +82,8 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
             IbisConfigurationException {
         this.capabilities = capabilities;
 
-        if (capabilities.hasCapability(IbisCapabilities.MEMBERSHIP_TOTALLY_ORDERED)) {
+        if (capabilities
+                .hasCapability(IbisCapabilities.MEMBERSHIP_TOTALLY_ORDERED)) {
             throw new IbisConfigurationException(
                     "gossip registry does not support totally ordered membership");
         }
@@ -95,6 +96,11 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
         if (capabilities.hasCapability(IbisCapabilities.ELECTIONS_STRICT)) {
             throw new IbisConfigurationException(
                     "gossip registry does not support strict elections");
+        }
+
+        if (capabilities.hasCapability(IbisCapabilities.TERMINATION)) {
+            throw new IbisConfigurationException(
+                    "gossip registry does not support termination");
         }
 
         properties = RegistryProperties.getHardcodedProperties();
@@ -138,8 +144,8 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
             statistics = new Statistics(Protocol.OPCODE_NAMES);
             statistics.setID(id.toString(), poolName);
 
-            long interval =
-                properties.getIntProperty(RegistryProperties.STATISTICS_INTERVAL) * 1000;
+            long interval = properties
+                    .getIntProperty(RegistryProperties.STATISTICS_INTERVAL) * 1000;
 
             statistics.startWriting(interval);
         } else {
@@ -149,21 +155,19 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
         members = new MemberSet(properties, this, statistics);
         elections = new ElectionSet(properties, this);
 
-        commHandler =
-            new CommunicationHandler(properties, this, members, elections,
-                    statistics);
+        commHandler = new CommunicationHandler(properties, this, members,
+                elections, statistics);
 
         Location location = Location.defaultLocation(properties);
 
-        identifier =
-            new IbisIdentifier(id.toString(), ibisData,
-                    commHandler.getAddress().toBytes(), location, poolName);
+        identifier = new IbisIdentifier(id.toString(), ibisData, commHandler
+                .getAddress().toBytes(), location, poolName);
 
         commHandler.start();
         members.start();
 
-        boolean printMembers =
-            properties.getBooleanProperty(RegistryProperties.PRINT_MEMBERS);
+        boolean printMembers = properties
+                .getBooleanProperty(RegistryProperties.PRINT_MEMBERS);
 
         if (printMembers) {
             new MemberPrinter(members);
@@ -182,8 +186,6 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
     CommunicationHandler getCommHandler() {
         return commHandler;
     }
-    
-    
 
     public IbisIdentifier elect(String electionName) throws IOException {
         if (!capabilities.hasCapability(IbisCapabilities.ELECTIONS_UNRELIABLE)) {
@@ -192,7 +194,7 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
         }
 
         IbisIdentifier[] candidates = elections.elect(electionName);
-        
+
         return members.getFirstLiving(candidates);
     }
 
@@ -203,10 +205,11 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
                     "No election support requested");
         }
 
-        IbisIdentifier[] candidates = elections.elect(electionName, timeoutMillis);
-        
+        IbisIdentifier[] candidates = elections.elect(electionName,
+                timeoutMillis);
+
         return members.getFirstLiving(candidates);
-        
+
     }
 
     public IbisIdentifier getElectionResult(String election) throws IOException {
@@ -216,7 +219,7 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
         }
 
         IbisIdentifier[] candidates = elections.getElectionResult(election);
-        
+
         return members.getFirstLiving(candidates);
 
     }
@@ -228,8 +231,9 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
                     "No election support requested");
         }
 
-        IbisIdentifier[] candidates = elections.getElectionResult(electionName, timeoutMillis);
-        
+        IbisIdentifier[] candidates = elections.getElectionResult(electionName,
+                timeoutMillis);
+
         return members.getFirstLiving(candidates);
 
     }
@@ -258,8 +262,7 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
         }
 
         try {
-            IbisIdentifier[] implIdentifiers =
-                (IbisIdentifier[]) ibisIdentifiers;
+            IbisIdentifier[] implIdentifiers = (IbisIdentifier[]) ibisIdentifiers;
 
             commHandler.sendSignals(signal, implIdentifiers);
 
@@ -274,8 +277,8 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
                     "Resize downcalls not configured");
         }
 
-        ibis.ipl.IbisIdentifier[] result =
-            joinedIbises.toArray(new ibis.ipl.IbisIdentifier[0]);
+        ibis.ipl.IbisIdentifier[] result = joinedIbises
+                .toArray(new ibis.ipl.IbisIdentifier[0]);
         joinedIbises.clear();
         return result;
     }
@@ -285,8 +288,8 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
             throw new IbisConfigurationException(
                     "Resize downcalls not configured");
         }
-        ibis.ipl.IbisIdentifier[] result =
-            leftIbises.toArray(new ibis.ipl.IbisIdentifier[0]);
+        ibis.ipl.IbisIdentifier[] result = leftIbises
+                .toArray(new ibis.ipl.IbisIdentifier[0]);
         leftIbises.clear();
         return result;
     }
@@ -297,8 +300,8 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
                     "Resize downcalls not configured");
         }
 
-        ibis.ipl.IbisIdentifier[] result =
-            diedIbises.toArray(new ibis.ipl.IbisIdentifier[0]);
+        ibis.ipl.IbisIdentifier[] result = diedIbises
+                .toArray(new ibis.ipl.IbisIdentifier[0]);
         diedIbises.clear();
         return result;
     }
@@ -375,9 +378,9 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
         throw new NoSuchPropertyException(
                 "gossip registry does not have any properties that can be set");
     }
-    
+
     public void printManagementProperties(PrintStream stream) {
-        //NOTHING
+        // NOTHING
     }
 
     // functions called by pool to tell the registry an event has occured
@@ -412,13 +415,13 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
         }
     }
 
-    synchronized void signal(String signal) {
+    synchronized void signal(String signal, IbisIdentifier source) {
         if (signals != null) {
             signals.add(signal);
         }
 
         if (upcaller != null) {
-            upcaller.signal(signal);
+            upcaller.signal(signal, source);
         }
     }
 
@@ -446,18 +449,16 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
         logger.debug("leaving: telling pool we are leaving");
         members.leave(identifier);
         members.leave();
-        
-        
-        //wait for our "left" to spread
+
+        // wait for our "left" to spread
         try {
             Thread.sleep(10000);
         } catch (InterruptedException e) {
-            //IGNORE
-        }        
-        
-        
-//        logger.debug("leaving: broadcasting leave");
-//        commHandler.broadcastLeave();
+            // IGNORE
+        }
+
+        // logger.debug("leaving: broadcasting leave");
+        // commHandler.broadcastLeave();
         logger.debug("leaving: writing statistics");
         if (statistics != null) {
             statistics.write();
@@ -467,8 +468,8 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
     }
 
     public void run() {
-        long interval =
-            properties.getIntProperty(RegistryProperties.GOSSIP_INTERVAL) * 1000;
+        long interval = properties
+                .getIntProperty(RegistryProperties.GOSSIP_INTERVAL) * 1000;
 
         while (!isStopped()) {
             commHandler.gossip();
@@ -483,6 +484,26 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
             }
         }
 
+    }
+
+    public boolean hasTerminated() {
+        throw new IbisConfigurationException(
+                "gossip registry does not support termination");
+    }
+
+    public boolean isClosed() {
+        throw new IbisConfigurationException(
+                "gossip registry does not support closed world");
+    }
+
+    public void terminate() throws IOException {
+        throw new IbisConfigurationException(
+                "gossip registry does not support termination");
+    }
+
+    public ibis.ipl.IbisIdentifier waitUntilTerminated() {
+        throw new IbisConfigurationException(
+                "gossip registry does not support termination");
     }
 
 }

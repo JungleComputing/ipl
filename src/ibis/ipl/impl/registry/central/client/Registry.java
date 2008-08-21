@@ -80,11 +80,12 @@ public final class Registry extends ibis.ipl.impl.Registry {
 
         this.capabilities = capabilities;
 
-        TypedProperties properties =
-            RegistryProperties.getHardcodedProperties();
+        TypedProperties properties = RegistryProperties
+                .getHardcodedProperties();
         properties.addProperties(userProperties);
 
-        if ((capabilities.hasCapability(IbisCapabilities.MEMBERSHIP_UNRELIABLE) || capabilities.hasCapability(IbisCapabilities.MEMBERSHIP_TOTALLY_ORDERED))
+        if ((capabilities.hasCapability(IbisCapabilities.MEMBERSHIP_UNRELIABLE) || capabilities
+                .hasCapability(IbisCapabilities.MEMBERSHIP_TOTALLY_ORDERED))
                 && eventHandler == null) {
             joinedIbises = new ArrayList<ibis.ipl.IbisIdentifier>();
             leftIbises = new ArrayList<ibis.ipl.IbisIdentifier>();
@@ -120,11 +121,11 @@ public final class Registry extends ibis.ipl.impl.Registry {
 
         try {
 
-            communicationHandler =
-                new CommunicationHandler(properties, pool, statistics);
+            communicationHandler = new CommunicationHandler(properties, pool,
+                    statistics);
 
-            identifier =
-                communicationHandler.join(data, ibisImplementationIdentifier);
+            identifier = communicationHandler.join(data,
+                    ibisImplementationIdentifier);
 
             communicationHandler.bootstrap();
 
@@ -133,10 +134,12 @@ public final class Registry extends ibis.ipl.impl.Registry {
             throw new IbisConfigurationException(e.getMessage());
         }
 
-        //start writing statistics
+        // start writing statistics
         if (statistics != null) {
             statistics.setID(identifier.getID(), pool.getName());
-            statistics.startWriting(properties.getIntProperty(RegistryProperties.STATISTICS_INTERVAL) * 1000);
+            statistics
+                    .startWriting(properties
+                            .getIntProperty(RegistryProperties.STATISTICS_INTERVAL) * 1000);
         }
 
         logger.debug("registry for " + identifier + " initiated");
@@ -160,7 +163,8 @@ public final class Registry extends ibis.ipl.impl.Registry {
         }
 
         if (!capabilities.hasCapability(IbisCapabilities.ELECTIONS_UNRELIABLE)
-                && !capabilities.hasCapability(IbisCapabilities.ELECTIONS_STRICT)) {
+                && !capabilities
+                        .hasCapability(IbisCapabilities.ELECTIONS_STRICT)) {
             throw new IbisConfigurationException(
                     "No election support requested");
         }
@@ -186,7 +190,8 @@ public final class Registry extends ibis.ipl.impl.Registry {
         }
 
         if (!capabilities.hasCapability(IbisCapabilities.ELECTIONS_UNRELIABLE)
-                && !capabilities.hasCapability(IbisCapabilities.ELECTIONS_STRICT)) {
+                && !capabilities
+                        .hasCapability(IbisCapabilities.ELECTIONS_STRICT)) {
             throw new IbisConfigurationException(
                     "No election support requested");
         }
@@ -202,11 +207,10 @@ public final class Registry extends ibis.ipl.impl.Registry {
             throw new IOException(
                     "cannot do maybeDead, registry already stopped");
         }
-        
+
         if (pool.mustReportMaybeDead(ibisIdentifier)) {
             communicationHandler.maybeDead(ibisIdentifier);
         }
-        
 
     }
 
@@ -243,8 +247,8 @@ public final class Registry extends ibis.ipl.impl.Registry {
                     "Resize downcalls not configured");
         }
 
-        ibis.ipl.IbisIdentifier[] retval =
-            joinedIbises.toArray(new ibis.ipl.IbisIdentifier[joinedIbises.size()]);
+        ibis.ipl.IbisIdentifier[] retval = joinedIbises
+                .toArray(new ibis.ipl.IbisIdentifier[joinedIbises.size()]);
         joinedIbises.clear();
         return retval;
     }
@@ -254,8 +258,8 @@ public final class Registry extends ibis.ipl.impl.Registry {
             throw new IbisConfigurationException(
                     "Resize downcalls not configured");
         }
-        ibis.ipl.IbisIdentifier[] retval =
-            leftIbises.toArray(new ibis.ipl.IbisIdentifier[leftIbises.size()]);
+        ibis.ipl.IbisIdentifier[] retval = leftIbises
+                .toArray(new ibis.ipl.IbisIdentifier[leftIbises.size()]);
         leftIbises.clear();
         return retval;
     }
@@ -266,8 +270,8 @@ public final class Registry extends ibis.ipl.impl.Registry {
                     "Resize downcalls not configured");
         }
 
-        ibis.ipl.IbisIdentifier[] retval =
-            diedIbises.toArray(new ibis.ipl.IbisIdentifier[diedIbises.size()]);
+        ibis.ipl.IbisIdentifier[] retval = diedIbises
+                .toArray(new ibis.ipl.IbisIdentifier[diedIbises.size()]);
         diedIbises.clear();
         return retval;
     }
@@ -290,6 +294,10 @@ public final class Registry extends ibis.ipl.impl.Registry {
         }
 
         return pool.getSize();
+    }
+
+    public boolean isClosed() {
+        return pool.isClosed();
     }
 
     public void waitUntilPoolClosed() {
@@ -336,7 +344,7 @@ public final class Registry extends ibis.ipl.impl.Registry {
         }
 
         communicationHandler.leave();
-        
+
         if (statistics != null) {
             statistics.write();
             statistics.end();
@@ -349,6 +357,20 @@ public final class Registry extends ibis.ipl.impl.Registry {
     synchronized void handleEvent(Event event) {
         logger.debug("new event passed to user: " + event);
 
+        if (event.getType() == Event.SIGNAL) {
+            boolean match = false;
+            // see if this signal is send to us.
+            for (IbisIdentifier ibis : event.getIbises()) {
+                if (ibis.equals(identifier)) {
+                    match = true;
+                }
+            }
+            if (!match) {
+                // do not handle this event any further
+                return;
+            }
+        }
+
         // generate an upcall for this event
         if (upcaller != null) {
             upcaller.newEvent(event);
@@ -357,28 +379,22 @@ public final class Registry extends ibis.ipl.impl.Registry {
         switch (event.getType()) {
         case Event.JOIN:
             if (joinedIbises != null) {
-                joinedIbises.add(event.getFirstIbis());
+                joinedIbises.add(event.getIbis());
             }
             break;
         case Event.LEAVE:
             if (leftIbises != null) {
-                leftIbises.add(event.getFirstIbis());
+                leftIbises.add(event.getIbis());
             }
             break;
         case Event.DIED:
             if (leftIbises != null) {
-                leftIbises.add(event.getFirstIbis());
+                leftIbises.add(event.getIbis());
             }
             break;
         case Event.SIGNAL:
             if (signals != null) {
-                // see if this string is send to us.
-                for (IbisIdentifier ibis : event.getIbises()) {
-                    if (ibis.equals(identifier)) {
-                        signals.add(event.getDescription());
-                        break;
-                    }
-                }
+                signals.add(event.getDescription());
             }
             break;
         case Event.ELECT:
@@ -417,8 +433,35 @@ public final class Registry extends ibis.ipl.impl.Registry {
         throw new NoSuchPropertyException(
                 "central registry does not have any properties that can be set");
     }
-    
+
     public void printManagementProperties(PrintStream stream) {
-        //NOTHING
+        // NOTHING
+    }
+
+    public boolean hasTerminated() {
+        if (!capabilities.hasCapability(IbisCapabilities.TERMINATION)) {
+            throw new IbisConfigurationException("Registry not configured to "
+                    + "support termination");
+        }
+
+        return pool.hasTerminated();
+    }
+
+    public void terminate() throws IOException {
+        if (!capabilities.hasCapability(IbisCapabilities.TERMINATION)) {
+            throw new IbisConfigurationException("Registry not configured to "
+                    + "support termination");
+        }
+        
+        communicationHandler.terminate();
+    }
+
+    public ibis.ipl.IbisIdentifier waitUntilTerminated() {
+        if (!capabilities.hasCapability(IbisCapabilities.TERMINATION)) {
+            throw new IbisConfigurationException("Registry not configured to "
+                    + "support termination");
+        }
+
+        return pool.waitUntilTerminated();
     }
 }

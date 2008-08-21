@@ -15,7 +15,7 @@ public class Election {
     }
 
     public IbisIdentifier getWinner() {
-        return event.getFirstIbis();
+        return event.getIbis();
     }
     
     public Event getEvent() {

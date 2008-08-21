@@ -36,6 +36,13 @@ public final class IbisCapabilities extends CapabilitySet {
     public final static String SIGNALS = "signals";
 
     /**
+     * Capability, indicating that termination is supported,
+     * see {@link RegistryEventHandler#terminated()} and
+     * {@link Registry#terminate()}.
+     */
+    public final static String TERMINATION = "termination";
+    
+    /**
      * Capability, indicating that elections are supported
      * but don't have to be reliable, always give the same result, etc.
      */

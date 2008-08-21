@@ -118,7 +118,7 @@ final class Upcaller implements Runnable {
                         handler.died(event.ibis);
                     break;
                 case Event.SIGNAL:
-                    handler.gotSignal(event.string);
+                    handler.gotSignal(event.string, event.ibis);
                     break;
                 case Event.ELECT:
                     handler.electionResult(event.string, event
@@ -149,8 +149,8 @@ final class Upcaller implements Runnable {
         pendingEvents.add(new Event(Event.DIED, ibis, null));
     }
 
-    synchronized void signal(String signal) {
-        pendingEvents.add(new Event(Event.SIGNAL, null, signal));
+    synchronized void signal(String signal, IbisIdentifier source) {
+        pendingEvents.add(new Event(Event.SIGNAL, source, signal));
     }
     
     synchronized void electionResult(String name, IbisIdentifier winner) {

@@ -375,6 +375,37 @@ final class CommunicationHandler implements Runnable {
             throw e;
         }
     }
+    
+    public void terminate()  throws IOException {
+        long start = System.currentTimeMillis();
+
+        Connection connection =
+            new Connection(serverAddress, timeout, true, virtualSocketFactory);
+
+        try {
+            connection.out().writeByte(Protocol.SERVER_MAGIC_BYTE);
+            connection.out().writeByte(Protocol.VERSION);
+            connection.out().writeByte(Protocol.OPCODE_TERMINATE);
+            getIdentifier().writeTo(connection.out());
+            connection.out().flush();
+
+            connection.getAndCheckReply();
+            connection.close();
+
+            logger.debug("done terminating");
+
+            heartbeat.updateHeartbeatDeadline();
+            long end = System.currentTimeMillis();
+            if (statistics != null) {
+                statistics.add(Protocol.OPCODE_TERMINATE, end - start,
+                    connection.read(), connection.written(), false);
+            }
+        } catch (IOException e) {
+            connection.close();
+            throw e;
+        }
+        
+    }
 
     public long getSeqno(String name) throws IOException {
         long start = System.currentTimeMillis();
@@ -1101,5 +1132,7 @@ final class CommunicationHandler implements Runnable {
             // IGNORE
         }
     }
+
+  
 
 }

@@ -149,7 +149,12 @@ public final class NullRegistry extends ibis.ipl.impl.Registry {
 
     public void waitUntilPoolClosed() {
         throw new IbisConfigurationException(
-                "waitForAll not supported by NullRegistry");
+                "waitUntilPoolClosed not supported by NullRegistry");
+    }
+    
+    public boolean isClosed() {
+        throw new IbisConfigurationException(
+        "closed world not supported by NullRegistry");
     }
 
     public Map<String, String> managementProperties() {
@@ -172,4 +177,18 @@ public final class NullRegistry extends ibis.ipl.impl.Registry {
         //NOTHING
     }
 
+    public boolean hasTerminated() {
+        throw new IbisConfigurationException(
+        "termination not supported by NullRegistry");
+    }
+
+    public void terminate() throws IOException {
+        throw new IbisConfigurationException(
+        "termination not supported by NullRegistry");
+    }
+
+    public IbisIdentifier waitUntilTerminated() {
+        throw new IbisConfigurationException(
+        "termination not supported by NullRegistry");
+    }
 }

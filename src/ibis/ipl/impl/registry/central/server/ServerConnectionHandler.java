@@ -235,7 +235,7 @@ final class ServerConnectionHandler implements Runnable {
         IbisIdentifier identifier = new IbisIdentifier(connection.in());
 
         String signal = connection.in().readUTF();
-
+        
         IbisIdentifier[] receivers = new IbisIdentifier[connection.in()
                 .readInt()];
         for (int i = 0; i < receivers.length; i++) {
@@ -249,7 +249,7 @@ final class ServerConnectionHandler implements Runnable {
             throw new Exception("pool " + identifier.poolName() + " not found");
         }
 
-        pool.signal(signal, receivers);
+        pool.signal(signal, identifier, receivers);
 
         connection.sendOKReply();
         pool.gotHeartbeat(identifier);
@@ -288,6 +288,25 @@ final class ServerConnectionHandler implements Runnable {
 
         connection.sendOKReply();
         pool.gotHeartbeat(identifier);
+        return pool;
+
+    }
+    
+    
+    private Pool handleTerminate(Connection connection) throws Exception {
+        IbisIdentifier source = new IbisIdentifier(connection.in());
+
+        Pool pool = server.getPool(source.poolName());
+
+        if (pool == null) {
+            connection.closeWithError("pool not found");
+            throw new Exception("pool " + source.poolName() + " not found");
+        }
+
+        pool.terminate(source);
+
+        connection.sendOKReply();
+        pool.gotHeartbeat(source);
         return pool;
 
     }
@@ -398,6 +417,9 @@ final class ServerConnectionHandler implements Runnable {
                 break;
             case Protocol.OPCODE_HEARTBEAT:
                 pool = handleHeartbeat(connection);
+                break;
+            case Protocol.OPCODE_TERMINATE:
+                pool = handleTerminate(connection);
                 break;
             default:
                 logger.error("unknown opcode: " + opcode);
