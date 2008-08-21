@@ -116,6 +116,16 @@
                 <attribute name="Implementation-Version" value="${TIMESTAMP}" />
             </manifest>
         </jar>
+        <jar destfile="lib/ipl-impl-smartsockets${version}.jar">
+            <fileset dir="${tmp}" includes="ibis/ipl/impl/smartsockets/**/*.class" />
+            <fileset dir="." includes="LICENSE.txt" />
+            <manifest>
+                <attribute name="Ibis-Starter"
+                           value="ibis.ipl.impl.smartsockets.SmartSocketsIbisStarter" />
+                <attribute name="IPL-Version" value="2.0" />
+                <attribute name="Implementation-Version" value="${TIMESTAMP}" />
+            </manifest>
+        </jar>
         <jar destfile="lib/ipl-impl-dummy${version}.jar">
             <fileset dir="${tmp}"
                      includes="ibis/ipl/impl/stacking/dummy/**/*.class" />

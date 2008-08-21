@@ -21,7 +21,7 @@ import java.io.IOException;
 public class Hello {
 
     PortType portType =
-        new PortType(PortType.COMMUNICATION_RELIABLE,
+        new PortType(PortType.COMMUNICATION_RELIABLE, PortType.CONNECTION_ULTRALIGHT, 
                 PortType.SERIALIZATION_DATA, PortType.RECEIVE_EXPLICIT,
                 PortType.CONNECTION_ONE_TO_ONE);
 
