@@ -57,7 +57,9 @@ final class Pool {
     
     private boolean terminated;
     
-    private IbisIdentifier terminator;
+    private Event closeEvent;
+    
+    private Event terminateEvent;
 
     private int time;
 
@@ -82,10 +84,13 @@ final class Pool {
         time = -1;
         initialized = false;
         closed = false;
-        stopped = false;
-        terminated = false;
-        terminator = null;
+        closeEvent = null;
 
+        terminated = false;
+        terminateEvent = null;
+        
+        stopped = false;
+        
         // get the pool ....
         poolName = properties.getProperty(IbisProperties.POOL_NAME);
         if (poolName == null) {
@@ -233,9 +238,13 @@ final class Pool {
             }
 
             closed = in.readBoolean();
+            if (closed) {
+            	closeEvent = new Event(in);
+            }
+            
             terminated = in.readBoolean();
             if (terminated) {
-                terminator = new IbisIdentifier(in);
+                terminateEvent = new Event(in);
             }
 
             // Create list of "old" events
@@ -244,6 +253,12 @@ final class Pool {
             events.addAll(members.getJoinEvents());
             events.addAll(elections.getEvents());
             events.addAll(signals);
+            if (closed) {
+            	events.add(closeEvent);
+            }
+            if (terminated) {
+            	events.add(terminateEvent);
+            }
 
             long used = System.currentTimeMillis();
 
@@ -296,9 +311,12 @@ final class Pool {
             }
 
             dataOut.writeBoolean(closed);
+            if (closed) {
+            	closeEvent.writeTo(out);
+            }
             dataOut.writeBoolean(terminated);
             if (terminated) {
-                terminator.writeTo(dataOut);
+            	terminateEvent.writeTo(out);
             }
         }
 
@@ -388,10 +406,11 @@ final class Pool {
             break;
         case Event.POOL_CLOSED:
             closed = true;
+            closeEvent = event;
             break;
         case Event.POOL_TERMINATED:
             terminated = true;
-            terminator = event.getIbis();
+            terminateEvent = event;
             break;
         default:
             logger.error("unknown event type: " + event.getType());
@@ -523,7 +542,7 @@ final class Pool {
             }
         }
         
-        return terminator;
+        return terminateEvent.getIbis();
     }
 
 }

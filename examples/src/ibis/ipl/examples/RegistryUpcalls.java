@@ -33,12 +33,20 @@ public class RegistryUpcalls implements RegistryEventHandler {
         System.err.println("Got event from registry: " + leftIbis + " left");
     }
 
-    public void gotSignal(String signal) {
-        // NOTHING
+    public void electionResult(String electionName, IbisIdentifier winner) {
+        System.err.println("Got event from registry: " + winner + " won election " + electionName);
+    }
+    
+    public void gotSignal(String signal, IbisIdentifier source) {
+        System.err.println("Got event from registry: signal \"" + signal + "\" from " + source);
     }
 
-    public void electionResult(String electionName, IbisIdentifier winner) {
-        // NOTHING
+    public void poolClosed() {
+        System.err.println("Got event from registry: pool closed");
+    }
+
+    public void poolTerminated(IbisIdentifier source) {
+        System.err.println("Got event from registry: pool terminated by " + source);
     }
 
     private void run() throws Exception {
@@ -61,15 +69,5 @@ public class RegistryUpcalls implements RegistryEventHandler {
         }
     }
 
-    public void gotSignal(String signal, IbisIdentifier source) {
-        // NOTHING
-    }
 
-    public void poolClosed() {
-        // NOTHING
-    }
-
-    public void poolTerminated(IbisIdentifier source) {
-        // NOTHING
-    }
 }

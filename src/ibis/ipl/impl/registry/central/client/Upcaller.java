@@ -122,7 +122,10 @@ final class Upcaller implements Runnable {
                     handler.electionResult(event.getDescription(), null);
                     break;
                 case Event.POOL_CLOSED:
-                    // Not handled here
+                	handler.poolClosed();
+                    break;
+                case Event.POOL_TERMINATED:
+                	handler.poolTerminated(event.getIbis());
                     break;
                 default:
                     logger.error("unknown event type: " + event.getType());

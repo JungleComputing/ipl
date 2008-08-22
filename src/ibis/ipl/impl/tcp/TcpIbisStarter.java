@@ -25,6 +25,7 @@ public final class TcpIbisStarter extends ibis.ipl.IbisStarter {
         IbisCapabilities.ELECTIONS_UNRELIABLE,
         IbisCapabilities.ELECTIONS_STRICT,
         IbisCapabilities.MALLEABLE,
+        IbisCapabilities.TERMINATION,
         "nickname.tcp"
     );
 

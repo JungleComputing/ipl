@@ -400,8 +400,9 @@ public final class Registry extends ibis.ipl.impl.Registry {
         case Event.ELECT:
         case Event.UN_ELECT:
         case Event.POOL_CLOSED:
-            // NOT HANDLED HERE
-            break;
+        case Event.POOL_TERMINATED:
+        	//Not handled here
+        	break;
         default:
             logger.error("unknown event type in registry: " + event);
         }
