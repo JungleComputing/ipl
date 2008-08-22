@@ -47,7 +47,7 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis
         implements Runnable, SmartSocketsProtocol {
 
     static final Logger logger
-            = Logger.getLogger("ibis.ipl.impl.tcp.TcpIbis");
+            = Logger.getLogger("ibis.ipl.impl.smartsockets.SmartSocketsIbis");
 
     private VirtualSocketFactory factory;
 
@@ -63,8 +63,8 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis
     public SmartSocketsIbis(RegistryEventHandler registryEventHandler, IbisCapabilities capabilities, PortType[] types, Properties userProperties) {
         super(registryEventHandler, capabilities, types, userProperties);
 
-        this.properties.checkProperties("ibis.ipl.impl.tcp.",
-                new String[] {"ibis.ipl.impl.tcp.smartsockets"}, null, true);
+        this.properties.checkProperties("ibis.ipl.impl.smartsockets.",
+                new String[] {"ibis.ipl.impl.smartsockets"}, null, true);
 
         try {
             ServiceLink sl = factory.getServiceLink();
@@ -78,7 +78,7 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis
         }
         
         // Create a new accept thread
-        ThreadPool.createNew(this, "TcpIbis Accept Thread");
+        ThreadPool.createNew(this, "SmartSocketsIbis Accept Thread");
     }
 
     protected byte[] getData() throws IOException {
@@ -93,7 +93,7 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis
         myAddress = systemServer.getLocalSocketAddress();
 
         if (logger.isInfoEnabled()) {
-            logger.info("--> TcpIbis: address = " + myAddress);
+            logger.info("--> SmartSocketIbis: address = " + myAddress);
         }
 
         return myAddress.toBytes();
@@ -407,16 +407,9 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis
             throws IOException {
     	
     	if (tp.hasCapability(PortType.CONNECTION_ULTRALIGHT)) { 
-    		return new SmartSocketsUltraLightReceivePort(ident, tp, nm, u, props);
+    		return new SmartSocketsUltraLightReceivePort(this, tp, nm, u, props);
     	}
     	
         return new SmartSocketsReceivePort(this, tp, nm, u, cU, props);
-    }
-
-	public byte[] identifierInBytes() {
-		// TODO implement!
-		return null;
-	}
-
-   
+    }   
 }

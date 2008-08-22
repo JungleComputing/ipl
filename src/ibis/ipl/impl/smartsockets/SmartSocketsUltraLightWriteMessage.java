@@ -45,7 +45,12 @@ public class SmartSocketsUltraLightWriteMessage implements WriteMessage {
 	}
 
 	public long finish() throws IOException {
+		out.flush();
+
 		long bytes = bout.bytesWritten();
+		
+		// System.err.println("Written == " + bytes);
+		
 		port.finishedMessage();
 		return bytes;
 	}

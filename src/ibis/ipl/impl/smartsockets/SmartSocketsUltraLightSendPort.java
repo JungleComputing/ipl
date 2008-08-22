@@ -5,13 +5,10 @@ import ibis.ipl.ConnectionsFailedException;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.NoSuchPropertyException;
 import ibis.ipl.PortType;
-import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPort;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.WriteMessage;
-
-import ibis.ipl.impl.Ibis;
 import ibis.smartsockets.hub.servicelink.ServiceLink;
 import ibis.smartsockets.util.MalformedAddressException;
 import ibis.smartsockets.virtual.VirtualSocketAddress;
@@ -19,6 +16,7 @@ import ibis.smartsockets.virtual.VirtualSocketAddress;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.UnknownHostException;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
@@ -218,23 +216,40 @@ public class SmartSocketsUltraLightSendPort implements SendPort {
 		ServiceLink link = ibis.getServiceLink();
 		
 		if (link != null) {
-			ibis.ipl.impl.IbisIdentifier tmp = (ibis.ipl.impl.IbisIdentifier) id.ibisIdentifier();			
-			VirtualSocketAddress a = VirtualSocketAddress.fromBytes(tmp.getImplementationData(), 0);
+			ibis.ipl.impl.IbisIdentifier dst = (ibis.ipl.impl.IbisIdentifier) id.ibisIdentifier();
+			VirtualSocketAddress a = VirtualSocketAddress.fromBytes(dst.getImplementationData(), 0);
 
 			byte [][] message = new byte[2][];
 			
-			message[0] = tmp.toBytes();
-			message[1] = buffer;
+			message[0] = ibis.ident.toBytes();
+			message[1] = data;
+	
+			if (logger.isDebugEnabled()) { 
+				logger.debug("Sending message to " + a);
+			}
 			
-			link.send(a.machine(), a.hub(), id.name(), 0xDEADBEEF,message);  
+			link.send(a.machine(), a.hub(), id.name(), 0xDEADBEEF, message);  
+		} else { 
+			
+			if (logger.isDebugEnabled()) { 
+				logger.debug("No sericelink available");
+			}
 		}
 	}
 
 	public synchronized void finishedMessage() throws IOException {
 
+		int len = (int) message.bytesWritten();
+		
+		byte [] m = buffer;
+		
+		if (len < buffer.length) { 
+			m = Arrays.copyOfRange(buffer, 0, len);
+		}
+		
 		for (ReceivePortIdentifier id : connections) { 
 			try { 
-				send(id, buffer);
+				send(id, m);
 			} catch (Exception e) {
 				logger.debug("Failed to send message to " + id, e);
 			}

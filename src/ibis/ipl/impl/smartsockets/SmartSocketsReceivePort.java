@@ -123,6 +123,17 @@ class SmartSocketsReceivePort extends ReceivePort implements SmartSocketsProtoco
                         if (logger.isDebugEnabled()) {
                             logger.debug(name + ": disconnect from " + origin);
                         }
+                        
+                        // FIXME!
+                        //
+                        // This is here to make sure the close is processed before a new 
+                        // connections can be made (by the same sendport). Without this ack, 
+                        // an application that uses a single sendport that connects/disconnects
+                        // for each message may get an 'AlreadyConnectedException', because the 
+                        // connect overtakes the disconnect...
+                        //
+                        // Unfortunately, it also causes a deadlock in 1-to-1 explict receive 
+                        // applications -- J
                         s.getOutputStream().write(0);
                         close(null);
                     }

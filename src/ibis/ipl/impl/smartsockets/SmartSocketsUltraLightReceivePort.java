@@ -11,6 +11,7 @@ import ibis.ipl.impl.IbisIdentifier;
 import ibis.ipl.impl.SendPortIdentifier;
 import ibis.smartsockets.direct.DirectSocketAddress;
 import ibis.smartsockets.hub.servicelink.CallBack;
+import ibis.smartsockets.hub.servicelink.ServiceLink;
 import ibis.util.ThreadPool;
 
 import java.io.IOException;
@@ -31,7 +32,8 @@ public class SmartSocketsUltraLightReceivePort implements ReceivePort, CallBack,
 	private final MessageUpcall upcall;	
 	private final Properties properties;	
 	private final ReceivePortIdentifier id;
-
+	private final SmartSocketsIbis ibis;
+	
 	private boolean allowUpcalls = false;
 	private boolean closed = false;
 
@@ -39,15 +41,28 @@ public class SmartSocketsUltraLightReceivePort implements ReceivePort, CallBack,
 	private final LinkedList<SmartSocketsUltraLightReadMessage> messages = 
 		new LinkedList<SmartSocketsUltraLightReadMessage>();
 
-	SmartSocketsUltraLightReceivePort(IbisIdentifier id, PortType type, 
+	SmartSocketsUltraLightReceivePort(SmartSocketsIbis ibis, PortType type, 
 			String name, MessageUpcall upcall, Properties properties) throws IOException {
 
+		this.ibis = ibis;
 		this.type = type;
 		this.name = name; 
 		this.upcall = upcall;
 		this.properties = properties;		
-		this.id = new ibis.ipl.impl.ReceivePortIdentifier(name, id);
+		this.id = new ibis.ipl.impl.ReceivePortIdentifier(name, ibis.ident);
 
+		ServiceLink link = ibis.getServiceLink();
+		
+		if (link == null) { 
+			throw new IOException("No ServiceLink available");
+		}
+		
+		if (logger.isDebugEnabled()) {
+			logger.debug("Registering ultralight receive port " + name);
+		}
+		
+		link.register(name, this);
+		
 		if (type.hasCapability(PortType.RECEIVE_AUTO_UPCALLS) && upcall != null) { 
 			ThreadPool.createNew(this, "ConnectionHandler");
 		}		
@@ -149,6 +164,8 @@ public class SmartSocketsUltraLightReceivePort implements ReceivePort, CallBack,
 	public void gotMessage(DirectSocketAddress src, DirectSocketAddress srcProxy, int opcode, 
 			boolean returnToSender, byte [][] message) {
 
+		logger.debug("Got message from + " + src);
+		
 		if (returnToSender || opcode != 0xDEADBEEF || message == null || message.length == 0 
 				|| message[0] == null || message[0].length == 0) {			
 			logger.warn("Received malformed message from " + src.toString());
@@ -159,6 +176,11 @@ public class SmartSocketsUltraLightReceivePort implements ReceivePort, CallBack,
 
 		try { 
 			source = new IbisIdentifier(message[0]);
+	
+			if (logger.isDebugEnabled()) {
+				logger.debug("Message was send by " + source);
+			} 
+		
 		} catch (Exception e) {
 			logger.warn("Message from contains malformed IbisIdentifier", e);
 			return;
@@ -167,7 +189,8 @@ public class SmartSocketsUltraLightReceivePort implements ReceivePort, CallBack,
 		SmartSocketsUltraLightReadMessage rm = null;
 
 		try { 
-			rm = new SmartSocketsUltraLightReadMessage(this, new SendPortIdentifier("anonymous", source), message[1]);
+			rm = new SmartSocketsUltraLightReadMessage(this, 
+					new SendPortIdentifier("anonymous", source), message[1]);
 		} catch (Exception e) {
 			logger.warn("Message from contains malformed data", e);
 			return;
