@@ -88,8 +88,8 @@ final class IbisApplication implements Runnable, RegistryEventHandler {
         logger.info("upcall for died of: " + corpse);
     }
 
-    public synchronized void gotSignal(String signal) {
-        logger.info("got string: " + signal);
+    public synchronized void gotSignal(String signal, IbisIdentifier source) {
+        logger.info("got string: " + signal + " from " + source);
     }
 
     public synchronized void electionResult(String electionName,
@@ -97,6 +97,14 @@ final class IbisApplication implements Runnable, RegistryEventHandler {
         logger.info("got election result for :\"" + electionName + "\" : "
                 + winner);
     }
+    
+	public void poolClosed() {
+        logger.info("pool now closed");
+	}
+
+	public void poolTerminated(IbisIdentifier source) {
+        logger.info("pool terminated by " + source);
+	}
 
     private static class Shutdown extends Thread {
         private final IbisApplication app;
@@ -251,5 +259,7 @@ final class IbisApplication implements Runnable, RegistryEventHandler {
         }
 
     }
+
+
 
 }
