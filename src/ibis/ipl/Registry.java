@@ -107,9 +107,9 @@ public interface Registry extends Manageable {
 
     /**
      * Send a signal to one or more Ibisses. This results in a
-     * {@link RegistryEventHandler#gotSignal(String)} upcall on all Ibis
-     * instances in the given list. It is up to the application to react
-     * accordingly.
+     * {@link RegistryEventHandler#gotSignal(String,IbisIdentifier)} upcall on
+     * all Ibis instances in the given list. It is up to the application to
+     * react accordingly.
      * 
      * @param signal
      *            the value of the signal. Useful if more than one type of
