@@ -360,7 +360,7 @@ public final class Registry extends ibis.ipl.impl.Registry {
         if (event.getType() == Event.SIGNAL) {
             boolean match = false;
             // see if this signal is send to us.
-            for (IbisIdentifier ibis : event.getIbises()) {
+            for (IbisIdentifier ibis : event.getDestinations()) {
                 if (ibis.equals(identifier)) {
                     match = true;
                 }

@@ -37,25 +37,25 @@ public final class Event implements Serializable, Comparable<Event> {
 
     private final String description;
 
-    // single ibis field
+    // single ibis field, denoting which ibis this event is about
     private final IbisIdentifier ibis;
 
-    // multiple ibisses field (only used in signals)
-    private final IbisIdentifier[] ibisses;
+    // multiple ibisses field (only used for destinations in signals)
+    private final IbisIdentifier[] destinations;
 
     public Event(int time, int type, String description, IbisIdentifier ibis,
-            IbisIdentifier... ibisses) {
+            IbisIdentifier... destinations) {
         this.time = time;
         this.type = type;
         this.ibis = ibis;
-        this.ibisses = ibisses.clone();
+        this.destinations = destinations.clone();
         if (description == null) {
             this.description = "";
         } else {
             this.description = description;
         }
 
-        if (type != SIGNAL && ibisses.length > 1) {
+        if (type != SIGNAL && destinations.length > 1) {
             throw new Error(
                     "only the string type event can have multiple ibisses");
         }
@@ -71,9 +71,9 @@ public final class Event implements Serializable, Comparable<Event> {
             ibis = null;
         }
 
-        ibisses = new IbisIdentifier[in.readInt()];
-        for (int i = 0; i < ibisses.length; i++) {
-            ibisses[i] = new IbisIdentifier(in);
+        destinations = new IbisIdentifier[in.readInt()];
+        for (int i = 0; i < destinations.length; i++) {
+            destinations[i] = new IbisIdentifier(in);
         }
     }
 
@@ -88,9 +88,9 @@ public final class Event implements Serializable, Comparable<Event> {
         } else {
             out.writeBoolean(false);
         }
-        out.writeInt(ibisses.length);
-        for (int i = 0; i < ibisses.length; i++) {
-            ibisses[i].writeTo(out);
+        out.writeInt(destinations.length);
+        for (int i = 0; i < destinations.length; i++) {
+            destinations[i].writeTo(out);
         }
     }
 
@@ -106,8 +106,8 @@ public final class Event implements Serializable, Comparable<Event> {
         return ibis;
     }
 
-    public IbisIdentifier[] getIbises() {
-        return ibisses.clone();
+    public IbisIdentifier[] getDestinations() {
+        return destinations.clone();
     }
 
     public int getType() {
