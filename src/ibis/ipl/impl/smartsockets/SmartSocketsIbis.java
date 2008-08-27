@@ -18,13 +18,10 @@ import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.ipl.impl.IbisIdentifier;
 import ibis.ipl.impl.ReceivePort;
-import ibis.ipl.impl.ReceivePortIdentifier;
-import ibis.ipl.impl.SendPort;
 import ibis.ipl.impl.SendPortIdentifier;
 import ibis.server.Client;
 import ibis.server.ConfigurationException;
 import ibis.smartsockets.hub.servicelink.ServiceLink;
-import ibis.smartsockets.util.MalformedAddressException;
 import ibis.smartsockets.virtual.VirtualServerSocket;
 import ibis.smartsockets.virtual.VirtualSocket;
 import ibis.smartsockets.virtual.VirtualSocketAddress;
@@ -36,7 +33,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.SocketTimeoutException;
-import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -60,12 +56,19 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis
     private HashMap<ibis.ipl.IbisIdentifier, VirtualSocketAddress> addresses
         = new HashMap<ibis.ipl.IbisIdentifier, VirtualSocketAddress>();
     
+    private final HashMap<String, Object> lightConnection = new HashMap<String, Object>();
+    
     public SmartSocketsIbis(RegistryEventHandler registryEventHandler, IbisCapabilities capabilities, PortType[] types, Properties userProperties) {
         super(registryEventHandler, capabilities, types, userProperties);
 
+        lightConnection.put("connect.module.allow", "ConnectModule(HubRouted)");    	
+        
         this.properties.checkProperties("ibis.ipl.impl.smartsockets.",
                 new String[] {"ibis.ipl.impl.smartsockets"}, null, true);
 
+        
+        
+        
         try {
             ServiceLink sl = factory.getServiceLink();
             if (sl != null) {
@@ -154,15 +157,28 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis
             int result = -1;
 
             try {
-
                 HashMap<String, Object> h = null;
                 
+                if (sp.getPortType().hasCapability(PortType.CONNECTION_LIGHT)) { 
+                	h = lightConnection;
+                }    	
+
+                /* 
                 Map<String, String> properties = sp.managementProperties();
                 
                 if (properties != null) {
-                	h = new HashMap<String, Object>();
+                	
+                	if (h == null) { 
+                		h = new HashMap<String, Object>();
+                	}
+                	
                 	h.putAll(properties);
                 }
+                
+                if (logger.isDebugEnabled()) { 
+                	logger.debug("Creating connection with properties " + h);
+                }
+                */ 
                 
                 s = factory.createClientSocket(idAddr, timeout, fillTimeout, h);
             	
@@ -399,6 +415,15 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis
     		return new SmartSocketsUltraLightSendPort(this, tp, nm, props);
     	}
     	
+    	if (tp.hasCapability(PortType.CONNECTION_LIGHT)) { 
+    		
+    		if (props == null) { 
+    			props = new Properties();
+    		}
+    		
+    		props.put("connect.module.type.skip", "direct");    		
+    	}    	
+    	
         return new SmartSocketsSendPort(this, tp, nm, cU, props);
     }
 
@@ -409,6 +434,15 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis
     	if (tp.hasCapability(PortType.CONNECTION_ULTRALIGHT)) { 
     		return new SmartSocketsUltraLightReceivePort(this, tp, nm, u, props);
     	}
+    	
+    	if (tp.hasCapability(PortType.CONNECTION_LIGHT)) { 
+    		
+    		if (props == null) { 
+    			props = new Properties();
+    		}
+    		
+    		props.put("connect.module.type.skip", "direct");    		
+    	}    	
     	
         return new SmartSocketsReceivePort(this, tp, nm, u, cU, props);
     }   
