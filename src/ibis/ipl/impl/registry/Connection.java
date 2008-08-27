@@ -96,8 +96,9 @@ public final class Connection {
         // get reply
         byte reply = in.readByte();
         if (reply == Connection.REPLY_ERROR) {
+        	String message = in.readUTF();
             close();
-            throw new RemoteException(in.readUTF());
+            throw new RemoteException(message);
         } else if (reply != Connection.REPLY_OK) {
             close();
             throw new IOException("Unknown reply (" + reply + ")");

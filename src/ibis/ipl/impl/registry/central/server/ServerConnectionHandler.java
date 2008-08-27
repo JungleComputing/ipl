@@ -425,6 +425,8 @@ final class ServerConnectionHandler implements Runnable {
                 logger.error("unknown opcode: " + opcode);
             }
         } catch (Exception e) {
+        	//send error to client
+        	connection.closeWithError("server: " + e.getMessage());
             logger.error("error on handling connection", e);
         } finally {
             connection.close();
