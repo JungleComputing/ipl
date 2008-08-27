@@ -55,7 +55,7 @@ public final class Event implements Serializable, Comparable<Event> {
 			this.description = description;
 		}
 
-		if (type != SIGNAL && destinations.length > 0) {
+		if (type != SIGNAL && destinations.length != 0) {
 			throw new Error("only the signal type event can have a destination");
 		}
 	}
