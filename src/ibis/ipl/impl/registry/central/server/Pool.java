@@ -90,7 +90,7 @@ final class Pool implements Runnable {
 	private boolean ended = false;
 
 	private boolean closed = false;
-	
+
 	private Event closeEvent = null;
 
 	private boolean terminated = false;
@@ -319,7 +319,8 @@ final class Pool implements Runnable {
 			return;
 		}
 		closed = true;
-		closeEvent = addEvent(Event.POOL_CLOSED, null, null, new IbisIdentifier[0]);
+		closeEvent = addEvent(Event.POOL_CLOSED, null, null,
+				new IbisIdentifier[0]);
 		if (printEvents) {
 			print("pool \"" + name + "\" now closed");
 		}
@@ -492,10 +493,15 @@ final class Pool implements Runnable {
 	 *      ibis.ipl.impl.IbisIdentifier)
 	 */
 	synchronized IbisIdentifier elect(String electionName,
-			IbisIdentifier candidate) {
+			IbisIdentifier candidate) throws IOException {
 		Election election = elections.get(electionName);
 
 		if (election == null) {
+			if (!members.contains(candidate)) {
+				throw new IOException(candidate + " tries to win election "
+						+ electionName + ", but is not a member of the pool");
+			}
+
 			// Do the election now. The caller WINS! :)
 
 			Event event = addEvent(Event.ELECT, electionName, candidate);
