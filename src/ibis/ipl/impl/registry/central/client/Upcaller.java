@@ -1,6 +1,5 @@
 package ibis.ipl.impl.registry.central.client;
 
-import ibis.ipl.IbisIdentifier;
 import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.impl.registry.central.Event;
 import ibis.util.ThreadPool;
