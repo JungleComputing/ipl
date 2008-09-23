@@ -143,7 +143,7 @@ public abstract class Ibis implements ibis.ipl.Ibis {
         ident = registry.getIbisIdentifier();
     }
 
-    public Registry registry() {
+    public ibis.ipl.Registry registry() {
         return registry;
     }
 
@@ -191,7 +191,7 @@ public abstract class Ibis implements ibis.ipl.Ibis {
         quit();
     }
 
-    public void poll() {
+    public void poll() throws IOException {
         // Default has empty implementation.
     }
 

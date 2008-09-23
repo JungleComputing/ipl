@@ -11,9 +11,12 @@ import ibis.ipl.ReceiveTimedOutException;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Properties;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 
@@ -50,6 +53,10 @@ public abstract class ReceivePort extends Manageable
 
     /** Receiveport already has a connection, and ManyToOne is not specified. */
     public static final byte NO_MANY_TO_X = 6;
+    
+    final static Set<Thread> threadsInUpcallSet
+        = Collections.synchronizedSet(new HashSet<Thread>());
+
 
     /** The type of this port. */
     public final PortType type;
@@ -514,10 +521,11 @@ public abstract class ReceivePort extends Manageable
                 }
             }
         }
+        msg.setInUpcall(true);
         try {
             // Notify the message that is is processed from an upcall,
             // so that finish() calls can be detected.
-            msg.setInUpcall(true);
+            threadsInUpcallSet.add(Thread.currentThread());
             upcall.upcall(msg);
         } catch(IOException e) {
             if (! msg.isFinished()) {
@@ -583,6 +591,7 @@ public abstract class ReceivePort extends Manageable
         setProperty("Messages", "" + nMessages);
         setProperty("MessageBytes", "" + messageBytes);
         message = null;
+        threadsInUpcallSet.remove(Thread.currentThread());
         notifyAll();
     }
 
@@ -596,6 +605,7 @@ public abstract class ReceivePort extends Manageable
     public synchronized void finishMessage(ReadMessage r, IOException e) {
         r.getInfo().close(e);
         message = null;
+        threadsInUpcallSet.remove(Thread.currentThread());
         notifyAll();
     }
 

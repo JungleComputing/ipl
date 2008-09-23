@@ -282,6 +282,11 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
 
     public synchronized void connect(ibis.ipl.ReceivePortIdentifier receiver,
             long timeout, boolean fillTimeout) throws ConnectionFailedException {
+        
+        if (ReceivePort.threadsInUpcallSet.contains(Thread.currentThread())) {
+            throw new ConnectionFailedException("Connection attempt in upcall is not allowed",
+                    receiver);
+        }
 
         if (logger.isDebugEnabled()) {
             logger.debug("Sendport '" + name + "' connecting to " + receiver);
@@ -364,6 +369,12 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
         // Create a list of the connections that we need to set up.
         for (ibis.ipl.ReceivePortIdentifier rp : ports) {
             todo.add(rp);
+        }
+        
+        if (todo.size() > 0) {
+            if (ReceivePort.threadsInUpcallSet.contains(Thread.currentThread())) {
+                throw new ConnectionsFailedException("Connection attempt in upcall is not allowed");
+            }
         }
             
         // Keep iterating over the list of connection to set up until the list 
@@ -466,6 +477,10 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
     }
 
     public ibis.ipl.WriteMessage newMessage() throws IOException {
+        
+        if (ReceivePort.threadsInUpcallSet.contains(Thread.currentThread())) {
+            throw new IOException("Communication in upcall is not allowed");
+        }
         synchronized(this) {
             if (closed) {
                 throw new IOException("newMessage call on closed sendport");
