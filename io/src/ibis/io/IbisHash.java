@@ -55,13 +55,13 @@ final class IbisHash {
     private long new_buckets;
 
     // if (TIMINGS)
-    private ibis.util.Timer t_insert;
+    private Timer t_insert;
 
-    private ibis.util.Timer t_find;
+    private Timer t_find;
 
-    private ibis.util.Timer t_rebuild;
+    private Timer t_rebuild;
 
-    private ibis.util.Timer t_clear;
+    private Timer t_clear;
 
     private int offset = 0;
 
