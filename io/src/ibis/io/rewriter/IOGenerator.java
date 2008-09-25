@@ -189,7 +189,9 @@ public class IOGenerator extends ibis.compile.IbiscComponent implements Rewriter
 
 		for (int i = 0; i < target_classes.size(); i++) {
 			JavaClass clazz = target_classes.get(i);
-			System.err.println("Target Class: " + clazz.getClassName());
+			if (verbose) {
+				System.out.println("Target Class: " + clazz.getClassName());
+			}
 			if (!clazz.isInterface()) {
 				if (!silent) {
 					System.out.println("  Rewrite class : "
@@ -211,7 +213,9 @@ public class IOGenerator extends ibis.compile.IbiscComponent implements Rewriter
 
 	private void addTargetClass(JavaClass clazz) {
 		if (useJME()) {
-			System.err.println("Considering target: " + clazz.getClassName());
+			if (verbose) {
+				System.out.println("Considering target: " + clazz.getClassName());
+			}
 			if (!target_classes.contains(clazz)) {
 				String nm = clazz.getClassName();
 				if (arguments.containsKey(nm)) {

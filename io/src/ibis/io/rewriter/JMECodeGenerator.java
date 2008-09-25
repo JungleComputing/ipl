@@ -79,8 +79,10 @@ class JMECodeGenerator extends CodeGenerator implements RewriterConstants, JMERe
         is_jme_externalizable = JMESerializationInfo.isJMEExternalizable(cl);
         super_has_jme_constructor = JMESerializationInfo.hasJMEConstructor(super_class);
         has_jme_serial_persistent_fields = JMESerializationInfo.hasJMESerialPersistentFields(fields);
-        System.err.println("Code Generator: " + cl.getClassName() + 
-        		" sijs: " + super_is_jme_serializable + " sijr: " + super_is_jme_rewritten);
+		if (generator.isVerbose()) {
+			System.out.println("Code Generator: " + cl.getClassName() +
+							   " sijs: " + super_is_jme_serializable + " sijr: " + super_is_jme_rewritten);
+		}
     }
 
     private Instruction createGeneratedWriteObjectInvocation(String name,
@@ -1361,7 +1363,9 @@ class JMECodeGenerator extends CodeGenerator implements RewriterConstants, JMERe
         do {
         	handles[i++] = il.insert(done, new ILOAD(1));
         	index = cp.addClass(arrayName);
-        	System.err.println("Added : " + arrayName + " : " + index + " to cp.");
+			if (generator.isVerbose()) {
+				System.out.println("Added : " + arrayName + " : " + index + " to cp.");
+			}
         	il.insert(done, new ANEWARRAY(index));
         	il.insert(done, new ASTORE(3));
         	if (handles[handles.length - 1] == null) {
@@ -1371,7 +1375,9 @@ class JMECodeGenerator extends CodeGenerator implements RewriterConstants, JMERe
         		arrayName = "L" + arrayName + ";";
         	}
         	arrayName = "[" + arrayName;
-        	System.err.println("Generating " + arrayName);
+			if (generator.isVerbose()) {
+				System.out.println("Generating " + arrayName);
+			}
         } while (handles[handles.length - 1] == null);
         
         int values[] = {1, 2, 3, 4, 5};
