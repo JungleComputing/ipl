@@ -53,15 +53,6 @@
 			</fileset>
 		</path>
 		
-		<path id="jme_rewrite_jars">
-			<fileset dir="${external}">
-				<include name="ibis*.jar" />
-				<include name="bcel*.jar" />
-				<include name="log4jME*.jar" />
-			</fileset>
-			<pathelement path="${lib}/${jar}" />
-		</path>
-    
 		<!-- Check the WTK environment variable -->
 		
 		<property environment="env"/>
@@ -140,7 +131,7 @@
 
 	<target name="build-jme" if="wtk.exists" depends="build-jse,properties-jme" description="Build the micro edition version of ibis-io">
     
-    	<!-- Create the time stamp -->
+    		<!-- Create the time stamp -->
 		<tstamp />
 		
 		<!-- Create the build directory structure used by compile -->
