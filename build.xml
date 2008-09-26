@@ -39,7 +39,7 @@
         <mkdir dir="${lib}" />
         <!-- Copy external libraries to lib directory -->
         <copy todir="${lib}">
-            <fileset dir="external" />
+            <fileset dir="external" excludes="log4jME*.jar" />
         </copy>
     </target>
 
