@@ -764,7 +764,6 @@ public class ObjectInputStream extends DataSerializationInputStream {
         	Object ref = null;
         	// We have to find the inner type
         	String className = clazz.getName();
-        	System.err.println(className);
 
         	// Determine the dimension of the array
         	while (className.charAt(dimension) != 'L') {
@@ -772,14 +771,11 @@ public class ObjectInputStream extends DataSerializationInputStream {
         	}
         	// We have to extract the inner type and use the generator
         	String typeName = className.substring(dimension + 1,className.length()-1);
-        	System.err.println(typeName);
-        	System.err.println(dimension);
         	ref = getSpecialCaseArray(typeName, len, dimension);
         	if (null == ref) {
         		AlternativeTypeInfo ati = AlternativeTypeInfo.getAlternativeTypeInfo(typeName);
         		Generator g = ati.gen;
         		if (null != g) {
-        			System.err.println(g);
         			ref = ati.gen.new_array(len, dimension);
         		}
         		else {
