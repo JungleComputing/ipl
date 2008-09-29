@@ -836,7 +836,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
         int bn = 0;
 
         for (int i = 0; i < len; i++) {
-            char c = str.charAt(i);
+            int c = str.charAt(i);      // widening char to int zero-extends
             if (c > 0x0000 && c <= 0x007f) {
                 bn++;
             } else if (c <= 0x07ff) {
@@ -850,7 +850,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
         bn = 0;
 
         for (int i = 0; i < len; i++) {
-            char c = str.charAt(i);
+            int c = str.charAt(i);      // widening char to int zero-extends
             if (c > 0x0000 && c <= 0x007f) {
                 b[bn++] = (byte) c;
             } else if (c <= 0x07ff) {
@@ -860,6 +860,12 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
                 b[bn++] = (byte) (0xe0 | (0x0f & (c >> 12)));
                 b[bn++] = (byte) (0x80 | (0x3f & (c >> 6)));
                 b[bn++] = (byte) (0x80 | (0x3f & c));
+            }
+        }
+        if (DEBUG && logger.isDebugEnabled()) {
+            logger.debug("writeUTF: len = " + bn);
+            for (int i = 0; i < bn; i++) {
+                logger.debug("writeUTF: b[" + i + "] = " + (b[i] & 0xff));
             }
         }
 

@@ -806,7 +806,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
         byte[] b = new byte[len + 2];
 
         for (int i = 0; i < len; i++) {
-            char c = str.charAt(i);
+            int c = str.charAt(i);      // widening char to int zero-extends
             if (c > 0x0000 && c <= 0x007f) {
                 b[bn++] = (byte) c;
             } else if (c <= 0x07ff) {
@@ -822,6 +822,12 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
             	byte [] temp = new byte[b.length + len];
             	System.arraycopy(b, 0, temp, 0, b.length);
             	b = temp;
+            }
+        }
+        if (DEBUG && logger.isDebugEnabled()) {
+            logger.debug("writeUTF: len = " + bn);
+            for (int i = 0; i < bn; i++) {
+                logger.debug("writeUTF: b[" + i + "] = " + (b[i] & 0xff));
             }
         }
 

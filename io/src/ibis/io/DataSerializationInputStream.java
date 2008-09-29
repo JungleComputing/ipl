@@ -811,24 +811,34 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
         int len = 0;
         char[] c = new char[bn];
 
+        if (DEBUG && logger.isDebugEnabled()) {
+            logger.debug("readUTF: len = " + bn);
+            for (int i = 0; i < bn; i++) {
+                logger.debug("readUTF: b[" + i + "] = " + (b[i] & 0xff));
+            }
+        }
+
         for (int i = 0; i < bn; i++) {
-            if ((b[i] & ~0x7f) == 0) {
-                c[len++] = (char) (b[i] & 0x7f);
-            } else if ((b[i] & ~0x1f) == 0xc0) {
-                if (i + 1 >= bn || (b[i + 1] & ~0x3f) != 0x80) {
+            int bi = b[i] & 0xff;
+            if ((bi & ~0x7f) == 0) {
+                c[len++] = (char) (bi & 0x7f);
+            } else if ((bi & 0xe0) == 0xc0) {
+                if (i + 1 >= bn || ((int)b[i + 1] & 0xc0) != 0x80) {
                     throw new UTFDataFormatException(
                             "UTF Data Format Exception");
                 }
-                c[len++] = (char) (((b[i] & 0x1f) << 6) | (b[i] & 0x3f));
+                c[len++] = (char) (((bi & 0x1f) << 6) | ((int)b[i+1] & 0x3f));
                 i++;
-            } else if ((b[i] & ~0x0f) == 0xe0) {
-                if (i + 2 >= bn || (b[i + 1] & ~0x3f) != 0x80
-                        || (b[i + 2] & ~0x3f) != 0x80) {
+            } else if ((bi & 0xf0) == 0xe0) {
+                if (i + 2 >= bn || ((int)b[i + 1] & 0xc0) != 0x80
+                        || ((int)b[i + 2] & 0xc0) != 0x80) {
                     throw new UTFDataFormatException(
                             "UTF Data Format Exception");
                 }
-                c[len++] = (char) (((b[i] & 0x0f) << 12)
-                        | ((b[i + 1] & 0x3f) << 6) | (b[i + 2] & 0x3f));
+                c[len++] = (char) (((bi & 0x0f) << 12)
+                        | (((int)b[i + 1] & 0x3f) << 6)
+                        | ((int)b[i + 2] & 0x3f));
+                i += 2;
             } else {
                 throw new UTFDataFormatException("UTF Data Format Exception");
             }
