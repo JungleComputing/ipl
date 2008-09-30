@@ -258,11 +258,13 @@ public final class IbisFactory {
                 if (verbose) {
                     System.err.println("Class " + implList[i] + " selected");
                 }
-                List<IbisStarter> newList =
-                    findIbisStack(new IbisCapabilities(
-                            starter.unmatchedIbisCapabilities()),
+                List<IbisStarter> newList
+                    = new ArrayList<IbisStarter>(selected);
+                newList.add(starter);
+                newList = findIbisStack(new IbisCapabilities(
+                        starter.unmatchedIbisCapabilities()),
                         starter.unmatchedPortTypes(),
-                        new ArrayList<IbisStarter>(selected), null, null);
+                        newList, null, null);
                 if (newList != null) {
                     return newList;
                 }
