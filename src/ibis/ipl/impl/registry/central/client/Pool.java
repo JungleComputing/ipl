@@ -25,11 +25,12 @@ import java.util.ArrayList;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 final class Pool {
 
-    private static final Logger logger = Logger.getLogger(Pool.class);
+    private static final Logger logger = LoggerFactory.getLogger(Pool.class);
 
     private final String poolName;
 

@@ -18,7 +18,8 @@ import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.Properties;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class NioIbis extends ibis.ipl.impl.Ibis {
 
@@ -31,7 +32,7 @@ public final class NioIbis extends ibis.ipl.impl.Ibis {
     static final String[] props = { s_spi, s_rpi };
     
     private static final Logger logger
-            = Logger.getLogger("ibis.ipl.impl.nio.NioIbis");
+            = LoggerFactory.getLogger("ibis.ipl.impl.nio.NioIbis");
 
     ChannelFactory factory;
 

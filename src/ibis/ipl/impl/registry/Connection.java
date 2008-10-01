@@ -13,11 +13,12 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class Connection {
 
-    private static final Logger logger = Logger.getLogger(Connection.class);
+    private static final Logger logger = LoggerFactory.getLogger(Connection.class);
 
     private final VirtualSocket socket;
 

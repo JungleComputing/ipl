@@ -18,7 +18,8 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Properties;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The <code>PoolInfo</code> class provides a utility for finding out
@@ -31,7 +32,7 @@ import org.apache.log4j.Logger;
  */
 public class PoolInfo {
 
-    private static final Logger logger = Logger.getLogger(PoolInfo.class);
+    private static final Logger logger = LoggerFactory.getLogger(PoolInfo.class);
 
     public static final int CONNECTION_TIMEOUT = 120000;
 

@@ -4,11 +4,12 @@ import java.util.ArrayList;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class EventList {
     
-    private static final Logger logger = Logger.getLogger(EventList.class);
+    private static final Logger logger = LoggerFactory.getLogger(EventList.class);
     
     private final SortedSet<Event> events;
     

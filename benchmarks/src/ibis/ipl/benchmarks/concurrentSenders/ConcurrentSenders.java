@@ -14,7 +14,8 @@ import ibis.ipl.Registry;
 import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 class Sender extends Thread {
     int count, repeat;
@@ -180,7 +181,7 @@ class ConcurrentSenders {
 
     static Ibis ibis;
 
-    static Logger logger = Logger.getLogger(ConcurrentSenders.class.getName());
+    static Logger logger = LoggerFactory.getLogger(ConcurrentSenders.class.getName());
 
     static Registry registry;
 

@@ -23,7 +23,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This implementation of the {@link ibis.ipl.Ibis} interface is a base class,
@@ -32,7 +33,7 @@ import org.apache.log4j.Logger;
 public abstract class Ibis implements ibis.ipl.Ibis {
 
     /** Debugging output. */
-    private static final Logger logger = Logger.getLogger("ibis.ipl.impl.Ibis");
+    private static final Logger logger = LoggerFactory.getLogger("ibis.ipl.impl.Ibis");
 
     /** The IbisCapabilities as specified by the user. */
     public final IbisCapabilities capabilities;

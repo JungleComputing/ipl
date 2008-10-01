@@ -7,7 +7,8 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Sends events to clients from the server.
@@ -82,8 +83,7 @@ final class IterativeEventPusher extends Thread {
         }
     }
 
-    private static final Logger logger = Logger
-            .getLogger(IterativeEventPusher.class);
+    private static final Logger logger = LoggerFactory.getLogger(IterativeEventPusher.class);
 
     private final Pool pool;
     private final CommunicationHandler commHandler;

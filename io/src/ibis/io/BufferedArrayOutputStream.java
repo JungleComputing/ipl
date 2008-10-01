@@ -5,7 +5,8 @@ package ibis.io;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This is a complete implementation of <code>DataOutputStream</code>.
@@ -15,7 +16,7 @@ import org.apache.log4j.Logger;
  */
 public final class BufferedArrayOutputStream extends DataOutputStream {
     
-    private static final Logger logger = Logger.getLogger(BufferedArrayOutputStream.class);
+    private static final Logger logger = LoggerFactory.getLogger(BufferedArrayOutputStream.class);
 
     private static final boolean DEBUG = IOProperties.DEBUG;
 

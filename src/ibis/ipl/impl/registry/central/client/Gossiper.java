@@ -5,11 +5,12 @@ import ibis.util.ThreadPool;
 
 import java.io.IOException;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Gossiper implements Runnable {
 
-    private static final Logger logger = Logger.getLogger(Gossiper.class);
+    private static final Logger logger = LoggerFactory.getLogger(Gossiper.class);
 
     private final CommunicationHandler commHandler;
     private final Pool pool;

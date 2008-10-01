@@ -11,7 +11,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Server for the centralized registry implementation.
@@ -21,7 +22,7 @@ public final class Server extends Thread implements Service {
 
     public static final int VIRTUAL_PORT = 302;
 
-    private static final Logger logger = Logger.getLogger(Server.class);
+    private static final Logger logger = LoggerFactory.getLogger(Server.class);
 
     private static final long POOL_CLEANUP_TIMEOUT = 60 * 1000;
 

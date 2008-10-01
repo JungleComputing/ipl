@@ -2,7 +2,8 @@ package ibis.ipl.impl.registry.gossip;
 
 import java.io.IOException;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.impl.IbisIdentifier;
@@ -27,7 +28,7 @@ class CommunicationHandler implements Runnable {
     private static final int CONNECTION_TIMEOUT = 5000;
 
     private static final Logger logger =
-        Logger.getLogger(CommunicationHandler.class);
+        LoggerFactory.getLogger(CommunicationHandler.class);
 
     private final Registry registry;
 

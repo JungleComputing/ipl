@@ -29,13 +29,14 @@ import java.net.SocketTimeoutException;
 import java.util.HashMap;
 import java.util.Properties;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class TcpIbis extends ibis.ipl.impl.Ibis
         implements Runnable, TcpProtocol {
 
     static final Logger logger
-            = Logger.getLogger("ibis.ipl.impl.tcp.TcpIbis");
+            = LoggerFactory.getLogger("ibis.ipl.impl.tcp.TcpIbis");
 
     private IbisSocketFactory factory;
 
@@ -290,7 +291,7 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
                 s.setTcpNoDelay(true);
             } catch (Throwable e) {
                 /* if the accept itself fails, we have a fatal problem. */
-                logger.fatal("TcpIbis:run: got fatal exception in accept! ", e);
+                logger.error("TcpIbis:run: got fatal exception in accept! ", e);
                 cleanup();
                 throw new Error("Fatal: TcpIbis could not do an accept", e);
                 // This error is thrown in the TcpIbis thread, not in a user

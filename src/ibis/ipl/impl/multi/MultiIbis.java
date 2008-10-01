@@ -32,12 +32,13 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.UUID;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MultiIbis implements Ibis {
 
     /** Debugging output. */
-    private static final Logger logger = Logger.getLogger(MultiIbis.class);
+    private static final Logger logger = LoggerFactory.getLogger(MultiIbis.class);
 
     final MultiIbisIdentifier id;
 
@@ -74,7 +75,7 @@ public class MultiIbis implements Ibis {
         }
         HashMap<String, IbisIdentifier>subIdMap = new HashMap<String, IbisIdentifier>();
         if (logger.isDebugEnabled()) {
-                org.apache.log4j.MDC.put("UID", String.valueOf(new Random().nextInt()));
+                org.slf4j.MDC.put("UID", String.valueOf(new Random().nextInt()));
         }
         if (! (userProperties instanceof TypedProperties) ) {
             properties = new TypedProperties();

@@ -10,11 +10,12 @@ import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 final class NonBlockingChannelNioAccumulator extends NioAccumulator {
 
-    private static Logger logger = Logger.getLogger(
+    private static Logger logger = LoggerFactory.getLogger(
             NonBlockingChannelNioAccumulator.class);
 
     private final Selector selector;

@@ -22,11 +22,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MultiReceivePort implements ReceivePort {
 
-    private Logger logger = Logger.getLogger(MultiReceivePort.class);
+    private Logger logger = LoggerFactory.getLogger(MultiReceivePort.class);
 
     private final Map<String, ReceivePort>subPortMap = Collections.synchronizedMap(new HashMap<String, ReceivePort>());
 

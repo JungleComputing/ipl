@@ -8,11 +8,12 @@ import java.io.IOException;
 import java.nio.channels.GatheringByteChannel;
 import java.nio.channels.SelectableChannel;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 final class BlockingChannelNioAccumulator extends NioAccumulator {
 
-    private static Logger logger = Logger.getLogger(
+    private static Logger logger = LoggerFactory.getLogger(
             BlockingChannelNioAccumulator.class);
 
     public BlockingChannelNioAccumulator(NioSendPort port) {

@@ -11,7 +11,8 @@ import ibis.util.ThreadPool;
 
 import java.io.IOException;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 final class ServerConnectionHandler implements Runnable {
 
@@ -19,8 +20,7 @@ final class ServerConnectionHandler implements Runnable {
 
     static final int MAX_THREADS = 50;
 
-    private static final Logger logger = Logger
-            .getLogger(ServerConnectionHandler.class);
+    private static final Logger logger = LoggerFactory.getLogger(ServerConnectionHandler.class);
 
     private final Server server;
 

@@ -14,12 +14,13 @@ import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 final class IbisApplication implements Runnable, RegistryEventHandler {
 
     private static final Logger logger =
-        Logger.getLogger(IbisApplication.class);
+        LoggerFactory.getLogger(IbisApplication.class);
 
     private final boolean generateEvents;
 

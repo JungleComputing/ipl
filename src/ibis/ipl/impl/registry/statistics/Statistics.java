@@ -13,13 +13,14 @@ import java.util.Formatter;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class Statistics implements Runnable {
 
     public static final int VERSION = 1;
 
-    private static final Logger logger = Logger.getLogger(Statistics.class);
+    private static final Logger logger = LoggerFactory.getLogger(Statistics.class);
 
     private final long start;
 

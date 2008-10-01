@@ -12,12 +12,13 @@ import ibis.ipl.RegistryEventHandler;
 import java.util.List;
 import java.util.Properties;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class StackingIbisStarter extends ibis.ipl.IbisStarter {
 
     static final Logger logger
-            = Logger.getLogger("ibis.ipl.impl.stacking.dummy.StackingIbisStarter");
+            = LoggerFactory.getLogger("ibis.ipl.impl.stacking.dummy.StackingIbisStarter");
 
     static final IbisCapabilities ibisCapabilities = new IbisCapabilities(
         "nickname.dummy"

@@ -17,13 +17,14 @@ import java.util.Random;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class TreeMemberSet implements MemberSet, Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    private static final Logger logger = Logger.getLogger(TreeMemberSet.class);
+    private static final Logger logger = LoggerFactory.getLogger(TreeMemberSet.class);
 
     private class Node implements Serializable, Comparable<Node> {
 
@@ -185,7 +186,7 @@ public final class TreeMemberSet implements MemberSet, Serializable {
         list.add(node);
 
         if (logger.isDebugEnabled()) {
-            logger.debug(this);
+            logger.debug("" + this);
         }
     }
 

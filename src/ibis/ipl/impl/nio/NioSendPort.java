@@ -16,11 +16,12 @@ import java.nio.channels.Channel;
 import java.nio.channels.GatheringByteChannel;
 import java.util.Properties;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class NioSendPort extends SendPort implements Protocol {
 
-    private static Logger logger = Logger.getLogger(NioSendPort.class);
+    private static Logger logger = LoggerFactory.getLogger(NioSendPort.class);
 
     private final NioAccumulator accumulator;
 

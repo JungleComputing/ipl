@@ -2,14 +2,15 @@
 
 package ibis.util;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Utility for measuring time.
  */
 public class Timer implements java.io.Serializable {
 
-    static final Logger logger = Logger.getLogger(Timer.class.getName());
+    static final Logger logger = LoggerFactory.getLogger(Timer.class.getName());
 
     private static final long serialVersionUID = 1L;
 

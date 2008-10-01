@@ -4,7 +4,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import ibis.ipl.impl.registry.Connection;
 import ibis.ipl.impl.registry.statistics.Statistics;
@@ -25,7 +26,7 @@ public class BootstrapService implements Service, Runnable {
     static final int MAX_THREADS = 50;
 
     private static final Logger logger =
-        Logger.getLogger(BootstrapService.class);
+        LoggerFactory.getLogger(BootstrapService.class);
 
     private final VirtualServerSocket serverSocket;
 

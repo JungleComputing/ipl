@@ -11,7 +11,8 @@ import java.nio.IntBuffer;
 import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 final class SendBuffer implements Config {
 
@@ -65,7 +66,7 @@ final class SendBuffer implements Config {
 
     static int cacheSize = 0;
 
-    private static Logger logger = Logger.getLogger(SendBuffer.class);
+    private static Logger logger = LoggerFactory.getLogger(SendBuffer.class);
 
     /**
      * Static method to get a sendbuffer out of the cache

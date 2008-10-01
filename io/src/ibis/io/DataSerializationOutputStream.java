@@ -4,7 +4,8 @@ package ibis.io;
 
 import java.io.IOException;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This is the <code>SerializationOutputStream</code> version that is used
@@ -24,7 +25,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
     private static final boolean NO_ARRAY_BUFFERS
             = IOProperties.properties.getBooleanProperty(IOProperties.s_no_array_buffers);
     
-    private static Logger logger = Logger.getLogger(DataSerializationOutputStream.class);
+    private static Logger logger = LoggerFactory.getLogger(DataSerializationOutputStream.class);
 
     /** If <code>false</code>, makes all timer calls disappear. */
     private static final boolean TIME_DATA_SERIALIZATION

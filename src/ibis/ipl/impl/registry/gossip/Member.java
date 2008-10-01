@@ -10,11 +10,12 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 class Member {
 
-    private static final Logger logger = Logger.getLogger(Member.class);
+    private static final Logger logger = LoggerFactory.getLogger(Member.class);
 
     private final IbisIdentifier identifier;
 

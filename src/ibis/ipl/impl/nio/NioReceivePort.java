@@ -17,12 +17,13 @@ import java.io.IOException;
 import java.nio.channels.Channel;
 import java.util.Properties;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 abstract class NioReceivePort extends ibis.ipl.impl.ReceivePort implements
         Runnable, Protocol {
 
-    private static Logger logger = Logger.getLogger(NioReceivePort.class);
+    private static Logger logger = LoggerFactory.getLogger(NioReceivePort.class);
 
     private boolean reader_busy = false;
 

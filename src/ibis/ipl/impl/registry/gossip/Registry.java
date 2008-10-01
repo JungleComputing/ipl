@@ -21,11 +21,12 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Registry extends ibis.ipl.impl.Registry implements Runnable {
 
-    private final Logger logger = Logger.getLogger(Registry.class);
+    private final Logger logger = LoggerFactory.getLogger(Registry.class);
 
     private final IbisCapabilities capabilities;
 

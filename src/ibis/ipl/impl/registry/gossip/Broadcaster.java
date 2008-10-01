@@ -7,7 +7,8 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Broadcasts the leave of an ibis
@@ -16,7 +17,7 @@ final class Broadcaster implements Runnable {
 
     private static final int THREADS = 10;
 
-    private static final Logger logger = Logger.getLogger(Broadcaster.class);
+    private static final Logger logger = LoggerFactory.getLogger(Broadcaster.class);
 
     private final CommunicationHandler commHandler;
 

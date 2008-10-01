@@ -7,13 +7,14 @@ import java.io.Serializable;
 
 import ibis.ipl.impl.IbisIdentifier;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class Member implements Serializable {
 	
     private static final long serialVersionUID = 1L;
 
-    private static final Logger logger = Logger.getLogger(Member.class);
+    private static final Logger logger = LoggerFactory.getLogger(Member.class);
 
     private final IbisIdentifier ibis;
 

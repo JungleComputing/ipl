@@ -15,11 +15,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MultiRegistry implements Registry{
 
-    private static final Logger logger = Logger.getLogger(MultiRegistry.class);
+    private static final Logger logger = LoggerFactory.getLogger(MultiRegistry.class);
 
     private final MultiIbis ibis;
 

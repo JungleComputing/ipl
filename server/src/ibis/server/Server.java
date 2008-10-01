@@ -10,7 +10,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import ibis.server.remote.RemoteHandler;
 import ibis.smartsockets.SmartSocketsProperties;
@@ -24,7 +25,7 @@ import ibis.smartsockets.virtual.VirtualSocketFactory;
  */
 public final class Server {
 
-    private static final Logger logger = Logger.getLogger(Server.class);
+    private static final Logger logger = LoggerFactory.getLogger(Server.class);
 
     private final VirtualSocketFactory virtualSocketFactory;
 

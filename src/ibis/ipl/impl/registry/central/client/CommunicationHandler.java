@@ -20,7 +20,8 @@ import ibis.util.TypedProperties;
 
 import java.io.IOException;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 final class CommunicationHandler implements Runnable {
 
@@ -29,7 +30,7 @@ final class CommunicationHandler implements Runnable {
     private static final int MAX_THREADS = 10;
 
     private static final Logger logger =
-        Logger.getLogger(CommunicationHandler.class);
+        LoggerFactory.getLogger(CommunicationHandler.class);
 
     private final Heartbeat heartbeat;
 

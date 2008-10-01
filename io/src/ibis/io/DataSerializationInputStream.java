@@ -5,7 +5,8 @@ package ibis.io;
 import java.io.IOException;
 import java.io.UTFDataFormatException;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This is the <code>SerializationInputStream</code> version that is used
@@ -14,7 +15,7 @@ import org.apache.log4j.Logger;
  */
 public class DataSerializationInputStream extends ByteSerializationInputStream {
     
-    private static Logger logger = Logger.getLogger(DataSerializationInputStream.class);
+    private static Logger logger = LoggerFactory.getLogger(DataSerializationInputStream.class);
     
     /** When true, no buffering in this layer. */
     private static final boolean NO_ARRAY_BUFFERS

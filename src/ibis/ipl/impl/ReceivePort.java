@@ -18,7 +18,8 @@ import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Implementation of the {@link ibis.ipl.ReceivePort} interface, to be extended
@@ -29,7 +30,7 @@ public abstract class ReceivePort extends Manageable
 
     /** Debugging output. */
     private static final Logger logger
-            = Logger.getLogger("ibis.ipl.impl.ReceivePort");
+            = LoggerFactory.getLogger("ibis.ipl.impl.ReceivePort");
 
     // Possible results of a connection attempt.
 
@@ -329,7 +330,7 @@ public abstract class ReceivePort extends Manageable
                     retval = ACCEPTED;
                 }
             } catch(Throwable e) {
-                logger.fatal("Unexpected exception in gotConnection(), "
+                logger.error("Unexpected exception in gotConnection(), "
                         + "this Java instance will be terminated" , e);
                 System.exit(1);
             }
@@ -394,7 +395,7 @@ public abstract class ReceivePort extends Manageable
             try {
                 connectUpcall.lostConnection(this, id, e);
             } catch(Throwable e2) {
-                logger.fatal("Unexpected exception in lostConnection(), "
+                logger.error("Unexpected exception in lostConnection(), "
                         + "this Java instance will be terminated" , e2);
                 System.exit(1);
             }
@@ -543,7 +544,7 @@ public abstract class ReceivePort extends Manageable
             }
             return;
         } catch(Throwable e) {
-            logger.fatal("Got unexpected throwable in upcall(), "
+            logger.error("Got unexpected throwable in upcall(), "
                     + "this Java instance will be terminated", e);
             System.exit(1);
 

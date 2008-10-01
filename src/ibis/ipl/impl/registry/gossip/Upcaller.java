@@ -7,7 +7,8 @@ import ibis.util.ThreadPool;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 final class Upcaller implements Runnable {
 
@@ -31,7 +32,7 @@ final class Upcaller implements Runnable {
         }
     }
 
-    private static final Logger logger = Logger.getLogger(Upcaller.class);
+    private static final Logger logger = LoggerFactory.getLogger(Upcaller.class);
 
     private RegistryEventHandler handler;
 

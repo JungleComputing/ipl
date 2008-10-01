@@ -19,14 +19,15 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Central registry.
  */
 public final class Registry extends ibis.ipl.impl.Registry {
 
-    private static final Logger logger = Logger.getLogger(Registry.class);
+    private static final Logger logger = LoggerFactory.getLogger(Registry.class);
 
     // A thread that forwards the events to the user event handler
     private final Upcaller upcaller;

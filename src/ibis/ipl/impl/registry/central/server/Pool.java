@@ -24,7 +24,8 @@ import java.util.Formatter;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 final class Pool implements Runnable {
 
@@ -37,7 +38,7 @@ final class Pool implements Runnable {
 	// called by the user
 	private static final long RECENTLY_SEEN_THRESHOLD = 1000;
 
-	private static final Logger logger = Logger.getLogger(Pool.class);
+	private static final Logger logger = LoggerFactory.getLogger(Pool.class);
 
 	private final VirtualSocketFactory socketFactory;
 
