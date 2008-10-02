@@ -825,6 +825,15 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
                 c[len++] = (char) (bi & 0x7f);
             } else if ((bi & 0xe0) == 0xc0) {
                 if (i + 1 >= bn || ((int)b[i + 1] & 0xc0) != 0x80) {
+		    if (logger.isErrorEnabled()) {
+			logger.error("i = " + i + ", len = " + bn + ", bi = " + bi);
+			StringBuffer sb = new StringBuffer();
+			sb.append("bytes: ");
+			for (int j = 0; j < bn; j++) {
+			    sb.append(" " + b[j]);
+			}
+			logger.error(sb.toString());
+		    }
                     throw new UTFDataFormatException(
                             "UTF Data Format Exception");
                 }
@@ -833,6 +842,15 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
             } else if ((bi & 0xf0) == 0xe0) {
                 if (i + 2 >= bn || ((int)b[i + 1] & 0xc0) != 0x80
                         || ((int)b[i + 2] & 0xc0) != 0x80) {
+		    if (logger.isErrorEnabled()) {
+			logger.error("i = " + i + ", len = " + bn + ", bi = " + bi);
+			StringBuffer sb = new StringBuffer();
+			sb.append("bytes: ");
+			for (int j = 0; j < bn; j++) {
+			    sb.append(" " + b[j]);
+			}
+			logger.error(sb.toString());
+		    }
                     throw new UTFDataFormatException(
                             "UTF Data Format Exception");
                 }
@@ -841,6 +859,15 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
                         | ((int)b[i + 2] & 0x3f));
                 i += 2;
             } else {
+		if (logger.isErrorEnabled()) {
+		    logger.error("i = " + i + ", len = " + bn + ", bi = " + bi);
+		    StringBuffer sb = new StringBuffer();
+		    sb.append("bytes: ");
+		    for (int j = 0; j < bn; j++) {
+			sb.append(" " + b[j]);
+		    }
+		    logger.error(sb.toString());
+		}
                 throw new UTFDataFormatException("UTF Data Format Exception");
             }
         }
