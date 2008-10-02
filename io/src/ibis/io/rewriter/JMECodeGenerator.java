@@ -37,7 +37,6 @@ import org.apache.bcel.generic.InstructionFactory;
 import org.apache.bcel.generic.InstructionHandle;
 import org.apache.bcel.generic.InstructionList;
 import org.apache.bcel.generic.LDC;
-import org.apache.bcel.generic.MULTIANEWARRAY;
 import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.NOP;
 import org.apache.bcel.generic.ObjectType;
@@ -46,7 +45,6 @@ import org.apache.bcel.generic.RETURN;
 import org.apache.bcel.generic.ReferenceType;
 import org.apache.bcel.generic.SIPUSH;
 import org.apache.bcel.generic.SWITCH;
-import org.apache.bcel.generic.TABLESWITCH;
 import org.apache.bcel.generic.Type;
 
 /**
