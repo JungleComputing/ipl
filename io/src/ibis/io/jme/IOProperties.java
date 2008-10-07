@@ -7,14 +7,9 @@ import java.util.Enumeration;
 import java.util.Vector;
 
 // Log4JME doesn't actually work on real devices so commenting out for now.
-//import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-//import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-//import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-//import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+// import org.slf4j.Logger;
+// import org.slf4j.LoggerFactory;
 
 /**
  * Collects all system properties used by the ibis.io package.
