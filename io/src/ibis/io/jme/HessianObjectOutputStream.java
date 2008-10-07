@@ -1,6 +1,5 @@
 package ibis.io.jme;
 
-import ibis.io.Replacer;
 
 import java.io.IOException;
 

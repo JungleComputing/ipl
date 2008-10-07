@@ -4,6 +4,7 @@ import java.util.Hashtable;
 import java.util.Enumeration;
 
 public class Properties extends Hashtable {
+	private static final long serialVersionUID = 1L;
 	
 	public Properties(){
 		super();

@@ -92,29 +92,6 @@ public class SerializationBase extends IOProperties {
     }
 
     /**
-     * Returns the implementation name for the specified nickname.
-     * For now, this is hardcoded, but it could be driven by for instance
-     * a configuration or properties file.
-     * @param name the nickname of the serialization type.
-     * @return the implementation name.
-     */
-    private static String implName(String name) {
-        if (name == null || name.equals("ibis") || name.equals("object")) {
-            return "ibis.io.IbisSerialization";
-        }
-        if (name.equals("sun")) {
-            return "ibis.io.SunSerialization";
-        }
-        if (name.equals("data")) {
-            return "ibis.io.DataSerialization";
-        }
-        if (name.equals("byte")) {
-            return "ibis.io.ByteSerialization";
-        }
-        return name;
-    }
-
-    /**
      * Creates a {@link ObjectInput} as specified by the name.
      * @param name the nickname for this serialization type.
      * @param in   the underlying input stream.

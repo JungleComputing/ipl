@@ -23,11 +23,11 @@ public final class ThreadPool {
             */
         }
 
-        private static final class ThreadPoolShutdown extends Thread {
-            public void run() {
-                IOProperties.logger.info("maximum number of simultaneous threads was: " + maxSimultaneousThreads);
-            }
-        }
+//        private static final class ThreadPoolShutdown extends Thread {
+//            public void run() {
+//                IOProperties.logger.info("maximum number of simultaneous threads was: " + maxSimultaneousThreads);
+//            }
+//        }
         
         private static final int TIMEOUT = 30 * 1000; //30 seconds 
 

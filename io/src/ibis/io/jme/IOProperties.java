@@ -3,7 +3,6 @@
 package ibis.io.jme;
 
 import java.util.Hashtable;
-import java.util.Enumeration;
 import java.util.Vector;
 
 // Log4JME doesn't actually work on real devices so commenting out for now.
@@ -191,7 +190,7 @@ public class IOProperties implements Constants {
         }
         return result;
     }
-
+/* TODO: Not needed?
     private static void addProperties(Properties props, Properties p) {
         for (Enumeration e = p.propertyNames(); e.hasMoreElements();) {
             String key = (String) e.nextElement();
@@ -199,6 +198,7 @@ public class IOProperties implements Constants {
             props.setProperty(key, value);
         }
     }
+*/
 
     private static Properties getDefaultProperties() {
 

@@ -1086,7 +1086,7 @@ public class ObjectInputStream extends DataSerializationInputStream {
      */
     public void readFieldDouble(Object ref, String fieldname, String classname)
             throws IOException {
-        double d = readDouble();
+//        double d = readDouble();
 
         throw new IOException("No unsafe");
     }
@@ -1096,7 +1096,7 @@ public class ObjectInputStream extends DataSerializationInputStream {
      */
     public void readFieldLong(Object ref, String fieldname, String classname)
             throws IOException {
-        long d = readLong();
+//        long d = readLong();
 
         throw new IOException("No unsafe");
     }
@@ -1106,7 +1106,7 @@ public class ObjectInputStream extends DataSerializationInputStream {
      */
     public void readFieldFloat(Object ref, String fieldname, String classname)
             throws IOException {
-        float d = readFloat();
+//        float d = readFloat();
 
         throw new IOException("No unsafe");
     }
@@ -1116,7 +1116,7 @@ public class ObjectInputStream extends DataSerializationInputStream {
      */
     public void readFieldInt(Object ref, String fieldname, String classname)
             throws IOException {
-        int d = readInt();
+//        int d = readInt();
 
         throw new IOException("No unsafe");
     }
@@ -1126,7 +1126,7 @@ public class ObjectInputStream extends DataSerializationInputStream {
      */
     public void readFieldShort(Object ref, String fieldname, String classname)
             throws IOException {
-        short d = readShort();
+//        short d = readShort();
 
         throw new IOException("No unsafe");
     }
@@ -1136,7 +1136,7 @@ public class ObjectInputStream extends DataSerializationInputStream {
      */
     public void readFieldChar(Object ref, String fieldname, String classname)
             throws IOException {
-        char d = readChar();
+//        char d = readChar();
 
         throw new IOException("No unsafe");
     }
@@ -1146,7 +1146,7 @@ public class ObjectInputStream extends DataSerializationInputStream {
      */
     public void readFieldByte(Object ref, String fieldname, String classname)
             throws IOException {
-        byte d = readByte();
+//        byte d = readByte();
 
         throw new IOException("No unsafe");
     }
@@ -1156,7 +1156,7 @@ public class ObjectInputStream extends DataSerializationInputStream {
      */
     public void readFieldBoolean(Object ref, String fieldname, String classname)
             throws IOException {
-        boolean d = readBoolean();
+//        boolean d = readBoolean();
 
         throw new IOException("No unsafe");
     }
@@ -1166,7 +1166,7 @@ public class ObjectInputStream extends DataSerializationInputStream {
      */
     public void readFieldString(Object ref, String fieldname, String classname)
             throws IOException {
-        String d = readString();
+//        String d = readString();
 
         throw new IOException("No unsafe");
     }
@@ -1177,7 +1177,7 @@ public class ObjectInputStream extends DataSerializationInputStream {
      */
     public void readFieldClass(Object ref, String fieldname, String classname)
             throws IOException, ClassNotFoundException {
-        Class d = readClass();
+//        Class d = readClass();
 
         throw new IOException("No unsafe");
     }
@@ -1189,7 +1189,7 @@ public class ObjectInputStream extends DataSerializationInputStream {
      */
     public void readFieldObject(Object ref, String fieldname, String classname,
             String fieldsig) throws IOException, ClassNotFoundException {
-        Object d = doReadObject(false);
+//        Object d = doReadObject(false);
 
         throw new IOException("No unsafe");
     }
