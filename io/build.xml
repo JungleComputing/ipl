@@ -6,6 +6,7 @@
 	<!-- Global properties -->
 	<target name="properties" description="Setup all the properties for building">
 	    	<property name="src" location="src" />
+		<property name="jmesrc" location="jmesrc" />
 		<property name="compile" location="compile" />
 		<property name="tmpsrc" location="tmpsrc" />
 		<property name="lib" location="../lib" />
@@ -81,9 +82,7 @@
 		
 		<!-- Collect all the source into one place. -->
 		<copy todir="${tmpsrc}">
-			<fileset dir="${src}"
-					 excludes="ibis/io/jme/**"
-					 />
+			<fileset dir="${src}" />
 		</copy>
 		
 		<!-- Compile the java code from ${src} into ${compile} -->
@@ -149,8 +148,9 @@
 			 properly -->
 		<copy todir="${tmpsrc}">
 			<fileset dir="${src}"
-    				 includes="ibis/io/SerializationInput.*,ibis/io/SerializationOutput.*,ibis/io/DataInput.*,ibis/io/DataOutput.*,ibis/io/Replacer.*,ibis/io/jme/**" 
+    				 includes="ibis/io/SerializationInput.*,ibis/io/SerializationOutput.*,ibis/io/DataInput.*,ibis/io/DataOutput.*,ibis/io/Replacer.*" 
     				 />
+			<fileset dir="${jmesrc}" />
 		</copy>
     
 		<!-- create the javadoc -->
