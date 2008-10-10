@@ -10,6 +10,8 @@ import ibis.util.TypedProperties;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +30,7 @@ public final class Server extends Thread implements Service {
 
     private final VirtualSocketFactory socketFactory;
 
-    private final HashMap<String, Pool> pools;
+    private final SortedMap<String, Pool> pools;
 
     private final boolean printStats;
 
@@ -64,7 +66,7 @@ public final class Server extends Thread implements Service {
         printErrors = typedProperties
                 .getBooleanProperty(ServerProperties.PRINT_ERRORS);
 
-        pools = new HashMap<String, Pool>();
+        pools = new TreeMap<String, Pool>();
 
         // start handling connections
         handler = new ServerConnectionHandler(this, socketFactory);
@@ -147,8 +149,7 @@ public final class Server extends Thread implements Service {
             if (pools.size() > 0) {
                 if (printStats) {
                     System.err.printf("%tT list of pools:\n", System.currentTimeMillis());
-                    System.err
-                            .println("        CURRENT_SIZE JOINS LEAVES DIEDS ELECTIONS SIGNALS FIXED_SIZE CLOSED ENDED");
+                    System.err.println("     CURRENT_SIZE JOINS LEAVES DIEDS ELECTIONS SIGNALS FIXED_SIZE CLOSED ENDED");
                 }
 
                 // copy values to new array so we can do "remove" on original
@@ -158,8 +159,6 @@ public final class Server extends Thread implements Service {
                     }
 
                     if (pool.hasEnded()) {
-                        System.err.println("Central Registry: pool \""
-                                + pool.getName() + "\" ended");
                         pool.saveStatistics();
                         pools.remove(pool.getName());
                         if (pools.size() == 0) {

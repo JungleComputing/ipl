@@ -121,7 +121,6 @@ public final class Registry extends ibis.ipl.impl.Registry {
         pool = new Pool(capabilities, properties, this, statistics);
 
         try {
-
             communicationHandler = new CommunicationHandler(properties, pool,
                     statistics);
 

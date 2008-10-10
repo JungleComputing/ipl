@@ -282,9 +282,6 @@ public final class Server {
         out
                 .println("--remote\t\t\tListen to commands for this server on stdin.");
         out.println();
-        out
-                .println("PROPERTY=VALUE\t\t\tSet a property, as if it was set in a");
-        out.println("\t\t\t\tconfiguration file or as a System property.");
         out.println("Output Options:");
         out.println("--events\t\t\tPrint events.");
         out
@@ -340,9 +337,6 @@ public final class Server {
                     || args[i].equalsIgnoreCase("/?")) {
                 printUsage(System.err);
                 System.exit(0);
-            } else if (args[i].contains("=")) {
-                String[] parts = args[i].split("=", 2);
-                properties.setProperty(parts[0], parts[1]);
             } else {
                 System.err.println("Unknown argument: " + args[i]);
                 printUsage(System.err);
