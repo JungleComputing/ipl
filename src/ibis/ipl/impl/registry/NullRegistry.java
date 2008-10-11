@@ -146,6 +146,10 @@ public final class NullRegistry extends ibis.ipl.impl.Registry {
         throw new IbisConfigurationException(
                 "pool size not supported by NullRegistry");
     }
+    
+    public String getPoolName() {
+        return identifier.poolName();
+    }
 
     public void waitUntilPoolClosed() {
         throw new IbisConfigurationException(

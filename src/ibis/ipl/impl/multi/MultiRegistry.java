@@ -203,6 +203,11 @@ public class MultiRegistry implements Registry{
         }
         return poolSize;
     }
+    
+    public String getPoolName() {
+    	//FIXME:does this make sense? -Niels
+        return ibis.identifier().poolName();
+    }
 
     public long getSequenceNumber(String name) throws IOException {
         // TODO: Any way to support sequences?

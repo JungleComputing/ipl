@@ -194,6 +194,14 @@ public interface Registry extends Manageable {
     public int getPoolSize();
 
     /**
+     * Returns the name of the pool this ibis is a member of.
+     * 
+     * @return the name of the pool
+     */
+    public String getPoolName();
+
+    
+    /**
      * When running closed-world, wait for the pool to close. A pool closes
      * after all Ibisses have joined.
      * 

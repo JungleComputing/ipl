@@ -85,6 +85,10 @@ public final class ForwardingRegistry extends ibis.ipl.impl.Registry {
     public int getPoolSize() {
         return target.getPoolSize();
     }
+    
+    public String getPoolName() {
+        return target.getPoolName();
+    }
 
     public boolean isClosed() {
         return target.isClosed();
