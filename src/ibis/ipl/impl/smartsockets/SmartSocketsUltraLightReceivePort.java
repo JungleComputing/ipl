@@ -6,7 +6,6 @@ import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortIdentifier;
-import ibis.ipl.impl.Ibis;
 import ibis.ipl.impl.IbisIdentifier;
 import ibis.ipl.impl.SendPortIdentifier;
 import ibis.smartsockets.direct.DirectSocketAddress;
@@ -20,12 +19,13 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Properties;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SmartSocketsUltraLightReceivePort implements ReceivePort, CallBack, Runnable {
 
 	protected static final Logger logger
-            = Logger.getLogger("ibis.ipl.impl.smartsockets.ReceivePort");
+            = LoggerFactory.getLogger("ibis.ipl.impl.smartsockets.ReceivePort");
 
 	private final PortType type;
 	private final String name;

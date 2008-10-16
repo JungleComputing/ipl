@@ -19,20 +19,25 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
+import java.lang.management.ManagementFactory;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import org.apache.log4j.Logger;
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This implementation of the {@link ibis.ipl.Ibis} interface is a base class,
  * to be extended by specific Ibis implementations.
  */
-public abstract class Ibis implements ibis.ipl.Ibis {
+public abstract class Ibis implements ibis.ipl.Ibis, IbisMBean {
 
     /** Debugging output. */
-    private static final Logger logger = Logger.getLogger("ibis.ipl.impl.Ibis");
+    private static final Logger logger = LoggerFactory.getLogger("ibis.ipl.impl.Ibis");
 
     /** The IbisCapabilities as specified by the user. */
     public final IbisCapabilities capabilities;
@@ -141,12 +146,22 @@ public abstract class Ibis implements ibis.ipl.Ibis {
         }
 
         ident = registry.getIbisIdentifier();
+        
+        // add bean to JMX
+		try {
+			MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+			ObjectName name = new ObjectName("ibis.ipl.impl:type=Ibis");
+			mbs.registerMBean(this, name);
+		} catch (Exception e) {
+			logger.warn("cannot registry MBean", e);
+		}
     }
 
-    public Registry registry() {
+    public ibis.ipl.Registry registry() {
         return registry;
     }
 
+   
     public ibis.ipl.IbisIdentifier identifier() {
         return ident;
     }
@@ -191,7 +206,7 @@ public abstract class Ibis implements ibis.ipl.Ibis {
         quit();
     }
 
-    public void poll() {
+    public void poll() throws IOException {
         // Default has empty implementation.
     }
 
@@ -475,7 +490,7 @@ public abstract class Ibis implements ibis.ipl.Ibis {
         return result;
     }
 
-    private synchronized long outgoingMessageCount() {
+    public synchronized long getOutgoingMessageCount() {
         long outgoingMessageCount = this.outgoingMessageCount;
 
         // also add numbers for current send ports
@@ -486,7 +501,7 @@ public abstract class Ibis implements ibis.ipl.Ibis {
         return outgoingMessageCount;
     }
 
-    private synchronized long bytesSend() {
+    public synchronized long getBytesSend() {
         long bytesSend = this.bytesSend;
 
         // also add numbers for current send ports
@@ -497,7 +512,7 @@ public abstract class Ibis implements ibis.ipl.Ibis {
         return bytesSend;
     }
     
-    private synchronized long bytesWritten() {
+    public synchronized long getBytesWritten() {
         long bytesWritten = this.bytesWritten;
 
         // also add numbers for current send ports
@@ -508,7 +523,7 @@ public abstract class Ibis implements ibis.ipl.Ibis {
         return bytesWritten;
     }
 
-    private synchronized long incomingMessageCount() {
+    public synchronized long getIncomingMessageCount() {
         long incomingMessageCount = this.incomingMessageCount;
 
         // also add numbers for current receive ports
@@ -518,7 +533,7 @@ public abstract class Ibis implements ibis.ipl.Ibis {
         return incomingMessageCount;
     }
 
-    private synchronized long bytesReceived() {
+    public synchronized long getBytesReceived() {
         long bytesReceived = this.bytesReceived;
         // also add numbers for current receive ports
         for (ReceivePort receivePort : receivePorts.values()) {
@@ -528,7 +543,7 @@ public abstract class Ibis implements ibis.ipl.Ibis {
         return bytesReceived;
     }
     
-    private synchronized long bytesRead() {
+    public synchronized long getBytesRead() {
         long bytesRead = this.bytesRead;
         // also add numbers for current receive ports
         for (ReceivePort receivePort : receivePorts.values()) {
@@ -542,31 +557,31 @@ public abstract class Ibis implements ibis.ipl.Ibis {
         Map<String, String> result = new HashMap<String, String>();
 
         // put gathered statistics in the map
-        result.put("outgoingMessageCount", "" + outgoingMessageCount());
-        result.put("bytesWritten", "" + bytesWritten());
-        result.put("bytesSend", "" + bytesSend());
-        result.put("incomingMessageCount", "" + incomingMessageCount());
-        result.put("bytesReceived", "" + bytesReceived());
-        result.put("bytesRead", "" + bytesRead());
+        result.put("outgoingMessageCount", "" + getOutgoingMessageCount());
+        result.put("bytesWritten", "" + getBytesWritten());
+        result.put("bytesSend", "" + getBytesSend());
+        result.put("incomingMessageCount", "" + getIncomingMessageCount());
+        result.put("bytesReceived", "" + getBytesReceived());
+        result.put("bytesRead", "" + getBytesRead());
 
         return result;
     }
 
     public void printManagementProperties(PrintStream stream) {
-        stream.format("Messages Send: %d\n", outgoingMessageCount());
+        stream.format("Messages Send: %d\n", getOutgoingMessageCount());
 
-        double mbWritten = (double) bytesWritten() / 1024.0 / 1024.0;
+        double mbWritten = (double) getBytesWritten() / 1024.0 / 1024.0;
         stream.format("Data written to messages: %.2f Mb\n", mbWritten);
         
-        double mbSend = (double) bytesSend() / 1024.0 / 1024.0;
+        double mbSend = (double) getBytesSend() / 1024.0 / 1024.0;
         stream.format("Data send out on network: %.2f Mb\n", mbSend);
 
-        stream.format("Messages Received: %d\n", incomingMessageCount());
+        stream.format("Messages Received: %d\n", getIncomingMessageCount());
 
-        double mbReceived = (double) bytesReceived() / 1024.0 / 1024.0;
+        double mbReceived = (double) getBytesReceived() / 1024.0 / 1024.0;
         stream.format("Data received from network: %.2f Mb\n", mbReceived);
 
-        double mbRead = (double) bytesRead() / 1024.0 / 1024.0;
+        double mbRead = (double) getBytesRead() / 1024.0 / 1024.0;
         stream.format("Data read from messages: %.2f Mb\n", mbRead);
         
         stream.flush();
@@ -584,4 +599,8 @@ public abstract class Ibis implements ibis.ipl.Ibis {
         throw new NoSuchPropertyException("cannot set any properties");
     }
 
+    //jmx function
+    public String getIdentifier() {
+        return ident.toString();
+    }
 }

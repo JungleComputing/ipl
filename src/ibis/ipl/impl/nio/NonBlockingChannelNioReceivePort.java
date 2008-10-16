@@ -18,13 +18,14 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.util.Properties;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 final class NonBlockingChannelNioReceivePort extends NioReceivePort {
     static final int INITIAL_ARRAY_SIZE = 8;
 
     private static Logger logger
-        = Logger.getLogger(NonBlockingChannelNioReceivePort.class);
+        = LoggerFactory.getLogger(NonBlockingChannelNioReceivePort.class);
 
     private NonBlockingChannelNioDissipator[] connections
             = new NonBlockingChannelNioDissipator[INITIAL_ARRAY_SIZE];

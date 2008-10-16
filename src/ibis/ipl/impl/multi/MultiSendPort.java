@@ -22,12 +22,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MultiSendPort implements SendPort {
 
     /** Debugging output. */
-    private static final Logger logger = Logger.getLogger(MultiSendPort.class);
+    private static final Logger logger = LoggerFactory.getLogger(MultiSendPort.class);
 
     private final ManageableMapper ManageableMapper;
 

@@ -23,14 +23,15 @@ import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * implements a channelfactory using the tcp implementation of nio
  */
 class TcpChannelFactory implements ChannelFactory, Protocol {
 
-    private static Logger logger = Logger.getLogger(TcpChannelFactory.class);
+    private static Logger logger = LoggerFactory.getLogger(TcpChannelFactory.class);
 
     // Server socket Channel we listen for new connection on
     private ServerSocketChannel ssc;
@@ -332,7 +333,7 @@ class TcpChannelFactory implements ChannelFactory, Protocol {
                 } catch (IOException e4) {
                     // IGNORE
                 }
-                logger.fatal("could not do accept");
+                logger.error("could not do accept");
                 return;
             }
 

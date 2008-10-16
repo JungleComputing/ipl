@@ -3,14 +3,14 @@ package ibis.ipl.impl.registry.central.server;
 import ibis.ipl.impl.registry.central.Member;
 import ibis.util.ThreadPool;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 final class RandomEventPusher implements Runnable {
     
     private static final int THREADS = 25;
 
-    private static final Logger logger = Logger
-            .getLogger(RandomEventPusher.class);
+    private static final Logger logger = LoggerFactory.getLogger(RandomEventPusher.class);
 
     private final Pool pool;
 

@@ -6,7 +6,8 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This is a complete implementation of <code>DataInputStream</code>.
@@ -18,7 +19,7 @@ public final class BufferedArrayInputStream extends DataInputStream {
     
     private static final boolean DEBUG = IOProperties.DEBUG;
     
-    private static final Logger logger = Logger.getLogger(BufferedArrayInputStream.class);
+    private static final Logger logger = LoggerFactory.getLogger(BufferedArrayInputStream.class);
 
     /** The buffer size. */
     private final int BUF_SIZE;

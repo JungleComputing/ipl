@@ -7,7 +7,8 @@ import ibis.util.ThreadPool;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 final class Upcaller implements Runnable {
 
@@ -31,7 +32,7 @@ final class Upcaller implements Runnable {
         }
     }
 
-    private static final Logger logger = Logger.getLogger(Upcaller.class);
+    private static final Logger logger = LoggerFactory.getLogger(Upcaller.class);
 
     private RegistryEventHandler handler;
 
@@ -118,7 +119,7 @@ final class Upcaller implements Runnable {
                         handler.died(event.ibis);
                     break;
                 case Event.SIGNAL:
-                    handler.gotSignal(event.string);
+                    handler.gotSignal(event.string, event.ibis);
                     break;
                 case Event.ELECT:
                     handler.electionResult(event.string, event
@@ -149,8 +150,8 @@ final class Upcaller implements Runnable {
         pendingEvents.add(new Event(Event.DIED, ibis, null));
     }
 
-    synchronized void signal(String signal) {
-        pendingEvents.add(new Event(Event.SIGNAL, null, signal));
+    synchronized void signal(String signal, IbisIdentifier source) {
+        pendingEvents.add(new Event(Event.SIGNAL, source, signal));
     }
     
     synchronized void electionResult(String name, IbisIdentifier winner) {

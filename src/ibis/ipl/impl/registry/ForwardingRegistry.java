@@ -85,7 +85,15 @@ public final class ForwardingRegistry extends ibis.ipl.impl.Registry {
     public int getPoolSize() {
         return target.getPoolSize();
     }
+    
+    public String getPoolName() {
+        return target.getPoolName();
+    }
 
+    public boolean isClosed() {
+        return target.isClosed();
+    }
+    
     public void waitUntilPoolClosed() {
         target.waitUntilPoolClosed();
     }
@@ -109,5 +117,19 @@ public final class ForwardingRegistry extends ibis.ipl.impl.Registry {
     public void printManagementProperties(PrintStream stream) {
         target.printManagementProperties(stream);
     }
+
+    public boolean hasTerminated() {
+        return target.hasTerminated();
+    }
+
+    public void terminate() throws IOException {
+        target.terminate();
+    }
+
+    public IbisIdentifier waitUntilTerminated() {
+        return target.waitUntilTerminated();
+    }
+
+  
 
 }

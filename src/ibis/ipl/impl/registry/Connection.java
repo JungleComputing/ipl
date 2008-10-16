@@ -13,11 +13,12 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class Connection {
 
-    private static final Logger logger = Logger.getLogger(Connection.class);
+    private static final Logger logger = LoggerFactory.getLogger(Connection.class);
 
     private final VirtualSocket socket;
 
@@ -96,8 +97,9 @@ public final class Connection {
         // get reply
         byte reply = in.readByte();
         if (reply == Connection.REPLY_ERROR) {
+        	String message = in.readUTF();
             close();
-            throw new RemoteException(in.readUTF());
+            throw new RemoteException(message);
         } else if (reply != Connection.REPLY_OK) {
             close();
             throw new IOException("Unknown reply (" + reply + ")");

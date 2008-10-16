@@ -10,7 +10,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import ibis.server.remote.RemoteHandler;
 import ibis.smartsockets.SmartSocketsProperties;
@@ -24,7 +25,7 @@ import ibis.smartsockets.virtual.VirtualSocketFactory;
  */
 public final class Server {
 
-    private static final Logger logger = Logger.getLogger(Server.class);
+    private static final Logger logger = LoggerFactory.getLogger(Server.class);
 
     private final VirtualSocketFactory virtualSocketFactory;
 
@@ -187,8 +188,10 @@ public final class Server {
         }
 
         ArrayList<String> result = new ArrayList<String>();
-        for (DirectSocketAddress hub : hubs) {
-            result.add(hub.toString());
+        if (hubs != null) {
+            for (DirectSocketAddress hub : hubs) {
+                result.add(hub.toString());
+            }
         }
 
         return result.toArray(new String[0]);
@@ -277,11 +280,8 @@ public final class Server {
         out.println("\t\t\t\tfile. The file is deleted on exit.");
         out.println("--port PORT\t\t\tPort used for the server.");
         out
-                .println("--remote \t\t\t\tListen to commands for this server on stdin.");
+                .println("--remote\t\t\tListen to commands for this server on stdin.");
         out.println();
-        out
-                .println("PROPERTY=VALUE\t\t\tSet a property, as if it was set in a");
-        out.println("\t\t\t\tconfiguration file or as a System property.");
         out.println("Output Options:");
         out.println("--events\t\t\tPrint events.");
         out
@@ -337,9 +337,6 @@ public final class Server {
                     || args[i].equalsIgnoreCase("/?")) {
                 printUsage(System.err);
                 System.exit(0);
-            } else if (args[i].contains("=")) {
-                String[] parts = args[i].split("=", 2);
-                properties.setProperty(parts[0], parts[1]);
             } else {
                 System.err.println("Unknown argument: " + args[i]);
                 printUsage(System.err);
@@ -369,11 +366,6 @@ public final class Server {
             String knownHubs = null;
             while (true) {
                 String[] hubs = server.getHubs();
-                // FIXME: remove if smartsockets promises to not return null ;)
-                if (hubs == null) {
-                    hubs = new String[0];
-                }
-
                 if (hubs.length != 0) {
                     String newKnownHubs = hubs[0].toString();
                     for (int i = 1; i < hubs.length; i++) {

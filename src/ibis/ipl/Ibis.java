@@ -75,12 +75,13 @@ public interface Ibis extends Manageable {
 
     /**
      * Creates a named {@link SendPort} of the specified port type.
-     * The name does not have to be unique.
+     * The sendport name must be unique within this ibis instance.
      *
      * @param portType
      *          the port type.
      * @param sendPortName
-     *          the name of this sendport.
+     *          the name of this sendport, or <code>null</code>, in which
+     *          case the sendport is created anonymously.
      * @return
      *          the new sendport.
      * @exception IOException
@@ -94,12 +95,13 @@ public interface Ibis extends Manageable {
 
     /** 
      * Creates a named {@link SendPort} of the specified port type.
-     * The name does not have to be unique.
+     * The sendport name must be unique within this ibis instance.
      *
      * @param portType
      *          the port type.
      * @param sendPortName
-     *          the name of this sendport.
+     *          the name of this sendport, or <code>null</code>, in which
+     *          case the sendport is created anonymously.
      * @param sendPortDisconnectUpcall
      *          object implementing the {@link
      *          SendPortDisconnectUpcall#lostConnection(SendPort,
@@ -121,6 +123,7 @@ public interface Ibis extends Manageable {
     /**
      * Creates a named {@link ReceivePort} of the specified port type.
      * with explicit receipt communication.
+     * The receiveport name must be unique within this ibis instance.
      * New connections will not be accepted until
      * {@link ReceivePort#enableConnections()} is invoked on this port.
      * This is done to avoid connection upcalls during initialization.
@@ -144,6 +147,7 @@ public interface Ibis extends Manageable {
     /** 
      * Creates a named {@link ReceivePort} of the specified port type.
      * with upcall-based communication.
+     * The receiveport name must be unique within this ibis instance.
      * New connections will not be accepted until
      * {@link ReceivePort#enableConnections()} is invoked.
      * This is done to avoid connection upcalls during initialization.
@@ -173,6 +177,7 @@ public interface Ibis extends Manageable {
     /** 
      * Creates a named {@link ReceivePort} of the specified port type.
      * with explicit receipt communication.
+     * The receiveport name must be unique within this ibis instance.
      * New connections will not be accepted until
      * {@link ReceivePort#enableConnections()} is invoked.
      * This is done to avoid connection upcalls during initialization.
@@ -203,6 +208,7 @@ public interface Ibis extends Manageable {
     /** 
      * Creates a named {@link ReceivePort} of the specified port type.
      * with upcall-based communication.
+     * The receiveport name must be unique within this ibis instance.
      * New connections will not be accepted until
      * {@link ReceivePort#enableConnections()} is invoked.
      * This is done to avoid connection upcalls during initialization.

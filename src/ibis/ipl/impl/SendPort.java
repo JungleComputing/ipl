@@ -22,7 +22,8 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Properties;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Implementation of the {@link ibis.ipl.SendPort} interface, to be extended
@@ -31,7 +32,7 @@ import org.apache.log4j.Logger;
 public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
 
     /** Debugging output. */
-    private static final Logger logger = Logger.getLogger("ibis.ipl.impl.SendPort");
+    private static final Logger logger = LoggerFactory.getLogger("ibis.ipl.impl.SendPort");
 
     /** The type of this port. */
     public final PortType type;
@@ -282,6 +283,11 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
 
     public synchronized void connect(ibis.ipl.ReceivePortIdentifier receiver,
             long timeout, boolean fillTimeout) throws ConnectionFailedException {
+        
+        if (ReceivePort.threadsInUpcallSet.contains(Thread.currentThread())) {
+            throw new ConnectionFailedException("Connection attempt in upcall is not allowed",
+                    receiver);
+        }
 
         if (logger.isDebugEnabled()) {
             logger.debug("Sendport '" + name + "' connecting to " + receiver);
@@ -364,6 +370,12 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
         // Create a list of the connections that we need to set up.
         for (ibis.ipl.ReceivePortIdentifier rp : ports) {
             todo.add(rp);
+        }
+        
+        if (todo.size() > 0) {
+            if (ReceivePort.threadsInUpcallSet.contains(Thread.currentThread())) {
+                throw new ConnectionsFailedException("Connection attempt in upcall is not allowed");
+            }
         }
             
         // Keep iterating over the list of connection to set up until the list 
@@ -466,6 +478,10 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
     }
 
     public ibis.ipl.WriteMessage newMessage() throws IOException {
+        
+        if (ReceivePort.threadsInUpcallSet.contains(Thread.currentThread())) {
+            throw new IOException("Communication in upcall is not allowed");
+        }
         synchronized(this) {
             if (closed) {
                 throw new IOException("newMessage call on closed sendport");
@@ -720,7 +736,7 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
             try {
                 connectUpcall.lostConnection(this, id, cause);
             } catch(Throwable e) {
-                logger.fatal("Unexpected exception in lostConnection(), "
+                logger.error("Unexpected exception in lostConnection(), "
                         + "this Java instance will be terminated" , e);
                 System.exit(1);
             }

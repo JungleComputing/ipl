@@ -3,7 +3,8 @@ package ibis.ipl.impl.registry.gossip;
 import java.io.IOException;
 import java.util.HashSet;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import ibis.ipl.impl.registry.Connection;
 import ibis.ipl.impl.registry.statistics.Statistics;
@@ -18,7 +19,7 @@ import ibis.smartsockets.virtual.VirtualSocketFactory;
  */
 class ARRG extends Thread {
 
-    private static final Logger logger = Logger.getLogger(ARRG.class);
+    private static final Logger logger = LoggerFactory.getLogger(ARRG.class);
 
     private static final int GOSSIP_TIMEOUT = 1000;
 

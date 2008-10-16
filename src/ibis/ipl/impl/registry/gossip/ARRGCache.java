@@ -5,11 +5,12 @@ import java.util.BitSet;
 import java.util.List;
 import java.util.Random;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 class ARRGCache {
     
-    private static final Logger logger = Logger.getLogger(ARRGCache.class);
+    private static final Logger logger = LoggerFactory.getLogger(ARRGCache.class);
 
     private final int cacheSize;
 

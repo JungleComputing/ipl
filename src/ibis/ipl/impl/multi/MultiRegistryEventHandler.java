@@ -1,6 +1,5 @@
 package ibis.ipl.impl.multi;
 
-
 import java.io.IOException;
 
 import ibis.ipl.IbisIdentifier;
@@ -11,10 +10,13 @@ public class MultiRegistryEventHandler implements RegistryEventHandler {
     private final RegistryEventHandler subHandler;
 
     private final MultiIbis ibis;
+
     private MultiRegistry registry;
+
     private String ibisName;
 
-    public MultiRegistryEventHandler(MultiIbis ibis, RegistryEventHandler subHandler) {
+    public MultiRegistryEventHandler(MultiIbis ibis,
+            RegistryEventHandler subHandler) {
         this.ibis = ibis;
         this.subHandler = subHandler;
     }
@@ -24,7 +26,7 @@ public class MultiRegistryEventHandler implements RegistryEventHandler {
             try {
                 wait();
             } catch (InterruptedException e) {
-               // Ignored
+                // Ignored
             }
         }
         try {
@@ -38,12 +40,13 @@ public class MultiRegistryEventHandler implements RegistryEventHandler {
         }
     }
 
-    public synchronized void electionResult(String electionName, IbisIdentifier winner) {
+    public synchronized void electionResult(String electionName,
+            IbisIdentifier winner) {
         while (registry == null) {
             try {
                 wait();
             } catch (InterruptedException e) {
-               // Ignored
+                // Ignored
             }
         }
         try {
@@ -51,9 +54,9 @@ public class MultiRegistryEventHandler implements RegistryEventHandler {
             if (!registry.elected.containsKey(electionName)) {
                 registry.elected.put(electionName, id);
                 subHandler.electionResult(electionName, id);
-            }
-            else {
-                MultiIbisIdentifier oldWinner = registry.elected.get(electionName);
+            } else {
+                MultiIbisIdentifier oldWinner = registry.elected
+                        .get(electionName);
                 if (!oldWinner.equals(id)) {
                     registry.elected.put(electionName, id);
                     subHandler.electionResult(electionName, id);
@@ -64,8 +67,8 @@ public class MultiRegistryEventHandler implements RegistryEventHandler {
         }
     }
 
-    public void gotSignal(String signal) {
-        subHandler.gotSignal(signal);
+    public void gotSignal(String signal, IbisIdentifier source) {
+        subHandler.gotSignal(signal, source);
     }
 
     public synchronized void joined(IbisIdentifier joinedIbis) {
@@ -73,7 +76,7 @@ public class MultiRegistryEventHandler implements RegistryEventHandler {
             try {
                 wait();
             } catch (InterruptedException e) {
-               // Ignored
+                // Ignored
             }
         }
         try {
@@ -92,7 +95,7 @@ public class MultiRegistryEventHandler implements RegistryEventHandler {
             try {
                 wait();
             } catch (InterruptedException e) {
-               // Ignored
+                // Ignored
             }
         }
         try {
@@ -111,8 +114,16 @@ public class MultiRegistryEventHandler implements RegistryEventHandler {
     }
 
     public synchronized void setRegistry(MultiRegistry registry) {
-        this.registry = (MultiRegistry)ibis.registry();
+        this.registry = (MultiRegistry) ibis.registry();
         notifyAll();
+    }
+
+    public void poolClosed() {
+        // FIXME: implement
+    }
+
+    public void poolTerminated(IbisIdentifier source) {
+        // FIXME: implement
     }
 
 }

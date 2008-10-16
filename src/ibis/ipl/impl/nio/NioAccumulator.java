@@ -16,7 +16,8 @@ import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
 import java.nio.channels.GatheringByteChannel;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Nio Accumulator. Writes data to java.nio.ByteBuffers.
@@ -40,7 +41,7 @@ public abstract class NioAccumulator extends DataOutputStream implements Config 
 
     static final int INITIAL_CONNECTIONS_SIZE = 8;
 
-    private static Logger logger = Logger.getLogger(NioAccumulator.class);
+    private static Logger logger = LoggerFactory.getLogger(NioAccumulator.class);
 
     private SendBuffer buffer;
 

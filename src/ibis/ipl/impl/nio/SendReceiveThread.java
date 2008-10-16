@@ -11,7 +11,8 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.util.ArrayList;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Class used as a single send/receive thread for an entire NioIbis instance.
@@ -20,7 +21,7 @@ final class SendReceiveThread implements Runnable {
 
     static final int INITIAL_ARRAY_SIZE = 8;
 
-    private static Logger logger = Logger.getLogger(SendReceiveThread.class);
+    private static Logger logger = LoggerFactory.getLogger(SendReceiveThread.class);
 
     private ArrayList<SelectableChannel> pendingChannels
             = new ArrayList<SelectableChannel>();

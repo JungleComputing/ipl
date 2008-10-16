@@ -11,11 +11,15 @@ import ibis.ipl.ReceiveTimedOutException;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Properties;
+import java.util.Set;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Implementation of the {@link ibis.ipl.ReceivePort} interface, to be extended
@@ -26,7 +30,7 @@ public abstract class ReceivePort extends Manageable
 
     /** Debugging output. */
     private static final Logger logger
-            = Logger.getLogger("ibis.ipl.impl.ReceivePort");
+            = LoggerFactory.getLogger("ibis.ipl.impl.ReceivePort");
 
     // Possible results of a connection attempt.
 
@@ -50,6 +54,10 @@ public abstract class ReceivePort extends Manageable
 
     /** Receiveport already has a connection, and ManyToOne is not specified. */
     public static final byte NO_MANY_TO_X = 6;
+    
+    final static Set<Thread> threadsInUpcallSet
+        = Collections.synchronizedSet(new HashSet<Thread>());
+
 
     /** The type of this port. */
     public final PortType type;
@@ -322,7 +330,7 @@ public abstract class ReceivePort extends Manageable
                     retval = ACCEPTED;
                 }
             } catch(Throwable e) {
-                logger.fatal("Unexpected exception in gotConnection(), "
+                logger.error("Unexpected exception in gotConnection(), "
                         + "this Java instance will be terminated" , e);
                 System.exit(1);
             }
@@ -387,7 +395,7 @@ public abstract class ReceivePort extends Manageable
             try {
                 connectUpcall.lostConnection(this, id, e);
             } catch(Throwable e2) {
-                logger.fatal("Unexpected exception in lostConnection(), "
+                logger.error("Unexpected exception in lostConnection(), "
                         + "this Java instance will be terminated" , e2);
                 System.exit(1);
             }
@@ -514,10 +522,11 @@ public abstract class ReceivePort extends Manageable
                 }
             }
         }
+        msg.setInUpcall(true);
         try {
             // Notify the message that is is processed from an upcall,
             // so that finish() calls can be detected.
-            msg.setInUpcall(true);
+            threadsInUpcallSet.add(Thread.currentThread());
             upcall.upcall(msg);
         } catch(IOException e) {
             if (! msg.isFinished()) {
@@ -535,7 +544,7 @@ public abstract class ReceivePort extends Manageable
             }
             return;
         } catch(Throwable e) {
-            logger.fatal("Got unexpected throwable in upcall(), "
+            logger.error("Got unexpected throwable in upcall(), "
                     + "this Java instance will be terminated", e);
             System.exit(1);
 
@@ -583,6 +592,7 @@ public abstract class ReceivePort extends Manageable
         setProperty("Messages", "" + nMessages);
         setProperty("MessageBytes", "" + messageBytes);
         message = null;
+        threadsInUpcallSet.remove(Thread.currentThread());
         notifyAll();
     }
 
@@ -596,6 +606,7 @@ public abstract class ReceivePort extends Manageable
     public synchronized void finishMessage(ReadMessage r, IOException e) {
         r.getInfo().close(e);
         message = null;
+        threadsInUpcallSet.remove(Thread.currentThread());
         notifyAll();
     }
 

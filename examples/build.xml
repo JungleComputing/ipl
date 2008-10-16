@@ -53,7 +53,7 @@
               taskname="Ibisc"
               failonerror="true"
               fork="true">
-            <arg line="${jar}" />
+            <arg file="${jar}" />
             <classpath refid="default.classpath" />
         </java>
 

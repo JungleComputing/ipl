@@ -9,7 +9,8 @@ import java.io.ObjectOutputStream;
 import java.io.ObjectStreamClass;
 import java.util.Hashtable;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This is the <code>SerializationOutputStream</code> version that is used
@@ -17,7 +18,7 @@ import org.apache.log4j.Logger;
  */
 public class IbisSerializationOutputStream
         extends DataSerializationOutputStream {
-    private static final Logger logger = Logger.getLogger(IbisSerializationOutputStream.class);
+    private static final Logger logger = LoggerFactory.getLogger(IbisSerializationOutputStream.class);
     
     private static final boolean DEBUG = IOProperties.DEBUG;
     

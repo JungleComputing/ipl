@@ -11,7 +11,8 @@ import ibis.util.ThreadPool;
 
 import java.io.IOException;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 final class ServerConnectionHandler implements Runnable {
 
@@ -19,8 +20,7 @@ final class ServerConnectionHandler implements Runnable {
 
     static final int MAX_THREADS = 50;
 
-    private static final Logger logger = Logger
-            .getLogger(ServerConnectionHandler.class);
+    private static final Logger logger = LoggerFactory.getLogger(ServerConnectionHandler.class);
 
     private final Server server;
 
@@ -235,7 +235,7 @@ final class ServerConnectionHandler implements Runnable {
         IbisIdentifier identifier = new IbisIdentifier(connection.in());
 
         String signal = connection.in().readUTF();
-
+        
         IbisIdentifier[] receivers = new IbisIdentifier[connection.in()
                 .readInt()];
         for (int i = 0; i < receivers.length; i++) {
@@ -249,7 +249,7 @@ final class ServerConnectionHandler implements Runnable {
             throw new Exception("pool " + identifier.poolName() + " not found");
         }
 
-        pool.signal(signal, receivers);
+        pool.signal(signal, identifier, receivers);
 
         connection.sendOKReply();
         pool.gotHeartbeat(identifier);
@@ -288,6 +288,25 @@ final class ServerConnectionHandler implements Runnable {
 
         connection.sendOKReply();
         pool.gotHeartbeat(identifier);
+        return pool;
+
+    }
+    
+    
+    private Pool handleTerminate(Connection connection) throws Exception {
+        IbisIdentifier source = new IbisIdentifier(connection.in());
+
+        Pool pool = server.getPool(source.poolName());
+
+        if (pool == null) {
+            connection.closeWithError("pool not found");
+            throw new Exception("pool " + source.poolName() + " not found");
+        }
+
+        pool.terminate(source);
+
+        connection.sendOKReply();
+        pool.gotHeartbeat(source);
         return pool;
 
     }
@@ -399,10 +418,15 @@ final class ServerConnectionHandler implements Runnable {
             case Protocol.OPCODE_HEARTBEAT:
                 pool = handleHeartbeat(connection);
                 break;
+            case Protocol.OPCODE_TERMINATE:
+                pool = handleTerminate(connection);
+                break;
             default:
                 logger.error("unknown opcode: " + opcode);
             }
         } catch (Exception e) {
+        	//send error to client
+        	connection.closeWithError("server: " + e.getMessage());
             logger.error("error on handling connection", e);
         } finally {
             connection.close();

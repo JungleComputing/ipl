@@ -8,11 +8,12 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ElectionSet {
 
-    private static final Logger logger = Logger.getLogger(ElectionSet.class);
+    private static final Logger logger = LoggerFactory.getLogger(ElectionSet.class);
 
     private final TypedProperties properties;
 

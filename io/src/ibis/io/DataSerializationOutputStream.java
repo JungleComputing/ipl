@@ -4,7 +4,8 @@ package ibis.io;
 
 import java.io.IOException;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This is the <code>SerializationOutputStream</code> version that is used
@@ -24,7 +25,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
     private static final boolean NO_ARRAY_BUFFERS
             = IOProperties.properties.getBooleanProperty(IOProperties.s_no_array_buffers);
     
-    private static Logger logger = Logger.getLogger(DataSerializationOutputStream.class);
+    private static Logger logger = LoggerFactory.getLogger(DataSerializationOutputStream.class);
 
     /** If <code>false</code>, makes all timer calls disappear. */
     private static final boolean TIME_DATA_SERIALIZATION
@@ -836,7 +837,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
         int bn = 0;
 
         for (int i = 0; i < len; i++) {
-            char c = str.charAt(i);
+            int c = str.charAt(i);      // widening char to int zero-extends
             if (c > 0x0000 && c <= 0x007f) {
                 bn++;
             } else if (c <= 0x07ff) {
@@ -850,7 +851,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
         bn = 0;
 
         for (int i = 0; i < len; i++) {
-            char c = str.charAt(i);
+            int c = str.charAt(i);      // widening char to int zero-extends
             if (c > 0x0000 && c <= 0x007f) {
                 b[bn++] = (byte) c;
             } else if (c <= 0x07ff) {
@@ -860,6 +861,12 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
                 b[bn++] = (byte) (0xe0 | (0x0f & (c >> 12)));
                 b[bn++] = (byte) (0x80 | (0x3f & (c >> 6)));
                 b[bn++] = (byte) (0x80 | (0x3f & c));
+            }
+        }
+        if (DEBUG && logger.isDebugEnabled()) {
+            logger.debug("writeUTF: len = " + bn);
+            for (int i = 0; i < bn; i++) {
+                logger.debug("writeUTF: b[" + i + "] = " + (b[i] & 0xff));
             }
         }
 

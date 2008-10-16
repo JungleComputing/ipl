@@ -8,7 +8,8 @@ import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Dissipator which reads from a single channel, with the channel normally in
@@ -16,7 +17,7 @@ import org.apache.log4j.Logger;
  */
 final class NonBlockingChannelNioDissipator extends NioDissipator {
     private static Logger logger
-            = Logger.getLogger(NonBlockingChannelNioDissipator.class);
+            = LoggerFactory.getLogger(NonBlockingChannelNioDissipator.class);
 
     Selector selector;
 

@@ -10,12 +10,13 @@ import ibis.ipl.RegistryEventHandler;
 
 import java.util.Properties;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class TcpIbisStarter extends ibis.ipl.IbisStarter {
 
     static final Logger logger
-            = Logger.getLogger("ibis.ipl.impl.tcp.TcpIbisStarter");
+            = LoggerFactory.getLogger("ibis.ipl.impl.tcp.TcpIbisStarter");
 
     static final IbisCapabilities ibisCapabilities = new IbisCapabilities(
         IbisCapabilities.CLOSED_WORLD,
@@ -25,6 +26,7 @@ public final class TcpIbisStarter extends ibis.ipl.IbisStarter {
         IbisCapabilities.ELECTIONS_UNRELIABLE,
         IbisCapabilities.ELECTIONS_STRICT,
         IbisCapabilities.MALLEABLE,
+        IbisCapabilities.TERMINATION,
         "nickname.tcp"
     );
 

@@ -8,7 +8,8 @@ import ibis.io.SerializationInput;
 
 import java.io.IOException;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This class represents the information about a particular sendport/receiveport
@@ -18,7 +19,7 @@ public class ReceivePortConnectionInfo {
 
     /** Debugging. */
     protected static final Logger logger
-            = Logger.getLogger("ibis.ipl.impl.ReceivePortConnectionInfo");
+            = LoggerFactory.getLogger("ibis.ipl.impl.ReceivePortConnectionInfo");
 
     /** Identifies the sendport side of the connection. */
     public final SendPortIdentifier origin;

@@ -154,10 +154,15 @@ class SmartSocketsReceivePort extends ReceivePort implements SmartSocketsProtoco
             ReceivePortConnectUpcall connUpcall, Properties props) throws IOException {
         super(ibis, type, name, upcall, connUpcall, props);
 
+        /*
         no_connectionhandler_thread = upcall == null && connUpcall == null
                 && type.hasCapability(PortType.CONNECTION_ONE_TO_ONE)
                 && !type.hasCapability(PortType.RECEIVE_POLL)
                 && !type.hasCapability(PortType.RECEIVE_TIMEOUT);
+        */
+        
+        no_connectionhandler_thread = false;    // Fix deadlock (see bug report #208 in
+                                                // gforge. --Ceriel
     }
 
     public void messageArrived(ReadMessage msg) {

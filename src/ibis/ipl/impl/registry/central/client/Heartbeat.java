@@ -1,12 +1,13 @@
 package ibis.ipl.impl.registry.central.client;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import ibis.util.ThreadPool;
 
 public class Heartbeat implements Runnable {
     
-    private static final Logger logger = Logger.getLogger(Heartbeat.class);
+    private static final Logger logger = LoggerFactory.getLogger(Heartbeat.class);
 
     private final Pool pool;
     private final CommunicationHandler commHandler;

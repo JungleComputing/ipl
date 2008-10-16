@@ -1,6 +1,7 @@
 package ibis.ipl.impl.multi;
 
 import ibis.ipl.Ibis;
+import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.NoSuchPropertyException;
 import ibis.ipl.Registry;
@@ -14,11 +15,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MultiRegistry implements Registry{
 
-    private static final Logger logger = Logger.getLogger(MultiRegistry.class);
+    private static final Logger logger = LoggerFactory.getLogger(MultiRegistry.class);
 
     private final MultiIbis ibis;
 
@@ -201,6 +203,11 @@ public class MultiRegistry implements Registry{
         }
         return poolSize;
     }
+    
+    public String getPoolName() {
+    	//FIXME:does this make sense? -Niels
+        return ibis.identifier().poolName();
+    }
 
     public long getSequenceNumber(String name) throws IOException {
         // TODO: Any way to support sequences?
@@ -268,6 +275,16 @@ public class MultiRegistry implements Registry{
             subRegistry.signal(signal, ids);
         }
     }
+    
+    public boolean isClosed() {
+        //FIXME: is this correct? - Niels
+        for (Registry subRegistry:subRegistries.values()) {
+            if (!subRegistry.isClosed()) {
+                return false;
+            }
+        }
+        return true;
+    }
 
     public void waitUntilPoolClosed() {
         for (Registry subRegistry:subRegistries.values()) {
@@ -296,6 +313,22 @@ public class MultiRegistry implements Registry{
     public void setManagementProperty(String key, String value)
     throws NoSuchPropertyException {
         ManageableMapper.setManagementProperty(key, value);
+    }
+
+    public boolean hasTerminated() {
+        //FIXME: implement termination for this registry
+        throw new IbisConfigurationException(
+        "termination not supported by MultiRegistry");
+    }
+
+    public void terminate() throws IOException {
+        throw new IbisConfigurationException(
+        "termination not supported by MultiRegistry");
+    }
+
+    public IbisIdentifier waitUntilTerminated() {
+        throw new IbisConfigurationException(
+        "termination not supported by MultiRegistry");
     }
 
 }

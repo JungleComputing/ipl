@@ -9,7 +9,8 @@ import java.util.HashSet;
 import java.util.Random;
 import java.util.UUID;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import ibis.ipl.impl.IbisIdentifier;
 import ibis.ipl.impl.registry.statistics.Statistics;
@@ -17,7 +18,7 @@ import ibis.util.TypedProperties;
 
 class MemberSet extends Thread {
 
-    private static final Logger logger = Logger.getLogger(MemberSet.class);
+    private static final Logger logger = LoggerFactory.getLogger(MemberSet.class);
 
     private final TypedProperties properties;
 

@@ -24,13 +24,16 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.Map.Entry;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SmartSocketsUltraLightSendPort implements SendPort {
 
+	// FIXME: This value is arbitrarily chosen... 
 	private static final int DEFAULT_BUFFER_SIZE = 4096;
 	
-	protected static final Logger logger = Logger.getLogger("ibis.ipl.impl.smartsockets.SendPort");
+	protected static final Logger logger = 
+		LoggerFactory.getLogger("ibis.ipl.impl.smartsockets.SendPort");
 
 	private final PortType type;
 	private final String name;

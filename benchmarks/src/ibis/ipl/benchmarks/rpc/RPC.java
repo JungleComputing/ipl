@@ -50,13 +50,21 @@ class RszHandler implements RegistryEventHandler {
         left(corpse);
     }
 
-    public void gotSignal(String signal) {
-        // We don't do this.
-    }
-
     public void electionResult(String electionName, IbisIdentifier winner) {
         // IGNORE
     }
+    
+	public void gotSignal(String signal, IbisIdentifier source) {
+        // IGNORE
+	}
+
+	public void poolClosed() {
+        // IGNORE
+	}
+
+	public void poolTerminated(IbisIdentifier source) {
+        // IGNORE
+	}
     
     void sync(int n) {
         synchronized (this) {
@@ -68,6 +76,7 @@ class RszHandler implements RegistryEventHandler {
             }
         }
     }
+
 
 
 }

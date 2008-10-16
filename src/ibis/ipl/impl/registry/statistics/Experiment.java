@@ -6,14 +6,15 @@ import java.util.ArrayList;
 import java.util.Formatter;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Gathers statistics for a single experiment from a directory of files
  */
 public class Experiment {
 
-    private static final Logger logger = Logger.getLogger(Experiment.class);
+    private static final Logger logger = LoggerFactory.getLogger(Experiment.class);
 
     private final String poolName;
 

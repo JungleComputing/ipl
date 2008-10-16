@@ -5,10 +5,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Formatter;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class StatisticsProcessor {
-    private static final Logger logger = Logger.getLogger(StatisticsProcessor.class);
+    private static final Logger logger = LoggerFactory.getLogger(StatisticsProcessor.class);
     
     private final Experiment[] experiments;
 

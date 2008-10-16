@@ -369,7 +369,9 @@ in \texttt{readObject()} (and vice versa).
 \item[SERIALIZATION\_OBJECT\_SUN]
 Sun serialization is supported through \\
 \texttt{java.io.ObjectOutputStream} and
-\texttt{java.io.ObjectInputStream}.
+\texttt{java.io.ObjectInputStream}. 
+Sun serialization is very good for debugging your
+application, as errors are more verbose than Ibis seerialization.
 
 \item[SERIALIZATION\_OBJECT\_IBIS]
 Ibis serialization is supported. This is more efficient than sun

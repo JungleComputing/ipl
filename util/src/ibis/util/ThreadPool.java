@@ -4,7 +4,8 @@ package ibis.util;
 
 import java.util.LinkedList;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Threadpool which uses timeouts to determine the number of threads.
@@ -14,7 +15,7 @@ import org.apache.log4j.Logger;
  */
 public final class ThreadPool {
 
-    static final Logger logger = Logger.getLogger(ThreadPool.class);
+    static final Logger logger = LoggerFactory.getLogger(ThreadPool.class);
     
     private static final class PoolThread extends Thread {
 
@@ -24,7 +25,7 @@ public final class ThreadPool {
 
         private static final class ThreadPoolShutdown extends Thread {
             public void run() {
-                Logger logger = Logger.getLogger(ThreadPool.class);
+                Logger logger = LoggerFactory.getLogger(ThreadPool.class);
                 logger.info("maximum number of simultaneous threads was: " + maxSimultaneousThreads);
             }
         }
@@ -120,7 +121,7 @@ public final class ThreadPool {
                     setName(currentName);
                     currentWork.run();
                 } catch (Throwable t) {
-                    logger.fatal("caught exception in pool thread " + currentName, t);
+                    logger.error("caught exception in pool thread " + currentName, t);
                     // Exit, rather than continue. A thread died unexpectedly,
                     // after all. If you dont want this, catch all throwables
                     // yourself.

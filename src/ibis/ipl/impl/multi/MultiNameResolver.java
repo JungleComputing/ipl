@@ -11,10 +11,11 @@ import ibis.util.ThreadPool;
 import java.io.IOException;
 import java.util.HashMap;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public  class MultiNameResolver {
-    private static final Logger logger = Logger.getLogger(MultiNameResolver.class);
+    private static final Logger logger = LoggerFactory.getLogger(MultiNameResolver.class);
 
     private final MultiIbis ibis;
     private final String ibisName;

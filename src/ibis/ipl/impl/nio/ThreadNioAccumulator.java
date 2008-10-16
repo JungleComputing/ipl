@@ -8,13 +8,14 @@ import java.io.IOException;
 import java.nio.channels.GatheringByteChannel;
 import java.nio.channels.SelectableChannel;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 final class ThreadNioAccumulator extends NioAccumulator {
 
     static final int LOST_CONNECTION_SIZE = 8;
 
-    private static Logger logger = Logger.getLogger(ThreadNioAccumulator.class);
+    private static Logger logger = LoggerFactory.getLogger(ThreadNioAccumulator.class);
 
     SendReceiveThread thread;
 

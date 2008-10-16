@@ -16,7 +16,8 @@ import java.security.PrivilegedAction;
 import java.util.Comparator;
 import java.util.HashMap;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The <code>AlternativeTypeInfo</code> class maintains information about
@@ -31,7 +32,7 @@ import org.apache.log4j.Logger;
  */
 final class AlternativeTypeInfo {
     
-    private static Logger logger = Logger.getLogger(AlternativeTypeInfo.class);
+    private static Logger logger = LoggerFactory.getLogger(AlternativeTypeInfo.class);
 
     /**
      * Maintains all <code>AlternativeTypeInfo</code> structures in a

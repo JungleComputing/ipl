@@ -11,8 +11,6 @@ import ibis.ipl.WriteMessage;
 
 public class SmartSocketsUltraLightWriteMessage implements WriteMessage {
 
-	private final int DEFAULT_BUFFER_SIZE = 4096;
-	
 	private final SmartSocketsUltraLightSendPort port;
 	private final SerializationOutput out;
 	private final SingleBufferArrayOutputStream bout;

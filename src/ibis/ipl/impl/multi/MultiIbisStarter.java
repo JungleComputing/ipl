@@ -13,12 +13,13 @@ import ibis.ipl.RegistryEventHandler;
 import java.util.List;
 import java.util.Properties;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class MultiIbisStarter extends IbisStarter {
 
     static final Logger logger
-            = Logger.getLogger("ibis.ipl.impl.multi.MultiIbisStarter");
+            = LoggerFactory.getLogger("ibis.ipl.impl.multi.MultiIbisStarter");
 
     static final IbisCapabilities ibisCapabilities = new IbisCapabilities(
         "nickname.multi"

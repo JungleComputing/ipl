@@ -9,120 +9,139 @@ import java.io.Serializable;
 
 public final class Event implements Serializable, Comparable<Event> {
 
-    private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
-    // event types
+	// event types
 
-    public static final int JOIN = 0;
+	public static final int JOIN = 0;
 
-    public static final int LEAVE = 1;
+	public static final int LEAVE = 1;
 
-    public static final int DIED = 2;
+	public static final int DIED = 2;
 
-    public static final int SIGNAL = 3;
+	public static final int SIGNAL = 3;
 
-    public static final int ELECT = 4;
+	public static final int ELECT = 4;
 
-    public static final int UN_ELECT = 5;
+	public static final int UN_ELECT = 5;
 
-    public static final int POOL_CLOSED = 6;
+	public static final int POOL_CLOSED = 6;
 
-    public static final int NR_OF_TYPES = 7;
-    
-    private final int time;
+	public static final int POOL_TERMINATED = 7;
 
-    private final int type;
+	public static final int NR_OF_TYPES = 8;
 
-    private final String description;
+	private final int time;
 
-    private final IbisIdentifier[] ibisses;
+	private final int type;
 
-    public Event(int time, int type, String description,
-            IbisIdentifier... ibisses) {
-        this.time = time;
-        this.type = type;
-        this.ibisses = ibisses.clone();
-        if (description == null) {
-            this.description = "";
-        } else {
-            this.description = description;
-        }
-        
-        if (type != SIGNAL && ibisses.length > 1) {
-            throw new Error("only the string type event can have multiple ibisses");
-        }
-    }
+	private final String description;
 
-    public Event(DataInput in) throws IOException {
-        time = in.readInt();
-        type = in.readInt();
-        description = in.readUTF();
-        ibisses = new IbisIdentifier[in.readInt()];
-        for (int i = 0; i < ibisses.length; i++) {
-            ibisses[i] = new IbisIdentifier(in);
-        }
-    }
+	// single ibis field, denoting which ibis this event is about
+	private final IbisIdentifier ibis;
 
-    public void writeTo(DataOutput out) throws IOException {
-        out.writeInt(time);
-        out.writeInt(type);
-        out.writeUTF(description);
-        out.writeInt(ibisses.length);
-        for (int i = 0; i < ibisses.length; i++) {
-            ibisses[i].writeTo(out);
-        }
-    }
+	// multiple ibisses field (only used for destinations in signals)
+	private final IbisIdentifier[] destinations;
 
-    public int getTime() {
-        return time;
-    }
+	public Event(int time, int type, String description, IbisIdentifier ibis,
+			IbisIdentifier... destinations) {
+		this.time = time;
+		this.type = type;
+		this.ibis = ibis;
+		this.destinations = destinations.clone();
+		if (description == null) {
+			this.description = "";
+		} else {
+			this.description = description;
+		}
 
-    public String getDescription() {
-        return description;
-    }
+		if (type != SIGNAL && destinations.length != 0) {
+			throw new Error("only the signal type event can have a destination");
+		}
+	}
 
-    public IbisIdentifier getFirstIbis() {
-        if (ibisses.length == 0) {
-            return null;
-        }
-        return ibisses[0];
-    }
+	public Event(DataInput in) throws IOException {
+		time = in.readInt();
+		type = in.readInt();
+		description = in.readUTF();
+		if (in.readBoolean()) {
+			ibis = new IbisIdentifier(in);
+		} else {
+			ibis = null;
+		}
 
-    public IbisIdentifier[] getIbises() {
-        return ibisses.clone();
-    }
+		destinations = new IbisIdentifier[in.readInt()];
+		for (int i = 0; i < destinations.length; i++) {
+			destinations[i] = new IbisIdentifier(in);
+		}
+	}
 
-    public int getType() {
-        return type;
-    }
+	public void writeTo(DataOutput out) throws IOException {
+		out.writeInt(time);
+		out.writeInt(type);
+		out.writeUTF(description);
 
-    private String typeString() {
-        switch (type) {
-        case JOIN:
-            return "JOIN";
-        case LEAVE:
-            return "LEAVE";
-        case DIED:
-            return "DIED";
-        case SIGNAL:
-            return "SIGNAL";
-        case ELECT:
-            return "ELECT";
-        case UN_ELECT:
-            return "UN_ELECT";
-        case POOL_CLOSED:
-            return "UN_ELECT";
-        default:
-            return "UNKNOWN";
-        }
-    }
+		if (ibis != null) {
+			out.writeBoolean(true);
+			ibis.writeTo(out);
+		} else {
+			out.writeBoolean(false);
+		}
+		out.writeInt(destinations.length);
+		for (int i = 0; i < destinations.length; i++) {
+			destinations[i].writeTo(out);
+		}
+	}
 
-    public String toString() {
-        return typeString() + "@" + time;
-    }
+	public int getTime() {
+		return time;
+	}
 
-    public int compareTo(Event other) {
-        return time - other.time;
-    }
+	public String getDescription() {
+		return description;
+	}
+
+	public IbisIdentifier getIbis() {
+		return ibis;
+	}
+
+	public IbisIdentifier[] getDestinations() {
+		return destinations.clone();
+	}
+
+	public int getType() {
+		return type;
+	}
+
+	private String typeString() {
+		switch (type) {
+		case JOIN:
+			return "JOIN";
+		case LEAVE:
+			return "LEAVE";
+		case DIED:
+			return "DIED";
+		case SIGNAL:
+			return "SIGNAL";
+		case ELECT:
+			return "ELECT";
+		case UN_ELECT:
+			return "UN_ELECT";
+		case POOL_CLOSED:
+			return "POOL_CLOSED";
+		case POOL_TERMINATED:
+			return "POOL_TERMINATED";
+		default:
+			return "UNKNOWN";
+		}
+	}
+
+	public String toString() {
+		return typeString() + "@" + time;
+	}
+
+	public int compareTo(Event other) {
+		return time - other.time;
+	}
 
 }

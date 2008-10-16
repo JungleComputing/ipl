@@ -8,12 +8,12 @@ import java.io.IOException;
 import java.nio.channels.GatheringByteChannel;
 import java.nio.channels.SelectableChannel;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 final class ThreadNioAccumulatorConnection extends NioAccumulatorConnection {
 
-    private static Logger logger = Logger
-            .getLogger(ThreadNioAccumulatorConnection.class);
+    private static Logger logger = LoggerFactory.getLogger(ThreadNioAccumulatorConnection.class);
 
     boolean sending = false;
 

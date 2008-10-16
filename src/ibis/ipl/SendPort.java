@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.util.Map;
 
 /**
- * Initiates and naintains connections to one or more receive ports.
+ * Initiates and maintains connections to one or more receive ports.
  *
  * When creating a sendport, it is possible to pass a
  * {@link SendPortDisconnectUpcall} object.

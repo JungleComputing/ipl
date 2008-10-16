@@ -2,7 +2,8 @@ package ibis.ipl.impl.registry.gossip;
 
 import java.io.IOException;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.impl.IbisIdentifier;
@@ -27,7 +28,7 @@ class CommunicationHandler implements Runnable {
     private static final int CONNECTION_TIMEOUT = 5000;
 
     private static final Logger logger =
-        Logger.getLogger(CommunicationHandler.class);
+        LoggerFactory.getLogger(CommunicationHandler.class);
 
     private final Registry registry;
 
@@ -145,17 +146,12 @@ class CommunicationHandler implements Runnable {
     }
 
     private void handleSignal(Connection connection) throws IOException {
-        IbisIdentifier target = new IbisIdentifier(connection.in());
+        IbisIdentifier source = new IbisIdentifier(connection.in());
         String signal = connection.in().readUTF();
-
-        if (!target.equals(registry.getIbisIdentifier())) {
-            connection.closeWithError("signal target not equal to local identifier");
-            return;
-        }
 
         connection.sendOKReply();
 
-        registry.signal(signal);
+        registry.signal(signal, source);
 
         connection.close();
     }

@@ -55,13 +55,13 @@ public final class HandleHash {
     private int mapsize;
 
     // if (TIMINGS)
-    private ibis.util.Timer t_insert;
+    private Timer t_insert;
 
-    private ibis.util.Timer t_find;
+    private Timer t_find;
 
-    private ibis.util.Timer t_rebuild;
+    private Timer t_rebuild;
 
-    private ibis.util.Timer t_growbucket;
+    private Timer t_growbucket;
 
     /** Initial size of buckets. */
     private int initSize;

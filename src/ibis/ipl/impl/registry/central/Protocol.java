@@ -2,7 +2,7 @@ package ibis.ipl.impl.registry.central;
 
 public final class Protocol {
 
-    public static final byte VERSION = 3;
+    public static final byte VERSION = 4;
 
     // opcodes
 
@@ -34,12 +34,14 @@ public final class Protocol {
 
     public static final byte OPCODE_HEARTBEAT = 13;
 
-    public static final int NR_OF_OPCODES = 14;
+    public static final byte OPCODE_TERMINATE = 14;
 
-    public static final String[] OPCODE_NAMES =
-        { "JOIN", "LEAVE", "GOSSIP", "ELECT", "SEQUENCE_NR", "DEAD",
-                "MAYBE_DEAD", "SIGNAL", "PING", "PUSH", "BROADCAST", "FORWARD",
-                "GET_STATE", "HEARTBEAT", };
+    public static final int NR_OF_OPCODES = 15;
+
+    public static final String[] OPCODE_NAMES = { "JOIN", "LEAVE", "GOSSIP",
+            "ELECT", "SEQUENCE_NR", "DEAD", "MAYBE_DEAD", "SIGNAL", "PING",
+            "PUSH", "BROADCAST", "FORWARD", "GET_STATE", "HEARTBEAT",
+            "TERMINATE" };
 
     public static final byte CLIENT_MAGIC_BYTE = 23;
 

@@ -17,7 +17,8 @@ import ibis.ipl.WriteMessage;
 import java.io.IOException;
 import java.util.Properties;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 class Computer extends Thread {
 
@@ -321,7 +322,7 @@ class UpcallSender implements MessageUpcall {
 
 class Latency {
 
-    static Logger logger = Logger.getLogger(Latency.class.getName());
+    static Logger logger = LoggerFactory.getLogger(Latency.class.getName());
 
     static Ibis ibis;
 

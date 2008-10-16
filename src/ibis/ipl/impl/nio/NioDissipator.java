@@ -20,7 +20,8 @@ import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
 import java.nio.channels.ReadableByteChannel;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Reads data into a single bytebuffer, and creates views of it to drain it.
@@ -65,7 +66,7 @@ public abstract class NioDissipator extends DataInputStream implements Config,
 
     protected static final int SIZEOF_HEADER = 16;
 
-    private static Logger logger = Logger.getLogger(NioDissipator.class);
+    private static Logger logger = LoggerFactory.getLogger(NioDissipator.class);
 
     /**
      * Circular buffer used for holding data. It contains "currently in use" (by
