@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
 public class SmartSocketsUltraLightSendPort implements SendPort {
 
 	// FIXME: This value is arbitrarily chosen... 
-	private static final int DEFAULT_BUFFER_SIZE = 4096;
+	private static final int DEFAULT_BUFFER_SIZE = 64*1024;
 	
 	protected static final Logger logger = 
 		LoggerFactory.getLogger("ibis.ipl.impl.smartsockets.SendPort");
