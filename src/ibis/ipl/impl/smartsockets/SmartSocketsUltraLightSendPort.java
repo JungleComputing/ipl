@@ -51,6 +51,8 @@ public class SmartSocketsUltraLightSendPort implements SendPort {
 
 	private final Set<ReceivePortIdentifier> connections = new HashSet<ReceivePortIdentifier>();
 	
+	private final byte [][] messageToHub;
+	
 	SmartSocketsUltraLightSendPort(SmartSocketsIbis ibis, PortType type, String name, 
 			Properties props) throws IOException {
 		
@@ -62,7 +64,10 @@ public class SmartSocketsUltraLightSendPort implements SendPort {
 		sid = new ibis.ipl.impl.SendPortIdentifier(name, ibis.ident);
 		
 		buffer = new byte[DEFAULT_BUFFER_SIZE];		
-		message = new SmartSocketsUltraLightWriteMessage(this, buffer);		
+		message = new SmartSocketsUltraLightWriteMessage(this, buffer);
+	
+		messageToHub = new byte[2][];		
+		messageToHub[0] = ibis.ident.toBytes();
 	}	
 		
 	public synchronized void close() throws IOException {
@@ -214,6 +219,51 @@ public class SmartSocketsUltraLightSendPort implements SendPort {
 		
 	}
 	
+	private void send(byte [] data, int len) throws UnknownHostException, MalformedAddressException { 
+		
+		ServiceLink link = ibis.getServiceLink();
+		
+		if (link == null) {
+			if (logger.isDebugEnabled()) { 
+				logger.debug("No servicelink available");
+			}
+			
+			return;
+		}
+		
+		messageToHub[1] = Arrays.copyOfRange(buffer, 0, len);
+		
+		for (ReceivePortIdentifier id : connections) { 		
+
+			ibis.ipl.impl.IbisIdentifier dst = (ibis.ipl.impl.IbisIdentifier) id.ibisIdentifier();
+			VirtualSocketAddress a = VirtualSocketAddress.fromBytes(dst.getImplementationData(), 0);
+			
+			if (logger.isDebugEnabled()) { 
+				logger.debug("Sending message to " + a);
+			}
+			
+			link.send(a.machine(), a.hub(), id.name(), 0xDEADBEEF, messageToHub);  
+		}
+	}
+
+	public synchronized void finishedMessage() throws IOException {
+
+		int len = (int) message.bytesWritten();
+	
+		byte [] m = buffer;
+	
+		try { 
+			send(m, len);
+		} catch (Exception e) {
+			logger.debug("Failed to send message to " + connections, e);
+		}
+		
+		message.reset();	
+		messageInUse = false;
+		notifyAll();
+	}
+	
+/*	
 	private void send(ReceivePortIdentifier id, byte [] data) throws UnknownHostException, MalformedAddressException { 
 		
 		ServiceLink link = ibis.getServiceLink();
@@ -235,11 +285,12 @@ public class SmartSocketsUltraLightSendPort implements SendPort {
 		} else { 
 			
 			if (logger.isDebugEnabled()) { 
-				logger.debug("No sericelink available");
+				logger.debug("No servicelink available");
 			}
 		}
 	}
-
+	
+		
 	public synchronized void finishedMessage() throws IOException {
 
 		int len = (int) message.bytesWritten();
@@ -262,6 +313,8 @@ public class SmartSocketsUltraLightSendPort implements SendPort {
 		messageInUse = false;
 		notifyAll();
 	}
+*/
+
 
 	public synchronized void finishedMessage(IOException exception) throws IOException {
 		message.reset();	

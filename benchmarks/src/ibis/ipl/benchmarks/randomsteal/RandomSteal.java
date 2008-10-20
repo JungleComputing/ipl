@@ -52,30 +52,35 @@ public class RandomSteal {
         new IbisCapabilities(IbisCapabilities.ELECTIONS_STRICT, "nickname.smartsockets");
 
     private final PortType portType; 
-    private final int bytes;
+    private final int bytes;    
+    private final int nodes;
     
     private final int count;
     private final int repeat;
     
     private final boolean reconnect;
     
-    private RandomSteal(PortType portType, int bytes, int count, int repeat, boolean reconnect) { 
+    private Ibis ibis;
+    
+    private ReceivePort barrierR;
+    private SendPort barrierS;
+    
+    private ReceivePort stealR;
+    private SendPort stealS;
+        
+    /// ************* DO NOT USE ************** NOT FINISHED ********** 
+    
+    private RandomSteal(PortType portType, int nodes, int bytes, int count, int repeat, boolean reconnect) { 
     	this.portType = portType;
+    	this.nodes = nodes;
     	this.bytes = bytes;
     	this.count = count;
     	this.repeat = repeat;
     	this.reconnect = reconnect;
     }
-    
-    private void server(Ibis myIbis) throws IOException {
 
-        // Create a receive port and enable connections.
-        ReceivePort receiver = myIbis.createReceivePort(portType, "server");
-        receiver.enableConnections();
-
-        // Create a send port for sending requests and connect.
-        SendPort sender = null;
-        
+    private void server() throws IOException {
+                /*
         final byte [] data = new byte[bytes];
         
         boolean connected = false;
@@ -164,10 +169,11 @@ public class RandomSteal {
         	sender.close();
         }
         receiver.close();
+        */
     }
 
-    private void client(Ibis myIbis,  IbisIdentifier server) throws IOException {
-
+    private void client(IbisIdentifier server) throws IOException {
+/*
     	// Create a receive port and enable connections.
         ReceivePort receiver = myIbis.createReceivePort(portType, "client");
         receiver.enableConnections();
@@ -256,24 +262,51 @@ public class RandomSteal {
         	sender.close();
         }
         receiver.close();
+        */
+    }
+    
+    private void barrier(IbisIdentifier server) { 
+ /*   	
+    	if (server.equals(ibis.identifier())) { 
+    	
+    		for (int i=0;i<nodes;i++) { 
+    			try {
+					ReadMessage rm = barrierR.receive();
+									
+    			
+    			} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}    		    			
+    		}
+    	} else { 
+    		
+    		
+    		
+    	}
+    	*/
     }
     
     private void run() throws Exception {
     	
         // Create an ibis instance.
-        Ibis ibis = IbisFactory.createIbis(ibisCapabilities, null, portType);
+        ibis = IbisFactory.createIbis(ibisCapabilities, null, portType, portTypeLight);
+
+        barrierS = ibis.createSendPort(portTypeLight);
+        barrierR = ibis.createReceivePort(portTypeLight, "barrier");
+        
+        stealS = ibis.createSendPort(portType);
+        stealR = ibis.createReceivePort(portType, "steal");
+        
+        stealR.enableConnections();
+        barrierR.enableConnections();
 
         // Elect a server
         IbisIdentifier server = ibis.registry().elect("Server");
 
         System.out.println("Server is " + server);
         
-        // If I am the server, run server, else run client.
-        if (server.equals(ibis.identifier())) {
-            server(ibis);
-        } else {
-            client(ibis, server);
-        }
+        barrier(server);
 
         // End ibis.
         ibis.end();
@@ -285,6 +318,7 @@ public class RandomSteal {
     	int bytes = 1;
     	int count = 1000;
     	int repeat = 10;
+    	int nodes = -1;
     	boolean reconnect = true;
     	
     	for (int i=0;i<args.length;i++) { 
@@ -302,6 +336,8 @@ public class RandomSteal {
     			count = Integer.parseInt(args[++i]);
     		} else if (args[i].equals("-repeat") && i < args.length-1) { 
     			repeat = Integer.parseInt(args[++i]);
+    		} else if (args[i].equals("-nodes") && i < args.length-1) { 
+    			nodes = Integer.parseInt(args[++i]);    		
     		} else { 
     			System.err.println("Unknown or incomplete option: " + args[i]);
     			System.exit(1);
@@ -313,8 +349,13 @@ public class RandomSteal {
     		bytes = 0;
     	}
     	
+    	if (nodes < 0) { 
+    		System.err.println("Number of nodes not set");
+    		System.exit(1);
+    	}
+    	
         try {
-            new RandomSteal(portType, bytes, count, repeat, reconnect).run();
+            new RandomSteal(portType, nodes, bytes, count, repeat, reconnect).run();
         } catch (Exception e) {
             e.printStackTrace(System.err);
         }
