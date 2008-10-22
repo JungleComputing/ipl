@@ -46,7 +46,7 @@ public class SmartSocketsUltraLightWriteMessage implements WriteMessage {
 		out.flush();
 
 		long bytes = bout.bytesWritten();
-		
+
 		// System.err.println("Written == " + bytes);
 		
 		port.finishedMessage();
@@ -75,7 +75,7 @@ public class SmartSocketsUltraLightWriteMessage implements WriteMessage {
 	}
 
 	public void reset() throws IOException {
-		// empty
+		resetBuffers();
 	}
 
 	public int send() throws IOException {

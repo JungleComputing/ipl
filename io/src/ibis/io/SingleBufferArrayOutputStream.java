@@ -61,7 +61,7 @@ public class SingleBufferArrayOutputStream extends DataOutputStream {
 		}
 
 		if (index + bytes > BUF_SIZE) {
-			throw new IOException("End of buffer reached");
+			throw new IOException("End of buffer reached (" + index + "+" + bytes + " > " + BUF_SIZE + ")");
 		}
 	}
 

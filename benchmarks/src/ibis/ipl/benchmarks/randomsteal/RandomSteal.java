@@ -9,6 +9,7 @@ import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortIdentifier;
+import ibis.ipl.ReceiveTimedOutException;
 import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
@@ -60,14 +61,16 @@ public class RandomSteal implements RegistryEventHandler {
     		PortType.CONNECTION_LIGHT, 
     		PortType.COMMUNICATION_FIFO, 
     		PortType.COMMUNICATION_RELIABLE, 
-            PortType.SERIALIZATION_BYTE, 
+            PortType.SERIALIZATION_DATA, 
             PortType.RECEIVE_EXPLICIT,
             PortType.RECEIVE_TIMEOUT,
-            PortType.CONNECTION_ONE_TO_MANY);
+            PortType.CONNECTION_MANY_TO_MANY);
     
     private static final IbisCapabilities ibisCapabilities =
         new IbisCapabilities(IbisCapabilities.ELECTIONS_STRICT, 
-        		IbisCapabilities.MEMBERSHIP_TOTALLY_ORDERED, "nickname.smartsockets");
+        		IbisCapabilities.MALLEABLE, 
+        		IbisCapabilities.MEMBERSHIP_TOTALLY_ORDERED, 
+        		"nickname.smartsockets");
 
     private final PortType portType; 
     private final int bytes;    
@@ -99,6 +102,8 @@ public class RandomSteal implements RegistryEventHandler {
     /// ************* DO NOT USE ************** NOT FINISHED ********** 
     
     private final Random random = new Random();
+    
+    private long lowestTime = Long.MAX_VALUE;
     
     private class RequestHandler extends Thread { 
     	public void run() { 
@@ -136,36 +141,49 @@ public class RandomSteal implements RegistryEventHandler {
     		// I have also seen all joins, so connect to all clients
     		for (IbisIdentifier id : nodeList) { 
     			try {
-					barrierS.connect(id, "barrier");
+    				// We do not connect to ourselves...
+    				if (!id.equals(ibis.identifier())) { 
+    					barrierS.connect(id, "barrier");
+    				}
 				} catch (ConnectionFailedException e) {
 					System.err.println("Failed to connect to barrier port at " + id);
     				e.printStackTrace(System.err);
+    				System.exit(1);
 				}
     		}
     	} else { 
     		// Connect to server
     		try {
-    			barrierS.connect(server, "barrier");
+    			barrierS.connect(server, "barrier", 60000, true);
     		} catch (ConnectionFailedException e) {
     			System.err.println("Failed to connect to barrier port at " + server);
     			e.printStackTrace(System.err);
+    			System.exit(1);
     		}
     	}
     }
     
-    private void barrier() { 
+    private void barrier(long time) { 
     	
     	if (server) { 
+    		
+    		long total = time;
     		
     		for (int i=0;i<nodes-1;i++) { 
     			try {
 					ReadMessage rm = barrierR.receive();
+					total += time;
 					rm.finish();
     			} catch (IOException e) {
 					// TODO Auto-generated catch block
     				System.err.println("Failed to receive barrier message!");
     				e.printStackTrace(System.err);
+    				System.exit(1);
 				}    		    			
+    		}
+    		
+    		if (total > 0 && lowestTime > total) { 
+    			lowestTime = total;
     		}
     		
     		try { 
@@ -174,14 +192,23 @@ public class RandomSteal implements RegistryEventHandler {
     		} catch (Exception e) {
 				System.err.println("Failed to send barrier message!");
 				e.printStackTrace(System.err);
+				System.exit(1);
 			}
+    		
+    		double stealsPerSecondNode = (nodes * count * 1000.0) / total;
+    		double stealsPerSecond     = (nodes * count * 1000.0) / ((1.0 * total) / nodes);
+    		
+        	System.out.println("Avg time: " + (total / nodes) + " ms. (" 
+        			+ stealsPerSecondNode + " steals/sec/node, " + stealsPerSecond + " steals/sec)");
     	} else { 
      		try { 
     			WriteMessage wm = barrierS.newMessage();
+    			wm.writeLong(time);
     			wm.finish();
     		} catch (Exception e) {
 				System.err.println("Failed to send barrier message to server!");
 				e.printStackTrace(System.err);
+				System.exit(1);
 			}
     		
     		// Wait for the server's reply
@@ -192,6 +219,7 @@ public class RandomSteal implements RegistryEventHandler {
     			// TODO Auto-generated catch block
     			System.err.println("Failed to receive barrier message!");
     			e.printStackTrace(System.err);
+    			System.exit(1);
     		}    		    		
     	}
     }
@@ -240,7 +268,8 @@ public class RandomSteal implements RegistryEventHandler {
 
     				replyS.disconnect(rid);
     			}
-    			
+    		} catch (ReceiveTimedOutException e) { 
+    			// Perfectly legal    			
     		} catch (Exception e) { 
     			System.err.println("Failed to handle steal message");
         		e.printStackTrace(System.err);
@@ -266,6 +295,7 @@ public class RandomSteal implements RegistryEventHandler {
     	} catch (Exception e) { 
     		System.err.println("Failed to steal message");
     		e.printStackTrace(System.err);
+    		System.exit(1);
     	}
     }
     
@@ -278,8 +308,10 @@ public class RandomSteal implements RegistryEventHandler {
     public void run() throws Exception {
     	
         // Create an ibis instance.
-        ibis = IbisFactory.createIbis(ibisCapabilities, null, portType, portTypeBarrier);
+        ibis = IbisFactory.createIbis(ibisCapabilities, this, portType, portTypeBarrier);
 
+        System.out.println("Started on: " + ibis.identifier());
+        
         barrierS = ibis.createSendPort(portTypeBarrier);
         barrierR = ibis.createReceivePort(portTypeBarrier, "barrier");
         
@@ -293,6 +325,8 @@ public class RandomSteal implements RegistryEventHandler {
         replyR.enableConnections();
         barrierR.enableConnections();
 
+        ibis.registry().enableEvents();
+        
         new RequestHandler().start();
         
         // Elect a server
@@ -302,23 +336,29 @@ public class RandomSteal implements RegistryEventHandler {
         
         initBarrier(server);
 
+    	barrier(0L);
+
         for (int i=0;i<repeat;i++) { 
         	long start = System.currentTimeMillis();
 
-        	barrier();
-
         	benchmark();
-
-        	barrier();
 
         	long end = System.currentTimeMillis();
 
-        	System.out.println("Total time: " + (end-start));
+        	barrier(end-start);
         }
         	
         setDone();
         
-        barrier();
+        barrier(0L);
+        
+        if (server.equals(ibis.identifier())) { 
+        	double stealsPerSecondNode = (nodes * count * 1000.0) / lowestTime;
+        	double stealsPerSecond     = (nodes * count * 1000.0) / ((1.0 * lowestTime) / nodes);
+		
+        	System.out.println("BEST - Avg time: " + (lowestTime / nodes) + " ms. (" 
+        			+ stealsPerSecondNode + " steals/sec/node, " + stealsPerSecond + " steals/sec)");
+        }
         
         // End ibis.
         ibis.end();
