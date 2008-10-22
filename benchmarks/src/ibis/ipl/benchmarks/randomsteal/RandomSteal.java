@@ -1,5 +1,6 @@
 package ibis.ipl.benchmarks.randomsteal;
 
+import ibis.ipl.ConnectionFailedException;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisFactory;
@@ -7,10 +8,14 @@ import ibis.ipl.IbisIdentifier;
 import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
+import ibis.ipl.ReceivePortIdentifier;
+import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Random;
 
 /**
  * This program is designed to simulate Satins 'worst case behaviour', i.e a storm of steal requests.
@@ -25,12 +30,13 @@ import java.io.IOException;
  * This version uses explicit receive.
  */
 
-public class RandomSteal {
+public class RandomSteal implements RegistryEventHandler {
 
     private static final PortType portTypeUltraLight = new PortType(
     		PortType.CONNECTION_ULTRALIGHT, 
             PortType.SERIALIZATION_DATA, 
             PortType.RECEIVE_EXPLICIT,
+            PortType.RECEIVE_TIMEOUT,
             PortType.CONNECTION_ONE_TO_ONE);
 
     private static final PortType portTypeLight = new PortType(
@@ -39,6 +45,7 @@ public class RandomSteal {
     		PortType.COMMUNICATION_RELIABLE, 
             PortType.SERIALIZATION_DATA, 
             PortType.RECEIVE_EXPLICIT,
+            PortType.RECEIVE_TIMEOUT,
             PortType.CONNECTION_MANY_TO_ONE);
 
     private static final PortType portTypeNormal = new PortType(
@@ -46,10 +53,21 @@ public class RandomSteal {
     		PortType.COMMUNICATION_RELIABLE, 
             PortType.SERIALIZATION_DATA, 
             PortType.RECEIVE_EXPLICIT,
+            PortType.RECEIVE_TIMEOUT,
             PortType.CONNECTION_MANY_TO_ONE);
     
+    private static final PortType portTypeBarrier = new PortType(
+    		PortType.CONNECTION_LIGHT, 
+    		PortType.COMMUNICATION_FIFO, 
+    		PortType.COMMUNICATION_RELIABLE, 
+            PortType.SERIALIZATION_BYTE, 
+            PortType.RECEIVE_EXPLICIT,
+            PortType.RECEIVE_TIMEOUT,
+            PortType.CONNECTION_ONE_TO_MANY);
+    
     private static final IbisCapabilities ibisCapabilities =
-        new IbisCapabilities(IbisCapabilities.ELECTIONS_STRICT, "nickname.smartsockets");
+        new IbisCapabilities(IbisCapabilities.ELECTIONS_STRICT, 
+        		IbisCapabilities.MEMBERSHIP_TOTALLY_ORDERED, "nickname.smartsockets");
 
     private final PortType portType; 
     private final int bytes;    
@@ -58,7 +76,7 @@ public class RandomSteal {
     private final int count;
     private final int repeat;
     
-    private final boolean reconnect;
+   // private final boolean reconnect;
     
     private Ibis ibis;
     
@@ -67,250 +85,276 @@ public class RandomSteal {
     
     private ReceivePort stealR;
     private SendPort stealS;
-        
+    
+    private ReceivePort replyR;
+    private SendPort replyS;
+    
+    private boolean done = false;
+    private boolean server = false;    
+    
+    private final byte [] message;
+    
+    private final ArrayList<IbisIdentifier> nodeList = new ArrayList<IbisIdentifier>();
+    
     /// ************* DO NOT USE ************** NOT FINISHED ********** 
     
-    private RandomSteal(PortType portType, int nodes, int bytes, int count, int repeat, boolean reconnect) { 
+    private final Random random = new Random();
+    
+    private class RequestHandler extends Thread { 
+    	public void run() { 
+    		handleSteals();
+    	}
+    }
+    
+    private RandomSteal(PortType portType, int nodes, int bytes, int count, int repeat) { 
     	this.portType = portType;
     	this.nodes = nodes;
     	this.bytes = bytes;
     	this.count = count;
     	this.repeat = repeat;
-    	this.reconnect = reconnect;
-    }
-
-    private void server() throws IOException {
-                /*
-        final byte [] data = new byte[bytes];
-        
-        boolean connected = false;
-        
-        IbisIdentifier src = null;
-        
-        for (int r=0;r<repeat;r++) { 
-        	
-        	long start = System.currentTimeMillis();
-        	
-        	for (int c=0;c<count;c++) { 
-        		
-        //		System.out.println("R " + r + " C " + c);
-        		
-        		// Read the message.
-        		ReadMessage rm = receiver.receive();
-        	
-        //		System.out.println("RM start");
-            	
-        		if (bytes > 0) { 
-        			rm.readArray(data);
-        		}
-        		
-        		if (!connected) { 
-        	       	sender = myIbis.createSendPort(portType);
-        	        src = rm.origin().ibisIdentifier();
-                	rm.finish();
-                	
-         //       	System.out.println("RM done");
-                        	
-        //	    	System.out.println("Connecting to " + src);
-                	
-                	sender.connect(src, "client", 5000, true);
-        	    	connected = true;
-        //	
-        //	    	System.out.println("Connect done");
-        		} else { 
-        			rm.finish();
-        //			System.out.println("RM done");
-        		}
-        		
-        		WriteMessage wm = sender.newMessage();
-        		
-        //		System.out.println("WM start");
-                
-        		if (bytes > 0) {
-        			wm.writeArray(data);
-        		}
-        		
-        		wm.finish();
-        //		System.out.println("WM done");
-                
-        		if (reconnect) { 
-        			sender.close();
-        			sender = null;
-        			connected = false;
-        //			System.out.println("Disconnect done");
-               }
-        	}
-        	
-        	long end = System.currentTimeMillis();
-        	
-        	double rtt = (end-start) / ((double)count);
- 
-        	double tp = 0.0;
-        	String unit = "bit/s";
-    		
-        	if (bytes > 0) { 
-        		
-        		tp = (bytes * count * 8.0) / ((end-start) / 1000.0);
-        		
-        		if (tp > 1000000) { 
-        			tp = tp / 1000000.0;
-        			unit = "Mbit/s";
-        		} else if (tp > 1000) {
-        			tp = tp / 1000.0;
-        			unit = "Kbit/s";
-        		}
-        	}
-       
-         	System.out.printf("Send %d messages in %d ms. (%.2f ms/message, %.2f %s)\n", 
-         		count, (end-start), rtt, tp, unit);
-        }
-       
-        if (sender != null) { 
-        	sender.close();
-        }
-        receiver.close();
-        */
-    }
-
-    private void client(IbisIdentifier server) throws IOException {
-/*
-    	// Create a receive port and enable connections.
-        ReceivePort receiver = myIbis.createReceivePort(portType, "client");
-        receiver.enableConnections();
-    	
-        // Create a send port for sending requests and connect.
-        SendPort sender = null;
-        
-        if (!reconnect) { 
-        	sender = myIbis.createSendPort(portType);
-        	sender.connect(server, "server", 5000, true);
-        }
-        
-        System.out.println("Sending messages");
-        
-        final byte [] data = new byte[bytes];
-        
-        for (int r=0;r<repeat;r++) { 
-        	
-        	long start = System.currentTimeMillis();
-
-        	for (int c=0;c<count;c++) { 
-
-    //    		System.out.println("R " + r + " C " + c);
-        		
-         		if (reconnect) { 
-         	       	sender = myIbis.createSendPort(portType);
-        //	    	System.out.println("Connecting to " + server);
-         	       	sender.connect(server, "server", 5000, true);
-        //			System.out.println("Connected");
-                }
-        		
-        		WriteMessage wm = sender.newMessage();
-
-        		if (bytes > 0) {
-        			wm.writeArray(data);
-        		}
-
-        		wm.finish();
-
-       // 		System.out.println("WM done");
-                
-        		// Read the message.
-        		ReadMessage rm = receiver.receive();
-// 		System.out.println("RM start");
-        
-        		if (bytes > 0) { 
-        			rm.readArray(data);
-        		}
-        		
-        		rm.finish();
-        
-    //    		System.out.println("RM done");
-        		
-        		if (reconnect) { 
-        			sender.close();
-        			sender = null;
-        //			System.out.println("Disconnected");
-            	}    
-        	}
-
-        	long end = System.currentTimeMillis();
-
-        	double rtt = (end-start) / ((double)count);
-
-        	double tp = 0.0;
-        	String unit = "bit/s";
-
-        	if (bytes > 0) { 
-
-        		tp = (bytes * count * 8.0) / ((end-start) / 1000.0);
-
-        		if (tp > 1000000) { 
-        			tp = tp / 1000000.0;
-        			unit = "Mbit/s";
-        		} else if (tp > 1000) {
-        			tp = tp / 1000.0;
-        			unit = "Kbit/s";
-        		}
-        	}
-  
-        	System.out.printf("Send %d messages in %d ms. (%.2f ms/message, %.2f %s)\n", 
-     			count, (end-start), rtt, tp, unit);
-        }
-
-        if (sender != null) { 
-        	sender.close();
-        }
-        receiver.close();
-        */
-    }
+    	//this.reconnect = reconnect;
     
-    private void barrier(IbisIdentifier server) { 
- /*   	
-    	if (server.equals(ibis.identifier())) { 
+    	message = new byte[bytes];
+    }
+        
+    private void initBarrier(IbisIdentifier server) { 
+  	
+    	this.server = server.equals(ibis.identifier());
+
+		// Make sure that we have seen all joins
+		synchronized (this) {
+			while (nodeList.size() < nodes) { 
+				try { 
+					wait(1000);
+				} catch (InterruptedException e) {
+					// ignored
+				}
+			}
+		}
     	
-    		for (int i=0;i<nodes;i++) { 
+    	if (this.server) { 
+    		// I have also seen all joins, so connect to all clients
+    		for (IbisIdentifier id : nodeList) { 
     			try {
-					ReadMessage rm = barrierR.receive();
-									
-    			
-    			} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}    		    			
+					barrierS.connect(id, "barrier");
+				} catch (ConnectionFailedException e) {
+					System.err.println("Failed to connect to barrier port at " + id);
+    				e.printStackTrace(System.err);
+				}
     		}
     	} else { 
-    		
-    		
-    		
+    		// Connect to server
+    		try {
+    			barrierS.connect(server, "barrier");
+    		} catch (ConnectionFailedException e) {
+    			System.err.println("Failed to connect to barrier port at " + server);
+    			e.printStackTrace(System.err);
+    		}
     	}
-    	*/
     }
     
-    private void run() throws Exception {
+    private void barrier() { 
+    	
+    	if (server) { 
+    		
+    		for (int i=0;i<nodes-1;i++) { 
+    			try {
+					ReadMessage rm = barrierR.receive();
+					rm.finish();
+    			} catch (IOException e) {
+					// TODO Auto-generated catch block
+    				System.err.println("Failed to receive barrier message!");
+    				e.printStackTrace(System.err);
+				}    		    			
+    		}
+    		
+    		try { 
+    			WriteMessage wm = barrierS.newMessage();
+    			wm.finish();
+    		} catch (Exception e) {
+				System.err.println("Failed to send barrier message!");
+				e.printStackTrace(System.err);
+			}
+    	} else { 
+     		try { 
+    			WriteMessage wm = barrierS.newMessage();
+    			wm.finish();
+    		} catch (Exception e) {
+				System.err.println("Failed to send barrier message to server!");
+				e.printStackTrace(System.err);
+			}
+    		
+    		// Wait for the server's reply
+    		try {
+    			ReadMessage rm = barrierR.receive();
+    			rm.finish();
+    		} catch (IOException e) {
+    			// TODO Auto-generated catch block
+    			System.err.println("Failed to receive barrier message!");
+    			e.printStackTrace(System.err);
+    		}    		    		
+    	}
+    }
+    
+    private IbisIdentifier selectVictim() { 
+    	
+    	int tmp = random.nextInt(nodes);
+    	
+    	IbisIdentifier victim = nodeList.get(tmp);
+    	
+    	if (victim.equals(ibis.identifier())) { 
+    		return nodeList.get((tmp+1)%nodes);        	
+    	}
+    	
+    	return victim;
+    }
+
+    private synchronized boolean getDone() {
+		return done;
+	}
+    
+    private synchronized void setDone() {
+		done = true;
+	}
+    
+    private void handleSteals() { 
+    	
+    	while (!getDone()) { 
+    	
+    		try { 
+    			ReadMessage rm = stealR.receive(1000);
+    			
+    			if (rm != null) { 
+
+    				rm.readArray(message);
+
+    				IbisIdentifier id = rm.origin().ibisIdentifier();
+
+    				rm.finish();
+
+    				ReceivePortIdentifier rid = replyS.connect(id, "reply");
+
+    				WriteMessage wm = replyS.newMessage();
+    				wm.writeArray(message);	
+    				wm.finish();
+
+    				replyS.disconnect(rid);
+    			}
+    			
+    		} catch (Exception e) { 
+    			System.err.println("Failed to handle steal message");
+        		e.printStackTrace(System.err);
+        	}
+    	}
+    }
+    
+    private void steal(IbisIdentifier id) { 
+
+    	try { 
+    		ReceivePortIdentifier rid = stealS.connect(id, "steal");
+
+    		WriteMessage wm = stealS.newMessage();
+    		wm.writeArray(message);	
+    		wm.finish();
+
+    		stealS.disconnect(rid);
+  
+    		ReadMessage rm = replyR.receive();
+    		rm.readArray(message);
+    		rm.finish();
+    	
+    	} catch (Exception e) { 
+    		System.err.println("Failed to steal message");
+    		e.printStackTrace(System.err);
+    	}
+    }
+    
+    private void benchmark() { 
+    	for (int i=0;i<count;i++) { 
+    		steal(selectVictim());
+    	}
+    }
+   
+    public void run() throws Exception {
     	
         // Create an ibis instance.
-        ibis = IbisFactory.createIbis(ibisCapabilities, null, portType, portTypeLight);
+        ibis = IbisFactory.createIbis(ibisCapabilities, null, portType, portTypeBarrier);
 
-        barrierS = ibis.createSendPort(portTypeLight);
-        barrierR = ibis.createReceivePort(portTypeLight, "barrier");
+        barrierS = ibis.createSendPort(portTypeBarrier);
+        barrierR = ibis.createReceivePort(portTypeBarrier, "barrier");
         
         stealS = ibis.createSendPort(portType);
         stealR = ibis.createReceivePort(portType, "steal");
+    
+        replyS = ibis.createSendPort(portType);
+        replyR = ibis.createReceivePort(portType, "reply");
         
         stealR.enableConnections();
+        replyR.enableConnections();
         barrierR.enableConnections();
 
+        new RequestHandler().start();
+        
         // Elect a server
         IbisIdentifier server = ibis.registry().elect("Server");
 
         System.out.println("Server is " + server);
         
-        barrier(server);
+        initBarrier(server);
 
+        for (int i=0;i<repeat;i++) { 
+        	long start = System.currentTimeMillis();
+
+        	barrier();
+
+        	benchmark();
+
+        	barrier();
+
+        	long end = System.currentTimeMillis();
+
+        	System.out.println("Total time: " + (end-start));
+        }
+        	
+        setDone();
+        
+        barrier();
+        
         // End ibis.
         ibis.end();
     }
+
+	public void died(IbisIdentifier corpse) {
+		if (!getDone()) { 
+			System.err.println("Ibis died unexpectedly!" + corpse);
+		}
+	}
+	
+	public void electionResult(String electionName, IbisIdentifier winner) {
+		// ignore
+	}
+
+	public void gotSignal(String signal, IbisIdentifier source) {
+		// ignore
+	}
+
+	public synchronized void joined(IbisIdentifier joinedIbis) {
+		nodeList.add(joinedIbis);		
+	}
+
+	public void left(IbisIdentifier leftIbis) {
+		if (!getDone()) { 
+			System.err.println("Ibis died unexpectedly!" + leftIbis);
+		}
+	}
+
+	public void poolClosed() {
+		// ignored
+	}
+
+	public void poolTerminated(IbisIdentifier source) {
+		// ignored
+	}
 
     public static void main(String args[]) {
     	
@@ -319,7 +363,7 @@ public class RandomSteal {
     	int count = 1000;
     	int repeat = 10;
     	int nodes = -1;
-    	boolean reconnect = true;
+    	//boolean reconnect = true;
     	
     	for (int i=0;i<args.length;i++) { 
     		if (args[i].equals("-light")) { 
@@ -328,8 +372,8 @@ public class RandomSteal {
     			portType = portTypeUltraLight;
     		} else if (args[i].equals("-normal")) { 
     			portType = portTypeNormal;
-    		} else if (args[i].equals("-keepconnection")) { 
-    			reconnect = false;
+    		//} else if (args[i].equals("-keepconnection")) { 
+    		//	reconnect = false;
     		} else if (args[i].equals("-bytes") && i < args.length-1) { 
     			bytes = Integer.parseInt(args[++i]);
     		} else if (args[i].equals("-count") && i < args.length-1) { 
@@ -355,7 +399,7 @@ public class RandomSteal {
     	}
     	
         try {
-            new RandomSteal(portType, nodes, bytes, count, repeat, reconnect).run();
+            new RandomSteal(portType, nodes, bytes, count, repeat).run();
         } catch (Exception e) {
             e.printStackTrace(System.err);
         }
