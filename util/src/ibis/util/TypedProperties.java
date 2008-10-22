@@ -327,6 +327,106 @@ public class TypedProperties extends Properties {
     }
 
     /**
+     * Returns the double value of property.
+     * 
+     * @return the double value of property
+     * @param key
+     *                property name
+     * @throws NumberFormatException
+     *                 if the property is undefined or not an double
+     */
+    public double getDoubleProperty(String key) {
+        String value = getProperty(key);
+
+        if (value == null) {
+            throw new NumberFormatException("property undefined: " + key);
+        }
+
+        try {
+            return Double.parseDouble(value);
+        } catch (NumberFormatException e) {
+            throw new NumberFormatException("Double expected for property "
+                    + key + ", not \"" + value + "\"");
+        }
+    }
+
+    /**
+     * Returns the double value of property.
+     * 
+     * @return the double value of property
+     * @param key
+     *                property name
+     * @param defaultValue
+     *                default value if the property is undefined
+     * @throws NumberFormatException
+     *                 if the property defined and not an Double
+     */
+    public double getDoubleProperty(String key, double defaultValue) {
+        String value = getProperty(key);
+
+        if (value == null) {
+            return defaultValue;
+        }
+
+        try {
+            return Double.parseDouble(value);
+        } catch (NumberFormatException e) {
+            throw new NumberFormatException("Double expected for property "
+                    + key + ", not \"" + value + "\"");
+        }
+    }
+    
+    /**
+     * Returns the float value of property.
+     * 
+     * @return the float value of property
+     * @param key
+     *                property name
+     * @throws NumberFormatException
+     *                 if the property is undefined or not an float
+     */
+    public float getFloatProperty(String key) {
+        String value = getProperty(key);
+
+        if (value == null) {
+            throw new NumberFormatException("property undefined: " + key);
+        }
+
+        try {
+            return Float.parseFloat(value);
+        } catch (NumberFormatException e) {
+            throw new NumberFormatException("Float expected for property "
+                    + key + ", not \"" + value + "\"");
+        }
+    }
+
+    /**
+     * Returns the float value of property.
+     * 
+     * @return the float value of property
+     * @param key
+     *                property name
+     * @param defaultValue
+     *                default value if the property is undefined
+     * @throws NumberFormatException
+     *                 if the property defined and not an Float
+     */
+    public float getFloatProperty(String key, float defaultValue) {
+        String value = getProperty(key);
+
+        if (value == null) {
+            return defaultValue;
+        }
+
+        try {
+            return Float.parseFloat(value);
+        } catch (NumberFormatException e) {
+            throw new NumberFormatException("Float expected for property "
+                    + key + ", not \"" + value + "\"");
+        }
+    }
+    
+    /**
      * Returns the long value of a size property. Valid values for the property
      * are a long, a long followed by K, a long followed by M or a long followed
      * by G. Size modifiers multiply the value by 1024, 1024^2 and 1024^3
