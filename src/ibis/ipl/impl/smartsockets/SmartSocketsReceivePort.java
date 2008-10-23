@@ -163,6 +163,9 @@ class SmartSocketsReceivePort extends ReceivePort implements SmartSocketsProtoco
         
         no_connectionhandler_thread = false;    // Fix deadlock (see bug report #208 in
                                                 // gforge. --Ceriel
+        
+        System.out.println("$$$$$$$ RP Properties: " + properties);
+        
     }
 
     public void messageArrived(ReadMessage msg) {

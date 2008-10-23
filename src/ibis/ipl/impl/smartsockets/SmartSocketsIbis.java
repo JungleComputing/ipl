@@ -58,16 +58,20 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis
     
     private final HashMap<String, Object> lightConnection = new HashMap<String, Object>();
     
+    private final HashMap<String, Object> directConnection = new HashMap<String, Object>();
+    
     public SmartSocketsIbis(RegistryEventHandler registryEventHandler, IbisCapabilities capabilities, PortType[] types, Properties userProperties) {
         super(registryEventHandler, capabilities, types, userProperties);
 
         lightConnection.put("connect.module.allow", "ConnectModule(HubRouted)");    	
+
+        // directConnection.put("connect.module.skip", "ConnectModule(HubRouted)");    	
+
+        // NOTE: this is too restrictive, since reverse connection setup also result in a direct connection... 
+        directConnection.put("connect.module.allow", "ConnectModule(Direct)");    	
         
         this.properties.checkProperties("ibis.ipl.impl.smartsockets.",
                 new String[] {"ibis.ipl.impl.smartsockets"}, null, true);
-
-        
-        
         
         try {
             ServiceLink sl = factory.getServiceLink();
@@ -161,7 +165,9 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis
                 
                 if (sp.getPortType().hasCapability(PortType.CONNECTION_LIGHT)) { 
                 	h = lightConnection;
-                }    	
+                } else if (sp.getPortType().hasCapability(PortType.CONNECTION_DIRECT)) { 
+                	h = directConnection;
+                }
 
                 /* 
                 Map<String, String> properties = sp.managementProperties();
@@ -421,8 +427,18 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis
     			props = new Properties();
     		}
     		
-    		props.put("connect.module.type.skip", "direct");    		
-    	}    	
+    		props.put("connect.module.type.skip", "direct");
+    		
+    	} else if (tp.hasCapability(PortType.CONNECTION_DIRECT)) { 
+    		
+    		System.out.println("$$$$$$$$$$$ CREATING DIRECT SP");
+    		
+    		if (props == null) { 
+    			props = new Properties();
+    		}
+    		                                 
+    		props.put("connect.module.skip", "ConnectModule(HubRouted)");    		
+    	}  	
     	
         return new SmartSocketsSendPort(this, tp, nm, cU, props);
     }
@@ -442,7 +458,17 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis
     		}
     		
     		props.put("connect.module.type.skip", "direct");    		
-    	}    	
+    	
+    	} else if (tp.hasCapability(PortType.CONNECTION_DIRECT)) { 
+    		
+    		System.out.println("$$$$$$$$$$$ CREATING DIRECT RP");
+    		
+    		if (props == null) { 
+    			props = new Properties();
+    		}
+    		                                 
+    		props.put("connect.module.skip", "ConnectModule(HubRouted)");    		
+    	}
     	
         return new SmartSocketsReceivePort(this, tp, nm, u, cU, props);
     }   

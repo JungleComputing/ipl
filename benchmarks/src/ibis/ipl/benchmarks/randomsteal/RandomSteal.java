@@ -1,5 +1,6 @@
 package ibis.ipl.benchmarks.randomsteal;
 
+import ibis.ipl.AlreadyConnectedException;
 import ibis.ipl.ConnectionFailedException;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisCapabilities;
@@ -50,7 +51,8 @@ public class RandomSteal implements RegistryEventHandler {
             PortType.CONNECTION_MANY_TO_ONE);
 
     private static final PortType portTypeNormal = new PortType(
-    		PortType.COMMUNICATION_FIFO, 
+    		PortType.COMMUNICATION_FIFO,
+    		PortType.CONNECTION_DIRECT,
     		PortType.COMMUNICATION_RELIABLE, 
             PortType.SERIALIZATION_DATA, 
             PortType.RECEIVE_EXPLICIT,
@@ -105,6 +107,9 @@ public class RandomSteal implements RegistryEventHandler {
     
     private long lowestTime = Long.MAX_VALUE;
     
+    private long failedConnectionSetups = 0;
+    private long stealRequests = 0;
+    
     private class RequestHandler extends Thread { 
     	public void run() { 
     		handleSteals();
@@ -143,20 +148,26 @@ public class RandomSteal implements RegistryEventHandler {
     			try {
     				// We do not connect to ourselves...
     				if (!id.equals(ibis.identifier())) { 
-    					barrierS.connect(id, "barrier");
+    					barrierS.connect(id, "barrier", 60000, true);
     				}
 				} catch (ConnectionFailedException e) {
-					System.err.println("Failed to connect to barrier port at " + id);
+					System.err.println(ibis.identifier() + ": Failed to connect to barrier client at " + id);
     				e.printStackTrace(System.err);
     				System.exit(1);
 				}
     		}
     	} else { 
     		// Connect to server
+    		try { 
+    			Thread.sleep(5000 + random.nextInt(1000));
+    		} catch (Exception e) {
+    			// ignore
+    		}
+			
     		try {
     			barrierS.connect(server, "barrier", 60000, true);
     		} catch (ConnectionFailedException e) {
-    			System.err.println("Failed to connect to barrier port at " + server);
+    			System.err.println(ibis.identifier() + ": Failed to connect to barrier server at " + server);
     			e.printStackTrace(System.err);
     			System.exit(1);
     		}
@@ -176,7 +187,7 @@ public class RandomSteal implements RegistryEventHandler {
 					rm.finish();
     			} catch (IOException e) {
 					// TODO Auto-generated catch block
-    				System.err.println("Failed to receive barrier message!");
+    				System.err.println(ibis.identifier() + ": Failed to receive barrier message!");
     				e.printStackTrace(System.err);
     				System.exit(1);
 				}    		    			
@@ -190,7 +201,7 @@ public class RandomSteal implements RegistryEventHandler {
     			WriteMessage wm = barrierS.newMessage();
     			wm.finish();
     		} catch (Exception e) {
-				System.err.println("Failed to send barrier message!");
+				System.err.println(ibis.identifier() + ": Failed to send barrier message!");
 				e.printStackTrace(System.err);
 				System.exit(1);
 			}
@@ -206,7 +217,7 @@ public class RandomSteal implements RegistryEventHandler {
     			wm.writeLong(time);
     			wm.finish();
     		} catch (Exception e) {
-				System.err.println("Failed to send barrier message to server!");
+				System.err.println(ibis.identifier() + ": Failed to send barrier message to server!");
 				e.printStackTrace(System.err);
 				System.exit(1);
 			}
@@ -217,7 +228,7 @@ public class RandomSteal implements RegistryEventHandler {
     			rm.finish();
     		} catch (IOException e) {
     			// TODO Auto-generated catch block
-    			System.err.println("Failed to receive barrier message!");
+    			System.err.println(ibis.identifier() + ": Failed to receive barrier message!");
     			e.printStackTrace(System.err);
     			System.exit(1);
     		}    		    		
@@ -254,14 +265,28 @@ public class RandomSteal implements RegistryEventHandler {
     			
     			if (rm != null) { 
 
+    				stealRequests++;
+    				
     				rm.readArray(message);
 
     				IbisIdentifier id = rm.origin().ibisIdentifier();
 
     				rm.finish();
 
-    				ReceivePortIdentifier rid = replyS.connect(id, "reply");
+    				ReceivePortIdentifier rid = null; 
+    	    		
+    	    		while (rid == null) { 
+    	    			try { 
+    	    				rid = replyS.connect(id, "reply");
+    	    			} catch (Exception e) { 
+    	    				System.err.println(ibis.identifier() + ": Failed to connect to " + id +  ", will retry");
+    	    	    		e.printStackTrace(System.err);
+    	    	    		failedConnectionSetups++;
+    	    			}
+    	    		}
 
+   // 	    		System.err.println(ibis.identifier() + ": Connect to " + id +  " : reply");
+    	    		
     				WriteMessage wm = replyS.newMessage();
     				wm.writeArray(message);	
     				wm.finish();
@@ -280,8 +305,20 @@ public class RandomSteal implements RegistryEventHandler {
     private void steal(IbisIdentifier id) { 
 
     	try { 
-    		ReceivePortIdentifier rid = stealS.connect(id, "steal");
+    		ReceivePortIdentifier rid = null; 
+    		
+    		while (rid == null) { 
+    			try { 
+    				rid = stealS.connect(id, "steal");
+    			} catch (Exception e) { 
+    				System.err.println(ibis.identifier() + ": Failed to connect to " + id +  ", will retry");
+    	    		e.printStackTrace(System.err);
+    	    		failedConnectionSetups++;
+    			}
+    		}
 
+//    		System.err.println(ibis.identifier() + ": Connect to " + id +  " : steal");
+    		
     		WriteMessage wm = stealS.newMessage();
     		wm.writeArray(message);	
     		wm.finish();
@@ -359,6 +396,8 @@ public class RandomSteal implements RegistryEventHandler {
         	System.out.println("BEST - Avg time: " + (lowestTime / nodes) + " ms. (" 
         			+ stealsPerSecondNode + " steals/sec/node, " + stealsPerSecond + " steals/sec)");
         }
+        
+        System.out.println(ibis.identifier() + ": Failed connection setups: " + failedConnectionSetups);
         
         // End ibis.
         ibis.end();

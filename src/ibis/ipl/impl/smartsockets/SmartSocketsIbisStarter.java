@@ -48,6 +48,7 @@ public final class SmartSocketsIbisStarter extends ibis.ipl.IbisStarter {
         PortType.CONNECTION_ONE_TO_ONE,
         PortType.CONNECTION_LIGHT,
         PortType.CONNECTION_ULTRALIGHT,
+        PortType.CONNECTION_DIRECT,
         PortType.RECEIVE_POLL,
         PortType.RECEIVE_AUTO_UPCALLS,
         PortType.RECEIVE_EXPLICIT,

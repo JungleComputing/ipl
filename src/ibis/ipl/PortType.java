@@ -80,7 +80,15 @@ public final class PortType extends CapabilitySet {
      * connection ip/downcalls. In addition, a maximum message size may be imposed.  
      */
     public final static String CONNECTION_ULTRALIGHT = CONNECTION + ".ultralight";
-       
+    
+    /**
+     * This capability describes that -only- direct connection setup is used.  
+     * This prevents ibis from using any connection setup scheme that does not 
+     * result in a direct connection between the two machines. Note that using 
+     * this option may severly restric the connectivity of an ibis instance.  
+     */
+    public final static String CONNECTION_DIRECT = CONNECTION + ".direct";
+    
     /** This capability describes that explicit receive is supported. */
     public final static String RECEIVE_EXPLICIT = RECEIVE + ".explicit";
 

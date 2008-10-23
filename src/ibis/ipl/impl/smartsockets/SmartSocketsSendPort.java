@@ -58,18 +58,17 @@ final class SmartSocketsSendPort extends SendPort implements SmartSocketsProtoco
             SendPortDisconnectUpcall cU, Properties props) throws IOException {
         super(ibis, type, name, cU, props);
 
-        splitter =
-                new OutputStreamSplitter(
-                        !type.hasCapability(PortType.CONNECTION_ONE_TO_ONE)
-                                && !type.hasCapability(
-                                    PortType.CONNECTION_MANY_TO_ONE),
-                        type.hasCapability(PortType.CONNECTION_ONE_TO_MANY) 
-                                || type.hasCapability(
-                                    PortType.CONNECTION_MANY_TO_MANY));
-            
+        splitter = new OutputStreamSplitter(
+          		!type.hasCapability(PortType.CONNECTION_ONE_TO_ONE) && 
+          		!type.hasCapability(PortType.CONNECTION_MANY_TO_ONE),
+        		type.hasCapability(PortType.CONNECTION_ONE_TO_MANY) || 
+        		type.hasCapability(PortType.CONNECTION_MANY_TO_MANY));
 
         bufferedStream = new BufferedArrayOutputStream(splitter, 4096);
         initStream(bufferedStream);
+        
+        System.out.println("$$$$$$$ SP Properties: " + properties);
+  
     }
 
     protected long totalWritten() {
