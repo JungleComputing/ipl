@@ -89,6 +89,9 @@ public class SendPortIdentifier implements ibis.ipl.SendPortIdentifier {
      * @return the coded form.
      */
     public byte[] toBytes() {
+        if (codedForm == null) {
+            codedForm = computeCodedForm();
+        }
         return (byte[]) codedForm.clone();
     }
 
@@ -113,6 +116,9 @@ public class SendPortIdentifier implements ibis.ipl.SendPortIdentifier {
      * @exception IOException is thrown in case of trouble.
      */
     public void writeTo(DataOutput dos) throws IOException {
+        if (codedForm == null) {
+            codedForm = computeCodedForm();
+        }
         dos.write(codedForm);
     }
 
@@ -143,12 +149,6 @@ public class SendPortIdentifier implements ibis.ipl.SendPortIdentifier {
 
     public ibis.ipl.IbisIdentifier ibisIdentifier() {
         return ibis;
-    }
-
-    private void readObject(ObjectInputStream input)
-        throws ClassNotFoundException, IOException {
-        input.defaultReadObject();
-        codedForm = computeCodedForm();
     }
 
     public String toString() {

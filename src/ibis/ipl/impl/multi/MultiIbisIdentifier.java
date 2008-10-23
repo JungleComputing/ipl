@@ -118,6 +118,9 @@ public final class MultiIbisIdentifier implements IbisIdentifier {
      * @return the coded form.
      */
     public byte[] toBytes() {
+        if (codedForm == null) {
+            codedForm = computeCodedForm();
+        }
         return (byte[]) codedForm.clone();
     }
 
@@ -154,6 +157,9 @@ public final class MultiIbisIdentifier implements IbisIdentifier {
      * @exception IOException is thrown in case of trouble.
      */
     public void writeTo(DataOutput dos) throws IOException {
+        if (codedForm == null) {
+            codedForm = computeCodedForm();
+        }
         dos.write(codedForm);
     }
 
@@ -222,12 +228,6 @@ public final class MultiIbisIdentifier implements IbisIdentifier {
             return cmp;
         }
         return this.getClass().getName().compareTo(c.getClass().getName());
-    }
-
-    private void readObject(ObjectInputStream input)
-        throws ClassNotFoundException, IOException {
-        input.defaultReadObject();
-        codedForm = computeCodedForm();
     }
 
     public String getID() {
