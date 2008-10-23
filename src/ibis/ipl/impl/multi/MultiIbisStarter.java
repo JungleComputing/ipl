@@ -5,7 +5,6 @@ package ibis.ipl.impl.multi;
 import ibis.ipl.CapabilitySet;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisCapabilities;
-import ibis.ipl.IbisCreationFailedException;
 import ibis.ipl.IbisStarter;
 import ibis.ipl.PortType;
 import ibis.ipl.RegistryEventHandler;

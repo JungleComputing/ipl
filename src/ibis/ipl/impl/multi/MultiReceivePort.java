@@ -22,12 +22,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+// import org.slf4j.Logger;
+// import org.slf4j.LoggerFactory;
 
 public class MultiReceivePort implements ReceivePort {
 
-    private Logger logger = LoggerFactory.getLogger(MultiReceivePort.class);
+    // private Logger logger = LoggerFactory.getLogger(MultiReceivePort.class);
 
     private final Map<String, ReceivePort>subPortMap = Collections.synchronizedMap(new HashMap<String, ReceivePort>());
 
@@ -349,8 +349,9 @@ public class MultiReceivePort implements ReceivePort {
                 while (messageQueue.size() == 0 && exceptionQueue.size() == 0);
                 if (messageQueue.size() == 0) {
 //                    logger.debug("Throwing exception!");
-                    Exception e = exceptionQueue.remove(0);
+                    IOException e = exceptionQueue.remove(0);
                     exceptionQueue.clear();
+                    throw e;    // Added (nothing was done with it) --Ceriel
                 }
             }
             ret = messageQueue.remove(0);
