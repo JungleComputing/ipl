@@ -8,7 +8,6 @@ import java.io.DataInput;
 import java.io.DataInputStream;
 import java.io.DataOutput;
 import java.io.DataOutputStream;
-import java.io.ObjectInputStream;
 import java.io.IOException;
 
 /**
@@ -28,9 +27,6 @@ public class SendPortIdentifier implements ibis.ipl.SendPortIdentifier {
     /** The IbisIdentifier of the Ibis instance that created the sendport. */
     public final IbisIdentifier ibis;
 
-    /** Coded form, computed only once. */    
-    private transient byte[] codedForm;
-
     /**
      * Constructor, initializing the fields with the specified parameters.
      * @param name the name of the sendport.
@@ -45,8 +41,7 @@ public class SendPortIdentifier implements ibis.ipl.SendPortIdentifier {
         }
         this.name = name;
         this.ibis = ibis;
-        codedForm = computeCodedForm();
-    }
+     }
 
     /**
      * Constructs a <code>SendPortIdentifier</code> from the specified coded
@@ -81,7 +76,6 @@ public class SendPortIdentifier implements ibis.ipl.SendPortIdentifier {
     public SendPortIdentifier(DataInput dis) throws IOException {
         name = dis.readUTF();
         ibis = new IbisIdentifier(dis);
-        codedForm = computeCodedForm();
     }
 
     /**
@@ -89,10 +83,7 @@ public class SendPortIdentifier implements ibis.ipl.SendPortIdentifier {
      * @return the coded form.
      */
     public byte[] toBytes() {
-        if (codedForm == null) {
-            codedForm = computeCodedForm();
-        }
-        return (byte[]) codedForm.clone();
+        return computeCodedForm();
     }
 
     private byte[] computeCodedForm() {
@@ -116,10 +107,7 @@ public class SendPortIdentifier implements ibis.ipl.SendPortIdentifier {
      * @exception IOException is thrown in case of trouble.
      */
     public void writeTo(DataOutput dos) throws IOException {
-        if (codedForm == null) {
-            codedForm = computeCodedForm();
-        }
-        dos.write(codedForm);
+         dos.write(computeCodedForm());
     }
 
     private boolean equals(SendPortIdentifier other) {

@@ -6,9 +6,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInput;
 import java.io.DataInputStream;
-import java.io.DataOutput;
 import java.io.DataOutputStream;
-import java.io.ObjectInputStream;
 import java.io.IOException;
 
 /**
@@ -28,9 +26,6 @@ public class ReceivePortIdentifier implements ibis.ipl.ReceivePortIdentifier {
     /** The IbisIdentifier of the Ibis instance that created the receiveport. */
     public final IbisIdentifier ibis;
 
-    /** A receiveport identifier coded as a byte array. Computed once. */
-    private transient byte[] codedForm;
-
     /**
      * Constructor, initializing the fields with the specified parameters.
      * @param name the name of the receiveport.
@@ -45,7 +40,6 @@ public class ReceivePortIdentifier implements ibis.ipl.ReceivePortIdentifier {
         }
         this.name = name;
         this.ibis = ibis;
-        codedForm = computeCodedForm();
     }
 
     /**
@@ -81,7 +75,6 @@ public class ReceivePortIdentifier implements ibis.ipl.ReceivePortIdentifier {
     public ReceivePortIdentifier(DataInput dis) throws IOException {
         name = dis.readUTF();
         ibis = new IbisIdentifier(dis);
-        codedForm = computeCodedForm();
     }
 
     /**
@@ -89,13 +82,6 @@ public class ReceivePortIdentifier implements ibis.ipl.ReceivePortIdentifier {
      * @return the coded form.
      */
     public byte[] toBytes() {
-        if (codedForm == null) {
-            codedForm = computeCodedForm();
-        }
-        return (byte[]) codedForm.clone();
-    }
-
-    private byte[] computeCodedForm() {
         try {
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             DataOutputStream dos = new DataOutputStream(bos);
@@ -107,19 +93,6 @@ public class ReceivePortIdentifier implements ibis.ipl.ReceivePortIdentifier {
             // should not happen.
             return null;
         }
-    }
-
-    /**
-     * Writes this <code>ReceivePortIdentifier</code> to the specified output
-     * stream.
-     * @param dos the output stream.
-     * @exception IOException is thrown in case of trouble.
-     */
-    public void writeTo(DataOutput dos) throws IOException {
-        if (codedForm == null) {
-            codedForm = computeCodedForm();
-        }
-        dos.write(codedForm);
     }
 
     private boolean equals(ReceivePortIdentifier other) {
