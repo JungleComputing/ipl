@@ -103,6 +103,10 @@ public class Client {
 
         String hubs = typedProperties
                 .getProperty(ServerProperties.HUB_ADDRESSES);
+        if (hubs == null) {
+            //BACKWARDS COMPATIBILITY: Look in "ibis.server.hub.addresses" too
+            hubs = typedProperties.getProperty(ServerProperties.SERVER_HUB_ADDRESSES);
+        }
 
         // did the server also start a hub?
         boolean serverIsHub = typedProperties

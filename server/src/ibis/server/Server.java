@@ -63,6 +63,10 @@ public final class Server {
 
         String hubs = typedProperties
                 .getProperty(ServerProperties.HUB_ADDRESSES);
+        if (hubs == null) {
+            //BACKWARDS COMPATIBILITY: Look in "ibis.server.hub.addresses" too
+            hubs = typedProperties.getProperty(ServerProperties.SERVER_HUB_ADDRESSES);
+        }
         if (hubs != null) {
             smartProperties.put(SmartSocketsProperties.HUB_ADDRESSES, hubs);
         }

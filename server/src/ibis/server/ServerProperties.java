@@ -12,8 +12,6 @@ public final class ServerProperties {
 
     public static final String PREFIX = "ibis.server.";
 
-    public static final String HUB_ADDRESSES = PREFIX + "hub.addresses";
-
     public static final String START_HUB = PREFIX + "start.hub";
 
     public static final String HUB_ONLY = PREFIX + "hub.only";
@@ -31,6 +29,9 @@ public final class ServerProperties {
     public static final String REMOTE = PREFIX + "remote";
 
     // client side properties
+    
+    public static final String HUB_ADDRESSES = "ibis.hub.addresses";
+    public static final String SERVER_HUB_ADDRESSES = PREFIX + "hub.addresses";
 
     public static final String ADDRESS = PREFIX + "address";
 
