@@ -220,9 +220,7 @@ public class RandomSteal implements RegistryEventHandler {
     	} else { 
     	
     		PortIdentifier pid = new PortIdentifier(id, name);
-
     		
-
     		SendPort sp = connectionCache.get(pid);
     	
     		if (sp == null) { 

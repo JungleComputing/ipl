@@ -66,9 +66,6 @@ final class SmartSocketsSendPort extends SendPort implements SmartSocketsProtoco
 
         bufferedStream = new BufferedArrayOutputStream(splitter, 4096);
         initStream(bufferedStream);
-        
-        System.out.println("$$$$$$$ SP Properties: " + properties);
-  
     }
 
     protected long totalWritten() {

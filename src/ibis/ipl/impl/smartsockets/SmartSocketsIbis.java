@@ -431,8 +431,6 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis
     		
     	} else if (tp.hasCapability(PortType.CONNECTION_DIRECT)) { 
     		
-    		System.out.println("$$$$$$$$$$$ CREATING DIRECT SP");
-    		
     		if (props == null) { 
     			props = new Properties();
     		}
@@ -460,8 +458,6 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis
     		props.put("connect.module.type.skip", "direct");    		
     	
     	} else if (tp.hasCapability(PortType.CONNECTION_DIRECT)) { 
-    		
-    		System.out.println("$$$$$$$$$$$ CREATING DIRECT RP");
     		
     		if (props == null) { 
     			props = new Properties();
