@@ -88,7 +88,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
                     "putBoolean", new Class[] {Object.class, Long.TYPE, Boolean.TYPE});
             unsafePutObjectMethod = cl.getMethod(
                     "putObject", new Class[] {Object.class, Long.TYPE, Object.class});
-        } catch (Exception e) {
+        } catch (Throwable e) {
             System.out.println("Got exception while getting unsafe: " + e);
             unsafe = null;
         }
