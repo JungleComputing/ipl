@@ -5,7 +5,6 @@ package ibis.ipl.impl.stacking.dummy;
 import ibis.ipl.CapabilitySet;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisCapabilities;
-import ibis.ipl.IbisStarter;
 import ibis.ipl.PortType;
 import ibis.ipl.RegistryEventHandler;
 
@@ -54,10 +53,10 @@ public final class StackingIbisStarter extends ibis.ipl.IbisStarter {
         return portTypes.clone();
     }
 
-    public Ibis startIbis(List<IbisStarter> stack,
+    public Ibis startIbis(List<IbisStarterInfo> stack,
             RegistryEventHandler registryEventHandler,
-            Properties userProperties) {
-        IbisStarter s = stack.remove(0);
+            Properties userProperties, String version) {
+        IbisStarterInfo s = stack.remove(0);
         Ibis base = s.startIbis(stack, registryEventHandler, userProperties);
         return new StackingIbis(base);
     }

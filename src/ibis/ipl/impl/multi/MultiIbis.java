@@ -185,7 +185,7 @@ public class MultiIbis implements Ibis {
                     }
 
                     // Start up the ibis
-                    Ibis ibis = starterInstance.startIbis(handler, props);
+                    Ibis ibis = starterInstance.startIbis(handler, props, "dummyVersion");
 
                     if (ibisName == null) {
                         ibisName = ibis.getClass().getName();

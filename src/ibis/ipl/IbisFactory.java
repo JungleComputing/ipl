@@ -2,6 +2,7 @@
 
 package ibis.ipl;
 
+import ibis.ipl.IbisStarter.IbisStarterInfo;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -26,11 +27,15 @@ import java.util.jar.Manifest;
  * of the manifest of the jar file containing it, in the "Ibis-Starter" entry.
  * This entry should contain a comma- or space-separated list of class names,
  * where each class named provides an {@link IbisStarter} implementation. In
- * addition, a property "IPL-Version" should be defined in the manifest,
+ * addition, a property "Ibis-IPL-Version" should be defined in the manifest,
  * containing a version number (e.g. 2.1).
  */
 public final class IbisFactory {
-
+    
+    private static final String IPL_VERSION_STRING = "Ibis-IPL-Version";
+    private static final String STARTER_STRING = "Ibis-Starter";
+    private static final String IMPLEMENTATION_VERSION_STRING = "Ibis-Implementation-Version";
+    
     // Map of factories. One for each implementation path
     private static final Map<String, IbisFactory> factories =
         new HashMap<String, IbisFactory>();
@@ -59,9 +64,7 @@ public final class IbisFactory {
         }
     }
 
-    private Class<? extends IbisStarter>[] implList;
-
-    private IbisStarter[] starters;
+    private IbisStarterInfo[] implList;
 
     private boolean verbose = false;
 
@@ -77,21 +80,22 @@ public final class IbisFactory {
     private IbisFactory(String implPath, Properties properties) {
         // Obtain a list of Ibis implementations
         ClassLister clstr = ClassLister.getClassLister(implPath);
-        List<Class<? extends IbisStarter>> compnts =
-            clstr.getClassList("Ibis-Starter", IbisStarter.class, VERSION);
+        List<IbisStarterInfo> compnts =
+            clstr.getClassList(STARTER_STRING, IbisStarter.class, VERSION);
         
         // If we found no starters then see if we have starters of last resort
         if (compnts.size() == 0) {
             String startersOfLastResort = properties.getProperty("ibis.starters");
-            ArrayList<Class<? extends IbisStarter>> foundStarters = new ArrayList<Class<? extends IbisStarter>>();
+            ArrayList<IbisStarterInfo> foundStarters = new ArrayList<IbisStarterInfo>();
             if (startersOfLastResort != null) {
                 StringTokenizer st =
                     new StringTokenizer(startersOfLastResort, ",");
                 while (st.hasMoreTokens()) {
                     String starterClassName = st.nextToken();
                         try {
-                                Class<? extends IbisStarter> starterClass = (Class<? extends IbisStarter>) Class.forName(starterClassName);
-                                        foundStarters.add(starterClass);
+                            IbisStarterInfo starterClass = new IbisStarterInfo(
+                                        (Class<? extends IbisStarter>) Class.forName(starterClassName), "dummyVersion");
+                            foundStarters.add(starterClass);
                         }
                         catch (ClassNotFoundException e) {
                             // Error will be thrown later if nothing is found
@@ -99,11 +103,10 @@ public final class IbisFactory {
                 }
                 // Finish the setup based on these found starters
             }
-            implList = (Class<? extends IbisStarter>[]) foundStarters.toArray(new Class[foundStarters.size()]);
+            implList = (IbisStarterInfo[]) foundStarters.toArray(new IbisStarterInfo[foundStarters.size()]);
         } else {
-            implList = (Class<? extends IbisStarter>[]) compnts.toArray(new Class[compnts.size()]);
+            implList = (IbisStarterInfo[]) compnts.toArray(new IbisStarterInfo[compnts.size()]);
         }
-        starters = new IbisStarter[implList.length];
     }
 
     /**
@@ -193,24 +196,25 @@ public final class IbisFactory {
             combinedProperties, portTypes);
     }
 
-    private List<IbisStarter> findIbisStack(IbisCapabilities capabilities,
-            PortType[] portTypes, List<IbisStarter> selected, String ibisName,
+    private List<IbisStarterInfo> findIbisStack(IbisCapabilities capabilities,
+            PortType[] portTypes, List<IbisStarterInfo> selected, String ibisName,
             IbisCreationFailedException creationException) {
 
         IbisCapabilities caps = capabilities;
         PortType[] types = portTypes;
 
         // First try non-stacking Ibis implementations.
-        for (int i = 0; i < starters.length; i++) {
-            IbisStarter starter = starters[i];
+        for (int i = 0; i < implList.length; i++) {
+            IbisStarterInfo starter = implList[i];
+            IbisStarter instance = starter.getInstance();
             // If it is selectable, or an Ibis name was specified,
             // try it.
-            if ((starter.isSelectable() || ibisName != null)
-                    && !starter.isStacking()) {
+            if ((instance.isSelectable() || ibisName != null)
+                    && !instance.isStacking()) {
                 if (verbose) {
                     System.err.println("Matching with " + implList[i]);
                 }
-                if (starter.matches(caps, types)) {
+                if (instance.matches(caps, types)) {
                     selected.add(starter);
                     if (verbose) {
                         System.err.println("Class " + implList[i] + " selected");
@@ -219,8 +223,8 @@ public final class IbisFactory {
                 }
                 // Find out why it did not match.
                 String unmatchedCapabilities =
-                    starter.unmatchedIbisCapabilities().toString();
-                PortType[] unmatchedTypes = starter.unmatchedPortTypes();
+                    instance.unmatchedIbisCapabilities().toString();
+                PortType[] unmatchedTypes = instance.unmatchedPortTypes();
                 StringBuffer str = new StringBuffer();
                 str.append("Unmatched IbisCapabilities: ");
                 str.append(unmatchedCapabilities);
@@ -250,20 +254,21 @@ public final class IbisFactory {
         }
 
         // Now try stacking Ibis implementations.
-        for (int i = 0; i < starters.length; i++) {
-            IbisStarter starter = starters[i];
-            if ((starter.isSelectable() || ibisName != null)
-                    && starter.isStacking() && !selected.contains(starter)
-                    && starter.matches(caps, types)) {
+        for (int i = 0; i < implList.length; i++) {
+            IbisStarterInfo starter = implList[i];
+            IbisStarter instance = starter.getInstance();
+            if ((instance.isSelectable() || ibisName != null)
+                    && instance.isStacking() && !selected.contains(starter)
+                    && instance.matches(caps, types)) {
                 if (verbose) {
                     System.err.println("Class " + implList[i] + " selected");
                 }
-                List<IbisStarter> newList
-                    = new ArrayList<IbisStarter>(selected);
+                List<IbisStarterInfo> newList
+                    = new ArrayList<IbisStarterInfo>(selected);
                 newList.add(starter);
                 newList = findIbisStack(new IbisCapabilities(
-                        starter.unmatchedIbisCapabilities()),
-                        starter.unmatchedPortTypes(),
+                        instance.unmatchedIbisCapabilities()),
+                        instance.unmatchedPortTypes(),
                         newList, null, null);
                 if (newList != null) {
                     return newList;
@@ -390,22 +395,21 @@ public final class IbisFactory {
             throw creationException;
         }
 
-        for (int i = 0; i < implList.length; i++) {
-            Class starterClass = implList[i];
+        for (IbisStarterInfo info : implList) {
             if (verbose) {
-                System.err.println("Instantiating " + starterClass.getName());
+                System.err.println("Instantiating " + info.getName());
             }
 
             // Try to instantiate the starter.
             try {
-                starters[i] = (IbisStarter) starterClass.newInstance();
+                info.createInstance();
             } catch (Throwable e) {
                 // Oops, could not instantiate starter.
-                creationException.add(starterClass.getName(), e);
+                creationException.add(info.getName(), e);
                 faulty = true;
                 if (verbose) {
                     System.err.println("Could not instantiate "
-                            + starterClass.getName() + ": " + e);
+                            + info.getName() + ": " + e);
                 }
                 continue;
             }
@@ -417,9 +421,9 @@ public final class IbisFactory {
             throw creationException;
         }
 
-        List<IbisStarter> stack =
+        List<IbisStarterInfo> stack =
             findIbisStack(requiredCapabilities, portTypes,
-                new ArrayList<IbisStarter>(), ibisName, creationException);
+                new ArrayList<IbisStarterInfo>(), ibisName, creationException);
 
         if (stack == null) {
             creationException.add("Ibis factory",
@@ -427,12 +431,12 @@ public final class IbisFactory {
             throw creationException;
         }
 
-        IbisStarter starter = stack.remove(0);
+        IbisStarterInfo starter = stack.remove(0);
         
         try {
             return starter.startIbis(stack, registryEventHandler, properties);
         } catch(Throwable e) {
-            creationException.add("" + starter.getClass().getName()
+            creationException.add("" + starter.getName()
                     + " gave exception ", e);
             throw creationException;
         }
@@ -598,8 +602,8 @@ public final class IbisFactory {
          * @return the list of classes.
          */
         @SuppressWarnings("unchecked")
-		private List<Class<? extends IbisStarter>> getClassList(String attribName, String version) {
-            ArrayList<Class<? extends IbisStarter>> list = new ArrayList<Class<? extends IbisStarter>>();
+	private List<IbisStarterInfo> getClassList(String attribName, String version) {
+            ArrayList<IbisStarterInfo> list = new ArrayList<IbisStarterInfo>();
 
             for (int i = 0; i < jarFiles.length; i++) {
                 Manifest mf = null;
@@ -612,20 +616,26 @@ public final class IbisFactory {
                 if (mf != null) {
                     Attributes ab = mf.getMainAttributes();
                     if (version != null) {
-                        String jarVersion = ab.getValue("IPL-Version");
+                        String jarVersion = ab.getValue(IPL_VERSION_STRING);
                         if (jarVersion == null
                                 || !jarVersion.startsWith(version)) {
                             continue;
                         }
                     }
                     String classNames = ab.getValue(attribName);
+                    String ibisVersion = ab.getValue(IMPLEMENTATION_VERSION_STRING);
+                    if (ibisVersion == null) {
+                        continue;
+                    }
                     if (classNames != null) {
                         StringTokenizer st =
                             new StringTokenizer(classNames, ", ");
                         while (st.hasMoreTokens()) {
                             String className = st.nextToken();
                             try {
-                                Class<? extends IbisStarter> cl = (Class<? extends IbisStarter>) Class.forName(className, false, ld);
+                                IbisStarterInfo cl = new IbisStarterInfo(
+                                        (Class<? extends IbisStarter>) Class.forName(className,
+                                                false, ld), ibisVersion);
                                 list.add(cl);
                             } catch (Exception e) {
                                 throw new Error("Could not load class "
@@ -658,12 +668,12 @@ public final class IbisFactory {
          *            required version, or null.
          * @return the list of classes.
          */
-        private List<Class<? extends IbisStarter>> getClassList(String attribName, Class<? extends IbisStarter> clazz,
-                String version) {
-            List<Class<? extends IbisStarter>> list = getClassList(attribName, version);
+        private List<IbisStarterInfo> getClassList(String attribName,
+                Class<? extends IbisStarter> clazz, String version) {
+            List<IbisStarterInfo> list = getClassList(attribName, version);
 
-            for (Class<?> cl : list) {
-                if (!clazz.isAssignableFrom(cl)) {
+            for (IbisStarterInfo cl : list) {
+                if (!clazz.isAssignableFrom(cl.getClazz())) {
                     throw new Error("Class " + cl.getName()
                             + " cannot be assigned to class " + clazz.getName());
                 }

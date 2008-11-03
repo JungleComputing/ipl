@@ -106,7 +106,7 @@ public abstract class Ibis implements ibis.ipl.Ibis, IbisMBean {
      */
     protected Ibis(RegistryEventHandler registryHandler,
             IbisCapabilities capabilities, PortType[] portTypes,
-            Properties userProperties) {
+            Properties userProperties, String version) {
 
         this.capabilities = capabilities;
         this.portTypes = portTypes;
@@ -124,21 +124,10 @@ public abstract class Ibis implements ibis.ipl.Ibis, IbisMBean {
         receivePorts = new HashMap<String, ReceivePort>();
         sendPorts = new HashMap<String, SendPort>();
 
-        Class<? extends Ibis> thisClass = this.getClass();
-        Package thisPackage = thisClass.getPackage();
-        String implementationVersionString;
-        // Did we manage to get a package?
-        if (null != thisPackage) {
-            implementationVersionString = "Class: " + thisClass.getName() + "." + thisPackage.getName()
-                    + " Build: " + thisPackage.getImplementationVersion();
-        }
-        else {
-            implementationVersionString = "Class: " + thisClass.getName();
-        }
         try {
             registry =
                 Registry.createRegistry(capabilities, registryHandler,
-                    properties, getData(), implementationVersionString);
+                    properties, getData(), version);
         } catch (IbisConfigurationException e) {
             throw e;
         } catch (Throwable e) {
@@ -148,13 +137,13 @@ public abstract class Ibis implements ibis.ipl.Ibis, IbisMBean {
         ident = registry.getIbisIdentifier();
         
         // add bean to JMX
-		try {
-			MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-			ObjectName name = new ObjectName("ibis.ipl.impl:type=Ibis");
-			mbs.registerMBean(this, name);
-		} catch (Exception e) {
-			logger.warn("cannot registry MBean", e);
-		}
+        try {
+            MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+            ObjectName name = new ObjectName("ibis.ipl.impl:type=Ibis");
+            mbs.registerMBean(this, name);
+        } catch (Exception e) {
+            logger.warn("cannot registry MBean", e);
+        }
     }
 
     public ibis.ipl.Registry registry() {

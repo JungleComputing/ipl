@@ -95,8 +95,8 @@ public final class TcpIbisStarter extends ibis.ipl.IbisStarter {
     }
 
     public Ibis startIbis(RegistryEventHandler registryEventHandler,
-            Properties userProperties) {
+            Properties userProperties, String version) {
         return new TcpIbis(registryEventHandler, capabilities, portTypes,
-                userProperties);
+                userProperties, version);
     }
 }

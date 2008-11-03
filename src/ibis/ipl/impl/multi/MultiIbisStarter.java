@@ -9,7 +9,6 @@ import ibis.ipl.IbisStarter;
 import ibis.ipl.PortType;
 import ibis.ipl.RegistryEventHandler;
 
-import java.util.List;
 import java.util.Properties;
 
 import org.slf4j.Logger;
@@ -54,9 +53,8 @@ public final class MultiIbisStarter extends IbisStarter {
         return portTypes.clone();
     }
 
-    public Ibis startIbis(List<IbisStarter> stack,
-            RegistryEventHandler registryEventHandler,
-            Properties userProperties) {
+    public Ibis startIbis(RegistryEventHandler registryEventHandler,
+            Properties userProperties, String version) {
             try {
                 return new MultiIbis(registryEventHandler, userProperties, capabilities, portTypes);
             } catch (Throwable e) {

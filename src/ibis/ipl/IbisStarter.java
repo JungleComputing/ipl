@@ -18,6 +18,42 @@ public abstract class IbisStarter {
     protected IbisCapabilities capabilities;
     protected PortType[] portTypes;
 
+    public static class IbisStarterInfo {
+        private String version;
+        private Class<? extends IbisStarter> starter;
+        private IbisStarter instance;
+        
+        public IbisStarterInfo(Class<? extends IbisStarter> starter, String version) {
+            this.starter = starter;
+            this.version = version;
+        }
+        
+        public void createInstance() throws InstantiationException, IllegalAccessException {
+            instance = (IbisStarter) starter.newInstance();
+        }
+        
+        public IbisStarter getInstance() {
+            return instance;
+        }
+        
+        public String getName() {
+            return starter.getName();
+        }
+        
+        public Class getClazz() {
+            return starter;
+        }
+        
+        public String getVersion() {
+            return version;
+        }
+        
+        public Ibis startIbis(List<IbisStarterInfo> stack, RegistryEventHandler handler,
+                Properties properties) {
+            return instance.startIbis(stack, handler, properties, version);
+        }
+    }
+
     /**
      * Constructs an <code>IbisStarter</code>.
      */
@@ -93,8 +129,8 @@ public abstract class IbisStarter {
      *          the user properties.
      */
     public Ibis startIbis(RegistryEventHandler handler,
-            Properties userProperties) {
-        throw new Error("startIbis(RegistryEventHandler, Properties) "
+            Properties userProperties, String IbisImplementationVersion) {
+        throw new Error("startIbis(RegistryEventHandler, Properties, String) "
                 + "not implemented");
     }
 
@@ -109,12 +145,13 @@ public abstract class IbisStarter {
      * @param userProperties
      *          the user properties.
      */
-    public Ibis startIbis(List<IbisStarter> stack,
-            RegistryEventHandler handler, Properties userProperties) {
+    public Ibis startIbis(List<IbisStarterInfo> stack,
+            RegistryEventHandler handler, Properties userProperties,
+            String IbisImplementationVersion) {
         if (stack.size() == 0) {
-            return startIbis(handler, userProperties);
+            return startIbis(handler, userProperties, IbisImplementationVersion);
         }
-        throw new Error("startIbis(List<IbisStarter>, RegistryEventHandler, "
-                + "Properties) not implemented");
+        throw new Error("startIbis(List<IbisStarterInfo>, RegistryEventHandler, "
+                + "Properties, String) not implemented");
     }
 }

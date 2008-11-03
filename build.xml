@@ -102,8 +102,8 @@
             <manifest>
                 <attribute name="Ibis-Starter"
                            value="ibis.ipl.impl.tcp.TcpIbisStarter" />
-                <attribute name="IPL-Version" value="2.0" />
-                <attribute name="Implementation-Version" value="${TIMESTAMP}" />
+                <attribute name="Ibis-IPL-Version" value="2.0" />
+                <attribute name="Ibis-Implementation-Version" value="${TIMESTAMP}" />
             </manifest>
         </jar>
         <jar destfile="lib/ipl-impl-nio${version}.jar">
@@ -112,8 +112,8 @@
             <manifest>
                 <attribute name="Ibis-Starter"
                            value="ibis.ipl.impl.nio.NioIbisStarter" />
-                <attribute name="IPL-Version" value="2.0" />
-                <attribute name="Implementation-Version" value="${TIMESTAMP}" />
+                <attribute name="Ibis-IPL-Version" value="2.0" />
+                <attribute name="Ibis-Implementation-Version" value="${TIMESTAMP}" />
             </manifest>
         </jar>
         <jar destfile="lib/ipl-impl-dummy${version}.jar">
@@ -123,8 +123,19 @@
             <manifest>
                 <attribute name="Ibis-Starter"
                            value="ibis.ipl.impl.stacking.dummy.StackingIbisStarter" />
-                <attribute name="IPL-Version" value="2.0" />
-                <attribute name="Implementation-Version" value="${TSTAMP}" />
+                <attribute name="Ibis-IPL-Version" value="2.0" />
+                <attribute name="Ibis-Implementation-Version" value="${TIMESTAMP}" />
+            </manifest>
+        </jar>
+        <jar destfile="lib/ipl-impl-lrmc${version}.jar">
+            <fileset dir="${tmp}"
+                     includes="ibis/ipl/impl/stacking/lrmc/**/*.class" />
+            <fileset dir="." includes="LICENSE.txt" />
+            <manifest>
+                <attribute name="Ibis-Starter"
+                           value="ibis.ipl.impl.stacking.lrmc.LrmcIbisStarter" />
+                <attribute name="Ibis-IPL-Version" value="2.0" />
+                <attribute name="Ibis-Implementation-Version" value="${TIMESTAMP}" />
             </manifest>
         </jar>
 
