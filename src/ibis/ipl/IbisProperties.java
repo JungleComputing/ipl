@@ -57,14 +57,18 @@ public final class IbisProperties {
 
     /** Property name for specifying the implementation of the registry. */
     public static final String REGISTRY_IMPLEMENTATION = PREFIX + "registry.implementation";
-
-    /**
-     * Property name for location.
+    
+    /** 
+     * Property name for specifying ibis starter classes in case they cannot
+     * be read from a jar manifest.
      */
+    public static final String IBIS_STARTERS = PREFIX + "starters";
+
+    /** Property name for location. */
     public static final String LOCATION = PREFIX + "location";
 
     /**
-     * Property name for specifying a postfix for an automatically generated location
+     * Property name for specifying a postfix for an automatically generated location.
      */
     public static final String LOCATION_POSTFIX =
         PREFIX + "location.postfix";
@@ -107,6 +111,7 @@ public final class IbisProperties {
                 { REGISTRY_IMPLEMENTATION, "central",
                     "Nickname or classname of the implementation of the registry. Not all Ibis implementations use this property" },
 
+                { IBIS_STARTERS, null, "List of ibis starter classes in case they cannot be read from jar manifests" },
             };
 
     private static Properties defaultProperties;

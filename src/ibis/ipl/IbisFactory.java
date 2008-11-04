@@ -82,14 +82,14 @@ public final class IbisFactory {
         ClassLister clstr = ClassLister.getClassLister(implPath);
         List<IbisStarterInfo> compnts =
             clstr.getClassList(STARTER_STRING, IbisStarter.class, VERSION);
-        
+                       
         // If we found no starters then see if we have starters of last resort
         if (compnts.size() == 0) {
-            String startersOfLastResort = properties.getProperty("ibis.starters");
+            String startersOfLastResort = properties.getProperty(IbisProperties.IBIS_STARTERS);
             ArrayList<IbisStarterInfo> foundStarters = new ArrayList<IbisStarterInfo>();
             if (startersOfLastResort != null) {
                 StringTokenizer st =
-                    new StringTokenizer(startersOfLastResort, ",");
+                    new StringTokenizer(startersOfLastResort, ", ");
                 while (st.hasMoreTokens()) {
                     String starterClassName = st.nextToken();
                         try {
