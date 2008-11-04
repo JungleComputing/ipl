@@ -19,13 +19,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
-import java.lang.management.ManagementFactory;
+// import java.lang.management.ManagementFactory;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import javax.management.MBeanServer;
-import javax.management.ObjectName;
+// import javax.management.MBeanServer;
+// import javax.management.ObjectName;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +34,8 @@ import org.slf4j.LoggerFactory;
  * This implementation of the {@link ibis.ipl.Ibis} interface is a base class,
  * to be extended by specific Ibis implementations.
  */
-public abstract class Ibis implements ibis.ipl.Ibis, IbisMBean {
+public abstract class Ibis implements ibis.ipl.Ibis //, IbisMBean
+{
 
     /** Debugging output. */
     private static final Logger logger = LoggerFactory.getLogger("ibis.ipl.impl.Ibis");
@@ -135,7 +136,8 @@ public abstract class Ibis implements ibis.ipl.Ibis, IbisMBean {
         }
 
         ident = registry.getIbisIdentifier();
-        
+
+        /*
         // add bean to JMX
         try {
             MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
@@ -144,6 +146,7 @@ public abstract class Ibis implements ibis.ipl.Ibis, IbisMBean {
         } catch (Exception e) {
             logger.warn("cannot registry MBean", e);
         }
+        */
     }
 
     public ibis.ipl.Registry registry() {
