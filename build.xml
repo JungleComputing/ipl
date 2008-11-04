@@ -142,6 +142,37 @@
         <delete dir="${tmp}" />
     </target>
 
+    <target name="AllInOne"
+	    description="Creates a single jar file containing all IPL stuff, util, io, server, compile"
+	    depends="compile-ipl">
+	<mkdir dir="${tmp}"/>
+	<unjar src="lib/ibis-io${version}.jar" dest="${tmp}"/>
+	<unjar src="lib/ibis-util${version}.jar" dest="${tmp}"/>
+	<unjar src="lib/ibis-compile${version}.jar" dest="${tmp}"/>
+	<unjar src="lib/ibis-server${version}.jar" dest="${tmp}"/>
+	<unjar src="lib/ibis-poolinfo${version}.jar" dest="${tmp}"/>
+	<unjar src="lib/ipl${version}.jar" dest="${tmp}"/>
+	<unjar src="lib/ipl-impl${version}.jar" dest="${tmp}"/>
+	<unjar src="lib/ipl-impl-nio${version}.jar" dest="${tmp}"/>
+	<unjar src="lib/ipl-impl-tcp${version}.jar" dest="${tmp}"/>
+	<unjar src="lib/ipl-impl-dummy${version}.jar" dest="${tmp}"/>
+	<unjar src="lib/ipl-impl-lrmc${version}.jar" dest="${tmp}"/>
+	<delete>
+	    <fileset dir="lib" includes="ibis*.jar,ipl*.jar"/>
+	</delete>
+
+	<jar destfile="lib/ibis-allinone${version}.jar" basedir="${tmp}">
+	    <manifest>
+		<attribute name="Ibisc-Component" value="ibis.io.rewriter.IOGenerator"/>
+		<attribute name="Ibis-IPL-Version" value="2.0" />
+		<attribute name="Ibis-Implementation-Version" value="${TIMESTAMP}" />
+		<attribute name="Ibis-Starter" value="ibis.ipl.impl.stacking.lrmc.LrmcIbisStarter,ibis.ipl.impl.stacking.dummy.StackingIbisStarter,ibis.ipl.impl.nio.NioIbisStarter,ibis.ipl.impl.tcp.TcpIbisStarter"/>
+		<attribute name="Ibis-Service" value="ibis.poolInfo.Service,ibis.ipl.impl.registry.central.server.Server,ibis.ipl.impl.registry.gossip.BootstrapService" />
+	    </manifest>
+	</jar>
+	<delete dir="${tmp}"/>
+    </target>
+
     <!-- Clean up everything except the rewritten classlibs -->
     <target name="clean" description="Clean up (leaves rewritten classlibs)">
         <delete dir="${tmp}" />
