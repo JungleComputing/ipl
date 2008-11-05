@@ -40,7 +40,7 @@ public abstract class IbisStarter {
             return starter.getName();
         }
         
-        public Class getClazz() {
+        public Class<? extends IbisStarter> getClazz() {
             return starter;
         }
         
