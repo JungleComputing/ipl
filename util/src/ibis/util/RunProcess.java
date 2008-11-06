@@ -230,14 +230,14 @@ public final class RunProcess {
     }
     
     /**
-     * @see ProcessBuilder#command().
+     * @see ProcessBuilder#command()
      */
     public List<String> command() {
         return builder.command();
     }
     
     /**
-     * @see ProcessBuilder#command(List).
+     * @see ProcessBuilder#command(List)
      */
     public RunProcess command(List<String> command) {
         builder.command(command);
@@ -245,7 +245,7 @@ public final class RunProcess {
     }
     
     /**
-     * @see ProcessBuilder#command(String...).
+     * @see ProcessBuilder#command(String...)
      */
     public RunProcess command(String... command) {
         builder.command(command);
@@ -253,35 +253,35 @@ public final class RunProcess {
     }
     
     /**
-     * @see ProcessBuilder#directory().
+     * @see ProcessBuilder#directory()
      */
     public File directory() {
         return builder.directory();
     }
     
     /**
-     * @see ProcessBuilder#directory(File).
+     * @see ProcessBuilder#directory(File)
      */
     public ProcessBuilder directory(File directory) {
         return builder.directory(directory);
     }
 
     /**
-     * @see ProcessBuilder#environment().
+     * @see ProcessBuilder#environment()
      */
     public Map<String, String> environment() {
         return builder.environment();
     }
     
     /**
-     * @see ProcessBuilder#redirectErrorStream().
+     * @see ProcessBuilder#redirectErrorStream()
      */
     public boolean redirectErrorStream() {
         return builder.redirectErrorStream();
     }
 
     /**
-     * @see ProcessBuilder#redirectErrorStream(boolean).
+     * @see ProcessBuilder#redirectErrorStream(boolean)
      */
     public RunProcess redirectErrorStream(boolean redirectErrorStream) {
         builder.redirectErrorStream(redirectErrorStream);
@@ -289,7 +289,7 @@ public final class RunProcess {
     }
     
     /**
-     * @see ProcessBuilder#start().
+     * @see ProcessBuilder#start()
      */
     public Process start() throws IOException {
         return builder.start();

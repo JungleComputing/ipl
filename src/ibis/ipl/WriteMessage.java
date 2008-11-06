@@ -42,7 +42,7 @@ import java.io.IOException;
  * pushed into this message.
  * It is only safe to touch the data after it has actually been
  * sent, which can be ensured by either calling {@link #flush},
- * {@link #finish} or {@link #reset},
+ * {@link  WriteMessage#finish()} or {@link #reset},
  * or a {@link #send} followed by a corresponding {@link #sync}.
  */
 

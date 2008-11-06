@@ -113,10 +113,10 @@ class ARRG extends Thread {
     }
 
     /**
-     * If we have not had any sucessfull gossip for DEAD_TIMEOUT, declare this
+     * If we have not had any sucessful gossip for DEAD_TIMEOUT, declare this
      * pool dead
      * 
-     * @return
+     * @return true if this pool is dead
      */
     synchronized boolean isDead() {
         return System.currentTimeMillis() > lastGossip + DEAD_TIMEOUT;

@@ -43,7 +43,7 @@ public final class MultiIbisIdentifier implements IbisIdentifier {
     /**
      * Constructs an <code>IbisIdentifier</code> with the specified parameters.
      * @param id join id, allocated by the registry.
-     * @param implementationData implementation-dependent data.
+     * @param idMap implementation-dependent data.
      * @param registryData registry-dependent data.
      * @param location location of this Ibis instance.
      * @param pool identifies the run with the registry.

@@ -65,11 +65,11 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
      *            Registry handler to pass events to.
      * @param userProperties
      *            properties of this registry.
-     * @param data
+     * @param ibisData
      *            Ibis implementation data to attach to the IbisIdentifier.
      * @param ibisImplementationIdentifier
      *            the identification of this ibis implementation, including
-     *            version, class and such. Must be identical for all Ibisses in
+     *            version, class and such. Must be identical for all Ibises in
      *            a single poolName.
      * @throws IOException
      *             in case of trouble.
