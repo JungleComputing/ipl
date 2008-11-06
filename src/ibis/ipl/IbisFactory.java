@@ -94,7 +94,7 @@ public final class IbisFactory {
                     String starterClassName = st.nextToken();
                         try {
                             IbisStarterInfo starterClass = new IbisStarterInfo(
-                                        (Class<? extends IbisStarter>) Class.forName(starterClassName), "dummyVersion");
+                                        (Class<? extends IbisStarter>) Class.forName(starterClassName), "");
                             foundStarters.add(starterClass);
                         }
                         catch (ClassNotFoundException e) {

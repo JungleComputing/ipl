@@ -65,7 +65,7 @@ final class Pool implements Runnable {
 
 	private final String name;
 
-	private final String ibisImplementationIdentifier;
+	private String ibisImplementationIdentifier;
 
 	private final boolean closedWorld;
 
@@ -272,13 +272,23 @@ final class Pool implements Runnable {
 			throw new IOException("Pool already closed");
 		}
 
-		if (!ibisImplementationIdentifier
-				.equals(this.ibisImplementationIdentifier)) {
-			throw new IOException("Ibis implementation "
-					+ ibisImplementationIdentifier
-					+ " does not match pool's Ibis implementation: "
-					+ this.ibisImplementationIdentifier);
+		// On Android, the implementation identifier set to an empty string,
+		// because it cannot be extracted from a jar file. So, we allow for that
+		// as well.
+		if (! ibisImplementationIdentifier.equals("")) {
+		    if (this.ibisImplementationIdentifier.equals("")) {
+		        this.ibisImplementationIdentifier = ibisImplementationIdentifier;
+		    } else {
+		        if (!ibisImplementationIdentifier
+		                .equals(this.ibisImplementationIdentifier)) {
+		            throw new IOException("Ibis implementation "
+		                    + ibisImplementationIdentifier
+		                    + " does not match pool's Ibis implementation: "
+		                    + this.ibisImplementationIdentifier);
+		        }
+		    }
 		}
+
 		logger.debug("ibis version: " + ibisImplementationIdentifier);
 
 		String id = Integer.toString(nextID);
