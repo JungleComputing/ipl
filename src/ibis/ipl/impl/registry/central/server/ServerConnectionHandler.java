@@ -10,6 +10,7 @@ import ibis.smartsockets.virtual.VirtualSocketFactory;
 import ibis.util.ThreadPool;
 
 import java.io.IOException;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -310,6 +311,22 @@ final class ServerConnectionHandler implements Runnable {
         return pool;
 
     }
+    
+    private void handleGetStats(Connection connection) throws Exception {
+        connection.sendOKReply();
+        
+        Map<String,String> result = server.getStats();
+        
+        connection.out().writeInt(result.size());
+        for(Map.Entry<String,String> entry: result.entrySet()) {
+            connection.out().writeUTF(entry.getKey());
+            if (entry.getValue() == null) {
+                connection.out().writeUTF("");
+            } else {
+                connection.out().writeUTF(entry.getValue());
+            }
+        }
+    }
 
     private synchronized void createThread() {
         while (currentNrOfThreads >= MAX_THREADS) {
@@ -420,6 +437,9 @@ final class ServerConnectionHandler implements Runnable {
                 break;
             case Protocol.OPCODE_TERMINATE:
                 pool = handleTerminate(connection);
+                break;
+            case Protocol.OPCODE_GET_STATS:
+                handleGetStats(connection);
                 break;
             default:
                 logger.error("unknown opcode: " + opcode);
