@@ -6,11 +6,9 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.InvalidObjectException;
 import java.io.NotActiveException;
-import java.io.ObjectStreamClass;
 import java.io.ObjectInputStream;
+import java.io.ObjectStreamClass;
 import java.io.StreamCorruptedException;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.Hashtable;
 
 import org.slf4j.Logger;
@@ -42,56 +40,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
     // if STATS_NONREWRITTEN
     static Hashtable<Class<?>, Integer> nonRewritten = null;
 
-    // Only works as of Java 1.4, earlier versions of Java don't have Unsafe.
-    // Use introspection, so that it at least compiles on systems that don't
-    // have unsafe.
-    private static Object unsafe = null;
-    private static Method unsafeObjectFieldOffsetMethod;
-    private static Method unsafePutDoubleMethod;
-    private static Method unsafePutLongMethod;
-    private static Method unsafePutFloatMethod;
-    private static Method unsafePutIntMethod;
-    private static Method unsafePutShortMethod;
-    private static Method unsafePutCharMethod;
-    private static Method unsafePutBooleanMethod;
-    private static Method unsafePutByteMethod;
-    private static Method unsafePutObjectMethod;
-
     static {
-        try {
-            // unsafe = Unsafe.getUnsafe();
-            // does not work when a classloader is present, so we get it
-            // from ObjectStreamClass.
-            Class<?> cl
-                = Class.forName("java.io.ObjectStreamClass$FieldReflector");
-            Field uf = cl.getDeclaredField("unsafe");
-            uf.setAccessible(true);
-            unsafe = uf.get(null);
-            cl = unsafe.getClass();
-            unsafeObjectFieldOffsetMethod = cl.getMethod(
-                    "objectFieldOffset", new Class[] {Field.class});
-            unsafePutDoubleMethod = cl.getMethod(
-                    "putDouble", new Class[] {Object.class, Long.TYPE, Double.TYPE});
-            unsafePutLongMethod = cl.getMethod(
-                    "putLong", new Class[] {Object.class, Long.TYPE, Long.TYPE});
-            unsafePutFloatMethod = cl.getMethod(
-                    "putFloat", new Class[] {Object.class, Long.TYPE, Float.TYPE});
-            unsafePutIntMethod = cl.getMethod(
-                    "putInt", new Class[] {Object.class, Long.TYPE, Integer.TYPE});
-            unsafePutShortMethod = cl.getMethod(
-                    "putShort", new Class[] {Object.class, Long.TYPE, Short.TYPE});
-            unsafePutCharMethod = cl.getMethod(
-                    "putChar", new Class[] {Object.class, Long.TYPE, Character.TYPE});
-            unsafePutByteMethod = cl.getMethod(
-                    "putByte", new Class[] {Object.class, Long.TYPE, Byte.TYPE});
-            unsafePutBooleanMethod = cl.getMethod(
-                    "putBoolean", new Class[] {Object.class, Long.TYPE, Boolean.TYPE});
-            unsafePutObjectMethod = cl.getMethod(
-                    "putObject", new Class[] {Object.class, Long.TYPE, Object.class});
-        } catch (Throwable e) {
-            System.out.println("Got exception while getting unsafe: " + e);
-            unsafe = null;
-        }
         if (STATS_NONREWRITTEN) {
             nonRewritten = new Hashtable<Class<?>, Integer>();
             System.out.println("IbisSerializationInputStream.STATS_NONREWRITTEN"
@@ -106,8 +55,6 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
                     });
         }
     }
-
-    private static ClassLoader customClassLoader;
 
     /** List of objects, for cycle checking. */
     private IbisVector objects;
@@ -188,20 +135,6 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
     /** <code>AlternativeTypeInfo</code> for <code>double</code> arrays. */
     private static AlternativeTypeInfo doubleArrayInfo
             = AlternativeTypeInfo.getAlternativeTypeInfo(Constants.classDoubleArray);
-
-    static {
-        String clName = System.getProperty(IOProperties.s_classloader);
-        if (clName != null) {
-            //we try to instanciate it
-            try {
-                Class<?> classDefinition = Class.forName(clName);
-                customClassLoader = (ClassLoader) classDefinition.newInstance();
-            } catch (Exception e) {
-                logger.warn("Warning: could not find or load custom "
-                        + "classloader " + clName, e);
-            }
-        }
-    }
 
     /**
      * Constructor with a <code>DataInputStream</code>.
@@ -678,7 +611,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
         readType(handle & Constants.TYPE_MASK);
 
         String s = readUTF();
-        Class<?> c = getClassFromName(s);
+        Class<?> c = JavaDependantStuff.getClassFromName(s);
 
         addObjectToCycleCheck(c);
         if (TIME_IBIS_SERIALIZATION) {
@@ -854,88 +787,6 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
         }
     }
 
-    /**
-     * This method tries to load a class given its name. It tries the
-     * default classloader, and the one from the thread context. Also,
-     * apparently some classloaders do not understand array classes, and
-     * from the Java documentation, it is not clear that they should.
-     * Therefore, if the typeName indicates an array type, and the
-     * obvious attempts to load the class fail, this method also tries
-     * to load the base type of the array.
-     *
-     * @param typeName	the name of the type to be loaded
-     * @exception ClassNotFoundException is thrown when the class could
-     * not be loaded.
-     * @return the loaded class
-     */
-    Class<?> getClassFromName(String typeName)
-            throws ClassNotFoundException {
-        try {
-            return Class.forName(typeName);
-        } catch (ClassNotFoundException e) {
-            try {
-                if (DEBUG && logger.isDebugEnabled()) {
-                    logger.debug("Could not load class " + typeName
-                            + " using Class.forName(), trying "
-                            + "Thread.currentThread()."
-                            + "getContextClassLoader().loadClass()");
-                    logger.debug("Default class loader is "
-                            + this.getClass().getClassLoader());
-                    logger.debug("now trying "
-                            + Thread.currentThread().getContextClassLoader());
-                }
-                return Thread.currentThread().getContextClassLoader()
-                        .loadClass(typeName);
-            } catch (ClassNotFoundException e2) {
-                int dim = 0;
-
-                /* Some classloaders are not able to load array classes.
-                 * Therefore, if the name
-                 * describes an array, try again with the base type.
-                 */
-                if (typeName.length() > 0 && typeName.charAt(0) == '[') {
-                    char[] s = typeName.toCharArray();
-                    while (dim < s.length && s[dim] == '[') {
-                        dim++;
-                    }
-                    int begin = dim;
-                    int end = s.length;
-                    if (dim < s.length && s[dim] == 'L') {
-                        begin++;
-                    }
-                    if (s[end - 1] == ';') {
-                        end--;
-                    }
-                    typeName = typeName.substring(begin, end);
-
-                    int dims[] = new int[dim];
-                    for (int i = 0; i < dim; i++)
-                        dims[i] = 0;
-
-                    /* Now try to load the base class, create an array
-                     * from it and then return its class.
-                     */
-                    return java.lang.reflect.Array.newInstance(
-                            getClassFromName(typeName), dims).getClass();
-                }
-                return loadClassFromCustomCL(typeName);
-            }
-        }
-    }
-
-    private Class<?> loadClassFromCustomCL(String className)
-            throws ClassNotFoundException {
-        if (DEBUG && logger.isDebugEnabled()) {
-            System.out.println("loadClassTest " + className);
-        }
-        if (customClassLoader == null) {
-            throw new ClassNotFoundException(className);
-        }
-        if (DEBUG && logger.isDebugEnabled()) {
-            System.out.println("******* Calling custom classloader");
-        }
-        return customClassLoader.loadClass(className);
-    }
 
     /**
      * Returns the <code>AlternativeTypeInfo</code> corresponding to the type
@@ -970,7 +821,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
                     + " type " + typeName);
         }
 
-        Class<?> clazz = getClassFromName(typeName);
+        Class<?> clazz = JavaDependantStuff.getClassFromName(typeName);
 
         AlternativeTypeInfo t = AlternativeTypeInfo.getAlternativeTypeInfo(clazz);
 
@@ -997,18 +848,12 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
     public void readFieldDouble(Object ref, String fieldname, String classname)
             throws IOException {
         double d = readDouble();
-        if (unsafe != null) {
-            try {
-                Class<?> cl = getClassFromName(classname);
-                Field f = cl.getDeclaredField(fieldname);
-                Object key = unsafeObjectFieldOffsetMethod.invoke(unsafe, f);
-                unsafePutDoubleMethod.invoke(unsafe, ref, key, d);
-                return;
-            } catch (Throwable ex) {
-                throw new IbisIOException("got exception", ex);
-            }
+        try {
+            AlternativeTypeInfo t = AlternativeTypeInfo.getAlternativeTypeInfo(classname);
+            t.javaDependantStuff.setFieldDouble(ref, fieldname, d);
+        } catch (Throwable ex) {
+            throw new IbisIOException("got exception", ex);
         }
-        throw new IOException("No unsafe");
     }
 
     /**
@@ -1017,18 +862,12 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
     public void readFieldLong(Object ref, String fieldname, String classname)
             throws IOException {
         long d = readLong();
-        if (unsafe != null) {
-            try {
-                Class<?> cl = getClassFromName(classname);
-                Field f = cl.getDeclaredField(fieldname);
-                Object key = unsafeObjectFieldOffsetMethod.invoke(unsafe, f);
-                unsafePutLongMethod.invoke(unsafe, ref, key, d);
-                return;
-            } catch (Throwable ex) {
-                throw new IbisIOException("got exception", ex);
-            }
+        try {
+            AlternativeTypeInfo t = AlternativeTypeInfo.getAlternativeTypeInfo(classname);
+            t.javaDependantStuff.setFieldLong(ref, fieldname, d);
+        } catch (Throwable ex) {
+            throw new IbisIOException("got exception", ex);
         }
-        throw new IOException("No unsafe");
     }
 
     /**
@@ -1037,18 +876,12 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
     public void readFieldFloat(Object ref, String fieldname, String classname)
             throws IOException {
         float d = readFloat();
-        if (unsafe != null) {
-            try {
-                Class<?> cl = getClassFromName(classname);
-                Field f = cl.getDeclaredField(fieldname);
-                Object key = unsafeObjectFieldOffsetMethod.invoke(unsafe, f);
-                unsafePutFloatMethod.invoke(unsafe, ref, key, d);
-                return;
-            } catch (Throwable ex) {
-                throw new IbisIOException("got exception", ex);
-            }
+        try {
+            AlternativeTypeInfo t = AlternativeTypeInfo.getAlternativeTypeInfo(classname);
+            t.javaDependantStuff.setFieldFloat(ref, fieldname, d);
+        } catch (Throwable ex) {
+            throw new IbisIOException("got exception", ex);
         }
-        throw new IOException("No unsafe");
     }
 
     /**
@@ -1057,18 +890,12 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
     public void readFieldInt(Object ref, String fieldname, String classname)
             throws IOException {
         int d = readInt();
-        if (unsafe != null) {
-            try {
-                Class<?> cl = getClassFromName(classname);
-                Field f = cl.getDeclaredField(fieldname);
-                Object key = unsafeObjectFieldOffsetMethod.invoke(unsafe, f);
-                unsafePutIntMethod.invoke(unsafe, ref, key, d);
-                return;
-            } catch (Throwable ex) {
-                throw new IbisIOException("got exception", ex);
-            }
+        try {
+            AlternativeTypeInfo t = AlternativeTypeInfo.getAlternativeTypeInfo(classname);
+            t.javaDependantStuff.setFieldInt(ref, fieldname, d);
+        } catch (Throwable ex) {
+            throw new IbisIOException("got exception", ex);
         }
-        throw new IOException("No unsafe");
     }
 
     /**
@@ -1077,18 +904,12 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
     public void readFieldShort(Object ref, String fieldname, String classname)
             throws IOException {
         short d = readShort();
-        if (unsafe != null) {
-            try {
-                Class<?> cl = getClassFromName(classname);
-                Field f = cl.getDeclaredField(fieldname);
-                Object key = unsafeObjectFieldOffsetMethod.invoke(unsafe, f);
-                unsafePutShortMethod.invoke(unsafe, ref, key, d);
-                return;
-            } catch (Throwable ex) {
-                throw new IbisIOException("got exception", ex);
-            }
+        try {
+            AlternativeTypeInfo t = AlternativeTypeInfo.getAlternativeTypeInfo(classname);
+            t.javaDependantStuff.setFieldShort(ref, fieldname, d);
+        } catch (Throwable ex) {
+            throw new IbisIOException("got exception", ex);
         }
-        throw new IOException("No unsafe");
     }
 
     /**
@@ -1097,18 +918,12 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
     public void readFieldChar(Object ref, String fieldname, String classname)
             throws IOException {
         char d = readChar();
-        if (unsafe != null) {
-            try {
-                Class<?> cl = getClassFromName(classname);
-                Field f = cl.getDeclaredField(fieldname);
-                Object key = unsafeObjectFieldOffsetMethod.invoke(unsafe, f);
-                unsafePutCharMethod.invoke(unsafe, ref, key, d);
-                return;
-            } catch (Throwable ex) {
-                throw new IbisIOException("got exception", ex);
-            }
+        try {
+            AlternativeTypeInfo t = AlternativeTypeInfo.getAlternativeTypeInfo(classname);
+            t.javaDependantStuff.setFieldChar(ref, fieldname, d);
+        } catch (Throwable ex) {
+            throw new IbisIOException("got exception", ex);
         }
-        throw new IOException("No unsafe");
     }
 
     /**
@@ -1117,18 +932,12 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
     public void readFieldByte(Object ref, String fieldname, String classname)
             throws IOException {
         byte d = readByte();
-        if (unsafe != null) {
-            try {
-                Class<?> cl = getClassFromName(classname);
-                Field f = cl.getDeclaredField(fieldname);
-                Object key = unsafeObjectFieldOffsetMethod.invoke(unsafe, f);
-                unsafePutByteMethod.invoke(unsafe, ref, key, d);
-                return;
-            } catch (Throwable ex) {
-                throw new IbisIOException("got exception", ex);
-            }
+        try {
+            AlternativeTypeInfo t = AlternativeTypeInfo.getAlternativeTypeInfo(classname);
+            t.javaDependantStuff.setFieldByte(ref, fieldname, d);
+        } catch (Throwable ex) {
+            throw new IbisIOException("got exception", ex);
         }
-        throw new IOException("No unsafe");
     }
 
     /**
@@ -1137,18 +946,12 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
     public void readFieldBoolean(Object ref, String fieldname, String classname)
             throws IOException {
         boolean d = readBoolean();
-        if (unsafe != null) {
-            try {
-                Class<?> cl = getClassFromName(classname);
-                Field f = cl.getDeclaredField(fieldname);
-                Object key = unsafeObjectFieldOffsetMethod.invoke(unsafe, f);
-                unsafePutBooleanMethod.invoke(unsafe, ref, key, d);
-                return;
-            } catch (Throwable ex) {
-                throw new IbisIOException("got exception", ex);
-            }
+        try {
+            AlternativeTypeInfo t = AlternativeTypeInfo.getAlternativeTypeInfo(classname);
+            t.javaDependantStuff.setFieldBoolean(ref, fieldname, d);
+        } catch (Throwable ex) {
+            throw new IbisIOException("got exception", ex);
         }
-        throw new IOException("No unsafe");
     }
 
     /**
@@ -1157,18 +960,12 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
     public void readFieldString(Object ref, String fieldname, String classname)
             throws IOException {
         String d = readString();
-        if (unsafe != null) {
-            try {
-                Class<?> cl = getClassFromName(classname);
-                Field f = cl.getDeclaredField(fieldname);
-                Object key = unsafeObjectFieldOffsetMethod.invoke(unsafe, f);
-                unsafePutObjectMethod.invoke(unsafe, ref, key, d);
-                return;
-            } catch (Throwable ex) {
-                throw new IbisIOException("got exception", ex);
-            }
+        try {
+            AlternativeTypeInfo t = AlternativeTypeInfo.getAlternativeTypeInfo(classname);
+            t.javaDependantStuff.setFieldString(ref, fieldname, d);
+        } catch (Throwable ex) {
+            throw new IbisIOException("got exception", ex);
         }
-        throw new IOException("No unsafe");
     }
 
     /**
@@ -1178,18 +975,12 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
     public void readFieldClass(Object ref, String fieldname, String classname)
             throws IOException, ClassNotFoundException {
         Class<?> d = readClass();
-        if (unsafe != null) {
-            try {
-                Class<?> cl = getClassFromName(classname);
-                Field f = cl.getDeclaredField(fieldname);
-                Object key = unsafeObjectFieldOffsetMethod.invoke(unsafe, f);
-                unsafePutObjectMethod.invoke(unsafe, ref, key, d);
-                return;
-            } catch (Throwable ex) {
-                throw new IbisIOException("got exception", ex);
-            }
+        try {
+            AlternativeTypeInfo t = AlternativeTypeInfo.getAlternativeTypeInfo(classname);
+            t.javaDependantStuff.setFieldClass(ref, fieldname, d);
+        } catch (Throwable ex) {
+            throw new IbisIOException("got exception", ex);
         }
-        throw new IOException("No unsafe");
     }
 
     /**
@@ -1200,21 +991,12 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
     public void readFieldObject(Object ref, String fieldname, String classname,
             String fieldsig) throws IOException, ClassNotFoundException {
         Object d = doReadObject(false);
-        if (unsafe != null) {
-            try {
-                Class<?> cl = getClassFromName(classname);
-                Field f = cl.getDeclaredField(fieldname);
-                if (d != null && !f.getType().isInstance(d)) {
-                    throw new IbisIOException("wrong field type");
-                }
-                Object key = unsafeObjectFieldOffsetMethod.invoke(unsafe, f);
-                unsafePutObjectMethod.invoke(unsafe, ref, key, d);
-                return;
-            } catch (Throwable ex) {
-                throw new IbisIOException("got exception", ex);
-            }
+        try {
+            AlternativeTypeInfo t = AlternativeTypeInfo.getAlternativeTypeInfo(classname);
+            t.javaDependantStuff.setFieldObject(ref, fieldname, d, fieldsig);
+        } catch (Throwable ex) {
+            throw new IbisIOException("got exception", ex);
         }
-        throw new IOException("No unsafe");
     }
 
     /**
@@ -1466,7 +1248,7 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
      */
     public Object create_uninitialized_object(String classname)
             throws ClassNotFoundException, IOException {
-        Class<?> clazz = getClassFromName(classname);
+        Class<?> clazz = JavaDependantStuff.getClassFromName(classname);
         return create_uninitialized_object(clazz);
     }
 

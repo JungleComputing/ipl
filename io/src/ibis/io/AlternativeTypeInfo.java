@@ -160,7 +160,7 @@ final class AlternativeTypeInfo {
                 AlternativeTypeInfo t, int typeHandle)
                 throws IOException, ClassNotFoundException {
             String o = in.readUTF();
-            Object obj = in.getClassFromName(o);
+            Object obj = JavaDependantStuff.getClassFromName(o);
             in.addObjectToCycleCheck(obj);
             return obj;
         }
@@ -231,9 +231,11 @@ final class AlternativeTypeInfo {
      * <code>AlternativeTypeInfo</code> structure.
      */
     Class<?> clazz;
-
-    /** The ObjectStreamClass of clazz. */
-    private ObjectStreamClass objectStreamClass;
+    
+    /**
+     * Some Java-implementation-dependant stuff resides here.
+     */
+    JavaDependantStuff javaDependantStuff;
 
     /** The sorted list of serializable fields. */
     Field[] serializable_fields;
@@ -392,17 +394,7 @@ final class AlternativeTypeInfo {
      * Return null if it fails for some reason.
      */
     Object newInstance() {
-        if (newInstance != null) {
-            try {
-                return newInstance.invoke(objectStreamClass,
-                        (java.lang.Object[]) null);
-            } catch (Exception e) {
-                // System.out.println("newInstance fails: got exception " + e);
-                return null;
-            }
-        }
-        // System.out.println("newInstance fails: no newInstance method");
-        return null;
+        return javaDependantStuff.newInstance();
     }
 
     /**
@@ -550,9 +542,10 @@ final class AlternativeTypeInfo {
     private AlternativeTypeInfo(Class<?> clazz) {
 
         this.clazz = clazz;
-
-        if (newInstance != null) {
-            objectStreamClass = ObjectStreamClass.lookup(clazz);
+        try {
+            this.javaDependantStuff = new SunJavaStuff(clazz);
+        } catch (IOException e2) {
+            // TODO: try other implementations
         }
 
         try {
