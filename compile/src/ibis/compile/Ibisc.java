@@ -187,8 +187,8 @@ public class Ibisc {
                     if (! compress) {
                         zo.setLevel(0);
                     }
-                    for (Enumeration iitems = ji.entries(); iitems.hasMoreElements();) {
-                        JarEntryInfo ient = (JarEntryInfo) iitems.nextElement();
+                    for (Enumeration<JarEntryInfo> iitems = ji.entries(); iitems.hasMoreElements();) {
+                        JarEntryInfo ient = iitems.nextElement();
                         ient.write(zo);
                     }
                     zo.close();
@@ -293,11 +293,11 @@ public class Ibisc {
 
         // Obtain a list of Ibisc components.
         ClassLister clstr = ClassLister.getClassLister(null);
-        List<Class> clcomponents = clstr.getClassList("Ibisc-Component", IbiscComponent.class);
+        List<Class<?>> clcomponents = clstr.getClassList("Ibisc-Component", IbiscComponent.class);
         ArrayList<IbiscComponent> components = new ArrayList<IbiscComponent>();
 
         // Instantiate Ibisc components.
-        for (Class cl : clcomponents) {
+        for (Class<?> cl : clcomponents) {
             IbiscComponent ic = null;
             try {
                 ic = (IbiscComponent) cl.newInstance();

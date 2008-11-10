@@ -83,7 +83,7 @@ public abstract class IbiscComponent {
      * It can add entries by means of the  {@link #addEntry(ClassInfo cl, String fromClass)} method.
      * @param classes the class iterator to process.
      */
-    public abstract void process(Iterator classes);
+    public abstract void process(Iterator<?> classes);
 
     /**
      * Should return the rewriter implementation, for now only BCEL is

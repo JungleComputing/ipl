@@ -163,8 +163,8 @@ public class ClassLister {
      * @param attribName the manifest attribute name.
      * @return the list of classes.
      */
-    public List<Class> getClassList(String attribName) {
-        ArrayList<Class> list = new ArrayList<Class>();
+    public List<Class<?>> getClassList(String attribName) {
+        ArrayList<Class<?>> list = new ArrayList<Class<?>>();
         HashSet<String> classNames = new HashSet<String>();
 
         for (int i = 0; i < jarFiles.length; i++) {
@@ -184,7 +184,7 @@ public class ClassLister {
                         String className = st.nextToken();
                         if (! classNames.contains(className)) {
                             try {
-                                Class cl = Class.forName(className, false, ld);
+                                Class<?> cl = Class.forName(className, false, ld);
                                 list.add(cl);
                                 classNames.add(className);
                             } catch(Exception e) {
@@ -214,10 +214,10 @@ public class ClassLister {
      *    or extensions.       
      * @return the list of classes.
      */
-    public List<Class> getClassList(String attribName, Class<?> clazz) {
-        List<Class> list = getClassList(attribName);
+    public List<Class<?>> getClassList(String attribName, Class<?> clazz) {
+        List<Class<?>> list = getClassList(attribName);
 
-        for (Iterator<Class> iter = list.iterator(); iter.hasNext();) {
+        for (Iterator<Class<?>> iter = list.iterator(); iter.hasNext();) {
             Class<?> cl = iter.next();
             if (! clazz.isAssignableFrom(cl)) {
                 throw new Error("Class " + cl.getName()

@@ -57,30 +57,30 @@ import org.apache.bcel.generic.Type;
 class JMECodeGenerator extends CodeGenerator implements RewriterConstants, JMERewriterConstants {
 
     boolean super_is_jme_serializable;
-    
+
     boolean super_is_jme_special_case;
-    
+
     boolean super_is_jme_rewritten;
-    
+
     boolean super_has_jme_constructor;
 
     boolean is_jme_externalizable;
 
     boolean has_jme_serial_persistent_fields;
-    
+
     JMECodeGenerator(IOGenerator generator, JavaClass cl) {
-    	super(generator, cl);
-    	
-    	super_is_jme_special_case = JMESerializationInfo.isJMESpecialCase(super_class);
+        super(generator, cl);
+
+        super_is_jme_special_case = JMESerializationInfo.isJMESpecialCase(super_class);
         super_is_jme_serializable = JMESerializationInfo.isJMESerializable(super_class);
         super_is_jme_rewritten = JMESerializationInfo.isJMERewritten(super_class);
         is_jme_externalizable = JMESerializationInfo.isJMEExternalizable(cl);
         super_has_jme_constructor = JMESerializationInfo.hasJMEConstructor(super_class);
         has_jme_serial_persistent_fields = JMESerializationInfo.hasJMESerialPersistentFields(fields);
-		if (generator.isVerbose()) {
-			System.out.println("Code Generator: " + cl.getClassName() +
-							   " sijs: " + super_is_jme_serializable + " sijr: " + super_is_jme_rewritten);
-		}
+        if (generator.isVerbose()) {
+            System.out.println("Code Generator: " + cl.getClassName() +
+                    " sijs: " + super_is_jme_serializable + " sijr: " + super_is_jme_rewritten);
+        }
     }
 
     private Instruction createGeneratedWriteObjectInvocation(String name,
@@ -101,7 +101,7 @@ class JMECodeGenerator extends CodeGenerator implements RewriterConstants, JMERe
         return f.createInvoke(name, METHOD_INIT, Type.VOID,
                 jme_input_stream_arrtp, Constants.INVOKESPECIAL);
     }
-    
+
     private Instruction createGeneratedDefaultWriteObjectInvocation(
             String name) {
         return factory.createInvoke(name, METHOD_GENERATED_JME_DEFAULT_WRITE_OBJECT,
@@ -114,7 +114,7 @@ class JMECodeGenerator extends CodeGenerator implements RewriterConstants, JMERe
             return 0;
         }
         return 1 + getClassDepth(Repository.lookupClass(
-                    cl.getSuperclassName()));
+                cl.getSuperclassName()));
     }
 
     void generateEmptyMethods() {
@@ -136,7 +136,7 @@ class JMECodeGenerator extends CodeGenerator implements RewriterConstants, JMERe
         il.append(new RETURN());
 
         int flags = Constants.ACC_PUBLIC
-                | (gen.isFinal() ? Constants.ACC_FINAL : 0);
+        | (gen.isFinal() ? Constants.ACC_FINAL : 0);
 
         MethodGen write_method = new MethodGen(flags, Type.VOID,
                 jme_output_stream_arrtp, new String[] { VARIABLE_OUTPUT_STREAM },
@@ -151,8 +151,8 @@ class JMECodeGenerator extends CodeGenerator implements RewriterConstants, JMERe
 
         MethodGen default_write_method = new MethodGen(flags, Type.VOID,
                 new Type[] { jme_output_stream, Type.INT }, new String[] {
-                        VARIABLE_OUTPUT_STREAM, VARIABLE_LEVEL }, 
-                        METHOD_GENERATED_JME_DEFAULT_WRITE_OBJECT,
+                VARIABLE_OUTPUT_STREAM, VARIABLE_LEVEL }, 
+                METHOD_GENERATED_JME_DEFAULT_WRITE_OBJECT,
                 classname, il, constantpool);
 
         default_write_method.addException(TYPE_JAVA_IO_IOEXCEPTION);
@@ -164,8 +164,8 @@ class JMECodeGenerator extends CodeGenerator implements RewriterConstants, JMERe
 
         MethodGen default_read_method = new MethodGen(flags, Type.VOID,
                 new Type[] { jme_input_stream, Type.INT }, new String[] {
-                        VARIABLE_OUTPUT_STREAM, VARIABLE_LEVEL }, 
-                        METHOD_GENERATED_JME_DEFAULT_READ_OBJECT,
+                VARIABLE_OUTPUT_STREAM, VARIABLE_LEVEL }, 
+                METHOD_GENERATED_JME_DEFAULT_READ_OBJECT,
                 classname, il, constantpool);
 
         default_read_method.addException(TYPE_JAVA_IO_IOEXCEPTION);
@@ -205,7 +205,7 @@ class JMECodeGenerator extends CodeGenerator implements RewriterConstants, JMERe
         JavaClass newclazz = gen.getJavaClass();
 
         generator.replace(clazz, newclazz);
-        
+
         clazz = newclazz;
     }
 
@@ -270,14 +270,14 @@ class JMECodeGenerator extends CodeGenerator implements RewriterConstants, JMERe
                 temp.append(new LDC(ind2));
             }
             temp.append(factory.createInvoke(TYPE_IBIS_IO_JME_OBJECT_INPUT_STREAM,
-                                info.final_read_name, Type.VOID,
-                                info.primitive ? new Type[] {
-                                        Type.OBJECT, Type.STRING,
-                                        Type.STRING }
-                                        : new Type[] { Type.OBJECT,
-                                                Type.STRING, Type.STRING,
-                                                Type.STRING },
-                                Constants.INVOKEVIRTUAL));
+                    info.final_read_name, Type.VOID,
+                    info.primitive ? new Type[] {
+                    Type.OBJECT, Type.STRING,
+                    Type.STRING }
+            : new Type[] { Type.OBJECT,
+                            Type.STRING, Type.STRING,
+                            Type.STRING },
+                            Constants.INVOKEVIRTUAL));
         }
 
         return temp;
@@ -285,7 +285,7 @@ class JMECodeGenerator extends CodeGenerator implements RewriterConstants, JMERe
 
     private String writeCallName(String name) {
         return METHOD_WRITE_ARRAY + name.substring(0, 1).toUpperCase()
-                + name.substring(1);
+        + name.substring(1);
     }
 
     private InstructionList writeReferenceField(Field field) {
@@ -333,9 +333,9 @@ class JMECodeGenerator extends CodeGenerator implements RewriterConstants, JMERe
             write_il.append(new ACONST_NULL());
             write_il.append(new ALOAD(1));
             write_il.append(factory.createFieldAccess(
-                        TYPE_IBIS_IO_JME_OBJECT_OUTPUT_STREAM, VARIABLE_REPLACER, 
-                        new ObjectType(TYPE_IBIS_IO_REPLACER),
-                        Constants.GETFIELD));
+                    TYPE_IBIS_IO_JME_OBJECT_OUTPUT_STREAM, VARIABLE_REPLACER, 
+                    new ObjectType(TYPE_IBIS_IO_REPLACER),
+                    Constants.GETFIELD));
             IF_ACMPEQ replacertest = new IF_ACMPEQ(null);
             write_il.append(replacertest);
             write_il.append(writeInstructions(field));
@@ -395,11 +395,11 @@ class JMECodeGenerator extends CodeGenerator implements RewriterConstants, JMERe
                     write_il.append(new ILOAD(4));
                     write_il.append(
                             factory.createInvoke(
-                                TYPE_IBIS_IO_JME_OBJECT_OUTPUT_STREAM,
-                                writeCallName(basicname), Type.VOID,
-                                new Type[] { field_type, Type.INT,
+                                    TYPE_IBIS_IO_JME_OBJECT_OUTPUT_STREAM,
+                                    writeCallName(basicname), Type.VOID,
+                                    new Type[] { field_type, Type.INT,
                                         Type.INT },
-                                Constants.INVOKEVIRTUAL));
+                                        Constants.INVOKEVIRTUAL));
                 } else {
                     write_il.append(new ICONST(0));
                     write_il.append(new ISTORE(3));
@@ -407,7 +407,7 @@ class JMECodeGenerator extends CodeGenerator implements RewriterConstants, JMERe
                     write_il.append(gto);
 
                     InstructionHandle loop_body_start
-                            = write_il.append(new ALOAD(1));
+                    = write_il.append(new ALOAD(1));
                     write_il.append(new ALOAD(0));
                     write_il.append(
                             factory.createFieldAccess(classname,
@@ -474,12 +474,12 @@ class JMECodeGenerator extends CodeGenerator implements RewriterConstants, JMERe
         Instruction persistent_field_access = factory.createFieldAccess(
                 classname, FIELD_SERIAL_PERSISTENT_FIELDS, new ArrayType(
                         new ObjectType(TYPE_IBIS_IO_JME_OBJECT_STREAM_FIELD), 1),
-                Constants.GETSTATIC);
+                        Constants.GETSTATIC);
         InstructionList write_il = new InstructionList();
         int[] case_values = new int[] { CASE_BOOLEAN, CASE_CHAR, CASE_DOUBLE, CASE_FLOAT, CASE_INT, CASE_LONG, CASE_SHORT,
                 CASE_OBJECT };
         InstructionHandle[] case_handles
-                = new InstructionHandle[case_values.length];
+        = new InstructionHandle[case_values.length];
         GOTO[] gotos = new GOTO[case_values.length + 1];
 
         for (int i = 0; i < gotos.length; i++) {
@@ -493,7 +493,7 @@ class JMECodeGenerator extends CodeGenerator implements RewriterConstants, JMERe
         write_il.append(gto);
 
         InstructionHandle loop_body_start
-                = write_il.append(persistent_field_access);
+        = write_il.append(persistent_field_access);
         write_il.append(new ILOAD(2));
         write_il.append(new AALOAD());
         write_il.append(
@@ -602,9 +602,9 @@ class JMECodeGenerator extends CodeGenerator implements RewriterConstants, JMERe
                 Constants.INVOKEVIRTUAL));
         write_il.append(
                 factory.createInvoke(
-                    TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM, METHOD_WRITE_SHORT,
-                    Type.VOID, new Type[] { Type.INT },
-                    Constants.INVOKEVIRTUAL));
+                        TYPE_IBIS_IO_IBIS_SERIALIZATION_OUTPUT_STREAM, METHOD_WRITE_SHORT,
+                        Type.VOID, new Type[] { Type.INT },
+                        Constants.INVOKEVIRTUAL));
         write_il.append(gotos[6]);
 
         case_handles[7] = write_il.append(new ALOAD(1));
@@ -734,7 +734,7 @@ class JMECodeGenerator extends CodeGenerator implements RewriterConstants, JMERe
 
     private String readCallName(String name) {
         return METHOD_READ_ARRAY + name.substring(0, 1).toUpperCase()
-                + name.substring(1);
+        + name.substring(1);
     }
 
     private InstructionList readReferenceField(Field field,
@@ -805,7 +805,7 @@ class JMECodeGenerator extends CodeGenerator implements RewriterConstants, JMERe
                                     field_type, Constants.PUTFIELD));
                 } else {
                     Type el_type
-                            = ((ArrayType) field_type).getElementType();
+                    = ((ArrayType) field_type).getElementType();
                     read_il.append(new ALOAD(0));
                     read_il.append(new ALOAD(1));
                     read_il.append(factory.createInvoke(
@@ -837,7 +837,7 @@ class JMECodeGenerator extends CodeGenerator implements RewriterConstants, JMERe
                     read_il.append(gto1);
 
                     InstructionHandle loop_body_start
-                            = read_il.append(new ALOAD(1));
+                    = read_il.append(new ALOAD(1));
                     read_il.append(
                             factory.createInvoke(TYPE_IBIS_IO_JME_OBJECT_INPUT_STREAM,
                                     METHOD_READ_KNOWN_TYPE_HEADER, Type.INT,
@@ -992,11 +992,11 @@ class JMECodeGenerator extends CodeGenerator implements RewriterConstants, JMERe
                     TYPE_IBIS_IO_JME_OBJECT_INPUT_STREAM,
                     METHOD_READ_FIELD_OBJECT, Type.VOID, new Type[] { Type.OBJECT,
                             Type.STRING, Type.STRING },
-                    Constants.INVOKEVIRTUAL));
+                            Constants.INVOKEVIRTUAL));
         } else {
             read_il.append(factory.createInvoke(
                     TYPE_IBIS_IO_JME_OBJECT_INPUT_STREAM, METHOD_READ_FIELD
-                            + tpname, Type.VOID, new Type[] { Type.OBJECT,
+                    + tpname, Type.VOID, new Type[] { Type.OBJECT,
                             Type.STRING }, Constants.INVOKEVIRTUAL));
         }
         GOTO gto2 = new GOTO(null);
@@ -1026,12 +1026,12 @@ class JMECodeGenerator extends CodeGenerator implements RewriterConstants, JMERe
         Instruction persistent_field_access = factory.createFieldAccess(
                 classname, FIELD_SERIAL_PERSISTENT_FIELDS, new ArrayType(
                         new ObjectType(TYPE_JAVA_IO_OBJECT_STREAM_FIELD), 1),
-                Constants.GETSTATIC);
+                        Constants.GETSTATIC);
         InstructionList read_il = new InstructionList();
         int[] case_values = new int[] { CASE_BOOLEAN, CASE_CHAR, CASE_DOUBLE, CASE_FLOAT, CASE_INT, CASE_LONG, CASE_SHORT,
                 CASE_OBJECT };
         InstructionHandle[] case_handles
-                = new InstructionHandle[case_values.length];
+        = new InstructionHandle[case_values.length];
         GOTO[] gotos = new GOTO[case_values.length + 1];
 
         for (int i = 0; i < gotos.length; i++) {
@@ -1045,7 +1045,7 @@ class JMECodeGenerator extends CodeGenerator implements RewriterConstants, JMERe
         read_il.append(gto);
 
         InstructionHandle loop_body_start
-                = read_il.append(persistent_field_access);
+        = read_il.append(persistent_field_access);
         read_il.append(new ILOAD(2));
         read_il.append(new AALOAD());
         read_il.append(factory.createInvoke(TYPE_JAVA_IO_OBJECT_STREAM_FIELD,
@@ -1238,10 +1238,10 @@ class JMECodeGenerator extends CodeGenerator implements RewriterConstants, JMERe
         ObjectType class_type = new ObjectType(classname);
 
         String classfilename = name.substring(name.lastIndexOf('.') + 1)
-                + ".class";
+        + ".class";
         ClassGen iogenGen = new ClassGen(name, TYPE_IBIS_IO_JME_GENERATOR,
                 classfilename, Constants.ACC_FINAL | Constants.ACC_PUBLIC
-                        | Constants.ACC_SUPER, null);
+                | Constants.ACC_SUPER, null);
         InstructionFactory iogenFactory = new InstructionFactory(iogenGen);
 
         InstructionList il = new InstructionList();
@@ -1277,7 +1277,7 @@ class JMECodeGenerator extends CodeGenerator implements RewriterConstants, JMERe
             il.append(new LDC(ind));
             il.append(iogenFactory.createInvoke(TYPE_IBIS_IO_JME_OBJECT_INPUT_STREAM,
                     METHOD_READ_SERIALIZABLE_OBJECT, Type.VOID, new Type[] {
-                            Type.OBJECT, Type.STRING },
+                    Type.OBJECT, Type.STRING },
                     Constants.INVOKEVIRTUAL));
 
             /* Now, if the class has a readObject, call it. Otherwise,
@@ -1342,7 +1342,7 @@ class JMECodeGenerator extends CodeGenerator implements RewriterConstants, JMERe
         iogenGen.addMethod(method.getMethod());
 
         // Now we build the new_array function
-        
+
         // Build the base of the function
         il = new InstructionList();
         il.append(new ACONST_NULL());
@@ -1350,59 +1350,59 @@ class JMECodeGenerator extends CodeGenerator implements RewriterConstants, JMERe
         il.append(new ILOAD(2));
         InstructionHandle done = il.append(new ALOAD(3));
         il.append(new ARETURN());
-        
+
         // Now build the switch
         ConstantPoolGen cp = iogenGen.getConstantPool();
         int index;
         InstructionHandle[] handles = new InstructionHandle[5];
-        
+
         int i = 0;
         String arrayName = classname;
         do {
-        	handles[i++] = il.insert(done, new ILOAD(1));
-        	index = cp.addClass(arrayName);
-			if (generator.isVerbose()) {
-				System.out.println("Added : " + arrayName + " : " + index + " to cp.");
-			}
-        	il.insert(done, new ANEWARRAY(index));
-        	il.insert(done, new ASTORE(3));
-        	if (handles[handles.length - 1] == null) {
-        		il.insert(done, new GOTO(done));
-        	}
-        	if (!arrayName.startsWith("[")) {
-        		arrayName = "L" + arrayName + ";";
-        	}
-        	arrayName = "[" + arrayName;
-			if (generator.isVerbose()) {
-				System.out.println("Generating " + arrayName);
-			}
+            handles[i++] = il.insert(done, new ILOAD(1));
+            index = cp.addClass(arrayName);
+            if (generator.isVerbose()) {
+                System.out.println("Added : " + arrayName + " : " + index + " to cp.");
+            }
+            il.insert(done, new ANEWARRAY(index));
+            il.insert(done, new ASTORE(3));
+            if (handles[handles.length - 1] == null) {
+                il.insert(done, new GOTO(done));
+            }
+            if (!arrayName.startsWith("[")) {
+                arrayName = "L" + arrayName + ";";
+            }
+            arrayName = "[" + arrayName;
+            if (generator.isVerbose()) {
+                System.out.println("Generating " + arrayName);
+            }
         } while (handles[handles.length - 1] == null);
-        
+
         int values[] = {1, 2, 3, 4, 5};
         il.insert(handles[0], new SWITCH(values, handles, done));
 
         method = new MethodGen(Constants.ACC_PUBLIC, Type.getType(Object[].class),
-        		new Type[] {Type.INT, Type.INT}, new String[] {"len", "dimension"},
-        		"new_array", name, il, iogenGen.getConstantPool());
+                new Type[] {Type.INT, Type.INT}, new String[] {"len", "dimension"},
+                "new_array", name, il, iogenGen.getConstantPool());
         method.setMaxStack(1);
         method.setMaxLocals(4);
         iogenGen.addMethod(method.getMethod());
-        
+
         return iogenGen.getJavaClass();
     }
 
     void generateCode() {
         /* Generate code inside the methods */
-    	if (generator.isVerbose()) {
+        if (generator.isVerbose()) {
             System.out.println("  Generating method code class for class : "
-                            + classname);
+                    + classname);
             System.out.println("    Number of fields " + fields.length);
         }
 
         int dpth = getClassDepth(clazz);
 
-		fillInGeneratedDefaultWriteObjectMethod(dpth);
-		fillInGeneratedDefaultReadObjectMethod(dpth);
+        fillInGeneratedDefaultWriteObjectMethod(dpth);
+        fillInGeneratedDefaultReadObjectMethod(dpth);
         fillInGeneratedWriteObjectMethod(dpth);
         fillInGeneratedReadObjectMethod(dpth);
 
@@ -1418,12 +1418,12 @@ class JMECodeGenerator extends CodeGenerator implements RewriterConstants, JMERe
         generator.markRewritten(clazz, instgen);
     }
 
-	private void fillInGeneratedReadObjectMethod(int dpth) {
-		/* Now, produce the read constructor. It only exists if the
+    private void fillInGeneratedReadObjectMethod(int dpth) {
+        /* Now, produce the read constructor. It only exists if the
          * superclass is not serializable, or if the superclass has an
          * ibis constructor, or is assumed to have one (-force option).
          */
-        
+
         /* Now, do the same for the reading side. */
         MethodGen mgen = null;
         int index = -1;    
@@ -1472,7 +1472,7 @@ class JMECodeGenerator extends CodeGenerator implements RewriterConstants, JMERe
             read_il = new InstructionList();
             index = read_wrapper_index;
         }
-        
+
         /* TODO: Shouldn't there be an else clause here that fills in a method?
          * Even an exception throwing method might be better?
          * There is almost certainly a problem here in some corner case.
@@ -1486,24 +1486,24 @@ class JMECodeGenerator extends CodeGenerator implements RewriterConstants, JMERe
                 read_il.append(new SIPUSH((short) dpth));
                 read_il.append(factory.createInvoke(TYPE_IBIS_IO_JME_OBJECT_INPUT_STREAM,
                         METHOD_PUSH_CURRENT_OBJECT, Type.VOID, new Type[] {
-                                Type.OBJECT, Type.INT },
+                        Type.OBJECT, Type.INT },
                         Constants.INVOKEVIRTUAL));
 
                 read_il.append(new ALOAD(0));
                 read_il.append(new ALOAD(1));
                 read_il.append(factory.createInvoke(
-                            TYPE_IBIS_IO_JME_OBJECT_INPUT_STREAM,
-                            METHOD_GET_JAVA_OBJECT_INPUT_STREAM,
-                            sun_input_stream,
-                            Type.NO_ARGS,
-                            Constants.INVOKEVIRTUAL));
+                        TYPE_IBIS_IO_JME_OBJECT_INPUT_STREAM,
+                        METHOD_GET_JAVA_OBJECT_INPUT_STREAM,
+                        sun_input_stream,
+                        Type.NO_ARGS,
+                        Constants.INVOKEVIRTUAL));
                 if (is_jme_externalizable) {
                     /* Invoke readExternal */
                     read_il.append(factory.createInvoke(classname,
                             METHOD_READ_EXTERNAL, Type.VOID,
                             new Type[] { new ObjectType(
                                     TYPE_JAVA_IO_OBJECT_INPUT) },
-                            Constants.INVOKEVIRTUAL));
+                                    Constants.INVOKEVIRTUAL));
                 } else {
                     /* Invoke readObject. */
                     read_il.append(factory.createInvoke(classname,
@@ -1530,10 +1530,10 @@ class JMECodeGenerator extends CodeGenerator implements RewriterConstants, JMERe
 
             gen.setMethodAt(mgen.getMethod(), index);
         }
-	}
+    }
 
-	private void fillInGeneratedWriteObjectMethod(int dpth) {
-		/* Now, produce generated_WriteObject. */
+    private void fillInGeneratedWriteObjectMethod(int dpth) {
+        /* Now, produce generated_WriteObject. */
         int write_method_index = JMESerializationInfo.findMethod(methods,
                 METHOD_GENERATED_JME_WRITE_OBJECT, 
                 SIGNATURE_LIBIS_IO_JME_OBJECT_OUTPUT_STREAM_V);
@@ -1567,7 +1567,7 @@ class JMECodeGenerator extends CodeGenerator implements RewriterConstants, JMERe
             write_il.append(new SIPUSH((short) dpth));
             write_il.append(factory.createInvoke(TYPE_IBIS_IO_JME_OBJECT_OUTPUT_STREAM,
                     METHOD_PUSH_CURRENT_OBJECT, Type.VOID, new Type[] {
-                            Type.OBJECT, Type.INT },
+                    Type.OBJECT, Type.INT },
                     Constants.INVOKEVIRTUAL));
 
             /* Invoke writeObject. */
@@ -1582,9 +1582,9 @@ class JMECodeGenerator extends CodeGenerator implements RewriterConstants, JMERe
                     METHOD_POP_CURRENT_OBJECT, Type.VOID, Type.NO_ARGS,
                     Constants.INVOKEVIRTUAL));
         } else {
-        	if (!super_is_jme_serializable && !super_is_jme_special_case) {
-        		/* TODO: Create a throws NotSerializable here */
-        		System.err.println("Class: " + clazz.getClassName() + " marked ibis.io.jme.Serializable but superclass is not serializable! Use Externalizable if the superclass can not be marked the same.");
+            if (!super_is_jme_serializable && !super_is_jme_special_case) {
+                /* TODO: Create a throws NotSerializable here */
+                System.err.println("Class: " + clazz.getClassName() + " marked ibis.io.jme.Serializable but superclass is not serializable! Use Externalizable if the superclass can not be marked the same.");
                 write_il.append(new ALOAD(0));
                 write_il.append(factory.createNew(TYPE_IBIS_IO_JME_NOT_SERIALIZABLE_EXCEPTION));
                 write_il.append(new DUP());
@@ -1605,12 +1605,12 @@ class JMECodeGenerator extends CodeGenerator implements RewriterConstants, JMERe
                         METHOD_INIT, Type.VOID, new Type[] { Type.STRING },
                         Constants.INVOKESPECIAL));
                 write_il.append(new ATHROW());
-        	}
-        	else {
-        		write_il.append(generateDefaultWrites(write_gen));
-        	}
+            }
+            else {
+                write_il.append(generateDefaultWrites(write_gen));
+            }
         }
-        
+
         write_gen = new MethodGen(methods[write_method_index], classname,
                 constantpool);
         write_il.append(write_gen.getInstructionList());
@@ -1621,10 +1621,10 @@ class JMECodeGenerator extends CodeGenerator implements RewriterConstants, JMERe
         write_gen.setMaxLocals();
 
         gen.setMethodAt(write_gen.getMethod(), write_method_index);
-	}
+    }
 
-	private void fillInGeneratedDefaultWriteObjectMethod(int dpth) {
-		/* void generated_DefaultWriteObject(
+    private void fillInGeneratedDefaultWriteObjectMethod(int dpth) {
+        /* void generated_DefaultWriteObject(
          *         IbisSerializationOutputStream out, int level) {
          *     if (level == dpth) {
          *          ... write fields ... (the code resulting from the
@@ -1687,12 +1687,12 @@ class JMECodeGenerator extends CodeGenerator implements RewriterConstants, JMERe
         write_gen.setMaxLocals();
 
         gen.setMethodAt(write_gen.getMethod(), default_write_method_index);
-	}
+    }
 
-	private void fillInGeneratedDefaultReadObjectMethod(int dpth) {
-		InstructionHandle end;
-		IF_ICMPNE ifcmpne;
-		int default_read_method_index = JMESerializationInfo.findMethod(
+    private void fillInGeneratedDefaultReadObjectMethod(int dpth) {
+        InstructionHandle end;
+        IF_ICMPNE ifcmpne;
+        int default_read_method_index = JMESerializationInfo.findMethod(
                 methods,
                 METHOD_GENERATED_JME_DEFAULT_READ_OBJECT, 
                 SIGNATURE_LIBIS_IO_JME_OBJECT_INPUT_STREAM_I_V);
@@ -1744,5 +1744,5 @@ class JMECodeGenerator extends CodeGenerator implements RewriterConstants, JMERe
         read_gen.setMaxLocals();
 
         gen.setMethodAt(read_gen.getMethod(), default_read_method_index);
-	}
+    }
 }

@@ -87,7 +87,7 @@ final class AlternativeTypeInfo {
                 AlternativeTypeInfo t, int hashCode, boolean unshared)
                 throws IOException {
             super.writeHeader(out, ref, t, hashCode, unshared);
-            out.writeUTF(((Class) ref).getName());
+            out.writeUTF(((Class<?>) ref).getName());
         }
     }
 

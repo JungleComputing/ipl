@@ -24,14 +24,14 @@ public class JarInfo {
     /** Reference to the jarfile itself. */
     private JarFile     jarFile;
 
-    private class Enum implements Enumeration {
+    private class Enum implements Enumeration<JarEntryInfo> {
         int count = 0;
 
         public boolean hasMoreElements() {
             return count < entries.size();
         }
 
-        public Object nextElement() {
+        public JarEntryInfo nextElement() {
             if (count >= entries.size()) {
                 throw new NoSuchElementException();
             }
@@ -43,13 +43,13 @@ public class JarInfo {
         this.jarFile = jf;
         modified = false;
         
-        for (Enumeration iitems = jf.entries(); iitems.hasMoreElements();) {
-            JarEntry ient = (JarEntry) iitems.nextElement();
+        for (Enumeration<JarEntry> iitems = jf.entries(); iitems.hasMoreElements();) {
+            JarEntry ient = iitems.nextElement();
             entries.add(new JarEntryInfo(ient, this));
         }
     }
 
-    public Enumeration entries() {
+    public Enumeration<JarEntryInfo> entries() {
         return new Enum();
     }
 

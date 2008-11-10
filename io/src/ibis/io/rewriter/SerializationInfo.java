@@ -36,15 +36,15 @@ class SerializationInfo implements RewriterConstants {
     }
 
     static FieldComparator fieldComparator = new FieldComparator();
-    
-	static HashMap<String, Long> serialversionids = new HashMap<String, Long>();
-	
+
+    static HashMap<String, Long> serialversionids = new HashMap<String, Long>();
+
     static HashMap<Type, SerializationInfo> primitiveSerialization = new HashMap<Type, SerializationInfo> ();
 
     static SerializationInfo referenceSerialization = new SerializationInfo(METHOD_WRITE_OBJECT,
             METHOD_READ_OBJECT, METHOD_READ_FIELD_OBJECT, Type.OBJECT, false);
 
-	static {
+    static {
         primitiveSerialization.put(Type.BOOLEAN, new SerializationInfo(
                 METHOD_WRITE_BOOLEAN, METHOD_READ_BOOLEAN, METHOD_READ_FIELD_BOOLEAN,
                 Type.BOOLEAN, true));
@@ -60,7 +60,7 @@ class SerializationInfo implements RewriterConstants {
 
         primitiveSerialization.put(Type.INT, new SerializationInfo("writeInt",
                 METHOD_READ_INT, METHOD_READ_FIELD_INT, Type.INT, true));
-        
+
         primitiveSerialization.put(Type.LONG, new SerializationInfo(
                 METHOD_WRITE_LONG, METHOD_READ_LONG, METHOD_READ_FIELD_LONG, Type.LONG, true));
 
@@ -76,9 +76,9 @@ class SerializationInfo implements RewriterConstants {
         primitiveSerialization.put(java_lang_class_type, new SerializationInfo(
                 METHOD_WRITE_CLASS, METHOD_READ_CLASS, METHOD_READ_FIELD_CLASS,
                 java_lang_class_type, true));
-	}
-    
-	String write_name;
+    }
+
+    String write_name;
 
     String read_name;
 
@@ -99,14 +99,14 @@ class SerializationInfo implements RewriterConstants {
         this.param_tp_arr = new Type[] { t };
         this.primitive = primitive;
     }
-    
+
     static SerializationInfo getSerializationInfo(Type tp) {
         SerializationInfo temp
-                = primitiveSerialization.get(tp);
+        = primitiveSerialization.get(tp);
         return (temp == null ? referenceSerialization : temp);
     }
 
-	static boolean directImplementationOf(JavaClass clazz,
+    static boolean directImplementationOf(JavaClass clazz,
             String name) {
         String names[] = clazz.getInterfaceNames();
         String supername = clazz.getSuperclassName();
@@ -161,14 +161,14 @@ class SerializationInfo implements RewriterConstants {
         return directImplementationOf(clazz, TYPE_IBIS_IO_SERIALIZABLE);
     }
 
-	static boolean isExternalizable(JavaClass clazz) {
+    static boolean isExternalizable(JavaClass clazz) {
         return Repository.implementationOf(clazz, TYPE_JAVA_IO_EXTERNALIZABLE);
     }
-	
+
     static boolean isSerializable(JavaClass clazz) {
         return Repository.implementationOf(clazz, TYPE_JAVA_IO_SERIALIZABLE);
     }
-	
+
     static boolean hasSerialPersistentFields(Field[] fields) {
         for (int i = 0; i < fields.length; i++) {
             Field f = fields[i];
@@ -224,9 +224,9 @@ class SerializationInfo implements RewriterConstants {
 
             // 2. The class modifiers written as a 32-bit integer.
             int classModifiers = clazz.getModifiers()
-                    & (Constants.ACC_PUBLIC | Constants.ACC_FINAL
-                            | Constants.ACC_INTERFACE
-                            | Constants.ACC_ABSTRACT);
+            & (Constants.ACC_PUBLIC | Constants.ACC_FINAL
+                    | Constants.ACC_INTERFACE
+                    | Constants.ACC_ABSTRACT);
 
             // Only set ABSTRACT for an interface when it has methods.
             Method[] cMethods = clazz.getMethods();
@@ -255,7 +255,7 @@ class SerializationInfo implements RewriterConstants {
                 int mods = cFields[i].getModifiers();
                 if (((mods & Constants.ACC_PRIVATE) == 0)
                         || ((mods & (Constants.ACC_STATIC
-                                    | Constants.ACC_TRANSIENT)) == 0)) {
+                                | Constants.ACC_TRANSIENT)) == 0)) {
                     // 4.1. The name of the field in UTF encoding.
                     dout.writeUTF(cFields[i].getName());
                     // 4.2. The modifiers of the field written as a
@@ -359,20 +359,20 @@ class SerializationInfo implements RewriterConstants {
         }
     }
 
-	static long getSerialVersionUID(String classname, JavaClass clazz) {
-		long uid;
-		Long ui = serialversionids.get(classname);
+    static long getSerialVersionUID(String classname, JavaClass clazz) {
+        long uid;
+        Long ui = serialversionids.get(classname);
         if (ui == null) {
             uid = SerializationInfo.computeSUID(clazz);
             serialversionids.put(classname, new Long(uid));
         } else {
             uid = ui.longValue();
         }
-		return uid;
-	}
+        return uid;
+    }
 
     static int findMethod(Method[] methods, String name, String signature) {
-    	for (int i = 0; i < methods.length; i++) {
+        for (int i = 0; i < methods.length; i++) {
             if (methods[i].getName().equals(name)
                     && methods[i].getSignature().equals(signature)) {
                 return i;
@@ -383,11 +383,11 @@ class SerializationInfo implements RewriterConstants {
 
     static boolean hasWriteObject(Method[] methods) {
         return findMethod(methods, METHOD_WRITE_OBJECT, SIGNATURE_LJAVA_IO_OBJECT_OUTPUT_STREAM_V)
-                != -1;
+        != -1;
     }
 
     static boolean hasReadObject(Method[] methods) {
         return findMethod(methods, METHOD_READ_OBJECT, SIGNATURE_LJAVA_IO_OBJECT_INPUT_STREAM_V)
-                != -1;
+        != -1;
     }
 }
