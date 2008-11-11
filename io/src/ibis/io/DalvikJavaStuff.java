@@ -6,35 +6,97 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
+/**
+ * Java-dependant stuff for the Android, which has the Dalvik JVM
+ * and libraries.
+ * Dalvik is partly based on the Apache Harmony implementation,
+ * although its serialization code is quite different from the
+ * latest stable Harmony release at the time of this writing
+ * (apache-harmony-src-r681495).
+ */
 public class DalvikJavaStuff extends JavaDependantStuff {
     
     private static final Class<?>[] EMPTY_CLASS_ARRAY = new Class[0];
+    
     static Method newInstance = null;
+    static Method setFieldBoolean = null;
+    static Method setFieldByte = null;
+    static Method setFieldShort = null;
+    static Method setFieldInt = null;
+    static Method setFieldLong = null;
+    static Method setFieldChar = null;
+    static Method setFieldFloat = null;
+    static Method setFieldDouble = null;
+    static Method setFieldObject = null;
     
     static {
-        try {
-            newInstance = ObjectInputStream.class.getDeclaredMethod(
-                    "newInstance", new Class[] {Class.class, Class.class});
-        } catch (Throwable e) {
-            // ignored
-        }
-        if (newInstance != null) {
-            try {
-                newInstance.setAccessible(true);
-            } catch (Throwable e) {
-                newInstance = null;
-            }
-        }
+        newInstance = getMethod(ObjectInputStream.class,
+                "newInstance", Class.class, Class.class);
+        setFieldBoolean = getMethod(ObjectInputStream.class,
+                "setField", Object.class, Class.class, String.class, Boolean.TYPE);
+        setFieldByte = getMethod(ObjectInputStream.class,
+                "setField", Object.class, Class.class, String.class, Byte.TYPE);
+        setFieldShort = getMethod(ObjectInputStream.class,
+                "setField", Object.class, Class.class, String.class, Short.TYPE);
+        setFieldInt = getMethod(ObjectInputStream.class,
+                "setField", Object.class, Class.class, String.class, Integer.TYPE);
+        setFieldLong = getMethod(ObjectInputStream.class,
+                "setField", Object.class, Class.class, String.class, Long.TYPE);
+        setFieldChar = getMethod(ObjectInputStream.class,
+                "setField", Object.class, Class.class, String.class, Character.TYPE);
+        setFieldFloat = getMethod(ObjectInputStream.class,
+                "setField", Object.class, Class.class, String.class, Float.TYPE);
+        setFieldDouble = getMethod(ObjectInputStream.class,
+                "setField", Object.class, Class.class, String.class, Double.TYPE);
+        setFieldObject = getMethod(ObjectInputStream.class,
+                "objSetField", Object.class, Class.class, String.class, String.class,
+                Object.class);
     }
     
     private Class<?>constructorClass = null;
+    
+    private static Method getMethod(Class<?> cl, String name, Class<?>... params) {
+        try {
+            Method m = cl.getDeclaredMethod(name, params);
+            m.setAccessible(true);
+            return m;
+        } catch(Throwable e) {
+            return null;
+        }
+    }
     
     DalvikJavaStuff(Class<?> clazz) throws IOException {
         super(clazz);
         if (newInstance == null) {
             throw new IOException("newInstance method not found");
         }
-        
+        if (setFieldByte == null) {
+            throw new IOException("setField(byte) method not found");
+        }
+        if (setFieldShort == null) {
+            throw new IOException("setField(short) method not found");
+        }
+        if (setFieldInt == null) {
+            throw new IOException("setField(int) method not found");
+        }
+        if (setFieldLong == null) {
+            throw new IOException("setField(long) method not found");
+        }
+        if (setFieldFloat == null) {
+            throw new IOException("setField(float) method not found");
+        }
+        if (setFieldDouble == null) {
+            throw new IOException("setField(double) method not found");
+        }
+        if (setFieldBoolean == null) {
+            throw new IOException("setField(boolean) method not found");
+        }
+        if (setFieldChar == null) {
+            throw new IOException("setField(char) method not found");
+        }
+        if (setFieldObject == null) {
+            throw new IOException("objSetField() method not found");
+        }
         // Find the class of the constructor that needs to be called
         // when creating a new instance of this class. This is the
         // empty constructor of the first non-serializable class in the
@@ -73,7 +135,6 @@ public class DalvikJavaStuff extends JavaDependantStuff {
                 }
             }
         }
-
     }
 
     Object newInstance() {
@@ -81,7 +142,7 @@ public class DalvikJavaStuff extends JavaDependantStuff {
             return null;
         }
         try {
-            return newInstance.invoke(new Class[] { clazz, constructorClass} );
+            return newInstance.invoke(null, clazz, constructorClass);
         } catch (Throwable e) {
              return null;
         }
@@ -89,73 +150,97 @@ public class DalvikJavaStuff extends JavaDependantStuff {
 
     void setFieldBoolean(Object ref, String fieldname, boolean d)
             throws IOException {
-        // TODO Auto-generated method stub
-
+        try {
+            setFieldBoolean.invoke(null, ref, clazz, fieldname, d);
+        } catch (Throwable e) {
+            throw new IbisIOException("Got exception", e);
+        }
     }
 
     void setFieldByte(Object ref, String fieldname, byte d) throws IOException {
-        // TODO Auto-generated method stub
-
+        try {
+            setFieldByte.invoke(null, ref, clazz, fieldname, d);
+        } catch (Throwable e) {
+            throw new IbisIOException("Got exception", e);
+        }
     }
 
-    @Override
     void setFieldChar(Object ref, String fieldname, char d) throws IOException {
-        // TODO Auto-generated method stub
-
+        try {
+            setFieldChar.invoke(null, ref, clazz, fieldname, d);
+        } catch (Throwable e) {
+            throw new IbisIOException("Got exception", e);
+        }
     }
 
-    @Override
     void setFieldClass(Object ref, String fieldname, Class<?> d)
             throws IOException {
-        // TODO Auto-generated method stub
-
+        try {
+            setFieldObject.invoke(null, ref, clazz, fieldname, "Ljava.lang.Class;", d);
+        } catch (Throwable e) {
+            throw new IbisIOException("Got exception", e);
+        }
     }
 
-    @Override
     void setFieldDouble(Object ref, String fieldname, double d)
             throws IOException {
-        // TODO Auto-generated method stub
-
+        try {
+            setFieldDouble.invoke(null, ref, clazz, fieldname, d);
+        } catch (Throwable e) {
+            throw new IbisIOException("Got exception", e);
+        }
     }
 
-    @Override
     void setFieldFloat(Object ref, String fieldname, float d)
             throws IOException {
-        // TODO Auto-generated method stub
-
+        try {
+            setFieldFloat.invoke(null, ref, clazz, fieldname, d);
+        } catch (Throwable e) {
+            throw new IbisIOException("Got exception", e);
+        }
     }
 
-    @Override
     void setFieldInt(Object ref, String fieldname, int d) throws IOException {
-        // TODO Auto-generated method stub
-
+        try {
+            setFieldInt.invoke(null, ref, clazz, fieldname, d);
+        } catch (Throwable e) {
+            throw new IbisIOException("Got exception", e);
+        }
     }
 
-    @Override
     void setFieldLong(Object ref, String fieldname, long d) throws IOException {
-        // TODO Auto-generated method stub
-
+        try {
+            setFieldLong.invoke(null, ref, clazz, fieldname, d);
+        } catch (Throwable e) {
+            throw new IbisIOException("Got exception", e);
+        }
     }
 
-    @Override
     void setFieldObject(Object ref, String fieldname, Object d, String fieldsig)
             throws IOException {
-        // TODO Auto-generated method stub
-
+        try {
+            setFieldObject.invoke(null, ref, clazz, fieldname, fieldsig, d);
+        } catch (Throwable e) {
+            throw new IbisIOException("Got exception", e);
+        }
     }
 
-    @Override
     void setFieldShort(Object ref, String fieldname, short d)
             throws IOException {
-        // TODO Auto-generated method stub
-
+        try {
+            setFieldShort.invoke(null, ref, clazz, fieldname, d);
+        } catch (Throwable e) {
+            throw new IbisIOException("Got exception", e);
+        }
     }
 
-    @Override
     void setFieldString(Object ref, String fieldname, String d)
             throws IOException {
-        // TODO Auto-generated method stub
-
+        try {
+            setFieldObject.invoke(null, ref, clazz, fieldname, "Ljava.lang.String;", d);
+        } catch (Throwable e) {
+            throw new IbisIOException("Got exception", e);
+        }
     }
 
 }
