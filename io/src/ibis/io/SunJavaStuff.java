@@ -50,6 +50,8 @@ public class SunJavaStuff extends JavaDependantStuff {
     private static Method unsafePutByteMethod;
 
     private static Method unsafePutObjectMethod;
+    
+    static boolean available = false;
 
     static {
         try {
@@ -82,19 +84,16 @@ public class SunJavaStuff extends JavaDependantStuff {
                     Object.class, Long.TYPE, Boolean.TYPE });
             unsafePutObjectMethod = cl.getMethod("putObject", new Class[] {
                     Object.class, Long.TYPE, Object.class });
+            available = true;
         } catch (Throwable e) {
-            System.out.println("Got exception while getting unsafe: " + e);
             unsafe = null;
         }
     }
 
-    SunJavaStuff(Class<?> clazz) throws IOException {
+    SunJavaStuff(Class<?> clazz) {
         super(clazz);
-        if (unsafe == null) {
-            throw new IOException("No unsafe");
-        }
-        if (newInstance == null) {
-            throw new IOException("No newInstance in ObjectStreamClass");
+        if (! available) {
+            throw new Error("SunJavaStuff not available");
         }
     }
 

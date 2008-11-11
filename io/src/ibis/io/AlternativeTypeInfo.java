@@ -522,14 +522,12 @@ final class AlternativeTypeInfo {
     private AlternativeTypeInfo(Class<?> clazz) {
 
         this.clazz = clazz;
-        try {
-            this.javaDependantStuff = new SunJavaStuff(clazz);
-        } catch (Throwable e2) {
-            try {
-                this.javaDependantStuff = new DalvikJavaStuff(clazz);
-            } catch(Throwable e3) {
-                // TODO: other implementations? (Harmony)
-            }
+        if (SunJavaStuff.available) {
+            javaDependantStuff = new SunJavaStuff(clazz);
+        } else if (HarmonyJavaStuff.available) {
+            javaDependantStuff = new HarmonyJavaStuff(clazz);
+        } else if (DalvikJavaStuff.available) {
+            javaDependantStuff = new DalvikJavaStuff(clazz);
         }
 
         try {

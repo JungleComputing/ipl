@@ -28,6 +28,7 @@ public class DalvikJavaStuff extends JavaDependantStuff {
     static Method setFieldFloat = null;
     static Method setFieldDouble = null;
     static Method setFieldObject = null;
+    static boolean available = false;
     
     static {
         newInstance = getMethod(ObjectInputStream.class,
@@ -51,6 +52,7 @@ public class DalvikJavaStuff extends JavaDependantStuff {
         setFieldObject = getMethod(ObjectInputStream.class,
                 "objSetField", Object.class, Class.class, String.class, String.class,
                 Object.class);
+        available = isAvailable();
     }
     
     private Class<?>constructorClass = null;
@@ -65,38 +67,48 @@ public class DalvikJavaStuff extends JavaDependantStuff {
         }
     }
     
-    DalvikJavaStuff(Class<?> clazz) throws IOException {
-        super(clazz);
+    static boolean isAvailable() {
+        
         if (newInstance == null) {
-            throw new IOException("newInstance method not found");
+            return false;
         }
         if (setFieldByte == null) {
-            throw new IOException("setField(byte) method not found");
+            return false;
         }
         if (setFieldShort == null) {
-            throw new IOException("setField(short) method not found");
+            return false;
         }
         if (setFieldInt == null) {
-            throw new IOException("setField(int) method not found");
+            return false;
         }
         if (setFieldLong == null) {
-            throw new IOException("setField(long) method not found");
+            return false;
         }
         if (setFieldFloat == null) {
-            throw new IOException("setField(float) method not found");
+            return false;
         }
         if (setFieldDouble == null) {
-            throw new IOException("setField(double) method not found");
+            return false;
         }
         if (setFieldBoolean == null) {
-            throw new IOException("setField(boolean) method not found");
+            return false;
         }
         if (setFieldChar == null) {
-            throw new IOException("setField(char) method not found");
+            return false;
         }
         if (setFieldObject == null) {
-            throw new IOException("objSetField() method not found");
+            return false;
         }
+        return true;
+    }
+    
+    
+    DalvikJavaStuff(Class<?> clazz) {
+        super(clazz);
+        if (! available) {
+            throw new Error("DalvikJavaStuff not available");
+        }
+        
         // Find the class of the constructor that needs to be called
         // when creating a new instance of this class. This is the
         // empty constructor of the first non-serializable class in the
@@ -136,6 +148,8 @@ public class DalvikJavaStuff extends JavaDependantStuff {
             }
         }
     }
+    
+    
 
     Object newInstance() {
         if (constructorClass == null) {
