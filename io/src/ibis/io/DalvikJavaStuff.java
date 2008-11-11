@@ -31,77 +31,41 @@ public class DalvikJavaStuff extends JavaDependantStuff {
     static boolean available = false;
     
     static {
-        newInstance = getMethod(ObjectInputStream.class,
-                "newInstance", Class.class, Class.class);
-        setFieldBoolean = getMethod(ObjectInputStream.class,
-                "setField", Object.class, Class.class, String.class, Boolean.TYPE);
-        setFieldByte = getMethod(ObjectInputStream.class,
-                "setField", Object.class, Class.class, String.class, Byte.TYPE);
-        setFieldShort = getMethod(ObjectInputStream.class,
-                "setField", Object.class, Class.class, String.class, Short.TYPE);
-        setFieldInt = getMethod(ObjectInputStream.class,
-                "setField", Object.class, Class.class, String.class, Integer.TYPE);
-        setFieldLong = getMethod(ObjectInputStream.class,
-                "setField", Object.class, Class.class, String.class, Long.TYPE);
-        setFieldChar = getMethod(ObjectInputStream.class,
-                "setField", Object.class, Class.class, String.class, Character.TYPE);
-        setFieldFloat = getMethod(ObjectInputStream.class,
-                "setField", Object.class, Class.class, String.class, Float.TYPE);
-        setFieldDouble = getMethod(ObjectInputStream.class,
-                "setField", Object.class, Class.class, String.class, Double.TYPE);
-        setFieldObject = getMethod(ObjectInputStream.class,
-                "objSetField", Object.class, Class.class, String.class, String.class,
-                Object.class);
-        available = isAvailable();
+        try {
+            newInstance = getMethod(ObjectInputStream.class,
+                    "newInstance", Class.class, Class.class);
+            setFieldBoolean = getMethod(ObjectInputStream.class,
+                    "setField", Object.class, Class.class, String.class, Boolean.TYPE);
+            setFieldByte = getMethod(ObjectInputStream.class,
+                    "setField", Object.class, Class.class, String.class, Byte.TYPE);
+            setFieldShort = getMethod(ObjectInputStream.class,
+                    "setField", Object.class, Class.class, String.class, Short.TYPE);
+            setFieldInt = getMethod(ObjectInputStream.class,
+                    "setField", Object.class, Class.class, String.class, Integer.TYPE);
+            setFieldLong = getMethod(ObjectInputStream.class,
+                    "setField", Object.class, Class.class, String.class, Long.TYPE);
+            setFieldChar = getMethod(ObjectInputStream.class,
+                    "setField", Object.class, Class.class, String.class, Character.TYPE);
+            setFieldFloat = getMethod(ObjectInputStream.class,
+                    "setField", Object.class, Class.class, String.class, Float.TYPE);
+            setFieldDouble = getMethod(ObjectInputStream.class,
+                    "setField", Object.class, Class.class, String.class, Double.TYPE);
+            setFieldObject = getMethod(ObjectInputStream.class,
+                    "objSetField", Object.class, Class.class, String.class, String.class,
+                    Object.class);
+            available = true;
+        } catch(Throwable e) {
+            logger.info("No Dalvik java stuff: got exception", e);
+        }
     }
     
     private Class<?>constructorClass = null;
     
-    private static Method getMethod(Class<?> cl, String name, Class<?>... params) {
-        try {
-            Method m = cl.getDeclaredMethod(name, params);
-            m.setAccessible(true);
-            return m;
-        } catch(Throwable e) {
-            return null;
-        }
+    private static Method getMethod(Class<?> cl, String name, Class<?>... params) throws NoSuchMethodException {
+        Method m = cl.getDeclaredMethod(name, params);
+        m.setAccessible(true);
+        return m;
     }
-    
-    static boolean isAvailable() {
-        
-        if (newInstance == null) {
-            return false;
-        }
-        if (setFieldByte == null) {
-            return false;
-        }
-        if (setFieldShort == null) {
-            return false;
-        }
-        if (setFieldInt == null) {
-            return false;
-        }
-        if (setFieldLong == null) {
-            return false;
-        }
-        if (setFieldFloat == null) {
-            return false;
-        }
-        if (setFieldDouble == null) {
-            return false;
-        }
-        if (setFieldBoolean == null) {
-            return false;
-        }
-        if (setFieldChar == null) {
-            return false;
-        }
-        if (setFieldObject == null) {
-            return false;
-        }
-        return true;
-    }
-    
     
     DalvikJavaStuff(Class<?> clazz) {
         super(clazz);
