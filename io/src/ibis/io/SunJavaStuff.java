@@ -88,8 +88,6 @@ public class SunJavaStuff extends JavaDependantStuff {
         }
     }
 
-    private ObjectStreamClass objectStreamClass;
-
     SunJavaStuff(Class<?> clazz) throws IOException {
         super(clazz);
         if (unsafe == null) {
@@ -98,7 +96,6 @@ public class SunJavaStuff extends JavaDependantStuff {
         if (newInstance == null) {
             throw new IOException("No newInstance in ObjectStreamClass");
         }
-        objectStreamClass = ObjectStreamClass.lookup(clazz);
     }
 
     /**

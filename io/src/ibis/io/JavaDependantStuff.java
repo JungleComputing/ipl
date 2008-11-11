@@ -1,6 +1,7 @@
 package ibis.io;
 
 import java.io.IOException;
+import java.io.ObjectStreamClass;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,9 +30,12 @@ abstract class JavaDependantStuff {
     }
 
     Class<?> clazz;
+    
+    ObjectStreamClass objectStreamClass;
 
     JavaDependantStuff(Class<?> clazz) {
         this.clazz = clazz;
+        objectStreamClass = ObjectStreamClass.lookup(clazz);
     }
 
     /**

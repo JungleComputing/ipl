@@ -5,7 +5,6 @@ package ibis.io;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.ObjectStreamClass;
 import java.io.ObjectStreamField;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -40,9 +39,6 @@ final class AlternativeTypeInfo {
      */
     private static HashMap<Class<?>, AlternativeTypeInfo> alternativeTypes
             = new HashMap<Class<?>, AlternativeTypeInfo>();
-
-    /** newInstance method of ObjectStreamClass, when it exists. */
-    private static Method newInstance = null;
 
     private static class ArrayWriter extends IbisWriter {
         void writeObject(IbisSerializationOutputStream out, Object ref,
@@ -363,22 +359,6 @@ final class AlternativeTypeInfo {
     /** This is needed for the private method access hack. */
     Method temporary_method;
 
-    static {
-        try {
-            newInstance = ObjectStreamClass.class.getDeclaredMethod(
-                    "newInstance", new Class[] {});
-        } catch (Exception e) {
-            // ignored. 
-        }
-        if (newInstance != null) {
-            try {
-                newInstance.setAccessible(true);
-            } catch (Exception e) {
-                newInstance = null;
-            }
-        }
-    }
-
     /**
      * Return the name of the class.
      *
@@ -544,8 +524,12 @@ final class AlternativeTypeInfo {
         this.clazz = clazz;
         try {
             this.javaDependantStuff = new SunJavaStuff(clazz);
-        } catch (IOException e2) {
-            // TODO: try other implementations
+        } catch (Throwable e2) {
+            try {
+                this.javaDependantStuff = new DalvikJavaStuff(clazz);
+            } catch(Throwable e3) {
+                // TODO: other implementations? (Harmony)
+            }
         }
 
         try {
