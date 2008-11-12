@@ -6,6 +6,10 @@ import java.io.ObjectStreamClass;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * This class is an abstraction of the JVM-specific methods used to
+ * create an uninitialized object, or to set final fields when deserializing.
+ */
 abstract class JavaDependantStuff {
 
     private static ClassLoader customClassLoader;
@@ -136,7 +140,7 @@ abstract class JavaDependantStuff {
      * @param d
      *                value to be assigned
      * @exception IOException
-     *                    is thrown when an IO error occurs.
+     *                    is thrown when an error occurs.
      */
     abstract void setFieldDouble(Object ref, String fieldname, double d)
             throws IOException;
@@ -191,9 +195,6 @@ abstract class JavaDependantStuff {
 
     /**
      * See {@link #setFieldDouble(Object, String, double)} for a description.
-     * 
-     * @exception ClassNotFoundException
-     *                    when the class could not be loaded.
      */
     abstract void setFieldClass(Object ref, String fieldname, Class<?> d)
             throws IOException;

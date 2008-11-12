@@ -10,21 +10,6 @@ public class SunJavaStuff extends JavaDependantStuff {
     /** newInstance method of ObjectStreamClass, if it exists. */
     private static Method newInstance = null;
 
-    static {
-        try {
-            newInstance = ObjectStreamClass.class.getDeclaredMethod(
-                    "newInstance", new Class[] {});
-        } catch (Exception e) {
-            // ignored.
-        }
-        if (newInstance != null) {
-            try {
-                newInstance.setAccessible(true);
-            } catch (Exception e) {
-                newInstance = null;
-            }
-        }
-    }
 
     // Only works as of Java 1.4, earlier versions of Java don't have Unsafe.
     // Use introspection, so that it at least compiles on systems that don't
@@ -55,6 +40,10 @@ public class SunJavaStuff extends JavaDependantStuff {
 
     static {
         try {
+            newInstance = ObjectStreamClass.class.getDeclaredMethod(
+                    "newInstance", new Class[] {});
+            newInstance.setAccessible(true);
+
             // unsafe = Unsafe.getUnsafe();
             // does not work when a classloader is present, so we get it
             // from ObjectStreamClass.
@@ -86,7 +75,7 @@ public class SunJavaStuff extends JavaDependantStuff {
                     Object.class, Long.TYPE, Object.class });
             available = true;
         } catch (Throwable e) {
-            unsafe = null;
+            logger.info("Sun Java Stuff not available", e);
         }
     }
 

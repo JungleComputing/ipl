@@ -369,11 +369,16 @@ final class AlternativeTypeInfo {
     }
 
     /**
-     * Try to create an object through the newInstance method of
-     * ObjectStreamClass.
-     * Return null if it fails for some reason.
+     * Tries to create an object through the newInstance method of
+     * JavaDependantStuff. Note that we cannot just call newInstance() from
+     * the class, since that method calls the wrong constructor.
+     * The first non-serializable class in the type hierarchy needs to
+     * have a parameter-less constructor that is visible from this class.
+     *  
+     * Returns <code>null</code> if it fails for some reason.
+     * @return the object, or <code>null</code>.
      */
-    Object newInstance() {
+    public Object newInstance() {
         return javaDependantStuff.newInstance();
     }
 
