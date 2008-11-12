@@ -113,10 +113,10 @@ public class Scan {
 
     public static void scanJar(String jarfile) throws IOException {
         JarFile jarf = new JarFile(jarfile);
-        Enumeration e = jarf.entries();
+        Enumeration<JarEntry> e = jarf.entries();
 
         while (e.hasMoreElements()) {
-            JarEntry entry = (JarEntry) e.nextElement();
+            JarEntry entry = e.nextElement();
 
             if (!entry.isDirectory() && entry.getName().endsWith(".class")) {
                 classes.add(path2qualified(entry.getName()));

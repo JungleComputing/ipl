@@ -46,7 +46,7 @@ public class TypedProperties extends Properties {
         if (properties == null) {
             return;
         }
-        for (Enumeration e = properties.propertyNames(); e.hasMoreElements();) {
+        for (Enumeration<?> e = properties.propertyNames(); e.hasMoreElements();) {
             String key = (String) e.nextElement();
             String value = properties.getProperty(key);
             setProperty(key, value);
@@ -627,7 +627,7 @@ public class TypedProperties extends Properties {
             prefix = "";
         }
 
-        for (Enumeration e = propertyNames(); e.hasMoreElements();) {
+        for (Enumeration<?> e = propertyNames(); e.hasMoreElements();) {
             String key = (String) e.nextElement();
 
             if (key.startsWith(prefix)) {
@@ -668,7 +668,7 @@ public class TypedProperties extends Properties {
             prefix = "";
         }
 
-        for (Enumeration e = propertyNames(); e.hasMoreElements();) {
+        for (Enumeration<?> e = propertyNames(); e.hasMoreElements();) {
             String key = (String) e.nextElement();
 
             if (key.startsWith(prefix)) {
@@ -715,7 +715,7 @@ public class TypedProperties extends Properties {
             prefix = "";
         }
 
-        for (Enumeration e = propertyNames(); e.hasMoreElements();) {
+        for (Enumeration<?> e = propertyNames(); e.hasMoreElements();) {
             String key = (String) e.nextElement();
             String value = getProperty(key);
 
@@ -728,7 +728,7 @@ public class TypedProperties extends Properties {
     public String toString() {
         String result = "";
 
-        for (Enumeration e = propertyNames(); e.hasMoreElements();) {
+        for (Enumeration<?> e = propertyNames(); e.hasMoreElements();) {
             String key = (String) e.nextElement();
             String value = getProperty(key);
 
@@ -746,7 +746,7 @@ public class TypedProperties extends Properties {
 
         TypedProperties other = (TypedProperties) object;
 
-        for (Enumeration e = propertyNames(); e.hasMoreElements();) {
+        for (Enumeration<?> e = propertyNames(); e.hasMoreElements();) {
             String key = (String) e.nextElement();
             String value = getProperty(key);
 
