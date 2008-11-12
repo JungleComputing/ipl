@@ -238,8 +238,6 @@ public class SunJavaStuff extends JavaDependantStuff {
     /**
      * See {@link #setFieldDouble(Object, String, double)} for a description.
      * 
-     * @exception ClassNotFoundException
-     *                    when the class could not be loaded.
      */
     public void setFieldClass(Object ref, String fieldname, Class<?> d)
             throws IOException {
