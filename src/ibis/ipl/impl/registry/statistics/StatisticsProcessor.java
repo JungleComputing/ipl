@@ -178,7 +178,7 @@ public class StatisticsProcessor {
         if (directories.size() == 0) {
             System.err.println("usage: StatisticsProcessor [OPTIONS] DIRECTORY [DIRECTORY]...");
             System.err.println("options:");
-            System.err.println("--interval INTERVAL Interval of datapoints in graphs (seconds)");
+            System.err.println("--interval INTERVAL Interval of datapoints in graphs (milliseconds)");
             System.exit(1);
         }
         
