@@ -8,7 +8,7 @@
 
     <property name="ibis" location=".." />
 
-    <property name="version" value="-2.0" />
+    <property name="version" value="" />
 
     <property name="src" location="src" />
     <property name="tmp" location="tmp" />
