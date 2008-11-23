@@ -91,6 +91,10 @@ public final class Registry extends ibis.ipl.impl.Registry
 		TypedProperties properties = RegistryProperties
 				.getHardcodedProperties();
 		properties.addProperties(userProperties);
+                
+                if (capabilities == null) {
+                    throw new IbisConfigurationException("Capabilities for registry not specified");
+                }
 
 		if ((capabilities.hasCapability(IbisCapabilities.MEMBERSHIP_UNRELIABLE) || capabilities
 				.hasCapability(IbisCapabilities.MEMBERSHIP_TOTALLY_ORDERED))
