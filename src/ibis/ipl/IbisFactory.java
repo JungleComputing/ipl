@@ -286,6 +286,10 @@ public final class IbisFactory {
             IbisCapabilities requiredCapabilities, Properties properties,
             PortType[] portTypes) throws IbisCreationFailedException {
 
+        if (requiredCapabilities == null) {
+            throw new IbisConfigurationException("capabilities not specified");
+        }
+        
         String verboseValue = properties.getProperty(IbisProperties.VERBOSE);
         // see if the user specified "verbose"
         verbose =
