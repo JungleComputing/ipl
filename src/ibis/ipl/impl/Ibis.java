@@ -109,6 +109,10 @@ public abstract class Ibis implements ibis.ipl.Ibis //, IbisMBean
             IbisCapabilities capabilities, PortType[] portTypes,
             Properties userProperties, String version) {
 
+        if (capabilities == null) {
+            throw new IbisConfigurationException("capabilities not specified");
+        }
+        
         this.capabilities = capabilities;
         this.portTypes = portTypes;
 
