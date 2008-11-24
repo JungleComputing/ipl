@@ -127,7 +127,7 @@ public final class IbisFactory {
      *                capabilities required, or a matching Ibis could not be
      *                instantiated for some reason.
      */
-    public static Ibis createIbis(IbisCapabilities requiredCapabilities,
+    public static synchronized Ibis createIbis(IbisCapabilities requiredCapabilities,
             RegistryEventHandler registryEventHandler, PortType... portTypes)
             throws IbisCreationFailedException {
         return createIbis(requiredCapabilities, null, true,
@@ -161,7 +161,7 @@ public final class IbisFactory {
      *                instantiated for some reason.
      */
     @SuppressWarnings("unchecked")
-    public static Ibis createIbis(IbisCapabilities requiredCapabilities,
+    public static synchronized Ibis createIbis(IbisCapabilities requiredCapabilities,
             Properties properties, boolean addDefaultConfigProperties,
             RegistryEventHandler registryEventHandler, PortType... portTypes)
             throws IbisCreationFailedException {
