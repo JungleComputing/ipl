@@ -2,6 +2,8 @@
 
 package ibis.ipl;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Properties;
 
@@ -15,25 +17,29 @@ import java.util.Properties;
 
 public abstract class IbisStarter {
 
-    protected IbisCapabilities capabilities;
-    protected PortType[] portTypes;
+    protected final IbisCapabilities capabilities;
+    protected final PortType[] portTypes;
+    protected final IbisStarterInfo starterInfo;
 
     public static class IbisStarterInfo {
         private String version;
         private Class<? extends IbisStarter> starter;
-        private IbisStarter instance;
         
         public IbisStarterInfo(Class<? extends IbisStarter> starter, String version) {
             this.starter = starter;
             this.version = version;
         }
         
-        public void createInstance() throws InstantiationException, IllegalAccessException {
-            instance = (IbisStarter) starter.newInstance();
-        }
-        
-        public IbisStarter getInstance() {
-            return instance;
+        public IbisStarter createInstance(
+                IbisCapabilities requiredCapabilities, PortType[] portTypes)
+                throws InstantiationException, IllegalAccessException,
+                SecurityException, NoSuchMethodException,
+                IllegalArgumentException, InvocationTargetException {
+            Constructor<?> constructor = starter.getConstructor(
+                    IbisCapabilities.class, PortType[].class,
+                    IbisStarterInfo.class);
+            return (IbisStarter) constructor.newInstance(requiredCapabilities,
+                    portTypes, this);
         }
         
         public String getName() {
@@ -47,31 +53,25 @@ public abstract class IbisStarter {
         public String getVersion() {
             return version;
         }
-        
-        public Ibis startIbis(List<IbisStarterInfo> stack, RegistryEventHandler handler,
-                Properties properties) {
-            return instance.startIbis(stack, handler, properties, version);
-        }
     }
 
     /**
      * Constructs an <code>IbisStarter</code>.
      */
-    public IbisStarter() {
+    public IbisStarter(IbisCapabilities capabilities, PortType[] portTypes,
+            IbisStarterInfo starterInfo) {
+        this.capabilities = capabilities;
+        this.portTypes = portTypes.clone();
+        this.starterInfo = starterInfo;
     }
 
     /**
      * Decides if this <code>IbisStarter</code> can start an Ibis instance
      * with the desired capabilities and port types.
-     * @param capabilities
-     *          the required capabilities.
-     * @param portTypes
-     *          the required port types.
      * @return
      *          <code>true</code> if it can.
      */
-    public abstract boolean matches(IbisCapabilities capabilities,
-            PortType[] portTypes);
+    public abstract boolean matches();
 
     /**
      * Decides if this Ibis instance is a stacking Ibis.
@@ -99,8 +99,6 @@ public abstract class IbisStarter {
      * Note: a stacking Ibis returns the capabilities that are required of the
      * underlying Ibis implementation.
      * </strong>
-     * This call must be preceded by a call to
-     * {@link #matches(IbisCapabilities, PortType[])}.
      * @return
      *          the unmatched ibis capabilities.
      */
@@ -114,8 +112,6 @@ public abstract class IbisStarter {
      * Note: a stacking Ibis returns the porttypes that are required of the
      * underlying Ibis implementation.
      * </strong>
-     * This call must be preceded by a call to
-     * {@link #matches(IbisCapabilities, PortType[])}.
      * @return
      *          the unmatched port types.
      */
@@ -145,7 +141,7 @@ public abstract class IbisStarter {
      * @param userProperties
      *          the user properties.
      */
-    public Ibis startIbis(List<IbisStarterInfo> stack,
+    public Ibis startIbis(List<IbisStarter> stack,
             RegistryEventHandler handler, Properties userProperties,
             String IbisImplementationVersion) {
         if (stack.size() == 0) {

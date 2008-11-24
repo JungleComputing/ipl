@@ -5,6 +5,7 @@ package ibis.ipl.impl.stacking.dummy;
 import ibis.ipl.CapabilitySet;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisCapabilities;
+import ibis.ipl.IbisStarter;
 import ibis.ipl.PortType;
 import ibis.ipl.RegistryEventHandler;
 
@@ -23,18 +24,16 @@ public final class StackingIbisStarter extends ibis.ipl.IbisStarter {
         "nickname.dummy"
     );
 
-    private boolean matching;
+    private final boolean matching;
 
-    public StackingIbisStarter() {
+    public StackingIbisStarter(IbisCapabilities caps, PortType[] types,
+            IbisStarterInfo info) {
+        super(caps, types, info);
+        matching = ibisCapabilities.matchCapabilities(capabilities);
     }
     
-    public boolean matches(IbisCapabilities capabilities, PortType[] portTypes) {
-        this.capabilities = capabilities;
-        this.portTypes = portTypes.clone();
-        // See if the nickname is specified. Otherwise this Ibis is not
-        // selected.
-        matching = ibisCapabilities.matchCapabilities(capabilities);
-        return matching;
+    public boolean matches() {
+         return matching;
     }
 
     public boolean isSelectable() {
@@ -53,11 +52,11 @@ public final class StackingIbisStarter extends ibis.ipl.IbisStarter {
         return portTypes.clone();
     }
 
-    public Ibis startIbis(List<IbisStarterInfo> stack,
+    public Ibis startIbis(List<IbisStarter> stack,
             RegistryEventHandler registryEventHandler,
             Properties userProperties, String version) {
-        IbisStarterInfo s = stack.remove(0);
-        Ibis base = s.startIbis(stack, registryEventHandler, userProperties);
+        IbisStarter s = stack.remove(0);
+        Ibis base = s.startIbis(stack, registryEventHandler, userProperties, version);
         return new StackingIbis(base);
     }
 }

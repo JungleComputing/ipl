@@ -57,25 +57,26 @@ public final class NioIbisStarter extends ibis.ipl.IbisStarter {
             "receiveport.thread"
     );    
     
-    private boolean matching;
+    private final boolean matching;
     private int unmatchedPortTypes;
 
-    public NioIbisStarter() {
-    }
-    
-    public boolean matches(IbisCapabilities capabilities, PortType[] portTypes) { 
-        this.capabilities = capabilities;
-        this.portTypes = portTypes;
-        matching = true;
+    public NioIbisStarter(IbisCapabilities caps, PortType[] types,
+            IbisStarterInfo info) {
+        super(caps, types, info);
+        boolean m = true;
         if (! capabilities.matchCapabilities(ibisCapabilities)) {
-            matching = false;
+            m = false;
         }
         for (PortType pt : portTypes) {
             if (! pt.matchCapabilities(portCapabilities)) {
                 unmatchedPortTypes++;
-                matching = false;
+                m = false;
             }
         }
+        matching = m;
+    }
+    
+    public boolean matches() { 
         return matching;
     }
 

@@ -20,10 +20,13 @@ import ibis.ipl.SendPort;
 import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.ipl.Registry;
 import ibis.ipl.SendPortIdentifier;
+import ibis.ipl.IbisStarter.IbisStarterInfo;
 import ibis.util.TypedProperties;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -137,9 +140,14 @@ public class MultiIbis implements Ibis {
                 }
 
                 Class<IbisStarter> starterClass = (Class<IbisStarter>)Class.forName(starterClassName);
-                IbisStarter starterInstance = starterClass.newInstance();
+                Constructor<?> constructor = starterClass.getConstructor(
+                        IbisCapabilities.class, PortType[].class,
+                        IbisStarterInfo.class);
+                IbisStarter starterInstance =(IbisStarter) constructor.newInstance(subCaps,
+                        ourPortTypes, this);
+                
                 logger.debug("Created starter instance: " + starterInstance);
-                if (starterInstance.matches(subCaps, ourPortTypes)) {
+                if (starterInstance.matches()) {
                     if (logger.isDebugEnabled()) {
                         logger.debug("Starting ibis: " + starterClass.getClass().getName());
                     }
@@ -222,6 +230,14 @@ public class MultiIbis implements Ibis {
                 logger.debug("Unable to instantiate starter: " + starter + "! Ignoring.");
             } catch (IllegalAccessException e) {
                 logger.debug("Illegal Access while instantiating starter: " + starter + "! Ignoring.");
+            } catch (SecurityException e) {
+                logger.debug("Security exception while instantiating starter: " + starter + "! Ignoring.");
+            } catch (NoSuchMethodException e) {
+                logger.debug("Unable to find starter constructor: " + starter + "! Ignoring.");
+            } catch (IllegalArgumentException e) {
+                logger.debug("Illegal arguments to starter constructor: " + starter + "! Ignoring.");
+            } catch (InvocationTargetException e) {
+                logger.debug("Invocation target exception in starter constructor: " + starter + "! Ignoring.", e.getCause());
             }
         }
 

@@ -23,17 +23,15 @@ public final class MultiIbisStarter extends IbisStarter {
         "nickname.multi"
     );
 
-    private boolean matching;
+    private final boolean matching;
 
-    public MultiIbisStarter() {
+    public MultiIbisStarter(IbisCapabilities caps, PortType[] types,
+            IbisStarterInfo info) {
+        super(caps, types, info);
+        matching = ibisCapabilities.matchCapabilities(capabilities);
     }
 
-    public boolean matches(IbisCapabilities capabilities, PortType[] portTypes) {
-        this.capabilities = capabilities;
-        this.portTypes = portTypes.clone();
-        // See if the nickname is specified. Otherwise this Ibis is not
-        // selected.
-        matching = ibisCapabilities.matchCapabilities(capabilities);
+    public boolean matches() {
         return matching;
     }
 

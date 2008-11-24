@@ -1,10 +1,10 @@
 package ibis.ipl.impl.stacking.lrmc;
 
-import ibis.ipl.IbisStarter.IbisStarterInfo;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.IbisIdentifier;
+import ibis.ipl.IbisStarter;
 import ibis.ipl.MessageUpcall;
 import ibis.ipl.NoSuchPropertyException;
 import ibis.ipl.PortType;
@@ -101,14 +101,14 @@ public class LrmcIbis implements Ibis {
     DynamicObjectArray<IbisIdentifier> ibisList = new DynamicObjectArray<IbisIdentifier>();
     HashMap<String, Multicaster> multicasters = new HashMap<String, Multicaster>();
 
-    LrmcIbis(List<IbisStarterInfo> stack,
+    LrmcIbis(List<IbisStarter> stack,
             RegistryEventHandler registryEventHandler,
             IbisCapabilities capabilities, PortType[] portTypes,
-            Properties userProperties) {
+            Properties userProperties, String version) {
         logger.info("Constructor LRMC Ibis");
-        IbisStarterInfo s = stack.remove(0);
+        IbisStarter s = stack.remove(0);
         EventHandler h = new EventHandler(registryEventHandler, this);
-        base = s.startIbis(stack, h, userProperties);
+        base = s.startIbis(stack, h, userProperties, version);
         this.portTypes = portTypes;
         this.capabilities = capabilities;
     }
