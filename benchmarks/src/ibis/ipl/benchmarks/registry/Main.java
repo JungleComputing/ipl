@@ -47,7 +47,7 @@ public final class Main {
         boolean generateEvents = false;
         long start = System.currentTimeMillis();
         long runtime = Long.MAX_VALUE;
-        boolean bump = false;
+	long delay = 0;
         boolean fail = false;
 
         int rank = new Integer(System.getProperty("rank", "0"));
@@ -58,48 +58,36 @@ public final class Main {
                 threads = new Integer(args[i]);
             } else if (args[i].equalsIgnoreCase("--events")) {
                 generateEvents = true;
-            } else if (args[i].equalsIgnoreCase("--bump")) {
-                bump = true;
             } else if (args[i].equalsIgnoreCase("--fail")) {
                 fail = true;
             } else if (args[i].equalsIgnoreCase("--runtime")) {
                 i++;
                 runtime = new Integer(args[i]) * 1000;
+            } else if (args[i].equalsIgnoreCase("--delay")) {
+                i++;
+                delay = new Integer(args[i]) * 1000;
             } else {
                 System.err.println("unknown option: " + args[i]);
                 System.exit(1);
             }
         }
 
-        if (bump && (rank % 2 == 0)) {
-            // even rank, and there is a "bump"
-
-            // first sleep a third of the runtime
-            long sleep = (runtime / 3) - (System.currentTimeMillis() - start);
-            System.err.println("Benchmark app sleeping first : " + sleep);
-            if (sleep > 0) {
-                Thread.sleep(sleep);
+	    //delay specified time
+            if (delay > 0) {
+                Thread.sleep(delay);
             }
 
-            // then create the ibisses
+	    //create ibisses
             new Main(threads, generateEvents, fail);
 
-            // sleep another third, then exit (or crash)
-            long sleep2 = (2 * (runtime / 3)) - (System.currentTimeMillis() - start);
-            System.err.println("Benchmark app sleeping second : " + sleep);
-            if (sleep2 > 0) {
-                Thread.sleep(sleep2);
-            }
-
-        } else {
-            new Main(threads, generateEvents, fail);
-
+	    //sleep for specified runtime
             long sleep = runtime - (System.currentTimeMillis() - start);
             System.err.println("Benchmark app sleeping : " + sleep);
             if (sleep > 0) {
                 Thread.sleep(sleep);
             }
-        }
+
+	    //app stopped automatically
     }
 
 }
