@@ -50,7 +50,7 @@ public final class Main {
 	long delay = 0;
         boolean fail = false;
 
-        int rank = new Integer(System.getProperty("rank", "0"));
+        // int rank = new Integer(System.getProperty("rank", "0"));
         
         for (int i = 0; i < args.length; i++) {
             if (args[i].equalsIgnoreCase("--threads")) {
