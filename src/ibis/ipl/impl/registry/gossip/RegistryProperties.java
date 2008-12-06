@@ -20,6 +20,8 @@ public class RegistryProperties {
 
     public static final String PING_INTERVAL = PREFIX + "ping.interval";
 
+    public static final String PING_COUNT = PREFIX + "ping.count";
+
     public static final String ELECTION_TIMEOUT = PREFIX + "election.timeout";
 
     public static final String STATISTICS = PREFIX + "statistics";
@@ -41,6 +43,8 @@ public class RegistryProperties {
                     "Number of seconds until a peer can be declared dead" },
             { PING_INTERVAL, "1",
                     "How often do we try to reach a suspect member (in seconds)" },
+            { PING_COUNT, "10",
+                    "How many suspect members do we ping in each ping round" },
             { ELECTION_TIMEOUT, "5",
                     "Number of seconds until we return the value of an election" },
             {

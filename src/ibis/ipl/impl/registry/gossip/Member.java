@@ -117,8 +117,6 @@ class Member {
         //check if this member is now dead
         int witnessesRequired = properties.getIntProperty(RegistryProperties.WITNESSES_REQUIRED);
         
-        
-        
         if (timedout() && witnesses.size() > witnessesRequired) {
             logger.debug("member dead after merge: " + witnesses.size());
             

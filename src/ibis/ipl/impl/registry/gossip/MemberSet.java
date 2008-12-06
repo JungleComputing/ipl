@@ -18,7 +18,8 @@ import ibis.util.TypedProperties;
 
 class MemberSet extends Thread {
 
-    private static final Logger logger = LoggerFactory.getLogger(MemberSet.class);
+    private static final Logger logger = LoggerFactory
+            .getLogger(MemberSet.class);
 
     private final TypedProperties properties;
 
@@ -41,7 +42,8 @@ class MemberSet extends Thread {
      */
     private int liveMembers;
 
-    MemberSet(TypedProperties properties, Registry registry, Statistics statistics) {
+    MemberSet(TypedProperties properties, Registry registry,
+            Statistics statistics) {
         this.properties = properties;
         this.registry = registry;
         this.statistics = statistics;
@@ -119,27 +121,28 @@ class MemberSet extends Thread {
 
         cleanup(member);
     }
-    
+
     public synchronized void leave() {
         if (self != null) {
             self.setLeft();
         }
     }
-    
-    public synchronized IbisIdentifier getFirstLiving(IbisIdentifier[] candidates) {
+
+    public synchronized IbisIdentifier getFirstLiving(
+            IbisIdentifier[] candidates) {
         if (candidates == null || candidates.length == 0) {
             return null;
         }
-        
-        for (IbisIdentifier candidate: candidates) {
+
+        for (IbisIdentifier candidate : candidates) {
             Member member = getMember(candidate, false);
-            
+
             if (member != null && !member.hasLeft() && !member.isDead()) {
                 return candidate;
             }
         }
-        
-        //no alive canidates found, return first candidate
+
+        // no alive canidates found, return first candidate
         return candidates[0];
     }
 
@@ -147,13 +150,13 @@ class MemberSet extends Thread {
         UUID[] deceased;
         UUID[] left;
         Member[] members;
-        
+
         synchronized (this) {
             deceased = this.deceased.toArray(new UUID[0]);
             left = this.left.toArray(new UUID[0]);
             members = this.members.values().toArray(new Member[0]);
             if (self != null) {
-                //make sure we send out ourselves as "just seen"
+                // make sure we send out ourselves as "just seen"
                 self.seen();
             }
         }
@@ -322,7 +325,7 @@ class MemberSet extends Thread {
         }
     }
 
-    private synchronized Member getSuspect() {
+    private synchronized Member[] getRandomSuspects(int count) {
         ArrayList<Member> suspects = new ArrayList<Member>();
 
         for (Member member : members.values()) {
@@ -331,11 +334,11 @@ class MemberSet extends Thread {
             }
         }
 
-        if (suspects.size() == 0) {
-            return null;
+        while (suspects.size() > count) {
+            suspects.remove(random.nextInt(suspects.size()));
         }
 
-        return suspects.get(random.nextInt(suspects.size()));
+        return suspects.toArray(new Member[0]);
     }
 
     synchronized void printMembers() {
@@ -368,21 +371,23 @@ class MemberSet extends Thread {
             registry.ibisJoined(self.getIdentifier());
         }
 
-        long interval =
-            properties.getIntProperty(RegistryProperties.PING_INTERVAL) * 1000;
+        long interval = properties
+                .getIntProperty(RegistryProperties.PING_INTERVAL) * 1000;
+        int count = properties.getIntProperty(RegistryProperties.PING_COUNT);
 
         while (!registry.isStopped()) {
             cleanup();
 
-            Member suspect = getSuspect();
+            Member[] suspects = getRandomSuspects(count);
 
-            if (suspect != null) {
+            for (Member suspect : suspects) {
                 if (suspect.equals(self)) {
                     logger.error("we are a suspect ourselves");
                     suspect.seen();
                 } else {
-
-                    logger.debug("suspecting " + suspect + " is dead, checking");
+                    logger
+                            .debug("suspecting " + suspect
+                                    + " is dead, checking");
                     try {
                         registry.getCommHandler().ping(suspect.getIdentifier());
                         suspect.seen();
@@ -391,6 +396,7 @@ class MemberSet extends Thread {
                                 + ", adding ourselves as witness");
                         suspect.suspectDead(registry.getIbisIdentifier());
                     }
+
                 }
             }
 
