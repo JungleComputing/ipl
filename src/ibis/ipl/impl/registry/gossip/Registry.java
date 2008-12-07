@@ -140,10 +140,12 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
                     "cannot initialize registry, property "
                             + IbisProperties.POOL_NAME + " is not specified");
         }
+        
+        Location location = Location.defaultLocation(properties);
 
         if (properties.getBooleanProperty(RegistryProperties.STATISTICS)) {
             statistics = new Statistics(Protocol.OPCODE_NAMES);
-            statistics.setID(id.toString(), poolName);
+            statistics.setID(id.toString() + "@" + location.toString(), poolName);
 
             long interval = properties
                     .getIntProperty(RegistryProperties.STATISTICS_INTERVAL) * 1000;
@@ -159,7 +161,6 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
         commHandler = new CommunicationHandler(properties, this, members,
                 elections, statistics);
 
-        Location location = Location.defaultLocation(properties);
 
         identifier = new IbisIdentifier(id.toString(), ibisData, commHandler
                 .getAddress().toBytes(), location, poolName);
