@@ -323,6 +323,10 @@ class MemberSet extends Thread {
         for (Member member : members.values().toArray(new Member[0])) {
             cleanup(member);
         }
+        
+        if (logger.isDebugEnabled()) {
+            logger.debug(self.getIdentifier() + ": members = " + members.size() + ", left = " + left.size() + " deceased = " + deceased.size());
+        }
     }
 
     private synchronized Member[] getRandomSuspects(int count) {

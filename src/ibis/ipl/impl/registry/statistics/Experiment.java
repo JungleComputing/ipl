@@ -155,6 +155,8 @@ public class Experiment {
         if (active == 0) {
             return 0;
         }
+        
+        logger.debug("total = " + total + ", active = " + active + ", value = " + (total / active));
 
         return total / active;
     }
