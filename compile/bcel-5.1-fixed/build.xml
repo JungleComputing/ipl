@@ -24,7 +24,11 @@
 
     <target name="compile" depends="init, clean" description="compile the source ">
 	<!-- Compile the java code from ${src} into ${tmp} -->
-	<javac srcdir="${src}" destdir="${tmp}" debug="on" >
+	<javac srcdir="${src}"
+	    destdir="${tmp}"
+	    debug="on"
+	    source="1.5"
+            target="1.5">
 	    <classpath refid="external_jars" />
 	</javac>
     </target>

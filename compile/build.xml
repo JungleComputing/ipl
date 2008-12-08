@@ -36,7 +36,11 @@
         <mkdir dir="${javadoc}" />
 
         <!-- Compile the java code from ${src} into ${tmp} -->
-        <javac srcdir="${src}" destdir="${tmp}" debug="on">
+	<javac srcdir="${src}"
+	    destdir="${tmp}"
+	    debug="on"
+	    source="1.5"
+	    target="1.5">
             <classpath refid="external_jars" />
             <compilerarg value="-Xlint:unchecked" />
         </javac>
