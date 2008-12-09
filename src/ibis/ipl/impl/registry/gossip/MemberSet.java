@@ -323,9 +323,11 @@ class MemberSet extends Thread {
         for (Member member : members.values().toArray(new Member[0])) {
             cleanup(member);
         }
-        
+
         if (logger.isDebugEnabled()) {
-            logger.debug(self.getIdentifier() + ": members = " + members.size() + ", left = " + left.size() + " deceased = " + deceased.size());
+            logger.debug(self.getIdentifier() + ": members = " + members.size()
+                    + ", left = " + left.size() + " deceased = "
+                    + deceased.size());
         }
     }
 
@@ -384,6 +386,9 @@ class MemberSet extends Thread {
 
             Member[] suspects = getRandomSuspects(count);
 
+            logger.debug(self.getIdentifier() + ": checking " + suspects.length
+                    + " suspects");
+
             for (Member suspect : suspects) {
                 if (suspect.equals(self)) {
                     logger.error("we are a suspect ourselves");
@@ -400,20 +405,25 @@ class MemberSet extends Thread {
                                 + ", adding ourselves as witness");
                         suspect.suspectDead(registry.getIbisIdentifier());
                     }
+                    logger.debug("done checking " + suspect);
 
                 }
             }
+
+            logger.debug(self.getIdentifier() + ": done checking "
+                    + suspects.length + " suspects");
 
             int timeout = (int) (Math.random() * interval);
             synchronized (this) {
-                try {
-                    wait(timeout);
-                } catch (InterruptedException e) {
-                    // IGNORE
+                if (timeout > 0) {
+                    try {
+                        wait(timeout);
+                    } catch (InterruptedException e) {
+                        // IGNORE
+                    }
                 }
-
             }
         }
-
+        logger.debug(self.getIdentifier() + ": registry stopped, exiting");
     }
 }
