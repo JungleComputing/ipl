@@ -6,6 +6,7 @@ import ibis.util.TypedProperties;
 import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -94,6 +95,7 @@ public final class Server {
             //feed other hub addresses to hub
             if (hubs != null) {
                 String[] hubList = hubs.split(",");
+                logger.debug("giving addresses to hub: " + Arrays.toString(hubList));
                 hub.addHubs(hubList);
             }
             
@@ -318,7 +320,8 @@ public final class Server {
      * Run the ibis server
      */
     public static void main(String[] args) {
-        Properties properties = new Properties();
+        TypedProperties properties = new TypedProperties();
+        properties.putAll(System.getProperties());
 
         for (int i = 0; i < args.length; i++) {
             if (args[i].equalsIgnoreCase("--no-hub")) {
