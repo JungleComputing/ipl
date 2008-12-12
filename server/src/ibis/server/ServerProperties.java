@@ -38,7 +38,7 @@ public final class ServerProperties {
     public static final String IS_HUB = PREFIX + "is.hub";
 
     private static final String[][] propertiesList = new String[][] {
-            { HUB_ADDRESSES, null, "Comma seperated list of hubs." },
+            { HUB_ADDRESSES, null, "Comma separated list of hubs." },
 
             { START_HUB, "true",
                     "Boolean: if true, also start a hub at the server" },

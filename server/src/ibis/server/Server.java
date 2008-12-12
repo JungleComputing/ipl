@@ -60,7 +60,7 @@ public final class Server {
 
         // create the virtual socket factory
         ibis.smartsockets.util.TypedProperties smartProperties = new ibis.smartsockets.util.TypedProperties();
-        smartProperties.putAll(System.getProperties());
+        smartProperties.putAll(SmartSocketsProperties.getDefaultProperties());
 
         String hubs = typedProperties
                 .getProperty(ServerProperties.HUB_ADDRESSES);
@@ -90,6 +90,13 @@ public final class Server {
                     typedProperties.getProperty(ServerProperties.PORT));
 
             hub = new Hub(smartProperties);
+            
+            //feed other hub addresses to hub
+            if (hubs != null) {
+                String[] hubList = hubs.split(",");
+                hub.addHubs(hubList);
+            }
+            
             address = hub.getHubAddress();
 
         } else {
