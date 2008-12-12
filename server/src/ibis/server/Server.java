@@ -6,7 +6,6 @@ import ibis.util.TypedProperties;
 import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -91,13 +90,6 @@ public final class Server {
                     typedProperties.getProperty(ServerProperties.PORT));
 
             hub = new Hub(smartProperties);
-            
-            //feed other hub addresses to hub
-            if (hubs != null) {
-                String[] hubList = hubs.split(",");
-                logger.debug("giving addresses to hub: " + Arrays.toString(hubList));
-                hub.addHubs(hubList);
-            }
             
             address = hub.getHubAddress();
 
