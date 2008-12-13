@@ -5,6 +5,7 @@ import ibis.ipl.impl.registry.central.Protocol;
 import ibis.ipl.impl.registry.central.RegistryProperties;
 import ibis.ipl.impl.registry.central.server.Server;
 import ibis.server.Client;
+import ibis.smartsockets.hub.servicelink.ServiceLink;
 import ibis.smartsockets.virtual.VirtualSocketAddress;
 import ibis.smartsockets.virtual.VirtualSocketFactory;
 import ibis.util.TypedProperties;
@@ -60,6 +61,18 @@ public class RegistryMonitorClient {
         typedProperties.addProperties(properties);
 
         factory = Client.getFactory(typedProperties);
+        
+        try {
+            ServiceLink sl = factory.getServiceLink();
+            if (sl != null) {
+                sl.registerProperty("smartsockets.viz", "M^Ibis monitor");
+            } else {
+                logger.warn("cannot get service link");
+            }
+        } catch (Throwable e) {
+            logger.warn("cannot set viz tag", e);
+        }
+        
         serverAddress = Client.getServiceAddress(Server.VIRTUAL_PORT,
             typedProperties);
 

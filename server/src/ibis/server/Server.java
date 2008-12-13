@@ -3,6 +3,7 @@ package ibis.server;
 import ibis.util.ClassLister;
 import ibis.util.TypedProperties;
 
+import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -13,7 +14,6 @@ import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ibis.server.remote.RemoteHandler;
 import ibis.smartsockets.SmartSocketsProperties;
 import ibis.smartsockets.direct.DirectSocketAddress;
 import ibis.smartsockets.hub.Hub;
@@ -24,6 +24,8 @@ import ibis.smartsockets.virtual.VirtualSocketFactory;
  * Main Ibis Server class.
  */
 public final class Server {
+
+    public static final String ADDRESS_LINE_PREFIX = "IBIS SERVER RUNNING ON: ";
 
     private static final Logger logger = LoggerFactory.getLogger(Server.class);
 
@@ -65,8 +67,9 @@ public final class Server {
         String hubs = typedProperties
                 .getProperty(ServerProperties.HUB_ADDRESSES);
         if (hubs == null) {
-            //BACKWARDS COMPATIBILITY: Look in "ibis.server.hub.addresses" too
-            hubs = typedProperties.getProperty(ServerProperties.SERVER_HUB_ADDRESSES);
+            // BACKWARDS COMPATIBILITY: Look in "ibis.server.hub.addresses" too
+            hubs = typedProperties
+                    .getProperty(ServerProperties.SERVER_HUB_ADDRESSES);
         }
         if (hubs != null) {
             smartProperties.put(SmartSocketsProperties.HUB_ADDRESSES, hubs);
@@ -90,7 +93,7 @@ public final class Server {
                     typedProperties.getProperty(ServerProperties.PORT));
 
             hub = new Hub(smartProperties);
-            
+
             address = hub.getHubAddress();
 
         } else {
@@ -294,6 +297,19 @@ public final class Server {
                 .println("--errors\t\t\tPrint details of errors (such as stacktraces).");
         out.println("--stats\t\t\t\tPrint statistics once in a while.");
         out.println("--help | -h | /?\t\tThis message.");
+
+    }
+
+    private void waitUntilFinished() {
+        try {
+            int read = 0;
+
+            while (read != -1) {
+                read = System.in.read();
+            }
+        } catch (IOException e) {
+            // IGNORE
+        }
     }
 
     private static class Shutdown extends Thread {
@@ -367,7 +383,9 @@ public final class Server {
         }
 
         if (server.hasRemote()) {
-            new RemoteHandler(server).run();
+            System.out.println(ADDRESS_LINE_PREFIX + server.getLocalAddress());
+            System.out.flush();
+            server.waitUntilFinished();
         } else {
             System.err.println(server.toString());
             String knownHubs = null;
