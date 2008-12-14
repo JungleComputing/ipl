@@ -87,15 +87,9 @@ public class RemoteClient implements Runnable {
     /**
      * End Server by closing stream.
      */
-    public synchronized void end() {
+    public void end() {
         try {
             stdin.close();
-        } catch (IOException e) {
-            // IGNORE
-        }
-
-        try {
-            stdout.close();
         } catch (IOException e) {
             // IGNORE
         }

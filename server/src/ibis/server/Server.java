@@ -117,10 +117,11 @@ public final class Server {
                 if (sl != null) {
                     sl.registerProperty("smartsockets.viz", "S^Ibis server:,"
                             + address.toString());
-                    // sl.registerProperty("ibis", id.toString());
+                } else {
+                    logger.warn("could not set smartsockets viz property: could not get smartsockets service link");
                 }
             } catch (Throwable e) {
-                // ignored
+                logger.warn("could not register smartsockets viz property", e);
             }
 
             ClassLister classLister = ClassLister.getClassLister(null);
@@ -410,6 +411,7 @@ public final class Server {
                 }
             }
         }
+        server.end(-1);
     }
 
 }

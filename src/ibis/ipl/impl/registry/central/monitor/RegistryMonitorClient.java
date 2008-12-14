@@ -67,10 +67,10 @@ public class RegistryMonitorClient {
             if (sl != null) {
                 sl.registerProperty("smartsockets.viz", "M^Ibis monitor");
             } else {
-                logger.warn("cannot get service link");
+                logger.warn("could not set smartsockets viz property: could not get smartsockets service link");
             }
         } catch (Throwable e) {
-            logger.warn("cannot set viz tag", e);
+            logger.warn("cannot set smartsockets viz tag", e);
         }
         
         serverAddress = Client.getServiceAddress(Server.VIRTUAL_PORT,

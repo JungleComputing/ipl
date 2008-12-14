@@ -17,11 +17,16 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Provides a factory that can either produce smartsockets sockets or ordinary
  * sockets.
  */
 class IbisSocketFactory {
+    
+    private static final Logger logger = LoggerFactory.getLogger(IbisSocketFactory.class);
 
     private final VirtualSocketFactory factory;
 
@@ -51,9 +56,11 @@ class IbisSocketFactory {
                     sl.registerProperty("smartsockets.viz", "I^" + id.name()
                             + "," + id.location().toString());
                     // sl.registerProperty("ibis", id.toString());
+                } else {
+                    logger.warn("could not set smartsockets viz property: could not get smartsockets service link");
                 }
             } catch (Throwable e) {
-                // ignored
+                logger.warn("could not set smartsockets viz property");
             }
         }
     }
