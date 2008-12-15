@@ -141,7 +141,7 @@ public class Registry extends ibis.ipl.impl.Registry implements Runnable {
                             + IbisProperties.POOL_NAME + " is not specified");
         }
         
-        Location location = Location.defaultLocation(properties);
+        Location location = Location.defaultLocation(properties, null);
 
         if (properties.getBooleanProperty(RegistryProperties.STATISTICS)) {
             statistics = new Statistics(Protocol.OPCODE_NAMES);

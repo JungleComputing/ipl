@@ -181,30 +181,45 @@ public final class Location implements ibis.ipl.Location {
      * Method to retreive a default location, consisting of the domain and
      * hostname of this machine.
      * @param props properties.
+     * @param adds addresses to use as a source of the hostname (may be null). 
      * @return the default location of this machine.
      */
-    public static Location defaultLocation(Properties props) {
+    public static Location defaultLocation(Properties props, InetAddress [] adds) {
         TypedProperties p = new TypedProperties(props);
         String s = p.getProperty(IbisProperties.LOCATION);
         if (s != null) {
             return new Location(appendPostFix(p, s.split("@")));
         }
-        
-        try {
-            InetAddress a = InetAddress.getLocalHost();
-            s = a.getCanonicalHostName();
-            if (s.length() > 0 && Character.isJavaIdentifierStart(s.charAt(0))) {
-                return new Location(appendPostFix(p, s.split("\\.")));
-            }
 
-            String postFix =  p.getProperty(IbisProperties.LOCATION_POSTFIX);
-            if(postFix == null) {
-                return new Location(s);
-            } else {
-                return new Location(s + postFix);
-            }
-         } catch(IOException e) {
-            return new Location("Unknown location");
+        // If the user has specified one or more preferred IP addresses, we'll 
+        // try to resolve those first.
+        if (adds != null && adds.length >= 0) {
+        	for (InetAddress a : adds) { 
+        		s = a.getCanonicalHostName();
+            		
+        		if (s.length() > 0 && Character.isJavaIdentifierStart(s.charAt(0))) {
+        			return new Location(appendPostFix(p, s.split("\\.")));
+        		}
+        	}	
+        }
+        	
+        // NOTE: This may result in a unusable location when the hostname 
+        // of the machine is set to a crappy value (as on DAS-3). 
+        try {
+        	InetAddress a = InetAddress.getLocalHost();
+        	s = a.getCanonicalHostName();
+        	if (s.length() > 0 && Character.isJavaIdentifierStart(s.charAt(0))) {
+        		return new Location(appendPostFix(p, s.split("\\.")));
+        	}
+
+        	String postFix = p.getProperty(IbisProperties.LOCATION_POSTFIX);
+        	if(postFix == null) {
+        		return new Location(s);
+        	} else {
+        		return new Location(s + postFix);
+        	}
+        } catch(IOException e) {
+        	return new Location("Unknown location");
         }
     }
 

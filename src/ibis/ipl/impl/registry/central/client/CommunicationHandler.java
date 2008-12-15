@@ -19,6 +19,8 @@ import ibis.util.ThreadPool;
 import ibis.util.TypedProperties;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -184,9 +186,24 @@ final class CommunicationHandler implements Runnable {
 		long statisticsInterval = properties
 				.getIntProperty(RegistryProperties.STATISTICS_INTERVAL) * 1000;
 
-		Location location = Location.defaultLocation(properties);
+		VirtualSocketAddress tmp = serverSocket.getLocalSocketAddress();
 
-		byte[] myAddress = serverSocket.getLocalSocketAddress().toBytes();
+		// We try to generate an array of global IP addresses here. We use these 
+		// in an attempt to get a more reasonable location.    
+		InetAddress [] preferred = null;
+		
+		if (tmp.machine().hasPublicAddress()) { 
+			InetSocketAddress [] sa = tmp.machine().getPublicAddresses();
+			preferred = new InetAddress[sa.length];
+			
+			for (int i=0;i<sa.length;i++) { 
+				preferred[i] = sa[i].getAddress();
+			}
+		}
+
+		Location location = Location.defaultLocation(properties, preferred);
+		
+		byte[] myAddress = tmp.toBytes();
 
 		logger.debug("joining to " + pool.getName() + ", connecting to server");
 		Connection connection;
