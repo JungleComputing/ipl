@@ -327,6 +327,26 @@ final class ServerConnectionHandler implements Runnable {
             }
         }
     }
+    
+    private void handleGetLocations(Connection connection) throws Exception {
+        String poolName = connection.in().readUTF();
+        
+        Pool pool = server.getPool(poolName);
+
+        if (pool == null) {
+            connection.closeWithError("pool not found");
+            throw new Exception("pool " + poolName + " not found");
+        }
+        
+        connection.sendOKReply();
+        
+        ibis.ipl.Location[] result = pool.getLocations();
+        
+        connection.out().writeInt(result.length);
+        for(ibis.ipl.Location location: result) {
+            connection.out().writeUTF(location.toString());
+        }
+    }
 
     private synchronized void createThread() {
         while (currentNrOfThreads >= MAX_THREADS) {
@@ -440,6 +460,9 @@ final class ServerConnectionHandler implements Runnable {
                 break;
             case Protocol.OPCODE_GET_STATS:
                 handleGetStats(connection);
+                break;
+            case Protocol.OPCODE_GET_LOCATIONS:
+                handleGetLocations(connection);
                 break;
             default:
                 logger.error("unknown opcode: " + opcode);

@@ -38,13 +38,15 @@ public final class Protocol {
 
     // monitoring client opcode
     public static final byte OPCODE_GET_STATS = 15;
+    
+    public static final byte OPCODE_GET_LOCATIONS = 16;
 
-    public static final int NR_OF_OPCODES = 15;
+    public static final int NR_OF_OPCODES = 16;
 
     public static final String[] OPCODE_NAMES = { "JOIN", "LEAVE", "GOSSIP",
             "ELECT", "SEQUENCE_NR", "DEAD", "MAYBE_DEAD", "SIGNAL", "PING",
             "PUSH", "BROADCAST", "FORWARD", "GET_STATE", "HEARTBEAT",
-            "TERMINATE", "GET_STATS" };
+            "TERMINATE", "GET_STATS", "GET_LOCATIONS" };
 
     public static final byte CLIENT_MAGIC_BYTE = 23;
 

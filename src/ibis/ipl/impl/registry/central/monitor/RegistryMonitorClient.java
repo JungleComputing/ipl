@@ -61,18 +61,19 @@ public class RegistryMonitorClient {
         typedProperties.addProperties(properties);
 
         factory = Client.getFactory(typedProperties);
-        
+
         try {
             ServiceLink sl = factory.getServiceLink();
             if (sl != null) {
                 sl.registerProperty("smartsockets.viz", "M^Ibis monitor");
             } else {
-                logger.warn("could not set smartsockets viz property: could not get smartsockets service link");
+                logger
+                        .warn("could not set smartsockets viz property: could not get smartsockets service link");
             }
         } catch (Throwable e) {
             logger.warn("cannot set smartsockets viz tag", e);
         }
-        
+
         serverAddress = Client.getServiceAddress(Server.VIRTUAL_PORT,
             typedProperties);
 
@@ -98,6 +99,47 @@ public class RegistryMonitorClient {
         }
 
         return result;
+    }
+
+    /**
+     * Returns a list of all locations used by Ibises in the given pool.
+     * 
+     * @param poolName
+     *            name of pool.
+     * @return a list of all locations in the given pool.
+     */
+    public String[] getLocations(String poolName) throws IOException {
+        String[] result = null;
+
+        Connection connection = new Connection(serverAddress,
+                CONNECTION_TIMEOUT, true, factory);
+
+        try {
+
+            connection.out().writeByte(Protocol.SERVER_MAGIC_BYTE);
+            connection.out().writeByte(Protocol.VERSION);
+            connection.out().writeByte(Protocol.OPCODE_GET_LOCATIONS);
+            connection.out().writeUTF(poolName);
+            connection.out().flush();
+
+            connection.getAndCheckReply();
+
+            int nrOfEntries = connection.in().readInt();
+
+            result = new String[nrOfEntries];
+            for (int i = 0; i < nrOfEntries; i++) {
+                result[i] = connection.in().readUTF();
+            }
+
+            connection.close();
+
+            logger.debug("done getting locations");
+
+            return result;
+        } catch (IOException e) {
+            connection.close();
+            throw e;
+        }
     }
 
     /**

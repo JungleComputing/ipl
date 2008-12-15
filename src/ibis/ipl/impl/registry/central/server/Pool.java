@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Formatter;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -214,6 +215,16 @@ final class Pool implements Runnable {
 	synchronized int getSize() {
 		return members.size();
 	}
+        
+        synchronized ibis.ipl.Location[] getLocations() {
+            HashSet<ibis.ipl.Location> locations = new HashSet<ibis.ipl.Location>();
+            
+            for(Member member: members.asArray()) {
+                locations.add(member.getIbis().location());
+            }
+            
+            return locations.toArray(new Location[0]);
+        }
 
 	int getFixedSize() {
 		return fixedSize;
