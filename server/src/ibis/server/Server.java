@@ -26,7 +26,8 @@ import ibis.smartsockets.virtual.VirtualSocketFactory;
 public final class Server {
 
     public static final String ADDRESS_LINE_PREFIX = "IBIS SERVER RUNNING ON: ";
-
+    public static final String ADDRESS_LINE_POSTFIX = "EOA";
+    
     private static final Logger logger = LoggerFactory.getLogger(Server.class);
 
     private final VirtualSocketFactory virtualSocketFactory;
@@ -384,7 +385,7 @@ public final class Server {
         }
 
         if (server.hasRemote()) {
-            System.out.println(ADDRESS_LINE_PREFIX + server.getLocalAddress());
+            System.out.println(ADDRESS_LINE_PREFIX + server.getLocalAddress() + ADDRESS_LINE_POSTFIX);
             System.out.flush();
             server.waitUntilFinished();
         } else {

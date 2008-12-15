@@ -9,7 +9,22 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * Client to a server started with the "--remote" option. This client can parse
+ * the address of the server from the standard out of the server process. Also
+ * forwards the output to the given stream (with an optional prefix to each
+ * line)
+ * 
+ * @author Niels Drost
+ * 
+ */
 public class RemoteClient implements Runnable {
+
+    private static final Logger logger = LoggerFactory
+            .getLogger(RemoteClient.class);
 
     // standard out of server process. Turns into an input stream on this side
     private final BufferedReader stdout;
@@ -57,6 +72,8 @@ public class RemoteClient implements Runnable {
      * @param timeout
      *            time to wait until address is available
      * 
+     * @return the address of the server.
+     * 
      * @throws IOException
      *             if server fails to start, or address is not available within
      *             the specified time.
@@ -100,8 +117,31 @@ public class RemoteClient implements Runnable {
         notifyAll();
     }
 
-    private synchronized void setAddress(String address) {
-        this.address = address;
+    private synchronized void parseAddress(String line) {
+        logger.debug("Parsing address from line: \"" + line + "\"");
+
+        int prefixIndex = line.lastIndexOf(Server.ADDRESS_LINE_PREFIX);
+        int postfixIndex = line.indexOf(Server.ADDRESS_LINE_POSTFIX);
+
+        if (prefixIndex == -1 || postfixIndex == -1) {
+            // address not in this line after all, print line to output
+            logger.warn("Address prefix+postfix not found in line \"" + line + "\"");
+            output.println(line);
+            return;
+        }
+        
+        if ((prefixIndex + Server.ADDRESS_LINE_PREFIX.length()) >= postfixIndex) {
+            logger.warn("Invalid address in line \"" + line + "\"");
+        }
+
+        try {
+            this.address = line.substring(prefixIndex
+                    + Server.ADDRESS_LINE_PREFIX.length(), postfixIndex);
+        } catch (IndexOutOfBoundsException e) {
+            logger.warn("Invalid address in line \"" + line + "\"");
+            return;
+        }
+
         notifyAll();
     }
 
@@ -119,11 +159,10 @@ public class RemoteClient implements Runnable {
                     setException(new IOException("server terminated"));
                     return;
                 }
-                
+
                 if (address == null
-                        && line.startsWith(Server.ADDRESS_LINE_PREFIX)) {
-                    setAddress(line.substring(Server.ADDRESS_LINE_PREFIX
-                            .length()));
+                        && line.contains(Server.ADDRESS_LINE_PREFIX)) {
+                    parseAddress(line);
                 } else {
                     output.println(outputPrefix + line);
                 }
