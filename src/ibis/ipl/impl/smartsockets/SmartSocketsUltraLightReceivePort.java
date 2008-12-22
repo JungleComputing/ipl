@@ -168,7 +168,9 @@ public class SmartSocketsUltraLightReceivePort implements ReceivePort, CallBack,
 		
 		if (returnToSender || opcode != 0xDEADBEEF || message == null || message.length == 0 
 				|| message[0] == null || message[0].length == 0) {			
-			logger.warn("Received malformed message from " + src.toString());
+			logger.warn("Received malformed message from " + src.toString() + " (" 
+					+ returnToSender + ", " + opcode + ", " + (message== null) + ", " 
+					+ message.length + ", " + (message[0] == null) + ", " + message[0].length + ")");
 			return;
 		}
 
