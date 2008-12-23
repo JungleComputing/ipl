@@ -32,7 +32,7 @@ public class RegistryMonitorClient {
     /**
      * Maximum connection time before we give up
      */
-    public static final int CONNECTION_TIMEOUT = 10000;
+    public static final int CONNECTION_TIMEOUT = 60000;
 
     VirtualSocketFactory factory;
 
