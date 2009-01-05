@@ -37,7 +37,7 @@ public class RegistryDowncalls {
             }
 
             // poll for died ibises
-            IbisIdentifier[] diedIbises = ibis.registry().joinedIbises();
+            IbisIdentifier[] diedIbises = ibis.registry().diedIbises();
             for (IbisIdentifier diedIbis : diedIbises) {
                 System.err.println("Ibis died: " + diedIbis);
             }
