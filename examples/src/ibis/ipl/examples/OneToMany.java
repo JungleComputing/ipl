@@ -16,8 +16,8 @@ import java.io.IOException;
 import java.util.Date;
 
 /**
- * Example application showing one-to-many communication. One of the Ibisis in
- * the pool (determined by an election) send out the time to all other members
+ * Example application showing one-to-many communication. One of the Ibisses in
+ * the pool (determined by an election) sends out the time to all other members
  * of the pool.
  */
 

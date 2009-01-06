@@ -14,7 +14,7 @@ import ibis.ipl.WriteMessage;
 import java.io.IOException;
 
 /**
- * Exampel of a many-to-one application. The server just waits until messages a
+ * Example of a many-to-one application. The server just waits until messages are
  * received and prints them, clients send a single message to the server and
  * exit.
  */
