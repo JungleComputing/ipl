@@ -59,11 +59,7 @@ class ARRG extends Thread {
         this.poolName = poolName;
         this.bootstrapAddress = bootstrapAddress;
 
-        if (statistics == null) {
-            statistics = new Statistics(Protocol.OPCODE_NAMES);
-            statistics.setID("server", poolName);
-            statistics.startWriting(60000);
-        }
+       
 
         this.statistics = statistics;
 
@@ -121,7 +117,7 @@ class ARRG extends Thread {
     synchronized boolean isDead() {
         return System.currentTimeMillis() > lastGossip + DEAD_TIMEOUT;
     }
-
+    
     void handleGossip(Connection connection) throws IOException {
         ARRGCacheEntry peerEntry = new ARRGCacheEntry(connection.in());
 

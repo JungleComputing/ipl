@@ -80,7 +80,7 @@ class ARRGCache {
         logger.debug("cache value now: " + cache.size());
     }
 
-    public ARRGCacheEntry[] getEntries(boolean includeArrgOnly) {
+    public synchronized ARRGCacheEntry[] getEntries(boolean includeArrgOnly) {
         if (includeArrgOnly) {
             return cache.toArray(new ARRGCacheEntry[0]);
         } else {
@@ -95,7 +95,4 @@ class ARRGCache {
             return result.toArray(new ARRGCacheEntry[0]);
         }
     }
-    
-    
-
 }

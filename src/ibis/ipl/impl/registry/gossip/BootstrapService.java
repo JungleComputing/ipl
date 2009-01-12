@@ -22,11 +22,11 @@ public class BootstrapService implements Service, Runnable {
     public static final int VIRTUAL_PORT = 303;
 
     private static final int CONNECTION_BACKLOG = 50;
-    
+
     static final int MAX_THREADS = 50;
 
-    private static final Logger logger =
-        LoggerFactory.getLogger(BootstrapService.class);
+    private static final Logger logger = LoggerFactory
+            .getLogger(BootstrapService.class);
 
     private final VirtualServerSocket serverSocket;
 
@@ -34,40 +34,43 @@ public class BootstrapService implements Service, Runnable {
 
     private final Map<String, ARRG> arrgs;
 
-    // private final boolean printStats;
+    // private final boolean printEvents;
 
     // private final boolean printEvents;
 
     private final boolean printErrors;
 
+    private final boolean keepStatistics;
+
     private boolean ended = false;
-    
+
     private int currentNrOfThreads = 0;
+
     private int maxNrOfThreads = 0;
 
     public BootstrapService(TypedProperties properties,
             VirtualSocketFactory socketFactory) throws IOException {
         this.socketFactory = socketFactory;
 
-        printErrors =
-            properties.getBooleanProperty(ServerProperties.PRINT_ERRORS);
+        printErrors = properties
+                .getBooleanProperty(ServerProperties.PRINT_ERRORS);
 
-//        printEvents =
-//            properties.getBooleanProperty(ServerProperties.PRINT_EVENTS);
-        
+        //printEvents = properties.getBooleanProperty(ServerProperties.PRINT_EVENTS);
+
+        keepStatistics = properties
+                .getBooleanProperty(RegistryProperties.STATISTICS);
+
         arrgs = new HashMap<String, ARRG>();
 
-        serverSocket =
-            socketFactory.createServerSocket(VIRTUAL_PORT, CONNECTION_BACKLOG,
-                null);
+        serverSocket = socketFactory.createServerSocket(VIRTUAL_PORT,
+            CONNECTION_BACKLOG, null);
 
         createThread();
     }
-    
+
     public String getServiceName() {
         return "bootstrap";
     }
-
 
     public synchronized void end(long deadline) {
         ended = true;
@@ -93,10 +96,15 @@ public class BootstrapService implements Service, Runnable {
         ARRG result = arrgs.get(poolName);
 
         if (result == null) {
-            result =
-                new ARRG(serverSocket.getLocalSocketAddress(), true,
-                        new VirtualSocketAddress[0], null, poolName,
-                        socketFactory, null);
+            Statistics statistics = null;
+            if (keepStatistics) {
+                statistics = new Statistics(Protocol.OPCODE_NAMES);
+                statistics.setID("server", poolName);
+                statistics.startWriting(60000);
+            }
+            result = new ARRG(serverSocket.getLocalSocketAddress(), true,
+                    new VirtualSocketAddress[0], null, poolName, socketFactory,
+                    null);
             result.start();
             arrgs.put(poolName, result);
 
@@ -115,7 +123,7 @@ public class BootstrapService implements Service, Runnable {
             }
         }
     }
-    
+
     private synchronized void createThread() {
         while (currentNrOfThreads >= MAX_THREADS) {
             try {
@@ -128,7 +136,7 @@ public class BootstrapService implements Service, Runnable {
         // create new thread for next connection
         ThreadPool.createNew(this, "bootstrap service connection handler");
         currentNrOfThreads++;
-        
+
         logger.trace("now " + currentNrOfThreads + " threads");
 
         if (currentNrOfThreads > maxNrOfThreads) {
@@ -141,7 +149,6 @@ public class BootstrapService implements Service, Runnable {
 
         notifyAll();
     }
-
 
     public void run() {
         Connection connection = null;
@@ -229,7 +236,7 @@ public class BootstrapService implements Service, Runnable {
     }
 
     public Map<String, String> getStats() {
-        //no statistics
+        // no statistics
         return new HashMap<String, String>();
     }
 
