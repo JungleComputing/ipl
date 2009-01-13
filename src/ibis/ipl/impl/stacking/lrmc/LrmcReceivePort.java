@@ -54,7 +54,7 @@ public class LrmcReceivePort implements ibis.ipl.ReceivePort, Runnable {
     }
 
     public void disableConnections() {
-        throw new IbisConfigurationException("connection upcalls not supported");
+        // throw new IbisConfigurationException("connection upcalls not supported");
     }
 
     public synchronized void disableMessageUpcalls() {
@@ -62,7 +62,7 @@ public class LrmcReceivePort implements ibis.ipl.ReceivePort, Runnable {
     }
 
     public void enableConnections() {
-        throw new IbisConfigurationException("connection upcalls not supported");
+        // throw new IbisConfigurationException("connection upcalls not supported");
     }
 
     public synchronized void enableMessageUpcalls() {
