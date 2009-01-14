@@ -4,6 +4,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Random;
@@ -146,15 +147,15 @@ class MemberSet extends Thread {
         return candidates[0];
     }
 
-    public void writeGossipData(DataOutputStream out) throws IOException {
+    public void writeGossipData(DataOutputStream out, int gossipSize) throws IOException {
         UUID[] deceased;
         UUID[] left;
-        Member[] members;
+        Member[] randomMembers;
 
         synchronized (this) {
             deceased = this.deceased.toArray(new UUID[0]);
             left = this.left.toArray(new UUID[0]);
-            members = this.members.values().toArray(new Member[0]);
+            randomMembers = getRandomMembers(gossipSize);
             if (self != null) {
                 // make sure we send out ourselves as "just seen"
                 self.seen();
@@ -173,8 +174,8 @@ class MemberSet extends Thread {
             out.writeLong(id.getLeastSignificantBits());
         }
 
-        out.writeInt(members.length);
-        for (Member member : members) {
+        out.writeInt(randomMembers.length);
+        for (Member member : randomMembers) {
             member.writeTo(out);
         }
     }
@@ -345,6 +346,20 @@ class MemberSet extends Thread {
         }
 
         return suspects.toArray(new Member[0]);
+    }
+    
+    private synchronized Member[] getRandomMembers(int count) {
+	if (count < 0) {
+	    return new Member[0];
+	}
+
+        ArrayList<Member> result = new ArrayList<Member>(members.values());
+
+        while (result.size() > count) {
+	    result.remove(random.nextInt(result.size()));
+        }
+
+        return result.toArray(new Member[0]);
     }
 
     synchronized void printMembers() {

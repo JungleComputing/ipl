@@ -45,6 +45,8 @@ class CommunicationHandler implements Runnable {
     private final ARRG arrg;
 
     private final int nrOfLeavesSend;
+    
+    private final int gossipSize;
 
     private int currentNrOfThreads = 0;
 
@@ -60,6 +62,8 @@ class CommunicationHandler implements Runnable {
 
         nrOfLeavesSend =
             properties.getIntProperty(RegistryProperties.LEAVES_SEND);
+        
+        gossipSize = properties.getIntProperty(RegistryProperties.GOSSIP_COUNT);
 
         try {
             socketFactory = Client.getFactory(properties);
@@ -174,7 +178,7 @@ class CommunicationHandler implements Runnable {
             connection.out().writeByte(Protocol.OPCODE_GOSSIP);
             registry.getIbisIdentifier().writeTo(connection.out());
 
-            pool.writeGossipData(connection.out());
+            pool.writeGossipData(connection.out(), gossipSize);
             elections.writeGossipData(connection.out());
 
             connection.getAndCheckReply();
@@ -210,7 +214,7 @@ class CommunicationHandler implements Runnable {
 
         connection.sendOKReply();
 
-        pool.writeGossipData(connection.out());
+        pool.writeGossipData(connection.out(), gossipSize);
         elections.writeGossipData(connection.out());
 
         connection.close();

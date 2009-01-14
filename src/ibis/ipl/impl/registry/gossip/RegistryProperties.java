@@ -10,6 +10,8 @@ public class RegistryProperties {
     public static final String PREFIX = "ibis.registry.gossip.";
 
     public static final String GOSSIP_INTERVAL = PREFIX + "gossip.interval";
+    
+    public static final String GOSSIP_COUNT = PREFIX + "gossip.count";
 
     public static final String BOOTSTRAP_LIST = PREFIX + "bootstrap.list";
 
@@ -36,6 +38,7 @@ public class RegistryProperties {
     // list of descriptions and defaults
     private static final String[][] propertiesList = new String[][] {
             { GOSSIP_INTERVAL, "1", "How often do we gossip (in seconds)" },
+            { GOSSIP_COUNT, "30000", "How many members do we transfer (maximum)" },
             { BOOTSTRAP_LIST, null, "List of peers to bootstrap of off" },
             { WITNESSES_REQUIRED, "5",
                     "Int: how many peers need to agree before a node is declared dead" },
