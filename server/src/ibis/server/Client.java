@@ -92,7 +92,7 @@ public class Client {
             throw new ConfigurationException("cannot get address of server");
         }
 
-        return new VirtualSocketAddress(serverMachine, port);
+        return new VirtualSocketAddress(serverMachine, port, serverMachine, null);
     }
 
     public static synchronized VirtualSocketFactory getFactory(Properties p)

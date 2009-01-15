@@ -76,6 +76,8 @@ public class RegistryMonitorClient {
 
         serverAddress = Client.getServiceAddress(Server.VIRTUAL_PORT,
             typedProperties);
+        
+        logger.debug("server address = " + serverAddress);
 
     }
 
