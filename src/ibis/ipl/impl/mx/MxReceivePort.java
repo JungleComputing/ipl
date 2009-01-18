@@ -20,6 +20,7 @@ import ibis.ipl.impl.SendPortIdentifier;
 import ibis.ipl.impl.mx.channels.ChannelManager;
 import ibis.ipl.impl.mx.channels.ConnectionRequest;
 import ibis.ipl.impl.mx.channels.ReadChannel;
+import ibis.ipl.impl.mx.channels.SimpleOutputStream;
 import ibis.util.ThreadPool;
 
 class MxReceivePort extends ReceivePort implements Runnable {
@@ -436,7 +437,7 @@ class MxReceivePort extends ReceivePort implements Runnable {
     		} else {
             	try {
                 	@SuppressWarnings("unused")
-					MxReceivePortConnectionInfo conn = new MxReceivePortConnectionInfo(origin, rc, this, new BufferedArrayInputStream(rc.getInputStream(), 4096));
+					MxReceivePortConnectionInfo conn = new MxReceivePortConnectionInfo(origin, rc, this, new BufferedArrayInputStream(rc.getInputStream(), SimpleOutputStream.bufferSize()));
 				} catch (IOException e) {
 					result = DENIED;
 					//TODO set error message

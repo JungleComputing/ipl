@@ -2,6 +2,7 @@ package ibis.ipl.impl.mx.channels;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.ClosedChannelException;
 
 import org.apache.log4j.Logger;
 
@@ -19,57 +20,148 @@ public class ScatteringOutputStream extends OutputStream {
 	}
 	
 	@Override
-	void swapBuffers() throws IOException {
+	void swapBuffers() throws CollectedWriteException {
+		CollectedWriteException cwe = null;
+		
         if (logger.isDebugEnabled()) {
         	logger.debug("swapBuffers");
 		}
 		// TODO Auto-generated method stub
 		frontBuffer.flip();
 		frontBuffer.mark();
-		for(int i = 0; i< nrOfConnections; i++) {
-			connections[i].flush();
-			connections[i].post(frontBuffer);
-			frontBuffer.reset();
+		int i = 0;
+		while(i < nrOfConnections) {
+			if(!connections[i].isOpen()) {
+				if(cwe == null) {
+					cwe = new CollectedWriteException();
+				}
+				cwe.add(connections[i], new ClosedChannelException());
+				try {
+					doRemove(connections[i]);
+				} catch (IOException e) {
+					//ignore
+				}
+			} else {
+				try {
+					connections[i].flush();
+					connections[i].post(frontBuffer);
+					frontBuffer.reset();
+					i++;
+				} catch (IOException e) {
+					frontBuffer.reset();
+					if(cwe == null) {
+						cwe = new CollectedWriteException();
+					}
+					cwe.add(connections[i], e);
+					try {
+						doRemove(connections[i]);
+					} catch (IOException e1) {
+						//ignore
+					}
+				}
+			}
 		}
 
 		ByteBuffer temp = frontBuffer;
 		frontBuffer = backBuffer;
 		backBuffer = temp;
 		frontBuffer.clear();
+		if(cwe != null) {
+			throw cwe;
+		}
 	}
 
 	@Override
-	void doFlush() throws IOException {
+	void doFlush() throws CollectedWriteException {
+		CollectedWriteException cwe = null;
 		frontBuffer.flip();
 		frontBuffer.mark();
         if (logger.isDebugEnabled()) {
-        	logger.debug("Flushing " + frontBuffer.remaining() + " bytes");
+        	logger.debug("Flushing " + frontBuffer.remaining() + " bytes to " + nrOfConnections + " channels");
 		}
-		for(int i = 0; i< nrOfConnections; i++) {
-			connections[i].post(frontBuffer);
-			frontBuffer.reset();
+        
+		int i = 0;
+		while(i < nrOfConnections) {
+			if(!connections[i].isOpen()) {
+				if(cwe == null) {
+					cwe = new CollectedWriteException();
+				}
+				cwe.add(connections[i], new ClosedChannelException());
+				try {
+					doRemove(connections[i]);
+				} catch (IOException e) {
+					//ignore
+				}
+			} else {
+				try {
+					connections[i].post(frontBuffer);
+					frontBuffer.reset();
+					i++;
+				} catch (IOException e) {
+					frontBuffer.reset();
+					if(cwe == null) {
+						cwe = new CollectedWriteException();
+					}
+					cwe.add(connections[i], e);
+					try {
+						doRemove(connections[i]);
+					} catch (IOException e1) {
+						//ignore
+					}
+				}
+			}
 		}
-		for(int i = 0; i< nrOfConnections; i++) {
-			connections[i].flush();
+		
+		
+		i = 0;
+		while(i < nrOfConnections) {
+			try {
+				connections[i].flush();
+				i++;
+			} catch (IOException e) {
+				if(cwe == null) {
+					cwe = new CollectedWriteException();
+				}
+				cwe.add(connections[i], e);
+				try {
+					doRemove(connections[i]);
+				} catch (IOException e2) {
+					// ignore
+				}
+			}
 		}
+		
 		frontBuffer.clear();
 		backBuffer.clear();
+		if(cwe != null) {
+			throw cwe;
+		}
 	}
 	
 	@Override
-	void doClose() throws IOException {
-		for(int i = 0; i< nrOfConnections; i++) {
-			connections[i].close();
+	void doClose() {
+		while(nrOfConnections > 0) {
+			if(connections[0].isOpen()) {
+				try {
+					connections[0].close();
+				} catch(IOException e) {
+					//ignore
+				}
+			}
+			try {
+				doRemove(connections[0]);
+			} catch (IOException e) {
+				// ignore
+			}
 		}
 	}
-
-
+	
 	public synchronized void add(WriteChannel connection) {
 		// end all current transfers
 		try {
 			flush();
 		} catch (IOException e) {
-			// well, stream is already closed, I think
+			// well, that stream is already closed, I think
 			// TODO filter for ClosedConnectionException or something
 		}
 	
@@ -100,6 +192,10 @@ public class ScatteringOutputStream extends OutputStream {
 		if(nrOfConnections == 0) {
 			throw new IOException("no connection to remove");
 		}
+		doRemove(connection);
+    }
+	
+	private synchronized void doRemove(WriteChannel connection) throws IOException {
         for (int i = 0; i < nrOfConnections; i++) {
             if (connections[i] == connection) {
                 if (logger.isDebugEnabled()) {
@@ -117,5 +213,7 @@ public class ScatteringOutputStream extends OutputStream {
         }
         
         throw new IOException("tried to remove non existing connections");
-    }	
+    }
+	
+	
 }

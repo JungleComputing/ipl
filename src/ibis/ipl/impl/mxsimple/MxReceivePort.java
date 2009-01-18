@@ -15,12 +15,15 @@ import ibis.ipl.impl.SendPortIdentifier;
 import ibis.ipl.impl.mx.channels.ChannelManager;
 import ibis.ipl.impl.mx.channels.ConnectionRequest;
 import ibis.ipl.impl.mx.channels.ReadChannel;
+import ibis.ipl.impl.mx.channels.SimpleOutputStream;
 import ibis.util.ThreadPool;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Properties;
+
+/* based on the ReceivePort of TCPIbis */
 
 class MxReceivePort extends ReceivePort implements MxProtocol {
 
@@ -271,7 +274,7 @@ class MxReceivePort extends ReceivePort implements MxProtocol {
     		} else {
 	            synchronized(this) {
 	                try {
-	                	ConnectionHandler conn = new ConnectionHandler(origin, rc, this, new BufferedArrayInputStream(rc.getInputStream(), 4096));
+	                	ConnectionHandler conn = new ConnectionHandler(origin, rc, this, new BufferedArrayInputStream(rc.getInputStream(), SimpleOutputStream.bufferSize()));
 	                	if (! no_connectionhandler_thread) {
 	                    	ThreadPool.createNew(conn, "ConnectionHandler");
 	                    }

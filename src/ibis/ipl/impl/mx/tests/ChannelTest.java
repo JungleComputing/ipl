@@ -47,7 +47,46 @@ public class ChannelTest implements MxListener {
 		}
 	}
 	
+	void stream(boolean server) throws IOException {
+		ByteBuffer[] bb = new ByteBuffer[4];
+		ByteBuffer buf = null;
+		for(int i = 0; i < 4; i++) {
+			bb[i] = ByteBuffer.allocateDirect(len).order(ByteOrder.nativeOrder());
+		}
+		if (server) {
+			System.out.println("Stream " + count + " * " + len + " bytes");
+		}
+		for(int j = 0; j < retries; j++) {
+			if (server) {
+				long time = System.currentTimeMillis();
+				for(int i = 0; i < count; i++) {
+					buf = bb[i%4];
+					buf.clear();
+					wc.write(buf);
+				}
+				//wc.flush();
+				buf.clear().limit(1);
+				rc.read(buf);
+		
+				time = System.currentTimeMillis() - time;
+				System.out.println("" + (double)time / 1000);
+			} else {
+				for(int i = 0; i < count; i++) {
+					buf = bb[i%4];
+					buf.clear();					
+					while(buf.hasRemaining()) {
+						rc.read(buf);
+					}
+				}
+
+				buf.clear().limit(1);
+				wc.write(buf);
+			}
+		}
+	}
+	
 	void aPingPong(boolean server) throws IOException {
+		//buggy
 		ByteBuffer buf = ByteBuffer.allocateDirect(len).order(ByteOrder.nativeOrder());
 		ByteBuffer buf2 = ByteBuffer.allocateDirect(len).order(ByteOrder.nativeOrder());
 		if (server) {
@@ -68,8 +107,9 @@ public class ChannelTest implements MxListener {
 				}
 				time = System.currentTimeMillis() - time;
 				//System.out.println("" + LOOPS + " PingPongs took " + time + " ms");
-				System.out.println("Roundtrip time: " + (double)time/(double)count + " ms");
-				System.out.println("Bandwidth: " + (((double)count * (double)len * 2) / (double)(1000*1000))/ ((double) time / 1000) + " MB/s");
+				System.out.println("" + (double)time / 1000);
+				//System.out.println("Roundtrip time: " + (double)time/(double)count + " ms");
+				//System.out.println("Bandwidth: " + (((double)count * (double)len * 2) / (double)(1000*1000))/ ((double) time / 1000) + " MB/s");
 			} else {
 				for(int i = 0; i < count; i++) {
 					buf2.clear();
@@ -110,9 +150,10 @@ public class ChannelTest implements MxListener {
 					}
 				}
 				time = System.currentTimeMillis() - time;
+				System.out.println("" + (double)time / 1000);
 				//System.out.println("" + LOOPS + " PingPongs took " + time + " ms");
-				System.out.println("Roundtrip time: " + (double)time/(double)count + " ms");
-				System.out.println("Bandwidth: " + (((double)count * (double)len * 2) / (double)(1000*1000))/ ((double) time / 1000) + " MB/s");
+				//System.out.println("Roundtrip time: " + (double)time/(double)count + " ms");
+				//System.out.println("Bandwidth: " + (((double)count * (double)len * 2) / (double)(1000*1000))/ ((double) time / 1000) + " MB/s");
 			} else {
 				for(int i = 0; i < count; i++) {
 					buf.clear();
@@ -212,8 +253,9 @@ public class ChannelTest implements MxListener {
 		}
 		System.out.println("Client connected");
 		
-		//aPingPong(false);
 		pingPong(false);
+		stream(false);
+		//pingPong(false);
 		//pingPing(false);
 		wc.close();
 		rc.close();
@@ -244,8 +286,9 @@ public class ChannelTest implements MxListener {
 		}
 		System.out.println("Server connected");
 		
-		//aPingPong(true);
 		pingPong(true);
+		stream(true);
+		//pingPong(true);
 		System.out.println();
 		//pingPing(true);
 		wc.close();

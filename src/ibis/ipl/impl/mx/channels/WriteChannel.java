@@ -20,6 +20,10 @@ public class WriteChannel implements java.nio.channels.WritableByteChannel {
 	private int nextHandle = 0;
 	private int activeHandles = 0;
 	private int myLink = 0;
+	
+	private int sync = 0;
+	private static final int syncLimit = 7; //works better than 3 and 15
+	
 
 	private boolean sending = false;
 
@@ -171,8 +175,11 @@ public class WriteChannel implements java.nio.channels.WritableByteChannel {
 				Matching.PROTOCOL_DISCONNECT);
 		JavaMx.sendSynchronous(null, 0, 0, endpointNumber, myLink, myHandles[0],
 				matchData);
-		JavaMx.wait(endpointNumber, myHandles[0], 1000); // when this will not
-														// succeed, quit anyways
+		try {
+			JavaMx.wait(endpointNumber, myHandles[0], 1000); 
+		} catch(MxException e) {
+			// when this is not successful, quit anyways
+		}
 		doClose();
 		// logger.debug("WriteChannel closed by user");
 	}
@@ -182,7 +189,7 @@ public class WriteChannel implements java.nio.channels.WritableByteChannel {
 			return;
 		}
 		receiverClosed = true;
-		// TODO cancel message which are in transit?
+		// TODO cancel messages that are in transit?
 		doClose();
 		// logger.debug("WriteChannel closed by ReadChannel");
 	}
@@ -227,15 +234,29 @@ public class WriteChannel implements java.nio.channels.WritableByteChannel {
 				activeHandles--;
 			}
 
-			if (src.remaining() < Config.BUFSIZE) {
+			if (src.remaining() <= Config.BUFSIZE) {
 				msgSize[nextHandle] = src.remaining();
-				JavaMx.send(src, src.position(), msgSize[nextHandle],
+				if(sync >= syncLimit) {
+					JavaMx.sendSynchronous(src, src.position(), msgSize[nextHandle],
+							endpointNumber, myLink, myHandles[nextHandle], matchData);
+					sync = 0;
+				} else {
+					JavaMx.send(src, src.position(), msgSize[nextHandle],
 						endpointNumber, myLink, myHandles[nextHandle], matchData);
+					sync++;
+				}
 				src.position(src.limit());
 			} else {
 				msgSize[nextHandle] = Config.BUFSIZE;
-				JavaMx.send(src, src.position(), msgSize[nextHandle],
+				if(sync >= syncLimit) {
+					JavaMx.sendSynchronous(src, src.position(), msgSize[nextHandle],
+							endpointNumber, myLink, myHandles[nextHandle], matchData);
+					sync = 0;
+				} else {
+					JavaMx.send(src, src.position(), msgSize[nextHandle],
 						endpointNumber, myLink, myHandles[nextHandle], matchData);
+					sync++;
+				}
 				src.position(src.position() + Config.BUFSIZE);
 			}
 			nextHandle = (nextHandle + 1) % nHandles;

@@ -23,9 +23,9 @@ public class InputStream extends java.io.InputStream {
 			closed = true;
 			return;
 		}
-		frontBuffer = ByteBuffer.allocateDirect(Config.BUFSIZE);
+		frontBuffer = ByteBuffer.allocateDirect(Config.STREAMBUFSIZE);
 		frontBuffer.flip();
-		backBuffer = ByteBuffer.allocateDirect(Config.BUFSIZE);
+		backBuffer = ByteBuffer.allocateDirect(Config.STREAMBUFSIZE);
 		backBuffer.clear();
 		channel.post(backBuffer);
 	}
@@ -165,6 +165,10 @@ public class InputStream extends java.io.InputStream {
 		return len;
 	}
 
+    public static int bufferSize() {
+        return Config.STREAMBUFSIZE;
+    }
+	
 	private void fillBuffer() throws IOException {
 		// System.out.println("Before fillBuffer: " + frontBuffer.remaining() + "
 		// bytes in frontBuffer");

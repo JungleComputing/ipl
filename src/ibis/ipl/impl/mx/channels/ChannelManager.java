@@ -43,11 +43,13 @@ public class ChannelManager {
 	}
 
 	public ReadChannel select(long timeout) throws IOException {
-		for(ReadChannel rc: channelCollection) { 
-			if(rc.containsData()) { 
-				return rc; 
+		/*synchronized(this) {
+			for(ReadChannel rc: channelCollection) { 
+				if(rc.containsData()) { 
+					return rc; 
+				}
 			}
-		}
+		}*/
 
 		selectBuffer.clear();
 		int msgSize = JavaMx.select(mxSocket.endpointNumber(), timeout, selectMatch, selectMask, selectBuffer);

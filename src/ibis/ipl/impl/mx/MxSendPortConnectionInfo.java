@@ -21,7 +21,11 @@ class MxSendPortConnectionInfo extends SendPortConnectionInfo {
 
 	@Override
 	public void closeConnection() throws IOException {
-		mxsdos.remove(connection);
+		try {
+			mxsdos.remove(connection);
+		} catch(IOException e) {
+			//ignore
+		}
 		// FIXME DEBUG: fixing closing channels
 		connection.close();
 	}

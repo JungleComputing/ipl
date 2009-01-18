@@ -31,7 +31,7 @@ public class MxSendPort extends SendPort implements MxProtocol {
 		super(ibis, type, name, connectUpcall, properties);
 		
 		scatteringStream = new ScatteringOutputStream();
-		bufferedStream = new BufferedArrayOutputStream(scatteringStream, 4096);
+		bufferedStream = new BufferedArrayOutputStream(scatteringStream, scatteringStream.bufferSize()); //TODO
 		initStream(bufferedStream); 
 		// TODO or something like this?
 	}

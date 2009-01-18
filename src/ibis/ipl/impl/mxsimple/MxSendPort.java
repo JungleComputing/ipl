@@ -13,6 +13,7 @@ import ibis.ipl.impl.SendPort;
 import ibis.ipl.impl.SendPortConnectionInfo;
 import ibis.ipl.impl.SendPortIdentifier;
 import ibis.ipl.impl.WriteMessage;
+import ibis.ipl.impl.mx.channels.SimpleOutputStream;
 import ibis.ipl.impl.mx.channels.WriteChannel;
 
 import java.io.IOException;
@@ -71,7 +72,7 @@ final class MxSendPort extends SendPort implements MxProtocol {
                                     PortType.CONNECTION_MANY_TO_MANY));
             
 
-        bufferedStream = new BufferedArrayOutputStream(splitter, 4096);
+        bufferedStream = new BufferedArrayOutputStream(splitter, SimpleOutputStream.bufferSize());
         initStream(bufferedStream);
     }
 

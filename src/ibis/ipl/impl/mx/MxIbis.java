@@ -113,7 +113,7 @@ public final class MxIbis extends ibis.ipl.impl.Ibis
 
         PortType sendPortType = sp.getPortType();
         
-        do {           
+        do {         
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             DataOutputStream out = new DataOutputStream(baos);
             out.writeUTF(name);
@@ -197,11 +197,13 @@ public final class MxIbis extends ibis.ipl.impl.Ibis
                     }
                 }
             }
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException e) {
-                // ignore
-            }
+            if(fillTimeout) {
+	            try {
+	                Thread.sleep(100);
+	            } catch (InterruptedException e) {
+	                // ignore
+	            }
+			}
         } while (true);
     }
 
@@ -213,17 +215,17 @@ public final class MxIbis extends ibis.ipl.impl.Ibis
 	public void newConnection(ConnectionRequest request) {
 		// TODO Auto-generated method stub
 		if (logger.isDebugEnabled()) {
-            logger.debug("--> MxIbis got connection request from " + request.getSourceAddress());
-        }
+			logger.debug("--> MxIbis got connection request from " + request.getSourceAddress());
+		}
 		ByteArrayInputStream bais = new ByteArrayInputStream(request.getDescriptor());
-        DataInputStream in = new DataInputStream(bais);
-        try {
-        	in.close();
-        } catch (IOException e) {
-        	// ignore
-        }
+		DataInputStream in = new DataInputStream(bais);
+		try {
+			in.close();
+		} catch (IOException e) {
+			// ignore
+		}
         
-        String name;
+		String name;
 		SendPortIdentifier send;
 		PortType sp;	
 		try {
@@ -242,29 +244,28 @@ public final class MxIbis extends ibis.ipl.impl.Ibis
 
         int result;
         if (rp == null) {
-            result = ReceivePort.NOT_PRESENT;
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            DataOutputStream out = new DataOutputStream(baos);
-            
-            try {
-    			out.writeInt(result);
-    	        out.flush();
-            } catch (IOException e) {
+        	result = ReceivePort.NOT_PRESENT;
+        	ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        	DataOutputStream out = new DataOutputStream(baos);
+        	try {
+				out.writeInt(result);
+    			out.flush();
+			} catch (IOException e) {
     			e.printStackTrace();
     			throw new Error("error creating connection reply");
     		}
 
-            request.setReplyMessage(baos.toByteArray());
-            request.reject();
-            try {
+    		request.setReplyMessage(baos.toByteArray());
+    		request.reject();
+    		try {
     			out.close();
     			in.close();
     		} catch (IOException e) {
     			// ignore
     		}
     		if (logger.isDebugEnabled()) {
-                logger.debug("newConnectionRequest() finished");
-            }
+    			logger.debug("newConnectionRequest() finished");
+			}
         } else { 
         	rp.accept(request, send, sp);
         }

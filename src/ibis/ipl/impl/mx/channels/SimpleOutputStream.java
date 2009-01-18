@@ -2,6 +2,7 @@ package ibis.ipl.impl.mx.channels;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.ClosedChannelException;
 
 import org.apache.log4j.Logger;
 
@@ -29,6 +30,10 @@ public class SimpleOutputStream extends OutputStream {
 		 * frontBuffer.clear();
 		 */
 		// nu dit:
+		if(!channel.isOpen()) {
+			close();
+			throw new ClosedChannelException();
+		}
 		frontBuffer.flip();
 		channel.flush();
 		channel.post(frontBuffer);
@@ -39,8 +44,13 @@ public class SimpleOutputStream extends OutputStream {
 	}
 	
 	void doFlush() throws IOException {
-		frontBuffer.flip();
 		// System.out.println("Flushing " + buffer.remaining() + " bytes");
+		if(!channel.isOpen()) {
+			close();
+			throw new ClosedChannelException();
+		}
+		frontBuffer.flip();
+		
 		channel.post(frontBuffer);
 		channel.flush();
 		frontBuffer.clear();

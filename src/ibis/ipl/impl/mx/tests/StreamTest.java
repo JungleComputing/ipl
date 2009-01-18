@@ -66,7 +66,7 @@ public class StreamTest implements MxListener {
 					
 					is.read();
 					time = System.currentTimeMillis() - time;
-					System.out.println("Bandwidth: " + (((double)count * (double)len) / (double)(1024.0*1024.0))/ ((double) time / 1000) + " MiB/s");
+					System.out.println("" + (double)time / 1000);
 				} else {
 					os.write(1);
 					os.flush();
@@ -115,8 +115,9 @@ public class StreamTest implements MxListener {
 				}
 				time = System.currentTimeMillis() - time;
 				//System.out.println("" + LOOPS + " PingPongs took " + time + " ms");
-				System.out.println("Roundtrip time: " + (double)time/(double)count + " ms");
-				System.out.println("Bandwidth: " + (((double)count * (double)len * 2) / (double)(1000*1000))/ ((double) time / 1000) + " MB/s");
+				System.out.println("" + (double)time / 1000);
+				//System.out.println("Roundtrip time: " + (double)time/(double)count + " ms");
+				//System.out.println("Bandwidth: " + (((double)count * (double)len * 2) / (double)(1000*1000))/ ((double) time / 1000) + " MB/s");
 //				System.out.println("writeTime: " + writeTime + " ns");
 //				System.out.println("flushTime: " + flushTime + " ns");
 //				System.out.println("readTime: " + readTime + " ns");
@@ -221,8 +222,8 @@ public class StreamTest implements MxListener {
 		os = wc.getOutputStream();
 		System.out.println("Client connected");
 		
-		//stream(false);
 		pingPong(false);
+		stream(false);
 		//pingPing(false);
 		os.close();
 		is.close();
@@ -258,8 +259,8 @@ public class StreamTest implements MxListener {
 		os = wc.getOutputStream();
 		System.out.println("Server connected");
 
-		//stream(true);
 		pingPong(true);
+		stream(true);
 		//pingPing(true);
 		System.out.println();
 

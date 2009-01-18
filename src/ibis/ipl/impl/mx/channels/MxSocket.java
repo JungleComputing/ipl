@@ -9,7 +9,12 @@ import java.nio.ByteOrder;
 import java.util.HashMap;
 import java.util.HashSet;
 
+import org.apache.log4j.Logger;
+
 public class MxSocket implements Runnable {
+
+	private static Logger logger = Logger.getLogger(MxSocket.class);
+
 	private static final int IBIS_FILTER = 0xdada1313;
 	private static final long POLL_FOR_CLOSE_INTERVAL = 500;
 	protected static final int MAX_CONNECT_MSG_SIZE = 2048 + MxAddress.SIZE;
@@ -61,13 +66,16 @@ public class MxSocket implements Runnable {
 				+ sendEndpointNumber);
 	}
 
-	public ChannelManager createChannelManager() throws IOException {
+	public synchronized ChannelManager createChannelManager() throws IOException {
 		for (int i = 0; i < Short.MAX_VALUE; i++) {
 			nextKey = (nextKey % Short.MAX_VALUE) + 1; // 0 will not be used
 			if (!managers.containsKey(nextKey)) {
 				ChannelManager manager = new ChannelManager(this,
 						(short) nextKey);
 				managers.put((short) nextKey, manager);
+				if (logger.isDebugEnabled()) {
+					logger.debug("ChannelManager " + nextKey  + " created");
+				}
 				return manager;
 			}
 		}
@@ -100,13 +108,19 @@ public class MxSocket implements Runnable {
 		JavaMx.sendSynchronous(connectBuf, connectBuf.position(), connectBuf
 				.remaining(), sendEndpointNumber, link, connectHandle,
 				Matching.PROTOCOL_CONNECT);
-		msgSize = JavaMx.wait(sendEndpointNumber, connectHandle, 1000);
-
+		msgSize = JavaMx.wait(sendEndpointNumber, connectHandle); //TODO timeout
+		if (msgSize < 0) {
+			// FIXME error
+			JavaMx.disconnect(link);
+			JavaMx.links.releaseLink(link);
+			throw new MxException("error");
+		}
+		
 		// read reply
 		connectBuf.clear();
 		JavaMx.recv(connectBuf, connectBuf.position(), connectBuf.remaining(),
 				endpointNumber, connectHandle, Matching.PROTOCOL_CONNECT_REPLY);
-		msgSize = JavaMx.wait(endpointNumber, connectHandle);
+		msgSize = JavaMx.wait(endpointNumber, connectHandle); //TODO timeout
 		if (msgSize < 0) {
 			// FIXME error
 			JavaMx.disconnect(link);
@@ -155,12 +169,21 @@ public class MxSocket implements Runnable {
 			long protocol = Matching.getProtocol(matching);
 
 			if (protocol == Matching.PROTOCOL_DISCONNECT) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("DISCONNECT message received");
+				}
 				// remote SendPort closes
 				senderClosedConnection(matching);
 			} else if (protocol == Matching.PROTOCOL_CLOSE) {
+					if (logger.isDebugEnabled()) {
+					logger.debug("CLOSE message received");
+				}
 				// remote ReceivePort closes
 				receiverClosedConnection(matching);
 			} else if (protocol == Matching.PROTOCOL_CONNECT) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("CONNECT message received");
+				}
 				if (closing) {
 					// TODO reject the request and continue
 				}
@@ -171,6 +194,9 @@ public class MxSocket implements Runnable {
 					e.printStackTrace();
 				}
 			} else {
+				if (logger.isDebugEnabled()) {
+					logger.debug("Unknown message received");
+				}
 				// unknown control message arrived
 				// FIXME read it to prevent a deadlock?
 			}

@@ -24,6 +24,7 @@ public class ReadChannel {
 	private boolean open = true;
 	private boolean reading = false; // true when a post request is done and isn't finished yet.
 	private boolean finishing = false; // true when the finish call is performed.
+	private boolean posting = false; // true when the post call is performed.
 	
 	// the "do" variables
 	private boolean requestPosted = false; //true when a request is posted to the MX library
@@ -69,12 +70,17 @@ public class ReadChannel {
 				throw new ClosedChannelException();
 			}
 			reading = true;
+			posting = true;
 		}
 			
 		try {
 			doPost(dst);
 		} catch (IOException e) {
 			throw e;
+		}
+		synchronized(this) {
+			posting = false;
+			notifyAll();
 		}
 	}
 
@@ -441,10 +447,18 @@ public class ReadChannel {
 
 	protected boolean containsData() throws IOException {
 		// only true for own outputstream.
-		return myStream.available() > 0;
+		return myStream == null ? false : myStream.available() > 0;
 	}
 
-	protected void isSelected(int msgSize) throws IOException {
+	protected synchronized void isSelected(int msgSize) throws IOException {
+		while (posting) {
+			try {
+				wait();
+			} catch (InterruptedException e) {
+				// ignore
+			}
+		}	
+		
 		if(!requestPosted) {
 			throw new IOException("channel is selected when not possible");
 		}

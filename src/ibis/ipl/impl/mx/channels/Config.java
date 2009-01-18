@@ -1,8 +1,14 @@
 package ibis.ipl.impl.mx.channels;
 
 interface Config {
+/*	Original:
 	static final int STREAMBUFSIZE = 32 * 1024;
 	static final int BUFSIZE = 16 * 1024;
+	static final int BUFFERS = 2;
+*/
+	
+	static final int STREAMBUFSIZE = 32 * 1024;
+	static final int BUFSIZE = 32 * 1024;
 	static final int BUFFERS = 2;
 	
 	/**

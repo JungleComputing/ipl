@@ -75,6 +75,11 @@ public abstract class OutputStream extends java.io.OutputStream {
 		}
 		closed = true;
 		try {
+			doFlush();
+		} catch (IOException e1) {
+			// ignore
+		}
+		try {
 			doClose();
 		} catch (IOException e) {
 			// ignore
@@ -94,6 +99,10 @@ public abstract class OutputStream extends java.io.OutputStream {
 		doFlush();
 	}
 
+    public static int bufferSize() {
+        return Config.STREAMBUFSIZE;
+    }
+	
 	abstract void swapBuffers() throws IOException;
 	
 	abstract void doFlush() throws IOException;
