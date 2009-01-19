@@ -96,6 +96,16 @@
                            value="ibis.ipl.impl.registry.central.server.Server, ibis.ipl.impl.registry.gossip.BootstrapService" />
             </manifest>
         </jar>
+        <jar destfile="lib/ipl-impl-smartsockets${version}.jar">
+            <fileset dir="${tmp}" includes="ibis/ipl/impl/smartsockets/**/*.class" />
+            <fileset dir="." includes="LICENSE.txt" />
+            <manifest>
+                <attribute name="Ibis-Starter"
+                           value="ibis.ipl.impl.smartsockets.SmartSocketsIbisStarter" />
+                <attribute name="Ibis-IPL-Version" value="2.0" />
+                <attribute name="Ibis-Implementation-Version" value="${TIMESTAMP}" />
+            </manifest>
+        </jar>
         <jar destfile="lib/ipl-impl-tcp${version}.jar">
             <fileset dir="${tmp}" includes="ibis/ipl/impl/tcp/**/*.class" />
             <fileset dir="." includes="LICENSE.txt" />
@@ -155,6 +165,7 @@
 	<unjar src="lib/ipl-impl${version}.jar" dest="${tmp}"/>
 	<unjar src="lib/ipl-impl-nio${version}.jar" dest="${tmp}"/>
 	<unjar src="lib/ipl-impl-tcp${version}.jar" dest="${tmp}"/>
+	<unjar src="lib/ipl-impl-smartsockets${version}.jar" dest="${tmp}"/>
 	<unjar src="lib/ipl-impl-dummy${version}.jar" dest="${tmp}"/>
 	<unjar src="lib/ipl-impl-lrmc${version}.jar" dest="${tmp}"/>
 	<delete>

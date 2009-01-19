@@ -323,7 +323,25 @@ public abstract class Ibis implements ibis.ipl.Ibis //, IbisMBean
     public ibis.ipl.SendPort createSendPort(PortType tp, String name,
             SendPortDisconnectUpcall cU, Properties properties)
             throws IOException {
-        if (cU != null) {
+    	
+    	if (tp.hasCapability(PortType.CONNECTION_ULTRALIGHT)) { 
+    		if (tp.hasCapability(PortType.CONNECTION_UPCALLS)) { 
+    			throw new IbisConfigurationException(
+    					"Ultralight connections to not support connection upcalls");
+    		}
+
+    		if (tp.hasCapability(PortType.COMMUNICATION_RELIABLE)) { 
+    			throw new IbisConfigurationException(
+    					"Ultralight connections do not support reliability");
+    		}
+
+    		if (tp.hasCapability(PortType.COMMUNICATION_FIFO)) { 
+    			throw new IbisConfigurationException(
+    					"Ultralight connections do not support FIFO message ordering");
+    		}        	
+    	} 
+    	
+    	if (cU != null) {
             if (!tp.hasCapability(PortType.CONNECTION_UPCALLS)) {
                 throw new IbisConfigurationException(
                         "no connection upcalls requested for this port type");
@@ -379,6 +397,24 @@ public abstract class Ibis implements ibis.ipl.Ibis //, IbisMBean
     public ibis.ipl.ReceivePort createReceivePort(PortType tp, String name,
             MessageUpcall u, ReceivePortConnectUpcall cU, Properties properties)
             throws IOException {
+    	
+    	if (tp.hasCapability(PortType.CONNECTION_ULTRALIGHT)) { 
+        	if (tp.hasCapability(PortType.CONNECTION_UPCALLS)) { 
+        		throw new IbisConfigurationException(
+        			"Ultralight connections to not support connection upcalls");
+        	}
+        	
+        	if (tp.hasCapability(PortType.COMMUNICATION_RELIABLE)) { 
+        		throw new IbisConfigurationException(
+        			"Ultralight connections do not support reliability");
+        	}
+        
+        	if (tp.hasCapability(PortType.COMMUNICATION_FIFO)) { 
+        		throw new IbisConfigurationException(
+        			"Ultralight connections do not support FIFO message ordering");
+        	}        	
+        }
+    	
         if (cU != null) {
             if (!tp.hasCapability(PortType.CONNECTION_UPCALLS)) {
                 throw new IbisConfigurationException(
