@@ -95,10 +95,6 @@ public final class Server extends Thread implements Service {
         Pool result = getPool(poolName);
 
         if (result == null || result.hasEnded()) {
-            // print message
-            System.err.println("Central Registry: creating new pool: \""
-                    + poolName + "\"");
-
             result = new Pool(poolName, socketFactory, peerBootstrap,
                     heartbeatInterval, eventPushInterval, gossip,
                     gossipInterval, adaptGossipInterval, tree, closedWorld,
