@@ -290,6 +290,9 @@ public class LrmcIbis implements Ibis {
     }
 
     public void end() throws IOException {
+        for (Map.Entry<String, Multicaster> x : multicasters.entrySet()) {
+            x.getValue().done();
+        }
         base.end();
     }
 
