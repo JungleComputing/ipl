@@ -30,9 +30,9 @@ public class SmartSocketsUltraLightReceivePort implements ReceivePort, CallBack,
 	private final PortType type;
 	private final String name;
 	private final MessageUpcall upcall;	
-	private final Properties properties;	
+// 	private final Properties properties;	
 	private final ReceivePortIdentifier id;
-	private final SmartSocketsIbis ibis;
+// 	private final SmartSocketsIbis ibis;
 	
 	private boolean allowUpcalls = false;
 	private boolean closed = false;
@@ -44,11 +44,11 @@ public class SmartSocketsUltraLightReceivePort implements ReceivePort, CallBack,
 	SmartSocketsUltraLightReceivePort(SmartSocketsIbis ibis, PortType type, 
 			String name, MessageUpcall upcall, Properties properties) throws IOException {
 
-		this.ibis = ibis;
+// 		this.ibis = ibis;
 		this.type = type;
 		this.name = name; 
 		this.upcall = upcall;
-		this.properties = properties;		
+		// this.properties = properties;		
 		this.id = new ibis.ipl.impl.ReceivePortIdentifier(name, ibis.ident);
 
 		ServiceLink link = ibis.getServiceLink();

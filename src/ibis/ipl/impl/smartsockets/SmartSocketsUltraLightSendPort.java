@@ -37,7 +37,7 @@ public class SmartSocketsUltraLightSendPort implements SendPort {
 
 	private final PortType type;
 	private final String name;
-	private final Properties properties;	
+// 	private final Properties properties;	
 	private final SmartSocketsIbis ibis;
 
 	private final SendPortIdentifier sid;
@@ -59,7 +59,7 @@ public class SmartSocketsUltraLightSendPort implements SendPort {
 		this.ibis = ibis;
 		this.type = type;
 		this.name = name;
-		this.properties = props;
+// 		this.properties = props;
 		
 		sid = new ibis.ipl.impl.SendPortIdentifier(name, ibis.ident);
 		
