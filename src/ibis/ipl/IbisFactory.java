@@ -107,6 +107,9 @@ public final class IbisFactory {
         } else {
             implList = (IbisStarterInfo[]) compnts.toArray(new IbisStarterInfo[compnts.size()]);
         }
+        if (implList.length == 0) {
+            throw new IbisConfigurationException("Cannot find any Ibis implementations");
+        }
     }
 
     /**
