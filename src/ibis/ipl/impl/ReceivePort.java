@@ -292,15 +292,18 @@ public abstract class ReceivePort extends Manageable
         return getMessage(timeout);
     }
 
-    public final void close() {
+    public final void close() throws IOException {
         close(0L);
     }
 
-    public void close(long timeout) {
+    public void close(long timeout) throws IOException {
         if (logger.isDebugEnabled()) {
             logger.debug("Receiveport " + name + ": closing");
         }
         synchronized(this) {
+            if (closed) {
+                throw new IOException("Port already closed");
+            }
             connectionsEnabled = false;
             closed = true;
             notifyAll();

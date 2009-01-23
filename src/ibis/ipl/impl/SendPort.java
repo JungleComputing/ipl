@@ -324,7 +324,7 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
         return connect(ports, 0, true);
     }
 
-    public synchronized ibis.ipl.ReceivePortIdentifier[] connect(
+    public ibis.ipl.ReceivePortIdentifier[] connect(
             Map<ibis.ipl.IbisIdentifier, String> ports, long timeout, 
             boolean fillTimeout) throws ConnectionsFailedException {
 
@@ -457,7 +457,7 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
         }
     }
 
-    public synchronized ibis.ipl.ReceivePortIdentifier connect(
+    public ibis.ipl.ReceivePortIdentifier connect(
             ibis.ipl.IbisIdentifier id, String name, long timeout, 
             boolean fillTimeout) throws ConnectionFailedException {
      
@@ -512,18 +512,34 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
         return w;
     }
 
-    public synchronized void close() throws IOException {
-        boolean alive = receivers.size() > 0 && aMessageIsAlive;
-        if (alive) {
-            throw new IOException(
+    public void close() throws IOException {
+        ReceivePortIdentifier[] ports;
+        synchronized(this) {
+            ports = receivers.keySet().toArray(new ReceivePortIdentifier[receivers.size()]);
+            boolean alive = receivers.size() > 0 && aMessageIsAlive;
+            if (alive) {
+                throw new IOException(
                 "Closed a sendport port while a message is alive!");
-        }
-        if (logger.isDebugEnabled()) {
-            logger.debug("SendPort '" + name + "': start close()");
+            }
+            if (logger.isDebugEnabled()) {
+                logger.debug("SendPort '" + name + "': start close()");
+            }
+
+            if (closed) {
+                throw new IOException("Port already closed");
+            }
+            closed = true;
+            nClosedConnections += ports.length;
+            setProperty("ClosedConnections", "" + nClosedConnections);
         }
         
-        if (closed) {
-            throw new IOException("Port already closed");
+        for (int i = 0; i < ports.length; i++) {
+            SendPortConnectionInfo c = removeInfo(ports[i]);
+            try {
+                c.closeConnection();
+            } catch(Throwable e) {
+                // ignore and just continue (?)
+            }      
         }
         
         try {
@@ -542,15 +558,9 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
             // closePort should close all streams. (out and dataOut).
             closePort();
         } finally {
-            ReceivePortIdentifier[] ports = receivers.keySet().toArray(
-                    new ReceivePortIdentifier[receivers.size()]);
-            for (int i = 0; i < ports.length; i++) {
-                SendPortConnectionInfo c = removeInfo(ports[i]);
-                c.closeConnection();
-                nClosedConnections++;
-                setProperty("ClosedConnections", "" + nClosedConnections);
-            }
-            closed = true;
+            // Don't keep the lock on the sendport while calling ibis.deregister()!
+            // Otherwise, deadlocks may arise when someone is calling ibis.printStatistics()
+            // at the same time. --Ceriel
             ibis.deRegister(this);
             if (logger.isDebugEnabled()) {
                 logger.debug("SendPort '" + name + "': close() done");
