@@ -76,7 +76,6 @@ public class RandomSteal implements RegistryEventHandler {
         		"nickname.smartsockets");
 
     private final PortType portType; 
-    private final int bytes;    
     private final int nodes;
     
     private final int count;
@@ -173,7 +172,6 @@ public class RandomSteal implements RegistryEventHandler {
     private RandomSteal(PortType portType, int nodes, int bytes, int count, int repeat, boolean reconnect) { 
     	this.portType = portType;
     	this.nodes = nodes;
-    	this.bytes = bytes;
     	this.count = count;
     	this.repeat = repeat;
     	this.reconnect = reconnect;
