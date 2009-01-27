@@ -182,7 +182,7 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
     }
 
     public String name() {
-        return "(Ibis " + id + ")";
+        return "Ibis " + id;
     }
     
     public ibis.ipl.Location location() {
