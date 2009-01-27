@@ -29,8 +29,8 @@ public class SingleBufferArrayOutputStream extends DataOutputStream {
     /**
      * Constructor.
      * 
-     * @param out
-     *                the underlying <code>OutputStream</code>
+     * @param buffer
+     *                the underlying byte buffer
      */
     public SingleBufferArrayOutputStream(byte[] buffer) {
         this.buffer = buffer;
