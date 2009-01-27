@@ -231,8 +231,13 @@ public class SmartSocketsUltraLightSendPort implements SendPort {
 			return;
 		}
 		
-		messageToHub[1] = Arrays.copyOfRange(buffer, 0, len);
-		
+		// messageToHub[1] = Arrays.copyOfRange(buffer, 0, len);
+                // This is Java 6 speak. Modified to equivalent code that
+                // is acceptable to Java 1.5. --Ceriel
+                messageToHub[1] = new byte[len];
+                System.arraycopy(buffer, 0, messageToHub[1], 0,
+                        Math.min(len, buffer.length));
+
 		for (ReceivePortIdentifier id : connections) { 		
 
 			ibis.ipl.impl.IbisIdentifier dst = (ibis.ipl.impl.IbisIdentifier) id.ibisIdentifier();
