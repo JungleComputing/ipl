@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
@@ -452,6 +454,16 @@ public final class IbisFactory {
             throw creationException;
         }
     }
+    
+    /**
+     * A helper class to compare file names, so that they can be sorted,
+     * and the order becomes predictable and reproducable.
+     */
+    private static class FileComparator implements Comparator<File> {
+        public int compare(File f1, File f2) {
+            return f1.getName().compareTo(f2.getName());
+        }
+    }
 
     /**
      * This class exports a method for searching either the classpath or a
@@ -561,6 +573,8 @@ public final class IbisFactory {
             if (files == null) {
                 return;
             }
+            // Sort files alphabetically, so that result is reproducable.
+            Arrays.sort(files, new FileComparator());
             for (int i = 0; i < files.length; i++) {
                 if (files[i].isFile()) {
                     try {
