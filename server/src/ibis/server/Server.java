@@ -82,6 +82,11 @@ public final class Server {
             smartProperties.put(SmartSocketsProperties.HUB_ADDRESS_FILE,
                     hubAddressFile);
         }
+        
+        if (typedProperties.getBooleanProperty(ServerProperties.PRINT_STATS)) {
+            smartProperties.put(SmartSocketsProperties.HUB_STATISTICS, "true");
+            smartProperties.put(SmartSocketsProperties.HUB_STATS_INTERVAL, "60000");
+        }
 
         hubOnly = typedProperties.getBooleanProperty(ServerProperties.HUB_ONLY);
 
