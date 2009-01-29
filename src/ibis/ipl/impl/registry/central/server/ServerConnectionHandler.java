@@ -364,6 +364,7 @@ final class ServerConnectionHandler implements Runnable {
         if (currentNrOfThreads > maxNrOfThreads) {
             maxNrOfThreads = currentNrOfThreads;
         }
+        logger.debug("Now " + currentNrOfThreads + " connections");
     }
 
     private synchronized void threadEnded() {

@@ -777,8 +777,8 @@ final class Pool implements Runnable {
                         connection.written(), false);
             }
 
-            if (logger.isInfoEnabled()) {
-                logger.info("connecting = " + (connecting - start)
+            if (logger.isDebugEnabled()) {
+                logger.debug("connecting = " + (connecting - start)
                         + ", connected = " + (connected - connecting)
                         + ", writtenOpcode = " + (writtenOpcode - connected)
                         + ", readInfo = " + (readInfo - writtenOpcode)

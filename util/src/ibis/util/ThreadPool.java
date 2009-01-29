@@ -120,6 +120,7 @@ public final class ThreadPool {
                 try {
                     setName(currentName);
                     currentWork.run();
+                    setName("idle threadpool thread");
                 } catch (Throwable t) {
                     logger.error("caught exception in pool thread " + currentName, t);
                     // Exit, rather than continue. A thread died unexpectedly,

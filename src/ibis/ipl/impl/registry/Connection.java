@@ -42,9 +42,13 @@ public final class Connection {
             throws IOException {
         logger.debug("connecting to " + address + ", timeout = " + timeout
                 + " , filltimeout = " + fillTimeout);
+        
+        final HashMap<String, Object> lightConnection 
+        = new HashMap<String, Object>();
+        //lightConnection.put("connect.module.allow", "ConnectModule(HubRouted)");    
 
         socket = factory.createClientSocket(address, timeout, fillTimeout,
-                new HashMap<String, Object>());
+                lightConnection);
         socket.setTcpNoDelay(true);
 
         out = new DataOutputStream(new BufferedOutputStream(socket

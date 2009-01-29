@@ -80,6 +80,7 @@ final class IterativeEventPusher implements Runnable {
 
                 pool.push(work, false, useTree);
                 workQ.doneJob();
+                logger.debug("done pushing to " + work);
             }
         }
     }
@@ -124,7 +125,7 @@ final class IterativeEventPusher implements Runnable {
                 children = pool.getMembers();
             }
 
-            logger.debug("updating " + children.length
+            logger.info("updating " + children.length
                     + " nodes in pool (pool size = " + pool.getSize()
                     + ") to event-time " + eventTime + " using tree: "
                     + useTree);
