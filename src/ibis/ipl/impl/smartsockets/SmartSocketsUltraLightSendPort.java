@@ -16,7 +16,6 @@ import ibis.smartsockets.virtual.VirtualSocketAddress;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.UnknownHostException;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
