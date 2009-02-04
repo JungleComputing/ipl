@@ -1086,6 +1086,11 @@ final class CommunicationHandler implements Runnable {
 			return;
 		}
 
+		// TODO: wait here until my join is completely processed? There seems to be
+		// a race here, because the join-method sais: 
+		//     pool.purgeHistoryUpto(startOfEventListTime);
+		// but the server may already have sent events. --Ceriel
+		
 		try {
 			long start = System.currentTimeMillis();
 			byte magic = connection.in().readByte();
