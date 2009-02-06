@@ -70,7 +70,7 @@ public class RegistryProperties {
                         "Boolean: use a broadcast tree instead of "
                                 + "serial send or gossiping" },
 
-                { PEER_BOOTSTRAP, "false",
+                { PEER_BOOTSTRAP, "true",
                         "Boolean: bootstrap with peers, not just with the server" },
 
                 {

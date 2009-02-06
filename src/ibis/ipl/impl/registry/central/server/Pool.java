@@ -144,7 +144,7 @@ final class Pool implements Runnable {
         } else if (tree) {
             members = new TreeMemberSet();
             // on new event send to children in tree
-            // FIXME: hack? also check for needed updates every second?
+            // also check for needed updates every second.
             new IterativeEventPusher(this, 1000, true, true);
 
             // once in a while forward to everyone
@@ -926,9 +926,6 @@ final class Pool implements Runnable {
      */
     synchronized void purgeHistory() {
         int newMinimum = members.getMinimumTime();
-
-        // FIXME: disabled event purging...
-        newMinimum = 0;
 
         if (newMinimum == -1) {
             // pool is empty, clear out all events
