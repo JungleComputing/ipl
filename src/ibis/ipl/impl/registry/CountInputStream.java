@@ -19,7 +19,6 @@ public final class CountInputStream extends InputStream {
     
     @Override
     public int available() throws IOException {
-        // TODO Auto-generated method stub
         return in.available();
     }
 

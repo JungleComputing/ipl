@@ -517,10 +517,6 @@ final class Pool {
                 handleEvent(event);
                 time++;
                 notifyAll();
-                // Niels: does having this outside the synchronized block not
-                // allow for a change in the order in which the user sees the
-                // events? (Ceriel)
-                // TODO: check this!!!
                 registry.handleEvent(event);
             }
         }

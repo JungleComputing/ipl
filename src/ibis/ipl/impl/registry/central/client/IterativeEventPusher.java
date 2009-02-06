@@ -114,7 +114,6 @@ final class IterativeEventPusher extends Thread {
             logger.debug("DONE updating nodes in pool to event-time "
                     + eventTime);
 
-            //FIXME: hack? also check once a second
             pool.waitForEventTime(eventTime + 1, 1000);
         }
     }

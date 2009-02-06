@@ -57,7 +57,6 @@ public final class NullRegistry extends ibis.ipl.impl.Registry {
                     "upcalls not supported by NullRegistry");
         }
 
-        // FIXME: use real UUID generator (from smartsockets?)
         UUID id = UUID.randomUUID();
 
         Location location = Location.defaultLocation(props, null);
