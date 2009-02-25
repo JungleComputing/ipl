@@ -3,6 +3,7 @@
 package ibis.ipl.impl;
 
 import ibis.io.SerializationInput;
+import ibis.ipl.ConnectionClosedException;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.MessageUpcall;
 import ibis.ipl.PortType;
@@ -496,7 +497,7 @@ public abstract class ReceivePort extends Manageable
                     // ignored
                 }
                 if (closed) {
-                    throw new IOException("receive() on closed port");
+                    throw new ConnectionClosedException("receive() on closed port");
                 }
             }
             delivered = true;

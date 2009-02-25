@@ -7,6 +7,7 @@ import ibis.io.Replacer;
 import ibis.io.SerializationFactory;
 import ibis.io.SerializationOutput;
 import ibis.ipl.AlreadyConnectedException;
+import ibis.ipl.ConnectionClosedException;
 import ibis.ipl.ConnectionFailedException;
 import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.ConnectionsFailedException;
@@ -518,7 +519,7 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
             ports = receivers.keySet().toArray(new ReceivePortIdentifier[receivers.size()]);
             boolean alive = receivers.size() > 0 && aMessageIsAlive;
             if (alive) {
-                throw new IOException(
+                throw new ConnectionClosedException(
                 "Closed a sendport port while a message is alive!");
             }
             if (logger.isDebugEnabled()) {
@@ -526,7 +527,7 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
             }
 
             if (closed) {
-                throw new IOException("Port already closed");
+                throw new ConnectionClosedException("Port already closed");
             }
             closed = true;
             nClosedConnections += ports.length;
