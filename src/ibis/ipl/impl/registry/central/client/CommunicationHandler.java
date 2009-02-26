@@ -184,6 +184,9 @@ final class CommunicationHandler implements Runnable {
                 .getBooleanProperty(RegistryProperties.STATISTICS);
         long statisticsInterval = properties
                 .getIntProperty(RegistryProperties.STATISTICS_INTERVAL) * 1000;
+        boolean purgeHistory = properties
+        .getBooleanProperty(RegistryProperties.PURGE_HISTORY);
+
 
         VirtualSocketAddress tmp = serverSocket.getLocalSocketAddress();
 
@@ -239,6 +242,7 @@ final class CommunicationHandler implements Runnable {
             connection.out().writeInt(pool.getSize());
             connection.out().writeBoolean(keepStatistics);
             connection.out().writeLong(statisticsInterval);
+            connection.out().writeBoolean(purgeHistory);
             connection.out().flush();
 
             logger.debug("reading join result info from server");

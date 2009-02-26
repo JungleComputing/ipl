@@ -23,6 +23,8 @@ public class RegistryProperties {
         PREFIX + "adapt.gossip.interval";
 
     public static final String TREE = PREFIX + "tree";
+    
+    public static final String PURGE_HISTORY = PREFIX + "purge.history";
 
     public static final String PEER_BOOTSTRAP = PREFIX + "peer.bootstrap";
 
@@ -72,6 +74,10 @@ public class RegistryProperties {
 
                 { PEER_BOOTSTRAP, "true",
                         "Boolean: bootstrap with peers, not just with the server" },
+                        
+                        { PURGE_HISTORY, "false",
+                        "Boolean: purge history when not needed anymore" },
+
 
                 {
                         CLIENT_CONNECT_TIMEOUT,

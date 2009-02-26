@@ -76,6 +76,8 @@ final class Pool implements Runnable {
     private final boolean printEvents;
 
     private final boolean printErrors;
+    
+    private final boolean purgeHistory;
 
     // statistics are only kept on the request of the user
 
@@ -105,7 +107,7 @@ final class Pool implements Runnable {
             boolean adaptGossipInterval, boolean tree, boolean closedWorld,
             int poolSize, boolean keepStatistics, long statisticsInterval,
             String ibisImplementationIdentifier, boolean printEvents,
-            boolean printErrors) {
+            boolean printErrors, boolean purgeHistory) {
         print("creating new pool: \"" + name + "\"");
 
         this.name = name;
@@ -119,6 +121,7 @@ final class Pool implements Runnable {
         this.ibisImplementationIdentifier = ibisImplementationIdentifier;
         this.printEvents = printEvents;
         this.printErrors = printErrors;
+        this.purgeHistory = purgeHistory;
 
         if (keepStatistics) {
             statistics = new Statistics(Protocol.OPCODE_NAMES);
@@ -925,6 +928,11 @@ final class Pool implements Runnable {
      * 
      */
     synchronized void purgeHistory() {
+        if (!purgeHistory) {
+            //do nothing, history purge disabled
+            return;
+        }
+        
         int newMinimum = members.getMinimumTime();
 
         if (newMinimum == -1) {

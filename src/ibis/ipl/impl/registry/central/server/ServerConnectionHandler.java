@@ -80,13 +80,14 @@ final class ServerConnectionHandler implements Runnable {
         int poolSize = connection.in().readInt();
         boolean keepStatistics = connection.in().readBoolean();
         long statisticsInterval = connection.in().readLong();
+        boolean purgeHistory = connection.in().readBoolean();
         
 //        long dataRead = System.currentTimeMillis();
 
         pool = server.getOrCreatePool(poolName, peerBootstrap, heartbeatInterval,
                 eventPushInterval, gossip, gossipInterval, adaptGossipInterval,
                 tree, closedWorld, poolSize, keepStatistics,
-                statisticsInterval, ibisImplementationIdentifier);
+                statisticsInterval, purgeHistory, ibisImplementationIdentifier);
         
 //        long poolRetrieved = System.currentTimeMillis();
 

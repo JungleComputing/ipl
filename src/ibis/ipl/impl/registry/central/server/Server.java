@@ -37,7 +37,7 @@ public final class Server extends Thread implements Service {
     private final boolean printEvents;
 
     private final boolean printErrors;
-
+    
     private ServerConnectionHandler handler;
 
     private boolean stopped = false;
@@ -90,7 +90,7 @@ public final class Server extends Thread implements Service {
             long heartbeatInterval, long eventPushInterval, boolean gossip,
             long gossipInterval, boolean adaptGossipInterval, boolean tree,
             boolean closedWorld, int poolSize, boolean keepStatistics,
-            long statisticsInterval, String ibisImplementationIdentifier)
+            long statisticsInterval, boolean purgeHistory, String ibisImplementationIdentifier)
             throws IOException {
         Pool result = getPool(poolName);
 
@@ -99,7 +99,7 @@ public final class Server extends Thread implements Service {
                     heartbeatInterval, eventPushInterval, gossip,
                     gossipInterval, adaptGossipInterval, tree, closedWorld,
                     poolSize, keepStatistics, statisticsInterval,
-                    ibisImplementationIdentifier, printEvents, printErrors);
+                    ibisImplementationIdentifier, printEvents, printErrors, purgeHistory);
             pools.put(poolName, result);
         }
 
