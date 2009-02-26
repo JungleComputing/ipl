@@ -27,6 +27,8 @@ public final class ServerProperties {
     public static final String PRINT_ERRORS = PREFIX + "print.errors";
 
     public static final String REMOTE = PREFIX + "remote";
+    
+    public static final String SERVICES = PREFIX + "services";
 
     // client side properties
     

@@ -1,5 +1,10 @@
 package ibis.server;
 
+import ibis.smartsockets.SmartSocketsProperties;
+import ibis.smartsockets.direct.DirectSocketAddress;
+import ibis.smartsockets.hub.Hub;
+import ibis.smartsockets.hub.servicelink.ServiceLink;
+import ibis.smartsockets.virtual.VirtualSocketFactory;
 import ibis.util.ClassLister;
 import ibis.util.TypedProperties;
 
@@ -14,20 +19,15 @@ import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ibis.smartsockets.SmartSocketsProperties;
-import ibis.smartsockets.direct.DirectSocketAddress;
-import ibis.smartsockets.hub.Hub;
-import ibis.smartsockets.hub.servicelink.ServiceLink;
-import ibis.smartsockets.virtual.VirtualSocketFactory;
-
 /**
  * Main Ibis Server class.
  */
 public final class Server {
 
     public static final String ADDRESS_LINE_PREFIX = "IBIS SERVER RUNNING ON: ";
+
     public static final String ADDRESS_LINE_POSTFIX = "EOA";
-    
+
     private static final Logger logger = LoggerFactory.getLogger(Server.class);
 
     private final VirtualSocketFactory virtualSocketFactory;
@@ -82,10 +82,11 @@ public final class Server {
             smartProperties.put(SmartSocketsProperties.HUB_ADDRESS_FILE,
                     hubAddressFile);
         }
-        
+
         if (typedProperties.getBooleanProperty(ServerProperties.PRINT_STATS)) {
             smartProperties.put(SmartSocketsProperties.HUB_STATISTICS, "true");
-            smartProperties.put(SmartSocketsProperties.HUB_STATS_INTERVAL, "60000");
+            smartProperties.put(SmartSocketsProperties.HUB_STATS_INTERVAL,
+                    "60000");
         }
 
         hubOnly = typedProperties.getBooleanProperty(ServerProperties.HUB_ONLY);
@@ -124,15 +125,31 @@ public final class Server {
                     sl.registerProperty("smartsockets.viz", "S^Ibis server:,"
                             + address.toString());
                 } else {
-                    logger.warn("could not set smartsockets viz property: could not get smartsockets service link");
+                    logger
+                            .warn("could not set smartsockets viz property: could not get smartsockets service link");
                 }
             } catch (Throwable e) {
                 logger.warn("could not register smartsockets viz property", e);
             }
 
             ClassLister classLister = ClassLister.getClassLister(null);
-            Class[] serviceClassList = classLister.getClassList("Ibis-Service",
-                    Service.class).toArray(new Class[0]);
+            Class[] serviceClassList;
+            if (typedProperties.containsKey(ServerProperties.SERVICES)) {
+                String[] services = typedProperties
+                        .getStringList(ServerProperties.SERVICES);
+                if (services == null) {
+                    serviceClassList = classLister.getClassList("Ibis-Service",
+                            Service.class).toArray(new Class[0]);
+                } else {
+                    serviceClassList = new Class[services.length];
+                    for (int i = 0; i < services.length; i++) {
+                        serviceClassList[i] = Class.forName(services[i]);
+                    }
+                }
+            } else {
+                serviceClassList = classLister.getClassList("Ibis-Service",
+                        Service.class).toArray(new Class[0]);
+            }
 
             for (int i = 0; i < serviceClassList.length; i++) {
                 try {
@@ -178,7 +195,7 @@ public final class Server {
      * Function to retrieve statistics for a given service
      * 
      * @param serviceName
-     *            Name of service to get statistics of
+     *                Name of service to get statistics of
      * 
      * @return statistics for given service, or null if service exist.
      */
@@ -255,8 +272,8 @@ public final class Server {
      * Stops all services. May wait until the services are idle.
      * 
      * @param timeout
-     *            timeout for ending all services in Milliseconds. 0 == wait
-     *            forever, -1 == no not wait.
+     *                timeout for ending all services in Milliseconds. 0 == wait
+     *                forever, -1 == no not wait.
      */
     public void end(long timeout) {
         long deadline = System.currentTimeMillis() + timeout;
@@ -390,7 +407,8 @@ public final class Server {
         }
 
         if (server.hasRemote()) {
-            System.out.println(ADDRESS_LINE_PREFIX + server.getLocalAddress() + ADDRESS_LINE_POSTFIX);
+            System.out.println(ADDRESS_LINE_PREFIX + server.getLocalAddress()
+                    + ADDRESS_LINE_POSTFIX);
             System.out.flush();
             server.waitUntilFinished();
         } else {
