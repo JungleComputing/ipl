@@ -506,6 +506,10 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
                 }
             }
             waitingForMessage--;
+            // We waited, so the port may be closed now ...
+            if (closed) {
+                throw new IOException("newMessage call on closed sendport");
+            }
             aMessageIsAlive = true;
         }
         announceNewMessage();
