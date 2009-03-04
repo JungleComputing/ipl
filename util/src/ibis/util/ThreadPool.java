@@ -166,7 +166,7 @@ public final class ThreadPool {
         PoolThread poolThread;
 
         if (!threadPool.isEmpty()) {
-            poolThread = (PoolThread) threadPool.removeLast();
+            poolThread = threadPool.removeLast();
             if (poolThread.issue(runnable, name)) {
                 //issue of work succeeded, return
                 return;

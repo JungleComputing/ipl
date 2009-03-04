@@ -89,7 +89,7 @@ public class LabelRoutingMulticast extends Thread implements MessageUpcall {
             // connect over and over again (this may be a problem since a single
             // large mcast may be fragmented into many small packets, each with
             // the same route containing the dead machine)
-            Long ripTime = (Long) diedmachines.get(id);
+            Long ripTime = diedmachines.get(id);
 
             if (ripTime != null) {
 
@@ -266,7 +266,7 @@ public class LabelRoutingMulticast extends Thread implements MessageUpcall {
     public void run() {
 
         while (true) {
-            Message m = (Message) sendQueue.dequeue();
+            Message m = sendQueue.dequeue();
             if (m == null) {
                 // Someone wants us to stop
                 return;
@@ -299,7 +299,7 @@ public class LabelRoutingMulticast extends Thread implements MessageUpcall {
             int last = sendports.last();
 
             for (int i = 0; i < last; i++) {
-                SendPort tmp = (SendPort) sendports.get(i);
+                SendPort tmp = sendports.get(i);
 
                 if (tmp != null) {
                     tmp.close();

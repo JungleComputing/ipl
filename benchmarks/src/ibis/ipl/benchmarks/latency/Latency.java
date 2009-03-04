@@ -33,7 +33,7 @@ class Computer extends Thread {
         long tmp = start;
         start = System.currentTimeMillis();
 
-        double result = ((double) cycles) / ((start - tmp) / 1000.0);
+        double result = cycles / ((start - tmp) / 1000.0);
         cycles = 0;
 
         System.err.println(temp + " cycles/s " + result);
@@ -107,7 +107,7 @@ class Sender {
 
             time = System.currentTimeMillis() - time;
 
-            double speed = (time * 1000.0) / (double) count;
+            double speed = (time * 1000.0) / count;
             System.err.println("Latency: " + count + " calls took "
                     + (time / 1000.0) + " seconds, time/call = " + speed
                     + " micros");
@@ -275,7 +275,7 @@ class UpcallSender implements MessageUpcall {
             if (count == max) {
                 long temp = time;
                 time = System.currentTimeMillis();
-                double speed = ((time - temp) * 1000.0) / (double) max;
+                double speed = ((time - temp) * 1000.0) / max;
                 System.err.println("Latency: " + max + " calls took "
                         + ((time - temp) / 1000.0) + " seconds, time/call = "
                         + speed + " micros");

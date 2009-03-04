@@ -121,7 +121,7 @@ public final class MultiIbisIdentifier implements IbisIdentifier {
         if (codedForm == null) {
             codedForm = computeCodedForm();
         }
-        return (byte[]) codedForm.clone();
+        return codedForm.clone();
     }
 
     private synchronized byte[] computeCodedForm() {

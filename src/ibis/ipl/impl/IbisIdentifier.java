@@ -114,7 +114,7 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
         if (codedForm == null) {
             codedForm = computeCodedForm();
         }
-        return (byte[]) codedForm.clone();
+        return codedForm.clone();
     }
 
     private byte[] computeCodedForm() {

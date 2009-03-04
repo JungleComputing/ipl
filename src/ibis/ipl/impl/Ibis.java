@@ -565,18 +565,18 @@ public abstract class Ibis implements ibis.ipl.Ibis //, IbisMBean
     public void printManagementProperties(PrintStream stream) {
         stream.format("Messages Send: %d\n", getOutgoingMessageCount());
 
-        double mbWritten = (double) getBytesWritten() / 1024.0 / 1024.0;
+        double mbWritten = getBytesWritten() / 1024.0 / 1024.0;
         stream.format("Data written to messages: %.2f Mb\n", mbWritten);
         
-        double mbSend = (double) getBytesSend() / 1024.0 / 1024.0;
+        double mbSend = getBytesSend() / 1024.0 / 1024.0;
         stream.format("Data send out on network: %.2f Mb\n", mbSend);
 
         stream.format("Messages Received: %d\n", getIncomingMessageCount());
 
-        double mbReceived = (double) getBytesReceived() / 1024.0 / 1024.0;
+        double mbReceived = getBytesReceived() / 1024.0 / 1024.0;
         stream.format("Data received from network: %.2f Mb\n", mbReceived);
 
-        double mbRead = (double) getBytesRead() / 1024.0 / 1024.0;
+        double mbRead = getBytesRead() / 1024.0 / 1024.0;
         stream.format("Data read from messages: %.2f Mb\n", mbRead);
         
         stream.flush();

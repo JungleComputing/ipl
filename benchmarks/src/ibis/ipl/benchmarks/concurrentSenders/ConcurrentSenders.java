@@ -72,7 +72,7 @@ class Sender extends Thread {
 
                 time = System.currentTimeMillis() - time;
 
-                double speed = (time * 1000.0) / (double) count;
+                double speed = (time * 1000.0) / count;
                 System.err.println("SENDER: " + count + " msgs took "
                         + (time / 1000.0) + " seconds, time/msg = " + speed
                         + " micros");

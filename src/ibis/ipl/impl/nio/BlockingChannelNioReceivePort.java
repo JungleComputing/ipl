@@ -198,7 +198,7 @@ final class BlockingChannelNioReceivePort extends NioReceivePort {
                 logger.debug("Got IOException", e);
             }
 
-            keys = (SelectionKey[]) selector.selectedKeys().toArray(keys);
+            keys = selector.selectedKeys().toArray(keys);
 
             selector.close();
 

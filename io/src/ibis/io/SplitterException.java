@@ -65,7 +65,7 @@ public class SplitterException extends IOException {
     public void printStackTrace() {
         for (int i = 0; i < streams.size(); i++) {
             System.err.println("Exception: " + exceptions.get(i));
-            ((Exception) exceptions.get(i)).printStackTrace();
+            (exceptions.get(i)).printStackTrace();
         }
     }
 }

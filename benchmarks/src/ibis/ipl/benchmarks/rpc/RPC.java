@@ -512,11 +512,11 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
         time = System.currentTimeMillis() - time;
         // t_client.stop();
 
-        double speed = (time * 1000.0) / (double) count;
+        double speed = (time * 1000.0) / count;
 
         System.err
                 .println("Latency: " + count + " calls took "
-                        + ((double) time / 1000.0) + " s, time/call = " + speed
+                        + (time / 1000.0) + " s, time/call = " + speed
                         + " us");
         if (size > 0) {
             final double MB = 1048576.0;
@@ -638,7 +638,7 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
 
         if (connectUpcalls) {
             sport = myIbis.createSendPort(requestPortType, "latency-client",
-                    (SendPortDisconnectUpcall) this, null);
+                    this, null);
         } else {
             sport = myIbis.createSendPort(requestPortType, "latency-client");
         }
@@ -723,7 +723,7 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
 
         if (connectUpcalls) {
             sport = myIbis.createSendPort(replyPortType, "latency-server",
-                    (SendPortDisconnectUpcall) this, null);
+                    this, null);
         } else {
             sport = myIbis.createSendPort(replyPortType, "latency-server");
         }
@@ -745,8 +745,7 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
         if (upcall) {
             if (connectUpcalls) {
                 rport = myIbis.createReceivePort(requestPortType, "server port",
-                        this,
-                        (ReceivePortConnectUpcall) this, null);
+                        this, this, null);
             } else {
                 rport = myIbis.createReceivePort(requestPortType, "server port",
                         (MessageUpcall) this);

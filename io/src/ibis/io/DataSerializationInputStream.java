@@ -824,7 +824,7 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
             if ((bi & ~0x7f) == 0) {
                 c[len++] = (char) (bi & 0x7f);
             } else if ((bi & 0xe0) == 0xc0) {
-                if (i + 1 >= bn || ((int)b[i + 1] & 0xc0) != 0x80) {
+                if (i + 1 >= bn || (b[i + 1] & 0xc0) != 0x80) {
 		    if (logger.isErrorEnabled()) {
 			logger.error("i = " + i + ", len = " + bn + ", bi = " + bi);
 			StringBuffer sb = new StringBuffer();
@@ -837,11 +837,11 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
                     throw new UTFDataFormatException(
                             "UTF Data Format Exception");
                 }
-                c[len++] = (char) (((bi & 0x1f) << 6) | ((int)b[i+1] & 0x3f));
+                c[len++] = (char) (((bi & 0x1f) << 6) | (b[i+1] & 0x3f));
                 i++;
             } else if ((bi & 0xf0) == 0xe0) {
-                if (i + 2 >= bn || ((int)b[i + 1] & 0xc0) != 0x80
-                        || ((int)b[i + 2] & 0xc0) != 0x80) {
+                if (i + 2 >= bn || (b[i + 1] & 0xc0) != 0x80
+                        || (b[i + 2] & 0xc0) != 0x80) {
 		    if (logger.isErrorEnabled()) {
 			logger.error("i = " + i + ", len = " + bn + ", bi = " + bi);
 			StringBuffer sb = new StringBuffer();
@@ -855,8 +855,8 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
                             "UTF Data Format Exception");
                 }
                 c[len++] = (char) (((bi & 0x0f) << 12)
-                        | (((int)b[i + 1] & 0x3f) << 6)
-                        | ((int)b[i + 2] & 0x3f));
+                        | ((b[i + 1] & 0x3f) << 6)
+                        | (b[i + 2] & 0x3f));
                 i += 2;
             } else {
 		if (logger.isErrorEnabled()) {

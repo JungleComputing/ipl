@@ -221,8 +221,7 @@ final class NonBlockingChannelNioAccumulator extends NioAccumulator {
 
         if (logger.isDebugEnabled() && (connection == null)) {
             for (int i = 0; i < nrOfConnections; i++) {
-                NioAccumulatorConnection conn
-                        = (NioAccumulatorConnection) connections[i];
+                NioAccumulatorConnection conn = connections[i];
                 if (!conn.empty()) {
                     throw new IOException("data left to send after doing flush");
                 }

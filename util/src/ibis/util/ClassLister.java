@@ -76,7 +76,7 @@ public class ClassLister {
             return classPathLister;
         }
 
-        ClassLister lister = (ClassLister) listers.get(dirList);
+        ClassLister lister = listers.get(dirList);
         if (lister == null) {
             lister = new ClassLister(dirList);
             listers.put(dirList, lister);

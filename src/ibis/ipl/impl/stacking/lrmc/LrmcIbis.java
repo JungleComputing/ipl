@@ -132,7 +132,7 @@ public class LrmcIbis implements Ibis {
     }
 
     IbisIdentifier getId(int id) {
-        IbisIdentifier ibisID = (IbisIdentifier) ibisList.get(id);
+        IbisIdentifier ibisID = ibisList.get(id);
 
         if (ibisID == null) {
             synchronized (this) {
@@ -142,7 +142,7 @@ public class LrmcIbis implements Ibis {
                     // ignored
                 }
             }
-            return (IbisIdentifier) ibisList.get(id);
+            return ibisList.get(id);
         }
         return ibisID;
     }

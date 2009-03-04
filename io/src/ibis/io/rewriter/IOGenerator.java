@@ -169,7 +169,7 @@ public class IOGenerator extends ibis.compile.IbiscComponent implements Rewriter
         do_sort_classes(classes_to_rewrite);
 
         for (int i = 0; i < classes_to_rewrite.size(); i++) {
-            JavaClass clazz = (JavaClass) classes_to_rewrite.get(i);
+            JavaClass clazz = classes_to_rewrite.get(i);
             if (useJME()) {
                 new JMECodeGenerator(this, clazz).generateEmptyMethods();
             }
@@ -382,10 +382,10 @@ public class IOGenerator extends ibis.compile.IbiscComponent implements Rewriter
         int l = t.size();
 
         for (int i = 0; i < l; i++) {
-            JavaClass clazz = (JavaClass) t.get(i);
+            JavaClass clazz = t.get(i);
             int sav_index = i;
             for (int j = i + 1; j < l; j++) {
-                JavaClass clazz2 = (JavaClass) t.get(j);
+                JavaClass clazz2 = t.get(j);
 
                 if (SerializationInfo.predecessor(clazz2.getClassName(), clazz)) {
                     clazz = clazz2;

@@ -106,7 +106,7 @@ public final class Location implements ibis.ipl.Location {
         if (codedForm == null) {
             codedForm = computeCodedForm();
         }
-        return (byte[]) codedForm.clone();
+        return codedForm.clone();
     }
 
     private byte[] computeCodedForm() {

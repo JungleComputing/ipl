@@ -45,7 +45,7 @@ static class Sender {
 
             time = System.currentTimeMillis() - time;
 
-            double speed = (time * 1000.0) / (double) count;
+            double speed = (time * 1000.0) / count;
             System.err.println("Latency: " + count + " calls took "
                     + (time / 1000.0) + " seconds, time/call = " + speed
                     + " micros");

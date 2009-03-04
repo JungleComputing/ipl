@@ -129,7 +129,7 @@ public class CapabilitySet {
      *          the byte array.
      */
     public byte[] toBytes() {
-        return (byte[]) codedForm.clone();
+        return codedForm.clone();
     }
 
     private byte[] computeCodedForm() {

@@ -141,7 +141,7 @@ class Throughput extends Thread {
                 long time = System.currentTimeMillis();
                 send();
                 time = System.currentTimeMillis() - time;
-                double speed = (time * 1000.0) / (double) count;
+                double speed = (time * 1000.0) / count;
                 double dataSent = ((double) transferSize * (count + count
                         / windowSize))
                         / (1024.0 * 1024.0);

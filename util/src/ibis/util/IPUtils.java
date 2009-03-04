@@ -159,7 +159,7 @@ public class IPUtils {
             Arrays.sort(addresses, new AddressSorter());
         }
 
-        return (InetAddress[]) addresses.clone();
+        return addresses.clone();
     }
 
     /**

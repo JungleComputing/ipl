@@ -105,9 +105,9 @@ public final class IbisFactory {
                 }
                 // Finish the setup based on these found starters
             }
-            implList = (IbisStarterInfo[]) foundStarters.toArray(new IbisStarterInfo[foundStarters.size()]);
+            implList = foundStarters.toArray(new IbisStarterInfo[foundStarters.size()]);
         } else {
-            implList = (IbisStarterInfo[]) compnts.toArray(new IbisStarterInfo[compnts.size()]);
+            implList = compnts.toArray(new IbisStarterInfo[compnts.size()]);
         }
         if (implList.length == 0) {
             throw new IbisConfigurationException("Cannot find any Ibis implementations");

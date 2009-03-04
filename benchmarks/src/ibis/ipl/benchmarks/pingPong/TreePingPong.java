@@ -45,7 +45,7 @@ static class Sender {
 
             time = System.currentTimeMillis() - time;
 
-            double speed = (time * 1000.0) / (double) count;
+            double speed = (time * 1000.0) / count;
 	    double tp = ((count * TREE_NODES * Tree.PAYLOAD) / (1024*1024)) / (time / 1000.0);
 
             System.err.println(count + " calls took "
