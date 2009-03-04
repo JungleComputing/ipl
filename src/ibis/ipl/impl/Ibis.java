@@ -132,7 +132,7 @@ public abstract class Ibis implements ibis.ipl.Ibis //, IbisMBean
         try {
             registry =
                 Registry.createRegistry(capabilities, registryHandler,
-                    properties, getData(), version);
+                    properties, getData(), this.getClass().getName() + "_" + version);
         } catch (IbisConfigurationException e) {
             throw e;
         } catch (Throwable e) {
