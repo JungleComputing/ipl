@@ -10,6 +10,8 @@ import ibis.smartsockets.virtual.VirtualSocketFactory;
 import ibis.util.ThreadPool;
 
 import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -348,6 +350,41 @@ final class ServerConnectionHandler implements Runnable {
             connection.out().writeUTF(location.toString());
         }
     }
+    
+   
+    
+    private void handleGetMonitorInfo(Connection connection) throws Exception {
+        String poolName = connection.in().readUTF();
+        
+        String[] beans;
+        String[] attributes;
+        
+        int nrOfItems = connection.in().readInt();
+        beans = new String[nrOfItems];
+        attributes = new String[nrOfItems];
+        
+        for(int i = 0; i < nrOfItems; i++) {
+            beans[i] = connection.in().readUTF();
+            attributes[i] = connection.in().readUTF();
+        }
+
+        Pool pool = server.getPool(poolName);
+        
+        if (pool == null) {
+            connection.closeWithError("pool not found");
+            throw new Exception("pool " + poolName + " not found");
+        }
+        
+        connection.sendOKReply();
+        
+        //send object
+        ObjectOutputStream out = new ObjectOutputStream(connection.out());
+        out.writeObject(pool.getMonitorInfo(beans, attributes));
+        out.flush();
+        out.close();
+
+       
+    }
 
     private synchronized void createThread() {
         while (currentNrOfThreads >= MAX_THREADS) {
@@ -466,6 +503,10 @@ final class ServerConnectionHandler implements Runnable {
             case Protocol.OPCODE_GET_LOCATIONS:
                 handleGetLocations(connection);
                 break;
+            case Protocol.OPCODE_GET_MONITOR_INFO:
+                handleGetMonitorInfo(connection);
+                break;
+
             default:
                 logger.error("unknown opcode: " + opcode);
             }

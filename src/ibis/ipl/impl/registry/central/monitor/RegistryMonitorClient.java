@@ -109,6 +109,7 @@ public class RegistryMonitorClient {
      * @param poolName
      *            name of pool.
      * @return a list of all locations in the given pool.
+     * @throws IOException in case the server cannot be reached
      */
     public String[] getLocations(String poolName) throws IOException {
         String[] result = null;

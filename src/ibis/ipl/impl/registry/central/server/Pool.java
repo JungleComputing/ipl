@@ -19,6 +19,8 @@ import ibis.util.ThreadPool;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Formatter;
 import java.util.HashMap;
@@ -76,7 +78,7 @@ final class Pool implements Runnable {
     private final boolean printEvents;
 
     private final boolean printErrors;
-    
+
     private final boolean purgeHistory;
 
     // statistics are only kept on the request of the user
@@ -274,7 +276,7 @@ final class Pool implements Runnable {
      * (non-Javadoc)
      * 
      * @see ibis.ipl.impl.registry.central.SuperPool#join(byte[], byte[],
-     *      ibis.ipl.impl.Location)
+     * ibis.ipl.impl.Location)
      */
     synchronized Member join(byte[] implementationData, byte[] clientAddress,
             Location location, String ibisImplementationIdentifier)
@@ -346,7 +348,7 @@ final class Pool implements Runnable {
         }
         closed = true;
         closeEvent = addEvent(Event.POOL_CLOSED, null, null,
-                new IbisIdentifier[0]);
+            new IbisIdentifier[0]);
         if (printEvents) {
             print("pool \"" + name + "\" now closed");
         }
@@ -410,7 +412,9 @@ final class Pool implements Runnable {
     /*
      * (non-Javadoc)
      * 
-     * @see ibis.ipl.impl.registry.central.SuperPool#leave(ibis.ipl.impl.IbisIdentifier)
+     * @see
+     * ibis.ipl.impl.registry.central.SuperPool#leave(ibis.ipl.impl.IbisIdentifier
+     * )
      */
     synchronized void leave(IbisIdentifier identifier) throws Exception {
         if (members.remove(identifier) == null) {
@@ -452,7 +456,9 @@ final class Pool implements Runnable {
     /*
      * (non-Javadoc)
      * 
-     * @see ibis.ipl.impl.registry.central.SuperPool#dead(ibis.ipl.impl.IbisIdentifier)
+     * @see
+     * ibis.ipl.impl.registry.central.SuperPool#dead(ibis.ipl.impl.IbisIdentifier
+     * )
      */
     synchronized void dead(IbisIdentifier identifier, Exception exception) {
         Member member = members.remove(identifier);
@@ -506,7 +512,7 @@ final class Pool implements Runnable {
      * (non-Javadoc)
      * 
      * @see ibis.ipl.impl.registry.central.SuperPool#elect(java.lang.String,
-     *      ibis.ipl.impl.IbisIdentifier)
+     * ibis.ipl.impl.IbisIdentifier)
      */
     synchronized IbisIdentifier elect(String electionName,
             IbisIdentifier candidate) throws IOException {
@@ -556,7 +562,8 @@ final class Pool implements Runnable {
     /*
      * (non-Javadoc)
      * 
-     * @see ibis.ipl.impl.registry.central.SuperPool#maybeDead(ibis.ipl.impl.IbisIdentifier)
+     * @seeibis.ipl.impl.registry.central.SuperPool#maybeDead(ibis.ipl.impl.
+     * IbisIdentifier)
      */
     synchronized void maybeDead(IbisIdentifier identifier) {
 
@@ -584,7 +591,7 @@ final class Pool implements Runnable {
      * (non-Javadoc)
      * 
      * @see ibis.ipl.impl.registry.central.SuperPool#signal(java.lang.String,
-     *      ibis.ipl.impl.IbisIdentifier[])
+     * ibis.ipl.impl.IbisIdentifier[])
      */
     synchronized void signal(String signal, IbisIdentifier source,
             IbisIdentifier[] targets) {
@@ -777,7 +784,7 @@ final class Pool implements Runnable {
                 long end = System.currentTimeMillis();
 
                 statistics.add(opcode, end - start, connection.read(),
-                        connection.written(), false);
+                    connection.written(), false);
             }
 
             if (logger.isDebugEnabled()) {
@@ -873,6 +880,68 @@ final class Pool implements Runnable {
         return members.asArray();
     }
 
+    @SuppressWarnings("unchecked")
+    private Map<String, Map<String, Object>> getMonitorInfo(Member member,
+            String[] beans, String[] attributes) {
+        try {
+            Connection connection = new Connection(member.getIbis(),
+                    CONNECT_TIMEOUT, false, socketFactory);
+            connection.out().writeByte(Protocol.CLIENT_MAGIC_BYTE);
+            connection.out().writeByte(Protocol.VERSION);
+            connection.out().writeByte(Protocol.OPCODE_GET_MONITOR_INFO);
+
+            connection.out().writeInt(beans.length);
+            for (int i = 0; i < beans.length; i++) {
+                connection.out().writeUTF(beans[i]);
+                connection.out().writeUTF(attributes[i]);
+            }
+
+            connection.getAndCheckReply();
+
+            ObjectInputStream in = new ObjectInputStream(connection.in());
+
+            Map<String, Map<String, Object>> result = (Map<String, Map<String, Object>>) in
+                    .readObject();
+
+            in.close();
+
+            return result;
+
+        } catch (Exception e) {
+            logger.warn("Could not get monitor info for ", member);
+            return null;
+        }
+    }
+
+    /**
+     * Get monitor info for the given attributes of the given MBeans of all
+     * nodes in the pool.
+     * 
+     * @param beans
+     *            List of MBeans
+     * @param attributes
+     *            List of Attributes
+     * @return Map of MBean attributes.
+     * 
+     */
+    Map<IbisIdentifier, Map<String, Map<String, Object>>> getMonitorInfo(
+            String[] beans, String[] attributes) {
+        Map<IbisIdentifier, Map<String, Map<String, Object>>> result = new HashMap<IbisIdentifier, Map<String, Map<String, Object>>>();
+
+        Member[] members = getMembers();
+
+        for (Member member : members) {
+            Map<String, Map<String, Object>> info = getMonitorInfo(member,
+                beans, attributes);
+
+            if (info != null) {
+                result.put(member.getIbis(), info);
+            }
+        }
+
+        return result;
+    }
+
     /**
      * Returns the children of the root node
      */
@@ -892,16 +961,16 @@ final class Pool implements Runnable {
 
         if (isClosedWorld()) {
             formatter.format("%s\n     %12d %5d %6d %5d %9d %7d %10d %6b %5b",
-                    getName(), getSize(), eventStats[Event.JOIN],
-                    eventStats[Event.LEAVE], eventStats[Event.DIED],
-                    eventStats[Event.ELECT], eventStats[Event.SIGNAL],
-                    getFixedSize(), isClosed(), ended);
+                getName(), getSize(), eventStats[Event.JOIN],
+                eventStats[Event.LEAVE], eventStats[Event.DIED],
+                eventStats[Event.ELECT], eventStats[Event.SIGNAL],
+                getFixedSize(), isClosed(), ended);
         } else {
             formatter.format("%s\n     %12d %5d %6d %5d %9d %7d %10s %6b %5b",
-                    getName(), getSize(), eventStats[Event.JOIN],
-                    eventStats[Event.LEAVE], eventStats[Event.DIED],
-                    eventStats[Event.ELECT], eventStats[Event.SIGNAL], "N.A.",
-                    isClosed(), ended);
+                getName(), getSize(), eventStats[Event.JOIN],
+                eventStats[Event.LEAVE], eventStats[Event.DIED],
+                eventStats[Event.ELECT], eventStats[Event.SIGNAL], "N.A.",
+                isClosed(), ended);
         }
 
         return message.toString();
@@ -929,10 +998,10 @@ final class Pool implements Runnable {
      */
     synchronized void purgeHistory() {
         if (!purgeHistory) {
-            //do nothing, history purge disabled
+            // do nothing, history purge disabled
             return;
         }
-        
+
         int newMinimum = members.getMinimumTime();
 
         if (newMinimum == -1) {
