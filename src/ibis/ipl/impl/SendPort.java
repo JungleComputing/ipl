@@ -538,15 +538,6 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
             setProperty("ClosedConnections", "" + nClosedConnections);
         }
         
-        for (int i = 0; i < ports.length; i++) {
-            SendPortConnectionInfo c = removeInfo(ports[i]);
-            try {
-                c.closeConnection();
-            } catch(Throwable e) {
-                // ignore and just continue (?)
-            }      
-        }
-        
         try {
             // We must create the outputstream if it doesn't exist yet, 
             // otherwise the close message may get lost!! -- Jason
@@ -566,6 +557,15 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
             // Don't keep the lock on the sendport while calling ibis.deregister()!
             // Otherwise, deadlocks may arise when someone is calling ibis.printStatistics()
             // at the same time. --Ceriel
+            for (int i = 0; i < ports.length; i++) {
+                SendPortConnectionInfo c = removeInfo(ports[i]);
+                try {
+                    c.closeConnection();
+                } catch(Throwable e) {
+                    // ignore and just continue (?)
+                }      
+            }
+        
             ibis.deRegister(this);
             if (logger.isDebugEnabled()) {
                 logger.debug("SendPort '" + name + "': close() done");
