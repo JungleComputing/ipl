@@ -329,7 +329,9 @@ class TcpChannelFactory implements ChannelFactory, Protocol {
             } catch (Exception e3) {
                 try {
                     ssc.close();
-                    channel.close();
+                    if (channel != null) {
+                        channel.close();
+                    }
                 } catch (IOException e4) {
                     // IGNORE
                 }
