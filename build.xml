@@ -295,7 +295,7 @@
                  bottom="The Ibis project">
             <link href="http://java.sun.com/j2se/1.5.0/docs/api/" />
             
-            <tag name="experimental" description="WARNING: This is an Experimental feature of the IPL. It may not function correctly, future releases of the IPL may have a revised API for this feature, or it may be removed completely."/>
+            <tag name="experimental" description="WARNING: This is an Experimental feature of the IPL. It may not function correctly, future releases of the IPL may have a revised API for this feature, or it may be removed completely. "/>
         </javadoc>
     </target>
 
