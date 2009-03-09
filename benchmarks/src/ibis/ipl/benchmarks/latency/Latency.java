@@ -161,12 +161,18 @@ class UpcallReceiver implements MessageUpcall {
 
     int repeat;
 
-    UpcallReceiver(SendPort sport, int max,
-            int repeat, Computer c) {
+    boolean earlyFinish;
+
+    boolean delayedFinish;
+
+    UpcallReceiver(SendPort sport, int max, boolean earlyFinish,
+            boolean delayedFinish, int repeat, Computer c) {
         this.sport = sport;
         this.c = c;
         this.repeat = repeat;
         this.max = max;
+        this.earlyFinish = earlyFinish;
+        this.delayedFinish = delayedFinish;
     }
 
     public void upcall(ReadMessage readMessage) {
@@ -174,20 +180,34 @@ class UpcallReceiver implements MessageUpcall {
         //		System.err.println("Got readMessage!!");
 
         try {
-            readMessage.finish();
+            if (earlyFinish) {
+                readMessage.finish();
+            }
 
             WriteMessage writeMessage = sport.newMessage();
             writeMessage.finish();
 
-            synchronized(this) {
-                count++;
-
-                if (c != null && (count % max == 0))
-                    c.printCycles("Server");
-
-                if (count == max * repeat) {
-                    notifyAll();
+            if (earlyFinish) {
+                synchronized(this) {
+                    count++;
+                    if (count == max * repeat) {
+                        notifyAll();
+                    }
                 }
+            } else {
+                count++;
+                if (count == max * repeat) {
+                    synchronized (this) {
+                        notifyAll();
+                    }
+                }
+            }
+
+            if (c != null && (count % max == 0))
+                c.printCycles("Server");
+
+            if (delayedFinish) {
+                readMessage.finish();
             }
 
         } catch (Exception e) {
@@ -220,13 +240,19 @@ class UpcallSender implements MessageUpcall {
 
     Computer c;
 
-    UpcallSender(SendPort sport, int count,
-            int repeat, Computer c) {
+    boolean earlyFinish;
+
+    boolean delayedFinish;
+
+    UpcallSender(SendPort sport, int count, boolean earlyFinish,
+            boolean delayedFinish, int repeat, Computer c) {
         this.sport = sport;
         this.count = 0;
         this.max = count;
         this.repeat = repeat;
         this.c = c;
+        this.earlyFinish = earlyFinish;
+        this.delayedFinish = delayedFinish;
     }
 
     public void start() {
@@ -242,31 +268,45 @@ class UpcallSender implements MessageUpcall {
 
     public void upcall(ReadMessage readMessage) {
         try {
-            readMessage.finish();
+            if (earlyFinish) {
+                readMessage.finish();
+            }
 
             //			System.err.println("Sending " + count);
 
-            if (count == 0) {
-                time = System.currentTimeMillis();
+            boolean done;
+            if (earlyFinish) {
+                synchronized(this) {
+                    if (count == 0) {
+                        time = System.currentTimeMillis();
+                    }
+
+                    count++;
+                    done = count == max;
+                }
+            } else {
+                if (count == 0) {
+                    time = System.currentTimeMillis();
+                }
+
+                count++;
+                done = count == max;
             }
 
-            count++;
-
-            if (count == max) {
+            if (done) {
                 long temp = time;
                 time = System.currentTimeMillis();
                 double speed = ((time - temp) * 1000.0) / max;
                 System.err.println("Latency: " + max + " calls took "
                         + ((time - temp) / 1000.0) + " seconds, time/call = "
                         + speed + " micros");
-
-                count = 0;
-                repeat--;
-                if (repeat == 0) {
-                    synchronized (this) {
+                synchronized(this) {
+                    count = 0;
+                    repeat--;
+                    if (repeat == 0) {
                         notifyAll();
+                        return;
                     }
-                    return;
                 }
             }
 
@@ -275,6 +315,11 @@ class UpcallSender implements MessageUpcall {
             Latency.logger.debug("SEND pre fin");
             writeMessage.finish();
             Latency.logger.debug("SEND post fin");
+
+            if (delayedFinish) {
+                readMessage.finish();
+            }
+
         } catch (Exception e) {
             System.err.println("EEEEEK " + e);
             e.printStackTrace();
@@ -319,6 +364,8 @@ class Latency {
         boolean compRec = false;
         boolean compSnd = false;
         Computer c = null;
+        boolean earlyFinish = false;
+        boolean delayedFinish = false;
         boolean noneSer = false;
 
         /* Parse commandline parameters. */
@@ -339,6 +386,10 @@ class Latency {
                 compRec = true;
             } else if (args[i].equals("-comp-snd")) {
                 compSnd = true;
+            } else if (args[i].equals("-early-finish")) {
+                earlyFinish = true;
+            } else if (args[i].equals("-delayed-finish")) {
+                delayedFinish = true;
             } else {
                 if (count == -1) {
                     count = Integer.parseInt(args[i]);
@@ -410,7 +461,7 @@ class Latency {
                     sender.send(count, repeat, c);
                 } else {
                     UpcallSender sender = new UpcallSender(sport, count,
-                            repeat, c);
+                            earlyFinish, delayedFinish, repeat, c);
                     rport = ibis.createReceivePort(t, "test port", sender);
                     rport.enableConnections();
                     sport.connect(remote, "test port");
@@ -429,7 +480,7 @@ class Latency {
 
                 if (upcalls) {
                     UpcallReceiver receiver = new UpcallReceiver(sport, count,
-                            repeat, c);
+                            earlyFinish, delayedFinish, repeat, c);
                     rport = ibis.createReceivePort(t, "test port", receiver);
                     rport.enableConnections();
                     rport.enableMessageUpcalls();

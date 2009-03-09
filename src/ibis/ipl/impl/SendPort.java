@@ -14,6 +14,7 @@ import ibis.ipl.ConnectionsFailedException;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.PortType;
 import ibis.ipl.SendPortDisconnectUpcall;
+import ibis.util.TypedProperties;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -132,6 +133,9 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
 
     /** Counts the number of connections that were explicitly closed. */
     private long nClosedConnections = 0;
+    
+    private final boolean allowCommunicationInUpcall;
+    private final boolean allowConnectionsInUpcall;
 
     /**
      * Constructs a <code>SendPort</code> with the specified parameters.
@@ -174,6 +178,10 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
         } else {
             this.replacer = null;
         }
+        
+        TypedProperties tp = new TypedProperties(this.properties);
+        allowCommunicationInUpcall = tp.getBooleanProperty("ibis.upcall.communication", false);
+        allowConnectionsInUpcall = tp.getBooleanProperty("ibis.upcall.connections", false);
         ibis.register(this);
         if (logger.isDebugEnabled()) {
             logger.debug(ibis.identifier() + ": Sendport '" + name
@@ -285,7 +293,7 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
     public synchronized void connect(ibis.ipl.ReceivePortIdentifier receiver,
             long timeout, boolean fillTimeout) throws ConnectionFailedException {
         
-        if (ReceivePort.threadsInUpcallSet.contains(Thread.currentThread())) {
+        if (! allowConnectionsInUpcall && ReceivePort.threadsInUpcallSet.contains(Thread.currentThread())) {
             throw new ConnectionFailedException("Connection attempt in upcall is not allowed",
                     receiver);
         }
@@ -374,7 +382,7 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
         }
         
         if (todo.size() > 0) {
-            if (ReceivePort.threadsInUpcallSet.contains(Thread.currentThread())) {
+            if (! allowConnectionsInUpcall && ReceivePort.threadsInUpcallSet.contains(Thread.currentThread())) {
                 throw new ConnectionsFailedException("Connection attempt in upcall is not allowed");
             }
         }
@@ -480,7 +488,7 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
 
     public ibis.ipl.WriteMessage newMessage() throws IOException {
         
-        if (ReceivePort.threadsInUpcallSet.contains(Thread.currentThread())) {
+        if (! allowCommunicationInUpcall && ReceivePort.threadsInUpcallSet.contains(Thread.currentThread())) {
             throw new IOException("Communication in upcall is not allowed");
         }
         synchronized(this) {
