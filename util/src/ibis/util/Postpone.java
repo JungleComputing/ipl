@@ -43,9 +43,8 @@ public class Postpone {
 
         if (args[1].equals("-o")) {
             if (args.length < 4) {
-                System.err.println("Usage: java ibis.util.Postpone "
+                throw new Error("Usage: java ibis.util.Postpone "
                         + "[ -o <outputfile> ] <seconds> <main class> ...");
-                System.exit(1);
             }
             String outfile = args[2];
             try {
@@ -75,8 +74,7 @@ public class Postpone {
                 cl = Thread.currentThread().getContextClassLoader()
                         .loadClass(args[argsbase]);
             } catch(ClassNotFoundException e2) {
-                System.out.println("Could not load class " + args[argsbase]);
-                System.exit(1);
+                throw new Error("Could not load class " + args[argsbase]);
             }
         }
 
@@ -85,9 +83,8 @@ public class Postpone {
         try {
             m = cl.getMethod("main", new Class[] { args.getClass() });
         } catch (Exception e) {
-            System.out.println("Could not find a main(String[]) in class "
+            throw new Error("Could not find a main(String[]) in class "
                     + args[argsbase]);
-            System.exit(1);
         }
 
         // Create arguments array.
