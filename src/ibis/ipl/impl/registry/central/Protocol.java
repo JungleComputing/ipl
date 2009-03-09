@@ -2,7 +2,7 @@ package ibis.ipl.impl.registry.central;
 
 public final class Protocol {
 
-    public static final byte VERSION = 4;
+    public static final byte VERSION = 5;
 
     // opcodes
 
