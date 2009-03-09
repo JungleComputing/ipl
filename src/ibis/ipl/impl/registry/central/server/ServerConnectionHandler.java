@@ -11,7 +11,6 @@ import ibis.util.ThreadPool;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;
-import java.util.HashMap;
 import java.util.Map;
 
 import org.slf4j.Logger;
