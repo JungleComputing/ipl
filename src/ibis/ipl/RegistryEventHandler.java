@@ -7,25 +7,26 @@ package ibis.ipl;
  * pool. At most one of the methods in this interface will be active at any time
  * (they are serialized by ibis). These upcalls must be explicitly enabled, by
  * means of the {@link Registry#enableEvents()} method. The following also
- * holds: <BR> - For any given Ibis identifier, at most one
- * {@link #joined(IbisIdentifier) joined()} call will be generated. <BR> - For
- * any given Ibis identifier, at most one {@link #left(IbisIdentifier) left()}
- * call will be generated. <BR> - An Ibis instance will also receive a
- * {@link #joined(IbisIdentifier) joined()} upcall for itself.
+ * holds: <BR>
+ * - For any given Ibis identifier, at most one {@link #joined(IbisIdentifier)
+ * joined()} call will be generated. <BR>
+ * - For any given Ibis identifier, at most one {@link #left(IbisIdentifier)
+ * left()} call will be generated. <BR>
+ * - An Ibis instance will also receive a {@link #joined(IbisIdentifier)
+ * joined()} upcall for itself.
  * <p>
  * If the {@link IbisCapabilities#MEMBERSHIP_TOTALLY_ORDERED} is specified for
- * this Ibis, all Ibis instances receive all
- * {@link #joined(IbisIdentifier) joined()},
- * {@link #left(IbisIdentifier) left()}, and
+ * this Ibis, all Ibis instances receive all {@link #joined(IbisIdentifier)
+ * joined()}, {@link #left(IbisIdentifier) left()}, and
  * {@link #died(IbisIdentifier) died()}, upcalls in exactly the same order.
  */
 public interface RegistryEventHandler {
     /**
      * Upcall generated when an Ibis instance joined the pool. Note: an Ibis
-     * instance may also receive a <code>joined</code> upcall for itself. If
-     * the {@link IbisCapabilities#MEMBERSHIP_TOTALLY_ORDERED} is specified for
-     * this Ibis, all Ibis instances receive the <code>joined</code> upcalls
-     * in the same order. If {@link IbisCapabilities#MEMBERSHIP_UNRELIABLE} is
+     * instance may also receive a <code>joined</code> upcall for itself. If the
+     * {@link IbisCapabilities#MEMBERSHIP_TOTALLY_ORDERED} is specified for this
+     * Ibis, all Ibis instances receive the <code>joined</code> upcalls in the
+     * same order. If {@link IbisCapabilities#MEMBERSHIP_UNRELIABLE} is
      * specified, some Ibis instances may be missed, and the order of the
      * upcalls may not be the same.
      * 
@@ -69,6 +70,8 @@ public interface RegistryEventHandler {
      * result of a call by the application. How the receiver of this upcall
      * reacts to this is up to the application.
      * 
+     * @experimental
+     * 
      * @param signal
      *            the value of the signal supplied by the user.
      */
@@ -89,13 +92,15 @@ public interface RegistryEventHandler {
      * Upcall generated when a pool closes.
      */
     public void poolClosed();
-    
+
     /**
      * Upcall generated when a pool terminates.
      * 
-     * @param source Ibis which terminated the pool.
+     * @param source
+     *            Ibis which terminated the pool.
+     * 
+     * @experimental
      */
     public void poolTerminated(IbisIdentifier source);
 
-    
 }
