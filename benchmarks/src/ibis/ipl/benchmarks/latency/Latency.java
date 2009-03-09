@@ -179,13 +179,13 @@ class UpcallReceiver implements MessageUpcall {
             WriteMessage writeMessage = sport.newMessage();
             writeMessage.finish();
 
-            count++;
+            synchronized(this) {
+                count++;
 
-            if (c != null && (count % max == 0))
-                c.printCycles("Server");
+                if (c != null && (count % max == 0))
+                    c.printCycles("Server");
 
-            if (count == max * repeat) {
-                synchronized (this) {
+                if (count == max * repeat) {
                     notifyAll();
                 }
             }
