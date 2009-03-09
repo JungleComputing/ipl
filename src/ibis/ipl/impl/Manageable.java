@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
-public class Manageable implements ibis.ipl.Manageable {
+public abstract class Manageable implements ibis.ipl.Manageable {
 
     private HashSet<String> validKeys = new HashSet<String>();
 
@@ -15,6 +15,7 @@ public class Manageable implements ibis.ipl.Manageable {
     private HashMap<String, String> properties = new HashMap<String, String>();
 
     public synchronized Map<String, String> managementProperties() {
+        updateProperties();
         return new HashMap<String,String>(properties);
     }
 
@@ -35,6 +36,7 @@ public class Manageable implements ibis.ipl.Manageable {
         if (! validKeys.contains(key)) {
             throw new NoSuchPropertyException("Invalid key: " + key);
         }
+        updateProperties();
         return properties.get(key);
     }
     
@@ -53,8 +55,11 @@ public class Manageable implements ibis.ipl.Manageable {
     protected synchronized void setProperty(String key, String val) {
         properties.put(key, val);
     }
+      
+    protected abstract void updateProperties();
 
     public void printManagementProperties(PrintStream stream) {
+        updateProperties();
         for(Map.Entry<String, String> entry: properties.entrySet()) {
             stream.println(entry.getKey() + " " + entry.getValue());
         }

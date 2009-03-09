@@ -179,17 +179,11 @@ public abstract class ReceivePort extends Manageable
             logger.debug(ibis.ident + ": ReceivePort '" + name + "' created");
         }
         addValidKey("Messages");
-        setProperty("Messages", "0");
         addValidKey("MessageBytes");
-        setProperty("MessageBytes", "0");
         addValidKey("Bytes");
-        setProperty("Bytes", "0");
         addValidKey("Connections");
-        setProperty("Connections", "0");
         addValidKey("LostConnections");
-        setProperty("LostConnections", "0");
         addValidKey("ClosedConnections");
-        setProperty("ClosedConnections", "0");
     }
 
     protected ReadMessage createReadMessage(SerializationInput in, ReceivePortConnectionInfo info) {
@@ -406,10 +400,8 @@ public abstract class ReceivePort extends Manageable
         }
         if (e != null) {
             nLostConnections++;
-            setProperty("LostConnections", "" + nLostConnections);
         } else {
             nClosedConnections++;
-            setProperty("ClosedConnections", "" + nClosedConnections);
         }
         removeInfo(id);
     }
@@ -434,7 +426,6 @@ public abstract class ReceivePort extends Manageable
     public synchronized void addInfo(SendPortIdentifier id,
             ReceivePortConnectionInfo info) {
         nConnections++;
-        setProperty("Connections", "" + nConnections);
         connections.put(id, info);
         notifyAll();
     }
@@ -593,8 +584,6 @@ public abstract class ReceivePort extends Manageable
     public synchronized void finishMessage(ReadMessage r, long cnt) {
         nMessages++;
         messageBytes += cnt;
-        setProperty("Messages", "" + nMessages);
-        setProperty("MessageBytes", "" + messageBytes);
         message = null;
         threadsInUpcallSet.remove(Thread.currentThread());
         notifyAll();
@@ -645,16 +634,23 @@ public abstract class ReceivePort extends Manageable
                             "receiver forcibly closed connection"));
             }
             nClosedConnections += conns.length;
-            setProperty("ClosedConnections", "" + nClosedConnections);
         }
         if (logger.isDebugEnabled()) {
             logger.debug(name + ":done receiveport.close");
         }
     }
+    
+    protected synchronized void updateProperties() {
+        setProperty("Bytes", "" + bytes);
+        setProperty("ClosedConnections", "" + nClosedConnections);
+        setProperty("Connections", "" + nConnections);
+        setProperty("Messages", "" + nMessages);
+        setProperty("MessageBytes", "" + messageBytes);
+        setProperty("LostConnections", "" + nLostConnections);
+    }
 
     void addDataIn(long cnt) {
         bytes += cnt;
-        setProperty("Bytes", "" + bytes);
     }
 
     /**

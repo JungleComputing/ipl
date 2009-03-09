@@ -190,17 +190,20 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
         w = createWriteMessage();
 
         addValidKey("Messages");
-        setProperty("Messages", "0");
         addValidKey("MessageBytes");
-        setProperty("MessageBytes", "0");
         addValidKey("Bytes");
-        setProperty("Bytes", "0");
         addValidKey("Connections");
-        setProperty("Connections", "0");
         addValidKey("LostConnections");
-        setProperty("LostConnections", "0");
         addValidKey("ClosedConnections");
-        setProperty("ClosedConnections", "0");
+    }
+    
+    protected synchronized void updateProperties() {
+        setProperty("ClosedConnections", "" + nClosedConnections);
+        setProperty("LostConnections", "" + nLostConnections);
+        setProperty("Connections", "" + nConnections);
+        setProperty("Messages", "" + nMessages);
+        setProperty("MessageBytes", "" + messageBytes);
+        setProperty("Bytes", "" + bytes);
     }
 
     /**
@@ -324,7 +327,6 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
             throw new ConnectionFailedException("Got unexpected exception", r, e1);
         }
         nConnections++;
-        setProperty("Connections", "" + nConnections);
     }
 
     public ibis.ipl.ReceivePortIdentifier[] connect(
@@ -543,7 +545,6 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
             }
             closed = true;
             nClosedConnections += ports.length;
-            setProperty("ClosedConnections", "" + nClosedConnections);
         }
         
         try {
@@ -608,7 +609,6 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
             c.closeConnection();
         }
         nClosedConnections++;
-        setProperty("ClosedConnections", "" + nClosedConnections);
     }
 
     public synchronized ibis.ipl.ReceivePortIdentifier[] connectedTo() {
@@ -679,9 +679,6 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
         nMessages++;
         messageBytes += cnt;
         bytes = prevBytes + totalWritten();
-        setProperty("Messages", "" + nMessages);
-        setProperty("MessageBytes", "" + messageBytes);
-        setProperty("Bytes", "" + bytes);
         if (collectedExceptions != null) {
             IOException e = collectedExceptions;
             collectedExceptions = null;
@@ -768,7 +765,6 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
         if (c != null) {
             try {
                 nLostConnections++;
-                setProperty("LostConnections", "" + nLostConnections);
                 c.closeConnection();
             } catch(Throwable e) {
                 // ignored
