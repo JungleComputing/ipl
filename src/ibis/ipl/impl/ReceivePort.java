@@ -580,8 +580,8 @@ public abstract class ReceivePort extends Manageable
     public synchronized void finishMessage(ReadMessage r, long cnt) {
         nMessages++;
         messageBytes += cnt;
-        setProperty("Messages", "" + nMessages);
-        setProperty("MessageBytes", "" + messageBytes);
+       // setProperty("Messages", "" + nMessages);
+       // setProperty("MessageBytes", "" + messageBytes);
         message = null;
         notifyAll();
     }

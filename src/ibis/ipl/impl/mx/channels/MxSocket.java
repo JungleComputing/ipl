@@ -295,9 +295,12 @@ public class MxSocket implements Runnable {
 			listenBuf.put(Connection.REJECT);
 			listenBuf.put(request.replyMessage, 0, request.msgSize);
 			listenBuf.flip();
-			JavaMx.sendSynchronous(listenBuf, listenBuf.position(), listenBuf
-					.remaining(), sendEndpointNumber, link, listenHandle,
-					Matching.PROTOCOL_CONNECT_REPLY);
+//			JavaMx.sendSynchronous(listenBuf, listenBuf.position(), listenBuf
+//					.remaining(), sendEndpointNumber, link, listenHandle,
+//					Matching.PROTOCOL_CONNECT_REPLY);
+                        JavaMx.send(listenBuf, listenBuf.position(), listenBuf
+                              .remaining(), sendEndpointNumber, link, listenHandle,
+                              Matching.PROTOCOL_CONNECT_REPLY);
 			msgSize = JavaMx.wait(sendEndpointNumber, listenHandle, 1000);
 			if (msgSize < 0) {
 				// timeout
@@ -326,7 +329,7 @@ public class MxSocket implements Runnable {
 		listenBuf.putInt(Matching.getPort(matchInfo));
 		listenBuf.put(request.replyMessage, 0, request.msgSize);
 		listenBuf.flip();
-		JavaMx.sendSynchronous(listenBuf, listenBuf.position(), listenBuf
+		JavaMx.send(listenBuf, listenBuf.position(), listenBuf
 				.remaining(), sendEndpointNumber, link, listenHandle,
 				Matching.PROTOCOL_CONNECT_REPLY);
 		int msgSize = -1;

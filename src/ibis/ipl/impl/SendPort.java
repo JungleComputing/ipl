@@ -640,9 +640,9 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
         nMessages++;
         messageBytes += cnt;
         bytes = prevBytes + totalWritten();
-        setProperty("Messages", "" + nMessages);
-        setProperty("MessageBytes", "" + messageBytes);
-        setProperty("Bytes", "" + bytes);
+   //     setProperty("Messages", "" + nMessages);
+   //     setProperty("MessageBytes", "" + messageBytes);
+   //     setProperty("Bytes", "" + bytes);
         if (collectedExceptions != null) {
             IOException e = collectedExceptions;
             collectedExceptions = null;
