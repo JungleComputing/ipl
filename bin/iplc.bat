@@ -16,7 +16,7 @@ goto setupArgs
 
 :doneStart
 
-java -classpath "%CLASSPATH%;%IPL_HOME\lib\*" -Dlog4j.configuration=file:"%IPL_HOME%"\log4j.properties ibis.compile.Ibisc %IBISC_ARGS%
+java -classpath "%CLASSPATH%;%IPL_HOME%\lib\*" -Dlog4j.configuration=file:"%IPL_HOME%"\log4j.properties ibis.compile.Ibisc %IBISC_ARGS%
 
 if "%OS%"=="Windows_NT" @endlocal
 
