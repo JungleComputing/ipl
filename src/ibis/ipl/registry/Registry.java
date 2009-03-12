@@ -2,20 +2,14 @@
 
 package ibis.ipl.registry;
 
-import ibis.io.Conversion;
 import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisConfigurationException;
-import ibis.ipl.IbisFactory;
 import ibis.ipl.IbisProperties;
 import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.impl.IbisIdentifier;
-import ibis.util.TypedProperties;
 
 import java.io.IOException;
 import java.util.Properties;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * This implementation of the {@link ibis.ipl.Registry} interface defines the
@@ -24,10 +18,6 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class Registry implements ibis.ipl.Registry {
 
-    private static final Logger logger = LoggerFactory
-            .getLogger(Registry.class);
-
- 
 
     /**
      * Notifies the registry that the calling Ibis instance is leaving.

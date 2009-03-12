@@ -14,7 +14,6 @@ import ibis.ipl.registry.central.MemberSet;
 import ibis.ipl.registry.central.Protocol;
 import ibis.ipl.registry.central.TreeMemberSet;
 import ibis.ipl.registry.statistics.Statistics;
-import ibis.ipl.server.ServerProperties;
 import ibis.smartsockets.virtual.VirtualSocketFactory;
 import ibis.util.ThreadPool;
 

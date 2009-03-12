@@ -21,7 +21,6 @@ import ibis.ipl.SendPort;
 import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.ipl.Registry;
 import ibis.ipl.SendPortIdentifier;
-import ibis.ipl.IbisFactory.ImplementationInfo;
 import ibis.util.TypedProperties;
 
 import java.io.IOException;

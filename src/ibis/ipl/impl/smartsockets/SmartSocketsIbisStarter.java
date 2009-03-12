@@ -8,7 +8,6 @@ import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisFactory;
 import ibis.ipl.PortType;
 import ibis.ipl.RegistryEventHandler;
-import ibis.ipl.IbisFactory.ImplementationInfo;
 
 import java.util.Properties;
 

@@ -5,7 +5,6 @@ import ibis.ipl.IbisFactory;
 import ibis.ipl.registry.Registry;
 import ibis.util.TypedProperties;
 
-import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
