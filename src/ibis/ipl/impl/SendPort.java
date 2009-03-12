@@ -20,7 +20,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -35,6 +37,19 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
 
     /** Debugging output. */
     private static final Logger logger = LoggerFactory.getLogger("ibis.ipl.impl.SendPort");
+    
+    private static final String ALLOW_COMM_IN_UPCALL = "ibis.upcall.communication";
+    
+    private static final String ALLOW_CONN_IN_UPCALL = "ibis.upcall.connections";
+    
+    private static final String[][] propertiesList = new String[][] {
+        { ALLOW_COMM_IN_UPCALL, "false",
+            "Boolean: when set, communication is allowed from inside upcalls,"
+            + " without first calling finish()."},
+        { ALLOW_CONN_IN_UPCALL, "false",
+                "Boolean: when set, connection setup is allowed from inside upcalls,"
+                + " without first calling finish()."},
+    };
 
     /** The type of this port. */
     public final PortType type;
@@ -134,7 +149,16 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
     /** Counts the number of connections that were explicitly closed. */
     private long nClosedConnections = 0;
     
+    /** 
+     * When set, allow newMessage calls in message upcalls without
+     * first calling finish().
+     */
     private final boolean allowCommunicationInUpcall;
+    
+    /** 
+     * When set, allow connection setup in message upcalls without
+     * first calling finish().
+     */
     private final boolean allowConnectionsInUpcall;
 
     /**
@@ -149,7 +173,7 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
      * @exception IOException is thrown in case of trouble.
      */
     @SuppressWarnings("unchecked")
-	protected SendPort(Ibis ibis, PortType type, String name,
+    protected SendPort(Ibis ibis, PortType type, String name,
             SendPortDisconnectUpcall connectUpcall, Properties properties) throws IOException {
         this.ibis = ibis;
         this.type = type;
@@ -180,8 +204,8 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
         }
         
         TypedProperties tp = new TypedProperties(this.properties);
-        allowCommunicationInUpcall = tp.getBooleanProperty("ibis.upcall.communication", false);
-        allowConnectionsInUpcall = tp.getBooleanProperty("ibis.upcall.connections", false);
+        allowCommunicationInUpcall = tp.getBooleanProperty(ALLOW_COMM_IN_UPCALL, false);
+        allowConnectionsInUpcall = tp.getBooleanProperty(ALLOW_CONN_IN_UPCALL, false);
         ibis.register(this);
         if (logger.isDebugEnabled()) {
             logger.debug(ibis.identifier() + ": Sendport '" + name
@@ -195,6 +219,32 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
         addValidKey("Connections");
         addValidKey("LostConnections");
         addValidKey("ClosedConnections");
+    }
+    
+    /**
+     * Returns a map mapping hard-coded property names to their descriptions.
+     * 
+     * @return the name/description map.
+     */
+    public static Map<String, String> getDescriptions() {
+        Map<String, String> result = new LinkedHashMap<String, String>();
+
+        for (String[] element : propertiesList) {
+            result.put(element[0], element[2]);
+        }
+
+        return result;
+    }
+
+    /**
+     * Returns a list of recognized properties.
+     */
+    public static List<String> getPropertyNames() {
+        ArrayList<String> result = new ArrayList<String>();
+        for (String[] element : propertiesList) {
+            result.add(element[0]);
+        }
+        return result;
     }
     
     protected synchronized void updateProperties() {
