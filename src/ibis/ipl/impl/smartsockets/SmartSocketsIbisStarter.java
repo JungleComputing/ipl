@@ -5,8 +5,10 @@ package ibis.ipl.impl.smartsockets;
 import ibis.ipl.CapabilitySet;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisCapabilities;
+import ibis.ipl.IbisFactory;
 import ibis.ipl.PortType;
 import ibis.ipl.RegistryEventHandler;
+import ibis.ipl.IbisFactory.ImplementationInfo;
 
 import java.util.Properties;
 
@@ -60,7 +62,7 @@ public final class SmartSocketsIbisStarter extends ibis.ipl.IbisStarter {
     private int unmatchedPortTypes;
     
     public SmartSocketsIbisStarter(IbisCapabilities caps, PortType[] types,
-            IbisStarterInfo info) {
+            IbisFactory.ImplementationInfo info) {
         super(caps, types, info);
         boolean m = true;
         if (! capabilities.matchCapabilities(ibisCapabilities)) {
@@ -99,8 +101,8 @@ public final class SmartSocketsIbisStarter extends ibis.ipl.IbisStarter {
     }
 
     public Ibis startIbis(RegistryEventHandler registryEventHandler,
-            Properties userProperties, String version) {
+            Properties userProperties) {
         return new SmartSocketsIbis(registryEventHandler, capabilities, portTypes,
-                userProperties, version);
+                userProperties, getImplementationInfo());
     }
 }

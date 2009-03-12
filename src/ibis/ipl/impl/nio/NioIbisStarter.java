@@ -7,6 +7,7 @@ import ibis.ipl.Ibis;
 import ibis.ipl.IbisCapabilities;
 import ibis.ipl.PortType;
 import ibis.ipl.RegistryEventHandler;
+import ibis.ipl.IbisFactory.ImplementationInfo;
 
 import java.util.Properties;
 
@@ -61,7 +62,7 @@ public final class NioIbisStarter extends ibis.ipl.IbisStarter {
     private int unmatchedPortTypes;
 
     public NioIbisStarter(IbisCapabilities caps, PortType[] types,
-            IbisStarterInfo info) {
+            ImplementationInfo info) {
         super(caps, types, info);
         boolean m = true;
         if (! capabilities.matchCapabilities(ibisCapabilities)) {
@@ -102,6 +103,6 @@ public final class NioIbisStarter extends ibis.ipl.IbisStarter {
     public Ibis startIbis(RegistryEventHandler registryEventHandler,
             Properties userProperties, String version) {
         return new NioIbis(registryEventHandler, capabilities, portTypes,
-                userProperties, version);
+                userProperties, getImplementationInfo());
     }
 }

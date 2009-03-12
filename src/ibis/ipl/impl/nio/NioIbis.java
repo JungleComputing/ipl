@@ -8,6 +8,7 @@ import ibis.ipl.PortType;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.SendPortDisconnectUpcall;
+import ibis.ipl.IbisFactory.ImplementationInfo;
 import ibis.ipl.impl.IbisIdentifier;
 
 import java.io.ByteArrayOutputStream;
@@ -42,9 +43,9 @@ public final class NioIbis extends ibis.ipl.impl.Ibis {
     private SendReceiveThread sendReceiveThread = null;
 
     public NioIbis(RegistryEventHandler r, IbisCapabilities p, PortType[] types, Properties tp,
-            String version) {
+            ImplementationInfo info) {
 
-        super(r, p, types, tp, version);
+        super(r, p, types, tp, info);
         properties.checkProperties(prefix, props, null, true);
     }
 

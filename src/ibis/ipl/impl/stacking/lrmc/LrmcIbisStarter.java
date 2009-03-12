@@ -5,9 +5,11 @@ package ibis.ipl.impl.stacking.lrmc;
 import ibis.ipl.CapabilitySet;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisCapabilities;
+import ibis.ipl.IbisFactory;
 import ibis.ipl.IbisStarter;
 import ibis.ipl.PortType;
 import ibis.ipl.RegistryEventHandler;
+import ibis.ipl.IbisFactory.ImplementationInfo;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,7 +30,7 @@ public final class LrmcIbisStarter extends ibis.ipl.IbisStarter {
     private final boolean matching;
 
     public LrmcIbisStarter(IbisCapabilities caps, PortType[] portTypes,
-            IbisStarterInfo info) {
+            IbisFactory.ImplementationInfo info) {
         super(caps, portTypes, info);
         
         // we match if either one of the porttypes matches, or this
@@ -89,8 +91,8 @@ public final class LrmcIbisStarter extends ibis.ipl.IbisStarter {
     }
 
     public Ibis startIbis(List<IbisStarter> stack,
-            RegistryEventHandler registryEventHandler, Properties userProperties, String version) {
+            RegistryEventHandler registryEventHandler, Properties userProperties,ImplementationInfo info) {
         return new LrmcIbis(stack, registryEventHandler, capabilities,
-                portTypes, userProperties, version);
+                portTypes, userProperties, info);
     }
 }

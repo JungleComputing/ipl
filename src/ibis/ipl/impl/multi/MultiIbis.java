@@ -6,6 +6,7 @@ import ibis.ipl.Ibis;
 import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.IbisCreationFailedException;
+import ibis.ipl.IbisFactory;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.IbisProperties;
 import ibis.ipl.IbisStarter;
@@ -20,7 +21,7 @@ import ibis.ipl.SendPort;
 import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.ipl.Registry;
 import ibis.ipl.SendPortIdentifier;
-import ibis.ipl.IbisStarter.IbisStarterInfo;
+import ibis.ipl.IbisFactory.ImplementationInfo;
 import ibis.util.TypedProperties;
 
 import java.io.IOException;
@@ -142,7 +143,7 @@ public class MultiIbis implements Ibis {
                 Class<IbisStarter> starterClass = (Class<IbisStarter>)Class.forName(starterClassName);
                 Constructor<?> constructor = starterClass.getConstructor(
                         IbisCapabilities.class, PortType[].class,
-                        IbisStarterInfo.class);
+                        IbisFactory.ImplementationInfo.class);
                 IbisStarter starterInstance =(IbisStarter) constructor.newInstance(subCaps,
                         ourPortTypes, this);
                 
@@ -193,7 +194,7 @@ public class MultiIbis implements Ibis {
                     }
 
                     // Start up the ibis
-                    Ibis ibis = starterInstance.startIbis(handler, props, "dummyVersion");
+                    Ibis ibis = starterInstance.startIbis(handler, props);
 
                     if (ibisName == null) {
                         ibisName = ibis.getClass().getName();

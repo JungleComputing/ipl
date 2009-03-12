@@ -22,6 +22,6 @@ rem and for NT handling to skip to.
 
 :doneArgs
 
-java -classpath "%CLASSPATH%;%IPL_HOME%\lib\*" -Dlog4j.configuration=file:"%IPL_HOME%"\log4j.properties ibis.server.Server %SERVER_ARGS%
+java -classpath "%CLASSPATH%;%IPL_HOME%\lib\*" -Dlog4j.configuration=file:"%IPL_HOME%"\log4j.properties ibis.ipl.server.Server %SERVER_ARGS%
 
 if "%OS%"=="Windows_NT" @endlocal

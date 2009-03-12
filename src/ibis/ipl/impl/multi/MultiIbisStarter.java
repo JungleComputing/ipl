@@ -5,6 +5,7 @@ package ibis.ipl.impl.multi;
 import ibis.ipl.CapabilitySet;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisCapabilities;
+import ibis.ipl.IbisFactory;
 import ibis.ipl.IbisStarter;
 import ibis.ipl.PortType;
 import ibis.ipl.RegistryEventHandler;
@@ -26,7 +27,7 @@ public final class MultiIbisStarter extends IbisStarter {
     private final boolean matching;
 
     public MultiIbisStarter(IbisCapabilities caps, PortType[] types,
-            IbisStarterInfo info) {
+            IbisFactory.ImplementationInfo info) {
         super(caps, types, info);
         matching = ibisCapabilities.matchCapabilities(capabilities);
     }

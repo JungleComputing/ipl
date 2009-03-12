@@ -2,8 +2,8 @@ package ibis.ipl.impl.tcp;
 
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.impl.IbisIdentifier;
-import ibis.server.Client;
-import ibis.server.ConfigurationException;
+import ibis.ipl.server.Client;
+import ibis.ipl.server.ConfigurationException;
 import ibis.smartsockets.hub.servicelink.ServiceLink;
 import ibis.smartsockets.virtual.VirtualSocketFactory;
 import ibis.util.IPUtils;

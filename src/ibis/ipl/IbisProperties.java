@@ -49,10 +49,13 @@ public final class IbisProperties {
     /** Property name for setting the size of the pool. */
     public static final String POOL_SIZE = PREFIX + "pool.size";
 
-    /** Property name for setting the address of the ipl-server. */
+    /** Property name for setting the address of the IPL-server. */
     public static final String SERVER_ADDRESS = PREFIX + "server.address";
 
-    /** Property name for specifying a comma seperated list of hubs. */
+    /** Property name for setting indicating if the server is also a SmartSockets hub. */
+    public static final String SERVER_IS_HUB = PREFIX + "server.is.hub";
+    
+    /** Property name for specifying a comma separated list of hubs. */
     public static final String HUB_ADDRESSES = PREFIX + "hub.addresses";
 
     /** Property name for specifying the implementation of the registry. */
@@ -80,6 +83,7 @@ public final class IbisProperties {
                 { POOL_SIZE, null,
                     "Integer: size of the pool this ibis belongs to" },
                 { SERVER_ADDRESS, null, "Address of the central ibis server" },
+                { SERVER_IS_HUB, "true", "Boolean: if true, the server is also used as a SmartSockets hub" },
                 {
                     HUB_ADDRESSES,
                     null,
@@ -184,6 +188,8 @@ public final class IbisProperties {
 
     /**
      * Loads properties from the standard configuration file locations.
+     * @return properties loaded from the standard configuration file locations.
+     * 
      */
     @SuppressWarnings("unchecked")
 	public static synchronized Properties getDefaultProperties() {

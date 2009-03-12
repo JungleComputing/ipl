@@ -2,6 +2,7 @@
 
 package ibis.ipl.impl;
 
+import ibis.io.Conversion;
 import ibis.io.IbisIOException;
 import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisConfigurationException;
@@ -12,14 +13,15 @@ import ibis.ipl.PortType;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.SendPortDisconnectUpcall;
+import ibis.ipl.IbisFactory.ImplementationInfo;
+import ibis.ipl.registry.Registry;
 import ibis.util.TypedProperties;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.PrintStream;
-// import java.lang.management.ManagementFactory;
+import java.io.PrintStream; // import java.lang.management.ManagementFactory;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -34,22 +36,25 @@ import org.slf4j.LoggerFactory;
  * This implementation of the {@link ibis.ipl.Ibis} interface is a base class,
  * to be extended by specific Ibis implementations.
  */
-public abstract class Ibis implements ibis.ipl.Ibis //, IbisMBean
+public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
 {
 
     /** Debugging output. */
-    private static final Logger logger = LoggerFactory.getLogger("ibis.ipl.impl.Ibis");
+    private static final Logger logger = LoggerFactory
+            .getLogger("ibis.ipl.impl.Ibis");
 
     /** The IbisCapabilities as specified by the user. */
-    public final IbisCapabilities capabilities;
+    private final IbisCapabilities capabilities;
 
     /** List of port types given by the user */
-    public final PortType[] portTypes;
+    private final PortType[] portTypes;
+    
+    private final ImplementationInfo versionInfo;
 
     /**
      * Properties, as given to
-     * {@link ibis.ipl.IbisFactory#createIbis(IbisCapabilities, Properties,
-     * boolean, RegistryEventHandler, PortType...)}.
+     * {@link ibis.ipl.IbisFactory#createIbis(IbisCapabilities, Properties, boolean, RegistryEventHandler, PortType...)}
+     * .
      */
     protected TypedProperties properties;
 
@@ -82,17 +87,34 @@ public abstract class Ibis implements ibis.ipl.Ibis //, IbisMBean
 
     /** Total number of bytes written to messages closed send ports */
     private long bytesWritten = 0;
-    
+
     /** Total number of bytes send by closed send ports */
     private long bytesSend = 0;
 
     /** Total number of bytes read by closed receive ports */
     private long bytesReceived = 0;
-    
+
     /** Total number of bytes read from messages (for closed received ports) */
     private long bytesRead = 0;
-    
-    
+
+    /**
+     * Version, consisting of both the generic implementation version, and the
+     * "actual" implementation version, all converted from the hex string to bytes.
+     */
+    private byte[] getImplementationVersion() throws Exception {
+        String genericVersion = Registry.class.getPackage().getImplementationVersion();
+
+        logger.debug("Version of Generic Ibis = " + genericVersion);
+        
+        String version = genericVersion + versionInfo.getImplementationVersion();
+        
+        if (version == null || genericVersion == null) {
+            throw new Exception("cannot get version for ibis");
+        }
+
+        return Conversion.hexString2bytes(version);
+    }
+
     /**
      * Constructs an <code>Ibis</code> instance with the specified parameters.
      * 
@@ -107,14 +129,15 @@ public abstract class Ibis implements ibis.ipl.Ibis //, IbisMBean
      */
     protected Ibis(RegistryEventHandler registryHandler,
             IbisCapabilities capabilities, PortType[] portTypes,
-            Properties userProperties, String version) {
+            Properties userProperties, ImplementationInfo versionInfo) {
 
         if (capabilities == null) {
             throw new IbisConfigurationException("capabilities not specified");
         }
-        
+
         this.capabilities = capabilities;
         this.portTypes = portTypes;
+        this.versionInfo = versionInfo;
 
         this.properties = new TypedProperties();
 
@@ -130,9 +153,8 @@ public abstract class Ibis implements ibis.ipl.Ibis //, IbisMBean
         sendPorts = new HashMap<String, SendPort>();
 
         try {
-            registry =
-                Registry.createRegistry(capabilities, registryHandler,
-                    properties, getData(), this.getClass().getName() + "_" + version);
+            registry = Registry.createRegistry(capabilities, registryHandler,
+                properties, getData(), getImplementationVersion());
         } catch (IbisConfigurationException e) {
             throw e;
         } catch (Throwable e) {
@@ -142,49 +164,32 @@ public abstract class Ibis implements ibis.ipl.Ibis //, IbisMBean
         ident = registry.getIbisIdentifier();
 
         /*
-        // add bean to JMX
-        try {
-            MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-            ObjectName name = new ObjectName("ibis.ipl.impl:type=Ibis");
-            mbs.registerMBean(this, name);
-        } catch (Exception e) {
-            logger.warn("cannot registry MBean", e);
-        }
-        */
+         * // add bean to JMX try { MBeanServer mbs =
+         * ManagementFactory.getPlatformMBeanServer(); ObjectName name = new
+         * ObjectName("ibis.ipl.impl:type=Ibis"); mbs.registerMBean(this, name);
+         * } catch (Exception e) { logger.warn("cannot registry MBean", e); }
+         */
     }
-
-    public ibis.ipl.Registry registry() {
-        return registry;
-    }
-
-   
-    public ibis.ipl.IbisIdentifier identifier() {
-        return ident;
-    }
-
-    public Properties properties() {
-        return new Properties(properties);
-    }
-
+    
     /**
      * Returns the current Ibis version.
      * 
      * @return the ibis version.
      */
     public String getVersion() {
-        InputStream in =
-            ClassLoader.getSystemClassLoader().getResourceAsStream("VERSION");
-        String version = "Unknown Ibis Version ID";
-        if (in != null) {
-            BufferedReader bIn = new BufferedReader(new InputStreamReader(in));
-            try {
-                version = "Ibis Version ID " + bIn.readLine();
-                bIn.close();
-            } catch (Exception e) {
-                // Ignored
-            }
-        }
-        return version + ", implementation = " + this.getClass().getName();
+        return versionInfo.getNickName() + "-" + versionInfo.getIplVersion();
+    }
+
+    public ibis.ipl.Registry registry() {
+        return registry;
+    }
+
+    public ibis.ipl.IbisIdentifier identifier() {
+        return ident;
+    }
+
+    public Properties properties() {
+        return new Properties(properties);
     }
 
     public void end() throws IOException {
@@ -245,8 +250,8 @@ public abstract class Ibis implements ibis.ipl.Ibis //, IbisMBean
     // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     /**
-     * Returns the receiveport with the specified name, or <code>null</code>
-     * if not present.
+     * Returns the receiveport with the specified name, or <code>null</code> if
+     * not present.
      * 
      * @param name
      *            the name of the receiveport.
@@ -257,8 +262,8 @@ public abstract class Ibis implements ibis.ipl.Ibis //, IbisMBean
     }
 
     /**
-     * Returns the sendport with the specified name, or <code>null</code> if
-     * not present.
+     * Returns the sendport with the specified name, or <code>null</code> if not
+     * present.
      * 
      * @param name
      *            the name of the sendport.
@@ -323,25 +328,25 @@ public abstract class Ibis implements ibis.ipl.Ibis //, IbisMBean
     public ibis.ipl.SendPort createSendPort(PortType tp, String name,
             SendPortDisconnectUpcall cU, Properties properties)
             throws IOException {
-    	
-    	if (tp.hasCapability(PortType.CONNECTION_ULTRALIGHT)) { 
-    		if (tp.hasCapability(PortType.CONNECTION_UPCALLS)) { 
-    			throw new IbisConfigurationException(
-    					"Ultralight connections to not support connection upcalls");
-    		}
 
-    		if (tp.hasCapability(PortType.COMMUNICATION_RELIABLE)) { 
-    			throw new IbisConfigurationException(
-    					"Ultralight connections do not support reliability");
-    		}
+        if (tp.hasCapability(PortType.CONNECTION_ULTRALIGHT)) {
+            if (tp.hasCapability(PortType.CONNECTION_UPCALLS)) {
+                throw new IbisConfigurationException(
+                        "Ultralight connections to not support connection upcalls");
+            }
 
-    		if (tp.hasCapability(PortType.COMMUNICATION_FIFO)) { 
-    			throw new IbisConfigurationException(
-    					"Ultralight connections do not support FIFO message ordering");
-    		}        	
-    	} 
-    	
-    	if (cU != null) {
+            if (tp.hasCapability(PortType.COMMUNICATION_RELIABLE)) {
+                throw new IbisConfigurationException(
+                        "Ultralight connections do not support reliability");
+            }
+
+            if (tp.hasCapability(PortType.COMMUNICATION_FIFO)) {
+                throw new IbisConfigurationException(
+                        "Ultralight connections do not support FIFO message ordering");
+            }
+        }
+
+        if (cU != null) {
             if (!tp.hasCapability(PortType.CONNECTION_UPCALLS)) {
                 throw new IbisConfigurationException(
                         "no connection upcalls requested for this port type");
@@ -367,8 +372,8 @@ public abstract class Ibis implements ibis.ipl.Ibis //, IbisMBean
      *            the name of this sendport.
      * @param cU
      *            object implementing the
-     *            {@link SendPortDisconnectUpcall#lostConnection(ibis.ipl.SendPort,
-     *            ReceivePortIdentifier, Throwable)} method.
+     *            {@link SendPortDisconnectUpcall#lostConnection(ibis.ipl.SendPort, ReceivePortIdentifier, Throwable)}
+     *            method.
      * @param properties
      *            the port properties.
      * @return the new sendport.
@@ -397,24 +402,24 @@ public abstract class Ibis implements ibis.ipl.Ibis //, IbisMBean
     public ibis.ipl.ReceivePort createReceivePort(PortType tp, String name,
             MessageUpcall u, ReceivePortConnectUpcall cU, Properties properties)
             throws IOException {
-    	
-    	if (tp.hasCapability(PortType.CONNECTION_ULTRALIGHT)) { 
-        	if (tp.hasCapability(PortType.CONNECTION_UPCALLS)) { 
-        		throw new IbisConfigurationException(
-        			"Ultralight connections to not support connection upcalls");
-        	}
-        	
-        	if (tp.hasCapability(PortType.COMMUNICATION_RELIABLE)) { 
-        		throw new IbisConfigurationException(
-        			"Ultralight connections do not support reliability");
-        	}
-        
-        	if (tp.hasCapability(PortType.COMMUNICATION_FIFO)) { 
-        		throw new IbisConfigurationException(
-        			"Ultralight connections do not support FIFO message ordering");
-        	}        	
+
+        if (tp.hasCapability(PortType.CONNECTION_ULTRALIGHT)) {
+            if (tp.hasCapability(PortType.CONNECTION_UPCALLS)) {
+                throw new IbisConfigurationException(
+                        "Ultralight connections to not support connection upcalls");
+            }
+
+            if (tp.hasCapability(PortType.COMMUNICATION_RELIABLE)) {
+                throw new IbisConfigurationException(
+                        "Ultralight connections do not support reliability");
+            }
+
+            if (tp.hasCapability(PortType.COMMUNICATION_FIFO)) {
+                throw new IbisConfigurationException(
+                        "Ultralight connections do not support FIFO message ordering");
+            }
         }
-    	
+
         if (cU != null) {
             if (!tp.hasCapability(PortType.CONNECTION_UPCALLS)) {
                 throw new IbisConfigurationException(
@@ -506,7 +511,7 @@ public abstract class Ibis implements ibis.ipl.Ibis //, IbisMBean
 
         return bytesSend;
     }
-    
+
     public synchronized long getBytesWritten() {
         long bytesWritten = this.bytesWritten;
 
@@ -537,7 +542,7 @@ public abstract class Ibis implements ibis.ipl.Ibis //, IbisMBean
 
         return bytesReceived;
     }
-    
+
     public synchronized long getBytesRead() {
         long bytesRead = this.bytesRead;
         // also add numbers for current receive ports
@@ -567,7 +572,7 @@ public abstract class Ibis implements ibis.ipl.Ibis //, IbisMBean
 
         double mbWritten = getBytesWritten() / 1024.0 / 1024.0;
         stream.format("Data written to messages: %.2f Mb\n", mbWritten);
-        
+
         double mbSend = getBytesSend() / 1024.0 / 1024.0;
         stream.format("Data send out on network: %.2f Mb\n", mbSend);
 
@@ -578,7 +583,7 @@ public abstract class Ibis implements ibis.ipl.Ibis //, IbisMBean
 
         double mbRead = getBytesRead() / 1024.0 / 1024.0;
         stream.format("Data read from messages: %.2f Mb\n", mbRead);
-        
+
         stream.flush();
     }
 
@@ -594,7 +599,7 @@ public abstract class Ibis implements ibis.ipl.Ibis //, IbisMBean
         throw new NoSuchPropertyException("cannot set any properties");
     }
 
-    //jmx function
+    // jmx function
     public String getIdentifier() {
         return ident.toString();
     }

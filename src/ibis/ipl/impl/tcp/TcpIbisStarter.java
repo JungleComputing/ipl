@@ -5,6 +5,7 @@ package ibis.ipl.impl.tcp;
 import ibis.ipl.CapabilitySet;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisCapabilities;
+import ibis.ipl.IbisFactory;
 import ibis.ipl.PortType;
 import ibis.ipl.RegistryEventHandler;
 
@@ -57,7 +58,7 @@ public final class TcpIbisStarter extends ibis.ipl.IbisStarter {
     private final boolean matching;
     
     public TcpIbisStarter(IbisCapabilities caps, PortType[] types,
-            IbisStarterInfo info) {
+            IbisFactory.ImplementationInfo info) {
         super(caps, types, info);
         boolean m = true;
         if (! capabilities.matchCapabilities(ibisCapabilities)) {
@@ -98,6 +99,6 @@ public final class TcpIbisStarter extends ibis.ipl.IbisStarter {
     public Ibis startIbis(RegistryEventHandler registryEventHandler,
             Properties userProperties, String version) {
         return new TcpIbis(registryEventHandler, capabilities, portTypes,
-                userProperties, version);
+                userProperties, getImplementationInfo());
     }
 }

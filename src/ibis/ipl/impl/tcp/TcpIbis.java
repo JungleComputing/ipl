@@ -15,6 +15,7 @@ import ibis.ipl.PortType;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.SendPortDisconnectUpcall;
+import ibis.ipl.IbisFactory.ImplementationInfo;
 import ibis.ipl.impl.IbisIdentifier;
 import ibis.ipl.impl.ReceivePort;
 import ibis.ipl.impl.SendPort;
@@ -50,8 +51,8 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
         = new HashMap<ibis.ipl.IbisIdentifier, IbisSocketAddress>();
     
     public TcpIbis(RegistryEventHandler registryEventHandler, IbisCapabilities capabilities,
-            PortType[] types, Properties userProperties, String version) {
-        super(registryEventHandler, capabilities, types, userProperties, version);
+            PortType[] types, Properties userProperties, ImplementationInfo info) {
+        super(registryEventHandler, capabilities, types, userProperties, info);
 
         this.properties.checkProperties("ibis.ipl.impl.tcp.",
                 new String[] {"ibis.ipl.impl.tcp.smartsockets"}, null, true);

@@ -14,6 +14,7 @@ import ibis.ipl.Registry;
 import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.SendPort;
 import ibis.ipl.SendPortDisconnectUpcall;
+import ibis.ipl.IbisFactory.ImplementationInfo;
 import ibis.ipl.impl.stacking.lrmc.util.DynamicObjectArray;
 
 import java.io.IOException;
@@ -104,11 +105,11 @@ public class LrmcIbis implements Ibis {
     LrmcIbis(List<IbisStarter> stack,
             RegistryEventHandler registryEventHandler,
             IbisCapabilities capabilities, PortType[] portTypes,
-            Properties userProperties, String version) {
+            Properties userProperties, ImplementationInfo info) {
         logger.info("Constructor LRMC Ibis");
         IbisStarter s = stack.remove(0);
         EventHandler h = new EventHandler(registryEventHandler, this);
-        base = s.startIbis(stack, h, userProperties, version);
+        base = s.startIbis(stack, h, userProperties);
         this.portTypes = portTypes;
         this.capabilities = capabilities;
     }

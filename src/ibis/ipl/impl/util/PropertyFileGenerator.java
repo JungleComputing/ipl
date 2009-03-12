@@ -1,7 +1,7 @@
 package ibis.ipl.impl.util;
 
 import ibis.ipl.IbisProperties;
-import ibis.ipl.impl.registry.central.RegistryProperties;
+import ibis.ipl.registry.central.RegistryProperties;
 
 import java.io.PrintStream;
 import java.util.Map;

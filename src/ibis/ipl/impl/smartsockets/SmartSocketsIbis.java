@@ -16,11 +16,12 @@ import ibis.ipl.PortType;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.SendPortDisconnectUpcall;
+import ibis.ipl.IbisFactory.ImplementationInfo;
 import ibis.ipl.impl.IbisIdentifier;
 import ibis.ipl.impl.ReceivePort;
 import ibis.ipl.impl.SendPortIdentifier;
-import ibis.server.Client;
-import ibis.server.ConfigurationException;
+import ibis.ipl.server.Client;
+import ibis.ipl.server.ConfigurationException;
 import ibis.smartsockets.hub.servicelink.ServiceLink;
 import ibis.smartsockets.virtual.VirtualServerSocket;
 import ibis.smartsockets.virtual.VirtualSocket;
@@ -64,11 +65,12 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis
     
     public SmartSocketsIbis(RegistryEventHandler registryEventHandler, 
     		IbisCapabilities capabilities, PortType[] types, 
-    		Properties userProperties, String version) {
-        super(registryEventHandler, capabilities, types, userProperties, version);
+    		Properties userProperties, ImplementationInfo info) {
+        super(registryEventHandler, capabilities, types, userProperties, info);
 
         lightConnection.put("connect.module.allow", "ConnectModule(HubRouted)");    	
 
+        
         // directConnection.put("connect.module.skip", "ConnectModule(HubRouted)");    	
 
         // NOTE: this is too restrictive, since reverse connection setup also 
