@@ -17,12 +17,11 @@ import org.slf4j.LoggerFactory;
 
 public final class MultiIbisStarter extends IbisStarter {
 
-    static final Logger logger
-            = LoggerFactory.getLogger("ibis.ipl.impl.multi.MultiIbisStarter");
+    static final Logger logger = LoggerFactory
+            .getLogger("ibis.ipl.impl.multi.MultiIbisStarter");
 
     static final IbisCapabilities ibisCapabilities = new IbisCapabilities(
-        "nickname.multi"
-    );
+            "nickname.multi");
 
     private final boolean matching;
 
@@ -53,11 +52,13 @@ public final class MultiIbisStarter extends IbisStarter {
     }
 
     public Ibis startIbis(RegistryEventHandler registryEventHandler,
-            Properties userProperties, String version) {
-            try {
-                return new MultiIbis(registryEventHandler, userProperties, capabilities, portTypes);
-            } catch (Throwable e) {
-                throw new Error("Creation of MultiIbis Failed!", e);
-            }
+            Properties userProperties, String version,
+            Object authenticationObject) {
+        try {
+            return new MultiIbis(registryEventHandler, userProperties,
+                    capabilities, portTypes, authenticationObject);
+        } catch (Throwable e) {
+            throw new Error("Creation of MultiIbis Failed!", e);
+        }
     }
 }

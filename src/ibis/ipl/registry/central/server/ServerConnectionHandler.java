@@ -6,13 +6,16 @@ import ibis.ipl.impl.Location;
 import ibis.ipl.registry.Connection;
 import ibis.ipl.registry.central.Member;
 import ibis.ipl.registry.central.Protocol;
+import ibis.ipl.server.ControlPolicy;
 import ibis.ipl.server.ServerProperties;
 import ibis.smartsockets.virtual.VirtualServerSocket;
 import ibis.smartsockets.virtual.VirtualSocketFactory;
 import ibis.util.ThreadPool;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.security.AccessControlException;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -37,13 +40,17 @@ final class ServerConnectionHandler implements Runnable {
 
     private int maxNrOfThreads = 0;
 
+    private ControlPolicy policy;
+
     ServerConnectionHandler(CentralRegistryService server,
-            VirtualSocketFactory connectionFactory) throws IOException {
+            VirtualSocketFactory connectionFactory, ControlPolicy policy)
+            throws IOException {
         this.server = server;
         this.socketFactory = connectionFactory;
 
         serverSocket = socketFactory.createServerSocket(
-            CentralRegistryService.VIRTUAL_PORT, CONNECTION_BACKLOG, null);
+                CentralRegistryService.VIRTUAL_PORT, CONNECTION_BACKLOG, null);
+        this.policy = policy;
 
         createThread();
     }
@@ -53,20 +60,18 @@ final class ServerConnectionHandler implements Runnable {
         Pool pool;
 
         // long start = System.currentTimeMillis();
-        
+
         byte[] version = ServerProperties.implementationVersion;
-        
+
         byte[] peerVersion = new byte[version.length];
 
         connection.in().readFully(peerVersion);
 
         for (int i = 0; i < version.length; i++) {
             if (peerVersion[i] != version[i]) {
-                throw new IOException(
-                        "Wrong ipl server version in join: "
-                                + Conversion.byte2hexString(peerVersion)
-                                + ", should be "
-                                + Conversion.byte2hexString(version));
+                throw new IOException("Wrong ipl server version in join: "
+                        + Conversion.byte2hexString(peerVersion)
+                        + ", should be " + Conversion.byte2hexString(version));
             }
         }
 
@@ -93,7 +98,6 @@ final class ServerConnectionHandler implements Runnable {
         byte[] implementationVersion = new byte[length];
         connection.in().readFully(implementationVersion);
 
-
         Location location = new Location(connection.in());
 
         boolean peerBootstrap = connection.in().readBoolean();
@@ -109,18 +113,31 @@ final class ServerConnectionHandler implements Runnable {
         long statisticsInterval = connection.in().readLong();
         boolean purgeHistory = connection.in().readBoolean();
 
+        Object authenticationObject = new ObjectInputStream(connection.in())
+                .readObject();
+
+        if (policy != null) {
+            try {
+                policy.onJoin(authenticationObject);
+            } catch (AccessControlException e) {
+                connection.closeWithError(e.getMessage());
+                throw e;
+            }
+        }
+
         // long dataRead = System.currentTimeMillis();
 
         pool = server.getOrCreatePool(poolName, peerBootstrap,
-            heartbeatInterval, eventPushInterval, gossip, gossipInterval,
-            adaptGossipInterval, tree, closedWorld, poolSize, keepStatistics,
-            statisticsInterval, purgeHistory, implementationVersion);
+                heartbeatInterval, eventPushInterval, gossip, gossipInterval,
+                adaptGossipInterval, tree, closedWorld, poolSize,
+                keepStatistics, statisticsInterval, purgeHistory,
+                implementationVersion);
 
         // long poolRetrieved = System.currentTimeMillis();
 
         try {
             member = pool.join(implementationData, clientAddress, location,
-                implementationVersion);
+                    implementationVersion);
         } catch (IOException e) {
             connection.closeWithError(e.getMessage());
             throw e;
@@ -534,8 +551,8 @@ final class ServerConnectionHandler implements Runnable {
         if (pool != null) {
             if (pool.getStatistics() != null) {
                 pool.getStatistics().add(opcode,
-                    System.currentTimeMillis() - start, connection.read(),
-                    connection.written(), true);
+                        System.currentTimeMillis() - start, connection.read(),
+                        connection.written(), true);
                 logger.debug("done handling request");
             }
             if (pool.hasEnded()) {

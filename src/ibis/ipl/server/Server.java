@@ -49,11 +49,16 @@ public final class Server {
 
     private final boolean remote;
 
+    
+    public Server(Properties properties) throws Exception {
+        this(properties, null);
+    }
+    
     /**
      * Create a server with the given server properties
      */
     @SuppressWarnings("unchecked")
-    public Server(Properties properties) throws Exception {
+    public Server(Properties properties, ControlPolicy policy) throws Exception {
         services = new HashMap<String, Service>();
 
         // get default properties.
@@ -143,7 +148,7 @@ public final class Server {
             
             // create default services
             
-            registryService = new CentralRegistryService(typedProperties, virtualSocketFactory);
+            registryService = new CentralRegistryService(typedProperties, virtualSocketFactory, policy);
             services.put(registryService.getServiceName(), registryService);
             
             bootstrapService = new BootstrapService(typedProperties, virtualSocketFactory);

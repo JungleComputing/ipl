@@ -1,6 +1,7 @@
 package ibis.ipl.registry.central.server;
 
 import ibis.ipl.registry.central.RegistryProperties;
+import ibis.ipl.server.ControlPolicy;
 import ibis.ipl.server.ServerProperties;
 import ibis.ipl.server.Service;
 import ibis.smartsockets.virtual.VirtualSocketFactory;
@@ -24,7 +25,8 @@ public final class CentralRegistryService extends Thread implements Service {
 
     public static final int VIRTUAL_PORT = 302;
 
-    private static final Logger logger = LoggerFactory.getLogger(CentralRegistryService.class);
+    private static final Logger logger = LoggerFactory
+            .getLogger(CentralRegistryService.class);
 
     private static final long POOL_CLEANUP_TIMEOUT = 60 * 1000;
 
@@ -37,7 +39,7 @@ public final class CentralRegistryService extends Thread implements Service {
     private final boolean printEvents;
 
     private final boolean printErrors;
-    
+
     private ServerConnectionHandler handler;
 
     private boolean stopped = false;
@@ -49,7 +51,8 @@ public final class CentralRegistryService extends Thread implements Service {
      * @param socketFactory
      * @throws IOException
      */
-    public CentralRegistryService(TypedProperties properties, VirtualSocketFactory socketFactory)
+    public CentralRegistryService(TypedProperties properties,
+            VirtualSocketFactory socketFactory, ControlPolicy policy)
             throws IOException {
         this.socketFactory = socketFactory;
 
@@ -69,7 +72,7 @@ public final class CentralRegistryService extends Thread implements Service {
         pools = new TreeMap<String, Pool>();
 
         // start handling connections
-        handler = new ServerConnectionHandler(this, socketFactory);
+        handler = new ServerConnectionHandler(this, socketFactory, policy);
 
         ThreadPool.createNew(this, "Central Registry Service");
 
@@ -90,8 +93,8 @@ public final class CentralRegistryService extends Thread implements Service {
             long heartbeatInterval, long eventPushInterval, boolean gossip,
             long gossipInterval, boolean adaptGossipInterval, boolean tree,
             boolean closedWorld, int poolSize, boolean keepStatistics,
-            long statisticsInterval, boolean purgeHistory, byte[] implementationVersion)
-            throws IOException {
+            long statisticsInterval, boolean purgeHistory,
+            byte[] implementationVersion) throws IOException {
         Pool result = getPool(poolName);
 
         if (result == null || result.hasEnded()) {
@@ -99,7 +102,8 @@ public final class CentralRegistryService extends Thread implements Service {
                     heartbeatInterval, eventPushInterval, gossip,
                     gossipInterval, adaptGossipInterval, tree, closedWorld,
                     poolSize, keepStatistics, statisticsInterval,
-                    implementationVersion, printEvents, printErrors, purgeHistory);
+                    implementationVersion, printEvents, printErrors,
+                    purgeHistory);
             pools.put(poolName, result);
         }
 
@@ -144,8 +148,10 @@ public final class CentralRegistryService extends Thread implements Service {
         while (!stopped) {
             if (pools.size() > 0) {
                 if (printStats) {
-                    System.err.printf("%tT list of pools:\n", System.currentTimeMillis());
-                    System.err.println("     CURRENT_SIZE JOINS LEAVES DIEDS ELECTIONS SIGNALS FIXED_SIZE CLOSED ENDED");
+                    System.err.printf("%tT list of pools:\n", System
+                            .currentTimeMillis());
+                    System.err
+                            .println("     CURRENT_SIZE JOINS LEAVES DIEDS ELECTIONS SIGNALS FIXED_SIZE CLOSED ENDED");
                 }
 
                 // copy values to new array so we can do "remove" on original

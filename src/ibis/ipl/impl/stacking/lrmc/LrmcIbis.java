@@ -105,11 +105,11 @@ public class LrmcIbis implements Ibis {
     LrmcIbis(List<IbisStarter> stack,
             RegistryEventHandler registryEventHandler,
             IbisCapabilities capabilities, PortType[] portTypes,
-            Properties userProperties, ImplementationInfo info) {
+            Properties userProperties, ImplementationInfo info, Object authenticationObject) {
         logger.info("Constructor LRMC Ibis");
         IbisStarter s = stack.remove(0);
         EventHandler h = new EventHandler(registryEventHandler, this);
-        base = s.startIbis(stack, h, userProperties);
+        base = s.startIbis(stack, h, userProperties, authenticationObject);
         this.portTypes = portTypes;
         this.capabilities = capabilities;
     }

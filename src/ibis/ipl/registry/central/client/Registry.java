@@ -71,6 +71,7 @@ public final class Registry extends ibis.ipl.registry.Registry
      *            properties of this registry.
      * @param data
      *            Ibis implementation data to attach to the IbisIdentifier.
+     * @param authenticationObject 
      * @param ibisImplementationIdentifier
      *            the identification of this ibis implementation, including
      *            version, class and such. Must be identical for all ibisses in
@@ -82,7 +83,7 @@ public final class Registry extends ibis.ipl.registry.Registry
      */
     public Registry(IbisCapabilities capabilities,
             RegistryEventHandler eventHandler, Properties userProperties,
-            byte[] data, byte[] implementationVersion)
+            byte[] data, byte[] implementationVersion, Object authenticationObject)
             throws IbisConfigurationException, IOException {
         logger.debug("creating central registry");
 
@@ -137,7 +138,7 @@ public final class Registry extends ibis.ipl.registry.Registry
                     statistics);
 
             identifier = communicationHandler.join(data,
-                    implementationVersion);
+                    implementationVersion, authenticationObject);
 
             communicationHandler.bootstrap();
 

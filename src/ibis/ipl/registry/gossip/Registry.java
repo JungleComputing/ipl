@@ -67,6 +67,7 @@ public class Registry extends ibis.ipl.registry.Registry implements Runnable {
      *            properties of this registry.
      * @param ibisData
      *            Ibis implementation data to attach to the IbisIdentifier.
+     * @param authenticationObject 
      * @param ibisImplementationIdentifier
      *            the identification of this ibis implementation, including
      *            version, class and such. Must be identical for all Ibises in
@@ -78,7 +79,8 @@ public class Registry extends ibis.ipl.registry.Registry implements Runnable {
      */
     public Registry(IbisCapabilities capabilities,
             RegistryEventHandler eventHandler, Properties userProperties,
-            byte[] ibisData, byte[] implementationVersion)
+            byte[] ibisData, byte[] implementationVersion,
+            Object authenticationObject)
             throws IbisConfigurationException, IOException,
             IbisConfigurationException {
         this.capabilities = capabilities;

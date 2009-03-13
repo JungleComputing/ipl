@@ -101,8 +101,8 @@ public final class SmartSocketsIbisStarter extends ibis.ipl.IbisStarter {
 
     @Override
     public Ibis startIbis(RegistryEventHandler registryEventHandler,
-            Properties userProperties) {
+            Properties userProperties, Object authenticationObject) {
         return new SmartSocketsIbis(registryEventHandler, capabilities, portTypes,
-                userProperties, getImplementationInfo());
+                userProperties, getImplementationInfo(), authenticationObject);
     }
 }

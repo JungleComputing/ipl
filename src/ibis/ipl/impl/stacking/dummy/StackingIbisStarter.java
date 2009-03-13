@@ -55,9 +55,9 @@ public final class StackingIbisStarter extends ibis.ipl.IbisStarter {
 
     public Ibis startIbis(List<IbisStarter> stack,
             RegistryEventHandler registryEventHandler,
-            Properties userProperties, String version) {
+            Properties userProperties, String version, Object authenticationObject) {
         IbisStarter s = stack.remove(0);
-        Ibis base = s.startIbis(stack, registryEventHandler, userProperties);
+        Ibis base = s.startIbis(stack, registryEventHandler, userProperties, authenticationObject);
         return new StackingIbis(base);
     }
 }

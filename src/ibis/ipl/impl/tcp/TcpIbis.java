@@ -33,11 +33,11 @@ import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class TcpIbis extends ibis.ipl.impl.Ibis
-        implements Runnable, TcpProtocol {
+public final class TcpIbis extends ibis.ipl.impl.Ibis implements Runnable,
+        TcpProtocol {
 
-    static final Logger logger
-            = LoggerFactory.getLogger("ibis.ipl.impl.tcp.TcpIbis");
+    static final Logger logger = LoggerFactory
+            .getLogger("ibis.ipl.impl.tcp.TcpIbis");
 
     private IbisSocketFactory factory;
 
@@ -47,15 +47,17 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
 
     private boolean quiting = false;
 
-    private HashMap<ibis.ipl.IbisIdentifier, IbisSocketAddress> addresses
-        = new HashMap<ibis.ipl.IbisIdentifier, IbisSocketAddress>();
-    
-    public TcpIbis(RegistryEventHandler registryEventHandler, IbisCapabilities capabilities,
-            PortType[] types, Properties userProperties, ImplementationInfo info) {
-        super(registryEventHandler, capabilities, types, userProperties, info);
+    private HashMap<ibis.ipl.IbisIdentifier, IbisSocketAddress> addresses = new HashMap<ibis.ipl.IbisIdentifier, IbisSocketAddress>();
+
+    public TcpIbis(RegistryEventHandler registryEventHandler,
+            IbisCapabilities capabilities, PortType[] types,
+            Properties userProperties, ImplementationInfo info,
+            Object authenticationObject) {
+        super(registryEventHandler, capabilities, types, userProperties, info,
+                authenticationObject);
 
         this.properties.checkProperties("ibis.ipl.impl.tcp.",
-                new String[] {"ibis.ipl.impl.tcp.smartsockets"}, null, true);
+                new String[] { "ibis.ipl.impl.tcp.smartsockets" }, null, true);
 
         factory.setIdent(ident);
 
@@ -66,7 +68,6 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
     protected byte[] getData() throws IOException {
 
         factory = new IbisSocketFactory(properties);
-
 
         systemServer = factory.createServerSocket(0, 50, true, null);
         myAddress = systemServer.getLocalSocketAddress();
@@ -79,33 +80,25 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
     }
 
     /*
-    // NOTE: this is wrong ? Even though the ibis has left, the IbisIdentifier 
-             may still be floating around in the system... We should just have
-             some timeout on the cache entries instead...
-    
-    public void left(ibis.ipl.IbisIdentifier id) {
-        super.left(id);
-        synchronized(addresses) {
-            addresses.remove(id);
-        }
-    }
-
-    public void died(ibis.ipl.IbisIdentifier id) {
-        super.died(id);
-        synchronized(addresses) {
-            addresses.remove(id);
-        }
-    }
-    */
+     * // NOTE: this is wrong ? Even though the ibis has left, the
+     * IbisIdentifier may still be floating around in the system... We should
+     * just have some timeout on the cache entries instead...
+     * 
+     * public void left(ibis.ipl.IbisIdentifier id) { super.left(id);
+     * synchronized(addresses) { addresses.remove(id); } }
+     * 
+     * public void died(ibis.ipl.IbisIdentifier id) { super.died(id);
+     * synchronized(addresses) { addresses.remove(id); } }
+     */
 
     IbisSocket connect(TcpSendPort sp, ibis.ipl.impl.ReceivePortIdentifier rip,
             int timeout, boolean fillTimeout) throws IOException {
-        
+
         IbisIdentifier id = (IbisIdentifier) rip.ibisIdentifier();
         String name = rip.name();
         IbisSocketAddress idAddr;
 
-        synchronized(addresses) {
+        synchronized (addresses) {
             idAddr = addresses.get(id);
             if (idAddr == null) {
                 idAddr = new IbisSocketAddress(id.getImplementationData());
@@ -128,11 +121,11 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
             int result = -1;
 
             try {
-                s = factory.createClientSocket(idAddr, timeout, fillTimeout, 
-                        sp.managementProperties());
+                s = factory.createClientSocket(idAddr, timeout, fillTimeout, sp
+                        .managementProperties());
                 s.setTcpNoDelay(true);
-                out = new DataOutputStream(new BufferedArrayOutputStream(
-                            s.getOutputStream(), 4096));
+                out = new DataOutputStream(new BufferedArrayOutputStream(s
+                        .getOutputStream(), 4096));
 
                 out.writeUTF(name);
                 sp.getIdent().writeTo(out);
@@ -141,11 +134,12 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
 
                 result = s.getInputStream().read();
 
-                switch(result) {
+                switch (result) {
                 case ReceivePort.ACCEPTED:
                     return s;
                 case ReceivePort.ALREADY_CONNECTED:
-                    throw new AlreadyConnectedException("Already connected", rip);
+                    throw new AlreadyConnectedException("Already connected",
+                            rip);
                 case ReceivePort.TYPE_MISMATCH:
                     // Read receiveport type from input, to produce a
                     // better error message.
@@ -156,29 +150,29 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
                     String message = "";
                     if (s1.size() != 0) {
                         message = message
-                            + "\nUnmatched receiveport capabilities: "
-                            + s1.toString() + ".";
+                                + "\nUnmatched receiveport capabilities: "
+                                + s1.toString() + ".";
                     }
                     if (s2.size() != 0) {
                         message = message
-                            + "\nUnmatched sendport capabilities: "
-                            + s2.toString() + ".";
+                                + "\nUnmatched sendport capabilities: "
+                                + s2.toString() + ".";
                     }
                     throw new PortMismatchException(
                             "Cannot connect ports of different port types."
-                            + message, rip);
+                                    + message, rip);
                 case ReceivePort.DENIED:
                     throw new ConnectionRefusedException(
                             "Receiver denied connection", rip);
                 case ReceivePort.NO_MANY_TO_X:
                     throw new ConnectionRefusedException(
                             "Receiver already has a connection and neither ManyToOne not ManyToMany "
-                            + "is set", rip);
+                                    + "is set", rip);
                 case ReceivePort.NOT_PRESENT:
                 case ReceivePort.DISABLED:
                     // and try again if we did not reach the timeout...
-                    if (timeout > 0 && System.currentTimeMillis()
-                            > startTime + timeout) {
+                    if (timeout > 0
+                            && System.currentTimeMillis() > startTime + timeout) {
                         throw new ConnectionTimedOutException(
                                 "Could not connect", rip);
                     }
@@ -188,7 +182,7 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
                 default:
                     throw new IOException("Illegal opcode in TcpIbis.connect");
                 }
-            } catch(SocketTimeoutException e) {
+            } catch (SocketTimeoutException e) {
                 throw new ConnectionTimedOutException("Could not connect", rip);
             } finally {
                 if (result != ReceivePort.ACCEPTED) {
@@ -196,12 +190,12 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
                         if (out != null) {
                             out.close();
                         }
-                    } catch(Throwable e) {
+                    } catch (Throwable e) {
                         // ignored
                     }
                     try {
                         s.close();
-                    } catch(Throwable e) {
+                    } catch (Throwable e) {
                         // ignored
                     }
                 }
@@ -225,13 +219,13 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
     }
 
     private void handleConnectionRequest(IbisSocket s) throws IOException {
-        
+
         if (logger.isDebugEnabled()) {
             logger.debug("--> TcpIbis got connection request from " + s);
         }
 
-        BufferedArrayInputStream bais
-                = new BufferedArrayInputStream(s.getInputStream(), 4096);
+        BufferedArrayInputStream bais = new BufferedArrayInputStream(s
+                .getInputStream(), 4096);
 
         DataInputStream in = new DataInputStream(bais);
         OutputStream out = s.getOutputStream();
@@ -278,16 +272,16 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
     public void run() {
         // This thread handles incoming connection request from the
         // connect(TcpSendPort) call.
-        
+
         boolean stop = false;
-        
+
         while (!stop) {
             IbisSocket s = null;
 
             if (logger.isDebugEnabled()) {
                 logger.debug("--> TcpIbis doing new accept()");
             }
-            
+
             try {
                 s = systemServer.accept();
                 s.setTcpNoDelay(true);
@@ -303,7 +297,7 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
             if (logger.isDebugEnabled()) {
                 logger.debug("--> TcpIbis through new accept()");
             }
-            
+
             try {
                 if (quiting) {
                     s.close();
@@ -313,32 +307,32 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
                     cleanup();
                     return;
                 }
-                
-                // This thread will now live on as a connection handler. Start                 
+
+                // This thread will now live on as a connection handler. Start
                 // a new accept thread here, and make sure that this thread does
-                // not do an accept again, if it ever returns to this loop.                
+                // not do an accept again, if it ever returns to this loop.
                 stop = true;
-                
-                try { 
+
+                try {
                     Thread.currentThread().setName("Connection Handler");
                 } catch (Exception e) {
                     // ignore
                 }
-                
-                ThreadPool.createNew(this, "TcpIbis Accept Thread");                
+
+                ThreadPool.createNew(this, "TcpIbis Accept Thread");
 
                 // Try to get the accept thread into an accept call. (Ceriel)
                 // Thread.currentThread().yield();
                 //
-                // Yield is evil. It breaks the whole concept of starting a 
-                // replacement thread and handling the incoming request 
-                // ourselves. -- Jason        
+                // Yield is evil. It breaks the whole concept of starting a
+                // replacement thread and handling the incoming request
+                // ourselves. -- Jason
 
                 handleConnectionRequest(s);
             } catch (Throwable e) {
                 try {
                     s.close();
-                } catch(Throwable e2) {
+                } catch (Throwable e2) {
                     // ignored
                 }
                 logger.error("EEK: TcpIbis:run: got exception "
@@ -366,5 +360,4 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis
         return new TcpReceivePort(this, tp, nm, u, cU, props);
     }
 
-   
 }

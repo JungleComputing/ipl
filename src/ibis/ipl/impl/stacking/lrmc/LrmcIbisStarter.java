@@ -27,12 +27,13 @@ public final class LrmcIbisStarter extends ibis.ipl.IbisStarter {
             "nickname.lrmc");
 
     private final PortType[] unmatched;
+
     private final boolean matching;
 
     public LrmcIbisStarter(IbisCapabilities caps, PortType[] portTypes,
             IbisFactory.ImplementationInfo info) {
         super(caps, portTypes, info);
-        
+
         // we match if either one of the porttypes matches, or this
         // Ibis was requested explicitly.
         boolean m = false;
@@ -59,7 +60,7 @@ public final class LrmcIbisStarter extends ibis.ipl.IbisStarter {
         matching = m;
         unmatched = types.toArray(new PortType[types.size()]);
     }
-    
+
     static boolean ourPortType(PortType tp) {
         return (tp.hasCapability(PortType.CONNECTION_MANY_TO_MANY) || tp
                 .hasCapability(PortType.CONNECTION_ONE_TO_MANY))
@@ -91,8 +92,10 @@ public final class LrmcIbisStarter extends ibis.ipl.IbisStarter {
     }
 
     public Ibis startIbis(List<IbisStarter> stack,
-            RegistryEventHandler registryEventHandler, Properties userProperties,ImplementationInfo info) {
+            RegistryEventHandler registryEventHandler,
+            Properties userProperties, ImplementationInfo info,
+            Object authenticationObject) {
         return new LrmcIbis(stack, registryEventHandler, capabilities,
-                portTypes, userProperties, info);
+                portTypes, userProperties, info, authenticationObject);
     }
 }

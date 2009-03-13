@@ -18,12 +18,12 @@ import java.util.Properties;
  */
 public abstract class Registry implements ibis.ipl.Registry {
 
-
     /**
      * Notifies the registry that the calling Ibis instance is leaving.
      * 
      * @exception IOException
-     *                may be thrown when communication with the registry fails.
+     *                    may be thrown when communication with the registry
+     *                    fails.
      */
     public abstract void leave() throws IOException;
 
@@ -32,9 +32,10 @@ public abstract class Registry implements ibis.ipl.Registry {
      * which must be provided to this call.
      * 
      * @param name
-     *            the name of this sequencer.
+     *                the name of this sequencer.
      * @exception IOException
-     *                may be thrown when communication with the registry fails.
+     *                    may be thrown when communication with the registry
+     *                    fails.
      */
     public abstract long getSequenceNumber(String name) throws IOException;
 
@@ -42,22 +43,25 @@ public abstract class Registry implements ibis.ipl.Registry {
      * Creates a registry for the specified Ibis instance.
      * 
      * @param handler
-     *            the handler for registry events, or <code>null</code> if no
-     *            registry events are needed.
+     *                the handler for registry events, or <code>null</code> if
+     *                no registry events are needed.
      * @param properties
-     *            to get some properties from, and to pass on to the registry.
+     *                to get some properties from, and to pass on to the
+     *                registry.
      * @param data
-     *            the implementation dependent data in the IbisIdentifier.
+     *                the implementation dependent data in the IbisIdentifier.
      * @param version
-     *            the identification of this Ibis implementation. Must be
-     *            identical for all Ibises in a single pool.
+     *                the identification of this Ibis implementation. Must be
+     *                identical for all Ibises in a single pool.
+     * @param authenticationObject
+     *                authentication object to authenticate ibis at registry
      * @exception Throwable
-     *                can be any exception resulting from looking up the
-     *                registry constructor or the invocation attempt.
+     *                    can be any exception resulting from looking up the
+     *                    registry constructor or the invocation attempt.
      */
     public static Registry createRegistry(IbisCapabilities caps,
             RegistryEventHandler handler, Properties properties, byte[] data,
-            byte[] version) throws Throwable {
+            byte[] version, Object authenticationObject) throws Throwable {
 
         String registryName = properties
                 .getProperty(IbisProperties.REGISTRY_IMPLEMENTATION);
@@ -68,20 +72,22 @@ public abstract class Registry implements ibis.ipl.Registry {
                     + "  is not set.");
         } else if (registryName.equalsIgnoreCase("central")) {
             // shorthand for central registry
-            return new ibis.ipl.registry.central.client.Registry(caps, handler, properties, data, version);
+            return new ibis.ipl.registry.central.client.Registry(caps, handler,
+                    properties, data, version, authenticationObject);
         } else if (registryName.equalsIgnoreCase("gossip")) {
             // shorthand for gossip registry
-            return new ibis.ipl.registry.gossip.Registry(caps, handler, properties, data, version);
+            return new ibis.ipl.registry.gossip.Registry(caps, handler,
+                    properties, data, version, authenticationObject);
         }
 
         Class<?> c = Class.forName(registryName);
 
         try {
             return (Registry) c.getConstructor(
-                new Class[] { IbisCapabilities.class,
-                        RegistryEventHandler.class, Properties.class,
-                        byte[].class, byte[].class }).newInstance(
-                new Object[] { caps, handler, properties, data, version });
+                    new Class[] { IbisCapabilities.class,
+                            RegistryEventHandler.class, Properties.class,
+                            byte[].class, byte[].class, Object.class }).newInstance(
+                    new Object[] { caps, handler, properties, data, version, authenticationObject });
         } catch (java.lang.reflect.InvocationTargetException e) {
             throw e.getCause();
         }

@@ -36,8 +36,8 @@ public abstract class IbisStarter {
     }
 
     /**
-     * Decides if this <code>IbisStarter</code> can start an Ibis instance with
-     * the desired capabilities and port types.
+     * Decides if this <code>IbisStarter</code> can start an Ibis instance
+     * with the desired capabilities and port types.
      * 
      * @return <code>true</code> if it can.
      */
@@ -86,12 +86,15 @@ public abstract class IbisStarter {
      * Actually creates an Ibis instance from this starter.
      * 
      * @param handler
-     *            a registry event handler.
+     *                a registry event handler.
      * @param userProperties
-     *            the user properties.
+     *                the user properties.
+     * @param authenticationObject
+     *                an object which can be used by the registry to
+     *                authenticate this ibis
      */
     public Ibis startIbis(RegistryEventHandler handler,
-            Properties userProperties) {
+            Properties userProperties, Object authenticationObject) {
         throw new Error("startIbis(RegistryEventHandler, Properties, String) "
                 + "not implemented");
     }
@@ -100,18 +103,22 @@ public abstract class IbisStarter {
      * Actually creates a stacking-ibis instance from this starter.
      * 
      * @param stack
-     *            the starters for the underlying ibis implementations. The last
-     *            element of the list should be a starter for a non-stacking
-     *            ibis.
+     *                the starters for the underlying ibis implementations. The
+     *                last element of the list should be a starter for a
+     *                non-stacking ibis.
      * @param handler
-     *            a registry event handler.
+     *                a registry event handler.
      * @param userProperties
-     *            the user properties.
+     *                the user properties.
+     * @param authenticationObject
+     *                an object which can be used by the registry to
+     *                authenticate this ibis
      */
     public Ibis startIbis(List<IbisStarter> stack,
-            RegistryEventHandler handler, Properties userProperties) {
+            RegistryEventHandler handler, Properties userProperties,
+            Object authenticationObject) {
         if (stack.size() == 0) {
-            return startIbis(handler, userProperties);
+            return startIbis(handler, userProperties, authenticationObject);
         }
         throw new Error(
                 "startIbis(List<IbisStarterInfo>, RegistryEventHandler, "

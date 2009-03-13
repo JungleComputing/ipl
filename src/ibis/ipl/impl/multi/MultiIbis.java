@@ -72,7 +72,7 @@ public class MultiIbis implements Ibis {
     final PortType resolvePortType;
 
     @SuppressWarnings("unchecked")
-    public MultiIbis(RegistryEventHandler registryEventHandler, Properties userProperties, IbisCapabilities capabilities, PortType[] portTypes) throws IbisCreationFailedException, IbisConfigurationException, IOException {
+    public MultiIbis(RegistryEventHandler registryEventHandler, Properties userProperties, IbisCapabilities capabilities, PortType[] portTypes, Object authenticationObject) throws IbisCreationFailedException, IbisConfigurationException, IOException {
         if (logger.isDebugEnabled()) {
             logger.debug("Constructing MultiIbis!");
         }
@@ -193,7 +193,7 @@ public class MultiIbis implements Ibis {
                     }
 
                     // Start up the ibis
-                    Ibis ibis = starterInstance.startIbis(handler, props);
+                    Ibis ibis = starterInstance.startIbis(handler, props, authenticationObject);
 
                     if (ibisName == null) {
                         ibisName = ibis.getClass().getName();

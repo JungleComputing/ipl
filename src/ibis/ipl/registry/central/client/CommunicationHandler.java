@@ -20,6 +20,7 @@ import ibis.util.ThreadPool;
 import ibis.util.TypedProperties;
 
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
@@ -35,8 +36,8 @@ final class CommunicationHandler implements Runnable {
     private static final Logger logger = LoggerFactory
             .getLogger(CommunicationHandler.class);
 
-    //private final byte[] version;
-    
+    // private final byte[] version;
+
     private final Heartbeat heartbeat;
 
     private final VirtualSocketFactory virtualSocketFactory;
@@ -111,7 +112,7 @@ final class CommunicationHandler implements Runnable {
 
         timeout = properties
                 .getIntProperty(RegistryProperties.CLIENT_CONNECT_TIMEOUT) * 1000;
-        
+
         try {
             virtualSocketFactory = Client.getFactory(properties);
         } catch (ConfigurationException e) {
@@ -123,8 +124,8 @@ final class CommunicationHandler implements Runnable {
                 CONNECTION_BACKLOG, null);
 
         try {
-            serverAddress = Client.getServiceAddress(CentralRegistryService.VIRTUAL_PORT,
-                    properties);
+            serverAddress = Client.getServiceAddress(
+                    CentralRegistryService.VIRTUAL_PORT, properties);
         } catch (ConfigurationException e) {
             throw new IbisConfigurationException(e.getMessage());
         }
@@ -169,10 +170,11 @@ final class CommunicationHandler implements Runnable {
      * this Ibis and some bootstrap information
      * 
      * @throws IOException
-     *             in case of trouble
+     *                 in case of trouble
      */
     IbisIdentifier join(byte[] implementationData,
-            byte[] implementationVersion) throws IOException {
+            byte[] implementationVersion, Object authenticationObject)
+            throws IOException {
         long start = System.currentTimeMillis();
 
         long heartbeatInterval = properties
@@ -188,8 +190,7 @@ final class CommunicationHandler implements Runnable {
         long statisticsInterval = properties
                 .getIntProperty(RegistryProperties.STATISTICS_INTERVAL) * 1000;
         boolean purgeHistory = properties
-        .getBooleanProperty(RegistryProperties.PURGE_HISTORY);
-
+                .getBooleanProperty(RegistryProperties.PURGE_HISTORY);
 
         VirtualSocketAddress tmp = serverSocket.getLocalSocketAddress();
 
@@ -248,6 +249,7 @@ final class CommunicationHandler implements Runnable {
             connection.out().writeBoolean(keepStatistics);
             connection.out().writeLong(statisticsInterval);
             connection.out().writeBoolean(purgeHistory);
+            new ObjectOutputStream(connection.out()).writeObject(null);
             connection.out().flush();
 
             logger.debug("reading join result info from server");
@@ -563,7 +565,7 @@ final class CommunicationHandler implements Runnable {
      * still alive
      * 
      * @throws IOException
-     *             in case of trouble
+     *                 in case of trouble
      */
     void sendHeartBeat() {
         long start = System.currentTimeMillis();
@@ -1088,14 +1090,14 @@ final class CommunicationHandler implements Runnable {
 
         try {
             long start = System.currentTimeMillis();
-            
+
             byte magic = connection.in().readByte();
 
             if (magic != Protocol.MAGIC_BYTE) {
                 throw new IOException(
                         "Invalid header byte in accepting connection");
             }
-            
+
             byte opcode = connection.in().readByte();
 
             if (opcode < Protocol.NR_OF_OPCODES) {

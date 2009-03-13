@@ -80,10 +80,10 @@ public final class IbisFactory {
                 SecurityException, NoSuchMethodException,
                 IllegalArgumentException, InvocationTargetException {
             Constructor<?> constructor = starter.getConstructor(
-                IbisCapabilities.class, PortType[].class,
-                ImplementationInfo.class);
+                    IbisCapabilities.class, PortType[].class,
+                    ImplementationInfo.class);
             return (IbisStarter) constructor.newInstance(requiredCapabilities,
-                portTypes, this);
+                    portTypes, this);
         }
 
         public Class<? extends IbisStarter> getStarterClass() {
@@ -185,7 +185,7 @@ public final class IbisFactory {
      * Constructs an Ibis factory, with the specified search path.
      * 
      * @param implPath
-     *            the path to search for implementations.
+     *                the path to search for implementations.
      */
     private IbisFactory(String implementationPath, Properties properties) {
 
@@ -210,24 +210,25 @@ public final class IbisFactory {
      * types. As the set of properties, the default properties are used.
      * 
      * @param requiredCapabilities
-     *            ibis capabilities required by the application.
+     *                ibis capabilities required by the application.
      * @param registryEventHandler
-     *            a {@link ibis.ipl.RegistryEventHandler RegistryEventHandler}
-     *            instance, or <code>null</code>.
+     *                a
+     *                {@link ibis.ipl.RegistryEventHandler RegistryEventHandler}
+     *                instance, or <code>null</code>.
      * @param portTypes
-     *            the list of port types required by the application.
+     *                the list of port types required by the application.
      * @return the new Ibis instance.
      * 
      * @exception IbisCreationFailedException
-     *                is thrown when no Ibis was found that matches the
-     *                capabilities required, or a matching Ibis could not be
-     *                instantiated for some reason.
+     *                    is thrown when no Ibis was found that matches the
+     *                    capabilities required, or a matching Ibis could not be
+     *                    instantiated for some reason.
      */
     public static Ibis createIbis(IbisCapabilities requiredCapabilities,
             RegistryEventHandler registryEventHandler, PortType... portTypes)
             throws IbisCreationFailedException {
         return createIbis(requiredCapabilities, null, true,
-            registryEventHandler, portTypes);
+                registryEventHandler, null, portTypes);
     }
 
     /**
@@ -235,32 +236,39 @@ public final class IbisFactory {
      * types, and using the specified properties.
      * 
      * @param requiredCapabilities
-     *            ibis capabilities required by the application.
+     *                ibis capabilities required by the application.
      * @param properties
-     *            properties that can be set, for instance a class path for
-     *            searching ibis implementations, or which registry to use.
-     *            There is a default, so <code>null</code> may be specified.
+     *                properties that can be set, for instance a class path for
+     *                searching ibis implementations, or which registry to use.
+     *                There is a default, so <code>null</code> may be
+     *                specified.
      * @param addDefaultConfigProperties
-     *            adds the default properties, loaded from the system
-     *            properties, a "ibis.properties" file, etc, for as far as these
-     *            are not set in the <code>properties</code> parameter.
+     *                adds the default properties, loaded from the system
+     *                properties, a "ibis.properties" file, etc, for as far as
+     *                these are not set in the <code>properties</code>
+     *                parameter.
      * @param registryEventHandler
-     *            a {@link ibis.ipl.RegistryEventHandler RegistryEventHandler}
-     *            instance, or <code>null</code>.
+     *                a
+     *                {@link ibis.ipl.RegistryEventHandler RegistryEventHandler}
+     *                instance, or <code>null</code>.
+     * @param authenticationObject
+     *                an object which can be used by the registry to
+     *                authenticate this ibis
      * @param portTypes
-     *            the list of port types required by the application. Can be an
-     *            empty list, but not null.
+     *                the list of port types required by the application. Can be
+     *                an empty list, but not null.
      * @return the new Ibis instance.
      * 
      * @exception IbisCreationFailedException
-     *                is thrown when no Ibis was found that matches the
-     *                capabilities required, or a matching Ibis could not be
-     *                instantiated for some reason.
+     *                    is thrown when no Ibis was found that matches the
+     *                    capabilities required, or a matching Ibis could not be
+     *                    instantiated for some reason.
      */
     @SuppressWarnings("unchecked")
     public static Ibis createIbis(IbisCapabilities requiredCapabilities,
             Properties properties, boolean addDefaultConfigProperties,
-            RegistryEventHandler registryEventHandler, PortType... portTypes)
+            RegistryEventHandler registryEventHandler,
+            Object authenticationObject, PortType... portTypes)
             throws IbisCreationFailedException {
 
         Properties combinedProperties = new Properties();
@@ -292,7 +300,7 @@ public final class IbisFactory {
         IbisFactory factory = getFactory(implPath, combinedProperties);
 
         return factory.createIbis(registryEventHandler, requiredCapabilities,
-            combinedProperties, portTypes);
+                combinedProperties, portTypes, authenticationObject);
     }
 
     private List<IbisStarter> findIbisStack(IbisCapabilities capabilities,
@@ -368,7 +376,7 @@ public final class IbisFactory {
                 }
                 if (creationException != null) {
                     creationException.add(instance.getClass().getName(),
-                        new IbisConfigurationException(str.toString()));
+                            new IbisConfigurationException(str.toString()));
                 }
 
                 if (verbose) {
@@ -403,9 +411,9 @@ public final class IbisFactory {
                 if (creationException != null) {
                     creationException
                             .add(
-                                instance.getClass().toString(),
-                                new IbisConfigurationException(
-                                        "Could not create valid stack with this ibis on top"));
+                                    instance.getClass().toString(),
+                                    new IbisConfigurationException(
+                                            "Could not create valid stack with this ibis on top"));
                 }
             }
         }
@@ -416,8 +424,8 @@ public final class IbisFactory {
     @SuppressWarnings("unchecked")
     private Ibis createIbis(RegistryEventHandler registryEventHandler,
             IbisCapabilities requiredCapabilities, Properties properties,
-            PortType[] portTypes) throws IbisCreationFailedException {
-
+            PortType[] portTypes, Object authenticationObject)
+            throws IbisCreationFailedException {
         if (requiredCapabilities == null) {
             throw new IbisConfigurationException("capabilities not specified");
         }
@@ -496,9 +504,13 @@ public final class IbisFactory {
                 cnt++;
             }
             if (cnt != 1) {
-                creationException.add("Ibis factory",
-                    new IbisConfigurationException("PortType " + tp
-                            + " should specify exactly one connection type"));
+                creationException
+                        .add(
+                                "Ibis factory",
+                                new IbisConfigurationException(
+                                        "PortType "
+                                                + tp
+                                                + " should specify exactly one connection type"));
                 faulty = true;
             }
             String[] caps = tp.getCapabilities();
@@ -511,8 +523,8 @@ public final class IbisFactory {
             }
             if (!ok) {
                 creationException.add("Ibis factory",
-                    new IbisConfigurationException("Port type " + tp
-                            + " should specify serialization"));
+                        new IbisConfigurationException("Port type " + tp
+                                + " should specify serialization"));
                 faulty = true;
             }
         }
@@ -526,9 +538,9 @@ public final class IbisFactory {
                 && !requiredCapabilities
                         .hasCapability(IbisCapabilities.MEMBERSHIP_TOTALLY_ORDERED)) {
             creationException.add("Ibis factory",
-                new IbisConfigurationException(
-                        "RegistryEventHandler specified but no "
-                                + " membership capability requested"));
+                    new IbisConfigurationException(
+                            "RegistryEventHandler specified but no "
+                                    + " membership capability requested"));
             faulty = true;
         }
 
@@ -539,19 +551,19 @@ public final class IbisFactory {
         }
 
         List<IbisStarter> stack = findIbisStack(requiredCapabilities,
-            portTypes, new ArrayList<IbisStarter>(), ibisName,
-            creationException, verbose);
+                portTypes, new ArrayList<IbisStarter>(), ibisName,
+                creationException, verbose);
 
         if (stack == null) {
             creationException.add("Ibis factory",
-                new IbisConfigurationException("No matching Ibis found"));
+                    new IbisConfigurationException("No matching Ibis found"));
             throw creationException;
         }
 
         IbisStarter starter = stack.remove(0);
 
         try {
-            return starter.startIbis(stack, registryEventHandler, properties);
+            return starter.startIbis(stack, registryEventHandler, properties, authenticationObject);
         } catch (Throwable e) {
             creationException.add("" + starter.implementationInfo.getNickName()
                     + " gave exception ", e);
