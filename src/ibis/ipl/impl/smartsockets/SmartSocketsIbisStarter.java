@@ -99,6 +99,7 @@ public final class SmartSocketsIbisStarter extends ibis.ipl.IbisStarter {
         return unmatched;
     }
 
+    @Override
     public Ibis startIbis(RegistryEventHandler registryEventHandler,
             Properties userProperties) {
         return new SmartSocketsIbis(registryEventHandler, capabilities, portTypes,
