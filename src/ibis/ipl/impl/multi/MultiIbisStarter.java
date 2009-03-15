@@ -5,10 +5,12 @@ package ibis.ipl.impl.multi;
 import ibis.ipl.CapabilitySet;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisCapabilities;
+import ibis.ipl.IbisCreationFailedException;
 import ibis.ipl.IbisFactory;
 import ibis.ipl.IbisStarter;
 import ibis.ipl.PortType;
 import ibis.ipl.RegistryEventHandler;
+import ibis.ipl.registry.Credentials;
 
 import java.util.Properties;
 
@@ -18,47 +20,35 @@ import org.slf4j.LoggerFactory;
 public final class MultiIbisStarter extends IbisStarter {
 
     static final Logger logger = LoggerFactory
-            .getLogger("ibis.ipl.impl.multi.MultiIbisStarter");
+            .getLogger(MultiIbisStarter.class);
 
-    static final IbisCapabilities ibisCapabilities = new IbisCapabilities(
-            "nickname.multi");
-
-    private final boolean matching;
-
-    public MultiIbisStarter(IbisCapabilities caps, PortType[] types,
-            IbisFactory.ImplementationInfo info) {
-        super(caps, types, info);
-        matching = ibisCapabilities.matchCapabilities(capabilities);
+    public MultiIbisStarter(String nickName, String iplVersion,
+            String implementationVersion) {
+        super(nickName, iplVersion, implementationVersion);
     }
 
-    public boolean matches() {
-        return matching;
-    }
-
-    public boolean isSelectable() {
+    public boolean matches(IbisCapabilities capabilities, PortType[] types) {
         return true;
     }
 
-    public boolean isStacking() {
-        return false;
+    public CapabilitySet unmatchedIbisCapabilities(
+            IbisCapabilities capabilities, PortType[] types) {
+        return new CapabilitySet();
     }
 
-    public CapabilitySet unmatchedIbisCapabilities() {
-        return capabilities.unmatchedCapabilities(ibisCapabilities);
+    public PortType[] unmatchedPortTypes(IbisCapabilities capabilities,
+            PortType[] types) {
+        return new PortType[0];
     }
 
-    public PortType[] unmatchedPortTypes() {
-        return portTypes.clone();
-    }
-
-    public Ibis startIbis(RegistryEventHandler registryEventHandler,
-            Properties userProperties, String version,
-            Object authenticationObject) {
-        try {
-            return new MultiIbis(registryEventHandler, userProperties,
-                    capabilities, portTypes, authenticationObject);
-        } catch (Throwable e) {
-            throw new Error("Creation of MultiIbis Failed!", e);
-        }
+    public Ibis startIbis(IbisFactory factory,
+            RegistryEventHandler registryEventHandler,
+            Properties userProperties, IbisCapabilities capabilities,
+            Credentials credentials, PortType[] portTypes,
+            String specifiedSubImplementation)
+            throws IbisCreationFailedException {
+        return new MultiIbis(factory, registryEventHandler, userProperties,
+                capabilities, credentials, portTypes,
+                specifiedSubImplementation, this);
     }
 }

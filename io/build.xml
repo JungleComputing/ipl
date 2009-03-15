@@ -14,10 +14,10 @@
 	<property name="external" location="../external" />
 	<property name="sources" value="../sources" />
 
-	<property name="version" value="-2.2" />
+	<property name="version-tag" value="" />
 
-	<property name="jar" location="${lib}/${ant.project.name}${version}.jar" />
-	<property name="sources-filename" value="${ant.project.name}${version}" />
+	<property name="jar" location="${lib}/${ant.project.name}${version-tag}.jar" />
+	<property name="sources-filename" value="${ant.project.name}${version-tag}" />
 
 	<path id="external_jars">
 	    <fileset dir="${external}">
@@ -34,8 +34,8 @@
     </target>
 
     <target name="properties-jme" description="Set all the properties for JME building" depends="properties">
-	<property name="jme-jar" location="${lib}/${ant.project.name}-jme${version}.jar" />
-	<property name="jme-sources-filename" value="${ant.project.name}-jme${version}" />
+	<property name="jme-jar" location="${lib}/${ant.project.name}-jme${version-tag}.jar" />
+	<property name="jme-sources-filename" value="${ant.project.name}-jme${version-tag}" />
 
 	<!-- Setup antenna for building the JME stuff -->
 	<taskdef resource="antenna.properties" classpath="${external}/antenna-bin-1.0.0.jar"/>

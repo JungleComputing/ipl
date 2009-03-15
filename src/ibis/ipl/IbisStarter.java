@@ -2,9 +2,9 @@
 
 package ibis.ipl;
 
-import ibis.ipl.IbisFactory.ImplementationInfo;
+import ibis.ipl.registry.Credentials;
 
-import java.util.List;
+import java.lang.reflect.Constructor;
 import java.util.Properties;
 
 /**
@@ -15,53 +15,109 @@ import java.util.Properties;
  */
 public abstract class IbisStarter {
 
-    protected final IbisCapabilities capabilities;
+    /**
+     * Short name of this implementation. Usually the network stack it is based
+     * on, e.g. "tcp" or "mpi"
+     */
+    private final String nickName;
 
-    protected final PortType[] portTypes;
+    /**
+     * Which version of the IPL does this implementation implement.
+     */
+    private final String iplVersion;
 
-    protected final ImplementationInfo implementationInfo;
+    /**
+     * Version identifier of this implementation. Usually a checksum created
+     * from the class files of the implementation.
+     */
+    private final String implementationVersion;
+
+    /**
+     * Creates a starter of a given class using reflection. Returns null if this
+     * fails for any reason
+     * 
+     * @param className
+     *            the name of the class to instantiate. Must extend IbisStarter.
+     * @param classLoader
+     *            the class loader to use.
+     * @param nickName
+     *            the nickname of the ibis starter.
+     * @param iplVersion
+     *            the IPL version this ibis implements.
+     * @param implementationVersion
+     *            the version of this ibis.
+     * @return an IbisStarter instance for the given class name.
+     */
+    @SuppressWarnings("unchecked")
+    public static IbisStarter createInstance(String className,
+            ClassLoader classLoader, String nickName, String iplVersion,
+            String implementationVersion) {
+        try {
+            Class<? extends IbisStarter> starterClass = (Class<? extends IbisStarter>) Class
+                    .forName(className, false, classLoader);
+
+            Constructor<?> constructor = starterClass.getConstructor(
+                    String.class, String.class, String.class);
+            return (IbisStarter) constructor.newInstance(nickName, iplVersion,
+                    implementationVersion);
+        } catch (Throwable t) {
+            System.err.println("Could not create starter from className: "
+                    + className);
+            return null;
+        }
+    }
 
     /**
      * Constructs an <code>IbisStarter</code>.
      */
-    public IbisStarter(IbisCapabilities capabilities, PortType[] portTypes,
-            ImplementationInfo implementationInfo) {
-        this.capabilities = capabilities;
-        this.portTypes = portTypes.clone();
-        this.implementationInfo = implementationInfo;
-    }
-
-    public ImplementationInfo getImplementationInfo() {
-        return implementationInfo;
+    protected IbisStarter(String nickName, String iplVersion,
+            String implementationVersion) {
+        this.nickName = nickName;
+        this.iplVersion = iplVersion;
+        this.implementationVersion = implementationVersion;
     }
 
     /**
-     * Decides if this <code>IbisStarter</code> can start an Ibis instance
-     * with the desired capabilities and port types.
+     * Short name of this implementation. Usually the network stack it is based
+     * on, e.g. "tcp" or "mpi"
+     * 
+     * @return the nickName
+     */
+    public String getNickName() {
+        return nickName;
+    }
+
+    /**
+     * Which version of the IPL does this implementation implement.
+     * 
+     * @return the IPL version
+     */
+    public String getIplVersion() {
+        return iplVersion;
+    }
+
+    /**
+     * Version identifier of this implementation. Usually a checksum created
+     * from the class files of the implementation.
+     * 
+     * @return the implementation version
+     */
+    public String getImplementationVersion() {
+        return implementationVersion;
+    }
+
+    public String toString() {
+        return nickName;
+    }
+
+    /**
+     * Decides if this <code>IbisStarter</code> can start an Ibis instance with
+     * the desired capabilities and port types.
      * 
      * @return <code>true</code> if it can.
      */
-    public abstract boolean matches();
-
-    /**
-     * Decides if this Ibis instance is a stacking Ibis.
-     * 
-     * @return <code>true</code> if it is stacking.
-     */
-    public boolean isStacking() {
-        return false;
-    }
-
-    /**
-     * Returns <code>true</code> if this starter can be used to automatically
-     * start an Ibis (without the user specifying an implementation). An Ibis
-     * implementation can exclude itself from the selection mechanism by having
-     * this method return <code>false</code>.
-     * 
-     * @return <code>true</code> if this starter can be used in the selection
-     *         mechanism.
-     */
-    public abstract boolean isSelectable();
+    public abstract boolean matches(IbisCapabilities capabilities,
+            PortType[] portTypes);
 
     /**
      * Returns the required capabilities that are not matched by this starter.
@@ -70,58 +126,29 @@ public abstract class IbisStarter {
      * 
      * @return the unmatched ibis capabilities.
      */
-    public abstract CapabilitySet unmatchedIbisCapabilities();
+    public abstract CapabilitySet unmatchedIbisCapabilities(
+            IbisCapabilities capabilities, PortType[] portTypes);
 
     /**
      * Returns the list of port types that are not matched by this starter. If
      * all required port types match, this method returns an array with 0
-     * elements. <strong> Note: a stacking Ibis returns the porttypes that are
+     * elements. <strong> Note: a stacking Ibis returns the port types that are
      * required of the underlying Ibis implementation. </strong>
      * 
      * @return the unmatched port types.
      */
-    public abstract PortType[] unmatchedPortTypes();
+    public abstract PortType[] unmatchedPortTypes(
+            IbisCapabilities capabilities, PortType[] portTypes);
 
     /**
      * Actually creates an Ibis instance from this starter.
      * 
      * @param handler
-     *                a registry event handler.
+     *            a registry event handler.
      * @param userProperties
-     *                the user properties.
-     * @param authenticationObject
-     *                an object which can be used by the registry to
-     *                authenticate this ibis
+     *            the user properties.
      */
-    public Ibis startIbis(RegistryEventHandler handler,
-            Properties userProperties, Object authenticationObject) {
-        throw new Error("startIbis(RegistryEventHandler, Properties, String) "
-                + "not implemented");
-    }
-
-    /**
-     * Actually creates a stacking-ibis instance from this starter.
-     * 
-     * @param stack
-     *                the starters for the underlying ibis implementations. The
-     *                last element of the list should be a starter for a
-     *                non-stacking ibis.
-     * @param handler
-     *                a registry event handler.
-     * @param userProperties
-     *                the user properties.
-     * @param authenticationObject
-     *                an object which can be used by the registry to
-     *                authenticate this ibis
-     */
-    public Ibis startIbis(List<IbisStarter> stack,
+    public abstract Ibis startIbis(IbisFactory factory,
             RegistryEventHandler handler, Properties userProperties,
-            Object authenticationObject) {
-        if (stack.size() == 0) {
-            return startIbis(handler, userProperties, authenticationObject);
-        }
-        throw new Error(
-                "startIbis(List<IbisStarterInfo>, RegistryEventHandler, "
-                        + "Properties, String) not implemented");
-    }
+            IbisCapabilities capabilities, Credentials credentials, PortType[] portTypes, String specifiedSubImplementation) throws IbisCreationFailedException;
 }

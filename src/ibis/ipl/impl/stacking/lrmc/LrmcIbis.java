@@ -3,8 +3,9 @@ package ibis.ipl.impl.stacking.lrmc;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisConfigurationException;
+import ibis.ipl.IbisCreationFailedException;
+import ibis.ipl.IbisFactory;
 import ibis.ipl.IbisIdentifier;
-import ibis.ipl.IbisStarter;
 import ibis.ipl.MessageUpcall;
 import ibis.ipl.NoSuchPropertyException;
 import ibis.ipl.PortType;
@@ -14,13 +15,12 @@ import ibis.ipl.Registry;
 import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.SendPort;
 import ibis.ipl.SendPortDisconnectUpcall;
-import ibis.ipl.IbisFactory.ImplementationInfo;
 import ibis.ipl.impl.stacking.lrmc.util.DynamicObjectArray;
+import ibis.ipl.registry.Credentials;
 
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -29,14 +29,16 @@ import org.slf4j.LoggerFactory;
 
 public class LrmcIbis implements Ibis {
 
-    private static final Logger logger = LoggerFactory.getLogger(LrmcIbis.class);
+    private static final Logger logger = LoggerFactory
+            .getLogger(LrmcIbis.class);
 
-    static final PortType baseType = new PortType(PortType.SERIALIZATION_DATA,
-            PortType.COMMUNICATION_RELIABLE, PortType.CONNECTION_MANY_TO_ONE,
-            PortType.RECEIVE_AUTO_UPCALLS);
+    static final PortType additionalPortType = new PortType(
+            PortType.SERIALIZATION_DATA, PortType.COMMUNICATION_RELIABLE,
+            PortType.CONNECTION_MANY_TO_ONE, PortType.RECEIVE_AUTO_UPCALLS);
 
     private static class EventHandler implements RegistryEventHandler {
         RegistryEventHandler h;
+
         LrmcIbis ibis;
 
         EventHandler(RegistryEventHandler h, LrmcIbis ibis) {
@@ -91,27 +93,51 @@ public class LrmcIbis implements Ibis {
     }
 
     Ibis base;
+
     int myID;
 
     PortType[] portTypes;
+
     IbisCapabilities capabilities;
 
     private int nextIbisID = 0;
 
     HashMap<IbisIdentifier, Integer> knownIbis = new HashMap<IbisIdentifier, Integer>();
+
     DynamicObjectArray<IbisIdentifier> ibisList = new DynamicObjectArray<IbisIdentifier>();
+
     HashMap<String, Multicaster> multicasters = new HashMap<String, Multicaster>();
 
-    LrmcIbis(List<IbisStarter> stack,
+    public LrmcIbis(IbisFactory factory,
             RegistryEventHandler registryEventHandler,
-            IbisCapabilities capabilities, PortType[] portTypes,
-            Properties userProperties, ImplementationInfo info, Object authenticationObject) {
+            Properties userProperties, IbisCapabilities capabilities,
+            Credentials credentials, PortType[] portTypes,
+            String specifiedSubImplementation, LrmcIbisStarter lrmcIbisStarter)
+            throws IbisCreationFailedException {
         logger.info("Constructor LRMC Ibis");
-        IbisStarter s = stack.remove(0);
-        EventHandler h = new EventHandler(registryEventHandler, this);
-        base = s.startIbis(stack, h, userProperties, authenticationObject);
+
+        if (specifiedSubImplementation == null) {
+            throw new IbisCreationFailedException(
+                    "LrmcIbis: child Ibis implementation not specified");
+        }
+
+        EventHandler h = null;
+
+        if (registryEventHandler != null) {
+            new EventHandler(registryEventHandler, this);
+        }
+
         this.portTypes = portTypes;
         this.capabilities = capabilities;
+
+        // add additional port-type as a requirement.
+        // TODO: we should also be able to remove some types!
+        PortType[] requiredPortTypes = new PortType[portTypes.length + 1];
+        System.arraycopy(portTypes, 0, requiredPortTypes, 0, portTypes.length);
+        requiredPortTypes[portTypes.length] = additionalPortType;
+
+        base = factory.createIbis(h, capabilities, userProperties, credentials,
+                portTypes, specifiedSubImplementation);
     }
 
     public synchronized void addIbis(IbisIdentifier ibis) {

@@ -10,16 +10,17 @@ import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisConfigurationException;
+import ibis.ipl.IbisStarter;
 import ibis.ipl.MessageUpcall;
 import ibis.ipl.PortMismatchException;
 import ibis.ipl.PortType;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.SendPortDisconnectUpcall;
-import ibis.ipl.IbisFactory.ImplementationInfo;
 import ibis.ipl.impl.IbisIdentifier;
 import ibis.ipl.impl.ReceivePort;
 import ibis.ipl.impl.SendPortIdentifier;
+import ibis.ipl.registry.Credentials;
 import ibis.ipl.server.Client;
 import ibis.ipl.server.ConfigurationException;
 import ibis.smartsockets.hub.servicelink.ServiceLink;
@@ -61,11 +62,10 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
     private final HashMap<String, Object> directConnection = new HashMap<String, Object>();
 
     public SmartSocketsIbis(RegistryEventHandler registryEventHandler,
-            IbisCapabilities capabilities, PortType[] types,
-            Properties userProperties, ImplementationInfo info,
-            Object authenticationObject) {
-        super(registryEventHandler, capabilities, types, userProperties, info,
-                authenticationObject);
+            IbisCapabilities capabilities, Credentials credentials,
+            PortType[] types, Properties userProperties, IbisStarter starter) {
+        super(registryEventHandler, capabilities, credentials, types,
+                userProperties, starter);
 
         lightConnection.put("connect.module.allow", "ConnectModule(HubRouted)");
 
@@ -178,8 +178,8 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
                  * 
                  * h.putAll(properties); }
                  * 
-                 * if (logger.isDebugEnabled()) { logger.debug("Creating
-                 * connection with properties " + h); }
+                 * if (logger.isDebugEnabled()) {
+                 * logger.debug("Creating connection with properties " + h); }
                  */
 
                 s = factory.createClientSocket(idAddr, timeout, fillTimeout, h);

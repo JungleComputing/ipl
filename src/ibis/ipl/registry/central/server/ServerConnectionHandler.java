@@ -4,9 +4,10 @@ import ibis.io.Conversion;
 import ibis.ipl.impl.IbisIdentifier;
 import ibis.ipl.impl.Location;
 import ibis.ipl.registry.Connection;
+import ibis.ipl.registry.ControlPolicy;
+import ibis.ipl.registry.Credentials;
 import ibis.ipl.registry.central.Member;
 import ibis.ipl.registry.central.Protocol;
-import ibis.ipl.server.ControlPolicy;
 import ibis.ipl.server.ServerProperties;
 import ibis.smartsockets.virtual.VirtualServerSocket;
 import ibis.smartsockets.virtual.VirtualSocketFactory;
@@ -113,12 +114,20 @@ final class ServerConnectionHandler implements Runnable {
         long statisticsInterval = connection.in().readLong();
         boolean purgeHistory = connection.in().readBoolean();
 
-        Object authenticationObject = new ObjectInputStream(connection.in())
-                .readObject();
+        length = connection.in().readInt();
+        if (length < 0) {
+            throw new IOException("unexpected end of data on join");
+        }
+        
+        byte[] credentialBytes = new byte[length];
+        
+        connection.in().readFully(credentialBytes);
+
+        Credentials credentials = (Credentials) Conversion.byte2object(credentialBytes);
 
         if (policy != null) {
             try {
-                policy.onJoin(authenticationObject);
+                policy.onJoin(credentials);
             } catch (AccessControlException e) {
                 connection.closeWithError(e.getMessage());
                 throw e;

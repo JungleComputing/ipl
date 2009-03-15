@@ -33,7 +33,7 @@ public final class IbisCapabilities extends CapabilitySet {
      * see {@link RegistryEventHandler#gotSignal(String,IbisIdentifier)} and
      * {@link Registry#signal(String, IbisIdentifier...)}.
      * 
-     * @experimental
+     * @ibis.experimental
      */
     public final static String SIGNALS = "signals";
 
@@ -42,7 +42,7 @@ public final class IbisCapabilities extends CapabilitySet {
      * see {@link RegistryEventHandler#poolTerminated(IbisIdentifier)} and
      * {@link Registry#terminate()}.
      * 
-     * @experimental
+     * @ibis.experimental
      */
     public final static String TERMINATION = "termination";
     

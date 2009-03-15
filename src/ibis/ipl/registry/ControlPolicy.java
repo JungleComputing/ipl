@@ -1,19 +1,20 @@
-package ibis.ipl.server;
+package ibis.ipl.registry;
+
 
 import java.security.AccessControlException;
 
 /**
- * @experimental
+ * @ibis.experimental
  * @author rkemp
  */
 public interface ControlPolicy {
 
     /**
-     * @experimental
+     * @ibis.experimental
      * @param authenticationObject
      * @throws AccessControlException
      */
-    public void onJoin(Object authenticationObject)
+    public void onJoin(Credentials credentials)
             throws AccessControlException;
 
 }

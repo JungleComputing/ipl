@@ -57,7 +57,7 @@ public class LabelRoutingMulticast extends Thread implements MessageUpcall {
         this.sendQueue = new MessageQueue(
                 new TypedProperties(ibis.properties()).getIntProperty(
                         "lrmc.queueSize", 32));
-        receive = ibis.base.createReceivePort(LrmcIbis.baseType, "LRMCRing-"
+        receive = ibis.base.createReceivePort(LrmcIbis.additionalPortType, "LRMCRing-"
                 + name, this);
         receive.enableConnections();
         receive.enableMessageUpcalls();
@@ -113,7 +113,7 @@ public class LabelRoutingMulticast extends Thread implements MessageUpcall {
             IbisIdentifier ibisID = null;
 
             try {
-                sp = ibis.base.createSendPort(LrmcIbis.baseType);
+                sp = ibis.base.createSendPort(LrmcIbis.additionalPortType);
                 ibisID = ibis.getId(id);
 
                 if (ibisID != null) {

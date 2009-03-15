@@ -1,10 +1,12 @@
 package ibis.ipl.registry.central.client;
 
+import ibis.io.Conversion;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.IbisProperties;
 import ibis.ipl.impl.IbisIdentifier;
 import ibis.ipl.impl.Location;
 import ibis.ipl.registry.Connection;
+import ibis.ipl.registry.Credentials;
 import ibis.ipl.registry.central.Event;
 import ibis.ipl.registry.central.Protocol;
 import ibis.ipl.registry.central.RegistryProperties;
@@ -173,7 +175,7 @@ final class CommunicationHandler implements Runnable {
      *                 in case of trouble
      */
     IbisIdentifier join(byte[] implementationData,
-            byte[] implementationVersion, Object authenticationObject)
+            byte[] implementationVersion, Credentials credentials)
             throws IOException {
         long start = System.currentTimeMillis();
 
@@ -249,9 +251,12 @@ final class CommunicationHandler implements Runnable {
             connection.out().writeBoolean(keepStatistics);
             connection.out().writeLong(statisticsInterval);
             connection.out().writeBoolean(purgeHistory);
-            new ObjectOutputStream(connection.out()).writeObject(null);
-            connection.out().flush();
-
+            
+            
+            byte[] credentialBytes = Conversion.object2byte(credentials);
+            connection.out().writeInt(credentialBytes.length);
+            connection.out().write(credentialBytes);
+            
             logger.debug("reading join result info from server");
 
             connection.getAndCheckReply();

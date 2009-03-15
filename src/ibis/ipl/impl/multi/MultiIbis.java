@@ -4,12 +4,10 @@ package ibis.ipl.impl.multi;
 
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisCapabilities;
-import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.IbisCreationFailedException;
 import ibis.ipl.IbisFactory;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.IbisProperties;
-import ibis.ipl.IbisStarter;
 import ibis.ipl.MessageUpcall;
 import ibis.ipl.NoSuchPropertyException;
 import ibis.ipl.PortType;
@@ -21,12 +19,11 @@ import ibis.ipl.SendPort;
 import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.ipl.Registry;
 import ibis.ipl.SendPortIdentifier;
+import ibis.ipl.registry.Credentials;
 import ibis.util.TypedProperties;
 
 import java.io.IOException;
 import java.io.PrintStream;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -41,16 +38,22 @@ import org.slf4j.LoggerFactory;
 public class MultiIbis implements Ibis {
 
     /** Debugging output. */
-    private static final Logger logger = LoggerFactory.getLogger(MultiIbis.class);
+    private static final Logger logger = LoggerFactory
+            .getLogger(MultiIbis.class);
 
     final MultiIbisIdentifier id;
+
+    public static final PortType resolvePortType = new PortType(
+            PortType.COMMUNICATION_RELIABLE, PortType.CONNECTION_MANY_TO_ONE,
+            PortType.RECEIVE_EXPLICIT, PortType.SERIALIZATION_OBJECT);
 
     final HashMap<String, Ibis> subIbisMap = new HashMap<String, Ibis>();
 
     private final HashMap<IbisIdentifier, MultiIbisIdentifier> idMap = new HashMap<IbisIdentifier, MultiIbisIdentifier>();
 
-    private final ArrayList<MultiSendPort>sendPorts = new ArrayList<MultiSendPort>();
-    private final ArrayList<MultiReceivePort>receivePorts = new ArrayList<MultiReceivePort>();
+    private final ArrayList<MultiSendPort> sendPorts = new ArrayList<MultiSendPort>();
+
+    private final ArrayList<MultiReceivePort> receivePorts = new ArrayList<MultiReceivePort>();
 
     private final TypedProperties properties;
 
@@ -59,203 +62,105 @@ public class MultiIbis implements Ibis {
     private final ManageableMapper ManageableMapper;
 
     // TODO Wrap with getter and setter
-    final HashMap<ReceivePort, MultiReceivePort>receivePortMap = new HashMap<ReceivePort, MultiReceivePort>();
+    final HashMap<ReceivePort, MultiReceivePort> receivePortMap = new HashMap<ReceivePort, MultiReceivePort>();
 
     // TODO Wrap with getter and setter
-    final Map<SendPort, MultiSendPort>sendPortMap = Collections.synchronizedMap(new HashMap<SendPort, MultiSendPort>());
+    final Map<SendPort, MultiSendPort> sendPortMap = Collections
+            .synchronizedMap(new HashMap<SendPort, MultiSendPort>());
 
     // TODO Wrap with getter and setter
-    final HashMap<String, MultiNameResolver>resolverMap = new HashMap<String, MultiNameResolver>();
+    final HashMap<String, MultiNameResolver> resolverMap = new HashMap<String, MultiNameResolver>();
 
-    final HashMap<String, MultiRegistryEventHandler>registryHandlerMap = new HashMap<String, MultiRegistryEventHandler>();
-
-    final PortType resolvePortType;
+    final HashMap<String, MultiRegistryEventHandler> registryHandlerMap = new HashMap<String, MultiRegistryEventHandler>();
 
     @SuppressWarnings("unchecked")
-    public MultiIbis(RegistryEventHandler registryEventHandler, Properties userProperties, IbisCapabilities capabilities, PortType[] portTypes, Object authenticationObject) throws IbisCreationFailedException, IbisConfigurationException, IOException {
+    public MultiIbis(IbisFactory factory,
+            RegistryEventHandler registryEventHandler,
+            Properties userProperties, IbisCapabilities capabilities,
+            Credentials credentials, PortType[] portTypes,
+            String specifiedSubImplementation, MultiIbisStarter multiIbisStarter) {
         if (logger.isDebugEnabled()) {
             logger.debug("Constructing MultiIbis!");
         }
-        HashMap<String, IbisIdentifier>subIdMap = new HashMap<String, IbisIdentifier>();
+        HashMap<String, IbisIdentifier> subIdMap = new HashMap<String, IbisIdentifier>();
         if (logger.isDebugEnabled()) {
-                org.slf4j.MDC.put("UID", String.valueOf(new Random().nextInt()));
+            org.slf4j.MDC.put("UID", String.valueOf(new Random().nextInt()));
         }
-        if (! (userProperties instanceof TypedProperties) ) {
+        if (!(userProperties instanceof TypedProperties)) {
             properties = new TypedProperties();
             properties.addProperties(userProperties);
-        }
-        else {
-            properties = (TypedProperties)userProperties;
-        }
-
-        if (logger.isDebugEnabled()) {
-            logger.debug("Checking Starters: " + properties.get(MultiIbisProperties.STARTERS));
-        }
-        String[] starters = properties.getStringList(MultiIbisProperties.STARTERS);
-
-        if (logger.isDebugEnabled()) {
-            logger.debug("Capabilities: " + capabilities);
+        } else {
+            properties = (TypedProperties) userProperties;
         }
 
-        String[] capabilityStrings = capabilities.getCapabilities();
-        ArrayList<String>subset = new ArrayList<String>();
-        for (String cap:capabilityStrings) {
-            if (!cap.startsWith("nickname")) {
-                subset.add(cap);
-            }
-        }
-        IbisCapabilities subCaps = new IbisCapabilities(subset.toArray(new String[subset.size()]));
+        // add our own port-type to the required list
+        PortType[] requiredPortTypes = new PortType[portTypes.length + 1];
+        System.arraycopy(portTypes, 0, requiredPortTypes, 0, portTypes.length);
+        requiredPortTypes[portTypes.length] = resolvePortType;
 
-        if (logger.isDebugEnabled()) {
-            logger.debug("SubCaps: " + subCaps);
-        }
+        // sub-implementations specified as impl:impl2:impl3
+        String[] implementations = specifiedSubImplementation.split(":");
 
-        // Make sure we can use the port type we want for resolution
-        PortType[] ourPortTypes = new PortType[portTypes.length + 1];
-        System.arraycopy(portTypes, 0, ourPortTypes, 1, portTypes.length);
-        resolvePortType = new PortType(PortType.COMMUNICATION_RELIABLE,
-                                       PortType.CONNECTION_MANY_TO_ONE,
-                                       PortType.RECEIVE_EXPLICIT,
-                                       PortType.SERIALIZATION_OBJECT);
-        ourPortTypes[0] = resolvePortType;
-        if (logger.isDebugEnabled()) {
-            logger.debug("Got " + starters.length + " starters.");
-        }
-        for (String starter:starters) {
+        // FIXME: although this looks nice, it is probably broken -Niels
+        for (String implementation : implementations) {
             try {
-                String ibisName = null;
-                String starterClassName = null;
-                int split;
-                if ((split = starter.indexOf('=')) > 0) {
-                    ibisName = starter.substring(0, split);
-                    starterClassName = starter.substring(split+1);
-                    logger.debug("Found starter: " + ibisName + ":" + starterClassName);
-                }
-                else {
-                    starterClassName = starter;
-                }
+                // add name of implementation to the poolname
+                String poolName = userProperties
+                        .getProperty(IbisProperties.POOL_NAME);
+                Properties subProperties = new Properties(userProperties);
+                subProperties.setProperty(IbisProperties.POOL_NAME, poolName
+                        + ":" + implementation);
 
-                if (starterClassName.equals("tcp")) {
-                    starterClassName = "ibis.ipl.impl.tcp.TcpIbisStarter";
+                MultiRegistryEventHandler handler = null;
+                if (registryEventHandler != null) {
+                    handler = new MultiRegistryEventHandler(this,
+                            registryEventHandler);
                 }
 
-                Class<IbisStarter> starterClass = (Class<IbisStarter>)Class.forName(starterClassName);
-                Constructor<?> constructor = starterClass.getConstructor(
-                        IbisCapabilities.class, PortType[].class,
-                        IbisFactory.ImplementationInfo.class);
-                IbisStarter starterInstance =(IbisStarter) constructor.newInstance(subCaps,
-                        ourPortTypes, this);
-                
-                logger.debug("Created starter instance: " + starterInstance);
-                if (starterInstance.matches()) {
-                    if (logger.isDebugEnabled()) {
-                        logger.debug("Starting ibis: " + starterClass.getClass().getName());
-                    }
-                    MultiRegistryEventHandler handler = null;
-                    if (registryEventHandler != null) {
-                        handler = new MultiRegistryEventHandler(this, registryEventHandler);
-                    }
+                Ibis ibis = factory.createIbis(handler, capabilities,
+                        subProperties, credentials, requiredPortTypes,
+                        implementation);
 
-                    // Override properties for this type
-                    TypedProperties props;
-                    if (ibisName != null && !ibisName.equals(starterClassName)) {
-                        props = (TypedProperties)properties.clone();
-
-                        // Check for properties file
-                        String file = MultiIbisProperties.PROPERTIES_FILE + ibisName;
-                        if(props.containsKey(file)) {
-                            if (logger.isDebugEnabled()) {
-                                logger.debug("Loading Properties File: " + props.get(file));
-                            }
-                            props.loadFromFile(props.getProperty(file));
-                        }
-
-                        // Now check for individual properties
-                        String prefix = MultiIbisProperties.PROPERTIES + ibisName + ".";
-                        if (logger.isDebugEnabled()) {
-                            logger.debug("Checking for property overrides using: " + prefix + " : " + properties.size() + ":" + props.size());
-                        }
-                        for (Object propObj:properties.keySet()) {
-                            String property = (String)propObj;
-                            if (property.startsWith(prefix)) {
-                                String propName = property.substring(prefix.length());
-                                String value = props.getProperty(property);
-                                props.remove(propName);
-                                props.put(propName, value);
-                                if (logger.isDebugEnabled()) {
-                                    logger.debug("Override of property: " + propName + " : " + value + " now: " + props.get(propName));
-                                }
-                            }
-                        }
-                    }
-                    else {
-                        props = properties;
-                    }
-
-                    // Start up the ibis
-                    Ibis ibis = starterInstance.startIbis(handler, props, authenticationObject);
-
-                    if (ibisName == null) {
-                        ibisName = ibis.getClass().getName();
-                    }
-
-                    if (handler != null) {
-                        handler.setName(ibisName);
-                        registryHandlerMap.put(ibisName, handler);
-                    }
-
-                    if (logger.isDebugEnabled()) {
-                        logger.debug("Started ibis: " + ibisName);
-                    }
-
-                    subIbisMap.put(ibisName, ibis);
-                    subIdMap.put(ibisName, ibis.identifier());
-
-                    // Start the name resolution service for this ibis
-                    try {
-                        new MultiNameResolver(this, ibisName);
-                    }
-                    catch (IOException e) {
-                        throw new IbisCreationFailedException("Unable to create resolver.", e);
-                    }
-                    //Thread.currentThread().setContextClassLoader(defaultLoader);
+                if (handler != null) {
+                    handler.setName(implementation);
+                    registryHandlerMap.put(implementation, handler);
                 }
-                else {
-                    throw new IbisCreationFailedException("Ibis: " + starter + " does not have the required capabilities:" + starterInstance.unmatchedIbisCapabilities() + " : " + starterInstance.unmatchedPortTypes());
+
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Started ibis: " + implementation);
                 }
-            }
-            catch (ClassNotFoundException e) {
-                logger.debug("Unable to find starter: " + starter + "! Ignoring.");
-            } catch (InstantiationException e) {
-                logger.debug("Unable to instantiate starter: " + starter + "! Ignoring.");
-            } catch (IllegalAccessException e) {
-                logger.debug("Illegal Access while instantiating starter: " + starter + "! Ignoring.");
-            } catch (SecurityException e) {
-                logger.debug("Security exception while instantiating starter: " + starter + "! Ignoring.");
-            } catch (NoSuchMethodException e) {
-                logger.debug("Unable to find starter constructor: " + starter + "! Ignoring.");
-            } catch (IllegalArgumentException e) {
-                logger.debug("Illegal arguments to starter constructor: " + starter + "! Ignoring.");
-            } catch (InvocationTargetException e) {
-                logger.debug("Invocation target exception in starter constructor: " + starter + "! Ignoring.", e.getCause());
+
+                subIbisMap.put(implementation, ibis);
+                subIdMap.put(implementation, ibis.identifier());
+
+                // Start the name resolution service for this ibis
+                try {
+                    new MultiNameResolver(this, implementation);
+                } catch (IOException e) {
+                    throw new IbisCreationFailedException(
+                            "Unable to create resolver.", e);
+                }
+            } catch (Throwable t) {
+                logger.warn("Could not start child ibis", t);
             }
         }
 
         if (subIbisMap.size() == 0) {
-            throw new RuntimeException("Unable to find any starters!");
+            throw new RuntimeException("Unable to create any children!");
         }
 
         String poolName = userProperties.getProperty(IbisProperties.POOL_NAME);
         Location location = Location.defaultLocation(userProperties);
-        id = new MultiIbisIdentifier(UUID.randomUUID().toString(), subIdMap, null, location, poolName);
+        id = new MultiIbisIdentifier(UUID.randomUUID().toString(), subIdMap,
+                null, location, poolName);
 
-        for (String ibisName:subIdMap.keySet()) {
+        for (String ibisName : subIdMap.keySet()) {
             IbisIdentifier subId = subIdMap.get(ibisName);
             idMap.put(subId, id);
         }
 
         // Now let the resolvers go!
-        for (String ibisName:resolverMap.keySet()) {
+        for (String ibisName : resolverMap.keySet()) {
             MultiNameResolver resolver = resolverMap.get(ibisName);
             synchronized (resolver) {
                 resolver.notifyAll();
@@ -264,13 +169,14 @@ public class MultiIbis implements Ibis {
 
         // Now create the registry and let the event handlers go
         registry = new MultiRegistry(this);
-        for (String ibisName:registryHandlerMap.keySet()) {
-            MultiRegistryEventHandler handler = registryHandlerMap.get(ibisName);
+        for (String ibisName : registryHandlerMap.keySet()) {
+            MultiRegistryEventHandler handler = registryHandlerMap
+                    .get(ibisName);
             handler.setRegistry(registry);
         }
 
         // Setup management stuff
-        ManageableMapper = new ManageableMapper((Map)subIbisMap);
+        ManageableMapper = new ManageableMapper((Map) subIbisMap);
 
         if (logger.isInfoEnabled()) {
             logger.info("MultiIbis Started with ID: " + id);
@@ -278,18 +184,18 @@ public class MultiIbis implements Ibis {
     }
 
     public synchronized void end() throws IOException {
-        for (Ibis ibis:subIbisMap.values()) {
+        for (Ibis ibis : subIbisMap.values()) {
             ibis.end();
         }
         // Kill all the receive ports
-        for (MultiReceivePort port:receivePortMap.values()) {
+        for (MultiReceivePort port : receivePortMap.values()) {
             try {
                 port.close(100);
             } catch (IOException e) {
                 // Ignore
             }
         }
-        for (MultiSendPort port:sendPortMap.values()) {
+        for (MultiSendPort port : sendPortMap.values()) {
             port.quit(port);
         }
         MultiNameResolver.quit();
@@ -300,7 +206,7 @@ public class MultiIbis implements Ibis {
     }
 
     public synchronized void poll() throws IOException {
-        for (Ibis ibis:subIbisMap.values()) {
+        for (Ibis ibis : subIbisMap.values()) {
             ibis.poll();
         }
     }
@@ -311,7 +217,7 @@ public class MultiIbis implements Ibis {
 
     public synchronized String getVersion() {
         StringBuffer buffer = new StringBuffer("MultiIbis on top of");
-        for (Ibis ibis:subIbisMap.values()) {
+        for (Ibis ibis : subIbisMap.values()) {
             buffer.append(' ');
             buffer.append(ibis.getVersion());
         }
@@ -333,7 +239,7 @@ public class MultiIbis implements Ibis {
 
     public synchronized SendPort createSendPort(PortType portType, String name,
             SendPortDisconnectUpcall cU, Properties props) throws IOException {
-        MultiSendPort port =  new MultiSendPort(portType, this, name, cU, props);
+        MultiSendPort port = new MultiSendPort(portType, this, name, cU, props);
         sendPorts.add(port);
         return port;
     }
@@ -361,15 +267,17 @@ public class MultiIbis implements Ibis {
         return createReceivePort(portType, name, null, cU, null);
     }
 
-    public synchronized ReceivePort createReceivePort(PortType portType, String name,
-            MessageUpcall u, ReceivePortConnectUpcall cU, Properties props)
-            throws IOException {
-        MultiReceivePort port = new MultiReceivePort(portType, this, name, u, cU, props);
+    public synchronized ReceivePort createReceivePort(PortType portType,
+            String name, MessageUpcall u, ReceivePortConnectUpcall cU,
+            Properties props) throws IOException {
+        MultiReceivePort port = new MultiReceivePort(portType, this, name, u,
+                cU, props);
         receivePorts.add(port);
         return port;
     }
 
-    public MultiIbisIdentifier mapIdentifier(IbisIdentifier ibisId, String ibisName) throws IOException {
+    public MultiIbisIdentifier mapIdentifier(IbisIdentifier ibisId,
+            String ibisName) throws IOException {
         MultiIbisIdentifier id = idMap.get(ibisId);
         while (id == null) {
             if (logger.isDebugEnabled()) {
@@ -407,20 +315,21 @@ public class MultiIbis implements Ibis {
         ManageableMapper.setManagementProperty(key, value);
     }
 
-    private final HashMap<SendPortIdentifier, MultiSendPortIdentifier>sendPortIdMap = new HashMap<SendPortIdentifier, MultiSendPortIdentifier>();
+    private final HashMap<SendPortIdentifier, MultiSendPortIdentifier> sendPortIdMap = new HashMap<SendPortIdentifier, MultiSendPortIdentifier>();
 
-    public SendPortIdentifier mapSendPortIdentifier(
-            SendPortIdentifier johnDoe, String ibisName) throws IOException {
+    public SendPortIdentifier mapSendPortIdentifier(SendPortIdentifier johnDoe,
+            String ibisName) throws IOException {
         MultiSendPortIdentifier id = null;
         if (sendPortIdMap.containsKey(johnDoe)) {
             return sendPortIdMap.get(johnDoe);
         }
-        id = new MultiSendPortIdentifier(mapIdentifier(johnDoe.ibisIdentifier(), ibisName), johnDoe.name());
+        id = new MultiSendPortIdentifier(mapIdentifier(
+                johnDoe.ibisIdentifier(), ibisName), johnDoe.name());
         sendPortIdMap.put(johnDoe, id);
         return id;
     }
 
-    private final HashMap<ReceivePortIdentifier, MultiReceivePortIdentifier>receivePortIdMap = new HashMap<ReceivePortIdentifier, MultiReceivePortIdentifier>();
+    private final HashMap<ReceivePortIdentifier, MultiReceivePortIdentifier> receivePortIdMap = new HashMap<ReceivePortIdentifier, MultiReceivePortIdentifier>();
 
     public ReceivePortIdentifier mapReceivePortIdentifier(
             ReceivePortIdentifier johnDoe, String ibisName) throws IOException {
@@ -428,13 +337,14 @@ public class MultiIbis implements Ibis {
         if (receivePortIdMap.containsKey(johnDoe)) {
             return receivePortIdMap.get(johnDoe);
         }
-        id = new MultiReceivePortIdentifier(mapIdentifier(johnDoe.ibisIdentifier(), ibisName), johnDoe.name());
+        id = new MultiReceivePortIdentifier(mapIdentifier(johnDoe
+                .ibisIdentifier(), ibisName), johnDoe.name());
         receivePortIdMap.put(johnDoe, id);
         return id;
     }
 
     public void resolved(MultiIbisIdentifier id) {
-        for (String subIbisName:subIbisMap.keySet()) {
+        for (String subIbisName : subIbisMap.keySet()) {
             IbisIdentifier subId = id.subIdForIbis(subIbisName);
             if (subId != null) {
                 if (logger.isDebugEnabled()) {

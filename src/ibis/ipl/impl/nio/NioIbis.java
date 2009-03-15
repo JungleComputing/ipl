@@ -3,13 +3,14 @@
 package ibis.ipl.impl.nio;
 
 import ibis.ipl.IbisCapabilities;
+import ibis.ipl.IbisStarter;
 import ibis.ipl.MessageUpcall;
 import ibis.ipl.PortType;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.SendPortDisconnectUpcall;
-import ibis.ipl.IbisFactory.ImplementationInfo;
 import ibis.ipl.impl.IbisIdentifier;
+import ibis.ipl.registry.Credentials;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -42,10 +43,10 @@ public final class NioIbis extends ibis.ipl.impl.Ibis {
 
     private SendReceiveThread sendReceiveThread = null;
 
-    public NioIbis(RegistryEventHandler r, IbisCapabilities p, PortType[] types, Properties tp,
-            ImplementationInfo info, Object authenticationObject) {
+    public NioIbis(RegistryEventHandler r, IbisCapabilities p, Credentials credentials,PortType[] types, Properties tp,
+            IbisStarter starter) {
 
-        super(r, p, types, tp, info, authenticationObject);
+        super(r, p, credentials, types, tp, starter);
         properties.checkProperties(prefix, props, null, true);
     }
 

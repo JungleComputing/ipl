@@ -2,16 +2,16 @@
 
 package ibis.ipl;
 
+import ibis.ipl.registry.Credentials;
+
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
+import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.StringTokenizer;
@@ -33,112 +33,6 @@ import java.util.jar.Manifest;
  */
 public final class IbisFactory {
 
-    // START OF ImplementationInfo INNER CLASS
-
-    /**
-     * (Inner Class) Info for an implementation of Ibis. These are created
-     * either from the manifest of a jar file, or the IPL_MANIFEST property file
-     * 
-     * @author Niels Drost
-     * 
-     */
-    public static class ImplementationInfo {
-
-        /**
-         * Class used to start this implementation
-         */
-        private final Class<? extends IbisStarter> starter;
-
-        /**
-         * Short name of this implementation. Usually the network stack it is
-         * based on, e.g. "tcp" or "mpi"
-         */
-        private final String nickName;
-
-        /**
-         * Which version of the IPL does this implementation implement.
-         */
-        private final String iplVersion;
-
-        /**
-         * Version identifier of this implementation. Usually a checksum created
-         * from the class files of the implementation.
-         */
-        private final String implementationVersion;
-
-        public ImplementationInfo(Class<? extends IbisStarter> starter,
-                String nickName, String iplVersion, String implementationVersion) {
-            this.starter = starter;
-            this.nickName = nickName;
-            this.iplVersion = iplVersion;
-            this.implementationVersion = implementationVersion;
-        }
-
-        public IbisStarter createInstance(
-                IbisCapabilities requiredCapabilities, PortType[] portTypes)
-                throws InstantiationException, IllegalAccessException,
-                SecurityException, NoSuchMethodException,
-                IllegalArgumentException, InvocationTargetException {
-            Constructor<?> constructor = starter.getConstructor(
-                    IbisCapabilities.class, PortType[].class,
-                    ImplementationInfo.class);
-            return (IbisStarter) constructor.newInstance(requiredCapabilities,
-                    portTypes, this);
-        }
-
-        public Class<? extends IbisStarter> getStarterClass() {
-            return starter;
-        }
-
-        public String getVersion() {
-            return iplVersion;
-        }
-
-        /**
-         * Class used to start this implementation.
-         * 
-         * @return the starter class
-         */
-        public Class<? extends IbisStarter> getStarter() {
-            return starter;
-        }
-
-        /**
-         * Short name of this implementation. Usually the network stack it is
-         * based on, e.g. "tcp" or "mpi"
-         * 
-         * @return the nickName
-         */
-        public String getNickName() {
-            return nickName;
-        }
-
-        /**
-         * Which version of the IPL does this implementation implement.
-         * 
-         * @return the IPL version
-         */
-        public String getIplVersion() {
-            return iplVersion;
-        }
-
-        /**
-         * Version identifier of this implementation. Usually a checksum created
-         * from the class files of the implementation.
-         * 
-         * @return the implementation version
-         */
-        public String getImplementationVersion() {
-            return implementationVersion;
-        }
-
-        public String toString() {
-            return nickName;
-        }
-    }
-
-    // END OF ImplementationInfo INNER CLASS
-
     private static final String IPL_VERSION_STRING = "Ibis-IPL-Version";
 
     private static final String STARTER_CLASS_STRING = "Ibis-Starter-Class";
@@ -148,6 +42,8 @@ public final class IbisFactory {
     private static final String NICKNAME_STRING = "Ibis-NickName";
 
     public static final String IPL_MANIFEST_FILE = "ibis/ipl/IPL_MANIFEST";
+
+    public static final String DEFAULT_IMPLEMENTATION = "smartsockets";
 
     // Map of factories. One for each implementation path
     private static final Map<String, IbisFactory> factories = new HashMap<String, IbisFactory>();
@@ -179,25 +75,29 @@ public final class IbisFactory {
     /**
      * List of all available implementations
      */
-    private Map<String, ImplementationInfo> implementations;
+    private Map<String, IbisStarter> implementations;
+
+    private IbisFactory() {
+        // DO NOT USE
+    }
 
     /**
      * Constructs an Ibis factory, with the specified search path.
      * 
      * @param implPath
-     *                the path to search for implementations.
+     *            the path to search for implementations.
      */
     private IbisFactory(String implementationPath, Properties properties) {
 
-        implementations = new HashMap<String, ImplementationInfo>();
+        implementations = new HashMap<String, IbisStarter>();
 
         // load implementations from jar path
 
-        loadImplementationsFromJars(implementationPath);
+        loadIbisesFromJars(implementationPath);
 
         // load implementations from manifest property file
 
-        loadImplementationsFromManifestFile();
+        loadIbisesFromManifestFile();
 
         if (implementations.size() == 0) {
             throw new IbisConfigurationException(
@@ -205,26 +105,70 @@ public final class IbisFactory {
         }
     }
 
+    private static boolean isVerbose(Properties properties) {
+        // see if the user specified "verbose"
+        String verboseValue = properties.getProperty(IbisProperties.VERBOSE);
+        return verboseValue != null
+                && (verboseValue.equals("1") || verboseValue.equals("on")
+                        || verboseValue.equals("")
+                        || verboseValue.equals("true") || verboseValue
+                        .equals("yes"));
+    }
+
     /**
      * Creates a new Ibis instance, based on the required capabilities and port
      * types. As the set of properties, the default properties are used.
      * 
      * @param requiredCapabilities
-     *                ibis capabilities required by the application.
+     *            ibis capabilities required by the application.
      * @param registryEventHandler
-     *                a
-     *                {@link ibis.ipl.RegistryEventHandler RegistryEventHandler}
-     *                instance, or <code>null</code>.
+     *            a {@link ibis.ipl.RegistryEventHandler RegistryEventHandler}
+     *            instance, or <code>null</code>.
      * @param portTypes
-     *                the list of port types required by the application.
+     *            the list of port types required by the application.
      * @return the new Ibis instance.
      * 
      * @exception IbisCreationFailedException
-     *                    is thrown when no Ibis was found that matches the
-     *                    capabilities required, or a matching Ibis could not be
-     *                    instantiated for some reason.
+     *                is thrown when no Ibis was found that matches the
+     *                capabilities required, or a matching Ibis could not be
+     *                instantiated for some reason.
      */
     public static Ibis createIbis(IbisCapabilities requiredCapabilities,
+            RegistryEventHandler registryEventHandler, PortType... portTypes)
+            throws IbisCreationFailedException {
+        return createIbis(requiredCapabilities, null, true,
+                registryEventHandler, portTypes);
+    }
+
+    /**
+     * Creates a new Ibis instance, based on the required capabilities and port
+     * types, and using the specified properties.
+     * 
+     * @param requiredCapabilities
+     *            ibis capabilities required by the application.
+     * @param properties
+     *            properties that can be set, for instance a class path for
+     *            searching ibis implementations, or which registry to use.
+     *            There is a default, so <code>null</code> may be specified.
+     * @param addDefaultConfigProperties
+     *            adds the default properties, loaded from the system
+     *            properties, a "ibis.properties" file, etc, for as far as these
+     *            are not set in the <code>properties</code> parameter.
+     * @param registryEventHandler
+     *            a {@link ibis.ipl.RegistryEventHandler RegistryEventHandler}
+     *            instance, or <code>null</code>.
+     * @param portTypes
+     *            the list of port types required by the application. Can be an
+     *            empty list, but not null.
+     * @return the new Ibis instance.
+     * 
+     * @exception IbisCreationFailedException
+     *                is thrown when no Ibis was found that matches the
+     *                capabilities required, or a matching Ibis could not be
+     *                instantiated for some reason.
+     */
+    public static Ibis createIbis(IbisCapabilities requiredCapabilities,
+            Properties properties, boolean addDefaultConfigProperties,
             RegistryEventHandler registryEventHandler, PortType... portTypes)
             throws IbisCreationFailedException {
         return createIbis(requiredCapabilities, null, true,
@@ -236,40 +180,36 @@ public final class IbisFactory {
      * types, and using the specified properties.
      * 
      * @param requiredCapabilities
-     *                ibis capabilities required by the application.
+     *            ibis capabilities required by the application.
      * @param properties
-     *                properties that can be set, for instance a class path for
-     *                searching ibis implementations, or which registry to use.
-     *                There is a default, so <code>null</code> may be
-     *                specified.
+     *            properties that can be set, for instance a class path for
+     *            searching ibis implementations, or which registry to use.
+     *            There is a default, so <code>null</code> may be specified.
      * @param addDefaultConfigProperties
-     *                adds the default properties, loaded from the system
-     *                properties, a "ibis.properties" file, etc, for as far as
-     *                these are not set in the <code>properties</code>
-     *                parameter.
+     *            adds the default properties, loaded from the system
+     *            properties, a "ibis.properties" file, etc, for as far as these
+     *            are not set in the <code>properties</code> parameter.
      * @param registryEventHandler
-     *                a
-     *                {@link ibis.ipl.RegistryEventHandler RegistryEventHandler}
-     *                instance, or <code>null</code>.
-     * @param authenticationObject
-     *                an object which can be used by the registry to
-     *                authenticate this ibis
+     *            a {@link ibis.ipl.RegistryEventHandler RegistryEventHandler}
+     *            instance, or <code>null</code>.
+     * @param credentials
+     *            Credentials used to join the pool. This could be a password, a
+     *            certificate, or something else.
      * @param portTypes
-     *                the list of port types required by the application. Can be
-     *                an empty list, but not null.
+     *            the list of port types required by the application. Can be an
+     *            empty list, but not null.
      * @return the new Ibis instance.
      * 
      * @exception IbisCreationFailedException
-     *                    is thrown when no Ibis was found that matches the
-     *                    capabilities required, or a matching Ibis could not be
-     *                    instantiated for some reason.
+     *                is thrown when no Ibis was found that matches the
+     *                capabilities required, or a matching Ibis could not be
+     *                instantiated for some reason.
      */
     @SuppressWarnings("unchecked")
     public static Ibis createIbis(IbisCapabilities requiredCapabilities,
             Properties properties, boolean addDefaultConfigProperties,
-            RegistryEventHandler registryEventHandler,
-            Object authenticationObject, PortType... portTypes)
-            throws IbisCreationFailedException {
+            RegistryEventHandler registryEventHandler, Credentials credentials,
+            PortType... portTypes) throws IbisCreationFailedException {
 
         Properties combinedProperties = new Properties();
 
@@ -297,135 +237,83 @@ public final class IbisFactory {
 
         String implPath = combinedProperties
                 .getProperty(IbisProperties.IMPLEMENTATION_PATH);
+
+        // get/create factory
         IbisFactory factory = getFactory(implPath, combinedProperties);
 
+        String specifiedImplementation = combinedProperties
+                .getProperty(IbisProperties.IMPLEMENTATION);
+
+        // create the ibis instance
         return factory.createIbis(registryEventHandler, requiredCapabilities,
-                combinedProperties, portTypes, authenticationObject);
+                combinedProperties, credentials, portTypes,
+                specifiedImplementation);
     }
 
-    private List<IbisStarter> findIbisStack(IbisCapabilities capabilities,
-            PortType[] portTypes, List<IbisStarter> selected, String ibisName,
-            IbisCreationFailedException creationException, boolean verbose) {
-
-        IbisCapabilities caps = capabilities;
-        PortType[] types = portTypes;
-        boolean faulty = false;
-
-        ArrayList<IbisStarter> starters = new ArrayList<IbisStarter>();
-
-        for (IbisFactory.ImplementationInfo info : implementations.values()) {
-            if (verbose) {
-                System.err.println("Instantiating " + info);
+    /**
+     * Factory does some initial sanity checks. Port types can only specify a
+     * single connection capability, and must specify a serialization.
+     */
+    private void checkSanity(RegistryEventHandler registryEventHandler,
+            IbisCapabilities capabilities, PortType[] portTypes)
+            throws IbisConfigurationException {
+        for (PortType portType : portTypes) {
+            // Check sanity of port types.
+            int count = 0;
+            if (portType.hasCapability(PortType.CONNECTION_MANY_TO_MANY)) {
+                count++;
             }
-
-            // Try to instantiate the starter.
-            try {
-                starters.add(info.createInstance(caps, types));
-            } catch (Throwable e) {
-                faulty = true;
-                // Oops, could not instantiate starter.
-                if (creationException != null) {
-                    creationException.add(info.getNickName(), e);
-                }
-                if (verbose) {
-                    System.err.println("Could not instantiate "
-                            + info.getNickName() + ": " + e);
-                }
-                continue;
+            if (portType.hasCapability(PortType.CONNECTION_ONE_TO_ONE)) {
+                count++;
             }
-        }
-        if (faulty && creationException != null) {
-            return null;
-        }
-
-        // First try non-stacking Ibis implementations.
-        for (IbisStarter instance : starters) {
-            // If it is selectable, or an Ibis name was specified,
-            // try it.
-            if ((instance.isSelectable() || ibisName != null)
-                    && !instance.isStacking()) {
-                if (verbose) {
-                    System.err.println("Matching with "
-                            + instance.implementationInfo.getNickName());
+            if (portType.hasCapability(PortType.CONNECTION_ONE_TO_MANY)) {
+                count++;
+            }
+            if (portType.hasCapability(PortType.CONNECTION_MANY_TO_ONE)) {
+                count++;
+            }
+            if (count != 1) {
+                throw new IbisConfigurationException("PortType " + portType
+                        + " should specify exactly one connection type");
+            }
+            String[] strings = portType.getCapabilities();
+            boolean serializationSpecified = false;
+            for (String s : strings) {
+                if (s.startsWith(PortType.SERIALIZATION)) {
+                    serializationSpecified = true;
+                    break;
                 }
-                if (instance.matches()) {
-                    selected.add(instance);
-                    if (verbose) {
-                        System.err.println("Class "
-                                + instance.implementationInfo.getNickName()
-                                + " selected");
-                    }
-                    return selected;
-                }
-                // Find out why it did not match.
-                String unmatchedCapabilities = instance
-                        .unmatchedIbisCapabilities().toString();
-                PortType[] unmatchedTypes = instance.unmatchedPortTypes();
-                StringBuffer str = new StringBuffer();
-                str.append("Unmatched IbisCapabilities: ");
-                str.append(unmatchedCapabilities);
-                if (unmatchedTypes.length > 0) {
-                    str.append("\nUnmatched PortTypes: ");
-                    for (PortType tp : unmatchedTypes) {
-                        str.append("    ");
-                        str.append(tp.toString());
-                        str.append("\n");
-                    }
-                } else {
-                    str.append("\n");
-                }
-                if (creationException != null) {
-                    creationException.add(instance.getClass().getName(),
-                            new IbisConfigurationException(str.toString()));
-                }
-
-                if (verbose) {
-                    System.err.println("Class " + instance.getClass().getName()
-                            + " does not match:\n" + str.toString());
-                }
-            } else {
-                if (verbose) {
-                    System.err.println("Class " + instance.getClass().getName()
-                            + " is stacking or not selectable.");
-                }
+            }
+            if (!serializationSpecified) {
+                throw new IbisConfigurationException("Port type " + portType
+                        + " should specify serialization");
             }
         }
 
-        // Now try stacking Ibis implementations.
-        for (IbisStarter instance : starters) {
-            if ((instance.isSelectable() || ibisName != null)
-                    && instance.isStacking() && !selected.contains(instance)
-                    && instance.matches()) {
-                if (verbose) {
-                    System.err.println("Class " + instance.getClass().getName()
-                            + " selected");
-                }
-                List<IbisStarter> newList = new ArrayList<IbisStarter>(selected);
-                newList.add(instance);
-                newList = findIbisStack(new IbisCapabilities(instance
-                        .unmatchedIbisCapabilities()), instance
-                        .unmatchedPortTypes(), newList, null, null, verbose);
-                if (newList != null) {
-                    return newList;
-                }
-                if (creationException != null) {
-                    creationException
-                            .add(
-                                    instance.getClass().toString(),
-                                    new IbisConfigurationException(
-                                            "Could not create valid stack with this ibis on top"));
-                }
-            }
-        }
+        // If a registryEventHandler is specified, the membership capability
+        // must be requested as well.
 
-        return null;
+        if (registryEventHandler != null
+                && !capabilities
+                        .hasCapability(IbisCapabilities.MEMBERSHIP_UNRELIABLE)
+                && !capabilities
+                        .hasCapability(IbisCapabilities.MEMBERSHIP_TOTALLY_ORDERED)) {
+            throw new IbisConfigurationException(
+                    "RegistryEventHandler specified but no "
+                            + " membership capability requested");
+        }
     }
 
     @SuppressWarnings("unchecked")
-    private Ibis createIbis(RegistryEventHandler registryEventHandler,
+    /*
+     * Create an ibis. Should only be used by Ibises to create "child" Ibises.
+     * Users should use the static functions to create an Ibis instance.
+     */
+    public Ibis createIbis(RegistryEventHandler registryEventHandler,
             IbisCapabilities requiredCapabilities, Properties properties,
-            PortType[] portTypes, Object authenticationObject)
-            throws IbisCreationFailedException {
+            Credentials credentials, PortType[] portTypes,
+            String specifiedImplementation) throws IbisCreationFailedException {
+
         if (requiredCapabilities == null) {
             throw new IbisConfigurationException("capabilities not specified");
         }
@@ -434,17 +322,11 @@ public final class IbisFactory {
             throw new IbisConfigurationException("port types not specified");
         }
 
-        String verboseValue = properties.getProperty(IbisProperties.VERBOSE);
-        // see if the user specified "verbose"
-        boolean verbose = verboseValue != null
-                && (verboseValue.equals("1") || verboseValue.equals("on")
-                        || verboseValue.equals("")
-                        || verboseValue.equals("true") || verboseValue
-                        .equals("yes"));
-
-        if (verbose) {
-            System.err.println("Looking for an Ibis with capabilities: "
-                    + requiredCapabilities);
+        // print some info
+        if (isVerbose(properties)) {
+            System.err
+                    .println("Looking for an IPL Implementation with capabilities: "
+                            + requiredCapabilities);
             System.err.println("(ibis) Properties:");
             for (Enumeration e = properties.propertyNames(); e
                     .hasMoreElements();) {
@@ -454,121 +336,127 @@ public final class IbisFactory {
                     System.err.println(key + " = " + value);
                 }
             }
-        }
 
-        String ibisName = properties.getProperty(IbisProperties.IMPLEMENTATION);
-
-        if (ibisName != null) {
-            String[] capabilities = requiredCapabilities.getCapabilities();
-            String[] newCapabilities = new String[capabilities.length + 1];
-            for (int i = 0; i < capabilities.length; i++) {
-                newCapabilities[i] = capabilities[i];
-            }
-            newCapabilities[capabilities.length] = "nickname." + ibisName;
-            capabilities = newCapabilities;
-            requiredCapabilities = new IbisCapabilities(newCapabilities);
-        }
-
-        if (verbose) {
             StringBuffer str = new StringBuffer();
-            str.append("Ibis implementations:");
-            for (ImplementationInfo info : implementations.values()) {
+            str.append("IPL implementations:");
+            for (IbisStarter starter : implementations.values()) {
                 str.append(" ");
-                str.append(info.getNickName());
+                str.append(starter.getNickName());
             }
             System.err.println(str.toString());
         }
 
-        IbisCreationFailedException creationException = new IbisCreationFailedException(
-                "Ibis creation failed");
+        checkSanity(registryEventHandler, requiredCapabilities, portTypes);
 
-        //
-        // Factory does some initial sanity checks.
-        // Port types can only specify a single connection capability,
-        // and must specify a serialization.
+        // we allow users to specify implementations as impl1,impl2,impl3 to
+        // denote a stack of implementations. We take the first part here,
+        // and pass the rest to the ibis we create
+        String specifiedSubImplementation = null;
+        if (specifiedImplementation != null) {
+            String[] parts = specifiedImplementation.split(",", 2);
 
-        boolean faulty = false;
-        for (PortType tp : portTypes) {
-            // Check sanity of port types.
-            int cnt = 0;
-            if (tp.hasCapability(PortType.CONNECTION_MANY_TO_MANY)) {
-                cnt++;
+            specifiedImplementation = parts[0];
+
+            if (parts.length == 2) {
+                specifiedSubImplementation = parts[1];
             }
-            if (tp.hasCapability(PortType.CONNECTION_ONE_TO_ONE)) {
-                cnt++;
+        }
+
+        IbisStarter starter = selectImplementation(requiredCapabilities,
+                portTypes, specifiedImplementation);
+
+        if (isVerbose(properties)) {
+            System.err.println("Selected ipl implementation: "
+                    + starter.getNickName());
+        }
+
+        return starter.startIbis(this, registryEventHandler, properties,
+                requiredCapabilities, credentials, portTypes,
+                specifiedSubImplementation);
+
+    }
+
+    private IbisStarter selectImplementation(
+            IbisCapabilities requiredCapabilities, PortType[] portTypes,
+            String specifiedImplementation) throws IbisCreationFailedException {
+
+        // The user specified an implementation. Try to find it, and see if it
+        // matches the requirements
+        if (specifiedImplementation != null) {
+            IbisStarter starter = implementations.get(specifiedImplementation);
+
+            if (starter == null) {
+                throw new IbisCreationFailedException(
+                        "User specified implementation \""
+                                + specifiedImplementation
+                                + "\" cannot be found");
             }
-            if (tp.hasCapability(PortType.CONNECTION_ONE_TO_MANY)) {
-                cnt++;
-            }
-            if (tp.hasCapability(PortType.CONNECTION_MANY_TO_ONE)) {
-                cnt++;
-            }
-            if (cnt != 1) {
-                creationException
-                        .add(
-                                "Ibis factory",
-                                new IbisConfigurationException(
-                                        "PortType "
-                                                + tp
-                                                + " should specify exactly one connection type"));
-                faulty = true;
-            }
-            String[] caps = tp.getCapabilities();
-            boolean ok = false;
-            for (String s : caps) {
-                if (s.startsWith(PortType.SERIALIZATION)) {
-                    ok = true;
-                    break;
+
+            if (!starter.matches(requiredCapabilities, portTypes)) {
+                CapabilitySet unmatchedCapabilities = starter
+                        .unmatchedIbisCapabilities(requiredCapabilities,
+                                portTypes);
+                PortType[] remainingPortTypes = starter.unmatchedPortTypes(
+                        requiredCapabilities, portTypes);
+
+                String portTypeString = "";
+                for (PortType portType : remainingPortTypes) {
+                    portTypeString = portTypeString + " " + portType;
                 }
+
+                throw new IbisCreationFailedException(
+                        "User specified implementation \""
+                                + specifiedImplementation
+                                + "\" does not fulfill specified requirements. Unmatched capabilities = "
+                                + unmatchedCapabilities
+                                + ", Unmatched port-types = " + portTypeString);
             }
-            if (!ok) {
-                creationException.add("Ibis factory",
-                        new IbisConfigurationException("Port type " + tp
-                                + " should specify serialization"));
-                faulty = true;
+
+            return starter;
+        }
+
+        // auto detect implementation
+
+        // find all matching implementations
+        ArrayList<IbisStarter> matchingIbises = new ArrayList<IbisStarter>();
+        for (IbisStarter starter : implementations.values()) {
+            if (starter.matches(requiredCapabilities, portTypes)) {
+                matchingIbises.add(starter);
             }
         }
 
-        // If a registryEventHandler is specified, the membership capability
-        // must be requested as well.
-
-        if (registryEventHandler != null
-                && !requiredCapabilities
-                        .hasCapability(IbisCapabilities.MEMBERSHIP_UNRELIABLE)
-                && !requiredCapabilities
-                        .hasCapability(IbisCapabilities.MEMBERSHIP_TOTALLY_ORDERED)) {
-            creationException.add("Ibis factory",
-                    new IbisConfigurationException(
-                            "RegistryEventHandler specified but no "
-                                    + " membership capability requested"));
-            faulty = true;
+        // if no implementations match, throw an error
+        if (matchingIbises.size() == 0) {
+            throw new IbisCreationFailedException(
+                    "Cannot find Ibis Implementation matching requirements");
         }
 
-        if (faulty) {
-            // There is some error in the user-specified capabilities or
-            // port types.
-            throw creationException;
+        // if only one implementation matches, use that one
+        if (matchingIbises.size() == 1) {
+            return matchingIbises.get(0);
         }
 
-        List<IbisStarter> stack = findIbisStack(requiredCapabilities,
-                portTypes, new ArrayList<IbisStarter>(), ibisName,
-                creationException, verbose);
-
-        if (stack == null) {
-            creationException.add("Ibis factory",
-                    new IbisConfigurationException("No matching Ibis found"));
-            throw creationException;
+        // if multiple implementation match, return the default implementation
+        for (IbisStarter starter : matchingIbises) {
+            if (starter.getNickName().equals(DEFAULT_IMPLEMENTATION)) {
+                return starter;
+            }
         }
 
-        IbisStarter starter = stack.remove(0);
+        // default not found in possible choices, we give up...
 
-        try {
-            return starter.startIbis(stack, registryEventHandler, properties, authenticationObject);
-        } catch (Throwable e) {
-            creationException.add("" + starter.implementationInfo.getNickName()
-                    + " gave exception ", e);
-            throw creationException;
+        String possibilities = "";
+        for (IbisStarter starter : matchingIbises) {
+            possibilities = possibilities + " " + starter.getNickName();
         }
+
+        throw new IbisCreationFailedException(
+                "Multiple ibis implementations matchs requirements, but the default implementation (\""
+                        + DEFAULT_IMPLEMENTATION
+                        + "\") is not in list of possibilities: \""
+                        + possibilities
+                        + "\", please select an ibis manually with the \""
+                        + IbisProperties.IMPLEMENTATION + "\" property");
     }
 
     /**
@@ -626,11 +514,8 @@ public final class IbisFactory {
         return result.toArray(new JarFile[0]);
     }
 
-    @SuppressWarnings("unchecked")
-    private static ImplementationInfo loadInfoFromJar(JarFile jar,
+    private static IbisStarter loadIbisFromJar(JarFile jar,
             ClassLoader classLoader) {
-
-        System.err.println("Loading implementation from " + jar.getName());
 
         try {
             Manifest manifest = jar.getManifest();
@@ -649,9 +534,8 @@ public final class IbisFactory {
                 return null;
             }
 
-            return new ImplementationInfo((Class<? extends IbisStarter>) Class
-                    .forName(starterClass, false, classLoader), nickName,
-                    iplVersion, implementationVersion);
+            return IbisStarter.createInstance(starterClass, classLoader,
+                    nickName, iplVersion, implementationVersion);
         } catch (Exception e) {
             System.err.println("Could not load ibis from jar: " + jar.getName()
                     + ": " + e);
@@ -659,7 +543,7 @@ public final class IbisFactory {
         }
     }
 
-    private void loadImplementationsFromJars(String implementationPath) {
+    private void loadIbisesFromJars(String implementationPath) {
         JarFile[] jarFiles;
 
         if (implementationPath == null) {
@@ -684,16 +568,58 @@ public final class IbisFactory {
                 .getClassLoader());
 
         for (int i = 0; i < jarFiles.length; i++) {
-            ImplementationInfo info = loadInfoFromJar(jarFiles[i], classLoader);
+            IbisStarter starter = loadIbisFromJar(jarFiles[i], classLoader);
 
-            if (info != null) {
-                implementations.put(info.getNickName(), info);
+            if (starter != null) {
+                implementations.put(starter.getNickName(), starter);
             }
         }
     }
 
-    private void loadImplementationsFromManifestFile() {
+    private void loadIbisesFromManifestFile() {
+        try {
+            // Load properties from the classpath
+            ClassLoader classLoader = ClassLoader.getSystemClassLoader();
+            InputStream inputStream = classLoader
+                    .getResourceAsStream(IPL_MANIFEST_FILE);
 
+            Properties properties = new Properties();
+
+            properties.load(inputStream);
+
+            String nickNames = properties.getProperty("implementations");
+
+            for (String nickName : nickNames.split(",")) {
+                if (implementations.containsKey(nickName)) {
+                    // we already have this implementation, skip
+                    continue;
+                }
+
+                String iplVersion = properties.getProperty(nickName
+                        + ".ipl.version", null);
+                String implementationVersion = properties.getProperty(nickName
+                        + ".version", null);
+                String starterClass = properties.getProperty(nickName
+                        + ".starter.class", null);
+
+                if (iplVersion == null || !iplVersion.startsWith(VERSION)
+                        || implementationVersion == null || nickName == null
+                        || starterClass == null) {
+                    continue;
+                }
+
+                IbisStarter starter = IbisStarter.createInstance(starterClass,
+                        classLoader, nickName, iplVersion,
+                        implementationVersion);
+
+                if (starter != null) {
+                    implementations.put(nickName, starter);
+                }
+            }
+        } catch (Throwable t) {
+            System.err
+                    .println("Warning: could not load implementation from manifest property file: "
+                            + t);
+        }
     }
-
 }

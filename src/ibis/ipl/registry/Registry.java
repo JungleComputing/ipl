@@ -59,9 +59,9 @@ public abstract class Registry implements ibis.ipl.Registry {
      *                    can be any exception resulting from looking up the
      *                    registry constructor or the invocation attempt.
      */
-    public static Registry createRegistry(IbisCapabilities caps,
+    public static Registry createRegistry(IbisCapabilities capabilities,
             RegistryEventHandler handler, Properties properties, byte[] data,
-            byte[] version, Object authenticationObject) throws Throwable {
+            byte[] version, Credentials credentials) throws Throwable {
 
         String registryName = properties
                 .getProperty(IbisProperties.REGISTRY_IMPLEMENTATION);
@@ -72,12 +72,12 @@ public abstract class Registry implements ibis.ipl.Registry {
                     + "  is not set.");
         } else if (registryName.equalsIgnoreCase("central")) {
             // shorthand for central registry
-            return new ibis.ipl.registry.central.client.Registry(caps, handler,
-                    properties, data, version, authenticationObject);
+            return new ibis.ipl.registry.central.client.Registry(capabilities, handler,
+                    properties, data, version, credentials);
         } else if (registryName.equalsIgnoreCase("gossip")) {
             // shorthand for gossip registry
-            return new ibis.ipl.registry.gossip.Registry(caps, handler,
-                    properties, data, version, authenticationObject);
+            return new ibis.ipl.registry.gossip.Registry(capabilities, handler,
+                    properties, data, version, credentials);
         }
 
         Class<?> c = Class.forName(registryName);
@@ -86,8 +86,8 @@ public abstract class Registry implements ibis.ipl.Registry {
             return (Registry) c.getConstructor(
                     new Class[] { IbisCapabilities.class,
                             RegistryEventHandler.class, Properties.class,
-                            byte[].class, byte[].class, Object.class }).newInstance(
-                    new Object[] { caps, handler, properties, data, version, authenticationObject });
+                            byte[].class, byte[].class, Credentials.class }).newInstance(
+                    new Object[] { capabilities, handler, properties, data, version, credentials});
         } catch (java.lang.reflect.InvocationTargetException e) {
             throw e.getCause();
         }

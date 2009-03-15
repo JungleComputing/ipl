@@ -8,12 +8,12 @@
 
     <property name="ibis" location=".." />
 
-    <property name="version" value="" />
+    <property name="version-tag" value="" />
 
     <property name="src" location="src" />
     <property name="tmp" location="tmp" />
     <property name="lib" location="lib" />
-    <property name="jar" location="lib/ipl-examples${version}.jar" />
+    <property name="jar" location="lib/ipl-examples${version-tag}.jar" />
 
     <target name="build" description="build the examples">
         <!-- Clean up -->

@@ -8,6 +8,7 @@ import ibis.ipl.RegistryEventHandler;
 
 import ibis.ipl.impl.IbisIdentifier;
 import ibis.ipl.impl.Location;
+import ibis.ipl.registry.Credentials;
 import ibis.ipl.registry.statistics.Statistics;
 
 import ibis.util.ThreadPool;
@@ -79,8 +80,8 @@ public class Registry extends ibis.ipl.registry.Registry implements Runnable {
      */
     public Registry(IbisCapabilities capabilities,
             RegistryEventHandler eventHandler, Properties userProperties,
-            byte[] ibisData, byte[] implementationVersion,
-            Object authenticationObject)
+            byte[] ibisData, byte[] implementationVersion, Credentials credentials
+            )
             throws IbisConfigurationException, IOException,
             IbisConfigurationException {
         this.capabilities = capabilities;

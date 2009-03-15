@@ -70,7 +70,7 @@ public interface RegistryEventHandler {
      * result of a call by the application. How the receiver of this upcall
      * reacts to this is up to the application.
      * 
-     * @experimental
+     * @ibis.experimental
      * 
      * @param signal
      *            the value of the signal supplied by the user.
@@ -99,7 +99,7 @@ public interface RegistryEventHandler {
      * @param source
      *            Ibis which terminated the pool.
      * 
-     * @experimental
+     * @ibis.experimental
      */
     public void poolTerminated(IbisIdentifier source);
 

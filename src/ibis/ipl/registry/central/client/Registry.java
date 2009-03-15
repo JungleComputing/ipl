@@ -5,6 +5,7 @@ import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.NoSuchPropertyException;
 import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.impl.IbisIdentifier;
+import ibis.ipl.registry.Credentials;
 import ibis.ipl.registry.RemoteException;
 import ibis.ipl.registry.central.Event;
 import ibis.ipl.registry.central.Protocol;
@@ -74,7 +75,7 @@ public final class Registry extends ibis.ipl.registry.Registry
      * @param authenticationObject 
      * @param ibisImplementationIdentifier
      *            the identification of this ibis implementation, including
-     *            version, class and such. Must be identical for all ibisses in
+     *            version, class and such. Must be identical for all ibises in
      *            a single pool.
      * @throws IOException
      *             in case of trouble.
@@ -83,7 +84,7 @@ public final class Registry extends ibis.ipl.registry.Registry
      */
     public Registry(IbisCapabilities capabilities,
             RegistryEventHandler eventHandler, Properties userProperties,
-            byte[] data, byte[] implementationVersion, Object authenticationObject)
+            byte[] data, byte[] implementationVersion, Credentials credentials)
             throws IbisConfigurationException, IOException {
         logger.debug("creating central registry");
 
@@ -138,7 +139,7 @@ public final class Registry extends ibis.ipl.registry.Registry
                     statistics);
 
             identifier = communicationHandler.join(data,
-                    implementationVersion, authenticationObject);
+                    implementationVersion, credentials);
 
             communicationHandler.bootstrap();
 

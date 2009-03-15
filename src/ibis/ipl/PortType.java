@@ -24,7 +24,7 @@ public final class PortType extends CapabilitySet {
     final static String COMMUNICATION = "communication";
 
     /**
-     * This capability describes that a sendport can have at most onw
+     * This capability describes that a sendport can have at most one
      * outgoing connection, and a receiveport can have at most one incoming
      * connection.
      */
@@ -70,7 +70,7 @@ public final class PortType extends CapabilitySet {
      * Lightweight connections are cheaper to create and often uses less kernel 
      * resources. On the downside, they are likely to have a higher latency and 
      * lower throughput.  
-     * @experimental
+     * @ibis.experimental
      */
     public final static String CONNECTION_LIGHT = CONNECTION + ".light";
 
@@ -79,7 +79,7 @@ public final class PortType extends CapabilitySet {
      * These connections are even cheaper to create and maintain than lightweight 
      * connections. They are not reliable, however, and can not be combined with 
      * connection ip/downcalls. In addition, a maximum message size may be imposed.
-     * @experimental
+     * @ibis.experimental
      */
     public final static String CONNECTION_ULTRALIGHT = CONNECTION + ".ultralight";
     
@@ -88,7 +88,7 @@ public final class PortType extends CapabilitySet {
      * This prevents ibis from using any connection setup scheme that does not 
      * result in a direct connection between the two machines. Note that using 
      * this option may severly restric the connectivity of an ibis instance. 
-     * @experimental 
+     * @ibis.experimental 
      */
     public final static String CONNECTION_DIRECT = CONNECTION + ".direct";
     

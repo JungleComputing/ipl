@@ -1,5 +1,6 @@
 package ibis.ipl.server;
 
+import ibis.ipl.registry.ControlPolicy;
 import ibis.ipl.registry.central.server.CentralRegistryService;
 import ibis.ipl.registry.gossip.BootstrapService;
 import ibis.smartsockets.SmartSocketsProperties;

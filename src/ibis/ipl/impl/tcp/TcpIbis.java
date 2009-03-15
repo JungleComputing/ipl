@@ -9,17 +9,18 @@ import ibis.ipl.CapabilitySet;
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.IbisCapabilities;
+import ibis.ipl.IbisStarter;
 import ibis.ipl.MessageUpcall;
 import ibis.ipl.PortMismatchException;
 import ibis.ipl.PortType;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.SendPortDisconnectUpcall;
-import ibis.ipl.IbisFactory.ImplementationInfo;
 import ibis.ipl.impl.IbisIdentifier;
 import ibis.ipl.impl.ReceivePort;
 import ibis.ipl.impl.SendPort;
 import ibis.ipl.impl.SendPortIdentifier;
+import ibis.ipl.registry.Credentials;
 import ibis.util.ThreadPool;
 
 import java.io.DataInputStream;
@@ -50,11 +51,10 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis implements Runnable,
     private HashMap<ibis.ipl.IbisIdentifier, IbisSocketAddress> addresses = new HashMap<ibis.ipl.IbisIdentifier, IbisSocketAddress>();
 
     public TcpIbis(RegistryEventHandler registryEventHandler,
-            IbisCapabilities capabilities, PortType[] types,
-            Properties userProperties, ImplementationInfo info,
-            Object authenticationObject) {
-        super(registryEventHandler, capabilities, types, userProperties, info,
-                authenticationObject);
+            IbisCapabilities capabilities, Credentials credentials,
+            PortType[] types, Properties userProperties, IbisStarter starter) {
+        super(registryEventHandler, capabilities, credentials, types,
+                userProperties, starter);
 
         this.properties.checkProperties("ibis.ipl.impl.tcp.",
                 new String[] { "ibis.ipl.impl.tcp.smartsockets" }, null, true);

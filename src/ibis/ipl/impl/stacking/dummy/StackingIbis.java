@@ -1,15 +1,20 @@
 package ibis.ipl.impl.stacking.dummy;
 
 import ibis.ipl.Ibis;
+import ibis.ipl.IbisCapabilities;
+import ibis.ipl.IbisCreationFailedException;
+import ibis.ipl.IbisFactory;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.MessageUpcall;
 import ibis.ipl.NoSuchPropertyException;
 import ibis.ipl.PortType;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortConnectUpcall;
+import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.SendPort;
 import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.ipl.Registry;
+import ibis.ipl.registry.Credentials;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -20,8 +25,16 @@ public class StackingIbis implements Ibis {
 
     Ibis base;
 
-    StackingIbis(Ibis base) {
-        this.base = base;
+    public StackingIbis(IbisFactory factory,
+            RegistryEventHandler registryEventHandler,
+            Properties userProperties, IbisCapabilities capabilities,
+            Credentials credentials, PortType[] portTypes,
+            String specifiedSubImplementation,
+            StackingIbisStarter stackingIbisStarter)
+            throws IbisCreationFailedException {
+        base = factory.createIbis(registryEventHandler, capabilities,
+                userProperties, credentials, portTypes,
+                specifiedSubImplementation);
     }
 
     public void end() throws IOException {
@@ -29,7 +42,8 @@ public class StackingIbis implements Ibis {
     }
 
     public Registry registry() {
-        // return new ibis.ipl.impl.registry.ForwardingRegistry(base.registry());
+        // return new
+        // ibis.ipl.impl.registry.ForwardingRegistry(base.registry());
         return base.registry();
     }
 
@@ -44,14 +58,14 @@ public class StackingIbis implements Ibis {
 
     public void setManagementProperties(Map<String, String> properties)
             throws NoSuchPropertyException {
-        base.setManagementProperties(properties);      
+        base.setManagementProperties(properties);
     }
 
     public void setManagementProperty(String key, String val)
             throws NoSuchPropertyException {
         base.setManagementProperty(key, val);
     }
-    
+
     public void printManagementProperties(PrintStream stream) {
         base.printManagementProperties(stream);
     }
@@ -76,7 +90,7 @@ public class StackingIbis implements Ibis {
         return createSendPort(portType, null, null, null);
     }
 
-    public SendPort createSendPort(PortType portType, String name) 
+    public SendPort createSendPort(PortType portType, String name)
             throws IOException {
         return createSendPort(portType, name, null, null);
     }
@@ -106,7 +120,5 @@ public class StackingIbis implements Ibis {
             throws IOException {
         return new StackingReceivePort(portType, this, name, u, cU, props);
     }
-
- 
 
 }

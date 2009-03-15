@@ -10,10 +10,10 @@
     <property name="javadoc" location="../javadoc/util" />
     <property name="sources" value="../sources" />
 
-    <property name="version" value="-2.1" />
+    <property name="version-tag" value="" />
 
-    <property name="jar" location="${lib}/${ant.project.name}${version}.jar" />
-    <property name="sources-filename" value="${ant.project.name}${version}" />
+    <property name="jar" location="${lib}/${ant.project.name}${version-tag}.jar" />
+    <property name="sources-filename" value="${ant.project.name}${version-tag}" />
 
     <path id="external_jars">
 	<fileset dir="${lib}">

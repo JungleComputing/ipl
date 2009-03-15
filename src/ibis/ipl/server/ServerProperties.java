@@ -48,7 +48,7 @@ public final class ServerProperties {
             TypedProperties properties = new TypedProperties();
             properties.loadFromClassPath(IbisFactory.IPL_MANIFEST_FILE);
 
-            version = properties.getProperty("support.implementation.version");
+            version = properties.getProperty("support.version");
         }
 
         if (version == null) {

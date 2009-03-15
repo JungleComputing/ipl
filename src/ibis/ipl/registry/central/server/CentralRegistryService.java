@@ -1,7 +1,7 @@
 package ibis.ipl.registry.central.server;
 
+import ibis.ipl.registry.ControlPolicy;
 import ibis.ipl.registry.central.RegistryProperties;
-import ibis.ipl.server.ControlPolicy;
 import ibis.ipl.server.ServerProperties;
 import ibis.ipl.server.Service;
 import ibis.smartsockets.virtual.VirtualSocketFactory;
