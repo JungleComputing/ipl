@@ -1,5 +1,8 @@
 package ibis.ipl.server;
 
+import ibis.ipl.IbisIdentifier;
+import ibis.ipl.management.AttributeDescription;
+import ibis.ipl.management.ManagementService;
 import ibis.ipl.registry.ControlPolicy;
 import ibis.ipl.registry.central.server.CentralRegistryService;
 import ibis.ipl.registry.gossip.BootstrapService;
@@ -15,6 +18,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -38,23 +42,24 @@ public final class Server {
     private final Hub hub;
 
     private final DirectSocketAddress address;
-    
+
     private final CentralRegistryService registryService;
-    
+
     private final BootstrapService bootstrapService;
 
-    //services specified by user (either in jars or loaded over the network)
+    private final ManagementService managementService;
+
+    // services specified by user (either in jars or loaded over the network)
     private final Map<String, Service> services;
 
     private final boolean hubOnly;
 
     private final boolean remote;
 
-    
     public Server(Properties properties) throws Exception {
         this(properties, null);
     }
-    
+
     /**
      * Create a server with the given server properties
      */
@@ -111,14 +116,15 @@ public final class Server {
             hub = new Hub(smartProperties);
 
             address = hub.getHubAddress();
-            
+
             registryService = null;
             bootstrapService = null;
+            managementService = null;
 
         } else {
-            
-            //create server socket 
-            
+
+            // create server socket
+
             hub = null;
 
             smartProperties.put(SmartSocketsProperties.PORT_RANGE,
@@ -133,7 +139,7 @@ public final class Server {
             virtualSocketFactory = VirtualSocketFactory.createSocketFactory(
                     smartProperties, true);
             address = virtualSocketFactory.getLocalHost();
-            
+
             try {
                 ServiceLink sl = virtualSocketFactory.getServiceLink();
                 if (sl != null) {
@@ -146,15 +152,21 @@ public final class Server {
             } catch (Throwable e) {
                 logger.warn("could not register smartsockets viz property", e);
             }
-            
+
             // create default services
-            
-            registryService = new CentralRegistryService(typedProperties, virtualSocketFactory, policy);
+
+            registryService = new CentralRegistryService(typedProperties,
+                    virtualSocketFactory, policy);
             services.put(registryService.getServiceName(), registryService);
-            
-            bootstrapService = new BootstrapService(typedProperties, virtualSocketFactory);
+
+            bootstrapService = new BootstrapService(typedProperties,
+                    virtualSocketFactory);
             services.put(bootstrapService.getServiceName(), bootstrapService);
-            
+
+            managementService = new ManagementService(typedProperties,
+                    virtualSocketFactory);
+            services.put(managementService.getServiceName(), managementService);
+
             // create user specified services
 
             ClassLister classLister = ClassLister.getClassLister(null);
@@ -201,13 +213,17 @@ public final class Server {
             }
         }
     }
-    
+
     public CentralRegistryService getRegistryService() {
         return registryService;
     }
-    
+
     public BootstrapService getBootstrapService() {
         return bootstrapService;
+    }
+
+    public ManagementService getManagementService() {
+        return managementService;
     }
 
     /**
@@ -287,8 +303,8 @@ public final class Server {
      * Stops all services. May wait until the services are idle.
      * 
      * @param timeout
-     *                timeout for ending all services in Milliseconds. 0 == wait
-     *                forever, -1 == no not wait.
+     *            timeout for ending all services in Milliseconds. 0 == wait
+     *            forever, -1 == no not wait.
      */
     public void end(long timeout) {
         long deadline = System.currentTimeMillis() + timeout;
@@ -405,7 +421,7 @@ public final class Server {
                 System.exit(1);
             }
         }
-       
+
         Server server = null;
         try {
             server = new Server(properties);

@@ -5,6 +5,7 @@ import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.IbisProperties;
 import ibis.ipl.impl.IbisIdentifier;
 import ibis.ipl.impl.Location;
+import ibis.ipl.management.AttributeDescription;
 import ibis.ipl.registry.Connection;
 import ibis.ipl.registry.Credentials;
 import ibis.ipl.registry.central.Event;
@@ -22,8 +23,17 @@ import ibis.util.ThreadPool;
 import ibis.util.TypedProperties;
 
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+
+import javax.management.AttributeNotFoundException;
+import javax.management.InstanceNotFoundException;
+import javax.management.MBeanException;
+import javax.management.MBeanServer;
+import javax.management.MalformedObjectNameException;
+import javax.management.ObjectName;
+import javax.management.ReflectionException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -171,7 +181,7 @@ final class CommunicationHandler implements Runnable {
      * this Ibis and some bootstrap information
      * 
      * @throws IOException
-     *                 in case of trouble
+     *             in case of trouble
      */
     IbisIdentifier join(byte[] implementationData,
             byte[] implementationVersion, Credentials credentials)
@@ -250,12 +260,11 @@ final class CommunicationHandler implements Runnable {
             connection.out().writeBoolean(keepStatistics);
             connection.out().writeLong(statisticsInterval);
             connection.out().writeBoolean(purgeHistory);
-            
-            
+
             byte[] credentialBytes = Conversion.object2byte(credentials);
             connection.out().writeInt(credentialBytes.length);
             connection.out().write(credentialBytes);
-            
+
             logger.debug("reading join result info from server");
 
             connection.getAndCheckReply();
@@ -569,7 +578,7 @@ final class CommunicationHandler implements Runnable {
      * still alive
      * 
      * @throws IOException
-     *                 in case of trouble
+     *             in case of trouble
      */
     void sendHeartBeat() {
         long start = System.currentTimeMillis();
@@ -1024,6 +1033,7 @@ final class CommunicationHandler implements Runnable {
                     + pool.getName());
             connection.closeWithError("wrong pool: " + poolName
                     + " instead of " + pool.getName());
+            return;
         }
 
         if (!pool.isInitialized()) {
@@ -1035,6 +1045,47 @@ final class CommunicationHandler implements Runnable {
 
         pool.writeState(connection.out(), joinTime);
 
+        connection.out().flush();
+        connection.close();
+    }
+
+    private void handleGetMonitorInfo(Connection connection) throws IOException {
+        int length = connection.in().readInt();
+
+        if (length < 0) {
+            connection.closeWithError("End of stream on reading request");
+            return;
+        }
+
+        AttributeDescription[] descriptions = new AttributeDescription[length];
+        
+        for(int i = 0; i < descriptions.length; i++) {
+            descriptions[i] = new AttributeDescription(connection.in().readUTF(), connection.in().readUTF());
+        }
+        
+        Object[] result = new Object[descriptions.length];
+
+        MBeanServer beanServer = ManagementFactory.getPlatformMBeanServer();
+
+        for (int i = 0; i < descriptions.length; i++) {
+            try {
+                ObjectName objectName = new ObjectName(descriptions[i]
+                        .getBeanName());
+
+                result[i] = beanServer.getAttribute(objectName, descriptions[i]
+                        .getAttribute());
+            } catch (Throwable t) {
+                connection.closeWithError("cannot get value for attribute \""
+                        + descriptions[i].getAttribute() + "\" of bean \""
+                        + descriptions[i].getBeanName() + "\"");
+            }
+        }
+        
+        connection.sendOKReply();
+        
+        byte[] bytes = Conversion.object2byte(result);
+        connection.out().writeInt(bytes.length);
+        connection.out().write(bytes);
         connection.out().flush();
         connection.close();
     }
@@ -1124,6 +1175,9 @@ final class CommunicationHandler implements Runnable {
             case Protocol.OPCODE_GET_STATE:
                 handleGetState(connection);
                 break;
+            case Protocol.OPCODE_GET_MONITOR_INFO:
+                handleGetMonitorInfo(connection);
+                break;
             default:
                 logger.error("unknown opcode in request: " + opcode);
             }
@@ -1134,7 +1188,7 @@ final class CommunicationHandler implements Runnable {
                 statistics.add(opcode, end - start, connection.read(),
                         connection.written(), true);
             }
-        } catch (IOException e) {
+        } catch (Throwable e) {
             logger.error("error on handling request", e);
         } finally {
             connection.close();

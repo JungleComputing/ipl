@@ -1,6 +1,8 @@
 package ibis.ipl.registry.central.server;
 
+import ibis.ipl.IbisIdentifier;
 import ibis.ipl.registry.ControlPolicy;
+import ibis.ipl.registry.central.Member;
 import ibis.ipl.registry.central.RegistryProperties;
 import ibis.ipl.server.ServerProperties;
 import ibis.ipl.server.Service;
@@ -199,6 +201,24 @@ public final class CentralRegistryService extends Thread implements Service {
 
         result.put("pool.names", poolNames);
 
+        return result;
+    }
+    
+    public IbisIdentifier[] getMembers(String poolName) {
+        Pool pool = getPool(poolName);
+        
+        if (pool == null) {
+            return null;
+        }
+        
+        Member[] members = pool.getMembers();
+        
+        IbisIdentifier[] result = new IbisIdentifier[members.length];
+        
+        for(int i = 0; i < members.length; i++) {
+            result[i] = members[i].getIbis();
+        }
+        
         return result;
     }
 

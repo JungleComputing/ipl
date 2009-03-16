@@ -48,5 +48,5 @@ public final class Protocol {
     public static final String[] OPCODE_NAMES = { "JOIN", "LEAVE", "GOSSIP",
             "ELECT", "SEQUENCE_NR", "DEAD", "MAYBE_DEAD", "SIGNAL", "PING",
             "PUSH", "BROADCAST", "FORWARD", "GET_STATE", "HEARTBEAT",
-            "TERMINATE", "GET_STATS", "GET_LOCATIONS" };
+            "TERMINATE", "GET_STATS", "GET_LOCATIONS", "GET_MONITOR_INFO" };
 }

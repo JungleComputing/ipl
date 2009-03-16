@@ -876,67 +876,6 @@ final class Pool implements Runnable {
         return members.asArray();
     }
 
-    @SuppressWarnings("unchecked")
-    private Map<String, Map<String, Object>> getMonitorInfo(Member member,
-            String[] beans, String[] attributes) {
-        try {
-            Connection connection = new Connection(member.getIbis(),
-                    CONNECT_TIMEOUT, false, socketFactory);
-            connection.out().writeByte(Protocol.MAGIC_BYTE);
-            connection.out().writeByte(Protocol.OPCODE_GET_MONITOR_INFO);
-
-            connection.out().writeInt(beans.length);
-            for (int i = 0; i < beans.length; i++) {
-                connection.out().writeUTF(beans[i]);
-                connection.out().writeUTF(attributes[i]);
-            }
-
-            connection.getAndCheckReply();
-
-            ObjectInputStream in = new ObjectInputStream(connection.in());
-
-            Map<String, Map<String, Object>> result = (Map<String, Map<String, Object>>) in
-                    .readObject();
-
-            in.close();
-
-            return result;
-
-        } catch (Exception e) {
-            logger.warn("Could not get monitor info for ", member);
-            return null;
-        }
-    }
-
-    /**
-     * Get monitor info for the given attributes of the given MBeans of all
-     * nodes in the pool.
-     * 
-     * @param beans
-     *            List of MBeans
-     * @param attributes
-     *            List of Attributes
-     * @return Map of MBean attributes.
-     * 
-     */
-    Map<IbisIdentifier, Map<String, Map<String, Object>>> getMonitorInfo(
-            String[] beans, String[] attributes) {
-        Map<IbisIdentifier, Map<String, Map<String, Object>>> result = new HashMap<IbisIdentifier, Map<String, Map<String, Object>>>();
-
-        Member[] members = getMembers();
-
-        for (Member member : members) {
-            Map<String, Map<String, Object>> info = getMonitorInfo(member,
-                beans, attributes);
-
-            if (info != null) {
-                result.put(member.getIbis(), info);
-            }
-        }
-
-        return result;
-    }
-
     /**
      * Returns the children of the root node
      */
