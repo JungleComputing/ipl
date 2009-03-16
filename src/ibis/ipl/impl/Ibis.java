@@ -160,7 +160,7 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
         sendPorts = new HashMap<String, SendPort>();
 
         try {
-            registry = Registry.createRegistry(capabilities, registryHandler,
+            registry = Registry.createRegistry(this.capabilities, registryHandler,
                 properties, getData(), getImplementationVersion(), credentials);
         } catch (IbisConfigurationException e) {
             throw e;

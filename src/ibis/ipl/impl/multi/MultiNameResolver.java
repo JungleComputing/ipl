@@ -39,12 +39,12 @@ public  class MultiNameResolver {
         this.ibisName = ibisName;
         ibis.resolverMap.put(ibisName, this);
         Ibis subIbis = ibis.subIbisMap.get(ibisName);
-        requestListenPort = subIbis.createReceivePort(ibis.resolvePortType, resolvePortName);
+        requestListenPort = subIbis.createReceivePort(MultiIbis.resolvePortType, resolvePortName);
         requestListenPort.enableConnections();
-        replyListenPort = subIbis.createReceivePort(ibis.resolvePortType, replyPortName);
+        replyListenPort = subIbis.createReceivePort(MultiIbis.resolvePortType, replyPortName);
         replyListenPort.enableConnections();
-        replyPort = subIbis.createSendPort(ibis.resolvePortType);
-        requestPort = subIbis.createSendPort(ibis.resolvePortType);
+        replyPort = subIbis.createSendPort(MultiIbis.resolvePortType);
+        requestPort = subIbis.createSendPort(MultiIbis.resolvePortType);
         if (logger.isDebugEnabled()) {
             logger.debug("Started MultiNameResolver for: " + ibisName);
         }
