@@ -16,7 +16,7 @@
     <property name="sources-filename" value="${ant.project.name}${version-tag}" />
 
     <path id="external_jars">
-	<fileset dir="${lib}">
+        <fileset dir="${lib}">
             <include name="*.jar" />
         </fileset>
     </path>
@@ -33,33 +33,27 @@
         <mkdir dir="${javadoc}" />
 
         <!-- Compile the java code from ${src} into ${tmp} -->
-	<javac srcdir="${src}"
-	    destdir="${tmp}"
-	    debug="on"
-	    source="1.5"
-	    target="1.5">
+        <javac srcdir="${src}" destdir="${tmp}" debug="on" source="1.5" target="1.5">
             <classpath refid="external_jars" />
             <compilerarg value="-Xlint:unchecked" />
         </javac>
 
         <!-- create the javadoc -->
-	<javadoc packagenames="ibis.**" destdir="${javadoc}" access="public" sourcepath="${src}">
+        <javadoc packagenames="ibis.**" destdir="${javadoc}" access="public" sourcepath="${src}">
             <classpath refid="external_jars" />
             <link href="http://logging.apache.org/log4j/docs/api/" />
             <link href="http://java.sun.com/j2se/1.5.0/docs/api/" />
         </javadoc>
 
         <!-- Put everything in ${tmp} into the jar file -->
-        <jar jarfile="${jar}" basedir="${tmp}" />
+        <jar jarfile="${jar}" basedir="${tmp}">
+            <metainf dir=".." includes="LICENSE.txt" />
+        </jar>
 
         <!-- create a zip file with the sources -->
         <zip destfile="${sources}/${sources-filename}.zip">
-            <zipfileset dir="src"
-                        includes="**/*.java"
-                        prefix="${sources-filename}" />
-            <zipfileset dir="."
-			includes="../LICENSE.txt"
-                        prefix="${sources-filename}" />
+            <zipfileset dir="src" includes="**/*.java" prefix="${sources-filename}" />
+            <zipfileset dir="." includes="../LICENSE.txt" prefix="${sources-filename}" />
         </zip>
 
         <!-- And delete the build dir -->

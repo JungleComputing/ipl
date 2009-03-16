@@ -1,6 +1,5 @@
 package ibis.ipl.registry;
 
-
 import java.security.AccessControlException;
 
 /**
@@ -14,7 +13,6 @@ public interface ControlPolicy {
      * @param authenticationObject
      * @throws AccessControlException
      */
-    public void onJoin(Credentials credentials)
-            throws AccessControlException;
+    public void onJoin(Credentials credentials) throws AccessControlException;
 
 }

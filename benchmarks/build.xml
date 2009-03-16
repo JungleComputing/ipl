@@ -35,28 +35,21 @@
         </path>
 
         <!-- Compile the java code from ${src} into ${tmp} -->
-        <javac srcdir="${src}"
-               destdir="${tmp}"
-               debug="on"
-               source="1.5"
-               target="1.5"
-               classpathref="default.classpath">
+        <javac srcdir="${src}" destdir="${tmp}" debug="on" source="1.5" target="1.5" classpathref="default.classpath">
             <compilerarg value="-Xlint:unchecked" />
         </javac>
 
 
-        <java classname="ibis.compile.Ibisc"
-              taskname="Ibisc"
-              failonerror="true"
-              dir="${tmp}"
-              fork="true">
+        <java classname="ibis.compile.Ibisc" taskname="Ibisc" failonerror="true" dir="${tmp}" fork="true">
             <arg line="." />
             <classpath refid="default.classpath" />
         </java>
 
 
         <!-- Put everything in ${tmp} into the jar file -->
-        <jar jarfile="${jar}" basedir="${tmp}" />
+        <jar jarfile="${jar}" basedir="${tmp}">
+            <metainf dir=".." includes="LICENSE.txt" />
+        </jar>
 
         <!-- And delete the build dir -->
         <delete dir="${tmp}" />

@@ -150,5 +150,7 @@ public abstract class IbisStarter {
      */
     public abstract Ibis startIbis(IbisFactory factory,
             RegistryEventHandler handler, Properties userProperties,
-            IbisCapabilities capabilities, Credentials credentials, PortType[] portTypes, String specifiedSubImplementation) throws IbisCreationFailedException;
+            IbisCapabilities capabilities, Credentials credentials,
+            PortType[] portTypes, String specifiedSubImplementation)
+            throws IbisCreationFailedException;
 }
