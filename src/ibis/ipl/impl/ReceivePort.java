@@ -119,7 +119,7 @@ public abstract class ReceivePort extends Manageable
      * Set when the current message has been delivered. Only used for
      * explicit receive.
      */
-    boolean delivered = false;
+    protected boolean delivered = false;
     
     /** Properties. */
     protected final Properties properties;
