@@ -61,7 +61,7 @@ public class TypedProperties extends Properties {
      * Tries to load properties from a properties file on the classpath
      */
     public void loadFromClassPath(String resourceName) {
-        ClassLoader classLoader = ClassLoader.getSystemClassLoader();
+        ClassLoader classLoader = getClass().getClassLoader();
         InputStream inputStream = classLoader.getResourceAsStream(resourceName);
 
         if (inputStream != null) {
@@ -375,7 +375,7 @@ public class TypedProperties extends Properties {
                     + key + ", not \"" + value + "\"");
         }
     }
-    
+
     /**
      * Returns the float value of property.
      * 
@@ -425,7 +425,7 @@ public class TypedProperties extends Properties {
                     + key + ", not \"" + value + "\"");
         }
     }
-    
+
     /**
      * Returns the long value of a size property. Valid values for the property
      * are a long, a long followed by K, a long followed by M or a long followed
