@@ -127,7 +127,7 @@ public class LrmcIbis implements Ibis {
         EventHandler h = null;
 
         if (registryEventHandler != null) {
-            new EventHandler(registryEventHandler, this);
+            h = new EventHandler(registryEventHandler, this);
         }
 
         this.portTypes = portTypes;
