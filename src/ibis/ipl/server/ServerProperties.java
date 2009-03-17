@@ -43,7 +43,7 @@ public final class ServerProperties {
     static {
         String version = Registry.class.getPackage().getImplementationVersion();
 
-        if (version == null) {
+        if (version == null || version.equals("0.0")) {
             // try to get version from IPL_MANIFEST file
             TypedProperties properties = new TypedProperties();
             properties.loadFromClassPath(IbisFactory.IPL_MANIFEST_FILE);
