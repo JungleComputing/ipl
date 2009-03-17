@@ -23,12 +23,10 @@ import ibis.util.ThreadPool;
 import ibis.util.TypedProperties;
 
 import java.io.IOException;
-import java.lang.management.ManagementFactory;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-
-import javax.management.MBeanServer;
-import javax.management.ObjectName;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -1044,6 +1042,7 @@ final class CommunicationHandler implements Runnable {
         connection.close();
     }
 
+    @SuppressWarnings("unchecked")
     private void handleGetMonitorInfo(Connection connection) throws IOException {
         int length = connection.in().readInt();
 
@@ -1053,31 +1052,57 @@ final class CommunicationHandler implements Runnable {
         }
 
         AttributeDescription[] descriptions = new AttributeDescription[length];
-        
-        for(int i = 0; i < descriptions.length; i++) {
-            descriptions[i] = new AttributeDescription(connection.in().readUTF(), connection.in().readUTF());
-        }
-        
-        Object[] result = new Object[descriptions.length];
-
-        MBeanServer beanServer = ManagementFactory.getPlatformMBeanServer();
 
         for (int i = 0; i < descriptions.length; i++) {
-            try {
-                ObjectName objectName = new ObjectName(descriptions[i]
-                        .getBeanName());
-
-                result[i] = beanServer.getAttribute(objectName, descriptions[i]
-                        .getAttribute());
-            } catch (Throwable t) {
-                connection.closeWithError("cannot get value for attribute \""
-                        + descriptions[i].getAttribute() + "\" of bean \""
-                        + descriptions[i].getBeanName() + "\"");
-            }
+            descriptions[i] = new AttributeDescription(connection.in()
+                    .readUTF(), connection.in().readUTF());
         }
-        
+
+        Object[] result = new Object[descriptions.length];
+
+        try {
+            Class factoryClass = Class
+                    .forName("java.lang.management.ManagementFactory");
+
+            Class beanServerClass = Class
+                    .forName("javax.management.MBeanServer");
+
+            
+            Class objectNameClass = Class
+                    .forName("javax.management.ObjectName");
+
+            Constructor objectNameClassConstructor = objectNameClass
+                    .getConstructor(String.class);
+
+            Method getAttributeMethod = beanServerClass.getMethod(
+                    "getAttribute", objectNameClass, String.class);
+
+            Object beanServer = factoryClass.getMethod(
+                    "getPlatformMBeanServer").invoke(null);
+
+            for (int i = 0; i < descriptions.length; i++) {
+                try {
+                    Object objectName = objectNameClassConstructor
+                            .newInstance(descriptions[i].getBeanName());
+
+                    result[i] = getAttributeMethod.invoke(beanServer,
+                            objectName, descriptions[i].getAttribute());
+                } catch (Throwable t) {
+                    connection
+                            .closeWithError("cannot get value for attribute \""
+                                    + descriptions[i].getAttribute()
+                                    + "\" of bean \""
+                                    + descriptions[i].getBeanName() + "\"");
+                }
+            }
+
+        } catch (Throwable t) {
+            connection.closeWithError("Cannot load JMX: " + t);
+            return;
+        }
+
         connection.sendOKReply();
-        
+
         byte[] bytes = Conversion.object2byte(result);
         connection.out().writeInt(bytes.length);
         connection.out().write(bytes);
