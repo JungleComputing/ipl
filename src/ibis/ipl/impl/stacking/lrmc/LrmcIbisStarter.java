@@ -48,17 +48,4 @@ public final class LrmcIbisStarter extends ibis.ipl.IbisStarter {
         return new LrmcIbis(factory, registryEventHandler,
                 userProperties, capabilities, credentials, portTypes, specifiedSubImplementation, this);
     }
-    
-    /**
-     * TODO: what does this function do exactly? -Niels
-     */
-    static boolean ourPortType(PortType tp) {
-        return (tp.hasCapability(PortType.CONNECTION_MANY_TO_MANY) || tp
-                .hasCapability(PortType.CONNECTION_ONE_TO_MANY))
-                && !tp.hasCapability(PortType.COMMUNICATION_RELIABLE)
-                && !tp.hasCapability(PortType.CONNECTION_UPCALLS)
-                && !tp.hasCapability(PortType.CONNECTION_DOWNCALLS)
-                && !tp.hasCapability(PortType.COMMUNICATION_NUMBERED)
-                && !tp.hasCapability(PortType.COMMUNICATION_FIFO);
-    }
 }

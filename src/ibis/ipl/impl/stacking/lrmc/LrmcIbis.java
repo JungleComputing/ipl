@@ -20,7 +20,9 @@ import ibis.ipl.registry.Credentials;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -114,6 +116,7 @@ public class LrmcIbis implements Ibis {
             Credentials credentials, PortType[] portTypes,
             String specifiedSubImplementation, LrmcIbisStarter lrmcIbisStarter)
             throws IbisCreationFailedException {
+        List<PortType> requiredPortTypes = new ArrayList<PortType>();
         logger.info("Constructor LRMC Ibis");
 
         if (specifiedSubImplementation == null) {
@@ -130,14 +133,19 @@ public class LrmcIbis implements Ibis {
         this.portTypes = portTypes;
         this.capabilities = capabilities;
 
-        // add additional port-type as a requirement.
-        // TODO: we should also be able to remove some types!
-        PortType[] requiredPortTypes = new PortType[portTypes.length + 1];
-        System.arraycopy(portTypes, 0, requiredPortTypes, 0, portTypes.length);
-        requiredPortTypes[portTypes.length] = additionalPortType;
+        // add additional port-type as a requirement, and remove port-types
+        // that we deal with ourselves.
+        for (PortType portType: portTypes) {
+            if (! ourPortType(portType)) {
+                requiredPortTypes.add(portType);
+            }
+        }
+        
+        requiredPortTypes.add(additionalPortType);
 
         base = factory.createIbis(h, capabilities, userProperties, credentials,
-                portTypes, specifiedSubImplementation);
+                requiredPortTypes.toArray(new PortType[requiredPortTypes.size()]),
+                specifiedSubImplementation);
     }
 
     public synchronized void addIbis(IbisIdentifier ibis) {
@@ -217,7 +225,7 @@ public class LrmcIbis implements Ibis {
     public SendPort createSendPort(PortType portType, String name,
             SendPortDisconnectUpcall cU, Properties props) throws IOException {
         matchPortType(portType);
-        if (LrmcIbisStarter.ourPortType(portType)) {
+        if (ourPortType(portType)) {
             if (name == null) {
                 throw new IOException("Anonymous  ports not supported");
             }
@@ -243,7 +251,7 @@ public class LrmcIbis implements Ibis {
             MessageUpcall u, ReceivePortConnectUpcall cU, Properties props)
             throws IOException {
         matchPortType(portType);
-        if (LrmcIbisStarter.ourPortType(portType)) {
+        if (ourPortType(portType)) {
             if (name == null) {
                 throw new IOException("Anonymous  ports not supported");
             }
@@ -364,4 +372,21 @@ public class LrmcIbis implements Ibis {
         return base.properties();
     }
 
+    
+    /**
+     * Determines if the specified port type is one that is implemented
+     * by Lrmc ibis.
+     * @param tp the port type
+     * @return <code>true</code> if LRMC Ibis deals with this port type,
+     * <code>false</code> if it is to be passed on to an underlying ibis.
+     */
+    private static boolean ourPortType(PortType tp) {
+        return (tp.hasCapability(PortType.CONNECTION_MANY_TO_MANY) || tp
+                .hasCapability(PortType.CONNECTION_ONE_TO_MANY))
+                && !tp.hasCapability(PortType.COMMUNICATION_RELIABLE)
+                && !tp.hasCapability(PortType.CONNECTION_UPCALLS)
+                && !tp.hasCapability(PortType.CONNECTION_DOWNCALLS)
+                && !tp.hasCapability(PortType.COMMUNICATION_NUMBERED)
+                && !tp.hasCapability(PortType.COMMUNICATION_FIFO);
+    }
 }
