@@ -14,7 +14,6 @@ import ibis.smartsockets.virtual.VirtualSocketFactory;
 import ibis.util.ThreadPool;
 
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.security.AccessControlException;
 import java.util.Map;
 

@@ -1,7 +1,5 @@
 package ibis.ipl.server;
 
-import ibis.ipl.IbisIdentifier;
-import ibis.ipl.management.AttributeDescription;
 import ibis.ipl.management.ManagementService;
 import ibis.ipl.registry.ControlPolicy;
 import ibis.ipl.registry.central.server.CentralRegistryService;
@@ -18,7 +16,6 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
