@@ -269,59 +269,44 @@
             </manifest>
         </jar>
 
-
-
         <!-- Backup manifest. Used if the jar file manifests cannot be loaded
              for some reason (e.g. on android) -->
-        <propertyfile file="tmp/ibis/ipl/IPL_MANIFEST" comment="IPL Manifest">
-            <entry key="support.version" value="${support.checksum}" />
-            <entry key="implementation.version"
-                   value="${implementation.checksum}"
-            />
+        <echo file="tmp/ibis/ipl/IPL_MANIFEST">
+	    support.version=${support.checksum}
+	    implementation.version=${implementation.checksum}
 
-            <!-- implementation nicknames -->
-            <entry key="implementations"
-                   value="smartsockets,tcp,nio,dummy,lrmc"
-            />
+	    implementations=smartsockets,tcp,nio,dummt,lrmc
 
-            <entry key="smartsockets.starter.class"
-                   value="ibis.ipl.impl.smartsockets.SmartSocketsIbisStarter"
-            />
-            <entry key="smartsockets.ipl.version" value="${version}" />
-            <entry key="smartsockets.version"
-                   value="${smartsockets.checksum}"
-            />
+	    #smartsockets
+	    smartsockets.starter.class=ibis.ipl.impl.smartsockets.SmartSocketsIbisStarter
+	    smartsockets.ipl.version=${version}
+	    smartsockets.version=${smartsockets.checksum}
 
-            <entry key="tcp.starter.class"
-                   value="ibis.ipl.impl.tcp.TcpIbisStarter"
-            />
-            <entry key="tcp.ipl.version" value="${version}" />
-            <entry key="tcp.version" value="${tcp.checksum}" />
+	    #tcp
+	    tcp.starter.class=ibis.ipl.impl.tcp.TcpIbisStarter
+	    tcp.ipl.version=${version}
+	    tcp.version=${tcp.checksum}
 
-            <entry key="nio.starter.class"
-                   value="ibis.ipl.impl.nio.NioIbisStarter"
-            />
-            <entry key="nio.ipl.version" value="${version}" />
-            <entry key="nio.version" value="${nio.checksum}" />
+	    #nio
+	    nio.starter.class=ibis.ipl.impl.nio.NioIbisStarter
+	    nio.ipl.version=${version}
+	    nio.version=${nio.checksum}
 
-            <entry key="dummy.starter.class"
-                   value="ibis.ipl.impl.stacking.dummy.StackingIbisStarter"
-            />
-            <entry key="dummy.ipl.version" value="${version}" />
-            <entry key="dummy.version" value="${dummy.checksum}" />
+	    #dummy
+	    dummy.starter.class=ibis.ipl.impl.stacking.dummy.StackingIbisStarter
+	    dummy.ipl.version=${version}
+	    dummy.version=${dummy.checksum}
 
-            <entry key="lrmc.starter.class"
-                   value="ibis.ipl.impl.stacking.lrmc.LrmcIbisStarter"
-            />
-            <entry key="lrmc.ipl.version" value="${version}" />
-            <entry key="lrmc.version" value="${lrmc.checksum}" />
+	    #lrmc
+	    lrmc.starter.class=ibis.ipl.impl.stacking.lrmc.LrmcIbisStarter
+	    lrmc.ipl.version=${version}
+	    lrmc.version=${lrmc.checksum}
 
-            <entry key="multi.starter.class"
-                   value="ibis.ipl.impl.multi.MultiIbisStarter"
-            />
-            <entry key="multi.ipl.version" value="${version}" />
-            <entry key="multi.version" value="${multi.checksum}" />
-        </propertyfile>
+	    #multi
+	    multi.starter.class=ibis.ipl.impl.multi.MultiIbisStarter
+	    multi.ipl.version=${version}
+	    multi.version=${multi.checksum}
+	</echo>
 
         <!-- Add manifest property file to ipl jar -->
         <jar destfile="lib/ipl${version-tag}.jar" update="true">

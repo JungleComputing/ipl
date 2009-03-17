@@ -588,6 +588,10 @@ public final class IbisFactory {
             properties.load(inputStream);
 
             String nickNames = properties.getProperty("implementations");
+            
+            if (nickNames == null) {
+                System.err.println("Warning: no implementations found in manifest property file");
+            }
 
             for (String nickName : nickNames.split(",")) {
                 if (implementations.containsKey(nickName)) {
@@ -620,6 +624,7 @@ public final class IbisFactory {
             System.err
                     .println("Warning: could not load implementation from manifest property file: "
                             + t);
+            t.printStackTrace(System.err);
         }
     }
 }
