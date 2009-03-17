@@ -17,12 +17,10 @@ public class ManagementService implements ibis.ipl.server.Service {
         this.factory = factory;
     }
 
-    @Override
     public void end(long deadline) {
         // NOTHING
     }
 
-    @Override
     public String getServiceName() {
         return "management";
     }
