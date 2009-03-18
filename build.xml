@@ -275,7 +275,7 @@
 	    support.version=${support.checksum}
 	    implementation.version=${implementation.checksum}
 
-	    implementations=smartsockets,tcp,nio,dummt,lrmc
+	    implementations=smartsockets,tcp,nio,dummy,lrmc
 
 	    #smartsockets
 	    smartsockets.starter.class=ibis.ipl.impl.smartsockets.SmartSocketsIbisStarter
