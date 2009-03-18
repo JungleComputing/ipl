@@ -36,7 +36,7 @@ public final class ServerProperties {
     /** Property name for specifying a comma separated list of hubs. */
     public static final String HUB_ADDRESSES = PREFIX + "ibis.hub.addresses";
 
-    public static final byte[] implementationVersion;
+    public static final String implementationVersion;
 
     public static final int DEFAULT_PORT = 8888;
     
@@ -55,8 +55,7 @@ public final class ServerProperties {
             throw new Error("Cannot get version for server");
         }
 
-        implementationVersion = Conversion.hexString2bytes(version);
-
+        implementationVersion = version;
     }
 
     private static final String[][] propertiesList = new String[][] {

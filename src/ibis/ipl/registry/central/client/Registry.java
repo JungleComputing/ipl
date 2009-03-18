@@ -66,25 +66,28 @@ public final class Registry extends ibis.ipl.registry.Registry
     /**
      * Creates a Central Registry.
      * 
+     * @param capabilities
+     *            Required capabilities of this registry
      * @param eventHandler
      *            Registry handler to pass events to.
      * @param userProperties
      *            properties of this registry.
      * @param data
      *            Ibis implementation data to attach to the IbisIdentifier.
-     * @param authenticationObject 
      * @param ibisImplementationIdentifier
      *            the identification of this ibis implementation, including
      *            version, class and such. Must be identical for all ibises in
      *            a single pool.
+     * @param credentials
+     *            Security credentials
      * @throws IOException
      *             in case of trouble.
      * @throws IbisConfigurationException
-     *             In case invalid properties were given.
+     *             In case invalid properties/capabilities were given.
      */
     public Registry(IbisCapabilities capabilities,
             RegistryEventHandler eventHandler, Properties userProperties,
-            byte[] data, byte[] implementationVersion, Credentials credentials)
+            byte[] data, String implementationVersion, Credentials credentials)
             throws IbisConfigurationException, IOException {
         logger.debug("creating central registry");
 

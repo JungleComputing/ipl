@@ -80,7 +80,7 @@ public class Registry extends ibis.ipl.registry.Registry implements Runnable {
      */
     public Registry(IbisCapabilities capabilities,
             RegistryEventHandler eventHandler, Properties userProperties,
-            byte[] ibisData, byte[] implementationVersion, Credentials credentials
+            byte[] ibisData, String implementationVersion, Credentials credentials
             )
             throws IbisConfigurationException, IOException,
             IbisConfigurationException {

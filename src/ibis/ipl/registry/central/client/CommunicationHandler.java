@@ -177,7 +177,7 @@ final class CommunicationHandler implements Runnable {
      *             in case of trouble
      */
     IbisIdentifier join(byte[] implementationData,
-            byte[] implementationVersion, Credentials credentials)
+            String implementationVersion, Credentials credentials)
             throws IOException {
         long start = System.currentTimeMillis();
 
@@ -230,7 +230,7 @@ final class CommunicationHandler implements Runnable {
         try {
             connection.out().writeByte(Protocol.MAGIC_BYTE);
             connection.out().writeByte(Protocol.OPCODE_JOIN);
-            connection.out().write(ServerProperties.implementationVersion);
+            connection.out().writeUTF(ServerProperties.implementationVersion);
 
             connection.out().writeInt(myAddress.length);
             connection.out().write(myAddress);
@@ -238,8 +238,9 @@ final class CommunicationHandler implements Runnable {
             connection.out().writeUTF(pool.getName());
             connection.out().writeInt(implementationData.length);
             connection.out().write(implementationData);
-            connection.out().writeInt(implementationVersion.length);
-            connection.out().write(implementationVersion);
+            
+            connection.out().writeUTF(implementationVersion);
+            
             location.writeTo(connection.out());
             connection.out().writeBoolean(peerBootstrap);
             connection.out().writeLong(heartbeatInterval);

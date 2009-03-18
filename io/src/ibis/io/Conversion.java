@@ -254,35 +254,4 @@ public abstract class Conversion {
 
         return (a + d - 1) & ~(d - 1);
     }
-
-    /**
-     * Convert a byte array to a HEX string
-     * 
-     * @return the byte array as a hex string
-     */
-    public static String byte2hexString(byte[] bytes) {
-        String result = "";
-        for (int i = 0; i < bytes.length; i++) {
-            result += Integer.toString((bytes[i] & 0xff) + 0x100, 16)
-                    .substring(1);
-        }
-        return result;
-    }
-
-    /**
-     * Convert a byte array to a HEX string
-     * 
-     * @return the byte array as a hex string
-     */
-    public static byte[] hexString2bytes(String string) {
-        byte[] result = new byte[string.length() / 2];
-
-        for (int i = 0; i < result.length; i++) {
-            result[i] = (byte) Integer.parseInt(string.substring(2 * i,
-                2 * i + 2), 16);
-        }
-
-        return result;
-    }
-
 }

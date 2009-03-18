@@ -2,7 +2,7 @@ package ibis.ipl.registry.central;
 
 public final class Protocol {
 
-    public static final byte MAGIC_BYTE = 98;
+    public static final byte MAGIC_BYTE = 54;
     
     // opcodes
 

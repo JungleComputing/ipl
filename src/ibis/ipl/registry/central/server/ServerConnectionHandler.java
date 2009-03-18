@@ -60,18 +60,13 @@ final class ServerConnectionHandler implements Runnable {
 
         // long start = System.currentTimeMillis();
 
-        byte[] version = ServerProperties.implementationVersion;
+        String version = ServerProperties.implementationVersion;
 
-        byte[] peerVersion = new byte[version.length];
+        String peerVersion = connection.in().readUTF();
 
-        connection.in().readFully(peerVersion);
-
-        for (int i = 0; i < version.length; i++) {
-            if (peerVersion[i] != version[i]) {
-                throw new IOException("Wrong ipl server version in join: "
-                        + Conversion.byte2hexString(peerVersion)
-                        + ", should be " + Conversion.byte2hexString(version));
-            }
+        if (peerVersion == null || !peerVersion.equals(version)) {
+            throw new IOException("Wrong ipl server version in join: "
+                    + peerVersion + ", should be " + version);
         }
 
         int length = connection.in().readInt();
@@ -90,12 +85,7 @@ final class ServerConnectionHandler implements Runnable {
         byte[] implementationData = new byte[length];
         connection.in().readFully(implementationData);
 
-        length = connection.in().readInt();
-        if (length < 0) {
-            throw new IOException("unexpected end of data on join");
-        }
-        byte[] implementationVersion = new byte[length];
-        connection.in().readFully(implementationVersion);
+        String implementationVersion = connection.in().readUTF();
 
         Location location = new Location(connection.in());
 
@@ -116,12 +106,13 @@ final class ServerConnectionHandler implements Runnable {
         if (length < 0) {
             throw new IOException("unexpected end of data on join");
         }
-        
+
         byte[] credentialBytes = new byte[length];
-        
+
         connection.in().readFully(credentialBytes);
 
-        Credentials credentials = (Credentials) Conversion.byte2object(credentialBytes);
+        Credentials credentials = (Credentials) Conversion
+                .byte2object(credentialBytes);
 
         if (policy != null) {
             try {
@@ -400,7 +391,7 @@ final class ServerConnectionHandler implements Runnable {
         }
     }
 
-      private synchronized void createThread() {
+    private synchronized void createThread() {
         while (currentNrOfThreads >= MAX_THREADS) {
             try {
                 wait();

@@ -2,7 +2,6 @@
 
 package ibis.ipl.impl;
 
-import ibis.io.Conversion;
 import ibis.io.IbisIOException;
 import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisConfigurationException;
@@ -97,14 +96,13 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
 
     /**
      * Version, consisting of both the generic implementation version, and the
-     * "actual" implementation version, all converted from the hex string to
-     * bytes.
+     * "actual" implementation version.
      */
-    private byte[] getImplementationVersion() throws Exception {
+    private String getImplementationVersion() throws Exception {
         String genericVersion = Ibis.class.getPackage()
                 .getImplementationVersion();
 
-        // --roelof on android the implementation version from the manifest gets
+        // --Roelof on android the implementation version from the manifest gets
         // overwritten with a default implementation version of "0.0". This is
         // not the value we're searching for.
         if (genericVersion == null || genericVersion.equals("0.0")) {
@@ -117,13 +115,11 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
 
         logger.debug("Version of Generic Ibis = " + genericVersion);
 
-        String version = genericVersion + starter.getImplementationVersion();
-
-        if (version == null || genericVersion == null) {
+        if (genericVersion == null || starter.getImplementationVersion() == null) {
             throw new Exception("cannot get version for ibis");
         }
-
-        return Conversion.hexString2bytes(version);
+        
+        return genericVersion + starter.getImplementationVersion();
     }
 
     /**

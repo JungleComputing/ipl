@@ -96,7 +96,7 @@ public final class CentralRegistryService extends Thread implements Service {
             long gossipInterval, boolean adaptGossipInterval, boolean tree,
             boolean closedWorld, int poolSize, boolean keepStatistics,
             long statisticsInterval, boolean purgeHistory,
-            byte[] implementationVersion) throws IOException {
+            String implementationVersion) throws IOException {
         Pool result = getPool(poolName);
 
         if (result == null || result.hasEnded()) {

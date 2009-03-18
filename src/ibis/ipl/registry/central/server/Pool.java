@@ -67,7 +67,7 @@ final class Pool implements Runnable {
 
     private final String name;
 
-    private final byte[] implementationVersion;
+    private final String implementationVersion;
 
     private final boolean closedWorld;
 
@@ -107,7 +107,7 @@ final class Pool implements Runnable {
             long eventPushInterval, boolean gossip, long gossipInterval,
             boolean adaptGossipInterval, boolean tree, boolean closedWorld,
             int poolSize, boolean keepStatistics, long statisticsInterval,
-            byte[] implementationVersion, boolean printEvents,
+            String implementationVersion, boolean printEvents,
             boolean printErrors, boolean purgeHistory) {
         print("creating new pool: \"" + name + "\"");
 
@@ -278,7 +278,7 @@ final class Pool implements Runnable {
      * ibis.ipl.impl.Location)
      */
     synchronized Member join(byte[] implementationData, byte[] clientAddress,
-            Location location, byte[] implementationVersion) throws IOException {
+            Location location, String implementationVersion) throws IOException {
         if (hasEnded()) {
             throw new IOException("Pool already ended");
         }
@@ -287,22 +287,13 @@ final class Pool implements Runnable {
             throw new IOException("Pool already closed");
         }
 
-        if (this.implementationVersion.length != implementationVersion.length) {
+        if (implementationVersion == null
+                || !this.implementationVersion.equals(implementationVersion)) {
 
             throw new IOException("Ibis implementation "
-                    + Conversion.byte2hexString(implementationVersion)
+                    + implementationVersion
                     + " does not match pool's Ibis implementation: "
-                    + Conversion.byte2hexString(this.implementationVersion));
-        }
-
-        for (int i = 0; i < implementationVersion.length; i++) {
-            if (implementationVersion[i] != this.implementationVersion[i]) {
-                throw new IOException("Ibis implementation "
-                        + Conversion.byte2hexString(implementationVersion)
-                        + " does not match pool's Ibis implementation: "
-                        + Conversion.byte2hexString(this.implementationVersion));
-            }
-
+                    + this.implementationVersion);
         }
 
         String id = Integer.toString(nextID);
@@ -345,7 +336,7 @@ final class Pool implements Runnable {
         }
         closed = true;
         closeEvent = addEvent(Event.POOL_CLOSED, null, null,
-            new IbisIdentifier[0]);
+                new IbisIdentifier[0]);
         if (printEvents) {
             print("pool \"" + name + "\" now closed");
         }
@@ -779,7 +770,7 @@ final class Pool implements Runnable {
                 long end = System.currentTimeMillis();
 
                 statistics.add(opcode, end - start, connection.read(),
-                    connection.written(), false);
+                        connection.written(), false);
             }
 
             if (logger.isDebugEnabled()) {
@@ -894,16 +885,16 @@ final class Pool implements Runnable {
 
         if (isClosedWorld()) {
             formatter.format("%s\n     %12d %5d %6d %5d %9d %7d %10d %6b %5b",
-                getName(), getSize(), eventStats[Event.JOIN],
-                eventStats[Event.LEAVE], eventStats[Event.DIED],
-                eventStats[Event.ELECT], eventStats[Event.SIGNAL],
-                getFixedSize(), isClosed(), ended);
+                    getName(), getSize(), eventStats[Event.JOIN],
+                    eventStats[Event.LEAVE], eventStats[Event.DIED],
+                    eventStats[Event.ELECT], eventStats[Event.SIGNAL],
+                    getFixedSize(), isClosed(), ended);
         } else {
             formatter.format("%s\n     %12d %5d %6d %5d %9d %7d %10s %6b %5b",
-                getName(), getSize(), eventStats[Event.JOIN],
-                eventStats[Event.LEAVE], eventStats[Event.DIED],
-                eventStats[Event.ELECT], eventStats[Event.SIGNAL], "N.A.",
-                isClosed(), ended);
+                    getName(), getSize(), eventStats[Event.JOIN],
+                    eventStats[Event.LEAVE], eventStats[Event.DIED],
+                    eventStats[Event.ELECT], eventStats[Event.SIGNAL], "N.A.",
+                    isClosed(), ended);
         }
 
         return message.toString();
