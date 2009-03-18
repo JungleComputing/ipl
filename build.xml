@@ -12,7 +12,7 @@
     <property name="javadoc" value="javadoc/ipl" />
 
     <property name="version" value="2.2" />
-    <property name="version-tag" value="-2.2" />
+    <property name="version-tag" value="-${version}" />
 
     <property name="sources-filename" value="ipl" />
 
