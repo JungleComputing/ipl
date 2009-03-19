@@ -175,8 +175,9 @@ public final class IbisFactory {
             Properties properties, boolean addDefaultConfigProperties,
             RegistryEventHandler registryEventHandler, PortType... portTypes)
             throws IbisCreationFailedException {
-        return createIbis(requiredCapabilities, null, true,
-                registryEventHandler, null, portTypes);
+        return createIbis(requiredCapabilities, properties, 
+                addDefaultConfigProperties, registryEventHandler, null, 
+                portTypes);
     }
 
     /**
@@ -251,6 +252,10 @@ public final class IbisFactory {
         String specifiedImplementation = combinedProperties
                 .getProperty(IbisProperties.IMPLEMENTATION);
 
+System.err.println("##### User properties: " + properties);
+System.err.println("##### Combined properties: " + combinedProperties);
+        
+        
         // create the ibis instance
         return factory.createIbis(registryEventHandler, requiredCapabilities,
                 combinedProperties, credentials, portTypes,
