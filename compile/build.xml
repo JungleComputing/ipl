@@ -30,23 +30,14 @@
 
         <!-- Create the build directory structure used by compile -->
         <delete dir="${tmp}" />
-        <delete dir="${javadoc}" />
 
         <mkdir dir="${tmp}" />
-        <mkdir dir="${javadoc}" />
 
         <!-- Compile the java code from ${src} into ${tmp} -->
         <javac srcdir="${src}" destdir="${tmp}" debug="on" source="1.5" target="1.5">
             <classpath refid="external_jars" />
             <compilerarg value="-Xlint:unchecked" />
         </javac>
-
-        <!-- create the javadoc -->
-        <javadoc packagenames="ibis.**" destdir="${javadoc}" access="public" sourcepath="${src}">
-            <classpath refid="external_jars" />
-            <link href="http://logging.apache.org/log4j/docs/api/" />
-            <link href="http://java.sun.com/j2se/1.5.0/docs/api/" />
-        </javadoc>
 
         <!-- Put everything in ${tmp} into the jar file -->
         <jar jarfile="${jar}" basedir="${tmp}">
@@ -62,6 +53,18 @@
         <!-- And delete the build dir -->
         <delete dir="${tmp}" />
     </target>
+
+    <target name="javadoc" description="create javadoc">
+        <delete dir="${javadoc}" />
+        <mkdir dir="${javadoc}" />
+
+        <javadoc packagenames="ibis.**" destdir="${javadoc}" access="public" sourcepath="${src}">
+            <classpath refid="external_jars" />
+            <link href="http://logging.apache.org/log4j/docs/api/" />
+            <link href="http://java.sun.com/j2se/1.5.0/docs/api/" />
+        </javadoc>
+    </target>
+
 
     <target name="clean" description="clean up">
         <delete dir="${tmp}" />

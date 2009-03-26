@@ -3,37 +3,34 @@
 	Build file for ibis-io
     </description>
 
-    <!-- Global properties -->
-    <target name="properties" description="Setup all the properties for building">
-        <property name="src" location="src" />
-        <property name="jmesrc" location="jmesrc" />
-        <property name="compile" location="compile" />
-        <property name="tmpsrc" location="tmpsrc" />
-        <property name="lib" location="../lib" />
-        <property name="javadoc" location="../javadoc/io" />
-        <property name="external" location="../external" />
-        <property name="sources" value="../sources" />
+    <property name="src" location="src" />
+    <property name="jmesrc" location="jmesrc" />
+    <property name="compile" location="compile" />
+    <property name="tmpsrc" location="tmpsrc" />
+    <property name="lib" location="../lib" />
+    <property name="javadoc" location="../javadoc/io" />
+    <property name="external" location="../external" />
+    <property name="sources" value="../sources" />
 
-        <property name="version-tag" value="" />
+    <property name="version-tag" value="" />
 
-        <property name="jar" location="${lib}/${ant.project.name}${version-tag}.jar" />
-        <property name="sources-filename" value="${ant.project.name}${version-tag}" />
+    <property name="jar" location="${lib}/${ant.project.name}${version-tag}.jar" />
+    <property name="sources-filename" value="${ant.project.name}${version-tag}" />
 
-        <path id="external_jars">
-            <fileset dir="${external}">
-                <include name="*.jar" />
-                <exclude name="log4jME*.jar" />
-                <exclude name="j2meunit*.jar" />
-                <exclude name="antenna-*.jar" />
-            </fileset>
-            <fileset dir="${lib}">
-                <include name="*.jar" />
-            </fileset>
-        </path>
+    <path id="external_jars">
+        <fileset dir="${external}">
+            <include name="*.jar" />
+            <exclude name="log4jME*.jar" />
+            <exclude name="j2meunit*.jar" />
+            <exclude name="antenna-*.jar" />
+        </fileset>
+        <fileset dir="${lib}">
+            <include name="*.jar" />
+        </fileset>
+    </path>
 
-    </target>
 
-    <target name="properties-jme" description="Set all the properties for JME building" depends="properties">
+    <target name="properties-jme" description="Set all the properties for JME building">
         <property name="jme-jar" location="${lib}/${ant.project.name}-jme${version-tag}.jar" />
         <property name="jme-sources-filename" value="${ant.project.name}-jme${version-tag}" />
 
@@ -91,14 +88,6 @@
             <compilerarg value="-Xlint:unchecked" />
         </javac>
 
-        <!-- create the javadoc -->
-        <javadoc destdir="${javadoc}" access="public">
-            <packageset dir="${tmpsrc}" />
-            <classpath refid="external_jars" />
-            <link href="http://logging.apache.org/log4j/docs/api/" />
-            <link href="http://java.sun.com/j2se/1.5.0/docs/api/" />
-        </javadoc>
-
         <!-- Put everything in ${compile} into the jar file -->
         <jar jarfile="${jar}" basedir="${compile}">
             <manifest>
@@ -117,6 +106,18 @@
         <delete dir="${compile}" />
         <delete dir="${tmpsrc}" />
     </target>
+
+    <target name="javadoc" description="create javadoc">
+        <delete dir="${javadoc}" />
+        <mkdir dir="${javadoc}" />
+
+        <javadoc packagenames="ibis.**" destdir="${javadoc}" access="public" sourcepath="${src}">
+            <classpath refid="external_jars" />
+            <link href="http://logging.apache.org/log4j/docs/api/" />
+            <link href="http://java.sun.com/j2se/1.5.0/docs/api/" />
+        </javadoc>
+    </target>
+
 
     <target name="warn-jme" unless="wtk.exists" depends="properties-jme">
         <echo>WARNING: WTK_HOME not set!</echo>
@@ -180,7 +181,7 @@
         <delete dir="${tmpsrc}" />
     </target>
 
-    <target name="clean" description="clean up" depends="properties">
+    <target name="clean" description="clean up">
         <delete dir="${lib}/${jar}" />
         <delete dir="${lib}/${jme-jar}" />
         <delete dir="${compile}" />

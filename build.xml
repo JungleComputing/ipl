@@ -3,10 +3,7 @@
 	Build file for Ibis
     </description>
 
-    <target name="build"
-            description="Build the IPL and its implementations"
-            depends="clean,compile-ipl,javadoc,examples,benchmarks"
-    />
+    <target name="build" description="Build the IPL and its implementations" depends="clean,compile-ipl,examples,benchmarks" />
 
     <!-- Names for generated directories. -->
     <property name="javadoc" value="javadoc/ipl" />
@@ -49,13 +46,7 @@
         <mkdir dir="tmp" />
 
         <!-- Compile the java code from src into tmp -->
-        <javac srcdir="src"
-               destdir="tmp"
-               debug="on"
-               source="1.5"
-               target="1.5"
-               classpathref="external.jars"
-        >
+        <javac srcdir="src" destdir="tmp" debug="on" source="1.5" target="1.5" classpathref="external.jars">
             <compilerarg value="-Xlint:unchecked" />
         </javac>
 
@@ -71,13 +62,7 @@
         </jar>
 
         <!-- Run Ibisc -->
-        <java classname="ibis.compile.Ibisc"
-              taskname="Ibisc"
-              failonerror="true"
-              dir="tmp"
-              maxmemory="512m"
-              fork="true"
-        >
+        <java classname="ibis.compile.Ibisc" taskname="Ibisc" failonerror="true" dir="tmp" maxmemory="512m" fork="true">
             <arg line="." />
             <classpath refid="default.classpath" />
         </java>
@@ -86,9 +71,7 @@
 
         <!-- SUPPORT -->
 
-        <property name="support.files"
-                  value="ibis/ipl/management/**/*.class ibis/ipl/registry/**/*.class ibis/ipl/server/**/*.class ibis/ipl/util/**/*.class"
-        />
+        <property name="support.files" value="ibis/ipl/management/**/*.class ibis/ipl/registry/**/*.class ibis/ipl/server/**/*.class ibis/ipl/util/**/*.class" />
 
         <checksum totalproperty="support.checksum">
             <fileset dir="tmp" includes="${support.files}" />
@@ -98,17 +81,13 @@
             <fileset dir="tmp" includes="${support.files}" />
             <metainf dir="." includes="LICENSE.txt" />
             <manifest>
-                <attribute name="Implementation-Version"
-                           value="${support.checksum}"
-                />
+                <attribute name="Implementation-Version" value="${support.checksum}" />
             </manifest>
         </jar>
 
         <!-- IMPL -->
 
-        <property name="implementation.files"
-                  value="ibis/ipl/impl/*.class ibis/ipl/impl/util/**/*.class"
-        />
+        <property name="implementation.files" value="ibis/ipl/impl/*.class ibis/ipl/impl/util/**/*.class" />
 
         <checksum totalproperty="implementation.checksum">
             <fileset dir="tmp" includes="${implementation.files}" />
@@ -118,17 +97,13 @@
             <fileset dir="tmp" includes="${implementation.files}" />
             <metainf dir="." includes="LICENSE.txt" />
             <manifest>
-                <attribute name="Implementation-Version"
-                           value="${implementation.checksum}"
-                />
+                <attribute name="Implementation-Version" value="${implementation.checksum}" />
             </manifest>
         </jar>
 
         <!-- SMARTSOCKETS -->
 
-        <property name="smartsockets.files"
-                  value="ibis/ipl/impl/smartsockets/**/*.class"
-        />
+        <property name="smartsockets.files" value="ibis/ipl/impl/smartsockets/**/*.class" />
 
         <checksum totalproperty="smartsockets.checksum">
             <fileset dir="tmp" includes="${smartsockets.files}" />
@@ -138,13 +113,9 @@
             <fileset dir="tmp" includes="${smartsockets.files}" />
             <metainf dir="." includes="LICENSE.txt" />
             <manifest>
-                <attribute name="Ibis-Starter-Class"
-                           value="ibis.ipl.impl.smartsockets.SmartSocketsIbisStarter"
-                />
+                <attribute name="Ibis-Starter-Class" value="ibis.ipl.impl.smartsockets.SmartSocketsIbisStarter" />
                 <attribute name="Ibis-IPL-Version" value="${version}" />
-                <attribute name="Ibis-Implementation-Version"
-                           value="${smartsockets.checksum}"
-                />
+                <attribute name="Ibis-Implementation-Version" value="${smartsockets.checksum}" />
                 <attribute name="Ibis-NickName" value="smartsockets" />
             </manifest>
         </jar>
@@ -162,13 +133,9 @@
             <fileset dir="tmp" includes="${tcp.files}" />
             <metainf dir="." includes="LICENSE.txt" />
             <manifest>
-                <attribute name="Ibis-Starter-Class"
-                           value="ibis.ipl.impl.tcp.TcpIbisStarter"
-                />
+                <attribute name="Ibis-Starter-Class" value="ibis.ipl.impl.tcp.TcpIbisStarter" />
                 <attribute name="Ibis-IPL-Version" value="${version}" />
-                <attribute name="Ibis-Implementation-Version"
-                           value="${tcp.checksum}"
-                />
+                <attribute name="Ibis-Implementation-Version" value="${tcp.checksum}" />
                 <attribute name="Ibis-NickName" value="tcp" />
             </manifest>
         </jar>
@@ -185,22 +152,16 @@
             <fileset dir="tmp" includes="${nio.files}" />
             <metainf dir="." includes="LICENSE.txt" />
             <manifest>
-                <attribute name="Ibis-Starter-Class"
-                           value="ibis.ipl.impl.nio.NioIbisStarter"
-                />
+                <attribute name="Ibis-Starter-Class" value="ibis.ipl.impl.nio.NioIbisStarter" />
                 <attribute name="Ibis-IPL-Version" value="${version}" />
-                <attribute name="Ibis-Implementation-Version"
-                           value="${nio.checksum}"
-                />
+                <attribute name="Ibis-Implementation-Version" value="${nio.checksum}" />
                 <attribute name="Ibis-NickName" value="nio" />
             </manifest>
         </jar>
 
         <!-- DUMMY -->
 
-        <property name="dummy.files"
-                  value="ibis/ipl/impl/stacking/dummy/**/*.class"
-        />
+        <property name="dummy.files" value="ibis/ipl/impl/stacking/dummy/**/*.class" />
 
         <checksum totalproperty="dummy.checksum">
             <fileset dir="tmp" includes="${dummy.files}" />
@@ -210,22 +171,16 @@
             <fileset dir="tmp" includes="${dummy.files}" />
             <metainf dir="." includes="LICENSE.txt" />
             <manifest>
-                <attribute name="Ibis-Starter-Class"
-                           value="ibis.ipl.impl.stacking.dummy.StackingIbisStarter"
-                />
+                <attribute name="Ibis-Starter-Class" value="ibis.ipl.impl.stacking.dummy.StackingIbisStarter" />
                 <attribute name="Ibis-IPL-Version" value="${version}" />
-                <attribute name="Ibis-Implementation-Version"
-                           value="${dummy.files}"
-                />
+                <attribute name="Ibis-Implementation-Version" value="${dummy.files}" />
                 <attribute name="Ibis-NickName" value="dummy" />
             </manifest>
         </jar>
 
         <!-- LRMC -->
 
-        <property name="lrmc.files"
-                  value="ibis/ipl/impl/stacking/lrmc/**/*.class"
-        />
+        <property name="lrmc.files" value="ibis/ipl/impl/stacking/lrmc/**/*.class" />
 
         <checksum totalproperty="lrmc.checksum">
             <fileset dir="tmp" includes="${lrmc.files}" />
@@ -235,13 +190,9 @@
             <fileset dir="tmp" includes="${lrmc.files}" />
             <metainf dir="." includes="LICENSE.txt" />
             <manifest>
-                <attribute name="Ibis-Starter-Class"
-                           value="ibis.ipl.impl.stacking.lrmc.LrmcIbisStarter"
-                />
+                <attribute name="Ibis-Starter-Class" value="ibis.ipl.impl.stacking.lrmc.LrmcIbisStarter" />
                 <attribute name="Ibis-IPL-Version" value="${version}" />
-                <attribute name="Ibis-Implementation-Version"
-                           value="${lrmc.checksum}"
-                />
+                <attribute name="Ibis-Implementation-Version" value="${lrmc.checksum}" />
                 <attribute name="Ibis-NickName" value="lrmc" />
             </manifest>
         </jar>
@@ -258,13 +209,9 @@
             <fileset dir="tmp" includes="${multi.files}" />
             <metainf dir="." includes="LICENSE.txt" />
             <manifest>
-                <attribute name="Ibis-Starter-Class"
-                           value="ibis.ipl.impl.multi.MultiIbisStarter"
-                />
+                <attribute name="Ibis-Starter-Class" value="ibis.ipl.impl.multi.MultiIbisStarter" />
                 <attribute name="Ibis-IPL-Version" value="${version}" />
-                <attribute name="Ibis-Implementation-Version"
-                           value="${multi.checksum}"
-                />
+                <attribute name="Ibis-Implementation-Version" value="${multi.checksum}" />
                 <attribute name="Ibis-NickName" value="multi" />
             </manifest>
         </jar>
@@ -362,10 +309,7 @@
         </ant>
     </target>
 
-    <target name="rewrite"
-            depends="build"
-            description="Preprocess all serializable classes of standard Java"
-    >
+    <target name="rewrite" depends="build" description="Preprocess all serializable classes of standard Java">
         <!-- Create a directory for the rewritten classes -->
 
         <mkdir dir="${classlibs}" />
@@ -381,21 +325,13 @@
         </unjar>
 
         <!-- Then, rewrite.  -->
-        <java classname="ibis.compile.Ibisc"
-              taskname="Ibisc"
-              failonerror="true"
-              maxmemory="512m"
-              dir="${rewritten-classlibs}"
-              fork="true"
-        >
+        <java classname="ibis.compile.Ibisc" taskname="Ibisc" failonerror="true" maxmemory="512m" dir="${rewritten-classlibs}" fork="true">
             <arg line="." />
             <classpath refid="default.classpath" />
         </java>
     </target>
 
-    <target name="rewritten-clean"
-            description="Clean up rewritten classlibs (except under sym links)"
-    >
+    <target name="rewritten-clean" description="Clean up rewritten classlibs (except under sym links)">
         <!--
 		If ${rewritten-classlibs} is a sym-link, we let the directory
 		live on. In this case, I suppose the user knows what he is up to.
@@ -409,61 +345,38 @@
         </delete>
     </target>
 
-    <target name="javadoc" description="Create javadocs">
+    <target name="javadoc" description="Create javadocs" depends="compile-ipl">
         <!-- Create the javadoc directory -->
         <delete dir="javadoc/ipl" />
         <mkdir dir="javadoc/ipl" />
-        <javadoc destdir="javadoc/ipl"
-                 access="public"
-                 sourcepath="src"
-                 windowtitle="Ibis IPL Documentation"
-                 packagenames="ibis.ipl"
-                 overview="src/overview.html"
-                 doctitle="Ibis IPL Documentation"
-                 bottom="The Ibis project"
-        >
+        <javadoc destdir="javadoc/ipl" access="public" sourcepath="src" windowtitle="Ibis IPL Documentation" packagenames="ibis.ipl" overview="src/overview.html" doctitle="Ibis IPL Documentation" bottom="The Ibis project">
             <link href="http://java.sun.com/j2se/1.5.0/docs/api/" />
 
-            <tag name="ibis.experimental"
-                 description="WARNING: This is an Experimental feature of the IPL. It may not function correctly, future releases of the IPL may have a revised API for this feature, or it may be removed completely. "
-            />
+            <tag name="ibis.experimental" description="WARNING: This is an Experimental feature of the IPL. It may not function correctly, future releases of the IPL may have a revised API for this feature, or it may be removed completely. " />
         </javadoc>
+
+        <ant dir="util" inheritAll="false" target="javadoc" />
+        <ant dir="compile" inheritAll="false" target="javadoc" />
+        <ant dir="io" inheritAll="false" target="javadoc" />
     </target>
 
     <target name="docs" description="Create manuals">
         <ant dir="docs" inheritAll="false" />
     </target>
 
-    <target name="ipl.zip" depends="build, docs">
+    <target name="ipl.zip" depends="build, javadoc, docs">
         <delete file="ipl${version-tag}.zip" />
         <delete dir="${sources-zip}" />
 
         <zip destfile="sources/${sources-filename}.zip">
-            <zipfileset dir="src"
-                        includes="**/*.java"
-                        prefix="${sources-filename}"
-            />
-            <zipfileset dir="."
-                        includes="LICENSE.txt"
-                        prefix="${sources-filename}"
-            />
+            <zipfileset dir="src" includes="**/*.java" prefix="${sources-filename}" />
+            <zipfileset dir="." includes="LICENSE.txt" prefix="${sources-filename}" />
         </zip>
 
         <zip destfile="ipl${version-tag}.zip">
-            <zipfileset dir="."
-                        prefix="ipl${version-tag}"
-                        includes="javadoc/**,docs/*.pdf,lib/**,notices/**,BUGS.txt,LICENSE.txt,HISTORY.txt,README.txt,sources/**,ibis.properties.example,log4j.properties,smartsockets.properties.example,examples/**,benchmarks/**"
-                        excludes="examples/.*,examples/.*/**"
-            />
-            <zipfileset dir="."
-                        prefix="ipl${version-tag}"
-                        filemode="755"
-                        includes="bin/**"
-            />
-            <zipfileset dir="."
-                        includes="docs/INSTALL-bin.txt"
-                        fullpath="ipl${version-tag}/INSTALL.txt"
-            />
+            <zipfileset dir="." prefix="ipl${version-tag}" includes="javadoc/**,docs/*.pdf,lib/**,notices/**,BUGS.txt,LICENSE.txt,HISTORY.txt,README.txt,sources/**,ibis.properties.example,log4j.properties,smartsockets.properties.example,examples/**,benchmarks/**" excludes="examples/.*,examples/.*/**" />
+            <zipfileset dir="." prefix="ipl${version-tag}" filemode="755" includes="bin/**" />
+            <zipfileset dir="." includes="docs/INSTALL-bin.txt" fullpath="ipl${version-tag}/INSTALL.txt" />
         </zip>
 
     </target>
