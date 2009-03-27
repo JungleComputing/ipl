@@ -43,10 +43,40 @@ class SmartSocketsReceivePort extends ReceivePort implements SmartSocketsProtoco
         }
 
         public void run() {
+            logger.info("Started connection handler thread");
             try {
-                reader(false);
+                if (lazy_connectionhandler_thread) {
+                    // For disconnects, there must be a reader thread, but we
+                    // don't really want that. So, we have a thread that only
+                    // checks every second.
+                    for (;;) {
+                        Thread.sleep(1000);
+                        synchronized(port) {
+                            // If there is a reader, or a message is active,
+                            // continue.
+                            if (reader_busy || ((SmartSocketsReceivePort)port).getPortMessage() != null) {
+                                continue;
+                            }
+                            if (in == null) {
+                                return;
+                            }
+                            reader_busy = true;
+                        }
+                        if (logger.isInfoEnabled()) {
+                            logger.info("Lazy thread starting read ...");
+                        }
+                        reader(true);
+                        synchronized(port) {
+                            reader_busy = false;
+                            port.notifyAll();
+                        }
+                    }
+                }
+                else {
+                    reader(true);
+                }
             } catch (Throwable e) {
-                logger.debug("ConnectionHandler.run, connected "
+                logger.info("ConnectionHandler.run, connected "
                         + "to " + origin + ", caught exception", e);
                 close(e);
             }
@@ -57,7 +87,7 @@ class SmartSocketsReceivePort extends ReceivePort implements SmartSocketsProtoco
             ThreadPool.createNew(this, "ConnectionHandler");
         }
 
-        void reader(boolean noThread) throws IOException {
+        void reader(boolean fromHandlerThread) throws IOException {
             byte opcode = -1;
 
             // Moved here to prevent deadlocks and timeouts when using sun 
@@ -89,10 +119,11 @@ class SmartSocketsReceivePort extends ReceivePort implements SmartSocketsProtoco
                         message.setSequenceNumber(message.readLong());
                     }
                     ReadMessage m = message;
-                    messageArrived(m);
+                    messageArrived(m, fromHandlerThread);
                     // Note: if upcall calls finish, a new message is
                     // allocated, so we cannot look at "message" anymore.
-                    if (noThread || m.finishCalledInUpcall()) {
+                    if (lazy_connectionhandler_thread || !fromHandlerThread
+                            || m.finishCalledInUpcall()) {
                         return;
                     }
                     break;
@@ -146,7 +177,7 @@ class SmartSocketsReceivePort extends ReceivePort implements SmartSocketsProtoco
         }
     }
 
-    private final boolean no_connectionhandler_thread;
+    private final boolean lazy_connectionhandler_thread;
 
     private boolean reader_busy = false;
 
@@ -154,20 +185,20 @@ class SmartSocketsReceivePort extends ReceivePort implements SmartSocketsProtoco
             ReceivePortConnectUpcall connUpcall, Properties props) throws IOException {
         super(ibis, type, name, upcall, connUpcall, props);
 
-        /*
-        no_connectionhandler_thread = upcall == null && connUpcall == null
-                && type.hasCapability(PortType.CONNECTION_ONE_TO_ONE)
+        lazy_connectionhandler_thread = upcall == null && connUpcall == null
+                && (type.hasCapability(PortType.CONNECTION_ONE_TO_ONE)
+                        || type.hasCapability(PortType.CONNECTION_ONE_TO_MANY))
                 && !type.hasCapability(PortType.RECEIVE_POLL)
-                && !type.hasCapability(PortType.RECEIVE_TIMEOUT);
-        */
-        
-        no_connectionhandler_thread = false;    // Fix deadlock (see bug report #208 in
-                                                // gforge. --Ceriel
+                && !type.hasCapability(PortType.RECEIVE_TIMEOUT);       
+    }
+    
+    private ReadMessage getPortMessage() {
+        return message;
     }
 
-    public void messageArrived(ReadMessage msg) {
+    public void messageArrived(ReadMessage msg, boolean fromHandlerThread) {
         super.messageArrived(msg);
-        if (! no_connectionhandler_thread && upcall == null) {
+        if (fromHandlerThread && upcall == null) {
             synchronized(this) {
                 // Wait until the message is finished before starting to
                 // read from the stream again ...
@@ -183,14 +214,22 @@ class SmartSocketsReceivePort extends ReceivePort implements SmartSocketsProtoco
     }
 
     public ReadMessage getMessage(long timeout) throws IOException {
-        if (no_connectionhandler_thread) {
+        if (lazy_connectionhandler_thread) {
             // Allow only one reader in.
             synchronized(this) {
+                // First check if the lazy thread delivered a message.
+                if (message != null && ! delivered) {
+                    return super.getMessage(timeout);
+                }
                 while (reader_busy && ! closed) {
                     try {
                         wait();
                     } catch(Exception e) {
                         // ignored
+                    }
+                    // Check lazy thread again.
+                    if (message != null && ! delivered) {
+                        return super.getMessage(timeout);
                     }
                 }
                 if (closed) {
@@ -228,7 +267,7 @@ class SmartSocketsReceivePort extends ReceivePort implements SmartSocketsProtoco
 
                 ReceivePortConnectionInfo conns[] = connections();
                 // Note: This call does NOT always result in a message!
-                ((ConnectionHandler)conns[0]).reader(true);
+                ((ConnectionHandler)conns[0]).reader(false);
                 synchronized(this) {
                     if (message != null) {
                         reader_busy = false;
@@ -242,15 +281,6 @@ class SmartSocketsReceivePort extends ReceivePort implements SmartSocketsProtoco
         }
     }
 
-    public synchronized void closePort(long timeout) {
-        ReceivePortConnectionInfo conns[] = connections();
-        if (no_connectionhandler_thread && conns.length > 0) {
-            ThreadPool.createNew((ConnectionHandler) conns[0],
-                    "ConnectionHandler");
-        }
-        super.closePort(timeout);
-    }
-
     void connect(SendPortIdentifier origin, VirtualSocket s,
             BufferedArrayInputStream in) throws IOException {
         ConnectionHandler conn;
@@ -258,13 +288,10 @@ class SmartSocketsReceivePort extends ReceivePort implements SmartSocketsProtoco
         synchronized(this) {
             conn = new ConnectionHandler(origin, s, this, in);
         }
-        
-        if (! no_connectionhandler_thread) {
-            // ThreadPool.createNew(conn, "ConnectionHandler");
-            // We are already in a dedicated thread, so no need to create a new
-            // one!
-            // But this method was synchronized!!! Fixed (Ceriel).
-            conn.run();
-        }
+        // ThreadPool.createNew(conn, "ConnectionHandler");
+        // We are already in a dedicated thread, so no need to create a new
+        // one!
+        // But this method was synchronized!!! Fixed (Ceriel).
+        conn.run();
     }
 }
