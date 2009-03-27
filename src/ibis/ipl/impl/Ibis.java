@@ -3,6 +3,7 @@
 package ibis.ipl.impl;
 
 import ibis.io.IbisIOException;
+import ibis.ipl.Credentials;
 import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.IbisFactory;
@@ -14,7 +15,6 @@ import ibis.ipl.PortType;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.SendPortDisconnectUpcall;
-import ibis.ipl.registry.Credentials;
 import ibis.ipl.registry.Registry;
 import ibis.util.TypedProperties;
 

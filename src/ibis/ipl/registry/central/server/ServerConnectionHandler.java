@@ -1,11 +1,11 @@
 package ibis.ipl.registry.central.server;
 
 import ibis.io.Conversion;
+import ibis.ipl.Credentials;
 import ibis.ipl.impl.IbisIdentifier;
 import ibis.ipl.impl.Location;
 import ibis.ipl.registry.Connection;
 import ibis.ipl.registry.ControlPolicy;
-import ibis.ipl.registry.Credentials;
 import ibis.ipl.registry.central.Member;
 import ibis.ipl.registry.central.Protocol;
 import ibis.ipl.server.ServerProperties;

@@ -2,7 +2,6 @@
 
 package ibis.ipl;
 
-import ibis.ipl.registry.Credentials;
 
 import java.io.File;
 import java.io.IOException;

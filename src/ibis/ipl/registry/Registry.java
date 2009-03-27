@@ -2,6 +2,7 @@
 
 package ibis.ipl.registry;
 
+import ibis.ipl.Credentials;
 import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.IbisProperties;

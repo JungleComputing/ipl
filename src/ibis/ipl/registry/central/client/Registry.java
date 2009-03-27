@@ -1,11 +1,11 @@
 package ibis.ipl.registry.central.client;
 
+import ibis.ipl.Credentials;
 import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.NoSuchPropertyException;
 import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.impl.IbisIdentifier;
-import ibis.ipl.registry.Credentials;
 import ibis.ipl.registry.RemoteException;
 import ibis.ipl.registry.central.Event;
 import ibis.ipl.registry.central.Protocol;

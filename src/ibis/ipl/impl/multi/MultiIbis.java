@@ -2,6 +2,7 @@
 
 package ibis.ipl.impl.multi;
 
+import ibis.ipl.Credentials;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisCreationFailedException;
@@ -19,7 +20,6 @@ import ibis.ipl.SendPort;
 import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.ipl.Registry;
 import ibis.ipl.SendPortIdentifier;
-import ibis.ipl.registry.Credentials;
 import ibis.util.TypedProperties;
 
 import java.io.IOException;

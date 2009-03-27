@@ -1,5 +1,7 @@
 package ibis.ipl.registry;
 
+import ibis.ipl.Credentials;
+
 import java.security.AccessControlException;
 
 /**

@@ -2,7 +2,6 @@
 
 package ibis.ipl;
 
-import ibis.ipl.registry.Credentials;
 
 import java.lang.reflect.Constructor;
 import java.util.Properties;

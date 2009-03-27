@@ -8,6 +8,7 @@ import ibis.ipl.AlreadyConnectedException;
 import ibis.ipl.CapabilitySet;
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.ConnectionTimedOutException;
+import ibis.ipl.Credentials;
 import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisStarter;
 import ibis.ipl.MessageUpcall;
@@ -20,7 +21,6 @@ import ibis.ipl.impl.IbisIdentifier;
 import ibis.ipl.impl.ReceivePort;
 import ibis.ipl.impl.SendPort;
 import ibis.ipl.impl.SendPortIdentifier;
-import ibis.ipl.registry.Credentials;
 import ibis.util.ThreadPool;
 
 import java.io.DataInputStream;

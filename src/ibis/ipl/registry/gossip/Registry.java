@@ -1,5 +1,6 @@
 package ibis.ipl.registry.gossip;
 
+import ibis.ipl.Credentials;
 import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.IbisProperties;
@@ -8,7 +9,6 @@ import ibis.ipl.RegistryEventHandler;
 
 import ibis.ipl.impl.IbisIdentifier;
 import ibis.ipl.impl.Location;
-import ibis.ipl.registry.Credentials;
 import ibis.ipl.registry.statistics.Statistics;
 
 import ibis.util.ThreadPool;

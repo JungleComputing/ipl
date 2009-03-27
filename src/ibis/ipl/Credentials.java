@@ -1,4 +1,4 @@
-package ibis.ipl.registry;
+package ibis.ipl;
 
 import java.io.Serializable;
 

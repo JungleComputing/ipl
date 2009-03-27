@@ -1,5 +1,6 @@
 package ibis.ipl.impl.stacking.lrmc;
 
+import ibis.ipl.Credentials;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisConfigurationException;
@@ -16,7 +17,6 @@ import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.SendPort;
 import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.ipl.impl.stacking.lrmc.util.DynamicObjectArray;
-import ibis.ipl.registry.Credentials;
 
 import java.io.IOException;
 import java.io.PrintStream;
