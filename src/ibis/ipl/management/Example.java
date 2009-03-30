@@ -63,7 +63,7 @@ public class Example {
                                 + Arrays.toString(server.getManagementService()
                                         .getAttributes(ibis, load, cpu)));
                     } catch (Exception e) {
-                        // TODO Auto-generated catch block
+                        System.err.println("Could not get management info: ");
                         e.printStackTrace();
                     }
                 }
