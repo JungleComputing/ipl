@@ -93,24 +93,33 @@ public class Client {
             throw new ConfigurationException("cannot get address of server");
         }
 
-        return new VirtualSocketAddress(serverMachine, port, serverMachine, null);
+        return new VirtualSocketAddress(serverMachine, port, serverMachine,
+                null);
     }
 
-    public static synchronized VirtualSocketFactory getFactory(TypedProperties typedProperties)
+    public static synchronized VirtualSocketFactory getFactory(
+            TypedProperties typedProperties) throws ConfigurationException,
+            IOException {
+        return getFactory(typedProperties, 0);
+    }
+
+    public static synchronized VirtualSocketFactory getFactory(
+            TypedProperties typedProperties, int port)
             throws ConfigurationException, IOException {
 
-        String hubs = typedProperties
-                .getProperty(IbisProperties.HUB_ADDRESSES);
+        String hubs = typedProperties.getProperty(IbisProperties.HUB_ADDRESSES);
 
         // did the server also start a hub?
         boolean serverIsHub = typedProperties
                 .getBooleanProperty(IbisProperties.SERVER_IS_HUB);
 
-        String server = typedProperties.getProperty(IbisProperties.SERVER_ADDRESS);
+        String server = typedProperties
+                .getProperty(IbisProperties.SERVER_ADDRESS);
         if (server != null && !server.equals("") && serverIsHub) {
             // add server to hub addresses
             DirectSocketAddress serverAddress = createAddressFromString(server,
-                    typedProperties.getIntProperty(ServerProperties.PORT, ServerProperties.DEFAULT_PORT));
+                    typedProperties.getIntProperty(ServerProperties.PORT,
+                            ServerProperties.DEFAULT_PORT));
             if (hubs == null || hubs.equals("")) {
                 hubs = serverAddress.toString();
             } else {
@@ -118,13 +127,17 @@ public class Client {
             }
         }
 
+        Properties smartProperties = new Properties();
+
+        if (port > 0) {
+            smartProperties.put(SmartSocketsProperties.PORT_RANGE, Integer
+                    .toString(port));
+        }
+
         if (hubs == null) {
             // return the default factory
 
             if (defaultFactory == null) {
-                Properties smartProperties = new Properties();
-                smartProperties.put(SmartSocketsProperties.DISCOVERY_ALLOWED,
-                        "false");
                 try {
                     defaultFactory = VirtualSocketFactory.createSocketFactory(
                             smartProperties, true);
@@ -139,9 +152,6 @@ public class Client {
 
         if (factory == null) {
             // return a factory for the specified "hubs" string
-            Properties smartProperties = new Properties();
-            smartProperties.put(SmartSocketsProperties.DISCOVERY_ALLOWED,
-                    "false");
             smartProperties.put(SmartSocketsProperties.HUB_ADDRESSES, hubs);
 
             try {
