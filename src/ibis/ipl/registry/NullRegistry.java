@@ -1,5 +1,6 @@
 package ibis.ipl.registry;
 
+import ibis.ipl.Credentials;
 import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.IbisProperties;
@@ -41,15 +42,16 @@ public final class NullRegistry extends ibis.ipl.registry.Registry {
      *                Ibis implementation data to attach to the IbisIdentifier.
      * @param ibisImplementationIdentifier
      *                the identification of this ibis implementation, including
-     *                version, class and such. Must be identical for all ibisses
+     *                version, class and such. Must be identical for all ibises
      *                in a single pool.
      * @throws IOException
      *                 in case of trouble.
      * @throws IbisConfigurationException
      *                 In case invalid properties were given.
      */
-    public NullRegistry(IbisCapabilities caps, RegistryEventHandler handler,
-            Properties props, byte[] data, String ibisImplementationIdentifier)
+    public NullRegistry(IbisCapabilities capabilities,
+            RegistryEventHandler handler, Properties properties, byte[] data,
+            String implementationVersion, Credentials credentials)
             throws IOException {
 
         if (handler != null) {
@@ -59,9 +61,9 @@ public final class NullRegistry extends ibis.ipl.registry.Registry {
 
         UUID id = UUID.randomUUID();
 
-        Location location = Location.defaultLocation(props, null);
+        Location location = Location.defaultLocation(properties, null);
 
-        String pool = props.getProperty(IbisProperties.POOL_NAME);
+        String pool = properties.getProperty(IbisProperties.POOL_NAME);
 
         identifier = new IbisIdentifier(id.toString(), data, null, location,
                 pool);
