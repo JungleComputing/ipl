@@ -79,6 +79,10 @@ public abstract class Registry implements ibis.ipl.Registry {
             // shorthand for gossip registry
             return new ibis.ipl.registry.gossip.Registry(capabilities, handler,
                     properties, data, implementationVersion, credentials);
+        } else if (registryName.equalsIgnoreCase("null")) {
+            // shorthand for null registry
+            return new ibis.ipl.registry.NullRegistry(capabilities, handler,
+                    properties, data, implementationVersion, credentials);
         }
 
         Class<?> c = Class.forName(registryName);
