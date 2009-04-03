@@ -1,6 +1,5 @@
 package ibis.ipl.registry.central.server;
 
-import ibis.io.Conversion;
 import ibis.ipl.impl.IbisIdentifier;
 import ibis.ipl.impl.Location;
 import ibis.ipl.registry.Connection;

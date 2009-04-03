@@ -1,6 +1,5 @@
 package ibis.ipl.server;
 
-import ibis.io.Conversion;
 import ibis.ipl.IbisFactory;
 import ibis.ipl.registry.Registry;
 import ibis.util.TypedProperties;
