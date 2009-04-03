@@ -133,8 +133,19 @@ public final class Server {
                         .put(SmartSocketsProperties.HUB_DELEGATE, "true");
             }
 
-            virtualSocketFactory = VirtualSocketFactory.createSocketFactory(
-                    smartProperties, true);
+            //create a factory, or get an existing one from SmartSockets
+            VirtualSocketFactory factory = VirtualSocketFactory
+                    .getSocketFactory("ibis");
+
+            if (factory == null) {
+                factory = VirtualSocketFactory.getOrCreateSocketFactory("ibis",
+                        smartProperties, true);
+            } else if (hubs != null) {
+                factory.addHubs(hubs.split(","));
+            }
+
+            this.virtualSocketFactory = factory;
+
             address = virtualSocketFactory.getLocalHost();
 
             try {

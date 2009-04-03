@@ -250,10 +250,6 @@ public final class IbisFactory {
 
         String specifiedImplementation = combinedProperties
                 .getProperty(IbisProperties.IMPLEMENTATION);
-
-System.err.println("##### User properties: " + properties);
-System.err.println("##### Combined properties: " + combinedProperties);
-        
         
         // create the ibis instance
         return factory.createIbis(registryEventHandler, requiredCapabilities,

@@ -1,8 +1,6 @@
 package ibis.ipl.server;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Properties;
 
 import org.slf4j.Logger;
@@ -23,10 +21,6 @@ import ibis.util.TypedProperties;
 public class Client {
 
     private static final Logger logger = LoggerFactory.getLogger(Client.class);
-
-    private static VirtualSocketFactory defaultFactory = null;
-
-    private static Map<String, VirtualSocketFactory> factories = new HashMap<String, VirtualSocketFactory>();
 
     private Client() {
         // DO NOT USE
@@ -134,37 +128,24 @@ public class Client {
                     .toString(port));
         }
 
-        if (hubs == null) {
-            // return the default factory
-
-            if (defaultFactory == null) {
-                try {
-                    defaultFactory = VirtualSocketFactory.createSocketFactory(
-                            smartProperties, true);
-                } catch (InitializationException e) {
-                    throw new IOException(e.getMessage());
-                }
-            }
-            return defaultFactory;
-        }
-
-        VirtualSocketFactory factory = factories.get(hubs);
-
-        if (factory == null) {
-            // return a factory for the specified "hubs" string
+        if (hubs != null) {
             smartProperties.put(SmartSocketsProperties.HUB_ADDRESSES, hubs);
-
-            try {
-                factory = VirtualSocketFactory.createSocketFactory(
-                        smartProperties, true);
-            } catch (InitializationException e) {
-                throw new IOException(e.getMessage());
-            }
-
-            factories.put(hubs, factory);
         }
 
-        return factory;
+        try {
+            VirtualSocketFactory result = VirtualSocketFactory
+                    .getSocketFactory("ibis");
+
+            if (result == null) {
+                result = VirtualSocketFactory.getOrCreateSocketFactory("ibis",
+                        smartProperties, true);
+            } else if (hubs != null) {
+                result.addHubs(hubs.split(","));
+            }
+            return result;
+        } catch (InitializationException e) {
+            throw new IOException(e.getMessage());
+        }
     }
 
 }
