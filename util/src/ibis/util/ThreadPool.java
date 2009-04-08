@@ -82,7 +82,7 @@ public final class ThreadPool {
 
             work = newWork;
             name = newName;
-            logger.debug("issue(): reusing thread");
+            logger.trace("issue(): reusing thread");
             
             notifyAll();
             return true;
