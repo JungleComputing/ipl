@@ -115,7 +115,7 @@ public class RegistryMonitorClient {
         String[] result = null;
 
         Connection connection = new Connection(serverAddress,
-                CONNECTION_TIMEOUT, true, factory);
+                CONNECTION_TIMEOUT, false, factory);
 
         try {
 
@@ -155,7 +155,7 @@ public class RegistryMonitorClient {
         TypedProperties result = new TypedProperties();
 
         Connection connection = new Connection(serverAddress,
-                CONNECTION_TIMEOUT, true, factory);
+                CONNECTION_TIMEOUT, false, factory);
 
         try {
 
@@ -176,7 +176,7 @@ public class RegistryMonitorClient {
 
             connection.close();
 
-            logger.debug("done getting pool sizes");
+            logger.debug("done getting stats");
 
             return result;
 
