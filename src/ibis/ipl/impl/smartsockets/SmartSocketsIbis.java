@@ -11,6 +11,7 @@ import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.Credentials;
 import ibis.ipl.IbisCapabilities;
 import ibis.ipl.IbisConfigurationException;
+import ibis.ipl.IbisProperties;
 import ibis.ipl.IbisStarter;
 import ibis.ipl.MessageUpcall;
 import ibis.ipl.PortMismatchException;
@@ -80,21 +81,20 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
         this.properties.checkProperties("ibis.ipl.impl.smartsockets.",
                 new String[] { "ibis.ipl.impl.smartsockets" }, null, true);
 
-        String location = ident.location().toString();
-        
-        String colorString = "";
-        if (location != null && location.length() > 0) {
-            Color color = new Color(location.hashCode());
-            colorString = "^#"
-                    + String.format("%x%x%x", color.getRed(), color
-                            .getGreen(), color.getBlue());
-        }
-        
         try {
             ServiceLink sl = factory.getServiceLink();
             if (sl != null) {
+                String colorString = "";
+                if (properties.getProperty(IbisProperties.LOCATION_COLOR) != null) {
+                    colorString = "^"
+                            + properties
+                                    .getProperty(IbisProperties.LOCATION_COLOR);
+                }
+
                 sl.registerProperty("smartsockets.viz", "I^" + ident.name()
-                        + "," + ident.location().toString() + colorString); 
+                        + "," + ident.location().toString() + ","
+                        + factory.getLocalHost() + colorString);
+
             }
         } catch (Throwable e) {
             // ignored

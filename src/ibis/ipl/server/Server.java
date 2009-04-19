@@ -1,3 +1,4 @@
+
 package ibis.ipl.server;
 
 import ibis.ipl.IbisProperties;
@@ -13,7 +14,6 @@ import ibis.smartsockets.virtual.VirtualSocketFactory;
 import ibis.util.ClassLister;
 import ibis.util.TypedProperties;
 
-import java.awt.Color;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
@@ -150,19 +150,16 @@ public final class Server {
 
             address = virtualSocketFactory.getLocalHost();
 
-            String location = properties.getProperty(IbisProperties.LOCATION);
-
-            String colorString = "";
-            if (location != null && location.length() > 0) {
-                Color color = new Color(location.hashCode());
-                colorString = "^#"
-                        + String.format("%x%x%x", color.getRed(), color
-                                .getGreen(), color.getBlue());
-            }
-
             try {
                 ServiceLink sl = virtualSocketFactory.getServiceLink();
                 if (sl != null) {
+                    String colorString = "";
+                    if (properties.getProperty(IbisProperties.LOCATION_COLOR) != null) {
+                        colorString = "^"
+                                + properties
+                                        .getProperty(IbisProperties.LOCATION_COLOR);
+                    }
+
                     sl.registerProperty("smartsockets.viz", "S^Ibis server:,"
                             + address.toString() + colorString);
                 } else {

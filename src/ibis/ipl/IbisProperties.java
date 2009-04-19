@@ -69,6 +69,10 @@ public final class IbisProperties {
 
     /** Property name for location. */
     public static final String LOCATION = PREFIX + "location";
+    
+    /** Property name for location color. */
+    public static final String LOCATION_COLOR = PREFIX + "location.color";
+
 
     /**
      * Property name for specifying a postfix for an automatically generated location.
@@ -84,9 +88,7 @@ public final class IbisProperties {
                     "Integer: size of the pool this ibis belongs to" },
                 { SERVER_ADDRESS, null, "Address of the central ibis server" },
                 { SERVER_IS_HUB, "true", "Boolean: if true, the server is also used as a SmartSockets hub" },
-                {
-                    HUB_ADDRESSES,
-                    null,
+                { HUB_ADDRESSES, null,
                     "Comma seperated list of hub addresses."
                             + " The server address is appended to this list,"
                             + " and thus is the default hub if no hub is specified" },
@@ -111,6 +113,9 @@ public final class IbisProperties {
 
                 { LOCATION_POSTFIX, null,
                     "Set a string that will be appended to the automatically generated location." },
+                    
+                { LOCATION_COLOR, null,
+                        "Color code (in html color notation e.g #545432) for this ibis."},
 
                 { REGISTRY_IMPLEMENTATION, "central",
                     "Nickname or classname of the implementation of the registry. Not all Ibis implementations use this property" },
