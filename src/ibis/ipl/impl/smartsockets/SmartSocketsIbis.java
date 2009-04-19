@@ -30,6 +30,7 @@ import ibis.smartsockets.virtual.VirtualSocketAddress;
 import ibis.smartsockets.virtual.VirtualSocketFactory;
 import ibis.util.ThreadPool;
 
+import java.awt.Color;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -79,12 +80,21 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
         this.properties.checkProperties("ibis.ipl.impl.smartsockets.",
                 new String[] { "ibis.ipl.impl.smartsockets" }, null, true);
 
+        String location = ident.location().toString();
+        
+        String colorString = "";
+        if (location != null && location.length() > 0) {
+            Color color = new Color(location.hashCode());
+            colorString = "^#"
+                    + String.format("%x%x%x", color.getRed(), color
+                            .getGreen(), color.getBlue());
+        }
+        
         try {
             ServiceLink sl = factory.getServiceLink();
             if (sl != null) {
                 sl.registerProperty("smartsockets.viz", "I^" + ident.name()
-                        + "," + ident.location().toString());
-                // sl.registerProperty("ibis", id.toString());
+                        + "," + ident.location().toString() + colorString); 
             }
         } catch (Throwable e) {
             // ignored

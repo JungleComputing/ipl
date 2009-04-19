@@ -1,5 +1,6 @@
 package ibis.ipl.server;
 
+import ibis.ipl.IbisProperties;
 import ibis.ipl.management.ManagementService;
 import ibis.ipl.registry.ControlPolicy;
 import ibis.ipl.registry.central.server.CentralRegistryService;
@@ -12,6 +13,7 @@ import ibis.smartsockets.virtual.VirtualSocketFactory;
 import ibis.util.ClassLister;
 import ibis.util.TypedProperties;
 
+import java.awt.Color;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
@@ -133,7 +135,7 @@ public final class Server {
                         .put(SmartSocketsProperties.HUB_DELEGATE, "true");
             }
 
-            //create a factory, or get an existing one from SmartSockets
+            // create a factory, or get an existing one from SmartSockets
             VirtualSocketFactory factory = VirtualSocketFactory
                     .getSocketFactory("ibis");
 
@@ -148,11 +150,21 @@ public final class Server {
 
             address = virtualSocketFactory.getLocalHost();
 
+            String location = properties.getProperty(IbisProperties.LOCATION);
+
+            String colorString = "";
+            if (location != null && location.length() > 0) {
+                Color color = new Color(location.hashCode());
+                colorString = "^#"
+                        + String.format("%x%x%x", color.getRed(), color
+                                .getGreen(), color.getBlue());
+            }
+
             try {
                 ServiceLink sl = virtualSocketFactory.getServiceLink();
                 if (sl != null) {
                     sl.registerProperty("smartsockets.viz", "S^Ibis server:,"
-                            + address.toString());
+                            + address.toString() + colorString);
                 } else {
                     logger
                             .warn("could not set smartsockets viz property: could not get smartsockets service link");
