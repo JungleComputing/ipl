@@ -82,6 +82,8 @@ public final class Server {
         // create the virtual socket factory
         ibis.smartsockets.util.TypedProperties smartProperties = new ibis.smartsockets.util.TypedProperties();
         smartProperties.putAll(SmartSocketsProperties.getDefaultProperties());
+        
+        smartProperties.put(SmartSocketsProperties.HUB_COLOR, properties.get(IbisProperties.LOCATION_COLOR));
 
         String hubs = typedProperties
                 .getProperty(ServerProperties.HUB_ADDRESSES);
