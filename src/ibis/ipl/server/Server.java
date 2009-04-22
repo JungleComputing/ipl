@@ -82,13 +82,6 @@ public final class Server {
         ibis.smartsockets.util.TypedProperties smartProperties = new ibis.smartsockets.util.TypedProperties();
         smartProperties.putAll(SmartSocketsProperties.getDefaultProperties());
 
-        String locationColor = properties
-                .getProperty(IbisProperties.LOCATION_COLOR);
-        if (locationColor != null) {
-            smartProperties
-                    .put(SmartSocketsProperties.HUB_COLOR, locationColor);
-        }
-
         String hubs = typedProperties
                 .getProperty(ServerProperties.HUB_ADDRESSES);
         if (hubs != null) {
@@ -112,7 +105,15 @@ public final class Server {
 
         remote = typedProperties.getBooleanProperty(ServerProperties.REMOTE);
 
+        String locationColor = properties
+                .getProperty(IbisProperties.LOCATION_COLOR);
+
         if (hubOnly) {
+            if (locationColor != null) {
+                smartProperties.put(SmartSocketsProperties.HUB_VIZ_INFO,
+                        "H^Ibis SmartSockets Hub^" + locationColor);
+            }
+
             virtualSocketFactory = null;
 
             smartProperties.put(SmartSocketsProperties.HUB_PORT,
@@ -127,6 +128,14 @@ public final class Server {
             managementService = null;
 
         } else {
+            if (locationColor == null) {
+                smartProperties.put(SmartSocketsProperties.HUB_VIZ_INFO,
+                        "S^Ibis Server");
+            } else {
+                smartProperties.put(SmartSocketsProperties.HUB_VIZ_INFO,
+                        "S^Ibis Server^" + locationColor);
+
+            }
 
             // create server socket
 
@@ -159,15 +168,7 @@ public final class Server {
             try {
                 ServiceLink sl = virtualSocketFactory.getServiceLink();
                 if (sl != null) {
-                    String colorString = "";
-                    if (properties.getProperty(IbisProperties.LOCATION_COLOR) != null) {
-                        colorString = "^"
-                                + properties
-                                        .getProperty(IbisProperties.LOCATION_COLOR);
-                    }
-
-                    sl.registerProperty("smartsockets.viz", "S^Ibis server:,"
-                            + address.toString() + colorString);
+                    sl.registerProperty("smartsockets.viz", "invisible");
                 } else {
                     logger
                             .warn("could not set smartsockets viz property: could not get smartsockets service link");
