@@ -92,8 +92,7 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
                 }
 
                 sl.registerProperty("smartsockets.viz", "I^" + ident.name()
-                        + "," + ident.location().toString() + ","
-                        + factory.getLocalHost() + colorString);
+                        + "," + ident.location().toString() + colorString);
 
             }
         } catch (Throwable e) {
