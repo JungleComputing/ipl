@@ -1,4 +1,3 @@
-
 package ibis.ipl.server;
 
 import ibis.ipl.IbisProperties;
@@ -82,8 +81,13 @@ public final class Server {
         // create the virtual socket factory
         ibis.smartsockets.util.TypedProperties smartProperties = new ibis.smartsockets.util.TypedProperties();
         smartProperties.putAll(SmartSocketsProperties.getDefaultProperties());
-        
-        smartProperties.put(SmartSocketsProperties.HUB_COLOR, properties.get(IbisProperties.LOCATION_COLOR));
+
+        String locationColor = properties
+                .getProperty(IbisProperties.LOCATION_COLOR);
+        if (locationColor != null) {
+            smartProperties
+                    .put(SmartSocketsProperties.HUB_COLOR, locationColor);
+        }
 
         String hubs = typedProperties
                 .getProperty(ServerProperties.HUB_ADDRESSES);
@@ -445,7 +449,9 @@ public final class Server {
         try {
             server = new Server(properties);
         } catch (Throwable t) {
-            System.err.println("Could not start Server: " + t);
+            System.err.println("Could not start Server");
+            t.printStackTrace();
+
             System.exit(1);
         }
 
