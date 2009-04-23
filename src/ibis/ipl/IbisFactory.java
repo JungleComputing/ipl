@@ -2,7 +2,6 @@
 
 package ibis.ipl;
 
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -84,7 +83,7 @@ public final class IbisFactory {
      * Constructs an Ibis factory, with the specified search path.
      * 
      * @param implPath
-     *                the path to search for implementations.
+     *            the path to search for implementations.
      */
     private IbisFactory(String implementationPath, Properties properties) {
 
@@ -119,19 +118,18 @@ public final class IbisFactory {
      * types. As the set of properties, the default properties are used.
      * 
      * @param requiredCapabilities
-     *                ibis capabilities required by the application.
+     *            ibis capabilities required by the application.
      * @param registryEventHandler
-     *                a
-     *                {@link ibis.ipl.RegistryEventHandler RegistryEventHandler}
-     *                instance, or <code>null</code>.
+     *            a {@link ibis.ipl.RegistryEventHandler RegistryEventHandler}
+     *            instance, or <code>null</code>.
      * @param portTypes
-     *                the list of port types required by the application.
+     *            the list of port types required by the application.
      * @return the new Ibis instance.
      * 
      * @exception IbisCreationFailedException
-     *                    is thrown when no Ibis was found that matches the
-     *                    capabilities required, or a matching Ibis could not be
-     *                    instantiated for some reason.
+     *                is thrown when no Ibis was found that matches the
+     *                capabilities required, or a matching Ibis could not be
+     *                instantiated for some reason.
      */
     public static Ibis createIbis(IbisCapabilities requiredCapabilities,
             RegistryEventHandler registryEventHandler, PortType... portTypes)
@@ -145,37 +143,34 @@ public final class IbisFactory {
      * types, and using the specified properties.
      * 
      * @param requiredCapabilities
-     *                ibis capabilities required by the application.
+     *            ibis capabilities required by the application.
      * @param properties
-     *                properties that can be set, for instance a class path for
-     *                searching ibis implementations, or which registry to use.
-     *                There is a default, so <code>null</code> may be
-     *                specified.
+     *            properties that can be set, for instance a class path for
+     *            searching ibis implementations, or which registry to use.
+     *            There is a default, so <code>null</code> may be specified.
      * @param addDefaultConfigProperties
-     *                adds the default properties, loaded from the system
-     *                properties, a "ibis.properties" file, etc, for as far as
-     *                these are not set in the <code>properties</code>
-     *                parameter.
+     *            adds the default properties, loaded from the system
+     *            properties, a "ibis.properties" file, etc, for as far as these
+     *            are not set in the <code>properties</code> parameter.
      * @param registryEventHandler
-     *                a
-     *                {@link ibis.ipl.RegistryEventHandler RegistryEventHandler}
-     *                instance, or <code>null</code>.
+     *            a {@link ibis.ipl.RegistryEventHandler RegistryEventHandler}
+     *            instance, or <code>null</code>.
      * @param portTypes
-     *                the list of port types required by the application. Can be
-     *                an empty list, but not null.
+     *            the list of port types required by the application. Can be an
+     *            empty list, but not null.
      * @return the new Ibis instance.
      * 
      * @exception IbisCreationFailedException
-     *                    is thrown when no Ibis was found that matches the
-     *                    capabilities required, or a matching Ibis could not be
-     *                    instantiated for some reason.
+     *                is thrown when no Ibis was found that matches the
+     *                capabilities required, or a matching Ibis could not be
+     *                instantiated for some reason.
      */
     public static Ibis createIbis(IbisCapabilities requiredCapabilities,
             Properties properties, boolean addDefaultConfigProperties,
             RegistryEventHandler registryEventHandler, PortType... portTypes)
             throws IbisCreationFailedException {
-        return createIbis(requiredCapabilities, properties, 
-                addDefaultConfigProperties, registryEventHandler, null, 
+        return createIbis(requiredCapabilities, properties,
+                addDefaultConfigProperties, registryEventHandler, null,
                 portTypes);
     }
 
@@ -184,33 +179,30 @@ public final class IbisFactory {
      * types, and using the specified properties.
      * 
      * @param requiredCapabilities
-     *                ibis capabilities required by the application.
+     *            ibis capabilities required by the application.
      * @param properties
-     *                properties that can be set, for instance a class path for
-     *                searching ibis implementations, or which registry to use.
-     *                There is a default, so <code>null</code> may be
-     *                specified.
+     *            properties that can be set, for instance a class path for
+     *            searching ibis implementations, or which registry to use.
+     *            There is a default, so <code>null</code> may be specified.
      * @param addDefaultConfigProperties
-     *                adds the default properties, loaded from the system
-     *                properties, a "ibis.properties" file, etc, for as far as
-     *                these are not set in the <code>properties</code>
-     *                parameter.
+     *            adds the default properties, loaded from the system
+     *            properties, a "ibis.properties" file, etc, for as far as these
+     *            are not set in the <code>properties</code> parameter.
      * @param registryEventHandler
-     *                a
-     *                {@link ibis.ipl.RegistryEventHandler RegistryEventHandler}
-     *                instance, or <code>null</code>.
+     *            a {@link ibis.ipl.RegistryEventHandler RegistryEventHandler}
+     *            instance, or <code>null</code>.
      * @param credentials
-     *                Credentials used to join the pool. This could be a
-     *                password, a certificate, or something else.
+     *            Credentials used to join the pool. This could be a password, a
+     *            certificate, or something else.
      * @param portTypes
-     *                the list of port types required by the application. Can be
-     *                an empty list, but not null.
+     *            the list of port types required by the application. Can be an
+     *            empty list, but not null.
      * @return the new Ibis instance.
      * 
      * @exception IbisCreationFailedException
-     *                    is thrown when no Ibis was found that matches the
-     *                    capabilities required, or a matching Ibis could not be
-     *                    instantiated for some reason.
+     *                is thrown when no Ibis was found that matches the
+     *                capabilities required, or a matching Ibis could not be
+     *                instantiated for some reason.
      */
     @SuppressWarnings("unchecked")
     public static Ibis createIbis(IbisCapabilities requiredCapabilities,
@@ -250,7 +242,7 @@ public final class IbisFactory {
 
         String specifiedImplementation = combinedProperties
                 .getProperty(IbisProperties.IMPLEMENTATION);
-        
+
         // create the ibis instance
         return factory.createIbis(registryEventHandler, requiredCapabilities,
                 combinedProperties, credentials, portTypes,
@@ -591,14 +583,21 @@ public final class IbisFactory {
             InputStream inputStream = classLoader
                     .getResourceAsStream(IPL_MANIFEST_FILE);
 
+            if (inputStream == null) {
+                System.err
+                        .println("Warning: could not load implementation from manifest property file");
+                return;
+            }
+
             Properties properties = new Properties();
 
             properties.load(inputStream);
 
             String nickNames = properties.getProperty("implementations");
-            
+
             if (nickNames == null) {
-                System.err.println("Warning: no implementations found in manifest property file");
+                System.err
+                        .println("Warning: no implementations found in manifest property file");
             }
 
             for (String nickName : nickNames.split(",")) {
