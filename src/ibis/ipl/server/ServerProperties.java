@@ -32,13 +32,15 @@ public final class ServerProperties {
 
     public static final String SERVICES = PREFIX + "services";
 
+    public static final String VIZ_INFO = PREFIX + "viz.info";
+
     /** Property name for specifying a comma separated list of hubs. */
     public static final String HUB_ADDRESSES = PREFIX + "ibis.hub.addresses";
 
     public static final String implementationVersion;
 
     public static final int DEFAULT_PORT = 8888;
-    
+
     static {
         String version = Registry.class.getPackage().getImplementationVersion();
 
@@ -69,7 +71,8 @@ public final class ServerProperties {
             { HUB_ADDRESS_FILE, null,
                     "String: file where the address of the hub is printed to (and deleted on exit)" },
 
-            { PORT, Integer.toString(DEFAULT_PORT), "Port which the server binds to" },
+            { PORT, Integer.toString(DEFAULT_PORT),
+                    "Port which the server binds to" },
 
             { PRINT_EVENTS, "false",
                     "Boolean: if true, events of services are printed to standard out." },
@@ -80,7 +83,11 @@ public final class ServerProperties {
             {
                     REMOTE,
                     "false",
-                    "Boolean: If true, the server listens to stdin for commands and responds on stdout" }, };
+                    "Boolean: If true, the server listens to stdin for commands and responds on stdout" },
+
+            { VIZ_INFO, null, "String: info for smartsockets visualization" },
+
+    };
 
     public static TypedProperties getHardcodedProperties() {
         TypedProperties properties = new TypedProperties();

@@ -105,13 +105,12 @@ public final class Server {
 
         remote = typedProperties.getBooleanProperty(ServerProperties.REMOTE);
 
-        String locationColor = properties
-                .getProperty(IbisProperties.LOCATION_COLOR);
+        String vizInfo = properties.getProperty(ServerProperties.VIZ_INFO);
 
         if (hubOnly) {
-            if (locationColor != null) {
+            if (vizInfo != null) {
                 smartProperties.put(SmartSocketsProperties.HUB_VIZ_INFO,
-                        "H^Ibis SmartSockets Hub^" + locationColor);
+                        vizInfo);
             }
 
             virtualSocketFactory = null;
@@ -128,12 +127,12 @@ public final class Server {
             managementService = null;
 
         } else {
-            if (locationColor == null) {
+            if (vizInfo == null) {
                 smartProperties.put(SmartSocketsProperties.HUB_VIZ_INFO,
                         "S^Ibis Server");
             } else {
                 smartProperties.put(SmartSocketsProperties.HUB_VIZ_INFO,
-                        "S^Ibis Server^" + locationColor);
+                        vizInfo);
 
             }
 
