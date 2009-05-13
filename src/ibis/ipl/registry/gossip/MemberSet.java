@@ -1,5 +1,9 @@
 package ibis.ipl.registry.gossip;
 
+import ibis.ipl.impl.IbisIdentifier;
+import ibis.ipl.registry.statistics.Statistics;
+import ibis.util.TypedProperties;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -11,10 +15,6 @@ import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import ibis.ipl.impl.IbisIdentifier;
-import ibis.ipl.registry.statistics.Statistics;
-import ibis.util.TypedProperties;
 
 class MemberSet extends Thread {
 

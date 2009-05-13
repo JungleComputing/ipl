@@ -1,13 +1,13 @@
 package ibis.ipl.impl.smartsockets;
 
-import java.io.IOException;
-
 import ibis.io.SerializationFactory;
 import ibis.io.SerializationOutput;
 import ibis.io.SingleBufferArrayOutputStream;
 import ibis.ipl.PortType;
 import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
+
+import java.io.IOException;
 
 public class SmartSocketsUltraLightWriteMessage implements WriteMessage {
 

@@ -1,11 +1,5 @@
 package ibis.ipl.server;
 
-import java.io.IOException;
-import java.util.Properties;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import ibis.ipl.IbisProperties;
 import ibis.smartsockets.SmartSocketsProperties;
 import ibis.smartsockets.direct.DirectSocketAddress;
@@ -13,6 +7,12 @@ import ibis.smartsockets.virtual.InitializationException;
 import ibis.smartsockets.virtual.VirtualSocketAddress;
 import ibis.smartsockets.virtual.VirtualSocketFactory;
 import ibis.util.TypedProperties;
+
+import java.io.IOException;
+import java.util.Properties;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Convenience class to retrieve information on the server, and create a

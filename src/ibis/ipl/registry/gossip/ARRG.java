@@ -1,15 +1,15 @@
 package ibis.ipl.registry.gossip;
 
+import ibis.ipl.registry.Connection;
+import ibis.ipl.registry.statistics.Statistics;
+import ibis.smartsockets.virtual.VirtualSocketAddress;
+import ibis.smartsockets.virtual.VirtualSocketFactory;
+
 import java.io.IOException;
 import java.util.HashSet;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import ibis.ipl.registry.Connection;
-import ibis.ipl.registry.statistics.Statistics;
-import ibis.smartsockets.virtual.VirtualSocketAddress;
-import ibis.smartsockets.virtual.VirtualSocketFactory;
 
 /**
  * Implementation of the ARRG algorithm

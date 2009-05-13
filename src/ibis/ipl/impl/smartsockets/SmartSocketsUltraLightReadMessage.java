@@ -1,7 +1,5 @@
 package ibis.ipl.impl.smartsockets;
 
-import java.io.IOException;
-
 import ibis.io.SerializationFactory;
 import ibis.io.SerializationInput;
 import ibis.io.SingleBufferArrayInputStream;
@@ -9,6 +7,8 @@ import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.SendPortIdentifier;
+
+import java.io.IOException;
 
 public final class SmartSocketsUltraLightReadMessage implements ReadMessage {
 

@@ -1,11 +1,10 @@
 package ibis.ipl.impl.stacking.lrmc.util;
 
+import ibis.ipl.IbisIdentifier;
 import ibis.ipl.Location;
 
-import java.util.Comparator;
 import java.util.Arrays;
-
-import ibis.ipl.IbisIdentifier;
+import java.util.Comparator;
 
 public class IbisSorter implements Comparator<IbisIdentifier> {
 

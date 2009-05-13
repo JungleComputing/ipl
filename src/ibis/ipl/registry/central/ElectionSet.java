@@ -1,5 +1,7 @@
 package ibis.ipl.registry.central;
 
+import ibis.ipl.impl.IbisIdentifier;
+
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
@@ -8,8 +10,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-
-import ibis.ipl.impl.IbisIdentifier;
 
 public class ElectionSet implements Iterable<Election> {
 

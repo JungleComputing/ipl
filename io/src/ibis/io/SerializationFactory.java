@@ -2,9 +2,9 @@
 
 package ibis.io;
 
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.io.IOException;
 
 /**
  * A factory for creating serialization streams.

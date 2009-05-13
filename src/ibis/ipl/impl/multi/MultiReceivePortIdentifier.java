@@ -1,9 +1,9 @@
 package ibis.ipl.impl.multi;
 
-import java.util.HashMap;
-
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.ReceivePortIdentifier;
+
+import java.util.HashMap;
 
 public class MultiReceivePortIdentifier implements ReceivePortIdentifier {
 

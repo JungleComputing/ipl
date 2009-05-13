@@ -1,11 +1,11 @@
 package ibis.ipl.registry.central;
 
+import ibis.ipl.impl.IbisIdentifier;
+
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.io.Serializable;
-
-import ibis.ipl.impl.IbisIdentifier;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

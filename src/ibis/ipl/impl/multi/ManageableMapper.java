@@ -1,11 +1,11 @@
 package ibis.ipl.impl.multi;
 
+import ibis.ipl.Manageable;
+import ibis.ipl.NoSuchPropertyException;
+
 import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Map;
-
-import ibis.ipl.Manageable;
-import ibis.ipl.NoSuchPropertyException;
 
 public class ManageableMapper implements Manageable {
 

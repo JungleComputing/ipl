@@ -3,11 +3,11 @@
  */
 package ibis.ipl.registry.gossip;
 
+import ibis.smartsockets.virtual.VirtualSocketAddress;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-
-import ibis.smartsockets.virtual.VirtualSocketAddress;
 
 class ARRGCacheEntry {
     private final VirtualSocketAddress address;

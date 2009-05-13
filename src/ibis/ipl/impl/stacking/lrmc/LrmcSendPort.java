@@ -1,13 +1,5 @@
 package ibis.ipl.impl.stacking.lrmc;
 
-import java.io.IOException;
-import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Properties;
-
 import ibis.ipl.AlreadyConnectedException;
 import ibis.ipl.ConnectionFailedException;
 import ibis.ipl.ConnectionsFailedException;
@@ -18,6 +10,14 @@ import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPort;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.WriteMessage;
+
+import java.io.IOException;
+import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Properties;
 
 public class LrmcSendPort implements SendPort {
 

@@ -6,11 +6,9 @@ import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.IbisProperties;
 import ibis.ipl.NoSuchPropertyException;
 import ibis.ipl.RegistryEventHandler;
-
 import ibis.ipl.impl.IbisIdentifier;
 import ibis.ipl.impl.Location;
 import ibis.ipl.registry.statistics.Statistics;
-
 import ibis.util.ThreadPool;
 import ibis.util.TypedProperties;
 

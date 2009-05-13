@@ -6,8 +6,8 @@ import ibis.ipl.IbisIdentifier;
 import ibis.ipl.NoSuchPropertyException;
 import ibis.ipl.PortType;
 import ibis.ipl.ReceivePortIdentifier;
-import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.ipl.SendPort;
+import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.WriteMessage;
 

@@ -1,9 +1,9 @@
 package ibis.ipl.impl.multi;
 
-import java.io.IOException;
-
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.RegistryEventHandler;
+
+import java.io.IOException;
 
 public class MultiRegistryEventHandler implements RegistryEventHandler {
 

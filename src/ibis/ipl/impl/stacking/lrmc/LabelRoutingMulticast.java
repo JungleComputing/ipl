@@ -1,11 +1,11 @@
 package ibis.ipl.impl.stacking.lrmc;
 
 import ibis.ipl.IbisIdentifier;
+import ibis.ipl.MessageUpcall;
 import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.SendPort;
-import ibis.ipl.MessageUpcall;
 import ibis.ipl.WriteMessage;
 import ibis.ipl.impl.stacking.lrmc.io.MessageReceiver;
 import ibis.ipl.impl.stacking.lrmc.util.DynamicObjectArray;
@@ -13,10 +13,10 @@ import ibis.ipl.impl.stacking.lrmc.util.IbisSorter;
 import ibis.ipl.impl.stacking.lrmc.util.Message;
 import ibis.ipl.impl.stacking.lrmc.util.MessageCache;
 import ibis.ipl.impl.stacking.lrmc.util.MessageQueue;
-
 import ibis.util.TypedProperties;
 
 import java.io.IOException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

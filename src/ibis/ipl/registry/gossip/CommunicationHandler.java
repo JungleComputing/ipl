@@ -1,10 +1,5 @@
 package ibis.ipl.registry.gossip;
 
-import java.io.IOException;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.impl.IbisIdentifier;
 import ibis.ipl.registry.Connection;
@@ -16,6 +11,11 @@ import ibis.smartsockets.virtual.VirtualSocketAddress;
 import ibis.smartsockets.virtual.VirtualSocketFactory;
 import ibis.util.ThreadPool;
 import ibis.util.TypedProperties;
+
+import java.io.IOException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 class CommunicationHandler implements Runnable {
 

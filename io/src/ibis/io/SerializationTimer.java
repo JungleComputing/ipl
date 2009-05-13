@@ -2,9 +2,9 @@
 
 package ibis.io;
 
-import java.util.Vector;
-
 import ibis.util.Timer;
+
+import java.util.Vector;
 
 public class SerializationTimer {
 

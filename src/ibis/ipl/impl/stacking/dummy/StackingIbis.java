@@ -11,10 +11,10 @@ import ibis.ipl.NoSuchPropertyException;
 import ibis.ipl.PortType;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortConnectUpcall;
+import ibis.ipl.Registry;
 import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.SendPort;
 import ibis.ipl.SendPortDisconnectUpcall;
-import ibis.ipl.Registry;
 
 import java.io.IOException;
 import java.io.PrintStream;

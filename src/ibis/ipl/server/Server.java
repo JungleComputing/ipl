@@ -1,6 +1,5 @@
 package ibis.ipl.server;
 
-import ibis.ipl.IbisProperties;
 import ibis.ipl.management.ManagementService;
 import ibis.ipl.registry.ControlPolicy;
 import ibis.ipl.registry.central.server.CentralRegistryService;

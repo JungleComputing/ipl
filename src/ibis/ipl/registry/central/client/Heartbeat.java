@@ -1,9 +1,9 @@
 package ibis.ipl.registry.central.client;
 
+import ibis.util.ThreadPool;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import ibis.util.ThreadPool;
 
 public class Heartbeat implements Runnable {
     

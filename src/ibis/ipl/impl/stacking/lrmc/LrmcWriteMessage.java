@@ -1,10 +1,10 @@
 package ibis.ipl.impl.stacking.lrmc;
 
-import java.io.IOException;
-
 import ibis.io.SerializationOutput;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.WriteMessage;
+
+import java.io.IOException;
 
 public class LrmcWriteMessage implements WriteMessage {
 

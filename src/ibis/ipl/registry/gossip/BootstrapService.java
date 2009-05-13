@@ -1,12 +1,5 @@
 package ibis.ipl.registry.gossip;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import ibis.ipl.registry.Connection;
 import ibis.ipl.registry.statistics.Statistics;
 import ibis.ipl.server.ServerProperties;
@@ -16,6 +9,13 @@ import ibis.smartsockets.virtual.VirtualSocketAddress;
 import ibis.smartsockets.virtual.VirtualSocketFactory;
 import ibis.util.ThreadPool;
 import ibis.util.TypedProperties;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class BootstrapService implements Service, Runnable {
 

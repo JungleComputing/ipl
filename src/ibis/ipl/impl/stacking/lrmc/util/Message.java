@@ -1,9 +1,9 @@
 package ibis.ipl.impl.stacking.lrmc.util;
 
-import java.io.IOException;
-
 import ibis.ipl.ReadMessage;
 import ibis.ipl.WriteMessage;
+
+import java.io.IOException;
 
 public class Message {
 

@@ -1,11 +1,5 @@
 package ibis.ipl.impl.stacking.lrmc;
 
-import java.io.IOException;
-import java.io.PrintStream;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.MessageUpcall;
 import ibis.ipl.NoSuchPropertyException;
@@ -15,6 +9,12 @@ import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.ReceiveTimedOutException;
 import ibis.ipl.SendPortIdentifier;
 import ibis.util.ThreadPool;
+
+import java.io.IOException;
+import java.io.PrintStream;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 
 public class LrmcReceivePort implements ibis.ipl.ReceivePort, Runnable {
 
