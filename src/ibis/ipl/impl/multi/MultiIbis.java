@@ -152,7 +152,7 @@ public class MultiIbis implements Ibis {
         String poolName = userProperties.getProperty(IbisProperties.POOL_NAME);
         Location location = Location.defaultLocation(userProperties);
         id = new MultiIbisIdentifier(UUID.randomUUID().toString(), subIdMap,
-                null, location, poolName);
+                null, location, poolName, applicationTag);
 
         for (String ibisName : subIdMap.keySet()) {
             IbisIdentifier subId = subIdMap.get(ibisName);

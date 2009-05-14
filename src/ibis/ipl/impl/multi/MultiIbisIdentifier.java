@@ -40,6 +40,9 @@ public final class MultiIbisIdentifier implements IbisIdentifier {
 
     private final HashMap<String, IbisIdentifier>idMap;
 
+    /** The application tag for this multi ibis instance */
+    private String applicationTag;
+
     /**
      * Constructs an <code>IbisIdentifier</code> with the specified parameters.
      * @param id join id, allocated by the registry.
@@ -49,12 +52,13 @@ public final class MultiIbisIdentifier implements IbisIdentifier {
      * @param pool identifies the run with the registry.
      */
     public MultiIbisIdentifier(String id, HashMap<String, ibis.ipl.IbisIdentifier> idMap,
-            byte[] registryData, Location location, String pool) {
+            byte[] registryData, Location location, String pool, String applicationTag) {
         this.id = id;
         this.idMap = idMap;
         this.registryData = registryData;
         this.location = location;
         this.pool = pool;
+        this.applicationTag = applicationTag;
         this.codedForm = computeCodedForm();
     }
 
@@ -109,6 +113,7 @@ public final class MultiIbisIdentifier implements IbisIdentifier {
             registryData = new byte[registrySize];
             dis.readFully(registryData);
         }
+        applicationTag = dis.readUTF();
         id = dis.readUTF();
         codedForm = computeCodedForm();
     }
@@ -141,6 +146,7 @@ public final class MultiIbisIdentifier implements IbisIdentifier {
                 dos.writeInt(registryData.length);
                 dos.write(registryData);
             }
+            dos.writeUTF(applicationTag);
             dos.writeUTF(id);
             dos.close();
             return bos.toByteArray();
@@ -235,10 +241,9 @@ public final class MultiIbisIdentifier implements IbisIdentifier {
     }
 
     public String applicationTag() {
-        // TODO: What do we do here? Return the application id from one of the sub ids?
-        throw new IllegalStateException("Applicaiton Tags not supported with Multi-Ibis");
+        return applicationTag;
     }
-    
+
     public IbisIdentifier subIdForIbis(String ibisName) {
         return idMap.get(ibisName);
     }
