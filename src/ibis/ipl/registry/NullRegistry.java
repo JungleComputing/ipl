@@ -53,7 +53,7 @@ public final class NullRegistry extends ibis.ipl.registry.Registry {
      */
     public NullRegistry(IbisCapabilities capabilities,
             RegistryEventHandler handler, Properties properties, byte[] data,
-            String implementationVersion, Credentials credentials, String applicationTag)
+            String implementationVersion, Credentials credentials, byte[] applicationTag)
             throws IOException {
 
         if (handler != null) {

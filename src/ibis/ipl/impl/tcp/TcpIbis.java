@@ -52,7 +52,7 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis implements Runnable,
 
     public TcpIbis(RegistryEventHandler registryEventHandler,
             IbisCapabilities capabilities, Credentials credentials,
-            String applicationTag, PortType[] types, Properties userProperties, IbisStarter starter) {
+            byte[] applicationTag, PortType[] types, Properties userProperties, IbisStarter starter) {
         super(registryEventHandler, capabilities, credentials, applicationTag, types,
                 userProperties, starter);
 

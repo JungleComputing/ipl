@@ -2,6 +2,8 @@
 
 package ibis.ipl;
 
+import java.io.UnsupportedEncodingException;
+
 /**
  * Uniquely identifies an Ibis on the network. Should be comparable with
  * <code>equals()</code>, so implementations probably redefine
@@ -36,15 +38,27 @@ public interface IbisIdentifier extends java.io.Serializable,
      */
     public String name();
 
-	/**
-	 * Returns the application tag provided when the ibis instance
-	 * with this identifier was constructed or null if none was provided.
-	 * Applications should try to keep this as short as possible since
-	 * these will be sent over the network many times.
-	 * @return
-	 *          a tag.
-	 */
-    public String applicationTag();
+    /**
+     * Returns the application tag provided when the ibis instance
+     * with this identifier was constructed or null if none was provided.
+     * Applications should try to keep this as short as possible since
+     * these will be sent over the network many times.
+     * @return
+     *          a tag.
+     * @throws UnsupportedEncodingException 
+     *          if the current VM does not support UTF-8 encoding for strings.
+     */
+    public String applicationTagAsString() throws UnsupportedEncodingException;
+
+    /**
+     * Returns the application tag provided when the ibis instance
+     * with this identifier was constructed or null if none was provided.
+     * Applications should try to keep this as short as possible since
+     * these will be sent over the network many times.
+     * @return
+     *          a tag.
+     */
+    public byte[] applicationTag();
 
     /**
      * Returns a human-readable but not neccesarily unique string

@@ -44,7 +44,7 @@ public final class LrmcIbisStarter extends ibis.ipl.IbisStarter {
     public Ibis startIbis(IbisFactory factory,
             RegistryEventHandler registryEventHandler,
             Properties userProperties, IbisCapabilities capabilities, Credentials credentials,
-            String applicationTag, PortType[] portTypes, String specifiedSubImplementation) throws IbisCreationFailedException {
+            byte[] applicationTag, PortType[] portTypes, String specifiedSubImplementation) throws IbisCreationFailedException {
         return new LrmcIbis(factory, registryEventHandler,
                 userProperties, capabilities, credentials, applicationTag, portTypes, specifiedSubImplementation, this);
     }

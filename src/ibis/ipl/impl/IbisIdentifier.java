@@ -9,6 +9,7 @@ import java.io.DataInputStream;
 import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 
 /**
  * This implementation of the {@link ibis.ipl.IbisIdentifier} interface
@@ -37,7 +38,7 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
     private final String id;
 
     /** Application tag, provided by the application. */
-    private final String applicationTag;
+    private final byte[] applicationTag;
 
     /** An Ibis identifier coded as a byte array. Computed once. */
     private transient byte[] codedForm;
@@ -52,7 +53,7 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
      * @param applicationTag an tag for this ibis at the application level
      */
     public IbisIdentifier(String id, byte[] implementationData,
-            byte[] registryData, Location location, String pool, String applicationTag) {
+            byte[] registryData, Location location, String pool, byte[] applicationTag) {
         this.id = id;
         this.implementationData = implementationData;
         this.registryData = registryData;
@@ -108,7 +109,13 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
             dis.readFully(registryData);
         }
         id = dis.readUTF();
-        applicationTag = dis.readUTF();
+        int applicationTagSize = dis.readInt();
+        if (registrySize < 0) {
+            applicationTag = null;
+        } else {
+            applicationTag = new byte[applicationTagSize];
+            dis.readFully(applicationTag);
+        }
         codedForm = computeCodedForm();
     }
 
@@ -142,7 +149,12 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
                 dos.write(registryData);
             }
             dos.writeUTF(id);
-            dos.writeUTF(applicationTag);
+            if (applicationTag == null) {
+                dos.writeInt(-1);
+            } else {
+                dos.writeInt(applicationTag.length);
+                dos.write(applicationTag);
+            }
             dos.close();
             return bos.toByteArray();
         } catch(Exception e) {
@@ -200,10 +212,14 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
         return pool;
     }
 
-    public String applicationTag() {
-    	return applicationTag;
+    public byte[] applicationTag() {
+        return applicationTag;
     }
 
+    public String applicationTagAsString() throws UnsupportedEncodingException {
+        return new String(applicationTag, "UTF-8");
+    }
+    
     /**
      * Obtains the implementation dependent data.
      * @return the data.

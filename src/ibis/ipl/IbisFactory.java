@@ -5,6 +5,7 @@ package ibis.ipl;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
@@ -170,7 +171,7 @@ public final class IbisFactory {
             RegistryEventHandler registryEventHandler, PortType... portTypes)
             throws IbisCreationFailedException {
         return createIbis(requiredCapabilities, properties,
-                addDefaultConfigProperties, registryEventHandler, null, null,
+                addDefaultConfigProperties, registryEventHandler, null, (byte[])null,
                 portTypes);
     }
 
@@ -212,10 +213,59 @@ public final class IbisFactory {
         return createIbis(requiredCapabilities,
                 properties, addDefaultConfigProperties,
                 registryEventHandler, credentials,
-                null, portTypes);
+                (byte[])null, portTypes);
     }
 
-    
+    /**
+     * Creates a new Ibis instance, based on the required capabilities and port
+     * types, and using the specified properties.
+     * 
+     * @param requiredCapabilities
+     *            ibis capabilities required by the application.
+     * @param properties
+     *            properties that can be set, for instance a class path for
+     *            searching ibis implementations, or which registry to use.
+     *            There is a default, so <code>null</code> may be specified.
+     * @param addDefaultConfigProperties
+     *            adds the default properties, loaded from the system
+     *            properties, a "ibis.properties" file, etc, for as far as these
+     *            are not set in the <code>properties</code> parameter.
+     * @param registryEventHandler
+     *            a {@link ibis.ipl.RegistryEventHandler RegistryEventHandler}
+     *            instance, or <code>null</code>.
+     * @param credentials
+     *            Credentials used to join the pool. This could be a password, a
+     *            certificate, or something else.
+     * @param applicationTag
+     *            An application level tag for this Ibis instance.
+     * @param portTypes
+     *            the list of port types required by the application. Can be an
+     *            empty list, but not null.
+     * @return the new Ibis instance.
+     * 
+     * @exception IbisCreationFailedException
+     *                is thrown when no Ibis was found that matches the
+     *                capabilities required, or a matching Ibis could not be
+     *                instantiated for some reason.
+     * @throws UnsupportedEncodingException 
+     *                is thrown if this VM does not support UTF-8 encoding of strings
+     *                and an applicationTag was given
+     */
+    @SuppressWarnings("unchecked")
+    public static Ibis createIbis(IbisCapabilities requiredCapabilities,
+            Properties properties, boolean addDefaultConfigProperties,
+            RegistryEventHandler registryEventHandler, Credentials credentials,
+            String applicationTag, PortType... portTypes) throws IbisCreationFailedException, UnsupportedEncodingException {
+        byte[] applicationTagBytes = null;
+        if (applicationTag != null) {
+            applicationTagBytes = applicationTag.getBytes("UTF-8");
+        }
+        return createIbis(requiredCapabilities,
+                properties, addDefaultConfigProperties,
+                registryEventHandler, credentials,
+                applicationTagBytes, portTypes);
+    }
+
     /**
      * Creates a new Ibis instance, based on the required capabilities and port
      * types, and using the specified properties.
@@ -252,7 +302,7 @@ public final class IbisFactory {
     public static Ibis createIbis(IbisCapabilities requiredCapabilities,
             Properties properties, boolean addDefaultConfigProperties,
             RegistryEventHandler registryEventHandler, Credentials credentials,
-            String applicationTag, PortType... portTypes) throws IbisCreationFailedException {
+            byte[] applicationTag, PortType... portTypes) throws IbisCreationFailedException {
 
         Properties combinedProperties = new Properties();
 
@@ -354,7 +404,7 @@ public final class IbisFactory {
      */
     public Ibis createIbis(RegistryEventHandler registryEventHandler,
             IbisCapabilities requiredCapabilities, Properties properties,
-            Credentials credentials, String applicationTag, PortType[] portTypes,
+            Credentials credentials, byte[] applicationTag, PortType[] portTypes,
             String specifiedImplementation) throws IbisCreationFailedException {
 
         if (requiredCapabilities == null) {

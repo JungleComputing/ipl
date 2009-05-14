@@ -44,7 +44,7 @@ public final class MultiIbisStarter extends IbisStarter {
     public Ibis startIbis(IbisFactory factory,
             RegistryEventHandler registryEventHandler,
             Properties userProperties, IbisCapabilities capabilities,
-            Credentials credentials, String applicationTag, PortType[] portTypes,
+            Credentials credentials, byte[] applicationTag, PortType[] portTypes,
             String specifiedSubImplementation)
             throws IbisCreationFailedException {
         return new MultiIbis(factory, registryEventHandler, userProperties,

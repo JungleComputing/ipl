@@ -65,7 +65,7 @@ public abstract class Registry implements ibis.ipl.Registry {
      */
     public static Registry createRegistry(IbisCapabilities capabilities,
             RegistryEventHandler handler, Properties properties, byte[] data,
-            String implementationVersion, String applicationTag, Credentials credentials) throws Throwable {
+            String implementationVersion, byte[] applicationTag, Credentials credentials) throws Throwable {
 
         String registryName = properties
                 .getProperty(IbisProperties.REGISTRY_IMPLEMENTATION);

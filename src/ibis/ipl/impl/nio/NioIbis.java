@@ -43,7 +43,7 @@ public final class NioIbis extends ibis.ipl.impl.Ibis {
 
     private SendReceiveThread sendReceiveThread = null;
 
-    public NioIbis(RegistryEventHandler r, IbisCapabilities p, Credentials credentials,String applicationTag, PortType[] types, Properties tp,
+    public NioIbis(RegistryEventHandler r, IbisCapabilities p, Credentials credentials, byte[] applicationTag, PortType[] types, Properties tp,
             IbisStarter starter) {
 
         super(r, p, credentials, applicationTag, types, tp, starter);

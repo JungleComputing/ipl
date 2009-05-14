@@ -80,7 +80,7 @@ public final class SmartSocketsIbisStarter extends ibis.ipl.IbisStarter {
     public Ibis startIbis(IbisFactory factory,
             RegistryEventHandler registryEventHandler,
             Properties userProperties, IbisCapabilities capabilities,
-            Credentials credentials, String applicationTag, PortType[] portTypes,
+            Credentials credentials, byte[] applicationTag, PortType[] portTypes,
             String specifiedSubImplementation) {
         return new SmartSocketsIbis(registryEventHandler, capabilities,
                 credentials, applicationTag, portTypes, userProperties, this);

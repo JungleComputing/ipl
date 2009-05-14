@@ -10,6 +10,7 @@ import java.io.DataOutput;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 
 /**
@@ -41,7 +42,7 @@ public final class MultiIbisIdentifier implements IbisIdentifier {
     private final HashMap<String, IbisIdentifier>idMap;
 
     /** The application tag for this multi ibis instance */
-    private String applicationTag;
+    private byte[] applicationTag;
 
     /**
      * Constructs an <code>IbisIdentifier</code> with the specified parameters.
@@ -52,7 +53,7 @@ public final class MultiIbisIdentifier implements IbisIdentifier {
      * @param pool identifies the run with the registry.
      */
     public MultiIbisIdentifier(String id, HashMap<String, ibis.ipl.IbisIdentifier> idMap,
-            byte[] registryData, Location location, String pool, String applicationTag) {
+            byte[] registryData, Location location, String pool, byte[] applicationTag) {
         this.id = id;
         this.idMap = idMap;
         this.registryData = registryData;
@@ -113,7 +114,13 @@ public final class MultiIbisIdentifier implements IbisIdentifier {
             registryData = new byte[registrySize];
             dis.readFully(registryData);
         }
-        applicationTag = dis.readUTF();
+        int applicationTagSize = dis.readInt();
+        if (applicationTagSize < 0) {
+            applicationTag = null;
+        } else {
+            applicationTag = new byte[applicationTagSize];
+            dis.readFully(applicationTag);
+        }
         id = dis.readUTF();
         codedForm = computeCodedForm();
     }
@@ -146,7 +153,12 @@ public final class MultiIbisIdentifier implements IbisIdentifier {
                 dos.writeInt(registryData.length);
                 dos.write(registryData);
             }
-            dos.writeUTF(applicationTag);
+            if (applicationTag == null) {
+                dos.writeInt(-1);
+            } else {
+                dos.writeInt(applicationTag.length);
+                dos.write(applicationTag);
+            }
             dos.writeUTF(id);
             dos.close();
             return bos.toByteArray();
@@ -240,7 +252,11 @@ public final class MultiIbisIdentifier implements IbisIdentifier {
         return id;
     }
 
-    public String applicationTag() {
+    public String applicationTagAsString() throws UnsupportedEncodingException {
+        return new String(applicationTag, "UTF-8");
+    }
+    
+    public byte[] applicationTag() {
         return applicationTag;
     }
 

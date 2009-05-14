@@ -135,7 +135,7 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
      */
     protected Ibis(RegistryEventHandler registryHandler,
             IbisCapabilities capabilities, Credentials credentials,
-            String applicationTag, PortType[] portTypes, Properties userProperties, IbisStarter starter) {
+            byte[] applicationTag, PortType[] portTypes, Properties userProperties, IbisStarter starter) {
 
         if (capabilities == null) {
             throw new IbisConfigurationException("capabilities not specified");

@@ -179,7 +179,7 @@ final class CommunicationHandler implements Runnable {
      *             in case of trouble
      */
     IbisIdentifier join(byte[] implementationData,
-            String implementationVersion, Credentials credentials, String applicationTag)
+            String implementationVersion, Credentials credentials, byte[] applicationTag)
             throws IOException {
         long start = System.currentTimeMillis();
 
@@ -260,8 +260,13 @@ final class CommunicationHandler implements Runnable {
             byte[] credentialBytes = Conversion.object2byte(credentials);
             connection.out().writeInt(credentialBytes.length);
             connection.out().write(credentialBytes);
-            connection.out().writeUTF(applicationTag);
-
+            if (applicationTag == null) {
+                connection.out().writeInt(-1);
+            } else {
+                connection.out().writeInt(applicationTag.length);
+                connection.out().write(applicationTag);
+            }
+            
             logger.debug("reading join result info from server");
 
             connection.getAndCheckReply();

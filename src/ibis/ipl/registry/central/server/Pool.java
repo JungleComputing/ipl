@@ -277,7 +277,7 @@ final class Pool implements Runnable {
      * ibis.ipl.impl.Location)
      */
     synchronized Member join(byte[] implementationData, byte[] clientAddress,
-            Location location, String implementationVersion, String applicationTag) throws IOException {
+            Location location, String implementationVersion, byte[] applicationTag) throws IOException {
         if (hasEnded()) {
             throw new IOException("Pool already ended");
         }

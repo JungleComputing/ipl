@@ -64,7 +64,7 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
 
     public SmartSocketsIbis(RegistryEventHandler registryEventHandler,
             IbisCapabilities capabilities, Credentials credentials,
-            String applicationTag, PortType[] types, Properties userProperties, IbisStarter starter) {
+            byte[] applicationTag, PortType[] types, Properties userProperties, IbisStarter starter) {
         super(registryEventHandler, capabilities, credentials, applicationTag, types,
                 userProperties, starter);
 

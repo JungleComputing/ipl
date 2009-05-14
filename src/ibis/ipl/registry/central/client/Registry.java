@@ -85,7 +85,7 @@ public final class Registry extends ibis.ipl.registry.Registry
      */
     public Registry(IbisCapabilities capabilities,
             RegistryEventHandler eventHandler, Properties userProperties,
-            byte[] data, String implementationVersion, Credentials credentials, String applicationTag)
+            byte[] data, String implementationVersion, Credentials credentials, byte[] applicationTag)
             throws IbisConfigurationException, IOException {
         logger.debug("creating central registry");
 
