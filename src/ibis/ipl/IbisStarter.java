@@ -146,10 +146,12 @@ public abstract class IbisStarter {
      *            a registry event handler.
      * @param userProperties
      *            the user properties.
+     * @param applicationTag
+     *            an application level tag for this Ibis instance.
      */
     public abstract Ibis startIbis(IbisFactory factory,
             RegistryEventHandler handler, Properties userProperties,
             IbisCapabilities capabilities, Credentials credentials,
-            PortType[] portTypes, String specifiedSubImplementation)
+            String applicationTag, PortType[] portTypes, String specifiedSubImplementation)
             throws IbisCreationFailedException;
 }

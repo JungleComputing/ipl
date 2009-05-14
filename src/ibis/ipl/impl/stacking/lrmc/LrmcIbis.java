@@ -113,7 +113,7 @@ public class LrmcIbis implements Ibis {
     public LrmcIbis(IbisFactory factory,
             RegistryEventHandler registryEventHandler,
             Properties userProperties, IbisCapabilities capabilities,
-            Credentials credentials, PortType[] portTypes,
+            Credentials credentials, String applicationTag, PortType[] portTypes,
             String specifiedSubImplementation, LrmcIbisStarter lrmcIbisStarter)
             throws IbisCreationFailedException {
         List<PortType> requiredPortTypes = new ArrayList<PortType>();
@@ -140,10 +140,10 @@ public class LrmcIbis implements Ibis {
                 requiredPortTypes.add(portType);
             }
         }
-        
+       
         requiredPortTypes.add(additionalPortType);
 
-        base = factory.createIbis(h, capabilities, userProperties, credentials,
+        base = factory.createIbis(h, capabilities, userProperties, credentials, applicationTag,
                 requiredPortTypes.toArray(new PortType[requiredPortTypes.size()]),
                 specifiedSubImplementation);
     }

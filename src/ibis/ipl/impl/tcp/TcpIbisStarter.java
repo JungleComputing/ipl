@@ -92,8 +92,8 @@ public final class TcpIbisStarter extends ibis.ipl.IbisStarter {
     
     public Ibis startIbis(IbisFactory factory,
             RegistryEventHandler registryEventHandler, Properties userProperties,
-            IbisCapabilities capabilities, Credentials credentials, PortType[] portTypes, String specifiedSubImplementation) {
+            IbisCapabilities capabilities, Credentials credentials, String applicationTag, PortType[] portTypes, String specifiedSubImplementation) {
         return new TcpIbis(registryEventHandler, capabilities, credentials,
-                portTypes, userProperties, this);
+                applicationTag, portTypes, userProperties, this);
     }
 }

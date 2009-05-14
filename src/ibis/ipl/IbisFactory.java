@@ -170,7 +170,7 @@ public final class IbisFactory {
             RegistryEventHandler registryEventHandler, PortType... portTypes)
             throws IbisCreationFailedException {
         return createIbis(requiredCapabilities, properties,
-                addDefaultConfigProperties, registryEventHandler, null,
+                addDefaultConfigProperties, registryEventHandler, null, null,
                 portTypes);
     }
 
@@ -209,6 +209,50 @@ public final class IbisFactory {
             Properties properties, boolean addDefaultConfigProperties,
             RegistryEventHandler registryEventHandler, Credentials credentials,
             PortType... portTypes) throws IbisCreationFailedException {
+        return createIbis(requiredCapabilities,
+                properties, addDefaultConfigProperties,
+                registryEventHandler, credentials,
+                null, portTypes);
+    }
+
+    
+    /**
+     * Creates a new Ibis instance, based on the required capabilities and port
+     * types, and using the specified properties.
+     * 
+     * @param requiredCapabilities
+     *            ibis capabilities required by the application.
+     * @param properties
+     *            properties that can be set, for instance a class path for
+     *            searching ibis implementations, or which registry to use.
+     *            There is a default, so <code>null</code> may be specified.
+     * @param addDefaultConfigProperties
+     *            adds the default properties, loaded from the system
+     *            properties, a "ibis.properties" file, etc, for as far as these
+     *            are not set in the <code>properties</code> parameter.
+     * @param registryEventHandler
+     *            a {@link ibis.ipl.RegistryEventHandler RegistryEventHandler}
+     *            instance, or <code>null</code>.
+     * @param credentials
+     *            Credentials used to join the pool. This could be a password, a
+     *            certificate, or something else.
+     * @param applicationTag
+     *            An application level tag for this Ibis instance.
+     * @param portTypes
+     *            the list of port types required by the application. Can be an
+     *            empty list, but not null.
+     * @return the new Ibis instance.
+     * 
+     * @exception IbisCreationFailedException
+     *                is thrown when no Ibis was found that matches the
+     *                capabilities required, or a matching Ibis could not be
+     *                instantiated for some reason.
+     */
+    @SuppressWarnings("unchecked")
+    public static Ibis createIbis(IbisCapabilities requiredCapabilities,
+            Properties properties, boolean addDefaultConfigProperties,
+            RegistryEventHandler registryEventHandler, Credentials credentials,
+            String applicationTag, PortType... portTypes) throws IbisCreationFailedException {
 
         Properties combinedProperties = new Properties();
 
@@ -245,7 +289,7 @@ public final class IbisFactory {
 
         // create the ibis instance
         return factory.createIbis(registryEventHandler, requiredCapabilities,
-                combinedProperties, credentials, portTypes,
+                combinedProperties, credentials, applicationTag, portTypes,
                 specifiedImplementation);
     }
 
@@ -310,7 +354,7 @@ public final class IbisFactory {
      */
     public Ibis createIbis(RegistryEventHandler registryEventHandler,
             IbisCapabilities requiredCapabilities, Properties properties,
-            Credentials credentials, PortType[] portTypes,
+            Credentials credentials, String applicationId, PortType[] portTypes,
             String specifiedImplementation) throws IbisCreationFailedException {
 
         if (requiredCapabilities == null) {
@@ -370,7 +414,7 @@ public final class IbisFactory {
         }
 
         return starter.startIbis(this, registryEventHandler, properties,
-                requiredCapabilities, credentials, portTypes,
+                requiredCapabilities, credentials, applicationId, portTypes,
                 specifiedSubImplementation);
 
     }

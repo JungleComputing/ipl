@@ -76,6 +76,8 @@ public final class Registry extends ibis.ipl.registry.Registry
      *            a single pool.
      * @param credentials
      *            Security credentials
+     * @param applicationTag
+     *            A tag provided by the application constructing this Ibis.
      * @throws IOException
      *             in case of trouble.
      * @throws IbisConfigurationException
@@ -83,7 +85,7 @@ public final class Registry extends ibis.ipl.registry.Registry
      */
     public Registry(IbisCapabilities capabilities,
             RegistryEventHandler eventHandler, Properties userProperties,
-            byte[] data, String implementationVersion, Credentials credentials)
+            byte[] data, String implementationVersion, Credentials credentials, String applicationTag)
             throws IbisConfigurationException, IOException {
         logger.debug("creating central registry");
 
@@ -138,7 +140,7 @@ public final class Registry extends ibis.ipl.registry.Registry
                     statistics);
 
             identifier = communicationHandler.join(data,
-                    implementationVersion, credentials);
+                    implementationVersion, credentials, applicationTag);
 
             communicationHandler.bootstrap();
 

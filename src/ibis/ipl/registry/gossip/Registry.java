@@ -66,7 +66,9 @@ public class Registry extends ibis.ipl.registry.Registry implements Runnable {
      *            properties of this registry.
      * @param ibisData
      *            Ibis implementation data to attach to the IbisIdentifier.
-     * @param authenticationObject 
+     * @param applicationTag
+     *            A tag provided by the application constructing this ibis.
+     * @param authenticationObject
      * @param ibisImplementationIdentifier
      *            the identification of this ibis implementation, including
      *            version, class and such. Must be identical for all Ibises in
@@ -78,7 +80,8 @@ public class Registry extends ibis.ipl.registry.Registry implements Runnable {
      */
     public Registry(IbisCapabilities capabilities,
             RegistryEventHandler eventHandler, Properties userProperties,
-            byte[] ibisData, String implementationVersion, Credentials credentials
+            byte[] ibisData, String implementationVersion, Credentials credentials,
+            String applicationId
             )
             throws IbisConfigurationException, IOException,
             IbisConfigurationException {
@@ -164,7 +167,7 @@ public class Registry extends ibis.ipl.registry.Registry implements Runnable {
 
 
         identifier = new IbisIdentifier(id.toString(), ibisData, commHandler
-                .getAddress().toBytes(), location, poolName);
+                .getAddress().toBytes(), location, poolName, applicationId);
 
         commHandler.start();
         members.start();

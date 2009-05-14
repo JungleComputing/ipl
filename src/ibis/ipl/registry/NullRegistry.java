@@ -40,6 +40,8 @@ public final class NullRegistry extends ibis.ipl.registry.Registry {
      *                properties of this registry.
      * @param data
      *                Ibis implementation data to attach to the IbisIdentifier.
+     * @param applicationTag
+     *                A tag provided by the application for this ibis instance.
      * @param ibisImplementationIdentifier
      *                the identification of this ibis implementation, including
      *                version, class and such. Must be identical for all ibises
@@ -51,7 +53,7 @@ public final class NullRegistry extends ibis.ipl.registry.Registry {
      */
     public NullRegistry(IbisCapabilities capabilities,
             RegistryEventHandler handler, Properties properties, byte[] data,
-            String implementationVersion, Credentials credentials)
+            String implementationVersion, Credentials credentials, String applicationTag)
             throws IOException {
 
         if (handler != null) {
@@ -66,7 +68,7 @@ public final class NullRegistry extends ibis.ipl.registry.Registry {
         String pool = properties.getProperty(IbisProperties.POOL_NAME);
 
         identifier = new IbisIdentifier(id.toString(), data, null, location,
-                pool);
+                pool, applicationTag);
     }
 
     @Override

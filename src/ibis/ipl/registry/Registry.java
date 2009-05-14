@@ -54,6 +54,9 @@ public abstract class Registry implements ibis.ipl.Registry {
      * @param implementationVersion
      *                the identification of this Ibis implementation. Must be
      *                identical for all Ibises in a single pool.
+     * @param applicationTag
+     *                the application level tag for the Ibis which is
+     *                constructing this registry.
      * @param authenticationObject
      *                authentication object to authenticate ibis at registry
      * @exception Throwable
@@ -62,7 +65,7 @@ public abstract class Registry implements ibis.ipl.Registry {
      */
     public static Registry createRegistry(IbisCapabilities capabilities,
             RegistryEventHandler handler, Properties properties, byte[] data,
-            String implementationVersion, Credentials credentials) throws Throwable {
+            String implementationVersion, String applicationTag, Credentials credentials) throws Throwable {
 
         String registryName = properties
                 .getProperty(IbisProperties.REGISTRY_IMPLEMENTATION);
@@ -74,15 +77,15 @@ public abstract class Registry implements ibis.ipl.Registry {
         } else if (registryName.equalsIgnoreCase("central")) {
             // shorthand for central registry
             return new ibis.ipl.registry.central.client.Registry(capabilities, handler,
-                    properties, data, implementationVersion, credentials);
+                    properties, data, implementationVersion, credentials, applicationTag);
         } else if (registryName.equalsIgnoreCase("gossip")) {
             // shorthand for gossip registry
             return new ibis.ipl.registry.gossip.Registry(capabilities, handler,
-                    properties, data, implementationVersion, credentials);
+                    properties, data, implementationVersion, credentials, applicationTag);
         } else if (registryName.equalsIgnoreCase("null")) {
             // shorthand for null registry
             return new ibis.ipl.registry.NullRegistry(capabilities, handler,
-                    properties, data, implementationVersion, credentials);
+                    properties, data, implementationVersion, credentials, applicationTag);
         }
 
         Class<?> c = Class.forName(registryName);

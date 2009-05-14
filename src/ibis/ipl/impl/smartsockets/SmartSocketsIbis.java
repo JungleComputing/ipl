@@ -64,8 +64,8 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
 
     public SmartSocketsIbis(RegistryEventHandler registryEventHandler,
             IbisCapabilities capabilities, Credentials credentials,
-            PortType[] types, Properties userProperties, IbisStarter starter) {
-        super(registryEventHandler, capabilities, credentials, types,
+            String applicationTag, PortType[] types, Properties userProperties, IbisStarter starter) {
+        super(registryEventHandler, capabilities, credentials, applicationTag, types,
                 userProperties, starter);
 
         lightConnection.put("connect.module.allow", "ConnectModule(HubRouted)");

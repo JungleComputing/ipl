@@ -126,6 +126,8 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
      *                the registryHandler.
      * @param capabilities
      *                the capabilities.
+     * @param applicationTag
+     *                an application level tag for this Ibis instance
      * @param portTypes
      *                the port types requested for this ibis implementation.
      * @param userProperties
@@ -133,7 +135,7 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
      */
     protected Ibis(RegistryEventHandler registryHandler,
             IbisCapabilities capabilities, Credentials credentials,
-            PortType[] portTypes, Properties userProperties, IbisStarter starter) {
+            String applicationTag, PortType[] portTypes, Properties userProperties, IbisStarter starter) {
 
         if (capabilities == null) {
             throw new IbisConfigurationException("capabilities not specified");
@@ -159,7 +161,7 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
         try {
             registry = Registry.createRegistry(this.capabilities,
                     registryHandler, properties, getData(),
-                    getImplementationVersion(), credentials);
+                    getImplementationVersion(), applicationTag, credentials);
         } catch (IbisConfigurationException e) {
             throw e;
         } catch (Throwable e) {

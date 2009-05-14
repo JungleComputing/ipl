@@ -80,9 +80,9 @@ public final class NioIbisStarter extends ibis.ipl.IbisStarter {
     public Ibis startIbis(IbisFactory factory,
             RegistryEventHandler registryEventHandler,
             Properties userProperties, IbisCapabilities capabilities,
-            Credentials credentials, PortType[] portTypes,
+            Credentials credentials, String applicationTag, PortType[] portTypes,
             String specifiedSubImplementation) {
         return new NioIbis(registryEventHandler, capabilities, credentials,
-                portTypes, userProperties, this);
+                applicationTag, portTypes, userProperties, this);
     }
 }

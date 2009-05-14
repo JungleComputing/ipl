@@ -36,6 +36,9 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
     /** Identification of Ibis instances, provided by the registry. */
     private final String id;
 
+    /** Application tag, provided by the application. */
+    private final String applicationTag;
+
     /** An Ibis identifier coded as a byte array. Computed once. */
     private transient byte[] codedForm;
 
@@ -46,14 +49,16 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
      * @param registryData registry-dependent data.
      * @param location location of this Ibis instance.
      * @param pool identifies the run with the registry.
+     * @param applicationTag an tag for this ibis at the application level
      */
     public IbisIdentifier(String id, byte[] implementationData,
-            byte[] registryData, Location location, String pool) {
+            byte[] registryData, Location location, String pool, String applicationTag) {
         this.id = id;
         this.implementationData = implementationData;
         this.registryData = registryData;
         this.location = location;
         this.pool = pool;
+        this.applicationTag = applicationTag;
         this.codedForm = computeCodedForm();
     }
 
@@ -103,6 +108,7 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
             dis.readFully(registryData);
         }
         id = dis.readUTF();
+        applicationTag = dis.readUTF();
         codedForm = computeCodedForm();
     }
 
@@ -136,6 +142,7 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
                 dos.write(registryData);
             }
             dos.writeUTF(id);
+            dos.writeUTF(applicationTag);
             dos.close();
             return bos.toByteArray();
         } catch(Exception e) {
@@ -178,7 +185,7 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
     }
 
     public String toString() {
-        return "(Ibis " + id + ", location " + location + ")";
+        return "(Ibis " + id + ", location " + location + (applicationTag != null ? ", applicationId " + applicationTag : "") + ")";
     }
 
     public String name() {
@@ -191,6 +198,10 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
 
     public String poolName() {
         return pool;
+    }
+
+    public String applicationTag() {
+    	return applicationTag;
     }
 
     /**

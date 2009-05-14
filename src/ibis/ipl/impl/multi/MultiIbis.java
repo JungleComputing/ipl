@@ -77,7 +77,7 @@ public class MultiIbis implements Ibis {
     public MultiIbis(IbisFactory factory,
             RegistryEventHandler registryEventHandler,
             Properties userProperties, IbisCapabilities capabilities,
-            Credentials credentials, PortType[] portTypes,
+            Credentials credentials, String applicationTag, PortType[] portTypes,
             String specifiedSubImplementation, MultiIbisStarter multiIbisStarter) {
         if (logger.isDebugEnabled()) {
             logger.debug("Constructing MultiIbis!");
@@ -118,7 +118,7 @@ public class MultiIbis implements Ibis {
                 }
 
                 Ibis ibis = factory.createIbis(handler, capabilities,
-                        subProperties, credentials, requiredPortTypes,
+                        subProperties, credentials, applicationTag, requiredPortTypes,
                         implementation);
 
                 if (handler != null) {

@@ -28,12 +28,12 @@ public class StackingIbis implements Ibis {
     public StackingIbis(IbisFactory factory,
             RegistryEventHandler registryEventHandler,
             Properties userProperties, IbisCapabilities capabilities,
-            Credentials credentials, PortType[] portTypes,
+            Credentials credentials, String applicationTag, PortType[] portTypes,
             String specifiedSubImplementation,
             StackingIbisStarter stackingIbisStarter)
             throws IbisCreationFailedException {
         base = factory.createIbis(registryEventHandler, capabilities,
-                userProperties, credentials, portTypes,
+                userProperties, credentials, applicationTag, portTypes,
                 specifiedSubImplementation);
     }
 

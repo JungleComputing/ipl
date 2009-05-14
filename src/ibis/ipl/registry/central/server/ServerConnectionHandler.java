@@ -114,6 +114,8 @@ final class ServerConnectionHandler implements Runnable {
         Credentials credentials = (Credentials) Conversion
                 .byte2object(credentialBytes);
 
+        String applicationTag = connection.in().readUTF();
+
         if (policy != null) {
             try {
                 policy.onJoin(credentials);
@@ -135,7 +137,7 @@ final class ServerConnectionHandler implements Runnable {
 
         try {
             member = pool.join(implementationData, clientAddress, location,
-                    implementationVersion);
+                    implementationVersion, applicationTag);
         } catch (IOException e) {
             connection.closeWithError(e.getMessage());
             throw e;

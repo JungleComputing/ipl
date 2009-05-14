@@ -172,12 +172,14 @@ final class CommunicationHandler implements Runnable {
     /**
      * connects to the registry server, joins, and gets back the identifier of
      * this Ibis and some bootstrap information
-     * 
+     * @param applicationTag
+     *             A tag for this ibis provided by the application
+     *
      * @throws IOException
      *             in case of trouble
      */
     IbisIdentifier join(byte[] implementationData,
-            String implementationVersion, Credentials credentials)
+            String implementationVersion, Credentials credentials, String applicationTag)
             throws IOException {
         long start = System.currentTimeMillis();
 
@@ -258,6 +260,7 @@ final class CommunicationHandler implements Runnable {
             byte[] credentialBytes = Conversion.object2byte(credentials);
             connection.out().writeInt(credentialBytes.length);
             connection.out().write(credentialBytes);
+            connection.out().writeUTF(applicationTag);
 
             logger.debug("reading join result info from server");
 
