@@ -234,6 +234,11 @@ public final class MultiIbisIdentifier implements IbisIdentifier {
         return id;
     }
 
+    public String applicationTag() {
+        // TODO: What do we do here? Return the application id from one of the sub ids?
+        throw new IllegalStateException("Applicaiton Tags not supported with Multi-Ibis");
+    }
+    
     public IbisIdentifier subIdForIbis(String ibisName) {
         return idMap.get(ibisName);
     }
