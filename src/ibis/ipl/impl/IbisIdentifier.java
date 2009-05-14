@@ -185,7 +185,7 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
     }
 
     public String toString() {
-        return "(Ibis " + id + ", location " + location + (applicationTag != null ? ", applicationId " + applicationTag : "") + ")";
+        return "(Ibis " + id + ", location " + location + (applicationTag != null ? ", applicationTag " + applicationTag : "") + ")";
     }
 
     public String name() {

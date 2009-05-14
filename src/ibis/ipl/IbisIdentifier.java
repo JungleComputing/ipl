@@ -36,6 +36,16 @@ public interface IbisIdentifier extends java.io.Serializable,
      */
     public String name();
 
+	/**
+	 * Returns the application tag provided when the ibis instance
+	 * with this identifier was constructed or null if none was provided.
+	 * Applications should try to keep this as short as possible since
+	 * these will be sent over the network many times.
+	 * @return
+	 *          a tag.
+	 */
+    public String applicationTag();
+
     /**
      * Returns a human-readable but not neccesarily unique string
      * identifying the Ibis instance to which this IbisIdentifier

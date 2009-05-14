@@ -81,7 +81,7 @@ public class Registry extends ibis.ipl.registry.Registry implements Runnable {
     public Registry(IbisCapabilities capabilities,
             RegistryEventHandler eventHandler, Properties userProperties,
             byte[] ibisData, String implementationVersion, Credentials credentials,
-            String applicationId
+            String applicationTag
             )
             throws IbisConfigurationException, IOException,
             IbisConfigurationException {
@@ -167,7 +167,7 @@ public class Registry extends ibis.ipl.registry.Registry implements Runnable {
 
 
         identifier = new IbisIdentifier(id.toString(), ibisData, commHandler
-                .getAddress().toBytes(), location, poolName, applicationId);
+                .getAddress().toBytes(), location, poolName, applicationTag);
 
         commHandler.start();
         members.start();

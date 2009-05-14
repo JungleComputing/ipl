@@ -354,7 +354,7 @@ public final class IbisFactory {
      */
     public Ibis createIbis(RegistryEventHandler registryEventHandler,
             IbisCapabilities requiredCapabilities, Properties properties,
-            Credentials credentials, String applicationId, PortType[] portTypes,
+            Credentials credentials, String applicationTag, PortType[] portTypes,
             String specifiedImplementation) throws IbisCreationFailedException {
 
         if (requiredCapabilities == null) {
@@ -414,7 +414,7 @@ public final class IbisFactory {
         }
 
         return starter.startIbis(this, registryEventHandler, properties,
-                requiredCapabilities, credentials, applicationId, portTypes,
+                requiredCapabilities, credentials, applicationTag, portTypes,
                 specifiedSubImplementation);
 
     }
