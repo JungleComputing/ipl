@@ -252,11 +252,16 @@ public final class MultiIbisIdentifier implements IbisIdentifier {
         return id;
     }
 
-    public String applicationTagAsString() throws UnsupportedEncodingException {
-        return new String(applicationTag, "UTF-8");
+    public String tagAsString() {
+        try {
+            return new String(applicationTag, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException("could not convert tag to string", e);
+        }
     }
     
-    public byte[] applicationTag() {
+    
+    public byte[] tag() {
         return applicationTag;
     }
 

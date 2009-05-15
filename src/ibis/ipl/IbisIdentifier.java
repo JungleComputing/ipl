@@ -45,10 +45,10 @@ public interface IbisIdentifier extends java.io.Serializable,
      * these will be sent over the network many times.
      * @return
      *          a tag.
-     * @throws UnsupportedEncodingException 
+     * @throws RuntimeException 
      *          if the current VM does not support UTF-8 encoding for strings.
      */
-    public String applicationTagAsString() throws UnsupportedEncodingException;
+    public String tagAsString() ;
 
     /**
      * Returns the application tag provided when the ibis instance
@@ -58,7 +58,7 @@ public interface IbisIdentifier extends java.io.Serializable,
      * @return
      *          a tag.
      */
-    public byte[] applicationTag();
+    public byte[] tag();
 
     /**
      * Returns a human-readable but not neccesarily unique string
