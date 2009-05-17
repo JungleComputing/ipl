@@ -42,7 +42,7 @@ public final class MultiIbisIdentifier implements IbisIdentifier {
     private final HashMap<String, IbisIdentifier>idMap;
 
     /** The application tag for this multi ibis instance */
-    private byte[] applicationTag;
+    private byte[] tag;
 
     /**
      * Constructs an <code>IbisIdentifier</code> with the specified parameters.
@@ -59,7 +59,7 @@ public final class MultiIbisIdentifier implements IbisIdentifier {
         this.registryData = registryData;
         this.location = location;
         this.pool = pool;
-        this.applicationTag = applicationTag;
+        this.tag = applicationTag;
         this.codedForm = computeCodedForm();
     }
 
@@ -114,12 +114,12 @@ public final class MultiIbisIdentifier implements IbisIdentifier {
             registryData = new byte[registrySize];
             dis.readFully(registryData);
         }
-        int applicationTagSize = dis.readInt();
-        if (applicationTagSize < 0) {
-            applicationTag = null;
+        int tagSize = dis.readInt();
+        if (tagSize < 0) {
+            tag = null;
         } else {
-            applicationTag = new byte[applicationTagSize];
-            dis.readFully(applicationTag);
+            tag = new byte[tagSize];
+            dis.readFully(tag);
         }
         id = dis.readUTF();
         codedForm = computeCodedForm();
@@ -153,11 +153,11 @@ public final class MultiIbisIdentifier implements IbisIdentifier {
                 dos.writeInt(registryData.length);
                 dos.write(registryData);
             }
-            if (applicationTag == null) {
+            if (tag == null) {
                 dos.writeInt(-1);
             } else {
-                dos.writeInt(applicationTag.length);
-                dos.write(applicationTag);
+                dos.writeInt(tag.length);
+                dos.write(tag);
             }
             dos.writeUTF(id);
             dos.close();
@@ -253,8 +253,11 @@ public final class MultiIbisIdentifier implements IbisIdentifier {
     }
 
     public String tagAsString() {
+        if (tag == null) {
+            return null;
+        }
         try {
-            return new String(applicationTag, "UTF-8");
+            return new String(tag, "UTF-8");
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException("could not convert tag to string", e);
         }
@@ -262,7 +265,7 @@ public final class MultiIbisIdentifier implements IbisIdentifier {
     
     
     public byte[] tag() {
-        return applicationTag;
+        return tag;
     }
 
     public IbisIdentifier subIdForIbis(String ibisName) {

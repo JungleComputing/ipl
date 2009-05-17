@@ -16,13 +16,14 @@ import java.io.UnsupportedEncodingException;
  * identifies an Ibis instance on the network.
  */
 public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
-    /** 
+    /**
      * Generated
      */
     private static final long serialVersionUID = 3654888190542934889L;
 
     /**
-     * The location for this Ibis instance. */
+     * The location for this Ibis instance.
+     */
     public final Location location;
 
     /** The name of the pool to which this Ibis instance belongs. */
@@ -38,35 +39,46 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
     private final String id;
 
     /** Application tag, provided by the application. */
-    private final byte[] applicationTag;
+    private final byte[] tag;
 
     /** An Ibis identifier coded as a byte array. Computed once. */
     private transient byte[] codedForm;
 
     /**
      * Constructs an <code>IbisIdentifier</code> with the specified parameters.
-     * @param id join id, allocated by the registry.
-     * @param implementationData implementation-dependent data.
-     * @param registryData registry-dependent data.
-     * @param location location of this Ibis instance.
-     * @param pool identifies the run with the registry.
-     * @param applicationTag an tag for this ibis at the application level
+     * 
+     * @param id
+     *            join id, allocated by the registry.
+     * @param implementationData
+     *            implementation-dependent data.
+     * @param registryData
+     *            registry-dependent data.
+     * @param location
+     *            location of this Ibis instance.
+     * @param pool
+     *            identifies the run with the registry.
+     * @param tag
+     *            user-provided tag for this ibis.
      */
     public IbisIdentifier(String id, byte[] implementationData,
-            byte[] registryData, Location location, String pool, byte[] applicationTag) {
+            byte[] registryData, Location location, String pool,
+            byte[] tag) {
         this.id = id;
         this.implementationData = implementationData;
         this.registryData = registryData;
         this.location = location;
         this.pool = pool;
-        this.applicationTag = applicationTag;
+        this.tag = tag;
         this.codedForm = computeCodedForm();
     }
 
     /**
      * Constructs an <code>IbisIdentifier</code> from the specified coded form.
-     * @param codedForm the coded form.
-     * @exception IOException is thrown in case of trouble.
+     * 
+     * @param codedForm
+     *            the coded form.
+     * @exception IOException
+     *                is thrown in case of trouble.
      */
     public IbisIdentifier(byte[] codedForm) throws IOException {
         this(codedForm, 0, codedForm.length);
@@ -75,21 +87,29 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
     /**
      * Constructs an <code>IbisIdentifier</code> from the specified coded form,
      * at a particular offset and size.
-     * @param codedForm the coded form.
-     * @param offset offset in the coded form.
-     * @param size size of the coded form.
-     * @exception IOException is thrown in case of trouble.
+     * 
+     * @param codedForm
+     *            the coded form.
+     * @param offset
+     *            offset in the coded form.
+     * @param size
+     *            size of the coded form.
+     * @exception IOException
+     *                is thrown in case of trouble.
      */
     public IbisIdentifier(byte[] codedForm, int offset, int size)
             throws IOException {
-        this(new DataInputStream(
-                new ByteArrayInputStream(codedForm, offset, size)));
+        this(new DataInputStream(new ByteArrayInputStream(codedForm, offset,
+                size)));
     }
 
     /**
      * Reads an <code>IbisIdentifier</code> from the specified input stream.
-     * @param dis the input stream.
-     * @exception IOException is thrown in case of trouble.
+     * 
+     * @param dis
+     *            the input stream.
+     * @exception IOException
+     *                is thrown in case of trouble.
      */
     public IbisIdentifier(DataInput dis) throws IOException {
         location = new Location(dis);
@@ -109,18 +129,19 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
             dis.readFully(registryData);
         }
         id = dis.readUTF();
-        int applicationTagSize = dis.readInt();
+        int tagSize = dis.readInt();
         if (registrySize < 0) {
-            applicationTag = null;
+            tag = null;
         } else {
-            applicationTag = new byte[applicationTagSize];
-            dis.readFully(applicationTag);
+            tag = new byte[tagSize];
+            dis.readFully(tag);
         }
         codedForm = computeCodedForm();
     }
 
     /**
      * Returns the coded form of this <code>IbisIdentifier</code>.
+     * 
      * @return the coded form.
      */
     public byte[] toBytes() {
@@ -149,15 +170,15 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
                 dos.write(registryData);
             }
             dos.writeUTF(id);
-            if (applicationTag == null) {
+            if (tag == null) {
                 dos.writeInt(-1);
             } else {
-                dos.writeInt(applicationTag.length);
-                dos.write(applicationTag);
+                dos.writeInt(tag.length);
+                dos.write(tag);
             }
             dos.close();
             return bos.toByteArray();
-        } catch(Exception e) {
+        } catch (Exception e) {
             // Should not happen.
             return null;
         }
@@ -166,8 +187,11 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
     /**
      * Adds coded form of this <code>IbisIdentifier</code> to the specified
      * output stream.
-     * @param dos the output stream.
-     * @exception IOException is thrown in case of trouble.
+     * 
+     * @param dos
+     *            the output stream.
+     * @exception IOException
+     *                is thrown in case of trouble.
      */
     public void writeTo(DataOutput dos) throws IOException {
         if (codedForm == null) {
@@ -184,7 +208,7 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
             return false;
         }
 
-        if (! o.getClass().equals(getClass())) {
+        if (!o.getClass().equals(getClass())) {
             return false;
         }
 
@@ -197,13 +221,18 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
     }
 
     public String toString() {
-        return "(Ibis " + id + ", location " + location + (applicationTag != null ? ", applicationTag " + applicationTag : "") + ")";
+        return "(Ibis "
+                + id
+                + ", location "
+                + location
+                + (tag != null ? ", applicationTag "
+                        + tag : "") + ")";
     }
 
     public String name() {
         return "Ibis " + id;
     }
-    
+
     public ibis.ipl.Location location() {
         return location;
     }
@@ -213,19 +242,23 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
     }
 
     public byte[] tag() {
-        return applicationTag;
+        return tag;
     }
 
     public String tagAsString() {
+        if (tag == null) {
+            return null;
+        }
         try {
-            return new String(applicationTag, "UTF-8");
+            return new String(tag, "UTF-8");
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException("could not convert tag to string", e);
         }
     }
-    
+
     /**
      * Obtains the implementation dependent data.
+     * 
      * @return the data.
      */
     public byte[] getImplementationData() {
@@ -234,6 +267,7 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
 
     /**
      * Obtains the registry dependent data.
+     * 
      * @return the data.
      */
     public byte[] getRegistryData() {
@@ -242,7 +276,9 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
 
     /**
      * Compare to the specified Ibis identifier.
-     * @param c the Ibis identifier to compare to.
+     * 
+     * @param c
+     *            the Ibis identifier to compare to.
      */
     public int compareTo(ibis.ipl.IbisIdentifier c) {
         if (c instanceof IbisIdentifier) {
