@@ -130,7 +130,7 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
         }
         id = dis.readUTF();
         int tagSize = dis.readInt();
-        if (registrySize < 0) {
+        if (tagSize < 0) {
             tag = null;
         } else {
             tag = new byte[tagSize];

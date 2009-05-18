@@ -114,10 +114,10 @@ final class ServerConnectionHandler implements Runnable {
         Credentials credentials = (Credentials) Conversion
                 .byte2object(credentialBytes);
         
-        int applicationTagLength = connection.in().read();
+        length = connection.in().readInt();
         byte[] applicationTag = null;
-        if (applicationTagLength >= 0) {
-            applicationTag = new byte[applicationTagLength];
+        if (length >= 0) {
+            applicationTag = new byte[length];
             connection.in().readFully(applicationTag);
         }
 
