@@ -2,10 +2,9 @@
 
 package ibis.ipl;
 
-import java.io.UnsupportedEncodingException;
-
 /**
- * Uniquely identifies an Ibis on the network. Should be comparable with
+ * An IbisIdentifier uniquely identifies an Ibis instance on the network.
+ * An IbisIdentifier should be comparable with
  * <code>equals()</code>, so implementations probably redefine
  * <code>hashCode()</code> and <code>equals()</code>.
  * When two IbisIdentifiers compare equal, they identify the same Ibis
@@ -25,7 +24,7 @@ public interface IbisIdentifier extends java.io.Serializable,
     /**
      * Returns the name of the pool to which this Ibis instance belongs.
      * @return
-     *          the poolname.
+     *          the pool name.
      */
     public String poolName();
     
@@ -39,7 +38,7 @@ public interface IbisIdentifier extends java.io.Serializable,
     public String name();
 
     /**
-     * Returns the application tag provided when the ibis instance
+     * Returns the application tag provided when the Ibis instance
      * with this identifier was constructed or null if none was provided.
      * Applications should try to keep this as short as possible since
      * these will be sent over the network many times.
@@ -48,10 +47,10 @@ public interface IbisIdentifier extends java.io.Serializable,
      * @throws RuntimeException 
      *          if the current VM does not support UTF-8 encoding for strings.
      */
-    public String tagAsString() ;
+    public String tagAsString();
 
     /**
-     * Returns the application tag provided when the ibis instance
+     * Returns the application tag provided when the Ibis instance
      * with this identifier was constructed or null if none was provided.
      * Applications should try to keep this as short as possible since
      * these will be sent over the network many times.
@@ -61,7 +60,7 @@ public interface IbisIdentifier extends java.io.Serializable,
     public byte[] tag();
 
     /**
-     * Returns a human-readable but not neccesarily unique string
+     * Returns a human-readable but not necessarily unique string
      * identifying the Ibis instance to which this IbisIdentifier
      * refers. This method can be used for debugging prints.
      * @return

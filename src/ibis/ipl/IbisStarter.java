@@ -16,7 +16,7 @@ public abstract class IbisStarter {
 
     /**
      * Short name of this implementation. Usually the network stack it is based
-     * on, e.g. "tcp" or "mpi"
+     * on, e.g. "tcp" or "mpi".
      */
     private final String nickName;
 
@@ -33,7 +33,7 @@ public abstract class IbisStarter {
 
     /**
      * Creates a starter of a given class using reflection. Returns null if this
-     * fails for any reason
+     * fails for any reason.
      * 
      * @param className
      *            the name of the class to instantiate. Must extend IbisStarter.
@@ -78,9 +78,9 @@ public abstract class IbisStarter {
 
     /**
      * Short name of this implementation. Usually the network stack it is based
-     * on, e.g. "tcp" or "mpi"
+     * on, e.g. "tcp" or "mpi".
      * 
-     * @return the nickName
+     * @return the nickName.
      */
     public String getNickName() {
         return nickName;
@@ -89,7 +89,7 @@ public abstract class IbisStarter {
     /**
      * Which version of the IPL does this implementation implement.
      * 
-     * @return the IPL version
+     * @return the IPL version.
      */
     public String getIplVersion() {
         return iplVersion;
@@ -99,7 +99,7 @@ public abstract class IbisStarter {
      * Version identifier of this implementation. Usually a checksum created
      * from the class files of the implementation.
      * 
-     * @return the implementation version
+     * @return the implementation version.
      */
     public String getImplementationVersion() {
         return implementationVersion;
@@ -112,6 +112,8 @@ public abstract class IbisStarter {
     /**
      * Decides if this <code>IbisStarter</code> can start an Ibis instance with
      * the desired capabilities and port types.
+     * @param capabilities the desired capabilities.
+     * @param portTypes the desired port types.
      * 
      * @return <code>true</code> if it can.
      */
@@ -142,12 +144,23 @@ public abstract class IbisStarter {
     /**
      * Actually creates an Ibis instance from this starter.
      * 
+     * @param factory
+     *            the factory starting this Ibis instance.
      * @param handler
      *            a registry event handler.
      * @param userProperties
      *            the user properties.
+     * @param capabilities
+     *            the required capabilities.
+     * @param credentials
+     *            credentials offered by a user when it wants to join a pool.
      * @param applicationTag
      *            an application level tag for this Ibis instance.
+     * @param portTypes
+     *            the required port types.
+     * @param specifiedSubImplementation
+     *            for stacking ibis starters, the name of the underlying Ibis
+     *            implementation.
      */
     public abstract Ibis startIbis(IbisFactory factory,
             RegistryEventHandler handler, Properties userProperties,
