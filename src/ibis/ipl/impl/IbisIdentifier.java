@@ -225,8 +225,7 @@ public final class IbisIdentifier implements ibis.ipl.IbisIdentifier {
                 + id
                 + ", location "
                 + location
-                + (tag != null ? ", applicationTag "
-                        + tag : "") + ")";
+                + ")";
     }
 
     public String name() {
