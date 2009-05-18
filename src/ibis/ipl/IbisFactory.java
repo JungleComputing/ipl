@@ -171,8 +171,8 @@ public final class IbisFactory {
             RegistryEventHandler registryEventHandler, PortType... portTypes)
             throws IbisCreationFailedException {
         return createIbis(requiredCapabilities, properties,
-                addDefaultConfigProperties, registryEventHandler, null, (byte[])null,
-                portTypes);
+                addDefaultConfigProperties, registryEventHandler, null,
+                (byte[]) null, portTypes);
     }
 
     /**
@@ -210,10 +210,9 @@ public final class IbisFactory {
             Properties properties, boolean addDefaultConfigProperties,
             RegistryEventHandler registryEventHandler, Credentials credentials,
             PortType... portTypes) throws IbisCreationFailedException {
-        return createIbis(requiredCapabilities,
-                properties, addDefaultConfigProperties,
-                registryEventHandler, credentials,
-                (byte[])null, portTypes);
+        return createIbis(requiredCapabilities, properties,
+                addDefaultConfigProperties, registryEventHandler, credentials,
+                (byte[]) null, portTypes);
     }
 
     /**
@@ -247,22 +246,23 @@ public final class IbisFactory {
      *                is thrown when no Ibis was found that matches the
      *                capabilities required, or a matching Ibis could not be
      *                instantiated for some reason.
-     * @throws UnsupportedEncodingException 
-     *                is thrown if this VM does not support UTF-8 encoding of strings
-     *                and an applicationTag was given
      */
-    @SuppressWarnings("unchecked")
     public static Ibis createIbis(IbisCapabilities requiredCapabilities,
             Properties properties, boolean addDefaultConfigProperties,
             RegistryEventHandler registryEventHandler, Credentials credentials,
-            String applicationTag, PortType... portTypes) throws IbisCreationFailedException, UnsupportedEncodingException {
+            String applicationTag, PortType... portTypes)
+            throws IbisCreationFailedException {
         byte[] applicationTagBytes = null;
         if (applicationTag != null) {
-            applicationTagBytes = applicationTag.getBytes("UTF-8");
+            try {
+                applicationTagBytes = applicationTag.getBytes("UTF-8");
+            } catch (UnsupportedEncodingException e) {
+                throw new IbisCreationFailedException(
+                        "could not create tag from string", e);
+            }
         }
-        return createIbis(requiredCapabilities,
-                properties, addDefaultConfigProperties,
-                registryEventHandler, credentials,
+        return createIbis(requiredCapabilities, properties,
+                addDefaultConfigProperties, registryEventHandler, credentials,
                 applicationTagBytes, portTypes);
     }
 
@@ -302,7 +302,8 @@ public final class IbisFactory {
     public static Ibis createIbis(IbisCapabilities requiredCapabilities,
             Properties properties, boolean addDefaultConfigProperties,
             RegistryEventHandler registryEventHandler, Credentials credentials,
-            byte[] applicationTag, PortType... portTypes) throws IbisCreationFailedException {
+            byte[] applicationTag, PortType... portTypes)
+            throws IbisCreationFailedException {
 
         Properties combinedProperties = new Properties();
 
@@ -404,8 +405,9 @@ public final class IbisFactory {
      */
     public Ibis createIbis(RegistryEventHandler registryEventHandler,
             IbisCapabilities requiredCapabilities, Properties properties,
-            Credentials credentials, byte[] applicationTag, PortType[] portTypes,
-            String specifiedImplementation) throws IbisCreationFailedException {
+            Credentials credentials, byte[] applicationTag,
+            PortType[] portTypes, String specifiedImplementation)
+            throws IbisCreationFailedException {
 
         if (requiredCapabilities == null) {
             throw new IbisConfigurationException("capabilities not specified");
