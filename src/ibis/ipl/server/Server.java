@@ -1,5 +1,7 @@
 package ibis.ipl.server;
 
+import ibis.advert.Advert;
+import ibis.advert.MetaData;
 import ibis.ipl.IbisProperties;
 import ibis.ipl.management.ManagementService;
 import ibis.ipl.registry.ControlPolicy;
@@ -16,6 +18,7 @@ import ibis.util.TypedProperties;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -53,6 +56,12 @@ public final class Server {
     private final boolean hubOnly;
 
     private final boolean remote;
+    
+    private String advert; //TODO: should be final?
+    
+    private String metadata; //TODO: should be final?
+    
+    private Advert advertServer; //TODO: should be final?
 
     public Server(Properties properties) throws Exception {
         this(properties, null);
@@ -234,6 +243,47 @@ public final class Server {
                             + serviceClassList[i] + ":", e);
                 }
             }
+            
+            //See if registry needs to be added to advert service
+            advert   = null;
+            metadata = null;
+            
+            advert = typedProperties.getProperty(ServerProperties.ADVERT);
+            metadata = typedProperties.getProperty(ServerProperties.METADATA);
+            
+            System.out.println("***" + advert);
+            System.out.println("***" + metadata);
+            
+            if (advert != null) {
+            	URI advertUri = new URI(advert);
+            	
+            	if (!advertUri.getScheme().equals("gae")) {
+            		return; //TODO: iets mooiers
+            	}
+            	if (!advertUri.getHost().endsWith("appspot.com")) {
+            		return; //TODO: iets moooiers
+            	}
+            	
+            	//Connect to public server.
+            	advertServer = new Advert(advertUri.getHost()); 
+            	
+            	MetaData md = null;
+            	if (metadata != null) {
+            		md = new MetaData();
+            		
+            		String[] keyvalue = metadata.split(",");
+            		String[] temp = null;
+            		
+            		for (int i = 0; i < keyvalue.length; i++) {
+            			temp = keyvalue[i].split("=");
+            			md.put(temp[0], temp[1]);
+            		}
+            	}
+            	
+            	//Add to server
+            	advertServer.add(getLocalAddress().getBytes(), 
+            			md, advertUri.getPath());
+            }
         }
     }
 
@@ -346,6 +396,17 @@ public final class Server {
         } else {
             virtualSocketFactory.end();
         }
+        
+        //Remove from the Advert server
+        if (advert != null) {
+        	try {
+        		URI advertUri = new URI(advert);
+        		advertServer.delete(advertUri.getPath());
+        	}
+        	catch (Exception e) {
+        		logger.warn("Failed to remove from Advert server {}", e);
+        	}
+        }
     }
 
     private boolean hasRemote() {
@@ -432,6 +493,12 @@ public final class Server {
                 properties.setProperty(ServerProperties.PRINT_STATS, "true");
             } else if (args[i].equalsIgnoreCase("--remote")) {
                 properties.setProperty(ServerProperties.REMOTE, "true");
+            } else if (args[i].equalsIgnoreCase("--advert")) {
+            	i++;
+            	properties.setProperty(ServerProperties.ADVERT, args[i]);
+            } else if (args[i].equalsIgnoreCase("--metadata")) {
+            	i++;
+            	properties.setProperty(ServerProperties.METADATA, args[i]);
             } else if (args[i].equalsIgnoreCase("--help")
                     || args[i].equalsIgnoreCase("-help")
                     || args[i].equalsIgnoreCase("-h")
