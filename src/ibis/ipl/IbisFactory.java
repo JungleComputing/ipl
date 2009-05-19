@@ -235,8 +235,8 @@ public final class IbisFactory {
      * @param credentials
      *            Credentials used to join the pool. This could be a password, a
      *            certificate, or something else.
-     * @param applicationTag
-     *            An application level tag for this Ibis instance.
+     * @param tag
+     *            A tag for this Ibis instance.
      * @param portTypes
      *            the list of port types required by the application. Can be an
      *            empty list, but not null.
@@ -250,12 +250,12 @@ public final class IbisFactory {
     public static Ibis createIbis(IbisCapabilities requiredCapabilities,
             Properties properties, boolean addDefaultConfigProperties,
             RegistryEventHandler registryEventHandler, Credentials credentials,
-            String applicationTag, PortType... portTypes)
+            String tag, PortType... portTypes)
             throws IbisCreationFailedException {
-        byte[] applicationTagBytes = null;
-        if (applicationTag != null) {
+        byte[] tagBytes = null;
+        if (tag != null) {
             try {
-                applicationTagBytes = applicationTag.getBytes("UTF-8");
+                tagBytes = tag.getBytes("UTF-8");
             } catch (UnsupportedEncodingException e) {
                 throw new IbisCreationFailedException(
                         "could not create tag from string", e);
@@ -263,7 +263,7 @@ public final class IbisFactory {
         }
         return createIbis(requiredCapabilities, properties,
                 addDefaultConfigProperties, registryEventHandler, credentials,
-                applicationTagBytes, portTypes);
+                tagBytes, portTypes);
     }
 
     /**
@@ -286,8 +286,8 @@ public final class IbisFactory {
      * @param credentials
      *            Credentials used to join the pool. This could be a password, a
      *            certificate, or something else.
-     * @param applicationTag
-     *            An application level tag for this Ibis instance.
+     * @param tag
+     *            A tag for this Ibis instance.
      * @param portTypes
      *            the list of port types required by the application. Can be an
      *            empty list, but not null.
@@ -302,7 +302,7 @@ public final class IbisFactory {
     public static Ibis createIbis(IbisCapabilities requiredCapabilities,
             Properties properties, boolean addDefaultConfigProperties,
             RegistryEventHandler registryEventHandler, Credentials credentials,
-            byte[] applicationTag, PortType... portTypes)
+            byte[] tag, PortType... portTypes)
             throws IbisCreationFailedException {
 
         Properties combinedProperties = new Properties();
@@ -340,7 +340,7 @@ public final class IbisFactory {
 
         // create the ibis instance
         return factory.createIbis(registryEventHandler, requiredCapabilities,
-                combinedProperties, credentials, applicationTag, portTypes,
+                combinedProperties, credentials, tag, portTypes,
                 specifiedImplementation);
     }
 
