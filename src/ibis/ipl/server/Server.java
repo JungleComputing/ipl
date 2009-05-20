@@ -251,9 +251,6 @@ public final class Server {
             advert = typedProperties.getProperty(ServerProperties.ADVERT);
             metadata = typedProperties.getProperty(ServerProperties.METADATA);
             
-            System.out.println("***" + advert);
-            System.out.println("***" + metadata);
-            
             if (advert != null) {
             	URI advertUri = new URI(advert);
             	
@@ -265,7 +262,8 @@ public final class Server {
             	}
             	
             	//Connect to public server.
-            	advertServer = new Advert(advertUri.getHost()); 
+            	advertServer = new Advert(advertUri.getHost());
+            	logger.debug("Advert server created: {}", advertUri.getHost());
             	
             	MetaData md = null;
             	if (metadata != null) {
@@ -277,12 +275,14 @@ public final class Server {
             		for (int i = 0; i < keyvalue.length; i++) {
             			temp = keyvalue[i].split("=");
             			md.put(temp[0], temp[1]);
+            			logger.debug("Added meta data: {}", keyvalue[i]);
             		}
             	}
             	
             	//Add to server
             	advertServer.add(getLocalAddress().getBytes(), 
             			md, advertUri.getPath());
+            	logger.debug("Registry added to Advert server.");
             }
         }
     }
@@ -402,6 +402,7 @@ public final class Server {
         	try {
         		URI advertUri = new URI(advert);
         		advertServer.delete(advertUri.getPath());
+        		logger.debug("Removed entry from Advert server");
         	}
         	catch (Exception e) {
         		logger.warn("Failed to remove from Advert server {}", e);
@@ -429,6 +430,8 @@ public final class Server {
         out.println("--port PORT\t\t\tPort used for the server.");
         out
                 .println("--remote\t\t\tListen to commands for this server on stdin.");
+        out.println("--advert URI\t\t\tAdd registry server to Advert server");
+        out.println("--metadata METADATA\t\tAdd meta data to the Advert server entry");
         out.println();
         out.println("Output Options:");
         out.println("--events\t\t\tPrint events.");
