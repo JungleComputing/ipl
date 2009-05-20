@@ -2,6 +2,7 @@ package ibis.ipl.server;
 
 import ibis.advert.Advert;
 import ibis.advert.MetaData;
+import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.IbisProperties;
 import ibis.ipl.management.ManagementService;
 import ibis.ipl.registry.ControlPolicy;
@@ -253,16 +254,8 @@ public final class Server {
             
             if (advert != null) {
             	URI advertUri = new URI(advert);
-            	
-            	if (!advertUri.getScheme().equals("gae")) {
-            		return; //TODO: iets mooiers
-            	}
-            	if (!advertUri.getHost().endsWith("appspot.com")) {
-            		return; //TODO: iets moooiers
-            	}
-            	
             	//Connect to public server.
-            	advertServer = new Advert(advertUri.getHost());
+            	advertServer = new Advert(advertUri);
             	logger.debug("Advert server created: {}", advertUri.getHost());
             	
             	MetaData md = null;
