@@ -1,11 +1,16 @@
 package ibis.ipl.server;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Properties;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ibis.advert.Advert;
+import ibis.advert.MetaData;
+import ibis.advert.UriNotSupportedException;
 import ibis.ipl.IbisProperties;
 import ibis.smartsockets.SmartSocketsProperties;
 import ibis.smartsockets.direct.DirectSocketAddress;
@@ -73,8 +78,74 @@ public class Client {
         String serverAddressString = typedProperties
                 .getProperty(IbisProperties.SERVER_ADDRESS);
         if (serverAddressString == null || serverAddressString.equals("")) {
-            throw new ConfigurationException(IbisProperties.SERVER_ADDRESS
-                    + " undefined, cannot locate server");
+        	
+        	/* No server address found. Try to connect via Advert server. */
+        	String serverAdvertString = typedProperties
+            		.getProperty(IbisProperties.ADVERT_URI);
+        	if (serverAdvertString != null && !serverAdvertString.equals("")) {
+
+        		/* Found an Advert address, try to parse and connect. */
+        		URI advertUri       = null;
+            	Advert advertServer = null;
+
+        		try {
+        			advertUri    = new URI(serverAdvertString);
+        			advertServer = new Advert(advertUri);
+        		}
+        		catch (Exception e) {
+        			throw new ConfigurationException(IbisProperties.ADVERT_URI
+        					+ " not properly structured.");
+        		}
+        		
+        		/* See if a path (ID) is given. */
+        		if (advertUri.getPath() != null && 
+        				!advertUri.getPath().equals("")) {
+        			
+	        		/* Found a path, try to fetch registry server's address. */
+        			try {
+        				byte[] b = advertServer.get(advertUri.getPath());
+        				serverAddressString = new String(b);
+        			}
+        			catch (Exception e) {
+        				throw new ConfigurationException("Fetching from Advert"
+        						+ " server failed", e);
+        			}
+        		}
+        		else {
+	        		
+        			/* Check for meta data. */
+	        		String serverMetaDataString = typedProperties
+	    			.getProperty(IbisProperties.ADVERT_MD);
+	        		if (serverMetaDataString != null && 
+	        				!serverMetaDataString.equals("")) {
+	        			
+	        			/* Connecting using MD. */
+	        			MetaData md = new MetaData(serverMetaDataString);
+                		
+                		try {
+                			String[] results = advertServer.find(md);
+                			if (results == null || results.length < 1) {
+                				throw new ConfigurationException( 
+                    					"No server matching MD found.");
+                			}
+                			byte[] b = advertServer.get(results[0]);
+                			serverAddressString = new String(b);
+                		}
+                		catch (Exception e) {
+                			throw new ConfigurationException("Fetching from " + 
+                					"Advert server (using MD) failed", e);
+                		}
+	        		}
+	        		else {
+	        			throw new ConfigurationException("No meta data found, "
+	        					+ "cannot connect.");
+	        		}
+        		}
+        	}
+        	else {
+	            throw new ConfigurationException(IbisProperties.SERVER_ADDRESS
+	                    + " undefined, cannot locate server");
+        	}
         }
 
         logger.debug("server address = \"" + serverAddressString + "\"");

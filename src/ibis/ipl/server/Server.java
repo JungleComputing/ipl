@@ -249,29 +249,20 @@ public final class Server {
             advert   = null;
             metadata = null;
             
-            advert = typedProperties.getProperty(ServerProperties.ADVERT);
+            advert   = typedProperties.getProperty(ServerProperties.ADVERT);
             metadata = typedProperties.getProperty(ServerProperties.METADATA);
             
-            if (advert != null) {
+            if (advert != null && !advert.equals("")) {
             	URI advertUri = new URI(advert);
             	//Connect to public server.
             	advertServer = new Advert(advertUri);
             	logger.debug("Advert server created: {}", advertUri.getHost());
             	
             	MetaData md = null;
-            	if (metadata != null) {
-            		md = new MetaData();
-            		
-            		String[] keyvalue = metadata.split(",");
-            		String[] temp = null;
-            		
-            		for (int i = 0; i < keyvalue.length; i++) {
-            			temp = keyvalue[i].split("=");
-            			md.put(temp[0], temp[1]);
-            			logger.debug("Added meta data: {}", keyvalue[i]);
-            		}
+            	if (metadata != null && !metadata.equals("")) {
+            		md = new MetaData(metadata);
             	}
-            	
+            		
             	//Add to server
             	advertServer.add(getLocalAddress().getBytes(), 
             			md, advertUri.getPath());

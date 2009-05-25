@@ -67,6 +67,11 @@ public final class IbisProperties {
     /** Property name for location color. */
     public static final String LOCATION_COLOR = PREFIX + "location.color";
 
+    /** Property name for the URI of the Advert server. */
+    public static final String ADVERT_URI = PREFIX + "advert.uri";
+    
+    /** Property name for meta data of the Advert server. */
+    public static final String ADVERT_MD = PREFIX + "advert.metadata";
 
     /**
      * Property name for specifying a postfix for an automatically generated location.
