@@ -57,6 +57,8 @@ import java.util.Map;
  * "LostConnections" the number of lost connections;
  * <br>
  * "ClosedConnections" the number of closed or disconnected connections;
+ * 
+ * All these properties are long values, returned as a string.
  *
  * Other items may be recognized, depending on the Ibis implementation.
  */
