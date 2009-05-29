@@ -430,6 +430,8 @@ final class Pool implements Runnable {
             if (statistics != null) {
                 statistics.electionEvent();
             }
+            
+            elections.remove(election.getName());
         }
 
         if (members.size() == 0) {
