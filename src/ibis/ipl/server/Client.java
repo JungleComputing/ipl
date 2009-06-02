@@ -81,7 +81,7 @@ public class Client {
         	
         	/* No server address found. Try to connect via Advert server. */
         	String serverAdvertString = typedProperties
-            		.getProperty(IbisProperties.ADVERT_URI);
+            		.getProperty(IbisProperties.ADVERT_ADDRESS);
         	if (serverAdvertString != null && !serverAdvertString.equals("")) {
 
         		/* Found an Advert address, try to parse and connect. */
@@ -90,11 +90,43 @@ public class Client {
 
         		try {
         			advertUri    = new URI(serverAdvertString);
-        			advertServer = new Advert(advertUri);
         		}
         		catch (Exception e) {
-        			throw new ConfigurationException(IbisProperties.ADVERT_URI
+        			throw new ConfigurationException(IbisProperties.ADVERT_ADDRESS
         					+ " not properly structured.");
+        		}
+
+        		/* Determine whether to use a authenticated or public service. */
+        		if (typedProperties.getProperty(IbisProperties.ADVERT_USER) == null ||
+        			typedProperties.getProperty(IbisProperties.ADVERT_USER).equals("") ||
+        			typedProperties.getProperty(IbisProperties.ADVERT_PASS) == null ||
+        			typedProperties.getProperty(IbisProperties.ADVERT_PASS).equals("")) {
+        			/* Connect to 'dynamically-selecting-auth' server. */ 
+        			try { 
+        				advertServer = new Advert(advertUri);
+        			}
+        			catch (Exception e) {
+        				throw new ConfigurationException(IbisProperties.ADVERT_ADDRESS
+            					+ " not properly structured.");
+        			}
+        		}
+        		else {
+        			if (advertUri.getUserInfo() != null ||
+            				!advertUri.getUserInfo().equals("")) {
+            			logger.warn("Found two authentication credentials, " +
+            					"using {}/********", 
+            					typedProperties.getProperty(IbisProperties.ADVERT_USER));
+            		}
+            		//Connect to authenticated version
+        			try {
+        				advertServer = new Advert(advertUri, 
+        						typedProperties.getProperty(IbisProperties.ADVERT_USER),
+        						typedProperties.getProperty(IbisProperties.ADVERT_PASS));
+        			}
+        			catch (Exception e) {
+        				throw new ConfigurationException(IbisProperties.ADVERT_ADDRESS
+            					+ " not properly structured.");
+        			}
         		}
         		
         		/* See if a path (ID) is given. */

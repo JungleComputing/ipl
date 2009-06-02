@@ -68,11 +68,17 @@ public final class IbisProperties {
     public static final String LOCATION_COLOR = PREFIX + "location.color";
 
     /** Property name for the URI of the Advert server. */
-    public static final String ADVERT_URI = PREFIX + "advert.uri";
+    public static final String ADVERT_ADDRESS = PREFIX + "advert.address";
     
     /** Property name for meta data of the Advert server. */
     public static final String ADVERT_MD = PREFIX + "advert.metadata";
 
+    /** Property name for username of the Advert server. */
+    public static final String ADVERT_USER = PREFIX + "advert.username";
+    
+    /** Property name for password of the Advert server. */
+    public static final String ADVERT_PASS = PREFIX + "advert.password";
+    
     /**
      * Property name for specifying a postfix for an automatically generated location.
      */
@@ -118,6 +124,19 @@ public final class IbisProperties {
 
                 { REGISTRY_IMPLEMENTATION, "central",
                     "Nickname or classname of the implementation of the registry. Not all Ibis implementations use this property" },
+                    
+                { ADVERT_ADDRESS, null,
+                    "String: the URI of the Advert registry bootstrap server, "
+                    		+ "specified as google://user:pass@hostname/id"},
+                    		
+                { ADVERT_MD, null,
+                    "String: associated meta data to the Advert registry bootstrap server"},
+                    
+                { ADVERT_USER, null,
+                    "String: username for authentication to a authenticated Advert registry bootstrap server"},
+                
+                { ADVERT_PASS, null,
+                    "String: password for authentication to a authenticated Advert registry bootstrap server"},
             };
 
     private static Properties defaultProperties;
