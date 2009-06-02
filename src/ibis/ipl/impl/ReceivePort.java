@@ -16,6 +16,7 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
@@ -648,6 +649,28 @@ public abstract class ReceivePort extends Manageable
         setProperty("MessageBytes", "" + messageBytes);
         setProperty("LostConnections", "" + nLostConnections);
     }
+    
+    protected void doProperties(Map<String, String> properties) {
+        for (Map.Entry<String,String> entry : properties.entrySet()) {
+            doProperty(entry.getKey(), entry.getValue());
+        }
+    }
+    
+    protected void doProperty(String key, String value) {
+        if (key.equals("Bytes")) {
+            bytes = Long.parseLong(value);
+        } else if (key.equals("ClosedConnections")) {
+            nClosedConnections = Long.parseLong(value);
+        } else if (key.equals("nConnections")) {
+            nConnections = Long.parseLong(value);
+        } else if (key.equals("Messages")) {
+            nMessages = Long.parseLong(value);
+        } else if (key.equals("MessageBytes")) {
+            messageBytes = Long.parseLong(value);
+        } else if (key.equals("LostConnections")) {
+            nLostConnections = Long.parseLong(value);
+        }
+    }    
 
     void addDataIn(long cnt) {
         bytes += cnt;

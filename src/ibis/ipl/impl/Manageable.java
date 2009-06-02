@@ -29,6 +29,13 @@ public abstract class Manageable implements ibis.ipl.Manageable {
             }
         }
         properties.putAll(properties);
+        doProperties(properties);
+    }
+    
+    protected void doProperties(Map<String, String> properties) {
+        // default implementation is empty.
+        // This method is called when the user calls setManagementProperties,
+        // so that implementations can adapt their internal matching variables.
     }
     
     public synchronized String getManagementProperty(String key)
@@ -46,7 +53,15 @@ public abstract class Manageable implements ibis.ipl.Manageable {
             throw new NoSuchPropertyException("Invalid key: " + key);
         }
         properties.put(key, val);
+        doProperty(key, val);
     }
+    
+    protected void doProperty(String key, String value) {
+        // default implementation is empty.
+        // This method is called when the user calls setManagementProperty,
+        // so that implementations can adapt their internal matching variables.
+    }
+    
 
     protected void addValidKey(String key) {
         validKeys.add(key);
