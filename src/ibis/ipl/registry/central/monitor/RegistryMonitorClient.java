@@ -65,7 +65,7 @@ public class RegistryMonitorClient {
         try {
             ServiceLink sl = factory.getServiceLink();
             if (sl != null) {
-                sl.registerProperty("smartsockets.viz", "M^Ibis monitor");
+                sl.registerProperty("smartsockets.viz", "invisible");
             } else {
                 logger
                         .warn("could not set smartsockets viz property: could not get smartsockets service link");
@@ -78,6 +78,7 @@ public class RegistryMonitorClient {
             typedProperties);
         
         logger.debug("server address = " + serverAddress);
+        logger.debug("monitor client address = " + factory.getVirtualAddressAsString());
 
     }
 
