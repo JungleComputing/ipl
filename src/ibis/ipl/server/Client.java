@@ -80,6 +80,7 @@ public class Client {
         if (serverAddressString == null || serverAddressString.equals("")) {
         	
         	/* No server address found. Try to connect via Advert server. */
+        	logger.info("Connecting to Advert server.");
         	String serverAdvertString = typedProperties
             		.getProperty(IbisProperties.ADVERT_ADDRESS);
         	if (serverAdvertString != null && !serverAdvertString.equals("")) {
@@ -89,7 +90,7 @@ public class Client {
             	Advert advertServer = null;
 
         		try {
-        			advertUri    = new URI(serverAdvertString);
+        			advertUri = new URI(serverAdvertString);
         		}
         		catch (Exception e) {
         			throw new ConfigurationException(IbisProperties.ADVERT_ADDRESS
@@ -103,6 +104,7 @@ public class Client {
         			typedProperties.getProperty(IbisProperties.ADVERT_PASS).equals("")) {
         			/* Connect to 'dynamically-selecting-auth' server. */ 
         			try { 
+        				logger.info("Dynamically selecting authentication server.");
         				advertServer = new Advert(advertUri);
         			}
         			catch (Exception e) {
@@ -119,6 +121,7 @@ public class Client {
             		}
             		//Connect to authenticated version
         			try {
+        				logger.info("Connecting to authenticated server.");
         				advertServer = new Advert(advertUri, 
         						typedProperties.getProperty(IbisProperties.ADVERT_USER),
         						typedProperties.getProperty(IbisProperties.ADVERT_PASS));
@@ -135,6 +138,7 @@ public class Client {
         			
 	        		/* Found a path, try to fetch registry server's address. */
         			try {
+        				logger.info("Calling get()");
         				byte[] b = advertServer.get(advertUri.getPath());
         				serverAddressString = new String(b);
         			}
@@ -155,11 +159,13 @@ public class Client {
 	        			MetaData md = new MetaData(serverMetaDataString);
                 		
                 		try {
+                			logger.info("Calling find()");
                 			String[] results = advertServer.find(md);
                 			if (results == null || results.length < 1) {
                 				throw new ConfigurationException( 
                     					"No server matching MD found.");
                 			}
+                			logger.info("Calling get()");
                 			byte[] b = advertServer.get(results[0]);
                 			serverAddressString = new String(b);
                 		}

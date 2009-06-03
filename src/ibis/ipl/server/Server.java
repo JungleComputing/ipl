@@ -253,6 +253,7 @@ public final class Server {
             metadata = typedProperties.getProperty(ServerProperties.METADATA);
             
             if (advert != null && !advert.equals("")) {
+            	logger.info("Starting Advert process.");
             	URI advertUri = new URI(advert);
             	
             	//Check for private/public server.
@@ -262,8 +263,8 @@ public final class Server {
             		typedProperties.getProperty(ServerProperties.ADV_PASS).equals("")) {
 	            	
 	            	//Connect to 'dynamically-selecting-auth' server.
+            		logger.info("Dynamically selecting authentication server.");
 	            	advertServer = new Advert(advertUri);
-	            	logger.debug("Advert server created: {}", advertUri.getHost());
             	}
             	else {
             		//Check if we have two credentials
@@ -274,19 +275,24 @@ public final class Server {
             					typedProperties.getProperty(ServerProperties.ADV_USER));
             		}
             		//Connect to authenticated version
+            		logger.info("Connecting to authenticated server.");
             		advertServer = new Advert(advertUri, 
             				typedProperties.getProperty(ServerProperties.ADV_USER),
             				typedProperties.getProperty(ServerProperties.ADV_PASS));
             	}
+            	logger.debug("Advert server created: {}", advertUri.getHost());
+
             	MetaData md = null;
             	if (metadata != null && !metadata.equals("")) {
+            		logger.debug("Creating metadata: {}", metadata);
             		md = new MetaData(metadata);
             	}
             		
             	//Add to server
+            	logger.info("Calling add()");
             	advertServer.add(getLocalAddress().getBytes(), 
             			md, advertUri.getPath());
-            	logger.debug("Registry added to Advert server.");
+            	logger.info("Registry added to Advert server.");
             }
         }
     }
