@@ -267,6 +267,7 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
         if (key.equals("Bytes")) {
             bytes = Long.parseLong(value);
             prevBytes = Long.parseLong(value);
+            resetWritten();
         } else if (key.equals("ClosedConnections")) {
             nClosedConnections = Long.parseLong(value);
         } else if (key.equals("nConnections")) {
