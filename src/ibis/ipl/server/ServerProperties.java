@@ -34,13 +34,13 @@ public final class ServerProperties {
 
     public static final String VIZ_INFO = PREFIX + "viz.info";
     
-    public static final String ADVERT = PREFIX + "advert.address";
+    public static final String ADVERT_ADDRESS = PREFIX + "advert.address";
     
-    public static final String METADATA = PREFIX + "advert.metadata";
+    public static final String ADVERT_METADATA = PREFIX + "advert.metadata";
     
-    public static final String ADV_USER = PREFIX + "advert.username";
+    public static final String ADVERT_USER = PREFIX + "advert.username";
     
-    public static final String ADV_PASS = PREFIX + "advert.password";
+    public static final String ADVERT_PASS = PREFIX + "advert.password";
 
     /** Property name for specifying a comma separated list of hubs. */
     public static final String HUB_ADDRESSES = PREFIX + "ibis.hub.addresses";
@@ -95,13 +95,13 @@ public final class ServerProperties {
 
             { VIZ_INFO, null, "String: info for smartsockets visualization" },
             
-            { ADVERT, null, "String: address of the registry bootstrap Advert server." },
+            { ADVERT_ADDRESS, null, "String: address of the registry bootstrap Advert server." },
             
-            { METADATA, null, "String: additional meta data to the registry bootstrap Advert server." },
+            { ADVERT_METADATA, null, "String: additional meta data to the registry bootstrap Advert server." },
             
-            { ADV_USER, null, "String: username for authenticated Advert server." },
+            { ADVERT_USER, null, "String: username for authenticated Advert server." },
             
-            { ADV_PASS, null, "String: password for authenticated Advert server." },
+            { ADVERT_PASS, null, "String: password for authenticated Advert server." },
     };
 
     public static TypedProperties getHardcodedProperties() {

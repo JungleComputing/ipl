@@ -1,16 +1,7 @@
 package ibis.ipl.server;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Properties;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import ibis.advert.Advert;
 import ibis.advert.MetaData;
-import ibis.advert.UriNotSupportedException;
 import ibis.ipl.IbisProperties;
 import ibis.smartsockets.SmartSocketsProperties;
 import ibis.smartsockets.direct.DirectSocketAddress;
@@ -18,6 +9,13 @@ import ibis.smartsockets.virtual.InitializationException;
 import ibis.smartsockets.virtual.VirtualSocketAddress;
 import ibis.smartsockets.virtual.VirtualSocketFactory;
 import ibis.util.TypedProperties;
+
+import java.io.IOException;
+import java.net.URI;
+import java.util.Properties;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Convenience class to retrieve information on the server, and create a
@@ -80,7 +78,7 @@ public class Client {
         if (serverAddressString == null || serverAddressString.equals("")) {
         	
         	/* No server address found. Try to connect via Advert server. */
-        	logger.info("Connecting to Advert server.");
+        	logger.info("Setting up Advert server connection.");
         	String serverAdvertString = typedProperties
             		.getProperty(IbisProperties.ADVERT_ADDRESS);
         	if (serverAdvertString != null && !serverAdvertString.equals("")) {
@@ -93,8 +91,9 @@ public class Client {
         			advertUri = new URI(serverAdvertString);
         		}
         		catch (Exception e) {
-        			throw new ConfigurationException(IbisProperties.ADVERT_ADDRESS
-        					+ " not properly structured.");
+        			System.err.print("Parsing Advert server address failed: ");
+    				e.printStackTrace();
+    				System.exit(-1);
         		}
 
         		/* Determine whether to use a authenticated or public service. */
@@ -102,18 +101,20 @@ public class Client {
         			typedProperties.getProperty(IbisProperties.ADVERT_USER).equals("") ||
         			typedProperties.getProperty(IbisProperties.ADVERT_PASS) == null ||
         			typedProperties.getProperty(IbisProperties.ADVERT_PASS).equals("")) {
+        			
         			/* Connect to 'dynamically-selecting-auth' server. */ 
         			try { 
-        				logger.info("Dynamically selecting authentication server.");
+        				logger.info("Creating either public/private server class.");
         				advertServer = new Advert(advertUri);
         			}
         			catch (Exception e) {
-        				throw new ConfigurationException(IbisProperties.ADVERT_ADDRESS
-            					+ " not properly structured.");
+        				System.err.print("Connecting to the Advert server failed: ");
+        				e.printStackTrace();
+        				System.exit(-1);
         			}
         		}
         		else {
-        			if (advertUri.getUserInfo() != null ||
+        			if (advertUri.getUserInfo() != null &&
             				!advertUri.getUserInfo().equals("")) {
             			logger.warn("Found two authentication credentials, " +
             					"using {}/********", 
@@ -121,14 +122,15 @@ public class Client {
             		}
             		//Connect to authenticated version
         			try {
-        				logger.info("Connecting to authenticated server.");
+        				logger.info("Creating private server class.");
         				advertServer = new Advert(advertUri, 
         						typedProperties.getProperty(IbisProperties.ADVERT_USER),
         						typedProperties.getProperty(IbisProperties.ADVERT_PASS));
         			}
         			catch (Exception e) {
-        				throw new ConfigurationException(IbisProperties.ADVERT_ADDRESS
-            					+ " not properly structured.");
+        				System.err.print("Connecting to the Advert server failed: ");
+        				e.printStackTrace();
+        				System.exit(-1);
         			}
         		}
         		
@@ -143,8 +145,9 @@ public class Client {
         				serverAddressString = new String(b);
         			}
         			catch (Exception e) {
-        				throw new ConfigurationException("Fetching from Advert"
-        						+ " server failed", e);
+        				System.err.print("Getting Advert data failed: ");
+        				e.printStackTrace();
+        				System.exit(-1);
         			}
         		}
         		else {
@@ -170,8 +173,9 @@ public class Client {
                 			serverAddressString = new String(b);
                 		}
                 		catch (Exception e) {
-                			throw new ConfigurationException("Fetching from " + 
-                					"Advert server (using MD) failed", e);
+                			System.err.print("Getting Advert data failed: ");
+            				e.printStackTrace();
+            				System.exit(-1);
                 		}
 	        		}
 	        		else {

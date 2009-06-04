@@ -85,7 +85,8 @@ final class CommunicationHandler implements Runnable {
         this.pool = pool;
         this.statistics = statistics;
 
-        if (properties.getProperty(IbisProperties.SERVER_ADDRESS) == null) {
+        if (properties.getProperty(IbisProperties.SERVER_ADDRESS) == null &&
+        		properties.getProperty(IbisProperties.ADVERT_ADDRESS) == null) {
             throw new IbisConfigurationException(
                     "cannot initialize registry, property "
                             + IbisProperties.SERVER_ADDRESS

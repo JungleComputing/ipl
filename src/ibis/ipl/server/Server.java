@@ -249,18 +249,18 @@ public final class Server {
             advert   = null;
             metadata = null;
             
-            advert   = typedProperties.getProperty(ServerProperties.ADVERT);
-            metadata = typedProperties.getProperty(ServerProperties.METADATA);
+            advert   = typedProperties.getProperty(ServerProperties.ADVERT_ADDRESS);
+            metadata = typedProperties.getProperty(ServerProperties.ADVERT_METADATA);
             
             if (advert != null && !advert.equals("")) {
             	logger.info("Starting Advert process.");
             	URI advertUri = new URI(advert);
             	
             	//Check for private/public server.
-            	if (typedProperties.getProperty(ServerProperties.ADV_USER) == null ||
-            		typedProperties.getProperty(ServerProperties.ADV_USER).equals("") ||
-            		typedProperties.getProperty(ServerProperties.ADV_PASS) == null ||
-            		typedProperties.getProperty(ServerProperties.ADV_PASS).equals("")) {
+            	if (typedProperties.getProperty(ServerProperties.ADVERT_USER) == null ||
+            		typedProperties.getProperty(ServerProperties.ADVERT_USER).equals("") ||
+            		typedProperties.getProperty(ServerProperties.ADVERT_PASS) == null ||
+            		typedProperties.getProperty(ServerProperties.ADVERT_PASS).equals("")) {
 	            	
 	            	//Connect to 'dynamically-selecting-auth' server.
             		logger.info("Dynamically selecting authentication server.");
@@ -268,17 +268,17 @@ public final class Server {
             	}
             	else {
             		//Check if we have two credentials
-            		if (advertUri.getUserInfo() != null ||
+            		if (advertUri.getUserInfo() != null &&
             				!advertUri.getUserInfo().equals("")) {
             			logger.warn("Found two authentication credentials, " +
             					"using {}/********", 
-            					typedProperties.getProperty(ServerProperties.ADV_USER));
+            					typedProperties.getProperty(ServerProperties.ADVERT_USER));
             		}
             		//Connect to authenticated version
             		logger.info("Connecting to authenticated server.");
             		advertServer = new Advert(advertUri, 
-            				typedProperties.getProperty(ServerProperties.ADV_USER),
-            				typedProperties.getProperty(ServerProperties.ADV_PASS));
+            				typedProperties.getProperty(ServerProperties.ADVERT_USER),
+            				typedProperties.getProperty(ServerProperties.ADVERT_PASS));
             	}
             	logger.debug("Advert server created: {}", advertUri.getHost());
 
@@ -510,16 +510,16 @@ public final class Server {
                 properties.setProperty(ServerProperties.REMOTE, "true");
             } else if (args[i].equalsIgnoreCase("--advert")) {
             	i++;
-            	properties.setProperty(ServerProperties.ADVERT, args[i]);
+            	properties.setProperty(ServerProperties.ADVERT_ADDRESS, args[i]);
             } else if (args[i].equalsIgnoreCase("--metadata")) {
             	i++;
-            	properties.setProperty(ServerProperties.METADATA, args[i]);
+            	properties.setProperty(ServerProperties.ADVERT_METADATA, args[i]);
             } else if (args[i].equalsIgnoreCase("--user")) {
             	i++;
-            	properties.setProperty(ServerProperties.ADV_USER, args[i]);
+            	properties.setProperty(ServerProperties.ADVERT_USER, args[i]);
             } else if (args[i].equalsIgnoreCase("--pass")) {
             	i++;
-            	properties.setProperty(ServerProperties.ADV_PASS, args[i]);
+            	properties.setProperty(ServerProperties.ADVERT_PASS, args[i]);
             } else if (args[i].equalsIgnoreCase("--help")
                     || args[i].equalsIgnoreCase("-help")
                     || args[i].equalsIgnoreCase("-h")
