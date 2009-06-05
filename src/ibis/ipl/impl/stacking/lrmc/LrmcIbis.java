@@ -21,6 +21,7 @@ import ibis.ipl.impl.stacking.lrmc.util.DynamicObjectArray;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -104,6 +105,8 @@ public class LrmcIbis implements Ibis {
 
     private int nextIbisID = 0;
 
+    private BitSet diedIbises = new BitSet();
+
     HashMap<IbisIdentifier, Integer> knownIbis = new HashMap<IbisIdentifier, Integer>();
 
     DynamicObjectArray<IbisIdentifier> ibisList = new DynamicObjectArray<IbisIdentifier>();
@@ -166,16 +169,19 @@ public class LrmcIbis implements Ibis {
         }
     }
 
-    IbisIdentifier getId(int id) {
+    synchronized IbisIdentifier getId(int id) {
+
+        if (diedIbises.get(id)) {
+            return null;
+        }
+
         IbisIdentifier ibisID = ibisList.get(id);
 
         if (ibisID == null) {
-            synchronized (this) {
-                try {
-                    wait(10000);
-                } catch (Exception e) {
-                    // ignored
-                }
+            try {
+                wait(10000);
+            } catch (Exception e) {
+                // ignored
             }
             return ibisList.get(id);
         }
@@ -202,6 +208,7 @@ public class LrmcIbis implements Ibis {
             logger.info("Removing ibis " + tmp.intValue() + " " + ibis);
             ibisList.remove(tmp.intValue());
         }
+        diedIbises.set(tmp.intValue());
     }
 
     synchronized Multicaster getMulticaster(String name, PortType portType)

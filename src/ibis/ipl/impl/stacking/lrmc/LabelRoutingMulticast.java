@@ -22,7 +22,7 @@ import org.slf4j.LoggerFactory;
 
 public class LabelRoutingMulticast extends Thread implements MessageUpcall {
 
-    private final static int ZOMBIE_THRESHOLD = 10000;
+    private final static int ZOMBIE_THRESHOLD = 100000;
 
     private static final Logger logger = LoggerFactory
             .getLogger(LabelRoutingMulticast.class);
@@ -56,7 +56,7 @@ public class LabelRoutingMulticast extends Thread implements MessageUpcall {
         this.cache = c;
         this.sendQueue = new MessageQueue(
                 new TypedProperties(ibis.properties()).getIntProperty(
-                        "lrmc.queueSize", 32));
+                        "lrmc.queueSize", 256));
         receive = ibis.base.createReceivePort(LrmcIbis.additionalPortType, "LRMCRing-"
                 + name, this);
         receive.enableConnections();
@@ -120,7 +120,7 @@ public class LabelRoutingMulticast extends Thread implements MessageUpcall {
                     sp.connect(ibisID, "LRMCRing-" + name, 10000, true);
                     sendports.put(id, sp);
                 } else {
-                    logger.info("No Ibis yet at position " + id);
+                    logger.info("No Ibis at position " + id);
                     failed = true;
                 }
             } catch (IOException e) {
