@@ -93,7 +93,8 @@ public class Client {
         		catch (Exception e) {
         			System.err.print("Parsing Advert server address failed: ");
     				e.printStackTrace();
-    				System.exit(-1);
+    				throw new ConfigurationException( 
+    						"Parsing Advert server address failed.");
         		}
 
         		/* Determine whether to use a authenticated or public service. */
@@ -110,7 +111,8 @@ public class Client {
         			catch (Exception e) {
         				System.err.print("Connecting to the Advert server failed: ");
         				e.printStackTrace();
-        				System.exit(-1);
+        				throw new ConfigurationException( 
+								"Connecting to the Advert server failed.");
         			}
         		}
         		else {
@@ -130,7 +132,8 @@ public class Client {
         			catch (Exception e) {
         				System.err.print("Connecting to the Advert server failed: ");
         				e.printStackTrace();
-        				System.exit(-1);
+        				throw new ConfigurationException( 
+								"Connecting to the Advert server failed.");
         			}
         		}
         		
@@ -147,7 +150,8 @@ public class Client {
         			catch (Exception e) {
         				System.err.print("Getting Advert data failed: ");
         				e.printStackTrace();
-        				System.exit(-1);
+        				throw new ConfigurationException( 
+								"Getting Advert data failed.");
         			}
         		}
         		else {
@@ -175,7 +179,8 @@ public class Client {
                 		catch (Exception e) {
                 			System.err.print("Getting Advert data failed: ");
             				e.printStackTrace();
-            				System.exit(-1);
+            				throw new ConfigurationException( 
+        							"Getting Advert data failed.");
                 		}
 	        		}
 	        		else {
