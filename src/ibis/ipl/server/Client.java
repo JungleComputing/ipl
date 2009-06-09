@@ -57,6 +57,134 @@ public class Client {
                 "could not create server address from given string: "
                         + serverString, throwable);
     }
+    
+    /**
+     * Private function to fetch a server address from the Ibis Advert server.
+     * 
+     * @param typedProperties
+     * 		Fetches Advert server address and credentials from 
+     * 		{@link TypedProperties}.
+     * @return
+     * 		A {@link String} containing the server address found, or <code>null
+     * 		</code> if none was found.
+     */
+    private static String getAddressFromAdvert(TypedProperties typedProperties) {
+    	
+    	logger.info("Setting up Advert server connection.");
+    	String serverAdvertString = typedProperties
+        		.getProperty(IbisProperties.ADVERT_ADDRESS);
+    	if (serverAdvertString == null || serverAdvertString.equals("")) {
+    		return null;
+    	}
+
+		/* Found an Advert address, try to parse and connect. */
+		URI advertUri       = null;
+    	Advert advertServer = null;
+
+		try {
+			advertUri = new URI(serverAdvertString);
+		}
+		catch (Exception e) {
+			System.err.print("Parsing Advert server address failed: ");
+			e.printStackTrace();
+			return null;
+		}
+
+		/* Determine whether to use a authenticated or public service. */
+		if (typedProperties.getProperty(IbisProperties.ADVERT_USER) == null ||
+			typedProperties.getProperty(IbisProperties.ADVERT_USER).equals("") ||
+			typedProperties.getProperty(IbisProperties.ADVERT_PASS) == null ||
+			typedProperties.getProperty(IbisProperties.ADVERT_PASS).equals("")) {
+			
+			/* Let the Advert class decide whether to use authentication. */ 
+			try { 
+				logger.info("Creating either public/private server class.");
+				advertServer = new Advert(advertUri);
+			}
+			catch (Exception e) {
+				System.err.print("Connecting to the Advert server failed: ");
+				e.printStackTrace();
+				return null;
+			}
+		}
+		else {
+			if (advertUri.getUserInfo() != null &&
+    				!advertUri.getUserInfo().equals("")) {
+    			logger.warn("Found two authentication credentials, " +
+    					"using {}/********", 
+    					typedProperties.getProperty(IbisProperties.ADVERT_USER));
+    		}
+    		/* Connect to authenticated version. */
+			try {
+				logger.info("Creating private server class.");
+				advertServer = new Advert(advertUri, 
+						typedProperties.getProperty(IbisProperties.ADVERT_USER),
+						typedProperties.getProperty(IbisProperties.ADVERT_PASS));
+			}
+			catch (Exception e) {
+				System.err.print("Connecting to the Advert server failed: ");
+				e.printStackTrace();
+				return null;
+			}
+		}
+		
+		/* See if a path (ID) is given. */
+		if (advertUri.getPath() != null && 
+				!advertUri.getPath().equals("")) {
+			
+    		/* Found a path, try to fetch registry server's address. */
+			try {
+				logger.info("Calling get()");
+				byte[] b = advertServer.get(advertUri.getPath());
+				typedProperties.setProperty(IbisProperties.SERVER_ADDRESS,
+						new String(b));
+				return new String(b);
+				
+			}
+			catch (Exception e) {
+				System.err.print("Getting Advert data failed: ");
+				e.printStackTrace();
+				return null;
+			}
+		}
+		else {
+    		
+			/* No path given. Check for meta data. */
+    		String serverMetaDataString = typedProperties
+			.getProperty(IbisProperties.ADVERT_MD);
+    		if (serverMetaDataString != null && 
+    				!serverMetaDataString.equals("")) {
+    			
+    			/* Connecting using MD. */
+    			MetaData md = new MetaData(serverMetaDataString);
+        		
+        		try {
+        			logger.info("Calling find()");
+        			String[] results = advertServer.find(md);
+        			if (results == null || results.length < 1) {
+        				throw new ConfigurationException( 
+            					"No server matching MD found.");
+        			}
+        			logger.info("Calling get()");
+        			byte[] b = advertServer.get(results[0]);
+        			typedProperties.setProperty(IbisProperties.SERVER_ADDRESS,
+    						new String(b));
+    				return new String(b);
+        		}
+        		catch (Exception e) {
+        			System.err.print("Getting Advert data failed: ");
+    				e.printStackTrace();
+    				return null;
+        		}
+    		}
+    		else {
+    			
+    			/* Did not find a path and did not find meta data. */
+    			System.err.println("No path nor meta data was given.");
+    			return null;
+    		}
+		}
+	}
 
     /**
      * Get the address of a service running on a given port
@@ -75,124 +203,12 @@ public class Client {
 
         String serverAddressString = typedProperties
                 .getProperty(IbisProperties.SERVER_ADDRESS);
-        if (serverAddressString == null || serverAddressString.equals("")) {
-        	
-        	/* No server address found. Try to connect via Advert server. */
-        	logger.info("Setting up Advert server connection.");
-        	String serverAdvertString = typedProperties
-            		.getProperty(IbisProperties.ADVERT_ADDRESS);
-        	if (serverAdvertString != null && !serverAdvertString.equals("")) {
+        if (serverAddressString == null || serverAddressString.equals("") ||
+        		(serverAddressString = getAddressFromAdvert(typedProperties))
+        		== null) {
+        	throw new ConfigurationException(IbisProperties.SERVER_ADDRESS
+                    + " undefined, cannot locate server");
 
-        		/* Found an Advert address, try to parse and connect. */
-        		URI advertUri       = null;
-            	Advert advertServer = null;
-
-        		try {
-        			advertUri = new URI(serverAdvertString);
-        		}
-        		catch (Exception e) {
-        			System.err.print("Parsing Advert server address failed: ");
-    				e.printStackTrace();
-    				throw new ConfigurationException( 
-    						"Parsing Advert server address failed.");
-        		}
-
-        		/* Determine whether to use a authenticated or public service. */
-        		if (typedProperties.getProperty(IbisProperties.ADVERT_USER) == null ||
-        			typedProperties.getProperty(IbisProperties.ADVERT_USER).equals("") ||
-        			typedProperties.getProperty(IbisProperties.ADVERT_PASS) == null ||
-        			typedProperties.getProperty(IbisProperties.ADVERT_PASS).equals("")) {
-        			
-        			/* Connect to 'dynamically-selecting-auth' server. */ 
-        			try { 
-        				logger.info("Creating either public/private server class.");
-        				advertServer = new Advert(advertUri);
-        			}
-        			catch (Exception e) {
-        				System.err.print("Connecting to the Advert server failed: ");
-        				e.printStackTrace();
-        				throw new ConfigurationException( 
-								"Connecting to the Advert server failed.");
-        			}
-        		}
-        		else {
-        			if (advertUri.getUserInfo() != null &&
-            				!advertUri.getUserInfo().equals("")) {
-            			logger.warn("Found two authentication credentials, " +
-            					"using {}/********", 
-            					typedProperties.getProperty(IbisProperties.ADVERT_USER));
-            		}
-            		//Connect to authenticated version
-        			try {
-        				logger.info("Creating private server class.");
-        				advertServer = new Advert(advertUri, 
-        						typedProperties.getProperty(IbisProperties.ADVERT_USER),
-        						typedProperties.getProperty(IbisProperties.ADVERT_PASS));
-        			}
-        			catch (Exception e) {
-        				System.err.print("Connecting to the Advert server failed: ");
-        				e.printStackTrace();
-        				throw new ConfigurationException( 
-								"Connecting to the Advert server failed.");
-        			}
-        		}
-        		
-        		/* See if a path (ID) is given. */
-        		if (advertUri.getPath() != null && 
-        				!advertUri.getPath().equals("")) {
-        			
-	        		/* Found a path, try to fetch registry server's address. */
-        			try {
-        				logger.info("Calling get()");
-        				byte[] b = advertServer.get(advertUri.getPath());
-        				serverAddressString = new String(b);
-        			}
-        			catch (Exception e) {
-        				System.err.print("Getting Advert data failed: ");
-        				e.printStackTrace();
-        				throw new ConfigurationException( 
-								"Getting Advert data failed.");
-        			}
-        		}
-        		else {
-	        		
-        			/* Check for meta data. */
-	        		String serverMetaDataString = typedProperties
-	    			.getProperty(IbisProperties.ADVERT_MD);
-	        		if (serverMetaDataString != null && 
-	        				!serverMetaDataString.equals("")) {
-	        			
-	        			/* Connecting using MD. */
-	        			MetaData md = new MetaData(serverMetaDataString);
-                		
-                		try {
-                			logger.info("Calling find()");
-                			String[] results = advertServer.find(md);
-                			if (results == null || results.length < 1) {
-                				throw new ConfigurationException( 
-                    					"No server matching MD found.");
-                			}
-                			logger.info("Calling get()");
-                			byte[] b = advertServer.get(results[0]);
-                			serverAddressString = new String(b);
-                		}
-                		catch (Exception e) {
-                			System.err.print("Getting Advert data failed: ");
-            				e.printStackTrace();
-            				throw new ConfigurationException( 
-        							"Getting Advert data failed.");
-                		}
-	        		}
-	        		else {
-	        			throw new ConfigurationException("No meta data found, "
-	        					+ "cannot connect.");
-	        		}
-        		}
-        	}
-        	else {
-	            throw new ConfigurationException(IbisProperties.SERVER_ADDRESS
-	                    + " undefined, cannot locate server");
-        	}
         }
 
         logger.debug("server address = \"" + serverAddressString + "\"");
@@ -228,6 +244,9 @@ public class Client {
 
         String server = typedProperties
                 .getProperty(IbisProperties.SERVER_ADDRESS);
+        if (server == null || server.equals("")) {
+        	server = getAddressFromAdvert(typedProperties); //fetch from advert
+        }
         if (server != null && !server.equals("") && serverIsHub) {
             // add server to hub addresses
             DirectSocketAddress serverAddress = createAddressFromString(server,
