@@ -4,6 +4,8 @@ public final class Protocol {
 
     public static final byte MAGIC_BYTE = 54;
     
+    public static final int VIRTUAL_PORT = 302;
+    
     // opcodes
 
     public static final byte OPCODE_JOIN = 0;
@@ -36,17 +38,10 @@ public final class Protocol {
 
     public static final byte OPCODE_TERMINATE = 14;
 
-    // monitoring client opcode
-    public static final byte OPCODE_GET_STATS = 15;
-    
-    public static final byte OPCODE_GET_LOCATIONS = 16;
-    
-    public static final byte OPCODE_GET_MONITOR_INFO = 17;
-
-    public static final int NR_OF_OPCODES = 17;
+    public static final int NR_OF_OPCODES = 15;
 
     public static final String[] OPCODE_NAMES = { "JOIN", "LEAVE", "GOSSIP",
             "ELECT", "SEQUENCE_NR", "DEAD", "MAYBE_DEAD", "SIGNAL", "PING",
             "PUSH", "BROADCAST", "FORWARD", "GET_STATE", "HEARTBEAT",
-            "TERMINATE", "GET_STATS", "GET_LOCATIONS", "GET_MONITOR_INFO" };
+            "TERMINATE"};
 }

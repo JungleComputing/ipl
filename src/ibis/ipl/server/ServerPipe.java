@@ -13,18 +13,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Client to a server started with the "--remote" option. This client can parse
- * the address of the server from the standard out of the server process. Also
- * forwards the output to the given stream (with an optional prefix to each
- * line)
+ * Connection to the stdin/stdout of a server running with the --remote option
  * 
  * @author Niels Drost
  * 
  */
-public class RemoteClient implements Runnable {
+class ServerPipe implements Runnable {
 
     private static final Logger logger = LoggerFactory
-            .getLogger(RemoteClient.class);
+            .getLogger(ServerConnection.class);
 
     // standard out of server process. Turns into an input stream on this side
     private final BufferedReader stdout;
@@ -41,28 +38,16 @@ public class RemoteClient implements Runnable {
 
     private IOException exception = null;
 
-    /**
-     * Connect to the server with the given in and output stream
-     * 
-     * @param stdout
-     *            Standard out of server process
-     * @param stdin
-     *            Standard in of server process
-     * @param output
-     *            Stream to forward output to
-     * @param outputPrefix
-     *            Prefix to add to all lines of output
-     * 
-     * @throws IOException
-     */
-    public RemoteClient(InputStream stdout, OutputStream stdin,
-            PrintStream output, String outputPrefix) throws IOException {
+    ServerPipe(InputStream stdout, OutputStream stdin, PrintStream output,
+            String outputPrefix) {
+
         this.stdout = new BufferedReader(new InputStreamReader(stdout));
         this.stdin = stdin;
         this.output = output;
 
         this.outputPrefix = outputPrefix;
 
+        // thread for parsing address
         ThreadPool.createNew(this, "remote client");
     }
 
@@ -78,7 +63,7 @@ public class RemoteClient implements Runnable {
      *             if server fails to start, or address is not available within
      *             the specified time.
      */
-    public synchronized String getAddress(long timeout) throws IOException {
+    synchronized String getAddress(long timeout) throws IOException {
         long deadline = System.currentTimeMillis() + timeout;
         while (address == null) {
             if (exception != null) {
@@ -104,7 +89,7 @@ public class RemoteClient implements Runnable {
     /**
      * End Server by closing stream.
      */
-    public void end() {
+    void end() {
         try {
             stdin.close();
         } catch (IOException e) {
@@ -115,6 +100,7 @@ public class RemoteClient implements Runnable {
     private synchronized void setException(IOException exception) {
         this.exception = exception;
         notifyAll();
+        end();
     }
 
     private synchronized void parseAddress(String line) {
@@ -125,11 +111,12 @@ public class RemoteClient implements Runnable {
 
         if (prefixIndex == -1 || postfixIndex == -1) {
             // address not in this line after all, print line to output
-            logger.warn("Address prefix+postfix not found in line \"" + line + "\"");
+            logger.warn("Address prefix+postfix not found in line \"" + line
+                    + "\"");
             output.println(line);
             return;
         }
-        
+
         if ((prefixIndex + Server.ADDRESS_LINE_PREFIX.length()) >= postfixIndex) {
             logger.warn("Invalid address in line \"" + line + "\"");
         }
@@ -173,4 +160,5 @@ public class RemoteClient implements Runnable {
         }
 
     }
+
 }

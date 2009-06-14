@@ -1,6 +1,8 @@
 package ibis.ipl.registry.gossip;
 
 final class Protocol {
+    
+    public static final int VIRTUAL_PORT = 303;
 
     // opcodes
 

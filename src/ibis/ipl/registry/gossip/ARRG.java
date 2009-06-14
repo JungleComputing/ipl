@@ -1,7 +1,7 @@
 package ibis.ipl.registry.gossip;
 
-import ibis.ipl.registry.Connection;
 import ibis.ipl.registry.statistics.Statistics;
+import ibis.ipl.support.Connection;
 import ibis.smartsockets.virtual.VirtualSocketAddress;
 import ibis.smartsockets.virtual.VirtualSocketFactory;
 

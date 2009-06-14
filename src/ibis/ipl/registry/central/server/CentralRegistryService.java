@@ -3,7 +3,9 @@ package ibis.ipl.registry.central.server;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.registry.ControlPolicy;
 import ibis.ipl.registry.central.Member;
+import ibis.ipl.registry.central.Protocol;
 import ibis.ipl.registry.central.RegistryProperties;
+import ibis.ipl.server.RegistryServiceInterface;
 import ibis.ipl.server.ServerProperties;
 import ibis.ipl.server.Service;
 import ibis.smartsockets.virtual.VirtualSocketFactory;
@@ -23,9 +25,9 @@ import org.slf4j.LoggerFactory;
  * Server for the centralized registry implementation.
  * 
  */
-public final class CentralRegistryService extends Thread implements Service {
+public final class CentralRegistryService extends Thread implements Service, RegistryServiceInterface {
 
-    public static final int VIRTUAL_PORT = 302;
+   // public static final int VIRTUAL_PORT = 302;
 
     private static final Logger logger = LoggerFactory
             .getLogger(CentralRegistryService.class);
@@ -79,13 +81,16 @@ public final class CentralRegistryService extends Thread implements Service {
         ThreadPool.createNew(this, "Central Registry Service");
 
         logger.debug("Started Central Registry service on virtual port "
-                + VIRTUAL_PORT);
+                + Protocol.VIRTUAL_PORT);
     }
 
     synchronized Pool getPool(String poolName) {
         return pools.get(poolName);
     }
 
+    /* (non-Javadoc)
+     * @see ibis.ipl.registry.central.server.RegistryService#getServiceName()
+     */
     public String getServiceName() {
         return "registry";
     }
@@ -141,7 +146,7 @@ public final class CentralRegistryService extends Thread implements Service {
     }
 
     public String toString() {
-        return "Central Registry service on virtual port " + VIRTUAL_PORT;
+        return "Central Registry service on virtual port " + Protocol.VIRTUAL_PORT;
     }
 
     // pool cleanup thread
@@ -184,6 +189,9 @@ public final class CentralRegistryService extends Thread implements Service {
 
     }
 
+    /* (non-Javadoc)
+     * @see ibis.ipl.registry.central.server.RegistryService#getStats()
+     */
     public synchronized Map<String, String> getStats() {
         Map<String, String> result = new HashMap<String, String>();
 
@@ -204,6 +212,9 @@ public final class CentralRegistryService extends Thread implements Service {
         return result;
     }
     
+    /* (non-Javadoc)
+     * @see ibis.ipl.registry.central.server.RegistryService#getMembers(java.lang.String)
+     */
     public IbisIdentifier[] getMembers(String poolName) {
         Pool pool = getPool(poolName);
         

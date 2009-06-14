@@ -71,7 +71,7 @@
 
         <!-- SUPPORT -->
 
-        <property name="support.files" value="ibis/ipl/management/**/*.class ibis/ipl/registry/**/*.class ibis/ipl/server/**/*.class ibis/ipl/util/**/*.class" />
+        <property name="support.files" value="ibis/ipl/support/**/*.class ibis/ipl/management/**/*.class ibis/ipl/registry/**/*.class ibis/ipl/server/**/*.class ibis/ipl/util/**/*.class" />
 
         <checksum totalproperty="support.checksum">
             <fileset dir="tmp" includes="${support.files}" />

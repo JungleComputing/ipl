@@ -1,6 +1,7 @@
-package ibis.ipl.registry;
+package ibis.ipl.support;
 
 import ibis.ipl.impl.IbisIdentifier;
+import ibis.smartsockets.direct.DirectSocketAddress;
 import ibis.smartsockets.virtual.VirtualServerSocket;
 import ibis.smartsockets.virtual.VirtualSocket;
 import ibis.smartsockets.virtual.VirtualSocketAddress;
@@ -16,9 +17,16 @@ import java.util.HashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Connection to the server and between clients using smartsockets.
+ * 
+ * @author ndrost
+ * 
+ */
 public final class Connection {
 
-    private static final Logger logger = LoggerFactory.getLogger(Connection.class);
+    private static final Logger logger = LoggerFactory
+            .getLogger(Connection.class);
 
     private final VirtualSocket socket;
 
@@ -31,10 +39,24 @@ public final class Connection {
 
     static final byte REPLY_OK = 1;
 
+    private static VirtualSocketAddress addressFromIdentifier(
+            IbisIdentifier ibis, int virtualPort) throws IOException {
+        VirtualSocketAddress registryAddress = VirtualSocketAddress.fromBytes(
+                ibis.getRegistryData(), 0);
+
+        if (registryAddress.port() == virtualPort) {
+            return registryAddress;
+        }
+
+        // wrong port, create new address with correct port
+        return new VirtualSocketAddress(registryAddress.machine(), virtualPort,
+                registryAddress.hub(), registryAddress.cluster());
+    }
+
     public Connection(IbisIdentifier ibis, int timeout, boolean fillTimeout,
-            VirtualSocketFactory factory) throws IOException {
-        this(VirtualSocketAddress.fromBytes(ibis.getRegistryData(), 0),
-                timeout, fillTimeout, factory);
+            VirtualSocketFactory factory, int virtualPort) throws IOException {
+        this(addressFromIdentifier(ibis, virtualPort), timeout, fillTimeout,
+                factory);
     }
 
     public Connection(VirtualSocketAddress address, int timeout,
@@ -42,10 +64,10 @@ public final class Connection {
             throws IOException {
         logger.debug("connecting to " + address + ", timeout = " + timeout
                 + " , filltimeout = " + fillTimeout);
-        
-        final HashMap<String, Object> lightConnection 
-        = new HashMap<String, Object>();
-        //lightConnection.put("connect.module.allow", "ConnectModule(HubRouted)");    
+
+        final HashMap<String, Object> lightConnection = new HashMap<String, Object>();
+        // lightConnection.put("connect.module.allow",
+        // "ConnectModule(HubRouted)");
 
         socket = factory.createClientSocket(address, timeout, fillTimeout,
                 lightConnection);
@@ -101,7 +123,7 @@ public final class Connection {
         // get reply
         byte reply = in.readByte();
         if (reply == Connection.REPLY_ERROR) {
-        	String message = in.readUTF();
+            String message = in.readUTF();
             close();
             throw new RemoteException(message);
         } else if (reply != Connection.REPLY_OK) {

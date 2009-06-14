@@ -4,18 +4,16 @@ import ibis.io.Conversion;
 import ibis.ipl.Credentials;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.IbisProperties;
+import ibis.ipl.impl.Ibis;
 import ibis.ipl.impl.IbisIdentifier;
 import ibis.ipl.impl.Location;
-import ibis.ipl.management.AttributeDescription;
-import ibis.ipl.registry.Connection;
 import ibis.ipl.registry.central.Event;
 import ibis.ipl.registry.central.Protocol;
 import ibis.ipl.registry.central.RegistryProperties;
-import ibis.ipl.registry.central.server.CentralRegistryService;
 import ibis.ipl.registry.statistics.Statistics;
-import ibis.ipl.server.Client;
-import ibis.ipl.server.ConfigurationException;
 import ibis.ipl.server.ServerProperties;
+import ibis.ipl.support.Client;
+import ibis.ipl.support.Connection;
 import ibis.smartsockets.virtual.VirtualServerSocket;
 import ibis.smartsockets.virtual.VirtualSocketAddress;
 import ibis.smartsockets.virtual.VirtualSocketFactory;
@@ -23,8 +21,6 @@ import ibis.util.ThreadPool;
 import ibis.util.TypedProperties;
 
 import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
@@ -43,6 +39,8 @@ final class CommunicationHandler implements Runnable {
     // private final byte[] version;
 
     private final Heartbeat heartbeat;
+    
+    private final Client client;
 
     private final VirtualSocketFactory virtualSocketFactory;
 
@@ -117,22 +115,15 @@ final class CommunicationHandler implements Runnable {
         timeout = properties
                 .getIntProperty(RegistryProperties.CLIENT_CONNECT_TIMEOUT) * 1000;
 
-        try {
-            virtualSocketFactory = Client.getFactory(properties);
-        } catch (ConfigurationException e) {
-            throw new IbisConfigurationException(
-                    "Cannot initialize SmartSockets: " + e.getMessage());
-        }
+        String clientID = this.properties.getProperty(Ibis.ID_PROPERTY);
+        client = Client.getOrCreateClient(clientID, properties, 0);
+        virtualSocketFactory = client.getFactory();
 
-        serverSocket = virtualSocketFactory.createServerSocket(0,
+        serverSocket = virtualSocketFactory.createServerSocket(Protocol.VIRTUAL_PORT,
                 CONNECTION_BACKLOG, null);
 
-        try {
-            serverAddress = Client.getServiceAddress(
-                    CentralRegistryService.VIRTUAL_PORT, properties);
-        } catch (ConfigurationException e) {
-            throw new IbisConfigurationException(e.getMessage());
-        }
+        serverAddress = client
+                .getServiceAddress(Protocol.VIRTUAL_PORT);
 
         if (serverAddress == null) {
             throw new IOException("could not get address of server");
@@ -172,9 +163,10 @@ final class CommunicationHandler implements Runnable {
     /**
      * connects to the registry server, joins, and gets back the identifier of
      * this Ibis and some bootstrap information
+     * 
      * @param applicationTag
-     *             A tag for this ibis provided by the application
-     *
+     *            A tag for this ibis provided by the application
+     * 
      * @throws IOException
      *             in case of trouble
      */
@@ -198,14 +190,14 @@ final class CommunicationHandler implements Runnable {
         boolean purgeHistory = properties
                 .getBooleanProperty(RegistryProperties.PURGE_HISTORY);
 
-        VirtualSocketAddress tmp = serverSocket.getLocalSocketAddress();
+        VirtualSocketAddress address = serverSocket.getLocalSocketAddress();
 
         // We try to generate an array of global IP addresses here. We use these
         // in an attempt to get a more reasonable location.
         InetAddress[] preferred = null;
 
-        if (tmp.machine().hasPublicAddress()) {
-            InetSocketAddress[] sa = tmp.machine().getPublicAddresses();
+        if (address.machine().hasPublicAddress()) {
+            InetSocketAddress[] sa = address.machine().getPublicAddresses();
             preferred = new InetAddress[sa.length];
 
             for (int i = 0; i < sa.length; i++) {
@@ -215,7 +207,7 @@ final class CommunicationHandler implements Runnable {
 
         Location location = Location.defaultLocation(properties, preferred);
 
-        byte[] myAddress = tmp.toBytes();
+        byte[] myAddress = address.toBytes();
 
         logger.debug("joining to " + pool.getName() + ", connecting to server");
         Connection connection;
@@ -240,9 +232,9 @@ final class CommunicationHandler implements Runnable {
             connection.out().writeUTF(pool.getName());
             connection.out().writeInt(implementationData.length);
             connection.out().write(implementationData);
-            
+
             connection.out().writeUTF(implementationVersion);
-            
+
             location.writeTo(connection.out());
             connection.out().writeBoolean(peerBootstrap);
             connection.out().writeLong(heartbeatInterval);
@@ -260,14 +252,14 @@ final class CommunicationHandler implements Runnable {
             byte[] credentialBytes = Conversion.object2byte(credentials);
             connection.out().writeInt(credentialBytes.length);
             connection.out().write(credentialBytes);
-            
+
             if (tag == null) {
                 connection.out().writeInt(-1);
             } else {
                 connection.out().writeInt(tag.length);
                 connection.out().write(tag);
             }
-            
+
             logger.debug("reading join result info from server");
 
             connection.getAndCheckReply();
@@ -312,6 +304,10 @@ final class CommunicationHandler implements Runnable {
         }
 
     }
+    
+    Client getClient() {
+        return client;
+    }
 
     void bootstrap() throws IOException {
         if (!peerBootstrap) {
@@ -337,7 +333,7 @@ final class CommunicationHandler implements Runnable {
                 Connection connection = null;
                 try {
                     connection = new Connection(ibis, timeout, false,
-                            virtualSocketFactory);
+                            virtualSocketFactory, Protocol.VIRTUAL_PORT);
 
                     connection.out().writeByte(Protocol.MAGIC_BYTE);
                     connection.out().writeByte(Protocol.OPCODE_GET_STATE);
@@ -724,7 +720,7 @@ final class CommunicationHandler implements Runnable {
         logger.debug("gossiping with " + ibis);
 
         Connection connection = new Connection(ibis, timeout, false,
-                virtualSocketFactory);
+                virtualSocketFactory, Protocol.VIRTUAL_PORT);
 
         try {
             connection.out().writeByte(Protocol.MAGIC_BYTE);
@@ -804,7 +800,7 @@ final class CommunicationHandler implements Runnable {
             logger.debug("creating connection to push events to " + ibis);
 
             connection = new Connection(ibis, timeout, false,
-                    virtualSocketFactory);
+                    virtualSocketFactory, Protocol.VIRTUAL_PORT);
 
             logger.debug("connection to " + ibis + " created");
 
@@ -1052,73 +1048,7 @@ final class CommunicationHandler implements Runnable {
         connection.close();
     }
 
-    @SuppressWarnings("unchecked")
-    private void handleGetMonitorInfo(Connection connection) throws IOException {
-        int length = connection.in().readInt();
-
-        if (length < 0) {
-            connection.closeWithError("End of stream on reading request");
-            return;
-        }
-
-        AttributeDescription[] descriptions = new AttributeDescription[length];
-
-        for (int i = 0; i < descriptions.length; i++) {
-            descriptions[i] = new AttributeDescription(connection.in()
-                    .readUTF(), connection.in().readUTF());
-        }
-
-        Object[] result = new Object[descriptions.length];
-
-        try {
-            Class factoryClass = Class
-                    .forName("java.lang.management.ManagementFactory");
-
-            Class beanServerClass = Class
-                    .forName("javax.management.MBeanServer");
-
-            
-            Class objectNameClass = Class
-                    .forName("javax.management.ObjectName");
-
-            Constructor objectNameClassConstructor = objectNameClass
-                    .getConstructor(String.class);
-
-            Method getAttributeMethod = beanServerClass.getMethod(
-                    "getAttribute", objectNameClass, String.class);
-
-            Object beanServer = factoryClass.getMethod(
-                    "getPlatformMBeanServer").invoke(null);
-
-            for (int i = 0; i < descriptions.length; i++) {
-                try {
-                    Object objectName = objectNameClassConstructor
-                            .newInstance(descriptions[i].getBeanName());
-
-                    result[i] = getAttributeMethod.invoke(beanServer,
-                            objectName, descriptions[i].getAttribute());
-                } catch (Throwable t) {
-                    connection
-                            .closeWithError("cannot get value for attribute \""
-                                    + descriptions[i].getAttribute()
-                                    + "\" of bean \""
-                                    + descriptions[i].getBeanName() + "\"");
-                }
-            }
-
-        } catch (Throwable t) {
-            connection.closeWithError("Cannot load JMX: " + t);
-            return;
-        }
-
-        connection.sendOKReply();
-
-        byte[] bytes = Conversion.object2byte(result);
-        connection.out().writeInt(bytes.length);
-        connection.out().write(bytes);
-        connection.out().flush();
-        connection.close();
-    }
+  
 
     private synchronized void createThread() {
         while (currentNrOfThreads >= MAX_THREADS) {
@@ -1204,9 +1134,6 @@ final class CommunicationHandler implements Runnable {
                 break;
             case Protocol.OPCODE_GET_STATE:
                 handleGetState(connection);
-                break;
-            case Protocol.OPCODE_GET_MONITOR_INFO:
-                handleGetMonitorInfo(connection);
                 break;
             default:
                 logger.error("unknown opcode in request: " + opcode);

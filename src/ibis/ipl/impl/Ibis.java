@@ -23,6 +23,7 @@ import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +34,9 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
 {
+    //property to uniquely identify an Ibis locally, even when it has not
+    //joined the registry yet
+    public static final String ID_PROPERTY = "ibis.local.id";
 
     /** Debugging output. */
     private static final Logger logger = LoggerFactory
@@ -150,6 +154,8 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
         // bottom up add properties, starting with hard coded ones
         properties.addProperties(IbisProperties.getHardcodedProperties());
         properties.addProperties(userProperties);
+
+        properties.setProperty(ID_PROPERTY, UUID.randomUUID().toString());
 
         if (logger.isDebugEnabled()) {
             logger.debug("Ibis constructor: properties = " + properties);

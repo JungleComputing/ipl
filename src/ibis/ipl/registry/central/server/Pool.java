@@ -2,7 +2,6 @@ package ibis.ipl.registry.central.server;
 
 import ibis.ipl.impl.IbisIdentifier;
 import ibis.ipl.impl.Location;
-import ibis.ipl.registry.Connection;
 import ibis.ipl.registry.central.Election;
 import ibis.ipl.registry.central.ElectionSet;
 import ibis.ipl.registry.central.Event;
@@ -13,6 +12,7 @@ import ibis.ipl.registry.central.MemberSet;
 import ibis.ipl.registry.central.Protocol;
 import ibis.ipl.registry.central.TreeMemberSet;
 import ibis.ipl.registry.statistics.Statistics;
+import ibis.ipl.support.Connection;
 import ibis.smartsockets.virtual.VirtualSocketFactory;
 import ibis.util.ThreadPool;
 
@@ -628,7 +628,7 @@ final class Pool implements Runnable {
 
             logger.debug("creating connection to " + member);
             connection = new Connection(member.getIbis(), CONNECT_TIMEOUT,
-                    true, socketFactory);
+                    true, socketFactory, Protocol.VIRTUAL_PORT);
             logger.debug("connection created to " + member
                     + ", send opcode, checking for reply");
 
@@ -706,7 +706,7 @@ final class Pool implements Runnable {
             logger.debug("creating connection to push events to " + member);
 
             connection = new Connection(member.getIbis(), CONNECT_TIMEOUT,
-                    true, socketFactory);
+                    true, socketFactory, Protocol.VIRTUAL_PORT);
 
             long connected = System.currentTimeMillis();
 

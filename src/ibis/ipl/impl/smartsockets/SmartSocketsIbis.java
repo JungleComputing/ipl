@@ -10,7 +10,6 @@ import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.Credentials;
 import ibis.ipl.IbisCapabilities;
-import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.IbisProperties;
 import ibis.ipl.IbisStarter;
 import ibis.ipl.MessageUpcall;
@@ -22,8 +21,7 @@ import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.ipl.impl.IbisIdentifier;
 import ibis.ipl.impl.ReceivePort;
 import ibis.ipl.impl.SendPortIdentifier;
-import ibis.ipl.server.Client;
-import ibis.ipl.server.ConfigurationException;
+import ibis.ipl.support.Client;
 import ibis.smartsockets.hub.servicelink.ServiceLink;
 import ibis.smartsockets.virtual.VirtualServerSocket;
 import ibis.smartsockets.virtual.VirtualSocket;
@@ -64,9 +62,10 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
 
     public SmartSocketsIbis(RegistryEventHandler registryEventHandler,
             IbisCapabilities capabilities, Credentials credentials,
-            byte[] applicationTag, PortType[] types, Properties userProperties, IbisStarter starter) {
-        super(registryEventHandler, capabilities, credentials, applicationTag, types,
-                userProperties, starter);
+            byte[] applicationTag, PortType[] types, Properties userProperties,
+            IbisStarter starter) {
+        super(registryEventHandler, capabilities, credentials, applicationTag,
+                types, userProperties, starter);
 
         lightConnection.put("connect.module.allow", "ConnectModule(HubRouted)");
 
@@ -103,12 +102,9 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
     }
 
     protected byte[] getData() throws IOException {
-
-        try {
-            factory = Client.getFactory(properties);
-        } catch (ConfigurationException e) {
-            throw new IbisConfigurationException(e.getMessage());
-        }
+        String clientID = this.properties.getProperty(ID_PROPERTY);
+        Client client = Client.getOrCreateClient(clientID, properties, 0);
+        factory = client.getFactory();
 
         systemServer = factory.createServerSocket(0, 50, true, null);
         myAddress = systemServer.getLocalSocketAddress();

@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Main Ibis Server class.
  */
-public final class Server {
+public final class Server implements ServerInterface {
 
     public static final String ADDRESS_LINE_PREFIX = "IBIS SERVER RUNNING ON: ";
 
@@ -236,6 +236,9 @@ public final class Server {
         }
     }
 
+    /* (non-Javadoc)
+     * @see ibis.ipl.server.ServerInterface#getRegistryService()
+     */
     public CentralRegistryService getRegistryService() {
         return registryService;
     }
@@ -244,26 +247,29 @@ public final class Server {
         return bootstrapService;
     }
 
+    /* (non-Javadoc)
+     * @see ibis.ipl.server.ServerInterface#getManagementService()
+     */
     public ManagementService getManagementService() {
         return managementService;
     }
 
-    /**
-     * Returns the local address of this server as a string
+    /* (non-Javadoc)
+     * @see ibis.ipl.server.ServerInterface#getAddress()
      */
-    public String getLocalAddress() {
+    public String getAddress() {
         return address.toString();
     }
 
-    /**
-     * Returns the names of all user services currently in this server
+    /* (non-Javadoc)
+     * @see ibis.ipl.server.ServerInterface#getServiceNames()
      */
     public String[] getServiceNames() {
         return services.keySet().toArray(new String[0]);
     }
 
-    /**
-     * Returns the addresses of all hubs known to this server
+    /* (non-Javadoc)
+     * @see ibis.ipl.server.ServerInterface#getHubs()
      */
     public String[] getHubs() {
         DirectSocketAddress[] hubs;
@@ -283,8 +289,8 @@ public final class Server {
         return result.toArray(new String[0]);
     }
 
-    /**
-     * Tell the server about some hubs
+    /* (non-Javadoc)
+     * @see ibis.ipl.server.ServerInterface#addHubs(ibis.smartsockets.direct.DirectSocketAddress)
      */
     public void addHubs(DirectSocketAddress... hubAddresses) {
         if (hubOnly) {
@@ -294,8 +300,8 @@ public final class Server {
         }
     }
 
-    /**
-     * Tell the server about some hubs
+    /* (non-Javadoc)
+     * @see ibis.ipl.server.ServerInterface#addHubs(java.lang.String)
      */
     public void addHubs(String... hubAddresses) {
         if (hubOnly) {
@@ -307,10 +313,10 @@ public final class Server {
 
     public String toString() {
         if (hubOnly) {
-            return "Hub running on " + getLocalAddress();
+            return "Hub running on " + getAddress();
         }
 
-        String message = "Ibis server running on " + getLocalAddress()
+        String message = "Ibis server running on " + getAddress()
                 + "\nList of Services:";
 
         for (Service service : services.values()) {
@@ -321,12 +327,8 @@ public final class Server {
 
     }
 
-    /**
-     * Stops all services. May wait until the services are idle.
-     * 
-     * @param timeout
-     *            timeout for ending all services in Milliseconds. 0 == wait
-     *            forever, -1 == no not wait.
+    /* (non-Javadoc)
+     * @see ibis.ipl.server.ServerInterface#end(long)
      */
     public void end(long timeout) {
         long deadline = System.currentTimeMillis() + timeout;
@@ -462,7 +464,7 @@ public final class Server {
         }
 
         if (server.hasRemote()) {
-            System.out.println(ADDRESS_LINE_PREFIX + server.getLocalAddress()
+            System.out.println(ADDRESS_LINE_PREFIX + server.getAddress()
                     + ADDRESS_LINE_POSTFIX);
             System.out.flush();
             server.waitUntilFinished();

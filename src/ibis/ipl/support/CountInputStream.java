@@ -1,4 +1,4 @@
-package ibis.ipl.registry;
+package ibis.ipl.support;
 
 import java.io.IOException;
 import java.io.InputStream;

@@ -4,19 +4,17 @@ import ibis.io.Conversion;
 import ibis.ipl.Credentials;
 import ibis.ipl.impl.IbisIdentifier;
 import ibis.ipl.impl.Location;
-import ibis.ipl.registry.Connection;
 import ibis.ipl.registry.ControlPolicy;
 import ibis.ipl.registry.central.Member;
 import ibis.ipl.registry.central.Protocol;
 import ibis.ipl.server.ServerProperties;
+import ibis.ipl.support.Connection;
 import ibis.smartsockets.virtual.VirtualServerSocket;
 import ibis.smartsockets.virtual.VirtualSocketFactory;
 import ibis.util.ThreadPool;
 
 import java.io.IOException;
 import java.security.AccessControlException;
-import java.util.Map;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,7 +46,7 @@ final class ServerConnectionHandler implements Runnable {
         this.socketFactory = connectionFactory;
 
         serverSocket = socketFactory.createServerSocket(
-                CentralRegistryService.VIRTUAL_PORT, CONNECTION_BACKLOG, null);
+                Protocol.VIRTUAL_PORT, CONNECTION_BACKLOG, null);
         this.policy = policy;
 
         createThread();
@@ -362,42 +360,6 @@ final class ServerConnectionHandler implements Runnable {
 
     }
 
-    private void handleGetStats(Connection connection) throws Exception {
-        connection.sendOKReply();
-
-        Map<String, String> result = server.getStats();
-
-        connection.out().writeInt(result.size());
-        for (Map.Entry<String, String> entry : result.entrySet()) {
-            connection.out().writeUTF(entry.getKey());
-            if (entry.getValue() == null) {
-                connection.out().writeUTF("");
-            } else {
-                connection.out().writeUTF(entry.getValue());
-            }
-        }
-    }
-
-    private void handleGetLocations(Connection connection) throws Exception {
-        String poolName = connection.in().readUTF();
-
-        Pool pool = server.getPool(poolName);
-
-        if (pool == null) {
-            connection.closeWithError("pool not found");
-            throw new Exception("pool " + poolName + " not found");
-        }
-
-        connection.sendOKReply();
-
-        ibis.ipl.Location[] result = pool.getLocations();
-
-        connection.out().writeInt(result.length);
-        for (ibis.ipl.Location location : result) {
-            connection.out().writeUTF(location.toString());
-        }
-    }
-
     private synchronized void createThread() {
         while (currentNrOfThreads >= MAX_THREADS) {
             try {
@@ -499,12 +461,6 @@ final class ServerConnectionHandler implements Runnable {
                 break;
             case Protocol.OPCODE_TERMINATE:
                 pool = handleTerminate(connection);
-                break;
-            case Protocol.OPCODE_GET_STATS:
-                handleGetStats(connection);
-                break;
-            case Protocol.OPCODE_GET_LOCATIONS:
-                handleGetLocations(connection);
                 break;
             default:
                 logger.error("unknown opcode: " + opcode);

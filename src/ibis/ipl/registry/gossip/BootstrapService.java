@@ -1,9 +1,9 @@
 package ibis.ipl.registry.gossip;
 
-import ibis.ipl.registry.Connection;
 import ibis.ipl.registry.statistics.Statistics;
 import ibis.ipl.server.ServerProperties;
 import ibis.ipl.server.Service;
+import ibis.ipl.support.Connection;
 import ibis.smartsockets.virtual.VirtualServerSocket;
 import ibis.smartsockets.virtual.VirtualSocketAddress;
 import ibis.smartsockets.virtual.VirtualSocketFactory;
@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
 
 public class BootstrapService implements Service, Runnable {
 
-    public static final int VIRTUAL_PORT = 303;
+
 
     private static final int CONNECTION_BACKLOG = 50;
 
@@ -62,7 +62,7 @@ public class BootstrapService implements Service, Runnable {
 
         arrgs = new HashMap<String, ARRG>();
 
-        serverSocket = socketFactory.createServerSocket(VIRTUAL_PORT,
+        serverSocket = socketFactory.createServerSocket(Protocol.VIRTUAL_PORT,
             CONNECTION_BACKLOG, null);
 
         createThread();
@@ -232,7 +232,7 @@ public class BootstrapService implements Service, Runnable {
     }
 
     public String toString() {
-        return "Bootstrap service on virtual port " + VIRTUAL_PORT;
+        return "Bootstrap service on virtual port " + Protocol.VIRTUAL_PORT;
     }
 
     public Map<String, String> getStats() {

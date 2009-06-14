@@ -1,9 +1,9 @@
 package ibis.ipl.impl.tcp;
 
 import ibis.ipl.IbisConfigurationException;
+import ibis.ipl.impl.Ibis;
 import ibis.ipl.impl.IbisIdentifier;
-import ibis.ipl.server.Client;
-import ibis.ipl.server.ConfigurationException;
+import ibis.ipl.support.Client;
 import ibis.smartsockets.hub.servicelink.ServiceLink;
 import ibis.smartsockets.virtual.VirtualSocketFactory;
 import ibis.util.IPUtils;
@@ -25,23 +25,21 @@ import org.slf4j.LoggerFactory;
  * sockets.
  */
 class IbisSocketFactory {
-    
-    private static final Logger logger = LoggerFactory.getLogger(IbisSocketFactory.class);
+
+    private static final Logger logger = LoggerFactory
+            .getLogger(IbisSocketFactory.class);
 
     private final VirtualSocketFactory factory;
 
-    IbisSocketFactory(TypedProperties props) throws IbisConfigurationException, IOException {
-        boolean useSmartsockets = props.getBooleanProperty(
+    IbisSocketFactory(TypedProperties properties)
+            throws IbisConfigurationException, IOException {
+        boolean useSmartsockets = properties.getBooleanProperty(
                 "ibis.ipl.impl.tcp.smartsockets", true);
         if (useSmartsockets) {
             TcpIbis.logger.info("Using smartsockets TcpIbis");
-            try {
-                // factory = VirtualSocketFactory.getOrCreateSocketFactory(
-                // "ibis", props, true);
-                factory = Client.getFactory(props);
-            } catch (ConfigurationException e) {
-                throw new IbisConfigurationException(e.getMessage());
-            }
+            String clientID = properties.getProperty(Ibis.ID_PROPERTY);
+            Client client = Client.getOrCreateClient(clientID, properties, 0);
+            factory = client.getFactory();
         } else {
             TcpIbis.logger.info("Using plain TcpIbis");
             factory = null;
@@ -57,7 +55,8 @@ class IbisSocketFactory {
                             + "," + id.location().toString());
                     // sl.registerProperty("ibis", id.toString());
                 } else {
-                    logger.warn("could not set smartsockets viz property: could not get smartsockets service link");
+                    logger
+                            .warn("could not set smartsockets viz property: could not get smartsockets service link");
                 }
             } catch (Throwable e) {
                 logger.warn("could not set smartsockets viz property");

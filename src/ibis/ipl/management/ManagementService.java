@@ -2,12 +2,12 @@ package ibis.ipl.management;
 
 import ibis.io.Conversion;
 import ibis.ipl.IbisIdentifier;
-import ibis.ipl.registry.Connection;
-import ibis.ipl.registry.central.Protocol;
+import ibis.ipl.server.ManagementServerInterface;
+import ibis.ipl.support.Connection;
 import ibis.smartsockets.virtual.VirtualSocketFactory;
 import ibis.util.TypedProperties;
 
-public class ManagementService implements ibis.ipl.server.Service {
+public class ManagementService implements ibis.ipl.server.Service, ManagementServerInterface {
 
     private static final int CONNECT_TIMEOUT = 10000;
     private final VirtualSocketFactory factory;
@@ -25,6 +25,9 @@ public class ManagementService implements ibis.ipl.server.Service {
         return "management";
     }
 
+    /* (non-Javadoc)
+     * @see ibis.ipl.management.ManagementServerInterface#getAttributes(ibis.ipl.IbisIdentifier, ibis.ipl.management.AttributeDescription)
+     */
     public Object[] getAttributes(IbisIdentifier ibis,
             AttributeDescription... descriptions) throws Exception {
         ibis.ipl.impl.IbisIdentifier identifier;
@@ -37,7 +40,7 @@ public class ManagementService implements ibis.ipl.server.Service {
         }
 
         Connection connection = new Connection(identifier, CONNECT_TIMEOUT,
-                false, factory);
+                false, factory, Protocol.VIRTUAL_PORT);
         connection.out().writeByte(Protocol.MAGIC_BYTE);
         connection.out().writeByte(Protocol.OPCODE_GET_MONITOR_INFO);
 
@@ -67,7 +70,7 @@ public class ManagementService implements ibis.ipl.server.Service {
     }
 
     public String toString() {
-        return "Management service";
+        return "Management service on virtual port " + Protocol.VIRTUAL_PORT;
     }
 
 }

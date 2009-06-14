@@ -6,11 +6,12 @@ import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.NoSuchPropertyException;
 import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.impl.IbisIdentifier;
-import ibis.ipl.registry.RemoteException;
+import ibis.ipl.management.ManagementClient;
 import ibis.ipl.registry.central.Event;
 import ibis.ipl.registry.central.Protocol;
 import ibis.ipl.registry.central.RegistryProperties;
 import ibis.ipl.registry.statistics.Statistics;
+import ibis.ipl.support.RemoteException;
 import ibis.util.TypedProperties;
 
 import java.io.IOException;
@@ -26,9 +27,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Central registry.
  */
-public final class Registry extends ibis.ipl.registry.Registry
-// implements RegistryMBean
-{
+public final class Registry extends ibis.ipl.registry.Registry {
 
     private static final Logger logger = LoggerFactory
             .getLogger(Registry.class);
@@ -41,6 +40,9 @@ public final class Registry extends ibis.ipl.registry.Registry
     // Handles incoming and outgoing communication with other registries and
     // the server.
     private final CommunicationHandler communicationHandler;
+
+    // TODO:this could be in a better place, yes? --Niels
+    private final ManagementClient managementClient;
 
     // client-side representation of the Pool the local Ibis is in.
     private final Pool pool;
@@ -72,12 +74,12 @@ public final class Registry extends ibis.ipl.registry.Registry
      *            Ibis implementation data to attach to the IbisIdentifier.
      * @param ibisImplementationIdentifier
      *            the identification of this ibis implementation, including
-     *            version, class and such. Must be identical for all ibises in
-     *            a single pool.
+     *            version, class and such. Must be identical for all ibises in a
+     *            single pool.
      * @param credentials
      *            Security credentials
-     * @param applicationTag
-     *            A tag provided by the application constructing this Ibis.
+     * @param tag
+     *            A tag provided by the user constructing this Ibis.
      * @throws IOException
      *             in case of trouble.
      * @throws IbisConfigurationException
@@ -85,8 +87,8 @@ public final class Registry extends ibis.ipl.registry.Registry
      */
     public Registry(IbisCapabilities capabilities,
             RegistryEventHandler eventHandler, Properties userProperties,
-            byte[] data, String implementationVersion, Credentials credentials, byte[] applicationTag)
-            throws IbisConfigurationException, IOException {
+            byte[] data, String implementationVersion, Credentials credentials,
+            byte[] tag) throws IbisConfigurationException, IOException {
         logger.debug("creating central registry");
 
         this.capabilities = capabilities;
@@ -139,8 +141,8 @@ public final class Registry extends ibis.ipl.registry.Registry
             communicationHandler = new CommunicationHandler(properties, pool,
                     statistics);
 
-            identifier = communicationHandler.join(data,
-                    implementationVersion, credentials, applicationTag);
+            identifier = communicationHandler.join(data, implementationVersion,
+                    credentials, tag);
 
             communicationHandler.bootstrap();
 
@@ -151,20 +153,15 @@ public final class Registry extends ibis.ipl.registry.Registry
 
         // start writing statistics
         if (statistics != null) {
-            statistics.setID(identifier.getID() + "@"
-                    + identifier.location(), pool.getName());
+            statistics.setID(identifier.getID() + "@" + identifier.location(),
+                    pool.getName());
             statistics
                     .startWriting(properties
                             .getIntProperty(RegistryProperties.STATISTICS_INTERVAL) * 1000);
         }
 
-        /*
-         * // add bean to jmx try { MBeanServer mbs =
-         * ManagementFactory.getPlatformMBeanServer(); ObjectName name = new
-         * ObjectName("ibis.ipl.impl:type=Registry"); mbs.registerMBean(this,
-         * name); } catch (Exception e) { logger.warn("cannot registry MBean",
-         * e); }
-         */
+        managementClient = new ManagementClient(communicationHandler
+                .getClient());
 
         logger.debug("registry for " + identifier + " initiated");
     }
