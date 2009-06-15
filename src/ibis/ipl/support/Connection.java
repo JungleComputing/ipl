@@ -1,5 +1,6 @@
 package ibis.ipl.support;
 
+import ibis.io.Conversion;
 import ibis.ipl.impl.IbisIdentifier;
 import ibis.smartsockets.direct.DirectSocketAddress;
 import ibis.smartsockets.virtual.VirtualServerSocket;
@@ -106,6 +107,27 @@ public final class Connection {
 
     public DataInputStream in() {
         return in;
+    }
+    
+    public Object readObject() throws IOException, ClassNotFoundException {
+        int size = in.readInt();
+        
+        if (size < 0) {
+            throw new IOException("negative object size");
+        }
+        
+        byte[] bytes = new byte[size];
+        
+        in.readFully(bytes);
+        
+        return Conversion.byte2object(bytes);
+    }
+    
+    public void writeObject(Object object) throws IOException {
+        byte[] bytes = Conversion.object2byte(object);
+        
+        out.writeInt(bytes.length);
+        out.write(bytes);
     }
 
     public int written() {

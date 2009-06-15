@@ -38,6 +38,8 @@ public final class Server implements ServerInterface {
 
     private final Hub hub;
 
+    private final ServerConnectionHandler connectionHandler;
+
     private final DirectSocketAddress address;
 
     private final CentralRegistryService registryService;
@@ -121,6 +123,7 @@ public final class Server implements ServerInterface {
 
             address = hub.getHubAddress();
 
+            connectionHandler = null;
             registryService = null;
             bootstrapService = null;
             managementService = null;
@@ -233,42 +236,55 @@ public final class Server implements ServerInterface {
                             + serviceClassList[i] + ":", e);
                 }
             }
+
+            // start handling remote requests
+            connectionHandler = new ServerConnectionHandler(this, factory);
         }
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see ibis.ipl.server.ServerInterface#getRegistryService()
      */
     public CentralRegistryService getRegistryService() {
         return registryService;
     }
 
-    public BootstrapService getBootstrapService() {
+    BootstrapService getBootstrapService() {
         return bootstrapService;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see ibis.ipl.server.ServerInterface#getManagementService()
      */
     public ManagementService getManagementService() {
         return managementService;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see ibis.ipl.server.ServerInterface#getAddress()
      */
     public String getAddress() {
         return address.toString();
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see ibis.ipl.server.ServerInterface#getServiceNames()
      */
     public String[] getServiceNames() {
         return services.keySet().toArray(new String[0]);
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see ibis.ipl.server.ServerInterface#getHubs()
      */
     public String[] getHubs() {
@@ -289,8 +305,11 @@ public final class Server implements ServerInterface {
         return result.toArray(new String[0]);
     }
 
-    /* (non-Javadoc)
-     * @see ibis.ipl.server.ServerInterface#addHubs(ibis.smartsockets.direct.DirectSocketAddress)
+    /*
+     * (non-Javadoc)
+     * 
+     * @seeibis.ipl.server.ServerInterface#addHubs(ibis.smartsockets.direct.
+     * DirectSocketAddress)
      */
     public void addHubs(DirectSocketAddress... hubAddresses) {
         if (hubOnly) {
@@ -300,7 +319,9 @@ public final class Server implements ServerInterface {
         }
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see ibis.ipl.server.ServerInterface#addHubs(java.lang.String)
      */
     public void addHubs(String... hubAddresses) {
@@ -327,7 +348,9 @@ public final class Server implements ServerInterface {
 
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see ibis.ipl.server.ServerInterface#end(long)
      */
     public void end(long timeout) {
@@ -338,6 +361,8 @@ public final class Server implements ServerInterface {
         } else if (timeout == -1) {
             deadline = 0;
         }
+
+        connectionHandler.end();
 
         for (Service service : services.values()) {
             service.end(deadline);
@@ -493,6 +518,10 @@ public final class Server implements ServerInterface {
             }
         }
         server.end(-1);
+    }
+
+    public VirtualSocketFactory getSocketFactory() {
+        return virtualSocketFactory;
     }
 
 }

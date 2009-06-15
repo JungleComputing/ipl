@@ -1,15 +1,18 @@
 package ibis.ipl.server;
 
-import ibis.ipl.IbisIdentifier;
-
+import java.io.IOException;
 import java.util.Map;
+
+import ibis.ipl.IbisIdentifier;
 
 public interface RegistryServiceInterface {
 
-    public abstract String getServiceName();
+    public String[] getPools() throws IOException;
+    
+    public Map<String, Integer> getPoolSizes() throws IOException;
+    
+    public String[] getLocations(String poolName) throws IOException;
 
-    public abstract Map<String, String> getStats();
-
-    public abstract IbisIdentifier[] getMembers(String poolName);
+    public IbisIdentifier[] getMembers(String poolName) throws IOException;
 
 }

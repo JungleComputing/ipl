@@ -1,12 +1,21 @@
 package ibis.ipl.server;
 
+import ibis.ipl.IbisConfigurationException;
+import ibis.ipl.IbisProperties;
 import ibis.ipl.management.ManagementService;
+import ibis.ipl.support.Connection;
+import ibis.smartsockets.SmartSocketsProperties;
 import ibis.smartsockets.direct.DirectSocketAddress;
+import ibis.smartsockets.hub.servicelink.ServiceLink;
+import ibis.smartsockets.virtual.InitializationException;
+import ibis.smartsockets.virtual.VirtualSocketAddress;
+import ibis.smartsockets.virtual.VirtualSocketFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.util.Properties;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,12 +30,84 @@ import org.slf4j.LoggerFactory;
  */
 public class ServerConnection implements ServerInterface {
 
+    public static final int TIMEOUT = 10000;
+
     private static final Logger logger = LoggerFactory
             .getLogger(ServerConnection.class);
 
     private final ServerPipe pipe;
 
-    private final String address;
+    private final VirtualSocketAddress address;
+
+    private final ManagementServiceConnection managementConnection;
+
+    private final RegistryServiceConnection registryConnection;
+
+    private final VirtualSocketFactory socketFactory;
+
+    private static VirtualSocketAddress createServerAddress(
+            String serverString, int defaultPort) throws IOException {
+
+        if (serverString == null) {
+            throw new IbisConfigurationException("serverString undefined");
+        }
+
+        DirectSocketAddress address = null;
+
+        // maybe it is a DirectSocketAddress?
+        try {
+            address = DirectSocketAddress.getByAddress(serverString);
+        } catch (Throwable e) {
+            // IGNORE
+        }
+
+        if (address == null) {
+
+            // or only a host address
+            try {
+                address = DirectSocketAddress.getByAddress(serverString,
+                        defaultPort);
+            } catch (Throwable e) {
+                throw new IOException(
+                        "could not create server address from given string: "
+                                + serverString, e);
+            }
+        }
+
+        return new VirtualSocketAddress(address,
+                ServerConnectionProtocol.VIRTUAL_PORT, address, null);
+
+    }
+
+    private static VirtualSocketFactory createSocketFactory(String hubs)
+            throws IOException {
+        VirtualSocketFactory result;
+
+        Properties properties = new Properties();
+
+        if (hubs != null) {
+            properties.setProperty(SmartSocketsProperties.HUB_ADDRESSES, hubs);
+        }
+
+        try {
+            result = VirtualSocketFactory.createSocketFactory(properties, true);
+        } catch (InitializationException e) {
+            throw new IOException(e.getMessage());
+        }
+
+        // make this node disappear from the smartsockets viz
+        try {
+            ServiceLink sl = result.getServiceLink();
+            if (sl != null) {
+                sl.registerProperty("smartsockets.viz", "invisible");
+            }
+        } catch (Throwable e) {
+            // ignored
+        }
+
+        return result;
+
+    }
 
     /**
      * Connect to the server with the given in and output stream. Will parse the
@@ -46,73 +127,201 @@ public class ServerConnection implements ServerInterface {
      * @param timeout
      *            Number of milliseconds to wait for the server to become
      *            available
+     * @param socketFactory
+     *            Socket factory to use for making connections. if null, a new
+     *            factory will be created
      * 
      * @throws IOException
+     *             if the socket factory cannot be created
      */
     public ServerConnection(InputStream stdout, OutputStream stdin,
-            PrintStream output, String outputPrefix, long timeout)
-            throws IOException {
+            PrintStream output, String outputPrefix, long timeout,
+            VirtualSocketFactory socketFactory) throws IOException {
 
         pipe = new ServerPipe(stdout, stdin, output, outputPrefix);
-        address = pipe.getAddress(timeout);
+        address = createServerAddress(pipe.getAddress(timeout),
+                ServerProperties.DEFAULT_PORT);
+
+        if (socketFactory == null) {
+            this.socketFactory = createSocketFactory(null);
+
+        } else {
+            this.socketFactory = socketFactory;
+        }
+
+        managementConnection = new ManagementServiceConnection(this.address,
+                this.socketFactory);
+        registryConnection = new RegistryServiceConnection(this.address,
+                this.socketFactory);
     }
 
     /**
      * Connections to the server at the given address
      * 
      * @param address
+     *            address of the server
+     * @param socketFactory
+     *            Socket factory to use for making connections. if null, a new
+     *            factory will be created
+     * @throws IOException
+     *             in case the socket factory cannot be created
      */
-    public ServerConnection(String address) {
+    public ServerConnection(String address, VirtualSocketFactory socketFactory)
+            throws IOException {
         pipe = null;
-        this.address = address;
+        this.address = createServerAddress(address,
+                ServerProperties.DEFAULT_PORT);
+
+        if (socketFactory == null) {
+            this.socketFactory = createSocketFactory(null);
+        } else {
+            this.socketFactory = socketFactory;
+        }
+
+        managementConnection = new ManagementServiceConnection(this.address,
+                this.socketFactory);
+        registryConnection = new RegistryServiceConnection(this.address,
+                this.socketFactory);
+    }
+
+    /**
+     * Connections to the server at the given address. A list of hubs to use to
+     * connect to the server must also be provided.
+     * 
+     * @param address
+     *            address of the server
+     * @param hubs
+     *            list of hubs to use.
+     * @throws IOException
+     *             in case the SocketFactory could not be created
+     * 
+     */
+    public ServerConnection(String address, String hubs) throws IOException {
+        pipe = null;
+
+        Properties properties = new Properties();
+        properties.put(SmartSocketsProperties.HUB_ADDRESSES, hubs);
+
+        this.socketFactory = createSocketFactory(hubs);
+
+        this.address = createServerAddress(getAddress(),
+                ServerProperties.DEFAULT_PORT);
+
+        managementConnection = new ManagementServiceConnection(this.address,
+                this.socketFactory);
+        registryConnection = new RegistryServiceConnection(this.address,
+                this.socketFactory);
+
     }
 
     @Override
-    public void addHubs(DirectSocketAddress... hubAddresses) {
-        // TODO Auto-generated method stub
+    public String getAddress() throws IOException {
+        return address.machine().toString();
+    }
+
+    @Override
+    public String[] getServiceNames() throws IOException {
+        Connection connection = new Connection(address, TIMEOUT, true,
+                socketFactory);
+        try {
+            connection.out().writeByte(ServerConnectionProtocol.MAGIC_BYTE);
+            connection.out().writeByte(
+                    ServerConnectionProtocol.OPCODE_GET_SERVICE_NAMES);
+            connection.getAndCheckReply();
+            int nrOfServices = connection.in().readInt();
+            if (nrOfServices < 0) {
+                throw new IOException("Negative number of services");
+            }
+            String[] result = new String[nrOfServices];
+            for (int i = 0; i < nrOfServices; i++) {
+                result[i] = connection.in().readUTF();
+            }
+            return result;
+        } finally {
+            connection.close();
+        }
 
     }
 
     @Override
-    public void addHubs(String... hubAddresses) {
-        // TODO Auto-generated method stub
+    public String[] getHubs() throws IOException {
+        Connection connection = new Connection(address, TIMEOUT, true,
+                socketFactory);
+        try {
+            connection.out().writeByte(ServerConnectionProtocol.MAGIC_BYTE);
+            connection.out()
+                    .writeByte(ServerConnectionProtocol.OPCODE_GET_HUBS);
+            connection.getAndCheckReply();
+            int nrOfHubs = connection.in().readInt();
+            if (nrOfHubs < 0) {
+                throw new IOException("Negative number of hubs");
+            }
+            String[] result = new String[nrOfHubs];
+            for (int i = 0; i < nrOfHubs; i++) {
+                result[i] = connection.in().readUTF();
+            }
+            return result;
+        } finally {
+            connection.close();
+        }
 
     }
 
     @Override
-    public void end(long timeout) {
-        // TODO Auto-generated method stub
-
+    public void addHubs(DirectSocketAddress... hubAddresses) throws IOException {
+        String[] strings = new String[hubAddresses.length];
+        for (int i = 0; i < strings.length; i++) {
+            strings[i] = hubAddresses[i].toString();
+        }
+        addHubs(strings);
     }
 
     @Override
-    public String getAddress() {
-        // TODO Auto-generated method stub
-        return null;
+    public void addHubs(String... hubAddresses) throws IOException {
+        Connection connection = new Connection(address, TIMEOUT, true,
+                socketFactory);
+        try {
+            connection.out().writeByte(ServerConnectionProtocol.MAGIC_BYTE);
+            connection.out()
+                    .writeByte(ServerConnectionProtocol.OPCODE_ADD_HUBS);
+            connection.out().writeInt(hubAddresses.length);
+            for (String hub : hubAddresses) {
+                connection.out().writeUTF(hub);
+            }
+            connection.getAndCheckReply();
+        } finally {
+            connection.close();
+        }
     }
 
     @Override
-    public String[] getHubs() {
-        // TODO Auto-generated method stub
-        return null;
-    }
+    public void end(long timeout) throws IOException {
+        if (pipe != null) {
+            pipe.end();
+        } else {
+            Connection connection = new Connection(address, TIMEOUT, true,
+                    socketFactory);
+            try {
 
-    @Override
-    public ManagementService getManagementService() {
-        // TODO Auto-generated method stub
-        return null;
+                connection.out().writeByte(ServerConnectionProtocol.MAGIC_BYTE);
+                connection.out().writeByte(ServerConnectionProtocol.OPCODE_END);
+                connection.out().writeLong(timeout);
+                connection.getAndCheckReply();
+            } finally {
+                connection.close();
+            }
+        }
+
     }
 
     @Override
     public RegistryServiceInterface getRegistryService() {
-        // TODO Auto-generated method stub
-        return null;
+        return registryConnection;
     }
 
     @Override
-    public String[] getServiceNames() {
-        // TODO Auto-generated method stub
-        return null;
+    public ManagementServiceInterface getManagementService() {
+        return managementConnection;
     }
 
     /**

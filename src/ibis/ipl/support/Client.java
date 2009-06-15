@@ -19,7 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Convenience class to create a VirtualSocketFactory, and get the address of 
+ * Convenience class to create a VirtualSocketFactory, and get the address of
  * the server.
  */
 public class Client {
@@ -138,8 +138,7 @@ public class Client {
             throw new IOException(e.getMessage());
         }
         logger.debug("client factory running on " + factory.getLocalHost());
-        
-        
+
     }
 
     public VirtualSocketFactory getFactory() {

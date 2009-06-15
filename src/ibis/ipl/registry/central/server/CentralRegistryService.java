@@ -1,6 +1,7 @@
 package ibis.ipl.registry.central.server;
 
-import ibis.ipl.IbisIdentifier;
+import ibis.ipl.Location;
+import ibis.ipl.impl.IbisIdentifier;
 import ibis.ipl.registry.ControlPolicy;
 import ibis.ipl.registry.central.Member;
 import ibis.ipl.registry.central.Protocol;
@@ -212,6 +213,10 @@ public final class CentralRegistryService extends Thread implements Service, Reg
         return result;
     }
     
+    public synchronized String[] getPools() {
+        return pools.keySet().toArray(new String[0]);
+    }
+    
     /* (non-Javadoc)
      * @see ibis.ipl.registry.central.server.RegistryService#getMembers(java.lang.String)
      */
@@ -219,7 +224,7 @@ public final class CentralRegistryService extends Thread implements Service, Reg
         Pool pool = getPool(poolName);
         
         if (pool == null) {
-            return null;
+            return new IbisIdentifier[0];
         }
         
         Member[] members = pool.getMembers();
@@ -230,6 +235,34 @@ public final class CentralRegistryService extends Thread implements Service, Reg
             result[i] = members[i].getIbis();
         }
         
+        return result;
+    }
+
+    @Override
+    public String[] getLocations(String poolName) throws IOException {
+        Pool pool = getPool(poolName);
+        
+        if (pool == null) {
+            return new String[0];
+        }
+
+        Location[] locations = pool.getLocations();
+        
+        String[] result = new String[locations.length];
+        for(int i = 0; i < result.length; i++) {
+            result[i] = locations[i].toString();
+        }
+
+        return result;
+    }
+
+    @Override
+    public synchronized Map<String, Integer> getPoolSizes() throws IOException {
+        Map<String, Integer> result = new HashMap<String, Integer>();
+        
+        for(Pool pool: pools.values()) {
+            result.put(pool.getName(), pool.getSize());
+        }
         return result;
     }
 

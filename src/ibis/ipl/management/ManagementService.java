@@ -1,13 +1,15 @@
 package ibis.ipl.management;
 
+import java.io.IOException;
+
 import ibis.io.Conversion;
 import ibis.ipl.IbisIdentifier;
-import ibis.ipl.server.ManagementServerInterface;
+import ibis.ipl.server.ManagementServiceInterface;
 import ibis.ipl.support.Connection;
 import ibis.smartsockets.virtual.VirtualSocketFactory;
 import ibis.util.TypedProperties;
 
-public class ManagementService implements ibis.ipl.server.Service, ManagementServerInterface {
+public class ManagementService implements ibis.ipl.server.Service, ManagementServiceInterface {
 
     private static final int CONNECT_TIMEOUT = 10000;
     private final VirtualSocketFactory factory;
@@ -29,12 +31,12 @@ public class ManagementService implements ibis.ipl.server.Service, ManagementSer
      * @see ibis.ipl.management.ManagementServerInterface#getAttributes(ibis.ipl.IbisIdentifier, ibis.ipl.management.AttributeDescription)
      */
     public Object[] getAttributes(IbisIdentifier ibis,
-            AttributeDescription... descriptions) throws Exception {
+            AttributeDescription... descriptions) throws IOException {
         ibis.ipl.impl.IbisIdentifier identifier;
         try {
             identifier = (ibis.ipl.impl.IbisIdentifier) ibis;
         } catch (ClassCastException e) {
-            throw new Exception(
+            throw new IOException(
                     "cannot cast given identifier to implementation identifier",
                     e);
         }
@@ -55,14 +57,19 @@ public class ManagementService implements ibis.ipl.server.Service, ManagementSer
         int length = connection.in().readInt();
         if (length < 0) {
             connection.close();
-            throw new Exception("End of Stream on reading from connection");
+            throw new IOException("End of Stream on reading from connection");
         }
 
         byte[] resultBytes = new byte[length];
 
         connection.in().readFully(resultBytes);
 
-        Object[] reply = (Object[]) Conversion.byte2object(resultBytes);
+        Object[] reply;
+        try {
+            reply = (Object[]) Conversion.byte2object(resultBytes);
+        } catch (ClassNotFoundException e) {
+            throw new IOException("Cannot cast result " + e);
+        }
 
         connection.close();
 

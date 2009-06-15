@@ -9,5 +9,5 @@ public class RemoteException extends IOException {
     RemoteException(String message) {
         super(message);
     }
-    
+
 }

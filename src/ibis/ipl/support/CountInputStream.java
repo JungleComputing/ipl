@@ -4,19 +4,19 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public final class CountInputStream extends InputStream {
-    
+
     private final InputStream in;
     private int count;
-    
+
     public CountInputStream(InputStream in) {
         this.in = in;
         count = 0;
     }
-    
+
     public int getCount() {
         return count;
     }
-    
+
     @Override
     public int available() throws IOException {
         return in.available();
@@ -45,19 +45,19 @@ public final class CountInputStream extends InputStream {
 
     @Override
     public int read(byte[] b, int off, int len) throws IOException {
-        int result =  in.read(b, off, len);
-        
+        int result = in.read(b, off, len);
+
         count += result;
-        
+
         return result;
     }
 
     @Override
     public int read(byte[] b) throws IOException {
         int result = in.read(b);
-        
+
         count += result;
-        
+
         return result;
     }
 
@@ -69,9 +69,9 @@ public final class CountInputStream extends InputStream {
     @Override
     public long skip(long n) throws IOException {
         long result = in.skip(n);
-        
+
         count += result;
-        
+
         return result;
     }
 

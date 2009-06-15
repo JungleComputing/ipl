@@ -10,9 +10,9 @@ public interface Service {
 
     /**
      * Returns the name of this service
-     */      
+     */
     String getServiceName();
-    
+
     /**
      * Called when the server stops.
      * 
@@ -21,5 +21,5 @@ public interface Service {
      *            it is busy. However, not after the deadline.
      */
     void end(long deadline);
-    
+
 }

@@ -1,38 +1,35 @@
 package ibis.ipl.server;
 
-import ibis.ipl.management.ManagementService;
+import java.io.IOException;
+
 import ibis.smartsockets.direct.DirectSocketAddress;
 
 public interface ServerInterface {
 
-    public RegistryServiceInterface getRegistryService();
-
-    public ManagementService getManagementService();
-
     /**
      * Returns the address of this server as a string
      */
-    public String getAddress();
+    public String getAddress() throws IOException;
 
     /**
      * Returns the names of all user services currently in this server
      */
-    public String[] getServiceNames();
+    public String[] getServiceNames() throws IOException;
 
     /**
      * Returns the addresses of all hubs known to this server
      */
-    public String[] getHubs();
+    public String[] getHubs() throws IOException;
 
     /**
      * Tell the server about some hubs
      */
-    public void addHubs(DirectSocketAddress... hubAddresses);
+    public void addHubs(DirectSocketAddress... hubAddresses) throws IOException;
 
     /**
      * Tell the server about some hubs
      */
-    public void addHubs(String... hubAddresses);
+    public void addHubs(String... hubAddresses) throws IOException;
 
     /**
      * Stops all services. May wait until the services are idle.
@@ -41,6 +38,9 @@ public interface ServerInterface {
      *            timeout for ending all services in Milliseconds. 0 == wait
      *            forever, -1 == no not wait.
      */
-    public void end(long timeout);
+    public void end(long timeout) throws IOException;
 
+    public RegistryServiceInterface getRegistryService();
+
+    public ManagementServiceInterface getManagementService();
 }
