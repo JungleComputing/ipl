@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Main Ibis Server class.
+ * @ibis.experimental
  */
 public final class Server implements ServerInterface {
 

@@ -9,6 +9,8 @@ import java.util.Map;
 
 /**
  * Properties valid for the Ibis server
+ * 
+ * @ibis.experimental
  */
 public final class ServerProperties {
 
