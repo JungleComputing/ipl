@@ -72,7 +72,7 @@ public final class Registry extends ibis.ipl.registry.Registry {
      *            properties of this registry.
      * @param data
      *            Ibis implementation data to attach to the IbisIdentifier.
-     * @param ibisImplementationIdentifier
+     * @param implementationVersion
      *            the identification of this ibis implementation, including
      *            version, class and such. Must be identical for all ibises in a
      *            single pool.
@@ -369,11 +369,14 @@ public final class Registry extends ibis.ipl.registry.Registry {
         }
 
         communicationHandler.leave();
+        
+        managementClient.end();
 
         if (statistics != null) {
             statistics.write();
             statistics.end();
         }
+        
     }
 
     /**

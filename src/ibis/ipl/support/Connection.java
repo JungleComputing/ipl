@@ -2,7 +2,6 @@ package ibis.ipl.support;
 
 import ibis.io.Conversion;
 import ibis.ipl.impl.IbisIdentifier;
-import ibis.smartsockets.direct.DirectSocketAddress;
 import ibis.smartsockets.virtual.VirtualServerSocket;
 import ibis.smartsockets.virtual.VirtualSocket;
 import ibis.smartsockets.virtual.VirtualSocketAddress;

@@ -12,8 +12,8 @@ public interface ControlPolicy {
 
     /**
      * @ibis.experimental
-     * @param authenticationObject
-     * @throws AccessControlException
+     * @param credentials credentials provided by the ibis instance
+     * @throws AccessControlException if the user is not authorized to join the pool
      */
     public void onJoin(Credentials credentials) throws AccessControlException;
 

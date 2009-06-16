@@ -205,7 +205,6 @@ public final class IbisFactory {
      *                capabilities required, or a matching Ibis could not be
      *                instantiated for some reason.
      */
-    @SuppressWarnings("unchecked")
     public static Ibis createIbis(IbisCapabilities requiredCapabilities,
             Properties properties, boolean addDefaultConfigProperties,
             RegistryEventHandler registryEventHandler, Credentials credentials,

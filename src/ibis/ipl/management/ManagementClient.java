@@ -21,8 +21,6 @@ public class ManagementClient implements Runnable {
 
     private static final int CONNECTION_BACKLOG = 10;
 
-    private final Client client;
-
     private final VirtualSocketFactory virtualSocketFactory;
 
     private final VirtualServerSocket serverSocket;
@@ -30,7 +28,6 @@ public class ManagementClient implements Runnable {
     private boolean ended;
 
     public ManagementClient(Client client) throws IOException {
-        this.client = client;
         this.virtualSocketFactory = client.getFactory();
         serverSocket = virtualSocketFactory.createServerSocket(
                 Protocol.VIRTUAL_PORT, CONNECTION_BACKLOG, null);
@@ -158,7 +155,7 @@ public class ManagementClient implements Runnable {
         }
     }
 
-    void end() {
+    public void end() {
         synchronized (this) {
             ended = true;
             notifyAll();

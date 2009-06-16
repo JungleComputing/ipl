@@ -36,13 +36,13 @@ public final class NullRegistry extends ibis.ipl.registry.Registry {
      * 
      * @param handler
      *                registry handler to pass events to.
-     * @param props
+     * @param properties
      *                properties of this registry.
      * @param data
      *                Ibis implementation data to attach to the IbisIdentifier.
-     * @param applicationTag
+     * @param tag
      *                A tag provided by the application for this ibis instance.
-     * @param ibisImplementationIdentifier
+     * @param implementationVersion
      *                the identification of this ibis implementation, including
      *                version, class and such. Must be identical for all ibises
      *                in a single pool.
@@ -53,7 +53,7 @@ public final class NullRegistry extends ibis.ipl.registry.Registry {
      */
     public NullRegistry(IbisCapabilities capabilities,
             RegistryEventHandler handler, Properties properties, byte[] data,
-            String implementationVersion, Credentials credentials, byte[] applicationTag)
+            String implementationVersion, Credentials credentials, byte[] tag)
             throws IOException {
 
         if (handler != null) {
@@ -68,7 +68,7 @@ public final class NullRegistry extends ibis.ipl.registry.Registry {
         String pool = properties.getProperty(IbisProperties.POOL_NAME);
 
         identifier = new IbisIdentifier(id.toString(), data, null, location,
-                pool, applicationTag);
+                pool, tag);
     }
 
     @Override

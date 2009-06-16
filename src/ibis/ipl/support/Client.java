@@ -67,7 +67,7 @@ public class Client {
      *            local port to bound client to used when client is created (0
      *            for any free port)
      * @return the client with the specified name
-     * @throws ConfigurationException
+     * @throws IbisConfigurationException
      *             if the client cannot be created due to invalid settings
      * @throws IOException
      *             if the client cannot be created due to a SmartSockets error

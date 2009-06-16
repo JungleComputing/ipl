@@ -60,19 +60,22 @@ public class Registry extends ibis.ipl.registry.Registry implements Runnable {
     /**
      * Creates a Gossip Registry.
      * 
+     * @param capabilities
+     *            capabilities required of this registry
      * @param eventHandler
      *            Registry handler to pass events to.
      * @param userProperties
      *            properties of this registry.
      * @param ibisData
      *            Ibis implementation data to attach to the IbisIdentifier.
+     * @param credentials
+     *            credentials used for authenticating this ibis at the server
+     * @param implementationVersion
+     *            the identification of this ibis implementation, including
+     *            version, class and such. Must be identical for all Ibises in a
+     *            single poolName.
      * @param applicationTag
      *            A tag provided by the application constructing this ibis.
-     * @param authenticationObject
-     * @param ibisImplementationIdentifier
-     *            the identification of this ibis implementation, including
-     *            version, class and such. Must be identical for all Ibises in
-     *            a single poolName.
      * @throws IOException
      *             in case of trouble.
      * @throws IbisConfigurationException
@@ -80,9 +83,8 @@ public class Registry extends ibis.ipl.registry.Registry implements Runnable {
      */
     public Registry(IbisCapabilities capabilities,
             RegistryEventHandler eventHandler, Properties userProperties,
-            byte[] ibisData, String implementationVersion, Credentials credentials,
-            byte[] applicationTag
-            )
+            byte[] ibisData, String implementationVersion,
+            Credentials credentials, byte[] applicationTag)
             throws IbisConfigurationException, IOException,
             IbisConfigurationException {
         this.capabilities = capabilities;
@@ -144,12 +146,13 @@ public class Registry extends ibis.ipl.registry.Registry implements Runnable {
                     "cannot initialize registry, property "
                             + IbisProperties.POOL_NAME + " is not specified");
         }
-        
+
         Location location = Location.defaultLocation(properties, null);
 
         if (properties.getBooleanProperty(RegistryProperties.STATISTICS)) {
             statistics = new Statistics(Protocol.OPCODE_NAMES);
-            statistics.setID(id.toString() + "@" + location.toString(), poolName);
+            statistics.setID(id.toString() + "@" + location.toString(),
+                    poolName);
 
             long interval = properties
                     .getIntProperty(RegistryProperties.STATISTICS_INTERVAL) * 1000;
@@ -164,7 +167,6 @@ public class Registry extends ibis.ipl.registry.Registry implements Runnable {
 
         commHandler = new CommunicationHandler(properties, this, members,
                 elections, statistics);
-
 
         identifier = new IbisIdentifier(id.toString(), ibisData, commHandler
                 .getAddress().toBytes(), location, poolName, applicationTag);
@@ -458,7 +460,7 @@ public class Registry extends ibis.ipl.registry.Registry implements Runnable {
 
         // logger.debug("leaving: broadcasting leave");
         commHandler.broadcastLeave();
-         
+
         logger.debug("leaving: writing statistics");
         if (statistics != null) {
             statistics.write();

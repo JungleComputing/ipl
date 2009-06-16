@@ -1,8 +1,6 @@
 package ibis.ipl.server;
 
 import ibis.ipl.IbisConfigurationException;
-import ibis.ipl.IbisProperties;
-import ibis.ipl.management.ManagementService;
 import ibis.ipl.support.Connection;
 import ibis.smartsockets.SmartSocketsProperties;
 import ibis.smartsockets.direct.DirectSocketAddress;
@@ -17,9 +15,6 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.Properties;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * Connection to a server in another JVM (possibly on another machine).
  * Connection can be established either by connection stdin/stdout to a server
@@ -31,9 +26,6 @@ import org.slf4j.LoggerFactory;
 public class ServerConnection implements ServerInterface {
 
     public static final int TIMEOUT = 10000;
-
-    private static final Logger logger = LoggerFactory
-            .getLogger(ServerConnection.class);
 
     private final ServerPipe pipe;
 
