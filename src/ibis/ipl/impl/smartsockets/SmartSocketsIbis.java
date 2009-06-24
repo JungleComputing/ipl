@@ -10,6 +10,7 @@ import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.Credentials;
 import ibis.ipl.IbisCapabilities;
+import ibis.ipl.IbisCreationFailedException;
 import ibis.ipl.IbisProperties;
 import ibis.ipl.IbisStarter;
 import ibis.ipl.MessageUpcall;
@@ -63,7 +64,7 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
     public SmartSocketsIbis(RegistryEventHandler registryEventHandler,
             IbisCapabilities capabilities, Credentials credentials,
             byte[] applicationTag, PortType[] types, Properties userProperties,
-            IbisStarter starter) {
+            IbisStarter starter) throws IbisCreationFailedException {
         super(registryEventHandler, capabilities, credentials, applicationTag,
                 types, userProperties, starter);
 

@@ -4,6 +4,7 @@ package ibis.ipl.impl.nio;
 
 import ibis.ipl.Credentials;
 import ibis.ipl.IbisCapabilities;
+import ibis.ipl.IbisCreationFailedException;
 import ibis.ipl.IbisStarter;
 import ibis.ipl.MessageUpcall;
 import ibis.ipl.PortType;
@@ -44,7 +45,7 @@ public final class NioIbis extends ibis.ipl.impl.Ibis {
     private SendReceiveThread sendReceiveThread = null;
 
     public NioIbis(RegistryEventHandler r, IbisCapabilities p, Credentials credentials, byte[] applicationTag, PortType[] types, Properties tp,
-            IbisStarter starter) {
+            IbisStarter starter) throws IbisCreationFailedException {
 
         super(r, p, credentials, applicationTag, types, tp, starter);
         properties.checkProperties(prefix, props, null, true);

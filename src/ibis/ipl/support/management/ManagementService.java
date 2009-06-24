@@ -1,4 +1,4 @@
-package ibis.ipl.management;
+package ibis.ipl.support.management;
 
 import java.io.IOException;
 

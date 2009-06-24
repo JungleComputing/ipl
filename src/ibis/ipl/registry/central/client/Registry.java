@@ -6,12 +6,12 @@ import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.NoSuchPropertyException;
 import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.impl.IbisIdentifier;
-import ibis.ipl.management.ManagementClient;
 import ibis.ipl.registry.central.Event;
 import ibis.ipl.registry.central.Protocol;
 import ibis.ipl.registry.central.RegistryProperties;
 import ibis.ipl.registry.statistics.Statistics;
 import ibis.ipl.support.RemoteException;
+import ibis.ipl.support.management.ManagementClient;
 import ibis.util.TypedProperties;
 
 import java.io.IOException;
@@ -40,9 +40,6 @@ public final class Registry extends ibis.ipl.registry.Registry {
     // Handles incoming and outgoing communication with other registries and
     // the server.
     private final CommunicationHandler communicationHandler;
-
-    // TODO:this could be in a better place, yes? --Niels
-    private final ManagementClient managementClient;
 
     // client-side representation of the Pool the local Ibis is in.
     private final Pool pool;
@@ -160,8 +157,7 @@ public final class Registry extends ibis.ipl.registry.Registry {
                             .getIntProperty(RegistryProperties.STATISTICS_INTERVAL) * 1000);
         }
 
-        managementClient = new ManagementClient(communicationHandler
-                .getClient());
+   
 
         logger.debug("registry for " + identifier + " initiated");
     }
@@ -370,8 +366,6 @@ public final class Registry extends ibis.ipl.registry.Registry {
 
         communicationHandler.leave();
         
-        managementClient.end();
-
         if (statistics != null) {
             statistics.write();
             statistics.end();

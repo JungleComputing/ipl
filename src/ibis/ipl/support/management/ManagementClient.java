@@ -1,6 +1,7 @@
-package ibis.ipl.management;
+package ibis.ipl.support.management;
 
 import ibis.io.Conversion;
+import ibis.ipl.impl.Ibis;
 import ibis.ipl.support.Client;
 import ibis.ipl.support.Connection;
 import ibis.smartsockets.virtual.VirtualServerSocket;
@@ -10,6 +11,7 @@ import ibis.util.ThreadPool;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.util.Properties;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,8 +29,11 @@ public class ManagementClient implements Runnable {
 
     private boolean ended;
 
-    public ManagementClient(Client client) throws IOException {
+    public ManagementClient(Properties properties) throws IOException {
+        String clientID = properties.getProperty(Ibis.ID_PROPERTY);
+        Client client = Client.getOrCreateClient(clientID, properties, 0);
         this.virtualSocketFactory = client.getFactory();
+
         serverSocket = virtualSocketFactory.createServerSocket(
                 Protocol.VIRTUAL_PORT, CONNECTION_BACKLOG, null);
 
@@ -115,12 +120,17 @@ public class ManagementClient implements Runnable {
                 connection = new Connection(serverSocket);
                 logger.debug("connection accepted");
             } catch (IOException e) {
-                logger.error("Accept failed, waiting a second, will retry", e);
+                if (ended) {
+                    return;
+                } else {
+                    logger.error("Accept failed, waiting a second, will retry",
+                            e);
 
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e1) {
-                    //IGNORE
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e1) {
+                        // IGNORE
+                    }
                 }
             }
 

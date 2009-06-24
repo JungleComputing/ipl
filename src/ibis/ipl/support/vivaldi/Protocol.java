@@ -1,10 +1,10 @@
-package ibis.ipl.management;
+package ibis.ipl.support.vivaldi;
 
 public class Protocol {
 
-    public static final int VIRTUAL_PORT = 304;
+    public static final int VIRTUAL_PORT = 305;
     
-    public static final byte MAGIC_BYTE = 55;
+    public static final byte MAGIC_BYTE = 63;
     
     public static final byte OPCODE_GET_MONITOR_INFO = 0;
     

@@ -1,7 +1,7 @@
 package ibis.ipl.server;
 
 import ibis.ipl.IbisIdentifier;
-import ibis.ipl.management.AttributeDescription;
+import ibis.ipl.support.management.AttributeDescription;
 
 /**
  * Interface to the management service. Mostly for getting management info from the

@@ -6,6 +6,7 @@ import ibis.ipl.CapabilitySet;
 import ibis.ipl.Credentials;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisCapabilities;
+import ibis.ipl.IbisCreationFailedException;
 import ibis.ipl.IbisFactory;
 import ibis.ipl.PortType;
 import ibis.ipl.RegistryEventHandler;
@@ -48,6 +49,7 @@ public final class SmartSocketsIbisStarter extends ibis.ipl.IbisStarter {
         super(nickName, iplVersion, implementationVersion);
     }
 
+    @Override
     public boolean matches(IbisCapabilities capabilities, PortType[] types) {
         if (!capabilities.matchCapabilities(ibisCapabilities)) {
             return false;
@@ -60,11 +62,13 @@ public final class SmartSocketsIbisStarter extends ibis.ipl.IbisStarter {
         return true;
     }
 
+    @Override
     public CapabilitySet unmatchedIbisCapabilities(
             IbisCapabilities capabilities, PortType[] types) {
         return capabilities.unmatchedCapabilities(ibisCapabilities);
     }
 
+    @Override
     public PortType[] unmatchedPortTypes(IbisCapabilities capabilities,
             PortType[] types) {
         ArrayList<PortType> result = new ArrayList<PortType>();
@@ -77,11 +81,12 @@ public final class SmartSocketsIbisStarter extends ibis.ipl.IbisStarter {
         return result.toArray(new PortType[0]);
     }
 
+    @Override
     public Ibis startIbis(IbisFactory factory,
             RegistryEventHandler registryEventHandler,
             Properties userProperties, IbisCapabilities capabilities,
-            Credentials credentials, byte[] applicationTag, PortType[] portTypes,
-            String specifiedSubImplementation) {
+            Credentials credentials, byte[] applicationTag,
+            PortType[] portTypes, String specifiedSubImplementation) throws IbisCreationFailedException {
         return new SmartSocketsIbis(registryEventHandler, capabilities,
                 credentials, applicationTag, portTypes, userProperties, this);
     }

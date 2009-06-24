@@ -1,8 +1,8 @@
 package ibis.ipl.server;
 
 import ibis.ipl.impl.IbisIdentifier;
-import ibis.ipl.management.AttributeDescription;
 import ibis.ipl.support.Connection;
+import ibis.ipl.support.management.AttributeDescription;
 import ibis.smartsockets.virtual.VirtualServerSocket;
 import ibis.smartsockets.virtual.VirtualSocketFactory;
 import ibis.util.ThreadPool;

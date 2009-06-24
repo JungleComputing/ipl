@@ -10,6 +10,7 @@ import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.ConnectionTimedOutException;
 import ibis.ipl.Credentials;
 import ibis.ipl.IbisCapabilities;
+import ibis.ipl.IbisCreationFailedException;
 import ibis.ipl.IbisStarter;
 import ibis.ipl.MessageUpcall;
 import ibis.ipl.PortMismatchException;
@@ -52,7 +53,7 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis implements Runnable,
 
     public TcpIbis(RegistryEventHandler registryEventHandler,
             IbisCapabilities capabilities, Credentials credentials,
-            byte[] applicationTag, PortType[] types, Properties userProperties, IbisStarter starter) {
+            byte[] applicationTag, PortType[] types, Properties userProperties, IbisStarter starter) throws IbisCreationFailedException {
         super(registryEventHandler, capabilities, credentials, applicationTag, types,
                 userProperties, starter);
 

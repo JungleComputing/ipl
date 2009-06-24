@@ -1,9 +1,9 @@
 package ibis.ipl.server;
 
-import ibis.ipl.management.ManagementService;
 import ibis.ipl.registry.ControlPolicy;
 import ibis.ipl.registry.central.server.CentralRegistryService;
 import ibis.ipl.registry.gossip.BootstrapService;
+import ibis.ipl.support.management.ManagementService;
 import ibis.smartsockets.SmartSocketsProperties;
 import ibis.smartsockets.direct.DirectSocketAddress;
 import ibis.smartsockets.hub.Hub;
