@@ -130,6 +130,11 @@ public final class ForwardingRegistry extends ibis.ipl.registry.Registry {
         return target.waitUntilTerminated();
     }
 
+    @Override
+    public ibis.ipl.impl.IbisIdentifier getRandomPoolMember() {
+        return target.getRandomPoolMember();
+    }
+
   
 
 }

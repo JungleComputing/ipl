@@ -198,4 +198,9 @@ public final class NullRegistry extends ibis.ipl.registry.Registry {
         throw new IbisConfigurationException(
         "termination not supported by NullRegistry");
     }
+
+    @Override
+    public IbisIdentifier getRandomPoolMember() {
+        return null;
+    }
 }

@@ -501,4 +501,9 @@ public final class Registry extends ibis.ipl.registry.Registry {
         return new Date() + "";
     }
 
+    @Override
+    public IbisIdentifier getRandomPoolMember() {
+        return pool.getRandomMember().getIbis();
+    }
+
 }

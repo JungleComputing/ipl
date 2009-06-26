@@ -347,7 +347,7 @@ class MemberSet extends Thread {
         return suspects.toArray(new Member[0]);
     }
     
-    private synchronized Member[] getRandomMembers(int count) {
+    synchronized Member[] getRandomMembers(int count) {
 	if (count < 0) {
 	    return new Member[0];
 	}

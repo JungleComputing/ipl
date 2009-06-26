@@ -508,4 +508,15 @@ public class Registry extends ibis.ipl.registry.Registry implements Runnable {
                 "gossip registry does not support termination");
     }
 
+    @Override
+    public IbisIdentifier getRandomPoolMember() {
+       Member[] random = members.getRandomMembers(1);
+       
+       if (random.length == 1) {
+           return random[0].getIdentifier();
+       } else {
+           return null;
+       }
+    }
+
 }
