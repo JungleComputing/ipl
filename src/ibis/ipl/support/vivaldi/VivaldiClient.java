@@ -117,7 +117,7 @@ public class VivaldiClient implements Runnable {
         if (logger.isInfoEnabled()) {
             logger.info("vivaldi distance to " + identifier + " is "
                     + remoteCoordinates.distance(getCoordinates())
-                    + " actual distance is " + result + " ms");
+                    + " actual distance is " + result + " ms, coordinates now " + getCoordinates());
         }
 
         return result;
