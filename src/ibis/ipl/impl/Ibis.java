@@ -18,12 +18,15 @@ import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.ipl.registry.Registry;
 import ibis.ipl.support.management.ManagementClient;
+import ibis.ipl.support.vivaldi.Coordinates;
 import ibis.ipl.support.vivaldi.VivaldiClient;
 import ibis.util.TypedProperties;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
@@ -190,13 +193,6 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
 
         ident = registry.getIbisIdentifier();
 
-        try {
-            managementClient = new ManagementClient(properties);
-        } catch (Exception e) {
-            throw new IbisCreationFailedException(
-                    "Could not create management client", e);
-        }
-
         if (properties.getBooleanProperty("ibis.vivaldi")) {
             try {
                 vivaldiClient = new VivaldiClient(properties, registry);
@@ -206,6 +202,13 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
             }
         } else {
             vivaldiClient = null;
+        }
+
+        try {
+            managementClient = new ManagementClient(properties, this);
+        } catch (Exception e) {
+            throw new IbisCreationFailedException(
+                    "Could not create management client", e);
         }
 
         /*
@@ -606,6 +609,36 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
         }
 
         return bytesRead;
+    }
+
+    /**
+     * @ibis.experimental
+     */
+    public synchronized ibis.ipl.IbisIdentifier[] connectedTo() {
+        HashSet<ibis.ipl.IbisIdentifier> result = new HashSet<ibis.ipl.IbisIdentifier>();
+
+        Collection<SendPort> ports = sendPorts.values();
+
+        for (SendPort sendPort : ports) {
+            ibis.ipl.ReceivePortIdentifier[] receivePorts = sendPort.connectedTo();
+
+            for (ibis.ipl.ReceivePortIdentifier receivePort : receivePorts) {
+                result.add(receivePort.ibisIdentifier());
+            }
+
+        }
+        return result.toArray(new ibis.ipl.IbisIdentifier[0]);
+    }
+
+    /**
+     * @ibis.experimental
+     */
+    public Coordinates getVivaldiCoordinates() {
+        if (vivaldiClient == null) {
+            return null;
+        }
+        
+        return vivaldiClient.getCoordinates();
     }
 
     public synchronized Map<String, String> managementProperties() {

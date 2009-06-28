@@ -143,6 +143,13 @@ public class ClientServer implements MessageUpcall {
 
         System.err.println("server replies: " + result);
 
+        try {
+            Thread.sleep(100000);
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        
         // Close ports.
         sendPort.close();
         receivePort.close();

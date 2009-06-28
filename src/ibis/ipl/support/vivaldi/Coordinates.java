@@ -23,7 +23,7 @@ public final class Coordinates implements Serializable {
 
     public static final double ERROR_CONTROL = 0.1;
 
-    public static final int DIMENSIONS = 5;
+    public static final int DIMENSIONS = 3;
 
     public static final int DOUBLE_SIZE = 8;
 

@@ -22,7 +22,7 @@ public class Example {
 
     public static void main(String[] arguments) {
 
-        //start a server
+        // start a server
         Server server = null;
         try {
             server = new Server(new Properties());
@@ -30,8 +30,8 @@ public class Example {
             System.err.println("Could not start Server: " + t);
             System.exit(1);
         }
-        
-        //print server description
+
+        // print server description
         System.err.println(server.toString());
 
         // register shutdown hook
@@ -42,26 +42,42 @@ public class Example {
         }
 
         while (true) {
-
-            
             AttributeDescription load = new AttributeDescription(
                     "java.lang:type=OperatingSystem", "SystemLoadAverage");
 
             AttributeDescription cpu = new AttributeDescription(
                     "java.lang:type=OperatingSystem", "ProcessCpuTime");
 
-            //get list of ibises in the pool named "test"
+            AttributeDescription vivaldi = new AttributeDescription("ibis",
+                    "vivaldi");
+
+            AttributeDescription connections = new AttributeDescription("ibis",
+                    "connections");
+
+            // get list of ibises in the pool named "test"
             IbisIdentifier[] ibises = server.getRegistryService().getMembers(
                     "test");
 
-            //for each ibis, print these two attributes
+            // for each ibis, print these attributes
             if (ibises != null) {
                 for (IbisIdentifier ibis : ibises) {
                     try {
-                        System.err.println(ibis
-                                + " [load, total cpu time] = "
-                                + Arrays.toString(server.getManagementService()
-                                        .getAttributes(ibis, load, cpu)));
+                        System.err
+                                .println(ibis
+                                        + " [load, total cpu time, vivaldi coordinates] = "
+                                        + Arrays.toString(server
+                                                .getManagementService()
+                                                .getAttributes(ibis, load, cpu,
+                                                        vivaldi)));
+                        System.err
+                                .println(ibis
+                                        + " connected to = "
+                                        + Arrays
+                                                .toString((IbisIdentifier[]) server
+                                                        .getManagementService()
+                                                        .getAttributes(ibis,
+                                                                connections)[0]));
+
                     } catch (Exception e) {
                         System.err.println("Could not get management info: ");
                         e.printStackTrace();

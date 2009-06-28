@@ -27,9 +27,13 @@ public class ManagementClient implements Runnable {
 
     private final VirtualServerSocket serverSocket;
 
+    private final Ibis ibis;
+
     private boolean ended;
 
-    public ManagementClient(Properties properties) throws IOException {
+    public ManagementClient(Properties properties, Ibis ibis)
+            throws IOException {
+        this.ibis = ibis;
         String clientID = properties.getProperty(Ibis.ID_PROPERTY);
         Client client = Client.getOrCreateClient(clientID, properties, 0);
         this.virtualSocketFactory = client.getFactory();
@@ -78,18 +82,28 @@ public class ManagementClient implements Runnable {
                     .getMethod("getPlatformMBeanServer").invoke(null);
 
             for (int i = 0; i < descriptions.length; i++) {
-                try {
-                    Object objectName = objectNameClassConstructor
-                            .newInstance(descriptions[i].getBeanName());
+                if (descriptions[i].getBeanName().equals("ibis")) {
+                    if (descriptions[i].getAttribute().equals("vivaldi")) {
 
-                    result[i] = getAttributeMethod.invoke(beanServer,
-                            objectName, descriptions[i].getAttribute());
-                } catch (Throwable t) {
-                    connection
-                            .closeWithError("cannot get value for attribute \""
-                                    + descriptions[i].getAttribute()
-                                    + "\" of bean \""
-                                    + descriptions[i].getBeanName() + "\"");
+                        result[i] = ibis.getVivaldiCoordinates();
+                    } else if (descriptions[i].getAttribute().equals(
+                            "connections")) {
+                        result[i] = ibis.connectedTo();
+                    }
+                } else {
+                    try {
+                        Object objectName = objectNameClassConstructor
+                                .newInstance(descriptions[i].getBeanName());
+
+                        result[i] = getAttributeMethod.invoke(beanServer,
+                                objectName, descriptions[i].getAttribute());
+                    } catch (Throwable t) {
+                        connection
+                                .closeWithError("cannot get value for attribute \""
+                                        + descriptions[i].getAttribute()
+                                        + "\" of bean \""
+                                        + descriptions[i].getBeanName() + "\"");
+                    }
                 }
             }
 
