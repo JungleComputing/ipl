@@ -217,9 +217,9 @@ public final class Coordinates implements Serializable {
         newError = sampleError * ERROR_CONTROL * weight + error
                 * (1 - ERROR_CONTROL * weight);
 
-//        if (newError > 1.0) {
-//            newError = 1.0;
-//        }
+        if (newError > 1.0) {
+            newError = 1.0;
+        }
 
         logger.debug("new error = " + newError);
 
