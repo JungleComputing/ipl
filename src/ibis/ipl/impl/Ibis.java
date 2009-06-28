@@ -151,7 +151,8 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
     protected Ibis(RegistryEventHandler registryHandler,
             IbisCapabilities capabilities, Credentials credentials,
             byte[] applicationTag, PortType[] portTypes,
-            Properties userProperties, IbisStarter starter) throws IbisCreationFailedException {
+            Properties userProperties, IbisStarter starter)
+            throws IbisCreationFailedException {
 
         if (capabilities == null) {
             throw new IbisConfigurationException("capabilities not specified");
@@ -183,21 +184,28 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
         } catch (IbisConfigurationException e) {
             throw e;
         } catch (Throwable e) {
-            throw new IbisCreationFailedException("Could not create registry", e);
+            throw new IbisCreationFailedException("Could not create registry",
+                    e);
         }
-        
+
         ident = registry.getIbisIdentifier();
 
         try {
             managementClient = new ManagementClient(properties);
         } catch (Exception e) {
-            throw new IbisCreationFailedException("Could not create management client", e);
+            throw new IbisCreationFailedException(
+                    "Could not create management client", e);
         }
 
-        try {
-            vivaldiClient = new VivaldiClient(properties);
-        } catch (Exception e) {
-            throw new IbisCreationFailedException("Could not create vivaldi client", e);
+        if (properties.getBooleanProperty("ibis.vivaldi")) {
+            try {
+                vivaldiClient = new VivaldiClient(properties, registry);
+            } catch (Exception e) {
+                throw new IbisCreationFailedException(
+                        "Could not create vivaldi client", e);
+            }
+        } else {
+            vivaldiClient = null;
         }
 
         /*
@@ -236,17 +244,21 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
             }
             ended = true;
         }
-        
+
         try {
             registry.leave();
         } catch (Throwable e) {
             throw new IbisIOException("Registry: leave failed ", e);
         }
-        
-        managementClient.end();
-        
-        vivaldiClient.end();
-       
+
+        if (managementClient != null) {
+            managementClient.end();
+        }
+
+        if (vivaldiClient != null) {
+            vivaldiClient.end();
+        }
+
         quit();
     }
 

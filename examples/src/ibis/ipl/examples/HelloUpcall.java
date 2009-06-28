@@ -21,13 +21,12 @@ import java.io.IOException;
 
 public class HelloUpcall implements MessageUpcall {
 
-    PortType portType =
-        new PortType(PortType.COMMUNICATION_RELIABLE,
-                PortType.SERIALIZATION_DATA, PortType.RECEIVE_AUTO_UPCALLS,
-                PortType.CONNECTION_ONE_TO_ONE);
+    PortType portType = new PortType(PortType.COMMUNICATION_RELIABLE,
+            PortType.SERIALIZATION_DATA, PortType.RECEIVE_AUTO_UPCALLS,
+            PortType.CONNECTION_ONE_TO_ONE);
 
-    IbisCapabilities ibisCapabilities =
-        new IbisCapabilities(IbisCapabilities.ELECTIONS_STRICT);
+    IbisCapabilities ibisCapabilities = new IbisCapabilities(
+            IbisCapabilities.ELECTIONS_STRICT);
 
     /** Set to true when server received message. */
     boolean finished = false;
@@ -55,8 +54,8 @@ public class HelloUpcall implements MessageUpcall {
 
         // Create a receive port, pass ourselves as the message upcall
         // handler
-        ReceivePort receiver =
-            myIbis.createReceivePort(portType, "server", this);
+        ReceivePort receiver = myIbis.createReceivePort(portType, "server",
+                this);
         // enable connections
         receiver.enableConnections();
         // enable upcalls

@@ -20,13 +20,12 @@ import java.io.IOException;
 
 public class Hello {
 
-    PortType portType =
-        new PortType(PortType.COMMUNICATION_RELIABLE,
-                PortType.SERIALIZATION_DATA, PortType.RECEIVE_EXPLICIT,
-                PortType.CONNECTION_ONE_TO_ONE);
+    PortType portType = new PortType(PortType.COMMUNICATION_RELIABLE,
+            PortType.SERIALIZATION_DATA, PortType.RECEIVE_EXPLICIT,
+            PortType.CONNECTION_ONE_TO_ONE);
 
-    IbisCapabilities ibisCapabilities =
-        new IbisCapabilities(IbisCapabilities.ELECTIONS_STRICT);
+    IbisCapabilities ibisCapabilities = new IbisCapabilities(
+            IbisCapabilities.ELECTIONS_STRICT);
 
     private void server(Ibis myIbis) throws IOException {
 
@@ -67,7 +66,7 @@ public class Hello {
         IbisIdentifier server = ibis.registry().elect("Server");
 
         System.out.println("Server is " + server);
-        
+
         // If I am the server, run server, else run client.
         if (server.equals(ibis.identifier())) {
             server(ibis);

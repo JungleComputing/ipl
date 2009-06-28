@@ -2,6 +2,7 @@ package ibis.ipl.support.vivaldi;
 
 import ibis.ipl.impl.Ibis;
 import ibis.ipl.impl.IbisIdentifier;
+import ibis.ipl.registry.Registry;
 import ibis.ipl.support.Client;
 import ibis.ipl.support.Connection;
 import ibis.smartsockets.virtual.VirtualServerSocket;
@@ -33,18 +34,20 @@ public class VivaldiClient implements Runnable {
 
     private static final int CONNECTION_BACKLOG = 10;
 
+    private final Registry registry;
+
     private final VirtualSocketFactory virtualSocketFactory;
 
     private final VirtualServerSocket serverSocket;
 
     private boolean ended;
 
-    // private final Node node;
-
     private Coordinates coordinates;
 
-    public VivaldiClient(Properties properties) throws IOException {
-        // this.node = node;
+    public VivaldiClient(Properties properties, Registry registry)
+            throws IOException {
+        this.registry = registry;
+
         this.coordinates = new Coordinates();
 
         String clientID = properties.getProperty(Ibis.ID_PROPERTY);
@@ -54,12 +57,19 @@ public class VivaldiClient implements Runnable {
         serverSocket = virtualSocketFactory.createServerSocket(
                 Protocol.VIRTUAL_PORT, CONNECTION_BACKLOG, null);
 
-        ThreadPool.createNew(this, "Management Client");
+        // start handling connections
+        new ConnectionHandler(serverSocket, this);
+
+        ThreadPool.createNew(this, "Vivaldi Client");
     }
 
     public double ping(IbisIdentifier identifier, boolean updateCoordinates)
             throws IOException {
         double result = Double.MAX_VALUE;
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("ping to " + identifier);
+        }
 
         Connection connection = new Connection(identifier, CONNECTION_TIMEOUT,
                 true, virtualSocketFactory, Protocol.VIRTUAL_PORT);
@@ -104,7 +114,11 @@ public class VivaldiClient implements Runnable {
             updateCoordinates(remoteCoordinates, result);
         }
 
-        logger.debug("distance to " + identifier + " is " + result + " ms");
+        if (logger.isInfoEnabled()) {
+            logger.info("vivaldi distance to " + identifier + " is "
+                    + remoteCoordinates.distance(getCoordinates())
+                    + " actual distance is " + result + " ms");
+        }
 
         return result;
     }
@@ -138,6 +152,10 @@ public class VivaldiClient implements Runnable {
     private synchronized void updateCoordinates(Coordinates remoteCoordinates,
             double rtt) {
         coordinates = coordinates.update(remoteCoordinates, rtt);
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("coordinates now " + coordinates);
+        }
     }
 
     public synchronized Coordinates getCoordinates() {
@@ -167,35 +185,27 @@ public class VivaldiClient implements Runnable {
     }
 
     public void run() {
-        // Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
-        // while (!ended()) {
-        // NodeInfo neighbour = node.clusterService().getRandomNeighbour();
-        // if (neighbour != null) {
-        // try {
-        // ping(neighbour, true);
-        // } catch (Exception e) {
-        // logger.debug("error on pinging neighbour " + neighbour, e);
-        //
-        // }
-        // }
-        //
-        // NodeInfo randomNode = node.gossipService().getRandomNode();
-        // if (randomNode != null) {
-        // try {
-        // ping(randomNode, true);
-        // } catch (Exception e) {
-        // logger.debug("error on pinging random node " + randomNode,
-        // e);
-        //
-        // }
-        // }
-        //
-        // try {
-        // Thread.sleep(PING_INTERVAL);
-        // } catch (InterruptedException e) {
-        // // IGNORE
-        // }
-        // }
+        Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
+        while (!ended()) {
+
+            IbisIdentifier randomNode = registry.getRandomPoolMember();
+            if (randomNode != null
+                    && !randomNode.equals(registry.getIbisIdentifier())) {
+                try {
+                    ping(randomNode, true);
+                } catch (Exception e) {
+                    logger.debug("error on pinging random node " + randomNode,
+                            e);
+
+                }
+            }
+
+            try {
+                Thread.sleep(PING_INTERVAL);
+            } catch (InterruptedException e) {
+                // IGNORE
+            }
+        }
 
     }
 

@@ -13,8 +13,8 @@ import ibis.ipl.IbisIdentifier;
 
 public class RegistryDowncalls {
 
-    IbisCapabilities ibisCapabilities =
-        new IbisCapabilities(IbisCapabilities.MEMBERSHIP_TOTALLY_ORDERED);
+    IbisCapabilities ibisCapabilities = new IbisCapabilities(
+            IbisCapabilities.MEMBERSHIP_TOTALLY_ORDERED);
 
     private void run() throws Exception {
         // Create an ibis instance, pass "null" as the event handler, enabling

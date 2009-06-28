@@ -11,7 +11,6 @@ import ibis.ipl.registry.central.Protocol;
 import ibis.ipl.registry.central.RegistryProperties;
 import ibis.ipl.registry.statistics.Statistics;
 import ibis.ipl.support.RemoteException;
-import ibis.ipl.support.management.ManagementClient;
 import ibis.util.TypedProperties;
 
 import java.io.IOException;

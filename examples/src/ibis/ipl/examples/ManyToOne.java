@@ -14,20 +14,19 @@ import ibis.ipl.WriteMessage;
 import java.io.IOException;
 
 /**
- * Example of a many-to-one application. The server just waits until messages are
- * received and prints them, clients send a single message to the server and
+ * Example of a many-to-one application. The server just waits until messages
+ * are received and prints them, clients send a single message to the server and
  * exit.
  */
 
 public class ManyToOne implements MessageUpcall {
 
-    PortType portType =
-        new PortType(PortType.COMMUNICATION_RELIABLE,
-                PortType.SERIALIZATION_DATA, PortType.RECEIVE_AUTO_UPCALLS,
-                PortType.CONNECTION_MANY_TO_ONE);
+    PortType portType = new PortType(PortType.COMMUNICATION_RELIABLE,
+            PortType.SERIALIZATION_DATA, PortType.RECEIVE_AUTO_UPCALLS,
+            PortType.CONNECTION_MANY_TO_ONE);
 
-    IbisCapabilities ibisCapabilities =
-        new IbisCapabilities(IbisCapabilities.ELECTIONS_STRICT);
+    IbisCapabilities ibisCapabilities = new IbisCapabilities(
+            IbisCapabilities.ELECTIONS_STRICT);
 
     /**
      * Function called by Ibis to give us a newly arrived message
@@ -46,8 +45,8 @@ public class ManyToOne implements MessageUpcall {
 
         // Create a receive port, pass ourselves as the message upcall
         // handler
-        ReceivePort receiver =
-            myIbis.createReceivePort(portType, "server", this);
+        ReceivePort receiver = myIbis.createReceivePort(portType, "server",
+                this);
         // enable connections
         receiver.enableConnections();
         // enable upcalls

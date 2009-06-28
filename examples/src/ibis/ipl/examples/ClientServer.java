@@ -27,33 +27,31 @@ public class ClientServer implements MessageUpcall {
     /**
      * Port type used for sending a request to the server
      */
-    PortType requestPortType =
-        new PortType(PortType.COMMUNICATION_RELIABLE,
-                PortType.SERIALIZATION_OBJECT, PortType.RECEIVE_AUTO_UPCALLS,
-                PortType.CONNECTION_MANY_TO_ONE);
+    PortType requestPortType = new PortType(PortType.COMMUNICATION_RELIABLE,
+            PortType.SERIALIZATION_OBJECT, PortType.RECEIVE_AUTO_UPCALLS,
+            PortType.CONNECTION_MANY_TO_ONE);
 
     /**
      * Port type used for sending a reply back
      */
-    PortType replyPortType =
-        new PortType(PortType.COMMUNICATION_RELIABLE,
-                PortType.SERIALIZATION_DATA, PortType.RECEIVE_EXPLICIT,
-                PortType.CONNECTION_ONE_TO_ONE);
+    PortType replyPortType = new PortType(PortType.COMMUNICATION_RELIABLE,
+            PortType.SERIALIZATION_DATA, PortType.RECEIVE_EXPLICIT,
+            PortType.CONNECTION_ONE_TO_ONE);
 
-    IbisCapabilities ibisCapabilities =
-        new IbisCapabilities(IbisCapabilities.ELECTIONS_STRICT);
+    IbisCapabilities ibisCapabilities = new IbisCapabilities(
+            IbisCapabilities.ELECTIONS_STRICT);
 
     private final Ibis myIbis;
-    
+
     /**
      * Constructor. Actually does all the work too :)
      */
     private ClientServer() throws Exception {
-        //Create an ibis instance.
+        // Create an ibis instance.
         // Notice createIbis uses varargs for its parameters.
-        myIbis = IbisFactory.createIbis(ibisCapabilities, null, 
-                                           requestPortType, replyPortType);
-        
+        myIbis = IbisFactory.createIbis(ibisCapabilities, null,
+                requestPortType, replyPortType);
+
         // Elect a server
         IbisIdentifier server = myIbis.registry().elect("Server");
 
@@ -67,7 +65,7 @@ public class ClientServer implements MessageUpcall {
         // End ibis.
         myIbis.end();
     }
-    
+
     /**
      * Function called by Ibis to give us a newly arrived message. This message
      * will contain the ReceivePortIdentifier of the receive port of the ibis
@@ -76,27 +74,27 @@ public class ClientServer implements MessageUpcall {
      */
     public void upcall(ReadMessage message) throws IOException,
             ClassNotFoundException {
-        ReceivePortIdentifier requestor =
-            (ReceivePortIdentifier) message.readObject();
-        
+        ReceivePortIdentifier requestor = (ReceivePortIdentifier) message
+                .readObject();
+
         System.err.println("received request from: " + requestor);
-        
-        //finish the request message. This MUST be done before sending
-        //the reply message. It ALSO means Ibis may now call this upcall
-        //method agian with the next request message
+
+        // finish the request message. This MUST be done before sending
+        // the reply message. It ALSO means Ibis may now call this upcall
+        // method agian with the next request message
         message.finish();
-        
-        //create a sendport for the reply
+
+        // create a sendport for the reply
         SendPort replyPort = myIbis.createSendPort(replyPortType);
-        
-        //connect to the requestor's receive port
+
+        // connect to the requestor's receive port
         replyPort.connect(requestor);
-        
-        //create a reply message
+
+        // create a reply message
         WriteMessage reply = replyPort.newMessage();
         reply.writeString("the time is " + new Date());
         reply.finish();
-        
+
         replyPort.close();
     }
 
@@ -104,21 +102,21 @@ public class ClientServer implements MessageUpcall {
 
         // Create a receive port, pass ourselves as the message upcall
         // handler
-        ReceivePort receiver =
-            myIbis.createReceivePort(requestPortType, "server", this);
+        ReceivePort receiver = myIbis.createReceivePort(requestPortType,
+                "server", this);
         // enable connections
         receiver.enableConnections();
         // enable upcalls
         receiver.enableMessageUpcalls();
 
         System.err.println("server started");
-        
+
         // do nothing for a minute (will get upcalls for messages
         Thread.sleep(60000);
 
         // Close receive port.
         receiver.close();
-        
+
         System.err.println("server stopped");
     }
 
@@ -150,8 +148,6 @@ public class ClientServer implements MessageUpcall {
         receivePort.close();
     }
 
-    
-    
     public static void main(String args[]) {
         try {
             new ClientServer();

@@ -2,14 +2,14 @@ package ibis.ipl.support.vivaldi;
 
 import ibis.ipl.support.Connection;
 import ibis.smartsockets.virtual.VirtualServerSocket;
+import ibis.util.ThreadPool;
 
 import java.io.IOException;
-
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ConnectionHandler {
+public class ConnectionHandler implements Runnable {
 
     private static final Logger logger = LoggerFactory
             .getLogger(ConnectionHandler.class);
@@ -23,6 +23,7 @@ public class ConnectionHandler {
         this.serverSocket = socket;
         this.vivaldi = vivaldi;
 
+        ThreadPool.createNew(this, "Vivaldi Connection handler");
     }
 
     public void run() {
