@@ -102,7 +102,7 @@ public class VivaldiClient implements Runnable {
             }
 
             long time = end - start;
-            double rtt = (double) time / 1000000.0;
+            double rtt = time / 1000000.0;
 
             if (rtt < result) {
                 result = rtt;

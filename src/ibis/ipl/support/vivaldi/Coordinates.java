@@ -3,7 +3,8 @@ package ibis.ipl.support.vivaldi;
 import java.io.IOException;
 import java.io.Serializable;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Class representing a coordinate in a Cartesian space. Code copied from
@@ -14,7 +15,7 @@ import org.apache.log4j.Logger;
  */
 public final class Coordinates implements Serializable {
 
-    private static final Logger logger = Logger.getLogger(Coordinates.class);
+    private static final Logger logger = LoggerFactory.getLogger(Coordinates.class);
 
     // nodes closer than this push each other off in some random direction
     public static final double CLOSEBY_THRESHOLD = 0.01;
