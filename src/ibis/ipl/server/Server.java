@@ -69,7 +69,9 @@ public final class Server {
     }
 
     /**
-     * Create a server with the given server properties
+     * Create a server with the given server properties. If no server address 
+     * property is set, this function tries to get the address from the advert
+     * server (server bootstrap mechanism).
      */
     @SuppressWarnings("unchecked")
     public Server(Properties properties, ControlPolicy policy) throws Exception {
@@ -383,7 +385,8 @@ public final class Server {
     }
 
     /**
-     * Stops all services. May wait until the services are idle.
+     * Stops all services and removes server entry from boostrap mechansim 
+     * (advert server). May wait until the services are idle.
      * 
      * @param timeout
      *            timeout for ending all services in Milliseconds. 0 == wait

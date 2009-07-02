@@ -34,12 +34,26 @@ public final class ServerProperties {
 
     public static final String VIZ_INFO = PREFIX + "viz.info";
     
+    /** 
+     * Property name for specifying an advert address of the form:
+     * <code>google://jondoe%40gmail.com:pass@jondoe.appspot.com/path</code>
+     */
     public static final String ADVERT_ADDRESS = PREFIX + "advert.address";
     
+    /**
+     * Property name for specifying advert meta data of the form:
+     * <code>key1=value1,key2=value2,key3=value3</code> 
+     */
     public static final String ADVERT_METADATA = PREFIX + "advert.metadata";
     
+    /**
+     * Property name for specifying a username for the advert server.
+     */
     public static final String ADVERT_USER = PREFIX + "advert.username";
     
+    /**
+     * Property name for specifying a password for the advert server.
+     */
     public static final String ADVERT_PASS = PREFIX + "advert.password";
 
     /** Property name for specifying a comma separated list of hubs. */
