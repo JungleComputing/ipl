@@ -60,8 +60,8 @@ public abstract class IbisStarter {
             return (IbisStarter) constructor.newInstance(nickName, iplVersion,
                     implementationVersion);
         } catch (Throwable t) {
-            System.err.println("Could not create starter from className: "
-                    + className);
+            System.err.println("Could not create starter from class name "
+                    + className + " : " + t);
             return null;
         }
     }
