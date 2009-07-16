@@ -238,7 +238,8 @@ public final class CentralRegistryService extends Thread implements Service, Reg
         return result;
     }
 
-    @Override
+    // 1.5 Does not allow @Override for interfaces
+    //    @Override
     public String[] getLocations(String poolName) throws IOException {
         Pool pool = getPool(poolName);
         
@@ -256,7 +257,8 @@ public final class CentralRegistryService extends Thread implements Service, Reg
         return result;
     }
 
-    @Override
+    // 1.5 Does not allow @Override for interfaces
+    //    @Override
     public synchronized Map<String, Integer> getPoolSizes() throws IOException {
         Map<String, Integer> result = new HashMap<String, Integer>();
         

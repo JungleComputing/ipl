@@ -19,7 +19,8 @@ class ManagementServiceConnection implements ManagementServiceInterface {
         this.socketFactory = socketFactory;
     }
 
-    @Override
+    // Java 1.5 Does not allow @Override for interface methods
+    //    @Override
     public Object[] getAttributes(IbisIdentifier ibis,
             AttributeDescription... descriptions) throws Exception {
         Connection connection = new Connection(address, TIMEOUT, true,

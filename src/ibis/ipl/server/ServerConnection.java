@@ -62,7 +62,7 @@ public class ServerConnection implements ServerInterface {
             } catch (Throwable e) {
                 throw new IOException(
                         "could not create server address from given string: "
-                                + serverString, e);
+                                + serverString);
             }
         }
 
@@ -206,12 +206,13 @@ public class ServerConnection implements ServerInterface {
 
     }
 
-    @Override
+    // Java 1.5 Does not allow @Override for interface methods
+    //    @Override
     public String getAddress() throws IOException {
         return address.machine().toString();
     }
 
-    @Override
+    //    @Override
     public String[] getServiceNames() throws IOException {
         Connection connection = new Connection(address, TIMEOUT, true,
                 socketFactory);
@@ -235,7 +236,7 @@ public class ServerConnection implements ServerInterface {
 
     }
 
-    @Override
+    //    @Override
     public String[] getHubs() throws IOException {
         Connection connection = new Connection(address, TIMEOUT, true,
                 socketFactory);
@@ -259,7 +260,7 @@ public class ServerConnection implements ServerInterface {
 
     }
 
-    @Override
+    //    @Override
     public void addHubs(DirectSocketAddress... hubAddresses) throws IOException {
         String[] strings = new String[hubAddresses.length];
         for (int i = 0; i < strings.length; i++) {
@@ -268,7 +269,7 @@ public class ServerConnection implements ServerInterface {
         addHubs(strings);
     }
 
-    @Override
+    //    @Override
     public void addHubs(String... hubAddresses) throws IOException {
         Connection connection = new Connection(address, TIMEOUT, true,
                 socketFactory);
@@ -286,7 +287,7 @@ public class ServerConnection implements ServerInterface {
         }
     }
 
-    @Override
+    //    @Override
     public void end(long timeout) throws IOException {
         if (pipe != null) {
             pipe.end();
@@ -306,12 +307,12 @@ public class ServerConnection implements ServerInterface {
 
     }
 
-    @Override
+    //    @Override
     public RegistryServiceInterface getRegistryService() {
         return registryConnection;
     }
 
-    @Override
+    //    @Override
     public ManagementServiceInterface getManagementService() {
         return managementConnection;
     }

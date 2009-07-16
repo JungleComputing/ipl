@@ -21,7 +21,8 @@ class RegistryServiceConnection implements RegistryServiceInterface {
         this.socketFactory = socketFactory;
     }
 
-    @Override
+    // 1.5 Does not allow @Override for interface methods
+    //    @Override
     public String[] getPools() throws IOException {
         Connection connection = new Connection(address, TIMEOUT, true,
                 socketFactory);
@@ -44,7 +45,7 @@ class RegistryServiceConnection implements RegistryServiceInterface {
         }
     }
 
-    @Override
+    //    @Override
     public ibis.ipl.IbisIdentifier[] getMembers(String poolName)
             throws IOException {
         Connection connection = new Connection(address, TIMEOUT, true,
@@ -74,7 +75,7 @@ class RegistryServiceConnection implements RegistryServiceInterface {
         }
     }
 
-    @Override
+    //    @Override
     public String[] getLocations(String poolName) throws IOException {
         Connection connection = new Connection(address, TIMEOUT, true,
                 socketFactory);
@@ -98,7 +99,7 @@ class RegistryServiceConnection implements RegistryServiceInterface {
         }
     }
 
-    @Override
+    //    @Override
     public Map<String, Integer> getPoolSizes() throws IOException {
         Connection connection = new Connection(address, TIMEOUT, true,
                 socketFactory);
