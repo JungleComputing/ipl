@@ -1573,6 +1573,9 @@ public class IbisSerializationInputStream extends DataSerializationInputStream {
             Class<?> type = current_object.getClass();
             AlternativeTypeInfo t
                     = AlternativeTypeInfo.getAlternativeTypeInfo(type);
+            while (t.level > current_level) {
+                t = t.alternativeSuperInfo;
+            }
             ImplGetField current_getfield = new ImplGetField(t);
             current_getfield.readFields();
             return current_getfield;

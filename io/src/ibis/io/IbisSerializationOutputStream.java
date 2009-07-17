@@ -1287,6 +1287,9 @@ public class IbisSerializationOutputStream
                 Class<?> clazz = current_object.getClass();
                 AlternativeTypeInfo t
                         = AlternativeTypeInfo.getAlternativeTypeInfo(clazz);
+                while (t.level > current_level) {
+                    t = t.alternativeSuperInfo;
+                }
                 current_putfield = new ImplPutField(t);
             }
             return (ImplPutField) current_putfield;
@@ -1370,7 +1373,7 @@ public class IbisSerializationOutputStream
             }
 
             public void put(String name, Object value) {
-                refs[t.getOffset(name, Object.class)] = value;
+                refs[t.getOffset(name, value.getClass())] = value;
             }
 
             public void write(ObjectOutput o) throws IOException {
