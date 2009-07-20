@@ -161,4 +161,12 @@ public class MultiWriteMessage implements WriteMessage {
         base.writeString(val);
     }
 
+    public long capacity() throws IOException {
+        return base.capacity();
+    }
+
+    public long remaining() throws IOException {
+        return base.capacity();
+    }
+
 }

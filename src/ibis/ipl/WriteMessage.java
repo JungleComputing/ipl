@@ -120,8 +120,10 @@ public interface WriteMessage {
     public void finish(IOException exception);
 
     /**
-     * Returns the number of bytes written to this message. This number
-     * is not exact, because of buffering in underlying output streams.
+     * Returns the number of bytes read from this message. 
+     * Note that for streaming implementations (i.e., messages with an unlimited
+     * capacity) this number may not be exact because of intermediate buffering.  
+     * 
      * <strong> 
      * Even for multicast messages, the size only counts once.
      * </strong>
@@ -132,6 +134,29 @@ public interface WriteMessage {
      */
     public long bytesWritten() throws IOException;
 
+    /**
+     * Returns the maximum number of bytes that will fit into this message.  
+     * 
+     * @return
+     *          the maximum number of bytes that will fit into this message or
+     *          -1 when the message size is unlimited 
+     * @exception IOException
+     *          an error occurred.
+     */
+    public long capacity() throws IOException;
+
+    /**
+     * Returns the remaining number of bytes that can be written into this 
+     * message.  
+     * 
+     * @return
+     *          the remaining number of bytes that can be written into this 
+     *          message or -1 when the message size is unlimited 
+     * @exception IOException
+     *          an error occurred.
+     */
+    public long remaining() throws IOException;
+    
     /**
      * Returns the {@link SendPort} of this <code>WriteMessage</code>.
      * @return

@@ -18,6 +18,14 @@ public class StackingWriteMessage implements WriteMessage {
     public long bytesWritten() throws IOException {
         return base.bytesWritten();
     }
+    
+    public long capacity() throws IOException {
+        return base.capacity();
+    }
+
+    public long remaining() throws IOException {
+        return base.remaining();
+    }
 
     public long finish() throws IOException {
         return base.finish();
@@ -159,4 +167,5 @@ public class StackingWriteMessage implements WriteMessage {
         base.writeString(val);
     }
 
+    
 }

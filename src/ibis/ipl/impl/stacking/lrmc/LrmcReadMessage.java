@@ -195,6 +195,19 @@ public class LrmcReadMessage implements ReadMessage {
         return retval;
     }
 
+    public long remaining() throws IOException {
+        
+        if (isFinished) { 
+            return 0;
+        }
+        
+        return om.bin.available();
+    }
+
+    public long size() throws IOException {
+        return om.bin.bufferSize();
+    }
+    
     public long finish() throws IOException {
         if (!isFinished) {
             long retval = om.finalizeRead(stream);
@@ -227,5 +240,7 @@ public class LrmcReadMessage implements ReadMessage {
         // Not supported.
         return 0;
     }
+
+  
 
 }

@@ -339,6 +339,14 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         return port.bytesWritten() - before;
     }
 
+    public long capacity() throws IOException {
+        return -1;
+    }
+
+    public long remaining() throws IOException {
+        return -1;
+    }
+    
     public long finish() throws IOException {
         checkNotFinished();
         try {
@@ -377,4 +385,6 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         isFinished = true;
         port.finishMessage(this, e);
     }
+
+
 }

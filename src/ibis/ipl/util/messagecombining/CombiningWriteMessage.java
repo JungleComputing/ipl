@@ -294,4 +294,12 @@ public class CombiningWriteMessage implements WriteMessage {
     public void flush() throws IOException {
         out.flush();
     }
+
+    public long capacity() throws IOException {
+        return -1;
+    }
+
+    public long remaining() throws IOException {
+        return -1;
+    }
 }

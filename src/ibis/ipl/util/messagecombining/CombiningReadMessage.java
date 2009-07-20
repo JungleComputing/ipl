@@ -274,4 +274,12 @@ public class CombiningReadMessage implements ReadMessage {
             throws IOException, ClassNotFoundException {
         in.readArray(arg0, arg1, arg2);
     }
+
+    public long remaining() throws IOException {
+        return -1;
+    }
+
+    public long size() throws IOException {
+        return -1;
+    }
 }

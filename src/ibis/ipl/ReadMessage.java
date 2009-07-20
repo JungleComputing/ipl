@@ -66,8 +66,10 @@ public interface ReadMessage {
     public void finish(IOException exception);
 
     /**
-     * Returns the number of bytes read from this message. This number
-     * is not exact, because of buffering in underlying input streams.
+     * Returns the number of bytes read from this message. 
+     * Note that for streaming implementations (i.e., messages with an unlimited
+     * capacity) this number may not be exact because of intermediate buffering.  
+     * 
      * @return
      *          the number of bytes read sofar from this message.
      * @exception IOException
@@ -75,6 +77,28 @@ public interface ReadMessage {
      */
     public long bytesRead() throws IOException;
 
+    /**
+     * Returns the size of this message in bytes. 
+     * 
+     * @return
+     *          the size of this message in byte or -1 if the size is unknown or 
+     *          unlimited.
+     * @exception IOException
+     *          an error occurred.
+     */
+    public long size() throws IOException;
+
+    /**
+     * Returns the remaining number bytes available for reading in this message.  
+     * 
+     * @return
+     *          the number remaining bytes available for reading in this message 
+     *          or -1 if the message size is unknown or unlimited.
+     * @exception IOException
+     *          an error occurred.
+     */
+    public long remaining() throws IOException;
+    
     /**
      * Returns the {@link ibis.ipl.ReceivePort receiveport} of this
      * <code>ReadMessage</code>.

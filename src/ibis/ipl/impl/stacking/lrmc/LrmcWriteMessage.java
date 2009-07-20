@@ -200,7 +200,9 @@ public class LrmcWriteMessage implements WriteMessage {
     public void writeArray(Object[] value, int offset, int size)
             throws IOException {
         checkNotFinished();
-        out.writeArray(value, offset, size);
+        out.writeArray(value, offset, size);        
+        checkNotFinished();
+
     }
 
     public long bytesWritten() {
@@ -242,6 +244,14 @@ public class LrmcWriteMessage implements WriteMessage {
         }
         // TODO Auto-generated method stub
 
+    }
+
+    public long capacity() throws IOException {
+        return om.bout.bufferSize();
+    }
+
+    public long remaining() throws IOException {
+        return om.bout.bufferSize() - om.bout.bytesWritten();
     }
 
 }

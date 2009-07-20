@@ -49,6 +49,10 @@ public class SingleBufferArrayInputStream extends DataInputStream {
         }
     }
 
+    public final int size() throws IOException {
+        return BUF_SIZE;
+    }
+    
     public final int available() throws IOException {
         return BUF_SIZE - index;
     }

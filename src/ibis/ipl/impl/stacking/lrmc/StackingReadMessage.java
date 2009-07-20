@@ -20,6 +20,14 @@ public class StackingReadMessage implements ReadMessage {
         return base.bytesRead();
     }
 
+    public long remaining() throws IOException {
+        return base.remaining();
+    }
+
+    public long size() throws IOException {
+        return base.size();
+    }
+    
     public long finish() throws IOException {
         return base.finish();
     }
@@ -162,5 +170,7 @@ public class StackingReadMessage implements ReadMessage {
     public long sequenceNumber() {
         return base.sequenceNumber();
     }
+
+    
 
 }

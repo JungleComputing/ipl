@@ -137,6 +137,15 @@ public final class PortType extends CapabilitySet {
     public final static String COMMUNICATION_RELIABLE
             = COMMUNICATION + ".reliable";
     
+    /** This capability describes that communication is unreliable. */
+    public final static String COMMUNICATION_UNRELIABLE
+            = COMMUNICATION + ".unreliable";
+
+    /** This capability describes that communication is reliable but not 
+     * safe enough to use on open networks. */
+    public final static String COMMUNICATION_RELIABLE_UNSAFE
+            = COMMUNICATION + ".reliable.unsafe";
+    
     /**
      * This capability describes that readByte/writeByte and
      * readArray/writeArray(byte[]) are supported.
