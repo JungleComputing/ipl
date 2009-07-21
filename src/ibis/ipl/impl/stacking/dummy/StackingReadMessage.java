@@ -20,11 +20,11 @@ public class StackingReadMessage implements ReadMessage {
         return base.bytesRead();
     }
 
-    public long remaining() throws IOException {
+    public int remaining() throws IOException {
         return base.remaining();
     }
 
-    public long size() throws IOException {
+    public int size() throws IOException {
         return base.size();
     }
     

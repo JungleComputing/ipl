@@ -339,11 +339,11 @@ public class WriteMessage implements ibis.ipl.WriteMessage {
         return port.bytesWritten() - before;
     }
 
-    public long capacity() throws IOException {
+    public int capacity() throws IOException {
         return -1;
     }
 
-    public long remaining() throws IOException {
+    public int remaining() throws IOException {
         return -1;
     }
     

@@ -143,7 +143,7 @@ public interface WriteMessage {
      * @exception IOException
      *          an error occurred.
      */
-    public long capacity() throws IOException;
+    public int capacity() throws IOException;
 
     /**
      * Returns the remaining number of bytes that can be written into this 
@@ -155,7 +155,7 @@ public interface WriteMessage {
      * @exception IOException
      *          an error occurred.
      */
-    public long remaining() throws IOException;
+    public int remaining() throws IOException;
     
     /**
      * Returns the {@link SendPort} of this <code>WriteMessage</code>.

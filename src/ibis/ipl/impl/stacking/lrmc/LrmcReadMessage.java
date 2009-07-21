@@ -195,7 +195,7 @@ public class LrmcReadMessage implements ReadMessage {
         return retval;
     }
 
-    public long remaining() throws IOException {
+    public int remaining() throws IOException {
         
         if (isFinished) { 
             return 0;
@@ -204,7 +204,7 @@ public class LrmcReadMessage implements ReadMessage {
         return om.bin.available();
     }
 
-    public long size() throws IOException {
+    public int size() throws IOException {
         return om.bin.bufferSize();
     }
     

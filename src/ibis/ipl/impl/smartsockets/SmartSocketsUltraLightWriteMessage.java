@@ -43,12 +43,12 @@ public class SmartSocketsUltraLightWriteMessage implements WriteMessage {
     }
 
 
-    public long capacity() throws IOException {
+    public int capacity() throws IOException {
         return bout.bufferSize();
     }
 
-    public long remaining() throws IOException {
-        return bout.bufferSize() - bout.bytesWritten();
+    public int remaining() throws IOException {
+        return (int) (bout.bufferSize() - bout.bytesWritten());
     }
 
 

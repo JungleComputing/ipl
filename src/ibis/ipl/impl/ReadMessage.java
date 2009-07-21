@@ -66,11 +66,11 @@ public class ReadMessage implements ibis.ipl.ReadMessage {
 	return after - before;
     }
 
-    public long remaining() throws IOException {
+    public int remaining() throws IOException {
         return -1;
     }
 
-    public long size() throws IOException {
+    public int size() throws IOException {
         return -1;
     }
     

@@ -86,7 +86,7 @@ public interface ReadMessage {
      * @exception IOException
      *          an error occurred.
      */
-    public long size() throws IOException;
+    public int size() throws IOException;
 
     /**
      * Returns the remaining number bytes available for reading in this message.  
@@ -97,7 +97,7 @@ public interface ReadMessage {
      * @exception IOException
      *          an error occurred.
      */
-    public long remaining() throws IOException;
+    public int remaining() throws IOException;
     
     /**
      * Returns the {@link ibis.ipl.ReceivePort receiveport} of this

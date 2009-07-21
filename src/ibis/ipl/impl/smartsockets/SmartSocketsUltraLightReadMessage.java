@@ -56,11 +56,11 @@ public final class SmartSocketsUltraLightReadMessage implements ReadMessage {
         return bin.bytesRead();
     }
 
-    public long remaining() throws IOException {
+    public int remaining() throws IOException {
         return bin.available();
     }
 
-    public long size() throws IOException {
+    public int size() throws IOException {
         return bin.size();
     }
 

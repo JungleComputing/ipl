@@ -295,11 +295,11 @@ public class CombiningWriteMessage implements WriteMessage {
         out.flush();
     }
 
-    public long capacity() throws IOException {
+    public int capacity() throws IOException {
         return -1;
     }
 
-    public long remaining() throws IOException {
+    public int remaining() throws IOException {
         return -1;
     }
 }

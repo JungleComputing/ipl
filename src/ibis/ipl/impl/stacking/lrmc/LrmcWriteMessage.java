@@ -246,12 +246,12 @@ public class LrmcWriteMessage implements WriteMessage {
 
     }
 
-    public long capacity() throws IOException {
+    public int capacity() throws IOException {
         return om.bout.bufferSize();
     }
 
-    public long remaining() throws IOException {
-        return om.bout.bufferSize() - om.bout.bytesWritten();
+    public int remaining() throws IOException {
+        return (int) (om.bout.bufferSize() - om.bout.bytesWritten());
     }
 
 }
