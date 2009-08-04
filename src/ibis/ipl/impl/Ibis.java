@@ -204,13 +204,16 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
             vivaldiClient = null;
         }
 
-        try {
-            managementClient = new ManagementClient(properties, this);
-        } catch (Exception e) {
-            throw new IbisCreationFailedException(
-                    "Could not create management client", e);
+        if (properties.getBooleanProperty("ibis.management")) {
+        	try {
+        		managementClient = new ManagementClient(properties, this);
+        	} catch (Exception e) {
+        		throw new IbisCreationFailedException(
+        				"Could not create management client", e);
+        	}
+        } else {
+        	managementClient = null;
         }
-
         /*
          * // add bean to JMX try { MBeanServer mbs =
          * ManagementFactory.getPlatformMBeanServer(); ObjectName name = new

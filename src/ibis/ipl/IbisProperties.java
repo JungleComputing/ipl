@@ -60,14 +60,20 @@ public final class IbisProperties {
 
     /** Property name for specifying the implementation of the registry. */
     public static final String REGISTRY_IMPLEMENTATION = PREFIX + "registry.implementation";
+
+    /** Property name for disabling bluetooth scanning. */
+    public static final String BT_NOSCAN = PREFIX + "registry.bt.noscan";
     
     /** Property name for location. */
     public static final String LOCATION = PREFIX + "location";
     
     /** Property name for location color. */
     public static final String LOCATION_COLOR = PREFIX + "location.color";
-
-
+    
+    public static final String BT_CENTRAL_SERVER_UUID = PREFIX + "registry.bt.serveruuid";
+    public static final String BT_CENTRAL_CLIENT_UUID = PREFIX + "registry.bt.clientuuid";
+    public static final String BT_IBIS_UUID = PREFIX + "ipl.impl.bt.uuid";
+    
     /**
      * Property name for specifying a postfix for an automatically generated location.
      */
@@ -77,6 +83,9 @@ public final class IbisProperties {
     /** List of {NAME, DESCRIPTION, DEFAULT_VALUE} for properties. */
     private static final String[][] propertiesList =
             new String[][] {
+        		{ BT_CENTRAL_SERVER_UUID, "c34b1158823f4824bbc0fb33dd9dba06", "String: UUID of the central registry server" },
+        		{ BT_CENTRAL_CLIENT_UUID, "c76212695c8a4e768d17739c555a4be0", "String: UUID of the central registry client" },
+        		{ BT_IBIS_UUID, "abb93f68cacc4a6db43c7f9d4c3ca62d", "String: UUID of the Ibis instances" },
                 { POOL_NAME, null, "String: name of the pool this ibis belongs to" },
                 { POOL_SIZE, null,
                     "Integer: size of the pool this ibis belongs to" },

@@ -78,6 +78,14 @@ public abstract class Registry implements ibis.ipl.Registry {
             // shorthand for central registry
             return new ibis.ipl.registry.central.client.Registry(capabilities, handler,
                     properties, data, implementationVersion, credentials, tag);
+        } else if (registryName.equalsIgnoreCase("btcentral")) {
+            // shorthand for bt central registry
+            return new ibis.ipl.registry.btcentral.client.Registry(capabilities, handler,
+                    properties, data, implementationVersion, credentials, tag);
+        } else if (registryName.equalsIgnoreCase("bt")) {
+            // shorthand for bt simple registry
+            return new ibis.ipl.registry.bt.Registry(capabilities, handler,
+                    properties, data, implementationVersion, credentials, tag);            
         } else if (registryName.equalsIgnoreCase("gossip")) {
             // shorthand for gossip registry
             return new ibis.ipl.registry.gossip.Registry(capabilities, handler,

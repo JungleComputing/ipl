@@ -120,6 +120,26 @@
             </manifest>
         </jar>
 
+        <!-- Bluetooth -->
+
+        <property name="bt.files" value="ibis/ipl/impl/bt/**/*.class" />
+
+        <checksum totalproperty="bt.checksum">
+            <fileset dir="tmp" includes="${bt.files}" />
+        </checksum>
+
+
+        <jar destfile="lib/ipl-impl-bt${version-tag}.jar">
+            <fileset dir="tmp" includes="${bt.files}" />
+            <metainf dir="." includes="LICENSE.txt" />
+            <manifest>
+                <attribute name="Ibis-Starter-Class" value="ibis.ipl.impl.bt.BtIbisStarter" />
+                <attribute name="Ibis-IPL-Version" value="${version}" />
+                <attribute name="Ibis-Implementation-Version" value="${bt.checksum}" />
+                <attribute name="Ibis-NickName" value="bt" />
+            </manifest>
+        </jar>
+    	
         <!-- TCP -->
 
         <property name="tcp.files" value="ibis/ipl/impl/tcp/**/*.class" />
@@ -222,7 +242,7 @@
 	    support.version=${support.checksum}
 	    implementation.version=${implementation.checksum}
 
-	    implementations=smartsockets,tcp,nio,dummy,lrmc
+	    implementations=smartsockets,tcp,nio,dummy,lrmc,bt
 
 	    #smartsockets
 	    smartsockets.starter.class=ibis.ipl.impl.smartsockets.SmartSocketsIbisStarter
@@ -234,6 +254,11 @@
 	    tcp.ipl.version=${version}
 	    tcp.version=${tcp.checksum}
 
+    	#bt
+        bt.starter.class=ibis.ipl.impl.bt.BtIbisStarter
+    	bt.ipl.version=${version}
+    	bt.version=${bt.checksum}        	
+        	
 	    #nio
 	    nio.starter.class=ibis.ipl.impl.nio.NioIbisStarter
 	    nio.ipl.version=${version}
