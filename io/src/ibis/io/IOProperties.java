@@ -97,6 +97,11 @@ public final class IOProperties {
                     "8192",
                     "Integer: determines the size of the buffers used in Ibis "
                             + "serialization" },
+            {
+                    s_typed_buffer_size,
+                    "8192",
+                    "Integer: determines the size of the typed buffers used " + 
+                    "in Ibis data serialization streams" },                        
             {s_conversion_buf_size,
                     "8192",
                     "Integer: determines the size of the conversion buffers " + 
