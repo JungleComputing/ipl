@@ -38,6 +38,11 @@ public final class BufferedArrayInputStream extends DataInputStream {
     /** Object used to convert primitive types to bytes. */
     private Conversion conversion;
 
+    /**
+     * Constructor.
+     * @param in        the underlying <code>InStream</code>
+     * @param bufSize   the size of the input buffer in bytes
+     */
     public BufferedArrayInputStream(InputStream in, int bufSize) {
         this.in = in;
         BUF_SIZE = bufSize;
@@ -45,6 +50,14 @@ public final class BufferedArrayInputStream extends DataInputStream {
         conversion = Conversion.loadConversion(false);
     }
 
+    /**
+     * Constructor.
+     * @param in        the underlying <code>InStream</code>
+     */    
+    public BufferedArrayInputStream(InputStream in) {
+        this(in, IOProperties.BUFFER_SIZE);
+    }
+    
     public long bytesRead() {
         return bytes - buffered_bytes;
     }

@@ -41,12 +41,21 @@ public final class BufferedArrayOutputStream extends DataOutputStream {
     /**
      * Constructor.
      * @param out	the underlying <code>OutputStream</code>
+     * @param bufSize   the size of the output buffer in bytes
      */
     public BufferedArrayOutputStream(OutputStream out, int bufSize) {
         this.out = out;
         BUF_SIZE = bufSize;
         buffer = new byte[BUF_SIZE];
         conversion = Conversion.loadConversion(false);
+    }
+
+    /**
+     * Constructor.
+     * @param out       the underlying <code>OutputStream</code>
+     */
+    public BufferedArrayOutputStream(OutputStream out) {
+        this(out, IOProperties.BUFFER_SIZE);
     }
 
     public long bytesWritten() {

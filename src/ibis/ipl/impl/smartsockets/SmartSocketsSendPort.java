@@ -64,7 +64,7 @@ final class SmartSocketsSendPort extends SendPort implements SmartSocketsProtoco
         		type.hasCapability(PortType.CONNECTION_ONE_TO_MANY) || 
         		type.hasCapability(PortType.CONNECTION_MANY_TO_MANY));
 
-        bufferedStream = new BufferedArrayOutputStream(splitter, 4096);
+        bufferedStream = new BufferedArrayOutputStream(splitter);
         initStream(bufferedStream);
     }
 

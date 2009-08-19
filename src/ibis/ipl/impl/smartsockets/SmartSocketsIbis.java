@@ -191,8 +191,8 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
 
                 s.setTcpNoDelay(true);
 
-                out = new DataOutputStream(new BufferedArrayOutputStream(s
-                        .getOutputStream(), 4096));
+                out = new DataOutputStream(
+                        new BufferedArrayOutputStream(s.getOutputStream()));
 
                 out.writeUTF(name);
                 sp.getIdent().writeTo(out);
@@ -291,8 +291,8 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
             logger.debug("--> TcpIbis got connection request from " + s);
         }
 
-        BufferedArrayInputStream bais = new BufferedArrayInputStream(s
-                .getInputStream(), 4096);
+        BufferedArrayInputStream bais = 
+            new BufferedArrayInputStream(s.getInputStream());
 
         DataInputStream in = new DataInputStream(bais);
         OutputStream out = s.getOutputStream();

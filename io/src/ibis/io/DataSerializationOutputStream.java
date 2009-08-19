@@ -142,7 +142,7 @@ public class DataSerializationOutputStream extends ByteSerializationOutputStream
         super(out);
         int bufferSize = out.bufferSize();
         if (bufferSize <= 0) {
-            bufferSize = IOProperties.BUFFER_SIZE;
+            bufferSize = IOProperties.TYPED_BUFFER_SIZE;
         }
         BYTE_BUFFER_SIZE = DataSerializationInputStream.typedBufferSize(bufferSize, Constants.SIZEOF_BYTE);
         CHAR_BUFFER_SIZE = DataSerializationInputStream.typedBufferSize(bufferSize, Constants.SIZEOF_CHAR);

@@ -138,7 +138,7 @@ public class DataSerializationInputStream extends ByteSerializationInputStream {
         super(in);
         int bufferSize = in.bufferSize();
         if (bufferSize <= 0) {
-            bufferSize = IOProperties.BUFFER_SIZE;
+            bufferSize = IOProperties.TYPED_BUFFER_SIZE;
         }
         BYTE_BUFFER_SIZE = typedBufferSize(bufferSize, Constants.SIZEOF_BYTE);
         CHAR_BUFFER_SIZE = typedBufferSize(bufferSize, Constants.SIZEOF_CHAR);

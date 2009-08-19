@@ -125,8 +125,8 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis implements Runnable,
                 s = factory.createClientSocket(idAddr, timeout, fillTimeout, sp
                         .managementProperties());
                 s.setTcpNoDelay(true);
-                out = new DataOutputStream(new BufferedArrayOutputStream(s
-                        .getOutputStream(), 4096));
+                out = new DataOutputStream(
+                        new BufferedArrayOutputStream(s.getOutputStream()));
 
                 out.writeUTF(name);
                 sp.getIdent().writeTo(out);
@@ -225,8 +225,8 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis implements Runnable,
             logger.debug("--> TcpIbis got connection request from " + s);
         }
 
-        BufferedArrayInputStream bais = new BufferedArrayInputStream(s
-                .getInputStream(), 4096);
+        BufferedArrayInputStream bais = 
+            new BufferedArrayInputStream(s.getInputStream());
 
         DataInputStream in = new DataInputStream(bais);
         OutputStream out = s.getOutputStream();
