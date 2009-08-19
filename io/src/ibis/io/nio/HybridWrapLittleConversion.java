@@ -2,6 +2,7 @@
 
 package ibis.io.nio;
 
+import ibis.io.IOProperties;
 import ibis.io.SimpleLittleConversion;
 
 import java.nio.ByteBuffer;
@@ -15,7 +16,7 @@ import java.nio.ShortBuffer;
 
 public final class HybridWrapLittleConversion extends SimpleLittleConversion {
 
-    public static final int BUFFER_SIZE = 8 * 1024;
+    public static final int BUFFER_SIZE = IOProperties.CONVERSION_BUFFER_SIZE;
 
     public static final int THRESHOLD = 512; //bytes
 

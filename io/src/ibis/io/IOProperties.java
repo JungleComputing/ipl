@@ -43,6 +43,8 @@ public final class IOProperties {
 
     static final String s_conversion = PREFIX + "conversion";
 
+    static final String s_conversion_buf_size = s_conversion + ".buffer.size";
+    
     static final String s_buffer_size = PREFIX + "buffer.size";
 
     static final String s_array_buffer = PREFIX + "array.buffer";
@@ -93,6 +95,10 @@ public final class IOProperties {
                     "4096",
                     "Integer: determines the size of the buffers used in Ibis "
                             + "serialization" },
+            {s_conversion_buf_size,
+                    "8192",
+                    "Integer: determines the size of the conversion buffers " + 
+                    "used in Ibis serialization" },
             { s_array_buffer, "32",
                     "Integer: determines the size of the buffer for arrays" },
             { s_debug, "false", "Boolean: if true, enables log4j calls" },
@@ -138,6 +144,9 @@ public final class IOProperties {
     public static final int ARRAY_BUFFER_SIZE = properties.getIntProperty(
             s_array_buffer, 32);
 
+    public static final int CONVERSION_BUFFER_SIZE = properties.getIntProperty(
+            s_conversion_buf_size, 8 * 1024);
+    
     /**
      * Returns the hard-coded Ibis IO properties.
      * 
