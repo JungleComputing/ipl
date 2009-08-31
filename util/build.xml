@@ -27,10 +27,7 @@
 
         <!-- Create the build directory structure used by util -->
         <delete dir="${tmp}" />
-        <delete dir="${javadoc}" />
-
         <mkdir dir="${tmp}" />
-        <mkdir dir="${javadoc}" />
 
         <!-- Compile the java code from ${src} into ${tmp} -->
         <javac srcdir="${src}" destdir="${tmp}" debug="on" source="1.5" target="1.5">

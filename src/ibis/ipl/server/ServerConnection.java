@@ -17,7 +17,7 @@ import java.util.Properties;
 
 /**
  * Connection to a server in another JVM (possibly on another machine).
- * Connection can be established either by connection stdin/stdout to a server
+ * Connection can be established either by connecting stdin/stdout to a server
  * started with the "--remote" option, or by passing the address of the server.
  * 
  * @author Niels Drost
@@ -102,9 +102,9 @@ public class ServerConnection implements ServerInterface {
     }
 
     /**
-     * Connect to the server with the given in and output stream. Will parse the
-     * address of the server from the standard out of the server process. Also
-     * forwards the output to the given stream (with an optional prefix to each
+     * Creates a connection to the server with the given in and output stream.
+     * Will parse the address of the server from the standard out of the server process.
+     * Also forwards the output to the given stream (with an optional prefix to each
      * line). When this connection is terminated, the (remote) server terminates
      * as well.
      * 
@@ -148,7 +148,7 @@ public class ServerConnection implements ServerInterface {
     }
 
     /**
-     * Connections to the server at the given address
+     * Creates a connection to the server at the given address.
      * 
      * @param address
      *            address of the server

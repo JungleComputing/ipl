@@ -70,11 +70,9 @@
 
         <!-- Create the build directory structure used by compile -->
         <delete dir="${compile}" />
-        <delete dir="${javadoc}" />
 
         <mkdir dir="${compile}" />
         <mkdir dir="${tmpsrc}" />
-        <mkdir dir="${javadoc}" />
         <mkdir dir="${sources}" />
 
         <!-- Collect all the source into one place. -->

@@ -1,15 +1,15 @@
 package ibis.ipl.server;
 
 /**
- * Interface for an Ibis Service. Any service which want to be automatically
- * started by the ibis-server, needs to implement this interface. It should also
- * have a constructor: Service(TypedProperties properties, VirtualSocketFactory
- * factory)
+ * Interface for an Ibis Service. Any service that wants to be automatically
+ * started by the ibis-server must implement this interface. It must also
+ * have a constructor with the signature: Service(TypedProperties properties,
+ * VirtualSocketFactory factory).
  */
 public interface Service {
 
     /**
-     * Returns the name of this service
+     * Returns the name of this service.
      */
     String getServiceName();
 
@@ -18,8 +18,7 @@ public interface Service {
      * 
      * @param deadline
      *            a service is allowed to block in this function for a while if
-     *            it is busy. However, not after the deadline.
+     *            it is busy. However, it may not block beyond the deadline.
      */
     void end(long deadline);
-
 }

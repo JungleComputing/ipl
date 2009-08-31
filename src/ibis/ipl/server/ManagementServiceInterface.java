@@ -5,7 +5,7 @@ import ibis.ipl.support.management.AttributeDescription;
 
 /**
  * Interface to the management service. Mostly for getting management info from the
- * server
+ * server.
  * 
  * @ibis.experimental
  */

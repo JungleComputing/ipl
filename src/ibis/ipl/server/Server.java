@@ -61,7 +61,7 @@ public final class Server implements ServerInterface {
     }
 
     /**
-     * Create a server with the given server properties
+     * Create a server with the given server properties.
      */
     @SuppressWarnings("unchecked")
     public Server(Properties properties, ControlPolicy policy) throws Exception {

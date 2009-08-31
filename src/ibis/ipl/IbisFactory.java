@@ -40,16 +40,24 @@ public final class IbisFactory {
 
     private static final String NICKNAME_STRING = "Ibis-NickName";
 
+    /**
+     * Name of a backup manifest file, which is used for systems on which
+     * a manifest file cannot be loaded (i.e. Android),
+     */
     public static final String IPL_MANIFEST_FILE = "ibis/ipl/IPL_MANIFEST";
 
+    /**
+     * Nickname of the default Ibis implementation. This is the Ibis implementation
+     * used, unless the user explicitly requests another implementation.
+     */
     public static final String DEFAULT_IMPLEMENTATION = "smartsockets";
 
-    // Map of factories. One for each implementation path
+    /** Map of factories, one for each implementation path. */
     private static final Map<String, IbisFactory> factories = new HashMap<String, IbisFactory>();
 
     private static IbisFactory defaultFactory;
 
-    static final String VERSION = "2.2";
+    private static final String VERSION = "2.2";
 
     private static synchronized IbisFactory getFactory(String implPath,
             Properties properties) {
@@ -72,7 +80,7 @@ public final class IbisFactory {
     }
 
     /**
-     * List of all available implementations
+     * List of all available implementations.
      */
     private Map<String, IbisStarter> implementations;
 
@@ -83,8 +91,10 @@ public final class IbisFactory {
     /**
      * Constructs an Ibis factory, with the specified search path.
      * 
-     * @param implPath
+     * @param implementationPath
      *            the path to search for implementations.
+     * @param properties
+     *            the properties to be used.
      */
     private IbisFactory(String implementationPath, Properties properties) {
 
@@ -115,8 +125,8 @@ public final class IbisFactory {
     }
 
     /**
-     * Creates a new Ibis instance, based on the required capabilities and port
-     * types. As the set of properties, the default properties are used.
+     * Creates a new Ibis instance, making sure that the Ibis implementation
+     * chosen implements the specified capabilities and port types.
      * 
      * @param requiredCapabilities
      *            ibis capabilities required by the application.
@@ -128,9 +138,8 @@ public final class IbisFactory {
      * @return the new Ibis instance.
      * 
      * @exception IbisCreationFailedException
-     *                is thrown when no Ibis was found that matches the
-     *                capabilities required, or a matching Ibis could not be
-     *                instantiated for some reason.
+     *                is thrown when the chosen Ibis implementation cannot be
+     *                created for some reason.
      */
     public static Ibis createIbis(IbisCapabilities requiredCapabilities,
             RegistryEventHandler registryEventHandler, PortType... portTypes)
@@ -140,8 +149,9 @@ public final class IbisFactory {
     }
 
     /**
-     * Creates a new Ibis instance, based on the required capabilities and port
-     * types, and using the specified properties.
+     * Creates a new Ibis instance, based on the specified properties,
+     * making sure that the Ibis implementation
+     * chosen implements the specified capabilities and port types.
      * 
      * @param requiredCapabilities
      *            ibis capabilities required by the application.
@@ -176,8 +186,9 @@ public final class IbisFactory {
     }
 
     /**
-     * Creates a new Ibis instance, based on the required capabilities and port
-     * types, and using the specified properties.
+     * Creates a new Ibis instance, based on the specified properties,
+     * making sure that the Ibis implementation
+     * chosen implements the specified capabilities and port types.
      * 
      * @param requiredCapabilities
      *            ibis capabilities required by the application.
@@ -201,9 +212,8 @@ public final class IbisFactory {
      * @return the new Ibis instance.
      * 
      * @exception IbisCreationFailedException
-     *                is thrown when no Ibis was found that matches the
-     *                capabilities required, or a matching Ibis could not be
-     *                instantiated for some reason.
+     *                is thrown when the chosen Ibis implementation cannot be
+     *                created for some reason.
      */
     public static Ibis createIbis(IbisCapabilities requiredCapabilities,
             Properties properties, boolean addDefaultConfigProperties,
@@ -215,8 +225,9 @@ public final class IbisFactory {
     }
 
     /**
-     * Creates a new Ibis instance, based on the required capabilities and port
-     * types, and using the specified properties.
+     * Creates a new Ibis instance, based on the specified properties,
+     * making sure that the Ibis implementation
+     * chosen implements the specified capabilities and port types.
      * 
      * @param requiredCapabilities
      *            ibis capabilities required by the application.
@@ -242,9 +253,8 @@ public final class IbisFactory {
      * @return the new Ibis instance.
      * 
      * @exception IbisCreationFailedException
-     *                is thrown when no Ibis was found that matches the
-     *                capabilities required, or a matching Ibis could not be
-     *                instantiated for some reason.
+     *                is thrown when the chosen Ibis implementation cannot be
+     *                created for some reason.
      */
     public static Ibis createIbis(IbisCapabilities requiredCapabilities,
             Properties properties, boolean addDefaultConfigProperties,
@@ -266,8 +276,9 @@ public final class IbisFactory {
     }
 
     /**
-     * Creates a new Ibis instance, based on the required capabilities and port
-     * types, and using the specified properties.
+     * Creates a new Ibis instance, based on the specified properties,
+     * making sure that the Ibis implementation
+     * chosen implements the specified capabilities and port types.
      * 
      * @param requiredCapabilities
      *            ibis capabilities required by the application.
@@ -291,11 +302,10 @@ public final class IbisFactory {
      *            the list of port types required by the application. Can be an
      *            empty list, but not null.
      * @return the new Ibis instance.
-     * 
+
      * @exception IbisCreationFailedException
-     *                is thrown when no Ibis was found that matches the
-     *                capabilities required, or a matching Ibis could not be
-     *                instantiated for some reason.
+     *                is thrown when the chosen Ibis implementation cannot be
+     *                created for some reason.
      */
     @SuppressWarnings("unchecked")
     public static Ibis createIbis(IbisCapabilities requiredCapabilities,
@@ -398,9 +408,9 @@ public final class IbisFactory {
     }
 
     @SuppressWarnings("unchecked")
-    /*
-     * Create an ibis. Should only be used by Ibises to create "child" Ibises.
-     * Users should use the static functions to create an Ibis instance.
+    /**
+     * Creates an ibis. Should only be used by Ibises to create "child" Ibises.
+     * Applications should use the static functions to create an Ibis instance.
      */
     public Ibis createIbis(RegistryEventHandler registryEventHandler,
             IbisCapabilities requiredCapabilities, Properties properties,
@@ -554,7 +564,7 @@ public final class IbisFactory {
     }
 
     /**
-     * Create a JarFile from a given File.
+     * Creates a JarFile object from a given File object.
      */
     private static JarFile getJarFile(File file) {
         try {
