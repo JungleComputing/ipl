@@ -1,6 +1,8 @@
 package ibis.ipl.impl.bt;
 
 import java.io.IOException;
+
+import javax.bluetooth.LocalDevice;
 import javax.microedition.io.StreamConnection;
 import javax.microedition.io.Connector;
 
@@ -22,8 +24,12 @@ class IbisSocket {
     
     IbisSocket(StreamConnection newConn) {
     	streamConnection = newConn;
-        istream = null; 
-        ostream = null;
+    	try{
+    		istream = newConn.openInputStream(); 
+        	ostream = newConn.openOutputStream();
+    	}catch(IOException e){
+    		System.err.println("Unable to open io streams");
+    	}
     }    
 
     void connect(IbisSocketAddress url) throws IOException{
@@ -33,56 +39,57 @@ class IbisSocket {
     	while(streamConnection == null){
     		connectionURL = url.toString();
     		try{
-    			//System.out.print("C=> [" + connectionURL + "]...");
+    			//System.out.println("C=> [" + connectionURL + "]...");
     			streamConnection=(StreamConnection)Connector.open(connectionURL);
     		}catch(Exception e){
     			//e.printStackTrace();
     			streamConnection = null;
     			try{
     				i++;
-    				int sleep = (int)((500*i)*Math.random());
-    				//System.out.println("FAIL #" + i + " will sleep for " + sleep + "ms");
+    				int sleep = (int)((250+500*i)*Math.random());
+    				//System.out.println("BtFail#" + i + " will sleep for " + sleep + "ms [" + e.toString() + "]" );
+    				//System.out.print("[F" + i + "]" );
     				Thread.sleep(sleep);
     			}catch(Exception e2){}
     		}
     	}
-    	//System.out.println("OK");
+    	//System.out.print("[OK]" );
+    	ostream = streamConnection.openOutputStream();
+    	istream = streamConnection.openInputStream();
+    	//System.out.println("OK connect");
     }
     
     void setTcpNoDelay(boolean val) throws IOException {}
 
     java.io.OutputStream getOutputStream() throws IOException {
-    	if(ostream == null)
-    		ostream = streamConnection.openOutputStream();
         return ostream;
     }
 
     java.io.InputStream getInputStream() throws IOException {
-    	if(istream == null)
-    		istream = streamConnection.openInputStream();        
         return istream;
     }
 
     int getLocalPort() {
-      //  if (socket != null) {
-    //        return socket.getLocalPort();
-  //      }
-//        return smartSocket.getLocalPort();
         return 0;
     }
 
-//    int getPort() {
-      //  if (socket != null) {
-      //      return socket.getPort();
-      //  }
-      //  return smartSocket.getPort();
-  //  	return 0;
- //   }
-
     void close() throws java.io.IOException {
+    	
+    	try{
+    		ostream.flush();
+    	}catch(Exception e){
+    		//System.out.println("Error on flush [" + e.toString() + "]");    
+    	}
+    	
         try {
+        	ostream.close();
+        	istream.close();
         	streamConnection.close();
-        } finally {
+        }catch(Exception e){
+        	//System.out.println("Error on close [" + e.toString() + "]");
+        	//throw new java.io.IOException();
+        }
+        finally {
         	streamConnection = null;
         	ostream = null;
         	istream = null;

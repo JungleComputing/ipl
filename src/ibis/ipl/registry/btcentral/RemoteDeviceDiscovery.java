@@ -4,20 +4,44 @@ import java.io.IOException;
 import java.util.Vector;
 import javax.bluetooth.*;
 
-/**
- * Minimal Device Discovery example.
- */
+class RemoteDeviceDiscoveryListener implements  DiscoveryListener{
+	
+	Vector<RemoteDevice> devicesDiscovered = new Vector<RemoteDevice>();
+	Object lock;
+		
+	public RemoteDeviceDiscoveryListener(Object lock){
+		this.lock = lock;
+	}
+	
+	public Vector<RemoteDevice> getResult(){
+		return devicesDiscovered; 
+	}
+	
+	public void deviceDiscovered(RemoteDevice btDevice, DeviceClass cod) {
+        devicesDiscovered.addElement(btDevice);
+    }
+
+    public void inquiryCompleted(int discType) {
+        synchronized(lock){
+        	lock.notifyAll();
+        }
+    }
+
+    public void serviceSearchCompleted(int transID, int respCode) {}
+    public void servicesDiscovered(int transID, ServiceRecord[] servRecord) {}
+}
+
+
 public class RemoteDeviceDiscovery {
+	
+    public static synchronized Vector<RemoteDevice> getDevices() throws IOException, InterruptedException {
 
-    public static final Vector/*<RemoteDevice>*/ devicesDiscovered = new Vector();
 
-    public static void main(String[] args) throws IOException, InterruptedException {
-
+      	//Vector<RemoteDevice> devicesDiscovered = new Vector<RemoteDevice>();
         final Object inquiryCompletedEvent = new Object();
 
-        devicesDiscovered.clear();
-
-        DiscoveryListener listener = new DiscoveryListener() {
+        //devicesDiscovered.clear();
+       /* DiscoveryListener listener = new DiscoveryListener() {
 
             public void deviceDiscovered(RemoteDevice btDevice, DeviceClass cod) {
                 devicesDiscovered.addElement(btDevice);
@@ -29,20 +53,17 @@ public class RemoteDeviceDiscovery {
                 }
             }
 
-            public void serviceSearchCompleted(int transID, int respCode) {
-            }
-
-            public void servicesDiscovered(int transID, ServiceRecord[] servRecord) {
-            }
-        };
-
-        synchronized(inquiryCompletedEvent) {
+            public void serviceSearchCompleted(int transID, int respCode) {}
+            public void servicesDiscovered(int transID, ServiceRecord[] servRecord) {}
+        };*/
+        
+        RemoteDeviceDiscoveryListener listener = new RemoteDeviceDiscoveryListener(inquiryCompletedEvent);
+        synchronized(inquiryCompletedEvent) {    
             boolean started = LocalDevice.getLocalDevice().getDiscoveryAgent().startInquiry(DiscoveryAgent.GIAC, listener);
-            if (started) {
-                inquiryCompletedEvent.wait();
-                //System.out.println(devicesDiscovered.size() +  " device(s) found");
-            }
+            if (started)
+                inquiryCompletedEvent.wait();            
         }
+        return listener.getResult();
     }
 
 }

@@ -2,6 +2,8 @@ package ibis.ipl.registry.btcentral;
 
 import java.io.IOException;
 import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Vector;
 import javax.bluetooth.*;
 
@@ -10,32 +12,35 @@ public class RegistryLocator {
 		
 	public static final Vector<String> serviceFound = new Vector<String>();
 
-    public static String find(String uuid) throws IOException, InterruptedException {
+	public static String findAny(String uuid) throws IOException, InterruptedException {
+        UUID serviceUUID = new UUID(uuid, false);    	
+        long start = System.currentTimeMillis();
+    	String serv = LocalDevice.getLocalDevice().getDiscoveryAgent().selectService(serviceUUID, 
+    									ServiceRecord.NOAUTHENTICATE_NOENCRYPT, false);
+    	//System.out.println("Regsitry inquiry took: " + (System.currentTimeMillis()  - start) + "ms");
+   		return serv;    		
+	}
+    
+	public static Map<String, String> findAll(String uuid) throws IOException, InterruptedException {
 
-        // First run RemoteDeviceDiscovery and use discoved device
-        RemoteDeviceDiscovery.main(null);
-
-        serviceFound.clear();
-
-        UUID serviceUUID = new UUID(uuid, false);
-
+        UUID serviceUUID = new UUID(uuid, false);    	
         final Object serviceSearchCompletedEvent = new Object();
-
+        UUID[] searchUuidSet = new UUID[] { serviceUUID };
+        DiscoveryAgent discoveryAgent = LocalDevice.getLocalDevice().getDiscoveryAgent();
+        long start = System.currentTimeMillis();
+        
+        Vector<RemoteDevice> devicesDiscovered = RemoteDeviceDiscovery.getDevices();
+        
         DiscoveryListener listener = new DiscoveryListener() {
 
-            public void deviceDiscovered(RemoteDevice btDevice, DeviceClass cod) {
-            }
-
-            public void inquiryCompleted(int discType) {
-            }
+            public void deviceDiscovered(RemoteDevice btDevice, DeviceClass cod) {}
+            public void inquiryCompleted(int discType) {}
 
             public void servicesDiscovered(int transID, ServiceRecord[] servRecord) {
                 for (int i = 0; i < servRecord.length; i++) {
                     String url = servRecord[i].getConnectionURL(ServiceRecord.NOAUTHENTICATE_NOENCRYPT, false);
-                    if (url == null) {
-                        continue;
-                    }
-                    serviceFound.add(url);
+                    if (url != null)
+                    	serviceFound.add(url);
                 }
             }
 
@@ -44,29 +49,22 @@ public class RegistryLocator {
                     serviceSearchCompletedEvent.notifyAll();
                 }
             }
-
         };
 
-        UUID[] searchUuidSet = new UUID[] { serviceUUID };
-        int[] attrIDs =  new int[] {
-        		0x0001,
-        		0x0002,
-        		0x0003,
-                0x0100 // Service name                
-        };
-
-        for(Enumeration<RemoteDevice> en = RemoteDeviceDiscovery.devicesDiscovered.elements(); en.hasMoreElements(); ) {        	
+        HashMap<String, String> ret = new HashMap<String, String>();
+        for(Enumeration<RemoteDevice> en = devicesDiscovered.elements(); en.hasMoreElements(); ) {        	
         	serviceFound.clear();
         	RemoteDevice btDevice = (RemoteDevice)en.nextElement();
-            System.out.println("Scanning device " + btDevice.getBluetoothAddress());
+            //System.out.println("Scanning device " + btDevice.getBluetoothAddress());
             synchronized(serviceSearchCompletedEvent) {
-                LocalDevice.getLocalDevice().getDiscoveryAgent().searchServices(attrIDs, searchUuidSet, btDevice, listener);
+            	discoveryAgent.searchServices(null, searchUuidSet, btDevice, listener);
                 serviceSearchCompletedEvent.wait();
                 if(serviceFound.size() != 0)
-                	return (String)serviceFound.elementAt(0);                
+                	ret.put(btDevice.getBluetoothAddress(),(String)serviceFound.elementAt(0));
             }
         }
-       	return null;
+        System.out.println("Regsitry inquiry took: " + (System.currentTimeMillis()  - start) + "ms");
+       	return ret;
     }
 
 }

@@ -9,10 +9,10 @@ import java.io.ObjectOutputStream;
 /**
  * Url address for bluetooth connection
  */
-class IbisSocketAddress {
+public class IbisSocketAddress {
 	String address;
 
-    IbisSocketAddress(String fulladdress) {
+    public IbisSocketAddress(String fulladdress) {
     	address = fulladdress;
     }
 
@@ -27,7 +27,7 @@ class IbisSocketAddress {
         is.close();
     }
 
-    byte[] toBytes() throws IOException {
+    public byte[] toBytes() throws IOException {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         ObjectOutputStream os = new ObjectOutputStream(out);
         os.writeObject(address);

@@ -18,10 +18,10 @@ public class VirtualServerSocket {
 	    
 		StreamConnectionNotifier streamConnNotifier;
 		
-		public VirtualServerSocket(VirtualSocketAddress addr){
+		public VirtualServerSocket(VirtualSocketAddress addr, boolean master){
 			openURL = addr.toString(); 
 			try{
-				openURL = "btspp://localhost:" + addr.toString() + ";name=IbisRegistry";
+				openURL = "btspp://localhost:" + addr.toString() + ";name=IbisRegistry;master=" + master;
 				System.out.println("Opening openURL " + openURL);
 				streamConnNotifier = (StreamConnectionNotifier)Connector.open(openURL);				
 				connURL = LocalDevice.getLocalDevice().getRecord(streamConnNotifier).getConnectionURL(0, false);

@@ -12,6 +12,7 @@ import java.rmi.RemoteException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.Set;
 
 import javax.microedition.io.Connector;
 import javax.microedition.io.StreamConnection;
@@ -22,11 +23,10 @@ import org.slf4j.LoggerFactory;
 public final class Connection {
 
     private static final Logger logger = LoggerFactory.getLogger(Connection.class);
-    private static HashMap<VirtualSocketAddress, Connection> activesOutbound;
-    private static HashMap<VirtualServerSocket, LinkedList<Connection>> activesInbound;
     //private final VirtualSocket socket;
     
     private StreamConnection streamConnection;
+    private String addr;
     private final DataOutputStream out;
 
     private final DataInputStream in;
@@ -47,6 +47,7 @@ public final class Connection {
     public Connection(VirtualSocketAddress address, int timeout,
             boolean fillTimeout)
             throws IOException {
+    	addr = address.toString();
         logger.debug("connecting to " + address + ", timeout = " + timeout
                 + " , filltimeout = " + fillTimeout);
         /*
@@ -61,16 +62,20 @@ public final class Connection {
         	System.out.println("Reusing connection to " + address);
         	return;
         }        
-        */
+        */      
         boolean ok = false;
         //	System.out.println("Connecting connection to " + address);
-        while(!ok){
-        	try{
+        int i = 0;
+        streamConnection = null;
+        while(!ok || (streamConnection==null)){
+        	//System.out.println("Registry connecting " + address.toString());
+        	try{ 
         		streamConnection = (StreamConnection)Connector.open(address.toString());
         		ok = true;
         	}catch(Exception e){
         		//System.out.print(".");
-        		try{Thread.sleep((int)(1000*Math.random()));}catch(Exception e2){}
+        		try{Thread.sleep((int)(250+(i*500)*Math.random()));}catch(Exception e2){}
+        		++i;
         	}
         }
         //socket = factory.createClientSocket(address, timeout, fillTimeout,

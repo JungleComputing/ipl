@@ -29,6 +29,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.util.Iterator;
+import java.util.Map;
 
 import javax.bluetooth.DiscoveryAgent;
 import javax.bluetooth.LocalDevice;
@@ -98,15 +100,9 @@ final class CommunicationHandler implements Runnable {
         this.pool = pool;
         this.statistics = statistics;
 
-        if (properties.getProperty(IbisProperties.SERVER_ADDRESS) == null) {
-            throw new IbisConfigurationException(
-                    "cannot initialize registry, property "
-                            + IbisProperties.SERVER_ADDRESS
-                            + " is not specified");
-        }
-
-        gossip = properties.getBooleanProperty(RegistryProperties.GOSSIP);
-        tree = properties.getBooleanProperty(RegistryProperties.TREE);
+        //TODO: evaluate the impact of gossip and tree
+        gossip = false;
+        tree = false;
 
         if (gossip && tree) {
             throw new IbisConfigurationException(
@@ -123,8 +119,8 @@ final class CommunicationHandler implements Runnable {
                         "peer bootstrap not possible in combination with tree");
             }
         } else {
-            peerBootstrap = properties
-                    .getBooleanProperty(RegistryProperties.PEER_BOOTSTRAP);
+        	//TODO: evaluate peerBootstrap
+            peerBootstrap = false;
         }
 
         timeout = properties
@@ -144,16 +140,24 @@ final class CommunicationHandler implements Runnable {
         //        CONNECTION_BACKLOG, null);
         //StreamConnectionNotifier streamConnNotifier = (StreamConnectionNotifier) Connector.open(connURL);
         //serverSocket = new VirtualServerSocket();
-        serverSocket = new VirtualServerSocket(new VirtualSocketAddress(properties.getProperty(IbisProperties.BT_CENTRAL_CLIENT_UUID)));
+        serverSocket = new VirtualServerSocket(new VirtualSocketAddress(properties.getProperty(IbisProperties.BT_CENTRAL_CLIENT_UUID)),false);
         
         try {
             //serverAddress = Client.getServiceAddress(
             //        CentralRegistryService.VIRTUAL_PORT, properties);
             //serverAddress = null;//new //VirtualSocketAddress(properties.getProperty(IbisProperties.BT_CENTRAL_SERVER_UUID));
-        	String svrAddr = null;
+        	String svrAddr = properties.getProperty(IbisProperties.SERVER_ADDRESS);
         	while(svrAddr == null){
         		System.out.println("Looking for central registry...");
-        		svrAddr = RegistryLocator.find(properties.getProperty(IbisProperties.BT_CENTRAL_SERVER_UUID));
+        		svrAddr = RegistryLocator.findAny(properties.getProperty(IbisProperties.BT_CENTRAL_SERVER_UUID));
+        		/* The following code returns all available registries */
+        		/*Map<String, String> svrAddrs = RegistryLocator.findAll(properties.getProperty(IbisProperties.BT_CENTRAL_SERVER_UUID));
+        		Iterator<String> it = svrAddrs.keySet().iterator();
+        		while(it.hasNext()){
+        			String addr = it.next();
+        			System.out.println("Found registry on [" + addr + "] connect using: " + svrAddrs.get(addr)); 
+        			
+        		}*/
         	}
        		serverAddress = new VirtualSocketAddress(svrAddr);
             System.out.println("Found registry at " + serverAddress);
@@ -209,7 +213,6 @@ final class CommunicationHandler implements Runnable {
             String implementationVersion, Credentials credentials, byte[] tag)
             throws IOException {
         long start = System.currentTimeMillis();
-
         long heartbeatInterval = properties
                 .getIntProperty(RegistryProperties.HEARTBEAT_INTERVAL) * 1000;
         long eventPushInterval = properties
@@ -1165,6 +1168,7 @@ final class CommunicationHandler implements Runnable {
             logger.debug("accepting connection");
             connection = new Connection(serverSocket);
             logger.debug("connection accepted");
+            //System.out.println("Incoming connection from registry");
         } catch (IOException e) {
             if (pool.isStopped()) {
                 threadEnded();

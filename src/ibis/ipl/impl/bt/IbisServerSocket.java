@@ -24,8 +24,9 @@ class IbisServerSocket {
     }
 
     IbisSocket accept() throws java.io.IOException {
-    	//String ss = localDevice.getRecord(streamConnNotifier).getConnectionURL(0, false);
+    	//String ss = localDevice.getRecord(streamConnNotifier).getConnectionURL(0, false);    	
     	IbisSocket s = new IbisSocket(streamConnNotifier.acceptAndOpen());
+    	//System.out.println("S=> [" + s + "]...");
         return s;
     }
 
@@ -51,7 +52,7 @@ class IbisServerSocket {
     }
 
     void close() throws java.io.IOException {
-        try {
+        try {        	
         	streamConnNotifier.close();
         } finally {
         	streamConnNotifier = null;            

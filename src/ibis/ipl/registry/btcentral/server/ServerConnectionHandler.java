@@ -57,7 +57,7 @@ final class ServerConnectionHandler implements Runnable {
         //serverSocket = socketFactory.createServerSocket(
         //        CentralRegistryService.VIRTUAL_PORT, CONNECTION_BACKLOG, null);
         System.out.println("UUID= " + typedProperties.getProperty(IbisProperties.BT_CENTRAL_SERVER_UUID));
-        serverSocket = new VirtualServerSocket(new VirtualSocketAddress(typedProperties.getProperty(IbisProperties.BT_CENTRAL_SERVER_UUID)));        	
+        serverSocket = new VirtualServerSocket(new VirtualSocketAddress(typedProperties.getProperty(IbisProperties.BT_CENTRAL_SERVER_UUID)),true);        	
         this.policy = policy;
 
         createThread();
@@ -434,7 +434,7 @@ final class ServerConnectionHandler implements Runnable {
 
     public void run() {
         Connection connection = null;
-        System.out.println("Server started on " + serverSocket.getLocalSocketAddress());
+        //System.out.println("Server started on " + serverSocket.getLocalSocketAddress());
         //Thread.dumpStack();
         try {
             connection = new Connection(serverSocket);

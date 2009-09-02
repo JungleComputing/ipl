@@ -29,6 +29,7 @@ import ibis.util.ThreadPool;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.SocketTimeoutException;
 import java.util.HashMap;
@@ -111,7 +112,6 @@ public final class BtIbis extends ibis.ipl.impl.Ibis implements Runnable,
             idAddr = addresses.get(id);
             if (idAddr == null) {
                 idAddr = new IbisSocketAddress(id.getImplementationData());
-            	//idAddr = new IbisSocketAddress(id.getID());
                 addresses.put(id, idAddr);
             }	
         }
@@ -212,7 +212,7 @@ public final class BtIbis extends ibis.ipl.impl.Ibis implements Runnable,
                 }
             }
             try {
-                Thread.sleep(100);
+                Thread.sleep(5000);
             } catch (InterruptedException e) {
                 //ignore
             }
@@ -334,7 +334,7 @@ public final class BtIbis extends ibis.ipl.impl.Ibis implements Runnable,
                     // ignore
                 }
 
-               //ThreadPool.createNew(this, "BtIbis Accept Thread");
+               ThreadPool.createNew(this, "BtIbis Accept Thread");
 
                 // Try to get the accept thread into an accept call. (Ceriel)
                 // Thread.currentThread().yield();

@@ -12,6 +12,8 @@ import ibis.ipl.registry.statistics.Statistics;
 import ibis.util.ThreadPool;
 import ibis.util.TypedProperties;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -36,10 +38,7 @@ public class Registry extends ibis.ipl.registry.Registry implements Runnable, Di
     //bluetooth 
     private LocalDevice localDevice; // local Bluetooth Manager
     private DiscoveryAgent discoveryAgent; // discovery agent
-    private final String myServiceUUID = "2d26618601fb47c28d9f10b8ec891363";
-    private final UUID MYSERVICEUUID_UUID = new UUID(myServiceUUID, false);
-    private final String connURL = "btspp://localhost:"+MYSERVICEUUID_UUID.toString() + ";name=Ibis";
-	private final Logger logger = LoggerFactory.getLogger(Registry.class);
+   	private final Logger logger = LoggerFactory.getLogger(Registry.class);
 	
 	private boolean scan;
 
@@ -106,6 +105,7 @@ public class Registry extends ibis.ipl.registry.Registry implements Runnable, Di
             )
             throws IbisConfigurationException, IOException,
             IbisConfigurationException {
+    	
         this.capabilities = capabilities;
         localDevice = null;
         discoveryAgent = null;
@@ -198,16 +198,7 @@ public class Registry extends ibis.ipl.registry.Registry implements Runnable, Di
 //        members = new MemberSet(properties, this, statistics);
 //        elections = new ElectionSet(properties, this);
 //
-        //connURL = conenctionURL, not advertise URL
-        
-
-        
-        String connURL = "btspp://localhost:"+MYSERVICEUUID_UUID.toString() + ";name=Ibis";
-        StreamConnectionNotifier streamConnNotifier = (StreamConnectionNotifier) Connector.open(connURL);
-        connURL = localDevice.getRecord(streamConnNotifier).getConnectionURL(0, false);
-        connURL = "btspp://" + localDevice.getBluetoothAddress() + ":1;authenticate=false;encrypt=false;master=false";
-        System.out.println("Ibis id (in registry)= " + connURL);
-        identifier = new IbisIdentifier(connURL, connURL.getBytes(), 
+          identifier = new IbisIdentifier( ibisData.toString(), ibisData, 
                 null, location, poolName, applicationTag);
 
 //        members.start();
@@ -475,43 +466,46 @@ public class Registry extends ibis.ipl.registry.Registry implements Runnable, Di
     }
 
     public void run() {
-        long interval = properties
-                .getIntProperty(RegistryProperties.GOSSIP_INTERVAL) * 5000;
+    	//long interval = properties
+    	//      .getIntProperty(RegistryProperties.GOSSIP_INTERVAL) * 5000;
+    	boolean scanning = false;
+    	long interval = 15000;
+    	while (!isStopped()) {
+    		if(scan){
+    			btInitiateDeviceSearch();
+    			synchronized (inquiryCompletedEvent) {
+    				try {
+    					inquiryCompletedEvent.wait();
+    				} catch (InterruptedException e) {
+    					System.out.println("wait interrupted...");
+    				}
+    			}        	
 
-  
-         
-        while (!isStopped()) {
-        	if(scan){
-        	System.out.println("BtRegistry scanning devices");
-        	btInitiateDeviceSearch();
-            synchronized (inquiryCompletedEvent) {
-                try {
-                	inquiryCompletedEvent.wait();
-                } catch (InterruptedException e) {
-                    System.out.println("wait interrupted...");
-                }
-            }        	
+    			btInitiateServiceSearch();  
 
-        	btInitiateServiceSearch();        	        
-        	Set<RemoteDevice> devs = scannedDevices.keySet();
-        	for (int i=0; i<devs.size(); i++) {
-                RemoteDevice rd = (RemoteDevice)devs.toArray()[i];
-                if(!joinedDevices.contains(rd)){
-                	joinedDevices.add(rd);
-                	if(scannedDevices.get(rd) == null || joinedIbises == null)
-                		System.out.println("NULL IN SCANNED DEVS?!?!");
-                	joinedIbises.add(new IbisIdentifier(scannedDevices.get(rd),
-                			scannedDevices.get(rd).getBytes(),
-                			null,null,poolName,null)); 
-                }        	
-        	}
-        	}
-        	
-        	try{
-        	Thread.sleep((long)(5000 * Math.random()));
-        	}catch(Exception e){}
-        }
-        
+    			Set<RemoteDevice> devs = scannedDevices.keySet();
+    			for (int i=0; i<devs.size(); i++) {
+    				RemoteDevice rd = (RemoteDevice)devs.toArray()[i];
+    				if(!joinedDevices.contains(rd)){
+    					joinedDevices.add(rd);
+    					try{
+    						ibis.ipl.impl.bt.IbisSocketAddress addr = new ibis.ipl.impl.bt.IbisSocketAddress(scannedDevices.get(rd));
+    						joinedIbises.add(new IbisIdentifier(scannedDevices.get(rd),
+    								addr.toBytes(),
+    								null,null,poolName,null));
+    						System.out.println("Ibis joined: " + addr);
+    					}catch(IOException e){
+    						System.err.println("Unable to allocate IbisIdentifier");
+    					}
+
+    				}
+    			}
+    		}
+    		try{
+    			Thread.sleep((long)(interval));
+    		}catch(Exception e){}
+    	}
+
     }
 
     // DiscoveryListener Callbacks ///////////////////////
@@ -519,29 +513,13 @@ public class Registry extends ibis.ipl.registry.Registry implements Runnable, Di
      * deviceDiscovered() is called by the DiscoveryAgent when
      * it discovers a device during an inquiry.
      */
-    public void deviceDiscovered(
-            javax.bluetooth.RemoteDevice remoteDevice,
-            javax.bluetooth.DeviceClass deviceClass) {
-    	if(remoteDevice.getBluetoothAddress().equals("00116758A92E") || 
-    			remoteDevice.getBluetoothAddress().equals("0016CB28D391")){
-    		System.out.print("D");
-    		discoveredDevices.add(remoteDevice);
-    	}
+    public void deviceDiscovered(RemoteDevice remoteDevice,DeviceClass deviceClass) {
+    	remoteDevices.add(remoteDevice);
     }
 
     public void inquiryCompleted(int type) {
-        int i, s;
-        s = discoveredDevices.size();
-        if (s > 0) {
-            for (i=0; i<s; i++) {
-                RemoteDevice rd = (RemoteDevice) 
-                    discoveredDevices.elementAt(i);
-                if(!remoteDevices.contains(rd)){
-                    remoteDevices.add(rd);
-                }
-            }
-        }
         synchronized(inquiryCompletedEvent){
+        	//System.out.println("]");
             inquiryCompletedEvent.notifyAll();
         }
     }
@@ -550,41 +528,15 @@ public class Registry extends ibis.ipl.registry.Registry implements Runnable, Di
      * btInitiateDeviceSearch() kicks off the device discovery
      */
     public void btInitiateDeviceSearch() {
-        int i, s;
-        
         remoteDevices.clear();
-        discoveredDevices.clear();
-        
-        RemoteDevice[] cachedDevices =
-            discoveryAgent.retrieveDevices(DiscoveryAgent.CACHED);
-        if (cachedDevices != null) {
-            s = cachedDevices.length;
-            for (i=0; i<s; i++) {
-                remoteDevices.add(cachedDevices[i]);
-            }
-        }
-        
-        RemoteDevice[] preknownDevices =
-            discoveryAgent.retrieveDevices(DiscoveryAgent.PREKNOWN);
-        if (preknownDevices != null) {
-            s = preknownDevices.length;
-            for (i=0; i<s; i++) {
-                remoteDevices.add(preknownDevices[i]);
-            }
-        }
-        
+        //System.out.println("[");
         boolean inquiryStarted = false;
         try {
-            inquiryStarted = 
-                discoveryAgent.startInquiry(
-                    DiscoveryAgent.GIAC, this);
+            inquiryStarted = discoveryAgent.startInquiry(DiscoveryAgent.GIAC, this);
+            if (inquiryStarted != true)
+                System.err.println("Inquiry Failed");            
         } catch(BluetoothStateException bse) {
-            System.out.println("Inquiry Failed");
-            return;
-        }
-
-        if (inquiryStarted != true) {
-            System.out.println("Inquiry Failed");
+            System.out.println("Inquiry Failed " + bse);
         }
     }
 
@@ -595,50 +547,42 @@ public class Registry extends ibis.ipl.registry.Registry implements Runnable, Di
         int s, i;
         UUID[] uuidSet = new UUID[1];
         uuidSet[0] = new UUID("2d26618601fb47c28d9f10b8ec891363", false);
-        int[] attrSet = {0x0100, 0x0002};  
-        
+ 
+        scannedDevices.clear();
         discoveredServices.clear();
-
         // Initiate the service search on the remote device
         s = remoteDevices.size();
-        if (s>0){
-            for (i=0; i<s; i++) {
-                RemoteDevice rd = (RemoteDevice) remoteDevices.elementAt(i);
-                try {
-                	discoveryAgent.searchServices(attrSet, uuidSet, rd, (DiscoveryListener)this);
-                    synchronized (serviceSearchSemaphore) {
-                        serviceSearchSemaphore.wait();
-                    }
-                    
-                    if(discoveredServices.size()>0){
-                    	scannedDevices.put(rd, discoveredServices.elementAt(0) );
-                    }
-                } catch (InterruptedException ie) {
-                    // Ignore
-                } catch (BluetoothStateException bse) {
-                    // ...
-                    System.err.println("Service Search Failed");
-                    return;
-                }
-            }
+        //if(s>0)System.out.println("{");
+        for (i=0; i<s; i++) {            	
+        	RemoteDevice rd = (RemoteDevice) remoteDevices.elementAt(i);
+        	try {
+        		discoveredServices.clear();
+        		discoveryAgent.searchServices(null, uuidSet, rd, (DiscoveryListener)this);
+        		synchronized (serviceSearchSemaphore) {
+        			serviceSearchSemaphore.wait();
+        		}
+        		if(discoveredServices.size()>0)
+        			scannedDevices.put(rd, discoveredServices.elementAt(0) );
+
+        	} catch (InterruptedException ie) {
+        		// Ignore
+        	} catch (BluetoothStateException bse) {
+        		// Ignore
+        	}
         }
     }
     
     public void servicesDiscovered(int transID,
             javax.bluetooth.ServiceRecord[] serviceRecord) {
-    	if(serviceRecord != null){
-    		System.out.print("S");    		
-    		for(int i=0;i<serviceRecord.length;i++)
-    			discoveredServices.add(serviceRecord[i].getConnectionURL(0, false));
-    	}
+    	if(serviceRecord != null)
+    		discoveredServices.add(serviceRecord[0].getConnectionURL(0, false));
    }
-    public void serviceSearchCompleted
-            (int transID, int responseCode) {
+    public void serviceSearchCompleted(int transID, int responseCode) {
         synchronized (serviceSearchSemaphore) {
+        	//System.out.println("}");
             serviceSearchSemaphore.notifyAll();
         }
     }
-
     
     public boolean hasTerminated() {
         throw new IbisConfigurationException(
