@@ -58,6 +58,30 @@ public final class IbisFactory {
     private static IbisFactory defaultFactory;
 
     private static final String VERSION = "2.2";
+    
+    private static Properties manifestProperties = new Properties();
+    
+    static {
+        ClassLoader classLoader = IbisFactory.class.getClassLoader();
+        InputStream inputStream = classLoader
+                .getResourceAsStream(IPL_MANIFEST_FILE);
+
+        if (inputStream == null) {
+            System.err.println(
+                    "Warning: could not load properties from manifest property file");
+        } else {
+            try {
+                manifestProperties.load(inputStream);
+            } catch (IOException e) {
+                System.err.println(
+                        "Warning: could not load properties from manifest property file");
+            }
+        }
+    }
+    
+    public static String getManifestProperty(String p) {
+        return manifestProperties.getProperty(p, null);
+    }
 
     private static synchronized IbisFactory getFactory(String implPath,
             Properties properties) {
@@ -682,23 +706,9 @@ public final class IbisFactory {
 
     private void loadIbisesFromManifestFile() {
         try {
-            // Load properties from the classpath
             ClassLoader classLoader = getClass().getClassLoader();
-            // ClassLoader.getSystemClassLoader();
-            InputStream inputStream = classLoader
-                    .getResourceAsStream(IPL_MANIFEST_FILE);
 
-            if (inputStream == null) {
-                System.err
-                        .println("Warning: could not load implementation from manifest property file");
-                return;
-            }
-
-            Properties properties = new Properties();
-
-            properties.load(inputStream);
-
-            String nickNames = properties.getProperty("implementations");
+            String nickNames = manifestProperties.getProperty("implementations");
 
             if (nickNames == null) {
                 System.err
@@ -711,11 +721,11 @@ public final class IbisFactory {
                     continue;
                 }
 
-                String iplVersion = properties.getProperty(nickName
+                String iplVersion = manifestProperties.getProperty(nickName
                         + ".ipl.version", null);
-                String implementationVersion = properties.getProperty(nickName
+                String implementationVersion = manifestProperties.getProperty(nickName
                         + ".version", null);
-                String starterClass = properties.getProperty(nickName
+                String starterClass = manifestProperties.getProperty(nickName
                         + ".starter.class", null);
 
                 if (iplVersion == null || !iplVersion.startsWith(VERSION)

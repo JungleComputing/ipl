@@ -48,10 +48,7 @@ public final class ServerProperties {
 
         if (version == null || version.equals("0.0")) {
             // try to get version from IPL_MANIFEST file
-            TypedProperties properties = new TypedProperties();
-            properties.loadFromClassPath(IbisFactory.IPL_MANIFEST_FILE);
-
-            version = properties.getProperty("support.version");
+            version = IbisFactory.getManifestProperty("support.version");
         }
 
         if (version == null) {

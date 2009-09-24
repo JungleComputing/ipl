@@ -120,12 +120,9 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
         // overwritten with a default implementation version of "0.0". This is
         // not the value we're searching for.
         if (genericVersion == null || genericVersion.equals("0.0")) {
-            // try to get version from IPL_MANIFEST file
-            TypedProperties properties = new TypedProperties();
-            properties.loadFromClassPath(IbisFactory.IPL_MANIFEST_FILE);
-
-            genericVersion = properties.getProperty("implementation.version");
-        }
+            // try to get version from IPL_MANIFEST properties
+            genericVersion = IbisFactory.getManifestProperty("implementation.version");
+         }
 
         logger.debug("Version of Generic Ibis = " + genericVersion);
 
