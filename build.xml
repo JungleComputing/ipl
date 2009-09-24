@@ -215,6 +215,25 @@
                 <attribute name="Ibis-NickName" value="multi" />
             </manifest>
         </jar>
+    	
+        <!-- SNS -->
+
+        <property name="sns.files" value="ibis/ipl/impl/stacking/sns/**/*.class" />
+
+        <checksum totalproperty="sns.checksum">
+            <fileset dir="tmp" includes="${sns.files}" />
+        </checksum>
+
+        <jar destfile="lib/ipl-impl-sns${version-tag}.jar">
+            <fileset dir="tmp" includes="${sns.files}" />
+            <metainf dir="." includes="LICENSE.txt" />
+            <manifest>
+                <attribute name="Ibis-Starter-Class" value="ibis.ipl.impl.stacking.sns.StackingIbisStarter" />
+                <attribute name="Ibis-IPL-Version" value="${version}" />
+                <attribute name="Ibis-Implementation-Version" value="${sns.checksum}" />
+                <attribute name="Ibis-NickName" value="sns" />
+            </manifest>
+        </jar>
 
         <!-- Backup manifest. Used if the jar file manifests cannot be loaded
              for some reason (e.g. on android) -->
@@ -253,6 +272,11 @@
 	    multi.starter.class=ibis.ipl.impl.multi.MultiIbisStarter
 	    multi.ipl.version=${version}
 	    multi.version=${multi.checksum}
+    	
+	    #sns
+    	sns.starter.class=ibis.ipl.impl.stacking.sns.SNSIbisStarter
+    	sns.ipl.version=${version}
+    	sns.version=${sns.checksum}	
 	</echo>
 
         <!-- Add manifest property file to ipl jar -->
