@@ -1,6 +1,6 @@
 <project name="IPL" default="build" basedir=".">
     <description>
-	Build file for Ibis
+        Build file for Ibis
     </description>
 
     <target name="build" description="Build the IPL and its implementations" depends="clean,compile-ipl,examples,benchmarks" />
@@ -12,6 +12,8 @@
     <property name="version-tag" value="-${version}" />
 
     <property name="sources-filename" value="ipl" />
+
+    <property name="sources-zip" value="sources/${sources-filename}.zip" />
 
     <!-- import environment properties -->
     <property environment="env" />
@@ -51,10 +53,10 @@
         </javac>
 
         <!--
-	    Build jar of IPL before rewriting. Otherwise a dependency of
-	    IPL on ibis-io is introduced. A IPL_MANIFEST property file is added
-	    to this jar later (see below)
-	-->
+            Build jar of IPL before rewriting. Otherwise a dependency of
+            IPL on ibis-io is introduced. A IPL_MANIFEST property file is added
+            to this jar later (see below)
+        -->
 
         <jar destfile="lib/ipl${version-tag}.jar">
             <fileset dir="tmp" includes="ibis/ipl/*.class" />
@@ -219,41 +221,41 @@
         <!-- Backup manifest. Used if the jar file manifests cannot be loaded
              for some reason (e.g. on android) -->
         <echo file="tmp/ibis/ipl/IPL_MANIFEST">
-	    support.version=${support.checksum}
-	    implementation.version=${implementation.checksum}
+            support.version=${support.checksum}
+            implementation.version=${implementation.checksum}
 
-	    implementations=smartsockets,tcp,nio,dummy,lrmc
+            implementations=smartsockets,tcp,nio,dummy,lrmc
 
-	    #smartsockets
-	    smartsockets.starter.class=ibis.ipl.impl.smartsockets.SmartSocketsIbisStarter
-	    smartsockets.ipl.version=${version}
-	    smartsockets.version=${smartsockets.checksum}
+            #smartsockets
+            smartsockets.starter.class=ibis.ipl.impl.smartsockets.SmartSocketsIbisStarter
+            smartsockets.ipl.version=${version}
+            smartsockets.version=${smartsockets.checksum}
 
-	    #tcp
-	    tcp.starter.class=ibis.ipl.impl.tcp.TcpIbisStarter
-	    tcp.ipl.version=${version}
-	    tcp.version=${tcp.checksum}
+            #tcp
+            tcp.starter.class=ibis.ipl.impl.tcp.TcpIbisStarter
+            tcp.ipl.version=${version}
+            tcp.version=${tcp.checksum}
 
-	    #nio
-	    nio.starter.class=ibis.ipl.impl.nio.NioIbisStarter
-	    nio.ipl.version=${version}
-	    nio.version=${nio.checksum}
+            #nio
+            nio.starter.class=ibis.ipl.impl.nio.NioIbisStarter
+            nio.ipl.version=${version}
+            nio.version=${nio.checksum}
 
-	    #dummy
-	    dummy.starter.class=ibis.ipl.impl.stacking.dummy.StackingIbisStarter
-	    dummy.ipl.version=${version}
-	    dummy.version=${dummy.checksum}
+            #dummy
+            dummy.starter.class=ibis.ipl.impl.stacking.dummy.StackingIbisStarter
+            dummy.ipl.version=${version}
+            dummy.version=${dummy.checksum}
 
-	    #lrmc
-	    lrmc.starter.class=ibis.ipl.impl.stacking.lrmc.LrmcIbisStarter
-	    lrmc.ipl.version=${version}
-	    lrmc.version=${lrmc.checksum}
+            #lrmc
+            lrmc.starter.class=ibis.ipl.impl.stacking.lrmc.LrmcIbisStarter
+            lrmc.ipl.version=${version}
+            lrmc.version=${lrmc.checksum}
 
-	    #multi
-	    multi.starter.class=ibis.ipl.impl.multi.MultiIbisStarter
-	    multi.ipl.version=${version}
-	    multi.version=${multi.checksum}
-	</echo>
+            #multi
+            multi.starter.class=ibis.ipl.impl.multi.MultiIbisStarter
+            multi.ipl.version=${version}
+            multi.version=${multi.checksum}
+        </echo>
 
         <!-- Add manifest property file to ipl jar -->
         <jar destfile="lib/ipl${version-tag}.jar" update="true">
@@ -333,11 +335,11 @@
 
     <target name="rewritten-clean" description="Clean up rewritten classlibs (except under sym links)">
         <!--
-		If ${rewritten-classlibs} is a sym-link, we let the directory
-		live on. In this case, I suppose the user knows what he is up to.
-		If it isn't a symlink (which is the normal case) go ahead and
-		throw away all your rewritten stuff.	RFHH
-		-->
+            If ${rewritten-classlibs} is a sym-link, we let the directory
+            live on. In this case, I suppose the user knows what he is up to.
+            If it isn't a symlink (which is the normal case) go ahead and
+            throw away all your rewritten stuff.    RFHH
+        -->
         <delete includeEmptyDirs="true">
             <fileset dir="." followsymlinks="false">
                 <include name="classlibs/**" />
@@ -366,9 +368,9 @@
 
     <target name="ipl.zip" depends="build, javadoc, docs">
         <delete file="ipl${version-tag}.zip" />
-        <delete dir="${sources-zip}" />
+        <delete file="${sources-zip}" />
 
-        <zip destfile="sources/${sources-filename}.zip">
+	<zip destfile="${sources-zip}">
             <zipfileset dir="src" includes="**/*.java" prefix="${sources-filename}" />
             <zipfileset dir="." includes="LICENSE.txt" prefix="${sources-filename}" />
         </zip>
