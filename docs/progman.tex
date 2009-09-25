@@ -35,9 +35,10 @@ information, see the Javadoc for Ibis. This is available in the
 \texttt{javadoc} directory of the distribution, and on the website.
 
 This manual is split up into several different sections. First, we will
-explain the different parts of the IPL, the interface to the Ibis
-communication library. Second, we explain how to compile applications
-which use the IPL. Last, we will give some examples 
+explain the different parts of the \emph{Ibis Portability Layer} (IPL),
+the interface to the Ibis communication library.
+Second, we explain how to compile applications
+that use the IPL. Last, we will give some examples 
 to show how to use Ibis in practice.
 
 \section{IPL Overview}
@@ -51,8 +52,8 @@ to show how to use Ibis in practice.
 
 This section will give a high level overview of the different parts of
 the IPL.  For an overview of the design of Ibis, see
-Figure~\ref{design}. The Ibis communication library is build up around
-the \emph{Ibis Portability Layer (IPL)}. This layer offers applications
+Figure~\ref{design}.
+The IPL offers applications
 a grid aware communication library, independent of the actual network
 used. Ibis dynamically selects a suitable implementation at run-time.
 The Ibis communication library ships with several different TCP based
@@ -95,7 +96,7 @@ Figure~\ref{ports} for some examples. Connecting a single send port to a
 single receive port leads to a simple one-to-one connection. However, it is
 also possible to connect a send port to multiple receive ports for a
 one-to-many multicast, or multiple send ports to a single receive port
-for many-to-one client server type communication. Even connecting
+for many-to-one client-server type communication. Even connecting
 multiple send ports to multiple receive ports is possible.
 % although this
 %many-to-many communication model is currently not supported by the
@@ -108,7 +109,7 @@ multiple send ports to multiple receive ports is possible.
 
 Ports in Ibis are typed (see Figure~\ref{port_types}). Types are
 determined by the communication pattern (one-to-one, one-to-many,
-many-to-one, many-to-many), the type of data that can be send,
+many-to-one, many-to-many), the type of data that can be sent,
 reliability, and other aspects. Send ports can only be connected to receive
 ports of the same type. This allows for some sanity checks on the
 application, and allows Ibis to select the most appropriate
@@ -124,11 +125,11 @@ and therefore must be specified in the capabilities of the send port.
 
 %--messages, serialization, bytecode rewriting
 
-Once a connection is established between send and receive ports, data
+When a connection has been established between send and receive ports, data
 can be sent. Send and receive ports in Ibis communicate using
 messages. A so called \emph{write message} is created at the send port,
 and can be filled with all primitive data types of Java such as bytes, integers
-and strings, as well as more complex data structures in the form of
+and floats, as well as more complex data structures in the form of
 Java \texttt{Objects}. Also, arrays of primitive types and objects can be
 sent. When the user is done writing data to a message, a \texttt{finish}
 method must be called to denote that the message has been completed.
@@ -156,7 +157,7 @@ To be able send an Object, this object must implement the
 for more information on serialization.
 
 Two different object serialization versions are available in Ibis. One is
-the standard Java object serialization, the other a high-performance
+the standard Java object serialization, the other is a high-performance
 implementation of object serialization. For this high-performance
 \emph{Ibis Serialization} implementation to work, an extra step is needed
 when compiling the application, where some extra code is generated to
@@ -170,11 +171,11 @@ more information.
 Each Ibis instance is a member of a \emph{Pool}. The Ibis
 \emph{Registry} keeps track of all the members of the pool, and notifies
 all Ibises whenever a new Ibis instance joins this pool, leaves the
-pool, or even when a Ibis dies unexpectedly. Applications can use the
+pool, or even when an Ibis dies unexpectedly. Applications can use the
 registry mechanism to get notified of any changes to the pool.
 
 The Ibis registry also supports \emph{elections}, which can be used to
-select Ibis instances which are special such as servers.  Each election
+select Ibis instances which are special, such as servers.  Each election
 has a unique name in the form of a String, and will elect a winner from
 the candidates for this election. However, elections results are not determined 
 by majority vote:
@@ -253,7 +254,7 @@ available, and if the same election is done at two different Ibises, the
 result may be different at one instance from the result at another instance.
 
 \item[ELECTIONS\_STRICT]
-Indicates elections are supported, and they adhere to the following 
+Indicates that elections are supported, and they adhere to the following 
 consistency model: Each election has a single, unique winner at any
 given point in time, and all Ibis instances in a pool get all updates
 to the election result, and in the same order.
@@ -289,29 +290,29 @@ serialization (bytes only, primitive types, objects, etc).
 One-to-one (unicast) communication is supported.
 
 \item[CONNECTION\_ONE\_TO\_MANY]
-one-to-many (multicast) communication is supported
+One-to-many (multicast) communication is supported
 (in Ibis terms: a send port
 may connect to multiple receive ports).
 
 \item[CONNECTION\_MANY\_TO\_ONE]
-many-to-one communication is supported (in Ibis terms: multiple
+Many-to-one communication is supported (in Ibis terms: multiple
 send ports may connect to a single receive port).
 
 \item[CONNECTION\_MANY\_TO\_MANY]
-many-to-one communication is supported (in Ibis terms: multiple
+Many-to-one communication is supported (in Ibis terms: multiple
 send ports may connect to multiple receive ports).
 
 \item[CONNECTION\_DOWNCALLS]
-connection downcalls are supported. This means that the user can
+Connection downcalls are supported. This means that the user can
 invoke methods to see which connections were lost or created.
 
 \item[CONNECTION\_UPCALLS]
-connection upcalls are supported. This means that an upcall handler can
+Connection upcalls are supported. This means that an upcall handler can
 be installed that is invoked whenever a new connection arrives or a
 connection is lost.
 
 \item[CONNECTION\_TIMEOUT]
-Enabled the usage of timeouts in connection attempts.
+Enables the usage of timeouts in connection attempts.
 
 \item[RECEIVE\_EXPLICIT]
 Explicit receive is supported. A message can be received by directly
@@ -355,7 +356,7 @@ supported in read and write messages.
 \item[SERIALIZATION\_DATA]
 Only \texttt{read()}, \texttt{write()}, 
 \texttt{readArray()} and \\
- \texttt{writeArray()} of primitive types are
+\texttt{writeArray()} of primitive types are
 supported in read an write messages.
 
 \item[SERIALIZATION\_OBJECT]
@@ -384,10 +385,11 @@ of objects is not supported.
 \label{properties}
 
 Properties are used in Ibis for setting configuration options at
-run-time. Where to find the Ibis Implementations, for example, or the name
-of the pool the Ibis must join. Properties can be passed to an Ibis when it is
-created, but Ibis can also add properties specified on the command line
-by default. See the user's guide for more information on the various
+run-time. They may be used to specify for example where to find the
+Ibis implementations, or the name of the pool this Ibis must join.
+Properties can be passed to an Ibis when it is
+created, but by default, properties specified on the command line
+are used. See the user's guide for more information on the various
 properties of Ibis and their usage.
 
 \section{Compiling applications}
@@ -396,7 +398,7 @@ properties of Ibis and their usage.
 %-- add ipl.jar to classpath, rewrite using iplc, example ant build file.
 
 Applications that use Ibis can be compiled as any normal Java
-application. The file \texttt{ipl-2.1.jar} needs to be added to the
+application. The file \texttt{ipl-2.2.jar} needs to be added to the
 classpath when compiling (and running) an Ibis application. For the
 serialization of Ibis to function correctly, one additional step is
 required after compiling: the code for writing and reading objects must
@@ -418,7 +420,7 @@ distribution. The relevant piece of the script is this:
       taskname="Ibisc"
       failonerror="true"
       fork="true">
-          <arg line="ipl-examples-2.1.jar" />
+          <arg line="ipl-examples-2.2.jar" />
           <classpath refid="default.classpath" />
 </java>
 \end{verbatim}

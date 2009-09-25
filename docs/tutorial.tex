@@ -91,8 +91,8 @@ determined using an election.
 
 The application is split up into several parts. First, the capabilities
 needed from Ibis are defined in two global variables. At the very bottom
-of the file is the \texttt{main} method. Main creates a object of this
-type, and calls \texttt{run} on this object. Run initializes Ibis, and
+of the file is the \texttt{main} method. Main creates a Hello object
+and invokes \texttt{run} on it. Run initializes Ibis, and
 determines if this is the client or the server. It then calls either the
 \texttt{server} or the \texttt{client} method.
 
@@ -105,14 +105,14 @@ suitable for this application.
 
 The constructor of the \texttt{PortType} class requires us to specify
 which capabilities we want to set. We select
-\texttt{COMMUNICATION\_RELIABLE} so we are sure the message will arrive
-and \texttt{SERIALIZATION\_DATA} so we are able to send primitive types,
+\texttt{COMMUNICATION\_RELIABLE}, which makes sure the message will arrive
+and \texttt{SERIALIZATION\_DATA}, which allows us to send primitive types,
 not only bytes, since we want to send a string. \texttt{RECEIVE\_EXPLICIT}
-denotes we are going to explicitly call the \texttt{receive()} method of
+denotes that we are going to explicitly call the \texttt{receive()} method of
 the receive port, and finally \texttt{CONNECTION\_ONE\_TO\_ONE} selects
 the simplest communication pattern, where a single send port is connected
 to a single receive port.
-Next, we also need a list of all the capabilities we need from our Ibis
+Next, we also need a list of all the capabilities we need from Ibis
 itself. Since we would like to use reliable elections, we include
 \texttt{ELECTIONS\_STRICT}.
 
@@ -154,7 +154,7 @@ be used to connect to this port. We name our port "server".
 After a receive port has been created, it does not automatically start
 handling new connections. This allows an application to initialize
 itself properly before any connections come in from other Ibises. Since
-we don't have anything else to initialize we simple enable incoming
+we don't have anything else to initialize we simply enable incoming
 connections immediately using the \texttt{enableConnections} method on
 line 17.
 
@@ -204,7 +204,7 @@ public class HelloUpcall implements MessageUpcall {
     ...
 
     /**
-     * Function called by Ibis to give us a newly arrived message
+     * Function called by Ibis to give us a newly arrived message.
      */
     public void upcall(ReadMessage message) throws IOException {
         String s = message.readString();
@@ -306,7 +306,15 @@ public class RegistryUpcalls implements RegistryEventHandler {
     public void electionResult(String electionName, IbisIdentifier winner) {
         // NOTHING
     }
-    
+
+    public void poolClosed() {
+        // NOTHING
+    }
+
+    public void poolTerminated(IbisIdentifier source) {
+	// NOTHING
+    }
+
     private void run() throws Exception {
         // Create an ibis instance, pass ourselves as the event handler
         Ibis ibis = IbisFactory.createIbis(ibisCapabilities, this);
@@ -344,25 +352,30 @@ capability is specified (lines 7-8). This enables the membership
 management features of Ibis.
 
 The \texttt{main} method of this application creates an object for this
-application, and calls the \texttt{run} method defined on lines 34-44.
-This method creates an Ibis on line 36. In this call, two things are
+application, and calls the \texttt{run} method defined on lines 42-52.
+This method creates an Ibis on line 44. In this call, two things are
 passed. First, the capabilities of this Ibis, in this case only the
 single capability. Second, a \texttt{RegistryEventHandler} needs to be
 passed to automatically receive registry events such as joins and leaves
 of Ibis instances. We pass ourselves as the event handler. The class
 implements the \texttt{RegistryEventHandler} interface defined in the
-IPL. This interface consists of 5 methods. These methods are implemented
-on lines 13 to 32 in this example. Wherever a new Ibis joins the pool,
+IPL. This interface consists of 7 methods. These methods are implemented
+on lines 13 to 40 in this example. Wherever a new Ibis joins the pool,
 the \texttt{joined} method is called by the registry. Likewise, when a
 Ibis leaves the pool, or when it crashes the \texttt{left} or
 \texttt{died} methods are called. In this example, all these events are
 handled by simply printing out the event that occurred.
 
-The last two methods, \texttt{gotSignal} and \texttt{electionResult} are
+The next two methods, \texttt{gotSignal} and \texttt{electionResult}, are
 not implemented here, since we have not enabled signals or elections.
 However, if we added signals and election to our capabilities, these
 methods would be called whenever a signal was received or a new election
 result was available.
+
+The last two methods,
+\texttt{poolClosed} and \texttt{poolTerminated}, are
+also not implemented here, since we have not enabled the CLOSED\_WORLD
+capability, not the TERMINATION capability.
 
 This application uses upcalls to receive the events of the registry.
 However, it is also possible to poll the registry. By enabling a
@@ -377,11 +390,11 @@ application, see the \texttt{RegistryDowncalls} example application.
 The Ibis distribution also contains some other examples. These include
 a \texttt{OneToMany} example showing a simple broadcast application, and a
 \texttt{ManyToOne} example which resembles the HelloUpcall application,
-but with multiple client.
+but with multiple clients.
 
-The last, application in the \texttt{example} directory is
+The last application in the \texttt{example} directory is
 the \texttt{ClientServer} application. This application uses object
 serialization and multiple port types to implement a time server demo.
-It also shows the usage of an \emph{ReceivePortIdentifier}. Instead of
-passing the Ibis and name of a receive port when connection, a user can
-also pass the unique identifier of a receiver port directly.
+It also shows the usage of a \emph{ReceivePortIdentifier}. Instead of
+passing the Ibis and name of a receive port when connecting, a user can
+instead pass the unique identifier of a receiver port directly.
