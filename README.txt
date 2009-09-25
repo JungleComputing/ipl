@@ -27,11 +27,10 @@ The javadoc of Ibis is available in "javadoc/index.html".
 Ibis has its own web-site: http://www.cs.vu.nl/ibis/.  There, you can
 find more Ibis documentation, papers, application sources.
 
-The latest Ibis source repository tree is accessible through SVN at
-"https://gforge.cs.vu.nl/svn/ibis/ibis/trunk".  You need an account on
-https://gforge.cs.vu.nl/ to access the repositories there. You can
-create an account by clicking the 'New Account' button on the
-https://gforge.cs.vu.nl/ page.
+The current Ibis source repository tree is accessible through SVN at
+"https://gforge.cs.vu.nl/svn/ibis/ibis/trunk".  You can check it
+out anonymously using the command
+"svn checkout https://gforge.cs.vu.nl/svn/ibis/ibis/trunk ibis".
 
 The file BUGS.txt contains information for filing bug reports.
 
