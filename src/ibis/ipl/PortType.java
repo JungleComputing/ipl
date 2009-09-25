@@ -67,7 +67,7 @@ public final class PortType extends CapabilitySet {
 
     /**
      * This capability describes that lightweight connection setup is used.  
-     * Lightweight connections are cheaper to create and often uses less kernel 
+     * Lightweight connections are cheaper to create and often use less kernel 
      * resources. On the downside, they are likely to have a higher latency and 
      * lower throughput.  
      * @ibis.experimental
@@ -78,7 +78,7 @@ public final class PortType extends CapabilitySet {
      * This capability describes that ultra-lightweight connection setup is used.  
      * These connections are even cheaper to create and maintain than lightweight 
      * connections. They are not reliable, however, and can not be combined with 
-     * connection ip/downcalls. In addition, a maximum message size may be imposed.
+     * connection up/downcalls. In addition, a maximum message size may be imposed.
      * @ibis.experimental
      */
     public final static String CONNECTION_ULTRALIGHT = CONNECTION + ".ultralight";
@@ -87,7 +87,7 @@ public final class PortType extends CapabilitySet {
      * This capability describes that -only- direct connection setup is used.  
      * This prevents ibis from using any connection setup scheme that does not 
      * result in a direct connection between the two machines. Note that using 
-     * this option may severly restric the connectivity of an ibis instance. 
+     * this option may severely restrict the connectivity of an ibis instance. 
      * @ibis.experimental 
      */
     public final static String CONNECTION_DIRECT = CONNECTION + ".direct";
