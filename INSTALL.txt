@@ -54,9 +54,10 @@ Mac OS X
 
 Windows 2000, Windows XP
     Install a recent Java SDK, at least 1.5. This will get installed in
-    for instance "c:\Program Files\Java\jdk1.5.0". You can set the
-    JAVA_HOME environment variable to this path by going to the
-    Control Panel, System, the "Advanced" tab, Environment variables,
+    for instance "c:\Program Files\Java\jdk1.5.0".
+
+    You can set the JAVA_HOME environment variable to this path by going to
+    the Control Panel, System, the "Advanced" tab, Environment variables,
     add it there and reboot your system. IPL_HOME can be set
     similarly.
 
