@@ -282,14 +282,12 @@
 
     <target name="examples" description="Build examples">
         <ant dir="examples" inheritAll="false" target="build">
-            <property name="version-tag" value="${version-tag}" />
         </ant>
 
     </target>
 
     <target name="benchmarks" description="Build examples">
         <ant dir="benchmarks" inheritAll="false" target="build">
-            <property name="version-tag" value="${version-tag}" />
         </ant>
     </target>
 
