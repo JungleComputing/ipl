@@ -32,7 +32,7 @@ public class HelloUpcall implements MessageUpcall {
     boolean finished = false;
 
     /**
-     * Function called by Ibis to give us a newly arrived message
+     * Function called by Ibis to give us a newly arrived message.
      * 
      * @param message
      *            the message
