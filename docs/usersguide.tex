@@ -86,9 +86,10 @@ directory, on the class path, and at a location specified with the
 
 \subsection{Add ipl.jar to the class path}
 
-An application interfaces to Ibis using the Ibis Portability Layer, or
-\emph{IPL}. The code for this package is provided in a single jar file:
-ipl.jar, appended with the version of ibis, for instance \texttt{ipl-2.1.jar}.
+An application interfaces to Ibis using the \emph{Ibis Portability Layer} (IPL).
+The code for this package is provided in a single jar file:
+ipl.jar, appended with the version of ibis, for instance \texttt{ipl-2.2.jar}.
+It lives in the \emph{lib} directory of the Ibis distribution.
 This jar file needs to be added to the class path of the application.
 
 \subsection{Provide the Ibis implementations}
@@ -108,16 +109,22 @@ The \texttt{ibis.implementation.path} property is a list of directories,
 separated by the default path separator of your operating system. In
 Unix, this is the \texttt{:} character, in Windows it is a \texttt{;}.
 
-\subsection{Configure Log4j}
+\subsection{Logging}
 
-Ibis uses the Log4J library of the Apache project to print debugging
-information, warnings, and error messages. This library must be
+By default, Ibis uses the Log4J library of the Apache project to print
+debugging information, warnings, and error messages. This library must be
 initialized. A configuration file can be specified using the
 \texttt{log4j.configuration} system property. For example, to use a file
 named \texttt{log4j.properties} in the current directory, use the
 following command line option:
 \texttt{-Dlog4j.configuration=file:log4j.properties} . For more info,
 see the log4j website \footnote{\url{http://logging.apache.org/log4j}}.
+
+It is possible to use other logging systems, since Ibis in fact uses
+Slf4J, which supports various logging systems. In order to use another
+logging system, the corresponding jars (both the logging system and the
+mapping from slf4j to that logging system) need to be specified on the
+classpath.
 
 \subsection{Set the location of the server and hubs}
 
@@ -126,7 +133,7 @@ of the Ibis server. This address must be specified by using the
 \texttt{ibis.server.address} system property. The full address needed is 
 printed on start up of the Ibis server. 
 
-For convenience, it is also possible to only provide an address, port number 
+For convenience, it is also possible to only provide a hostname, port number 
 pair, e.g. \texttt{machine.domain.com:5435} or even simply a host, e.g. 
 \texttt{localhost}. In this case, the default port number (8888) is implied. 
 The port number provided must match the one given to the Ibis server
@@ -151,8 +158,9 @@ each pool must have a unique name.
 It is possible for pools to have a fixed size. In these so-called \emph{closed
 world} pools, the number of Ibises in the pool is also needed to function 
 correctly. This size must be set using the \texttt{ibis.pool.size} property. 
-This property is normally not needed. When it is needed, but not provided, Ibis 
-will print an error.
+This property is only needed for closed-world pools.
+When it is needed, but not provided, Ibis will throw an exception when it
+is created.
 
 \section{The ipl-run script}
 
@@ -199,7 +207,7 @@ from the \texttt{lib} directory of the distribution to the class path.
 
 \subsection{Running the example on Unix-like systems}
 
-We will now run the example. All code below assumes the IPL\_HOME
+We will now run the example. All code below assumes that the IPL\_HOME
 environment variable is set to the location of the Ibis distribution.
 
 First, we will need a ipl-server. Start a shell and
@@ -223,7 +231,7 @@ and server. Run the following command in two different shells:
 \noindent
 {\small
 \begin{verbatim}
-$ CLASSPATH=$IPL_HOME/examples/lib/ipl-examples-2.1.jar \
+$ CLASSPATH=$IPL_HOME/examples/lib/ipl-examples.jar \
     $IPL_HOME/bin/ipl-run \
     -Dibis.server.address=localhost -Dibis.pool.name=test \
     ibis.ipl.examples.Hello
@@ -246,7 +254,7 @@ the application without ipl-run, the following command can be used:
 \begin{verbatim}
 $ java \
     -cp \
-    $IPL_HOME/lib/ipl-2.1.jar:$IPL_HOME/examples/lib/ipl-examples-2.1.jar \
+    $IPL_HOME/lib/ipl-2.2.jar:$IPL_HOME/examples/lib/ipl-examples.jar \
     -Dibis.implementation.path=$IPL_HOME/lib \
     -Dibis.server.address=localhost \
     -Dibis.pool.name=test \
@@ -292,7 +300,7 @@ line.
 \noindent
 {\small
 \begin{verbatim}
-C:\DOCUME~1\Temp> set CLASSPATH=%IPL_HOME%\examples\lib\ipl-examples-2.1.jar
+C:\DOCUME~1\Temp> set CLASSPATH=%IPL_HOME%\examples\lib\ipl-examples.jar
 C:\DOCUME~1\Temp> "%IPL_HOME%"\bin\ipl-run
     "-Dibis.server.address=localhost" "-Dibis.pool.name=test"
     ibis.ipl.examples.Hello
@@ -316,7 +324,7 @@ This should just be a single line.
 {\small
 \begin{verbatim}
 C:\DOCUME~1\Temp> java
-    -cp "%IPL_HOME%"\lib\ipl-2.1.jar;"%IPL_HOME%"\examples\lib\ipl-examples-2.1.jar
+    -cp "%IPL_HOME%"\lib\ipl-2.2.jar;"%IPL_HOME%"\examples\lib\ipl-examples.jar
     -Dibis.implementation.path="%IPL_HOME%"\lib
     -Dlog4j.configuration=file:"%IPL_HOME%"\log4j.properties
     -Dibis.server.address=localhost -Dibis.pool.name=test
