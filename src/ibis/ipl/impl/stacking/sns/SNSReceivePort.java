@@ -20,6 +20,7 @@ import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.impl.stacking.sns.util.SNS;
+import ibis.ipl.impl.stacking.sns.util.SNSID;
 
 public class SNSReceivePort implements ReceivePort{
 	
@@ -59,9 +60,9 @@ public class SNSReceivePort implements ReceivePort{
 		public boolean gotConnection(ReceivePort me, SendPortIdentifier applicant) {
 			IbisIdentifier id = applicant.ibisIdentifier();
 			
-			if(ibis.allowedIbisIdent.contains(id)) {
+			if(ibis.allowedIbisIdent.contains(id) ){//&& SNSAuthenticationCheck(id)) {
 				if(upcaller == null) {
-					return true;
+					return true;					
 				}
 				else {
 					return upcaller.gotConnection(port, applicant);
@@ -69,36 +70,25 @@ public class SNSReceivePort implements ReceivePort{
 			}
 			else {
 				return false;					
-			}
-			
-			/*
-			
-			
-			System.out.println(applicantID.getSNSAlias("Facebook"));
-
-			if(ibis.allowedSendPort.contains(id)) {
-				result = true;
-			}
-			else {
-				//GET IBIS IDENTIFIER FROM SNS
-				SNSAuthenticationCheck();
-
-				if(ibis.allowedSendPort.contains(id)) {
-					result = true;
-				}
-				else {
-					result = false;
-				}
-			}
-			 */
-			
+			}	
 		}
 		
 		public void lostConnection(ReceivePort me, SendPortIdentifier johnDoe, Throwable reason) {
 		    upcaller.lostConnection(port, johnDoe, reason);
 		}
     }
+     	/*   
+    public static boolean SNSAuthenticationCheck(IbisIdentifier id){
+    	SNSID snsId = new SNSID(null);
+    	snsId.readByteArray(id.tag());
 
+		if (ibis.sns.getAuthenticationRequest() == snsId.getKey())
+			return true;
+		else     	
+			return false;
+    	
+    }
+		*/
 	@Override
 	public void close() throws IOException {
 		base.close();	
