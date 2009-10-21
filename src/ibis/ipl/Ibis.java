@@ -8,6 +8,34 @@ import java.util.Properties;
 /**
  * The starting point of all Ibis communication, created using the
  * {@link ibis.ipl.IbisFactory}.
+ * 
+ * The following {@link Manageable} items are recognized:
+ * <TABLE border="2" frame="box" rules="groups" summary="manageable items">
+ * <CAPTION>Manageable items</CAPTION> <COLGROUP align="left">  <COLGROUP align="left">
+ * <TBODY>
+ * <TR>
+ * <TD> "outgoingMessageCount"
+ * <TD> the number of messages sent
+ * <TR>
+ * <TD> "bytesWritten"
+ * <TD> the number of bytes sent in messages (multicasts are counted once)
+ * <TR>
+ * <TD> "bytesSent"
+ * <TD> the total number of bytes sent
+ * <TR>
+ * <TD> "incomingMessageCount"
+ * <TD> the number of messages received
+ * <TR>
+ * <TD> "bytesReceived"
+ * <TD> the number of bytes received in messages
+ * <TR>
+ * <TD> "bytesRead"
+ * <TD> the total number of bytes received
+ * <TR></TBODY> </TABLE> 
+ * 
+ * All these properties are long values, returned as a string.
+ *
+ * Other items may be recognized, depending on the Ibis implementation.
  */
 public interface Ibis extends Manageable {
     

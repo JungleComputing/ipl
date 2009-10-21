@@ -100,7 +100,7 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
     private long bytesWritten = 0;
 
     /** Total number of bytes send by closed send ports */
-    private long bytesSend = 0;
+    private long bytesSent = 0;
 
     /** Total number of bytes read by closed receive ports */
     private long bytesReceived = 0;
@@ -295,7 +295,7 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
         if (sendPorts.remove(p.name) != null) {
             // add statistics for this sendport to "total" statistics
             outgoingMessageCount += p.getMessageCount();
-            bytesSend += p.getBytesSend();
+            bytesSent += p.getBytesSent();
             bytesWritten += p.getBytesWritten();
         }
     }
@@ -556,12 +556,12 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
         return outgoingMessageCount;
     }
 
-    public synchronized long getBytesSend() {
-        long bytesSend = this.bytesSend;
+    public synchronized long getBytesSent() {
+        long bytesSend = this.bytesSent;
 
         // also add numbers for current send ports
         for (SendPort sendPort : sendPorts.values()) {
-            bytesSend += sendPort.getBytesSend();
+            bytesSend += sendPort.getBytesSent();
         }
 
         return bytesSend;
@@ -644,7 +644,7 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
         // put gathered statistics in the map
         result.put("outgoingMessageCount", "" + getOutgoingMessageCount());
         result.put("bytesWritten", "" + getBytesWritten());
-        result.put("bytesSend", "" + getBytesSend());
+        result.put("bytesSent", "" + getBytesSent());
         result.put("incomingMessageCount", "" + getIncomingMessageCount());
         result.put("bytesReceived", "" + getBytesReceived());
         result.put("bytesRead", "" + getBytesRead());
@@ -653,13 +653,13 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
     }
 
     public void printManagementProperties(PrintStream stream) {
-        stream.format("Messages Send: %d\n", getOutgoingMessageCount());
+        stream.format("Messages Sent: %d\n", getOutgoingMessageCount());
 
         double mbWritten = getBytesWritten() / 1024.0 / 1024.0;
         stream.format("Data written to messages: %.2f Mb\n", mbWritten);
 
-        double mbSend = getBytesSend() / 1024.0 / 1024.0;
-        stream.format("Data send out on network: %.2f Mb\n", mbSend);
+        double mbSent = getBytesSent() / 1024.0 / 1024.0;
+        stream.format("Data sent out on network: %.2f Mb\n", mbSent);
 
         stream.format("Messages Received: %d\n", getIncomingMessageCount());
 
