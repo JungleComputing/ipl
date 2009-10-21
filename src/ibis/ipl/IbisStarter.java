@@ -105,6 +105,10 @@ public abstract class IbisStarter {
         return implementationVersion;
     }
 
+    /**
+     * Returns a short name of this implementation.
+     * @return a short name.
+     */
     public String toString() {
         return nickName;
     }

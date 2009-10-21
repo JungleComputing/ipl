@@ -47,14 +47,12 @@ When a ReceivePort is no longer used it must be closed using the
 {@link ibis.ipl.ReceivePort#close() close} method.  This call will block until
 connections to SendPorts are disconnected (by the SendPorts).
 <p>
-A {@link ibis.ipl.WriteMessage message} can be send from an SendPort to the
+A {@link ibis.ipl.WriteMessage message} can be sent from an SendPort to the
 set of ReceivePorts it is connected to.
 To do this, a {@link ibis.ipl.WriteMessage} write message is obtained from the
 SendPort (this allows streaming, as the destination is known).
 Data can be added to the message using "write" methods (this data may be
 immediately streamed to the ReceivePorts) of this message.
-the write message can be send using a {@link ibis.ipl.WriteMessage#send() send} method.
-This allows the Ibis system to asynchronously start sending the message.
 The message can be finished using the {@link ibis.ipl.WriteMessage#finish() finish} method.
 When the finish returns, all data has been copied (and now may be changed),
 and the message may no longer be used.
@@ -71,7 +69,7 @@ message is delivered when the {@link ibis.ipl.ReceivePort#receive() receive}
 method is called. When the message is
 no longer used it MUST be returned to the system using the
 {@link ibis.ipl.ReadMessage#finish() finish} method
-(after which the message may no longer be used). This is
-done to free possible resources in the underlying implementation, as
-waiting for the GC may take too long.
+(after which the message may no longer be used).
+This allows
+the underlying implementation to deliver a next message.
 </body>

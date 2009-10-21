@@ -320,6 +320,10 @@ public class CapabilitySet {
         codedForm = computeCodedForm();
     }
 
+    /**
+     * Returns a string representation of this capability.
+     * @return a string representation.
+     */
     public String toString() {
         StringBuffer result = new StringBuffer();
         String append = "";

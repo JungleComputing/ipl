@@ -42,21 +42,30 @@ import java.util.Map;
  * This is done to prevent flow control problems.  When a
  * message is alive, and a new message is requested, the request
  * blocks until the live message is finished.
- *
+ * 
  * The following {@link Manageable} items are recognized:
- * <br>
- * "Messages"  the number of messages sent;
- * <br>
- * "MessageBytes" the number of bytes sent in messages (multicasts are counted
- * once);
- * <br>
- * "Bytes" the total number of bytes sent;
- * <br>
- * "Connections" the total number of connections made with this port;
- * <br>
- * "LostConnections" the number of lost connections;
- * <br>
- * "ClosedConnections" the number of closed or disconnected connections;
+ * <TABLE border="2" frame="box" rules="groups" summary="manageable items">
+ * <CAPTION>Manageable items</CAPTION> <COLGROUP align="left">  <COLGROUP align="left">
+ * <TBODY>
+ * <TR>
+ * <TD> "Messages"
+ * <TD> the number of messages sent
+ * <TR>
+ * <TD> "MessageBytes"
+ * <TD> the number of bytes sent in messages (multicasts are counted once)
+ * <TR>
+ * <TD> "Bytes"
+ * <TD> the total number of bytes sent
+ * <TR>
+ * <TD> "Connections"
+ * <TD> the total number of connections made with this port
+ * <TR>
+ * <TD> "LostConnections"
+ * <TD> the number of lost connections
+ * <TR>
+ * <TD> "ClosedConnections"
+ * <TD> the number of closed or disconnected connections
+ * <TR></TBODY> </TABLE> 
  * 
  * All these properties are long values, returned as a string.
  *

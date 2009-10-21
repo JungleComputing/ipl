@@ -23,8 +23,8 @@ import java.io.IOException;
  * If no {@link ReceivePortConnectUpcall} is registered, the user is NOT
  * informed of connections that are created or lost.
  * If the port supports connection downcalls, the user can
- * use the {@link #lostConnections()} * method to poll for connections that
- * are lost,  and the {@link #newConnections()}  method to find out about new
+ * use the {@link #lostConnections()} method to poll for connections that
+ * are lost,  and the {@link #newConnections()} method to find out about new
  * connections.
  *
  * Only one upcall is alive at any one time, this includes BOTH
@@ -37,19 +37,28 @@ import java.io.IOException;
  * is always destroyed when it is finished.
  *
  * The following {@link Manageable} items are recognized:
- * <br>
- * "Messages"  the number of messages received;
- * <br>
- * "MessageBytes" the number of bytes received in messages;
- * <br>
- * "Bytes" the total number of bytes received;
- * <br>
- * "Connections" the total number of connections received with this port;
- * <br>
- * "LostConnections" the number of lost connections;
- * <br>
- * "ClosedConnections" the number of closed connections.
- * 
+ * <TABLE border="2" frame="box" rules="groups" summary="manageable items">
+ * <CAPTION>Manageable items</CAPTION> <COLGROUP align="left">  <COLGROUP align="left">
+ * <TBODY>
+ * <TR>
+ * <TD> "Messages"
+ * <TD> the number of messages received
+ * <TR>
+ * <TD> "MessageBytes"
+ * <TD> the number of bytes received in messages
+ * <TR>
+ * <TD> "Bytes"
+ * <TD> the total number of bytes received
+ * <TR>
+ * <TD> "Connections"
+ * <TD> the total number of connections received with this port
+ * <TR>
+ * <TD> "LostConnections"
+ * <TD> the number of lost connections
+ * <TR>
+ * <TD> "ClosedConnections"
+ * <TD> the number of closed connections
+ * <TR></TBODY> </TABLE>
  * All these properties are long values, returned as a string.
  *
  * Other items may be recognized, depending on the Ibis implementation.
