@@ -1,6 +1,7 @@
 package ibis.ipl.support;
 
 import ibis.io.Conversion;
+import ibis.io.IOProperties;
 import ibis.ipl.impl.IbisIdentifier;
 import ibis.smartsockets.virtual.VirtualServerSocket;
 import ibis.smartsockets.virtual.VirtualSocket;
@@ -74,9 +75,9 @@ public final class Connection {
         socket.setTcpNoDelay(true);
 
         out = new DataOutputStream(new BufferedOutputStream(socket
-                .getOutputStream()));
+                .getOutputStream(), IOProperties.BUFFER_SIZE));
         counter = new CountInputStream(new BufferedInputStream(socket
-                .getInputStream()));
+                .getInputStream(), IOProperties.BUFFER_SIZE));
         in = new DataInputStream(counter);
 
         logger.debug("connection to " + address + " established");
@@ -92,10 +93,10 @@ public final class Connection {
         socket.setTcpNoDelay(true);
 
         counter = new CountInputStream(new BufferedInputStream(socket
-                .getInputStream()));
+                .getInputStream(), IOProperties.BUFFER_SIZE));
         in = new DataInputStream(counter);
         out = new DataOutputStream(new BufferedOutputStream(socket
-                .getOutputStream()));
+                .getOutputStream(), IOProperties.BUFFER_SIZE));
         logger.debug("new connection from " + socket.getRemoteSocketAddress()
                 + " accepted");
     }
