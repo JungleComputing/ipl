@@ -2,12 +2,14 @@ package ibis.util;
 
 import java.util.Properties;
 
-public class UtilProperties extends TypedProperties {
+/**
+ * A properties object for this package.
+ */
+class UtilProperties extends TypedProperties {
 
     private static final long serialVersionUID = 1L;
 
-    private static String[] prefs = { "ibis.util.ip.", "ibis.util.monitor.",
-            "ibis.util.socketfactory." };
+    private static String[] prefs = { "ibis.util.ip.", "ibis.util.monitor." };
  
     /** Constructs an empty typed properties object. */
     public UtilProperties() {
