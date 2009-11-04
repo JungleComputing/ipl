@@ -5,7 +5,7 @@ import java.io.ObjectStreamClass;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
-public class SunJavaStuff extends JavaDependantStuff {
+class SunJavaStuff extends JavaDependantStuff {
 
     /** newInstance method of ObjectStreamClass, if it exists. */
     private static Method newInstance = null;
@@ -100,7 +100,7 @@ public class SunJavaStuff extends JavaDependantStuff {
      * @exception IOException
      *                    is thrown when an IO error occurs.
      */
-    void setFieldDouble(Object ref, String fieldname, double d)
+    public void setFieldDouble(Object ref, String fieldname, double d)
             throws IOException {
         try {
             Field f = clazz.getDeclaredField(fieldname);

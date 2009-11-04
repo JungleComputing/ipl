@@ -14,7 +14,7 @@ import java.lang.reflect.Modifier;
  * latest stable Harmony release at the time of this writing
  * (apache-harmony-src-r681495).
  */
-public class DalvikJavaStuff extends JavaDependantStuff {
+class DalvikJavaStuff extends JavaDependantStuff {
     
     private static final Class<?>[] EMPTY_CLASS_ARRAY = new Class[0];
     
