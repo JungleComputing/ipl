@@ -1,5 +1,16 @@
 Here is a list of Ibis releases.
 
+2.2 (???)
+   Many changes and fixes. There now is a separate smartsockets Ibis,
+   which is the default Ibis.
+   From the applications point-of-view, the RegistryEventHandler
+   now has some new methods, a.o. when a pool is closed or terminates.
+   This affects all applications that implement a RegistryEventHandler,
+   because they have to implement the new methods, possibly with an
+   empty body.
+   There are also various experimental changes that may or may not
+   re-appear in later editions. These are all clearly marked in the javadoc.
+
 2.1.1 (16 May 2008)
    Fixes a couple of bugs in release 2.1, and ibis-server now supports
    getting statistics from services.
