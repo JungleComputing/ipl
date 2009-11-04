@@ -41,6 +41,10 @@ public class Ibisc {
 
     private static ArrayList<IbiscComponent> ibiscComponents
             = new ArrayList<IbiscComponent>();
+    
+    private Ibisc() {
+        // prevent construction.
+    }
 
     private static void getClassesFromDirectory(File f, String prefix) {
         File[] list = f.listFiles();

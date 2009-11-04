@@ -52,6 +52,10 @@ public abstract class IbiscComponent {
             throw new UnsupportedOperationException();
         }
     }
+    
+    protected IbiscComponent() {
+        super();
+    }
 
     void setWrapper(ByteCodeWrapper w) {
         wrapper = w;

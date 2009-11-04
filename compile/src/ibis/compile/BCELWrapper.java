@@ -22,6 +22,10 @@ public class BCELWrapper implements ByteCodeWrapper {
     private HashMap<String, BCELClassInfo> javaClasses
             = new HashMap<String, BCELClassInfo>();
 
+    /**
+     * Constructs a BCEL implementation object for the <code>ByteCodeWrapper</code> interface.
+     * @param args list of classpath elements.
+     */
     public BCELWrapper(List<String> args) {
         String classPath = ClassPath.getClassPath();
         String sep = System.getProperty("path.separator");
