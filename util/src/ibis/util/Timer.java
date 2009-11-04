@@ -330,6 +330,11 @@ public class Timer implements java.io.Serializable {
         }
     }
 
+    /**
+     * Times the timer itself.
+     * @param args the first argument, if given, indicates the number of start/stop
+     *             sequences to time. Default is 1000000.
+     */
     public static void main(String[] args) {
         int n = 1000000;
 

@@ -8,6 +8,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Properties;
 import java.util.Set;
@@ -53,12 +55,16 @@ public class TypedProperties extends Properties {
         }
     }
 
+    /**
+     * Adds the specified properties.
+     * @param properties properties to add.
+     */
     public void putAll(Properties properties) {
         addProperties(properties);
     }
 
     /**
-     * Tries to load properties from a properties file on the classpath
+     * Tries to load properties from a properties file on the classpath.
      */
     public void loadFromClassPath(String resourceName) {
         ClassLoader classLoader = getClass().getClassLoader();
@@ -80,8 +86,8 @@ public class TypedProperties extends Properties {
     }
 
     /**
-     * expands all existing system variables of the form ${...} to their value
-     * only in the value part of a key,value pair.
+     * Expands all existing environment variables of the form ${...} to their value
+     * in the value parts of all key,value pairs.
      */
     public void expandSystemVariables() {
         Set<Object> keys = keySet();
@@ -108,15 +114,16 @@ public class TypedProperties extends Properties {
 
     /**
      * Tries to load properties from a file. Does not throw any exceptions if
-     * unsuccessful
+     * unsuccessful.
+     * @param fileName name of file to load from.
      */
-    public void loadFromFile(String file) {
-        if (file == null) {
+    public void loadFromFile(String fileName) {
+        if (fileName == null) {
             return;
         }
 
         try {
-            FileInputStream inputStream = new FileInputStream(file);
+            FileInputStream inputStream = new FileInputStream(fileName);
 
             try {
                 load(inputStream);
@@ -134,7 +141,13 @@ public class TypedProperties extends Properties {
             // IGNORE
         }
     }
-
+    
+    /**
+     * Tries to load properties from a file, which is located relative to the
+     * users home directory. Does not throw any exceptions if
+     * unsuccessful.
+     * @param fileName name of file to load from.
+     */
     public void loadFromHomeFile(String fileName) {
         loadFromFile(System.getProperty("user.home") + File.separator
                 + fileName);
@@ -725,6 +738,10 @@ public class TypedProperties extends Properties {
         }
     }
 
+    /**
+     * Creates a string representation of this properties object.
+     * @return the string representation.
+     */
     public String toString() {
         String result = "";
 
@@ -737,17 +754,45 @@ public class TypedProperties extends Properties {
 
         return result;
     }
+    
+    String[] getPropertyNames() {
+        ArrayList<String> list = new ArrayList<String>();
+        for (Enumeration<?> e = propertyNames(); e.hasMoreElements();) {
+            String key = (String) e.nextElement();
+            list.add(key);
+        }
+        String[] result = list.toArray(new String[list.size()]);
+        Arrays.sort(result);
+        return result;
+    }
 
-    @Override
+    /**
+     * Compares this object to the specified object. They are equal if
+     * they have the same property names and values.
+     * @param object object to compare to.
+     * @return <code>true</code> if equal.
+     */
     public boolean equals(Object object) {
         if (!(object instanceof TypedProperties)) {
             return false;
         }
 
         TypedProperties other = (TypedProperties) object;
+        
+        String[] myProps = getPropertyNames();
+        String[] otherProps = other.getPropertyNames();
+        
+        if (myProps.length != otherProps.length) {
+            return false;
+        }
 
-        for (Enumeration<?> e = propertyNames(); e.hasMoreElements();) {
-            String key = (String) e.nextElement();
+        int i = 0;
+        
+        for (String key : myProps) {
+            if (! key.equals(otherProps[i])) {
+                return false;
+            }
+            i++;
             String value = getProperty(key);
 
             String otherValue = other.getProperty(key);

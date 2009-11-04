@@ -26,7 +26,7 @@ public final class RunProcess {
     
     private final ProcessBuilder builder;
 
-    static class buf {
+    private static class buf {
         public InputStream s;
 
         public byte[] buffer = new byte[4096];
@@ -230,14 +230,14 @@ public final class RunProcess {
     }
     
     /**
-     * @see ProcessBuilder#command()
+     * See {@link ProcessBuilder#command()}.
      */
     public List<String> command() {
         return builder.command();
     }
     
     /**
-     * @see ProcessBuilder#command(List)
+     * See {@link ProcessBuilder#command(List)}.
      */
     public RunProcess command(List<String> command) {
         builder.command(command);
@@ -245,7 +245,7 @@ public final class RunProcess {
     }
     
     /**
-     * @see ProcessBuilder#command(String...)
+     * See {@link ProcessBuilder#command(String...)}.
      */
     public RunProcess command(String... command) {
         builder.command(command);
@@ -253,35 +253,35 @@ public final class RunProcess {
     }
     
     /**
-     * @see ProcessBuilder#directory()
+     * See {@link ProcessBuilder#directory()}.
      */
     public File directory() {
         return builder.directory();
     }
     
     /**
-     * @see ProcessBuilder#directory(File)
+     * See {@link ProcessBuilder#directory(File)}.
      */
     public ProcessBuilder directory(File directory) {
         return builder.directory(directory);
     }
 
     /**
-     * @see ProcessBuilder#environment()
+     * See {@link ProcessBuilder#environment()}.
      */
     public Map<String, String> environment() {
         return builder.environment();
     }
     
     /**
-     * @see ProcessBuilder#redirectErrorStream()
+     * See {@link ProcessBuilder#redirectErrorStream()}.
      */
     public boolean redirectErrorStream() {
         return builder.redirectErrorStream();
     }
 
     /**
-     * @see ProcessBuilder#redirectErrorStream(boolean)
+     * See {@link ProcessBuilder#redirectErrorStream(boolean)}.
      */
     public RunProcess redirectErrorStream(boolean redirectErrorStream) {
         builder.redirectErrorStream(redirectErrorStream);
@@ -289,7 +289,7 @@ public final class RunProcess {
     }
     
     /**
-     * @see ProcessBuilder#start()
+     * See {@link ProcessBuilder#start()}.
      */
     public Process start() throws IOException {
         return builder.start();
