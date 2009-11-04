@@ -13,6 +13,10 @@ public class SNSWriteMessage implements WriteMessage {
     public SNSWriteMessage(WriteMessage base, SNSSendPort port) {
         this.base = base;
         this.port = port;
+        //this.keystore = port.ibis.keyStore;
+        
+        //Encrypt the message
+        
     }
 
     public long bytesWritten() throws IOException {

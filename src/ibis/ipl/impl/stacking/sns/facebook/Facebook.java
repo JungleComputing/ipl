@@ -10,6 +10,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.http.NameValuePair;
+import org.apache.http.ParseException;
+import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -34,6 +37,8 @@ public class Facebook implements SNS{
 		this.uid = uid;
 		this.sessionKey = sessionKey;
 		this.secretGenerated = secretGenerated;
+		
+		//if uid == or null throw exception
 		
 		FPM.setSessionKey(sessionKey);
 		FPM.setSecretGenerated(secretGenerated);
@@ -60,19 +65,17 @@ public class Facebook implements SNS{
 		return UIDList;
 	}
 	
-	
-	@Override
-	public boolean getSession() {
+	public boolean areFriends(String otherUID){
+		String result = null;
+		
 		try {
-			obj = FPM.JSONcall("Friends.get");
-			obj.toJSONArray(objArray);
+	        List <NameValuePair> Params = new ArrayList <NameValuePair>();
+			Params.add(new BasicNameValuePair("uids1", uid));
+			Params.add(new BasicNameValuePair("uids2", otherUID));
 
-			objArray = obj.getJSONArray("returnValue");
-				
-			for (int i = 0; i < objArray.length(); i++) {
-				UIDList.add(objArray.getString(i));
-				System.out.println("Friend " + i + " : " + objArray.getString(i)  );
-			}		
+			obj = FPM.JSONcall("Friends.AreFriends", Params);
+			result = obj.getString("are_friends");
+					
 		} catch (JSONException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
@@ -81,8 +84,10 @@ public class Facebook implements SNS{
 			e1.printStackTrace();
 		}
 		
-		// TODO Auto-generated method stub
-		return false;
+		if (result == "true")
+			return true;
+		else
+			return false;
 	}
 
 	@Override
@@ -92,34 +97,48 @@ public class Facebook implements SNS{
 	}
 
 	@Override
-	public boolean isFriend(String string) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public String name() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void sendAuthenticationRequest(String key) {
-		// TODO Auto-generated method stub
+	public boolean isFriend(String otherUID) {
+		if(UIDList.isEmpty()){
+			getAllFriends();
+		}
 		
+		return UIDList.contains(otherUID);
+		
+		//return areFriends();
+	}
+
+	@Override
+	public void sendAuthenticationRequest(String uid, String key) {
+        List <NameValuePair> Params = new ArrayList <NameValuePair>();
+		Params.add(new BasicNameValuePair("to_ids", uid));
+		Params.add(new BasicNameValuePair("notification", key));
+		
+		try {
+			obj = FPM.JSONcall("Notifications.send", Params);
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	@Override
-	public String getAuthenticationRequest() {
-		// TODO Auto-generated method stub
+	public String getAuthenticationRequest(String uid) {
 		return null;
 	}
 
 	@Override
-	public String username() {
-		// TODO Auto-generated method stub
-		return null;
+	public String snsName() {
+		return "facebook";
 	}
-	
 
+	@Override
+	public String userID() {
+		return uid;
+	}
 }

@@ -62,14 +62,14 @@ public class SNSReceivePort implements ReceivePort{
 			
 			if(ibis.allowedIbisIdent.contains(id) ){//&& SNSAuthenticationCheck(id)) {
 				if(upcaller == null) {
-					return true;					
+					return true;
 				}
 				else {
 					return upcaller.gotConnection(port, applicant);
 				}
 			}
 			else {
-				return false;					
+				return false;
 			}	
 		}
 		

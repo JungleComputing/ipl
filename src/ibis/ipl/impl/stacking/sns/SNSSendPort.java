@@ -10,7 +10,7 @@ import ibis.ipl.SendPort;
 import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.WriteMessage;
-import ibis.ipl.impl.stacking.sns.util.SNS;
+import ibis.ipl.impl.stacking.sns.util.DesEncrypter;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -21,6 +21,8 @@ public class SNSSendPort implements SendPort {
     
 	final SNSIbis ibis;
     final SendPort base;
+    
+    DesEncrypter encrypter;
     
     private static final class DisconnectUpcaller
             implements SendPortDisconnectUpcall {
@@ -48,6 +50,22 @@ public class SNSSendPort implements SendPort {
         } else {
             base = ibis.mIbis.createSendPort(type, name, null, props);
         }
+        
+        if(ibis.capabilities.hasCapability(SNSIbisCapabilities.SNS_ENCRYPTED_COMM_ONLY)){            
+            
+        	/*
+        	//Create encrypter/decrypter class
+            DesEncrypter encrypter = new DesEncrypter(key);
+
+            // Encrypt
+            String encrypted = encrypter.encrypt("Don't tell anybody!");
+
+            // Decrypt
+            String decrypted = encrypter.decrypt(encrypted);
+            */
+        }
+
+
         
         this.ibis = ibis;
     }
@@ -118,7 +136,7 @@ public class SNSSendPort implements SendPort {
             return base.name();
     }
 
-    public WriteMessage newMessage() throws IOException {
+    public WriteMessage newMessage() throws IOException {    	
         return new SNSWriteMessage(base.newMessage(), this);
     }
 
