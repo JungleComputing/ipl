@@ -117,6 +117,10 @@ public class IPUtils {
 
     // list of all addresses of this machine.
     private static InetAddress[] addresses;
+    
+    private IPUtils() {
+        // prevent construction.
+    }
 
     /**
      * Returns a sorted list of all local addresses of this machine. The list is
