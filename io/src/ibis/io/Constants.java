@@ -1,5 +1,9 @@
 package ibis.io;
 
+/**
+ * Some constants for the {@code ibis.io} package.
+ * This class must be public because it is accessed by Ibisc-rewritten code.
+ */
 public final class Constants {
     public static final int TYPE_BIT = (1 << 31);
 
