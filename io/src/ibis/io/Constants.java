@@ -1,6 +1,6 @@
 package ibis.io;
 
-final class Constants {
+public final class Constants {
     public static final int TYPE_BIT = (1 << 31);
 
     public static final int TYPE_MASK = ~TYPE_BIT;
