@@ -15,7 +15,7 @@ public interface Registry extends Manageable {
      * with a specified election name. Note that this has nothing to do with a
      * real election: it is not like "most votes count". It is more like: "the
      * first one in gets it".
-     * 
+     * <p>
      * When it is detected the winner of the election has left or has died a new
      * winner will automatically be elected and returned on the next call of
      * this function.
@@ -33,11 +33,11 @@ public interface Registry extends Manageable {
      * with a specified election name. Note that this has nothing to do with a
      * real election: it is not like "most votes count". It is more like: "the
      * first one in gets it".
-     * 
+     * <p>
      * When it is detected the winner of the election has left or has died a new
      * winner will automatically be elected and returned on the next call of
      * this function.
-     * 
+     * <p>
      * Blocks for at most the specified timeout. If no winner can be determinted
      * by then, <code>null</code> is returned.
      * 

@@ -6,6 +6,7 @@ import java.io.IOException;
 
 /** 
  * The Ibis abstraction for data to be read.
+ * <p>
  * A <code>ReadMessage</code> is obtained from a
  * {@link ibis.ipl.ReceivePort receiveport}, either
  * by means of an upcall, or by means of an explicit receive, which is
@@ -14,6 +15,7 @@ import java.io.IOException;
  * upcalls or to support blocking receive, but NOT both!
  * At most one <code>ReadMessage</code> is alive at one time for a given
  * </code>ReceivePort</code>.
+ * <p>
  * For all read methods in this class, the invariant is that the reads must
  * match the writes one by one. The only exception to this rule is that an
  * array written with any of the <code>writeArray</code> methods of

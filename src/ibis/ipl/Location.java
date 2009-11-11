@@ -9,8 +9,10 @@ package ibis.ipl;
  * in that order, t.i., from detailed to coarse.
  * Level 0 represents the most detailed, level {@link #numberOfLevels()}-1
  * the most coarse.
- * Should be comparable with <code>equals()</code>, so implementations
+ * <p>
+ * Locations should be comparable with <code>equals()</code>, so implementations
  * probably redefine <code>hashCode()</code> and <code>equals()</code>.
+ * <p>
  * Note that this interface extends {@link Comparable} and {@link
  * Iterable}. So, locations can be sorted, and the user can iterate over
  * the levels in a location.

@@ -8,7 +8,7 @@ import java.util.Properties;
 /**
  * The starting point of all Ibis communication, created using the
  * {@link ibis.ipl.IbisFactory}.
- * 
+ * <p>
  * The following {@link Manageable} items are recognized:
  * <TABLE border="2" frame="box" rules="groups" summary="manageable items">
  * <CAPTION>Manageable items</CAPTION> <COLGROUP align="left">  <COLGROUP align="left">
@@ -32,9 +32,9 @@ import java.util.Properties;
  * <TD> "bytesRead"
  * <TD> the total number of bytes received
  * <TR></TBODY> </TABLE> 
- * 
+ * <p>
  * All these properties are long values, returned as a string.
- *
+ *<p>
  * Other items may be recognized, depending on the Ibis implementation.
  */
 public interface Ibis extends Manageable {

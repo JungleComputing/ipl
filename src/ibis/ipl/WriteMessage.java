@@ -7,12 +7,14 @@ import java.io.IOException;
 /** 
  * A message used to write data from a {@link SendPort} to one or more
  * {@link ReceivePort}s.
+ * <p>
  * A <code>WriteMessage</code> is obtained from a {@link SendPort} through
  * the {@link SendPort#newMessage SendPort.newMessage} method.
  * At most one <code>WriteMessage</code> is alive at one time for a given
  * </code>SendPort</code>.
  * When a message is alive and a new message is requested, the requester
  * is blocked until the live message is finished.
+ * <p>
  * For all write methods in this class, the invariant is that the reads must
  * match the writes one by one. The only exception to this rule is that an
  * array written with any of the <code>writeArray</code> methods can be
@@ -23,12 +25,12 @@ import java.io.IOException;
  * {@link #writeObject writeObject} does duplicate detection, and may
  * have written only a handle.
  * </strong>
- * 
+ * <p>
  * The {@link #writeObject(Object)} and {@link #writeString(String)} methods
  * do duplicate checks if the underlying serialization stream is an object
  * serialization stream: if the object was already written to this
  * message, a handle for this object is written instead of the object itself.
- *
+ *<p>
  * When the port type has the {@link PortType#CONNECTION_ONE_TO_MANY}
  * or {@link PortType#CONNECTION_MANY_TO_MANY} capability set,
  * no exceptions are thrown by write methods in the write message.
@@ -37,7 +39,7 @@ import java.io.IOException;
  * This allows a multicast to continue to the other destinations.
  * Ultimately, the {@link WriteMessage#finish() finish} method will
  * throw an exception.
- * 
+ * <p>
  * Data may be streamed, so the user is not allowed to change the data
  * pushed into this message.
  * It is only safe to touch the data after it has actually been

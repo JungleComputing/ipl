@@ -7,7 +7,7 @@ import java.util.Map;
 
 /**
  * Initiates and maintains connections to one or more receive ports.
- *
+ *<p>
  * When creating a sendport, it is possible to pass a
  * {@link SendPortDisconnectUpcall} object.
  * When a connection is lost for some reason, the 
@@ -24,25 +24,25 @@ import java.util.Map;
  * call on the send port side.
  * The send port has to do communication to detect that there is trouble.
  * </strong>
- * 
+ * <p>
  * If no {@link SendPortDisconnectUpcall} is registered, the user is NOT
- * informed of connections that are lost.
+ * automatically informed of connections that are lost.
  * If the port supports connection downcalls, the user can
  * use the {@link #lostConnections()} method to poll for connections 
  * that are lost.
  * Again, the send port has to do communication to detect that there may be
  * trouble.
- *
+ *<p>
  * Connections are unrelated to messages! If the sending of a message 
  * did not generate an exception, this does not mean that it actually 
  * arrived at the receive port. There may still be data in Ibis or 
  * operating system buffers, or in the network itself. 
- *
+ *<p>
  * For a given sendport, only one message is alive at any time.
  * This is done to prevent flow control problems.  When a
  * message is alive, and a new message is requested, the request
  * blocks until the live message is finished.
- * 
+ * <p>
  * The following {@link Manageable} items are recognized:
  * <TABLE border="2" frame="box" rules="groups" summary="manageable items">
  * <CAPTION>Manageable items</CAPTION> <COLGROUP align="left">  <COLGROUP align="left">
@@ -66,9 +66,9 @@ import java.util.Map;
  * <TD> "ClosedConnections"
  * <TD> the number of closed or disconnected connections
  * <TR></TBODY> </TABLE> 
- * 
+ * <p>
  * All these properties are long values, returned as a string.
- *
+ *<p>
  * Other items may be recognized, depending on the Ibis implementation.
  */
 public interface SendPort extends Manageable {

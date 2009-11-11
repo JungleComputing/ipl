@@ -20,7 +20,7 @@ public interface SendPortDisconnectUpcall {
      * call on the send port side.
      * The send port has to do communication to detect that there is trouble.
      * </strong>
-     * 
+     * <p>
      * This upcall may run completely asynchronously,
      * but only at most one is alive at any time.
      *

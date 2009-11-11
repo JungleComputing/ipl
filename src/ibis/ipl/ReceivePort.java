@@ -6,7 +6,7 @@ import java.io.IOException;
 
 /**
  * A receiveport accepts and maintains connections from one or more sendports.
- *
+ *<p>
  * When creating a receiveport, it is possible to pass a
  * {@link ReceivePortConnectUpcall} object. Ibis will call the
  * {@link ReceivePortConnectUpcall#gotConnection(ReceivePort,
@@ -19,23 +19,23 @@ import java.io.IOException;
  * upcall is performed. Both upcalls are completely
  * asynchronous, but Ibis ensures that at most one is active at any given
  * time.
- *
+ *<p>
  * If no {@link ReceivePortConnectUpcall} is registered, the user is NOT
- * informed of connections that are created or lost.
+ * automatically informed of connections that are created or lost.
  * If the port supports connection downcalls, the user can
  * use the {@link #lostConnections()} method to poll for connections that
  * are lost,  and the {@link #newConnections()} method to find out about new
  * connections.
- *
+ *<p>
  * Only one upcall is alive at any one time, this includes BOTH
  * message upcalls AND ConnectUpcalls.
- *
+ *<p>
  * Only one message is alive at any time for a given
  * receiveport. This is done to prevent flow control problems.
  * A receiveport can be configured to generate upcalls or to 
  * support blocking receive, but NOT both!  The message object
  * is always destroyed when it is finished.
- *
+ *<p>
  * The following {@link Manageable} items are recognized:
  * <TABLE border="2" frame="box" rules="groups" summary="manageable items">
  * <CAPTION>Manageable items</CAPTION> <COLGROUP align="left">  <COLGROUP align="left">
@@ -59,8 +59,9 @@ import java.io.IOException;
  * <TD> "ClosedConnections"
  * <TD> the number of closed connections
  * <TR></TBODY> </TABLE>
+ * <p>
  * All these properties are long values, returned as a string.
- *
+ *<p>
  * Other items may be recognized, depending on the Ibis implementation.
  */
 public interface ReceivePort extends Manageable {

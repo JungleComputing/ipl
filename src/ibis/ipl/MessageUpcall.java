@@ -6,6 +6,7 @@ import java.io.IOException;
 
 /**
  * Describes the interface for upcall based communication.
+ * <p>
  * Creating a {@link ReceivePort} with a <code>MessageUpcall</code> allows for
  * upcall based communication.
  * The <code>ReceivePort</code> must be created with the

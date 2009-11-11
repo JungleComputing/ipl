@@ -4,11 +4,13 @@ package ibis.ipl;
 
 /**
  * An IbisIdentifier uniquely identifies an Ibis instance on the network.
- * An IbisIdentifier should be comparable with
+ * <p>
+ * IbisIdentifiers should be comparable with
  * <code>equals()</code>, so implementations probably redefine
  * <code>hashCode()</code> and <code>equals()</code>.
  * When two IbisIdentifiers compare equal, they identify the same Ibis
  * instance.
+ * <p>
  * IbisIdentifiers also implement the {@link Comparable} interface, which
  * means they can be sorted.
  */
