@@ -1,6 +1,6 @@
 Here is a list of Ibis releases.
 
-2.2 (???)
+2.2 (12 Nov 2009)
    Many changes and fixes. There now is a separate smartsockets Ibis,
    which is the default Ibis.
    From the applications point-of-view, the RegistryEventHandler
