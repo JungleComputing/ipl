@@ -11,7 +11,7 @@
     <property name="version" value="2.2" />
     <property name="version-tag" value="-${version}" />
 
-    <property name="sources-filename" value="ipl" />
+    <property name="sources-filename" value="ipl${version-tag}-sources" />
 
     <property name="sources-zip" value="sources/${sources-filename}.zip" />
 

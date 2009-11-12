@@ -13,7 +13,7 @@
     <property name="version-tag" value="" />
 
     <property name="jar" location="${lib}/${ant.project.name}${version-tag}.jar" />
-    <property name="sources-filename" value="${ant.project.name}${version-tag}" />
+    <property name="sources-filename" value="${ant.project.name}${version-tag}-sources" />
 
     <path id="external_jars">
         <fileset dir="${lib}">
