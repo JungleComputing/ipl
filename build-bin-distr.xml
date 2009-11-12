@@ -11,7 +11,7 @@
 
     Anyway, this build needs to be invoked with -Dversion=<version>
     where <version> is the version of this release as if it was set in
-    the "normal" build.xml file (example: "-2.0rc").
+    the "normal" build.xml file (example: "2.0rc").
 
     the path of this release within the repository must also be
     specified with -Dpath=path, and is prepended with /svn/ibis/ipl/ automatically -->
@@ -20,17 +20,17 @@
     <property name="path" value="invalid"/>
 
     <target name="ipl-zip"
-	description="Create a binary release, in a file ${version}.zip">
+	description="Create a binary release, in a file ipl-${version}.zip">
 
 	<exec executable="svn">
-	    <arg line="checkout https://gforge.cs.vu.nl/svn/ibis/ipl/${path} ipl${version}"/>
+	    <arg line="checkout https://gforge.cs.vu.nl/svn/ibis/ipl/${path} ipl-${version}"/>
 	</exec>
 
-	<ant dir="ipl${version}" inheritAll="false" target="ipl.zip"/>
+	<ant dir="ipl-${version}" inheritAll="false" target="ipl.zip"/>
 
-	<move file="ipl${version}/ipl${version}.zip" tofile="ipl${version}.zip"/>
+	<move file="ipl-${version}/ipl-${version}.zip" tofile="ipl-${version}.zip"/>
 
-	<delete dir="ipl${version}"/>
+	<delete dir="ipl-${version}"/>
     </target>
 
 </project>
