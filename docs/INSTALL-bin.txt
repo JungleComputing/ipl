@@ -2,8 +2,9 @@ The binary release of Ibis does not need any special installation.
 Simply unzip the distribution where you want. You might want to set the
 IPL_HOME environment variable to this location.
 
-The Ibis software requires at least a 1.5 JDK version of Java. With a
-1.4 or older version of Java, this Ibis release will not run.  Suitable
+The Ibis software requires at least a 1.6 JDK version of Java. With a
+1.4 or older version of Java, this Ibis release will not run, and with
+a 1.5 release, the provided scripts will not run.  Suitable
 versions of Java can be obtained from the web.  IBM has versions for AIX
 (at http://www.ibm.com/developerworks/java), SUN has versions for
 Solaris, Linux, and Windows (at http://java.sun.com), and Apple has a
@@ -17,8 +18,8 @@ required. Ant is available from http://ant.apache.org.
 System-specific notes
 
 Windows 2000, Windows XP
-    Install a recent Java SDK, at least 1.5. This will get installed in
-    for instance "c:\Program Files\Java\jdk1.5.0". 
+    Install a recent Java SDK, at least 1.6. This will get installed in
+    for instance "c:\Program Files\Java\jdk1.6.0". 
 
     You can set the IPL_HOME environment variable to this path by going to
     the Control Panel, System, the "Advanced" tab, Environment variables,

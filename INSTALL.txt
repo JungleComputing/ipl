@@ -4,8 +4,7 @@ Ibis source release installation
     variable JAVA_HOME; see also the system-specific notes at the end
     of this text.
 
-    The Ibis software requires at least a 1.5 version of Java. With a
-    1.4 or older version of Java, some parts of Ibis will not compile.
+    The Ibis software requires at least a 1.6 version of Java.
     Suitable versions of Java can be obtained from the web.
     IBM has versions for Linux and AIX
     (at http://www.ibm.com/developerworks/java),
@@ -35,12 +34,12 @@ API
 System-specific notes
 
 Linux, Solaris, other Unix systems
-    Install a recent Java SDK, at least 1.5, and set the JAVA_HOME
+    Install a recent Java SDK, at least 1.6, and set the JAVA_HOME
     environment variable to the location where it is installed,
     for example
-        export JAVA_HOME=/usr/local/java/jdk1.5
+        export JAVA_HOME=/usr/local/java/jdk1.6
     or
-        set JAVA_HOME=/usr/local/java/jdk1.5
+        set JAVA_HOME=/usr/local/java/jdk1.6
     for CSH users.
     It is probably best to add this to your .bash_profile, .profile,
     or .cshrc file (whichever gets executed when you log in to your
@@ -53,8 +52,8 @@ Mac OS X
     how to set environment variables.
 
 Windows 2000, Windows XP
-    Install a recent Java SDK, at least 1.5. This will get installed in
-    for instance "c:\Program Files\Java\jdk1.5.0".
+    Install a recent Java SDK, at least 1.6. This will get installed in
+    for instance "c:\Program Files\Java\jdk1.6.0".
 
     You can set the JAVA_HOME environment variable to this path by going to
     the Control Panel, System, the "Advanced" tab, Environment variables,
