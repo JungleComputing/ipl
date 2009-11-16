@@ -9,6 +9,7 @@ import java.util.List;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
+import org.apache.http.ParseException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
@@ -22,34 +23,29 @@ import org.json.JSONObject;
 public class FacebookPostMethod{
 	static final String VERSION = "1.0";
 	static final String restServer = "http://api.facebook.com/restserver.php";
-	final String SECRET;
-	final String API_KEY;
 	
 	private HttpClient httpClient = new DefaultHttpClient();
 	private JSONObject JSONResponse;
-	private String responseBody;
 	private String signature;
 	private String sessionKey;
 	private String secretGenerated;
 	
-	public FacebookPostMethod(String secret, String apiKey){
-		SECRET = secret;
-		API_KEY = apiKey;
+	public FacebookPostMethod(String sessionKey, String secretGenerated){
+		this.sessionKey = sessionKey;
+		this.secretGenerated = secretGenerated;
 	}
-
-	public JSONObject JSONcall(String method) throws JSONException, IOException {		
-//	public String JSONcall(String method) {		
+	
+	public JSONObject JSONcall(String method) throws ParseException, JSONException, IOException {		
 		return JSONcall(method, new ArrayList<NameValuePair> (0) );		
 	}
 
-	public JSONObject JSONcall(String method, List <NameValuePair> params) throws JSONException, IOException {
-//	public String JSONcall(String method, List <NameValuePair> params) {
+	public JSONObject JSONcall(String method, List <NameValuePair> params) throws ParseException, JSONException, IOException {
 		HttpPost post = new HttpPost(restServer);
 		post.setHeader(HTTP.CONTENT_TYPE, "application/x-www-form-urlencoded");
 		
         List <NameValuePair> nvp = new ArrayList <NameValuePair>();
         nvp.add(new BasicNameValuePair("method", method));
-        nvp.add(new BasicNameValuePair("api_key", API_KEY));
+        nvp.add(new BasicNameValuePair("api_key", FacebookVariables.API_KEY));
         nvp.add(new BasicNameValuePair("v", VERSION));
         nvp.add(new BasicNameValuePair("format", "JSON"));
         
@@ -61,12 +57,18 @@ public class FacebookPostMethod{
 	    if (!params.isEmpty())
 	    	nvp.addAll(params);
 	    
+	    
 	    if (secretGenerated != null) {
 	    	signature = sign(secretGenerated, nvp);
 	    }
 	    else{
+	    	//generate error
+	    }
+	    /*
+	    else{
 		    signature = sign(SECRET, nvp);
 	    }
+	    */
 	    nvp.add(new BasicNameValuePair("sig", signature));
 	    
 		post.setEntity(new UrlEncodedFormEntity(nvp, HTTP.UTF_8));
@@ -77,7 +79,7 @@ public class FacebookPostMethod{
 		if (rc == 200){ 
 			String responseBody = EntityUtils.toString(response.getEntity());
 //			JSONObject object = new JSONObject(EntityUtils.toString(response.getEntity()));
-			
+	
 			if (responseBody.equals("\"\"")) {
 				responseBody = "null";
 			}
@@ -89,7 +91,10 @@ public class FacebookPostMethod{
 						      
 			try {
 				JSONResponse = new JSONObject(responseBody);
-			}catch (JSONException e) {
+			} catch (ParseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (JSONException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
@@ -100,7 +105,6 @@ public class FacebookPostMethod{
 
 	    
 	    return JSONResponse;
-//	    return responseBody;
 	}	
     private String sign(String secretKey, List <NameValuePair> params){
 	    List<String> sigParams = new ArrayList<String>(params.size());
@@ -129,17 +133,7 @@ public class FacebookPostMethod{
     		throw new RuntimeException("MD5 MessageDigest is missing");
     	} 
 		      
-	    return result.toString();
-    	
+	    return result.toString();    	
     }
-    
-    //GETTER AND SETTER METHODS
-    public void setSessionKey(String sk){
-    	sessionKey = sk;
-    }
-    
-    public void setSecretGenerated(String sg){
-    	secretGenerated = sg;
-    }    
 }
 

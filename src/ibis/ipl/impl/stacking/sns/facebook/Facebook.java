@@ -1,14 +1,13 @@
 package ibis.ipl.impl.stacking.sns.facebook;
 
-import ibis.ipl.IbisIdentifier;
+import ibis.ipl.IbisCreationFailedException;
+import ibis.ipl.impl.stacking.sns.SNSProperties;
 import ibis.ipl.impl.stacking.sns.util.SNS;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.ParseException;
@@ -18,33 +17,46 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class Facebook implements SNS{
-	private static final String SECRET = "67620b30a597b403f4ea64b0acb6db81";
-	private static final String API_KEY = "32b1d5aa847cfc5c9322628b18f1d267";
-	
-	private String token;
+
 	private ArrayList<String> UIDList = new ArrayList<String>();
-	private String sessionKey = null;
-	private String secretGenerated = null;
-	private String uid = null;
-	private boolean isAuthenticated = false;
+	private String userID = null;
+	private String appName;
+	//private boolean isAuthenticated = false;
 
-	JSONObject obj = new JSONObject();
-	JSONArray objArray = new JSONArray();
+	JSONObject obj; // = new JSONObject();
+	JSONArray objArray; // = new JSONArray();
 
-	FacebookPostMethod FPM = new FacebookPostMethod(SECRET, API_KEY);
+	FacebookPostMethod FPM;
 
-	public Facebook(String uid, String sessionKey, String secretGenerated ) {
+	/*
+	public Facebook(String uid, String sessionKey, String secretGenerated) {
 		this.uid = uid;
-		this.sessionKey = sessionKey;
-		this.secretGenerated = secretGenerated;
-		
-		//if uid == or null throw exception
-		
-		FPM.setSessionKey(sessionKey);
-		FPM.setSecretGenerated(secretGenerated);
+		this.appName =;
+		//if uid == null throw exception
+		FPM = new FacebookPostMethod(sessionKey, secretGenerated);
 	}
+	*/
 	
-	public List getAllFriends(){
+	public Facebook(Properties properties) throws IbisCreationFailedException {
+        String sessionKey = properties.getProperty("sns.facebook.sessionkey");
+		String secretGenerated = properties.getProperty("sns.facebook.secretGenerated");
+		this.userID = properties.getProperty("sns.facebook.uid");
+		this.appName = properties.getProperty(SNSProperties.APPLICATION_NAME);
+		
+		if (sessionKey != null && 
+			secretGenerated != null && 
+			userID != null &&
+			appName != null	) {
+				FPM = new FacebookPostMethod(sessionKey, secretGenerated);
+		}
+		else {
+			throw new IbisCreationFailedException("SNSIbis: SNS implementation cannot be created"); 
+		}
+		
+
+	}
+
+	public List<String> getAllFriends(){
 		try {
 			obj = FPM.JSONcall("Friends.get");
 			obj.toJSONArray(objArray);
@@ -70,7 +82,7 @@ public class Facebook implements SNS{
 		
 		try {
 	        List <NameValuePair> Params = new ArrayList <NameValuePair>();
-			Params.add(new BasicNameValuePair("uids1", uid));
+			Params.add(new BasicNameValuePair("uids1", userID));
 			Params.add(new BasicNameValuePair("uids2", otherUID));
 
 			obj = FPM.JSONcall("Friends.AreFriends", Params);
@@ -110,11 +122,13 @@ public class Facebook implements SNS{
 	@Override
 	public void sendAuthenticationRequest(String uid, String key) {
         List <NameValuePair> Params = new ArrayList <NameValuePair>();
-		Params.add(new BasicNameValuePair("to_ids", uid));
-		Params.add(new BasicNameValuePair("notification", key));
+		Params.add(new BasicNameValuePair("uid", userID));
+		Params.add(new BasicNameValuePair("title", appName));
+		Params.add(new BasicNameValuePair("content", key));
 		
 		try {
-			obj = FPM.JSONcall("Notifications.send", Params);
+			obj = FPM.JSONcall("Notes.create", Params);
+			System.out.println(obj.toString());
 		} catch (ParseException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -129,6 +143,26 @@ public class Facebook implements SNS{
 	
 	@Override
 	public String getAuthenticationRequest(String uid) {
+
+        List <NameValuePair> Params = new ArrayList <NameValuePair>();
+		Params.add(new BasicNameValuePair("uid", uid));
+		
+		try {
+			obj = FPM.JSONcall("Notes.get", Params);
+			System.out.println(obj.toString());
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		//Get the only the notes for that has the same appname and the last timestamps
+        
 		return null;
 	}
 
@@ -139,6 +173,6 @@ public class Facebook implements SNS{
 
 	@Override
 	public String userID() {
-		return uid;
+		return userID;
 	}
 }
