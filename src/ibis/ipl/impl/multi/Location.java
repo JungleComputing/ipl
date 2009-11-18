@@ -1,4 +1,4 @@
-/* $Id: Location.java 7915 2008-04-08 13:32:45Z ceriel $ */
+/* $Id$ */
 
 package ibis.ipl.impl.multi;
 

@@ -1,4 +1,4 @@
-/* $Id: TcpProtocol.java 6223 2007-09-05 09:33:35Z ceriel $ */
+/* $Id$ */
 
 package ibis.ipl.impl.smartsockets;
 

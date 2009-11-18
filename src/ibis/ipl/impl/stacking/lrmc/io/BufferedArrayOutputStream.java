@@ -1,4 +1,4 @@
-/* $Id: BufferedArrayOutputStream.java 3035 2005-06-15 13:52:54Z ceriel $ */
+/* $Id$ */
 
 package ibis.ipl.impl.stacking.lrmc.io;
 

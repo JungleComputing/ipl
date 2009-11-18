@@ -1,4 +1,4 @@
-/* $Id: StoreArrayOutputStream.java 6186 2007-08-29 14:16:26Z rob $ */
+/* $Id$ */
 
 package ibis.ipl.util.messagecombining;
 

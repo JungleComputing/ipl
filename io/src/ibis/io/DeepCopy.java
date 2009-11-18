@@ -1,4 +1,4 @@
-/* $Id: DeepCopy.java 6349 2007-09-13 17:09:26Z ceriel $ */
+/* $Id$ */
 
 package ibis.io;
 

@@ -1,4 +1,4 @@
-/* $Id: TcpIbis.java 9255 2008-08-12 12:17:37Z ceriel $ */
+/* $Id$ */
 
 package ibis.ipl.impl.smartsockets;
 
@@ -245,9 +245,9 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
                     }
                     break;
                 case -1:
-                    throw new IOException("Encountered EOF in TcpIbis.connect");
+                    throw new IOException("Encountered EOF in SmartSocketsIbis.connect");
                 default:
-                    throw new IOException("Illegal opcode in TcpIbis.connect");
+                    throw new IOException("Illegal opcode in SmartSocketsIbis.connect");
                 }
             } catch (SocketTimeoutException e) {
                 throw new ConnectionTimedOutException("Could not connect", rip);
@@ -278,7 +278,7 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
     protected void quit() {
         try {
             quiting = true;
-            // Connect so that the TcpIbis thread wakes up.
+            // Connect so that the SmartSocketsIbis thread wakes up.
             factory.createClientSocket(myAddress, 0, false, null);
         } catch (Throwable e) {
             // Ignore
@@ -288,7 +288,7 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
     private void handleConnectionRequest(VirtualSocket s) throws IOException {
 
         if (logger.isDebugEnabled()) {
-            logger.debug("--> TcpIbis got connection request from " + s);
+            logger.debug("--> SmartSocketsIbis got connection request from " + s);
         }
 
         BufferedArrayInputStream bais = 
@@ -338,7 +338,7 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
 
     public void run() {
         // This thread handles incoming connection request from the
-        // connect(TcpSendPort) call.
+        // connect(SmartSocketsSendPort) call.
 
         boolean stop = false;
 
@@ -346,7 +346,7 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
             VirtualSocket s = null;
 
             if (logger.isDebugEnabled()) {
-                logger.debug("--> TcpIbis doing new accept()");
+                logger.debug("--> SmartSocketsIbis doing new accept()");
             }
 
             try {
@@ -354,15 +354,15 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
                 s.setTcpNoDelay(true);
             } catch (Throwable e) {
                 /* if the accept itself fails, we have a fatal problem. */
-                logger.error("TcpIbis:run: got fatal exception in accept! ", e);
+                logger.error("SmartSocketsIbis:run: got fatal exception in accept! ", e);
                 cleanup();
-                throw new Error("Fatal: TcpIbis could not do an accept", e);
-                // This error is thrown in the TcpIbis thread, not in a user
+                throw new Error("Fatal: SmartSocketsIbis could not do an accept", e);
+                // This error is thrown in the SmartSocketsIbis thread, not in a user
                 // thread. It kills the thread.
             }
 
             if (logger.isDebugEnabled()) {
-                logger.debug("--> TcpIbis through new accept()");
+                logger.debug("--> SmartSocketsIbis through new accept()");
             }
 
             try {
@@ -386,7 +386,7 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
                     // ignore
                 }
 
-                ThreadPool.createNew(this, "TcpIbis Accept Thread");
+                ThreadPool.createNew(this, "SmartSocketsIbis Accept Thread");
 
                 // Try to get the accept thread into an accept call. (Ceriel)
                 // Thread.currentThread().yield();
@@ -402,7 +402,7 @@ public final class SmartSocketsIbis extends ibis.ipl.impl.Ibis implements
                 } catch (Throwable e2) {
                     // ignored
                 }
-                logger.error("EEK: TcpIbis:run: got exception "
+                logger.error("EEK: SmartSocketsIbis:run: got exception "
                         + "(closing this socket only: ", e);
             }
         }

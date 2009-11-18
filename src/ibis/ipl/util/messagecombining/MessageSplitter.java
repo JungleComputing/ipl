@@ -1,4 +1,4 @@
-/* $Id: MessageSplitter.java 5080 2007-02-23 10:52:43Z ceriel $ */
+/* $Id$ */
 
 package ibis.ipl.util.messagecombining;
 

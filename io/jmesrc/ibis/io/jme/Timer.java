@@ -1,4 +1,4 @@
-/* $Id: Timer.java 6241 2007-09-07 07:48:26Z ceriel $ */
+/* $Id$ */
 
 package ibis.io.jme;
 

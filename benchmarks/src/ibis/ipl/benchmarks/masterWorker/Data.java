@@ -1,6 +1,6 @@
 package ibis.ipl.benchmarks.masterWorker;
 
-/* $Id: Data.java 6546 2007-10-05 13:21:40Z ceriel $ */
+/* $Id$ */
 
 
 import java.io.Serializable;

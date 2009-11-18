@@ -1,4 +1,4 @@
-/* $Id: TcpReceivePort.java 6259 2007-09-10 11:03:29Z ceriel $ */
+/* $Id$ */
 
 package ibis.ipl.impl.smartsockets;
 

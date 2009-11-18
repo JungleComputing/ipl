@@ -1,4 +1,4 @@
-/* $Id: StoreArrayInputStream.java 5764 2007-06-04 10:19:39Z ceriel $ */
+/* $Id$ */
 
 package ibis.ipl.util.messagecombining;
 

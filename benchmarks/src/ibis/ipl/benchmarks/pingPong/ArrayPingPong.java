@@ -1,6 +1,6 @@
 package ibis.ipl.benchmarks.pingPong;
 
-/* $Id: ArrayPingPong.java 6720 2007-11-05 16:38:30Z ndrost $ */
+/* $Id$ */
 
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisCapabilities;

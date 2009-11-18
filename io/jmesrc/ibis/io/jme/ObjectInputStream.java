@@ -1,4 +1,4 @@
-/* $Id: IbisSerializationInputStream.java 6556 2007-10-12 14:19:08Z ceriel $ */
+/* $Id$ */
 
 package ibis.io.jme;
 

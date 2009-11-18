@@ -1,4 +1,4 @@
-/* $Id: TcpIbisStarter.java 6720 2007-11-05 16:38:30Z ndrost $ */
+/* $Id$ */
 
 package ibis.ipl.impl.smartsockets;
 

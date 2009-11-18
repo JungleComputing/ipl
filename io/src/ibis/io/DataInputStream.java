@@ -1,4 +1,4 @@
-/* $Id: DataInputStream.java 5760 2007-06-04 08:33:19Z ceriel $ */
+/* $Id$ */
 
 package ibis.io;
 

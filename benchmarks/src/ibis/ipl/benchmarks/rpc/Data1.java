@@ -1,6 +1,6 @@
 package ibis.ipl.benchmarks.rpc;
 
-/* $Id: Data1.java 6546 2007-10-05 13:21:40Z ceriel $ */
+/* $Id$ */
 
 
 

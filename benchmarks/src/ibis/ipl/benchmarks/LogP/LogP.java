@@ -1,6 +1,6 @@
 package ibis.ipl.benchmarks.LogP;
 
-/* $Id:$ */
+/* $Id$ */
 
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisCapabilities;

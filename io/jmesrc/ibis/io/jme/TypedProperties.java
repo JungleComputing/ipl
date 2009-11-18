@@ -1,4 +1,4 @@
-/* $Id: TypedProperties.java 6348M 2007-10-15 09:47:58Z (local) $ */
+/* $Id$ */
 
 package ibis.io.jme;
 

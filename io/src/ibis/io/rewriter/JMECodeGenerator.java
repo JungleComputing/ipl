@@ -1,4 +1,4 @@
-/* $Id: IOGenerator.java 7063 2007-12-05 15:49:42Z nick $ */
+/* $Id$ */
 
 package ibis.io.rewriter;
 

@@ -1,4 +1,4 @@
-/* $Id: ThreadPool.java 6363 2007-09-14 12:58:07Z ndrost $ */
+/* $Id$ */
 
 package ibis.io.jme;
 

@@ -1,6 +1,6 @@
 package ibis.ipl.benchmarks.rpc;
 
-/* $Id: WithInner.java 6546 2007-10-05 13:21:40Z ceriel $ */
+/* $Id$ */
 
 class WithInner implements java.io.Serializable {
 

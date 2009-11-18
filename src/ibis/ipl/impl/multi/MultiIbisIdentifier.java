@@ -1,4 +1,4 @@
-/* $Id: IbisIdentifier.java 7294 2008-01-22 13:30:10Z ceriel $ */
+/* $Id$ */
 
 package ibis.ipl.impl.multi;
 

@@ -1,4 +1,4 @@
-/* $Id: MessageCombiner.java 6010 2007-08-02 11:58:36Z rob $ */
+/* $Id$ */
 
 package ibis.ipl.util.messagecombining;
 

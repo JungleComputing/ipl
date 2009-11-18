@@ -1,4 +1,4 @@
-/* $Id: LrmcIbisStarter.java 6500 2007-10-02 18:28:50Z ceriel $ */
+/* $Id$ */
 
 package ibis.ipl.impl.stacking.lrmc;
 
