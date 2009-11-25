@@ -37,7 +37,7 @@ public final class ServerProperties {
     public static final String VIZ_INFO = PREFIX + "viz.info";
 
     /** Property name for specifying a comma separated list of hubs. */
-    public static final String HUB_ADDRESSES = PREFIX + "ibis.hub.addresses";
+    public static final String HUB_ADDRESSES = PREFIX + "hub.addresses";
 
     public static final String implementationVersion;
 
