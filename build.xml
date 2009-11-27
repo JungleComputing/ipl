@@ -15,6 +15,10 @@
 
     <property name="sources-zip" value="sources/${sources-filename}.zip" />
 
+    <!-- location of smartsockets libraries. Defaults to included smartsockets,
+         override with ant -Dsmartsockets=/location/of/smartsockets/lib -->
+    <property name="smartsockets" value="external/smartsockets" />
+
     <!-- import environment properties -->
     <property environment="env" />
 
@@ -31,11 +35,17 @@
         <pathelement path="tmp" />
     </path>
 
+    <!-- Copy external libraries to lib directory -->
     <target name="copy-external">
         <mkdir dir="lib" />
-        <!-- Copy external libraries to lib directory -->
+        <!-- Smartsockets -->
+        <echo message="using smartsockets from ${smartsockets}" />
         <copy todir="lib">
-            <fileset dir="external" excludes="log4jME*.jar" />
+            <fileset dir="${smartsockets}" />
+        </copy>
+        <!-- Other -->
+        <copy todir="lib">
+            <fileset dir="external" includes="*.jar" excludes="log4jME*.jar" />
         </copy>
     </target>
 
@@ -368,7 +378,7 @@
         <delete file="ipl${version-tag}.zip" />
         <delete file="${sources-zip}" />
 
-	<zip destfile="${sources-zip}">
+        <zip destfile="${sources-zip}">
             <zipfileset dir="src" includes="**/*.java" prefix="${sources-filename}" />
             <zipfileset dir="." includes="LICENSE.txt" prefix="${sources-filename}" />
         </zip>
