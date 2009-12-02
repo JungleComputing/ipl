@@ -363,7 +363,9 @@ public final class Server implements ServerInterface {
             deadline = 0;
         }
 
-        connectionHandler.end();
+        if (connectionHandler != null) {
+            connectionHandler.end();
+        }
 
         for (Service service : services.values()) {
             service.end(deadline);
