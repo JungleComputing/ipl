@@ -121,8 +121,9 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
         // not the value we're searching for.
         if (genericVersion == null || genericVersion.equals("0.0")) {
             // try to get version from IPL_MANIFEST properties
-            genericVersion = IbisFactory.getManifestProperty("implementation.version");
-         }
+            genericVersion = IbisFactory
+                    .getManifestProperty("implementation.version");
+        }
 
         logger.debug("Version of Generic Ibis = " + genericVersion);
 
@@ -168,6 +169,7 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
         properties.addProperties(IbisProperties.getHardcodedProperties());
         properties.addProperties(userProperties);
 
+        // set unique ID for this Ibis.
         properties.setProperty(ID_PROPERTY, UUID.randomUUID().toString());
 
         if (logger.isDebugEnabled()) {
@@ -617,7 +619,8 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
         Collection<SendPort> ports = sendPorts.values();
 
         for (SendPort sendPort : ports) {
-            ibis.ipl.ReceivePortIdentifier[] receivePorts = sendPort.connectedTo();
+            ibis.ipl.ReceivePortIdentifier[] receivePorts = sendPort
+                    .connectedTo();
 
             for (ibis.ipl.ReceivePortIdentifier receivePort : receivePorts) {
                 result.add(receivePort.ibisIdentifier());
@@ -634,7 +637,7 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
         if (vivaldiClient == null) {
             return null;
         }
-        
+
         return vivaldiClient.getCoordinates();
     }
 
