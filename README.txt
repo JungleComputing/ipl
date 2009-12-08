@@ -28,9 +28,9 @@ Ibis has its own web-site: http://www.cs.vu.nl/ibis/.  There, you can
 find more Ibis documentation, papers, application sources.
 
 The current Ibis source repository tree is accessible through SVN at
-"https://gforge.cs.vu.nl/svn/ibis/ibis/trunk".  You can check it
+"https://gforge.cs.vu.nl/svn/ibis/ipl/trunk".  You can check it
 out anonymously using the command
-"svn checkout https://gforge.cs.vu.nl/svn/ibis/ibis/trunk ibis".
+"svn checkout https://gforge.cs.vu.nl/svn/ibis/ipl/trunk ipl".
 
 The file BUGS.txt contains information for filing bug reports.
 
