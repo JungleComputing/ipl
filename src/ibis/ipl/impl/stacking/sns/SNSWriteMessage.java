@@ -2,23 +2,36 @@ package ibis.ipl.impl.stacking.sns;
 
 import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
+import ibis.ipl.impl.stacking.sns.util.SNSEncryption;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
+
+import javax.crypto.CipherOutputStream;
 
 public class SNSWriteMessage implements WriteMessage {
     
     final WriteMessage base;
     final SNSSendPort port;
+    SNSEncryption encryption;
     
-    public SNSWriteMessage(WriteMessage base, SNSSendPort port) {
+    ByteArrayOutputStream baos;
+    CipherOutputStream cos;
+    DataOutputStream dos;
+    
+    public SNSWriteMessage(WriteMessage base, SNSSendPort port, SNSEncryption encryption) {
         this.base = base;
         this.port = port;
-        //this.keystore = port.ibis.keyStore;
+        this.encryption = encryption;
         
-        //Encrypt the message
-        
+        if(encryption != null){            
+    	    this.baos = new ByteArrayOutputStream();
+    	    this.cos = new CipherOutputStream(baos, encryption.getECipher());
+    	    this.dos = new DataOutputStream (cos);
+        }
     }
-
+    
     public long bytesWritten() throws IOException {
         return base.bytesWritten();
     }
@@ -144,18 +157,52 @@ public class SNSWriteMessage implements WriteMessage {
     }
 
     public void writeDouble(double val) throws IOException {
+    	if(encryption != null) {
+    	    dos.writeDouble(val);
+    	    dos.close();
+        	
+    	    byte[] data = baos.toByteArray();
+    	    base.writeArray(data);    		
+    	}
+    	
         base.writeDouble(val);
     }
 
     public void writeFloat(float val) throws IOException {
+    	if(encryption != null) {
+    	    dos.writeFloat(val);
+    	    dos.close();
+        	
+    	    byte[] data = baos.toByteArray();
+    	    base.writeArray(data);    		
+    	}
+    	
         base.writeFloat(val);
     }
 
     public void writeInt(int val) throws IOException {
+    	
+    	if(encryption != null) {
+    	    dos.writeInt(val);
+    	    dos.close();
+        	
+    	    byte[] data = baos.toByteArray();
+    	    base.writeArray(data);    		
+    	}
+    	
         base.writeInt(val);
     }
 
     public void writeLong(long val) throws IOException {
+    	
+    	if(encryption != null) {
+    	    dos.writeLong(val);
+    	    dos.close();
+        	
+    	    byte[] data = baos.toByteArray();
+    	    base.writeArray(data);    		
+    	}
+    	
         base.writeLong(val);
     }
 
@@ -164,10 +211,28 @@ public class SNSWriteMessage implements WriteMessage {
     }
 
     public void writeShort(short val) throws IOException {
+    	
+    	if(encryption != null) {
+    	    dos.writeShort(val);
+    	    dos.close();
+        	
+    	    byte[] data = baos.toByteArray();
+    	    base.writeArray(data);    		
+    	}
+    	
         base.writeShort(val);
     }
 
     public void writeString(String val) throws IOException {
+    	
+    	if(encryption != null) {
+    	    dos.writeBytes(val);
+    	    dos.close();
+        	
+    	    byte[] data = baos.toByteArray();
+    	    base.writeArray(data);    		
+    	}
+	    
         base.writeString(val);
     }
 

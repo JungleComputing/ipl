@@ -15,7 +15,6 @@ import ibis.ipl.Registry;
 import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.SendPort;
 import ibis.ipl.SendPortDisconnectUpcall;
-import ibis.ipl.impl.stacking.sns.facebook.Facebook;
 import ibis.ipl.impl.stacking.sns.util.SNS;
 import ibis.ipl.impl.stacking.sns.util.SNSEncryption;
 
@@ -27,15 +26,14 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
 
-import javax.crypto.SecretKey;
-
-import org.apache.commons.codec.binary.Base64;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SNSIbis implements Ibis{
     Ibis mIbis;
     PortType[] portTypes;
-    IbisCapabilities capabilities;
-    //SNSEncryption crypto;
+    IbisCapabilities capabilities, refinedcapabilities;
+    SNSEncryption encryption;  
 
 	ArrayList<IbisIdentifier> allowedIbisIdent = new ArrayList<IbisIdentifier>();
 	
@@ -53,9 +51,7 @@ public class SNSIbis implements Ibis{
         SNSIbisCapabilities.SNS_FRIENDS_ONLY
     );
 	
-	//SNSImpl snsImpl= new SNSImpl();	
-	//SNSID snsIDs = new SNSID(null);
-	//SNSID ApplicantSNSid = new SNSID(null);
+    private static final Logger logger = LoggerFactory.getLogger("ibis.ipl.impl.SNSIbis");
 	
     public SNSIbis(IbisFactory factory, RegistryEventHandler registryEventHandler,
             Properties userProperties, IbisCapabilities capabilities,
@@ -87,7 +83,7 @@ public class SNSIbis implements Ibis{
     		
     		this.capabilities = capabilities;    	
 	    	String[] caps = (capabilities.unmatchedCapabilities(SNSibisCapabilities)).getCapabilities();
-	    	capabilities = new IbisCapabilities(caps);    	
+	    	refinedcapabilities = new IbisCapabilities(caps);    	
     	}
     	else {
     		throw new IbisCreationFailedException("SNSIbis: SNS capabilities is not specified"); 
@@ -98,15 +94,12 @@ public class SNSIbis implements Ibis{
             String[] snsNames = SNSImplementation.split(",");
 
             for (String snsName : snsNames){
-            	//SNS sns = createSNS(snsName, userProperties);
-            	SNS sns = null;
-
-            	sns = SNSFactory.createSNS(snsName, userProperties);
+            	SNS sns = SNSFactory.createSNS(snsName, userProperties);
             	
             	if(sns != null){
             		snsImplementations.put(snsName, sns);
             		
-            		snsUserIDs.put(snsName, sns.userID());
+            		snsUserIDs.put(snsName, sns.SNSUID());
             		
             		String uniquekey = UUID.randomUUID().toString();
             		snsUniqueKeys.put(snsName, uniquekey);
@@ -115,10 +108,10 @@ public class SNSIbis implements Ibis{
             		
             		//NEED TO PUT APPLICATION NAME
             		if (snsAppTag == null) {
-            			snsAppTag = snsName + ":" + sns.userID() + ":" + uniquekey;
+            			snsAppTag = snsName + ":" + sns.SNSUID() + ":" + uniquekey;
             		}
             		else {
-            			snsAppTag = "," + snsName + ":" + sns.userID() + ":" + uniquekey;
+            			snsAppTag = "," + snsName + ":" + sns.SNSUID() + ":" + uniquekey;
             		}            		
             	}
             	else {
@@ -130,20 +123,16 @@ public class SNSIbis implements Ibis{
     		throw new IbisCreationFailedException("SNSIbis: SNS implementation is not specified"); 
     	}
         
-        /*
         if (capabilities.hasCapability(SNSIbisCapabilities.SNS_ENCRYPTED_COMM_ONLY)) {
-        	crypto = new SNSEncryption();
-        	crypto.initialize();        	
+        	encryption = new SNSEncryption();
+        	encryption.initialize();
         }
-        */        
-        
-
         
     	//Replace application tag with SNS application tag
-        mIbis = factory.createIbis(h, capabilities, userProperties, credentials, snsAppTag.getBytes(), portTypes, specifiedSubImplementation);
+        mIbis = factory.createIbis(h, refinedcapabilities, userProperties, credentials, snsAppTag.getBytes(), portTypes, specifiedSubImplementation);
     }    
 	
-	private class EventHandler implements RegistryEventHandler {
+	public class EventHandler implements RegistryEventHandler {
         RegistryEventHandler h;
         SNSIbis ibis;
 
@@ -152,38 +141,23 @@ public class SNSIbis implements Ibis{
             this.ibis = ibis;
         }        
 
-        public void joined(IbisIdentifier id) {		
-			boolean result = false;
+        public void joined(IbisIdentifier id) {
+        	System.out.println("Other Ibis" + id.tagAsString());
+        	System.out.println("SNS Ibis" + ibis.identifier().tagAsString());
         	
-			if (id == ibis.identifier()) {
-				//Don't need to authenticate myself
-				result = true;
+			if (id.compareTo(ibis.identifier()) == 0) { //Don't need to authenticate myself
+				
+				/*
+				ibis.allowedIbisIdent.add(id);
+			    if (h != null) {
+			    	h.joined(id);
+			    }
+			    */
 			}
 			else {
-				/*
-				try {
-					result = SNSApplicationTagCheck(id);
-				} catch (IOException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
-				*/
-				//SNSAuthenticator SNSAuthRun = new SNSAuthenticator(ibis, h);
 				Thread SNSAuthThread = new Thread(new SNSAuthenticator(id, ibis, h));
 				SNSAuthThread.start();
-				
-				//System.out.println("SNSIbis : Application tag check finished with result : " + result);
 			}
-			/*
-			if (result){
-				allowedIbisIdent.add(id);
-			}
-			
-            if ((h != null) && result) {
-				System.out.println("SNSIbis : callback returned");
-                h.joined(id);
-            }
-            */
         }
 
         public void left(IbisIdentifier id) {
@@ -224,150 +198,11 @@ public class SNSIbis implements Ibis{
             }
         }
     }
-    /*
-    public SNS createSNS(String name, Properties properties) throws IbisCreationFailedException{
-    	SNS sns = null;
-    	
-    	//Make a factory out of this ?
-    	if(name.equals("facebook")) {
-    		
-    		
-            String sessionKey = properties.getProperty("sns.facebook.sessionkey");
-    		String secretGenerated = properties.getProperty("sns.facebook.secretGenerated");
-    		String uid = properties.getProperty("sns.facebook.uid");
- 		
-    		if (sessionKey != null && secretGenerated != null && uid != null) {    		
-    			sns = new Facebook(uid, sessionKey, secretGenerated);
-    		}
-    		else {
-    			throw new IbisCreationFailedException("SNSIbis: SNS implementation cannot be created"); 
-    		}
-    	}
-    	//else if(name.equals("hyves") {}
-    	
-    	return sns;
-    }
-    */
+
 	public void removeIbisSendPort(IbisIdentifier ibisIdentifier) {
 		allowedIbisIdent.remove(ibisIdentifier);
-		System.out.println("Removing sendport from " + ibisIdentifier.toString());
 	}	
-   
-	public boolean SNSApplicationTagCheck(IbisIdentifier applicantID) throws IOException{
-		boolean result = false;
-		
-		String applicantSnsID = applicantID.tagAsString();		
-		System.out.println("SNSIbis : applicantSnsID = " + applicantSnsID);
-		
-		String[] snsIDPairs = applicantSnsID.split(",");
-		
-		for(String snsIDPair : snsIDPairs) {
-			String[] pair = snsIDPair.split(":");
-			String snsName = pair[0];
-			String snsUID = pair[1];
-			String snsKey = pair[2];
-			
-			if(snsImplementations.containsKey(snsName)) {
-				SNS sns = snsImplementations.get(snsName);
-				System.out.println("SNSIbis : Found matched SNS name : " + snsName);				
-				System.out.println("SNSIbis : isFriends ? : " + sns.isFriend(snsUID));
-				
-				if (sns.isFriend(snsUID)){					
-					
-					
-					if (capabilities.hasCapability(SNSIbisCapabilities.SNS_ENCRYPTED_COMM_ONLY)) {
-						/*
-						Base64 base = new Base64();
-						String groupKey;	
-						byte[] encodedKey;
-
-						IbisIdentifier masterID = mIbis.registry().getElectionResult("Master", 10000);
-						while (masterID == null) {
-							masterID = mIbis.registry().elect("Master");
-						}
-						
-						if (mIbis.identifier() == masterID) {
-							SecretKey key = crypto.getSecretKey();
-							encodedKey = key.getEncoded();							
-
-							groupKey = Base64.encodeBase64String(encodedKey);
-							
-							sns.sendAuthenticationRequest(snsUID, groupKey);
-						}
-						else {
-							//wait until key is received							
-							int retry = 0;
-							do {
-								groupKey = sns.getAuthenticationRequest(snsUID);							
-															
-								try {
-									wait(10000);
-								} catch (InterruptedException e) {
-									// TODO Auto-generated catch block
-									e.printStackTrace();
-								}
-								
-								retry = retry++;
-							}
-							while (groupKey == null && retry < 3);
-						}
-					
-						if(groupKey != null) {
-							encodedKey = Base64.decodeBase64(groupKey);
-							
-							crypto.initialize(encodedKey);
-							key = crypto.getSecretKey();
- 
-							result = true;
-							break;
-						}
-						*/
-					}		
-					else if (capabilities.hasCapability(SNSIbisCapabilities.SNS_AUTHENTICATED_FRIENDS_ONLY)) {
-						String uniqueKey = snsUniqueKeys.get(snsName);
-						
-						System.out.println("SNSIbis : " + snsUID + " --- " + uniqueKey);
-						sns.sendAuthenticationRequest(snsUID, uniqueKey);
-						
-						
-						
-						/*
-						//wait until key is received
-						String applicantKey = null;
-						int retry = 0;
-						do {
-							applicantKey = sns.getAuthenticationRequest(snsUID);							
-														
-							try {
-								wait(10000);
-							} catch (InterruptedException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							}
-							
-							retry = retry++;
-						}
-						while (applicantKey == null && retry < 3);
-							
-						if(applicantKey == snsKey)  {
-							result = true;
-							break;
-						}
-						*/
-						result = true;
-						break;
-					}
-					else if (capabilities.hasCapability(SNSIbisCapabilities.SNS_FRIENDS_ONLY)){
-						result = true;
-						break;
-					}
-				}
-			}			
-		}
-		
-		return result;
-	}
-	
+   	
     @Override
 	public ReceivePort createReceivePort(PortType portType,	String portName) 
 			throws IOException {

@@ -9,7 +9,7 @@ import ibis.ipl.impl.stacking.sns.util.SNS;
 public final class SNSFactory {
 	public static SNS createSNS(String name, Properties properties) throws IbisCreationFailedException{
     	
-		if(name.equals("facebook")) {
+		if(name.equals(SNSProperties.FACEBOOK)) {
     	    		
             //String sessionKey = properties.getProperty("sns.facebook.sessionkey");
     		//String secretGenerated = properties.getProperty("sns.facebook.secretGenerated");

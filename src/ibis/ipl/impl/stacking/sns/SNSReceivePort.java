@@ -1,15 +1,6 @@
 package ibis.ipl.impl.stacking.sns;
 
-import java.io.IOException;
-import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Map.Entry;
-
+import ibis.ipl.IbisIdentifier;
 import ibis.ipl.MessageUpcall;
 import ibis.ipl.NoSuchPropertyException;
 import ibis.ipl.PortType;
@@ -18,9 +9,11 @@ import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPortIdentifier;
-import ibis.ipl.IbisIdentifier;
-import ibis.ipl.impl.stacking.sns.util.SNS;
-import ibis.ipl.impl.stacking.sns.util.SNSID;
+
+import java.io.IOException;
+import java.io.PrintStream;
+import java.util.Map;
+import java.util.Properties;
 
 public class SNSReceivePort implements ReceivePort{
 	
@@ -77,18 +70,7 @@ public class SNSReceivePort implements ReceivePort{
 		    upcaller.lostConnection(port, johnDoe, reason);
 		}
     }
-     	/*   
-    public static boolean SNSAuthenticationCheck(IbisIdentifier id){
-    	SNSID snsId = new SNSID(null);
-    	snsId.readByteArray(id.tag());
 
-		if (ibis.sns.getAuthenticationRequest() == snsId.getKey())
-			return true;
-		else     	
-			return false;
-    	
-    }
-		*/
 	@Override
 	public void close() throws IOException {
 		base.close();	
@@ -154,7 +136,7 @@ public class SNSReceivePort implements ReceivePort{
 	public ReadMessage poll() throws IOException {
         ReadMessage m = base.poll();
         if (m != null) {
-            m = new SNSReadMessage(m, this);
+            m = new SNSReadMessage(m, this, ibis.encryption);
         }
         return m;
 	}
@@ -165,7 +147,7 @@ public class SNSReceivePort implements ReceivePort{
 	}
 
 	public ReadMessage receive(long timeoutMillis) throws IOException {
-		return new SNSReadMessage(base.receive(timeoutMillis), this);
+		return new SNSReadMessage(base.receive(timeoutMillis), this, ibis.encryption);
 	}
 
 	@Override

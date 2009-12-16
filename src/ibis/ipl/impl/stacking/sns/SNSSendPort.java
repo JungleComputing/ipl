@@ -10,7 +10,7 @@ import ibis.ipl.SendPort;
 import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.WriteMessage;
-import ibis.ipl.impl.stacking.sns.util.DesEncrypter;
+import ibis.ipl.impl.stacking.sns.util.SNSEncryption;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -19,11 +19,9 @@ import java.util.Properties;
 
 public class SNSSendPort implements SendPort {
     
-	final SNSIbis ibis;
-    final SendPort base;
-    
-    DesEncrypter encrypter;
-    
+    private SendPort base;
+    private SNSEncryption encryption;
+        
     private static final class DisconnectUpcaller
             implements SendPortDisconnectUpcall {
         SNSSendPort port;
@@ -51,23 +49,7 @@ public class SNSSendPort implements SendPort {
             base = ibis.mIbis.createSendPort(type, name, null, props);
         }
         
-        if(ibis.capabilities.hasCapability(SNSIbisCapabilities.SNS_ENCRYPTED_COMM_ONLY)){            
-            
-        	/*
-        	//Create encrypter/decrypter class
-            DesEncrypter encrypter = new DesEncrypter(key);
-
-            // Encrypt
-            String encrypted = encrypter.encrypt("Don't tell anybody!");
-
-            // Decrypt
-            String decrypted = encrypter.decrypt(encrypted);
-            */
-        }
-
-
-        
-        this.ibis = ibis;
+        this.encryption = ibis.encryption;
     }
     
     public void close() throws IOException {
@@ -96,8 +78,6 @@ public class SNSSendPort implements SendPort {
 
     public void connect(ReceivePortIdentifier[] ports, long timeoutMillis, boolean fillTimeout) throws ConnectionsFailedException {
         base.connect(ports, timeoutMillis, fillTimeout);        
-
-        //Check if there is exception will this code below be executed ?
     }
 
     public ReceivePortIdentifier[] connect(Map<IbisIdentifier, String> ports) throws ConnectionsFailedException {
@@ -137,7 +117,7 @@ public class SNSSendPort implements SendPort {
     }
 
     public WriteMessage newMessage() throws IOException {    	
-        return new SNSWriteMessage(base.newMessage(), this);
+        return new SNSWriteMessage(base.newMessage(), this, encryption);
     }
 
     public Map<String, String> managementProperties() {

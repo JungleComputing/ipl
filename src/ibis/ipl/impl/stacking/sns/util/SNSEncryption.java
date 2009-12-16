@@ -1,34 +1,38 @@
 package ibis.ipl.impl.stacking.sns.util;
 
+import java.security.InvalidKeyException;
+
+import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
+import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
 public class SNSEncryption {
 	
-    //PrivateKey privateKey;
-    //PublicKey publicKey;
 	SecretKey key;
+	Cipher eCipher;
+	Cipher dCipher;
 
 	public void initialize(){
-		//String params = genDhParams();
-		//generateKeyPair(params);	
 		
 	    try {
 	        // Generate a DES key
 	        KeyGenerator keyGen = KeyGenerator.getInstance("DES");
 	        key = keyGen.generateKey();
-	    
 	        
-	        
-	        // Generate a Blowfish key
-	        //keyGen = KeyGenerator.getInstance("Blowfish");
-	        //key = keyGen.generateKey();
-	    
-	        // Generate a triple DES key
-	        //keyGen = KeyGenerator.getInstance("DESede");
-	        //key = keyGen.generateKey();
-	    } catch (java.security.NoSuchAlgorithmException e) {}
+	    	eCipher = Cipher.getInstance("DES");
+	    	dCipher = Cipher.getInstance("DES");
+	        eCipher.init(Cipher.ENCRYPT_MODE, key);
+	        dCipher.init(Cipher.DECRYPT_MODE, key);
+
+	    } catch (java.security.NoSuchAlgorithmException e) {
+	    	e.printStackTrace();
+	    } catch (NoSuchPaddingException e) {
+			e.printStackTrace();
+		} catch (InvalidKeyException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public void initialize(byte[] encodedKey) {
@@ -38,10 +42,14 @@ public class SNSEncryption {
 	public SecretKey getSecretKey() {
 		return key;
 	}
+	
+	public Cipher getECipher() {
+		return eCipher;
+	}
 
-
-
-
+	public Cipher getDCipher() {
+		return dCipher;
+	}
 /*	
     // Returns a comma-separated string of 3 values.
     // The first number is the prime modulus P.
