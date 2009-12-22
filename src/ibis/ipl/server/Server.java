@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Main Ibis Server class.
+ * 
  * @ibis.experimental
  */
 public final class Server implements ServerInterface {
@@ -131,13 +132,10 @@ public final class Server implements ServerInterface {
 
         } else {
             if (vizInfo == null) {
-                smartProperties.put(SmartSocketsProperties.HUB_VIZ_INFO,
-                        "S^Ibis Server");
-            } else {
-                smartProperties.put(SmartSocketsProperties.HUB_VIZ_INFO,
-                        vizInfo);
-
+                vizInfo = "S^Ibis Server";
             }
+
+            smartProperties.put(SmartSocketsProperties.HUB_VIZ_INFO, vizInfo);
 
             // create server socket
 
@@ -170,7 +168,13 @@ public final class Server implements ServerInterface {
             try {
                 ServiceLink sl = virtualSocketFactory.getServiceLink();
                 if (sl != null) {
-                    sl.registerProperty("smartsockets.viz", "invisible");
+                    if (typedProperties
+                            .getBooleanProperty(ServerProperties.START_HUB)) {
+
+                        sl.registerProperty("smartsockets.viz", "invisible");
+                    } else {
+                        sl.registerProperty("smartsockets.viz", vizInfo);
+                    }
                 } else {
                     logger
                             .warn("could not set smartsockets viz property: could not get smartsockets service link");
