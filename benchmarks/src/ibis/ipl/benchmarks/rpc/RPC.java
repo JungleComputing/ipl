@@ -198,7 +198,6 @@ class RPC implements MessageUpcall, Runnable, ReceivePortConnectUpcall,
 
     private final int DATA_VBFField = DATA_HASH + 1;
 
-    @SuppressWarnings("unused")
     private final int DATATYPES = DATA_VBFField + 1;
 
     private final long data_size[] = { 1, 2, 4, 8, 4, 8, 4 * 4, 4 * 4, 3 * 4,
