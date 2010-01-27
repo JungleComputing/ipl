@@ -49,7 +49,7 @@ public class SNSSendPort implements SendPort {
             base = ibis.mIbis.createSendPort(type, name, null, props);
         }
         
-        this.encryption = ibis.encryption;
+//        this.encryption = ibis.encryption;
     }
     
     public void close() throws IOException {
@@ -117,7 +117,7 @@ public class SNSSendPort implements SendPort {
     }
 
     public WriteMessage newMessage() throws IOException {    	
-        return new SNSWriteMessage(base.newMessage(), this, encryption);
+        return new SNSWriteMessage(base.newMessage(), this);
     }
 
     public Map<String, String> managementProperties() {

@@ -73,7 +73,9 @@ public class SNSAuthenticator implements Runnable {
 							String authenticationKey = null;
 							
 							for (int retry = 0; retry < 10; retry++) {
-								authenticationKey = sns.getAuthenticationRequest(snsUID);	
+								authenticationKey = sns.getAuthenticationRequest(snsUID);
+								System.out.println("SNSAuthenticator : SNSKey " + snsKey + ", AuthKey " + authenticationKey);
+								
 								if(authenticationKey != null) {
 									if(authenticationKey.equals(snsKey))  {
 										returnCallBack();						
@@ -147,7 +149,9 @@ public class SNSAuthenticator implements Runnable {
 	}
 	
 	public void returnCallBack() {
-		ibis.allowedIbisIdent.add(applicantID);
+		synchronized(ibis.allowedIbisIdent) {
+			ibis.allowedIbisIdent.add(applicantID);
+		}
 		
 		synchronized(handler) {
 		    if (handler != null) {

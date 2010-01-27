@@ -2,7 +2,9 @@
 
 package ibis.ipl.impl;
 
+import ibis.io.BufferedArrayOutputStream;
 import ibis.io.DataOutputStream;
+import ibis.io.EncryptedOutputStream;
 import ibis.io.Replacer;
 import ibis.io.SerializationFactory;
 import ibis.io.SerializationOutput;
@@ -17,6 +19,9 @@ import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.util.TypedProperties;
 
 import java.io.IOException;
+import java.io.OutputStream;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -25,6 +30,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+
+import javax.crypto.Cipher;
+import javax.crypto.CipherOutputStream;
+import javax.crypto.KeyGenerator;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -310,8 +321,45 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
         } else {
             serialization = "byte";
         }
-        out = SerializationFactory.createSerializationOutput(serialization,
-                dataOut);
+        
+        if (type.hasCapability(PortType.ENCRYPTED)) {
+        	System.out.println("Encrypted is chosen");
+        	
+        	BufferedArrayOutputStream encryptedDataOut;
+        	CipherOutputStream cos;
+	        KeyGenerator keyGen;
+			try {
+				keyGen = KeyGenerator.getInstance("DES");
+
+		        //SecretKey key = keyGen.generateKey(); //GET the KEY from somewhere
+				ibis.keystore();
+				SecretKey key = ibis.getSecretKey();
+		        Cipher eCipher = Cipher.getInstance("DES");
+		        eCipher.init(Cipher.ENCRYPT_MODE, key);
+		        
+	        	cos = new CipherOutputStream(dataOut, eCipher);
+	        	//EncryptedOutputStream encryptedOutputStream = new EncryptedOutputStream(cos);
+	        	encryptedDataOut = new BufferedArrayOutputStream(cos, 4096);	        	
+	        	
+		        out = SerializationFactory.createSerializationOutput(serialization,
+		        		encryptedDataOut);
+    	    
+			} catch (NoSuchAlgorithmException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (NoSuchPaddingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (InvalidKeyException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+        }
+        else {        
+	        out = SerializationFactory.createSerializationOutput(serialization,
+	                dataOut);
+        }
+        
         if (replacer != null) {
             out.setReplacer(replacer);
         }

@@ -53,7 +53,7 @@ public class SNSReceivePort implements ReceivePort{
 		public boolean gotConnection(ReceivePort me, SendPortIdentifier applicant) {
 			IbisIdentifier id = applicant.ibisIdentifier();
 			
-			if(ibis.allowedIbisIdent.contains(id) ){//&& SNSAuthenticationCheck(id)) {
+			if(ibis.allowedIbisIdent.contains(id) ){
 				if(upcaller == null) {
 					return true;
 				}
@@ -136,7 +136,7 @@ public class SNSReceivePort implements ReceivePort{
 	public ReadMessage poll() throws IOException {
         ReadMessage m = base.poll();
         if (m != null) {
-            m = new SNSReadMessage(m, this, ibis.encryption);
+            m = new SNSReadMessage(m, this);
         }
         return m;
 	}
@@ -147,7 +147,7 @@ public class SNSReceivePort implements ReceivePort{
 	}
 
 	public ReadMessage receive(long timeoutMillis) throws IOException {
-		return new SNSReadMessage(base.receive(timeoutMillis), this, ibis.encryption);
+		return new SNSReadMessage(base.receive(timeoutMillis), this);
 	}
 
 	@Override

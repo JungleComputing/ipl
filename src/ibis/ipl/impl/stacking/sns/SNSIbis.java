@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory;
 public class SNSIbis implements Ibis{
     Ibis mIbis;
     PortType[] portTypes;
-    IbisCapabilities capabilities, refinedcapabilities;
+    IbisCapabilities capabilities, refinedcapabilities; 
     SNSEncryption encryption;  
 
 	ArrayList<IbisIdentifier> allowedIbisIdent = new ArrayList<IbisIdentifier>();
@@ -40,10 +40,8 @@ public class SNSIbis implements Ibis{
 	HashMap<String, SNS> snsImplementations = new HashMap<String,SNS>();
 	HashMap<String, String> snsUserIDs = new HashMap<String,String>();
 	HashMap<String, String> snsUniqueKeys = new HashMap<String,String>();
-	//HashMap<IbisIdentifier, SecretKey> keyStore = new HashMap<IbisIdentifier,SecretKey>();
 
-	//SecretKey key = null;
-	String snsAppTag = null;
+	String snsAppTag;
 	
     static final IbisCapabilities SNSibisCapabilities = new IbisCapabilities(
         SNSIbisCapabilities.SNS_AUTHENTICATED_FRIENDS_ONLY,
@@ -60,7 +58,7 @@ public class SNSIbis implements Ibis{
             SNSIbisStarter snsIbisStarter)
             throws IbisCreationFailedException {
     	
-    	System.out.println("SNS Ibis initializing");
+    	logger.debug("SNS Ibis logger");
     	
     	if (specifiedSubImplementation == null) {
             throw new IbisCreationFailedException("SNSIbis: child Ibis implementation not specified");
@@ -73,10 +71,7 @@ public class SNSIbis implements Ibis{
         else {
         	h = new EventHandler(null, this);
         }
-        
-        //String appName = userProperties.getProperty(SNSProperties.APPLICATION_NAME);
-    	
-    	//if (capabilities.matchCapabilities(ibisCapabilities)){
+
     	if (capabilities.hasCapability(SNSIbisCapabilities.SNS_ENCRYPTED_COMM_ONLY) ||
     		capabilities.hasCapability(SNSIbisCapabilities.SNS_AUTHENTICATED_FRIENDS_ONLY) ||
     		capabilities.hasCapability(SNSIbisCapabilities.SNS_FRIENDS_ONLY)) {
@@ -103,10 +98,8 @@ public class SNSIbis implements Ibis{
             		
             		String uniquekey = UUID.randomUUID().toString();
             		snsUniqueKeys.put(snsName, uniquekey);
-
-            		//"facebook:123456:key1,hyves:54321:key2" 
-            		
-            		//NEED TO PUT APPLICATION NAME
+           		
+            		//PUT THE SNS CREDENTIALS IN IBIS APPLICATION TAG
             		if (snsAppTag == null) {
             			snsAppTag = snsName + ":" + sns.SNSUID() + ":" + uniquekey;
             		}
@@ -122,14 +115,18 @@ public class SNSIbis implements Ibis{
         else {
     		throw new IbisCreationFailedException("SNSIbis: SNS implementation is not specified"); 
     	}
+                
+    	//PUT REFINED IBIS CAPS AND OVERWRITE IBIS APPLICATION TAG
+        mIbis = factory.createIbis(h, refinedcapabilities, userProperties, credentials, snsAppTag.getBytes(), portTypes, specifiedSubImplementation);
         
         if (capabilities.hasCapability(SNSIbisCapabilities.SNS_ENCRYPTED_COMM_ONLY)) {
         	encryption = new SNSEncryption();
         	encryption.initialize();
+        	//KeyStore keyStore = new KeyStore(null, null, SNSImplementation);
+        	
+            //((ibis.ipl.impl.Ibis)mIbis).keystore();
+            
         }
-        
-    	//Replace application tag with SNS application tag
-        mIbis = factory.createIbis(h, refinedcapabilities, userProperties, credentials, snsAppTag.getBytes(), portTypes, specifiedSubImplementation);
     }    
 	
 	public class EventHandler implements RegistryEventHandler {
@@ -142,17 +139,20 @@ public class SNSIbis implements Ibis{
         }        
 
         public void joined(IbisIdentifier id) {
-        	System.out.println("Other Ibis" + id.tagAsString());
-        	System.out.println("SNS Ibis" + ibis.identifier().tagAsString());
-        	
-			if (id.compareTo(ibis.identifier()) == 0) { //Don't need to authenticate myself
+        	System.out.println("Other Ibis " + id.tagAsString());
+        	System.out.println("SNS Ibis " + ibis.identifier().tagAsString());
+
+			if (id.compareTo(ibis.identifier()) == 0) { 
+				//DONT NEED TO AUTHENTICATE MYSELF	
+				synchronized(allowedIbisIdent) {
+					allowedIbisIdent.add(id);
+				}
 				
-				/*
-				ibis.allowedIbisIdent.add(id);
-			    if (h != null) {
-			    	h.joined(id);
-			    }
-			    */
+				synchronized (h) {
+				    if (h != null) {
+				    	h.joined(id);
+				    }
+				}
 			}
 			else {
 				Thread SNSAuthThread = new Thread(new SNSAuthenticator(id, ibis, h));
@@ -200,9 +200,11 @@ public class SNSIbis implements Ibis{
     }
 
 	public void removeIbisSendPort(IbisIdentifier ibisIdentifier) {
-		allowedIbisIdent.remove(ibisIdentifier);
+		synchronized(allowedIbisIdent){
+			allowedIbisIdent.remove(ibisIdentifier);
+		}
 	}	
-   	
+	   	
     @Override
 	public ReceivePort createReceivePort(PortType portType,	String portName) 
 			throws IOException {

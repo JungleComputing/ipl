@@ -177,6 +177,12 @@ public final class PortType extends CapabilitySet {
     public final static String SERIALIZATION_OBJECT_SUN = 
         SERIALIZATION_OBJECT + ".sun";
     
+    /**
+     * This capability describes that encrypted serialization is supported.
+     */
+    public final static String ENCRYPTED = 
+        SERIALIZATION_OBJECT + ".encrypted";
+    
     /** 
      * Constructor for a port type.
      * @param capabilities

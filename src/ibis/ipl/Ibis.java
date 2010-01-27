@@ -5,6 +5,8 @@ package ibis.ipl;
 import java.io.IOException;
 import java.util.Properties;
 
+import javax.crypto.SecretKey;
+
 /**
  * The starting point of all Ibis communication, created using the
  * {@link ibis.ipl.IbisFactory}.
@@ -243,4 +245,7 @@ public interface Ibis extends Manageable {
             String receivePortName, MessageUpcall messageUpcall,
             ReceivePortConnectUpcall receivePortConnectUpcall,
             Properties properties) throws IOException;
+    
+    //public SecretKey getSecretKey();
+    //public void putSecretKey(SecretKey key);
 }

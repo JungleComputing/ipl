@@ -20,16 +20,16 @@ public class SNSWriteMessage implements WriteMessage {
     CipherOutputStream cos;
     DataOutputStream dos;
     
-    public SNSWriteMessage(WriteMessage base, SNSSendPort port, SNSEncryption encryption) {
+    public SNSWriteMessage(WriteMessage base, SNSSendPort port) {
         this.base = base;
         this.port = port;
-        this.encryption = encryption;
+        //this.encryption = encryption;
         
-        if(encryption != null){            
-    	    this.baos = new ByteArrayOutputStream();
-    	    this.cos = new CipherOutputStream(baos, encryption.getECipher());
-    	    this.dos = new DataOutputStream (cos);
-        }
+//        if(encryption != null){            
+//    	    this.baos = new ByteArrayOutputStream();
+//    	    this.cos = new CipherOutputStream(baos, encryption.getECipher());
+//    	    this.dos = new DataOutputStream (cos);
+//        }
     }
     
     public long bytesWritten() throws IOException {
@@ -157,51 +157,51 @@ public class SNSWriteMessage implements WriteMessage {
     }
 
     public void writeDouble(double val) throws IOException {
-    	if(encryption != null) {
-    	    dos.writeDouble(val);
-    	    dos.close();
-        	
-    	    byte[] data = baos.toByteArray();
-    	    base.writeArray(data);    		
-    	}
+//    	if(encryption != null) {
+//    	    dos.writeDouble(val);
+//    	    dos.close();
+//        	
+//    	    byte[] data = baos.toByteArray();
+//    	    base.writeArray(data);    		
+//    	}
     	
         base.writeDouble(val);
     }
 
     public void writeFloat(float val) throws IOException {
-    	if(encryption != null) {
-    	    dos.writeFloat(val);
-    	    dos.close();
-        	
-    	    byte[] data = baos.toByteArray();
-    	    base.writeArray(data);    		
-    	}
+//    	if(encryption != null) {
+//    	    dos.writeFloat(val);
+//    	    dos.close();
+//        	
+//    	    byte[] data = baos.toByteArray();
+//    	    base.writeArray(data);    		
+//    	}
     	
         base.writeFloat(val);
     }
 
     public void writeInt(int val) throws IOException {
     	
-    	if(encryption != null) {
-    	    dos.writeInt(val);
-    	    dos.close();
-        	
-    	    byte[] data = baos.toByteArray();
-    	    base.writeArray(data);    		
-    	}
+//    	if(encryption != null) {
+//    	    dos.writeInt(val);
+//    	    dos.close();
+//        	
+//    	    byte[] data = baos.toByteArray();
+//    	    base.writeArray(data);    		
+//    	}
     	
         base.writeInt(val);
     }
 
     public void writeLong(long val) throws IOException {
     	
-    	if(encryption != null) {
-    	    dos.writeLong(val);
-    	    dos.close();
-        	
-    	    byte[] data = baos.toByteArray();
-    	    base.writeArray(data);    		
-    	}
+//    	if(encryption != null) {
+//    	    dos.writeLong(val);
+//    	    dos.close();
+//        	
+//    	    byte[] data = baos.toByteArray();
+//    	    base.writeArray(data);    		
+//    	}
     	
         base.writeLong(val);
     }
@@ -212,26 +212,26 @@ public class SNSWriteMessage implements WriteMessage {
 
     public void writeShort(short val) throws IOException {
     	
-    	if(encryption != null) {
-    	    dos.writeShort(val);
-    	    dos.close();
-        	
-    	    byte[] data = baos.toByteArray();
-    	    base.writeArray(data);    		
-    	}
+//    	if(encryption != null) {
+//    	    dos.writeShort(val);
+//    	    dos.close();
+//        	
+//    	    byte[] data = baos.toByteArray();
+//    	    base.writeArray(data);    		
+//    	}
     	
         base.writeShort(val);
     }
 
     public void writeString(String val) throws IOException {
     	
-    	if(encryption != null) {
-    	    dos.writeBytes(val);
-    	    dos.close();
-        	
-    	    byte[] data = baos.toByteArray();
-    	    base.writeArray(data);    		
-    	}
+//    	if(encryption != null) {
+//    	    dos.writeBytes(val);
+//    	    dos.close();
+//        	
+//    	    byte[] data = baos.toByteArray();
+//    	    base.writeArray(data);    		
+//    	}
 	    
         base.writeString(val);
     }

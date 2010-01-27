@@ -24,12 +24,15 @@ import ibis.util.TypedProperties;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.security.KeyStore;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
+
+import javax.crypto.SecretKey;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -691,4 +694,23 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
     public String getIdentifier() {
         return ident.toString();
     }
+    
+    private KeyStore keyStore;    
+    public KeyStore keystore(){
+    	return keyStore;
+    }
+    
+    public void setKeystore(KeyStore k){
+    	keyStore = k;
+    }
+    
+    private SecretKey key;
+    public SecretKey getSecretKey(){
+		return key;    	
+    }
+    
+    public void putSecretKey(SecretKey key){
+    	this.key = key;
+    }
+    
 }

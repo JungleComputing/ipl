@@ -112,8 +112,9 @@ public class Facebook implements SNS{
 		Params.add(new BasicNameValuePair("title", FacebookVariables.MESSAGE_UIDKEY + FacebookVariables.DELIMITER + otherUID));
 		Params.add(new BasicNameValuePair("content", content));
 		
-		try {
+		try {			
 			responseObject = FPM.JSONcall("Notes.create", Params);
+			System.out.println("FaceBook :" + responseObject.toString());
 		} catch (ParseException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

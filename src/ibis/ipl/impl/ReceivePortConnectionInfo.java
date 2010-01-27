@@ -2,11 +2,23 @@
 
 package ibis.ipl.impl;
 
+import ibis.io.BufferedArrayInputStream;
+import ibis.io.BufferedArrayOutputStream;
 import ibis.io.DataInputStream;
 import ibis.io.SerializationFactory;
 import ibis.io.SerializationInput;
+import ibis.ipl.PortType;
 
 import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+
+import javax.crypto.Cipher;
+import javax.crypto.CipherInputStream;
+import javax.crypto.CipherOutputStream;
+import javax.crypto.KeyGenerator;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,8 +98,48 @@ public class ReceivePortConnectionInfo {
         if (in != null) {
             in.close();
         }
-        in = SerializationFactory.createSerializationInput(port.serialization,
-                dataIn);
+        
+        if (port.type.hasCapability(PortType.ENCRYPTED)) {
+        	System.out.println("Encrypted is chosen");
+       
+        	BufferedArrayInputStream encryptedDataIn;
+        	CipherInputStream cis;
+	        KeyGenerator keyGen;
+			try {
+				keyGen = KeyGenerator.getInstance("DES");
+
+		        //SecretKey key = keyGen.generateKey(); //GET the KEY from somewhere	
+				SecretKey key = port.ibis.getSecretKey();
+		        Cipher eCipher = Cipher.getInstance("DES");
+		        eCipher.init(Cipher.DECRYPT_MODE, key);
+		        
+		        cis = new CipherInputStream(dataIn, eCipher);
+	        	//EncryptedInputStream encryptedInputStream = new EncryptedInputStream(cos);
+		        encryptedDataIn = new BufferedArrayInputStream(cis, 4096);	        	
+	        	
+	        	in = SerializationFactory.createSerializationInput(port.serialization,
+	        			encryptedDataIn);
+    	    
+			} catch (NoSuchAlgorithmException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (NoSuchPaddingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (InvalidKeyException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+        	
+        	
+        	in = SerializationFactory.createSerializationInput(port.serialization,
+        			dataIn);
+        }
+        else {
+        	in = SerializationFactory.createSerializationInput(port.serialization,
+        			dataIn);
+        
+        }
         message = port.createReadMessage(in, this);
     }
 
