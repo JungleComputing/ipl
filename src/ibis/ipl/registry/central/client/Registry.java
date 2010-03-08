@@ -474,7 +474,10 @@ public final class Registry extends ibis.ipl.registry.Registry {
                     + "support termination");
         }
 
-        communicationHandler.terminate();
+        //check if already terminated, no need to do twice.
+        if (!pool.hasTerminated()) {
+            communicationHandler.terminate();
+        }
     }
 
     public ibis.ipl.IbisIdentifier waitUntilTerminated() {
