@@ -39,7 +39,7 @@ final class CommunicationHandler implements Runnable {
     // private final byte[] version;
 
     private final Heartbeat heartbeat;
-    
+
     private final Client client;
 
     private final VirtualSocketFactory virtualSocketFactory;
@@ -119,11 +119,10 @@ final class CommunicationHandler implements Runnable {
         client = Client.getOrCreateClient(clientID, properties, 0);
         virtualSocketFactory = client.getFactory();
 
-        serverSocket = virtualSocketFactory.createServerSocket(Protocol.VIRTUAL_PORT,
-                CONNECTION_BACKLOG, null);
+        serverSocket = virtualSocketFactory.createServerSocket(
+                Protocol.VIRTUAL_PORT, CONNECTION_BACKLOG, null);
 
-        serverAddress = client
-                .getServiceAddress(Protocol.VIRTUAL_PORT);
+        serverAddress = client.getServiceAddress(Protocol.VIRTUAL_PORT);
 
         if (serverAddress == null) {
             throw new IOException("could not get address of server");
@@ -137,7 +136,9 @@ final class CommunicationHandler implements Runnable {
         long heartbeatInterval = properties
                 .getIntProperty(RegistryProperties.HEARTBEAT_INTERVAL) * 1000;
 
-        heartbeat = new Heartbeat(this, pool, heartbeatInterval);
+        boolean exitOnServerFailure = properties.getBooleanProperty(RegistryProperties.EXIT_ON_SERVER_FAILURE);
+        
+        heartbeat = new Heartbeat(this, pool, heartbeatInterval, exitOnServerFailure);
 
         // init gossiper (if needed)
         if (gossip) {
@@ -274,7 +275,7 @@ final class CommunicationHandler implements Runnable {
                 bootstrapList[i] = new IbisIdentifier(connection.in());
             }
             connection.close();
-            heartbeat.updateHeartbeatDeadline();
+            heartbeat.resetDeadlines();
 
             synchronized (this) {
                 this.identifier = identifier;
@@ -304,7 +305,7 @@ final class CommunicationHandler implements Runnable {
         }
 
     }
-    
+
     Client getClient() {
         return client;
     }
@@ -378,7 +379,7 @@ final class CommunicationHandler implements Runnable {
             pool.init(connection.in());
             connection.close();
 
-            heartbeat.updateHeartbeatDeadline();
+            heartbeat.resetDeadlines();
             long end = System.currentTimeMillis();
             if (statistics != null) {
                 statistics.add(Protocol.OPCODE_GET_STATE, end - start,
@@ -414,7 +415,7 @@ final class CommunicationHandler implements Runnable {
             logger.debug("done telling " + ibisses.length
                     + " ibisses a string: " + signal);
 
-            heartbeat.updateHeartbeatDeadline();
+            heartbeat.resetDeadlines();
             long end = System.currentTimeMillis();
             if (statistics != null) {
                 statistics.add(Protocol.OPCODE_SIGNAL, end - start, connection
@@ -443,7 +444,7 @@ final class CommunicationHandler implements Runnable {
 
             logger.debug("done terminating");
 
-            heartbeat.updateHeartbeatDeadline();
+            heartbeat.resetDeadlines();
             long end = System.currentTimeMillis();
             if (statistics != null) {
                 statistics.add(Protocol.OPCODE_TERMINATE, end - start,
@@ -483,7 +484,7 @@ final class CommunicationHandler implements Runnable {
 
             logger.debug("sequence number = " + result);
 
-            heartbeat.updateHeartbeatDeadline();
+            heartbeat.resetDeadlines();
             long end = System.currentTimeMillis();
             if (statistics != null) {
                 statistics.add(Protocol.OPCODE_SEQUENCE_NR, end - start,
@@ -523,7 +524,7 @@ final class CommunicationHandler implements Runnable {
 
             logger.debug("done declaring " + ibis + " dead ");
 
-            heartbeat.updateHeartbeatDeadline();
+            heartbeat.resetDeadlines();
             long end = System.currentTimeMillis();
             if (statistics != null) {
                 statistics.add(Protocol.OPCODE_DEAD, end - start, connection
@@ -560,7 +561,7 @@ final class CommunicationHandler implements Runnable {
 
             logger.debug("done reporting " + ibis + " to possibly be dead");
 
-            heartbeat.updateHeartbeatDeadline();
+            heartbeat.resetDeadlines();
             long end = System.currentTimeMillis();
             if (statistics != null) {
                 statistics.add(Protocol.OPCODE_MAYBE_DEAD, end - start,
@@ -576,20 +577,21 @@ final class CommunicationHandler implements Runnable {
      * Contact server, to get new events, and to let the server know we are
      * still alive
      * 
-     * @throws IOException
-     *             in case of trouble
+     * @return true if sending the heartbeat succeeded, or was unnecessary, or
+     *         false if sending the heartbeat failed
+     * 
      */
-    void sendHeartBeat() {
+    boolean sendHeartBeat() {
         long start = System.currentTimeMillis();
 
         if (getIdentifier() == null) {
             // not joined yet
-            return;
+            return true;
         }
 
         if (pool.isStopped()) {
             // pool already stopped
-            return;
+            return true;
         }
 
         logger.debug("sending heartbeat to server");
@@ -614,11 +616,13 @@ final class CommunicationHandler implements Runnable {
                         connection.read(), connection.written(), false);
             }
             logger.debug("send heartbeat");
+            return true;
         } catch (Exception e) {
             if (connection != null) {
                 connection.close();
             }
-            logger.debug("could not send heartbeat", e);
+            logger.info(identifier + ": could not send heartbeat to server", e);
+            return false;
         }
     }
 
@@ -640,7 +644,7 @@ final class CommunicationHandler implements Runnable {
 
             connection.close();
 
-            heartbeat.updateHeartbeatDeadline();
+            heartbeat.resetDeadlines();
 
             long end = System.currentTimeMillis();
             if (statistics != null) {
@@ -689,7 +693,7 @@ final class CommunicationHandler implements Runnable {
             logger.debug("election : \"" + election + "\" done, result = "
                     + winner);
 
-            heartbeat.updateHeartbeatDeadline();
+            heartbeat.resetDeadlines();
 
             long end = System.currentTimeMillis();
             if (statistics != null) {
@@ -1047,8 +1051,6 @@ final class CommunicationHandler implements Runnable {
         connection.out().flush();
         connection.close();
     }
-
-  
 
     private synchronized void createThread() {
         while (currentNrOfThreads >= MAX_THREADS) {

@@ -9,93 +9,99 @@ public class RegistryProperties {
 
     public static final String PREFIX = "ibis.registry.central.";
 
-    public static final String HEARTBEAT_INTERVAL =
-        PREFIX + "heartbeat.interval";
+    public static final String HEARTBEAT_INTERVAL = PREFIX
+            + "heartbeat.interval";
 
-    public static final String EVENT_PUSH_INTERVAL =
-        PREFIX + "event.push.interval";
+    public static final String EXIT_ON_SERVER_FAILURE = PREFIX
+            + "exit.on.server.failure";
+
+    public static final String EVENT_PUSH_INTERVAL = PREFIX
+            + "event.push.interval";
 
     public static final String GOSSIP = PREFIX + "gossip";
 
     public static final String GOSSIP_INTERVAL = PREFIX + "gossip.interval";
 
-    public static final String ADAPT_GOSSIP_INTERVAL =
-        PREFIX + "adapt.gossip.interval";
+    public static final String ADAPT_GOSSIP_INTERVAL = PREFIX
+            + "adapt.gossip.interval";
 
     public static final String TREE = PREFIX + "tree";
-    
+
     public static final String PURGE_HISTORY = PREFIX + "purge.history";
 
     public static final String PEER_BOOTSTRAP = PREFIX + "peer.bootstrap";
 
-    public static final String CLIENT_CONNECT_TIMEOUT =
-        PREFIX + "client.connect.timeout";
+    public static final String CLIENT_CONNECT_TIMEOUT = PREFIX
+            + "client.connect.timeout";
 
-    public static final String SERVER_CONNECT_TIMEOUT =
-        PREFIX + "server.connect.timeout";
+    public static final String SERVER_CONNECT_TIMEOUT = PREFIX
+            + "server.connect.timeout";
 
     public static final String STATISTICS = PREFIX + "statistics";
 
-    public static final String STATISTICS_INTERVAL =
-        PREFIX + "statistics.interval";
+    public static final String STATISTICS_INTERVAL = PREFIX
+            + "statistics.interval";
 
     // list of descriptions and defaults
-    private static final String[][] propertiesList =
-        new String[][] {
+    private static final String[][] propertiesList = new String[][] {
 
-                {
-                        HEARTBEAT_INTERVAL,
-                        "120",
-                        "Int(seconds): how often is a member "
-                                + "of a pool expected to report it is still alive" },
+            {
+                    HEARTBEAT_INTERVAL,
+                    "120",
+                    "Int(seconds): how often is a member "
+                            + "of a pool expected to report it is still alive" },
 
-                {
-                        EVENT_PUSH_INTERVAL,
-                        "30",
-                        "Int(seconds): how often does the server "
-                                + "send out events any member may have missed" },
+            {
+                    EXIT_ON_SERVER_FAILURE,
+                    "false",
+                    "Boolean: if true, clients will terminate the JVM if the server becomes unreachable" },
 
-                { GOSSIP, "false",
-                        "Boolean: do we gossip, or send events centrally" },
+            {
+                    EVENT_PUSH_INTERVAL,
+                    "30",
+                    "Int(seconds): how often does the server "
+                            + "send out events any member may have missed" },
 
-                { GOSSIP_INTERVAL, "1", "Int(seconds): how often do we gossip" },
+            { GOSSIP, "false",
+                    "Boolean: do we gossip, or send events centrally" },
 
-                {
-                        ADAPT_GOSSIP_INTERVAL,
-                        "false",
-                        "Boolean: if true, the server gossips more often if there are "
-                                + "more nodes in a pool" },
+            { GOSSIP_INTERVAL, "1", "Int(seconds): how often do we gossip" },
 
-                {
-                        TREE,
-                        "false",
-                        "Boolean: use a broadcast tree instead of "
-                                + "serial send or gossiping" },
+            {
+                    ADAPT_GOSSIP_INTERVAL,
+                    "false",
+                    "Boolean: if true, the server gossips more often if there are "
+                            + "more nodes in a pool" },
 
-                { PEER_BOOTSTRAP, "true",
-                        "Boolean: bootstrap with peers, not just with the server" },
-                        
-                        { PURGE_HISTORY, "false",
-                        "Boolean: purge history when not needed anymore" },
+            {
+                    TREE,
+                    "false",
+                    "Boolean: use a broadcast tree instead of "
+                            + "serial send or gossiping" },
 
+            { PEER_BOOTSTRAP, "true",
+                    "Boolean: bootstrap with peers, not just with the server" },
 
-                {
-                        CLIENT_CONNECT_TIMEOUT,
-                        "300",
-                        "Int(seconds): how long do clients attempt to connect to the server and peers before giving up" },
+            { PURGE_HISTORY, "false",
+                    "Boolean: purge history when not needed anymore" },
 
-                {
-                        SERVER_CONNECT_TIMEOUT,
-                        "10",
-                        "Int(seconds): how long does the server attempt to connect to a client before giving up" },
+            {
+                    CLIENT_CONNECT_TIMEOUT,
+                    "300",
+                    "Int(seconds): how long do clients attempt to connect to the server and peers before giving up" },
 
-                { STATISTICS, "false",
-                        "Boolean: gather per-pool statistics at the server and save them to a file" },
+            {
+                    SERVER_CONNECT_TIMEOUT,
+                    "10",
+                    "Int(seconds): how long does the server attempt to connect to a client before giving up" },
 
-                { STATISTICS_INTERVAL, "60",
-                        "Int(seconds): how often do we send statistics to the server" },
+            { STATISTICS, "false",
+                    "Boolean: gather per-pool statistics at the server and save them to a file" },
 
-        };
+            { STATISTICS_INTERVAL, "60",
+                    "Int(seconds): how often do we send statistics to the server" },
+
+    };
 
     public static TypedProperties getHardcodedProperties() {
         TypedProperties properties = new TypedProperties();
