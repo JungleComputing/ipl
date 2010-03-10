@@ -109,6 +109,16 @@ final class TcpSendPort extends SendPort implements TcpProtocol {
         out.writeArray(receiverLength);
         out.writeArray(receiverBytes);
         out.flush();
+        // FIXME!
+        //
+        // This is here to make sure the close is processed before a new 
+        // connections can be made (by this sendport). Without this ack, 
+        // an application that uses a single sendport that connects/disconnects
+        // for each message may get an 'AlreadyConnectedException', because the 
+        // connect overtakes the disconnect...
+        //
+        // Unfortunately, it also causes a deadlock in 1-to-1 explict receive 
+        // applications -- J
         Conn c = (Conn) conn;
         c.s.getInputStream().read();
     }

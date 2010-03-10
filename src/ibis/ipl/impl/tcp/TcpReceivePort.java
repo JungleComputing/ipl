@@ -42,10 +42,40 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
         }
 
         public void run() {
+            logger.info("Started connection handler thread");
             try {
-                reader(false);
+                if (lazy_connectionhandler_thread) {
+                    // For disconnects, there must be a reader thread, but we
+                    // don't really want that. So, we have a thread that only
+                    // checks every second.
+                    for (;;) {
+                        Thread.sleep(1000);
+                        synchronized(port) {
+                            // If there is a reader, or a message is active,
+                            // continue.
+                            if (reader_busy || ((TcpReceivePort)port).getPortMessage() != null) {
+                                continue;
+                            }
+                            if (in == null) {
+                                return;
+                            }
+                            reader_busy = true;
+                        }
+                        if (logger.isInfoEnabled()) {
+                            logger.info("Lazy thread starting read ...");
+                        }
+                        reader(true);
+                        synchronized(port) {
+                            reader_busy = false;
+                            port.notifyAll();
+                        }
+                    }
+                }
+                else {
+                    reader(true);
+                }
             } catch (Throwable e) {
-                logger.debug("ConnectionHandler.run, connected "
+                logger.info("ConnectionHandler.run, connected "
                         + "to " + origin + ", caught exception", e);
                 close(e);
             }
@@ -56,7 +86,7 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
             ThreadPool.createNew(this, "ConnectionHandler");
         }
 
-        void reader(boolean noThread) throws IOException {
+        void reader(boolean fromHandlerThread) throws IOException {
             byte opcode = -1;
 
             // Moved here to prevent deadlocks and timeouts when using sun 
@@ -88,10 +118,11 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
                         message.setSequenceNumber(message.readLong());
                     }
                     ReadMessage m = message;
-                    messageArrived(m);
+                    messageArrived(m, fromHandlerThread);
                     // Note: if upcall calls finish, a new message is
                     // allocated, so we cannot look at "message" anymore.
-                    if (noThread || m.finishCalledInUpcall()) {
+                    if (lazy_connectionhandler_thread || !fromHandlerThread
+                        || m.finishCalledInUpcall()) {
                         return;
                     }
                     break;
@@ -122,6 +153,16 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
                         if (logger.isDebugEnabled()) {
                             logger.debug(name + ": disconnect from " + origin);
                         }
+                        // FIXME!
+                        //
+                        // This is here to make sure the close is processed before a new 
+                        // connections can be made (by the same sendport). Without this ack, 
+                        // an application that uses a single sendport that connects/disconnects
+                        // for each message may get an 'AlreadyConnectedException', because the 
+                        // connect overtakes the disconnect...
+                        //
+                        // Unfortunately, it also causes a deadlock in 1-to-1 explict receive 
+                        // applications -- J
                         s.getOutputStream().write(0);
                         close(null);
                     }
@@ -134,7 +175,7 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
         }
     }
 
-    private final boolean no_connectionhandler_thread;
+    private final boolean lazy_connectionhandler_thread;
 
     private boolean reader_busy = false;
 
@@ -142,18 +183,20 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
             ReceivePortConnectUpcall connUpcall, Properties props) throws IOException {
         super(ibis, type, name, upcall, connUpcall, props);
 
-/*        no_connectionhandler_thread = upcall == null && connUpcall == null
-                && type.hasCapability(PortType.CONNECTION_ONE_TO_ONE)
+        lazy_connectionhandler_thread = upcall == null && connUpcall == null
+                && (type.hasCapability(PortType.CONNECTION_ONE_TO_ONE) ||
+                        type.hasCapability(PortType.CONNECTION_ONE_TO_MANY))
                 && !type.hasCapability(PortType.RECEIVE_POLL)
                 && !type.hasCapability(PortType.RECEIVE_TIMEOUT);
-*/
-        no_connectionhandler_thread = false;    // Fix deadlock (see bug report #208 in
-                                                // gforge. --Ceriel
     }
 
-    public void messageArrived(ReadMessage msg) {
+    private ReadMessage getPortMessage() {
+        return message;
+    }
+
+    public void messageArrived(ReadMessage msg, boolean fromHandlerThread) {
         super.messageArrived(msg);
-        if (! no_connectionhandler_thread && upcall == null) {
+        if (fromHandlerThread && upcall == null) {
             synchronized(this) {
                 // Wait until the message is finished before starting to
                 // read from the stream again ...
@@ -169,14 +212,22 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
     }
 
     public ReadMessage getMessage(long timeout) throws IOException {
-        if (no_connectionhandler_thread) {
+        if (lazy_connectionhandler_thread) {
             // Allow only one reader in.
             synchronized(this) {
+                // First check if the lazy thread delivered a message.
+                if (message != null && ! delivered) {
+                    return super.getMessage(timeout);
+                }
                 while (reader_busy && ! closed) {
                     try {
                         wait();
                     } catch(Exception e) {
                         // ignored
+                    }
+                    // Check lazy thread again.
+                    if (message != null && ! delivered) {
+                        return super.getMessage(timeout);
                     }
                 }
                 if (closed) {
@@ -228,15 +279,6 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
         }
     }
 
-    public synchronized void closePort(long timeout) {
-        ReceivePortConnectionInfo conns[] = connections();
-        if (no_connectionhandler_thread && conns.length > 0) {
-            ThreadPool.createNew((ConnectionHandler) conns[0],
-                    "ConnectionHandler");
-        }
-        super.closePort(timeout);
-    }
-
     void connect(SendPortIdentifier origin, IbisSocket s,
             BufferedArrayInputStream in) throws IOException {
         ConnectionHandler conn;
@@ -245,12 +287,10 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
             conn = new ConnectionHandler(origin, s, this, in);
         }
         
-        if (! no_connectionhandler_thread) {
-            // ThreadPool.createNew(conn, "ConnectionHandler");
-            // We are already in a dedicated thread, so no need to create a new
-            // one!
-            // But this method was synchronized!!! Fixed (Ceriel).
-            conn.run();
-        }
+        // ThreadPool.createNew(conn, "ConnectionHandler");
+        // We are already in a dedicated thread, so no need to create a new
+        // one!
+        // But this method was synchronized!!! Fixed (Ceriel).
+        conn.run();
     }
 }
