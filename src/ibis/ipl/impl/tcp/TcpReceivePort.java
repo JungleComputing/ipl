@@ -265,7 +265,7 @@ class TcpReceivePort extends ReceivePort implements TcpProtocol {
 
                 ReceivePortConnectionInfo conns[] = connections();
                 // Note: This call does NOT always result in a message!
-                ((ConnectionHandler)conns[0]).reader(true);
+                ((ConnectionHandler)conns[0]).reader(false);
                 synchronized(this) {
                     if (message != null) {
                         reader_busy = false;
