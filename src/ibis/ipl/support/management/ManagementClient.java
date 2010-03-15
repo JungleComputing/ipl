@@ -1,6 +1,7 @@
 package ibis.ipl.support.management;
 
 import ibis.io.Conversion;
+import ibis.ipl.NoSuchPropertyException;
 import ibis.ipl.impl.Ibis;
 import ibis.ipl.support.Client;
 import ibis.ipl.support.Connection;
@@ -44,6 +45,26 @@ public class ManagementClient implements Runnable {
         ThreadPool.createNew(this, "Management Client");
     }
 
+    private Object getIbisAttribute(String name) throws NoSuchPropertyException {
+        if (name.equalsIgnoreCase("vivaldi")) {
+            return ibis.getVivaldiCoordinates();
+        } else if (name.equalsIgnoreCase("connections")) {
+            return ibis.connectedTo();
+        } else if (name.equalsIgnoreCase("outgoingMessageCount")) {
+            return ibis.getOutgoingMessageCount();
+        } else if (name.equalsIgnoreCase("bytesWritten")) {
+            return ibis.getBytesWritten();
+        } else if (name.equalsIgnoreCase("bytesSent")) {
+            return ibis.getBytesSent();
+        } else if (name.equalsIgnoreCase("incomingMessageCount")) {
+            return ibis.getIncomingMessageCount();
+        } else if (name.equalsIgnoreCase("bytesRead")) {
+            return ibis.getBytesRead();
+        } else {
+            return ibis.getManagementProperty(name);
+        }
+    }
+
     @SuppressWarnings("unchecked")
     private void handleGetMonitorInfo(Connection connection) throws IOException {
         int length = connection.in().readInt();
@@ -83,13 +104,7 @@ public class ManagementClient implements Runnable {
 
             for (int i = 0; i < descriptions.length; i++) {
                 if (descriptions[i].getBeanName().equals("ibis")) {
-                    if (descriptions[i].getAttribute().equals("vivaldi")) {
-
-                        result[i] = ibis.getVivaldiCoordinates();
-                    } else if (descriptions[i].getAttribute().equals(
-                            "connections")) {
-                        result[i] = ibis.connectedTo();
-                    }
+                    result[i] = getIbisAttribute(descriptions[i].getAttribute());
                 } else {
                     try {
                         Object objectName = objectNameClassConstructor
