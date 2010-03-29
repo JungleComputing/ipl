@@ -171,9 +171,13 @@ public final class Server implements ServerInterface {
                     if (typedProperties
                             .getBooleanProperty(ServerProperties.START_HUB)) {
 
-                        sl.registerProperty("smartsockets.viz", "invisible");
+                        if (!sl.registerProperty("smartsockets.viz", "invisible")) {
+                            sl.updateProperty("smartsockets.viz", "invisible");
+                        }
                     } else {
-                        sl.registerProperty("smartsockets.viz", vizInfo);
+                        if (!sl.registerProperty("smartsockets.viz", vizInfo)) {
+                            sl.updateProperty("smartsockets.viz", vizInfo);
+                        }
                     }
                 } else {
                     logger
