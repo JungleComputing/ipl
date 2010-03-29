@@ -250,6 +250,10 @@ final class Pool implements Runnable {
     synchronized boolean isClosed() {
         return closed;
     }
+    
+    synchronized boolean hasTerminated() {
+        return terminated;
+    }
 
     synchronized void end() {
         ended = true;
@@ -885,17 +889,17 @@ final class Pool implements Runnable {
         Formatter formatter = new Formatter(message);
 
         if (isClosedWorld()) {
-            formatter.format("%s\n     %12d %5d %6d %5d %9d %7d %10d %6b %5b",
+            formatter.format("%s\n     %12d %5d %6d %5d %9d %7d %10d %6b %10b %5b",
                     getName(), getSize(), eventStats[Event.JOIN],
                     eventStats[Event.LEAVE], eventStats[Event.DIED],
                     eventStats[Event.ELECT], eventStats[Event.SIGNAL],
-                    getFixedSize(), isClosed(), ended);
+                    getFixedSize(), isClosed(), hasTerminated(), ended);
         } else {
-            formatter.format("%s\n     %12d %5d %6d %5d %9d %7d %10s %6b %5b",
+            formatter.format("%s\n     %12d %5d %6d %5d %9d %7d %10s %6b %10b %5b",
                     getName(), getSize(), eventStats[Event.JOIN],
                     eventStats[Event.LEAVE], eventStats[Event.DIED],
                     eventStats[Event.ELECT], eventStats[Event.SIGNAL], "N.A.",
-                    isClosed(), ended);
+                    isClosed(), hasTerminated(), ended);
         }
 
         return message.toString();
@@ -913,6 +917,7 @@ final class Pool implements Runnable {
         result.put(name + ".fixed.size", "" + getFixedSize());
         result.put(name + ".closed", "" + "" + isClosed());
         result.put(name + ".ended", "" + "" + ended);
+        result.put(name + ".terminated", "" + "" + terminated);
 
         return result;
     }
