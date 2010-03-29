@@ -682,6 +682,16 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
             sendDisconnectMessage(r, c);
         } finally {
             c.closeConnection();
+            if (receivers.size() == 0) {
+                if (out != null) {
+                    try {
+                        out.close();
+                    } catch(Throwable e) {
+                        // ignored
+                    }
+                }
+                out = null;
+            }
         }
         nClosedConnections++;
     }

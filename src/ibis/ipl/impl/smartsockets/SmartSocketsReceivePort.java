@@ -152,7 +152,8 @@ class SmartSocketsReceivePort extends ReceivePort implements SmartSocketsProtoco
                     if (ident.equals(identifier)) {
                         // Sendport is disconnecting from me.
                         if (logger.isDebugEnabled()) {
-                            logger.debug(name + ": disconnect from " + origin);
+                            logger.debug(name + ": disconnect from " + origin
+                                    + ", fromHandlerThread = " + fromHandlerThread);
                         }
                         
                         // FIXME!
