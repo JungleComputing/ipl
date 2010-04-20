@@ -24,6 +24,7 @@ import java.util.Properties;
 public class P2PIbis implements Ibis {
 
 	Ibis base;
+	P2PCommunication p2pTools;
 
 	public P2PIbis(IbisFactory factory,
 			RegistryEventHandler registryEventHandler,
@@ -32,9 +33,26 @@ public class P2PIbis implements Ibis {
 			PortType[] portTypes, String specifiedSubImplementation,
 			P2PIbisStarter p2pIbisStarter) throws IbisCreationFailedException {
 
-		base = factory.createIbis(registryEventHandler, capabilities,
-				userProperties, credentials, applicationTag, portTypes,
-				specifiedSubImplementation);
+		base = null; //factory.createIbis(registryEventHandler, capabilities,
+				//userProperties, credentials, applicationTag, portTypes,
+				//specifiedSubImplementation);
+
+		
+		p2pTools = new P2PCommunication();
+		try {
+			p2pTools.run(factory, registryEventHandler, userProperties,
+					capabilities, credentials, applicationTag, portTypes,
+					specifiedSubImplementation, p2pIbisStarter);
+			p2pTools.join();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+			
+		catch (NodeNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	@Override

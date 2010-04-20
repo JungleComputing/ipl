@@ -33,6 +33,7 @@ public class P2PReceivePort implements ReceivePort{
 
         public boolean gotConnection(ReceivePort me,
                 SendPortIdentifier applicant) {
+        	System.out.println("[P2PIbis] M-am conectat!");
             return upcaller.gotConnection(port, applicant);
         }
 
@@ -138,6 +139,7 @@ public class P2PReceivePort implements ReceivePort{
 
 	@Override
 	public ReadMessage receive() throws IOException {
+		System.out.println("[P2PIbis] Am primit un mesaj!");
 		return base.receive();
 	}
 

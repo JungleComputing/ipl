@@ -74,6 +74,8 @@ public class P2PSendPort implements SendPort {
 	public ReceivePortIdentifier connect(IbisIdentifier ibisIdentifier,
 			String receivePortName, long timeoutMillis, boolean fillTimeout)
 			throws ConnectionFailedException {
+		// do not actually connect, but remember connected identifiers!
+		
 		return base.connect(ibisIdentifier, receivePortName, timeoutMillis,
 				fillTimeout);
 	}

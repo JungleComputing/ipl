@@ -36,8 +36,7 @@ public class P2PWriteMessage implements WriteMessage{
 
 	@Override
 	public void flush() throws IOException {
-		base.flush();
-		
+		base.flush();		
 	}
 
 	@Override
@@ -57,6 +56,7 @@ public class P2PWriteMessage implements WriteMessage{
 
 	@Override
 	public int send() throws IOException {
+		
 		return base.send();
 	}
 
