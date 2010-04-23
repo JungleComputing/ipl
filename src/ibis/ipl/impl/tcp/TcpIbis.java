@@ -58,7 +58,7 @@ public final class TcpIbis extends ibis.ipl.impl.Ibis implements Runnable,
                 userProperties, starter);
 
         this.properties.checkProperties("ibis.ipl.impl.tcp.",
-                new String[] { "ibis.ipl.impl.tcp.smartsockets" }, null, true);
+                new String[] { }, null, true);
 
         factory.setIdent(ident);
 

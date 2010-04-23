@@ -1,15 +1,8 @@
 package ibis.ipl.impl.tcp;
 
-import ibis.smartsockets.virtual.VirtualServerSocket;
-
 import java.net.ServerSocket;
 
-/**
- * Either an ordinary server socket or a smartsockets server socket.
- */
 class IbisServerSocket {
-
-    VirtualServerSocket smartSocket = null;
 
     ServerSocket socket = null;
 
@@ -17,34 +10,19 @@ class IbisServerSocket {
         socket = s;
     }
 
-    IbisServerSocket(VirtualServerSocket s) {
-        smartSocket = s;
-    }
-
     IbisSocket accept() throws java.io.IOException {
-        if (socket != null) {
-            return new IbisSocket(socket.accept());
-        }
-        return new IbisSocket(smartSocket.accept());
+        return new IbisSocket(socket.accept());
     }
 
     IbisSocketAddress getLocalSocketAddress() {
-        if (socket != null) {
-            return new IbisSocketAddress(socket.getLocalSocketAddress());
-        }
-        return new IbisSocketAddress(smartSocket.getLocalSocketAddress());
+        return new IbisSocketAddress(socket.getLocalSocketAddress());
     }
 
     void close() throws java.io.IOException {
         try {
-            if (socket != null) {
-                socket.close();
-            } else {
-                smartSocket.close();
-            }
+            socket.close();
         } finally {
             socket = null;
-            smartSocket = null;
         }
     }
 }
