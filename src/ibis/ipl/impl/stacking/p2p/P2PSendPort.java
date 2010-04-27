@@ -18,7 +18,8 @@ import java.util.Properties;
 
 public class P2PSendPort implements SendPort {
 	final SendPort base;
-
+	private P2PNode node;
+	
 	private static final class DisconnectUpcaller implements
 			SendPortDisconnectUpcall {
 		P2PSendPort port;

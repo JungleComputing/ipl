@@ -11,8 +11,11 @@ public class P2PMessage implements Serializable{
 	
 	public final static int JOIN_REQUEST = 0;
 	public final static int JOIN_RESPONSE = 1;
-	public final static int STRING = 2;
-
+	public final static int REGULAR = 2;
+	public final static int LEAF_UPDATE = 3;
+	public final static int NEIGHBOR_UPDATE = 4;
+	public final static int ROUTE_UPDATE = 5;
+	
 	public P2PMessage(Vector<P2PNode> dest, int type) {
 		this.setDest(dest);
 		this.setType(type);

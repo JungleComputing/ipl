@@ -39,6 +39,7 @@ public class P2PIbis implements Ibis {
 
 		
 		p2pTools = new P2PCommunication();
+		
 		try {
 			p2pTools.run(factory, registryEventHandler, userProperties,
 					capabilities, credentials, applicationTag, portTypes,

@@ -1,13 +1,9 @@
 package ibis.ipl.impl.stacking.p2p;
 
-import java.io.IOException;
-import java.io.Serializable;
-
-import ibis.ipl.ConnectionFailedException;
 import ibis.ipl.IbisIdentifier;
-import ibis.ipl.SendPort;
-import ibis.ipl.WriteMessage;
 import ibis.ipl.support.vivaldi.Coordinates;
+
+import java.io.Serializable;
 
 /**
  * encapsulation of node identification in overlay network node ID - ID in
@@ -17,12 +13,12 @@ import ibis.ipl.support.vivaldi.Coordinates;
  * @author delia
  * 
  */
-public class P2PNode implements Serializable{
+public class P2PNode implements Serializable, Comparable<P2PNode>{
 	private static final long serialVersionUID = 1L;
 	private IbisIdentifier ibisID;
 	private Coordinates coords;
 	private P2PIdentifier p2pID;
-	private SendPort sendPort;
+	private double distance;
 	
 	public void setIbisID(IbisIdentifier ibisID) {
 		this.ibisID = ibisID;
@@ -47,39 +43,17 @@ public class P2PNode implements Serializable{
 	public P2PIdentifier getP2pID() {
 		return p2pID;
 	}
-	
-	public void setSendPort(SendPort sendPort) {
-		this.sendPort = sendPort;
-	}
-	
-	public void connect(IbisIdentifier myID) throws ConnectionFailedException {
-		System.out.println(myID.name() + " ma conectez la: " + ibisID.name());
-		sendPort.connect(ibisID, "p2p");
+
+	@Override
+	public int compareTo(P2PNode o) {
+		return p2pID.compareTo(o.getP2pID());
 	}
 
-	public void sendObject(Object msg) throws IOException {
-		WriteMessage writeMsg = sendPort.newMessage();
-		writeMsg.writeObject(msg);
-		writeMsg.finish();
+	public void setDistance(double distance) {
+		this.distance = distance;
 	}
-	
-	public void sendObjects(Object ... msg) throws IOException {
-		WriteMessage writeMsg = sendPort.newMessage();
-		for (int i = 0; i < msg.length; i++) {
-			writeMsg.writeObject(msg[i]);
-		}
-		writeMsg.finish();
-	}
-	
-	public void sendArray(Object[] msg) throws IOException {
-		WriteMessage writeMsg = sendPort.newMessage();
-		writeMsg.writeArray(msg);
-		writeMsg.finish();
-	}
-	
-	public void sendInt(int msg) throws IOException {
-		WriteMessage writeMsg = sendPort.newMessage();
-		writeMsg.writeInt(msg);
-		writeMsg.finish();
+
+	public double getDistance() {
+		return distance;
 	}
 }
