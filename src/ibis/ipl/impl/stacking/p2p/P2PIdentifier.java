@@ -44,6 +44,10 @@ public class P2PIdentifier implements Serializable{
 	
 	public int digitDifference(P2PIdentifier p2pNode, int i) {
 		String otherP2PID = p2pNode.getP2pID();
+		if (i >= p2pID.length()) {
+			return i;
+		}
+		
 		return Math.abs(otherP2PID.charAt(i) - p2pID.charAt(i));
 	}
 	

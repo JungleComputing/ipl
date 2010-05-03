@@ -46,12 +46,7 @@ public class P2PIbis implements Ibis {
 					specifiedSubImplementation, p2pIbisStarter);
 			p2pTools.join();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-			
-		catch (NodeNotFoundException e) {
-			// TODO Auto-generated catch block
+			System.err.println(base.identifier());
 			e.printStackTrace();
 		}
 	}

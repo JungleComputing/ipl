@@ -1,17 +1,19 @@
 package ibis.ipl.impl.stacking.p2p;
 
+import ibis.ipl.ConnectionFailedException;
 import ibis.ipl.Ibis;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Vector;
 
 public class P2PState {
-	private P2PInternalNode[] leafSet;
-	private P2PInternalNode[] neighborhoodSet;
-	private P2PInternalNode[][] routingTable;
-	private P2PInternalNode minLeaf, maxLeaf, minNeighbor, maxNeighbor;
+	private P2PNode[] leafSet;
+	private P2PNode[] neighborhoodSet;
+	private P2PNode[][] routingTable;
+	private P2PNode minLeaf, maxLeaf, minNeighbor, maxNeighbor;
 	private int columnSize, rowSize;
 	private int neighborhoodSize, leftLeafSize, rightLeafSize;
 	private P2PNode myID;
@@ -19,115 +21,154 @@ public class P2PState {
 
 	public P2PState(P2PNode myID, Ibis baseIbis) {
 		// initialize leaf set / neighborhood set
-		leafSet = new P2PInternalNode[P2PConfig.LEAF_SIZE];
-		neighborhoodSet = new P2PInternalNode[P2PConfig.NEIGHBOORHOOD_SIZE];
+		leafSet = new P2PNode[P2PConfig.LEAF_SIZE];
+		neighborhoodSet = new P2PNode[P2PConfig.NEIGHBOORHOOD_SIZE];
 
 		// initialize routing table
-		int prefixSize = (int) Math.ceil(Math.pow(2, P2PConfig.b));
-		rowSize = (int) Math.ceil(Math.log(P2PConfig.N) / Math.log(prefixSize));
-		columnSize = prefixSize;
+		rowSize = P2PConfig.MAX_PREFIX;
+		columnSize = P2PConfig.MAX_DIGITS;
 
-		routingTable = new P2PInternalNode[rowSize][columnSize];
+		routingTable = new P2PNode[rowSize][columnSize];
 
 		this.myID = myID;
-		minLeaf = new P2PInternalNode(myID);
-		maxLeaf = new P2PInternalNode(myID);
-		minNeighbor = new P2PInternalNode(myID);
-		maxNeighbor = new P2PInternalNode(myID);
+		minLeaf = new P2PNode(myID);
+		maxLeaf = new P2PNode(myID);
+		minNeighbor = new P2PNode(myID);
+		maxNeighbor = new P2PNode(myID);
 		neighborhoodSize = rightLeafSize = leftLeafSize = 0;
 		this.baseIbis = baseIbis;
 	}
 
-	private void insertElement(P2PInternalNode[] set, P2PInternalNode node,
-			int start, int end, int size) throws IOException {
+	/**
+	 * insert an element in either neighborhood set or leaf set
+	 * 
+	 * @param set
+	 * @param node
+	 * @param start
+	 * @param end
+	 * @throws IOException
+	 */
+	private void insertElement(P2PNode[] set, P2PNode node, int start, int end)
+			throws IOException {
 		int i;
 		for (i = start; i < end && set[i] != null; i++)
-			;
+			if (set[i].compareTo(node) == 0)
+				return;
 		if (i < end) {
 			set[i] = node;
-			//TODO: add connect
-			//set[i].connect(baseIbis.createSendPort(P2PConfig.portType));
-			size++;
+			// TODO: add connect
+			// set[i].connect(baseIbis.createSendPort(P2PConfig.portType));
+			// size++;
 		}
 	}
 
-	private void replaceElement(P2PInternalNode[] set, P2PInternalNode node, Comparator<P2PInternalNode> comparator, int start, int end) {
+	/**
+	 * replace an element in either neighborhood set or leaf set
+	 * 
+	 * @param set
+	 * @param node
+	 * @param comparator
+	 * @param start
+	 * @param end
+	 */
+	private void replaceElement(P2PNode[] set, P2PNode node,
+			Comparator<P2PNode> comparator, int start, int end) {
 		Arrays.sort(set, start, end, comparator);
 		int position = Arrays.binarySearch(set, start, end, node, comparator);
 
 		if (position < 0) {
 			int insertPoint = -1 - position;
 			if (insertPoint < end) {
+				for (int i = end - 1; i > insertPoint; i--) {
+					set[i] = set[i - 1];
+				}
 				set[insertPoint] = node;
 			} else {
 				set[end - 1] = node;
 			}
 		}
-		
-		//TODO: add connect, distance to myself
+
+		// TODO: add connect, distance to myself
 	}
-	
+
+	/**
+	 * add new leaf node
+	 * 
+	 * @param node
+	 * @throws IOException
+	 */
 	public void addLeafNode(P2PNode node) throws IOException {
-		P2PIdentifier myP2PID = myID.getP2pID();
-		P2PIdentifier nodeP2PID = node.getP2pID();
-		P2PInternalNode newLeaf = new P2PInternalNode(node);
-		Comparator<P2PInternalNode> leafComp = new P2PIdentifierComparator();
-		
-		if (myP2PID.compareTo(nodeP2PID) < 0) {
+
+		if (myID.compareTo(node) < 0) {
 			// ID is greater than myID, insert at right
 			if (rightLeafSize < P2PConfig.LEAF_SIZE / 2) {
 				// the set is not full, insert and update max
-				if (nodeP2PID.compareTo(maxLeaf.getNode().getP2pID()) > 0) {
-					maxLeaf = newLeaf;
+				if (node.compareTo(maxLeaf) > 0) {
+					maxLeaf = node;
 				}
-				insertElement(leafSet, newLeaf, P2PConfig.LEAF_SIZE / 2,
-						P2PConfig.LEAF_SIZE, rightLeafSize);
-			} else {
-				// the set is full, replace an entry with the new one
-				replaceElement(leafSet, newLeaf, leafComp, P2PConfig.LEAF_SIZE / 2,
+				insertElement(leafSet, node, P2PConfig.LEAF_SIZE / 2,
 						P2PConfig.LEAF_SIZE);
-				// update max leaf
-				maxLeaf = leafSet[P2PConfig.LEAF_SIZE - 1];
+				rightLeafSize++;
+			} else {
+				if (node.compareTo(maxLeaf) < 0) {
+					Comparator<P2PNode> leafComp = new P2PIDAscComparator();
+					// the set is full, replace an entry with the new one
+					replaceElement(leafSet, node, leafComp,
+							P2PConfig.LEAF_SIZE / 2, P2PConfig.LEAF_SIZE);
+					// update max leaf
+					maxLeaf = leafSet[P2PConfig.LEAF_SIZE - 1];
+				}
 			}
 		} else {
 			if (leftLeafSize < P2PConfig.LEAF_SIZE / 2) {
 				// ID is smaller than myID, insert at left
-				if (nodeP2PID.compareTo(minLeaf.getNode().getP2pID()) < 0) {
-					minLeaf = newLeaf;
+				if (node.compareTo(minLeaf) < 0) {
+					minLeaf = node;
 				}
-				insertElement(leafSet, newLeaf, 0, P2PConfig.LEAF_SIZE / 2,
-						leftLeafSize);
+				insertElement(leafSet, node, 0, P2PConfig.LEAF_SIZE / 2);
+				leftLeafSize++;
 			} else {
 				// the set is full, replace an entry with the new one
-				replaceElement(leafSet, newLeaf, leafComp, 0, P2PConfig.LEAF_SIZE / 2);
-				minLeaf = leafSet[0];
+				if (node.compareTo(minLeaf) > 0) {
+					Comparator<P2PNode> leafComp = new P2PIDDescComparator();
+					replaceElement(leafSet, node, leafComp, 0,
+							P2PConfig.LEAF_SIZE / 2);
+					minLeaf = leafSet[0];
+				}
 			}
 		}
 	}
 
+	/**
+	 * add new neighbor node
+	 * 
+	 * @param node
+	 * @throws IOException
+	 */
 	public void addNeighborNode(P2PNode node) throws IOException {
-		P2PInternalNode newNeighbor = new P2PInternalNode(node);
 		P2PDistanceComparator distComp = new P2PDistanceComparator();
-		
+
 		if (neighborhoodSize < P2PConfig.NEIGHBOORHOOD_SIZE) {
-			insertElement(neighborhoodSet, newNeighbor, 0,
-					P2PConfig.NEIGHBOORHOOD_SIZE, neighborhoodSize);
+			insertElement(neighborhoodSet, node, 0,
+					P2PConfig.NEIGHBOORHOOD_SIZE);
+			neighborhoodSize++;
 
 			// update min and max
-			if (node.compareTo(minNeighbor.getNode()) < 0) {
-				minNeighbor = newNeighbor;
+			if (node.compareTo(minNeighbor) < 0) {
+				minNeighbor = node;
 			}
 
-			if (node.compareTo(maxNeighbor.getNode()) > 0) {
-				maxNeighbor = newNeighbor;
+			if (node.compareTo(maxNeighbor) > 0) {
+				maxNeighbor = node;
 			}
 
 		} else {
 			// neighborhood set full, compare with min and max
-			if (node.compareTo(minNeighbor.getNode()) > 0
-					&& node.compareTo(maxNeighbor.getNode()) < 0) {
-				replaceElement(neighborhoodSet, newNeighbor, distComp, 0, P2PConfig.NEIGHBOORHOOD_SIZE);
-				
+			if (node.compareTo(minNeighbor) > 0
+					&& node.compareTo(maxNeighbor) < 0) {
+				replaceElement(neighborhoodSet, node, distComp, 0,
+						P2PConfig.NEIGHBOORHOOD_SIZE);
+
 				// update min and max neighbor
 				minNeighbor = neighborhoodSet[0];
 				maxNeighbor = neighborhoodSet[P2PConfig.NEIGHBOORHOOD_SIZE - 1];
@@ -145,47 +186,36 @@ public class P2PState {
 	 */
 	public void addRoutingTableNode(P2PNode node, int i, int j) {
 		if (routingTable[i][j] != null) {
-			double oldDistance = myID.getCoords().distance(
-					routingTable[i][j].getNode().getCoords());
-			double newDistance = myID.getCoords().distance(node.getCoords());
+			double oldDistance = myID.vivaldiDistance(routingTable[i][j]);
+			double newDistance = myID.vivaldiDistance(node);
 
 			if (newDistance >= oldDistance)
 				return;
 		}
 
-		P2PInternalNode newRoute = new P2PInternalNode(node);
-		routingTable[i][j] = newRoute;
-		
-		//TODO: set distance to myself
-		//TODO: connect
+		routingTable[i][j] = node;
+		routingTable[i][j].setDistance(myID);
+		// TODO: connect
 	}
 
-	public P2PInternalNode getEntryAt(int i, int j) {
+	public P2PNode getEntryAt(int i, int j) {
 		return routingTable[i][j];
 	}
 
-	private P2PInternalNode findNode(P2PInternalNode[] set,
-			P2PInternalNode minNode, P2PInternalNode maxNode, P2PNode node,
-			int start, int end) {
-		P2PInternalNode nextDest = null;
-		P2PIdentifier nodeID = node.getP2pID();
+	private P2PNode findNode(P2PNode[] set, P2PNode minNode, P2PNode maxNode,
+			P2PNode node, int start, int end) {
+		P2PNode nextDest = myID;
 
 		// check if node within range
-		if (nodeID.compareTo(minNode.getNode().getP2pID()) < 0
-				|| nodeID.compareTo(maxNode.getNode().getP2pID()) > 0)
+		if (node.compareTo(minNode) < 0 || node.compareTo(maxNode) > 0)
 			return null;
 
-		int minDist = nodeID.prefixLength(myID.getP2pID());
-		nextDest = new P2PInternalNode(myID);
-
+		BigInteger minDist = node.idDistance(myID);
 		// search for node with closest distance
 		for (int i = start; i < end && set[i] != null; i++) {
-			P2PIdentifier leafID = set[i].getNode().getP2pID();
-			int dist = nodeID.prefixLength(leafID);
-			int newDiff = nodeID.digitDifference(leafID, dist + 1);
-			int currDiff = nodeID.digitDifference(
-					nextDest.getNode().getP2pID(), dist + 1);
-			if (dist < minDist || (dist == minDist && newDiff < currDiff)) {
+			BigInteger newDist = node.idDistance(set[i]);
+			if (newDist.compareTo(minDist) < 0) {
+				minDist = newDist;
 				nextDest = set[i];
 			}
 		}
@@ -193,31 +223,30 @@ public class P2PState {
 		return nextDest;
 	}
 
-	private P2PInternalNode findNodeWithPrefix(P2PInternalNode[] set,
-			P2PNode node, int start, int end, int prefix) {
-		P2PInternalNode nextDest = new P2PInternalNode(myID);
-		int minPrefix = prefix;
-		P2PIdentifier nodeID = node.getP2pID();
-
+	private P2PNode findNodeWithPrefix(P2PNode[] set, P2PNode node, int start,
+			int end, int prefix) {
+		P2PNode nextDest = myID;
+		BigInteger minDiff = node.idDistance(myID);
 		for (int i = start; i < end && set[i] != null; i++) {
-			int newPrefix = nodeID.prefixLength(set[i].getNode().getP2pID());
-			int currDiff = nodeID.digitDifference(
-					nextDest.getNode().getP2pID(), newPrefix + 1);
-			int newDiff = nodeID.digitDifference(set[i].getNode().getP2pID(),
-					newPrefix + 1);
-
-			if (newPrefix > minPrefix
-					|| (newPrefix == minPrefix && newDiff < currDiff)) {
+			BigInteger newDiff = set[i].idDistance(myID);
+			int currPrefix = node.prefixLength(set[i]);
+			if (newDiff.compareTo(minDiff) < 0 && currPrefix >= prefix) {
+				minDiff = newDiff;
 				nextDest = set[i];
 			}
-
 		}
 
 		return nextDest;
 	}
 
-	public P2PInternalNode findLeafNode(P2PNode node) {
-		P2PInternalNode nextDest = null;
+	/**
+	 * find the closest node to node within the leaf set
+	 * 
+	 * @param node
+	 * @return
+	 */
+	public P2PNode findLeafNode(P2PNode node) {
+		P2PNode nextDest = null;
 		P2PIdentifier nodeP2PID = node.getP2pID();
 
 		if (nodeP2PID.compareTo(myID.getP2pID()) < 0) {
@@ -231,23 +260,23 @@ public class P2PState {
 		return nextDest;
 	}
 
-	public P2PInternalNode findNeighBorNode(P2PNode node) {
+	public P2PNode findNeighBorNode(P2PNode node) {
 		return findNode(neighborhoodSet, minNeighbor, maxNeighbor, node, 0,
 				P2PConfig.NEIGHBOORHOOD_SIZE);
 	}
 
-	public P2PInternalNode findRoutingNode(P2PNode node, int prefix) {
-		P2PInternalNode nextDest = new P2PInternalNode(myID);
-		int minDiff = columnSize;
-		P2PIdentifier nodeID = node.getP2pID();
+	public P2PNode findRoutingNode(P2PNode node, int prefix) {
+		P2PNode nextDest = myID;
+		BigInteger minDiff = node.idDistance(myID);
 
 		for (int i = 0; i < columnSize; i++) {
 			if (routingTable[prefix][i] != null) {
-				int newDiff = nodeID.digitDifference(routingTable[prefix][i]
-						.getNode().getP2pID(), prefix);
-				if (newDiff < minDiff) {
-					nextDest = routingTable[prefix][i];
+				BigInteger newDiff = node.idDistance(routingTable[prefix][i]);
+				int newPrefix = node.prefixLength(routingTable[prefix][i]);
+
+				if (newDiff.compareTo(minDiff) < 0 && newPrefix >= prefix) {
 					minDiff = newDiff;
+					nextDest = routingTable[prefix][i];
 				}
 			}
 		}
@@ -255,8 +284,8 @@ public class P2PState {
 		return nextDest;
 	}
 
-	public P2PInternalNode findNodeRareCase(P2PNode node, int prefix) {
-		P2PInternalNode[] nextNodes = new P2PInternalNode[4];
+	public P2PNode findNodeRareCase(P2PNode node, int prefix) {
+		P2PNode[] nextNodes = new P2PNode[4];
 		nextNodes[0] = findNodeWithPrefix(leafSet, node, 0,
 				P2PConfig.LEAF_SIZE / 2, prefix);
 		nextNodes[1] = findNodeWithPrefix(leafSet, node,
@@ -265,20 +294,13 @@ public class P2PState {
 				P2PConfig.NEIGHBOORHOOD_SIZE, prefix);
 		nextNodes[3] = findRoutingNode(node, prefix);
 
-		P2PInternalNode nextDest = new P2PInternalNode(myID);
-		int maxPrefix = prefix;
-		int minDigitDiff = columnSize;
-		P2PIdentifier nodeID = node.getP2pID();
+		P2PNode nextDest = myID;
 
+		BigInteger minDiff = node.idDistance(myID).abs();
 		for (int i = 0; i < nextNodes.length; i++) {
-			int newPrefix = nodeID.prefixLength(nextNodes[i].getNode()
-					.getP2pID());
-			int newDigitDiff = nodeID.digitDifference(nextNodes[i].getNode()
-					.getP2pID(), newPrefix);
-			if (newPrefix > maxPrefix
-					|| (newPrefix == maxPrefix && newDigitDiff < minDigitDiff)) {
-				maxPrefix = newPrefix;
-				minDigitDiff = newDigitDiff;
+			BigInteger newDiff = node.idDistance(nextNodes[i]).abs();
+			if (newDiff.compareTo(minDiff) < 0) {
+				minDiff = newDiff;
 				nextDest = nextNodes[i];
 			}
 		}
@@ -292,103 +314,99 @@ public class P2PState {
 	 * @param set
 	 * @return
 	 */
-	private P2PNode[] convertSet(P2PInternalNode[] set) {
-		P2PNode[] newSet = new P2PNode[set.length];
-		for (int i = 0; i < set.length; i++) {
-			if (set[i] != null) {
-				newSet[i] = set[i].getNode();
-			} else {
-				newSet[i] = null;
-			}
-		}
-		return newSet;
-	}
 
 	public P2PNode[] getRoutingTableRow(int row) {
 		if (row < rowSize) {
-			return convertSet(routingTable[row]);
+			return routingTable[row];
 		}
 		return null;
 	}
 
 	public P2PNode[] getNeighborhoodSet() {
-		return convertSet(neighborhoodSet);
+		return neighborhoodSet;
 	}
 
 	public P2PNode[] getLeafSet() {
-		return convertSet(leafSet);
+		return leafSet;
 	}
 
-	public boolean updateSet(P2PInternalNode[] set, P2PNode[] receivedSet,
-			P2PInternalNode min, P2PInternalNode max) {
+	public boolean updateSet(P2PNode[] set, P2PNode[] receivedSet, P2PNode min,
+			P2PNode max) {
 		// update leaf set, source is the last node on the path
 		boolean isEmpty = true;
 		for (int i = 0; i < receivedSet.length; i++) {
 			if (receivedSet[i] != null) {
+				// update entry
 				isEmpty = false;
-				set[i] = new P2PInternalNode(receivedSet[i]);
-
+				set[i] = receivedSet[i];
+				
+				// update distance to myself, needed for neighborhood set
+				set[i].setDistance(myID);
+				
 				// update min
-				if (receivedSet[i].getP2pID().compareTo(
-						min.getNode().getP2pID()) < 0) {
-					min = new P2PInternalNode(receivedSet[i]);
+				if (receivedSet[i].getP2pID().compareTo(min.getP2pID()) < 0) {
+					min = receivedSet[i];
 				}
 
 				// update max
-				if (receivedSet[i].getP2pID().compareTo(
-						max.getNode().getP2pID()) > 0) {
-					max = new P2PInternalNode(receivedSet[i]);
+				if (receivedSet[i].getP2pID().compareTo(max.getP2pID()) > 0) {
+					max = receivedSet[i];
 				}
 			}
 		}
 		return isEmpty;
 	}
 
-	/*
-	public void updateNeighborSet(P2PInternalNode[] set, P2PNode[] receivedSet,
-			P2PInternalNode min, P2PInternalNode max) {
-		// update neighborhood set, source is the last node on the path
-		for (int i = 0; i < receivedSet.length; i++) {
-			if (receivedSet[i] != null) {
-				set[i] = new P2PInternalNode(receivedSet[i]);
-				double distance = myID.getCoords().distance(receivedSet[i].getCoords());
-				set[i].getNode().setDistance(distance);
-				//TODO: connect
-			}
-		}
-	} */
-
+	public void sendNotification(P2PNode source, int type) throws ConnectionFailedException, IOException {
+		P2PMessage msg = new P2PMessage(null, type);
+		source.connect(baseIbis.createSendPort(P2PConfig.portType));
+		source.sendObjects(msg, myID);
+	}
+	
+	/**
+	 * parse received states
+	 * @param path
+	 * @param routingTables
+	 * @param leafSet
+	 * @param neighborhoodSet
+	 * @throws IOException
+	 */
 	public void parseSets(Vector<P2PNode> path,
-			Vector<P2PNode[]> routingTables, P2PNode[] leafSet,
+			Vector<P2PRoutingInfo> routingTables, P2PNode[] leafSet,
 			P2PNode[] neighborhoodSet) throws IOException {
 
 		boolean isEmpty;
-		int maxPrefix = routingTables.size();
-		P2PNode leafNode = path.elementAt(maxPrefix - 1);
+		int pathSize = path.size();
+		P2PNode leafNode = path.elementAt(pathSize - 1);
 		P2PNode nearbyNode = path.elementAt(1);
 
 		// update routing table
-		for (int i = 0; i < maxPrefix; i++) {
-			// append is made in reverse order!
-			P2PNode source = path.elementAt(i);
-			P2PNode[] row = routingTables.elementAt(maxPrefix - i - 1);
-
+		for (int i = 0; i < routingTables.size(); i++) {
+			// read state info
+			P2PRoutingInfo info = routingTables.elementAt(i);
+			P2PNode[] row = info.getRoutingRow();
+			P2PNode source = info.getSource();
+			
 			// update set
 			int length = row.length;
 			for (int j = 0; j < length; j++) {
 				if (row[j] != null) {
-					addRoutingTableNode(row[j], i, j);
+					addRoutingTableNode(row[j], info.getPrefix(), j);
 				}
 			}
 
-			int digit = myID.getP2pID().charAt(i);
-			double newDistance = row[digit].getCoords().distance(
-					myID.getCoords());
-			double oldDistance = row[digit].getCoords().distance(
-					source.getCoords());
-
+			int digit = myID.digit(i);
+			double newDistance = 0;
+			double oldDistance = 1;
+			if (row[digit] != null) {
+				newDistance = row[digit].vivaldiDistance(myID);
+				oldDistance = row[digit].vivaldiDistance(source);
+			} 
+			
+			// send notification if distance is smaller or row[i] = null
 			if (newDistance < oldDistance) {
-				// TODO: send notification to node
+				// send notification to source node
+				sendNotification(source, P2PMessage.ROUTE_UPDATE);
 			}
 		}
 
@@ -397,14 +415,9 @@ public class P2PState {
 
 		// if my ID is between min and max leaf, send notification
 		if (isEmpty
-				|| (minLeaf.getNode().getP2pID().compareTo(myID.getP2pID()) < 0 && myID
-						.getP2pID().compareTo(maxLeaf.getNode().getP2pID()) < 0)) {
+				|| (minLeaf.compareTo(myID) < 0 && myID.compareTo(maxLeaf) < 0)) {
 			// notify leaf node;
-			// TODO: send notification to leaf!
-			P2PInternalNode source = new P2PInternalNode(leafNode);
-			
-			//source.connect(baseIbis.createSendPort(P2PConfig.portType));
-
+			sendNotification(leafNode, P2PMessage.LEAF_UPDATE);
 		}
 
 		// update neighborhood set
@@ -413,11 +426,11 @@ public class P2PState {
 
 		// compute min and max distance
 		double minDistance = 0, maxDistance = 0;
-		double myDistance = myID.getCoords().distance(nearbyNode.getCoords());
+		double myDistance = myID.vivaldiDistance(nearbyNode);
 		for (int i = 0; i < neighborhoodSet.length; i++) {
-			if (neighborhoodSet != null) {
-				double distance = nearbyNode.getCoords().distance(
-						neighborhoodSet[i].getCoords());
+			if (neighborhoodSet[i] != null) {
+				double distance = nearbyNode
+						.vivaldiDistance(neighborhoodSet[i]);
 				if (distance < minDistance) {
 					minDistance = distance;
 				}
@@ -427,25 +440,31 @@ public class P2PState {
 			}
 		}
 
-		// notify source if this is the case, source is the second node on the path
+		// notify nearby if this is the case, has position two in the path
+		// vector
 		if (isEmpty || (minDistance < myDistance && myDistance < maxDistance)) {
-			// TODO: notify nearby node
-			P2PInternalNode source = new P2PInternalNode(nearbyNode);
+			sendNotification(nearbyNode, P2PMessage.NEIGHBOR_UPDATE);
 		}
 
 		// parse path
-		for (int i = 0; i < maxPrefix; i++) {
+		for (int i = 1; i < pathSize; i++) {
 			P2PNode node = path.elementAt(i);
-			// compute digit at
-			int digit = node.getP2pID().charAt(i);
-			addRoutingTableNode(node, maxPrefix, digit);
+			// compute digit at i
+			int digit = node.digit(i - 1);
+			addRoutingTableNode(node, i - 1, digit);
 		}
 
-		// TODO: add neighbor node the nearby node
+		// add neighbor node the nearby node
 		addNeighborNode(nearbyNode);
 
-		// TODO: add leaf node the last node
+		// add leaf node the last node
 		addLeafNode(leafNode);
+
+		//System.out.println("Distance: " + myID.getCoords().toString());
+		for (int i = 0; i<path.size(); i++) {
+			System.out.println(myID + " " + i + " " + path.elementAt(i));
+		}
+		printSets();
 	}
 
 	public void setBaseIbis(Ibis baseIbis) {
@@ -454,5 +473,28 @@ public class P2PState {
 
 	public Ibis getBaseIbis() {
 		return baseIbis;
+	}
+
+	private void printSets() {
+		System.out.println(myID);
+		for (int i = 0; i < leafSet.length; i++) {
+			System.out.println(myID + " leafset " + i + " " + leafSet[i] + " ");
+		}
+
+		System.out.println();
+		
+		for (int i = 0; i < neighborhoodSet.length; i++) {
+			System.out.println(myID + " neighbor " + i + " " + neighborhoodSet[i]
+					+ " ");
+		}
+
+		System.out.println();
+		for (int i = 0; i < 5; i++) {
+			for (int j = 0; j < P2PConfig.MAX_DIGITS; j++) {
+				System.out.println(myID + " routing " + i + " " + j + " "
+						+ routingTable[i][j] + " ");
+			}
+			System.out.println();
+		}
 	}
 }
