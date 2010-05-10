@@ -1,5 +1,7 @@
 package ibis.ipl.impl.stacking.p2p;
 
+import ibis.ipl.IbisIdentifier;
+
 import java.io.Serializable;
 
 /**
@@ -10,6 +12,10 @@ public class P2PIdentifier implements Serializable{
 	private static final long serialVersionUID = 1L;
 	private String p2pID;
 
+	public P2PIdentifier(IbisIdentifier ibisID) {
+		p2pID = P2PHashTools.MD5(ibisID.name());
+	}
+	
 	public P2PIdentifier(String p2pID) {
 		this.p2pID = p2pID;
 	}

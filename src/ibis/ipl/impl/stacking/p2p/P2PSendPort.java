@@ -1,9 +1,12 @@
 package ibis.ipl.impl.stacking.p2p;
 
+import ibis.ipl.AlreadyConnectedException;
 import ibis.ipl.ConnectionFailedException;
+import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.ConnectionsFailedException;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.NoSuchPropertyException;
+import ibis.ipl.PortMismatchException;
 import ibis.ipl.PortType;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPort;
@@ -13,13 +16,32 @@ import ibis.ipl.WriteMessage;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Map.Entry;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class P2PSendPort implements SendPort {
-	final SendPort base;
-	private P2PNode node;
-	
+	private PortType type;
+	private final HashMap<IbisIdentifier, ReceivePortIdentifier[]> connections = new HashMap<IbisIdentifier, ReceivePortIdentifier[]>();
+	private SendPortIdentifier sid;
+	private P2PIbis ibis;
+	private final String name;
+	private boolean closed = false;
+	private boolean messageInUse = false;
+	private P2PWriteMessage message;
+	private final byte[] buffer;
+	private static final int DEFAULT_BUFFER_SIZE = 64 * 1024;
+
+	protected static final Logger logger = LoggerFactory
+			.getLogger("ibis.ipl.impl.smartsockets.SendPort");
+
 	private static final class DisconnectUpcaller implements
 			SendPortDisconnectUpcall {
 		P2PSendPort port;
@@ -42,15 +64,23 @@ public class P2PSendPort implements SendPort {
 			throws IOException {
 		if (connectUpcall != null) {
 			connectUpcall = new DisconnectUpcaller(this, connectUpcall);
-			base = ibis.base.createSendPort(type, name, connectUpcall, props);
-		} else {
-			base = ibis.base.createSendPort(type, name, null, props);
 		}
+
+		this.ibis = ibis;
+		this.type = type;
+		this.name = name;
+		this.sid = new ibis.ipl.impl.SendPortIdentifier(name,
+				(ibis.ipl.impl.IbisIdentifier) ibis.identifier());
+
+		buffer = new byte[DEFAULT_BUFFER_SIZE];
+		message = new P2PWriteMessage(this, buffer);
+
 	}
 
 	@Override
-	public void close() throws IOException {
-		base.close();
+	public synchronized void close() throws IOException {
+		closed = true;
+		notifyAll();
 	}
 
 	@Override
@@ -63,6 +93,7 @@ public class P2PSendPort implements SendPort {
 	public void connect(ReceivePortIdentifier receiver, long timeoutMillis,
 			boolean fillTimeout) throws ConnectionFailedException {
 		connect(receiver, timeoutMillis, fillTimeout);
+
 	}
 
 	@Override
@@ -71,14 +102,52 @@ public class P2PSendPort implements SendPort {
 		return connect(ibisIdentifier, receivePortName, 0L, true);
 	}
 
+	private void addReceiver(IbisIdentifier ibisIdentifier,
+			ReceivePortIdentifier receiver) {
+		if (!connections.containsKey(ibisIdentifier)) {
+			ReceivePortIdentifier[] temp = new ibis.ipl.impl.ReceivePortIdentifier[1];
+			temp[0] = receiver;
+			connections.put(ibisIdentifier, temp);
+		} else {
+			ReceivePortIdentifier[] temp = connections.get(ibisIdentifier);
+			temp = Arrays.copyOf(temp, temp.length + 1);
+			temp[temp.length - 1] = receiver;
+		}
+	}
+
 	@Override
-	public ReceivePortIdentifier connect(IbisIdentifier ibisIdentifier,
-			String receivePortName, long timeoutMillis, boolean fillTimeout)
+	public synchronized ReceivePortIdentifier connect(
+			IbisIdentifier ibisIdentifier, String receivePortName,
+			long timeoutMillis, boolean fillTimeout)
 			throws ConnectionFailedException {
-		// do not actually connect, but remember connected identifiers!
+		ReceivePortIdentifier receiver = new ibis.ipl.impl.ReceivePortIdentifier(
+				receivePortName, (ibis.ipl.impl.IbisIdentifier) ibisIdentifier);
+
+		Byte response = ibis.connect(ibisIdentifier, receivePortName, sid,
+				type, timeoutMillis, fillTimeout);
 		
-		return base.connect(ibisIdentifier, receivePortName, timeoutMillis,
-				fillTimeout);
+		switch (response.byteValue()) {
+		case P2PReceivePort.ALREADY_CONNECTED:
+			throw new AlreadyConnectedException("Already connected",
+					ibisIdentifier, receivePortName);
+		case P2PReceivePort.NOT_PRESENT:
+			throw new ConnectionFailedException("Receive Port not present",
+					receiver);
+		case P2PReceivePort.DENIED:
+			throw new ConnectionRefusedException("Connection refused", receiver);
+		case P2PReceivePort.TYPE_MISMATCH:
+			throw new PortMismatchException("Ports of different tyoes",
+					receiver);
+		case P2PReceivePort.DISABLED:
+			throw new ConnectionFailedException("Connections not enabled at receiver's side",
+					receiver);
+		case P2PReceivePort.NO_MANY_TO_X:
+			throw new ConnectionFailedException("Many to X capability not enabled at receiver's side",
+					receiver);
+		}
+		
+		addReceiver(ibisIdentifier, receiver);
+		return receiver;
 	}
 
 	@Override
@@ -88,11 +157,19 @@ public class P2PSendPort implements SendPort {
 	}
 
 	@Override
-	public void connect(ReceivePortIdentifier[] receivePortIdentifiers,
-			long timeoutMillis, boolean fillTimeout)
-			throws ConnectionsFailedException {
-		base.connect(receivePortIdentifiers, timeoutMillis, fillTimeout);
-
+	public synchronized void connect(
+			ReceivePortIdentifier[] receivePortIdentifiers, long timeoutMillis,
+			boolean fillTimeout) throws ConnectionsFailedException {
+		try {
+			for (ReceivePortIdentifier id : receivePortIdentifiers) {
+				connect(id.ibisIdentifier(), id.name(), timeoutMillis,
+						fillTimeout);
+			}
+		} catch (ConnectionFailedException ex) {
+			// FIXME: repair this, should throw an exception for failed
+			// connections
+			throw new ConnectionsFailedException();
+		}
 	}
 
 	@Override
@@ -105,78 +182,148 @@ public class P2PSendPort implements SendPort {
 	public ReceivePortIdentifier[] connect(Map<IbisIdentifier, String> ports,
 			long timeoutMillis, boolean fillTimeout)
 			throws ConnectionsFailedException {
-		return base.connect(ports, timeoutMillis, fillTimeout);
+
+		ReceivePortIdentifier[] tmp = new ReceivePortIdentifier[ports.size()];
+
+		int index = 0;
+
+		for (Entry<IbisIdentifier, String> e : ports.entrySet()) {
+			tmp[index++] = new ibis.ipl.impl.ReceivePortIdentifier(
+					e.getValue(), (ibis.ipl.impl.IbisIdentifier) e.getKey());
+		}
+
+		connect(tmp);
+		return tmp;
 	}
 
 	@Override
 	public ReceivePortIdentifier[] connectedTo() {
-		return base.connectedTo();
+		ReceivePortIdentifier[] receivers = new ibis.ipl.impl.ReceivePortIdentifier[1];
+
+		Collection<ReceivePortIdentifier[]> c = connections.values();
+		Iterator<ReceivePortIdentifier[]> itr = c.iterator();
+		while (itr.hasNext()) {
+			ReceivePortIdentifier[] temp = itr.next();
+			int oldLength = receivers.length;
+			receivers = Arrays
+					.copyOf(receivers, receivers.length + temp.length);
+
+			for (int i = 0; i < temp.length; i++) {
+				receivers[i + oldLength] = temp[i];
+			}
+		}
+
+		return receivers;
 	}
 
 	@Override
-	public void disconnect(ReceivePortIdentifier receiver) throws IOException {
-		base.disconnect(receiver);
+	public synchronized void disconnect(ReceivePortIdentifier receiver)
+			throws IOException {
+		if (connections.remove(receiver.ibisIdentifier()) == null) {
+			throw new IOException("Not connected to:" + receiver);
+		}
 	}
 
 	@Override
 	public void disconnect(IbisIdentifier ibisIdentifier, String receivePortName)
 			throws IOException {
-		base.disconnect(ibisIdentifier, receivePortName);
-
+		disconnect(new ibis.ipl.impl.ReceivePortIdentifier(receivePortName,
+				(ibis.ipl.impl.IbisIdentifier) ibisIdentifier));
 	}
 
 	@Override
 	public PortType getPortType() {
-		return base.getPortType();
+		return type;
 	}
 
 	@Override
 	public SendPortIdentifier identifier() {
-		return base.identifier();
+		return sid;
 	}
 
 	@Override
 	public ReceivePortIdentifier[] lostConnections() {
-		return base.lostConnections();
+		// TODO: repair this, the same is done in smart sockets implementation
+		return new ReceivePortIdentifier[0];
 	}
 
 	@Override
 	public String name() {
-		return base.name();
+		return name;
 	}
 
 	@Override
 	public WriteMessage newMessage() throws IOException {
-		return new P2PWriteMessage(base.newMessage(), this);
+		// return new P2PWriteMessage(base.newMessage(), this);
+		while (!closed && messageInUse) {
+			try {
+				wait();
+			} catch (InterruptedException e) {
+				// ignore
+			}
+		}
+
+		if (closed) {
+			throw new IOException("SendPort is closed");
+		}
+
+		messageInUse = false;
+		return message;
 	}
 
 	@Override
 	public String getManagementProperty(String key)
 			throws NoSuchPropertyException {
-		return base.getManagementProperty(key);
+		// TODO: fix this, the same is done in SmartSockets
+		return null;
 	}
 
 	@Override
 	public Map<String, String> managementProperties() {
-		return base.managementProperties();
+		// TODO: fix this, the same is done in SmartSockets
+		return null;
 	}
 
 	@Override
 	public void printManagementProperties(PrintStream stream) {
-		base.printManagementProperties(stream);
+		// TODO: fix this, the same is done in SmartSockets
 	}
 
 	@Override
 	public void setManagementProperties(Map<String, String> properties)
 			throws NoSuchPropertyException {
-		base.setManagementProperties(properties);
-
+		// TODO: fix this, the same is done in SmartSockets
 	}
 
 	@Override
 	public void setManagementProperty(String key, String value)
 			throws NoSuchPropertyException {
-		base.setManagementProperty(key, value);
+		// TODO: fix this, the same is done in SmartSockets
+	}
+
+	protected synchronized void finishedMessage() throws IOException {
+		int length = (int) message.bytesWritten();
+		byte[] buffer = this.buffer;
+
+		try {
+			send(buffer, length);
+		} catch (Exception e) {
+			logger.debug("Failed to send message to " + connections, e);
+		}
+
+		message.reset();
+		messageInUse = false;
+		notifyAll();
+
+	}
+
+	private void send(byte[] buffer, int length) throws IOException {
+		try {
+			ibis.send(buffer, length, this.sid, connections);
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 }

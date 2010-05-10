@@ -1,178 +1,424 @@
 package ibis.ipl.impl.stacking.p2p;
 
+import ibis.ipl.AlreadyConnectedException;
+import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.MessageUpcall;
-import ibis.ipl.NoSuchPropertyException;
 import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPortIdentifier;
+import ibis.ipl.impl.Manageable;
+import ibis.util.ThreadPool;
 
 import java.io.IOException;
-import java.io.PrintStream;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Properties;
 
-public class P2PReceivePort implements ReceivePort{
-	final ReceivePort base;
-	
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public class P2PReceivePort extends Manageable implements ReceivePort, Runnable {
+	private P2PIbis ibis;
+
+	protected static final Logger logger = LoggerFactory
+			.getLogger("ibis.ipl.impl.smartsockets.ReceivePort");
+
+	/** current connections **/
+	protected LinkedList<SendPortIdentifier> connections = new LinkedList<SendPortIdentifier>();
+
+	/** The type of this port. */
+	public final PortType type;
+
+	/** The name of this port. */
+	public final String name;
+
+	/** The identification of this receiveport. */
+	public final ReceivePortIdentifier ident;
+
+	/** Message upcall, if specified, or <code>null</code>. */
+	protected MessageUpcall upcall;
+
+	/** Set when upcalls are enabled. */
+	protected boolean allowUpcalls = false;
+
+	/** Set when connections are enabled. */
+	private boolean connectionsEnabled = false;
+
+	/** Set when connection downcalls are supported. */
+	private boolean connectionDowncalls = false;
+
+	/** Set when this port is closed. */
+	protected boolean closed = false;
+
+	/** Connection upcall handler, or <code>null</code>. */
+	protected ReceivePortConnectUpcall connectUpcall;
+
+	/** The current message. */
+	protected ReadMessage message = null;
+
+	private LinkedList<P2PReadMessage> messages = new LinkedList<P2PReadMessage>();
+
 	/**
-     * This class forwards upcalls with the proper receive port.
-     */
-    private static final class ConnectUpcaller
-            implements ReceivePortConnectUpcall {
-        P2PReceivePort port;
-        ReceivePortConnectUpcall upcaller;
+	 * Set when the current message has been delivered. Only used for explicit
+	 * receive.
+	 */
+	protected boolean delivered = false;
 
-        public ConnectUpcaller(P2PReceivePort port,
-                ReceivePortConnectUpcall upcaller) {
-            this.port = port;
-            this.upcaller = upcaller;
-        }
+	/**
+	 * The connections lost since the last call to {@link #lostConnections()}.
+	 */
+	private ArrayList<SendPortIdentifier> lostConnections = new ArrayList<SendPortIdentifier>();
 
-        public boolean gotConnection(ReceivePort me,
-                SendPortIdentifier applicant) {
-        	System.out.println("[P2PIbis] M-am conectat!");
-            return upcaller.gotConnection(port, applicant);
-        }
+	/**
+	 * The new connections since the last call to {@link #newConnections()}.
+	 */
+	private ArrayList<SendPortIdentifier> newConnections = new ArrayList<SendPortIdentifier>();
 
-        public void lostConnection(ReceivePort me,
-                SendPortIdentifier johnDoe, Throwable reason) {
-            upcaller.lostConnection(port, johnDoe, reason);
-        }
-    }
-    
-    /**
-     * This class forwards message upcalls with the proper message.
-     */
-    private static final class Upcaller implements MessageUpcall {
-        MessageUpcall upcaller;
-        P2PReceivePort port;
+	/** connection error codes **/
 
-        public Upcaller(MessageUpcall upcaller, P2PReceivePort port) {
-            this.upcaller = upcaller;
-            this.port = port;
-        }
+	/** Connection attempt accepted. */
+	public static final byte ACCEPTED = 0;
 
-        public void upcall(ReadMessage m) throws IOException, ClassNotFoundException {
-            upcaller.upcall(new P2PReadMessage(m, port));
-        }
-    }
-    
-	public P2PReceivePort(PortType type, P2PIbis ibis,
-            String name, MessageUpcall upcall, ReceivePortConnectUpcall connectUpcall,
-            Properties properties) throws IOException{
-		if (connectUpcall != null) {
-            connectUpcall = new ConnectUpcaller(this, connectUpcall);
-        }
-        if (upcall != null) {
-            upcall = new Upcaller(upcall, this);
-        }
-        base = ibis.base.createReceivePort(type, name, upcall, connectUpcall, properties);
+	/** Connection attempt denied by user code. */
+	public static final byte DENIED = 1;
+
+	/** Connection attempt disabled. */
+	public static final byte DISABLED = 2;
+
+	/** Sendport was already connected to this receiveport. */
+	public static final byte ALREADY_CONNECTED = 3;
+
+	/** Port type does not match. */
+	public static final byte TYPE_MISMATCH = 4;
+
+	/** Receiveport not found. */
+	public static final byte NOT_PRESENT = 5;
+
+	/** Receiveport already has a connection, and ManyToOne is not specified. */
+	public static final byte NO_MANY_TO_X = 6;
+
+	public P2PReceivePort(PortType type, P2PIbis ibis, String name,
+			MessageUpcall upcall, ReceivePortConnectUpcall connectUpcall,
+			Properties properties) throws IOException {
+		this.upcall = upcall;
+		this.connectUpcall = connectUpcall;
+
+		this.ibis = ibis;
+		this.type = type;
+		this.name = name;
+		this.ident = ibis.createReceivePortIdentifier(name, ibis.identifier());
+
+		this.connectionDowncalls = type
+				.hasCapability(PortType.CONNECTION_DOWNCALLS);
+
+		ibis.register(this);
 	}
-	
+
 	@Override
 	public void close() throws IOException {
-		base.close();
+		closed = true;
+		notifyAll();
 	}
 
 	@Override
 	public void close(long timeoutMillis) throws IOException {
-		base.close(timeoutMillis);
+		if (logger.isDebugEnabled()) {
+			logger.debug("Receiveport " + name + ": closing");
+		}
+		synchronized (this) {
+			if (closed) {
+				throw new IOException("Port already closed");
+			}
+			connectionsEnabled = false;
+			closed = true;
+			notifyAll();
+		}
+		//TODO: wait until all connections are closed, or maybe there is no need for waiting....
+		ibis.deRegister(this);
+	}
+
+	private synchronized boolean getClosed() {
+		return closed;
 	}
 
 	@Override
 	public SendPortIdentifier[] connectedTo() {
-		return base.connectedTo();
+		return connections.toArray(new ibis.ipl.SendPortIdentifier[0]);
 	}
 
 	@Override
 	public void disableConnections() {
-		base.disableConnections();
+		connectionsEnabled = false;
 	}
 
 	@Override
 	public void disableMessageUpcalls() {
-		base.disableMessageUpcalls();
+		allowUpcalls = false;
 	}
 
 	@Override
 	public void enableConnections() {
-		base.enableConnections();
+		connectionsEnabled = true;
+
 	}
 
 	@Override
 	public void enableMessageUpcalls() {
-		base.enableMessageUpcalls();
+		allowUpcalls = true;
+		notifyAll();
 	}
 
 	@Override
 	public PortType getPortType() {
-		return base.getPortType();
+		return type;
 	}
 
 	@Override
 	public ReceivePortIdentifier identifier() {
-		return base.identifier();
+		return this.ident;
+
 	}
 
 	@Override
 	public SendPortIdentifier[] lostConnections() {
-		return base.lostConnections();
+		if (!connectionDowncalls) {
+			throw new IbisConfigurationException(
+					"ReceivePort.lostConnections()"
+							+ " called but connectiondowncalls not configured");
+		}
+		ibis.ipl.SendPortIdentifier[] result = lostConnections
+				.toArray(new ibis.ipl.SendPortIdentifier[0]);
+		lostConnections.clear();
+		return result;
 	}
 
 	@Override
 	public String name() {
-		return base.name();
+		return name;
 	}
 
 	@Override
 	public SendPortIdentifier[] newConnections() {
-		return base.newConnections();
+		if (!connectionDowncalls) {
+			throw new IbisConfigurationException("ReceivePort.newConnections()"
+					+ " called but connectiondowncalls not configured");
+		}
+		ibis.ipl.SendPortIdentifier[] result = newConnections
+				.toArray(new ibis.ipl.SendPortIdentifier[0]);
+		newConnections.clear();
+		return result;
 	}
 
 	@Override
 	public ReadMessage poll() throws IOException {
-		return base.poll();
+		if (!type.hasCapability(PortType.RECEIVE_POLL)) {
+			throw new IbisConfigurationException(
+					"Receiveport not configured for polls");
+		}
+		return doPoll();
+	}
+
+	protected ReadMessage doPoll() throws IOException {
+		Thread.yield(); // Give other thread a chance to deliver
+
+		if (upcall != null) {
+			return null;
+		}
+
+		synchronized (this) { // Other thread may modify data.
+			if (messages.size() == 0) {
+				return null;
+			}
+
+			return messages.get(0);
+		}
 	}
 
 	@Override
 	public ReadMessage receive() throws IOException {
-		System.out.println("[P2PIbis] Am primit un mesaj!");
-		return base.receive();
+		return receive(0);
 	}
 
 	@Override
-	public ReadMessage receive(long timeoutMillis) throws IOException {
-		return base.receive(timeoutMillis);
+	public ReadMessage receive(long timeout) throws IOException {
+		if (upcall != null) {
+			throw new IbisConfigurationException(
+					"Configured Receiveport for upcalls, downcall not allowed");
+		}
+
+		if (timeout < 0) {
+			throw new IOException("timeout must be a non-negative number");
+		}
+		if (timeout > 0 && !type.hasCapability(PortType.RECEIVE_TIMEOUT)) {
+			throw new IbisConfigurationException(
+					"This port is not configured for receive() with timeout");
+		}
+
+		return getMessage(timeout);
+	}
+
+	public P2PReadMessage getMessage(long timeout) {
+
+		long endTime = System.currentTimeMillis() + timeout;
+
+		while (!closed && messages.size() == 0) {
+			if (timeout > 0) {
+				long waitTime = endTime - System.currentTimeMillis();
+
+				if (waitTime <= 0) {
+					break;
+				}
+
+				try {
+					wait(waitTime);
+				} catch (InterruptedException e) {
+					// ignore
+				}
+			} else {
+				try {
+					wait();
+				} catch (InterruptedException e) {
+					// ignore
+				}
+			}
+		}
+
+		if (closed || messages.size() == 0) {
+			return null;
+		}
+
+		return messages.removeFirst();
+	}
+
+	protected void newUpcallThread() {
+		ThreadPool.createNew(this, "ConnectionHandler");
+	}
+
+	private synchronized boolean waitUntilUpcallAllowed() {
+
+		while (!closed && !allowUpcalls) {
+			try {
+				wait();
+			} catch (InterruptedException e) {
+				// ignored
+			}
+		}
+
+		return !closed;
+	}
+
+	private void performUpcall(P2PReadMessage message) {
+
+		if (waitUntilUpcallAllowed()) {
+			try {
+				// Notify the message that is is processed from an upcall,
+				// so that finish() calls can be detected.
+				message.setInUpcall(true);
+				upcall.upcall(message);
+			} catch (IOException e) {
+				if (!message.isFinished()) {
+					message.finish(e);
+					return;
+				}
+				logger
+						.error(
+								"Got unexpected exception in upcall, continuing ...",
+								e);
+			} catch (Throwable t) {
+				if (!message.isFinished()) {
+					IOException ioex = new IOException("Got Throwable: "
+							+ t.getMessage());
+					ioex.initCause(t);
+					message.finish(ioex);
+				}
+				return;
+			} finally {
+				message.setInUpcall(false);
+			}
+		}
+	}
+
+	/**
+	 * deliver a message, if upcalls are enabled, deliver message to upcaller,
+	 * otherwise append to queue, when user calls receive, extract first message
+	 * grom queue
+	 * 
+	 * @param source
+	 * @param data
+	 * @throws IOException
+	 * @throws ClassNotFoundException
+	 */
+	public void deliverMessage(SendPortIdentifier source, byte[] data) {
+		try {
+			P2PReadMessage msg = new P2PReadMessage(this, source, data);
+
+			synchronized (this) {
+				messages.addLast(msg);
+				notifyAll();
+			}
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		}
 	}
 
 	@Override
-	public String getManagementProperty(String key)
-			throws NoSuchPropertyException {
-		return base.getManagementProperty(key);
+	protected void updateProperties() {
+		// TODO Ask about management properties
 	}
 
 	@Override
-	public Map<String, String> managementProperties() {
-		return base.managementProperties();
+	public void run() {
+		while (!getClosed()) {
+			P2PReadMessage message = getMessage(0L);
+
+			if (message != null) {
+				performUpcall(message);
+
+				if (message.finishCalledInUpcall()) {
+					// A new thread has take our place
+					return;
+				}
+			}
+		}
+
 	}
 
-	@Override
-	public void printManagementProperties(PrintStream stream) {
-		base.printManagementProperties(stream);
-	}
+	public synchronized byte handleConnectionRequest(SendPortIdentifier source,
+			PortType senderType) {
+		newConnections.add(source);
 
-	@Override
-	public void setManagementProperties(Map<String, String> properties)
-			throws NoSuchPropertyException {
-		base.setManagementProperties(properties);
-	}
+		if (connections.contains(source)) {
+			return P2PReceivePort.ALREADY_CONNECTED;
+		}
 
-	@Override
-	public void setManagementProperty(String key, String value)
-			throws NoSuchPropertyException {
-		base.setManagementProperty(key, value);
+		if (!type.equals(senderType)) {
+			return P2PReceivePort.TYPE_MISMATCH;
+		}
+
+		if (!connectionsEnabled) {
+			return P2PReceivePort.DISABLED;
+		}
+
+		if (connections.size() != 0
+				&& !(type.hasCapability(PortType.CONNECTION_MANY_TO_ONE) || type
+						.hasCapability(PortType.CONNECTION_MANY_TO_MANY))) {
+			return P2PReceivePort.NO_MANY_TO_X;
+		}
+
+		if (upcall != null) {
+			if (!connectUpcall.gotConnection(this, source)) {
+				return P2PReceivePort.DENIED;
+			}
+		}
+
+		if (connectionDowncalls) {
+			newConnections.add(source);
+			connections.add(source);
+		}
+
+		return P2PReceivePort.ACCEPTED;
 	}
 }

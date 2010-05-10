@@ -2,41 +2,81 @@ package ibis.ipl.impl.stacking.p2p;
 
 import java.io.IOException;
 
+import ibis.io.SerializationFactory;
+import ibis.io.SerializationOutput;
+import ibis.io.SingleBufferArrayOutputStream;
+import ibis.ipl.PortType;
 import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
 
-public class P2PWriteMessage implements WriteMessage{
-	final WriteMessage base;
-	final SendPort port;
-	
-	public P2PWriteMessage(WriteMessage message, P2PSendPort sendPort) {
-		this.base = message;
+public class P2PWriteMessage implements WriteMessage {
+	final P2PSendPort port;
+	private final SerializationOutput out;
+	private final SingleBufferArrayOutputStream bout;
+
+	public P2PWriteMessage(P2PSendPort sendPort, byte[] buffer)
+			throws IOException {
 		this.port = sendPort;
+
+		PortType type = port.getPortType();
+		String serialization = null;
+
+		if (type.hasCapability(PortType.SERIALIZATION_DATA)) {
+			serialization = "data";
+		} else if (type.hasCapability(PortType.SERIALIZATION_OBJECT_SUN)) {
+			serialization = "sun";
+		} else if (type.hasCapability(PortType.SERIALIZATION_OBJECT_IBIS)) {
+			serialization = "ibis";
+		} else if (type.hasCapability(PortType.SERIALIZATION_OBJECT)) {
+			serialization = "object";
+		} else {
+			serialization = "byte";
+		}
+
+		bout = new SingleBufferArrayOutputStream(buffer);
+		out = SerializationFactory.createSerializationOutput(serialization,
+				bout);
 	}
-	
+
 	@Override
 	public long bytesWritten() throws IOException {
-		return base.bytesWritten();
+		return bout.bytesWritten();
 	}
 
 	@Override
 	public int capacity() throws IOException {
-		return base.capacity();
+		return bout.bufferSize();
 	}
 
 	@Override
 	public long finish() throws IOException {
-		return base.finish();
+
+		out.flush();
+
+		long bytes = bout.bytesWritten();
+
+		// System.err.println("Written == " + bytes);
+
+		port.finishedMessage();
+		return bytes;
+
 	}
 
 	@Override
 	public void finish(IOException exception) {
-		base.finish(exception);
+		try {
+			// TODO: implement finish
+			// port.finishedMessage(exception);
+
+		} catch (Exception e) {
+			// ignore ?
+		}
 	}
 
 	@Override
 	public void flush() throws IOException {
-		base.flush();		
+		// TODO: in SmartSocketsUltraLightWriteMessage is left empty, do the
+		// same?
 	}
 
 	@Override
@@ -46,180 +86,185 @@ public class P2PWriteMessage implements WriteMessage{
 
 	@Override
 	public int remaining() throws IOException {
-		return base.remaining();
+		return (int) (bout.bufferSize() - bout.bytesWritten());
+	}
+
+	protected void resetBuffers() throws IOException {
+		bout.reset();
+		out.reset(true);
 	}
 
 	@Override
 	public void reset() throws IOException {
-		base.reset();
+		resetBuffers();
 	}
 
 	@Override
 	public int send() throws IOException {
-		
-		return base.send();
+		// TODO: in SmartSocketsUltraLightWritePort is left empty, do the same?
+		return 0;
 	}
 
 	@Override
 	public void sync(int ticket) throws IOException {
-		base.sync(ticket);
+		// TODO: in SmartSocketsUltraLightWritePort is left empty, do the same?
 	}
 
 	@Override
 	public void writeArray(boolean[] value) throws IOException {
-		base.writeArray(value);
+		out.writeArray(value);
 	}
 
 	@Override
 	public void writeArray(byte[] value) throws IOException {
-		base.writeArray(value);
-		
+		out.writeArray(value);
+
 	}
 
 	@Override
 	public void writeArray(char[] value) throws IOException {
-		base.writeArray(value);
-		
+		out.writeArray(value);
+
 	}
 
 	@Override
 	public void writeArray(short[] value) throws IOException {
-		base.writeArray(value);
-		
+		out.writeArray(value);
+
 	}
 
 	@Override
 	public void writeArray(int[] value) throws IOException {
-		base.writeArray(value);
-		
+		out.writeArray(value);
+
 	}
 
 	@Override
 	public void writeArray(long[] value) throws IOException {
-		base.writeArray(value);
-		
+		out.writeArray(value);
+
 	}
 
 	@Override
 	public void writeArray(float[] value) throws IOException {
-		base.writeArray(value);	
+		out.writeArray(value);
 	}
 
 	@Override
 	public void writeArray(double[] value) throws IOException {
-		base.writeArray(value);
+		out.writeArray(value);
 	}
 
 	@Override
 	public void writeArray(Object[] value) throws IOException {
-		base.writeArray(value);
+		out.writeArray(value);
 	}
 
 	@Override
 	public void writeArray(boolean[] value, int offset, int length)
 			throws IOException {
-		base.writeArray(value, offset, length);	
+		out.writeArray(value, offset, length);
 	}
 
 	@Override
 	public void writeArray(byte[] value, int offset, int length)
 			throws IOException {
-		base.writeArray(value, offset, length);
+		out.writeArray(value, offset, length);
 	}
 
 	@Override
 	public void writeArray(char[] value, int offset, int length)
 			throws IOException {
-		base.writeArray(value, offset, length);
+		out.writeArray(value, offset, length);
 	}
 
 	@Override
 	public void writeArray(short[] value, int offset, int length)
 			throws IOException {
-		base.writeArray(value, offset, length);
+		out.writeArray(value, offset, length);
 	}
 
 	@Override
 	public void writeArray(int[] value, int offset, int length)
 			throws IOException {
-		base.writeArray(value, offset, length);
+		out.writeArray(value, offset, length);
 	}
 
 	@Override
 	public void writeArray(long[] value, int offset, int length)
 			throws IOException {
-		base.writeArray(value, offset, length);
+		out.writeArray(value, offset, length);
 	}
 
 	@Override
 	public void writeArray(float[] value, int offset, int length)
 			throws IOException {
-		base.writeArray(value, offset, length);
-		
+		out.writeArray(value, offset, length);
+
 	}
 
 	@Override
 	public void writeArray(double[] value, int offset, int length)
 			throws IOException {
-		base.writeArray(value, offset, length);
-		
+		out.writeArray(value, offset, length);
+
 	}
 
 	@Override
 	public void writeArray(Object[] value, int offset, int length)
 			throws IOException {
-		base.writeArray(value, offset, length);
+		out.writeArray(value, offset, length);
 	}
 
 	@Override
 	public void writeBoolean(boolean value) throws IOException {
-		base.writeBoolean(value);
+		out.writeBoolean(value);
 	}
 
 	@Override
 	public void writeByte(byte value) throws IOException {
-		base.writeByte(value);
-		
+		out.writeByte(value);
+
 	}
 
 	@Override
 	public void writeChar(char value) throws IOException {
-		base.writeChar(value);
+		out.writeChar(value);
 	}
 
 	@Override
 	public void writeDouble(double value) throws IOException {
-		base.writeDouble(value);
+		out.writeDouble(value);
 	}
 
 	@Override
 	public void writeFloat(float value) throws IOException {
-		base.writeFloat(value);
+		out.writeFloat(value);
 	}
 
 	@Override
 	public void writeInt(int value) throws IOException {
-		base.writeInt(value);
+		out.writeInt(value);
 	}
 
 	@Override
 	public void writeLong(long value) throws IOException {
-		base.writeLong(value);
+		out.writeLong(value);
 	}
 
 	@Override
 	public void writeObject(Object value) throws IOException {
-		base.writeObject(value);
+		out.writeObject(value);
 	}
 
 	@Override
 	public void writeShort(short value) throws IOException {
-		base.writeShort(value);	
+		out.writeShort(value);
 	}
 
 	@Override
 	public void writeString(String value) throws IOException {
-		base.writeString(value);
+		out.writeString(value);
 	}
 
 }

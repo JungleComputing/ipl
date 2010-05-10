@@ -2,210 +2,286 @@ package ibis.ipl.impl.stacking.p2p;
 
 import java.io.IOException;
 
+import ibis.io.SerializationFactory;
+import ibis.io.SerializationInput;
+import ibis.io.SingleBufferArrayInputStream;
+import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.SendPortIdentifier;
+import ibis.ipl.impl.smartsockets.SmartSocketsUltraLightReceivePort;
 
 public class P2PReadMessage implements ReadMessage {
-	
-	final ReadMessage base;
-	final P2PReceivePort port;
 
-	public P2PReadMessage(ReadMessage message, P2PReceivePort port)
-	{
-		this.base = message;
+	private final SerializationInput in;
+
+	private final SingleBufferArrayInputStream bin;
+
+	private boolean isFinished = false;
+
+	private boolean inUpcall = false;
+
+	private boolean finishCalledFromUpcall = false;
+
+	private final SendPortIdentifier origin;
+
+	private final P2PReceivePort port;
+
+	public P2PReadMessage(P2PReceivePort port, 
+            SendPortIdentifier origin, byte [] data) throws IOException {
+		this.origin = origin;
 		this.port = port;
+
+		PortType type = port.getPortType();
+
+		String serialization = null;
+
+		if (type.hasCapability(PortType.SERIALIZATION_DATA)) {
+			serialization = "data";
+		} else if (type.hasCapability(PortType.SERIALIZATION_OBJECT_SUN)) {
+			serialization = "sun";
+		} else if (type.hasCapability(PortType.SERIALIZATION_OBJECT_IBIS)) {
+			serialization = "ibis";
+		} else if (type.hasCapability(PortType.SERIALIZATION_OBJECT)) {
+			serialization = "object";
+		} else {
+			serialization = "byte";
+		}
+
+		bin = new SingleBufferArrayInputStream(data);
+		in = SerializationFactory.createSerializationInput(serialization, bin);
 	}
-	
+
 	@Override
 	public long bytesRead() throws IOException {
-		return base.bytesRead();
+		return bin.bytesRead();
 	}
 
-	@Override
-	public long finish() throws IOException {
-		return base.finish();
-	}
+	public void setInUpcall(boolean val) {
+        inUpcall = val;
+    }
 
-	@Override
-	public void finish(IOException exception) {
-		base.finish(exception);
-	}
+    /**
+     * May be called by an implementation to allow for detection of finish()
+     * calls within an upcall.
+     */
+    public boolean getInUpcall() {
+        return inUpcall;
+    }
+
+    public boolean finishCalledInUpcall() {
+        return finishCalledFromUpcall;
+    }
+
+    public boolean isFinished() { 
+        return isFinished;
+    }
+
+    public long finish() throws IOException {
+
+        if (isFinished) {
+            throw new IOException(
+                    "Operating on a message that was already finished");
+        }
+
+        isFinished = true;
+
+        if (inUpcall) {
+            finishCalledFromUpcall = true;
+            port.newUpcallThread();
+        }
+
+        return bin.bytesRead();
+    }
+
+    public void finish(IOException e) {
+
+        if (isFinished) {
+            return;
+        }
+
+        isFinished = true;
+
+        if (inUpcall) {
+            finishCalledFromUpcall = true;
+            port.newUpcallThread();
+        }
+    }
 
 	@Override
 	public ReceivePort localPort() {
-		return base.localPort();
+		return port;
 	}
 
 	@Override
 	public SendPortIdentifier origin() {
-		return base.origin();
+		return origin;
 	}
 
 	@Override
 	public void readArray(boolean[] destination) throws IOException {
-		base.readArray(destination);
+		in.readArray(destination);
 	}
 
 	@Override
 	public void readArray(byte[] destination) throws IOException {
-		base.readArray(destination);
+		in.readArray(destination);
 	}
 
 	@Override
 	public void readArray(char[] destination) throws IOException {
-		base.readArray(destination);
+		in.readArray(destination);
 	}
 
 	@Override
 	public void readArray(short[] destination) throws IOException {
-		base.readArray(destination);
+		in.readArray(destination);
 	}
 
 	@Override
 	public void readArray(int[] destination) throws IOException {
-		base.readArray(destination);
+		in.readArray(destination);
 	}
 
 	@Override
 	public void readArray(long[] destination) throws IOException {
-		base.readArray(destination);
+		in.readArray(destination);
 	}
 
 	@Override
 	public void readArray(float[] destination) throws IOException {
-		base.readArray(destination);
+		in.readArray(destination);
 	}
 
 	@Override
 	public void readArray(double[] destination) throws IOException {
-		base.readArray(destination);
+		in.readArray(destination);
 	}
 
 	@Override
 	public void readArray(Object[] destination) throws IOException,
 			ClassNotFoundException {
-		base.readArray(destination);
+		in.readArray(destination);
 
 	}
 
 	@Override
 	public void readArray(boolean[] destination, int offset, int size)
 			throws IOException {
-		base.readArray(destination, offset, size);
+		in.readArray(destination, offset, size);
 	}
 
 	@Override
 	public void readArray(byte[] destination, int offset, int size)
 			throws IOException {
-		base.readArray(destination, offset, size);
+		in.readArray(destination, offset, size);
 	}
 
 	@Override
 	public void readArray(char[] destination, int offset, int size)
 			throws IOException {
-		base.readArray(destination, offset, size);
+		in.readArray(destination, offset, size);
 	}
 
 	@Override
 	public void readArray(short[] destination, int offset, int size)
 			throws IOException {
-		base.readArray(destination, offset, size);
+		in.readArray(destination, offset, size);
 	}
 
 	@Override
 	public void readArray(int[] destination, int offset, int size)
 			throws IOException {
-		base.readArray(destination, offset, size);
+		in.readArray(destination, offset, size);
 	}
 
 	@Override
 	public void readArray(long[] destination, int offset, int size)
 			throws IOException {
-		base.readArray(destination, offset, size);
+		in.readArray(destination, offset, size);
 	}
 
 	@Override
 	public void readArray(float[] destination, int offset, int size)
 			throws IOException {
-		base.readArray(destination, offset, size);
+		in.readArray(destination, offset, size);
 	}
 
 	@Override
 	public void readArray(double[] destination, int offset, int size)
 			throws IOException {
-		base.readArray(destination, offset, size);
+		in.readArray(destination, offset, size);
 	}
 
 	@Override
 	public void readArray(Object[] destination, int offset, int size)
 			throws IOException, ClassNotFoundException {
-		base.readArray(destination, offset, size);
+		in.readArray(destination, offset, size);
 	}
 
 	@Override
 	public boolean readBoolean() throws IOException {
-		return base.readBoolean();
+		return in.readBoolean();
 	}
 
 	@Override
 	public byte readByte() throws IOException {
-		return base.readByte();
+		return in.readByte();
 	}
 
 	@Override
 	public char readChar() throws IOException {
-		return base.readChar();
+		return in.readChar();
 	}
 
 	@Override
 	public double readDouble() throws IOException {
-		return base.readDouble();
+		return in.readDouble();
 	}
 
 	@Override
 	public float readFloat() throws IOException {
-		return base.readFloat();
+		return in.readFloat();
 	}
 
 	@Override
 	public int readInt() throws IOException {
-		return base.readInt();
+		return in.readInt();
 	}
 
 	@Override
 	public long readLong() throws IOException {
-		return base.readLong();
+		return in.readLong();
 	}
 
 	@Override
 	public Object readObject() throws IOException, ClassNotFoundException {
-		return base.readObject();
+		return in.readObject();
 	}
 
 	@Override
 	public short readShort() throws IOException {
-		return base.readShort();
+		return in.readShort();
 	}
 
 	@Override
 	public String readString() throws IOException {
-		return base.readString();
+		return in.readString();
 	}
 
 	@Override
 	public int remaining() throws IOException {
-		return base.remaining();
+		return bin.available();
 	}
 
 	@Override
 	public long sequenceNumber() {
-		return base.sequenceNumber();
+		return 0;
 	}
 
 	@Override
 	public int size() throws IOException {
-		return base.size();
+		return bin.size();
 	}
 
 }

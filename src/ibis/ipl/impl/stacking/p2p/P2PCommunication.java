@@ -1,6 +1,5 @@
 package ibis.ipl.impl.stacking.p2p;
 
-import ibis.ipl.ConnectionFailedException;
 import ibis.ipl.Credentials;
 import ibis.ipl.Ibis;
 import ibis.ipl.IbisCapabilities;
@@ -11,17 +10,20 @@ import ibis.ipl.MessageUpcall;
 import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
+import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.support.vivaldi.VivaldiClient;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Properties;
 import java.util.Set;
 import java.util.Vector;
 
+//TODO: delete this class
 public class P2PCommunication implements MessageUpcall, RegistryEventHandler {
 
 	private Ibis baseIbis;
@@ -30,7 +32,8 @@ public class P2PCommunication implements MessageUpcall, RegistryEventHandler {
 	private VivaldiClient vivaldiClient;
 	private P2PState state;
 	private boolean finished, foundNearbyNode;
-
+	private P2PIbis p2pIbis;
+	
 	IbisCapabilities ibisCapabilities = new IbisCapabilities(
 			IbisCapabilities.ELECTIONS_STRICT,
 			IbisCapabilities.MEMBERSHIP_TOTALLY_ORDERED);
@@ -98,17 +101,8 @@ public class P2PCommunication implements MessageUpcall, RegistryEventHandler {
 		nextDest.close();
 	}
 
-	@SuppressWarnings("unchecked")
-	private void handleJoinRequest(ReadMessage readMessage,
-			Vector<P2PNode> dests) throws IOException, ClassNotFoundException {
-
-		// read current path and append my ID
-		Vector<P2PNode> path = (Vector<P2PNode>) readMessage.readObject();
-		path.add(myID);
-		readMessage.finish();
-
+	private HashMap<P2PNode, Vector<P2PNode>> route(Vector<P2PNode> dests) {
 		HashMap<P2PNode, Vector<P2PNode>> destinations = new HashMap<P2PNode, Vector<P2PNode>>();
-
 		// find next hop for each destination
 		for (int i = 0; i < dests.size(); i++) {
 			P2PNode nextDest = route(dests.elementAt(i));
@@ -123,11 +117,25 @@ public class P2PCommunication implements MessageUpcall, RegistryEventHandler {
 				destinations.put(nextDest, dests);
 			}
 		}
+		return destinations;
+	}
+	
+	@SuppressWarnings("unchecked")
+	private void handleJoinRequest(ReadMessage readMessage,
+			Vector<P2PNode> dests) throws IOException, ClassNotFoundException {
 
+		// read current path and append my ID
+		Vector<P2PNode> path = (Vector<P2PNode>) readMessage.readObject();
+		path.add(myID);
+		readMessage.finish();
+
+		// for each destination, find next hop
+		HashMap<P2PNode, Vector<P2PNode>> destinations = route(dests);
+		
+		// for each next hop destination, construct a message and forward join request
 		Set<P2PNode> keys = destinations.keySet();
 		Iterator<P2PNode> iter = keys.iterator();
 		while (iter.hasNext()) {
-			// for each next hop destination, construct a message
 			P2PNode nextHop = iter.next();
 
 			if (nextHop.equals(myID) == false) {
@@ -175,9 +183,9 @@ public class P2PCommunication implements MessageUpcall, RegistryEventHandler {
 
 			state.parseSets(path, routingTables, leafSet, neighborhoodSet);
 
+			// received join response, wake main thread
 			setFinished();
 
-			System.out.println(myID.getIbisID() + " I am the new node!");
 		} else {
 			// append my routing table and forward message
 			readMessage.finish();
@@ -229,6 +237,8 @@ public class P2PCommunication implements MessageUpcall, RegistryEventHandler {
 		case P2PMessage.ROUTE_UPDATE:
 			handleRouteUpdate(readMessage);
 			break;
+		case P2PMessage.REGULAR:
+			handleRegularMessage(readMessage, msg.getDest());
 		}
 	}
 
@@ -256,18 +266,23 @@ public class P2PCommunication implements MessageUpcall, RegistryEventHandler {
 		state.addNeighborNode(newNeighbor);
 	}
 
-	// wait until join response message received
+	/** 
+	 * wait until join response message received
+	 */
 	private synchronized void setFinished() {
 		finished = true;
 		notifyAll();
 	}
 
+	/**
+	 * wait until nearby node found
+	 */
 	private synchronized void setFoundNearbyNode() {
 		foundNearbyNode = true;
 		notifyAll();
 	}
 
-	public void run(IbisFactory factory,
+	public P2PCommunication(P2PIbis p2pIbis, IbisFactory factory,
 			RegistryEventHandler registryEventHandler,
 			Properties userProperties, IbisCapabilities capabilities,
 			Credentials credentials, byte[] applicationTag,
@@ -290,10 +305,9 @@ public class P2PCommunication implements MessageUpcall, RegistryEventHandler {
 			e.printStackTrace();
 		}
 
-		String p2pID = P2PHashTools.MD5(baseIbis.identifier().name());
 		myID = new P2PNode();
 		myID.setIbisID(baseIbis.identifier());
-		myID.setP2pID(new P2PIdentifier(p2pID));
+		myID.setP2pID(new P2PIdentifier(baseIbis.identifier()));
 		myID.setCoords(vivaldiClient.getCoordinates());
 
 		state = new P2PState(myID, baseIbis);
@@ -305,6 +319,8 @@ public class P2PCommunication implements MessageUpcall, RegistryEventHandler {
 
 		finished = false;
 		foundNearbyNode = false;
+		
+		this.p2pIbis = p2pIbis;
 	}
 
 	// TODO: problem 1: there is no other node that joined the pool before me
@@ -435,5 +451,53 @@ public class P2PCommunication implements MessageUpcall, RegistryEventHandler {
 	public void poolTerminated(IbisIdentifier source) {
 		// TODO Auto-generated method stub
 
+	}
+
+	private void sendRegularMessage(Vector<P2PNode> dests, byte[] data) throws IOException {
+		// for each destination, find next hop
+		HashMap<P2PNode, Vector<P2PNode>> destinations = route(dests);
+		Set<P2PNode> keys = destinations.keySet();
+		Iterator<P2PNode> iter = keys.iterator();
+		while (iter.hasNext()) {
+			P2PNode nextHop = iter.next();
+
+			if (nextHop.equals(myID) == false) {
+				P2PMessage msg = new P2PMessage(destinations.get(nextHop),
+						P2PMessage.REGULAR);
+				// forward message to next hop
+				nextHop.sendObjects(msg, data);
+			} else {
+				// TODO: deliver message to upper layer
+				
+			}
+		}
+	}
+	
+	private void handleRegularMessage(ReadMessage readMsg, Vector<P2PNode> dests) throws IOException, ClassNotFoundException {
+		byte[] data = (byte[]) readMsg.readObject();
+		
+		sendRegularMessage(dests, data);
+	}
+	
+	public void send(byte[] buffer, int length, HashMap<IbisIdentifier, ReceivePortIdentifier[]> connections) throws IOException {
+		Vector<P2PNode> dests = new Vector<P2PNode>();
+		
+		// construct destinations
+		// group based on receive port identifier
+		Collection<ReceivePortIdentifier[]> c = connections.values();
+		Iterator<ReceivePortIdentifier[]> itr = c.iterator();
+		while (itr.hasNext()) {
+			ReceivePortIdentifier[] temp = itr.next();
+			IbisIdentifier ibisID = temp[0].ibisIdentifier();
+			P2PNode dest = new P2PNode(ibisID);
+			
+			for (ReceivePortIdentifier id : temp) {
+				dest.addReceivePortName(id.name());
+			}
+			
+			dests.add(dest);
+		}
+		
+		sendRegularMessage(dests, buffer);
 	}
 }
