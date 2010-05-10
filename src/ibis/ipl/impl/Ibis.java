@@ -32,8 +32,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
 
-import javax.crypto.SecretKey;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -695,22 +693,15 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
         return ident.toString();
     }
     
-    private KeyStore keyStore;    
+    public KeyStore keyStore;    
+    public boolean encryptedStream = false;
+    
     public KeyStore keystore(){
     	return keyStore;
     }
     
     public void setKeystore(KeyStore k){
     	keyStore = k;
+    	encryptedStream = true;
     }
-    
-    private SecretKey key;
-    public SecretKey getSecretKey(){
-		return key;    	
-    }
-    
-    public void putSecretKey(SecretKey key){
-    	this.key = key;
-    }
-    
 }

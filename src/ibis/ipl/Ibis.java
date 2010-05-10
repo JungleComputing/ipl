@@ -3,6 +3,7 @@
 package ibis.ipl;
 
 import java.io.IOException;
+import java.security.KeyStore;
 import java.util.Properties;
 
 import javax.crypto.SecretKey;
@@ -246,6 +247,7 @@ public interface Ibis extends Manageable {
             ReceivePortConnectUpcall receivePortConnectUpcall,
             Properties properties) throws IOException;
     
-    //public SecretKey getSecretKey();
-    //public void putSecretKey(SecretKey key);
+    public KeyStore keystore();
+    
+    public void setKeystore(KeyStore ks);
 }

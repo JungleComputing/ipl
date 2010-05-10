@@ -23,17 +23,18 @@ public class SNSReceivePort implements ReceivePort{
     public SNSReceivePort(PortType type, SNSIbis ibis,
             String name, MessageUpcall upcall, ReceivePortConnectUpcall connectUpcall,
             Properties properties)
-            throws IOException {
+            throws IOException  {
     	
         if (connectUpcall != null) {
             connectUpcall = new ConnectUpcaller(this, connectUpcall);
         }        
-        else
-        	connectUpcall = new ConnectUpcaller(this);
+//        else
+//        	connectUpcall = new ConnectUpcaller(this);
        
         this.ibis = ibis;
        
         base = ibis.mIbis.createReceivePort(type, name, upcall, connectUpcall, properties);
+//        base = ibis.mIbis.createReceivePort(type, name, upcall, null, properties);
     }
 	
     private static final class ConnectUpcaller implements ReceivePortConnectUpcall {
@@ -46,9 +47,9 @@ public class SNSReceivePort implements ReceivePort{
 		    this.upcaller = upcaller;
 		}
 		
-		public ConnectUpcaller(SNSReceivePort snsReceivePort) {
-		    this.port = snsReceivePort;
-		}
+//		public ConnectUpcaller(SNSReceivePort snsReceivePort) {
+//		    this.port = snsReceivePort;
+//		}
 		
 		public boolean gotConnection(ReceivePort me, SendPortIdentifier applicant) {
 			IbisIdentifier id = applicant.ibisIdentifier();
@@ -147,7 +148,12 @@ public class SNSReceivePort implements ReceivePort{
 	}
 
 	public ReadMessage receive(long timeoutMillis) throws IOException {
-		return new SNSReadMessage(base.receive(timeoutMillis), this);
+		ReadMessage rm = new SNSReadMessage(base.receive(timeoutMillis), this);
+		if(ibis.allowedIbisIdent.contains(rm.origin().ibisIdentifier()) ){
+			return new SNSReadMessage(base.receive(timeoutMillis), this);
+		} else {
+			throw new IOException("SNSIbis: Unauthorized SendPort");
+		}
 	}
 
 	@Override

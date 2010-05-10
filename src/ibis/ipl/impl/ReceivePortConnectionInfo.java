@@ -3,22 +3,28 @@
 package ibis.ipl.impl;
 
 import ibis.io.BufferedArrayInputStream;
-import ibis.io.BufferedArrayOutputStream;
 import ibis.io.DataInputStream;
 import ibis.io.SerializationFactory;
 import ibis.io.SerializationInput;
-import ibis.ipl.PortType;
 
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableEntryException;
+import java.security.KeyStore.PasswordProtection;
+import java.security.KeyStore.SecretKeyEntry;
+import java.security.cert.CertificateException;
 
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
-import javax.crypto.CipherOutputStream;
 import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -99,46 +105,46 @@ public class ReceivePortConnectionInfo {
             in.close();
         }
         
-        if (port.type.hasCapability(PortType.ENCRYPTED)) {
-        	System.out.println("Encrypted is chosen");
+        //if (port.type.hasCapability(PortType.ENCRYPTED)) {
+        if (port.ibis.encryptedStream) {
+        	System.out.println("ReceivePort:Encrypted is chosen");
        
         	BufferedArrayInputStream encryptedDataIn;
         	CipherInputStream cis;
 	        KeyGenerator keyGen;
-			try {
-				keyGen = KeyGenerator.getInstance("DES");
 
-		        //SecretKey key = keyGen.generateKey(); //GET the KEY from somewhere	
-				SecretKey key = port.ibis.getSecretKey();
-		        Cipher eCipher = Cipher.getInstance("DES");
-		        eCipher.init(Cipher.DECRYPT_MODE, key);
-		        
-		        cis = new CipherInputStream(dataIn, eCipher);
-	        	//EncryptedInputStream encryptedInputStream = new EncryptedInputStream(cos);
-		        encryptedDataIn = new BufferedArrayInputStream(cis, 4096);	        	
+	        try {
+//	        	char[] password = "password".toCharArray();
+//	        	KeyStore ks;
+//				ks = KeyStore.getInstance("JCEKS");				
+//		    	FileInputStream fis = new FileInputStream("KEYSTORE");
+//			    ks.load(fis, password);
+//			    fis.close();			    
+//			    PasswordProtection keyStorePassword = new PasswordProtection(password);
+//			    SecretKeyEntry skEntry = (SecretKeyEntry) ks.getEntry("ALIAS", keyStorePassword);
+//			    SecretKey key = skEntry.getSecretKey();
 	        	
+				char[] password = "password".toCharArray();
+			    PasswordProtection keyStorePassword = new PasswordProtection(password);
+			    SecretKeyEntry skEntry = (SecretKeyEntry) port.ibis.keyStore.getEntry("ALIAS", keyStorePassword);
+			    SecretKey key = skEntry.getSecretKey();
+				
+			    Cipher deCipher = Cipher.getInstance("DES/CFB8/NoPadding");
+			    deCipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(new byte[8]));
+
+		        cis = new CipherInputStream(dataIn, deCipher);
+		        encryptedDataIn = new BufferedArrayInputStream(cis);	  
+
 	        	in = SerializationFactory.createSerializationInput(port.serialization,
 	        			encryptedDataIn);
-    	    
-			} catch (NoSuchAlgorithmException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (NoSuchPaddingException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (InvalidKeyException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-        	
-        	
-        	in = SerializationFactory.createSerializationInput(port.serialization,
-        			dataIn);
+	        	
+			} catch (Exception e) {
+				throw new IOException("SNSIbis: Failed to create ingoing encrypted stream");
+			}	
         }
         else {
         	in = SerializationFactory.createSerializationInput(port.serialization,
-        			dataIn);
-        
+        			dataIn);        
         }
         message = port.createReadMessage(in, this);
     }

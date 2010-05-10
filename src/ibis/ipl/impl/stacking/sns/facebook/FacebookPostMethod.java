@@ -45,7 +45,7 @@ public class FacebookPostMethod{
 		
         List <NameValuePair> nvp = new ArrayList <NameValuePair>();
         nvp.add(new BasicNameValuePair("method", method));
-        nvp.add(new BasicNameValuePair("api_key", FacebookVariables.API_KEY));
+        nvp.add(new BasicNameValuePair("api_key", FacebookProperties.API_KEY));
         nvp.add(new BasicNameValuePair("v", VERSION));
         nvp.add(new BasicNameValuePair("format", "JSON"));
         

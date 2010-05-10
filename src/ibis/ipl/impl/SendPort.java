@@ -4,7 +4,6 @@ package ibis.ipl.impl;
 
 import ibis.io.BufferedArrayOutputStream;
 import ibis.io.DataOutputStream;
-import ibis.io.EncryptedOutputStream;
 import ibis.io.Replacer;
 import ibis.io.SerializationFactory;
 import ibis.io.SerializationOutput;
@@ -18,10 +17,11 @@ import ibis.ipl.PortType;
 import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.util.TypedProperties;
 
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
+import java.security.KeyStore;
+import java.security.KeyStore.PasswordProtection;
+import java.security.KeyStore.SecretKeyEntry;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -34,8 +34,8 @@ import java.util.Properties;
 import javax.crypto.Cipher;
 import javax.crypto.CipherOutputStream;
 import javax.crypto.KeyGenerator;
-import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -265,8 +265,7 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
         setProperty("Messages", "" + nMessages);
         setProperty("MessageBytes", "" + messageBytes);
         setProperty("Bytes", "" + bytes);
-    }
-    
+    }    
     
     protected void doProperties(Map<String, String> properties) {
         for (Map.Entry<String,String> entry : properties.entrySet()) {
@@ -322,41 +321,44 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
             serialization = "byte";
         }
         
-        if (type.hasCapability(PortType.ENCRYPTED)) {
-        	System.out.println("Encrypted is chosen");
-        	
+        if (ibis.encryptedStream) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Building encrypted stream");
+            }
         	BufferedArrayOutputStream encryptedDataOut;
         	CipherOutputStream cos;
 	        KeyGenerator keyGen;
 			try {
-				keyGen = KeyGenerator.getInstance("DES");
+//	        	char[] password = "password".toCharArray();
+//	        	KeyStore ks;
+//				ks = KeyStore.getInstance("JCEKS");
+//		    	FileInputStream fis = new FileInputStream("KEYSTORE");
+//			    ks.load(fis, password);
+//			    fis.close();			    
+//			    PasswordProtection keyStorePassword = new PasswordProtection(password);
+//			    SecretKeyEntry skEntry = (SecretKeyEntry) ks.getEntry("ALIAS", keyStorePassword);
+//			    SecretKey key = skEntry.getSecretKey();
 
-		        //SecretKey key = keyGen.generateKey(); //GET the KEY from somewhere
-				ibis.keystore();
-				SecretKey key = ibis.getSecretKey();
-		        Cipher eCipher = Cipher.getInstance("DES");
-		        eCipher.init(Cipher.ENCRYPT_MODE, key);
-		        
+				char[] password = "password".toCharArray();
+			    PasswordProtection keyStorePassword = new PasswordProtection(password);
+			    SecretKeyEntry skEntry = (SecretKeyEntry) ibis.keyStore.getEntry("ALIAS", keyStorePassword);
+			    SecretKey key = skEntry.getSecretKey();
+				
+			    Cipher eCipher = Cipher.getInstance("DES/CFB8/NoPadding");
+			    eCipher.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(new byte[8]));
+								
 	        	cos = new CipherOutputStream(dataOut, eCipher);
-	        	//EncryptedOutputStream encryptedOutputStream = new EncryptedOutputStream(cos);
-	        	encryptedDataOut = new BufferedArrayOutputStream(cos, 4096);	        	
+	        	encryptedDataOut = new BufferedArrayOutputStream(cos);
 	        	
 		        out = SerializationFactory.createSerializationOutput(serialization,
-		        		encryptedDataOut);
-    	    
-			} catch (NoSuchAlgorithmException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (NoSuchPaddingException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (InvalidKeyException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+		        		encryptedDataOut);  
+		        
+			} catch (Exception e) {
+				throw new IOException("SNSIbis: Failed to create outgoing encrypted stream");
+			}		
         }
-        else {        
-	        out = SerializationFactory.createSerializationOutput(serialization,
+        else {
+        	out = SerializationFactory.createSerializationOutput(serialization,
 	                dataOut);
         }
         

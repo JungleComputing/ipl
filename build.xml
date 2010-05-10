@@ -160,7 +160,7 @@
         </jar>
 
         <!-- DUMMY -->
-
+<!--
         <property name="dummy.files" value="ibis/ipl/impl/stacking/dummy/**/*.class" />
 
         <checksum totalproperty="dummy.checksum">
@@ -177,9 +177,9 @@
                 <attribute name="Ibis-NickName" value="dummy" />
             </manifest>
         </jar>
-
+-->
         <!-- LRMC -->
-
+<!--
         <property name="lrmc.files" value="ibis/ipl/impl/stacking/lrmc/**/*.class" />
 
         <checksum totalproperty="lrmc.checksum">
@@ -196,9 +196,9 @@
                 <attribute name="Ibis-NickName" value="lrmc" />
             </manifest>
         </jar>
-
+-->
         <!-- MULTI -->
-
+<!--
         <property name="multi.files" value="ibis/ipl/impl/multi/**/*.class" />
 
         <checksum totalproperty="multi.checksum">
@@ -215,7 +215,7 @@
                 <attribute name="Ibis-NickName" value="multi" />
             </manifest>
         </jar>
-    	
+ -->   	
         <!-- SNS -->
 
         <property name="sns.files" value="ibis/ipl/impl/stacking/sns/**/*.class" />
@@ -228,7 +228,7 @@
             <fileset dir="tmp" includes="${sns.files}" />
             <metainf dir="." includes="LICENSE.txt" />
             <manifest>
-                <attribute name="Ibis-Starter-Class" value="ibis.ipl.impl.stacking.sns.StackingIbisStarter" />
+                <attribute name="Ibis-Starter-Class" value="ibis.ipl.impl.stacking.sns.SNSIbisStarter" />
                 <attribute name="Ibis-IPL-Version" value="${version}" />
                 <attribute name="Ibis-Implementation-Version" value="${sns.checksum}" />
                 <attribute name="Ibis-NickName" value="sns" />
@@ -241,7 +241,7 @@
 	    support.version=${support.checksum}
 	    implementation.version=${implementation.checksum}
 
-	    implementations=smartsockets,tcp,nio,dummy,lrmc
+	    implementations=smartsockets,tcp,nio,sns <!--,dummy,lrmc -->
 
 	    #smartsockets
 	    smartsockets.starter.class=ibis.ipl.impl.smartsockets.SmartSocketsIbisStarter
@@ -257,7 +257,7 @@
 	    nio.starter.class=ibis.ipl.impl.nio.NioIbisStarter
 	    nio.ipl.version=${version}
 	    nio.version=${nio.checksum}
-
+<!--
 	    #dummy
 	    dummy.starter.class=ibis.ipl.impl.stacking.dummy.StackingIbisStarter
 	    dummy.ipl.version=${version}
@@ -272,7 +272,7 @@
 	    multi.starter.class=ibis.ipl.impl.multi.MultiIbisStarter
 	    multi.ipl.version=${version}
 	    multi.version=${multi.checksum}
-    	
+-->
 	    #sns
     	sns.starter.class=ibis.ipl.impl.stacking.sns.SNSIbisStarter
     	sns.ipl.version=${version}
