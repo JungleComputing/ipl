@@ -56,9 +56,11 @@ public class P2PState {
 				return;
 		if (i < end) {
 			set[i] = node;
-			// TODO: add connect
-			// set[i].connect(baseIbis.createSendPort(P2PConfig.portType));
-			// size++;
+
+			// connect and set distance to myself
+			node.setDistance(myID);
+			node.connect(baseIbis.createSendPort(P2PConfig.portType));
+
 		}
 	}
 
@@ -88,7 +90,13 @@ public class P2PState {
 			}
 		}
 
-		// TODO: add connect, distance to myself
+		// connect and set distance to myself
+		try {
+			node.setDistance(myID);
+			node.connect(baseIbis.createSendPort(P2PConfig.portType));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**
@@ -183,19 +191,25 @@ public class P2PState {
 	 * @param node
 	 * @param i
 	 * @param j
+	 * @throws IOException
 	 */
-	public void addRoutingTableNode(P2PNode node, int i, int j) {
+	public void addRoutingTableNode(P2PNode node, int i, int j)
+			throws IOException {
 		if (routingTable[i][j] != null) {
 			double oldDistance = myID.vivaldiDistance(routingTable[i][j]);
 			double newDistance = myID.vivaldiDistance(node);
 
 			if (newDistance >= oldDistance)
 				return;
+
+			// close existing connection
+			routingTable[i][j].close();
 		}
 
+		// update routing table and connect
 		routingTable[i][j] = node;
-		routingTable[i][j].setDistance(myID);
-		// TODO: connect
+		node.setDistance(myID);
+		node.connect(baseIbis.createSendPort(P2PConfig.portType));
 	}
 
 	public P2PNode getEntryAt(int i, int j) {
@@ -339,10 +353,10 @@ public class P2PState {
 				// update entry
 				isEmpty = false;
 				set[i] = receivedSet[i];
-				
+
 				// update distance to myself, needed for neighborhood set
 				set[i].setDistance(myID);
-				
+
 				// update min
 				if (receivedSet[i].getP2pID().compareTo(min.getP2pID()) < 0) {
 					min = receivedSet[i];
@@ -357,14 +371,16 @@ public class P2PState {
 		return isEmpty;
 	}
 
-	public void sendNotification(P2PNode source, int type) throws ConnectionFailedException, IOException {
+	public void sendNotification(P2PNode source, int type)
+			throws ConnectionFailedException, IOException {
 		P2PMessage msg = new P2PMessage(null, type);
 		source.connect(baseIbis.createSendPort(P2PConfig.portType));
 		source.sendObjects(msg, myID);
 	}
-	
+
 	/**
 	 * parse received states
+	 * 
 	 * @param path
 	 * @param routingTables
 	 * @param leafSet
@@ -386,7 +402,7 @@ public class P2PState {
 			P2PRoutingInfo info = routingTables.elementAt(i);
 			P2PNode[] row = info.getRoutingRow();
 			P2PNode source = info.getSource();
-			
+
 			// update set
 			int length = row.length;
 			for (int j = 0; j < length; j++) {
@@ -401,8 +417,8 @@ public class P2PState {
 			if (row[digit] != null) {
 				newDistance = row[digit].vivaldiDistance(myID);
 				oldDistance = row[digit].vivaldiDistance(source);
-			} 
-			
+			}
+
 			// send notification if distance is smaller or row[i] = null
 			if (newDistance < oldDistance) {
 				// send notification to source node
@@ -460,8 +476,8 @@ public class P2PState {
 		// add leaf node the last node
 		addLeafNode(leafNode);
 
-		//System.out.println("Distance: " + myID.getCoords().toString());
-		for (int i = 0; i<path.size(); i++) {
+		// System.out.println("Distance: " + myID.getCoords().toString());
+		for (int i = 0; i < path.size(); i++) {
 			System.out.println(myID + " " + i + " " + path.elementAt(i));
 		}
 		printSets();
@@ -482,10 +498,10 @@ public class P2PState {
 		}
 
 		System.out.println();
-		
+
 		for (int i = 0; i < neighborhoodSet.length; i++) {
-			System.out.println(myID + " neighbor " + i + " " + neighborhoodSet[i]
-					+ " ");
+			System.out.println(myID + " neighbor " + i + " "
+					+ neighborhoodSet[i] + " ");
 		}
 
 		System.out.println();
@@ -495,6 +511,39 @@ public class P2PState {
 						+ routingTable[i][j] + " ");
 			}
 			System.out.println();
+		}
+	}
+
+	/**
+	 * cleanup set, close all send ports
+	 * @param set
+	 * @param size
+	 * @throws IOException
+	 */
+	private void cleanupSet(P2PNode[] set, int size) throws IOException {
+		for (int i = 0; i<size; i++) {
+			if (set[i] != null) {
+				set[i].close();
+			}
+		}
+	}
+	
+	/**
+	 * cleanup before exit - close all sendports from all sets
+	 */
+	public void end() {
+		try {
+			// cleanup routing tables
+			for (int i = 0; i < P2PConfig.MAX_PREFIX; i++) {
+				cleanupSet(routingTable[i], P2PConfig.MAX_DIGITS);
+			}
+			
+			// cleanup leaf and neighborhood sets 
+			cleanupSet(leafSet, P2PConfig.LEAF_SIZE);
+			cleanupSet(neighborhoodSet, P2PConfig.NEIGHBOORHOOD_SIZE);
+		} catch (IOException ex) {
+			// TODO: possibly ignore this?
+			ex.printStackTrace();
 		}
 	}
 }

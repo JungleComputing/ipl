@@ -4,6 +4,7 @@ import ibis.ipl.AlreadyConnectedException;
 import ibis.ipl.ConnectionFailedException;
 import ibis.ipl.ConnectionRefusedException;
 import ibis.ipl.ConnectionsFailedException;
+import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.NoSuchPropertyException;
 import ibis.ipl.PortMismatchException;
@@ -13,6 +14,7 @@ import ibis.ipl.SendPort;
 import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.WriteMessage;
+import ibis.ipl.impl.SendPortConnectionInfo;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -146,8 +148,24 @@ public class P2PSendPort implements SendPort {
 					receiver);
 		}
 		
+		checkConnect(receiver);
+		
 		addReceiver(ibisIdentifier, receiver);
 		return receiver;
+	}
+
+	private void checkConnect(ReceivePortIdentifier receiver) throws AlreadyConnectedException {
+		if (connections.size() > 0
+                && ! type.hasCapability(PortType.CONNECTION_ONE_TO_MANY)
+                && ! type.hasCapability(PortType.CONNECTION_MANY_TO_MANY)) {
+            throw new IbisConfigurationException("Sendport already has a "
+                    + "connection and OneToMany or ManyToMany are not set");
+        }
+
+        if (isReceiverConnected(receiver)) {
+            throw new AlreadyConnectedException("Already connected", receiver);
+        }
+		
 	}
 
 	@Override
@@ -325,5 +343,15 @@ public class P2PSendPort implements SendPort {
 			e.printStackTrace();
 		}
 	}
+	
+	protected synchronized boolean isReceiverConnected(
+            ReceivePortIdentifier id) {
+		ReceivePortIdentifier[] receivePorts = connections.get(id.ibisIdentifier());
+        for (ReceivePortIdentifier receivePort : receivePorts)
+        	if (receivePort.equals(id)) {
+        		return true;
+        	}
+        return false;
+    }
 
 }

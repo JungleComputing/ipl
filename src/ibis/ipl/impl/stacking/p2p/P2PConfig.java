@@ -13,4 +13,5 @@ public class P2PConfig {
 			PortType.SERIALIZATION_OBJECT_SUN, PortType.RECEIVE_AUTO_UPCALLS,
 			PortType.CONNECTION_MANY_TO_ONE);
 
+	public final static int TIMEOUT = 3000;
 }

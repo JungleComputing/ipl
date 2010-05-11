@@ -106,7 +106,7 @@ public class P2PNode implements Serializable, Comparable<P2PNode> {
 	public boolean connect(SendPort sendPort) {
 		try {
 			this.sendPort = sendPort;
-			sendPort.connect(ibisID, "p2p");
+			sendPort.connect(ibisID, "p2p", P2PConfig.TIMEOUT, false);
 		} catch (ConnectionFailedException ex) {
 			return false;
 		}
