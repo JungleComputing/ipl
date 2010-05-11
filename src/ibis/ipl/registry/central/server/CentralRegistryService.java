@@ -26,12 +26,18 @@ import org.slf4j.LoggerFactory;
  * Server for the centralized registry implementation.
  * 
  */
-public final class CentralRegistryService extends Thread implements Service, RegistryServiceInterface {
+public final class CentralRegistryService extends Thread implements Service,
+        RegistryServiceInterface {
 
-   // public static final int VIRTUAL_PORT = 302;
+    // public static final int VIRTUAL_PORT = 302;
 
     private static final Logger logger = LoggerFactory
             .getLogger(CentralRegistryService.class);
+
+    //do we remove old, terminated pools or not?
+    //we shouldn't, but the ipl used to, so we keep this for backwards
+    //compatibility for now.
+    public static final boolean REMOVE_ENDED_POOLS = true;
 
     private static final long POOL_CLEANUP_TIMEOUT = 60 * 1000;
 
@@ -89,7 +95,9 @@ public final class CentralRegistryService extends Thread implements Service, Reg
         return pools.get(poolName);
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see ibis.ipl.registry.central.server.RegistryService#getServiceName()
      */
     public String getServiceName() {
@@ -105,7 +113,8 @@ public final class CentralRegistryService extends Thread implements Service, Reg
             String implementationVersion) throws IOException {
         Pool result = getPool(poolName);
 
-        if (result == null || result.hasEnded()) {
+        if (result == null || (result.hasEnded() && REMOVE_ENDED_POOLS)) {
+
             result = new Pool(poolName, socketFactory, peerBootstrap,
                     heartbeatInterval, eventPushInterval, gossip,
                     gossipInterval, adaptGossipInterval, tree, closedWorld,
@@ -147,7 +156,8 @@ public final class CentralRegistryService extends Thread implements Service, Reg
     }
 
     public String toString() {
-        return "Central Registry service on virtual port " + Protocol.VIRTUAL_PORT;
+        return "Central Registry service on virtual port "
+                + Protocol.VIRTUAL_PORT;
     }
 
     // pool cleanup thread
@@ -159,7 +169,7 @@ public final class CentralRegistryService extends Thread implements Service, Reg
                     System.err.printf("%tT list of pools:\n", System
                             .currentTimeMillis());
                     System.err
-                            .println("     CURRENT_SIZE JOINS LEAVES DIEDS ELECTIONS SIGNALS FIXED_SIZE CLOSED ENDED");
+                            .println("     CURRENT_SIZE JOINS LEAVES DIEDS ELECTIONS SIGNALS FIXED_SIZE CLOSED TERMINATED ENDED");
                 }
 
                 // copy values to new array so we can do "remove" on original
@@ -170,7 +180,9 @@ public final class CentralRegistryService extends Thread implements Service, Reg
 
                     if (pool.hasEnded()) {
                         pool.saveStatistics();
-                        pools.remove(pool.getName());
+                        if (REMOVE_ENDED_POOLS) {
+                            pools.remove(pool.getName());
+                        }
                         if (pools.size() == 0) {
                             notifyAll();
                         }
@@ -190,7 +202,9 @@ public final class CentralRegistryService extends Thread implements Service, Reg
 
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see ibis.ipl.registry.central.server.RegistryService#getStats()
      */
     public synchronized Map<String, String> getStats() {
@@ -212,45 +226,49 @@ public final class CentralRegistryService extends Thread implements Service, Reg
 
         return result;
     }
-    
+
     public synchronized String[] getPools() {
         return pools.keySet().toArray(new String[0]);
     }
-    
-    /* (non-Javadoc)
-     * @see ibis.ipl.registry.central.server.RegistryService#getMembers(java.lang.String)
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * ibis.ipl.registry.central.server.RegistryService#getMembers(java.lang
+     * .String)
      */
     public IbisIdentifier[] getMembers(String poolName) {
         Pool pool = getPool(poolName);
-        
+
         if (pool == null) {
             return new IbisIdentifier[0];
         }
-        
+
         Member[] members = pool.getMembers();
-        
+
         IbisIdentifier[] result = new IbisIdentifier[members.length];
-        
-        for(int i = 0; i < members.length; i++) {
+
+        for (int i = 0; i < members.length; i++) {
             result[i] = members[i].getIbis();
         }
-        
+
         return result;
     }
 
     // 1.5 Does not allow @Override for interfaces
-    //    @Override
+    // @Override
     public String[] getLocations(String poolName) throws IOException {
         Pool pool = getPool(poolName);
-        
+
         if (pool == null) {
             return new String[0];
         }
 
         Location[] locations = pool.getLocations();
-        
+
         String[] result = new String[locations.length];
-        for(int i = 0; i < result.length; i++) {
+        for (int i = 0; i < result.length; i++) {
             result[i] = locations[i].toString();
         }
 
@@ -258,11 +276,11 @@ public final class CentralRegistryService extends Thread implements Service, Reg
     }
 
     // 1.5 Does not allow @Override for interfaces
-    //    @Override
+    // @Override
     public synchronized Map<String, Integer> getPoolSizes() throws IOException {
         Map<String, Integer> result = new HashMap<String, Integer>();
-        
-        for(Pool pool: pools.values()) {
+
+        for (Pool pool : pools.values()) {
             result.put(pool.getName(), pool.getSize());
         }
         return result;
