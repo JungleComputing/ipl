@@ -21,6 +21,7 @@ import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.support.vivaldi.VivaldiClient;
 
+import java.beans.DesignMode;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Arrays;
@@ -42,21 +43,21 @@ public class P2PIbis implements Ibis, MessageUpcall, RegistryEventHandler {
 	private boolean finished, foundNearbyNode, connected;
 	private Byte connectionResponse;
 	private PortType[] portTypes;
-	
+
 	private IbisCapabilities ibisCapabilities = new IbisCapabilities(
 			IbisCapabilities.ELECTIONS_STRICT,
 			IbisCapabilities.MEMBERSHIP_TOTALLY_ORDERED);
 
-	 /** Counter for allocating names for anonymous sendports. */
-    private static int send_counter = 0;
+	/** Counter for allocating names for anonymous sendports. */
+	private static int send_counter = 0;
 
-    /** Counter for allocating names for anonymous receiveports. */
-    private static int receive_counter = 0;
+	/** Counter for allocating names for anonymous receiveports. */
+	private static int receive_counter = 0;
 
 	/** path position constants **/
 	public final static int NEW_NODE = 0;
 	public final static int NEARBY_NODE = 1;
-	
+
 	/** The receiveports running on this Ibis instance. */
 	private HashMap<String, P2PReceivePort> receivePorts = new HashMap<String, P2PReceivePort>();
 
@@ -67,9 +68,9 @@ public class P2PIbis implements Ibis, MessageUpcall, RegistryEventHandler {
 			PortType[] portTypes, String specifiedSubImplementation,
 			P2PIbisStarter p2pIbisStarter) throws IbisCreationFailedException {
 
-		//TODO: check porttype, at least one must be of P2PConfig.portType type
+		// TODO: check porttype, at least one must be of P2PConfig.portType type
 		this.portTypes = portTypes;
-		
+
 		// realloc ports arrays and add the p2pPortType
 		int portLength = portTypes.length;
 		PortType[] ports = Arrays.copyOf(portTypes, portLength + 1);
@@ -97,6 +98,7 @@ public class P2PIbis implements Ibis, MessageUpcall, RegistryEventHandler {
 
 			finished = false;
 			foundNearbyNode = false;
+			connected = false;
 
 			join();
 		} catch (IOException e) {
@@ -135,47 +137,47 @@ public class P2PIbis implements Ibis, MessageUpcall, RegistryEventHandler {
 			ReceivePortConnectUpcall receivePortConnectUpcall,
 			Properties properties) throws IOException {
 		if (receivePortConnectUpcall != null) {
-            if (!portType.hasCapability(PortType.CONNECTION_UPCALLS)) {
-                throw new IbisConfigurationException(
-                        "no connection upcalls requested for this port type");
-            }
-        }
-        if (messageUpcall != null) {
-            if (!portType.hasCapability(PortType.RECEIVE_AUTO_UPCALLS)
-                    && !portType.hasCapability(PortType.RECEIVE_POLL_UPCALLS)) {
-                throw new IbisConfigurationException(
-                        "no message upcalls requested for this port type");
-            }
-        } else {
-            if (!portType.hasCapability(PortType.RECEIVE_EXPLICIT)) {
-                throw new IbisConfigurationException(
-                        "no explicit receive requested for this port type");
-            }
-        }
-        if (receivePortName == null) {
-            synchronized (this.getClass()) {
-                receivePortName = "anonymous receive port " + receive_counter++;
-            }
-        }
-        matchPortType(portType);
-        
+			if (!portType.hasCapability(PortType.CONNECTION_UPCALLS)) {
+				throw new IbisConfigurationException(
+						"no connection upcalls requested for this port type");
+			}
+		}
+		if (messageUpcall != null) {
+			if (!portType.hasCapability(PortType.RECEIVE_AUTO_UPCALLS)
+					&& !portType.hasCapability(PortType.RECEIVE_POLL_UPCALLS)) {
+				throw new IbisConfigurationException(
+						"no message upcalls requested for this port type");
+			}
+		} else {
+			if (!portType.hasCapability(PortType.RECEIVE_EXPLICIT)) {
+				throw new IbisConfigurationException(
+						"no explicit receive requested for this port type");
+			}
+		}
+		if (receivePortName == null) {
+			synchronized (this.getClass()) {
+				receivePortName = "anonymous receive port " + receive_counter++;
+			}
+		}
+		matchPortType(portType);
+
 		return new P2PReceivePort(portType, this, receivePortName,
 				messageUpcall, receivePortConnectUpcall, properties);
 	}
 
 	private void matchPortType(PortType tp) {
-        boolean matched = false;
-        for (PortType p : portTypes) {
-            if (tp.equals(p)) {
-                matched = true;
-            }
-        }
-        if (!matched) {
-            throw new IbisConfigurationException("PortType \"" + tp
-                    + "\" not specified when creating this Ibis instance");
-        }
-    }
-	
+		boolean matched = false;
+		for (PortType p : portTypes) {
+			if (tp.equals(p)) {
+				matched = true;
+			}
+		}
+		if (!matched) {
+			throw new IbisConfigurationException("PortType \"" + tp
+					+ "\" not specified when creating this Ibis instance");
+		}
+	}
+
 	@Override
 	public SendPort createSendPort(PortType portType) throws IOException {
 		return createSendPort(portType, null, null, null);
@@ -191,21 +193,21 @@ public class P2PIbis implements Ibis, MessageUpcall, RegistryEventHandler {
 	public SendPort createSendPort(PortType portType, String sendPortName,
 			SendPortDisconnectUpcall sendPortDisconnectUpcall,
 			Properties properties) throws IOException {
-		
+
 		if (sendPortDisconnectUpcall != null) {
-            if (!portType.hasCapability(PortType.CONNECTION_UPCALLS)) {
-                throw new IbisConfigurationException(
-                        "no connection upcalls requested for this port type");
-            }
-        }
-        if (sendPortName == null) {
-            synchronized (this.getClass()) {
-                sendPortName = "anonymous send port " + send_counter++;
-            }
-        }
+			if (!portType.hasCapability(PortType.CONNECTION_UPCALLS)) {
+				throw new IbisConfigurationException(
+						"no connection upcalls requested for this port type");
+			}
+		}
+		if (sendPortName == null) {
+			synchronized (this.getClass()) {
+				sendPortName = "anonymous send port " + send_counter++;
+			}
+		}
 		// search if supplied port type exits in port types list
 		matchPortType(portType);
-		
+
 		return new P2PSendPort(portType, this, sendPortName,
 				sendPortDisconnectUpcall, properties);
 	}
@@ -289,7 +291,7 @@ public class P2PIbis implements Ibis, MessageUpcall, RegistryEventHandler {
 
 	public ReceivePortIdentifier createReceivePortIdentifier(String name,
 			IbisIdentifier id) {
-		
+
 		return new ibis.ipl.impl.ReceivePortIdentifier(name,
 				(ibis.ipl.impl.IbisIdentifier) id);
 	}
@@ -326,9 +328,6 @@ public class P2PIbis implements Ibis, MessageUpcall, RegistryEventHandler {
 
 		// get node that issued the join request
 		P2PNode newNode = path.elementAt(0);
-
-		System.out.println(myID.getIbisID().name() + " reverse dest:"
-				+ nextDest.getIbisID().name());
 
 		// compute prefix length
 		int prefix = newNode.prefixLength(myID);
@@ -472,6 +471,7 @@ public class P2PIbis implements Ibis, MessageUpcall, RegistryEventHandler {
 				// forward routing table, leaf set
 				nextDest.sendObjects(msg, path, routingTables, leafSet);
 			}
+			nextDest.close();
 		}
 	}
 
@@ -550,7 +550,8 @@ public class P2PIbis implements Ibis, MessageUpcall, RegistryEventHandler {
 	}
 
 	// TODO: problem 1: there is no other node that joined the pool before me
-	// TODO: problem 2: the node that I am trying to connect to might not be ready 
+	// TODO: problem 2: the node that I am trying to connect to might not be
+	// ready
 	// TODO: problem 3: deadlock if all the nodes joined the all connects failed
 	// TODO: change nearby node selection method - nodes should not know about
 	// each other ready when accepting connections
@@ -635,14 +636,13 @@ public class P2PIbis implements Ibis, MessageUpcall, RegistryEventHandler {
 	}
 
 	/**
-	 * if there are not enough ibises in pool, wait until one joins and
-	 * test if it is a candidate for the nearby node
+	 * if there are not enough ibises in pool, wait until one joins and test if
+	 * it is a candidate for the nearby node
 	 */
 	@Override
 	public void joined(IbisIdentifier joinedIbis) {
 		try {
-			P2PIdentifier p2pID = new P2PIdentifier(P2PHashTools.MD5(joinedIbis
-					.name()));
+			P2PIdentifier p2pID = new P2PIdentifier(joinedIbis);
 			if (p2pID.prefixLength(myID.getP2pID()) == 0) {
 				nearbyNode.setIbisID(joinedIbis);
 				nearbyNode.setP2pID(p2pID);
@@ -675,14 +675,8 @@ public class P2PIbis implements Ibis, MessageUpcall, RegistryEventHandler {
 	 * @param objects
 	 */
 	@SuppressWarnings("unchecked")
-	private void deliverRegularMessage(Object... objects) {
-		// this should contain only one node, unless some other node failed
-		// and message cannot be forwarded
-		Vector<P2PNode> myMsgs = (Vector<P2PNode>) objects[0];
-		String[] receivePortNames = (String[]) myMsgs.get(0).getReceivePortNames().toArray();
-		SendPortIdentifier source = (SendPortIdentifier) objects[1];
-		byte[] data = (byte[]) objects[2];
-
+	private void deliverRegularMessage(Vector<String> receivePortNames,
+			SendPortIdentifier source, byte[] data) {
 		// deliver message to each receivePort based on receivePortName
 		for (String receivePortName : receivePortNames) {
 			P2PReceivePort receivePort = receivePorts.get(receivePortName);
@@ -691,19 +685,48 @@ public class P2PIbis implements Ibis, MessageUpcall, RegistryEventHandler {
 	}
 
 	/**
-	 * handle regular message received via upcall
-	 * read source and data and forward it further
+	 * handle regular message received via upcall read source and data and
+	 * forward it further
+	 * 
 	 * @param readMsg
 	 * @param dests
 	 * @throws IOException
 	 * @throws ClassNotFoundException
 	 */
-	private void handleRegularMessage(ReadMessage readMsg, Vector<P2PNode> dests)
-			throws IOException, ClassNotFoundException {
-		SendPortIdentifier source = (SendPortIdentifier) readMsg.readObject();
-		byte[] data = (byte[]) readMsg.readObject();
+	private void handleRegularMessage(ReadMessage readMessage,
+			Vector<P2PNode> dests) throws IOException, ClassNotFoundException {
+		SendPortIdentifier source = (SendPortIdentifier) readMessage
+				.readObject();
+		byte[] data = (byte[]) readMessage.readObject();
+		readMessage.finish();
 
 		forwardMessage(dests, P2PMessage.REGULAR, source, data);
+	}
+
+	private void forwardMessage(Vector<P2PNode> dests, int regular,
+			SendPortIdentifier source, byte[] data) {
+		// for each destination, find next hop
+		HashMap<P2PNode, Vector<P2PNode>> destinations = route(dests);
+		Set<P2PNode> keys = destinations.keySet();
+		Iterator<P2PNode> iter = keys.iterator();
+		while (iter.hasNext()) {
+			P2PNode nextHop = iter.next();
+
+			if (nextHop.equals(myID) == false) {
+				P2PMessage msg = new P2PMessage(destinations.get(nextHop),
+						P2PMessage.REGULAR);
+
+				// forward message to next hop
+				nextHop.sendObjects(msg, source, data);
+			} else {
+				// I am the destination, deliver message
+				Vector<P2PNode> myDests = destinations.get(myID);
+				Vector<String> receivePortNames = myDests.elementAt(0)
+						.getReceivePortNames();
+				deliverRegularMessage(receivePortNames, source, data);
+			}
+		}
+
 	}
 
 	/**
@@ -725,6 +748,7 @@ public class P2PIbis implements Ibis, MessageUpcall, RegistryEventHandler {
 
 		// construct destinations
 		// group based on receive port identifier
+		// TODO: what happens if sender not connected to any receiver?
 		Collection<ReceivePortIdentifier[]> c = connections.values();
 		Iterator<ReceivePortIdentifier[]> itr = c.iterator();
 		while (itr.hasNext()) {
@@ -741,14 +765,9 @@ public class P2PIbis implements Ibis, MessageUpcall, RegistryEventHandler {
 		forwardMessage(dests, P2PMessage.REGULAR, sid, buffer);
 	}
 
-	/**
-	 * forward message of either regular, connection request or connection response types
-	 * @param dests
-	 * @param type
-	 * @param objects
-	 */
-	public void forwardMessage(Vector<P2PNode> dests, int type,
-			Object... objects) {
+	private void forwardConnectionRequest(Vector<P2PNode> dests,
+			SendPortIdentifier source, String receivePortName, String[] portType) {
+
 		// for each destination, find next hop
 		HashMap<P2PNode, Vector<P2PNode>> destinations = route(dests);
 		Set<P2PNode> keys = destinations.keySet();
@@ -757,51 +776,68 @@ public class P2PIbis implements Ibis, MessageUpcall, RegistryEventHandler {
 			P2PNode nextHop = iter.next();
 
 			if (nextHop.equals(myID) == false) {
-				P2PMessage msg = new P2PMessage(destinations.get(nextHop), type);
+				P2PMessage msg = new P2PMessage(destinations.get(nextHop),
+						P2PMessage.CONNECTION_REQUEST);
+
+				System.out.println(myID.getIbisID().name()
+						+ "Connection request la: "
+						+ nextHop.getIbisID().name());
+
 				// forward message to next hop
-				nextHop.sendObjects(msg, objects);
+				nextHop.sendObjects(msg, source, receivePortName, portType);
 			} else {
 				// I am the destination, deliver message
-				Vector<P2PNode> myMsgs = destinations.get(nextHop);
-				switch (type) {
-				case P2PMessage.REGULAR:
-					deliverRegularMessage(myMsgs, objects);
-					break;
-				case P2PMessage.CONNECTION_REQUEST:
-					deliverConnectionRequest(objects);
-					break;
-				case P2PMessage.CONNECTION_RESPONSE:
-					deliverConnectionResponse(objects);
-					break;
-				}
+				deliverConnectionRequest(source, receivePortName, portType);
 			}
 		}
 	}
 
-	private synchronized void deliverConnectionResponse(Object[] objects) {
-		connectionResponse = (Byte) objects[0];
-		connected = true;
+	private void forwardConnectionResponse(Vector<P2PNode> dests, Byte response) {
+		// for each destination, find next hop
+		HashMap<P2PNode, Vector<P2PNode>> destinations = route(dests);
+		Set<P2PNode> keys = destinations.keySet();
+		Iterator<P2PNode> iter = keys.iterator();
+		while (iter.hasNext()) {
+			P2PNode nextHop = iter.next();
+
+			if (nextHop.equals(myID) == false) {
+				P2PMessage msg = new P2PMessage(destinations.get(nextHop),
+						P2PMessage.CONNECTION_RESPONSE);
+
+				System.out.println(myID.getIbisID().name()
+						+ "Connection response la: "
+						+ nextHop.getIbisID().name());
+
+				// forward message to next hop
+				nextHop.sendObjects(msg, response);
+			} else {
+				// I am the destination, deliver message
+				setConnected(true, response);
+			}
+		}
 	}
 
-	private void deliverConnectionRequest(Object[] objects) {
-		SendPortIdentifier source = (SendPortIdentifier) objects[0];
-		String receivePortName = (String) objects[1];
-		PortType senderType = (PortType) objects[2];
-		
+	private void deliverConnectionRequest(SendPortIdentifier source,
+			String receivePortName, String[] portType) {
 		P2PReceivePort receivePort = findReceivePort(receivePortName);
+
+		System.out.println(myID.getIbisID().name()
+				+ "Connection request received from: "
+				+ source.ibisIdentifier().name());
 
 		// prepare response for receiver
 		Vector<P2PNode> dests = new Vector<P2PNode>();
 		dests.add(new P2PNode(source.ibisIdentifier()));
-		
+
 		Byte response;
 		if (receivePort != null) {
-			response = receivePort.handleConnectionRequest(source, senderType);			
+			response = receivePort.handleConnectionRequest(source,
+					new PortType(portType));
 		} else {
 			response = P2PReceivePort.NOT_PRESENT;
 		}
-		
-		forwardMessage(dests, P2PMessage.CONNECTION_RESPONSE, response);
+
+		forwardConnectionResponse(dests, response);
 	}
 
 	/**
@@ -812,33 +848,44 @@ public class P2PIbis implements Ibis, MessageUpcall, RegistryEventHandler {
 	 * @throws IOException
 	 * @throws ClassNotFoundException
 	 */
-	public void handleConnectionRequest(ReadMessage readMessage,
+	private void handleConnectionRequest(ReadMessage readMessage,
 			Vector<P2PNode> dests) throws IOException, ClassNotFoundException {
+
 		SendPortIdentifier source = (SendPortIdentifier) readMessage
 				.readObject();
-		String receivePortName = readMessage.readString();
+		Object obj = readMessage.readObject();
 
-		forwardMessage(dests, P2PMessage.CONNECTION_REQUEST, source,
-				receivePortName);
+		System.out.println(obj.getClass().getName());
+
+		String receivePortName = (String) obj;
+		String[] portType = (String[]) readMessage.readObject();
+
+		readMessage.finish();
+
+		forwardConnectionRequest(dests, source, receivePortName, portType);
 	}
+
 	/**
-	 * handle connection response 
+	 * handle connection response
+	 * 
 	 * @param readMessage
 	 * @param dest
-	 * @throws ClassNotFoundException 
-	 * @throws IOException 
+	 * @throws ClassNotFoundException
+	 * @throws IOException
 	 */
 	private void handleConnectionResponse(ReadMessage readMessage,
 			Vector<P2PNode> dests) throws IOException, ClassNotFoundException {
 		Byte response = (Byte) readMessage.readObject();
-		
-		forwardMessage(dests, P2PMessage.CONNECTION_RESPONSE, response);
+		readMessage.finish();
+
+		forwardConnectionResponse(dests, response);
 	}
-	
+
 	/**
-	 * perform connect to receiver on specified receivePortName
-	 * send connection request message and wait until response is received
-	 * TODO: what happens if timeout? - look in other implementations
+	 * perform connect to receiver on specified receivePortName send connection
+	 * request message and wait until response is received TODO: what happens if
+	 * timeout? - look in other implementations
+	 * 
 	 * @param receiver
 	 * @param receivePortName
 	 * @param source
@@ -847,15 +894,19 @@ public class P2PIbis implements Ibis, MessageUpcall, RegistryEventHandler {
 	 * @param fillTimeout
 	 * @return
 	 */
-	public Byte connect(IbisIdentifier receiver, String receivePortName, SendPortIdentifier source, PortType senderType,
-			long timeoutMillis, boolean fillTimeout) {
+	public Byte connect(IbisIdentifier receiver, String receivePortName,
+			SendPortIdentifier source, PortType senderType, long timeoutMillis,
+			boolean fillTimeout) {
 		Vector<P2PNode> dests = new Vector<P2PNode>();
 		dests.add(new P2PNode(receiver));
 
-		forwardMessage(dests, P2PMessage.CONNECTION_REQUEST, source,
-				receivePortName, senderType);
-		
-		//TODO: implement timeouts
+		System.out.println(myID.getIbisID().name() + " connect request la: "
+				+ receiver.name());
+
+		forwardConnectionRequest(dests, source, receivePortName, senderType
+				.getCapabilities());
+
+		// TODO: implement timeouts
 		// wait until connection request message is answered
 		synchronized (this) {
 			while (!connected) {
@@ -865,12 +916,20 @@ public class P2PIbis implements Ibis, MessageUpcall, RegistryEventHandler {
 					// ignored
 				}
 			}
+			connected = false;
 		}
-		
+
+		// TODO: is it thread safe?
 		return connectionResponse;
 	}
 
 	public synchronized P2PReceivePort findReceivePort(String name) {
 		return receivePorts.get(name);
+	}
+
+	private synchronized void setConnected(boolean connected, Byte response) {
+		this.connected = connected;
+		this.connectionResponse = response;
+		notifyAll();
 	}
 }

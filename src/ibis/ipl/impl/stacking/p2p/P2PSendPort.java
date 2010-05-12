@@ -347,10 +347,12 @@ public class P2PSendPort implements SendPort {
 	protected synchronized boolean isReceiverConnected(
             ReceivePortIdentifier id) {
 		ReceivePortIdentifier[] receivePorts = connections.get(id.ibisIdentifier());
-        for (ReceivePortIdentifier receivePort : receivePorts)
+        if (receivePorts != null) {
+		for (ReceivePortIdentifier receivePort : receivePorts)
         	if (receivePort.equals(id)) {
         		return true;
         	}
+        }
         return false;
     }
 

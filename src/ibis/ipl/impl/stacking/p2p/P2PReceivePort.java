@@ -119,8 +119,7 @@ public class P2PReceivePort extends Manageable implements ReceivePort, Runnable 
 
 	@Override
 	public void close() throws IOException {
-		closed = true;
-		notifyAll();
+		close(0L);
 	}
 
 	@Override
@@ -136,6 +135,7 @@ public class P2PReceivePort extends Manageable implements ReceivePort, Runnable 
 			closed = true;
 			notifyAll();
 		}
+		
 		//TODO: wait until all connections are closed, or maybe there is no need for waiting....
 		ibis.deRegister(this);
 	}
@@ -260,7 +260,7 @@ public class P2PReceivePort extends Manageable implements ReceivePort, Runnable 
 		return getMessage(timeout);
 	}
 
-	public P2PReadMessage getMessage(long timeout) {
+	public synchronized P2PReadMessage getMessage(long timeout) {
 
 		long endTime = System.currentTimeMillis() + timeout;
 
@@ -388,15 +388,15 @@ public class P2PReceivePort extends Manageable implements ReceivePort, Runnable 
 
 	public synchronized byte handleConnectionRequest(SendPortIdentifier source,
 			PortType senderType) {
-		newConnections.add(source);
 
 		if (connections.contains(source)) {
 			return P2PReceivePort.ALREADY_CONNECTED;
 		}
 
+		/*
 		if (!type.equals(senderType)) {
 			return P2PReceivePort.TYPE_MISMATCH;
-		}
+		} */
 
 		if (!connectionsEnabled) {
 			return P2PReceivePort.DISABLED;

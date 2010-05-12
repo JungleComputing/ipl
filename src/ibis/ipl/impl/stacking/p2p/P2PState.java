@@ -195,6 +195,10 @@ public class P2PState {
 	 */
 	public void addRoutingTableNode(P2PNode node, int i, int j)
 			throws IOException {
+		if (i >= P2PConfig.MAX_PREFIX || j >= P2PConfig.MAX_DIGITS) {
+			return;
+		}
+		
 		if (routingTable[i][j] != null) {
 			double oldDistance = myID.vivaldiDistance(routingTable[i][j]);
 			double newDistance = myID.vivaldiDistance(node);
@@ -376,6 +380,7 @@ public class P2PState {
 		P2PMessage msg = new P2PMessage(null, type);
 		source.connect(baseIbis.createSendPort(P2PConfig.portType));
 		source.sendObjects(msg, myID);
+		source.close();
 	}
 
 	/**
@@ -476,11 +481,11 @@ public class P2PState {
 		// add leaf node the last node
 		addLeafNode(leafNode);
 
-		// System.out.println("Distance: " + myID.getCoords().toString());
+		/*
 		for (int i = 0; i < path.size(); i++) {
 			System.out.println(myID + " " + i + " " + path.elementAt(i));
-		}
-		printSets();
+		}*/
+		//printSets();
 	}
 
 	public void setBaseIbis(Ibis baseIbis) {
