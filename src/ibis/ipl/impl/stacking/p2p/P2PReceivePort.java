@@ -16,6 +16,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Properties;
+import java.util.Vector;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +30,7 @@ public class P2PReceivePort extends Manageable implements ReceivePort, Runnable 
 			.getLogger("ibis.ipl.impl.smartsockets.ReceivePort");
 
 	/** current connections **/
-	protected LinkedList<SendPortIdentifier> connections = new LinkedList<SendPortIdentifier>();
+	protected Vector<SendPortIdentifier> connections = new Vector<SendPortIdentifier>();
 
 	/** The type of this port. */
 	public final PortType type;
@@ -59,7 +62,7 @@ public class P2PReceivePort extends Manageable implements ReceivePort, Runnable 
 	/** The current message. */
 	protected ReadMessage message = null;
 
-	private LinkedList<P2PReadMessage> messages = new LinkedList<P2PReadMessage>();
+	private LinkedBlockingQueue<P2PReadMessage> messages = new LinkedBlockingQueue<P2PReadMessage>();
 
 	/**
 	 * Set when the current message has been delivered. Only used for explicit
@@ -70,12 +73,12 @@ public class P2PReceivePort extends Manageable implements ReceivePort, Runnable 
 	/**
 	 * The connections lost since the last call to {@link #lostConnections()}.
 	 */
-	private ArrayList<SendPortIdentifier> lostConnections = new ArrayList<SendPortIdentifier>();
+	private Vector<SendPortIdentifier> lostConnections = new Vector<SendPortIdentifier>();
 
 	/**
 	 * The new connections since the last call to {@link #newConnections()}.
 	 */
-	private ArrayList<SendPortIdentifier> newConnections = new ArrayList<SendPortIdentifier>();
+	private Vector<SendPortIdentifier> newConnections = new Vector<SendPortIdentifier>();
 
 	/** connection error codes **/
 
@@ -135,8 +138,9 @@ public class P2PReceivePort extends Manageable implements ReceivePort, Runnable 
 			closed = true;
 			notifyAll();
 		}
-		
-		//TODO: wait until all connections are closed, or maybe there is no need for waiting....
+
+		// TODO: wait until all connections are closed, or maybe there is no
+		// need for waiting....
 		ibis.deRegister(this);
 	}
 
@@ -150,23 +154,23 @@ public class P2PReceivePort extends Manageable implements ReceivePort, Runnable 
 	}
 
 	@Override
-	public void disableConnections() {
+	public synchronized void disableConnections() {
 		connectionsEnabled = false;
 	}
 
 	@Override
-	public void disableMessageUpcalls() {
+	public synchronized void disableMessageUpcalls() {
 		allowUpcalls = false;
 	}
 
 	@Override
-	public void enableConnections() {
+	public synchronized void enableConnections() {
 		connectionsEnabled = true;
 
 	}
 
 	@Override
-	public void enableMessageUpcalls() {
+	public synchronized void enableMessageUpcalls() {
 		allowUpcalls = true;
 		notifyAll();
 	}
@@ -228,13 +232,8 @@ public class P2PReceivePort extends Manageable implements ReceivePort, Runnable 
 			return null;
 		}
 
-		synchronized (this) { // Other thread may modify data.
-			if (messages.size() == 0) {
-				return null;
-			}
-
-			return messages.get(0);
-		}
+		return messages.poll();
+		
 	}
 
 	@Override
@@ -257,40 +256,32 @@ public class P2PReceivePort extends Manageable implements ReceivePort, Runnable 
 					"This port is not configured for receive() with timeout");
 		}
 
+		if (closed) {
+			throw new IOException("receive() on closed port");
+		}
+
 		return getMessage(timeout);
 	}
 
-	public synchronized P2PReadMessage getMessage(long timeout) {
+	public P2PReadMessage getMessage(long timeout) {
 
-		long endTime = System.currentTimeMillis() + timeout;
-
-		while (!closed && messages.size() == 0) {
+		while (!closed) {
 			if (timeout > 0) {
-				long waitTime = endTime - System.currentTimeMillis();
-
-				if (waitTime <= 0) {
-					break;
-				}
-
 				try {
-					wait(waitTime);
+					return messages.poll(timeout, TimeUnit.MILLISECONDS);
 				} catch (InterruptedException e) {
-					// ignore
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
 			} else {
 				try {
-					wait();
+					return messages.take();
 				} catch (InterruptedException e) {
 					// ignore
 				}
 			}
 		}
-
-		if (closed || messages.size() == 0) {
-			return null;
-		}
-
-		return messages.removeFirst();
+		return null;
 	}
 
 	protected void newUpcallThread() {
@@ -347,20 +338,19 @@ public class P2PReceivePort extends Manageable implements ReceivePort, Runnable 
 	 * grom queue
 	 * 
 	 * @param source
-	 * @param data
+	 * @param data 
 	 * @throws IOException
 	 * @throws ClassNotFoundException
 	 */
-	public void deliverMessage(SendPortIdentifier source, byte[] data) {
+	public void deliverMessage(SendPortIdentifier source, byte[] data)  {
 		try {
 			P2PReadMessage msg = new P2PReadMessage(this, source, data);
-
-			synchronized (this) {
-				messages.addLast(msg);
-				notifyAll();
-			}
+			messages.put(msg);
 		} catch (IOException ex) {
 			ex.printStackTrace();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 
@@ -386,17 +376,16 @@ public class P2PReceivePort extends Manageable implements ReceivePort, Runnable 
 
 	}
 
-	public synchronized byte handleConnectionRequest(SendPortIdentifier source,
+	public byte handleConnectionRequest(SendPortIdentifier source,
 			PortType senderType) {
 
 		if (connections.contains(source)) {
 			return P2PReceivePort.ALREADY_CONNECTED;
 		}
 
-		/*
 		if (!type.equals(senderType)) {
 			return P2PReceivePort.TYPE_MISMATCH;
-		} */
+		}
 
 		if (!connectionsEnabled) {
 			return P2PReceivePort.DISABLED;

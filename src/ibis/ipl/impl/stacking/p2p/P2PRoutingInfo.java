@@ -14,15 +14,15 @@ public class P2PRoutingInfo implements Serializable{
 		this.prefix = prefix;
 	}
 	
-	public P2PNode getSource() {
+	public synchronized P2PNode getSource() {
 		return source;
 	}
 	
-	public P2PNode[] getRoutingRow() {
+	public synchronized P2PNode[] getRoutingRow() {
 		return routingRow;
 	}
 	
-	public int getPrefix() {
+	public synchronized int getPrefix() {
 		return prefix;
 	}
 }

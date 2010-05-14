@@ -12,9 +12,8 @@ public class P2PMessage implements Serializable{
 	public final static int JOIN_REQUEST = 0;
 	public final static int JOIN_RESPONSE = 1;
 	public final static int REGULAR = 2;
-	public final static int LEAF_UPDATE = 3;
-	public final static int NEIGHBOR_UPDATE = 4;
-	public final static int ROUTE_UPDATE = 5;
+	public final static int STATE_REQUEST = 3;
+	public final static int STATE_RESPONSE = 4;
 	public final static int CONNECTION_REQUEST = 6;
 	public final static int CONNECTION_RESPONSE = 7;
 	

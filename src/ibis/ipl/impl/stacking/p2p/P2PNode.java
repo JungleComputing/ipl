@@ -26,8 +26,9 @@ public class P2PNode implements Serializable, Comparable<P2PNode> {
 	private Coordinates coords;
 	private P2PIdentifier p2pID;
 	private double distance;
-	private transient SendPort sendPort;
 	private Vector<String> receivePortNames;
+	private transient SendPort sendPort;
+	private transient boolean connected;
 
 	public P2PNode() {
 		receivePortNames = new Vector<String>();
@@ -39,6 +40,8 @@ public class P2PNode implements Serializable, Comparable<P2PNode> {
 		coords = other.getCoords();
 
 		receivePortNames = new Vector<String>();
+
+		setConnected(false);
 	}
 
 	public P2PNode(P2PIdentifier p2pID, IbisIdentifier ibisID) {
@@ -46,6 +49,8 @@ public class P2PNode implements Serializable, Comparable<P2PNode> {
 		this.ibisID = ibisID;
 
 		receivePortNames = new Vector<String>();
+
+		setConnected(false);
 	}
 
 	public P2PNode(IbisIdentifier ibisID) {
@@ -53,6 +58,8 @@ public class P2PNode implements Serializable, Comparable<P2PNode> {
 		this.ibisID = ibisID;
 
 		receivePortNames = new Vector<String>();
+
+		setConnected(false);
 	}
 
 	public void setIbisID(IbisIdentifier ibisID) {
@@ -96,34 +103,17 @@ public class P2PNode implements Serializable, Comparable<P2PNode> {
 		return distance;
 	}
 
-	/**
-	 * tries to connect to ibisIdentifier if connection is not successful,
-	 * returns false, otherwise true
-	 * 
-	 * @param sendPort
-	 * @return
-	 */
-	public boolean connect(SendPort sendPort) {
-		try {
-			this.sendPort = sendPort;
-			sendPort.connect(ibisID, "p2p", P2PConfig.TIMEOUT, false);
-		} catch (ConnectionFailedException ex) {
-			return false;
-		}
-		return true;
-	}
-
 	public void sendObject(Object msg) throws IOException {
 		WriteMessage writeMsg = getSendPort().newMessage();
 		writeMsg.writeObject(msg);
 		writeMsg.finish();
 	}
 
-	public void sendObjects(Object... msg) {
+	public void sendObjects(Object... objects) {
 		try {
 			WriteMessage writeMsg = getSendPort().newMessage();
-			for (int i = 0; i < msg.length; i++) {
-				writeMsg.writeObject(msg[i]);
+			for (Object obj : objects) {
+				writeMsg.writeObject(obj);
 			}
 			writeMsg.finish();
 		} catch (IOException ex) {
@@ -133,6 +123,7 @@ public class P2PNode implements Serializable, Comparable<P2PNode> {
 
 	public void close() throws IOException {
 		getSendPort().close();
+		setConnected(false);
 	}
 
 	public void setSendPort(SendPort sendPort) {
@@ -186,4 +177,34 @@ public class P2PNode implements Serializable, Comparable<P2PNode> {
 		return false;
 	}
 
+	public synchronized boolean connect(SendPort sendPort) {
+		try {
+			if (!isConnected()) {
+				this.sendPort = sendPort;
+				this.sendPort.connect(ibisID, P2PConfig.PORT_NAME);
+				setConnected(true);
+			}
+			return true;
+		} catch (ConnectionFailedException ex) {
+			ex.printStackTrace();
+			return false;
+		}
+	}
+
+	public synchronized void setConnected(boolean connected) {
+		this.connected = connected;
+	}
+
+	public synchronized boolean isConnected() {
+		return connected;
+	}
+
+	protected void finalize() throws Throwable {
+		try {
+			close();
+		} catch (Exception e) {
+		} finally {
+			super.finalize();
+		}
+	}
 }

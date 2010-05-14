@@ -124,9 +124,11 @@ public class P2PSendPort implements SendPort {
 			throws ConnectionFailedException {
 		ReceivePortIdentifier receiver = new ibis.ipl.impl.ReceivePortIdentifier(
 				receivePortName, (ibis.ipl.impl.IbisIdentifier) ibisIdentifier);
-
-		Byte response = ibis.connect(ibisIdentifier, receivePortName, sid,
+		
+		ibis.connect(ibisIdentifier, receivePortName, sid,
 				type, timeoutMillis, fillTimeout);
+		
+		Byte response = ibis.getConnectionResponse();
 		
 		switch (response.byteValue()) {
 		case P2PReceivePort.ALREADY_CONNECTED:
@@ -175,7 +177,7 @@ public class P2PSendPort implements SendPort {
 	}
 
 	@Override
-	public synchronized void connect(
+	public void connect(
 			ReceivePortIdentifier[] receivePortIdentifiers, long timeoutMillis,
 			boolean fillTimeout) throws ConnectionsFailedException {
 		try {
@@ -271,8 +273,7 @@ public class P2PSendPort implements SendPort {
 	}
 
 	@Override
-	public WriteMessage newMessage() throws IOException {
-		// return new P2PWriteMessage(base.newMessage(), this);
+	public synchronized WriteMessage newMessage() throws IOException {
 		while (!closed && messageInUse) {
 			try {
 				wait();

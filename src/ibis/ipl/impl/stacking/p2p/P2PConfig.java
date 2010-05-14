@@ -5,7 +5,7 @@ import ibis.ipl.PortType;
 public class P2PConfig {
 	public final static int N = 100;
 	public final static int b = 16;
-	public final static int MAX_PREFIX = 128;
+	public final static int MAX_PREFIX = 32;
 	public final static int MAX_DIGITS = 16;
 	public final static int LEAF_SIZE = 8;
 	public final static int NEIGHBOORHOOD_SIZE = 10;
@@ -14,4 +14,5 @@ public class P2PConfig {
 			PortType.CONNECTION_MANY_TO_ONE);
 
 	public final static int TIMEOUT = 1000;
+	public final static String PORT_NAME = "p2p";
 }
