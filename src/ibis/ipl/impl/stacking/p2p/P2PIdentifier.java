@@ -20,11 +20,11 @@ public class P2PIdentifier implements Serializable{
 		this.p2pID = p2pID;
 	}
 	
-	public void setP2pID(String p2pID) {
+	public synchronized void setP2pID(String p2pID) {
 		this.p2pID = p2pID;
 	}
 
-	public String getP2pID() {
+	public synchronized String getP2pID() {
 		return p2pID;
 	}
 	
@@ -33,7 +33,7 @@ public class P2PIdentifier implements Serializable{
 	 * @param p2pNode
 	 * @return
 	 */
-	public int prefixLength(P2PIdentifier p2pNode) 
+	public synchronized int prefixLength(P2PIdentifier p2pNode) 
 	{
 		int i = 0;
 		String p2pOtherID = p2pNode.getP2pID();
@@ -48,7 +48,7 @@ public class P2PIdentifier implements Serializable{
 		return i;
 	}
 	
-	public int digitDifference(P2PIdentifier p2pNode, int i) {
+	public synchronized int digitDifference(P2PIdentifier p2pNode, int i) {
 		String otherP2PID = p2pNode.getP2pID();
 		if (i >= p2pID.length()) {
 			return i;
@@ -57,11 +57,11 @@ public class P2PIdentifier implements Serializable{
 		return Math.abs(otherP2PID.charAt(i) - p2pID.charAt(i));
 	}
 	
-	public char charAt(int i) {
+	public synchronized char charAt(int i) {
 		return p2pID.charAt(i);
 	}
 	
-	public int compareTo(P2PIdentifier p2pNode) {
+	public synchronized int compareTo(P2PIdentifier p2pNode) {
 		String p2pOtherID = p2pNode.getP2pID();
 		return p2pID.compareTo(p2pOtherID);
 	}

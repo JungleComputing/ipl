@@ -16,7 +16,8 @@ public class P2PStateUpdater extends Thread {
 	public void run() {
 		try {
 			while (!isInterrupted()) {
-				consume(queue.take());
+				P2PStateInfo info = queue.take();
+				consume(info);
 			}
 		}
 		catch (IOException ex) {
@@ -27,7 +28,7 @@ public class P2PStateUpdater extends Thread {
 
 	}
 
-	void consume(P2PStateInfo stateInfo) throws IOException {
+	private synchronized void consume(P2PStateInfo stateInfo) throws IOException {
 		state.updateState(stateInfo);
 	}
 }

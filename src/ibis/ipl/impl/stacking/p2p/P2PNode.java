@@ -12,6 +12,9 @@ import java.math.BigInteger;
 import java.util.HashSet;
 import java.util.Vector;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * encapsulation of node identification in overlay network node ID - ID in
  * overlay network - compute SHA-1 of IP address basis node ID - ID in
@@ -27,9 +30,12 @@ public class P2PNode implements Serializable, Comparable<P2PNode> {
 	private P2PIdentifier p2pID;
 	private double distance;
 	private Vector<String> receivePortNames;
+	
 	private transient SendPort sendPort;
 	private transient boolean connected;
 
+	private transient static final Logger logger = LoggerFactory.getLogger(P2PNode.class);
+	
 	public P2PNode() {
 		receivePortNames = new Vector<String>();
 	}
@@ -62,54 +68,54 @@ public class P2PNode implements Serializable, Comparable<P2PNode> {
 		setConnected(false);
 	}
 
-	public void setIbisID(IbisIdentifier ibisID) {
+	public synchronized void setIbisID(IbisIdentifier ibisID) {
 		this.ibisID = ibisID;
 	}
 
-	public IbisIdentifier getIbisID() {
+	public synchronized IbisIdentifier getIbisID() {
 		return ibisID;
 	}
 
-	public void setCoords(Coordinates coords) {
+	public synchronized void setCoords(Coordinates coords) {
 		this.coords = coords;
 	}
 
-	public Coordinates getCoords() {
+	public synchronized Coordinates getCoords() {
 		return coords;
 	}
 
-	public void setP2pID(P2PIdentifier p2pID) {
+	public synchronized void setP2pID(P2PIdentifier p2pID) {
 		this.p2pID = p2pID;
 	}
 
-	public P2PIdentifier getP2pID() {
+	public synchronized P2PIdentifier getP2pID() {
 		return p2pID;
 	}
 
 	@Override
-	public int compareTo(P2PNode o) {
+	public synchronized int compareTo(P2PNode o) {
 		return p2pID.compareTo(o.getP2pID());
 	}
 
-	public void setDistance(double distance) {
+	public synchronized void setDistance(double distance) {
 		this.distance = distance;
 	}
 
-	public void setDistance(P2PNode other) {
+	public synchronized void setDistance(P2PNode other) {
 		distance = coords.distance(other.getCoords());
 	}
 
-	public double getDistance() {
+	public synchronized double getDistance() {
 		return distance;
 	}
 
-	public void sendObject(Object msg) throws IOException {
+	public synchronized void sendObject(Object msg) throws IOException {
 		WriteMessage writeMsg = getSendPort().newMessage();
 		writeMsg.writeObject(msg);
 		writeMsg.finish();
 	}
 
-	public void sendObjects(Object... objects) {
+	public synchronized void sendObjects(Object... objects) {
 		try {
 			WriteMessage writeMsg = getSendPort().newMessage();
 			for (Object obj : objects) {
@@ -121,40 +127,40 @@ public class P2PNode implements Serializable, Comparable<P2PNode> {
 		}
 	}
 
-	public void close() throws IOException {
+	public synchronized void close() throws IOException {
 		getSendPort().close();
 		setConnected(false);
 	}
 
-	public void setSendPort(SendPort sendPort) {
+	public synchronized void setSendPort(SendPort sendPort) {
 		this.sendPort = sendPort;
 	}
 
-	public SendPort getSendPort() {
+	public synchronized SendPort getSendPort() {
 		return sendPort;
 	}
 
-	public BigInteger idDistance(P2PNode other) {
+	public synchronized BigInteger idDistance(P2PNode other) {
 		BigInteger number1 = new BigInteger(p2pID.getP2pID(), P2PConfig.b);
 		BigInteger number2 = new BigInteger(other.getP2pID().getP2pID(),
 				P2PConfig.b);
 		return number1.subtract(number2).abs();
 	}
 
-	public double vivaldiDistance(P2PNode other) {
+	public synchronized double vivaldiDistance(P2PNode other) {
 		return coords.distance(other.getCoords());
 	}
 
-	public String toString() {
+	public synchronized String toString() {
 		return p2pID.getP2pID();
 
 	}
 
-	public int prefixLength(P2PNode other) {
+	public synchronized int prefixLength(P2PNode other) {
 		return p2pID.prefixLength(other.getP2pID());
 	}
 
-	public int digit(int position) {
+	public synchronized int digit(int position) {
 		char value = p2pID.charAt(position);
 		if (Character.isDigit(value)) {
 			return Character.digit(value, 10);
@@ -162,16 +168,16 @@ public class P2PNode implements Serializable, Comparable<P2PNode> {
 		return (Character.toUpperCase(value) - 'A' + 10);
 	}
 
-	public void addReceivePortName(String recvPortName) {
+	public synchronized void addReceivePortName(String recvPortName) {
 		receivePortNames.add(recvPortName);
 	}
 
-	public Vector<String> getReceivePortNames() {
+	public synchronized Vector<String> getReceivePortNames() {
 		return receivePortNames;
 	}
 
-	public boolean equals(P2PNode other) {
-		if (this.compareTo(other) == 0) {
+	public synchronized boolean equals(P2PNode other) {	
+		if (this.compareTo(other) == 0) {	
 			return true;
 		}
 		return false;
@@ -199,6 +205,31 @@ public class P2PNode implements Serializable, Comparable<P2PNode> {
 		return connected;
 	}
 
+	public synchronized void copyObject(P2PNode other) {
+		this.ibisID = other.getIbisID();
+		this.coords = other.getCoords();
+		this.p2pID = other.getP2pID();
+		this.sendPort = other.getSendPort();
+		this.distance = other.getDistance();
+		
+		setConnected(false);
+	}
+	
+	public synchronized void copyObject(P2PNode other, SendPort sendPort) {
+		this.ibisID = other.getIbisID();
+		this.coords = other.getCoords();
+		this.p2pID = other.getP2pID();
+		this.sendPort = sendPort;
+		
+		try {
+			this.sendPort.connect(ibisID, P2PConfig.PORT_NAME);
+		} catch (ConnectionFailedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	//FIXME: bad practice!
 	protected void finalize() throws Throwable {
 		try {
 			close();

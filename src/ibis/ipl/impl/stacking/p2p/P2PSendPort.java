@@ -14,12 +14,12 @@ import ibis.ipl.SendPort;
 import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.WriteMessage;
-import ibis.ipl.impl.SendPortConnectionInfo;
 
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -31,7 +31,8 @@ import org.slf4j.LoggerFactory;
 
 public class P2PSendPort implements SendPort {
 	private PortType type;
-	private final HashMap<IbisIdentifier, ReceivePortIdentifier[]> connections = new HashMap<IbisIdentifier, ReceivePortIdentifier[]>();
+	private final Map<IbisIdentifier, ReceivePortIdentifier[]> connections = Collections
+			.synchronizedMap(new HashMap<IbisIdentifier, ReceivePortIdentifier[]>());
 	private SendPortIdentifier sid;
 	private P2PIbis ibis;
 	private final String name;
@@ -124,12 +125,12 @@ public class P2PSendPort implements SendPort {
 			throws ConnectionFailedException {
 		ReceivePortIdentifier receiver = new ibis.ipl.impl.ReceivePortIdentifier(
 				receivePortName, (ibis.ipl.impl.IbisIdentifier) ibisIdentifier);
-		
-		ibis.connect(ibisIdentifier, receivePortName, sid,
-				type, timeoutMillis, fillTimeout);
-		
+
+		ibis.connect(ibisIdentifier, receivePortName, sid, type, timeoutMillis,
+				fillTimeout);
+
 		Byte response = ibis.getConnectionResponse();
-		
+
 		switch (response.byteValue()) {
 		case P2PReceivePort.ALREADY_CONNECTED:
 			throw new AlreadyConnectedException("Already connected",
@@ -143,31 +144,33 @@ public class P2PSendPort implements SendPort {
 			throw new PortMismatchException("Ports of different tyoes",
 					receiver);
 		case P2PReceivePort.DISABLED:
-			throw new ConnectionFailedException("Connections not enabled at receiver's side",
-					receiver);
+			throw new ConnectionFailedException(
+					"Connections not enabled at receiver's side", receiver);
 		case P2PReceivePort.NO_MANY_TO_X:
-			throw new ConnectionFailedException("Many to X capability not enabled at receiver's side",
+			throw new ConnectionFailedException(
+					"Many to X capability not enabled at receiver's side",
 					receiver);
 		}
-		
+
 		checkConnect(receiver);
-		
+
 		addReceiver(ibisIdentifier, receiver);
 		return receiver;
 	}
 
-	private void checkConnect(ReceivePortIdentifier receiver) throws AlreadyConnectedException {
+	private void checkConnect(ReceivePortIdentifier receiver)
+			throws AlreadyConnectedException {
 		if (connections.size() > 0
-                && ! type.hasCapability(PortType.CONNECTION_ONE_TO_MANY)
-                && ! type.hasCapability(PortType.CONNECTION_MANY_TO_MANY)) {
-            throw new IbisConfigurationException("Sendport already has a "
-                    + "connection and OneToMany or ManyToMany are not set");
-        }
+				&& !type.hasCapability(PortType.CONNECTION_ONE_TO_MANY)
+				&& !type.hasCapability(PortType.CONNECTION_MANY_TO_MANY)) {
+			throw new IbisConfigurationException("Sendport already has a "
+					+ "connection and OneToMany or ManyToMany are not set");
+		}
 
-        if (isReceiverConnected(receiver)) {
-            throw new AlreadyConnectedException("Already connected", receiver);
-        }
-		
+		if (isReceiverConnected(receiver)) {
+			throw new AlreadyConnectedException("Already connected", receiver);
+		}
+
 	}
 
 	@Override
@@ -177,9 +180,9 @@ public class P2PSendPort implements SendPort {
 	}
 
 	@Override
-	public void connect(
-			ReceivePortIdentifier[] receivePortIdentifiers, long timeoutMillis,
-			boolean fillTimeout) throws ConnectionsFailedException {
+	public void connect(ReceivePortIdentifier[] receivePortIdentifiers,
+			long timeoutMillis, boolean fillTimeout)
+			throws ConnectionsFailedException {
 		try {
 			for (ReceivePortIdentifier id : receivePortIdentifiers) {
 				connect(id.ibisIdentifier(), id.name(), timeoutMillis,
@@ -344,17 +347,17 @@ public class P2PSendPort implements SendPort {
 			e.printStackTrace();
 		}
 	}
-	
-	protected synchronized boolean isReceiverConnected(
-            ReceivePortIdentifier id) {
-		ReceivePortIdentifier[] receivePorts = connections.get(id.ibisIdentifier());
-        if (receivePorts != null) {
-		for (ReceivePortIdentifier receivePort : receivePorts)
-        	if (receivePort.equals(id)) {
-        		return true;
-        	}
-        }
-        return false;
-    }
+
+	protected synchronized boolean isReceiverConnected(ReceivePortIdentifier id) {
+		ReceivePortIdentifier[] receivePorts = connections.get(id
+				.ibisIdentifier());
+		if (receivePorts != null) {
+			for (ReceivePortIdentifier receivePort : receivePorts)
+				if (receivePort.equals(id)) {
+					return true;
+				}
+		}
+		return false;
+	}
 
 }

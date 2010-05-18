@@ -1,6 +1,5 @@
 package ibis.ipl.impl.stacking.p2p;
 
-import ibis.ipl.AlreadyConnectedException;
 import ibis.ipl.IbisConfigurationException;
 import ibis.ipl.MessageUpcall;
 import ibis.ipl.PortType;
@@ -13,8 +12,6 @@ import ibis.ipl.impl.Manageable;
 import ibis.util.ThreadPool;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.Properties;
 import java.util.Vector;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -27,7 +24,7 @@ public class P2PReceivePort extends Manageable implements ReceivePort, Runnable 
 	private P2PIbis ibis;
 
 	protected static final Logger logger = LoggerFactory
-			.getLogger("ibis.ipl.impl.smartsockets.ReceivePort");
+			.getLogger(P2PReceivePort.class);
 
 	/** current connections **/
 	protected Vector<SendPortIdentifier> connections = new Vector<SendPortIdentifier>();
