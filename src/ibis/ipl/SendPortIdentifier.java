@@ -29,8 +29,8 @@ public interface SendPortIdentifier extends java.io.Serializable {
      * in the same hashcode (and compare equal).
      * To explicitly specify it in the interface does not help, because
      * java.lang.Object already implements it, but, anyway, here it is.
-     *
-     * @inheritDoc
+     * 
+     * {@inheritDoc}
      */
     public int hashCode();
 
@@ -41,8 +41,8 @@ public interface SendPortIdentifier extends java.io.Serializable {
      * compare equal (and result in the same hashcode).
      * To explicitly specify it in the interface does not help, because
      * java.lang.Object already implements it, but, anyway, here it is.
-     *
-     * @inheritDoc
+     * 
+     * {@inheritDoc}
      */
     public boolean equals(Object other);
 }

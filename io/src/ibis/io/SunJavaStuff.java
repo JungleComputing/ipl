@@ -93,8 +93,6 @@ class SunJavaStuff extends JavaDependantStuff {
      *                object with a final field
      * @param fieldname
      *                name of the field
-     * @param classname
-     *                the name of the class
      * @param d
      *                value to be assigned
      * @exception IOException
