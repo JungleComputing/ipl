@@ -283,6 +283,7 @@ public class ReadMessage implements ibis.ipl.ReadMessage {
     public void setFinished(boolean val) {
         isFinished = val;
         if (! isFinished) {
+            before = info.bytesRead();
             finishCalledFromUpcall = false;
         }
     }

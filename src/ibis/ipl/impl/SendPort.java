@@ -754,21 +754,26 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
      * @param w the write message that calls this method.
      * @param cnt the number of bytes written.
      */
-    protected synchronized void finishMessage(WriteMessage w, long cnt)
+    protected void finishMessage(WriteMessage w, long cnt)
             throws IOException {
-        aMessageIsAlive = false;
-        if (waitingForMessage > 0) {
-            // NotifyAll, because we don't know who is waiting, and what for.
-            notifyAll();
-        }
-        nMessages++;
-        messageBytes += cnt;
-        ibis.addSentPerIbis(cnt, this);
-        bytes = prevBytes + totalWritten();
-        if (collectedExceptions != null) {
-            IOException e = collectedExceptions;
-            collectedExceptions = null;
-            throw e;
+        try {
+            synchronized(this) {
+                aMessageIsAlive = false;
+                if (waitingForMessage > 0) {
+                    // NotifyAll, because we don't know who is waiting, and what for.
+                    notifyAll();
+                }
+                nMessages++;
+                messageBytes += cnt;
+                bytes = prevBytes + totalWritten();
+                if (collectedExceptions != null) {
+                    IOException e = collectedExceptions;
+                    collectedExceptions = null;
+                    throw e;
+                }
+            }
+        } finally {
+            ibis.addSentPerIbis(cnt, this);
         }
     }
 

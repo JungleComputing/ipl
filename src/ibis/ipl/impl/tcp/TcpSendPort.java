@@ -130,7 +130,7 @@ final class TcpSendPort extends SendPort implements TcpProtocol {
         }
     }
 
-    protected synchronized void finishMessage(WriteMessage w, long cnt)
+    protected void finishMessage(WriteMessage w, long cnt)
             throws IOException {
         if (type.hasCapability(PortType.CONNECTION_ONE_TO_MANY)
                 || type.hasCapability(PortType.CONNECTION_MANY_TO_MANY)) {

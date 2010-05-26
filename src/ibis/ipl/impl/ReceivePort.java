@@ -582,13 +582,16 @@ public abstract class ReceivePort extends Manageable
      * @param r the message.
      * @param cnt the byte count of this message.
      */
-    public synchronized void finishMessage(ReadMessage r, long cnt) {
-        nMessages++;
-        messageBytes += cnt;
-        message = null;
+    public void finishMessage(ReadMessage r, long cnt) {
+        synchronized(this) {
+            nMessages++;
+            messageBytes += cnt;
+            message = null;
+            threadsInUpcallSet.remove(Thread.currentThread());
+            notifyAll();
+        }
+        // This outside the lock, otherwise deadlock.
         ibis.addReceivedPerIbis(cnt, this);
-        threadsInUpcallSet.remove(Thread.currentThread());
-        notifyAll();
     }
 
     /**
