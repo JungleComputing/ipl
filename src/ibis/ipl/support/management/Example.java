@@ -4,7 +4,9 @@ import ibis.ipl.IbisIdentifier;
 import ibis.ipl.server.Server;
 
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Properties;
+import java.util.Map.Entry;
 
 public class Example {
 
@@ -20,6 +22,7 @@ public class Example {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public static void main(String[] arguments) {
 
         // start a server
@@ -41,18 +44,25 @@ public class Example {
             System.err.println("warning: could not registry shutdown hook");
         }
 
+        AttributeDescription load = new AttributeDescription(
+                "java.lang:type=OperatingSystem", "SystemLoadAverage");
+
+        AttributeDescription cpu = new AttributeDescription(
+                "java.lang:type=OperatingSystem", "ProcessCpuTime");
+
+        AttributeDescription vivaldi = new AttributeDescription("ibis",
+                "vivaldi");
+
+        AttributeDescription connections = new AttributeDescription("ibis",
+                "connections");
+        
+        AttributeDescription sentBytesPerIbis = new AttributeDescription("ibis",
+                "sentBytesPerIbis");
+        
+        AttributeDescription receivedBytesPerIbis = new AttributeDescription("ibis",
+                "receivedBytesPerIbis");
+        
         while (true) {
-            AttributeDescription load = new AttributeDescription(
-                    "java.lang:type=OperatingSystem", "SystemLoadAverage");
-
-            AttributeDescription cpu = new AttributeDescription(
-                    "java.lang:type=OperatingSystem", "ProcessCpuTime");
-
-            AttributeDescription vivaldi = new AttributeDescription("ibis",
-                    "vivaldi");
-
-            AttributeDescription connections = new AttributeDescription("ibis",
-                    "connections");
 
             // get list of ibises in the pool named "test"
             IbisIdentifier[] ibises = server.getRegistryService().getMembers(
@@ -77,7 +87,25 @@ public class Example {
                                                         .getManagementService()
                                                         .getAttributes(ibis,
                                                                 connections)[0]));
-
+                        
+                        Map<IbisIdentifier, Long> sent = (Map<IbisIdentifier, Long>)
+                                (server.getManagementService().getAttributes(ibis, sentBytesPerIbis)[0]);
+                        
+                        if (sent != null) {
+                            for (Entry<IbisIdentifier, Long> e : sent.entrySet()) {
+                                System.err.println(ibis + " wrote " + e.getValue() + " bytes to " + e.getKey());
+                            }
+                        }
+                        
+                        Map<IbisIdentifier, Long> received = (Map<IbisIdentifier, Long>)
+                                (server.getManagementService().getAttributes(ibis, receivedBytesPerIbis)[0]);
+                        
+                        if (received != null) {
+                            for (Entry<IbisIdentifier, Long> e : received.entrySet()) {
+                                System.err.println(ibis + " read " + e.getValue() + " bytes from " + e.getKey());
+                            }
+                        }
+ 
                     } catch (Exception e) {
                         System.err.println("Could not get management info: ");
                         e.printStackTrace();

@@ -586,6 +586,7 @@ public abstract class ReceivePort extends Manageable
         nMessages++;
         messageBytes += cnt;
         message = null;
+        ibis.addReceivedPerIbis(cnt, this);
         threadsInUpcallSet.remove(Thread.currentThread());
         notifyAll();
     }

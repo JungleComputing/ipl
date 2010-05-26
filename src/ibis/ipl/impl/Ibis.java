@@ -83,6 +83,10 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
 
     /** The sendports running on this Ibis instance. */
     private HashMap<String, SendPort> sendPorts;
+    
+    private HashMap<ibis.ipl.IbisIdentifier, Long> sentBytesPerIbis = null;
+    
+    private HashMap<ibis.ipl.IbisIdentifier, Long> receivedBytesPerIbis = null;
 
     /** Counter for allocating names for anonymous sendports. */
     private static int send_counter = 0;
@@ -202,6 +206,11 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
         } else {
             vivaldiClient = null;
         }
+        
+        if (properties.getBooleanProperty("ibis.bytescount")) {
+            sentBytesPerIbis = new HashMap<ibis.ipl.IbisIdentifier, Long>();
+            receivedBytesPerIbis = new HashMap<ibis.ipl.IbisIdentifier, Long>();
+        }
 
         try {
             managementClient = new ManagementClient(properties, this);
@@ -299,6 +308,35 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
             outgoingMessageCount += p.getMessageCount();
             bytesSent += p.getBytesSent();
             bytesWritten += p.getBytesWritten();
+        }
+    }
+    
+    synchronized void addSentPerIbis(long cnt, SendPort port) {
+        if (sentBytesPerIbis == null) {
+            return;
+        }
+        for (SendPortConnectionInfo sp : port.receivers.values()) {
+            ibis.ipl.IbisIdentifier i = sp.target.ibis;
+            Long oldval = sentBytesPerIbis.get(i);
+            if (oldval != null) {
+                cnt += oldval.longValue();
+            }
+            sentBytesPerIbis.put(i, new Long(cnt));
+        }
+    }
+    
+    
+    synchronized void addReceivedPerIbis(long cnt, ReceivePort port) {
+        if (receivedBytesPerIbis == null) {
+            return;
+        }
+        for (ReceivePortConnectionInfo rp : port.connections.values()) {
+            ibis.ipl.IbisIdentifier i = rp.origin.ibis;
+            Long oldval = receivedBytesPerIbis.get(i);
+            if (oldval != null) {
+                cnt += oldval.longValue();
+            }
+            receivedBytesPerIbis.put(i, new Long(cnt));
         }
     }
 
@@ -639,6 +677,26 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
         }
 
         return vivaldiClient.getCoordinates();
+    }
+    
+    /**
+     * @ibis.experimental
+     */
+    public synchronized Map<ibis.ipl.IbisIdentifier, Long> getSentBytesPerIbis() {
+        if (sentBytesPerIbis == null) {
+            return null;
+        }
+        return new HashMap<ibis.ipl.IbisIdentifier, Long>(sentBytesPerIbis);
+    }
+    
+    /**
+     * @ibis.experimental
+     */
+    public synchronized Map<ibis.ipl.IbisIdentifier, Long> getReceivedBytesPerIbis() {
+        if (receivedBytesPerIbis == null) {
+            return null;
+        }
+        return new HashMap<ibis.ipl.IbisIdentifier, Long>(receivedBytesPerIbis);
     }
 
     public synchronized Map<String, String> managementProperties() {

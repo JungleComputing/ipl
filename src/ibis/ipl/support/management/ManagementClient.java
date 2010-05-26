@@ -48,21 +48,32 @@ public class ManagementClient implements Runnable {
     private Object getIbisAttribute(String name) throws NoSuchPropertyException {
         if (name.equalsIgnoreCase("vivaldi")) {
             return ibis.getVivaldiCoordinates();
-        } else if (name.equalsIgnoreCase("connections")) {
-            return ibis.connectedTo();
-        } else if (name.equalsIgnoreCase("outgoingMessageCount")) {
-            return ibis.getOutgoingMessageCount();
-        } else if (name.equalsIgnoreCase("bytesWritten")) {
-            return ibis.getBytesWritten();
-        } else if (name.equalsIgnoreCase("bytesSent")) {
-            return ibis.getBytesSent();
-        } else if (name.equalsIgnoreCase("incomingMessageCount")) {
-            return ibis.getIncomingMessageCount();
-        } else if (name.equalsIgnoreCase("bytesRead")) {
-            return ibis.getBytesRead();
-        } else {
-            return ibis.getManagementProperty(name);
         }
+        if (name.equalsIgnoreCase("connections")) {
+            return ibis.connectedTo();
+        }
+        if (name.equalsIgnoreCase("outgoingMessageCount")) {
+            return ibis.getOutgoingMessageCount();
+        }
+        if (name.equalsIgnoreCase("bytesWritten")) {
+            return ibis.getBytesWritten();
+        }
+        if (name.equalsIgnoreCase("bytesSent")) {
+            return ibis.getBytesSent();
+        }
+        if (name.equalsIgnoreCase("incomingMessageCount")) {
+            return ibis.getIncomingMessageCount();
+        }
+        if (name.equalsIgnoreCase("bytesRead")) {
+            return ibis.getBytesRead();
+        }
+        if (name.equals("sentBytesPerIbis")) {
+            return ibis.getSentBytesPerIbis();
+        }
+        if (name.equals("receivedBytesPerIbis")) {
+            return ibis.getReceivedBytesPerIbis();
+        }
+        return ibis.getManagementProperty(name);
     }
 
     @SuppressWarnings("unchecked")
