@@ -115,6 +115,8 @@ public class P2PReceivePort extends Manageable implements ReceivePort, Runnable 
 				.hasCapability(PortType.CONNECTION_DOWNCALLS);
 
 		ibis.register(this);
+		
+		logger.debug("Receive Port created!");
 	}
 
 	@Override

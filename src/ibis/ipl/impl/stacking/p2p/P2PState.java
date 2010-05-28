@@ -1,11 +1,17 @@
 package ibis.ipl.impl.stacking.p2p;
 
 import ibis.ipl.Ibis;
+import ibis.ipl.impl.stacking.p2p.util.P2PMessage;
+import ibis.ipl.impl.stacking.p2p.util.P2PRoutingInfo;
+import ibis.ipl.impl.stacking.p2p.util.Pair;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Vector;
 
 import org.slf4j.Logger;
@@ -18,8 +24,14 @@ public class P2PState {
 	private P2PNode minLeaf, maxLeaf, minNeighbor, maxNeighbor;
 	private int neighborhoodSize, leftLeafSize, rightLeafSize;
 	private P2PNode myID;
+
 	transient private Ibis baseIbis;
 
+	// repair state related members
+	private ArrayList<ArrayList<P2PNode[]>> recvNeighborhoodSets = new ArrayList<ArrayList<P2PNode[]>>();
+	private ArrayList<ArrayList<P2PNode[]>> recvLeafSets = new ArrayList<ArrayList<P2PNode[]>>();
+	private HashMap<Pair, ArrayList<P2PNode>> recvRoutingTable = new HashMap<Pair, ArrayList<P2PNode>>();
+	
 	private static final Logger logger = LoggerFactory
 			.getLogger(P2PState.class);
 
@@ -45,8 +57,8 @@ public class P2PState {
 	 * @param end
 	 * @throws IOException
 	 */
-	private synchronized boolean insertElement(P2PNode[] set, P2PNode node, int start,
-			int end) throws IOException {
+	private synchronized boolean insertElement(P2PNode[] set, P2PNode node,
+			int start, int end) throws IOException {
 		int i;
 		if (node == null) {
 			return false;
@@ -62,15 +74,14 @@ public class P2PState {
 			set[i].connect(baseIbis.createSendPort(P2PConfig.portType));
 			set[i].setDistance(myID);
 
-			// logger.debug("Added entry " + node.getIbisID().name());
-
 			return true;
 		}
 		return false;
 	}
 
 	/**
-	 * replace an element in either neighborhood set or leaf set
+	 * replace an element in either neighborhood set or leaf set sort the
+	 * elements based either on vivaldi or prefix distance
 	 * 
 	 * @param set
 	 * @param node
@@ -89,6 +100,7 @@ public class P2PState {
 		Arrays.sort(set, start, end, comparator);
 		int position = Arrays.binarySearch(set, start, end, node, comparator);
 
+		// node is not already in the set
 		if (position < 0) {
 			int insertPoint = -1 - position;
 			if (insertPoint >= end) {
@@ -97,8 +109,6 @@ public class P2PState {
 			for (int i = end - 1; i > insertPoint; i--) {
 				set[i].copyObject(set[i - 1]);
 			}
-			// logger.debug("Replaced " + set[insertPoint].getIbisID().name() +
-			// " with " + node.getIbisID().name());
 			set[insertPoint].copyObject(node, baseIbis
 					.createSendPort(P2PConfig.portType));
 		}
@@ -225,24 +235,21 @@ public class P2PState {
 			double oldDistance = myID.vivaldiDistance(routingTable[i][j]);
 			double newDistance = myID.vivaldiDistance(node);
 
+			// if new distance is larger than current distance, do not replace
+			// entry
 			if (newDistance >= oldDistance || routingTable[i][j].equals(node)) {
 				return;
 			}
 
-			// logger.debug("Replaced entry " +
-			// routingTable[i][j].getIbisID().name() + " with" +
-			// node.getIbisID().name() + " at " + i + " " + j);
-
+			// TODO: use clone method
 			routingTable[i][j].copyObject(node, baseIbis
 					.createSendPort(P2PConfig.portType));
 			routingTable[i][j].setDistance(myID);
 		} else {
 			routingTable[i][j] = new P2PNode(node);
-			routingTable[i][j].connect(baseIbis.createSendPort(P2PConfig.portType));
+			routingTable[i][j].connect(baseIbis
+					.createSendPort(P2PConfig.portType));
 			routingTable[i][j].setDistance(myID);
-
-			// logger.debug("Added entry " +
-			// routingTable[i][j].getIbisID().name() + " at " + i + " " + j);
 		}
 	}
 
@@ -271,17 +278,50 @@ public class P2PState {
 		return nextDest;
 	}
 
+	/**
+	 * find node which is closest to myID and shares at leas a prefix of size
+	 * prefix with myID
+	 * 
+	 * @param set
+	 * @param node
+	 * @param start
+	 * @param end
+	 * @param prefix
+	 * @return
+	 */
 	private synchronized P2PNode findNodeWithPrefix(P2PNode[] set,
 			P2PNode node, int start, int end, int prefix) {
 		P2PNode nextDest = myID;
-		BigInteger minDiff = node.idDistance(myID);
+		BigInteger minDiff = myID.idDistance(node).abs();
+
+		// if message is of type normal, route to other node than myself,
+		// even if the difference is larger
+		// if (normal) {
+		// minDiff = P2PConfig.MAX;
+		// }
 		for (int i = start; i < end && set[i] != null; i++) {
-			BigInteger newDiff = set[i].idDistance(myID);
+			BigInteger newDiff = node.idDistance(set[i]).abs();
 			int currPrefix = node.prefixLength(set[i]);
-			if (newDiff.compareTo(minDiff) < 0 && currPrefix >= prefix) {
+			boolean condition;
+			// if (normal) {
+			// route to other node even if the difference is larger
+			// than the one to myself
+			// condition = newDiff.compareTo(minDiff) < 0;
+			// } else {
+			// if p2p internal message, route with strict condition,
+			condition = newDiff.compareTo(minDiff) < 0 && currPrefix >= prefix;
+			// }
+
+			if (condition) {
 				minDiff = newDiff;
 				nextDest = set[i];
 			}
+
+			// 0 && currPrefix >= prefix) {
+			// if (newDiff.compareTo(minDiff) < 0) {
+			// minDiff = newDiff;
+			// nextDest = set[i];
+			// }
 		}
 
 		return nextDest;
@@ -313,9 +353,17 @@ public class P2PState {
 				P2PConfig.NEIGHBOORHOOD_SIZE);
 	}
 
+	/**
+	 * find node in routing table which shares at least a prefix of length
+	 * prefix compared to myID
+	 * 
+	 * @param node
+	 * @param prefix
+	 * @return
+	 */
 	public synchronized P2PNode findRoutingNode(P2PNode node, int prefix) {
 		P2PNode nextDest = myID;
-		BigInteger minDiff = node.idDistance(myID);
+		BigInteger minDiff = P2PConfig.MAX;
 
 		for (int i = 0; i < P2PConfig.MAX_DIGITS; i++) {
 			if (routingTable[prefix][i] != null) {
@@ -344,10 +392,28 @@ public class P2PState {
 
 		P2PNode nextDest = myID;
 
-		BigInteger minDiff = node.idDistance(myID).abs();
+		logger.debug("Finding rare case node for:" + node);
+
+		// FIXME: not ok, shouldn't forward to myself if I am not the
+		// destination...
+		// change find node rare case for normal messages
+		// add flag to indicate normal or internal p2p message
+		BigInteger minDiff = myID.idDistance(node).abs();
+
+		// if (normal) {
+		// minDiff = P2PConfig.MAX;
+		// }
 		for (int i = 0; i < nextNodes.length; i++) {
 			BigInteger newDiff = node.idDistance(nextNodes[i]).abs();
-			if (newDiff.compareTo(minDiff) < 0) {
+			boolean condition;
+
+			// if (normal) {
+			// condition = newDiff.compareTo(minDiff) < 0
+			// && !nextNodes[i].equals(myID);
+			// } else {
+			condition = newDiff.compareTo(minDiff) < 0;
+			// }
+			if (condition) {
 				minDiff = newDiff;
 				nextDest = nextNodes[i];
 			}
@@ -355,13 +421,6 @@ public class P2PState {
 
 		return nextDest;
 	}
-
-	/**
-	 * convert set from P2PInternalNode to P2PNode for sending
-	 * 
-	 * @param set
-	 * @return
-	 */
 
 	public synchronized P2PNode[] getRoutingTableRow(int row) {
 		if (row < P2PConfig.MAX_PREFIX) {
@@ -392,7 +451,10 @@ public class P2PState {
 			P2PNode[] neighborhoodSet) throws IOException {
 
 		int pathSize = path.size();
+		// leaf node is the last element in the path array
 		P2PNode leafNode = path.elementAt(pathSize - 1);
+
+		// nearby node is the
 		P2PNode nearbyNode = path.elementAt(1);
 
 		logger.debug("Leaf node:" + leafNode.getIbisID().name());
@@ -437,7 +499,7 @@ public class P2PState {
 		P2PMessage msg = new P2PMessage(null, P2PMessage.STATE_REQUEST);
 		P2PStateInfo myStateInfo = new P2PStateInfo(myID, getRoutingTable(),
 				getLeafSet(), getNeighborhoodSet(), true);
-		
+
 		// send a copy of my state to all nodes from routing table
 		for (int i = 0; i < P2PConfig.MAX_PREFIX; i++) {
 			for (int j = 0; j < P2PConfig.MAX_DIGITS; j++) {
@@ -459,10 +521,11 @@ public class P2PState {
 			}
 		}
 
-		//printSets();
+		// printSets();
 	}
 
-	public synchronized void updateState(P2PStateInfo stateInfo) throws IOException {
+	public synchronized void updateState(P2PStateInfo stateInfo)
+			throws IOException {
 		P2PNode source = stateInfo.getSource();
 		P2PNode[][] routingTable = stateInfo.getRoutingTable();
 		P2PNode[] leafSet = stateInfo.getLeafSet();
@@ -500,15 +563,13 @@ public class P2PState {
 			// send my state
 			source.connect(baseIbis.createSendPort(P2PConfig.portType));
 			source.sendObjects(msg, myStateInfo);
-		} else {
-			//printSets();
 		}
 	}
 
 	public synchronized P2PNode[][] getRoutingTable() {
 		return this.routingTable;
 	}
-	
+
 	public void setBaseIbis(Ibis baseIbis) {
 		this.baseIbis = baseIbis;
 	}
@@ -517,21 +578,20 @@ public class P2PState {
 		return baseIbis;
 	}
 
-	private synchronized void printSets() {
+	public synchronized void printSets() {
 		logger.debug(myID.toString());
 		for (int i = 0; i < leafSet.length; i++) {
 			if (leafSet[i] != null) {
-				logger.debug(myID + " leafset " + i + " " + leafSet[i]
-						+ " " + leafSet[i].getIbisID().name());
+				logger.debug(myID + " leafset " + i + " " + leafSet[i] + " "
+						+ leafSet[i].getIbisID().name());
 
 			}
 		}
 
 		for (int i = 0; i < neighborhoodSet.length; i++) {
 			if (neighborhoodSet[i] != null) {
-				logger.debug(myID + " neighbor " + i + " "
-						+ neighborhoodSet[i] + " "
-						+ neighborhoodSet[i].getIbisID().name());
+				logger.debug(myID + " neighbor " + i + " " + neighborhoodSet[i]
+						+ " " + neighborhoodSet[i].getIbisID().name());
 
 			}
 		}
@@ -580,5 +640,299 @@ public class P2PState {
 		 * } catch (IOException ex) { // TODO: possibly ignore this?
 		 * ex.printStackTrace(); }
 		 */
+	}
+
+	public P2PNode findNearbyNode(P2PNode source) {
+		P2PNode nearbyNode = myID;
+		double minDistance = myID.vivaldiDistance(source);
+
+		// search in leaf set
+		for (int i = 0; i < leafSet.length; i++) {
+			if (leafSet[i] != null) {
+				double distance = source.vivaldiDistance(leafSet[i]);
+				if (distance < minDistance) {
+					nearbyNode = leafSet[i];
+				}
+			}
+		}
+
+		// search in neighborhood set
+		for (int i = 0; i < neighborhoodSet.length; i++) {
+			if (neighborhoodSet[i] != null) {
+				double distance = source.vivaldiDistance(neighborhoodSet[i]);
+				if (distance < minDistance) {
+					nearbyNode = neighborhoodSet[i];
+				}
+			}
+		}
+
+		// search in routing table
+		for (int i = 0; i < P2PConfig.MAX_PREFIX; i++) {
+			for (int j = 0; j < P2PConfig.MAX_DIGITS; j++) {
+				if (routingTable[i][j] != null) {
+					double distance = source
+							.vivaldiDistance(routingTable[i][j]);
+					if (distance < minDistance) {
+						nearbyNode = routingTable[i][j];
+					}
+				}
+			}
+		}
+
+		return nearbyNode;
+	}
+
+	public synchronized void pingNodes() throws IOException {
+		P2PMessage msg = new P2PMessage(null, P2PMessage.STATE_REQUEST);
+		for (int i = 0; i < leafSet.length; i++) {
+			if (leafSet[i] != null) {
+				leafSet[i].sendObjects(msg, myID, P2PStateRepairThread.LEAF, i,
+						0);
+			}
+		}
+
+		for (int i = 0; i < neighborhoodSet.length; i++) {
+			if (neighborhoodSet[i] != null) {
+				neighborhoodSet[i].sendObjects(msg, myID,
+						P2PStateRepairThread.NEIGHBOR, i, 0);
+			}
+		}
+
+		for (int i = 0; i < P2PConfig.MAX_PREFIX; i++) {
+			for (int j = 0; j < P2PConfig.MAX_DIGITS; j++) {
+				if (routingTable[i][j] != null) {
+					routingTable[i][j].sendObjects(msg, myID,
+							P2PStateRepairThread.ROUTING, i, j, 0);
+				}
+			}
+		}
+	}
+
+	public synchronized void handlePing(int type, int i, int j) {
+		switch (type) {
+		case P2PStateRepairThread.LEAF:
+			leafSet[i].setAckTime();
+			break;
+		case P2PStateRepairThread.NEIGHBOR:
+			neighborhoodSet[i].setAckTime();
+			break;
+		case P2PStateRepairThread.ROUTING:
+			routingTable[i][j].setAckTime();
+			break;
+		}
+	}
+
+	/**
+	 * check sets from time to time for last ack time, if timeout exceeds
+	 * threshold, replace entry
+	 */
+	public void checkNodes() {
+		for (int i = 0; i < leafSet.length; i++) {
+			if (leafSet[i] != null) {
+				if (leafSet[i].getAckTimeout() > P2PConfig.ACK_THRESHOLD) {
+					// replace leaf entry
+					replaceLeafEntry(i);
+				}
+			}
+		}
+
+		for (int i = 0; i < neighborhoodSet.length; i++) {
+			if (neighborhoodSet[i] != null) {
+				if (neighborhoodSet[i].getAckTimeout() > P2PConfig.ACK_THRESHOLD) {
+					// repair neighbor entry
+					replaceNeighBorEntry(i);
+				}
+			}
+		}
+
+		for (int i = 0; i < P2PConfig.MAX_PREFIX; i++) {
+			for (int j = 0; j < P2PConfig.MAX_DIGITS; j++) {
+				if (routingTable[i][j].getAckTimeout() > P2PConfig.ACK_THRESHOLD) {
+					// repair routing entry
+					replaceRoutingEntry(i, j);
+				}
+			}
+		}
+
+	}
+
+	/**
+	 * replace failed routing table entry at position i, j
+	 * 
+	 * @param i
+	 * @param j
+	 */
+	private void replaceRoutingEntry(int prefix, int digit) {
+		// contact nodes R(i, k), k not equal with j for a replacement (give, id
+		// + prefix + digit)
+		// wait for a reply, if no response
+		// contact R(i + 1, k) k not equal with j for a replacement ...
+		// wait for a reply, if no response repeat procedure for rows i+2, i+3,
+		// ..
+
+		P2PMessage msg = new P2PMessage(null, P2PMessage.ROUTE_REQUEST);
+		for (int i = prefix; i < P2PConfig.MAX_PREFIX; i++) {
+			for (int j = 0; j < P2PConfig.MAX_DIGITS; j++) {
+				if (j != digit && routingTable[i][j] != null) {
+					routingTable[i][j].sendObjects(msg, myID, prefix, digit);
+				}
+			}
+
+			try {
+				Thread.sleep(P2PConfig.REPAIR_TIMEOUT);
+			} catch (InterruptedException e) {
+				// ignore
+			}
+
+			// TODO: if response received return;
+
+		}
+
+	}
+
+	/**
+	 * replace failed neighbor entry at position i
+	 * 
+	 * @param i
+	 */
+	private synchronized void replaceNeighBorEntry(int position) {
+		// contact nearby nodes, wait some timeout until response received
+		P2PMessage msg = new P2PMessage(null, P2PMessage.NEIGHBOR_REQUEST);
+		for (int i = 0; i < neighborhoodSet.length; i++) {
+			if (neighborhoodSet[i] != null) {
+				neighborhoodSet[i].sendObjects(msg, myID, position);
+			}
+		}
+
+		// wait until some response received
+		try {
+			Thread.sleep(P2PConfig.REPAIR_TIMEOUT);
+		} catch (InterruptedException e) {
+			// ignore
+		}
+
+		// parse the received sets and replace element with the closest found
+		// node
+		double minDiff = Double.MAX_VALUE;
+		P2PNode replacement = null;
+		ArrayList<P2PNode[]> recvNeighborhoodSet = recvNeighborhoodSets
+				.get(position);
+		for (P2PNode[] set : recvNeighborhoodSet) {
+			for (P2PNode neighbor : set) {
+				if (neighbor != null && !neighbor.equals(myID)
+						&& !neighbor.equals(neighborhoodSet[position])) {
+					double newDiff = myID.vivaldiDistance(neighbor);
+					if (newDiff < minDiff) {
+						replacement = neighbor;
+					}
+				}
+			}
+		}
+
+		this.neighborhoodSet[position] = replacement;
+
+		minDiff = myID.vivaldiDistance(minNeighbor);
+		double maxDiff = myID.vivaldiDistance(maxNeighbor);
+		double newDiff = myID.vivaldiDistance(replacement);
+
+		// update min and max neighbor
+		if (newDiff < minDiff) {
+			minNeighbor = replacement;
+		}
+		if (newDiff > maxDiff) {
+			maxNeighbor = replacement;
+		}
+	}
+
+	/**
+	 * replace leaf entry at position i
+	 * 
+	 * @param i
+	 */
+	private synchronized void replaceLeafEntry(int position) {
+		int start, end, side;
+		if (position < P2PConfig.LEAF_SIZE / 2) {
+			start = 0;
+			end = P2PConfig.LEAF_SIZE / 2;
+			side = P2PStateRepairThread.LEAF_LEFT;
+		} else {
+			start = P2PConfig.LEAF_SIZE / 2;
+			end = P2PConfig.LEAF_SIZE;
+			side = P2PStateRepairThread.LEAF_RIGHT;
+		}
+
+		P2PMessage msg = new P2PMessage(null, P2PMessage.LEAF_REQUEST);
+		for (int i = start; i < end; i++) {
+			if (leafSet[i] != null) {
+				leafSet[i].sendObjects(msg, myID, side, position);
+			}
+		}
+
+		// wait until some response received
+		try {
+			wait(P2PConfig.REPAIR_TIMEOUT);
+		} catch (InterruptedException e) {
+			// ignore
+		}
+
+		P2PNode replacement = null;
+		BigInteger minDiff = P2PConfig.MAX;
+		ArrayList<P2PNode[]> recvLeafSet = recvLeafSets.get(position);
+		for (P2PNode[] set : recvLeafSet) {
+			for (P2PNode leaf : set) {
+				if (leaf != null && !leaf.equals(myID)
+						&& !leaf.equals(leafSet[position])) {
+					BigInteger newDiff = myID.idDistance(leaf);
+					if (newDiff.compareTo(minDiff) < 0) {
+						minDiff = newDiff;
+						replacement = leaf;
+					}
+				}
+			}
+		}
+
+		leafSet[position] = replacement;
+
+		if (side == P2PStateRepairThread.LEAF_LEFT) {
+			// update min leaf value
+			if (replacement.compareTo(minLeaf) < 0) {
+				minLeaf = replacement;
+			}
+		} else {
+			// update max leaf value
+			if (replacement.compareTo(maxLeaf) > 0) {
+				maxLeaf = replacement;
+			}
+		}
+
+	}
+
+	public synchronized ArrayList<P2PNode> getLeafSet(int type) {
+		P2PNode[] repairLeafSet = new P2PNode[P2PConfig.LEAF_SIZE / 2];
+
+		if (type == P2PStateRepairThread.LEAF_LEFT) {
+			// failed node is on the left side, send right part of the leaf set
+			System.arraycopy(leafSet, P2PConfig.LEAF_SIZE / 2, repairLeafSet,
+					0, P2PConfig.LEAF_SIZE / 2);
+		} else {
+			// failed node is on the right side, send left part of the leaf set
+			System.arraycopy(leafSet, P2PConfig.LEAF_SIZE / 2, repairLeafSet,
+					0, P2PConfig.LEAF_SIZE / 2);
+		}
+
+		return new ArrayList<P2PNode>(Arrays.asList(repairLeafSet));
+	}
+
+	public synchronized void addRepairNeighborhoodSet(
+			P2PNode[] neighborhoodSet, int position) {
+		recvNeighborhoodSets.get(position).add(neighborhoodSet);
+	}
+
+	public synchronized void addRepairLeafSet(P2PNode[] leafSet, int position) {
+		recvLeafSets.get(position).add(leafSet);
+	}
+	
+	public synchronized void addRepairRoutingEntry(P2PNode entry, int prefix, int digit) {
+		// TODO: handle routing entry response
 	}
 }

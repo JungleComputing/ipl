@@ -1,5 +1,7 @@
 package ibis.ipl.impl.stacking.p2p;
 
+import java.math.BigInteger;
+
 import ibis.ipl.PortType;
 
 public class P2PConfig {
@@ -11,8 +13,16 @@ public class P2PConfig {
 	public final static int NEIGHBOORHOOD_SIZE = 10;
 	public final static PortType portType = new PortType(PortType.COMMUNICATION_RELIABLE,
 			PortType.SERIALIZATION_OBJECT_SUN, PortType.RECEIVE_AUTO_UPCALLS,
-			PortType.CONNECTION_MANY_TO_ONE);
+			PortType.CONNECTION_MANY_TO_MANY);
 
-	public final static int TIMEOUT = 1000;
+	public final static int TIMEOUT = 1500;
 	public final static String PORT_NAME = "p2p";
+	
+	public final static int NEARBY_REQUESTS = 5;
+	public final static int NEARBY_TIMEOUT = 1000;
+	public final static int REPAIR_TIMEOUT = 5000;
+	
+	public final static BigInteger MAX = new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16);
+	
+	public static final long ACK_THRESHOLD = 60000;
 }

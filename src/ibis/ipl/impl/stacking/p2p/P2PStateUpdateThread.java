@@ -3,11 +3,11 @@ package ibis.ipl.impl.stacking.p2p;
 import java.io.IOException;
 import java.util.concurrent.BlockingQueue;
 
-public class P2PStateUpdater extends Thread {
+public class P2PStateUpdateThread extends Thread {
 	private P2PState state;
 	private final BlockingQueue<P2PStateInfo> queue;
 
-	public P2PStateUpdater(BlockingQueue<P2PStateInfo> queue, P2PState state) {
+	public P2PStateUpdateThread(BlockingQueue<P2PStateInfo> queue, P2PState state) {
 		this.queue = queue;
 		this.state = state;
 	}

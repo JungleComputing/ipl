@@ -33,11 +33,20 @@ public class Hello {
         ReceivePort receiver = myIbis.createReceivePort(portType, "server");
         receiver.enableConnections();
 
+        ReceivePort receiver2 = myIbis.createReceivePort(portType, "server2");
+        receiver2.enableConnections();
+        
+        receiver.close();
+        
         // Read the message.
         ReadMessage r = receiver.receive();
         String s = r.readString();
         r.finish();
-        System.out.println("Server received: " + s);
+        
+        ReadMessage r2 = receiver2.receive();
+        String s2 = r2.readString();
+        
+        System.out.println("Server received: " + s + " " + s2);
 
         // Close receive port.
         receiver.close();
@@ -49,13 +58,25 @@ public class Hello {
         SendPort sender = myIbis.createSendPort(portType);
         sender.connect(server, "server");
 
+        SendPort sender2 = myIbis.createSendPort(portType);
+        sender2.connect(server, "server2");
+        
         // Send the message.
         WriteMessage w = sender.newMessage();
         w.writeString("Hi there");
         w.finish();
 
+
+        // Send the message.
+        WriteMessage w2 = sender2.newMessage();
+        w2.writeString("Hi there2");
+        w2.finish();
+
         // Close ports.
         sender.close();
+        
+
+        sender2.close();
     }
 
     private void run() throws Exception {

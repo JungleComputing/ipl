@@ -244,6 +244,4 @@ public final class SmartSocketsUltraLightReadMessage implements ReadMessage {
     public long sequenceNumber() {
         return 0;
     }
-
-
 }

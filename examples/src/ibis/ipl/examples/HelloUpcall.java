@@ -9,6 +9,7 @@ import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.SendPort;
+import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.WriteMessage;
 
 import java.io.IOException;
@@ -21,98 +22,140 @@ import java.io.IOException;
 
 public class HelloUpcall implements MessageUpcall {
 
-    PortType portType = new PortType(PortType.COMMUNICATION_RELIABLE,
-            PortType.SERIALIZATION_DATA, PortType.RECEIVE_AUTO_UPCALLS,
-            PortType.CONNECTION_ONE_TO_ONE);
+	PortType portType = new PortType(PortType.COMMUNICATION_RELIABLE,
+			PortType.SERIALIZATION_DATA, PortType.RECEIVE_AUTO_UPCALLS,
+			PortType.CONNECTION_ONE_TO_ONE);
 
-    IbisCapabilities ibisCapabilities = new IbisCapabilities(
-            IbisCapabilities.ELECTIONS_STRICT);
+	IbisCapabilities ibisCapabilities = new IbisCapabilities(
+			IbisCapabilities.ELECTIONS_STRICT, IbisCapabilities.MEMBERSHIP_TOTALLY_ORDERED);
 
-    /** Set to true when server received message. */
-    boolean finished = false;
+	Ibis myIbis;
+	IbisIdentifier server;
+	ReceivePort receiver;
 
-    /**
-     * Function called by Ibis to give us a newly arrived message.
-     * 
-     * @param message
-     *            the message
-     * @throws IOException
-     *             when the message cannot be read
-     */
-    public void upcall(ReadMessage message) throws IOException {
-        String s = message.readString();
-        System.out.println("Received string: " + s);
-        setFinished();
-    }
+	/** Set to true when server received message. */
+	boolean finished = false;
 
-    synchronized void setFinished() {
-        finished = true;
-        notifyAll();
-    }
+	/**
+	 * Function called by Ibis to give us a newly arrived message.
+	 * 
+	 * @param message
+	 *            the message
+	 * @throws IOException
+	 *             when the message cannot be read
+	 */
+	public void upcall(ReadMessage message) throws IOException {
+		String s = message.readString();
+		System.out.println("Received string: " + s);
 
-    private void server(Ibis myIbis) throws IOException {
+		message.finish();
+		
+		if (myIbis.identifier().equals(server)) {
+			IbisIdentifier[] ibises = myIbis.registry().joinedIbises();
+			IbisIdentifier receiver = null;
+			for (int i = 0; i < ibises.length; i++) {
+				if (ibises[i].equals(server) == false) {
+					receiver = ibises[i];
+				}
+			}
 
-        // Create a receive port, pass ourselves as the message upcall
-        // handler
-        ReceivePort receiver = myIbis.createReceivePort(portType, "server",
-                this);
-        // enable connections
-        receiver.enableConnections();
-        // enable upcalls
-        receiver.enableMessageUpcalls();
+			SendPort sendPort = myIbis.createSendPort(portType);
+			
+			System.out.println(myIbis.identifier().name() + " trying to connect to: " + receiver.name());
+			
+			sendPort.connect(receiver, "server");
+			
+			System.out.println(myIbis.identifier().name() + " connected to: " + receiver.name());
+			
+			WriteMessage writeMessage = sendPort.newMessage();
+			writeMessage.writeString("Hi from the server!");
+			writeMessage.finish();
+			
+			sendPort.close();
+		}
+		
+		setFinished();
+	}
 
-        synchronized (this) {
-            while (!finished) {
-                try {
-                    wait();
-                } catch (Exception e) {
-                    // ignored
-                }
-            }
-        }
+	synchronized void setFinished() {
+		finished = true;
+		notifyAll();
+	}
 
-        // Close receive port.
-        receiver.close();
-    }
+	private void server() throws IOException {
 
-    private void client(Ibis myIbis, IbisIdentifier server) throws IOException {
+		synchronized (this) {
+			while (!finished) {
+				try {
+					wait();
+				} catch (Exception e) {
+					// ignored
+				}
+			}
+		}
 
-        // Create a send port for sending requests and connect.
-        SendPort sender = myIbis.createSendPort(portType);
-        sender.connect(server, "server");
+	}
 
-        // Send the message.
-        WriteMessage w = sender.newMessage();
-        w.writeString("Hi there");
-        w.finish();
+	private void client(Ibis myIbis, IbisIdentifier server) throws IOException {
 
-        // Close ports.
-        sender.close();
-    }
+		// Create a send port for sending requests and connect.
+		SendPort sender = myIbis.createSendPort(portType);
+		sender.connect(server, "server");
 
-    private void run() throws Exception {
-        // Create an ibis instance.
-        Ibis ibis = IbisFactory.createIbis(ibisCapabilities, null, portType);
+		// Send the message.
+		WriteMessage w = sender.newMessage();
+		w.writeString("Hi there");
+		w.finish();
 
-        // Elect a server
-        IbisIdentifier server = ibis.registry().elect("Server");
+		// Close ports.
+		sender.close();
 
-        // If I am the server, run server, else run client.
-        if (server.equals(ibis.identifier())) {
-            server(ibis);
-        } else {
-            client(ibis, server);
-        }
+		synchronized (this) {
+			while (!finished) {
+				try {
+					wait();
+				} catch (Exception e) {
+					// ignored
+				}
+			}
+		}
 
-        // End ibis.
-        ibis.end();
-    }
+	}
 
-    public static void main(String args[]) {
-        try {
-            new HelloUpcall().run();
-        } catch (Exception e) {
-            e.printStackTrace(System.err);
-        }
-    }
+	private void run() throws Exception {
+		// Create an ibis instance.
+		myIbis = IbisFactory.createIbis(ibisCapabilities, null, portType);
+
+		// Elect a server
+		server = myIbis.registry().elect("Server");
+
+		// Create a receive port, pass ourselves as the message upcall
+		// handler
+		ReceivePort receiver = myIbis.createReceivePort(portType, "server",
+				this);
+		// enable connections
+		receiver.enableConnections();
+		// enable upcalls
+		receiver.enableMessageUpcalls();
+
+		// If I am the server, run server, else run client.
+		if (server.equals(myIbis.identifier())) {
+			server();
+		} else {
+			client(myIbis, server);
+		}
+
+		receiver.close();
+
+		// End ibis.
+		myIbis.end();
+	}
+
+	public static void main(String args[]) {
+		try {
+			new HelloUpcall().run();
+		} catch (Exception e) {
+			e.printStackTrace(System.err);
+		}
+	}
 }
