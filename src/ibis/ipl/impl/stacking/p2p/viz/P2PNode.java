@@ -8,8 +8,8 @@ import com.touchgraph.graphlayout.TGException;
 import com.touchgraph.graphlayout.TGPanel;
 
 public class P2PNode {
-	private Node node, message;
-	private Edge msgEdge, connector;
+	private Node node; // message;
+	private Edge connector;
 	private ArrayList<String> messages;
 	private TGPanel panel;
 	private String nodeID;
@@ -17,22 +17,21 @@ public class P2PNode {
 
 	public P2PNode(String nodeID, TGPanel panel) {
 		messages = new ArrayList<String>();
-		setNode(new Node(nodeID));
+		node = new Node(nodeID);
 
-		message = new Node("messages" + nodeID);
-		msgEdge = new Edge(getNode(), message);
+		// set messages
+		String[] strMessages = new String[messages.size()];
+		messages.toArray(strMessages);
+		node.setMouseOverText(strMessages);
 
 		this.panel = panel;
 		this.setNodeID(nodeID);
-
 	}
 
 	public synchronized void add() {
 		if (!isAdded) {
 			try {
 				this.panel.addNode(getNode());
-				this.panel.addNode(message);
-				this.panel.addEdge(msgEdge);
 			} catch (TGException ex) {
 				// FIXME: move catch somewhere else
 				ex.printStackTrace();
@@ -42,18 +41,14 @@ public class P2PNode {
 		}
 	}
 
-	public void updateMessages() {
-		String label = "";
-		for (String message : messages) {
-			label += " " + message;
-		}
-		message.setLabel(label);
+	public synchronized void updateMessages() {
+		String[] strMessages = new String[messages.size()];
+		messages.toArray(strMessages);
+		node.setMouseOverText(strMessages);
 	}
 
 	public synchronized void remove() {
 		panel.deleteNode(getNode());
-		panel.deleteNode(message);
-		panel.deleteEdge(msgEdge);
 	}
 
 	public synchronized void addMessage(String messageID) {

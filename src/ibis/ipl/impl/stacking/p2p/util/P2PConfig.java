@@ -1,4 +1,4 @@
-package ibis.ipl.impl.stacking.p2p;
+package ibis.ipl.impl.stacking.p2p.util;
 
 import java.math.BigInteger;
 
@@ -17,6 +17,8 @@ public class P2PConfig {
 
 	public final static int TIMEOUT = 1500;
 	public final static String PORT_NAME = "p2p";
+	public final static String ELECTION_JOIN = "p2pjoin";
+	public final static String ELECTION_GUI = "p2pgui";
 	
 	public final static int NEARBY_REQUESTS = 5;
 	public final static int NEARBY_TIMEOUT = 1000;

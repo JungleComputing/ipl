@@ -1,28 +1,31 @@
-package ibis.ipl.impl.stacking.p2p;
-
-import java.io.IOException;
-
-import org.apache.bcel.verifier.statics.Pass2Verifier;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+package ibis.ipl.impl.stacking.p2p.viz;
 
 import ibis.ipl.ConnectionFailedException;
+import ibis.ipl.Ibis;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
+import ibis.ipl.impl.stacking.p2p.util.P2PConfig;
+import ibis.ipl.impl.stacking.p2p.util.P2PIdentifier;
 import ibis.ipl.impl.stacking.p2p.util.P2PMessage;
 
-public class P2PVisualizer {
+import java.io.IOException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public class P2PVisualizer implements Runnable{
 
 	private SendPort sendPort;
-	private IbisIdentifier visualizerID, ibisID;
+	private IbisIdentifier visualizerID;
+	private Ibis baseIbis;
 	private P2PIdentifier p2pID;
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(P2PVisualizer.class);
 
-	public P2PVisualizer(IbisIdentifier ibisID, P2PIdentifier p2pID) {
-		this.ibisID = ibisID;
+	public P2PVisualizer(Ibis ibis, P2PIdentifier p2pID) {
+		this.baseIbis = ibis;
 		this.p2pID = p2pID;
 	}
 
@@ -32,7 +35,7 @@ public class P2PVisualizer {
 				P2PMessage msg = new P2PMessage(null, type);
 				WriteMessage writeMsg = sendPort.newMessage();
 				writeMsg.writeObject(msg);
-				writeMsg.writeObject(ibisID);
+				writeMsg.writeObject(baseIbis.identifier());
 				writeMsg.writeObject(p2pID);
 				writeMsg.finish();
 			} catch (IOException ex) {
@@ -65,6 +68,7 @@ public class P2PVisualizer {
 				P2PMessage msg = new P2PMessage(null, P2PMessage.MESSAGE_ADD);
 				WriteMessage writeMsg = sendPort.newMessage();
 				writeMsg.writeObject(msg);
+				writeMsg.writeObject(baseIbis);
 				writeMsg.writeObject(p2pID);
 				writeMsg.writeObject(messageID);
 				writeMsg.finish();
@@ -82,6 +86,7 @@ public class P2PVisualizer {
 				P2PMessage msg = new P2PMessage(null, P2PMessage.MESSAGE_DELETE);
 				WriteMessage writeMsg = sendPort.newMessage();
 				writeMsg.writeObject(msg);
+				writeMsg.writeObject(baseIbis);
 				writeMsg.writeObject(p2pID);
 				writeMsg.writeObject(messageID);
 				writeMsg.finish();
@@ -127,5 +132,16 @@ public class P2PVisualizer {
 	 */
 	public IbisIdentifier getVisualizerID() {
 		return visualizerID;
+	}
+
+	@Override
+	public void run() {
+		try {
+			visualizerID = baseIbis.registry().getElectionResult(P2PConfig.ELECTION_GUI);
+			setSendPort(baseIbis.createSendPort(P2PConfig.portType));
+			sendNodeInfo(P2PMessage.NODE_JOIN);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 }

@@ -10,10 +10,10 @@ import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
-import ibis.ipl.impl.stacking.p2p.P2PConfig;
 import ibis.ipl.impl.stacking.p2p.P2PIbis;
-import ibis.ipl.impl.stacking.p2p.P2PIdentifier;
+import ibis.ipl.impl.stacking.p2p.util.P2PConfig;
 import ibis.ipl.impl.stacking.p2p.util.P2PHashTools;
+import ibis.ipl.impl.stacking.p2p.util.P2PIdentifier;
 import ibis.ipl.impl.stacking.p2p.util.P2PMessage;
 
 import java.awt.Color;
@@ -71,33 +71,15 @@ public class P2PView extends GLPanel implements MessageUpcall, Runnable {
 			receiver.enableMessageUpcalls();
 
 			// broadcast message with my ID to all joined ibises
-			SendPort sendPort = myIbis.createSendPort(portType);
-			IbisIdentifier[] joinedIbises = myIbis.registry().joinedIbises();
 
-			
-			// connect to all joined ibises
-			for (IbisIdentifier joinedIbis : joinedIbises) {
-				if (!joinedIbis.equals(myIbis.identifier())) {
-					P2PNode node = new P2PNode(joinedIbis.name() + " "
-							+ P2PHashTools.MD5(joinedIbis.name()), tgPanel);
-					//nodes.put(node.getNodeID(), node);
-					sendPort.connect(joinedIbis, P2PConfig.PORT_NAME);
-				}
-			} 
-
-			P2PMessage msg = new P2PMessage(null, P2PMessage.LOGGER);
-			WriteMessage writeMsg = sendPort.newMessage();
-			writeMsg.writeObject(msg);
-			writeMsg.writeObject(myIbis.identifier());
-			writeMsg.finish();
-			sendPort.close();
+			myIbis.registry().elect(P2PConfig.ELECTION_GUI);
 
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
 
 		new Thread(this).start();
-		
+
 	}
 
 	public static void main(String[] args) {
@@ -138,8 +120,8 @@ public class P2PView extends GLPanel implements MessageUpcall, Runnable {
 		// receive updates from nodes
 		P2PMessage msg = (P2PMessage) readMessage.readObject();
 
-		System.err.println("Message of type " + msg.getType() + " received.");
-		
+		logger.debug("Message of type " + msg.getType() + " received.");
+
 		switch (msg.getType()) {
 		case P2PMessage.NODE_JOIN:
 			handleNodeJoin(readMessage);
@@ -161,36 +143,29 @@ public class P2PView extends GLPanel implements MessageUpcall, Runnable {
 
 	private void handleMessageDelete(ReadMessage readMessage)
 			throws IOException, ClassNotFoundException {
+		IbisIdentifier ibisID = (IbisIdentifier) readMessage.readObject();
 		P2PIdentifier p2pID = (P2PIdentifier) readMessage.readObject();
 		String messageID = (String) readMessage.readObject();
 		readMessage.finish();
 
-		/*
-		P2PNode node = nodes.get(p2pID.getP2pID());
+		P2PNode node = nodes.get(ibisID.name() + " " + p2pID.getP2pID());
 		node.removeMessage(messageID);
-		*/
-		System.err.println("Message delete at : " + p2pID.getP2pID() + " "
-				+ messageID);
-		
-		/*
+
 		logger.debug("Message delete at : " + node.getNodeID() + " "
 				+ messageID);
-		*/
 	}
 
 	private void handleMessageAdd(ReadMessage readMessage) throws IOException,
 			ClassNotFoundException {
+		IbisIdentifier ibisID = (IbisIdentifier) readMessage.readObject();
 		P2PIdentifier p2pID = (P2PIdentifier) readMessage.readObject();
 		String messageID = (String) readMessage.readObject();
 		readMessage.finish();
 
-		/*
-		P2PNode node = nodes.get(p2pID.getP2pID());
+		P2PNode node = nodes.get(ibisID.name() + " " + p2pID.getP2pID());
 		node.addMessage(messageID);
-		*/
-		
-		System.err.println("Message add at : " + p2pID.getP2pID() + " " + messageID);
-		//logger.debug("Message add at : " + node.getNodeID() + " " + messageID);
+
+		logger.debug("Message add at : " + node.getNodeID() + " " + messageID);
 	}
 
 	private void handleMessageUpdate(ReadMessage readMessage)
@@ -215,7 +190,6 @@ public class P2PView extends GLPanel implements MessageUpcall, Runnable {
 		P2PNode node = nodes.get(ibisID.name() + " " + p2pID.getP2pID());
 		if (node != null) {
 			deletedNodes.add(node);
-			System.err.println("Node departure received from: " + node.getNodeID());
 			logger.debug("Node departure received from: " + node.getNodeID());
 		}
 	}
@@ -287,7 +261,7 @@ public class P2PView extends GLPanel implements MessageUpcall, Runnable {
 		notifyAll();
 
 		receiver.close();
-		
+
 		// End ibis.
 		myIbis.end();
 	}

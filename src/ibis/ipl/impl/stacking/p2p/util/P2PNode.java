@@ -1,11 +1,9 @@
-package ibis.ipl.impl.stacking.p2p;
+package ibis.ipl.impl.stacking.p2p.util;
 
 import ibis.ipl.ConnectionFailedException;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
-import ibis.ipl.impl.stacking.p2p.util.P2PHashTools;
-import ibis.ipl.impl.stacking.p2p.util.P2PMessage;
 import ibis.ipl.support.vivaldi.Coordinates;
 
 import java.io.IOException;
@@ -253,6 +251,7 @@ public class P2PNode implements Serializable, Comparable<P2PNode> {
 		}
 		return true;
 	}
+	
 	//FIXME: bad practice!
 	protected void finalize() throws Throwable {
 		try {

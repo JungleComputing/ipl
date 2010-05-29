@@ -3,6 +3,11 @@ package ibis.ipl.impl.stacking.p2p.util;
 public class Pair {
 	private int prefix, digit;
 
+	public Pair(int prefix, int digit) {
+		this.prefix = prefix;
+		this.digit = digit;
+	}
+	
 	/**
 	 * @param prefix the prefix to set
 	 */

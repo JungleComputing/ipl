@@ -1,4 +1,5 @@
-package ibis.ipl.impl.stacking.p2p;
+package ibis.ipl.impl.stacking.p2p.util;
+
 
 import java.io.IOException;
 import java.util.concurrent.BlockingQueue;

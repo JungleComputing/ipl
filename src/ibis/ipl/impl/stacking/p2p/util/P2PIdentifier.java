@@ -1,7 +1,6 @@
-package ibis.ipl.impl.stacking.p2p;
+package ibis.ipl.impl.stacking.p2p.util;
 
 import ibis.ipl.IbisIdentifier;
-import ibis.ipl.impl.stacking.p2p.util.P2PHashTools;
 
 import java.io.Serializable;
 
