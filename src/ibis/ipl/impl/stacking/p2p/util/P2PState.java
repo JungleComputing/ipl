@@ -24,9 +24,6 @@ public class P2PState {
 
 	transient private Ibis baseIbis;
 
-	// repair state related members
-	private HashMap<Pair, ArrayList<P2PNode>> recvRoutingTable = new HashMap<Pair, ArrayList<P2PNode>>();
-
 	private static final Logger logger = LoggerFactory
 			.getLogger(P2PState.class);
 
@@ -345,7 +342,8 @@ public class P2PState {
 				BigInteger newDiff = node.idDistance(routingTable[prefix][i]);
 				int newPrefix = node.prefixLength(routingTable[prefix][i]);
 
-				if (newDiff.compareTo(minDiff) < 0 && newPrefix >= prefix && !routingTable[prefix][i].isFailed()) {
+				if (newDiff.compareTo(minDiff) < 0 && newPrefix >= prefix
+						&& !routingTable[prefix][i].isFailed()) {
 					minDiff = newDiff;
 					nextDest = routingTable[prefix][i];
 				}
@@ -386,19 +384,36 @@ public class P2PState {
 		return nextDest;
 	}
 
-	public synchronized P2PNode[] getRoutingTableRow(int row) {
+	public synchronized ArrayList<P2PNode> getRoutingTableRow(int row) {
 		if (row < P2PConfig.MAX_PREFIX) {
-			return routingTable[row];
+			return cleanSet(routingTable[row]);
 		}
 		return null;
 	}
 
-	public synchronized P2PNode[] getNeighborhoodSet() {
-		return neighborhoodSet;
+	/**
+	 * before sending a set to another node, set failed information at each
+	 * entry a failed node will not be considered as a valid replacement
+	 * 
+	 * @param set
+	 */
+	public ArrayList<P2PNode> cleanSet(P2PNode[] set) {
+		ArrayList<P2PNode> result = new ArrayList<P2PNode>();
+		for (P2PNode node : set) {
+			if (node != null && !node.isFailed()) {
+				result.add(node);
+			}
+		}
+		return result;
 	}
 
-	public synchronized P2PNode[] getLeafSet() {
-		return leafSet;
+	public synchronized ArrayList<P2PNode> getNeighborhoodSet() {
+		return cleanSet(neighborhoodSet);
+		
+	}
+
+	public synchronized ArrayList<P2PNode> getLeafSet() {
+		return cleanSet(leafSet);
 	}
 
 	/**
@@ -411,8 +426,8 @@ public class P2PState {
 	 * @throws IOException
 	 */
 	public synchronized void parseSets(Vector<P2PNode> path,
-			Vector<P2PRoutingInfo> routingTables, P2PNode[] leafSet,
-			P2PNode[] neighborhoodSet) throws IOException {
+			Vector<P2PRoutingInfo> routingTables, ArrayList<P2PNode> leafSet,
+			ArrayList<P2PNode> neighborhoodSet) throws IOException {
 
 		int pathSize = path.size();
 		// leaf node is the last element in the path array
@@ -428,23 +443,23 @@ public class P2PState {
 		for (int i = 0; i < routingTables.size(); i++) {
 			// read state info
 			P2PRoutingInfo info = routingTables.elementAt(i);
-			P2PNode[] row = info.getRoutingRow();
+			ArrayList<P2PNode> row = info.getRoutingRow();
 
 			if (row != null) {
 				// update routing table row
-				for (int j = 0; j < row.length; j++) {
-					addRoutingTableNode(row[j]);
+				for (P2PNode entry : row) {
+					addRoutingTableNode(entry);
 				}
 			}
 		}
 
-		for (int i = 0; i < P2PConfig.LEAF_SIZE; i++) {
-			addLeafNode(leafSet[i]);
+		for (P2PNode leaf : leafSet) {
+			addLeafNode(leaf);
 		}
 
-		for (int i = 0; i < P2PConfig.NEIGHBOORHOOD_SIZE; i++) {
-			addNeighborNode(neighborhoodSet[i]);
-			addRoutingTableNode(neighborhoodSet[i]);
+		for (P2PNode neighbor : neighborhoodSet) {
+			addNeighborNode(neighbor);
+			addRoutingTableNode(neighbor);
 		}
 
 		// parse path
@@ -492,8 +507,8 @@ public class P2PState {
 			throws IOException {
 		P2PNode source = stateInfo.getSource();
 		P2PNode[][] routingTable = stateInfo.getRoutingTable();
-		P2PNode[] leafSet = stateInfo.getLeafSet();
-		P2PNode[] neighborhoodSet = stateInfo.getNeighborhoodSet();
+		ArrayList<P2PNode> leafSet = stateInfo.getLeafSet();
+		ArrayList<P2PNode> neighborhoodSet = stateInfo.getNeighborhoodSet();
 
 		logger.debug("State update received from " + source
 				+ source.getIbisID().name());
@@ -511,14 +526,14 @@ public class P2PState {
 			}
 		}
 
-		for (int i = 0; i < P2PConfig.LEAF_SIZE; i++) {
-			addRoutingTableNode(leafSet[i]);
-			addLeafNode(leafSet[i]);
+		for (P2PNode node : leafSet) {
+			addRoutingTableNode(node);
+			addLeafNode(node);
 		}
 
-		for (int i = 0; i < P2PConfig.NEIGHBOORHOOD_SIZE; i++) {
-			addRoutingTableNode(neighborhoodSet[i]);
-			addNeighborNode(neighborhoodSet[i]);
+		for (P2PNode node : neighborhoodSet) {
+			addRoutingTableNode(node);
+			addNeighborNode(node);
 		}
 
 		if (stateInfo.isSendBack()) {
@@ -697,26 +712,25 @@ public class P2PState {
 	public void checkNodes() {
 		// TODO: maybe create a new thread which performs the replacement?
 		for (int i = 0; i < leafSet.length; i++) {
-			if (leafSet[i] != null) {
-				if (leafSet[i].getAckTimeout() > P2PConfig.ACK_THRESHOLD) {
-					// replace leaf entry
-					replaceLeafEntry(i);
-				}
+			if (leafSet[i] != null
+					&& leafSet[i].getAckTimeout() > P2PConfig.ACK_THRESHOLD) {
+				// replace leaf entry
+				replaceLeafEntry(i);
 			}
 		}
 
 		for (int i = 0; i < neighborhoodSet.length; i++) {
-			if (neighborhoodSet[i] != null) {
-				if (neighborhoodSet[i].getAckTimeout() > P2PConfig.ACK_THRESHOLD) {
-					// repair neighbor entry
-					replaceNeighBorEntry(i);
-				}
+			if (neighborhoodSet[i] != null
+					&& neighborhoodSet[i].getAckTimeout() > P2PConfig.ACK_THRESHOLD) {
+				// repair neighbor entry
+				replaceNeighBorEntry(i);
 			}
 		}
 
 		for (int i = 0; i < P2PConfig.MAX_PREFIX; i++) {
 			for (int j = 0; j < P2PConfig.MAX_DIGITS; j++) {
-				if (routingTable[i][j].getAckTimeout() > P2PConfig.ACK_THRESHOLD) {
+				if (routingTable[i][j] != null
+						&& routingTable[i][j].getAckTimeout() > P2PConfig.ACK_THRESHOLD) {
 					// repair routing entry
 					replaceRoutingEntry(i, j);
 				}
@@ -810,8 +824,8 @@ public class P2PState {
 					0, P2PConfig.LEAF_SIZE / 2);
 		} else {
 			// failed node is on the right side, send left part of the leaf set
-			System.arraycopy(leafSet, P2PConfig.LEAF_SIZE / 2, repairLeafSet,
-					0, P2PConfig.LEAF_SIZE / 2);
+			System.arraycopy(leafSet, 0, repairLeafSet, 0,
+					P2PConfig.LEAF_SIZE / 2);
 		}
 
 		return new ArrayList<P2PNode>(Arrays.asList(repairLeafSet));

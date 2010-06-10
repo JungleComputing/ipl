@@ -40,8 +40,13 @@ public class P2PMessage implements Serializable{
 	public final static int ROUTE_REQUEST = 23;
 	public final static int ROUTE_RESPONSE = 24;
 	
+	// tracker specific messages
+	public final static int GET_IBISES = 25;
+	public final static int REGISTER_IBIS = 26;
+	
 	// unique message identifier 
 	public final String MESSAGE_ID = UUID.randomUUID().toString();
+	
 	
 	public P2PMessage(Vector<P2PNode> dest, int type) {
 		this.setDest(dest);

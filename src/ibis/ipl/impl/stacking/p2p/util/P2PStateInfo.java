@@ -2,15 +2,16 @@ package ibis.ipl.impl.stacking.p2p.util;
 
 
 import java.io.Serializable;
+import java.util.ArrayList;
 
 public class P2PStateInfo implements Serializable{
 	private static final long serialVersionUID = 1L;
 	private P2PNode[][] routingTable;
-	private P2PNode[] leafSet, neighborhoodSet;
+	private ArrayList<P2PNode> leafSet, neighborhoodSet;
 	private P2PNode source;
 	private boolean sendBack;
 	
-	public P2PStateInfo(P2PNode source, P2PNode[][] routingTable, P2PNode[] leafSet, P2PNode[] neighborhoodSet, boolean sendBack) {
+	public P2PStateInfo(P2PNode source, P2PNode[][] routingTable, ArrayList<P2PNode> leafSet, ArrayList<P2PNode> neighborhoodSet, boolean sendBack) {
 		this.source = source;
 		this.routingTable = routingTable;
 		this.leafSet = leafSet;
@@ -23,16 +24,16 @@ public class P2PStateInfo implements Serializable{
 	public synchronized P2PNode[][] getRoutingTable() {
 		return routingTable;
 	}
-	public synchronized void setLeafSet(P2PNode[] leafSet) {
+	public synchronized void setLeafSet(ArrayList<P2PNode> leafSet) {
 		this.leafSet = leafSet;
 	}
-	public synchronized P2PNode[] getLeafSet() {
+	public synchronized ArrayList<P2PNode> getLeafSet() {
 		return leafSet;
 	}
-	public synchronized void setNeighborhoodSet(P2PNode[] neighborhoodSet) {
+	public synchronized void setNeighborhoodSet(ArrayList<P2PNode> neighborhoodSet) {
 		this.neighborhoodSet = neighborhoodSet;
 	}
-	public synchronized P2PNode[] getNeighborhoodSet() {
+	public synchronized ArrayList<P2PNode> getNeighborhoodSet() {
 		return neighborhoodSet;
 	}
 	public synchronized void setSource(P2PNode source) {

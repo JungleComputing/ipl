@@ -12,16 +12,18 @@ public class P2PConfig {
 	public final static int LEAF_SIZE = 8;
 	public final static int NEIGHBOORHOOD_SIZE = 10;
 	public final static PortType portType = new PortType(PortType.COMMUNICATION_RELIABLE,
-			PortType.SERIALIZATION_OBJECT_SUN, PortType.RECEIVE_AUTO_UPCALLS,
+			PortType.SERIALIZATION_OBJECT_SUN, PortType.RECEIVE_AUTO_UPCALLS, PortType.RECEIVE_EXPLICIT,
 			PortType.CONNECTION_MANY_TO_MANY);
 
 	public final static int TIMEOUT = 1500;
 	public final static String PORT_NAME = "p2p";
+	public final static String TRACKER_PORT = "p2ptracker";
 	public final static String ELECTION_JOIN = "p2pjoin";
 	public final static String ELECTION_GUI = "p2pgui";
+	public final static String ELECTION_TRACKER = "p2ptracker";
 	
 	public final static int NEARBY_REQUESTS = 5;
-	public final static int NEARBY_TIMEOUT = 1000;
+	public final static int NEARBY_TIMEOUT = 10000;
 	public final static int REPAIR_TIMEOUT = 5000;
 	
 	public final static BigInteger MAX = new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16);

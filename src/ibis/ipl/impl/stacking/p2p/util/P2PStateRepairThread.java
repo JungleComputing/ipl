@@ -19,6 +19,10 @@ public class P2PStateRepairThread extends Thread {
 	public final static int LEAF_LEFT = 3;
 	public final static int LEAF_RIGHT = 4;
 	
+	public P2PStateRepairThread(P2PState state) {
+		this.state = state;
+	}
+	
 	public void run() {
 		try {
 			state.pingNodes();
@@ -28,13 +32,8 @@ public class P2PStateRepairThread extends Thread {
 		} catch (IOException ex) {
 			// ignore
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			// ignore
 		}
 
-	}
-
-	public void setP2PState(P2PState state) {
-		this.state = state;
 	}
 }

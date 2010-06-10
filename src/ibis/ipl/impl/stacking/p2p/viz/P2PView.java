@@ -70,8 +70,7 @@ public class P2PView extends GLPanel implements MessageUpcall, Runnable {
 			// enable upcalls
 			receiver.enableMessageUpcalls();
 
-			// broadcast message with my ID to all joined ibises
-
+			// perform an election
 			myIbis.registry().elect(P2PConfig.ELECTION_GUI);
 
 		} catch (Exception ex) {

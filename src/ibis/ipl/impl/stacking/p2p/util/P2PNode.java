@@ -32,8 +32,8 @@ public class P2PNode implements Serializable, Comparable<P2PNode> {
 	private Vector<String> receivePortNames;
 	
 	private transient SendPort sendPort;
-	private transient boolean connected;
-	private transient long ackTime;
+	private transient boolean connected, failed;
+	private transient long lastAckTime;
 	
 	private transient static final Logger logger = LoggerFactory.getLogger(P2PNode.class);
 	
@@ -46,16 +46,15 @@ public class P2PNode implements Serializable, Comparable<P2PNode> {
 		p2pID = other.getP2pID();
 		coords = other.getCoords();
 		receivePortNames = new Vector<String>();
-		this.ackTime = System.currentTimeMillis();
+		this.lastAckTime = System.currentTimeMillis();
 		
 		setConnected(false);
 	}
 
 	public P2PNode(P2PIdentifier p2pID, IbisIdentifier ibisID) {
-		
 		this.p2pID = p2pID;
 		this.ibisID = ibisID;
-		this.ackTime = System.currentTimeMillis();
+		this.lastAckTime = System.currentTimeMillis();
 		
 		receivePortNames = new Vector<String>();
 
@@ -65,7 +64,7 @@ public class P2PNode implements Serializable, Comparable<P2PNode> {
 	public P2PNode(IbisIdentifier ibisID) {
 		this.p2pID = new P2PIdentifier(P2PHashTools.MD5(ibisID.name()));
 		this.ibisID = ibisID;
-		this.ackTime = System.currentTimeMillis();
+		this.lastAckTime = System.currentTimeMillis();
 		
 		receivePortNames = new Vector<String>();
 
@@ -216,7 +215,7 @@ public class P2PNode implements Serializable, Comparable<P2PNode> {
 		this.p2pID = other.getP2pID();
 		this.sendPort = other.getSendPort();
 		this.distance = other.getDistance();
-		this.ackTime = System.currentTimeMillis();
+		this.lastAckTime = System.currentTimeMillis();
 		
 		setConnected(false);
 	}
@@ -226,30 +225,45 @@ public class P2PNode implements Serializable, Comparable<P2PNode> {
 		this.coords = other.getCoords();
 		this.p2pID = other.getP2pID();
 		this.sendPort = sendPort;
-		this.ackTime = System.currentTimeMillis();
+		this.lastAckTime = System.currentTimeMillis();
 		
 		try {
 			this.sendPort.connect(ibisID, P2PConfig.PORT_NAME);
 		} catch (ConnectionFailedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 	
 	public synchronized void setAckTime() {
-		ackTime = System.currentTimeMillis();
+		lastAckTime = System.currentTimeMillis();
 	}
 	
 	public synchronized long getAckTimeout() {
-		return (System.currentTimeMillis() - ackTime);
+		return (System.currentTimeMillis() - lastAckTime);
 	}
 	
 	public synchronized boolean isFailed() {
-		long timeout = System.currentTimeMillis() - ackTime;
+		long timeout = System.currentTimeMillis() - lastAckTime;
+		
+		logger.debug("Timeout is " + timeout);
+		
 		if (timeout > P2PConfig.ACK_THRESHOLD) {
-			return false;
+			return true;
 		}
-		return true;
+		
+		return false;
+	}
+	
+	/**
+	 * before sending the node, determine if it is failed or not
+	 * the other party will not consider failed nodes as a valid replacement
+	 */
+	public void setFailed(){
+		failed = isFailed();
+	}
+	
+	public boolean getFailed() {
+		return failed;
 	}
 	
 	//FIXME: bad practice!
