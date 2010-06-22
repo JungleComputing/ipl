@@ -4,12 +4,12 @@ import ibis.ipl.ConnectionFailedException;
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
+import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.support.vivaldi.Coordinates;
 
 import java.io.IOException;
 import java.io.Serializable;
 import java.math.BigInteger;
-import java.util.HashSet;
 import java.util.Vector;
 
 import org.slf4j.Logger;
@@ -29,7 +29,7 @@ public class P2PNode implements Serializable, Comparable<P2PNode> {
 	private Coordinates coords;
 	private P2PIdentifier p2pID;
 	private double distance;
-	private Vector<String> receivePortNames;
+	private Vector<ReceivePortIdentifier> receivePortNames;
 	
 	private transient SendPort sendPort;
 	private transient boolean connected, failed;
@@ -38,14 +38,14 @@ public class P2PNode implements Serializable, Comparable<P2PNode> {
 	private transient static final Logger logger = LoggerFactory.getLogger(P2PNode.class);
 	
 	public P2PNode() {
-		receivePortNames = new Vector<String>();
+		receivePortNames = new Vector<ReceivePortIdentifier>();
 	}
 
 	public P2PNode(P2PNode other) {
 		ibisID = other.getIbisID();
 		p2pID = other.getP2pID();
 		coords = other.getCoords();
-		receivePortNames = new Vector<String>();
+		receivePortNames = new Vector<ReceivePortIdentifier>();
 		this.lastAckTime = System.currentTimeMillis();
 		
 		setConnected(false);
@@ -56,7 +56,7 @@ public class P2PNode implements Serializable, Comparable<P2PNode> {
 		this.ibisID = ibisID;
 		this.lastAckTime = System.currentTimeMillis();
 		
-		receivePortNames = new Vector<String>();
+		receivePortNames = new Vector<ReceivePortIdentifier>();
 
 		setConnected(false);
 	}
@@ -66,11 +66,22 @@ public class P2PNode implements Serializable, Comparable<P2PNode> {
 		this.ibisID = ibisID;
 		this.lastAckTime = System.currentTimeMillis();
 		
-		receivePortNames = new Vector<String>();
+		receivePortNames = new Vector<ReceivePortIdentifier>();
 
 		setConnected(false);
 	}
 
+	public P2PNode(ReceivePortIdentifier rid) {
+		this.ibisID = rid.ibisIdentifier();
+		this.p2pID = new P2PIdentifier(P2PHashTools.MD5(ibisID.name()));
+		this.lastAckTime = System.currentTimeMillis();
+		
+		receivePortNames = new Vector<ReceivePortIdentifier>();
+		
+		addReceivePortName(rid);
+		setConnected(false);
+	}
+	
 	public synchronized void setIbisID(IbisIdentifier ibisID) {
 		this.ibisID = ibisID;
 	}
@@ -118,7 +129,7 @@ public class P2PNode implements Serializable, Comparable<P2PNode> {
 		writeMsg.finish();
 	}
 
-	public synchronized void sendObjects(P2PMessage msg, Object... objects) {
+	public synchronized void sendObjects(P2PMessageHeader msg, Object... objects) {
 		try {
 			WriteMessage writeMsg = getSendPort().newMessage();
 			writeMsg.writeObject(msg);
@@ -172,11 +183,11 @@ public class P2PNode implements Serializable, Comparable<P2PNode> {
 		return (Character.toUpperCase(value) - 'A' + 10);
 	}
 
-	public synchronized void addReceivePortName(String recvPortName) {
+	public synchronized void addReceivePortName(ReceivePortIdentifier recvPortName) {
 		receivePortNames.add(recvPortName);
 	}
 
-	public synchronized Vector<String> getReceivePortNames() {
+	public synchronized Vector<ReceivePortIdentifier> getReceivePortNames() {
 		return receivePortNames;
 	}
 
@@ -244,8 +255,6 @@ public class P2PNode implements Serializable, Comparable<P2PNode> {
 	
 	public synchronized boolean isFailed() {
 		long timeout = System.currentTimeMillis() - lastAckTime;
-		
-		logger.debug("Timeout is " + timeout);
 		
 		if (timeout > P2PConfig.ACK_THRESHOLD) {
 			return true;

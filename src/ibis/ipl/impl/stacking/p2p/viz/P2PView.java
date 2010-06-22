@@ -14,7 +14,7 @@ import ibis.ipl.impl.stacking.p2p.P2PIbis;
 import ibis.ipl.impl.stacking.p2p.util.P2PConfig;
 import ibis.ipl.impl.stacking.p2p.util.P2PHashTools;
 import ibis.ipl.impl.stacking.p2p.util.P2PIdentifier;
-import ibis.ipl.impl.stacking.p2p.util.P2PMessage;
+import ibis.ipl.impl.stacking.p2p.util.P2PMessageHeader;
 
 import java.awt.Color;
 import java.awt.Frame;
@@ -117,24 +117,24 @@ public class P2PView extends GLPanel implements MessageUpcall, Runnable {
 	public void upcall(ReadMessage readMessage) throws IOException,
 			ClassNotFoundException {
 		// receive updates from nodes
-		P2PMessage msg = (P2PMessage) readMessage.readObject();
+		P2PMessageHeader msg = (P2PMessageHeader) readMessage.readObject();
 
 		logger.debug("Message of type " + msg.getType() + " received.");
 
 		switch (msg.getType()) {
-		case P2PMessage.NODE_JOIN:
+		case P2PMessageHeader.NODE_JOIN:
 			handleNodeJoin(readMessage);
 			break;
-		case P2PMessage.NODE_DEPARTURE:
+		case P2PMessageHeader.NODE_DEPARTURE:
 			handleNodeDeparture(readMessage);
 			break;
-		case P2PMessage.MESSAGE_FORWARD:
+		case P2PMessageHeader.MESSAGE_FORWARD:
 			handleMessageUpdate(readMessage);
 			break;
-		case P2PMessage.MESSAGE_ADD:
+		case P2PMessageHeader.MESSAGE_ADD:
 			handleMessageAdd(readMessage);
 			break;
-		case P2PMessage.MESSAGE_DELETE:
+		case P2PMessageHeader.MESSAGE_DELETE:
 			handleMessageDelete(readMessage);
 			break;
 		}

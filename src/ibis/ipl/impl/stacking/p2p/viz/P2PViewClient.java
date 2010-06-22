@@ -7,7 +7,7 @@ import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
 import ibis.ipl.impl.stacking.p2p.util.P2PConfig;
 import ibis.ipl.impl.stacking.p2p.util.P2PIdentifier;
-import ibis.ipl.impl.stacking.p2p.util.P2PMessage;
+import ibis.ipl.impl.stacking.p2p.util.P2PMessageHeader;
 
 import java.io.IOException;
 
@@ -32,7 +32,7 @@ public class P2PViewClient implements Runnable{
 	public synchronized void sendNodeInfo(int type) {
 		if (sendPort != null) {
 			try {
-				P2PMessage msg = new P2PMessage(null, type);
+				P2PMessageHeader msg = new P2PMessageHeader(null, type);
 				WriteMessage writeMsg = sendPort.newMessage();
 				writeMsg.writeObject(msg);
 				writeMsg.writeObject(baseIbis.identifier());
@@ -48,8 +48,8 @@ public class P2PViewClient implements Runnable{
 			String messageID) {
 		if (sendPort != null) {
 			try {
-				P2PMessage msg = new P2PMessage(null,
-						P2PMessage.MESSAGE_FORWARD);
+				P2PMessageHeader msg = new P2PMessageHeader(null,
+						P2PMessageHeader.MESSAGE_FORWARD);
 				WriteMessage writeMsg = sendPort.newMessage();
 				writeMsg.writeObject(msg);
 				writeMsg.writeObject(p2pID);
@@ -65,7 +65,7 @@ public class P2PViewClient implements Runnable{
 	public synchronized void sendAddMessage(String messageID) {
 		if (sendPort != null) {
 			try {
-				P2PMessage msg = new P2PMessage(null, P2PMessage.MESSAGE_ADD);
+				P2PMessageHeader msg = new P2PMessageHeader(null, P2PMessageHeader.MESSAGE_ADD);
 				WriteMessage writeMsg = sendPort.newMessage();
 				writeMsg.writeObject(msg);
 				writeMsg.writeObject(baseIbis);
@@ -83,7 +83,7 @@ public class P2PViewClient implements Runnable{
 	public synchronized void sendDeleteMessage(String messageID) {
 		if (sendPort != null) {
 			try {
-				P2PMessage msg = new P2PMessage(null, P2PMessage.MESSAGE_DELETE);
+				P2PMessageHeader msg = new P2PMessageHeader(null, P2PMessageHeader.MESSAGE_DELETE);
 				WriteMessage writeMsg = sendPort.newMessage();
 				writeMsg.writeObject(msg);
 				writeMsg.writeObject(baseIbis);
@@ -139,7 +139,7 @@ public class P2PViewClient implements Runnable{
 		try {
 			setVisualizerID(baseIbis.registry().getElectionResult(P2PConfig.ELECTION_GUI));
 			setSendPort(baseIbis.createSendPort(P2PConfig.portType));
-			sendNodeInfo(P2PMessage.NODE_JOIN);
+			sendNodeInfo(P2PMessageHeader.NODE_JOIN);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

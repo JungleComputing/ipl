@@ -9,6 +9,8 @@ import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.impl.Manageable;
+import ibis.ipl.impl.stacking.p2p.endtoend.P2PGoBackNReceiver;
+import ibis.ipl.impl.stacking.p2p.endtoend.P2PMessage;
 import ibis.util.ThreadPool;
 
 import java.io.IOException;
@@ -77,6 +79,8 @@ public class P2PReceivePort extends Manageable implements ReceivePort, Runnable 
 	 */
 	private Vector<SendPortIdentifier> newConnections = new Vector<SendPortIdentifier>();
 
+	private P2PGoBackNReceiver receiver;
+	
 	/** connection error codes **/
 
 	/** Connection attempt accepted. */
@@ -114,9 +118,10 @@ public class P2PReceivePort extends Manageable implements ReceivePort, Runnable 
 		this.connectionDowncalls = type
 				.hasCapability(PortType.CONNECTION_DOWNCALLS);
 
+		this.receiver = new P2PGoBackNReceiver(ibis, this);
 		ibis.register(this);
 		
-		logger.debug("Receive Port created!");
+		logger.debug("Receive Port created!" + " Connection downcalls" + this.connectionDowncalls);
 	}
 
 	@Override
@@ -331,6 +336,12 @@ public class P2PReceivePort extends Manageable implements ReceivePort, Runnable 
 		}
 	}
 
+	public void processMessage(P2PMessage message) {
+		logger.debug("Received message from " + message.getSid() + " with seq num" + message.getSeqNum());
+		
+		receiver.processMessage(message);
+	}
+	
 	/**
 	 * deliver a message, if upcalls are enabled, deliver message to upcaller,
 	 * otherwise append to queue, when user calls receive, extract first message
@@ -348,7 +359,6 @@ public class P2PReceivePort extends Manageable implements ReceivePort, Runnable 
 		} catch (IOException ex) {
 			ex.printStackTrace();
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -378,6 +388,8 @@ public class P2PReceivePort extends Manageable implements ReceivePort, Runnable 
 	public byte handleConnectionRequest(SendPortIdentifier source,
 			PortType senderType) {
 
+		logger.debug("Processing connection request from " + source);
+		
 		if (connections.contains(source)) {
 			return P2PReceivePort.ALREADY_CONNECTED;
 		}
@@ -405,6 +417,9 @@ public class P2PReceivePort extends Manageable implements ReceivePort, Runnable 
 		if (connectionDowncalls) {
 			newConnections.add(source);
 			connections.add(source);
+			receiver.addConnection(source);
+			
+			logger.debug("Connection from " + source + " is processed.");
 		}
 
 		return P2PReceivePort.ACCEPTED;

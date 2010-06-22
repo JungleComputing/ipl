@@ -14,6 +14,8 @@ import ibis.ipl.SendPort;
 import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.WriteMessage;
+import ibis.ipl.impl.stacking.p2p.endtoend.P2PGoBackNSender;
+import ibis.ipl.impl.stacking.p2p.endtoend.P2PMessage;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -41,6 +43,7 @@ public class P2PSendPort implements SendPort {
 	private P2PWriteMessage message;
 	private final byte[] buffer;
 	private static final int DEFAULT_BUFFER_SIZE = 64 * 1024;
+	private P2PGoBackNSender sender;
 
 	protected static final Logger logger = LoggerFactory
 			.getLogger("ibis.ipl.impl.smartsockets.SendPort");
@@ -78,12 +81,22 @@ public class P2PSendPort implements SendPort {
 		buffer = new byte[DEFAULT_BUFFER_SIZE];
 		message = new P2PWriteMessage(this, buffer);
 
+		ibis.register(this);
+		
+		// start go back n sender
+		this.sender = new P2PGoBackNSender(ibis);
+		new Thread(sender).start();
 	}
 
 	@Override
 	public synchronized void close() throws IOException {
 		closed = true;
-		notifyAll();
+		try {
+			sender.sendNextMessage();
+			notifyAll();
+		} catch (ClassNotFoundException ex) {
+			ex.printStackTrace();
+		}
 	}
 
 	@Override
@@ -108,7 +121,7 @@ public class P2PSendPort implements SendPort {
 	private void addReceiver(IbisIdentifier ibisIdentifier,
 			ReceivePortIdentifier receiver) {
 		if (!connections.containsKey(ibisIdentifier)) {
-			ReceivePortIdentifier[] temp = new ibis.ipl.impl.ReceivePortIdentifier[1];
+			ReceivePortIdentifier[] temp = new ibis.ipl.impl.stacking.p2p.ReceivePortIdentifier[1];
 			temp[0] = receiver;
 			connections.put(ibisIdentifier, temp);
 		} else {
@@ -123,7 +136,7 @@ public class P2PSendPort implements SendPort {
 			IbisIdentifier ibisIdentifier, String receivePortName,
 			long timeoutMillis, boolean fillTimeout)
 			throws ConnectionFailedException {
-		ReceivePortIdentifier receiver = new ibis.ipl.impl.ReceivePortIdentifier(
+		ReceivePortIdentifier receiver = new ibis.ipl.impl.stacking.p2p.ReceivePortIdentifier(
 				receivePortName, (ibis.ipl.impl.IbisIdentifier) ibisIdentifier);
 
 		ibis.connect(ibisIdentifier, receivePortName, sid, type, timeoutMillis,
@@ -153,8 +166,12 @@ public class P2PSendPort implements SendPort {
 		}
 
 		checkConnect(receiver);
-
 		addReceiver(ibisIdentifier, receiver);
+
+		// inform go back n sender that new connection has been setup
+		sender
+				.connect((ibis.ipl.impl.stacking.p2p.ReceivePortIdentifier) receiver);
+
 		return receiver;
 	}
 
@@ -340,12 +357,11 @@ public class P2PSendPort implements SendPort {
 	}
 
 	private void send(byte[] buffer, int length) throws IOException {
-		try {
-			ibis.send(buffer, length, this.sid, connections);
-		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		// append to the queue of go back n sender
+		P2PMessage message = new P2PMessage(buffer, length, sid);
+
+		// TODO: check if end to end capability enable
+		sender.putMessage(message, connections);
 	}
 
 	protected synchronized boolean isReceiverConnected(ReceivePortIdentifier id) {
@@ -360,4 +376,7 @@ public class P2PSendPort implements SendPort {
 		return false;
 	}
 
+	public void processAck(ReceivePortIdentifier rid, int ack) {
+		sender.processAck(rid, ack);
+	}
 }

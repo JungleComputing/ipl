@@ -8,7 +8,7 @@ import ibis.ipl.ReceivePort;
 import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
 import ibis.ipl.impl.stacking.p2p.util.P2PConfig;
-import ibis.ipl.impl.stacking.p2p.util.P2PMessage;
+import ibis.ipl.impl.stacking.p2p.util.P2PMessageHeader;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -32,7 +32,7 @@ public class P2PTrackerClient {
 	}
 
 	public void sendNodeInfo() throws IOException {
-		P2PMessage msg = new P2PMessage(null, P2PMessage.REGISTER_IBIS);
+		P2PMessageHeader msg = new P2PMessageHeader(null, P2PMessageHeader.REGISTER_IBIS);
 		WriteMessage writeMsg = sendPort.newMessage();
 		writeMsg.writeObject(msg);
 		writeMsg.writeObject(baseIbis.identifier());
@@ -71,7 +71,7 @@ public class P2PTrackerClient {
 	@SuppressWarnings("unchecked")
 	public ArrayList<IbisIdentifier> getJoinedIbises() throws IOException,
 			ClassNotFoundException {
-		P2PMessage msg = new P2PMessage(null, P2PMessage.GET_IBISES);
+		P2PMessageHeader msg = new P2PMessageHeader(null, P2PMessageHeader.GET_IBISES);
 		WriteMessage writeMsg = sendPort.newMessage();
 		writeMsg.writeObject(msg);
 		writeMsg.writeObject(baseIbis.identifier());

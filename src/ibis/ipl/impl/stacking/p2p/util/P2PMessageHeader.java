@@ -5,17 +5,19 @@ import java.io.Serializable;
 import java.util.UUID;
 import java.util.Vector;
 
-public class P2PMessage implements Serializable{
+public class P2PMessageHeader implements Serializable{
 	
 	private static final long serialVersionUID = 1L;
 	private Vector<P2PNode> dest;
 	private int type;
 	
+	// internal peer to peer specific messages
 	public final static int JOIN_REQUEST = 0;
 	public final static int JOIN_RESPONSE = 1;
 	public final static int REGULAR = 2;
-	public final static int STATE_REQUEST = 3;
-	public final static int STATE_RESPONSE = 4;
+	public final static int REGULAR_ACK = 3;
+	public final static int STATE_REQUEST = 4;
+	public final static int STATE_RESPONSE = 5;
 	public final static int CONNECTION_REQUEST = 6;
 	public final static int CONNECTION_RESPONSE = 7;
 	public final static int NEARBY_REQUEST = 8;
@@ -47,8 +49,7 @@ public class P2PMessage implements Serializable{
 	// unique message identifier 
 	public final String MESSAGE_ID = UUID.randomUUID().toString();
 	
-	
-	public P2PMessage(Vector<P2PNode> dest, int type) {
+	public P2PMessageHeader(Vector<P2PNode> dest, int type) {
 		this.setDest(dest);
 		this.setType(type);
 	}

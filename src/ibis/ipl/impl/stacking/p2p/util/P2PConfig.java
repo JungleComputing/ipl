@@ -29,4 +29,7 @@ public class P2PConfig {
 	public final static BigInteger MAX = new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16);
 	
 	public static final long ACK_THRESHOLD = 60000;
+	
+	public static final int WINDOW_SIZE = 5;	
+	public static final int MAX_SEQ_NUM = 20;
 }

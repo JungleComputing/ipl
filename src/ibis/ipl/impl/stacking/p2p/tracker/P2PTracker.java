@@ -11,7 +11,7 @@ import ibis.ipl.ReceivePort;
 import ibis.ipl.WriteMessage;
 import ibis.ipl.SendPort;
 import ibis.ipl.impl.stacking.p2p.util.P2PConfig;
-import ibis.ipl.impl.stacking.p2p.util.P2PMessage;
+import ibis.ipl.impl.stacking.p2p.util.P2PMessageHeader;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -61,13 +61,13 @@ public class P2PTracker implements MessageUpcall{
 	public void upcall(ReadMessage readMessage) throws IOException,
 			ClassNotFoundException {
 
-		P2PMessage msg = (P2PMessage) readMessage.readObject();
+		P2PMessageHeader msg = (P2PMessageHeader) readMessage.readObject();
 
 		switch (msg.getType()) {
-		case P2PMessage.REGISTER_IBIS:
+		case P2PMessageHeader.REGISTER_IBIS:
 			handleRegisterIbis(readMessage);
 			break;
-		case P2PMessage.GET_IBISES:
+		case P2PMessageHeader.GET_IBISES:
 			handleGetJoinedIbises(readMessage);
 			break;
 		}

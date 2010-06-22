@@ -475,7 +475,7 @@ public class P2PState {
 		// add leaf node the last node
 		addLeafNode(leafNode);
 
-		P2PMessage msg = new P2PMessage(null, P2PMessage.STATE_REQUEST);
+		P2PMessageHeader msg = new P2PMessageHeader(null, P2PMessageHeader.STATE_REQUEST);
 		P2PStateInfo myStateInfo = new P2PStateInfo(myID, getRoutingTable(),
 				getLeafSet(), getNeighborhoodSet(), true);
 
@@ -537,7 +537,7 @@ public class P2PState {
 		}
 
 		if (stateInfo.isSendBack()) {
-			P2PMessage msg = new P2PMessage(null, P2PMessage.STATE_RESPONSE);
+			P2PMessageHeader msg = new P2PMessageHeader(null, P2PMessageHeader.STATE_RESPONSE);
 			P2PStateInfo myStateInfo = new P2PStateInfo(myID,
 					getRoutingTable(), getLeafSet(), getNeighborhoodSet(),
 					false);
@@ -546,7 +546,7 @@ public class P2PState {
 			source.sendObjects(msg, myStateInfo);
 		}
 
-		printSets();
+		//printSets();
 	}
 
 	public synchronized P2PNode[][] getRoutingTable() {
@@ -666,7 +666,7 @@ public class P2PState {
 	}
 
 	public synchronized void pingNodes() throws IOException {
-		P2PMessage msg = new P2PMessage(null, P2PMessage.STATE_REQUEST);
+		P2PMessageHeader msg = new P2PMessageHeader(null, P2PMessageHeader.STATE_REQUEST);
 		for (int i = 0; i < leafSet.length; i++) {
 			if (leafSet[i] != null) {
 				leafSet[i].sendObjects(msg, myID, P2PStateRepairThread.LEAF, i,
@@ -754,7 +754,7 @@ public class P2PState {
 		// ..
 
 		P2PNode oldEntry = new P2PNode(routingTable[prefix][digit]);
-		P2PMessage msg = new P2PMessage(null, P2PMessage.ROUTE_REQUEST);
+		P2PMessageHeader msg = new P2PMessageHeader(null, P2PMessageHeader.ROUTE_REQUEST);
 		for (int i = prefix; i < P2PConfig.MAX_PREFIX; i++) {
 			for (int j = 0; j < P2PConfig.MAX_DIGITS; j++) {
 				if (j != digit && routingTable[i][j] != null) {
@@ -782,7 +782,7 @@ public class P2PState {
 	 */
 	private synchronized void replaceNeighBorEntry(int position) {
 		// contact nearby nodes, wait some timeout until response received
-		P2PMessage msg = new P2PMessage(null, P2PMessage.NEIGHBOR_REQUEST);
+		P2PMessageHeader msg = new P2PMessageHeader(null, P2PMessageHeader.NEIGHBOR_REQUEST);
 		for (int i = 0; i < neighborhoodSet.length; i++) {
 			if (neighborhoodSet[i] != null) {
 				neighborhoodSet[i].sendObjects(msg, myID, position);
@@ -807,7 +807,7 @@ public class P2PState {
 			side = P2PStateRepairThread.LEAF_RIGHT;
 		}
 
-		P2PMessage msg = new P2PMessage(null, P2PMessage.LEAF_REQUEST);
+		P2PMessageHeader msg = new P2PMessageHeader(null, P2PMessageHeader.LEAF_REQUEST);
 		for (int i = start; i < end; i++) {
 			if (leafSet[i] != null) {
 				leafSet[i].sendObjects(msg, myID, side, position);

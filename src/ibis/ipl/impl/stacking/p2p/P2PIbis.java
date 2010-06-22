@@ -14,16 +14,16 @@ import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.ReceivePortConnectUpcall;
 import ibis.ipl.ReceivePortIdentifier;
-import ibis.ipl.registry.Registry;
 import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.SendPort;
 import ibis.ipl.SendPortDisconnectUpcall;
 import ibis.ipl.SendPortIdentifier;
+import ibis.ipl.impl.stacking.p2p.endtoend.P2PMessage;
 import ibis.ipl.impl.stacking.p2p.tracker.P2PTrackerClient;
 import ibis.ipl.impl.stacking.p2p.util.P2PConfig;
 import ibis.ipl.impl.stacking.p2p.util.P2PHashTools;
 import ibis.ipl.impl.stacking.p2p.util.P2PIdentifier;
-import ibis.ipl.impl.stacking.p2p.util.P2PMessage;
+import ibis.ipl.impl.stacking.p2p.util.P2PMessageHeader;
 import ibis.ipl.impl.stacking.p2p.util.P2PNode;
 import ibis.ipl.impl.stacking.p2p.util.P2PRoutingInfo;
 import ibis.ipl.impl.stacking.p2p.util.P2PState;
@@ -37,14 +37,12 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Random;
 import java.util.Set;
 import java.util.Vector;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -92,6 +90,10 @@ public class P2PIbis implements Ibis, MessageUpcall {
 	/** The receive ports running on this Ibis instance. */
 	private Map<String, P2PReceivePort> receivePorts = Collections
 			.synchronizedMap(new HashMap<String, P2PReceivePort>());
+
+	/** The send ports running on this Ibis instance. */
+	private Map<String, P2PSendPort> sendPorts = Collections
+			.synchronizedMap(new HashMap<String, P2PSendPort>());
 
 	private static final Logger logger = LoggerFactory.getLogger(P2PIbis.class);
 
@@ -280,7 +282,7 @@ public class P2PIbis implements Ibis, MessageUpcall {
 	@Override
 	public void end() throws IOException {
 		stateUpdaterThread.interrupt();
-		p2pVisualizer.sendNodeInfo(P2PMessage.NODE_DEPARTURE);
+		p2pVisualizer.sendNodeInfo(P2PMessageHeader.NODE_DEPARTURE);
 		p2pVisualizer.end();
 		state.end();
 		baseIbis.end();
@@ -427,7 +429,7 @@ public class P2PIbis implements Ibis, MessageUpcall {
 		int prefix = newNode.prefixLength(myID);
 
 		// create new P2PMessage
-		P2PMessage msg = new P2PMessage(null, P2PMessage.JOIN_RESPONSE);
+		P2PMessageHeader msg = new P2PMessageHeader(null, P2PMessageHeader.JOIN_RESPONSE);
 
 		// create vector with routing table
 		Vector<P2PRoutingInfo> routingTables = new Vector<P2PRoutingInfo>();
@@ -489,8 +491,8 @@ public class P2PIbis implements Ibis, MessageUpcall {
 			P2PNode nextHop = iter.next();
 
 			if (nextHop.equals(myID) == false) {
-				P2PMessage msg = new P2PMessage(destinations.get(nextHop),
-						P2PMessage.JOIN_REQUEST);
+				P2PMessageHeader msg = new P2PMessageHeader(destinations.get(nextHop),
+						P2PMessageHeader.JOIN_REQUEST);
 				// forward message to next hop
 				nextHop.connect(baseIbis.createSendPort(P2PConfig.portType));
 				nextHop.sendObjects(msg, path);
@@ -554,7 +556,7 @@ public class P2PIbis implements Ibis, MessageUpcall {
 			nextDest.connect(baseIbis.createSendPort(P2PConfig.portType));
 
 			// create new P2PMessage with type JOIN_RESPONSE
-			P2PMessage msg = new P2PMessage(null, P2PMessage.JOIN_RESPONSE);
+			P2PMessageHeader msg = new P2PMessageHeader(null, P2PMessageHeader.JOIN_RESPONSE);
 			if (myPosition == NEARBY_NODE) {
 				// I am the nearby node, send the neighborhood set
 				nextDest.sendObjects(msg, path, routingTables, leafSet, state
@@ -569,67 +571,88 @@ public class P2PIbis implements Ibis, MessageUpcall {
 	@Override
 	public void upcall(ReadMessage readMessage) throws IOException,
 			ClassNotFoundException {
-		P2PMessage msg = (P2PMessage) readMessage.readObject();
+		P2PMessageHeader msg = (P2PMessageHeader) readMessage.readObject();
 
 		switch (msg.getType()) {
 		// join related messages
-		case P2PMessage.NEARBY_REQUEST:
+		case P2PMessageHeader.NEARBY_REQUEST:
 			handleNearbyRequest(readMessage);
 			break;
-		case P2PMessage.NEARBY_RESPONSE:
+		case P2PMessageHeader.NEARBY_RESPONSE:
 			handleNearbyResponse(readMessage, true);
 			break;
-		case P2PMessage.NEARBY_NOT_JOINED:
+		case P2PMessageHeader.NEARBY_NOT_JOINED:
 			handleNearbyResponse(readMessage, false);
 			break;
-		case P2PMessage.JOIN_REQUEST:
+		case P2PMessageHeader.JOIN_REQUEST:
 			handleJoinRequest(readMessage, msg.getDest());
 			break;
-		case P2PMessage.JOIN_RESPONSE:
+		case P2PMessageHeader.JOIN_RESPONSE:
 			handleJoinResponse(readMessage);
 			break;
-		case P2PMessage.STATE_REQUEST:
+		case P2PMessageHeader.STATE_REQUEST:
 			handleStateUpdate(readMessage, true);
 			break;
-		case P2PMessage.STATE_RESPONSE:
+		case P2PMessageHeader.STATE_RESPONSE:
 			handleStateUpdate(readMessage, false);
 			break;
 		// external messages
-		case P2PMessage.REGULAR:
+		case P2PMessageHeader.REGULAR:
 			handleRegularMessage(readMessage, msg.getDest());
 			break;
-		case P2PMessage.CONNECTION_REQUEST:
+		case P2PMessageHeader.REGULAR_ACK:
+			handleRegularAck(readMessage, msg.getDest());
+			break;	
+		case P2PMessageHeader.CONNECTION_REQUEST:
 			handleConnectionRequest(readMessage, msg.getDest());
 			break;
-		case P2PMessage.CONNECTION_RESPONSE:
+		case P2PMessageHeader.CONNECTION_RESPONSE:
 			handleConnectionResponse(readMessage, msg.getDest());
 			break;
 		// state repair related messages
-		case P2PMessage.PING_REQUEST:
+		case P2PMessageHeader.PING_REQUEST:
 			handlePingRequest(readMessage);
 			break;
-		case P2PMessage.PING_RESPONSE:
+		case P2PMessageHeader.PING_RESPONSE:
 			handlePingResponse(readMessage);
 			break;
-		case P2PMessage.NEIGHBOR_REQUEST:
+		case P2PMessageHeader.NEIGHBOR_REQUEST:
 			handleNeighBorRequest(readMessage);
 			break;
-		case P2PMessage.NEIGHBOR_RESPONSE:
+		case P2PMessageHeader.NEIGHBOR_RESPONSE:
 			handleNeighborResponse(readMessage);
 			break;
-		case P2PMessage.LEAF_REQUEST:
+		case P2PMessageHeader.LEAF_REQUEST:
 			handleLeafRequest(readMessage);
 			break;
-		case P2PMessage.LEAF_RESPONSE:
+		case P2PMessageHeader.LEAF_RESPONSE:
 			handleLeafResponse(readMessage);
 			break;
-		case P2PMessage.ROUTE_REQUEST:
+		case P2PMessageHeader.ROUTE_REQUEST:
 			handleRouteRequest(readMessage);
 			break;
-		case P2PMessage.ROUTE_RESPONSE:
+		case P2PMessageHeader.ROUTE_RESPONSE:
 			handleRouteResponse(readMessage);
 			break;
 		}
+	}
+
+	private void handleRegularAck(ReadMessage readMessage, Vector<P2PNode> dests) throws IOException, ClassNotFoundException {
+		logger.debug("Processing regular ack... ");
+		
+		try {
+		SendPortIdentifier sid = (SendPortIdentifier) readMessage.readObject();
+		ReceivePortIdentifier rid = (ReceivePortIdentifier) readMessage.readObject(); 
+		Integer ack = (Integer) readMessage.readObject();
+		readMessage.finish();
+		
+		logger.debug("Received message ack: " + ack);
+		
+		forwardMessageAck(dests, sid, rid, ack);	
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		
 	}
 
 	private void handleRouteResponse(ReadMessage readMessage) {
@@ -642,13 +665,14 @@ public class P2PIbis implements Ibis, MessageUpcall {
 		P2PNode source = (P2PNode) readMessage.readObject();
 		int prefix = readMessage.readInt();
 		int digit = readMessage.readInt();
-
+		readMessage.finish();
+		
 		// get replacement
 		P2PNode replacement = state.getEntryAt(prefix, digit);
 
 		// send replacement only if is valid
 		if (replacement != null) {
-			P2PMessage msg = new P2PMessage(null, P2PMessage.ROUTE_RESPONSE);
+			P2PMessageHeader msg = new P2PMessageHeader(null, P2PMessageHeader.ROUTE_RESPONSE);
 			// route source, maybe source is already in the sets of this node
 			P2PNode node = route(source);
 			if (!node.equals(source)) {
@@ -682,7 +706,7 @@ public class P2PIbis implements Ibis, MessageUpcall {
 
 		ArrayList<P2PNode> leafSet = state.getLeafSet(side);
 
-		P2PMessage msg = new P2PMessage(null, P2PMessage.LEAF_RESPONSE);
+		P2PMessageHeader msg = new P2PMessageHeader(null, P2PMessageHeader.LEAF_RESPONSE);
 		P2PNode node = route(source);
 		if (!node.equals(source)) {
 			source.connect(baseIbis.createSendPort(P2PConfig.portType));
@@ -712,7 +736,7 @@ public class P2PIbis implements Ibis, MessageUpcall {
 
 		ArrayList<P2PNode> neighborhoodSet = state.getNeighborhoodSet();
 
-		P2PMessage msg = new P2PMessage(null, P2PMessage.LEAF_RESPONSE);
+		P2PMessageHeader msg = new P2PMessageHeader(null, P2PMessageHeader.LEAF_RESPONSE);
 		P2PNode node = route(source);
 		if (!node.equals(source)) {
 			source.connect(baseIbis.createSendPort(P2PConfig.portType));
@@ -745,7 +769,7 @@ public class P2PIbis implements Ibis, MessageUpcall {
 
 		logger.debug("Ping request received from " + source + "of type " + type +" for " + i + " " + j);
 		
-		P2PMessage msg = new P2PMessage(null, P2PMessage.PING_RESPONSE);
+		P2PMessageHeader msg = new P2PMessageHeader(null, P2PMessageHeader.PING_RESPONSE);
 		P2PNode node = route(source);
 
 		if (!node.equals(source)) {
@@ -790,8 +814,8 @@ public class P2PIbis implements Ibis, MessageUpcall {
 
 		if (!getJoined()) {
 			// send back result, not joined, cannot serve as a nearby node
-			P2PMessage message = new P2PMessage(null,
-					P2PMessage.NEARBY_NOT_JOINED);
+			P2PMessageHeader message = new P2PMessageHeader(null,
+					P2PMessageHeader.NEARBY_NOT_JOINED);
 			source.connect(baseIbis.createSendPort(P2PConfig.portType));
 			source.sendObject(message);
 		} else {
@@ -799,8 +823,8 @@ public class P2PIbis implements Ibis, MessageUpcall {
 			P2PNode nearbyNode = state.findNearbyNode(source);
 
 			// send back result
-			P2PMessage message = new P2PMessage(null,
-					P2PMessage.NEARBY_RESPONSE);
+			P2PMessageHeader message = new P2PMessageHeader(null,
+					P2PMessageHeader.NEARBY_RESPONSE);
 			source.connect(baseIbis.createSendPort(P2PConfig.portType));
 			source.sendObjects(message, nearbyNode);
 		}
@@ -877,7 +901,7 @@ public class P2PIbis implements Ibis, MessageUpcall {
 		
 		for (IbisIdentifier joinedIbis : joinedIbises) {
 			P2PNode p2pNearbyNode = new P2PNode(joinedIbis);
-			P2PMessage msg = new P2PMessage(null, P2PMessage.NEARBY_REQUEST);
+			P2PMessageHeader msg = new P2PMessageHeader(null, P2PMessageHeader.NEARBY_REQUEST);
 
 			// send nearby request
 			p2pNearbyNode.connect(baseIbis.createSendPort(P2PConfig.portType));
@@ -985,7 +1009,7 @@ public class P2PIbis implements Ibis, MessageUpcall {
 			path.add(myID);
 
 			// route a join message
-			P2PMessage p2pMsg = new P2PMessage(dest, P2PMessage.JOIN_REQUEST);
+			P2PMessageHeader p2pMsg = new P2PMessageHeader(dest, P2PMessageHeader.JOIN_REQUEST);
 			nearbyNode.connect(baseIbis.createSendPort(P2PConfig.portType));
 			nearbyNode.sendObjects(p2pMsg, path);
 
@@ -1000,7 +1024,7 @@ public class P2PIbis implements Ibis, MessageUpcall {
 					}
 				}
 			}
-			p2pVisualizer.sendNodeInfo(P2PMessage.NODE_JOIN);
+			p2pVisualizer.sendNodeInfo(P2PMessageHeader.NODE_JOIN);
 			logger.debug("Join completed.");
 		}
 	}
@@ -1011,15 +1035,16 @@ public class P2PIbis implements Ibis, MessageUpcall {
 	 * 
 	 * @param objects
 	 */
-	private void deliverRegularMessage(Vector<String> receivePortNames,
-			SendPortIdentifier source, byte[] data) {
+	private void deliverRegularMessage(Vector<ReceivePortIdentifier> receivePortIDs,
+			P2PMessage message) {
 
 		logger.debug("Regular message received from: "
-				+ source.ibisIdentifier().name());
+				+ message.getSid().name());
+		
 		// deliver message to each receivePort based on receivePortName
-		for (String receivePortName : receivePortNames) {
-			P2PReceivePort receivePort = receivePorts.get(receivePortName);
-			receivePort.deliverMessage(source, data);
+		for (ReceivePortIdentifier rid : receivePortIDs) {
+			P2PReceivePort receivePort = receivePorts.get(rid.name());
+			receivePort.processMessage(message);
 		}
 	}
 
@@ -1034,16 +1059,14 @@ public class P2PIbis implements Ibis, MessageUpcall {
 	 */
 	private void handleRegularMessage(ReadMessage readMessage,
 			Vector<P2PNode> dests) throws IOException, ClassNotFoundException {
-		SendPortIdentifier source = (SendPortIdentifier) readMessage
-				.readObject();
-		byte[] data = (byte[]) readMessage.readObject();
+		P2PMessage message = (P2PMessage) readMessage.readObject();
 		readMessage.finish();
-
-		forwardMessage(dests, P2PMessage.REGULAR, source, data);
+		
+		forwardMessage(dests, P2PMessageHeader.REGULAR, message);
 	}
 
 	private void forwardMessage(Vector<P2PNode> dests, int regular,
-			SendPortIdentifier source, byte[] data) {
+			P2PMessage message) {
 
 		// for each destination, find next hop
 		HashMap<P2PNode, Vector<P2PNode>> destinations = route(dests);
@@ -1056,25 +1079,37 @@ public class P2PIbis implements Ibis, MessageUpcall {
 			p2pVisualizer.sendAddMessage(nextHop.getP2pID().getP2pID());
 
 			if (nextHop.equals(myID) == false) {
-				P2PMessage msg = new P2PMessage(nextHopDests,
-						P2PMessage.REGULAR);
-
+				P2PMessageHeader header = new P2PMessageHeader(nextHopDests,
+						P2PMessageHeader.REGULAR);
+				
 				// forward message to next hop
-				nextHop.sendObjects(msg, source, data);
+				nextHop.sendObjects(header, message);
 
 				p2pVisualizer.sendDeleteMessage(nextHop.getP2pID().getP2pID());
 			} else {
 				// I am the destination, deliver message
 				logger.debug("My dest: " + nextHopDests);
 
-				Vector<String> receivePortNames = nextHopDests.elementAt(0)
+				Vector<ReceivePortIdentifier> receivePortNames = nextHopDests.elementAt(0)
 						.getReceivePortNames();
-				deliverRegularMessage(receivePortNames, source, data);
+				deliverRegularMessage(receivePortNames, message);
 			}
 		}
-
 	}
 
+	
+	public void send(P2PMessage message) {	
+		P2PNode node = new P2PNode(message.getRid());
+	
+		//TODO: change vector to array list
+		Vector<P2PNode> dests = new Vector<P2PNode>();
+		dests.add(node);
+		
+		forwardMessage(dests, P2PMessageHeader.REGULAR, message);
+		
+		logger.debug("Regular message was forwarded to " + node);
+	}
+	
 	/**
 	 * prepare message from sid to connections to be routed within the overlay
 	 * network
@@ -1086,7 +1121,7 @@ public class P2PIbis implements Ibis, MessageUpcall {
 	 * @throws IOException
 	 * @throws ClassNotFoundException
 	 */
-	public void send(byte[] buffer, int length, SendPortIdentifier sid,
+	public void send(P2PMessage message,
 			Map<IbisIdentifier, ReceivePortIdentifier[]> connections)
 			throws IOException, ClassNotFoundException {
 		Vector<P2PNode> dests = new Vector<P2PNode>();
@@ -1101,15 +1136,39 @@ public class P2PIbis implements Ibis, MessageUpcall {
 			IbisIdentifier ibisID = temp[0].ibisIdentifier();
 			P2PNode dest = new P2PNode(ibisID);
 
-			for (ReceivePortIdentifier id : temp) {
-				dest.addReceivePortName(id.name());
+			for (int i = 0; i<temp.length; i++) {
+				ibis.ipl.impl.stacking.p2p.ReceivePortIdentifier id = (ibis.ipl.impl.stacking.p2p.ReceivePortIdentifier) temp[i];
+				dest.addReceivePortName(id);
 				logger.debug(dest.getIbisID().name() + " Added recv port: "
 						+ id.name());
 			}
 			dests.add(dest);
 		}
 
-		forwardMessage(dests, P2PMessage.REGULAR, sid, buffer);
+		forwardMessage(dests, P2PMessageHeader.REGULAR, message);
+	}
+
+	
+	public void forwardMessageAck(Vector<P2PNode> dests, SendPortIdentifier source, ReceivePortIdentifier rid, Integer ack) {
+		HashMap<P2PNode, Vector<P2PNode>> destinations = route(dests);
+		Set<P2PNode> keys = destinations.keySet();
+		Iterator<P2PNode> iter = keys.iterator();
+		while (iter.hasNext()) {
+			P2PNode nextHop = iter.next();
+			Vector<P2PNode> nextHopDests = destinations.get(nextHop);
+			if (nextHop.equals(myID) == false) {
+				P2PMessageHeader header = new P2PMessageHeader(nextHopDests, P2PMessageHeader.REGULAR_ACK);
+				logger.debug("Forwarding message ack: " + ack + " for " + source + " to " + nextHop.getIbisID());
+				nextHop.sendObjects(header, source, rid, ack);
+			} else {
+				deliverRegularAck(source, rid, ack);
+			}
+		}
+	}
+	
+	private void deliverRegularAck(SendPortIdentifier source, ReceivePortIdentifier rid, Integer ack) {
+		P2PSendPort sendPort = sendPorts.get(source.name());
+		sendPort.processAck(rid, ack);
 	}
 
 	private void forwardConnectionRequest(Vector<P2PNode> dests,
@@ -1123,8 +1182,8 @@ public class P2PIbis implements Ibis, MessageUpcall {
 			P2PNode nextHop = iter.next();
 			Vector<P2PNode> nextHopDests = destinations.get(nextHop);
 			if (nextHop.equals(myID) == false) {
-				P2PMessage msg = new P2PMessage(nextHopDests,
-						P2PMessage.CONNECTION_REQUEST);
+				P2PMessageHeader msg = new P2PMessageHeader(nextHopDests,
+						P2PMessageHeader.CONNECTION_REQUEST);
 
 				logger.debug("Preparing to send connection request to: "
 						+ nextHop.getIbisID().name());
@@ -1150,8 +1209,8 @@ public class P2PIbis implements Ibis, MessageUpcall {
 			P2PNode nextHop = iter.next();
 
 			if (nextHop.equals(myID) == false) {
-				P2PMessage msg = new P2PMessage(destinations.get(nextHop),
-						P2PMessage.CONNECTION_RESPONSE);
+				P2PMessageHeader msg = new P2PMessageHeader(destinations.get(nextHop),
+						P2PMessageHeader.CONNECTION_RESPONSE);
 
 				logger.debug("Forwarded connection response to:"
 						+ nextHop.getIbisID().name());
@@ -1246,8 +1305,6 @@ public class P2PIbis implements Ibis, MessageUpcall {
 		Vector<P2PNode> dests = new Vector<P2PNode>();
 		dests.add(new P2PNode(receiver));
 
-		state.printSets();
-
 		forwardConnectionRequest(dests, source, receivePortName, senderType
 				.getCapabilities());
 
@@ -1280,5 +1337,14 @@ public class P2PIbis implements Ibis, MessageUpcall {
 
 	public synchronized Byte getConnectionResponse() {
 		return connectionResponse;
+	}
+	
+	public void register(P2PSendPort sid) throws IOException {
+		if (sendPorts.get(sid.name()) != null) {
+			throw new IOException("Multiple instances of receiveport named "
+					+ sid.name());
+		}
+		
+		sendPorts.put(sid.name(), sid);	
 	}
 }
