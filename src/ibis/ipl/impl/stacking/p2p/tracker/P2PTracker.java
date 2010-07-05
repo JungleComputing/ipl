@@ -8,10 +8,12 @@ import ibis.ipl.MessageUpcall;
 import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
+import ibis.ipl.RegistryEventHandler;
 import ibis.ipl.WriteMessage;
 import ibis.ipl.SendPort;
 import ibis.ipl.impl.stacking.p2p.util.P2PConfig;
 import ibis.ipl.impl.stacking.p2p.util.P2PMessageHeader;
+import ibis.ipl.impl.stacking.p2p.util.P2PNode;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -22,7 +24,7 @@ import java.util.Vector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class P2PTracker implements MessageUpcall{
+public class P2PTracker implements MessageUpcall, RegistryEventHandler{
 
 	private Vector<IbisIdentifier> joinedPeers = new Vector<IbisIdentifier>();
 
@@ -54,7 +56,6 @@ public class P2PTracker implements MessageUpcall{
 			ex.printStackTrace();
 		}
 		
-		//new Thread(this).start();
 	}
 
 	@Override
@@ -72,7 +73,7 @@ public class P2PTracker implements MessageUpcall{
 			break;
 		}
 	}
-
+	
 	private void handleGetJoinedIbises(ReadMessage readMessage)
 			throws IOException, ClassNotFoundException {
 		IbisIdentifier source = (IbisIdentifier) readMessage.readObject();
@@ -136,7 +137,43 @@ public class P2PTracker implements MessageUpcall{
 	
 	public void run() {
 		while (true) {
-			waitFor(5000);
+			waitFor(5000);	
 		}
+	}
+
+	@Override
+	public void died(IbisIdentifier corpse) {
+		joinedPeers.remove(corpse);
+	}
+
+	@Override
+	public void electionResult(String electionName, IbisIdentifier winner) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void gotSignal(String signal, IbisIdentifier source) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void joined(IbisIdentifier joinedIbis) {
+	}
+
+	@Override
+	public void left(IbisIdentifier leftIbis) {
+		joinedPeers.remove(leftIbis);
+	}
+
+	@Override
+	public void poolClosed() {
+	}
+
+	@Override
+	public void poolTerminated(IbisIdentifier source) {
+		// TODO Auto-generated method stub
+		
 	}
 }
