@@ -408,7 +408,7 @@ public class P2PReceivePort extends Manageable implements ReceivePort, Runnable 
 			return P2PReceivePort.NO_MANY_TO_X;
 		}
 
-		if (upcall != null) {
+		if (upcall != null && connectUpcall != null) {
 			if (!connectUpcall.gotConnection(this, source)) {
 				return P2PReceivePort.DENIED;
 			}
@@ -416,12 +416,12 @@ public class P2PReceivePort extends Manageable implements ReceivePort, Runnable 
 
 		if (connectionDowncalls) {
 			newConnections.add(source);
-			connections.add(source);
-			receiver.addConnection(source);
-			
+			connections.add(source);	
 			logger.debug("Connection from " + source + " is processed.");
 		}
 
+		receiver.addConnection(source);
+		
 		return P2PReceivePort.ACCEPTED;
 	}
 }

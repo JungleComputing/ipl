@@ -94,6 +94,7 @@ public class P2PSendPort implements SendPort {
 		try {
 			sender.sendNextMessage();
 			notifyAll();
+			logger.debug("Send port closed!");
 		} catch (ClassNotFoundException ex) {
 			ex.printStackTrace();
 		}
