@@ -2,13 +2,14 @@ package ibis.ipl.impl.stacking.p2p.util;
 
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.UUID;
 import java.util.Vector;
 
 public class P2PMessageHeader implements Serializable{
 	
 	private static final long serialVersionUID = 1L;
-	private Vector<P2PNode> dest;
+	private ArrayList<P2PNode> dest;
 	private int type;
 	
 	// internal peer to peer specific messages
@@ -49,7 +50,7 @@ public class P2PMessageHeader implements Serializable{
 	// unique message identifier 
 	public final String MESSAGE_ID = UUID.randomUUID().toString();
 	
-	public P2PMessageHeader(Vector<P2PNode> dest, int type) {
+	public P2PMessageHeader(ArrayList<P2PNode> dest, int type) {
 		this.setDest(dest);
 		this.setType(type);
 	}
@@ -66,11 +67,11 @@ public class P2PMessageHeader implements Serializable{
 		getDest().add(newDest);
 	}
 
-	public void setDest(Vector<P2PNode> dest) {
+	public void setDest(ArrayList<P2PNode> dest) {
 		this.dest = dest;
 	}
 
-	public Vector<P2PNode> getDest() {
+	public ArrayList<P2PNode> getDest() {
 		return dest;
 	}
 }

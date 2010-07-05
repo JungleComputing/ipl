@@ -168,6 +168,7 @@ public class P2PNode implements Serializable, Comparable<P2PNode> {
 
 	public synchronized String toString() {
 		return p2pID.getP2pID();
+		//return ibisID.name();
 
 	}
 
@@ -191,7 +192,7 @@ public class P2PNode implements Serializable, Comparable<P2PNode> {
 		return receivePortNames;
 	}
 
-	public synchronized boolean equals(P2PNode other) {	
+	public boolean equals(P2PNode other) {	
 		if (this.compareTo(other) == 0) {	
 			return true;
 		}

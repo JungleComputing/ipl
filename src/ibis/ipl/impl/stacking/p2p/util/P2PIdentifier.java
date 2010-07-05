@@ -65,4 +65,12 @@ public class P2PIdentifier implements Serializable{
 		String p2pOtherID = p2pNode.getP2pID();
 		return p2pID.compareTo(p2pOtherID);
 	}
+	
+	public boolean equals(Object other) {
+		return p2pID.equals(((P2PIdentifier)other).getP2pID());
+	}
+	
+	public String toString(){
+		return p2pID;
+	}
 }
