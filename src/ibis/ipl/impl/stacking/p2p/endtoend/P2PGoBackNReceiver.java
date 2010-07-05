@@ -7,6 +7,7 @@ import ibis.ipl.impl.stacking.p2p.P2PIbis;
 import ibis.ipl.impl.stacking.p2p.P2PReceivePort;
 import ibis.ipl.impl.stacking.p2p.util.P2PNode;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
@@ -58,7 +59,7 @@ public class P2PGoBackNReceiver {
 		int expectedSeqNum = connection.getSeqNum();
 		
 		// send back expected seqNum;
-		Vector<P2PNode> dests = new Vector<P2PNode>();
+		ArrayList<P2PNode> dests = new ArrayList<P2PNode>();
 		dests.add(new P2PNode(message.getSid().ibisIdentifier()));
 		
 		ibis.forwardMessageAck(dests, message.getSid(), receivePort.identifier(), expectedSeqNum);
