@@ -101,6 +101,11 @@ public final class NullRegistry extends ibis.ipl.registry.Registry {
         throw new IbisConfigurationException(
                 "elections not supported by NullRegistry");
     }
+    
+    public String[] wonElections() {
+        throw new IbisConfigurationException(
+                "elections not supported by NullRegistry");
+    }
 
     public void maybeDead(ibis.ipl.IbisIdentifier ibis) throws IOException {
         // NOTHING

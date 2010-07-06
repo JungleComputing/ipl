@@ -107,4 +107,6 @@ public abstract class Registry implements ibis.ipl.Registry {
     public abstract IbisIdentifier getIbisIdentifier();
     
     public abstract IbisIdentifier getRandomPoolMember();
+    
+    public abstract String[] wonElections();
 }

@@ -231,6 +231,18 @@ public class Registry extends ibis.ipl.registry.Registry implements Runnable {
         return members.getFirstLiving(candidates);
 
     }
+     
+    public String[] wonElections() {
+        ArrayList<String> result = new ArrayList<String>();
+        synchronized(elections) {
+            for (Election e : elections) {
+                if (e.getWinner().equals(identifier)) {
+                    result.add(e.getName());
+                }
+            }
+        }
+        return result.toArray(new String[result.size()]);
+    }
 
     public IbisIdentifier getElectionResult(String electionName,
             long timeoutMillis) throws IOException {

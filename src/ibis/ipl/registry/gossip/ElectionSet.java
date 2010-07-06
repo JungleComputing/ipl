@@ -7,11 +7,12 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Iterator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ElectionSet {
+public class ElectionSet implements Iterable<Election> {
 
     private static final Logger logger = LoggerFactory.getLogger(ElectionSet.class);
 
@@ -145,6 +146,11 @@ public class ElectionSet {
         return elect(
             electionName,
             properties.getIntProperty(RegistryProperties.ELECTION_TIMEOUT) * 1000);
+    }
+
+    @Override
+    public Iterator<Election> iterator() {
+        return elections.values().iterator();
     }
 
 }

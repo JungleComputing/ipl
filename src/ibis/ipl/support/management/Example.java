@@ -62,6 +62,10 @@ public class Example {
         AttributeDescription receivedBytesPerIbis = new AttributeDescription("ibis",
                 "receivedBytesPerIbis");
         
+        AttributeDescription wonElections = new AttributeDescription("ibis",
+                "wonElections");
+        
+        
         while (true) {
 
             // get list of ibises in the pool named "test"
@@ -105,7 +109,16 @@ public class Example {
                                 System.err.println(ibis + " read " + e.getValue() + " bytes from " + e.getKey());
                             }
                         }
- 
+                        
+                        String[] won = (String[])
+                            (server.getManagementService().getAttributes(ibis, wonElections)[0]);
+                
+                        if (won != null) {
+                            for (String s : won) {
+                                System.err.println(ibis + " won election " + s);
+                            }
+                        }
+
                     } catch (Exception e) {
                         System.err.println("Could not get management info: ");
                         e.printStackTrace();

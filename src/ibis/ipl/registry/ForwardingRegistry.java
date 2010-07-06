@@ -135,6 +135,9 @@ public final class ForwardingRegistry extends ibis.ipl.registry.Registry {
         return target.getRandomPoolMember();
     }
 
+    public String[] wonElections() {
+        return target.wonElections();
+    }
   
 
 }

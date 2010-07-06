@@ -328,6 +328,16 @@ final class Pool {
         out.write(bytes);
         logger.debug("pool state size = " + bytes.length);
     }
+    
+    synchronized String[] wonElections(IbisIdentifier id) {
+        ArrayList<String> result = new ArrayList<String>();
+        for (Election e : elections) {
+            if (e.getWinner().equals(id)) {
+                result.add(e.getName());
+            }
+        }
+        return result.toArray(new String[result.size()]);
+    }
 
     synchronized IbisIdentifier getElectionResult(String election, long timeout)
             throws IOException {

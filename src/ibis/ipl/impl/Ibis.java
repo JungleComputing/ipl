@@ -698,6 +698,13 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
         }
         return new HashMap<ibis.ipl.IbisIdentifier, Long>(receivedBytesPerIbis);
     }
+    
+    /**
+     * @ibis.experimental
+     */
+    public String[] wonElections() {
+        return registry.wonElections();
+    }
 
     public synchronized Map<String, String> managementProperties() {
         Map<String, String> result = new HashMap<String, String>();

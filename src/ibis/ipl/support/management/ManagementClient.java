@@ -73,6 +73,9 @@ public class ManagementClient implements Runnable {
         if (name.equals("receivedBytesPerIbis")) {
             return ibis.getReceivedBytesPerIbis();
         }
+        if (name.equals("wonElections")) {
+            return ibis.wonElections();
+        }
         return ibis.getManagementProperty(name);
     }
 

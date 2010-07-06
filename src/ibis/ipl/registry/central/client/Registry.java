@@ -168,7 +168,10 @@ public final class Registry extends ibis.ipl.registry.Registry {
 
     public IbisIdentifier elect(String electionName) throws IOException {
         return elect(electionName, 0);
-
+    }
+    
+    public String[] wonElections() {
+        return pool.wonElections(identifier);
     }
 
     public IbisIdentifier elect(String electionName, long timeoutMillis)
