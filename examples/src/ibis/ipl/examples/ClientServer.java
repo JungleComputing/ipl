@@ -140,6 +140,7 @@ public class ClientServer implements MessageUpcall {
 
         ReadMessage reply = receivePort.receive();
         String result = reply.readString();
+        reply.finish();
 
         System.err.println("server replies: " + result);
 
