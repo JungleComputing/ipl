@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
  * @author Delia
  * 
  */
-public class P2PGoBackNSender implements Runnable {
+public class P2PGoBackNSender extends Thread {
 
 	private P2PIbis ibis;
 	private Map<ReceivePortIdentifier, P2PSenderConnectionHandler> windows;
@@ -57,6 +57,7 @@ public class P2PGoBackNSender implements Runnable {
 				P2PSenderConnectionHandler window = windows.get(receiver);
 				P2PMessage dupMessage = (P2PMessage) message.clone();
 				dupMessage.setRid(receiver);
+				
 				window.putMessage(dupMessage);
 			}
 		}
@@ -80,7 +81,7 @@ public class P2PGoBackNSender implements Runnable {
 	@Override
 	public void run() {
 		try {
-			while (true) {
+			while (!isInterrupted()) {
 				//logger.debug("I am the sender thread!");
 				sendNextMessage();
 				Thread.sleep(10000);

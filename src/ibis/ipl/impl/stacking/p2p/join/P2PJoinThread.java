@@ -1,6 +1,7 @@
 package ibis.ipl.impl.stacking.p2p.join;
 
 import ibis.ipl.Ibis;
+import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.impl.stacking.p2p.P2PIbis;
 import ibis.ipl.impl.stacking.p2p.util.P2PConfig;
@@ -59,9 +60,6 @@ public class P2PJoinThread extends Thread {
 	public void consume() {
 		try {
 			P2PJoinRequest head = queue.take();
-			logger.debug(" Processing request from " + head.getSource() + " "
-					+ head.getPath());
-
 			processJoinRequest(head);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
@@ -73,13 +71,15 @@ public class P2PJoinThread extends Thread {
 	public synchronized void processJoinRequest(P2PJoinRequest request)
 			throws IOException, InterruptedException {
 
+		allowInterrupt = false;
+		
 		ArrayList<P2PNode> path = request.getPath();
 
 		// update current request
 		setCurrentRequest(path);
 
-		logger.debug(path + "Processing join request from "
-				+ path.get(NEW_NODE) + " " + path.get(NEW_NODE).getIbisID());
+		//logger.debug(path + "Processing join request from "
+				//+ path.get(NEW_NODE) + " " + path.get(NEW_NODE).getIbisID());
 
 		// append my ID
 		path.add(myIbis.getMyID());
@@ -104,8 +104,8 @@ public class P2PJoinThread extends Thread {
 				nextHop.sendObjects(msg, path);
 
 				// remember to whom it was forwarded
-				logger.debug("Request " + path.get(NEW_NODE).getIbisID()
-						+ " forwarded to " + nextHop.getIbisID());
+				//logger.debug("Request " + path.get(NEW_NODE).getIbisID()
+						//+ " forwarded to " + nextHop.getIbisID());
 			} else {
 				// process message, reverse message direction and append state
 				reverseJoinDirection(path);
@@ -139,7 +139,7 @@ public class P2PJoinThread extends Thread {
 				P2PMessageHeader.JOIN_RESPONSE);
 
 		// create vector with routing table
-		Vector<P2PRoutingInfo> routingTables = new Vector<P2PRoutingInfo>();
+		ArrayList<P2PRoutingInfo> routingTables = new ArrayList<P2PRoutingInfo>();
 		P2PRoutingInfo myRoutingInfo = new P2PRoutingInfo(myID, state
 				.getRoutingTableRow(prefix), prefix);
 		routingTables.add(myRoutingInfo);
@@ -166,7 +166,7 @@ public class P2PJoinThread extends Thread {
 		ArrayList<P2PNode> path = (ArrayList<P2PNode>) readMessage.readObject();
 
 		// read routing table
-		Vector<P2PRoutingInfo> routingTables = (Vector<P2PRoutingInfo>) readMessage
+		ArrayList<P2PRoutingInfo> routingTables = (ArrayList<P2PRoutingInfo>) readMessage
 				.readObject();
 
 		// read leafSet
@@ -190,7 +190,7 @@ public class P2PJoinThread extends Thread {
 					.readObject();
 			readMessage.finish();
 
-			logger.debug("I received a join response...!");
+			//logger.debug("I received a join response...!");
 			state.parseSets(path, routingTables, leafSet, neighborhoodSet);
 
 			// received join response, wake main thread
@@ -228,6 +228,16 @@ public class P2PJoinThread extends Thread {
 		}
 	}
 
+	public void processDuplicate(P2PJoinRequest request) throws IOException {
+		ArrayList<P2PNode> path = request.getPath();
+		
+		P2PMessageHeader header = new P2PMessageHeader(null, P2PMessageHeader.ALREADY_JOINED);
+		for (P2PNode item: path) {
+			item.connect(baseIbis.createSendPort(P2PConfig.portType));
+			item.sendObjects(header, myID);
+		}
+	}
+	
 	@SuppressWarnings("unchecked")
 	public synchronized void putJoinRequest(ReadMessage readMessage)
 			throws IOException, ClassNotFoundException {
@@ -241,8 +251,16 @@ public class P2PJoinThread extends Thread {
 		P2PJoinRequest request = new P2PJoinRequest(newRequestSource,
 				newRequest);
 
-		if (queue.contains(request)) {
+		// check if queue already contains request
+		if (newRequestSource.equals(myID)) {
+			processDuplicate(request);
 			return;
+		}
+		
+		for (P2PJoinRequest item: queue) {
+			if (item.getSource().equals(newRequestSource)) {
+				return;
+			}
 		}
 
 		// if new request is smaller than current request
@@ -265,15 +283,15 @@ public class P2PJoinThread extends Thread {
 				queue.put(oldRequest);
 				setProcessNext(true);
 
-				logger.debug("Request " + currentRequestSource.getP2pID()
-						+ " preempted by " + newRequestSource.getP2pID());
+				//logger.debug("Request " + currentRequestSource.getP2pID()
+						//+ " preempted by " + newRequestSource.getP2pID());
 			}
 		}
 
 		queue.put(request);
 
-		logger.debug("Queued request from " + newRequestSource.getIbisID()
-				+ " " + newRequest);
+		//logger.debug("Queued request from " + newRequestSource.getIbisID()
+				//+ " " + newRequest);
 	}
 
 	public synchronized void setProcessNext(P2PNode source, boolean processNext) {
@@ -285,12 +303,18 @@ public class P2PJoinThread extends Thread {
 				notifyAll();
 			}
 
-			logger.debug("Received state update from " + source
-					+ " and current request is "
-					+ getCurrentRequest().get(NEW_NODE));
+			//logger.debug("Received state update from " + source
+				//	+ " and current request is "
+					//+ getCurrentRequest().get(NEW_NODE));
 		}
 	}
 
+	public synchronized void setProcessNext(ReadMessage readMessage) throws IOException, ClassNotFoundException {
+		P2PNode source = (P2PNode) readMessage.readObject();
+		readMessage.finish();
+		
+		setProcessNext(source, true);
+	}
 	public synchronized void setProcessNext(boolean processNext) {
 		this.processNext = processNext;
 		notifyAll();

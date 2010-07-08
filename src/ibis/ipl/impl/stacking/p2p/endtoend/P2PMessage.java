@@ -17,7 +17,6 @@ public class P2PMessage implements Cloneable, Serializable {
 		this.setContent(content);
 		this.setLength(length);
 		this.setSid(sid);
-		this.setRid(rid);
 	}
 
 	/**
@@ -55,16 +54,6 @@ public class P2PMessage implements Cloneable, Serializable {
 	 *            the seqNum to set
 	 */
 	public void setSeqNum(int seqNum) {
-		// set sequence number for this connection
-		/*
-		 * Iterator it = connections.entrySet().iterator(); while (it.hasNext())
-		 * { Map.Entry pairs = (Map.Entry)it.next(); ReceivePortIdentifier[]
-		 * receivers = (ReceivePortIdentifier[]) pairs.getValue();
-		 * 
-		 * for (ReceivePortIdentifier receiver : receivers) { if
-		 * (receiver.equals(rid)) { receiver.setSeqNum(seqNum); } } }
-		 */
-
 		this.seqNum = seqNum;
 	}
 

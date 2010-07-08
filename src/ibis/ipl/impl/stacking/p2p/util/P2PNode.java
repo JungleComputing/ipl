@@ -228,8 +228,7 @@ public class P2PNode implements Serializable, Comparable<P2PNode> {
 		this.sendPort = other.getSendPort();
 		this.distance = other.getDistance();
 		this.lastAckTime = System.currentTimeMillis();
-		
-		setConnected(false);
+		this.connected = other.isConnected();
 	}
 	
 	public synchronized void copyObject(P2PNode other, SendPort sendPort) {
@@ -241,6 +240,7 @@ public class P2PNode implements Serializable, Comparable<P2PNode> {
 		
 		try {
 			this.sendPort.connect(ibisID, P2PConfig.PORT_NAME);
+			setConnected(true);
 		} catch (ConnectionFailedException e) {
 			e.printStackTrace();
 		}

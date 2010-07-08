@@ -53,6 +53,9 @@ public class P2PGoBackNReceiver {
 		
 		if (connection.processSeqNum(message.getSeqNum())) {
 			// deliver to upper layer
+			logger.debug("Delivering message from: " + message.getSid().ibisIdentifier());
+			logger.debug("Message has size: " + message.getLength());
+			
 			receivePort.deliverMessage(message.getSid(), message.getContent());
 		} 
 		

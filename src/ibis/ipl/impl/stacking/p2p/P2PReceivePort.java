@@ -80,7 +80,7 @@ public class P2PReceivePort extends Manageable implements ReceivePort, Runnable 
 	private Vector<SendPortIdentifier> newConnections = new Vector<SendPortIdentifier>();
 
 	private P2PGoBackNReceiver receiver;
-	
+
 	/** connection error codes **/
 
 	/** Connection attempt accepted. */
@@ -120,8 +120,9 @@ public class P2PReceivePort extends Manageable implements ReceivePort, Runnable 
 
 		this.receiver = new P2PGoBackNReceiver(ibis, this);
 		ibis.register(this);
-		
-		logger.debug("Receive Port created!" + " Connection downcalls" + this.connectionDowncalls);
+
+		logger.debug("Receive Port created!" + " Connection downcalls"
+				+ this.connectionDowncalls);
 	}
 
 	@Override
@@ -237,7 +238,7 @@ public class P2PReceivePort extends Manageable implements ReceivePort, Runnable 
 		}
 
 		return messages.poll();
-		
+
 	}
 
 	@Override
@@ -306,53 +307,51 @@ public class P2PReceivePort extends Manageable implements ReceivePort, Runnable 
 	}
 
 	private void performUpcall(P2PReadMessage message) {
-
-		if (waitUntilUpcallAllowed()) {
-			try {
-				// Notify the message that is is processed from an upcall,
-				// so that finish() calls can be detected.
-				message.setInUpcall(true);
-				upcall.upcall(message);
-			} catch (IOException e) {
-				if (!message.isFinished()) {
-					message.finish(e);
-					return;
-				}
-				logger
-						.error(
-								"Got unexpected exception in upcall, continuing ...",
-								e);
-			} catch (Throwable t) {
-				if (!message.isFinished()) {
-					IOException ioex = new IOException("Got Throwable: "
-							+ t.getMessage());
-					ioex.initCause(t);
-					message.finish(ioex);
-				}
+		logger.debug("Performing upcall....");
+		try {
+			// Notify the message that is is processed from an upcall,
+			// so that finish() calls can be detected.
+			message.setInUpcall(true);
+			upcall.upcall(message);
+		} catch (IOException e) {
+			if (!message.isFinished()) {
+				message.finish(e);
 				return;
-			} finally {
-				message.setInUpcall(false);
 			}
+			logger.error("Got unexpected exception in upcall, continuing ...",
+					e);
+		} catch (Throwable t) {
+			if (!message.isFinished()) {
+				IOException ioex = new IOException("Got Throwable: "
+						+ t.getMessage());
+				ioex.initCause(t);
+				message.finish(ioex);
+			}
+			return;
+		} finally {
+			message.setInUpcall(false);
 		}
+
 	}
 
 	public void processMessage(P2PMessage message) {
-		logger.debug("Received message from " + message.getSid() + " with seq num" + message.getSeqNum());
-		
+		logger.debug("Received message from " + message.getSid()
+				+ " with seq num" + message.getSeqNum());
+
 		receiver.processMessage(message);
 	}
-	
+
 	/**
 	 * deliver a message, if upcalls are enabled, deliver message to upcaller,
 	 * otherwise append to queue, when user calls receive, extract first message
 	 * grom queue
 	 * 
 	 * @param source
-	 * @param data 
+	 * @param data
 	 * @throws IOException
 	 * @throws ClassNotFoundException
 	 */
-	public void deliverMessage(SendPortIdentifier source, byte[] data)  {
+	public void deliverMessage(SendPortIdentifier source, byte[] data) {
 		try {
 			P2PReadMessage msg = new P2PReadMessage(this, source, data);
 			messages.put(msg);
@@ -371,14 +370,16 @@ public class P2PReceivePort extends Manageable implements ReceivePort, Runnable 
 	@Override
 	public void run() {
 		while (!getClosed()) {
-			P2PReadMessage message = getMessage(0L);
+			if (waitUntilUpcallAllowed()) {
+				P2PReadMessage message = getMessage(0L);
 
-			if (message != null) {
-				performUpcall(message);
+				if (message != null) {
+					performUpcall(message);
 
-				if (message.finishCalledInUpcall()) {
-					// A new thread has take our place
-					return;
+					if (message.finishCalledInUpcall()) {
+						// A new thread has take our place
+						return;
+					}
 				}
 			}
 		}
@@ -389,7 +390,7 @@ public class P2PReceivePort extends Manageable implements ReceivePort, Runnable 
 			PortType senderType) {
 
 		logger.debug("Processing connection request from " + source);
-		
+
 		if (connections.contains(source)) {
 			return P2PReceivePort.ALREADY_CONNECTED;
 		}
@@ -416,12 +417,12 @@ public class P2PReceivePort extends Manageable implements ReceivePort, Runnable 
 
 		if (connectionDowncalls) {
 			newConnections.add(source);
-			connections.add(source);	
+			connections.add(source);
 			logger.debug("Connection from " + source + " is processed.");
 		}
 
 		receiver.addConnection(source);
-		
+
 		return P2PReceivePort.ACCEPTED;
 	}
 }

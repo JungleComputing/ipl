@@ -119,7 +119,7 @@ public class P2PTracker implements MessageUpcall, RegistryEventHandler{
 
 		joinedPeers.add(newIbis);
 		
-		logger.debug("Registered node with IbisIdentifier " + newIbis.name());
+		logger.debug("Registered node with IbisIdentifier " + newIbis.name() + " " + joinedPeers.size());
 	}
 
 	public static void main(String args[]) {

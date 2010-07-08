@@ -85,7 +85,7 @@ public class P2PSendPort implements SendPort {
 		
 		// start go back n sender
 		this.sender = new P2PGoBackNSender(ibis);
-		new Thread(sender).start();
+		sender.start();
 	}
 
 	@Override
@@ -93,6 +93,7 @@ public class P2PSendPort implements SendPort {
 		closed = true;
 		try {
 			sender.sendNextMessage();
+			sender.interrupt();
 			notifyAll();
 			logger.debug("Send port closed!");
 		} catch (ClassNotFoundException ex) {
@@ -343,7 +344,8 @@ public class P2PSendPort implements SendPort {
 
 	protected synchronized void finishedMessage() throws IOException {
 		int length = (int) message.bytesWritten();
-		byte[] buffer = this.buffer;
+		byte[] buffer = new byte[length];
+		System.arraycopy(this.buffer, 0, buffer, 0, length);
 
 		try {
 			send(buffer, length);

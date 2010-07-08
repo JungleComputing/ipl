@@ -233,7 +233,6 @@ public class P2PState {
 				return;
 			}
 
-			// TODO: use clone method
 			routingTable[i][j].copyObject(node, baseIbis
 					.createSendPort(P2PConfig.portType));
 			routingTable[i][j].setDistance(myID);
@@ -252,6 +251,7 @@ public class P2PState {
 	private synchronized P2PNode findNode(P2PNode[] set, P2PNode minNode,
 			P2PNode maxNode, P2PNode node, int start, int end) {
 		P2PNode nextDest = myID;
+		int myPrefix = node.prefixLength(myID);
 
 		// check if node within range
 		if (node.compareTo(minNode) < 0 || node.compareTo(maxNode) > 0)
@@ -261,7 +261,8 @@ public class P2PState {
 		// search for node with closest distance
 		for (int i = start; i < end && set[i] != null; i++) {
 			BigInteger newDist = node.idDistance(set[i]);
-			if (newDist.compareTo(minDist) < 0) {
+			int newPrefix = node.prefixLength(set[i]);
+			if (newDist.compareTo(minDist) < 0 && newPrefix >= myPrefix) {
 				minDist = newDist;
 				nextDest = set[i];
 			}
@@ -409,7 +410,7 @@ public class P2PState {
 
 	public synchronized ArrayList<P2PNode> getNeighborhoodSet() {
 		return cleanSet(neighborhoodSet);
-		
+
 	}
 
 	public synchronized ArrayList<P2PNode> getLeafSet() {
@@ -426,8 +427,9 @@ public class P2PState {
 	 * @throws IOException
 	 */
 	public synchronized void parseSets(ArrayList<P2PNode> path,
-			Vector<P2PRoutingInfo> routingTables, ArrayList<P2PNode> leafSet,
-			ArrayList<P2PNode> neighborhoodSet) throws IOException {
+			ArrayList<P2PRoutingInfo> routingTables,
+			ArrayList<P2PNode> leafSet, ArrayList<P2PNode> neighborhoodSet)
+			throws IOException {
 
 		int pathSize = path.size();
 		// leaf node is the last element in the path array
@@ -442,7 +444,7 @@ public class P2PState {
 		// update routing table
 		for (int i = 0; i < routingTables.size(); i++) {
 			// read state info
-			P2PRoutingInfo info = routingTables.elementAt(i);
+			P2PRoutingInfo info = routingTables.get(i);
 			ArrayList<P2PNode> row = info.getRoutingRow();
 
 			if (row != null) {
@@ -475,7 +477,8 @@ public class P2PState {
 		// add leaf node the last node
 		addLeafNode(leafNode);
 
-		P2PMessageHeader msg = new P2PMessageHeader(null, P2PMessageHeader.STATE_REQUEST);
+		P2PMessageHeader msg = new P2PMessageHeader(null,
+				P2PMessageHeader.STATE_REQUEST);
 		P2PStateInfo myStateInfo = new P2PStateInfo(myID, getRoutingTable(),
 				getLeafSet(), getNeighborhoodSet(), true);
 
@@ -501,7 +504,7 @@ public class P2PState {
 		}
 
 		// send update to all nodes along the path
-		for (int i = 1; i<pathSize; i++) {
+		for (int i = 1; i < pathSize; i++) {
 			P2PNode element = path.get(i);
 			element.connect(baseIbis.createSendPort(P2PConfig.portType));
 			element.sendObjects(msg, myStateInfo);
@@ -516,8 +519,8 @@ public class P2PState {
 		ArrayList<P2PNode> leafSet = stateInfo.getLeafSet();
 		ArrayList<P2PNode> neighborhoodSet = stateInfo.getNeighborhoodSet();
 
-		logger.debug("State update received from " + source
-				+ source.getIbisID().name());
+		// logger.debug("State update received from " + source
+		// + source.getIbisID().name());
 
 		int prefix = myID.prefixLength(source);
 
@@ -543,17 +546,15 @@ public class P2PState {
 		}
 
 		/*
-		if (stateInfo.isSendBack()) {
-			P2PMessageHeader msg = new P2PMessageHeader(null, P2PMessageHeader.STATE_RESPONSE);
-			P2PStateInfo myStateInfo = new P2PStateInfo(myID,
-					getRoutingTable(), getLeafSet(), getNeighborhoodSet(),
-					false);
-			// send my state
-			source.connect(baseIbis.createSendPort(P2PConfig.portType));
-			source.sendObjects(msg, myStateInfo);
-		}*/
+		 * if (stateInfo.isSendBack()) { P2PMessageHeader msg = new
+		 * P2PMessageHeader(null, P2PMessageHeader.STATE_RESPONSE); P2PStateInfo
+		 * myStateInfo = new P2PStateInfo(myID, getRoutingTable(), getLeafSet(),
+		 * getNeighborhoodSet(), false); // send my state
+		 * source.connect(baseIbis.createSendPort(P2PConfig.portType));
+		 * source.sendObjects(msg, myStateInfo); }
+		 */
 
-		//printSets();
+		// printSets();
 	}
 
 	public synchronized P2PNode[][] getRoutingTable() {
@@ -598,40 +599,6 @@ public class P2PState {
 		}
 	}
 
-	/**
-	 * cleanup set, close all send ports
-	 * 
-	 * @param set
-	 * @param size
-	 * @throws IOException
-	 */
-	private void cleanupSet(P2PNode[] set, int size) throws IOException {
-		for (int i = 0; i < size; i++) {
-			if (set[i] != null) {
-				set[i].close();
-			}
-		}
-	}
-
-	/**
-	 * cleanup before exit - close all sendports from all sets
-	 */
-	public void end() {
-		/*
-		 * try {
-		 * 
-		 * // cleanup routing tables for (int i = 0; i < P2PConfig.MAX_PREFIX;
-		 * i++) { cleanupSet(routingTable[i], P2PConfig.MAX_DIGITS); }
-		 * 
-		 * // cleanup leaf and neighborhood sets cleanupSet(leafSet,
-		 * P2PConfig.LEAF_SIZE); cleanupSet(neighborhoodSet,
-		 * P2PConfig.NEIGHBOORHOOD_SIZE);
-		 * 
-		 * } catch (IOException ex) { // TODO: possibly ignore this?
-		 * ex.printStackTrace(); }
-		 */
-	}
-
 	public P2PNode findNearbyNode(P2PNode source) {
 		P2PNode nearbyNode = myID;
 		double minDistance = myID.vivaldiDistance(source);
@@ -673,26 +640,40 @@ public class P2PState {
 	}
 
 	public synchronized void pingNodes() throws IOException {
-		P2PMessageHeader msg = new P2PMessageHeader(null, P2PMessageHeader.PING_REQUEST);
+		P2PMessageHeader msg = new P2PMessageHeader(null,
+				P2PMessageHeader.PING_REQUEST);
+		Integer type, x, y;
 		for (int i = 0; i < leafSet.length; i++) {
 			if (leafSet[i] != null) {
-				leafSet[i].sendObjects(msg, myID, P2PStateRepairThread.LEAF, i,
-						0);
+				logger.debug("Pinging leaf node " + leafSet[i].getIbisID()
+						+ leafSet[i].isConnected());
+				type = P2PStateRepairThread.LEAF;
+				x = i;
+				y = 0;
+				leafSet[i].sendObjects(msg, myID, type, x, y);
 			}
 		}
 
 		for (int i = 0; i < neighborhoodSet.length; i++) {
 			if (neighborhoodSet[i] != null) {
-				neighborhoodSet[i].sendObjects(msg, myID,
-						P2PStateRepairThread.NEIGHBOR, i, 0);
+				logger.debug("Pinging neighbor node "
+						+ neighborhoodSet[i].getIbisID());
+				type = P2PStateRepairThread.NEIGHBOR;
+				x = i;
+				y = 0;
+				neighborhoodSet[i].sendObjects(msg, myID, type, x, y);
 			}
 		}
 
 		for (int i = 0; i < P2PConfig.MAX_PREFIX; i++) {
 			for (int j = 0; j < P2PConfig.MAX_DIGITS; j++) {
 				if (routingTable[i][j] != null) {
-					routingTable[i][j].sendObjects(msg, myID,
-							P2PStateRepairThread.ROUTING, i, j, 0);
+					type = P2PStateRepairThread.ROUTING;
+					x = i;
+					y = j;
+					logger.debug("Pinging routing table node " + i + " " + j
+							+ routingTable[i][j].getIbisID());
+					routingTable[i][j].sendObjects(msg, myID, type, x, y);
 				}
 			}
 		}
@@ -716,12 +697,13 @@ public class P2PState {
 	 * check sets from time to time for last ack time, if timeout exceeds
 	 * threshold, replace entry
 	 */
-	public void checkNodes() {
+	public synchronized void checkNodes() {
 		// TODO: maybe create a new thread which performs the replacement?
 		for (int i = 0; i < leafSet.length; i++) {
 			if (leafSet[i] != null
 					&& leafSet[i].getAckTimeout() > P2PConfig.ACK_THRESHOLD) {
 				// replace leaf entry
+				logger.debug("Replacing a failed leaf entry at " + i);
 				replaceLeafEntry(i);
 			}
 		}
@@ -730,6 +712,7 @@ public class P2PState {
 			if (neighborhoodSet[i] != null
 					&& neighborhoodSet[i].getAckTimeout() > P2PConfig.ACK_THRESHOLD) {
 				// repair neighbor entry
+				logger.debug("Replacing a failed neighborhood entry at " + i);
 				replaceNeighBorEntry(i);
 			}
 		}
@@ -739,6 +722,8 @@ public class P2PState {
 				if (routingTable[i][j] != null
 						&& routingTable[i][j].getAckTimeout() > P2PConfig.ACK_THRESHOLD) {
 					// repair routing entry
+					logger.debug("Replacing a failed routing table entry at "
+							+ i + " " + j);
 					replaceRoutingEntry(i, j);
 				}
 			}
@@ -761,7 +746,8 @@ public class P2PState {
 		// ..
 
 		P2PNode oldEntry = new P2PNode(routingTable[prefix][digit]);
-		P2PMessageHeader msg = new P2PMessageHeader(null, P2PMessageHeader.ROUTE_REQUEST);
+		P2PMessageHeader msg = new P2PMessageHeader(null,
+				P2PMessageHeader.ROUTE_REQUEST);
 		for (int i = prefix; i < P2PConfig.MAX_PREFIX; i++) {
 			for (int j = 0; j < P2PConfig.MAX_DIGITS; j++) {
 				if (j != digit && routingTable[i][j] != null) {
@@ -789,7 +775,8 @@ public class P2PState {
 	 */
 	private synchronized void replaceNeighBorEntry(Integer position) {
 		// contact nearby nodes, wait some timeout until response received
-		P2PMessageHeader msg = new P2PMessageHeader(null, P2PMessageHeader.NEIGHBOR_REQUEST);
+		P2PMessageHeader msg = new P2PMessageHeader(null,
+				P2PMessageHeader.NEIGHBOR_REQUEST);
 		for (int i = 0; i < neighborhoodSet.length; i++) {
 			if (neighborhoodSet[i] != null) {
 				neighborhoodSet[i].sendObjects(msg, myID, position);
@@ -814,7 +801,8 @@ public class P2PState {
 			side = P2PStateRepairThread.LEAF_RIGHT;
 		}
 
-		P2PMessageHeader msg = new P2PMessageHeader(null, P2PMessageHeader.LEAF_REQUEST);
+		P2PMessageHeader msg = new P2PMessageHeader(null,
+				P2PMessageHeader.LEAF_REQUEST);
 		for (int i = start; i < end; i++) {
 			if (leafSet[i] != null) {
 				leafSet[i].sendObjects(msg, myID, side, position);

@@ -2,6 +2,9 @@ package ibis.ipl.impl.stacking.p2p;
 
 import java.io.IOException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import ibis.io.SerializationFactory;
 import ibis.io.SerializationOutput;
 import ibis.io.SingleBufferArrayOutputStream;
@@ -10,10 +13,12 @@ import ibis.ipl.SendPort;
 import ibis.ipl.WriteMessage;
 
 public class P2PWriteMessage implements WriteMessage {
-	final P2PSendPort port;
+	private final P2PSendPort port;
 	private final SerializationOutput out;
 	private final SingleBufferArrayOutputStream bout;
 
+	private static final Logger logger = LoggerFactory.getLogger(P2PWriteMessage.class);
+	
 	public P2PWriteMessage(P2PSendPort sendPort, byte[] buffer)
 			throws IOException {
 		this.port = sendPort;
@@ -33,6 +38,8 @@ public class P2PWriteMessage implements WriteMessage {
 			serialization = "byte";
 		}
 
+		logger.debug("Serialization is " + serialization);
+		
 		bout = new SingleBufferArrayOutputStream(buffer);
 		out = SerializationFactory.createSerializationOutput(serialization,
 				bout);
@@ -55,7 +62,7 @@ public class P2PWriteMessage implements WriteMessage {
 
 		long bytes = bout.bytesWritten();
 
-		// System.err.println("Written == " + bytes);
+		System.err.println("Written == " + bytes);
 
 		port.finishedMessage();
 		return bytes;
@@ -266,5 +273,4 @@ public class P2PWriteMessage implements WriteMessage {
 	public void writeString(String value) throws IOException {
 		out.writeString(value);
 	}
-
 }

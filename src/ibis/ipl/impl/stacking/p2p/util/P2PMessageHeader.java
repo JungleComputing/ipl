@@ -24,6 +24,7 @@ public class P2PMessageHeader implements Serializable{
 	public final static int NEARBY_REQUEST = 8;
 	public final static int NEARBY_RESPONSE = 9;
 	public final static int NEARBY_NOT_JOINED = 10;
+	public final static int ALREADY_JOINED = 27;
 	
 	// logger specific messages
 	public final static int NODE_DEPARTURE = 11;

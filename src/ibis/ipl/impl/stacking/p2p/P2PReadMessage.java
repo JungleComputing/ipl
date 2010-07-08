@@ -2,6 +2,9 @@ package ibis.ipl.impl.stacking.p2p;
 
 import java.io.IOException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import ibis.io.SerializationFactory;
 import ibis.io.SerializationInput;
 import ibis.io.SingleBufferArrayInputStream;
@@ -10,6 +13,7 @@ import ibis.ipl.ReadMessage;
 import ibis.ipl.ReceivePort;
 import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.impl.smartsockets.SmartSocketsUltraLightReceivePort;
+import ibis.ipl.impl.stacking.p2p.endtoend.P2PGoBackNReceiver;
 
 public class P2PReadMessage implements ReadMessage {
 
@@ -26,9 +30,11 @@ public class P2PReadMessage implements ReadMessage {
 	private final SendPortIdentifier origin;
 
 	private final P2PReceivePort port;
-
+	
+	private static final Logger logger = LoggerFactory.getLogger(P2PReadMessage.class);
+	
 	public P2PReadMessage(P2PReceivePort port, 
-            SendPortIdentifier origin, byte [] data) throws IOException {
+            SendPortIdentifier origin, byte[] data) throws IOException {
 		this.origin = origin;
 		this.port = port;
 
@@ -47,7 +53,7 @@ public class P2PReadMessage implements ReadMessage {
 		} else {
 			serialization = "byte";
 		}
-
+		
 		bin = new SingleBufferArrayInputStream(data);
 		in = SerializationFactory.createSerializationInput(serialization, bin);
 	}
