@@ -127,4 +127,8 @@ public class ReceivePortConnectionInfo {
                     + ", finish called from upcall");
         }
     }
+    
+    public String connectionType() {
+        return "unknown";
+    }
 }

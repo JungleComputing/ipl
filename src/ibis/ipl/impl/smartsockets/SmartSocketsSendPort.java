@@ -34,6 +34,10 @@ final class SmartSocketsSendPort extends SendPort implements SmartSocketsProtoco
             out = s.getOutputStream();
             splitter.add(out);
         }
+                
+        public String connectionType() {
+            return s.toString();
+        }
 
         public void closeConnection() {
             try {

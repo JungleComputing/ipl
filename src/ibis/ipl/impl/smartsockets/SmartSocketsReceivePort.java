@@ -41,6 +41,10 @@ class SmartSocketsReceivePort extends ReceivePort implements SmartSocketsProtoco
                 // ignore
             }
         }
+        
+        public String connectionType() {
+            return s.toString();
+        }
 
         public void run() {
             logger.info("Started connection handler thread");
@@ -55,6 +59,7 @@ class SmartSocketsReceivePort extends ReceivePort implements SmartSocketsProtoco
                             // If there is a reader, or a message is active,
                             // continue.
                             if (reader_busy || ((SmartSocketsReceivePort)port).getPortMessage() != null) {
+                                logger.info("reader_busy: " + reader_busy);
                                 continue;
                             }
                             if (in == null) {

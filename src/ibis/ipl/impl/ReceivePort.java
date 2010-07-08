@@ -195,6 +195,23 @@ public abstract class ReceivePort extends Manageable
         allowUpcalls = true;
         notifyAll();
     }
+    
+    public synchronized Map<IbisIdentifier, Set<String>> getConnectionTypes() {
+        HashMap<IbisIdentifier, Set<String>> result = new HashMap<IbisIdentifier, Set<String>>();
+        for (SendPortIdentifier port : connections.keySet()) {
+            ReceivePortConnectionInfo i = connections.get(port);
+            if (i != null) {
+                IbisIdentifier id = port.ibis;
+                Set<String> s = result.get(id);
+                if (s == null) {
+                    s = new HashSet<String>();
+                }
+                s.add(i.connectionType());
+                result.put(id, s);
+            }
+        }
+        return result;
+    }
 
     public static String getString(int result) {
         switch(result) {

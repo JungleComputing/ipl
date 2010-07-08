@@ -21,6 +21,10 @@ public abstract class SendPortConnectionInfo {
         this.port = port;
         this.target = target;
     }
+    
+    public String connectionType() {
+        return "unknown";
+    }
 
     /**
      * Should close this particular connection.

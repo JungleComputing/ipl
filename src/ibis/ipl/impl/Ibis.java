@@ -29,7 +29,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.UUID;
+import java.util.Map.Entry;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -704,6 +706,44 @@ public abstract class Ibis implements ibis.ipl.Ibis // , IbisMBean
      */
     public String[] wonElections() {
         return registry.wonElections();
+    }
+        
+    /**
+     * @ibis.experimental
+     */
+    public synchronized Map<ibis.ipl.IbisIdentifier, Set<String>> getReceiverConnectionTypes() {
+        Map<ibis.ipl.IbisIdentifier, Set<String>> result = new HashMap<ibis.ipl.IbisIdentifier, Set<String>>();
+        for (ReceivePort port : receivePorts.values()) {
+            Map<IbisIdentifier, Set<String>> p = port.getConnectionTypes();
+            for (Entry<IbisIdentifier, Set<String>> entry : p.entrySet()) {
+                Set<String> r = result.get(entry.getKey());
+                if (r == null) {
+                    r = new HashSet<String>();
+                }
+                r.addAll(entry.getValue());
+                result.put(entry.getKey(), r);
+            }
+        }       
+        return result;
+    }
+    
+    /**
+     * @ibis.experimental
+     */
+    public synchronized Map<ibis.ipl.IbisIdentifier, Set<String>> getSenderConnectionTypes() {
+        Map<ibis.ipl.IbisIdentifier, Set<String>> result = new HashMap<ibis.ipl.IbisIdentifier, Set<String>>();
+        for (SendPort port : sendPorts.values()) {
+            Map<IbisIdentifier, Set<String>> p = port.getConnectionTypes();
+            for (Entry<IbisIdentifier, Set<String>> entry : p.entrySet()) {
+                Set<String> r = result.get(entry.getKey());
+                if (r == null) {
+                    r = new HashSet<String>();
+                }
+                r.addAll(entry.getValue());
+                result.put(entry.getKey(), r);
+            }
+        }        
+        return result;
     }
 
     public synchronized Map<String, String> managementProperties() {

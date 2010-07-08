@@ -6,6 +6,7 @@ import ibis.ipl.server.Server;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.Map.Entry;
 
 public class Example {
@@ -65,6 +66,12 @@ public class Example {
         AttributeDescription wonElections = new AttributeDescription("ibis",
                 "wonElections");
         
+        AttributeDescription senderConnectionTypes = new AttributeDescription("ibis",
+                "senderConnectionTypes");
+        
+        AttributeDescription receiverConnectionTypes = new AttributeDescription("ibis",
+                "receiverConnectionTypes");
+        
         
         while (true) {
 
@@ -117,6 +124,22 @@ public class Example {
                             for (String s : won) {
                                 System.err.println(ibis + " won election " + s);
                             }
+                        }
+                        
+                        Map<IbisIdentifier, Set<String>> senderConnections =
+                            (Map<IbisIdentifier, Set<String>>) (server.getManagementService().getAttributes(ibis, 
+                                    senderConnectionTypes))[0];
+                        
+                        if (senderConnections != null) {
+                            System.err.println("senderConnections: " + senderConnections.toString());
+                        }
+                        
+                        Map<IbisIdentifier, Set<String>> receiverConnections =
+                            (Map<IbisIdentifier, Set<String>>) (server.getManagementService().getAttributes(ibis, 
+                                    receiverConnectionTypes))[0];
+                        
+                        if (receiverConnections != null) {
+                            System.err.println("receiverConnections: " + receiverConnections.toString());
                         }
 
                     } catch (Exception e) {

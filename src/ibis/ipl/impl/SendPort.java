@@ -20,11 +20,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -233,6 +235,23 @@ public abstract class SendPort extends Manageable implements ibis.ipl.SendPort {
             result.put(element[0], element[2]);
         }
 
+        return result;
+    }
+    
+    public synchronized Map<IbisIdentifier, Set<String>> getConnectionTypes() {
+        HashMap<IbisIdentifier, Set<String>> result = new HashMap<IbisIdentifier, Set<String>>();
+        for (ReceivePortIdentifier port : receivers.keySet()) {
+            SendPortConnectionInfo i = receivers.get(port);
+            if (i != null) {
+                IbisIdentifier id = port.ibis;
+                Set<String> s = result.get(id);
+                if (s == null) {
+                    s = new HashSet<String>();
+                }
+                s.add(i.connectionType());
+                result.put(id, s);
+            }
+        }
         return result;
     }
 

@@ -76,6 +76,12 @@ public class ManagementClient implements Runnable {
         if (name.equals("wonElections")) {
             return ibis.wonElections();
         }
+        if (name.equals("senderConnectionTypes")) {
+            return ibis.getSenderConnectionTypes();
+        }
+        if (name.equals("receiverConnectionTypes")) {
+            return ibis.getReceiverConnectionTypes();
+        }
         return ibis.getManagementProperty(name);
     }
 
