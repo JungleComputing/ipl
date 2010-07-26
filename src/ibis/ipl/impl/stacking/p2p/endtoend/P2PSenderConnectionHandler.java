@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
  * 
  */
 public class P2PSenderConnectionHandler {
-	private int sendBase, sendMax, seqNum, currSeqNum;
+	private int sendBase, sendMax, seqNum;
 	private ArrayList<P2PMessage> messages;
 	private P2PIbis ibis;
 	//private ReceivePortIdentifier rid;
@@ -28,7 +28,6 @@ public class P2PSenderConnectionHandler {
 		sendBase = 0;
 		sendMax = P2PConfig.WINDOW_SIZE - 1;
 		seqNum = 0;
-		currSeqNum = 0;
 		messages = new ArrayList<P2PMessage>();
 		this.ibis = ibis;
 	}
@@ -105,7 +104,6 @@ public class P2PSenderConnectionHandler {
 
 	public synchronized void sendNextMessage() throws IOException, ClassNotFoundException {
 		// send all messages between sendBase and sendMax
-		
 		logger.debug("Send base: " + sendBase + " Send max: " + sendMax);
 		
 		for (int i = sendBase; i<sendMax && i<messages.size(); i++) {
@@ -113,18 +111,5 @@ public class P2PSenderConnectionHandler {
 			logger.debug("Sending message with seq num " + i);
 			ibis.send(message);
 		}
-			
-		/*	
-		if (sendBase <= currSeqNum && currSeqNum <= sendMax
-				&& currSeqNum < messages.size()) {
-			P2PMessage message = messages.get(currSeqNum);
-			
-			// send message
-			ibis.send(message.getContent(), message.getLength(), message
-					.getSid(), message.getConnections());
-			
-			// increase sequence number
-			currSeqNum = (currSeqNum + 1) % P2PConfig.MAX_SEQ_NUM;
-		}*/
 	}
 }

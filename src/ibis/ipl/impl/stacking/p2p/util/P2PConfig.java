@@ -15,7 +15,7 @@ public class P2PConfig {
 			PortType.SERIALIZATION_OBJECT_SUN, PortType.RECEIVE_AUTO_UPCALLS, PortType.RECEIVE_EXPLICIT,
 			PortType.CONNECTION_MANY_TO_MANY);
 
-	public final static int TIMEOUT = 1500;
+	public final static int TIMEOUT = 5000;
 	public final static String PORT_NAME = "p2p";
 	public final static String TRACKER_PORT = "p2ptracker";
 	public final static String ELECTION_JOIN = "p2pjoin";

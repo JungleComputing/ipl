@@ -338,7 +338,11 @@ public class P2PReceivePort extends Manageable implements ReceivePort, Runnable 
 		logger.debug("Received message from " + message.getSid()
 				+ " with seq num" + message.getSeqNum());
 
-		receiver.processMessage(message);
+		if (type.hasCapability(PortType.COMMUNICATION_RELIABLE)) {
+			receiver.processMessage(message);
+		} else {
+			deliverMessage(message.getSid(), message.getContent());
+		}
 	}
 
 	/**

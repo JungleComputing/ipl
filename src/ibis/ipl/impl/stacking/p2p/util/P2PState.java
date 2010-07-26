@@ -587,7 +587,6 @@ public class P2PState {
 			}
 		}
 
-		System.out.println();
 		for (int i = 0; i < 5; i++) {
 			for (int j = 0; j < P2PConfig.MAX_DIGITS; j++) {
 				if (routingTable[i][j] != null) {

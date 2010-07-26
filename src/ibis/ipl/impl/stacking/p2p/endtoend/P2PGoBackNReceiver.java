@@ -1,8 +1,6 @@
 package ibis.ipl.impl.stacking.p2p.endtoend;
 
-import ibis.ipl.ReceivePort;
 import ibis.ipl.SendPortIdentifier;
-import ibis.ipl.ReceivePortIdentifier;
 import ibis.ipl.impl.stacking.p2p.P2PIbis;
 import ibis.ipl.impl.stacking.p2p.P2PReceivePort;
 import ibis.ipl.impl.stacking.p2p.util.P2PNode;
@@ -10,7 +8,6 @@ import ibis.ipl.impl.stacking.p2p.util.P2PNode;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Vector;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,8 +51,6 @@ public class P2PGoBackNReceiver {
 		if (connection.processSeqNum(message.getSeqNum())) {
 			// deliver to upper layer
 			logger.debug("Delivering message from: " + message.getSid().ibisIdentifier());
-			logger.debug("Message has size: " + message.getLength());
-			
 			receivePort.deliverMessage(message.getSid(), message.getContent());
 		} 
 		

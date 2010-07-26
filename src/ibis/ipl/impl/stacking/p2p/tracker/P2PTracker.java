@@ -90,7 +90,7 @@ public class P2PTracker implements MessageUpcall, RegistryEventHandler{
 		BitSet set = new BitSet();
 		set.clear();
 
-		logger.debug("Nearby requests: " + nearbyRequests);
+		System.err.println("Nearby requests: " + nearbyRequests);
 		
 		Random random = new Random();
 		int selected = 0;
@@ -119,7 +119,7 @@ public class P2PTracker implements MessageUpcall, RegistryEventHandler{
 
 		joinedPeers.add(newIbis);
 		
-		logger.debug("Registered node with IbisIdentifier " + newIbis.name() + " " + joinedPeers.size());
+		System.err.println("Registered node with IbisIdentifier " + newIbis.name() + " " + joinedPeers.size());
 	}
 
 	public static void main(String args[]) {

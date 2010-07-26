@@ -2,11 +2,9 @@ package ibis.ipl.impl.stacking.p2p.endtoend;
 
 import ibis.ipl.IbisIdentifier;
 import ibis.ipl.ReceivePortIdentifier;
-import ibis.ipl.SendPortIdentifier;
 import ibis.ipl.impl.stacking.p2p.P2PIbis;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -37,8 +35,9 @@ public class P2PGoBackNSender extends Thread {
 		this.ibis = ibis;
 	}
 
-	public void connect(ReceivePortIdentifier rid) {
+	public synchronized void connect(ReceivePortIdentifier rid) {
 		windows.put(rid, new P2PSenderConnectionHandler(ibis));
+		//logger.debug("Connected to: " + rid);
 	}
 
 	/**
@@ -73,7 +72,10 @@ public class P2PGoBackNSender extends Thread {
 		}
 	}
 
-	public void processAck(ReceivePortIdentifier rid, int ackNum) {
+	public synchronized void processAck(ReceivePortIdentifier rid, int ackNum) {
+		logger.debug("ack from " + rid);
+		System.err.println("ack from " + rid);
+		
 		P2PSenderConnectionHandler window = windows.get(rid);
 		window.processAck(ackNum);
 	}
@@ -84,14 +86,14 @@ public class P2PGoBackNSender extends Thread {
 			while (!isInterrupted()) {
 				//logger.debug("I am the sender thread!");
 				sendNextMessage();
-				Thread.sleep(10000);
+				Thread.sleep(50);
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		} catch (InterruptedException e) {
-			e.printStackTrace();
+			//e.printStackTrace();
 		}
 	}
 }

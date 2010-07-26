@@ -62,7 +62,7 @@ public class P2PWriteMessage implements WriteMessage {
 
 		long bytes = bout.bytesWritten();
 
-		System.err.println("Written == " + bytes);
+		//System.err.println("Written == " + bytes);
 
 		port.finishedMessage();
 		return bytes;

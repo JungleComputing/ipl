@@ -82,7 +82,7 @@ public class P2PSendPort implements SendPort {
 		message = new P2PWriteMessage(this, buffer);
 
 		ibis.register(this);
-		
+
 		// start go back n sender
 		this.sender = new P2PGoBackNSender(ibis);
 		sender.start();
@@ -123,7 +123,7 @@ public class P2PSendPort implements SendPort {
 	private void addReceiver(IbisIdentifier ibisIdentifier,
 			ReceivePortIdentifier receiver) {
 		if (!connections.containsKey(ibisIdentifier)) {
-			ReceivePortIdentifier[] temp = new ibis.ipl.impl.stacking.p2p.ReceivePortIdentifier[1];
+			ReceivePortIdentifier[] temp = new ibis.ipl.impl.ReceivePortIdentifier[1];
 			temp[0] = receiver;
 			connections.put(ibisIdentifier, temp);
 		} else {
@@ -138,14 +138,14 @@ public class P2PSendPort implements SendPort {
 			IbisIdentifier ibisIdentifier, String receivePortName,
 			long timeoutMillis, boolean fillTimeout)
 			throws ConnectionFailedException {
-		ReceivePortIdentifier receiver = new ibis.ipl.impl.stacking.p2p.ReceivePortIdentifier(
+		ReceivePortIdentifier receiver = new ibis.ipl.impl.ReceivePortIdentifier(
 				receivePortName, (ibis.ipl.impl.IbisIdentifier) ibisIdentifier);
 
 		ibis.connect(ibisIdentifier, receivePortName, sid, type, timeoutMillis,
 				fillTimeout);
 
 		Byte response = ibis.getConnectionResponse();
-
+		
 		switch (response.byteValue()) {
 		case P2PReceivePort.ALREADY_CONNECTED:
 			throw new AlreadyConnectedException("Already connected",
@@ -172,7 +172,7 @@ public class P2PSendPort implements SendPort {
 
 		// inform go back n sender that new connection has been setup
 		sender
-				.connect((ibis.ipl.impl.stacking.p2p.ReceivePortIdentifier) receiver);
+				.connect((ibis.ipl.impl.ReceivePortIdentifier) receiver);
 
 		return receiver;
 	}
@@ -359,12 +359,17 @@ public class P2PSendPort implements SendPort {
 
 	}
 
-	private void send(byte[] buffer, int length) throws IOException {
+	private void send(byte[] buffer, int length) throws IOException, ClassNotFoundException {
 		// append to the queue of go back n sender
 		P2PMessage message = new P2PMessage(buffer, length, sid);
 
-		// TODO: check if end to end capability enable
-		sender.putMessage(message, connections);
+		// end to end fault tolerance only if communication reliable 
+		if (type.hasCapability(PortType.COMMUNICATION_RELIABLE)) {
+			sender.putMessage(message, connections);
+		} else {
+			logger.debug("Sending unreliable message...");
+			ibis.send(message, connections);
+		}
 	}
 
 	protected synchronized boolean isReceiverConnected(ReceivePortIdentifier id) {

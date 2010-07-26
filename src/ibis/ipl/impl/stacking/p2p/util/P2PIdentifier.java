@@ -38,7 +38,6 @@ public class P2PIdentifier implements Serializable{
 		int i = 0;
 		String p2pOtherID = p2pNode.getP2pID();
 		
-		//System.out.println("MyID: " + p2pID + " OtherID: " + p2pOtherID);
 		for (i = 0; i < p2pOtherID.length() && i < p2pID.length(); i++) {
 			if (p2pOtherID.charAt(i) != p2pID.charAt(i)) {
 				break;

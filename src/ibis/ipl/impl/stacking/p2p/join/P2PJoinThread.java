@@ -1,7 +1,6 @@
 package ibis.ipl.impl.stacking.p2p.join;
 
 import ibis.ipl.Ibis;
-import ibis.ipl.PortType;
 import ibis.ipl.ReadMessage;
 import ibis.ipl.impl.stacking.p2p.P2PIbis;
 import ibis.ipl.impl.stacking.p2p.util.P2PConfig;
@@ -12,13 +11,9 @@ import ibis.ipl.impl.stacking.p2p.util.P2PState;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Set;
-import java.util.Vector;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.PriorityBlockingQueue;
 
 import org.slf4j.Logger;
@@ -78,8 +73,8 @@ public class P2PJoinThread extends Thread {
 		// update current request
 		setCurrentRequest(path);
 
-		//logger.debug(path + "Processing join request from "
-				//+ path.get(NEW_NODE) + " " + path.get(NEW_NODE).getIbisID());
+		logger.debug(path + "Processing join request from "
+				+ path.get(NEW_NODE) + " " + path.get(NEW_NODE).getIbisID());
 
 		// append my ID
 		path.add(myIbis.getMyID());
@@ -104,10 +99,11 @@ public class P2PJoinThread extends Thread {
 				nextHop.sendObjects(msg, path);
 
 				// remember to whom it was forwarded
-				//logger.debug("Request " + path.get(NEW_NODE).getIbisID()
-						//+ " forwarded to " + nextHop.getIbisID());
+				logger.debug("Request " + path.get(NEW_NODE).getIbisID()
+						+ " forwarded to " + nextHop.getIbisID());
 			} else {
 				// process message, reverse message direction and append state
+				logger.debug("Request is reverted!");
 				reverseJoinDirection(path);
 			}
 
@@ -176,7 +172,7 @@ public class P2PJoinThread extends Thread {
 		int myPosition = -1;
 		for (int i = 0; i < path.size(); i++) {
 			P2PNode node = path.get(i);
-			if (node.getIbisID().name().equals(myID.getIbisID().name())) {
+			if (node.equals(myID)) {
 				myPosition = i;
 				break;
 			}
@@ -190,7 +186,7 @@ public class P2PJoinThread extends Thread {
 					.readObject();
 			readMessage.finish();
 
-			//logger.debug("I received a join response...!");
+			logger.debug("I received a join response...!");
 			state.parseSets(path, routingTables, leafSet, neighborhoodSet);
 
 			// received join response, wake main thread
@@ -283,15 +279,15 @@ public class P2PJoinThread extends Thread {
 				queue.put(oldRequest);
 				setProcessNext(true);
 
-				//logger.debug("Request " + currentRequestSource.getP2pID()
-						//+ " preempted by " + newRequestSource.getP2pID());
+				logger.debug("Request " + currentRequestSource.getP2pID()
+						+ " preempted by " + newRequestSource.getP2pID());
 			}
 		}
 
 		queue.put(request);
 
-		//logger.debug("Queued request from " + newRequestSource.getIbisID()
-				//+ " " + newRequest);
+		logger.debug("Queued request from " + newRequestSource.getIbisID()
+				+ " " + newRequest);
 	}
 
 	public synchronized void setProcessNext(P2PNode source, boolean processNext) {
@@ -303,9 +299,9 @@ public class P2PJoinThread extends Thread {
 				notifyAll();
 			}
 
-			//logger.debug("Received state update from " + source
-				//	+ " and current request is "
-					//+ getCurrentRequest().get(NEW_NODE));
+			logger.debug("Received state update from " + source
+					+ " and current request is "
+					+ getCurrentRequest().get(NEW_NODE));
 		}
 	}
 
